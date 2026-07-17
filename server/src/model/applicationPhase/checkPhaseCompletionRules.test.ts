@@ -65,7 +65,7 @@ describe("checkPhaseCompletionRules", () => {
         [
           testApplicationId,
           "Concept",
-          "Pre-Submission Submitted Date",
+          "Concept Paper Submitted Date",
           testApplicationDateMapReturn,
         ],
       ]);
@@ -219,7 +219,12 @@ describe("checkPhaseCompletionRules", () => {
           "Expected Approval Date",
           testApplicationDateMapReturn,
         ],
-        [testApplicationId, "SDG Preparation", "SME Review Date", testApplicationDateMapReturn],
+        [
+          testApplicationId,
+          "SDG Preparation",
+          "SME Initial Review Date",
+          testApplicationDateMapReturn,
+        ],
         [
           testApplicationId,
           "SDG Preparation",
@@ -454,6 +459,12 @@ describe("checkPhaseCompletionRules", () => {
           testApplicationId,
           "Approval Summary",
           "Application Demonstration Types Marked Complete Date",
+          testApplicationDateMapReturn,
+        ],
+        [
+          testApplicationId,
+          "Approval Summary",
+          "Application Approval Date",
           testApplicationDateMapReturn,
         ],
       ]);

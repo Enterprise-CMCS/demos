@@ -8,11 +8,11 @@ const ApolloServerMock = class {
   }
 };
 
-const startServerAndCreateLambdaHandlerMock = vi.fn((server: any, handler: any, opts: any) => ({
+const startServerAndCreateLambdaHandlerMock = vi.fn(() => ({
   handlerCalled: true,
 }));
 const handlersMock = { createAPIGatewayProxyEventRequestHandler: vi.fn(() => ({ handler: true })) };
-const ApolloArmorMock = vi.fn(function (this: any, cfg: any) {
+const ApolloArmorMock = vi.fn(function (this: any) {
   this.protect = () => ({ plugins: [], validationRules: [] });
 });
 const validateClaimsMock = vi.fn();
@@ -25,14 +25,12 @@ vi.mock("@as-integrations/aws-lambda", () => ({
 vi.mock("@escape.tech/graphql-armor", () => ({ ApolloArmor: ApolloArmorMock }));
 
 vi.mock("./model/graphql.js", () => ({ typeDefs: [], resolvers: {} }));
-vi.mock("./auth/auth.plugin.js", () => ({ authGatePlugin: {} }));
 vi.mock("./plugins/logging.plugin", () => ({ loggingPlugin: {} }));
 vi.mock("./plugins/graphQLArmorConfig.js", () => ({ GraphQLArmorConfig: { __sentinel: true } }));
-vi.mock("./auth/auth.util.js", () => ({
-  buildLambdaContext: vi.fn(async () => ({})),
+vi.mock("./auth", () => ({
   buildContextFromClaims: vi.fn(async () => ({ user: { id: "user-1" } })),
   validateClaims: validateClaimsMock,
-  getDatabaseUrl: vi.fn(async () => "postgres://db"),
+  validatePersonTypeInClaim: vi.fn(),
 }));
 vi.mock("./log.js", () => ({
   log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },
@@ -64,6 +62,7 @@ function makeEvent(): APIGatewayProxyEvent {
         given_name: "obiwan",
         family_name: "Kenobi",
         userId: "ABCD",
+        auth_time: "1779211277",
       },
       protocol: "HTTP/1.1",
       httpMethod: "POST",
@@ -87,14 +86,14 @@ describe("server module", () => {
   });
 
   it("constructs ApolloArmor with GraphQLArmorConfig and creates graphqlHandler", async () => {
-    await import("./server.ts");
+    await import("./server");
 
     expect(ApolloArmorMock).toHaveBeenCalled();
     expect(startServerAndCreateLambdaHandlerMock).toHaveBeenCalled();
   });
 
   it("extracts claims from the API Gateway authorizer", async () => {
-    const { extractClaimsFromEvent } = await import("./server.ts");
+    const { extractClaimsFromEvent } = await import("./server");
 
     const claims = extractClaimsFromEvent(makeEvent());
 
@@ -105,6 +104,7 @@ describe("server module", () => {
       givenName: "obiwan",
       familyName: "Kenobi",
       externalUserId: "ABCD",
+      authTime: new Date(1779211277000),
     });
     expect(claims).toEqual({
       email: "somehuman@example.com",
@@ -113,6 +113,7 @@ describe("server module", () => {
       givenName: "obiwan",
       familyName: "Kenobi",
       externalUserId: "ABCD",
+      authTime: new Date(1779211277000),
     });
   });
 });

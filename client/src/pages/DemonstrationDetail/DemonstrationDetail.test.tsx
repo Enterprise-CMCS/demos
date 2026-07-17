@@ -27,45 +27,52 @@ import { DemonstrationTab } from "./DemonstrationTab";
 import { AmendmentsTab } from "./modifications/AmendmentsTab";
 import { ExtensionsTab } from "./modifications/ExtensionsTab";
 
-const DemonstrationDetailMock = {
+const demonstrationWithModifications = {
+  id: "1",
+  status: "Active",
+  currentPhaseName: "Phase 1",
+  amendments: [
+    {
+      id: "amendment-1",
+    },
+    {
+      id: "amendment-2",
+    },
+  ],
+  extensions: [
+    {
+      id: "extension-1",
+    },
+  ],
+  documents: [],
+  roles: [],
+};
+
+const buildDemonstrationDetailMock = (
+  demonstration: typeof demonstrationWithModifications = demonstrationWithModifications
+) => ({
   request: {
     query: DEMONSTRATION_DETAIL_QUERY,
     variables: { id: "1" },
   },
   result: {
     data: {
-      demonstration: {
-        id: "1",
-        status: "Active",
-        currentPhaseName: "Phase 1",
-        amendments: [
-          {
-            id: "amendment-1",
-          },
-          {
-            id: "amendment-2",
-          },
-        ],
-        extensions: [
-          {
-            id: "extension-1",
-          },
-        ],
-        documents: [],
-        roles: [],
-      },
+      demonstration,
     },
   },
-};
+});
 
 describe("DemonstrationDetail", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  const renderWithRouter = (initialEntry = "/demonstrations/1") => {
+  const renderWithRouter = (
+    initialEntry = "/demonstrations/1",
+    mock = buildDemonstrationDetailMock()
+  ) => {
     return render(
-      <MockedProvider mocks={[DemonstrationDetailMock]} addTypename={false}>
+      <MockedProvider mocks={[mock]}>
         <MemoryRouter initialEntries={[initialEntry]}>
           <Routes>
             <Route path="/demonstrations/:id" element={<DemonstrationDetail />} />
@@ -79,11 +86,49 @@ describe("DemonstrationDetail", () => {
     renderWithRouter();
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /Demonstration Details/i })).toBeInTheDocument();
+      expect(screen.getByRole("tab", { name: /Demonstration Details/i })).toBeInTheDocument();
     });
 
-    expect(screen.getByRole("button", { name: /Amendments \(2\)/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Extensions \(1\)/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Amendments \(2\)/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Extensions \(1\)/i })).toBeInTheDocument();
+  });
+
+  it("renders empty amendment and extension tabs for approved demonstrations", async () => {
+    renderWithRouter(
+      "/demonstrations/1",
+      buildDemonstrationDetailMock({
+        ...demonstrationWithModifications,
+        status: "Approved",
+        amendments: [],
+        extensions: [],
+      })
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: /Demonstration Details/i })).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole("tab", { name: /Amendments \(0\)/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Extensions \(0\)/i })).toBeInTheDocument();
+  });
+
+  it("hides empty amendment and extension tabs for demonstrations that are not approved", async () => {
+    renderWithRouter(
+      "/demonstrations/1",
+      buildDemonstrationDetailMock({
+        ...demonstrationWithModifications,
+        status: "Active",
+        amendments: [],
+        extensions: [],
+      })
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: /Demonstration Details/i })).toBeInTheDocument();
+    });
+
+    expect(screen.queryByRole("tab", { name: /Amendments/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: /Extensions/i })).not.toBeInTheDocument();
   });
 
   it("renders on demonstration details tab by default", async () => {
@@ -112,7 +157,9 @@ describe("DemonstrationDetail", () => {
 
     expect(AmendmentsTab).toHaveBeenCalledWith(
       expect.objectContaining({
+        canCreateModifications: false,
         demonstrationId: "1",
+        selectedAmendmentId: "amendment-1",
       }),
       undefined
     );
@@ -129,7 +176,9 @@ describe("DemonstrationDetail", () => {
 
     expect(ExtensionsTab).toHaveBeenCalledWith(
       expect.objectContaining({
+        canCreateModifications: false,
         demonstrationId: "1",
+        selectedExtensionId: "extension-1",
       }),
       undefined
     );
@@ -146,7 +195,7 @@ describe("DemonstrationDetail", () => {
     });
 
     // Click on Amendments tab
-    const amendmentsTab = screen.getByRole("button", { name: /Amendments \(2\)/i });
+    const amendmentsTab = screen.getByRole("tab", { name: /Amendments \(2\)/i });
     await user.click(amendmentsTab);
 
     await waitFor(() => {
@@ -155,13 +204,14 @@ describe("DemonstrationDetail", () => {
 
     expect(AmendmentsTab).toHaveBeenCalledWith(
       expect.objectContaining({
+        canCreateModifications: false,
         demonstrationId: "1",
       }),
       undefined
     );
 
     // Click on Extensions tab
-    const extensionsTab = screen.getByRole("button", { name: /Extensions \(1\)/i });
+    const extensionsTab = screen.getByRole("tab", { name: /Extensions \(1\)/i });
     await user.click(extensionsTab);
 
     await waitFor(() => {
@@ -170,13 +220,14 @@ describe("DemonstrationDetail", () => {
 
     expect(ExtensionsTab).toHaveBeenCalledWith(
       expect.objectContaining({
+        canCreateModifications: false,
         demonstrationId: "1",
       }),
       undefined
     );
 
     // Click back to Demonstration Details tab
-    const detailsTab = screen.getByRole("button", { name: /Demonstration Details/i });
+    const detailsTab = screen.getByRole("tab", { name: /Demonstration Details/i });
     await user.click(detailsTab);
 
     await waitFor(() => {

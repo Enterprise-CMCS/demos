@@ -1,0 +1,84 @@
+# Parity accepted-deferrals baseline -- Gate 4: pending/approved unification
+# Each data row is an SME-reviewed, ACCEPTED pending-only demonstration that
+# the migration deliberately does NOT load (no approved counterpart, per
+# workflow 7 in reports/narrative/pending_approved_decisions.md). Gate 4 goes GREEN only
+# when the live pending-only set is a subset of this file AND Status is SIGNED
+# with a Reviewer and Date. Key columns: legacy_pendg_demo_id, reason.
+# Status: UNSIGNED
+# Reviewer:
+# Date:
+legacy_pendg_demo_id,reason,medicaid_id
+1,no_approved_counterpart,11-W-00361/4
+2,no_approved_counterpart,11-W-00364/4
+5,no_approved_counterpart,11-W-00334/8
+8,no_approved_counterpart,11-W-00366/6
+10,no_approved_counterpart,11-W-00324/4
+12,no_approved_counterpart,11-W-00328/4
+13,no_approved_counterpart,11-W-00327/8
+14,no_approved_counterpart,11-W-00331/8
+16,no_approved_counterpart,11-W-00352/3
+17,no_approved_counterpart,11-W-00333/8
+18,no_approved_counterpart,11-W-00329/8
+99,no_approved_counterpart,11-W-00378/8
+102,no_approved_counterpart,11-W-00380/6
+104,no_approved_counterpart,11-W-00381/3
+115,no_approved_counterpart,11-W-00386/9
+125,no_project_number,
+133,no_approved_counterpart,11-W-00391/1
+136,no_approved_counterpart,11-W-00392/8
+137,no_approved_counterpart,11-W-00393/8
+167,no_project_number,
+181,no_project_number,
+189,no_approved_counterpart,11-W-00435/5
+197,no_approved_counterpart,11-W-00036/4
+199,no_project_number,
+202,no_approved_counterpart,11-W-00413/7
+209,no_project_number,
+218,no_approved_counterpart,11-W-00424/1
+219,no_project_number,
+245,no_project_number,
+247,no_approved_counterpart,11-W-00431/9
+252,no_approved_counterpart,11-W-00036/4
+256,no_approved_counterpart,11-W-00036/4
+265,no_project_number,
+270,no_project_number,
+271,no_approved_counterpart,11-W-00438/9
+279,no_project_number,
+281,no_project_number,
+291,no_project_number,
+292,no_project_number,
+312,no_approved_counterpart,11-W-00449/9
+314,no_approved_counterpart,11-W-00456/9
+316,no_approved_counterpart,11-W-00452/9
+325,no_project_number,
+327,no_project_number,
+333,no_approved_counterpart,11-W-00460/4
+337,no_approved_counterpart,11-W-00462/5
+340,no_approved_counterpart,11-W-00464/6
+342,no_project_number,
+345,no_approved_counterpart,11-W-00467/9
+347,no_approved_counterpart,11-W-00468/8
+348,no_approved_counterpart,11-W-00469/10
+352,no_project_number,
+368,no_approved_counterpart,11-W-00494/2
+375,no_approved_counterpart,11-W-00477/8
+378,no_approved_counterpart,11-W-00482/9
+380,no_approved_counterpart,11-W-00481/9
+411,no_approved_counterpart,11-W-00492/9
+420,no_project_number,
+422,no_approved_counterpart,11-W-00498/6
+427,no_approved_counterpart,11-W-00500/9
+431,no_project_number,
+435,no_project_number,
+441,no_approved_counterpart,11-W-00502/3
+445,no_approved_counterpart,11-W-00504/5
+452,no_project_number,
+454,no_approved_counterpart,11-W-00505/5
+455,no_approved_counterpart,11-W-00506/6
+463,no_project_number,
+465,no_approved_counterpart,11-W-00507/4
+468,no_approved_counterpart,11-W-00508/3
+470,no_approved_counterpart,11-W-00509/4
+474,no_approved_counterpart,11-W-00510/8
+484,no_approved_counterpart,11-W-00511/4
+485,no_approved_counterpart,11-W-00512/4

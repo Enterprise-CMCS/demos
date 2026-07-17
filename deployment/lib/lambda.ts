@@ -5,6 +5,8 @@ import { Aws, Duration, aws_apigateway, aws_codedeploy, aws_ec2, aws_kms, aws_la
 import { Role, PolicyDocument, PolicyStatement, Effect, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { DemosLogGroup } from "./logGroup";
+import * as fs from "node:fs";
+import * as path from "node:path";
 
 interface LambdaProps extends CommonProps {
   additionalPolicies?: PolicyStatement[];
@@ -28,7 +30,13 @@ interface LambdaProps extends CommonProps {
   depsLockFilePath?: string;
   commandHooks?: ICommandHooks;
   format?: OutputFormat;
+  esbuildArgs?: Record<string, string | boolean>;
 }
+
+type PackageExport = string | {
+  import?: string;
+  default?: string;
+};
 
 export function create(props: LambdaProps, id: string) {
   const lambda = new Lambda(props.scope, id, props);
@@ -125,9 +133,13 @@ export class Lambda extends Construct {
         sourceMap: true,
         externalModules: props.externalModules,
         nodeModules: props.nodeModules,
-        logLevel: LogLevel.VERBOSE,
+        logLevel: LogLevel.ERROR,
         commandHooks: props.commandHooks,
-        format: props.format
+        format: props.format,
+        esbuildArgs: {
+          ...sharedLibraryExportAliases(),
+          ...props.esbuildArgs,
+        },
       },
       environment: props.environment,
       vpc: props.vpc,
@@ -168,4 +180,31 @@ export class Lambda extends Construct {
   private onAws<T>(value: T) {
     return this.isLocalStack ? undefined : value;
   }
+}
+
+function sharedLibraryExportAliases(): Record<string, string> {
+  const packageJsonPath = path.resolve(process.cwd(), "..", "shared_library", "package.json");
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")) as {
+    name: string;
+    exports?: Record<string, PackageExport>;
+  };
+  const packageRoot = path.dirname(packageJsonPath);
+
+  return Object.fromEntries(
+    Object.entries(packageJson.exports ?? {}).flatMap(([exportPath, exportConfig]) => {
+      const importPath = typeof exportConfig === "string"
+        ? exportConfig
+        : exportConfig.import ?? exportConfig.default;
+
+      if (!importPath) {
+        return [];
+      }
+
+      const aliasPath = exportPath === "."
+        ? packageJson.name
+        : `${packageJson.name}/${exportPath.replace(/^\.\//, "")}`;
+
+      return [[`--alias:${aliasPath}`, path.resolve(packageRoot, importPath)]];
+    })
+  );
 }

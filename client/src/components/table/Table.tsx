@@ -9,7 +9,6 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  HeaderGroup,
   InitialTableState,
   RowSelectionState,
   Table as TanstackTable,
@@ -17,45 +16,19 @@ import {
 } from "@tanstack/react-table";
 
 import { arrIncludesAllInsensitive } from "./KeywordSearch";
-import { ChevronDownIcon, ChevronUpIcon, SortIcon } from "components/icons";
+import { TableHead } from "./TableHead";
 
 const STYLES = {
-  table: "w-full min-w-max table-auto",
-  th: "bg-gray-primary-layout p-1 font-semibold text-left border-b cursor-pointer select-none",
+  table: "w-full table-auto",
+  tableContainer: "w-full overflow-x-auto",
   tr: "h-[56px] border-b p-1",
   td: "p-1 text-[14px] break-words overflow-wrap",
   subrow: "h-[56px] px-4 py-2 bg-gray-lighter border-b",
 };
 
-function TableHead<T>({ headerGroups }: { headerGroups: HeaderGroup<T>[] }) {
-  return (
-    <thead>
-      {headerGroups.map((hg) => (
-        <tr key={hg.id} className={STYLES.tr}>
-          {hg.headers.map((header) => (
-            <th
-              key={header.id}
-              className={STYLES.th}
-              onClick={header.column.getToggleSortingHandler()}
-            >
-              <div className="flex items-center gap-1">
-                {flexRender(header.column.columnDef.header, header.getContext())}
-                {header.column.getCanSort() && (
-                  <>
-                    {{
-                      asc: <ChevronUpIcon width={10} />,
-                      desc: <ChevronDownIcon width={10} />,
-                    }[header.column.getIsSorted() as string] ?? <SortIcon width={8} />}
-                  </>
-                )}
-              </div>
-            </th>
-          ))}
-        </tr>
-      ))}
-    </thead>
-  );
-}
+type TableColumnMeta = {
+  cellClassName?: string;
+};
 
 function TableBody<T>({
   data,
@@ -100,8 +73,9 @@ function TableBody<T>({
     return table.getRowModel().rows.map((row) => (
       <tr key={row.id} className={row.depth > 0 ? STYLES.subrow : STYLES.tr}>
         {row.getVisibleCells().map((cell) => {
+          const meta = cell.column.columnDef.meta as TableColumnMeta | undefined;
           return (
-            <td key={cell.id} className={STYLES.td}>
+            <td key={cell.id} className={`${STYLES.td} ${meta?.cellClassName ?? ""}`}>
               {flexRender(cell.column.columnDef.cell, cell.getContext())}
             </td>
           );
@@ -145,6 +119,9 @@ export interface TableProps<T> {
   actionButtons?: (table: TanstackTable<T>) => React.ReactNode;
   actionModals?: (table: TanstackTable<T>) => React.ReactNode;
   hideSearchAndActions?: boolean;
+  descriptionText?: string;
+  tableClassName?: string;
+  tableContainerClassName?: string;
 }
 
 export function Table<T extends { id: string }>({
@@ -160,6 +137,9 @@ export function Table<T extends { id: string }>({
   actionButtons,
   actionModals,
   hideSearchAndActions = false,
+  descriptionText,
+  tableClassName,
+  tableContainerClassName,
 }: TableProps<T>) {
   const [expanded, setExpanded] = React.useState<ExpandedState>({});
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
@@ -210,21 +190,13 @@ export function Table<T extends { id: string }>({
 
   // On data update, remove rows from selection if they no longer exist in the table
   React.useEffect(() => {
-    setRowSelection((prev) => {
-      const validRowIds = new Set(table.getRowModel().rows.map((r) => r.id));
-
-      const filtered = Object.fromEntries(
-        Object.entries(prev).filter(([key]) => validRowIds.has(key))
-      );
-
-      return filtered;
-    });
+    setRowSelection({});
   }, [data]);
 
   return (
     <>
       {!hideSearchAndActions && (
-        <div className="mb-[24px] flex flex-col items-start gap-4 justify-between xl:flex-row xl:items-center">
+        <div className="mb-[24px] flex flex-col items-start gap-4 justify-between lg:flex-row lg:items-center">
           <div className="w-full min-w-0 xl:flex-1">
             <TableSearch table={table} keywordSearch={keywordSearch} columnFilter={columnFilter} />
           </div>
@@ -234,8 +206,9 @@ export function Table<T extends { id: string }>({
 
       {actionModals && actionModals(table)}
 
-      <div className="w-full overflow-x-auto">
-        <table className={STYLES.table}>
+      <div className={tableContainerClassName ?? STYLES.tableContainer}>
+        {descriptionText && <div className="mb-2 text-sm text-gray-600">{descriptionText}</div>}
+        <table className={tableClassName ?? STYLES.table}>
           <TableHead headerGroups={table.getHeaderGroups()} />
           <TableBody
             data={data}

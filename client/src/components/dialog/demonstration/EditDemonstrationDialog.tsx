@@ -2,48 +2,94 @@ import React from "react";
 
 import { Loading } from "components/loading/Loading";
 import { useToast } from "components/toast";
-import { Demonstration, UpdateDemonstrationInput } from "demos-server";
+import {
+  Demonstration as ServerDemonstration,
+  LocalDate,
+  UpdateDemonstrationInput,
+  State as ServerState,
+  Person as ServerPerson,
+  DemonstrationRoleAssignment as ServerDemonstrationRoleAssignment,
+} from "demos-server";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { formatDateForServer } from "util/formatDate";
 
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { gql, TypedDocumentNode, useMutation, useQuery } from "@apollo/client";
 
 import { DemonstrationDialog, DemonstrationDialogFields } from "./DemonstrationDialog";
-import { endOfDay, parseISO } from "date-fns";
-import { TZDate } from "@date-fns/tz";
 
 const SUCCESS_MESSAGE = "Your demonstration has been updated.";
 const ERROR_MESSAGE = "Your demonstration was not updated because of an unknown problem.";
 
-export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
-  query GetDemonstrationById($id: ID!) {
+type Demonstration = Pick<
+  ServerDemonstration,
+  | "id"
+  | "name"
+  | "description"
+  | "status"
+  | "sdgDivision"
+  | "signatureLevel"
+  | "effectiveDate"
+  | "expirationDate"
+> & {
+  state: Pick<ServerState, "id">;
+  primaryProjectOfficer: Pick<ServerPerson, "id">;
+};
+
+export const GET_DEMONSTRATION_BY_ID_QUERY: TypedDocumentNode<
+  {
+    demonstration: Demonstration;
+  },
+  {
+    id: string;
+  }
+> = gql`
+  query EditDemonstrationDialog($id: ID!) {
     demonstration(id: $id) {
       id
       name
       description
+      status
       sdgDivision
       signatureLevel
+      effectiveDate
+      expirationDate
       state {
         id
       }
       primaryProjectOfficer {
         id
       }
-      effectiveDate
-      expirationDate
     }
   }
 `;
 
-export const UPDATE_DEMONSTRATION_MUTATION = gql`
+export const UPDATE_DEMONSTRATION_MUTATION: TypedDocumentNode<
+  {
+    demonstration: Demonstration & {
+      roles: (Pick<ServerDemonstrationRoleAssignment, "isPrimary" | "role"> & {
+        person: Pick<ServerPerson, "id">;
+      })[];
+    };
+  },
+  {
+    id: string;
+    input: UpdateDemonstrationInput;
+  }
+> = gql`
   mutation UpdateDemonstration($id: ID!, $input: UpdateDemonstrationInput!) {
     updateDemonstration(id: $id, input: $input) {
       id
       name
       description
+      status
       sdgDivision
       signatureLevel
+      effectiveDate
+      expirationDate
       state {
+        id
+      }
+      primaryProjectOfficer {
         id
       }
       roles {
@@ -53,57 +99,23 @@ export const UPDATE_DEMONSTRATION_MUTATION = gql`
           id
         }
       }
-      primaryProjectOfficer {
-        id
-      }
-      effectiveDate
-      expirationDate
     }
   }
 `;
 
-const getUpdateDemonstrationInput = (
+export const getUpdateDemonstrationInput = (
   demonstration: DemonstrationDialogFields
 ): UpdateDemonstrationInput => {
-  const input: Record<string, unknown> = {
+  return {
     ...(demonstration.name && { name: demonstration.name }),
-    ...(demonstration.stateId && { stateId: demonstration.stateId }),
     ...(demonstration.projectOfficerId && {
       projectOfficerUserId: demonstration.projectOfficerId,
     }),
+    description: demonstration.description?.trim(),
+    effectiveDate: (demonstration.effectiveDate as LocalDate) || null,
+    expirationDate: (demonstration.expirationDate as LocalDate) || null,
+    sdgDivision: demonstration.sdgDivision || null,
   };
-
-  if (demonstration.description && demonstration.description.trim() !== "") {
-    input.description = demonstration.description;
-  } else {
-    input.description = null;
-  }
-
-  if (demonstration.effectiveDate && demonstration.effectiveDate.trim() !== "") {
-    input.effectiveDate = parseISO(demonstration.effectiveDate);
-  } else {
-    input.effectiveDate = null;
-  }
-
-  if (demonstration.expirationDate && demonstration.expirationDate.trim() !== "") {
-    input.expirationDate = endOfDay(new TZDate(demonstration.expirationDate, "America/New_York"));
-  } else {
-    input.expirationDate = null;
-  }
-
-  if (demonstration.sdgDivision) {
-    input.sdgDivision = demonstration.sdgDivision;
-  } else {
-    input.sdgDivision = null;
-  }
-
-  if (demonstration.signatureLevel) {
-    input.signatureLevel = demonstration.signatureLevel;
-  } else {
-    input.signatureLevel = null;
-  }
-
-  return input as UpdateDemonstrationInput;
 };
 
 const getDemonstrationDialogFields = (demonstration: Demonstration): DemonstrationDialogFields => ({
@@ -119,7 +131,6 @@ const getDemonstrationDialogFields = (demonstration: Demonstration): Demonstrati
   expirationDate: demonstration.expirationDate
     ? formatDateForServer(demonstration.expirationDate)
     : "",
-  demoIds: ["medicaid"],
 });
 
 const useUpdateDemonstration = () => {
@@ -174,6 +185,7 @@ export const EditDemonstrationDialog: React.FC<{
         <DemonstrationDialog
           onClose={onClose}
           mode="edit"
+          isApproved={data.demonstration.status === "Approved"}
           onSubmit={onSubmit}
           initialDemonstration={getDemonstrationDialogFields(data.demonstration)}
         />

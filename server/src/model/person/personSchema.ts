@@ -17,9 +17,7 @@ export const personSchema = gql`
     roles: [DemonstrationRoleAssignment!]!
   }
   type Query {
-    person(id: ID!): Person
-    people: [Person!]!
-    searchPeople(search: String!, demonstrationId: ID): [Person!]!
+    people: [Person!]! @auth(requires: ["Access CMS Query"])
   }
 `;
 

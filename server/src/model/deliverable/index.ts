@@ -4,18 +4,23 @@ export {
   checkDeliverableExtensionHasStatus,
   checkDeliverableHasAtLeastOneDocument,
   checkDeliverableHasNoActiveExtension,
+  checkDeliverableHasNoComments,
+  checkDeliverableHasNoDocuments,
   checkDeliverableHasStatus,
-  checkDeliverableStatusNotFinalized,
-  checkDemonstrationStatus,
   checkDueDateInFuture,
   checkForDuplicateDemonstrationTypes,
   checkNewDueDateIsAtLeastCurrentDueDate,
   checkNewDueDateIsGreaterThanCurrentDueDate,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
+  checkRequiredDeliverableDemonstrationTypes,
+  checkDeliverableHasNoUnsubmittedStateDocuments,
+  checkIsFileSubmissionOrStatusChange,
 } from "./checkDeliverableInputFunctions";
 export { completeDeliverable } from "./completeDeliverable";
 export { createDeliverable } from "./createDeliverable";
+export { deleteDeliverable } from "./deleteDeliverable";
+export { denyDeliverableExtension } from "./denyDeliverableExtension";
 export { resolveDeliverable, resolveManyDeliverables } from "./deliverableResolvers";
 export { manuallyUpdateDeliverableDueDate } from "./manuallyUpdateDeliverableDueDate";
 export {
@@ -35,6 +40,8 @@ export {
   validateApproveDeliverableExtensionInput,
   validateCompleteDeliverableInput,
   validateCreateDeliverableInput,
+  validateDeleteDeliverableInput,
+  validateDenyDeliverableExtensionInput,
   validateRequestDeliverableExtensionInput,
   validateRequestDeliverableResubmissionInput,
   validateStartDeliverableReviewInput,
@@ -42,12 +49,14 @@ export {
   validateUpdateDeliverableInput,
   validateUserPersonTypeAllowed,
 } from "./validateDeliverableInputs";
+export { getDeliverable, getManyDeliverables } from "./deliverableData";
 
 // Queries
 export { editDeliverable } from "./queries/editDeliverable";
-export { getDeliverable } from "./queries/getDeliverable";
-export { getManyDeliverables } from "./queries/getManyDeliverables";
+export { selectDeliverable, selectDeliverableOrThrow } from "./queries";
+export { selectManyDeliverables } from "./queries/selectManyDeliverables";
 export { insertDeliverable } from "./queries/insertDeliverable";
+export { isStatePointOfContactOnDeliverableDemonstration } from "./queries/isStatePointOfContactOnDeliverableDemonstration";
 
 // Types & Constants
 export type { EditDeliverableInput } from "./queries/editDeliverable";

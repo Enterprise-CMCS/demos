@@ -27,11 +27,6 @@ vi.mock("components/table/tables/ApprovalPackageTable", () => ({
   ),
 }));
 
-vi.mock("util/formatDate", () => ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  formatDate: (date: string | Date) => "FormattedDate",
-}));
-
 const mockCompletePhase = vi.fn();
 vi.mock("components/application/phase-status/phaseCompletionQueries", () => ({
   useCompletePhase: () => ({
@@ -66,6 +61,7 @@ const mockSetSelectedPhase = vi.fn();
 
 const baseDemonstration: ApplicationWorkflowDemonstration = {
   id: "demo-1",
+  medicaidId: "medicaid-123",
   name: "Test Demo",
   state: { id: "CA", name: "California" },
   primaryProjectOfficer: mockPO,
@@ -139,7 +135,12 @@ describe("getApprovalPackagePhaseFromApplication", () => {
     const application = {
       ...baseDemonstration,
       phases: [
-        { phaseName: "Completeness" as const, phaseStatus: "Completed" as const, phaseDates: [], phaseNotes: [] },
+        {
+          phaseName: "Completeness" as const,
+          phaseStatus: "Completed" as const,
+          phaseDates: [],
+          phaseNotes: [],
+        },
       ],
     };
 
@@ -159,7 +160,11 @@ describe("getApprovalPackagePhaseFromApplication", () => {
       ...baseDemonstration,
       documents: [
         doc({ documentType: "Q&A", name: "Q&A Doc", phaseName: "Approval Package" }),
-        doc({ documentType: "Approval Letter", name: "Approval Doc", phaseName: "Approval Package" }),
+        doc({
+          documentType: "Approval Letter",
+          name: "Approval Doc",
+          phaseName: "Approval Package",
+        }),
         doc({ documentType: "Special Terms & Conditions", name: "STCs", phaseName: "Concept" }), // wrong phase
       ],
     };
@@ -179,9 +184,7 @@ describe("getApprovalPackagePhaseFromApplication", () => {
     const application = {
       ...baseDemonstration,
       phases: baseDemonstration.phases.map((p) =>
-        p.phaseName === "Approval Package"
-          ? { ...p, phaseStatus: "Completed" as const }
-          : p
+        p.phaseName === "Approval Package" ? { ...p, phaseStatus: "Completed" as const } : p
       ),
       documents: REQUIRED_DOCUMENT_TYPES.map((type) => doc({ documentType: type })),
     };
@@ -206,9 +209,7 @@ describe("getApprovalPackagePhaseFromApplication", () => {
     const application = {
       ...baseDemonstration,
       phases: baseDemonstration.phases.map((p) =>
-        p.phaseName === "Review"
-          ? { ...p, phaseStatus: "Started" as const }
-          : p
+        p.phaseName === "Review" ? { ...p, phaseStatus: "Started" as const } : p
       ),
       documents: REQUIRED_DOCUMENT_TYPES.map((type) => doc({ documentType: type })),
     };
@@ -221,7 +222,12 @@ describe("getApprovalPackagePhaseFromApplication", () => {
     const application = {
       ...baseDemonstration,
       phases: [
-        { phaseName: "Concept" as const, phaseStatus: "Started" as const, phaseDates: [], phaseNotes: [] },
+        {
+          phaseName: "Concept" as const,
+          phaseStatus: "Started" as const,
+          phaseDates: [],
+          phaseNotes: [],
+        },
         ...baseDemonstration.phases.filter((p) => p.phaseName !== "Concept"),
       ],
       documents: REQUIRED_DOCUMENT_TYPES.map((type) => doc({ documentType: type })),
@@ -237,9 +243,7 @@ describe("getApprovalPackagePhaseFromApplication", () => {
     const application = {
       ...baseDemonstration,
       phases: baseDemonstration.phases.map((p) =>
-        p.phaseName === "Application Intake"
-          ? { ...p, phaseStatus: "Skipped" as const }
-          : p
+        p.phaseName === "Application Intake" ? { ...p, phaseStatus: "Skipped" as const } : p
       ),
       documents: REQUIRED_DOCUMENT_TYPES.map((type) => doc({ documentType: type })),
     };

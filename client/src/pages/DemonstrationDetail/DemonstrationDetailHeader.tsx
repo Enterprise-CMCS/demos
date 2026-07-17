@@ -2,12 +2,13 @@ import React, { useCallback, useState } from "react";
 
 import { CircleButton } from "components/button";
 import { BaseButton } from "components/button/BaseButton";
-import { AddNewIcon, ChevronLeftIcon, DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
-import { Demonstration, Person, State } from "demos-server";
-import { formatDate } from "util/formatDate";
+import { AddNewIcon, ChevronLeftIcon, EditIcon, EllipsisIcon } from "components/icons";
+import { Demonstration, Person, PersonType, State } from "demos-server";
+import { formatDateForDisplay } from "util/formatDate";
 import { gql, useQuery } from "@apollo/client";
 import { useDialog } from "components/dialog/DialogContext";
 import { useNavigate } from "react-router-dom";
+import { getCurrentUser } from "components/user/UserContext";
 
 export const DEMONSTRATION_HEADER_DETAILS_QUERY = gql`
   query DemonstrationHeaderDetails($id: ID!) {
@@ -17,6 +18,8 @@ export const DEMONSTRATION_HEADER_DETAILS_QUERY = gql`
       expirationDate
       effectiveDate
       status
+      medicaidId
+      chipId
       state {
         id
       }
@@ -30,7 +33,7 @@ export const DEMONSTRATION_HEADER_DETAILS_QUERY = gql`
 
 export type DemonstrationHeaderDetails = Pick<
   Demonstration,
-  "id" | "name" | "expirationDate" | "effectiveDate" | "status"
+  "id" | "name" | "expirationDate" | "effectiveDate" | "status" | "medicaidId" | "chipId"
 > & {
   state: Pick<State, "id">;
   primaryProjectOfficer: Pick<Person, "id" | "fullName">;
@@ -40,12 +43,18 @@ interface DemonstrationDetailHeaderProps {
   demonstrationId: string;
 }
 
+const HEADER_ACTION_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
+  "demos-admin",
+  "demos-cms-user",
+]);
+
 export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps> = ({
   demonstrationId,
 }) => {
   const [showButtons, setShowButtons] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const navigate = useNavigate();
+  const { currentUser } = getCurrentUser();
 
   // Ensure this component is rendered inside a DialogProvider in your app;
   const { showEditDemonstrationDialog, showCreateAmendmentDialog, showCreateExtensionDialog } =
@@ -87,13 +96,19 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
     { label: "Status", value: demonstration.status },
     {
       label: "Effective",
-      value: demonstration.effectiveDate ? formatDate(demonstration.effectiveDate) : "--/--/----",
+      value: demonstration.effectiveDate
+        ? formatDateForDisplay(demonstration.effectiveDate)
+        : "--/--/----",
     },
     {
       label: "Expiration",
-      value: demonstration.expirationDate ? formatDate(demonstration.expirationDate) : "--/--/----",
+      value: demonstration.expirationDate
+        ? formatDateForDisplay(demonstration.expirationDate)
+        : "--/--/----",
     },
   ];
+  const canManageDemonstration = HEADER_ACTION_PERSON_TYPES.has(currentUser.person.personType);
+  const canCreateModifications = demonstration.status === "Approved";
 
   return (
     <div
@@ -110,7 +125,12 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
               Demonstration List
             </a>
             {/* \u00A0 is unicode for non-breaking space */}
-            {"\u00A0 > \u00A0"} {demonstration.id} {"\u00A0|\u00A0"} 21-W-00014/8
+            {"\u00A0 > \u00A0"} {demonstration.medicaidId}
+            {demonstration.chipId && (
+              <span>
+                {"\u00A0|\u00A0"} {demonstration.chipId}
+              </span>
+            )}
           </span>
           <div className="flex gap-1 items-center -ml-2">
             <div>
@@ -139,7 +159,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
                   {displayFields.map((field, index) => (
                     <React.Fragment key={field.label}>
                       <li className="text-[16px] mt-0.5 font-title">
-                        <span className="font-semibold">{field.label}:{" "}</span>
+                        <span className="font-semibold">{field.label}: </span>
                         <span className="font-normal" data-testid={`demonstration-${field.label}`}>
                           {field.value}
                         </span>
@@ -160,81 +180,76 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
           </div>
         </div>
       </div>
-      <div className="relative mt-4">
-        {showButtons && (
-          <span className="mr-0.75">
-            <span>
-              <CircleButton
-                name="Delete demonstration"
-                data-testid="delete-button"
-                size="small"
-                onClick={() => {}}
-              >
-                <DeleteIcon />
-              </CircleButton>
-              <CircleButton
-                name="Edit demonstration"
-                data-testid="edit-button"
-                size="small"
-                onClick={() => {
-                  setShowDropdown(false);
-                  showEditDemonstrationDialog(demonstrationId);
-                }}
-                tooltip="Edit"
-              >
-                <EditIcon />
-              </CircleButton>
-              <CircleButton
-                name="Create New"
-                data-testid="create-new-button"
-                size="small"
-                onClick={() => setShowDropdown((prev) => !prev)}
-                tooltip="Create New"
-              >
-                <AddNewIcon />
-              </CircleButton>
+      {canManageDemonstration && (
+        <div className="relative mt-4">
+          {showButtons && (
+            <span className="mr-0.75">
+              <span>
+                <CircleButton
+                  name="Edit demonstration"
+                  data-testid="edit-button"
+                  size="small"
+                  onClick={() => {
+                    setShowDropdown(false);
+                    showEditDemonstrationDialog(demonstrationId);
+                  }}
+                  tooltip="Edit"
+                >
+                  <EditIcon />
+                </CircleButton>
+                <CircleButton
+                  name="Create New"
+                  data-testid="create-new-button"
+                  size="small"
+                  onClick={() => setShowDropdown((prev) => !prev)}
+                  disabled={!canCreateModifications}
+                  tooltip="Create New"
+                >
+                  <AddNewIcon />
+                </CircleButton>
+              </span>
+              {showDropdown && (
+                <div className="absolute w-[160px] bg-white text-black rounded-[6px] shadow-lg border z-20">
+                  <button
+                    data-testid="button-create-new-amendment"
+                    onClick={() => {
+                      setShowDropdown(false);
+                      showCreateAmendmentDialog(demonstrationId);
+                    }}
+                    className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
+                  >
+                    Amendment
+                  </button>
+                  <button
+                    data-testid="button-create-new-extension"
+                    onClick={() => {
+                      setShowDropdown(false);
+                      showCreateExtensionDialog(demonstrationId);
+                    }}
+                    className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
+                  >
+                    Extension
+                  </button>
+                </div>
+              )}
             </span>
-            {showDropdown && (
-              <div className="absolute w-[160px] bg-white text-black rounded-[6px] shadow-lg border z-20">
-                <button
-                  data-testid="button-create-new-amendment"
-                  onClick={() => {
-                    setShowDropdown(false);
-                    showCreateAmendmentDialog(demonstrationId);
-                  }}
-                  className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
-                >
-                  Amendment
-                </button>
-                <button
-                  data-testid="button-create-new-extension"
-                  onClick={() => {
-                    setShowDropdown(false);
-                    showCreateExtensionDialog(demonstrationId);
-                  }}
-                  className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
-                >
-                  Extension
-                </button>
-              </div>
-            )}
-          </span>
-        )}
-        <CircleButton
-          name="Toggle more options"
-          data-testid="toggle-ellipsis-button"
-          size="small"
-          onClick={handleToggleButtons}
-        >
-          <span
-            className={`transform transition-transform duration-200 ease-in-out ${
-              showButtons ? "rotate-90" : "rotate-0"
-            }`}
+          )}
+          <CircleButton
+            name="Toggle more options"
+            data-testid="toggle-ellipsis-button"
+            size="small"
+            onClick={handleToggleButtons}
           >
-            <EllipsisIcon />
-          </span>
-        </CircleButton>
-      </div>
+            <span
+              className={`transform transition-transform duration-200 ease-in-out ${
+                showButtons ? "rotate-90" : "rotate-0"
+              }`}
+            >
+              <EllipsisIcon />
+            </span>
+          </CircleButton>
+        </div>
+      )}
     </div>
   );
 };

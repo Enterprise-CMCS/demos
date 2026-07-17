@@ -1,0 +1,77 @@
+= How-to: review pgm_dtl tag mapping
+
+About 70 approved MySQL `mdcd_<X>_pgm_dtl` tables (plus their
+`mdcd_pendg_*_pgm_dtl` counterparts) collapse into DEMOS
+`demonstration_type_tag_assignment` rows. The mapping from source
+table name to DEMOS `tag_name` is SME-authored.
+
+== Where the file lives
+
+`reports/pgm_dtl_tag_mapping.csv`. Live contents:
+xref:reference-pgm-dtl-tag-mapping.adoc[reference page].
+
+== Columns
+
+[cols="2,5"]
+|===
+| Column | Meaning
+
+| `source_table` | The MySQL `mdcd_<X>_pgm_dtl` table name.
+| `tag_name` | The DEMOS tag name (matches a row in `demos_app.tag_name`).
+| `from_dt_col` | Column in the source table holding the start of the tag's effective date range. Usually `from_dt`.
+| `to_dt_col` | Column holding the end of the range. Usually `to_dt`.
+| `additional_attrs` | Optional columns to carry through (rarely needed; document each).
+| `notes` | SME rationale.
+|===
+
+== Rules
+
+. Every `mdcd_<X>_pgm_dtl` table that we want to migrate has a row.
+. `tag_name` matches a Prisma-seeded row in `demos_app.tag_name`
+  (DEMOS owns this table's rows). A genuinely new tag name must be
+  added to the DEMOS Prisma schema upstream and arrive via a bumped
+  Prisma pin -- it cannot be seeded from this repo.
+. `from_dt_col` and `to_dt_col` exist in the source table. The
+  templated transform fails fast on missing columns.
+. The same `tag_name` may map to multiple source tables (legitimate
+  consolidation, e.g. two legacy stems that fold into one DEMOS tag).
+. `mdcd_pendg_*_pgm_dtl` tables are *not* listed here -- the
+  templated transform infers them from the matching approved table
+  and the pending/approved rule.
+
+== Review checklist
+
+* [ ] Every approved `mdcd_*_pgm_dtl` source table appears.
+* [ ] No source table is on the drop list (cross-check
+      xref:reference-drop-list.adoc[the drop list]).
+* [ ] `tag_name` values are spelt as in `demos_app.tag_name`.
+* [ ] Date columns are correctly named.
+
+== Adding a new tag
+
+. Ensure the `tag_name` value exists in `demos_app.tag_name`. DEMOS
+  owns that table; if the tag is genuinely new it must land via a
+  Prisma schema change and pin bump, not a repo seed file.
+. Add a row to `reports/pgm_dtl_tag_mapping.csv`.
+. Re-run `make build` (rehearsal; run `make ddl` first if a Prisma
+  bump introduced the tag).
+. Verify in `reports/runs/parity_*.md` that the tag-assignment count
+  matches the source.
+
+== Related
+
+* xref:reference-pgm-dtl-tag-mapping.adoc[Tag mapping (live)]
+* xref:explanation-data-shape-decisions.adoc[Data-shape decisions]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:howto-review-pending-approved-decisions.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:howto-review-bn-jsonb-payload.adoc[next >]
+|===
+endif::[]
+// docnav-end

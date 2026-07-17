@@ -1,9 +1,9 @@
 // Vitest and other helpers
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
+import { DeepPartial } from "../../testUtilities";
 
 // Types
-import { DeepPartial } from "../../testUtilities";
 import { GraphQLContext } from "../../auth";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { DateTimeOrLocalDate, RequestDeliverableResubmissionInput } from "../../types";
@@ -18,7 +18,7 @@ vi.mock("../../prismaClient", () => ({
 
 vi.mock(".", () => ({
   editDeliverable: vi.fn(),
-  getDeliverable: vi.fn(),
+  selectDeliverableOrThrow: vi.fn(),
   parseRequestDeliverableResubmissionInput: vi.fn(),
   validateRequestDeliverableResubmissionInput: vi.fn(),
   validateUserPersonTypeAllowed: vi.fn(),
@@ -31,7 +31,7 @@ vi.mock("../deliverableAction/queries", () => ({
 import { prisma } from "../../prismaClient";
 import {
   editDeliverable,
-  getDeliverable,
+  selectDeliverableOrThrow,
   ParsedRequestDeliverableResubmissionInput,
   parseRequestDeliverableResubmissionInput,
   validateRequestDeliverableResubmissionInput,
@@ -46,7 +46,7 @@ describe("requestDeliverableResubmission", () => {
     details: "These are details",
     newDueDate: "2026-11-13" as DateTimeOrLocalDate,
   };
-  const testUserContext: DeepPartial<GraphQLContext> = {
+  const testContext: DeepPartial<GraphQLContext> = {
     user: {
       id: "0a3bd415-39a3-4f72-a067-418a5219216a",
       personTypeId: "demos-admin",
@@ -71,7 +71,6 @@ describe("requestDeliverableResubmission", () => {
       easternTZDate: new TZDate(2026, 10, 13, 4, 59, 59, 999, "America/New_York"),
     },
   };
-  const mockNow = new Date(2026, 3, 27, 10, 4, 19, 232);
 
   // Mock transaction
   const mockTransaction: any = "Test!";
@@ -81,27 +80,21 @@ describe("requestDeliverableResubmission", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.useFakeTimers();
-    vi.setSystemTime(mockNow);
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(parseRequestDeliverableResubmissionInput).mockReturnValue(mockParsedInput);
-    vi.mocked(getDeliverable).mockResolvedValue(mockUnrequestedDeliverable as PrismaDeliverable);
+    vi.mocked(selectDeliverableOrThrow).mockResolvedValue(mockUnrequestedDeliverable as PrismaDeliverable);
     vi.mocked(editDeliverable).mockResolvedValue(mockRequestedDeliverable as PrismaDeliverable);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
   });
 
   it("should check that the user is allowed to do this operation", async () => {
     await requestDeliverableResubmission(
       testDeliverableId,
       testInput,
-      testUserContext as GraphQLContext
+      testContext as GraphQLContext
     );
     expect(validateUserPersonTypeAllowed).toHaveBeenCalledExactlyOnceWith(
-      testUserContext,
+      testContext,
       "requestDeliverableResubmission",
       ["demos-admin", "demos-cms-user"]
     );
@@ -114,10 +107,10 @@ describe("requestDeliverableResubmission", () => {
       await requestDeliverableResubmission(
         testDeliverableId,
         testInput,
-        testUserContext as GraphQLContext
+        testContext as GraphQLContext
       );
       throw new Error("Expected requestDeliverableResubmission to throw, but it did not.");
-    } catch (e) {
+    } catch {
       expect(prisma).not.toHaveBeenCalled();
     }
   });
@@ -126,7 +119,7 @@ describe("requestDeliverableResubmission", () => {
     await requestDeliverableResubmission(
       testDeliverableId,
       testInput,
-      testUserContext as GraphQLContext
+      testContext as GraphQLContext
     );
     expect(parseRequestDeliverableResubmissionInput).toHaveBeenCalledExactlyOnceWith(testInput);
   });
@@ -138,10 +131,10 @@ describe("requestDeliverableResubmission", () => {
       await requestDeliverableResubmission(
         testDeliverableId,
         testInput,
-        testUserContext as GraphQLContext
+        testContext as GraphQLContext
       );
       throw new Error("Expected requestDeliverableResubmission to throw, but it did not.");
-    } catch (e) {
+    } catch {
       expect(prisma).not.toHaveBeenCalled();
     }
   });
@@ -150,9 +143,9 @@ describe("requestDeliverableResubmission", () => {
     await requestDeliverableResubmission(
       testDeliverableId,
       testInput,
-      testUserContext as GraphQLContext
+      testContext as GraphQLContext
     );
-    expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
       mockTransaction
     );
@@ -162,7 +155,7 @@ describe("requestDeliverableResubmission", () => {
     await requestDeliverableResubmission(
       testDeliverableId,
       testInput,
-      testUserContext as GraphQLContext
+      testContext as GraphQLContext
     );
     expect(validateRequestDeliverableResubmissionInput).toHaveBeenCalledExactlyOnceWith(
       mockUnrequestedDeliverable,
@@ -174,7 +167,7 @@ describe("requestDeliverableResubmission", () => {
     await requestDeliverableResubmission(
       testDeliverableId,
       testInput,
-      testUserContext as GraphQLContext
+      testContext as GraphQLContext
     );
     expect(editDeliverable).toHaveBeenCalledExactlyOnceWith(
       testDeliverableId,
@@ -187,19 +180,18 @@ describe("requestDeliverableResubmission", () => {
     await requestDeliverableResubmission(
       testDeliverableId,
       testInput,
-      testUserContext as GraphQLContext
+      testContext as GraphQLContext
     );
     expect(insertDeliverableAction).toHaveBeenCalledExactlyOnceWith(
       {
         deliverableId: testDeliverableId,
         actionType: "Requested Resubmission",
-        actionTime: mockNow,
         oldStatus: mockUnrequestedDeliverable.statusId,
         newStatus: mockRequestedDeliverable.statusId,
         note: mockParsedInput.details,
         oldDueDate: mockUnrequestedDeliverable.dueDate,
         newDueDate: mockRequestedDeliverable.dueDate,
-        userId: testUserContext.user!.id,
+        userId: testContext.user!.id,
       },
       mockTransaction
     );

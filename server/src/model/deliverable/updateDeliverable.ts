@@ -1,10 +1,10 @@
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
-import { UpdateDeliverableInput } from "../../types";
+import { PersonType, UpdateDeliverableInput } from "../../types";
 import { GraphQLContext } from "../../auth";
 import {
   editDeliverable,
   EditDeliverableInput,
-  getDeliverable,
+  selectDeliverableOrThrow,
   manuallyUpdateDeliverableDueDate,
   parseUpdateDeliverableInput,
   updateDeliverableDemonstrationTypes,
@@ -13,6 +13,7 @@ import {
 } from ".";
 import { prisma } from "../../prismaClient";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
+import { selectUserOrThrow } from "../user/queries";
 
 export async function updateDeliverable(
   deliverableId: string,
@@ -23,13 +24,22 @@ export async function updateDeliverable(
   checkOptionalNotNullFields(["name", "cmsOwnerUserId", "dueDate", "demonstrationTypes"], input);
   const parsedInput = parseUpdateDeliverableInput(input);
 
-  const updatedDeliverable = await prisma().$transaction(async (tx) => {
+  return await prisma().$transaction(async (tx) => {
     await validateUpdateDeliverableInput(deliverableId, parsedInput, tx);
 
     // Directly edit name and CMS owner
+    // Cast below enforced by database
     const editInput: EditDeliverableInput = {};
-    if (parsedInput.name) editInput.name = parsedInput.name;
-    if (parsedInput.cmsOwnerUserId) editInput.cmsOwnerUserId = parsedInput.cmsOwnerUserId;
+    if (parsedInput.name) {
+      editInput.name = parsedInput.name;
+    }
+    if (parsedInput.cmsOwnerUserId) {
+      const cmsOwner = await selectUserOrThrow({ id: parsedInput.cmsOwnerUserId }, tx);
+      editInput.cmsOwner = {
+        cmsOwnerUserId: cmsOwner.id,
+        cmsOwnerPersonTypeId: cmsOwner.personTypeId as PersonType,
+      };
+    }
     if (Object.keys(editInput).length > 0) {
       await editDeliverable(deliverableId, editInput, tx);
     }
@@ -38,7 +48,6 @@ export async function updateDeliverable(
     await updateDeliverableDemonstrationTypes(deliverableId, parsedInput, tx);
     await manuallyUpdateDeliverableDueDate(deliverableId, parsedInput, context, tx);
 
-    return await getDeliverable({ id: deliverableId }, tx);
+    return await selectDeliverableOrThrow({ id: deliverableId }, tx);
   });
-  return updatedDeliverable;
 }

@@ -21,6 +21,7 @@ import {
   Document,
   Person,
   PhaseName,
+  State,
   Tag,
 } from "demos-server";
 import { Tab, VerticalTabs } from "layout/Tabs";
@@ -30,6 +31,7 @@ import { ContactsTab } from "./ContactsTab";
 import { useApolloClient } from "@apollo/client/react/hooks/useApolloClient";
 import { TypesTable } from "components/table/tables/TypesTable";
 import { DeliverablesTab } from "./deliverables/DeliverablesTab";
+import { NON_DELIVERABLE_DOCUMENT_TYPES } from "demos-server-constants";
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
   person: Pick<Person, "fullName" | "id" | "email" | "personType">;
@@ -45,7 +47,10 @@ export type DemonstrationDetailDemonstrationType = Pick<
   | "approvalStatus"
 >;
 
-export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "name" | "status" | "effectiveDate" | "expirationDate"> & {
+export type DemonstrationTabDemonstration = Pick<
+  Demonstration,
+  "id" | "name" | "status" | "effectiveDate" | "expirationDate"
+> & {
   demonstrationTypes: DemonstrationDetailDemonstrationType[];
   documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
     owner: {
@@ -54,6 +59,7 @@ export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "name" | 
   })[];
   roles: Role[];
   currentPhaseName: PhaseName;
+  state: Pick<State, "id">;
 };
 
 const TAB = {
@@ -135,12 +141,18 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
               icon={<AddNewIcon />}
               name="add-new-document"
               size="small"
-              onClick={() => showUploadDocumentDialog(demonstration.id, refetchApplicationWorkflow)}
+              onClick={() =>
+                showUploadDocumentDialog(
+                  demonstration.id,
+                  refetchApplicationWorkflow,
+                  NON_DELIVERABLE_DOCUMENT_TYPES
+                )
+              }
             >
               Add Document
             </IconButton>
           </TabHeader>
-          <DocumentTable applicationId={demonstration.id} documents={demonstration.documents} />
+          <DocumentTable documents={demonstration.documents} />
         </Tab>
         <Tab
           icon={<CharacteristicIcon />}

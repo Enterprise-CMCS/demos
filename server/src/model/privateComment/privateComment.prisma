@@ -1,5 +1,5 @@
 model PrivateComment {
-  id                 String   @db.Uuid
+  id                 String   @default(uuid()) @db.Uuid
   deliverableId      String   @map("deliverable_id") @db.Uuid
   authorUserId       String   @map("author_user_id") @db.Uuid
   authorPersonTypeId String   @map("author_person_type_id")

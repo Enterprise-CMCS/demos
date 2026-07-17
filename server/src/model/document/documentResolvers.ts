@@ -4,124 +4,26 @@ import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFie
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { prisma } from "../../prismaClient";
 import type {
-  UpdateDocumentInput,
-  UploadDocumentInput,
-  UploadDocumentResponse,
-  ApplicationDateInput,
+  BudgetNeutralityValidationStatus,
+  DeliverableAction,
+  DeliverableActionType,
   DocumentType,
   PhaseName,
+  UpdateDocumentInput,
 } from "../../types";
 import { getS3Adapter } from "../../adapters";
-import { getEasternNow } from "../../dateUtilities";
 import { getApplication, PrismaApplication } from "../application";
-import { getUser } from "../user";
-import { validateAndUpdateDates } from "../applicationDate";
-import { startPhaseByDocument } from "../applicationPhase";
+import { selectUserOrThrow } from "../user/queries";
 import { enqueueUiPath } from "../../services/uipathQueue";
 import { resolveDeliverable } from "../deliverable";
-import { updateDocument as updateDocumentQuery, handleDeleteDocument } from ".";
-import { getDocument } from "./documentData";
+import { editDocument, getDocument, removeDocument } from "./documentData";
+import type {
+  BudgetNeutralityValidationError,
+  BudgetNeutralityValidationResult,
+} from "./documentSchema";
+import { selectDeliverableAction } from "../deliverableAction/queries";
+import { formatDetailsMessage, formatFullUserName } from "../deliverableAction";
 
-export async function uploadDocument(
-  parent: unknown,
-  { input }: { input: UploadDocumentInput },
-  context: GraphQLContext
-): Promise<UploadDocumentResponse> {
-  checkOptionalNotNullFields(
-    ["name", "documentType", "applicationId", "phaseName", "deliverableId"],
-    input
-  );
-
-  const s3Adapter = getS3Adapter();
-
-  try {
-    if (context.user === null) {
-      throw new Error(
-        "The GraphQL context does not have user information. Are you properly authenticated?"
-      );
-    }
-
-    if (input.phaseName && input.deliverableId) {
-      throw new Error("A document cannot be associated with both a phase and a deliverable.");
-    }
-
-    const userId = context.user.id;
-    return await prisma().$transaction(async (tx) => {
-      const easternNow = getEasternNow();
-      const phaseStartDate = await startPhaseByDocument(tx, input.applicationId, input, easternNow);
-
-      const datesToUpdate: ApplicationDateInput[] = [];
-
-      if (phaseStartDate) {
-        datesToUpdate.push(phaseStartDate);
-      }
-
-      if (datesToUpdate.length > 0) {
-        await validateAndUpdateDates(
-          { applicationId: input.applicationId, applicationDates: datesToUpdate },
-          tx
-        );
-      }
-
-      return await s3Adapter.uploadDocument(tx, input, userId);
-    });
-  } catch (error) {
-    handlePrismaError(error);
-  }
-}
-
-export async function updateDocument(
-  _: unknown,
-  { id, input }: { id: string; input: UpdateDocumentInput }
-): Promise<PrismaDocument> {
-  checkOptionalNotNullFields(
-    ["name", "documentType", "applicationId", "phaseName", "deliverableId"],
-    input
-  );
-  try {
-    return await prisma().$transaction(async (tx) => {
-      return await updateDocumentQuery(tx, id, input);
-    });
-  } catch (error) {
-    handlePrismaError(error);
-  }
-}
-
-export async function deleteDocument(_: unknown, { id }: { id: string }): Promise<PrismaDocument> {
-  const s3Adapter = getS3Adapter();
-
-  try {
-    return prisma().$transaction(async (tx) => {
-      return handleDeleteDocument(tx, s3Adapter, id);
-    });
-  } catch (error) {
-    handlePrismaError(error);
-  }
-}
-
-export async function deleteDocuments(_: unknown, { ids }: { ids: string[] }): Promise<number> {
-  const s3Adapter = getS3Adapter();
-
-  try {
-    return prisma().$transaction(async (tx) => {
-      let count = 0;
-      for (const documentId of ids) {
-        await handleDeleteDocument(tx, s3Adapter, documentId);
-        count++;
-      }
-      return count;
-    });
-  } catch (error) {
-    handlePrismaError(error);
-  }
-}
-
-/**
- * This will fail if doc does not exist or docId is null or empty
- * @param _ refetch
- * @param documentId the document to run through UiPath
- * @returns MessageId
- */
 export async function triggerUiPath(
   parent: unknown,
   args: { documentId: string },
@@ -141,20 +43,6 @@ export async function triggerUiPath(
   }
 }
 
-export async function resolveOwner(parent: PrismaDocument): Promise<PrismaUser> {
-  try {
-    return prisma().$transaction(async (tx) => {
-      return getUser({ id: parent.ownerUserId }, tx);
-    });
-  } catch (error) {
-    handlePrismaError(error);
-  }
-}
-
-export async function resolveApplication(parent: PrismaDocument): Promise<PrismaApplication> {
-  return await getApplication(parent.applicationId);
-}
-
 export async function resolveHasPendingUIPathResult(parent: PrismaDocument): Promise<boolean> {
   try {
     const pendingUiPathResults = await prisma().uiPathResult.findFirst({
@@ -171,33 +59,127 @@ export async function resolveHasPendingUIPathResult(parent: PrismaDocument): Pro
   }
 }
 
+export async function resolveBudgetNeutralityValidation(
+  parent: PrismaDocument
+): Promise<BudgetNeutralityValidationResult | null> {
+  try {
+    const row = await prisma().budgetNeutralityWorkbook.findUnique({
+      where: { id: parent.id },
+      select: { validationStatusId: true, validationData: true },
+    });
+    if (!row) return null;
+    return {
+      status: row.validationStatusId as BudgetNeutralityValidationStatus,
+      errors: (row.validationData as unknown as BudgetNeutralityValidationError[]) ?? [],
+    };
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
+
 export const documentResolvers = {
   Query: {
-    document: (parent: unknown, args: { id: string }, context: GraphQLContext) =>
-      getDocument({ id: args.id }, context.user),
+    document: (
+      parent: unknown,
+      args: { id: string },
+      context: GraphQLContext
+    ): Promise<PrismaDocument> => getDocument({ id: args.id }, context.user),
     documentExists: async (
       parent: unknown,
       args: { documentId: string },
       context: GraphQLContext
-    ) => !!(await getDocument({ id: args.documentId }, context.user)),
+    ): Promise<boolean> => {
+      try {
+        return !!(await getDocument({ id: args.documentId }, context.user));
+      } catch {
+        return false;
+      }
+    },
   },
 
   Mutation: {
-    uploadDocument: uploadDocument,
-    updateDocument: updateDocument,
-    deleteDocument: deleteDocument,
-    deleteDocuments: deleteDocuments,
+    updateDocument: async function updateDocument(
+      parent: unknown,
+      { id, input }: { id: string; input: UpdateDocumentInput },
+      context: GraphQLContext
+    ): Promise<PrismaDocument> {
+      checkOptionalNotNullFields(["name", "description"], input);
+      try {
+        return await editDocument(
+          { id },
+          {
+            name: input.name,
+            description: input.description,
+          },
+          context.user
+        );
+      } catch (error) {
+        handlePrismaError(error);
+      }
+    },
+    deleteDocument: async function deleteDocument(
+      parent: unknown,
+      { id }: { id: string },
+      context: GraphQLContext
+    ): Promise<PrismaDocument> {
+      try {
+        return prisma().$transaction(async (tx) => {
+          return removeDocument({ id }, context.user, tx);
+        });
+      } catch (error) {
+        handlePrismaError(error);
+      }
+    },
+    deleteDocuments: async function deleteDocuments(
+      parent: unknown,
+      { ids }: { ids: string[] },
+      context: GraphQLContext
+    ): Promise<number> {
+      try {
+        return prisma().$transaction(async (tx) => {
+          let count = 0;
+          for (const documentId of ids) {
+            await removeDocument({ id: documentId }, context.user, tx);
+            count++;
+          }
+          return count;
+        });
+      } catch (error) {
+        handlePrismaError(error);
+      }
+    },
     triggerUiPath: triggerUiPath,
   },
 
   Document: {
-    owner: resolveOwner,
-    documentType: (parent: PrismaDocument) => parent.documentTypeId as DocumentType,
-    presignedDownloadUrl: async (parent: PrismaDocument) =>
-      await getS3Adapter().getPresignedDownloadUrl(parent.s3Path),
-    application: resolveApplication,
+    owner: (parent: PrismaDocument): Promise<PrismaUser> =>
+      selectUserOrThrow({ id: parent.ownerUserId }),
+    documentType: (parent: PrismaDocument): DocumentType => parent.documentTypeId as DocumentType,
+    presignedDownloadUrl: (parent: PrismaDocument): Promise<string> =>
+      getS3Adapter().getPresignedDownloadUrl(parent.s3Path, parent.name),
+    application: (parent: PrismaDocument): Promise<PrismaApplication> =>
+      getApplication(parent.applicationId),
     deliverable: resolveDeliverable,
-    phaseName: (parent: PrismaDocument) => parent.phaseId as PhaseName,
+    deliverableSubmissionAction: async (parent: PrismaDocument): Promise<DeliverableAction | null> => {
+      if (!parent.deliverableSubmissionActionId) {
+        return null;
+      }
+      const deliverableAction = await selectDeliverableAction(
+        {
+          id: parent.deliverableSubmissionActionId,
+        },
+        true
+      );
+      return {
+        id: deliverableAction.id,
+        actionTimestamp: deliverableAction.actionTimestamp,
+        actionType: deliverableAction.actionTypeId as DeliverableActionType,
+        details: formatDetailsMessage(deliverableAction),
+        userFullName: formatFullUserName(deliverableAction),
+      };
+    },
+    phaseName: (parent: PrismaDocument): PhaseName => parent.phaseId as PhaseName,
     hasPendingUIPathResult: resolveHasPendingUIPathResult,
+    budgetNeutralityValidation: resolveBudgetNeutralityValidation,
   },
 };

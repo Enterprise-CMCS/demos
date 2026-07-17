@@ -3,8 +3,13 @@ export {
   ADD_DELIVERABLE_SLOT_DIALOG_TITLE,
 } from "./AddDeliverableSlotDialog";
 export { EditDeliverableDialog, isDeliverableEditable } from "./EditDeliverableDialog";
+export { RemoveDeliverableDialog } from "./RemoveDeliverableDialog";
 export {
   RequestExtensionDeliverableDialog,
   canRequestExtension,
   REQUEST_EXTENSION_DIALOG_TITLE,
 } from "./RequestExtensionDeliverableDialog";
+export {
+  ReviewExtensionDeliverableDialog,
+  REVIEW_EXTENSION_DIALOG_TITLE,
+} from "./ReviewExtensionDeliverableDialog";

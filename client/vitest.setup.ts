@@ -1,5 +1,6 @@
 // Import DOM testing library for Jest, to be used by all test files
 import "@testing-library/jest-dom";
+import { configure } from "@testing-library/dom";
 
 import React from "react";
 
@@ -26,6 +27,20 @@ Object.defineProperty(HTMLDialogElement.prototype, "close", {
     this.open = false;
   }),
   writable: true,
+});
+
+// Better error messages for Testing Library DOM queries
+configure({
+  getElementError: (message) => {
+    const cleaned = message?.replace(/\.\. This could be because.*$/s, ".") ?? undefined;
+    const error = new Error(cleaned);
+    error.name = "TestingLibraryElementError";
+    error.stack = error.stack
+      ?.split("\n")
+      .filter((line) => !line.includes("node_modules") && !line.includes("vitest.setup.ts"))
+      .join("\n");
+    return error;
+  },
 });
 
 Object.defineProperty(HTMLDialogElement.prototype, "open", {

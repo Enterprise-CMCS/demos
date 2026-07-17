@@ -46,7 +46,7 @@ describe("validateInputDates", () => {
       let isGreaterThanChecksCorrect = true;
       let isGreaterThanOrEqualChecksCorrect = true;
       let isOffsetChecksCorrect = true;
-      for (const [_, validationChecks] of Object.entries(result)) {
+      for (const [, validationChecks] of Object.entries(result)) {
         if (!["Start of Day", "End of Day"].includes(validationChecks.expectedTimestamp)) {
           isExpectedTimestampCorrect = false;
         }
@@ -93,7 +93,7 @@ describe("validateInputDates", () => {
     it("should run checkInputDateIsStartOfDay on start of day dates", () => {
       const startOfDayDateTypes: DateType[] = [
         "Concept Start Date",
-        "Pre-Submission Submitted Date",
+        "Concept Paper Submitted Date",
         "Concept Completion Date",
         "Concept Skipped Date",
         "Application Intake Start Date",
@@ -105,7 +105,7 @@ describe("validateInputDates", () => {
         "Completeness Completion Date",
         "SDG Preparation Start Date",
         "Expected Approval Date",
-        "SME Review Date",
+        "SME Initial Review Date",
         "FRT Initial Meeting Date",
         "BNPMT Initial Meeting Date",
         "SDG Preparation Completion Date",
@@ -128,6 +128,7 @@ describe("validateInputDates", () => {
         "Application Demonstration Types Marked Complete Date",
         "Approval Summary Start Date",
         "Approval Summary Completion Date",
+        "Application Approval Date",
       ];
       const expectedCalls = startOfDayDateTypes.map((dateType) => [dateType, testDateValue]);
 

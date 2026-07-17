@@ -1,4 +1,4 @@
-import { Stack, StackProps, aws_iam, aws_apigateway, aws_ec2, aws_lambda, Duration } from "aws-cdk-lib";
+import { Stack, StackProps, aws_iam, aws_apigateway, aws_ec2, aws_lambda, Duration, aws_logs } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
 import { DeploymentConfigProperties } from "../config";
@@ -135,6 +135,13 @@ export class BootstrapStack extends Stack {
             "arn:aws:s3:::demos-impl-file-upload-*/*"
           ],
         }),
+        new aws_iam.PolicyStatement({
+          actions: [
+            "cloudformation:DescribeChangeSet",
+            "cloudformation:DeleteChangeSet"
+          ],
+          resources: ["*"]
+        })
       ],
     });
 
@@ -166,6 +173,47 @@ export class BootstrapStack extends Stack {
         }
       `),
     });
+
+    const redactionPolicyDoc = {
+      Name: `${commonProps.project}-log-redaction-policy`,
+      Description: "Mask sensitive data found in logs",
+      Version: "2021-06-01",
+      Statement: [
+        {
+          Sid: "audit-policy",
+          DataIdentifier: ["Bearer-Token"],
+          Operation: {
+            Audit: {
+              FindingsDestination: {},
+            },
+          },
+        },
+        {
+          Sid: "redact-policy",
+          DataIdentifier: ["Bearer-Token"],
+          Operation: {
+            Deidentify: {
+              MaskConfig: {},
+            },
+          },
+        },
+      ],
+      Configuration: {
+        CustomDataIdentifier: [
+          {
+            Name: "Bearer-Token",
+            Regex: "(?i)\\bBearer\\s+([A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+)",
+          },
+        ],
+      },
+    };
+
+    new aws_logs.CfnAccountPolicy(commonProps.scope, "AccountWideLogRedactionPolicy", {
+      policyName: `${commonProps.project}-log-redaction`,
+      policyType: "DATA_PROTECTION_POLICY",
+      scope: "ALL",
+      policyDocument: JSON.stringify(redactionPolicyDoc)
+    })
   }
 }
 

@@ -6,19 +6,7 @@ import { tw } from "tags/tw";
 import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "../Input";
 import { Option } from "./Select";
 
-export interface AutoCompleteSelectProps {
-  options: Option[];
-  value: string;
-  onSelect: (value: string) => void;
-  label?: string;
-  id?: string;
-  placeholder?: string;
-  dataTestId?: string;
-  isRequired?: boolean;
-  isDisabled?: boolean;
-  noMatchMessage?: string;
-  onFilterChange?: (filterValue: string, hasMatches: boolean) => void;
-}
+export const AUTOCOMPLETE_SELECT_TEST_ID = "input-autocomplete-select";
 
 const ICON_CLASSES = tw`text-text-placeholder w-2 h-1`;
 const LIST_CLASSES = tw`absolute z-10 w-full bg-surface-white border border-border-fields rounded mt-0.5 max-h-56 overflow-auto shadow-sm`;
@@ -31,7 +19,7 @@ const filterOptions = (options: Option[], searchTerm: string) => {
   return options.filter((opt) => opt.label.toLowerCase().includes(searchTerm));
 };
 
-export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
+export const AutoCompleteSelect = ({
   options,
   value,
   onSelect,
@@ -43,6 +31,18 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   isDisabled = false,
   noMatchMessage,
   onFilterChange: onFilterChangeProp,
+}: {
+  options: Option[];
+  value: string;
+  onSelect: (value: string) => void;
+  label?: string;
+  id?: string;
+  placeholder?: string;
+  dataTestId?: string;
+  isRequired?: boolean;
+  isDisabled?: boolean;
+  noMatchMessage?: string;
+  onFilterChange?: (filterValue: string, hasMatches: boolean) => void;
 }) => {
   const [filterValue, setFilterValue] = useState("");
   const [selectedOption, setSelectedOption] = useState<Option | undefined>(
@@ -65,17 +65,31 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   }, [value, options]);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const closeSelect = () => {
     setIsOpen(false);
     setActiveIndex(-1);
   };
 
+  const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    if (!containerRef.current?.contains(e.relatedTarget as Node)) {
+      closeSelect();
+    }
+  };
+
   const openSelect = () => {
     setIsOpen(true);
   };
 
+  const activateSelect = () => {
+    if (!isDisabled) {
+      openSelect();
+    }
+  };
+
   const handleFilterChange = (newFilterValue: string) => {
+    activateSelect();
     setFilterValue(newFilterValue);
     setActiveIndex(-1);
     const matches = filterOptions(options, newFilterValue);
@@ -88,24 +102,21 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
     setFilterValue("");
     onFilterChangeProp?.("", true);
     closeSelect();
+    inputRef.current?.select();
   };
 
-  // Close on outside click
-  useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        closeSelect();
-      }
-    };
-    document.addEventListener("click", onClick);
-    return () => document.removeEventListener("click", onClick);
-  }, []);
+  const listboxId = `${id || dataTestId || "autocomplete"}-listbox`;
 
   const filteredOptions = filterOptions(options, filterValue);
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isOpen && e.key === "ArrowDown") {
       openSelect();
+      return;
+    }
+    if (!isOpen && e.key.length === 1 && !e.altKey && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      handleFilterChange(e.key);
       return;
     }
     if (e.key === "ArrowDown") {
@@ -124,10 +135,11 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
       return filteredOptions.map((option, i) => {
         const isActive = i === activeIndex;
         return (
-          <li key={option.value}>
+          <li key={option.value} role="option" aria-selected={option.value === value}>
             <button
               type="button"
               className={`${ITEM_CLASSES} ${isActive ? ITEM_ACTIVE_CLASSES : ""} w-full text-left`}
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => handleSelectOption(option)}
               onMouseEnter={() => setActiveIndex(i)}
             >
@@ -143,7 +155,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-xs" ref={containerRef}>
+    <div className="flex flex-col gap-xs" ref={containerRef} onBlur={handleBlur}>
       {label && (
         <label htmlFor={id} className={LABEL_CLASSES}>
           {isRequired && <span className="text-text-warn">*</span>}
@@ -153,12 +165,19 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
 
       <div className="relative w-full">
         <input
+          ref={inputRef}
           data-testid={dataTestId || "input-autocomplete-select"}
           id={id}
           type="text"
+          role="combobox"
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
+          aria-autocomplete="list"
+          aria-controls={listboxId}
           placeholder={placeholder}
           value={isOpen ? filterValue : selectedOption?.label || ""}
-          onFocus={() => !isDisabled && setIsOpen(true)}
+          onFocus={activateSelect}
+          onClick={activateSelect}
           onChange={(e) => handleFilterChange(e.target.value)}
           onKeyDown={onKeyDown}
           required={isRequired}
@@ -167,12 +186,12 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
           data-form-type="other"
           autoComplete="off"
         />
-        <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center pr-1">
+        <div className="pointer-events-none absolute inset-y-0 inset-e-0 flex items-center pr-1">
           <ChevronDownIcon className={ICON_CLASSES} />
         </div>
 
         {isOpen && (
-          <ul className={LIST_CLASSES}>
+          <ul id={listboxId} role="listbox" className={LIST_CLASSES}>
             {renderDropdownContent()}
           </ul>
         )}

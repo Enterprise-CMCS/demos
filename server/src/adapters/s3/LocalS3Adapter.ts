@@ -1,8 +1,7 @@
-import { randomUUID } from "node:crypto";
-import { PrismaTransactionClient } from "../../prismaClient";
-import { log } from "../../log";
-import { UploadDocumentInput } from "../../types";
-import { S3Adapter } from "../";
+import { prisma, PrismaTransactionClient } from "../../prismaClient";
+import { GetPresignedDownloadUrlOptions, S3Adapter } from "../";
+import { sanitizeDownloadFileName } from "./sanitizeDownloadFileName";
+import { Prisma, DocumentPendingUpload as PrismaDocumentPendingUpload } from "@prisma/client";
 
 const HOSTNAME = "LocalS3Adapter";
 const BUCKET_NAME = "local-demos-bucket";
@@ -13,16 +12,32 @@ const BUCKET_NAME = "local-demos-bucket";
  */
 export function createLocalS3Adapter(): S3Adapter {
   const uploadedFiles = new Set<string>();
+  const uploadedOnDemandReports = new Map<string, Buffer>();
 
   return {
     async getPresignedUploadUrl(key: string): Promise<string> {
-      uploadedFiles.add(key);
       return `${HOSTNAME}/${BUCKET_NAME}/${key}?upload=true&expires=3600`;
     },
 
-    async getPresignedDownloadUrl(key: string): Promise<string> {
+    async getPresignedDownloadUrl(
+      key: string,
+      fileName?: string,
+      options?: GetPresignedDownloadUrlOptions
+    ): Promise<string> {
+      // Fake URLs only — just reflect the sanitized name/disposition for local dev visibility.
+      const fileNameParam = fileName
+        ? `&fileName=${encodeURIComponent(
+            sanitizeDownloadFileName(fileName, key.split("/").pop() ?? key)
+          )}&disposition=${options?.disposition ?? "inline"}`
+        : "";
+
       if (uploadedFiles.has(key)) {
-        return `${HOSTNAME}/${BUCKET_NAME}/${key}?download=true&expires=3600`;
+        return `${HOSTNAME}/${BUCKET_NAME}/${key}?download=true&expires=3600${fileNameParam}`;
+      }
+
+      const onDemandReport = uploadedOnDemandReports.get(key);
+      if (onDemandReport) {
+        return `${HOSTNAME}/${BUCKET_NAME}/${key}?download=true&expires=3600&size=${onDemandReport.byteLength}${fileNameParam}`;
       }
 
       return `${key} does not exist!`;
@@ -33,36 +48,42 @@ export function createLocalS3Adapter(): S3Adapter {
     },
 
     async uploadDocument(
-      tx: PrismaTransactionClient,
-      input: UploadDocumentInput,
-      userId: string
-    ): Promise<{
-      presignedURL: string;
-      documentId: string;
-    }> {
-      const documentId = randomUUID();
-      const uploadBucket = process.env.UPLOAD_BUCKET ?? "local-simple-upload";
-      const s3Path = `s3://${uploadBucket}/${input.applicationId}/${documentId}`;
-      const document = await tx.document.create({
-        data: {
-          id: documentId,
-          name: input.name,
-          description: input.description ?? "",
-          ownerUserId: userId,
-          documentTypeId: input.documentType,
-          applicationId: input.applicationId,
-          phaseId: input.phaseName,
-          deliverableId: input.deliverableId,
-          s3Path,
-        },
-      });
-
-      const fakePresignedUrl = await this.getPresignedUploadUrl(document.id);
-      log.debug("fakePresignedUrl", undefined, fakePresignedUrl);
-      return {
-        presignedURL: fakePresignedUrl,
-        documentId: document.id,
+      documentData: Prisma.DocumentPendingUploadCreateArgs["data"],
+      tx?: PrismaTransactionClient
+    ): Promise<PrismaDocumentPendingUpload> {
+      const createPendingDocumentAndDocument = async (transaction: PrismaTransactionClient) => {
+        const documentPendingUpload = await transaction.documentPendingUpload.create({
+          data: documentData,
+        });
+        uploadedFiles.add(documentPendingUpload.id);
+        await transaction.document.create({
+          data: {
+            ...documentData,
+            id: documentPendingUpload.id,
+            s3Path: `${HOSTNAME}/${BUCKET_NAME}/${documentPendingUpload.id}`,
+          },
+        });
+        return documentPendingUpload;
       };
+
+      if (tx) {
+        return createPendingDocumentAndDocument(tx);
+      }
+      return prisma().$transaction(async (transaction) => {
+        return createPendingDocumentAndDocument(transaction);
+      });
+    },
+
+    async uploadOnDemandReport(reportId: string, reportFileData: Buffer): Promise<string> {
+      const key = `reports/on-demand/${reportId}.xlsx`;
+      uploadedOnDemandReports.set(key, reportFileData);
+      return key;
+    },
+
+    async deleteOnDemandReport(reportId: string): Promise<string> {
+      const key = `reports/on-demand/${reportId}.xlsx`;
+      uploadedOnDemandReports.delete(key);
+      return key;
     },
   };
 }

@@ -38,55 +38,115 @@ describe("DatePicker component", () => {
     });
   });
 
-  describe("Year Validation - 4 Digit Years Between 1900 and 2099", () => {
-    it("accepts valid dates within the 1900-2099 range", () => {
+  // onChange commits immediately when a complete date is selected (calendar pick or keyboard).
+  // Range is surfaced through native min/max attributes and the component's validation message.
+  describe("onChange commit + range messaging", () => {
+    it("does not propagate partial-year dates emitted during year-subfield editing", () => {
       render(<DatePicker {...requiredProps} />);
       const input = screen.getByTestId("test-date");
 
-      fireEvent.input(input, { target: { value: "1901-06-15" } });
-      expect(mockOnChange).toHaveBeenCalledWith("1901-06-15");
+      fireEvent.input(input, { target: { value: "0003-03-20" } });
+      fireEvent.input(input, { target: { value: "0025-03-20" } });
+      fireEvent.input(input, { target: { value: "0202-01-01" } });
+      expect(mockOnChange).not.toHaveBeenCalled();
+    });
 
-      mockOnChange.mockClear();
-      fireEvent.input(input, { target: { value: "2025-03-20" } });
+    it("commits an in-range value on change", () => {
+      render(<DatePicker {...requiredProps} />);
+      const input = screen.getByTestId("test-date");
+
+      fireEvent.change(input, { target: { value: "2025-03-20" } });
       expect(mockOnChange).toHaveBeenCalledWith("2025-03-20");
+    });
+
+    it("shows an out of range date and message while propagating it to the caller", () => {
+      render(<DatePicker {...requiredProps} />);
+      const input = screen.getByTestId("test-date");
+
+      fireEvent.change(input, { target: { value: "1899-12-31" } });
+      expect(mockOnChange).toHaveBeenCalledWith("1899-12-31");
+      expect(screen.getByText("Date must be on or after 01/01/1900.")).toBeInTheDocument();
+    });
+
+    it("propagates complete dates outside a provided minDate", () => {
+      render(<DatePicker {...requiredProps} minDate="2026-04-28" />);
+      const input = screen.getByTestId("test-date");
+
+      fireEvent.change(input, { target: { value: "2026-04-01" } });
+
+      expect(mockOnChange).toHaveBeenCalledWith("2026-04-01");
+      expect(screen.getByText("Date must be on or after 04/28/2026.")).toBeInTheDocument();
+    });
+
+    it("commits inclusive boundary dates 1900-01-01 and 2099-12-31 on change", () => {
+      render(<DatePicker {...requiredProps} />);
+      const input = screen.getByTestId("test-date");
+
+      fireEvent.change(input, { target: { value: "1900-01-01" } });
+      expect(mockOnChange).toHaveBeenCalledWith("1900-01-01");
 
       mockOnChange.mockClear();
-      fireEvent.input(input, { target: { value: "2098-12-25" } });
-      expect(mockOnChange).toHaveBeenCalledWith("2098-12-25");
+      fireEvent.change(input, { target: { value: "2099-12-31" } });
+      expect(mockOnChange).toHaveBeenCalledWith("2099-12-31");
     });
 
-    it("does not call onChange for boundary dates (1900-01-01 and 2099-12-31)", () => {
-      render(<DatePicker {...requiredProps} />);
-      const input = screen.getByTestId("test-date");
-
-      fireEvent.input(input, { target: { value: "1900-01-01" } });
-      expect(mockOnChange).not.toHaveBeenCalled();
-
-      fireEvent.input(input, { target: { value: "2099-12-31" } });
-      expect(mockOnChange).not.toHaveBeenCalled();
+    it("shows a default message when the value prop is before the min bound", () => {
+      render(<DatePicker {...requiredProps} value="1899-12-31" />);
+      expect(screen.getByText("Date must be on or after 01/01/1900.")).toBeInTheDocument();
     });
 
-    it("rejects dates before 1900", () => {
-      render(<DatePicker {...requiredProps} />);
-      const input = screen.getByTestId("test-date");
-
-      fireEvent.input(input, { target: { value: "1899-12-31" } });
-      expect(mockOnChange).not.toHaveBeenCalled();
+    it("shows a default message when the value prop is after the max bound", () => {
+      render(<DatePicker {...requiredProps} value="2100-01-01" />);
+      expect(screen.getByText("Date must be on or before 12/31/2099.")).toBeInTheDocument();
     });
 
-    it("rejects dates after 2099", () => {
-      render(<DatePicker {...requiredProps} />);
-      const input = screen.getByTestId("test-date");
+    it("shows no default message for inclusive boundary values", () => {
+      const { rerender } = render(<DatePicker {...requiredProps} value="1900-01-01" />);
+      expect(screen.queryByText(/Date must be on or/)).not.toBeInTheDocument();
 
-      fireEvent.input(input, { target: { value: "2100-01-01" } });
-      expect(mockOnChange).not.toHaveBeenCalled();
+      rerender(<DatePicker {...requiredProps} value="2099-12-31" />);
+      expect(screen.queryByText(/Date must be on or/)).not.toBeInTheDocument();
     });
 
-    it("has min and max attributes set correctly", () => {
+    it("uses the provided minDate/maxDate in the default message", () => {
+      const { rerender } = render(
+        <DatePicker {...requiredProps} minDate="2026-04-28" value="2026-04-01" />
+      );
+      expect(screen.getByText("Date must be on or after 04/28/2026.")).toBeInTheDocument();
+
+      rerender(<DatePicker {...requiredProps} maxDate="2026-04-28" value="2026-05-01" />);
+      expect(screen.getByText("Date must be on or before 04/28/2026.")).toBeInTheDocument();
+    });
+
+    it("lets getValidationMessage take precedence over the default range message", () => {
+      render(
+        <DatePicker
+          {...requiredProps}
+          value="1899-12-31"
+          getValidationMessage={() => "Custom message"}
+        />
+      );
+      expect(screen.getByText("Custom message")).toBeInTheDocument();
+      expect(screen.queryByText(/Date must be on or after/)).not.toBeInTheDocument();
+    });
+
+    it("has default min and max attributes", () => {
       render(<DatePicker {...requiredProps} />);
       const input = screen.getByTestId("test-date") as HTMLInputElement;
       expect(input.min).toBe("1900-01-01");
       expect(input.max).toBe("2099-12-31");
+    });
+
+    it("forwards minDate to the input's min attribute", () => {
+      render(<DatePicker {...requiredProps} minDate="2026-04-28" />);
+      const input = screen.getByTestId("test-date") as HTMLInputElement;
+      expect(input.min).toBe("2026-04-28");
+    });
+
+    it("forwards maxDate to the input's max attribute", () => {
+      render(<DatePicker {...requiredProps} maxDate="2026-04-28" />);
+      const input = screen.getByTestId("test-date") as HTMLInputElement;
+      expect(input.max).toBe("2026-04-28");
     });
   });
 
@@ -96,7 +156,7 @@ describe("DatePicker component", () => {
       const input = screen.getByTestId("test-date") as HTMLInputElement;
       expect(input.type).toBe("date");
 
-      fireEvent.input(input, { target: { value: "2025-01-15" } });
+      fireEvent.change(input, { target: { value: "2025-01-15" } });
       expect(mockOnChange).toHaveBeenCalledWith("2025-01-15");
     });
   });
@@ -105,14 +165,14 @@ describe("DatePicker component", () => {
     it("accepts leap year dates", () => {
       render(<DatePicker {...requiredProps} />);
       const input = screen.getByTestId("test-date");
-      fireEvent.input(input, { target: { value: "2024-02-29" } });
+      fireEvent.change(input, { target: { value: "2024-02-29" } });
       expect(mockOnChange).toHaveBeenCalledWith("2024-02-29");
     });
 
-    it("calls onChange when existing value is cleared", () => {
+    it("commits a cleared value on change", () => {
       render(<DatePicker {...requiredProps} value="2024-01-15" />);
       const input = screen.getByTestId("test-date");
-      fireEvent.input(input, { target: { value: "" } });
+      fireEvent.change(input, { target: { value: "" } });
       expect(mockOnChange).toHaveBeenCalledWith("");
     });
   });
@@ -135,25 +195,6 @@ describe("DatePicker component", () => {
       rerender(<DatePicker {...requiredProps} value="" />);
       expect(input.value).toBe("");
     });
-
-    // Regression test for the year-typing bug. Native <input type="date"> fires input
-    // events with e.target.value === "" while the user is mid-typing the year subfield
-    // (the date is briefly incomplete). If DatePicker were a controlled <input value={value}>,
-    // React would write input.value = "" on every render, wiping the in-progress digits and
-    // making it impossible to type a year character-by-character. The defaultValue + ref-sync
-    // pattern guarantees React only touches the DOM when the value prop actually changes,
-    // so a parent re-render with the same value must NOT clobber the input's current state.
-    it("does not overwrite the input DOM value when re-rendered with the same value", () => {
-      const { rerender } = render(<DatePicker {...requiredProps} value="" />);
-      const input = screen.getByTestId("test-date") as HTMLInputElement;
-
-      // Simulate the browser's internal partial state during year typing
-      input.value = "2024-01-15";
-
-      rerender(<DatePicker {...requiredProps} value="" />);
-
-      expect(input.value).toBe("2024-01-15");
-    });
   });
 
   describe("Validation Message", () => {
@@ -162,12 +203,6 @@ describe("DatePicker component", () => {
       render(<DatePicker {...requiredProps} getValidationMessage={getValidationMessage} />);
       const input = screen.getByTestId("test-date");
       expect(input.className).toContain("border-border-warn");
-    });
-
-    it("forwards minDate to the input's min attribute", () => {
-      render(<DatePicker {...requiredProps} minDate="2026-04-28" />);
-      const input = screen.getByTestId("test-date") as HTMLInputElement;
-      expect(input.min).toBe("2026-04-28");
     });
   });
 });

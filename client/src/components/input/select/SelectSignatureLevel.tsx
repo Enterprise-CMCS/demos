@@ -11,30 +11,31 @@ const labelMap: Record<SignatureLevel, string> = {
   OGD: "OGD - Office of the Group Director",
 };
 
-const options: Option[] = SIGNATURE_LEVEL.map((level) => ({
-  value: level,
-  label: labelMap[level] || level,
-}));
-
 export const SelectSignatureLevel = ({
   onSelect,
   initialValue,
   isDisabled = false,
   isRequired = false,
+  allowedSignatureLevels = SIGNATURE_LEVEL,
 }: {
   onSelect: (value: SignatureLevel | undefined) => void;
   initialValue?: SignatureLevel;
   isDisabled?: boolean;
   isRequired?: boolean;
+  allowedSignatureLevels?: readonly SignatureLevel[];
 }) => {
   const [signatureLevel, setSignatureLevel] = React.useState<SignatureLevel | undefined>(
     initialValue
   );
 
-  // Sync internal state when initialValue changes
   React.useEffect(() => {
     setSignatureLevel(initialValue);
   }, [initialValue]);
+
+  const options: Option[] = allowedSignatureLevels.map((level) => ({
+    value: level,
+    label: labelMap[level] || level,
+  }));
 
   return (
     <Select
@@ -43,9 +44,11 @@ export const SelectSignatureLevel = ({
       placeholder="Select Signature Level"
       onSelect={(value) => {
         const selectedValue = value === "" ? undefined : (value as SignatureLevel);
+
         setSignatureLevel(selectedValue);
         onSelect(selectedValue);
       }}
+      data-testid="signature-level-select"
       id="signature-level-select"
       label="Signature Level"
       isDisabled={isDisabled}

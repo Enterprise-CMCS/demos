@@ -2,20 +2,40 @@ pipeline {
   agent {
     kubernetes {
       yaml kubeBlock(containerNames:['node', 'snyk'], opts: [
-        NODE_IMAGE: 'artifactory.cloud.cms.gov/docker/node:24-alpine'
+        NODE_IMAGE: 'artifactory.cloud.cms.gov/docker/node:24-alpine',
+        NODE_CPU_REQUEST: '4000m',
+        NODE_CPU_LIMIT: '8000m'
     ])
+  }
+}
+
+options {
+  disableConcurrentBuilds(abortPrevious: true)
+  buildDiscarder(retentionPolicy(env.BRANCH_NAME))
+}
+
+parameters {
+  booleanParam(name: 'HANDLE_ERRORS', defaultValue: false, description: 'Allow build to continue when errors occur')
+}
+
+stages {
+  stage('Prep Shared Library') {
+    steps {
+      script {
+        dirCon('shared_library', 'node') {
+          sh '''
+          npm ci
+          npm run build || true
+          '''
+        }
+      }
     }
   }
 
-  options {
-    disableConcurrentBuilds(abortPrevious: true)
-    buildDiscarder(retentionPolicy(env.BRANCH_NAME))
-  }
-
-  stages {
-    stage('Lambdas - Snyk - All') {
-      steps {
-        script {
+  stage('Lambdas - Snyk - All') {
+    steps {
+      script {
+        handleError(params.HANDLE_ERRORS) {
           if (hasChange('lambdas')) {
             snykScan('lambdas/authorizer')
             snykScan('lambdas/dbRoleManagement')
@@ -28,121 +48,51 @@ pipeline {
         }
       }
     }
+  }
 
-    stage('Lambdas - Test - All') {
-      failFast true
-      parallel {
-        stage('Unit Test - Authorizer') {
-          steps {
-            script {
-              if (hasChange('lambdas')) {
-                dirCon('lambdas/authorizer', 'node') {
-                  sh '''
-                npm ci
-                npm run lint
-                npm run test
-                '''
-                }
+  stage('Lambdas - Test - All') {
+    steps {
+      script {
+        handleError(params.HANDLE_ERRORS) {
+          if (hasChange('lambdas')) {
+            def lambdas = [
+              [name: 'Authorizer', dir: 'lambdas/authorizer'],
+              [name: 'DB Role Management', dir: 'lambdas/dbRoleManagement'],
+              [name: 'File Process', dir: 'lambdas/fileprocess'],
+              [name: 'UI Path', dir: 'lambdas/UIPath'],
+              [name: 'Delete Infected File', dir: 'lambdas/deleteinfectedfile'],
+              [name: 'Emailer', dir: 'lambdas/emailer'],
+              [name: 'Budget Neutrality', dir: 'lambdas/budgetNeutrality']
+            ]
+
+            def maxParallel = 3
+
+            lambdas.collate(maxParallel).each { batch ->
+              def branches = batch.collectEntries { lambda ->
+                ["Unit Test - ${lambda.name}": {
+                  stage("Unit Test - ${lambda.name}") {
+                    dirCon(lambda.dir, "node") {
+                      sh '''
+                        npm ci
+                        npm run lint
+                        npm run test
+                      '''
+                    }
+                  }
+                }]
               }
-            }
-          }
-        }
-        stage('Unit Test - DB Role Management') {
-          steps {
-            script {
-              if (hasChange('lambdas')) {
-                dirCon('lambdas/dbRoleManagement', 'node') {
-                  sh '''
-                npm ci
-                npm run lint
-                npm run test
-                '''
-                }
-              }
-            }
-          }
-        }
-        stage('Unit Test - File Process') {
-          steps {
-            script {
-              if (hasChange('lambdas')) {
-                dirCon('lambdas/fileprocess', 'node') {
-                  sh '''
-                npm ci
-                npm run lint
-                npm run test
-                '''
-                }
-              }
-            }
-          }
-        }
-        stage('Unit Test - UI Path') {
-          steps {
-            script {
-              if (hasChange('lambdas')) {
-                dirCon('lambdas/UIPath', 'node') {
-                  sh '''
-                npm ci
-                npm run lint
-                npm run test
-                '''
-                }
-              }
-            }
-          }
-        }
-        stage('Unit Test - Delete Infected File') {
-          steps {
-            script {
-              if (hasChange('lambdas')) {
-                dirCon('lambdas/deleteinfectedfile', 'node') {
-                  sh '''
-                npm ci
-                npm run lint
-                npm run test
-                '''
-                }
-              }
-            }
-          }
-        }
-        stage('Unit Test - Emailer') {
-          steps {
-            script {
-              if (hasChange('lambdas')) {
-                dirCon('lambdas/emailer', 'node') {
-                  sh '''
-                npm ci
-                npm run lint
-                npm run test
-                '''
-                }
-              }
-            }
-          }
-        }
-        stage('Unit Test - budgetNeutrality') {
-          steps {
-            script {
-              if (hasChange('lambdas')) {
-                dirCon('lambdas/budgetNeutrality', 'node') {
-                  sh '''
-                npm ci
-                npm run lint
-                npm run test
-                '''
-                }
-              }
+              parallel branches
             }
           }
         }
       }
     }
+  }
 
-    stage('Lambdas - Code Scan') {
-      steps {
-        script {
+  stage('Lambdas - Lambdas - Code Scan') {
+    steps {
+      script {
+        handleError(params.HANDLE_ERRORS) {
           if (hasChange('lambdas')) {
             snykCodeScan('lambdas', [allProjects: true])
           }
@@ -150,13 +100,17 @@ pipeline {
       }
     }
   }
+}
 
-  post {
-    failure {
-      slackPipelineFail('Lambdas')
-    }
-    always {
-      cleanWs(deleteDirs: true)
-    }
+post {
+  failure {
+    slackPipelineFail('Lambdas')
   }
+  always {
+    script {
+      handleError.setFailureDescription()
+    }
+    cleanWs(deleteDirs: true)
+  }
+}
 }

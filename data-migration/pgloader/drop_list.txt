@@ -1,0 +1,45 @@
+# Tables explicitly excluded from the MySQL -> mysql_raw load.
+# One table name per line. Comments start with '#'.
+# Categories drawn from the supplied digraph; rationale in reports/narrative/drop_list.md.
+
+# --- Backups (DROP_BACKUP) ---
+mdcd_ltss_pgm_dtl_bkup
+mdcd_ltss_pgm_dtl_hstry_bkup
+mdcd_pendg_fmly_plng_pgm_dtl_bkup
+mdcd_pendg_fmly_plng_pgm_dtl_hstry_bkup
+mdcd_pendg_ltss_pgm_dtl_bkup
+mdcd_pendg_ltss_pgm_dtl_hstry_bkup
+mdcd_prm_astnc_pgm_dtl_bkup
+
+# --- Views (DROP_VIEW) - rebuilt as PG views in app/ if needed ---
+v_demo_mgmt_demo_types
+v_app_mgmt_demo_types
+v_demo_status_dtl
+v_demo_mgmt_mrt_demo_types
+v_app_mgmt_demo_types_incl_dltd
+
+# --- Email / notification machinery (DROP_EMAIL) - net-old, no DEMOS counterpart ---
+email_hstry
+email_prmry_rcpnt
+email_cpy_rcpnt
+email_blnd_cpy_rcpnt
+email_subj_rfrnc
+email_tmplt_rfrnc
+email_dstrbtn_grp_mmbr
+email_dstrbtn_grp_rfrnc
+sys_ntfctn_bar
+
+# --- Operational / log tables (DROP_OPS) - new app has its own logging ---
+err_log
+user_login_hstry
+mntrg_rpt_tmplt_dwnld_hstry
+mdcd_help_and_sprt_matl_dwnld_hstry
+mdcd_wbnr_dwnld_hstry
+intrfc_etl_run_cntl
+migrations
+aplctn_vrsn
+
+# --- Legacy flat imports (DROP_LEGACY) ---
+aplctn_mngmt_raw_cleaned
+deliverables_load
+mdcd_dlvrbl_prd_strt_dt_temp

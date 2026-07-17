@@ -2,7 +2,7 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
-import { AutoCompleteSelect } from "./AutoCompleteSelect";
+import { AutoCompleteSelect, AUTOCOMPLETE_SELECT_TEST_ID } from "./AutoCompleteSelect";
 import { Option } from "./Select";
 
 const onSelect: (value: string) => void = vi.fn();
@@ -51,7 +51,7 @@ describe("AutoCompleteSelect", () => {
 
   it("opens dropdown on input focus", async () => {
     render(<AutoCompleteSelect value="" options={options} onSelect={onSelect} />);
-    const input = screen.getByRole("textbox");
+    const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
     await userEvent.click(input);
     expect(screen.getByText("Apple")).toBeInTheDocument();
     expect(screen.getByText("Banana")).toBeInTheDocument();
@@ -59,7 +59,7 @@ describe("AutoCompleteSelect", () => {
 
   it("filters options as user types", async () => {
     render(<AutoCompleteSelect value="" options={options} onSelect={onSelect} />);
-    const input = screen.getByRole("textbox");
+    const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
     await userEvent.type(input, "Ban");
     expect(screen.getByText("Banana")).toBeInTheDocument();
     expect(screen.queryByText("Apple")).not.toBeInTheDocument();
@@ -67,23 +67,66 @@ describe("AutoCompleteSelect", () => {
 
   it("shows 'No matches found' if nothing matches", async () => {
     render(<AutoCompleteSelect value="" options={options} onSelect={onSelect} />);
-    const input = screen.getByRole("textbox");
+    const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
     await userEvent.type(input, "zzz");
     expect(screen.getByText(/no matches found/i)).toBeInTheDocument();
   });
 
-  it("calls onSelect and closes dropdown on option click", async () => {
+  it("calls onSelect on option click", async () => {
     render(<AutoCompleteSelect value="" options={options} onSelect={onSelect} />);
-    const input = screen.getByRole("textbox");
+    const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
     await userEvent.click(input);
     await userEvent.click(screen.getByText("Cherry"));
     expect(onSelect).toHaveBeenCalledWith("cherry");
+  });
+
+  it("closes the dropdown when reselecting the current value", async () => {
+    render(<AutoCompleteSelect value="banana" options={options} onSelect={onSelect} />);
+    const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
+
+    await userEvent.click(input);
+    expect(screen.getByText("Apple")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByText("Banana"));
+
+    expect(screen.queryByText("Apple")).not.toBeInTheDocument();
+    expect(screen.getByDisplayValue("Banana")).toBeInTheDocument();
+  });
+
+  it("reopens dropdown when clicking the already-focused input after selection", async () => {
+    render(<AutoCompleteSelect value="" options={options} onSelect={onSelect} />);
+    const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
+
+    await userEvent.click(input);
+    await userEvent.click(screen.getByText("Cherry"));
+
+    expect(screen.queryByText("Apple")).not.toBeInTheDocument();
+
+    await userEvent.click(input);
+
+    expect(screen.getByText("Apple")).toBeInTheDocument();
+    expect(screen.getByText("Banana")).toBeInTheDocument();
+  });
+
+  it("starts a new search when typing after selection without requiring blur", async () => {
+    const user = userEvent.setup();
+
+    render(<AutoCompleteSelect value="" options={options} onSelect={onSelect} />);
+    const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
+
+    await user.click(input);
+    await user.click(screen.getByText("Cherry"));
+
+    await user.keyboard("B");
+
+    expect(input).toHaveValue("B");
+    expect(screen.getByText("Banana")).toBeInTheDocument();
     expect(screen.queryByText("Apple")).not.toBeInTheDocument();
   });
 
   it("calls onSelect and closes dropdown on keyboard selection", async () => {
     render(<AutoCompleteSelect value="" options={options} onSelect={onSelect} />);
-    const input = screen.getByRole("textbox");
+    const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
     await userEvent.click(input); // Ensure dropdown is open
     fireEvent.keyDown(input, { key: "ArrowDown" });
     fireEvent.keyDown(input, { key: "Enter" });
@@ -93,7 +136,7 @@ describe("AutoCompleteSelect", () => {
 
   it("keyboard navigation: ArrowDown/ArrowUp moves highlight", async () => {
     render(<AutoCompleteSelect value="" options={options} onSelect={onSelect} />);
-    const input = screen.getByRole("textbox");
+    const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
     input.focus();
     fireEvent.keyDown(input, { key: "ArrowDown" }); // index 0
     fireEvent.keyDown(input, { key: "ArrowDown" }); // index 1
@@ -104,7 +147,7 @@ describe("AutoCompleteSelect", () => {
 
   it("closes dropdown on Escape", async () => {
     render(<AutoCompleteSelect value="" options={options} onSelect={onSelect} />);
-    const input = screen.getByRole("textbox");
+    const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
     await userEvent.click(input);
     fireEvent.keyDown(input, { key: "Escape" });
     expect(screen.queryByText("Apple")).not.toBeInTheDocument();
@@ -117,7 +160,7 @@ describe("AutoCompleteSelect", () => {
         <button>outside</button>
       </div>
     );
-    const input = screen.getByRole("textbox");
+    const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
     await userEvent.click(input);
     expect(screen.getByText("Apple")).toBeInTheDocument();
     await userEvent.click(screen.getByText("outside"));
@@ -139,7 +182,7 @@ describe("AutoCompleteSelect", () => {
           noMatchMessage="Entry not found. New tags remain unapproved."
         />
       );
-      const input = screen.getByRole("textbox");
+      const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
       await userEvent.type(input, "zzz");
       expect(screen.getByText("Entry not found. New tags remain unapproved.")).toBeInTheDocument();
     });
@@ -153,7 +196,7 @@ describe("AutoCompleteSelect", () => {
           noMatchMessage="Custom message"
         />
       );
-      const input = screen.getByRole("textbox");
+      const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
       await userEvent.click(input);
       // All options visible when filter is empty, so no "no match" message
       expect(screen.getByText("Apple")).toBeInTheDocument();
@@ -171,7 +214,7 @@ describe("AutoCompleteSelect", () => {
           onFilterChange={onFilterChange}
         />
       );
-      const input = screen.getByRole("textbox");
+      const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
       await userEvent.type(input, "Ban");
 
       // Called for each character: "B", "Ba", "Ban"
@@ -190,7 +233,7 @@ describe("AutoCompleteSelect", () => {
           onFilterChange={onFilterChange}
         />
       );
-      const input = screen.getByRole("textbox");
+      const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
       await userEvent.type(input, "zzz");
 
       expect(onFilterChange).toHaveBeenLastCalledWith("zzz", false);
@@ -206,7 +249,7 @@ describe("AutoCompleteSelect", () => {
           onFilterChange={onFilterChange}
         />
       );
-      const input = screen.getByRole("textbox");
+      const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
       await userEvent.click(input);
       await userEvent.click(screen.getByText("Cherry"));
 

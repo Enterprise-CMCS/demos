@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { NON_DELIVERABLE_DOCUMENT_TYPES } from "demos-server-constants";
 import { DemonstrationTab, DemonstrationTabDemonstration } from "./DemonstrationTab";
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
@@ -15,6 +16,9 @@ const mockDemonstration: DemonstrationTabDemonstration = {
   status: "Pre-Submission" as const,
   currentPhaseName: "Concept" as const,
   demonstrationTypes: [],
+  state: {
+    id: "NC",
+  },
   documents: [
     {
       id: "doc-1",
@@ -59,11 +63,9 @@ const mockDemonstration: DemonstrationTabDemonstration = {
 
 const renderWithProvider = (component: React.ReactElement) => {
   return render(
-    <DialogProvider>
-      <TestProvider mocks={deliverableMocks} addTypename={false}>
-        {component}
-      </TestProvider>
-    </DialogProvider>
+    <TestProvider mocks={deliverableMocks}>
+      <DialogProvider>{component}</DialogProvider>
+    </TestProvider>
   );
 };
 
@@ -120,6 +122,23 @@ describe("DemonstrationTab", () => {
 
     // Verify documents tab content is rendered
     expect(screen.getByRole("button", { name: "add-new-document" })).toBeInTheDocument();
+  });
+
+  it("shows only NON_DELIVERABLE_DOCUMENT_TYPES in the document type dropdown", async () => {
+    const user = userEvent.setup();
+    renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
+
+    await user.click(screen.getByRole("button", { name: "Documents (2)" }));
+    await user.click(screen.getByRole("button", { name: "add-new-document" }));
+
+    await user.click(screen.getByTestId("input-autocomplete-select"));
+
+    for (const docType of NON_DELIVERABLE_DOCUMENT_TYPES) {
+      expect(screen.getByRole("button", { name: docType })).toBeInTheDocument();
+    }
+    expect(
+      screen.queryByRole("button", { name: "Interim Evaluation Report" })
+    ).not.toBeInTheDocument();
   });
 
   it("switches to types tab when clicked", async () => {

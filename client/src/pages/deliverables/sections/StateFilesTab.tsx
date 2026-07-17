@@ -1,10 +1,8 @@
 import React from "react";
 
-import { SecondaryButton } from "components/button";
-
 import type { DeliverableFileRow } from "./DeliverableFileTypes";
 import { DeliverableFileTable } from "./DeliverableFileTable";
-import { makeStateFileColumns } from "./fileColumns";
+import { makeStateFileColumns } from "components/table/columns/deliverableFileColumns";
 
 export const STATE_FILES_TAB_NAME = "state-files-tab";
 export const STATE_FILES_ADD_BUTTON_NAME = "button-add-state-files";
@@ -17,10 +15,10 @@ const STATE_FILES_EMPTY_MESSAGE =
 
 export type StateFilesTabProps = {
   files: DeliverableFileRow[];
-  onAdd?: () => void;
-  onEdit?: (file: DeliverableFileRow) => void;
-  onDelete?: (fileIds: string[]) => void;
-  onSubmit?: () => void;
+  onAdd: () => void;
+  onEdit: (file: DeliverableFileRow) => void;
+  onDelete: (fileIds: string[]) => void;
+  isFinalized: boolean;
 };
 
 export const StateFilesTab: React.FC<StateFilesTabProps> = ({
@@ -28,14 +26,13 @@ export const StateFilesTab: React.FC<StateFilesTabProps> = ({
   onAdd,
   onEdit,
   onDelete,
-  onSubmit,
+  isFinalized,
 }) => {
   const columns = makeStateFileColumns();
-  const hasFiles = files.length > 0;
 
   return (
     <DeliverableFileTable
-      testId={STATE_FILES_TAB_NAME}
+      data-testid={STATE_FILES_TAB_NAME}
       title="State Files"
       addButtonName={STATE_FILES_ADD_BUTTON_NAME}
       editButtonName={STATE_FILES_EDIT_BUTTON_NAME}
@@ -48,15 +45,8 @@ export const StateFilesTab: React.FC<StateFilesTabProps> = ({
       onAdd={onAdd}
       onEdit={onEdit}
       onDelete={onDelete}
-      footer={
-        hasFiles && (
-          <div className="flex justify-end">
-            <SecondaryButton name={STATE_FILES_SUBMIT_BUTTON_NAME} onClick={onSubmit}>
-              Submit Deliverable
-            </SecondaryButton>
-          </div>
-        )
-      }
+      showActions={true}
+      isFinalized={isFinalized}
     />
   );
 };

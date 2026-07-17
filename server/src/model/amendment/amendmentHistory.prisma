@@ -9,6 +9,7 @@ model AmendmentHistory {
   description       String?
   effectiveDate     DateTime?    @map("effective_date") @db.Timestamptz
   statusId          String       @map("status_id")
+  statusUpdatedAt   DateTime     @map("status_updated_at") @db.Timestamptz
   currentPhaseId    String       @map("current_phase_id")
   clearanceLevelId  String       @map("clearance_level_id")
   signatureLevelId  String?      @map("signature_level_id")

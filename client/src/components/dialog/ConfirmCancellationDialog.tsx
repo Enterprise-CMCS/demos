@@ -37,10 +37,7 @@ export const ConfirmCancellationDialog: React.FC<ConfirmCancellationDialogProps>
   }, [isOpen]);
 
   return (
-    <dialog
-      ref={confirmDialogRef}
-      className={STYLES.CONFIRMATION_DIALOG}
-    >
+    <dialog ref={confirmDialogRef} className={STYLES.CONFIRMATION_DIALOG}>
       <div className="flex flex-col">
         <h2 className={STYLES.TITLE}>Are you sure?</h2>
         <div className={STYLES.MESSAGE}>
@@ -51,10 +48,18 @@ export const ConfirmCancellationDialog: React.FC<ConfirmCancellationDialogProps>
           </span>
         </div>
         <div className={STYLES.BUTTONS}>
-          <SecondaryButton name="button-cc-dialog-cancel" onClick={onClose}>
+          <SecondaryButton
+            name="button-cc-dialog-cancel"
+            aria-label="Keep editing"
+            onClick={onClose}
+          >
             Cancel
           </SecondaryButton>
-          <ErrorButton name="button-cc-dialog-discard" onClick={onConfirm}>
+          <ErrorButton
+            name="button-cc-dialog-discard"
+            aria-label="Discard changes"
+            onClick={onConfirm}
+          >
             Discard Changes
           </ErrorButton>
         </div>

@@ -11,7 +11,7 @@ import {
   ClearanceLevel,
   Tag,
   TagName,
-  SignatureLevel,
+  AmendmentSignatureLevel,
 } from "../../types.js";
 
 export const amendmentSchema = gql`
@@ -22,13 +22,13 @@ export const amendmentSchema = gql`
     description: String
     effectiveDate: DateTime
     status: ApplicationStatus!
-    currentPhaseName: PhaseName!
-    phases: [ApplicationPhase!]!
-    documents: [Document!]!
-    clearanceLevel: ClearanceLevel!
-    tags: [Tag!]!
-    signatureLevel: SignatureLevel
-    suggestedApplicationTags: [TagName!]!
+    currentPhaseName: PhaseName! @auth(requires: ["Access CMS Field"])
+    phases: [ApplicationPhase!]! @auth(requires: ["Access CMS Field"])
+    documents: [Document!]! @auth(requires: ["Access CMS Field"])
+    clearanceLevel: ClearanceLevel! @auth(requires: ["Access CMS Field"])
+    tags: [Tag!]! @auth(requires: ["Access CMS Field"])
+    signatureLevel: AmendmentSignatureLevel
+    suggestedApplicationTags: [TagName!]! @auth(requires: ["Access CMS Field"])
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -37,7 +37,7 @@ export const amendmentSchema = gql`
     demonstrationId: ID!
     name: NonEmptyString!
     description: String
-    signatureLevel: SignatureLevel
+    signatureLevel: AmendmentSignatureLevel
   }
 
   input UpdateAmendmentInput {
@@ -45,19 +45,19 @@ export const amendmentSchema = gql`
     name: NonEmptyString
     description: String
     effectiveDate: DateTimeOrLocalDate
-    status: ApplicationStatus
-    signatureLevel: SignatureLevel
+    signatureLevel: AmendmentSignatureLevel
   }
 
   type Mutation {
-    createAmendment(input: CreateAmendmentInput!): Amendment
-    updateAmendment(id: ID!, input: UpdateAmendmentInput!): Amendment
-    deleteAmendment(id: ID!): Amendment
+    createAmendment(input: CreateAmendmentInput!): Amendment!
+      @auth(requires: ["Perform CMS Action"])
+    updateAmendment(id: ID!, input: UpdateAmendmentInput!): Amendment!
+      @auth(requires: ["Perform CMS Action"])
+    deleteAmendment(id: ID!): Amendment! @auth(requires: ["Perform CMS Action"])
   }
 
   type Query {
-    amendments: [Amendment!]!
-    amendment(id: ID!): Amendment
+    amendment(id: ID!): Amendment! @auth(requires: ["Access CMS Query"])
   }
 `;
 
@@ -73,7 +73,7 @@ export interface Amendment {
   documents: Document[];
   clearanceLevel: ClearanceLevel;
   tags: Tag[];
-  signatureLevel?: SignatureLevel;
+  signatureLevel?: AmendmentSignatureLevel;
   suggestedApplicationTags: TagName[];
   updatedAt: Date;
   createdAt: Date;
@@ -83,7 +83,7 @@ export interface CreateAmendmentInput {
   demonstrationId: string;
   name: NonEmptyString;
   description: string | null;
-  signatureLevel?: SignatureLevel;
+  signatureLevel?: AmendmentSignatureLevel;
 }
 
 export interface UpdateAmendmentInput {
@@ -91,6 +91,5 @@ export interface UpdateAmendmentInput {
   name?: NonEmptyString;
   description?: string | null;
   effectiveDate?: DateTimeOrLocalDate | null;
-  status?: ApplicationStatus;
-  signatureLevel?: SignatureLevel;
+  signatureLevel?: AmendmentSignatureLevel | null;
 }

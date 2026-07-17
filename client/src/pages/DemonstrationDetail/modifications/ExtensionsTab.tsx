@@ -5,16 +5,41 @@ import { useDialog } from "components/dialog/DialogContext";
 import { DemonstrationDetailModification } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { ModificationTabs } from "./ModificationTabs";
 
+const EMPTY_EXTENSIONS_MESSAGE = "No extensions have been added yet";
+
 export const ExtensionsTab: React.FC<{
   demonstrationId: string;
+  medicaidId: string;
   extensions: DemonstrationDetailModification[];
-}> = ({ demonstrationId, extensions }) => {
+  selectedExtensionId?: string;
+  canCreateModifications: boolean;
+}> = ({ demonstrationId, medicaidId, extensions, selectedExtensionId, canCreateModifications }) => {
+  const { showCreateExtensionDialog } = useDialog();
+
+  if (extensions.length === 0) {
+    return (
+      <div className="flex min-h-90 flex-col items-center justify-center gap-4 p-2">
+        <p className="text-sm text-text-primary">{EMPTY_EXTENSIONS_MESSAGE}</p>
+        <IconButton
+          aria-label="Create Extension"
+          icon={<AddNewIcon />}
+          name="create-new-extension"
+          size="small"
+          disabled={!canCreateModifications}
+          onClick={() => showCreateExtensionDialog(demonstrationId)}
+        >
+          Create Extension
+        </IconButton>
+      </div>
+    );
+  }
+
   const extensionsWithType = extensions.map((extension) => ({
     ...extension,
     modificationType: "extension" as const,
+    medicaidId: medicaidId,
   }));
 
-  const { showCreateExtensionDialog } = useDialog();
   return (
     <div className="flex flex-col p-2 gap-2">
       <div className="flex justify-between items-center pb-1 border-b border-border-rules">
@@ -23,12 +48,13 @@ export const ExtensionsTab: React.FC<{
           icon={<AddNewIcon />}
           name="add-new-extension"
           size="small"
+          disabled={!canCreateModifications}
           onClick={() => showCreateExtensionDialog(demonstrationId)}
         >
           Add Extension
         </IconButton>
       </div>
-      <ModificationTabs items={extensionsWithType} />
+      <ModificationTabs items={extensionsWithType} selectedItemId={selectedExtensionId} />
     </div>
   );
 };

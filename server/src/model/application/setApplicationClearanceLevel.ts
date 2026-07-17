@@ -6,7 +6,7 @@ import { getApplication, PrismaApplication } from ".";
 import { ApplicationType } from "../../types";
 
 export async function setApplicationClearanceLevel(
-  _: unknown,
+  parent: unknown,
   { input }: { input: SetApplicationClearanceLevelInput }
 ): Promise<PrismaApplication> {
   try {
@@ -19,7 +19,7 @@ export async function setApplicationClearanceLevel(
         input.applicationId
       );
 
-      if (finishedApplicationPhaseIds.find((phase) => phase === "Review")) {
+      if (finishedApplicationPhaseIds.includes("Review")) {
         throw new Error("Cannot change clearance level after the Review phase has been completed.");
       }
 

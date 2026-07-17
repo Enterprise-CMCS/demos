@@ -12,6 +12,7 @@ const STYLES = {
 
 export type ModificationItem = DemonstrationDetailModification & {
   modificationType: "amendment" | "extension";
+  medicaidId: string;
 };
 
 const ModificationTab = ({
@@ -44,13 +45,24 @@ const sortTabsNewestFirst = (items: ModificationItem[]): ModificationItem[] => {
   });
 };
 
-export const ModificationTabs = ({ items }: { items: ModificationItem[] }) => {
+export const ModificationTabs = ({
+  items,
+  selectedItemId,
+}: {
+  items: ModificationItem[];
+  selectedItemId?: string;
+}) => {
   if (items.length === 0) {
     return null;
   }
 
   const sortedItems = sortTabsNewestFirst(items);
-  const [selectedId, setSelectedId] = useState<string>(sortedItems[0]?.id ?? "");
+  const [selectedId, setSelectedId] = useState<string>(() => {
+    if (selectedItemId && sortedItems.map((item) => item.id).includes(selectedItemId)) {
+      return selectedItemId;
+    }
+    return sortedItems[0]?.id || "";
+  });
   const [selectedItem, setSelectedItem] = useState<ModificationItem>(sortedItems[0]);
 
   useEffect(() => {

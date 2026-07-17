@@ -1,0 +1,89 @@
+version: 2
+
+models:
+  - name: users_active_pmda_users
+    columns:
+      - name: id
+        data_tests:
+          - unique:
+              name: assert_pmda_user_id_is_unique
+
+  - name: cleaned_demos_app_person
+    config:
+      contract:
+        enforced: true
+    description: This is the cleaned data from PMDA prepared for insert into demos_app.person. Users were initially selected from the `users` table in PMDA where the `active` flag was set to 1.
+    columns:
+      - name: id
+        data_type: uuid
+      - name: person_type_id
+        data_type: text
+        description: In cases where a PMDA set of roles resolves to more than one DEMOS person_type_id, the highest person_type_id was chosen. If no person type could be generated, the user is filtered out.
+        data_tests:
+          - not_null:
+              name: assert_no_missing_person_type_id_in_cleaned_demos_app_person
+      - name: email
+        data_type: text
+        description: Users with missing email addresses are filtered out, as are those with empty string or not passing basic format checking.
+        data_tests:
+          - not_null:
+              name: assert_no_missing_email_in_cleaned_demos_app_person
+      - name: first_name
+        data_type: text
+        description: Users with missing first names are filtered out.
+        data_tests:
+          - not_null:
+              name: assert_no_missing_first_name_in_cleaned_demos_app_person
+      - name: last_name
+        data_type: text
+        description: Users with missing last names are filtered out.
+        data_tests:
+          - not_null:
+              name: assert_no_missing_last_name_in_cleaned_demos_app_person
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+
+  - name: cleaned_demos_app_users
+    config:
+      contract:
+        enforced: true
+    description: This is the cleaned data from PMDA prepared for insert into demos_app.users; this is derived entirely from `cleaned_demos_app_person`.
+    data_tests:
+      - dbt_utils.expression_is_true:
+          name: assert_cognito_subject_always_null_in_cleaned_demos_app_users
+          arguments:
+            expression: "cognito_subject IS NULL"
+      - dbt_utils.expression_is_true:
+          name: assert_username_always_null_in_cleaned_demos_app_users
+          arguments:
+            expression: "username IS NULL"
+      - dbt_utils.expression_is_true:
+          name: assert_is_migrated_from_pmda_always_true_in_cleaned_demos_app_users
+          arguments:
+            expression: "is_migrated_from_pmda = TRUE"
+      - dbt_utils.expression_is_true:
+          name: assert_has_logged_in_always_false_in_cleaned_demos_app_users
+          arguments:
+            expression: "has_logged_in = FALSE"
+    columns:
+      - name: id
+        data_type: uuid
+      - name: person_type_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_person_type_id_not_null_in_cleaned_demos_app_users
+      - name: cognito_subject
+        data_type: uuid
+      - name: username
+        data_type: text
+      - name: is_migrated_from_pmda
+        data_type: boolean
+      - name: has_logged_in
+        data_type: boolean
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz

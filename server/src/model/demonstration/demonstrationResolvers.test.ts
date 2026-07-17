@@ -3,7 +3,6 @@ import {
   __createDemonstration,
   __updateDemonstration,
   deleteDemonstration,
-  __resolveDemonstrationPrimaryProjectOfficer,
   demonstrationResolvers,
 } from "./demonstrationResolvers";
 import {
@@ -44,19 +43,22 @@ import { ContextUser, GraphQLContext } from "../../auth";
 import { getManyAmendments } from "../amendment";
 import { getManyExtensions } from "../extension";
 import { getManyDocuments } from "../document";
-import { getManyApplicationPhases } from "../applicationPhase";
-import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
+import { selectManyApplicationPhases } from "../applicationPhase/queries";
+import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
-import { getManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment";
+import {
+  selectDemonstrationTypeTagAssignment,
+  selectManyDemonstrationTypeTagAssignments,
+} from "../demonstrationTypeTagAssignment/queries";
 import { DemonstrationTypeTagAssignmentQueryResult } from "../demonstrationTypeTagAssignment/queries";
 import {
-  getDemonstrationRoleAssignment,
-  getManyDemonstrationRoleAssignments,
-} from "../demonstrationRoleAssignment";
-import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
-import { getState } from "../state";
-import { getPerson } from "../person";
+  selectDemonstrationRoleAssignmentOrThrow,
+  selectManyDemonstrationRoleAssignments,
+} from "../demonstrationRoleAssignment/queries";
+import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
 import { DemonstrationRoleAssignmentQueryResult } from "../demonstrationRoleAssignment/queries";
+import { selectPersonOrThrow } from "../person/queries";
+import { selectStateOrThrow } from "../state/queries";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -79,33 +81,34 @@ vi.mock("../extension", () => ({
   getManyExtensions: vi.fn(),
 }));
 
-vi.mock("../applicationPhase", () => ({
-  getManyApplicationPhases: vi.fn(),
+vi.mock("../applicationPhase/queries", () => ({
+  selectManyApplicationPhases: vi.fn(),
 }));
 
-vi.mock("../applicationTagAssignment", () => ({
-  getManyApplicationTagAssignments: vi.fn(),
+vi.mock("../applicationTagAssignment/queries", () => ({
+  selectManyApplicationTagAssignments: vi.fn(),
 }));
 
-vi.mock("../applicationTagSuggestion", () => ({
-  getManyApplicationTagSuggestions: vi.fn(),
+vi.mock("../applicationTagSuggestion/queries", () => ({
+  selectManyApplicationTagSuggestions: vi.fn(),
 }));
 
-vi.mock("../demonstrationTypeTagAssignment", () => ({
-  getManyDemonstrationTypeTagAssignments: vi.fn(),
+vi.mock("../demonstrationTypeTagAssignment/queries", () => ({
+  selectDemonstrationTypeTagAssignment: vi.fn(),
+  selectManyDemonstrationTypeTagAssignments: vi.fn(),
 }));
 
-vi.mock("../demonstrationRoleAssignment", () => ({
-  getDemonstrationRoleAssignment: vi.fn(),
-  getManyDemonstrationRoleAssignments: vi.fn(),
+vi.mock("../demonstrationRoleAssignment/queries", () => ({
+  selectDemonstrationRoleAssignmentOrThrow: vi.fn(),
+  selectManyDemonstrationRoleAssignments: vi.fn(),
 }));
 
-vi.mock("../person", () => ({
-  getPerson: vi.fn(),
+vi.mock("../person/queries", () => ({
+  selectPersonOrThrow: vi.fn(),
 }));
 
-vi.mock("../state", () => ({
-  getState: vi.fn(),
+vi.mock("../state/queries", () => ({
+  selectStateOrThrow: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -219,7 +222,7 @@ describe("demonstrationResolvers", () => {
     demonstrationName: "The Demonstration",
     demonstrationDescription: "A description of a demonstration",
     sdgDivisionId: "Division of Eligibility and Coverage Demonstrations",
-    signatureLevelId: "OCD",
+    signatureLevelId: "OA",
     personTypeId: "demos-cms-user",
     newApplicationStatusId: "Pre-Submission",
     newApplicationPhaseId: "Concept",
@@ -297,23 +300,20 @@ describe("demonstrationResolvers", () => {
   });
 
   describe("Demonstration.phases", () => {
-    it("delegates to `applicationPhaseData.getManyApplicationPhases`", async () => {
-      await demonstrationResolvers.Demonstration.phases(
-        { id: "demonstrationId" } as PrismaDemonstration,
-        {},
-        mockContext
-      );
-      expect(getManyApplicationPhases).toHaveBeenCalledExactlyOnceWith(
-        { applicationId: "demonstrationId" },
-        mockUser
-      );
+    it("delegates to `applicationPhaseData/queries.selectManyApplicationPhases`", async () => {
+      await demonstrationResolvers.Demonstration.phases({
+        id: "demonstrationId",
+      } as PrismaDemonstration);
+      expect(selectManyApplicationPhases).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "demonstrationId",
+      });
     });
   });
 
   describe("Demonstration.tags", () => {
-    it("delegates to applicationTagAssignmentData.getManyApplicationTagAssignments and maps result", async () => {
+    it("delegates to applicationTagAssignmentData/queries.selectManyApplicationTagAssignments and maps result", async () => {
       const mockDemonstration = { id: "abc123" } as PrismaDemonstration;
-      vi.mocked(getManyApplicationTagAssignments).mockResolvedValueOnce([
+      vi.mocked(selectManyApplicationTagAssignments).mockResolvedValueOnce([
         {
           tag: {
             tagNameId: "Tag1",
@@ -328,15 +328,10 @@ describe("demonstrationResolvers", () => {
         },
       ] as ApplicationTagAssignmentQueryResult[]);
 
-      const result = await demonstrationResolvers.Demonstration.tags(
-        mockDemonstration,
-        undefined,
-        mockContext
-      );
-      expect(getManyApplicationTagAssignments).toHaveBeenCalledExactlyOnceWith(
-        { applicationId: "abc123" },
-        mockUser
-      );
+      const result = await demonstrationResolvers.Demonstration.tags(mockDemonstration);
+      expect(selectManyApplicationTagAssignments).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "abc123",
+      });
       expect(result).toEqual([
         {
           tagName: "Tag1",
@@ -351,9 +346,9 @@ describe("demonstrationResolvers", () => {
   });
 
   describe("Demonstration.applicationTagSuggestions", () => {
-    it("delegates to applicationTagSuggestionData.getManyApplicationTagSuggestions and maps result", async () => {
+    it("delegates to applicationTagSuggestionData/queries/selectManyApplicationTagSuggestions and maps result", async () => {
       const mockDemonstration = { id: "abc123" } as PrismaDemonstration;
-      vi.mocked(getManyApplicationTagSuggestions).mockResolvedValueOnce([
+      vi.mocked(selectManyApplicationTagSuggestions).mockResolvedValueOnce([
         {
           value: "Suggestion1",
         },
@@ -362,28 +357,22 @@ describe("demonstrationResolvers", () => {
         },
       ] as PrismaApplicationTagSuggestion[]);
 
-      const result = await demonstrationResolvers.Demonstration.suggestedApplicationTags(
-        mockDemonstration,
-        undefined,
-        mockContext
-      );
-      expect(getManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith(
-        {
-          applicationId: "abc123",
-          statusId: {
-            in: ["Pending"],
-          },
+      const result =
+        await demonstrationResolvers.Demonstration.suggestedApplicationTags(mockDemonstration);
+      expect(selectManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "abc123",
+        statusId: {
+          in: ["Pending"],
         },
-        mockUser
-      );
+      });
       expect(result).toEqual(["Suggestion1", "Suggestion2"]);
     });
   });
 
   describe("Demonstration.demonstrationTypes", () => {
-    it("delegates to demonstrationTypeTagAssignmentData.getManyDemonstrationTypeTagAssignments and maps result", async () => {
+    it("delegates to demonstrationTypeTagAssignmentData/queries.selectManyDemonstrationTypeTagAssignments and maps result", async () => {
       const mockDemonstration = { id: "abc123" } as PrismaDemonstration;
-      vi.mocked(getManyDemonstrationTypeTagAssignments).mockResolvedValueOnce([
+      vi.mocked(selectManyDemonstrationTypeTagAssignments).mockResolvedValueOnce([
         {
           tagNameId: "Tag1",
           tag: {
@@ -398,15 +387,11 @@ describe("demonstrationResolvers", () => {
         },
       ] as DemonstrationTypeTagAssignmentQueryResult[]);
 
-      const result = await demonstrationResolvers.Demonstration.demonstrationTypes(
-        mockDemonstration,
-        undefined,
-        mockContext
-      );
-      expect(getManyDemonstrationTypeTagAssignments).toHaveBeenCalledExactlyOnceWith(
-        { demonstrationId: "abc123" },
-        mockUser
-      );
+      const result =
+        await demonstrationResolvers.Demonstration.demonstrationTypes(mockDemonstration);
+      expect(selectManyDemonstrationTypeTagAssignments).toHaveBeenCalledExactlyOnceWith({
+        demonstrationId: "abc123",
+      });
       expect(result).toEqual([
         {
           demonstrationTypeName: "Tag1",
@@ -421,73 +406,40 @@ describe("demonstrationResolvers", () => {
   });
 
   describe("Demonstration.roles", () => {
-    it("delegates to demonstrationRoleAssignmentData.getManyDemonstrationRoleAssignments", async () => {
-      await demonstrationResolvers.Demonstration.roles(
-        { id: "demonstrationId" } as PrismaDemonstration,
-        {},
-        mockContext
-      );
-      expect(getManyDemonstrationRoleAssignments).toHaveBeenCalledExactlyOnceWith(
-        { demonstrationId: "demonstrationId" },
-        mockUser
-      );
+    it("delegates to demonstrationRoleAssignmentData/queries.selectManyDemonstrationRoleAssignments", async () => {
+      await demonstrationResolvers.Demonstration.roles({
+        id: "demonstrationId",
+      } as PrismaDemonstration);
+      expect(selectManyDemonstrationRoleAssignments).toHaveBeenCalledExactlyOnceWith({
+        demonstrationId: "demonstrationId",
+      });
     });
   });
 
   describe("Demonstration.primaryProjectOfficer", () => {
-    it("delegates to demonstrationRoleAssignmentData.getManyDemonstrationRoleAssignments and getPerson", async () => {
-      vi.mocked(getDemonstrationRoleAssignment).mockResolvedValueOnce({
+    it("delegates to demonstrationRoleAssignmentData/queries.selectDemonstrationRoleAssignmentOrThrow and selectPersonOrThrow", async () => {
+      vi.mocked(selectDemonstrationRoleAssignmentOrThrow).mockResolvedValueOnce({
         personId: "personId",
       } as DemonstrationRoleAssignmentQueryResult);
 
-      await demonstrationResolvers.Demonstration.primaryProjectOfficer(
-        { id: "demonstrationId" } as PrismaDemonstration,
-        undefined,
-        mockContext
-      );
+      await demonstrationResolvers.Demonstration.primaryProjectOfficer({
+        id: "demonstrationId",
+      } as PrismaDemonstration);
 
-      expect(getDemonstrationRoleAssignment).toHaveBeenCalledExactlyOnceWith(
-        {
-          demonstrationId: "demonstrationId",
-          roleId: "Project Officer",
-          primaryDemonstrationRoleAssignment: { isNot: null },
-        },
-        mockUser
-      );
+      expect(selectDemonstrationRoleAssignmentOrThrow).toHaveBeenCalledExactlyOnceWith({
+        demonstrationId: "demonstrationId",
+        roleId: "Project Officer",
+        primaryDemonstrationRoleAssignment: { isNot: null },
+      });
 
-      expect(getPerson).toHaveBeenCalledExactlyOnceWith({ id: "personId" });
-    });
-
-    it("throws an error if primary project officer is not found", async () => {
-      vi.mocked(getDemonstrationRoleAssignment).mockResolvedValueOnce(null);
-
-      expect(
-        demonstrationResolvers.Demonstration.primaryProjectOfficer(
-          { id: "demonstrationId" } as PrismaDemonstration,
-          undefined,
-          mockContext
-        )
-      ).rejects.toThrow(
-        `Primary project officer not found for demonstration with id demonstrationId`
-      );
-
-      expect(getDemonstrationRoleAssignment).toHaveBeenCalledExactlyOnceWith(
-        {
-          demonstrationId: "demonstrationId",
-          roleId: "Project Officer",
-          primaryDemonstrationRoleAssignment: { isNot: null },
-        },
-        mockUser
-      );
-
-      expect(getPerson).not.toHaveBeenCalled();
+      expect(selectPersonOrThrow).toHaveBeenCalledExactlyOnceWith({ id: "personId" });
     });
   });
 
   describe("Demonstration.state", () => {
     it("delegates to stateData.getState", async () => {
       await demonstrationResolvers.Demonstration.state({ stateId: "NC" } as PrismaDemonstration);
-      expect(getState).toHaveBeenCalledExactlyOnceWith({ id: "NC" });
+      expect(selectStateOrThrow).toHaveBeenCalledExactlyOnceWith({ id: "NC" });
     });
   });
 
@@ -546,6 +498,46 @@ describe("demonstrationResolvers", () => {
     });
   });
 
+  describe("Demonstration.chipId", () => {
+    it("returns null if the demonstration type is not present", async () => {
+      const demonstration: Partial<PrismaDemonstration> = {
+        id: testValues.demonstrationId,
+        chipId: "21-W-99999/10",
+      };
+
+      const result = await demonstrationResolvers.Demonstration.chipId(
+        demonstration as PrismaDemonstration
+      );
+      expect(selectDemonstrationTypeTagAssignment).toHaveBeenCalledExactlyOnceWith({
+        demonstrationId: testValues.demonstrationId,
+        tagNameId: "Children's Health Insurance Program (CHIP)",
+      });
+      expect(result).toBeNull();
+    });
+
+    it("returns the CHIP ID if the demonstration type is present", async () => {
+      const mockResult: Partial<DemonstrationTypeTagAssignmentQueryResult> = {
+        demonstrationId: testValues.demonstrationId,
+      };
+      vi.mocked(selectDemonstrationTypeTagAssignment).mockResolvedValue(
+        mockResult as DemonstrationTypeTagAssignmentQueryResult
+      );
+      const demonstration: Partial<PrismaDemonstration> = {
+        id: testValues.demonstrationId,
+        chipId: "21-W-99999/10",
+      };
+
+      const result = await demonstrationResolvers.Demonstration.chipId(
+        demonstration as PrismaDemonstration
+      );
+      expect(selectDemonstrationTypeTagAssignment).toHaveBeenCalledExactlyOnceWith({
+        demonstrationId: testValues.demonstrationId,
+        tagNameId: "Children's Health Insurance Program (CHIP)",
+      });
+      expect(result).toBe(demonstration.chipId);
+    });
+  });
+
   describe("__createDemonstration", () => {
     it("should create a new application and demonstration in a transaction", async () => {
       transactionMocks.application.create.mockResolvedValueOnce({
@@ -563,7 +555,6 @@ describe("demonstrationResolvers", () => {
           stateId: testValues.stateId,
           description: testValues.demonstrationDescription,
           sdgDivision: testValues.sdgDivisionId,
-          signatureLevel: testValues.signatureLevelId,
         },
       };
 
@@ -580,8 +571,8 @@ describe("demonstrationResolvers", () => {
             name: testValues.demonstrationName,
             description: testValues.demonstrationDescription,
             sdgDivisionId: testValues.sdgDivisionId,
-            signatureLevelId: testValues.signatureLevelId,
             statusId: testValues.newApplicationStatusId,
+            signatureLevelId: testValues.signatureLevelId,
             stateId: testValues.stateId,
             currentPhaseId: testValues.newApplicationPhaseId,
           },
@@ -630,6 +621,37 @@ describe("demonstrationResolvers", () => {
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
 
+    it("should trim the demonstration name and description when creating", async () => {
+      transactionMocks.application.create.mockResolvedValueOnce({
+        id: testValues.demonstrationId,
+        applicationTypeId: testValues.applicationTypeId,
+      });
+      transactionMocks.person.findUnique.mockResolvedValueOnce({
+        personTypeId: testValues.personTypeId,
+      });
+
+      const testInput: { input: CreateDemonstrationInput } = {
+        input: {
+          name: `  ${testValues.demonstrationName}  `,
+          projectOfficerUserId: testValues.userId,
+          stateId: testValues.stateId,
+          description: `  ${testValues.demonstrationDescription}  `,
+          sdgDivision: testValues.sdgDivisionId,
+        },
+      };
+
+      await __createDemonstration(undefined, testInput);
+
+      expect(transactionMocks.demonstration.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            name: testValues.demonstrationName,
+            description: testValues.demonstrationDescription,
+          }),
+        })
+      );
+    });
+
     it("should throw if the requested person does not exist", async () => {
       transactionMocks.application.create.mockResolvedValueOnce({
         id: testValues.demonstrationId,
@@ -644,7 +666,6 @@ describe("demonstrationResolvers", () => {
           stateId: testValues.stateId,
           description: testValues.demonstrationDescription,
           sdgDivision: testValues.sdgDivisionId,
-          signatureLevel: testValues.signatureLevelId,
         },
       };
 
@@ -700,12 +721,7 @@ describe("demonstrationResolvers", () => {
         name: testValues.demonstrationName,
       },
     };
-    const expectedCheckOptionalNotNullFieldList = [
-      "name",
-      "status",
-      "stateId",
-      "projectOfficerUserId",
-    ];
+    const expectedCheckOptionalNotNullFieldList = ["name", "projectOfficerUserId"];
 
     it("should call update on the demonstration in a transaction", async () => {
       const expectedCall = {
@@ -725,6 +741,27 @@ describe("demonstrationResolvers", () => {
       );
       expect(transactionMocks.demonstration.update).toHaveBeenCalledExactlyOnceWith(expectedCall);
       expect(handlePrismaError).not.toHaveBeenCalled();
+    });
+
+    it("should trim the demonstration name and description when updating", async () => {
+      const testInput: { id: string; input: UpdateDemonstrationInput } = {
+        id: testValues.demonstrationId,
+        input: {
+          name: `  ${testValues.demonstrationName}  `,
+          description: `  ${testValues.demonstrationDescription}  `,
+        },
+      };
+
+      await __updateDemonstration(undefined, testInput);
+
+      expect(transactionMocks.demonstration.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            name: testValues.demonstrationName,
+            description: testValues.demonstrationDescription,
+          }),
+        })
+      );
     });
 
     it("should not touch the person tables if no update to project officer is requested", async () => {

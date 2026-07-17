@@ -1,0 +1,230 @@
+= Reference: SQL conventions
+
+The audience is any engineer reading or editing the ~100 `.sql` files
+under `sql/`. By the end you will know how every file is shaped, who
+owns its formatting and case, what the lint guardrail does and does
+not police, the alias vocabulary, and the recurring domain literals.
+
+The goal is *translucency*: a file you have never opened should read
+the same as one you wrote.
+
+== Front-matter
+
+Every hand-written SQL file opens with a structured comment block. It
+is the first thing you read and the contract `make sql-frontmatter`
+enforces (`scripts/check_sql_frontmatter.py`).
+
+Authored transform layers carry the *full* set of fields:
+
+[source,sql]
+----
+/*
+ * Purpose:    One sentence: what this file produces and why.
+ * Inputs:     Source tables / views / sequences it reads.
+ * Outputs:    Tables / views it writes (or the check it emits).
+ * Invariants: Idempotency contract, fail-closed behaviour, txn/ordering rules.
+ * Refs:       Worksheets, sibling SQL files, spec sections.
+ *
+ * ...free-form prose may follow, preserved verbatim...
+ */
+----
+
+Mechanical bootstrap / seed / id-map files carry the lighter subset:
+
+[source,sql]
+----
+/*
+ * Purpose: One sentence.
+ * Refs:    Where to read more.
+ */
+----
+
+The checker parses *only* the leading comment block and asserts the
+required labels are present; it never polices the prose beneath them.
+The label regex tolerates either a `/* ... */` block or a run of `--`
+lines, and either ` * Label:` or `-- Label:` prefixes.
+
+[WARNING]
+====
+Postgres *nests* `/* ... */` comments. A bare `/*` in block-comment
+prose -- most easily a glob like `sql/10_stg/*` -- opens a nested
+comment that is never closed, silently swallowing the SQL beneath it.
+Write `sql/10_stg` (no trailing `\*`) inside block comments. The
+front-matter checker fails on any in-scope file whose block comments do
+not close at depth 0.
+====
+
+[cols="2,3"]
+|===
+| Field set | Layers
+
+| Full (`Purpose`, `Inputs`, `Outputs`, `Invariants`, `Refs`)
+| `04_crosswalks`, `10_stg`, `20_app`, `21_app_associative`, `23_app_derived`, `31_constraint_triggers`, `99_parity`
+
+| Light (`Purpose`, `Refs`)
+| `00_init`, `01_ddl_supplements`, `02_seeds_static`, `05_id_maps`, `scripts/*.sql`, `tests/sql/fixtures`
+|===
+
+In-scope files are `sql/**/*.sql`, `scripts/*.sql`, and
+`tests/sql/fixtures/**/*.sql`. A repo-wide test
+(`tests/test_sql_frontmatter.py`) fails if any in-scope file loses its
+block.
+
+== Formatting: pg_format owns layout and case
+
+pgFormatter (`pg_format`) owns *all* SQL layout and case. There is no
+hand-formatting debate: run the formatter. `scripts/sql_fmt.py` pins
+the canonical flags in one place so the Makefile, the pre-commit hook,
+and a manual run can never disagree.
+
+[source,bash]
+----
+pg_format -s 2 --no-space-function --extra-function scripts/pg_format_functions.txt
+----
+
+* `-s 2` -- two-space indent (house style).
+* keyword-case uppercase, type-case lowercase, function-case unchanged
+  (pg_format defaults; not overridden).
+* `--no-space-function` -- `nullif(...)`, not `nullif (...)`.
+* `--extra-function scripts/pg_format_functions.txt` -- lists `left` /
+  `right` so they render as `left()` / `right()` instead of the
+  misleading keyword form `LEFT (...)`.
+
+Changing any of these reshapes every file, so do it deliberately.
+
+`sql_fmt.py` asserts *round-trip stability*: a second format pass must
+be a no-op, otherwise the rewrite is rejected (exit 2). This is what
+lets us trust the one-time reflow as semantically inert -- it only ever
+touched whitespace and case, never tokens, identifiers, or literals.
+
+[NOTE]
+====
+`scripts/generate_fk_candidates.sql` is *quarantined* from formatting.
+It uses `LIKE '...' ESCAPE '\'`; the lone-backslash escape string
+confuses pg_format's tokenizer, which then mangles the adjacent LIKE
+pattern literal. The file is still linted and front-matter-checked,
+just not reformatted. See the `EXCLUDE` set in `scripts/sql_fmt.py`.
+====
+
+== Linting: sqlfluff is lint-only
+
+`sqlfluff` (config in `.sqlfluff`, postgres dialect, raw templater) is a
+semantic guardrail for *new and edited* SQL. We never run `sqlfluff
+fix` in this repo -- pg_format owns formatting, full stop.
+
+The config excludes two groups of rules so the existing codebase lints
+100% green and sqlfluff only surfaces genuinely new problems:
+
+* `layout`, `capitalisation` -- owned by pg_format.
+* established, intentional house style: `AL01`/`AL03`/`AL09` (alias
+  forms), `AM05`/`AM06` (join/`GROUP BY` qualification), `ST01` (explicit
+  `ELSE NULL`), `ST06`/`ST07`/`ST09` (select-list / `USING` / join order),
+  `RF02` (unqualified columns), `RF04` (reserved words used as DEMOS /
+  legacy column names: `name`, `desc`, `type`), and `PG01` (`CREATE
+  INDEX CONCURRENTLY`, illegal in our in-transaction migration DDL).
+
+[NOTE]
+====
+sqlfluff's postgres dialect cannot fully parse a few constructs
+(`CREATE EXTENSION`, some PL/pgSQL function bodies in `00_init` /
+`01_ddl_supplements`). It emits a "Parsing errors found" *warning* but
+still exits 0; lint stays green. This is a known sqlfluff limitation,
+not a defect in those files.
+====
+
+== Alias vocabulary
+
+Aliases are documented here and enforced on *new* code by review; we do
+not mass-rename existing SQL. Use the shortest alias that stays
+unambiguous, and the conventional letters below where they apply.
+
+[cols="1,3"]
+|===
+| Alias | Role
+
+| `src` | the legacy source row (`mysql_raw.<table>`)
+| `cw`  | a crosswalk table (`mysql_raw.crosswalk_*`)
+| `r`   | a resolved staging row (`stg.*_resolved`)
+| `m`, `m_self`, `m_parent`, `m_grandparent` | id-map joins (`migration._id_map_*`); one distinct alias per map so a multi-map JOIN reads cleanly (see xref:reference-id-maps.adoc[id maps])
+| `d` / `dm` | a loaded target row (`demos_app.demonstration`)
+| short table-initial (`p` person, `s` state, `ps` person_state, `dra` demonstration_role_assignment, ...) | other `demos_app` targets in parity checks
+|===
+
+== Recurring domain literals
+
+These string constants appear across crosswalks, app loads, and parity
+checks. They are DEMOS enum/text ids and PMDA formats, not magic
+numbers -- treat them as a controlled vocabulary.
+
+[cols="2,3,2"]
+|===
+| Literal | Meaning | Defined / used
+
+| `'Demonstration'`, `'Amendment'`, `'Extension'`
+| `demos_app.application.application_type_id` values
+| `sql/04_crosswalks/60_application_type.sql`
+
+| `'OA'`, `'OCD'`, `'OGD'`
+| signature levels; the demonstration CHECK forces `'OA'`
+| `sql/04_crosswalks/30_signature_level.sql`
+
+| `'Pre-Submission'`, `'Under Review'`, `'Approved'`, `'Denied'`, `'Concept'`, `'Under CMS Review'`
+| demonstration / amendment status text ids (codes 4-7 store as `'Approved'` with a read-time date overlay)
+| `sql/04_crosswalks/10_demo_status.sql`, `sql/04_crosswalks/64_amendment_status.sql`
+
+| `11-W-NNNNN/R`
+| PMDA Medicaid project number (`^11-W-[0-9]{5}/(10\|[1-9])$`); the row filter enforces it
+| `sql/10_stg/10_filter_demo.sql`, `sql/99_parity/10_demonstration_id_provenance.sql`
+
+| `21-W-<seq>/<region>`
+| minted CHIP id fallback when the source has no secondary demo number
+| `sql/20_app/30_demonstration.sql`
+
+| `geo_ansi_state_cd`
+| legacy state code, crosswalked to `demos_app.state.id`
+| `sql/04_crosswalks/20_state.sql`
+|===
+
+== Running it
+
+[source,bash]
+----
+make sql-fmt          # pg_format in place (owns layout + case)
+make sql-fmt-check    # fail if any file is not pg_format-clean
+make sql-lint         # sqlfluff lint (never fix)
+make sql-frontmatter  # every file has its front-matter block
+make sql-check        # all three checks (fmt-check + lint + frontmatter)
+----
+
+These run automatically via `.pre-commit-config.yaml`: on *commit* the
+three per-file checks run against the staged `.sql` files (fast), and on
+*push* `make sql-check` re-runs the full set across every in-scope file
+as a final guard. Install both hook types once:
+
+[source,bash]
+----
+uv run pre-commit install --hook-type pre-commit --hook-type pre-push
+----
+
+There is no CI gate for these; `make sql-check` plus the commit and push
+hooks are the enforcement contract.
+
+== Related
+
+* xref:tutorial-follow-an-entity.adoc[Tutorial: follow a demonstration through the SQL]
+* xref:reference-pipeline-stages.adoc[Pipeline stages] (what each `sql/` layer is for)
+* xref:reference-id-maps.adoc[id maps] (the `m_*` alias pattern in full)
+* xref:explanation-idempotency.adoc[Idempotency] (the `Invariants` field's contract)
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-pipeline-stages.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:tutorial-follow-an-entity.adoc[next >]
+|===
+endif::[]
+// docnav-end

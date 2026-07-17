@@ -2,10 +2,10 @@ import { handlePrismaError } from "../../errors/handlePrismaError";
 import { prisma, PrismaTransactionClient } from "../../prismaClient";
 import { setApplicationTags } from "../applicationTagAssignment";
 import { PrismaApplication } from "../application/applicationTypes";
-import { ApplicationTagSuggestion } from "@prisma/client";
+import { ApplicationTagSuggestion as PrismaApplicationTagSuggestion } from "@prisma/client";
 
 export async function appendApplicationTags(
-  _: unknown,
+  parent: unknown,
   tx: PrismaTransactionClient,
   applicationId: string,
   newValue: string
@@ -20,7 +20,7 @@ export async function appendApplicationTags(
     tagNames.push(newValue);
   }
 
-  return await setApplicationTags(_, {
+  return await setApplicationTags(parent, {
     input: {
       applicationId,
       applicationTags: tagNames,
@@ -29,7 +29,7 @@ export async function appendApplicationTags(
 }
 
 export async function acceptApplicationTagSuggestion(
-  _: unknown,
+  parent: unknown,
   { applicationId, value }: { applicationId: string; value: string }
 ): Promise<PrismaApplication> {
   try {
@@ -53,7 +53,7 @@ export async function acceptApplicationTagSuggestion(
         data: { statusId: "Accepted" },
       });
 
-      return await appendApplicationTags(_, tx, suggestion.applicationId, suggestion.value);
+      return await appendApplicationTags(parent, tx, suggestion.applicationId, suggestion.value);
     });
   } catch (error) {
     handlePrismaError(error);
@@ -61,7 +61,7 @@ export async function acceptApplicationTagSuggestion(
 }
 
 export async function replaceApplicationTagSuggestion(
-  _: unknown,
+  parent: unknown,
   { applicationId, value, newValue }: { applicationId: string; value: string; newValue: string }
 ): Promise<PrismaApplication> {
   try {
@@ -85,7 +85,7 @@ export async function replaceApplicationTagSuggestion(
         data: { statusId: "Replaced", replacedValue: newValue },
       });
 
-      return await appendApplicationTags(_, tx, suggestion.applicationId, newValue);
+      return await appendApplicationTags(parent, tx, suggestion.applicationId, newValue);
     });
   } catch (error) {
     handlePrismaError(error);
@@ -93,9 +93,9 @@ export async function replaceApplicationTagSuggestion(
 }
 
 export async function removeApplicationTagSuggestion(
-  _: unknown,
+  parent: unknown,
   { applicationId, value }: { applicationId: string; value: string }
-): Promise<ApplicationTagSuggestion> {
+): Promise<PrismaApplicationTagSuggestion> {
   try {
     return prisma().$transaction(async (tx) => {
       return await tx.applicationTagSuggestion.update({
@@ -115,8 +115,8 @@ export async function removeApplicationTagSuggestion(
 
 export const applicationTagSuggestionResolvers = {
   Mutation: {
-    acceptApplicationTagSuggestion: acceptApplicationTagSuggestion,
-    replaceApplicationTagSuggestion: replaceApplicationTagSuggestion,
-    removeApplicationTagSuggestion: removeApplicationTagSuggestion,
+    acceptApplicationTagSuggestion,
+    replaceApplicationTagSuggestion,
+    removeApplicationTagSuggestion,
   },
 };

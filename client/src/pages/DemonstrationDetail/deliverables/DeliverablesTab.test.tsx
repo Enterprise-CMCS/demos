@@ -6,7 +6,7 @@ import { DialogProvider } from "components/dialog/DialogContext";
 import { ADD_DELIVERABLE_SLOT_DIALOG_TITLE } from "components/dialog/deliverable";
 import { ADD_DELIVERABLE_SLOT_BUTTON_NAME, DeliverablesTab } from "./DeliverablesTab";
 import { TestProvider } from "test-utils/TestProvider";
-import { deliverableMocks } from "mock-data/deliverableMocks";
+import { deliverableMocks, MOCK_DELIVERABLE_TABLE_ROW } from "mock-data/deliverableMocks";
 
 const MOCK_PARENT_DEMONSTRATION = {
   id: "demo-1",
@@ -26,7 +26,9 @@ describe("DeliverablesTab", () => {
     );
 
     expect(screen.getByRole("heading", { name: "Deliverables" })).toBeInTheDocument();
-    expect(await screen.findByRole("columnheader", { name: /Deliverable Type/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("columnheader", { name: /Deliverable Type/i })
+    ).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Deliverable Name/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /CMS Owner/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Due Date/i })).toBeInTheDocument();
@@ -50,6 +52,27 @@ describe("DeliverablesTab", () => {
     expect(dialog).toHaveTextContent(ADD_DELIVERABLE_SLOT_DIALOG_TITLE);
   });
 
+  it("preserves selected deliverables when the add deliverable slot dialog opens", async () => {
+    const user = userEvent.setup();
+    render(
+      <TestProvider mocks={deliverableMocks}>
+        <DialogProvider>
+          <DeliverablesTab parentDemonstration={MOCK_PARENT_DEMONSTRATION} />
+        </DialogProvider>
+      </TestProvider>
+    );
+
+    const selectedRow = await screen.findByTestId(`select-row-${MOCK_DELIVERABLE_TABLE_ROW.id}`);
+
+    await user.click(selectedRow);
+    expect(selectedRow).toBeChecked();
+
+    await user.click(screen.getByTestId(ADD_DELIVERABLE_SLOT_BUTTON_NAME));
+
+    expect(screen.getByRole("dialog")).toHaveTextContent(ADD_DELIVERABLE_SLOT_DIALOG_TITLE);
+    expect(screen.getByTestId(`select-row-${MOCK_DELIVERABLE_TABLE_ROW.id}`)).toBeChecked();
+  });
+
   it("shows empty state when no demonstration deliverables are available", async () => {
     render(
       <TestProvider mocks={deliverableMocks}>
@@ -61,6 +84,8 @@ describe("DeliverablesTab", () => {
       </TestProvider>
     );
 
-    expect(await screen.findByText("You have no assigned Deliverables at this time")).toBeInTheDocument();
+    expect(
+      await screen.findByText("You have no assigned Deliverables at this time")
+    ).toBeInTheDocument();
   });
 });

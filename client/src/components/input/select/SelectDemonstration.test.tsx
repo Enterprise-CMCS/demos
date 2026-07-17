@@ -37,9 +37,9 @@ describe("SelectDemonstration", () => {
   const mockOnSelect = vi.fn();
 
   const mockDemonstrations = [
-    { id: "demo-1", name: "Demo One" },
-    { id: "demo-2", name: "Demo Two" },
-    { id: "demo-3", name: "Demo Three" },
+    { id: "demo-1", name: "Demo One", status: "Approved" },
+    { id: "demo-2", name: "Demo Two", status: "Pre-Submission" },
+    { id: "demo-3", name: "Demo Three", status: "Approved" },
   ];
 
   const successMock = [
@@ -77,9 +77,25 @@ describe("SelectDemonstration", () => {
     },
   ];
 
+  const noApprovedMock = [
+    {
+      request: {
+        query: SELECT_DEMONSTRATION_QUERY,
+      },
+      result: {
+        data: {
+          demonstrations: [
+            { id: "demo-1", name: "Demo One", status: "Pre-Submission" },
+            { id: "demo-2", name: "Demo Two", status: "Under Review" },
+          ],
+        },
+      },
+    },
+  ];
+
   it("shows loading state initially", () => {
     render(
-      <MockedProvider mocks={successMock} addTypename={false}>
+      <MockedProvider mocks={successMock}>
         <SelectDemonstration value="" onSelect={mockOnSelect} />
       </MockedProvider>
     );
@@ -89,7 +105,7 @@ describe("SelectDemonstration", () => {
 
   it("renders AutoCompleteSelect with demonstrations after loading", async () => {
     render(
-      <MockedProvider mocks={successMock} addTypename={false}>
+      <MockedProvider mocks={successMock}>
         <SelectDemonstration value="" onSelect={mockOnSelect} />
       </MockedProvider>
     );
@@ -102,9 +118,9 @@ describe("SelectDemonstration", () => {
     expect(screen.getByText("Demonstration")).toBeInTheDocument();
   });
 
-  it("passes correct options to AutoCompleteSelect", async () => {
+  it("passes approved demonstrations to AutoCompleteSelect", async () => {
     render(
-      <MockedProvider mocks={successMock} addTypename={false}>
+      <MockedProvider mocks={successMock}>
         <SelectDemonstration value="" onSelect={mockOnSelect} />
       </MockedProvider>
     );
@@ -114,15 +130,15 @@ describe("SelectDemonstration", () => {
     });
 
     expect(screen.getByText("Demo One")).toBeInTheDocument();
-    expect(screen.getByText("Demo Two")).toBeInTheDocument();
     expect(screen.getByText("Demo Three")).toBeInTheDocument();
+    expect(screen.queryByText("Demo Two")).not.toBeInTheDocument();
   });
 
   it("calls onSelect when a demonstration is selected", async () => {
     const user = userEvent.setup();
 
     render(
-      <MockedProvider mocks={successMock} addTypename={false}>
+      <MockedProvider mocks={successMock}>
         <SelectDemonstration value="" onSelect={mockOnSelect} />
       </MockedProvider>
     );
@@ -132,14 +148,14 @@ describe("SelectDemonstration", () => {
     });
 
     const select = screen.getByTestId("select-demonstration");
-    await user.selectOptions(select, "demo-2");
+    await user.selectOptions(select, "demo-3");
 
-    expect(mockOnSelect).toHaveBeenCalledWith("demo-2");
+    expect(mockOnSelect).toHaveBeenCalledWith("demo-3");
   });
 
   it("shows error message when query fails", async () => {
     render(
-      <MockedProvider mocks={errorMock} addTypename={false}>
+      <MockedProvider mocks={errorMock}>
         <SelectDemonstration value="" onSelect={mockOnSelect} />
       </MockedProvider>
     );
@@ -149,21 +165,34 @@ describe("SelectDemonstration", () => {
     });
   });
 
-  it("shows no demonstrations message when list is empty", async () => {
+  it("shows no approved demonstrations message when list is empty", async () => {
     render(
-      <MockedProvider mocks={emptyMock} addTypename={false}>
+      <MockedProvider mocks={emptyMock}>
         <SelectDemonstration value="" onSelect={mockOnSelect} />
       </MockedProvider>
     );
 
     await waitFor(() => {
-      expect(screen.getByText("No demonstrations found.")).toBeInTheDocument();
+      expect(screen.getByText("No approved demonstrations found.")).toBeInTheDocument();
     });
+  });
+
+  it("shows no approved demonstrations message when no approved demonstrations exist", async () => {
+    render(
+      <MockedProvider mocks={noApprovedMock} addTypename={false}>
+        <SelectDemonstration value="" onSelect={mockOnSelect} />
+      </MockedProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("No approved demonstrations found.")).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId("select-demonstration")).not.toBeInTheDocument();
   });
 
   it("passes isRequired prop to AutoCompleteSelect", async () => {
     render(
-      <MockedProvider mocks={successMock} addTypename={false}>
+      <MockedProvider mocks={successMock}>
         <SelectDemonstration value="" onSelect={mockOnSelect} isRequired />
       </MockedProvider>
     );
@@ -177,7 +206,7 @@ describe("SelectDemonstration", () => {
 
   it("passes isDisabled prop to AutoCompleteSelect", async () => {
     render(
-      <MockedProvider mocks={successMock} addTypename={false}>
+      <MockedProvider mocks={successMock}>
         <SelectDemonstration value="" onSelect={mockOnSelect} isDisabled />
       </MockedProvider>
     );
@@ -192,8 +221,8 @@ describe("SelectDemonstration", () => {
 
   it("passes value prop to AutoCompleteSelect", async () => {
     render(
-      <MockedProvider mocks={successMock} addTypename={false}>
-        <SelectDemonstration onSelect={mockOnSelect} value="demo-2" />
+      <MockedProvider mocks={successMock}>
+        <SelectDemonstration onSelect={mockOnSelect} value="demo-3" />
       </MockedProvider>
     );
 
@@ -202,12 +231,12 @@ describe("SelectDemonstration", () => {
     });
 
     const select = screen.getByTestId("select-demonstration") as HTMLSelectElement;
-    expect(select.value).toBe("demo-2");
+    expect(select.value).toBe("demo-3");
   });
 
   it("renders with correct placeholder text", async () => {
     render(
-      <MockedProvider mocks={successMock} addTypename={false}>
+      <MockedProvider mocks={successMock}>
         <SelectDemonstration value="" onSelect={mockOnSelect} />
       </MockedProvider>
     );

@@ -1,58 +1,32 @@
-import { Prisma } from "@prisma/client";
 import {
-  buildAuthorizationFilter,
-  isStatePointOfContactOnDemonstration,
-  PermissionFilters,
-  ContextUser,
-} from "../../auth";
-import {
-  type DemonstrationRoleAssignmentQueryResult,
-  selectDemonstrationRoleAssignment,
-  selectManyDemonstrationRoleAssignments,
-} from "./queries";
+  Prisma,
+  DemonstrationRoleAssignment as PrismaDemonstrationRoleAssignment,
+} from "@prisma/client";
+import { buildAuthorizationFilter, PermissionFilters, ContextUser } from "../../auth";
+
 import { PrismaTransactionClient } from "../../prismaClient";
+import { selectManyDemonstrationRoleAssignments } from "./queries";
+import { isAStatePointOfContactAssociatedWithDemonstration } from "../demonstration/demonstrationData";
 
 const getPermissionFilters = (userId: string) =>
   ({
     "View All DemonstrationRoleAssignments": {
       NOT: {
-        demonstrationId: {
+        personId: {
           in: [],
         },
       },
     },
     "View DemonstrationRoleAssignments on Assigned Demonstrations": {
-      demonstration: isStatePointOfContactOnDemonstration(userId),
+      demonstration: isAStatePointOfContactAssociatedWithDemonstration(userId),
     },
   }) satisfies PermissionFilters<Prisma.DemonstrationRoleAssignmentWhereInput>;
-
-export async function getDemonstrationRoleAssignment(
-  where: Prisma.DemonstrationRoleAssignmentWhereInput,
-  user: ContextUser,
-  tx?: PrismaTransactionClient
-): Promise<DemonstrationRoleAssignmentQueryResult | null> {
-  const authFilter = buildAuthorizationFilter<Prisma.DemonstrationRoleAssignmentWhereInput>(
-    user,
-    getPermissionFilters
-  );
-
-  if (authFilter === null) {
-    return null;
-  }
-
-  return await selectDemonstrationRoleAssignment(
-    {
-      AND: [where, authFilter],
-    },
-    tx
-  );
-}
 
 export async function getManyDemonstrationRoleAssignments(
   where: Prisma.DemonstrationRoleAssignmentWhereInput,
   user: ContextUser,
   tx?: PrismaTransactionClient
-): Promise<DemonstrationRoleAssignmentQueryResult[]> {
+): Promise<PrismaDemonstrationRoleAssignment[]> {
   const authFilter = buildAuthorizationFilter<Prisma.DemonstrationRoleAssignmentWhereInput>(
     user,
     getPermissionFilters

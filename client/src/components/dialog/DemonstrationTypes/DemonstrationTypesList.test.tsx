@@ -5,14 +5,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DemonstrationTypesList } from "./DemonstrationTypesList";
 import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
 
-vi.mock("components/icons", () => ({
-  DeleteIcon: ({ className }: { className?: string }) => (
-    <span data-testid="delete-icon" className={className}>
-      ×
-    </span>
-  ),
-}));
-
 describe("DemonstrationTypesList", () => {
   const mockRemoveDemonstrationType = vi.fn();
 
@@ -103,5 +95,34 @@ describe("DemonstrationTypesList", () => {
 
     expect(mockRemoveDemonstrationType).toHaveBeenCalledTimes(1);
     expect(mockRemoveDemonstrationType).toHaveBeenCalledWith("Type B");
+  });
+
+  it("displays notice when CHIP type is included", () => {
+    const chipDemonstrationType: DemonstrationType = {
+      demonstrationTypeName: "Children's Health Insurance Program (CHIP)",
+      effectiveDate: "2024-01-04",
+      expirationDate: "2025-01-04",
+      approvalStatus: "Approved",
+    };
+
+    render(
+      <DemonstrationTypesList
+        demonstrationTypes={[...demonstrationTypes, chipDemonstrationType]}
+        removeDemonstrationType={mockRemoveDemonstrationType}
+      />
+    );
+
+    const notice = screen.getByTestId("notice-warning");
+
+    expect(screen.getByText(/chip id generation/i)).toBeInTheDocument();
+    expect(notice).toHaveTextContent(
+      "By adding CHIP Type, DEMOS will generate a CHIP ID for the Demonstration."
+    );
+  });
+
+  it("does not display notice when CHIP type is not included", () => {
+    renderDemonstrationTypesList();
+
+    expect(screen.queryByTestId("notice")).not.toBeInTheDocument();
   });
 });

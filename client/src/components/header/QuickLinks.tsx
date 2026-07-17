@@ -1,4 +1,4 @@
-import { HelpIcon, NotifyIcon, SettingsIcon } from "components/icons";
+import { BookIcon, SettingsIcon } from "components/icons";
 import { getCurrentUser } from "components/user/UserContext";
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -8,9 +8,10 @@ export const ADMIN_LINK_NAME = "link-admin";
 
 const STYLES = {
   container: "flex items-center gap-3",
-  link: "flex items-center gap-1",
-  icon: "text-action",
-  selectedLink: "p-0-5 border-b-4 border-border-focus",
+  link: "flex items-center gap-[4px] font-semibold",
+  icon: "text-action h-[16px]",
+  selectedLink:
+    "p-0-5 border-gray-300 shadow-sm rounded border-1 border-b-4 border-b-action border-border-focus",
 };
 
 export const QuickLinks: React.FC = () => {
@@ -30,16 +31,14 @@ export const QuickLinks: React.FC = () => {
           <span>Admin</span>
         </Link>
       )}
-
-      <a href="#" className={STYLES.link}>
-        <NotifyIcon className={STYLES.icon} />
-        <span>Notifications</span>
-      </a>
-
-      <a href="#" className={STYLES.link}>
-        <HelpIcon className={STYLES.icon} />
-        <span>Help</span>
-      </a>
+      <Link
+        to="/references"
+        className={`${STYLES.link} ${pathname === "/references" ? STYLES.selectedLink : ""}`}
+        data-testid="link-references"
+      >
+        <BookIcon className={STYLES.icon} />
+        <span className="mt-[-4px]">References</span>
+      </Link>
     </div>
   );
 };

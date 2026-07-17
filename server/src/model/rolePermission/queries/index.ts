@@ -1,0 +1,1 @@
+export { selectManyRolePermissions } from "./selectManyRolePermissions";

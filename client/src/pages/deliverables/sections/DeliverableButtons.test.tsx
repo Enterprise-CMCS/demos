@@ -71,6 +71,18 @@ describe("DeliverableButtons", () => {
     );
   });
 
+  it("renders the Request Extension button for admin users", () => {
+    renderButtons(buildDeliverable(), "demos-admin");
+    expect(screen.getByTestId(REQUEST_EXTENSION_BUTTON_NAME)).toHaveTextContent(
+      "Request Extension"
+    );
+  });
+
+  it("does not render the Request Extension button for CMS users", () => {
+    renderButtons(buildDeliverable(), "demos-cms-user");
+    expect(screen.queryByTestId(REQUEST_EXTENSION_BUTTON_NAME)).not.toBeInTheDocument();
+  });
+
   it("renders the Request Extension button enabled for Upcoming deliverables", () => {
     renderButtons(buildDeliverable({ status: "Upcoming" }));
     const button = screen.getByTestId(REQUEST_EXTENSION_BUTTON_NAME);
@@ -96,6 +108,26 @@ describe("DeliverableButtons", () => {
     expect(button).toBeDisabled();
   });
 
+  it("disables the Request Extension button when an extension is already Requested", () => {
+    renderButtons(
+      buildDeliverable({
+        status: "Upcoming",
+        extensionRequests: [
+          {
+            id: "ext-1",
+            status: "Requested",
+            reasonCode: "Other",
+            reasonDetails: "details",
+            initialDueDateAtRequest: new Date("2026-03-01"),
+            originalDateRequested: new Date("2026-04-15"),
+            createdAt: new Date("2026-04-01"),
+          },
+        ],
+      })
+    );
+    expect(screen.getByTestId(REQUEST_EXTENSION_BUTTON_NAME)).toBeDisabled();
+  });
+
   it("opens the Request Extension dialog when clicked", async () => {
     const user = userEvent.setup();
     renderButtons(buildDeliverable({ status: "Upcoming" }));
@@ -105,7 +137,6 @@ describe("DeliverableButtons", () => {
     expect(mockShowRequestExtensionDeliverableDialog).toHaveBeenCalledWith({
       id: MOCK_DELIVERABLE_1.id,
       dueDate: MOCK_DELIVERABLE_1.dueDate,
-      demonstration: { expirationDate: MOCK_DELIVERABLE_1.demonstration.expirationDate },
     });
   });
 

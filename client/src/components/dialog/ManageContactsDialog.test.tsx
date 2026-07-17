@@ -10,44 +10,28 @@ import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { ManageContactsDialog, ManageContactsDialogProps } from "./ManageContactsDialog";
-
-// GraphQL queries used in the component
-const SEARCH_PEOPLE_QUERY = gql`
-  query SearchPeople($search: String!, $demonstrationId: ID) {
-    searchPeople(search: $search, demonstrationId: $demonstrationId) {
-      id
-      firstName
-      lastName
-      email
-      personType
-    }
-  }
-`;
-
-const SET_DEMONSTRATION_ROLE_MUTATION = gql`
-  mutation SetDemonstrationRoles($input: [SetDemonstrationRoleInput!]!) {
-    setDemonstrationRoles(input: $input) {
-      role
-    }
-  }
-`;
+import {
+  ManageContactsDialog,
+  ManageContactsDialogProps,
+  SEARCH_PEOPLE_QUERY,
+  SET_DEMONSTRATION_ROLE_MUTATION,
+} from "./ManageContactsDialog";
 
 // Mock GraphQL queries/mutations - Multiple search terms
-const createSearchMock = (searchTerm: string) => ({
+const createSearchMock = () => ({
   request: {
     query: SEARCH_PEOPLE_QUERY,
-    variables: { search: searchTerm, demonstrationId: "demo-1" },
   },
   result: {
     data: {
-      searchPeople: [
+      people: [
         {
           id: "person-1",
           firstName: "John",
           lastName: "Doe",
           email: "john.doe@example.com",
           personType: "demos-cms-user",
+          states: [{ id: "NC" }],
         },
         {
           id: "person-2",
@@ -55,20 +39,15 @@ const createSearchMock = (searchTerm: string) => ({
           lastName: "Smith",
           email: "jane.smith@state.gov",
           personType: "demos-state-user",
+          states: [{ id: "SC" }, { id: "GA" }],
         },
       ],
     },
   },
+  maxUsageCount: Number.POSITIVE_INFINITY,
 });
 
-const SEARCH_PEOPLE_MOCKS = [
-  createSearchMock("jo"),
-  createSearchMock("joh"),
-  createSearchMock("john"),
-  createSearchMock("ja"),
-  createSearchMock("jan"),
-  createSearchMock("jane"),
-];
+const SEARCH_PEOPLE_MOCKS = [createSearchMock()];
 
 const SET_ROLES_MOCK = {
   request: {
@@ -93,13 +72,14 @@ const SET_ROLES_MOCK = {
 
 const defaultProps: ManageContactsDialogProps = {
   onClose: vi.fn(),
+  stateId: "NC",
   demonstrationId: "demo-1",
   existingContacts: [],
 };
 
 const renderWithProviders = (props = defaultProps, mocks: MockedResponse[] = []) => {
   return render(
-    <MockedProvider mocks={mocks} addTypename={false}>
+    <MockedProvider mocks={mocks}>
       <ToastProvider>
         <ManageContactsDialog {...props} />
       </ToastProvider>
@@ -409,15 +389,15 @@ describe("ManageContactsDialog", () => {
       expect(screen.getByText("John Doe")).toBeInTheDocument();
     });
 
-    const deleteButton = screen.getByRole("button", { name: "Delete Contact - Delete" });
+    const deleteButton = screen.getByTestId("delete-contact");
     await user.click(deleteButton);
 
     // Wait for confirmation dialog and confirm deletion
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "confirmation-confirm" })).toBeInTheDocument();
+      expect(screen.getByTestId("confirmation-confirm")).toBeInTheDocument();
     });
 
-    const confirmButton = screen.getByRole("button", { name: "confirmation-confirm" });
+    const confirmButton = screen.getByTestId("confirmation-confirm");
     await user.click(confirmButton);
 
     // Contact should be removed from the table
@@ -450,7 +430,7 @@ describe("ManageContactsDialog", () => {
       expect(screen.getByText("John Doe")).toBeInTheDocument();
     });
 
-    const deleteButton = screen.getByRole("button", { name: "Delete Contact - Assign another Primary Project Officer to Delete" });
+    const deleteButton = screen.getByTestId("delete-contact");
     expect(deleteButton).toBeDisabled();
   });
 
@@ -504,17 +484,17 @@ describe("ManageContactsDialog", () => {
 
     // Primary Project Officer should be disabled
     const johnRow = screen.getByText("John Doe").closest("tr");
-    const johnDeleteButton = within(johnRow!).getByRole("button", { name: "Delete Contact - Assign another Primary Project Officer to Delete" });
+    const johnDeleteButton = within(johnRow!).getByTestId("delete-contact");
     expect(johnDeleteButton).toBeDisabled();
 
     // Primary State Point of Contact should be enabled (not a Project Officer)
     const janeRow = screen.getByText("Jane Smith").closest("tr");
-    const janeDeleteButton = within(janeRow!).getByRole("button", { name: "Delete Contact - Delete" });
+    const janeDeleteButton = within(janeRow!).getByTestId("delete-contact");
     expect(janeDeleteButton).not.toBeDisabled();
 
     // Non-primary State Point of Contact should be enabled
     const bobRow = screen.getByText("Bob Wilson").closest("tr");
-    const bobDeleteButton = within(bobRow!).getByRole("button", { name: "Delete Contact - Delete" });
+    const bobDeleteButton = within(bobRow!).getByTestId("delete-contact");
     expect(bobDeleteButton).not.toBeDisabled();
   });
 
@@ -538,7 +518,7 @@ describe("ManageContactsDialog", () => {
 
     renderWithProviders(propsWithContacts);
 
-    const saveButton = screen.getByRole("button", { name: "button-save" });
+    const saveButton = screen.getByTestId("button-save");
     expect(saveButton).toBeDisabled();
   });
 
@@ -570,7 +550,7 @@ describe("ManageContactsDialog", () => {
 
     // Check save button is enabled after contact is properly configured
     await waitFor(() => {
-      const saveButton = screen.getByRole("button", { name: "button-save" });
+      const saveButton = screen.getByTestId("button-save");
       expect(saveButton).not.toBeDisabled();
     });
   });
@@ -604,11 +584,11 @@ describe("ManageContactsDialog", () => {
 
     // Wait for save button to be enabled
     await waitFor(() => {
-      const saveButton = screen.getByRole("button", { name: "button-save" });
+      const saveButton = screen.getByTestId("button-save");
       expect(saveButton).not.toBeDisabled();
     });
 
-    const saveButton = screen.getByRole("button", { name: "button-save" });
+    const saveButton = screen.getByTestId("button-save");
     await user.click(saveButton);
 
     await waitFor(() => {
@@ -621,7 +601,7 @@ describe("ManageContactsDialog", () => {
 
     renderWithProviders();
 
-    const cancelButton = screen.getByRole("button", { name: DIALOG_CANCEL_BUTTON_NAME });
+    const cancelButton = screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME);
     await user.click(cancelButton);
 
     // This would show the cancel confirmation in BaseDialog
@@ -700,9 +680,7 @@ describe("ManageContactsDialog", () => {
     });
     const searchResults1 = await screen.getByTestId("search-results-dropdown");
 
-    await user.click(
-      within(searchResults1).getByText("John Doe")
-    );
+    await user.click(within(searchResults1).getByText("John Doe"));
 
     // Assign role so search re-enables
     const firstSelect = await screen.getByTestId("contact-type-0");
@@ -715,16 +693,16 @@ describe("ManageContactsDialog", () => {
     });
     const searchResults2 = await screen.getByTestId("search-results-dropdown");
 
-    await user.click(
-      within(searchResults2).getByText("John Doe")
-    );
+    await user.click(within(searchResults2).getByText("John Doe"));
 
     // Now second row should exist
     const secondSelect = screen.getByTestId("contact-type-1");
 
     await waitFor(() => {
       expect(
-        within(secondSelect).getAllByRole("option").map(o => o.textContent)
+        within(secondSelect)
+          .getAllByRole("option")
+          .map((o) => o.textContent)
       ).not.toContain("Project Officer");
     });
   });
@@ -837,7 +815,7 @@ describe("ManageContactsDialog", () => {
         expect(screen.getByText("John Doe")).toBeInTheDocument();
       });
 
-      const deleteButton = screen.getByRole("button", { name: "Delete Contact - Delete" });
+      const deleteButton = screen.getByTestId("delete-contact");
       await user.click(deleteButton);
 
       await waitFor(() => {
@@ -870,10 +848,10 @@ describe("ManageContactsDialog", () => {
 
       renderWithProviders(propsWithContacts);
 
-      const deleteButton = screen.getByRole("button", { name: "Delete Contact - Delete" });
+      const deleteButton = screen.getByTestId("delete-contact");
       await user.click(deleteButton);
 
-      const cancelButton = screen.getByRole("button", { name: "confirmation-cancel" });
+      const cancelButton = screen.getByTestId("confirmation-cancel");
       await user.click(cancelButton);
 
       // Confirmation dialog should be gone
@@ -910,14 +888,14 @@ describe("ManageContactsDialog", () => {
         expect(screen.getByText("John Doe")).toBeInTheDocument();
       });
 
-      const deleteButton = screen.getByRole("button", { name: "Delete Contact - Delete" });
+      const deleteButton = screen.getByTestId("delete-contact");
       await user.click(deleteButton);
 
       await waitFor(() => {
-        expect(screen.getByRole("button", { name: "confirmation-confirm" })).toBeInTheDocument();
+        expect(screen.getByTestId("confirmation-confirm")).toBeInTheDocument();
       });
 
-      const confirmButton = screen.getByRole("button", { name: "confirmation-confirm" });
+      const confirmButton = screen.getByTestId("confirmation-confirm");
       await user.click(confirmButton);
 
       // Contact should be removed from the table
@@ -946,7 +924,7 @@ describe("ManageContactsDialog", () => {
 
       renderWithProviders(propsWithContacts);
 
-      const deleteButton = screen.getByRole("button", { name: "Delete Contact - Assign another Primary Project Officer to Delete" });
+      const deleteButton = screen.getByTestId("delete-contact");
       expect(deleteButton).toBeDisabled();
     });
 
@@ -988,14 +966,14 @@ describe("ManageContactsDialog", () => {
 
       // Find the delete button for the primary Project Officer (John Doe)
       const johnRow = screen.getByText("John Doe (Primary)").closest("tr");
-      const johnDeleteButton = within(johnRow!).getByRole("button", { name: "Delete Contact - Assign another Primary Project Officer to Delete" });
+      const johnDeleteButton = within(johnRow!).getByTestId("delete-contact");
 
       // Primary Project Officer delete button should ALWAYS be disabled
       expect(johnDeleteButton).toBeDisabled();
 
       // Find the delete button for the non-primary Project Officer (Jane Smith)
       const janeRow = screen.getByText("Jane Smith").closest("tr");
-      const janeDeleteButton = within(janeRow!).getByRole("button", { name: "Delete Contact - Delete" });
+      const janeDeleteButton = within(janeRow!).getByTestId("delete-contact");
 
       // Non-primary Project Officer delete button should be enabled when there are multiple POs
       expect(janeDeleteButton).not.toBeDisabled();
@@ -1040,7 +1018,7 @@ describe("ManageContactsDialog", () => {
 
       // Find the delete button for the non-primary Project Officer (Jane Smith)
       const janeRow = screen.getByText("Jane Smith").closest("tr");
-      const deleteButton = within(janeRow!).getByRole("button", { name: "Delete Contact - Delete" });
+      const deleteButton = within(janeRow!).getByTestId("delete-contact");
 
       // Non-primary Project Officer should be deletable
       expect(deleteButton).not.toBeDisabled();
@@ -1048,10 +1026,10 @@ describe("ManageContactsDialog", () => {
       await user.click(deleteButton);
 
       await waitFor(() => {
-        expect(screen.getByRole("button", { name: "confirmation-confirm" })).toBeInTheDocument();
+        expect(screen.getByTestId("confirmation-confirm")).toBeInTheDocument();
       });
 
-      const confirmButton = screen.getByRole("button", { name: "confirmation-confirm" });
+      const confirmButton = screen.getByTestId("confirmation-confirm");
       await user.click(confirmButton);
 
       // Non-primary Project Officer should be removed from the table
@@ -1061,7 +1039,7 @@ describe("ManageContactsDialog", () => {
 
       // Primary Project Officer should still be there
       expect(screen.getByText("John Doe (Primary)")).toBeInTheDocument();
-      const saveButton = screen.getByRole("button", { name: "button-save" });
+      const saveButton = screen.getByTestId("button-save");
       expect(saveButton).not.toBeDisabled();
     });
   });
@@ -1074,7 +1052,7 @@ describe("ManageContactsDialog", () => {
 
       renderWithProviders(props);
 
-      const cancelButton = screen.getByRole("button", { name: DIALOG_CANCEL_BUTTON_NAME });
+      const cancelButton = screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME);
       await user.click(cancelButton);
 
       // Should close immediately without confirmation
@@ -1111,7 +1089,7 @@ describe("ManageContactsDialog", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Now try to cancel
-      const cancelButton = screen.getByRole("button", { name: DIALOG_CANCEL_BUTTON_NAME });
+      const cancelButton = screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME);
       await user.click(cancelButton);
 
       // Should show confirmation dialog instead of closing immediately
@@ -1132,7 +1110,7 @@ describe("ManageContactsDialog", () => {
     it("disables save button when no contacts are assigned", () => {
       renderWithProviders();
 
-      const saveButton = screen.getByRole("button", { name: "button-save" });
+      const saveButton = screen.getByTestId("button-save");
       expect(saveButton).toBeDisabled();
     });
 
@@ -1156,7 +1134,7 @@ describe("ManageContactsDialog", () => {
 
       renderWithProviders(propsWithContacts);
 
-      const saveButton = screen.getByRole("button", { name: "button-save" });
+      const saveButton = screen.getByTestId("button-save");
       expect(saveButton).toBeDisabled();
     });
 
@@ -1180,7 +1158,7 @@ describe("ManageContactsDialog", () => {
 
       renderWithProviders(propsWithContacts);
 
-      const saveButton = screen.getByRole("button", { name: "button-save" });
+      const saveButton = screen.getByTestId("button-save");
       expect(saveButton).toBeDisabled();
     });
 
@@ -1222,7 +1200,7 @@ describe("ManageContactsDialog", () => {
 
       // Save button should be enabled after making a valid change
       await waitFor(() => {
-        const saveButton = screen.getByRole("button", { name: "button-save" });
+        const saveButton = screen.getByTestId("button-save");
         expect(saveButton).not.toBeDisabled();
       });
     });
@@ -1283,7 +1261,7 @@ describe("ManageContactsDialog", () => {
       const user = userEvent.setup();
       const mocks = SEARCH_PEOPLE_MOCKS;
 
-      renderWithProviders(defaultProps, mocks);
+      renderWithProviders({ ...defaultProps, stateId: "GA" }, mocks);
 
       const searchInput = screen.getByPlaceholderText("Search by name or email");
 

@@ -1,20 +1,26 @@
-import { DemonstrationRoleAssignment as PrismaDemonstrationRoleAssignment } from "@prisma/client";
+import {
+  Demonstration,
+  Person,
+  DemonstrationRoleAssignment as PrismaDemonstrationRoleAssignment,
+} from "@prisma/client";
 
 import { prisma } from "../../prismaClient.js";
 import {
   SetDemonstrationRoleInput,
   UnsetDemonstrationRoleInput,
 } from "./demonstrationRoleAssignmentSchema.js";
-import { GraphQLContext } from "../../auth/auth.util.js";
-import { getDemonstration } from "../demonstration/demonstrationData.js";
+import { selectDemonstrationRoleAssignmentOrThrow } from "./queries/selectDemonstrationRoleAssignmentOrThrow.js";
+import { selectPersonOrThrow } from "../person/queries/selectPersonOrThrow.js";
+import { selectDemonstrationOrThrow } from "../demonstration/queries";
+import { Role } from "../../types.js";
 
 const DEMONSTRATION_GRANT_LEVEL = "Demonstration";
 
 export async function unsetDemonstrationRoles(
   parent: unknown,
   { input }: { input: UnsetDemonstrationRoleInput[] }
-) {
-  return await prisma().$transaction(async (tx) => {
+): Promise<PrismaDemonstrationRoleAssignment[]> {
+  return prisma().$transaction(async (tx) => {
     const deletedRoles: PrismaDemonstrationRoleAssignment[] = [];
 
     for (const roleInput of input) {
@@ -48,21 +54,10 @@ export async function unsetDemonstrationRoles(
 export async function setDemonstrationRole(
   parent: unknown,
   { input }: { input: SetDemonstrationRoleInput }
-) {
-  await prisma().$transaction(async (tx) => {
-    const person = await tx.person.findUnique({
-      where: { id: input.personId },
-    });
-    if (!person) {
-      throw new Error(`Person with id ${input.personId} not found.`);
-    }
-
-    const demonstration = await tx.demonstration.findUnique({
-      where: { id: input.demonstrationId },
-    });
-    if (!demonstration) {
-      throw new Error(`Demonstration with id ${input.demonstrationId} not found.`);
-    }
+): Promise<PrismaDemonstrationRoleAssignment> {
+  return prisma().$transaction(async (tx) => {
+    const person = await selectPersonOrThrow({ id: input.personId }, tx);
+    const demonstration = await selectDemonstrationOrThrow({ id: input.demonstrationId }, tx);
 
     await prisma().demonstrationRoleAssignment.upsert({
       where: {
@@ -109,23 +104,19 @@ export async function setDemonstrationRole(
         },
       });
     }
-  });
-  return await prisma().demonstrationRoleAssignment.findUnique({
-    where: {
-      personId_demonstrationId_roleId: {
-        personId: input.personId,
-        demonstrationId: input.demonstrationId,
-        roleId: input.roleId,
-      },
-    },
+    return selectDemonstrationRoleAssignmentOrThrow({
+      personId: input.personId,
+      demonstrationId: input.demonstrationId,
+      roleId: input.roleId,
+    });
   });
 }
 
 export async function setDemonstrationRoles(
   parent: unknown,
   { input }: { input: SetDemonstrationRoleInput[] }
-) {
-  return await prisma().$transaction(async (tx) => {
+): Promise<PrismaDemonstrationRoleAssignment[]> {
+  return prisma().$transaction(async (tx) => {
     const results = [];
 
     for (const roleInput of input) {
@@ -224,20 +215,12 @@ export const demonstrationRoleAssigmentResolvers = {
   },
 
   DemonstrationRoleAssignment: {
-    person: async (parent: PrismaDemonstrationRoleAssignment) => {
-      return await prisma().person.findUnique({
-        where: { id: parent.personId },
-      });
-    },
-    role: async (parent: PrismaDemonstrationRoleAssignment) => {
-      return parent.roleId;
-    },
-    demonstration: (
-      parent: PrismaDemonstrationRoleAssignment,
-      args: unknown,
-      context: GraphQLContext
-    ) => getDemonstration({ id: parent.demonstrationId }, context.user),
-    isPrimary: async (parent: PrismaDemonstrationRoleAssignment) => {
+    person: async (parent: PrismaDemonstrationRoleAssignment): Promise<Person> =>
+      selectPersonOrThrow({ id: parent.personId }),
+    role: (parent: PrismaDemonstrationRoleAssignment): Role => parent.roleId as Role,
+    demonstration: (parent: PrismaDemonstrationRoleAssignment): Promise<Demonstration> =>
+      selectDemonstrationOrThrow({ id: parent.demonstrationId }),
+    isPrimary: async (parent: PrismaDemonstrationRoleAssignment): Promise<boolean> => {
       return !!(await prisma().primaryDemonstrationRoleAssignment.findUnique({
         where: {
           personId_demonstrationId_roleId: {

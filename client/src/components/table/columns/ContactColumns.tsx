@@ -24,7 +24,11 @@ export type ContactRow = {
 };
 
 type ContactColumnsProps = {
-  getFilteredContactTypeOptions: (idmRoles?: string[], personId?: string, currentRowId?: string) => Array<{ label: string; value: string }>;
+  getFilteredContactTypeOptions: (
+    idmRoles?: string[],
+    personId?: string,
+    currentRowId?: string
+  ) => Array<{ label: string; value: string }>;
   onContactTypeChange: (id: string, value: ContactType) => void;
   onPrimaryToggle: (id: string) => void;
   onRemoveContact: (id: string) => void;
@@ -108,7 +112,7 @@ export function ContactColumns({
     }),
     columnHelper.display({
       id: "actions",
-      header: "",
+      header: () => <span className="sr-only">Actions</span>,
       size: 80,
       cell: (info) => {
         const contact = info.row.original;
@@ -126,7 +130,7 @@ export function ContactColumns({
           <div className="text-center">
             <CircleButton
               name="delete-contact"
-              ariaLabel="Delete Contact"
+              aria-label="Delete Contact"
               tooltip={deleteTooltip}
               size="small"
               onClick={() => onRemoveContact(contact.id)}

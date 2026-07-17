@@ -6,19 +6,13 @@ import { DefaultHeaderLower } from "./DefaultHeaderLower";
 import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
 import { DeliverableDetailHeader } from "pages/deliverables/DeliverableDetailHeader";
 import { AdminHeader } from "pages/admin/AdminHeader";
+import { Logo } from "components/brand/Logo";
+import { ReferencesHeader } from "pages/references/ReferencesHeader";
 
 const HEADER_STYLES = "w-full";
-const HEADER_UPPER_STYLES = "w-full flex justify-between p-[16px] h-[72px]";
+const HEADER_UPPER_STYLES = "w-full flex justify-between p-[4px] h-[72px]";
 const HEADER_LOWER_STYLES =
   "w-full bg-brand text-white px-[24px] py-[16px] flex items-center justify-between";
-
-const Logo: React.FC = () => {
-  return (
-    <a href="/" className="h-[40px]">
-      <img height="40px" src="/img/logo.png" alt="Logo" />
-    </a>
-  );
-};
 
 const HeaderUpper: React.FC = () => {
   return (
@@ -56,6 +50,10 @@ const HeaderLower: React.FC = () => {
 
   if (path.match(/^\/admin/)) {
     return <AdminHeader />;
+  }
+
+  if (path.match(/^\/references/)) {
+    return <ReferencesHeader />;
   }
 
   // Default header for all other routes

@@ -1,14 +1,23 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  createMock: vi.fn(),
   getMock: vi.fn(),
   postMock: vi.fn(),
+  responseUseMock: vi.fn(),
 }));
 
 vi.mock("axios", () => ({
   default: {
-    get: mocks.getMock,
-    post: mocks.postMock,
+    create: mocks.createMock.mockImplementation(() => ({
+      get: mocks.getMock,
+      post: mocks.postMock,
+      interceptors: {
+        response: {
+          use: mocks.responseUseMock,
+        },
+      },
+    })),
   },
 }));
 
@@ -18,6 +27,50 @@ describe("uipathClient", () => {
   beforeEach(() => {
     mocks.getMock.mockReset();
     mocks.postMock.mockReset();
+  });
+
+  it("installs a redacting response interceptor on the shared axios instance", async () => {
+    expect(mocks.responseUseMock).toHaveBeenCalledWith(undefined, expect.any(Function));
+    const errorInterceptor = mocks.responseUseMock.mock.calls[0]?.[1];
+
+    await expect(
+      errorInterceptor({
+        isAxiosError: true,
+        message: "Request failed with status code 401",
+        config: {
+          method: "get",
+          url: "https://example.com/resource?token=token-123", // pragma: allowlist secret
+          data: { token: "token-123" }, // pragma: allowlist secret
+        },
+        request: {
+          path: "/resource?token=token-123", // pragma: allowlist secret
+        },
+        response: {
+          status: 401,
+          statusText: "Unauthorized",
+          data: { access_token: "token-123" }, // pragma: allowlist secret
+        },
+      })
+    ).rejects.toEqual({
+      isErrorRedactedResponse: true,
+      fullURL: "https://example.com/resource?<REDACTED>",
+      message: "Request failed with status code 401",
+      response: {
+        statusCode: 401,
+        statusMessage: "Unauthorized",
+        data: {
+          access_token: "<REDACTED>",
+        },
+      },
+      request: {
+        baseURL: "",
+        path: "https://example.com/resource?<REDACTED>",
+        method: "get",
+        data: {
+          token: "<REDACTED>",
+        },
+      },
+    });
   });
 
   it("uipathGetRequest adds bearer auth and api-version", async () => {

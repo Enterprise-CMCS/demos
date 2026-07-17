@@ -1,4 +1,1 @@
-export {
-  getManyDemonstrationRoleAssignments,
-  getDemonstrationRoleAssignment,
-} from "./demonstrationRoleAssignmentData";
+export { getManyDemonstrationRoleAssignments } from "./demonstrationRoleAssignmentData";

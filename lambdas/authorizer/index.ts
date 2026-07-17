@@ -6,7 +6,7 @@ import jwkClient from "jwks-rsa";
 import { log, reqIdChild, store, als } from "./log";
 
 const client = jwkClient({
-  jwksUri: process.env.JWKS_URI,
+  jwksUri: process.env.JWKS_URI!,
 });
 
 /* v8 ignore start - ignoring this function since its just a wrapper*/
@@ -20,16 +20,14 @@ function getKey(header: JwtHeader, callback: SigningKeyCallback) {
 /* v8 ignore stop */
 
 function redactEmailAddress(address: string): string {
-
   const [local, domain] = address.split("@");
   if (!domain) return address;
 
   const visible = local.slice(0, 2);
 
   const redactedEmail = `${visible}****@${domain}`;
-  
+
   return redactedEmail;
-  
 }
 
 export const handler = async (event: APIGatewayTokenAuthorizerEvent, context: Context) =>
@@ -68,7 +66,10 @@ export const handler = async (event: APIGatewayTokenAuthorizerEvent, context: Co
 
     const userId = decoded.identities?.[0]?.userId ?? decoded.email;
     if (decoded.identities?.[0]?.userId === undefined) {
-      log.warn({sub: decoded.sub, userId: redactEmailAddress(userId)}, "user does not have a standard idm user id")
+      log.warn(
+        { sub: decoded.sub, userId: redactEmailAddress(userId) },
+        "user does not have a standard idm user id"
+      );
     }
 
     if (!roles) {
@@ -105,7 +106,6 @@ export const handler = async (event: APIGatewayTokenAuthorizerEvent, context: Co
       "success: user authorized"
     );
 
-
     return generatePolicy(decoded.sub, "Allow", event.methodArn, {
       sub: decoded.sub,
       email: decoded.email,
@@ -113,6 +113,7 @@ export const handler = async (event: APIGatewayTokenAuthorizerEvent, context: Co
       family_name: decoded.family_name,
       role: roles,
       userId: userId,
+      auth_time: decoded.auth_time,
     });
   });
 
@@ -146,6 +147,7 @@ export interface PassedContext {
   family_name: string;
   role: string;
   userId: string;
+  auth_time: number;
 }
 
 function generatePolicy(

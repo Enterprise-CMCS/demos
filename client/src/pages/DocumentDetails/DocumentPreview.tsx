@@ -2,6 +2,32 @@ import { Button } from "components/button";
 import { fileTypeFromBlob } from "file-type";
 import React from "react";
 
+const FilePreviewer = ({
+  blob,
+  filename,
+  mimeType,
+  presignedDownloadUrl,
+}: {
+  blob: Blob;
+  filename: string;
+  mimeType?: string;
+  presignedDownloadUrl: string;
+}) => {
+
+  const file = new File([blob], filename, { type: mimeType ?? blob.type });
+  const blobUrl = URL.createObjectURL(file);
+
+  return mimeType == "application/pdf" ? (
+    <embed src={presignedDownloadUrl} className="w-full h-full" />
+  ) : (
+    <a href={blobUrl} download={filename} rel="noopener noreferrer">
+      <Button size="large" name="button-download-file" aria-label="Download file">
+        Download File
+      </Button>
+    </a>
+  );
+};
+
 export const DocumentPreview = ({
   presignedDownloadUrl,
   filename,
@@ -10,7 +36,7 @@ export const DocumentPreview = ({
   filename: string;
 }) => {
   const [blob, setBlob] = React.useState<Blob>();
-  const [fileType, setFileType] = React.useState<string>();
+  const [mimeType, setMimeType] = React.useState<string>();
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string>();
 
@@ -18,18 +44,16 @@ export const DocumentPreview = ({
     const downloadAndAnalyzeFile = async () => {
       try {
         setLoading(true);
-
         const response = await fetch(presignedDownloadUrl);
-
         if (!response.ok) {
           throw new Error(`Failed to download file: ${response.statusText}`);
         }
 
         const fileBlob = await response.blob();
-        setBlob(fileBlob);
-
         const detectedType = await fileTypeFromBlob(fileBlob);
-        setFileType(detectedType?.mime);
+
+        setBlob(fileBlob);
+        setMimeType(detectedType?.mime);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to download file");
       } finally {
@@ -44,16 +68,12 @@ export const DocumentPreview = ({
   if (error) return <div>Error loading file: {error}</div>;
   if (!blob) return <div>No file available</div>;
 
-  const file = new File([blob], filename, { type: fileType ?? blob.type });
-  const blobUrl = URL.createObjectURL(file);
-
-  return fileType == "application/pdf" ? (
-    <embed src={blobUrl} className="w-full h-full" />
-  ) : (
-    <a href={blobUrl} download={filename} rel="noopener noreferrer">
-      <Button size="large" name="button-download-file">
-        Download File
-      </Button>
-    </a>
+  return (
+    <FilePreviewer
+      blob={blob}
+      filename={filename}
+      mimeType={mimeType}
+      presignedDownloadUrl={presignedDownloadUrl}
+    />
   );
 };

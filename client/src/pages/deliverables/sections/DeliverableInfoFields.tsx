@@ -1,8 +1,10 @@
 import React from "react";
+import { compareDesc } from "date-fns";
 import { BaseButton } from "components/button/BaseButton";
 import { ChevronDownIcon, ChevronLeftIcon } from "components/icons";
+import { getLatestSubmissionDate } from "components/table/tables/DeliverableTable";
 import type { DeliverableDetailsManagementDeliverable } from "../DeliverableDetailsManagementPage";
-import { formatDate } from "util/formatDate";
+import { formatDateForDisplay } from "util/formatDate";
 
 export const DELIVERABLE_INFO_FIELDS_NAME = "deliverable-info-fields";
 export const BACK_TO_DELIVERABLES_BUTTON_NAME = "button-back-to-deliverables";
@@ -40,14 +42,21 @@ export const DeliverableInfoFields = ({
     (action) => action.actionType === "Requested Resubmission"
   ).length;
 
+  const submissionDate = getLatestSubmissionDate(deliverable.deliverableActions);
+
+  const latestExtension = [...deliverable.extensionRequests].sort((a, b) =>
+    compareDesc(a.createdAt, b.createdAt)
+  )[0];
+  const extensionValue = latestExtension?.status ?? "N/A";
+
   const baseFields: DeliverableInfoField[] = [
     { label: "Deliverable Type", value: deliverable.deliverableType },
-    { label: "Due Date", value: formatDate(deliverable.dueDate) },
-    { label: "Submission Date", value: "—" },
+    { label: "Due Date", value: formatDateForDisplay(deliverable.dueDate) },
+    { label: "Submission Date", value: submissionDate ?? "—" },
     { label: "Status", value: deliverable.status },
   ];
   const additionalFields: DeliverableInfoField[] = [
-    { label: "Extension", value: "N/A" },
+    { label: "Extension", value: extensionValue },
     { label: "Resubmissions Requested", value: resubmissionsRequested.toString() },
     { label: "CMS Owner", value: deliverable.cmsOwner.person.fullName },
   ];
@@ -57,7 +66,9 @@ export const DeliverableInfoFields = ({
       : baseFields;
 
   const VerticalRule = () => (
-    <div className="text-[18px] mt-0.5 font-title font-normal opacity-70" aria-hidden="true">|</div>
+    <div className="text-[18px] mt-0.5 font-title font-normal opacity-70" aria-hidden="true">
+      |
+    </div>
   );
 
   return (
@@ -66,7 +77,7 @@ export const DeliverableInfoFields = ({
         <BaseButton
           type="button"
           name={BACK_TO_DELIVERABLES_BUTTON_NAME}
-          ariaLabel="Back to deliverables"
+          aria-label="Back to deliverables"
           onClick={onBack}
           className="w-[48px] h-[60px] bg-white text-action hover:bg-action hover:text-white border border-action"
         >
@@ -97,13 +108,13 @@ export const DeliverableInfoFields = ({
                 onClick={onToggleAdditionalDetails}
                 className="inline-flex items-center gap-[4px] text-action underline underline-offset-2"
               >
-                {showAdditionalDetails ? "Hide Additional Details" : "Show Additional Details"}
+                {showAdditionalDetails ? "Less Details" : "More Details"}
                 <span
                   className={`transition-transform duration-200 ${
                     showAdditionalDetails ? "rotate-180" : "rotate-0"
                   }`}
                 >
-                  <ChevronDownIcon className="w-[10px] h-[10px]" />
+                  <ChevronDownIcon />
                 </span>
               </button>
             </>

@@ -1,7 +1,7 @@
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { prisma, PrismaTransactionClient } from "../../../prismaClient";
 import { SetDeliverableDemonstrationTypesInput } from "..";
-import { getDeliverable } from "../../deliverable";
+import { selectDeliverableOrThrow } from "../../deliverable";
 
 export async function insertDeliverableDemonstrationTypes(
   input: SetDeliverableDemonstrationTypesInput,
@@ -18,5 +18,5 @@ export async function insertDeliverableDemonstrationTypes(
       data: createManyPayload,
     });
   }
-  return await getDeliverable({ id: input.deliverableId }, prismaClient);
+  return await selectDeliverableOrThrow({ id: input.deliverableId }, prismaClient);
 }

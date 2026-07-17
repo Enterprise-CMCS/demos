@@ -1,0 +1,16 @@
+{
+  "name": "data",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "model:update": "npx @mermaid-js/mermaid-cli -i docs/DEMOS_Data_Model.mmd --output docs/DEMOS_Data_Model.png -s 13 -p puppeteer-config.json -c docs/mermaid-config.json"
+  }
+}

@@ -26,8 +26,12 @@ export const demonstrationRoleAssignmentSchema = gql`
 
   type Mutation {
     setDemonstrationRole(input: SetDemonstrationRoleInput!): DemonstrationRoleAssignment!
+      @auth(requires: ["Perform CMS Action"])
     setDemonstrationRoles(input: [SetDemonstrationRoleInput!]!): [DemonstrationRoleAssignment!]!
-    unsetDemonstrationRoles(input: [UnsetDemonstrationRoleInput!]!): [DemonstrationRoleAssignment!]!
+      @auth(requires: ["Perform CMS Action"])
+    unsetDemonstrationRoles(
+      input: [UnsetDemonstrationRoleInput!]!
+    ): [DemonstrationRoleAssignment!]! @auth(requires: ["Perform CMS Action"])
   }
 `;
 

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { AddDocumentDialog } from "components/dialog/document";
+import { AddDocumentToPhaseDialog } from "components/dialog/document";
 import { DocumentType } from "demos-server";
 import {
   GET_AMENDMENT_WORKFLOW_QUERY,
@@ -8,9 +8,10 @@ import {
   GET_WORKFLOW_DEMONSTRATION_QUERY,
 } from "components/application";
 
+// The top item is the default for doc dialog
 const FEDERAL_COMMENT_DOCUMENT_TYPES: DocumentType[] = [
-  "General File",
   "Federal Comment Internal Analysis Document",
+  "General File",
 ];
 
 export const FederalCommentUploadDialog = ({
@@ -21,7 +22,7 @@ export const FederalCommentUploadDialog = ({
   applicationId: string;
 }) => {
   return (
-    <AddDocumentDialog
+    <AddDocumentToPhaseDialog
       onClose={onClose}
       documentTypeSubset={FEDERAL_COMMENT_DOCUMENT_TYPES}
       applicationId={applicationId}

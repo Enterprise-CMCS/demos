@@ -1,8 +1,8 @@
 // Vitest and other helpers
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { DeepPartial } from "../../testUtilities";
 
 // Types
-import { DeepPartial } from "../../testUtilities";
 import { GraphQLContext } from "../../auth";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { DeliverableStatus } from "../../types";
@@ -19,11 +19,11 @@ vi.mock("../deliverableAction/queries", () => ({
 vi.mock(".", () => ({
   checkDueDateInFuture: vi.fn(),
   editDeliverable: vi.fn(),
-  getDeliverable: vi.fn(),
+  selectDeliverableOrThrow: vi.fn(),
 }));
 
 import { insertDeliverableAction } from "../deliverableAction/queries";
-import { checkDueDateInFuture, editDeliverable, getDeliverable } from ".";
+import { checkDueDateInFuture, editDeliverable, selectDeliverableOrThrow } from ".";
 import { TZDate } from "@date-fns/tz";
 
 describe("manuallyUpdateDeliverableDueDate", () => {
@@ -53,11 +53,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
     vi.resetAllMocks();
     vi.useFakeTimers();
     vi.setSystemTime(mockCurrentDate);
-    vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
+    vi.mocked(selectDeliverableOrThrow).mockResolvedValue(mockDeliverable as PrismaDeliverable);
   });
 
   it("should do nothing if the test input has no due date", async () => {
@@ -73,7 +69,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
     );
     expect(result).toBeUndefined();
     expect(checkDueDateInFuture).not.toHaveBeenCalled();
-    expect(getDeliverable).not.toHaveBeenCalled();
+    expect(selectDeliverableOrThrow).not.toHaveBeenCalled();
     expect(editDeliverable).not.toHaveBeenCalled();
     expect(insertDeliverableAction).not.toHaveBeenCalled();
   });
@@ -105,7 +101,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
       expect(error.message).toBe("The future date check failed!");
     }
     expect(checkDueDateInFuture).toHaveBeenCalledExactlyOnceWith(testInput.dueDate!.newDueDate);
-    expect(getDeliverable).not.toHaveBeenCalled();
+    expect(selectDeliverableOrThrow).not.toHaveBeenCalled();
     expect(editDeliverable).not.toHaveBeenCalled();
     expect(insertDeliverableAction).not.toHaveBeenCalled();
   });
@@ -129,7 +125,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
       mockTransaction
     );
     expect(checkDueDateInFuture).toHaveBeenCalledExactlyOnceWith(testInput.dueDate!.newDueDate);
-    expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
       mockTransaction
     );
@@ -156,7 +152,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
       mockTransaction
     );
     expect(checkDueDateInFuture).toHaveBeenCalledExactlyOnceWith(testInput.dueDate!.newDueDate);
-    expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
       mockTransaction
     );
@@ -172,7 +168,6 @@ describe("manuallyUpdateDeliverableDueDate", () => {
       {
         deliverableId: testDeliverableId,
         actionType: "Manually Changed Due Date",
-        actionTime: mockCurrentDate,
         oldStatus: mockDeliverable.statusId,
         newStatus: mockDeliverable.statusId,
         note: testInput.dueDate!.dateChangeNote,
@@ -191,7 +186,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
       dueDate: mockGeneralDate,
       statusId: "Past Due" satisfies DeliverableStatus,
     };
-    vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+    vi.mocked(selectDeliverableOrThrow).mockResolvedValue(mockDeliverable as PrismaDeliverable);
     const testInput: ParsedUpdateDeliverableInput = {
       name: "A deliverable!",
       dueDate: {
@@ -210,7 +205,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
       mockTransaction
     );
     expect(checkDueDateInFuture).toHaveBeenCalledExactlyOnceWith(testInput.dueDate!.newDueDate);
-    expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
       mockTransaction
     );
@@ -226,7 +221,6 @@ describe("manuallyUpdateDeliverableDueDate", () => {
       {
         deliverableId: testDeliverableId,
         actionType: "Manually Changed Due Date",
-        actionTime: mockCurrentDate,
         oldStatus: "Past Due",
         newStatus: "Upcoming",
         note: testInput.dueDate!.dateChangeNote,

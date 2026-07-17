@@ -21,6 +21,15 @@ export function applyCoreSuppressions(core: Stack, stage: string) {
       }
     ]
   )
+
+  NagSuppressions.addResourceSuppressionsByPath(core, `/demos-${stage}-core/notifier/notifierLambdaExecutionRole/Resource`, 
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role"
+      }
+    ]
+  )
 }
 
 export function applyUISuppressionsCloudfrontOnly(ui: Stack) {
@@ -188,17 +197,6 @@ export function applyFileUploadSuppressions(fileUpload: Stack, stage: string) {
     [
       {
         id: "AwsSolutions-IAM4",
-        reason:
-          "This is for a CDK managed lambda for updating policies: https://github.com/aws/aws-cdk/issues/9552#issuecomment-677512510",
-      },
-    ]
-  );
-  NagSuppressions.addResourceSuppressionsByPath(
-    fileUpload,
-    `/demos-${stage}-file-upload/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy/Resource`,
-    [
-      {
-        id: "AwsSolutions-IAM5",
         reason:
           "This is for a CDK managed lambda for updating policies: https://github.com/aws/aws-cdk/issues/9552#issuecomment-677512510",
       },

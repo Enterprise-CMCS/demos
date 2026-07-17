@@ -10,6 +10,7 @@ import {
 } from "aws-cdk-lib";
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import * as demosLambda from "./lambda";
+import * as alarms from "./alarms";
 import path from "node:path";
 import { DeploymentConfigProperties } from "../config";
 import { OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
@@ -31,6 +32,7 @@ export class UiPathProcessor extends Construct {
   constructor(scope: Construct, id: string, props: UiPathProcessorProps) {
     super(scope, id);
 
+    const alarmResources = new alarms.CloudWatchAlarmRegistry();
     const removalPolicy = props.removalPolicy ?? RemovalPolicy.DESTROY;
 
     this.deadLetterQueue =
@@ -53,6 +55,7 @@ export class UiPathProcessor extends Construct {
         maxReceiveCount: 5,
       },
     });
+    alarmResources.registerQueue("uipath", this.queue);
 
     const clientSecret = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
@@ -80,7 +83,7 @@ export class UiPathProcessor extends Construct {
       timeout: Duration.minutes(15),
       asCode: false,
       externalModules: ["@aws-sdk", "@aws-sdk/client-secrets-manager", "@aws-sdk/client-s3"],
-      nodeModules: ["axios", "axios-oauth-client", "dotenv", "form-data", "pino", "pino-pretty", "pg", "file-type"],
+      nodeModules: ["axios", "axios-oauth-client", "dotenv", "form-data", "pino", "pg", "file-type", "axios-error-redact"],
       vpc: props.vpc,
       securityGroup: props.securityGroup,
       format: OutputFormat.ESM,
@@ -90,12 +93,15 @@ export class UiPathProcessor extends Construct {
         DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
         UIPATH_SECRET_ID: clientSecret.secretName,
         LOG_LEVEL: process.env.LOG_LEVEL ?? "info",
-        CLEAN_BUCKET: cleanReadBucket?.bucketName ?? "clean-bucket",
+        CLEAN_BUCKET: cleanReadBucket?.bucketName ?? "",
         NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
       },
     });
+    alarmResources.registerLambda("uipath", uipathLambda.lambda);
 
     uipathLambda.lambda.addEventSource(new SqsEventSource(this.queue, { batchSize: 1 }));
+
+    this.setupCloudWatchAlarms(props, alarmResources);
 
     // Grants
     this.queue.grantConsumeMessages(uipathLambda.lambda);
@@ -107,5 +113,55 @@ export class UiPathProcessor extends Construct {
     }
 
     props.kmsKey.grantEncryptDecrypt(uipathLambda.lambda);
+  }
+
+  private setupCloudWatchAlarms(
+    props: DeploymentConfigProperties,
+    resources: alarms.CloudWatchAlarmRegistry
+  ) {
+    if (props.isEphemeral && !props.enableAlarms) {
+      return;
+    }
+
+    const alarmPeriod = Duration.minutes(5);
+
+    alarms.createSqsOldestMessageAgeAlarm({
+      ...props,
+      scope: this,
+      id: "UiPathQueueOldestMessageAgeAlarm",
+      name: "uipath-queue-oldest-message-age-high",
+      description: "UiPath queue has messages older than 60 minutes.",
+      queue: resources.queue("uipath"),
+      period: alarmPeriod,
+      threshold: Duration.minutes(60),
+      evaluationPeriods: 2,
+      datapointsToAlarm: 2,
+    });
+
+    alarms.createLambdaErrorsAlarm({
+      ...props,
+      scope: this,
+      id: "UiPathLambdaErrorsAlarm",
+      name: "uipath-lambda-errors",
+      description: "UiPath Lambda has one or more errors in a 5-minute period.",
+      lambdaFunction: resources.lambda("uipath"),
+      period: alarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaThrottlesAlarm({
+      ...props,
+      scope: this,
+      id: "UiPathLambdaThrottlesAlarm",
+      name: "uipath-lambda-throttles",
+      description: "UiPath Lambda has one or more throttled invocations in a 5-minute period.",
+      lambdaFunction: resources.lambda("uipath"),
+      period: alarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
   }
 }

@@ -1,5 +1,5 @@
 import { gql } from "graphql-tag";
-import { Deliverable, Document, PersonType, Event, Person } from "../../types.js";
+import { Deliverable, Document, PersonType, Person, Permission, SystemRole } from "../../types.js";
 
 export const userSchema = gql`
   type User {
@@ -7,15 +7,17 @@ export const userSchema = gql`
     cognitoSubject: String!
     username: String!
     person: Person!
-    events: [Event!]!
     ownedDocuments: [Document!]!
     ownedDeliverables: [Deliverable!]!
+    systemRoles: [SystemRole!]!
+    permissions: [Permission!]!
+    lastLogin: DateTime
     createdAt: DateTime!
     updatedAt: DateTime!
   }
 
   type Query {
-    currentUser: User
+    currentUser: User!
   }
 `;
 
@@ -24,9 +26,11 @@ export interface User {
   cognitoSubject: string;
   username: string;
   person: Person;
-  events: Event[];
   ownedDocuments: Document[];
   ownedDeliverables: Deliverable[];
+  systemRoles: SystemRole[];
+  permissions: Permission[];
+  lastLogin: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

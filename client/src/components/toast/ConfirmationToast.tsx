@@ -29,10 +29,21 @@ export const ConfirmationToast: React.FC<ConfirmationToastProps> = ({
     >
       <p className="text-sm font-bold mb-4 text-gray-900">{message}</p>
       <div className="flex justify-center gap-6">
-        <SecondaryButton name="confirmation-cancel" size="small" onClick={onCancel}>
+        <SecondaryButton
+          name="confirmation-cancel"
+          aria-label={cancelText}
+          size="small"
+          onClick={onCancel}
+        >
           {cancelText}
         </SecondaryButton>
-        <ErrorButton name="confirmation-confirm" isOutlined={true} size="small" onClick={onConfirm}>
+        <ErrorButton
+          name="confirmation-confirm"
+          aria-label={confirmText}
+          isOutlined={true}
+          size="small"
+          onClick={onConfirm}
+        >
           {confirmText}
         </ErrorButton>
       </div>

@@ -10,7 +10,7 @@ import { useToast } from "components/toast";
 import { DeliverableStatus } from "demos-server";
 import { formatDateForServer } from "util/formatDate";
 
-import { isBefore, isValid, parseISO } from "date-fns";
+import { isBefore, isValid, parseISO, startOfDay } from "date-fns";
 import { DELIVERABLE_DETAILS_QUERY } from "pages/deliverables/DeliverableDetailsManagementPage";
 
 export const REQUEST_RESUBMISSION_DIALOG_TITLE = "Request Resubmission";
@@ -22,7 +22,7 @@ export const REQUEST_RESUBMISSION_SUBMIT_BUTTON_NAME =
   "button-request-resubmission-submit";
 
 export const RESUBMISSION_REQUESTED_MESSAGE =
-  "Resubmission Request was successfully submitted";
+  "Resubmission Request was submitted successfully";
 
 const REQUEST_DELIVERABLE_RESUBMISSION_MUTATION = gql`
   mutation RequestDeliverableResubmission(
@@ -65,14 +65,14 @@ export const getNewDueDateValidationMessage = (
 ): string => {
   if (newDueDate === "") return "";
 
-  const parsed = parseISO(newDueDate);
+  const parsedDate = startOfDay(parseISO(newDueDate));
+  const currentDate = startOfDay(currentDueDate);
 
-  if (!isValid(parsed)) return "Enter a valid date.";
+  if (!isValid(parsedDate)) return "Enter a valid date.";
 
-  if (isBefore(parsed, currentDueDate)) {
+  if (isBefore(parsedDate, currentDate)) {
     return "New Due Date must be greater than or equal to Current Due Date.";
   }
-
   return "";
 };
 
@@ -136,7 +136,7 @@ export const RequestResubmissionDeliverableDialog: React.FC<
         awaitRefetchQueries: true,
       });
 
-      showSuccess("Resubmission Request was successfully submitted");
+      showSuccess(RESUBMISSION_REQUESTED_MESSAGE);
       onClose();
     } catch (error) {
       console.error(error);

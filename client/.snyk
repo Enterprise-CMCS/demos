@@ -2,21 +2,11 @@
 version: v1.25.0
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
-  SNYK-JS-AJV-15274295:
+  SNYK-JS-WS-17988732:
     - '*':
-        reason: No patch available for eslint 9
-        expires: 2026-02-28T00:00:00.000Z
-        created: 2026-02-13T14:21:33.964Z
-  SNYK-JS-MINIMATCH-15309438:
-    - '*':
-        reason: No patch available for depcheck or eslint 9
-        expires: 2026-03-05T00:00:00.000Z
-        created: 2026-02-19T14:54:59.056Z
-  SNYK-JS-BRACEEXPANSION-15789759:
-    - '*':
-        reason: No patch available
-        expires: 2026-04-10T00:00:00.000Z
-        created: 2026-03-27T12:17:47.672Z
+      reason: No clean fix available for JSDOM to upgrade WS
+      expires: 2026-07-30T04:00:00.000Z
+      created: 2026-07-16T16:00:59.209Z
 patch: {}
 exclude:
   global:

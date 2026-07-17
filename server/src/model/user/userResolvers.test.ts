@@ -1,47 +1,46 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { User as PrismaUser } from "@prisma/client";
-import type { GraphQLContext } from "../../auth";
-import { queryCurrentUser, resolvePerson, resolveEvents, userResolvers } from "./userResolvers";
 
 // Mock imports
-import { prisma } from "../../prismaClient";
-import { getManyDocuments } from "../document";
+import { DeepPartial } from "../../testUtilities";
+
+import { User as PrismaUser } from "@prisma/client";
+import type { SystemRoleAssignmentQueryResult } from "../systemRoleAssignment";
+import type { GraphQLContext } from "../../auth";
+
+import { userResolvers } from "./userResolvers";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
+}));
+
+vi.mock("../systemRoleAssignment", () => ({
+  selectManySystemRoleAssignments: vi.fn(),
 }));
 
 vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
 }));
 
+vi.mock("./queries", () => ({
+  selectUserOrThrow: vi.fn(),
+}));
+
+vi.mock("../person/queries", () => ({
+  selectPersonOrThrow: vi.fn(),
+}));
+
+vi.mock("../userSession/queries", () => ({
+  selectLastLoginForUser: vi.fn(),
+}));
+
+import { selectManySystemRoleAssignments } from "../systemRoleAssignment";
+import { getManyDocuments } from "../document";
+import { selectUserOrThrow } from "./queries";
+import { selectPersonOrThrow } from "../person/queries";
+import { selectLastLoginForUser } from "../userSession/queries";
+
 describe("userResolvers", () => {
-  const regularMocks = {
-    user: {
-      findUniqueOrThrow: vi.fn(),
-    },
-    person: {
-      findUniqueOrThrow: vi.fn(),
-    },
-    event: {
-      findMany: vi.fn(),
-    },
-  };
-  const mockPrismaClient = {
-    user: {
-      findUniqueOrThrow: regularMocks.user.findUniqueOrThrow,
-    },
-    person: {
-      findUniqueOrThrow: regularMocks.person.findUniqueOrThrow,
-    },
-    event: {
-      findMany: regularMocks.event.findMany,
-    },
-  };
-  const testUserId = "1b5967a6-97f8-4fbb-9bc1-f8666406fbd4";
-  const testParent: Partial<PrismaUser> = {
-    id: testUserId,
-  };
+  const testUserId = "abc123";
   const mockContext: GraphQLContext = {
     user: {
       id: testUserId,
@@ -50,7 +49,16 @@ describe("userResolvers", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
+  });
+
+  describe("Query.currentUser", () => {
+    it("delegates to `userData/queries.selectUser`", async () => {
+      const mockUser = {
+        id: "abc123",
+      } as PrismaUser;
+      await userResolvers.Query.currentUser(mockUser, undefined, mockContext);
+      expect(selectUserOrThrow).toHaveBeenCalledExactlyOnceWith({ id: "abc123" });
+    });
   });
 
   describe("User.ownedDocuments", () => {
@@ -66,42 +74,95 @@ describe("userResolvers", () => {
     });
   });
 
-  describe("queryCurrentUser", () => {
-    it("should query the user found in the GQL context", async () => {
-      const expectedCall = {
-        where: {
-          id: testUserId,
-        },
-      };
-
-      await queryCurrentUser(undefined, undefined, mockContext);
-      expect(regularMocks.user.findUniqueOrThrow).toHaveBeenCalledExactlyOnceWith(expectedCall);
+  describe("User.person", () => {
+    it("delegates to `personData/queries.selectPerson`", async () => {
+      const mockUser = {
+        id: "abc123",
+      } as PrismaUser;
+      await userResolvers.User.person(mockUser);
+      expect(selectPersonOrThrow).toHaveBeenCalledExactlyOnceWith({ id: "abc123" });
     });
   });
 
-  describe("resolvePerson", () => {
-    it("should query the person record for the parent", async () => {
-      const expectedCall = {
-        where: {
-          id: testUserId,
-        },
-      };
+  describe("User.systemRoles", () => {
+    const testSystemRoleAssignments: DeepPartial<SystemRoleAssignmentQueryResult>[] = [
+      {
+        personId: "person-1",
+        roleId: "role-1",
+      },
+      {
+        personId: "person-1",
+        roleId: "role-2",
+      },
+    ];
 
-      await resolvePerson(testParent as PrismaUser);
-      expect(regularMocks.person.findUniqueOrThrow).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    it("delegates to `systemRoleAssignment.queries.selectManySystemRoleAssignments` and maps result", async () => {
+      const mockUser = {
+        id: "abc123",
+      } as PrismaUser;
+      vi.mocked(selectManySystemRoleAssignments).mockResolvedValueOnce(
+        testSystemRoleAssignments as SystemRoleAssignmentQueryResult[]
+      );
+      const result = await userResolvers.User.systemRoles(mockUser);
+      expect(selectManySystemRoleAssignments).toHaveBeenCalledExactlyOnceWith({
+        personId: "abc123",
+      });
+      expect(result).toStrictEqual(["role-1", "role-2"]);
     });
   });
 
-  describe("resolveEvents", () => {
-    it("should query the events for the parent", async () => {
-      const expectedCall = {
-        where: {
-          userId: testUserId,
+  describe("User.permissions", () => {
+    const testSystemRoleAssignments: DeepPartial<SystemRoleAssignmentQueryResult>[] = [
+      {
+        personId: "person-1",
+        role: {
+          rolePermissions: [
+            {
+              permissionId: "permission-1",
+            },
+            {
+              permissionId: "permission-2",
+            },
+          ],
         },
-      };
+      },
+      {
+        personId: "person-1",
+        role: {
+          rolePermissions: [
+            {
+              permissionId: "permission-2",
+            },
+            {
+              permissionId: "permission-3",
+            },
+          ],
+        },
+      },
+    ];
 
-      await resolveEvents(testParent as PrismaUser);
-      expect(regularMocks.event.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    it("delegates to `systemRoleAssignment.queries.selectManySystemRoleAssignments` and maps result", async () => {
+      const mockUser = {
+        id: "abc123",
+      } as PrismaUser;
+      vi.mocked(selectManySystemRoleAssignments).mockResolvedValueOnce(
+        testSystemRoleAssignments as SystemRoleAssignmentQueryResult[]
+      );
+      const result = await userResolvers.User.permissions(mockUser);
+      expect(selectManySystemRoleAssignments).toHaveBeenCalledExactlyOnceWith({
+        personId: "abc123",
+      });
+      expect(result).toStrictEqual(["permission-1", "permission-2", "permission-3"]);
+    });
+  });
+
+  describe("User.lastLogin", () => {
+    it("delegates to selectLastLoginForUser", async () => {
+      const testUser = {
+        id: "abc123",
+      } as PrismaUser;
+      await userResolvers.User.lastLogin(testUser);
+      expect(selectLastLoginForUser).toHaveBeenCalledExactlyOnceWith(testUser.id);
     });
   });
 });

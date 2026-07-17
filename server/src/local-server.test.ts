@@ -9,11 +9,11 @@ const ApolloServerMock = class {
   }
 };
 
-const startStandaloneServerMock = vi.fn(async (_server: any, _opts: any) => ({
+const startStandaloneServerMock = vi.fn(async () => ({
   url: "http://localhost:4000",
 }));
 
-const ApolloArmorMock = vi.fn(function (this: any, cfg: any) {
+const ApolloArmorMock = vi.fn(function (this: any) {
   this.protect = () => ({ plugins: [], validationRules: [] });
 });
 const validateClaimsMock = vi.fn();
@@ -23,14 +23,14 @@ vi.mock("@apollo/server/standalone", () => ({ startStandaloneServer: startStanda
 vi.mock("@escape.tech/graphql-armor", () => ({ ApolloArmor: ApolloArmorMock }));
 
 vi.mock("./model/graphql.js", () => ({ typeDefs: [], resolvers: {} }));
-vi.mock("./auth/auth.util.js", () => ({
+vi.mock("./auth", () => ({
   buildContextFromClaims: vi.fn(async () => ({ user: { id: "user-1" } })),
+  decodeToken: vi.fn(),
   validateClaims: validateClaimsMock,
+  validatePersonTypeInClaim: vi.fn(),
 }));
-vi.mock("./auth/auth.plugin.js", () => ({ authGatePlugin: {} }));
 vi.mock("./plugins/gatedLandingPage.plugin.js", () => ({ gatedLandingPagePlugin: () => ({}) }));
 vi.mock("./plugins/logging.plugin", () => ({ loggingPlugin: {} }));
-vi.mock("./auth/decodeToken.js", () => ({ decodeToken: vi.fn() }));
 
 // Provide a sentinel config so we can assert it is forwarded to ApolloArmor
 vi.mock("./plugins/graphQLArmorConfig.js", () => ({ GraphQLArmorConfig: { __sentinel: true } }));
@@ -52,7 +52,7 @@ describe("local-server startup", () => {
 
   it("initializes ApolloArmor with GraphQLArmorConfig and starts the server", async () => {
     // Import module after mocks are active
-    const mod = await import("./local-server.ts");
+    await import("./local-server");
 
     // ApolloArmor should have been constructed with the sentinel config
     expect(ApolloArmorMock).toHaveBeenCalled();
@@ -66,7 +66,7 @@ describe("local-server startup", () => {
   });
 
   it("extracts claims from a decoded token", async () => {
-    const { extractClaimsFromDecodedToken } = await import("./local-server.ts");
+    const { extractClaimsFromDecodedToken } = await import("./local-server");
     const decodedToken: JwtPayload = {
       email: "somehuman@example.com",
       sub: "74a88478-1081-702f-2d85-a65bf907a154",
@@ -74,6 +74,7 @@ describe("local-server startup", () => {
       given_name: "obiwan",
       family_name: "Kenobi",
       identities: [{ userId: "ABCD" }],
+      auth_time: "1779211277",
     };
 
     const claims = extractClaimsFromDecodedToken(decodedToken);
@@ -85,6 +86,7 @@ describe("local-server startup", () => {
       givenName: "obiwan",
       familyName: "Kenobi",
       externalUserId: "ABCD",
+      authTime: new Date(1779211277000),
     });
     expect(claims).toEqual({
       email: "somehuman@example.com",
@@ -93,6 +95,7 @@ describe("local-server startup", () => {
       givenName: "obiwan",
       familyName: "Kenobi",
       externalUserId: "ABCD",
+      authTime: new Date(1779211277000),
     });
   });
 });

@@ -4,18 +4,18 @@ import { EasternTZDate, parseJSDateToEasternTZDate } from "../../dateUtilities";
 
 // Types
 import {
-  ApplicationStatus,
   DeliverableExtensionStatus,
   DeliverableStatus,
   PersonType,
   TagName,
 } from "../../types";
 import {
-  DeliverableExtension as PrismaDeliverableExtension,
   Deliverable as PrismaDeliverable,
+  DeliverableExtension as PrismaDeliverableExtension,
   Demonstration as PrismaDemonstration,
   DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
   Document as PrismaDocument,
+  PrivateComment as PrismaPrivateComment,
   User as PrismaUser,
 } from "@prisma/client";
 
@@ -24,15 +24,18 @@ import {
   checkDeliverableExtensionHasStatus,
   checkDeliverableHasAtLeastOneDocument,
   checkDeliverableHasNoActiveExtension,
+  checkDeliverableHasNoComments,
+  checkDeliverableHasNoDocuments,
+  checkDeliverableHasNoUnsubmittedStateDocuments,
+  checkIsFileSubmissionOrStatusChange,
   checkDeliverableHasStatus,
-  checkDeliverableStatusNotFinalized,
-  checkDemonstrationStatus,
   checkDueDateInFuture,
   checkForDuplicateDemonstrationTypes,
   checkNewDueDateIsAtLeastCurrentDueDate,
   checkNewDueDateIsGreaterThanCurrentDueDate,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
+  checkRequiredDeliverableDemonstrationTypes,
 } from "./checkDeliverableInputFunctions";
 
 // Mock imports
@@ -44,46 +47,34 @@ vi.mock("../deliverableExtension/queries", () => ({
   selectManyDeliverableExtensions: vi.fn(),
 }));
 
+vi.mock("../publicComment/queries", () => ({
+  selectManyPublicComments: vi.fn(),
+}));
+
+vi.mock("../privateComment/queries", () => ({
+  selectManyPrivateComments: vi.fn(),
+}));
+
 import { selectManyDocuments } from "../document";
 import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
+import { selectManyPublicComments } from "../publicComment/queries";
+import { selectManyPrivateComments } from "../privateComment/queries";
 
 describe("checkDeliverableInputFunctions", () => {
-  describe("checkDemonstrationStatus", () => {
-    it("should return undefined if the demonstration is Approved", () => {
-      const testInput: Partial<PrismaDemonstration> = {
-        id: "abc123",
-        statusId: "Approved" satisfies ApplicationStatus,
-      };
-      const result = checkDemonstrationStatus(testInput as PrismaDemonstration);
-      expect(result).toBeUndefined();
-    });
-
-    it("should return an error string if the demonstration is not Approved", () => {
-      const testInput: Partial<PrismaDemonstration> = {
-        id: "abc123",
-        statusId: "Under Review" satisfies ApplicationStatus,
-      };
-      const result = checkDemonstrationStatus(testInput as PrismaDemonstration);
-      expect(result).toBe(
-        "Demonstration abc123 is not in Approved status; cannot create deliverable."
-      );
-    });
-  });
-
   describe("checkDeliverableHasStatus", () => {
     const testDeliverable: Partial<PrismaDeliverable> = {
       id: "1e42da3a-9355-4c5d-a541-812a9f95ef56",
       statusId: "Under CMS Review",
     };
 
-    it("should return undefined if the passed status matches the object", async () => {
+    it("should return undefined if the passed status matches the object", () => {
       const result = checkDeliverableHasStatus(testDeliverable as PrismaDeliverable, [
         "Under CMS Review",
       ]);
       expect(result).toBeUndefined();
     });
 
-    it("should return an error message the passed status does not match the object", async () => {
+    it("should return an error message the passed status does not match the object", () => {
       const result = checkDeliverableHasStatus(testDeliverable as PrismaDeliverable, [
         "Approved",
         "Accepted",
@@ -96,76 +87,32 @@ describe("checkDeliverableInputFunctions", () => {
     });
   });
 
-  describe("checkDeliverableStatusNotFinalized", () => {
-    const checkDeliverableStatusInputs: [
-      DeliverableStatus,
-      Partial<PrismaDeliverable>,
-      string | undefined,
-    ][] = [
-      [
-        "Upcoming",
-        {
-          id: "abc123",
-          statusId: "Upcoming",
-        },
-        undefined,
-      ],
-      [
-        "Past Due",
-        {
-          id: "abc123",
-          statusId: "Past Due",
-        },
-        undefined,
-      ],
-      [
-        "Submitted",
-        {
-          id: "abc123",
-          statusId: "Submitted",
-        },
-        undefined,
-      ],
-      [
-        "Under CMS Review",
-        {
-          id: "abc123",
-          statusId: "Under CMS Review",
-        },
-        undefined,
-      ],
-      [
-        "Accepted",
-        {
-          id: "abc123",
-          statusId: "Accepted",
-        },
-        "Cannot submit or modify deliverable abc123 as it has already been finalized.",
-      ],
-      [
-        "Approved",
-        {
-          id: "abc123",
-          statusId: "Approved",
-        },
-        "Cannot submit or modify deliverable abc123 as it has already been finalized.",
-      ],
-      [
-        "Received and Filed",
-        {
-          id: "abc123",
-          statusId: "Received and Filed",
-        },
-        "Cannot submit or modify deliverable abc123 as it has already been finalized.",
-      ],
-    ];
-    it.each(checkDeliverableStatusInputs)(
-      "properly checks the status (%s)",
-      (deliverableStatus, testDeliverable, expectedResult) => {
-        const result = checkDeliverableStatusNotFinalized(testDeliverable as PrismaDeliverable);
-        expect(result).toBe(expectedResult);
-      }
-    );
+  describe("checkDeliverableHasNoUnsubmittedStateDocuments", () => {
+    const mockTransaction: any = "Test!";
+
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      id: "1e42da3a-9355-4c5d-a541-812a9f95ef56",
+    };
+
+    it("should return undefined if there are no found unsubmitted state documents", async () => {
+      vi.mocked(selectManyDocuments).mockResolvedValue([]);
+      const result = await checkDeliverableHasNoUnsubmittedStateDocuments(
+        testDeliverable as PrismaDeliverable,
+        mockTransaction
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it("should return an error message if it finds unsubmitted state documents", async () => {
+      vi.mocked(selectManyDocuments).mockResolvedValue([{}] as PrismaDocument[]);
+      const result = await checkDeliverableHasNoUnsubmittedStateDocuments(
+        testDeliverable as PrismaDeliverable,
+        mockTransaction
+      );
+      expect(result).toBe(
+        "Deliverable 1e42da3a-9355-4c5d-a541-812a9f95ef56 has unsubmitted state documents; cannot complete deliverable."
+      );
+    });
   });
 
   describe("checkOwnerPersonType", () => {
@@ -479,7 +426,7 @@ describe("checkDeliverableInputFunctions", () => {
       statusId: "Denied" satisfies DeliverableExtensionStatus,
     };
 
-    it("should return undefined if the passed status matches the object", async () => {
+    it("should return undefined if the passed status matches the object", () => {
       const result = checkDeliverableExtensionHasStatus(
         testDeliverableExtension as PrismaDeliverableExtension,
         ["Denied"]
@@ -487,7 +434,7 @@ describe("checkDeliverableInputFunctions", () => {
       expect(result).toBeUndefined();
     });
 
-    it("should return an error message the passed status does not match the object", async () => {
+    it("should return an error message the passed status does not match the object", () => {
       const result = checkDeliverableExtensionHasStatus(
         testDeliverableExtension as PrismaDeliverableExtension,
         ["Approved", "Requested"]
@@ -495,6 +442,195 @@ describe("checkDeliverableInputFunctions", () => {
       expect(result).toBe(
         "Deliverable extension expected to have one of status Approved, Requested; " +
           "actual status was Denied."
+      );
+    });
+  });
+
+  describe("checkDeliverableHasNoDocuments", () => {
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      id: "3d802d02-f464-44e0-b789-53a9aa249979",
+      statusId: "Upcoming" satisfies DeliverableStatus,
+    };
+    const testTransaction = "I'm a test transaction!" as any;
+
+    it("should return undefined if no documents are returned", async () => {
+      vi.mocked(selectManyDocuments).mockResolvedValue([]);
+
+      const result = await checkDeliverableHasNoDocuments(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it("should return an error message if documents are returned", async () => {
+      vi.mocked(selectManyDocuments).mockResolvedValue([{ id: "abc123" }] as PrismaDocument[]);
+
+      const result = await checkDeliverableHasNoDocuments(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+      expect(result).toBe(
+        `Expected deliverable ${testDeliverable.id} to have no ` +
+          "documents attached, but documents were found."
+      );
+    });
+  });
+
+  describe("checkDeliverableHasNoComments", () => {
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      id: "45f7753b-9d83-425c-9274-dad2cf5d551e",
+      statusId: "Past Due" satisfies DeliverableStatus,
+    };
+    const testTransaction = "I'm a test transaction!" as any;
+
+    it("should return undefined if no comments are returned", async () => {
+      vi.mocked(selectManyPublicComments).mockResolvedValue([]);
+      vi.mocked(selectManyPrivateComments).mockResolvedValue([]);
+
+      const result = await checkDeliverableHasNoComments(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it("should return an error message if private comments are found", async () => {
+      vi.mocked(selectManyPublicComments).mockResolvedValue([]);
+      vi.mocked(selectManyPrivateComments).mockResolvedValue([
+        { id: "abc123" },
+      ] as PrismaPrivateComment[]);
+
+      const result = await checkDeliverableHasNoComments(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+      expect(result).toBe(
+        `Expected deliverable ${testDeliverable.id} to have no ` +
+          "comments, but public or private comments were found."
+      );
+    });
+
+    it("should return an error message if public comments are found", async () => {
+      vi.mocked(selectManyPublicComments).mockResolvedValue([
+        { id: "abc123" },
+      ] as PrismaPrivateComment[]);
+      vi.mocked(selectManyPrivateComments).mockResolvedValue([]);
+
+      const result = await checkDeliverableHasNoComments(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+      expect(result).toBe(
+        `Expected deliverable ${testDeliverable.id} to have no ` +
+          "comments, but public or private comments were found."
+      );
+    });
+
+    it("should return an error message if both type of comments are found", async () => {
+      vi.mocked(selectManyPublicComments).mockResolvedValue([
+        { id: "abc123" },
+      ] as PrismaPrivateComment[]);
+      vi.mocked(selectManyPrivateComments).mockResolvedValue([
+        { id: "def456" },
+      ] as PrismaPrivateComment[]);
+
+      const result = await checkDeliverableHasNoComments(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+      expect(result).toBe(
+        `Expected deliverable ${testDeliverable.id} to have no ` +
+          "comments, but public or private comments were found."
+      );
+    });
+  });
+
+  describe("checkRequiredDeliverableDemonstrationTypes", () => {
+    it("should return undefined if a required deliverable type has demonstration types", () => {
+      const result = checkRequiredDeliverableDemonstrationTypes(
+        "Implementation Plan",
+        new Set(["Free Insulin"])
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it("should return an error string if a required deliverable type has no demonstration types", () => {
+      const result = checkRequiredDeliverableDemonstrationTypes("Implementation Plan", undefined);
+
+      expect(result).toBe(
+        "Deliverable type Implementation Plan requires at least one demonstration type"
+      );
+    });
+
+    it("should return undefined if the deliverable type does not require demonstration types", () => {
+      const result = checkRequiredDeliverableDemonstrationTypes("Evaluation Design", undefined);
+
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe("checkIsFileSubmissionOrStatusChange", () => {
+    const testDeliverableId = "0cab48de-a565-4d16-b455-f4ec19f86386";
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      id: testDeliverableId,
+      statusId: "Approved" satisfies DeliverableStatus,
+    };
+
+    const mockFindMany = vi.fn();
+    const testTransaction = {
+      document: {
+        findMany: mockFindMany,
+      },
+    } as any;
+
+    beforeEach(() => {
+      vi.resetAllMocks();
+    });
+
+    it("should return undefined if the deliverable status allows submission", async () => {
+      mockFindMany.mockResolvedValue([]);
+
+      const result = await checkIsFileSubmissionOrStatusChange(
+        {
+          ...testDeliverable,
+          statusId: "Upcoming",
+        } as PrismaDeliverable,
+        testTransaction
+      );
+
+      expect(result).toBeUndefined();
+      expect(mockFindMany).toHaveBeenCalledExactlyOnceWith({
+        where: {
+          deliverableId: testDeliverableId,
+          deliverableIsCmsAttachedFile: false,
+          deliverableSubmissionActionId: null,
+        },
+      });
+    });
+
+    it("should return undefined if there are unsubmitted state documents", async () => {
+      mockFindMany.mockResolvedValue([{ id: "abc123" }]);
+
+      const result = await checkIsFileSubmissionOrStatusChange(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it("should return an error message if there are no unsubmitted state documents and the status does not allow submission", async () => {
+      mockFindMany.mockResolvedValue([]);
+
+      const result = await checkIsFileSubmissionOrStatusChange(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+
+      expect(result).toBe(
+        `Deliverable ${testDeliverableId} has no unsubmitted state documents and is not in a status that allows submission; cannot submit deliverable.`
       );
     });
   });

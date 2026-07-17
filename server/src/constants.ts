@@ -23,6 +23,7 @@ export const DELIVERABLE_ACTION_TYPES = [
   "Accepted Deliverable",
   "Approved Deliverable",
   "Received and Filed Deliverable",
+  "Deleted Deliverable",
 ] as const;
 
 export const DELIVERABLE_TYPES = [
@@ -44,6 +45,7 @@ export const DELIVERABLE_TYPES = [
   "Summative Evaluation Report",
   "Transition Plan",
 ] as const;
+export type DeliverableType = (typeof DELIVERABLE_TYPES)[number];
 
 export const DELIVERABLE_DUE_DATE_TYPES = ["Normal", "Open Ended"] as const;
 
@@ -68,18 +70,40 @@ export const DELIVERABLE_STATUSES = [
   "Accepted",
   "Approved",
   "Received and Filed",
+  "Deleted",
 ] as const;
 export type DeliverableStatus = (typeof DELIVERABLE_STATUSES)[number];
+
+export const ACTIVE_DELIVERABLE_STATUSES = [
+  "Upcoming",
+  "Past Due",
+  "Submitted",
+  "Under CMS Review",
+] as const satisfies DeliverableStatus[];
+
+export const STATE_ACTIONABLE_DELIVERABLE_STATUSES = [
+  "Upcoming",
+  "Past Due",
+] as const satisfies DeliverableStatus[];
+
+export const REQUIRED_DEMONSTRATION_TYPE_DELIVERABLES: DeliverableType[] = [
+  "Monitoring Protocol",
+  "Implementation Plan",
+];
 
 export const FINAL_DELIVERABLE_STATUSES = [
   "Accepted",
   "Approved",
   "Received and Filed",
 ] as const satisfies DeliverableStatus[];
-
 export type FinalDeliverableStatus = (typeof FINAL_DELIVERABLE_STATUSES)[number];
 
+export const DELETED_DELIVERABLE_STATUS = "Deleted" as const satisfies DeliverableStatus;
+
 export const DEMONSTRATION_TYPE_STATUSES = ["Expired", "Pending", "Active"] as const;
+
+export const CHIP_DEMONSTRATION_TYPE_TAG_NAME =
+  "Children's Health Insurance Program (CHIP)" as const;
 
 export const ROLES = [
   "Project Officer",
@@ -87,7 +111,6 @@ export const ROLES = [
   "DDME Analyst",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
-  "All Users",
 ] as const;
 
 export const CONTACT_TYPES = ["DDME Analyst", "Project Officer", "State Point of Contact"] as const;
@@ -124,6 +147,10 @@ export const APPLICATION_TYPES = ["Demonstration", "Amendment", "Extension"] as 
 
 export const SIGNATURE_LEVEL = ["OA", "OCD", "OGD"] as const;
 
+export const AMENDMENT_SIGNATURE_LEVELS = ["OA", "OCD"] as const;
+
+export const EXTENSION_SIGNATURE_LEVELS = ["OA", "OCD"] as const;
+
 export const SDG_DIVISIONS = [
   "Division of System Reform Demonstrations",
   "Division of Eligibility and Coverage Demonstrations",
@@ -133,6 +160,7 @@ export const DOCUMENT_TYPES = [
   "Application Completeness Letter",
   "Approval Letter",
   "BN Workbook",
+  "BN Template",
   "Close Out Report",
   "Demonstration-Specific Deliverable",
   "Evaluation Design",
@@ -161,6 +189,22 @@ export const DOCUMENT_TYPES = [
   "Transition Plan",
 ] as const;
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
+
+export const BN_WORKBOOK_DOCUMENT_TYPE = "BN Workbook" as const satisfies DocumentType;
+
+export const NON_DELIVERABLE_DOCUMENT_TYPES: DocumentType[] = [
+  "Application Completeness Letter",
+  "Approval Letter",
+  "Final Budget Neutrality Formulation Workbook",
+  "Formal OMB Policy Concurrence Email",
+  "General File",
+  "Internal Completeness Review Form",
+  "Payment Ratio Analysis",
+  "Pre-Submission",
+  "Q&A",
+  "Signed Decision Memo",
+  "State Application",
+] as const;
 
 export const PHASE_NAMES = [
   "Concept",
@@ -209,7 +253,7 @@ export const REVIEW_PHASE_DATE_TYPES = [
 
 export const DATE_TYPES = [
   "Concept Start Date",
-  "Pre-Submission Submitted Date",
+  "Concept Paper Submitted Date",
   "Concept Completion Date",
   "Concept Skipped Date",
   "Application Intake Start Date",
@@ -223,7 +267,7 @@ export const DATE_TYPES = [
   "Completeness Completion Date",
   "SDG Preparation Start Date",
   "Expected Approval Date",
-  "SME Review Date",
+  "SME Initial Review Date",
   "FRT Initial Meeting Date",
   "BNPMT Initial Meeting Date",
   "SDG Preparation Completion Date",
@@ -236,6 +280,7 @@ export const DATE_TYPES = [
   "Application Demonstration Types Marked Complete Date",
   "Approval Summary Start Date",
   "Approval Summary Completion Date",
+  "Application Approval Date",
 ] as const;
 export type DateType = (typeof DATE_TYPES)[number];
 
@@ -246,7 +291,7 @@ type DateTypeExpectedTimestampRecord = Record<DateType, { expectedTimestamp: Exp
 
 export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecord = {
   "Concept Start Date": { expectedTimestamp: "Start of Day" },
-  "Pre-Submission Submitted Date": { expectedTimestamp: "Start of Day" },
+  "Concept Paper Submitted Date": { expectedTimestamp: "Start of Day" },
   "Concept Completion Date": { expectedTimestamp: "Start of Day" },
   "Concept Skipped Date": { expectedTimestamp: "Start of Day" },
   "Application Intake Start Date": { expectedTimestamp: "Start of Day" },
@@ -260,7 +305,7 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "Completeness Completion Date": { expectedTimestamp: "Start of Day" },
   "SDG Preparation Start Date": { expectedTimestamp: "Start of Day" },
   "Expected Approval Date": { expectedTimestamp: "Start of Day" },
-  "SME Review Date": { expectedTimestamp: "Start of Day" },
+  "SME Initial Review Date": { expectedTimestamp: "Start of Day" },
   "FRT Initial Meeting Date": { expectedTimestamp: "Start of Day" },
   "BNPMT Initial Meeting Date": { expectedTimestamp: "Start of Day" },
   "SDG Preparation Completion Date": { expectedTimestamp: "Start of Day" },
@@ -286,19 +331,24 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "Application Demonstration Types Marked Complete Date": { expectedTimestamp: "Start of Day" },
   "Approval Summary Start Date": { expectedTimestamp: "Start of Day" },
   "Approval Summary Completion Date": { expectedTimestamp: "Start of Day" },
+  "Application Approval Date": { expectedTimestamp: "Start of Day" },
 } as const;
 
 export const STATES_AND_TERRITORIES = [
   { id: "AL", name: "Alabama" },
   { id: "AK", name: "Alaska" },
+  { id: "AS", name: "American Samoa" },
   { id: "AZ", name: "Arizona" },
   { id: "AR", name: "Arkansas" },
   { id: "CA", name: "California" },
   { id: "CO", name: "Colorado" },
   { id: "CT", name: "Connecticut" },
   { id: "DE", name: "Delaware" },
+  { id: "DC", name: "District of Columbia" },
+  { id: "FM", name: "Federated States of Micronesia" },
   { id: "FL", name: "Florida" },
   { id: "GA", name: "Georgia" },
+  { id: "GU", name: "Guam" },
   { id: "HI", name: "Hawaii" },
   { id: "ID", name: "Idaho" },
   { id: "IL", name: "Illinois" },
@@ -323,15 +373,20 @@ export const STATES_AND_TERRITORIES = [
   { id: "NY", name: "New York" },
   { id: "NC", name: "North Carolina" },
   { id: "ND", name: "North Dakota" },
+  { id: "MP", name: "Northern Mariana Islands" },
   { id: "OH", name: "Ohio" },
   { id: "OK", name: "Oklahoma" },
   { id: "OR", name: "Oregon" },
   { id: "PA", name: "Pennsylvania" },
+  { id: "PR", name: "Puerto Rico" },
+  { id: "PW", name: "Republic of Palau" },
+  { id: "MH", name: "Republic of the Marshall Islands" },
   { id: "RI", name: "Rhode Island" },
   { id: "SC", name: "South Carolina" },
   { id: "SD", name: "South Dakota" },
   { id: "TN", name: "Tennessee" },
   { id: "TX", name: "Texas" },
+  { id: "VI", name: "US Virgin Islands" },
   { id: "UT", name: "Utah" },
   { id: "VT", name: "Vermont" },
   { id: "VA", name: "Virginia" },
@@ -339,42 +394,6 @@ export const STATES_AND_TERRITORIES = [
   { id: "WV", name: "West Virginia" },
   { id: "WI", name: "Wisconsin" },
   { id: "WY", name: "Wyoming" },
-  { id: "AS", name: "American Samoa" },
-  { id: "DC", name: "District of Columbia" },
-  { id: "GU", name: "Guam" },
-  { id: "MP", name: "Northern Mariana Islands" },
-  { id: "PR", name: "Puerto Rico" },
-  { id: "VI", name: "Virgin Islands" },
-] as const;
-
-export const LOG_LEVELS = [
-  "emerg",
-  "alert",
-  "crit",
-  "err",
-  "warning",
-  "notice",
-  "info",
-  "debug",
-] as const;
-
-export const EVENT_TYPES = [
-  "Login Succeeded",
-  "Login Failed",
-  "Logout Succeeded",
-  "Logout Failed",
-  "Create Demonstration Succeeded",
-  "Create Demonstration Failed",
-  "Create Extension Succeeded",
-  "Create Extension Failed",
-  "Create Amendment Succeeded",
-  "Create Amendment Failed",
-  "Edit Demonstration Succeeded",
-  "Edit Demonstration Failed",
-  "Delete Demonstration Succeeded",
-  "Delete Demonstration Failed",
-  "Delete Document Succeeded",
-  "Delete Document Failed",
 ] as const;
 
 export const CONCEPT_PHASE_DOCUMENTS: DocumentType[] = ["General File", "Pre-Submission"] as const;
@@ -450,7 +469,10 @@ export const PHASE_START_END_DATES: PhaseStartEndDateRecord = {
     startDate: "Approval Package Start Date",
     endDate: "Approval Package Completion Date",
   },
-  "Approval Summary": {},
+  "Approval Summary": {
+    startDate: "Approval Summary Start Date",
+    endDate: "Approval Summary Completion Date",
+  },
 };
 
 export const TAG_STATUSES = ["Unapproved", "Approved"] as const;
@@ -466,7 +488,9 @@ export const UIPATH_RESULT_STATUSES = ["Pending", "Finished", "Failed"] as const
 
 export const TAG_SOURCES = ["User", "System"] as const;
 
-export const TAG_TYPES = ["Application", "Demonstration Type"] as const;
+export const TAG_TYPES = ["Application", "Demonstration Type", "Reference"] as const;
+
+export const FAQ_REFERENCE_TAG = "FAQ";
 
 // This seemed like a no brainer.
 export const PRIMARY_AWS_REGION = "us-east-1";
@@ -479,6 +503,7 @@ export const BUDGET_NEUTRALITY_VALIDATION_STATUSES = [
 ] as const;
 
 export const PERMISSIONS = [
+  // Row Level Permissions
   "View All Demonstrations",
   "View Assigned Demonstrations",
   "View All Amendments",
@@ -486,24 +511,35 @@ export const PERMISSIONS = [
   "View All Extensions",
   "View Extensions on Assigned Demonstrations",
   "View All Documents",
-  "View Documents on Assigned Demonstrations",
-  "View Owned Documents",
-  "View All ApplicationPhases",
-  "View ApplicationPhases on Assigned Demonstrations",
-  "View All ApplicationDates",
-  "View ApplicationDates on Assigned Demonstrations",
-  "View All ApplicationNotes",
-  "View ApplicationNotes on Assigned Demonstrations",
-  "View All ApplicationTagAssignments",
-  "View ApplicationTagAssignments on Assigned Demonstrations",
-  "View All DemonstrationTypeTagAssignments",
-  "View DemonstrationTypeTagAssignments on Assigned Demonstrations",
-  "View All DeliverableDemonstrationTypes",
-  "View DeliverableDemonstrationTypes on Assigned Demonstrations",
+  "View Documents on Assigned Deliverables",
+  "View All Deliverables",
+  "View Deliverables on Assigned Demonstrations",
   "View All DemonstrationRoleAssignments",
   "View DemonstrationRoleAssignments on Assigned Demonstrations",
-  "View All ApplicationTagSuggestions",
-  "View ApplicationTagSuggestions on Assigned Demonstrations",
+  "Edit All Documents",
+  "Edit State Documents on Assigned Deliverables",
+  "Delete All Documents",
+  "Delete State Documents on Assigned Deliverables",
+
+  // Field Level Permissions
+  "Access Admin Field",
+  "Access Admin Query",
+  "Access CMS Field",
+  "Access CMS Query",
+  "Perform Admin Action",
+  "Perform CMS Action",
+  "Perform State Action",
 ] as const;
 
 export const SYSTEM_ROLES = ["Admin User", "CMS User", "State User"] as const;
+
+export const REFERENCE_CONFIGURATION_STATUSES = ["Inactive", "Active"] as const;
+
+export const ON_DEMAND_REPORT_TYPES = [
+  "Basic Test Report",
+  "Deliverable Status Report",
+  "Application Details Report",
+  "Demonstration Overview Report",
+  "Demonstration Types Report",
+] as const;
+export const ON_DEMAND_REPORT_STATUSES = ["Available"] as const;

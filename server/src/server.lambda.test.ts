@@ -43,14 +43,6 @@ vi.mock("../logger.js", () => ({
   addToRequestContext: vi.fn(),
 }));
 
-// Auth config (single specifier is fine here)
-vi.mock("./auth/auth.config.js", () => ({
-  getAuthConfig: () => ({
-    audience: "test-audience",
-    issuer: "https://issuer.example/",
-    jwksUri: "https://issuer.example/.well-known/jwks.json",
-  }),
-}));
 vi.mock("./model/graphql.js", () => ({ typeDefs: "type Query { _empty: String }", resolvers: {} }));
 
 // JWT libs (defensive)
@@ -88,6 +80,7 @@ function makeEvent(): APIGatewayProxyEvent {
         given_name: "obiwan",
         userId: "ABCD",
         sub: "74a88478-1081-702f-2d85-a65bf907a154",
+        auth_time: "1779211277",
       },
       protocol: "HTTP/1.1",
       httpMethod: "POST",
@@ -136,6 +129,7 @@ describe("extractClaimsFromEvent", () => {
       givenName: "obiwan",
       familyName: "Kenobi",
       externalUserId: "ABCD",
+      authTime: new Date(1779211277000),
     });
   });
 
@@ -148,8 +142,10 @@ describe("extractClaimsFromEvent", () => {
 
   it("throws when the authorizer claims are invalid", () => {
     const event = makeEvent();
-    (event.requestContext.authorizer as any).role = "not-a-real-role";
+    (event.requestContext.authorizer as any).role = undefined;
 
-    expect(() => extractClaimsFromEvent(event)).toThrow("Invalid user role: 'not-a-real-role'");
+    expect(() => extractClaimsFromEvent(event)).toThrow(
+      "Authorizer claims missing required 'role' field"
+    );
   });
 });

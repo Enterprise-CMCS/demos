@@ -63,7 +63,7 @@ describe("ApprovalPackageTable", () => {
 
   const setup = () =>
     render(
-      <MockedProvider mocks={[]} addTypename={false}>
+      <MockedProvider mocks={[]}>
         <ApprovalPackageTable demonstrationId="demo-123" rows={rows} />
       </MockedProvider>
     );
@@ -122,16 +122,11 @@ describe("ApprovalPackageTable", () => {
 
     await user.click(editBtn);
 
-    expect(showEditDocumentDialog).toHaveBeenCalledWith(
-      {
-        id: "doc-22",
-        name: "Real Doc Name",
-        description: "Real Description",
-        documentType: "Signed Decision Memo",
-        file: null,
-      },
-      false
-    );
+    expect(showEditDocumentDialog).toHaveBeenCalledWith({
+      id: "doc-22",
+      name: "Real Doc Name",
+      description: "Real Description",
+    });
   });
 
   it("opens Delete dialog with correct ID", async () => {

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "test": "jest --coverage",
+    "test": "vitest run --coverage",
     "lint": "tsc --noEmit --skipLibCheck"
   },
   "overrides": {
@@ -15,19 +15,18 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@aws-sdk/client-lambda": "^3.1041.0",
-    "@aws-sdk/client-secrets-manager": "^3.1041.0",
-    "@aws-sdk/client-ssm": "^3.1041.0",
-    "@types/aws-lambda": "^8.10.161",
-    "@types/jest": "^30.0.0",
-    "@types/node": "^24.12.2",
+    "@aws-sdk/client-lambda": "^3.1081.0",
+    "@aws-sdk/client-secrets-manager": "^3.1081.0",
+    "@aws-sdk/client-ssm": "^3.1081.0",
+    "@types/aws-lambda": "^8.10.162",
+    "@types/node": "^24.13.3",
     "@types/pg": "^8.20.0",
-    "jest": "^30.3.0",
-    "ts-jest": "^29.4.9",
-    "typescript": "^5.9.3"
+    "@vitest/coverage-v8": "^4.1.10",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
   },
   "dependencies": {
-    "pg": "^8.20.0",
-    "pino": "^10.3.1"
+    "pg": "^8.22.0",
+    "demos-shared-library": "file:../../shared_library"
   }
 }

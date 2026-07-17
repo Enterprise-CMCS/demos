@@ -2,7 +2,7 @@
 import * as React from "react";
 
 import { CircleButton } from "components/button/CircleButton";
-import { DeleteIcon, EditIcon, ImportIcon } from "components/icons";
+import { DeleteIcon, EditIcon } from "components/icons";
 import { ColumnFilter } from "../ColumnFilter";
 import { DocumentColumns } from "../columns/DocumentColumns";
 import { KeywordSearch } from "../KeywordSearch";
@@ -19,14 +19,9 @@ export type DocumentTableDocument = Pick<
   owner: { person: Pick<Person, "fullName"> };
 };
 
-export type DocumentsTableProps = {
-  applicationId: string;
-  documents: DocumentTableDocument[];
-};
-export const DocumentTable: React.FC<DocumentsTableProps> = ({ applicationId, documents }) => {
+export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[] }) => {
   const documentColumns = DocumentColumns();
-  const { showUploadDocumentDialog, showEditDocumentDialog, showRemoveDocumentDialog } =
-    useDialog();
+  const { showEditDocumentDialog, showRemoveDocumentDialog } = useDialog();
   const initialState = {
     sorting: [{ id: "createdAt", desc: true }],
   };
@@ -67,17 +62,8 @@ export const DocumentTable: React.FC<DocumentsTableProps> = ({ applicationId, do
             return (
               <div className="flex gap-1 ml-4">
                 <CircleButton
-                  name="add-document"
-                  ariaLabel="Add Document"
-                  tooltip="Add Document"
-                  onClick={() => showUploadDocumentDialog(applicationId)}
-                >
-                  <ImportIcon />
-                </CircleButton>
-
-                <CircleButton
                   name="edit-document"
-                  ariaLabel="Edit Document"
+                  aria-label="Edit Document"
                   tooltip={editTooltip}
                   disabled={!editEnabled}
                   onClick={() =>
@@ -85,8 +71,6 @@ export const DocumentTable: React.FC<DocumentsTableProps> = ({ applicationId, do
                       id: selectedDocs[0].id,
                       name: selectedDocs[0].name,
                       description: selectedDocs[0].description,
-                      documentType: selectedDocs[0].documentType,
-                      file: null,
                     })
                   }
                 >
@@ -95,7 +79,7 @@ export const DocumentTable: React.FC<DocumentsTableProps> = ({ applicationId, do
 
                 <CircleButton
                   name="remove-document"
-                  ariaLabel="Remove Document"
+                  aria-label="Remove Document"
                   tooltip={deleteTooltip}
                   disabled={!deleteEnabled}
                   onClick={() => showRemoveDocumentDialog(selectedDocs.map((doc) => doc.id))}

@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { compareAsc } from "date-fns";
 import { CircleButton } from "components/button/CircleButton";
-import { DeleteIcon, EditIcon, ExportIcon } from "components/icons";
+import { DeleteIcon, EditIcon } from "components/icons";
 import { KeywordSearch } from "../KeywordSearch";
 import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
@@ -120,20 +120,8 @@ export const TypesTable: React.FC<TypesTableProps> = ({
             return (
               <div className="flex gap-1 ml-4">
                 <CircleButton
-                  name="add-type"
-                  ariaLabel="Add Type"
-                  disabled={inputDisabled}
-                  onClick={() =>
-                    // !addDisabled && showAddTypeDialog()
-                    console.log("Add Type Clicked")
-                  }
-                >
-                  <ExportIcon />
-                </CircleButton>
-
-                <CircleButton
                   name="edit-type"
-                  ariaLabel="Edit Type"
+                  aria-label="Edit Type"
                   tooltip={editTooltip}
                   disabled={editDisabled || inputDisabled}
                   onClick={() =>
@@ -152,7 +140,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
 
                 <CircleButton
                   name="delete-type"
-                  ariaLabel="Delete Type"
+                  aria-label="Delete Type"
                   tooltip={removeTooltip}
                   disabled={removeDisabled}
                   onClick={() =>

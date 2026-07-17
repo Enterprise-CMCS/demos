@@ -177,16 +177,19 @@ describe("ModificationForm", () => {
   it("marks required fields with isRequired prop", async () => {
     render(
       <ModificationForm
-        mode="create"
+        mode="edit"
         modificationFormData={mockModificationFormData}
         setModificationFormDataField={mockSetModificationFormDataField}
         showDemonstrationSelect={true}
         modificationType="Amendment"
+        isApproved={true}
       />
     );
 
     expect(screen.getByLabelText(/Amendment Title/)).toBeRequired();
     expect(screen.getByTestId("select-demonstration")).toBeRequired();
+    expect(screen.getByTestId("signature-level-select")).toBeRequired();
+    expect(screen.getByTestId("effectiveDate")).toBeRequired();
   });
 
   describe("Edit Mode", () => {
@@ -274,7 +277,7 @@ describe("ModificationForm", () => {
           description: "",
           signatureLevel: undefined,
         };
-        expect(isValid(formData)).toBe(false);
+        expect(isValid(formData, false)).toBe(false);
       });
 
       it("returns false when name is missing", () => {
@@ -284,7 +287,7 @@ describe("ModificationForm", () => {
           description: "",
           signatureLevel: undefined,
         };
-        expect(isValid(formData)).toBe(false);
+        expect(isValid(formData, false)).toBe(false);
       });
 
       it("returns true when demonstrationId and name are present", () => {
@@ -294,23 +297,42 @@ describe("ModificationForm", () => {
           description: "",
           signatureLevel: undefined,
         };
-        expect(isValid(formData)).toBe(true);
+        expect(isValid(formData, false)).toBe(true);
+      });
+
+      it("returns false when effectiveDate is missing while application is approved", () => {
+        const formData: ModificationFormData = {
+          demonstrationId: "demo-1",
+          name: "Test",
+          description: "a description",
+          effectiveDate: undefined,
+        };
+        expect(isValid(formData, true)).toBe(false);
+      });
+      it("returns false when signatureLevel is missing while application is approved", () => {
+        const formData: ModificationFormData = {
+          demonstrationId: "demo-1",
+          name: "Test",
+          description: "a description",
+          signatureLevel: undefined,
+        };
+        expect(isValid(formData, true)).toBe(false);
       });
     });
 
     describe("hasChanges", () => {
       it("returns false when no fields have changed", () => {
         const formData: ModificationFormData = {
-          demonstrationId: "demo-1",
           name: "Test",
           description: "Description",
           signatureLevel: "OA",
+          effectiveDate: "2024-02-01" as LocalDate,
         };
         const original: Partial<Modification> = {
-          demonstration: { id: "demo-1" },
           name: "Test",
           description: "Description",
           signatureLevel: "OA",
+          effectiveDate: "2024-02-01T04:00:00.000Z",
         };
         expect(hasChanges(formData, original)).toBe(false);
       });
@@ -376,7 +398,7 @@ describe("ModificationForm", () => {
           name: "Test",
           description: "Description",
           signatureLevel: "OA",
-          effectiveDate: "2024-01-01" as LocalDate,
+          effectiveDate: "2024-06-01T04:00:00.000Z",
         };
         expect(hasChanges(formData, original)).toBe(true);
       });
@@ -393,6 +415,7 @@ describe("ModificationForm", () => {
           demonstration: {
             id: "demo-1",
           },
+          status: "Approved",
         };
 
         const result = getFormDataFromModification(modification);
@@ -416,6 +439,7 @@ describe("ModificationForm", () => {
           demonstration: {
             id: "demo-1",
           },
+          status: "Under Review",
         };
 
         const result = getFormDataFromModification(modification);

@@ -22,6 +22,9 @@ import { applicationTagAssignmentResolvers } from "./applicationTagAssignment/ap
 import { applicationTagSuggestionSchema } from "./applicationTagSuggestion/applicationTagSuggestionSchema.js";
 import { applicationTagSuggestionResolvers } from "./applicationTagSuggestion/applicationTagSuggestionResolvers.js";
 
+import { budgetNeutralityValidationStatusSchema } from "./budgetNeutralityValidationStatus/budgetNeutralityValidationStatusSchema.js";
+import { budgetNeutralityValidationStatusResolvers } from "./budgetNeutralityValidationStatus/budgetNeutralityValidationStatusResolvers.js";
+
 import { sdgDivisionSchema } from "./sdgDivision/sdgDivisionSchema.js";
 import { sdgDivisionResolvers } from "./sdgDivision/sdgDivisionResolvers.js";
 
@@ -40,6 +43,12 @@ import { deliverableDueDateTypeResolvers } from "./deliverableDueDateType/delive
 
 import { deliverableExtensionReasonCodeSchema } from "./deliverableExtensionReasonCode/deliverableExtensionReasonCodeSchema";
 import { deliverableExtensionReasonCodeResolvers } from "./deliverableExtensionReasonCode/deliverableExtensionReasonCodeResolvers";
+
+import { deliverableExtensionSchema } from "./deliverableExtension/deliverableExtensionSchema";
+import { deliverableExtensionResolvers } from "./deliverableExtension/deliverableExtensionResolvers";
+
+import { deliverableExtensionStatusSchema } from "./deliverableExtensionStatus/deliverableExtensionStatusSchema";
+import { deliverableExtensionStatusResolvers } from "./deliverableExtensionStatus/deliverableExtensionStatusResolvers";
 
 import { deliverableSchema } from "./deliverable/deliverableSchema";
 import { deliverableResolvers } from "./deliverable/deliverableResolvers";
@@ -62,23 +71,26 @@ import { demonstrationResolvers } from "./demonstration/demonstrationResolvers.j
 import { documentSchema } from "./document/documentSchema.js";
 import { documentResolvers } from "./document/documentResolvers.js";
 
+import { documentPendingUploadSchema } from "./documentPendingUpload/documentPendingUploadSchema.js";
+import { documentPendingUploadResolvers } from "./documentPendingUpload/documentPendingUploadResolvers.js";
+
 import { documentTypeSchema } from "./documentType/documentTypeSchema.js";
 import { documentTypeResolvers } from "./documentType/documentTypeResolvers.js";
-
-import { eventSchema } from "./event/eventSchema.js";
-import { eventResolvers } from "./event/eventResolvers.js";
-
-import { eventTypeSchema } from "./eventType/eventTypeSchema.js";
-import { eventTypeResolvers } from "./eventType/eventTypeResolvers.js";
 
 import { extensionSchema } from "./extension/extensionSchema.js";
 import { extensionResolvers } from "./extension/extensionResolvers.js";
 
-import { logLevelSchema } from "./logLevel/logLevelSchema.js";
-import { logLevelResolvers } from "./logLevel/logLevelResolvers.js";
-
 import { noteTypeSchema } from "./noteType/noteTypeSchema.js";
 import { noteTypeResolvers } from "./noteType/noteTypeResolvers.js";
+
+import { onDemandReportSchema } from "./onDemandReport/onDemandReportSchema";
+import { onDemandReportResolvers } from "./onDemandReport/onDemandReportResolvers";
+
+import { onDemandReportTypeSchema } from "./onDemandReportType/onDemandReportTypeSchema";
+import { onDemandReportTypeResolvers } from "./onDemandReportType/onDemandReportTypeResolvers";
+
+import { permissionSchema } from "./permission/permissionSchema.js";
+import { permissionResolvers } from "./permission/permissionResolvers.js";
 
 import { personSchema } from "./person/personSchema.js";
 import { personResolvers } from "./person/personResolvers.js";
@@ -91,6 +103,15 @@ import { phaseResolvers } from "./phase/phaseResolvers.js";
 
 import { phaseStatusSchema } from "./phaseStatus/phaseStatusSchema.js";
 import { phaseStatusResolvers } from "./phaseStatus/phaseStatusResolvers.js";
+
+import { privateCommentSchema } from "./privateComment/privateCommentSchema";
+import { privateCommentResolvers } from "./privateComment/privateCommentResolvers";
+
+import { publicCommentSchema } from "./publicComment/publicCommentSchema";
+import { publicCommentResolvers } from "./publicComment/publicCommentResolvers";
+
+import { referenceSchema } from "./reference/referenceSchema";
+import { referenceResolvers } from "./reference/referenceResolvers";
 
 import { roleSchema } from "./role/roleSchema.js";
 import { roleResolvers } from "./role/roleResolvers.js";
@@ -127,6 +148,8 @@ import { customScalarResolvers } from "../customScalarResolvers.js";
 import { clearanceLevelSchema } from "./clearanceLevel/clearanceLeveSchema.js";
 import { clearanceLevelResolvers } from "./clearanceLevel/clearanceLevelResolvers.js";
 
+import { directivesSchema } from "./directives/directivesSchema.js";
+
 const scalarTypes = [
   JSONObjectDefinition,
   DateTimeTypeDefinition,
@@ -143,6 +166,7 @@ export const typeDefs = [
   applicationStatusSchema,
   applicationTagAssignmentSchema,
   applicationTagSuggestionSchema,
+  budgetNeutralityValidationStatusSchema,
   clearanceLevelSchema,
   dateTypeSchema,
   deliverableActionSchema,
@@ -150,23 +174,30 @@ export const typeDefs = [
   deliverableDemonstrationTypeSchema,
   deliverableDueDateTypeSchema,
   deliverableExtensionReasonCodeSchema,
+  deliverableExtensionSchema,
+  deliverableExtensionStatusSchema,
   deliverableSchema,
   deliverableStatusSchema,
   deliverableTypeSchema,
   demonstrationRoleAssignmentSchema,
   demonstrationSchema,
   demonstrationTypeTagAssignmentSchema,
+  directivesSchema,
+  documentPendingUploadSchema,
   documentSchema,
   documentTypeSchema,
-  eventSchema,
-  eventTypeSchema,
   extensionSchema,
-  logLevelSchema,
   noteTypeSchema,
+  onDemandReportSchema,
+  onDemandReportTypeSchema,
+  permissionSchema,
   personSchema,
   personTypeSchema,
   phaseSchema,
   phaseStatusSchema,
+  privateCommentSchema,
+  publicCommentSchema,
+  referenceSchema,
   roleSchema,
   sdgDivisionSchema,
   signatureLevelSchema,
@@ -189,29 +220,36 @@ export const resolvers = [
   applicationStatusResolvers,
   applicationTagAssignmentResolvers,
   applicationTagSuggestionResolvers,
+  budgetNeutralityValidationStatusResolvers,
   clearanceLevelResolvers,
   customScalarResolvers,
   dateTypeResolvers,
   deliverableActionTypeResolvers,
   deliverableDueDateTypeResolvers,
   deliverableExtensionReasonCodeResolvers,
+  deliverableExtensionResolvers,
+  deliverableExtensionStatusResolvers,
   deliverableResolvers,
   deliverableStatusResolvers,
   deliverableTypeResolvers,
   demonstrationResolvers,
   demonstrationRoleAssigmentResolvers,
   demonstrationTypeTagAssignmentResolvers,
+  documentPendingUploadResolvers,
   documentResolvers,
   documentTypeResolvers,
-  eventResolvers,
-  eventTypeResolvers,
   extensionResolvers,
-  logLevelResolvers,
   noteTypeResolvers,
+  onDemandReportResolvers,
+  onDemandReportTypeResolvers,
+  permissionResolvers,
   personResolvers,
   personTypeResolvers,
   phaseResolvers,
   phaseStatusResolvers,
+  privateCommentResolvers,
+  publicCommentResolvers,
+  referenceResolvers,
   roleResolvers,
   sdgDivisionResolvers,
   signatureLevelResolvers,

@@ -24,27 +24,18 @@ vi.mock("components/dialog/DialogContext", () => ({
 describe("DocumentTable", () => {
   beforeEach(() => {
     render(
-      <MockedProvider mocks={ALL_MOCKS} addTypename={false}>
-        <DocumentTable applicationId="test-application-id" documents={mockDocuments} />
+      <MockedProvider mocks={ALL_MOCKS}>
+        <DocumentTable documents={mockDocuments} />
       </MockedProvider>
     );
   });
 
-  it("renders action buttons (add/edit)", async () => {
+  it("renders action buttons (edit/delete)", async () => {
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
-    expect(screen.getByLabelText(/Add Document/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Edit Document/i)).toBeInTheDocument();
-  });
-
-  it("opens AddDocumentModal when add button is clicked", async () => {
-    await waitFor(() => {
-      expect(screen.getByRole("table")).toBeInTheDocument();
-    });
-    const user = userEvent.setup();
-    await user.click(screen.getByLabelText(/Add Document/i));
-    expect(showUploadDocumentDialog).toHaveBeenCalled();
+    expect(screen.getByLabelText(/Remove Document/i)).toBeInTheDocument();
   });
 
   it("disables Edit button when no or multiple documents are selected, enables for one", async () => {

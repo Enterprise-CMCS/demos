@@ -1,0 +1,12 @@
+model ReferenceTagAssignment {
+  referenceId String @map("reference_id") @db.Uuid
+  tagNameId   String @map("tag_name_id")
+  tagTypeId   String @map("tag_type_id")
+
+  reference Reference             @relation(fields: [referenceId], references: [id])
+  tag       Tag                   @relation(fields: [tagNameId, tagTypeId], references: [tagNameId, tagTypeId])
+  tagType   ReferenceTagTypeLimit @relation(fields: [tagTypeId], references: [id])
+
+  @@id([referenceId, tagNameId, tagTypeId])
+  @@map("reference_tag_assignment")
+}

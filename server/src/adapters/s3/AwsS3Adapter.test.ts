@@ -1,236 +1,367 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { S3Client } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { UploadDocumentInput } from "../../model/document/documentSchema";
+// Vitest and other helpers
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach, afterAll } from "vitest";
+
+// Types
+import { Prisma } from "@prisma/client";
+
+// Functions under test
 import { createAWSS3Adapter } from "./AwsS3Adapter";
-import { createDocumentPendingUpload } from "../../model/documentPendingUpload";
-import { PRIMARY_AWS_REGION } from "../../constants";
+
+// Mock imports
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+  HeadObjectCommand,
+  CopyObjectCommand,
+  DeleteObjectCommand,
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { prisma } from "../../prismaClient";
 
 vi.mock("@aws-sdk/client-s3", () => ({
-  S3Client: vi.fn(function (this: any) {
-    return {
-      send: vi.fn(),
-    };
-  }),
-  PutObjectCommand: vi.fn(function (this: any, params) {
-    this.params = params;
-  }),
-  GetObjectCommand: vi.fn(function (this: any, params) {
-    this.params = params;
-  }),
-  CopyObjectCommand: vi.fn(function (this: any, params) {
-    this.params = params;
-  }),
-  DeleteObjectCommand: vi.fn(function (this: any, params) {
-    this.params = params;
-  }),
+  S3Client: vi.fn(),
+  PutObjectCommand: vi.fn(),
+  GetObjectCommand: vi.fn(),
+  HeadObjectCommand: vi.fn(),
+  CopyObjectCommand: vi.fn(),
+  DeleteObjectCommand: vi.fn(),
 }));
 
 vi.mock("@aws-sdk/s3-request-presigner", () => ({
   getSignedUrl: vi.fn(),
 }));
 
-vi.mock("../../model/documentPendingUpload/queries/createDocumentPendingUpload.js", () => ({
-  createDocumentPendingUpload: vi.fn(),
+vi.mock("../../prismaClient", () => ({
+  prisma: vi.fn(),
 }));
 
 describe("AwsS3Adapter", () => {
-  const originalEnv = { ...process.env };
-  const mockTransaction = "mockTransaction" as any;
-  const testUserId = "user-123";
+  // Stash original environment
+  let originalEnv: NodeJS.ProcessEnv;
+
+  // Test values
+  const testKey = "test-document-id";
+  const testUploadBucket = "test-upload-bucket";
+  const testCleanBucket = "test-clean-bucket";
+  const testDeletedBucket = "test-deleted-bucket";
+
+  // Mock values
+  const mockSend = vi.fn();
+  const mockS3Client: Partial<S3Client> = { send: mockSend };
+  const mockPutObjectCommand: Partial<PutObjectCommand> = {
+    input: { Bucket: "test-bucket", Key: "put-object-command" },
+  };
+  const mockGetObjectCommand: Partial<GetObjectCommand> = {
+    input: { Bucket: "test-bucket", Key: "get-object-command" },
+  };
+  const mockHeadObjectCommand: Partial<HeadObjectCommand> = {
+    input: { Bucket: "test-bucket", Key: "head-object-command" },
+  };
+  const mockCopyObjectCommand: Partial<CopyObjectCommand> = {
+    input: { Bucket: "test-bucket", CopySource: "test-source", Key: "copy-object-command" },
+  };
+  const mockDeleteObjectCommand: Partial<DeleteObjectCommand> = {
+    input: { Bucket: "test-bucket", Key: "delete-object-command" },
+  };
+
+  beforeAll(() => {
+    originalEnv = { ...process.env };
+    process.env.UPLOAD_BUCKET = testUploadBucket;
+    process.env.CLEAN_BUCKET = testCleanBucket;
+    process.env.DELETED_BUCKET = testDeletedBucket;
+  });
 
   beforeEach(() => {
     vi.resetAllMocks();
-    process.env.UPLOAD_BUCKET = "test-upload-bucket";
-    process.env.CLEAN_BUCKET = "test-clean-bucket";
-    process.env.DELETED_BUCKET = "test-deleted-bucket";
+    vi.mocked(S3Client).mockImplementation(function () {
+      return mockS3Client as S3Client;
+    });
+    vi.mocked(PutObjectCommand).mockImplementation(function () {
+      return mockPutObjectCommand as PutObjectCommand;
+    });
+    vi.mocked(GetObjectCommand).mockImplementation(function () {
+      return mockGetObjectCommand as GetObjectCommand;
+    });
+    vi.mocked(HeadObjectCommand).mockImplementation(function () {
+      return mockHeadObjectCommand as HeadObjectCommand;
+    });
+    vi.mocked(CopyObjectCommand).mockImplementation(function () {
+      return mockCopyObjectCommand as CopyObjectCommand;
+    });
+    vi.mocked(DeleteObjectCommand).mockImplementation(function () {
+      return mockDeleteObjectCommand as DeleteObjectCommand;
+    });
+    vi.mocked(getSignedUrl).mockResolvedValue("https://presigned-url");
   });
 
-  afterEach(() => {
+  afterAll(() => {
     process.env = { ...originalEnv };
   });
 
   describe("getPresignedUploadUrl", () => {
-    it("should generate presigned upload URL for given key", async () => {
-      const testKey = "test-document-id";
-      const mockPresignedUrl = "https://s3.amazonaws.com/upload/presigned-url";
-      vi.mocked(getSignedUrl).mockResolvedValue(mockPresignedUrl);
-
-      const adapter = createAWSS3Adapter();
-      const result = await adapter.getPresignedUploadUrl(testKey);
-
-      expect(result).toBe(mockPresignedUrl);
-      expect(getSignedUrl).toHaveBeenCalledOnce();
-    });
-
-    it("should use upload bucket from environment", async () => {
-      const testKey = "test-document-id";
-      vi.mocked(getSignedUrl).mockResolvedValue("https://presigned-url");
-
+    it("should create a presigned upload URL for the document", async () => {
       const adapter = createAWSS3Adapter();
       await adapter.getPresignedUploadUrl(testKey);
 
-      const putObjectCommand = vi.mocked(getSignedUrl).mock.calls[0][1];
-      expect(putObjectCommand).toHaveProperty("params");
-      expect((putObjectCommand as any).params.Bucket).toBe("test-upload-bucket");
-      expect((putObjectCommand as any).params.Key).toBe(testKey);
+      expect(PutObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testUploadBucket,
+        Key: testKey,
+      });
+      expect(getSignedUrl).toHaveBeenCalledExactlyOnceWith(mockS3Client, mockPutObjectCommand, {
+        expiresIn: 10,
+      });
     });
   });
 
   describe("getPresignedDownloadUrl", () => {
-    it("should generate presigned download URL for given key", async () => {
-      const testKey = "test-document-id";
-      const mockPresignedUrl = "https://s3.amazonaws.com/download/presigned-url";
-      vi.mocked(getSignedUrl).mockResolvedValue(mockPresignedUrl);
-
-      const adapter = createAWSS3Adapter();
-      const result = await adapter.getPresignedDownloadUrl(testKey);
-
-      expect(result).toBe(mockPresignedUrl);
-      expect(getSignedUrl).toHaveBeenCalledOnce();
-    });
-
-    it("should use clean bucket from environment", async () => {
-      const testKey = "test-document-id";
-      vi.mocked(getSignedUrl).mockResolvedValue("https://presigned-url");
-
+    it("should create a presigned download URL for the document", async () => {
       const adapter = createAWSS3Adapter();
       await adapter.getPresignedDownloadUrl(testKey);
 
-      const getObjectCommand = vi.mocked(getSignedUrl).mock.calls[0][1];
-      expect(getObjectCommand).toHaveProperty("params");
-      expect((getObjectCommand as any).params.Bucket).toBe("test-clean-bucket");
-      expect((getObjectCommand as any).params.Key).toBe(testKey);
+      expect(GetObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: testKey,
+      });
+      // No file name means no Content-Type lookup is needed.
+      expect(HeadObjectCommand).not.toHaveBeenCalled();
+      expect(getSignedUrl).toHaveBeenCalledExactlyOnceWith(mockS3Client, mockGetObjectCommand, {
+        expiresIn: 10,
+      });
+    });
+
+    it("appends an extension derived from the object's Content-Type", async () => {
+      mockSend.mockResolvedValueOnce({ ContentType: "application/pdf" });
+      const adapter = createAWSS3Adapter();
+      await adapter.getPresignedDownloadUrl(testKey, "Quarterly Report");
+
+      expect(HeadObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: testKey,
+      });
+      expect(GetObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: testKey,
+        ResponseContentDisposition: 'inline; filename="Quarterly Report.pdf"',
+      });
+    });
+
+    it("sanitizes the file name and safely encodes the Content-Disposition header", async () => {
+      mockSend.mockResolvedValueOnce({ ContentType: "application/pdf" });
+      const adapter = createAWSS3Adapter();
+      // Quotes are stripped as invalid; the non-ASCII char is percent-encoded via filename*.
+      await adapter.getPresignedDownloadUrl(testKey, 'Quârterly "Report"');
+
+      expect(GetObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: testKey,
+        ResponseContentDisposition:
+          String.raw`inline; filename="Qu?rterly Report.pdf"; ` +
+          String.raw`filename*=UTF-8''Qu%C3%A2rterly%20Report.pdf`,
+      });
+    });
+
+    it("falls back to the key when the name is entirely invalid characters", async () => {
+      mockSend.mockResolvedValueOnce({ ContentType: "application/pdf" });
+      const adapter = createAWSS3Adapter();
+      await adapter.getPresignedDownloadUrl("uuid-123", "///");
+
+      expect(GetObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: "uuid-123",
+        // No spaces/special chars, so content-disposition leaves it unquoted.
+        ResponseContentDisposition: "inline; filename=uuid-123.pdf",
+      });
+    });
+
+    it("forces a download and derives the extension when disposition is attachment", async () => {
+      mockSend.mockResolvedValueOnce({
+        ContentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const adapter = createAWSS3Adapter();
+      await adapter.getPresignedDownloadUrl("reports/on-demand/r1.xlsx", "Deliverable Report", {
+        disposition: "attachment",
+      });
+
+      expect(HeadObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: "reports/on-demand/r1.xlsx",
+      });
+      expect(GetObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: "reports/on-demand/r1.xlsx",
+        ResponseContentDisposition: 'attachment; filename="Deliverable Report.xlsx"',
+      });
     });
   });
 
   describe("moveDocumentFromCleanToDeleted", () => {
     it("should copy document from clean to deleted bucket and delete from clean", async () => {
-      const testKey = "test-document-id";
-      const mockS3Client = {
-        send: vi
-          .fn()
-          .mockResolvedValueOnce({ $metadata: { httpStatusCode: 200 } }) // copy response
-          .mockResolvedValueOnce({ $metadata: { httpStatusCode: 204 } }), // delete response
-      };
-      vi.mocked(S3Client).mockImplementation(function (this: any) {
-        return mockS3Client as any;
-      });
-
       const adapter = createAWSS3Adapter();
+      mockSend
+        .mockResolvedValueOnce({ $metadata: { httpStatusCode: 200 } })
+        .mockResolvedValueOnce({ $metadata: { httpStatusCode: 204 } });
       await adapter.moveDocumentFromCleanToDeleted(testKey);
 
-      expect(mockS3Client.send).toHaveBeenCalledTimes(2);
+      expect(CopyObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        CopySource: `${testCleanBucket}/${testKey}`,
+        Bucket: testDeletedBucket,
+        Key: testKey,
+      });
+      expect(DeleteObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: testKey,
+      });
+      expect(mockSend).toHaveBeenCalledTimes(2);
+      expect(mockSend).toHaveBeenNthCalledWith(1, mockCopyObjectCommand);
+      expect(mockSend).toHaveBeenNthCalledWith(2, mockDeleteObjectCommand);
     });
 
     it("should throw error if copy operation fails", async () => {
-      const testKey = "test-document-id";
-      const mockS3Client = {
-        send: vi.fn().mockResolvedValueOnce({ $metadata: { httpStatusCode: 500 } }),
-      };
-      vi.mocked(S3Client).mockImplementation(function (this: any) {
-        return mockS3Client as any;
-      });
-
       const adapter = createAWSS3Adapter();
+      mockSend.mockResolvedValue({ $metadata: { httpStatusCode: 500 } });
 
       await expect(adapter.moveDocumentFromCleanToDeleted(testKey)).rejects.toThrow(
-        "Response from copy operation returned with a non-200 status"
+        "Error while copying document to deleted bucket"
       );
+      expect(CopyObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        CopySource: `${testCleanBucket}/${testKey}`,
+        Bucket: testDeletedBucket,
+        Key: testKey,
+      });
+      expect(DeleteObjectCommand).not.toHaveBeenCalled();
     });
 
     it("should throw error if delete operation fails", async () => {
-      const testKey = "test-document-id";
-      const mockS3Client = {
-        send: vi
-          .fn()
-          .mockResolvedValueOnce({ $metadata: { httpStatusCode: 200 } })
-          .mockResolvedValueOnce({ $metadata: { httpStatusCode: 500 } }),
-      };
-      vi.mocked(S3Client).mockImplementation(function (this: any) {
-        return mockS3Client as any;
-      });
-
       const adapter = createAWSS3Adapter();
+      mockSend
+        .mockResolvedValueOnce({ $metadata: { httpStatusCode: 200 } })
+        .mockResolvedValueOnce({ $metadata: { httpStatusCode: 500 } });
 
       await expect(adapter.moveDocumentFromCleanToDeleted(testKey)).rejects.toThrow(
-        "Response from delete operation returned with a non-200 status"
+        "Failed to delete document from clean bucket"
       );
+      expect(CopyObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        CopySource: `${testCleanBucket}/${testKey}`,
+        Bucket: testDeletedBucket,
+        Key: testKey,
+      });
+      expect(DeleteObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: testKey,
+      });
     });
   });
 
   describe("uploadDocument", () => {
-    const mockUploadInput: UploadDocumentInput = {
-      name: "test.pdf",
-      description: "Test document",
-      documentType: "State Application",
-      applicationId: "app-123",
-      phaseName: "Concept",
-    };
-
-    const mockDocumentPendingUpload = {
-      id: "pending-doc-123",
+    const mockUploadInput: Prisma.DocumentPendingUploadCreateArgs["data"] = {
       name: "test.pdf",
       description: "Test document",
       documentTypeId: "State Application",
       applicationId: "app-123",
       phaseId: "Concept",
-      ownerUserId: testUserId,
-      createdAt: new Date(),
+      ownerUserId: "user-123",
     };
 
-    it("should create pending upload and return presigned URL with document ID", async () => {
-      const mockPresignedUrl = "https://s3.amazonaws.com/upload/presigned-url";
-      vi.mocked(createDocumentPendingUpload).mockResolvedValue(mockDocumentPendingUpload as any);
-      vi.mocked(getSignedUrl).mockResolvedValue(mockPresignedUrl);
+    const mockCreate = vi.fn();
+    const mockTransaction = {
+      documentPendingUpload: { create: mockCreate },
+    } as any;
+    const mockPrismaClient = {
+      $transaction: vi.fn(),
+    };
 
-      const adapter = createAWSS3Adapter();
-      const result = await adapter.uploadDocument(mockTransaction, mockUploadInput, testUserId);
-
-      expect(createDocumentPendingUpload).toHaveBeenCalledExactlyOnceWith(
-        mockTransaction,
-        mockUploadInput,
-        testUserId
-      );
-      expect(result).toEqual({
-        presignedURL: mockPresignedUrl,
-        documentId: "pending-doc-123",
+    beforeEach(() => {
+      mockCreate.mockResolvedValue({
+        id: "pending-doc-123",
+        ...mockUploadInput,
+        createdAt: new Date(),
       });
+      vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
+      mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
     });
 
-    it("should use document pending upload ID for presigned URL key", async () => {
-      const mockPresignedUrl = "https://s3.amazonaws.com/upload/presigned-url";
-      vi.mocked(createDocumentPendingUpload).mockResolvedValue(mockDocumentPendingUpload as any);
-      vi.mocked(getSignedUrl).mockResolvedValue(mockPresignedUrl);
+    it("should create the pending upload within the provided transaction", async () => {
+      const adapter = createAWSS3Adapter();
+      const result = await adapter.uploadDocument(mockUploadInput, mockTransaction);
+
+      expect(prisma).not.toHaveBeenCalled();
+      expect(mockCreate).toHaveBeenCalledExactlyOnceWith({ data: mockUploadInput });
+      expect(result).toMatchObject(mockUploadInput);
+    });
+
+    it("should create the pending upload in a new transaction when none is provided", async () => {
+      const adapter = createAWSS3Adapter();
+      const result = await adapter.uploadDocument(mockUploadInput);
+
+      expect(prisma).toHaveBeenCalledOnce();
+      expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
+      expect(mockCreate).toHaveBeenCalledExactlyOnceWith({ data: mockUploadInput });
+      expect(result).toMatchObject(mockUploadInput);
+    });
+  });
+
+  describe("uploadOnDemandReport", () => {
+    it("should upload the report to the clean bucket and return its key", async () => {
+      const reportId = "report-123";
+      const reportKey = `reports/on-demand/${reportId}.xlsx`;
+      const reportFileData = Buffer.from("report-content");
 
       const adapter = createAWSS3Adapter();
-      await adapter.uploadDocument(mockTransaction, mockUploadInput, testUserId);
+      const result = await adapter.uploadOnDemandReport(reportId, reportFileData);
 
-      const putObjectCommand = vi.mocked(getSignedUrl).mock.calls[0][1];
-      expect((putObjectCommand as any).params.Key).toBe("pending-doc-123");
+      expect(PutObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: reportKey,
+        Body: reportFileData,
+        ContentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      expect(mockSend).toHaveBeenCalledExactlyOnceWith(mockPutObjectCommand);
+      expect(result).toBe(reportKey);
+    });
+  });
+
+  describe("deleteOnDemandReport", () => {
+    it("should delete the report from the clean bucket and return its key", async () => {
+      const reportId = "report-123";
+      const reportKey = `reports/on-demand/${reportId}.xlsx`;
+
+      const adapter = createAWSS3Adapter();
+      const result = await adapter.deleteOnDemandReport(reportId);
+
+      expect(DeleteObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: reportKey,
+      });
+      expect(mockSend).toHaveBeenCalledExactlyOnceWith(mockDeleteObjectCommand);
+      expect(result).toBe(reportKey);
     });
   });
 
   describe("S3Client configuration", () => {
+    afterEach(() => {
+      delete process.env.S3_ENDPOINT_LOCAL;
+    });
+
     it("should configure S3Client with S3_ENDPOINT_LOCAL when set", () => {
       process.env.S3_ENDPOINT_LOCAL = "http://custom-endpoint:4566";
 
       createAWSS3Adapter();
 
-      expect(S3Client).toHaveBeenCalledWith(
-        expect.objectContaining({
-          region: PRIMARY_AWS_REGION,
-          endpoint: "http://custom-endpoint:4566",
-        })
-      );
+      expect(S3Client).toHaveBeenCalledExactlyOnceWith({
+        region: "us-east-1",
+        endpoint: "http://custom-endpoint:4566",
+        forcePathStyle: true,
+        credentials: expect.any(Object),
+      });
     });
 
-    it("should configure S3Client with default AWS config when no local endpoint", () => {
+    it("should configure S3Client with default config when no local endpoint", () => {
       delete process.env.S3_ENDPOINT_LOCAL;
 
       createAWSS3Adapter();
 
-      expect(S3Client).toHaveBeenCalledWith({});
+      expect(S3Client).toHaveBeenCalledExactlyOnceWith({});
     });
   });
 });

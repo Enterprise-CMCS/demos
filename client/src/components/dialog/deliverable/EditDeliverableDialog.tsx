@@ -1,13 +1,14 @@
 import React, { useState } from "react";
+import { gql, useMutation } from "@apollo/client";
 
 import { Button } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { TextInput } from "components/input";
 import { useToast } from "components/toast";
-import { DeliverableType, DeliverableStatus, Tag } from "demos-server";
-import { format, isBefore } from "date-fns";
+import { DeliverableType, DeliverableStatus, Tag, UpdateDeliverableInput } from "demos-server";
+import { format, isBefore, parseISO } from "date-fns";
 import { DELIVERABLE_UPDATED_MESSAGE } from "util/messages";
-import { getTodayEst } from "util/formatDate";
+import { formatDateForServer, getTodayEst } from "util/formatDate";
 
 import { CMSOwnerField } from "./fields/CMSOwnerField";
 import { DeliverableNameField } from "./fields/DeliverableNameField";
@@ -20,6 +21,36 @@ export const EDIT_DELIVERABLE_DIALOG_TITLE = "Edit Deliverable";
 export const EDIT_DELIVERABLE_DIALOG_NAME = "edit-deliverable-dialog";
 export const EDIT_DELIVERABLE_SAVE_BUTTON_NAME = "button-edit-deliverable-confirm";
 export const EDIT_DELIVERABLE_REASON_FIELD_NAME = "edit-deliverable-reason";
+export const DELIVERABLE_UPDATE_FAILED_MESSAGE =
+  "Your changes could not be saved due to an unknown problem.";
+
+export const UPDATE_DELIVERABLE_MUTATION = gql`
+  mutation UpdateDeliverable($id: ID!, $input: UpdateDeliverableInput!) {
+    updateDeliverable(id: $id, input: $input) {
+      id
+      name
+      dueDate
+      cmsOwner {
+        id
+        person {
+          id
+          fullName
+        }
+      }
+      demonstrationTypes {
+        tagName
+        approvalStatus
+      }
+      deliverableActions {
+        id
+        actionType
+        actionTimestamp
+        userFullName
+        details
+      }
+    }
+  }
+`;
 
 export const NON_EDITABLE_DELIVERABLE_STATUSES: ReadonlySet<DeliverableStatus> = new Set([
   "Accepted",
@@ -110,13 +141,31 @@ export interface EditDeliverableDialogProps {
   onSave?: (input: EditDeliverableInput, reasonForChange?: string) => Promise<void> | void;
 }
 
+const buildUpdateDeliverableInput = (
+  input: EditDeliverableInput,
+  reasonForChange?: string
+): UpdateDeliverableInput => ({
+  name: input.name,
+  cmsOwnerUserId: input.cmsOwnerUserId,
+  demonstrationTypes: input.demonstrationTypes,
+  ...(reasonForChange
+    ? {
+      dueDate: {
+        newDueDate: formatDateForServer(parseISO(input.dueDate)),
+        dateChangeNote: reasonForChange,
+      },
+    }
+    : {}),
+});
+
 export const EditDeliverableDialog: React.FC<EditDeliverableDialogProps> = ({
   onClose,
   deliverable,
   demonstrationTypeTags,
   onSave,
 }) => {
-  const { showSuccess } = useToast();
+  const { showSuccess, showError } = useToast();
+  const [updateDeliverable, { loading: isSaving }] = useMutation(UPDATE_DELIVERABLE_MUTATION);
 
   const initialFormData = buildInitialFormData(deliverable);
   const [formData, setFormData] = useState<EditDeliverableFormData>(initialFormData);
@@ -132,23 +181,35 @@ export const EditDeliverableDialog: React.FC<EditDeliverableDialogProps> = ({
 
   const handleSave = async () => {
     setAttemptedSubmit(true);
-    if (!isFormValid) return;
+    if (!isFormValid || isSaving) return;
 
-    // TODO: wire onSave to the UpdateDeliverable mutation — toast currently fires without persisting.
-    await onSave?.(
-      {
-        id: deliverable.id,
-        name: formData.name.trim(),
-        deliverableType: deliverable.deliverableType,
-        cmsOwnerUserId: formData.cmsOwnerUserId,
-        dueDate: formData.dueDate,
-        demonstrationTypes: formData.demonstrationTypes,
-      },
-      dueDateWasChanged ? formData.reasonForChange.trim() : undefined
-    );
+    const input = {
+      id: deliverable.id,
+      name: formData.name.trim(),
+      deliverableType: deliverable.deliverableType,
+      cmsOwnerUserId: formData.cmsOwnerUserId,
+      dueDate: formData.dueDate,
+      demonstrationTypes: formData.demonstrationTypes,
+    };
+    const reasonForChange = dueDateWasChanged ? formData.reasonForChange.trim() : undefined;
 
-    showSuccess(DELIVERABLE_UPDATED_MESSAGE);
-    onClose();
+    try {
+      if (onSave) {
+        await onSave(input, reasonForChange);
+      } else {
+        await updateDeliverable({
+          variables: {
+            id: input.id,
+            input: buildUpdateDeliverableInput(input, reasonForChange),
+          },
+        });
+      }
+
+      showSuccess(DELIVERABLE_UPDATED_MESSAGE);
+      onClose();
+    } catch {
+      showError(DELIVERABLE_UPDATE_FAILED_MESSAGE);
+    }
   };
 
   return (
@@ -162,9 +223,9 @@ export const EditDeliverableDialog: React.FC<EditDeliverableDialogProps> = ({
         <Button
           name={EDIT_DELIVERABLE_SAVE_BUTTON_NAME}
           onClick={handleSave}
-          disabled={!isFormValid}
+          disabled={!isFormValid || isSaving || !hasChanges}
         >
-          Save Changes
+          {isSaving ? "Saving..." : "Save Changes"}
         </Button>
       }
     >

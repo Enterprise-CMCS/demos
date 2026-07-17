@@ -10,15 +10,14 @@ import {
   DELIVERABLE_DUE_DATE_TYPES,
   DELIVERABLE_EXTENSION_REASON_CODES,
   DELIVERABLE_EXTENSION_STATUSES,
-  DELIVERABLE_TYPES,
   DEMONSTRATION_TYPE_STATUSES,
-  EVENT_TYPES,
   GRANT_LEVELS,
-  LOG_LEVELS,
   NOTE_TYPES,
   PERMISSIONS,
   PERSON_TYPES,
   PHASE_STATUS,
+  REFERENCE_CONFIGURATION_STATUSES,
+  ON_DEMAND_REPORT_TYPES,
   REVIEW_PHASE_DATE_TYPES,
   REVIEW_PHASE_NOTE_TYPES,
   ROLES,
@@ -31,6 +30,7 @@ import {
   TAG_TYPES,
   UIPATH_RESULT_STATUSES,
   USER_TYPES,
+  ON_DEMAND_REPORT_STATUSES,
 } from "./constants.js";
 
 export type {
@@ -51,8 +51,6 @@ export type {
 
 export type { State } from "./model/state/stateSchema.js";
 
-export type { Event, LogEventInput } from "./model/event/eventSchema.js";
-
 export type {
   Amendment,
   CreateAmendmentInput,
@@ -66,11 +64,18 @@ export type {
 } from "./model/extension/extensionSchema.js";
 
 export type {
+  BudgetNeutralityValidationError,
+  BudgetNeutralityValidationResult,
   Document,
   UpdateDocumentInput,
-  UploadDocumentInput,
-  UploadDocumentResponse,
 } from "./model/document/documentSchema.js";
+
+export type {
+  DocumentPendingUpload,
+  UploadDocumentToApplicationInput,
+  UploadDocumentToPhaseInput,
+  UploadDocumentToDeliverableInput,
+} from "./model/documentPendingUpload/documentPendingUploadSchema.js";
 
 export type { SetApplicationClearanceLevelInput } from "./model/application/applicationSchema.js";
 
@@ -113,12 +118,19 @@ export type {
   CreateDeliverableInput,
   Deliverable,
   DeliverableDueDateUpdateInput,
+  DenyDeliverableExtensionInput,
   RequestDeliverableExtensionInput,
   RequestDeliverableResubmissionInput,
   UpdateDeliverableInput,
 } from "./model/deliverable/deliverableSchema";
 
 export type { DeliverableAction } from "./model/deliverableAction/deliverableActionSchema";
+
+export type { DeliverableExtension } from "./model/deliverableExtension/deliverableExtensionSchema";
+
+export type { DeliverableComment } from "./model/publicComment/publicCommentSchema";
+
+export type { Reference, ReferenceAgreement } from "./model/reference/referenceSchema";
 
 // Alias is not enforced in TS but maintains alignment between GQL and TS
 export type NonEmptyString = string; // NOSONAR: typescript:S6564
@@ -127,6 +139,7 @@ export type NonEmptyString = string; // NOSONAR: typescript:S6564
 export type {
   DateType,
   DeliverableStatus,
+  DeliverableType,
   DocumentType,
   ExpectedTimestamp,
   FinalDeliverableStatus,
@@ -141,13 +154,13 @@ export type ApplicationStatus = (typeof APPLICATION_STATUS)[number];
 export type ApplicationType = (typeof APPLICATION_TYPES)[number];
 export type SdgDivision = (typeof SDG_DIVISIONS)[number];
 export type SignatureLevel = (typeof SIGNATURE_LEVEL)[number];
+export type AmendmentSignatureLevel = (typeof SIGNATURE_LEVEL)[number];
+export type ExtensionSignatureLevel = (typeof SIGNATURE_LEVEL)[number];
 export type PhaseStatus = (typeof PHASE_STATUS)[number];
 export type PersonType = (typeof PERSON_TYPES)[number];
 export type UserType = (typeof USER_TYPES)[number];
 export type GrantLevel = (typeof GRANT_LEVELS)[number];
 export type Role = (typeof ROLES)[number];
-export type LogLevel = (typeof LOG_LEVELS)[number];
-export type EventType = (typeof EVENT_TYPES)[number];
 export type NoteType = (typeof NOTE_TYPES)[number];
 export type AdminDemonstrationRole = (typeof ADMIN_DEMONSTRATION_ROLES)[number];
 export type CmsUserDemonstrationRole = (typeof CMS_USER_DEMONSTRATION_ROLES)[number];
@@ -161,10 +174,12 @@ export type TagSource = (typeof TAG_SOURCES)[number];
 export type TagType = (typeof TAG_TYPES)[number];
 export type BudgetNeutralityValidationStatus =
   (typeof BUDGET_NEUTRALITY_VALIDATION_STATUSES)[number];
-export type DeliverableType = (typeof DELIVERABLE_TYPES)[number];
 export type DeliverableDueDateType = (typeof DELIVERABLE_DUE_DATE_TYPES)[number];
 export type DeliverableActionType = (typeof DELIVERABLE_ACTION_TYPES)[number];
 export type DeliverableExtensionReasonCode = (typeof DELIVERABLE_EXTENSION_REASON_CODES)[number];
 export type DeliverableExtensionStatus = (typeof DELIVERABLE_EXTENSION_STATUSES)[number];
 export type Permission = (typeof PERMISSIONS)[number];
 export type SystemRole = (typeof SYSTEM_ROLES)[number];
+export type ReferenceConfigurationStatus = (typeof REFERENCE_CONFIGURATION_STATUSES)[number];
+export type OnDemandReportType = (typeof ON_DEMAND_REPORT_TYPES)[number];
+export type OnDemandReportStatus = (typeof ON_DEMAND_REPORT_STATUSES)[number];

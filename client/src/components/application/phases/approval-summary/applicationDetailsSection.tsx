@@ -1,18 +1,20 @@
 import React, { useMemo } from "react";
 import { CompletableSection } from "layout/completableSection";
-import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { Textarea, TextInput } from "components/input";
 import Switch from "react-switch";
-import { SdgDivision, SignatureLevel } from "demos-server";
+import { DateType, LocalDate, SdgDivision, SignatureLevel } from "demos-server";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { SelectSdgDivision } from "components/input/select/SelectSdgDivision";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
 import { DatePicker } from "components/input/date/DatePicker";
 import { tw } from "tags/tw";
-import { formatDate } from "util/formatDate";
+import { formatDateForDisplay } from "util/formatDate";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-sm tracking-wide h-[14px] flex items-center`;
 const VALUE_CLASSES = tw`text-text-font text-base leading-relaxed h-[40px] flex items-start mt-1`;
+
+export const DEMONSTRATION_SIGNATURE_LEVELS: SignatureLevel[] = ["OA"];
+export const MODIFICATION_SIGNATURE_LEVELS: SignatureLevel[] = ["OA", "OCD"];
 
 export type BaseFormData = {
   name: string;
@@ -20,6 +22,7 @@ export type BaseFormData = {
   effectiveDate?: string;
   signatureLevel?: SignatureLevel;
   status: string;
+  applicationApprovalDate?: LocalDate;
 };
 
 export type DemonstrationDetailsFormData = BaseFormData & {
@@ -30,35 +33,30 @@ export type DemonstrationDetailsFormData = BaseFormData & {
   projectOfficerName: string;
   expirationDate?: string;
   sdgDivision?: SdgDivision;
-  readonlyFields: Partial<Record<
-    | "stateId"
-    | "name"
-    | "projectOfficerId"
-    | "status"
-    | "effectiveDate"
-    | "expirationDate"
-    | "description"
-    | "sdgDivision"
-    | "signatureLevel",
-    boolean
-  >>;
+  readonlyFields: Partial<
+    Record<
+      | "stateId"
+      | "name"
+      | "projectOfficerId"
+      | "status"
+      | "effectiveDate"
+      | "expirationDate"
+      | "description"
+      | "sdgDivision"
+      | "signatureLevel",
+      boolean
+    >
+  >;
 };
 
 export type ModificationDetailsFormData = BaseFormData & {
   applicationType: "amendment" | "extension";
-  readonlyFields: Partial<Record<
-    | "name"
-    | "effectiveDate"
-    | "description"
-    | "signatureLevel",
-    boolean
-  >>;
+  readonlyFields: Partial<
+    Record<"name" | "effectiveDate" | "description" | "signatureLevel", boolean>
+  >;
 };
 
-export type ApplicationDetailsFormData =
-  | DemonstrationDetailsFormData
-  | ModificationDetailsFormData;
-
+export type ApplicationDetailsFormData = DemonstrationDetailsFormData | ModificationDetailsFormData;
 
 export const ApplicationDetailsSection = ({
   sectionFormData,
@@ -68,6 +66,7 @@ export const ApplicationDetailsSection = ({
   onMarkComplete,
   onMarkIncomplete,
   completionDate,
+  medicaidId,
 }: {
   sectionFormData: ApplicationDetailsFormData;
   setSectionFormData: (data: ApplicationDetailsFormData) => void;
@@ -76,8 +75,11 @@ export const ApplicationDetailsSection = ({
   onMarkComplete: () => void;
   onMarkIncomplete: () => void;
   completionDate?: string;
+  medicaidId?: string;
 }) => {
-  const capitalizedType = sectionFormData.applicationType.charAt(0).toUpperCase() + sectionFormData.applicationType.slice(1);
+  const capitalizedType =
+    sectionFormData.applicationType.charAt(0).toUpperCase() +
+    sectionFormData.applicationType.slice(1);
   const isApplicationDetailsComplete = (data: ApplicationDetailsFormData) => {
     if (data.applicationType === "demonstration") {
       return !!(
@@ -88,14 +90,16 @@ export const ApplicationDetailsSection = ({
         data.effectiveDate &&
         data.expirationDate &&
         data.sdgDivision &&
-        data.signatureLevel
+        data.signatureLevel &&
+        data.applicationApprovalDate
       );
     }
 
     return !!(
       data.name &&
       data.effectiveDate &&
-      data.signatureLevel
+      data.signatureLevel &&
+      data.applicationApprovalDate
     );
   };
 
@@ -105,32 +109,25 @@ export const ApplicationDetailsSection = ({
   );
 
   return (
-    <CompletableSection title="Application Details" isComplete={isComplete} completionDate={completionDate}>
+    <CompletableSection
+      title="Application Details"
+      isComplete={isComplete}
+      completionDate={completionDate}
+    >
       <p className="text-sm text-text-placeholder mt-1 mb-2">
-        Confirm all {sectionFormData.applicationType} information including dates and status are accurate.
+        Confirm all {sectionFormData.applicationType} information including dates and status are
+        accurate.
       </p>
       <div className="grid grid-cols-4 gap-8 text-sm text-text-placeholder">
         {sectionFormData.applicationType === "demonstration" && (
           <div className="flex flex-col">
-            {sectionFormData.readonlyFields.stateId ? (
-              <div>
-                <div className={LABEL_CLASSES}>
-                  <span className="text-text-warn mr-xs">*</span>
-                  State/Territory
-                </div>
-                <div className={VALUE_CLASSES}>
-                  {sectionFormData.stateName || ""}
-                </div>
+            <div>
+              <div className={LABEL_CLASSES}>
+                <span className="text-text-warn mr-xs">*</span>
+                State/Territory
               </div>
-            ) : (
-              <SelectUSAStates
-                label="State/Territory"
-                value={sectionFormData.stateId}
-                isRequired
-                isDisabled={isReadonly}
-                onSelect={(stateId) => setSectionFormData({ ...sectionFormData, stateId })}
-              />
-            )}
+              <div className={VALUE_CLASSES}>{sectionFormData.stateName || ""}</div>
+            </div>
           </div>
         )}
         <div className="flex flex-col col-span-3">
@@ -140,9 +137,7 @@ export const ApplicationDetailsSection = ({
                 <span className="text-text-warn mr-xs">*</span>
                 {capitalizedType} Title
               </div>
-              <div className={VALUE_CLASSES}>
-                {sectionFormData.name || ""}
-              </div>
+              <div className={VALUE_CLASSES}>{sectionFormData.name || ""}</div>
             </div>
           ) : (
             <TextInput
@@ -165,9 +160,7 @@ export const ApplicationDetailsSection = ({
                   <span className="text-text-warn mr-xs">*</span>
                   Project Officer
                 </div>
-                <div className={VALUE_CLASSES}>
-                  {sectionFormData.projectOfficerName || ""}
-                </div>
+                <div className={VALUE_CLASSES}>{sectionFormData.projectOfficerName || ""}</div>
               </div>
             ) : (
               <SelectUsers
@@ -192,9 +185,7 @@ export const ApplicationDetailsSection = ({
                   <span className="text-text-warn mr-xs">*</span>
                   Status
                 </div>
-                <div className={VALUE_CLASSES}>
-                  {sectionFormData.status || ""}
-                </div>
+                <div className={VALUE_CLASSES}>{sectionFormData.status || ""}</div>
               </div>
             ) : (
               <TextInput
@@ -214,10 +205,13 @@ export const ApplicationDetailsSection = ({
           {sectionFormData.readonlyFields.effectiveDate || isComplete ? (
             <div>
               <div className={LABEL_CLASSES}>
+                <span className="text-text-warn mr-xs">*</span>
                 Effective Date
               </div>
               <div className={VALUE_CLASSES}>
-                {sectionFormData.effectiveDate ? formatDate(sectionFormData.effectiveDate) : ""}
+                {sectionFormData.effectiveDate
+                  ? formatDateForDisplay(sectionFormData.effectiveDate)
+                  : "-"}
               </div>
             </div>
           ) : (
@@ -234,15 +228,27 @@ export const ApplicationDetailsSection = ({
           )}
         </div>
 
+        {sectionFormData.applicationType !== "demonstration" && (
+          <div className="flex flex-col col-span-4">
+            <div>
+              <div className={LABEL_CLASSES}>Demonstration ID</div>
+              <div className={VALUE_CLASSES}>{medicaidId || "-"}</div>
+            </div>
+          </div>
+        )}
+
         {sectionFormData.applicationType === "demonstration" && (
           <div className="flex flex-col">
             {sectionFormData.readonlyFields.expirationDate || isComplete ? (
               <div>
                 <div className={LABEL_CLASSES}>
+                  <span className="text-text-warn mr-xs">*</span>
                   Expiration Date
                 </div>
                 <div className={VALUE_CLASSES}>
-                  {sectionFormData.expirationDate ? formatDate(sectionFormData.expirationDate) : ""}
+                  {sectionFormData.expirationDate
+                    ? formatDateForDisplay(sectionFormData.expirationDate)
+                    : ""}
                 </div>
               </div>
             ) : (
@@ -263,12 +269,8 @@ export const ApplicationDetailsSection = ({
         <div className="flex flex-col col-span-4">
           {sectionFormData.readonlyFields.description || isComplete ? (
             <div>
-              <div className={LABEL_CLASSES}>
-                {`${capitalizedType} Description`}
-              </div>
-              <div className={VALUE_CLASSES}>
-                {sectionFormData.description || ""}
-              </div>
+              <div className={LABEL_CLASSES}>{`${capitalizedType} Description`}</div>
+              <div className={VALUE_CLASSES}>{sectionFormData.description || "-"}</div>
             </div>
           ) : (
             <Textarea
@@ -287,19 +289,16 @@ export const ApplicationDetailsSection = ({
             {sectionFormData.readonlyFields.sdgDivision || isComplete ? (
               <div>
                 <div className={LABEL_CLASSES}>
+                  <span className="text-text-warn mr-xs">*</span>
                   SDG Division
                 </div>
-                <div className={VALUE_CLASSES}>
-                  {sectionFormData.sdgDivision || ""}
-                </div>
+                <div className={VALUE_CLASSES}>{sectionFormData.sdgDivision || ""}</div>
               </div>
             ) : (
               <SelectSdgDivision
                 key={`sdg-${sectionFormData.sdgDivision || "empty"}`}
                 initialValue={sectionFormData.sdgDivision}
-                onSelect={(sdgDivision) =>
-                  setSectionFormData({ ...sectionFormData, sdgDivision })
-                }
+                onSelect={(sdgDivision) => setSectionFormData({ ...sectionFormData, sdgDivision })}
                 isDisabled={isReadonly}
                 isRequired
               />
@@ -311,18 +310,51 @@ export const ApplicationDetailsSection = ({
           {sectionFormData.readonlyFields.signatureLevel || isComplete ? (
             <div>
               <div className={LABEL_CLASSES}>
+                <span className="text-text-warn mr-xs">*</span>
                 Signature Level
               </div>
-              <div className={VALUE_CLASSES}>
-                {sectionFormData.signatureLevel || ""}
-              </div>
+              <div className={VALUE_CLASSES}>{sectionFormData.signatureLevel || "-"}</div>
             </div>
           ) : (
             <SelectSignatureLevel
               key={`sig-${sectionFormData.signatureLevel || "empty"}`}
               initialValue={sectionFormData.signatureLevel}
+              allowedSignatureLevels={
+                sectionFormData.applicationType === "demonstration"
+                  ? DEMONSTRATION_SIGNATURE_LEVELS
+                  : MODIFICATION_SIGNATURE_LEVELS
+              }
               onSelect={(signatureLevel) =>
                 setSectionFormData({ ...sectionFormData, signatureLevel })
+              }
+              isDisabled={isReadonly}
+              isRequired
+            />
+          )}
+        </div>
+        <div className="flex flex-col">
+          {isComplete ? (
+            <div>
+              <div className={LABEL_CLASSES}>
+                <span className="text-text-warn mr-xs">*</span>
+                {"Application Approval Date" satisfies DateType}
+              </div>
+              <div className={VALUE_CLASSES}>
+                {sectionFormData.applicationApprovalDate
+                  ? formatDateForDisplay(sectionFormData.applicationApprovalDate)
+                  : "-"}
+              </div>
+            </div>
+          ) : (
+            <DatePicker
+              name="datepicker-application-approval-date"
+              label={"Application Approval Date" satisfies DateType}
+              value={sectionFormData.applicationApprovalDate}
+              onChange={(date) =>
+                setSectionFormData({
+                  ...sectionFormData,
+                  applicationApprovalDate: date as LocalDate,
+                })
               }
               isDisabled={isReadonly}
               isRequired
@@ -334,9 +366,7 @@ export const ApplicationDetailsSection = ({
       <div className="border-t-1 border-gray-dark mt-4">
         <div className="flex justify-end items-center mt-2 gap-2">
           <span className="text-sm font-semibold text-text-font">
-            <span className="text-text-warn mr-xs">*</span>
-            {" "}
-            Mark Complete
+            <span className="text-text-warn mr-xs">*</span> Mark Complete
           </span>
           <Switch
             checked={isComplete}

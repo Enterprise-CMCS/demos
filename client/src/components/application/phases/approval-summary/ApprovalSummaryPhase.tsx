@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
-import { formatDate, formatDateForServer, getTodayEst } from "util/formatDate";
-import { ApplicationStatus, DateType, UpdateDemonstrationInput } from "demos-server";
+import { formatDateForDisplay, formatDateForServer, getTodayEst } from "util/formatDate";
+import {
+  ApplicationStatus,
+  DateType,
+  LocalDate,
+  UpdateAmendmentInput,
+  UpdateDemonstrationInput,
+  UpdateExtensionInput,
+} from "demos-server";
 import {
   ApplicationWorkflowAmendment,
   ApplicationWorkflowDemonstration,
@@ -19,7 +26,7 @@ import { useToast } from "components/toast";
 import { getPhaseCompletedMessage } from "util/messages";
 import { useDialog } from "components/dialog/DialogContext";
 
-const UPDATE_DEMONSTRATION_MUTATION = gql`
+export const UPDATE_DEMONSTRATION_MUTATION = gql`
   mutation UpdateDemonstration($id: ID!, $input: UpdateDemonstrationInput!) {
     updateDemonstration(id: $id, input: $input) {
       id
@@ -28,7 +35,6 @@ const UPDATE_DEMONSTRATION_MUTATION = gql`
       effectiveDate
       expirationDate
       sdgDivision
-      signatureLevel
       state {
         id
       }
@@ -39,7 +45,7 @@ const UPDATE_DEMONSTRATION_MUTATION = gql`
   }
 `;
 
-const UPDATE_AMENDMENT_MUTATION = gql`
+export const UPDATE_AMENDMENT_MUTATION = gql`
   mutation UpdateAmendment($id: ID!, $input: UpdateAmendmentInput!) {
     updateAmendment(id: $id, input: $input) {
       id
@@ -51,7 +57,7 @@ const UPDATE_AMENDMENT_MUTATION = gql`
   }
 `;
 
-const UPDATE_EXTENSION_MUTATION = gql`
+export const UPDATE_EXTENSION_MUTATION = gql`
   mutation UpdateExtension($id: ID!, $input: UpdateExtensionInput!) {
     updateExtension(id: $id, input: $input) {
       id
@@ -66,6 +72,7 @@ const UPDATE_EXTENSION_MUTATION = gql`
 type ApprovalSummaryPhaseProps = {
   applicationId: string;
   demonstrationId: string;
+  medicaidId?: string;
   initialFormData: ApplicationDetailsFormData;
   initialTypes: DemonstrationDetailDemonstrationType[];
   approvalSummaryPhase?: {
@@ -94,6 +101,10 @@ const getReadonlyFields = (data: ApplicationDetailsFormData) => ({
 export const getDemonstrationApprovalSummaryFormData = (
   demonstration: ApplicationWorkflowDemonstration
 ): ApplicationDetailsFormData => {
+  const applicationApprovalDate = demonstration.phases
+    .find((p) => p.phaseName === "Approval Summary")
+    ?.phaseDates.find((d) => d.dateType === "Application Approval Date")?.dateValue;
+
   const formData = {
     applicationType: "demonstration" as const,
     stateId: demonstration.state.id,
@@ -103,14 +114,17 @@ export const getDemonstrationApprovalSummaryFormData = (
     projectOfficerName: demonstration.primaryProjectOfficer?.fullName ?? "",
     status: demonstration.status,
     effectiveDate: demonstration.effectiveDate
-      ? formatDate(demonstration.effectiveDate)
+      ? formatDateForDisplay(demonstration.effectiveDate)
       : undefined,
     expirationDate: demonstration.expirationDate
-      ? formatDate(demonstration.expirationDate)
+      ? formatDateForDisplay(demonstration.expirationDate)
       : undefined,
     description: demonstration.description,
     sdgDivision: demonstration.sdgDivision,
     signatureLevel: demonstration.signatureLevel,
+    applicationApprovalDate: applicationApprovalDate
+      ? (formatDateForServer(applicationApprovalDate) as LocalDate)
+      : undefined,
   };
 
   return {
@@ -133,15 +147,22 @@ export const getModificationApprovalSummaryFormData = (
   modification: ApplicationWorkflowAmendment | ApplicationWorkflowExtension,
   modificationType: "amendment" | "extension"
 ): ApplicationDetailsFormData => {
+  const applicationApprovalDate = modification.phases
+    .find((p) => p.phaseName === "Approval Summary")
+    ?.phaseDates.find((d) => d.dateType === "Application Approval Date")?.dateValue;
+
   const formData = {
     applicationType: modificationType,
     name: modification.name,
     effectiveDate: modification.effectiveDate
-      ? formatDate(modification.effectiveDate)
+      ? formatDateForDisplay(modification.effectiveDate)
       : undefined,
     description: modification.description,
     signatureLevel: modification.signatureLevel,
     status: modification.status,
+    applicationApprovalDate: applicationApprovalDate
+      ? (formatDateForServer(applicationApprovalDate) as LocalDate)
+      : undefined,
   };
 
   return {
@@ -182,24 +203,32 @@ export const getApprovalSummaryPhaseFromApplication = (
   )?.dateValue;
 
   const allPreviousPhasesDone = application.phases
-    .filter(
-      (p) =>
-        p.phaseName !== "Concept" &&
-        p.phaseName !== "Approval Summary"
-    )
+    .filter((p) => p.phaseName !== "Concept" && p.phaseName !== "Approval Summary")
     .every((phase) => phase.phaseStatus === "Completed" || phase.phaseStatus === "Skipped");
 
-  const demonstrationId = workflowApplicationType === "demonstration" ?
-    application.id :
-    (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration.id;
+  const demonstrationId =
+    workflowApplicationType === "demonstration"
+      ? application.id
+      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
+        .id;
 
-  const demonstrationTypes = workflowApplicationType === "demonstration" ?
-    (application as ApplicationWorkflowDemonstration).demonstrationTypes :
-    (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration.demonstrationTypes;
+  const demonstrationTypes =
+    workflowApplicationType === "demonstration"
+      ? (application as ApplicationWorkflowDemonstration).demonstrationTypes
+      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
+        .demonstrationTypes;
 
-  const demonstrationStatus = workflowApplicationType === "demonstration" ?
-    (application as ApplicationWorkflowDemonstration).status :
-    (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration.status;
+  const demonstrationStatus =
+    workflowApplicationType === "demonstration"
+      ? (application as ApplicationWorkflowDemonstration).status
+      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
+        .status;
+
+  const medicaidId =
+    workflowApplicationType === "demonstration"
+      ? (application as ApplicationWorkflowDemonstration).medicaidId
+      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
+        .medicaidId;
 
   return (
     <ApprovalSummaryPhase
@@ -211,6 +240,7 @@ export const getApprovalSummaryPhaseFromApplication = (
       demonstrationTypeCompletionDate={demonstrationTypeCompletionDate}
       allPreviousPhasesDone={allPreviousPhasesDone}
       demonstrationStatus={demonstrationStatus}
+      medicaidId={medicaidId}
     />
   );
 };
@@ -220,12 +250,15 @@ export const ApprovalSummaryPhase = ({
   initialTypes,
   applicationId,
   demonstrationId,
+  medicaidId,
   approvalSummaryPhase,
   demonstrationTypeCompletionDate,
   allPreviousPhasesDone,
   demonstrationStatus,
 }: ApprovalSummaryPhaseProps) => {
-  const capitalizedType = initialFormData.applicationType.charAt(0).toUpperCase() + initialFormData.applicationType.slice(1);
+  const capitalizedType =
+    initialFormData.applicationType.charAt(0).toUpperCase() +
+    initialFormData.applicationType.slice(1);
   const [approvalSummaryFormData, setApprovalSummaryFormData] =
     useState<ApplicationDetailsFormData>(initialFormData);
 
@@ -248,7 +281,11 @@ export const ApprovalSummaryPhase = ({
   // Initialize completion date from backend if available
   const [applicationDetailsCompletionDate, setApplicationDetailsCompletionDate] = useState<
     string | undefined
-  >(applicationDetailsCompleteDate ? formatDate(applicationDetailsCompleteDate) : undefined);
+  >(
+    applicationDetailsCompleteDate
+      ? formatDateForDisplay(applicationDetailsCompleteDate)
+      : undefined
+  );
 
   // Find Approval Summary phase completion date (if backend has stored it)
   const approvalSummaryCompletionDateValue = approvalSummaryPhase?.phaseDates?.find(
@@ -258,7 +295,9 @@ export const ApprovalSummaryPhase = ({
   const [approvalSummaryCompletionDate, setApprovalSummaryCompletionDate] = useState<
     string | undefined
   >(
-    approvalSummaryCompletionDateValue ? formatDate(approvalSummaryCompletionDateValue) : undefined
+    approvalSummaryCompletionDateValue
+      ? formatDateForDisplay(approvalSummaryCompletionDateValue)
+      : undefined
   );
 
   const [updateDemonstrationTrigger] = useMutation(UPDATE_DEMONSTRATION_MUTATION);
@@ -309,10 +348,14 @@ export const ApprovalSummaryPhase = ({
           ? formatDateForServer(parseFormDateString(formData.expirationDate))
           : null,
         sdgDivision: formData.sdgDivision,
-        signatureLevel: formData.signatureLevel,
-        stateId: formData.stateId,
         projectOfficerUserId: formData.projectOfficerId,
       };
+
+      await setApplicationDate({
+        applicationId: applicationId,
+        dateType: "Application Approval Date",
+        dateValue: formData.applicationApprovalDate ?? null,
+      });
 
       return await updateDemonstrationTrigger({
         variables: {
@@ -321,7 +364,7 @@ export const ApprovalSummaryPhase = ({
         },
       });
     }
-    const updateInput: UpdateDemonstrationInput = {
+    const updateInput: UpdateAmendmentInput | UpdateExtensionInput = {
       name: formData.name,
       description: formData.description,
       effectiveDate: formData.effectiveDate
@@ -330,6 +373,11 @@ export const ApprovalSummaryPhase = ({
       signatureLevel: formData.signatureLevel,
     };
     if (formData.applicationType === "amendment") {
+      await setApplicationDate({
+        applicationId: applicationId,
+        dateType: "Application Approval Date",
+        dateValue: formData.applicationApprovalDate ?? null,
+      });
       return await updateAmendmentTrigger({
         variables: {
           id: applicationId,
@@ -337,6 +385,11 @@ export const ApprovalSummaryPhase = ({
         },
       });
     } else {
+      await setApplicationDate({
+        applicationId: applicationId,
+        dateType: "Application Approval Date",
+        dateValue: formData.applicationApprovalDate ?? null,
+      });
       return await updateExtensionTrigger({
         variables: {
           id: applicationId,
@@ -352,19 +405,21 @@ export const ApprovalSummaryPhase = ({
         approvalSummaryFormData.effectiveDate &&
         approvalSummaryFormData.expirationDate &&
         approvalSummaryFormData.sdgDivision &&
-        approvalSummaryFormData.signatureLevel
+        approvalSummaryFormData.signatureLevel &&
+        approvalSummaryFormData.applicationApprovalDate
       );
     } else {
       return !!(
         approvalSummaryFormData.effectiveDate &&
-        approvalSummaryFormData.signatureLevel
+        approvalSummaryFormData.signatureLevel &&
+        approvalSummaryFormData.applicationApprovalDate
       );
     }
   })();
 
   const setApplicationDetailsUIState = (complete: boolean) => {
     setIsApplicationDetailsComplete(complete);
-    setApplicationDetailsCompletionDate(complete ? formatDate(getTodayEst()) : undefined);
+    setApplicationDetailsCompletionDate(complete ? formatDateForDisplay(getTodayEst()) : undefined);
   };
 
   const handleMarkComplete = async () => {
@@ -445,7 +500,7 @@ export const ApprovalSummaryPhase = ({
         ) as typeof previousFormData.readonlyFields,
       }));
 
-      setApprovalSummaryCompletionDate(formatDate(today));
+      setApprovalSummaryCompletionDate(formatDateForDisplay(today));
 
       showSuccess(getPhaseCompletedMessage("Approval Summary"));
     } catch (error) {
@@ -457,7 +512,10 @@ export const ApprovalSummaryPhase = ({
   return (
     <div>
       <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">APPROVAL SUMMARY</h3>
-      <p className="text-sm text-text-placeholder mb-1">Review and verify {capitalizedType} Details and Performance Periods for Demonstration Types before approving this application.</p>
+      <p className="text-sm text-text-placeholder mb-1">
+        Review and verify {capitalizedType} Details and Performance Periods for Demonstration Types
+        before approving this application.
+      </p>
 
       <section className="bg-white pt-2 flex flex-col gap-2">
         <ApplicationDetailsSection
@@ -468,6 +526,7 @@ export const ApprovalSummaryPhase = ({
           onMarkComplete={handleMarkComplete}
           onMarkIncomplete={handleMarkIncomplete}
           completionDate={applicationDetailsCompletionDate}
+          medicaidId={medicaidId}
         />
 
         <DemonstrationTypesSection
@@ -475,7 +534,7 @@ export const ApprovalSummaryPhase = ({
           isComplete={isDemonstrationTypesComplete}
           completionDate={
             demonstrationTypeCompletionDate
-              ? formatDate(demonstrationTypeCompletionDate)
+              ? formatDateForDisplay(demonstrationTypeCompletionDate)
               : undefined
           }
           isReadonly={isDemonstrationApproved}
@@ -491,9 +550,11 @@ export const ApprovalSummaryPhase = ({
           name="button-approve-application"
           size="small"
           disabled={!canApproveApplication}
-          onClick={() => showConfirmApproveDialog(handleApproveApplication, initialFormData.applicationType)}
+          onClick={() =>
+            showConfirmApproveDialog(handleApproveApplication, initialFormData.applicationType)
+          }
         >
-          Approve { capitalizedType }
+          Approve {capitalizedType}
         </Button>
       </div>
     </div>

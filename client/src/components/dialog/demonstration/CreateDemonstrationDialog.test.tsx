@@ -1,6 +1,7 @@
 import React from "react";
 
 import { GET_USER_SELECT_OPTIONS_QUERY } from "components/input/select/SelectUsers";
+import { CurrentUser } from "components/user/UserContext";
 import { TestProvider } from "test-utils/TestProvider";
 import { describe, expect, it, vi } from "vitest";
 
@@ -11,7 +12,10 @@ import {
   CREATE_DEMONSTRATION_MUTATION,
 } from "./CreateDemonstrationDialog";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
-import { DEMONSTRATION_DIALOG_DESCRIPTION_NAME } from "./DemonstrationDialog";
+import {
+  DEFAULT_DEMONSTRATION_SIGNATURE_LEVEL,
+  DEMONSTRATION_DIALOG_DESCRIPTION_NAME,
+} from "./DemonstrationDialog";
 
 const DEFAULT_PROPS = {
   onClose: vi.fn(),
@@ -20,6 +24,10 @@ const DEFAULT_PROPS = {
 const SUBMIT_BUTTON_TEST_ID = "button-submit-demonstration-dialog";
 const TITLE_INPUT_TEST_ID = "input-demonstration-title";
 const STATE_SELECT_ID = "us-state"; // This is an id, not data-testid
+
+const CURRENT_USER = {
+  id: "test-current-user",
+};
 
 describe("CreateDemonstrationDialog", () => {
   const GET_USER_SELECT_OPTIONS_MOCK = {
@@ -32,6 +40,11 @@ describe("CreateDemonstrationDialog", () => {
           {
             id: "test-officer-id",
             fullName: "Test Officer",
+            personType: "demos-cms-user",
+          },
+          {
+            id: "test-current-user",
+            fullName: "Current User",
             personType: "demos-cms-user",
           },
         ],
@@ -49,7 +62,6 @@ describe("CreateDemonstrationDialog", () => {
           stateId: "AL",
           projectOfficerUserId: "test-officer-id",
           sdgDivision: "Division of System Reform Demonstrations",
-          signatureLevel: "OA",
         },
       },
     },
@@ -66,7 +78,10 @@ describe("CreateDemonstrationDialog", () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getCreateDemonstrationDialog = (additionalMocks: any[] = []) => {
     return (
-      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK, ...additionalMocks]}>
+      <TestProvider
+        mocks={[GET_USER_SELECT_OPTIONS_MOCK, ...additionalMocks]}
+        currentUser={CURRENT_USER as CurrentUser}
+      >
         <CreateDemonstrationDialog {...DEFAULT_PROPS} />
       </TestProvider>
     );
@@ -80,7 +95,10 @@ describe("CreateDemonstrationDialog", () => {
   it("calls onClose when Cancel is clicked", async () => {
     const onCloseMock = vi.fn();
     render(
-      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
+      <TestProvider
+        mocks={[GET_USER_SELECT_OPTIONS_MOCK]}
+        currentUser={CURRENT_USER as CurrentUser}
+      >
         <CreateDemonstrationDialog onClose={onCloseMock} />
       </TestProvider>
     );
@@ -124,6 +142,14 @@ describe("CreateDemonstrationDialog", () => {
 
     // Note: Actual selection of project officer would require more complex interaction
     // This test verifies the fields render correctly
+  });
+  it("renders signature level select disabled and with the default value", () => {
+    render(getCreateDemonstrationDialog());
+
+    const signatureLevelSelect = screen.getByLabelText(/Signature Level/i);
+    expect(signatureLevelSelect).toBeInTheDocument();
+    expect(signatureLevelSelect).toBeDisabled();
+    expect(signatureLevelSelect).toHaveValue(DEFAULT_DEMONSTRATION_SIGNATURE_LEVEL);
   });
 
   it("calls onSubmit with correct data when form is submitted", async () => {
@@ -176,12 +202,32 @@ describe("CreateDemonstrationDialog", () => {
     const onCloseMock = vi.fn();
 
     render(
-      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK, CREATE_DEMONSTRATION_MOCK]}>
+      <TestProvider
+        mocks={[GET_USER_SELECT_OPTIONS_MOCK, CREATE_DEMONSTRATION_MOCK]}
+        currentUser={CURRENT_USER as CurrentUser}
+      >
         <CreateDemonstrationDialog onClose={onCloseMock} />
       </TestProvider>
     );
 
     // This would require full form interaction and submission
     // The onClose callback would be verified after submission
+  });
+
+  it("defaults the project officer to the current user", async () => {
+    const onCloseMock = vi.fn();
+    render(
+      <TestProvider
+        mocks={[GET_USER_SELECT_OPTIONS_MOCK, CREATE_DEMONSTRATION_MOCK]}
+        currentUser={CURRENT_USER as CurrentUser}
+      >
+        <CreateDemonstrationDialog onClose={onCloseMock} />
+      </TestProvider>
+    );
+    await waitFor(() => {
+      const projectOfficerSelect = screen.getByTestId("select-users");
+      expect(projectOfficerSelect).toBeInTheDocument();
+      expect(projectOfficerSelect).toHaveValue("Current User");
+    });
   });
 });

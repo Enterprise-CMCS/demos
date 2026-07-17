@@ -53,17 +53,35 @@ async function resolveS3InputFromMessage(body: string): Promise<ResolvedS3Input>
   };
 }
 
-async function resolveUploadFileNameWithExtension(
+type SkippedUiPathResult = {
+  status: "Skipped";
+  reason: string;
+  documentId: string;
+};
+
+async function resolvePdfUploadFileNameWithExtension(
   s3Bucket: string,
   s3Key: string,
   downloadedObject: DownloadedObject
-): Promise<string> {
+): Promise<string | null> {
   const keyBaseName = path.basename(s3Key);
   const keyNameWithoutExtension = path.parse(keyBaseName).name;
   const detectedType = await fileTypeFromFile(downloadedObject.localPath);
 
   if (!detectedType) {
-    throw new Error(`Unable to infer file extension for s3://${s3Bucket}/${s3Key} from file content.`);
+    log.info(
+      { s3Bucket, s3Key, localPath: downloadedObject.localPath },
+      "Skipping UiPath extraction because document file type could not be detected"
+    );
+    return null;
+  }
+
+  if (detectedType.mime !== "application/pdf") {
+    log.info(
+      { s3Bucket, s3Key, localPath: downloadedObject.localPath, detectedType },
+      "Skipping UiPath extraction because document is not a PDF"
+    );
+    return null;
   }
 
   return `${keyNameWithoutExtension}.${detectedType.ext}`;
@@ -87,37 +105,51 @@ async function downloadFromS3(bucket: string, key: string): Promise<DownloadedOb
 
 export const handler = async (event: SQSEvent) =>
   als.run(store, async () => {
-    log.info({ recordCount: event.Records.length }, "UiPath lambda invoked");
-    const documentBucket = getDocumentBucket();
-    const firstRecord = event.Records[0];
-    if (!firstRecord) {
-      throw new Error("No SQS records provided.");
+    try {
+      log.info({ recordCount: event.Records.length }, "UiPath lambda invoked");
+      const documentBucket = getDocumentBucket();
+      const firstRecord = event.Records[0];
+      if (!firstRecord) {
+        throw new Error("No SQS records provided.");
+      }
+      reqIdChild(firstRecord.messageId);
+
+      const { s3Key, documentId, applicationId } = await resolveS3InputFromMessage(firstRecord.body);
+
+      const downloadedObject = await downloadFromS3(documentBucket, s3Key);
+      const { localPath } = downloadedObject;
+      const uploadFileNameWithExtension = await resolvePdfUploadFileNameWithExtension(
+        documentBucket,
+        s3Key,
+        downloadedObject
+      );
+
+      if (!uploadFileNameWithExtension) {
+        return {
+          status: "Skipped",
+          reason: "Document is not a PDF.",
+          documentId,
+        } satisfies SkippedUiPathResult;
+      }
+
+      log.info(
+        { s3Bucket: documentBucket, s3Key, localPath, uploadFileNameWithExtension },
+        "Downloaded document from S3"
+      );
+
+      const status = await runDocumentUnderstanding(localPath, {
+        pollIntervalMs: 5000,
+        requestId: firstRecord.messageId,
+        fileNameWithExtension: uploadFileNameWithExtension,
+        documentId,
+        applicationId,
+      });
+
+      log.info("UiPath extraction completed successfully");
+      return status;
+    } catch (error) {
+      log.error({ error }, "UiPath lambda failed");
+      throw error;
     }
-    reqIdChild(firstRecord.messageId);
-
-    const { s3Key, documentId, applicationId } = await resolveS3InputFromMessage(firstRecord.body);
-
-    const downloadedObject = await downloadFromS3(documentBucket, s3Key);
-    const { localPath } = downloadedObject;
-    const uploadFileNameWithExtension = await resolveUploadFileNameWithExtension(
-      documentBucket,
-      s3Key,
-      downloadedObject
-    );
-    log.info(
-      { s3Bucket: documentBucket, s3Key, localPath, uploadFileNameWithExtension },
-      "Downloaded document from S3"
-    );
-
-    const status = await runDocumentUnderstanding(localPath, {
-      pollIntervalMs: 5000,
-      requestId: firstRecord.messageId,
-      fileNameWithExtension: uploadFileNameWithExtension,
-      documentId,
-      applicationId,
-    });
-
-    log.info("UiPath extraction completed successfully");
-    return status;
   }
 );

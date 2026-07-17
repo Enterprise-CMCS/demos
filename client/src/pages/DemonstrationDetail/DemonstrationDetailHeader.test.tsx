@@ -4,9 +4,12 @@ import {
   DEMONSTRATION_HEADER_DETAILS_QUERY,
   DemonstrationDetailHeader,
 } from "./DemonstrationDetailHeader";
-import { MockedProvider } from "@apollo/client/testing";
+import { MockedProvider, MockedProviderProps } from "@apollo/client/testing";
 import { GraphQLError } from "graphql";
 import { MemoryRouter } from "react-router-dom";
+import { CurrentUser } from "components/user/UserContext";
+import { TestUserProvider } from "components/user/UserProvider";
+import { developmentMockUser } from "mock-data/userMocks";
 
 vi.mock("components/toast/ToastContext", () => ({
   useToast: () => ({
@@ -16,11 +19,13 @@ vi.mock("components/toast/ToastContext", () => ({
 }));
 
 const showCreateDemonstrationDialog = vi.fn();
+const showEditDemonstrationDialog = vi.fn();
 const showCreateAmendmentDialog = vi.fn();
 const showCreateExtensionDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
     showCreateDemonstrationDialog,
+    showEditDemonstrationDialog,
     showCreateAmendmentDialog,
     showCreateExtensionDialog,
   }),
@@ -28,6 +33,8 @@ vi.mock("components/dialog/DialogContext", () => ({
 
 const testDemonstration = {
   id: "1",
+  medicaidId: "11-W-99999/8",
+  chipId: "11-W-99998/8",
   name: "Montana Medicaid Waiver",
   status: "Approved",
   effectiveDate: new Date("2025-01-01"),
@@ -55,6 +62,23 @@ const mockDemonstrationQuery = {
   },
 };
 
+const testDemonstrationWithoutChipId = {
+  ...testDemonstration,
+  chipId: null,
+};
+
+const mockDemonstrationQueryWithoutChipId = {
+  request: {
+    query: DEMONSTRATION_HEADER_DETAILS_QUERY,
+    variables: { id: "1" },
+  },
+  result: {
+    data: {
+      demonstration: testDemonstrationWithoutChipId,
+    },
+  },
+};
+
 const mockDemonstrationQueryWithoutDatesQuery = {
   request: {
     query: DEMONSTRATION_HEADER_DETAILS_QUERY,
@@ -63,6 +87,23 @@ const mockDemonstrationQueryWithoutDatesQuery = {
   result: {
     data: {
       demonstration: testDemonstrationWithoutDates,
+    },
+  },
+};
+
+const testNonApprovedDemonstration = {
+  ...testDemonstration,
+  status: "Pre-Submission",
+};
+
+const mockNonApprovedDemonstrationQuery = {
+  request: {
+    query: DEMONSTRATION_HEADER_DETAILS_QUERY,
+    variables: { id: "1" },
+  },
+  result: {
+    data: {
+      demonstration: testNonApprovedDemonstration,
     },
   },
 };
@@ -76,15 +117,34 @@ const mockDemonstrationQueryError = {
   error: new GraphQLError("Failed to fetch demonstration details"),
 };
 
-describe("Demonstration Detail Header", () => {
-  it("renders demonstration header info", async () => {
-    render(
-      <MemoryRouter>
-        <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
+const buildCurrentUser = (
+  personType: CurrentUser["person"]["personType"] = "demos-cms-user"
+): CurrentUser => ({
+  ...developmentMockUser,
+  person: { ...developmentMockUser.person, personType },
+});
+
+const renderHeader = (
+  mocks: MockedProviderProps["mocks"] = [mockDemonstrationQuery],
+  currentUser = buildCurrentUser()
+) =>
+  render(
+    <MemoryRouter>
+      <MockedProvider mocks={mocks}>
+        <TestUserProvider currentUser={currentUser}>
           <DemonstrationDetailHeader demonstrationId="1" />
-        </MockedProvider>
-      </MemoryRouter>
-    );
+        </TestUserProvider>
+      </MockedProvider>
+    </MemoryRouter>
+  );
+
+describe("Demonstration Detail Header", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("renders demonstration header info", async () => {
+    renderHeader();
 
     await waitFor(() => {
       expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
@@ -130,13 +190,7 @@ describe("Demonstration Detail Header", () => {
   });
 
   it("renders date placeholder as --/--/---- when dates are missing", async () => {
-    render(
-      <MemoryRouter>
-        <MockedProvider mocks={[mockDemonstrationQueryWithoutDatesQuery]} addTypename={false}>
-          <DemonstrationDetailHeader demonstrationId="1" />
-        </MockedProvider>
-      </MemoryRouter>
-    );
+    renderHeader([mockDemonstrationQueryWithoutDatesQuery]);
 
     await waitFor(() => {
       expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
@@ -146,13 +200,7 @@ describe("Demonstration Detail Header", () => {
   });
 
   it("shows loading state while fetching demonstration data", async () => {
-    render(
-      <MemoryRouter>
-        <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
-          <DemonstrationDetailHeader demonstrationId="1" />
-        </MockedProvider>
-      </MemoryRouter>
-    );
+    renderHeader();
 
     // Should show loading state immediately
     expect(screen.getByLabelText(/loading/i)).toBeInTheDocument();
@@ -171,13 +219,7 @@ describe("Demonstration Detail Header", () => {
   });
 
   it("shows error state when GraphQL query fails", async () => {
-    render(
-      <MemoryRouter>
-        <MockedProvider mocks={[mockDemonstrationQueryError]} addTypename={false}>
-          <DemonstrationDetailHeader demonstrationId="1" />
-        </MockedProvider>
-      </MemoryRouter>
-    );
+    renderHeader([mockDemonstrationQueryError]);
 
     // Wait for error to appear
     await waitFor(() => {
@@ -193,13 +235,7 @@ describe("Demonstration Detail Header", () => {
   });
 
   it("shows Add button and dropdown options", async () => {
-    render(
-      <MemoryRouter>
-        <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
-          <DemonstrationDetailHeader demonstrationId="1" />
-        </MockedProvider>
-      </MemoryRouter>
-    );
+    renderHeader();
     // Wait for component to load
     await waitFor(() => {
       expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
@@ -228,14 +264,22 @@ describe("Demonstration Detail Header", () => {
     expect(screen.getByText("Extension")).toBeInTheDocument();
   });
 
+  it("does not render the demonstration action group for state users", async () => {
+    renderHeader([mockDemonstrationQuery], buildCurrentUser("demos-state-user"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByTestId("toggle-ellipsis-button")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("edit-button")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("create-new-button")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("button-create-new-amendment")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("button-create-new-extension")).not.toBeInTheDocument();
+  });
+
   it("opens Add Amendment Modal when Amendment option is clicked", async () => {
-    render(
-      <MemoryRouter>
-        <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
-          <DemonstrationDetailHeader demonstrationId="1" />
-        </MockedProvider>
-      </MemoryRouter>
-    );
+    renderHeader();
     // Wait for component to load
     await waitFor(() => {
       expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
@@ -262,13 +306,7 @@ describe("Demonstration Detail Header", () => {
   });
 
   it("opens Add Extension Modal when Extension option is clicked", async () => {
-    render(
-      <MemoryRouter>
-        <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
-          <DemonstrationDetailHeader demonstrationId="1" />
-        </MockedProvider>
-      </MemoryRouter>
-    );
+    renderHeader();
     // Wait for component to load
     await waitFor(() => {
       expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
@@ -292,5 +330,56 @@ describe("Demonstration Detail Header", () => {
     fireEvent.click(screen.getByTestId("button-create-new-extension"));
 
     expect(showCreateExtensionDialog).toHaveBeenCalledWith("1");
+  });
+
+  it("disables Create New for non-approved demonstrations", async () => {
+    renderHeader([mockNonApprovedDemonstrationQuery]);
+
+    await waitFor(() => {
+      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId("Toggle more options"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("Create New")).toBeInTheDocument();
+    });
+
+    const createNewButton = screen.getByTestId("Create New");
+    expect(createNewButton).toBeDisabled();
+
+    fireEvent.click(createNewButton);
+
+    expect(screen.queryByTestId("button-create-new-amendment")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("button-create-new-extension")).not.toBeInTheDocument();
+    expect(showCreateAmendmentDialog).not.toHaveBeenCalled();
+    expect(showCreateExtensionDialog).not.toHaveBeenCalled();
+  });
+
+  it("renders both medicaidId and chipId when chipId exists", async () => {
+    renderHeader();
+
+    await waitFor(() => {
+      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
+    });
+
+    const breadcrumb = screen.getByRole("link", { name: /demonstration list/i }).parentElement;
+
+    expect(breadcrumb).toHaveTextContent("11-W-99999/8");
+    expect(breadcrumb).toHaveTextContent("11-W-99998/8");
+    expect(breadcrumb).toHaveTextContent("|");
+  });
+
+  it("renders only medicaidId when chipId is missing", async () => {
+    renderHeader([mockDemonstrationQueryWithoutChipId]);
+
+    await waitFor(() => {
+      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
+    });
+
+    const breadcrumb = screen.getByRole("link", { name: /demonstration list/i }).parentElement;
+
+    expect(breadcrumb).toHaveTextContent("11-W-99999/8");
+    expect(breadcrumb).not.toHaveTextContent("11-W-99998/8");
   });
 });

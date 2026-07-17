@@ -24,11 +24,13 @@ export interface DeploymentConfigProperties {
   zapHeaderValue?: string;
   srrConfigured: boolean;
   dataConnectRoleArn: string;
+  enableAlarms?: boolean;
 }
 
 export const determineDeploymentConfig = async (
   stage: string,
-  hostEnv?: string
+  hostEnv?: string,
+  alarms?: string
 ): Promise<DeploymentConfigProperties> => {
   const project = process.env.PROJECT ?? "demos";
 
@@ -47,6 +49,8 @@ export const determineDeploymentConfig = async (
   const isEphemeral = !["dev", "test", "impl", "prod"].includes(stage);
   const hostEnvironment = isEphemeral ? hostEnv ?? "dev" : stage;
   const hostUserPoolId = isEphemeral ? await getUserPoolIdByName(`${project}-${hostEnvironment}-user-pool`) : undefined;
+
+  const enableAlarms = isEphemeral ? alarms == "true" : true
 
   const secretConfig =
     stage == "bootstrap" ? {} : JSON.parse((await getSecret(`${project}-${hostEnvironment}/config`))!);
@@ -85,6 +89,7 @@ export const determineDeploymentConfig = async (
     zScalerIps,
     hostUserPoolId,
     cloudfrontHost,
-    srrConfigured
+    srrConfigured,
+    enableAlarms
   };
 };

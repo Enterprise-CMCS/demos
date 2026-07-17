@@ -1,8 +1,8 @@
 // Vitest and other helpers
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { DeepPartial } from "../../testUtilities";
 
 // Types
-import { DeepPartial } from "../../testUtilities";
 import { GraphQLContext } from "../../auth";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 
@@ -16,7 +16,7 @@ vi.mock("../../prismaClient", () => ({
 
 vi.mock(".", () => ({
   editDeliverable: vi.fn(),
-  getDeliverable: vi.fn(),
+  selectDeliverableOrThrow: vi.fn(),
   validateSubmitDeliverableInput: vi.fn(),
 }));
 
@@ -25,7 +25,7 @@ vi.mock("../deliverableAction/queries", () => ({
 }));
 
 import { prisma } from "../../prismaClient";
-import { editDeliverable, getDeliverable, validateSubmitDeliverableInput } from ".";
+import { editDeliverable, selectDeliverableOrThrow, validateSubmitDeliverableInput } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 
 describe("submitDeliverable", () => {
@@ -48,7 +48,6 @@ describe("submitDeliverable", () => {
     statusId: "Submitted",
     dueDate: new Date(2026, 9, 13, 4, 59, 59, 999),
   };
-  const mockNow = new Date(2026, 3, 27, 10, 4, 19, 232);
 
   // Mock transaction
   const mockTransaction: any = "Test!";
@@ -58,21 +57,17 @@ describe("submitDeliverable", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.useFakeTimers();
-    vi.setSystemTime(mockNow);
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
-    vi.mocked(getDeliverable).mockResolvedValue(mockUnsubmittedDeliverable as PrismaDeliverable);
+    vi.mocked(selectDeliverableOrThrow).mockResolvedValue(
+      mockUnsubmittedDeliverable as PrismaDeliverable
+    );
     vi.mocked(editDeliverable).mockResolvedValue(mockSubmittedDeliverable as PrismaDeliverable);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
   it("should get the deliverable before making changes", async () => {
     await submitDeliverable(testDeliverableId, testContext as GraphQLContext);
-    expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
       mockTransaction
     );
@@ -101,7 +96,6 @@ describe("submitDeliverable", () => {
       {
         deliverableId: testDeliverableId,
         actionType: "Submitted Deliverable",
-        actionTime: mockNow,
         oldStatus: mockUnsubmittedDeliverable.statusId,
         newStatus: mockSubmittedDeliverable.statusId,
         oldDueDate: mockUnsubmittedDeliverable.dueDate,

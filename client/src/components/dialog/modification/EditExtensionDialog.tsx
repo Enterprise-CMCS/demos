@@ -1,7 +1,7 @@
 import React from "react";
 import { Modification, ModificationFormData } from "./ModificationForm";
 import { gql, TypedDocumentNode, useMutation, useQuery } from "@apollo/client";
-import { UpdateExtensionInput } from "demos-server";
+import { DateTimeOrLocalDate, UpdateExtensionInput } from "demos-server";
 import { BaseEditModificationDialog } from "./BaseEditModificationDialog";
 
 export const UPDATE_EXTENSION_MUTATION: TypedDocumentNode<
@@ -30,6 +30,7 @@ export const UPDATE_EXTENSION_DIALOG_QUERY: TypedDocumentNode<
       description
       effectiveDate
       signatureLevel
+      status
       demonstration {
         id
       }
@@ -49,7 +50,10 @@ export const useUpdateExtension = (extensionId: string, refetchQueries: string[]
     await updateExtension({
       variables: {
         id: extensionId,
-        input,
+        input: {
+          ...input,
+          effectiveDate: input.effectiveDate as DateTimeOrLocalDate | null | undefined,
+        },
       },
     });
   };

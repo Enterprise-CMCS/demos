@@ -2,31 +2,26 @@
 version: v1.25.0
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
-  SNYK-JS-AJV-15274295:
+  SNYK-JS-BRACEEXPANSION-17706650:
     - '*':
-        reason: No patch available for eslint 9
-        expires: 2026-02-28T00:00:00.000Z
-        created: 2026-02-13T14:07:56.162Z
-  SNYK-JS-MINIMATCH-15309438:
+        reason: No clean fix available in current ESLint React plugin stack
+        expires: 2026-07-14T00:00:00.000Z
+        created: 2026-06-30T14:21:33.964Z
+  SNYK-JS-FASTURI-17675102:
     - '*':
-        reason: No patch available for vitest or eslint 9
-        expires: 2026-03-05T00:00:00.000Z
-        created: 2026-02-19T14:47:12.416Z
-  SNYK-JS-EFFECT-15746380:
+        reason: No clean fix available yet in current Prisma stack
+        expires: 2026-07-14T00:00:00.000Z
+        created: 2026-06-30T14:21:33.964Z
+  SNYK-JS-HONO-17900542:
     - '*':
-        reason: No patch available through Prisma
-        expires: 2026-03-30T00:00:00.000Z
-        created: 2026-03-23T14:36:59.567Z
-  SNYK-JS-BRACEEXPANSION-15789759:
-    - '*':
-        reason: No patch available
-        expires: 2026-04-10T00:00:00.000Z
-        created: 2026-03-27T12:16:37.263Z
-  SNYK-JS-APOLLOPROTOBUFJS-16321047:
-    - '*':
-        reason: No patch available, Apollo Says no issue.
-        expires: 2027-05-06T03:59:59.999Z
-        created: 2026-04-29T04:00:00.000Z
+        reason: No fix available yet in Prisma stack.
+        expires: 2026-07-15T23:59:59.999-04:00
+        created: 2026-07-09T00:00:00.000-04:00
+#  EXAMPLE-VULNERABILITY:
+#    - '*':
+#        reason: Some reason.
+#        expires: 2025-12-31T23:59:59.999-05:00
+#        created: 2025-01-01T00:00:00.000-05:00
 patch: {}
 exclude:
   global:

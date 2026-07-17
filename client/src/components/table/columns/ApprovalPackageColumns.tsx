@@ -45,6 +45,7 @@ export function ApprovalPackageColumns(demonstrationId: string) {
     }),
     columnHelper.display({
       id: "actions",
+      header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => {
         const doc = row.original.document;
 
@@ -53,7 +54,7 @@ export function ApprovalPackageColumns(demonstrationId: string) {
             {!doc ? (
               <SecondaryButton
                 name={`upload-${row.original.documentType}`}
-                ariaLabel={`Upload ${row.original.documentType}`}
+                aria-label={`Upload ${row.original.documentType}`}
                 onClick={() =>
                   showApprovalPackageDocumentUploadDialog(
                     demonstrationId,
@@ -67,25 +68,20 @@ export function ApprovalPackageColumns(demonstrationId: string) {
               <>
                 <TertiaryButton
                   name={`edit-${doc.documentType}`}
-                  ariaLabel={`Edit ${doc.documentType}`}
+                  aria-label={`Edit ${doc.documentType}`}
                   onClick={() =>
-                    showEditDocumentDialog(
-                      {
-                        id: doc.id!,
-                        name: doc.name,
-                        description: doc.description,
-                        file: null,
-                        documentType: doc.documentType as DocumentType,
-                      },
-                      false
-                    )
+                    showEditDocumentDialog({
+                      id: doc.id,
+                      name: doc.name,
+                      description: doc.description,
+                    })
                   }
                 >
                   <EditIcon />
                 </TertiaryButton>
                 <TertiaryButton
                   name={`delete-${doc.documentType}`}
-                  ariaLabel={`Delete ${doc.documentType}`}
+                  aria-label={`Delete ${doc.documentType}`}
                   onClick={() => showRemoveDocumentDialog([doc.id])}
                 >
                   <DeleteIcon />

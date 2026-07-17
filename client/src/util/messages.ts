@@ -2,6 +2,8 @@ import { PhaseName } from "demos-server";
 
 // Demonstration
 export const EXPIRATION_DATE_ERROR_MESSAGE = "Expiration Date cannot be before Effective Date.";
+export const getRequiredFieldWhenApprovedMessage = (fieldName: string) =>
+  `${fieldName} is required when the application is approved.`;
 
 // Document Messages
 export const DOCUMENT_UPLOADED_MESSAGE = "Your document has been added.";
@@ -24,3 +26,7 @@ export const getPhaseCompletedMessage = (phaseName: PhaseName) => {
 export const DELIVERABLE_SLOTS_CREATED_MESSAGE = "Deliverable Slot(s) - have been added";
 export const DELIVERABLE_UPDATED_MESSAGE = "Changes have been saved to the deliverable";
 export const DELIVERABLE_EXTENSION_REQUESTED_MESSAGE = "Extension Request - has been Submitted";
+export const DELIVERABLE_EXTENSION_REVIEW_SUBMITTED_MESSAGE =
+  "Extension Review has been submitted successfully.";
+export const DELIVERABLE_REVIEW_COMPLETED_MESSAGE = "Deliverable Review - has been Completed";
+export const DELIVERABLE_REVIEW_STARTED_MESSAGE = "Deliverable - Review process has Begun";

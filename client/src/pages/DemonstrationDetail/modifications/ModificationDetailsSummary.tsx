@@ -1,6 +1,6 @@
 import React from "react";
 import { ModificationItem } from "./ModificationTabs";
-import { formatDate } from "util/formatDate";
+import { formatDateForDisplay, getDateEst } from "util/formatDate";
 import { IconButton } from "components/button";
 import { EditIcon } from "components/icons";
 import { useDialog } from "components/dialog/DialogContext";
@@ -21,7 +21,7 @@ const ModificationDetailsFields = ({
   modificationItem: ModificationItem;
 }) => {
   const effectiveDateValue = modificationItem.effectiveDate
-    ? formatDate(modificationItem.effectiveDate)
+    ? formatDateForDisplay(getDateEst(modificationItem.effectiveDate))
     : "--/--/----";
 
   const labelPrefix = modificationItem.modificationType === "amendment" ? "Amendment" : "Extension";
@@ -31,18 +31,17 @@ const ModificationDetailsFields = ({
       <div className="flex justify-between w-full">
         <Field label={`${labelPrefix} Title`} value={modificationItem.name} />
         <Field label="Effective Date" value={effectiveDateValue} />
-        <Field label="Status" value={modificationItem.status ?? ""} />
+        <Field label="Status" value={modificationItem.status ?? "-"} />
       </div>
-      {modificationItem.description && (
-        <div className="w-full">
-          <Field label={`${labelPrefix} Description`} value={modificationItem.description} />
-        </div>
-      )}
-      {modificationItem.signatureLevel && (
-        <div className="w-full">
-          <Field label="Signature Level" value={modificationItem.signatureLevel} />
-        </div>
-      )}
+      <div className="w-full">
+        <Field label="Demonstration ID" value={modificationItem.medicaidId || "-"} />
+      </div>
+      <div className="w-full">
+        <Field label={`${labelPrefix} Description`} value={modificationItem.description || "-"} />
+      </div>
+      <div className="w-full">
+        <Field label="Signature Level" value={modificationItem.signatureLevel || "-"} />
+      </div>
     </div>
   );
 };

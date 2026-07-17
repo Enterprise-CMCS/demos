@@ -3,17 +3,12 @@ import React from "react";
 import { DebugOnly } from "components/debug/DebugOnly";
 import {
   ActionsIcon,
-  AnalyticsIcon,
-  CommentIcon,
   CompareIcon,
-  DateIcon,
   FavoriteIcon,
   FileIcon,
   FolderIcon,
-  ListIcon,
   MenuCollapseLeftIcon,
   MenuCollapseRightIcon,
-  ScaleIcon,
   StackIcon,
 } from "components/icons";
 import { Link, useLocation } from "react-router-dom";
@@ -29,19 +24,14 @@ const SIDE_NAV_STYLES = "h-full bg-white transition-all duration-300 flex flex-c
 
 const navLinks: NavLink[] = [
   { label: "Demonstrations", href: "/demonstrations", icon: <CompareIcon /> },
-  { label: "Deliverables", href: "/deliverables", icon: <FileIcon />},
-  { label: "Tasks", href: "#2", icon: <ListIcon /> },
-  { label: "Dashboards", href: "#3", icon: <AnalyticsIcon /> },
+  { label: "Deliverables", href: "/deliverables", icon: <FileIcon /> },
   { label: "Reports", href: "/reports", icon: <FolderIcon /> },
-  { label: "Budget", href: "#5", icon: <ScaleIcon /> },
 ];
 
 const debugNavLinks: NavLink[] = [
   { label: "Components", href: "/components", icon: <FolderIcon /> },
   { label: "Authentication", href: "/auth", icon: <ActionsIcon /> },
   { label: "Icons", href: "/icons", icon: <FavoriteIcon /> },
-  { label: "Events", href: "/events", icon: <CommentIcon /> },
-  { label: "Date Simulation", href: "/dates", icon: <DateIcon /> },
   { label: "Dialogs", href: "/dialogs", icon: <StackIcon /> },
 ];
 
@@ -179,7 +169,7 @@ export const SideNav = () => {
   const DebugLinks = () => {
     return (
       <DebugOnly>
-        <hr className="my-2 border-t border-gray-200" />
+        <hr className="my-2 border-t border-gray-200" aria-hidden="true" />
         <NavLinks isCollapsed={isCollapsed} navLinks={debugNavLinks} />
       </DebugOnly>
     );

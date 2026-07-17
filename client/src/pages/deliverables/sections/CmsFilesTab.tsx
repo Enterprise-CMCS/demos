@@ -2,7 +2,7 @@ import React from "react";
 
 import type { DeliverableFileRow } from "./DeliverableFileTypes";
 import { DeliverableFileTable } from "./DeliverableFileTable";
-import { makeCmsFileColumns } from "./fileColumns";
+import { makeCmsFileColumns } from "components/table/columns/deliverableFileColumns";
 
 export const CMS_FILES_TAB_NAME = "cms-files-tab";
 export const CMS_FILES_ADD_BUTTON_NAME = "button-add-cms-file";
@@ -13,17 +13,26 @@ const CMS_FILES_EMPTY_MESSAGE = "No files have been added yet.";
 
 export type CmsFilesTabProps = {
   files: DeliverableFileRow[];
-  onAdd?: () => void;
-  onEdit?: (file: DeliverableFileRow) => void;
-  onDelete?: (fileIds: string[]) => void;
+  onAdd: () => void;
+  onEdit: (file: DeliverableFileRow) => void;
+  onDelete: (fileIds: string[]) => void;
+  canManage: boolean;
+  isFinalized: boolean;
 };
 
-export const CmsFilesTab: React.FC<CmsFilesTabProps> = ({ files, onAdd, onEdit, onDelete }) => {
-  const columns = makeCmsFileColumns();
+export const CmsFilesTab: React.FC<CmsFilesTabProps> = ({
+  files,
+  onAdd,
+  onEdit,
+  onDelete,
+  canManage,
+  isFinalized,
+}) => {
+  const columns = makeCmsFileColumns({ showSelect: canManage });
 
   return (
     <DeliverableFileTable
-      testId={CMS_FILES_TAB_NAME}
+      data-testid={CMS_FILES_TAB_NAME}
       title="CMS Files"
       addButtonName={CMS_FILES_ADD_BUTTON_NAME}
       editButtonName={CMS_FILES_EDIT_BUTTON_NAME}
@@ -36,6 +45,8 @@ export const CmsFilesTab: React.FC<CmsFilesTabProps> = ({ files, onAdd, onEdit, 
       onAdd={onAdd}
       onEdit={onEdit}
       onDelete={onDelete}
+      showActions={canManage}
+      isFinalized={isFinalized}
     />
   );
 };

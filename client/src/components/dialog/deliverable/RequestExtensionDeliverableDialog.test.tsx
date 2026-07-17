@@ -20,39 +20,40 @@ import {
 } from "./RequestExtensionDeliverableDialog";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 import { TestProvider } from "test-utils/TestProvider";
+import { DELIVERABLE_DETAILS_QUERY } from "pages/deliverables/DeliverableDetailsManagementPage";
 import { DELIVERABLE_EXTENSION_REQUESTED_MESSAGE } from "util/messages";
 
 const mockShowSuccess = vi.fn();
+const mockShowError = vi.fn();
+const mockMutation = vi.fn();
+
 vi.mock("components/toast", () => ({
   useToast: () => ({
     showSuccess: mockShowSuccess,
+    showError: mockShowError,
   }),
 }));
+
+vi.mock("@apollo/client", async () => {
+  const actual = await vi.importActual("@apollo/client");
+  return {
+    ...actual,
+    useMutation: () => [mockMutation],
+  };
+});
 
 const TEST_DELIVERABLE: RequestExtensionDeliverableDialogDeliverable = {
   id: "deliverable-1",
   dueDate: new Date("2026-02-12"),
-  demonstration: { expirationDate: new Date("2026-12-31") },
 };
 
-type OnSubmitFn = NonNullable<
-  React.ComponentProps<typeof RequestExtensionDeliverableDialog>["onSubmit"]
->;
-
-const setup = (
-  overrides?: Partial<RequestExtensionDeliverableDialogDeliverable>,
-  onSubmit?: OnSubmitFn
-) => {
+const setup = (overrides?: Partial<RequestExtensionDeliverableDialogDeliverable>) => {
   const onClose = vi.fn();
   const deliverable = { ...TEST_DELIVERABLE, ...overrides };
 
   render(
     <TestProvider>
-      <RequestExtensionDeliverableDialog
-        deliverable={deliverable}
-        onClose={onClose}
-        onSubmit={onSubmit}
-      />
+      <RequestExtensionDeliverableDialog deliverable={deliverable} onClose={onClose} />
     </TestProvider>
   );
 
@@ -62,6 +63,7 @@ const setup = (
 describe("RequestExtensionDeliverableDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockMutation.mockResolvedValue({});
   });
 
   it("renders with the correct title", () => {
@@ -130,26 +132,24 @@ describe("RequestExtensionDeliverableDialog", () => {
     ).toBeInTheDocument();
   });
 
-  it("keeps Submit disabled when the extension date is after the demonstration expiration", async () => {
+  it("allows extension dates beyond the demonstration expiration", async () => {
     const user = userEvent.setup();
     setup();
 
     fireEvent.change(screen.getByTestId(REQUEST_EXTENSION_DATE_FIELD_NAME), {
-      target: { value: "2027-01-15" }, // past expiration
+      target: { value: "2027-01-15" },
     });
     await user.selectOptions(screen.getByTestId(REQUEST_EXTENSION_REASON_FIELD_NAME), "Other");
     await user.type(screen.getByTestId(REQUEST_EXTENSION_DETAILS_FIELD_NAME), "x");
 
-    expect(screen.getByTestId(REQUEST_EXTENSION_SUBMIT_BUTTON_NAME)).toBeDisabled();
-    expect(
-      screen.getByText("Extension Date cannot be after the Demonstration Expiration Date.")
-    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByTestId(REQUEST_EXTENSION_SUBMIT_BUTTON_NAME)).not.toBeDisabled()
+    );
   });
 
-  it("submits the form, shows a success toast, and closes the dialog", async () => {
+  it("submits the mutation, shows a success toast, and closes the dialog", async () => {
     const user = userEvent.setup();
-    const onSubmit = vi.fn().mockResolvedValue(undefined);
-    const { onClose } = setup(undefined, onSubmit);
+    const { onClose } = setup();
 
     fireEvent.change(screen.getByTestId(REQUEST_EXTENSION_DATE_FIELD_NAME), {
       target: { value: "2026-03-15" },
@@ -165,15 +165,42 @@ describe("RequestExtensionDeliverableDialog", () => {
 
     await user.click(screen.getByTestId(REQUEST_EXTENSION_SUBMIT_BUTTON_NAME));
 
-    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
-    expect(onSubmit).toHaveBeenCalledWith({
-      deliverableId: "deliverable-1",
-      extensionDate: "2026-03-15",
-      requestReason: "Technical Difficulties",
-      details: "Vendor portal outage",
+    await waitFor(() => expect(mockMutation).toHaveBeenCalledTimes(1));
+    expect(mockMutation).toHaveBeenCalledWith({
+      variables: {
+        deliverableId: "deliverable-1",
+        input: {
+          reason: "Technical Difficulties",
+          details: "Vendor portal outage",
+          requestedDueDate: "2026-03-15",
+        },
+      },
+      refetchQueries: [
+        { query: DELIVERABLE_DETAILS_QUERY, variables: { id: "deliverable-1" } },
+      ],
+      awaitRefetchQueries: true,
     });
     expect(mockShowSuccess).toHaveBeenCalledWith(DELIVERABLE_EXTENSION_REQUESTED_MESSAGE);
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows an error toast when the mutation fails", async () => {
+    const user = userEvent.setup();
+    mockMutation.mockRejectedValueOnce(new Error("boom"));
+    const { onClose } = setup();
+
+    fireEvent.change(screen.getByTestId(REQUEST_EXTENSION_DATE_FIELD_NAME), {
+      target: { value: "2026-03-15" },
+    });
+    await user.selectOptions(screen.getByTestId(REQUEST_EXTENSION_REASON_FIELD_NAME), "Other");
+    await user.type(screen.getByTestId(REQUEST_EXTENSION_DETAILS_FIELD_NAME), "Need more time");
+
+    await user.click(screen.getByTestId(REQUEST_EXTENSION_SUBMIT_BUTTON_NAME));
+
+    await waitFor(() =>
+      expect(mockShowError).toHaveBeenCalledWith("Unable to submit extension request.")
+    );
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it("opens the cancellation confirmation when closing with unsaved changes", async () => {
@@ -197,49 +224,53 @@ describe("RequestExtensionDeliverableDialog", () => {
 });
 
 describe("canRequestExtension", () => {
-  it.each(["Upcoming", "Past Due"] as const)("returns true for %s", (status) => {
-    expect(canRequestExtension(status)).toBe(true);
-    expect(EXTENSION_ELIGIBLE_STATUSES.has(status)).toBe(true);
-  });
+  it.each(["Upcoming", "Past Due"] as const)(
+    "returns true for %s when there are no open extension requests",
+    (status) => {
+      expect(canRequestExtension(status, [])).toBe(true);
+      expect(EXTENSION_ELIGIBLE_STATUSES.has(status)).toBe(true);
+    }
+  );
 
   it.each(["Submitted", "Under CMS Review", "Accepted", "Approved", "Received and Filed"] as const)(
     "returns false for %s",
     (status) => {
-      expect(canRequestExtension(status)).toBe(false);
+      expect(canRequestExtension(status, [])).toBe(false);
     }
   );
+
+  it("returns false when an extension is already in Requested status", () => {
+    expect(canRequestExtension("Upcoming", [{ status: "Requested" }])).toBe(false);
+    expect(canRequestExtension("Past Due", [{ status: "Requested" }])).toBe(false);
+  });
+
+  it("returns true when prior extensions are no longer open", () => {
+    expect(canRequestExtension("Upcoming", [{ status: "Approved" }])).toBe(true);
+    expect(
+      canRequestExtension("Past Due", [{ status: "Denied" }, { status: "Withdrawn" }])
+    ).toBe(true);
+  });
 });
 
 describe("getExtensionDateValidationMessage", () => {
   const dueDate = new Date("2026-02-12");
-  const expirationDate = new Date("2026-12-31");
 
   it("returns empty for an empty value", () => {
-    expect(getExtensionDateValidationMessage("", dueDate, expirationDate)).toBe("");
+    expect(getExtensionDateValidationMessage("", dueDate)).toBe("");
   });
 
   it("flags dates not after the due date", () => {
-    expect(getExtensionDateValidationMessage("2026-02-12", dueDate, expirationDate)).toBe(
+    expect(getExtensionDateValidationMessage("2026-02-12", dueDate)).toBe(
       "Extension Date must be after the current Due Date."
     );
-    expect(getExtensionDateValidationMessage("2026-01-01", dueDate, expirationDate)).toBe(
+    expect(getExtensionDateValidationMessage("2026-01-01", dueDate)).toBe(
       "Extension Date must be after the current Due Date."
     );
   });
 
-  it("flags dates beyond the demonstration expiration", () => {
-    expect(getExtensionDateValidationMessage("2027-01-15", dueDate, expirationDate)).toBe(
-      "Extension Date cannot be after the Demonstration Expiration Date."
-    );
-  });
-
-  it("skips the expiration check when no expiration date is known", () => {
-    expect(getExtensionDateValidationMessage("2099-01-01", dueDate, null)).toBe("");
-    expect(getExtensionDateValidationMessage("2099-01-01", dueDate, undefined)).toBe("");
-  });
-
-  it("accepts a valid date between due date and expiration", () => {
-    expect(getExtensionDateValidationMessage("2026-06-01", dueDate, expirationDate)).toBe("");
+  it("accepts any valid date after the due date, regardless of demonstration expiration", () => {
+    expect(getExtensionDateValidationMessage("2026-06-01", dueDate)).toBe("");
+    expect(getExtensionDateValidationMessage("2099-01-01", dueDate)).toBe("");
   });
 });
 
@@ -266,27 +297,18 @@ describe("formIsValid / formHasChanges", () => {
 
   it("formIsValid requires all three fields", () => {
     expect(
-      formIsValid({ extensionDate: "", requestReason: "Other", details: "reason" }, dueDate, null)
+      formIsValid({ extensionDate: "", requestReason: "Other", details: "reason" }, dueDate)
     ).toBe(false);
     expect(
-      formIsValid(
-        { extensionDate: "2026-03-01", requestReason: "", details: "reason" },
-        dueDate,
-        null
-      )
+      formIsValid({ extensionDate: "2026-03-01", requestReason: "", details: "reason" }, dueDate)
     ).toBe(false);
     expect(
-      formIsValid(
-        { extensionDate: "2026-03-01", requestReason: "Other", details: "   " },
-        dueDate,
-        null
-      )
+      formIsValid({ extensionDate: "2026-03-01", requestReason: "Other", details: "   " }, dueDate)
     ).toBe(false);
     expect(
       formIsValid(
         { extensionDate: "2026-03-01", requestReason: "Other", details: "reason" },
-        dueDate,
-        null
+        dueDate
       )
     ).toBe(true);
   });

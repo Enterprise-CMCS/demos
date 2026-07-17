@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { tw } from "tags/tw";
 import { ApplicationUploadSection } from "components/application/phases/sections";
-import { formatDate } from "util/formatDate";
+import { formatDateForDisplay } from "util/formatDate";
 import { useDialog } from "components/dialog/DialogContext";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { differenceInCalendarDays } from "date-fns";
 import { Notice, NoticeVariant } from "components/notice";
+import { DateType, PhaseName } from "demos-server-constants";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -20,6 +21,18 @@ const STYLES = {
   actions: tw`mt-8 flex justify-end gap-3`,
 };
 
+export const FEDERAL_COMMENT_PHASE_DESCRIPTION = {
+  text: "Use this phase to record federal reviewer comments and requested clarifications on the application before it moves forward.",
+  testId: "federal-comment-phase-description",
+};
+export const FEDERAL_COMMENT_PHASE_STEP_ONE_DESCRIPTION = {
+  text: "Verify that the document is uploaded/accurate and that all required fields are filled.",
+  testId: "federal-comment-phase-step-one-description",
+};
+export const FEDERAL_COMMENT_PHASE_STEP_TWO_DESCRIPTION = {
+  text: "Upload the Internal Analysis Document (Optional).",
+};
+
 export const getFederalCommentPhaseFromApplication = (application: WorkflowApplication) => {
   const federalCommentPhase = application.phases.find(
     (phase) => phase.phaseName === "Federal Comment"
@@ -28,10 +41,10 @@ export const getFederalCommentPhaseFromApplication = (application: WorkflowAppli
   const phaseComplete = federalCommentPhase?.phaseStatus === "Completed";
 
   const phaseStartDate = federalCommentPhase?.phaseDates.find(
-    (date) => date.dateType === "Federal Comment Period Start Date"
+    (date) => date.dateType === ("Federal Comment Period Start Date" satisfies DateType)
   );
   const phaseEndDate = federalCommentPhase?.phaseDates.find(
-    (date) => date.dateType === "Federal Comment Period End Date"
+    (date) => date.dateType === ("Federal Comment Period End Date" satisfies DateType)
   );
 
   const initialDocuments = application.documents.filter(
@@ -61,20 +74,20 @@ const FederalCommentNotice: React.FC<{ phaseEndDate?: Date; phaseComplete: boole
     if (daysLeft > 1) {
       return {
         title: `${daysLeft} days left in Federal Comment Period`,
-        description: `The Federal Comment Period ends on ${formatDate(phaseEndDate)}`,
+        description: `The Federal Comment Period ends on ${formatDateForDisplay(phaseEndDate)}`,
         variant: "warning" as NoticeVariant,
       };
     }
     if (daysLeft === 1) {
       return {
         title: "1 day left in Federal Comment Period",
-        description: `The Federal Comment Period ends on ${formatDate(phaseEndDate)}`,
+        description: `The Federal Comment Period ends on ${formatDateForDisplay(phaseEndDate)}`,
         variant: "error" as NoticeVariant,
       };
     }
     return {
       title: `${Math.abs(daysLeft)} days past due`,
-      description: `The Federal Comment Period ended on ${formatDate(phaseEndDate)}`,
+      description: `The Federal Comment Period ended on ${formatDateForDisplay(phaseEndDate)}`,
       variant: "error" as NoticeVariant,
     };
   };
@@ -114,20 +127,25 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
     <div aria-labelledby="concept-verify-title">
       <div>
         <h4 id="concept-verify-title" className={STYLES.title}>
-          STEP 1 - VERIFY/COMPLETE
+          Step 1 - Verify
         </h4>
-        <p className={STYLES.helper}>
-          The Federal Comment phase automatically completes after the Federal Comment End Date.
+        <p
+          className={STYLES.helper}
+          data-testid={FEDERAL_COMMENT_PHASE_STEP_ONE_DESCRIPTION.testId}
+        >
+          {FEDERAL_COMMENT_PHASE_STEP_ONE_DESCRIPTION.text}
         </p>
       </div>
       <div className="flex gap-8 mt-4 text-sm text-text-placeholder">
         <div className="flex flex-col">
-          <span className="font-bold">Federal Comment Period Start Date</span>
-          <span>{phaseStartDate ? formatDate(phaseStartDate) : "--/--/----"}</span>
+          <span className="font-bold">
+            {"Federal Comment Period Start Date" satisfies DateType}
+          </span>
+          <span>{phaseStartDate ? formatDateForDisplay(phaseStartDate) : "--/--/----"}</span>
         </div>
         <div className="flex flex-col">
-          <span className="font-bold">Federal Comment Period End Date</span>
-          <span>{phaseEndDate ? formatDate(phaseEndDate) : "--/--/----"}</span>
+          <span className="font-bold">{"Federal Comment Period End Date" satisfies DateType}</span>
+          <span>{phaseEndDate ? formatDateForDisplay(phaseEndDate) : "--/--/----"}</span>
         </div>
       </div>
     </div>
@@ -138,18 +156,15 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
       <div className="flex flex-col gap-6">
         <FederalCommentNotice phaseEndDate={phaseEndDate} phaseComplete={phaseComplete} />
 
-        <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">
-          FEDERAL COMMENT PERIOD
+        <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1 uppercase">
+          {"Federal Comment" satisfies PhaseName}
         </h3>
       </div>
-      <p className="text-sm text-text-placeholder mb-4">
-        Federal Comment Period Review. Find completeness guidelines online at{" "}
-        <a
-          className="underline underline-offset-2 decoration-gray-400 decoration-1 decoration-opacity-40"
-          href="https://www.medicaid.gov"
-        >
-          Medicaid.gov
-        </a>
+      <p
+        className="text-sm text-text-placeholder mb-4"
+        data-testid={FEDERAL_COMMENT_PHASE_DESCRIPTION.testId}
+      >
+        {FEDERAL_COMMENT_PHASE_DESCRIPTION.text}
       </p>
 
       <section className={STYLES.pane}>
@@ -157,8 +172,8 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
           <span aria-hidden className={STYLES.divider} />
           <VerifyCompleteSection />
           <ApplicationUploadSection
-            title="STEP 2 - UPLOAD"
-            helperText="Upload the Internal Analysis Document (Optional)"
+            title="Step 2 - Upload"
+            helperText={FEDERAL_COMMENT_PHASE_STEP_TWO_DESCRIPTION.text}
             documents={documents}
             onUploadClick={() => showFederalCommentDocumentUploadDialog(demonstrationId)}
           />

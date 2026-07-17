@@ -1,19 +1,22 @@
 import { Context, SQSEvent } from "aws-lambda";
 import { Pool } from "pg";
 import { als, log, reqIdChild, store } from "./log";
+import { downloadDocumentFromS3 } from "./s3";
 import { getDbPool } from "./db";
 import {
   BudgetNeutralityMessage,
-  documentExists,
+  getS3Path,
   parseAndValidateBudgetNeutralityMessage,
   validateSingleRecordCount,
 } from "./budgetNeutralityValidation";
+import { parseBNFileFromPath } from "demos-shared-library/BN";
+import { validateBNWorkbook, ValidationError, ValidationResult } from "demos-shared-library/BN/validation";
+import { validations } from "demos-shared-library/BN/rulesets";
+import { extractorFunctions } from "demos-shared-library/BN/extractors";
 
-const INITIAL_VALIDATION_STATUS_ID = "Succeeded";
+const SUCCEEDED_VALIDATION_STATUS_ID = "Succeeded";
+const FAILED_VALIDATION_STATUS_ID = "Failed";
 const DB_SCHEMA = "demos_app";
-const INITIAL_VALIDATION_DATA = {
-  source: "budgetNeutrality",
-};
 
 interface Results {
   processedRecords: number;
@@ -22,24 +25,28 @@ interface Results {
   insertedWorkbooks: number;
 }
 
-export async function insertBudgetNeutralityWorkbook(
+export async function updateBudgetNeutralityWorkbook(
   pool: Pool,
-  message: BudgetNeutralityMessage
+  message: BudgetNeutralityMessage,
+  validationResults: ValidationResult
 ): Promise<void> {
-  const query = `INSERT INTO ${DB_SCHEMA}.budget_neutrality_workbook (
-      id,
-      document_type_id,
-      validation_status_id,
-      validation_data,
-      updated_at
-    )
-    VALUES ($1::UUID, $2::TEXT, $3::TEXT, $4::JSON, CURRENT_TIMESTAMP);`;
+  const query = `UPDATE ${DB_SCHEMA}.budget_neutrality_workbook
+    SET
+      document_type_id = $2::TEXT,
+      validation_status_id = $3::TEXT,
+      validation_data = $4::JSON,
+      actuals = $5::TEXT,
+      net_variance_total = $6::NUMERIC,
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = $1::UUID;`;
 
   await pool.query(query, [
     message.documentId,
     message.documentTypeId,
-    INITIAL_VALIDATION_STATUS_ID,
-    JSON.stringify(INITIAL_VALIDATION_DATA),
+    validationResults.isValid ? SUCCEEDED_VALIDATION_STATUS_ID : FAILED_VALIDATION_STATUS_ID,
+    JSON.stringify(validationResults.errors),
+    validationResults.extractedValues?.get("actuals"),
+    validationResults.extractedValues?.get("netVariance"),
   ]);
 }
 
@@ -56,22 +63,34 @@ export const handler = async (event: SQSEvent, context: Context) =>
 
     try {
       const pool = await getDbPool();
-
-      // BN VALIDATION STARTS HERE! budgetNeutralityValidation.ts is starter validation logic.
+      
+      // Validate that there's exactly one record in the event. This is a common pattern for SQS-triggered Lambdas that are designed to process one message at a time.
       validateSingleRecordCount(event.Records.length); // this will throw if fails.
 
       const record = event.Records[0];
       const message = parseAndValidateBudgetNeutralityMessage(record.body);
-      const exists = await documentExists(pool, message.documentId);
+      const s3Path = await getS3Path(pool, message.documentId);
 
       results.processedRecords = 1;
 
-      if (!exists) {
+      if (!s3Path) {
         throw new Error(`Document with ID ${message.documentId} does not exist.`);
       }
 
+      log.info({ s3Path }, "Starting Download of BN workbook from S3.");
+      const downloadedDocumentPath = await downloadDocumentFromS3(s3Path);
+      
+      log.info("Download completed. Starting parsing of BN workbook.");
+      const parsedData = await parseBNFileFromPath(downloadedDocumentPath); 
+
+      log.info("Parsing completed. Starting validation against ruleset.");
+      const validationResults = await validateBNWorkbook(parsedData, validations, extractorFunctions);
+      
+
+      log.info("Validation completed. Inserting BN results into database.");
       results.existingDocuments = 1;
-      await insertBudgetNeutralityWorkbook(pool, message);
+      await updateBudgetNeutralityWorkbook(pool, message, validationResults);
+      
       results.insertedWorkbooks = 1;
       log.info(
         {
@@ -81,7 +100,7 @@ export const handler = async (event: SQSEvent, context: Context) =>
         "Budget Neutrality workbook row inserted."
       );
 
-      log.info({ results }, "Budget Neutrality validation placeholder completed.");
+      log.info({ results }, "Budget Neutrality validation completed.");
 
       return {
         statusCode: 200,
@@ -89,6 +108,6 @@ export const handler = async (event: SQSEvent, context: Context) =>
       };
     } catch (error) {
       log.error({ error: (error as Error).message }, "Budget Neutrality validation failed.");
-      throw new Error(`Lambda failed: ${(error as Error).message}`);
+      throw error;
     }
   });

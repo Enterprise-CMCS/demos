@@ -26,8 +26,10 @@ export const applicationDateSchema = gql`
   }
 
   type Mutation {
-    setApplicationDate(input: SetApplicationDateInput): Application
-    setApplicationDates(input: SetApplicationDatesInput): Application
+    setApplicationDate(input: SetApplicationDateInput): Application!
+      @auth(requires: ["Perform CMS Action"])
+    setApplicationDates(input: SetApplicationDatesInput): Application!
+      @auth(requires: ["Perform CMS Action"])
   }
 `;
 

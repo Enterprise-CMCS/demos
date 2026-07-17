@@ -28,7 +28,7 @@ export function checkForDuplicateDateTypes(input: SetApplicationDatesInput): voi
 }
 
 export function __setApplicationDate(
-  _: unknown,
+  parent: unknown,
   { input }: { input: SetApplicationDateInput }
 ): Promise<PrismaApplication> {
   const payload: SetApplicationDatesInput = {
@@ -44,7 +44,7 @@ export function __setApplicationDate(
 }
 
 export async function __setApplicationDates(
-  _: unknown,
+  parent: unknown,
   { input }: { input: SetApplicationDatesInput }
 ): Promise<PrismaApplication> {
   if (input.applicationDates.length === 0) {
@@ -76,6 +76,6 @@ export const applicationDateResolvers = {
     setApplicationDates: __setApplicationDates,
   },
   ApplicationDate: {
-    dateType: (parent: PrismaApplicationDate) => parent.dateTypeId,
+    dateType: (parent: PrismaApplicationDate): DateType => parent.dateTypeId as DateType,
   },
 };

@@ -1,6 +1,16 @@
 def call(Map params) {
 
   def accountNumber = params.accountNumber
+  def accountEnv = params.accountEnv
+
+  if (!accountNumber && !accountEnv) {
+    error("Either accountNumber or accountEnv parameter is required")
+  }
+  if (!accountNumber) {
+    def prodNonProd = accountEnv.toLowerCase().contains("prod") ? "PROD" : "NONPROD"
+    accountNumber = env."DEMOS_AWS_${prodNonProd}_ACCOUNT_NUMBER"
+  }
+
   def role = params.role ?: "arn:aws:iam::${accountNumber}:role/delegatedadmin/developer/jenkins-role"
   def containerName = params.containerName ?: 'aws-cli'
 
@@ -14,7 +24,7 @@ def call(Map params) {
   aws_session_token = \$(grep -o '"SessionToken": "[^"]*"' /tmp/role-creds.json | awk -F'"' '{print \$4}')
 EOF
 
-  cp -v .aws-creds ${env.WORKSPACE}/aws_credentials
+  cp -v .aws-creds "${env.WORKSPACE}/aws_credentials"
   unset AWS_WEB_IDENTITY_TOKEN_FILE
   """
   env.AWS_WEB_IDENTITY_TOKEN_FILE=""

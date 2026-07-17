@@ -6,23 +6,22 @@ import { fileURLToPath } from "node:url";
 import {
   SDG_DIVISIONS,
   PERSON_TYPES,
-  SIGNATURE_LEVEL,
   PHASE_DOCUMENT_TYPE_MAP,
   NOTE_TYPES,
   TAG_TYPES,
+  AMENDMENT_SIGNATURE_LEVELS,
+  EXTENSION_SIGNATURE_LEVELS,
+  FAQ_REFERENCE_TAG,
 } from "./constants.js";
 import {
   CreateDemonstrationInput,
-  CreateAmendmentInput,
-  CreateExtensionInput,
   UpdateDemonstrationInput,
   UpdateAmendmentInput,
   UpdateExtensionInput,
   SetApplicationDatesInput,
-  EventType,
-  LogEventInput,
-  Role,
   CreateDeliverableInput,
+  PersonType,
+  DateTimeOrLocalDate,
 } from "./types.js";
 import { prisma } from "./prismaClient.js";
 import { DocumentType, PhaseName } from "./types.js";
@@ -30,14 +29,27 @@ import {
   __createDemonstration,
   __updateDemonstration,
 } from "./model/demonstration/demonstrationResolvers.js";
-import { __createAmendment, __updateAmendment } from "./model/amendment/amendmentResolvers.js";
-import { __createExtension, __updateExtension } from "./model/extension/extensionResolvers.js";
+import { __updateAmendment } from "./model/amendment/amendmentResolvers.js";
+import { __updateExtension } from "./model/extension/extensionResolvers.js";
 import { __setApplicationDates } from "./model/applicationDate/applicationDateResolvers.js";
-import { logEvent } from "./model/event/eventResolvers.js";
-import { GraphQLContext } from "./auth/auth.util.js";
+import { GraphQLContext } from "./auth";
 import { getManyApplications } from "./model/application";
-import { createDeliverable } from "./model/deliverable";
+import {
+  approveDeliverableExtension,
+  completeDeliverable,
+  createDeliverable,
+  denyDeliverableExtension,
+  requestDeliverableExtension,
+  requestDeliverableResubmission,
+  startDeliverableReview,
+  submitDeliverable,
+  updateDeliverable,
+} from "./model/deliverable";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { Deliverable, Prisma, Deliverable as PrismaDeliverable } from "@prisma/client";
+import { selectDeliverableExtension } from "./model/deliverableExtension/queries";
+import { createAmendment } from "./model/amendment";
+import { createExtension } from "./model/extension";
 
 const DOCUMENTS_PER_APPLICATION = 15;
 const UIPATH_SEED_DOCUMENT_ID = "00000000-0000-0000-0000-000000000000";
@@ -50,6 +62,9 @@ const NEW_TAG_COUNT = 20;
 const TAG_ASSIGNMENT_MAX = 5;
 const DELIVERABLE_SEED_COUNT = 8;
 const APPLICATION_TAG_SUGGESTION_POOL_SIZE = 10;
+const BYPASS_USER_ID = "00000000-1111-2222-3333-123abc123abc";
+const extensionCount = 8;
+const amendmentCount = 10;
 
 function getRandomPhaseDocumentTypeCombination(): {
   phaseName: PhaseName;
@@ -139,9 +154,9 @@ async function seedTagsAndStatuses() {
   }
 }
 
-async function seedApprovedDemonstration() {
-  console.log("🌱 Seeding one approved demonstration...");
-  const approvedDemonstration = await prisma().demonstration.findFirst({
+async function seedApprovedDemonstrations() {
+  console.log("🌱 Seeding approved demonstrations...");
+  const approvableDemonstrations = await prisma().demonstration.findMany({
     where: {
       demonstrationTypeTagAssignments: {
         some: {},
@@ -152,36 +167,41 @@ async function seedApprovedDemonstration() {
       sdgDivisionId: true,
     },
   });
-  if (!approvedDemonstration) {
+  if (!approvableDemonstrations.length) {
     throw new Error("No demonstrations with demonstration types found for approved-demo seeding");
   }
 
-  await prisma().$transaction([
-    prisma().demonstration.update({
-      where: { id: approvedDemonstration.id },
-      data: {
-        signatureLevelId: "OA",
-        statusId: "Approved",
-        sdgDivisionId: approvedDemonstration.sdgDivisionId ?? SDG_DIVISIONS[0],
-      },
-    }),
-    prisma().applicationPhase.update({
-      where: {
-        applicationId_phaseId: {
-          applicationId: approvedDemonstration.id,
-          phaseId: "Approval Summary",
-        },
-      },
-      data: {
-        phaseStatusId: "Completed",
-      },
-    }),
-  ]);
+  const approvedDemonstrations = faker.helpers.arrayElements(
+    approvableDemonstrations,
+    faker.number.int({ min: 1, max: approvableDemonstrations.length })
+  );
 
-  console.log(`🌱 Seeded approved demonstration: ${approvedDemonstration.id}`);
+  for (const demonstration of approvedDemonstrations) {
+    await prisma().$transaction([
+      prisma().demonstration.update({
+        where: { id: demonstration.id },
+        data: {
+          signatureLevelId: "OA",
+          statusId: "Approved",
+          sdgDivisionId: demonstration.sdgDivisionId ?? SDG_DIVISIONS[0],
+        },
+      }),
+      prisma().applicationPhase.update({
+        where: {
+          applicationId_phaseId: {
+            applicationId: demonstration.id,
+            phaseId: "Approval Summary",
+          },
+        },
+        data: {
+          phaseStatusId: "Completed",
+        },
+      }),
+    ]);
+  }
 }
 
-async function seedDeliverables(actionUserId: string) {
+async function seedDeliverables(actionUserId: string, actionUserPersonTypeId: PersonType) {
   console.log("🌱 Seeding deliverables...");
   const deliverableTypes = await prisma().deliverableType.findMany({
     select: { id: true },
@@ -212,8 +232,11 @@ async function seedDeliverables(actionUserId: string) {
   const context = {
     user: {
       id: actionUserId,
+      personTypeId: actionUserPersonTypeId,
     },
   } as GraphQLContext;
+
+  const createdDeliverables = [];
 
   for (let i = 0; i < DELIVERABLE_SEED_COUNT; i++) {
     const demonstration = faker.helpers.arrayElement(approvedDemonstrations);
@@ -238,8 +261,149 @@ async function seedDeliverables(actionUserId: string) {
         .slice(0, 10) as CreateDeliverableInput["dueDate"],
       demonstrationTypes: selectedDemonstrationTypes,
     };
-    await createDeliverable(createInput, context);
+    createdDeliverables.push(await createDeliverable(createInput, context));
   }
+  return createdDeliverables;
+}
+
+async function addDocumentsToDeliverable(deliverable: Deliverable) {
+  const context = {
+    user: {
+      id: BYPASS_USER_ID,
+      personTypeId: "demos-admin",
+    },
+  } as GraphQLContext;
+  for (let i = 0; i < 5; i++) {
+    await prisma().document.create({
+      data: {
+        name: "Test deliverable cms document",
+        description: faker.lorem.sentence(5),
+        s3Path: "tmp",
+        ownerUserId: context.user.id,
+        documentTypeId: "General File",
+        applicationId: deliverable.demonstrationId,
+        deliverableId: deliverable.id,
+        deliverableTypeId: deliverable.deliverableTypeId,
+        deliverableIsCmsAttachedFile: true,
+        createdAt: new Date(),
+      },
+    });
+  }
+
+  for (let i = 0; i < 5; i++) {
+    await prisma().document.create({
+      data: {
+        name: faker.lorem.sentence(2),
+        description: faker.lorem.sentence(5),
+        s3Path: "tmp",
+        ownerUserId: context.user.id,
+        documentTypeId: "General File",
+        applicationId: deliverable.demonstrationId,
+        deliverableId: deliverable.id,
+        deliverableTypeId: deliverable.deliverableTypeId,
+        deliverableIsCmsAttachedFile: false,
+        createdAt: new Date(),
+      },
+    });
+  }
+}
+
+async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
+  const context = {
+    user: {
+      id: BYPASS_USER_ID,
+      personTypeId: "demos-admin",
+    },
+  } as GraphQLContext;
+  await updateDeliverable(
+    deliverable.id,
+    { dueDate: { newDueDate: "2028-11-01" as DateTimeOrLocalDate, dateChangeNote: "Test change" } },
+    context
+  );
+  await requestDeliverableExtension(
+    deliverable.id,
+    {
+      reason: "COVID-19",
+      details: "This is a thing",
+      requestedDueDate: "2028-11-30" as DateTimeOrLocalDate,
+    },
+    context
+  );
+  // Need a document of the right type to submit
+  await prisma().document.create({
+    data: {
+      name: "This is a test document to support test submission of a deliverable",
+      description: faker.lorem.sentence(5),
+      s3Path: "tmp",
+      ownerUserId: context.user.id,
+      documentTypeId: "General File",
+      applicationId: deliverable.demonstrationId,
+      deliverableId: deliverable.id,
+      deliverableTypeId: deliverable.deliverableTypeId,
+      deliverableIsCmsAttachedFile: false,
+      createdAt: new Date(),
+    },
+  });
+  await submitDeliverable(deliverable.id, context);
+  await requestDeliverableResubmission(
+    deliverable.id,
+    {
+      details: "This is a resubmission request",
+      newDueDate: "2028-12-31" as DateTimeOrLocalDate,
+    },
+    context
+  );
+  const firstDeliverableExtension = await selectDeliverableExtension(
+    {
+      deliverableId: deliverable.id,
+      statusId: "Requested",
+    },
+    true
+  );
+  await approveDeliverableExtension(
+    deliverable.id,
+    {
+      deliverableExtensionId: firstDeliverableExtension.id,
+    },
+    context
+  );
+  await submitDeliverable(deliverable.id, context);
+  await startDeliverableReview(deliverable.id, context);
+  await requestDeliverableResubmission(
+    deliverable.id,
+    {
+      details: "This is a secondary resubmission request",
+      newDueDate: "2029-01-31" as DateTimeOrLocalDate,
+    },
+    context
+  );
+  await requestDeliverableExtension(
+    deliverable.id,
+    {
+      reason: "Other",
+      details: "Need more time for the resubmission request",
+      requestedDueDate: "2029-02-15" as DateTimeOrLocalDate,
+    },
+    context
+  );
+  const secondDeliverableExtension = await selectDeliverableExtension(
+    {
+      deliverableId: deliverable.id,
+      statusId: "Requested",
+    },
+    true
+  );
+  await submitDeliverable(deliverable.id, context);
+  await startDeliverableReview(deliverable.id, context);
+  await denyDeliverableExtension(
+    deliverable.id,
+    {
+      deliverableExtensionId: secondDeliverableExtension.id,
+      details: "Users have already submitted, no extension is required",
+    },
+    context
+  );
+  await completeDeliverable(deliverable.id, "Approved", context);
 }
 
 async function seedNotes() {
@@ -430,6 +594,150 @@ async function seedApplicationTagSuggestions() {
   }
 }
 
+async function seedReferences() {
+  console.log("🌱 Seeding reference records...");
+
+  const referenceIds = [];
+  for (let i = 0; i < 5; i++) {
+    referenceIds.push(faker.string.uuid());
+  }
+  const faqReferenceId = referenceIds[2];
+  const doubledReferenceId = referenceIds[3];
+  const referenceNoAgreementId = referenceIds[4];
+  const referenceAgreementIds = [faker.string.uuid(), faker.string.uuid(), faker.string.uuid()];
+
+  const s3Client = new S3Client(
+    process.env.S3_ENDPOINT_LOCAL
+      ? {
+          region: "us-east-1",
+          endpoint: process.env.S3_ENDPOINT_LOCAL,
+          forcePathStyle: true,
+          credentials: {
+            accessKeyId: "test",
+            secretAccessKey: "test", // pragma: allowlist secret
+          },
+        }
+      : {}
+  );
+
+  for (const referenceAgreementId of referenceAgreementIds) {
+    await prisma().referenceAgreement.create({
+      data: {
+        id: referenceAgreementId,
+        name: faker.lorem.words(3),
+        s3Path: `references/agreements/${referenceAgreementId}`,
+        ownerUserId: BYPASS_USER_ID,
+        ownerPersonTypeId: "demos-admin",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: process.env.CLEAN_BUCKET,
+        Key: `references/agreements/${referenceAgreementId}`,
+        Body: Buffer.from(`Test reference agreement: ${referenceAgreementId}`),
+      })
+    );
+  }
+  for (const referenceId of referenceIds) {
+    await prisma().reference.create({
+      data: {
+        id: referenceId,
+        name: faker.lorem.words(3),
+        description: faker.lorem.sentence(),
+        s3Path: `references/${referenceId}`,
+        ownerUserId: BYPASS_USER_ID,
+        ownerPersonTypeId: "demos-admin",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: process.env.CLEAN_BUCKET,
+        Key: `references/${referenceId}`,
+        Body: Buffer.from(`Test reference: ${referenceId}`),
+      })
+    );
+
+    if (referenceId === faqReferenceId) {
+      await prisma().referenceTagAssignment.create({
+        data: {
+          referenceId: referenceId,
+          tagNameId: FAQ_REFERENCE_TAG,
+          tagTypeId: "Reference",
+        },
+      });
+      await prisma().referenceConfiguration.create({
+        data: {
+          id: faker.string.uuid(),
+          referenceId: referenceId,
+          referenceAgreementId: null,
+          statusId: "Active",
+        },
+      });
+    } else if (referenceId === doubledReferenceId) {
+      await prisma().referenceConfiguration.create({
+        data: {
+          id: faker.string.uuid(),
+          referenceId: referenceId,
+          referenceAgreementId: referenceAgreementIds[0],
+          statusId: "Inactive",
+        },
+      });
+      await prisma().referenceConfiguration.create({
+        data: {
+          id: faker.string.uuid(),
+          referenceId: referenceId,
+          referenceAgreementId: referenceAgreementIds[1],
+          statusId: "Active",
+        },
+      });
+    } else if (referenceId === referenceNoAgreementId) {
+      await prisma().referenceConfiguration.create({
+        data: {
+          id: faker.string.uuid(),
+          referenceId: referenceId,
+          referenceAgreementId: null,
+          statusId: "Active",
+        },
+      });
+    } else {
+      await prisma().referenceConfiguration.create({
+        data: {
+          id: faker.string.uuid(),
+          referenceId: referenceId,
+          referenceAgreementId: referenceAgreementIds[0],
+          statusId: "Active",
+        },
+      });
+    }
+
+    if (referenceId !== faqReferenceId) {
+      const demonstrationTypes = sampleFromArray(
+        [
+          "Dental",
+          "Designated State Health Programs (DSHP)",
+          "Employment Supports",
+          "End-Stage Renal Disease (ESRD)",
+          "Enrollment Cap",
+        ],
+        sampleFromArray([1, 2, 3], 1)[0]
+      );
+      for (const demonstrationType of demonstrationTypes) {
+        await prisma().referenceDemonstrationType.create({
+          data: {
+            referenceId: referenceId,
+            demonstrationTypeTagNameId: demonstrationType,
+            demonstrationTypeTagTypeId: "Demonstration Type",
+          },
+        });
+      }
+    }
+  }
+}
+
 function randomDateRange() {
   const randomStart = faker.date.future({ years: 1 });
   const randomEnd = faker.date.future({ years: 1, refDate: randomStart });
@@ -477,12 +785,31 @@ async function clearDatabase() {
   // However, if this does not happen, the history tables will contain the truncates
   return await prisma().$transaction([
     // Truncates must be done in proper order for relational reasons
+    // Reference section
+    prisma().referenceAgreementAcceptance.deleteMany(),
+    prisma().referenceDemonstrationType.deleteMany(),
+    prisma().referenceTagAssignment.deleteMany(),
+    prisma().referenceConfiguration.deleteMany(),
+    prisma().referenceAgreement.deleteMany(),
+    prisma().reference.deleteMany(),
+
     prisma().primaryDemonstrationRoleAssignment.deleteMany(),
     prisma().demonstrationRoleAssignment.deleteMany(),
     prisma().applicationDate.deleteMany(),
     prisma().applicationPhase.deleteMany(),
     prisma().applicationNote.deleteMany(),
+    prisma().applicationTagAssignment.deleteMany(),
+    prisma().$executeRawUnsafe(
+      "TRUNCATE TABLE demos_app.demonstration_type_tag_assignment CASCADE;"
+    ),
+    prisma().applicationTagSuggestion.deleteMany(),
+    prisma().applicationTagSuggestionExtract.deleteMany(),
+    prisma().uiPathValue.deleteMany(),
+    prisma().uiPathResult.deleteMany(),
     prisma().document.deleteMany(),
+    prisma().deliverableAction.deleteMany(),
+    prisma().deliverableExtension.deleteMany(),
+    prisma().deliverable.deleteMany(),
 
     // Note that we must delete from application first
     // The foreign keys to that table from amendment/extension/demonstration are deferred
@@ -492,12 +819,82 @@ async function clearDatabase() {
     prisma().extension.deleteMany(),
     prisma().demonstration.deleteMany(),
 
-    prisma().event.deleteMany(),
     prisma().systemRoleAssignment.deleteMany(),
     prisma().personState.deleteMany(),
+    prisma().userSession.deleteMany(),
     prisma().user.deleteMany(),
     prisma().person.deleteMany(),
   ]);
+}
+
+async function seedAmendments() {
+  console.log("🌱 Seeding amendments...");
+
+  const approvedDemonstrations = await prisma().demonstration.findMany({
+    where: { statusId: "Approved" },
+  });
+
+  for (let i = 0; i < amendmentCount; i++) {
+    try {
+      const createInput: Pick<
+        Prisma.AmendmentUncheckedCreateInput,
+        "demonstrationId" | "name" | "description" | "signatureLevelId"
+      > = {
+        demonstrationId: faker.helpers.arrayElement(approvedDemonstrations).id,
+        name: faker.lorem.words(3),
+        description: faker.lorem.sentence(),
+        signatureLevelId: sampleFromArray([...AMENDMENT_SIGNATURE_LEVELS, undefined], 1)[0],
+      };
+      await createAmendment(createInput);
+    } catch (error) {
+      console.error(`Error creating amendment: ${error}`);
+    }
+  }
+  const amendments = await getManyApplications("Amendment");
+  for (const amendment of amendments!) {
+    const randomDates = randomDateRange();
+    const updatePayload: UpdateAmendmentInput = {
+      effectiveDate: randomDates["start"],
+    };
+    const updateInput = {
+      id: amendment.id,
+      input: updatePayload,
+    };
+    await __updateAmendment(undefined, updateInput);
+  }
+}
+
+async function seedExtensions() {
+  console.log("🌱 Seeding extensions...");
+
+  const approvedDemonstrations = await prisma().demonstration.findMany({
+    where: { statusId: "Approved" },
+  });
+
+  for (let i = 0; i < extensionCount; i++) {
+    const createInput: Pick<
+      Prisma.ExtensionUncheckedCreateInput,
+      "demonstrationId" | "name" | "description" | "signatureLevelId"
+    > = {
+      demonstrationId: faker.helpers.arrayElement(approvedDemonstrations).id,
+      name: faker.lorem.words(3),
+      description: faker.lorem.sentence(),
+      signatureLevelId: sampleFromArray([...EXTENSION_SIGNATURE_LEVELS, undefined], 1)[0],
+    };
+    await createExtension(createInput);
+  }
+  const extensions = await getManyApplications("Extension");
+  for (const extension of extensions!) {
+    const randomDates = randomDateRange();
+    const updatePayload: UpdateExtensionInput = {
+      effectiveDate: randomDates["start"],
+    };
+    const updateInput = {
+      id: extension.id,
+      input: updatePayload,
+    };
+    await __updateExtension(undefined, updateInput);
+  }
 }
 
 async function seedDatabase() {
@@ -509,11 +906,9 @@ async function seedDatabase() {
   // Setting constants for record generation
   const userCount = 9;
   const demonstrationCount = 20;
-  const amendmentCount = 10;
-  const extensionCount = 8;
 
   console.log("🌱 Generating bypassed user and accompanying records...");
-  const bypassUserId = "00000000-1111-2222-3333-123abc123abc";
+  const bypassUserId = BYPASS_USER_ID;
   const bypassUserSub = "1234abcd-0000-1111-2222-333333333333";
 
   await prisma().person.create({
@@ -531,6 +926,8 @@ async function seedDatabase() {
       personTypeId: "demos-admin",
       cognitoSubject: bypassUserSub,
       username: "BYPASSED_USER",
+      isMigratedFromPmda: false,
+      hasLoggedIn: true,
     },
   });
 
@@ -554,6 +951,8 @@ async function seedDatabase() {
         personTypeId: person.personTypeId,
         cognitoSubject: faker.string.uuid(),
         username: faker.internet.username(),
+        isMigratedFromPmda: false,
+        hasLoggedIn: true,
       },
     });
   }
@@ -701,7 +1100,6 @@ async function seedDatabase() {
       name: demoName,
       description: faker.lorem.sentence(),
       sdgDivision: sampleFromArray([...SDG_DIVISIONS, undefined], 1)[0],
-      signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
       stateId: stateSelection.stateId,
       projectOfficerUserId: person.id,
     };
@@ -740,7 +1138,7 @@ async function seedDatabase() {
         dateValue: new Date("2025-01-01T00:00:00.000-05:00"),
       },
       {
-        dateType: "Pre-Submission Submitted Date",
+        dateType: "Concept Paper Submitted Date",
         dateValue: new Date("2025-01-13T00:00:00.000-05:00"),
       },
       {
@@ -792,7 +1190,7 @@ async function seedDatabase() {
         dateValue: new Date("2025-02-05T00:00:00.000-05:00"),
       },
       {
-        dateType: "SME Review Date",
+        dateType: "SME Initial Review Date",
         dateValue: new Date("2025-02-06T00:00:00.000-05:00"),
       },
       {
@@ -889,149 +1287,21 @@ async function seedDatabase() {
     },
   });
 
-  console.log("🌱 Seeding amendments...");
-  const demonstrationIds = await prisma().demonstration.findMany({
-    select: { id: true },
-  });
-  if (!demonstrationIds.length) {
-    throw new Error("No demonstrations found for amendment/extension seeding");
-  }
-  for (let i = 0; i < amendmentCount; i++) {
-    const createInput: CreateAmendmentInput = {
-      demonstrationId: faker.helpers.arrayElement(demonstrationIds).id,
-      name: faker.lorem.words(3),
-      description: faker.lorem.sentence(),
-      signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
-    };
-    await __createAmendment(undefined, { input: createInput });
-  }
-  const amendments = await getManyApplications("Amendment");
-  for (const amendment of amendments!) {
-    const randomDates = randomDateRange();
-    const updatePayload: UpdateAmendmentInput = {
-      effectiveDate: randomDates["start"],
-    };
-    const updateInput = {
-      id: amendment.id,
-      input: updatePayload,
-    };
-    await __updateAmendment(undefined, updateInput);
-  }
-
-  console.log("🌱 Seeding extensions...");
-  for (let i = 0; i < extensionCount; i++) {
-    const createInput: CreateExtensionInput = {
-      demonstrationId: faker.helpers.arrayElement(demonstrationIds).id,
-      name: faker.lorem.words(3),
-      description: faker.lorem.sentence(),
-      signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
-    };
-    await __createExtension(undefined, { input: createInput });
-  }
-  const extensions = await getManyApplications("Extension");
-  for (const extension of extensions!) {
-    const randomDates = randomDateRange();
-    const updatePayload: UpdateExtensionInput = {
-      effectiveDate: randomDates["start"],
-    };
-    const updateInput = {
-      id: extension.id,
-      input: updatePayload,
-    };
-    await __updateExtension(undefined, updateInput);
-  }
-
   await seedTagsAndStatuses();
-  await seedApprovedDemonstration();
-  await seedDeliverables(bypassUserId);
+  await seedApprovedDemonstrations();
+  await seedAmendments();
+  await seedExtensions();
+  const createdDeliverables = await seedDeliverables(bypassUserId, "demos-admin");
+  await simulateDeliverableActions(createdDeliverables[0]);
+  await addDocumentsToDeliverable(createdDeliverables[1]);
 
   await seedDocuments();
 
   await seedApplicationTagSuggestions();
 
   await seedNotes();
-  console.log("🌱 Seeding events (with and without applicationIds)...");
-  // Grab some applications for association
-  const numberOfApplicationEvents = 10;
-  const applicationsForEvents = await prisma().application.findMany({
-    select: { id: true },
-    take: numberOfApplicationEvents,
-  });
 
-  // Grab some users/roles to make events look legit
-  const usersForEvents = await prisma().user.findMany({
-    select: { id: true, personTypeId: true, cognitoSubject: true },
-    take: 5,
-  });
-
-  function pick<T>(arr: T[]): T {
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
-
-  const totalEvents = numberOfApplicationEvents + 10;
-
-  for (let i = 0; i < totalEvents; i++) {
-    // ~60% of events have a applicationId, rest are null
-    const attachApplication = Math.random() < 0.6;
-    const maybeApplication = attachApplication ? (pick(applicationsForEvents)?.id ?? null) : null;
-    const user = pick(usersForEvents);
-
-    // Note that these don't really make sense because application is generic
-    // Should come back and be more specific as EventType evolves
-    const applicationEventTypes: EventType[] = [
-      "Create Amendment Succeeded",
-      "Create Amendment Failed",
-      "Create Demonstration Succeeded",
-      "Create Demonstration Failed",
-      "Create Extension Succeeded",
-      "Create Extension Failed",
-      "Delete Demonstration Succeeded",
-      "Delete Demonstration Failed",
-      "Edit Demonstration Succeeded",
-      "Edit Demonstration Failed",
-    ];
-    const otherEventTypes: EventType[] = ["Login Succeeded", "Logout Succeeded"];
-    const eventTypeId = maybeApplication
-      ? faker.helpers.arrayElement(applicationEventTypes)
-      : faker.helpers.arrayElement(otherEventTypes);
-
-    const systemRoles: Role[] = ["All Users"];
-    const demonstrationRoles: Role[] = [
-      "Project Officer",
-      "Policy Technical Director",
-      "Monitoring & Evaluation Technical Director",
-      "DDME Analyst",
-      "State Point of Contact",
-    ];
-    const roleId = maybeApplication
-      ? faker.helpers.arrayElement(demonstrationRoles)
-      : faker.helpers.arrayElement(systemRoles);
-
-    const eventData: LogEventInput = {
-      role: roleId,
-      applicationId: maybeApplication,
-      eventType: eventTypeId,
-      logLevel: faker.helpers.arrayElement(["err", "warning", "info"]),
-      route: faker.helpers.arrayElement([
-        "/applications",
-        "/applications/:id",
-        "/documents/:id",
-        "/login",
-        "/graph",
-      ]),
-      eventData: {
-        ip: faker.internet.ipv4(),
-        ua: faker.internet.userAgent(),
-        note: faker.lorem.sentence(),
-      },
-    };
-
-    const context = {
-      user,
-    } as GraphQLContext;
-
-    logEvent(undefined, { input: eventData }, context);
-  }
+  await seedReferences();
 
   console.log("✨ Database seeding complete.");
 }

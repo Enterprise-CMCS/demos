@@ -21,6 +21,8 @@ export type PhaseStatus = ServerPhaseStatus | "past-due";
 
 type PhaseDateDisplayMap = Record<PhaseName, Partial<Record<PhaseStatus, DateType>>>;
 
+export const PHASE_SELECTOR_CONTAINER_TEST_ID = "phase-selector-container";
+
 const PHASE_DISPLAY_DATES: PhaseDateDisplayMap = {
   Concept: {
     Started: "Concept Start Date",
@@ -107,6 +109,9 @@ export const PhaseSelector = ({
   const initialPhase: PhaseName = application.currentPhaseName ?? "Concept";
   const [selectedPhase, setSelectedPhase] = useState<PhaseName>(initialPhase);
 
+  const suggestedApplicationTags = application.suggestedApplicationTags ?? [];
+  const hasPendingAISuggestions = suggestedApplicationTags.length > 0;
+
   const renderPhase = (phaseName: PhaseName) => {
     switch (phaseName) {
       case "Concept":
@@ -136,7 +141,7 @@ export const PhaseSelector = ({
 
   return (
     <>
-      <div className="grid grid-cols-8 gap-md mb-2">
+      <div className="grid grid-cols-8 gap-md mb-2" data-testid={PHASE_SELECTOR_CONTAINER_TEST_ID}>
         <PhaseGroups />
         {PHASE_NAMES.map((phaseName, index) => {
           const displayDate = getDisplayedPhaseDate(application, phaseName);
@@ -150,6 +155,7 @@ export const PhaseSelector = ({
               phaseNumber={index + 1}
               displayDate={displayDate}
               isSelectedPhase={selectedPhase === phaseName}
+              showAISuggestions={phaseName === "Application Intake" && hasPendingAISuggestions}
               setPhaseAsSelected={() => setSelectedPhase(phaseName)}
             />
           );

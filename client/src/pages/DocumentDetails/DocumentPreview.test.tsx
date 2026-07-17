@@ -87,7 +87,9 @@ describe("DocumentPreview", () => {
       const embed = document.querySelector("embed");
       expect(embed).toBeInTheDocument();
       expect(embed).toHaveClass("w-full", "h-full");
-      expect(embed?.getAttribute("src")).toBe("blob:mock-url");
+      // PDFs embed the presigned URL directly so the native viewer can read the
+      // document title from its Content-Disposition header (not a blob UUID).
+      expect(embed?.getAttribute("src")).toBe(mockPresignedUrl);
     });
   });
 
@@ -107,13 +109,20 @@ describe("DocumentPreview", () => {
       mime: "image/png",
     });
 
-    render(<DocumentPreview presignedDownloadUrl={mockPresignedUrl} filename={mockFilename} />);
+    // The download uses the document title verbatim, consistent with what's
+    // stored and displayed elsewhere (no extension appended/slugified).
+    render(
+      <DocumentPreview
+        presignedDownloadUrl={mockPresignedUrl}
+        filename="Budget Neutrality Workbook Ohio"
+      />
+    );
 
     await waitFor(() => {
       expect(screen.getByText("Download File")).toBeInTheDocument();
       const link = screen.getByText("Download File").closest("a");
       expect(link).toHaveAttribute("href", "blob:mock-url");
-      expect(link).toHaveAttribute("download", mockFilename);
+      expect(link).toHaveAttribute("download", "Budget Neutrality Workbook Ohio");
     });
   });
 

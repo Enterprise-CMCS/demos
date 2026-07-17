@@ -2,12 +2,15 @@ import { gql } from "graphql-tag";
 import {
   DateTimeOrLocalDate,
   DeliverableAction,
+  DeliverableComment,
   DeliverableDueDateType,
+  DeliverableExtension,
   DeliverableExtensionReasonCode,
   DeliverableStatus,
   DeliverableType,
   Demonstration,
   Document,
+  DocumentType,
   NonEmptyString,
   Tag,
   TagName,
@@ -28,7 +31,11 @@ export const deliverableSchema = gql`
     expectedToBeSubmitted: Boolean!
     cmsDocuments: [Document!]!
     stateDocuments: [Document!]!
+    allowedDocumentTypes: [DocumentType!]!
     deliverableActions: [DeliverableAction!]!
+    extensionRequests: [DeliverableExtension!]!
+    publicComments: [DeliverableComment!]!
+    privateComments: [DeliverableComment!]! @auth(requires: ["Access CMS Field"])
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -70,29 +77,43 @@ export const deliverableSchema = gql`
     newDueDate: DateTimeOrLocalDate
   }
 
+  input DenyDeliverableExtensionInput {
+    deliverableExtensionId: ID!
+    details: NonEmptyString!
+  }
+
   type Query {
     deliverable(id: ID!): Deliverable!
     deliverables: [Deliverable!]!
   }
 
   type Mutation {
-    createDeliverable(input: CreateDeliverableInput): Deliverable
-    updateDeliverable(id: ID!, input: UpdateDeliverableInput!): Deliverable
-    submitDeliverable(id: ID!): Deliverable
-    startDeliverableReview(id: ID!): Deliverable
-    completeDeliverable(id: ID!, finalStatus: FinalDeliverableStatus!): Deliverable
+    createDeliverable(input: CreateDeliverableInput!): Deliverable!
+      @auth(requires: ["Perform CMS Action"])
+    updateDeliverable(id: ID!, input: UpdateDeliverableInput!): Deliverable!
+      @auth(requires: ["Perform CMS Action"])
+    submitDeliverable(id: ID!): Deliverable!
+      @auth(requires: ["Perform CMS Action", "Perform State Action"])
+    startDeliverableReview(id: ID!): Deliverable! @auth(requires: ["Perform CMS Action"])
+    completeDeliverable(id: ID!, finalStatus: FinalDeliverableStatus!): Deliverable!
+      @auth(requires: ["Perform CMS Action"])
     requestDeliverableResubmission(
       id: ID!
       input: RequestDeliverableResubmissionInput!
-    ): Deliverable
+    ): Deliverable! @auth(requires: ["Perform CMS Action"])
     requestDeliverableExtension(
       deliverableId: ID!
       input: RequestDeliverableExtensionInput!
-    ): Deliverable
+    ): Deliverable! @auth(requires: ["Perform State Action"])
     approveDeliverableExtension(
       deliverableId: ID!
       input: ApproveDeliverableExtensionInput!
-    ): Deliverable
+    ): Deliverable! @auth(requires: ["Perform CMS Action"])
+    denyDeliverableExtension(
+      deliverableId: ID!
+      input: DenyDeliverableExtensionInput!
+    ): Deliverable! @auth(requires: ["Perform CMS Action"])
+    deleteDeliverable(id: ID!): Deliverable! @auth(requires: ["Perform CMS Action"])
   }
 `;
 
@@ -109,7 +130,11 @@ export interface Deliverable {
   expectedToBeSubmitted: boolean;
   cmsDocuments: Document[];
   stateDocuments: Document[];
+  allowedDocumentTypes: DocumentType[];
   deliverableActions: DeliverableAction[];
+  extensionRequests: DeliverableExtension[];
+  publicComments: DeliverableComment[];
+  privateComments: DeliverableComment[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -149,4 +174,9 @@ export interface RequestDeliverableExtensionInput {
 export interface ApproveDeliverableExtensionInput {
   deliverableExtensionId: string;
   newDueDate?: DateTimeOrLocalDate;
+}
+
+export interface DenyDeliverableExtensionInput {
+  deliverableExtensionId: string;
+  details: NonEmptyString;
 }

@@ -6,7 +6,7 @@ import { DialogProvider } from "components/dialog/DialogContext";
 import { getCurrentUser } from "components/user/UserContext";
 import type { PersonType } from "demos-server";
 
-const ROUTES_WITH_HIDDEN_SIDENAV = ["/demonstrations/", "/deliverables/", "/admin"];
+const ROUTES_WITH_HIDDEN_SIDENAV = ["/demonstrations/", "/deliverables/", "/admin", "/references"];
 
 export const shouldHideSideNav = (pathname: string, personType?: PersonType) =>
   personType === "demos-state-user" ||
@@ -20,7 +20,7 @@ export const shouldHideSideNav = (pathname: string, personType?: PersonType) =>
 export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const { currentUser } = getCurrentUser();
-  const hideSideNav = shouldHideSideNav(location.pathname, currentUser?.person.personType);
+  const hideSideNav = shouldHideSideNav(location.pathname, currentUser.person.personType);
 
   return (
     <ToastProvider>
@@ -29,11 +29,11 @@ export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
           <Header />
           <div className="flex flex-1 overflow-hidden bg-gray-primary-layout min-h-0">
             {!hideSideNav && <SideNav />}
-            <div className="flex-1 overflow-auto min-h-0 flex flex-col">
+            <div className="relative flex-1 overflow-auto min-h-0 flex flex-col">
               <div className="p-[16px] flex-1">{children}</div>
-              <Footer />
             </div>
           </div>
+          <Footer />
         </div>
       </DialogProvider>
       <ToastContainer />

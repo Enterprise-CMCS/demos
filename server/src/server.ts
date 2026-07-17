@@ -4,17 +4,19 @@ import { ApolloArmor } from "@escape.tech/graphql-armor";
 import { startServerAndCreateLambdaHandler, handlers } from "@as-integrations/aws-lambda";
 import { GraphQLArmorConfig } from "./plugins/graphQLArmorConfig.js";
 import { typeDefs, resolvers } from "./model/graphql.js";
-import { authGatePlugin } from "./auth/auth.plugin.js";
 import { loggingPlugin } from "./plugins/logging.plugin";
 import {
-  AuthorizationClaims,
-  GraphQLContext,
+  type AuthorizationClaims,
+  type GraphQLContext,
   buildContextFromClaims,
   validateClaims,
-} from "./auth/auth.util.js";
+  validatePersonTypeInClaim,
+} from "./auth";
 import { log, reqIdChild, als, store } from "./log.js";
 import type { APIGatewayProxyEvent } from "aws-lambda";
 import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
+import { fieldAuthPlugin } from "./plugins/fieldAuthPlugin.js";
+import { formatGraphQLErrorCode } from "./errors/errorCodes.js";
 
 log.info({ type: "graphql.startup.loaded" });
 
@@ -45,14 +47,12 @@ const server = new ApolloServer<GraphQLContext>({
   typeDefs,
   resolvers,
   ...protection,
-  plugins: [...protection.plugins, authGatePlugin, loggingPlugin],
+  plugins: [...protection.plugins, loggingPlugin, fieldAuthPlugin],
   validationRules: [...protection.validationRules],
-  formatError: (formattedError, error) => {
-    log.debug({ error, type: "graphql.request.error" });
-    return formattedError;
-  },
+  formatError: formatGraphQLErrorCode,
   logger: log,
 });
+
 export function extractClaimsFromEvent(event: APIGatewayProxyEvent): AuthorizationClaims {
   const authorizer = event.requestContext.authorizer;
   if (!authorizer) {
@@ -66,6 +66,7 @@ export function extractClaimsFromEvent(event: APIGatewayProxyEvent): Authorizati
     givenName: authorizer.given_name,
     familyName: authorizer.family_name,
     externalUserId: authorizer.userId,
+    authTime: new Date(Number(authorizer.auth_time) * 1000),
   };
   validateClaims(claims);
   return claims;
@@ -81,6 +82,7 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
           await setDatabaseUrl();
 
           const claims = extractClaimsFromEvent(event);
+          validatePersonTypeInClaim(claims);
           const gqlCtx = await buildContextFromClaims(claims);
 
           const additionalContext = {

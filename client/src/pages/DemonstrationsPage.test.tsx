@@ -11,12 +11,21 @@ vi.mock("@apollo/client", () => ({
   useQuery: (...args: unknown[]) => mockUseQuery(...args),
 }));
 
+vi.mock("components/header/CreateNewButton", () => ({
+  CreateNewButton: ({ hasApprovedDemonstrations }: { hasApprovedDemonstrations: boolean }) => (
+    <div
+      data-testid="create-new-button"
+      data-has-approved-demonstrations={String(hasApprovedDemonstrations)}
+    />
+  ),
+}));
+
 const baseData = {
   demonstrations: [
     {
       id: "demo-1",
       name: "Demo One",
-      status: "Active",
+      status: "Approved",
       state: { id: "CA", name: "California" },
       primaryProjectOfficer: { id: "user-1", fullName: "User One" },
       amendments: [],
@@ -46,8 +55,34 @@ describe("DemonstrationsPage tab persistence", () => {
   it("defaults to My Demonstrations when no tab is stored", () => {
     render(<DemonstrationsPage />);
 
+    expect(screen.getByTestId("create-new-button")).toBeInTheDocument();
+    expect(screen.getByTestId("create-new-button")).toHaveAttribute(
+      "data-has-approved-demonstrations",
+      "true"
+    );
     expect(screen.getByTestId("button-my-demonstrations")).toHaveAttribute("aria-selected", "true");
     expect(sessionStorage.getItem("selectedDemonstrationTab")).toBe("my-demonstrations");
+  });
+
+  it("passes false to CreateNewButton when no approved demonstrations exist", () => {
+    mockUseQuery.mockReturnValue({
+      data: {
+        ...baseData,
+        demonstrations: baseData.demonstrations.map((demonstration) => ({
+          ...demonstration,
+          status: "Pre-Submission",
+        })),
+      },
+      loading: false,
+      error: undefined,
+    });
+
+    render(<DemonstrationsPage />);
+
+    expect(screen.getByTestId("create-new-button")).toHaveAttribute(
+      "data-has-approved-demonstrations",
+      "false"
+    );
   });
 
   it("uses the stored tab selection", () => {

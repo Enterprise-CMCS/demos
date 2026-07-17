@@ -1,0 +1,96 @@
+= How-to: write a parity check
+
+A parity check is one row in the markdown parity report. It compares
+something in MySQL (or `mysql_raw`) against something in `demos_app` and
+returns GREEN, RED, or PENDING.
+
+== Anatomy
+
+A parity check has two parts:
+
+. A SQL view in `sql/99_parity/<NN>_<name>.sql` that exposes the
+  inputs.
+. A `CheckResult` constructed in `migration/phases/parity.py` that
+  reads the view and decides the status.
+
+== Recipe
+
+=== 1. SQL view
+
+[source,sql]
+----
+CREATE OR REPLACE VIEW migration.parity_<name> AS
+SELECT
+  (SELECT count(*) FROM mysql_raw.<src>) AS source_count,
+  (SELECT count(*) FROM demos_app.<tgt>)       AS target_count;
+----
+
+Views are stable across reruns; `CREATE OR REPLACE` keeps the
+`99_parity/` step idempotent.
+
+=== 2. Python check
+
+In `migration/phases/parity.py`, add a module-level function (the
+checks are free functions wired into `run_parity`, not methods on a
+class):
+
+[source,python]
+----
+def _check_<name>(env: Env) -> CheckResult:
+    rows = psql_query(env, "SELECT source_count, target_count FROM migration.parity_<name>")
+    src, tgt = rows[0]
+    if src == tgt:
+        return CheckResult("<name>", "GREEN", f"{src} == {tgt}")
+    return CheckResult("<name>", "RED", f"source={src} target={tgt}")
+----
+
+Wire it into `run_parity`:
+
+[source,python]
+----
+report.checks.append(_check_<name>(env))
+----
+
+=== 3. Tests
+
+`tests/test_parity.py` already covers the overall RED/GREEN/PENDING
+arithmetic. Add a focused test that drives the new check with
+fixture rows and asserts the right status.
+
+=== 4. Verify
+
+[source,sh]
+----
+make parity
+----
+
+Open `reports/runs/parity_<latest>.md` and confirm the new section.
+
+== Conventions
+
+* GREEN means *fully resolved*. PENDING means the check could not
+  run (a schema not registered, a view not present). RED means the
+  check ran and disagreed.
+* PENDING is acceptable in rehearsal with `--accept-pending`. It is
+  *never* acceptable in production.
+* Use sums and counts as the first line of defence; reach for JSONB
+  shape checks only when the column carries a registered schema.
+
+== Related
+
+* xref:reference-jsonb-schema-registry.adoc[JSONB schema registry]
+* xref:../operator/howto-troubleshoot-parity-red.adoc[Troubleshoot red
+  parity]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:howto-revalidate-jsonb.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:howto-run-tests-locally.adoc[next >]
+|===
+endif::[]
+// docnav-end

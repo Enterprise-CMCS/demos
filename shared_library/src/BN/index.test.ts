@@ -17,17 +17,16 @@ describe("parseBNFile", () => {
 
     const result = await parseBNFile(blob);
 
-    expect(result).toHaveLength(2);
-    expect(result[0]?.sheet).toBe("Sheet1");
-    expect(result[0]?.data).toEqual([
-      ["Budget", 2026],
-      ["Amount", 123.45],
-    ]);
-    expect(result[1]?.sheet).toBe("Sheet2");
-    expect(result[1]?.data).toEqual([
-      ["Status", "Active"],
-      ["Count", 7],
-    ]);
+    expect(excelColumnRow("A1", "Sheet1", result)).toBe("Budget");
+    expect(excelColumnRow("A2", "Sheet1", result)).toBe("Amount");
+    expect(excelColumnRow("B1", "Sheet1", result)).toBe(2026);
+    expect(excelColumnRow("B2", "Sheet1", result)).toBe(123.45);
+
+    expect(excelColumnRow("B2", "Sheet2", result)).toBe(7);
+
+    expect(excelColumnRow("AS436", "Summary", result)).toBe(12345678);
+
+    expect(result).toHaveLength(3);
   });
 });
 
@@ -35,17 +34,16 @@ describe("parseBNFileFromPath", () => {
   it("parses workbook contents from a file path", async () => {
     const result = await parseBNFileFromPath(fixturePath);
 
-    expect(result).toHaveLength(2);
-    expect(result[0]?.sheet).toBe("Sheet1");
-    expect(result[0]?.data).toEqual([
-      ["Budget", 2026],
-      ["Amount", 123.45],
-    ]);
-    expect(result[1]?.sheet).toBe("Sheet2");
-    expect(result[1]?.data).toEqual([
-      ["Status", "Active"],
-      ["Count", 7],
-    ]);
+    expect(result).toHaveLength(3);
+    expect(excelColumnRow("A1", "Sheet1", result)).toBe("Budget");
+    expect(excelColumnRow("A2", "Sheet1", result)).toBe("Amount");
+    expect(excelColumnRow("B1", "Sheet1", result)).toBe(2026);
+    expect(excelColumnRow("B2", "Sheet1", result)).toBe(123.45);
+    
+    expect(excelColumnRow("B2", "Sheet2", result)).toBe(7);
+
+    expect(excelColumnRow("AS436", "Summary", result)).toBe(12345678);
+      
   });
 
   it("throws when file path does not exist", async () => {
@@ -89,10 +87,8 @@ describe("excelColumnRow", () => {
     );
   });
 
-  it("throws when row is out of range", () => {
-    expect(() => excelColumnRow("A99", "Sheet1", workbookData)).toThrow(
-      "Row 99 not found",
-    );
+  it("returns null when row is out of range", () => {
+    expect(excelColumnRow("A99", "Sheet1", workbookData)).toBeNull();
   });
 
   it("numberToExcelColumn converts numbers to Excel column letters correctly", () => {
@@ -111,6 +107,8 @@ describe("excelColumnRow", () => {
     expect(excelColumnToNumber("Z")).toBe(25);
     expect(excelColumnToNumber("AA")).toBe(26);
     expect(excelColumnToNumber("AH")).toBe(33);
+    expect(excelColumnToNumber("AS")).toBe(44);
+
   });
 });
 

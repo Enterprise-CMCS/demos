@@ -1,13 +1,7 @@
-import { describe, it, expect, vi, beforeEach, expectTypeOf } from "vitest";
-import {
-  __createAmendment,
-  __updateAmendment,
-  deleteAmendment,
-  amendmentResolvers,
-} from "./amendmentResolvers";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { __updateAmendment, deleteAmendment, amendmentResolvers } from "./amendmentResolvers";
 import {
   ApplicationStatus,
-  ApplicationType,
   ClearanceLevel,
   CreateAmendmentInput,
   PhaseName,
@@ -32,19 +26,19 @@ import {
 import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities";
 import { ContextUser, GraphQLContext } from "../../auth";
 import { getDemonstration } from "../demonstration";
-import { getAmendment, getManyAmendments } from "./amendmentData";
+import { getAmendment } from "./amendmentData";
 import { getManyDocuments } from "../document";
-import { getManyApplicationPhases } from "../applicationPhase";
-import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
+import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
-import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
+import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
+import { selectManyApplicationPhases } from "../applicationPhase/queries";
+import { createAmendment } from ".";
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
 vi.mock("./amendmentData", () => ({
   getAmendment: vi.fn(),
-  getManyAmendments: vi.fn(),
 }));
 
 vi.mock("../document", () => ({
@@ -55,16 +49,16 @@ vi.mock("../demonstration", () => ({
   getDemonstration: vi.fn(),
 }));
 
-vi.mock("../applicationPhase", () => ({
-  getManyApplicationPhases: vi.fn(),
+vi.mock("../applicationPhase/queries", () => ({
+  selectManyApplicationPhases: vi.fn(),
 }));
 
-vi.mock("../applicationTagAssignment", () => ({
-  getManyApplicationTagAssignments: vi.fn(),
+vi.mock("../applicationTagAssignment/queries", () => ({
+  selectManyApplicationTagAssignments: vi.fn(),
 }));
 
-vi.mock("../applicationTagSuggestion", () => ({
-  getManyApplicationTagSuggestions: vi.fn(),
+vi.mock("../applicationTagSuggestion/queries", () => ({
+  selectManyApplicationTagSuggestions: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -75,6 +69,10 @@ vi.mock("../application", () => ({
 
 vi.mock("../../errors/checkOptionalNotNullFields", () => ({
   checkOptionalNotNullFields: vi.fn(),
+}));
+
+vi.mock(".", () => ({
+  createAmendment: vi.fn(),
 }));
 
 const testHandlePrismaError = new Error("Test handlePrismaError!");
@@ -99,22 +97,8 @@ describe("amendmentResolvers", () => {
       update: vi.fn(),
     },
   };
-  const transactionMocks = {
-    application: {
-      create: vi.fn(),
-    },
-    amendment: {
-      create: vi.fn(),
-    },
-  };
-  const mockTransaction = {
-    application: {
-      create: transactionMocks.application.create,
-    },
-    amendment: {
-      create: transactionMocks.amendment.create,
-    },
-  };
+
+  const mockTransaction = {};
   const mockPrismaClient = {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
     amendment: {
@@ -126,12 +110,7 @@ describe("amendmentResolvers", () => {
     user: mockUser,
   };
   const testAmendmentId = "8167c039-9c08-4203-b7d2-9e35ec156993";
-  const testDemonstrationId = "518aa497-d547-422e-95a0-02076c7f7698";
-  const testAmendmentName = "The Amendment";
   const testAmendmentDescription = "A description of an amendment";
-  const testAmendmentTypeId: ApplicationType = "Amendment";
-  const testAmendmentStatusId: ApplicationStatus = "Pre-Submission";
-  const testAmendmentPhaseId: PhaseName = "Concept";
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -144,13 +123,6 @@ describe("amendmentResolvers", () => {
     it("delegates to amendmentData.getAmendment", async () => {
       await amendmentResolvers.Query.amendment(undefined, { id: "abc123" }, mockContext);
       expect(getAmendment).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
-    });
-  });
-
-  describe("Query.amendments", () => {
-    it("delegates to amendmentData.getManyAmendments", async () => {
-      await amendmentResolvers.Query.amendments(undefined, {}, mockContext);
-      expect(getManyAmendments).toHaveBeenCalledExactlyOnceWith({}, mockUser);
     });
   });
 
@@ -177,23 +149,18 @@ describe("amendmentResolvers", () => {
   });
 
   describe("Amendment.phases", () => {
-    it("delegates to `applicationPhaseData.getManyApplicationPhases`", async () => {
-      await amendmentResolvers.Amendment.phases(
-        { id: "amendmentId" } as PrismaAmendment,
-        {},
-        mockContext
-      );
-      expect(getManyApplicationPhases).toHaveBeenCalledExactlyOnceWith(
-        { applicationId: "amendmentId" },
-        mockUser
-      );
+    it("delegates to `applicationPhaseData/queries.selectManyApplicationPhases`", async () => {
+      await amendmentResolvers.Amendment.phases({ id: "amendmentId" } as PrismaAmendment);
+      expect(selectManyApplicationPhases).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "amendmentId",
+      });
     });
   });
 
   describe("Amendment.tags", () => {
-    it("delegates to applicationTagAssignmentData.getManyApplicationTagAssignments and maps result", async () => {
+    it("delegates to applicationTagAssignmentData/queries.selectManyApplicationTagAssignments and maps result", async () => {
       const mockAmendment = { id: "abc123" } as PrismaAmendment;
-      vi.mocked(getManyApplicationTagAssignments).mockResolvedValueOnce([
+      vi.mocked(selectManyApplicationTagAssignments).mockResolvedValueOnce([
         {
           tag: {
             tagNameId: "Tag1",
@@ -208,11 +175,10 @@ describe("amendmentResolvers", () => {
         },
       ] as ApplicationTagAssignmentQueryResult[]);
 
-      const result = await amendmentResolvers.Amendment.tags(mockAmendment, undefined, mockContext);
-      expect(getManyApplicationTagAssignments).toHaveBeenCalledExactlyOnceWith(
-        { applicationId: "abc123" },
-        mockUser
-      );
+      const result = await amendmentResolvers.Amendment.tags(mockAmendment);
+      expect(selectManyApplicationTagAssignments).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "abc123",
+      });
       expect(result).toEqual([
         {
           tagName: "Tag1",
@@ -227,9 +193,9 @@ describe("amendmentResolvers", () => {
   });
 
   describe("Amendment.applicationTagSuggestions", () => {
-    it("delegates to applicationTagSuggestionData.getManyApplicationTagSuggestions and maps result", async () => {
+    it("delegates to applicationTagSuggestionData/queries.selectManyApplicationTagSuggestions and maps result", async () => {
       const mockAmendment = { id: "abc123" } as PrismaAmendment;
-      vi.mocked(getManyApplicationTagSuggestions).mockResolvedValueOnce([
+      vi.mocked(selectManyApplicationTagSuggestions).mockResolvedValueOnce([
         {
           value: "Suggestion1",
         },
@@ -238,20 +204,13 @@ describe("amendmentResolvers", () => {
         },
       ] as PrismaApplicationTagSuggestion[]);
 
-      const result = await amendmentResolvers.Amendment.suggestedApplicationTags(
-        mockAmendment,
-        undefined,
-        mockContext
-      );
-      expect(getManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith(
-        {
-          applicationId: "abc123",
-          statusId: {
-            in: ["Pending"],
-          },
+      const result = await amendmentResolvers.Amendment.suggestedApplicationTags(mockAmendment);
+      expect(selectManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "abc123",
+        statusId: {
+          in: ["Pending"],
         },
-        mockUser
-      );
+      });
       expect(result).toEqual(["Suggestion1", "Suggestion2"]);
     });
   });
@@ -300,40 +259,28 @@ describe("amendmentResolvers", () => {
     });
   });
 
-  describe("__createAmendment", () => {
-    it("should create an application and an amendment in a transaction", async () => {
-      transactionMocks.application.create.mockResolvedValueOnce({
-        id: testAmendmentId,
-        applicationTypeId: testAmendmentTypeId,
-      });
+  describe("Mutation.createAmendment", () => {
+    const testDemonstrationId = "123e4567-e89b-12d3-a456-426614174000";
+    const testName = "Test Amendment";
+    const testDescription = "This is a test amendment.";
+    const testSignatureLevel = "OA" satisfies SignatureLevel;
+    it("should call the createAmendment function with the right arguments", async () => {
       const testInput: { input: CreateAmendmentInput } = {
         input: {
           demonstrationId: testDemonstrationId,
-          name: testAmendmentName,
-          description: testAmendmentDescription,
+          name: testName,
+          description: testDescription,
+          signatureLevel: testSignatureLevel,
         },
       };
-      const expectedCalls = [
-        {
-          data: {
-            applicationTypeId: testAmendmentTypeId,
-          },
-        },
-        {
-          data: {
-            id: testAmendmentId,
-            applicationTypeId: testAmendmentTypeId,
-            demonstrationId: testDemonstrationId,
-            name: testAmendmentName,
-            description: testAmendmentDescription,
-            statusId: testAmendmentStatusId,
-            currentPhaseId: testAmendmentPhaseId,
-          },
-        },
-      ];
-      await __createAmendment(undefined, testInput);
-      expect(transactionMocks.application.create).toHaveBeenCalledExactlyOnceWith(expectedCalls[0]);
-      expect(transactionMocks.amendment.create).toHaveBeenCalledExactlyOnceWith(expectedCalls[1]);
+
+      await amendmentResolvers.Mutation.createAmendment({}, testInput);
+      expect(createAmendment).toHaveBeenCalledExactlyOnceWith({
+        demonstrationId: testDemonstrationId,
+        name: testName,
+        description: testDescription,
+        signatureLevelId: testSignatureLevel,
+      });
     });
   });
 
@@ -344,7 +291,7 @@ describe("amendmentResolvers", () => {
         description: testAmendmentDescription,
       },
     };
-    const expectedCheckOptionalNotNullFieldList = ["demonstrationId", "name", "status"];
+    const expectedCheckOptionalNotNullFieldList = ["demonstrationId", "name"];
     const testEasternTZDate: EasternTZDate = {
       isEasternTZDate: true,
       easternTZDate: new TZDate(2025, 1, 1, 0, 0, 0, 0, "America/New_York"),

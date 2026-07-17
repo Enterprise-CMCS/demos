@@ -132,8 +132,6 @@ export const DialogSandbox: React.FC = () => {
               id: ID,
               name: "foo",
               description: "",
-              documentType: "Other" as DocumentType,
-              file: null,
             })
           }
         >
@@ -180,7 +178,7 @@ export const DialogSandbox: React.FC = () => {
           </Button>
           <Button
             name="manage-contacts"
-            onClick={() => showManageContactsDialog(ID, EXISTING_CONTACTS)}
+            onClick={() => showManageContactsDialog(ID, "NC", EXISTING_CONTACTS)}
           >
             Manage Contacts
           </Button>

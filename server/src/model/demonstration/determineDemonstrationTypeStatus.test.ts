@@ -1,6 +1,5 @@
 import { describe, it, beforeEach, vi, expect } from "vitest";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus";
-import { DemonstrationTypeStatus } from "../../types";
 
 describe("determineDemonstrationTypeStatus", () => {
   beforeEach(() => {

@@ -2,14 +2,17 @@ import {
   CopyObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
+  HeadObjectCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { PrismaTransactionClient } from "../../prismaClient";
-import { UploadDocumentInput } from "../../types";
-import { createDocumentPendingUpload } from "../../model/documentPendingUpload";
-import { S3Adapter } from "../";
+import { create as createContentDisposition } from "content-disposition";
+import { extension as extensionForContentType } from "mime-types";
+import { prisma, PrismaTransactionClient } from "../../prismaClient";
+import { GetPresignedDownloadUrlOptions, S3Adapter } from "../";
+import { sanitizeDownloadFileName } from "./sanitizeDownloadFileName";
+import { Prisma, DocumentPendingUpload as PrismaDocumentPendingUpload } from "@prisma/client";
 
 const EXPIRATION_TIME_SECONDS = 10;
 
@@ -29,6 +32,33 @@ const createS3Client = () => {
 
   return new S3Client(s3ClientConfig);
 };
+
+/** Maps the object's stored S3 Content-Type to a file extension (e.g. "pdf"), or "" if unknown. */
+async function getExtensionForObject(
+  s3Client: S3Client,
+  bucket: string,
+  key: string
+): Promise<string> {
+  const head = await s3Client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
+  const contentType = head.ContentType ?? "";
+  return contentType ? extensionForContentType(contentType) || "" : "";
+}
+
+/** Builds a Content-Disposition with a sanitized name plus the extension derived from Content-Type. */
+async function buildContentDisposition(
+  s3Client: S3Client,
+  bucket: string,
+  key: string,
+  fileName: string,
+  options?: GetPresignedDownloadUrlOptions
+): Promise<string> {
+  const safeName = sanitizeDownloadFileName(fileName, key.split("/").pop() ?? key);
+
+  const extension = await getExtensionForObject(s3Client, bucket, key);
+  const finalName = extension ? `${safeName}.${extension}` : safeName;
+
+  return createContentDisposition(finalName, { type: options?.disposition ?? "inline" });
+}
 
 /**
  * Creates an AWS S3 adapter that uses the AWS SDK to interact with S3 buckets.
@@ -52,10 +82,17 @@ export function createAWSS3Adapter(): S3Adapter {
       });
     },
 
-    async getPresignedDownloadUrl(key: string): Promise<string> {
+    async getPresignedDownloadUrl(
+      key: string,
+      fileName?: string,
+      options?: GetPresignedDownloadUrlOptions
+    ): Promise<string> {
       const getObjectCommand = new GetObjectCommand({
         Bucket: cleanBucket,
         Key: key,
+        ResponseContentDisposition: fileName
+          ? await buildContentDisposition(s3Client, cleanBucket, key, fileName, options)
+          : undefined,
       });
       return await getSignedUrl(s3Client, getObjectCommand, {
         expiresIn: EXPIRATION_TIME_SECONDS,
@@ -105,19 +142,46 @@ export function createAWSS3Adapter(): S3Adapter {
     },
 
     async uploadDocument(
-      tx: PrismaTransactionClient,
-      input: UploadDocumentInput,
-      userId: string
-    ): Promise<{
-      presignedURL: string;
-      documentId: string;
-    }> {
-      const documentPendingUpload = await createDocumentPendingUpload(tx, input, userId);
-      const presignedURL = await this.getPresignedUploadUrl(documentPendingUpload.id);
-      return {
-        presignedURL,
-        documentId: documentPendingUpload.id,
-      };
+      documentData: Prisma.DocumentPendingUploadCreateArgs["data"],
+      tx?: PrismaTransactionClient
+    ): Promise<PrismaDocumentPendingUpload> {
+      return tx
+        ? tx.documentPendingUpload.create({
+            data: documentData,
+          })
+        : prisma().$transaction((transaction) =>
+            transaction.documentPendingUpload.create({
+              data: documentData,
+            })
+          );
+    },
+
+    async uploadOnDemandReport(reportId: string, reportFileData: Buffer): Promise<string> {
+      const key = `reports/on-demand/${reportId}.xlsx`;
+
+      await s3Client.send(
+        new PutObjectCommand({
+          Bucket: cleanBucket,
+          Key: key,
+          Body: reportFileData,
+          ContentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        })
+      );
+
+      return key;
+    },
+
+    async deleteOnDemandReport(reportId: string): Promise<string> {
+      const key = `reports/on-demand/${reportId}.xlsx`;
+
+      await s3Client.send(
+        new DeleteObjectCommand({
+          Bucket: cleanBucket,
+          Key: key,
+        })
+      );
+
+      return key;
     },
   };
 }

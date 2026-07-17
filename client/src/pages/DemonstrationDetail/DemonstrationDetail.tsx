@@ -7,6 +7,7 @@ import {
   DemonstrationTypeAssignment,
   Document,
   Person,
+  State,
 } from "demos-server";
 import { useLocation, useParams } from "react-router-dom";
 import { gql, useQuery } from "@apollo/client";
@@ -46,6 +47,10 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       currentPhaseName
       effectiveDate
       expirationDate
+      medicaidId
+      state {
+        id
+      }
       amendments {
         name
         id
@@ -133,7 +138,11 @@ export type DemonstrationDetailModification = Pick<
     owner: { person: Pick<Person, "fullName"> };
   })[];
 };
-export type DemonstrationDetail = Pick<Demonstration, "id" | "name" | "status" | "currentPhaseName" | "effectiveDate" | "expirationDate"> & {
+export type DemonstrationDetail = Pick<
+  Demonstration,
+  "id" | "name" | "status" | "currentPhaseName" | "effectiveDate" | "expirationDate" | "medicaidId"
+> & {
+  state: Pick<State, "id">;
   amendments: DemonstrationDetailModification[];
   extensions: DemonstrationDetailModification[];
   demonstrationTypes: Pick<
@@ -185,9 +194,9 @@ export const DemonstrationDetail: React.FC = () => {
     return <div>Failed to load demonstration.</div>;
   }
 
-  const hasAmendments = demonstration.amendments && demonstration.amendments.length > 0;
-  const hasExtensions = demonstration.extensions && demonstration.extensions.length > 0;
-
+  const amendmentCount = demonstration.amendments?.length ?? 0;
+  const extensionCount = demonstration.extensions?.length ?? 0;
+  const isApproved = demonstration.status === "Approved";
   return (
     <div>
       {
@@ -200,24 +209,30 @@ export const DemonstrationDetail: React.FC = () => {
             </Tab>
 
             <Tab
-              label={`Amendments (${demonstration.amendments?.length ?? 0})`}
+              label={`Amendments (${amendmentCount})`}
               value="amendments"
-              shouldRender={hasAmendments}
+              shouldRender={isApproved || amendmentCount > 0}
             >
               <AmendmentsTab
                 demonstrationId={demonstration.id}
+                medicaidId={demonstration.medicaidId}
                 amendments={demonstration.amendments}
+                selectedAmendmentId={amendmentParam || undefined}
+                canCreateModifications={isApproved}
               />
             </Tab>
 
             <Tab
-              label={`Extensions (${demonstration.extensions?.length ?? 0})`}
+              label={`Extensions (${extensionCount})`}
               value="extensions"
-              shouldRender={hasExtensions}
+              shouldRender={isApproved || extensionCount > 0}
             >
               <ExtensionsTab
                 demonstrationId={demonstration.id}
+                medicaidId={demonstration.medicaidId}
                 extensions={demonstration.extensions}
+                selectedExtensionId={extensionParam || undefined}
+                canCreateModifications={isApproved}
               />
             </Tab>
           </Tabs>

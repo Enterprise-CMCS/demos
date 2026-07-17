@@ -47,24 +47,42 @@ This file provides instructions for AI agents to use when generating or editing 
 - Before using raw HTML controls, check `src/components/` and `src/layout/` for an existing wrapper.
 - Prefer project components for inputs, buttons, tables, dialogs, tabs, and toast/notice feedback.
 
+#### DatePicker / Dates
+
+- DatePickers propagate valid values (yyyy-mm-dd) back to calling components `onChange` handler.
+- Computed dates receive values via the `value` prop and display this.
+- Out-of-range inputs are displayed and flagged but not propagated.
+- If needed, refer to the `src/util/formatDates.ts` for considerations on date utility functions.
+
 ## Apollo / GraphQL
 
 - Co-locate each `gql` document with the component/hook that owns it.
 - Export query/mutation documents if tests, mocks, or `refetchQueries` need them.
 - After successful mutations, refetch affected queries.
-- All outbound dates must use `formatDateForServer` from `util/formatDate`.
-- Inbound dates may need to use `getDateEst(date)`.
 
 ## Testing
+
+### Unit Testing
 
 - Place tests next to implementation (`Foo.tsx` and `Foo.test.tsx`).
 - Use `@testing-library/react` with `vitest`; prefer `screen.getByTestId()` queries.
 - Often times `name` attributes are propagated to `data-test-id`, try this approach first.
 - Prefer real behavior over heavy mocking; use `vi.mock(...)` only at clear boundaries.
 - Run tests with `npm run test:once ...`
-- Run linting + typechecking with `npm run lint`
 - Prefer to keep mock data in test files for clarity / isolation rather than in `/mock-data`.
-- For testing behavior with different roles you can use the different variants of `npm run dev:mocks` - `dev:mocks:admin`, `dev:mocks:state`, etc. Some functionality is only available through certain roles. 
+- Use <TestProvider> as needed to provide dependencies such as toasts, auth, routing, etc.
+- Prefer to not mock <DialogProvider>. Also <TestProvider> does not provide dialogs and they should be provided inside of <TestProvider> if needed.
+- Generally, avoid firing manual focus / blur events in tests
+
+### General Testing
+
+- Run linting + typechecking with `npm run lint`
+- For testing behavior with different roles you can use the different variants of `npm run dev:mocks` - `dev:mocks:admin`, `dev:mocks:state`, etc. Some functionality is only available through certain roles.
+- For testing an unauthenticated user: `npm run dev:mocks:unauth`
+
+### Accessibility Testing
+
+- For testing focus changing throught the application add this temporary rule to `index.css`: `*:focus { outline: 3px solid red !important; }`
 
 ### Mocking Mutations
 
@@ -88,10 +106,3 @@ vi.mock("@apollo/client", async () => {
 - `src/router/`: app-level providers and routing
 - `src/layout/`: layout and navigation shells
 - `src/mock-data/`: Apollo `MockedResponse` fixtures
-
-## Outdated Patterns
-
-Patterns that exist now that will likely be replaced in the future. Try not entrench these patterns further if avoidable and if not then implement them consistently with other usages to make for a simpler refactor.
-
-- `getCurrentUser` SHOULD NEVER return undefined for `currentUser`. If `getCurrentUser` cannot resolve a proper `currentUser` object then `<UserContext>` should show a relevant error page itself and cease operation.
-- `addTypename` on `<MockedProvider>` is deprecated and should be removed.

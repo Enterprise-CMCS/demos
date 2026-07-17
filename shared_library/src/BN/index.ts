@@ -65,16 +65,10 @@ export function excelColumnRow(
   const columnLetters = match[1]!;
   const rowNumber = parseInt(match[2]!, 10) - 1;
 
-  let columnNumber = 0;
-  for (let i = 0; i < columnLetters.length; i++) {
-    columnNumber *= 26;
-    columnNumber += columnLetters.charCodeAt(i) - "A".charCodeAt(0);
-  }
-
   const row = sheetData.data[rowNumber];
   if (!row) {
-    throw new Error(`Row ${rowNumber + 1} not found`);
+    return null;
   }
 
-  return row[columnNumber];
+  return row[excelColumnToNumber(columnLetters)] as CellValue;
 }

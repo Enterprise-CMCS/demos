@@ -1,21 +1,24 @@
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { DeliverableTable, formatDeliverableStatus } from "./DeliverableTable";
+import { DeliverableTable, formatDeliverableStatus, getLatestSubmissionDate } from "./DeliverableTable";
+import { DELIVERABLE_CANT_DELETE_HAS_FILES } from "./DeliverableActionButtons";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import type { DeliverableTableRow } from "./DeliverableTable";
 import { MOCK_DELIVERABLE_TABLE_ROW } from "mock-data/deliverableMocks";
+import { formatDateForDisplay } from "util/formatDate";
 
 const showEditDeliverableDialog = vi.fn();
+const showRemoveDeliverableDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
-  useDialog: () => ({ showEditDeliverableDialog }),
+  useDialog: () => ({ showEditDeliverableDialog, showRemoveDeliverableDialog }),
 }));
 
 const MOCK_DELIVERABLE_TABLE_ROWS = [
   MOCK_DELIVERABLE_TABLE_ROW,
-  {...MOCK_DELIVERABLE_TABLE_ROW, id: "2", name: "Another Deliverable"},
+  { ...MOCK_DELIVERABLE_TABLE_ROW, id: "2", name: "Another Deliverable" },
 ];
 
 const sortedDeliverables = sortDeliverablesByDefault(MOCK_DELIVERABLE_TABLE_ROWS);
@@ -23,7 +26,11 @@ const sortedFirstPageIds = sortedDeliverables.slice(0, 10).map((deliverable) => 
 
 describe("DeliverableTable", () => {
   beforeEach(async () => {
-    render(<DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-cms-user" />);
+    showEditDeliverableDialog.mockClear();
+    showRemoveDeliverableDialog.mockClear();
+    render(
+      <DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-cms-user" />
+    );
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
@@ -69,8 +76,7 @@ describe("DeliverableTable", () => {
     });
   });
 
-  it("renders action buttons (add/edit/remove)", () => {
-    expect(screen.getByLabelText(/Add Deliverable/i)).toBeInTheDocument();
+  it("renders action buttons (edit/remove)", () => {
     expect(screen.getByLabelText(/Edit Deliverable/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Remove Deliverable/i)).toBeInTheDocument();
   });
@@ -81,6 +87,7 @@ describe("DeliverableTable", () => {
 
     expect(editBtn).toBeDisabled();
     expect(removeBtn).toBeDisabled();
+    expect(removeBtn).toHaveAttribute("title", "Select a Deliverable to Delete");
   });
 
   it("enables Edit for exactly one selected row", async () => {
@@ -109,6 +116,38 @@ describe("DeliverableTable", () => {
 
     const removeBtn = screen.getByTestId("remove-deliverable");
     expect(removeBtn).not.toBeDisabled();
+    expect(removeBtn).toHaveAttribute("title", "Delete");
+  });
+
+  it("opens the remove deliverable dialog for selected rows", async () => {
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`));
+    await user.click(screen.getByTestId("remove-deliverable"));
+
+    expect(showRemoveDeliverableDialog).toHaveBeenCalledWith(
+      [sortedFirstPageIds[0]],
+      expect.any(Function)
+    );
+  });
+
+  it("clears selected rows after selected deliverables are deleted", async () => {
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`));
+    await user.click(screen.getByTestId("remove-deliverable"));
+
+    const onDeleted = showRemoveDeliverableDialog.mock.calls[0][1];
+    act(() => {
+      onDeleted();
+    });
+
+    expect(screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`)).not.toBeChecked();
+    expect(screen.getByTestId("remove-deliverable")).toBeDisabled();
+
+    await user.click(screen.getByTestId(`select-row-${sortedFirstPageIds[1]}`));
+
+    expect(screen.getByTestId("remove-deliverable")).not.toBeDisabled();
   });
 
   describe("Keyword Search functionality", () => {
@@ -124,9 +163,7 @@ describe("DeliverableTable", () => {
       await user.type(searchInput, MOCK_DELIVERABLE_TABLE_ROWS[0].name);
 
       await waitFor(() => {
-        expect(
-          screen.getByText(MOCK_DELIVERABLE_TABLE_ROWS[0].name)
-        ).toBeInTheDocument();
+        expect(screen.getByText(MOCK_DELIVERABLE_TABLE_ROWS[0].name)).toBeInTheDocument();
       });
     });
 
@@ -137,9 +174,7 @@ describe("DeliverableTable", () => {
       await user.type(searchInput, "notarealkeyword");
 
       await waitFor(() => {
-        expect(
-          screen.getByText(/No deliverables match your search\./i)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/No deliverables match your search\./i)).toBeInTheDocument();
       });
     });
 
@@ -150,9 +185,7 @@ describe("DeliverableTable", () => {
       await user.type(searchInput, MOCK_DELIVERABLE_TABLE_ROWS[0].name);
 
       await waitFor(() => {
-        expect(
-          screen.getByText(MOCK_DELIVERABLE_TABLE_ROWS[0].name)
-        ).toBeInTheDocument();
+        expect(screen.getByText(MOCK_DELIVERABLE_TABLE_ROWS[0].name)).toBeInTheDocument();
       });
 
       const clearBtn = screen.getByRole("button", { name: /clear search/i });
@@ -166,17 +199,144 @@ describe("DeliverableTable", () => {
     });
   });
 
-  it("renders status values as-is", () => {
+  it("renders finalized statuses as-is", () => {
     expect(
       formatDeliverableStatus({
-        status: "Upcoming",
+        status: "Accepted",
+        deliverableActions: [],
+        extensionRequests: [],
       })
-    ).toBe("Upcoming");
+    ).toBe("Accepted");
+
     expect(
       formatDeliverableStatus({
         status: "Approved",
+        deliverableActions: [],
+        extensionRequests: [
+          {
+            id: "1",
+            status: "Requested",
+          },
+        ],
       })
     ).toBe("Approved");
+
+    expect(
+      formatDeliverableStatus({
+        status: "Received and Filed",
+        deliverableActions: [
+          {
+            id: "1",
+            actionType: "Requested Resubmission",
+            actionTimestamp: new Date("2024-01-01T00:00:00Z"),
+          },
+        ],
+        extensionRequests: [
+          {
+            id: "1",
+            status: "Requested",
+          },
+        ],
+      })
+    ).toBe("Received and Filed");
+  });
+
+  it("renders base status when there are no resubmissions or open extension requests", () => {
+    expect(
+      formatDeliverableStatus({
+        status: "Submitted",
+        deliverableActions: [],
+        extensionRequests: [],
+      })
+    ).toBe("Submitted");
+  });
+
+  it("renders extension requested suffix when an extension request is open", () => {
+    expect(
+      formatDeliverableStatus({
+        status: "Submitted",
+        deliverableActions: [],
+        extensionRequests: [
+          {
+            id: "1",
+            status: "Requested",
+          },
+        ],
+      })
+    ).toBe("Submitted - Extension Requested");
+  });
+
+  it("renders resubmission count when resubmissions have been requested", () => {
+    expect(
+      formatDeliverableStatus({
+        status: "Submitted",
+        deliverableActions: [
+          {
+            id: "1",
+            actionType: "Requested Resubmission",
+            actionTimestamp: new Date("2024-01-01T00:00:00Z"),
+          },
+          {
+            id: "2",
+            actionType: "Requested Resubmission",
+            actionTimestamp: new Date("2024-01-02T00:00:00Z"),
+          },
+        ],
+        extensionRequests: [],
+      })
+    ).toBe("Submitted (2)");
+  });
+
+  it("renders both resubmission count and extension requested suffix", () => {
+    expect(
+      formatDeliverableStatus({
+        status: "Under CMS Review",
+        deliverableActions: [
+          {
+            id: "1",
+            actionType: "Requested Resubmission",
+            actionTimestamp: new Date("2024-01-01T00:00:00Z"),
+          },
+        ],
+        extensionRequests: [
+          {
+            id: "1",
+            status: "Requested",
+          },
+        ],
+      })
+    ).toBe("Under CMS Review (1) - Extension Requested");
+  });
+
+  it("ignores non-requested extension request statuses", () => {
+    expect(
+      formatDeliverableStatus({
+        status: "Submitted",
+        deliverableActions: [],
+        extensionRequests: [
+          {
+            id: "1",
+            status: "Approved",
+          },
+        ],
+      })
+    ).toBe("Submitted");
+  });
+
+  it("ignores non-resubmission deliverable actions", () => {
+    expect(
+      formatDeliverableStatus({
+        status: "Submitted",
+        deliverableActions: [
+          {
+            id: "1",
+            actionType: "Created Deliverable Slot",
+            actionTimestamp: new Date("2024-01-01T00:00:00Z"),
+          },
+        ],
+        extensionRequests: [],
+      })
+    ).toBe("Submitted");
   });
 
   it("renders column filter dropdown", () => {
@@ -214,7 +374,7 @@ describe("DeliverableTable", () => {
 
     expect(optionLabels).toEqual([
       "Select a Column...",
-      "State/Territory",
+      "State/\u200BTerritory",
       "Demonstration Name",
       "Deliverable Type",
       "Deliverable Name",
@@ -228,15 +388,18 @@ describe("DeliverableTable", () => {
   it("keeps applied sorting after a column filter is cleared", async () => {
     const user = userEvent.setup();
     const getVisibleDeliverableOrder = () =>
-      screen.getAllByRole("row").slice(1).flatMap((row) => {
-        if (within(row).queryByText("Another Deliverable")) {
-          return ["Another Deliverable"];
-        }
-        if (within(row).queryByText("Budget Neutrality Report")) {
-          return ["Budget Neutrality Report"];
-        }
-        return [];
-      });
+      screen
+        .getAllByRole("row")
+        .slice(1)
+        .flatMap((row) => {
+          if (within(row).queryByText("Another Deliverable")) {
+            return ["Another Deliverable"];
+          }
+          if (within(row).queryByText("Budget Neutrality Report")) {
+            return ["Budget Neutrality Report"];
+          }
+          return [];
+        });
 
     await user.click(screen.getByRole("columnheader", { name: /Deliverable Name/i }));
 
@@ -275,7 +438,9 @@ describe("DeliverableTable", () => {
 
 describe("DeliverableTable demos-state-user view mode", () => {
   it("renders the state-user column set and hides state/CMS owner", async () => {
-    render(<DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-state-user" />);
+    render(
+      <DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-state-user" />
+    );
 
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
@@ -294,15 +459,18 @@ describe("DeliverableTable demos-state-user view mode", () => {
   });
 
   it("hides row action buttons in state-user mode", () => {
-    render(<DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-state-user" />);
+    render(
+      <DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-state-user" />
+    );
 
-    expect(screen.queryByLabelText(/Add Deliverable/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Edit Deliverable/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Remove Deliverable/i)).not.toBeInTheDocument();
   });
 
   it("shows filter options aligned to visible state-user columns", async () => {
-    render(<DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-state-user" />);
+    render(
+      <DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-state-user" />
+    );
 
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
@@ -320,6 +488,295 @@ describe("DeliverableTable demos-state-user view mode", () => {
       "Submission Date",
       "Status",
     ]);
+  });
+});
+
+describe("DeliverableTable Remove action", () => {
+  const FINALIZED_ROWS: DeliverableTableRow[] = [
+    { ...MOCK_DELIVERABLE_TABLE_ROW, id: "active", status: "Upcoming" },
+    { ...MOCK_DELIVERABLE_TABLE_ROW, id: "approved", status: "Approved" },
+    { ...MOCK_DELIVERABLE_TABLE_ROW, id: "accepted", status: "Accepted" },
+  ];
+
+  it("disables Remove when the only selected row is finalized", async () => {
+    render(<DeliverableTable deliverables={FINALIZED_ROWS} viewMode="demos-cms-user" />);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("select-row-approved"));
+
+    const removeButton = screen.getByTestId("remove-deliverable");
+    expect(removeButton).toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", "Delete");
+  });
+
+  it("disables Remove when any of multiple selected rows is finalized", async () => {
+    render(<DeliverableTable deliverables={FINALIZED_ROWS} viewMode="demos-cms-user" />);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("select-row-active"));
+    await user.click(screen.getByTestId("select-row-accepted"));
+
+    const removeButton = screen.getByTestId("remove-deliverable");
+    expect(removeButton).toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", "Delete");
+  });
+
+  it("enables Remove when the selected row is Upcoming", async () => {
+    render(<DeliverableTable deliverables={FINALIZED_ROWS} viewMode="demos-cms-user" />);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("select-row-active"));
+
+    expect(screen.getByTestId("remove-deliverable")).not.toBeDisabled();
+  });
+
+  it("enables Remove when the selected row is Past Due", async () => {
+    render(
+      <DeliverableTable
+        deliverables={[{ ...MOCK_DELIVERABLE_TABLE_ROW, id: "past-due", status: "Past Due" }]}
+        viewMode="demos-cms-user"
+      />
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("select-row-past-due"));
+
+    const removeButton = screen.getByTestId("remove-deliverable");
+    expect(removeButton).not.toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", "Delete");
+  });
+
+  it("disables Remove when a selected row has a non-deletable non-final status", async () => {
+    render(
+      <DeliverableTable
+        deliverables={[{ ...MOCK_DELIVERABLE_TABLE_ROW, id: "submitted", status: "Submitted" }]}
+        viewMode="demos-cms-user"
+      />
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("select-row-submitted"));
+
+    const removeButton = screen.getByTestId("remove-deliverable");
+    expect(removeButton).toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", "Delete");
+  });
+
+  it("enables Remove when selected rows are Upcoming and Past Due", async () => {
+    render(
+      <DeliverableTable
+        deliverables={[
+          { ...MOCK_DELIVERABLE_TABLE_ROW, id: "upcoming", status: "Upcoming" },
+          { ...MOCK_DELIVERABLE_TABLE_ROW, id: "past-due", status: "Past Due" },
+        ]}
+        viewMode="demos-cms-user"
+      />
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("select-row-upcoming"));
+    await user.click(screen.getByTestId("select-row-past-due"));
+
+    const removeButton = screen.getByTestId("remove-deliverable");
+    expect(removeButton).not.toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", "Delete");
+  });
+
+  it("disables Remove when one of multiple selected rows has a non-deletable status", async () => {
+    render(
+      <DeliverableTable
+        deliverables={[
+          { ...MOCK_DELIVERABLE_TABLE_ROW, id: "upcoming", status: "Upcoming" },
+          { ...MOCK_DELIVERABLE_TABLE_ROW, id: "submitted", status: "Submitted" },
+        ]}
+        viewMode="demos-cms-user"
+      />
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("select-row-upcoming"));
+    await user.click(screen.getByTestId("select-row-submitted"));
+
+    const removeButton = screen.getByTestId("remove-deliverable");
+    expect(removeButton).toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", "Delete");
+  });
+
+  it("disables Remove when a selected row has files", async () => {
+    render(
+      <DeliverableTable
+        deliverables={[
+          {
+            ...MOCK_DELIVERABLE_TABLE_ROW,
+            id: "has-file",
+            status: "Upcoming",
+            cmsDocuments: [{ id: "doc-1" }],
+          },
+        ]}
+        viewMode="demos-cms-user"
+      />
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("select-row-has-file"));
+
+    const removeButton = screen.getByTestId("remove-deliverable");
+    expect(removeButton).toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", DELIVERABLE_CANT_DELETE_HAS_FILES);
+  });
+
+  it("disables Remove when a selected row has comments", async () => {
+    render(
+      <DeliverableTable
+        deliverables={[
+          {
+            ...MOCK_DELIVERABLE_TABLE_ROW,
+            id: "has-comment",
+            status: "Past Due",
+            publicComments: [{ id: "comment-1" }],
+          },
+        ]}
+        viewMode="demos-cms-user"
+      />
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("select-row-has-comment"));
+
+    const removeButton = screen.getByTestId("remove-deliverable");
+    expect(removeButton).toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", DELIVERABLE_CANT_DELETE_HAS_FILES);
+  });
+
+  it("disables Remove when one of multiple selected rows has files or comments", async () => {
+    render(
+      <DeliverableTable
+        deliverables={[
+          {
+            ...MOCK_DELIVERABLE_TABLE_ROW,
+            id: "delete-ready",
+            status: "Upcoming",
+            cmsDocuments: [],
+            publicComments: [],
+          },
+          {
+            ...MOCK_DELIVERABLE_TABLE_ROW,
+            id: "has-comment",
+            status: "Upcoming",
+            publicComments: [{ id: "comment-1" }],
+          },
+        ]}
+        viewMode="demos-cms-user"
+      />
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("select-row-delete-ready"));
+    await user.click(screen.getByTestId("select-row-has-comment"));
+
+    const removeButton = screen.getByTestId("remove-deliverable");
+    expect(removeButton).toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", DELIVERABLE_CANT_DELETE_HAS_FILES);
+  });
+
+  it("enables Remove after the selected row with files or comments is deselected", async () => {
+    render(
+      <DeliverableTable
+        deliverables={[
+          {
+            ...MOCK_DELIVERABLE_TABLE_ROW,
+            id: "delete-ready",
+            status: "Upcoming",
+            cmsDocuments: [],
+            publicComments: [],
+          },
+          {
+            ...MOCK_DELIVERABLE_TABLE_ROW,
+            id: "has-file",
+            status: "Upcoming",
+            cmsDocuments: [{ id: "doc-1" }],
+          },
+        ]}
+        viewMode="demos-cms-user"
+      />
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("select-row-delete-ready"));
+    await user.click(screen.getByTestId("select-row-has-file"));
+
+    expect(screen.getByTestId("remove-deliverable")).toBeDisabled();
+
+    await user.click(screen.getByTestId("select-row-has-file"));
+
+    const removeButton = screen.getByTestId("remove-deliverable");
+    expect(removeButton).not.toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", "Delete");
+  });
+
+  it("disables Remove when multiple selected rows all have files or comments", async () => {
+    render(
+      <DeliverableTable
+        deliverables={[
+          {
+            ...MOCK_DELIVERABLE_TABLE_ROW,
+            id: "has-file",
+            status: "Upcoming",
+            cmsDocuments: [{ id: "doc-1" }],
+          },
+          {
+            ...MOCK_DELIVERABLE_TABLE_ROW,
+            id: "has-comment",
+            status: "Upcoming",
+            publicComments: [{ id: "comment-1" }],
+          },
+        ]}
+        viewMode="demos-cms-user"
+      />
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("select-row-has-file"));
+    await user.click(screen.getByTestId("select-row-has-comment"));
+
+    const removeButton = screen.getByTestId("remove-deliverable");
+    expect(removeButton).toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", DELIVERABLE_CANT_DELETE_HAS_FILES);
+  });
+
+  it("renders the latest submission date in the Submission Date column", async () => {
+    const latestSubmission = new Date("2024-02-01T00:00:00Z");
+
+    render(
+      <DeliverableTable
+        deliverables={[
+          {
+            ...MOCK_DELIVERABLE_TABLE_ROW,
+            deliverableActions: [
+              {
+                id: "1",
+                actionType: "Submitted Deliverable",
+                actionTimestamp: new Date("2024-01-01T00:00:00Z"),
+              },
+              {
+                id: "2",
+                actionType: "Submitted Deliverable",
+                actionTimestamp: latestSubmission,
+              },
+            ],
+          },
+        ]}
+        viewMode="demos-cms-user"
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+
+    expect(
+      screen.getByText(formatDateForDisplay(latestSubmission))
+    ).toBeInTheDocument();
   });
 });
 
@@ -363,5 +820,70 @@ describe("DeliverableTable default sorting behavior", () => {
     );
 
     expect(getRenderedRowIds()).toEqual(["past-due", "upcoming", "submitted"]);
+  });
+});
+
+describe("getLatestSubmissionDate", () => {
+  it("returns undefined when there are no submission actions", () => {
+    expect(
+      getLatestSubmissionDate([
+        {
+          id: "1",
+          actionType: "Created Deliverable Slot",
+          actionTimestamp: new Date("2024-01-01T00:00:00Z"),
+        },
+      ])
+    ).toBeUndefined();
+  });
+
+  it("returns the date of the only submission", () => {
+    expect(
+      getLatestSubmissionDate([
+        {
+          id: "1",
+          actionType: "Submitted Deliverable",
+          actionTimestamp: new Date("2024-01-15T00:00:00Z"),
+        },
+      ])
+    ).toBe(formatDateForDisplay(new Date("2024-01-15T00:00:00Z")));
+  });
+
+  it("returns the most recent submission date when multiple submissions exist", () => {
+    expect(
+      getLatestSubmissionDate([
+        {
+          id: "1",
+          actionType: "Submitted Deliverable",
+          actionTimestamp: new Date("2024-01-01T00:00:00Z"),
+        },
+        {
+          id: "2",
+          actionType: "Submitted Deliverable",
+          actionTimestamp: new Date("2024-02-01T00:00:00Z"),
+        },
+        {
+          id: "3",
+          actionType: "Submitted Deliverable",
+          actionTimestamp: new Date("2024-01-15T00:00:00Z"),
+        },
+      ])
+    ).toBe(formatDateForDisplay(new Date("2024-02-01T00:00:00Z")));
+  });
+
+  it("ignores non-submission actions when determining latest submission date", () => {
+    expect(
+      getLatestSubmissionDate([
+        {
+          id: "1",
+          actionType: "Created Deliverable Slot",
+          actionTimestamp: new Date("2025-01-01T00:00:00Z"),
+        },
+        {
+          id: "2",
+          actionType: "Submitted Deliverable",
+          actionTimestamp: new Date("2024-01-01T00:00:00Z"),
+        },
+      ])
+    ).toBe(formatDateForDisplay(new Date("2024-01-01T00:00:00Z")));
   });
 });

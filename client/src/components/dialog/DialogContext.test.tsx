@@ -6,7 +6,7 @@ import { DialogProvider, useDialog } from "./DialogContext";
 import { ExistingContactType } from "./ManageContactsDialog";
 import { DocumentDialogFields } from "./document/DocumentDialog";
 import { DeclareIncompleteForm } from "./DeclareIncompleteDialog";
-import { TagName } from "demos-server";
+import { Reference, ReferenceAgreement, TagName } from "demos-server";
 import { DemonstrationType } from "./DemonstrationTypes/EditDemonstrationTypeDialog";
 import { formatDateForServer } from "util/formatDate";
 
@@ -128,7 +128,7 @@ vi.mock("./ManageContactsDialog", () => ({
   ),
 }));
 vi.mock("./document", () => ({
-  AddDocumentDialog: ({
+  AddDocumentToApplicationDialog: ({
     onClose,
     applicationId,
   }: {
@@ -142,19 +142,8 @@ vi.mock("./document", () => ({
       </button>
     </div>
   ),
-  EditDocumentDialog: ({
-    initialDocument,
-    onClose,
-  }: {
-    initialDocument: { id: string };
-    onClose: () => void;
-  }) => (
-    <div data-testid="edit-document-dialog">
-      Edit Document Dialog {initialDocument.id}
-      <button data-testid="close-edit-document-btn" onClick={onClose}>
-        Close
-      </button>
-    </div>
+  EditDocumentDialog: ({ document }: { document: { id: string } }) => (
+    <div data-testid="edit-document-dialog">Edit Document Dialog {document.id}</div>
   ),
   RemoveDocumentDialog: ({
     documentIds,
@@ -336,6 +325,29 @@ vi.mock("./ApplyTagsDialog", () => ({
   ),
 }));
 
+vi.mock("./references/CompletenessDocumentUploadDialog", () => ({
+  CompletenessDocumentUploadDialog: ({
+    applicationId,
+    onClose,
+  }: {
+    applicationId: string;
+    onClose: () => void;
+  }) => (
+    <div data-testid="completeness-upload-dialog">
+      Completeness Upload Dialog {applicationId}
+      <button data-testid="close-completeness-upload-btn" onClick={onClose}>
+        Close
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock("./referenceAgreement/ReferenceAgreementDialog", () => ({
+  ReferenceAgreementDialog: ({ reference }: { reference: Reference }) => (
+    <div data-testid="reference-agreement-dialog">Reference Agreement Dialog {reference.id}</div>
+  ),
+}));
+
 const mockRoles: ExistingContactType[] = [
   {
     id: "person-1",
@@ -390,6 +402,7 @@ const TestConsumer: React.FC = () => {
     showEditDemonstrationTypeDialog,
     showApplyTagsDialog,
     showConfirmApproveDialog,
+    showReferenceAgreementDialog,
     closeDialog,
   } = useDialog();
 
@@ -424,7 +437,7 @@ const TestConsumer: React.FC = () => {
       </button>
       <button
         data-testid="open-contacts-btn"
-        onClick={() => showManageContactsDialog("demo-id", mockRoles)}
+        onClick={() => showManageContactsDialog("demo-id", "NC", mockRoles)}
       >
         Open Manage Contacts Dialog
       </button>
@@ -524,6 +537,16 @@ const TestConsumer: React.FC = () => {
         onClick={() => showConfirmApproveDialog(vi.fn(), "demonstration")}
       >
         Open Confirm Approve Dialog
+      </button>
+      <button
+        data-testid="open-reference-agreement-btn"
+        onClick={() =>
+          showReferenceAgreementDialog({ id: "ref-1" } as Pick<Reference, "id"> & {
+            agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt">;
+          })
+        }
+      >
+        Open Reference Agreement Dialog
       </button>
     </div>
   );
@@ -682,7 +705,7 @@ describe("DialogContext", () => {
     expect(screen.queryByTestId("add-document-dialog")).not.toBeInTheDocument();
   });
 
-  it("shows and hides EditDocumentDialog via context", async () => {
+  it("shows EditDocumentDialog via context", async () => {
     render(
       <DialogProvider>
         <TestConsumer />
@@ -695,9 +718,6 @@ describe("DialogContext", () => {
     await user.click(screen.getByTestId("open-edit-document-btn"));
     expect(screen.getByTestId("edit-document-dialog")).toBeInTheDocument();
     expect(screen.getByText(/Edit Document Dialog doc-1/)).toBeInTheDocument();
-
-    await user.click(screen.getByTestId("close-edit-document-btn"));
-    expect(screen.queryByTestId("edit-document-dialog")).not.toBeInTheDocument();
   });
 
   it("shows and hides RemoveDocumentDialog via context", async () => {
@@ -860,5 +880,18 @@ describe("DialogContext", () => {
 
     await user.click(screen.getByTestId("close-apply-tags-btn"));
     expect(screen.queryByTestId("apply-tags-dialog")).not.toBeInTheDocument();
+  });
+
+  it("shows Reference Agreement Dialog via context", async () => {
+    render(
+      <DialogProvider>
+        <TestConsumer />
+      </DialogProvider>
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("open-reference-agreement-btn"));
+    expect(screen.getByTestId("reference-agreement-dialog")).toBeInTheDocument();
+    expect(screen.getByText(/Reference Agreement Dialog ref-1/)).toBeInTheDocument();
   });
 });

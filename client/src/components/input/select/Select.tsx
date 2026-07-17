@@ -12,19 +12,7 @@ export interface Option {
   value: string;
 }
 
-export interface SelectProps {
-  options: Option[];
-  placeholder?: string;
-  onSelect: (value: string) => void;
-  id?: string;
-  label?: string;
-  isRequired?: boolean;
-  isDisabled?: boolean;
-  value?: string;
-  validationMessage?: string;
-}
-
-export const Select: React.FC<SelectProps> = ({
+export const Select = ({
   options,
   placeholder = "Select",
   onSelect,
@@ -34,6 +22,16 @@ export const Select: React.FC<SelectProps> = ({
   isDisabled = false,
   value,
   validationMessage = "",
+}: {
+  options: Option[];
+  placeholder?: string;
+  onSelect: (value: string) => void;
+  id?: string;
+  label?: string;
+  isRequired?: boolean;
+  isDisabled?: boolean;
+  value?: string;
+  validationMessage?: string;
 }) => {
   return (
     <div className="flex flex-col gap-xs">
@@ -62,7 +60,7 @@ export const Select: React.FC<SelectProps> = ({
             </option>
           ))}
         </select>
-        <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center pr-1">
+        <div className="pointer-events-none absolute inset-y-0 inset-e-0 flex items-center pr-1">
           <ChevronDownIcon className={ICON_CLASSES} />
         </div>
       </div>

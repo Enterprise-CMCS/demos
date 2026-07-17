@@ -11,7 +11,7 @@ import {
   ClearanceLevel,
   Tag,
   TagName,
-  SignatureLevel,
+  ExtensionSignatureLevel,
 } from "../../types.js";
 
 export const extensionSchema = gql`
@@ -22,13 +22,13 @@ export const extensionSchema = gql`
     description: String
     effectiveDate: DateTime
     status: ApplicationStatus!
-    currentPhaseName: PhaseName!
-    phases: [ApplicationPhase!]!
-    documents: [Document!]!
-    clearanceLevel: ClearanceLevel!
-    tags: [Tag!]!
-    signatureLevel: SignatureLevel
-    suggestedApplicationTags: [TagName!]!
+    currentPhaseName: PhaseName! @auth(requires: ["Access CMS Field"])
+    phases: [ApplicationPhase!]! @auth(requires: ["Access CMS Field"])
+    documents: [Document!]! @auth(requires: ["Access CMS Field"])
+    clearanceLevel: ClearanceLevel! @auth(requires: ["Access CMS Field"])
+    tags: [Tag!]! @auth(requires: ["Access CMS Field"])
+    signatureLevel: ExtensionSignatureLevel
+    suggestedApplicationTags: [TagName!]! @auth(requires: ["Access CMS Field"])
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -37,7 +37,7 @@ export const extensionSchema = gql`
     demonstrationId: ID!
     name: NonEmptyString!
     description: String
-    signatureLevel: SignatureLevel
+    signatureLevel: ExtensionSignatureLevel
   }
 
   input UpdateExtensionInput {
@@ -45,19 +45,19 @@ export const extensionSchema = gql`
     name: NonEmptyString
     description: String
     effectiveDate: DateTimeOrLocalDate
-    status: ApplicationStatus
-    signatureLevel: SignatureLevel
+    signatureLevel: ExtensionSignatureLevel
   }
 
   type Mutation {
-    createExtension(input: CreateExtensionInput!): Extension
-    updateExtension(id: ID!, input: UpdateExtensionInput!): Extension
-    deleteExtension(id: ID!): Extension
+    createExtension(input: CreateExtensionInput!): Extension!
+      @auth(requires: ["Perform CMS Action"])
+    updateExtension(id: ID!, input: UpdateExtensionInput!): Extension!
+      @auth(requires: ["Perform CMS Action"])
+    deleteExtension(id: ID!): Extension! @auth(requires: ["Perform CMS Action"])
   }
 
   type Query {
-    extensions: [Extension!]!
-    extension(id: ID!): Extension
+    extension(id: ID!): Extension! @auth(requires: ["Access CMS Query"])
   }
 `;
 
@@ -73,7 +73,7 @@ export interface Extension {
   documents: Document[];
   clearanceLevel: ClearanceLevel;
   tags: Tag[];
-  signatureLevel?: SignatureLevel;
+  signatureLevel?: ExtensionSignatureLevel;
   suggestedApplicationTags: TagName[];
   createdAt: Date;
   updatedAt: Date;
@@ -83,7 +83,7 @@ export interface CreateExtensionInput {
   demonstrationId: string;
   name: NonEmptyString;
   description: string | null;
-  signatureLevel?: SignatureLevel;
+  signatureLevel?: ExtensionSignatureLevel;
 }
 
 export interface UpdateExtensionInput {
@@ -91,6 +91,5 @@ export interface UpdateExtensionInput {
   name?: NonEmptyString;
   description?: string | null;
   effectiveDate?: DateTimeOrLocalDate | null;
-  status?: ApplicationStatus;
-  signatureLevel?: SignatureLevel;
+  signatureLevel?: ExtensionSignatureLevel | null;
 }

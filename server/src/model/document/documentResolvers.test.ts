@@ -1,36 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { TZDate } from "@date-fns/tz";
-import { Document as PrismaDocument, User as PrismaUser } from "@prisma/client";
+import { Document as PrismaDocument } from "@prisma/client";
 import { GraphQLContext } from "../../auth";
-import {
-  UpdateDocumentInput,
-  UploadDocumentInput,
-  ApplicationDateInput,
-  DocumentType,
-  PhaseName,
-} from "../../types";
+import { UpdateDocumentInput, DocumentType, PhaseName } from "../../types";
 import { prisma } from "../../prismaClient";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { getS3Adapter } from "../../adapters";
-import { EasternNow, getEasternNow } from "../../dateUtilities";
-import { getUser } from "../user";
+import { selectUserOrThrow } from "../user/queries";
 import { getApplication } from "../application";
-import { validateAndUpdateDates } from "../applicationDate";
-import { startPhaseByDocument } from "../applicationPhase";
 import { enqueueUiPath } from "../../services/uipathQueue";
-import { updateDocument, handleDeleteDocument } from ".";
 import {
-  uploadDocument,
   triggerUiPath,
-  updateDocument as updateDocumentResolver,
-  deleteDocument,
-  deleteDocuments,
-  resolveOwner,
-  resolveApplication,
   documentResolvers,
+  resolveBudgetNeutralityValidation,
   resolveHasPendingUIPathResult,
 } from "./documentResolvers";
-import { getDocument } from "./documentData";
+import { editDocument, getDocument, removeDocument } from "./documentData";
+import { selectDeliverableAction, SelectDeliverableActionRowResult } from "../deliverableAction/queries";
 
 // Mock dependencies
 vi.mock("../../prismaClient", () => ({
@@ -47,6 +32,8 @@ vi.mock("../../adapters", () => ({
 
 vi.mock("./documentData", () => ({
   getDocument: vi.fn(),
+  editDocument: vi.fn(),
+  removeDocument: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -73,13 +60,12 @@ vi.mock("../../services/uipathQueue", () => ({
   enqueueUiPath: vi.fn(),
 }));
 
-vi.mock("../user", () => ({
-  getUser: vi.fn(),
+vi.mock("../user/queries", () => ({
+  selectUserOrThrow: vi.fn(),
 }));
 
-vi.mock(".", () => ({
-  updateDocument: vi.fn(),
-  handleDeleteDocument: vi.fn(),
+vi.mock("../deliverableAction/queries", () => ({
+  selectDeliverableAction: vi.fn(),
 }));
 
 describe("documentResolvers", () => {
@@ -88,6 +74,9 @@ describe("documentResolvers", () => {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
     uiPathResult: {
       findFirst: vi.fn(),
+    },
+    budgetNeutralityWorkbook: {
+      findUnique: vi.fn(),
     },
   };
 
@@ -112,15 +101,6 @@ describe("documentResolvers", () => {
     deliverableIsCmsAttachedFile: null,
     deliverableSubmissionActionId: null,
     deliverableSubmissionActionTypeId: null,
-  };
-
-  const mockUser: PrismaUser = {
-    id: testUserId,
-    createdAt: new Date("2025-01-01T00:00:00.000Z"),
-    updatedAt: new Date("2025-01-01T00:00:00.000Z"),
-    personTypeId: "demos-cms-user",
-    cognitoSubject: "cognito-subject-123",
-    username: "testuser",
   };
 
   const mockApplication = {
@@ -154,7 +134,7 @@ describe("documentResolvers", () => {
   });
 
   describe("Query.documentExists", () => {
-    it("returns true when getDocument returns non-null", async () => {
+    it("returns true when getDocument returns", async () => {
       vi.mocked(getDocument).mockResolvedValue({ id: "abc123" } as PrismaDocument);
       const result = await documentResolvers.Query.documentExists(
         undefined,
@@ -165,8 +145,8 @@ describe("documentResolvers", () => {
       expect(result).toBe(true);
     });
 
-    it("returns false when getDocument returns null", async () => {
-      vi.mocked(getDocument).mockResolvedValue(null);
+    it("returns false when getDocument throws", async () => {
+      vi.mocked(getDocument).mockRejectedValue(new Error());
       const result = await documentResolvers.Query.documentExists(
         undefined,
         { documentId: "abc123" },
@@ -191,12 +171,60 @@ describe("documentResolvers", () => {
     it("delegates to s3adapter.getPresignedDownloadUrl", async () => {
       const document = {
         s3Path: "s3/path/to/document.pdf",
+        name: "My Document.pdf",
       } as PrismaDocument;
 
       await documentResolvers.Document.presignedDownloadUrl(document);
       expect(mockS3Adapter.getPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(
-        document.s3Path
+        document.s3Path,
+        document.name
       );
+    });
+  });
+
+  describe("Document.deliverableSubmissionAction", () => {
+    it("returns null when deliverableSubmissionActionId is null ", async () => {
+      const document = {
+        deliverableSubmissionActionId: null,
+      } as PrismaDocument;
+
+      const result = await documentResolvers.Document.deliverableSubmissionAction(document);
+      expect(result).toBeNull();
+    });
+
+    it("finds and maps the delierableSubmissionAction based on the deliverableSubmissionActionId", async () => {
+      const document = {
+        deliverableSubmissionActionId: "action-123",
+      } as PrismaDocument;
+
+      const now = new Date("2025-01-01T00:00:00.000Z");
+      vi.mocked(selectDeliverableAction).mockResolvedValue({
+        id: "action-123",
+        actionTimestamp: now,
+        actionTypeId: "Submitted Deliverable",
+        user: {
+          personTypeId: "demos-cms-user",
+          person: {
+            firstName: "John",
+            lastName: "Doe",
+          },
+        },
+      } as SelectDeliverableActionRowResult);
+         
+      const result = await documentResolvers.Document.deliverableSubmissionAction(document);
+      expect(selectDeliverableAction).toHaveBeenCalledExactlyOnceWith(
+        {
+          id: document.deliverableSubmissionActionId,
+        },
+        true
+      );
+      expect(result).toEqual({
+        id: "action-123",
+        actionTimestamp: now,
+        actionType: "Submitted Deliverable",
+        details: "",
+        userFullName: "John Doe (CMS User)",
+      });
     });
   });
   describe("Document.phaseName", () => {
@@ -210,100 +238,10 @@ describe("documentResolvers", () => {
     });
   });
 
-  describe("uploadDocument", () => {
-    const mockUploadInput: UploadDocumentInput = {
-      name: "test.pdf",
-      description: "Test upload document",
-      documentType: "State Application",
-      applicationId: testApplicationId,
-      phaseName: "Concept",
-    };
-
-    const mockUploadResponse = {
-      document: mockDocument,
-      uploadUrl: "https://s3.amazonaws.com/upload-url",
-    };
-
-    const mockEasternNow: EasternNow = {
-      "Current Time": {
-        easternTZDate: new TZDate("2025-01-15T12:34:56.789Z"),
-        isEasternTZDate: true,
-      },
-      "End of Day": {
-        easternTZDate: new TZDate("2025-01-15T23:59:59.999Z"),
-        isEasternTZDate: true,
-      },
-      "Start of Day": {
-        easternTZDate: new TZDate("2025-01-15T00:00:00.000Z"),
-        isEasternTZDate: true,
-      },
-    };
-
-    const mockPhaseStartDate: ApplicationDateInput = {
-      dateType: "Application Intake Completion Date",
-      dateValue: new TZDate("2025-01-20"),
-    };
-
-    it("should upload document with user context", async () => {
-      vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
-
-      const result = await uploadDocument(undefined, { input: mockUploadInput }, mockContext);
-
-      expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
-        ["name", "documentType", "applicationId", "phaseName", "deliverableId"],
-        mockUploadInput
-      );
-
-      expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-      expect(mockS3Adapter.uploadDocument).toHaveBeenCalledExactlyOnceWith(
-        mockTransaction,
-        mockUploadInput,
-        testUserId
-      );
-      expect(result).toEqual(mockUploadResponse);
-    });
-
-    it("should call startPhaseByDocument with correct parameters", async () => {
-      vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
-      vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
-      vi.mocked(startPhaseByDocument).mockResolvedValue(null);
-
-      await uploadDocument(undefined, { input: mockUploadInput }, mockContext);
-
-      expect(getEasternNow).toHaveBeenCalledOnce();
-      expect(startPhaseByDocument).toHaveBeenCalledExactlyOnceWith(
-        mockTransaction,
-        testApplicationId,
-        mockUploadInput,
-        mockEasternNow
-      );
-    });
-
-    it("should call validateAndUpdateDates when phase start date is returned", async () => {
-      vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
-      vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
-      vi.mocked(startPhaseByDocument).mockResolvedValue(mockPhaseStartDate);
-      vi.mocked(validateAndUpdateDates).mockResolvedValue(undefined);
-
-      await uploadDocument(undefined, { input: mockUploadInput }, mockContext);
-
-      expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
-        {
-          applicationId: testApplicationId,
-          applicationDates: [mockPhaseStartDate],
-        },
-        mockTransaction
-      );
-    });
-
-    it("should not call validateAndUpdateDates when phase start date is null", async () => {
-      vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
-      vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
-      vi.mocked(startPhaseByDocument).mockResolvedValue(null);
-
-      await uploadDocument(undefined, { input: mockUploadInput }, mockContext);
-
-      expect(validateAndUpdateDates).not.toHaveBeenCalled();
+  describe("Document.owner", () => {
+    it("delegates to userData/queries.selectUserOrThrow", () => {
+      documentResolvers.Document.owner(mockDocument);
+      expect(selectUserOrThrow).toHaveBeenCalledExactlyOnceWith({ id: mockDocument.ownerUserId });
     });
   });
 
@@ -341,105 +279,91 @@ describe("documentResolvers", () => {
         triggerUiPath(undefined, { documentId: testDocumentId }, mockContext)
       ).rejects.toThrow("Queue send failed");
     });
-
-    it("throws when document does not exist", async () => {
-      vi.mocked(getDocument).mockResolvedValue(null);
-
-      await expect(triggerUiPath(undefined, { documentId: "abc123" }, mockContext)).rejects.toThrow(
-        `Document with ID abc123 does not exist.`
-      );
-      expect(getDocument).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockContext.user);
-      expect(enqueueUiPath).not.toHaveBeenCalled();
-    });
   });
 
-  describe("updateDocument", () => {
-    const mockUpdateInput: UpdateDocumentInput = {
-      name: "Updated Document",
-      description: "Updated description",
-      documentType: "State Application",
-      applicationId: testApplicationId,
-      phaseName: "Concept",
-    };
-
-    it("should update document metadata", async () => {
-      vi.mocked(updateDocument).mockResolvedValue(mockDocument);
-
-      const result = await updateDocumentResolver(undefined, {
-        id: testDocumentId,
-        input: mockUpdateInput,
-      });
-
+  describe("Mutation.updateDocument", () => {
+    it("should update document metadata under a transaction", async () => {
+      const mockUpdateInput: UpdateDocumentInput = {
+        name: "Updated Document",
+        description: "Updated description",
+      };
+      vi.mocked(editDocument).mockResolvedValue(mockDocument);
+      const updatedDocument = await documentResolvers.Mutation.updateDocument(
+        undefined,
+        {
+          id: testDocumentId,
+          input: mockUpdateInput,
+        },
+        mockContext
+      );
       expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
-        ["name", "documentType", "applicationId", "phaseName", "deliverableId"],
+        ["name", "description"],
         mockUpdateInput
       );
-      expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-      expect(updateDocument).toHaveBeenCalledExactlyOnceWith(
-        mockTransaction,
-        testDocumentId,
-        mockUpdateInput
+      expect(editDocument).toHaveBeenCalledExactlyOnceWith(
+        { id: testDocumentId },
+        {
+          name: "Updated Document",
+          description: "Updated description",
+        },
+        mockContext.user
       );
-      expect(result).toEqual(mockDocument);
+      expect(updatedDocument).toEqual(mockDocument);
     });
   });
 
-  describe("deleteDocument", () => {
-    it("should delete document and move to deleted bucket", async () => {
-      vi.mocked(handleDeleteDocument).mockResolvedValue(mockDocument);
-
-      const result = await deleteDocument(undefined, { id: testDocumentId });
-
-      expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-      expect(handleDeleteDocument).toHaveBeenCalledExactlyOnceWith(
-        mockTransaction,
-        mockS3Adapter,
-        testDocumentId
+  describe("Mutation.deleteDocument", () => {
+    it("should delete the document under a transaction", () => {
+      documentResolvers.Mutation.deleteDocument(undefined, { id: testDocumentId }, mockContext);
+      expect(removeDocument).toHaveBeenCalledExactlyOnceWith(
+        { id: testDocumentId },
+        mockContext.user,
+        mockTransaction
       );
-      expect(result).toEqual(mockDocument);
     });
   });
 
-  describe("deleteDocuments", () => {
-    const testDocumentIds = ["doc-1", "doc-2", "doc-3"];
+  describe("Mutation.deleteDocuments", () => {
+    it("should delete multiple documents in a transaction and return count", async () => {
+      const documentIds = ["doc-1", "doc-2", "doc-3"];
+      vi.mocked(removeDocument).mockResolvedValue(mockDocument);
 
-    it("should delete multiple documents and return count", async () => {
-      vi.mocked(handleDeleteDocument).mockResolvedValue(mockDocument);
-      const result = await deleteDocuments(undefined, { ids: testDocumentIds });
+      const result = await documentResolvers.Mutation.deleteDocuments(
+        undefined,
+        { ids: documentIds },
+        mockContext
+      );
 
       expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-      expect(handleDeleteDocument).toHaveBeenCalledTimes(3);
-      expect(handleDeleteDocument).toHaveBeenCalledWith(mockTransaction, mockS3Adapter, "doc-1");
-      expect(handleDeleteDocument).toHaveBeenCalledWith(mockTransaction, mockS3Adapter, "doc-2");
-      expect(handleDeleteDocument).toHaveBeenCalledWith(mockTransaction, mockS3Adapter, "doc-3");
-      expect(result).toBe(3);
+      expect(removeDocument).toHaveBeenCalledTimes(documentIds.length);
+      for (const documentId of documentIds) {
+        expect(removeDocument).toHaveBeenCalledWith(
+          { id: documentId },
+          mockContext.user,
+          mockTransaction
+        );
+      }
+      expect(result).toBe(documentIds.length);
     });
 
-    it("should return 0 for empty array", async () => {
-      const result = await deleteDocuments(undefined, { ids: [] });
+    it("should return 0 if no document ids are provided", async () => {
+      const result = await documentResolvers.Mutation.deleteDocuments(
+        undefined,
+        { ids: [] },
+        mockContext
+      );
 
-      expect(handleDeleteDocument).not.toHaveBeenCalled();
+      expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
+      expect(removeDocument).not.toHaveBeenCalled();
       expect(result).toBe(0);
     });
   });
 
-  describe("resolveOwner", () => {
-    it("should resolve document owner", async () => {
-      vi.mocked(getUser).mockResolvedValue(mockUser);
-
-      const result = await resolveOwner(mockDocument);
-
-      expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-      expect(getUser).toHaveBeenCalledExactlyOnceWith({ id: "user-123" }, mockTransaction);
-      expect(result).toEqual(mockUser);
-    });
-  });
-
-  describe("resolveApplication", () => {
-    it("should resolve application by id", async () => {
+  describe("document.application", () => {
+    it("should defer to Application.getApplication", async () => {
       vi.mocked(getApplication).mockResolvedValue(mockApplication as any);
 
-      const result = await resolveApplication(mockDocument);
+      const result = await documentResolvers.Document.application(mockDocument);
 
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
       expect(result).toEqual(mockApplication);
@@ -472,9 +396,56 @@ describe("documentResolvers", () => {
     });
   });
 
+  describe("resolveBudgetNeutralityValidation", () => {
+    it("returns null when no budget_neutrality_workbook row exists for the document", async () => {
+      vi.mocked(mockPrismaClient.budgetNeutralityWorkbook.findUnique).mockResolvedValue(null);
+
+      const result = await resolveBudgetNeutralityValidation(mockDocument);
+
+      expect(mockPrismaClient.budgetNeutralityWorkbook.findUnique).toHaveBeenCalledExactlyOnceWith({
+        where: { id: testDocumentId },
+        select: { validationStatusId: true, validationData: true },
+      });
+      expect(result).toBeNull();
+    });
+
+    it("returns the mapped result with an empty errors array when validation succeeded", async () => {
+      vi.mocked(mockPrismaClient.budgetNeutralityWorkbook.findUnique).mockResolvedValue({
+        validationStatusId: "Succeeded",
+        validationData: [],
+      } as any);
+
+      const result = await resolveBudgetNeutralityValidation(mockDocument);
+
+      expect(result).toEqual({ status: "Succeeded", errors: [] });
+    });
+
+    it("returns the mapped result with the errors array when validation failed", async () => {
+      const errors = [
+        { code: "RULE_1", message: "Cell A1 must not be empty." },
+        { code: "RULE_2", message: "Total does not match sum of rows." },
+      ];
+      vi.mocked(mockPrismaClient.budgetNeutralityWorkbook.findUnique).mockResolvedValue({
+        validationStatusId: "Failed",
+        validationData: errors,
+      } as any);
+
+      const result = await resolveBudgetNeutralityValidation(mockDocument);
+
+      expect(result).toEqual({ status: "Failed", errors });
+    });
+
+    it("throws when the database query fails", async () => {
+      vi.mocked(mockPrismaClient.budgetNeutralityWorkbook.findUnique).mockRejectedValue(
+        new Error("DB error")
+      );
+
+      await expect(resolveBudgetNeutralityValidation(mockDocument)).rejects.toThrow("DB error");
+    });
+  });
+
   describe("resolver exports", () => {
     it("should export Mutation resolvers", () => {
-      expect(documentResolvers.Mutation).toHaveProperty("uploadDocument");
       expect(documentResolvers.Mutation).toHaveProperty("updateDocument");
       expect(documentResolvers.Mutation).toHaveProperty("deleteDocument");
       expect(documentResolvers.Mutation).toHaveProperty("deleteDocuments");
@@ -484,6 +455,7 @@ describe("documentResolvers", () => {
     it("should export Document field resolvers", () => {
       expect(documentResolvers.Document).toHaveProperty("owner");
       expect(documentResolvers.Document).toHaveProperty("application");
+      expect(documentResolvers.Document).toHaveProperty("budgetNeutralityValidation");
     });
   });
 });

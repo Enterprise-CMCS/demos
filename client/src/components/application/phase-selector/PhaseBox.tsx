@@ -1,14 +1,15 @@
 import React from "react";
 import { tw } from "tags/tw";
 import type { PhaseStatus } from "./PhaseSelector";
-import { SuccessIcon } from "components/icons";
+import { SparklyIcon, SuccessIcon } from "components/icons";
 import { PhaseDate } from "./PhaseDate";
 import { PhaseName } from "demos-server";
 
 const BASE_STYLES = {
-  PHASE_BOX: tw`flex flex-col items-center justify-center rounded-sm hover:cursor-pointer aspect-2/1 p-1`,
+  PHASE_BOX: tw`relative flex flex-col items-center justify-center rounded-sm hover:cursor-pointer aspect-2/1 w-full min-w-0 p-1`,
   PHASE_NUMBER: tw`flex items-center justify-center text-lg w-3 h-3 my-1 rounded-full font-bold`,
   PHASE_NAME: tw`text-[12px] font-bold truncate max-w-full`,
+  AI_SUGGESTION_ICON: tw`absolute right-[5px] top-[5px] text-purple-700 size-[1.8em]`,
 };
 
 const PHASE_STYLE_LOOKUP: Record<PhaseStatus, { box: string; number: string }> = {
@@ -25,7 +26,7 @@ const PHASE_STYLE_LOOKUP: Record<PhaseStatus, { box: string; number: string }> =
     number: tw`text-brand border border-brand`,
   },
   "Not Started": {
-    box: tw`bg-[#ecf0f5] text-text-placeholder border border-border-fields`,
+    box: tw`bg-[#ecf0f5] text-text-placeholder border border-border-fields `,
     number: tw`text-icon-base border border-icon-base`,
   },
   "past-due": {
@@ -47,6 +48,7 @@ interface PhaseBoxProps {
   phaseStatus: PhaseStatus;
   displayDate?: Date;
   isSelectedPhase: boolean;
+  showAISuggestions?: boolean;
   setPhaseAsSelected: () => void;
 }
 
@@ -55,7 +57,7 @@ export const PhaseBox = (props: PhaseBoxProps) => {
   const showSuccessIcon = isCompletionStatus(props.phaseStatus);
 
   return (
-    <div className="flex flex-col justify-center col-span-1">
+    <div className="flex flex-col justify-center col-span-1 min-w-0">
       <div
         key={props.phaseName}
         className={`${BASE_STYLES.PHASE_BOX} 
@@ -63,6 +65,12 @@ export const PhaseBox = (props: PhaseBoxProps) => {
           ${props.isSelectedPhase ? "scale-110" : ""}`}
         onClick={() => props.setPhaseAsSelected()}
       >
+        {props.showAISuggestions && (
+          <SparklyIcon
+            label="DEMOS AI suggestions available"
+            className={BASE_STYLES.AI_SUGGESTION_ICON}
+          />
+        )}
         <div className={`${BASE_STYLES.PHASE_NUMBER} ${phaseStyles.number}`}>
           {showSuccessIcon ? <SuccessIcon className="w-full h-full" /> : props.phaseNumber}
         </div>

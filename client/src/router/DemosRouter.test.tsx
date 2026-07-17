@@ -28,12 +28,16 @@ vi.mock("config/env", async (importOriginal) => {
     getAppMode: vi.fn(() => "test"),
     isLocalDevelopment: vi.fn(() => false),
     shouldUseMocks: vi.fn(() => true),
+    isMockUnauthenticated: vi.fn(() => false),
   };
 });
 
 vi.mock("components/user/UserContext", () => ({
-  UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   getCurrentUser: () => ({ currentUser: currentUserState.currentUser }),
+}));
+
+vi.mock("components/user/UserProvider", () => ({
+  UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 vi.mock("react-oidc-context", () => {
@@ -78,12 +82,9 @@ vi.mock("react-oidc-context", () => {
 });
 
 vi.mock("./DemosApolloProvider", async () => {
-  const React = (await import("react")).default;
   const { MockedProvider } = await import("@apollo/client/testing");
   const DemosApolloProvider = ({ children }: { children: React.ReactNode }) => (
-    <MockedProvider mocks={[]} addTypename={false}>
-      {children}
-    </MockedProvider>
+    <MockedProvider mocks={[]}>{children}</MockedProvider>
   );
   return { DemosApolloProvider };
 });
@@ -105,11 +106,17 @@ vi.mock("pages/DemonstrationsPage", () => ({
   DemonstrationsPage: () => <div>DemonstrationsPage</div>,
   DEMONSTRATIONS_PAGE_QUERY: {},
 }));
+vi.mock("pages/DemonstrationDetail/index", () => ({
+  DemonstrationDetail: () => <div>DemonstrationDetail</div>,
+}));
 vi.mock("pages/DeliverablesPage", () => ({
   DeliverablesPage: () => <div>DeliverablesPage</div>,
 }));
-vi.mock("pages/reports/ReportsPage", () => ({
+vi.mock("pages/ReportsPage", () => ({
   ReportsPage: () => <div>ReportsPage</div>,
+}));
+vi.mock("pages/references/ReferencesPage", () => ({
+  ReferencesPage: () => <div>ReferencesPage</div>,
 }));
 
 describe("DemosRouter", () => {
@@ -138,6 +145,22 @@ describe("DemosRouter", () => {
     await waitFor(() => expect(screen.getByText("DemonstrationsPage")).toBeInTheDocument());
   });
 
+  it("redirects state users from /demonstrations to their deliverables home page", async () => {
+    currentUserState.currentUser.person.personType = "demos-state-user";
+    window.history.pushState({}, "Demonstrations", "/demonstrations");
+    render(<DemosRouter />);
+    await waitFor(() => expect(screen.getByText("DeliverablesPage")).toBeInTheDocument());
+    expect(screen.queryByText("DemonstrationsPage")).not.toBeInTheDocument();
+  });
+
+  it("redirects state users from demonstration detail URLs to their deliverables home page", async () => {
+    currentUserState.currentUser.person.personType = "demos-state-user";
+    window.history.pushState({}, "Demonstration Detail", "/demonstrations/demo-1");
+    render(<DemosRouter />);
+    await waitFor(() => expect(screen.getByText("DeliverablesPage")).toBeInTheDocument());
+    expect(screen.queryByText("DemonstrationDetail")).not.toBeInTheDocument();
+  });
+
   it("renders the Deliverables page at /deliverables", async () => {
     window.history.pushState({}, "Deliverables", "/deliverables");
     render(<DemosRouter />);
@@ -147,7 +170,21 @@ describe("DemosRouter", () => {
   it("renders the Reports page at /reports", async () => {
     window.history.pushState({}, "Reports", "/reports");
     render(<DemosRouter />);
-    await waitFor(() => expect(screen.getByText("Reports")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("ReportsPage")).toBeInTheDocument());
+  });
+
+  it("redirects state users from /reports to their deliverables home page", async () => {
+    currentUserState.currentUser.person.personType = "demos-state-user";
+    window.history.pushState({}, "Reports", "/reports");
+    render(<DemosRouter />);
+    await waitFor(() => expect(screen.getByText("DeliverablesPage")).toBeInTheDocument());
+    expect(screen.queryByText("ReportsPage")).not.toBeInTheDocument();
+  });
+
+  it("renders the References page at /references", async () => {
+    window.history.pushState({}, "References", "/references");
+    render(<DemosRouter />);
+    await waitFor(() => expect(screen.getByText("ReferencesPage")).toBeInTheDocument());
   });
 
   it("renders component debug routes in development mode", async () => {

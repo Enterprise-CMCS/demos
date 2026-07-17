@@ -29,4 +29,49 @@ describe("DeliverableInfoFields", () => {
     render(<DeliverableInfoFields deliverable={MOCK_DELIVERABLE_1} showAdditionalDetailsToggle showAdditionalDetails />);
     expect(screen.getByTestId("deliverable-Resubmissions Requested")).toHaveTextContent("1");
   });
+
+  it("renders Extension as N/A when there are no extensions", () => {
+    render(
+      <DeliverableInfoFields
+        deliverable={MOCK_DELIVERABLE_1}
+        showAdditionalDetailsToggle
+        showAdditionalDetails
+      />
+    );
+    expect(screen.getByTestId("deliverable-Extension")).toHaveTextContent("N/A");
+  });
+
+  it("renders Extension status from the most recent extension", () => {
+    const deliverable = {
+      ...MOCK_DELIVERABLE_1,
+      extensionRequests: [
+        {
+          id: "ext-old",
+          status: "Approved" as const,
+          reasonCode: "Other" as const,
+          reasonDetails: "details" as const,
+          initialDueDateAtRequest: new Date("2025-12-01"),
+          originalDateRequested: new Date("2026-01-15"),
+          createdAt: new Date("2026-01-01"),
+        },
+        {
+          id: "ext-new",
+          status: "Requested" as const,
+          reasonCode: "Other" as const,
+          reasonDetails: "details" as const,
+          initialDueDateAtRequest: new Date("2026-02-01"),
+          originalDateRequested: new Date("2026-04-15"),
+          createdAt: new Date("2026-03-01"),
+        },
+      ],
+    };
+    render(
+      <DeliverableInfoFields
+        deliverable={deliverable}
+        showAdditionalDetailsToggle
+        showAdditionalDetails
+      />
+    );
+    expect(screen.getByTestId("deliverable-Extension")).toHaveTextContent("Requested");
+  });
 });

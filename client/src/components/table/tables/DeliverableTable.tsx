@@ -7,15 +7,11 @@ import { Table, type TableProps } from "../Table";
 import { ColumnFilter } from "../ColumnFilter";
 import { PaginationControls } from "../PaginationControls";
 import { KeywordSearch } from "../KeywordSearch";
-import { CircleButton } from "components/index";
-import { DeleteIcon } from "components/icons/Action/DeleteIcon";
-import { selectionTooltip } from "./actionTooltips";
-import { ImportIcon } from "components/icons/Action/ImportIcon";
-import { EditIcon } from "components/icons/Navigation/EditIcon";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
-import { isDeliverableEditable } from "components/dialog/deliverable";
-import { useDialog } from "components/dialog/DialogContext";
 import { getDeliverableFilterOptions } from "./deliverablesFilterOptions";
+import { DeliverableActionButtons } from "./DeliverableActionButtons";
+import { formatDateForDisplay } from "util/formatDate";
+import { compareDesc } from "date-fns";
 
 export type DeliverableTableRow = Omit<
   Deliverable,
@@ -24,10 +20,14 @@ export type DeliverableTableRow = Omit<
   | "demonstrationTypes"
   | "cmsDocuments"
   | "stateDocuments"
+  | "allowedDocumentTypes"
   | "name"
   | "dueDateType"
   | "expectedToBeSubmitted"
   | "deliverableActions"
+  | "extensionRequests"
+  | "publicComments"
+  | "privateComments"
   | "createdAt"
   | "updatedAt"
 > & {
@@ -44,6 +44,19 @@ export type DeliverableTableRow = Omit<
   };
   demonstrationTypes: Tag[];
   submissionDate?: string;
+  extensionRequests: Pick<Deliverable["extensionRequests"][number], "id" | "status">[];
+  deliverableActions: (Pick<Deliverable["deliverableActions"][number], "id" | "actionType"> & {
+    actionTimestamp: Date;
+  })[];
+  cmsDocuments?: Pick<Deliverable["cmsDocuments"][number], "id">[];
+  stateDocuments?: Pick<Deliverable["stateDocuments"][number], "id">[];
+  publicComments?: Pick<Deliverable["publicComments"][number], "id">[];
+  privateComments?: Pick<Deliverable["privateComments"][number], "id">[];
+};
+
+export type FormattedDeliverableTableRow = DeliverableTableRow & {
+  combinedStatus: string;
+  combinedStatusFilter: string;
 };
 
 export type DeliverablesQueryResult = {
@@ -94,6 +107,28 @@ export const DELIVERABLES_PAGE_QUERY = gql`
         tagName
         approvalStatus
       }
+      extensionRequests {
+        id
+        status
+      }
+      deliverableActions {
+        id
+        actionType
+        actionTimestamp
+      }
+      # These are for determining if a deliverable can be deleted
+      cmsDocuments {
+        id
+      }
+      stateDocuments {
+        id
+      }
+      publicComments {
+        id
+      }
+      privateComments {
+        id
+      }
     }
   }
 `;
@@ -130,6 +165,15 @@ export const STATE_USER_DELIVERABLES_PAGE_QUERY = gql`
                 }
               }
               dueDate
+              extensionRequests {
+                id
+                status
+              }
+              deliverableActions {
+                id
+                actionType
+                actionTimestamp
+              }
             }
           }
         }
@@ -141,14 +185,90 @@ export const STATE_USER_DELIVERABLES_PAGE_QUERY = gql`
 const EMPTY_ROWS_MESSAGE = "There are no assigned Deliverables at this time";
 const NO_RESULTS_FOUND = "No deliverables match your search.";
 
-export const formatDeliverableStatus = ({ status }: Pick<Deliverable, "status">) => status;
+const FINAL_STATUSES = ["Accepted", "Approved", "Received and Filed"];
+
+export const formatDeliverableStatus = (
+  deliverable: Pick<
+  DeliverableTableRow,
+  "status" | "deliverableActions" | "extensionRequests"
+  >
+) => {
+  const { status, deliverableActions, extensionRequests } = deliverable;
+
+  // Final statuses always display as-is
+  if (FINAL_STATUSES.includes(status)) {
+    return status;
+  }
+
+  const resubmissionsRequested = deliverableActions.filter(
+    (action) => action.actionType === "Requested Resubmission"
+  ).length;
+
+  const hasOpenExtensionRequest = extensionRequests.some(
+    (request) => request.status === "Requested"
+  );
+
+  let formattedStatus = status;
+
+  if (resubmissionsRequested > 0) {
+    formattedStatus += ` (${resubmissionsRequested})`;
+  }
+
+  if (hasOpenExtensionRequest) {
+    formattedStatus += " - Extension Requested";
+  }
+
+  return formattedStatus;
+};
+
+export const getLatestSubmissionDate = (
+  deliverableActions: DeliverableTableRow["deliverableActions"]
+): string | undefined => {
+  const submissions = deliverableActions.filter(
+    (action) => action.actionType === "Submitted Deliverable"
+  );
+
+  if (submissions.length === 0) {
+    return undefined;
+  }
+
+  submissions
+    .sort((a, b) => compareDesc(a.actionTimestamp, b.actionTimestamp));
+
+  return formatDateForDisplay(submissions[0].actionTimestamp);
+};
+
+/*
+ * This generates a value that is used for filtering.
+ * It's needed so the filter can match things like "Submitted (3) - Extension Requested"
+ * without needing to display the resubmission count in the filter options.
+ */
+export const formatDeliverableFilterStatus = (
+  deliverable: Pick<
+    DeliverableTableRow,
+    "status" | "extensionRequests"
+  >
+) => {
+  const { status, extensionRequests } = deliverable;
+
+  if (FINAL_STATUSES.includes(status)) {
+    return status;
+  }
+
+  const hasOpenExtensionRequest = extensionRequests.some(
+    (request) => request.status === "Requested"
+  );
+
+  return hasOpenExtensionRequest
+    ? `${status} - Extension Requested`
+    : status;
+};
 
 export const DeliverableTable: React.FC<{
   deliverables: DeliverableTableRow[];
   emptyRowsMessage?: string;
   viewMode: UserType;
 }> = ({ deliverables, emptyRowsMessage = EMPTY_ROWS_MESSAGE, viewMode }) => {
-  const { showEditDeliverableDialog } = useDialog();
   const { demonstrationNameOptions, cmsOwnerOptions } = getDeliverableFilterOptions(deliverables);
   const deliverableColumns = DeliverableColumns({
     viewMode,
@@ -157,81 +277,25 @@ export const DeliverableTable: React.FC<{
   });
   const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
     ...deliverable,
-    status: formatDeliverableStatus(deliverable),
+    submissionDate: getLatestSubmissionDate(deliverable.deliverableActions),
+    combinedStatus: formatDeliverableStatus(deliverable),
+    combinedStatusFilter: formatDeliverableFilterStatus(deliverable),
   }));
 
-  type DeliverableActionButtons = NonNullable<TableProps<DeliverableTableRow>["actionButtons"]>;
+  type RenderDeliverableActionButtons = NonNullable<
+    TableProps<FormattedDeliverableTableRow>["actionButtons"]
+  >;
 
-  const renderActionButtons: DeliverableActionButtons = (table) => {
-    const selectedRows = table.getSelectedRowModel().rows;
-    const selectedCount = selectedRows.length;
-    const singleSelectedDeliverable = selectedCount === 1 ? selectedRows[0].original : null;
-
-    const selectedIsEditable =
-      singleSelectedDeliverable === null || isDeliverableEditable(singleSelectedDeliverable.status);
-    const editEnabled = selectedCount === 1 && selectedIsEditable;
-    const deleteEnabled = selectedCount >= 1;
-
-    const baseEditTooltip = selectionTooltip({
-      action: "Edit",
-      nounSingular: "Deliverable",
-      selectedCount,
-      rule: { kind: "exactly", count: 1 },
-    });
-    const editTooltip =
-      selectedCount === 1 && !selectedIsEditable ? "Select a Deliverable to Edit" : baseEditTooltip;
-
-    const deleteTooltip = selectionTooltip({
-      action: "Delete",
-      nounSingular: "Deliverable",
-      selectedCount,
-      rule: { kind: "atLeast", count: 1 },
-    });
-
-    return (
-      <div className="flex gap-1 ml-4">
-        <CircleButton
-          name="add-deliverable"
-          ariaLabel="Add Deliverable"
-          tooltip="Add Deliverable"
-          onClick={() => {}}
-        >
-          <ImportIcon />
-        </CircleButton>
-
-        <CircleButton
-          name="edit-deliverable"
-          ariaLabel="Edit Deliverable"
-          tooltip={editTooltip}
-          disabled={!editEnabled}
-          onClick={() => {
-            if (singleSelectedDeliverable) {
-              showEditDeliverableDialog(singleSelectedDeliverable);
-            }
-          }}
-        >
-          <EditIcon />
-        </CircleButton>
-
-        <CircleButton
-          name="remove-deliverable"
-          ariaLabel="Remove Deliverable"
-          tooltip={deleteTooltip}
-          disabled={!deleteEnabled}
-          onClick={() => {}}
-        >
-          <DeleteIcon />
-        </CircleButton>
-      </div>
-    );
-  };
+  const renderActionButtons: RenderDeliverableActionButtons = (table) => (
+    <DeliverableActionButtons table={table} />
+  );
 
   const actionButtons = viewMode === "demos-state-user" ? undefined : renderActionButtons;
 
   return (
     <div className="flex flex-col gap-[24px]" data-view-mode={viewMode}>
       {deliverableColumns && (
-        <Table<DeliverableTableRow>
+        <Table<FormattedDeliverableTableRow>
           data={formattedDeliverables}
           columns={deliverableColumns}
           keywordSearch={(table) => <KeywordSearch table={table} />}

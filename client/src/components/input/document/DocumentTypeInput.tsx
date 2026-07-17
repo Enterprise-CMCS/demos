@@ -8,10 +8,9 @@ import { DOCUMENT_TYPES } from "demos-server-constants";
 export const DocumentTypeInput: React.FC<{
   value: string;
   onSelect: (value: string) => void;
-  documentTypeSubset?: DocumentType[];
-  canEditDocumentType?: boolean;
-}> = ({ value, onSelect, documentTypeSubset, canEditDocumentType = true }) => {
-  const documentTypeOptions = (documentTypeSubset || DOCUMENT_TYPES).map((type) => ({
+  documentTypes?: DocumentType[];
+}> = ({ value, onSelect, documentTypes = DOCUMENT_TYPES }) => {
+  const documentTypeOptions = documentTypes.map((type) => ({
     label: type,
     value: type,
   })) as Option[];
@@ -23,8 +22,8 @@ export const DocumentTypeInput: React.FC<{
       isRequired
       options={documentTypeOptions}
       value={value}
-      onSelect={(selectedValue) => canEditDocumentType && onSelect(selectedValue)}
-      isDisabled={!canEditDocumentType}
+      onSelect={onSelect}
+      isDisabled={documentTypeOptions.length <= 1}
     />
   );
 };

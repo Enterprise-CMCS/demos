@@ -1,12 +1,13 @@
 // Vitest and other helpers
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
+import { DeepPartial } from "../../testUtilities";
 
 // Types
-import { DeepPartial } from "../../testUtilities";
-import { UpdateDeliverableInput } from "../../types";
+import { PersonType, UpdateDeliverableInput } from "../../types";
 import { EditDeliverableInput, ParsedUpdateDeliverableInput } from ".";
 import { GraphQLContext } from "../../auth";
+import { User as PrismaUser } from "@prisma/client";
 
 // Functions under test
 import { updateDeliverable } from "./updateDeliverable";
@@ -18,7 +19,7 @@ vi.mock("../../prismaClient", () => ({
 
 vi.mock(".", () => ({
   editDeliverable: vi.fn(),
-  getDeliverable: vi.fn(),
+  selectDeliverableOrThrow: vi.fn(),
   manuallyUpdateDeliverableDueDate: vi.fn(),
   parseUpdateDeliverableInput: vi.fn(),
   updateDeliverableDemonstrationTypes: vi.fn(),
@@ -30,10 +31,14 @@ vi.mock("../../errors/checkOptionalNotNullFields", () => ({
   checkOptionalNotNullFields: vi.fn(),
 }));
 
+vi.mock("../user/queries", () => ({
+  selectUserOrThrow: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient";
 import {
   editDeliverable,
-  getDeliverable,
+  selectDeliverableOrThrow,
   manuallyUpdateDeliverableDueDate,
   parseUpdateDeliverableInput,
   updateDeliverableDemonstrationTypes,
@@ -41,24 +46,33 @@ import {
   validateUserPersonTypeAllowed,
 } from ".";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
+import { selectUserOrThrow } from "../user/queries";
 
 describe("updateDeliverable", () => {
   // Test inputs
   const testDeliverableId = "2563ded3-b5c5-4d89-9ee4-0a9bc072e89e";
   const testName = "Test Input 1";
   const testCmsOwnerUserId = "7643eef9-dc5e-4640-bc1f-b0a660034386";
-  const testInput: UpdateDeliverableInput = {
-    name: testName,
-  };
+  const testCmsOwnerPersonTypeId: PersonType = "demos-admin";
   const testContext: DeepPartial<GraphQLContext> = {
     user: {
       id: "57f92f14-7c5e-4c78-a774-5a54d7e9c2e7",
     },
   };
 
-  // Mock parsed input
-  const mockParseInputResult: ParsedUpdateDeliverableInput = {
-    name: testInput.name,
+  // Basic test input and parsed result with only a name
+  // Inputs will be changed when needed for tests
+  const basicTestInput: UpdateDeliverableInput = {
+    name: testName,
+  };
+  const mockBasicParseInputResult: ParsedUpdateDeliverableInput = {
+    name: testName,
+  };
+
+  // Basic mocked user for selectUserOrThrow for when this is used
+  const mockUser: Partial<PrismaUser> = {
+    id: testCmsOwnerUserId,
+    personTypeId: testCmsOwnerPersonTypeId,
   };
 
   // Mock transaction
@@ -70,12 +84,13 @@ describe("updateDeliverable", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
-    vi.mocked(parseUpdateDeliverableInput).mockReturnValue(mockParseInputResult);
+    vi.mocked(parseUpdateDeliverableInput).mockReturnValue(mockBasicParseInputResult);
+    vi.mocked(selectUserOrThrow).mockResolvedValue(mockUser as PrismaUser);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
   it("should check that the user is allowed to do this operation", async () => {
-    await updateDeliverable(testDeliverableId, testInput, testContext as GraphQLContext);
+    await updateDeliverable(testDeliverableId, basicTestInput, testContext as GraphQLContext);
     expect(validateUserPersonTypeAllowed).toHaveBeenCalledExactlyOnceWith(
       testContext,
       "updateDeliverable",
@@ -87,46 +102,69 @@ describe("updateDeliverable", () => {
     vi.mocked(validateUserPersonTypeAllowed).mockThrow("I'm throwing!");
 
     try {
-      await updateDeliverable(testDeliverableId, testInput, testContext as GraphQLContext);
+      await updateDeliverable(testDeliverableId, basicTestInput, testContext as GraphQLContext);
       throw new Error("Expected updateDeliverable to throw, but it did not.");
-    } catch (e) {
+    } catch {
       expect(prisma).not.toHaveBeenCalled();
     }
   });
 
   it("should check for non-null in all the fields", async () => {
-    await updateDeliverable(testDeliverableId, testInput, testContext as GraphQLContext);
+    await updateDeliverable(testDeliverableId, basicTestInput, testContext as GraphQLContext);
     expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
       ["name", "cmsOwnerUserId", "dueDate", "demonstrationTypes"],
-      testInput
+      basicTestInput
     );
   });
 
   it("should parse the input", async () => {
-    await updateDeliverable(testDeliverableId, testInput, testContext as GraphQLContext);
-    expect(parseUpdateDeliverableInput).toHaveBeenCalledExactlyOnceWith(testInput);
+    await updateDeliverable(testDeliverableId, basicTestInput, testContext as GraphQLContext);
+    expect(parseUpdateDeliverableInput).toHaveBeenCalledExactlyOnceWith(basicTestInput);
   });
 
   it("should call the validation function with a transaction", async () => {
-    await updateDeliverable(testDeliverableId, testInput, testContext as GraphQLContext);
+    await updateDeliverable(testDeliverableId, basicTestInput, testContext as GraphQLContext);
     expect(validateUpdateDeliverableInput).toHaveBeenCalledExactlyOnceWith(
       testDeliverableId,
-      mockParseInputResult,
+      mockBasicParseInputResult,
       mockTransaction
     );
   });
 
   it("should edit the deliverable and then fetch the final version within a transaction", async () => {
-    await updateDeliverable(testDeliverableId, testInput, testContext as GraphQLContext);
+    await updateDeliverable(testDeliverableId, basicTestInput, testContext as GraphQLContext);
     expect(editDeliverable).toHaveBeenCalledExactlyOnceWith(
       testDeliverableId,
-      { name: mockParseInputResult.name },
+      { name: mockBasicParseInputResult.name },
       mockTransaction
     );
-    expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
       mockTransaction
     );
+  });
+
+  it("should get the user record if a user ID is provided", async () => {
+    const testInput: UpdateDeliverableInput = {
+      ...basicTestInput,
+      cmsOwnerUserId: testCmsOwnerUserId,
+    };
+    const mockParseInputResult: ParsedUpdateDeliverableInput = {
+      ...mockBasicParseInputResult,
+      cmsOwnerUserId: testInput.cmsOwnerUserId,
+    };
+    vi.mocked(parseUpdateDeliverableInput).mockReturnValue(mockParseInputResult);
+
+    await updateDeliverable(testDeliverableId, testInput, testContext as GraphQLContext);
+    expect(selectUserOrThrow).toHaveBeenCalledExactlyOnceWith(
+      { id: testCmsOwnerUserId },
+      mockTransaction
+    );
+  });
+
+  it("should not get the user record if a user ID is not provided", async () => {
+    await updateDeliverable(testDeliverableId, basicTestInput, testContext as GraphQLContext);
+    expect(selectUserOrThrow).not.toHaveBeenCalled();
   });
 
   const editDeliverableInputTests: [string, ParsedUpdateDeliverableInput, EditDeliverableInput][] =
@@ -135,12 +173,23 @@ describe("updateDeliverable", () => {
       [
         "cmsOwnerUserId only",
         { cmsOwnerUserId: testCmsOwnerUserId },
-        { cmsOwnerUserId: testCmsOwnerUserId },
+        {
+          cmsOwner: {
+            cmsOwnerUserId: testCmsOwnerUserId,
+            cmsOwnerPersonTypeId: testCmsOwnerPersonTypeId,
+          },
+        },
       ],
       [
         "name + cmsOwnerUserId",
         { name: testName, cmsOwnerUserId: testCmsOwnerUserId },
-        { name: testName, cmsOwnerUserId: testCmsOwnerUserId },
+        {
+          name: testName,
+          cmsOwner: {
+            cmsOwnerUserId: testCmsOwnerUserId,
+            cmsOwnerPersonTypeId: testCmsOwnerPersonTypeId,
+          },
+        },
       ],
     ];
   it.each(editDeliverableInputTests)(
@@ -150,7 +199,7 @@ describe("updateDeliverable", () => {
       // That is why this mock is necessary, and needs to change for each set of parameters
       vi.mocked(parseUpdateDeliverableInput).mockReturnValue(mockParseInputResult);
 
-      await updateDeliverable(testDeliverableId, testInput, testContext as GraphQLContext);
+      await updateDeliverable(testDeliverableId, basicTestInput, testContext as GraphQLContext);
       expect(editDeliverable).toHaveBeenCalledWith(
         testDeliverableId,
         expectedEditInput,
@@ -173,24 +222,24 @@ describe("updateDeliverable", () => {
     };
     vi.mocked(parseUpdateDeliverableInput).mockReturnValue(mockParseInputResult);
 
-    await updateDeliverable(testDeliverableId, testInput, testContext as GraphQLContext);
+    await updateDeliverable(testDeliverableId, basicTestInput, testContext as GraphQLContext);
     expect(editDeliverable).not.toHaveBeenCalled();
-    expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
       mockTransaction
     );
   });
 
   it("should always call the demonstration type and due date update functions", async () => {
-    await updateDeliverable(testDeliverableId, testInput, testContext as GraphQLContext);
+    await updateDeliverable(testDeliverableId, basicTestInput, testContext as GraphQLContext);
     expect(updateDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
       testDeliverableId,
-      mockParseInputResult,
+      mockBasicParseInputResult,
       mockTransaction
     );
     expect(manuallyUpdateDeliverableDueDate).toHaveBeenCalledExactlyOnceWith(
       testDeliverableId,
-      mockParseInputResult,
+      mockBasicParseInputResult,
       testContext,
       mockTransaction
     );

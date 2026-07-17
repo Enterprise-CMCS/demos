@@ -47,14 +47,18 @@ export function DocumentColumns() {
     createDateColumnDef(columnHelper, "createdAt", "Date Uploaded"),
     columnHelper.display({
       id: "view",
-      header: "View",
+      header: () => <span className="sr-only">View</span>,
       cell: ({ row }) => {
         const docId = row.original.id;
         const handleClick = () => {
           window.open(`/document/${docId}`, "_blank");
         };
         return (
-          <SecondaryButton onClick={handleClick} name="view-document">
+          <SecondaryButton
+            onClick={handleClick}
+            name="view-document"
+            aria-label={`View ${row.original.name}`}
+          >
             View
           </SecondaryButton>
         );

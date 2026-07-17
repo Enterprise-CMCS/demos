@@ -31,12 +31,15 @@ export const MOCK_DELIVERABLE_TABLE_ROW: DeliverableTableRow = {
   dueDate: new Date("2024-07-01"),
   status: "Upcoming",
   demonstrationTypes: [],
+  deliverableActions: [],
+  extensionRequests: [],
 };
 
 export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
   id: "1",
   name: "Mock Deliverable 1",
   deliverableType: "Monitoring Report",
+  allowedDocumentTypes: ["Monitoring Report", "General File"],
   demonstration: {
     id: "1",
     name: "Demonstration 1",
@@ -44,12 +47,16 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
     state: {
       id: "CA",
     },
+    demonstrationTypes: [],
   },
   cmsOwner: {
+    id: "mock-user",
     person: {
+      id: "mock-user-person",
       fullName: "Mock User",
     },
   },
+  demonstrationTypes: [],
   dueDate: new Date("2024-08-15"),
   status: "Upcoming",
   stateDocuments: [
@@ -60,6 +67,9 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
       documentType: "General File",
       createdAt: new Date("2026-03-23"),
       owner: { person: { fullName: "Florida State" } },
+      deliverableSubmissionAction: {
+        actionTimestamp: new Date("2026-03-23"),
+      },
     },
   ],
   cmsDocuments: [
@@ -70,18 +80,29 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
       documentType: "General File",
       createdAt: new Date("2026-03-24"),
       owner: { person: { fullName: "Tess Davenport" } },
+      deliverableSubmissionAction: {
+        actionTimestamp: new Date("2026-03-24"),
+      },
     },
   ],
   deliverableActions: [
     {
       id: "action-0",
       actionType: "Created Deliverable Slot",
+      actionTimestamp: new Date("2026-03-20T10:00:00Z"),
+      userFullName: "System",
+      details: "",
     },
     {
       id: "action-1",
       actionType: "Requested Resubmission",
+      actionTimestamp: new Date("2026-03-21T10:00:00Z"),
+      userFullName: "Mock CMS User (CMS User)",
+      details:
+        "Old Due Date: 03/15/2026\nNew Due Date: 04/15/2026\nReason Details: Please resubmit with corrected figures.",
     },
   ],
+  extensionRequests: [],
 };
 
 export const deliverableMocks: MockedResponse[] = [

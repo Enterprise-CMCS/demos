@@ -1,13 +1,22 @@
 import React, { createContext, useContext, useState } from "react";
-import { DocumentType, TagName, DemonstrationTypeAssignment, Tag } from "demos-server";
+import { DocumentNode } from "@apollo/client";
+import {
+  DocumentType,
+  TagName,
+  DemonstrationTypeAssignment,
+  Tag,
+  Reference,
+  ReferenceAgreement,
+  Document as ServerDocument,
+} from "demos-server";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
 import { CreateExtensionDialog } from "./modification/CreateExtensionDialog";
 import { EditDemonstrationDialog } from "./demonstration";
 import { ExistingContactType, ManageContactsDialog } from "./ManageContactsDialog";
 import {
-  AddDocumentDialog,
-  DocumentDialogFields,
+  AddDocumentToApplicationDialog,
+  AddDocumentToDeliverableDialog,
   EditDocumentDialog,
   RemoveDocumentDialog,
 } from "./document";
@@ -24,7 +33,7 @@ import { EditDemonstrationTypeDialog } from "./DemonstrationTypes/EditDemonstrat
 import { UpdateExtensionDialog } from "./modification/EditExtensionDialog";
 import { UpdateAmendmentDialog } from "./modification/EditAmendmentDialog";
 import { ConfirmApproveDialog } from "./ConfirmApproveDialog";
-import { AddDeliverableSlotDialog } from "./deliverable";
+import { AddDeliverableSlotDialog, RemoveDeliverableDialog } from "./deliverable";
 import { EditDeliverableDialog } from "./deliverable/EditDeliverableDialog";
 import {
   RequestExtensionDeliverableDialog,
@@ -37,7 +46,30 @@ import type {
 import { WorkflowApplicationType } from "components/application";
 import { AddDeliverableSlotDemonstration } from "./deliverable/AddDeliverableSlotDialog";
 import type { DeliverableTableRow } from "components/table/tables/DeliverableTable";
-import { RequestResubmissionDeliverableDialog, RequestResubmissionDeliverableDialogDeliverable } from "./deliverable/RequestResubmissionDeliverableDialog";
+import {
+  RequestResubmissionDeliverableDialog,
+  RequestResubmissionDeliverableDialogDeliverable,
+} from "./deliverable/RequestResubmissionDeliverableDialog";
+import {
+  CompleteReviewDeliverableDialog,
+  CompleteReviewDeliverableDialogDeliverable,
+} from "./deliverable/CompleteReviewDeliverableDialog";
+import {
+  ReviewExtensionDeliverableDialog,
+  ReviewExtensionDeliverableDialogDeliverable,
+} from "./deliverable/ReviewExtensionDeliverableDialog";
+import { ReferenceAgreementDialog } from "./referenceAgreement/ReferenceAgreementDialog";
+
+type EditDeliverableDialogSource = Pick<
+  DeliverableTableRow,
+  | "id"
+  | "name"
+  | "deliverableType"
+  | "dueDate"
+  | "cmsOwner"
+  | "demonstrationTypes"
+  | "demonstration"
+>;
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -97,11 +129,13 @@ export const useDialog = () => {
 
   const showManageContactsDialog = (
     demonstrationId: string,
+    stateId: string,
     existingContacts?: ExistingContactType[]
   ) => {
     context.showDialog(
       <ManageContactsDialog
         demonstrationId={demonstrationId}
+        stateId={stateId}
         existingContacts={existingContacts}
         onClose={context.hideDialog}
       />
@@ -110,34 +144,47 @@ export const useDialog = () => {
 
   const showUploadDocumentDialog = (
     applicationId: string,
-    onDocumentUploadSucceeded?: () => void
+    onDocumentUploadSucceeded?: () => void,
+    documentTypeSubset?: DocumentType[]
   ) => {
     context.showDialog(
-      <AddDocumentDialog
+      <AddDocumentToApplicationDialog
         onClose={context.hideDialog}
         applicationId={applicationId}
         onDocumentUploadSucceeded={onDocumentUploadSucceeded}
+        documentTypeSubset={documentTypeSubset}
       />
     );
   };
 
   const showEditDocumentDialog = (
-    initialDocument: DocumentDialogFields,
-    canEditDocumentType?: boolean
+    document: Pick<ServerDocument, "id" | "name" | "description">,
+    refetchQueries?: DocumentNode[]
+  ) => {
+    context.showDialog(<EditDocumentDialog document={document} refetchQueries={refetchQueries} />);
+  };
+
+  const showRemoveDocumentDialog = (
+    documentIds: string[],
+    options: { refetchQueries?: DocumentNode[] } = {}
   ) => {
     context.showDialog(
-      <EditDocumentDialog
-        initialDocument={initialDocument}
+      <RemoveDocumentDialog
+        documentIds={documentIds}
         onClose={context.hideDialog}
-        canEditDocumentType={canEditDocumentType}
+        refetchQueries={options.refetchQueries}
       />
     );
   };
 
-  const showRemoveDocumentDialog = (documentIds: string[]) => {
-    context.showDialog(
-      <RemoveDocumentDialog documentIds={documentIds} onClose={context.hideDialog} />
-    );
+  const showAddDeliverableFileDialog = (args: {
+    deliverableId: string;
+    applicationId: string;
+    isCmsFile: boolean;
+    documentTypeSubset?: DocumentType[];
+    refetchQueries?: string[];
+  }) => {
+    context.showDialog(<AddDocumentToDeliverableDialog onClose={context.hideDialog} {...args} />);
   };
 
   const showApplicationIntakeDocumentUploadDialog = (applicationId: string) => {
@@ -246,6 +293,16 @@ export const useDialog = () => {
     );
   };
 
+  const showRemoveDeliverableDialog = (deliverableIds: string[], onDeleted?: () => void) => {
+    context.showDialog(
+      <RemoveDeliverableDialog
+        deliverableIds={deliverableIds}
+        onClose={context.hideDialog}
+        onDeleted={onDeleted}
+      />
+    );
+  };
+
   const showRequestExtensionDeliverableDialog = (
     deliverable: RequestExtensionDeliverableDialogDeliverable
   ) => {
@@ -265,8 +322,24 @@ export const useDialog = () => {
     );
   };
 
+  const showCompleteReviewDeliverableDialog = (
+    deliverable: CompleteReviewDeliverableDialogDeliverable
+  ) => {
+    context.showDialog(
+      <CompleteReviewDeliverableDialog onClose={context.hideDialog} deliverable={deliverable} />
+    );
+  };
+
+  const showReviewExtensionDeliverableDialog = (
+    deliverable: ReviewExtensionDeliverableDialogDeliverable
+  ) => {
+    context.showDialog(
+      <ReviewExtensionDeliverableDialog onClose={context.hideDialog} deliverable={deliverable} />
+    );
+  };
+
   const showEditDeliverableDialog = (
-    deliverable: DeliverableTableRow,
+    deliverable: EditDeliverableDialogSource,
     onSave?: (input: EditDeliverableInput, reasonForChange?: string) => Promise<void> | void
   ) => {
     const dialogDeliverable: EditDeliverableDialogDeliverable = {
@@ -294,6 +367,14 @@ export const useDialog = () => {
     );
   };
 
+  const showReferenceAgreementDialog = (
+    reference: Pick<Reference, "id"> & {
+      agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt">;
+    }
+  ) => {
+    context.showDialog(<ReferenceAgreementDialog reference={reference} />);
+  };
+
   return {
     closeDialog: context.hideDialog,
     showCreateDemonstrationDialog,
@@ -304,6 +385,7 @@ export const useDialog = () => {
     showUploadDocumentDialog,
     showEditDocumentDialog,
     showRemoveDocumentDialog,
+    showAddDeliverableFileDialog,
     showApplicationIntakeDocumentUploadDialog,
     showCompletenessDocumentUploadDialog,
     showConceptPreSubmissionDocumentUploadDialog,
@@ -318,8 +400,12 @@ export const useDialog = () => {
     showUpdateAmendmentDialog,
     showConfirmApproveDialog,
     showAddDeliverableSlotDialog,
+    showRemoveDeliverableDialog,
     showEditDeliverableDialog,
     showRequestExtensionDeliverableDialog,
     showRequestResubmissionDeliverableDialog,
+    showCompleteReviewDeliverableDialog,
+    showReviewExtensionDeliverableDialog,
+    showReferenceAgreementDialog,
   };
 };

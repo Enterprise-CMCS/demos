@@ -1,0 +1,66 @@
+= SME book
+:toc: left
+
+The audience is the subject-matter expert reviewing data-mapping
+decisions: crosswalks, pending/approved unification rules, the
+program-detail tag dictionary, JSONB payload shapes, the drop list,
+and how history is handled.
+
+== Why your review matters
+
+The migration code is mechanical. The decisions are not. Every wrong
+crosswalk row, missed pending rule, or unmapped tag becomes a parity
+warning at best and silently incorrect data at worst. Your sign-off is
+the gate.
+
+== Top-level source/target map
+
+:nested:
+include::reference-source-target-map.adoc[leveloffset=+1]
+:!nested:
+
+== Pages
+
+=== How-to
+
+* xref:howto-author-a-crosswalk-csv.adoc[Review and sign off a crosswalk]
+* xref:howto-review-pending-approved-decisions.adoc[Review
+  pending/approved decisions]
+* xref:howto-review-pgm-dtl-tag-mapping.adoc[Review pgm_dtl tag
+  mapping]
+* xref:howto-review-bn-jsonb-payload.adoc[Review a BN JSONB payload]
+
+=== Reference (live-rendered from `reports/` and `sql/`)
+
+* xref:reference-source-target-columns.adoc[Source/target column map]
+* xref:reference-static-constraint-tables.adoc[Static constraint
+  tables]
+* xref:reference-pgm-dtl-tag-mapping.adoc[`pgm_dtl_tag_mapping.csv`]
+* xref:reference-pending-approved-rules.adoc[Pending/approved rules]
+* xref:reference-history-strategy.adoc[History strategy]
+* xref:reference-drop-list.adoc[Drop list]
+
+=== Explanation
+
+* xref:explanation-data-shape-decisions.adoc[Data-shape decisions
+  (JSONB, tags, single document table)]
+* xref:explanation-comments-routing.adoc[Comments: private vs public]
+* xref:explanation-derivability.adoc[Derivability: can every target
+  column be derived from source?]
+
+== Glossary
+
+include::../shared/glossary.adoc[]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:../developer/explanation-demos-clone-vs-id-maps.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:howto-author-a-crosswalk-csv.adoc[next >]
+|===
+endif::[]
+// docnav-end

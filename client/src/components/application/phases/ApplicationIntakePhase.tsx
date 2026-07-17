@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { useMutation } from "@apollo/client";
+import { gql, TypedDocumentNode, useMutation } from "@apollo/client";
 
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
@@ -16,8 +16,9 @@ import { getPhaseCompletedMessage } from "util/messages";
 import { useToast } from "components/toast";
 import { DatePicker } from "components/input/date/DatePicker";
 import { ApplicationHealthTypeTags } from "components/tags/ApplicationHealthTypeTags";
-import type { LocalDate, PhaseName, PhaseStatus, Tag, TagName } from "demos-server";
+import type { Application, LocalDate, PhaseName, PhaseStatus, Tag, TagName } from "demos-server";
 import { SET_APPLICATION_TAGS_MUTATION } from "components/dialog/ApplyTagsDialog";
+import { ConfirmSuggestedSparklyTagDialog } from "components/dialog/ConfirmSuggestedSparklyTagDialog";
 
 /** Business Rules for this Phase:
  * - **Application Intake Start Date** - Can start in one of two ways, whichever comes first:
@@ -35,7 +36,7 @@ const STYLES = {
   grid: tw`relative grid grid-cols-2 gap-10`,
   divider: tw`pointer-events-none absolute left-1/2 top-0 h-full border-l border-border-subtle`,
   stepEyebrow: tw`text-xs font-semibold uppercase tracking-wide text-text-placeholder mb-2`,
-  title: tw`text-xl font-semibold mb-2`,
+  title: tw`text-xl font-semibold mb-2 uppercase`,
   helper: tw`text-sm text-text-placeholder mb-2`,
   list: tw`mt-4 space-y-3`,
   fileRow: tw`bg-surface-secondary border border-border-fields px-3 py-2 flex items-center justify-between`,
@@ -45,11 +46,79 @@ const STYLES = {
 
 const THIS_PHASE_NAME: PhaseName = "Application Intake";
 const NEXT_PHASE_NAME: PhaseName = "Completeness";
+const REFETCH_ACTIVE_QUERIES_AFTER_SUGGESTION_UPDATE = {
+  awaitRefetchQueries: true,
+  refetchQueries: "active" as const,
+};
 
 export const APPLICATION_INTAKE_FINISH_BUTTON_NAME = "button-finish-state-application";
 export const APPLICATION_INTAKE_UPLOAD_BUTTON_NAME = "button-open-upload-modal";
 export const APPLICATION_SUBMITTED_DATEPICKER_NAME = "datepicker-state-application-submitted-date";
 export const COMPLETENESS_REVIEW_DATEPICKER_NAME = "datepicker-completeness-review-due-date";
+
+export const APPLICATION_INTAKE_PHASE_DESCRIPTION = {
+  text: "When the state submits an official application, completing this form closes Pre-Submission Technical Assistance and opens the Completeness Review period.",
+  testId: "application-intake-phase-description",
+};
+export const APPLICATION_INTAKE_PHASE_STEP_ONE_DESCRIPTION = {
+  text: "Upload the State Application file.",
+  testId: "application-intake-phase-step-one-description",
+};
+export const APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION = {
+  text: "Check uploaded files. If needed, correct the Concept Paper submitted date before finishing the phase.",
+  testId: "application-intake-phase-step-two-description",
+};
+export const APPLICATION_INTAKE_PHASE_STEP_THREE_DESCRIPTION = {
+  text: "Application tags track workloads and facilitate reviews. Add tags for the demonstration types discussed in this application. You will update the full set of approved demonstration types and effective dates at approval time.",
+  testId: "application-intake-phase-step-three-description",
+};
+
+export const ACCEPT_APPLICATION_TAG_SUGGESTION_MUTATION: TypedDocumentNode<
+  { acceptApplicationTagSuggestion: Application | null },
+  { applicationId: string; value: TagName }
+> = gql`
+  mutation AcceptApplicationTagSuggestion($applicationId: ID!, $value: String!) {
+    acceptApplicationTagSuggestion(applicationId: $applicationId, value: $value) {
+      ... on Demonstration {
+        id
+        tags {
+          tagName
+          approvalStatus
+        }
+        suggestedApplicationTags
+      }
+      ... on Amendment {
+        id
+        tags {
+          tagName
+          approvalStatus
+        }
+        suggestedApplicationTags
+      }
+      ... on Extension {
+        id
+        tags {
+          tagName
+          approvalStatus
+        }
+        suggestedApplicationTags
+      }
+    }
+  }
+`;
+
+export const REMOVE_APPLICATION_TAG_SUGGESTION_MUTATION: TypedDocumentNode<
+  { removeApplicationTagSuggestion: { applicationId: string; value: string; statusId: string } },
+  { applicationId: string; value: TagName }
+> = gql`
+  mutation RemoveApplicationTagSuggestion($applicationId: ID!, $value: String!) {
+    removeApplicationTagSuggestion(applicationId: $applicationId, value: $value) {
+      applicationId
+      value
+      statusId
+    }
+  }
+`;
 
 const UploadSection = ({
   applicationId,
@@ -63,9 +132,14 @@ const UploadSection = ({
   return (
     <div aria-labelledby="state-application-upload-title">
       <h4 id="state-application-upload-title" className={STYLES.title}>
-        STEP 1 - UPLOAD
+        Step 1 - Upload
       </h4>
-      <p className={STYLES.helper}>Upload State Application file</p>
+      <p
+        className={STYLES.helper}
+        data-testid={APPLICATION_INTAKE_PHASE_STEP_ONE_DESCRIPTION.testId}
+      >
+        {APPLICATION_INTAKE_PHASE_STEP_ONE_DESCRIPTION.text}
+      </p>
 
       <SecondaryButton
         onClick={() => showApplicationIntakeDocumentUploadDialog(applicationId)}
@@ -113,8 +187,6 @@ interface VerifyCompleteSectionProps {
   stateApplicationSubmittedDate: string;
   hasDocuments: boolean;
   onDateChange: (newDate: string) => void;
-  isFinishButtonEnabled: boolean;
-  onFinish: () => void;
   isPhaseFinalized: boolean;
 }
 
@@ -122,8 +194,6 @@ const VerifyCompleteSection = ({
   stateApplicationSubmittedDate,
   hasDocuments,
   onDateChange,
-  isFinishButtonEnabled,
-  onFinish,
   isPhaseFinalized,
 }: VerifyCompleteSectionProps) => {
   const completenessReviewDueDate = stateApplicationSubmittedDate
@@ -132,12 +202,14 @@ const VerifyCompleteSection = ({
 
   return (
     <div aria-labelledby="state-application-verify-title">
-      <div className={STYLES.stepEyebrow}>Step 2 - Verify/Complete</div>
       <h4 id="state-application-verify-title" className={STYLES.title}>
-        VERIFY/COMPLETE
+        Step 2 - Verify/Complete
       </h4>
-      <p className={STYLES.helper}>
-        Verify that the document is uploaded/accurate and that all required fields are filled.
+      <p
+        className={STYLES.helper}
+        data-testid={APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.testId}
+      >
+        {APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.text}
       </p>
 
       <div className="space-y-4">
@@ -169,17 +241,6 @@ const VerifyCompleteSection = ({
             Automatically calculated as 15 calendar days after State Application Submitted Date
           </div>
         </div>
-      </div>
-
-      <div className={STYLES.actions}>
-        <Button
-          name={APPLICATION_INTAKE_FINISH_BUTTON_NAME}
-          onClick={onFinish}
-          disabled={!isFinishButtonEnabled}
-          size="small"
-        >
-          Finish
-        </Button>
       </div>
     </div>
   );
@@ -222,6 +283,7 @@ export const getApplicationIntakeComponentFromApplication = (
       applicationIntakeDocuments={applicationIntakeDocuments}
       initialStateApplicationSubmittedDate={estStateApplicationSubmittedDate}
       tags={application.tags}
+      suggestedTags={application.suggestedApplicationTags}
       setSelectedPhase={setSelectedPhase}
       phaseStatus={applicationIntakePhase.phaseStatus ?? "Not Started"}
       completenessPhaseStatus={completenessPhase.phaseStatus ?? "Not Started"}
@@ -233,6 +295,7 @@ export interface ApplicationIntakeProps {
   applicationIntakeDocuments: ApplicationWorkflowDocument[];
   initialStateApplicationSubmittedDate: string;
   tags: Tag[];
+  suggestedTags?: TagName[];
   setSelectedPhase: (phase: PhaseName) => void;
   phaseStatus: PhaseStatus;
   completenessPhaseStatus: PhaseStatus;
@@ -243,6 +306,7 @@ export const ApplicationIntakePhase = ({
   applicationIntakeDocuments,
   initialStateApplicationSubmittedDate,
   tags,
+  suggestedTags = [],
   setSelectedPhase,
   phaseStatus,
   completenessPhaseStatus,
@@ -252,8 +316,17 @@ export const ApplicationIntakePhase = ({
   const { completePhase } = useCompletePhase();
   const { setApplicationDates } = useSetApplicationDates();
   const [setApplicationTagsMutation] = useMutation(SET_APPLICATION_TAGS_MUTATION);
+  const [acceptApplicationTagSuggestion, { loading: isApplyingSuggestedTag }] = useMutation(
+    ACCEPT_APPLICATION_TAG_SUGGESTION_MUTATION,
+    REFETCH_ACTIVE_QUERIES_AFTER_SUGGESTION_UPDATE
+  );
+  const [removeApplicationTagSuggestion, { loading: isRemovingSuggestedTag }] = useMutation(
+    REMOVE_APPLICATION_TAG_SUGGESTION_MUTATION,
+    REFETCH_ACTIVE_QUERIES_AFTER_SUGGESTION_UPDATE
+  );
 
   const [submittedDateOverride, setSubmittedDateOverride] = useState<string>("");
+  const [selectedSuggestedTag, setSelectedSuggestedTag] = useState<TagName | null>(null);
 
   // Calculate the dates to display based on the following rules:
   // 1. If the user has manually entered a date (submittedDateOverride), use this
@@ -319,12 +392,46 @@ export const ApplicationIntakePhase = ({
     }
   };
 
+  const handleAcceptSuggestedTag = async (tagName: TagName) => {
+    try {
+      await acceptApplicationTagSuggestion({
+        variables: {
+          applicationId,
+          value: tagName,
+        },
+      });
+      setSelectedSuggestedTag(null);
+      showSuccess(`Tag "${tagName}" confirmed`);
+    } catch (error) {
+      showError("Failed to update application tags");
+      throw error;
+    }
+  };
+
+  const handleRemoveSuggestedTag = async (tagName: TagName) => {
+    try {
+      await removeApplicationTagSuggestion({
+        variables: {
+          applicationId,
+          value: tagName,
+        },
+      });
+      setSelectedSuggestedTag(null);
+      showSuccess(`Tag "${tagName}" removed`);
+    } catch (error) {
+      showError("Failed to update application tags");
+      throw error;
+    }
+  };
+
   return (
     <div>
       <h3 className="text-brand text-[22px] font-bold">APPLICATION INTAKE</h3>
-      <p className="text-sm text-text-placeholder mb-4">
-        When the state submits an official application, completing this form closes Pre-Submission
-        Technical Assistance and opens the Completeness Review period
+      <p
+        className="text-sm text-text-placeholder mb-4"
+        data-testid={APPLICATION_INTAKE_PHASE_DESCRIPTION.testId}
+      >
+        {APPLICATION_INTAKE_PHASE_DESCRIPTION.text}
       </p>
 
       <section className={STYLES.pane}>
@@ -335,23 +442,48 @@ export const ApplicationIntakePhase = ({
             stateApplicationSubmittedDate={stateApplicationSubmittedDate}
             hasDocuments={hasDocuments}
             onDateChange={setSubmittedDateOverride}
-            isFinishButtonEnabled={isFinishButtonEnabled}
-            onFinish={onFinishButtonClick}
             isPhaseFinalized={isPhaseFinalized}
           />
         </div>
-        <div className="mt-8">
+        <div className="mt-8" aria-labelledby="state-application-tags-title">
+          <h4 id="state-application-verify-title" className={STYLES.title}>
+            Step 3 - Apply Tags
+          </h4>
+          <p
+            className={STYLES.helper}
+            data-testid={APPLICATION_INTAKE_PHASE_STEP_THREE_DESCRIPTION.testId}
+          >
+            {APPLICATION_INTAKE_PHASE_STEP_THREE_DESCRIPTION.text}
+          </p>
           <ApplicationHealthTypeTags
             applicationId={applicationId}
-            title={"STEP 3 - APPLY TAGS"}
-            description={
-              "You must tag this application with one or more demonstration types involved in this request before it can be reviewed and approved."
-            }
             selectedTags={tags}
+            suggestedTags={suggestedTags}
             onRemoveTag={handleRemoveTag}
+            onAcceptSuggestedTag={setSelectedSuggestedTag}
+            isApplyingSuggestedTag={isApplyingSuggestedTag || isRemovingSuggestedTag}
           />
         </div>
       </section>
+      <div className={STYLES.actions}>
+        <Button
+          name={APPLICATION_INTAKE_FINISH_BUTTON_NAME}
+          onClick={onFinishButtonClick}
+          disabled={!isFinishButtonEnabled}
+          size="small"
+        >
+          Finish
+        </Button>
+      </div>
+      {selectedSuggestedTag && (
+        <ConfirmSuggestedSparklyTagDialog
+          tagName={selectedSuggestedTag}
+          onClose={() => setSelectedSuggestedTag(null)}
+          onConfirm={handleAcceptSuggestedTag}
+          onRemove={handleRemoveSuggestedTag}
+          isSubmitting={isApplyingSuggestedTag || isRemovingSuggestedTag}
+        />
+      )}
     </div>
   );
 };

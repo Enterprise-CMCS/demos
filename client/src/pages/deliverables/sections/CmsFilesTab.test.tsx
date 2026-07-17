@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -21,17 +21,67 @@ const MOCK_FILES: DeliverableFileRow[] = [
     documentType: "General File",
     createdAt: new Date("2026-03-10"),
     owner: { person: { fullName: "Tess Davenport" } },
+    deliverableSubmissionAction: null,
+  },
+  {
+    id: "cms-b",
+    name: "CmsBravo.pdf",
+    description: "CMS Bravo description",
+    documentType: "Monitoring Report",
+    createdAt: new Date("2026-04-15"),
+    owner: { person: { fullName: "Sam Smith" } },
+    deliverableSubmissionAction: {
+      actionTimestamp: new Date("2026-04-15"),
+    },
   },
 ];
 
-const renderTab = (overrides: Partial<React.ComponentProps<typeof CmsFilesTab>> = {}) =>
+const renderTab = (overrides: Partial<React.ComponentProps<typeof CmsFilesTab>> = {}) => {
+  const baseRenderTabProps = {
+    files: MOCK_FILES,
+    onAdd: vi.fn(),
+    onEdit: vi.fn(),
+    onDelete: vi.fn(),
+    canManage: true,
+    isFinalized: false,
+  };
   render(
     <TestProvider>
-      <CmsFilesTab files={MOCK_FILES} {...overrides} />
+      <CmsFilesTab {...baseRenderTabProps} {...overrides} />
     </TestProvider>
   );
+};
 
 describe("CmsFilesTab", () => {
+  describe("row data", () => {
+    it("renders the expected columns", () => {
+      renderTab();
+
+      expect(screen.getByRole("columnheader", { name: /Type/i })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: /File Name/i })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: /Description/i })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: /Uploaded By/i })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: /Uploaded Date/i })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: /View/i })).toBeInTheDocument();
+    });
+
+    it("renders the expected data in each row", () => {
+      renderTab();
+
+      const row = screen.getByText("CmsAlpha.pdf").closest("tr");
+      expect(row).not.toBeNull();
+
+      const cells = within(row as HTMLTableRowElement).getAllByRole("cell");
+      expect(within(cells[0]).getByTestId("select-row-cms-a")).toBeInTheDocument();
+      expect(cells[1]).toHaveTextContent("General File");
+      expect(cells[2]).toHaveTextContent("CmsAlpha.pdf");
+      expect(cells[3]).toHaveTextContent("CMS Alpha description");
+      expect(cells[4]).toHaveTextContent("Tess Davenport");
+      expect(cells[5]).toHaveTextContent("03/10/2026");
+      expect(within(cells[6]).getByTestId("view-file-cms-a")).toBeInTheDocument();
+    });
+  });
+
   it("renders one row per CMS file", () => {
     renderTab();
 
@@ -56,11 +106,7 @@ describe("CmsFilesTab", () => {
   });
 
   it("renders the empty-rows message when there are no files", () => {
-    render(
-      <TestProvider>
-        <CmsFilesTab files={[]} />
-      </TestProvider>
-    );
+    renderTab({ files: [] });
 
     expect(screen.getByRole("table")).toBeInTheDocument();
     expect(screen.getByText(/No files have been added yet\./i)).toBeInTheDocument();
@@ -119,5 +165,84 @@ describe("CmsFilesTab", () => {
 
     expect(openSpy).toHaveBeenCalledWith("/document/cms-a", "_blank");
     openSpy.mockRestore();
+  });
+
+  describe("when not allowed to manage files", () => {
+    it("hides the add and action buttons", () => {
+      renderTab({ canManage: false });
+
+      expect(screen.queryByTestId(CMS_FILES_ADD_BUTTON_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(CMS_FILES_EDIT_BUTTON_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(CMS_FILES_DELETE_BUTTON_NAME)).not.toBeInTheDocument();
+    });
+  });
+
+  describe("when finalized", () => {
+    it("disables the Add File(s) button", () => {
+      renderTab({ isFinalized: true });
+
+      const addButton = screen.getByTestId(CMS_FILES_ADD_BUTTON_NAME);
+      expect(addButton).toBeDisabled();
+      expect(addButton).toHaveAttribute(
+        "title",
+        "Files cannot be added to a Finalized deliverable."
+      );
+    });
+
+    it("keeps Edit disabled even when a row is selected", async () => {
+      const user = userEvent.setup();
+      renderTab({ isFinalized: true });
+
+      const editButton = screen.getByTestId(CMS_FILES_EDIT_BUTTON_NAME);
+      expect(editButton).toBeDisabled();
+
+      await user.click(screen.getByTestId("select-row-cms-a"));
+
+      expect(editButton).toBeDisabled();
+      expect(editButton).toHaveAttribute(
+        "title",
+        "Documents on Finalized deliverables cannot be edited."
+      );
+    });
+  });
+
+  describe("when file is part of a deliverable submission", () => {
+    it("disables Delete for files that are part of a submission", async () => {
+      const user = userEvent.setup();
+      renderTab();
+
+      await user.click(screen.getByTestId("select-row-cms-b"));
+
+      expect(screen.getByTestId(CMS_FILES_DELETE_BUTTON_NAME)).toBeDisabled();
+    });
+
+    it("allows Delete for files that are not part of a submission", async () => {
+      const user = userEvent.setup();
+      renderTab();
+
+      await user.click(screen.getByTestId("select-row-cms-a"));
+
+      expect(screen.getByTestId(CMS_FILES_DELETE_BUTTON_NAME)).not.toBeDisabled();
+    });
+  });
+
+  describe("when file is part of a deliverable submission", () => {
+    it("disables Delete for files that are part of a submission", async () => {
+      const user = userEvent.setup();
+      renderTab();
+
+      await user.click(screen.getByTestId("select-row-cms-b"));
+
+      expect(screen.getByTestId(CMS_FILES_DELETE_BUTTON_NAME)).toBeDisabled();
+    });
+
+    it("allows Delete for files that are not part of a submission", async () => {
+      const user = userEvent.setup();
+      renderTab();
+
+      await user.click(screen.getByTestId("select-row-cms-a"));
+
+      expect(screen.getByTestId(CMS_FILES_DELETE_BUTTON_NAME)).not.toBeDisabled();
+    });
   });
 });

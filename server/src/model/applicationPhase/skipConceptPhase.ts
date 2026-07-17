@@ -12,7 +12,7 @@ import {
 import { validateAndUpdateDates } from "../applicationDate";
 
 export async function skipConceptPhase(
-  _: unknown,
+  parent: unknown,
   { applicationId }: { applicationId: string }
 ): Promise<PrismaApplication> {
   const easternNow = getEasternNow();

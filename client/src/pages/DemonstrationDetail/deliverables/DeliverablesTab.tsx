@@ -22,13 +22,17 @@ export const DeliverablesTab = ({
   parentDemonstration: AddDeliverableSlotDemonstration;
 }) => {
   const { showAddDeliverableSlotDialog } = useDialog();
-  const rawPersonType = getCurrentUser().currentUser?.person.personType;
+  const rawPersonType = getCurrentUser().currentUser.person.personType;
   const viewMode = rawPersonType as UserType;
   const navigate = useNavigate();
   const { data, loading, error } = useQuery<DeliverablesQueryResult>(DELIVERABLES_PAGE_QUERY);
-  const deliverables = data?.deliverables.filter(
-    (deliverable) => deliverable.demonstration.id === parentDemonstration.id
-  ) ?? [];
+  const deliverables = React.useMemo(
+    () =>
+      data?.deliverables.filter(
+        (deliverable) => deliverable.demonstration.id === parentDemonstration.id
+      ) ?? [],
+    [data, parentDemonstration.id]
+  );
 
   return (
     <div className="flex flex-col">
@@ -43,9 +47,7 @@ export const DeliverablesTab = ({
         </IconButton>
       </TabHeader>
       {loading && <div className="p-4">Loading deliverables...</div>}
-      {error && (
-        <div className="p-4 text-red-500">Error loading deliverables.</div>
-      )}
+      {error && <div className="p-4 text-red-500">Error loading deliverables.</div>}
       {!loading && !error && (
         <DemonstrationDeliverableTable
           deliverables={deliverables}

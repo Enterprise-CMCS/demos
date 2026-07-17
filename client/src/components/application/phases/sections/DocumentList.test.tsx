@@ -116,4 +116,27 @@ describe("DocumentList", () => {
 
     expect(mockShowRemoveDocumentDialog).toHaveBeenCalledWith(["doc-1"]);
   });
+
+  it("renders the document icon", () => {
+    render(
+      <TestProvider>
+        <DocumentList documents={mockDocuments} />
+      </TestProvider>
+    );
+
+    const fileIcons = screen.getAllByRole("img", { name: /file/i });
+    expect(fileIcons).toHaveLength(2);
+  });
+
+  it("renders the documentIcon and name as a link pointing towards the document page", () => {
+    render(
+      <TestProvider>
+        <DocumentList documents={mockDocuments} />
+      </TestProvider>
+    );
+
+    const documentLink = screen.getByRole("link", { name: /test document 1/i });
+    expect(documentLink).toHaveAttribute("href", "/document/doc-1");
+    expect(documentLink).toHaveAttribute("target", "_blank");
+  });
 });

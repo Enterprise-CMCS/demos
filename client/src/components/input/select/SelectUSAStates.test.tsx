@@ -2,7 +2,7 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
-import { SelectUSAStates } from "./SelectUSAStates";
+import { SelectUSAStates, SELECT_USA_STATES_TEST_ID } from "./SelectUSAStates";
 
 describe("<SelectUSAStates />", () => {
   it("filters options by input and calls onStateChange with the abbrev", async () => {
@@ -12,7 +12,7 @@ describe("<SelectUSAStates />", () => {
     );
 
     // Open the dropdown and type a substring unique to one state
-    const input = screen.getByRole("textbox", { name: /state or territory/i });
+    const input = screen.getByTestId(SELECT_USA_STATES_TEST_ID);
     await userEvent.click(input);
     await userEvent.type(input, "ver");
 
@@ -30,7 +30,7 @@ describe("<SelectUSAStates />", () => {
   it("shows 'No matches found' when filter yields nothing", async () => {
     render(<SelectUSAStates value="" onSelect={() => {}} />);
 
-    const input = screen.getByRole("textbox", { name: /state or territory/i });
+    const input = screen.getByTestId(SELECT_USA_STATES_TEST_ID);
     await userEvent.click(input);
     await userEvent.type(input, "zzz");
 
@@ -40,7 +40,7 @@ describe("<SelectUSAStates />", () => {
   it("applies the required and disabled props to the input", () => {
     render(<SelectUSAStates value="" onSelect={() => {}} isRequired={true} isDisabled={true} />);
 
-    const input = screen.getByRole("textbox", { name: /state or territory/i });
+    const input = screen.getByTestId(SELECT_USA_STATES_TEST_ID);
     expect(input).toBeRequired();
     expect(input).toBeDisabled();
   });

@@ -7,7 +7,7 @@ import {
   AddDemonstrationTypesForm,
 } from "./AddDemonstrationTypesForm";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
-import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationType";
+import { SELECT_DEMONSTRATION_TYPE_QUERY, SELECT_DEMONSTRATION_TYPE_TEST_ID } from "components/input/select/SelectDemonstrationType";
 import { Tag } from "demos-server";
 
 const mockSelectDemonstrationTypeQuery: MockedResponse<{
@@ -97,7 +97,7 @@ describe("AddDemonstrationTypesForm", () => {
     const user = userEvent.setup();
     await renderWithProvider();
 
-    const input = screen.getByRole("textbox");
+    const input = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
     await user.click(input);
 
     // type A is already assigned to the demonstration — filtered out
@@ -115,10 +115,12 @@ describe("AddDemonstrationTypesForm", () => {
     const addButton = screen.getByTestId("button-add-demonstration-type");
     expect(addButton).toBeDisabled();
 
-    await user.click(screen.getByRole("textbox"));
+    await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID));
     await user.click(screen.getByText("Type C (Unapproved)"));
-    await user.type(screen.getByLabelText(/effective date/i), "2024-01-03");
-    await user.type(screen.getByLabelText(/expiration date/i), "2025-01-03");
+    const effectiveDate = screen.getByLabelText(/effective date/i);
+    const expirationDate = screen.getByLabelText(/expiration date/i);
+    await user.type(effectiveDate, "2024-01-03");
+    await user.type(expirationDate, "2025-01-03");
 
     expect(addButton).toBeEnabled();
   });
@@ -127,10 +129,12 @@ describe("AddDemonstrationTypesForm", () => {
     const user = userEvent.setup();
     await renderWithProvider();
 
-    await user.click(screen.getByRole("textbox"));
+    await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID));
     await user.click(screen.getByText("Type C (Unapproved)"));
-    await user.type(screen.getByLabelText(/effective date/i), "2024-01-03");
-    await user.type(screen.getByLabelText(/expiration date/i), "2025-01-03");
+    const effectiveDate = screen.getByLabelText(/effective date/i);
+    const expirationDate = screen.getByLabelText(/expiration date/i);
+    await user.type(effectiveDate, "2024-01-03");
+    await user.type(expirationDate, "2025-01-03");
     await user.click(screen.getByTestId("button-add-demonstration-type"));
 
     expect(mockAddDemonstrationType).toHaveBeenCalledWith({
@@ -140,7 +144,7 @@ describe("AddDemonstrationTypesForm", () => {
       approvalStatus: "Unapproved",
     });
     expect(mockAddDemonstrationType).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole("textbox")).toHaveValue("");
+    expect(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID)).toHaveValue("");
     expect(screen.getByTestId("button-add-demonstration-type")).toBeDisabled();
   });
 
@@ -185,7 +189,7 @@ describe("AddDemonstrationTypesForm", () => {
     const user = userEvent.setup();
     await renderWithProvider();
 
-    const input = screen.getByRole("textbox");
+    const input = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
     await user.type(input, "Brand New Type");
 
     expect(screen.getByTestId("button-create-type")).toBeEnabled();
@@ -195,7 +199,7 @@ describe("AddDemonstrationTypesForm", () => {
     const user = userEvent.setup();
     await renderWithProvider();
 
-    const input = screen.getByRole("textbox");
+    const input = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
     await user.type(input, "Brand New Type");
     await user.click(screen.getByTestId("button-create-type"));
 
@@ -209,12 +213,14 @@ describe("AddDemonstrationTypesForm", () => {
     const user = userEvent.setup();
     await renderWithProvider();
 
-    const input = screen.getByRole("textbox");
+    const input = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
     await user.type(input, "Brand New Type");
     await user.click(screen.getByTestId("button-create-type"));
 
-    await user.type(screen.getByLabelText(/effective date/i), "2024-01-03");
-    await user.type(screen.getByLabelText(/expiration date/i), "2025-01-03");
+    const effectiveDate = screen.getByLabelText(/effective date/i);
+    const expirationDate = screen.getByLabelText(/expiration date/i);
+    await user.type(effectiveDate, "2024-01-03");
+    await user.type(expirationDate, "2025-01-03");
     await user.click(screen.getByTestId("button-add-demonstration-type"));
 
     expect(mockAddDemonstrationType).toHaveBeenCalledWith({
@@ -257,7 +263,7 @@ describe("AddDemonstrationTypesForm", () => {
       expect(screen.getByPlaceholderText("Select an option")).toBeInTheDocument();
     });
 
-    await user.click(screen.getByRole("textbox"));
+    await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID));
     await user.click(screen.getByText("Type D"));
 
     expect(screen.queryByTestId("unapproved-warning-banner")).not.toBeInTheDocument();
@@ -267,12 +273,14 @@ describe("AddDemonstrationTypesForm", () => {
     const user = userEvent.setup();
     await renderWithProvider();
 
-    await user.click(screen.getByRole("textbox"));
+    await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID));
     await user.click(screen.getByText("Type C (Unapproved)"));
     expect(screen.getByTestId("unapproved-warning-banner")).toBeInTheDocument();
 
-    await user.type(screen.getByLabelText(/effective date/i), "2024-01-03");
-    await user.type(screen.getByLabelText(/expiration date/i), "2025-01-03");
+    const effectiveDate = screen.getByLabelText(/effective date/i);
+    const expirationDate = screen.getByLabelText(/expiration date/i);
+    await user.type(effectiveDate, "2024-01-03");
+    await user.type(expirationDate, "2025-01-03");
     await user.click(screen.getByTestId("button-add-demonstration-type"));
 
     expect(screen.queryByTestId("unapproved-warning-banner")).not.toBeInTheDocument();

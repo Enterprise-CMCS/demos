@@ -11,7 +11,7 @@ import {
 import { getApplicationDates, validateAndUpdateDates } from "../applicationDate";
 
 export async function declareCompletenessPhaseIncomplete(
-  _: unknown,
+  parent: unknown,
   { applicationId }: { applicationId: string }
 ): Promise<PrismaApplication> {
   try {
@@ -27,7 +27,7 @@ export async function declareCompletenessPhaseIncomplete(
       await updatePhaseStatus(applicationId, "Completeness", "Incomplete", tx);
       await updatePhaseStatus(applicationId, "Application Intake", "Started", tx);
 
-      const datesToDelete: DateType[] = [
+      const datesToDelete = new Set<DateType>([
         "Completeness Start Date",
         "Completeness Completion Date",
         "State Application Submitted Date",
@@ -36,11 +36,11 @@ export async function declareCompletenessPhaseIncomplete(
         "State Application Deemed Complete",
         "Federal Comment Period Start Date",
         "Federal Comment Period End Date",
-      ];
+      ]);
 
       const applicationDatesToDelete: ApplicationDateInput[] = [];
       for (const existingDate of existingApplicationDates) {
-        if (datesToDelete.includes(existingDate.dateType)) {
+        if (datesToDelete.has(existingDate.dateType)) {
           applicationDatesToDelete.push({
             dateType: existingDate.dateType,
             dateValue: null,

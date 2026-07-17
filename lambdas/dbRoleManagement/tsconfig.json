@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "types": ["node", "jest"],
+    "types": ["node", "vitest/globals"],
     "esModuleInterop": true,
     "target": "es2023",
     "moduleResolution":"bundler"

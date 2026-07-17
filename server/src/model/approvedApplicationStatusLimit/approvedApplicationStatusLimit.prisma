@@ -1,0 +1,12 @@
+// Flags: TYPE_LIMITER
+model ApprovedApplicationStatusLimit {
+  id String
+
+  applicationStatus ApplicationStatus @relation(fields: [id], references: [id])
+  deliverables      Deliverable[]
+  amendments        Amendment[]
+  extensions        Extension[]
+
+  @@id([id])
+  @@map("approved_application_status_limit")
+}

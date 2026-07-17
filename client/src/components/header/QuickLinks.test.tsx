@@ -28,27 +28,44 @@ const setup = (
 };
 
 describe("QuickLinks", () => {
-  it("renders all quick links for an admin user", () => {
-    setup();
-    expect(screen.getByRole("link", { name: /Admin/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Notifications/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Help/i })).toBeInTheDocument();
+  describe("Admin Link", () => {
+    it("renders the admin link for an admin user", () => {
+      setup();
+      expect(screen.getByRole("link", { name: /Admin/i })).toBeInTheDocument();
+    });
+
+    it("does not render the Admin link for a non-admin user", () => {
+      setup(nonAdminUser);
+      expect(screen.queryByTestId(ADMIN_LINK_NAME)).not.toBeInTheDocument();
+    });
+
+    it("underlines Admin link when on /admin route", () => {
+      setup(adminUser, ["/admin"]);
+      const adminLink = screen.getByTestId(ADMIN_LINK_NAME);
+      expect(adminLink.className).toContain("border-b");
+    });
+
+    it("does not underline Admin link when not on /admin route", () => {
+      setup(adminUser, ["/"]);
+      const adminLink = screen.getByTestId(ADMIN_LINK_NAME);
+      expect(adminLink.className).not.toContain("border-b");
+    });
   });
 
-  it("does not render the Admin link for a non-admin user", () => {
-    setup(nonAdminUser);
-    expect(screen.queryByTestId(ADMIN_LINK_NAME)).not.toBeInTheDocument();
-  });
-
-  it("underlines Admin link when on /admin route", () => {
-    setup(adminUser, ["/admin"]);
-    const adminLink = screen.getByTestId(ADMIN_LINK_NAME);
-    expect(adminLink.className).toContain("border-b");
-  });
-
-  it("does not underline Admin link when not on /admin route", () => {
-    setup(adminUser, ["/"]);
-    const adminLink = screen.getByTestId(ADMIN_LINK_NAME);
-    expect(adminLink.className).not.toContain("border-b");
+  describe("References Link", () => {
+    it("renders the References link", () => {
+      setup(nonAdminUser);
+      expect(screen.getByRole("link", { name: /References/i })).toBeInTheDocument();
+    });
+    it("underlines References link when on /references route", () => {
+      setup(adminUser, ["/references"]);
+      const referencesLink = screen.getByTestId("link-references");
+      expect(referencesLink.className).toContain("border-b");
+    });
+    it("does not underline References link when not on /references route", () => {
+      setup(adminUser, ["/"]);
+      const referencesLink = screen.getByTestId("link-references");
+      expect(referencesLink.className).not.toContain("border-b");
+    });
   });
 });

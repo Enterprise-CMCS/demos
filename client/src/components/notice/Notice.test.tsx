@@ -9,9 +9,25 @@ describe("Notice", () => {
   it("renders the provided title and description", () => {
     render(<Notice title="Heads up" description="Details about the notice" variant="warning" />);
 
-    expect(screen.getByRole("status")).toBeInTheDocument();
-    expect(screen.getByText("Heads up")).toBeVisible();
-    expect(screen.getByText("Details about the notice")).toBeVisible();
+    const notice = screen.getByTestId("notice-warning");
+    expect(notice).toBeInTheDocument();
+    expect(notice).toHaveRole("status");
+    expect(notice).toHaveTextContent("Heads up");
+    expect(notice).toHaveTextContent("Details about the notice");
+  });
+
+  it("overrides the default test ID when provided", () => {
+    render(
+      <Notice
+        title="Heads up"
+        description="Details about the notice"
+        variant="warning"
+        data-testid="custom-notice-id"
+      />
+    );
+
+    const notice = screen.getByTestId("custom-notice-id");
+    expect(notice).toBeInTheDocument();
   });
 
   it("calls onDismiss when the dismiss button is clicked", () => {

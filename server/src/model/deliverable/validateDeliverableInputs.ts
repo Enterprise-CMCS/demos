@@ -2,44 +2,37 @@ import {
   checkDeliverableExtensionHasStatus,
   checkDeliverableHasAtLeastOneDocument,
   checkDeliverableHasNoActiveExtension,
+  checkDeliverableHasNoComments,
+  checkDeliverableHasNoDocuments,
   checkDeliverableHasStatus,
-  checkDeliverableStatusNotFinalized,
-  checkDemonstrationStatus,
   checkDueDateInFuture,
   checkNewDueDateIsAtLeastCurrentDueDate,
   checkNewDueDateIsGreaterThanCurrentDueDate,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
-  getDeliverable,
+  checkRequiredDeliverableDemonstrationTypes,
+  checkIsFileSubmissionOrStatusChange,
+  selectDeliverableOrThrow,
   ParsedApproveDeliverableExtensionInput,
   ParsedCreateDeliverableInput,
   ParsedRequestDeliverableExtensionInput,
   ParsedRequestDeliverableResubmissionInput,
   ParsedUpdateDeliverableInput,
+  checkDeliverableHasNoUnsubmittedStateDocuments,
 } from ".";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { getApplication } from "../application";
-import { getUser } from "../user";
+import { selectUserOrThrow } from "../user/queries";
 import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
-import { GraphQLError } from "graphql";
 import {
   Deliverable as PrismaDeliverable,
   DeliverableExtension as PrismaDeliverableExtension,
 } from "@prisma/client";
 import { GraphQLContext } from "../../auth";
 import { PersonType } from "../../types";
-
-function cleanErrorsAndThrow(errors: (string | undefined)[], mutator: string, code: string): void {
-  const cleanedErrors = errors.filter((e) => e !== undefined);
-  if (cleanedErrors.length > 0) {
-    throw new GraphQLError(`One or more validation checks for ${mutator} have failed.`, {
-      extensions: {
-        code: code,
-        originalMessages: cleanedErrors,
-      },
-    });
-  }
-}
+import { ACTIVE_DELIVERABLE_STATUSES } from "../../constants";
+import { cleanErrorsAndThrow } from "../../errors/cleanErrorsAndThrow";
+import { checkDemonstrationStatus } from "../demonstration";
 
 // This probably will be modified when permissions are updated more generally
 // Temporary solution for deliverables
@@ -64,7 +57,7 @@ export async function validateCreateDeliverableInput(
     applicationTypeId: "Demonstration",
     tx: tx,
   });
-  const cmsOwnerUser = await getUser({ id: input.cmsOwnerUserId }, tx);
+  const cmsOwnerUser = await selectUserOrThrow({ id: input.cmsOwnerUserId }, tx);
   const demonstrationTypeAssignments = await getDemonstrationTypeAssignments(
     {
       demonstrationId: input.demonstrationId,
@@ -74,9 +67,10 @@ export async function validateCreateDeliverableInput(
 
   const errors: (string | undefined)[] = [];
   errors.push(
-    checkDemonstrationStatus(demonstration),
+    checkDemonstrationStatus(demonstration, "deliverable"),
     checkOwnerPersonType(cmsOwnerUser),
-    checkDueDateInFuture(input.dueDate)
+    checkDueDateInFuture(input.dueDate),
+    checkRequiredDeliverableDemonstrationTypes(input.deliverableType, input.demonstrationTypes)
   );
   if (input.demonstrationTypes && input.demonstrationTypes.size > 0) {
     for (const requestedDeliverableDemonstrationType of input.demonstrationTypes) {
@@ -97,13 +91,14 @@ export async function validateUpdateDeliverableInput(
   input: ParsedUpdateDeliverableInput,
   tx: PrismaTransactionClient
 ): Promise<void> {
-  const deliverable = await getDeliverable({ id: deliverableId }, tx);
+  const deliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
   const errors: (string | undefined)[] = [];
 
-  errors.push(checkDeliverableStatusNotFinalized(deliverable));
+  // Updates can be performed on all active deliverables
+  errors.push(checkDeliverableHasStatus(deliverable, ACTIVE_DELIVERABLE_STATUSES));
 
   if (input.cmsOwnerUserId) {
-    const cmsOwnerUser = await getUser({ id: input.cmsOwnerUserId }, tx);
+    const cmsOwnerUser = await selectUserOrThrow({ id: input.cmsOwnerUserId }, tx);
     errors.push(checkOwnerPersonType(cmsOwnerUser));
   }
 
@@ -134,7 +129,9 @@ export async function validateSubmitDeliverableInput(
   const errors: (string | undefined)[] = [];
 
   errors.push(
-    checkDeliverableStatusNotFinalized(deliverable),
+    // Users may submit when the action would cause a status change or when
+    // there are unsubmitted state documents
+    await checkIsFileSubmissionOrStatusChange(deliverable, tx),
     await checkDeliverableHasAtLeastOneDocument(deliverable, tx)
   );
   cleanErrorsAndThrow(errors, "submitDeliverable", "SUBMIT_DELIVERABLE_VALIDATION_FAILED");
@@ -143,6 +140,7 @@ export async function validateSubmitDeliverableInput(
 export function validateStartDeliverableReviewInput(deliverable: PrismaDeliverable): void {
   const errors: (string | undefined)[] = [];
 
+  // Review can only be started when the deliverable is submitted
   errors.push(checkDeliverableHasStatus(deliverable, ["Submitted"]));
   cleanErrorsAndThrow(
     errors,
@@ -151,10 +149,19 @@ export function validateStartDeliverableReviewInput(deliverable: PrismaDeliverab
   );
 }
 
-export function validateCompleteDeliverableInput(deliverable: PrismaDeliverable): void {
+export async function validateCompleteDeliverableInput(
+  deliverable: PrismaDeliverable,
+  tx: PrismaTransactionClient
+): Promise<void> {
   const errors: (string | undefined)[] = [];
 
-  errors.push(checkDeliverableHasStatus(deliverable, ["Under CMS Review"]));
+  errors.push(
+    // Deliverables may only be completed from review status
+    checkDeliverableHasStatus(deliverable, ["Under CMS Review"]),
+    // Deliverables may only be completed if there are no unsubmitted state documents
+    await checkDeliverableHasNoUnsubmittedStateDocuments(deliverable, tx)
+  );
+
   cleanErrorsAndThrow(errors, "completeDeliverable", "COMPLETE_DELIVERABLE_VALIDATION_FAILED");
 }
 
@@ -164,6 +171,7 @@ export function validateRequestDeliverableResubmissionInput(
 ): void {
   const errors: (string | undefined)[] = [];
 
+  // Resubmissions may be requested from submitted or under review status
   errors.push(
     checkDeliverableHasStatus(deliverable, ["Submitted", "Under CMS Review"]),
     checkDueDateInFuture(input.newDueDate),
@@ -184,8 +192,9 @@ export async function validateRequestDeliverableExtensionInput(
   const errors: (string | undefined)[] = [];
 
   errors.push(
-    await checkDeliverableHasNoActiveExtension(deliverable, tx),
+    // Extensions may only be requested prior to submission
     checkDeliverableHasStatus(deliverable, ["Upcoming", "Past Due"]),
+    await checkDeliverableHasNoActiveExtension(deliverable, tx),
     checkDueDateInFuture(input.requestedDueDate),
     checkNewDueDateIsGreaterThanCurrentDueDate(deliverable, input.requestedDueDate)
   );
@@ -204,12 +213,8 @@ export function validateApproveDeliverableExtensionInput(
   const errors: (string | undefined)[] = [];
 
   errors.push(
-    checkDeliverableHasStatus(deliverable, [
-      "Upcoming",
-      "Past Due",
-      "Submitted",
-      "Under CMS Review",
-    ]),
+    // Extensions may be processed for any active deliverable
+    checkDeliverableHasStatus(deliverable, ACTIVE_DELIVERABLE_STATUSES),
     checkDeliverableExtensionHasStatus(deliverableExtension, ["Requested"]),
     checkDueDateInFuture(input.finalDateGranted)
   );
@@ -218,4 +223,37 @@ export function validateApproveDeliverableExtensionInput(
     "approveDeliverableExtension",
     "APPROVE_DELIVERABLE_EXTENSION_VALIDATION_FAILED"
   );
+}
+
+export function validateDenyDeliverableExtensionInput(
+  deliverable: PrismaDeliverable,
+  deliverableExtension: PrismaDeliverableExtension
+): void {
+  const errors: (string | undefined)[] = [];
+
+  errors.push(
+    // Extensions may be processed for any active deliverable
+    checkDeliverableHasStatus(deliverable, ACTIVE_DELIVERABLE_STATUSES),
+    checkDeliverableExtensionHasStatus(deliverableExtension, ["Requested"])
+  );
+  cleanErrorsAndThrow(
+    errors,
+    "denyDeliverableExtension",
+    "DENY_DELIVERABLE_EXTENSION_VALIDATION_FAILED"
+  );
+}
+
+export async function validateDeleteDeliverableInput(
+  deliverable: PrismaDeliverable,
+  tx: PrismaTransactionClient
+): Promise<void> {
+  const errors: (string | undefined)[] = [];
+
+  errors.push(
+    // Extensions may be processed for any active deliverable
+    checkDeliverableHasStatus(deliverable, ["Upcoming", "Past Due"]),
+    await checkDeliverableHasNoDocuments(deliverable, tx),
+    await checkDeliverableHasNoComments(deliverable, tx)
+  );
+  cleanErrorsAndThrow(errors, "deleteDeliverable", "DELETE_DELIVERABLE_VALIDATION_FAILED");
 }

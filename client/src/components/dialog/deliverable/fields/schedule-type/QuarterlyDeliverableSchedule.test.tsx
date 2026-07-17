@@ -7,6 +7,7 @@ import {
   getOptionsForYearSelect,
   QuarterlyDeliverableSchedule,
 } from "./QuarterlyDeliverableSchedule";
+import { formatDateForDisplay, getTodayEst } from "util/formatDate";
 
 describe("QuarterlyDeliverableSchedule", () => {
   it("renders 4 quarter datepickers", () => {
@@ -45,6 +46,27 @@ describe("QuarterlyDeliverableSchedule", () => {
     expect(screen.getByTestId("quarter-4")).toHaveValue("2026-10-15");
   });
 
+  it("shows the date range message for quarterly due dates before today", () => {
+    render(
+      <QuarterlyDeliverableSchedule
+        onSelectYear={vi.fn()}
+        quarterlyDueDates={["1900-01-01", "", "", ""]}
+      />
+    );
+
+    expect(
+      screen.getByText(`Date must be on or after ${formatDateForDisplay(getTodayEst())}.`)
+    ).toBeInTheDocument();
+  });
+
+  it("requires quarterly due dates to be today or later", () => {
+    render(<QuarterlyDeliverableSchedule onSelectYear={vi.fn()} />);
+
+    screen.getAllByLabelText(/Quarter/i).forEach((datePicker) => {
+      expect(datePicker).toHaveAttribute("min", getTodayEst());
+    });
+  });
+
   it("calls onSelectQuarterDate with the correct quarter index and date when a date is changed", () => {
     const onSelectQuarterDate = vi.fn();
     render(
@@ -57,6 +79,20 @@ describe("QuarterlyDeliverableSchedule", () => {
     fireEvent.change(screen.getByTestId("quarter-3"), { target: { value: "2026-07-15" } });
 
     expect(onSelectQuarterDate).toHaveBeenCalledWith(2, "2026-07-15");
+  });
+
+  it("propagates past quarterly date changes so the parent can validate current state", () => {
+    const onSelectQuarterDate = vi.fn();
+    render(
+      <QuarterlyDeliverableSchedule
+        onSelectYear={vi.fn()}
+        onSelectQuarterDate={onSelectQuarterDate}
+      />
+    );
+
+    fireEvent.change(screen.getByTestId("quarter-3"), { target: { value: "1900-01-01" } });
+
+    expect(onSelectQuarterDate).toHaveBeenCalledWith(2, "1900-01-01");
   });
 
   it("shows correct year options in the year select", () => {

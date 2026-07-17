@@ -1,6 +1,6 @@
 import React from "react";
 import { TestProvider } from "test-utils/TestProvider";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -14,6 +14,10 @@ import {
   calculateStateApplicationSubmittedDate,
   getCompletenessReviewDueDate,
   getApplicationIntakeComponentFromApplication,
+  APPLICATION_INTAKE_PHASE_DESCRIPTION,
+  APPLICATION_INTAKE_PHASE_STEP_ONE_DESCRIPTION,
+  APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION,
+  APPLICATION_INTAKE_PHASE_STEP_THREE_DESCRIPTION,
 } from "./ApplicationIntakePhase";
 import { ApplicationWorkflowDocument, WorkflowApplication } from "components/application";
 import { TZDate } from "@date-fns/tz";
@@ -73,6 +77,10 @@ describe("ApplicationIntakePhase", () => {
     createdAt: new TZDate("2024-01-12", EST_TIMEZONE),
   };
 
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   const setup = (props: Partial<ApplicationIntakeProps> = {}) => {
     const finalProps = { ...DEFAULT_APPLICATION_INTAKE_PROPS, ...props } as ApplicationIntakeProps;
 
@@ -111,19 +119,19 @@ describe("ApplicationIntakePhase", () => {
 
     it("renders phase description", () => {
       setup();
-      expect(
-        screen.getByText(/When the state submits an official application/)
-      ).toBeInTheDocument();
-      expect(screen.getByText(/closes Pre-Submission Technical Assistance/)).toBeInTheDocument();
-      expect(screen.getByText(/opens the Completeness Review period/)).toBeInTheDocument();
+      expect(screen.getByTestId(APPLICATION_INTAKE_PHASE_DESCRIPTION.testId)).toHaveTextContent(
+        APPLICATION_INTAKE_PHASE_DESCRIPTION.text
+      );
     });
   });
 
   describe("Step 1 - Upload Section", () => {
     it("renders Step 1 title and description", () => {
       setup();
-      expect(screen.getByText("STEP 1 - UPLOAD")).toBeInTheDocument();
-      expect(screen.getByText(/Upload State Application file/)).toBeInTheDocument();
+      expect(screen.getByText("Step 1 - Upload")).toBeInTheDocument();
+      expect(
+        screen.getByTestId(APPLICATION_INTAKE_PHASE_STEP_ONE_DESCRIPTION.testId)
+      ).toHaveTextContent(APPLICATION_INTAKE_PHASE_STEP_ONE_DESCRIPTION.text);
     });
 
     it("renders upload button", () => {
@@ -165,12 +173,9 @@ describe("ApplicationIntakePhase", () => {
     it("renders Step 2 title and description", () => {
       setup();
       expect(screen.getByText("Step 2 - Verify/Complete")).toBeInTheDocument();
-      expect(screen.getByText("VERIFY/COMPLETE")).toBeInTheDocument();
       expect(
-        screen.getByText(
-          /Verify that the document is uploaded\/accurate and that all required fields are filled/
-        )
-      ).toBeInTheDocument();
+        screen.getByTestId(APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.testId)
+      ).toHaveTextContent(APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.text);
     });
 
     it("renders State Application Submitted Date input field", () => {
@@ -252,9 +257,11 @@ describe("ApplicationIntakePhase", () => {
       await waitFor(() => {
         expect(screen.getByText("APPLICATION INTAKE")).toBeInTheDocument();
       });
+
+      expect(screen.getByText("Step 3 - Apply Tags")).toBeInTheDocument();
       expect(
-        screen.getByText(/You must tag this application with one or more demonstration types/)
-      ).toBeInTheDocument();
+        screen.getByTestId(APPLICATION_INTAKE_PHASE_STEP_THREE_DESCRIPTION.testId)
+      ).toHaveTextContent(APPLICATION_INTAKE_PHASE_STEP_THREE_DESCRIPTION.text);
     });
 
     it("renders selected tags as removable chips", async () => {
@@ -311,6 +318,86 @@ describe("ApplicationIntakePhase", () => {
           },
         },
       });
+    });
+
+    it("opens a confirmation modal before accepting a UiPath suggested tag", async () => {
+      setup({
+        suggestedTags: ["Health Equity"],
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText("DEMOS AI SUGGESTIONS")).toBeInTheDocument();
+      });
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "Apply suggested tag Health Equity" })
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText("Confirm Tags from DEMOS AI")).toBeInTheDocument();
+      });
+      expect(
+        screen.getByText("DEMOS AI identified the following tag based on the application text:")
+      ).toBeInTheDocument();
+
+      await userEvent.click(screen.getByTestId("button-confirm-suggested-tag"));
+
+      await waitFor(() => {
+        expect(mockSetApplicationTagsMutation).toHaveBeenCalledTimes(1);
+      });
+
+      expect(mockSetApplicationTagsMutation).toHaveBeenCalledWith({
+        variables: {
+          applicationId: TEST_APP_ID,
+          value: "Health Equity",
+        },
+      });
+    });
+
+    it("removes a UiPath suggested tag from the confirmation modal", async () => {
+      setup({
+        suggestedTags: ["Health Equity"],
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText("DEMOS AI SUGGESTIONS")).toBeInTheDocument();
+      });
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "Apply suggested tag Health Equity" })
+      );
+      await userEvent.click(screen.getByRole("button", { name: "Remove" }));
+
+      await waitFor(() => {
+        expect(mockSetApplicationTagsMutation).toHaveBeenCalledTimes(1);
+      });
+
+      expect(mockSetApplicationTagsMutation).toHaveBeenCalledWith({
+        variables: {
+          applicationId: TEST_APP_ID,
+          value: "Health Equity",
+        },
+      });
+    });
+
+    it("closes the UiPath suggested tag modal without changes", async () => {
+      setup({
+        suggestedTags: ["Health Equity"],
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText("DEMOS AI SUGGESTIONS")).toBeInTheDocument();
+      });
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "Apply suggested tag Health Equity" })
+      );
+      await userEvent.click(screen.getByRole("button", { name: "Close dialog" }));
+
+      await waitFor(() => {
+        expect(screen.queryByText("Confirm Tags from DEMOS AI")).not.toBeInTheDocument();
+      });
+      expect(mockSetApplicationTagsMutation).not.toHaveBeenCalled();
     });
   });
 
@@ -481,9 +568,9 @@ describe("ApplicationIntakePhase", () => {
         tags: [],
       };
 
-      expect(() =>
-        getApplicationIntakeComponentFromApplication(mockApplication, () => {})
-      ).toThrow("Application is missing expected phase: Completeness");
+      expect(() => getApplicationIntakeComponentFromApplication(mockApplication, () => {})).toThrow(
+        "Application is missing expected phase: Completeness"
+      );
     });
 
     it("passes completenessPhaseStatus from the Completeness phase", () => {

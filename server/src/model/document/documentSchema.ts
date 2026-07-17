@@ -2,7 +2,9 @@ import { gql } from "graphql-tag";
 
 import {
   Application,
+  BudgetNeutralityValidationStatus,
   Deliverable,
+  DeliverableAction,
   DocumentType,
   NonEmptyString,
   PhaseName,
@@ -10,94 +12,84 @@ import {
 } from "../../types.js";
 
 export const documentSchema = gql`
+  type BudgetNeutralityValidationError {
+    code: String!
+    message: String!
+  }
+
+  type BudgetNeutralityValidationResult {
+    status: BudgetNeutralityValidationStatus!
+    errors: [BudgetNeutralityValidationError!]!
+  }
+
   type Document {
     id: ID!
     name: NonEmptyString!
     description: String
-    s3Path: String!
+    s3Path: NonEmptyString! @auth(requires: ["Access CMS Field"])
     owner: User!
     documentType: DocumentType!
-    application: Application!
-    phaseName: PhaseName
-    presignedDownloadUrl: String!
-    deliverable: Deliverable
-    hasPendingUIPathResult: Boolean!
+    application: Application! @auth(requires: ["Access CMS Field"])
+    phaseName: PhaseName @auth(requires: ["Access CMS Field"])
+    presignedDownloadUrl: String! @auth(requires: ["Access CMS Field"])
+    deliverable: Deliverable @auth(requires: ["Access CMS Field"])
+    deliverableSubmissionAction: DeliverableAction
+    hasPendingUIPathResult: Boolean! @auth(requires: ["Access CMS Field"])
+    budgetNeutralityValidation: BudgetNeutralityValidationResult
     createdAt: DateTime!
     updatedAt: DateTime!
-  }
-
-  input UploadDocumentInput {
-    name: NonEmptyString!
-    description: String
-    documentType: DocumentType!
-    applicationId: ID!
-    phaseName: PhaseName
-    deliverableId: ID
   }
 
   input UpdateDocumentInput {
     name: NonEmptyString
     description: String
-    documentType: DocumentType
-    applicationId: ID
-    phaseName: PhaseName
-    deliverableId: ID
-  }
-
-  type UploadDocumentResponse {
-    presignedURL: String!
-    documentId: ID!
   }
 
   type Mutation {
-    uploadDocument(input: UploadDocumentInput!): UploadDocumentResponse!
-    updateDocument(id: ID!, input: UpdateDocumentInput!): Document
+    updateDocument(id: ID!, input: UpdateDocumentInput!): Document!
+      @auth(requires: ["Perform CMS Action", "Perform State Action"])
     deleteDocument(id: ID!): Document!
+      @auth(requires: ["Perform CMS Action", "Perform State Action"])
     deleteDocuments(ids: [ID!]!): Int!
-    triggerUiPath(documentId: ID!): String!
+      @auth(requires: ["Perform CMS Action", "Perform State Action"])
+    triggerUiPath(documentId: ID!): String! @auth(requires: ["Perform CMS Action"])
   }
 
   type Query {
-    document(id: ID!): Document
+    document(id: ID!): Document!
     documentExists(documentId: ID!): Boolean!
   }
 `;
+
+export interface BudgetNeutralityValidationError {
+  code: string;
+  message: string;
+}
+
+export interface BudgetNeutralityValidationResult {
+  status: BudgetNeutralityValidationStatus;
+  errors: BudgetNeutralityValidationError[];
+}
 
 export interface Document {
   id: string;
   name: NonEmptyString;
   description?: string;
-  s3Path: string;
+  s3Path: NonEmptyString;
   owner: User;
   documentType: DocumentType;
   application: Application;
   phaseName?: PhaseName;
   deliverable?: Deliverable;
+  deliverableSubmissionAction?: DeliverableAction;
   createdAt: Date;
   updatedAt: Date;
   presignedDownloadUrl: string;
   hasPendingUIPathResult: boolean;
-}
-
-export interface UploadDocumentInput {
-  name: NonEmptyString;
-  description?: string;
-  documentType: DocumentType;
-  applicationId: string;
-  phaseName?: PhaseName;
-  deliverableId?: string;
+  budgetNeutralityValidation?: BudgetNeutralityValidationResult;
 }
 
 export interface UpdateDocumentInput {
   name?: NonEmptyString;
   description?: string;
-  documentType?: DocumentType;
-  applicationId?: string;
-  phaseName?: PhaseName;
-  deliverableId?: string;
-}
-
-export interface UploadDocumentResponse {
-  presignedURL: string;
-  documentId: string;
 }

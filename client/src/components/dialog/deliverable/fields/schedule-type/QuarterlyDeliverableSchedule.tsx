@@ -3,6 +3,7 @@ import { differenceInCalendarYears } from "date-fns";
 
 import { DatePicker } from "components/input/date/DatePicker";
 import { Select } from "components/input/select/Select";
+import { getTodayEst } from "util/formatDate";
 
 export function getOptionsForYearSelect(
   demonstrationEffectiveDate?: Date,
@@ -36,6 +37,7 @@ export function QuarterlyDeliverableSchedule({
   onSelectQuarterDate?: (quarterIndex: number, dueDate: string) => void;
 }) {
   const [selectedYear, setSelectedYear] = useState(1);
+  const today = getTodayEst();
 
   const getQuarterDueDate = (quarterIndex: number) => quarterlyDueDates?.[quarterIndex] ?? "";
 
@@ -64,6 +66,7 @@ export function QuarterlyDeliverableSchedule({
           value={getQuarterDueDate(0)}
           onChange={(newDate: string) => onSelectQuarterDate?.(0, newDate)}
           isRequired={true}
+          minDate={today}
         />
       </div>
 
@@ -75,6 +78,7 @@ export function QuarterlyDeliverableSchedule({
           value={getQuarterDueDate(1)}
           onChange={(newDate: string) => onSelectQuarterDate?.(1, newDate)}
           isRequired={true}
+          minDate={today}
         />
       </div>
 
@@ -86,6 +90,7 @@ export function QuarterlyDeliverableSchedule({
           value={getQuarterDueDate(2)}
           onChange={(newDate: string) => onSelectQuarterDate?.(2, newDate)}
           isRequired={true}
+          minDate={today}
         />
       </div>
 
@@ -97,6 +102,7 @@ export function QuarterlyDeliverableSchedule({
           value={getQuarterDueDate(3)}
           onChange={(newDate: string) => onSelectQuarterDate?.(3, newDate)}
           isRequired={true}
+          minDate={today}
         />
       </div>
     </div>

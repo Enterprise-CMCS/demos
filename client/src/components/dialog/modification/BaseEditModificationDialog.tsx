@@ -41,6 +41,18 @@ export const BaseEditModificationDialog: React.FC<{
       showError("Form data is not loaded yet.");
       return;
     }
+
+    /*
+     * Database expects null values to explicitly unset fields,
+     * but form fields return empty strings for unset values, so we need to convert them.
+     */
+    if (formData.effectiveDate === "") {
+      formData.effectiveDate = null;
+    }
+    if (formData.signatureLevel === undefined) {
+      formData.signatureLevel = null;
+    }
+
     try {
       await save(formData);
       showSuccess(`${modificationType} updated successfully.`);
@@ -65,7 +77,7 @@ export const BaseEditModificationDialog: React.FC<{
             !modification ||
             saving ||
             !hasChanges(formData, modification) ||
-            !isValid(formData)
+            !isValid(formData, modification.status === "Approved")
           }
           onClick={handleSubmit}
         >
@@ -75,13 +87,14 @@ export const BaseEditModificationDialog: React.FC<{
     >
       <>
         {error && <p>Error loading {modificationType}</p>}
-        {!formData ? (
+        {!formData || !modification ? (
           <p>Loading...</p>
         ) : (
           <div className="flex flex-col gap-2">
             <ModificationForm
               mode="edit"
               modificationType={modificationType}
+              isApproved={modification.status === "Approved"}
               modificationFormData={formData}
               setModificationFormDataField={(field: Partial<ModificationFormData>) =>
                 setFormData((prev) => ({ ...prev, ...field }))

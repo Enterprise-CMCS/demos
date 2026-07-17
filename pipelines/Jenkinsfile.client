@@ -4,20 +4,26 @@ pipeline {
   agent {
     kubernetes {
       yaml kubeBlock(containerNames:['node', 'snyk'], opts: [
-        NODE_IMAGE: 'artifactory.cloud.cms.gov/docker/node:24-alpine'
-      ])
-    }
+        NODE_CPU_REQUEST: '4000m',
+        NODE_CPU_LIMIT: '8000m'
+    ])
   }
+}
 
-  options {
-    disableConcurrentBuilds(abortPrevious: true)
-    buildDiscarder(retentionPolicy(env.BRANCH_NAME))
-  }
+options {
+  disableConcurrentBuilds(abortPrevious: true)
+  buildDiscarder(retentionPolicy(env.BRANCH_NAME))
+}
 
-  stages {
-    stage('Build Shared Library') {
-      steps {
-        script {
+parameters {
+  booleanParam(name: 'HANDLE_ERRORS', defaultValue: false, description: 'Allow build to continue when errors occur')
+}
+
+stages {
+  stage('Build Shared Library') {
+    steps {
+      script {
+        handleError(params.HANDLE_ERRORS) {
           if (fileExists('shared_library')) {
             dirCon('shared_library', 'node') {
               sh '''
@@ -29,28 +35,32 @@ pipeline {
         }
       }
     }
-    stage('Client - Snyk') {
-      steps {
-        script {
+  }
+  stage('Client - Snyk') {
+    steps {
+      script {
+        handleError(params.HANDLE_ERRORS) {
           if (hasChange(changePaths)) {
             snykScan('client')
           }
         }
       }
     }
+  }
 
-    stage('Client - Lint') {
-      steps {
-        script {
+  stage('Client - Lint') {
+    steps {
+      script {
+        handleError(params.HANDLE_ERRORS) {
           if (hasChange(changePaths)) {
             dirCon('client', 'node') {
               sh '''
               # Ensure shared_library is installed and built before installing client deps
               if [ -d ../shared_library ]; then
-                cd ../shared_library
-                npm ci
-                npm run build || true
-                cd -
+              cd ../shared_library
+              npm ci
+              npm run build || true
+              cd -
               fi
 
               npm ci
@@ -63,38 +73,46 @@ pipeline {
         }
       }
     }
+  }
 
-    stage('Client - Unit Test') {
-      steps {
-        script {
+  stage('Client - Unit Test') {
+    steps {
+      script {
+        handleError(params.HANDLE_ERRORS) {
           if (hasChange(changePaths)) {
             dirCon('client', 'node') {
               sh '''
-                npm run coverage:ci
-                '''
+              npm run coverage:ci
+              '''
             }
           }
         }
       }
     }
+  }
 
-    stage('Client - Code Scan') {
-          steps {
-            script {
-              if (hasChange('client')) {
+  stage('Client - Code Scan') {
+    steps {
+      script {
+        handleError(params.HANDLE_ERRORS) {
+          if (hasChange('client')) {
             snykCodeScan('client')
-              }
-            }
           }
+        }
+      }
     }
   }
+}
 
-  post {
-    failure {
-      slackPipelineFail('Client')
-    }
-    always {
-      cleanWs(deleteDirs: true)
-    }
+post {
+  failure {
+    slackPipelineFail('Client')
   }
+  always {
+    script {
+      handleError.setFailureDescription()
+    }
+    cleanWs(deleteDirs: true)
+  }
+}
 }

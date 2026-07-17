@@ -31,18 +31,20 @@ export const demonstrationSchema = gql`
     signatureLevel: SignatureLevel
     status: ApplicationStatus!
     state: State!
-    currentPhaseName: PhaseName!
-    phases: [ApplicationPhase!]!
-    documents: [Document!]!
-    amendments: [Amendment!]!
-    extensions: [Extension!]!
-    roles: [DemonstrationRoleAssignment!]!
+    currentPhaseName: PhaseName! @auth(requires: ["Access CMS Field"])
+    phases: [ApplicationPhase!]! @auth(requires: ["Access CMS Field"])
+    documents: [Document!]! @auth(requires: ["Access CMS Field"])
+    amendments: [Amendment!]! @auth(requires: ["Access CMS Field"])
+    extensions: [Extension!]! @auth(requires: ["Access CMS Field"])
+    roles: [DemonstrationRoleAssignment!]! @auth(requires: ["Access CMS Field"])
     primaryProjectOfficer: Person!
-    clearanceLevel: ClearanceLevel!
+    clearanceLevel: ClearanceLevel! @auth(requires: ["Access CMS Field"])
     tags: [Tag!]!
     demonstrationTypes: [DemonstrationTypeAssignment!]!
-    suggestedApplicationTags: [TagName!]!
+    suggestedApplicationTags: [TagName!]! @auth(requires: ["Access CMS Field"])
     deliverables: [Deliverable!]!
+    medicaidId: String!
+    chipId: String
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -53,7 +55,6 @@ export const demonstrationSchema = gql`
     projectOfficerUserId: String!
     description: String
     sdgDivision: SdgDivision
-    signatureLevel: SignatureLevel
   }
 
   input UpdateDemonstrationInput {
@@ -62,21 +63,20 @@ export const demonstrationSchema = gql`
     effectiveDate: DateTimeOrLocalDate
     expirationDate: DateTimeOrLocalDate
     sdgDivision: SdgDivision
-    signatureLevel: SignatureLevel
-    status: ApplicationStatus
-    stateId: ID
     projectOfficerUserId: String
   }
 
   type Mutation {
-    createDemonstration(input: CreateDemonstrationInput!): Demonstration
-    updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration
-    deleteDemonstration(id: ID!): Demonstration
+    createDemonstration(input: CreateDemonstrationInput!): Demonstration!
+      @auth(requires: ["Perform CMS Action"])
+    updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration!
+      @auth(requires: ["Perform CMS Action"])
+    deleteDemonstration(id: ID!): Demonstration! @auth(requires: ["Perform CMS Action"])
   }
 
   type Query {
     demonstrations: [Demonstration!]!
-    demonstration(id: ID!): Demonstration
+    demonstration(id: ID!): Demonstration!
   }
 `;
 
@@ -102,6 +102,8 @@ export interface Demonstration {
   demonstrationTypes: DemonstrationTypeAssignment[];
   suggestedApplicationTags: TagName[];
   deliverables: Deliverable[];
+  medicaidId: string;
+  chipId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -112,7 +114,6 @@ export interface CreateDemonstrationInput {
   stateId: string;
   description?: string;
   sdgDivision?: SdgDivision;
-  signatureLevel?: SignatureLevel;
 }
 
 export interface UpdateDemonstrationInput {
@@ -120,9 +121,6 @@ export interface UpdateDemonstrationInput {
   description?: string;
   effectiveDate?: DateTimeOrLocalDate | null;
   expirationDate?: DateTimeOrLocalDate | null;
-  sdgDivision?: SdgDivision;
-  signatureLevel?: SignatureLevel;
-  status?: ApplicationStatus;
-  stateId?: string;
+  sdgDivision?: SdgDivision | null;
   projectOfficerUserId?: string;
 }

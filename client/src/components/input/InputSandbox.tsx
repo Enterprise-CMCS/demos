@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { TextInput } from ".";
-import { SelectDemoStatuses } from "./select/SelectDemoStatuses";
 import { SelectUSAStates } from "./select/SelectUSAStates";
 import { SelectUsers } from "./select/SelectUsers";
 import { AutoCompleteMultiselect } from "./select/AutoCompleteMultiselect";
@@ -18,7 +17,6 @@ const getValidationMessage = (value: string) => {
 export const InputSandbox: React.FC = () => {
   const [disabled, setDisabled] = useState(false);
   const [isRequired, setIsRequired] = useState(false);
-  const [status, setStatus] = useState<string>("");
   const [state, setState] = useState<string>("");
   const [selectValue, setSelectValue] = useState<string>("");
   const [autocompleteValue, setAutocompleteValue] = useState<string>("");
@@ -44,14 +42,6 @@ export const InputSandbox: React.FC = () => {
         isRequired={isRequired}
         placeholder="Placeholder"
       />
-      <div className="mt-3">
-        <SelectDemoStatuses
-          value={status}
-          isRequired={isRequired}
-          isDisabled={disabled}
-          onChange={setStatus}
-        />
-      </div>
       <div>
         <h1>Autocomplete Select</h1>
         <button onClick={() => setAutocompleteValue("cherry_value")}>Set to Cherry</button>
@@ -104,7 +94,7 @@ export const InputSandbox: React.FC = () => {
           isRequired={isRequired}
           label="Project Officers (default U ID is 123)"
           isDisabled={disabled}
-          onSelect={setStatus}
+          onSelect={() => {}}
           value={String(currentUserId)}
         />
       </div>

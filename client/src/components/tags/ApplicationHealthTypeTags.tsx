@@ -4,8 +4,9 @@ import { SecondaryButton } from "components/button";
 import { useDialog } from "components/dialog/DialogContext";
 import { tw } from "tags/tw";
 import { TagChip } from "./TagChip";
-import { Tag } from "demos-server";
+import { Tag, TagName } from "demos-server";
 import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
+import { SparklyUIPathTags } from "./SparklyUIPathTags";
 
 const STYLES = {
   stepThree: tw`font-bold uppercase tracking-wide text-[#242424] mb-2`,
@@ -30,17 +31,19 @@ export const GET_APPLICATION_TAG_OPTIONS: TypedDocumentNode<
 export interface ApplicationHealthTypeTagsProps {
   applicationId: string;
   selectedTags: Tag[];
-  title: string;
-  description?: string;
+  suggestedTags?: TagName[];
   onRemoveTag: (tag: string) => void;
+  onAcceptSuggestedTag?: (tag: TagName) => void;
+  isApplyingSuggestedTag?: boolean;
 }
 
 export const ApplicationHealthTypeTags = ({
   applicationId,
   selectedTags,
-  title,
-  description,
+  suggestedTags = [],
   onRemoveTag,
+  onAcceptSuggestedTag,
+  isApplyingSuggestedTag = false,
 }: ApplicationHealthTypeTagsProps) => {
   const { showApplyTagsDialog } = useDialog();
 
@@ -58,11 +61,7 @@ export const ApplicationHealthTypeTags = ({
   };
 
   return (
-    <div aria-labelledby="state-application-tags-title">
-      <h4 id="state-application-tags-title" className={STYLES.stepThree}>
-        {title}
-      </h4>
-      {description && description.trim() !== "" && <p className={STYLES.helper}>{description}</p>}
+    <>
       <div className={STYLES.tagList}>
         {selectedTags.map((tag) => (
           <TagChip key={tag.tagName} tag={tag} onRemoveTag={onRemoveTag} />
@@ -75,6 +74,14 @@ export const ApplicationHealthTypeTags = ({
           Apply Tags
         </SecondaryButton>
       </div>
-    </div>
+      {onAcceptSuggestedTag && (
+        <SparklyUIPathTags
+          selectedTags={selectedTags}
+          suggestedTags={suggestedTags}
+          onAcceptSuggestion={onAcceptSuggestedTag}
+          isApplyingSuggestion={isApplyingSuggestedTag}
+        />
+      )}
+    </>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { gql, useMutation } from "@apollo/client";
 
 import { Button } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
@@ -6,10 +7,29 @@ import { DatePicker } from "components/input/date/DatePicker";
 import { Select, Option } from "components/input/select/Select";
 import { Textarea } from "components/input/Textarea";
 import { useToast } from "components/toast";
-import { DeliverableExtensionReasonCode, DeliverableStatus } from "demos-server";
+import {
+  DeliverableExtensionReasonCode,
+  DeliverableExtensionStatus,
+  DeliverableStatus,
+} from "demos-server";
 import { DELIVERABLE_EXTENSION_REASON_CODES } from "demos-server-constants";
 import { isAfter, isValid, parseISO } from "date-fns";
+import { DELIVERABLE_DETAILS_QUERY } from "pages/deliverables/DeliverableDetailsManagementPage";
+import { formatDateForServer } from "util/formatDate";
 import { DELIVERABLE_EXTENSION_REQUESTED_MESSAGE } from "util/messages";
+
+export const REQUEST_DELIVERABLE_EXTENSION_MUTATION = gql`
+  mutation RequestDeliverableExtension(
+    $deliverableId: ID!
+    $input: RequestDeliverableExtensionInput!
+  ) {
+    requestDeliverableExtension(deliverableId: $deliverableId, input: $input) {
+      id
+      status
+      dueDate
+    }
+  }
+`;
 
 export const REQUEST_EXTENSION_DIALOG_TITLE = "Request Extension";
 export const REQUEST_EXTENSION_DIALOG_NAME = "request-extension-dialog";
@@ -23,8 +43,14 @@ export const EXTENSION_ELIGIBLE_STATUSES: ReadonlySet<DeliverableStatus> = new S
   "Past Due",
 ]);
 
-export const canRequestExtension = (status: DeliverableStatus): boolean =>
-  EXTENSION_ELIGIBLE_STATUSES.has(status);
+export const hasOpenExtensionRequest = (
+  extensions: { status: DeliverableExtensionStatus }[]
+): boolean => extensions.some((extension) => extension.status === "Requested");
+
+export const canRequestExtension = (
+  status: DeliverableStatus,
+  extensions: { status: DeliverableExtensionStatus }[]
+): boolean => EXTENSION_ELIGIBLE_STATUSES.has(status) && !hasOpenExtensionRequest(extensions);
 
 export const REQUEST_REASON_OPTIONS: Option[] = DELIVERABLE_EXTENSION_REASON_CODES.map((code) => ({
   label: code,
@@ -34,7 +60,6 @@ export const REQUEST_REASON_OPTIONS: Option[] = DELIVERABLE_EXTENSION_REASON_COD
 export interface RequestExtensionDeliverableDialogDeliverable {
   id: string;
   dueDate: Date;
-  demonstration: { expirationDate?: Date | null };
 }
 
 export interface RequestExtensionFormData {
@@ -51,8 +76,7 @@ export const INITIAL_FORM_DATA: RequestExtensionFormData = {
 
 export const getExtensionDateValidationMessage = (
   extensionDate: string,
-  dueDate: Date,
-  demonstrationExpirationDate: Date | null | undefined
+  dueDate: Date
 ): string => {
   if (extensionDate === "") return "";
   const parsed = parseISO(extensionDate);
@@ -60,21 +84,13 @@ export const getExtensionDateValidationMessage = (
   if (!isAfter(parsed, dueDate)) {
     return "Extension Date must be after the current Due Date.";
   }
-  if (demonstrationExpirationDate && isAfter(parsed, demonstrationExpirationDate)) {
-    return "Extension Date cannot be after the Demonstration Expiration Date.";
-  }
   return "";
 };
 
-export const formIsValid = (
-  form: RequestExtensionFormData,
-  dueDate: Date,
-  demonstrationExpirationDate: Date | null | undefined
-): boolean => {
+export const formIsValid = (form: RequestExtensionFormData, dueDate: Date): boolean => {
   const extensionDateValid =
     form.extensionDate.trim().length > 0 &&
-    getExtensionDateValidationMessage(form.extensionDate, dueDate, demonstrationExpirationDate) ===
-      "";
+    getExtensionDateValidationMessage(form.extensionDate, dueDate) === "";
   return extensionDateValid && form.requestReason.length > 0 && form.details.trim().length > 0;
 };
 
@@ -84,44 +100,51 @@ export const formHasChanges = (form: RequestExtensionFormData): boolean =>
 export interface RequestExtensionDeliverableDialogProps {
   onClose: () => void;
   deliverable: RequestExtensionDeliverableDialogDeliverable;
-  onSubmit?: (input: {
-    deliverableId: string;
-    extensionDate: string;
-    requestReason: DeliverableExtensionReasonCode;
-    details: string;
-  }) => Promise<void> | void;
 }
 
 export const RequestExtensionDeliverableDialog: React.FC<
   RequestExtensionDeliverableDialogProps
-> = ({ onClose, deliverable, onSubmit }) => {
-  const { showSuccess } = useToast();
+> = ({ onClose, deliverable }) => {
+  const { showSuccess, showError } = useToast();
+
+  const [requestExtensionTrigger] = useMutation(REQUEST_DELIVERABLE_EXTENSION_MUTATION);
 
   const [formData, setFormData] = useState<RequestExtensionFormData>(INITIAL_FORM_DATA);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
 
-  const expirationDate = deliverable.demonstration.expirationDate ?? null;
   const extensionDateError = getExtensionDateValidationMessage(
     formData.extensionDate,
-    deliverable.dueDate,
-    expirationDate
+    deliverable.dueDate
   );
-  const isValidForm = formIsValid(formData, deliverable.dueDate, expirationDate);
+  const isValidForm = formIsValid(formData, deliverable.dueDate);
   const hasChanges = formHasChanges(formData);
 
   const handleSubmit = async () => {
     setAttemptedSubmit(true);
     if (!isValidForm || formData.requestReason === "") return;
 
-    await onSubmit?.({
-      deliverableId: deliverable.id,
-      extensionDate: formData.extensionDate,
-      requestReason: formData.requestReason,
-      details: formData.details.trim(),
-    });
+    try {
+      await requestExtensionTrigger({
+        variables: {
+          deliverableId: deliverable.id,
+          input: {
+            reason: formData.requestReason,
+            details: formData.details.trim(),
+            requestedDueDate: formatDateForServer(parseISO(formData.extensionDate)),
+          },
+        },
+        refetchQueries: [
+          { query: DELIVERABLE_DETAILS_QUERY, variables: { id: deliverable.id } },
+        ],
+        awaitRefetchQueries: true,
+      });
 
-    showSuccess(DELIVERABLE_EXTENSION_REQUESTED_MESSAGE);
-    onClose();
+      showSuccess(DELIVERABLE_EXTENSION_REQUESTED_MESSAGE);
+      onClose();
+    } catch (error) {
+      console.error(error);
+      showError("Unable to submit extension request.");
+    }
   };
 
   return (

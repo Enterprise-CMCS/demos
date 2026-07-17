@@ -2,7 +2,7 @@ import React from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 
 import { highlightCell } from "../KeywordSearch";
-import { formatDate } from "util/formatDate";
+import { formatDateForDisplay } from "util/formatDate";
 import { createSelectColumnDef } from "./selectColumn";
 import { TypeTableRow } from "../tables/TypesTable";
 
@@ -41,7 +41,7 @@ export function TypesColumns() {
       header: "Effective Date",
       cell: ({ getValue }) => {
         const dateValue = getValue();
-        return dateValue ? formatDate(dateValue) : "—";
+        return dateValue ? formatDateForDisplay(dateValue) : "—";
       },
       meta: {
         filterConfig: {
@@ -53,7 +53,7 @@ export function TypesColumns() {
       header: "Expiration Date",
       cell: ({ getValue }) => {
         const dateValue = getValue();
-        return dateValue ? formatDate(dateValue) : "—";
+        return dateValue ? formatDateForDisplay(dateValue) : "—";
       },
       meta: {
         filterConfig: {

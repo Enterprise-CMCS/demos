@@ -3,13 +3,18 @@ import React from "react";
 import { ModificationItem } from "./ModificationTabs";
 import { AddNewIcon, DetailsIcon, ListIcon, OpenFolderIcon } from "components/icons";
 import { ModificationDetailsSummary } from "./ModificationDetailsSummary";
-import { AmendmentWorkflow, ExtensionWorkflow, GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application";
+import {
+  AmendmentWorkflow,
+  ExtensionWorkflow,
+  GET_WORKFLOW_DEMONSTRATION_QUERY,
+} from "components/application";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { IconButton } from "components/button/IconButton";
 import { TabHeader } from "components/table/TabHeader";
 import { DEMONSTRATION_DETAIL_QUERY } from "../DemonstrationDetail";
 import { useApolloClient } from "@apollo/client/react/hooks/useApolloClient";
 import { useDialog } from "components/dialog/DialogContext";
+import { NON_DELIVERABLE_DOCUMENT_TYPES } from "demos-server-constants";
 
 const TABS = {
   APPLICATION: "application",
@@ -57,12 +62,18 @@ export const ModificationTabSideNav = ({
             icon={<AddNewIcon />}
             name="add-new-document"
             size="small"
-            onClick={() => showUploadDocumentDialog(modificationItem.id, refetchApplicationWorkflow)}
+            onClick={() =>
+              showUploadDocumentDialog(
+                modificationItem.id,
+                refetchApplicationWorkflow,
+                NON_DELIVERABLE_DOCUMENT_TYPES
+              )
+            }
           >
             Add Document
           </IconButton>
         </TabHeader>
-        <DocumentTable applicationId={modificationItem.id} documents={modificationItem.documents} />
+        <DocumentTable documents={modificationItem.documents} />
       </Tab>
     </VerticalTabs>
   );

@@ -13,11 +13,11 @@ vi.mock("../../../prismaClient", () => ({
 }));
 
 vi.mock("../../deliverable", () => ({
-  getDeliverable: vi.fn(),
+  selectDeliverableOrThrow: vi.fn(),
 }));
 
 import { prisma } from "../../../prismaClient";
-import { getDeliverable } from "../../deliverable";
+import { selectDeliverableOrThrow } from "../../deliverable";
 
 describe("insertDeliverableDemonstrationTypes", () => {
   // Test inputs
@@ -76,6 +76,9 @@ describe("insertDeliverableDemonstrationTypes", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
+    vi.mocked(selectDeliverableOrThrow).mockResolvedValue({
+      id: regularTestInput.deliverableId,
+    } as any);
   });
 
   it("should insert the new deliverable demonstration type records using a new client if no transaction is given", async () => {
@@ -84,7 +87,7 @@ describe("insertDeliverableDemonstrationTypes", () => {
       expectedRegularCall
     );
     expect(transactionMocks.deliverableDemonstrationType.createMany).not.toHaveBeenCalled();
-    expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
       { id: regularTestInput.deliverableId },
       mockPrismaClient
     );
@@ -96,7 +99,7 @@ describe("insertDeliverableDemonstrationTypes", () => {
     expect(
       transactionMocks.deliverableDemonstrationType.createMany
     ).toHaveBeenCalledExactlyOnceWith(expectedRegularCall);
-    expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
       { id: regularTestInput.deliverableId },
       mockTransaction
     );
@@ -106,7 +109,7 @@ describe("insertDeliverableDemonstrationTypes", () => {
     await insertDeliverableDemonstrationTypes(emptyTestInput, mockTransaction);
     expect(regularMocks.deliverableDemonstrationType.createMany).not.toHaveBeenCalled();
     expect(transactionMocks.deliverableDemonstrationType.createMany).not.toHaveBeenCalled();
-    expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
       { id: emptyTestInput.deliverableId },
       mockTransaction
     );

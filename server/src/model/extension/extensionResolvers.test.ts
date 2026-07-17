@@ -1,13 +1,7 @@
-import { describe, it, expect, vi, beforeEach, expectTypeOf } from "vitest";
-import {
-  __createExtension,
-  __updateExtension,
-  deleteExtension,
-  extensionResolvers,
-} from "./extensionResolvers";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { __updateExtension, deleteExtension, extensionResolvers } from "./extensionResolvers";
 import {
   ApplicationStatus,
-  ApplicationType,
   ClearanceLevel,
   CreateExtensionInput,
   PhaseName,
@@ -35,12 +29,13 @@ import {
 import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities";
 import { ContextUser, GraphQLContext } from "../../auth";
 import { getDemonstration } from "../demonstration";
-import { getExtension, getManyExtensions } from "./extensionData";
+import { getExtension } from "./extensionData";
 import { getManyDocuments } from "../document";
-import { getManyApplicationPhases } from "../applicationPhase";
-import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
+import { selectManyApplicationPhases } from "../applicationPhase/queries";
+import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
-import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
+import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
+import { createExtension } from ".";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -48,27 +43,26 @@ vi.mock("../../prismaClient", () => ({
 
 vi.mock("./extensionData", () => ({
   getExtension: vi.fn(),
-  getManyExtensions: vi.fn(),
 }));
 
 vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
 }));
 
-vi.mock("../applicationPhase", () => ({
-  getManyApplicationPhases: vi.fn(),
+vi.mock("../applicationPhase/queries", () => ({
+  selectManyApplicationPhases: vi.fn(),
 }));
 
 vi.mock("../demonstration", () => ({
   getDemonstration: vi.fn(),
 }));
 
-vi.mock("../applicationTagAssignment", () => ({
-  getManyApplicationTagAssignments: vi.fn(),
+vi.mock("../applicationTagAssignment/queries", () => ({
+  selectManyApplicationTagAssignments: vi.fn(),
 }));
 
-vi.mock("../applicationTagSuggestion", () => ({
-  getManyApplicationTagSuggestions: vi.fn(),
+vi.mock("../applicationTagSuggestion/queries", () => ({
+  selectManyApplicationTagSuggestions: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -97,28 +91,18 @@ vi.mock("../../dateUtilities", () => ({
   parseDateTimeOrLocalDateToEasternTZDate: vi.fn(),
 }));
 
+vi.mock(".", () => ({
+  createExtension: vi.fn(),
+}));
+
 describe("extensionResolvers", () => {
   const regularMocks = {
     extension: {
       update: vi.fn(),
     },
   };
-  const transactionMocks = {
-    application: {
-      create: vi.fn(),
-    },
-    extension: {
-      create: vi.fn(),
-    },
-  };
-  const mockTransaction = {
-    application: {
-      create: transactionMocks.application.create,
-    },
-    extension: {
-      create: transactionMocks.extension.create,
-    },
-  };
+
+  const mockTransaction = {};
   const mockPrismaClient = {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
     extension: {
@@ -134,12 +118,7 @@ describe("extensionResolvers", () => {
   };
 
   const testExtensionId = "8167c039-9c08-4203-b7d2-9e35ec156993";
-  const testDemonstrationId = "518aa497-d547-422e-95a0-02076c7f7698";
-  const testExtensionName = "The Extension";
   const testExtensionDescription = "A description of an extension";
-  const testExtensionTypeId: ApplicationType = "Extension";
-  const testExtensionStatusId: ApplicationStatus = "Pre-Submission";
-  const testExtensionPhaseId: PhaseName = "Concept";
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -155,13 +134,6 @@ describe("extensionResolvers", () => {
     });
   });
 
-  describe("Query.extensions", () => {
-    it("delegates to `extensionData.getManyExtensions`", async () => {
-      await extensionResolvers.Query.extensions(undefined, {}, mockContext);
-      expect(getManyExtensions).toHaveBeenCalledExactlyOnceWith({}, mockUser);
-    });
-  });
-
   describe("Extension.documents", () => {
     it("delegates to `documentData.getManyDocuments`", async () => {
       const mockExtension = { id: "abc123" } as PrismaExtension;
@@ -174,23 +146,18 @@ describe("extensionResolvers", () => {
   });
 
   describe("Extension.phases", () => {
-    it("delegates to `applicationPhaseData.getManyApplicationPhases`", async () => {
-      await extensionResolvers.Extension.phases(
-        { id: "extensionId" } as PrismaExtension,
-        {},
-        mockContext
-      );
-      expect(getManyApplicationPhases).toHaveBeenCalledExactlyOnceWith(
-        { applicationId: "extensionId" },
-        mockUser
-      );
+    it("delegates to `applicationPhaseData/queries.selectManyApplicationPhases`", async () => {
+      await extensionResolvers.Extension.phases({ id: "extensionId" } as PrismaExtension);
+      expect(selectManyApplicationPhases).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "extensionId",
+      });
     });
   });
 
   describe("Extension.tags", () => {
-    it("delegates to applicationTagAssignmentData.getManyApplicationTagAssignments and maps result", async () => {
+    it("delegates to applicationTagAssignmentData/queries.selectManyApplicationTagAssignments and maps result", async () => {
       const mockExtension = { id: "abc123" } as PrismaExtension;
-      vi.mocked(getManyApplicationTagAssignments).mockResolvedValueOnce([
+      vi.mocked(selectManyApplicationTagAssignments).mockResolvedValueOnce([
         {
           tag: {
             tagNameId: "Tag1",
@@ -205,11 +172,10 @@ describe("extensionResolvers", () => {
         },
       ] as ApplicationTagAssignmentQueryResult[]);
 
-      const result = await extensionResolvers.Extension.tags(mockExtension, undefined, mockContext);
-      expect(getManyApplicationTagAssignments).toHaveBeenCalledExactlyOnceWith(
-        { applicationId: "abc123" },
-        mockUser
-      );
+      const result = await extensionResolvers.Extension.tags(mockExtension);
+      expect(selectManyApplicationTagAssignments).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "abc123",
+      });
       expect(result).toEqual([
         {
           tagName: "Tag1",
@@ -224,9 +190,9 @@ describe("extensionResolvers", () => {
   });
 
   describe("Extension.applicationTagSuggestions", () => {
-    it("delegates to applicationTagSuggestionData.getManyApplicationTagSuggestions and maps result", async () => {
+    it("delegates to applicationTagSuggestionData/queries.selectManyApplicationTagSuggestions and maps result", async () => {
       const mockExtension = { id: "abc123" } as PrismaExtension;
-      vi.mocked(getManyApplicationTagSuggestions).mockResolvedValueOnce([
+      vi.mocked(selectManyApplicationTagSuggestions).mockResolvedValueOnce([
         {
           value: "Suggestion1",
         },
@@ -235,20 +201,13 @@ describe("extensionResolvers", () => {
         },
       ] as PrismaApplicationTagSuggestion[]);
 
-      const result = await extensionResolvers.Extension.suggestedApplicationTags(
-        mockExtension,
-        undefined,
-        mockContext
-      );
-      expect(getManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith(
-        {
-          applicationId: "abc123",
-          statusId: {
-            in: ["Pending"],
-          },
+      const result = await extensionResolvers.Extension.suggestedApplicationTags(mockExtension);
+      expect(selectManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "abc123",
+        statusId: {
+          in: ["Pending"],
         },
-        mockUser
-      );
+      });
       expect(result).toEqual(["Suggestion1", "Suggestion2"]);
     });
   });
@@ -308,40 +267,28 @@ describe("extensionResolvers", () => {
     });
   });
 
-  describe("__createExtension", () => {
-    it("should create an application and an extension in a transaction", async () => {
-      transactionMocks.application.create.mockResolvedValueOnce({
-        id: testExtensionId,
-        applicationTypeId: testExtensionTypeId,
-      });
+  describe("Mutation.createExtension", () => {
+    const testDemonstrationId = "123e4567-e89b-12d3-a456-426614174000";
+    const testName = "Test Extension";
+    const testDescription = "This is a test extension.";
+    const testSignatureLevel = "OA" satisfies SignatureLevel;
+    it("should call the createExtension function with the right arguments", async () => {
       const testInput: { input: CreateExtensionInput } = {
         input: {
           demonstrationId: testDemonstrationId,
-          name: testExtensionName,
-          description: testExtensionDescription,
+          name: testName,
+          description: testDescription,
+          signatureLevel: testSignatureLevel,
         },
       };
-      const expectedCalls = [
-        {
-          data: {
-            applicationTypeId: testExtensionTypeId,
-          },
-        },
-        {
-          data: {
-            id: testExtensionId,
-            applicationTypeId: testExtensionTypeId,
-            demonstrationId: testDemonstrationId,
-            name: testExtensionName,
-            description: testExtensionDescription,
-            statusId: testExtensionStatusId,
-            currentPhaseId: testExtensionPhaseId,
-          },
-        },
-      ];
-      await __createExtension(undefined, testInput);
-      expect(transactionMocks.application.create).toHaveBeenCalledExactlyOnceWith(expectedCalls[0]);
-      expect(transactionMocks.extension.create).toHaveBeenCalledExactlyOnceWith(expectedCalls[1]);
+
+      await extensionResolvers.Mutation.createExtension({}, testInput);
+      expect(createExtension).toHaveBeenCalledExactlyOnceWith({
+        demonstrationId: testDemonstrationId,
+        name: testName,
+        description: testDescription,
+        signatureLevelId: testSignatureLevel,
+      });
     });
   });
 
@@ -352,7 +299,7 @@ describe("extensionResolvers", () => {
         description: testExtensionDescription,
       },
     };
-    const expectedCheckOptionalNotNullFieldList = ["demonstrationId", "name", "status"];
+    const expectedCheckOptionalNotNullFieldList = ["demonstrationId", "name"];
     const testEasternTZDate: EasternTZDate = {
       isEasternTZDate: true,
       easternTZDate: new TZDate(2025, 1, 1, 0, 0, 0, 0, "America/New_York"),

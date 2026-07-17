@@ -22,6 +22,7 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
       sdgDivision
       signatureLevel
       clearanceLevel
+      medicaidId
       state {
         id
         name
@@ -33,6 +34,7 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
         tagName
         approvalStatus
       }
+      suggestedApplicationTags
       demonstrationTypes {
         demonstrationTypeName
         status
@@ -57,6 +59,7 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
 export type ApplicationWorkflowDemonstration = WorkflowApplication &
   Pick<
     Demonstration,
+    | "medicaidId"
     | "status"
     | "name"
     | "effectiveDate"
@@ -95,7 +98,7 @@ export const DemonstrationWorkflow = ({ demonstrationId }: { demonstrationId: st
           <h3 className="text-brand text-2xl font-bold">APPLICATION</h3>
           <ApplicationStatusBadge applicationStatus={data.demonstration.status} />
         </div>
-        <hr className="text-border-rules" />
+        <hr className="text-border-rules" aria-hidden="true" />
         <PhaseSelector application={data.demonstration} workflowApplicationType="demonstration" />
       </div>
     );
