@@ -55,6 +55,11 @@ MIGRATION_CONFIGURATION: Tuple[TableMigrationConfiguration, ...] = (
             "updated_at",
         ],
     },
+    {
+        "staged_table": "cleaned_demos_app_person_state",
+        "target_table": "person_state",
+        "column_list": ["person_id", "state_id"],
+    },
 )
 
 
