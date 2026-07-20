@@ -1,4 +1,4 @@
--- Error in cases where we did not map a mdcd_demo_aplctn_stus_cd to a application_status_id
+-- Error in cases where we did not map a mdcd_demo_aplctn_stus_cd to an application_status_id
 
 SELECT pmda.mdcd_demo_aplctn_stus_cd
 FROM
