@@ -2612,7 +2612,7 @@ sources:
             data_type: integer
             data_tests:
             - relationships:
-                name: assert_all_mdcd_demo_aplctn_stus_cd_in_crosswalk_mdcd_demo_aplctn_stus_cd_to_application_status_id_exist_in_pmda
+                name: assert_all_mdcd_demo_aplctn_stus_cd_in_crosswalk_exist_in_pmda
                 arguments:
                   to: ref('crosswalk_mdcd_demo_aplctn_stus_cd_to_application_status_id')
                   field: mdcd_demo_aplctn_stus_cd
@@ -3339,7 +3339,7 @@ sources:
             data_type: integer
             data_tests:
             - relationships:
-                name: assert_all_mdcd_demo_stus_cd_in_crosswalk_mdcd_demo_stus_cd_to_application_status_id_exist_in_pmda
+                name: assert_all_mdcd_demo_stus_cd_in_crosswalk_exist_in_pmda
                 arguments:
                   to: ref('crosswalk_mdcd_demo_stus_cd_to_application_status_id')
                   field: mdcd_demo_stus_cd
@@ -12064,7 +12064,7 @@ sources:
             data_type: integer
             data_tests:
             - relationships:
-                name: assert_all_role_cd_in_crosswalk_role_cd_to_person_type_id_exist_in_pmda
+                name: assert_all_role_cd_in_crosswalk_exist_in_pmda
                 arguments:
                   to: ref('crosswalk_role_cd_to_person_type_id')
                   field: role_cd
