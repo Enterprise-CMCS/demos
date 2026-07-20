@@ -5,6 +5,7 @@ import { mockPeople, MockPerson } from "./personMocks";
 import { mockStates } from "./stateMocks";
 import { getMockPersonType, isMockUnauthenticated } from "config/env";
 import { GET_CURRENT_USER_QUERY } from "components/user/UserProvider";
+import { ManagedUser, USER_MANAGEMENT_QUERY } from "pages/admin/UserManagement";
 
 export type MockUser = Pick<User, "id" | "username"> & {
   person: MockPerson;
@@ -50,6 +51,47 @@ export const mockUsers: MockUser[] = [
   { id: "10", username: "david.chen", person: mockPeople[9] },
 ];
 
+// Covers each display case the User Management table has to handle: all-states
+// roles, a state user with several states, a state user with none ("-"), and a
+// user who has never logged in ("-").
+const mockManagedUsers: ManagedUser[] = [
+  {
+    id: "1",
+    lastLogin: new Date("2026-04-03T12:00:00.000Z"),
+    person: { ...mockPeople[0], states: [] },
+  },
+  {
+    id: "2",
+    lastLogin: new Date("2026-03-11T12:00:00.000Z"),
+    person: { ...mockPeople[1], personType: "demos-admin", states: [] },
+  },
+  {
+    id: "3",
+    lastLogin: new Date("2026-02-28T12:00:00.000Z"),
+    person: {
+      ...mockPeople[2],
+      personType: "demos-state-user",
+      states: [mockStates[0], mockStates[1]],
+    },
+  },
+  {
+    id: "4",
+    lastLogin: new Date("2026-03-22T12:00:00.000Z"),
+    person: { ...mockPeople[3], personType: "demos-state-user", states: [] },
+  },
+  {
+    id: "5",
+    lastLogin: null,
+    person: { ...mockPeople[4], personType: "demos-state-user", states: [] },
+  },
+];
+
+const mockUserManagementResponse: MockedResponse = {
+  request: { query: USER_MANAGEMENT_QUERY },
+  result: { data: { users: mockManagedUsers } },
+  maxUsageCount: Number.POSITIVE_INFINITY,
+};
+
 const mockUserFailureResponse: MockedResponse = {
   request: { query: GET_CURRENT_USER_QUERY },
   error: new Error("Mock authentication failure"),
@@ -64,4 +106,4 @@ const mockUserSuccessResponse: MockedResponse = {
 
 export const userMocks: MockedResponse[] = isMockUnauthenticated()
   ? [mockUserFailureResponse]
-  : [mockUserSuccessResponse];
+  : [mockUserSuccessResponse, mockUserManagementResponse];
