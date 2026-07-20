@@ -86,6 +86,42 @@ export async function getDocument(
   throw new Error("Requested Document not found or User does not have Permission to view it.");
 }
 
+export async function getEditableDocument(
+  where: Prisma.DocumentWhereInput,
+  user: ContextUser,
+  tx?: PrismaTransactionClient
+): Promise<PrismaDocument> {
+  const authFilter = buildAuthorizationFilter<Prisma.DocumentWhereInput>(
+    user,
+    getEditPermissionFilters
+  );
+
+  if (authFilter !== null) {
+    const authorizedDocument = await selectDocument(
+      {
+        AND: [where, authFilter],
+      },
+      tx
+    );
+
+    if (authorizedDocument) {
+      return authorizedDocument;
+    }
+  }
+
+  const document = await selectDocument(where, tx);
+
+  if (document) {
+    log.warn(
+      `User ${user.id} attempted to edit Document ${document.id} without sufficient permissions.`
+    );
+  }
+
+  throw new Error(
+    "Requested Document not found or User does not have Permission to edit it."
+  );
+}
+
 export async function getManyDocuments(
   where: Prisma.DocumentWhereInput,
   user: ContextUser,
@@ -190,43 +226,4 @@ export async function removeDocument(
   }
 
   throw new Error("Requested Document not found or User does not have Permission to delete it.");
-}
-
-export async function applyDocumentTitleMetadataForDocument(
-  where: Prisma.DocumentWhereUniqueInput,
-  user: ContextUser,
-  tx?: PrismaTransactionClient
-): Promise<boolean> {
-  const authFilter = buildAuthorizationFilter<Prisma.DocumentWhereInput>(
-    user,
-    getEditPermissionFilters
-  );
-
-  if (authFilter !== null) {
-    const authorizedDocument = await selectDocument(
-      {
-        AND: [where, authFilter],
-      },
-      tx
-    );
-
-    if (authorizedDocument) {
-      return await applyPdfTitleMetadata(
-        authorizedDocument.s3Path,
-        authorizedDocument.name
-      );
-    }
-  }
-
-  const document = await selectDocument(where, tx);
-
-  if (document) {
-    log.warn(
-      `User ${user.id} attempted to edit Document ${document.id} without sufficient permissions.`
-    );
-  }
-
-  throw new Error(
-    "Requested Document not found or User does not have Permission to edit it."
-  );
 }
