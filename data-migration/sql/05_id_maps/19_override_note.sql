@@ -10,12 +10,12 @@
  * deliverable's uuid).
  *
  * This file CREATES the (empty) map only. Population lives in
- * sql/10_stg/34_populate_id_map_override_note.sql: the build applies 05_id_maps
+ * sql/10_stg/37_populate_id_map_override_note.sql: the build applies 05_id_maps
  * BEFORE 10_stg, and the map is populated only from deliverables that minted a
  * UUID and carry a non-empty override note (cascade from
  * migration._id_map_mdcd_dlvrbl), so the INSERT cannot run here. Creating the
  * table in 05 keeps it available by name to the stg/app transforms that JOIN it
- * (sql/10_stg/35_override_note_resolved.sql, sql/20_app/51_override_note.sql).
+ * (sql/10_stg/38_override_note_resolved.sql, sql/20_app/51_override_note.sql).
  */
 CREATE TABLE IF NOT EXISTS migration._id_map_override_note(
   legacy_int_id bigint PRIMARY KEY,

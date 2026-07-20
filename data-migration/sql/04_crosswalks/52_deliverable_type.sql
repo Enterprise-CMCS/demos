@@ -3,7 +3,7 @@
  * Inputs:     none (DDL only); rows mirror reports/crosswalks/deliverable_type.csv, loaded from CSV by the crosswalks phase.
  * Outputs:    mysql_raw.crosswalk_deliverable_type
  * Invariants: idempotent (DROP TABLE IF EXISTS + CREATE); single-input code map (mdcd_dlvrbl_type_cd -> demos_text_id); the CSV is the single source (do not add values here); completeness is fail-closed in 53_deliverable_type_check.sql.
- * Refs:       reports/crosswalks/deliverable_type.csv, reports/crosswalks/proposed/deliverable_type_bn_routing.md, sql/20_app/40_deliverable.sql, sql/10_stg/28_deliverable_resolved.sql
+ * Refs:       reports/crosswalks/deliverable_type.csv, reports/crosswalks/proposed/deliverable_type_bn_routing.md, sql/20_app/40_deliverable.sql, sql/10_stg/31_deliverable_resolved.sql
  *
  * Crosswalk: legacy MySQL mdcd_dlvrbl.mdcd_dlvrbl_type_cd (integer) -> DEMOS
  * demos_app.deliverable_type.id (text), applied to

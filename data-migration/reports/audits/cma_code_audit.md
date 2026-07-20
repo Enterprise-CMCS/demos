@@ -274,7 +274,7 @@ demonstration vs preserve OGD); it only confirms the source code set. Still SME-
 | View | Path | What it derives | Verdict |
 |---|---|---|---|
 | `v_demo_status_dtl` | `mysql-schema.sql:9519-9521` | per-demo amendment/renewal counts + approval descriptor `CASE` | **NOT-APPLICABLE** -- no DEMOS descriptor/count column; the Approved/Extended/Pending distinction is a read-time overlay DEMOS computes from migrated dates (`determineDemonstrationTypeStatus.ts`). See W4 correction. |
-| `v_app_mgmt_demo_types` | `mysql-schema.sql:9467-9504` | program-type code -> display title (AL, AC, BHP, BH, BE, CHIP, AHEAD, DSRIP, SUD, ... OTHR) over `mdcd_pendg_*_pgm_dtl` | **REDUNDANT** -- the code->title vocabulary is already (more completely) in `reports/pgm_dtl_tag_mapping.csv`, loaded by `sql/04_crosswalks/46_pgm_dtl_tag.sql`. |
+| `v_app_mgmt_demo_types` | `mysql-schema.sql:9467-9504` | program-type code -> display title (AL, AC, BHP, BH, BE, CHIP, AHEAD, DSRIP, SUD, ... OTHR) over `mdcd_pendg_*_pgm_dtl` | **REDUNDANT** -- the code->title vocabulary is already (more completely) in `reports/pgm_dtl_tag_mapping.csv`, loaded by `sql/04_crosswalks/48_pgm_dtl_tag.sql`. |
 | `v_demo_mgmt_demo_types` | `mysql-schema.sql:9506` | approved-demo program-type rollup | **REDUNDANT** -- same tag map (`pgm_dtl_tag_mapping.csv`) already unifies base + pending tables. |
 | `v_demo_mgmt_mrt_demo_types` | `mysql-schema.sql:9506-9508` | SUD monitoring protocol/metric/reporting-tool indicators + start dates per demo (joins `mdcd_sud_pgm_dtl` + `mdcd_demo`) | **NOT-APPLICABLE** -- MRT is out-of-scope (workflow #9); the dumped view rows are all-zero indicators anyway. |
 
@@ -285,7 +285,7 @@ period-ends; `due_date` fallbacks already mirror our loader
 (`dlvrbl_due_dt` -> `dlvrbl_prd_strt_dt + dlvrbl_days_due_num` -> `dlvrbl_due_dt_chg_dt`).
 > **REDUNDANT (2026-06-26 re-audit):** this algorithm already ran inside PMDA and
 > persisted its output to `mdcd_dlvrbl.dlvrbl_due_dt`, which the loader carries
-> verbatim (`sql/10_stg/28_deliverable_resolved.sql`). Re-deriving it would only
+> verbatim (`sql/10_stg/31_deliverable_resolved.sql`). Re-deriving it would only
 > risk drift from the persisted source of truth.
 
 ---

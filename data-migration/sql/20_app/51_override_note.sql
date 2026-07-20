@@ -3,7 +3,7 @@
  * Inputs:     stg.override_note_resolved; demos_app.deliverable (loaded-parent JOIN).
  * Outputs:    demos_app.private_comment
  * Invariants: runs inside the deferred-constraint build_app txn; RETURNs before the INSERT while stg.override_note_resolved is absent (app-layers idempotency harness no-op); inner-join demos_app.deliverable so a note whose parent deliverable was not loaded is held back; private_comment requires a CMS author person_type (cms_user_person_type_limit); empty content + unresolved author held back; held-back rows logged for SME review by the parity views; idempotent via NOT EXISTS + ON CONFLICT (id) DO NOTHING.
- * Refs:       sql/10_stg/35_override_note_resolved.sql, sql/99_parity/48_override_note.sql, sql/20_app/50_comment.sql, reports/crosswalks/proposed/deliverable_type_bn_routing.md
+ * Refs:       sql/10_stg/38_override_note_resolved.sql, sql/99_parity/48_override_note.sql, sql/20_app/50_comment.sql, reports/crosswalks/proposed/deliverable_type_bn_routing.md
  *
  * App load: demos_app.private_comment from the deliverable budget-neutrality
  * override notes resolved in stg.override_note_resolved (10_stg/35_*). The

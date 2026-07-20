@@ -4,7 +4,7 @@ How the migration brings legacy phase-milestone dates into DEMOS
 `demos_app.application_date` and derives `demos_app.application_phase`, and which
 legacy date columns are deliberately deferred for SME review.
 
-- Loaders: `sql/10_stg/25_application_milestone.sql` (tall crosswalk view),
+- Loaders: `sql/10_stg/27_application_milestone.sql` (tall crosswalk view),
   `sql/20_app/36_application_date.sql` (application_date), and
   `sql/23_app_derived/50_application_phase.sql` (application_phase + Federal
   Comment guard).

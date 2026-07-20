@@ -1,6 +1,6 @@
 """Live-PG harness for the user-RBAC derive layer (person_state + system_role_assignment).
 
-Exercises the real stg resolvers (sql/10_stg/23,24) and the 23_app_derived
+Exercises the real stg resolvers (sql/10_stg/24,26) and the 23_app_derived
 loaders against a hand-built, FK-free schema, asserting the row-selection
 rules the spec fixes:
 
@@ -29,8 +29,8 @@ STG_DIR = ROOT / "sql" / "10_stg"
 DERIVED_DIR = ROOT / "sql" / "23_app_derived"
 CROSSWALK_DIR = ROOT / "sql" / "04_crosswalks"
 
-PERSON_STATE_RESOLVED = STG_DIR / "23_person_state_resolved.sql"
-SRA_RESOLVED = STG_DIR / "24_system_role_assignment_resolved.sql"
+PERSON_STATE_RESOLVED = STG_DIR / "24_person_state_resolved.sql"
+SRA_RESOLVED = STG_DIR / "26_system_role_assignment_resolved.sql"
 PERSON_STATE_LOAD = DERIVED_DIR / "10_person_state.sql"
 SRA_LOAD = DERIVED_DIR / "20_system_role_assignment.sql"
 SYSTEM_ROLE_CROSSWALK = CROSSWALK_DIR / "44_system_role.sql"

@@ -121,7 +121,7 @@ Per the Jul 9 run (check 14): **17 target tables -- 14 BUILT, 1 PARTIAL,
 | 6 Deliverables | BUILT (validated) | deliverable 5640; `deliverable_type` single-input crosswalk (52/53); `deliverable_status` 0/7 resolved (50/51); checks 15-17 GREEN |
 | 6 Comments | BUILT (validated) | private_comment 3074, public_comment 3644; re-sourced from deliverable-scoped `mdcd_dlvrbl_cmt`; BN override notes -> `private_comment` (`51_override_note`) |
 | 4 Demo type tags | PARTIAL | 248; the full `*_pgm_dtl` set is still unbuilt |
-| 6 Documents | DEFERRED (scaffolded) | `document_type` crosswalk (66/67) + staging link (10_stg/27) exist; **no app loader yet** |
+| 6 Documents | DEFERRED (scaffolded) | `document_type` crosswalk (66/67) + staging link (10_stg/30) exist; **no app loader yet** |
 | 5 Waiver / expenditure authorities | SNAPSHOT DELIVERED; loader DEFERRED (non-gating) | Target model confirmed = none (no DEMOS authority entity); **no loader built** -- all-tier SME-review snapshot via `sme_review_exports.py authorities-snapshot` instead (see D5) |
 | 3 Contacts (wf 3 remainder) | DEFERRED | staging filter (10_stg/16) only; **no app loader** (wide-email pivot to person/person_state/role_assignment) |
 | 3 Extensions / renewals | DEFERRED | post-MVP; DEMOS has no renewals concept |

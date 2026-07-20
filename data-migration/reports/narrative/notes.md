@@ -235,8 +235,8 @@ as **PARTIAL** (was DEFERRED); `document` stays DEFERRED.
   deliverable_submission_action_id IS NOT NULL)`). The 3-state document routing
   and the `deliverable_action` state machine are captured as spec contracts in
   `docs/specs/pmda-cross-cutting-derivation-spec.md`, with inert, guarded
-  scaffolds (`sql/10_stg/27_document_deliverable_link_resolved.sql`,
-  `sql/99_parity/43_document_cms_file_submission_invariant.sql`, both no-ops
+  scaffolds (`sql/10_stg/30_document_deliverable_link_resolved.sql`,
+  `sql/99_parity/49_document_cms_file_submission_invariant.sql`, both no-ops
   until a `stg.document_resolved` loader lands). The document loader stays
   DEFERRED on the `document_type` fan-in (`_review.md` P4).
 
@@ -287,8 +287,8 @@ high-value wins against the repo (codeable-now scope). Findings:
 2026-06-26 amendment-loader: **built the amendment loader, superseding the
 2026-06-24 WP3 "Amendment: scaffolded/blocked" note above.** Approved-parent
 amendments now migrate as an `application` + `amendment` IS-A pair. New code:
-`05_id_maps/16_mdcd_demo_amndmt.sql` + `10_stg/29_populate_id_map_mdcd_demo_amndmt.sql`
-(id map), `10_stg/30_amendment_resolved.sql` (source-only resolver),
+`05_id_maps/16_mdcd_demo_amndmt.sql` + `10_stg/32_populate_id_map_mdcd_demo_amndmt.sql`
+(id map), `10_stg/33_amendment_resolved.sql` (source-only resolver),
 `20_app/35_amendment.sql` (loader), `99_parity/52_amendment_load.sql` + parity
 check 19 (non-gating accounting). The three prior blockers were resolved in-session
 (SME-ratify; recorded in `pending_approved_decisions.md` #3 and `_review.md` P2):
@@ -504,12 +504,12 @@ per the 2026-07-10 SME answers, pending demos now migrate. `stg._pendg_demo_fold
 (`10_stg/23`) classifies each PMDA-valid pending demo "approved wins": a pending
 demo whose project number matches a valid approved demo **folds** into it; one
 with no counterpart is an **orphan_loadable**; one with no project number is
-**held_no_project**. `10_stg/24` projects orphans and `20_app/31` loads them as
+**held_no_project**. `10_stg/25` projects orphans and `20_app/31` loads them as
 their own 'Under Review' demonstration (chip_id always NULL, no status column ->
 uniformly Under Review), holding back the RED-4 duplicate-medicaid loser and any
 state absent from `state_region` (logged non-gating in
 `_parity_pending_demonstration_held`). Amendments resolve fold-aware
-(`10_stg/30` LEFT JOINs the fold; `20_app/35` assigns 'Under Review' to the 162
+(`10_stg/33` LEFT JOINs the fold; `20_app/35` assigns 'Under Review' to the 162
 statusless pending-track amendments; `99_parity/52` unmapped-status guard mirrors
 the loader's drop condition so they are not falsely flagged). Parity check 4
 (`99_parity/04`) was redefined: `leaked` = a must-not-load (folded/no-project)
@@ -522,7 +522,7 @@ they load). Pending program-detail tags now **load** fold-aware:
 mechanically from the filled base `pgm_dtl_tag_mapping.csv` by prefix-swap
 `mdcd_`->`mdcd_pendg_`, same tags + date columns; the source-absent
 `mdcd_pendg_fincl_pool_pgm_dtl` is dropped -- no new SME judgment), driven by
-`04_crosswalks/47_pendg_pgm_dtl_tag.sql` + registry entry. The fold-aware
+`04_crosswalks/49_pendg_pgm_dtl_tag.sql` + registry entry. The fold-aware
 fixed-tag loader `21_app_associative/12` and free-text "Other" loader
 `21_app_associative/13` resolve the parent via `stg._pendg_demo_fold`; parity
 `99_parity/55` logs held free-text "Other" rows (non-gating) and fail-closes on
@@ -530,7 +530,7 @@ any mapped-but-unseeded tag -- mirroring the base 10/11/54 trio as pending
 12/13/55. This branch also stacks the two prior unmerged branches (2026-07-10
 crosswalk sign-offs; stop minting chip_id) via cherry-pick.
 
-Milestone dates and per-phase status now migrate. `10_stg/25` is a source-only
+Milestone dates and per-phase status now migrate. `10_stg/27` is a source-only
 tall crosswalk mapping every high-confidence legacy phase-milestone column
 (approved + pending demonstrations, both from `mdcd_demo_aplctn`, aggregated to
 the furthest milestone reached) to a seeded DEMOS `date_type`; `20_app/36`
@@ -561,8 +561,8 @@ Eastern (`AT TIME ZONE 'America/New_York'` in SQL, browser-local in the client),
 so midnight UTC displays as the prior day. Fixed by anchoring every date-only
 value at write time via new helpers `migration.eastern_day_start` /
 `migration.eastern_day_end` (`00_init/03_helper_fns.sql`, SQL/STABLE/STRICT)
-across loaders `10_stg/25` (17 milestone values), `10_stg/22`, `10_stg/24`,
-`10_stg/28`, `10_stg/30`, and tag windows `21_app_associative/10`-`13`; true
+across loaders `10_stg/27` (17 milestone values), `10_stg/22`, `10_stg/25`,
+`10_stg/31`, `10_stg/33`, and tag windows `21_app_associative/10`-`13`; true
 instants (`created_at`/`updated_at`) untouched. The amendment name render
 (`20_app/35`, `99_parity/52`) now wraps `to_char(effective_date, ...)` in
 `AT TIME ZONE 'America/New_York'`, and the Federal Comment cutover constant was
@@ -570,7 +570,7 @@ re-anchored to Eastern midnight (`'2026-08-20 00:00:00-04:00'`) in
 `23_app_derived/50` + `99_parity/56`. The Postgres session is also pinned to UTC
 (`lib.py` `pg_dsn()` `options=-c timezone=UTC`; pgloader `timezone to 'UTC'`) as
 defense-in-depth. Sweep found and included two beyond the initial enumeration:
-`10_stg/24` (pending effective/expiration) and `10_stg/28` (deliverable due_date).
+`10_stg/25` (pending effective/expiration) and `10_stg/31` (deliverable due_date).
 The DuckDB `pmda_exporter.py` `datetime`->naive `timestamp` divergence is a
 separate, non-load-path issue -- left as a handoff recommendation to the
 data-tools team (DEMOS + pgloader remain source of truth). Full write-up:

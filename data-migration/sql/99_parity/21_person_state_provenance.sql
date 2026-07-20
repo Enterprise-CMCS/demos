@@ -3,7 +3,7 @@
  * Inputs:     demos_app.person_state; demos_app.person; demos_app.state; migration._id_map_users; stg.person_state_flags
  * Outputs:    migration._parity_person_state_integrity; migration._parity_person_state_flags
  * Invariants: Integrity view non-empty -> RED at Gate 6, vacuously GREEN until the guarded loaders populate the base table; flags view is a conditional-DDL guarded passthrough of stg.person_state_flags with an empty stand-in when stg is absent (so the idempotency harness applies it as a no-op); idempotent via CREATE OR REPLACE.
- * Refs:       migration/phases/parity.py "person_state integrity" CheckResult; sql/10_stg/23_person_state_resolved.sql
+ * Refs:       migration/phases/parity.py "person_state integrity" CheckResult; sql/10_stg/24_person_state_resolved.sql
  *
  * Parity check: integrity + provenance of the migrated demos_app.person_state.
  *
@@ -17,7 +17,7 @@
  * were intentionally NOT turned into grants and need SME triage (PENDING):
  * non-CMS users authorized for 'XX' (all states) and unmapped state codes.
  * It is a guarded passthrough of stg.person_state_flags (built in
- * sql/10_stg/23_person_state_resolved.sql), with an empty stand-in when stg
+ * sql/10_stg/24_person_state_resolved.sql), with an empty stand-in when stg
  * is not built (e.g. the deeper-layer idempotency harness).
  *
  * Both views return 0 rows until the guarded loaders populate the base table,

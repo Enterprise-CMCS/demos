@@ -23,7 +23,7 @@
 #
 # Intentionally UNregistered (no load entry below, by design):
 #   - crosswalks/demonstration_type.csv -- demonstration-type routing runs
-#     through pgm_dtl_tag_mapping.csv + sql/04_crosswalks/46_pgm_dtl_tag.sql
+#     through pgm_dtl_tag_mapping.csv + sql/04_crosswalks/48_pgm_dtl_tag.sql
 #     and sql/21_app_associative/20_reference_demonstration_type.sql, so this
 #     final CSV is not loaded as a standalone crosswalk table.
 #   - crosswalks/renewal_status.csv -- renewal is deferred post-MVP

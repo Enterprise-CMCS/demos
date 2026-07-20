@@ -3,7 +3,7 @@
  * Inputs:     stg.application_milestone; demos_app.demonstration (JOIN).
  * Outputs:    demos_app.application_date
  * Invariants: runs inside the deferred-constraint build_app txn; FKs dropped during build, re-validated in the constraints phase; guarded inert until stg.application_milestone exists; only demonstrations actually loaded get rows; a NULL date yields no row (excluded upstream in the view; date_type_id is NOT NULL); idempotent via NOT EXISTS + ON CONFLICT (application_id, date_type_id) DO NOTHING.
- * Refs:       sql/10_stg/25_application_milestone.sql, reports/narrative/milestone_date_mapping.md
+ * Refs:       sql/10_stg/27_application_milestone.sql, reports/narrative/milestone_date_mapping.md
  *
  * App load: demos_app.application_date for every mapped legacy milestone date.
  *

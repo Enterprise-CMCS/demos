@@ -66,11 +66,11 @@ columns:
 
 | Loader | Column(s) | Anchor |
 |---|---|---|
-| `sql/10_stg/25_application_milestone.sql` | 17 milestone values | SOD, except `Completeness Review Due Date` + `Federal Comment Period End Date` = EOD |
+| `sql/10_stg/27_application_milestone.sql` | 17 milestone values | SOD, except `Completeness Review Due Date` + `Federal Comment Period End Date` = EOD |
 | `sql/10_stg/22_demonstration_resolved.sql` | `effective_date`, `approval_date` / `expiration_date` | SOD / EOD |
-| `sql/10_stg/24_pending_demonstration_resolved.sql` | `effective_date` / `expiration_date` | SOD / EOD |
-| `sql/10_stg/28_deliverable_resolved.sql` | `due_date` (all COALESCE branches) | SOD |
-| `sql/10_stg/30_amendment_resolved.sql` | `effective_date` | SOD |
+| `sql/10_stg/25_pending_demonstration_resolved.sql` | `effective_date` / `expiration_date` | SOD / EOD |
+| `sql/10_stg/31_deliverable_resolved.sql` | `due_date` (all COALESCE branches) | SOD |
+| `sql/10_stg/33_amendment_resolved.sql` | `effective_date` | SOD |
 | `sql/21_app_associative/10`,`11`,`12`,`13` | tag validity `from_dt` / `to_dt` | SOD / EOD |
 
 True instants (`created_at` / `updated_at` / `status_updated_at`, sourced from

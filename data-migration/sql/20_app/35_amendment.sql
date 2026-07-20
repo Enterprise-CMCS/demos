@@ -6,7 +6,7 @@
  * Refs:       docs/specs/pmda-cross-cutting-derivation-spec.md, reports/narrative/pending_approved_decisions.md, sql/20_app/30_demonstration.sql
  *
  * App load: demos_app.application (anchor) + demos_app.amendment from the
- * PMDA amendments resolved in stg.amendment_resolved (10_stg/30).
+ * PMDA amendments resolved in stg.amendment_resolved (10_stg/33).
  *
  * An amendment IS-A application sharing one UUID (composite FK
  * amendment(id, application_type_id) -> application(id, application_type_id)),

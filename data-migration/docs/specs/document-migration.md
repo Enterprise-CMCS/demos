@@ -123,7 +123,7 @@ Test-driven, fail-closed, stacked branches off `main`; re-invoke the
    are logged non-gating.
 7. **Staging.** Author `stg.document_resolved` (metadata-only projection) and
    thereby activate the currently inert
-   `sql/10_stg/27_document_deliverable_link_resolved.sql`.
+   `sql/10_stg/30_document_deliverable_link_resolved.sql`.
 8. **Metadata-only loader.** A new loader under `sql/20_app/` routes by
    `cmt_orgn_cd` (D5): `C` -> state 3 (CMS-attached), `S` -> state 2
    (state-submitted); state 1 for non-deliverable docs. Caution (David): this

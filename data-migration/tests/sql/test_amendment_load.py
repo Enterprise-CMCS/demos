@@ -1,7 +1,7 @@
 """Live-PG load-correctness harness for the amendment loader.
 
 Exercises the real amendment chain -- crosswalk (sql/04_crosswalks/64), id map
-(sql/05_id_maps/16 + sql/10_stg/29), resolved view (sql/10_stg/30), parity views
+(sql/05_id_maps/16 + sql/10_stg/32), resolved view (sql/10_stg/33), parity views
 (sql/99_parity/52), and loader (sql/20_app/35) -- against a hand-built, FK-free
 schema, asserting the derivations the spec fixes:
 
@@ -39,8 +39,8 @@ ROOT = Path(__file__).resolve().parents[2]
 CROSSWALK = ROOT / "sql" / "04_crosswalks" / "64_amendment_status.sql"
 CROSSWALK_CSV = ROOT / "reports" / "crosswalks" / "amendment_status.csv"
 IDMAP_CREATE = ROOT / "sql" / "05_id_maps" / "16_mdcd_demo_amndmt.sql"
-IDMAP_POP = ROOT / "sql" / "10_stg" / "29_populate_id_map_mdcd_demo_amndmt.sql"
-RESOLVED = ROOT / "sql" / "10_stg" / "30_amendment_resolved.sql"
+IDMAP_POP = ROOT / "sql" / "10_stg" / "32_populate_id_map_mdcd_demo_amndmt.sql"
+RESOLVED = ROOT / "sql" / "10_stg" / "33_amendment_resolved.sql"
 PARITY = ROOT / "sql" / "99_parity" / "52_amendment_load.sql"
 LOADER = ROOT / "sql" / "20_app" / "35_amendment.sql"
 
@@ -65,7 +65,7 @@ def _provision(conn: Any) -> None:
     for schema in ("stg", "mysql_raw", "migration", "demos_app"):
         conn.execute(f"CREATE SCHEMA {schema}")
     conn.execute("CREATE EXTENSION IF NOT EXISTS pgcrypto")
-    apply_migration_helper_fns(conn)  # 30_amendment_resolved calls eastern_day_start
+    apply_migration_helper_fns(conn)  # 33_amendment_resolved calls eastern_day_start
 
     # --- source (mysql_raw), typed as pgloader lands it (int->bigint,
     # date/datetime->date/timestamptz), matching tests/sql/_skeleton.py. ---
@@ -114,7 +114,7 @@ def _provision(conn: Any) -> None:
         "INSERT INTO stg._valid_amndmt_ids (amndmt_id) VALUES (%s),(%s),(%s),(%s),(%s)",
         (A_APPROVED, A_OGD, A_PENDING_ONLY, A_PARENT_HELD, A_APPROVED_NOSIG),
     )
-    # stg._pendg_demo_fold is referenced by 30_amendment_resolved for fold-aware
+    # stg._pendg_demo_fold is referenced by 33_amendment_resolved for fold-aware
     # pending parentage; an empty stub keeps A_PENDING_ONLY (pendg id 99) held
     # (no fold row -> demo_uuid NULL -> parent_is_pending FALSE), preserving the
     # pre-fold behavior this harness asserts. The pending-track loading path is

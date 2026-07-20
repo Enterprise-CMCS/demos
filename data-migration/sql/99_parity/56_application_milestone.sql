@@ -3,7 +3,7 @@
  * Inputs:     mysql_raw.mdcd_demo_aplctn, mysql_raw.mdcd_demo_amndmt; demos_app.application_phase, demos_app.application_date.
  * Outputs:    migration._parity_application_milestone_unmapped; migration._parity_application_phase_fed_comment_guard.
  * Invariants: unmapped log is NON-GATING (surfaces, per deferred source column, how many in-scope rows carry a value SME still needs to place); the fed-comment guard is GATING (fail-closed: after the loader, no application whose loaded Federal Comment Period End Date is before cutover 2026-08-20 may still be 'Not Started'/'Started'); conditional-DDL guarded so each view is created only when its inputs exist (the app-layers idempotency harness applies both as no-ops); idempotent via CREATE OR REPLACE.
- * Refs:       migration/phases/parity.py; reports/narrative/milestone_date_mapping.md; sql/10_stg/25_application_milestone.sql; sql/23_app_derived/50_application_phase.sql.
+ * Refs:       migration/phases/parity.py; reports/narrative/milestone_date_mapping.md; sql/10_stg/27_application_milestone.sql; sql/23_app_derived/50_application_phase.sql.
  *
  * Parity: milestone-date coverage + Federal Comment guard.
  *

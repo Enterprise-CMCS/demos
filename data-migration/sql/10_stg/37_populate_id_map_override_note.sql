@@ -7,7 +7,7 @@
  *
  * Populate migration._id_map_override_note from PMDA-valid deliverables (those
  * that minted a UUID in migration._id_map_mdcd_dlvrbl, populated in
- * 26_populate_id_map_mdcd_dlvrbl.sql) that carry a non-empty budget-neutrality
+ * 29_populate_id_map_mdcd_dlvrbl.sql) that carry a non-empty budget-neutrality
  * override comment. Runs after the id maps (build applies 05_id_maps then
  * 10_stg).
  *

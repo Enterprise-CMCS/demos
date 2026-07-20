@@ -1,6 +1,6 @@
 """Live-PG harness for the demonstration-level role derive layer.
 
-Exercises the real stg resolver (sql/10_stg/25), the 23_app_derived loaders
+Exercises the real stg resolver (sql/10_stg/28), the 23_app_derived loaders
 (30 demonstration_role_assignment, 40 primary_demonstration_role_assignment),
 and the 99_parity provenance views (sql/99_parity/24) against a hand-built,
 FK-free schema, asserting the row-selection rules the spec fixes:
@@ -37,7 +37,7 @@ DERIVED_DIR = ROOT / "sql" / "23_app_derived"
 CROSSWALK_DIR = ROOT / "sql" / "04_crosswalks"
 PARITY_DIR = ROOT / "sql" / "99_parity"
 
-DRA_RESOLVED = STG_DIR / "25_demonstration_role_assignment_resolved.sql"
+DRA_RESOLVED = STG_DIR / "28_demonstration_role_assignment_resolved.sql"
 DRA_LOAD = DERIVED_DIR / "30_demonstration_role_assignment.sql"
 PRIMARY_LOAD = DERIVED_DIR / "40_primary_demonstration_role_assignment.sql"
 DRA_CROSSWALK = CROSSWALK_DIR / "46_demonstration_role.sql"

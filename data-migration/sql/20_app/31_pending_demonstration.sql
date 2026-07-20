@@ -3,11 +3,11 @@
  * Inputs:     stg.pending_demonstration_resolved; mysql_raw.crosswalk_sdg_division; migration.state_region; sequence demos_app.medicaid_id_number_seq.
  * Outputs:    demos_app.application, demos_app.demonstration
  * Invariants: runs inside the deferred-constraint build_app txn; FKs dropped during build, re-validated in the constraints phase; fail-closed (a pending demo loads only when its state resolves in migration.state_region); status is uniformly 'Under Review' (mdcd_pendg_demo has no status column); chip_id is always NULL (mdcd_pendg_demo has no secondary-number column); holds back the non-winning row of a duplicate medicaid_id (RED-4) instead of violating demonstration_medicaid_id_key (non-gating, logged by sql/99_parity/04); idempotent via NOT EXISTS + ON CONFLICT (id) DO NOTHING; guarded inert until stg.pending_demonstration_resolved exists.
- * Refs:       sql/20_app/30_demonstration.sql, sql/10_stg/24_pending_demonstration_resolved.sql, reports/narrative/pending_approved_decisions.md
+ * Refs:       sql/20_app/30_demonstration.sql, sql/10_stg/25_pending_demonstration_resolved.sql, reports/narrative/pending_approved_decisions.md
  *
  * App load: demos_app.application (anchor) + demos_app.demonstration from the
  * loadable ORPHAN pending demonstrations resolved in
- * stg.pending_demonstration_resolved (10_stg/24). This is the workflow-7
+ * stg.pending_demonstration_resolved (10_stg/25). This is the workflow-7
  * "pending demonstrations" load: a pending demo with a project number and no
  * approved counterpart migrates as its own 'Under Review' demonstration;
  * folded and no-project-number pending demos were already excluded upstream by

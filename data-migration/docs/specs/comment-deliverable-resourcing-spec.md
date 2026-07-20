@@ -83,8 +83,8 @@ Id maps:
 - `sql/05_id_maps/17_mdcd_dlvrbl_cmt.sql`, `sql/05_id_maps/18_mdcd_dlvrbl_paper_cmt.sql`.
 
 Staging:
-- `sql/10_stg/31_populate_id_map_mdcd_dlvrbl_cmt.sql`, `…/32_populate_id_map_mdcd_dlvrbl_paper_cmt.sql`.
-- `sql/10_stg/33_comment_resolved.sql` -- source-only projection unioning both
+- `sql/10_stg/34_populate_id_map_mdcd_dlvrbl_cmt.sql`, `…/35_populate_id_map_mdcd_dlvrbl_paper_cmt.sql`.
+- `sql/10_stg/36_comment_resolved.sql` -- source-only projection unioning both
   sources; carries `new_uuid`, `deliverable_id`, `author_user_id`,
   `author_person_type_id`, `content`, `origin_cd`, `created_at`/`updated_at`,
   `legacy_id`, `source`. Routing computed in the loader.

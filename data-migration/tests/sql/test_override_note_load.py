@@ -26,8 +26,8 @@ if TYPE_CHECKING:
     import psycopg
 
 ROOT = Path(__file__).resolve().parents[2]
-POPULATE = ROOT / "sql" / "10_stg" / "34_populate_id_map_override_note.sql"
-STG_VIEW = ROOT / "sql" / "10_stg" / "35_override_note_resolved.sql"
+POPULATE = ROOT / "sql" / "10_stg" / "37_populate_id_map_override_note.sql"
+STG_VIEW = ROOT / "sql" / "10_stg" / "38_override_note_resolved.sql"
 LOADER = ROOT / "sql" / "20_app" / "51_override_note.sql"
 PARITY = ROOT / "sql" / "99_parity" / "48_override_note.sql"
 

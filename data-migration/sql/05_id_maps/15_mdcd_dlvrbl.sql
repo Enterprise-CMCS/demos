@@ -6,11 +6,11 @@
  * See docs/developer/reference-id-maps.adoc.
  *
  * This file CREATES the (empty) map only. Population lives in
- * sql/10_stg/26_populate_id_map_mdcd_dlvrbl.sql: the build applies 05_id_maps
+ * sql/10_stg/29_populate_id_map_mdcd_dlvrbl.sql: the build applies 05_id_maps
  * BEFORE 10_stg, and the map is populated only from stg._valid_dlvrbl_ids (a
  * 10_stg view, defined in 15_filter_dlvrbl.sql), so the INSERT cannot run here.
  * Creating the table in 05 keeps it available by name to any stg/app transform
- * that JOINs the map (sql/10_stg/28_deliverable_resolved.sql,
+ * that JOINs the map (sql/10_stg/31_deliverable_resolved.sql,
  * sql/20_app/40_deliverable.sql).
  */
 CREATE TABLE IF NOT EXISTS migration._id_map_mdcd_dlvrbl(

@@ -3,14 +3,14 @@
  * Inputs:     mysql_raw.mdcd_dlvrbl, migration._id_map_override_note, migration._id_map_mdcd_dlvrbl, migration._id_map_users, stg.users_resolved
  * Outputs:    CREATE OR REPLACE VIEW stg.override_note_resolved
  * Invariants: source-only (mysql_raw + id maps + stg only; never crosswalks 04 / seeds 02); idempotent (CREATE OR REPLACE VIEW); deliverable_id always resolvable (inner join the deliverable id map -- the same cascade that minted the note UUID); author resolved as updtd_user_id first then creatd_user_id, kept as a (uuid, person_type) pair; the CMS-author floor and the parent-loaded join are deferred to the loader.
- * Refs:       reports/crosswalks/proposed/deliverable_type_bn_routing.md, sql/20_app/51_override_note.sql, sql/10_stg/33_comment_resolved.sql
+ * Refs:       reports/crosswalks/proposed/deliverable_type_bn_routing.md, sql/20_app/51_override_note.sql, sql/10_stg/36_comment_resolved.sql
  *
  * Staging projection of each deliverable's budget-neutrality override note
  * (mdcd_dlvrbl.bdgt_ntrlty_ovrrd_cmt_txt) into the column set the
  * demos_app.private_comment loader consumes (sql/20_app/51_override_note.sql).
  * The note is 1:1 with its deliverable; only deliverables that minted an
  * override-note UUID (migration._id_map_override_note, populated in
- * 34_populate_id_map_override_note.sql -- non-empty note + valid deliverable)
+ * 37_populate_id_map_override_note.sql -- non-empty note + valid deliverable)
  * appear here.
  *
  * Source-only by design: this view references ONLY mysql_raw, the id maps, and

@@ -100,13 +100,13 @@ xref:../sme/howto-author-a-crosswalk-csv.adoc[the SME crosswalk how-to]).
 | pgm_dtl_tag
 | -- (SME worksheet)
 | `reports/pgm_dtl_tag_mapping.csv`
-| `sql/04_crosswalks/46_pgm_dtl_tag.sql` (no check; consumed by `21_app_associative/10_demonstration_type_tag_assignment.sql`)
+| `sql/04_crosswalks/48_pgm_dtl_tag.sql` (no check; consumed by `21_app_associative/10_demonstration_type_tag_assignment.sql`)
 | Populated; drives the tag-pivot fold. Per-row `from_dt_col`/`to_dt_col` override default date columns
 
 | pendg_pgm_dtl_tag
 | -- (derived from base `pgm_dtl_tag`)
 | `reports/pgm_dtl_tag_mapping_pending.csv`
-| `sql/04_crosswalks/47_pendg_pgm_dtl_tag.sql` (no check; consumed by `21_app_associative/12_pending_demonstration_type_tag_assignment.sql` + `13_pending_demonstration_type_tag_othr.sql`)
+| `sql/04_crosswalks/49_pendg_pgm_dtl_tag.sql` (no check; consumed by `21_app_associative/12_pending_demonstration_type_tag_assignment.sql` + `13_pending_demonstration_type_tag_othr.sql`)
 | Populated (68 rows derived mechanically from the filled base by prefix-swap `mdcd_`->`mdcd_pendg_`; no new SME judgment). Fold-aware pending counterpart of `pgm_dtl_tag` (parent resolved via `stg._pendg_demo_fold`)
 
 | deliverable_status
@@ -246,7 +246,7 @@ xref:../sme/howto-author-a-crosswalk-csv.adoc[the SME crosswalk how-to]).
 | `reports/pgm_dtl_tag_mapping.csv`
 | SME
 | crosswalks / build
-| Loaded into `mysql_raw.crosswalk_pgm_dtl_tag` (`46_pgm_dtl_tag.sql`); tag-assignment fold loop. SME review (see Tier B)
+| Loaded into `mysql_raw.crosswalk_pgm_dtl_tag` (`48_pgm_dtl_tag.sql`); tag-assignment fold loop. SME review (see Tier B)
 | Maintained
 
 | Target-schema pins
@@ -387,7 +387,7 @@ As of *2026-06-26*. Hand-audited; not enforced by `verify-doc-facts`
   `reports/runs/filter_<stamp>.md` are unsigned.
 * *Tier C open:* `signature_level` CHECK widening is not yet applied to
   the target schema.
-* *Milestone dates (SME/SDG review):* `sql/10_stg/25_application_milestone.sql`
+* *Milestone dates (SME/SDG review):* `sql/10_stg/27_application_milestone.sql`
   maps only the high-confidence legacy phase-milestone columns into
   `application_date` (see `reports/narrative/milestone_date_mapping.md`). The
   granular phase_3 clearance sub-dates (SME/FRVT/CMCS/OGC/OMB start+end), the

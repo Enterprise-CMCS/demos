@@ -1,7 +1,7 @@
 """Live-PG harness for fold-aware pending-track amendment loading.
 
 Companion to tests/sql/test_amendment_load.py, exercising the pending side of the
-2026-07-10 workflow-7 reversal: stg.amendment_resolved (sql/10_stg/30) now
+2026-07-10 workflow-7 reversal: stg.amendment_resolved (sql/10_stg/33) now
 resolves an amendment's parent through stg._pendg_demo_fold when there is no
 approved parent, and the loader (sql/20_app/35) assigns 'Under Review' to a
 pending-track amendment whose source status is NULL (the statusless pending-track
@@ -28,8 +28,8 @@ ROOT = Path(__file__).resolve().parents[2]
 CROSSWALK = ROOT / "sql" / "04_crosswalks" / "64_amendment_status.sql"
 CROSSWALK_CSV = ROOT / "reports" / "crosswalks" / "amendment_status.csv"
 IDMAP_CREATE = ROOT / "sql" / "05_id_maps" / "16_mdcd_demo_amndmt.sql"
-IDMAP_POP = ROOT / "sql" / "10_stg" / "29_populate_id_map_mdcd_demo_amndmt.sql"
-RESOLVED = ROOT / "sql" / "10_stg" / "30_amendment_resolved.sql"
+IDMAP_POP = ROOT / "sql" / "10_stg" / "32_populate_id_map_mdcd_demo_amndmt.sql"
+RESOLVED = ROOT / "sql" / "10_stg" / "33_amendment_resolved.sql"
 PARITY = ROOT / "sql" / "99_parity" / "52_amendment_load.sql"
 LOADER = ROOT / "sql" / "20_app" / "35_amendment.sql"
 
@@ -54,7 +54,7 @@ def _provision(conn: Any) -> None:
     for schema in ("stg", "mysql_raw", "migration", "demos_app"):
         conn.execute(f"CREATE SCHEMA {schema}")
     conn.execute("CREATE EXTENSION IF NOT EXISTS pgcrypto")
-    apply_migration_helper_fns(conn)  # 30_amendment_resolved calls eastern_day_start
+    apply_migration_helper_fns(conn)  # 33_amendment_resolved calls eastern_day_start
 
     conn.execute(
         "CREATE TABLE mysql_raw.mdcd_demo_amndmt ("

@@ -53,7 +53,7 @@ loaded source overturned the two premises this document is built on:
   are **moot** under the single-input map.
 - **Override-comment notes** migrate in full: every valid override note (41 in
   the current live scope) becomes a `private_comment` on its deliverable
-  (`sql/10_stg/35_override_note_resolved.sql`,
+  (`sql/10_stg/38_override_note_resolved.sql`,
   `sql/20_app/51_override_note.sql`), author resolved as `updtd_user_id` then
   `creatd_user_id`; non-CMS / unresolved authors are held back and logged
   (`sql/99_parity/48_override_note.sql`). The source has **no per-row A-F

@@ -1659,7 +1659,7 @@ def _application_milestone_unmapped(env: Env) -> CheckResult:
 
     Reads ``migration._parity_application_milestone_unmapped`` (created by
     ``sql/99_parity/56_application_milestone.sql`` only when its inputs exist).
-    The milestone crosswalk (``sql/10_stg/25_application_milestone.sql``) maps
+    The milestone crosswalk (``sql/10_stg/27_application_milestone.sql``) maps
     only the high-confidence legacy date columns; the granular phase_3 clearance
     sub-dates (SME / FRVT / CMCS / OGC / OMB start+end), the application-status
     date, and the amendment application/status dates are deferred because their

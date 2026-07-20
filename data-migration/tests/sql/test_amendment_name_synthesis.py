@@ -43,8 +43,8 @@ ROOT = Path(__file__).resolve().parents[2]
 CROSSWALK = ROOT / "sql" / "04_crosswalks" / "64_amendment_status.sql"
 CROSSWALK_CSV = ROOT / "reports" / "crosswalks" / "amendment_status.csv"
 IDMAP_CREATE = ROOT / "sql" / "05_id_maps" / "16_mdcd_demo_amndmt.sql"
-IDMAP_POP = ROOT / "sql" / "10_stg" / "29_populate_id_map_mdcd_demo_amndmt.sql"
-RESOLVED = ROOT / "sql" / "10_stg" / "30_amendment_resolved.sql"
+IDMAP_POP = ROOT / "sql" / "10_stg" / "32_populate_id_map_mdcd_demo_amndmt.sql"
+RESOLVED = ROOT / "sql" / "10_stg" / "33_amendment_resolved.sql"
 PARITY = ROOT / "sql" / "99_parity" / "52_amendment_load.sql"
 LOADER = ROOT / "sql" / "20_app" / "35_amendment.sql"
 
@@ -68,7 +68,7 @@ def _provision(conn: Any) -> None:
     for schema in ("stg", "mysql_raw", "migration", "demos_app"):
         conn.execute(f"CREATE SCHEMA {schema}")
     conn.execute("CREATE EXTENSION IF NOT EXISTS pgcrypto")
-    apply_migration_helper_fns(conn)  # 30_amendment_resolved calls eastern_day_start
+    apply_migration_helper_fns(conn)  # 33_amendment_resolved calls eastern_day_start
 
     conn.execute(
         "CREATE TABLE mysql_raw.mdcd_demo_amndmt ("
@@ -112,7 +112,7 @@ def _provision(conn: Any) -> None:
         "INSERT INTO stg._valid_amndmt_ids (amndmt_id) VALUES (%s),(%s),(%s),(%s),(%s)",
         (A_REALNAME, A_NULLNAME_DATE, A_EMPTYNAME_DATE, A_NULLNAME_NODATE, A_NULLNAME_NOPARENT),
     )
-    # Empty stub: 30_amendment_resolved references stg._pendg_demo_fold for
+    # Empty stub: 33_amendment_resolved references stg._pendg_demo_fold for
     # fold-aware pending parentage; no fold rows keeps this name-synthesis
     # fixture on the approved-parent path it asserts.
     conn.execute(

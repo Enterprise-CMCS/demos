@@ -144,7 +144,7 @@ a California demonstration's assigned list.
 | `reports/crosswalks/demonstration_role.csv`
 | Single source of the column -> role mapping (registry-loaded).
 
-| `sql/10_stg/25_demonstration_role_assignment_resolved.sql`
+| `sql/10_stg/28_demonstration_role_assignment_resolved.sql`
 | `stg.demonstration_role_assignment_resolved` -- unpivot of the 15
   `mdcd_demo` columns into candidate tuples.
 

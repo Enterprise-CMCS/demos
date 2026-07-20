@@ -7,7 +7,7 @@
  *
  * Populate migration._id_map_mdcd_dlvrbl_cmt from deliverable comments whose
  * parent deliverable already minted a UUID (migration._id_map_mdcd_dlvrbl,
- * populated in 26_populate_id_map_mdcd_dlvrbl.sql). Runs after the id maps
+ * populated in 29_populate_id_map_mdcd_dlvrbl.sql). Runs after the id maps
  * (build applies 05_id_maps then 10_stg).
  *
  * ON CONFLICT DO NOTHING keeps each legacy comment's UUID stable across rebuilds

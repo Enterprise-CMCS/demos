@@ -32,7 +32,7 @@ follow the numbering convention.
 ====
 The ranges above are the *intended* entity-slot map, not an invariant the
 checker enforces. Several early-landed files do not follow it yet: the
-RBAC / associative loaders sit at slots `10-40` (`10_stg/24-25_*`,
+RBAC / associative loaders sit at slots `10-40` (`10_stg/24-28_*`,
 `21_app_associative/`, `23_app_derived/20-40_*`, not `90-99`). Treat the table
 as the target convention and consult the actual stage directory for the slot a
 given entity occupies today.

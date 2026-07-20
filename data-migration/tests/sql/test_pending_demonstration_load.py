@@ -1,7 +1,7 @@
 """Live-PG harness for the pending-demonstration loader (workflow 7 reversal).
 
 Exercises the real pending chain -- fold classifier (sql/10_stg/23), pending
-resolved view (sql/10_stg/24), loader (sql/20_app/31), and parity views
+resolved view (sql/10_stg/25), loader (sql/20_app/31), and parity views
 (sql/99_parity/04) -- against a hand-built, FK-free ``mysql_raw`` skeleton on a
 throwaway Postgres (``pg_db``); self-skips without ``PG_TEST_DSN``.
 
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 
 ROOT = Path(__file__).resolve().parents[2]
 FOLD = ROOT / "sql" / "10_stg" / "23_pendg_demo_fold.sql"
-RESOLVED = ROOT / "sql" / "10_stg" / "24_pending_demonstration_resolved.sql"
+RESOLVED = ROOT / "sql" / "10_stg" / "25_pending_demonstration_resolved.sql"
 LOADER = ROOT / "sql" / "20_app" / "31_pending_demonstration.sql"
 PARITY = ROOT / "sql" / "99_parity" / "04_pending_approved.sql"
 

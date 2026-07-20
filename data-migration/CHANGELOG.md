@@ -58,7 +58,7 @@ behavior changes. Commit history follows [Conventional Commits](https://www.conv
 - Pending demonstrations now migrate (workflow-7 reversal, per the 2026-07-10
   SME answers). `sql/10_stg/23_pendg_demo_fold.sql` classifies each PMDA-valid
   pending demo "approved wins" (folded / orphan_loadable / held_no_project);
-  `sql/10_stg/24_pending_demonstration_resolved.sql` + the loader
+  `sql/10_stg/25_pending_demonstration_resolved.sql` + the loader
   `sql/20_app/31_pending_demonstration.sql` load orphan pending demos (a project
   number, no approved counterpart) as their own 'Under Review' demonstration
   (chip_id always NULL; no source status column), folding matched pending demos
@@ -70,7 +70,7 @@ behavior changes. Commit history follows [Conventional Commits](https://www.conv
   is populated with 68 rows derived mechanically from the filled base
   `pgm_dtl_tag_mapping.csv` (prefix-swap `mdcd_`->`mdcd_pendg_`, same tags + date
   columns; the source-absent `mdcd_pendg_fincl_pool_pgm_dtl` is dropped -- no new
-  SME judgment), driven by `sql/04_crosswalks/47_pendg_pgm_dtl_tag.sql` + a
+  SME judgment), driven by `sql/04_crosswalks/49_pendg_pgm_dtl_tag.sql` + a
   `crosswalk_pendg_pgm_dtl_tag` registry entry. Two fold-aware loaders resolve the
   parent via `stg._pendg_demo_fold`: the fixed-tag
   `sql/21_app_associative/12_pending_demonstration_type_tag_assignment.sql` and the
@@ -80,7 +80,7 @@ behavior changes. Commit history follows [Conventional Commits](https://www.conv
   rows (non-gating) and fail-closes on any mapped-but-unseeded tag -- mirroring the
   base 10/11/54 trio as pending 12/13/55.
 - Milestone dates and per-phase status now migrate (per the 2026-07-10 SME
-  answers). `sql/10_stg/25_application_milestone.sql` is a source-only tall
+  answers). `sql/10_stg/27_application_milestone.sql` is a source-only tall
   crosswalk mapping every high-confidence legacy phase-milestone column (approved
   + pending demonstrations, both from `mdcd_demo_aplctn`) to a seeded DEMOS
   `date_type`; `sql/20_app/36_application_date.sql` (rewritten from approval-date-
@@ -98,8 +98,18 @@ behavior changes. Commit history follows [Conventional Commits](https://www.conv
   `reports/narrative/milestone_date_mapping.md`.
 
 ### Changed
+- Renumbered SQL files that shared a numeric prefix within a directory, so the
+  `sorted(glob("*.sql"))` run order every phase uses is now unambiguous. In
+  `sql/04_crosswalks` the `pgm_dtl_tag` family moved off the `demonstration_role`
+  slots (`46`/`47` -> `48`/`49`); `sql/10_stg` re-sequenced its `23`-`38` region
+  (six colliding files at `23`/`24`/`25` plus the downstream cascade), preserving
+  every dependency (`_pendg_demo_fold` before its consumers; each
+  `populate_id_map_*` before its `*_resolved`); and `sql/99_parity` moved the
+  document-CMS-file scaffold `43` -> `49` off `43_deliverable_bn_qa`. A new
+  guardrail test (`tests/test_sql_numbering.py`) fails on any future duplicate
+  prefix within a `sql/` subdirectory.
 - Amendments resolve their parent fold-aware
-  (`sql/10_stg/30_amendment_resolved.sql` LEFT JOINs `stg._pendg_demo_fold` and
+  (`sql/10_stg/33_amendment_resolved.sql` LEFT JOINs `stg._pendg_demo_fold` and
   adds `parent_is_pending`); the loader (`sql/20_app/35_amendment.sql`) assigns
   'Under Review' to the 162 statusless pending-track amendments (LEFT JOIN the
   status crosswalk + COALESCE), and the fail-closed unmapped-status guard in
@@ -175,11 +185,11 @@ behavior changes. Commit history follows [Conventional Commits](https://www.conv
   calendar-date column at write time -- start-of-day for most types, end-of-day
   for `Completeness Review Due Date` and `Federal Comment Period End Date` (per
   `server/src/constants.ts` `DATE_TYPES_WITH_EXPECTED_TIMESTAMPS`). Applied across
-  `sql/10_stg/25_application_milestone.sql` (17 milestone values),
+  `sql/10_stg/27_application_milestone.sql` (17 milestone values),
   `sql/10_stg/22_demonstration_resolved.sql`,
-  `sql/10_stg/24_pending_demonstration_resolved.sql`,
-  `sql/10_stg/28_deliverable_resolved.sql`,
-  `sql/10_stg/30_amendment_resolved.sql`, and the tag validity windows in
+  `sql/10_stg/25_pending_demonstration_resolved.sql`,
+  `sql/10_stg/31_deliverable_resolved.sql`,
+  `sql/10_stg/33_amendment_resolved.sql`, and the tag validity windows in
   `sql/21_app_associative/10`-`13`. True instants (`created_at` / `updated_at`)
   are left untouched. The amendment name-synthesis render
   (`sql/20_app/35_amendment.sql`, `sql/99_parity/52_amendment_load.sql`) now

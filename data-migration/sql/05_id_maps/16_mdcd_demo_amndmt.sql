@@ -6,7 +6,7 @@
  * See docs/developer/reference-id-maps.adoc and 10_mdcd_demo.sql.
  *
  * This file CREATES the (empty) map only. Population lives in
- * sql/10_stg/29_populate_id_map_mdcd_demo_amndmt.sql: the build applies
+ * sql/10_stg/32_populate_id_map_mdcd_demo_amndmt.sql: the build applies
  * 05_id_maps BEFORE 10_stg, and the amendment is minted only from the
  * PMDA-valid allowlist (stg._valid_amndmt_ids, a 10_stg view), so the INSERT
  * cannot run here. Creating the table in 05 keeps it available by name to any

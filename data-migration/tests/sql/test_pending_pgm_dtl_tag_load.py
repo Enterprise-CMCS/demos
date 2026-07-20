@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 ROOT = Path(__file__).resolve().parents[2]
 FOLD = ROOT / "sql" / "10_stg" / "23_pendg_demo_fold.sql"
-XWALK_DDL = ROOT / "sql" / "04_crosswalks" / "47_pendg_pgm_dtl_tag.sql"
+XWALK_DDL = ROOT / "sql" / "04_crosswalks" / "49_pendg_pgm_dtl_tag.sql"
 LOADER_FIXED = ROOT / "sql" / "21_app_associative" / "12_pending_demonstration_type_tag_assignment.sql"
 LOADER_OTHR = ROOT / "sql" / "21_app_associative" / "13_pending_demonstration_type_tag_othr.sql"
 PARITY = ROOT / "sql" / "99_parity" / "55_pendg_pgm_dtl_tag_othr_held.sql"
