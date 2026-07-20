@@ -7,6 +7,7 @@ import { isAStatePointOfContactAssociatedWithDeliverable } from "../deliverable/
 import { handleDeleteDocument } from "./handleDeleteDocument";
 import { validateDocumentCanBeDeleted } from "./validateDocumentCanBeDeleted";
 import { validateDocumentCanBeUpdated } from "./validateDocumentCanBeUpdated";
+import { applyPdfTitleMetadata } from "./applyPdfTitleMetadata";
 
 const getViewPermissionFilters = (userId: string) =>
   ({
@@ -127,7 +128,21 @@ export async function editDocument(
 
     if (authorizedDocument) {
       await validateDocumentCanBeUpdated(authorizedDocument.id);
-      return await updateDocument(where, data, tx);
+
+      const updatedDocument = await updateDocument(where, data, tx);
+
+      if (data.name !== undefined) {
+        const success = await applyPdfTitleMetadata(
+          updatedDocument.s3Path,
+          updatedDocument.name
+        );
+
+        if (!success) {
+          throw new Error("Failed to update PDF title metadata.");
+        }
+      }
+
+      return updatedDocument;
     }
   }
 
@@ -138,8 +153,10 @@ export async function editDocument(
     );
   }
 
-  throw new Error("Requested Document not found or User does not have Permission to edit it.");
-}
+  throw new Error(
+    "Requested Document not found or User does not have Permission to edit it."
+  );
+};
 
 export async function removeDocument(
   where: Prisma.DocumentWhereUniqueInput,
@@ -173,4 +190,43 @@ export async function removeDocument(
   }
 
   throw new Error("Requested Document not found or User does not have Permission to delete it.");
+}
+
+export async function applyDocumentTitleMetadataForDocument(
+  where: Prisma.DocumentWhereUniqueInput,
+  user: ContextUser,
+  tx?: PrismaTransactionClient
+): Promise<boolean> {
+  const authFilter = buildAuthorizationFilter<Prisma.DocumentWhereInput>(
+    user,
+    getEditPermissionFilters
+  );
+
+  if (authFilter !== null) {
+    const authorizedDocument = await selectDocument(
+      {
+        AND: [where, authFilter],
+      },
+      tx
+    );
+
+    if (authorizedDocument) {
+      return await applyPdfTitleMetadata(
+        authorizedDocument.s3Path,
+        authorizedDocument.name
+      );
+    }
+  }
+
+  const document = await selectDocument(where, tx);
+
+  if (document) {
+    log.warn(
+      `User ${user.id} attempted to edit Document ${document.id} without sufficient permissions.`
+    );
+  }
+
+  throw new Error(
+    "Requested Document not found or User does not have Permission to edit it."
+  );
 }
