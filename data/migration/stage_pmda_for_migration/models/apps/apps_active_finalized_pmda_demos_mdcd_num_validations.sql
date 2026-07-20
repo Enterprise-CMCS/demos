@@ -7,7 +7,7 @@ WITH stripped_down_medicaid_number AS (
         regexp_replace(replace(replace(mdcd_scndry_demo_num, '-', ''), '/', ''), '\s', '', 'g')
             AS stripped_mdcd_scndry_demo_num
     FROM
-        {{ ref('apps_active_pmda_demos') }}
+        {{ ref('apps_active_finalized_pmda_demos') }}
 ),
 
 initial_validation_status AS (
