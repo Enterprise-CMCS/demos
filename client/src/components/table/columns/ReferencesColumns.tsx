@@ -25,17 +25,18 @@ export function ReferencesColumns() {
       cell: highlightCell,
       enableColumnFilter: false,
     }),
-    columnHelper.accessor("demonstrationTypes", {
-      header: "Demo Type",
-      cell: (cell) => {
-        const value = cell.getValue();
-        if (value.length === 0) {
-          return "-";
-        }
-        return value.map((tag) => tag.tagName).join(", ");
-      },
-      enableColumnFilter: false,
-    }),
+    columnHelper.accessor(
+      (reference) => reference.demonstrationTypes.map((tag) => tag.tagName).join(", "),
+      {
+        id: "demonstrationTypes",
+        header: "Demo Type",
+        cell: (cell) => {
+          const value = cell.getValue();
+          return value ? highlightCell(cell) : "-";
+        },
+        enableColumnFilter: false,
+      }
+    ),
     columnHelper.accessor("description", {
       header: "Description",
       cell: highlightCell,

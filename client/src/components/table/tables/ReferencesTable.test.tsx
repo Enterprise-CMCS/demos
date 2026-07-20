@@ -1,5 +1,6 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { DESCRIPTION_TEXT, GET_REFERENCES_QUERY, ReferencesTable } from "./ReferencesTable";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 import { DialogProvider } from "components/dialog/DialogContext";
@@ -158,6 +159,19 @@ describe("ReferencesTable", () => {
     renderWithProviders(getReferencesQueryMock);
 
     expect(await screen.findByPlaceholderText("Search")).toBeInTheDocument();
+  });
+
+  it("filters references by demonstration type", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(getReferencesQueryMock);
+
+    const searchInput = await screen.findByPlaceholderText("Search");
+    await user.type(searchInput, "Type C");
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Download ref2" })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Open ref1 agreement" })).not.toBeInTheDocument();
+    });
   });
 
   it("renders with pagination controls", async () => {
