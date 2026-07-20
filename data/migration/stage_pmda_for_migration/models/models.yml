@@ -1,6 +1,7 @@
 version: 2
 
 models:
+  # Cleaned Models
   - name: cleaned_demos_app_system_role_assignment
     description: default system role assignmend derived from idm role
     config:
@@ -47,17 +48,6 @@ models:
                 values:
                   - System
 
-  - name: users_cleaned_demos_app_person_state_user
-    description: All cleaned people records that are of type demos-state-user
-    columns:
-      - name: person_type_id
-        data_tests:
-          - accepted_values:
-              name: assert_person_type_id_is_demos_state_user_in_users_cleaned_demos_app_person_state_user
-              arguments:
-                values:
-                  - demos-state-user
-
   - name: cleaned_demos_app_person_state
     description: All cleaned person-state relations with state users and valid states
     config:
@@ -87,13 +77,6 @@ models:
             combination_of_columns:
               - person_id
               - state_id
-
-  - name: users_active_pmda_users
-    columns:
-      - name: id
-        data_tests:
-          - unique:
-              name: assert_pmda_user_id_is_unique
 
   - name: cleaned_demos_app_person
     config:
@@ -181,3 +164,109 @@ models:
         data_type: timestamptz
       - name: updated_at
         data_type: timestamptz
+
+  - name: cleaned_demos_app_demonstration
+    config:
+      contract:
+        enforced: false # TODO: change to true when ready
+    columns:
+      - name: id
+        data_type: uuid
+      - name: application_type_id
+        data_type: text
+      - name: name
+        data_type: text
+      - name: description
+        data_type: text
+      - name: effective_date
+        data_type: timestamptz
+      - name: expiration_date
+        data_type: timestamptz
+      - name: sdg_division_id
+        data_type: text
+      - name: signature_level_id
+        data_type: text
+      - name: status_id
+        data_type: text
+      - name: status_updated_at
+        data_type: timestamptz
+      - name: current_phase_id
+        data_type: text
+      - name: state_id
+        data_type: text
+      - name: clearance_level_id
+        data_type: text
+      - name: medicaid_id
+        data_type: text
+      - name: chip_id
+        data_type: text
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+
+  # Apps Models
+  - name: apps_active_finalized_pmda_demos
+    columns:
+      - name: mdcd_demo_id
+        data_type: integer
+        data_tests:
+          - unique:
+              name: assert_active_finalized_pmda_demos_have_unique_ids
+      - name: mdcd_chip_div_cd
+        data_type: integer
+        data_tests:
+          - not_null:
+              name: assert_active_finalized_pmda_demos_have_no_missing_mdcd_chip_div_id
+      - name: mdcd_demo_stus_cd
+        data_type: integer
+        data_tests:
+          - not_null:
+              name: assert_active_finalized_pmda_demos_have_no_missing_mdcd_demo_stus_cd
+      - name: demo_stus_dt
+        data_type: date
+        data_tests:
+          - not_null:
+              name: assert_active_finalized_pmda_demos_have_no_missing_demo_stus_dt
+
+  - name: apps_active_in_progress_pmda_demos
+    columns:
+      - name: mdcd_pendg_demo_id
+        data_type: integer
+        data_tests:
+          - unique:
+              name: assert_active_in_progress_pmda_demos_have_unique_ids
+      - name: mdcd_chip_div_cd
+        data_type: integer
+        data_tests:
+          - not_null:
+              name: assert_active_in_progress_pmda_demos_have_no_missing_mdcd_chip_div_id
+      - name: mdcd_demo_aplctn_stus_cd
+        data_type: integer
+        data_tests:
+          - not_null:
+              name: assert_active_in_progress_pmda_demos_have_no_missing_mdcd_demo_aplctn_stus_cd
+      - name: mdcd_demo_aplctn_stus_dt
+        data_type: date
+        data_tests:
+          - not_null:
+              name: assert_active_in_progress_pmda_demos_have_no_missing_mdcd_demo_aplctn_stus_dt
+
+  # Users Models
+  - name: users_active_pmda_users
+    columns:
+      - name: id
+        data_tests:
+          - unique:
+              name: assert_pmda_user_id_is_unique
+
+  - name: users_cleaned_demos_app_person_state_user
+    description: All cleaned people records that are of type demos-state-user
+    columns:
+      - name: person_type_id
+        data_tests:
+          - accepted_values:
+              name: assert_person_type_id_is_demos_state_user_in_users_cleaned_demos_app_person_state_user
+              arguments:
+                values:
+                  - demos-state-user
