@@ -6,6 +6,7 @@ import { Reference, ReferenceAgreement, Tag } from "demos-server";
 import { KeywordSearch } from "../KeywordSearch";
 import { PaginationControls } from "../PaginationControls";
 import { compareDesc } from "date-fns";
+import { useDownloadReference } from "hooks/useDownloadReference";
 
 export const DESCRIPTION_TEXT =
   "Documents supporting monitoring and evaluation for Medicaid Section 1115 demonstrations are listed below.";
@@ -38,7 +39,26 @@ export const GET_REFERENCES_QUERY: TypedDocumentNode<
 `;
 
 export const ReferencesTable: React.FC = () => {
-  const referencesColumns = ReferencesColumns();
+  const [downloadingReferences, setDownloadingReferences] = React.useState<Set<string>>(new Set());
+  const { downloadReference } = useDownloadReference();
+
+  const handleDownload = async (id: string) => {
+    setDownloadingReferences((current) => new Set(current).add(id));
+
+    try {
+      await downloadReference({ id, acceptedAgreementId: null });
+    } catch {
+      // useDownloadReference reports download errors to the user.
+    } finally {
+      setDownloadingReferences((current) => {
+        const next = new Set(current);
+        next.delete(id);
+        return next;
+      });
+    }
+  };
+
+  const referencesColumns = ReferencesColumns(handleDownload, downloadingReferences);
 
   const { data, loading, error } = useQuery(GET_REFERENCES_QUERY);
 
