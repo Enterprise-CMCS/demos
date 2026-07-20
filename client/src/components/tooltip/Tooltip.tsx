@@ -5,15 +5,14 @@ const TOOLTIP_STYLES = tw`
 bg-black
 text-white
 text-sm
-px-2
-py-1
+p-1
 rounded
 m-0
 border-0
+max-w-64
 [position-anchor:var(--anchor)]
 [top:anchor(bottom)]
 [left:anchor(left)]
-mt-1
 `;
 
 export const Tooltip: React.FC<{

@@ -19,6 +19,9 @@ const variants = {
   "warning-outlined": (props: ButtonProps) => <WarningButton {...props} isOutlined={true} />,
 };
 
+const LONG_TOOLTIP_TEXT =
+  "This is a rather long tooltip text that should be wrapped when displayed in the tooltip.";
+
 export const ButtonGrid: React.FC = () => {
   const [allDisabled, setAllDisabled] = React.useState(false);
 
@@ -57,7 +60,7 @@ export const ButtonGrid: React.FC = () => {
             onClick={() => {}}
             disabled={allDisabled}
             tooltip={allDisabled ? undefined : "Delete item"}
-            eagerTooltip={allDisabled ? "Must enable button first!" : undefined}
+            eagerTooltip={allDisabled ? LONG_TOOLTIP_TEXT : undefined}
           >
             <DeleteIcon />
           </CircleButton>

@@ -22,6 +22,8 @@ disabled:text-text-placeholder
 disabled:cursor-not-allowed
 `;
 
+const NON_ALPHANUMERIC = /[^a-zA-Z0-9]/g;
+
 const getSizeClasses = (isCircle: boolean, buttonSize: ButtonSize) => {
   if (isCircle) {
     return {
@@ -72,9 +74,9 @@ export const BaseButton: React.FC<ButtonProps> = ({
 }) => {
   const sizeClasses = getSizeClasses(isCircle, size);
   const circleClasses = getCircleClasses(isCircle);
-  const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
+  const uid = useId().replace(NON_ALPHANUMERIC, "");
   const anchorName = `--btn-${uid}`;
-  const tooltipId = `eager-tooltip-${uid}`;
+  const tooltipId = `tooltip-${uid}`;
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   return (
