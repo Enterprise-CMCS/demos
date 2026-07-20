@@ -12,7 +12,7 @@ import { useCompletePhase } from "components/application/phase-status/phaseCompl
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { useDialog } from "components/dialog/DialogContext";
 import { DocumentList } from "./sections";
-import { getPhaseCompletedMessage } from "util/messages";
+import { getPhaseCompletedMessage, MISSING_REQUIRED_SECTIONS_TOOLTIP } from "util/messages";
 import { useToast } from "components/toast";
 import { DatePicker } from "components/input/date/DatePicker";
 import { ApplicationHealthTypeTags } from "components/tags/ApplicationHealthTypeTags";
@@ -471,6 +471,7 @@ export const ApplicationIntakePhase = ({
           onClick={onFinishButtonClick}
           disabled={!isFinishButtonEnabled}
           size="small"
+          eagerTooltip={!isFinishButtonEnabled && !isPhaseFinalized ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined}
         >
           Finish
         </Button>

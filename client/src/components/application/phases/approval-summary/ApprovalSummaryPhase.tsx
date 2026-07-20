@@ -23,7 +23,7 @@ import { useSetApplicationDate } from "components/application/date/dateQueries";
 import { Button } from "components/button";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 import { useToast } from "components/toast";
-import { getPhaseCompletedMessage } from "util/messages";
+import { getPhaseCompletedMessage, MISSING_REQUIRED_SECTIONS_TOOLTIP } from "util/messages";
 import { useDialog } from "components/dialog/DialogContext";
 
 export const UPDATE_DEMONSTRATION_MUTATION = gql`
@@ -210,25 +210,25 @@ export const getApprovalSummaryPhaseFromApplication = (
     workflowApplicationType === "demonstration"
       ? application.id
       : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
-        .id;
+          .id;
 
   const demonstrationTypes =
     workflowApplicationType === "demonstration"
       ? (application as ApplicationWorkflowDemonstration).demonstrationTypes
       : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
-        .demonstrationTypes;
+          .demonstrationTypes;
 
   const demonstrationStatus =
     workflowApplicationType === "demonstration"
       ? (application as ApplicationWorkflowDemonstration).status
       : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
-        .status;
+          .status;
 
   const medicaidId =
     workflowApplicationType === "demonstration"
       ? (application as ApplicationWorkflowDemonstration).medicaidId
       : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
-        .medicaidId;
+          .medicaidId;
 
   return (
     <ApprovalSummaryPhase
@@ -553,6 +553,7 @@ export const ApprovalSummaryPhase = ({
           onClick={() =>
             showConfirmApproveDialog(handleApproveApplication, initialFormData.applicationType)
           }
+          eagerTooltip={!canApproveApplication && !isDemonstrationApproved ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined}
         >
           Approve {capitalizedType}
         </Button>
