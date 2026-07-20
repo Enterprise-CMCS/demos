@@ -2179,6 +2179,14 @@ sources:
             data_type: timestamp with time zone
           - name: geo_ansi_state_cd
             data_type: character varying
+            data_tests:
+            - not_null:
+                name: assert_no_null_state_codes_for_mdcd_demo
+            - relationships:
+                name: assert_no_mdcd_demo_state_codes_not_existing_in_demos
+                arguments:
+                  to: source('demos_app', 'state')
+                  field: id
           - name: creatd_user_id
             data_type: integer
           - name: anlyst_user_id
@@ -6777,6 +6785,14 @@ sources:
             data_type: character varying
           - name: geo_ansi_state_cd
             data_type: character varying
+            data_tests:
+            - not_null:
+                name: assert_no_null_state_codes_for_mdcd_pendg_demo
+            - relationships:
+                name: assert_no_mdcd_pendg_demo_state_codes_not_existing_in_demos
+                arguments:
+                  to: source('demos_app', 'state')
+                  field: id
           - name: mdcd_demo_desc
             data_type: character varying
           - name: mdcd_chip_div_cd
