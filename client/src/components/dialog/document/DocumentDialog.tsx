@@ -419,9 +419,17 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   };
 
   const handleUpload = async () => {
-    // Attempt to upload the document
+    // Attempt to upload the document. A throw here (failed S3 PUT, mutation error, failed refetch)
+    // must never leave the dialog in "uploading" -- that state disables both Cancel and Upload, so
+    // the only way out would be a page refresh.
     setDocumentDialogState("uploading");
-    const uploadResult = await onSubmit(activeDocument);
+    let uploadResult: DocumentUploadResult;
+    try {
+      uploadResult = await onSubmit(activeDocument);
+    } catch (error) {
+      console.error("Document upload failed:", error);
+      uploadResult = "unknown-error";
+    }
     setDocumentDialogState(uploadResult);
 
     // If virus scan or BN validation failed, clear the selected file so the user can choose a new one

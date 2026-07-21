@@ -13,10 +13,8 @@ import {
 } from "components/dialog/document/DocumentDialog";
 import { useToast } from "components/toast/ToastContext";
 import { tryUploadingFileToS3 } from "./tryUploadingFileToS3";
-import { useBNValidationStatus } from "./useBNValidationStatus";
 import { useDocumentPassedVirusScan } from "./useDocumentPassedVirusScan";
 import { useUploadDocument } from "./useUploadDocument";
-import { BN_WORKBOOK_DOCUMENT_TYPE } from "demos-server-constants";
 
 export const UPLOAD_DOCUMENT_TO_DELIVERABLE_STATE_FILES_MUTATION: TypedDocumentNode<
   {
@@ -78,7 +76,6 @@ export const AddDocumentToDeliverableDialog: React.FC<AddDocumentToDeliverableDi
     ? getCmsFileDocumentTypeSubset(documentTypeSubset)
     : documentTypeSubset;
   const { documentPassedVirusScan } = useDocumentPassedVirusScan();
-  const { waitForBNValidation } = useBNValidationStatus();
   const { uploadDocument: uploadStateDocument } = useUploadDocument(
     UPLOAD_DOCUMENT_TO_DELIVERABLE_STATE_FILES_MUTATION
   );
@@ -119,19 +116,11 @@ export const AddDocumentToDeliverableDialog: React.FC<AddDocumentToDeliverableDi
       return "virus-scan-failed";
     }
 
-    if (uploadDocumentInput.documentType === BN_WORKBOOK_DOCUMENT_TYPE) {
-      const validation = await waitForBNValidation(pendingUpload.id);
-      if (validation?.status === "Failed") {
-        const errorSummary = validation.errors.map((e) => `${e.code}: ${e.message}`).join("\n");
-        showError(
-          errorSummary
-            ? `Budget Neutrality validation failed:\n${errorSummary}`
-            : "Budget Neutrality validation failed."
-        );
-        return "bn-validation-failed";
-      }
-    }
-
+    // Budget Neutrality validation runs asynchronously server-side and can take far longer than a
+    // dialog should stay open (GuardDuty latency alone is unbounded). Blocking on it here left the
+    // modal spinning long after the document had already landed in the table. The same ruleset runs
+    // client-side via useBNWorkbookPreValidation before upload is permitted, so nothing is lost by
+    // letting the server-side pass complete in the background.
     if (refetchQueries) {
       await client.refetchQueries({ include: refetchQueries });
     }
