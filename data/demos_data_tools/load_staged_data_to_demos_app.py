@@ -71,6 +71,10 @@ type GeneratedSql = GeneratedInsertActionSql | GeneratedTriggerActionSql
 type MigrationSql = List[GeneratedSql]
 
 MIGRATION_CONFIGURATION: MigrationConfiguration = (
+    TriggerActionConfiguration("disable", "person", "_disable_redundant_updates"),
+    TriggerActionConfiguration("disable", "users", "_disable_redundant_updates"),
+    TriggerActionConfiguration("disable", "person_state", "_disable_redundant_updates"),
+    TriggerActionConfiguration("disable", "system_role_assignment", "_disable_redundant_updates"),
     TableInsertActionConfiguration(
         "cleaned_demos_app_person",
         "person",
@@ -90,13 +94,16 @@ MIGRATION_CONFIGURATION: MigrationConfiguration = (
             "updated_at",
         ],
     ),
-    TriggerActionConfiguration("disable", "person_state", "_disable_redundant_updates"),
     TableInsertActionConfiguration("cleaned_demos_app_person_state", "person_state", ["person_id", "state_id"]),
     TableInsertActionConfiguration(
         "cleaned_demos_app_system_role_assignment",
         "system_role_assignment",
         ["person_id", "role_id", "person_type_id", "grant_level_id"],
     ),
+    TriggerActionConfiguration("enable", "person", "_disable_redundant_updates"),
+    TriggerActionConfiguration("enable", "users", "_disable_redundant_updates"),
+    TriggerActionConfiguration("enable", "person_state", "_disable_redundant_updates"),
+    TriggerActionConfiguration("enable", "system_role_assignment", "_disable_redundant_updates"),
 )
 
 
