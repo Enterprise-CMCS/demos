@@ -14,7 +14,7 @@ import { formatDateForServer } from "util/formatDate";
 import { DocumentList } from "./sections";
 import { useDialog } from "components/dialog/DialogContext";
 import { useToast } from "components/toast";
-import { getPhaseCompletedMessage } from "util/messages";
+import { getPhaseCompletedMessage, MISSING_REQUIRED_SECTIONS_TOOLTIP } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import type { DateType, LocalDate, PhaseName, PhaseStatus } from "demos-server";
@@ -277,6 +277,9 @@ export const ConceptPhase = ({
           aria-label="Finish this section"
           onClick={onFinish}
           disabled={!isFinishEnabled}
+          eagerTooltip={
+            !isFinishEnabled && !isPhaseFinalized ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined
+          }
         >
           Finish
         </Button>

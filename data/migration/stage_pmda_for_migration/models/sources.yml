@@ -2179,6 +2179,14 @@ sources:
             data_type: timestamp with time zone
           - name: geo_ansi_state_cd
             data_type: character varying
+            data_tests:
+            - not_null:
+                name: assert_no_null_state_codes_for_mdcd_demo
+            - relationships:
+                name: assert_no_mdcd_demo_state_codes_not_existing_in_demos
+                arguments:
+                  to: source('demos_app', 'state')
+                  field: id
           - name: creatd_user_id
             data_type: integer
           - name: anlyst_user_id
@@ -2610,6 +2618,12 @@ sources:
         columns:
           - name: mdcd_demo_aplctn_stus_cd
             data_type: integer
+            data_tests:
+            - relationships:
+                name: assert_all_mdcd_demo_aplctn_stus_cd_in_crosswalk_exist_in_pmda
+                arguments:
+                  to: ref('crosswalk_mdcd_demo_aplctn_stus_cd_to_application_status_id')
+                  field: mdcd_demo_aplctn_stus_cd
           - name: mdcd_demo_aplctn_stus_name
             data_type: character varying
           - name: dsply_sqnc_num
@@ -3331,6 +3345,12 @@ sources:
         columns:
           - name: mdcd_demo_stus_cd
             data_type: integer
+            data_tests:
+            - relationships:
+                name: assert_all_mdcd_demo_stus_cd_in_crosswalk_exist_in_pmda
+                arguments:
+                  to: ref('crosswalk_mdcd_demo_stus_cd_to_application_status_id')
+                  field: mdcd_demo_stus_cd
           - name: mdcd_demo_stus_name
             data_type: character varying
           - name: dsply_sqnc_num
@@ -6765,6 +6785,14 @@ sources:
             data_type: character varying
           - name: geo_ansi_state_cd
             data_type: character varying
+            data_tests:
+            - not_null:
+                name: assert_no_null_state_codes_for_mdcd_pendg_demo
+            - relationships:
+                name: assert_no_mdcd_pendg_demo_state_codes_not_existing_in_demos
+                arguments:
+                  to: source('demos_app', 'state')
+                  field: id
           - name: mdcd_demo_desc
             data_type: character varying
           - name: mdcd_chip_div_cd
@@ -12052,7 +12080,7 @@ sources:
             data_type: integer
             data_tests:
             - relationships:
-                name: assert_all_role_cd_in_crosswalk_role_cd_to_person_type_id_exist_in_pmda
+                name: assert_all_role_cd_in_crosswalk_exist_in_pmda
                 arguments:
                   to: ref('crosswalk_role_cd_to_person_type_id')
                   field: role_cd
