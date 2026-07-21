@@ -7,12 +7,50 @@ import { useDialog } from "components/dialog/DialogContext";
 import { Reference, ReferenceAgreement, Tag } from "demos-server";
 import { formatDateForDisplay } from "util/formatDate";
 import { Spinner } from "components/loading/Spinner";
+import { useDownloadReference } from "hooks/useDownloadReference";
 
-export function ReferencesColumns(
-  onDownload: (referenceId: string) => void,
-  downloadingReferences: Set<string>
-) {
+const ReferenceDownloadButton = ({
+  referenceId,
+  onDownload,
+}: {
+  referenceId: string;
+  onDownload: (referenceId: string) => Promise<string>;
+}) => {
+  const [isDownloading, setIsDownloading] = React.useState(false);
+
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    try {
+      await onDownload(referenceId);
+    } catch {
+      // useDownloadReference reports download errors to the user.
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  return (
+    <SecondaryButton
+      name={`download-${referenceId}`}
+      aria-label={`Download ${referenceId}`}
+      onClick={handleDownload}
+      disabled={isDownloading}
+    >
+      <span className="relative inline-flex items-center justify-center">
+        <span className={isDownloading ? "invisible" : ""}>Download</span>
+        {isDownloading && (
+          <span className="absolute inset-0 flex items-center justify-center">
+            <Spinner />
+          </span>
+        )}
+      </span>
+    </SecondaryButton>
+  );
+};
+
+export function ReferencesColumns() {
   const { showReferenceAgreementDialog } = useDialog();
+  const { downloadReference } = useDownloadReference();
   const columnHelper = createColumnHelper<
     Pick<Reference, "id" | "name" | "description" | "updatedAt"> & {
       agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt"> | null;
@@ -52,38 +90,32 @@ export function ReferencesColumns(
       id: "actions",
       header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => {
-        const isDownloading = downloadingReferences.has(row.original.id);
+        const reference = row.original;
+        const agreement = reference.agreement;
 
         return (
           <div className="flex gap-2 justify-center">
-            <SecondaryButton
-              name={`download-${row.original.id}`}
-              aria-label={
-                row.original.agreement
-                  ? `Open ${row.original.id} agreement`
-                  : `Download ${row.original.id}`
-              }
-              onClick={() => {
-                if (row.original.agreement) {
+            {agreement ? (
+              <SecondaryButton
+                name={`download-${reference.id}`}
+                aria-label={`Open ${reference.id} agreement`}
+                onClick={() => {
                   showReferenceAgreementDialog({
-                    ...row.original,
-                    agreement: row.original.agreement,
+                    ...reference,
+                    agreement,
                   });
-                } else {
-                  onDownload(row.original.id);
+                }}
+              >
+                Download
+              </SecondaryButton>
+            ) : (
+              <ReferenceDownloadButton
+                referenceId={reference.id}
+                onDownload={(referenceId) =>
+                  downloadReference({ id: referenceId, acceptedAgreementId: null })
                 }
-              }}
-              disabled={isDownloading}
-            >
-              <span className="relative inline-flex items-center justify-center">
-                <span className={isDownloading ? "invisible" : ""}>Download</span>
-                {isDownloading && (
-                  <span className="absolute inset-0 flex items-center justify-center">
-                    <Spinner />
-                  </span>
-                )}
-              </span>
-            </SecondaryButton>
+              />
+            )}
           </div>
         );
       },
