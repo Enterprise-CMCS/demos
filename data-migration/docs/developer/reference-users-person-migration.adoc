@@ -1,0 +1,300 @@
+= Reference: users and person migration
+
+The audience is the engineer implementing the account migration. By the
+end you will know how a single MySQL `users` row becomes the DEMOS
+`person` + `users` pair, which decisions were fixed, and what the DEMOS
+app team must ship before the load can run.
+
+== The shape problem
+
+MySQL PMDA keeps identity, authentication, and profile in one `users`
+table (1,119 rows). DEMOS splits that across two unlinked tables:
+
+* `person` -- email, first/last name, `person_type` -- the human
+  directory that anchors *role assignments* (`demonstration_role_assignment`,
+  `system_role_assignment` reference `person`).
+* `users` -- `cognito_subject`, `username`, `person_type` -- the auth
+  account that anchors *ownership and authorship* (documents, comments,
+  deliverable actions, references reference `users`).
+
+There is no FK column joining `person` and `users`. They are tied only by
+a *composite* foreign key:
+
+[source,sql]
+----
+users(id, person_type_id) REFERENCES person(id, person_type_id)
+----
+
+[IMPORTANT]
+====
+The composite FK makes a person row *mandatory* for every users row, with
+the *same* `id` and `person_type_id`. So `person` is a superset of
+`users`, and a single shared UUID per human is reused as both
+`person.id` and `users.id`. Every migrated user is *both* a person and a
+users row (the person-only set comes from the separate contacts
+workstream, not the users table).
+====
+
+[mermaid]
+....
+erDiagram
+  src_users ||--|| person : "shared UUID"
+  src_users ||--|| users : "shared UUID"
+  person ||--|| users : "id+ptype match"
+  person }o--|| person_type : person_type_id
+  users }o--|| uptl : person_type_id
+  uptl }o--|| person_type : subset
+....
+
+.Legend
+[NOTE]
+====
+`src_users` = `mysql_raw.users`; `uptl` = `user_person_type_limit` (the
+subset of `person_type` ids an auth account may hold).
+====
+
+== Decisions
+
+[cols="1,3"]
+|===
+| Topic | Decision
+
+| Shared identity
+| One UUID per legacy user id, minted in `migration._id_map_users` and
+  reused as both `person.id` and `users.id` (the composite FK requires
+  it). See xref:reference-id-maps.adoc[id maps].
+
+| Cognito
+| PMDA has no `cognito_subject`. Every migrated user loads with
+  `cognito_subject = NULL`, `username = NULL`, `is_migrated_from_pmda = true`,
+  and `has_logged_in = false`. At first login DEMOS finds no subject, matches
+  the IDM email to a migrated user's `person.email`, checks the DEMOS user
+  type, and binds the Cognito subject and username. No login signal is gated
+  at migration time.
+
+| Email
+| Every migrated user carries its real, present, well-formed email --
+  it is `person.email` (`NOT NULL`) and the key the first-login flow
+  matches on. The user filter requires a valid email, so no synthesis or
+  nullable-email change is needed.
+
+| person_type
+| The domain is *already seeded* by the pinned Prisma DDL: `person_type`
+  = {`demos-admin`, `demos-cms-user`, `demos-state-user`,
+  `non-user-contact`}; `user_person_type_limit` (the auth-user subset) =
+  {`demos-admin`, `demos-cms-user`, `demos-state-user`}. Each migrated
+  user's value is *derived from their legacy role* via
+  `user_role_asgnmt.role_cd` -> `crosswalk_role_person_type` (see the role
+  derivation below), then finalized by CMS IDM at first login.
+
+| Scope
+| Migrate every *real* PMDA user, including deleted and inactive ones, so
+  no ownership FK (`RESTRICT`) is left dangling. The only NULL-email rows
+  are the service accounts `SHAREPOINT` and `PMDA`, which are not people
+  and are dropped by the email-present gate.
+
+| Test accounts
+| `testing_user_ind` is unusable (it is `0` on every row, including
+  obvious junk). Test/service accounts are screened by the
+  username patterns in `17_filter_user.sql` plus the SME-curated
+  `stg._drop_ids` list; the two NULL-email service accounts drop out via
+  the email-present requirement.
+|===
+
+== Tier C: DEMOS schema dependencies
+
+The `person_type` / `user_person_type_limit` / `cms_user_person_type_limit`
+domain tables are *already seeded* by the pinned Prisma DDL, so no seeding
+is required from DEMOS. The `users`-table schema changes have *landed*: the
+`20260623222056_add_migrated_user_features` migration is in the pinned DDL
+(`reports/prisma_ddl.sha256`; see xref:reference-prisma-ddl.adoc[Prisma DDL
+pipeline]). It:
+
+. makes `users.cognito_subject` `NULLABLE` (keeps `UNIQUE` -- Postgres
+  permits multiple NULLs);
+. makes `users.username` `NULLABLE` and adds a `UNIQUE` index on it;
+. adds `users.is_migrated_from_pmda boolean NOT NULL` and
+  `users.has_logged_in boolean NOT NULL`;
+. adds two CHECK constraints -- `check_all_regular_users_are_logged_in`
+  (`(NOT is_migrated_from_pmda AND has_logged_in) OR is_migrated_from_pmda`)
+  and `check_external_fields_exist_for_logged_in_users` (`has_logged_in`
+  requires `cognito_subject` and `username` present; `NOT has_logged_in`
+  requires both NULL).
+
+[IMPORTANT]
+====
+There is *no* `migrated_user` column: `is_migrated_from_pmda` is the
+migrated-account flag DEMOS actually shipped. Every migrated PMDA user loads
+with `is_migrated_from_pmda = TRUE` and `has_logged_in = FALSE`, so the second
+CHECK forces `cognito_subject = NULL` *and* `username = NULL` at load. The
+real build drops only FKs (not CHECKs), so these must hold at insert time;
+`username` is bound at first Cognito login (matched by `person.email`).
+====
+
+`person.email` stays `NOT NULL`: every migrated user has a real email, so
+no schema relaxation is needed there. Because Prisma regenerates the
+`*_history` tables from their base tables, relaxing
+`users.cognito_subject` also relaxes `users_history.cognito_subject`,
+which the `'I'` snapshot depends on.
+
+The loaders in `sql/20_app/` are guarded and stay inert (skip with a
+`RAISE NOTICE`) until their prerequisites exist: the person loader until
+`stg.users_resolved` is built (it then loads, since `person_type` is
+derived for every row), and the users loader until
+`users.is_migrated_from_pmda` exists (Tier C) and `demos_app.person` is
+loaded.
+
+== Deriving person_type from the legacy role
+
+PMDA has no system-vs-state attribute on the account, but the user's
+*role* carries it. Each user's roles come from
+`users.id` -> `user_role_asgnmt.user_id` (PK `(user_id, role_cd)`, so a
+user may hold several) -> `role_rfrnc.role_cd`. The nine legacy roles map
+onto the seeded `person_type` domain as:
+
+[cols="1,3,2"]
+|===
+| `role_cd` | `role_rfrnc.role_name` | `person_type`
+
+| 1 | Internal Administrator             | `demos-admin`
+| 2 | CMS Project Officer                | `demos-cms-user`
+| 5 | CMS Technical Director             | `demos-cms-user`
+| 6 | Monitoring Lead                    | `demos-cms-user`
+| 7 | Financial Lead                     | `demos-cms-user`
+| 8 | Monitoring Lead and Financial Lead | `demos-cms-user`
+| 9 | DDME Analyst                       | `demos-cms-user`
+| 4 | State User                         | `demos-state-user`
+| 3 | Third Party Evaluation Analyst     | `non-user-contact`
+|===
+
+The mapping is data in `sql/04_crosswalks/42_role_person_type.sql`
+(`mysql_raw.crosswalk_role_person_type`), validated by
+`43_role_person_type_check.sql` (completeness against `role_rfrnc`, names,
+and domain membership). The derivation in `stg.users_resolved` applies two
+rules:
+
+. *Most-privileged role wins.* When a user holds several roles the
+  derivation keeps the highest of
+  `demos-admin` > `demos-cms-user` > `demos-state-user` >
+  `non-user-contact`.
+. *No-role fallback.* A user with no `user_role_asgnmt` row falls back to
+  the `euaId` CMS-vs-state signal: present -> `demos-cms-user`, absent ->
+  `demos-state-user`.
+
+`non-user-contact` (the external *Third Party Evaluation Analyst*) yields a
+`person` row but *no* `users` login: the users loader filters on
+`user_person_type_limit`, which excludes it.
+
+NOTE: the role-to-person_type mapping is inlined and self-contained in
+`42_role_person_type.sql` (9 codes) and is pending formal SME sign-off;
+`43_role_person_type_check.sql` fails the build if the source `role_rfrnc`
+codes or names drift from it.
+
+== Column map
+
+The column-level mapping lives in `reports/source_target_columns.csv`
+and renders into xref:reference-source-target-columns.adoc[the
+source/target column map]. Highlights:
+
+* `id` -> `person.id` and `users.id` (`id_map`, shared UUID).
+* `firstName`/`lastName`/`email` -> `person.first_name`/`last_name`/`email`
+  (`email` is copied verbatim; the filter guarantees it is present and valid).
+* `username` is *not* loaded: the CHECK forces `users.username` NULL for
+  migrated (not-yet-logged-in) users, and DEMOS binds it at first login. The
+  source `username` is still projected in `stg.users_resolved` for
+  provenance/QA.
+* `dateCreated` -> `created_at`; `COALESCE(updated_at, dateCreated)` ->
+  `updated_at`.
+* `person_type_id` is `derive`d from `user_role_asgnmt.role_cd` (the role
+  crosswalk above); `euaId` is the no-role fallback signal.
+* Dropped: `password`, `remember_token`, `api_tokn_cd` (secrets;
+  Cognito owns auth), `phone`, `lastAccess`, `show_login_dshbd_ind`,
+  `remote` (no target), and the filter-only `deleted`, `deleted_at`,
+  `active`, `testing_user_ind`.
+
+== Pipeline files
+
+[cols="2,3"]
+|===
+| File | Role
+
+| `sql/04_crosswalks/42_role_person_type.sql`
+| `mysql_raw.crosswalk_role_person_type` -- legacy `role_cd` ->
+  `person_type` mapping. `43_role_person_type_check.sql` validates it.
+
+| `sql/05_id_maps/13_users.sql`
+| Create `migration._id_map_users` (empty; populated in stg).
+
+| `sql/10_stg/17_filter_user.sql`
+| Existing allowlist view `stg._valid_user_ids`.
+
+| `sql/10_stg/20_populate_id_map_users.sql`
+| Mint UUIDs for PMDA-valid users only.
+
+| `sql/10_stg/21_users_resolved.sql`
+| `stg.users_resolved` projection consumed by both loaders.
+
+| `sql/20_app/10_person.sql`
+| Guarded load of `demos_app.person`.
+
+| `sql/20_app/20_users.sql`
+| Guarded load of `demos_app.users` (cognito NULL, username NULL,
+  is_migrated_from_pmda true, has_logged_in false).
+
+| `sql/99_parity/20_users_person_provenance.sql`
+| `migration._parity_users_person_integrity`, wired into
+  `migration/phases/parity.py` as check 7.
+|===
+
+== Validation checklist
+
+Before cutover, confirm against the live `mysql_raw` snapshot:
+
+. Confirm the only NULL/malformed `email` rows are the `SHAREPOINT` and
+  `PMDA` service accounts (the email-present gate drops them); any other
+  emailless row needs SME review before cutover.
+. `username` loads NULL (bound at first login), so the `UNIQUE` index
+  enforces collisions at first-login binding, not at load; the source
+  `UNIQUE` still guards the eventual binding.
+. Confirm every retained document owner, comment author, deliverable
+  action, and role assignee resolves to a migrated `users.id`
+  (`RESTRICT` FKs otherwise fail the load).
+. Confirm every derived `person_type_id` exists in `person_type`, and that
+  every account that gets a `users` row resolves to a type in
+  `user_person_type_limit` (the loader enforces this; `non-user-contact`
+  is intentionally person-only).
+. Spot-check the role derivation: users with multiple `user_role_asgnmt`
+  rows take the most-privileged type, and no-role users fall back to the
+  `euaId` signal.
+
+== Open items
+
+* The `person_type` derivation is implemented
+  (`sql/04_crosswalks/42_role_person_type.sql` +
+  `stg.users_resolved`) but the role-to-type mapping is pending formal
+  SME sign-off; `43_role_person_type_check.sql` guards against source
+  drift. The separate role-*assignment* crosswalks
+  (`sql/04_crosswalks/44_system_role.sql` +
+  `46_demonstration_role.sql`, full `role_id`/`grant_level`/table tuples)
+  are distinct, CSV-canonical workstreams that superseded the earlier
+  unified `40_role.sql`.
+* Contact-only persons (the `mdcd_*_cntct` deferral) also populate
+  `person` but are out of scope for this page; they share the same
+  `person` table and `person_type` rules.
+* The `SHAREPOINT` / `PMDA` service accounts are excluded as non-persons.
+  If they own retained rows (for example SharePoint-uploaded documents),
+  the document loader must reassign that ownership to a sentinel/system
+  user -- tracked in the documents workstream, not here.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-crosswalk-audit.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-demonstration-role-migration.adoc[next >]
+|===
+endif::[]
+// docnav-end

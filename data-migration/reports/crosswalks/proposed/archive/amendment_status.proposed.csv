@@ -1,0 +1,5 @@
+legacy_int_cd,legacy_name,proposed_demos_text_id,confidence,sme_confirmed_value,notes
+1,Pending,Under Review,medium,Under Review,"DDL-confirmed valid application_status; Pending could also be Pre-Submission (both exist in seed)"
+2,Approved,Approved,high,Approved,DDL-confirmed direct match (application_status seed)
+3,Withdrawn,Withdrawn,high,Withdrawn,DDL-confirmed direct match (application_status seed)
+4,Disapproved,Denied,medium,Denied,"DDL-confirmed valid application_status; Disapproved approx Denied (semantic approximation)"

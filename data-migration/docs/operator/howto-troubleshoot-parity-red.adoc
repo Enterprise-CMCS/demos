@@ -1,0 +1,143 @@
+= How-to: troubleshoot red parity
+
+`migrate parity` writes `reports/runs/parity_<timestamp>.md` and exits
+without marking the gate when the report is `OVERALL STATUS: RED`.
+This is how to find the failing check and decide whether to fix or
+rollback.
+
+== Anatomy of a parity report
+
+The report contains one section per `CheckResult`:
+
+* *row counts* -- per-family count parity between `mysql_raw` and
+  `demos_app` (check is PENDING on the SME consolidated-family
+  mapping).
+* *numeric sums* -- money columns and core counts.
+* *JSONB shape* -- the migration-private `migration.bn_workbook_detail`
+  aggregate validated against
+  `reports/jsonb_schemas/budget_neutrality.schema.json` (the live
+  `demos_app.budget_neutrality_workbook.validation_data` column is
+  owned by DEMOS and revalidated at flip, not checked here).
+* *pending/approved unification* -- every `mdcd_pendg_*` row matched,
+  materialized, or warned.
+* *reconstructed FK orphans* -- every reconstructed FK resolves.
+* *demonstration ID provenance* -- every `demos_app.demonstration.id`
+  traces to a PMDA id-map row
+  (`sql/99_parity/10_demonstration_id_provenance.sql`).
+* *users/person integrity* -- every migrated `demos_app.users` row has
+  a matching person, an allowed `person_type`, and id-map provenance
+  (`sql/99_parity/20_users_person_provenance.sql`).
+* *demonstration completeness* -- every in-scope PMDA demonstration
+  landed in `demos_app.demonstration` with no extra or missing rows.
+* *system-role-assignment integrity* -- derived
+  `system_role_assignment` rows resolve to a known user and role.
+* *person-state integrity* -- every `person_state` row resolves to a
+  migrated person and an allowed state.
+* *active-users coverage* -- every active PMDA user has a migrated
+  `demos_app.users` row.
+* *demonstration-role-assignment integrity* -- derived
+  `demonstration_role_assignment` rows resolve to a user,
+  demonstration, and role.
+* *Approved-demo held back* (non-gating) -- logs Approved
+  demonstrations withheld for a missing required field.
+* *scope coverage* (non-gating) -- logs PMDA workflow scope coverage.
+* *deliverable completeness* -- every loadable PMDA deliverable landed
+  in `demos_app.deliverable` (or recorded as held back).
+* *deliverable integrity* -- every loaded deliverable has an Approved
+  demonstration, a CMS owner, and a real owner-users row.
+* *deliverable held* (non-gating) -- logs deliverables held back
+  (non-Approved parent, unmapped status, unresolvable due date, etc.).
+* *deliverable BN routing QA* (non-gating) -- logs type-vs-flag/name BN
+  classification disagreements for SME review.
+* *pgm_dtl other-program tags held* (non-gating) -- logs free-text
+  `mdcd_othr_pgm_dtl` rows that did not produce a demonstration-type tag.
+* *pgm_dtl tag mapped-but-unseeded* (fail-closed RED) -- fails the gate
+  if a crosswalk mapping names a tag the fold loader would silently skip.
+* *comment completeness* -- every loadable deliverable comment landed
+  in a comment table (or recorded as held back).
+* *comment integrity* -- every loaded comment has a real deliverable
+  and a real author.
+* *comment held* (non-gating) -- logs comments held back (parent
+  deliverable not loaded, unresolved author, empty content, etc.).
+* *override-note completeness* -- every loadable BN override note
+  landed in `demos_app.private_comment` (or recorded as held back).
+* *override-note held* (non-gating) -- logs override notes held back.
+* *comment routing coverage* (non-gating) -- logs `cmt_orgn_cd` codes
+  not yet mapped in the comment-origin crosswalk.
+* *demonstration phase derivation* (non-gating) -- tallies each loaded
+  demonstration by `(status, derived_phase, source_path)` for SME
+  ratification.
+* *state/region source drift* (non-gating) -- logs divergence between
+  the `state_region` seed and the source `geo_ansi_state_rfrnc`.
+* *amendment load* (non-gating) -- logs amendments held back (parent
+  demonstration not loaded), dropped signatures (OGD/DD), synthesized
+  names, and the derived phase tally.
+* *medicaid.gov 1115 parity* (non-gating) -- cross-checks the migrated
+  target against the published medicaid.gov 1115 outcome-fact snapshot.
+* *duplicate-medicaid hold-back* (non-gating) -- logs demonstrations
+  held back as the non-winning row of a duplicate `medicaid_id`.
+
+Each check reports `GREEN`, `RED`, or `PENDING`. The header
+`OVERALL STATUS` is `RED` if any check is `RED`; `PENDING` if no
+check is `RED` but at least one is `PENDING`; `GREEN` only when all
+checks are `GREEN`.
+
+== Triage flow
+
+. Open the latest `reports/runs/parity_*.md`.
+. Find the first `RED` section. Each section links to the SQL view
+  it sourced from (`sql/99_parity/<NN>_*.sql`) and the rows that
+  failed.
+. Decide if the failure is *transform-side* (we built the wrong rows)
+  or *source-side* (the source data is genuinely off).
+. Transform-side: fix the implicated stage, re-run `make build
+  constraints parity`.
+. Source-side: open a parity warning with the SME; if the data
+  integrity question can be answered with a documented exception,
+  re-run with `--accept-pending` for the rehearsal; never accept
+  PENDING in production.
+
+== Real cutover policy
+
+* On RED in production, *roll back*. There is no "fix forward through
+  red parity" path.
+* On PENDING in production, halt and call the SME and backup
+  operator. PENDING means the check could not run (e.g., a JSON
+  Schema is not yet in the registry). Decide whether to roll back or
+  ship a hotfix to the registry, then re-run parity.
+
+== Common causes
+
+. JSON Schema not promoted: `migration.jsonb_schemas` does not
+  contain the `budget_neutrality` row, so the BN parity
+  CONSTRAINT TRIGGER on `migration.bn_workbook_detail` (in
+  `sql/01_ddl_supplements/10_bn_workbook_detail.sql`) fails
+  closed. Fix:
+  xref:../developer/howto-promote-jsonb-schema.adoc[promote JSONB
+  schema], then sweep existing rows with
+  xref:../developer/howto-revalidate-jsonb.adoc[revalidate a JSONB
+  column].
+. Crosswalk gap: a new reference code exists in `mysql_raw` data
+  but not in `mysql_raw.crosswalk_*`.
+. Pending row without a rule: a `mdcd_pendg_*` row falls outside
+  the rules in `reports/narrative/pending_approved_decisions.md`.
+. Templated transform skipped a tag: a row in
+  `reports/pgm_dtl_tag_mapping.csv` is missing `tag_name`.
+
+== Related
+
+* xref:explanation-cutover-state-machine.adoc[Cutover state machine]
+* xref:howto-rollback.adoc[Rollback]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:howto-troubleshoot-fk-violations.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-cli.adoc[next >]
+|===
+endif::[]
+// docnav-end

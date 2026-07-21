@@ -1,0 +1,95 @@
+= Explanation: comments routing
+
+The MySQL `*_cmt` tables collapse into two DEMOS tables:
+`private_comment` (CMS-internal) and `public_comment` (state-facing).
+The SME review sets the routing rule.
+
+== The routing key
+
+Four of the source `*_cmt` tables carry `cmt_orgn_cd` (comment origin
+code, a single-character column). The remaining tables have no origin
+column and default to `private_comment`. A crosswalk for
+`cmt_orgn_cd` is *not yet authored*: when it lands it will map each
+single-character origin code to either `'cms'` (internal) or `'state'`
+(external).
+
+Routing rule:
+
+[cols="2,3"]
+|===
+| `cmt_orgn_cd` resolves to | DEMOS table
+
+| `'cms'` (or any internal CMS division) | `demos_app.private_comment`
+| `'state'` (or any external state party) | `demos_app.public_comment`
+| no `cmt_orgn_cd` column / NULL | `demos_app.private_comment` (default, with a parity warning)
+|===
+
+== Why two tables
+
+. *Different visibility model.* CMS-internal comments are not
+  surfaced to states; state comments go on the public record.
+. *Different audit needs.* CMS-internal comments may carry sensitive
+  evaluation language; state comments are FOIA-eligible.
+. *Different lifecycle.* Internal comments can be edited or deleted
+  by their author for a window; public comments are append-only.
+
+== Source tables
+
+* `mdcd_demo_cmt`
+* `mdcd_demo_amndmt_cmt` (carries `cmt_orgn_cd`)
+* `mdcd_demo_rnwl_cmt` (carries `cmt_orgn_cd`)
+* `mdcd_dlvrbl_cmt` (carries `cmt_orgn_cd`)
+* `mdcd_dlvrbl_paper_cmt`
+* `mdcd_pgm_cmt`
+* `mdcd_demo_finl_dcsn_dtl_cmt` (carries `cmt_orgn_cd`)
+* `mdcd_demo_aplctn_cmt`
+* `mdcd_demo_pgm_mntrg_doc_cmt`
+* `bdgt_ntrlty_fil_doc_cmt`
+
+All ten route through the same rule; the six without `cmt_orgn_cd`
+default to `private_comment`.
+
+== Origin-code mapping (not yet authored)
+
+The `cmt_orgn_cd` column is `char(1) DEFAULT '0'`, so the literal
+codes are single characters, not the `'cms'`/`'state'` labels above
+(those are the *targets* of the mapping). A `cmt_orgn_cd` crosswalk
+CSV must be authored under `reports/crosswalks/` and loaded by
+`sql/04_crosswalks/` before the four origin-bearing tables can route
+anything other than the default. Until then, every comment routes to
+`private_comment` and the parity report flags the unmapped origins.
+
+== Edge cases
+
+. *Comments referencing deleted entities.* Dropped at the staging
+  step; counted in the parity report.
+. *Comments with mixed-origin threads.* Each row routes
+  independently; threading is reconstructed in the new app.
+
+== Review checklist
+
+* [ ] `cmt_orgn_cd` crosswalk covers every distinct origin code in
+      the four origin-bearing source tables.
+* [ ] Sample of CMS routing reads as expected.
+* [ ] Sample of state routing reads as expected.
+* [ ] Parity warnings for unmapped / NULL origins are zero or
+      explained.
+
+== Related
+
+* xref:howto-author-a-crosswalk-csv.adoc[Review and sign off a crosswalk]
+  (the `cmt_orgn_cd` crosswalk is not yet authored).
+* xref:reference-source-target-map.adoc[Source/target map]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:explanation-data-shape-decisions.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:explanation-derivability.adoc[next >]
+|===
+endif::[]
+// docnav-end

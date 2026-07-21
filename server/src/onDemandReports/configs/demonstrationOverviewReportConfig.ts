@@ -1,6 +1,6 @@
 import { z } from "zod";
 import {
-  OnDemandReportColumnHeader,
+  OnDemandReportColumnConfiguration,
   OnDemandReportColumnSchema,
   OnDemandReportConfiguration,
 } from "./onDemandReportConfigTypes";
@@ -65,32 +65,34 @@ export const demonstrationOverviewReportSchema = z
   .strict();
 
 export const demonstrationOverviewReportColumnHeaders = {
-  state_territory: "State/Territory",
-  demonstration_title: "Demonstration Title",
-  demonstration_number: "Demonstration Number",
-  chip_id: "CHIP ID",
-  status: "Status",
-  status_update_date: "Status Update Date",
-  sdg_division: "SDG Division",
-  signature_level: "Signature Level",
-  effective_date: "Demonstration Effective Date",
-  expiration_date: "Demonstration Expiration Date",
-  extension_in_progress: "Extension in Progress",
-  amendment_in_progress: "Amendment in Progress",
-  approved_amendment_applications: "Approved Amendment Applications",
-  primary_project_officer: "Primary Project Officer",
-  project_officers: "Project Officers",
-  primary_policy_tech_director: "Primary Policy Technical Director",
-  primary_ddme_analyst: "Primary DDME Analyst",
-  ddme_analysts: "DDME Analysts",
-  primary_state_poc: "Primary State POC",
-  state_pocs: "State POCs",
-  primary_monitoring_evaluation_tech_director: "Primary Monitoring & Evaluation Technical Director",
-  application_approval_date: "Application Approval Date",
-} satisfies OnDemandReportColumnHeader<DemonstrationOverviewReportColumn>;
+  state_territory: { columnName: "State/Territory" },
+  demonstration_title: { columnName: "Demonstration Title" },
+  demonstration_number: { columnName: "Demonstration Number" },
+  chip_id: { columnName: "CHIP ID" },
+  status: { columnName: "Status" },
+  status_update_date: { columnName: "Status Update Date" },
+  sdg_division: { columnName: "SDG Division" },
+  signature_level: { columnName: "Signature Level" },
+  effective_date: { columnName: "Demonstration Effective Date" },
+  expiration_date: { columnName: "Demonstration Expiration Date" },
+  extension_in_progress: { columnName: "Extension in Progress" },
+  amendment_in_progress: { columnName: "Amendment in Progress" },
+  approved_amendment_applications: { columnName: "Approved Amendment Applications" },
+  primary_project_officer: { columnName: "Primary Project Officer" },
+  project_officers: { columnName: "Project Officers" },
+  primary_policy_tech_director: { columnName: "Primary Policy Technical Director" },
+  primary_ddme_analyst: { columnName: "Primary DDME Analyst" },
+  ddme_analysts: { columnName: "DDME Analysts" },
+  primary_state_poc: { columnName: "Primary State POC" },
+  state_pocs: { columnName: "State POCs" },
+  primary_monitoring_evaluation_tech_director: {
+    columnName: "Primary Monitoring & Evaluation Technical Director",
+  },
+  application_approval_date: { columnName: "Application Approval Date" },
+} satisfies OnDemandReportColumnConfiguration<DemonstrationOverviewReportColumn>;
 
 export const demonstrationOverviewReportConfiguration = {
   sqlQueries: demonstrationOverviewReportQueries,
   reportRowSchema: demonstrationOverviewReportSchema,
-  excelConfiguration: { columnNames: demonstrationOverviewReportColumnHeaders },
+  excelConfiguration: { columns: demonstrationOverviewReportColumnHeaders },
 } satisfies OnDemandReportConfiguration;

@@ -15,18 +15,18 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@aws-sdk/client-lambda": "^3.1063.0",
-    "@aws-sdk/client-secrets-manager": "^3.1063.0",
-    "@aws-sdk/client-ssm": "^3.1063.0",
+    "@aws-sdk/client-lambda": "^3.1081.0",
+    "@aws-sdk/client-secrets-manager": "^3.1081.0",
+    "@aws-sdk/client-ssm": "^3.1081.0",
     "@types/aws-lambda": "^8.10.162",
-    "@types/node": "^24.13.1",
+    "@types/node": "^24.13.3",
     "@types/pg": "^8.20.0",
-    "@vitest/coverage-v8": "^4.1.9",
+    "@vitest/coverage-v8": "^4.1.10",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.10"
   },
   "dependencies": {
-    "pg": "^8.21.0",
-    "pino": "^10.3.1"
+    "pg": "^8.22.0",
+    "demos-shared-library": "file:../../shared_library"
   }
 }
