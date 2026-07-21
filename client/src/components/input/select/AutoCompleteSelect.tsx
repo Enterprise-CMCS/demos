@@ -10,7 +10,7 @@ export const AUTOCOMPLETE_SELECT_TEST_ID = "input-autocomplete-select";
 
 const ICON_CLASSES = tw`text-text-placeholder w-2 h-1`;
 const LIST_CLASSES = tw`absolute z-10 w-full bg-surface-white border border-border-fields rounded mt-0.5 max-h-56 overflow-auto shadow-sm`;
-const ITEM_CLASSES = tw`px-1 py-1 text-sm text-text-font cursor-pointer hover:bg-surface-focus`;
+const ITEM_CLASSES = tw`px-1 py-1 text-sm text-text-font cursor-pointer`;
 const ITEM_ACTIVE_CLASSES = tw`bg-surface-focus`;
 const EMPTY_CLASSES = tw`px-2 py-1 text-sm text-text-placeholder`;
 

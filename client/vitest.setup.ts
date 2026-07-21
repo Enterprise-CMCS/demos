@@ -12,6 +12,12 @@ import React from "react";
 
 import { vi } from "vitest";
 
+// Element.scrollIntoView is not implemented by jsdom
+Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+  configurable: true,
+  value: vi.fn(),
+});
+
 // Mock HTML dialog element for tests
 // HTMLDialogElement API is not fully supported in jsdom yet, so we need these mocks
 Object.defineProperty(HTMLDialogElement.prototype, "showModal", {
