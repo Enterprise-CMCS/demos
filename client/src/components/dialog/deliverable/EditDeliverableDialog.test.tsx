@@ -59,7 +59,6 @@ const MOCK_TAGS: Tag[] = [
   { tagName: "Aggregate Cap", approvalStatus: "Approved" },
   { tagName: "Annual Limits", approvalStatus: "Approved" },
 ];
-const FUTURE_DUE_DATE = "2099-07-20";
 
 type OnSaveFn = (input: EditDeliverableInput, reasonForChange?: string) => Promise<void> | void;
 
