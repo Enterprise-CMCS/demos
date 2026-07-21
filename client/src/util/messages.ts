@@ -16,6 +16,7 @@ export const DOCUMENT_REMOVAL_FAILED_MESSAGE =
   "Your document could not be removed because of an unknown problem.";
 
 // Phase Messages
+export const MISSING_REQUIRED_SECTIONS_TOOLTIP = "All required sections must be completed";
 export const SAVE_FOR_LATER_MESSAGE = "Updates  saved successfully";
 export const FAILED_TO_SAVE_MESSAGE = "Failed to save updates.";
 export const getPhaseCompletedMessage = (phaseName: PhaseName) => {

@@ -10,6 +10,7 @@ import { useSetApplicationDate } from "components/application/date/dateQueries";
 import {
   FAILED_TO_SAVE_MESSAGE,
   getPhaseCompletedMessage,
+  MISSING_REQUIRED_SECTIONS_TOOLTIP,
   SAVE_FOR_LATER_MESSAGE,
 } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
@@ -291,6 +292,11 @@ export const SdgPreparationPhase = ({
                 size="large"
                 name="sdg-finish"
                 disabled={!allPreviousPhasesDone || !isFormComplete || isPhaseCompleted}
+                eagerTooltip={
+                  (!allPreviousPhasesDone || !isFormComplete) && !isPhaseCompleted
+                    ? MISSING_REQUIRED_SECTIONS_TOOLTIP
+                    : undefined
+                }
               >
                 Finish
               </Button>
