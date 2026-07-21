@@ -57,6 +57,7 @@ const MOCK_TAGS: Tag[] = [
   { tagName: "Aggregate Cap", approvalStatus: "Approved" },
   { tagName: "Annual Limits", approvalStatus: "Approved" },
 ];
+const FUTURE_DUE_DATE = "2099-07-20";
 
 type OnSaveFn = (input: EditDeliverableInput, reasonForChange?: string) => Promise<void> | void;
 
@@ -113,7 +114,7 @@ describe("EditDeliverableDialog", () => {
   it("shows the Reason for Change field when due date is modified", () => {
     setup();
     fireEvent.change(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME), {
-      target: { value: "2026-07-20" },
+      target: { value: FUTURE_DUE_DATE },
     });
     expect(screen.getByTestId(EDIT_DELIVERABLE_REASON_FIELD_NAME)).toBeInTheDocument();
   });
@@ -146,7 +147,7 @@ describe("EditDeliverableDialog", () => {
     await user.click(screen.getByText("Aggregate Cap"));
 
     fireEvent.change(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME), {
-      target: { value: "2026-07-20" },
+      target: { value: FUTURE_DUE_DATE },
     });
 
     expect(screen.getByTestId(EDIT_DELIVERABLE_SAVE_BUTTON_NAME)).toBeDisabled();
@@ -173,7 +174,7 @@ describe("EditDeliverableDialog", () => {
     await user.click(screen.getByText("Aggregate Cap"));
 
     fireEvent.change(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME), {
-      target: { value: "2026-07-20" },
+      target: { value: FUTURE_DUE_DATE },
     });
 
     await user.type(screen.getByTestId(EDIT_DELIVERABLE_REASON_FIELD_NAME), "Schedule slip");
@@ -184,7 +185,7 @@ describe("EditDeliverableDialog", () => {
     expect(onSave).toHaveBeenCalledWith(
       expect.objectContaining({
         id: "deliverable-1",
-        dueDate: "2026-07-20",
+        dueDate: FUTURE_DUE_DATE,
         demonstrationTypes: ["Aggregate Cap"],
       }),
       "Schedule slip"
