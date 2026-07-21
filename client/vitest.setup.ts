@@ -1,5 +1,11 @@
 // Import DOM testing library for Jest, to be used by all test files
 import "@testing-library/jest-dom";
+
+// Polyfill RegExp.escape (TC39 proposal, not yet available in jsdom)
+if (!("escape" in RegExp)) {
+  (RegExp as unknown as Record<string, unknown>).escape = (s: string) =>
+    s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 import { configure } from "@testing-library/dom";
 
 import React from "react";
