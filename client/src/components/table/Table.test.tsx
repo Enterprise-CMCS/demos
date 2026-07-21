@@ -523,37 +523,36 @@ describe.sequential("Table Component Interactions", () => {
     });
   });
 
-  describe("Row Identity Stability", () => {
-    it("does not shift selection when rows are removed", async () => {
+  describe("row selection", () => {
+    it("clears row selection whenever table data is updated", async () => {
+      const mockTable = (data: TestType[]) => (
+        <Table<TestType>
+          columns={testColumns}
+          data={data}
+          actionButtons={(table) => {
+            const selected = table.getSelectedRowModel().rows.map((r) => r.original);
+            return (
+              <div>
+                <span data-testid="selected-count">{selected.length}</span>
+              </div>
+            );
+          }}
+        />
+      );
+
       const user = userEvent.setup();
 
-      function Wrapper() {
-        const [data, setData] = React.useState(testTableData);
+      const { rerender } = render(mockTable(testTableData));
+      await user.click(screen.getByTestId("select-row-1"));
+      expect(screen.getByTestId("selected-count")).toHaveTextContent("1");
 
-        return (
-          <>
-            <button onClick={() => setData((prev) => prev.slice(1))}>
-              Remove First
-            </button>
-            <Table columns={testColumns} data={data} />
-          </>
-        );
-      }
+      // sanity check to verify rerender preserves state normally
+      rerender(mockTable(testTableData));
+      expect(screen.getByTestId("selected-count")).toHaveTextContent("1");
 
-      render(<Wrapper />);
-
-      // Select first row checkbox
-      const firstCheckbox = screen.getByTestId(`select-row-${testTableData[0].id}`);
-      await user.click(firstCheckbox);
-
-      expect(firstCheckbox).toBeChecked();
-
-      // Remove first row
-      await user.click(screen.getByText("Remove First"));
-
-      // The new first row checkbox should NOT be checked
-      const newFirstCheckbox = screen.getByTestId(`select-row-${testTableData[1].id}`);
-      expect(newFirstCheckbox).not.toBeChecked();
+      // simulated data change
+      rerender(mockTable({ ...testTableData }));
+      expect(screen.getByTestId("selected-count")).toHaveTextContent("0");
     });
   });
 });

@@ -1,0 +1,106 @@
+= Reference: Makefile targets
+
+The repo root `Makefile` is 1:1 with `uv run migrate <name>` invocations
+plus a few convenience targets. This page documents each.
+
+== Setup and dev
+
+[cols="2,5"]
+|===
+| Target | Action
+
+| `make sync` | `uv sync --extra dev`. Creates `.venv` if absent; pins from `uv.lock`.
+| `make clean` | Drops `.venv`, build artifacts, and `__pycache__`. Preserves `state/` and `reports/`.
+| `make clean-state` | Drops `state/*.ok`, `state/*.txt`, `state/*.csv`, rendered `state/*.rendered.load`, and `reports/runs/pgloader_*.log`. Preserves parity reports.
+| `make clean-all` | `clean` + `clean-state` + deletes `reports/runs/parity_*.md`. Destructive.
+| `make clean-reports` | Drops regeneratable local report artifacts: `reports/schema_snapshot/`, `reports/reference_data/`, `reports/orphans/*.csv`, `reports/runs/` logs, the Prisma fetch source dumps, `reports/schema_drift_report.md`, and the gitignored run-markers under `reports/generated/`. Preserves committed inputs, crosswalks, narrative docs, and the curated `reports/rehearsals/rehearsal_*/` archives. Destructive.
+| `make test` | `uv run pytest --cov=migration --cov-report=term-missing`.
+| `make lint` | `uv run ruff check migration tests`.
+| `make typecheck` | `uv run ty check migration tests`.
+| `make sql-fmt` | `scripts/sql_fmt.py --write` -- pgFormatter (`pg_format`) in place over every hand-written `.sql`. Owns all layout and case; asserts round-trip stability before writing. See xref:../developer/reference-sql-conventions.adoc[SQL conventions].
+| `make sql-fmt-check` | `scripts/sql_fmt.py --check` -- fail if any in-scope `.sql` file is not `pg_format`-clean.
+| `make sql-lint` | `uv run sqlfluff lint sql scripts tests/sql/fixtures` -- semantic guardrail (lint-only; we never run `sqlfluff fix`).
+| `make sql-frontmatter` | `scripts/check_sql_frontmatter.py` -- assert every in-scope `.sql` file carries its structured front-matter block.
+| `make sql-check` | `sql-fmt-check` + `sql-lint` + `sql-frontmatter`. The local enforcement contract (also wired into `.pre-commit-config.yaml`).
+| `make test-db-up` | Start a throwaway `supabase/postgres` container (it bundles `pg_jsonschema`) for the deeper-layer SQL harness `tests/sql/test_app_layers_idempotency.py`, and print its `PG_TEST_*` connection vars.
+| `make test-db-down` | Remove the throwaway `demos-test-pg` container.
+| `make test-db-dsn` | Resolve and print *only* a working `PG_TEST_DSN` by reusing an already-running Postgres (`demos-test-pg`, else `demos-dev-pg`) on a throwaway `harness` db, starting one if needed (`scripts/ensure_test_db.sh`). Prints the bare DSN so it can be captured: `PG_TEST_DSN="$(make -s test-db-dsn)" uv run pytest tests/sql/ -v`.
+| `make spin_up` | Start a local target Postgres (the `supabase/postgres` pin) for `make init` / `make rebuild`. Reads `PG_DB` / `PG_USER` / `PG_PASSWORD` / `PG_PORT` from `.env`, then bootstraps -- as the built-in superuser -- a least-privilege owner role (`LOGIN CREATEDB CREATEROLE`, not superuser), its database, and the `pgcrypto` / `uuid-ossp` / `pg_jsonschema` extensions, so the pipeline (connecting via `PG_URL`) runs end-to-end. Distinct from `make test-db-up` (SQL harness, port 55432) and `make compose-up` (integration tier).
+| `make spin_down` | Remove the local `demos-dev-pg` container.
+| `make compose-up` | Start the integration tier (`docker-compose.test.yml`): MySQL source + target Postgres + reference Postgres, waiting until healthy. Backs the `integration`-marked live tests (load-fidelity dual-attach, prod-schema guard).
+| `make compose-down` | Tear down the integration tier and its volumes.
+| `make integration-test` | `uv run pytest -m integration`. Skips every test unless `MYSQL_URL` / `PG_TEST_DSN` / `REFERENCE_PG_URL` are exported (see `docker-compose.test.yml`).
+| `make demonstration-flow-trace` | Regenerate the live demonstration migration-flow run trace (`docs/shared/generated/live/demonstration-flow-trace.adoc`) and its committed manifest by replaying the real pipeline against a curated `mysql_raw` fixture on a throwaway Postgres. Resolves `PG_TEST_DSN` like the SQL harness. Drift is gated by `tests/sql/test_demonstration_flow_live.py`; the static partials of the same page are regenerated separately by the docs `flow-pages` target. See xref:reference-demonstration-flow.adoc[the demonstration migration flow].
+| `make amendment-flow-trace` | Regenerate the live amendment migration-flow run trace (`docs/shared/generated/live/amendment-flow-trace.adoc`) and its committed manifest the same way (the fixture seeds parent demonstrations too, since an amendment loads only when its parent demonstration did). Drift is gated by `tests/sql/test_amendment_flow_live.py`. See xref:reference-amendment-flow.adoc[the amendment migration flow].
+|===
+
+== Build pipeline
+
+[cols="2,5"]
+|===
+| Target | Action
+
+| `make init` | `migrate init` -- `sql/00_init/`.
+| `make fetch_prisma` | `migrate fetch-prisma` -- list Prisma migration directories in `$PRISMA_REPO@$PRISMA_REPO_REF` via the GitHub Contents API, fetch each `migration.sql` from `raw.githubusercontent.com`, concatenate chronologically, and verify SHA256 against `reports/prisma_ddl.sha256`. Idempotent: a hash-verified cache hit at `state/prisma_ddl/<sha>.sql` is a no-op (no network).
+| `make fetch_prisma_schema` | `migrate fetch-prisma-schema` -- list `*.prisma` model files under `$PRISMA_SCHEMA_PATH` in `$PRISMA_REPO@$PRISMA_REPO_REF` via the GitHub Trees API, fetch each, concatenate path-sorted, and verify SHA256 against `reports/prisma_schema.sha256`. Read-only cross-validation input for `make fk_candidates`; off the cutover apply path. Idempotent: a hash-verified cache hit at `state/prisma_schema/<sha>.sql` is a no-op (no network).
+| `make ddl` | `migrate ddl` -- run the prod-schema guard against `REFERENCE_PG_URL` (HOLD on drift), ensure the Prisma artifact is cached, `DROP SCHEMA demos_app CASCADE; CREATE SCHEMA demos_app;`, apply the cached artifact, capture FKs to `state/prisma_fks.json`, drop them, apply `sql/01_ddl_supplements/`, then capture the Prisma-seeded reference tables to `state/prisma_seeded_tables.json` for `build_app`'s truncation guard.
+| `make seeds` | `migrate seeds` -- `sql/02_seeds_static/` + `sql/03_seeds_limiters/`.
+| `make crosswalks` | `migrate crosswalks` -- `sql/04_crosswalks/`.
+| `make id_maps` | `migrate id-maps` -- `sql/05_id_maps/`.
+| `make load_full` | `migrate load-full` -- pgloader full load.
+| `make fk_candidates` | `migrate fk-candidates` -- regenerate `reports/generated/fk_candidates.csv`.
+| `make schema_snapshot` | `migrate schema-snapshot` -- dump the MySQL source `information_schema` (enum domains, declared FKs, view bodies) to `reports/schema_snapshot/`.
+| `make reference_data` | `migrate reference-data` -- dump every MySQL `*_rfrnc` lookup table's rows and the source views' result sets to `reports/reference_data/` (crosswalk-authoring input).
+| `make load_fidelity` | `migrate load-fidelity` -- compare live MySQL vs `mysql_raw` row counts via the DuckDB dual-attach (non-gating; report + WARN by default). Pass flags via `ARGS`, e.g. `make load_fidelity ARGS=--strict` to exit non-zero on any mismatch.
+| `make crosswalk_audit` | `scripts/crosswalk_audit.py` -- compare the committed crosswalks against the live PROD source (unmapped codes, orphans, label/snapshot drift, structural existence) via the DuckDB MySQL attach (non-gating; report + WARN by default). Pass flags via `ARGS`, e.g. `make crosswalk_audit ARGS=--strict` to exit non-zero on a blocking finding.
+| `make verify_prod_schema` | `migrate verify-prod-schema` -- diff the live PROD `demos_app` against `REFERENCE_PG_URL` (schema + seeds + emptiness) and HOLD on drift. Pass flags via `ARGS`, e.g. `make verify_prod_schema ARGS=--no-require-empty` to skip the table-emptiness assertion (e.g. when guarding the pre-rebuild DROP).
+|===
+
+== Cutover phases
+
+[cols="2,5"]
+|===
+| Target | Action
+
+| `make preflight` | P0.
+| `make freeze` | P1.
+| `make delta` | P2.
+| `make build` | P3 (`build_stg` + `build_app`).
+| `make constraints` | P5.
+| `make parity` | P6.
+| `make flip` | P7.
+| `make smoke` | P8.
+| `make decom` | P10.
+| `make rollback` | Revert P7-P8.
+| `make resume` | Run all remaining cutover phases from the current gate.
+| `make status` | Render the gate table.
+| `make diagnose` | `migrate diagnose` -- read-only triage: aggregate the non-gating probes (parity report-only + load-fidelity) into `reports/runs/diagnose_<stamp>.md`. Marks no gates; exits 0.
+|===
+
+== Convenience
+
+[cols="2,5"]
+|===
+| Target | Action
+
+| `make rebuild` | `init ddl load_full seeds crosswalks id_maps build constraints parity`. Used between rehearsals or after a major transform change.
+| `make migrate-local` | `scripts/migrate_local.py` -- build the pipeline in a scratch PG (`PG_URL`) and ship ONLY the `demos_app` data into the DEMOS devcontainer (`DEVCONTAINER_PG_URL`). Pass extra flags via `ARGS` (e.g. `ARGS="--no-build --skip-jsonschema"`). See `runbooks/demos-devcontainer-load.md`.
+| `make migrate-local-verify` | `migrate verify-prisma-local` -- assert the local `../demos` migration set matches the pinned Prisma manifest; die on drift.
+| `make help` | Print the full target list.
+|===
+
+For the underlying CLI commands, see xref:reference-cli.adoc[the
+auto-generated CLI reference].
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-cli.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-rehearsal-commands.adoc[next >]
+|===
+endif::[]
+// docnav-end

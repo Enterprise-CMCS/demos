@@ -1,0 +1,30 @@
+= How-to: rollback
+
+When to trigger, exact commands, comms.
+
+The canonical version of this playbook lives at
+`runbooks/rollback.md`; this page renders it for the documentation
+build.
+
+include::../shared/generated/live/rollback.adoc[]
+
+== Related
+
+* xref:reference-comms-templates.adoc[Comms templates]
+  (use `rollback.md`).
+* xref:reference-gates-state.adoc[Gates and `state/`] -- the rollback
+  command clears `flip` and `smoke` so a future re-attempt starts
+  clean.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:howto-cutover-day.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:howto-rebuild-from-scratch.adoc[next >]
+|===
+endif::[]
+// docnav-end

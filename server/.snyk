@@ -17,6 +17,11 @@ ignore:
         reason: No fix available yet in Prisma stack.
         expires: 2026-07-15T23:59:59.999-04:00
         created: 2026-07-09T00:00:00.000-04:00
+  SNYK-JS-FASTURI-18021349:
+    - '*':
+        reason: No clean fix available yet in current Prisma stack
+        expires: 2026-08-03T00:00:00.000Z
+        created: 2026-07-20T14:21:33.964Z
 #  EXAMPLE-VULNERABILITY:
 #    - '*':
 #        reason: Some reason.

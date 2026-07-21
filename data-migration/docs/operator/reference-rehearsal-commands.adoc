@@ -1,0 +1,547 @@
+= Reference: rehearsal command inventory
+
+The exact runnable commands for a Tier-1 dress-rehearsal (script-shakedown)
+run of the migration, from `spin_up` through `parity`. Audience: the solo
+operator (and backup) running a rehearsal against a static MySQL snapshot
+into a fresh local PostgreSQL target. Each command below is paired with its
+expected output, the REDs the 2026-07-08 rehearsal surfaced, and the
+recovery action.
+
+This is the command inventory; it does not teach the *why*. For the
+walkthrough, read xref:tutorial-first-cutover-rehearsal.adoc[the first
+rehearsal tutorial] first, then come back here for the per-command detail.
+For the prose procedure and acceptance criteria, see the
+`runbooks/dress-rehearsal-probe.md` runbook. For every target's full
+definition, see xref:reference-makefile.adoc[the Makefile reference]; for
+every CLI flag, see xref:reference-cli.adoc[the auto-generated CLI
+reference].
+
+== Orientation: what can I run?
+
+[source,bash]
+----
+make help
+----
+
+`make help` renders `scripts/mk_pretty.py help root`: a set of Rich panels
+grouping every `make` target by section (Setup, Dev, Build pipeline, Cutover
+phases, Devcontainer load), with the `ARGS=` flags each `migrate` subcommand
+accepts, introspected straight from `migration/cli.py`. Run it first so the
+target inventory in your head matches the code.
+
+== Phase chain
+
+The chain is *forced*: `build` requires `delta`, `delta` requires `freeze`,
+`freeze` requires `preflight`. There is no build-only shortcut to parity;
+the full cutover chain must run. `freeze` only *records* the instant (it
+does not pause writes); with a static source, confirming it is honest.
+
+[mermaid]
+....
+flowchart LR
+  SU[spin_up] --> CS[clean-state]
+  CS --> INIT[init] --> DDL[ddl]
+  DDL --> LF[load_full] --> LFI[load_fidelity]
+  LFI --> SE[seeds] --> CW[crosswalks] --> IM[id_maps] --> CWA[crosswalk_audit]
+  CWA --> PF[preflight] --> FR[freeze] --> DL[delta] --> BD[build] --> CO[constraints] --> PA[parity]
+  PA --> SD[spin_down]
+....
+
+== Pre-conditions
+
+Before the first command, confirm:
+
+* `MYSQL_URL` points at the **static snapshot/replica**, not live PROD.
+  Parity runs live `SELECT`s against MySQL; a moving source makes exact
+  counts ambiguous and makes the `freeze` confirmation dishonest.
+* `REFERENCE_PG_URL` is left blank for a local target (the prod-schema guard
+  then WARN-skips in `preflight`).
+* `MIGRATE_NONINTERACTIVE` is **unset** (else `freeze` refuses to prompt).
+* The Prisma artifact is cached: `uv run migrate fetch-prisma --verify-only`.
+* Docker is available for `make spin_up`.
+
+== Step 0 -- stand up a fresh target
+
+[[spin_up]]
+=== make spin_up
+
+[source,bash]
+----
+make spin_up
+make clean-state
+----
+
+Starts a disposable `supabase/postgres` container on the `PG_*` vars from
+`.env` and bootstraps a least-privilege owner role, its database, and the
+required extensions. `clean-state` drops the `state/*.ok` gates and
+pgloader logs so the run starts clean.
+
+Expected: the `mk_pretty` banner prints `+ spin_up`; the container
+`demos-dev-pg` is up on `PG_PORT`. `clean-state` is not gate-decorated and
+prints no gate line.
+
+Recovery: if the port is taken, `make spin_down` and re-run. If the
+bootstrap role already exists from a prior run, `clean-state` is enough;
+drop the container only for a full reset.
+
+[[init-ddl]]
+== Step 1 -- schema (source-independent)
+
+[source,bash]
+----
+make init
+make ddl
+----
+
+`init` applies `sql/00_init/` (roles, schemas, extensions, helper fns).
+`ddl` runs the prod-schema guard, resets `demos_app`, applies the pinned
+Prisma artifact, captures and drops FKs, and applies `sql/01_ddl_supplements/`.
+
+Expected: each completes without error; the `mk_pretty` banner prints
+`+ init` then `+ ddl`. Neither is `@phase`-decorated, so no gate line.
+
+NOTE: `make ddl` requires the Prisma artifact to be cached. If
+`fetch-prisma --verify-only` fails, run `make fetch_prisma` (needs network
+and likely `GITHUB_TOKEN`) before `make ddl`.
+
+== Step 2 -- load and transform (against the static snapshot)
+
+[[load_full]]
+=== make load_full
+
+[source,bash]
+----
+make load_full
+----
+
+pgloader full pull: MySQL -> `mysql_raw.*`, with `pgloader/drop_list.txt`
+rendered into the `EXCLUDING TABLE NAMES MATCHING` clause. The runner is
+the v4 JVM jar (`PGLOADER_JAR` / `JAVA_BIN`), falling back to the v3 binary
+on `PATH`.
+
+Expected: completes with zero errors; the banner prints `+ load_full`.
+Inspect `reports/runs/pgloader_run_*.log` for the `Total import time` summary
+and confirm `mysql_raw` row counts match MySQL within 0.1%. The 2026-07-08
+subset run loaded 4,021,983 rows / 951.9 MB across 507 tables in 3m47s.
+
+Known REDs: none on the load itself. (The pgloader v3 binary could not
+read MySQL 8 `utf8mb4_0900_*` collations; the v4 JVM runner was adopted to
+fix this. See the <<superseded,Superseded debugging>> callout.)
+
+Recovery: on a connect error, the run now hard-fails (the ERROR-line regex
+was fixed to match offset-TZ timestamps). Re-run after correcting
+`MYSQL_URL` / `PG_URL`. xref:howto-troubleshoot-pgloader.adoc[Troubleshoot
+pgloader] has the log-reading checklist.
+
+[[load_fidelity]]
+=== make load_fidelity
+
+[source,bash]
+----
+make load_fidelity
+----
+
+Non-gating row-count parity: live MySQL vs `mysql_raw` via the DuckDB
+dual-attach. Prints a report and WARNs on mismatch; exits 0 by default.
+
+Expected: `+ load_fidelity`; the report is written to
+`reports/runs/load_fidelity_<stamp>.md`. Before `freeze` is set this is WARN-only
+(the source has not been captured yet), which is expected.
+
+Recovery: a mismatch here means pgloader dropped rows. Read the fidelity
+report, then xref:howto-troubleshoot-pgloader.adoc[the pgloader how-to].
+
+[[seeds-crosswalks-idmaps]]
+=== make seeds, make crosswalks, make id_maps
+
+[source,bash]
+----
+make seeds
+make crosswalks
+make id_maps
+----
+
+`seeds` applies `sql/02_seeds_static/` + `sql/03_seeds_limiters/`.
+`crosswalks` applies `sql/04_crosswalks/`, which loads the crosswalk CSVs
+into `mysql_raw.crosswalk_*` tables and runs the fail-closed completeness
+checks. `id_maps` applies `sql/05_id_maps/` (deterministic id maps in
+`migration._id_map_*`).
+
+Expected: `+ seeds`, `+ crosswalks`, `+ id_maps`. `crosswalks` is the phase
+most likely to RED: a completeness check (`*_check.sql`) raises if a code
+present in the source has no mapping.
+
+Known REDs (2026-07-08):
+
+* *RED-1* -- `signature_level` code 0 mapped to NULL, tripping the
+  approved-NULL guard. **RESOLVED**: the crosswalk gained a `null_ok` flag
+  exempting code 0 (commit `5f24615`).
+* *RED-2* -- `deliverable_status` codes 0 and 7 had no mapping. **RESOLVED**:
+  code 7 (Overridden) maps to 'Under CMS Review' and code 0 (N/A) gets a
+  `null_ok` flag (placeholder rows held back to
+  `migration._parity_deliverable_held`); commit `d4208fd`.
+
+Recovery: for a completeness RED, read the `RaiseException` message (it
+names the offending code and table), then decide: add the mapping (SME
+sign-off) or, for a rehearsal only, apply a clearly-marked bypass you
+revert before cutover. xref:../sme/howto-author-a-crosswalk-csv.adoc[Review
+and sign off a crosswalk] is the sign-off path.
+
+[[crosswalk_audit]]
+=== make crosswalk_audit
+
+[source,bash]
+----
+make crosswalk_audit
+----
+
+`scripts/crosswalk_audit.py` compares the committed crosswalks against the
+live PROD source (unmapped codes, orphans, label/snapshot drift, structural
+existence) via the DuckDB MySQL attach. Non-gating; report + WARN by
+default. Pass `ARGS=--strict` to exit non-zero on a blocking finding.
+
+Expected: `+ crosswalk_audit`; the report lands in
+`reports/runs/crosswalk_audit_<stamp>.md`.
+
+== Step 3 -- cutover chain to parity
+
+Run these in order. Each gated phase prints `gate '<phase>' satisfied` on a
+clean exit (see xref:reference-gates-state.adoc[the gates reference]).
+
+[[preflight]]
+=== make preflight
+
+[source,bash]
+----
+make preflight
+----
+
+P0 pre-flight checks (PostgreSQL connectivity, extensions, the pgloader
+runner, the prod-schema guard). With `REFERENCE_PG_URL` blank, the
+prod-schema guard WARN-skips.
+
+Expected: `gate 'preflight' satisfied`.
+
+[[freeze]]
+=== make freeze
+
+[source,bash]
+----
+printf 'y\n' | make freeze
+----
+
+P1 records the freeze instant to `state/freeze_instant.txt` and writes a
+`mysql_raw._delta_log` row. `freeze` prompts for confirmation; piping
+`printf 'y\n'` answers it non-interactively. In a rehearsal against a
+static source this is honest (the source genuinely is not changing).
+
+Expected: `gate 'freeze' satisfied`; the freeze instant is printed.
+
+IMPORTANT: `MIGRATE_NONINTERACTIVE` must be unset, or `freeze` refuses to
+prompt and dies. Do not export it for the rehearsal chain.
+
+[[delta]]
+=== make delta
+
+[source,bash]
+----
+make delta
+----
+
+P2 pgloader final delta: re-pulls the curated anchor tables from
+`pgloader/delta_tables.tsv` into `mysql_raw`, then marks the delta applied
+in `_delta_log`. The rendered load file is `state/delta.rendered.load`.
+
+Expected: `gate 'delta' satisfied`. The 2026-07-08 subset delta ran in 2m8s.
+
+Known REDs: none on the delta itself. (The v4 parser rejected the original
+delta `WITH` clause; it was simplified to `include no drop, truncate,
+downcase identifiers, data only`. See the <<superseded,Superseded
+debugging>> callout.)
+
+[[build]]
+=== make build
+
+[source,bash]
+----
+make build
+----
+
+P3 `build_stg` (staging transforms in `sql/10_stg/`..`sql/23_*`) then
+`build_app` (the `demos_app.*` load in `sql/20_app/`..`sql/23_*`). Emits
+the row-level filter report under `reports/filter/`. Two sub-gates are
+marked: `build_stg.ok` then `build_app.ok`.
+
+Expected: `gate 'build' satisfied` (both sub-gates green).
+
+Known REDs (2026-07-08):
+
+* *RED-3* -- `reports/filter/drop_ids.csv` listed 127 demos absent from the
+  288-demo subset snapshot. **Snapshot-scope**: a subset rehearsal
+  artifact, not a full-PROD finding.
+* *RED-4* -- duplicate `medicaid_id` `11-W-00232/6` (LA #2506 vs TX #2513)
+  violated the DEMOS `UNIQUE`. **Source data defect**: record both rows and
+  escalate for an SME pick.
+* *RED-5* -- 21 amendments had no source name, violating the DEMOS
+  `NonEmptyString`. **SME naming rule** needed.
+* *RED-6* -- Approved amendments with signature code 0 (-> NULL) tripped
+  `check_amendment_non_null_fields_when_approved`. **Code fix (KEEP)**:
+  the loader now holds back Approved amendments missing
+  `effective_date`/`signature_level_id` and logs them to
+  `migration._parity_amendment_held_missing_field` (commit `7e872da`).
+
+Recovery: for a constraint violation, read the `DETAIL`/`CONTEXT` from the
+failed `build_app` step, identify the offending rows with the
+<<diagnostic-toolkit,diagnostic toolkit>>, then decide fix-in-code vs
+record-as-finding. xref:howto-troubleshoot-fk-violations.adoc[Troubleshoot
+FK violations] covers the FK-violation shape.
+
+[[constraints]]
+=== make constraints
+
+[source,bash]
+----
+make constraints
+----
+
+P5 re-adds the captured FKs (`NOT VALID` then `VALIDATE`), triggers, and
+indexes. Writes `state/fk_violations.csv` from the in-memory remaining
+invalid list and dies if non-empty.
+
+Expected: `gate 'constraints' satisfied`. The 2026-07-08 run re-validated
+161 FKs with 0 violations.
+
+Recovery: if it dies, `state/fk_violations.csv` lists the offenders. Read
+it, then xref:howto-troubleshoot-fk-violations.adoc[the FK-violation
+how-to].
+
+[[parity]]
+=== make parity
+
+[source,bash]
+----
+make parity ARGS=--accept-pending
+----
+
+P6 writes `reports/runs/parity_<stamp>.md` and marks the gate green only on
+`OVERALL STATUS: GREEN`. `--accept-pending` marks the gate green when
+checks are PENDING (rehearsals only; logs a WARN with the pending checks).
+A hard **RED** is never accepted: the gate is not written.
+
+Expected (best case): `gate 'parity' satisfied`. The realistic rehearsal
+outcome is a short RED list to record as the fix backlog; see
+<<known-reds,Known REDs>> below.
+
+Recovery: on RED, open `reports/runs/parity_<stamp>.md`, read the failing check,
+and record the concrete rows in the rehearsal log. Do not fix during the
+probe. xref:howto-troubleshoot-parity-red.adoc[Troubleshoot red parity] is
+the triage path.
+
+== Step 4 -- teardown
+
+[source,bash]
+----
+make spin_down
+----
+
+Removes the `demos-dev-pg` container. Leave the target up if you want to
+inspect `mysql_raw` / `demos_app` after the run.
+
+[[known-reds]]
+== Known REDs from the 2026-07-08 rehearsal
+
+The script-shakedown surfaced seven REDs. Some are now fixed in-code; the
+rest are data/SME/backlog findings to record, not fix during the probe.
+
+[.sortable,cols="1,2,4,2,3"]
+|===
+| ID | Check / phase | Finding | Status | Where to look
+
+| RED-1 | `crosswalks` completeness | `signature_level` code 0 -> NULL tripped the approved-NULL guard | RESOLVED (`5f24615`) | `sql/04_crosswalks/30_signature_level.sql`
+| RED-2 | `crosswalks` completeness | `deliverable_status` codes 0 and 7 unmapped | RESOLVED (`d4208fd`) | `sql/04_crosswalks/50_deliverable_status.sql`
+| RED-3 | `build` (filter) | 127 `drop_ids` absent from the 288-demo subset snapshot | snapshot-scope | `reports/filter/drop_ids.csv`
+| RED-4 | `build` (stg) | duplicate `medicaid_id` `11-W-00232/6` (LA #2506 vs TX #2513) | source data defect (SME) | `mysql_raw.mdcd_demo`
+| RED-5 | `build` (app) | 21 amendments had no source name vs DEMOS `NonEmptyString` | SME naming rule | `mysql_raw.mdcd_demo_amndmt`
+| RED-6 | `build` (app) | Approved amendments with signature code 0 -> NULL vs Approved CHECK | code fix KEEP (`7e872da`) + SME signature rule | `migration._parity_amendment_held_missing_field`
+| RED-7 | `parity` check 5 | reconstructed-FK orphans in `mysql_raw` | subset-snapshot completeness | `reports/runs/parity_<stamp>.md` check 5
+|===
+
+The full per-run detail lives in
+`reports/rehearsals/rehearsal_20260708_222009Z/rehearsal.md` and
+`reports/rehearsals/rehearsal_20260708_222009Z/parity_20260708_232953Z.md`.
+
+[[superseded]]
+== Superseded debugging (history, do not re-run)
+
+IMPORTANT: The 2026-07-08 rehearsal had to do the work below in-session.
+It is now committed, so an operator running today does **not** re-run these
+steps. They are recorded here so the history is visible and the rehearsal
+report stays legible.
+
+* *F1* -- probe pgloader `--dynamic-space-size` before passing it (the
+  installed binary may not accept the flag).
+* *F2* -- fix `assert_pgloader_ok`'s ERROR regex so a failed connection
+  (offset-TZ timestamp) is no longer parsed as a successful load.
+* *F3* -- adopt the pgloader v4 JVM runner (`PGLOADER_JAR` / `JAVA_BIN`,
+  sha256-pinned), with v3 fallback. The v3 SBCL binary could not read
+  MySQL 8 `utf8mb4_0900_*` collations.
+* *F4* -- render pgloader command files through a comment stripper the v4
+  parser accepts, and simplify the delta `WITH` clause to options v4
+  supports (`include no drop, truncate, downcase identifiers, data only`).
+* *F5* -- `signature_level` crosswalk `null_ok` flag (code 0 exempt from
+  the approved-NULL guard); raw-branch soft-delete filter. Commit `5f24615`.
+* *F6* -- amendment loader hold-back guard mirroring
+  `check_amendment_non_null_fields_when_approved`; single shared derivation
+  temp table; parity view
+  `migration._parity_amendment_held_missing_field`; regression test.
+  Commit `7e872da`.
+
+F1-F4 landed in commit `997791d` (`feat(pgloader): add v4 JVM runner and
+harden load-error detection`). The rehearsal report itself is commit
+`ef7f4aa`.
+
+[[diagnostic-toolkit]]
+== Diagnostic toolkit (appendix)
+
+Reusable patterns for inspecting the source and target mid-rehearsal. The
+2026-07-08 session also ran ad hoc `/tmp/explore_*.py` heredocs; those were
+not persisted and are not reproduced here.
+
+=== Attach the MySQL source in DuckDB and list tables
+
+[source,bash]
+----
+uv run python - <<'PY'
+import duckdb
+from migration.lib import Env
+from migration.phases.schema_snapshot import _mysql_attach_dsn, _passthrough
+env = Env.load()
+con = duckdb.connect()
+con.execute("INSTALL mysql_scanner; LOAD mysql_scanner;")
+dsn = _mysql_attach_dsn(env.mysql_url, env.mysql_db).replace("'", "''")
+con.execute(f"ATTACH '{dsn}' AS src (TYPE mysql, READ_ONLY)")
+con.execute("USE src")
+_, rows = _passthrough(
+    con,
+    "SELECT table_name FROM information_schema.tables "
+    "WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE' "
+    "ORDER BY table_name",
+)
+for r in rows:
+    print(r[0])
+PY
+----
+
+=== Run every crosswalk completeness check and report PASS/RED
+
+[source,bash]
+----
+uv run python - <<'PY'
+import glob, psycopg
+from migration.lib import Env
+e = Env.load()
+files = sorted(glob.glob("sql/04_crosswalks/*_check.sql"))
+with psycopg.connect(e.pg_dsn(), autocommit=True) as conn:
+    for f in files:
+        sql = open(f, encoding="utf-8").read()
+        name = f.split("/")[-1]
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql)
+            print("PASS", name)
+        except psycopg.errors.RaiseException as ex:
+            print("RED ", name, str(ex).splitlines()[0].strip())
+        except Exception as ex:
+            print("ERR ", name, str(ex).splitlines()[0].strip())
+PY
+----
+
+=== Inspect mysql_raw / demos_app with psql_query
+
+[source,bash]
+----
+uv run python - <<'PY'
+from migration.lib import Env, psql_query
+e = Env.load()
+for r in psql_query(
+    e,
+    "select table_name, n_live_tup from pg_stat_user_tables "
+    "where schemaname = 'mysql_raw' order by n_live_tup desc limit 10",
+):
+    print(r)
+PY
+----
+
+=== Read the latest pgloader log
+
+[source,bash]
+----
+LOG=$(ls -t reports/runs/pgloader_run_*.log 2>/dev/null | head -1)
+cat "$LOG"
+----
+
+== Rehearsal artifact preservation
+
+At wrap-up, preserve this-run artifacts under a stamped rehearsal
+directory and revert any tracked originals you touched, so the working
+tree is clean for review. This is a run-once block; the `git checkout --`
+reverts tracked files, so review the diff first.
+
+[source,bash]
+----
+TS=$(uv run python -c 'from migration.lib import file_stamp; print(file_stamp())')
+DIR="reports/rehearsals/rehearsal_${TS}"
+mkdir -p "$DIR/artifacts"
+
+# Preserve this-run reports with a _rehearsal suffix.
+cp reports/runs/parity_*.md "$DIR/" 2>/dev/null
+cp reports/runs/filter_*.md "$DIR/artifacts/" 2>/dev/null
+cp reports/runs/load_fidelity_*.md "$DIR/artifacts/" 2>/dev/null
+cp reports/orphans/amendment_held.csv "$DIR/artifacts/amendment_held_rehearsal.csv"
+cp reports/orphans/comment_held.csv "$DIR/artifacts/comment_held_rehearsal.csv"
+cp reports/orphans/deliverable_held.csv "$DIR/artifacts/deliverable_held_rehearsal.csv"
+cp reports/generated/scope_coverage.csv "$DIR/artifacts/scope_coverage_rehearsal.csv"
+
+# Revert tracked originals to committed state.
+git checkout -- reports/orphans/amendment_held.csv \
+                 reports/orphans/comment_held.csv \
+                 reports/orphans/deliverable_held.csv \
+                 reports/generated/scope_coverage.csv
+----
+
+WARNING: If you applied a rehearsal-only bypass to a tracked filter CSV
+(for example `reports/filter/drop_ids.csv` for the subset-scope RED-3),
+revert it too:
+
+[source,bash]
+----
+git checkout -- reports/filter/drop_ids.csv
+rg -n "REHEARSAL-ONLY BYPASS" sql reports/crosswalks reports/filter || echo "(no bypasses remain)"
+----
+
+The second command confirms no `REHEARSAL-ONLY BYPASS` marker survived in
+the tracked source.
+
+== Related
+
+* xref:tutorial-first-cutover-rehearsal.adoc[Tutorial: first cutover
+  rehearsal]
+* xref:explanation-rehearsal-strategy.adoc[Why we rehearse twice]
+* xref:howto-cutover-day.adoc[How-to: cutover day]
+* xref:reference-makefile.adoc[Makefile targets]
+* xref:reference-cli.adoc[CLI (auto-generated from `migrate --help`)]
+* xref:reference-gates-state.adoc[Gates and `state/` files]
+* `runbooks/dress-rehearsal-probe.md` -- dress-rehearsal probe runbook (Markdown)
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-makefile.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-gates-state.adoc[next >]
+|===
+endif::[]
+// docnav-end

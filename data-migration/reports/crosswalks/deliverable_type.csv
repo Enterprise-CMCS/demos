@@ -1,0 +1,42 @@
+legacy_int_cd,legacy_name,demos_text_id,notes
+0,Single/Other,Demonstration-Specific Deliverable,"no-target rpt_ocrnc code; DEMOS catch-all is Demonstration-Specific Deliverable (allows General File docs)"
+1,Monthly,Monitoring Report,cadence collapses; period survives as due_date
+3,Quarterly,Monitoring Report,cadence collapses; period survives as due_date
+6,Semi-Annually,Monitoring Report,cadence collapses; period survives as due_date (code seen only on soft-deleted deliverables)
+12,Annually,Monitoring Report,cadence collapses; period survives as due_date
+50,Interim Evaluation,Interim Evaluation Report,evaluation family
+51,Final Evaluation,Evaluation Design,"no exact target; nearest evaluation type is Evaluation Design"
+52,Monthly Report,Monitoring Report,cadence collapses; period survives as due_date
+53,Quarterly Monitoring Report,Monitoring Report,cadence collapses; period survives as due_date
+54,Semi-Annual Monitoring Report,Monitoring Report,cadence collapses; period survives as due_date
+55,Annual Monitoring Report,Monitoring Report,cadence collapses; period survives as due_date
+57,Quarterly Budget Neutrality Report,Quarterly Budget Neutrality Report,direct BN match
+59,Non-standard Report,Demonstration-Specific Deliverable,"no-target rpt_ocrnc code; DEMOS catch-all"
+60,Mid-point Assessment,Mid-point Assessment,direct match
+61,Implementation Plan,Implementation Plan,direct match
+62,Monitoring Protocol,Monitoring Protocol,direct match
+63,Draft Evaluation Design,Evaluation Design,evaluation-design family (draft/final collapse)
+64,Final Evaluation Design,Evaluation Design,evaluation-design family (draft/final collapse)
+65,Draft Summative Evaluation Report,Summative Evaluation Report,summative family (draft/final collapse)
+66,Final Summative Evaluation Report,Summative Evaluation Report,summative family (draft/final collapse)
+67,Draft Interim Evaluation Report,Interim Evaluation Report,interim family (draft/final collapse)
+68,Final Interim Evaluation Report,Interim Evaluation Report,interim family (draft/final collapse)
+69,Phase Down Plan,Transition Plan,"no exact target; nearest is Transition Plan (wind-down)"
+70,Annual Budget Neutrality Report,Annual Budget Neutrality Report,direct BN match
+71,Close Out Report,Close Out Report,direct match
+72,Transition Plan,Transition Plan,direct match
+73,Retrospective Report,Monitoring Report,"no exact target; retrospective reporting -> Monitoring Report"
+74,Quarterly Monitoring Report (QMR),Monitoring Report,cadence collapses; period survives as due_date
+75,Annual Monitoring Report (AMR),Monitoring Report,cadence collapses; period survives as due_date
+76,HCBS Evidentiary Report,HCBS Evidentiary Report,direct match
+77,HCBS Quality Improvement Strategy Report,HCBS Quality Improvement Strategy Report,direct match
+78,HCBS Performance Measures Report,HCBS Performance Measures Report,direct match
+79,Analysis of Medicaid/Medicare Payment Ratio,Monitoring Report,"no deliverable_type target (Payment Ratio Analysis is a document_type only); analysis reporting -> Monitoring Report"
+80,Retrospective Monitoring Report,Monitoring Report,retrospective monitoring -> Monitoring Report
+81,Interim Evaluation Report,Interim Evaluation Report,direct match
+82,Summative Evaluation Report,Summative Evaluation Report,direct match
+83,Demonstration Specific Deliverable,Demonstration-Specific Deliverable,direct match
+84,Evaluation Design,Evaluation Design,direct match
+86,Attestation for Maintenance of Provider Rate Increases,Demonstration-Specific Deliverable,"no-target rpt_ocrnc code; demonstration-specific attestation -> catch-all"
+87,"HCBS Deficiency, Remediation and A/N/E Incident Report (1915(c)-like)","HCBS Deficiency, Remediation and A/N/E Incident Report (1915(c)-like)",direct match
+88,HCBS Actual and Estimated Enrollment Number Report (1915(i)-like),HCBS Actual and Estimated Enrollment Number Report (1915(i)-like),direct match

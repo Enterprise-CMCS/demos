@@ -38,7 +38,7 @@ export const DemonstrationTypesSection = ({
 
   return (
     <CompletableSection title="Types" isComplete={isComplete} completionDate={completionDate}>
-      <div className="flex justify-between items-center mb-2">
+      <div className="flex justify-between items-center mb-2 scroll-auto">
         <p className="text-sm text-text-placeholder mt-1 mb-2">
           Add or Update Demonstration Types with Effective and Expiration Dates below
         </p>

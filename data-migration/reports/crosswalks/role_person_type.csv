@@ -1,0 +1,10 @@
+legacy_int_cd,legacy_name,person_type_id,notes
+1,Internal Administrator,demos-admin,CMS internal administrator
+2,CMS Project Officer,demos-cms-user,
+3,Third Party Evaluation Analyst,non-user-contact,"external evaluator; migrated as person only, no users row"
+4,State User,demos-state-user,
+5,CMS Technical Director,demos-cms-user,
+6,Monitoring Lead,demos-cms-user,
+7,Financial Lead,demos-cms-user,
+8,Monitoring Lead and Financial Lead,demos-cms-user,
+9,DDME Analyst,demos-cms-user,

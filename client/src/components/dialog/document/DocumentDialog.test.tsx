@@ -18,10 +18,10 @@ import { BN_WORKBOOK_DOCUMENT_TYPE } from "demos-server-constants";
 const parseBNFile = vi.fn();
 const rule = vi.fn();
 
-vi.mock("demos-shared-library/dist/src/BN/index.js", () => ({
+vi.mock("demos-shared-library/BN", () => ({
   parseBNFile: (...args: unknown[]) => parseBNFile(...args),
 }));
-vi.mock("demos-shared-library/dist/src/BN/rulesets/v1/index.js", () => ({
+vi.mock("demos-shared-library/BN/rulesets", () => ({
   validations: [rule],
 }));
 

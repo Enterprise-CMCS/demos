@@ -1,0 +1,28 @@
+# Table -> diagram-cluster overrides for schema_diagrams_to_adoc.py.
+#
+# The generator classifies each demos_app table structurally:
+#   *_limit suffix          -> typeLimiter
+#   composite PRIMARY KEY    -> associativeTable
+#   single `text` id PK      -> staticConstraint
+#   otherwise (uuid PK, ...) -> dataTable
+#
+# Entries below override that heuristic for a specific table. They win over
+# the structural rule. Valid classes: staticConstraint, typeLimiter,
+# dataTable, associativeTable. `make schema-drift` flags any table whose
+# generated class disagrees with the legacy hand-authored model so this list
+# can be kept honest.
+
+# These tables have a composite or text PK (so the heuristic would file them
+# as associative/static) but the curated DEMOS model treats them as first-class
+# data tables. Verified against DEMOS_Data_Model.mmd via `make schema-drift`.
+overrides:
+  application_date: dataTable
+  application_note: dataTable
+  application_phase: dataTable
+  application_tag_suggestion: dataTable
+  application_tag_suggestion_extract: dataTable
+  demonstration_type_tag_assignment: dataTable
+  reference_agreement_acceptance: dataTable
+  tag: dataTable
+  tag_name: dataTable
+  user_session: dataTable

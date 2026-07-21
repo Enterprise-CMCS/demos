@@ -1,7 +1,7 @@
 import { Writable } from "node:stream";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { setupLogger } from "./log";
+import { loggerOptions, createLambdaLogger } from "./log";
 
 describe("setupLogger", () => {
   const prevEnv = { ...process.env };
@@ -19,8 +19,9 @@ describe("setupLogger", () => {
         callback();
       },
     });
-    const logger = setupLogger("test", destination);
 
+    const {log: logger} = createLambdaLogger("test", {...loggerOptions, transport: undefined}, destination);
+    
     logger.error(
       {
         headers: {
@@ -62,8 +63,7 @@ describe("setupLogger", () => {
         callback();
       },
     });
-    const logger = setupLogger("test", destination);
-
+    const {log: logger} = createLambdaLogger("test", {...loggerOptions, transport: undefined}, destination);
     logger.error({ error: new Error("UiPath failed before completion") }, "UiPath lambda failed");
 
     const output = chunks.join("");

@@ -1,0 +1,112 @@
+= Reference: gates and the `state/` directory
+
+Every cutover phase is gated by a small file in `state/`. Phases call
+`require_gate(prev)` on entry and `mark_gate(self)` on clean exit.
+This is the contract.
+
+[NOTE]
+====
+These gates are purely *mechanical* -- they record that a pipeline phase
+ran cleanly, nothing more. SME sign-offs (crosswalks, the row-level
+filter, JSONB schemas, the drop list, pending/approved rules) are *not*
+tracked here; each lives in its own report artifact's sign-off block.
+See xref:howto-curate-filter.adoc[curate the filter] for the filter
+report's footer and xref:../sme/index.adoc[the SME book] for the rest.
+====
+
+== Gate files
+
+[cols="2,2,4"]
+|===
+| File | Written by | Required by
+
+| `state/preflight.ok` | `migrate preflight` on clean exit | `migrate freeze`
+| `state/freeze.ok` | `migrate freeze` on clean exit | `migrate delta`
+| `state/freeze_instant.txt` | `migrate freeze` on clean exit | `migrate delta` (template parameter)
+| `state/delta.ok` | `migrate delta` on clean exit | `migrate build`
+| `state/build_stg.ok` | `build.run_build_stg` on clean exit | `build.run_build_app`
+| `state/build_app.ok` | `build.run_build_app` on clean exit | `migrate constraints`
+| `state/constraints.ok` | `migrate constraints` on clean exit | `migrate parity`
+| `state/fk_violations.csv` | `migrate constraints` after re-listing invalid FKs | (read by operator on red)
+| `state/parity.ok` | `migrate parity` only on `OVERALL STATUS: GREEN` (or PENDING with `--accept-pending`) | `migrate flip`
+| `state/flip.ok` | `migrate flip` on clean exit | `migrate smoke`
+| `state/smoke.ok` | `migrate smoke` on clean exit | `migrate decom`
+| `state/decom.ok` | `migrate decom` on clean exit | (terminal)
+|===
+
+== Rendered pgloader templates
+
+Two files live in `state/` while the load is in flight, both
+`chmod 0600` because they contain expanded credentials:
+
+* `state/schema.rendered.load` -- output of `pgloader/schema.load`
+  with `{{MYSQL_URL}}`, `{{PG_URL}}`, `{{MYSQL_DB}}`, `{{CAST_BLOCK}}`,
+  and `{{EXCLUDING_BLOCK}}` populated.
+* `state/delta.rendered.load` -- output of `pgloader/delta.tmpl.load`
+  with `{{MYSQL_URL}}`, `{{PG_URL}}`, `{{MYSQL_DB}}`, `{{CAST_BLOCK}}`,
+  `{{EXCLUDING_BLOCK}}`, `{{FREEZE_INSTANT}}`, and `{{TABLES_BLOCK}}`
+  populated.
+
+== Gate state lifecycle
+
+[mermaid]
+....
+stateDiagram-v2
+  [*] --> empty
+  empty --> preflight_ok: migrate preflight
+  preflight_ok --> freeze_ok: migrate freeze
+  freeze_ok --> delta_ok: migrate delta
+  delta_ok --> build_stg_ok: build_stg
+  build_stg_ok --> build_app_ok: build_app
+  build_app_ok --> constraints_ok: migrate constraints
+  constraints_ok --> parity_ok: parity GREEN
+  parity_ok --> flip_ok: migrate flip
+  flip_ok --> smoke_ok: migrate smoke
+  smoke_ok --> [*]
+....
+
+== Helpers
+
+`migration.lib` exposes:
+
+* `mark_gate(name)` -- write `state/<name>.ok` containing the UTC
+  timestamp.
+* `require_gate(name)` -- die if `state/<name>.ok` is absent.
+* `clear_gate(name)` -- remove `state/<name>.ok`. Used by `rollback`.
+* `list_gates()` -- ordered `(name, ok)` tuples for `migrate status`.
+* `phase(name, requires=..., mark=True)` -- decorator that wraps a
+  phase function with `require_gate` on entry and `mark_gate` on
+  clean exit.
+
+== Re-running phases
+
+Every phase is idempotent. Re-running an already-completed phase
+overwrites `state/<name>.ok` with a fresh timestamp; the underlying
+SQL is drop-and-rebuild, not upsert. See
+xref:../developer/explanation-idempotency.adoc[explanation:
+idempotency].
+
+== Resetting
+
+`make clean-state` drops every gate file and pgloader log without
+touching audit reports:
+
+[source,sh]
+----
+make clean-state
+----
+
+Use this between rehearsals.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-rehearsal-commands.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-environment.adoc[next >]
+|===
+endif::[]
+// docnav-end

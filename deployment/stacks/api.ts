@@ -129,7 +129,6 @@ export class ApiStack extends Stack {
 
     const authPath = path.join("..", "lambdas", "authorizer");
     const rel = path.resolve(authPath);
-
     const authorizerLambda = lambda.create(
       {
         ...commonProps,
@@ -140,7 +139,7 @@ export class ApiStack extends Stack {
           JWKS_URI: `${cognitoAuthority}/.well-known/jwks.json`,
         },
         externalModules: ["aws-sdk"],
-        nodeModules: ["jsonwebtoken", "jwks-rsa", "pino"],
+        nodeModules: ["jsonwebtoken", "jwks-rsa"],
         depsLockFilePath: path.join(rel, "package-lock.json"),
         timeout: Duration.seconds(10),
       },
@@ -277,7 +276,7 @@ export class ApiStack extends Stack {
       handler: "index.handler",
       vpc: props.vpc,
       externalModules: ["@aws-sdk"],
-      nodeModules: ["nodemailer", "pino"],
+      nodeModules: ["nodemailer"],
       securityGroup: [emailerLambdaSecurityGroup.securityGroup, sharedServicesSG],
       asCode: false,
       depsLockFilePath: path.join(emailerPath, "package-lock.json"),
