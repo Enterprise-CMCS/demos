@@ -1,0 +1,207 @@
+# Registry of crosswalk tables loaded from CSV by the crosswalks phase.
+#
+# The crosswalks phase reads this file, creates the tables from
+# sql/04_crosswalks/*.sql (DDL only), COPYs each CSV below into its table
+# via migration.lib.copy_csv_into_table, then runs the *_check.sql
+# fail-closed completeness checks.
+#
+# `columns` is the exact, ordered CSV header. It is passed to
+# copy_csv_into_table as header_expect, so a renamed/reordered/missing
+# column fails closed with a clear error instead of mis-loading.
+#
+# To add a crosswalk:
+#   1. Author sql/04_crosswalks/<NN>_<name>.sql (DROP/CREATE TABLE only).
+#   2. Put the confirmed values in reports/crosswalks/<name>.csv.
+#   3. Add an entry here (table, csv, columns).
+#   4. Run `make crosswalks`.
+#
+# Paths are relative to reports/.
+#
+# The optional `source:` block per crosswalk drives scripts/crosswalk_audit.py
+# (the live-PROD crosswalk audit); it is ignored by the crosswalks load phase.
+# See that script's docstring for the field meanings.
+#
+# Intentionally UNregistered (no load entry below, by design):
+#   - crosswalks/demonstration_type.csv -- demonstration-type routing runs
+#     through pgm_dtl_tag_mapping.csv + sql/04_crosswalks/46_pgm_dtl_tag.sql
+#     and sql/21_app_associative/20_reference_demonstration_type.sql, so this
+#     final CSV is not loaded as a standalone crosswalk table.
+#   - crosswalks/renewal_status.csv -- renewal is deferred post-MVP
+#     (sql/04_crosswalks/70_renewal_status_deferred.sql is DDL-only), so the
+#     final CSV is retained for when it is wired, not loaded today.
+# Both are still validated by docs/tools/verify_crosswalks.py via
+# docs/tools/crosswalk_targets.yaml overrides.
+
+crosswalks:
+  - table: crosswalk_demo_status
+    csv: crosswalks/demo_status.csv
+    columns: [legacy_int_cd, legacy_name, demos_text_id, notes]
+    source:
+      kind: code
+      fact_table: mdcd_demo
+      fact_column: mdcd_demo_stus_cd
+      rfrnc_table: mdcd_demo_stus_rfrnc
+      rfrnc_code_column: mdcd_demo_stus_cd
+      rfrnc_name_column: mdcd_demo_stus_name
+      crosswalk_code_column: legacy_int_cd
+      crosswalk_name_column: legacy_name
+      snapshot_csv: reference_data/mdcd_demo_stus_rfrnc.csv
+  - table: crosswalk_state
+    csv: crosswalks/state.csv
+    columns: [legacy_cd, legacy_name, demos_text_id, notes]
+    source:
+      kind: code
+      fact_table: mdcd_demo
+      fact_column: geo_ansi_state_cd
+      rfrnc_table: geo_ansi_state_rfrnc
+      rfrnc_code_column: geo_ansi_state_cd
+      rfrnc_name_column: geo_ansi_state_name
+      crosswalk_code_column: legacy_cd
+      crosswalk_name_column: legacy_name
+      snapshot_csv: reference_data/geo_ansi_state_rfrnc.csv
+  - table: crosswalk_signature_level
+    csv: crosswalks/signature_level.csv
+    columns: [legacy_int_cd, legacy_name, demos_text_id, null_ok, notes]
+    source:
+      kind: code
+      fact_table: mdcd_demo
+      fact_column: mdcd_demo_aplctn_sgntr_lvl_cd
+      rfrnc_table: mdcd_demo_aplctn_sgntr_lvl_rfrnc
+      rfrnc_code_column: mdcd_demo_aplctn_sgntr_lvl_cd
+      rfrnc_name_column: mdcd_demo_aplctn_sgntr_lvl_name
+      crosswalk_code_column: legacy_int_cd
+      crosswalk_name_column: legacy_name
+      snapshot_csv: reference_data/mdcd_demo_aplctn_sgntr_lvl_rfrnc.csv
+  - table: crosswalk_role_person_type
+    csv: crosswalks/role_person_type.csv
+    columns: [legacy_int_cd, legacy_name, person_type_id, notes]
+    source:
+      kind: code
+      fact_table: role_rfrnc
+      fact_column: role_cd
+      rfrnc_table: role_rfrnc
+      rfrnc_code_column: role_cd
+      rfrnc_name_column: role_name
+      crosswalk_code_column: legacy_int_cd
+      crosswalk_name_column: legacy_name
+      snapshot_csv: reference_data/role_rfrnc.csv
+  - table: crosswalk_system_role
+    csv: crosswalks/system_role.csv
+    columns: [legacy_role_cd, legacy_name, role_id, grant_level_id, person_type_id, notes]
+    source:
+      kind: code
+      fact_table: role_rfrnc
+      fact_column: role_cd
+      code_subset: [1, 4]
+      rfrnc_table: role_rfrnc
+      rfrnc_code_column: role_cd
+      rfrnc_name_column: role_name
+      crosswalk_code_column: legacy_role_cd
+      crosswalk_name_column: legacy_name
+      snapshot_csv: reference_data/role_rfrnc.csv
+  - table: crosswalk_demonstration_role
+    csv: crosswalks/demonstration_role.csv
+    columns: [source_table, source_column, role_id, grant_level_id, is_primary, treat_zero_as_null, notes]
+    source:
+      kind: structural
+      tables_from_column: source_table
+      columns_from: [source_column]
+  - table: crosswalk_pgm_dtl_tag
+    csv: pgm_dtl_tag_mapping.csv
+    columns: [source_table, tag_name, from_dt_col, to_dt_col, additional_attrs, notes]
+    source:
+      kind: structural
+      tables_from_column: source_table
+      columns_from: [from_dt_col, to_dt_col]
+      pending_blank_column: tag_name
+  - table: crosswalk_deliverable_status
+    csv: crosswalks/deliverable_status.csv
+    columns: [legacy_int_cd, legacy_name, status_id, due_date_type_id, expected_to_be_submitted, emit_extension_status, null_ok, notes]
+    source:
+      kind: code
+      fact_table: mdcd_dlvrbl
+      fact_column: mdcd_dlvrbl_crnt_stus_cd
+      rfrnc_table: mdcd_dlvrbl_stus_rfrnc
+      rfrnc_code_column: mdcd_dlvrbl_stus_cd
+      rfrnc_name_column: mdcd_dlvrbl_stus_name
+      crosswalk_code_column: legacy_int_cd
+      crosswalk_name_column: legacy_name
+      snapshot_csv: reference_data/mdcd_dlvrbl_stus_rfrnc.csv
+  - table: crosswalk_deliverable_type
+    csv: crosswalks/deliverable_type.csv
+    columns: [legacy_int_cd, legacy_name, demos_text_id, notes]
+    source:
+      kind: code
+      fact_table: mdcd_dlvrbl
+      fact_column: mdcd_dlvrbl_type_cd
+      rfrnc_table: mdcd_dlvrbl_rpt_ocrnc_rfrnc
+      rfrnc_code_column: mdcd_dlvrbl_rpt_ocrnc_cd
+      rfrnc_name_column: mdcd_dlvrbl_rpt_ocrnc_name
+      crosswalk_code_column: legacy_int_cd
+      crosswalk_name_column: legacy_name
+      snapshot_csv: reference_data/mdcd_dlvrbl_rpt_ocrnc_rfrnc.csv
+  - table: crosswalk_application_type
+    csv: crosswalks/application_type.csv
+    columns: [legacy_int_cd, legacy_name, demos_text_id, notes]
+    source:
+      kind: code
+      fact_table: mdcd_demo_aplctn
+      fact_column: mdcd_demo_aplctn_type_cd
+      rfrnc_table: mdcd_demo_aplctn_type_rfrnc
+      rfrnc_code_column: mdcd_demo_aplctn_type_cd
+      rfrnc_name_column: mdcd_demo_aplctn_type_name
+      crosswalk_code_column: legacy_int_cd
+      crosswalk_name_column: legacy_name
+      snapshot_csv: reference_data/mdcd_demo_aplctn_type_rfrnc.csv
+  - table: crosswalk_sdg_division
+    csv: crosswalks/sdg_division.csv
+    columns: [legacy_int_cd, legacy_name, demos_text_id, notes]
+    source:
+      kind: code
+      fact_table: mdcd_demo
+      fact_column: mdcd_chip_div_cd
+      rfrnc_table: mdcd_chip_div_rfrnc
+      rfrnc_code_column: mdcd_chip_div_cd
+      rfrnc_name_column: mdcd_chip_div_name
+      crosswalk_code_column: legacy_int_cd
+      crosswalk_name_column: legacy_name
+      snapshot_csv: reference_data/mdcd_chip_div_rfrnc.csv
+  - table: crosswalk_amendment_status
+    csv: crosswalks/amendment_status.csv
+    columns: [legacy_int_cd, legacy_name, demos_text_id, notes]
+    source:
+      kind: code
+      fact_table: mdcd_demo_amndmt
+      fact_column: mdcd_demo_amndmt_stus_cd
+      rfrnc_table: mdcd_demo_amndmt_stus_rfrnc
+      rfrnc_code_column: mdcd_demo_amndmt_stus_cd
+      rfrnc_name_column: mdcd_demo_amndmt_stus_name
+      crosswalk_code_column: legacy_int_cd
+      crosswalk_name_column: legacy_name
+      snapshot_csv: reference_data/mdcd_demo_amndmt_stus_rfrnc.csv
+  - table: crosswalk_application_status
+    csv: crosswalks/application_status.csv
+    columns: [legacy_int_cd, legacy_name, demos_text_id, notes]
+    source:
+      kind: code
+      fact_table: mdcd_demo_aplctn
+      fact_column: mdcd_demo_aplctn_stus_cd
+      rfrnc_table: mdcd_demo_aplctn_stus_rfrnc
+      rfrnc_code_column: mdcd_demo_aplctn_stus_cd
+      rfrnc_name_column: mdcd_demo_aplctn_stus_name
+      crosswalk_code_column: legacy_int_cd
+      crosswalk_name_column: legacy_name
+      snapshot_csv: reference_data/mdcd_demo_aplctn_stus_rfrnc.csv
+  - table: crosswalk_document_type
+    csv: crosswalks/document_type.csv
+    columns: [legacy_int_cd, legacy_name, demos_text_id, notes]
+    source:
+      kind: code
+      fact_table: mdcd_demo_aplctn_doc
+      fact_column: mdcd_demo_aplctn_doc_type_cd
+      rfrnc_table: mdcd_demo_aplctn_doc_type_rfrnc
+      rfrnc_code_column: mdcd_demo_aplctn_doc_type_cd
+      rfrnc_name_column: mdcd_demo_aplctn_doc_type_name
+      crosswalk_code_column: legacy_int_cd
+      crosswalk_name_column: legacy_name
+      snapshot_csv: reference_data/mdcd_demo_aplctn_doc_type_rfrnc.csv

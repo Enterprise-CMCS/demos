@@ -1,0 +1,5 @@
+legacy_int_cd,legacy_name,demos_text_id,notes
+0,-- Please Select --,,legacy UI sentinel -> NULL (sdg_division_id is nullable)
+1,,,"retired/undefined division on 24 soft-deleted demonstrations (2016-2018); no mdcd_chip_div_rfrnc definition -> NULL (sdg_division_id is nullable)"
+2,Division of System Reform Demonstrations,Division of System Reform Demonstrations,DDL-confirmed identity (sdg_division seed)
+3,Division of Eligibility and Coverage Demonstrations,Division of Eligibility and Coverage Demonstrations,DDL-confirmed identity (sdg_division seed)

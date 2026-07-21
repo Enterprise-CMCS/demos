@@ -1,0 +1,105 @@
+= How-to: troubleshoot pgloader
+
+Common failures of `make load_full` and `make delta` and how to fix
+them.
+
+== Where to look
+
+. The exit code of `pgloader`. Anything non-zero is a hard failure.
+. The most recent log: `reports/runs/pgloader_run_*.log` (full) or
+  `reports/runs/pgloader_delta_*.log` (delta).
+. The rendered `.load` file in `state/schema.rendered.load` /
+  `state/delta.rendered.load`. These are `chmod 0600`; they contain
+  expanded credentials, do not paste them into a ticket.
+
+== Symptom: connection refused
+
+Cause: MySQL or PostgreSQL host unreachable.
+
+Fix: verify `MYSQL_URL` and `PG_URL` from `.env` resolve from the
+operator host. `psql "$PG_URL" -c 'select 1'` and `mysql --uri
+"$MYSQL_URL" -e 'select 1'` are the two confidence checks.
+
+== Symptom: unsupported MySQL type
+
+Cause: a column type new to the schema is not covered by the CAST
+rules in `pgloader/casts.load` (rendered into the load via the
+`{{CAST_BLOCK}}` marker).
+
+Fix: see xref:../developer/howto-edit-pgloader-cast.adoc[edit pgloader
+CAST rules]. Do *not* hand-edit the rendered `state/*.rendered.load`;
+the next render will overwrite it.
+
+== Symptom: `NN fell through ECASE expression`
+
+Cause: the `pgloader` on `PATH` is an OS-packaged build (e.g. Debian
+`pgloader 3.6.10`) whose bundled `qmynd` does not know the source's
+MySQL 8 `utf8mb4_0900_*` collations. pgloader aborts during metadata
+fetch, loads zero rows, and `assert_pgloader_ok` fails the gate (the
+`ERROR ... fell through ECASE expression` line is the real cause; a
+`pgloader log has no summary row` message is the secondary symptom).
+
+Fix: the source is a read-only RDS copy, so it cannot be re-collated;
+install a `pgloader` built from source instead, which bundles a newer
+`qmynd` with the MySQL 8 collation map. Build it and place it ahead of
+the packaged binary on `PATH`:
+
+[source,sh]
+----
+sudo apt-get install -y sbcl unzip libsqlite3-dev make curl gawk \
+  freetds-dev libzip-dev build-essential
+git clone --depth 1 https://github.com/dimitri/pgloader.git
+cd pgloader && make save
+sudo install -m 0755 build/bin/pgloader /usr/local/bin/pgloader
+----
+
+Confirm `command -v pgloader` resolves to the source build, then
+re-run `make load_full`.
+
+== Symptom: table on drop list still loaded (or vice-versa)
+
+Cause: `pgloader/drop_list.txt` and `reports/narrative/drop_list.md` disagree.
+
+Fix: edit `pgloader/drop_list.txt` (one table per line, `#` comments
+allowed). `reports/narrative/drop_list.md` is the rationale, not the source of
+truth.
+
+== Symptom: row counts disagree by > 0.1%
+
+Cause: a CAST rule rejected rows silently, or pgloader truncated wide
+strings.
+
+Fix: open the log and search for `BAD ROW`. Each line links to the
+table and the offending column. Add a CAST rule (developer task) and
+re-run.
+
+== Symptom: delta complains about freeze instant
+
+Cause: `state/freeze_instant.txt` missing, malformed, or older than
+the rehearsal expected.
+
+Fix: re-run `uv run migrate freeze`. The phase rewrites the file with
+a fresh UTC ISO timestamp and inserts a row into
+`mysql_raw._delta_log`.
+
+== Escalate
+
+If the failure is not in the list above, log a ticket with:
+
+* the failed command,
+* the last 30 lines of the pgloader log,
+* `psql "$PG_URL" -c '\dt mysql_raw.*' | tail -5`,
+* the value of `state/freeze_instant.txt` (if delta).
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:howto-curate-filter.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:howto-troubleshoot-fk-violations.adoc[next >]
+|===
+endif::[]
+// docnav-end

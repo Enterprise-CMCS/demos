@@ -47,12 +47,16 @@ export const DemonstrationDeliverableTable: React.FC<{
   );
   const actionButtons = viewMode === "demos-state-user" ? undefined : renderActionButtons;
 
-  const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
-    ...deliverable,
-    submissionDate: getLatestSubmissionDate(deliverable.deliverableActions),
-    combinedStatus: formatDeliverableStatus(deliverable),
-    combinedStatusFilter: formatDeliverableFilterStatus(deliverable),
-  }));
+  const formattedDeliverables = React.useMemo(
+    () =>
+      sortDeliverablesByDefault(deliverables).map((deliverable) => ({
+        ...deliverable,
+        submissionDate: getLatestSubmissionDate(deliverable.deliverableActions),
+        combinedStatus: formatDeliverableStatus(deliverable),
+        combinedStatusFilter: formatDeliverableFilterStatus(deliverable),
+      })),
+    [deliverables]
+  );
 
   return (
     <Table<FormattedDeliverableTableRow>

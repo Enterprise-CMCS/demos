@@ -1,0 +1,105 @@
+mysql_table,mysql_column,demos_table,demos_column,transform,notes
+mdcd_demo,mdcd_demo_id,demonstration,id,id_map,UUID minted from PMDA only via migration._id_map_demo
+mdcd_demo,mdcd_demo_name,demonstration,name,copy,Direct copy after trim
+mdcd_demo,mdcd_demo_desc,demonstration,description,copy,Direct copy after trim
+mdcd_demo,geo_ansi_state_cd,demonstration,state_id,crosswalk:state,Two-letter ANSI state code -> demos_app.state.id (text)
+mdcd_demo,state_prfmnc_yr_strt_dt,demonstration,effective_date,cast,MySQL date -> Postgres timestamptz (UTC midnight)
+mdcd_demo,state_prfmnc_yr_end_dt,demonstration,expiration_date,cast,MySQL date -> Postgres timestamptz (UTC midnight)
+mdcd_demo,creatd_dt,demonstration,created_at,cast,MySQL timestamp -> Postgres timestamptz (UTC)
+mdcd_demo,updtd_dt,demonstration,updated_at,cast,MySQL timestamp -> Postgres timestamptz (UTC)
+mdcd_demo,mdcd_demo_stus_cd,demonstration,status_id,crosswalk:demo_status,Status crosswalk (codes 2-9 promoted; code 1 'Pending' withheld pending SME)
+mdcd_demo,,demonstration,application_type_id,constant,"Constant 'Demonstration' (§6.3); composite FK demonstration(id, application_type_id) -> application"
+mdcd_demo,mdcd_demo_num,demonstration,medicaid_id,derive,"Legacy-preserved 11-W-NNNNN/R number (§6.6); never minted"
+mdcd_demo,mdcd_scndry_demo_num,demonstration,chip_id,derive,"Preserve legacy 21-W number when present; else mint from demos_app.chip_id_number_seq (§6.6)"
+mdcd_demo,,demonstration,current_phase_id,derive,"Date-derived from stg.demonstration_resolved -> Approved fallback -> Concept (§6.1); SME-ratify"
+mdcd_demo,aprvl_dt,application_date,date_value,derive,Approval date -> application_date (date_type_id = 'Application Approval Date'); only for loaded demonstrations where aprvl_dt IS NOT NULL
+mdcd_demo,mdcd_demo_id,application_date,application_id,id_map,"Shared application UUID (stg.demonstration_resolved.new_uuid); IS-A shared PK with application"
+mdcd_demo,,application_date,date_type_id,constant,"Constant 'Application Approval Date' (seeded by DEMOS migration 20260617124348)"
+mdcd_demo_amndmt,mdcd_demo_amndmt_id,amendment,id,id_map,UUID minted from PMDA-valid amendments via migration._id_map_mdcd_demo_amndmt; shared with the application anchor
+mdcd_demo_amndmt,mdcd_demo_id,amendment,demonstration_id,id_map,Approved parent demo via migration._id_map_mdcd_demo; pending-only/held-back parents excluded (parity check 19)
+mdcd_demo_amndmt,mdcd_demo_amndmt_name,amendment,name,copy,Direct copy after trim
+mdcd_demo_amndmt,amndmt_desc,amendment,description,copy,Trim then NULLIF empty
+mdcd_demo_amndmt,amndmt_prd_from_dt,amendment,effective_date,cast,Performance-period start date -> timestamptz (SME-ratify vs amndmt_prd_to_dt)
+mdcd_demo_amndmt,mdcd_demo_amndmt_stus_cd,amendment,status_id,crosswalk:amendment_status,Status crosswalk inlined in 64 (1->Under Review; 2->Approved; 3->Withdrawn; 4->Denied); SME-ratify
+mdcd_demo_amndmt,mdcd_demo_amndmt_stus_cd,amendment,current_phase_id,derive,Status-derived (no source column): Approved->Approval Summary; Under Review->Review; Withdrawn/Denied->Concept; SME-ratify
+mdcd_demo_amndmt,mdcd_demo_aplctn_sgntr_lvl_cd,amendment,signature_level_id,derive,OA->OA; OCD->OCD; else NULL (OGD/DD barred on amendments; dropped codes in parity check 19)
+mdcd_demo_amndmt,creatd_dt,amendment,created_at,cast,MySQL timestamp -> Postgres timestamptz
+mdcd_demo_amndmt,creatd_dt,amendment,updated_at,cast,No updated-at source; set = created_at (creatd_dt)
+mdcd_demo_amndmt,creatd_dt,amendment,status_updated_at,cast,= updated_at (creatd_dt); mirrors the DEMOS status_updated_at backfill
+mdcd_demo_amndmt,,amendment,application_type_id,constant,"Constant 'Amendment'; composite FK amendment(id, application_type_id) -> application"
+mdcd_demo_amndmt,mdcd_demo_id,amendment,demonstration_status_id,derive,"Parent demo's status_id via JOIN to demos_app.demonstration; composite FK amendment(demonstration_id, demonstration_status_id) -> demonstration(id, status_id)"
+mdcd_mc_pgm_dtl,mdcd_demo_id,demonstration_type_tag_assignment,demonstration_id,id_map,Resolved from PMDA only via migration._id_map_demo
+mdcd_mc_pgm_dtl,from_dt,demonstration_type_tag_assignment,effective_date,tag_pivot:Managed Care,From pgm_dtl_tag_mapping.csv; one row per source row
+mdcd_mc_pgm_dtl,to_dt,demonstration_type_tag_assignment,expiration_date,tag_pivot:Managed Care,From pgm_dtl_tag_mapping.csv
+mdcd_mc_pgm_dtl,,demonstration_type_tag_assignment,tag_name_id,constant,"Constant per source mdcd_*_pgm_dtl table (pgm_dtl_tag_mapping.csv)"
+mdcd_mc_pgm_dtl,,demonstration_type_tag_assignment,tag_type_id,constant,"Constant per source mdcd_*_pgm_dtl table (pgm_dtl_tag_mapping.csv)"
+mdcd_dlvrbl_cmt,mdcd_dlvrbl_cmt_id,private_comment,id,id_map,"Minted UUID via migration._id_map_mdcd_dlvrbl_cmt (stable per legacy comment)"
+mdcd_dlvrbl_cmt,mdcd_dlvrbl_id,private_comment,deliverable_id,derive,"mdcd_dlvrbl_cmt.mdcd_dlvrbl_id -> migration._id_map_mdcd_dlvrbl (deliverable scope)"
+mdcd_dlvrbl_cmt,user_id,private_comment,author_user_id,derive,"mdcd_dlvrbl_cmt.user_id -> migration._id_map_users"
+mdcd_dlvrbl_cmt,,private_comment,author_person_type_id,derive,"Author -> person_type via stg.users_resolved; private requires a CMS person_type (cms_user_person_type_limit)"
+mdcd_dlvrbl_cmt,cmt_txt,private_comment,content,comment_route,"btrim(cmt_txt); routed private by crosswalk_comment_origin(cmt_orgn_cd) or the CMS-author default (gated until crosswalk authored)"
+mdcd_dlvrbl_cmt,cmt_orgn_cd,private_comment,,comment_route,"Routing key -> mysql_raw.crosswalk_comment_origin {private,public}; gated, default private for CMS authors"
+mdcd_dlvrbl_cmt,cmt_aftr_acptd_ind,,,drop,"After-accepted flag; no DEMOS target (SME to confirm)"
+mdcd_dlvrbl_cmt,mdcd_dlvrbl_cmt_id,public_comment,id,id_map,"Minted UUID via migration._id_map_mdcd_dlvrbl_cmt (same legacy comment, public route)"
+mdcd_dlvrbl_cmt,mdcd_dlvrbl_id,public_comment,deliverable_id,derive,"mdcd_dlvrbl_cmt.mdcd_dlvrbl_id -> migration._id_map_mdcd_dlvrbl (deliverable scope)"
+mdcd_dlvrbl_cmt,user_id,public_comment,author_user_id,derive,"mdcd_dlvrbl_cmt.user_id -> migration._id_map_users"
+mdcd_dlvrbl_cmt,cmt_txt,public_comment,content,comment_route,"btrim(cmt_txt); routed public by crosswalk_comment_origin(cmt_orgn_cd) or the state-author default"
+mdcd_dlvrbl_paper_cmt,mdcd_dlvrbl_paper_cmt_id,private_comment,id,id_map,"Minted UUID via migration._id_map_mdcd_dlvrbl_paper_cmt"
+mdcd_dlvrbl_paper_cmt,mdcd_dlvrbl_paper_id,private_comment,deliverable_id,derive,"paper -> mdcd_dlvrbl_paper.mdcd_dlvrbl_id -> migration._id_map_mdcd_dlvrbl"
+mdcd_dlvrbl_paper_cmt,user_id,private_comment,author_user_id,derive,"mdcd_dlvrbl_paper_cmt.user_id -> migration._id_map_users"
+mdcd_dlvrbl_paper_cmt,cmt_txt,private_comment,content,copy,"btrim(cmt_txt); no cmt_orgn_cd -> author-default route (private for CMS authors)"
+email_hstry,email_hstry_id,,,drop,Notification machinery; no DEMOS counterpart
+email_hstry,send_dt,,,drop,Notification machinery; no DEMOS counterpart
+users,id,person,id,id_map,UUID minted per legacy user via migration._id_map_users; reused as person.id and users.id
+users,id,users,id,id_map,Same UUID as person.id (shared identity per composite FK)
+users,dateCreated,person,created_at,cast,timestamp -> timestamptz
+users,dateCreated,users,created_at,cast,timestamp -> timestamptz
+users,updated_at,person,updated_at,cast,COALESCE updated_at else dateCreated; timestamp -> timestamptz
+users,updated_at,users,updated_at,cast,COALESCE updated_at else dateCreated; timestamp -> timestamptz
+users,username,users,username,copy,Direct copy; source UNIQUE
+users,,users,person_type_id,derive,"Copied from the person derivation (user_role_asgnmt + role crosswalk)"
+users,,users,is_migrated_from_pmda,constant,"Constant TRUE; every loaded user is a PMDA migration (20260623222056_add_migrated_user_features)"
+users,,users,has_logged_in,constant,"Constant FALSE; migrated users have not logged into DEMOS yet (app flips on first Cognito login)"
+users,firstName,person,first_name,copy,Direct copy
+users,lastName,person,last_name,copy,Direct copy
+users,email,person,email,copy,"Direct copy; the user filter guarantees a present valid email"
+users,euaId,person,person_type_id,derive,No-role fallback CMS-vs-state signal (present->cms-user, absent->state-user); finalized by CMS IDM
+user_role_asgnmt,role_cd,person,person_type_id,derive,Primary person_type signal via crosswalk_role_person_type; most-privileged role wins
+user_role_asgnmt,role_cd,system_role_assignment,role_id,crosswalk:system_role,System roles only (code 1 Internal Administrator->Admin User; code 4 State User->State User)
+user_role_asgnmt,user_id,system_role_assignment,person_id,id_map,"user_role_asgnmt user -> migration._id_map_users"
+user_role_asgnmt,,system_role_assignment,grant_level_id,derive,"crosswalk_system_role.grant_level_id (constant 'System'); validated by sql/04_crosswalks/45_system_role_check.sql"
+user_role_asgnmt,,system_role_assignment,person_type_id,derive,"crosswalk_system_role.person_type_id (e.g. demos-admin); JOIN-guarded against person(id, person_type_id)"
+mdcd_demo,proj_ofcr_user_id,demonstration_role_assignment,person_id,crosswalk:demonstration_role,Project Officer (PRIMARY); person via _id_map_users; demonstration via _id_map_demo
+mdcd_demo,bkup_proj_ofcr_user_id,demonstration_role_assignment,person_id,crosswalk:demonstration_role,Project Officer (non-primary); source NOT NULL DEFAULT 0 so 0 dropped
+mdcd_demo,ro_fincl_lead_user_id,demonstration_role_assignment,person_id,crosswalk:demonstration_role,Financial Lead folds to Project Officer
+mdcd_demo,tchncl_drctr_user_id,demonstration_role_assignment,person_id,crosswalk:demonstration_role,Generic Technical Director -> Policy Technical Director (Rule A)
+mdcd_demo,mntrg_eval_tchncl_drctr_user_id,demonstration_role_assignment,person_id,crosswalk:demonstration_role,Monitoring & Evaluation Technical Director
+mdcd_demo,ro_mntrg_lead_user_id,demonstration_role_assignment,person_id,crosswalk:demonstration_role,Monitoring Lead folds to M&E Technical Director
+mdcd_demo,anlyst_user_id,demonstration_role_assignment,person_id,crosswalk:demonstration_role,Primary analyst -> DDME Analyst
+mdcd_demo,anlyst_scndry_user_id,demonstration_role_assignment,person_id,crosswalk:demonstration_role,Secondary analyst -> DDME Analyst
+mdcd_demo,mc_anlyst_id,demonstration_role_assignment,person_id,crosswalk:demonstration_role,Managed Care analyst folds to DDME Analyst
+mdcd_demo,hcbs_anlyst_id,demonstration_role_assignment,person_id,crosswalk:demonstration_role,HCBS analyst folds to DDME Analyst
+mdcd_demo,state_prmry_poc_user_id,demonstration_role_assignment,person_id,crosswalk:demonstration_role,State Point of Contact (state-scoped via person_state)
+mdcd_demo,state_scndry_poc_user_id,demonstration_role_assignment,person_id,crosswalk:demonstration_role,State Point of Contact
+mdcd_demo,state_3rd_poc_user_id,demonstration_role_assignment,person_id,crosswalk:demonstration_role,State Point of Contact
+mdcd_demo,state_4th_poc_user_id,demonstration_role_assignment,person_id,crosswalk:demonstration_role,State Point of Contact
+mdcd_demo,state_5th_poc_user_id,demonstration_role_assignment,person_id,crosswalk:demonstration_role,State Point of Contact
+mdcd_demo,mdcd_demo_id,demonstration_role_assignment,demonstration_id,id_map,"The demonstration carrying the POC column, via mdcd_demo -> migration._id_map_demo"
+mdcd_demo,,demonstration_role_assignment,role_id,derive,"crosswalk_demonstration_role.role_id from the source POC/role column (sql/04_crosswalks/46_demonstration_role.sql)"
+mdcd_demo,,demonstration_role_assignment,grant_level_id,derive,"crosswalk_demonstration_role.grant_level_id (constant 'Demonstration'); JOIN-validated against role(id, grant_level_id)"
+mdcd_demo,,demonstration_role_assignment,state_id,derive,"The demonstration's own state_id (the assignment's state IS the demo's state); JOIN-guarded against person_state"
+mdcd_demo,,demonstration_role_assignment,person_type_id,derive,"The assigned person's derived person_type_id; JOIN-guarded against role_person_type(role_id, person_type_id)"
+mdcd_demo,proj_ofcr_user_id,primary_demonstration_role_assignment,person_id,crosswalk:demonstration_role,Primary Project Officer per demonstration (is_primary tuple)
+mdcd_demo,mdcd_demo_id,primary_demonstration_role_assignment,demonstration_id,id_map,"The demonstration of the is_primary Project Officer tuple (a subset of demonstration_role_assignment)"
+mdcd_demo,,primary_demonstration_role_assignment,role_id,derive,"crosswalk_demonstration_role.role_id for the is_primary proj_ofcr_user_id tuple"
+users,password,,,drop,Legacy auth hash; Cognito owns authentication
+users,remember_token,,,drop,Session token; secret
+users,api_tokn_cd,,,drop,Legacy API token; secret
+users,phone,,,drop,No DEMOS target column
+users,lastAccess,,,drop,No DEMOS target column
+users,show_login_dshbd_ind,,,drop,No DEMOS target column
+users,remote,,,drop,No DEMOS target column
+users,deleted,,,drop,Not carried; all real users are migrated incl. deleted/inactive
+users,deleted_at,,,drop,Not carried; all real users are migrated incl. deleted/inactive
+users,active,,,drop,Not carried; all real users are migrated incl. deleted/inactive
+users,testing_user_ind,,,drop,Unusable (always 0); test accounts screened by username/email + _drop_ids

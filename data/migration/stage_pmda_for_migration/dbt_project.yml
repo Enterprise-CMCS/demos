@@ -1,0 +1,21 @@
+name: 'stage_pmda_for_migration'
+version: '1.0.0'
+profile: 'stage_pmda_for_migration'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  stage_pmda_for_migration:
+    +materialized: table
+
+flags:
+  partial_parse: false

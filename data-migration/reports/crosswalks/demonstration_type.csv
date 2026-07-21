@@ -1,0 +1,64 @@
+legacy_cd,legacy_name,demos_text_id,notes
+0,Not Applicable,,placeholder code; not a demonstration type -- no assignment; filter and flag
+AC,Aggregate Cap,Aggregate Cap,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+AHEAD,CMMI - AHEAD,CMMI - AHEAD,identity on mdcd_demo_type_name == demos_app.tag_name.id
+AL,Annual Limits,Annual Limits,identity on mdcd_demo_type_name == demos_app.tag_name.id
+APPK,PHE-Appendix K,PHE-Appendix K,identity on mdcd_demo_type_name == demos_app.tag_name.id
+BE,Beneficiary Engagement,Beneficiary Engagement,identity on mdcd_demo_type_name == demos_app.tag_name.id
+BH,Behavioral Health,Behavioral Health,identity on mdcd_demo_type_name == demos_app.tag_name.id
+BHP,Basic Health Plan (BHP),Basic Health Plan (BHP),identity on mdcd_demo_type_name == demos_app.tag_name.id
+CE,Community Engagement,Community Engagement,identity on mdcd_demo_type_name == demos_app.tag_name.id
+CELIG,Continuous Eligibility,Continuous Eligibility,identity on mdcd_demo_type_name == demos_app.tag_name.id
+CHIP,Children's Health Insurance Program (CHIP),Children's Health Insurance Program (CHIP),identity on mdcd_demo_type_name == demos_app.tag_name.id
+CM,Contingency Management,Contingency Management,identity on mdcd_demo_type_name == demos_app.tag_name.id
+COV,PHE-COVID-19,PHE-COVID-19,identity on mdcd_demo_type_name == demos_app.tag_name.id
+DENT,Dental,Dental,identity on mdcd_demo_type_name == demos_app.tag_name.id
+DSHP,Designated State Health Programs (DSHP),Designated State Health Programs (DSHP),identity on mdcd_demo_type_name == demos_app.tag_name.id
+DSRIP,Delivery System Reform Incentive Payment (DSRIP),Delivery System Reform Incentive Payment (DSRIP),identity on mdcd_demo_type_name == demos_app.tag_name.id
+ENC,Enrollment Cap,Enrollment Cap,identity on mdcd_demo_type_name == demos_app.tag_name.id
+ESRD,End-Stage Renal Disease (ESRD),End-Stage Renal Disease (ESRD),identity on mdcd_demo_type_name == demos_app.tag_name.id
+ESUP,Employment Supports,Employment Supports,identity on mdcd_demo_type_name == demos_app.tag_name.id
+EXC,Expenditure Cap,Expenditure Cap,identity on mdcd_demo_type_name == demos_app.tag_name.id
+FERT,Reproductive Health: Fertility,Reproductive Health: Fertility,identity on mdcd_demo_type_name == demos_app.tag_name.id
+FFCY,Former Foster Care Youth (FFCY),Former Foster Care Youth (FFCY),identity on mdcd_demo_type_name == demos_app.tag_name.id
+FP,Reproductive Health: Family Planning,Reproductive Health: Family Planning,identity on mdcd_demo_type_name == demos_app.tag_name.id
+GPP,Global Payment Program (GPP),Global Payment Program (GPP),identity on mdcd_demo_type_name == demos_app.tag_name.id
+HBI,Healthy Behavior Incentives,Healthy Behavior Incentives,identity on mdcd_demo_type_name == demos_app.tag_name.id
+HCBS,Home Community Based Services (HCBS),Home Community Based Services (HCBS),identity on mdcd_demo_type_name == demos_app.tag_name.id
+HEQ,Health Equity,Health Equity,identity on mdcd_demo_type_name == demos_app.tag_name.id
+HIV,HIV,HIV,identity on mdcd_demo_type_name == demos_app.tag_name.id
+HRSN,Health-Related Social Needs (HRSN),Health-Related Social Needs (HRSN),identity on mdcd_demo_type_name == demos_app.tag_name.id
+HYDE,Reproductive Health: Hyde,Reproductive Health: Hyde,identity on mdcd_demo_type_name == demos_app.tag_name.id
+IncK,CMMI - Integrated Care for Kids (IncK),CMMI - Integrated Care for Kids (IncK),identity on mdcd_demo_type_name == demos_app.tag_name.id
+LEX,Lead Exposure,Lead Exposure,identity on mdcd_demo_type_name == demos_app.tag_name.id
+LFLI,Lifetime Limits,Lifetime Limits,identity on mdcd_demo_type_name == demos_app.tag_name.id
+LTSS,Long-Term Services and Supports (LTSS),Long-Term Services and Supports (LTSS),identity on mdcd_demo_type_name == demos_app.tag_name.id
+MC,Managed Care,Managed Care,identity on mdcd_demo_type_name == demos_app.tag_name.id
+MCPAW,Marketplace Coverage/Premium Assistance Wrap,Marketplace Coverage/Premium Assistance Wrap,identity on mdcd_demo_type_name == demos_app.tag_name.id
+MH,Reproductive Health: Maternal Health,Reproductive Health: Maternal Health,identity on mdcd_demo_type_name == demos_app.tag_name.id
+MOM,CMMI - Maternal Opioid Misuse (MOM),CMMI - Maternal Opioid Misuse (MOM),identity on mdcd_demo_type_name == demos_app.tag_name.id
+NAGE,New Adult Group Expansion,New Adult Group Expansion,identity on mdcd_demo_type_name == demos_app.tag_name.id
+NELIG,Non-Eligibility Period,Non-Eligibility Period,identity on mdcd_demo_type_name == demos_app.tag_name.id
+NEMT,Non-Emergency Medical Transportation (NEMT),Non-Emergency Medical Transportation (NEMT),identity on mdcd_demo_type_name == demos_app.tag_name.id
+OTHR,Other,,"no seeded 'Other' demonstration-type tag; SME: out-of-scope"
+PAEX,Partial Expansion of the New Adult Group,Partial Expansion of the New Adult Group,identity on mdcd_demo_type_name == demos_app.tag_name.id
+PCAP,Provider Cap,Provider Cap,identity on mdcd_demo_type_name == demos_app.tag_name.id
+PHAR,Pharmacy,Pharmacy,identity on mdcd_demo_type_name == demos_app.tag_name.id
+PPE,Reproductive Health: Post-Partum Extension,Reproductive Health: Post-Partum Extension,identity on mdcd_demo_type_name == demos_app.tag_name.id
+PR,Provider Restriction,Provider Restriction,identity on mdcd_demo_type_name == demos_app.tag_name.id
+PRCS,Premiums/Cost-Sharing,Premiums/Cost-Sharing,identity on mdcd_demo_type_name == demos_app.tag_name.id
+QHP,Premium Assistance/Employer-Sponsored Health Insurance (ESI)/Qualified Health Plan (QHP),Premium Assistance/Employer-Sponsored Health Insurance (ESI)/Qualified Health Plan (QHP),identity on mdcd_demo_type_name == demos_app.tag_name.id
+RAD,Reproductive Health: RAD,Reproductive Health: RAD,identity on mdcd_demo_type_name == demos_app.tag_name.id
+RENT,ReEntry,ReEntry,identity on mdcd_demo_type_name == demos_app.tag_name.id
+RETRO,Retroactive Eligibility,Retroactive Eligibility,identity on mdcd_demo_type_name == demos_app.tag_name.id
+RMIT,PHE-Risk Mitigation,PHE-Risk Mitigation,identity on mdcd_demo_type_name == demos_app.tag_name.id
+ROP,PHE-Reasonable Opportunity Period (ROP),PHE-Reasonable Opportunity Period (ROP),identity on mdcd_demo_type_name == demos_app.tag_name.id
+SMI,Serious Mental Illness (SMI),Serious Mental Illness (SMI),identity on mdcd_demo_type_name == demos_app.tag_name.id
+SPNE,Special Needs,Special Needs,identity on mdcd_demo_type_name == demos_app.tag_name.id
+SUD,Substance Use Disorder (SUD),Substance Use Disorder (SUD),identity on mdcd_demo_type_name == demos_app.tag_name.id
+TEX,Targeted Population Expansion,Targeted Population Expansion,identity on mdcd_demo_type_name == demos_app.tag_name.id
+TRIB,Tribal,Tribal,identity on mdcd_demo_type_name == demos_app.tag_name.id
+UC,Uncompensated Care,Uncompensated Care,identity on mdcd_demo_type_name == demos_app.tag_name.id
+VAC,PHE-Vaccine Coverage,PHE-Vaccine Coverage,identity on mdcd_demo_type_name == demos_app.tag_name.id
+VBC,Value Based Care (VBC),Value Based Care (VBC),identity on mdcd_demo_type_name == demos_app.tag_name.id
+VIS,Vision,Vision,identity on mdcd_demo_type_name == demos_app.tag_name.id

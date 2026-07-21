@@ -1,0 +1,162 @@
+= How-to: review a budget-neutrality JSONB payload
+
+The MySQL budget-neutrality machinery (~12 `bdgt_ntrlty_*` tables)
+consolidates into one `migration.bn_workbook_detail` row per BN file (a
+migration-private parity table), with the detailed figures carried in a
+JSONB column called `validation_data`. The corresponding live
+`demos_app.budget_neutrality_workbook` row is created per BN file but
+loaded with `validation_status_id='Pending'` and
+`validation_data='{}'::jsonb`; DEMOS later writes that live column. Your
+review of the migration-private aggregate is the source of truth for
+whether that JSONB shape is faithful to the source spreadsheet.
+
+== Where the schema lives
+
+`reports/jsonb_schemas/budget_neutrality.schema.json` -- a JSON Schema
+(draft 2020-12). It is already *promoted*: `migrate seeds` loads every
+`reports/jsonb_schemas/*.schema.json` into the `migration.jsonb_schemas`
+registry, and a CONSTRAINT TRIGGER validates
+`migration.bn_workbook_detail.validation_data` against it (no trigger is
+wired on any live `demos_app.*` column). See
+xref:../developer/reference-jsonb-schema-registry.adoc[the JSONB schema
+registry] for the mechanism.
+
+[NOTE]
+====
+The BN schema ships already promoted -- there is no
+`budget_neutrality.draft.json` to sign in place. Treat the live
+`.schema.json` as the source of truth; any revision follows the
+revise-in-registry path in
+xref:../developer/howto-promote-jsonb-schema.adoc[promote a JSONB
+schema], not a fresh draft cycle.
+====
+
+== The shape, in plain English
+
+The payload is an object with two required keys -- `version` (a
+`"<major>.<minor>"` string) and `demo_years` (an array) -- plus an
+optional `workbook_origin` (the source BN filename from
+`mdcd_dlvrbl_fil_doc.fil_nm`) and an optional `summary`.
+
+Each entry in `demo_years` is one demonstration year:
+
+* `demo_yr_id` and `demo_yr_num` -- the year's id and ordinal (required).
+* `begin_dt` / `end_dt` -- the year's date window (optional).
+* `eligibility_groups` -- an array, one object per Medicaid eligibility
+  group (required). Each group carries:
+** `mdcd_elgblty_grp_id` -- the group id (required); `elgblty_grp_name`
+   optional.
+** `actuals` and `projected` -- each an object with `member_months`,
+   `expenditures`, and a `by_month` array of `{month (1-12),
+   member_months, expenditures}` rows.
+* `waivers` -- optional array of `{wvr_typ_cd, wvr_amt, wvr_basis}`.
+* `spending_limits` -- optional array of `{limit_typ_cd, limit_amt}`.
+
+The top-level `summary` (optional) rolls the workbook up into
+`total_with_waiver`, `total_without_waiver`, and `savings`.
+
+All money and member-month figures are JSON `number`s (not
+`{value, currency}` objects).
+
+== Review workflow
+
+. Pick 5 representative BN files (covering different states, year
+  ranges, and eligibility-group counts).
+. For each, ask the engineer to print the `validation_data` payload
+  pretty-formatted (`jq` on a row dumped from `psql`).
+. Compare against the source MySQL roll-up (the `bdgt_ntrlty_*` tables).
+. Flag any discrepancy:
+** missing demonstration year,
+** missing eligibility group,
+** wrong `member_months` / `expenditures` sum,
+** wrong `by_month` breakdown,
+** wrong waiver or spending-limit amount.
+
+== The schema fields to watch
+
+* `required` -- `version` + `demo_years` at the top level;
+  `demo_yr_id`, `demo_yr_num`, `eligibility_groups` per year;
+  `mdcd_elgblty_grp_id`, `actuals`, `projected` per group; `month`,
+  `member_months`, `expenditures` per `by_month` row.
+* `version` `pattern` -- `^\d+\.\d+$` catches a malformed version
+  string.
+* `demo_yr_num` `minimum: 1` and `by_month.month` `minimum: 1,
+  maximum: 12` -- catch out-of-range ordinals and months.
+
+== Sample payload (illustrative)
+
+[source,json]
+----
+{
+  "version": "1.0",
+  "workbook_origin": "MA_BN_2024.xlsx",
+  "demo_years": [
+    {
+      "demo_yr_id": 101,
+      "demo_yr_num": 1,
+      "begin_dt": "2024-01-01",
+      "end_dt": "2024-12-31",
+      "eligibility_groups": [
+        {
+          "mdcd_elgblty_grp_id": 5,
+          "elgblty_grp_name": "TANF Adults",
+          "actuals": {
+            "member_months": 12345,
+            "expenditures": 10000000.00,
+            "by_month": [
+              { "month": 1, "member_months": 1020, "expenditures": 820000.00 }
+            ]
+          },
+          "projected": {
+            "member_months": 12500,
+            "expenditures": 12000000.00,
+            "by_month": [
+              { "month": 1, "member_months": 1040, "expenditures": 1000000.00 }
+            ]
+          }
+        }
+      ],
+      "waivers": [
+        { "wvr_typ_cd": "1115", "wvr_amt": 500000.00, "wvr_basis": "PMPM" }
+      ],
+      "spending_limits": [
+        { "limit_typ_cd": "AGGREGATE", "limit_amt": 12000000.00 }
+      ]
+    }
+  ],
+  "summary": {
+    "total_with_waiver": 12000000.00,
+    "total_without_waiver": 12500000.00,
+    "savings": 500000.00
+  }
+}
+----
+
+== Sign-off
+
+When you have reviewed five sample payloads against the source and all
+match, record your sign-off in the pull request that promotes (or
+revises) the schema. The schema is then loaded by `migrate seeds` and
+the validation trigger enforces it on every insert/update of
+`migration.bn_workbook_detail.validation_data` -- see
+xref:../developer/howto-promote-jsonb-schema.adoc[developer how-to:
+promote a JSONB schema].
+
+== Related
+
+* xref:explanation-data-shape-decisions.adoc[Data-shape decisions]
+* xref:../developer/reference-jsonb-schema-registry.adoc[JSONB schema
+  registry]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:howto-review-pgm-dtl-tag-mapping.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-static-constraint-tables.adoc[next >]
+|===
+endif::[]
+// docnav-end
