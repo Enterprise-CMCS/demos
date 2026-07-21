@@ -5,7 +5,8 @@ import { mockPeople, MockPerson } from "./personMocks";
 import { mockStates } from "./stateMocks";
 import { getMockPersonType, isMockUnauthenticated } from "config/env";
 import { GET_CURRENT_USER_QUERY } from "components/user/UserProvider";
-import { ManagedUser, USER_MANAGEMENT_QUERY } from "pages/admin/UserManagement";
+import { ManagedUser } from "components/table/columns/UserManagementColumns";
+import { USER_MANAGEMENT_QUERY } from "components/table/tables/UserManagementTable";
 
 export type MockUser = Pick<User, "id" | "username"> & {
   person: MockPerson;
@@ -51,14 +52,12 @@ export const mockUsers: MockUser[] = [
   { id: "10", username: "david.chen", person: mockPeople[9] },
 ];
 
-// Covers each display case the User Management table has to handle: all-states
-// roles, a state user with several states, a state user with none ("-"), and a
-// user who has never logged in ("-").
+// Covers each display case: all-states, multi-state, no states, never logged in.
 const mockManagedUsers: ManagedUser[] = [
   {
     id: "1",
     lastLogin: new Date("2026-04-03T12:00:00.000Z"),
-    person: { ...mockPeople[0], states: [] },
+    person: { ...mockPeople[0], personType: "demos-cms-user", states: [] },
   },
   {
     id: "2",
