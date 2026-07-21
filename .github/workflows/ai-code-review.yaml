@@ -1,9 +1,16 @@
 name: AI Code Review
 on:
   pull_request:
+    types: 
+      - opened
+      - reopened
+      - ready_for_review
+      - review_requested
   workflow_dispatch:
   issue_comment:
-    types: [created, edited]
+    types: 
+      - created
+      - edited
 
 jobs:
   pr_agent:
@@ -48,6 +55,6 @@ jobs:
           github_action_config.auto_review: "true"
           github_action_config.auto_describe: "false"
           github_action_config.auto_improve: "true"
-          github_action_config.pr_actions: '["opened", "reopened", "ready_for_review", "review_requested", "synchronize"]'
+          github_action_config.pr_actions: '["opened", "reopened", "ready_for_review", "review_requested"]'
           config.custom_model_max_tokens: "128000"
           pr_code_suggestions.commitable_code_suggestions: "true"
