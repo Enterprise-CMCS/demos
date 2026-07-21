@@ -6,6 +6,19 @@ on:
 jobs:
   pr_agent:
     runs-on: ubuntu-latest
+    if: >-
+      !github.event.pull_request.draft &&
+      (
+        contains(github.event.pull_request.body || '', '- [x] Run PR-Agent review') ||
+        contains(github.event.pull_request.body || '', '- [X] Run PR-Agent review')
+      ) &&
+      (
+        github.event.action != 'edited' ||
+        (
+          !contains(github.event.changes.body.from || '', '- [x] Run PR-Agent review') &&
+          !contains(github.event.changes.body.from || '', '- [X] Run PR-Agent review')
+        )
+      )
     permissions:
       issues: write
       pull-requests: write
@@ -32,10 +45,9 @@ jobs:
           AWS_REGION_NAME: us-east-1
           config.model: "bedrock/us.amazon.nova-2-lite-v1:0"
           config.fallback_models: '["bedrock/us.amazon.nova-2-lite-v1:0"]'
-          github_action_config.auto_review: "true" # enable\disable auto review
-          github_action_config.auto_describe: "true" # enable\disable auto describe
-          github_action_config.auto_improve: "true" # enable\disable auto improve
+          github_action_config.auto_review: "true"
+          github_action_config.auto_describe: "false"
+          github_action_config.auto_improve: "true"
           github_action_config.pr_actions: '["opened", "reopened", "ready_for_review", "review_requested", "synchronize"]'
-          github_action_config.push_commands = '["/review"], ["/improve"]':
           config.custom_model_max_tokens: "128000"
           pr_code_suggestions.commitable_code_suggestions: "true"
