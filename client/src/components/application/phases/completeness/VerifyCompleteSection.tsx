@@ -222,7 +222,11 @@ export const VerifyCompleteSection = ({
           size="small"
           disabled={!finishIsEnabled()}
           onClick={handleFinishCompleteness}
-          eagerTooltip={!finishIsEnabled() && !completenessComplete ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined}
+          eagerTooltip={
+            !finishIsEnabled() && !completenessComplete
+              ? MISSING_REQUIRED_SECTIONS_TOOLTIP
+              : undefined
+          }
         >
           Finish
         </Button>

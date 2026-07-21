@@ -277,7 +277,9 @@ export const ConceptPhase = ({
           aria-label="Finish this section"
           onClick={onFinish}
           disabled={!isFinishEnabled}
-          eagerTooltip={!isFinishEnabled && !isPhaseFinalized ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined}
+          eagerTooltip={
+            !isFinishEnabled && !isPhaseFinalized ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined
+          }
         >
           Finish
         </Button>

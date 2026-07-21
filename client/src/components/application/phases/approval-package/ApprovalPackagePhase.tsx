@@ -93,7 +93,9 @@ export const ApprovalPackagePhase = ({
           size="small"
           disabled={!finishEnabled}
           onClick={handleFinish}
-          eagerTooltip={!finishEnabled && !isReadonly ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined}
+          eagerTooltip={
+            !finishEnabled && !isReadonly ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined
+          }
         >
           Finish
         </Button>

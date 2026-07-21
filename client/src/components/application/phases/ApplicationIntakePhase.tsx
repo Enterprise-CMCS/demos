@@ -471,7 +471,11 @@ export const ApplicationIntakePhase = ({
           onClick={onFinishButtonClick}
           disabled={!isFinishButtonEnabled}
           size="small"
-          eagerTooltip={!isFinishButtonEnabled && !isPhaseFinalized ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined}
+          eagerTooltip={
+            !isFinishButtonEnabled && !isPhaseFinalized
+              ? MISSING_REQUIRED_SECTIONS_TOOLTIP
+              : undefined
+          }
         >
           Finish
         </Button>

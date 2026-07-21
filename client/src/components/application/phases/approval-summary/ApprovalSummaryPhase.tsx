@@ -553,7 +553,11 @@ export const ApprovalSummaryPhase = ({
           onClick={() =>
             showConfirmApproveDialog(handleApproveApplication, initialFormData.applicationType)
           }
-          eagerTooltip={!canApproveApplication && !isDemonstrationApproved ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined}
+          eagerTooltip={
+            !canApproveApplication && !isDemonstrationApproved
+              ? MISSING_REQUIRED_SECTIONS_TOOLTIP
+              : undefined
+          }
         >
           Approve {capitalizedType}
         </Button>
