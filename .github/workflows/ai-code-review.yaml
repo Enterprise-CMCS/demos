@@ -2,6 +2,8 @@ name: AI Code Review
 on:
   pull_request:
   workflow_dispatch:
+  issue_comment:
+    types: [created, edited]
 
 jobs:
   pr_agent:
