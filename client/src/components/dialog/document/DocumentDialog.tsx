@@ -419,9 +419,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   };
 
   const handleUpload = async () => {
-    // Attempt to upload the document. A throw here (failed S3 PUT, mutation error, failed refetch)
-    // must never leave the dialog in "uploading" -- that state disables both Cancel and Upload, so
-    // the only way out would be a page refresh.
+    // "uploading" disables both Cancel and Upload, so a throw here must never leave it set.
     setDocumentDialogState("uploading");
     let uploadResult: DocumentUploadResult;
     try {

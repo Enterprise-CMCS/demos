@@ -116,11 +116,8 @@ export const AddDocumentToDeliverableDialog: React.FC<AddDocumentToDeliverableDi
       return "virus-scan-failed";
     }
 
-    // Budget Neutrality validation runs asynchronously server-side and can take far longer than a
-    // dialog should stay open (GuardDuty latency alone is unbounded). Blocking on it here left the
-    // modal spinning long after the document had already landed in the table. The same ruleset runs
-    // client-side via useBNWorkbookPreValidation before upload is permitted, so nothing is lost by
-    // letting the server-side pass complete in the background.
+    // BN validation finishes server-side on its own schedule; useBNWorkbookPreValidation already
+    // ran the same ruleset before upload, so the dialog doesn't wait on it.
     if (refetchQueries) {
       await client.refetchQueries({ include: refetchQueries });
     }
