@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "demos://jsonb/budget_neutrality.json",
+  "title": "Budget Neutrality Workbook validation_data",
+  "description": "Aggregated from MySQL bdgt_ntrlty_* tables, grouped by demonstration year. Promoted schema; loaded into migration.jsonb_schemas by `migrate seeds` and enforced on demos_app.budget_neutrality_workbook.validation_data.",
+  "type": "object",
+  "required": ["demo_years", "version"],
+  "properties": {
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+$" },
+    "workbook_origin": {
+      "type": "string",
+      "description": "Source filename of the BN workbook in MySQL (mdcd_dlvrbl_fil_doc.fil_nm)"
+    },
+    "demo_years": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["demo_yr_id", "demo_yr_num", "eligibility_groups"],
+        "properties": {
+          "demo_yr_id": { "type": "integer" },
+          "demo_yr_num": { "type": "integer", "minimum": 1 },
+          "begin_dt": { "type": "string", "format": "date" },
+          "end_dt": { "type": "string", "format": "date" },
+          "eligibility_groups": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["mdcd_elgblty_grp_id", "actuals", "projected"],
+              "properties": {
+                "mdcd_elgblty_grp_id": { "type": "integer" },
+                "elgblty_grp_name": { "type": "string" },
+                "actuals": {
+                  "type": "object",
+                  "properties": {
+                    "member_months": { "type": "number" },
+                    "expenditures": { "type": "number" },
+                    "by_month": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": ["month", "member_months", "expenditures"],
+                        "properties": {
+                          "month": { "type": "integer", "minimum": 1, "maximum": 12 },
+                          "member_months": { "type": "number" },
+                          "expenditures": { "type": "number" }
+                        }
+                      }
+                    }
+                  }
+                },
+                "projected": {
+                  "type": "object",
+                  "properties": {
+                    "member_months": { "type": "number" },
+                    "expenditures": { "type": "number" },
+                    "by_month": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": ["month", "member_months", "expenditures"],
+                        "properties": {
+                          "month": { "type": "integer", "minimum": 1, "maximum": 12 },
+                          "member_months": { "type": "number" },
+                          "expenditures": { "type": "number" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "waivers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "wvr_typ_cd": { "type": "string" },
+                "wvr_amt": { "type": "number" },
+                "wvr_basis": { "type": "string" }
+              }
+            }
+          },
+          "spending_limits": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "limit_typ_cd": { "type": "string" },
+                "limit_amt": { "type": "number" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "properties": {
+        "total_with_waiver": { "type": "number" },
+        "total_without_waiver": { "type": "number" },
+        "savings": { "type": "number" }
+      }
+    }
+  }
+}

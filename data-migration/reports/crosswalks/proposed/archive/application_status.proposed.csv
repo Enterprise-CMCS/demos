@@ -1,0 +1,12 @@
+legacy_int_cd,legacy_name,proposed_demos_text_id,confidence,sme_confirmed_value,notes
+1,Pre-Submission Development,Pre-Submission,high,Pre-Submission,DDL-confirmed direct match (application_status seed)
+2,Under Review,Under Review,high,Under Review,DDL-confirmed direct match (application_status seed)
+3,In Clearance,Under Review,low,Under Review,"DDL-confirmed valid application_status; clearance is a review sub-stage, not a stored status"
+4,On Hold - Pending Policy Decision,On-hold,high,On-hold,DDL-confirmed direct match (application_status seed)
+5,On Hold - State Request,On-hold,high,On-hold,DDL-confirmed direct match (application_status seed)
+6,Denied,Denied,high,Denied,DDL-confirmed direct match (application_status seed)
+7,Disapproved,Denied,medium,Denied,"DDL-confirmed valid application_status; Disapproved approx Denied (semantic approximation)"
+8,Withdrawn,Withdrawn,high,Withdrawn,DDL-confirmed direct match (application_status seed)
+9,Approved,Approved,high,Approved,DDL-confirmed direct match (application_status seed)
+10,Indefinite Hold,On-hold,high,On-hold,DDL-confirmed direct match (application_status seed)
+11,On Hold - Workplan Queue,On-hold,high,On-hold,DDL-confirmed valid application_status (On-hold exists in seed)

@@ -1,0 +1,4 @@
+legacy_int_cd,legacy_name,proposed_demos_text_id,confidence,sme_confirmed_value,notes
+1,Demonstration,Demonstration,high,Demonstration,DDL-confirmed direct match (application_type seed)
+2,Amendment,Amendment,high,Amendment,DDL-confirmed direct match (application_type seed)
+3,Extension,Extension,high,Extension,DDL-confirmed direct match (application_type seed)

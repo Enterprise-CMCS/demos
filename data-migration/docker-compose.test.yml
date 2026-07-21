@@ -1,0 +1,66 @@
+# Integration-tier engines for the gated `integration`-marked tests.
+#
+# Mirrors the real cutover topology in miniature: a MySQL source (RDS in prod),
+# the target Postgres the migration writes (the DEMOS RDS in prod), and a second
+# "reference" Postgres standing in for the rehearsal/staging cluster the
+# prod-schema guard diffs against.
+#
+#   make compose-up        # start all three, wait for healthy
+#
+# Then build the three DSNs into a gitignored .env.test and source it. The
+# credentials are the values set in each service's `environment:` block below;
+# assemble them as `<scheme>://<user>@localhost:<port>/<db>` with the matching
+# password (same pattern as the Makefile test-db-* vars):
+#
+#   PG_TEST_DSN      -> scheme postgresql, user supabase_admin, port 55432, db harness
+#   REFERENCE_PG_URL -> scheme postgresql, user postgres,       port 55433, db reference
+#   MYSQL_URL        -> scheme mysql,       user root,           port 13306, db demos_source
+#
+#   uv run pytest -m integration
+#   make compose-down
+#
+# The tests seed their own fixtures and skip when these DSNs are unset, so the
+# default unit suite never needs Docker.
+
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: root # pragma: allowlist secret
+      MYSQL_DATABASE: demos_source
+    command: ["--default-authentication-plugin=mysql_native_password"]
+    ports:
+      - "13306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+
+  pg:
+    # supabase/postgres bundles pg_jsonschema, so the same container also backs
+    # the deeper-layer SQL harness (PG_TEST_DSN). Matches the Makefile test-db-* vars.
+    image: supabase/postgres:15.8.1.060
+    environment:
+      POSTGRES_PASSWORD: postgres # pragma: allowlist secret
+      POSTGRES_DB: harness
+    ports:
+      - "55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U supabase_admin -d harness"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+
+  reference:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres # pragma: allowlist secret
+      POSTGRES_DB: reference
+    ports:
+      - "55433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d reference"]
+      interval: 3s
+      timeout: 5s
+      retries: 20

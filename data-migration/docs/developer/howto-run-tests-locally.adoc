@@ -1,0 +1,96 @@
+= How-to: run tests locally
+
+The test suite covers everything that does not require a live
+PostgreSQL or MySQL connection.
+
+== Quick start
+
+[source,sh]
+----
+make sync           # uv sync --extra dev (creates .venv)
+make test           # pytest --cov=migration --cov-report=term-missing
+make lint           # ruff check
+make typecheck      # ty check
+----
+
+== What is covered
+
+[cols="2,4"]
+|===
+| File | Surface
+
+| `tests/test_lib.py` | Gate plumbing, `render_template` strict-undefined, `redact()`, `truncate_schema_data` identifier guards.
+| `tests/test_cli.py` | Typer command surface (every command importable, each has a docstring).
+| `tests/test_drop_list.py` | `pgloader/drop_list.txt` parser (`lib.read_drop_list` / `lib.excluding_block`).
+| `tests/test_load_delta.py` | Delta manifest parsing + freeze-instant regex validation.
+| `tests/test_flip.py` | Healthz retry behaviour + URL scheme allowlist in `flip._check_healthz`.
+| `tests/test_parity.py` | `ParityReport.overall` GREEN/RED/PENDING arithmetic.
+|===
+
+== Running a single test
+
+[source,sh]
+----
+uv run pytest tests/test_lib.py::test_render_template_strict_undefined -v
+----
+
+== Adding a test
+
+`tests/conftest.py` provides two autouse fixtures:
+
+* `tmp_state_dir` -- redirects `STATE_DIR` to a tmp path for the
+  duration of the test.
+* `reset_env_cache` -- drops the cached `Env` instance so the next
+  `Env.load()` reads `.env` (or the test's monkeypatched env) fresh.
+
+Use them; do not roll your own. Tests that touch `state/`, gates, or
+`Env` rely on these.
+
+== Coverage
+
+`pytest-cov` writes a terminal report by default. To get an HTML
+report:
+
+[source,sh]
+----
+uv run pytest --cov=migration --cov-report=html
+open htmlcov/index.html
+----
+
+== CI
+
+`.github/workflows/ci.yml` runs `uv run pytest ... --cov-fail-under=69`,
+`uv run ruff check`, and `uv run ty check` on every push and PR. These
+are the same commands behind `make test` / `make lint` / `make typecheck`,
+so green-locally implies green-CI.
+
+== Things tests do NOT cover today
+
+* Live `psql_*` integration. The `psycopg` calls are not mocked --
+  tests that need a database use the integration tier
+  (`make compose-up` then `make integration-test`, backed by
+  `docker-compose.test.yml`; gated on `MYSQL_URL` / `PG_TEST_DSN` /
+  `REFERENCE_PG_URL`).
+* Live pgloader subprocess.
+* Live DuckDB attach paths (schema snapshot, reference data, the
+  load-fidelity check). Parity itself is pure Postgres and its check
+  logic is unit-tested; only the live `psql_*` reads are deferred.
+
+== Related
+
+* xref:explanation-idempotency.adoc[Idempotency] (tests rely on
+  `tmp_state_dir`)
+* xref:reference-python-package.adoc[Python package internals]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:howto-write-a-parity-check.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-pipeline-stages.adoc[next >]
+|===
+endif::[]
+// docnav-end

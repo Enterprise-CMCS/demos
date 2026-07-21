@@ -1,0 +1,172 @@
+= How-to: promote a JSONB schema
+
+The JSONB schema registry (`migration.jsonb_schemas`) is a
+migration-private mechanism for validating a JSONB value against a
+named JSON Schema. The shared trigger body
+`migration.tg_validate_jsonb_against_registered_schema` and the
+registry table are defined in
+`sql/01_ddl_supplements/00_jsonb_schema_registry.sql`; the registry is
+populated from `reports/jsonb_schemas/*.schema.json`.
+
+[IMPORTANT]
+====
+DEMOS performs no in-database JSONB validation and owns its runtime
+JSONB columns, so this migration wires *no* CONSTRAINT TRIGGER on any
+live `demos_app.*` column. The only wired trigger is the
+budget-neutrality *parity oracle* on the migration-private
+`migration.bn_workbook_detail` table (in
+`sql/01_ddl_supplements/10_bn_workbook_detail.sql`).
+`sql/31_constraint_triggers/00_jsonb_validation.sql` is a disposition
+note only and ships no trigger.
+====
+
+All four schemas are promoted: `application_validation`,
+`budget_neutrality`, `uipath_response`, and `uipath_token_list` ship as
+`reports/jsonb_schemas/*.schema.json` and load into the registry on
+`migrate seeds`. Their *enforcement* differs: only `budget_neutrality`
+is wired (to `migration.bn_workbook_detail`, not the live
+`demos_app.budget_neutrality_workbook.validation_data` column);
+`uipath_response`, `uipath_token_list`, and `application_validation` are
+registered as reference documentation only and wire no trigger (see
+xref:reference-jsonb-schema-registry.adoc[the registry reference] for
+the per-schema disposition). Promoting a draft is a registry-only
+change: skip step 4.
+
+== Why this is a separate step
+
+Validation needs a row from `migration.jsonb_schemas`, which lives in
+a separate table. CHECK constraints can't legally consult other rows,
+so validation runs through a CONSTRAINT TRIGGER instead. Until a schema
+is in the registry, a trigger bound to it fails closed for non-NULL
+JSONB inserts and updates. *That is intentional.* The only such trigger
+today is the BN parity oracle on `migration.bn_workbook_detail`, which
+is created with the rest of `sql/01_ddl_supplements/` during
+`migrate ddl`.
+
+== Lifecycle
+
+[mermaid]
+....
+flowchart LR
+  A[Author draft.json] --> B[SME review]
+  B --> C[Rename to schema.json]
+  C --> D[Loader inserts into migration.jsonb_schemas]
+  D --> E[Trigger passes for valid JSONB]
+  E --> F[migration.revalidate_jsonb sweep]
+....
+
+== Recipe
+
+=== 1. Author the draft
+
+`reports/jsonb_schemas/<name>.draft.json` is a JSON Schema (draft
+2020-12). Drafts ship in this folder while still under review.
+
+=== 2. SME review
+
+Send the draft to the SME with three to five sample payloads. Iterate
+on the schema only.
+
+=== 3. Promote
+
+When the SME signs off:
+
+. Rename `<name>.draft.json` -> `<name>.schema.json`.
+. Re-run `make seeds`.
+
+That is the whole promotion. `migrate seeds` ends by calling
+`migration.phases.init_pg.load_jsonb_schemas`, which discovers every
+`reports/jsonb_schemas/*.schema.json`, derives the registry name from
+the filename, and upserts it into `migration.jsonb_schemas`
+(idempotently). There is no per-schema SQL file to author -- the loader
+reads the JSON in Python and binds it as a parameter, because the
+pipeline applies SQL through psycopg where a repo-relative
+`pg_read_file()` is not available.
+
+=== 4. Wire the CONSTRAINT TRIGGER (migration-private tables only)
+
+You almost never need this. The migration wires no trigger on any
+live `demos_app.*` column -- DEMOS owns those columns at runtime. The
+only wired trigger is the BN parity oracle on
+`migration.bn_workbook_detail` (in
+`sql/01_ddl_supplements/10_bn_workbook_detail.sql`). If you add another
+*migration-private* JSONB aggregate that needs shape-guarding, wire it
+the same way, against the `migration` table -- never a `demos_app`
+table:
+
+[source,sql]
+----
+DROP TRIGGER IF EXISTS <table>_<col>_schema ON migration.<table>;
+CREATE CONSTRAINT TRIGGER <table>_<col>_schema
+  AFTER INSERT OR UPDATE OF <col>
+  ON migration.<table>
+  DEFERRABLE INITIALLY IMMEDIATE
+  FOR EACH ROW
+  EXECUTE FUNCTION migration.tg_validate_jsonb_against_registered_schema(
+    '<name>', '<col>');
+----
+
+The shared trigger function short-circuits when the column is NULL,
+so nullable JSONB columns don't need any special handling here.
+`AFTER ... OF <col>` ensures the validator fires only on INSERTs and
+on UPDATEs that touch the JSONB column, so unrelated UPDATEs are not
+re-validated.
+
+=== 5. Verify
+
+`make rebuild` performs `init -> ddl -> load_full -> seeds ->
+crosswalks -> id_maps -> build -> constraints -> parity`.
+The BN parity trigger is attached during `ddl` (it ships in
+`sql/01_ddl_supplements/`); subsequent inserts and updates against
+`migration.bn_workbook_detail` are validated against the
+`budget_neutrality` schema. The `JSONB shape` parity check section in
+`reports/runs/parity_*.md` records shape conformance for that aggregate.
+While the JSONB-shape parity SQL under `sql/99_parity/` is not yet
+authored, that section shows PENDING; smoke-test by inserting a sample
+valid payload and an intentionally invalid one, and confirm the second
+is rejected with ERRCODE `check_violation`.
+
+=== 6. Re-validate existing rows
+
+After the registry change is applied, sweep historical rows with
+`migration.revalidate_jsonb(...)` -- see
+xref:howto-revalidate-jsonb.adoc[the revalidate-jsonb how-to]. The
+trigger only fires on new inserts and on UPDATEs that touch the
+JSONB column, so existing rows are otherwise untouched when a
+schema is revised.
+
+== Schemas in the registry today
+
+Pulled from `reports/jsonb_schemas/`:
+
+[cols="1,3"]
+|===
+| Name | File
+
+| `application_validation` | `application_validation.schema.json`
+| `budget_neutrality` | `budget_neutrality.schema.json`
+| `uipath_response` | `uipath_response.schema.json`
+| `uipath_token_list` | `uipath_token_list.schema.json`
+|===
+
+All four are promoted; `migrate seeds` loads them into the registry.
+(There is no `event` schema -- the Prisma schema has no `event` table.)
+
+== Related
+
+* xref:reference-jsonb-schema-registry.adoc[JSONB schema registry]
+* xref:../sme/howto-review-bn-jsonb-payload.adoc[SME how-to: review a
+  BN JSONB payload]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:howto-edit-pgloader-cast.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:howto-revalidate-jsonb.adoc[next >]
+|===
+endif::[]
+// docnav-end

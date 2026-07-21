@@ -1,0 +1,67 @@
+<style>
+  table.sortable thead th {
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  table.sortable thead th::after {
+    content: " \2195";
+    opacity: 0.3;
+    font-size: 0.8em;
+  }
+  table.sortable thead th.sort-asc::after {
+    content: " \2191";
+    opacity: 1;
+  }
+  table.sortable thead th.sort-desc::after {
+    content: " \2193";
+    opacity: 1;
+  }
+</style>
+<script>
+(function () {
+  "use strict";
+  function detectType(rows, idx) {
+    for (var i = 0; i < rows.length && i < 20; i++) {
+      var t = rows[i].cells[idx] ? rows[i].cells[idx].textContent.trim() : "";
+      if (t && isNaN(parseFloat(t))) return "str";
+      if (t) return "num";
+    }
+    return "str";
+  }
+  function makeSortable(table) {
+    var thead = table.tHead;
+    if (!thead) return;
+    var ths = thead.rows[0].cells;
+    var tbody = table.tBodies[0];
+    if (!tbody) return;
+    for (var i = 0; i < ths.length; i++) {
+      (function (idx, th) {
+        th.addEventListener("click", function () {
+          var rows = Array.prototype.slice.call(tbody.rows);
+          var mode = detectType(rows, idx);
+          var dir = th.classList.contains("sort-asc") ? -1 : 1;
+          for (var j = 0; j < ths.length; j++) ths[j].classList.remove("sort-asc", "sort-desc");
+          th.classList.add(dir > 0 ? "sort-asc" : "sort-desc");
+          rows.sort(function (a, b) {
+            var av = a.cells[idx] ? a.cells[idx].textContent.trim() : "";
+            var bv = b.cells[idx] ? b.cells[idx].textContent.trim() : "";
+            if (mode === "num") {
+              var an = parseFloat(av) || 0, bn = parseFloat(bv) || 0;
+              return (an - bn) * dir;
+            }
+            return av.localeCompare(bv) * dir;
+          });
+          for (var k = 0; k < rows.length; k++) tbody.appendChild(rows[k]);
+        });
+      })(i, ths[i]);
+    }
+  }
+  function init() {
+    var tables = document.querySelectorAll("table.sortable");
+    for (var i = 0; i < tables.length; i++) makeSortable(tables[i]);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>

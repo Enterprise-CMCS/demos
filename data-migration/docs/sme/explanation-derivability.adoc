@@ -1,0 +1,32 @@
+= Derivability: can every target column be derived from source?
+
+When a DEMOS column is not a straight copy of a mapped PMDA column, the
+migration must _derive_ it, default it, or ask a human for it. This page is the
+honest answer to "can we derive everything?" for the tables mapped so far: the
+verdict per gap, the residue that no source table can supply, and how much of
+the remaining work is still pending your sign-off. The verdict for each gap is
+your call, recorded in `reports/inputs/derivability_verdicts.yaml`; everything else is
+generated from the schema, so the numbers here never drift.
+
+include::../shared/derivability-audit.adoc[]
+
+== Related
+
+* xref:reference-source-target-map.adoc[Top-level source/target map]
+* xref:reference-source-target-columns.adoc[Source/target column map]
+* xref:explanation-comments-routing.adoc[Comments: private vs public] -- why `*_comment.deliverable_id` is the open residue
+* xref:reference-pgm-dtl-tag-mapping.adoc[`pgm_dtl_tag_mapping.csv`] -- the `tag_pivot` source
+* xref:../developer/reference-derivability-audit.adoc[Developer view of the same data]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:explanation-comments-routing.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|
+|===
+endif::[]
+// docnav-end

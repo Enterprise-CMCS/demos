@@ -389,7 +389,7 @@ export class FileUploadStack extends Stack {
       securityGroup: fileProcessLambdaSecurityGroup.securityGroup,
       asCode: false,
       externalModules: ["@aws-sdk"],
-      nodeModules: ["pg", "pino"],
+      nodeModules: ["pg"],
       timeout: Duration.seconds(30),
       environment: {
         UPLOAD_BUCKET: uploadBucket.bucketName,
@@ -429,7 +429,7 @@ export class FileUploadStack extends Stack {
       securityGroup: fileProcessLambdaSecurityGroup.securityGroup,
       asCode: false,
       externalModules: ["@aws-sdk"],
-      nodeModules: ["pg", "pino"],
+      nodeModules: ["pg"],
       timeout: Duration.seconds(30),
       environment: {
         INFECTED_BUCKET: infectedBucket.bucketName,

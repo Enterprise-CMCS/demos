@@ -1,3 +1,10 @@
-`sqlfluff` is available in the Python configuration for fixing / linting SQL scripts. `sqlfluff fix file.sql` automatically applies the rules in the configuration (if run in the `data/` folder).
+# DEMOS Data
 
-To update the data model PNG file, update the MermaidJS file in `docs/DEMOS_Data_Model.mmd` and then run `npm run model:update` from the data folder. (Somewhat tempermental, not always working!)
+This is the data code for the DEMOS project. It contains the following.
+
+- `docs/`: this is the MermaidJS entity-relation diagram for the `demos_app` schema. You can regenerate the PNG file using `npm run model:update` - note that you may get an X window popping up when Chromium is launched.
+- `demos_data_tools/`: this is a Python module containing various DEMOS data tools.
+- `migration/`: this is the location for data migration code from PMDA to DEMOS.
+- `uat_scenario/`: this is code for generating different scenarios for user acceptance testing.
+
+Within `data/` there is also a `sqlfluff` configuration that can be used for linting / fixing SQL scripts; however, note that you will need to run the script from inside `data/` to get the right configuration.

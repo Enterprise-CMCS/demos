@@ -14,10 +14,10 @@ const parseBNFile = vi.fn();
 const rule1 = vi.fn();
 const rule2 = vi.fn();
 
-vi.mock("demos-shared-library/dist/src/BN/index.js", () => ({
+vi.mock("demos-shared-library/BN", () => ({
   parseBNFile: (...args: unknown[]) => parseBNFile(...args),
 }));
-vi.mock("demos-shared-library/dist/src/BN/rulesets/v1/index.js", () => ({
+vi.mock("demos-shared-library/BN/rulesets", () => ({
   validations: [rule1, rule2],
 }));
 
