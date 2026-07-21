@@ -54,4 +54,4 @@ Examples:
 
 ## Automated review
 
-- [ ] Run AI-Agent review <!-- The AI PR review will only run if this is checked [x] -->
+- [ ] Run AI Code Review <!-- The AI PR review will only run if this is checked [x] -->
