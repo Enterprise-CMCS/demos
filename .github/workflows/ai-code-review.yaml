@@ -1,0 +1,55 @@
+name: AI Code Review
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  pr_agent:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event.sender.type != 'Bot' &&
+      !github.event.pull_request.draft &&
+      (
+        contains(github.event.pull_request.body || '', '- [x] Run AI Code Review') ||
+        contains(github.event.pull_request.body || '', '- [X] Run AI Code Review')
+      ) &&
+      (
+        github.event.action != 'edited' ||
+        (
+          !contains(github.event.changes.body.from || '', '- [x] Run AI Code Review') &&
+          !contains(github.event.changes.body.from || '', '- [X] Run AI Code Review')
+        )
+      )
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: write
+      checks: write
+      id-token: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Run AI Code Review
+        uses: the-pr-agent/pr-agent@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AWS_USE_IMDS: "true"
+          AWS_REGION_NAME: us-east-1
+          config.model_weak: "bedrock/us.amazon.nova-2-lite-v1:0"
+          config.model: "bedrock/us.anthropic.claude-sonnet-4-6"
+          config.fallback_models: '["bedrock/us.amazon.nova-pro-v1:0"]'
+          github_action_config.auto_review: "true"
+          github_action_config.auto_describe: "false"
+          github_action_config.auto_improve: "true"
+          github_action_config.pr_actions: '["opened", "reopened", "ready_for_review", "review_requested"]'
+          config.custom_model_max_tokens: "128000"
+          pr_code_suggestions.commitable_code_suggestions: "true"
