@@ -66,6 +66,7 @@ export const AutoCompleteSelect = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const activeOptionRef = useRef<HTMLLIElement>(null);
 
   const closeSelect = () => {
     setIsOpen(false);
@@ -109,6 +110,10 @@ export const AutoCompleteSelect = ({
 
   const filteredOptions = filterOptions(options, filterValue);
 
+  useEffect(() => {
+    activeOptionRef.current?.scrollIntoView({ block: "nearest" });
+  }, [activeIndex]);
+
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isOpen && e.key === "ArrowDown") {
       openSelect();
@@ -135,7 +140,12 @@ export const AutoCompleteSelect = ({
       return filteredOptions.map((option, i) => {
         const isActive = i === activeIndex;
         return (
-          <li key={option.value} role="option" aria-selected={option.value === value}>
+          <li
+            key={option.value}
+            ref={isActive ? activeOptionRef : undefined}
+            role="option"
+            aria-selected={option.value === value}
+          >
             <button
               type="button"
               className={`${ITEM_CLASSES} ${isActive ? ITEM_ACTIVE_CLASSES : ""} w-full text-left`}

@@ -6,6 +6,12 @@ import { AutoCompleteSelect, AUTOCOMPLETE_SELECT_TEST_ID } from "./AutoCompleteS
 import { Option } from "./Select";
 
 const onSelect: (value: string) => void = vi.fn();
+const scrollIntoView = vi.fn();
+
+Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+  configurable: true,
+  value: scrollIntoView,
+});
 
 const options: Option[] = [
   { label: "Apple", value: "apple" },
@@ -143,6 +149,24 @@ describe("AutoCompleteSelect", () => {
     fireEvent.keyDown(input, { key: "ArrowUp" }); // index 0
     fireEvent.keyDown(input, { key: "Enter" });
     expect(onSelect).toHaveBeenCalledWith("apple");
+  });
+
+  it("scrolls the active option into view during keyboard navigation", () => {
+    scrollIntoView.mockClear();
+    const longOptions = Array.from({ length: 20 }, (_, index) => ({
+      label: `Option ${index + 1}`,
+      value: `option-${index + 1}`,
+    }));
+
+    render(<AutoCompleteSelect value="" options={longOptions} onSelect={onSelect} />);
+    const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
+    input.focus();
+
+    for (let index = 0; index < 10; index += 1) {
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+    }
+
+    expect(scrollIntoView).toHaveBeenLastCalledWith({ block: "nearest" });
   });
 
   it("closes dropdown on Escape", async () => {
