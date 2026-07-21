@@ -210,25 +210,25 @@ export const getApprovalSummaryPhaseFromApplication = (
     workflowApplicationType === "demonstration"
       ? application.id
       : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
-          .id;
+        .id;
 
   const demonstrationTypes =
     workflowApplicationType === "demonstration"
       ? (application as ApplicationWorkflowDemonstration).demonstrationTypes
       : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
-          .demonstrationTypes;
+        .demonstrationTypes;
 
   const demonstrationStatus =
     workflowApplicationType === "demonstration"
       ? (application as ApplicationWorkflowDemonstration).status
       : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
-          .status;
+        .status;
 
   const medicaidId =
     workflowApplicationType === "demonstration"
       ? (application as ApplicationWorkflowDemonstration).medicaidId
       : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
-          .medicaidId;
+        .medicaidId;
 
   return (
     <ApprovalSummaryPhase
