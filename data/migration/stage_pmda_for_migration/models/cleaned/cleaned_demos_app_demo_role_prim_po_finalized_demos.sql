@@ -23,6 +23,6 @@ SELECT
 FROM
     cleaned_demos_and_pos AS pmda_po
 LEFT JOIN
-    {{ ref('cleaned_demos_app_person') }} AS p
+    {{ ref('final_demos_app_person') }} AS p
     ON
         pmda_po._legacy_proj_ofcr_user_id = p._legacy_id

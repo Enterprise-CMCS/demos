@@ -16,13 +16,28 @@ clean-targets:
 models:
   stage_pmda_for_migration:
     +materialized: table
+    errors:
+      +docs:
+        node_color: "crimson"
     cleaned:
-      +contract:
-        enforced: true
+      +docs:
+        node_color: "teal"
+      final:
+        +docs:
+          node_color: "midnightblue"
+        +tags: ['final']
+        +contract:
+          enforced: true
 
 seeds:
   stage_pmda_for_migration:
     +tags: ['source_in_use']
+    +docs:
+      node_color: "darkviolet"
+
+tests:
+  +docs:
+    node_color: "darkred"
 
 flags:
   partial_parse: false

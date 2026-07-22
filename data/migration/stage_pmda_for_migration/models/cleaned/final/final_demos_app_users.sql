@@ -8,6 +8,6 @@ SELECT
     created_at,
     updated_at
 FROM
-    {{ ref('cleaned_demos_app_person') }}
+    {{ ref('final_demos_app_person') }}
 WHERE
     person_type_id != 'non-user-contact'
