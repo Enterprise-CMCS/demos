@@ -13,10 +13,8 @@ import {
 } from "components/dialog/document/DocumentDialog";
 import { useToast } from "components/toast/ToastContext";
 import { tryUploadingFileToS3 } from "./tryUploadingFileToS3";
-import { useBNValidationStatus } from "./useBNValidationStatus";
 import { useDocumentPassedVirusScan } from "./useDocumentPassedVirusScan";
 import { useUploadDocument } from "./useUploadDocument";
-import { BN_WORKBOOK_DOCUMENT_TYPE } from "demos-server-constants";
 
 export const UPLOAD_DOCUMENT_TO_DELIVERABLE_STATE_FILES_MUTATION: TypedDocumentNode<
   {
@@ -78,7 +76,6 @@ export const AddDocumentToDeliverableDialog: React.FC<AddDocumentToDeliverableDi
     ? getCmsFileDocumentTypeSubset(documentTypeSubset)
     : documentTypeSubset;
   const { documentPassedVirusScan } = useDocumentPassedVirusScan();
-  const { waitForBNValidation } = useBNValidationStatus();
   const { uploadDocument: uploadStateDocument } = useUploadDocument(
     UPLOAD_DOCUMENT_TO_DELIVERABLE_STATE_FILES_MUTATION
   );
@@ -119,19 +116,8 @@ export const AddDocumentToDeliverableDialog: React.FC<AddDocumentToDeliverableDi
       return "virus-scan-failed";
     }
 
-    if (uploadDocumentInput.documentType === BN_WORKBOOK_DOCUMENT_TYPE) {
-      const validation = await waitForBNValidation(pendingUpload.id);
-      if (validation?.status === "Failed") {
-        const errorSummary = validation.errors.map((e) => `${e.code}: ${e.message}`).join("\n");
-        showError(
-          errorSummary
-            ? `Budget Neutrality validation failed:\n${errorSummary}`
-            : "Budget Neutrality validation failed."
-        );
-        return "bn-validation-failed";
-      }
-    }
-
+    // BN validation finishes server-side on its own schedule; useBNWorkbookPreValidation already
+    // ran the same ruleset before upload, so the dialog doesn't wait on it.
     if (refetchQueries) {
       await client.refetchQueries({ include: refetchQueries });
     }
