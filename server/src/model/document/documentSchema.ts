@@ -32,6 +32,8 @@ export const documentSchema = gql`
     application: Application! @auth(requires: ["Access CMS Field"])
     phaseName: PhaseName @auth(requires: ["Access CMS Field"])
     presignedDownloadUrl: String! @auth(requires: ["Access CMS Field"])
+    "The sanitized file name, with extension, that this document should download as."
+    downloadFileName: String! @auth(requires: ["Access CMS Field"])
     deliverable: Deliverable @auth(requires: ["Access CMS Field"])
     deliverableSubmissionAction: DeliverableAction
     hasPendingUIPathResult: Boolean! @auth(requires: ["Access CMS Field"])
@@ -85,6 +87,7 @@ export interface Document {
   createdAt: Date;
   updatedAt: Date;
   presignedDownloadUrl: string;
+  downloadFileName: string;
   hasPendingUIPathResult: boolean;
   budgetNeutralityValidation?: BudgetNeutralityValidationResult;
 }

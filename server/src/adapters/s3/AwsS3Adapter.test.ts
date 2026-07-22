@@ -195,6 +195,63 @@ describe("AwsS3Adapter", () => {
     });
   });
 
+  describe("getDownloadFileName", () => {
+    it("returns the sanitized name with the extension from Content-Type", async () => {
+      mockSend.mockResolvedValueOnce({ ContentType: "application/pdf" });
+      const adapter = createAWSS3Adapter();
+
+      const result = await adapter.getDownloadFileName(testKey, "Quarterly Report");
+
+      expect(HeadObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: testKey,
+      });
+      expect(result).toBe("Quarterly Report.pdf");
+    });
+
+    it("replaces invalid characters with a space rather than dropping them", async () => {
+      mockSend.mockResolvedValueOnce({
+        ContentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      });
+      const adapter = createAWSS3Adapter();
+
+      const result = await adapter.getDownloadFileName(testKey, "Budget FY25/26");
+
+      expect(result).toBe("Budget FY25 26.docx");
+    });
+
+    it("collapses the whitespace left by a run of invalid characters", async () => {
+      mockSend.mockResolvedValueOnce({
+        ContentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      });
+      const adapter = createAWSS3Adapter();
+
+      const result = await adapter.getDownloadFileName(testKey, 'DEMOS-892 (3) \\ / : * ? " < > |');
+
+      // No underscores — the browser never sees a character it needs to replace.
+      expect(result).toBe("DEMOS-892 (3).docx");
+      expect(result).not.toContain("_");
+    });
+
+    it("falls back to the key when the name is entirely invalid characters", async () => {
+      mockSend.mockResolvedValueOnce({ ContentType: "application/pdf" });
+      const adapter = createAWSS3Adapter();
+
+      const result = await adapter.getDownloadFileName("uuid-123", "///");
+
+      expect(result).toBe("uuid-123.pdf");
+    });
+
+    it("omits the extension when the object has no usable Content-Type", async () => {
+      mockSend.mockResolvedValueOnce({});
+      const adapter = createAWSS3Adapter();
+
+      const result = await adapter.getDownloadFileName(testKey, "No Type Here");
+
+      expect(result).toBe("No Type Here");
+    });
+  });
+
   describe("moveDocumentFromCleanToDeleted", () => {
     it("should copy document from clean to deleted bucket and delete from clean", async () => {
       const adapter = createAWSS3Adapter();

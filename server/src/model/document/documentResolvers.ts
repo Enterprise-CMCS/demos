@@ -157,6 +157,8 @@ export const documentResolvers = {
     documentType: (parent: PrismaDocument): DocumentType => parent.documentTypeId as DocumentType,
     presignedDownloadUrl: (parent: PrismaDocument): Promise<string> =>
       getS3Adapter().getPresignedDownloadUrl(parent.s3Path, parent.name),
+    downloadFileName: (parent: PrismaDocument): Promise<string> =>
+      getS3Adapter().getDownloadFileName(parent.s3Path, parent.name),
     application: (parent: PrismaDocument): Promise<PrismaApplication> =>
       getApplication(parent.applicationId),
     deliverable: resolveDeliverable,

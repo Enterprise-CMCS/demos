@@ -26,7 +26,10 @@ type Extension = Pick<ServerExtension, "id" | "name"> & {
   demonstration: Demonstration;
   __typename: "Extension";
 };
-type Document = Pick<ServerDocument, "id" | "name" | "createdAt" | "presignedDownloadUrl"> & {
+type Document = Pick<
+  ServerDocument,
+  "id" | "name" | "createdAt" | "presignedDownloadUrl" | "downloadFileName"
+> & {
   application: Demonstration | Amendment | Extension;
   owner: User;
 };
@@ -37,6 +40,7 @@ export const DOCUMENT_DETAIL_QUERY: TypedDocumentNode<{ document: Document }, { 
       id
       name
       presignedDownloadUrl
+      downloadFileName
       application {
         ... on Demonstration {
           id
@@ -128,7 +132,7 @@ export const DocumentDetail: React.FC<{ documentId: string }> = ({ documentId })
       <div className="mt-2 flex-1 min-h-0">
         <DocumentPreview
           presignedDownloadUrl={document.presignedDownloadUrl}
-          filename={document.name}
+          downloadFileName={document.downloadFileName}
         />
       </div>
     </div>
