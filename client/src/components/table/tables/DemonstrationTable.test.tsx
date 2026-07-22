@@ -175,7 +175,7 @@ const applyProjectOfficerFilter = async (
   await user.click(officerOptionToClick!);
 };
 
-const applyStateFilter = async (user: ReturnType<typeof userEvent.setup>, stateCode: string) => {
+const applyStateFilter = async (user: ReturnType<typeof userEvent.setup>, stateName: string) => {
   // Select state filter from column dropdown
   const columnSelect = screen.getByTestId("filter-by-column");
   await user.selectOptions(columnSelect, ["stateId"]);
@@ -187,16 +187,16 @@ const applyStateFilter = async (user: ReturnType<typeof userEvent.setup>, stateC
 
   // Filter by the specified state
   const stateFilterInput = screen.getByPlaceholderText(/select state\/\u200Bterritory/i);
-  await user.type(stateFilterInput, stateCode);
+  await user.type(stateFilterInput, stateName);
 
   // Wait for dropdown and select state
   await waitFor(() => {
-    const stateOptions = screen.getAllByText(stateCode);
+    const stateOptions = screen.getAllByText(stateName);
     const stateDropdownOption = stateOptions.find((el) => el.tagName === "LI" || el.closest("li"));
     expect(stateDropdownOption).toBeInTheDocument();
   });
 
-  const stateOptions = screen.getAllByText(stateCode);
+  const stateOptions = screen.getAllByText(stateName);
   const stateOptionToClick = stateOptions.find((el) => el.tagName === "LI" || el.closest("li"));
   await user.click(stateOptionToClick!);
 };
@@ -262,11 +262,11 @@ describe("Demonstrations", () => {
       });
 
       // Verify the order: FL, MT, TX (alphabetically by state)
-      expect(rowData[0].state).toBe("FL");
+      expect(rowData[0].state).toBe("Florida");
       expect(rowData[0].title).toBe("Florida Health Innovation");
-      expect(rowData[1].state).toBe("MT");
+      expect(rowData[1].state).toBe("Montana");
       expect(rowData[1].title).toBe("Montana Medicaid Waiver");
-      expect(rowData[2].state).toBe("TX");
+      expect(rowData[2].state).toBe("Texas");
       expect(rowData[2].title).toBe("Texas Reform Initiative");
     });
 
@@ -286,12 +286,13 @@ describe("Demonstrations", () => {
 
     it("renders demonstration data correctly in table cells", () => {
       expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
-      expect(screen.getByText("MT")).toBeInTheDocument();
+      expect(screen.getByText("Montana")).toBeInTheDocument();
       expect(screen.getByText("John Doe")).toBeInTheDocument();
       expect(screen.getByText("Florida Health Innovation")).toBeInTheDocument();
-      expect(screen.getByText("FL")).toBeInTheDocument();
+      expect(screen.getByText("Florida")).toBeInTheDocument();
       expect(screen.getByText("Jane Smith")).toBeInTheDocument();
       expect(screen.getByText("Texas Reform Initiative")).toBeInTheDocument();
+      expect(screen.getByText("Texas")).toBeInTheDocument();
       expect(screen.getByText("Jim Smith")).toBeInTheDocument();
     });
 
@@ -337,7 +338,7 @@ describe("Demonstrations", () => {
 
     it("allows filtering demonstrations by column", async () => {
       await clearSearchInput(user);
-      await applyStateFilter(user, "FL");
+      await applyStateFilter(user, "Florida");
 
       await waitFor(() => {
         expect(screen.getByText("Florida Health Innovation")).toBeInTheDocument();
@@ -361,9 +362,9 @@ describe("Demonstrations", () => {
       await user.click(stateFilterInput);
 
       // Select "Montana"
-      await user.type(stateFilterInput, "MT");
+      await user.type(stateFilterInput, "Montana");
       await waitFor(async () => {
-        const mtOptions = screen.getAllByText("MT");
+        const mtOptions = screen.getAllByText("Montana");
         const mtDropdownOption = mtOptions.find((el) => el.tagName === "LI" || el.closest("li"));
         expect(mtDropdownOption).toBeInTheDocument();
         await user.click(mtDropdownOption!);
@@ -371,9 +372,9 @@ describe("Demonstrations", () => {
 
       // Select "Florida"
       await user.clear(stateFilterInput);
-      await user.type(stateFilterInput, "FL");
+      await user.type(stateFilterInput, "Florida");
       await waitFor(async () => {
-        const flOptions = screen.getAllByText("FL");
+        const flOptions = screen.getAllByText("Florida");
         const flDropdownOption = flOptions.find((el) => el.tagName === "LI" || el.closest("li"));
         expect(flDropdownOption).toBeInTheDocument();
         await user.click(flDropdownOption!);
