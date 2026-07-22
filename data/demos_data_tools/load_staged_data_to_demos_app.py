@@ -101,12 +101,12 @@ type MigrationSql = List[SqlStatement]
 MIGRATION_CONFIGURATION: MigrationConfiguration = (
     TriggerActionConfiguration("disable", "application", "create_phases_and_dates_for_new_application"),
     TableInsertActionConfiguration(
-        "cleaned_demos_app_person",
+        "final_demos_app_person",
         "person",
         ["id", "person_type_id", "email", "first_name", "last_name", "created_at", "updated_at"],
     ),
     TableInsertActionConfiguration(
-        "cleaned_demos_app_users",
+        "final_demos_app_users",
         "users",
         [
             "id",
@@ -119,9 +119,9 @@ MIGRATION_CONFIGURATION: MigrationConfiguration = (
             "updated_at",
         ],
     ),
-    TableInsertActionConfiguration("cleaned_demos_app_person_state", "person_state", ["person_id", "state_id"]),
+    TableInsertActionConfiguration("final_demos_app_person_state", "person_state", ["person_id", "state_id"]),
     TableInsertActionConfiguration(
-        "cleaned_demos_app_system_role_assignment",
+        "final_demos_app_system_role_assignment",
         "system_role_assignment",
         ["person_id", "role_id", "person_type_id", "grant_level_id"],
     ),
@@ -131,12 +131,12 @@ MIGRATION_CONFIGURATION: MigrationConfiguration = (
         f"CALL postgres_execute('{DEMOS_DDB_ATTACH_NAME}', 'SET LOCAL demos_app.migration_mode = ''on''')",
     ),
     TableInsertActionConfiguration(
-        "cleaned_demos_app_application_finalized_demos",
+        "final_demos_app_application",
         "application",
         ["id", "application_type_id", "is_migrated_from_pmda"],
     ),
     TableInsertActionConfiguration(
-        "cleaned_demos_app_demonstration_finalized_demos",
+        "final_demos_app_demonstration",
         "demonstration",
         [
             "id",
@@ -159,7 +159,7 @@ MIGRATION_CONFIGURATION: MigrationConfiguration = (
         ],
     ),
     TableInsertActionConfiguration(
-        "cleaned_demos_app_demo_role_prim_po_finalized_demos",
+        "final_demos_app_demo_role_assignment",
         "demonstration_role_assignment",
         [
             "person_id",
@@ -171,7 +171,7 @@ MIGRATION_CONFIGURATION: MigrationConfiguration = (
         ],
     ),
     TableInsertActionConfiguration(
-        "cleaned_demos_app_prim_demo_role_prim_po_finalized_demos",
+        "final_demos_app_primary_demo_role_assignment",
         "primary_demonstration_role_assignment",
         [
             "person_id",
@@ -180,7 +180,7 @@ MIGRATION_CONFIGURATION: MigrationConfiguration = (
         ],
     ),
     TableInsertActionConfiguration(
-        "cleaned_demos_app_app_phases_finalized_demos",
+        "final_demos_app_application_phase",
         "application_phase",
         [
             "application_id",
@@ -195,11 +195,9 @@ MIGRATION_CONFIGURATION: MigrationConfiguration = (
         f"CALL postgres_execute('{DEMOS_DDB_ATTACH_NAME}', 'SET LOCAL demos_app.migration_mode = ''off''')",
     ),
     TransactionActionConfiguration("commit"),
+    TableInsertActionConfiguration("final_demos_app_tag_name", "tag_name", ["id", "created_at", "updated_at"]),
     TableInsertActionConfiguration(
-        "cleaned_demos_app_tag_name_migrated_from_pmda", "tag_name", ["id", "created_at", "updated_at"]
-    ),
-    TableInsertActionConfiguration(
-        "cleaned_demos_app_tag_migrated_from_pmda",
+        "final_demos_app_tag",
         "tag",
         [
             "tag_name_id",
@@ -211,7 +209,7 @@ MIGRATION_CONFIGURATION: MigrationConfiguration = (
         ],
     ),
     TableInsertActionConfiguration(
-        "cleaned_demos_app_demo_type_tag_assign_migrated_from_pmda",
+        "final_demos_app_demo_type_tag_assignment",
         "demonstration_type_tag_assignment",
         [
             "demonstration_id",

@@ -4,7 +4,7 @@ SELECT
     cdap.person_type_id,
     'System' AS grant_level_id
 FROM
-    {{ ref('cleaned_demos_app_person') }} AS cdap
+    {{ ref('final_demos_app_person') }} AS cdap
 INNER JOIN
     {{ ref('default_person_type_id_to_system_role_id') }} AS dptitsri
     ON

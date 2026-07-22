@@ -8,6 +8,10 @@ This is a simple `dbt` project intended to take data from `legacy_pmda_raw` and 
 
 Models are organized into `cleaned`, `errors`, and domains like `users`. Model names are prefixed with their folder so they are easier to inspect in the database.
 
+### Cleaned
+
+The `cleaned/final` folder contains tables that are intended to be essentially 1:1 with `demos_app`. The `cleaned` models above them are generally unioned together to create the final product.
+
 ### Errors
 
 Records being filtered out of final products due to data quality reasons should be placed in a corresponding `errors` table. Then, the final product should be filtered using the contents of those tables.
@@ -16,13 +20,13 @@ Records being filtered out of final products due to data quality reasons should 
 
 In general, tests should be written at the `error` level to start, and then lowered to `warn` if it makes sense. In `dbt`, if you do not configure the severity, it will default to `error`.
 
-A general pattern is that `cleaned` objects have tests that must error, as they are at the end of the process and all invalid data should have been filtered out by then. In contrast, `errors` objects should have tests that warn, so that when filtering is occurring due to data quality issues, it is surfaced in logs.
+A general pattern is that `final` objects have tests that must error, as they are at the end of the process and all invalid data should have been filtered out by then. In contrast, `errors` objects should have tests that warn, so that when filtering is occurring due to data quality issues, it is surfaced in logs.
 
 Tests should also be written to validate things that might normally be enforced by a database, since PMDA did not have as many constraints actually enabled. These can be either `warn` or `error` depending on how the downstream code will control for these issues. In addition, it is a good idea to write tests on crosswalk tables to ensure that they accurately map the data in `legacy_pmda_raw`.
 
 Try to name your tests in a descriptive manner, either by naming the file with something like `assert_xyz` or using the `name:` parameter in the YAML file.
 
-Contracts should be enforced on the `cleaned` objects, and the documentation in `models.yml` should conform to the data types in `demos_app`. This enforcement prevents the SQL from creating incompatible data types.
+Contractgs are enforced on the `cleaned/final` models and the documentation in `models.yml` should conform to the data types in `demos_app`. This enforcement prevents the SQL from creating incompatible data types.
 
 ## Setup / Commands
 
@@ -61,4 +65,4 @@ To help keep the SQL code in this project clean, there is a pre-commit hook that
 
 ## Conventions / Styling
 
-Often in the cleaned tables there is use for additional metadata columns which will not be exported to DEMOS. For instance, a record of the original ID used in PMDA assists with joining dependent tables.  For these columns, we should denote their metadata status by prefixing an underscore to the column name. Ex: cleaned_demos_app_person._legacy_id
+Often in the final cleaned tables there is use for additional metadata columns which will not be exported to DEMOS. For instance, a record of the original ID used in PMDA assists with joining dependent tables. For these columns, we should denote their metadata status by prefixing an underscore to the column name. Ex: final_demos_app_person._legacy_id
