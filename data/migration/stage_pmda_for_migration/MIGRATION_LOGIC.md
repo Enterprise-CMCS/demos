@@ -71,7 +71,7 @@ Demonstrations in DEMOS are required to have a primary Project Officer. In cases
 
 ### Demonstration Type
 
-Approved demonstrations in DEMOS are required to have at least one demonstration type. To ensure that this constraint was met, a demonstration type called `Migrated from PMDA` was added, and assigned to all the "finalized" demonstrations that were migrated.
+Approved demonstrations in DEMOS are required to have at least one demonstration type. To ensure that this constraint was met, a demonstration type called `Migrated From PMDA` was added, and assigned to all the "finalized" demonstrations that were migrated.
 
 ### Phases and Dates for Finalized Demonstrations
 

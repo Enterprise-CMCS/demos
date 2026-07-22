@@ -1,6 +1,6 @@
 SELECT
     id AS demonstration_id,
-    'Migrated from PMDA' AS tag_name_id,
+    'Migrated From PMDA' AS tag_name_id,
     'Demonstration Type' AS tag_type_id,
     effective_date,
     expiration_date,
