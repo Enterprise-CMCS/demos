@@ -3,10 +3,7 @@ version: 2
 models:
   # Cleaned Models
   - name: cleaned_demos_app_system_role_assignment
-    description: default system role assignmend derived from idm role
-    config:
-      contract:
-        enforced: true
+    description: default system role assignment derived from IDM role
     data_tests:
       - dbt_utils.unique_combination_of_columns:
           name: assert_system_role_assignment_is_unique
@@ -50,9 +47,6 @@ models:
 
   - name: cleaned_demos_app_person_state
     description: All cleaned person-state relations with state users and valid states
-    config:
-      contract:
-        enforced: true
     columns:
       - name: person_id
         data_type: uuid
@@ -79,9 +73,6 @@ models:
               - state_id
 
   - name: cleaned_demos_app_person
-    config:
-      contract:
-        enforced: true
     description: This is the cleaned data from PMDA prepared for insert into demos_app.person. Users were initially selected from the `users` table in PMDA where the `active` flag was set to 1.
     columns:
       - name: id
@@ -118,9 +109,6 @@ models:
         data_type: integer
 
   - name: cleaned_demos_app_users
-    config:
-      contract:
-        enforced: true
     description: This is the cleaned data from PMDA prepared for insert into demos_app.users; this is derived entirely from `cleaned_demos_app_person`.
     data_tests:
       - dbt_utils.expression_is_true:
@@ -165,10 +153,29 @@ models:
       - name: updated_at
         data_type: timestamptz
 
-  - name: cleaned_demos_app_demonstration
-    config:
-      contract:
-        enforced: false # TODO: change to true when ready
+  - name: cleaned_demos_app_application_finalized_demos
+    columns:
+      - name: id
+        data_type: uuid
+      - name: application_type_id
+        data_type: text
+      - name: is_migrated_from_pmda
+        data_type: boolean
+
+  - name: cleaned_demos_app_demonstration_finalized_demos
+    data_tests:
+      - dbt_utils.expression_is_true:
+          name: assert_all_cleaned_finalized_demonstrations_are_approved
+          arguments:
+            expression: "status_id = 'Approved'"
+      - dbt_utils.expression_is_true:
+          name: assert_all_cleaned_finalized_demonstrations_have_effective_date
+          arguments:
+            expression: "status_id = 'Approved' AND effective_date IS NOT NULL"
+      - dbt_utils.expression_is_true:
+          name: assert_all_cleaned_finalized_demonstrations_have_expiration_date
+          arguments:
+            expression: "status_id = 'Approved' AND expiration_date IS NOT NULL"
     columns:
       - name: id
         data_type: uuid
@@ -198,7 +205,102 @@ models:
         data_type: text
       - name: medicaid_id
         data_type: text
+        data_tests:
+          - unique:
+              name: assert_medicaid_ids_are_unique_in_cleaned_finalized_demonstration
       - name: chip_id
+        data_type: text
+        data_tests:
+          - unique:
+              name: assert_chip_ids_are_unique_in_cleaned_finalized_demonstration
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+      - name: _legacy_mdcd_demo_id
+        data_type: integer
+      - name: _legacy_proj_ofcr_user_id
+        data_type: integer
+        description: The legacy user ID of the project officer; when null or 0, fall back to 828 (Liz Hill).
+
+  - name: cleaned_demos_app_demo_role_prim_po_finalized_demos
+    columns:
+      - name: person_id
+        data_type: uuid
+        data_tests:
+          - not_null:
+              name: assert_proj_ofcr_user_id_maps_to_cleaned_person
+      - name: demonstration_id
+        data_type: uuid
+      - name: role_id
+        data_type: text
+      - name: state_id
+        data_type: text
+      - name: person_type_id
+        data_type: text
+      - name: grant_level_id
+        data_type: text
+      - name: _internal_grant_type
+        data_type: text
+        description: Internal flag used for filtering downstream models.
+
+  - name: cleaned_demos_app_prim_demo_role_prim_po_finalized_demos
+    columns:
+      - name: person_id
+        data_type: uuid
+      - name: demonstration_id
+        data_type: uuid
+      - name: role_id
+        data_type: text
+
+  - name: cleaned_demos_app_app_phases_finalized_demos
+    columns:
+      - name: application_id
+        data_type: uuid
+      - name: phase_id
+        data_type: text
+      - name: phase_status_id
+        data_type: text
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+
+  - name: cleaned_demos_app_demo_type_tag_assign_migrated_from_pmda
+    columns:
+      - name: demonstration_id
+        data_type: uuid
+      - name: tag_name_id
+        data_type: text
+      - name: tag_type_id
+        data_type: text
+      - name: effective_date
+        data_type: timestamptz
+      - name: expiration_date
+        data_type: timestamptz
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+
+  - name: cleaned_demos_app_tag_migrated_from_pmda
+    columns:
+      - name: tag_name_id
+        data_type: text
+      - name: tag_type_id
+        data_type: text
+      - name: source_id
+        data_type: text
+      - name: status_id
+        data_type: text
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+
+  - name: cleaned_demos_app_tag_name_migrated_from_pmda
+    columns:
+      - name: id
         data_type: text
       - name: created_at
         data_type: timestamptz
@@ -223,6 +325,10 @@ models:
         data_tests:
           - not_null:
               name: assert_active_finalized_pmda_demos_have_no_missing_mdcd_demo_stus_cd
+          - accepted_values:
+              name: assert_active_finalized_pmda_demos_have_only_approved_expired_mdcd_demo_stus_cd
+              arguments:
+                values: [2, 6]
       - name: demo_stus_dt
         data_type: date
         data_tests:

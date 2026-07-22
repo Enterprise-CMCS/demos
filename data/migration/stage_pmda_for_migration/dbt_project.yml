@@ -16,6 +16,9 @@ clean-targets:
 models:
   stage_pmda_for_migration:
     +materialized: table
+    cleaned:
+      +contract:
+        enforced: true
 
 flags:
   partial_parse: false

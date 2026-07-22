@@ -9,8 +9,10 @@ SELECT
     mdcd_demo_stus_cd,
     demo_stus_dt,
     geo_ansi_state_cd,
-    mdcd_chip_div_cd
+    mdcd_chip_div_cd,
+    proj_ofcr_user_id
 FROM
     {{ source('legacy_pmda_raw', 'mdcd_demo') }}
 WHERE
     dltd_ind = 0
+    AND mdcd_demo_stus_cd != 9

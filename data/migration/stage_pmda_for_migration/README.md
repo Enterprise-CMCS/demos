@@ -41,6 +41,14 @@ dbt --quiet run-operation generate_source --args '{"schema_name": "legacy_pmda_r
 dbt --quiet run-operation generate_source --args '{"schema_name": "demos_app", "generate_columns": true}' > _demos_app_source.yml
 ```
 
+This is a useful command to show which of the sources are in use (so you can make sure they are tagged as `migration_source_in_use`, which makes it easier to filter the graph view.)
+
+```sh
+dbt ls --select "resource_type:source,+resource_type:model" \
+                "resource_type:source,+resource_type:test" \
+       --output name
+```
+
 ## Documentation
 
 You can generate `dbt` documentation using `dbt docs generate --static` for a static file, or `dbt docs generate && dbt docs serve`. However, when serving, the `devcontainer` hasn't been configured yet to make that port available and visible, so it's usually simpler to just do the static generation, and then look in `target/` for the `static_index.html` file.
