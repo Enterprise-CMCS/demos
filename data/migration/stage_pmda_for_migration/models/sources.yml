@@ -2125,7 +2125,7 @@ sources:
 
       - name: mdcd_demo
         config:
-          tags: ['migration_source_in_use']
+          tags: ['source_in_use']
         columns:
           - name: mdcd_demo_id
             data_type: integer
@@ -2316,7 +2316,7 @@ sources:
 
       - name: mdcd_demo_aplctn
         config:
-          tags: ['migration_source_in_use']
+          tags: ['source_in_use']
         columns:
           - name: mdcd_demo_aplctn_id
             data_type: integer
@@ -2620,7 +2620,7 @@ sources:
 
       - name: mdcd_demo_aplctn_stus_rfrnc
         config:
-          tags: ['migration_source_in_use']
+          tags: ['source_in_use']
         columns:
           - name: mdcd_demo_aplctn_stus_cd
             data_type: integer
@@ -3349,7 +3349,7 @@ sources:
 
       - name: mdcd_demo_stus_rfrnc
         config:
-          tags: ['migration_source_in_use']
+          tags: ['source_in_use']
         columns:
           - name: mdcd_demo_stus_cd
             data_type: integer
@@ -6785,7 +6785,7 @@ sources:
 
       - name: mdcd_pendg_demo
         config:
-          tags: ['migration_source_in_use']
+          tags: ['source_in_use']
         columns:
           - name: mdcd_pendg_demo_id
             data_type: integer
@@ -12086,7 +12086,7 @@ sources:
 
       - name: role_rfrnc
         config:
-          tags: ['migration_source_in_use']
+          tags: ['source_in_use']
         columns:
           - name: role_cd
             data_type: integer
@@ -12383,7 +12383,7 @@ sources:
 
       - name: user_authrzd_state_acs
         config:
-          tags: ['migration_source_in_use']
+          tags: ['source_in_use']
         columns:
           - name: user_id
             data_type: integer
@@ -12412,7 +12412,7 @@ sources:
 
       - name: user_role_asgnmt
         config:
-          tags: ['migration_source_in_use']
+          tags: ['source_in_use']
         columns:
           - name: user_id
             data_type: integer
@@ -12437,7 +12437,7 @@ sources:
 
       - name: users
         config:
-          tags: ['migration_source_in_use']
+          tags: ['source_in_use']
         columns:
           - name: id
             data_type: integer
@@ -13965,14 +13965,14 @@ sources:
 
       - name: person_type
         config:
-          tags: ['migration_source_in_use']
+          tags: ['source_in_use']
         columns:
           - name: id
             data_type: text
 
       - name: phase
         config:
-          tags: ['migration_source_in_use']
+          tags: ['source_in_use']
         columns:
           - name: id
             data_type: text
@@ -14295,7 +14295,7 @@ sources:
 
       - name: role
         config:
-          tags: ['migration_source_in_use']
+          tags: ['source_in_use']
         columns:
           - name: id
             data_type: text
@@ -14345,7 +14345,7 @@ sources:
 
       - name: state
         config:
-          tags: ['migration_source_in_use']
+          tags: ['source_in_use']
         columns:
           - name: id
             data_type: text
@@ -14577,7 +14577,7 @@ sources:
 
       - name: user_person_type_limit
         config:
-          tags: ['migration_source_in_use']
+          tags: ['source_in_use']
         columns:
           - name: id
             data_type: text

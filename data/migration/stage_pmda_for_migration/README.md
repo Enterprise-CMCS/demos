@@ -41,7 +41,7 @@ dbt --quiet run-operation generate_source --args '{"schema_name": "legacy_pmda_r
 dbt --quiet run-operation generate_source --args '{"schema_name": "demos_app", "generate_columns": true}' > _demos_app_source.yml
 ```
 
-This is a useful command to show which of the sources are in use (so you can make sure they are tagged as `migration_source_in_use`, which makes it easier to filter the graph view.)
+This is a useful command to show which of the sources are in use (so you can make sure they are tagged as `source_in_use`, which makes it easier to filter the graph view.) That tag is added automatically to all seeds as well.
 
 ```sh
 dbt ls --select "resource_type:source,+resource_type:model" \
