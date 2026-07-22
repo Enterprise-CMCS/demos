@@ -3,7 +3,12 @@ import React, { useEffect, useRef, useState } from "react";
 import { ChevronDownIcon } from "components/icons/Symbol/ChevronDownIcon";
 import { tw } from "tags/tw";
 
-import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "../Input";
+import {
+  getInputColors,
+  INPUT_BASE_CLASSES,
+  LABEL_CLASSES,
+  VALIDATION_MESSAGE_CLASSES,
+} from "../Input";
 import { Option } from "./Select";
 
 export const AUTOCOMPLETE_SELECT_TEST_ID = "input-autocomplete-select";
@@ -31,6 +36,7 @@ export const AutoCompleteSelect = ({
   isDisabled = false,
   noMatchMessage,
   onFilterChange: onFilterChangeProp,
+  validationMessage,
 }: {
   options: Option[];
   value: string;
@@ -43,6 +49,7 @@ export const AutoCompleteSelect = ({
   isDisabled?: boolean;
   noMatchMessage?: string;
   onFilterChange?: (filterValue: string, hasMatches: boolean) => void;
+  validationMessage?: string;
 }) => {
   const [filterValue, setFilterValue] = useState("");
   const [selectedOption, setSelectedOption] = useState<Option | undefined>(
@@ -50,7 +57,7 @@ export const AutoCompleteSelect = ({
   );
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-
+  const [touched, setTouched] = useState(false);
   const prevValueRef = useRef(value);
 
   useEffect(() => {
@@ -75,6 +82,7 @@ export const AutoCompleteSelect = ({
   const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
     if (!containerRef.current?.contains(e.relatedTarget as Node)) {
       closeSelect();
+      setTouched(true);
     }
   };
 
@@ -196,6 +204,9 @@ export const AutoCompleteSelect = ({
           </ul>
         )}
       </div>
+      {touched && validationMessage && (
+        <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>
+      )}
     </div>
   );
 };

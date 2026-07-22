@@ -11,6 +11,7 @@ import {
   checkFormHasChanges,
   documentTypeRequiresAttestation,
   DocumentDialog,
+  ERROR_MESSAGES,
 } from "./DocumentDialog";
 import type { DocumentDialogFields, DocumentUploadResult } from "./DocumentDialog";
 import { BN_WORKBOOK_DOCUMENT_TYPE } from "demos-server-constants";
@@ -235,5 +236,77 @@ describe("DocumentDialog BN Workbook pre-validation", () => {
     expect(screen.queryByTestId("bn-prevalidation-errors")).not.toBeInTheDocument();
     expect(screen.queryByText("File Validated Successfully")).not.toBeInTheDocument();
     expect(screen.getByTestId("button-confirm-upload-document")).not.toBeDisabled();
+  });
+});
+
+describe("DocumentDialog validation", () => {
+  it("shows the file validation message after the file field is touched without selecting a file", () => {
+    const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
+
+    renderAddDialog("General File", onSubmit);
+
+    fireEvent.change(screen.getByTestId("input-file"), { target: { files: [] } });
+
+    expect(screen.getByText(ERROR_MESSAGES.noFileSelected)).toBeInTheDocument();
+    expect(screen.getByTestId("button-confirm-upload-document")).toBeDisabled();
+  });
+
+  it("shows a validation error and disables upload when the title is only whitespace", async () => {
+    const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
+    const initialFile = new File(["content"], "existing.docx", { type: DOCX_MIME });
+
+    render(
+      <ToastProvider>
+        <DocumentDialog
+          applicableDocumentTypes={["General File"]}
+          onSubmit={onSubmit}
+          initialDocument={{
+            id: "1",
+            name: "Existing title",
+            description: "",
+            documentType: "General File",
+            file: initialFile,
+          }}
+        />
+      </ToastProvider>
+    );
+
+    const titleInput = screen.getByTestId("title");
+
+    fireEvent.change(titleInput, { target: { value: "   " } });
+    fireEvent.blur(titleInput);
+
+    expect(screen.getByText(ERROR_MESSAGES.missingDocumentTitle)).toBeInTheDocument();
+    expect(screen.getByTestId("button-confirm-upload-document")).toBeDisabled();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("shows the document type validation message when the field is blurred without a value", () => {
+    const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
+    const initialFile = new File(["content"], "existing.docx", { type: DOCX_MIME });
+
+    render(
+      <ToastProvider>
+        <DocumentDialog
+          applicableDocumentTypes={["General File", "Approval Letter"]}
+          onSubmit={onSubmit}
+          initialDocument={{
+            id: "1",
+            name: "Existing title",
+            description: "",
+            documentType: "" as DocumentType,
+            file: initialFile,
+          }}
+        />
+      </ToastProvider>
+    );
+
+    const documentTypeInput = screen.getByTestId("input-autocomplete-select");
+
+    fireEvent.focus(documentTypeInput);
+    fireEvent.blur(documentTypeInput);
+
+    expect(screen.getByText(ERROR_MESSAGES.missingDocumentType)).toBeInTheDocument();
+    expect(screen.getByTestId("button-confirm-upload-document")).toBeDisabled();
   });
 });
