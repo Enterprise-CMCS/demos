@@ -1,51 +1,116 @@
 version: 2
 
 models:
-  # Cleaned Models
-  - name: cleaned_demos_app_system_role_assignment
-    description: default system role assignment derived from IDM role
-    data_tests:
-      - dbt_utils.unique_combination_of_columns:
-          name: assert_system_role_assignment_is_unique
-          arguments:
-            combination_of_columns:
-              - person_id
-              - role_id
+  # Final Models
+  - name: final_demos_app_application_phase
+    columns:
+      - name: application_id
+        data_type: uuid
+      - name: phase_id
+        data_type: text
+      - name: phase_status_id
+        data_type: text
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+
+  - name: final_demos_app_application
+    columns:
+      - name: id
+        data_type: uuid
+      - name: application_type_id
+        data_type: text
+      - name: is_migrated_from_pmda
+        data_type: boolean
+
+  - name: final_demos_app_demo_role_assignment
     columns:
       - name: person_id
         data_type: uuid
         data_tests:
-          - relationships:
-              name: assert_system_role_assignment_person_exists_in_person
-              arguments:
-                to: ref('cleaned_demos_app_person')
-                field: id
+          - not_null:
+              name: assert_proj_ofcr_user_id_maps_to_cleaned_person
+      - name: demonstration_id
+        data_type: uuid
       - name: role_id
         data_type: text
-        data_tests:
-          - relationships:
-              name: assert_system_role_assignment_role_exists_in_demos_app_system_role
-              arguments:
-                to: source('demos_app', 'role')
-                field: id
+      - name: state_id
+        data_type: text
       - name: person_type_id
-        data_tests:
-          - relationships:
-              name: assert_system_role_assignment_person_type_exists_in_demos_app_person_type
-              arguments:
-                to: source('demos_app', 'person_type')
-                field: id
         data_type: text
       - name: grant_level_id
         data_type: text
-        data_tests:
-          - accepted_values:
-              name: assert_system_role_assignment_grant_level_id_is_system
-              arguments:
-                values:
-                  - System
+      - name: _internal_grant_type
+        data_type: text
+        description: Internal flag used for filtering downstream models.
 
-  - name: cleaned_demos_app_person_state
+  - name: final_demos_app_demo_type_tag_assignment
+    columns:
+      - name: demonstration_id
+        data_type: uuid
+      - name: tag_name_id
+        data_type: text
+      - name: tag_type_id
+        data_type: text
+      - name: effective_date
+        data_type: timestamptz
+      - name: expiration_date
+        data_type: timestamptz
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+
+  - name: final_demos_app_demonstration
+    columns:
+      - name: id
+        data_type: uuid
+      - name: application_type_id
+        data_type: text
+      - name: name
+        data_type: text
+      - name: description
+        data_type: text
+      - name: effective_date
+        data_type: timestamptz
+      - name: expiration_date
+        data_type: timestamptz
+      - name: sdg_division_id
+        data_type: text
+      - name: signature_level_id
+        data_type: text
+      - name: status_id
+        data_type: text
+      - name: status_updated_at
+        data_type: timestamptz
+      - name: current_phase_id
+        data_type: text
+      - name: state_id
+        data_type: text
+      - name: clearance_level_id
+        data_type: text
+      - name: medicaid_id
+        data_type: text
+        data_tests:
+          - unique:
+              name: assert_medicaid_ids_are_unique
+      - name: chip_id
+        data_type: text
+        data_tests:
+          - unique:
+              name: assert_chip_ids_are_unique
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+      - name: _legacy_mdcd_demo_id
+        data_type: integer
+      - name: _legacy_proj_ofcr_user_id
+        data_type: integer
+        description: The legacy user ID of the project officer; when null or 0, fall back to 828 (Liz Hill).
+
+  - name: final_demos_app_person_state
     description: All cleaned person-state relations with state users and valid states
     columns:
       - name: person_id
@@ -54,7 +119,7 @@ models:
           - relationships:
               name: assert_person_state_person_exists_in_person
               arguments:
-                to: ref('cleaned_demos_app_person')
+                to: ref('final_demos_app_person')
                 field: id
       - name: state_id
         data_type: text
@@ -72,7 +137,7 @@ models:
               - person_id
               - state_id
 
-  - name: cleaned_demos_app_person
+  - name: final_demos_app_person
     description: This is the cleaned data from PMDA prepared for insert into demos_app.person. Users were initially selected from the `users` table in PMDA where the `active` flag was set to 1.
     columns:
       - name: id
@@ -108,8 +173,84 @@ models:
       - name: _legacy_id
         data_type: integer
 
-  - name: cleaned_demos_app_users
-    description: This is the cleaned data from PMDA prepared for insert into demos_app.users; this is derived entirely from `cleaned_demos_app_person`.
+  - name: final_demos_app_primary_demo_role_assignment
+    columns:
+      - name: person_id
+        data_type: uuid
+      - name: demonstration_id
+        data_type: uuid
+      - name: role_id
+        data_type: text
+
+  - name: final_demos_app_system_role_assignment
+    description: default system role assignment derived from IDM role
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          name: assert_system_role_assignment_is_unique
+          arguments:
+            combination_of_columns:
+              - person_id
+              - role_id
+    columns:
+      - name: person_id
+        data_type: uuid
+        data_tests:
+          - relationships:
+              name: assert_system_role_assignment_person_exists_in_person
+              arguments:
+                to: ref('final_demos_app_person')
+                field: id
+      - name: role_id
+        data_type: text
+        data_tests:
+          - relationships:
+              name: assert_system_role_assignment_role_exists_in_demos_app_system_role
+              arguments:
+                to: source('demos_app', 'role')
+                field: id
+      - name: person_type_id
+        data_tests:
+          - relationships:
+              name: assert_system_role_assignment_person_type_exists_in_demos_app_person_type
+              arguments:
+                to: source('demos_app', 'person_type')
+                field: id
+        data_type: text
+      - name: grant_level_id
+        data_type: text
+        data_tests:
+          - accepted_values:
+              name: assert_system_role_assignment_grant_level_id_is_system
+              arguments:
+                values:
+                  - System
+
+  - name: final_demos_app_tag_name
+    columns:
+      - name: id
+        data_type: text
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+
+  - name: final_demos_app_tag
+    columns:
+      - name: tag_name_id
+        data_type: text
+      - name: tag_type_id
+        data_type: text
+      - name: source_id
+        data_type: text
+      - name: status_id
+        data_type: text
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+
+  - name: final_demos_app_users
+    description: This is the cleaned data from PMDA prepared for insert into demos_app.users; this is derived entirely from `final_demos_app_person`.
     data_tests:
       - dbt_utils.expression_is_true:
           name: assert_cognito_subject_always_null_in_cleaned_demos_app_users
@@ -153,15 +294,7 @@ models:
       - name: updated_at
         data_type: timestamptz
 
-  - name: cleaned_demos_app_application_finalized_demos
-    columns:
-      - name: id
-        data_type: uuid
-      - name: application_type_id
-        data_type: text
-      - name: is_migrated_from_pmda
-        data_type: boolean
-
+  # Cleaned Models
   - name: cleaned_demos_app_demonstration_finalized_demos
     data_tests:
       - dbt_utils.expression_is_true:
@@ -176,136 +309,6 @@ models:
           name: assert_all_cleaned_finalized_demonstrations_have_expiration_date
           arguments:
             expression: "status_id = 'Approved' AND expiration_date IS NOT NULL"
-    columns:
-      - name: id
-        data_type: uuid
-      - name: application_type_id
-        data_type: text
-      - name: name
-        data_type: text
-      - name: description
-        data_type: text
-      - name: effective_date
-        data_type: timestamptz
-      - name: expiration_date
-        data_type: timestamptz
-      - name: sdg_division_id
-        data_type: text
-      - name: signature_level_id
-        data_type: text
-      - name: status_id
-        data_type: text
-      - name: status_updated_at
-        data_type: timestamptz
-      - name: current_phase_id
-        data_type: text
-      - name: state_id
-        data_type: text
-      - name: clearance_level_id
-        data_type: text
-      - name: medicaid_id
-        data_type: text
-        data_tests:
-          - unique:
-              name: assert_medicaid_ids_are_unique_in_cleaned_finalized_demonstration
-      - name: chip_id
-        data_type: text
-        data_tests:
-          - unique:
-              name: assert_chip_ids_are_unique_in_cleaned_finalized_demonstration
-      - name: created_at
-        data_type: timestamptz
-      - name: updated_at
-        data_type: timestamptz
-      - name: _legacy_mdcd_demo_id
-        data_type: integer
-      - name: _legacy_proj_ofcr_user_id
-        data_type: integer
-        description: The legacy user ID of the project officer; when null or 0, fall back to 828 (Liz Hill).
-
-  - name: cleaned_demos_app_demo_role_prim_po_finalized_demos
-    columns:
-      - name: person_id
-        data_type: uuid
-        data_tests:
-          - not_null:
-              name: assert_proj_ofcr_user_id_maps_to_cleaned_person
-      - name: demonstration_id
-        data_type: uuid
-      - name: role_id
-        data_type: text
-      - name: state_id
-        data_type: text
-      - name: person_type_id
-        data_type: text
-      - name: grant_level_id
-        data_type: text
-      - name: _internal_grant_type
-        data_type: text
-        description: Internal flag used for filtering downstream models.
-
-  - name: cleaned_demos_app_prim_demo_role_prim_po_finalized_demos
-    columns:
-      - name: person_id
-        data_type: uuid
-      - name: demonstration_id
-        data_type: uuid
-      - name: role_id
-        data_type: text
-
-  - name: cleaned_demos_app_app_phases_finalized_demos
-    columns:
-      - name: application_id
-        data_type: uuid
-      - name: phase_id
-        data_type: text
-      - name: phase_status_id
-        data_type: text
-      - name: created_at
-        data_type: timestamptz
-      - name: updated_at
-        data_type: timestamptz
-
-  - name: cleaned_demos_app_demo_type_tag_assign_migrated_from_pmda
-    columns:
-      - name: demonstration_id
-        data_type: uuid
-      - name: tag_name_id
-        data_type: text
-      - name: tag_type_id
-        data_type: text
-      - name: effective_date
-        data_type: timestamptz
-      - name: expiration_date
-        data_type: timestamptz
-      - name: created_at
-        data_type: timestamptz
-      - name: updated_at
-        data_type: timestamptz
-
-  - name: cleaned_demos_app_tag_migrated_from_pmda
-    columns:
-      - name: tag_name_id
-        data_type: text
-      - name: tag_type_id
-        data_type: text
-      - name: source_id
-        data_type: text
-      - name: status_id
-        data_type: text
-      - name: created_at
-        data_type: timestamptz
-      - name: updated_at
-        data_type: timestamptz
-
-  - name: cleaned_demos_app_tag_name_migrated_from_pmda
-    columns:
-      - name: id
-        data_type: text
-      - name: created_at
-        data_type: timestamptz
-      - name: updated_at
-        data_type: timestamptz
 
   # Apps Models
   - name: apps_active_finalized_pmda_demos
