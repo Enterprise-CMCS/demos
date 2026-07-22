@@ -17,7 +17,7 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
 
   // Note, this now hosts/shares some columns with DemonstrationDeliverableTable.
   return [
-    columnHelper.accessor("state.id", {
+    columnHelper.accessor("state.name", {
       id: "stateId",
       header: "State/\u200BTerritory", // using zero width space for word break
       cell: highlightCell,
@@ -30,8 +30,8 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
           filterType: "select",
           options:
             STATES_AND_TERRITORIES.map((state) => ({
-              label: state.id,
-              value: state.id,
+              label: state.name,
+              value: state.name,
             })) ?? [],
         },
       },
