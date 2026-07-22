@@ -1,0 +1,95 @@
+= Explanation: data-shape decisions
+
+DEMOS reshapes the legacy schema heavily. Three large decisions in
+particular are worth a paragraph of context for the SME reviewer.
+
+== Why JSONB consolidation for budget neutrality
+
+MySQL stores BN data across ~12 tables (`bdgt_ntrlty_demo_yr`,
+`bdgt_ntrlty_mdcd_elgblty_grp`, member-month actuals/projections,
+waiver roll-ups, spend limits, summaries). The migration consolidates
+the detailed figures into a single `validation_data` JSONB column on a
+*migration-private* parity table, `migration.bn_workbook_detail` (one
+row per BN file). The live DEMOS `demos_app.budget_neutrality_workbook`
+row is created per BN file but loaded with
+`validation_status_id='Pending'` and `validation_data='{}'::jsonb`; the
+DEMOS BN lambda later writes that live column as a `ValidationError[]`
+array. The SME reviews the migration-private aggregate for fidelity; it
+is not a load target for `demos_app`.
+
+Why:
+
+. *Reads are workbook-shaped.* The new app fetches a workbook and
+  shows a panel; it never queries member-month actuals across
+  workbooks.
+. *Writes are workbook-shaped.* A user uploads a BN spreadsheet,
+  the app validates it, the validated payload is stored. The
+  intermediate normalised rows had no independent lifecycle.
+. *Schema enforcement still works.* `migration.bn_workbook_detail.validation_data`
+  is validated against a JSON Schema on insert and on UPDATEs that touch
+  the column, via a CONSTRAINT TRIGGER described in the
+  xref:../developer/reference-jsonb-schema-registry.adoc[JSONB
+  schema registry]. The trigger fails closed for non-NULL JSONB
+  until the schema is registered. No trigger is wired on any live
+  `demos_app.*` column.
+
+What this costs: ad-hoc queries that pivot across workbooks need
+JSON path expressions. Acceptable; we have ~hundreds of workbooks,
+not millions.
+
+== Why a tag system instead of ~70 program-detail tables
+
+MySQL has ~70 approved `mdcd_<X>_pgm_dtl` tables (plus their
+`mdcd_pendg_*_pgm_dtl` counterparts), one per program type.
+DEMOS replaces them with `demonstration_type_tag_assignment` rows
+where `tag_name` carries the program type (`managed_care`,
+`home_and_community_based_services`, ...).
+
+Why:
+
+. *Add a program type without DDL.* New tag = new row in
+  `demos_app.tag_name`. No new table, no migration.
+. *Query simplification.* "Show me all demos with tag X in 2024" is
+  a single query, not a UNION of N tables.
+. *Reporting.* Cross-program reports become trivial.
+
+What this costs: the templated transform has to be authored once,
+which is one-time work. Future SMEs reviewing tag assignments do not
+need to know the source table existed.
+
+== Why one `document` table
+
+MySQL has ~10 doc-family tables (templates, deliverable files,
+post-award files, authority files, ...). DEMOS collapses them into
+`document` with `document_type_id` as the discriminator.
+
+Why:
+
+. *One uploader code path.* The new app has one document API.
+. *Cross-cutting policies.* AV-scan, retention, signature -- one
+  table to wire them through.
+. *Forensic origin captured.* `source_table` is recorded so we can
+  trace any DEMOS document back to its MySQL source.
+
+What this costs: doc-type-specific columns become JSONB or move to
+a side table. The 10 source tables had little overlap in their
+extension columns; the cost is small.
+
+== Related
+
+* xref:reference-source-target-map.adoc[Source/target map]
+* xref:howto-review-bn-jsonb-payload.adoc[Review a BN JSONB payload]
+* xref:reference-pgm-dtl-tag-mapping.adoc[Tag mapping]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-source-target-columns.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:explanation-comments-routing.adoc[next >]
+|===
+endif::[]
+// docnav-end

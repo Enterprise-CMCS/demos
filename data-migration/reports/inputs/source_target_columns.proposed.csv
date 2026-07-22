@@ -1,0 +1,94 @@
+mysql_table,mysql_column,demos_table,demos_column,transform,confidence,notes
+mdcd_demo_amndmt,mdcd_demo_amndmt_id,amendment,id,id_map,high,minted UUID via migration._id_map_*
+mdcd_demo_amndmt,,amendment,application_type_id,crosswalk:?,none,crosswalk to seeded application_type domain -- SME decision
+mdcd_demo_amndmt,mdcd_demo_id,amendment,demonstration_id,id_map,high,resolve via migration._id_map_demo
+mdcd_demo_amndmt,mdcd_demo_amndmt_name,amendment,name,copy,high,direct copy after trim
+mdcd_demo_amndmt,amndmt_desc,amendment,description,copy,medium,direct copy after trim
+mdcd_demo_amndmt,,amendment,effective_date,cast,low,ambiguous source date column -- SME to pick (from_dt/to_dt/_strt_dt/_end_dt)
+mdcd_demo_amndmt,,amendment,status_id,crosswalk:?,none,crosswalk to seeded status domain -- SME decision
+mdcd_demo_amndmt,,amendment,current_phase_id,crosswalk:?,none,crosswalk to seeded current_phase domain -- SME decision
+mdcd_demo_amndmt,,amendment,clearance_level_id,crosswalk:?,none,crosswalk to seeded clearance_level domain -- SME decision
+mdcd_demo_amndmt,,amendment,signature_level_id,crosswalk:?,none,crosswalk to seeded signature_level domain -- SME decision
+mdcd_demo_amndmt,creatd_dt,amendment,created_at,cast,high,timestamp -> timestamptz
+mdcd_demo_amndmt,,amendment,updated_at,,none,NOT NULL; no obvious source -- SME (derive/constant/drop?)
+mdcd_demo_aplctn,mdcd_demo_aplctn_id,application,id,id_map,high,minted UUID via migration._id_map_*
+mdcd_demo_aplctn,,application,application_type_id,crosswalk:?,none,"crosswalk to seeded application_type domain -- SME decision [sources: mdcd_demo_aplctn, mdcd_pendg_demo]"
+mdcd_demo_aplctn,,application_date,application_id,id_map,none,FK to application; confirm source column + id_map -- SME
+mdcd_demo_aplctn,,application_date,date_type_id,crosswalk:?,none,crosswalk to seeded date_type domain -- SME decision
+mdcd_demo_aplctn,,application_date,date_value,,none,NOT NULL; no obvious source -- SME (derive/constant/drop?)
+mdcd_demo_aplctn,creatd_dt,application_date,created_at,cast,high,timestamp -> timestamptz
+mdcd_demo_aplctn,updtd_dt,application_date,updated_at,cast,high,"COALESCE(updtd_dt, creatd_dt); timestamp -> timestamptz"
+mdcd_demo_aplctn_cmt,,application_note,application_id,id_map,none,FK to application; confirm source column + id_map -- SME
+mdcd_demo_aplctn_cmt,,application_note,note_type_id,crosswalk:?,none,crosswalk to seeded note_type domain -- SME decision
+mdcd_demo_aplctn_cmt,,application_note,content,,none,NOT NULL; no obvious source -- SME (derive/constant/drop?)
+mdcd_demo_aplctn_cmt,creatd_dt,application_note,created_at,cast,high,timestamp -> timestamptz
+mdcd_demo_aplctn_cmt,updtd_dt,application_note,updated_at,cast,high,"COALESCE(updtd_dt, creatd_dt); timestamp -> timestamptz"
+mdcd_demo_aplctn,,application_phase,application_id,id_map,none,FK to application; confirm source column + id_map -- SME
+mdcd_demo_aplctn,,application_phase,phase_id,crosswalk:?,none,crosswalk to seeded phase domain -- SME decision
+mdcd_demo_aplctn,,application_phase,phase_status_id,crosswalk:?,none,crosswalk to seeded phase_status domain -- SME decision
+mdcd_demo_aplctn,creatd_dt,application_phase,created_at,cast,high,timestamp -> timestamptz
+mdcd_demo_aplctn,updtd_dt,application_phase,updated_at,cast,high,"COALESCE(updtd_dt, creatd_dt); timestamp -> timestamptz"
+bdgt_ntrlty_wvr,bdgt_ntrlty_wvr_id,budget_neutrality_workbook,id,id_map,high,minted UUID via migration._id_map_*
+bdgt_ntrlty_wvr,,budget_neutrality_workbook,document_type_id,crosswalk:?,none,"crosswalk to seeded document_type domain -- SME decision [sources: bdgt_ntrlty_wvr, bdgt_ntrlty_demo_yr, bdgt_ntrlty_pgm_spnd_lmt]"
+bdgt_ntrlty_wvr,,budget_neutrality_workbook,validation_status_id,crosswalk:?,none,"crosswalk to seeded validation_status domain -- SME decision [sources: bdgt_ntrlty_wvr, bdgt_ntrlty_demo_yr, bdgt_ntrlty_pgm_spnd_lmt]"
+bdgt_ntrlty_wvr,,budget_neutrality_workbook,validation_data,,none,"NOT NULL; no obvious source -- SME (derive/constant/drop?) [sources: bdgt_ntrlty_wvr, bdgt_ntrlty_demo_yr, bdgt_ntrlty_pgm_spnd_lmt]"
+bdgt_ntrlty_wvr,creatd_dt,budget_neutrality_workbook,created_at,cast,high,timestamp -> timestamptz
+bdgt_ntrlty_wvr,,budget_neutrality_workbook,updated_at,,none,"NOT NULL; no obvious source -- SME (derive/constant/drop?) [sources: bdgt_ntrlty_wvr, bdgt_ntrlty_demo_yr, bdgt_ntrlty_pgm_spnd_lmt]"
+mdcd_dlvrbl,mdcd_dlvrbl_id,deliverable,id,id_map,high,minted UUID via migration._id_map_*
+mdcd_dlvrbl,,deliverable,deliverable_type_id,crosswalk,none,HOLD-BACK pending BN routing sign-off (mdcd_dlvrbl_type_cd + bdgt_ntrlty_ind); see reports/crosswalks/proposed/deliverable_type_bn_routing.md
+mdcd_dlvrbl,mdcd_dlvrbl_name,deliverable,name,copy,high,btrim(name); satisfies check_non_empty_name + check_deliverable_name_has_no_leading_trailing_whitespace
+mdcd_dlvrbl,mdcd_demo_id,deliverable,demonstration_id,id_map,high,resolve via migration._id_map_demo
+mdcd_dlvrbl,,deliverable,demonstration_status_id,constant,high,"constant 'Approved'; deliverable_demonstration_status_limit seeds only Approved and composite FK (demonstration_id, demonstration_status_id) -> demonstration(id, status_id) forces parity"
+mdcd_dlvrbl,mdcd_dlvrbl_crnt_stus_cd,deliverable,status_id,crosswalk,high,crosswalk_deliverable_status tuple (codes 50/51); fail-closed NULL on 7/9
+mdcd_dlvrbl,creatd_user_id,deliverable,cms_owner_user_id,id_map,high,creator via migration._id_map_users; fail-closed if owner resolves to a state user
+mdcd_dlvrbl,,deliverable,cms_owner_person_type_id,derive,high,"owner person_type_id via stg.users_resolved; FK cms_user_person_type_limit constrains to {demos-admin, demos-cms-user}"
+mdcd_dlvrbl,dlvrbl_due_dt,deliverable,due_date,cast,medium,"dlvrbl_due_dt; NULL fallback dlvrbl_prd_strt_dt + dlvrbl_days_due_num * interval '1 day', else dlvrbl_due_dt_chg_dt"
+mdcd_dlvrbl,mdcd_dlvrbl_crnt_stus_cd,deliverable,due_date_type_id,crosswalk,high,crosswalk_deliverable_status tuple; DEFAULT 'Normal'
+mdcd_dlvrbl,,deliverable,expected_to_be_submitted,crosswalk,medium,from crosswalk_deliverable_status tuple
+mdcd_dlvrbl,creatd_dt,deliverable,created_at,cast,high,timestamp -> timestamptz
+mdcd_dlvrbl,updtd_dt,deliverable,updated_at,cast,high,"COALESCE(updtd_dt, creatd_dt) -> timestamptz"
+mdcd_dlvrbl,,deliverable_demonstration_type,deliverable_id,id_map,none,FK to deliverable; confirm source column + id_map -- SME
+mdcd_dlvrbl,mdcd_demo_id,deliverable_demonstration_type,demonstration_id,id_map,high,resolve via migration._id_map_demo
+mdcd_dlvrbl,,deliverable_demonstration_type,demonstration_type_tag_name_id,crosswalk:?,none,crosswalk to seeded demonstration_type_tag_name domain -- SME decision
+mdcd_demo,,demonstration_role_assignment,person_id,id_map,none,"FK to person; confirm source column + id_map -- SME [sources: mdcd_demo, user_role_asgnmt]"
+mdcd_demo,mdcd_demo_id,demonstration_role_assignment,demonstration_id,id_map,high,resolve via migration._id_map_demo
+mdcd_demo,,demonstration_role_assignment,role_id,crosswalk:?,none,"crosswalk to seeded role domain -- SME decision [sources: mdcd_demo, user_role_asgnmt]"
+mdcd_demo,,demonstration_role_assignment,state_id,crosswalk:?,none,"crosswalk to seeded state domain -- SME decision [sources: mdcd_demo, user_role_asgnmt]"
+mdcd_demo,,demonstration_role_assignment,person_type_id,crosswalk:?,none,"crosswalk to seeded person_type domain -- SME decision [sources: mdcd_demo, user_role_asgnmt]"
+mdcd_demo,,demonstration_role_assignment,grant_level_id,crosswalk:?,none,"crosswalk to seeded grant_level domain -- SME decision [sources: mdcd_demo, user_role_asgnmt]"
+mdcd_dlvrbl_fil_doc,mdcd_dlvrbl_fil_doc_id,document,id,id_map,high,minted UUID via migration._id_map_*
+mdcd_dlvrbl_fil_doc,,document,name,copy,none,"several/no *_name source columns -- SME to pick [sources: mdcd_dlvrbl_fil_doc, mdcd_demo_authrty_fil_doc, mdcd_demo_sv_fil_doc, mdcd_demo_finl_dcsn_dtl_fil_doc, mdcd_pst_awd_frm_fil_doc]"
+mdcd_dlvrbl_fil_doc,,document,description,copy,none,"several/no *_desc source columns -- SME to pick [sources: mdcd_dlvrbl_fil_doc, mdcd_demo_authrty_fil_doc, mdcd_demo_sv_fil_doc, mdcd_demo_finl_dcsn_dtl_fil_doc, mdcd_pst_awd_frm_fil_doc]"
+mdcd_dlvrbl_fil_doc,,document,s3_path,,none,"NOT NULL; no obvious source -- SME (derive/constant/drop?) [sources: mdcd_dlvrbl_fil_doc, mdcd_demo_authrty_fil_doc, mdcd_demo_sv_fil_doc, mdcd_demo_finl_dcsn_dtl_fil_doc, mdcd_pst_awd_frm_fil_doc]"
+mdcd_dlvrbl_fil_doc,,document,owner_user_id,id_map,none,"FK to owner_user; confirm source column + id_map -- SME [sources: mdcd_dlvrbl_fil_doc, mdcd_demo_authrty_fil_doc, mdcd_demo_sv_fil_doc, mdcd_demo_finl_dcsn_dtl_fil_doc, mdcd_pst_awd_frm_fil_doc]"
+mdcd_dlvrbl_fil_doc,,document,document_type_id,crosswalk:?,none,"crosswalk to seeded document_type domain -- SME decision [sources: mdcd_dlvrbl_fil_doc, mdcd_demo_authrty_fil_doc, mdcd_demo_sv_fil_doc, mdcd_demo_finl_dcsn_dtl_fil_doc, mdcd_pst_awd_frm_fil_doc]"
+mdcd_dlvrbl_fil_doc,,document,application_id,id_map,none,"FK to application; confirm source column + id_map -- SME [sources: mdcd_dlvrbl_fil_doc, mdcd_demo_authrty_fil_doc, mdcd_demo_sv_fil_doc, mdcd_demo_finl_dcsn_dtl_fil_doc, mdcd_pst_awd_frm_fil_doc]"
+mdcd_dlvrbl_fil_doc,,document,phase_id,crosswalk:?,none,"crosswalk to seeded phase domain -- SME decision [sources: mdcd_dlvrbl_fil_doc, mdcd_demo_authrty_fil_doc, mdcd_demo_sv_fil_doc, mdcd_demo_finl_dcsn_dtl_fil_doc, mdcd_pst_awd_frm_fil_doc]"
+mdcd_dlvrbl_fil_doc,,document,deliverable_id,id_map,none,"FK to deliverable; confirm source column + id_map -- SME [sources: mdcd_dlvrbl_fil_doc, mdcd_demo_authrty_fil_doc, mdcd_demo_sv_fil_doc, mdcd_demo_finl_dcsn_dtl_fil_doc, mdcd_pst_awd_frm_fil_doc]"
+mdcd_dlvrbl_fil_doc,,document,deliverable_type_id,crosswalk:?,none,"crosswalk to seeded deliverable_type domain -- SME decision [sources: mdcd_dlvrbl_fil_doc, mdcd_demo_authrty_fil_doc, mdcd_demo_sv_fil_doc, mdcd_demo_finl_dcsn_dtl_fil_doc, mdcd_pst_awd_frm_fil_doc]"
+mdcd_dlvrbl_fil_doc,,document,deliverable_is_cms_attached_file,,none,"nullable; no obvious source -- SME (derive/constant/drop?) [sources: mdcd_dlvrbl_fil_doc, mdcd_demo_authrty_fil_doc, mdcd_demo_sv_fil_doc, mdcd_demo_finl_dcsn_dtl_fil_doc, mdcd_pst_awd_frm_fil_doc]"
+mdcd_dlvrbl_fil_doc,,document,deliverable_submission_action_id,id_map,none,"FK to deliverable_submission_action; confirm source column + id_map -- SME [sources: mdcd_dlvrbl_fil_doc, mdcd_demo_authrty_fil_doc, mdcd_demo_sv_fil_doc, mdcd_demo_finl_dcsn_dtl_fil_doc, mdcd_pst_awd_frm_fil_doc]"
+mdcd_dlvrbl_fil_doc,,document,deliverable_submission_action_type_id,crosswalk:?,none,"crosswalk to seeded deliverable_submission_action_type domain -- SME decision [sources: mdcd_dlvrbl_fil_doc, mdcd_demo_authrty_fil_doc, mdcd_demo_sv_fil_doc, mdcd_demo_finl_dcsn_dtl_fil_doc, mdcd_pst_awd_frm_fil_doc]"
+mdcd_dlvrbl_fil_doc,creatd_dt,document,created_at,cast,high,timestamp -> timestamptz
+mdcd_dlvrbl_fil_doc,,document,updated_at,,none,"NOT NULL; no obvious source -- SME (derive/constant/drop?) [sources: mdcd_dlvrbl_fil_doc, mdcd_demo_authrty_fil_doc, mdcd_demo_sv_fil_doc, mdcd_demo_finl_dcsn_dtl_fil_doc, mdcd_pst_awd_frm_fil_doc]"
+mdcd_demo_rnwl,mdcd_demo_rnwl_id,extension,id,id_map,high,minted UUID via migration._id_map_*
+mdcd_demo_rnwl,,extension,application_type_id,crosswalk:?,none,crosswalk to seeded application_type domain -- SME decision
+mdcd_demo_rnwl,mdcd_demo_id,extension,demonstration_id,id_map,high,resolve via migration._id_map_demo
+mdcd_demo_rnwl,mdcd_demo_rnwl_name,extension,name,copy,high,direct copy after trim
+mdcd_demo_rnwl,rnwl_desc,extension,description,copy,medium,direct copy after trim
+mdcd_demo_rnwl,,extension,effective_date,cast,low,ambiguous source date column -- SME to pick (from_dt/to_dt/_strt_dt/_end_dt)
+mdcd_demo_rnwl,,extension,status_id,crosswalk:?,none,crosswalk to seeded status domain -- SME decision
+mdcd_demo_rnwl,,extension,current_phase_id,crosswalk:?,none,crosswalk to seeded current_phase domain -- SME decision
+mdcd_demo_rnwl,,extension,clearance_level_id,crosswalk:?,none,crosswalk to seeded clearance_level domain -- SME decision
+mdcd_demo_rnwl,,extension,signature_level_id,crosswalk:?,none,crosswalk to seeded signature_level domain -- SME decision
+mdcd_demo_rnwl,creatd_dt,extension,created_at,cast,high,timestamp -> timestamptz
+mdcd_demo_rnwl,,extension,updated_at,,none,NOT NULL; no obvious source -- SME (derive/constant/drop?)
+mdcd_demo,,person_state,person_id,id_map,none,FK to person; confirm source column + id_map -- SME
+mdcd_demo,,person_state,state_id,crosswalk:?,none,crosswalk to seeded state domain -- SME decision
+mdcd_demo,,primary_demonstration_role_assignment,person_id,id_map,none,FK to person; confirm source column + id_map -- SME
+mdcd_demo,mdcd_demo_id,primary_demonstration_role_assignment,demonstration_id,id_map,high,resolve via migration._id_map_demo
+mdcd_demo,,primary_demonstration_role_assignment,role_id,crosswalk:?,none,crosswalk to seeded role domain -- SME decision
+user_role_asgnmt,,system_role_assignment,person_id,id_map,none,FK to person; confirm source column + id_map -- SME
+user_role_asgnmt,,system_role_assignment,role_id,crosswalk:?,none,crosswalk to seeded role domain -- SME decision
+user_role_asgnmt,,system_role_assignment,person_type_id,crosswalk:?,none,crosswalk to seeded person_type domain -- SME decision
+user_role_asgnmt,,system_role_assignment,grant_level_id,crosswalk:?,none,crosswalk to seeded grant_level domain -- SME decision

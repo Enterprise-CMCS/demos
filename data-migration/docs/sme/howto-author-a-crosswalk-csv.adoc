@@ -1,0 +1,170 @@
+= How-to: review and sign off a crosswalk
+
+A crosswalk maps legacy MySQL reference codes to DEMOS text IDs. You do
+not author one from a blank sheet: the migration tooling pre-fills a
+*proposed* mapping for every value domain, with a confidence level per
+row, so your job is to confirm or correct rather than invent. This page
+is that review-and-sign-off workflow.
+
+== The two tiers
+
+[cols="1,4"]
+|===
+| Tier | What it is
+
+| *Proposed* (review-only)
+| `reports/crosswalks/proposed/<name>.proposed.csv` plus the shared
+  `reports/crosswalks/proposed/_review.md`. Generated from the captured
+  reference data and the DEMOS-seeded domains. *Read by no migration
+  code* -- it exists purely to drive your sign-off.
+
+| *Live* (wired into the pipeline)
+| `reports/crosswalks/<name>.csv` (load-ready) plus its entry in
+  `reports/crosswalks/registry.yaml`. The `sql/04_crosswalks/<NN>_<name>.sql`
+  file is *DDL only*; `migrate crosswalks` COPYs the CSV into
+  `mysql_raw.crosswalk_<name>`, validating the header against the registry
+  `columns`.
+|===
+
+A confirmed proposal becomes a live crosswalk only when a human
+transcribes it (see <<transcribe>>). Nothing is automatic.
+
+== Where the files live
+
+* `reports/crosswalks/proposed/<name>.proposed.csv` -- one per value
+  domain. Columns:
+
+[cols="2,5"]
+|===
+| Column | Meaning
+
+| `legacy_int_cd` | The code in the source `*_rfrnc` table. (Code-keyed domains such as `state` use a text `legacy_cd` instead.)
+| `legacy_name` | Human-readable source value. Informational.
+| `proposed_demos_text_id` | The tooling's best-guess DEMOS text ID.
+| `confidence` | `high` / `medium` / `low` / `none` / `n/a` (see <<confidence>>).
+| `sme_confirmed_value` | *You fill this in* with the agreed DEMOS text ID (or a correction).
+| `notes` | Rationale for the proposal; read it before confirming.
+|===
+
+* `reports/crosswalks/proposed/_review.md` -- the confidence legend, the
+  cross-cutting decisions (status overlays, renewal-vs-extension,
+  signature-level CHECK restrictions, role folds, ...), a proposals-at-a-glance
+  table, and the per-crosswalk *sign-off table*. Live contents:
+  xref:reference-static-constraint-tables.adoc[the static-constraint
+  reference] lists the valid DEMOS targets each `sme_confirmed_value`
+  must match.
+
+[NOTE]
+====
+The column layout above is the *single-target* domain shape. A few
+domains map one legacy code to more than one DEMOS target and carry a
+multi-column tuple instead of a single `proposed_demos_text_id` /
+`sme_confirmed_value`: `deliverable_status` (emits `status_id`,
+`due_date_type_id`, `expected_to_be_submitted`, `emit_extension_status`),
+`role` (emits `role_id`, `grant_level_id`, `assignment_table`,
+`person_type_id`), and `contact_type`. These allow more than one row per
+legacy code (a fan-out PK). See `reports/crosswalks/proposed/_review.md`
+for the per-domain contract before transcribing a multi-target domain.
+====
+
+[#confidence]
+== Confidence legend
+
+[cols="1,5"]
+|===
+| Level | Meaning
+
+| `high` | Legacy name maps to a DEMOS value verbatim or near-verbatim; unlikely to change.
+| `medium` | Strong semantic match but a real (small) judgment call.
+| `low` | Plausible best-effort; DEMOS has no clean equivalent.
+| `none` | No DEMOS target exists; needs a *business decision* before any value can be assigned.
+| `n/a` | Legacy sentinel (e.g. `N/A`, `-- Please Select --`) maps to `NULL`, not a domain value.
+|===
+
+== Review workflow
+
+. Open `<name>.proposed.csv` alongside the matching section of
+  `_review.md`.
+. For each row, weigh `proposed_demos_text_id` against `confidence` and
+  `notes`. Confirm the proposal by copying it into
+  `sme_confirmed_value`, or put the corrected DEMOS text ID there.
+. Leave genuinely undecided rows (`confidence = none`) *blank* until the
+  business decision is made -- do not invent a target just to clear them.
+. Confirm every `sme_confirmed_value` matches an existing row in the
+  target static-constraint table (e.g. `demos_app.application_status`,
+  `demos_app.deliverable_status`).
+. Record the outcome in the `_review.md` sign-off table: your name, the
+  date, and a status of `approved`, `edits`, or `blocked`.
+
+== Review checklist
+
+* [ ] Every distinct legacy code in the source domain has either a
+  `sme_confirmed_value` or a deliberate `none`/`n/a`.
+* [ ] Every `sme_confirmed_value` matches an existing row in the target
+  static-constraint table.
+* [ ] Folds (multiple legacy values -> one DEMOS value) are explained in
+  `notes`.
+* [ ] Cross-cutting decisions in `_review.md` that affect this crosswalk
+  are understood (e.g. legacy `Extended`/`Expired` statuses store as
+  `Approved` and surface via the date overlay).
+* [ ] The `_review.md` sign-off row is filled in.
+
+[#transcribe]
+== Promotion to live (engineer step, after your sign-off)
+
+Once a crosswalk's sign-off row reads `approved`, an engineer transcribes
+the confirmed values into the live artifacts:
+
+. Copy each `sme_confirmed_value` into
+  `reports/crosswalks/<name>.csv` using the *load-ready* column layout: the
+  CSV header must be the exact crosswalk-table columns. Simple single-target
+  domains use `legacy_int_cd, legacy_name, demos_text_id, notes` (or `legacy_cd,
+  ...` for code-keyed domains like `state`); multi-target domains carry the full
+  tuple (e.g. `deliverable_status` ->
+  `legacy_int_cd, legacy_name, status_id, due_date_type_id,
+  expected_to_be_submitted, emit_extension_status, notes`). Leave a cell *empty*
+  for a NULL.
+. Add an entry to `reports/crosswalks/registry.yaml` with `table`, `csv`, and
+  `columns` (the exact header). `columns` is enforced as `header_expect`, so a
+  typo or reordering fails closed. The matching
+  `sql/04_crosswalks/<NN>_<name>.sql` stays DDL only -- no inline `INSERT`.
+. Run `make crosswalks`.
+
+See xref:../developer/howto-add-a-crosswalk.adoc[developer how-to: add a
+crosswalk] for the importer and completeness-check details.
+
+== Why an unconfirmed crosswalk is deliberately RED
+
+The completeness check (e.g.
+`sql/04_crosswalks/11_demo_status_check.sql`) fails the build when a
+legacy code present in the data has *no* live mapping. Until a confirmed
+proposal is transcribed, the live CSV stays empty and the check stays
+RED *on purpose* -- it is the forcing function that keeps an unreviewed
+domain from reaching `demos_app`.
+
+`reports/crosswalks/demo_status.csv` is the canonical example: it is
+empty (header only) by design, so `demo_status` cannot go green until
+its proposal is signed off and transcribed. Filling the live CSV with
+unconfirmed guesses would turn the check green and remove the forcing
+function -- the check only catches *unmapped* codes, never *mis-mapped*
+ones.
+
+== Related
+
+* xref:reference-static-constraint-tables.adoc[Static constraint
+  tables]
+* xref:../developer/howto-add-a-crosswalk.adoc[Developer how-to: add a
+  crosswalk]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:index.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:howto-review-pending-approved-decisions.adoc[next >]
+|===
+endif::[]
+// docnav-end

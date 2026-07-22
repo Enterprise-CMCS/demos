@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useId, useRef } from "react";
 import { tw } from "tags/tw";
+import { Tooltip } from "components/tooltip";
 
 export type ButtonSize = "small" | "standard" | "large";
 export type ButtonType = "button" | "submit" | "reset";
@@ -20,6 +21,8 @@ disabled:bg-surface-disabled
 disabled:text-text-placeholder
 disabled:cursor-not-allowed
 `;
+
+const NON_ALPHANUMERIC = /[^a-zA-Z0-9]/g;
 
 const getSizeClasses = (isCircle: boolean, buttonSize: ButtonSize) => {
   if (isCircle) {
@@ -52,6 +55,7 @@ export interface ButtonProps {
   disabled?: boolean;
   isCircle?: boolean;
   tooltip?: string;
+  eagerTooltip?: string;
 }
 
 export const BaseButton: React.FC<ButtonProps> = ({
@@ -66,23 +70,38 @@ export const BaseButton: React.FC<ButtonProps> = ({
   disabled = false,
   isCircle = false,
   tooltip,
+  eagerTooltip,
 }) => {
   const sizeClasses = getSizeClasses(isCircle, size);
   const circleClasses = getCircleClasses(isCircle);
+  const uid = useId().replace(NON_ALPHANUMERIC, "");
+  const anchorName = `--btn-${uid}`;
+  const tooltipId = `tooltip-${uid}`;
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   return (
-    <button
-      name={name}
-      data-testid={name}
-      aria-label={ariaLabel || name}
-      type={type}
-      onClick={onClick}
-      {...(form ? { form } : {})}
-      className={`${BASE_BUTTON_STYLES} ${sizeClasses} ${circleClasses} ${className}`}
-      disabled={disabled}
-      {...(tooltip ? { title: tooltip } : {})}
-    >
-      {children}
-    </button>
+    <>
+      <button
+        ref={buttonRef}
+        name={name}
+        data-testid={name}
+        aria-label={ariaLabel || name}
+        aria-describedby={eagerTooltip ? tooltipId : undefined}
+        type={type}
+        onClick={onClick}
+        {...(form ? { form } : {})}
+        className={`${BASE_BUTTON_STYLES} ${sizeClasses} ${circleClasses} ${className}${eagerTooltip ? " [anchor-name:var(--anchor)]" : ""}`}
+        disabled={disabled}
+        {...(tooltip ? { title: tooltip } : {})}
+        {...(eagerTooltip ? { style: { "--anchor": anchorName } as React.CSSProperties } : {})}
+      >
+        {children}
+      </button>
+      {eagerTooltip && (
+        <Tooltip id={tooltipId} anchorName={anchorName} anchorRef={buttonRef}>
+          {eagerTooltip}
+        </Tooltip>
+      )}
+    </>
   );
 };

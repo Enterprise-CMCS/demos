@@ -1,0 +1,48 @@
+// Shared snippet: pipeline stage map.
+
+The numbered SQL stages are executed in lexical order. `apply_dir(env,
+directory, expect_files=...)` in `migration/lib.py` is the canonical
+runner; each phase invokes it (or `psql_files` for the
+single-transaction `build_app` stage) on one or more directories.
+
+[cols="1,3,3"]
+|===
+| Stage | Directory | What it does
+
+| 00 | `sql/00_init/` | Roles, schemas, extensions, helper functions, `_delta_log`.
+| 01 | Prisma migrations (fetched from DEMOS GitHub repo) + `sql/01_ddl_supplements/` | `migrate ddl` lists Prisma migration directories under `$PRISMA_MIGRATIONS_PATH` in `$PRISMA_REPO@$PRISMA_REPO_REF` via the GitHub Contents API, fetches each `migration.sql`, concatenates them chronologically, verifies SHA256 against `reports/prisma_ddl.sha256`, drops + re-creates `demos_app`, applies the cached artifact, captures Prisma's inline FKs to `state/prisma_fks.json` and drops them, then applies the migration-private supplements (`00_jsonb_schema_registry.sql` and `10_bn_workbook_detail.sql`). The `*_history` tables ship in the Prisma artifact, not here.
+| 02 | `sql/02_seeds_static/` | Static-constraint rows (text IDs).
+| 03 | `sql/03_seeds_limiters/` | Type-limiter rows.
+| 04 | `sql/04_crosswalks/` | Loads SME-authored CSVs into `mysql_raw.crosswalk_*`.
+| 05 | `sql/05_id_maps/` | Creates and populates `migration._id_map_<src>`.
+| 10 | `sql/10_stg/` | Stage transforms (one file per source table family).
+| 20 | `sql/20_app/` | Builds `demos_app.*` from `stg.*`.
+| 21 | `sql/21_app_associative/` | App-layer associative tables.
+| 23 | `sql/23_app_derived/` | Phases, person_state, role assignments.
+| 30 | `sql/30_constraints/` | FKs as `NOT VALID`, then `VALIDATE`.
+| 31 | `sql/31_constraint_triggers/` | Reserved for late `CONSTRAINT TRIGGER`s. Currently a disposition note only (`00_jsonb_validation.sql`): no trigger on any live `demos_app.*` column. The BN JSONB parity trigger on `migration.bn_workbook_detail` ships in `sql/01_ddl_supplements/10_bn_workbook_detail.sql`.
+| 32 | `sql/32_app_triggers/` | Empty: DEMOS owns the `log_changes_*` history-capture triggers (applied via `refreshDbObjects.ts`), not this repo.
+| 40 | `sql/40_indexes/` | Indexes (built last for speed).
+| 50 | `sql/50_sequences/` | `setval` for sequences in `migration`.
+| 99 | `sql/99_parity/` | Postgres parity views consumed by `parity.py` (pure-PG; DuckDB is not on the parity path).
+|===
+
+[mermaid]
+....
+flowchart TD
+  A[00_init] --> B[01 Prisma DDL + supplements]
+  B --> C[02_seeds_static]
+  C --> D[03_seeds_limiters]
+  D --> E[04_crosswalks CSV import]
+  E --> F[pgloader full -> mysql_raw]
+  F --> G[05_id_maps populate]
+  G --> H[10_stg/* per family]
+  H --> I[20_app + 21_app_associative]
+  I --> K[23_app_derived person_state, role_assn]
+  K --> L[30_constraints FKs NOT VALID]
+  L --> M[31_constraint_triggers]
+  M --> N[32_app_triggers]
+  N --> O[40_indexes + 50_sequences]
+  O --> P[VALIDATE constraints]
+  P --> Q[99_parity]
+....

@@ -1,0 +1,11 @@
+legacy_int_cd,legacy_name,demos_text_id,notes
+1,Application Completeness Letter,Application Completeness Letter,high; verbatim identity with document_type seed
+2,Approval Letter,Approval Letter,high; verbatim identity with document_type seed
+3,Signed Decision Memo,Signed Decision Memo,high; verbatim identity with document_type seed
+4,Payment Ratio Analysis,Payment Ratio Analysis,high; verbatim identity with document_type seed
+5,State Application,State Application,high; verbatim identity with document_type seed
+6,Temporary Extension Letter,General File,"SME fold; no document_type target, folded to General File"
+7,Final BN Worksheet,BN Workbook,medium; closest seed is BN Workbook (confirm vs BN Template)
+8,Formal OMB Policy Concurrence Email,Formal OMB Policy Concurrence Email,high; verbatim identity with document_type seed
+9,Q&A,Q&A,high; verbatim identity with document_type seed
+99,Other,General File,high; legacy catch-all -> General File (DEMOS catch-all)

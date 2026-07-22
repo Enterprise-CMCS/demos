@@ -41,11 +41,11 @@ vi.mock("./s3", () => ({
   downloadDocumentFromS3: vi.fn().mockResolvedValue("/tmp/test-file.xlsx"),
 }));
 
-vi.mock("demos-shared-library/src/BN/index", () => ({
+vi.mock("demos-shared-library/BN", () => ({
   parseBNFileFromPath: vi.fn().mockResolvedValue({}),
 }));
 
-vi.mock("demos-shared-library/src/BN/validation", () => ({
+vi.mock("demos-shared-library/BN/validation", () => ({
   validateBNWorkbook: vi.fn().mockResolvedValue({
     isValid: true,
     errors: [],

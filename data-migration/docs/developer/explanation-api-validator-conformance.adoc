@@ -1,0 +1,239 @@
+= Explanation: conformance to the DEMOS API validator
+:toc: left
+
+The audience is the engineer who will build the migration's
+*conformance* checks. This page is a design record (an ADR): it explains
+why migrated data must satisfy the DEMOS application-layer validator,
+which of that validator's rules we can reuse, how we reuse them without
+re-implementing them, and where the check runs in the pipeline. The
+comprehensive build is deferred until the date, phase, and document
+loaders land; this page is the contract that work executes from.
+
+== Why this matters
+
+DEMOS normally guarantees its business invariants *on write*: every
+create/update flows through the GraphQL mutation boundary, where the API
+validator runs before anything is persisted. This migration does not go
+through that boundary -- it writes directly into `demos_app.*`. Yet the
+rows we write are then served to live DEMOS users, especially for
+*in-flight applications* that a user will open and continue to act on.
+
+So a migrated row that the API validator would have rejected can sit in
+the database unnoticed until a user reads it or attempts the next
+mutation on it -- at which point a read path or an allowed transition can
+break. The migration must therefore check that the data it lands would
+*pass* the same invariants the API validator enforces, even though the
+validator itself never re-checks rows on read.
+
+[IMPORTANT]
+====
+"Conformance" is not parity. Parity (see
+xref:howto-write-a-parity-check.adoc[how to write a parity check] and
+the `99_parity/` stage) asserts source<->target *equivalence* -- the
+right rows came across. Conformance asserts that the target rows satisfy
+the *DEMOS contract* -- the rows we wrote will not break the app. They
+are separate concerns and live in separate gates.
+====
+
+== What the DEMOS API validator is
+
+It is a set of TypeScript guard functions in `../demos/server/src/`,
+invoked at the GraphQL mutation boundary. Two shapes:
+
+* `check*()` functions return a `string | undefined` message (a single
+  rule).
+* `validate*Input()` functions collect those messages into a
+  `ValidationError[]` and throw a `GraphQLError` (codes like
+  `..._VALIDATION_FAILED`).
+
+Representative sources: `../demos/server/src/model/deliverable/`
+(`validateDeliverableInputs.ts`, `checkDeliverableInputFunctions.ts`),
+`../demos/server/src/model/applicationDate/`
+(`validateInputDates.ts`, `checkInputDateFunctions.ts`), and
+`../demos/server/src/model/applicationPhase/`
+(`checkPhaseCompletionRules.ts`, `checkPhaseFunctions.ts`).
+
+== Which rules are reusable
+
+Not every rule is meaningful against migrated data at rest. The rules
+sort into three buckets.
+
+[cols="1a,3,2",options="header"]
+|===
+| Bucket | Rules (examples) | Disposition
+
+| A -- resting invariants on entities we migrate today
+| Deliverable owner is a CMS user (`demos_app.users` person type is
+  `demos-admin`/`demos-cms-user`); the deliverable's
+  `demos_app.demonstration` is in `Approved` status; the deliverable's
+  demonstration types are a subset of the demonstration's
+  (`demos_app.demonstration_type_tag_assignment` ->
+  `demos_app.deliverable_demonstration_type`); no duplicate demonstration
+  types; required-demonstration-type deliverable types carry at least one.
+| *Usable now.*
+
+| B -- declarative invariants that target tables we do not load yet
+| `validateInputDates` date ordering and day-offset rules over
+  `demos_app.application_date` (for example, completion dates are
+  on-or-after their start dates; the federal comment period is exactly 30
+  days; the completeness review is 15 days after submission). Phase
+  prerequisites in `checkPhaseCompletionRules` over
+  `demos_app.application_phase` and `demos_app.document` (a completed
+  phase implies its prior phases are completed and its required dates and
+  document types exist).
+| *Deferred* until the date / phase / document loaders exist.
+
+| C -- transition, "now", and permission guards
+| `checkDeliverableHasStatus(..., [Submitted])` and friends (these gate a
+  *transition*, not a resting state); `checkDueDateInFuture` and
+  `checkNewDueDate*` (historical rows legitimately have past due dates);
+  `checkDeliverableHasNoActiveExtension`; all authorization/permission
+  checks.
+| *Excluded* -- they false-positive on a historical snapshot.
+|===
+
+== Critical versus report
+
+You said legacy rows that fail a create-time rule should *block on a
+curated critical subset and report the rest*. The split is by blast
+radius on the live app:
+
+* *Critical (blocks cutover):* a violation that would break a read path
+  or the next allowed mutation for an in-flight application -- for
+  example a deliverable whose owner is not a CMS user, a deliverable on a
+  non-`Approved` demonstration, a demonstration-type referential
+  mismatch, and (once the loaders land) phase-completion prerequisite
+  violations and date-ordering inversions the UI depends on.
+* *Report-only:* deviations the app tolerates on read; surfaced as counts
+  in the conformance report, never blocking.
+
+[NOTE]
+====
+The validator runs only on write, so it never re-checks legacy rows. A
+historical snapshot can legitimately violate a rule DEMOS added *after*
+those records were created. The final per-rule critical/report
+assignment, and any grandfathering, is an open SME decision (see
+<<sequencing>>).
+====
+
+== How we reuse it without re-implementing
+
+The validators are the source of truth for these rules, and they change.
+Re-expressing them as SQL in this repo would duplicate that logic and
+drift. Instead we *run the real validators*:
+
+* A read-only conformance harness lives in `../demos`, imports the actual
+  `check*` functions and the declarative validation tables, and points
+  the DEMOS Prisma client (`DATABASE_URL`) at the migrated database --
+  whose schema *is* `demos_app`, exactly what the Prisma models expect.
+* The harness fetches rows, reconstructs the inputs each resting-invariant
+  check needs, runs the curated subset, and writes a JSON report
+  (critical violations versus report-only counts). It only reads; it
+  never mutates.
+* This migration pins the DEMOS commit (the same hash-pin discipline as
+  the Prisma DDL fetch in `migration/phases/fetch_prisma.py`, pinned via
+  `reports/prisma_ddl.sha256`) and shells out to the harness, the way it
+  already shells out to pgloader, consuming the report as a gate result.
+
+The `validate*Input()` wrappers are *not* reused directly: they require
+parsed mutation inputs we do not have for a snapshot. We call the
+granular `check*` functions and the declarative tables instead.
+
+=== Why the harness lives in DEMOS, not here
+
+This repo deliberately keeps the Node and Prisma toolchain out of a
+Python + SQL codebase (`migration/prisma_schema.py`; see
+xref:reference-prisma-ddl.adoc[the Prisma DDL pipeline]). Hosting the
+harness here would force a Node/ESM/TypeScript project, a `prisma
+generate` step, and a build of the DEMOS shared library into this repo,
+and would import DEMOS *internal* functions whose refactors would then
+break our build with no warning on their side. Hosting it in `../demos`
+keeps the toolchain where it belongs, lets DEMOS's own typecheck and CI
+catch validator drift at the source, and reuses our existing commit-pin
+mechanism. The cost -- a small migration-support script in the sister
+repo, moving in lockstep with the schema pin -- is the right trade.
+
+== Where it runs in the pipeline
+
+A new pre-flip *conformance* gate runs after constraints
+(`migration/phases/constraints.py`) and before flip. It hard-fails on the
+critical subset and writes the full report for the rest. The same
+read-only harness is re-run post-flip in smoke
+(`migration/phases/smoke.py`) as a regression check.
+
+[mermaid]
+....
+flowchart LR
+  B[build_app] --> C[constraints]
+  C --> V{conformance}
+  V -->|critical fail| X[block cutover]
+  V -->|ok| F[flip]
+  F --> S[smoke re-run]
+....
+
+The conformance gate is distinct from parity
+(`migration/phases/parity.py`), which compares source against target.
+Conformance asks a different question: will the rows we wrote satisfy the
+DEMOS contract once the app serves them?
+
+[mermaid]
+....
+flowchart LR
+  DB[(migrated demos_app)] --> H[demos harness]
+  H -->|imports| R[real validators]
+  H --> J[JSON report]
+  J --> G[conformance gate]
+....
+
+== The adjacent in-database layer
+
+The API validator is not the only place DEMOS enforces invariants. Its
+hand-maintained SQL (`../demos/server/src/sql/functions.sql`,
+`../demos/server/src/sql/history_triggers.sql`) installs trigger-backed
+rules (for example, exactly-one primary project officer per
+demonstration, required demonstration-type linkage), and the Prisma
+migrations carry CHECK constraints. If those objects are installed in the
+target before load, non-conforming rows fail to land; if they are not,
+the rows land silently -- which is the same risk this conformance gate
+addresses. The harness *complements* that database layer; it does not
+replace it.
+
+[[sequencing]]
+== Sequencing and open questions
+
+* *Blocked on loaders.* Bucket B -- the richest invariants -- needs the
+  `demos_app.application_date`, `demos_app.application_phase`, and
+  `demos_app.document` loaders to exist before the harness can
+  reconstruct their inputs. Until then only Bucket A is implementable.
+* *Per-rule severity.* The critical-versus-report assignment needs SME
+  sign-off rule by rule.
+* *Grandfathering.* Decide whether legacy rows that violate a
+  later-introduced create-time rule are data-quality bugs to fix,
+  acceptable and grandfathered, or hard blockers.
+* *Pin maintenance.* The DEMOS commit pin for the harness must move in
+  step with the schema pin so the validators and the schema they read
+  stay consistent.
+
+== Related
+
+* xref:explanation-history-backfill.adoc[History is DEMOS-owned, not
+  migrated] -- the same ownership principle for `demos_app.*_history`.
+* xref:explanation-fk-strategy.adoc[FK strategy] -- the late-binding
+  validation pattern the conformance gate mirrors.
+* xref:reference-jsonb-schema-registry.adoc[JSONB schema registry] --
+  the in-database JSONB validators DEMOS owns at runtime.
+* xref:reference-pipeline-stages.adoc[Pipeline stages] -- where a new
+  phase slots into the staged SQL.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:explanation-demos-clone-vs-id-maps.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:../sme/index.adoc[next >]
+|===
+endif::[]
+// docnav-end

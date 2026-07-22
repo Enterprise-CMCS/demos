@@ -1,0 +1,218 @@
+= DEMOS cutover day briefing
+:revealjs_theme: black
+:revealjs_hash: true
+:revealjs_slideNumber: c/t
+:revealjs_history: true
+:revealjs_transition: slide
+:source-highlighter: highlight.js
+:icons: font
+
+== Agenda
+
+[%step]
+* Roles and contacts
+* Pre-flight + freeze sequence
+* Build, constraints
+* Parity and the go/no-go gate
+* Flip and smoke
+* Rollback triggers
+* Comms timing
+* Decom (Day 7+)
+
+== Roles and contacts
+
+[cols="1,3"]
+|===
+| Role | On call
+
+| Operator | _name + phone_
+| Backup operator | _name + phone_
+| SME | _name + phone_
+| DBA (MySQL freeze) | _name + phone_
+| Comms lead | _name + phone_
+|===
+
+== State machine
+
+[mermaid]
+....
+stateDiagram-v2
+  [*] --> Live
+  Live --> Freeze
+  Freeze --> Delta
+  Delta --> Build
+  Build --> Constraints
+  Constraints --> Parity
+  Parity --> Flip: go
+  Parity --> Rollback: no-go
+  Flip --> Hypercare
+  Hypercare --> Decom
+  Rollback --> Live
+....
+
+== T-2h: pre-flight
+
+[source,sh]
+----
+uv run migrate preflight
+----
+
+* PG reachable
+* Prisma DDL artifact cached locally (P0.5)
+* Prod-schema guard green vs `REFERENCE_PG_URL` (P0.6)
+* DuckDB + scanners installed
+* pgloader on PATH
+* Backup + on-call confirmed
+
+*Any check red `die()`s the cutover.*
+
+== T-0: freeze
+
+. DBA pauses MySQL writes.
+. Old app config switched to read-only banner.
+. `uv run migrate freeze` captures the freeze instant.
+. Send `runbooks/comms/freeze_begin.md`.
+
+== T+0 → T+30m: delta
+
+[source,sh]
+----
+uv run migrate delta
+----
+
+*Gate 2:* pgloader delta load completes with zero table-level errors (`assert_pgloader_ok`). Row-count drift is checked separately by `migrate load-fidelity` (non-gating).
+
+If delta fails -> retry once. Persistent failure -> rollback.
+
+== T+30m → T+2h30m: build, constraints
+
+[source,sh]
+----
+uv run migrate build         # P3
+uv run migrate constraints   # P5
+----
+
+*Gate 5:* `state/fk_violations.csv` is empty.
+
+If non-empty + < 30min fix -> fix forward. Otherwise rollback.
+
+== T+2h30m → T+3h: parity
+
+[source,sh]
+----
+uv run migrate parity
+----
+
+* Output: `reports/runs/parity_*.md`
+* Header: `OVERALL STATUS: GREEN` (or RED / PENDING)
+
+*PENDING is not acceptable in production.*
+
+== Manual go/no-go
+
+. Operator reads parity report aloud.
+. Backup operator confirms.
+. SME confirms.
+. *Unanimous "go" required.*
+
+If any "no-go" -> rollback.
+
+== T+3h: flip
+
+[source,sh]
+----
+uv run migrate flip
+----
+
+. Operator confirms PMDA is in read-only mode.
+. DEMOS healthz check (5 retries, 2s wait).
+. PMDA and DEMOS are separate apps on separate URLs; the dev team
+  owns the URL/redirect work, so no DNS or LB swap happens here.
+
+== T+3h15m → T+4h: smoke
+
+[source,sh]
+----
+uv run migrate smoke
+----
+
+* Scripted manual checklist of top-N user journeys.
+* Backup operator co-signs.
+* Send `runbooks/comms/flip_complete.md` with parity report attached.
+
+== Rollback triggers
+
+[cols="2,3"]
+|===
+| Trigger | Action
+
+| Gate 0 red | Cancel; reschedule.
+| Gate 2 red | Retry delta once; otherwise rollback.
+| FK violations non-empty | Fix forward < 30min; otherwise rollback.
+| Parity red | Rollback.
+| Manual no-go | Rollback.
+| Smoke red | Rollback.
+| Sev-1 in hypercare | Decision; rollback only if data integrity at risk.
+|===
+
+== Rollback command
+
+[source,sh]
+----
+uv run migrate rollback
+----
+
+. PMDA restored to read-write mode (manual; coordinate with DBA).
+. DEMOS placed in read-only with banner: "Migration paused; service
+  restored."
+. `runbooks/comms/rollback.md` sent to users + stakeholders.
+. Triage in post-mortem channel.
+
+== Comms timing
+
+[cols="1,3"]
+|===
+| When | Template
+
+| Just before P1 | `freeze_begin.md`
+| Freeze running long | `freeze_extended.md`
+| Just after smoke green | `flip_complete.md` (attach parity report)
+| On rollback | `rollback.md`
+|===
+
+== Hypercare (T+4h → Day 4)
+
+* On-call window for tickets.
+* Single ticket channel.
+* Daily 15-min standup with SME.
+* *No schema changes.*
+* Fix forward only; ship as versioned patches after standup.
+
+*Gate 9:* zero open Sev-1/Sev-2 by Day 4 standup.
+
+== Decom (Day 7+)
+
+[source,sh]
+----
+uv run migrate decom
+----
+
+. Revoke app access to MySQL.
+. Capture final MySQL backup.
+. Schedule MySQL teardown.
+. Author post-mortem.
+
+== Status check anytime
+
+[source,sh]
+----
+uv run migrate status
+----
+
+Pipe-able. Shows the gate table.
+
+== Questions?
+
+Read the runbook: `runbooks/cutover.md`.
+
+Reference: xref:../operator/index.adoc[operator book].
