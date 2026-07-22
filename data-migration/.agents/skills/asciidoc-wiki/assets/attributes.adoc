@@ -1,0 +1,26 @@
+// Shared attributes; included at the top of every entry-point document.
+:doctype: book
+:icons: font
+:source-highlighter: rouge
+:toc: left
+:toclevels: 3
+:sectnums:
+:sectanchors:
+:sectlinks:
+:experimental:
+:imagesdir: build
+:docinfo: shared
+:diagram-format: svg
+:mermaid-format: svg
+:plantuml-format: svg
+:graphviz-format: svg
+:ditaa-format: svg
+:diagram-svg-type: inline
+:mermaid-config: {repo-root}/docs/mermaid-config.json
+:mermaid-css: {repo-root}/docs/mermaid.css
+:repo-root: ..
+// Project-specific path attributes; add/remove to match the repo's
+// top-level directories. Pages reference these as {reports-dir} etc.
+:reports-dir: ../reports
+:runbooks-dir: ../runbooks
+:sql-dir: ../sql

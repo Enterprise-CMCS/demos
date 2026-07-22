@@ -259,6 +259,17 @@ describe.sequential("KeywordSearch Component", () => {
   });
 
   describe("Text Highlighting", () => {
+    it("treats regular expression characters as literal search text", () => {
+      const highlighted = highlightCell({
+        cell: { getValue: () => "Example (draft)" },
+        table: { getState: () => ({ globalFilter: ["("] }) },
+      } as never);
+
+      render(<>{highlighted}</>);
+
+      expect(screen.getByText("(").tagName.toLowerCase()).toBe("mark");
+    });
+
     it("highlights matching text in search results", async () => {
       const user = userEvent.setup();
       const keywordSearchInput = screen.getByTestId(TEST_IDS.input);

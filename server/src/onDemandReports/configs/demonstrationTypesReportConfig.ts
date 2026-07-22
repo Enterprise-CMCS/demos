@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { APPLICATION_STATUS, STATES_AND_TERRITORIES } from "../../constants";
 import {
-  OnDemandReportColumnHeader,
+  OnDemandReportColumnConfiguration,
   OnDemandReportColumnSchema,
   OnDemandReportConfiguration,
 } from "./onDemandReportConfigTypes";
@@ -44,24 +44,24 @@ const demonstrationTypesReportSchema = z
   .strict();
 
 const demonstrationTypesReportColumnHeaders = {
-  state_territory: "State/Territory",
-  demonstration_title: "Demonstration Title",
-  demonstration_number: "Demonstration Number",
-  chip_id: "CHIP ID",
-  status: "Status",
-  status_update_date: "Status Update Date",
-  demonstration_effective_date: "Demonstration Effective Date",
-  demonstration_expiration_date: "Demonstration Expiration Date",
-  primary_project_officer: "Primary Project Officer",
-  primary_state_poc: "Primary State POC",
-  application_approval_date: "Application Approval Date",
-  demonstration_type: "Demonstration Type",
-  demonstration_type_effective_date: "Demonstration Type Effective Date",
-  demonstration_type_expiration_date: "Demonstration Type Expiration Date",
-} satisfies OnDemandReportColumnHeader<DemonstrationTypesReportColumn>;
+  state_territory: { columnName: "State/Territory" },
+  demonstration_title: { columnName: "Demonstration Title" },
+  demonstration_number: { columnName: "Demonstration Number" },
+  chip_id: { columnName: "CHIP ID" },
+  status: { columnName: "Status" },
+  status_update_date: { columnName: "Status Update Date" },
+  demonstration_effective_date: { columnName: "Demonstration Effective Date" },
+  demonstration_expiration_date: { columnName: "Demonstration Expiration Date" },
+  primary_project_officer: { columnName: "Primary Project Officer" },
+  primary_state_poc: { columnName: "Primary State POC" },
+  application_approval_date: { columnName: "Application Approval Date" },
+  demonstration_type: { columnName: "Demonstration Type" },
+  demonstration_type_effective_date: { columnName: "Demonstration Type Effective Date" },
+  demonstration_type_expiration_date: { columnName: "Demonstration Type Expiration Date" },
+} satisfies OnDemandReportColumnConfiguration<DemonstrationTypesReportColumn>;
 
 export const demonstrationTypesReportConfiguration = {
   sqlQueries: demonstrationTypesReportQueries,
   reportRowSchema: demonstrationTypesReportSchema,
-  excelConfiguration: { columnNames: demonstrationTypesReportColumnHeaders },
+  excelConfiguration: { columns: demonstrationTypesReportColumnHeaders },
 } satisfies OnDemandReportConfiguration;

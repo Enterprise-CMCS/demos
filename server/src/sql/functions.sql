@@ -1133,7 +1133,7 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations();
 
 CREATE TRIGGER check_demonstration_type_exists_for_approved_demonstrations
-BEFORE UPDATE of status_id ON demos_app.demonstration
+BEFORE UPDATE OF status_id ON demos_app.demonstration
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations();
 

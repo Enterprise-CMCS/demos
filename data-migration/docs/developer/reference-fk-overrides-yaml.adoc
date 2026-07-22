@@ -1,0 +1,57 @@
+= Reference: `reports/inputs/fk_overrides.yaml`
+
+A manual patch layer over the heuristic FK scanner in
+`scripts/generate_fk_candidates.sql`.
+
+== Schema
+
+[source]
+----
+include::../../reports/inputs/fk_overrides.yaml[]
+----
+
+== When to use
+
+* The heuristic resolves to the wrong target.
+* The heuristic misses an FK that you know exists.
+* You want to bump or lower the confidence on a candidate with a
+  rationale.
+
+== Lifecycle
+
+. Run `make fk_candidates`. The scanner emits candidates from
+  `mysql_raw.information_schema.columns` keyed by
+  `(from_table, from_column)`.
+. Open `reports/generated/fk_candidates.csv` and review the heuristic output.
+. For each row that is wrong, missing, or ambiguous, add an entry to
+  `overrides:` in `fk_overrides.yaml`.
+. Re-run `make fk_candidates`. The merged result is written back to
+  `reports/generated/fk_candidates.csv`; the YAML's values win.
+. Commit the YAML *and* the CSV in the same change. The CSV is
+  committed so reviewers see the FK landscape at a glance, but it
+  regenerates whenever the YAML or scanner changes -- never edit the
+  CSV by hand.
+
+== Stale entries
+
+If an entry's `(from_table, from_column)` no longer matches anything
+the scanner emits, the run prints a `WARNING` for that entry. Prune
+it.
+
+== Related
+
+* `scripts/generate_fk_candidates.sql` -- the heuristic.
+* `migration/phases/fk_candidates.py` -- the runner.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-templates.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-jsonb-schema-registry.adoc[next >]
+|===
+endif::[]
+// docnav-end

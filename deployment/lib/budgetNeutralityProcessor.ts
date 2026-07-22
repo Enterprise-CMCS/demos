@@ -73,8 +73,6 @@ export class BudgetNeutralityProcessor extends Construct {
       "package-lock.json"
     );
 
-    const sharedLibraryDir = path.resolve(process.cwd(), "..", "shared_library");
-
     const cleanReadBucket = props.readBuckets?.[0];
 
     const budgetNeutralityLambda = new demosLambda.Lambda(
@@ -89,10 +87,7 @@ export class BudgetNeutralityProcessor extends Construct {
         timeout: Duration.seconds(60),
         asCode: false,
         externalModules: ["@aws-sdk", "@aws-sdk/client-secrets-manager"],
-        nodeModules: ["pg", "pino"], 
-        esbuildArgs: {
-          "--alias": `demos-shared-library=${sharedLibraryDir}`,
-        },
+        nodeModules: ["pg"], 
         vpc: props.vpc,
         securityGroup: props.securityGroup,
         format: OutputFormat.ESM,

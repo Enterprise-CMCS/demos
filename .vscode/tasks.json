@@ -1,0 +1,40 @@
+{
+    "version": "2.0.0",
+    "options": { "env": { "PATH": "/opt/demos-data/bin:${env:PATH}" } },
+    "tasks": [
+        {
+            "label": "Python: Radon CC",
+            "type": "shell",
+            "command": "radon cc -s --exclude '*test_*.py' .",
+            "options": { "cwd": "${workspaceFolder}/data/demos_data_tools" },
+            "group": "test",
+            "presentation": { "reveal": "always", "panel": "shared" }
+        },
+        {
+            "label": "Python: Radon MI",
+            "type": "shell",
+            "command": "radon mi --exclude '*test_*.py' .",
+            "options": { "cwd": "${workspaceFolder}/data/demos_data_tools" },
+            "group": "test",
+            "presentation": { "reveal": "always", "panel": "shared" }
+        },
+        {
+            "label": "Python: pydoclint",
+            "type": "shell",
+            "command": "pydoclint --config=pyproject.toml .",
+            "options": { "cwd": "${workspaceFolder}/data/demos_data_tools" },
+            "group": "test",
+            "presentation": { "reveal": "always", "panel": "shared" }
+        },
+        {
+            "label": "Python: All Checks",
+            "dependsOn": [
+                "Python: Radon CC",
+                "Python: Radon MI",
+                "Python: pydoclint"
+            ],
+            "dependsOrder": "sequence",
+            "group": "test"
+        }
+    ]
+}

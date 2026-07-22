@@ -1,0 +1,88 @@
+= How-to: edit pgloader CAST rules
+
+When a new MySQL column type appears (or an existing rule misses an
+edge case), the fix lives in `pgloader/casts.load`. That single CAST
+block is rendered into both `schema.load` (full load) and
+`delta.tmpl.load` (delta load) via the `{{CAST_BLOCK}}` marker, so a
+rule added once applies to both; never edit the rendered
+`state/*.rendered.load`.
+
+== Where rules live
+
+The `CAST` block in `pgloader/casts.load`. The current set:
+
+* `tinyint(1)` / `int(1)` -> `boolean`
+* `datetime` / `timestamp` -> `timestamptz`
+* `date` -> `date`
+* `year` -> `integer`
+* `decimal` -> `numeric` (`keep typemod`)
+* `bigint` -> `bigint`
+* `mediumtext` / `longtext` / `tinytext` -> `text`
+* blob family (`blob` / `mediumblob` / `longblob` / `tinyblob`) -> `bytea`
+
+== Recipe
+
+=== 1. Add (or change) the CAST rule
+
+Edit `pgloader/casts.load` -- one rule per stanza, one stanza per
+type group. The change applies to both the full and delta loads.
+
+=== 2. Re-render
+
+[source,sh]
+----
+uv run migrate load-full
+----
+
+The rendered `.load` file lands at `state/schema.rendered.load`
+(`chmod 0600`). The render uses `jinja2.StrictUndefined`, so a typo
+in a `{{KEY}}` marker fails loudly.
+
+=== 3. Verify the row counts and a few samples
+
+[source,sql]
+----
+\dt mysql_raw.<your_table>
+SELECT * FROM mysql_raw.<your_table> LIMIT 5;
+----
+
+For the affected column, confirm types and a few sample rows look
+right.
+
+=== 4. Test the parser
+
+`tests/test_drop_list.py` covers the
+`lib.read_drop_list` / `lib.excluding_block` parser. If you change CAST handling
+in `load_full.py` (rare), add a test case here.
+
+== Caveats
+
+* `AFTER LOAD DO ... $$;` blocks add `_loaded_at timestamptz NOT NULL
+  DEFAULT now()` to every base table. If you add a new SQL fragment,
+  put it inside this block (not a standalone command); pgloader's
+  state machine wants it inline.
+* The rendered file holds expanded credentials. It is `chmod 0600`,
+  but never paste it into a ticket or commit it.
+* The Jinja2 markers in use today are `{{MYSQL_URL}}`, `{{PG_URL}}`,
+  `{{MYSQL_DB}}`, `{{CAST_BLOCK}}`, `{{EXCLUDING_BLOCK}}` (full) plus
+  `{{FREEZE_INSTANT}}`, `{{TABLES_BLOCK}}` (delta). Adding a new
+  marker requires plumbing in the corresponding phase module.
+
+== Related
+
+* xref:reference-templates.adoc[pgloader template contract]
+* xref:../operator/howto-troubleshoot-pgloader.adoc[Troubleshoot
+  pgloader]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:howto-add-a-crosswalk.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:howto-promote-jsonb-schema.adoc[next >]
+|===
+endif::[]
+// docnav-end

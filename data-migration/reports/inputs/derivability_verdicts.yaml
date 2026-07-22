@@ -1,0 +1,25 @@
+# Human verdicts for the in-scope derivability gaps.
+#
+# scripts/derivability_audit.py enumerates the GAP_in_scope target columns
+# (NOT NULL, no default, unmapped, in a mapped table) straight from the pinned
+# DDL. Whether each gap is *derivable* from an Nth source table -- and how -- is
+# a human judgement, recorded here and joined back into the generated verdict
+# table. The audit fails closed when this file and the live gap set disagree
+# (a gap with no verdict, or a verdict for a column that is no longer a gap),
+# so the two cannot drift.
+#
+# Schema (one entry per `<target_table>.<target_column>`):
+#   derivable: true|false        -- can it be derived from the source at all?
+#   via:       <short label>     -- the derivation family (id-mint, Nth, ...)
+#   path:      <one line>        -- how, or why not (rendered in the table)
+#   evidence:  |                 -- (non-derivable only) the longer rationale;
+#     ...                           entries sharing identical evidence text are
+#                                   grouped into one block in the docs.
+#
+# The 28 derivable gaps that were previously here have been resolved by adding
+# column-map rows to reports/source_target_columns.csv, moving them from
+# GAP_in_scope to "mapped".  The two former deliverable_id gaps
+# (private_comment.deliverable_id, public_comment.deliverable_id) were resolved
+# the same way: the comment tables were re-sourced from mdcd_dlvrbl_cmt /
+# mdcd_dlvrbl_paper_cmt (deliverable-scoped) via migration._id_map_mdcd_dlvrbl.
+# No GAP_in_scope columns remain.

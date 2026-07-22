@@ -2,11 +2,11 @@
 version: v1.25.0
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
-  SNYK-JS-BRACEEXPANSION-17706650:
+  SNYK-JS-WS-17988732:
     - '*':
-        reason: No clean fix available in current ESLint React plugin stack
-        expires: 2026-07-14T00:00:00.000Z
-        created: 2026-06-30T14:21:33.964Z
+      reason: No clean fix available for JSDOM to upgrade WS
+      expires: 2026-07-30T04:00:00.000Z
+      created: 2026-07-16T16:00:59.209Z
 patch: {}
 exclude:
   global:
