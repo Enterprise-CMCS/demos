@@ -22,6 +22,7 @@ export const DEMONSTRATION_HEADER_DETAILS_QUERY = gql`
       chipId
       state {
         id
+        name
       }
       primaryProjectOfficer {
         id
@@ -35,7 +36,7 @@ export type DemonstrationHeaderDetails = Pick<
   Demonstration,
   "id" | "name" | "expirationDate" | "effectiveDate" | "status" | "medicaidId" | "chipId"
 > & {
-  state: Pick<State, "id">;
+  state: Pick<State, "id" | "name">;
   primaryProjectOfficer: Pick<Person, "id" | "fullName">;
 };
 
@@ -88,7 +89,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
   }
 
   const displayFields = [
-    { label: "State/Territory", value: demonstration.state.id },
+    { label: "State/Territory", value: demonstration.state.name },
     {
       label: "Project Officer",
       value: demonstration.primaryProjectOfficer.fullName,
