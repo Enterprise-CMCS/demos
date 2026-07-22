@@ -1,5 +1,6 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { DESCRIPTION_TEXT, GET_REFERENCES_QUERY, ReferencesTable } from "./ReferencesTable";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 import { DialogProvider } from "components/dialog/DialogContext";
@@ -71,6 +72,7 @@ describe("ReferencesTable", () => {
   const downloadReference = vi.fn();
   beforeEach(() => {
     vi.clearAllMocks();
+    downloadReference.mockResolvedValue("https://example.com/reference");
     vi.mocked(useDownloadReference).mockReturnValue({
       downloadReference,
       downloadReferenceAgreement: vi.fn(),
@@ -124,6 +126,36 @@ describe("ReferencesTable", () => {
     });
   });
 
+  it("shows a spinner while a reference download is being prepared", async () => {
+    const user = userEvent.setup();
+    let finishDownload: (url: string) => void = () => {};
+    downloadReference.mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishDownload = resolve;
+      })
+    );
+    renderWithProviders(getReferencesQueryMock);
+
+    const downloadButton = await screen.findByRole("button", { name: "Download ref2" });
+    await user.click(downloadButton);
+
+    await waitFor(() => {
+      const loadingButton = screen.getByRole("button", { name: "Download ref2" });
+      expect(loadingButton).toBeDisabled();
+      expect(within(loadingButton).getByRole("img", { name: "Loading" })).toBeInTheDocument();
+    });
+
+    act(() => finishDownload("https://example.com/reference"));
+
+    await waitFor(() => {
+      const finishedButton = screen.getByRole("button", { name: "Download ref2" });
+      expect(finishedButton).toBeEnabled();
+      expect(
+        within(finishedButton).queryByRole("img", { name: "Loading" })
+      ).not.toBeInTheDocument();
+    });
+  });
+
   it("renders an agreement dialog when the download button is clicked for a reference with an agreement", async () => {
     renderWithProviders(getReferencesQueryMock);
 
@@ -158,6 +190,19 @@ describe("ReferencesTable", () => {
     renderWithProviders(getReferencesQueryMock);
 
     expect(await screen.findByPlaceholderText("Search")).toBeInTheDocument();
+  });
+
+  it("filters references by demonstration type", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(getReferencesQueryMock);
+
+    const searchInput = await screen.findByPlaceholderText("Search");
+    await user.type(searchInput, "Type C");
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Download ref2" })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Open ref1 agreement" })).not.toBeInTheDocument();
+    });
   });
 
   it("renders with pagination controls", async () => {

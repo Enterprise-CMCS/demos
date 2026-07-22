@@ -13,7 +13,11 @@ import {
 import { formatDateForServer, getDateEst } from "util/formatDate";
 import { addDays, parseISO } from "date-fns";
 import { ApplicationDateInput, LocalDate, PhaseName, PhaseStatus } from "demos-server";
-import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
+import {
+  getPhaseCompletedMessage,
+  MISSING_REQUIRED_SECTIONS_TOOLTIP,
+  SAVE_FOR_LATER_MESSAGE,
+} from "util/messages";
 import {
   COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME,
   COMPLETENESS_FINISH_BUTTON_NAME,
@@ -218,6 +222,11 @@ export const VerifyCompleteSection = ({
           size="small"
           disabled={!finishIsEnabled()}
           onClick={handleFinishCompleteness}
+          eagerTooltip={
+            !finishIsEnabled() && !completenessComplete
+              ? MISSING_REQUIRED_SECTIONS_TOOLTIP
+              : undefined
+          }
         >
           Finish
         </Button>

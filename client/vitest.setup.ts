@@ -1,10 +1,22 @@
 // Import DOM testing library for Jest, to be used by all test files
 import "@testing-library/jest-dom";
+
+// Polyfill RegExp.escape (TC39 proposal, not yet available in jsdom)
+if (!("escape" in RegExp)) {
+  (RegExp as unknown as Record<string, unknown>).escape = (s: string) =>
+    s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 import { configure } from "@testing-library/dom";
 
 import React from "react";
 
 import { vi } from "vitest";
+
+// Element.scrollIntoView is not implemented by jsdom
+Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+  configurable: true,
+  value: vi.fn(),
+});
 
 // Mock HTML dialog element for tests
 // HTMLDialogElement API is not fully supported in jsdom yet, so we need these mocks

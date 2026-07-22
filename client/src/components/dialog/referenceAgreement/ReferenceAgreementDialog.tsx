@@ -7,6 +7,7 @@ import { Checkbox } from "components/input";
 import { useDownloadReference } from "hooks/useDownloadReference";
 import { ReferenceAgreementDocument } from "./ReferenceAgreementDocument";
 import { Reference, ReferenceAgreement } from "demos-server";
+import { Spinner } from "components/loading/Spinner";
 
 const STYLES = {
   termsCheckbox: tw`flex items-center p-1 cursor-pointer`,
@@ -21,6 +22,7 @@ export const ReferenceAgreementDialog = ({
 }) => {
   const { closeDialog } = useDialog();
   const [termsAccepted, setTermsAccepted] = React.useState(false);
+  const [isDownloading, setIsDownloading] = React.useState(false);
 
   const { downloadReference } = useDownloadReference();
 
@@ -32,17 +34,30 @@ export const ReferenceAgreementDialog = ({
       dialogHasChanges={false}
       actionButton={
         <Button
-          disabled={!termsAccepted}
+          disabled={!termsAccepted || isDownloading}
           name={"button-download-reference"}
-          onClick={() => {
-            downloadReference({
-              id: reference.id,
-              acceptedAgreementId: reference.agreement.id,
-            });
-            closeDialog();
+          onClick={async () => {
+            setIsDownloading(true); // where spinner will engage.
+            try {
+              await downloadReference({
+                id: reference.id,
+                acceptedAgreementId: reference.agreement.id,
+              });
+              closeDialog();
+            } catch {
+              // useDownloadReference reports download errors to the user.
+              setIsDownloading(false);
+            }
           }}
         >
-          Download
+          <span className="relative inline-flex items-center justify-center">
+            <span className={isDownloading ? "invisible" : ""}>Download</span>
+            {isDownloading && (
+              <span className="absolute inset-0 flex items-center justify-center">
+                <Spinner />
+              </span>
+            )}
+          </span>
         </Button>
       }
     >
