@@ -57,6 +57,24 @@ describe("LocalS3Adapter", () => {
     });
   });
 
+  describe("getDownloadFileName", () => {
+    it("returns the sanitized name without an extension", async () => {
+      const adapter = createLocalS3Adapter();
+
+      const result = await adapter.getDownloadFileName("uuid-123", "Budget FY25/26");
+
+      expect(result).toBe("Budget FY25 26");
+    });
+
+    it("falls back to the key when the name is entirely invalid characters", async () => {
+      const adapter = createLocalS3Adapter();
+
+      const result = await adapter.getDownloadFileName("uuid-123", "///");
+
+      expect(result).toBe("uuid-123");
+    });
+  });
+
   describe("moveDocumentFromCleanToDeleted", () => {
     it("should remove file from uploaded files set", async () => {
       const adapter = createLocalS3Adapter();

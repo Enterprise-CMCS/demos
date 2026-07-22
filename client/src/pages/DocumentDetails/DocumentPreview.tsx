@@ -4,23 +4,23 @@ import React from "react";
 
 const FilePreviewer = ({
   blob,
-  filename,
+  downloadFileName,
   mimeType,
   presignedDownloadUrl,
 }: {
   blob: Blob;
-  filename: string;
+  downloadFileName: string;
   mimeType?: string;
   presignedDownloadUrl: string;
 }) => {
-
-  const file = new File([blob], filename, { type: mimeType ?? blob.type });
+  // Sanitized server-side, so the browser has no invalid characters to underscore.
+  const file = new File([blob], downloadFileName, { type: mimeType ?? blob.type });
   const blobUrl = URL.createObjectURL(file);
 
   return mimeType == "application/pdf" ? (
     <embed src={presignedDownloadUrl} className="w-full h-full" />
   ) : (
-    <a href={blobUrl} download={filename} rel="noopener noreferrer">
+    <a href={blobUrl} download={downloadFileName} rel="noopener noreferrer">
       <Button size="large" name="button-download-file" aria-label="Download file">
         Download File
       </Button>
@@ -30,10 +30,10 @@ const FilePreviewer = ({
 
 export const DocumentPreview = ({
   presignedDownloadUrl,
-  filename,
+  downloadFileName,
 }: {
   presignedDownloadUrl: string;
-  filename: string;
+  downloadFileName: string;
 }) => {
   const [blob, setBlob] = React.useState<Blob>();
   const [mimeType, setMimeType] = React.useState<string>();
@@ -71,7 +71,7 @@ export const DocumentPreview = ({
   return (
     <FilePreviewer
       blob={blob}
-      filename={filename}
+      downloadFileName={downloadFileName}
       mimeType={mimeType}
       presignedDownloadUrl={presignedDownloadUrl}
     />
