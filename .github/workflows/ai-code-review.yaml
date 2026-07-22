@@ -20,14 +20,26 @@ jobs:
       github.event.sender.type != 'Bot' &&
       !github.event.pull_request.draft &&
       (
-        contains(github.event.pull_request.body || '', '- [x] Run AI Code Review') ||
-        contains(github.event.pull_request.body || '', '- [X] Run AI Code Review')
-      ) &&
-      (
-        github.event.action != 'edited' ||
         (
-          !contains(github.event.changes.body.from || '', '- [x] Run AI Code Review') &&
-          !contains(github.event.changes.body.from || '', '- [X] Run AI Code Review')
+          github.event_name == 'pull_request' && 
+          (
+            contains(github.event.pull_request.body || '', '- [x] Run AI Code Review') ||
+            contains(github.event.pull_request.body || '', '- [X] Run AI Code Review')
+          ) &&
+          (
+            github.event.action != 'edited' ||
+            (
+              !contains(github.event.changes.body.from || '', '- [x] Run AI Code Review') &&
+              !contains(github.event.changes.body.from || '', '- [X] Run AI Code Review')
+            )
+          )
+        ) ||
+        (
+          github.event_name == 'issue_comment' &&
+          contains(
+            fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'),
+            github.event.comment.author_association
+          )
         )
       )
     permissions:
