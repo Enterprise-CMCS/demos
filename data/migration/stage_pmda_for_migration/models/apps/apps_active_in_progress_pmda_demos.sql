@@ -1,4 +1,5 @@
 SELECT
+    aplctn.mdcd_demo_aplctn_id,
     pendg.mdcd_pendg_demo_id,
     pendg.mdcd_demo_num,
     pendg.mdcd_demo_name,
@@ -11,12 +12,11 @@ SELECT
     pendg.mdcd_chip_div_cd
 FROM
     {{ source('legacy_pmda_raw', 'mdcd_pendg_demo') }} AS pendg
-INNER JOIN
-    {{ source('legacy_pmda_raw', 'mdcd_demo_aplctn') }} AS aplctn
+INNER JOIN {{ source('legacy_pmda_raw', 'mdcd_demo_aplctn') }} AS aplctn
     ON
         pendg.mdcd_pendg_demo_id = aplctn.mdcd_pendg_demo_id
-        AND aplctn.mdcd_demo_id IS NULL
-        AND aplctn.dltd_ind = 0
-        AND aplctn.mdcd_demo_aplctn_type_cd = 1
 WHERE
-    pendg.dltd_ind = 0
+    aplctn.mdcd_demo_aplctn_type_cd = 1
+    AND pendg.dltd_ind = 0
+    AND aplctn.dltd_ind = 0
+    AND aplctn.mdcd_demo_aplctn_stus_cd NOT IN (6, 8, 9, 10)
