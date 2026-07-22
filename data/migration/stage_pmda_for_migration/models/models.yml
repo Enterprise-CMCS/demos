@@ -223,6 +223,53 @@ models:
         data_type: integer
         description: The legacy user ID of the project officer; when null or 0, fall back to 828 (Liz Hill).
 
+  - name: cleaned_demos_app_demonstration_in_prog_demos
+    columns:
+      - name: id
+        data_type: uuid
+      - name: application_type_id
+        data_type: text
+      - name: name
+        data_type: text
+      - name: description
+        data_type: text
+      - name: effective_date
+        data_type: timestamptz
+      - name: expiration_date
+        data_type: timestamptz
+      - name: sdg_division_id
+        data_type: text
+      - name: signature_level_id
+        data_type: text
+      - name: status_id
+        data_type: text
+      - name: status_updated_at
+        data_type: timestamptz
+      - name: current_phase_id
+        data_type: text
+      - name: state_id
+        data_type: text
+      - name: clearance_level_id
+        data_type: text
+      - name: medicaid_id
+        data_type: text
+        data_tests:
+          - unique:
+              name: assert_medicaid_ids_are_unique_in_cleaned_in_prog_demonstration
+      - name: chip_id
+        data_type: text
+        data_tests:
+          - unique:
+              name: assert_chip_ids_are_unique_in_cleaned_in_prog_demonstration
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+      - name: _legacy_proj_ofcr_user_id
+        data_type: integer
+        description: The legacy user ID of the project officer; when null or 0, fall back to 828 (Liz Hill).
+
+
   - name: cleaned_demos_app_demo_role_prim_po_finalized_demos
     columns:
       - name: person_id
@@ -310,7 +357,7 @@ models:
   # Apps Models
   - name: apps_in_prog_phase_statuses
     columns:
-      - name: current_phase
+      - name: current_phase_id
         data_type: text
         data_tests:
           - relationships:

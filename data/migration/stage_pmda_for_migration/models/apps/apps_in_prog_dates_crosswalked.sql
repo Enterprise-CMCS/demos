@@ -1,5 +1,5 @@
 SELECT
-    gen_random_uuid() AS id,
+    id,
     mdcd_demo_aplctn_id,
 
     -- Concept Phase

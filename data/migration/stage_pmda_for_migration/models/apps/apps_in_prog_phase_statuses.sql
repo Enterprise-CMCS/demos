@@ -233,6 +233,6 @@ SELECT
             OR receive_omb_concurrence IS NULL OR review_completion_date IS NULL THEN 'Review'
         WHEN approval_package_start_date IS NULL OR approval_package_completion_date IS NULL THEN 'Approval Package'
         ELSE 'Approval Summary'
-    END AS current_phase
+    END AS current_phase_id
 
 FROM cleaned_wide

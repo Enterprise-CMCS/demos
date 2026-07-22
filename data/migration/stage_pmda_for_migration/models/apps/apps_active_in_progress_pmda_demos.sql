@@ -1,4 +1,5 @@
 SELECT
+    gen_random_uuid() AS id,
     aplctn.mdcd_demo_aplctn_id,
     pendg.mdcd_pendg_demo_id,
     pendg.mdcd_demo_num,
@@ -9,7 +10,8 @@ SELECT
     aplctn.mdcd_demo_aplctn_stus_cd,
     aplctn.mdcd_demo_aplctn_stus_dt,
     pendg.geo_ansi_state_cd,
-    pendg.mdcd_chip_div_cd
+    pendg.mdcd_chip_div_cd,
+    pendg.proj_ofcr_user_id
 FROM
     {{ source('legacy_pmda_raw', 'mdcd_pendg_demo') }} AS pendg
 INNER JOIN {{ source('legacy_pmda_raw', 'mdcd_demo_aplctn') }} AS aplctn

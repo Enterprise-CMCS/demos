@@ -1,5 +1,6 @@
 WITH base_applications AS (
     SELECT
+        valid_in_progress.id,
         valid_in_progress.mdcd_demo_aplctn_id,
         mdcd_demo_aplctn.phase_1_strt_dt,
         mdcd_demo_aplctn.phase_1_end_dt,
@@ -38,6 +39,7 @@ WITH base_applications AS (
 )
 
 SELECT
+    id,
     mdcd_demo_aplctn_id,
 
     (phase_1_strt_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS phase_1_strt_dt,
