@@ -15,6 +15,10 @@ This file contains documentation of migration logic decisions that were made.
 
 ## Demonstrations
 
+### Clearance Level
+
+PMDA does not have a direct analogue to DEMOS for `clearance_level_id`. The default in DEMOS is `CMS (OSORA)`, which is what is used when migrating demonstrations from PMDA. Users may need to update this later.
+
 ### Medicaid and CHIP ID Numbers
 
 #### Format
