@@ -7,4 +7,4 @@ SELECT
     current_timestamp AS created_at,
     current_timestamp AS updated_at
 FROM
-    {{ ref('cleaned_demos_app_demonstration_finalized_demos' ) }}
+    {{ ref('cleaned_demos_app_demonstration_finalized_demos') }}

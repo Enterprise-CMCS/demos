@@ -6,7 +6,7 @@ SELECT
     current_timestamp AS created_at,
     current_timestamp AS updated_at
 FROM
-    {{ ref('cleaned_demos_app_tag_name_migrated_from_pmda' ) }}
+    {{ ref('cleaned_demos_app_tag_name_migrated_from_pmda') }}
 UNION ALL
 SELECT
     id AS tag_name_id,
@@ -16,4 +16,4 @@ SELECT
     current_timestamp AS created_at,
     current_timestamp AS updated_at
 FROM
-    {{ ref('cleaned_demos_app_tag_name_migrated_from_pmda' ) }}
+    {{ ref('cleaned_demos_app_tag_name_migrated_from_pmda') }}

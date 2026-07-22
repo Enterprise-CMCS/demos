@@ -9,7 +9,7 @@ WITH cleaned_demos_and_pos AS (
             ELSE _legacy_proj_ofcr_user_id
         END AS _legacy_proj_ofcr_user_id
     FROM
-        {{ ref('cleaned_demos_app_demonstration_finalized_demos' ) }}
+        {{ ref('cleaned_demos_app_demonstration_finalized_demos') }}
 )
 
 SELECT
