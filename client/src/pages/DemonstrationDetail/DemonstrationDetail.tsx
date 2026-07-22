@@ -2,12 +2,14 @@ import React from "react";
 
 import {
   Amendment,
+  Deliverable,
   Demonstration,
   DemonstrationRoleAssignment,
   DemonstrationTypeAssignment,
   Document,
   Person,
   State,
+  Tag,
 } from "demos-server";
 import { useLocation, useParams } from "react-router-dom";
 import { gql, useQuery } from "@apollo/client";
@@ -126,6 +128,12 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
           personType
         }
       }
+      deliverables {
+        id
+        demonstrationTypes {
+          tagName
+        }
+      }
     }
   }
 `;
@@ -159,6 +167,9 @@ export type DemonstrationDetail = Pick<
   })[];
   roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
     person: Pick<Person, "id" | "fullName" | "email" | "personType">;
+  })[];
+  deliverables?: (Pick<Deliverable, "id"> & {
+    demonstrationTypes: Pick<Tag, "tagName">[];
   })[];
 };
 
