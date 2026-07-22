@@ -100,6 +100,7 @@ type MigrationSql = List[SqlStatement]
 
 MIGRATION_CONFIGURATION: MigrationConfiguration = (
     TriggerActionConfiguration("disable", "application", "create_phases_and_dates_for_new_application"),
+    TriggerActionConfiguration("disable", "deliverable", "trim_input_text_fields"),
     TableInsertActionConfiguration(
         "final_demos_app_person",
         "person",
@@ -221,7 +222,38 @@ MIGRATION_CONFIGURATION: MigrationConfiguration = (
             "updated_at",
         ],
     ),
+    TransactionActionConfiguration("begin"),
+    TableInsertActionConfiguration(
+        "final_demos_app_deliverable",
+        "deliverable",
+        [
+            "id",
+            "deliverable_type_id",
+            "name",
+            "demonstration_id",
+            "demonstration_status_id",
+            "status_id",
+            "cms_owner_user_id",
+            "cms_owner_person_type_id",
+            "due_date",
+            "due_date_type_id",
+            "expected_to_be_submitted",
+            "created_at",
+            "updated_at",
+        ],
+    ),
+    TableInsertActionConfiguration(
+        "final_demos_app_deliverable_demonstration_type",
+        "deliverable_demonstration_type",
+        [
+            "deliverable_id",
+            "demonstration_id",
+            "demonstration_type_tag_name_id",
+        ],
+    ),
+    TransactionActionConfiguration("commit"),
     TriggerActionConfiguration("enable", "application", "create_phases_and_dates_for_new_application"),
+    TriggerActionConfiguration("enable", "deliverable", "trim_input_text_fields"),
 )
 
 

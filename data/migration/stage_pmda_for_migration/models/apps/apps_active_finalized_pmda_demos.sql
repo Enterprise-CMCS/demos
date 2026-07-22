@@ -10,7 +10,9 @@ SELECT
     demo_stus_dt,
     geo_ansi_state_cd,
     mdcd_chip_div_cd,
-    proj_ofcr_user_id
+    proj_ofcr_user_id,
+    creatd_dt,
+    updtd_dt
 FROM
     {{ source('legacy_pmda_raw', 'mdcd_demo') }}
 WHERE

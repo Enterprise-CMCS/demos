@@ -6,7 +6,7 @@ This file contains documentation of migration logic decisions that were made.
 
 - Initial user filtering used `legacy_pmda_raw.users.active = 1`
 - Users were filtered out if their email was null, empty string, or failed the regex `^[A-Za-z0-9._+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$`
-- Users were filtered out if their first naem or least name were null or empty string
+- Users were filtered out if their first name or last name were null or empty string
 - Users were filtered out if their PMDA user roles (`legacy_pmda_raw.user_role_asgnmt`) could not be mapped to a DEMOS `person_type_id`
   - This would occur if there were no roles assigned in PMDA
 - If a PMDA user's roles would resolve to multiple DEMOS `person_type_id` records, the ***HIGHEST*** `person_type_id` was selected
@@ -76,3 +76,25 @@ Approved demonstrations in DEMOS are required to have at least one demonstration
 ### Phases and Dates for Finalized Demonstrations
 
 The date data available from PMDA is sparse relative to the requirements of DEMOS. Since "finalized" or approved demonstrations do not need to move through the application process, these were migrated with no values populated into `demos_app.application_date`. All eight phases in `application_phase` were set to `Completed`.
+
+# Deliverables
+
+## Status Code
+
+There is a status code in PMDA that is just labeled 'N/A'. It appears on two non-deleted deliverables. These were filtered out of the migration. Deleted deliverables were also filtered out.
+
+In PMDA, a status code of 16 indicated Pending Due Date Changed. There are a small number of non-deleted deliverables with this status. For now, these are just being filtered out. `#open-question`
+
+The "Past Due" status from PMDA was not migrated at all. Instead, things which were marked Past Due were migrated as Upcoming. Then, the stored procedure which marks things past due was triggered. This ensures that all the Past Due items marked in DEMOS are marked as such based on the DEMOS logic.
+
+## Expected To Be Submitted
+
+It's been tough to track down a direct analogue for `expected_to_be_submitted` based on the meaning of this as something the users could set in PMDA. It's unclear if we can just derive it from the status map entirely. For now, the migration sets it to TRUE for all cases. `#open-question`
+
+## Due Dates
+
+When a due date was attached to something determined to be open-ended, it was set to the expiration date of the associated demonstration. This was done before the run of the Upcoming -> Past Due code.
+
+## CMS Owner
+
+As an initial pass, the CMS owner was set to the creator of the deliverable. If this was not resolvable, the user Elizabeth Hill was assigned as the owner. `#open-question`

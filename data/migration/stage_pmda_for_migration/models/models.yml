@@ -24,6 +24,60 @@ models:
       - name: is_migrated_from_pmda
         data_type: boolean
 
+  - name: final_demos_app_deliverable_demonstration_type
+    columns:
+      - name: deliverable_id
+        data_type: uuid
+      - name: demonstration_id
+        data_type: uuid
+      - name: demonstration_type_tag_name_id
+        data_type: text
+
+  - name: final_demos_app_deliverable
+    columns:
+      - name: id
+        data_type: uuid
+      - name: deliverable_type_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_deliverable_types_in_final_table
+      - name: name
+        data_type: text
+      - name: demonstration_id
+        data_type: uuid
+        data_tests:
+          - not_null:
+              name: assert_no_missing_demonstration_ids_in_final_deliverable_table
+      - name: demonstration_status_id
+        data_type: text
+      - name: status_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_status_ids_in_final_deliverable_table
+      - name: cms_owner_user_id
+        data_type: uuid
+        data_tests:
+          - not_null:
+              name: assert_no_missing_owner_ids_in_final_deliverable_table
+      - name: cms_owner_person_type_id
+        data_type: text
+      - name: due_date
+        data_type: timestamptz
+      - name: due_date_type_id
+        data_type: text
+      - name: expected_to_be_submitted
+        data_type: bool
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+      - name: _legacy_mdcd_demo_id
+        data_type: integer
+      - name: _legacy_mdcd_dlvrbl_id
+        data_type: integer
+
   - name: final_demos_app_demo_role_assignment
     columns:
       - name: person_id

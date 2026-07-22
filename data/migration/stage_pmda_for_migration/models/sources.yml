@@ -2626,7 +2626,7 @@ sources:
             data_type: integer
             data_tests:
             - relationships:
-                name: assert_all_mdcd_demo_aplctn_stus_cd_in_crosswalk_exist_in_pmda
+                name: assert_all_mdcd_demo_aplctn_stus_cd_in_pmda_exist_in_crosswalk
                 arguments:
                   to: ref('crosswalk_mdcd_demo_aplctn_stus_cd_to_application_status_id')
                   field: mdcd_demo_aplctn_stus_cd
@@ -3355,7 +3355,7 @@ sources:
             data_type: integer
             data_tests:
             - relationships:
-                name: assert_all_mdcd_demo_stus_cd_in_crosswalk_exist_in_pmda
+                name: assert_all_mdcd_demo_stus_cd_in_pmda_exist_in_crosswalk
                 arguments:
                   to: ref('crosswalk_mdcd_demo_stus_cd_to_application_status_id')
                   field: mdcd_demo_stus_cd
@@ -3672,6 +3672,9 @@ sources:
             data_type: integer
           - name: mdcd_dlvrbl_crnt_stus_cd
             data_type: integer
+            data_tests:
+              - not_null:
+                  name: assert_no_null_mdcd_dlvrbl_crnt_stus_cds_in_mdcd_dlvrbl
           - name: mdcd_dlvrbl_cnfrmtn_stus_cd
             data_type: integer
           - name: dlvrbl_due_dt
@@ -4108,6 +4111,12 @@ sources:
         columns:
           - name: mdcd_dlvrbl_rpt_ocrnc_cd
             data_type: integer
+            data_tests:
+            - relationships:
+                name: assert_all_mdcd_dlvrbl_rpt_ocrnc_cd_in_pmda_exist_in_crosswalk
+                arguments:
+                  to: ref('crosswalk_mdcd_dlvrbl_type_cd_to_deliverable_type_id')
+                  field: mdcd_dlvrbl_type_cd
           - name: mdcd_dlvrbl_rpt_ocrnc_name
             data_type: character varying
           - name: dsply_sqnc_num
@@ -4159,6 +4168,12 @@ sources:
         columns:
           - name: mdcd_dlvrbl_stus_cd
             data_type: integer
+            data_tests:
+            - relationships:
+                name: assert_all_mdcd_dlvrbl_stus_cd_in_pmda_exist_in_crosswalk
+                arguments:
+                  to: ref('crosswalk_mdcd_dlvrbl_crnt_stus_cd_to_deliverable_status_id')
+                  field: mdcd_dlvrbl_crnt_stus_cd
           - name: mdcd_dlvrbl_stus_name
             data_type: character varying
           - name: dsply_sqnc_num
@@ -12092,7 +12107,7 @@ sources:
             data_type: integer
             data_tests:
             - relationships:
-                name: assert_all_role_cd_in_crosswalk_exist_in_pmda
+                name: assert_all_role_cd_in_pmda_exist_in_crosswalk
                 arguments:
                   to: ref('crosswalk_role_cd_to_person_type_id')
                   field: role_cd

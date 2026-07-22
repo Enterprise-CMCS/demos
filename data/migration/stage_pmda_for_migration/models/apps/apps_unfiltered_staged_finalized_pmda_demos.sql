@@ -13,7 +13,9 @@ SELECT
     'Approval Summary' AS current_phase_id,
     fd.geo_ansi_state_cd AS state_id,
     fdnum.cleaned_mdcd_demo_num AS medicaid_id,
-    fdnum.cleaned_mdcd_scndry_demo_num AS chip_id
+    fdnum.cleaned_mdcd_scndry_demo_num AS chip_id,
+    fd.creatd_dt,
+    fd.updtd_dt
 FROM
     {{ ref('apps_active_finalized_pmda_demos') }} AS fd
 LEFT JOIN

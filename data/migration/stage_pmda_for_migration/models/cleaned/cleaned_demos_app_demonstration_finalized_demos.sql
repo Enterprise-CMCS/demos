@@ -14,8 +14,8 @@ SELECT
     'CMS (OSORA)' AS clearance_level_id,
     medicaid_id,
     chip_id,
-    current_timestamp AS created_at,
-    current_timestamp AS updated_at,
+    coalesce(creatd_dt, current_timestamp) AS created_at,
+    coalesce(updtd_dt, creatd_dt, current_timestamp) AS updated_at,
     mdcd_demo_id AS _legacy_mdcd_demo_id,
     proj_ofcr_user_id AS _legacy_proj_ofcr_user_id
 FROM
