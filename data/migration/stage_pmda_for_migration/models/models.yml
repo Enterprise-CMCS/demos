@@ -162,6 +162,15 @@ models:
       - name: is_migrated_from_pmda
         data_type: boolean
 
+  - name: cleaned_demos_app_application_in_prog_demos
+    columns:
+      - name: id
+        data_type: uuid
+      - name: application_type_id
+        data_type: text
+      - name: is_migrated_from_pmda
+        data_type: boolean
+
   - name: cleaned_demos_app_demonstration_finalized_demos
     data_tests:
       - dbt_utils.expression_is_true:
@@ -269,7 +278,6 @@ models:
         data_type: integer
         description: The legacy user ID of the project officer; when null or 0, fall back to 828 (Liz Hill).
 
-
   - name: cleaned_demos_app_demo_role_prim_po_finalized_demos
     columns:
       - name: person_id
@@ -308,6 +316,32 @@ models:
         data_type: text
       - name: phase_status_id
         data_type: text
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+
+  - name: cleaned_demos_app_app_phases_in_prog_demos
+    columns:
+      - name: application_id
+        data_type: uuid
+      - name: phase_id
+        data_type: text
+      - name: phase_status_id
+        data_type: text
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+
+  - name: cleaned_demos_app_application_date_in_prog_demos
+    columns:
+      - name: application_id
+        data_type: uuid
+      - name: date_type_id
+        data_type: text
+      - name: date_value
+        data_type: timestamptz
       - name: created_at
         data_type: timestamptz
       - name: updated_at
@@ -389,6 +423,14 @@ models:
               arguments:
                 to: source('demos_app', 'phase_status')
                 field: id
+      - name: federal_comment_period_status
+        data_type: text
+        data_tests:
+          - relationships:
+              name: assert_federal_comment_period_status_is_valid_status
+              arguments:
+                to: source('demos_app', 'phase_status')
+                field: id
       - name: sdg_preparation_phase_status
         data_type: text
         data_tests:
@@ -433,7 +475,7 @@ models:
                 to: source('demos_app', 'date_type')
                 field: id
       - name: date_value
-        data_type: date
+        data_type: timestamptz
 
   - name: apps_active_finalized_pmda_demos
     columns:

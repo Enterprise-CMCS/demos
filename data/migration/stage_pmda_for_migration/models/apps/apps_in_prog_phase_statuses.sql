@@ -89,6 +89,21 @@ SELECT
         ELSE 'Not Started'
     END AS completeness_phase_status,
 
+    -- Federal Comment Period Status (complete if previous phases complete and dates exist)
+    CASE
+        WHEN
+            (
+                concept_skipped_date IS NOT NULL
+                OR (concept_start_date IS NOT NULL AND concept_completion_date IS NOT NULL)
+            )
+            AND application_intake_start_date IS NOT NULL AND state_application_submitted_date IS NOT NULL
+            AND completeness_review_due_date IS NOT NULL AND application_intake_completion_date IS NOT NULL
+            AND federal_comment_period_start_date IS NOT NULL AND federal_comment_period_end_date IS NOT NULL
+            THEN 'Completed'
+        WHEN federal_comment_period_start_date IS NOT NULL OR federal_comment_period_end_date IS NOT NULL THEN 'Started'
+        ELSE 'Not Started'
+    END AS federal_comment_period_status,
+
     -- SDG Preparation Phase Status (complete only if all previous phases complete)
     CASE
         WHEN
