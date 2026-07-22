@@ -26,7 +26,7 @@ Tests should also be written to validate things that might normally be enforced 
 
 Try to name your tests in a descriptive manner, either by naming the file with something like `assert_xyz` or using the `name:` parameter in the YAML file.
 
-Contractgs are enforced on the `cleaned/final` models and the documentation in `models.yml` should conform to the data types in `demos_app`. This enforcement prevents the SQL from creating incompatible data types.
+Contracts are enforced on the `cleaned/final` models and the documentation in `models.yml` should conform to the data types in `demos_app`. This enforcement prevents the SQL from creating incompatible data types.
 
 ## Setup / Commands
 
