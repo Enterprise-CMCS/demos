@@ -1,7 +1,3 @@
--- Unpivot crosswalked application dates into long format
--- One row per (mdcd_demo_aplctn_id, date_type, date_value)
--- No filtering yet - all dates included for validation
-
 SELECT
     a.id,
     a.mdcd_demo_aplctn_id,

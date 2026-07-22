@@ -1,7 +1,3 @@
--- Determine status for each phase (one row per application with status columns)
--- Statuses: not-started, skipped, started, completed
--- Only Concept phase can be skipped
-
 WITH cleaned_wide AS (
     SELECT
         id,

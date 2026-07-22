@@ -1,7 +1,3 @@
--- Validate each unpivoted date row
--- Add validation_failures column listing which rules this date failed
--- NULL = passed all validations
-
 WITH all_dates AS (
     SELECT
         id,
