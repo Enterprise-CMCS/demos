@@ -49,7 +49,7 @@ type DeliverableStatusReportColumn =
 
 const deliverableStatusReportSchema = z
   .object({
-    state: z.enum(STATES_AND_TERRITORIES.map((state) => state.id)),
+    state: z.enum(STATES_AND_TERRITORIES.map((state) => state.name)),
     demonstration_title: z.string(),
     demonstration_number: z.string(),
     effective_date: usDateString,
