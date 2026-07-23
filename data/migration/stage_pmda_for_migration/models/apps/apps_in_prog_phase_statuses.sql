@@ -33,6 +33,7 @@ WITH cleaned_wide AS (
         max(CASE WHEN date_type = 'Approval Package Completion Date' THEN date_value END)
             AS approval_package_completion_date
     FROM {{ ref('apps_in_prog_dates_validated') }}
+    WHERE validation_failures IS NULL
     GROUP BY id, mdcd_demo_aplctn_id
 )
 

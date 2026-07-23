@@ -1,15 +1,20 @@
 SELECT
-    d.id AS application_id,
-    dc.date_type AS date_type_id,
-    dc.date_value,
+    demos.id AS application_id,
+    dates.date_type AS date_type_id,
+    dates.date_value,
     current_timestamp AS created_at,
     current_timestamp AS updated_at
 FROM
-    {{ ref('cleaned_demos_app_demonstration_in_prog_demos') }} AS d
+    {{ ref('apps_in_prog_dates_unpivoted') }} AS dates
 INNER JOIN
-    {{ ref('apps_in_prog_dates_validated') }} AS dc
+    {{ ref('cleaned_demos_app_demonstration_in_prog_demos') }} AS demos
     ON
-        d.id = dc.id
-WHERE d.id NOT IN (
-    SELECT e1.id FROM {{ ref('errors_application_dates_failing_validation') }} AS e1
-)
+        dates.id = demos.id
+WHERE
+    NOT EXISTS (
+        SELECT 1
+        FROM {{ ref('errors_application_dates_failing_validation') }} AS errors
+        WHERE
+            errors.id = dates.id
+            AND errors.date_type = dates.date_type
+    )

@@ -306,23 +306,6 @@ models:
         data_type: timestamptz
 
   # Cleaned Models
-  - name: cleaned_demos_app_application_finalized_demos
-    columns:
-      - name: id
-        data_type: uuid
-      - name: application_type_id
-        data_type: text
-      - name: is_migrated_from_pmda
-        data_type: boolean
-
-  - name: cleaned_demos_app_application_in_prog_demos
-    columns:
-      - name: id
-        data_type: uuid
-      - name: application_type_id
-        data_type: text
-      - name: is_migrated_from_pmda
-        data_type: boolean
   - name: cleaned_demos_app_demonstration_finalized_demos
     data_tests:
       - dbt_utils.expression_is_true:
