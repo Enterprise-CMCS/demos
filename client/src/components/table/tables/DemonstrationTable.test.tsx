@@ -4,6 +4,7 @@ import type { Amendment, Demonstration, Extension, Person, State } from "demos-s
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { render, screen, waitFor, within } from "@testing-library/react";
+import { clearStoredValue } from "hooks/useLocalStorage";
 import userEvent from "@testing-library/user-event";
 
 import { DemonstrationTable } from "./DemonstrationTable";
@@ -211,7 +212,7 @@ describe("Demonstrations", () => {
   let user: ReturnType<typeof userEvent.setup>;
 
   beforeEach(() => {
-    localStorage.removeItem("keyword-search");
+    clearStoredValue("keyword-search");
     user = userEvent.setup();
   });
 
@@ -232,7 +233,7 @@ describe("Demonstrations", () => {
 
   describe("Table rendering", () => {
     beforeEach(async () => {
-      localStorage.removeItem("keyword-search");
+      clearStoredValue("keyword-search");
       renderDemonstrations();
       await waitForTableData();
     });
@@ -303,7 +304,7 @@ describe("Demonstrations", () => {
 
   describe("Table features", () => {
     beforeEach(async () => {
-      localStorage.removeItem("keyword-search");
+      clearStoredValue("keyword-search");
       renderDemonstrations();
       await waitForTableData();
     });
@@ -389,7 +390,7 @@ describe("Demonstrations", () => {
   });
   describe("Applications column", () => {
     beforeEach(async () => {
-      localStorage.removeItem("keyword-search");
+      clearStoredValue("keyword-search");
       renderDemonstrations();
       await waitForTableData();
     });
@@ -424,7 +425,7 @@ describe("Demonstrations", () => {
 
   describe("Nested view and row expansion for amendments and extensions", () => {
     beforeEach(async () => {
-      localStorage.removeItem("keyword-search");
+      clearStoredValue("keyword-search");
       renderDemonstrations();
       await waitForTableData();
     });

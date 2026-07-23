@@ -3,6 +3,7 @@ import React from "react";
 import { ExitIcon, SearchIcon } from "components/icons";
 import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "components/input/Input";
 import { useDebounced } from "hooks/useDebounced";
+import { useLocalStorage } from "hooks/useLocalStorage";
 
 import { CellContext, Row, Table } from "@tanstack/react-table";
 
@@ -74,15 +75,7 @@ export function KeywordSearch<T>({
   storageKey = "keyword-search",
   placeholder = "Search",
 }: KeywordSearchProps<T>) {
-  const [queryString, setQueryString] = React.useState<string>(() => {
-    if (typeof window === "undefined") return "";
-    try {
-      return localStorage.getItem(storageKey) || "";
-    } catch (error) {
-      console.warn("Failed to read from localStorage:", error);
-      return "";
-    }
-  });
+  const [queryString, setQueryString] = useLocalStorage<string>(storageKey, "");
 
   const debouncedQueryString = useDebounced(queryString, debounceMs);
 

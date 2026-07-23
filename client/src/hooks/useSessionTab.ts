@@ -1,4 +1,5 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
+import { useLocalStorage } from "hooks/useLocalStorage";
 
 type UseSessionTabOptions<T extends string> = {
   key: string;
@@ -6,41 +7,19 @@ type UseSessionTabOptions<T extends string> = {
   allowedValues: readonly T[];
 };
 
-function getInitialTabValue<T extends string>({
-  key,
-  defaultValue,
-  allowedValues,
-}: UseSessionTabOptions<T>): T {
-  if (typeof window === "undefined") {
-    return defaultValue;
-  }
-
-  const stored = sessionStorage.getItem(key);
-  const tabValue = allowedValues.includes(stored as T) ? (stored as T) : defaultValue;
-  sessionStorage.setItem(key, tabValue);
-
-  return tabValue;
-}
-
 export function useSessionTab<T extends string>({
   key,
   defaultValue,
   allowedValues,
 }: UseSessionTabOptions<T>): readonly [T, (value: string) => void] {
-  const [tabValue, setTabValue] = useState<T>(() =>
-    getInitialTabValue({ key, defaultValue, allowedValues })
-  );
+  const [tabValue, setTabValue] = useLocalStorage<T>(key, defaultValue, "sessionStorage");
 
   const onTabSelect = useCallback(
     (value: string) => {
       const nextValue = allowedValues.includes(value as T) ? (value as T) : defaultValue;
       setTabValue(nextValue);
-
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem(key, nextValue);
-      }
     },
-    [allowedValues, defaultValue, key]
+    [allowedValues, defaultValue, setTabValue]
   );
 
   return [tabValue, onTabSelect] as const;

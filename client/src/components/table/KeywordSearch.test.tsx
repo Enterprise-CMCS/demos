@@ -3,6 +3,7 @@ import React from "react";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { render, screen, waitFor } from "@testing-library/react";
+import { clearStoredValue } from "hooks/useLocalStorage";
 import userEvent from "@testing-library/user-event";
 import { Table } from "./Table";
 import { TestType, testTableData } from "./Table.test";
@@ -34,6 +35,7 @@ export const testColumns = [
 
 describe.sequential("KeywordSearch Component", () => {
   beforeEach(() => {
+    clearStoredValue("keyword-search");
     render(
       <Table<TestType>
         keywordSearch={(table) => <KeywordSearch table={table} />}
