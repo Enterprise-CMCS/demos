@@ -7,7 +7,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { DemonstrationTable } from "./DemonstrationTable";
-import { clearWebStorage } from "hooks/useLocalStorage";
+import { clearWebStorage } from "hooks";
 
 type TestPerson = Pick<Person, "id" | "fullName">;
 type TestState = Pick<State, "id" | "name">;

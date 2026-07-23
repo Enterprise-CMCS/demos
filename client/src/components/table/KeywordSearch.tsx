@@ -3,7 +3,7 @@ import React from "react";
 import { ExitIcon, SearchIcon } from "components/icons";
 import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "components/input/Input";
 import { useDebounced } from "hooks/useDebounced";
-import { useLocalStorage } from "hooks/useLocalStorage";
+import { useLocalStorage } from "hooks";
 
 import { CellContext, Row, Table } from "@tanstack/react-table";
 

@@ -14,9 +14,9 @@ function getStorage(storageType: StorageType): Storage | null {
   return null;
 }
 
-export function useLocalStorage(
+function useWebStorage(
   storageKey: string,
-  storageType: StorageType = "localStorage"
+  storageType: StorageType
 ): [value: string, setValue: (value: string) => void] {
   const [storedValue, setStoredValue] = useState<string>(
     () => getStorage(storageType)?.getItem(storageKey) ?? ""
@@ -35,6 +35,18 @@ export function useLocalStorage(
   );
 
   return [storedValue, setValue];
+}
+
+export function useLocalStorage(
+  storageKey: string
+): [value: string, setValue: (value: string) => void] {
+  return useWebStorage(storageKey, "localStorage");
+}
+
+export function useSessionStorage(
+  storageKey: string
+): [value: string, setValue: (value: string) => void] {
+  return useWebStorage(storageKey, "sessionStorage");
 }
 
 /** Clears all localStorage and sessionStorage. Intended for use in test `beforeEach` cleanup. */

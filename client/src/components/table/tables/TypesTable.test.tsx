@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, beforeEach } from "vitest";
-import { clearWebStorage } from "hooks/useLocalStorage";
+import { clearWebStorage } from "hooks";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 

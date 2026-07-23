@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { vi, beforeEach } from "vitest";
-import { clearWebStorage } from "hooks/useLocalStorage";
+import { clearWebStorage } from "hooks";
 import { DemonstrationsPage } from "./DemonstrationsPage";
 
 const mockUseQuery = vi.fn();

@@ -9,7 +9,7 @@ import { getCurrentUser } from "components/user/UserContext";
 import { HorizontalSectionTabs, Tab } from "layout/Tabs";
 import React from "react";
 import type { UserType } from "demos-server";
-import { useLocalStorage } from "hooks/useLocalStorage";
+import { useSessionStorage } from "hooks";
 import { useQuery } from "@apollo/client";
 import { Card } from "components/card/Card";
 
@@ -39,7 +39,7 @@ const DeliverablesTabs: React.FC<{
   myDeliverables: DeliverablesQueryResult["deliverables"];
   viewMode: UserType;
 }> = ({ deliverables, myDeliverables, viewMode }) => {
-  const [storedTab, setStoredTab] = useLocalStorage("selectedDeliverableTab", "sessionStorage");
+  const [storedTab, setStoredTab] = useSessionStorage("selectedDeliverableTab");
   const tabValue = storedTab || "my-deliverables";
 
   return (

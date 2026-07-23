@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { clearWebStorage } from "hooks/useLocalStorage";
+import { clearWebStorage } from "hooks";
 import { MockedResponse } from "@apollo/client/testing";
 import {
   DELIVERABLES_PAGE_QUERY,

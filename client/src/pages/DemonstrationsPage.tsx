@@ -10,7 +10,7 @@ import {
   User,
 } from "demos-server";
 import { Tab, HorizontalSectionTabs } from "layout/Tabs";
-import { useLocalStorage } from "hooks/useLocalStorage";
+import { useSessionStorage } from "hooks";
 import { CreateNewButton } from "components/header/CreateNewButton";
 
 export const DEMONSTRATIONS_PAGE_QUERY = gql`
@@ -77,7 +77,7 @@ export const DemonstrationsPage: React.FC = () => {
     (d) => d.primaryProjectOfficer.id === data?.currentUser.id
   );
   // Sets session to remember which tab you were on.
-  const [storedTab, setStoredTab] = useLocalStorage("selectedDemonstrationTab", "sessionStorage");
+  const [storedTab, setStoredTab] = useSessionStorage("selectedDemonstrationTab");
   const tabValue = storedTab || "my-demonstrations";
 
   return (
