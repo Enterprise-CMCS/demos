@@ -10,7 +10,6 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { ColumnFilter } from "./ColumnFilter";
 import { isAfter, isBefore, isSameDay } from "date-fns";
 import { formatDateForDisplay } from "util/formatDate";
-import { clearWebStorage } from "hooks";
 
 const columnHelper = createColumnHelper<TestType>();
 
@@ -71,7 +70,6 @@ export const testColumns = [
 
 describe("ColumnFilter Component", () => {
   beforeEach(() => {
-    clearWebStorage();
     render(
       <Table<TestType>
         columns={testColumns}

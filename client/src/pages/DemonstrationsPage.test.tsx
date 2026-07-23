@@ -1,7 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { vi, beforeEach } from "vitest";
-import { clearWebStorage } from "hooks";
 import { DemonstrationsPage } from "./DemonstrationsPage";
 
 const mockUseQuery = vi.fn();
@@ -49,7 +48,6 @@ const baseData = {
 describe("DemonstrationsPage tab persistence", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    clearWebStorage();
     mockUseQuery.mockReturnValue({ data: baseData, loading: false, error: undefined });
   });
 

@@ -48,10 +48,3 @@ export function useSessionStorage(
 ): [value: string, setValue: (value: string) => void] {
   return useWebStorage(storageKey, "sessionStorage");
 }
-
-/** Clears all localStorage and sessionStorage. Intended for use in test `beforeEach` cleanup. */
-export function clearWebStorage(): void {
-  if (typeof window === "undefined") return;
-  window.localStorage.clear();
-  window.sessionStorage.clear();
-}

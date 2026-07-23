@@ -7,7 +7,6 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { DemonstrationTable } from "./DemonstrationTable";
-import { clearWebStorage } from "hooks";
 
 type TestPerson = Pick<Person, "id" | "fullName">;
 type TestState = Pick<State, "id" | "name">;
@@ -212,7 +211,6 @@ describe("Demonstrations", () => {
   let user: ReturnType<typeof userEvent.setup>;
 
   beforeEach(() => {
-    clearWebStorage();
     user = userEvent.setup();
   });
 
@@ -233,7 +231,6 @@ describe("Demonstrations", () => {
 
   describe("Table rendering", () => {
     beforeEach(async () => {
-      clearWebStorage();
       renderDemonstrations();
       await waitForTableData();
     });
@@ -304,7 +301,6 @@ describe("Demonstrations", () => {
 
   describe("Table features", () => {
     beforeEach(async () => {
-      clearWebStorage();
       renderDemonstrations();
       await waitForTableData();
     });
@@ -390,7 +386,6 @@ describe("Demonstrations", () => {
   });
   describe("Applications column", () => {
     beforeEach(async () => {
-      clearWebStorage();
       renderDemonstrations();
       await waitForTableData();
     });
@@ -425,7 +420,6 @@ describe("Demonstrations", () => {
 
   describe("Nested view and row expansion for amendments and extensions", () => {
     beforeEach(async () => {
-      clearWebStorage();
       renderDemonstrations();
       await waitForTableData();
     });

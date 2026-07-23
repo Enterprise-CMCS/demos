@@ -1,7 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { clearWebStorage } from "hooks";
 import { MockedResponse } from "@apollo/client/testing";
 import {
   DELIVERABLES_PAGE_QUERY,
@@ -166,7 +165,6 @@ describe("DeliverablesPage tab persistence", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    clearWebStorage();
   });
 
   it("defaults to My Deliverables when no tab is stored", async () => {

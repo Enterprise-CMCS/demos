@@ -1,6 +1,5 @@
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { clearWebStorage } from "hooks";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -31,7 +30,6 @@ const sortedFirstPageIds = sortedDeliverables.slice(0, 10).map((deliverable) => 
 
 describe("DeliverableTable", () => {
   beforeEach(async () => {
-    clearWebStorage();
     showEditDeliverableDialog.mockClear();
     showRemoveDeliverableDialog.mockClear();
     render(
