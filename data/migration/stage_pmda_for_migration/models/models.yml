@@ -376,14 +376,14 @@ models:
         data_type: uuid
       - name: date_type_id
         data_type: text
-      - name: date_value
-        data_type: timestamptz
         data_tests:
           - relationships:
               name: assert_application_date_type_exists_in_demos_app_date_type
               arguments:
                 to: source('demos_app', 'date_type')
                 field: id
+      - name: date_value
+        data_type: timestamptz
       - name: created_at
         data_type: timestamptz
       - name: updated_at
@@ -407,92 +407,6 @@ models:
 
   - name: apps_in_prog_phase_statuses_unpivoted
     description: unpivots the phase statuses to a long format with phase_id and phase_status columns
-
-  - name: apps_in_prog_phase_statuses_unpivoted
-    columns:
-      - name: phase_id
-        data_type: text
-        data_tests:
-          - relationships:
-              name: assert_phase_id_is_valid_phase
-              arguments:
-                to: source('demos_app', 'phase')
-                field: id
-
-  - name: apps_in_prog_phase_statuses
-    columns:
-      - name: current_phase_id
-        data_type: text
-        data_tests:
-          - relationships:
-              name: assert_current_phase_is_valid_phase
-              arguments:
-                to: source('demos_app', 'phase')
-                field: id
-      - name: concept_phase_status
-        data_type: text
-        data_tests:
-          - relationships:
-              name: assert_concept_phase_status_is_valid_status
-              arguments:
-                to: source('demos_app', 'phase_status')
-                field: id
-      - name: application_intake_phase_status
-        data_type: text
-        data_tests:
-          - relationships:
-              name: assert_application_intake_phase_status_is_valid_status
-              arguments:
-                to: source('demos_app', 'phase_status')
-                field: id
-      - name: completeness_phase_status
-        data_type: text
-        data_tests:
-          - relationships:
-              name: assert_completeness_phase_status_is_valid_status
-              arguments:
-                to: source('demos_app', 'phase_status')
-                field: id
-      - name: federal_comment_period_status
-        data_type: text
-        data_tests:
-          - relationships:
-              name: assert_federal_comment_period_status_is_valid_status
-              arguments:
-                to: source('demos_app', 'phase_status')
-                field: id
-      - name: sdg_preparation_phase_status
-        data_type: text
-        data_tests:
-          - relationships:
-              name: assert_sdg_preparation_phase_status_is_valid_status
-              arguments:
-                to: source('demos_app', 'phase_status')
-                field: id
-      - name: review_phase_status
-        data_type: text
-        data_tests:
-          - relationships:
-              name: assert_review_phase_status_is_valid_status
-              arguments:
-                to: source('demos_app', 'phase_status')
-                field: id
-      - name: approval_package_phase_status
-        data_type: text
-        data_tests:
-          - relationships:
-              name: assert_approval_package_phase_status_is_valid_status
-              arguments:
-                to: source('demos_app', 'phase_status')
-                field: id
-      - name: approval_summary_phase_status
-        data_type: text
-        data_tests:
-          - relationships:
-              name: assert_approval_summary_phase_status_is_valid_status
-              arguments:
-                to: source('demos_app', 'phase_status')
-                field: id
 
   - name: apps_active_finalized_pmda_demos
     columns:
