@@ -79,6 +79,8 @@ export function create(props: UIDeploymentProps) {
     },
   });
 
+  gitHashFile.node.addDependency(deployWebsite)
+
   const invalidateCloudfront = new custom_resources.AwsCustomResource(props.scope, "InvalidateCloudfront", {
     onCreate: undefined,
     onDelete: undefined,
@@ -99,6 +101,5 @@ export function create(props: UIDeploymentProps) {
     },
     role: deploymentRole,
   });
-  invalidateCloudfront.node.addDependency(deployWebsite);
   invalidateCloudfront.node.addDependency(gitHashFile);
 }

@@ -20,7 +20,7 @@ pipeline {
     stage('Set env from branch') {
       steps {
         script {
-          env.STAGE = (env.BRANCH_NAME == 'main') ? "dev" : "${env.BRANCH_NAME}"
+          env.STAGE = (env.BRANCH_NAME == 'main') ? "dev" : (env.BRANCH_NAME == env.PROD_TARGET_BRANCH) ? "prod" : "${env.BRANCH_NAME}"
         }
       }
     }
@@ -30,7 +30,7 @@ pipeline {
         stage('Builds') {
           steps {
             script {
-              assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
+              assumeRole(accountEnv: env.STAGE)
               dirCon('deployment', 'node') {
                 sh """
                 mkdir ../shared_library/dist
@@ -55,7 +55,16 @@ pipeline {
               parallel(
                 'Build Client': {
                   dirCon('deployment','node') {
-                    sh "npx tsx demosctl/index build:client ${env.STAGE}"
+                    if (env.STAGE == 'prod') {
+                      // TODO: This needs to be removed before going live in PROD
+                      sh """
+                      mkdir -p ../client/dist
+                      cp ./mock-index.html ../client/dist/index.html
+                      """
+                    } else {
+                      sh "npx tsx demosctl/index build:client ${env.STAGE}"
+                    }
+                      
                   }
                 }, 'Build Server': {
                   dirCon('deployment', 'node') {
@@ -122,7 +131,9 @@ pipeline {
       post {
         failure {
           script {
-            notifyMigrationError(env.STAGE)
+            // TODO: Remove this
+            echo "there was an error with the migrations..."
+            // notifyMigrationError(env.STAGE)
           }
         }
       }
