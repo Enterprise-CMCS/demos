@@ -1,5 +1,5 @@
 SELECT
-    gen_random_uuid() AS id,
+    id,
     application_type_id,
     name, -- noqa: RF04
     description,
@@ -18,11 +18,8 @@ SELECT
     current_timestamp AS updated_at,
     proj_ofcr_user_id AS _legacy_proj_ofcr_user_id
 FROM
-    {{ ref('apps_unfiltered_staged_finalized_pmda_demos') }}
+    {{ ref('apps_unfiltered_staged_in_progress_pmda_demos') }}
 WHERE
-    mdcd_demo_id NOT IN (
-        SELECT e1.mdcd_demo_id FROM {{ ref('errors_invalid_demo_nums_in_finalized_pmda_demos') }} AS e1
-    )
-    AND mdcd_demo_id NOT IN (
-        SELECT e2.mdcd_demo_id FROM {{ ref('errors_duplicate_demo_nums_in_finalized_pmda_demos') }} AS e2
+    mdcd_pendg_demo_id NOT IN (
+        SELECT e1.mdcd_pendg_demo_id FROM {{ ref('errors_invalid_demo_nums_in_in_progress_pmda_demos') }} AS e1
     )

@@ -195,6 +195,17 @@ MIGRATION_CONFIGURATION: MigrationConfiguration = (
         f"CALL postgres_execute('{DEMOS_DDB_ATTACH_NAME}', 'SET LOCAL demos_app.migration_mode = ''off''')",
     ),
     TransactionActionConfiguration("commit"),
+    TableInsertActionConfiguration(
+        "final_demos_app_application_date",
+        "application_date",
+        [
+            "application_id",
+            "date_type_id",
+            "date_value",
+            "created_at",
+            "updated_at",
+        ],
+    ),
     TableInsertActionConfiguration("final_demos_app_tag_name", "tag_name", ["id", "created_at", "updated_at"]),
     TableInsertActionConfiguration(
         "final_demos_app_tag",

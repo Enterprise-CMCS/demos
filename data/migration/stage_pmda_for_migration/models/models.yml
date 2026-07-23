@@ -8,8 +8,20 @@ models:
         data_type: uuid
       - name: phase_id
         data_type: text
+        data_tests:
+          - relationships:
+              name: assert_application_phase_phase_exists_in_demos_app_phase
+              arguments:
+                to: source('demos_app', 'phase')
+                field: id
       - name: phase_status_id
         data_type: text
+        data_tests:
+          - relationships:
+              name: assert_application_phase_phase_status_exists_in_demos_app_phase_status
+              arguments:
+                to: source('demos_app', 'phase_status')
+                field: id
       - name: created_at
         data_type: timestamptz
       - name: updated_at
@@ -86,6 +98,12 @@ models:
         data_type: timestamptz
       - name: current_phase_id
         data_type: text
+        data_tests:
+          - relationships:
+              name: assert_current_phase_id_exists_in_demos_app_phase
+              arguments:
+                to: source('demos_app', 'phase')
+                field: id
       - name: state_id
         data_type: text
       - name: clearance_level_id
@@ -104,8 +122,6 @@ models:
         data_type: timestamptz
       - name: updated_at
         data_type: timestamptz
-      - name: _legacy_mdcd_demo_id
-        data_type: integer
       - name: _legacy_proj_ofcr_user_id
         data_type: integer
         description: The legacy user ID of the project officer; when null or 0, fall back to 828 (Liz Hill).
@@ -181,6 +197,25 @@ models:
         data_type: uuid
       - name: role_id
         data_type: text
+
+  - name: final_demos_app_application_date
+    columns:
+      - name: application_id
+        data_type: uuid
+      - name: date_type_id
+        data_type: text
+        data_tests:
+          - relationships:
+              name: assert_application_date_type_exists_in_demos_app_date_type
+              arguments:
+                to: source('demos_app', 'date_type')
+                field: id
+      - name: date_value
+        data_type: timestamptz
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
 
   - name: final_demos_app_system_role_assignment
     description: default system role assignment derived from IDM role
@@ -310,7 +345,69 @@ models:
           arguments:
             expression: "status_id = 'Approved' AND expiration_date IS NOT NULL"
 
+  - name: cleaned_demos_app_app_phases_in_prog_demos
+    columns:
+      - name: application_id
+        data_type: uuid
+      - name: phase_id
+        data_type: text
+        data_tests:
+          - relationships:
+              name: assert_application_phase_phase_exists_in_demos_app_phase
+              arguments:
+                to: source('demos_app', 'phase')
+                field: id
+      - name: phase_status_id
+        data_type: text
+        data_tests:
+          - relationships:
+              name: assert_application_phase_phase_status_exists_in_demos_app_phase_status
+              arguments:
+                to: source('demos_app', 'phase_status')
+                field: id
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+
+  - name: cleaned_demos_app_application_date_in_prog_demos
+    columns:
+      - name: application_id
+        data_type: uuid
+      - name: date_type_id
+        data_type: text
+        data_tests:
+          - relationships:
+              name: assert_application_date_type_exists_in_demos_app_date_type
+              arguments:
+                to: source('demos_app', 'date_type')
+                field: id
+      - name: date_value
+        data_type: timestamptz
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+
   # Apps Models
+  - name: apps_in_prog_dates_crosswalked
+    description: converts the dates stored in PMDA to applicable date types in DEMOS, extrapolating to phase start and end dates where needed.
+
+  - name: apps_in_prog_dates_unpivoted
+    description: unpivots the dates to a long format with date_type and date_value columns
+
+  - name: apps_in_prog_dates_validated
+    description: validates the dates using validation rules found in the DEMOS API. Flags failing dates with a reason.
+
+  - name: apps_in_prog_dates_wide_normalized
+    description: normalizes the dates to be start-of-day and end-of-day based on the date type.
+
+  - name: apps_in_prog_phase_statuses
+    description: uses the date values to determine the current phase and its phase's statuses.
+
+  - name: apps_in_prog_phase_statuses_unpivoted
+    description: unpivots the phase statuses to a long format with phase_id and phase_status columns
+
   - name: apps_active_finalized_pmda_demos
     columns:
       - name: mdcd_demo_id
