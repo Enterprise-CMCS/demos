@@ -1,6 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { vi } from "vitest";
+import { setStoredValue } from "hooks/useLocalStorage";
 import { DemonstrationsPage } from "./DemonstrationsPage";
 
 const mockUseQuery = vi.fn();
@@ -86,7 +87,7 @@ describe("DemonstrationsPage tab persistence", () => {
   });
 
   it("uses the stored tab selection", () => {
-    sessionStorage.setItem("selectedDemonstrationTab", "demonstrations");
+    setStoredValue("selectedDemonstrationTab", "demonstrations", "sessionStorage");
 
     render(<DemonstrationsPage />);
 

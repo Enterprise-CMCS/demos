@@ -1,6 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 
+import { setStoredValue } from "./useLocalStorage";
 import { useSessionTab } from "./useSessionTab";
 
 describe("useSessionTab", () => {
@@ -22,7 +23,7 @@ describe("useSessionTab", () => {
   });
 
   it("uses stored value when it is allowed", () => {
-    sessionStorage.setItem(key, "deliverables");
+    setStoredValue(key, "deliverables", "sessionStorage");
 
     const { result } = renderHook(() =>
       useSessionTab({ key, defaultValue, allowedValues })
@@ -33,7 +34,7 @@ describe("useSessionTab", () => {
   });
 
   it("falls back to default when stored value is not allowed", () => {
-    sessionStorage.setItem(key, "bad-tab-value");
+    setStoredValue(key, "bad-tab-value", "sessionStorage");
 
     const { result } = renderHook(() =>
       useSessionTab({ key, defaultValue, allowedValues })

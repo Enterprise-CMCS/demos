@@ -7,37 +7,25 @@ function getStorage(storageType: StorageType): Storage | null {
   return storageType === "sessionStorage" ? window.sessionStorage : window.localStorage;
 }
 
-export function useLocalStorage<T>(
+export function useLocalStorage(
   key: string,
-  defaultValue: T,
+  defaultValue: string,
   storageType: StorageType = "localStorage"
-): [T, (value: T | ((prev: T) => T)) => void] {
-  const [storedValue, setStoredValue] = useState<T>(() => {
+): [string, (value: string) => void] {
+  const [storedValue, setStoredValue] = useState<string>(() => {
     const storage = getStorage(storageType);
     if (!storage) return defaultValue;
-
-    try {
-      const item = storage.getItem(key);
-      return item !== null ? (JSON.parse(item) as T) : defaultValue;
-    } catch {
-      return defaultValue;
-    }
+    return storage.getItem(key) ?? defaultValue;
   });
 
   const setValue = useCallback(
-    (value: T | ((prev: T) => T)) => {
-      setStoredValue((prev) => {
-        const next = value instanceof Function ? value(prev) : value;
-        const storage = getStorage(storageType);
-        if (storage) {
-          try {
-            storage.setItem(key, JSON.stringify(next));
-          } catch {
-            // Storage quota exceeded or access denied — state still updates in memory
-          }
-        }
-        return next;
-      });
+    (value: string) => {
+      setStoredValue(value);
+      try {
+        getStorage(storageType)?.setItem(key, value);
+      } catch {
+        // Storage quota exceeded or access denied — state still updates in memory
+      }
     },
     [key, storageType]
   );
@@ -47,4 +35,12 @@ export function useLocalStorage<T>(
 
 export function clearStoredValue(key: string, storageType: StorageType = "localStorage"): void {
   getStorage(storageType)?.removeItem(key);
+}
+
+export function setStoredValue(
+  key: string,
+  value: string,
+  storageType: StorageType = "localStorage"
+): void {
+  getStorage(storageType)?.setItem(key, value);
 }
