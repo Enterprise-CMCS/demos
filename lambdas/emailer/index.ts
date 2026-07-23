@@ -13,12 +13,20 @@ type RealtimeEmailEnvelope = {
   emailType: string;
   entityType?: string;
   entityId?: string;
+  idempotencyKey?: string;
+  triggeredBy?: {
+    type: string;
+    id: string;
+  };
   payload: unknown;
 };
 
 const templateByEmailType: Record<string, string> = {
   "Deliverable Created": "deliverable-created",
   "Deliverable Submitted": "deliverable-submitted",
+  "Deliverable Accepted": "deliverable-accepted",
+  "Deliverable Approved": "deliverable-approved",
+  "Deliverable Received and Filed": "deliverable-received-and-filed",
 };
 
 export interface EmailData extends Pick<Options, "html" | "cc" | "bcc"> {
@@ -51,6 +59,16 @@ export const handler = async (event: SQSEvent) => {
     log.info({ error: (err as Error).message }, "unable to parse SQS message body");
     return;
   }
+
+  const emailLogContext = isRealtimeEmailEnvelope(email)
+    ? {
+        emailType: email.emailType,
+        entityType: email.entityType,
+        entityId: email.entityId,
+        idempotencyKey: email.idempotencyKey,
+        triggeredBy: email.triggeredBy,
+      }
+    : {};
 
   try {
     email = await renderRealtimeEmailIfNeeded(email);
@@ -88,7 +106,18 @@ export const handler = async (event: SQSEvent) => {
       if (emailData.bcc) {
         emailData.bcc = redactEmailAddresses(emailData.bcc);
       }
-      log.info({ emailData }, "log only: email not in allowlist");
+      log.info(
+        {
+          ...emailLogContext,
+          subject: emailData.subject,
+          recipients: {
+            to: emailData.to,
+            cc: emailData.cc,
+            bcc: emailData.bcc,
+          },
+        },
+        "log only: email not in allowlist"
+      );
       info = { messageId: "log-only" };
     }
   } catch (err) {
@@ -96,7 +125,18 @@ export const handler = async (event: SQSEvent) => {
     throw err;
   }
 
-  log.info({ messageId: info.messageId, email: redactEmailAddresses(email.to) }, "message sent");
+  log.info(
+    {
+      ...emailLogContext,
+      messageId: info.messageId,
+      recipients: {
+        to: redactEmailAddresses(email.to),
+        cc: email.cc ? redactEmailAddresses(email.cc) : undefined,
+        bcc: email.bcc ? redactEmailAddresses(email.bcc) : undefined,
+      },
+    },
+    "message sent"
+  );
 
   return "success";
 };

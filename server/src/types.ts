@@ -130,7 +130,7 @@ export type { DeliverableExtension } from "./model/deliverableExtension/delivera
 
 export type { DeliverableComment } from "./model/publicComment/publicCommentSchema";
 
-export type { CreateEmailInput } from "./model/email/emailSchema";
+export type { TestEmailInput } from "./model/email/emailSchema";
 
 export type { Reference, ReferenceAgreement } from "./model/reference/referenceSchema";
 

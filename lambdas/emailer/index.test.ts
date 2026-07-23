@@ -183,14 +183,15 @@ describe("emailer", () => {
       "rendering realtime email template"
     );
     expect(infoSpy).toHaveBeenCalledWith(
-      {
-        emailData: expect.objectContaining({
+      expect.objectContaining({
+        emailType: "Deliverable Created",
+        entityType: "deliverable",
+        entityId: "deliverable-1",
+        subject: "CMS DEMOS Deliverable: Deliverable Created",
+        recipients: expect.objectContaining({
           to: ["no****@email.com"],
-          subject: "CMS DEMOS Deliverable: Deliverable Created",
-          text: expect.stringContaining("Quarterly Budget Report"),
-          html: expect.stringContaining("Quarterly Budget Report"),
         }),
-      },
+      }),
       "log only: email not in allowlist"
     );
   });
@@ -207,6 +208,22 @@ describe("emailer", () => {
         text: expect.stringContaining("has been submitted for your Demonstration"),
       })
     );
+  });
+
+  it.each([
+    ["Deliverable Accepted", "CMS DEMOS Deliverable: Deliverable Accepted"],
+    ["Deliverable Approved", "CMS DEMOS Deliverable: Deliverable Approved"],
+    [
+      "Deliverable Received and Filed",
+      "CMS DEMOS Deliverable: Deliverable Received and Filed",
+    ],
+  ])("should select the %s template by email type", async (emailType, subject) => {
+    const email = await renderRealtimeEmailIfNeeded({
+      ...realtimeDeliverableCreatedEnvelope,
+      emailType,
+    });
+
+    expect(email).toEqual(expect.objectContaining({ subject }));
   });
 
   it("should report unsupported realtime email types", async () => {

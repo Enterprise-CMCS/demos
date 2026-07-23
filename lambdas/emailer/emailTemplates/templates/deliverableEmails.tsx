@@ -26,6 +26,34 @@ export const deliverableEmailConfigById = {
       </Text>
     ),
   },
+  "deliverable-accepted": {
+    id: "deliverable-accepted",
+    action: "Deliverable Accepted",
+    Message: ({ deliverableType, link }) => (
+      <Text style={textStyle}>
+        Your {deliverableType} deliverable has been accepted. <DeliverableLink href={link} />
+      </Text>
+    ),
+  },
+  "deliverable-approved": {
+    id: "deliverable-approved",
+    action: "Deliverable Approved",
+    Message: ({ deliverableType, link }) => (
+      <Text style={textStyle}>
+        Your {deliverableType} deliverable has been approved. <DeliverableLink href={link} />
+      </Text>
+    ),
+  },
+  "deliverable-received-and-filed": {
+    id: "deliverable-received-and-filed",
+    action: "Deliverable Received and Filed",
+    Message: ({ deliverableType, link }) => (
+      <Text style={textStyle}>
+        Your {deliverableType} deliverable has been received and filed.{" "}
+        <DeliverableLink href={link} />
+      </Text>
+    ),
+  },
 } satisfies Record<string, DeliverableEmailConfig>;
 
 export const deliverableEmailTemplates = Object.fromEntries(

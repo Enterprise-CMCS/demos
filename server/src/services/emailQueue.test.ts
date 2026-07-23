@@ -40,6 +40,7 @@ describe("emailQueue", () => {
       emailType: "Deliverable Created",
       entityType: "application",
       entityId: "del-123",
+      triggeredById: "user-123",
       payload: {
         to: "owner@example.com",
         id: "del-123",
@@ -62,6 +63,7 @@ describe("emailQueue", () => {
         emailType: "Unknown Email",
         entityType: "application",
         entityId: "application-1",
+        triggeredById: "user-123",
         payload: {},
       })
     ).toThrow("Unsupported realtime email type: Unknown Email");
@@ -76,6 +78,7 @@ describe("emailQueue", () => {
       emailType: "Deliverable Submitted",
       entityType: "deliverable",
       entityId: "del-321",
+      triggeredById: "user-123",
       payload: {
         to: "owner@example.com",
         id: "del-321",
@@ -102,6 +105,7 @@ describe("emailQueue", () => {
       emailType: "Deliverable Approved",
       entityType: "deliverable",
       entityId: "del-999",
+      triggeredById: "user-123",
       payload: {
         to: "owner@example.com",
         id: "del-999",

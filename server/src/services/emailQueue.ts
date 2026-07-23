@@ -5,16 +5,9 @@ import { log } from "../log";
 export const REALTIME_EMAIL_TYPES = [
   "Deliverable Created",
   "Deliverable Submitted",
-  "Deliverable Due Date Updated",
-  "Extension Requested",
-  "Extension Decision Made",
-  "Resubmission Requested",
   "Deliverable Accepted",
   "Deliverable Approved",
   "Deliverable Received and Filed",
-  "Public Comment Added",
-  "Terms And Conditions Requested",
-  "Application Status Updated",
 ] as const;
 
 export type RealtimeEmailType = (typeof REALTIME_EMAIL_TYPES)[number];
@@ -74,6 +67,7 @@ export function buildRealtimeEmailEnvelope(input: {
   emailType: string;
   entityType: string;
   entityId: string;
+  triggeredById: string;
   payload: RealtimeEmailEnvelope["payload"];
 }): RealtimeEmailEnvelope {
   if (!REALTIME_EMAIL_TYPES.includes(input.emailType as RealtimeEmailType)) {
@@ -86,7 +80,7 @@ export function buildRealtimeEmailEnvelope(input: {
     entityId: input.entityId,
     triggeredBy: {
       type: "realtime",
-      id: "graphql-api",
+      id: input.triggeredById,
     },
     triggeredAt: new Date().toISOString(),
     idempotencyKey: `${input.emailType}:${input.entityType}:${input.entityId}`,
@@ -116,6 +110,17 @@ export async function enqueueRealtimeEmail(message: RealtimeEmailEnvelope): Prom
   if (!response.MessageId) {
     throw new Error("Failed to enqueue realtime email message.");
   }
+
+  log.info(
+    {
+      messageId: response.MessageId,
+      emailType: message.emailType,
+      entityType: message.entityType,
+      entityId: message.entityId,
+      idempotencyKey: message.idempotencyKey,
+    },
+    "Email queued"
+  );
 
   return response.MessageId;
 }
