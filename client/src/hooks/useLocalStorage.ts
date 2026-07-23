@@ -1,46 +1,46 @@
 import { useCallback, useState } from "react";
 
+/**
+ * localStorage — persists across sessions, shared across tabs.
+ * sessionStorage — cleared when the tab closes, isolated per tab.
+ */
 type StorageType = "localStorage" | "sessionStorage";
 
 function getStorage(storageType: StorageType): Storage | null {
   if (typeof window === "undefined") return null;
-  return storageType === "sessionStorage" ? window.sessionStorage : window.localStorage;
+
+  if (storageType === "localStorage") return window.localStorage;
+  if (storageType === "sessionStorage") return window.sessionStorage;
+  return null;
 }
 
 export function useLocalStorage(
-  key: string,
+  storageKey: string,
   defaultValue: string,
   storageType: StorageType = "localStorage"
-): [string, (value: string) => void] {
+): [string, (value: string) => void, () => void] {
   const [storedValue, setStoredValue] = useState<string>(() => {
     const storage = getStorage(storageType);
     if (!storage) return defaultValue;
-    return storage.getItem(key) ?? defaultValue;
+    return storage.getItem(storageKey) ?? defaultValue;
   });
 
   const setValue = useCallback(
     (value: string) => {
       setStoredValue(value);
       try {
-        getStorage(storageType)?.setItem(key, value);
+        getStorage(storageType)?.setItem(storageKey, value);
       } catch {
         // Storage quota exceeded or access denied — state still updates in memory
       }
     },
-    [key, storageType]
+    [storageKey, storageType]
   );
 
-  return [storedValue, setValue];
-}
+  const clearValue = useCallback(() => {
+    setStoredValue(defaultValue);
+    getStorage(storageType)?.removeItem(storageKey);
+  }, [storageKey, storageType, defaultValue]);
 
-export function clearStoredValue(key: string, storageType: StorageType = "localStorage"): void {
-  getStorage(storageType)?.removeItem(key);
-}
-
-export function setStoredValue(
-  key: string,
-  value: string,
-  storageType: StorageType = "localStorage"
-): void {
-  getStorage(storageType)?.setItem(key, value);
+  return [storedValue, setValue, clearValue];
 }

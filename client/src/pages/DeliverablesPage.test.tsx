@@ -1,7 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { setStoredValue } from "hooks/useLocalStorage";
 import { MockedResponse } from "@apollo/client/testing";
 import {
   DELIVERABLES_PAGE_QUERY,
@@ -179,7 +178,7 @@ describe("DeliverablesPage tab persistence", () => {
   });
 
   it("uses stored tab selection from sessionStorage", async () => {
-    setStoredValue(TAB_KEY, "deliverables", "sessionStorage");
+    sessionStorage.setItem(TAB_KEY, "deliverables");
 
     await renderDeliverablesPage();
 
@@ -314,7 +313,7 @@ describe("DeliverablesPage tab persistence", () => {
   });
 
   it("does not use stored deliverables tab for demos-state-user", async () => {
-    setStoredValue(TAB_KEY, "deliverables", "sessionStorage");
+    sessionStorage.setItem(TAB_KEY, "deliverables");
 
     await renderStateDeliverablesPage();
 

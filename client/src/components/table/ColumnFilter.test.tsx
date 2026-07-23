@@ -3,7 +3,6 @@ import React from "react";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { clearStoredValue } from "hooks/useLocalStorage";
 import userEvent from "@testing-library/user-event";
 import { Table } from "./Table";
 import { testTableData, TestType } from "./Table.test";
@@ -71,7 +70,7 @@ export const testColumns = [
 
 describe("ColumnFilter Component", () => {
   beforeEach(() => {
-    clearStoredValue("keyword-search");
+    localStorage.removeItem("keyword-search");
     render(
       <Table<TestType>
         columns={testColumns}

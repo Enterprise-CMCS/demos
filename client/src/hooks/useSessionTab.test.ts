@@ -1,7 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { setStoredValue } from "./useLocalStorage";
 import { useSessionTab } from "./useSessionTab";
 
 describe("useSessionTab", () => {
@@ -14,40 +13,32 @@ describe("useSessionTab", () => {
   });
 
   it("uses the default value and stores it when nothing is in session storage", () => {
-    const { result } = renderHook(() =>
-      useSessionTab({ key, defaultValue, allowedValues })
-    );
+    const { result } = renderHook(() => useSessionTab({ key, defaultValue, allowedValues }));
 
     expect(result.current[0]).toBe("my-deliverables");
     expect(sessionStorage.getItem(key)).toBe("my-deliverables");
   });
 
   it("uses stored value when it is allowed", () => {
-    setStoredValue(key, "deliverables", "sessionStorage");
+    sessionStorage.setItem(key, "deliverables");
 
-    const { result } = renderHook(() =>
-      useSessionTab({ key, defaultValue, allowedValues })
-    );
+    const { result } = renderHook(() => useSessionTab({ key, defaultValue, allowedValues }));
 
     expect(result.current[0]).toBe("deliverables");
     expect(sessionStorage.getItem(key)).toBe("deliverables");
   });
 
   it("falls back to default when stored value is not allowed", () => {
-    setStoredValue(key, "bad-tab-value", "sessionStorage");
+    sessionStorage.setItem(key, "bad-tab-value");
 
-    const { result } = renderHook(() =>
-      useSessionTab({ key, defaultValue, allowedValues })
-    );
+    const { result } = renderHook(() => useSessionTab({ key, defaultValue, allowedValues }));
 
     expect(result.current[0]).toBe("my-deliverables");
     expect(sessionStorage.getItem(key)).toBe("my-deliverables");
   });
 
   it("updates state and session storage when selecting an allowed tab", () => {
-    const { result } = renderHook(() =>
-      useSessionTab({ key, defaultValue, allowedValues })
-    );
+    const { result } = renderHook(() => useSessionTab({ key, defaultValue, allowedValues }));
 
     act(() => {
       result.current[1]("deliverables");
@@ -58,9 +49,7 @@ describe("useSessionTab", () => {
   });
 
   it("resets to default when selecting a tab that is not allowed", () => {
-    const { result } = renderHook(() =>
-      useSessionTab({ key, defaultValue, allowedValues })
-    );
+    const { result } = renderHook(() => useSessionTab({ key, defaultValue, allowedValues }));
 
     act(() => {
       result.current[1]("not-allowed");
