@@ -6,15 +6,70 @@ import { useDialog } from "components/dialog/DialogContext";
 import { AddDeliverableSlotDemonstration } from "components/dialog/deliverable/AddDeliverableSlotDialog";
 import { DemonstrationDeliverableTable } from "components/table/tables/DemonstrationDeliverableTable";
 import { getCurrentUser } from "components/user/UserContext";
-import type { UserType } from "demos-server";
-import {
-  DELIVERABLES_PAGE_QUERY,
-  type DeliverablesQueryResult,
-} from "components/table/tables/DeliverableTable";
-import { useQuery } from "@apollo/client";
+import type { Tag, UserType } from "demos-server";
+import { type DeliverablesQueryResult } from "components/table/tables/DeliverableTable";
+import { gql, useQuery } from "@apollo/client";
 import { useNavigate } from "react-router-dom";
 
 export const ADD_DELIVERABLE_SLOT_BUTTON_NAME = "button-add-deliverable-slot";
+
+export const DEMONSTRATION_DELIVERABLE_TAB = gql`
+  query GetDeliverablesPage($id: ID!) {
+    demonstration(id: $id) {
+      deliverables {
+        id
+        deliverableType
+        name
+        demonstration {
+          id
+          name
+          state {
+            id
+          }
+          demonstrationTypes {
+            demonstrationTypeName
+            approvalStatus
+          }
+        }
+        status
+        cmsOwner {
+          id
+          person {
+            id
+            fullName
+          }
+        }
+        dueDate
+        demonstrationTypes {
+          tagName
+          approvalStatus
+        }
+        extensionRequests {
+          id
+          status
+        }
+        deliverableActions {
+          id
+          actionType
+          actionTimestamp
+        }
+        # These are for determining if a deliverable can be deleted
+        cmsDocuments {
+          id
+        }
+        stateDocuments {
+          id
+        }
+        publicComments {
+          id
+        }
+        privateComments {
+          id
+        }
+      }
+    }
+  }
+`;
 
 export const DeliverablesTab = ({
   parentDemonstration,
@@ -25,10 +80,13 @@ export const DeliverablesTab = ({
   const rawPersonType = getCurrentUser().currentUser.person.personType;
   const viewMode = rawPersonType as UserType;
   const navigate = useNavigate();
-  const { data, loading, error } = useQuery<DeliverablesQueryResult>(DELIVERABLES_PAGE_QUERY);
+  const { data, loading, error } = useQuery<{ demonstration: DeliverablesQueryResult }>(
+    DEMONSTRATION_DELIVERABLE_TAB,
+    { variables: { id: parentDemonstration.id } }
+  );
   const deliverables = React.useMemo(
     () =>
-      data?.deliverables.filter(
+      data?.demonstration.deliverables.filter(
         (deliverable) => deliverable.demonstration.id === parentDemonstration.id
       ) ?? [],
     [data, parentDemonstration.id]
