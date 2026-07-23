@@ -17,8 +17,9 @@ export async function createDeliverable(
 ): Promise<PrismaDeliverable> {
   const currentUserId = context.user.id;
   validateUserPersonTypeAllowed(context, "createDeliverable", ["demos-admin", "demos-cms-user"]);
+
   const parsedInput = parseCreateDeliverableInput(input);
-  const createdDeliverable = await prisma().$transaction(async (tx) => {
+  return prisma().$transaction(async (tx) => {
     await validateCreateDeliverableInput(parsedInput, tx);
 
     const newDeliverable = await insertDeliverable(parsedInput, tx);
@@ -48,5 +49,4 @@ export async function createDeliverable(
 
     return newDeliverable;
   });
-  return createdDeliverable;
 }

@@ -59,6 +59,9 @@ import { deliverableStatusResolvers } from "./deliverableStatus/deliverableStatu
 import { deliverableTypeSchema } from "./deliverableType/deliverableTypeSchema";
 import { deliverableTypeResolvers } from "./deliverableType/deliverableTypeResolvers";
 
+import { emailSchema } from "./email/emailSchema";
+import { emailResolvers } from "./email/emailResolvers";
+
 import { demonstrationRoleAssignmentSchema } from "./demonstrationRoleAssignment/demonstrationRoleAssignmentSchema.js";
 import { demonstrationRoleAssigmentResolvers } from "./demonstrationRoleAssignment/demonstrationRoleAssignmentResolvers.js";
 
@@ -186,6 +189,7 @@ export const typeDefs = [
   documentPendingUploadSchema,
   documentSchema,
   documentTypeSchema,
+  emailSchema,
   extensionSchema,
   noteTypeSchema,
   onDemandReportSchema,
@@ -238,6 +242,7 @@ export const resolvers = [
   documentPendingUploadResolvers,
   documentResolvers,
   documentTypeResolvers,
+  emailResolvers,
   extensionResolvers,
   noteTypeResolvers,
   onDemandReportResolvers,

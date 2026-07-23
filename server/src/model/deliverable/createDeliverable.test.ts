@@ -57,7 +57,6 @@ describe("createDeliverable", () => {
       personTypeId: "demos-cms-user",
     },
   };
-
   // Mock return values
   const mockParsedInput: ParsedCreateDeliverableInput = {
     name: testInput.name,
@@ -72,7 +71,6 @@ describe("createDeliverable", () => {
   const mockNewDeliverable: Partial<PrismaDeliverable> = {
     id: "2563ded3-b5c5-4d89-9ee4-0a9bc072e89e",
   };
-
   // Mock transaction
   const mockTransaction: any = "Test!";
   const mockPrismaClient = {

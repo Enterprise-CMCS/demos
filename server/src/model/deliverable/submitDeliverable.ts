@@ -4,12 +4,13 @@ import { DeliverableStatus } from "../../types";
 import { prisma } from "../../prismaClient";
 import { editDeliverable, selectDeliverableOrThrow, validateSubmitDeliverableInput } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
+import { dispatchDeliverableSubmittedEmail } from "../email";
 
 export async function submitDeliverable(
   deliverableId: string,
   context: GraphQLContext
 ): Promise<PrismaDeliverable> {
-  return await prisma().$transaction(async (tx) => {
+  const submittedDeliverable = await prisma().$transaction(async (tx) => {
     const unsubmittedDeliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
     await validateSubmitDeliverableInput(unsubmittedDeliverable, tx);
 
@@ -35,4 +36,11 @@ export async function submitDeliverable(
 
     return submittedDeliverable;
   });
+
+  await dispatchDeliverableSubmittedEmail({
+    deliverableId: submittedDeliverable.id,
+    triggeredByUserId: context.user.id,
+  });
+
+  return submittedDeliverable;
 }

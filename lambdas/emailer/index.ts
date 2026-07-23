@@ -5,8 +5,29 @@ import * as ssm from "@aws-sdk/client-ssm";
 
 import { log } from "./log";
 import { Address, Options } from "nodemailer/lib/mailer";
+import { renderEmail } from "./emailTemplates/renderEmail";
 
 type EmailerAddress = string | Address | Array<string | Address>;
+
+type RealtimeEmailEnvelope = {
+  emailType: string;
+  entityType?: string;
+  entityId?: string;
+  idempotencyKey?: string;
+  triggeredBy?: {
+    type: string;
+    id: string;
+  };
+  payload: unknown;
+};
+
+const templateByEmailType: Record<string, string> = {
+  "Deliverable Created": "deliverable-created",
+  "Deliverable Submitted": "deliverable-submitted",
+  "Deliverable Accepted": "deliverable-accepted",
+  "Deliverable Approved": "deliverable-approved",
+  "Deliverable Received and Filed": "deliverable-received-and-filed",
+};
 
 export interface EmailData extends Pick<Options, "html" | "cc" | "bcc"> {
   to: EmailerAddress;
@@ -39,6 +60,23 @@ export const handler = async (event: SQSEvent) => {
     return;
   }
 
+  const emailLogContext = isRealtimeEmailEnvelope(email)
+    ? {
+        emailType: email.emailType,
+        entityType: email.entityType,
+        entityId: email.entityId,
+        idempotencyKey: email.idempotencyKey,
+        triggeredBy: email.triggeredBy,
+      }
+    : {};
+
+  try {
+    email = await renderRealtimeEmailIfNeeded(email);
+  } catch (err) {
+    log.error({ error: (err as Error).message }, "unable to render realtime email");
+    throw err;
+  }
+
   if (!isValidEmailData(email)) {
     return;
   }
@@ -55,11 +93,31 @@ export const handler = async (event: SQSEvent) => {
       from: process.env.EMAIL_FROM,
     };
 
-    if (process.env.DISABLE_EMAIL_ALLOWLIST == "true" || (await sendEmailIsAllowed(email.to))) {
+    if (
+      process.env.DISABLE_EMAIL_ALLOWLIST == "true" ||
+      (await sendEmailIsAllowed(email.to, email.cc, email.bcc))
+    ) {
       info = await transporter.sendMail(emailData);
     } else {
       emailData.to = redactEmailAddresses(emailData.to);
-      log.info({ emailData }, "log only: email not in allowlist");
+      if (emailData.cc) {
+        emailData.cc = redactEmailAddresses(emailData.cc);
+      }
+      if (emailData.bcc) {
+        emailData.bcc = redactEmailAddresses(emailData.bcc);
+      }
+      log.info(
+        {
+          ...emailLogContext,
+          subject: emailData.subject,
+          recipients: {
+            to: emailData.to,
+            cc: emailData.cc,
+            bcc: emailData.bcc,
+          },
+        },
+        "log only: email not in allowlist"
+      );
       info = { messageId: "log-only" };
     }
   } catch (err) {
@@ -67,10 +125,43 @@ export const handler = async (event: SQSEvent) => {
     throw err;
   }
 
-  log.info({ messageId: info.messageId, email: redactEmailAddresses(email.to) }, "message sent");
+  log.info(
+    {
+      ...emailLogContext,
+      messageId: info.messageId,
+      recipients: {
+        to: redactEmailAddresses(email.to),
+        cc: email.cc ? redactEmailAddresses(email.cc) : undefined,
+        bcc: email.bcc ? redactEmailAddresses(email.bcc) : undefined,
+      },
+    },
+    "message sent"
+  );
 
   return "success";
 };
+
+export async function renderRealtimeEmailIfNeeded(email: unknown): Promise<unknown> {
+  if (!isRealtimeEmailEnvelope(email)) {
+    return email;
+  }
+
+  const template = templateByEmailType[email.emailType];
+  if (!template) {
+    throw new Error(`Unsupported realtime email type: ${email.emailType}`);
+  }
+
+  log.info(
+    {
+      emailType: email.emailType,
+      template,
+      entityId: email.entityId,
+    },
+    "rendering realtime email template"
+  );
+
+  return renderEmail(template, email.payload);
+}
 
 export function isValidEmailData(email: any): email is EmailData {
   if (!isEmailerAddress(email.to)) {
@@ -88,7 +179,26 @@ export function isValidEmailData(email: any): email is EmailData {
     return false;
   }
 
+  if (email.cc !== undefined && !isEmailerAddress(email.cc)) {
+    log.info("an email must have a valid 'cc' property");
+    return false;
+  }
+
+  if (email.bcc !== undefined && !isEmailerAddress(email.bcc)) {
+    log.info("an email must have a valid 'bcc' property");
+    return false;
+  }
+
   return true;
+}
+
+export function isRealtimeEmailEnvelope(email: unknown): email is RealtimeEmailEnvelope {
+  return (
+    typeof email === "object" &&
+    email !== null &&
+    typeof (email as RealtimeEmailEnvelope).emailType === "string" &&
+    "payload" in email
+  );
 }
 
 // Not real validation, just making sure its a valid format
@@ -112,24 +222,32 @@ export function isEmailerAddress(address?: EmailerAddress): address is EmailerAd
   return false;
 }
 
-let allowList: string[];
+let allowList: string[] | undefined;
 
-export async function sendEmailIsAllowed(emails: EmailerAddress): Promise<boolean> {
+export async function sendEmailIsAllowed(
+  ...recipientGroups: Array<EmailerAddress | undefined>
+): Promise<boolean> {
   const al = await getAllowList();
 
   const standardizedEmails = [];
-  if (Array.isArray(emails)) {
-    for (const e of emails) {
-      if (typeof e == "string") {
-        standardizedEmails.push(e);
-      } else {
-        standardizedEmails.push(e.address);
-      }
+  for (const emails of recipientGroups) {
+    if (!emails) {
+      continue;
     }
-  } else if (typeof emails == "string") {
-    standardizedEmails.push(emails);
-  } else {
-    standardizedEmails.push(emails.address);
+
+    if (Array.isArray(emails)) {
+      for (const e of emails) {
+        if (typeof e == "string") {
+          standardizedEmails.push(e);
+        } else {
+          standardizedEmails.push(e.address);
+        }
+      }
+    } else if (typeof emails == "string") {
+      standardizedEmails.push(emails);
+    } else {
+      standardizedEmails.push(emails.address);
+    }
   }
 
   return standardizedEmails.every((e) => al.includes(e));

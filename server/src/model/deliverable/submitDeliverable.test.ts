@@ -24,9 +24,14 @@ vi.mock("../deliverableAction/queries", () => ({
   insertDeliverableAction: vi.fn(),
 }));
 
+vi.mock("../email", () => ({
+  dispatchDeliverableSubmittedEmail: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient";
 import { editDeliverable, selectDeliverableOrThrow, validateSubmitDeliverableInput } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
+import { dispatchDeliverableSubmittedEmail } from "../email";
 
 describe("submitDeliverable", () => {
   // Test inputs
@@ -104,5 +109,14 @@ describe("submitDeliverable", () => {
       },
       mockTransaction
     );
+  });
+
+  it("should dispatch the submitted email to the CMS owner", async () => {
+    await submitDeliverable(testDeliverableId, testContext as GraphQLContext);
+
+    expect(dispatchDeliverableSubmittedEmail).toHaveBeenCalledExactlyOnceWith({
+      deliverableId: testDeliverableId,
+      triggeredByUserId: testContext.user!.id,
+    });
   });
 });
