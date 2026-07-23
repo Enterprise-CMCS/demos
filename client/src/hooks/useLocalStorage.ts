@@ -14,12 +14,10 @@ function getStorage(storageType: StorageType): Storage | null {
   return null;
 }
 
-type UseLocalStorageReturn = [value: string, setValue: (value: string) => void];
-
 export function useLocalStorage(
   storageKey: string,
   storageType: StorageType = "localStorage"
-): UseLocalStorageReturn {
+): [value: string, setValue: (value: string) => void] {
   const [storedValue, setStoredValue] = useState<string>(
     () => getStorage(storageType)?.getItem(storageKey) ?? ""
   );
@@ -37,4 +35,11 @@ export function useLocalStorage(
   );
 
   return [storedValue, setValue];
+}
+
+/** Clears all localStorage and sessionStorage. Intended for use in test `beforeEach` cleanup. */
+export function clearWebStorage(): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.clear();
+  window.sessionStorage.clear();
 }

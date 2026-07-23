@@ -1,5 +1,6 @@
 import React from "react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
+import { clearWebStorage } from "hooks/useLocalStorage";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -43,6 +44,9 @@ const MOCK_DEMONSTRATION = {
 };
 
 describe("TypesTable", () => {
+  beforeEach(() => {
+    clearWebStorage();
+  });
   it("renders required columns", async () => {
     render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
     await waitFor(() => screen.getByRole("table"));

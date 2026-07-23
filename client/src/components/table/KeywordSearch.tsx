@@ -12,11 +12,11 @@ export const TEST_IDS = {
   clearButton: "button-clear-search",
 };
 
+export const KEYWORD_SEARCH_STORAGE_KEY = "keyword-search";
 export interface KeywordSearchProps<T> {
   table: Table<T>;
   label?: string;
   debounceMs?: number;
-  storageKey?: string;
   placeholder?: string;
 }
 
@@ -72,10 +72,9 @@ export function KeywordSearch<T>({
   table,
   label = "Search:",
   debounceMs = 300,
-  storageKey = "keyword-search",
   placeholder = "Search",
 }: KeywordSearchProps<T>) {
-  const [queryString, setQueryString] = useLocalStorage(storageKey);
+  const [queryString, setQueryString] = useLocalStorage(KEYWORD_SEARCH_STORAGE_KEY);
 
   const debouncedQueryString = useDebounced(queryString, debounceMs);
 

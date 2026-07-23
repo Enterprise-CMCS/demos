@@ -2,6 +2,7 @@ import React from "react";
 
 import { ALL_MOCKS } from "mock-data/index";
 import { beforeEach, describe, expect, it } from "vitest";
+import { clearWebStorage } from "hooks/useLocalStorage";
 
 import { MockedProvider } from "@apollo/client/testing";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
@@ -23,6 +24,7 @@ vi.mock("components/dialog/DialogContext", () => ({
 
 describe("DocumentTable", () => {
   beforeEach(() => {
+    clearWebStorage();
     render(
       <MockedProvider mocks={ALL_MOCKS}>
         <DocumentTable documents={mockDocuments} />

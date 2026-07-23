@@ -7,6 +7,7 @@ import userEvent from "@testing-library/user-event";
 import { Table } from "./Table";
 import { TestType, testTableData } from "./Table.test";
 import { highlightCell, KeywordSearch, TEST_IDS } from "./KeywordSearch";
+import { clearWebStorage } from "hooks/useLocalStorage";
 import { createColumnHelper } from "@tanstack/react-table";
 
 const columnHelper = createColumnHelper<TestType>();
@@ -34,7 +35,7 @@ export const testColumns = [
 
 describe.sequential("KeywordSearch Component", () => {
   beforeEach(() => {
-    localStorage.removeItem("keyword-search");
+    clearWebStorage();
     render(
       <Table<TestType>
         keywordSearch={(table) => <KeywordSearch table={table} />}

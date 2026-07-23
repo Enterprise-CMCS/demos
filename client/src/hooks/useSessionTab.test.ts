@@ -1,6 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 
+import { clearWebStorage } from "./useLocalStorage";
 import { useSessionTab } from "./useSessionTab";
 
 describe("useSessionTab", () => {
@@ -9,7 +10,7 @@ describe("useSessionTab", () => {
   const allowedValues = ["my-deliverables", "deliverables"] as const;
 
   beforeEach(() => {
-    sessionStorage.clear();
+    clearWebStorage();
   });
 
   it("uses the default value and stores it when nothing is in session storage", () => {
