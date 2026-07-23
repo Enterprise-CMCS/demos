@@ -24,6 +24,39 @@ models:
       - name: is_migrated_from_pmda
         data_type: boolean
 
+  - name: final_demos_app_deliverable_action
+    columns:
+      - name: id
+        data_type: uuid
+      - name: action_timestamp
+        data_type: timestamptz
+      - name: deliverable_id
+        data_type: uuid
+      - name: action_type_id
+        data_type: text
+      - name: old_status_id
+        data_type: text
+      - name: new_status_id
+        data_type: text
+      - name: note
+        data_type: text
+      - name: active_extension_id
+        data_type: uuid
+      - name: due_date_change_allowed
+        data_type: bool
+      - name: should_have_note
+        data_type: bool
+      - name: should_have_user_id
+        data_type: bool
+      - name: extension_id_optional
+        data_type: bool
+      - name: old_due_date
+        data_type: timestamptz
+      - name: new_due_date
+        data_type: timestamptz
+      - name: user_id
+        data_type: uuid
+
   - name: final_demos_app_deliverable_demonstration_type
     columns:
       - name: deliverable_id
