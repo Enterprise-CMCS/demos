@@ -3,7 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { DeliverableTable, formatDeliverableStatus, getLatestSubmissionDate } from "./DeliverableTable";
+import {
+  DeliverableTable,
+  formatDeliverableStatus,
+  getLatestSubmissionDate,
+} from "./DeliverableTable";
 import { DELIVERABLE_CANT_DELETE_HAS_FILES } from "./DeliverableActionButtons";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import type { DeliverableTableRow } from "./DeliverableTable";
@@ -774,9 +778,7 @@ describe("DeliverableTable Remove action", () => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
 
-    expect(
-      screen.getByText(formatDateForDisplay(latestSubmission))
-    ).toBeInTheDocument();
+    expect(screen.getByText(formatDateForDisplay(latestSubmission))).toBeInTheDocument();
   });
 });
 

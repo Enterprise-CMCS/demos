@@ -1,2 +1,2 @@
 export { useDebounced } from "./useDebounced";
-export { useSessionTab } from "./useSessionTab";
+export { useLocalStorage, useSessionStorage } from "./useWebStorage";
