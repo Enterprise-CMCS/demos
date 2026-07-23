@@ -14,16 +14,15 @@ function getStorage(storageType: StorageType): Storage | null {
   return null;
 }
 
+type UseLocalStorageReturn = [value: string, setValue: (value: string) => void];
+
 export function useLocalStorage(
   storageKey: string,
-  defaultValue: string,
   storageType: StorageType = "localStorage"
-): [string, (value: string) => void, () => void] {
-  const [storedValue, setStoredValue] = useState<string>(() => {
-    const storage = getStorage(storageType);
-    if (!storage) return defaultValue;
-    return storage.getItem(storageKey) ?? defaultValue;
-  });
+): UseLocalStorageReturn {
+  const [storedValue, setStoredValue] = useState<string>(
+    () => getStorage(storageType)?.getItem(storageKey) ?? ""
+  );
 
   const setValue = useCallback(
     (value: string) => {
@@ -37,10 +36,5 @@ export function useLocalStorage(
     [storageKey, storageType]
   );
 
-  const clearValue = useCallback(() => {
-    setStoredValue(defaultValue);
-    getStorage(storageType)?.removeItem(storageKey);
-  }, [storageKey, storageType, defaultValue]);
-
-  return [storedValue, setValue, clearValue];
+  return [storedValue, setValue];
 }

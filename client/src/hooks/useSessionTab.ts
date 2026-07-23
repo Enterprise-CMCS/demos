@@ -12,7 +12,7 @@ export function useSessionTab<T extends string>({
   defaultValue,
   allowedValues,
 }: UseSessionTabOptions<T>): readonly [T, (value: string) => void] {
-  const [tabValue, setTabValue] = useLocalStorage<T>(key, defaultValue, "sessionStorage");
+  const [tabValue, setTabValue] = useLocalStorage(key, "sessionStorage");
 
   const onTabSelect = useCallback(
     (value: string) => {
@@ -22,5 +22,5 @@ export function useSessionTab<T extends string>({
     [allowedValues, defaultValue, setTabValue]
   );
 
-  return [tabValue, onTabSelect] as const;
+  return [tabValue as T, onTabSelect] as const;
 }

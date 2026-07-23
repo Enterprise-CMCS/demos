@@ -75,7 +75,7 @@ export function KeywordSearch<T>({
   storageKey = "keyword-search",
   placeholder = "Search",
 }: KeywordSearchProps<T>) {
-  const [queryString, setQueryString] = useLocalStorage<string>(storageKey, "");
+  const [queryString, setQueryString] = useLocalStorage(storageKey);
 
   const debouncedQueryString = useDebounced(queryString, debounceMs);
 
