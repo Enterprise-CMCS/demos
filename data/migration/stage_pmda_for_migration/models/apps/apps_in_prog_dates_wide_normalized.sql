@@ -1,74 +1,60 @@
-WITH base_applications AS (
-    SELECT
-        valid_in_progress.id,
-        valid_in_progress.mdcd_demo_aplctn_id,
-        mdcd_demo_aplctn.phase_1_strt_dt,
-        mdcd_demo_aplctn.phase_1_end_dt,
-        mdcd_demo_aplctn.phase_2_rcvd_dt,
-        mdcd_demo_aplctn.phase_2_cmpltns_rvw_dt,
-        mdcd_demo_aplctn.phase_2_state_aplctn_deemd_cmpltn_dt,
-        mdcd_demo_aplctn.phase_2_fed_cmt_prd_strt_dt,
-        mdcd_demo_aplctn.phase_2_fed_cmt_prd_end_dt,
-        mdcd_demo_aplctn.phase_2_dsrd_aprvl_dt,
-        mdcd_demo_aplctn.phase_3_a_sme_strt_dt,
-        mdcd_demo_aplctn.phase_3_a_sme_end_dt,
-        mdcd_demo_aplctn.phase_3_a_frvt_strt_dt,
-        mdcd_demo_aplctn.phase_3_a_frvt_end_dt,
-        mdcd_demo_aplctn.phase_3_b_cmcs_strt_dt,
-        mdcd_demo_aplctn.phase_3_b_cmcs_end_dt,
-        mdcd_demo_aplctn.phase_3_b_ogc_strt_dt,
-        mdcd_demo_aplctn.phase_3_b_ogc_end_dt,
-        mdcd_demo_aplctn.phase_3_b_omb_strt_dt,
-        mdcd_demo_aplctn.phase_3_b_omb_end_dt,
-        mdcd_demo_aplctn.phase_3_c_ogc_strt_dt,
-        mdcd_demo_aplctn.phase_3_c_ogc_end_dt,
-        mdcd_demo_aplctn.phase_3_c_omb_strt_dt,
-        mdcd_demo_aplctn.phase_3_c_omb_end_dt,
-        mdcd_demo_aplctn.phase_4_strt_dt,
-        mdcd_demo_aplctn.phase_4_end_dt,
-        mdcd_demo_aplctn.phase_5_strt_dt,
-        mdcd_demo_aplctn.phase_5_end_dt,
-        mdcd_demo_aplctn.phase_6_strt_dt,
-        mdcd_demo_aplctn.phase_6_end_dt
-    FROM
-        {{ ref('apps_active_in_progress_pmda_demos') }} AS valid_in_progress
-    INNER JOIN
-        {{ source('legacy_pmda_raw', 'mdcd_demo_aplctn') }} AS mdcd_demo_aplctn
-        ON
-            valid_in_progress.mdcd_demo_aplctn_id = mdcd_demo_aplctn.mdcd_demo_aplctn_id
-)
+-- Apply timezone conversion and start-of-day/end-of-day timestamps based on DEMOS date type semantics
+-- (see DATE_TYPES_WITH_EXPECTED_TIMESTAMPS in constants.ts)
 
 SELECT
     id,
     mdcd_demo_aplctn_id,
 
-    (phase_1_strt_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS phase_1_strt_dt,
-    (phase_1_end_dt + TIME '23:59:59.999') AT TIME ZONE 'America/New_York' AS phase_1_end_dt,
-    (phase_2_rcvd_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS phase_2_rcvd_dt,
-    (phase_2_cmpltns_rvw_dt + TIME '23:59:59.999') AT TIME ZONE 'America/New_York' AS phase_2_cmpltns_rvw_dt,
-    (phase_2_state_aplctn_deemd_cmpltn_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York'
-        AS phase_2_state_aplctn_deemd_cmpltn_dt,
-    (phase_2_fed_cmt_prd_strt_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS phase_2_fed_cmt_prd_strt_dt,
-    (phase_2_fed_cmt_prd_end_dt + TIME '23:59:59.999') AT TIME ZONE 'America/New_York' AS phase_2_fed_cmt_prd_end_dt,
-    (phase_2_dsrd_aprvl_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS phase_2_dsrd_aprvl_dt,
-    (phase_3_a_sme_strt_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS phase_3_a_sme_strt_dt,
-    (phase_3_a_sme_end_dt + TIME '23:59:59.999') AT TIME ZONE 'America/New_York' AS phase_3_a_sme_end_dt,
-    (phase_3_a_frvt_strt_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS phase_3_a_frvt_strt_dt,
-    (phase_3_a_frvt_end_dt + TIME '23:59:59.999') AT TIME ZONE 'America/New_York' AS phase_3_a_frvt_end_dt,
-    (phase_3_b_cmcs_strt_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS phase_3_b_cmcs_strt_dt,
-    (phase_3_b_cmcs_end_dt + TIME '23:59:59.999') AT TIME ZONE 'America/New_York' AS phase_3_b_cmcs_end_dt,
-    (phase_3_b_ogc_strt_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS phase_3_b_ogc_strt_dt,
-    (phase_3_b_ogc_end_dt + TIME '23:59:59.999') AT TIME ZONE 'America/New_York' AS phase_3_b_ogc_end_dt,
-    (phase_3_b_omb_strt_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS phase_3_b_omb_strt_dt,
-    (phase_3_b_omb_end_dt + TIME '23:59:59.999') AT TIME ZONE 'America/New_York' AS phase_3_b_omb_end_dt,
-    (phase_3_c_ogc_strt_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS phase_3_c_ogc_strt_dt,
-    (phase_3_c_ogc_end_dt + TIME '23:59:59.999') AT TIME ZONE 'America/New_York' AS phase_3_c_ogc_end_dt,
-    (phase_3_c_omb_strt_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS phase_3_c_omb_strt_dt,
-    (phase_3_c_omb_end_dt + TIME '23:59:59.999') AT TIME ZONE 'America/New_York' AS phase_3_c_omb_end_dt,
-    (phase_4_strt_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS phase_4_strt_dt,
-    (phase_4_end_dt + TIME '23:59:59.999') AT TIME ZONE 'America/New_York' AS phase_4_end_dt,
-    (phase_5_strt_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS phase_5_strt_dt,
-    (phase_5_end_dt + TIME '23:59:59.999') AT TIME ZONE 'America/New_York' AS phase_5_end_dt,
-    (phase_6_strt_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS phase_6_strt_dt,
-    (phase_6_end_dt + TIME '23:59:59.999') AT TIME ZONE 'America/New_York' AS phase_6_end_dt
-FROM base_applications
+    -- Concept Phase - all Start of Day
+    (concept_start_date + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS concept_start_date,
+    (concept_completion_date + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS concept_completion_date,
+    (concept_skipped_date + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS concept_skipped_date,
+
+    -- Application Intake Phase
+    (application_intake_start_date + TIME '00:00:00.000') AT TIME ZONE 'America/New_York'
+        AS application_intake_start_date,
+    (state_application_submitted_date + TIME '00:00:00.000') AT TIME ZONE 'America/New_York'
+        AS state_application_submitted_date,
+    (completeness_review_due_date + TIME '23:59:59.999') AT TIME ZONE 'America/New_York'
+        AS completeness_review_due_date,  -- End of Day
+    (application_intake_completion_date + TIME '00:00:00.000') AT TIME ZONE 'America/New_York'
+        AS application_intake_completion_date,
+
+    -- Completeness Phase
+    (completeness_start_date + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS completeness_start_date,
+    (state_application_deemed_complete + TIME '00:00:00.000') AT TIME ZONE 'America/New_York'
+        AS state_application_deemed_complete,
+    (federal_comment_period_start_date + TIME '00:00:00.000') AT TIME ZONE 'America/New_York'
+        AS federal_comment_period_start_date,
+    (federal_comment_period_end_date + TIME '23:59:59.999') AT TIME ZONE 'America/New_York'
+        AS federal_comment_period_end_date,  -- End of Day
+    (completeness_completion_date + TIME '00:00:00.000') AT TIME ZONE 'America/New_York'
+        AS completeness_completion_date,
+
+    -- SDG Preparation Phase - all Start of Day
+    (sdg_preparation_start_date + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS sdg_preparation_start_date,
+    (expected_approval_date + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS expected_approval_date,
+    (sme_initial_review_date + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS sme_initial_review_date,
+    (frt_initial_meeting_date + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS frt_initial_meeting_date,
+    (sdg_preparation_completion_date + TIME '00:00:00.000') AT TIME ZONE 'America/New_York'
+        AS sdg_preparation_completion_date,
+
+    -- Review Phase
+    (review_start_date + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS review_start_date,
+    (receive_ogc_legal_clearance + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS receive_ogc_legal_clearance,
+    (receive_omb_concurrence + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS receive_omb_concurrence,
+    (submit_approval_package_to_osora + TIME '00:00:00.000') AT TIME ZONE 'America/New_York'
+        AS submit_approval_package_to_osora,
+    (cms_osora_clearance_end + TIME '23:59:59.999') AT TIME ZONE 'America/New_York'
+        AS cms_osora_clearance_end,  -- End of Day
+    (package_sent_for_comms_clearance + TIME '00:00:00.000') AT TIME ZONE 'America/New_York'
+        AS package_sent_for_comms_clearance,
+    (comms_clearance_received + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS comms_clearance_received,
+    (review_completion_date + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS review_completion_date,
+
+    -- Approval Package Phase - all Start of Day
+    (approval_package_start_date + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS approval_package_start_date,
+    (approval_package_completion_date + TIME '00:00:00.000') AT TIME ZONE 'America/New_York'
+        AS approval_package_completion_date
+
+FROM {{ ref('apps_in_prog_dates_crosswalked') }}

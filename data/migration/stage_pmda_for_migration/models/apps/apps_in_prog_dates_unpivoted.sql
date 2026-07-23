@@ -4,7 +4,7 @@ SELECT
     d.date_type,
     d.date_value
 FROM
-    {{ ref('apps_in_prog_dates_crosswalked') }} AS a
+    {{ ref('apps_in_prog_dates_wide_normalized') }} AS a
 CROSS JOIN
     LATERAL (
         VALUES

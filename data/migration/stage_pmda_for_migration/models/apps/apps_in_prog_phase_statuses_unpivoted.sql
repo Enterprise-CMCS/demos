@@ -12,7 +12,7 @@ CROSS JOIN LATERAL (
     ('Concept', ps.concept_phase_status),
     ('Application Intake', ps.application_intake_phase_status),
     ('Completeness', ps.completeness_phase_status),
-    ('Federal Comment Period', ps.federal_comment_period_status),
+    ('Federal Comment', ps.federal_comment_period_status),
     ('SDG Preparation', ps.sdg_preparation_phase_status),
     ('Review', ps.review_phase_status),
     ('Approval Package', ps.approval_package_phase_status),
