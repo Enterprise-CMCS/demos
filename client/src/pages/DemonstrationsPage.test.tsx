@@ -62,7 +62,6 @@ describe("DemonstrationsPage tab persistence", () => {
       "true"
     );
     expect(screen.getByTestId("button-my-demonstrations")).toHaveAttribute("aria-selected", "true");
-    expect(sessionStorage.getItem("selectedDemonstrationTab")).toBe("my-demonstrations");
   });
 
   it("passes false to CreateNewButton when no approved demonstrations exist", () => {

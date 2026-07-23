@@ -10,7 +10,7 @@ import {
   User,
 } from "demos-server";
 import { Tab, HorizontalSectionTabs } from "layout/Tabs";
-import { useSessionTab } from "hooks/useSessionTab";
+import { useLocalStorage } from "hooks/useLocalStorage";
 import { CreateNewButton } from "components/header/CreateNewButton";
 
 export const DEMONSTRATIONS_PAGE_QUERY = gql`
@@ -77,11 +77,8 @@ export const DemonstrationsPage: React.FC = () => {
     (d) => d.primaryProjectOfficer.id === data?.currentUser.id
   );
   // Sets session to remember which tab you were on.
-  const [tabValue, onTabSelect] = useSessionTab({
-    key: "selectedDemonstrationTab",
-    defaultValue: "my-demonstrations",
-    allowedValues: ["my-demonstrations", "demonstrations"],
-  });
+  const [storedTab, setStoredTab] = useLocalStorage("selectedDemonstrationTab", "sessionStorage");
+  const tabValue = storedTab || "my-demonstrations";
 
   return (
     <div className="shadow-md bg-white p-[16px]">
@@ -92,7 +89,7 @@ export const DemonstrationsPage: React.FC = () => {
       {loading && <div className="p-4">Loading demonstrations...</div>}
       {error && <div className="p-4 text-red-500">Error loading demonstrations.</div>}
       {data && (
-        <HorizontalSectionTabs defaultValue={tabValue} onSelect={onTabSelect}>
+        <HorizontalSectionTabs defaultValue={tabValue} onSelect={setStoredTab}>
           <Tab label={`My Demonstrations (${myDemonstrations.length})`} value="my-demonstrations">
             <DemonstrationTable
               demonstrations={myDemonstrations}
