@@ -60,11 +60,11 @@ const UIPATH_SEED_PDF_PATH = path.resolve(
 );
 const NEW_TAG_COUNT = 20;
 const TAG_ASSIGNMENT_MAX = 5;
-const DELIVERABLE_SEED_COUNT = 8;
+const DELIVERABLE_SEED_COUNT = 2000;
 const APPLICATION_TAG_SUGGESTION_POOL_SIZE = 10;
 const BYPASS_USER_ID = "00000000-1111-2222-3333-123abc123abc";
-const extensionCount = 8;
-const amendmentCount = 10;
+const extensionCount = 80;
+const amendmentCount = 100;
 
 function getRandomPhaseDocumentTypeCombination(): {
   phaseName: PhaseName;
@@ -904,8 +904,8 @@ async function seedDatabase() {
   await clearDatabase();
 
   // Setting constants for record generation
-  const userCount = 9;
-  const demonstrationCount = 20;
+  const userCount = 100;
+  const demonstrationCount = 150;
 
   console.log("🌱 Generating bypassed user and accompanying records...");
   const bypassUserId = BYPASS_USER_ID;
