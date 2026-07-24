@@ -192,7 +192,7 @@ describe("DemonstrationDeliverableTable", () => {
     expect(screen.getByLabelText(/Remove Deliverable/i)).not.toBeDisabled();
 
     await user.click(screen.getByLabelText(/Edit Deliverable/i));
-    expect(showEditDeliverableDialog).toHaveBeenCalledWith(deliverable.id);
+    expect(showEditDeliverableDialog).toHaveBeenCalledWith(deliverable);
   });
 
   it("uses multiselect filter inputs for configured categorical fields", async () => {

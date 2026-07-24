@@ -1,19 +1,11 @@
 import React, { useState } from "react";
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { gql, useMutation } from "@apollo/client";
 
 import { Button } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { TextInput } from "components/input";
 import { useToast } from "components/toast";
-import {
-  DeliverableType,
-  DeliverableStatus,
-  Tag,
-  UpdateDeliverableInput,
-  Deliverable as ServerDeliverable,
-  DemonstrationTypeAssignment,
-  User,
-} from "demos-server";
+import { DeliverableType, DeliverableStatus, Tag, UpdateDeliverableInput } from "demos-server";
 import { format, isBefore, parseISO } from "date-fns";
 import { DELIVERABLE_UPDATED_MESSAGE } from "util/messages";
 import { formatDateForServer, getTodayEst } from "util/formatDate";
@@ -24,7 +16,6 @@ import { DeliverableTypeField } from "./fields/DeliverableTypeField";
 import { DemonstrationTypeField } from "./fields/DemonstrationTypeField";
 import { SingleDeliverableScheduleType } from "./fields/schedule-type/SingleDeliverableScheduleType";
 import { requiresDemonstrationTypes } from "./AddDeliverableSlotDialog";
-import { useDialog } from "../DialogContext";
 
 export const EDIT_DELIVERABLE_DIALOG_TITLE = "Edit Deliverable";
 export const EDIT_DELIVERABLE_DIALOG_NAME = "edit-deliverable-dialog";
@@ -143,6 +134,13 @@ export const formHasChanges = (
   initial.demonstrationTypes.some((type, i) => current.demonstrationTypes[i] !== type) ||
   current.reasonForChange.trim().length > 0;
 
+export interface EditDeliverableDialogProps {
+  onClose: () => void;
+  deliverable: EditDeliverableDialogDeliverable;
+  demonstrationTypeTags: Tag[];
+  onSave?: (input: EditDeliverableInput, reasonForChange?: string) => Promise<void> | void;
+}
+
 const buildUpdateDeliverableInput = (
   input: EditDeliverableInput,
   reasonForChange?: string
@@ -160,85 +158,18 @@ const buildUpdateDeliverableInput = (
     : {}),
 });
 
-export type Deliverable = Pick<ServerDeliverable, "id" | "name" | "deliverableType" | "dueDate"> & {
-  cmsOwner: Pick<User, "id">;
-  demonstration: {
-    demonstrationTypes: Pick<
-      DemonstrationTypeAssignment,
-      "demonstrationTypeName" | "approvalStatus"
-    >[];
-  };
-  demonstrationTypes: Pick<Tag, "tagName" | "approvalStatus">[];
-};
-
-export const EDIT_DELIVERABLE_DIALOG_QUERY = gql`
-  query EditDeliverableDialog($id: ID!) {
-    deliverable(id: $id) {
-      id
-      name
-      deliverableType
-      dueDate
-      cmsOwner {
-        id
-      }
-      demonstration {
-        demonstrationTypes {
-          demonstrationTypeName
-          approvalStatus
-        }
-      }
-      demonstrationTypes {
-        tagName
-        approvalStatus
-      }
-    }
-  }
-`;
-
-export const EditDeliverableDialog = ({ deliverableId }: { deliverableId: string }) => {
-  const { closeDialog } = useDialog();
+export const EditDeliverableDialog: React.FC<EditDeliverableDialogProps> = ({
+  onClose,
+  deliverable,
+  demonstrationTypeTags,
+  onSave,
+}) => {
   const { showSuccess, showError } = useToast();
-  const { data, loading, error } = useQuery<{ deliverable: Deliverable }>(
-    EDIT_DELIVERABLE_DIALOG_QUERY,
-    {
-      variables: { id: deliverableId },
-    }
-  );
   const [updateDeliverable, { loading: isSaving }] = useMutation(UPDATE_DELIVERABLE_MUTATION);
 
-  const [formData, setFormData] = useState<EditDeliverableFormData | null>(null);
+  const initialFormData = buildInitialFormData(deliverable);
+  const [formData, setFormData] = useState<EditDeliverableFormData>(initialFormData);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
-
-  // Initialize form data once deliverable loads
-  React.useEffect(() => {
-    if (data?.deliverable && !formData) {
-      const deliverable = data.deliverable;
-      setFormData({
-        name: deliverable.name,
-        cmsOwnerUserId: deliverable.cmsOwner.id,
-        dueDate: toIsoDate(deliverable.dueDate),
-        demonstrationTypes: deliverable.demonstrationTypes.map((tag) => tag.tagName),
-        reasonForChange: "",
-      });
-    }
-  }, [data, formData]);
-
-  if (loading || !formData) {
-    return <div>Loading...</div>;
-  }
-
-  if (error || !data?.deliverable) {
-    return <div>Error loading deliverable data.</div>;
-  }
-
-  const deliverable = data.deliverable;
-  const initialFormData = {
-    name: deliverable.name,
-    cmsOwnerUserId: deliverable.cmsOwner.id,
-    dueDate: toIsoDate(deliverable.dueDate),
-    demonstrationTypes: deliverable.demonstrationTypes.map((tag) => tag.tagName),
-    reasonForChange: "",
-  };
 
   const today = getTodayEst();
   const dueDateWasChanged = dueDateChanged(initialFormData.dueDate, formData.dueDate);
@@ -263,14 +194,19 @@ export const EditDeliverableDialog = ({ deliverableId }: { deliverableId: string
     const reasonForChange = dueDateWasChanged ? formData.reasonForChange.trim() : undefined;
 
     try {
-      await updateDeliverable({
-        variables: {
-          id: input.id,
-          input: buildUpdateDeliverableInput(input, reasonForChange),
-        },
-      });
+      if (onSave) {
+        await onSave(input, reasonForChange);
+      } else {
+        await updateDeliverable({
+          variables: {
+            id: input.id,
+            input: buildUpdateDeliverableInput(input, reasonForChange),
+          },
+        });
+      }
+
       showSuccess(DELIVERABLE_UPDATED_MESSAGE);
-      closeDialog();
+      onClose();
     } catch {
       showError(DELIVERABLE_UPDATE_FAILED_MESSAGE);
     }
@@ -280,7 +216,7 @@ export const EditDeliverableDialog = ({ deliverableId }: { deliverableId: string
     <BaseDialog
       name={EDIT_DELIVERABLE_DIALOG_NAME}
       title={EDIT_DELIVERABLE_DIALOG_TITLE}
-      onClose={closeDialog}
+      onClose={onClose}
       dialogHasChanges={hasChanges}
       maxWidthClass="max-w-[960px]"
       actionButton={
@@ -302,44 +238,25 @@ export const EditDeliverableDialog = ({ deliverableId }: { deliverableId: string
           />
           <SingleDeliverableScheduleType
             value={formData.dueDate}
-            onChange={(dueDate) =>
-              setFormData((prev) => {
-                if (!prev) return prev;
-                return { ...prev, dueDate };
-              })
-            }
+            onChange={(dueDate) => setFormData((prev) => ({ ...prev, dueDate }))}
           />
         </div>
         <DeliverableNameField
           value={formData.name}
-          onChange={(name) =>
-            setFormData((prev) => {
-              if (!prev) return prev;
-              return { ...prev, name };
-            })
-          }
+          onChange={(name) => setFormData((prev) => ({ ...prev, name }))}
         />
         <div className="grid grid-cols-2 gap-sm">
           <CMSOwnerField
             value={formData.cmsOwnerUserId}
             onSelect={(cmsOwnerId) =>
-              setFormData((prev) => {
-                if (!prev) return prev;
-                return { ...prev, cmsOwnerUserId: cmsOwnerId };
-              })
+              setFormData((prev) => ({ ...prev, cmsOwnerUserId: cmsOwnerId }))
             }
           />
           <DemonstrationTypeField
-            demonstrationTypeTags={deliverable.demonstration.demonstrationTypes.map((dt) => ({
-              tagName: dt.demonstrationTypeName,
-              approvalStatus: dt.approvalStatus,
-            }))}
+            demonstrationTypeTags={demonstrationTypeTags}
             selectedValues={formData.demonstrationTypes}
             onSelect={(selectedTypes) =>
-              setFormData((prev) => {
-                if (!prev) return prev;
-                return { ...prev, demonstrationTypes: selectedTypes };
-              })
+              setFormData((prev) => ({ ...prev, demonstrationTypes: selectedTypes }))
             }
             isRequired={requiresDemonstrationTypes(deliverable.deliverableType)}
           />
@@ -352,10 +269,7 @@ export const EditDeliverableDialog = ({ deliverableId }: { deliverableId: string
             placeholder="Provide a reason for changing the due date"
             value={formData.reasonForChange}
             onChange={(event) =>
-              setFormData((prev) => {
-                if (!prev) return prev;
-                return { ...prev, reasonForChange: event.target.value };
-              })
+              setFormData((prev) => ({ ...prev, reasonForChange: event.target.value }))
             }
             getValidationMessage={(value) =>
               reasonInvalid && value.trim() === ""
