@@ -7,7 +7,6 @@ import {
 import { resolveManyDeliverables } from "../deliverable";
 import { getManyDocuments } from "../document";
 import { selectUserOrThrow } from "./queries";
-import { selectPersonOrThrow } from "../person/queries";
 import { Permission, Role } from "../../types";
 import { selectManySystemRoleAssignments } from "../systemRoleAssignment";
 import { selectLastLoginForUser } from "../userSession/queries";
@@ -18,7 +17,17 @@ export const userResolvers = {
       selectUserOrThrow({ id: context.user.id }),
   },
   User: {
-    person: (parent: PrismaUser): Promise<PrismaPerson> => selectPersonOrThrow({ id: parent.id }),
+    person: async (
+      parent: PrismaUser,
+      _args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaPerson> => {
+      const person = await context.loaders.personById.load(parent.id);
+      if (!person) {
+        throw new Error("No person found matching the provided filter");
+      }
+      return person;
+    },
     ownedDocuments: (
       parent: PrismaUser,
       args: unknown,
