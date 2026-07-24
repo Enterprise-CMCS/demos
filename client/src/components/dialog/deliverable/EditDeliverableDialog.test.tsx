@@ -10,29 +10,40 @@ import {
   EDIT_DELIVERABLE_SAVE_BUTTON_NAME,
   EditDeliverableDialog,
   EditDeliverableDialogDeliverable,
-  EditDeliverableInput,
   buildInitialFormData,
   formHasChanges,
   formIsValid,
   isDeliverableEditable,
   NON_EDITABLE_DELIVERABLE_STATUSES,
+  EDIT_DELIVERABLE_DIALOG_QUERY,
+  Deliverable,
 } from "./EditDeliverableDialog";
 import { DELIVERABLE_NAME_FIELD_ID } from "./fields/DeliverableNameField";
 import { SINGLE_DELIVERABLE_DUE_DATE_NAME } from "./fields/schedule-type/SingleDeliverableScheduleType";
 import { DELIVERABLE_TYPE_SELECT_NAME } from "./fields/DeliverableTypeField";
 import { TestProvider } from "test-utils/TestProvider";
 import { personMocks } from "mock-data/personMocks";
-import { Tag } from "demos-server";
 import { DELIVERABLE_UPDATED_MESSAGE } from "util/messages";
+import { DialogProvider } from "../DialogContext";
+import { MockedResponse } from "@apollo/client/testing";
 
 const mockShowSuccess = vi.fn();
 const mockShowError = vi.fn();
 const mockMutation = vi.fn();
+const mockCloseDialog = vi.fn();
+
 vi.mock("components/toast", () => ({
   useToast: () => ({
     showSuccess: mockShowSuccess,
     showError: mockShowError,
   }),
+}));
+
+vi.mock("../DialogContext", () => ({
+  useDialog: () => ({
+    closeDialog: mockCloseDialog,
+  }),
+  DialogProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 vi.mock("@apollo/client", async () => {
@@ -44,45 +55,48 @@ vi.mock("@apollo/client", async () => {
   };
 });
 
-const TEST_DELIVERABLE: EditDeliverableDialogDeliverable = {
+const TEST_DELIVERABLE: Deliverable = {
   id: "deliverable-1",
   name: "Quarterly Report",
   deliverableType: "Implementation Plan",
   dueDate: new Date(2026, 5, 15),
   cmsOwner: { id: "ashokatano" },
   demonstrationTypes: [],
+  demonstration: {
+    demonstrationTypes: [
+      {
+        demonstrationTypeName: "Aggregate Cap",
+        approvalStatus: "Approved",
+      },
+    ],
+  },
+};
+
+const mockEditDeliverableQuery: MockedResponse<{ deliverable: Deliverable }> = {
+  request: {
+    query: EDIT_DELIVERABLE_DIALOG_QUERY,
+    variables: { id: TEST_DELIVERABLE.id },
+  },
+  result: {
+    data: {
+      deliverable: TEST_DELIVERABLE,
+    },
+  },
 };
 
 const FUTURE_DUE_DATE = "2222-06-30";
 
-const MOCK_TAGS: Tag[] = [
-  { tagName: "Aggregate Cap", approvalStatus: "Approved" },
-  { tagName: "Annual Limits", approvalStatus: "Approved" },
-];
-
-type OnSaveFn = (input: EditDeliverableInput, reasonForChange?: string) => Promise<void> | void;
-
-const setup = (overrides?: {
-  deliverable?: Partial<EditDeliverableDialogDeliverable>;
-  onSave?: OnSaveFn;
-  mocks?: React.ComponentProps<typeof TestProvider>["mocks"];
-}) => {
-  const onClose = vi.fn();
-  const onSave = overrides?.onSave;
+const setup = async (overrides?: { deliverable?: Partial<EditDeliverableDialogDeliverable> }) => {
   const deliverable = { ...TEST_DELIVERABLE, ...overrides?.deliverable };
 
   render(
-    <TestProvider mocks={overrides?.mocks ?? personMocks}>
-      <EditDeliverableDialog
-        deliverable={deliverable}
-        demonstrationTypeTags={MOCK_TAGS}
-        onClose={onClose}
-        onSave={onSave}
-      />
-    </TestProvider>
+    <DialogProvider>
+      <TestProvider mocks={[...personMocks, mockEditDeliverableQuery]}>
+        <EditDeliverableDialog deliverableId={deliverable.id} />
+      </TestProvider>
+    </DialogProvider>
   );
-
-  return { onClose, onSave };
+  await waitFor(() => expect(screen.getByTestId(DELIVERABLE_NAME_FIELD_ID)).toBeInTheDocument());
 };
 
 describe("EditDeliverableDialog", () => {
@@ -91,18 +105,18 @@ describe("EditDeliverableDialog", () => {
     mockMutation.mockResolvedValue({});
   });
 
-  it("renders with the correct title", () => {
-    setup();
+  it("renders with the correct title", async () => {
+    await setup();
     expect(screen.getByText(EDIT_DELIVERABLE_DIALOG_TITLE)).toBeInTheDocument();
   });
 
-  it("disables the deliverable type field", () => {
-    setup();
+  it("disables the deliverable type field", async () => {
+    await setup();
     expect(screen.getByTestId(DELIVERABLE_TYPE_SELECT_NAME)).toBeDisabled();
   });
 
-  it("pre-fills the existing deliverable name and due date", () => {
-    setup();
+  it("pre-fills the existing deliverable name and due date", async () => {
+    await setup();
     expect(screen.getByTestId(DELIVERABLE_NAME_FIELD_ID)).toHaveValue("Quarterly Report");
     expect(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME)).toHaveValue("2026-06-15");
   });
@@ -112,8 +126,8 @@ describe("EditDeliverableDialog", () => {
     expect(screen.queryByTestId(EDIT_DELIVERABLE_REASON_FIELD_NAME)).not.toBeInTheDocument();
   });
 
-  it("shows the Reason for Change field when due date is modified", () => {
-    setup();
+  it("shows the Reason for Change field when due date is modified", async () => {
+    await setup();
     fireEvent.change(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME), {
       target: { value: FUTURE_DUE_DATE },
     });
@@ -122,7 +136,7 @@ describe("EditDeliverableDialog", () => {
 
   it("disables Save until required fields are present", async () => {
     const user = userEvent.setup();
-    setup();
+    await setup();
 
     expect(screen.getByTestId(EDIT_DELIVERABLE_SAVE_BUTTON_NAME)).toBeDisabled();
 
@@ -165,8 +179,7 @@ describe("EditDeliverableDialog", () => {
 
   it("calls onSave with the reason and shows a success toast", async () => {
     const user = userEvent.setup();
-    const onSave = vi.fn().mockResolvedValue(undefined);
-    const { onClose } = setup({ onSave });
+    setup();
 
     await waitFor(() =>
       expect(screen.getByTestId("select-demonstration-type")).toBeInTheDocument()
@@ -182,22 +195,13 @@ describe("EditDeliverableDialog", () => {
 
     await user.click(screen.getByTestId(EDIT_DELIVERABLE_SAVE_BUTTON_NAME));
 
-    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
-    expect(onSave).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: "deliverable-1",
-        dueDate: FUTURE_DUE_DATE,
-        demonstrationTypes: ["Aggregate Cap"],
-      }),
-      "Schedule slip"
-    );
     expect(mockShowSuccess).toHaveBeenCalledWith(DELIVERABLE_UPDATED_MESSAGE);
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(mockCloseDialog).toHaveBeenCalledTimes(1);
   });
 
   it("persists changes with the updateDeliverable mutation", async () => {
     const user = userEvent.setup();
-    const { onClose } = setup();
+    setup();
 
     await waitFor(() =>
       expect(screen.getByTestId("select-demonstration-type")).toBeInTheDocument()
@@ -221,13 +225,13 @@ describe("EditDeliverableDialog", () => {
       },
     });
     await waitFor(() => expect(mockShowSuccess).toHaveBeenCalledWith(DELIVERABLE_UPDATED_MESSAGE));
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(mockCloseDialog).toHaveBeenCalledTimes(1);
   });
 
   it("keeps the modal open and shows an error when updateDeliverable fails", async () => {
     const user = userEvent.setup();
     mockMutation.mockRejectedValueOnce(new Error("Update failed"));
-    const { onClose } = setup();
+    setup();
 
     await waitFor(() =>
       expect(screen.getByTestId("select-demonstration-type")).toBeInTheDocument()
@@ -242,24 +246,7 @@ describe("EditDeliverableDialog", () => {
     await waitFor(() =>
       expect(mockShowError).toHaveBeenCalledWith(DELIVERABLE_UPDATE_FAILED_MESSAGE)
     );
-    expect(onClose).not.toHaveBeenCalled();
-  });
-
-  it("does not pass a reason to onSave when the due date was not modified", async () => {
-    const user = userEvent.setup();
-    const onSave = vi.fn().mockResolvedValue(undefined);
-    setup({ onSave });
-
-    await waitFor(() =>
-      expect(screen.getByTestId("select-demonstration-type")).toBeInTheDocument()
-    );
-    await user.click(screen.getByTestId("select-demonstration-type"));
-    await user.click(screen.getByText("Aggregate Cap"));
-
-    await user.click(screen.getByTestId(EDIT_DELIVERABLE_SAVE_BUTTON_NAME));
-
-    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
-    expect(onSave).toHaveBeenCalledWith(expect.any(Object), undefined);
+    expect(mockCloseDialog).not.toHaveBeenCalled();
   });
 });
 

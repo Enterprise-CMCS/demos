@@ -39,10 +39,6 @@ import {
   RequestExtensionDeliverableDialog,
   RequestExtensionDeliverableDialogDeliverable,
 } from "./deliverable/RequestExtensionDeliverableDialog";
-import type {
-  EditDeliverableDialogDeliverable,
-  EditDeliverableInput,
-} from "./deliverable/EditDeliverableDialog";
 import { WorkflowApplicationType } from "components/application";
 import { AddDeliverableSlotDemonstration } from "./deliverable/AddDeliverableSlotDialog";
 import type { DeliverableTableRow } from "components/table/tables/DeliverableTable";
@@ -60,7 +56,7 @@ import {
 } from "./deliverable/ReviewExtensionDeliverableDialog";
 import { ReferenceAgreementDialog } from "./referenceAgreement/ReferenceAgreementDialog";
 
-type EditDeliverableDialogSource = Pick<
+export type EditDeliverableDialogSource = Pick<
   DeliverableTableRow,
   | "id"
   | "name"
@@ -338,33 +334,8 @@ export const useDialog = () => {
     );
   };
 
-  const showEditDeliverableDialog = (
-    deliverable: EditDeliverableDialogSource,
-    onSave?: (input: EditDeliverableInput, reasonForChange?: string) => Promise<void> | void
-  ) => {
-    const dialogDeliverable: EditDeliverableDialogDeliverable = {
-      id: deliverable.id,
-      name: deliverable.name,
-      deliverableType: deliverable.deliverableType,
-      dueDate: deliverable.dueDate,
-      cmsOwner: { id: deliverable.cmsOwner.id },
-      demonstrationTypes: deliverable.demonstrationTypes,
-    };
-    const demonstrationTypeTags: Tag[] = deliverable.demonstration.demonstrationTypes.map(
-      (dt: { demonstrationTypeName: string; approvalStatus: "Approved" | "Unapproved" }) => ({
-        tagName: dt.demonstrationTypeName,
-        approvalStatus: dt.approvalStatus,
-      })
-    );
-
-    context.showDialog(
-      <EditDeliverableDialog
-        onClose={context.hideDialog}
-        deliverable={dialogDeliverable}
-        demonstrationTypeTags={demonstrationTypeTags}
-        onSave={onSave}
-      />
-    );
+  const showEditDeliverableDialog = (deliverableId: string) => {
+    context.showDialog(<EditDeliverableDialog deliverableId={deliverableId} />);
   };
 
   const showReferenceAgreementDialog = (

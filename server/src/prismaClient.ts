@@ -2,6 +2,9 @@ import "dotenv/config";
 import { PrismaClient, Prisma } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { log } from "./log";
+import { appendFileSync } from "fs";
+
+const PRISMA_QUERY_LOG_FILE = process.env.PRISMA_QUERY_LOG_FILE || "/tmp/prisma-queries.log";
 
 function isKnownRequestError(error: unknown): error is { code: string; message: string } {
   if (!error || typeof error !== "object") {
@@ -52,6 +55,23 @@ const createExtendedClient = () => {
   });
 
   baseClient.$on("query", (event: Prisma.QueryEvent) => {
+    const logData = {
+      timestamp: new Date().toISOString(),
+      query: event.query,
+      params: event.params,
+      durationMs: event.duration,
+      target: event.target,
+    };
+
+    log.info(logData, "prisma.query");
+
+    // Write to file
+    try {
+      appendFileSync(PRISMA_QUERY_LOG_FILE, JSON.stringify(logData) + "\n");
+    } catch (error) {
+      log.error({ error, file: PRISMA_QUERY_LOG_FILE }, "Failed to write query to log file");
+    }
+
     if (event.duration > 500) {
       log.warn({ durationMs: event.duration, target: event.target }, "prisma.slow_query");
     }
