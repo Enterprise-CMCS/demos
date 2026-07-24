@@ -1,10 +1,9 @@
 import React from "react";
-import { ModificationItem } from "./ModificationTabs";
+import { ModificationItem } from "./ModificationTabSideNav";
 import { formatDateForDisplay, getDateEst } from "util/formatDate";
 import { IconButton } from "components/button";
 import { EditIcon } from "components/icons";
 import { useDialog } from "components/dialog/DialogContext";
-import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 
 const Field = ({ label, value }: { label: string; value: string }) => {
   return (
@@ -55,9 +54,9 @@ export const ModificationDetailsSummary = ({
 
   const handleEditClick = () => {
     if (modificationItem.modificationType === "amendment") {
-      showUpdateAmendmentDialog(modificationItem.id, [DEMONSTRATION_DETAIL_QUERY]);
+      showUpdateAmendmentDialog(modificationItem.id);
     } else if (modificationItem.modificationType === "extension") {
-      showUpdateExtensionDialog(modificationItem.id, [DEMONSTRATION_DETAIL_QUERY]);
+      showUpdateExtensionDialog(modificationItem.id);
     } else {
       console.error("Unknown modification type");
     }

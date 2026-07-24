@@ -2,9 +2,8 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { ModificationDetailsSummary } from "./ModificationDetailsSummary";
-import { ModificationItem } from "./ModificationTabs";
+import { ModificationItem } from "./ModificationTabSideNav";
 import { TestProvider } from "test-utils/TestProvider";
-import { DEMONSTRATION_DETAIL_QUERY } from "../DemonstrationDetail";
 
 const showUpdateAmendmentDialog = vi.fn();
 const showUpdateExtensionDialog = vi.fn();
@@ -21,7 +20,7 @@ describe("ModificationDetailsSummary", () => {
     vi.clearAllMocks();
   });
 
-  const mockAmendment: ModificationItem = {
+  const mockAmendment = {
     modificationType: "amendment",
     id: "mod-123",
     name: "Test Modification",
@@ -32,7 +31,7 @@ describe("ModificationDetailsSummary", () => {
     signatureLevel: "OA",
     documents: [],
     medicaidId: "demo-1",
-  };
+  } as unknown as ModificationItem;
 
   describe("Component Rendering", () => {
     it("renders the summary details header", () => {
@@ -47,7 +46,7 @@ describe("ModificationDetailsSummary", () => {
     });
 
     it("renders the correct title label ", () => {
-      const mockExtension: ModificationItem = {
+      const mockExtension = {
         modificationType: "extension",
         id: "mod-456",
         name: "Test Extension",
@@ -55,7 +54,7 @@ describe("ModificationDetailsSummary", () => {
         documents: [],
         createdAt: new Date("2024-01-01"),
         medicaidId: "demo-2",
-      };
+      } as unknown as ModificationItem;
       render(<ModificationDetailsSummary modificationItem={mockExtension} />);
       expect(screen.getByText("Extension Title")).toBeInTheDocument();
       expect(screen.getByText("Test Extension")).toBeInTheDocument();
@@ -88,28 +87,28 @@ describe("ModificationDetailsSummary", () => {
 
   describe("Conditional Rendering", () => {
     it("does not render description section when description is not provided", () => {
-      const itemWithoutDescription: ModificationItem = {
+      const itemWithoutDescription = {
         ...mockAmendment,
         description: undefined,
-      };
+      } as unknown as ModificationItem;
       render(<ModificationDetailsSummary modificationItem={itemWithoutDescription} />);
       expect(screen.queryByText("Description")).not.toBeInTheDocument();
     });
 
     it("does not render description section when description is empty string", () => {
-      const itemWithoutDescription: ModificationItem = {
+      const itemWithoutDescription = {
         ...mockAmendment,
         description: "",
-      };
+      } as unknown as ModificationItem;
       render(<ModificationDetailsSummary modificationItem={itemWithoutDescription} />);
       expect(screen.queryByText("Description")).not.toBeInTheDocument();
     });
 
     it("displays placeholder when effective date is not provided", () => {
-      const itemWithoutEffectiveDate: ModificationItem = {
+      const itemWithoutEffectiveDate = {
         ...mockAmendment,
         effectiveDate: undefined,
-      };
+      } as unknown as ModificationItem;
       render(<ModificationDetailsSummary modificationItem={itemWithoutEffectiveDate} />);
       expect(screen.getByText("--/--/----")).toBeInTheDocument();
     });
@@ -127,7 +126,7 @@ describe("ModificationDetailsSummary", () => {
     });
 
     it("renders correctly with minimal required fields only", () => {
-      const extension: ModificationItem = {
+      const extension = {
         modificationType: "extension",
         id: "mod-minimal",
         medicaidId: "demo-2",
@@ -135,7 +134,7 @@ describe("ModificationDetailsSummary", () => {
         status: "On-hold",
         documents: [],
         createdAt: new Date("2024-01-01"),
-      };
+      } as unknown as ModificationItem;
       render(<ModificationDetailsSummary modificationItem={extension} />);
       expect(screen.getByText("SUMMARY DETAILS")).toBeInTheDocument();
       expect(screen.getByText("Minimal Modification")).toBeInTheDocument();
@@ -166,15 +165,13 @@ describe("ModificationDetailsSummary", () => {
 
       fireEvent.click(editButton);
 
-      expect(showUpdateAmendmentDialog).toHaveBeenCalledWith("mod-123", [
-        DEMONSTRATION_DETAIL_QUERY,
-      ]);
+      expect(showUpdateAmendmentDialog).toHaveBeenCalledWith("mod-123");
       expect(showUpdateAmendmentDialog).toHaveBeenCalledTimes(1);
       expect(showUpdateExtensionDialog).not.toHaveBeenCalled();
     });
 
     it("calls showUpdateExtensionDialog with correct ID when clicked for extension", () => {
-      const mockExtension: ModificationItem = {
+      const mockExtension = {
         modificationType: "extension",
         id: "ext-456",
         medicaidId: "demo-2",
@@ -182,15 +179,13 @@ describe("ModificationDetailsSummary", () => {
         status: "Pre-Submission",
         documents: [],
         createdAt: new Date("2024-01-01"),
-      };
+      } as unknown as ModificationItem;
       setup(mockExtension);
       const editButton = screen.getByRole("button", { name: /button-edit-details/i });
 
       fireEvent.click(editButton);
 
-      expect(showUpdateExtensionDialog).toHaveBeenCalledWith("ext-456", [
-        DEMONSTRATION_DETAIL_QUERY,
-      ]);
+      expect(showUpdateExtensionDialog).toHaveBeenCalledWith("ext-456");
       expect(showUpdateExtensionDialog).toHaveBeenCalledTimes(1);
       expect(showUpdateAmendmentDialog).not.toHaveBeenCalled();
     });

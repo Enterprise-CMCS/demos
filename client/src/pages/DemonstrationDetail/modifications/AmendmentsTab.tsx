@@ -1,20 +1,37 @@
 import React from "react";
+import { useQuery } from "@apollo/client";
 import { IconButton } from "components/button";
 import { AddNewIcon } from "components/icons";
 import { useDialog } from "components/dialog/DialogContext";
-import { DemonstrationDetailModification } from "pages/DemonstrationDetail/DemonstrationDetail";
+import type { Amendment } from "demos-server";
 import { ModificationTabs } from "./ModificationTabs";
+import { DEMONSTRATION_AMENDMENTS_QUERY } from "./modificationQueries";
 
 const EMPTY_AMENDMENTS_MESSAGE = "No amendments have been added yet";
+
+type AmendmentListItem = Pick<Amendment, "id" | "name" | "createdAt">;
 
 export const AmendmentsTab: React.FC<{
   demonstrationId: string;
   medicaidId: string;
-  amendments: DemonstrationDetailModification[];
   selectedAmendmentId?: string;
   canCreateModifications: boolean;
-}> = ({ demonstrationId, medicaidId, amendments, selectedAmendmentId, canCreateModifications }) => {
+}> = ({ demonstrationId, medicaidId, selectedAmendmentId, canCreateModifications }) => {
   const { showCreateAmendmentDialog } = useDialog();
+  const { data, loading, error } = useQuery<{
+    demonstration: { amendments: AmendmentListItem[] };
+  }>(DEMONSTRATION_AMENDMENTS_QUERY, {
+    variables: { id: demonstrationId },
+  });
+  const amendments = data?.demonstration.amendments ?? [];
+
+  if (loading) {
+    return <div className="p-4">Loading amendments...</div>;
+  }
+
+  if (error) {
+    return <div className="p-4 text-red-500">Error loading amendments.</div>;
+  }
 
   if (amendments.length === 0) {
     return (

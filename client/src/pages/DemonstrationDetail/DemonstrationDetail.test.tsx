@@ -7,7 +7,7 @@ import { MockedProvider } from "@apollo/client/testing";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { DEMONSTRATION_DETAIL_QUERY, DemonstrationDetail } from "./DemonstrationDetail";
+import { DEMONSTRATION_DETAIL_SHELL_QUERY, DemonstrationDetail } from "./DemonstrationDetail";
 
 // Mock the tab components
 vi.mock("pages/DemonstrationDetail/DemonstrationTab.tsx", () => ({
@@ -31,19 +31,8 @@ const demonstrationWithModifications = {
   id: "1",
   status: "Active",
   currentPhaseName: "Phase 1",
-  amendments: [
-    {
-      id: "amendment-1",
-    },
-    {
-      id: "amendment-2",
-    },
-  ],
-  extensions: [
-    {
-      id: "extension-1",
-    },
-  ],
+  amendmentCount: 2,
+  extensionCount: 1,
   documents: [],
   roles: [],
 };
@@ -52,7 +41,7 @@ const buildDemonstrationDetailMock = (
   demonstration: typeof demonstrationWithModifications = demonstrationWithModifications
 ) => ({
   request: {
-    query: DEMONSTRATION_DETAIL_QUERY,
+    query: DEMONSTRATION_DETAIL_SHELL_QUERY,
     variables: { id: "1" },
   },
   result: {
@@ -99,8 +88,8 @@ describe("DemonstrationDetail", () => {
       buildDemonstrationDetailMock({
         ...demonstrationWithModifications,
         status: "Approved",
-        amendments: [],
-        extensions: [],
+        amendmentCount: 0,
+        extensionCount: 0,
       })
     );
 
@@ -118,8 +107,8 @@ describe("DemonstrationDetail", () => {
       buildDemonstrationDetailMock({
         ...demonstrationWithModifications,
         status: "Active",
-        amendments: [],
-        extensions: [],
+        amendmentCount: 0,
+        extensionCount: 0,
       })
     );
 

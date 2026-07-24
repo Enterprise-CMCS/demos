@@ -1,7 +1,7 @@
 import { gql, useMutation, DocumentNode, TypedDocumentNode } from "@apollo/client";
 import React from "react";
 import { Document as ServerDocument, UpdateDocumentInput } from "demos-server";
-import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { DEMONSTRATION_DETAIL_SHELL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { DescriptionInput, TitleInput } from "./DocumentDialog";
 import { BaseDialog } from "../BaseDialog";
 import { UploadButton } from "./UploadButton";
@@ -37,7 +37,7 @@ export const isValid = (document: Document): boolean => !!document.name.trim();
 export const EditDocumentDialog: React.FC<{
   document: Document;
   refetchQueries?: DocumentNode[];
-}> = ({ document, refetchQueries = [DEMONSTRATION_DETAIL_QUERY] }) => {
+}> = ({ document, refetchQueries = [DEMONSTRATION_DETAIL_SHELL_QUERY] }) => {
   const { closeDialog } = useDialog();
   const [activeDocument, setActiveDocument] = React.useState<Document>(document);
   const { showSuccess, showError } = useToast();

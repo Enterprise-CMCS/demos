@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { ExtensionsTab } from "./ExtensionsTab";
 import { ModificationTabs } from "./ModificationTabs";
-import { DemonstrationDetailModification } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { MockedProvider, type MockedResponse } from "@apollo/client/testing";
+import { DEMONSTRATION_EXTENSIONS_QUERY } from "./modificationQueries";
 
 const showCreateExtensionDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
@@ -20,55 +21,64 @@ const mockExtensions = [
   {
     id: "extension-1",
     name: "Extension 1",
-    description: "Description",
-    status: "Pre-Submission",
     createdAt: new Date("2024-01-01T00:00:00Z"),
-    effectiveDate: new Date("2024-02-01T00:00:00Z"),
-    signatureLevel: "OCD",
-    documents: [],
   },
-] as DemonstrationDetailModification[];
+];
 
 describe("ExtensionsTab", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  const renderExtensionsTab = (
-    extensions: DemonstrationDetailModification[] = [],
-    canCreateModifications = true
-  ) => {
+  const renderExtensionsTab = (extensions = mockExtensions, canCreateModifications = true) => {
+    const mocks: MockedResponse[] = [
+      {
+        request: {
+          query: DEMONSTRATION_EXTENSIONS_QUERY,
+          variables: { id: "mock-demonstration-id" },
+        },
+        result: {
+          data: {
+            demonstration: {
+              id: "mock-demonstration-id",
+              extensions,
+            },
+          },
+        },
+      },
+    ];
     return render(
-      <ExtensionsTab
-        demonstrationId="mock-demonstration-id"
-        medicaidId="mock-medicaid-id"
-        extensions={extensions}
-        selectedExtensionId="mock-extension-id"
-        canCreateModifications={canCreateModifications}
-      />
+      <MockedProvider mocks={mocks}>
+        <ExtensionsTab
+          demonstrationId="mock-demonstration-id"
+          medicaidId="mock-medicaid-id"
+          selectedExtensionId="mock-extension-id"
+          canCreateModifications={canCreateModifications}
+        />
+      </MockedProvider>
     );
   };
 
   it("shows empty state message when there are no extensions", async () => {
-    renderExtensionsTab();
+    renderExtensionsTab([]);
 
-    expect(screen.getByText("No extensions have been added yet")).toBeInTheDocument();
+    expect(await screen.findByText("No extensions have been added yet")).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /Extensions/i })).not.toBeInTheDocument();
     expect(ModificationTabs).not.toHaveBeenCalled();
   });
 
   it("shows centered create extension button when there are no extensions", async () => {
-    renderExtensionsTab();
+    renderExtensionsTab([]);
 
-    const createButton = screen.getByRole("button", { name: /create extension/i });
+    const createButton = await screen.findByRole("button", { name: /create extension/i });
     expect(createButton).toBeInTheDocument();
     expect(createButton).toHaveTextContent("Create Extension");
   });
 
   it("opens Add New Extension modal from the empty state", async () => {
-    renderExtensionsTab();
+    renderExtensionsTab([]);
 
-    const createButton = screen.getByRole("button", { name: /create extension/i });
+    const createButton = await screen.findByRole("button", { name: /create extension/i });
     await fireEvent.click(createButton);
 
     expect(showCreateExtensionDialog).toHaveBeenCalledWith("mock-demonstration-id");
@@ -77,7 +87,7 @@ describe("ExtensionsTab", () => {
   it("does not open Add New Extension modal from the empty state when creation is disabled", async () => {
     renderExtensionsTab([], false);
 
-    const createButton = screen.getByRole("button", { name: /create extension/i });
+    const createButton = await screen.findByRole("button", { name: /create extension/i });
     expect(createButton).toBeDisabled();
     await fireEvent.click(createButton);
 
@@ -87,13 +97,13 @@ describe("ExtensionsTab", () => {
   it("shows extensions tab title when extensions exist", async () => {
     renderExtensionsTab(mockExtensions);
 
-    expect(screen.getByRole("heading", { name: /Extensions/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Extensions/i })).toBeInTheDocument();
   });
 
   it("shows add extension button when extensions exist", async () => {
     renderExtensionsTab(mockExtensions);
 
-    const addButton = screen.getByRole("button", { name: /add-new-extension/i });
+    const addButton = await screen.findByRole("button", { name: /add-new-extension/i });
     expect(addButton).toBeInTheDocument();
     expect(addButton).toHaveTextContent("Add Extension");
   });
@@ -101,7 +111,7 @@ describe("ExtensionsTab", () => {
   it("opens Add New Extension modal from the header button", async () => {
     renderExtensionsTab(mockExtensions);
 
-    const addButton = screen.getByRole("button", { name: /add-new-extension/i });
+    const addButton = await screen.findByRole("button", { name: /add-new-extension/i });
     await fireEvent.click(addButton);
 
     expect(showCreateExtensionDialog).toHaveBeenCalledWith("mock-demonstration-id");
@@ -110,7 +120,7 @@ describe("ExtensionsTab", () => {
   it("does not open Add New Extension modal from the header button when creation is disabled", async () => {
     renderExtensionsTab(mockExtensions, false);
 
-    const addButton = screen.getByRole("button", { name: /add-new-extension/i });
+    const addButton = await screen.findByRole("button", { name: /add-new-extension/i });
     expect(addButton).toBeDisabled();
     await fireEvent.click(addButton);
 
@@ -120,6 +130,7 @@ describe("ExtensionsTab", () => {
   it("passes the selected extension to ModificationTabs when extensions exist", async () => {
     renderExtensionsTab(mockExtensions);
 
+    await screen.findByTestId("modification-tabs");
     expect(ModificationTabs).toHaveBeenCalledWith(
       expect.objectContaining({
         items: [

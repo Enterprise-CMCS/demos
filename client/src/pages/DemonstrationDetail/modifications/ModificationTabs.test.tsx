@@ -1,26 +1,29 @@
 import React from "react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { ModificationTabs, ModificationItem } from "./ModificationTabs";
+import { ModificationTabs, ModificationListItem } from "./ModificationTabs";
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
 
-const createModificationItem = (overrides?: Partial<ModificationItem>): ModificationItem => {
+vi.mock("./SelectedModification", () => ({
+  SelectedModification: () => <div data-testid="selected-modification" />,
+}));
+
+const createModificationItem = (
+  overrides?: Partial<ModificationListItem>
+): ModificationListItem => {
   return {
     id: "default-id",
     medicaidId: "default-demo-id",
     modificationType: "amendment",
     name: "Default Item",
-    description: undefined,
-    status: "Pre-Submission",
     createdAt: new Date(0),
-    documents: [],
     ...overrides,
   };
 };
 
 describe("ModificationTabs Component", () => {
-  const mockItems: ModificationItem[] = [
+  const mockItems: ModificationListItem[] = [
     createModificationItem({
       id: "1",
       name: "Item 1",
@@ -99,7 +102,7 @@ describe("ModificationTabs Component", () => {
   });
 
   it("handles items without optional fields", () => {
-    const minimalItems: ModificationItem[] = [
+    const minimalItems: ModificationListItem[] = [
       createModificationItem({ id: "1", name: "Minimal Item 1" }),
       createModificationItem({ id: "2", name: "Minimal Item 2" }),
     ];
@@ -114,7 +117,7 @@ describe("ModificationTabs Component", () => {
   });
 
   it("renders tabs in newest-to-oldest order by createdAt", () => {
-    const items: ModificationItem[] = [
+    const items: ModificationListItem[] = [
       createModificationItem({
         id: "1",
         name: "First",

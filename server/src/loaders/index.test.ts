@@ -7,6 +7,7 @@ import {
 import type { ContextUser } from "../auth";
 import { createLoaders } from ".";
 import { selectManyDemonstrations } from "../model/demonstration/queries/selectManyDemonstrations";
+import { selectDemonstrationModificationCounts } from "../model/demonstration/queries/selectDemonstrationModificationCounts";
 import { selectManyDeliverables } from "../model/deliverable/queries/selectManyDeliverables";
 import { selectManyStates } from "../model/state/queries/selectManyStates";
 import { selectManyUsers } from "../model/user/queries/selectManyUsers";
@@ -17,6 +18,12 @@ import { getManyDocuments } from "../model/document/documentData";
 vi.mock("../model/demonstration/queries/selectManyDemonstrations", () => ({
   selectManyDemonstrations: vi.fn(),
 }));
+vi.mock(
+  "../model/demonstration/queries/selectDemonstrationModificationCounts",
+  () => ({
+    selectDemonstrationModificationCounts: vi.fn(),
+  }),
+);
 vi.mock("../model/deliverable/queries/selectManyDeliverables", () => ({
   selectManyDeliverables: vi.fn(),
 }));
@@ -29,9 +36,12 @@ vi.mock("../model/user/queries/selectManyUsers", () => ({
 vi.mock("../model/person/queries/selectManyPeople", () => ({
   selectManyPeople: vi.fn(),
 }));
-vi.mock("../model/deliverableTypeDocumentType/selectDocumentTypesForDeliverableTypes", () => ({
-  selectDocumentTypesForDeliverableTypes: vi.fn(),
-}));
+vi.mock(
+  "../model/deliverableTypeDocumentType/selectDocumentTypesForDeliverableTypes",
+  () => ({
+    selectDocumentTypesForDeliverableTypes: vi.fn(),
+  }),
+);
 vi.mock("../model/document/documentData", () => ({
   getManyDocuments: vi.fn(),
 }));
@@ -63,6 +73,31 @@ describe("createLoaders", () => {
     expect(a).toEqual({ id: "a" });
     expect(b).toEqual({ id: "b" });
     expect(missing).toBeNull();
+  });
+
+  it("batches and caches demonstration modification counts", async () => {
+    vi.mocked(selectDemonstrationModificationCounts).mockResolvedValue([
+      { id: "a", amendmentCount: 2, extensionCount: 1 },
+      { id: "b", amendmentCount: 0, extensionCount: 3 },
+    ]);
+
+    const loaders = createLoaders(mockUser);
+    const [aAmendments, aExtensions, b] = await Promise.all([
+      loaders.demonstrationModificationCountsById.load("a"),
+      loaders.demonstrationModificationCountsById.load("a"),
+      loaders.demonstrationModificationCountsById.load("b"),
+    ]);
+
+    expect(
+      selectDemonstrationModificationCounts,
+    ).toHaveBeenCalledExactlyOnceWith(["a", "b"]);
+    expect(aAmendments).toEqual({
+      id: "a",
+      amendmentCount: 2,
+      extensionCount: 1,
+    });
+    expect(aExtensions).toBe(aAmendments);
+    expect(b).toEqual({ id: "b", amendmentCount: 0, extensionCount: 3 });
   });
 
   it("groups by-foreign-key loads and returns [] for keys with no rows", async () => {
@@ -116,9 +151,15 @@ describe("createLoaders", () => {
       loaders.personById.load("p1"),
     ]);
 
-    expect(selectManyUsers).toHaveBeenCalledExactlyOnceWith({ id: { in: ["u1"] } });
-    expect(selectManyStates).toHaveBeenCalledExactlyOnceWith({ id: { in: ["NC"] } });
-    expect(selectManyPeople).toHaveBeenCalledExactlyOnceWith({ id: { in: ["p1"] } });
+    expect(selectManyUsers).toHaveBeenCalledExactlyOnceWith({
+      id: { in: ["u1"] },
+    });
+    expect(selectManyStates).toHaveBeenCalledExactlyOnceWith({
+      id: { in: ["NC"] },
+    });
+    expect(selectManyPeople).toHaveBeenCalledExactlyOnceWith({
+      id: { in: ["p1"] },
+    });
   });
 
   it("threads the request user into authorization-scoped loaders and groups by foreign key", async () => {
@@ -135,7 +176,7 @@ describe("createLoaders", () => {
 
     expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
       { applicationId: { in: ["app1", "app2"] } },
-      mockUser
+      mockUser,
     );
     expect(app1).toEqual([{ id: "doc1", applicationId: "app1" }]);
     expect(app2).toEqual([{ id: "doc2", applicationId: "app2" }]);
@@ -153,10 +194,9 @@ describe("createLoaders", () => {
       loaders.documentTypesByDeliverableTypeId.load("type2"),
     ]);
 
-    expect(selectDocumentTypesForDeliverableTypes).toHaveBeenCalledExactlyOnceWith([
-      "type1",
-      "type2",
-    ]);
+    expect(
+      selectDocumentTypesForDeliverableTypes,
+    ).toHaveBeenCalledExactlyOnceWith(["type1", "type2"]);
     expect(type1).toEqual(["General File", "Signed Approval Package"]);
     expect(type2).toEqual([]);
   });

@@ -1,7 +1,6 @@
 import React from "react";
 
 import {
-  Amendment,
   Demonstration,
   DemonstrationRoleAssignment,
   DemonstrationTypeAssignment,
@@ -38,8 +37,8 @@ export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
   }
 `;
 
-export const DEMONSTRATION_DETAIL_QUERY = gql`
-  query DemonstrationDetailQuery($id: ID!) {
+export const DEMONSTRATION_DETAIL_SHELL_QUERY = gql`
+  query DemonstrationDetailShell($id: ID!) {
     demonstration(id: $id) {
       id
       name
@@ -51,50 +50,8 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       state {
         id
       }
-      amendments {
-        name
-        id
-        description
-        status
-        createdAt
-        effectiveDate
-        signatureLevel
-        documents {
-          id
-          name
-          description
-          documentType
-          phaseName
-          createdAt
-          owner {
-            person {
-              fullName
-            }
-          }
-        }
-      }
-      extensions {
-        id
-        name
-        description
-        status
-        createdAt
-        effectiveDate
-        signatureLevel
-        documents {
-          id
-          name
-          description
-          documentType
-          phaseName
-          createdAt
-          owner {
-            person {
-              fullName
-            }
-          }
-        }
-      }
+      amendmentCount
+      extensionCount
       demonstrationTypes {
         demonstrationTypeName
         status
@@ -130,21 +87,13 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
   }
 `;
 
-export type DemonstrationDetailModification = Pick<
-  Amendment,
-  "id" | "name" | "description" | "status" | "createdAt" | "effectiveDate" | "signatureLevel"
-> & {
-  documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
-    owner: { person: Pick<Person, "fullName"> };
-  })[];
-};
 export type DemonstrationDetail = Pick<
   Demonstration,
   "id" | "name" | "status" | "currentPhaseName" | "effectiveDate" | "expirationDate" | "medicaidId"
 > & {
   state: Pick<State, "id">;
-  amendments: DemonstrationDetailModification[];
-  extensions: DemonstrationDetailModification[];
+  amendmentCount: number;
+  extensionCount: number;
   demonstrationTypes: Pick<
     DemonstrationTypeAssignment,
     | "demonstrationTypeName"
@@ -178,7 +127,7 @@ export const DemonstrationDetail: React.FC = () => {
   const extensionParam = getQueryParamValue(queryParams, "extension", "extensions");
 
   const { data, loading, error } = useQuery<{ demonstration: DemonstrationDetail }>(
-    DEMONSTRATION_DETAIL_QUERY,
+    DEMONSTRATION_DETAIL_SHELL_QUERY,
     {
       variables: { id: id },
     }
@@ -194,8 +143,8 @@ export const DemonstrationDetail: React.FC = () => {
     return <div>Failed to load demonstration.</div>;
   }
 
-  const amendmentCount = demonstration.amendments?.length ?? 0;
-  const extensionCount = demonstration.extensions?.length ?? 0;
+  const amendmentCount = demonstration.amendmentCount;
+  const extensionCount = demonstration.extensionCount;
   const isApproved = demonstration.status === "Approved";
   return (
     <div>
@@ -216,7 +165,6 @@ export const DemonstrationDetail: React.FC = () => {
               <AmendmentsTab
                 demonstrationId={demonstration.id}
                 medicaidId={demonstration.medicaidId}
-                amendments={demonstration.amendments}
                 selectedAmendmentId={amendmentParam || undefined}
                 canCreateModifications={isApproved}
               />
@@ -230,7 +178,6 @@ export const DemonstrationDetail: React.FC = () => {
               <ExtensionsTab
                 demonstrationId={demonstration.id}
                 medicaidId={demonstration.medicaidId}
-                extensions={demonstration.extensions}
                 selectedExtensionId={extensionParam || undefined}
                 canCreateModifications={isApproved}
               />

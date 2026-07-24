@@ -36,6 +36,8 @@ export const demonstrationSchema = gql`
     documents: [Document!]! @auth(requires: ["Access CMS Field"])
     amendments: [Amendment!]! @auth(requires: ["Access CMS Field"])
     extensions: [Extension!]! @auth(requires: ["Access CMS Field"])
+    amendmentCount: Int! @auth(requires: ["Access CMS Field"])
+    extensionCount: Int! @auth(requires: ["Access CMS Field"])
     roles: [DemonstrationRoleAssignment!]! @auth(requires: ["Access CMS Field"])
     primaryProjectOfficer: Person!
     clearanceLevel: ClearanceLevel! @auth(requires: ["Access CMS Field"])
@@ -69,9 +71,12 @@ export const demonstrationSchema = gql`
   type Mutation {
     createDemonstration(input: CreateDemonstrationInput!): Demonstration!
       @auth(requires: ["Perform CMS Action"])
-    updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration!
+    updateDemonstration(
+      id: ID!
+      input: UpdateDemonstrationInput!
+    ): Demonstration! @auth(requires: ["Perform CMS Action"])
+    deleteDemonstration(id: ID!): Demonstration!
       @auth(requires: ["Perform CMS Action"])
-    deleteDemonstration(id: ID!): Demonstration! @auth(requires: ["Perform CMS Action"])
   }
 
   type Query {
@@ -95,6 +100,8 @@ export interface Demonstration {
   documents: Document[];
   amendments: Amendment[];
   extensions: Extension[];
+  amendmentCount: number;
+  extensionCount: number;
   roles: DemonstrationRoleAssignment[];
   primaryProjectOfficer: Person;
   clearanceLevel: ClearanceLevel;

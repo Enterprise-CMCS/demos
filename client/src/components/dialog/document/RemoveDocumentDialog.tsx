@@ -1,6 +1,6 @@
 import { gql, useMutation, DocumentNode } from "@apollo/client";
 import { useToast } from "components/toast";
-import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { DEMONSTRATION_DETAIL_SHELL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/demonstration/DemonstrationWorkflow";
 import React, { useState } from "react";
 import { BaseDialog } from "components/dialog/BaseDialog";
@@ -20,7 +20,7 @@ export const RemoveDocumentDialog: React.FC<{
 }> = ({
   documentIds,
   onClose,
-  refetchQueries = [DEMONSTRATION_DETAIL_QUERY, GET_WORKFLOW_DEMONSTRATION_QUERY],
+  refetchQueries = [DEMONSTRATION_DETAIL_SHELL_QUERY, GET_WORKFLOW_DEMONSTRATION_QUERY],
 }) => {
   const { showSuccess, showError } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);

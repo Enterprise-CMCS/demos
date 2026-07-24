@@ -10,7 +10,7 @@ import {
   Person as ServerPerson,
   DemonstrationRoleAssignment as ServerDemonstrationRoleAssignment,
 } from "demos-server";
-import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { DEMONSTRATION_DETAIL_SHELL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { formatDateForServer } from "util/formatDate";
 
 import { gql, TypedDocumentNode, useMutation, useQuery } from "@apollo/client";
@@ -146,7 +146,7 @@ const useUpdateDemonstration = () => {
       },
       refetchQueries: [
         {
-          query: DEMONSTRATION_DETAIL_QUERY,
+          query: DEMONSTRATION_DETAIL_SHELL_QUERY,
           variables: { id: demonstrationId },
         },
       ],

@@ -2,7 +2,7 @@ import React from "react";
 
 import { AddDocumentToPhaseDialog } from "components/dialog/document";
 import { DocumentType } from "demos-server";
-import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { DEMONSTRATION_DETAIL_SHELL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/demonstration/DemonstrationWorkflow";
 
 const DOCUMENT_TYPE_SUBSET: DocumentType[] = ["State Application", "General File"];
@@ -19,7 +19,7 @@ export const ApplicationIntakeUploadDialog: React.FC<Props> = ({ onClose, applic
       documentTypeSubset={DOCUMENT_TYPE_SUBSET}
       applicationId={applicationId}
       titleOverride="Add State Application"
-      refetchQueries={[GET_WORKFLOW_DEMONSTRATION_QUERY, DEMONSTRATION_DETAIL_QUERY]}
+      refetchQueries={[GET_WORKFLOW_DEMONSTRATION_QUERY, DEMONSTRATION_DETAIL_SHELL_QUERY]}
       phaseName="Application Intake"
     />
   );

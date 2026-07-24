@@ -1,20 +1,37 @@
 import React from "react";
+import { useQuery } from "@apollo/client";
 import { IconButton } from "components/button";
 import { AddNewIcon } from "components/icons";
 import { useDialog } from "components/dialog/DialogContext";
-import { DemonstrationDetailModification } from "pages/DemonstrationDetail/DemonstrationDetail";
+import type { Extension } from "demos-server";
 import { ModificationTabs } from "./ModificationTabs";
+import { DEMONSTRATION_EXTENSIONS_QUERY } from "./modificationQueries";
 
 const EMPTY_EXTENSIONS_MESSAGE = "No extensions have been added yet";
+
+type ExtensionListItem = Pick<Extension, "id" | "name" | "createdAt">;
 
 export const ExtensionsTab: React.FC<{
   demonstrationId: string;
   medicaidId: string;
-  extensions: DemonstrationDetailModification[];
   selectedExtensionId?: string;
   canCreateModifications: boolean;
-}> = ({ demonstrationId, medicaidId, extensions, selectedExtensionId, canCreateModifications }) => {
+}> = ({ demonstrationId, medicaidId, selectedExtensionId, canCreateModifications }) => {
   const { showCreateExtensionDialog } = useDialog();
+  const { data, loading, error } = useQuery<{
+    demonstration: { extensions: ExtensionListItem[] };
+  }>(DEMONSTRATION_EXTENSIONS_QUERY, {
+    variables: { id: demonstrationId },
+  });
+  const extensions = data?.demonstration.extensions ?? [];
+
+  if (loading) {
+    return <div className="p-4">Loading extensions...</div>;
+  }
+
+  if (error) {
+    return <div className="p-4 text-red-500">Error loading extensions.</div>;
+  }
 
   if (extensions.length === 0) {
     return (

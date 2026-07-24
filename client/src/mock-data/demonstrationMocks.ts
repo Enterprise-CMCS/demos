@@ -8,7 +8,7 @@ import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application";
 
 import type { ApplicationStatus } from "demos-server";
 import { CreateDemonstrationInput, Demonstration } from "demos-server";
-import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { DEMONSTRATION_DETAIL_SHELL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
 
 import { MockedResponse } from "@apollo/client/testing";
@@ -31,7 +31,14 @@ import { DEMONSTRATION_HEADER_DETAILS_QUERY } from "pages/DemonstrationDetail/De
 
 export type MockDemonstration = Pick<
   Demonstration,
-  "id" | "name" | "description" | "sdgDivision" | "signatureLevel" | "currentPhaseName" | "medicaidId" | "chipId"
+  | "id"
+  | "name"
+  | "description"
+  | "sdgDivision"
+  | "signatureLevel"
+  | "currentPhaseName"
+  | "medicaidId"
+  | "chipId"
 > & {
   effectiveDate: Date;
   expirationDate: Date;
@@ -39,6 +46,8 @@ export type MockDemonstration = Pick<
   state: MockState;
   amendments: MockAmendment[];
   extensions: MockExtension[];
+  amendmentCount: number;
+  extensionCount: number;
   demonstrationTypes: MockDemonstrationTypeAssignment[];
   documents: MockDocument[];
   roles: MockDemonstrationRoleAssignment[];
@@ -62,6 +71,12 @@ export const MOCK_DEMONSTRATION: MockDemonstration = {
   extensions: mockExtensions.filter((extension) =>
     extension.name.includes("Montana Medicaid Waiver")
   ),
+  amendmentCount: mockAmendments.filter((amendment) =>
+    amendment.name.includes("Montana Medicaid Waiver")
+  ).length,
+  extensionCount: mockExtensions.filter((extension) =>
+    extension.name.includes("Montana Medicaid Waiver")
+  ).length,
   documents: mockDocuments,
   roles: [
     mockDemonstrationRoleAssignments[0],
@@ -86,7 +101,7 @@ const MOCK_DEMONSTRATION_BY_ID_QUERIES = [
   HOOK_GET_DEMONSTRATION_BY_ID_QUERY,
   GET_DEMONSTRATION_BY_ID_QUERY,
   ADD_DEMONSTRATION_TYPES_FORM_QUERY,
-  DEMONSTRATION_DETAIL_QUERY,
+  DEMONSTRATION_DETAIL_SHELL_QUERY,
   DEMONSTRATION_HEADER_DETAILS_QUERY,
 ];
 

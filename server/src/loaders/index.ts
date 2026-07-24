@@ -20,6 +20,10 @@ import type { DocumentType, Role, UiPathResultStatus } from "../types";
 // Batched query functions (imported from their specific files to avoid pulling
 // in resolver/barrel modules and creating import cycles).
 import { selectManyDemonstrations } from "../model/demonstration/queries/selectManyDemonstrations";
+import {
+  selectDemonstrationModificationCounts,
+  type DemonstrationModificationCounts,
+} from "../model/demonstration/queries/selectDemonstrationModificationCounts";
 import { selectManyDeliverables } from "../model/deliverable/queries/selectManyDeliverables";
 import { selectManyStates } from "../model/state/queries/selectManyStates";
 import { selectManyUsers } from "../model/user/queries/selectManyUsers";
@@ -56,7 +60,7 @@ const PENDING_TAG_SUGGESTION_STATUS = "Pending" satisfies UiPathResultStatus;
  * which the database returns rows does not matter.
  */
 function byIdLoader<T extends { id: string }>(
-  batch: (ids: string[]) => Promise<T[]>
+  batch: (ids: string[]) => Promise<T[]>,
 ): DataLoader<string, T | null> {
   return new DataLoader<string, T | null>(async (ids) => {
     const rows = await batch([...ids]);
@@ -72,7 +76,7 @@ function byIdLoader<T extends { id: string }>(
  */
 function byForeignKeyLoader<T>(
   batch: (keys: string[]) => Promise<T[]>,
-  keyOf: (row: T) => string
+  keyOf: (row: T) => string,
 ): DataLoader<string, T[]> {
   return new DataLoader<string, T[]>(async (keys) => {
     const rows = await batch([...keys]);
@@ -93,6 +97,10 @@ function byForeignKeyLoader<T>(
 export interface Loaders {
   // Single-row, keyed by primary id.
   demonstrationById: DataLoader<string, PrismaDemonstration | null>;
+  demonstrationModificationCountsById: DataLoader<
+    string,
+    DemonstrationModificationCounts | null
+  >;
   userById: DataLoader<string, PrismaUser | null>;
   stateById: DataLoader<string, PrismaState | null>;
   personById: DataLoader<string, PrismaPerson | null>;
@@ -100,14 +108,23 @@ export interface Loaders {
   // Collections, keyed by a foreign key.
   deliverablesByDemonstrationId: DataLoader<string, PrismaDeliverable[]>;
   deliverablesByCmsOwnerId: DataLoader<string, PrismaDeliverable[]>;
-  rolesByDemonstrationId: DataLoader<string, DemonstrationRoleAssignmentQueryResult[]>;
+  rolesByDemonstrationId: DataLoader<
+    string,
+    DemonstrationRoleAssignmentQueryResult[]
+  >;
   primaryProjectOfficerAssignmentsByDemonstrationId: DataLoader<
     string,
     DemonstrationRoleAssignmentQueryResult[]
   >;
   phasesByApplicationId: DataLoader<string, PrismaApplicationPhase[]>;
-  tagAssignmentsByApplicationId: DataLoader<string, ApplicationTagAssignmentQueryResult[]>;
-  suggestedTagsByApplicationId: DataLoader<string, PrismaApplicationTagSuggestion[]>;
+  tagAssignmentsByApplicationId: DataLoader<
+    string,
+    ApplicationTagAssignmentQueryResult[]
+  >;
+  suggestedTagsByApplicationId: DataLoader<
+    string,
+    PrismaApplicationTagSuggestion[]
+  >;
   demonstrationTypeAssignmentsByDemonstrationId: DataLoader<
     string,
     DemonstrationTypeTagAssignmentQueryResult[]
@@ -116,10 +133,16 @@ export interface Loaders {
     string,
     DeliverableDemonstrationTypeQueryResult[]
   >;
-  deliverableExtensionsByDeliverableId: DataLoader<string, PrismaDeliverableExtension[]>;
+  deliverableExtensionsByDeliverableId: DataLoader<
+    string,
+    PrismaDeliverableExtension[]
+  >;
   publicCommentsByDeliverableId: DataLoader<string, PrismaPublicComment[]>;
   privateCommentsByDeliverableId: DataLoader<string, PrismaPrivateComment[]>;
-  deliverableActionsByDeliverableId: DataLoader<string, SelectDeliverableActionRowResult[]>;
+  deliverableActionsByDeliverableId: DataLoader<
+    string,
+    SelectDeliverableActionRowResult[]
+  >;
   documentTypesByDeliverableTypeId: DataLoader<string, DocumentType[]>;
 
   // Authorization-scoped collections (batch functions bake in the request user's
@@ -147,23 +170,32 @@ export interface Loaders {
  */
 export function createLoaders(user: ContextUser): Loaders {
   return {
-    demonstrationById: byIdLoader((ids) => selectManyDemonstrations({ id: { in: ids } })),
+    demonstrationById: byIdLoader((ids) =>
+      selectManyDemonstrations({ id: { in: ids } }),
+    ),
+    demonstrationModificationCountsById: byIdLoader((ids) =>
+      selectDemonstrationModificationCounts(ids),
+    ),
     userById: byIdLoader((ids) => selectManyUsers({ id: { in: ids } })),
     stateById: byIdLoader((ids) => selectManyStates({ id: { in: ids } })),
     personById: byIdLoader((ids) => selectManyPeople({ id: { in: ids } })),
 
     deliverablesByDemonstrationId: byForeignKeyLoader(
-      (demonstrationIds) => selectManyDeliverables({ demonstrationId: { in: demonstrationIds } }),
-      (deliverable) => deliverable.demonstrationId
+      (demonstrationIds) =>
+        selectManyDeliverables({ demonstrationId: { in: demonstrationIds } }),
+      (deliverable) => deliverable.demonstrationId,
     ),
     deliverablesByCmsOwnerId: byForeignKeyLoader(
-      (cmsOwnerUserIds) => selectManyDeliverables({ cmsOwnerUserId: { in: cmsOwnerUserIds } }),
-      (deliverable) => deliverable.cmsOwnerUserId
+      (cmsOwnerUserIds) =>
+        selectManyDeliverables({ cmsOwnerUserId: { in: cmsOwnerUserIds } }),
+      (deliverable) => deliverable.cmsOwnerUserId,
     ),
     rolesByDemonstrationId: byForeignKeyLoader(
       (demonstrationIds) =>
-        selectManyDemonstrationRoleAssignments({ demonstrationId: { in: demonstrationIds } }),
-      (roleAssignment) => roleAssignment.demonstrationId
+        selectManyDemonstrationRoleAssignments({
+          demonstrationId: { in: demonstrationIds },
+        }),
+      (roleAssignment) => roleAssignment.demonstrationId,
     ),
     primaryProjectOfficerAssignmentsByDemonstrationId: byForeignKeyLoader(
       (demonstrationIds) =>
@@ -172,16 +204,19 @@ export function createLoaders(user: ContextUser): Loaders {
           roleId: PROJECT_OFFICER_ROLE,
           primaryDemonstrationRoleAssignment: { isNot: null },
         }),
-      (roleAssignment) => roleAssignment.demonstrationId
+      (roleAssignment) => roleAssignment.demonstrationId,
     ),
     phasesByApplicationId: byForeignKeyLoader(
-      (applicationIds) => selectManyApplicationPhases({ applicationId: { in: applicationIds } }),
-      (phase) => phase.applicationId
+      (applicationIds) =>
+        selectManyApplicationPhases({ applicationId: { in: applicationIds } }),
+      (phase) => phase.applicationId,
     ),
     tagAssignmentsByApplicationId: byForeignKeyLoader(
       (applicationIds) =>
-        selectManyApplicationTagAssignments({ applicationId: { in: applicationIds } }),
-      (tagAssignment) => tagAssignment.applicationId
+        selectManyApplicationTagAssignments({
+          applicationId: { in: applicationIds },
+        }),
+      (tagAssignment) => tagAssignment.applicationId,
     ),
     suggestedTagsByApplicationId: byForeignKeyLoader(
       (applicationIds) =>
@@ -189,38 +224,50 @@ export function createLoaders(user: ContextUser): Loaders {
           applicationId: { in: applicationIds },
           statusId: { in: [PENDING_TAG_SUGGESTION_STATUS] },
         }),
-      (suggestion) => suggestion.applicationId
+      (suggestion) => suggestion.applicationId,
     ),
     demonstrationTypeAssignmentsByDemonstrationId: byForeignKeyLoader(
       (demonstrationIds) =>
-        selectManyDemonstrationTypeTagAssignments({ demonstrationId: { in: demonstrationIds } }),
-      (assignment) => assignment.demonstrationId
+        selectManyDemonstrationTypeTagAssignments({
+          demonstrationId: { in: demonstrationIds },
+        }),
+      (assignment) => assignment.demonstrationId,
     ),
     deliverableDemonstrationTypesByDeliverableId: byForeignKeyLoader(
       (deliverableIds) =>
-        selectManyDeliverableDemonstrationTypes({ deliverableId: { in: deliverableIds } }),
-      (deliverableDemonstrationType) => deliverableDemonstrationType.deliverableId
+        selectManyDeliverableDemonstrationTypes({
+          deliverableId: { in: deliverableIds },
+        }),
+      (deliverableDemonstrationType) =>
+        deliverableDemonstrationType.deliverableId,
     ),
     deliverableExtensionsByDeliverableId: byForeignKeyLoader(
       (deliverableIds) =>
-        selectManyDeliverableExtensions({ deliverableId: { in: deliverableIds } }),
-      (extension) => extension.deliverableId
+        selectManyDeliverableExtensions({
+          deliverableId: { in: deliverableIds },
+        }),
+      (extension) => extension.deliverableId,
     ),
     publicCommentsByDeliverableId: byForeignKeyLoader(
-      (deliverableIds) => selectManyPublicComments({ deliverableId: { in: deliverableIds } }),
-      (comment) => comment.deliverableId
+      (deliverableIds) =>
+        selectManyPublicComments({ deliverableId: { in: deliverableIds } }),
+      (comment) => comment.deliverableId,
     ),
     privateCommentsByDeliverableId: byForeignKeyLoader(
-      (deliverableIds) => selectManyPrivateComments({ deliverableId: { in: deliverableIds } }),
-      (comment) => comment.deliverableId
+      (deliverableIds) =>
+        selectManyPrivateComments({ deliverableId: { in: deliverableIds } }),
+      (comment) => comment.deliverableId,
     ),
     deliverableActionsByDeliverableId: byForeignKeyLoader(
-      (deliverableIds) => selectManyDeliverableActions({ deliverableId: { in: deliverableIds } }),
-      (action) => action.deliverableId
+      (deliverableIds) =>
+        selectManyDeliverableActions({ deliverableId: { in: deliverableIds } }),
+      (action) => action.deliverableId,
     ),
     documentTypesByDeliverableTypeId: new DataLoader<string, DocumentType[]>(
       async (deliverableTypeIds) => {
-        const rows = await selectDocumentTypesForDeliverableTypes([...deliverableTypeIds]);
+        const rows = await selectDocumentTypesForDeliverableTypes([
+          ...deliverableTypeIds,
+        ]);
         const documentTypesByType = new Map<string, DocumentType[]>();
         for (const row of rows) {
           const documentType = row.documentTypeId as DocumentType;
@@ -231,21 +278,26 @@ export function createLoaders(user: ContextUser): Loaders {
             documentTypesByType.set(row.deliverableTypeId, [documentType]);
           }
         }
-        return deliverableTypeIds.map((id) => documentTypesByType.get(id) ?? []);
-      }
+        return deliverableTypeIds.map(
+          (id) => documentTypesByType.get(id) ?? [],
+        );
+      },
     ),
 
     documentsByApplicationId: byForeignKeyLoader(
-      (applicationIds) => getManyDocuments({ applicationId: { in: applicationIds } }, user),
-      (document) => document.applicationId
+      (applicationIds) =>
+        getManyDocuments({ applicationId: { in: applicationIds } }, user),
+      (document) => document.applicationId,
     ),
     amendmentsByDemonstrationId: byForeignKeyLoader(
-      (demonstrationIds) => getManyAmendments({ demonstrationId: { in: demonstrationIds } }, user),
-      (amendment) => amendment.demonstrationId
+      (demonstrationIds) =>
+        getManyAmendments({ demonstrationId: { in: demonstrationIds } }, user),
+      (amendment) => amendment.demonstrationId,
     ),
     extensionsByDemonstrationId: byForeignKeyLoader(
-      (demonstrationIds) => getManyExtensions({ demonstrationId: { in: demonstrationIds } }, user),
-      (extension) => extension.demonstrationId
+      (demonstrationIds) =>
+        getManyExtensions({ demonstrationId: { in: demonstrationIds } }, user),
+      (extension) => extension.demonstrationId,
     ),
     cmsDocumentsByDeliverableId: byForeignKeyLoader(
       (deliverableIds) =>
@@ -256,9 +308,9 @@ export function createLoaders(user: ContextUser): Loaders {
               { deliverableIsCmsAttachedFile: true },
             ],
           },
-          user
+          user,
         ),
-      (document) => document.deliverableId!
+      (document) => document.deliverableId!,
     ),
     stateDocumentsByDeliverableId: byForeignKeyLoader(
       (deliverableIds) =>
@@ -269,9 +321,9 @@ export function createLoaders(user: ContextUser): Loaders {
               { deliverableIsCmsAttachedFile: false },
             ],
           },
-          user
+          user,
         ),
-      (document) => document.deliverableId!
+      (document) => document.deliverableId!,
     ),
   };
 }

@@ -44,7 +44,7 @@ const DEFAULT_SIGNATURE_LEVEL: SignatureLevel = "OA";
 
 export async function __createDemonstration(
   parent: unknown,
-  { input }: { input: CreateDemonstrationInput }
+  { input }: { input: CreateDemonstrationInput },
 ): Promise<PrismaDemonstration> {
   let newApplicationId: string;
   try {
@@ -75,7 +75,9 @@ export async function __createDemonstration(
       });
 
       if (!person) {
-        throw new Error(`Person with id ${input.projectOfficerUserId} not found.`);
+        throw new Error(
+          `Person with id ${input.projectOfficerUserId} not found.`,
+        );
       }
 
       await tx.demonstrationRoleAssignment.create({
@@ -102,14 +104,17 @@ export async function __createDemonstration(
   } catch (error) {
     handlePrismaError(error);
   }
-  return await getApplication(newApplicationId, { applicationTypeId: "Demonstration" });
+  return await getApplication(newApplicationId, {
+    applicationTypeId: "Demonstration",
+  });
 }
 
 export async function __updateDemonstration(
   parent: unknown,
-  { id, input }: { id: string; input: UpdateDemonstrationInput }
+  { id, input }: { id: string; input: UpdateDemonstrationInput },
 ): Promise<PrismaDemonstration> {
-  const { effectiveDate, expirationDate } = parseAndValidateEffectiveAndExpirationDates(input);
+  const { effectiveDate, expirationDate } =
+    parseAndValidateEffectiveAndExpirationDates(input);
   checkOptionalNotNullFields(["name", "projectOfficerUserId"], input);
   try {
     return await prisma().$transaction(async (tx) => {
@@ -130,7 +135,9 @@ export async function __updateDemonstration(
           select: { personTypeId: true },
         });
         if (!person) {
-          throw new Error(`Person with id ${input.projectOfficerUserId} not found.`);
+          throw new Error(
+            `Person with id ${input.projectOfficerUserId} not found.`,
+          );
         }
 
         await tx.demonstrationRoleAssignment.upsert({
@@ -179,7 +186,7 @@ export async function __updateDemonstration(
 
 export async function deleteDemonstration(
   parent: unknown,
-  { id }: { id: string }
+  { id }: { id: string },
 ): Promise<PrismaDemonstration> {
   return await prisma().$transaction(async (tx) => {
     return await deleteApplication(id, "Demonstration", tx);
@@ -187,11 +194,11 @@ export async function deleteDemonstration(
 }
 
 export async function __resolveDemonstrationPrimaryProjectOfficer(
-  parent: PrismaDemonstration
+  parent: PrismaDemonstration,
 ): Promise<PrismaPerson> {
   // It is not possible in the DB for the primary project officer not to exist
-  const primaryRoleAssignment = await prisma().primaryDemonstrationRoleAssignment.findUniqueOrThrow(
-    {
+  const primaryRoleAssignment =
+    await prisma().primaryDemonstrationRoleAssignment.findUniqueOrThrow({
       where: {
         demonstrationId_roleId: {
           demonstrationId: parent.id,
@@ -203,8 +210,7 @@ export async function __resolveDemonstrationPrimaryProjectOfficer(
           include: { person: true },
         },
       },
-    }
-  );
+    });
   return primaryRoleAssignment.demonstrationRoleAssignment.person;
 }
 
@@ -213,13 +219,15 @@ export const demonstrationResolvers = {
     demonstration: (
       parent: unknown,
       args: { id: string },
-      context: GraphQLContext
-    ): Promise<PrismaDemonstration> => getDemonstration({ id: args.id }, context.user),
+      context: GraphQLContext,
+    ): Promise<PrismaDemonstration> =>
+      getDemonstration({ id: args.id }, context.user),
     demonstrations: (
       parent: unknown,
       args: unknown,
-      context: GraphQLContext
-    ): Promise<PrismaDemonstration[]> => getManyDemonstrations({}, context.user),
+      context: GraphQLContext,
+    ): Promise<PrismaDemonstration[]> =>
+      getManyDemonstrations({}, context.user),
   },
 
   Mutation: {
@@ -232,7 +240,7 @@ export const demonstrationResolvers = {
     state: async (
       parent: PrismaDemonstration,
       args: unknown,
-      context: GraphQLContext
+      context: GraphQLContext,
     ): Promise<PrismaState> => {
       const state = await context.loaders.stateById.load(parent.stateId);
       if (!state) {
@@ -243,19 +251,51 @@ export const demonstrationResolvers = {
     documents: (
       parent: PrismaDemonstration,
       args: unknown,
-      context: GraphQLContext
-    ): Promise<PrismaDocument[]> => context.loaders.documentsByApplicationId.load(parent.id),
+      context: GraphQLContext,
+    ): Promise<PrismaDocument[]> =>
+      context.loaders.documentsByApplicationId.load(parent.id),
     amendments: (
       parent: PrismaDemonstration,
       args: unknown,
-      context: GraphQLContext
-    ): Promise<PrismaAmendment[]> => context.loaders.amendmentsByDemonstrationId.load(parent.id),
+      context: GraphQLContext,
+    ): Promise<PrismaAmendment[]> =>
+      context.loaders.amendmentsByDemonstrationId.load(parent.id),
     extensions: (
       parent: PrismaDemonstration,
       args: unknown,
-      context: GraphQLContext
-    ): Promise<PrismaExtension[]> => context.loaders.extensionsByDemonstrationId.load(parent.id),
-    sdgDivision: (parent: PrismaDemonstration): SdgDivision => parent.sdgDivisionId as SdgDivision,
+      context: GraphQLContext,
+    ): Promise<PrismaExtension[]> =>
+      context.loaders.extensionsByDemonstrationId.load(parent.id),
+    amendmentCount: async (
+      parent: PrismaDemonstration,
+      args: unknown,
+      context: GraphQLContext,
+    ): Promise<number> => {
+      const counts =
+        await context.loaders.demonstrationModificationCountsById.load(
+          parent.id,
+        );
+      if (!counts) {
+        throw new Error("No demonstration found matching the provided filter");
+      }
+      return counts.amendmentCount;
+    },
+    extensionCount: async (
+      parent: PrismaDemonstration,
+      args: unknown,
+      context: GraphQLContext,
+    ): Promise<number> => {
+      const counts =
+        await context.loaders.demonstrationModificationCountsById.load(
+          parent.id,
+        );
+      if (!counts) {
+        throw new Error("No demonstration found matching the provided filter");
+      }
+      return counts.extensionCount;
+    },
+    sdgDivision: (parent: PrismaDemonstration): SdgDivision =>
+      parent.sdgDivisionId as SdgDivision,
     signatureLevel: (parent: PrismaDemonstration): SignatureLevel =>
       parent.signatureLevelId as SignatureLevel,
     currentPhaseName: (parent: PrismaDemonstration): PhaseName =>
@@ -263,7 +303,7 @@ export const demonstrationResolvers = {
     roles: (
       parent: PrismaDemonstration,
       args: unknown,
-      context: GraphQLContext
+      context: GraphQLContext,
     ): Promise<PrismaDemonstrationRoleAssignment[]> =>
       context.loaders.rolesByDemonstrationId.load(parent.id),
     status: (parent: PrismaDemonstration): ApplicationStatus =>
@@ -271,20 +311,25 @@ export const demonstrationResolvers = {
     phases: (
       parent: PrismaDemonstration,
       args: unknown,
-      context: GraphQLContext
-    ): Promise<PrismaApplicationPhase[]> => context.loaders.phasesByApplicationId.load(parent.id),
+      context: GraphQLContext,
+    ): Promise<PrismaApplicationPhase[]> =>
+      context.loaders.phasesByApplicationId.load(parent.id),
     primaryProjectOfficer: async (
       parent: PrismaDemonstration,
       args: unknown,
-      context: GraphQLContext
+      context: GraphQLContext,
     ): Promise<PrismaPerson> => {
       const [primaryProjectOfficerAssignment] =
-        await context.loaders.primaryProjectOfficerAssignmentsByDemonstrationId.load(parent.id);
+        await context.loaders.primaryProjectOfficerAssignmentsByDemonstrationId.load(
+          parent.id,
+        );
       if (!primaryProjectOfficerAssignment) {
-        throw new Error("No demonstrationRoleAssignment found matching the provided filter");
+        throw new Error(
+          "No demonstrationRoleAssignment found matching the provided filter",
+        );
       }
       const person = await context.loaders.personById.load(
-        primaryProjectOfficerAssignment.personId
+        primaryProjectOfficerAssignment.personId,
       );
       if (!person) {
         throw new Error("No person found matching the provided filter");
@@ -296,52 +341,59 @@ export const demonstrationResolvers = {
     tags: async (
       parent: PrismaDemonstration,
       args: unknown,
-      context: GraphQLContext
+      context: GraphQLContext,
     ): Promise<Tag[]> =>
-      (await context.loaders.tagAssignmentsByApplicationId.load(parent.id)).map((assignment) => {
-        const { statusId, tagNameId } = assignment.tag;
-        return {
-          tagName: tagNameId,
-          approvalStatus: statusId as TagStatus,
-        };
-      }),
+      (await context.loaders.tagAssignmentsByApplicationId.load(parent.id)).map(
+        (assignment) => {
+          const { statusId, tagNameId } = assignment.tag;
+          return {
+            tagName: tagNameId,
+            approvalStatus: statusId as TagStatus,
+          };
+        },
+      ),
     suggestedApplicationTags: async (
       parent: PrismaDemonstration,
       args: unknown,
-      context: GraphQLContext
+      context: GraphQLContext,
     ): Promise<string[]> =>
       (await context.loaders.suggestedTagsByApplicationId.load(parent.id)).map(
-        (suggestion) => suggestion.value
+        (suggestion) => suggestion.value,
       ),
     demonstrationTypes: async (
       parent: PrismaDemonstration,
       args: unknown,
-      context: GraphQLContext
+      context: GraphQLContext,
     ): Promise<DemonstrationTypeAssignment[]> =>
-      (await context.loaders.demonstrationTypeAssignmentsByDemonstrationId.load(parent.id)).map(
-        (assignment) => {
-          const { tagNameId, tag, ...rest } = assignment;
-          return {
-            ...rest,
-            demonstrationTypeName: tagNameId,
-            status: determineDemonstrationTypeStatus(
-              assignment.effectiveDate,
-              assignment.expirationDate
-            ),
-            approvalStatus: tag.statusId as TagStatus,
-          };
-        }
-      ),
+      (
+        await context.loaders.demonstrationTypeAssignmentsByDemonstrationId.load(
+          parent.id,
+        )
+      ).map((assignment) => {
+        const { tagNameId, tag, ...rest } = assignment;
+        return {
+          ...rest,
+          demonstrationTypeName: tagNameId,
+          status: determineDemonstrationTypeStatus(
+            assignment.effectiveDate,
+            assignment.expirationDate,
+          ),
+          approvalStatus: tag.statusId as TagStatus,
+        };
+      }),
     deliverables: resolveManyDeliverables,
     chipId: async (
       parent: PrismaDemonstration,
       args: unknown,
-      context: GraphQLContext
+      context: GraphQLContext,
     ): Promise<string | null> => {
       const demonstrationTypeAssignments =
-        await context.loaders.demonstrationTypeAssignmentsByDemonstrationId.load(parent.id);
+        await context.loaders.demonstrationTypeAssignmentsByDemonstrationId.load(
+          parent.id,
+        );
       const hasChipDemonstrationType = demonstrationTypeAssignments.some(
-        (assignment) => assignment.tagNameId === CHIP_DEMONSTRATION_TYPE_TAG_NAME
+        (assignment) =>
+          assignment.tagNameId === CHIP_DEMONSTRATION_TYPE_TAG_NAME,
       );
       return hasChipDemonstrationType ? parent.chipId : null;
     },

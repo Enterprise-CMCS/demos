@@ -2,8 +2,7 @@ import React from "react";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ModificationTabSideNav } from "./ModificationTabSideNav";
-import { ModificationItem } from "./ModificationTabs";
+import { ModificationTabSideNav, ModificationItem } from "./ModificationTabSideNav";
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { NON_DELIVERABLE_DOCUMENT_TYPES } from "demos-server-constants";
@@ -19,7 +18,7 @@ vi.mock("components/application", async (importOriginal) => {
 });
 
 describe("ModificationTabSideNav", () => {
-  const mockModificationItem: ModificationItem = {
+  const mockModificationItem = {
     id: "1",
     medicaidId: "demo-1",
     modificationType: "amendment",
@@ -28,7 +27,7 @@ describe("ModificationTabSideNav", () => {
     status: "Pre-Submission",
     createdAt: new Date(0),
     documents: [],
-  };
+  } as unknown as ModificationItem;
 
   const expectedTabs = [
     { label: "Application", value: "application" },
@@ -103,10 +102,10 @@ describe("ModificationTabSideNav", () => {
     });
 
     it("renders ExtensionWorkflow when modification type is extension", () => {
-      const extensionModification: ModificationItem = {
+      const extensionModification = {
         ...mockModificationItem,
         modificationType: "extension",
-      };
+      } as unknown as ModificationItem;
       setup(extensionModification);
 
       expect(screen.getByTestId("extension-workflow")).toBeInTheDocument();
