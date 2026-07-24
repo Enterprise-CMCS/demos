@@ -71,13 +71,11 @@ import { handlePrismaError } from "../../errors/handlePrismaError";
 import { log } from "../../log";
 import { getEasternNow } from "../../dateUtilities";
 import { generateOnDemandReportFileName } from "./generateOnDemandReportFileName";
-import { Loaders } from "../../loaders";
 
 describe("onDemandReportResolvers", () => {
   const testContextUser: Partial<ContextUser> = { id: "user-123" };
-  const testContext: GraphQLContext = {
+  const testContext: Partial<GraphQLContext> = {
     user: testContextUser as ContextUser,
-    loaders: {} as Loaders,
   };
   const testReportType: OnDemandReportType = "Basic Test Report";
 
@@ -132,7 +130,7 @@ describe("onDemandReportResolvers", () => {
       const result = await onDemandReportResolvers.Mutation.generateOnDemandReport(
         undefined,
         { reportType: testReportType },
-        testContext
+        testContext as GraphQLContext
       );
 
       expect(runOnDemandReport).toHaveBeenCalledExactlyOnceWith(testReportType, mockTransaction);
@@ -175,7 +173,7 @@ describe("onDemandReportResolvers", () => {
         onDemandReportResolvers.Mutation.generateOnDemandReport(
           undefined,
           { reportType: testReportType },
-          testContext
+          testContext as GraphQLContext
         )
       ).rejects.toThrow(testCustomGQLError);
 
@@ -195,7 +193,7 @@ describe("onDemandReportResolvers", () => {
         onDemandReportResolvers.Mutation.generateOnDemandReport(
           undefined,
           { reportType: testReportType },
-          testContext
+          testContext as GraphQLContext
         )
       ).rejects.toThrow(testCustomGQLError);
 
@@ -212,7 +210,7 @@ describe("onDemandReportResolvers", () => {
         onDemandReportResolvers.Mutation.generateOnDemandReport(
           undefined,
           { reportType: testReportType },
-          testContext
+          testContext as GraphQLContext
         )
       ).rejects.toThrow(testCustomGQLError);
 
@@ -234,7 +232,7 @@ describe("onDemandReportResolvers", () => {
         onDemandReportResolvers.Mutation.generateOnDemandReport(
           undefined,
           { reportType: testReportType },
-          testContext
+          testContext as GraphQLContext
         )
       ).rejects.toThrow(testHandlePrismaError);
 

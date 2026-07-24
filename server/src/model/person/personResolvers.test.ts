@@ -5,16 +5,14 @@ import { Person as PrismaPerson } from "@prisma/client";
 // Mock imports
 import { ContextUser, GraphQLContext } from "../../auth";
 import { getManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment";
-import { Loaders } from "../../loaders";
 
 vi.mock("../demonstrationRoleAssignment", () => ({
   getManyDemonstrationRoleAssignments: vi.fn(),
 }));
 
-const mockUser = {} as unknown as ContextUser;
-const mockContext: GraphQLContext = {
-  user: mockUser,
-  loaders: {} as Loaders,
+const mockUser: Partial<ContextUser> = {};
+const mockContext: Partial<GraphQLContext> = {
+  user: mockUser as ContextUser,
 };
 
 describe("applicationPhaseResolvers", () => {
@@ -23,7 +21,7 @@ describe("applicationPhaseResolvers", () => {
       await personResolvers.Person.roles(
         { id: "personId" } as PrismaPerson,
         undefined,
-        mockContext
+        mockContext as GraphQLContext
       );
       expect(getManyDemonstrationRoleAssignments).toHaveBeenCalledExactlyOnceWith(
         { personId: "personId" },

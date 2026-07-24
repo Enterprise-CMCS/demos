@@ -3,12 +3,10 @@ import { stateResolvers } from "./stateResolvers";
 import { State as PrismaState } from "@prisma/client";
 import { getManyDemonstrations } from "../demonstration";
 import { ContextUser, GraphQLContext } from "../../auth";
-import { Loaders } from "../../loaders";
 
-const mockUser = {} as unknown as ContextUser;
-const mockContext: GraphQLContext = {
-  user: mockUser,
-  loaders: {} as Loaders,
+const mockUser: Partial<ContextUser> = {};
+const mockContext: Partial<GraphQLContext> = {
+  user: mockUser as ContextUser,
 };
 
 vi.mock("../demonstration/", () => ({
@@ -17,7 +15,11 @@ vi.mock("../demonstration/", () => ({
 
 describe("stateResolvers", () => {
   it("delegates `State.demonstrations` to `Demonstration.getManyDemonstrations`", async () => {
-    await stateResolvers.State.demonstrations({ id: "NC" } as PrismaState, {}, mockContext);
+    await stateResolvers.State.demonstrations(
+      { id: "NC" } as PrismaState,
+      {},
+      mockContext as GraphQLContext
+    );
     expect(getManyDemonstrations).toHaveBeenCalledExactlyOnceWith({ stateId: "NC" }, mockUser);
   });
 });

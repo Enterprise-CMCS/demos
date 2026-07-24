@@ -36,7 +36,6 @@ import { selectManyApplicationTagAssignments } from "../applicationTagAssignment
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
 import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
 import { createExtension } from ".";
-import { Loaders } from "../../loaders";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -111,12 +110,11 @@ describe("extensionResolvers", () => {
     },
   };
 
-  const mockUser = {
+  const mockUser: Partial<ContextUser> = {
     id: "user-123",
-  } as unknown as ContextUser;
-  const mockContext: GraphQLContext = {
-    user: mockUser,
-    loaders: {} as Loaders,
+  };
+  const mockContext: Partial<GraphQLContext> = {
+    user: mockUser as ContextUser,
   };
 
   const testExtensionId = "8167c039-9c08-4203-b7d2-9e35ec156993";
@@ -131,7 +129,11 @@ describe("extensionResolvers", () => {
 
   describe("Query.extension", () => {
     it("delegates to `extensionData.getExtension`", async () => {
-      await extensionResolvers.Query.extension(undefined, { id: "abc123" }, mockContext);
+      await extensionResolvers.Query.extension(
+        undefined,
+        { id: "abc123" },
+        mockContext as GraphQLContext
+      );
       expect(getExtension).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
     });
   });
@@ -139,7 +141,11 @@ describe("extensionResolvers", () => {
   describe("Extension.documents", () => {
     it("delegates to `documentData.getManyDocuments`", async () => {
       const mockExtension = { id: "abc123" } as PrismaExtension;
-      await extensionResolvers.Extension.documents(mockExtension, undefined, mockContext);
+      await extensionResolvers.Extension.documents(
+        mockExtension,
+        undefined,
+        mockContext as GraphQLContext
+      );
       expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
         { applicationId: "abc123" },
         mockUser
@@ -263,7 +269,7 @@ describe("extensionResolvers", () => {
       await extensionResolvers.Extension.demonstration(
         { demonstrationId: "abc123" } as PrismaExtension,
         {},
-        mockContext
+        mockContext as GraphQLContext
       );
       expect(getDemonstration).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
     });

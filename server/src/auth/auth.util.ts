@@ -6,13 +6,6 @@ import type { Loaders } from "../loaders";
 
 export interface GraphQLContext {
   user: ContextUser;
-  /**
-   * Per-request DataLoaders used to batch and de-duplicate database reads across
-   * field resolvers (see `../loaders`). Always populated on the real request
-   * path by the Apollo context factory (`createLoaders(user)`); optional so that
-   * unit-test contexts that never exercise loader-backed resolvers need not
-   * construct them.
-   */
   loaders: Loaders;
 }
 

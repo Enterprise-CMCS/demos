@@ -33,7 +33,7 @@ import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment
 import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
 import { createAmendment } from ".";
-import { Loaders } from "../../loaders";
+
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
@@ -106,10 +106,9 @@ describe("amendmentResolvers", () => {
       update: regularMocks.amendment.update,
     },
   };
-  const mockUser = {} as unknown as ContextUser;
-  const mockContext: GraphQLContext = {
-    user: mockUser,
-    loaders: {} as Loaders,
+  const mockUser: Partial<ContextUser> = {};
+  const mockContext: Partial<GraphQLContext> = {
+    user: mockUser as ContextUser,
   };
   const testAmendmentId = "8167c039-9c08-4203-b7d2-9e35ec156993";
   const testAmendmentDescription = "A description of an amendment";
@@ -123,7 +122,11 @@ describe("amendmentResolvers", () => {
 
   describe("Query.amendment", () => {
     it("delegates to amendmentData.getAmendment", async () => {
-      await amendmentResolvers.Query.amendment(undefined, { id: "abc123" }, mockContext);
+      await amendmentResolvers.Query.amendment(
+        undefined,
+        { id: "abc123" },
+        mockContext as GraphQLContext
+      );
       expect(getAmendment).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
     });
   });
@@ -131,7 +134,11 @@ describe("amendmentResolvers", () => {
   describe("Amendment.documents", () => {
     it("delegates to documentData.getManyDocuments", async () => {
       const mockAmendment = { id: "abc123" } as PrismaAmendment;
-      await amendmentResolvers.Amendment.documents(mockAmendment, undefined, mockContext);
+      await amendmentResolvers.Amendment.documents(
+        mockAmendment,
+        undefined,
+        mockContext as GraphQLContext
+      );
       expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
         { applicationId: "abc123" },
         mockUser
@@ -144,7 +151,7 @@ describe("amendmentResolvers", () => {
       await amendmentResolvers.Amendment.demonstration(
         { demonstrationId: "abc123" } as PrismaAmendment,
         {},
-        mockContext
+        mockContext as GraphQLContext
       );
       expect(getDemonstration).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
     });
