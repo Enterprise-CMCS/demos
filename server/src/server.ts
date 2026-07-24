@@ -17,6 +17,7 @@ import type { APIGatewayProxyEvent } from "aws-lambda";
 import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 import { fieldAuthPlugin } from "./plugins/fieldAuthPlugin.js";
 import { formatGraphQLErrorCode } from "./errors/errorCodes.js";
+import { createLoaders } from "./loaders";
 
 log.info({ type: "graphql.startup.loaded" });
 
@@ -97,6 +98,7 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
 
           return {
             ...gqlCtx,
+            loaders: createLoaders(gqlCtx.user),
             lambdaEvent: event,
             lambdaContext: context,
             log: reqLog,

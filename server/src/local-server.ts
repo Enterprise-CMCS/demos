@@ -19,6 +19,7 @@ import { JwtPayload } from "jsonwebtoken";
 import { parseCookie } from "cookie";
 import { fieldAuthPlugin } from "./plugins/fieldAuthPlugin.js";
 import { formatGraphQLErrorCode } from "./errors/errorCodes.js";
+import { createLoaders } from "./loaders";
 
 log.debug("Starting server...");
 
@@ -77,6 +78,7 @@ const { url } = await startStandaloneServer<GraphQLContext>(server, {
 
       return {
         ...ctx,
+        loaders: createLoaders(ctx.user),
         log: reqLog,
       };
     }),

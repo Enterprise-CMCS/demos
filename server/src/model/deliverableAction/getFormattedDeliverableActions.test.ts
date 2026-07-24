@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DeepPartial } from "../../testUtilities";
 
 // Types
-import { DeliverableActionType } from "../../types";
+import { DeliverableAction, DeliverableActionType } from "../../types";
 
 // Functions under test
 import { getFormattedDeliverableActions } from "./getFormattedDeliverableActions";
@@ -14,8 +14,7 @@ vi.mock("../../prismaClient", () => ({
 }));
 
 vi.mock(".", () => ({
-  formatDetailsMessage: vi.fn(),
-  formatFullUserName: vi.fn(),
+  formatDeliverableAction: vi.fn(),
 }));
 
 vi.mock("./queries", () => ({
@@ -23,38 +22,51 @@ vi.mock("./queries", () => ({
 }));
 
 import { prisma } from "../../prismaClient";
-import { formatDetailsMessage, formatFullUserName } from ".";
+import { formatDeliverableAction } from ".";
 import { SelectDeliverableActionRowResult, selectManyDeliverableActions } from "./queries";
 
-describe("selectManyDeliverableActions", () => {
+describe("getFormattedDeliverableActions", () => {
   // Test inputs
   const testDeliverableId = "cd6eb22a-69ce-4ee5-8d32-a9074f5ad4d6";
 
   // Mock return values
   const mockPrismaClient = "I'm a returned client!" as any;
   const mockTransaction = "I'm a transaction!" as any;
+  const testTimestamp = new Date(2026, 3, 23, 20, 20, 39, 131);
   const mockQueryResults: DeepPartial<SelectDeliverableActionRowResult>[] = [
     {
       id: "eafccca7-9b92-435d-8069-d065dbc52d0a",
-      actionTimestamp: new Date(2026, 3, 23, 20, 20, 39, 131),
+      actionTimestamp: testTimestamp,
       actionTypeId: "Manually Changed Due Date" satisfies DeliverableActionType,
     },
     {
       id: "6a43bc82-02e2-419b-8ecb-88805e741766",
-      actionTimestamp: new Date(2026, 3, 23, 20, 20, 39, 131),
+      actionTimestamp: testTimestamp,
       actionTypeId: "Manually Changed Due Date" satisfies DeliverableActionType,
     },
   ];
-  const mockDetails = ["These are test details!", "These are other test details!"];
-  const mockFullName = ["John McUserson (CMS User)", "Jane State (State User)"];
+  const mockFormatted: DeliverableAction[] = [
+    {
+      id: "eafccca7-9b92-435d-8069-d065dbc52d0a",
+      actionTimestamp: testTimestamp,
+      actionType: "Manually Changed Due Date",
+      details: "These are test details!",
+      userFullName: "John McUserson (CMS User)",
+    },
+    {
+      id: "6a43bc82-02e2-419b-8ecb-88805e741766",
+      actionTimestamp: testTimestamp,
+      actionType: "Manually Changed Due Date",
+      details: "These are other test details!",
+      userFullName: "Jane State (State User)",
+    },
+  ];
 
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient);
-    vi.mocked(formatDetailsMessage).mockReturnValueOnce(mockDetails[0]);
-    vi.mocked(formatDetailsMessage).mockReturnValueOnce(mockDetails[1]);
-    vi.mocked(formatFullUserName).mockReturnValueOnce(mockFullName[0]);
-    vi.mocked(formatFullUserName).mockReturnValueOnce(mockFullName[1]);
+    vi.mocked(formatDeliverableAction).mockReturnValueOnce(mockFormatted[0]);
+    vi.mocked(formatDeliverableAction).mockReturnValueOnce(mockFormatted[1]);
     vi.mocked(selectManyDeliverableActions).mockResolvedValue(
       mockQueryResults as SelectDeliverableActionRowResult[]
     );
@@ -76,13 +88,9 @@ describe("selectManyDeliverableActions", () => {
     );
   });
 
-  it("should call the formatting functions using the result of the query", async () => {
+  it("should format each query result via formatDeliverableAction", async () => {
     await getFormattedDeliverableActions(testDeliverableId, mockTransaction);
-    expect(vi.mocked(formatDetailsMessage).mock.calls).toStrictEqual([
-      [mockQueryResults[0]],
-      [mockQueryResults[1]],
-    ]);
-    expect(vi.mocked(formatFullUserName).mock.calls).toStrictEqual([
+    expect(vi.mocked(formatDeliverableAction).mock.calls).toStrictEqual([
       [mockQueryResults[0]],
       [mockQueryResults[1]],
     ]);
@@ -90,21 +98,6 @@ describe("selectManyDeliverableActions", () => {
 
   it("should format the results and return them", async () => {
     const results = await getFormattedDeliverableActions(testDeliverableId, mockTransaction);
-    expect(results).toStrictEqual([
-      {
-        id: mockQueryResults[0].id,
-        actionTimestamp: mockQueryResults[0].actionTimestamp,
-        actionType: mockQueryResults[0].actionTypeId,
-        details: "These are test details!",
-        userFullName: "John McUserson (CMS User)",
-      },
-      {
-        id: mockQueryResults[1].id,
-        actionTimestamp: mockQueryResults[1].actionTimestamp,
-        actionType: mockQueryResults[1].actionTypeId,
-        details: "These are other test details!",
-        userFullName: "Jane State (State User)",
-      },
-    ]);
+    expect(results).toStrictEqual(mockFormatted);
   });
 });

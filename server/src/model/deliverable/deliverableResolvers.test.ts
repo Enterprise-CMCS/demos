@@ -5,6 +5,7 @@ import { DeepPartial } from "../../testUtilities";
 // Types
 import {
   Deliverable as PrismaDeliverable,
+  DeliverableExtension as PrismaDeliverableExtension,
   Demonstration as PrismaDemonstration,
   Document as PrismaDocument,
   DocumentPendingUpload as PrismaDocumentPendingUpload,
@@ -54,30 +55,6 @@ vi.mock(".", () => ({
   updateDeliverable: vi.fn(),
 }));
 
-vi.mock("../document", () => ({
-  getManyDocuments: vi.fn(),
-}));
-
-vi.mock("../deliverableDemonstrationType/queries", () => ({
-  selectManyDeliverableDemonstrationTypes: vi.fn(),
-}));
-
-vi.mock("../deliverableAction", () => ({
-  getFormattedDeliverableActions: vi.fn(),
-}));
-
-vi.mock("../deliverableExtension/queries", () => ({
-  selectManyDeliverableExtensions: vi.fn(),
-}));
-
-vi.mock("../publicComment/queries", () => ({
-  selectManyPublicComments: vi.fn(),
-}));
-
-vi.mock("../privateComment/queries", () => ({
-  selectManyPrivateComments: vi.fn(),
-}));
-
 import {
   approveDeliverableExtension,
   completeDeliverable,
@@ -94,12 +71,6 @@ import {
   getDeliverable,
   getManyDeliverables,
 } from ".";
-import { getManyDocuments } from "../document";
-import { selectManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType/queries";
-import { getFormattedDeliverableActions } from "../deliverableAction";
-import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
-import { selectManyPublicComments } from "../publicComment/queries";
-import { selectManyPrivateComments } from "../privateComment/queries";
 
 describe("deliverableResolvers", () => {
   const testDeliverableId = "82ef9a17-e8b9-48ab-9aaf-3d1787822b13";
@@ -170,6 +141,14 @@ describe("deliverableResolvers", () => {
     stateById: { load: vi.fn() },
     deliverablesByDemonstrationId: { load: vi.fn() },
     deliverablesByCmsOwnerId: { load: vi.fn() },
+    deliverableDemonstrationTypesByDeliverableId: { load: vi.fn() },
+    cmsDocumentsByDeliverableId: { load: vi.fn() },
+    stateDocumentsByDeliverableId: { load: vi.fn() },
+    documentTypesByDeliverableTypeId: { load: vi.fn() },
+    deliverableActionsByDeliverableId: { load: vi.fn() },
+    deliverableExtensionsByDeliverableId: { load: vi.fn() },
+    publicCommentsByDeliverableId: { load: vi.fn() },
+    privateCommentsByDeliverableId: { load: vi.fn() },
   } as unknown as Loaders;
   const mockContext: GraphQLContext = {
     user: mockUser,
@@ -330,36 +309,34 @@ describe("deliverableResolvers", () => {
   });
 
   describe("Deliverable.cmsDocuments", () => {
-    it("delegates to `documentData.getManyDocuments` with CMS filter as true", async () => {
-      const mockDeliverable = { id: testDeliverableId } as PrismaDeliverable;
-      await deliverableResolvers.Deliverable.cmsDocuments(
-        mockDeliverable,
+    it("delegates to the cmsDocumentsByDeliverableId loader", async () => {
+      const documents = [{ id: "doc1" }] as PrismaDocument[];
+      vi.mocked(mockLoaders.cmsDocumentsByDeliverableId.load).mockResolvedValue(documents);
+      const result = await deliverableResolvers.Deliverable.cmsDocuments(
+        { id: testDeliverableId } as PrismaDeliverable,
         undefined,
-        testContext as GraphQLContext
+        mockContext
       );
-      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
-        {
-          AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: true }],
-        },
-        testContext.user
+      expect(mockLoaders.cmsDocumentsByDeliverableId.load).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId
       );
+      expect(result).toBe(documents);
     });
   });
 
   describe("Deliverable.stateDocuments", () => {
-    it("delegates to `documentData.getManyDocuments` with CMS filter as false", async () => {
-      const mockDeliverable = { id: testDeliverableId } as PrismaDeliverable;
-      await deliverableResolvers.Deliverable.stateDocuments(
-        mockDeliverable,
+    it("delegates to the stateDocumentsByDeliverableId loader", async () => {
+      const documents = [{ id: "doc1" }] as PrismaDocument[];
+      vi.mocked(mockLoaders.stateDocumentsByDeliverableId.load).mockResolvedValue(documents);
+      const result = await deliverableResolvers.Deliverable.stateDocuments(
+        { id: testDeliverableId } as PrismaDeliverable,
         undefined,
-        testContext as GraphQLContext
+        mockContext
       );
-      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
-        {
-          AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: false }],
-        },
-        testContext.user
+      expect(mockLoaders.stateDocumentsByDeliverableId.load).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId
       );
+      expect(result).toBe(documents);
     });
   });
 
@@ -678,7 +655,7 @@ describe("deliverableResolvers", () => {
     });
 
     describe("Deliverable.demonstrationTypes", () => {
-      it("should query the demonstration types of the parent deliverable", async () => {
+      it("maps the deliverableDemonstrationTypesByDeliverableId loader result", async () => {
         const mockDeliverableDemonstrationTypeQueryResult: DeliverableDemonstrationTypeQueryResult[] =
           [
             {
@@ -698,16 +675,18 @@ describe("deliverableResolvers", () => {
               },
             },
           ] as DeliverableDemonstrationTypeQueryResult[];
-        vi.mocked(selectManyDeliverableDemonstrationTypes).mockResolvedValue(
-          mockDeliverableDemonstrationTypeQueryResult
-        );
+        vi.mocked(
+          mockLoaders.deliverableDemonstrationTypesByDeliverableId.load
+        ).mockResolvedValue(mockDeliverableDemonstrationTypeQueryResult);
 
         const result = await deliverableResolvers.Deliverable.demonstrationTypes(
-          testDeliverable as PrismaDeliverable
+          testDeliverable as PrismaDeliverable,
+          undefined,
+          mockContext
         );
-        expect(selectManyDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith({
-          deliverableId: testDeliverableId,
-        });
+        expect(
+          mockLoaders.deliverableDemonstrationTypesByDeliverableId.load
+        ).toHaveBeenCalledExactlyOnceWith(testDeliverableId);
         expect(result).toStrictEqual([
           {
             approvalStatus: "Approved",
@@ -722,42 +701,67 @@ describe("deliverableResolvers", () => {
     });
 
     describe("Deliverable.deliverableActions", () => {
-      it("should query the deliverable actions of the parent deliverable", async () => {
-        await deliverableResolvers.Deliverable.deliverableActions(
-          testDeliverable as PrismaDeliverable
+      it("delegates to the deliverableActionsByDeliverableId loader", async () => {
+        vi.mocked(mockLoaders.deliverableActionsByDeliverableId.load).mockResolvedValue([]);
+        const result = await deliverableResolvers.Deliverable.deliverableActions(
+          testDeliverable as PrismaDeliverable,
+          undefined,
+          mockContext
         );
-        expect(getFormattedDeliverableActions).toHaveBeenCalledExactlyOnceWith(testDeliverableId);
+        expect(mockLoaders.deliverableActionsByDeliverableId.load).toHaveBeenCalledExactlyOnceWith(
+          testDeliverableId
+        );
+        expect(result).toEqual([]);
       });
     });
 
     describe("Deliverable.extensionRequests", () => {
-      it("should query the extension requests of the parent deliverable", async () => {
-        await deliverableResolvers.Deliverable.extensionRequests(
-          testDeliverable as PrismaDeliverable
+      it("delegates to the deliverableExtensionsByDeliverableId loader", async () => {
+        const extensions = [{ id: "extension1" }] as PrismaDeliverableExtension[];
+        vi.mocked(mockLoaders.deliverableExtensionsByDeliverableId.load).mockResolvedValue(
+          extensions
         );
-        expect(selectManyDeliverableExtensions).toHaveBeenCalledExactlyOnceWith({
-          deliverableId: testDeliverableId,
-        });
+        const result = await deliverableResolvers.Deliverable.extensionRequests(
+          testDeliverable as PrismaDeliverable,
+          undefined,
+          mockContext
+        );
+        expect(
+          mockLoaders.deliverableExtensionsByDeliverableId.load
+        ).toHaveBeenCalledExactlyOnceWith(testDeliverableId);
+        expect(result).toBe(extensions);
       });
     });
 
     describe("Deliverable.publicComments", () => {
-      it("should query the public comments of the parent deliverable", async () => {
-        await deliverableResolvers.Deliverable.publicComments(testDeliverable as PrismaDeliverable);
-        expect(selectManyPublicComments).toHaveBeenCalledExactlyOnceWith({
-          deliverableId: testDeliverableId,
-        });
+      it("delegates to the publicCommentsByDeliverableId loader", async () => {
+        const comments = [{ id: "comment1" }] as PrismaPublicComment[];
+        vi.mocked(mockLoaders.publicCommentsByDeliverableId.load).mockResolvedValue(comments);
+        const result = await deliverableResolvers.Deliverable.publicComments(
+          testDeliverable as PrismaDeliverable,
+          undefined,
+          mockContext
+        );
+        expect(mockLoaders.publicCommentsByDeliverableId.load).toHaveBeenCalledExactlyOnceWith(
+          testDeliverableId
+        );
+        expect(result).toBe(comments);
       });
     });
 
     describe("Deliverable.privateComments", () => {
-      it("should query the private comments of the parent deliverable", async () => {
-        await deliverableResolvers.Deliverable.privateComments(
-          testDeliverable as PrismaDeliverable
+      it("delegates to the privateCommentsByDeliverableId loader", async () => {
+        const comments = [{ id: "comment1" }] as PrismaPrivateComment[];
+        vi.mocked(mockLoaders.privateCommentsByDeliverableId.load).mockResolvedValue(comments);
+        const result = await deliverableResolvers.Deliverable.privateComments(
+          testDeliverable as PrismaDeliverable,
+          undefined,
+          mockContext
         );
-        expect(selectManyPrivateComments).toHaveBeenCalledExactlyOnceWith({
-          deliverableId: testDeliverableId,
-        });
+        expect(mockLoaders.privateCommentsByDeliverableId.load).toHaveBeenCalledExactlyOnceWith(
+          testDeliverableId
+        );
+        expect(result).toBe(comments);
       });
     });
   });
