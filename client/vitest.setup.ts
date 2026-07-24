@@ -1,5 +1,16 @@
 // Import DOM testing library for Jest, to be used by all test files
 import "@testing-library/jest-dom";
+import { beforeEach } from "vitest";
+
+const clearWebStorage = () => {
+  if (typeof window === "undefined") return;
+  window.localStorage.clear();
+  window.sessionStorage.clear();
+};
+
+beforeEach(() => {
+  clearWebStorage();
+});
 
 // Polyfill RegExp.escape (TC39 proposal, not yet available in jsdom)
 if (!("escape" in RegExp)) {

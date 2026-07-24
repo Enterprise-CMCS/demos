@@ -24,7 +24,7 @@ vi.mock("@escape.tech/graphql-armor", () => ({ ApolloArmor: ApolloArmorMock }));
 
 vi.mock("./model/graphql.js", () => ({ typeDefs: [], resolvers: {} }));
 vi.mock("./auth", () => ({
-  buildContextFromClaims: vi.fn(async () => ({ user: { id: "user-1" } })),
+  buildContextUserFromClaims: vi.fn(async () => ({ id: "user-1" })),
   decodeToken: vi.fn(),
   validateClaims: validateClaimsMock,
   validatePersonTypeInClaim: vi.fn(),
