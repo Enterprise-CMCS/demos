@@ -228,8 +228,17 @@ export const demonstrationRoleAssigmentResolvers = {
       return person;
     },
     role: (parent: PrismaDemonstrationRoleAssignment): Role => parent.roleId as Role,
-    demonstration: (parent: PrismaDemonstrationRoleAssignment): Promise<Demonstration> =>
-      selectDemonstrationOrThrow({ id: parent.demonstrationId }),
+    demonstration: async (
+      parent: PrismaDemonstrationRoleAssignment,
+      _args: unknown,
+      context: GraphQLContext
+    ): Promise<Demonstration> => {
+      const demonstration = await context.loaders.demonstrationById.load(parent.demonstrationId);
+      if (!demonstration) {
+        throw new Error("No demonstration found matching the provided filter");
+      }
+      return demonstration;
+    },
     isPrimary: async (parent: PrismaDemonstrationRoleAssignment): Promise<boolean> => {
       return !!(await prisma().primaryDemonstrationRoleAssignment.findUnique({
         where: {
