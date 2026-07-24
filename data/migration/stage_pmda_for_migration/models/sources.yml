@@ -4165,6 +4165,8 @@ sources:
             data_type: integer
 
       - name: mdcd_dlvrbl_stus_rfrnc
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_dlvrbl_stus_cd
             data_type: integer
