@@ -28,7 +28,7 @@ vi.mock("./model/graphql.js", () => ({ typeDefs: [], resolvers: {} }));
 vi.mock("./plugins/logging.plugin", () => ({ loggingPlugin: {} }));
 vi.mock("./plugins/graphQLArmorConfig.js", () => ({ GraphQLArmorConfig: { __sentinel: true } }));
 vi.mock("./auth", () => ({
-  buildContextFromClaims: vi.fn(async () => ({ user: { id: "user-1" } })),
+  buildContextUserFromClaims: vi.fn(async () => ({ id: "user-1" })),
   validateClaims: validateClaimsMock,
   validatePersonTypeInClaim: vi.fn(),
 }));

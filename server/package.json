@@ -22,6 +22,7 @@
     "@prisma/client": "^7.8.0",
     "content-disposition": "^2.0.1",
     "cookie": "^1.1.1",
+    "dataloader": "^2.2.3",
     "date-fns": "^4.4.0",
     "demos-shared-library": "file:../shared_library",
     "dotenv": "^17.4.2",
