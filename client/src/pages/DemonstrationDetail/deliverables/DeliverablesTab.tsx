@@ -6,7 +6,7 @@ import { useDialog } from "components/dialog/DialogContext";
 import { AddDeliverableSlotDemonstration } from "components/dialog/deliverable/AddDeliverableSlotDialog";
 import { DemonstrationDeliverableTable } from "components/table/tables/DemonstrationDeliverableTable";
 import { getCurrentUser } from "components/user/UserContext";
-import type { Tag, UserType } from "demos-server";
+import type { UserType } from "demos-server";
 import { type DeliverablesQueryResult } from "components/table/tables/DeliverableTable";
 import { gql, useQuery } from "@apollo/client";
 import { useNavigate } from "react-router-dom";
