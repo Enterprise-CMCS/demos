@@ -39,7 +39,11 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
     ...rest
   } = props;
 
-  const { loading, error, data } = useQuery(SELECT_DEMONSTRATION_TYPE_QUERY);
+  const { loading, error, data } = useQuery(SELECT_DEMONSTRATION_TYPE_QUERY, {
+    // Revalidate options on mount so newly created types are visible across workflows.
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
+  });
 
   const fetchedOptions = data?.demonstrationTypeOptions || [];
   const allOptions = [...fetchedOptions, ...createdOptions];
