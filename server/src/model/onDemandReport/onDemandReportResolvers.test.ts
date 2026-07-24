@@ -71,10 +71,14 @@ import { handlePrismaError } from "../../errors/handlePrismaError";
 import { log } from "../../log";
 import { getEasternNow } from "../../dateUtilities";
 import { generateOnDemandReportFileName } from "./generateOnDemandReportFileName";
+import { Loaders } from "../../loaders";
 
 describe("onDemandReportResolvers", () => {
   const testContextUser: Partial<ContextUser> = { id: "user-123" };
-  const testContext: GraphQLContext = { user: testContextUser as ContextUser };
+  const testContext: GraphQLContext = {
+    user: testContextUser as ContextUser,
+    loaders: {} as Loaders,
+  };
   const testReportType: OnDemandReportType = "Basic Test Report";
 
   const mockEasternNow: Partial<EasternNow> = {

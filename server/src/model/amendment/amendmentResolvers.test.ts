@@ -33,6 +33,7 @@ import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment
 import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
 import { createAmendment } from ".";
+import { Loaders } from "../../loaders";
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
@@ -108,6 +109,7 @@ describe("amendmentResolvers", () => {
   const mockUser = {} as unknown as ContextUser;
   const mockContext: GraphQLContext = {
     user: mockUser,
+    loaders: {} as Loaders,
   };
   const testAmendmentId = "8167c039-9c08-4203-b7d2-9e35ec156993";
   const testAmendmentDescription = "A description of an amendment";

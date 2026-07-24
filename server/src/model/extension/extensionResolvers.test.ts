@@ -36,6 +36,7 @@ import { selectManyApplicationTagAssignments } from "../applicationTagAssignment
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
 import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
 import { createExtension } from ".";
+import { Loaders } from "../../loaders";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -115,6 +116,7 @@ describe("extensionResolvers", () => {
   } as unknown as ContextUser;
   const mockContext: GraphQLContext = {
     user: mockUser,
+    loaders: {} as Loaders,
   };
 
   const testExtensionId = "8167c039-9c08-4203-b7d2-9e35ec156993";

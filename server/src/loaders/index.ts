@@ -202,7 +202,8 @@ export function createLoaders(user: ContextUser): Loaders {
       (deliverableDemonstrationType) => deliverableDemonstrationType.deliverableId
     ),
     deliverableExtensionsByDeliverableId: byForeignKeyLoader(
-      (deliverableIds) => selectManyDeliverableExtensions({ deliverableId: { in: deliverableIds } }),
+      (deliverableIds) =>
+        selectManyDeliverableExtensions({ deliverableId: { in: deliverableIds } }),
       (extension) => extension.deliverableId
     ),
     publicCommentsByDeliverableId: byForeignKeyLoader(
@@ -273,17 +274,4 @@ export function createLoaders(user: ContextUser): Loaders {
       (document) => document.deliverableId!
     ),
   };
-}
-
-/**
- * Returns the request's DataLoaders, throwing if the context was constructed
- * without them. Loaders are optional on the GraphQL context so that existing
- * unit-test contexts need not construct them, but the real request path always
- * sets them in the Apollo context factory.
- */
-export function requireLoaders(context: { loaders?: Loaders }): Loaders {
-  if (!context.loaders) {
-    throw new Error("GraphQL context was constructed without DataLoaders.");
-  }
-  return context.loaders;
 }

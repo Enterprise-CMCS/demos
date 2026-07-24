@@ -13,7 +13,7 @@ export interface GraphQLContext {
    * unit-test contexts that never exercise loader-backed resolvers need not
    * construct them.
    */
-  loaders?: Loaders;
+  loaders: Loaders;
 }
 
 export type AuthorizationClaims = {
@@ -85,8 +85,8 @@ export function validateClaims(
   }
 }
 
-export async function buildContextFromClaims(claims: AuthorizationClaims): Promise<GraphQLContext> {
-  return {
-    user: await findOrCreateContextUserFromClaims(claims),
-  };
+export async function buildContextUserFromClaims(
+  claims: AuthorizationClaims
+): Promise<ContextUser> {
+  return await findOrCreateContextUserFromClaims(claims);
 }

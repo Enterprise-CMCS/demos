@@ -5,7 +5,7 @@ import {
   Document as PrismaDocument,
 } from "@prisma/client";
 import type { ContextUser } from "../auth";
-import { createLoaders, requireLoaders } from ".";
+import { createLoaders } from ".";
 import { selectManyDemonstrations } from "../model/demonstration/queries/selectManyDemonstrations";
 import { selectManyDeliverables } from "../model/deliverable/queries/selectManyDeliverables";
 import { selectManyStates } from "../model/state/queries/selectManyStates";
@@ -159,18 +159,5 @@ describe("createLoaders", () => {
     ]);
     expect(type1).toEqual(["General File", "Signed Approval Package"]);
     expect(type2).toEqual([]);
-  });
-});
-
-describe("requireLoaders", () => {
-  it("returns the loaders when present", () => {
-    const loaders = createLoaders(mockUser);
-    expect(requireLoaders({ loaders })).toBe(loaders);
-  });
-
-  it("throws when loaders are missing", () => {
-    expect(() => requireLoaders({})).toThrow(
-      "GraphQL context was constructed without DataLoaders."
-    );
   });
 });

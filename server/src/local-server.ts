@@ -6,7 +6,7 @@ import { typeDefs, resolvers } from "./model/graphql.js";
 import {
   type AuthorizationClaims,
   type GraphQLContext,
-  buildContextFromClaims,
+  buildContextUserFromClaims,
   decodeToken,
   validateClaims,
   validatePersonTypeInClaim,
@@ -65,7 +65,7 @@ const { url } = await startStandaloneServer<GraphQLContext>(server, {
       const decodedToken = await decodeToken(token);
       const claims = extractClaimsFromDecodedToken(decodedToken);
       validatePersonTypeInClaim(claims);
-      const ctx = await buildContextFromClaims(claims);
+      const ctx = { user: await buildContextUserFromClaims(claims) };
 
       const requestId = (req.headers["x-request-id"] as string | undefined) || randomUUID();
       const additionalContext = {

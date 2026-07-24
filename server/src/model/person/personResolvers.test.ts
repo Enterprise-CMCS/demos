@@ -5,6 +5,7 @@ import { Person as PrismaPerson } from "@prisma/client";
 // Mock imports
 import { ContextUser, GraphQLContext } from "../../auth";
 import { getManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment";
+import { Loaders } from "../../loaders";
 
 vi.mock("../demonstrationRoleAssignment", () => ({
   getManyDemonstrationRoleAssignments: vi.fn(),
@@ -13,6 +14,7 @@ vi.mock("../demonstrationRoleAssignment", () => ({
 const mockUser = {} as unknown as ContextUser;
 const mockContext: GraphQLContext = {
   user: mockUser,
+  loaders: {} as Loaders,
 };
 
 describe("applicationPhaseResolvers", () => {
