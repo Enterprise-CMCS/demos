@@ -40,7 +40,7 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
   } = props;
 
   const { loading, error, data } = useQuery(SELECT_DEMONSTRATION_TYPE_QUERY, {
-    // Revalidate options on mount so newly created types are visible across workflows.
+    // retreive demos types tags between demonstration/extension/amendment workflows.
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
   });

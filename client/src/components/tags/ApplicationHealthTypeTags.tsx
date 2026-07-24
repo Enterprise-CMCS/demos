@@ -48,7 +48,7 @@ export const ApplicationHealthTypeTags = ({
   const { showApplyTagsDialog } = useDialog();
 
   const { data, loading, error } = useQuery(GET_APPLICATION_TAG_OPTIONS, {
-    // Keep options fresh when navigating between demonstration/amendment workflows.
+    // retreive demos types tags between demonstration/extension/amendment workflows.
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
   });
