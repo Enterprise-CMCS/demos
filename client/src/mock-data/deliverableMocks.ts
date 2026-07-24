@@ -17,6 +17,7 @@ export const MOCK_DELIVERABLE_TABLE_ROW: DeliverableTableRow = {
     name: "Dusty Demo",
     state: {
       id: "CA",
+      name: "California",
     },
     demonstrationTypes: [],
   },
@@ -46,6 +47,7 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
     expirationDate: new Date("2026-12-31"),
     state: {
       id: "CA",
+      name: "California",
     },
     demonstrationTypes: [],
   },
