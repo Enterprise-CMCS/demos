@@ -21,6 +21,7 @@ import {
 import {
   ApplicationTagSuggestion as PrismaApplicationTagSuggestion,
   Demonstration as PrismaDemonstration,
+  State as PrismaState,
 } from "@prisma/client";
 import { TZDate } from "@date-fns/tz";
 
@@ -40,6 +41,7 @@ import {
 import { parseDateTimeOrLocalDateToEasternTZDate, EasternTZDate } from "../../dateUtilities";
 import { getDemonstration, getManyDemonstrations } from "./demonstrationData";
 import { ContextUser, GraphQLContext } from "../../auth";
+import { Loaders } from "../../loaders";
 import { getManyAmendments } from "../amendment";
 import { getManyExtensions } from "../extension";
 import { getManyDocuments } from "../document";
@@ -58,7 +60,6 @@ import {
 import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
 import { DemonstrationRoleAssignmentQueryResult } from "../demonstrationRoleAssignment/queries";
 import { selectPersonOrThrow } from "../person/queries";
-import { selectStateOrThrow } from "../state/queries";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -105,10 +106,6 @@ vi.mock("../demonstrationRoleAssignment/queries", () => ({
 
 vi.mock("../person/queries", () => ({
   selectPersonOrThrow: vi.fn(),
-}));
-
-vi.mock("../state/queries", () => ({
-  selectStateOrThrow: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -193,8 +190,13 @@ describe("demonstrationResolvers", () => {
     },
   };
   const mockUser = {} as unknown as ContextUser;
+  const mockLoaders = {
+    stateById: { load: vi.fn() },
+    deliverablesByDemonstrationId: { load: vi.fn() },
+  } as unknown as Loaders;
   const mockContext: GraphQLContext = {
     user: mockUser,
+    loaders: mockLoaders,
   };
 
   type TestValues = {
@@ -437,9 +439,16 @@ describe("demonstrationResolvers", () => {
   });
 
   describe("Demonstration.state", () => {
-    it("delegates to stateData.getState", async () => {
-      await demonstrationResolvers.Demonstration.state({ stateId: "NC" } as PrismaDemonstration);
-      expect(selectStateOrThrow).toHaveBeenCalledExactlyOnceWith({ id: "NC" });
+    it("delegates to the stateById loader", async () => {
+      const mockState = { id: "NC" } as PrismaState;
+      vi.mocked(mockLoaders.stateById.load).mockResolvedValue(mockState);
+      const result = await demonstrationResolvers.Demonstration.state(
+        { stateId: "NC" } as PrismaDemonstration,
+        undefined,
+        mockContext
+      );
+      expect(mockLoaders.stateById.load).toHaveBeenCalledExactlyOnceWith("NC");
+      expect(result).toBe(mockState);
     });
   });
 

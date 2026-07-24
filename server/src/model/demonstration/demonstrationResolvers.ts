@@ -48,8 +48,8 @@ import {
 } from "../demonstrationRoleAssignment/queries";
 import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
 import { selectPersonOrThrow } from "../person/queries";
-import { selectStateOrThrow } from "../state/queries";
 import { CHIP_DEMONSTRATION_TYPE_TAG_NAME } from "../../constants";
+import { requireLoaders } from "../../loaders";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -246,8 +246,17 @@ export const demonstrationResolvers = {
   },
 
   Demonstration: {
-    state: (parent: PrismaDemonstration): Promise<PrismaState> =>
-      selectStateOrThrow({ id: parent.stateId }),
+    state: async (
+      parent: PrismaDemonstration,
+      _args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaState> => {
+      const state = await requireLoaders(context).stateById.load(parent.stateId);
+      if (!state) {
+        throw new Error("No state found matching the provided filter");
+      }
+      return state;
+    },
     documents: (
       parent: PrismaDemonstration,
       args: unknown,

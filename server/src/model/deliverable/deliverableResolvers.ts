@@ -10,6 +10,7 @@ import {
   User as PrismaUser,
 } from "@prisma/client";
 import { GraphQLContext } from "../../auth";
+import { requireLoaders } from "../../loaders";
 import { GraphQLResolveInfo } from "graphql";
 import {
   approveDeliverableExtension,
@@ -25,7 +26,6 @@ import {
   getDeliverable,
   getManyDeliverables,
   selectDeliverable,
-  selectManyDeliverables,
   selectDeliverableOrThrow,
 } from ".";
 import {
@@ -44,14 +44,12 @@ import {
   TagStatus,
   UpdateDeliverableInput,
 } from "../../types";
-import { selectUserOrThrow } from "../user/queries";
 import { getManyDocuments } from "../document";
 import { getFormattedDeliverableActions } from "../deliverableAction";
 import { selectManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType/queries";
 import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
 import { selectManyPublicComments } from "../publicComment/queries";
 import { selectManyPrivateComments } from "../privateComment/queries";
-import { selectDemonstrationOrThrow } from "../demonstration/queries";
 import { selectDocumentTypesForDeliverableType } from "../deliverableTypeDocumentType/selectDocumentTypesForDeliverableType";
 
 export async function resolveDeliverable(
@@ -87,20 +85,15 @@ export async function resolveManyDeliverables(
   info: GraphQLResolveInfo
 ): Promise<PrismaDeliverable[]> {
   const parentType = info.parentType.name;
-  let filter: Prisma.DeliverableWhereInput;
 
   switch (parentType) {
     case Prisma.ModelName.Demonstration:
-      filter = { demonstrationId: parent.id };
-      break;
+      return requireLoaders(context).deliverablesByDemonstrationId.load(parent.id);
     case Prisma.ModelName.User:
-      filter = { cmsOwnerUserId: parent.id };
-      break;
+      return requireLoaders(context).deliverablesByCmsOwnerId.load(parent.id);
     default:
       throw new Error(`Unsupported parent type: ${parentType}`);
   }
-
-  return selectManyDeliverables(filter);
 }
 
 export const deliverableResolvers = {
@@ -194,12 +187,33 @@ export const deliverableResolvers = {
     deliverableType: (parent: PrismaDeliverable): DeliverableType => {
       return parent.deliverableTypeId as DeliverableType;
     },
-    demonstration: (parent: PrismaDeliverable): Promise<PrismaDemonstration> =>
-      selectDemonstrationOrThrow({ id: parent.demonstrationId }),
+    demonstration: async (
+      parent: PrismaDeliverable,
+      _args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaDemonstration> => {
+      const demonstration = await requireLoaders(context).demonstrationById.load(
+        parent.demonstrationId
+      );
+      if (!demonstration) {
+        throw new Error("No demonstration found matching the provided filter");
+      }
+      return demonstration;
+    },
     status: (parent: PrismaDeliverable): DeliverableStatus => {
       return parent.statusId as DeliverableStatus;
     },
-    cmsOwner: (parent: PrismaDeliverable) => selectUserOrThrow({ id: parent.cmsOwnerUserId }),
+    cmsOwner: async (
+      parent: PrismaDeliverable,
+      _args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaUser> => {
+      const user = await requireLoaders(context).userById.load(parent.cmsOwnerUserId);
+      if (!user) {
+        throw new Error("No user found matching the provided filter");
+      }
+      return user;
+    },
     dueDateType: (parent: PrismaDeliverable): DeliverableDueDateType => {
       return parent.dueDateTypeId as DeliverableDueDateType;
     },

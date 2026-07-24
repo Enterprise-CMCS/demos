@@ -13,6 +13,7 @@ import {
   PublicComment as PrismaPublicComment,
 } from "@prisma/client";
 import { ContextUser, GraphQLContext } from "../../auth";
+import { Loaders } from "../../loaders";
 import { GraphQLResolveInfo } from "graphql";
 import {
   ApproveDeliverableExtensionInput,
@@ -53,14 +54,6 @@ vi.mock(".", () => ({
   updateDeliverable: vi.fn(),
 }));
 
-vi.mock("../demonstration/queries", () => ({
-  selectDemonstrationOrThrow: vi.fn(),
-}));
-
-vi.mock("../user/queries", () => ({
-  selectUserOrThrow: vi.fn(),
-}));
-
 vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
 }));
@@ -97,19 +90,16 @@ import {
   submitDeliverable,
   updateDeliverable,
   selectDeliverable,
-  selectManyDeliverables,
   selectDeliverableOrThrow,
   getDeliverable,
   getManyDeliverables,
 } from ".";
-import { selectUserOrThrow } from "../user/queries";
 import { getManyDocuments } from "../document";
 import { selectManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType/queries";
 import { getFormattedDeliverableActions } from "../deliverableAction";
 import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
 import { selectManyPublicComments } from "../publicComment/queries";
 import { selectManyPrivateComments } from "../privateComment/queries";
-import { selectDemonstrationOrThrow } from "../demonstration/queries";
 
 describe("deliverableResolvers", () => {
   const testDeliverableId = "82ef9a17-e8b9-48ab-9aaf-3d1787822b13";
@@ -174,8 +164,16 @@ describe("deliverableResolvers", () => {
   };
 
   const mockUser = {} as unknown as ContextUser;
+  const mockLoaders = {
+    demonstrationById: { load: vi.fn() },
+    userById: { load: vi.fn() },
+    stateById: { load: vi.fn() },
+    deliverablesByDemonstrationId: { load: vi.fn() },
+    deliverablesByCmsOwnerId: { load: vi.fn() },
+  } as unknown as Loaders;
   const mockContext: GraphQLContext = {
     user: mockUser,
+    loaders: mockLoaders,
   };
 
   beforeEach(() => {
@@ -366,10 +364,17 @@ describe("deliverableResolvers", () => {
   });
 
   describe("Deliverable.cmsOwner", () => {
-    it("delegates to `userData/queries.selectUserOrThrow`", async () => {
+    it("delegates to the userById loader", async () => {
       const mockDeliverable = { cmsOwnerUserId: testUserId } as PrismaDeliverable;
-      await deliverableResolvers.Deliverable.cmsOwner(mockDeliverable);
-      expect(selectUserOrThrow).toHaveBeenCalledExactlyOnceWith({ id: testUserId });
+      const mockOwner = { id: testUserId } as PrismaUser;
+      vi.mocked(mockLoaders.userById.load).mockResolvedValue(mockOwner);
+      const result = await deliverableResolvers.Deliverable.cmsOwner(
+        mockDeliverable,
+        undefined,
+        mockContext
+      );
+      expect(mockLoaders.userById.load).toHaveBeenCalledExactlyOnceWith(testUserId);
+      expect(result).toBe(mockOwner);
     });
   });
 
@@ -530,38 +535,45 @@ describe("deliverableResolvers", () => {
         resolveManyDeliverables(
           testDemonstrationParent as PrismaDemonstration,
           {} as unknown,
-          {} as GraphQLContext,
+          mockContext,
           testDocumentInfo as GraphQLResolveInfo
         )
       ).rejects.toThrow("Unsupported parent type: Document");
-      expect(selectManyDeliverables).not.toHaveBeenCalled();
+      expect(mockLoaders.deliverablesByDemonstrationId.load).not.toHaveBeenCalled();
+      expect(mockLoaders.deliverablesByCmsOwnerId.load).not.toHaveBeenCalled();
     });
 
     describe("Parent: Demonstration", () => {
-      it("should query for a demonstration ID", async () => {
-        await resolveManyDeliverables(
+      it("should load deliverables via the deliverablesByDemonstrationId loader", async () => {
+        const deliverables = [{ id: testDeliverableId }] as PrismaDeliverable[];
+        vi.mocked(mockLoaders.deliverablesByDemonstrationId.load).mockResolvedValue(deliverables);
+        const result = await resolveManyDeliverables(
           testDemonstrationParent as PrismaDemonstration,
           {} as unknown,
-          mockContext as GraphQLContext,
+          mockContext,
           testDemonstrationInfo as GraphQLResolveInfo
         );
-        expect(selectManyDeliverables).toHaveBeenCalledExactlyOnceWith({
-          demonstrationId: testDemonstrationId,
-        });
+        expect(mockLoaders.deliverablesByDemonstrationId.load).toHaveBeenCalledExactlyOnceWith(
+          testDemonstrationId
+        );
+        expect(result).toBe(deliverables);
       });
     });
 
     describe("Parent: User", () => {
-      it("should query for a owner user ID", async () => {
-        await resolveManyDeliverables(
+      it("should load deliverables via the deliverablesByCmsOwnerId loader", async () => {
+        const deliverables = [{ id: testDeliverableId }] as PrismaDeliverable[];
+        vi.mocked(mockLoaders.deliverablesByCmsOwnerId.load).mockResolvedValue(deliverables);
+        const result = await resolveManyDeliverables(
           testUserParent as PrismaUser,
           {} as unknown,
-          mockContext as GraphQLContext,
+          mockContext,
           testUserInfo as GraphQLResolveInfo
         );
-        expect(selectManyDeliverables).toHaveBeenCalledExactlyOnceWith({
-          cmsOwnerUserId: testUserId,
-        });
+        expect(mockLoaders.deliverablesByCmsOwnerId.load).toHaveBeenCalledExactlyOnceWith(
+          testUserId
+        );
+        expect(result).toBe(deliverables);
       });
     });
   });
@@ -603,11 +615,18 @@ describe("deliverableResolvers", () => {
   });
 
   describe("Deliverable.demonstration", () => {
-    it("should defer to demonstration/queries.selectDemonstrationOrThrow", async () => {
-      await deliverableResolvers.Deliverable.demonstration(testDeliverable as PrismaDeliverable);
-      expect(selectDemonstrationOrThrow).toHaveBeenCalledExactlyOnceWith({
-        id: testDemonstrationId,
-      });
+    it("loads the parent demonstration via the demonstrationById loader", async () => {
+      const mockDemonstration = { id: testDemonstrationId } as PrismaDemonstration;
+      vi.mocked(mockLoaders.demonstrationById.load).mockResolvedValue(mockDemonstration);
+      const result = await deliverableResolvers.Deliverable.demonstration(
+        testDeliverable as PrismaDeliverable,
+        undefined,
+        mockContext
+      );
+      expect(mockLoaders.demonstrationById.load).toHaveBeenCalledExactlyOnceWith(
+        testDemonstrationId
+      );
+      expect(result).toBe(mockDemonstration);
     });
   });
 

@@ -2,9 +2,17 @@ import { CustomInternalErrorCode, throwCustomGQLError } from "../errors/errorCod
 import { log } from "../log";
 import type { ContextUser } from "./user";
 import { findOrCreateContextUserFromClaims } from "./user";
+import { createLoaders, type Loaders } from "../loaders";
 
 export interface GraphQLContext {
   user: ContextUser;
+  /**
+   * Per-request DataLoaders used to batch and de-duplicate database reads across
+   * field resolvers (see `../loaders`). Always populated on the real request
+   * path by {@link buildContextFromClaims}; optional so that unit-test contexts
+   * that never exercise loader-backed resolvers need not construct them.
+   */
+  loaders?: Loaders;
 }
 
 export type AuthorizationClaims = {
@@ -79,5 +87,6 @@ export function validateClaims(
 export async function buildContextFromClaims(claims: AuthorizationClaims): Promise<GraphQLContext> {
   return {
     user: await findOrCreateContextUserFromClaims(claims),
+    loaders: createLoaders(),
   };
 }
