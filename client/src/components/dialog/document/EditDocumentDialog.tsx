@@ -7,6 +7,7 @@ import { BaseDialog } from "../BaseDialog";
 import { UploadButton } from "./UploadButton";
 import { useToast } from "components/toast";
 import { useDialog } from "../DialogContext";
+import { useValidation, ValidationSchema } from "hooks/useValidation";
 
 type Document = Pick<ServerDocument, "id" | "name" | "description">;
 const UPDATE_SUCCESS_MESSAGE = "Your document has been updated.";
@@ -32,7 +33,9 @@ export const hasChanges = (initialDocument: Document, activeDocument: Document):
   );
 };
 
-export const isValid = (document: Document): boolean => !!document.name.trim();
+const validation: ValidationSchema<Document> = {
+  name: [(formData) => (formData.name.trim() ? undefined : "Document Title is required.")],
+};
 
 export const EditDocumentDialog: React.FC<{
   document: Document;
@@ -42,6 +45,7 @@ export const EditDocumentDialog: React.FC<{
   const [activeDocument, setActiveDocument] = React.useState<Document>(document);
   const { showSuccess, showError } = useToast();
 
+  const { isValid, errors } = useValidation(activeDocument, validation);
   const [updateDocument, { loading: saving }] = useMutation<{ updateDocument: Document }>(
     UPDATE_DOCUMENT_QUERY
   );
@@ -75,7 +79,7 @@ export const EditDocumentDialog: React.FC<{
         actionButton={
           <UploadButton
             onClick={handleUpdate}
-            disabled={!isValid(activeDocument) || saving || !hasChanges(document, activeDocument)}
+            disabled={!isValid || saving || !hasChanges(document, activeDocument)}
             isUploading={saving}
             label={"Save Changes"}
             loadingLabel={"Saving"}
@@ -88,6 +92,7 @@ export const EditDocumentDialog: React.FC<{
           onChange={(val) => {
             setActiveDocument((prev) => ({ ...prev, name: val }));
           }}
+          validationMessage={errors.name}
         />
 
         <DescriptionInput

@@ -172,6 +172,24 @@ describe("AutoCompleteSelect", () => {
     expect(screen.getByDisplayValue("Banana")).toBeInTheDocument();
   });
 
+  it("shows the validationMessage after blur", () => {
+    render(
+      <AutoCompleteSelect
+        value=""
+        options={options}
+        onSelect={onSelect}
+        validationMessage="Selection is required."
+      />
+    );
+
+    const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
+
+    fireEvent.focus(input);
+    fireEvent.blur(input);
+
+    expect(screen.getByText("Selection is required.")).toBeInTheDocument();
+  });
+
   describe("noMatchMessage", () => {
     it("shows custom no-match message when provided and filter has text", async () => {
       render(

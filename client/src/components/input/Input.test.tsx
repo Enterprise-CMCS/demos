@@ -1,21 +1,9 @@
 import React from "react";
-import {
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import {
-  fireEvent,
-  render,
-  screen,
-} from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 
-import {
-  Input,
-  InputProps,
-} from "./Input";
+import { Input, InputProps } from "./Input";
 
 describe("Input component", () => {
   const requiredProps: InputProps = {
@@ -60,20 +48,17 @@ describe("Input component", () => {
     expect(screen.getByRole("textbox")).toBeDisabled();
   });
 
-  it("calls getValidationMessage and displays validation message", () => {
-    const getValidationMessage = vi.fn((value: string) =>
-      value.length < 3 ? "Too short" : ""
-    );
-    render(
-      <Input
-        {...requiredProps}
-        getValidationMessage={getValidationMessage}
-      />
-    );
+  it("calls getValidationMessage and displays validation message after blur", () => {
+    const getValidationMessage = vi.fn((value: string) => (value.length < 3 ? "Too short" : ""));
+    render(<Input {...requiredProps} getValidationMessage={getValidationMessage} />);
     const input = screen.getByRole("textbox");
     fireEvent.change(input, { target: { value: "ab" } });
     expect(getValidationMessage).toHaveBeenCalledWith("ab");
+    expect(screen.queryByText("Too short")).not.toBeInTheDocument();
+
+    fireEvent.blur(input);
     expect(screen.getByText("Too short")).toBeInTheDocument();
+
     fireEvent.change(input, { target: { value: "abcd" } });
     expect(screen.queryByText("Too short")).not.toBeInTheDocument();
   });
@@ -96,26 +81,18 @@ describe("Input component", () => {
 
   it("applies correct classes for validation error", () => {
     const getValidationMessage = () => "Error!";
-    render(
-      <Input
-        {...requiredProps}
-        getValidationMessage={getValidationMessage}
-      />
-    );
+    render(<Input {...requiredProps} getValidationMessage={getValidationMessage} />);
     const input = screen.getByRole("textbox");
     fireEvent.change(input, { target: { value: "abc" } });
     expect(input.className).toContain("border-border-warn");
+
+    fireEvent.blur(input);
     expect(screen.getByText("Error!")).toBeInTheDocument();
   });
 
   it("applies correct classes for valid state", () => {
     const getValidationMessage = () => "";
-    render(
-      <Input
-        {...requiredProps}
-        getValidationMessage={getValidationMessage}
-      />
-    );
+    render(<Input {...requiredProps} getValidationMessage={getValidationMessage} />);
     const input = screen.getByRole("textbox");
     fireEvent.change(input, { target: { value: "abc" } });
     expect(input.className).toContain("border-border-fields");
@@ -138,5 +115,11 @@ describe("Input component", () => {
   it("renders input with correct type", () => {
     render(<Input {...requiredProps} type="password" />);
     expect(screen.getByLabelText("Test Label")).toHaveAttribute("type", "password");
+  });
+
+  it("does not show a validation message before blur", () => {
+    render(<Input {...requiredProps} getValidationMessage={() => "Error!"} />);
+
+    expect(screen.queryByText("Error!")).not.toBeInTheDocument();
   });
 });
