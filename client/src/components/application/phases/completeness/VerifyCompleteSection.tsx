@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useSessionStorage } from "hooks";
 
 import { Button, SecondaryButton } from "components/button";
