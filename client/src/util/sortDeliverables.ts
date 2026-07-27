@@ -7,6 +7,7 @@ type SortableDeliverable = {
   extensionRequests?: {
     status: string;
   }[];
+  hasOpenExtensionRequest?: boolean;
 };
 
 const STATUS_ORDER = [
@@ -44,7 +45,9 @@ const compareDueDateAsc = (firstDate: string | Date, secondDate: string | Date) 
 };
 
 const hasRequestedExtension = (deliverable: SortableDeliverable): boolean =>
-  deliverable.extensionRequests?.some((request) => request.status === "Requested") ?? false;
+  deliverable.hasOpenExtensionRequest ??
+  deliverable.extensionRequests?.some((request) => request.status === "Requested") ??
+  false;
 
 export const sortDeliverablesByDefault = <T extends SortableDeliverable>(
   deliverables: T[]

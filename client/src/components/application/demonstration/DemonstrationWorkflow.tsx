@@ -43,7 +43,7 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
         expirationDate
         createdAt
       }
-      documents {
+      documents: workflowDocuments {
         ...WORKFLOW_DOCUMENT_FIELDS
       }
       primaryProjectOfficer {

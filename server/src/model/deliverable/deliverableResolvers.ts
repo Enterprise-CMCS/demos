@@ -45,6 +45,16 @@ import {
 } from "../../types";
 import { formatDeliverableAction } from "../deliverableAction";
 
+const DELETABLE_DELIVERABLE_STATUSES = new Set<DeliverableStatus>(["Upcoming", "Past Due"]);
+
+async function getDeliverableListMetadata(parent: PrismaDeliverable, context: GraphQLContext) {
+  const metadata = await context.loaders.deliverableListMetadataById.load(parent.id);
+  if (!metadata) {
+    throw new Error(`No list metadata found for deliverable ${parent.id}`);
+  }
+  return metadata;
+}
+
 export async function resolveDeliverable(
   parent: PrismaDocument | PrismaDocumentPendingUpload | PrismaPrivateComment | PrismaPublicComment,
   args: unknown,
@@ -265,5 +275,33 @@ export const deliverableResolvers = {
       context: GraphQLContext
     ): Promise<PrismaPrivateComment[]> =>
       context.loaders.privateCommentsByDeliverableId.load(parent.id),
+    resubmissionCount: async (
+      parent: PrismaDeliverable,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<number> => (await getDeliverableListMetadata(parent, context)).resubmissionCount,
+    hasOpenExtensionRequest: async (
+      parent: PrismaDeliverable,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<boolean> =>
+      (await getDeliverableListMetadata(parent, context)).hasOpenExtensionRequest,
+    latestSubmissionDate: async (
+      parent: PrismaDeliverable,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<Date | null> =>
+      (await getDeliverableListMetadata(parent, context)).latestSubmissionDate,
+    isDeletable: async (
+      parent: PrismaDeliverable,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<boolean> => {
+      const metadata = await getDeliverableListMetadata(parent, context);
+      return (
+        DELETABLE_DELIVERABLE_STATUSES.has(parent.statusId as DeliverableStatus) &&
+        !metadata.hasFilesOrComments
+      );
+    },
   },
 };

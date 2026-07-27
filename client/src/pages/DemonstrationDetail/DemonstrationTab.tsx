@@ -13,12 +13,10 @@ import {
   StackIcon,
 } from "components/icons";
 import { TabHeader } from "components/table/TabHeader";
-import { DocumentTable } from "components/table/tables/DocumentTable";
 import {
   Demonstration,
   DemonstrationRoleAssignment,
   DemonstrationTypeAssignment,
-  Document,
   Person,
   PhaseName,
   State,
@@ -31,7 +29,7 @@ import { ContactsTab } from "./ContactsTab";
 import { useApolloClient } from "@apollo/client/react/hooks/useApolloClient";
 import { TypesTable } from "components/table/tables/TypesTable";
 import { DeliverablesTab } from "./deliverables/DeliverablesTab";
-import { NON_DELIVERABLE_DOCUMENT_TYPES } from "demos-server-constants";
+import { DEMONSTRATION_DOCUMENTS_QUERY, DocumentsTab } from "./DocumentsTab";
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
   person: Pick<Person, "fullName" | "id" | "email" | "personType">;
@@ -52,11 +50,7 @@ export type DemonstrationTabDemonstration = Pick<
   "id" | "name" | "status" | "effectiveDate" | "expirationDate"
 > & {
   demonstrationTypes: DemonstrationDetailDemonstrationType[];
-  documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
-    owner: {
-      person: Pick<Person, "fullName">;
-    };
-  })[];
+  documentCount: number;
   roles: Role[];
   currentPhaseName: PhaseName;
   state: Pick<State, "id">;
@@ -74,12 +68,16 @@ const TAB = {
 export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonstration }> = ({
   demonstration,
 }) => {
-  const { showUploadDocumentDialog, showApplyDemonstrationTypesDialog } = useDialog();
+  const { showApplyDemonstrationTypesDialog } = useDialog();
   const client = useApolloClient();
 
   const refetchApplicationWorkflow = async () => {
     await client.refetchQueries({
-      include: [DEMONSTRATION_DETAIL_QUERY, GET_WORKFLOW_DEMONSTRATION_QUERY],
+      include: [
+        DEMONSTRATION_DETAIL_QUERY,
+        GET_WORKFLOW_DEMONSTRATION_QUERY,
+        DEMONSTRATION_DOCUMENTS_QUERY,
+      ],
     });
   };
 
@@ -133,26 +131,18 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
         </Tab>
         <Tab
           icon={<OpenFolderIcon />}
-          label={`Documents (${demonstration.documents?.length ?? 0})`}
+          label={`Documents (${demonstration.documentCount})`}
           value={TAB.DOCUMENTS}
         >
-          <TabHeader title="Documents">
-            <IconButton
-              icon={<AddNewIcon />}
-              name="add-new-document"
-              size="small"
-              onClick={() =>
-                showUploadDocumentDialog(
-                  demonstration.id,
-                  refetchApplicationWorkflow,
-                  NON_DELIVERABLE_DOCUMENT_TYPES
-                )
-              }
-            >
-              Add Document
-            </IconButton>
-          </TabHeader>
-          <DocumentTable documents={demonstration.documents} />
+          <DocumentsTab
+            demonstrationId={demonstration.id}
+            onDocumentUploadSucceeded={refetchApplicationWorkflow}
+            refetchQueries={[
+              DEMONSTRATION_DETAIL_QUERY,
+              GET_WORKFLOW_DEMONSTRATION_QUERY,
+              DEMONSTRATION_DOCUMENTS_QUERY,
+            ]}
+          />
         </Tab>
         <Tab
           icon={<CharacteristicIcon />}

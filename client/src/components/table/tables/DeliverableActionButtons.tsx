@@ -13,18 +13,20 @@ import type { FormattedDeliverableTableRow } from "./DeliverableTable";
 export const DELIVERABLE_CANT_DELETE_HAS_FILES =
   "Only Upcoming/Past Due \ndeliverables w/o comments \nor files can be deleted.";
 
-const hasFilesOrComments = (deliverable: FormattedDeliverableTableRow): boolean =>
-  Boolean(deliverable.cmsDocuments?.length) ||
-  Boolean(deliverable.stateDocuments?.length) ||
-  Boolean(deliverable.publicComments?.length) ||
-  Boolean(deliverable.privateComments?.length);
-
 const DELETABLE_DELIVERABLE_STATUSES: ReadonlySet<FormattedDeliverableTableRow["status"]> = new Set(
   ["Upcoming", "Past Due"]
 );
 
 const hasDeletableStatus = (deliverable: FormattedDeliverableTableRow): boolean =>
   DELETABLE_DELIVERABLE_STATUSES.has(deliverable.status);
+
+const hasFilesOrComments = (deliverable: FormattedDeliverableTableRow): boolean =>
+  deliverable.isDeletable === false && hasDeletableStatus(deliverable)
+    ? true
+    : Boolean(deliverable.cmsDocuments?.length) ||
+      Boolean(deliverable.stateDocuments?.length) ||
+      Boolean(deliverable.publicComments?.length) ||
+      Boolean(deliverable.privateComments?.length);
 
 const getDeleteTooltip = (selectedCount: number, selectedHasFilesOrComments: boolean): string => {
   if (selectedCount === 0) return "Select a Deliverable to Delete";
@@ -43,13 +45,16 @@ const getDeleteTooltip = (selectedCount: number, selectedHasFilesOrComments: boo
  */
 export const DeliverableActionButtons: React.FC<{
   table: TanstackTable<FormattedDeliverableTableRow>;
-}> = ({ table }) => {
+  onDeliverablesDeleted?: () => void;
+}> = ({ table, onDeliverablesDeleted }) => {
   const { showEditDeliverableDialog, showRemoveDeliverableDialog } = useDialog();
   const selectedRows = table.getSelectedRowModel().rows;
   const selectedCount = selectedRows.length;
   const selectedDeliverables = selectedRows.map((row) => row.original);
   const selectedHasFilesOrComments = selectedDeliverables.some(hasFilesOrComments);
-  const selectedAllHaveDeletableStatuses = selectedDeliverables.every(hasDeletableStatus);
+  const selectedAllHaveDeletableStatuses = selectedDeliverables.every(
+    (deliverable) => deliverable.isDeletable ?? hasDeletableStatus(deliverable)
+  );
   const deleteEnabled =
     selectedCount >= 1 && selectedAllHaveDeletableStatuses && !selectedHasFilesOrComments;
   const oneSelectedDeliverable = selectedCount === 1 ? selectedRows[0].original : null;
@@ -92,7 +97,10 @@ export const DeliverableActionButtons: React.FC<{
         onClick={() => {
           showRemoveDeliverableDialog(
             selectedDeliverables.map((deliverable) => deliverable.id),
-            () => table.resetRowSelection()
+            () => {
+              table.resetRowSelection();
+              onDeliverablesDeleted?.();
+            }
           );
         }}
       >

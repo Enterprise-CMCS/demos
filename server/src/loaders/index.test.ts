@@ -12,7 +12,11 @@ import { selectManyStates } from "../model/state/queries/selectManyStates";
 import { selectManyUsers } from "../model/user/queries/selectManyUsers";
 import { selectManyPeople } from "../model/person/queries/selectManyPeople";
 import { selectDocumentTypesForDeliverableTypes } from "../model/deliverableTypeDocumentType/selectDocumentTypesForDeliverableTypes";
-import { getManyDocuments } from "../model/document/documentData";
+import {
+  getDocumentCountsByApplicationId,
+  getManyDocuments,
+} from "../model/document/documentData";
+import { selectDeliverableListMetadata } from "../model/deliverable/queries/selectDeliverableListMetadata";
 
 vi.mock("../model/demonstration/queries/selectManyDemonstrations", () => ({
   selectManyDemonstrations: vi.fn(),
@@ -33,7 +37,11 @@ vi.mock("../model/deliverableTypeDocumentType/selectDocumentTypesForDeliverableT
   selectDocumentTypesForDeliverableTypes: vi.fn(),
 }));
 vi.mock("../model/document/documentData", () => ({
+  getDocumentCountsByApplicationId: vi.fn(),
   getManyDocuments: vi.fn(),
+}));
+vi.mock("../model/deliverable/queries/selectDeliverableListMetadata", () => ({
+  selectDeliverableListMetadata: vi.fn(),
 }));
 
 const mockUser = {} as unknown as ContextUser;
@@ -139,6 +147,66 @@ describe("createLoaders", () => {
     );
     expect(app1).toEqual([{ id: "doc1", applicationId: "app1" }]);
     expect(app2).toEqual([{ id: "doc2", applicationId: "app2" }]);
+  });
+
+  it("loads only non-deliverable workflow documents", async () => {
+    vi.mocked(getManyDocuments).mockResolvedValue([
+      { id: "doc1", applicationId: "app1" },
+    ] as unknown as PrismaDocument[]);
+
+    const loaders = createLoaders(mockUser);
+    const [app1, app2] = await Promise.all([
+      loaders.workflowDocumentsByApplicationId.load("app1"),
+      loaders.workflowDocumentsByApplicationId.load("app2"),
+    ]);
+
+    expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
+      { applicationId: { in: ["app1", "app2"] }, deliverableId: null },
+      mockUser
+    );
+    expect(app1).toEqual([{ id: "doc1", applicationId: "app1" }]);
+    expect(app2).toEqual([]);
+  });
+
+  it("batches document counts and returns zero for applications with no documents", async () => {
+    vi.mocked(getDocumentCountsByApplicationId).mockResolvedValue([
+      { applicationId: "app1", count: 12 },
+    ]);
+
+    const loaders = createLoaders(mockUser);
+    const [app1, app2] = await Promise.all([
+      loaders.documentCountByApplicationId.load("app1"),
+      loaders.documentCountByApplicationId.load("app2"),
+    ]);
+
+    expect(getDocumentCountsByApplicationId).toHaveBeenCalledExactlyOnceWith(
+      ["app1", "app2"],
+      mockUser
+    );
+    expect(app1).toBe(12);
+    expect(app2).toBe(0);
+  });
+
+  it("batches compact deliverable metadata", async () => {
+    vi.mocked(selectDeliverableListMetadata).mockResolvedValue([
+      {
+        id: "d1",
+        resubmissionCount: 2,
+        hasOpenExtensionRequest: true,
+        latestSubmissionDate: null,
+        hasFilesOrComments: false,
+      },
+    ]);
+
+    const loaders = createLoaders(mockUser);
+    const [d1, d2] = await Promise.all([
+      loaders.deliverableListMetadataById.load("d1"),
+      loaders.deliverableListMetadataById.load("d2"),
+    ]);
+
+    expect(selectDeliverableListMetadata).toHaveBeenCalledExactlyOnceWith(["d1", "d2"]);
+    expect(d1?.resubmissionCount).toBe(2);
+    expect(d2).toBeNull();
   });
 
   it("groups allowed document types by deliverable type id", async () => {

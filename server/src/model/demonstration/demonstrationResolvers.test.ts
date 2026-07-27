@@ -147,6 +147,8 @@ describe("demonstrationResolvers", () => {
     personById: { load: vi.fn() },
     deliverablesByDemonstrationId: { load: vi.fn() },
     documentsByApplicationId: { load: vi.fn() },
+    workflowDocumentsByApplicationId: { load: vi.fn() },
+    documentCountByApplicationId: { load: vi.fn() },
     amendmentsByDemonstrationId: { load: vi.fn() },
     extensionsByDemonstrationId: { load: vi.fn() },
     phasesByApplicationId: { load: vi.fn() },
@@ -231,6 +233,37 @@ describe("demonstrationResolvers", () => {
       );
       expect(mockLoaders.documentsByApplicationId.load).toHaveBeenCalledExactlyOnceWith("abc123");
       expect(result).toBe(documents);
+    });
+  });
+
+  describe("Demonstration.workflowDocuments", () => {
+    it("delegates to the workflowDocumentsByApplicationId loader", async () => {
+      const documents = [{ id: "doc1" }] as PrismaDocument[];
+      vi.mocked(mockLoaders.workflowDocumentsByApplicationId.load).mockResolvedValue(documents);
+      const result = await demonstrationResolvers.Demonstration.workflowDocuments(
+        { id: "abc123" } as PrismaDemonstration,
+        undefined,
+        mockContext
+      );
+      expect(
+        mockLoaders.workflowDocumentsByApplicationId.load
+      ).toHaveBeenCalledExactlyOnceWith("abc123");
+      expect(result).toBe(documents);
+    });
+  });
+
+  describe("Demonstration.documentCount", () => {
+    it("delegates to the documentCountByApplicationId loader", async () => {
+      vi.mocked(mockLoaders.documentCountByApplicationId.load).mockResolvedValue(12);
+      const result = await demonstrationResolvers.Demonstration.documentCount(
+        { id: "abc123" } as PrismaDemonstration,
+        undefined,
+        mockContext
+      );
+      expect(mockLoaders.documentCountByApplicationId.load).toHaveBeenCalledExactlyOnceWith(
+        "abc123"
+      );
+      expect(result).toBe(12);
     });
   });
 

@@ -44,7 +44,7 @@ const demonstrationWithModifications = {
       id: "extension-1",
     },
   ],
-  documents: [],
+  documentCount: 0,
   roles: [],
 };
 

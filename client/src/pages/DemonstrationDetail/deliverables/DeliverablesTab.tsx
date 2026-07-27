@@ -9,12 +9,13 @@ import { getCurrentUser } from "components/user/UserContext";
 import type { UserType } from "demos-server";
 import { type DeliverablesQueryResult } from "components/table/tables/DeliverableTable";
 import { gql, useQuery } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react/hooks/useApolloClient";
 import { useNavigate } from "react-router-dom";
 
 export const ADD_DELIVERABLE_SLOT_BUTTON_NAME = "button-add-deliverable-slot";
 
 export const DEMONSTRATION_DELIVERABLE_TAB = gql`
-  query GetDeliverablesPage($id: ID!) {
+  query GetDemonstrationDeliverables($id: ID!) {
     demonstration(id: $id) {
       deliverables {
         id
@@ -40,31 +41,13 @@ export const DEMONSTRATION_DELIVERABLE_TAB = gql`
           }
         }
         dueDate
+        resubmissionCount
+        hasOpenExtensionRequest
+        latestSubmissionDate
+        isDeletable
         demonstrationTypes {
           tagName
           approvalStatus
-        }
-        extensionRequests {
-          id
-          status
-        }
-        deliverableActions {
-          id
-          actionType
-          actionTimestamp
-        }
-        # These are for determining if a deliverable can be deleted
-        cmsDocuments {
-          id
-        }
-        stateDocuments {
-          id
-        }
-        publicComments {
-          id
-        }
-        privateComments {
-          id
         }
       }
     }
@@ -80,17 +63,12 @@ export const DeliverablesTab = ({
   const rawPersonType = getCurrentUser().currentUser.person.personType;
   const viewMode = rawPersonType as UserType;
   const navigate = useNavigate();
+  const client = useApolloClient();
   const { data, loading, error } = useQuery<{ demonstration: DeliverablesQueryResult }>(
     DEMONSTRATION_DELIVERABLE_TAB,
     { variables: { id: parentDemonstration.id } }
   );
-  const deliverables = React.useMemo(
-    () =>
-      data?.demonstration.deliverables.filter(
-        (deliverable) => deliverable.demonstration.id === parentDemonstration.id
-      ) ?? [],
-    [data, parentDemonstration.id]
-  );
+  const deliverables = data?.demonstration.deliverables ?? [];
 
   return (
     <div className="flex flex-col">
@@ -99,7 +77,11 @@ export const DeliverablesTab = ({
           icon={<AddNewIcon />}
           name={ADD_DELIVERABLE_SLOT_BUTTON_NAME}
           size="small"
-          onClick={() => showAddDeliverableSlotDialog(parentDemonstration)}
+          onClick={() =>
+            showAddDeliverableSlotDialog(parentDemonstration, async () => {
+              await client.refetchQueries({ include: [DEMONSTRATION_DELIVERABLE_TAB] });
+            })
+          }
         >
           Add Deliverable Slot(s)
         </IconButton>
@@ -113,6 +95,9 @@ export const DeliverablesTab = ({
           onViewDeliverable={(selectedDeliverableId) =>
             navigate(`/deliverables/${selectedDeliverableId}`)
           }
+          onDeliverablesDeleted={() => {
+            void client.refetchQueries({ include: [DEMONSTRATION_DELIVERABLE_TAB] });
+          }}
         />
       )}
     </div>

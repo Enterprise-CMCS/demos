@@ -15,6 +15,7 @@ import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import { getDeliverableFilterOptions } from "./deliverablesFilterOptions";
 import { DeliverableActionButtons } from "./DeliverableActionButtons";
 import { DeliverableColumns } from "../columns/DeliverableColumns";
+import { formatDateForDisplay } from "util/formatDate";
 
 const DEFAULT_EMPTY_ROWS_MESSAGE = "You have no assigned Deliverables at this time";
 const DEFAULT_NO_SEARCH_RESULTS_MESSAGE = "No deliverables match your search";
@@ -25,12 +26,14 @@ export const DemonstrationDeliverableTable: React.FC<{
   emptyRowsMessage?: string;
   noResultsFoundMessage?: string;
   onViewDeliverable?: (deliverableId: string) => void;
+  onDeliverablesDeleted?: () => void;
 }> = ({
   deliverables,
   viewMode = "demos-cms-user",
   emptyRowsMessage = DEFAULT_EMPTY_ROWS_MESSAGE,
   noResultsFoundMessage = DEFAULT_NO_SEARCH_RESULTS_MESSAGE,
   onViewDeliverable,
+  onDeliverablesDeleted,
 }) => {
   const { cmsOwnerOptions } = getDeliverableFilterOptions(deliverables);
   const resolvedColumns = DeliverableColumns({
@@ -43,7 +46,7 @@ export const DemonstrationDeliverableTable: React.FC<{
     TableProps<FormattedDeliverableTableRow>["actionButtons"]
   >;
   const renderActionButtons: DemonstrationDeliverableActionButtons = (table) => (
-    <DeliverableActionButtons table={table} />
+    <DeliverableActionButtons table={table} onDeliverablesDeleted={onDeliverablesDeleted} />
   );
   const actionButtons = viewMode === "demos-state-user" ? undefined : renderActionButtons;
 
@@ -51,7 +54,9 @@ export const DemonstrationDeliverableTable: React.FC<{
     () =>
       sortDeliverablesByDefault(deliverables).map((deliverable) => ({
         ...deliverable,
-        submissionDate: getLatestSubmissionDate(deliverable.deliverableActions),
+        submissionDate: deliverable.latestSubmissionDate
+          ? formatDateForDisplay(deliverable.latestSubmissionDate)
+          : getLatestSubmissionDate(deliverable.deliverableActions),
         combinedStatus: formatDeliverableStatus(deliverable),
         combinedStatusFilter: formatDeliverableFilterStatus(deliverable),
       })),

@@ -35,9 +35,16 @@ import { selectManyPublicComments } from "../model/publicComment/queries/selectM
 import { selectManyPrivateComments } from "../model/privateComment/queries/selectManyPrivateComments";
 import { selectManyDeliverableActions } from "../model/deliverableAction/queries/selectManyDeliverableActions";
 import { selectDocumentTypesForDeliverableTypes } from "../model/deliverableTypeDocumentType/selectDocumentTypesForDeliverableTypes";
-import { getManyDocuments } from "../model/document/documentData";
+import {
+  getDocumentCountsByApplicationId,
+  getManyDocuments,
+} from "../model/document/documentData";
 import { getManyAmendments } from "../model/amendment/amendmentData";
 import { getManyExtensions } from "../model/extension/extensionData";
+import {
+  DeliverableListMetadata,
+  selectDeliverableListMetadata,
+} from "../model/deliverable/queries/selectDeliverableListMetadata";
 
 // Query-result row shapes (type-only imports; erased at build time).
 import type { DemonstrationRoleAssignmentQueryResult } from "../model/demonstrationRoleAssignment/queries";
@@ -121,10 +128,13 @@ export interface Loaders {
   privateCommentsByDeliverableId: DataLoader<string, PrismaPrivateComment[]>;
   deliverableActionsByDeliverableId: DataLoader<string, SelectDeliverableActionRowResult[]>;
   documentTypesByDeliverableTypeId: DataLoader<string, DocumentType[]>;
+  deliverableListMetadataById: DataLoader<string, DeliverableListMetadata | null>;
 
   // Authorization-scoped collections (batch functions bake in the request user's
   // permission filter via the existing `getMany*` helpers).
   documentsByApplicationId: DataLoader<string, PrismaDocument[]>;
+  workflowDocumentsByApplicationId: DataLoader<string, PrismaDocument[]>;
+  documentCountByApplicationId: DataLoader<string, number>;
   amendmentsByDemonstrationId: DataLoader<string, PrismaAmendment[]>;
   extensionsByDemonstrationId: DataLoader<string, PrismaExtension[]>;
   cmsDocumentsByDeliverableId: DataLoader<string, PrismaDocument[]>;
@@ -234,11 +244,25 @@ export function createLoaders(user: ContextUser): Loaders {
         return deliverableTypeIds.map((id) => documentTypesByType.get(id) ?? []);
       }
     ),
+    deliverableListMetadataById: byIdLoader((ids) => selectDeliverableListMetadata(ids)),
 
     documentsByApplicationId: byForeignKeyLoader(
       (applicationIds) => getManyDocuments({ applicationId: { in: applicationIds } }, user),
       (document) => document.applicationId
     ),
+    workflowDocumentsByApplicationId: byForeignKeyLoader(
+      (applicationIds) =>
+        getManyDocuments(
+          { applicationId: { in: applicationIds }, deliverableId: null },
+          user
+        ),
+      (document) => document.applicationId
+    ),
+    documentCountByApplicationId: new DataLoader<string, number>(async (applicationIds) => {
+      const rows = await getDocumentCountsByApplicationId([...applicationIds], user);
+      const countsByApplicationId = new Map(rows.map((row) => [row.applicationId, row.count]));
+      return applicationIds.map((id) => countsByApplicationId.get(id) ?? 0);
+    }),
     amendmentsByDemonstrationId: byForeignKeyLoader(
       (demonstrationIds) => getManyAmendments({ demonstrationId: { in: demonstrationIds } }, user),
       (amendment) => amendment.demonstrationId

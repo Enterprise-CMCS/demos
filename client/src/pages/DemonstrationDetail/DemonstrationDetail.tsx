@@ -48,6 +48,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       effectiveDate
       expirationDate
       medicaidId
+      documentCount
       state {
         id
       }
@@ -103,19 +104,6 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         expirationDate
         createdAt
       }
-      documents {
-        id
-        name
-        description
-        documentType
-        phaseName
-        createdAt
-        owner {
-          person {
-            fullName
-          }
-        }
-      }
       roles {
         role
         isPrimary
@@ -143,6 +131,7 @@ export type DemonstrationDetail = Pick<
   "id" | "name" | "status" | "currentPhaseName" | "effectiveDate" | "expirationDate" | "medicaidId"
 > & {
   state: Pick<State, "id">;
+  documentCount: number;
   amendments: DemonstrationDetailModification[];
   extensions: DemonstrationDetailModification[];
   demonstrationTypes: Pick<
@@ -154,9 +143,6 @@ export type DemonstrationDetail = Pick<
     | "createdAt"
     | "approvalStatus"
   >[];
-  documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
-    owner: { person: Pick<Person, "fullName"> };
-  })[];
   roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
     person: Pick<Person, "id" | "fullName" | "email" | "personType">;
   })[];

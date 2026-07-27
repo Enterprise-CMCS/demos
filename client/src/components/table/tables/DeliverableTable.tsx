@@ -28,6 +28,10 @@ export type DeliverableTableRow = Omit<
   | "extensionRequests"
   | "publicComments"
   | "privateComments"
+  | "resubmissionCount"
+  | "hasOpenExtensionRequest"
+  | "latestSubmissionDate"
+  | "isDeletable"
   | "createdAt"
   | "updatedAt"
 > & {
@@ -44,10 +48,14 @@ export type DeliverableTableRow = Omit<
   };
   demonstrationTypes: Tag[];
   submissionDate?: string;
-  extensionRequests: Pick<Deliverable["extensionRequests"][number], "id" | "status">[];
-  deliverableActions: (Pick<Deliverable["deliverableActions"][number], "id" | "actionType"> & {
+  extensionRequests?: Pick<Deliverable["extensionRequests"][number], "id" | "status">[];
+  deliverableActions?: (Pick<Deliverable["deliverableActions"][number], "id" | "actionType"> & {
     actionTimestamp: Date;
   })[];
+  resubmissionCount?: number;
+  hasOpenExtensionRequest?: boolean;
+  latestSubmissionDate?: Date;
+  isDeletable?: boolean;
   cmsDocuments?: Pick<Deliverable["cmsDocuments"][number], "id">[];
   stateDocuments?: Pick<Deliverable["stateDocuments"][number], "id">[];
   publicComments?: Pick<Deliverable["publicComments"][number], "id">[];
@@ -190,7 +198,11 @@ const FINAL_STATUSES = ["Accepted", "Approved", "Received and Filed"];
 export const formatDeliverableStatus = (
   deliverable: Pick<
   DeliverableTableRow,
-  "status" | "deliverableActions" | "extensionRequests"
+  | "status"
+  | "deliverableActions"
+  | "extensionRequests"
+  | "resubmissionCount"
+  | "hasOpenExtensionRequest"
   >
 ) => {
   const { status, deliverableActions, extensionRequests } = deliverable;
@@ -200,13 +212,15 @@ export const formatDeliverableStatus = (
     return status;
   }
 
-  const resubmissionsRequested = deliverableActions.filter(
-    (action) => action.actionType === "Requested Resubmission"
-  ).length;
+  const resubmissionsRequested =
+    deliverable.resubmissionCount ??
+    deliverableActions?.filter((action) => action.actionType === "Requested Resubmission").length ??
+    0;
 
-  const hasOpenExtensionRequest = extensionRequests.some(
-    (request) => request.status === "Requested"
-  );
+  const hasOpenExtensionRequest =
+    deliverable.hasOpenExtensionRequest ??
+    extensionRequests?.some((request) => request.status === "Requested") ??
+    false;
 
   let formattedStatus = status;
 
@@ -222,7 +236,7 @@ export const formatDeliverableStatus = (
 };
 
 export const getLatestSubmissionDate = (
-  deliverableActions: DeliverableTableRow["deliverableActions"]
+  deliverableActions: DeliverableTableRow["deliverableActions"] = []
 ): string | undefined => {
   const submissions = deliverableActions.filter(
     (action) => action.actionType === "Submitted Deliverable"
@@ -246,7 +260,7 @@ export const getLatestSubmissionDate = (
 export const formatDeliverableFilterStatus = (
   deliverable: Pick<
     DeliverableTableRow,
-    "status" | "extensionRequests"
+    "status" | "extensionRequests" | "hasOpenExtensionRequest"
   >
 ) => {
   const { status, extensionRequests } = deliverable;
@@ -255,9 +269,10 @@ export const formatDeliverableFilterStatus = (
     return status;
   }
 
-  const hasOpenExtensionRequest = extensionRequests.some(
-    (request) => request.status === "Requested"
-  );
+  const hasOpenExtensionRequest =
+    deliverable.hasOpenExtensionRequest ??
+    extensionRequests?.some((request) => request.status === "Requested") ??
+    false;
 
   return hasOpenExtensionRequest
     ? `${status} - Extension Requested`

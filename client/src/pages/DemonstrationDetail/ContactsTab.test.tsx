@@ -29,24 +29,7 @@ const mockDemonstration: DemonstrationTabDemonstration = {
   status: "Pre-Submission" as const,
   currentPhaseName: "Concept" as const,
   demonstrationTypes: [],
-  documents: [
-    {
-      id: "doc-1",
-      name: "Document 1",
-      description: "Test doc 1",
-      documentType: "State Application",
-      createdAt: new Date(),
-      owner: { person: { fullName: "John Doe" } },
-    },
-    {
-      id: "doc-2",
-      name: "Document 2",
-      description: "Test doc 2",
-      documentType: "Approval Letter",
-      createdAt: new Date(),
-      owner: { person: { fullName: "Jane Smith" } },
-    },
-  ],
+  documentCount: 1,
   roles: [
     {
       person: {
@@ -80,24 +63,7 @@ const mockDemonstrationEmptyRoles: DemonstrationTabDemonstration = {
   status: "Pre-Submission" as const,
   currentPhaseName: "Concept" as const,
   demonstrationTypes: [],
-  documents: [
-    {
-      id: "doc-1",
-      name: "Document 1",
-      description: "Test doc 1",
-      documentType: "State Application",
-      createdAt: new Date(),
-      owner: { person: { fullName: "John Doe" } },
-    },
-    {
-      id: "doc-2",
-      name: "Document 2",
-      description: "Test doc 2",
-      documentType: "Approval Letter",
-      createdAt: new Date(),
-      owner: { person: { fullName: "Jane Smith" } },
-    },
-  ],
+  documentCount: 1,
   roles: [],
 };
 

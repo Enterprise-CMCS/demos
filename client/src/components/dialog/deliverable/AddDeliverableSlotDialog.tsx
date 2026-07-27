@@ -19,7 +19,6 @@ import {
 } from "demos-server";
 import { useToast } from "components/toast";
 import { DELIVERABLE_SLOTS_CREATED_MESSAGE } from "util/messages";
-import { DELIVERABLES_PAGE_QUERY } from "components/table/tables/DeliverableTable";
 import { dueDateIsTodayOrFuture } from "./deliverableDueDateValidation";
 import { getCurrentUser } from "components/user/UserContext";
 
@@ -32,10 +31,7 @@ export const CREATE_DELIVERABLE_MUTATION = gql`
 `;
 
 export const useCreateDeliverable = () => {
-  const [createDeliverable, { loading }] = useMutation(CREATE_DELIVERABLE_MUTATION, {
-    refetchQueries: [{ query: DELIVERABLES_PAGE_QUERY }],
-    awaitRefetchQueries: true,
-  });
+  const [createDeliverable, { loading }] = useMutation(CREATE_DELIVERABLE_MUTATION);
 
   const createDeliverables = async (inputs: CreateDeliverableInput[]) => {
     await Promise.all(inputs.map((input) => createDeliverable({ variables: { input } })));
@@ -137,9 +133,11 @@ export type AddDeliverableSlotDemonstration = Pick<
 export const AddDeliverableSlotDialog = ({
   onClose,
   demonstration,
+  onCreated,
 }: {
   onClose: () => void;
   demonstration: AddDeliverableSlotDemonstration;
+  onCreated?: () => Promise<void>;
 }) => {
   const { showSuccess } = useToast();
   const { createDeliverables, loading } = useCreateDeliverable();
@@ -182,6 +180,7 @@ export const AddDeliverableSlotDialog = ({
               formData
             );
             await createDeliverables(payloads);
+            await onCreated?.();
             showSuccess(DELIVERABLE_SLOTS_CREATED_MESSAGE);
             onClose();
           }}

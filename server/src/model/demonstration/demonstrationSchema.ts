@@ -34,6 +34,8 @@ export const demonstrationSchema = gql`
     currentPhaseName: PhaseName! @auth(requires: ["Access CMS Field"])
     phases: [ApplicationPhase!]! @auth(requires: ["Access CMS Field"])
     documents: [Document!]! @auth(requires: ["Access CMS Field"])
+    workflowDocuments: [Document!]! @auth(requires: ["Access CMS Field"])
+    documentCount: Int! @auth(requires: ["Access CMS Field"])
     amendments: [Amendment!]! @auth(requires: ["Access CMS Field"])
     extensions: [Extension!]! @auth(requires: ["Access CMS Field"])
     roles: [DemonstrationRoleAssignment!]! @auth(requires: ["Access CMS Field"])
@@ -93,6 +95,8 @@ export interface Demonstration {
   currentPhaseName: PhaseName;
   phases: ApplicationPhase[];
   documents: Document[];
+  workflowDocuments: Document[];
+  documentCount: number;
   amendments: Amendment[];
   extensions: Extension[];
   roles: DemonstrationRoleAssignment[];

@@ -19,24 +19,7 @@ const mockDemonstration: DemonstrationTabDemonstration = {
   state: {
     id: "NC",
   },
-  documents: [
-    {
-      id: "doc-1",
-      name: "Document 1",
-      description: "Test doc 1",
-      documentType: "State Application",
-      createdAt: new Date(),
-      owner: { person: { fullName: "John Doe" } },
-    },
-    {
-      id: "doc-2",
-      name: "Document 2",
-      description: "Test doc 2",
-      documentType: "Approval Letter",
-      createdAt: new Date(),
-      owner: { person: { fullName: "Jane Smith" } },
-    },
-  ],
+  documentCount: 1,
   roles: [
     {
       person: {
@@ -76,14 +59,14 @@ describe("DemonstrationTab", () => {
     expect(screen.getByRole("button", { name: "Applications" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Details" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Types (0)" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Documents (2)" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Documents (1)" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Contacts (2)" })).toBeInTheDocument();
   });
 
-  it("displays correct count for empty documents array", () => {
+  it("displays a zero document count", () => {
     const demonstrationWithEmptyDocs: DemonstrationTabDemonstration = {
       ...mockDemonstration,
-      documents: [],
+      documentCount: 0,
     };
 
     renderWithProvider(<DemonstrationTab demonstration={demonstrationWithEmptyDocs} />);
@@ -117,18 +100,19 @@ describe("DemonstrationTab", () => {
     const user = userEvent.setup();
     renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
 
-    const documentsTab = screen.getByRole("button", { name: "Documents (2)" });
+    const documentsTab = screen.getByRole("button", { name: "Documents (1)" });
     await user.click(documentsTab);
 
     // Verify documents tab content is rendered
     expect(screen.getByRole("button", { name: "add-new-document" })).toBeInTheDocument();
+    expect(screen.getByText("Deliverable document.pdf")).toBeInTheDocument();
   });
 
   it("shows only NON_DELIVERABLE_DOCUMENT_TYPES in the document type dropdown", async () => {
     const user = userEvent.setup();
     renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
 
-    await user.click(screen.getByRole("button", { name: "Documents (2)" }));
+    await user.click(screen.getByRole("button", { name: "Documents (1)" }));
     await user.click(screen.getByRole("button", { name: "add-new-document" }));
 
     await user.click(screen.getByTestId("input-autocomplete-select"));

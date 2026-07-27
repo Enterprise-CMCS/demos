@@ -9,6 +9,7 @@ import {
   DeliverableTableRow,
 } from "components/table/tables/DeliverableTable";
 import { DEMONSTRATION_DELIVERABLE_TAB } from "pages/DemonstrationDetail/deliverables/DeliverablesTab";
+import { DEMONSTRATION_DOCUMENTS_QUERY } from "pages/DemonstrationDetail/DocumentsTab";
 
 export const MOCK_DELIVERABLE_TABLE_ROW: DeliverableTableRow = {
   id: "8f3a0c8a-2f9f-4bf0-9a3a-6b7eac31f201",
@@ -109,6 +110,28 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
 export const deliverableMocks: MockedResponse[] = [
   {
     request: {
+      query: DEMONSTRATION_DOCUMENTS_QUERY,
+      variables: { id: "demo-123" },
+    },
+    result: {
+      data: {
+        demonstration: {
+          documents: [
+            {
+              id: "deliverable-document-1",
+              name: "Deliverable document.pdf",
+              description: "A deliverable document",
+              documentType: "General File",
+              createdAt: new Date("2026-07-01"),
+              owner: { person: { fullName: "Ahsoka Tano" } },
+            },
+          ],
+        },
+      },
+    },
+  },
+  {
+    request: {
       query: DEMONSTRATION_DELIVERABLE_TAB,
       variables: { id: "demo-does-not-exist" },
     },
@@ -128,7 +151,22 @@ export const deliverableMocks: MockedResponse[] = [
     result: {
       data: {
         demonstration: {
-          deliverables: [MOCK_DELIVERABLE_1, MOCK_DELIVERABLE_TABLE_ROW],
+          deliverables: [
+            {
+              ...MOCK_DELIVERABLE_1,
+              resubmissionCount: 1,
+              hasOpenExtensionRequest: false,
+              latestSubmissionDate: null,
+              isDeletable: false,
+            },
+            {
+              ...MOCK_DELIVERABLE_TABLE_ROW,
+              resubmissionCount: 0,
+              hasOpenExtensionRequest: false,
+              latestSubmissionDate: null,
+              isDeletable: true,
+            },
+          ],
         },
       },
     },

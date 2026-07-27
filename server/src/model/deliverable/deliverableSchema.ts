@@ -36,6 +36,10 @@ export const deliverableSchema = gql`
     extensionRequests: [DeliverableExtension!]!
     publicComments: [DeliverableComment!]!
     privateComments: [DeliverableComment!]! @auth(requires: ["Access CMS Field"])
+    resubmissionCount: Int!
+    hasOpenExtensionRequest: Boolean!
+    latestSubmissionDate: DateTime
+    isDeletable: Boolean!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -135,6 +139,10 @@ export interface Deliverable {
   extensionRequests: DeliverableExtension[];
   publicComments: DeliverableComment[];
   privateComments: DeliverableComment[];
+  resubmissionCount: number;
+  hasOpenExtensionRequest: boolean;
+  latestSubmissionDate?: Date;
+  isDeletable: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

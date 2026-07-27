@@ -287,9 +287,16 @@ export const useDialog = () => {
     );
   };
 
-  const showAddDeliverableSlotDialog = (demonstration: AddDeliverableSlotDemonstration) => {
+  const showAddDeliverableSlotDialog = (
+    demonstration: AddDeliverableSlotDemonstration,
+    onCreated?: () => Promise<void>
+  ) => {
     context.showDialog(
-      <AddDeliverableSlotDialog onClose={context.hideDialog} demonstration={demonstration} />
+      <AddDeliverableSlotDialog
+        onClose={context.hideDialog}
+        demonstration={demonstration}
+        onCreated={onCreated}
+      />
     );
   };
 

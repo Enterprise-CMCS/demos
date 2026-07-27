@@ -1,16 +1,26 @@
 import { Document as PrismaDocument, Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildAuthorizationFilter, ContextUser } from "../../auth";
-import { editDocument, getDocument, getManyDocuments, removeDocument } from "./documentData";
+import {
+  editDocument,
+  getDocument,
+  getDocumentCountsByApplicationId,
+  getManyDocuments,
+  removeDocument,
+} from "./documentData";
 import { selectDocument, selectManyDocuments, updateDocument } from "./queries";
 import { log } from "../../log";
-import { PrismaTransactionClient } from "../../prismaClient";
+import { prisma, PrismaTransactionClient } from "../../prismaClient";
 import { handleDeleteDocument } from "./handleDeleteDocument";
 import { validateDocumentCanBeDeleted } from "./validateDocumentCanBeDeleted";
 import { validateDocumentCanBeUpdated } from "./validateDocumentCanBeUpdated";
 
 vi.mock("../../auth", () => ({
   buildAuthorizationFilter: vi.fn(),
+}));
+
+vi.mock("../../prismaClient", () => ({
+  prisma: vi.fn(),
 }));
 
 vi.mock("../../log", () => ({
@@ -38,6 +48,7 @@ vi.mock("./validateDocumentCanBeUpdated", () => ({
 }));
 
 describe("documentData", () => {
+  const documentGroupBy = vi.fn();
   const user: ContextUser = {
     id: "user-1",
     cognitoSubject: "sub-1",
@@ -55,6 +66,9 @@ describe("documentData", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(prisma).mockReturnValue({
+      document: { groupBy: documentGroupBy },
+    } as never);
   });
 
   describe("getDocument", () => {
@@ -196,6 +210,34 @@ describe("documentData", () => {
         },
         mockTransactionClient
       );
+    });
+  });
+
+  describe("getDocumentCountsByApplicationId", () => {
+    it("returns no counts when the user has no document access", async () => {
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(null);
+
+      await expect(getDocumentCountsByApplicationId(["app-1"], user)).resolves.toEqual([]);
+
+      expect(documentGroupBy).not.toHaveBeenCalled();
+    });
+
+    it("counts authorized documents by application", async () => {
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+      documentGroupBy.mockResolvedValueOnce([
+        { applicationId: "app-1", _count: { _all: 12 } },
+      ]);
+
+      const result = await getDocumentCountsByApplicationId(["app-1", "app-2"], user);
+
+      expect(documentGroupBy).toHaveBeenCalledExactlyOnceWith({
+        by: ["applicationId"],
+        where: {
+          AND: [{ applicationId: { in: ["app-1", "app-2"] } }, authFilter],
+        },
+        _count: { _all: true },
+      });
+      expect(result).toEqual([{ applicationId: "app-1", count: 12 }]);
     });
   });
 

@@ -245,6 +245,17 @@ export const demonstrationResolvers = {
       args: unknown,
       context: GraphQLContext
     ): Promise<PrismaDocument[]> => context.loaders.documentsByApplicationId.load(parent.id),
+    workflowDocuments: (
+      parent: PrismaDemonstration,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaDocument[]> =>
+      context.loaders.workflowDocumentsByApplicationId.load(parent.id),
+    documentCount: (
+      parent: PrismaDemonstration,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<number> => context.loaders.documentCountByApplicationId.load(parent.id),
     amendments: (
       parent: PrismaDemonstration,
       args: unknown,

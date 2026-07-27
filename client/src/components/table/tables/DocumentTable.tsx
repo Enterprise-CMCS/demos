@@ -11,6 +11,7 @@ import { Table } from "../Table";
 import { Document, Person } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
 import { selectionTooltip } from "./actionTooltips";
+import { DocumentNode } from "@apollo/client";
 
 export type DocumentTableDocument = Pick<
   Document,
@@ -19,7 +20,13 @@ export type DocumentTableDocument = Pick<
   owner: { person: Pick<Person, "fullName"> };
 };
 
-export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[] }) => {
+export const DocumentTable = ({
+  documents,
+  refetchQueries,
+}: {
+  documents: DocumentTableDocument[];
+  refetchQueries?: DocumentNode[];
+}) => {
   const documentColumns = DocumentColumns();
   const { showEditDocumentDialog, showRemoveDocumentDialog } = useDialog();
   const initialState = {
@@ -67,11 +74,14 @@ export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[
                   tooltip={editTooltip}
                   disabled={!editEnabled}
                   onClick={() =>
-                    showEditDocumentDialog({
-                      id: selectedDocs[0].id,
-                      name: selectedDocs[0].name,
-                      description: selectedDocs[0].description,
-                    })
+                    showEditDocumentDialog(
+                      {
+                        id: selectedDocs[0].id,
+                        name: selectedDocs[0].name,
+                        description: selectedDocs[0].description,
+                      },
+                      refetchQueries
+                    )
                   }
                 >
                   <EditIcon />
@@ -82,7 +92,11 @@ export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[
                   aria-label="Remove Document"
                   tooltip={deleteTooltip}
                   disabled={!deleteEnabled}
-                  onClick={() => showRemoveDocumentDialog(selectedDocs.map((doc) => doc.id))}
+                  onClick={() =>
+                    showRemoveDocumentDialog(selectedDocs.map((doc) => doc.id), {
+                      refetchQueries,
+                    })
+                  }
                 >
                   <DeleteIcon />
                 </CircleButton>

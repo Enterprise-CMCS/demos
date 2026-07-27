@@ -149,6 +149,7 @@ describe("deliverableResolvers", () => {
     deliverableExtensionsByDeliverableId: { load: vi.fn() },
     publicCommentsByDeliverableId: { load: vi.fn() },
     privateCommentsByDeliverableId: { load: vi.fn() },
+    deliverableListMetadataById: { load: vi.fn() },
   } as unknown as Loaders;
   const mockContext: GraphQLContext = {
     user: mockUser,
@@ -762,6 +763,66 @@ describe("deliverableResolvers", () => {
           testDeliverableId
         );
         expect(result).toBe(comments);
+      });
+    });
+
+    describe("compact list metadata", () => {
+      it("resolves list fields from one loader result", async () => {
+        const submittedAt = new Date("2026-07-01T12:00:00Z");
+        vi.mocked(mockLoaders.deliverableListMetadataById.load).mockResolvedValue({
+          id: testDeliverableId,
+          resubmissionCount: 2,
+          hasOpenExtensionRequest: true,
+          latestSubmissionDate: submittedAt,
+          hasFilesOrComments: false,
+        });
+
+        await expect(
+          deliverableResolvers.Deliverable.resubmissionCount(
+            testDeliverable as PrismaDeliverable,
+            undefined,
+            mockContext
+          )
+        ).resolves.toBe(2);
+        await expect(
+          deliverableResolvers.Deliverable.hasOpenExtensionRequest(
+            testDeliverable as PrismaDeliverable,
+            undefined,
+            mockContext
+          )
+        ).resolves.toBe(true);
+        await expect(
+          deliverableResolvers.Deliverable.latestSubmissionDate(
+            testDeliverable as PrismaDeliverable,
+            undefined,
+            mockContext
+          )
+        ).resolves.toBe(submittedAt);
+      });
+
+      it("allows deletion only for eligible statuses without files or comments", async () => {
+        vi.mocked(mockLoaders.deliverableListMetadataById.load).mockResolvedValue({
+          id: testDeliverableId,
+          resubmissionCount: 0,
+          hasOpenExtensionRequest: false,
+          latestSubmissionDate: null,
+          hasFilesOrComments: false,
+        });
+
+        await expect(
+          deliverableResolvers.Deliverable.isDeletable(
+            { ...testDeliverable, statusId: "Upcoming" } as PrismaDeliverable,
+            undefined,
+            mockContext
+          )
+        ).resolves.toBe(true);
+        await expect(
+          deliverableResolvers.Deliverable.isDeletable(
+            { ...testDeliverable, statusId: "Accepted" } as PrismaDeliverable,
+            undefined,
+            mockContext
+          )
+        ).resolves.toBe(false);
       });
     });
   });

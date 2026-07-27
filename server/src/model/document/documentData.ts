@@ -1,7 +1,7 @@
 import { Prisma, Document as PrismaDocument } from "@prisma/client";
 import { buildAuthorizationFilter, PermissionFilters, ContextUser } from "../../auth";
 import { selectDocument, selectManyDocuments, updateDocument } from "./queries";
-import { PrismaTransactionClient } from "../../prismaClient";
+import { prisma, PrismaTransactionClient } from "../../prismaClient";
 import { log } from "../../log";
 import { isAStatePointOfContactAssociatedWithDeliverable } from "../deliverable/deliverableData";
 import { handleDeleteDocument } from "./handleDeleteDocument";
@@ -104,6 +104,28 @@ export async function getManyDocuments(
     },
     tx
   );
+}
+
+export async function getDocumentCountsByApplicationId(
+  applicationIds: string[],
+  user: ContextUser
+): Promise<{ applicationId: string; count: number }[]> {
+  const authFilter = buildAuthorizationFilter<Prisma.DocumentWhereInput>(
+    user,
+    getViewPermissionFilters
+  );
+
+  if (authFilter === null) {
+    return [];
+  }
+  const counts = await prisma().document.groupBy({
+    by: ["applicationId"],
+    where: {
+      AND: [{ applicationId: { in: applicationIds } }, authFilter],
+    },
+    _count: { _all: true },
+  });
+  return counts.map((row) => ({ applicationId: row.applicationId, count: row._count._all }));
 }
 
 export async function editDocument(
