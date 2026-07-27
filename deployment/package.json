@@ -8,7 +8,9 @@
   "overrides": {
     "@aws-sdk/client-s3": {
       "fast-xml-parser": "^5.3.6"
-    }
+    },
+    "brace-expansion": "^5.0.8",
+    "postcss": "^8.5.18"
   },
   "scripts": {
     "diff:core": "cdk diff --context stage=dev demos-dev-core",

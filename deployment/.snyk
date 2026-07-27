@@ -6,7 +6,12 @@ ignore:
   SNYK-JS-BRACEEXPANSION-17706650:
     - '*':
         reason: No direct upgrade or patch available.
-        expires: 2026-08-15T00:00:00.000Z 
+        expires: 2026-08-15T00:00:00.000Z
+  SNYK-JS-BRACEEXPANSION-18313044:
+    - '*':
+        reason: Bundled inside aws-cdk-lib, so npm overrides cannot reach it. Needs an
+          aws-cdk-lib release that ships brace-expansion >= 5.0.8.
+        expires: 2026-10-25T00:00:00.000Z
 exclude:
   global:
     - node_modules

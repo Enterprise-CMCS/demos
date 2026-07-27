@@ -15,5 +15,8 @@
     "@vitest/coverage-v8": "^4.1.10",
     "typescript": "^5.9.3",
     "vitest": "^4.1.10"
+  },
+  "overrides": {
+    "postcss": "^8.5.18"
   }
 }
