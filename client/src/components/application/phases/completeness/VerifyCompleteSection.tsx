@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSessionStorage } from "hooks";
 
 import { Button, SecondaryButton } from "components/button";
 import { DatePicker } from "components/input/date/DatePicker";
@@ -86,7 +87,7 @@ export const VerifyCompleteSection = ({
   const { declareCompletenessPhaseIncomplete } = useDeclareCompletenessPhaseIncomplete();
 
   const [userSelectedStateDeemedCompleteDate, setUserSelectedStateDeemedCompleteDate] =
-    useState("");
+    useSessionStorage(`completeness-deemed-complete-date-${applicationId}`);
 
   const calculatedStateDeemedCompleteDate = calculateStateDeemedCompleteDate(
     stateDeemedCompleteDate,
