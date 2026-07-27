@@ -162,12 +162,14 @@ class TestMigrateFiles:
             {"old_path": "old/2.txt", "new_path": "new/2.txt"},
         ]
         mock_create_duckdb_conn = mocker.patch("migrate_files.create_duckdb_conn", return_value=mock_conn)
+        mock_attach_demos_to_conn = mocker.patch("migrate_files.attach_demos_to_conn", return_value=mock_conn)
         mock_get_unmigrated_files = mocker.patch("migrate_files.get_unmigrated_files", return_value=test_rows)
         mock_migrate_file = mocker.patch("migrate_files.migrate_file")
 
         migrate_files.main()
 
         mock_create_duckdb_conn.assert_called_once()
+        mock_attach_demos_to_conn.assert_called_once_with(mock_conn)
         mock_boto3.Session.return_value.client.assert_called_once_with("s3")
         mock_get_unmigrated_files.assert_called_once_with(mock_conn)
         assert mock_migrate_file.call_count == 2
