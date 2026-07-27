@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, List, Literal, Set, Tuple, assert_never
 
 from dotenv import load_dotenv
 
-from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME, create_duckdb_conn
+from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME, create_duckdb_conn, attach_demos_to_conn
 from logger_utils import config_logger
 
 if TYPE_CHECKING:
@@ -396,7 +396,7 @@ def main(args: "Namespace") -> None:
         for query in generated_sql:
             logger.info(query.sql_query)
     else:
-        conn = create_duckdb_conn()
+        conn = attach_demos_to_conn(create_duckdb_conn())
         for query in generated_sql:
             logger.info(_create_log_execution_message_for_sql(query))
             conn.execute(query.sql_query)

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 # Note these imports are done in this fashion to make the mocking easier in tests
 from logging import Formatter, StreamHandler, INFO as INFO_LOG_LEVEL
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from logging import Logger
 
 _CONFIGURED_FLAG = "_demos_data_tools_configured"
