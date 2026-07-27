@@ -16,6 +16,7 @@ import { extractorFunctions } from "demos-shared-library/BN/extractors";
 
 const SUCCEEDED_VALIDATION_STATUS_ID = "Succeeded";
 const FAILED_VALIDATION_STATUS_ID = "Failed";
+const PARSE_ERROR_CODE = "PARSE_ERROR";
 const DB_SCHEMA = "demos_app";
 
 interface Results {
@@ -45,9 +46,25 @@ export async function updateBudgetNeutralityWorkbook(
     message.documentTypeId,
     validationResults.isValid ? SUCCEEDED_VALIDATION_STATUS_ID : FAILED_VALIDATION_STATUS_ID,
     JSON.stringify(validationResults.errors),
-    validationResults.extractedValues?.get("actuals"),
-    validationResults.extractedValues?.get("netVariance"),
+    validationResults.extractedValues.get("actuals") ?? null,
+    validationResults.extractedValues.get("netVariance") ?? null,
   ]);
+}
+
+// Never throws: an unreadable workbook is a problem with the file, not this Lambda. Throwing
+// here would leave the budget_neutrality_workbook row stuck at "Pending" with no actuals.
+export async function parseAndValidateWorkbook(documentPath: string): Promise<ValidationResult> {
+  try {
+    const parsedData = await parseBNFileFromPath(documentPath);
+    return await validateBNWorkbook(parsedData, validations, extractorFunctions);
+  } catch (error) {
+    const parseError: ValidationError = {
+      code: PARSE_ERROR_CODE,
+      message: `Unable to read the workbook: ${(error as Error).message}`,
+    };
+    log.error({ error: parseError.message }, "Unable to parse BN workbook.");
+    return { isValid: false, errors: [parseError], extractedValues: new Map() };
+  }
 }
 
 export const handler = async (event: SQSEvent, context: Context) =>
@@ -80,14 +97,13 @@ export const handler = async (event: SQSEvent, context: Context) =>
       log.info({ s3Path }, "Starting Download of BN workbook from S3.");
       const downloadedDocumentPath = await downloadDocumentFromS3(s3Path);
       
-      log.info("Download completed. Starting parsing of BN workbook.");
-      const parsedData = await parseBNFileFromPath(downloadedDocumentPath); 
+      log.info("Download completed. Starting parsing and validation of BN workbook.");
+      const validationResults = await parseAndValidateWorkbook(downloadedDocumentPath);
 
-      log.info("Parsing completed. Starting validation against ruleset.");
-      const validationResults = await validateBNWorkbook(parsedData, validations, extractorFunctions);
-      
-
-      log.info("Validation completed. Inserting BN results into database.");
+      log.info(
+        { isValid: validationResults.isValid, errorCount: validationResults.errors.length },
+        "Validation completed. Inserting BN results into database."
+      );
       results.existingDocuments = 1;
       await updateBudgetNeutralityWorkbook(pool, message, validationResults);
       
