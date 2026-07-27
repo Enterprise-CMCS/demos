@@ -3,7 +3,6 @@ import React from "react";
 import { ExitIcon, SearchIcon } from "components/icons";
 import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "components/input/Input";
 import { useDebounced } from "hooks/useDebounced";
-import { useLocalStorage } from "hooks";
 
 import { CellContext, Row, Table } from "@tanstack/react-table";
 
@@ -12,13 +11,22 @@ export const TEST_IDS = {
   clearButton: "button-clear-search",
 };
 
-export const DEFAULT_KEYWORD_SEARCH_STORAGE_KEY = "keyword-search";
-export interface KeywordSearchProps<T> {
+type KeywordSearchStateProps =
+  | {
+      value: string;
+      onValueChange: (value: string) => void;
+    }
+  | {
+      value?: never;
+      onValueChange?: never;
+    };
+
+export type KeywordSearchProps<T> = {
   table: Table<T>;
   label?: string;
   debounceMs?: number;
   placeholder?: string;
-}
+} & KeywordSearchStateProps;
 
 export const arrIncludesAllInsensitive = <T,>(
   row: Row<T>,
@@ -70,11 +78,15 @@ export function highlightCell<TData>({
 
 export function KeywordSearch<T>({
   table,
+  value,
+  onValueChange,
   label = "Search:",
   debounceMs = 300,
   placeholder = "Search",
 }: KeywordSearchProps<T>) {
-  const [queryString, setQueryString] = useLocalStorage(DEFAULT_KEYWORD_SEARCH_STORAGE_KEY);
+  const [localQueryString, setLocalQueryString] = React.useState("");
+  const queryString = value ?? localQueryString;
+  const setQueryString = onValueChange ?? setLocalQueryString;
 
   const debouncedQueryString = useDebounced(queryString, debounceMs);
 
@@ -89,10 +101,6 @@ export function KeywordSearch<T>({
       table.setGlobalFilter("");
     }
   }, [debouncedQueryString, table]);
-
-  const onValueChange = (val: string) => {
-    setQueryString(val);
-  };
 
   const clearSearch = () => {
     setQueryString("");
@@ -112,7 +120,7 @@ export function KeywordSearch<T>({
           name={TEST_IDS.input}
           data-testid={TEST_IDS.input}
           value={queryString}
-          onChange={(e) => onValueChange(e.target.value)}
+          onChange={(e) => setQueryString(e.target.value)}
           className={`${INPUT_BASE_CLASSES} ${getInputColors("")} w-full pl-10 pr-10`}
           aria-label="Input keyword search query"
           placeholder={placeholder}

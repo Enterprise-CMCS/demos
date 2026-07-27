@@ -15,6 +15,16 @@ const DEFAULT_NO_SEARCH_RESULTS_MESSAGE =
   "No results were returned. Adjust your search and filter criteria.";
 const DEFAULT_EMPTY_ROWS_MESSAGE = "No demonstrations are tracked.";
 
+type DemonstrationTableSearchProps =
+  | {
+      searchValue: string;
+      onSearchValueChange: (value: string) => void;
+    }
+  | {
+      searchValue?: never;
+      onSearchValueChange?: never;
+    };
+
 export type DemonstrationTableRow =
   | (Demonstration & { type: "demonstration" })
   | (DemonstrationAmendment & {
@@ -73,16 +83,20 @@ const applyDefaultSort = (demonstrations: Demonstration[]): Demonstration[] => {
   });
 };
 
-export const DemonstrationTable: React.FC<{
+export const DemonstrationTable: React.FC<
+  {
   demonstrations: Demonstration[];
   projectOfficerOptions: Pick<Person, "fullName">[];
   emptyRowsMessage?: string;
   noResultsFoundMessage?: string;
-}> = ({
+  } & DemonstrationTableSearchProps
+> = ({
   demonstrations,
   projectOfficerOptions,
   emptyRowsMessage = DEFAULT_EMPTY_ROWS_MESSAGE,
   noResultsFoundMessage = DEFAULT_NO_SEARCH_RESULTS_MESSAGE,
+  searchValue,
+  onSearchValueChange,
 }) => {
   const demonstrationColumns = DemonstrationColumns(projectOfficerOptions);
   const sortedDemonstrations = applyDefaultSort(demonstrations);
@@ -96,7 +110,17 @@ export const DemonstrationTable: React.FC<{
             type: "demonstration",
           }))}
           columns={demonstrationColumns}
-          keywordSearch={(table) => <KeywordSearch table={table} />}
+          keywordSearch={(table) => (
+            searchValue !== undefined && onSearchValueChange ? (
+              <KeywordSearch
+                table={table}
+                value={searchValue}
+                onValueChange={onSearchValueChange}
+              />
+            ) : (
+              <KeywordSearch table={table} />
+            )
+          )}
           columnFilter={(table) => <ColumnFilter table={table} />}
           pagination={(table) => <PaginationControls table={table} />}
           emptyRowsMessage={emptyRowsMessage}

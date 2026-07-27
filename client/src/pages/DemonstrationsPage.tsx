@@ -68,6 +68,7 @@ export type DemonstrationsPageQueryResult = {
 export const DemonstrationsPage: React.FC = () => {
   const { data, loading, error } =
     useQuery<DemonstrationsPageQueryResult>(DEMONSTRATIONS_PAGE_QUERY);
+  const [searchValue, setSearchValue] = React.useState("");
 
   const demonstrations = data?.demonstrations || [];
   const hasApprovedDemonstrations = demonstrations.some(
@@ -95,12 +96,16 @@ export const DemonstrationsPage: React.FC = () => {
               demonstrations={myDemonstrations}
               projectOfficerOptions={data.people}
               emptyRowsMessage="You have no assigned demonstrations at this time."
+              searchValue={searchValue}
+              onSearchValueChange={setSearchValue}
             />
           </Tab>
           <Tab label={`All Demonstrations (${demonstrations.length})`} value="demonstrations">
             <DemonstrationTable
               demonstrations={demonstrations}
               projectOfficerOptions={data.people}
+              searchValue={searchValue}
+              onSearchValueChange={setSearchValue}
             />
           </Tab>
         </HorizontalSectionTabs>

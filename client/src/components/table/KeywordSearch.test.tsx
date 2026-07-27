@@ -2,7 +2,7 @@ import React from "react";
 
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Table } from "./Table";
 import { TestType, testTableData } from "./Table.test";
@@ -32,16 +32,19 @@ export const testColumns = [
   }),
 ];
 
+const renderKeywordSearch = () =>
+  render(
+    <Table<TestType>
+      keywordSearch={(table) => <KeywordSearch table={table} />}
+      columns={testColumns}
+      data={testTableData}
+      noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
+    />
+  );
+
 describe.sequential("KeywordSearch Component", () => {
   beforeEach(() => {
-    render(
-      <Table<TestType>
-        keywordSearch={(table) => <KeywordSearch table={table} />}
-        columns={testColumns}
-        data={testTableData}
-        noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
-      />
-    );
+    renderKeywordSearch();
   });
 
   describe("Initial Render", () => {
@@ -73,6 +76,15 @@ describe.sequential("KeywordSearch Component", () => {
       expect(screen.getByText("Item Three")).toBeInTheDocument();
       expect(screen.getByText("Item Four")).toBeInTheDocument();
       expect(screen.getByText("Item Five")).toBeInTheDocument();
+    });
+
+    it("clears search text when the table is remounted", async () => {
+      const user = userEvent.setup();
+      await user.type(screen.getByTestId(TEST_IDS.input), "unique");
+
+      cleanup();
+      renderKeywordSearch();
+      expect(screen.getByTestId(TEST_IDS.input)).toHaveValue("");
     });
   });
 

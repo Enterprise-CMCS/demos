@@ -98,4 +98,19 @@ describe("DemonstrationsPage tab persistence", () => {
 
     expect(sessionStorage.getItem("selectedDemonstrationTab")).toBe("demonstrations");
   });
+
+  it("shares search between tabs but clears it after leaving the page", () => {
+    const { unmount } = render(<DemonstrationsPage />);
+    const searchInput = screen.getByLabelText(/keyword search/i);
+
+    fireEvent.change(searchInput, { target: { value: "Demo One" } });
+    fireEvent.click(screen.getByTestId("button-demonstrations"));
+
+    expect(screen.getByLabelText(/keyword search/i)).toHaveValue("Demo One");
+
+    unmount();
+    render(<DemonstrationsPage />);
+
+    expect(screen.getByLabelText(/keyword search/i)).toHaveValue("");
+  });
 });
