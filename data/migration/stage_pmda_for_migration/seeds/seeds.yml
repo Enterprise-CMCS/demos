@@ -24,7 +24,7 @@ seeds:
   - name: crosswalk_mdcd_dlvrbl_crnt_stus_cd_to_deliverable_status_id
     columns:
       - name: mdcd_dlvrbl_crnt_stus_cd
-        data:tests:
+        data_tests:
           - relationships:
               name: assert_all_mdcd_dlvrbl_crnt_stus_cd_in_crosswalk_exist_in_pmda
               arguments:

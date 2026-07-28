@@ -201,6 +201,9 @@ models:
         data_type: timestamptz
       - name: _legacy_mdcd_demo_id
         data_type: integer
+        data_tests:
+          - not_null:
+              name: assert_no_mdcd_demo_ids_are_null_in_final_demo_table
       - name: _legacy_proj_ofcr_user_id
         data_type: integer
         description: The legacy user ID of the project officer; when null or 0, fall back to 828 (Liz Hill).
