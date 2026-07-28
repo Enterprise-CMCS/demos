@@ -19,11 +19,16 @@ SELECT
     FALSE AS should_have_note,
     TRUE AS should_have_user_id,
     TRUE AS extension_id_optional,
-    '2020-01-01'::TIMESTAMPTZ AS old_due_date,
-    '2020-01-01'::TIMESTAMPTZ AS new_due_date,
+    coalesce(due_date_hist.dlvrbl_due_dt, f_deliv.due_date) AS old_due_date,
+    coalesce(due_date_hist.dlvrbl_due_dt, f_deliv.due_date) AS new_due_date,
     liz_hill.id AS user_id
 FROM
     {{ ref('deliverables_deliverable_submission_events') }} AS sub_evt
+LEFT JOIN
+    {{ ref('deliverables_history_due_date_by_date_range') }} AS due_date_hist
+    ON
+        sub_evt.mdcd_dlvrbl_id = due_date_hist.mdcd_dlvrbl_id
+        AND sub_evt.creatd_dt BETWEEN due_date_hist.from_time AND due_date_hist.to_time
 INNER JOIN
     {{ ref('final_demos_app_deliverable') }} AS f_deliv
     ON
@@ -32,3 +37,7 @@ INNER JOIN
     liz_hill
     ON
         TRUE
+WHERE
+    sub_evt.mdcd_dlvrbl_id NOT IN (
+        SELECT e1.mdcd_dlvrbl_id FROM {{ ref('errors_deliverable_history_with_incomplete_due_date_info') }} AS e1
+    )

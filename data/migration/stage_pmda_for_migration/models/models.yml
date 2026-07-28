@@ -52,7 +52,13 @@ models:
         data_type: bool
       - name: old_due_date
         data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_null_old_due_date_in_final_deliverable_action
       - name: new_due_date
+        data_tests:
+          - not_null:
+              name: assert_no_null_new_due_date_in_final_deliverable_action
         data_type: timestamptz
       - name: user_id
         data_type: uuid
@@ -466,3 +472,18 @@ models:
               arguments:
                 values:
                   - demos-state-user
+
+  # Deliverable Models
+  - name: deliverables_history_due_date_by_date_range
+    columns:
+      - name: mdcd_dlvrbl_id
+        data_tests:
+          - not_null:
+              name: assert_mdcd_dlvrbl_id_not_null_in_due_date_history_table
+
+  - name: deliverables_active_pmda_deliverables
+    columns:
+      - name: mdcd_dlvrbl_id
+        data_tests:
+          - not_null:
+              name: assert_mdcd_dlvrbl_id_not_null_in_active_pmda_deliverables
