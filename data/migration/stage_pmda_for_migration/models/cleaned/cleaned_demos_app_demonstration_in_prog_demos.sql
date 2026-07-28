@@ -19,8 +19,8 @@ SELECT
     current_timestamp AS updated_at,
     proj_ofcr_user_id AS _legacy_proj_ofcr_user_id
 FROM
-    {{ ref('apps_unfiltered_staged_in_progress_pmda_demos') }}
+    {{ ref('apps_unfiltered_staged_in_prog_pmda_demos') }}
 WHERE
     mdcd_pendg_demo_id NOT IN (
-        SELECT e1.mdcd_pendg_demo_id FROM {{ ref('errors_invalid_demo_nums_in_in_progress_pmda_demos') }} AS e1
+        SELECT e1.mdcd_pendg_demo_id FROM {{ ref('errors_invalid_demo_nums_in_in_prog_pmda_demos') }} AS e1
     )
