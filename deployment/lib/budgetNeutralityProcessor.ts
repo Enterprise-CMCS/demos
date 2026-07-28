@@ -87,7 +87,9 @@ export class BudgetNeutralityProcessor extends Construct {
         timeout: Duration.seconds(60),
         asCode: false,
         externalModules: ["@aws-sdk", "@aws-sdk/client-secrets-manager"],
-        nodeModules: ["pg"], 
+        // pino must be installed, not bundled: it is CommonJS, and esbuild's ESM output
+        // turns its internal require() into a shim that throws at cold start.
+        nodeModules: ["pg", "pino"],
         vpc: props.vpc,
         securityGroup: props.securityGroup,
         format: OutputFormat.ESM,
