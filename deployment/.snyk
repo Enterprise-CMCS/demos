@@ -1,12 +1,17 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.0
-# ignores vulnerabilities until expiry date; change duration by modifying expiry date
 patch: {}
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
   SNYK-JS-BRACEEXPANSION-17706650:
     - '*':
         reason: No direct upgrade or patch available.
-        expires: 2026-08-15T00:00:00.000Z 
+        expires: 2026-08-15T00:00:00.000Z
+  SNYK-JS-BRACEEXPANSION-18313044:
+    - '*':
+        reason: No patch available
+        expires: 2026-08-11T00:00:00.000Z
+        created: 2026-07-28T13:02:53.851Z
 exclude:
   global:
     - node_modules
