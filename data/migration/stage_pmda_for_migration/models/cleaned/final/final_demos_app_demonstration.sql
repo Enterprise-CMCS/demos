@@ -18,7 +18,7 @@ SELECT
     updated_at,
     _legacy_proj_ofcr_user_id
 FROM {{ ref('cleaned_demos_app_demonstration_finalized_demos') }}
-UNION
+UNION ALL
 SELECT
     cleaned_demos.id,
     cleaned_demos.application_type_id,
@@ -39,6 +39,8 @@ SELECT
     cleaned_demos.updated_at,
     cleaned_demos._legacy_proj_ofcr_user_id
 FROM {{ ref('cleaned_demos_app_demonstration_in_prog_demos') }} AS cleaned_demos
-INNER JOIN {{ ref('apps_in_prog_phase_completion') }} AS phase_completion
+LEFT JOIN {{ ref('apps_in_prog_phase_completion') }} AS phase_completion
     ON
         cleaned_demos.mdcd_demo_aplctn_id = phase_completion.mdcd_demo_aplctn_id
+WHERE
+    phase_completion.mdcd_demo_aplctn_id IS NOT NULL

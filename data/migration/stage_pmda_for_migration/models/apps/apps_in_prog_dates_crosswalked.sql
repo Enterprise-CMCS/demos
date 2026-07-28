@@ -73,3 +73,6 @@ SELECT
     (apps.phase_4_end_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS approval_package_completion_date
 
 FROM {{ ref('apps_active_in_prog_pmda_demos') }} AS apps
+WHERE
+    apps.mdcd_pendg_demo_id NOT IN
+    (SELECT e1.mdcd_pendg_demo_id FROM {{ ref('errors_apps_in_prog_missing_aplctn') }} AS e1)
