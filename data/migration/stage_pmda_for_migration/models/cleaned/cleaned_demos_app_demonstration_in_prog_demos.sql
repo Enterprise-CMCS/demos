@@ -1,5 +1,6 @@
 SELECT
-    id,
+    gen_random_uuid() AS id,
+    mdcd_demo_aplctn_id,
     application_type_id,
     name, -- noqa: RF04
     description,
@@ -9,7 +10,7 @@ SELECT
     signature_level_id,
     status_id,
     status_updated_at,
-    current_phase_id,
+    NULL AS current_phase_id,
     state_id,
     'CMS (OSORA)' AS clearance_level_id,
     medicaid_id,

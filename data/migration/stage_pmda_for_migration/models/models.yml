@@ -393,20 +393,8 @@ models:
   - name: apps_in_prog_dates_crosswalked
     description: converts the dates stored in PMDA to applicable date types in DEMOS, extrapolating to phase start and end dates where needed.
 
-  - name: apps_in_prog_dates_unpivoted
-    description: unpivots the dates to a long format with date_type and date_value columns
-
-  - name: apps_in_prog_dates_validated
+  - name: apps_in_prog_dates_with_checks
     description: validates the dates using validation rules found in the DEMOS API. Flags failing dates with a reason.
-
-  - name: apps_in_prog_dates_wide_normalized
-    description: normalizes the dates to be start-of-day and end-of-day based on the date type.
-
-  - name: apps_in_prog_phase_statuses
-    description: uses the date values to determine the current phase and its phase's statuses.
-
-  - name: apps_in_prog_phase_statuses_unpivoted
-    description: unpivots the phase statuses to a long format with phase_id and phase_status columns
 
   - name: apps_active_finalized_pmda_demos
     columns:
