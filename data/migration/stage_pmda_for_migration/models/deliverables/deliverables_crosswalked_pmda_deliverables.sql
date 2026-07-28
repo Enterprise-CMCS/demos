@@ -13,7 +13,8 @@ SELECT
     coalesce(pmda_deliv.creatd_dt, current_timestamp) AS created_at,
     coalesce(pmda_deliv.updtd_dt, pmda_deliv.creatd_dt, current_timestamp) AS updated_at,
     pmda_deliv.mdcd_demo_id AS _legacy_mdcd_demo_id,
-    pmda_deliv.mdcd_dlvrbl_id AS _legacy_mdcd_dlvrbl_id
+    pmda_deliv.mdcd_dlvrbl_id AS _legacy_mdcd_dlvrbl_id,
+    pmda_deliv.mdcd_dlvrbl_crnt_stus_cd AS _legacy_mdcd_dlvrbl_crnt_stus_cd
 FROM
     {{ ref('deliverables_active_pmda_deliverables') }} AS pmda_deliv
 LEFT JOIN

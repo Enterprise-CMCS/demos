@@ -275,6 +275,10 @@ MIGRATION_CONFIGURATION: MigrationConfiguration = (
     TransactionActionConfiguration("commit"),
     TriggerActionConfiguration("enable", "application", "create_phases_and_dates_for_new_application"),
     TriggerActionConfiguration("enable", "deliverable", "trim_input_text_fields"),
+    ArbitraryActionSql(
+        "Run due date calculation",
+        f"CALL postgres_execute('{DEMOS_DDB_ATTACH_NAME}', 'CALL {APP_SCHEMA}.mark_deliverables_as_past_due()')",
+    ),
 )
 
 

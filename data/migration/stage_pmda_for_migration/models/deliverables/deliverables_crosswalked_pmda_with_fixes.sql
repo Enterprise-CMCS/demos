@@ -28,7 +28,8 @@ SELECT
     deliv.created_at,
     deliv.updated_at,
     deliv._legacy_mdcd_demo_id,
-    deliv._legacy_mdcd_dlvrbl_id
+    deliv._legacy_mdcd_dlvrbl_id,
+    deliv._legacy_mdcd_dlvrbl_crnt_stus_cd
 FROM
     {{ ref('deliverables_crosswalked_pmda_deliverables') }} AS deliv
 LEFT JOIN

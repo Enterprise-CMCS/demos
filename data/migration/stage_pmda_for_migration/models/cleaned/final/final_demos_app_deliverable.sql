@@ -13,7 +13,8 @@ SELECT
     created_at,
     updated_at,
     _legacy_mdcd_demo_id,
-    _legacy_mdcd_dlvrbl_id
+    _legacy_mdcd_dlvrbl_id,
+    _legacy_mdcd_dlvrbl_crnt_stus_cd
 FROM
     {{ ref('deliverables_crosswalked_pmda_with_fixes') }}
 WHERE

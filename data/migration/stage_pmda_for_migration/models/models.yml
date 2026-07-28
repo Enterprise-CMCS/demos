@@ -116,6 +116,8 @@ models:
         data_type: integer
       - name: _legacy_mdcd_dlvrbl_id
         data_type: integer
+      - name: _legacy_mdcd_dlvrbl_crnt_stus_cd
+        data_type: integer
 
   - name: final_demos_app_demo_role_assignment
     columns:
