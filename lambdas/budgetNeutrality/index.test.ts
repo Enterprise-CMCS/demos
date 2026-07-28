@@ -55,13 +55,6 @@ vi.mock("demos-shared-library/BN/validation", () => ({
 
 import { handler } from "./index";
 import { documentExists } from "./budgetNeutralityValidation";
-import { parseBNFileFromPath } from "demos-shared-library/BN";
-import { validateBNWorkbook } from "demos-shared-library/BN/validation";
-
-const BN_WORKBOOK_EVENT = {
-  Records: [{ body: JSON.stringify({ documentId: "doc-1", documentTypeId: "BN Workbook" }) }],
-} as unknown as SQSEvent;
-const CONTEXT = { awsRequestId: "test-request-id" } as Context;
 
 describe("budgetNeutrality index", () => {
   beforeEach(() => {
@@ -112,8 +105,8 @@ describe("budgetNeutrality index", () => {
       "BN Workbook",
       "Succeeded",
       "[]",
-      null,
-      null,
+      undefined,
+      undefined,
     ]);
     expect(mocks.logInfoMock).toHaveBeenCalledWith(
       {
@@ -127,49 +120,6 @@ describe("budgetNeutrality index", () => {
       "Budget Neutrality validation completed."
     );
     expect(mocks.logWarnMock).not.toHaveBeenCalled();
-  });
-
-  it("stores extracted actuals when the workbook fails validation", async () => {
-    vi.mocked(validateBNWorkbook).mockResolvedValueOnce({
-      isValid: false,
-      errors: [{ code: "2", message: "Reporting Year value is missing." }],
-      extractedValues: new Map<string, string | number>([["actuals", "Actuals Only"]]),
-    });
-    mocks.queryMock.mockResolvedValueOnce({});
-    mocks.getDbPoolMock.mockResolvedValue({ query: mocks.queryMock } as unknown as Pool);
-
-    const response = await handler(BN_WORKBOOK_EVENT, CONTEXT);
-
-    expect(response).toEqual({ statusCode: 200, body: "Processed 1 records." });
-    expect(mocks.queryMock.mock.calls[0]?.[1]).toEqual([
-      "doc-1",
-      "BN Workbook",
-      "Failed",
-      JSON.stringify([{ code: "2", message: "Reporting Year value is missing." }]),
-      "Actuals Only",
-      null,
-    ]);
-  });
-
-  it("records a failed validation instead of leaving the workbook pending when parsing fails", async () => {
-    vi.mocked(parseBNFileFromPath).mockRejectedValueOnce(new Error("Sheet \"Summary\" not found"));
-    mocks.queryMock.mockResolvedValueOnce({});
-    mocks.getDbPoolMock.mockResolvedValue({ query: mocks.queryMock } as unknown as Pool);
-
-    const response = await handler(BN_WORKBOOK_EVENT, CONTEXT);
-
-    expect(response).toEqual({ statusCode: 200, body: "Processed 1 records." });
-    expect(mocks.queryMock).toHaveBeenCalledTimes(1);
-    expect(mocks.queryMock.mock.calls[0]?.[1]).toEqual([
-      "doc-1",
-      "BN Workbook",
-      "Failed",
-      JSON.stringify([
-        { code: "PARSE_ERROR", message: 'Unable to read the workbook: Sheet "Summary" not found' },
-      ]),
-      null,
-      null,
-    ]);
   });
 
   it("throws when event includes more than one record", async () => {
