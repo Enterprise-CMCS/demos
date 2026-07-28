@@ -55,8 +55,9 @@ pipeline {
               parallel(
                 'Build Client': {
                   dirCon('deployment','node') {
-                    if (env.STAGE == 'prod') {
-                      // TODO: This needs to be removed before going live in PROD
+                    if (env.STAGE == 'prod' && env.PROD_LIVE != 'true') {
+                      // Prior to the prod launch, a mock index.html file is
+                      // used to prevent access to the actual DEMOS site
                       sh """
                       mkdir -p ../client/dist
                       cp ./mock-index.html ../client/dist/index.html

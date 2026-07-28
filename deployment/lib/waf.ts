@@ -220,12 +220,10 @@ export const createCloudfrontRules = (
     ...baseWafRules
   ];
 
-  // TODO: PROD WILL NOT BE ACCESSIBLE IF THIS IS LEFT AS IS. THIS IS FOR
-  // PRE-PROD only. The if-statement should be uncommented
-  //
-  //  if (commonProps.stage != "prod") {
+  // Add a WAF rule that only allows access from ZScaler
+   if (commonProps.stage != "prod" || process.env.PROD_LIVE != "true") {
     rules.unshift(createCombinedBlockRule("ZScalerOrCloudbees", ipSet, commonProps.zapHeaderValue),);
-  // }
+  }
 
   return addPriorities(rules);
 };
