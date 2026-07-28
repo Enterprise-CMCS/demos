@@ -15,16 +15,6 @@ const DEFAULT_NO_SEARCH_RESULTS_MESSAGE =
   "No results were returned. Adjust your search and filter criteria.";
 const DEFAULT_EMPTY_ROWS_MESSAGE = "No demonstrations are tracked.";
 
-type DemonstrationTableSearchProps =
-  | {
-      searchValue: string;
-      onSearchValueChange: (value: string) => void;
-    }
-  | {
-      searchValue?: never;
-      onSearchValueChange?: never;
-    };
-
 export type DemonstrationTableRow =
   | (Demonstration & { type: "demonstration" })
   | (DemonstrationAmendment & {
@@ -42,9 +32,7 @@ export type DemonstrationTableRow =
       primaryProjectOfficer: Pick<Person, "fullName" | "id">;
     });
 
-const getSubRows = (
-  row: DemonstrationTableRow
-): DemonstrationTableRow[] | undefined => {
+const getSubRows = (row: DemonstrationTableRow): DemonstrationTableRow[] | undefined => {
   if (row.type !== "demonstration") return undefined;
   return [
     ...row.amendments.map(
@@ -83,14 +71,16 @@ const applyDefaultSort = (demonstrations: Demonstration[]): Demonstration[] => {
   });
 };
 
-export const DemonstrationTable: React.FC<
-  {
+type DemonstrationTableProps = {
   demonstrations: Demonstration[];
   projectOfficerOptions: Pick<Person, "fullName">[];
   emptyRowsMessage?: string;
   noResultsFoundMessage?: string;
-  } & DemonstrationTableSearchProps
-> = ({
+  searchValue: string;
+  onSearchValueChange: (value: string) => void;
+};
+
+export const DemonstrationTable: React.FC<DemonstrationTableProps> = ({
   demonstrations,
   projectOfficerOptions,
   emptyRowsMessage = DEFAULT_EMPTY_ROWS_MESSAGE,
@@ -111,15 +101,7 @@ export const DemonstrationTable: React.FC<
           }))}
           columns={demonstrationColumns}
           keywordSearch={(table) => (
-            searchValue !== undefined && onSearchValueChange ? (
-              <KeywordSearch
-                table={table}
-                value={searchValue}
-                onValueChange={onSearchValueChange}
-              />
-            ) : (
-              <KeywordSearch table={table} />
-            )
+            <KeywordSearch table={table} value={searchValue} onValueChange={onSearchValueChange} />
           )}
           columnFilter={(table) => <ColumnFilter table={table} />}
           pagination={(table) => <PaginationControls table={table} />}

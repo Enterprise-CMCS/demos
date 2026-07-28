@@ -122,10 +122,20 @@ const buildDemonstrations = (configs: TestDemoConfig[]): TestDemonstration[] => 
 };
 
 // Helper functions
+const TestDemonstrationTable: React.FC<
+  Omit<React.ComponentProps<typeof DemonstrationTable>, "searchValue" | "onSearchValueChange">
+> = (props) => {
+  const [searchValue, setSearchValue] = React.useState("");
+
+  return (
+    <DemonstrationTable {...props} searchValue={searchValue} onSearchValueChange={setSearchValue} />
+  );
+};
+
 const renderDemonstrations = (configs: TestDemoConfig[] = TEST_DEMO_CONFIGS) => {
   const demonstrations = buildDemonstrations(configs);
   return render(
-    <DemonstrationTable projectOfficerOptions={TEST_PEOPLE} demonstrations={demonstrations} />
+    <TestDemonstrationTable projectOfficerOptions={TEST_PEOPLE} demonstrations={demonstrations} />
   );
 };
 
@@ -217,7 +227,7 @@ describe("Demonstrations", () => {
   describe("Empty states", () => {
     it("passes correct empty message when provided", async () => {
       render(
-        <DemonstrationTable
+        <TestDemonstrationTable
           emptyRowsMessage="testEmptyRowsMessage"
           projectOfficerOptions={TEST_PEOPLE}
           demonstrations={[]}
