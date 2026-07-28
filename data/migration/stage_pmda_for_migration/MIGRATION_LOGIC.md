@@ -6,7 +6,7 @@ This file contains documentation of migration logic decisions that were made.
 
 - Initial user filtering used `legacy_pmda_raw.users.active = 1`
 - Users were filtered out if their email was null, empty string, or failed the regex `^[A-Za-z0-9._+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$`
-- Users were filtered out if their first naem or least name were null or empty string
+- Users were filtered out if their first name or last name were null or empty string
 - Users were filtered out if their PMDA user roles (`legacy_pmda_raw.user_role_asgnmt`) could not be mapped to a DEMOS `person_type_id`
   - This would occur if there were no roles assigned in PMDA
 - If a PMDA user's roles would resolve to multiple DEMOS `person_type_id` records, the **_HIGHEST_** `person_type_id` was selected
@@ -42,9 +42,9 @@ The specific steps are listed below.
 - Next, all `-`, `/`, and whitespace characters were removed from each ID, resulting in a stripped number.
 - Stripped numbers were flagged as invalid for the following reasons:
   - If the number was NULL
-    - Note: since CHIP IDs are not required, `NULL` was considerd valid in the `mdcd_scndry_demo_num` field
+    - Note: since CHIP IDs are not required, `NULL` was considered valid in the `mdcd_scndry_demo_num` field
   - If it was an empty string
-    - Note: since CHIP IDs are not required, empty string was considerd valid in the `mdcd_scndry_demo_num` field
+    - Note: since CHIP IDs are not required, empty string was considered valid in the `mdcd_scndry_demo_num` field
   - If the length was not 9 or 10 characters
     - With stripping, there should always be either 9 or 10 total characters
   - If the 3rd character was not W
@@ -83,6 +83,35 @@ The date data available from PMDA is sparse relative to the requirements of DEMO
 
 Similar to finalized demonstrations, the date data from PMDA is sparse; however because the requirements on completion are less applicable, inferences can be made about the dates to fill in gaps.
 
+#### Data Quality and Filtering
+
+In-progress demonstrations are filtered at multiple stages to ensure data quality:
+
+1. **Invalid Medicaid/CHIP ID Numbers**: Demonstrations with invalid format or location errors are excluded via `errors_invalid_demo_nums_in_in_prog_pmda_demos`
+2. **Missing Application ID**: Demonstrations where `mdcd_demo_aplctn_id` is NULL are excluded via `errors_apps_in_prog_missing_aplctn`
+3. **Missing Phase Completion Data**: Demonstrations that cannot be joined to phase completion data are excluded via `errors_apps_in_prog_demos_missing_phase_completion` (expected to be zero records as both models derive from the same source)
+4. **Invalid Dates**: Individual dates that fail validation (temporal inconsistencies, missing required dependencies) are set to NULL and tracked in `errors_apps_in_prog_dates_failing_validation`
+
+The date validation process includes:
+
+- **Temporal Consistency**: Dates must follow logical time sequences (e.g., start dates before end dates, completion dates after start dates)
+- **Required Dependencies**: Certain dates require other dates to exist (e.g., completion dates require corresponding start dates)
+- **Two-Stage Validation**: Primary validations check temporal relationships, then completion dates validate against both raw dates AND validation flags to avoid circular dependencies
+
+Dates that fail validation are set to NULL in the `cleaned_` columns, allowing demonstrations to proceed through migration with partial date information rather than being entirely excluded.
+
+#### Date Timestamp Conventions
+
+All dates use consistent timestamp conventions:
+
+- **Start of Day**: Most dates use `00:00:00.000` (midnight at the start of the day)
+- **End of Day**: The following dates use `23:59:59.999` (final millisecond of the day):
+  - Completeness Review Due Date
+  - Federal Comment Period End Date
+  - CMS (OSORA) Clearance End
+
+All timestamps are converted to `America/New_York` timezone during migration.
+
 #### Date Type Derivations
 
 ##### Concept Phase
@@ -96,7 +125,7 @@ Similar to finalized demonstrations, the date data from PMDA is sparse; however 
 
 - **Application Intake Start Date**: Derived date set to one day before the State Application Submitted Date
 - **State Application Submitted Date**: Directly mapped from PMDA `phase_2_rcvd_dt`
-- **Completeness Review Due Date**: Directly mapped from PMDA `phase_2_cmpltns_rvw_dt`
+- **Completeness Review Due Date**: Directly mapped from PMDA `phase_2_cmpltns_rvw_dt` (End of Day timestamp: 23:59:59.999)
 - **Application Intake Completion Date**: Directly mapped from PMDA `phase_2_cmpltns_rvw_dt`
 
 ##### Completeness Phase
@@ -104,7 +133,7 @@ Similar to finalized demonstrations, the date data from PMDA is sparse; however 
 - **Completeness Start Date**: Derived date set to one day after the Completeness Review Due Date (Application Intake Completion Date)
 - **State Application Deemed Complete**: Directly mapped from PMDA `phase_2_state_aplctn_deemd_cmpltn_dt`
 - **Federal Comment Period Start Date**: Directly mapped from PMDA `phase_2_fed_cmt_prd_strt_dt`
-- **Federal Comment Period End Date**: Directly mapped from PMDA `phase_2_fed_cmt_prd_end_dt`
+- **Federal Comment Period End Date**: Directly mapped from PMDA `phase_2_fed_cmt_prd_end_dt` (End of Day timestamp: 23:59:59.999)
 - **Completeness Completion Date**: Derived date set to one day before the Federal Comment Period Start Date
 
 ##### SDG Preparation Phase
@@ -130,7 +159,7 @@ Similar to finalized demonstrations, the date data from PMDA is sparse; however 
 - **Submit Approval Package to OSORA**: Directly mapped from PMDA `phase_5_strt_dt`
 - **OSORA R1 Comments Due**: ❌ Excluded - No equivalent field in PMDA
 - **OSORA R2 Comments Due**: ❌ Excluded - No equivalent field in PMDA
-- **CMS (OSORA) Clearance End**: Directly mapped from PMDA `phase_5_end_dt`
+- **CMS (OSORA) Clearance End**: Directly mapped from PMDA `phase_5_end_dt` (End of Day timestamp: 23:59:59.999)
 - **Package Sent for COMMs Clearance**: Directly mapped from PMDA `phase_6_strt_dt`
 - **COMMs Clearance Received**: Directly mapped from PMDA `phase_6_end_dt`
 - **Review Completion Date**: Derived as the later of CMS (OSORA) Clearance End or COMMs Clearance Received dates
@@ -155,97 +184,81 @@ This phase is assumed to be skipped for in-progress demonstrations migrated from
 
 #### Current Phase and Phase Status Derivations
 
-For each in-progress application, a phase status is determined for all eight phases. Phase statuses follow a dependency chain where **a phase can only be marked as "Completed" if all previous phases are also completed** (or skipped, in the case of Concept).
+For each in-progress application, a phase status is determined for all eight phases based on the presence of specific completion dates.
 
 ##### Phase Status Values
 
 The possible phase status values are:
 
-- **Not Started**: The phase has not begun (no dates exist for this phase)
-- **Started**: The phase has begun (at least one date exists) but is not complete
-- **Completed**: The phase is fully complete (all required dates exist AND all previous phases are complete)
+- **Not Started**: The phase has not begun (start date does not exist)
+- **Started**: The phase has begun (start date exists) but completion date does not exist
+- **Completed**: The phase is fully complete (completion date exists)
 - **Skipped**: Only applicable to the Concept phase when it was bypassed
 
 ##### Phase-Specific Status Logic
+
+Each phase's status is determined independently based on the cleaned (validated) dates:
 
 ###### Concept Phase
 
 The Concept phase is always at least "Started" (since all in-progress demos must have begun). Its status is determined as:
 
-- **Skipped**: If `concept_skipped_date` is present
-- **Completed**: If `concept_start_date` AND `concept_paper_submitted_date` AND `concept_completion_date` are all present
-  - ⚠️ **Note**: Since `concept_paper_submitted_date` is excluded (no PMDA mapping), this phase can never reach "Completed" status during migration
+- **Completed**: If `cleaned_concept_completion_date` is NOT NULL
+- **Skipped**: If `cleaned_concept_skipped_date` is NOT NULL
 - **Started**: Otherwise (default)
 
 ###### Application Intake Phase
 
-Status depends on Concept phase completion:
-
-- **Completed**: If Concept is complete (or skipped) AND all four Application Intake dates exist (`application_intake_start_date`, `state_application_submitted_date`, `completeness_review_due_date`, `application_intake_completion_date`)
-- **Started**: If `application_intake_start_date` exists OR Concept is complete (indicating this phase should have started)
+- **Completed**: If `cleaned_application_intake_completion_date` is NOT NULL
+- **Started**: If `cleaned_application_intake_start_date` is NOT NULL
 - **Not Started**: Otherwise
 
 ###### Completeness Phase
 
-Status depends on both Concept and Application Intake completion:
-
-- **Completed**: If Concept AND Application Intake are complete AND all five Completeness dates exist (`completeness_start_date`, `state_application_deemed_complete`, `federal_comment_period_start_date`, `federal_comment_period_end_date`, `completeness_completion_date`)
-- **Started**: If `completeness_start_date` exists OR Application Intake is complete
+- **Completed**: If `cleaned_completeness_completion_date` is NOT NULL
+- **Started**: If `cleaned_completeness_start_date` is NOT NULL
 - **Not Started**: Otherwise
 
 ###### Federal Comment Period
 
 This is tracked as a separate status (though it overlaps with Completeness phase):
 
-- **Completed**: If Concept AND Application Intake are complete AND both `federal_comment_period_start_date` AND `federal_comment_period_end_date` exist
-- **Started**: If either `federal_comment_period_start_date` OR `federal_comment_period_end_date` exists
+- **Completed**: If `cleaned_federal_comment_period_end_date` is NOT NULL
 - **Not Started**: Otherwise
 
 ###### SDG Preparation Phase
 
-Status depends on all previous phases (Concept, Application Intake, Completeness) being complete:
-
-- **Completed**: If all previous phases are complete AND all five SDG Preparation dates exist (`sdg_preparation_start_date`, `expected_approval_date`, `sme_initial_review_date`, `frt_initial_meeting_date`, `bnpmt_initial_meeting_date`, `sdg_preparation_completion_date`)
-  - ⚠️ **Note**: Since `bnpmt_initial_meeting_date` is excluded (no PMDA mapping), this phase can never reach "Completed" status during migration
-- **Started**: If `sdg_preparation_start_date` exists OR all previous phases are complete
+- **Started**: If `cleaned_sdg_preparation_start_date` is NOT NULL
 - **Not Started**: Otherwise
+
+Note: This phase cannot reach "Completed" status requisite dates do not have a valid mapping
 
 ###### Review Phase
 
-Status depends on all previous phases through SDG Preparation being complete:
-
-- **Completed**: If all previous phases are complete AND all Review dates exist (`review_start_date`, `ogd_approval_to_share_with_smes`, `draft_approval_package_to_prep`, `ddme_approval_received`, `state_concurrence`, `bn_pmt_approval_to_send_to_omb`, `draft_approval_package_shared`, `receive_ogc_legal_clearance`, `receive_omb_concurrence`, `submit_approval_package_to_osora`, `osora_r1_comments_due`, `osora_r2_comments_due`, `cms_osora_clearance_end`, `package_sent_for_comms_clearance`, `comms_clearance_received`, `review_completion_date`)
-  - ⚠️ **Note**: Since 8 Review dates are excluded (no PMDA mapping), this phase can never reach "Completed" status during migration
-- **Started**: If `review_start_date` exists OR all previous phases are complete
+- **Started**: If `cleaned_review_start_date` is NOT NULL
 - **Not Started**: Otherwise
+
+Note: This phase cannot reach "Completed" status requisite dates do not have a valid mapping
 
 ###### Approval Package Phase
 
-Status depends on all previous phases through Review being complete:
-
-- **Completed**: If all previous phases are complete AND both `approval_package_start_date` AND `approval_package_completion_date` exist
-- **Started**: If `approval_package_start_date` exists OR all previous phases are complete
+- **Started**: If `cleaned_approval_package_start_date` is NOT NULL
 - **Not Started**: Otherwise
+
+Note: This phase cannot reach "Completed" status requisite dates do not have a valid mapping
 
 ###### Approval Summary Phase
 
-This phase requires all previous phases to be complete AND all Approval Summary dates to exist:
-
-- **Completed**: If all previous phases are complete AND all four Approval Summary dates exist (`application_details_marked_complete_date`, `application_demonstration_types_marked_complete_date`, `approval_summary_start_date`, `approval_summary_completion_date`)
-  - ⚠️ **Note**: Since all 4 Approval Summary dates are excluded (no PMDA mapping), this phase can never reach "Completed" status during migration
-- **Started**: If any Approval Summary date exists OR all previous phases are complete
-- **Not Started**: Otherwise
+This phase is always set to **"Not Started"** for all in-progress demonstrations migrated from PMDA, as none of the required dates exist in the source system.
 
 ##### Current Phase Determination
 
-The current phase is determined as the **first phase in the sequence that is not yet completed**. The logic evaluates phases in order:
+The current phase is determined by evaluating phase statuses in order and selecting the **first phase that is not yet completed**. The logic checks:
 
-1. **Concept**: Current if `concept_skipped_date` is NULL AND (`concept_start_date` is NULL OR `concept_paper_submitted_date` is NULL OR `concept_completion_date` is NULL)
-2. **Application Intake**: Current if any of the four required dates are missing
-3. **Completeness**: Current if any of the five required dates are missing
-4. **SDG Preparation**: Current if any of the six required dates are missing (including `bnpmt_initial_meeting_date`)
-5. **Review**: Current if any of the 16 required dates are missing (including the 8 excluded dates)
-6. **Approval Package**: Current if either of the two required dates are missing
-7. **Approval Summary**: Default if all other phases are complete (but note this phase cannot be completed during migration due to excluded dates)
+1. **Concept**: Current if the phase status is not 'Completed' AND not 'Skipped' AND `application_intake_start_date` is NULL
+2. **Application Intake**: Current if the Application Intake phase status is not 'Completed'
+3. **Completeness**: Current if the Completeness phase status is not 'Completed'
+4. **Federal Comment**: Current if the Federal Comment Period phase status is not 'Completed'
+5. **SDG Preparation**: Default for all other cases
 
-This ensures that the current phase always reflects the earliest incomplete stage of the application workflow.
+Note: The current phase logic does not evaluate beyond SDG Preparation phase as requisite dates for completing the SDG Preparation phase do not exist so demonstrations can not have progressed further than that.  
