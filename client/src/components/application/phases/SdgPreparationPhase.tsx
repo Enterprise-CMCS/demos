@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import { tw } from "tags/tw";
+import { useSessionStorageJson } from "hooks";
 
 import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
@@ -107,8 +108,9 @@ export const SdgPreparationPhase = ({
   allPreviousPhasesDone: boolean;
   applicationStatus: ApplicationStatus;
 }) => {
-  const [sdgPreparationPhaseFormData, setSdgPreparationPhaseFormData] =
-    useState<SdgPreparationPhaseFormData>(getFormDataFromPhase(sdgPreparationPhase));
+  const [localFormData, setSdgPreparationPhaseFormData] =
+    useSessionStorageJson<SdgPreparationPhaseFormData>(`sdg-preparation-dates-${applicationId}`);
+  const sdgPreparationPhaseFormData = localFormData ?? getFormDataFromPhase(sdgPreparationPhase);
   const { setApplicationDate } = useSetApplicationDate();
   const { completePhase } = useCompletePhase();
   const { showSuccess, showError } = useToast();

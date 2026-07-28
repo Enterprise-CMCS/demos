@@ -48,3 +48,13 @@ export function useSessionStorage(
 ): [value: string, setValue: (value: string) => void] {
   return useWebStorage(storageKey, "sessionStorage");
 }
+
+export function useSessionStorageJson<T extends object>(
+  storageKey: string
+): [T | undefined, (value: T) => void] {
+  const [stringValue, setStringValue] = useWebStorage(storageKey, "sessionStorage");
+  return [
+    stringValue ? (JSON.parse(stringValue) as T) : undefined,
+    (next) => setStringValue(JSON.stringify(next)),
+  ];
+}
