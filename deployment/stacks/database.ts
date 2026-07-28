@@ -116,7 +116,7 @@ export class DatabaseStack extends Stack {
         instanceType: aws_ec2.InstanceType.of(aws_ec2.InstanceClass.BURSTABLE4_GRAVITON, instanceSize),
         vpc: commonProps.vpc,
         vpcSubnets: { subnets: props.vpc.privateSubnets },
-        multiAz:  commonProps.stage == "prod",
+        multiAz: commonProps.stage == "prod",
         allocatedStorage: 20,
         databaseName: "demos",
         storageType: aws_rds.StorageType.GP3,
