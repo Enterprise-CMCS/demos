@@ -10,6 +10,51 @@ behavior changes. Commit history follows [Conventional Commits](https://www.conv
 ## [Unreleased]
 
 ### Added
+- SME-review exports (`scripts/sme_review_exports.py`, `make sme_review_exports`)
+  close two open SME action items with two run-stamped CSVs written to the
+  gitignored `reports/runs/`. `othr-names` reads the parity view
+  `migration._parity_pgm_dtl_tag_othr_held` and lists the free-text "Other"
+  program-detail names held back from the demonstration-type tag fold (each a
+  1115 demonstration name, not a category) for SDG review. `comments-snapshot`
+  produces a reach-back snapshot of the seven non-deliverable comment tables the
+  migration leaves in PMDA (`mdcd_demo_cmt`, `mdcd_demo_amndmt_cmt`,
+  `mdcd_demo_rnwl_cmt`, `mdcd_pgm_cmt`, `mdcd_demo_finl_dcsn_dtl_cmt`,
+  `mdcd_demo_pgm_mntrg_doc_cmt`, `bdgt_ntrlty_fil_doc_cmt`), normalizing their
+  heterogeneous columns into one set with a `deleted` column so soft-deleted rows
+  stay visible; absent tables are skipped, and an entirely missing source dies
+  rather than emit a misleading empty CSV. Default subcommand runs both.
+- `authorities-snapshot` (a third `sme_review_exports.py` subcommand) delivers
+  the SME-review snapshot for workflow 5 (waiver / expenditure authorities) and
+  formally defers the loader. DEMOS models authorities nowhere (verified across
+  the Prisma models and `demos/server/src`; "Expenditure Cap" / "Emergency
+  Waiver Authority" exist only as flat demonstration-type tag strings), and the
+  BN workbook path is a separate DEMOS-owned concern, so there is no target to
+  load into. The subcommand snapshots the full ~38-table PMDA corpus (per-demo
+  instances, reference lookups, library/catalog masters, bene-group links,
+  program-detail overlaps, plus history/load and pending mirrors), one
+  full-fidelity CSV per present table (verbatim `SELECT *`, all rows incl.
+  soft-deleted; a resolved `demonstration_id` is appended where the source
+  carries `mdcd_demo_id`), plus a manifest flagging each table's
+  tier/history/pending/program-detail overlap for SME triage. The table set is
+  drift-guarded against `reports/schema_snapshot/table_stats.csv`. Not part of
+  the default `both`; run it explicitly. Outputs land in the gitignored
+  `reports/runs/` and are shared out-of-band (potentially sensitive), never
+  committed.
+- Deliverables and their comments now migrate. The `deliverable_type` crosswalk
+  is authored (`sql/04_crosswalks/52_deliverable_type.sql` +
+  `reports/crosswalks/deliverable_type.csv`, registry-wired): the legacy
+  report-occurrence code maps directly to `demos_text_id` with no BN matrix (see
+  the correction banner in
+  `reports/crosswalks/proposed/deliverable_type_bn_routing.md`), so the
+  previously held-back `sql/20_app/40_deliverable.sql` now loads (the remaining
+  RETURN is a defensive guard for a partial crosswalk build, not a block), and
+  `sql/20_app/50_comment.sql` cascades each deliverable comment into
+  `private_comment`/`public_comment` (routed by the still-gated
+  `crosswalk_comment_origin` with an author-person-type fallback). Supersedes the
+  0.5.0 "loads 0 rows today" note. Still deferred: the seven non-deliverable
+  comment sources (exported as an SME snapshot via `make sme_review_exports`),
+  `cmt_orgn_cd` route authoring, the `document` loader (`document_type`
+  multi-source fan-in), and `deliverable_extension`.
 - Pending demonstrations now migrate (workflow-7 reversal, per the 2026-07-10
   SME answers). `sql/10_stg/23_pendg_demo_fold.sql` classifies each PMDA-valid
   pending demo "approved wins" (folded / orphan_loadable / held_no_project);

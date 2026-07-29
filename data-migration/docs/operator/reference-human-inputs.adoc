@@ -410,6 +410,15 @@ As of *2026-06-26*. Hand-audited; not enforced by `verify-doc-facts`
   not affect the migrated database (pgloader + DEMOS remain source of truth), but
   the data-tools team should align the exporter or document it as a naive
   convenience snapshot.
+* *SME-review exports (2026-07-15):* `scripts/sme_review_exports.py`
+  (`make sme_review_exports`) produces the two 2026-07-10 SME review artifacts:
+  `othr-names` exports the held free-text "Other" program-detail names (from
+  `migration._parity_pgm_dtl_tag_othr_held`) for *SDG* review, and
+  `comments-snapshot` snapshots the seven non-deliverable comment tables PMDA
+  keeps but DEMOS drops (all rows, with a `deleted` flag). Both write run-stamped
+  CSVs to the gitignored `reports/runs/`; the comment text is potentially
+  sensitive, so *operator handoff:* run post-parity and share the CSVs with SDG
+  out-of-band (never commit them).
 
 // docnav-start
 ifndef::nested[]

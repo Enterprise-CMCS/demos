@@ -123,8 +123,10 @@ Parity:
 2. `cd docs && make verify` green.
 3. `uv run python -m pytest tests/ -q`.
 4. Regenerate + `git diff` generated fragments for intentional drift only.
-5. End-to-end comment load stays 0 rows today (inherits the deliverable
-   hold-back); activates when the `deliverable_type` crosswalk is signed off.
+5. End-to-end comment load is now live: the `deliverable_type` crosswalk is
+   authored (`sql/04_crosswalks/52_deliverable_type.sql`), so deliverables load
+   and their comments cascade in (a comment whose parent deliverable is held
+   back is itself held back and logged).
 
 ## Open follow-ups (not blocking)
 

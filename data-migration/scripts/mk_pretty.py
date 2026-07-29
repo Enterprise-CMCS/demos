@@ -79,6 +79,7 @@ ROOT_HELP: list[tuple[str, list[tuple[str, str]]]] = [
         ("schema_snapshot", "auxiliary, crosswalk input -- migrate schema-snapshot (MySQL information_schema -> reports/)"),
         ("reference_data", "auxiliary, crosswalk input -- migrate reference-data (MySQL *_rfrnc rows + views -> reports/)"),
         ("crosswalk_audit", "auxiliary, after crosswalks -- scripts/crosswalk_audit.py (codebase crosswalks vs live PROD; non-gating, ARGS=--strict)"),
+        ("sme_review_exports", "auxiliary, after parity -- scripts/sme_review_exports.py (held Other names + non-deliverable comments snapshot -> reports/runs/; ARGS=othr-names|comments-snapshot|both)"),
         ("seeds", "migrate seeds (02 + 03)"),
         ("crosswalks", "migrate crosswalks (04)"),
         ("id_maps", "migrate id-maps (05)"),

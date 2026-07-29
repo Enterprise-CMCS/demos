@@ -19,7 +19,7 @@ PRETTY := $(RUN) python scripts/mk_pretty.py
 STEP   := $(PRETTY) run
 
 .PHONY: help sync clean clean-state clean-all clean-reports status init ddl seeds crosswalks id_maps \
-        load_full fk_candidates schema_snapshot reference_data load_fidelity crosswalk_audit verify_prod_schema \
+        load_full fk_candidates schema_snapshot reference_data load_fidelity crosswalk_audit sme_review_exports verify_prod_schema \
         fetch_prisma fetch_prisma_schema preflight freeze delta build \
         constraints parity flip smoke decom rollback resume diagnose rebuild test lint typecheck \
         migrate-local migrate-local-verify \
@@ -71,6 +71,7 @@ load_full:     ; @$(STEP) load_full "$(MIGRATE) load-full"
 fk_candidates: ; @$(STEP) fk_candidates "$(MIGRATE) fk-candidates"
 load_fidelity: ; @$(STEP) load_fidelity "$(MIGRATE) load-fidelity $(ARGS)"
 crosswalk_audit: ; @$(STEP) crosswalk_audit "$(RUN) python scripts/crosswalk_audit.py $(ARGS)"
+sme_review_exports: ; @$(STEP) sme_review_exports "$(RUN) python scripts/sme_review_exports.py $(ARGS)"
 schema_snapshot: ; @$(STEP) schema_snapshot "$(MIGRATE) schema-snapshot"
 reference_data: ; @$(STEP) reference_data "$(MIGRATE) reference-data"
 seeds:         ; @$(STEP) seeds "$(MIGRATE) seeds"

@@ -48,8 +48,8 @@ Scope coverage is surfaced non-gating at the parity gate by
 | 2 | Users, roles, state access | **BUILT** | `users`, `person`, `person_state`, `system_role_assignment` (System roles 1/4), `demonstration_role_assignment`. Inactive/deleted users still loaded for FK integrity; active-users coverage is parity check 11. |
 | 3 | Approved demonstrations | **PARTIAL** | Core `demonstration` (+ `application`) BUILT, incl. `sdg_division_id` and the Approved-completeness hold-back (parity check 13). **Application approval date: BUILT** -- `20_app/36_application_date.sql` loads `mdcd_demo.aprvl_dt` as an `application_date` row (date_type 'Application Approval Date') for each loaded demonstration. **Amendments: BUILT** -- `20_app/35_amendment.sql` loads each PMDA-valid amendment (`10_stg/30_amendment_resolved`, id map `05/16`+`10_stg/29`) as an `application`+`amendment` IS-A pair. Three decisions were resolved in-session (recorded in `notes.md`/`_review.md` P2; SME-ratify): `64_amendment_status` values inlined (1->Under Review, 2->Approved, 3->Withdrawn, 4->Denied); `current_phase_id` status-derived (Approved->Approval Summary, Under Review->Review, Withdrawn/Denied->Concept); `signature_level_id` = OA/OCD-else-NULL (OGD/DD barred on amendments by `amendment_signature_level_check` + DEMOS `AMENDMENT_SIGNATURE_LEVELS`). Amendments whose only parent is a pending demo now resolve fold-aware (`10_stg/30` LEFT JOINs `stg._pendg_demo_fold`): they load against the pending demo's own 'Under Review' demonstration (orphan) or its approved counterpart (folded), and the 162 statusless pending-track amendments are assigned 'Under Review' by the loader; only amendments whose resolved parent never loaded (held-back/no-project pending, or a held-back approved parent) are excluded, logged non-gating by parity check 19 (`99_parity/52`). **medicaid.gov 1115 parity: BUILT** -- `extract-facts` command in `../document-ocr` scrapes medicaid.gov demonstration facts (State/Name/Status/Approval/Effective/Expiration), fuzzy-matches to migrated demos, and emits a snapshot CSV; parity check 20 (`99_parity/53`) cross-checks the snapshot against the migrated target (non-gating). **Extensions/renewals: DEFERRED post-MVP** (`70_renewal_status_deferred.sql`; DEMOS has no renewals concept). **Also deferred:** status history, performance-period history, comments, contacts (contact workstream above), final-decision info, site visits, post-award forums, authority documents. |
 | 4 | Programs and demo types | **BUILT** | `demonstration_type_tag_assignment` BUILT from the 10-table `pgm_dtl_tag_mapping.csv` (approved fixed-tag `21_app_associative/10` + free-text "Other" `21_app_associative/11`). Pending track BUILT (2026-07-14): `04_crosswalks/47_pendg_pgm_dtl_tag.sql` + `reports/pgm_dtl_tag_mapping_pending.csv` (**POPULATED**, 68 rows derived mechanically from the filled base by prefix-swap; the source-absent `mdcd_pendg_fincl_pool_pgm_dtl` is dropped) + registry entry + fold-aware fixed-tag loader `21_app_associative/12` and free-text "Other" loader `21_app_associative/13`, both resolving the parent via `stg._pendg_demo_fold`; parity `99_parity/55` logs held free-text "Other" rows (non-gating) and fail-closes on any mapped-but-unseeded tag. **Deferred:** the base-mapping expansion to any additional `*_pgm_dtl` tables beyond the current 10 (an SME task); the pending CSV auto-inherits that expansion via the same prefix-swap. See `docs/specs/pmda-cross-cutting-derivation-spec.md` Table 1. |
-| 5 | Waiver and expenditure authorities | **DEFERRED** | No `demos_app` loader yet. Waiver/expenditure/not-applicable-expenditure authority families + demo-link tables, preserving expiration dates, deleted flags, and section/title/category relationships. **SME:** confirm the DEMOS target model before build. |
-| 6 | Deliverables | **DEFERRED (blocked)** | `deliverable` loader scaffold present (`20_app/40_deliverable.sql`) but currently a **no-op**: it RETURNs before INSERT while the `deliverable_type` crosswalk is unauthored -- the target requires `deliverable_type_id` NOT NULL, and `deliverable_type` is deliberately **not authored, gated on the `reports/crosswalks/proposed/deliverable_type_bn_routing.md` investigation** (BN routing is not a static code map). Also blocked on `cms_owner_user_id`/`cms_owner_person_type_id` + `demonstration_status_id` derivations. `deliverable_status` (50/51) is the one ready crosswalk (tuple mapping inlined, fail-closed on undecided codes 7/9). Children hang off the (blocked) loader: status history; comments by `cmt_orgn_cd` -> a `comment` loader is present (`20_app/50_comment.sql`, routing to `private_comment`/`public_comment` per `docs/sme/explanation-comments-routing.adoc`) but a no-op downstream of the blocked deliverable; uploaded files -> `document` (blocked on the `document_type` multi-source fan-in, `_review.md` P4); paper records; due-date-change requests -> `deliverable_extension` (proposed, not live); `deliverable_acptnc_status`/`deliverable_cnfrmtn_status` (overlap / no target -> likely drop). |
+| 5 | Waiver and expenditure authorities | **DEFERRED (loader); SME snapshot DELIVERED (2026-07-15)** | Target model confirmed = none: DEMOS has no authority entity (verified across the Prisma models and `demos/server/src`; "Expenditure Cap"/"Emergency Waiver Authority" exist only as flat demonstration-type tag strings), and the BN workbook path (`shared_library/src/BN/rulesets/*` -> `budget_neutrality` JSONB) is a separate DEMOS-owned concern that carries only spend numbers keyed by a free-text "Waiver Name", not the structured authority records. So there is nothing to load into and **no `demos_app` loader is built**. Instead the full ~38-table PMDA corpus (per-demo instances, reference lookups, library/catalog masters, bene-group links, program-detail overlaps, history/load + pending mirrors) is exported by `scripts/sme_review_exports.py authorities-snapshot` (`make sme_review_exports ARGS="authorities-snapshot"`): one full-fidelity CSV per present table (verbatim, all rows incl. soft-deleted; resolved `demonstration_id` where the source has `mdcd_demo_id`) + a manifest flagging each table's tier/history/pending/program-detail overlap. Preserves expiration dates, deleted flags, and section/title/category relationships. See **D5** below. |
+| 6 | Deliverables | **BUILT** | `deliverable` loader (`20_app/40_deliverable.sql`) is **live**: `deliverable_type_id` (NOT NULL) resolves via the now-authored single-input report-occurrence crosswalk `crosswalk_deliverable_type` (`04_crosswalks/52_deliverable_type.sql` + `reports/crosswalks/deliverable_type.csv`, registry-wired; the legacy `mdcd_dlvrbl_type_cd` maps directly to `demos_text_id` -- no BN matrix / second signal, per the correction banner in `reports/crosswalks/proposed/deliverable_type_bn_routing.md`). `demonstration_status_id` = constant 'Approved' (the composite FK forces attach only to a loaded Approved demonstration); `status_id`/`due_date_type_id`/`expected_to_be_submitted` via `crosswalk_deliverable_status` (50/51, code 0 N/A held back, fail-closed on undecided codes 7/9); `cms_owner_user_id`/`cms_owner_person_type_id` resolved (a state-user creator is held back). The RETURN still in the loader is now a **defensive guard** for a partial crosswalk build, not a block. Held-back rows are logged non-gating (`99_parity/40`, check 17) plus gating completeness/integrity (`99_parity/41`/`42`, checks 15/16). **Deliverable comments BUILT** -- `20_app/50_comment.sql` cascades each deliverable comment into `private_comment`/`public_comment`, routed by the (still-gated, empty) `crosswalk_comment_origin` with an author-person-type fallback (`docs/sme/explanation-comments-routing.adoc`). **Still deferred:** the seven non-deliverable comment sources (now exported as an SME snapshot by Branch 5 `scripts/sme_review_exports.py comments-snapshot`; their migration fate is still an SME decision) and the `cmt_orgn_cd` route authoring (SDG); uploaded files -> `document` (no `20_app` document loader yet; blocked on the `document_type` multi-source fan-in, `_review.md` P4); status history (DEMOS-owned, filled post-cutover by capture triggers); paper records; due-date-change requests -> `deliverable_extension` (proposed, not live); `deliverable_acptnc_status`/`deliverable_cnfrmtn_status` (overlap / no target -> likely drop). |
 | 7 | Application management / pending demos | **BUILT (2026-07-14)** | Pending demos now load as their own 'Under Review' `application`+`demonstration` when they have a project number and no approved counterpart (`sql/20_app/31_pending_demonstration.sql`, staged by `10_stg/23_pendg_demo_fold` + `10_stg/24_pending_demonstration_resolved`); pending demos that fold into an approved counterpart are represented by that approved row; no-project-number pending demos are held back non-gating and reconciled at Gate 4 against `reports/parity_accepted/pending_approved_deferrals.csv` (the SME-signed reversal record). Pending amendments follow workflow 3 (fold-aware, 162 statusless -> 'Under Review'); pending program-detail tags now load fold-aware from the populated pending mapping (workflow 4). **Still deferred:** pending extensions (renewals deferred post-MVP), application comments, federal decisions, application documents. |
 | 8 | Budget Neutrality | **PARTIAL** | JSONB shape is enforced by the BN oracle (parity check 3) on the `budget_neutrality` payload. **Out-of-scope here:** the file-backed + parsed BN corpus (template/workbook files, parsed demo years, MEGs, populations, PMPM/cost, warnings, totals, dashboard rows) -- DEMOS owns BN ingestion. Semi-annual BN type (5/6 + `bdgt_ntrlty_ind=1`) is an open SME blocker. |
 | 9 | Monitoring Reporting Tool | **OUT-OF-SCOPE (SME-gated)** | File-backed + parsed workbook/report/protocol data; DEMOS owns MRT ingestion. Demo-level MRT flags/start dates ride along on `mdcd_demo`. Revisit only if SMEs require historical MRT content in DEMOS. |
@@ -150,6 +150,78 @@ not an SME judgment call, so no options/sign-off are offered; the full write-up
 is `reports/narrative/timestamp_timezone_audit.md`. Recorded here for visibility
 because it changes the stored value of every migrated milestone/effective/
 expiration/tag-window date.
+
+### D4. SME-review exports (held "Other" names + comments snapshot)
+
+**Status:** DELIVERED (2026-07-15, engineer, Branch 5
+`migration/sme-review-exports`); the outputs are the SME/SDG review artifacts, so
+no further sign-off is required from this branch. Two 2026-07-10 SME answers
+called for exports rather than loads: (1) the free-text "Other" program-detail
+names are held out of the demonstration-type tag fold (each is a 1115
+demonstration name, not a category) and were to be **exported and sent to SDG for
+review**; (2) PMDA hangs comments off many parents (demonstrations, amendments,
+renewals, programs, final decisions, monitoring docs, BN file docs) but DEMOS
+keeps comments only on deliverables, so the rest stay in PMDA and a **snapshot**
+suffices for reach-back. Both are now produced by
+`scripts/sme_review_exports.py` (`make sme_review_exports`): `othr-names` reads
+the parity view `migration._parity_pgm_dtl_tag_othr_held`; `comments-snapshot`
+normalizes the seven non-deliverable comment tables (`mdcd_demo_cmt`,
+`mdcd_demo_amndmt_cmt`, `mdcd_demo_rnwl_cmt`, `mdcd_pgm_cmt`,
+`mdcd_demo_finl_dcsn_dtl_cmt`, `mdcd_demo_pgm_mntrg_doc_cmt`,
+`bdgt_ntrlty_fil_doc_cmt`) into one column set, keeping all rows with a `deleted`
+flag ("snapshot works"). Outputs are run-stamped CSVs under the gitignored
+`reports/runs/`; because the comment text is potentially sensitive they are
+shared with SDG out-of-band, never committed. Remaining open SME items carry no
+branch and are routed to owners (deliverable acceptance-status precedence and
+phase-mapping ordinals -> David; BN summary-only -> Vivian; comment origin-code
+meanings and Withdrawn-demo guidance -> SDG).
+
+### D5. Waiver & expenditure authorities (workflow 5) -- target model + snapshot
+
+**Status:** RESOLVED (2026-07-15, engineer + SME grill); the deliverable is the
+SME-review snapshot, so no further blocking sign-off is required. This closes
+the one previously-outstanding blocking sign-off (the "waiver/expenditure DEMOS
+target model" in `docs/specs/migration-feasibility.md`).
+
+**Decision (SME-confirmed via grill).** The DEMOS target model for workflow 5 is
+**none** -- DEMOS has no waiver/expenditure/authority/section/cap/bene-group
+entity anywhere (verified across every `.prisma` model and all ~100
+`demos/server/src/model/*` dirs; the only trace is the flat tag strings
+"Expenditure Cap" / "Emergency Waiver Authority"). The Budget Neutrality workbook
+path (`shared_library/src/BN/rulesets/*` -> `budget_neutrality` JSONB, workflow 8)
+was evaluated and is **separate/out-of-scope**: it carries only spend numbers
+keyed by a free-text "Waiver Name" (MBES Schedule C), not the structured
+authority records; DEMOS owns BN ingestion. The one bridge (`expndtr_cap_amt`)
+stays in the workflow-5 snapshot (SME chose "BN separate, snapshot everything").
+
+Because there is nothing to load into, **no `demos_app` loader is built.**
+Instead the full corpus is exported for SME/SDG reach-back review via
+`scripts/sme_review_exports.py authorities-snapshot` (all ~38 tables across the
+instance / reference / library / bene-link / program-detail tiers, incl.
+history/load + pending mirrors), one verbatim CSV per present table + a manifest
+that flags each table's tier and whether it is a technical history/load mirror,
+a pending mirror, or a program-detail table that overlaps workflow-4's
+demonstration-type tags. Soft-deleted rows are retained. The table set is
+drift-guarded against `reports/schema_snapshot/table_stats.csv`.
+
+**Two sub-questions surfaced *to* the SME via the manifest (not decided in
+code):**
+- **Emergency-waiver overlap.** `mdcd_emer_wvr_authrty_pgm_dtl` (+ pending mirror)
+  is claimed by both workflow 4 (as a demonstration-type program-detail tag) and
+  workflow 5 (as the emergency-waiver authority family). It is flagged
+  `pgm_dtl_overlap=1` in the manifest; the SME decides whether it migrates as a
+  workflow-4 tag, a workflow-5 authority, or both.
+- **Deleted / history / pending handling.** The snapshot over-includes (retains
+  `dltd_ind=1`, includes `_hstry`/`_load` and `mdcd_pendg_*` mirrors flagged
+  `is_history` / `is_pending`); the SME decides what a future load (if any)
+  would keep.
+
+**If the SME later requires a real load,** it becomes a follow-up workflow:
+net-new DEMOS Prisma authority schema + full staging/crosswalk/loader/parity
+scaffolding. Recorded here so that decision is explicit.
+
+- [x] Target model confirmed (none; snapshot + defer). Decided by: SME grill (engineer-facilitated)  Date: 2026-07-15
+- [ ] (Follow-up, non-blocking) Emergency-waiver overlap + deleted/history/pending fate -- SME to adjudicate from the snapshot.
 
 ## Sign-off
 

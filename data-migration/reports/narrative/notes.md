@@ -575,3 +575,63 @@ The DuckDB `pmda_exporter.py` `datetime`->naive `timestamp` divergence is a
 separate, non-load-path issue -- left as a handoff recommendation to the
 data-tools team (DEMOS + pgloader remain source of truth). Full write-up:
 `reports/narrative/timestamp_timezone_audit.md`.
+
+2026-07-15 sme-review-exports: Branch 5 (last coding branch of the 2026-07-10
+SME-answers stack) adds `scripts/sme_review_exports.py` (`make sme_review_exports`),
+an operator-run exporter that closes two open SME action items. `othr-names`
+exports the held free-text "Other" program-detail names from
+`migration._parity_pgm_dtl_tag_othr_held` for SDG review; `comments-snapshot`
+snapshots the seven non-deliverable comment tables PMDA keeps but DEMOS drops
+(`mdcd_demo_cmt`, `mdcd_demo_amndmt_cmt`, `mdcd_demo_rnwl_cmt`, `mdcd_pgm_cmt`,
+`mdcd_demo_finl_dcsn_dtl_cmt`, `mdcd_demo_pgm_mntrg_doc_cmt`,
+`bdgt_ntrlty_fil_doc_cmt`), normalizing their heterogeneous columns into one set
+with a `deleted` column (all rows kept, per SME "snapshot works"). Both write
+run-stamped CSVs to the gitignored `reports/runs/` (the comment text is
+potentially sensitive, so outputs are shared with SDG out-of-band, never
+committed). Query tier takes a live connection (DB-tested via `pg_db`); an
+entirely absent source dies rather than emit an empty CSV. The remaining open
+SME items carry no branch and are routed to owners (David/Vivian/SDG); see
+`reports/narrative/pending_approved_decisions.md`.
+
+2026-07-15 deliverable-loader-live (doc reconciliation): the deliverable family
+is no longer blocked -- superseding the 2026-06-24 "0 rows today" /
+"only hard blocker: deliverable_type" entries above and any "still-blocked
+deliverable loader" phrasing in the 2026-07-10 SME-answers entry. The
+`deliverable_type` crosswalk is authored and registry-wired
+(`04_crosswalks/52_deliverable_type.sql` + `reports/crosswalks/deliverable_type.csv`):
+per the correction banner in
+`reports/crosswalks/proposed/deliverable_type_bn_routing.md`, the legacy
+report-occurrence code maps directly to `demos_text_id` (no BN matrix), so
+`20_app/40_deliverable.sql` loads (its remaining RETURN is only a defensive
+partial-crosswalk-build guard) and `20_app/50_comment.sql` cascades deliverable
+comments into `private_comment`/`public_comment`. Consequence for the workflow-8
+follow-up: the semi-annual BN -> Quarterly override is no longer "gated behind
+the still-blocked deliverable loader" -- it can be profiled directly (rpt_ocrnc
+code 6 'Semi-Annually' seen only on soft-deleted rows today; add a
+`bdgt_ntrlty_ind` override only if live rows appear). Still deferred: the seven
+non-deliverable comment sources (Branch 5 exports the snapshot; fate is an SME
+call), `cmt_orgn_cd` route authoring (SDG), the `document` loader
+(`document_type` fan-in), and `deliverable_extension`. Build-state row 6 in
+`pending_approved_decisions.md` updated to BUILT.
+
+2026-07-15 authorities-snapshot (workflow 5): resolved the one previously
+outstanding blocking sign-off (the "waiver/expenditure DEMOS target model").
+Grill + code investigation confirmed DEMOS has NO authority entity anywhere
+(every `.prisma` model + all ~100 `demos/server/src/model/*` dirs; only the flat
+tag strings "Expenditure Cap"/"Emergency Waiver Authority" exist, used by
+workflow 4). The BN workbook path (`shared_library/src/BN/rulesets/*` ->
+`budget_neutrality` JSONB, workflow 8) was evaluated and is separate/out-of-scope:
+it carries only spend numbers keyed by a free-text "Waiver Name" (MBES Schedule
+C), not the structured authority records; DEMOS owns BN ingestion. SME chose
+snapshot-only (defer the loader), all tiers, BN separate. So no `demos_app`
+loader is built; instead `scripts/sme_review_exports.py authorities-snapshot`
+exports the full ~38-table corpus (instance/reference/library/bene-link/
+program-detail tiers + history/load + pending mirrors), one verbatim CSV per
+present table (all rows incl. soft-deleted; resolved `demonstration_id` where the
+source has `mdcd_demo_id`) + a manifest flagging tier/history/pending/pgm_dtl
+overlap. The map is drift-guarded against `reports/schema_snapshot/table_stats.csv`.
+Two sub-questions are surfaced to the SME via manifest flags rather than decided
+in code: the `mdcd_emer_wvr_authrty_pgm_dtl` workflow-4/-5 overlap
+(`pgm_dtl_overlap=1`) and the deleted/history/pending fate. A real load, if the
+SME later requires one, is a follow-up workflow (net-new DEMOS authority schema +
+full scaffolding). See `pending_approved_decisions.md` D5.

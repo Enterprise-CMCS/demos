@@ -12,6 +12,17 @@
   parity run. Feasibility still hinges on the Jul 9-12 crunch reaching a local
   full-scale GREEN.
 
+> **Update (2026-07-15):** The one remaining blocking sign-off -- the
+> waiver/expenditure DEMOS target-model confirmation (workflow 5, row 5 below)
+> -- is **RESOLVED and no longer blocks cutover.** The confirmed target model is
+> *none* (DEMOS has no authority entity, verified across the Prisma models and
+> `demos/server/src`; the BN workbook path is a separate DEMOS-owned concern), so
+> no loader is built. Workflow 5 is discharged instead as an all-tier SME-review
+> snapshot (`scripts/sme_review_exports.py authorities-snapshot`), non-gating.
+> See `reports/narrative/pending_approved_decisions.md` D5. The remaining
+> full-scope build items (documents, contacts loaders + the `*_pgm_dtl`
+> expansion) are unaffected by this update.
+
 This document records the structured feasibility review (a "grill me" session)
 held on 2026-07-09, revised the same day as codebase status advanced. It
 captures the current migration state, the assumptions that had to be resolved
@@ -111,7 +122,7 @@ Per the Jul 9 run (check 14): **17 target tables -- 14 BUILT, 1 PARTIAL,
 | 6 Comments | BUILT (validated) | private_comment 3074, public_comment 3644; re-sourced from deliverable-scoped `mdcd_dlvrbl_cmt`; BN override notes -> `private_comment` (`51_override_note`) |
 | 4 Demo type tags | PARTIAL | 248; the full `*_pgm_dtl` set is still unbuilt |
 | 6 Documents | DEFERRED (scaffolded) | `document_type` crosswalk (66/67) + staging link (10_stg/27) exist; **no app loader yet** |
-| 5 Waiver / expenditure authorities | DEFERRED | **no loader**; SME must confirm the DEMOS target model first |
+| 5 Waiver / expenditure authorities | SNAPSHOT DELIVERED; loader DEFERRED (non-gating) | Target model confirmed = none (no DEMOS authority entity); **no loader built** -- all-tier SME-review snapshot via `sme_review_exports.py authorities-snapshot` instead (see D5) |
 | 3 Contacts (wf 3 remainder) | DEFERRED | staging filter (10_stg/16) only; **no app loader** (wide-email pivot to person/person_state/role_assignment) |
 | 3 Extensions / renewals | DEFERRED | post-MVP; DEMOS has no renewals concept |
 | 8 BN corpus, 9 MRT, 10 STC, 11 admin | OUT-OF-SCOPE | DEMOS-owned or dropped |
@@ -126,21 +137,25 @@ Each of these was a branch in the feasibility decision tree. All must hold for
 the primary date to stand. Status updated to the current codebase.
 
 1. **Scope = full (in-scope workflows).** Deliverables (wf 6) + comments are
-   now BUILT and validated. Documents (wf 6 child), waiver/expenditure
-   authorities (wf 5), contacts (wf 3 remainder), and the full `*_pgm_dtl`
+   now BUILT and validated. Waiver/expenditure authorities (wf 5) are
+   discharged as an SME-review snapshot with the loader deferred (2026-07-15;
+   see the banner above and D5), so they are no longer an unbuilt loader.
+   Documents (wf 6 child), contacts (wf 3 remainder), and the full `*_pgm_dtl`
    demo-type tag set (wf 4) remain in scope but unbuilt. BN corpus, MRT, STC,
    and email/admin remain OUT-OF-SCOPE (DEMOS-owned or dropped).
 2. **Full-PROD static snapshot is ready now** for both timed rehearsals. (The
    Jul 8 run was only a 288-demo subset; two of its REDs were subset artifacts.)
-3. **SME is available this week.** Four of the six sign-offs are now encoded as
-   accepted-flags / deferrals baselines (see below); the one remaining
-   blocking sign-off is the waiver/expenditure DEMOS target model.
+3. **SME is available this week.** Five of the six sign-offs are now encoded as
+   accepted-flags / deferrals baselines (see below), including the
+   waiver/expenditure DEMOS target-model confirmation (RESOLVED 2026-07-15 =
+   none; snapshot + defer). No blocking sign-offs remain outstanding.
 4. **Backup operator is identified and available** for rehearsal #2 and
    cutover day.
-5. **Three loaders remain to be built by Jul 12** (documents, waivers,
-   contacts) plus the `*_pgm_dtl` expansion. The deliverable loader + comments
-   are DONE and validated at full scale (5640 deliverables, checks 15-17
-   GREEN).
+5. **Two loaders remain to be built by Jul 12** (documents, contacts) plus the
+   `*_pgm_dtl` expansion. Waivers (wf 5) are no longer a loader -- discharged as
+   an SME-review snapshot with the loader deferred (2026-07-15). The deliverable
+   loader + comments are DONE and validated at full scale (5640 deliverables,
+   checks 15-17 GREEN).
 6. **Loaders ready + local full-scale build GREEN by Jul 12**, so R1 on Jul 13
    is a shakedown of proven code, not a first run.
 7. **Parity SQL is now DONE.** `90_row_counts.sql` (checks 1-2, commit
@@ -171,7 +186,7 @@ the primary date to stand. Status updated to the current codebase.
 | 2 | Sign `reports/narrative/pending_approved_decisions.md` (check 4) | **DONE** -- signed deferrals baseline `reports/parity_accepted/pending_approved_deferrals.csv` (`ee9e2ca`) |
 | 3 | Adjudicate the 154 person-state holds (check 10) | **DONE** -- accepted-flags baseline `person_state_flags.csv` (`4dbb46a`) |
 | 4 | Adjudicate the 166 demo-role-assignment holds (check 12) | **DONE** -- accepted-flags baseline `demonstration_role_assignment_flags.csv` (`4dbb46a`) |
-| 5 | Confirm the waiver/expenditure DEMOS target model (prerequisite for the wf 5 loader) | **OUTSTANDING** -- the one remaining blocking sign-off |
+| 5 | Confirm the waiver/expenditure DEMOS target model (prerequisite for the wf 5 loader) | **RESOLVED (2026-07-15)** -- target model = none (no DEMOS authority entity); no loader built, discharged as an all-tier SME-review snapshot (non-gating). See `pending_approved_decisions.md` D5 |
 | 6 | Secondary confirmation of D1 (demo-status code 1 -> 'Under Review') | Non-blocking; still wanted |
 
 > "DONE" means encoded/baselined in committed code; the validating parity run
@@ -219,11 +234,10 @@ and four of six SME sign-offs are encoded as accepted-flags / deferrals
 baselines. The remaining single point of failure is the build crunch (Jul 9-12
 for Timeline A, Jul 9-15 for Timeline B), which must deliver:
 
-- Three new loaders (documents, waivers, contacts) + the `*_pgm_dtl` expansion,
-  each with derivations + tests. (Deliverable + comment loaders are built and
-  validated.)
-- The waiver/expenditure DEMOS target-model SME confirmation (prerequisite for
-  the waiver loader -- the one outstanding blocking sign-off).
+- Two new loaders (documents, contacts) + the `*_pgm_dtl` expansion, each with
+  derivations + tests. (Deliverable + comment loaders are built and validated;
+  waivers are discharged as an SME-review snapshot with the loader deferred, so
+  they are no longer a crunch build item.)
 - One validating post-wiring `make parity` run to confirm checks 1/2/4/10/12
   go GREEN with the newly-committed wiring.
 
@@ -246,7 +260,6 @@ code, the two-rehearsal exit gate collapses, and the date slips to Jul 24.
 
 - Any R1 or R2 surprise requires a fix (a "fix and go" on cutover day is not
   acceptable).
-- The waiver/expenditure SME confirmation slips past the parity-GREEN deadline.
 - Any loader is not GREEN by the end of the crunch window.
 - The validating parity run shows any of checks 1/2/4/10/12 still RED/PENDING
   for a reason not covered by an accepted baseline.
@@ -259,6 +272,7 @@ code, the two-rehearsal exit gate collapses, and the date slips to Jul 24.
    unification, person-state flags, demo-role flags) actually report GREEN. If
    any is RED/PENDING for a reason not covered by its baseline, that becomes a
    crunch-day-1 fix.
-2. Get the waiver/expenditure DEMOS target-model SME confirmation. It is the
-   one remaining blocking sign-off and the prerequisite for the wf 5 loader;
-   the waiver loader cannot be built until it lands.
+2. ~~Get the waiver/expenditure DEMOS target-model SME confirmation.~~ DONE
+   (2026-07-15): target model = none, so no wf 5 loader is built; workflow 5 is
+   discharged as an all-tier SME-review snapshot (`sme_review_exports.py
+   authorities-snapshot`), non-gating. See the banner above and D5.
