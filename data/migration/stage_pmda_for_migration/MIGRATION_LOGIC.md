@@ -278,6 +278,9 @@ The current phase is determined by evaluating phase statuses in order and select
 **Phase Progression Limit:**
 The current phase logic does not evaluate beyond SDG Preparation phase as requisite dates for completing the SDG Preparation phase do not exist in PMDA, so demonstrations cannot have progressed further than that phase.
 
+## Outstanding Todo:
+- integrate the Concept Paper Submitted Date into date crosswalk when we have documents migrated. 
+
 # Deliverables
 
 ## Status Code
@@ -305,3 +308,4 @@ As an initial pass, the CMS owner was set to the creator of the deliverable. If 
 ## Submission Date
 
 There's been a first-pass effort (still work in progress) on importing the submission events from the database and figuring out what the due dates were at the time of the submission event. This is still in progress and needs refinement.
+
