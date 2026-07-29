@@ -2,7 +2,7 @@ import { gql } from "graphql-tag";
 import type { NonEmptyString } from "../../types";
 
 export const emailSchema = gql`
-  input TestEmailInput {
+  input CreateTestEmailInput {
     emailType: NonEmptyString!
     entityType: NonEmptyString!
     entityId: ID!
@@ -11,12 +11,12 @@ export const emailSchema = gql`
   }
 
   type Mutation {
-    testEmail(input: TestEmailInput!): String!
+    createTestEmail(input: CreateTestEmailInput!): String!
       @auth(requires: ["Perform CMS Action", "Perform State Action"])
   }
 `;
 
-export interface TestEmailInput {
+export interface CreateTestEmailInput {
   emailType: NonEmptyString;
   entityType: NonEmptyString;
   entityId: string;

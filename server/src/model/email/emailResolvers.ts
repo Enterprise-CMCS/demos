@@ -1,13 +1,13 @@
 import { GraphQLContext } from "../../auth";
-import { testEmail } from "./testEmail";
-import { TestEmailInput } from "./emailSchema";
+import { createTestEmail } from "./createTestEmail";
+import { CreateTestEmailInput } from "./emailSchema";
 
 export const emailResolvers = {
   Mutation: {
-    testEmail: async (
+    createTestEmail: async (
       parent: unknown,
-      args: { input: TestEmailInput },
+      args: { input: CreateTestEmailInput },
       context: GraphQLContext
-    ): Promise<string> => testEmail(args.input, context),
+    ): Promise<string> => createTestEmail(args.input, context),
   },
 };

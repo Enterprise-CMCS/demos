@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GraphQLContext } from "../../auth";
 import { prisma } from "../../prismaClient";
 import { buildRealtimeEmailEnvelope, enqueueRealtimeEmail } from "../../services/emailQueue";
-import { testEmail } from "./testEmail";
-import { TestEmailInput } from "./emailSchema";
+import { createTestEmail } from "./createTestEmail";
+import { CreateTestEmailInput } from "./emailSchema";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -14,11 +14,11 @@ vi.mock("../../services/emailQueue", () => ({
   enqueueRealtimeEmail: vi.fn(),
 }));
 
-describe("testEmail", () => {
+describe("createTestEmail", () => {
   const context = {
     user: { id: "user-1" },
   } as GraphQLContext;
-  const input: TestEmailInput = {
+  const input: CreateTestEmailInput = {
     emailType: "Deliverable Created",
     entityType: "deliverable",
     entityId: "deliverable-1",
@@ -78,7 +78,7 @@ describe("testEmail", () => {
   });
 
   it("dispatches a generic email envelope for specified users", async () => {
-    await expect(testEmail(input, context)).resolves.toBe("message-1");
+    await expect(createTestEmail(input, context)).resolves.toBe("message-1");
 
     expect(findMany).toHaveBeenCalledExactlyOnceWith({
       where: { id: { in: input.recipientUserIds } },
@@ -111,7 +111,7 @@ describe("testEmail", () => {
   it("rejects recipient IDs that do not resolve to users", async () => {
     findMany.mockResolvedValueOnce([]);
 
-    await expect(testEmail(input, context)).rejects.toThrow(
+    await expect(createTestEmail(input, context)).rejects.toThrow(
       "Cannot test email because recipient users were not found: recipient-1, recipient-2"
     );
     expect(buildRealtimeEmailEnvelope).not.toHaveBeenCalled();
@@ -134,7 +134,7 @@ describe("testEmail", () => {
       },
     ]);
 
-    await expect(testEmail(input, context)).rejects.toThrow(
+    await expect(createTestEmail(input, context)).rejects.toThrow(
       "Cannot test email because recipient user recipient-1 has no email address."
     );
   });

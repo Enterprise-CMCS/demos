@@ -1,16 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 import { GraphQLContext } from "../../auth";
-import { testEmail } from "./testEmail";
+import { createTestEmail } from "./createTestEmail";
 import { emailResolvers } from "./emailResolvers";
-import { TestEmailInput } from "./emailSchema";
+import { CreateTestEmailInput } from "./emailSchema";
 
-vi.mock("./testEmail", () => ({
-  testEmail: vi.fn(),
+vi.mock("./createTestEmail", () => ({
+  createTestEmail: vi.fn(),
 }));
 
 describe("emailResolvers", () => {
-  it("exposes testEmail as a GraphQL mutation resolver", async () => {
-    const input: TestEmailInput = {
+  it("exposes createTestEmail as a GraphQL mutation resolver", async () => {
+    const input: CreateTestEmailInput = {
       emailType: "Deliverable Created",
       entityType: "deliverable",
       entityId: "deliverable-1",
@@ -18,11 +18,11 @@ describe("emailResolvers", () => {
       payload: { name: "Quarterly Report" },
     };
     const context = { user: { id: "user-1" } } as GraphQLContext;
-    vi.mocked(testEmail).mockResolvedValue("message-1");
+    vi.mocked(createTestEmail).mockResolvedValue("message-1");
 
-    await expect(emailResolvers.Mutation.testEmail({}, { input }, context)).resolves.toBe(
+    await expect(emailResolvers.Mutation.createTestEmail({}, { input }, context)).resolves.toBe(
       "message-1"
     );
-    expect(testEmail).toHaveBeenCalledExactlyOnceWith(input, context);
+    expect(createTestEmail).toHaveBeenCalledExactlyOnceWith(input, context);
   });
 });

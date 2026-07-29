@@ -1,10 +1,10 @@
 import { GraphQLContext } from "../../auth";
 import { prisma } from "../../prismaClient";
 import { buildRealtimeEmailEnvelope, enqueueRealtimeEmail } from "../../services/emailQueue";
-import { TestEmailInput } from "./emailSchema";
+import { CreateTestEmailInput } from "./emailSchema";
 
-export async function testEmail(
-  input: TestEmailInput,
+export async function createTestEmail(
+  input: CreateTestEmailInput,
   context: GraphQLContext
 ): Promise<string> {
   const recipientUserIds = [...new Set(input.recipientUserIds)];
