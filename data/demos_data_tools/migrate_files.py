@@ -12,10 +12,10 @@ from typing import TYPE_CHECKING, List, TypedDict
 import boto3
 from dotenv import load_dotenv
 
-from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME, create_duckdb_conn
+from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME, create_duckdb_conn, attach_demos_to_conn
 from logger_utils import config_logger
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from duckdb import DuckDBPyConnection as DuckConn
     from mypy_boto3_s3 import S3Client
 
@@ -134,7 +134,7 @@ def migrate_file(
 
 def main() -> None:
     """Execute main program function."""
-    db_connection = create_duckdb_conn()
+    db_connection = attach_demos_to_conn(create_duckdb_conn())
     s3_client = boto3.Session().client("s3")
     copied_count = 0
     unmigrated_files = get_unmigrated_files(db_connection)
@@ -147,5 +147,5 @@ def main() -> None:
     return None
 
 
-if __name__ == "__main__":  # pragma: no cover
+if __name__ == "__main__":
     main()

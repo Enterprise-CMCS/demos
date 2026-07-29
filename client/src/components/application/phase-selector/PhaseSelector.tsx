@@ -115,11 +115,7 @@ export const PhaseSelector = ({
   const renderPhase = (phaseName: PhaseName) => {
     switch (phaseName) {
       case "Concept":
-        return getConceptPhaseComponentFromApplication(
-          application,
-          workflowApplicationType,
-          setSelectedPhase
-        );
+        return getConceptPhaseComponentFromApplication(application, setSelectedPhase);
       case "Application Intake":
         return getApplicationIntakeComponentFromApplication(application, setSelectedPhase);
       case "Completeness":

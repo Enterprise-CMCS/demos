@@ -32,16 +32,20 @@ export const testColumns = [
   }),
 ];
 
+const TestTable = () => (
+  <Table<TestType>
+    keywordSearch={(table) => <KeywordSearch table={table} />}
+    columns={testColumns}
+    data={testTableData}
+    noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
+  />
+);
+
 describe.sequential("KeywordSearch Component", () => {
+  let unmount: () => void;
+
   beforeEach(() => {
-    render(
-      <Table<TestType>
-        keywordSearch={(table) => <KeywordSearch table={table} />}
-        columns={testColumns}
-        data={testTableData}
-        noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
-      />
-    );
+    ({ unmount } = render(<TestTable />));
   });
 
   describe("Initial Render", () => {
@@ -73,6 +77,19 @@ describe.sequential("KeywordSearch Component", () => {
       expect(screen.getByText("Item Three")).toBeInTheDocument();
       expect(screen.getByText("Item Four")).toBeInTheDocument();
       expect(screen.getByText("Item Five")).toBeInTheDocument();
+    });
+
+    it("does not retain the search value after remounting", async () => {
+      const user = userEvent.setup();
+      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
+
+      await user.type(keywordSearchInput, "unique");
+      expect(keywordSearchInput).toHaveValue("unique");
+
+      unmount();
+      render(<TestTable />);
+
+      expect(screen.getByTestId(TEST_IDS.input)).toHaveValue("");
     });
   });
 

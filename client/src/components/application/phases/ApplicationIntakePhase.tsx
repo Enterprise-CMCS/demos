@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSessionStorage } from "hooks";
 
 import { gql, TypedDocumentNode, useMutation } from "@apollo/client";
 
@@ -325,7 +326,9 @@ export const ApplicationIntakePhase = ({
     REFETCH_ACTIVE_QUERIES_AFTER_SUGGESTION_UPDATE
   );
 
-  const [submittedDateOverride, setSubmittedDateOverride] = useState<string>("");
+  const [submittedDateOverride, setSubmittedDateOverride] = useSessionStorage(
+    `application-intake-submitted-date-${applicationId}`
+  );
   const [selectedSuggestedTag, setSelectedSuggestedTag] = useState<TagName | null>(null);
 
   // Calculate the dates to display based on the following rules:

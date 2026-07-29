@@ -10,7 +10,7 @@ import {
   validateSingleRecordCount,
 } from "./budgetNeutralityValidation";
 import { parseBNFileFromPath } from "demos-shared-library/BN";
-import { validateBNWorkbook, ValidationError, ValidationResult } from "demos-shared-library/BN/validation";
+import { validateBNWorkbook, ValidationResult } from "demos-shared-library/BN/validation";
 import { validations } from "demos-shared-library/BN/rulesets";
 import { extractorFunctions } from "demos-shared-library/BN/extractors";
 
@@ -81,11 +81,22 @@ export const handler = async (event: SQSEvent, context: Context) =>
       const downloadedDocumentPath = await downloadDocumentFromS3(s3Path);
       
       log.info("Download completed. Starting parsing of BN workbook.");
-      const parsedData = await parseBNFileFromPath(downloadedDocumentPath); 
+      let parsedData;
+      try {
+        parsedData = await parseBNFileFromPath(downloadedDocumentPath);
+      } catch (error) {
+        log.error(
+          {
+            documentPath: downloadedDocumentPath,
+            error: error instanceof Error ? error.message : String(error),
+          },
+          "Unable to parse BN workbook."
+        );
+        throw error;
+      }
 
       log.info("Parsing completed. Starting validation against ruleset.");
       const validationResults = await validateBNWorkbook(parsedData, validations, extractorFunctions);
-      
 
       log.info("Validation completed. Inserting BN results into database.");
       results.existingDocuments = 1;
