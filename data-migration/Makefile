@@ -109,8 +109,10 @@ migrate-local: ; @$(STEP) migrate-local "$(RUN) python scripts/migrate_local.py 
 
 # --- dev ---
 test:      ; @$(STEP) test "$(RUN) pytest --cov=migration --cov-report=term-missing"
-lint:      ; @$(STEP) lint "$(RUN) ruff check migration tests scripts"
-typecheck: ; @$(STEP) typecheck "$(RUN) ty check migration tests"
+lint:      ; @$(STEP) lint "$(RUN) ruff check migration tests scripts docs"
+# ty reads its own path list from [tool.ty.src] in pyproject.toml; passing paths
+# here would be ignored, so the scope lives there.
+typecheck: ; @$(STEP) typecheck "$(RUN) ty check"
 
 # --- SQL hygiene ---
 # pg_format owns all SQL layout + case; sqlfluff is lint-only; every authored

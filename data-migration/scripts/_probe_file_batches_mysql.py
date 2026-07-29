@@ -326,7 +326,8 @@ def main() -> None:
         # query string from the PULLS literal above, never runtime input.
         tbl = _safe_ident(name, "pull table")
         con.execute(f"CREATE OR REPLACE TABLE {tbl} AS {sql}")
-        n = con.execute(f"SELECT count(*) FROM {tbl}").fetchone()[0]
+        row = con.execute(f"SELECT count(*) FROM {tbl}").fetchone()
+        n = row[0] if row is not None else 0
         print(f"  {tbl:<12} {n:>7,} rows")
 
     con.execute(SCOPE)

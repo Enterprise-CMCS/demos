@@ -263,6 +263,40 @@ def test_lint_demos_column_without_table_fails(
     assert "mdcd_demo.demo_id" in captured.err
 
 
+def test_load_csv_blank_mysql_table_allowed_for_drop(fixtures: dict[str, Path]) -> None:
+    """A drop row may omit mysql_table. ``is_drop`` is a property, so testing it
+    with a call raised ``TypeError: 'bool' object is not callable`` instead of
+    exempting the row."""
+    csv_path = fixtures["tmp"] / "drop.csv"
+    # mysql_column is populated so the row clears the separate "mysql_column is
+    # required" rule and this test turns solely on the mysql_table exemption.
+    csv_path.write_text(
+        "mysql_table,mysql_column,demos_table,demos_column,transform,notes\n"
+        ",retired_col,demonstration,retired_column,drop,dropped with no MySQL source\n",
+        encoding="utf-8",
+    )
+    rows = MOD.load_csv(csv_path)
+    assert len(rows) == 1
+    assert rows[0].is_drop is True
+
+
+def test_load_csv_blank_mysql_table_rejected_when_not_a_drop(
+    fixtures: dict[str, Path], capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The same blank mysql_table on a non-drop row must still be rejected, so
+    the exemption above is scoped to drops rather than disabling the rule."""
+    csv_path = fixtures["tmp"] / "bad.csv"
+    csv_path.write_text(
+        "mysql_table,mysql_column,demos_table,demos_column,transform,notes\n"
+        ",,demonstration,id,id_map,\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(SystemExit) as exc:
+        MOD.load_csv(csv_path)
+    assert exc.value.code == 1
+    assert "mysql_table is required" in capsys.readouterr().err
+
+
 def test_lint_missing_demos_column_fails(fixtures: dict[str, Path]) -> None:
     csv_path = fixtures["tmp"] / "bad.csv"
     csv_path.write_text(

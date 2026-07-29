@@ -37,9 +37,10 @@ import argparse
 import json
 import subprocess
 import sys
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 # tests.sql._skeleton is not an installed package; make it importable when this
@@ -263,7 +264,7 @@ def _demonstration_manifest(conn: Any) -> dict[str, Any]:
             "chip_id": chip_token,
         })
 
-    for medicaid_id, status_cd, reason in _rows(
+    for medicaid_id, _status_cd, reason in _rows(
         conn,
         """
         SELECT medicaid_id, status_cd, reason

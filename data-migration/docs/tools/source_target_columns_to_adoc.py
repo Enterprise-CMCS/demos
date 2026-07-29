@@ -68,6 +68,7 @@ from collections import OrderedDict
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import NoReturn
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 SPECS_ROOT = REPO_ROOT.parent
@@ -589,7 +590,7 @@ def load_csv(path: Path) -> list[MapRow]:
                     notes=(row.get("notes") or "").strip(),
                 )
             )
-            if not out[-1].mysql_table and not out[-1].is_drop():
+            if not out[-1].mysql_table and not out[-1].is_drop:
                 die(f"CSV {path} row {i}: mysql_table is required")
             if not out[-1].mysql_column and out[-1].transform not in ("constant", "derive"):
                 die(f"CSV {path} row {i}: mysql_column is required (or use transform 'constant'/'derive')")
@@ -642,7 +643,7 @@ def match_marker(my_type: str | None, demos_type: str | None, transform: str) ->
 
 # ---------- lints ----------
 
-def die(msg: str, errors: Iterable[str] | None = None) -> None:
+def die(msg: str, errors: Iterable[str] | None = None) -> NoReturn:
     print(f"[source_target_columns] FAIL: {msg}", file=sys.stderr)
     if errors:
         for e in errors:

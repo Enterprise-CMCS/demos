@@ -470,9 +470,14 @@ def _docs_help_targets() -> set[str]:
     """
     tree = ast.parse(_read(MK_PRETTY))
     for node in tree.body:
-        target = node.target if isinstance(node, ast.AnnAssign) else (
-            node.targets[0] if isinstance(node, ast.Assign) and node.targets else None
-        )
+        # Narrowed with an explicit branch rather than a nested conditional so
+        # `node.value` below is reachable on a known assignment node.
+        if isinstance(node, ast.AnnAssign):
+            target = node.target
+        elif isinstance(node, ast.Assign):
+            target = node.targets[0] if node.targets else None
+        else:
+            continue
         if isinstance(target, ast.Name) and target.id == "DOCS_HELP" and node.value is not None:
             sections = ast.literal_eval(node.value)
             return {row[0] for _title, rows in sections for row in rows}

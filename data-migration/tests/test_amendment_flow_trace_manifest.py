@@ -21,7 +21,7 @@ MANIFEST_PATH = (
 TRACE_PATH = REPO_ROOT / "docs" / "shared" / "generated" / "live" / "amendment-flow-trace.adoc"
 
 sys.path.insert(0, str(REPO_ROOT / "docs" / "tools"))
-import table_flow_trace as tft  # noqa: E402  # ty: ignore[unresolved-import]
+import table_flow_trace as tft  # noqa: E402
 
 MANIFEST = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
 COUNTS = MANIFEST["stage_counts"]

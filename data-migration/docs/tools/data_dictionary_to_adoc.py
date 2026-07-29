@@ -266,7 +266,7 @@ SECTIONS: list[tuple[str, list[str]]] = [
 def _emit(tables: dict[str, Table], classes: dict[str, str]) -> str:
     history_names = {n for n, t in tables.items() if t.has_history}
     data_names: set[str] = set()
-    for section, members in SECTIONS:
+    for _section, members in SECTIONS:
         data_names.update(members)
 
     # Any data/associative/migration-private table not in a SECTIONS list gets

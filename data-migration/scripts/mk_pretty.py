@@ -23,11 +23,14 @@ try:
     from rich.table import Table
     from rich.text import Text
 
-    _console = Console()
-    _RICH = True
+    _console: Console | None = Console()
 except Exception:  # pragma: no cover - defensive fallback
     _console = None
-    _RICH = False
+
+# Derived, not tracked in parallel: a separate boolean cannot tell a type
+# checker that `_console` is non-None, so each rich branch below tests the
+# console itself and binds it to a local before use.
+_RICH = _console is not None
 
 
 # (section title, [(target, description), ...]) - wording preserved verbatim
@@ -235,7 +238,8 @@ def _print_flags_text(flags: list[tuple[str, str]], label: str) -> None:
 
 
 def _render_help(sections: list[tuple[str, list[tuple[str, str]]]]) -> None:
-    if not _RICH:
+    console = _console
+    if console is None:
         for title, rows in sections:
             print(f"\n{title}:")
             for target, desc in rows:
@@ -292,13 +296,14 @@ def _render_help(sections: list[tuple[str, list[tuple[str, str]]]]) -> None:
                     body.append(Padding(_flags_block(flags, "ARGS:"), (0, 0, 0, 4)))
                     table = None
         inner = body[0] if len(body) == 1 else Group(*body)
-        _console.print(Panel(inner, title=f"[bold]{title}[/bold]",
-                             border_style="cyan", title_align="left"))
+        console.print(Panel(inner, title=f"[bold]{title}[/bold]",
+                            border_style="cyan", title_align="left"))
 
 
 def _run(label: str, command: str) -> int:
-    if _RICH:
-        _console.rule(f"[bold cyan]\u25b6 {label}[/bold cyan]", align="left")
+    console = _console
+    if console is not None:
+        console.rule(f"[bold cyan]\u25b6 {label}[/bold cyan]", align="left")
     else:
         print(f">> {label}")
     # shell=True is intentional and not a command-injection surface: `command`
@@ -308,22 +313,23 @@ def _run(label: str, command: str) -> int:
     # `make <target> ARGS="..."`, supplied by the developer running the build.
     result = subprocess.run(command, shell=True)
     code = result.returncode
-    if _RICH:
+    if console is not None:
         if code == 0:
-            _console.print(Panel(Text(f"\u2713 {label}", style="bold green"),
-                                 border_style="green", expand=False))
+            console.print(Panel(Text(f"\u2713 {label}", style="bold green"),
+                                border_style="green", expand=False))
         else:
-            _console.print(Panel(Text(f"\u2717 {label} (exit {code})", style="bold red"),
-                                 border_style="red", expand=False))
+            console.print(Panel(Text(f"\u2717 {label} (exit {code})", style="bold red"),
+                                border_style="red", expand=False))
     else:
         print(f"{'OK' if code == 0 else 'FAIL'}: {label} (exit {code})")
     return code
 
 
 def _msg(text: str) -> None:
-    if _RICH:
-        _console.print(Panel(Text(text, style="bold green"),
-                             border_style="green", expand=False))
+    console = _console
+    if console is not None:
+        console.print(Panel(Text(text, style="bold green"),
+                            border_style="green", expand=False))
     else:
         print(text)
 
@@ -338,7 +344,10 @@ def main(argv: list[str]) -> int:
         _render_help(DOCS_HELP if which == "docs" else ROOT_HELP)
         if which != "docs":
             hint = 'Pass command flags via ARGS, e.g. make fetch_prisma ARGS="--refresh"'
-            _console.print(f"[dim]{hint}[/dim]") if _RICH else print(hint)
+            if _console is not None:
+                _console.print(f"[dim]{hint}[/dim]")
+            else:
+                print(hint)
         return 0
     if cmd == "run":
         if len(rest) < 2:

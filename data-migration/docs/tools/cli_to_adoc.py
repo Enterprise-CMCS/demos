@@ -94,7 +94,10 @@ def _help_text(command_name: str) -> str | None:
 def _command_names() -> list[str]:
     """Return registered Typer command names in declaration order."""
     return [
-        cmd.name or cmd.callback.__name__
+        # getattr rather than .__name__: the declared type is a bare callable,
+        # which carries no __name__, even though every registered callback is a
+        # real function at runtime.
+        cmd.name or getattr(cmd.callback, "__name__", "")
         for cmd in typer_app.registered_commands
         if cmd.callback is not None
     ]
@@ -103,7 +106,7 @@ def _command_names() -> list[str]:
 def _short_help(name: str) -> str:
     """Return the first line of the docstring for command ``name`` (or empty)."""
     for cmd in typer_app.registered_commands:
-        if (cmd.name or (cmd.callback and cmd.callback.__name__)) == name:
+        if (cmd.name or getattr(cmd.callback, "__name__", "")) == name:
             doc = (cmd.callback.__doc__ or "").strip().splitlines()
             return doc[0] if doc else ""
     return ""

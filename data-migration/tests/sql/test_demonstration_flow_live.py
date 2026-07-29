@@ -30,7 +30,7 @@ ROOT = Path(__file__).resolve().parents[2]
 # docs/tools is not a package; make the emitter importable by path.
 sys.path.insert(0, str(ROOT / "docs" / "tools"))
 
-import table_flow_trace as tft  # noqa: E402  # ty: ignore[unresolved-import]
+import table_flow_trace as tft  # noqa: E402
 
 SPEC = tft.SPECS["demonstration"]
 

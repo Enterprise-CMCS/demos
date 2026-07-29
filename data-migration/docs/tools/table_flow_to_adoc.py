@@ -30,6 +30,7 @@ import csv
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import NoReturn
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SQL_DIR = REPO_ROOT / "sql"
@@ -114,7 +115,7 @@ ADOC_NOTICE = (
 )
 
 
-def die(msg: str) -> None:
+def die(msg: str) -> NoReturn:
     print(f"[table_flow_to_adoc] FAIL: {msg}", file=sys.stderr)
     sys.exit(1)
 

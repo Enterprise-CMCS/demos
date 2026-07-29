@@ -41,6 +41,7 @@ from __future__ import annotations
 import csv
 import json
 import sys
+from collections.abc import Mapping
 from pathlib import Path
 
 import yaml
@@ -200,7 +201,7 @@ def _write_fragment(name: str, ddl_label: str, body: str) -> None:
     (FRAGMENT_DIR / name).write_text(_banner(ddl_label) + body.rstrip() + "\n", encoding="utf-8")
 
 
-def emit_attrs(ddl_label: str, attrs: dict[str, object]) -> str:
+def emit_attrs(ddl_label: str, attrs: Mapping[str, object]) -> str:
     lines = [f":{k}: {v}" for k, v in attrs.items()]
     return "\n".join(lines) + "\n"
 

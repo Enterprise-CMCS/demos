@@ -33,6 +33,9 @@ dev = [
   # MySQL driver for the load-fidelity integration tier (tests/integration);
   # the source-side seeding/queries only.
   "pymysql>=1.1",
+  # Runtime dep of docs/tools/data_dictionary_to_xlsx.py. Previously undeclared,
+  # so that generator could not run and typechecking skipped it as unresolved.
+  "openpyxl>=3.1",
 ]
 
 [project.scripts]
@@ -60,12 +63,18 @@ ignore = ["E501"]
 # Astral's type checker. Defaults are reasonable; tighten over time.
 
 [tool.ty.src]
-include = ["migration", "tests"]
+# This list, not the CLI arguments, decides what gets checked: `ty check <path>`
+# silently reports success for anything outside it.
+include = ["migration", "tests", "scripts", "docs"]
 # Vendored upstream generator (lightly adapted); not type-checked.
 exclude = ["tests/sql/fixtures/fake_demos/generator.py"]
 
 [tool.ty.environment]
 python-version = "3.11"
+# docs/tools is a flat module directory, not a package: its modules import each
+# other by bare name, and scripts/ reaches them via a sys.path.insert that no
+# static checker can follow. Declaring it here is what makes those resolvable.
+extra-paths = ["docs/tools"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

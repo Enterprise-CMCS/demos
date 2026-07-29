@@ -60,6 +60,14 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 from schema_model import DEMOS_DATA_MODEL_MMD, MERMAID_CLASS_TO_DIR
 
+# Hand-curated table-purpose blurbs live in table_purpose.py so the
+# AsciiDoc and XLSX data-dictionary generators share one source.
+from table_purpose import (
+    PURPOSE,
+    STATIC_CONSTRAINT_PURPOSE,
+    TYPE_LIMITER_PURPOSE,
+)
+
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 SUPPLEMENTS_DIR = REPO_ROOT / "sql" / "01_ddl_supplements"
 DEFAULT_MMD_FILE = Path(os.environ.get("DEMOS_DATA_MODEL_MMD", str(DEMOS_DATA_MODEL_MMD)))
@@ -85,14 +93,6 @@ CLASS_DIR_TO_LABEL: dict[str, str] = {
     "data_tables": "Data table",
     "associative_tables": "Associative table",
 }
-
-# Hand-curated table-purpose blurbs live in table_purpose.py so the
-# AsciiDoc and XLSX data-dictionary generators share one source.
-from table_purpose import (
-    PURPOSE,
-    STATIC_CONSTRAINT_PURPOSE,
-    TYPE_LIMITER_PURPOSE,
-)
 
 # JSONB columns whose shape is enforced by the CONSTRAINT TRIGGER attached
 # in sql/31_constraint_triggers/00_jsonb_validation.sql.
