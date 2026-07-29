@@ -72,4 +72,4 @@ SELECT
     (apps.phase_4_strt_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS approval_package_start_date,
     (apps.phase_4_end_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS approval_package_completion_date
 
-FROM {{ ref('apps_active_in_prog_pmda_demos') }} AS apps
+FROM {{ ref('cleaned_demos_app_demonstration_in_prog_demos') }} AS apps
