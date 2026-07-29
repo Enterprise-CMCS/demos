@@ -7,6 +7,11 @@ ignore:
       reason: No clean fix available for JSDOM to upgrade WS
       expires: 2026-08-03T14:00:00Z
       created: 2026-07-27T14:00:00Z
+  SNYK-JS-POSTCSS-18313038:
+    - '*':
+          reason: No patch available
+          expires: 2026-08-29T00:00:00.000Z
+          created: 2026-07-29T13:02:53.851Z
 patch: {}
 exclude:
   global:
