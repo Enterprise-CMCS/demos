@@ -1,0 +1,95 @@
+import java.math.RoundingMode
+
+pipeline {
+    agent {
+        kubernetes {
+            yaml '''
+apiVersion: v1
+kind: Pod
+metadata:
+  name: demos-jenkins-agent
+  labels:
+    jenkins: "agent"
+spec:
+  nodeSelector:
+    node-pool: "agent"
+  serviceAccountName: jenkins-role
+  containers:
+  - name: python
+    image: artifactory.cloud.cms.gov/docker/python:3.13-alpine
+    command:
+    - sleep
+    args:
+    - infinity
+  - name: node
+    image: 'artifactory.cloud.cms.gov/docker/node:24-alpine'
+    command:
+    - cat
+    tty: true
+    resources:
+      requests:
+        cpu: '750m'
+        memory: '1Gi'
+        ephemeral-storage: "2Gi"
+      limits:
+        cpu: '1500m'
+        memory: '2Gi'
+        ephemeral-storage: "10Gi"
+  - name: aws-cli
+    image: artifactory.cloud.cms.gov/docker/amazon/aws-cli:latest
+    command:
+    - sleep
+    - 99999
+    tty: true
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+        ephemeral-storage: "1Gi"
+      limits:
+        cpu: 400m
+        memory: 512Mi
+        ephemeral-storage: "5Gi"
+'''
+            defaultContainer 'python'
+            retries 2
+        }
+    }
+
+    triggers {
+      cron('H * * * *') // Run every hour
+    }
+
+    options {
+      disableConcurrentBuilds(abortPrevious: true)
+      buildDiscarder(logRotator(
+        numToKeepStr: "5",
+        artifactNumToKeepStr: "5"
+      ))
+    }
+
+    stages {
+        stage('validate containers') {
+          steps {
+            script {
+              // assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
+              sh """
+                apk add --no-cache postgresql-dev gcc musl-dev python3-dev
+                python -m venv /app/venv
+                source /app/venv/bin/activate
+
+                pip install -r .devcontainer/python/requirements.txt
+
+                dbt --version
+              """
+            }
+          }
+        }
+      }
+
+  post {
+    always {
+      cleanWs(deleteDirs: true)
+    }
+  }
+}
