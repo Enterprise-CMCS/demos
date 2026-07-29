@@ -7,6 +7,11 @@ dialect = postgres
 templater = raw
 # pg_format owns line wrapping; do not double-police it.
 max_line_length = 0
+# Default is 20000, and sqlfluff SKIPS a file over it with only a warning --
+# a silent loss of coverage exactly when a file is big enough to need it.
+# 23_app_derived/60_deliverable_action.sql crossed that line, so raise it well
+# clear of the largest file rather than let the gate quietly stop applying.
+large_file_skip_byte_limit = 40000
 # Excluded so the existing, pg_format'd codebase lints 100% green and sqlfluff
 # only surfaces NEW problems. Two groups:
 #   * layout, capitalisation         -- owned by pg_format
