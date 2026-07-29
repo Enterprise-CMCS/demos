@@ -1,6 +1,6 @@
 # Security review: CWE-23, CWE-78, CWE-79, CWE-89
 
-**Date:** 2026-07-10
+**Date:** 2026-07-10 (extended 2026-07-29 for the file-batch probe scripts)
 **Scope:** targeted review of four CWE classes across `migration/`, `scripts/`,
 `docs/tools/`, `pgloader/`, and `tests/`:
 
@@ -59,7 +59,8 @@ Not exploitable. Every interpolation path is defended:
   interpolation; DSNs and static query strings are single-quote-doubled; code
   subsets are `int`-validated. See `scripts/crosswalk_audit.py`,
   `migration/phases/schema_snapshot.py`, `prod_schema_guard.py`,
-  `reference_data.py`, `duck.py`.
+  `reference_data.py`, `duck.py`, and the two file-batch probes
+  (`scripts/_probe_file_batches.py`, `scripts/_probe_file_batches_mysql.py`).
 - **Freeze instant:** the delta path validates against `_FREEZE_INSTANT_RE`
   before use (`migration/phases/load_delta.py`).
 
@@ -72,6 +73,19 @@ stated-policy exception, historically CODE_REVIEW M3). It is now parameterized:
 `psql_command(env, "... VALUES (%s::timestamptz);", [instant])`. `psql_command`
 gained an optional `params` argument to support this. This removes the last
 value-interpolation exception, which matters for SAST/audit in a public repo.
+
+**Added 2026-07-29 - the file-batch probes.** `scripts/_probe_file_batches.py`
+and `scripts/_probe_file_batches_mysql.py` are read-only analysis probes that
+reproduce the submission-batch figures quoted in
+`sql/10_stg/39_deliverable_submission_batch.sql`. Both inline a DSN into DuckDB
+`ATTACH` (which takes no bind parameters), single-quote-doubled, and both
+re-raise ATTACH failures with only the exception *type* so a connection string
+can never reach a traceback. The MySQL probe additionally interpolates a table
+name per pull; that name is now routed through a local `_safe_ident()`
+allowlist (`^[A-Za-z_][A-Za-z0-9_]*$`) even though it originates in a
+module-level literal, so the pattern matches the rest of the tree and gives
+SAST a recognizable sanitizer. Remaining interpolations are a static gap
+interval and two fixed module-level `Path` constants for the keep/drop CSVs.
 
 **Snyk false positive - `docs/tools/table_flow_trace.py` `_apply_file`:** Snyk
 reports "input from a database flows into execute." This is a misfire: `path` is
@@ -172,9 +186,13 @@ Verified against remote `Enterprise-CMCS/demos`:
 - Committed data is reference-vocabulary crosswalks (status/type/state codes),
   generated `.adoc`, and config inputs - low sensitivity.
 
-Minor note: `Makefile` hardcodes a `POSTGRES_PASSWORD` for the ephemeral local
-`demos-test-pg` Docker container - a throwaway local test credential, not a real
-secret, but it is a committed literal in a public repo.
+Minor note: `Makefile` carries a throwaway credential for the ephemeral local
+`demos-test-pg` Docker container in `PG_TEST_PASS` - not a real secret, but a
+committed literal in a public repo. As of 2026-07-29 it is passed to `docker
+run` through the environment rather than inlined in the recipe, so `make` no
+longer echoes it. (The literal had previously been overwritten in-place by a
+redaction tool, which left the harness unusable; see the commit that restored
+`$(PG_TEST_PASS)`.)
 
 ## Snyk Code UI ignore reasons (paste-ready)
 
@@ -196,6 +214,16 @@ secret, but it is a committed literal in a public repo.
   > verbatim to a throwaway scratch DB - the by-design "execute repo SQL"
   > pattern (cf. `lib.apply_dir`). No database or user input reaches the call.
   > See SECURITY_REVIEW.md (CWE-89).
+- **`scripts/_probe_file_batches.py` / `_probe_file_batches_mysql.py` - SQL
+  injection (DSN into `ATTACH`):**
+  > Accepted, not exploitable. DuckDB's `ATTACH` accepts no bind parameters, so
+  > the connection string is inlined with single quotes doubled -- the same
+  > treatment as `duck.py` and `crosswalk_audit.py`. The DSN comes from the
+  > operator's own `.env` on their own machine, never from a wire, and these
+  > are read-only analysis probes with no runtime role in the migration. Table
+  > names are allowlist-validated before interpolation; the remaining
+  > interpolations are a static interval constant and fixed module-level `Path`
+  > constants. See SECURITY_REVIEW.md (CWE-89).
 - **`docs/tools/data_dictionary_to_xlsx.py` / `schema_diagrams_to_adoc.py` -
   path traversal:** ignore only if Snyk does not recognize the added guard.
   > Mitigated. Operator/CI docs tool; each CLI/env path now flows through

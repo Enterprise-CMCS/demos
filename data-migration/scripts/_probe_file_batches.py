@@ -88,8 +88,7 @@ QUERIES: list[tuple[str, str]] = [
         """,
     ),
     (
-        "gap-window sensitivity (batch count is a boundary count, so no "
-        "second window is needed)",
+        "gap-window sensitivity (batch count is a boundary count, so no second window is needed)",
         """
         WITH marked AS (
             SELECT
@@ -131,8 +130,11 @@ def main() -> None:
     con = duckdb.connect()
     con.execute("INSTALL postgres; LOAD postgres;")
     try:
-        # ATTACH takes no bind parameters; inline and escape, and never let the
-        # DSN reach a traceback.
+        # SECURITY (CWE-89): ATTACH takes no bind parameters, so the DSN is
+        # inlined with single quotes doubled -- the same treatment as duck.py
+        # and crosswalk_audit.py. The value comes from the operator's own .env,
+        # not from a wire, and the except clause below re-raises with only the
+        # exception TYPE so credentials never reach a traceback.
         dsn = env.pg_dsn().replace("'", "''")
         con.execute(f"ATTACH '{dsn}' AS pg (TYPE postgres, READ_ONLY)")
     except Exception as e:

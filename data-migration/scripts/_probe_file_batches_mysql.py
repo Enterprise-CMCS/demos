@@ -22,6 +22,7 @@ Read-only. Delete after use.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from urllib.parse import unquote, urlparse
 
@@ -32,6 +33,23 @@ from migration.lib import Env
 REPO_ROOT = Path(__file__).resolve().parent.parent
 KEEP_CSV = REPO_ROOT / "reports" / "filter" / "keep_ids.csv"
 DROP_CSV = REPO_ROOT / "reports" / "filter" / "drop_ids.csv"
+
+_SAFE_IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
+
+def _safe_ident(name: str, what: str) -> str:
+    """Return ``name`` when it is a bare SQL identifier, else raise.
+
+    DuckDB's scanner takes no bind parameters, so table names are inlined.
+    Every identifier is validated against ``[A-Za-z_][A-Za-z0-9_]*`` before
+    interpolation -- even though these come from a module-level literal rather
+    than user input -- to match the repo-wide rule in SECURITY_REVIEW.md
+    (CWE-89) and keep the pattern uniform for SAST.
+    """
+    if not _SAFE_IDENTIFIER.match(name or ""):
+        raise ValueError(f"unsafe {what} identifier: {name!r}")
+    return name
+
 
 GAP = "60 minutes"
 
@@ -287,7 +305,11 @@ def attach_mysql(con: duckdb.DuckDBPyConnection) -> None:
     dsn = " ".join(f"{k}={v}" for k, v in parts.items())
     con.execute("INSTALL mysql; LOAD mysql;")
     try:
-        # ATTACH takes no bind parameters, so the DSN is inlined and quoted.
+        # SECURITY (CWE-89): ATTACH takes no bind parameters, so the DSN is
+        # inlined with single quotes doubled -- the same treatment as duck.py
+        # and crosswalk_audit.py. The value comes from the operator's own .env
+        # (MYSQL_URL), not from a wire, and the except clause below re-raises
+        # with only the exception TYPE so credentials never reach a traceback.
         con.execute(f"ATTACH '{dsn.replace(chr(39), chr(39) * 2)}' AS my (TYPE mysql, READ_ONLY)")
     except Exception as e:
         raise RuntimeError(f"MySQL ATTACH failed: {type(e).__name__}") from None
@@ -299,9 +321,13 @@ def main() -> None:
 
     print("pulling source tables (flat projections; joins run locally)")
     for name, sql in PULLS.items():
-        con.execute(f"CREATE OR REPLACE TABLE {name} AS {sql}")
-        n = con.execute(f"SELECT count(*) FROM {name}").fetchone()[0]
-        print(f"  {name:<12} {n:>7,} rows")
+        # SECURITY (CWE-89): both halves are inlined because DuckDB takes no
+        # bind parameters here. `tbl` is allowlist-validated; `sql` is a static
+        # query string from the PULLS literal above, never runtime input.
+        tbl = _safe_ident(name, "pull table")
+        con.execute(f"CREATE OR REPLACE TABLE {tbl} AS {sql}")
+        n = con.execute(f"SELECT count(*) FROM {tbl}").fetchone()[0]
+        print(f"  {tbl:<12} {n:>7,} rows")
 
     con.execute(SCOPE)
     con.execute(BATCHED)
