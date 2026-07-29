@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useSessionStorageJson } from "hooks";
 import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
 import {
@@ -110,8 +111,10 @@ export const ReviewPhase = ({
   const [setApplicationClearanceLevel] = useMutation(SET_APPLICATION_CLEARANCE_LEVEL);
   const { completePhase } = useCompletePhase();
 
-  const [reviewPhaseFormData, setReviewPhaseFormData] =
-    useState<ReviewPhaseFormData>(initialFormData);
+  const [localFormData, setReviewPhaseFormData] = useSessionStorageJson<ReviewPhaseFormData>(
+    `review-form-data-${applicationId}`
+  );
+  const reviewPhaseFormData = localFormData ?? initialFormData;
   const [lastSavedFormData, setLastSavedFormData] = useState<ReviewPhaseFormData>(initialFormData);
   const [reviewPhaseSectionsComplete, setReviewPhaseSectionsComplete] =
     useState<ReviewPhaseSectionsComplete>(getPhaseStateInitialization());
@@ -214,7 +217,7 @@ export const ReviewPhase = ({
         <PoAndOgdSection
           sectionFormData={reviewPhaseFormData}
           setSectionFormData={(formData) =>
-            setReviewPhaseFormData((prev) => ({ ...prev, ...formData }))
+            setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
           }
           isComplete={reviewPhaseSectionsComplete["PO and OGD"]}
           isReadonly={isReadonly}
@@ -222,7 +225,7 @@ export const ReviewPhase = ({
         <OgcAndOmbSection
           sectionFormData={reviewPhaseFormData}
           setSectionFormData={(formData) =>
-            setReviewPhaseFormData((prev) => ({ ...prev, ...formData }))
+            setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
           }
           isComplete={reviewPhaseSectionsComplete["OGC and OMB"]}
           isReadonly={isReadonly}
@@ -241,10 +244,10 @@ export const ReviewPhase = ({
           ]}
           value={reviewPhaseFormData.clearanceLevel}
           onChange={(value) =>
-            setReviewPhaseFormData((prev) => ({
-              ...prev,
+            setReviewPhaseFormData({
+              ...reviewPhaseFormData,
               clearanceLevel: value as ClearanceLevel,
-            }))
+            })
           }
           isInline
           isDisabled={isReadonly}
@@ -253,7 +256,7 @@ export const ReviewPhase = ({
           <CommsClearanceSection
             sectionFormData={reviewPhaseFormData}
             setSectionFormData={(formData) =>
-              setReviewPhaseFormData((prev) => ({ ...prev, ...formData }))
+              setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
             }
             isComplete={reviewPhaseSectionsComplete["COMMs Clearance"]}
             isReadonly={isReadonly}
@@ -263,7 +266,7 @@ export const ReviewPhase = ({
           <CmsOsoraClearanceSection
             sectionFormData={reviewPhaseFormData}
             setSectionFormData={(formData) =>
-              setReviewPhaseFormData((prev) => ({ ...prev, ...formData }))
+              setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
             }
             isComplete={reviewPhaseSectionsComplete["CMS (OSORA) Clearance"]}
             isReadonly={isReadonly}

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSessionStorageJson } from "hooks";
 import { useMutation, gql } from "@apollo/client";
 import { formatDateForDisplay, formatDateForServer, getTodayEst } from "util/formatDate";
 import {
@@ -210,25 +211,25 @@ export const getApprovalSummaryPhaseFromApplication = (
     workflowApplicationType === "demonstration"
       ? application.id
       : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
-        .id;
+          .id;
 
   const demonstrationTypes =
     workflowApplicationType === "demonstration"
       ? (application as ApplicationWorkflowDemonstration).demonstrationTypes
       : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
-        .demonstrationTypes;
+          .demonstrationTypes;
 
   const demonstrationStatus =
     workflowApplicationType === "demonstration"
       ? (application as ApplicationWorkflowDemonstration).status
       : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
-        .status;
+          .status;
 
   const medicaidId =
     workflowApplicationType === "demonstration"
       ? (application as ApplicationWorkflowDemonstration).medicaidId
       : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
-        .medicaidId;
+          .medicaidId;
 
   return (
     <ApprovalSummaryPhase
@@ -259,8 +260,11 @@ export const ApprovalSummaryPhase = ({
   const capitalizedType =
     initialFormData.applicationType.charAt(0).toUpperCase() +
     initialFormData.applicationType.slice(1);
-  const [approvalSummaryFormData, setApprovalSummaryFormData] =
-    useState<ApplicationDetailsFormData>(initialFormData);
+  const [localFormData, setApprovalSummaryFormData] =
+    useSessionStorageJson<ApplicationDetailsFormData>(
+      `approval-summary-form-data-${applicationId}`
+    );
+  const approvalSummaryFormData = localFormData ?? initialFormData;
 
   const { showConfirmApproveDialog } = useDialog();
   const { showSuccess, showError } = useToast();
@@ -452,10 +456,10 @@ export const ApprovalSummaryPhase = ({
         dateValue: null,
       });
 
-      setApprovalSummaryFormData((previousFormData) => ({
-        ...previousFormData,
-        readonlyFields: getReadonlyFields(previousFormData), // Recalculate readonly fields based on current form data when marking incomplete
-      }));
+      setApprovalSummaryFormData({
+        ...approvalSummaryFormData,
+        readonlyFields: getReadonlyFields(approvalSummaryFormData),
+      });
 
       setApplicationDetailsUIState(false);
     } catch (error) {
@@ -492,13 +496,13 @@ export const ApprovalSummaryPhase = ({
         phaseName: "Approval Summary",
       });
 
-      setApprovalSummaryFormData((previousFormData) => ({
-        ...previousFormData,
+      setApprovalSummaryFormData({
+        ...approvalSummaryFormData,
         status: "Approved",
         readonlyFields: Object.fromEntries(
-          Object.keys(previousFormData.readonlyFields).map((key) => [key, true])
-        ) as typeof previousFormData.readonlyFields,
-      }));
+          Object.keys(approvalSummaryFormData.readonlyFields).map((key) => [key, true])
+        ) as typeof approvalSummaryFormData.readonlyFields,
+      });
 
       setApprovalSummaryCompletionDate(formatDateForDisplay(today));
 
