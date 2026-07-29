@@ -11,6 +11,10 @@ vi.mock("../demonstrationRoleAssignment", () => ({
   getManyDemonstrationRoleAssignments: vi.fn(),
 }));
 
+vi.mock("../personState", () => ({
+  setPersonStates: vi.fn(),
+}));
+
 const mockUser: Partial<ContextUser> = {};
 const mockContext: Partial<GraphQLContext> = {
   user: mockUser as ContextUser,
