@@ -33,7 +33,7 @@ vi.mock("../userSession/queries", () => ({
 
 import { selectManySystemRoleAssignments } from "../systemRoleAssignment";
 import { getManyDocuments } from "../document";
-import { selectUserOrThrow } from "./queries";
+import { selectUserOrThrow, selectManyUsers } from "./queries";
 import { selectLastLoginForUser } from "../userSession/queries";
 
 describe("userResolvers", () => {
