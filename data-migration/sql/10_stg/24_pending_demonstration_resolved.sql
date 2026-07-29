@@ -63,8 +63,8 @@ SELECT
   p.geo_ansi_state_cd AS state_id,
   p.mdcd_chip_div_cd::int AS sdg_division_cd,
   f.medicaid_id AS medicaid_id,
-  p.state_prfmnc_yr_strt_dt::timestamptz AS effective_date,
-  p.state_prfmnc_yr_end_dt::timestamptz AS expiration_date,
+  migration.eastern_day_start(p.state_prfmnc_yr_strt_dt) AS effective_date,
+  migration.eastern_day_end(p.state_prfmnc_yr_end_dt) AS expiration_date,
   p.creatd_dt::timestamptz AS created_at,
   COALESCE(p.updtd_dt, p.creatd_dt)::timestamptz AS updated_at,
   CASE WHEN ap.phase_6_any IS NOT NULL THEN

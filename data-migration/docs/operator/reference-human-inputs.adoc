@@ -387,6 +387,29 @@ As of *2026-06-26*. Hand-audited; not enforced by `verify-doc-facts`
   `reports/runs/filter_<stamp>.md` are unsigned.
 * *Tier C open:* `signature_level` CHECK widening is not yet applied to
   the target schema.
+* *Milestone dates (SME/SDG review):* `sql/10_stg/25_application_milestone.sql`
+  maps only the high-confidence legacy phase-milestone columns into
+  `application_date` (see `reports/narrative/milestone_date_mapping.md`). The
+  granular phase_3 clearance sub-dates (SME/FRVT/CMCS/OGC/OMB start+end), the
+  application-status date, and the amendment application/status dates are
+  deferred for SME/SDG placement and logged non-gating in
+  `migration._parity_application_milestone_unmapped`
+  (`sql/99_parity/56_application_milestone.sql`). The
+  Federal Comment past-window failsafe references cutover `2026-08-20` as a single
+  documented SQL constant in `sql/23_app_derived/50_application_phase.sql`
+  (anchored to Eastern midnight, `-04:00` EDT, per the timezone fix below).
+* *Timezone anchoring (2026-07-14):* date-only values are anchored to
+  America/New_York via `migration.eastern_day_start` / `migration.eastern_day_end`
+  (`sql/00_init/03_helper_fns.sql`), matching DEMOS's start-of-day / end-of-day
+  convention (`server/src/constants.ts` `DATE_TYPES_WITH_EXPECTED_TIMESTAMPS`)
+  instead of a midnight-UTC cast that rendered one day early for Eastern users.
+  The Postgres session is also pinned to UTC (`migration/lib.py`, pgloader). Full
+  write-up: `reports/narrative/timestamp_timezone_audit.md`. *Data-tools handoff:*
+  the offline DuckDB exporter (`pmda_exporter.py`) renders MySQL `datetime` as a
+  naive `timestamp`, diverging from the pgloader `timestamptz` load path; it does
+  not affect the migrated database (pgloader + DEMOS remain source of truth), but
+  the data-tools team should align the exporter or document it as a naive
+  convenience snapshot.
 
 // docnav-start
 ifndef::nested[]

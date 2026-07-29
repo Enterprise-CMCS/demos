@@ -21,8 +21,8 @@ For every MySQL `mdcd_<x>` / `mdcd_pendg_<x>` pair, record the rule used to coll
 | Pair | DEMOS target | Rule | Tie-break | Notes |
 |---|---|---|---|---|
 | `mdcd_demo` / `mdcd_pendg_demo` | `application` + `demonstration` | **BUILT (2026-07-14).** "Approved wins": a pending demo whose project number matches a PMDA-valid approved demo FOLDS into that approved demonstration (`stg._pendg_demo_fold`); a pending demo with no approved counterpart loads as its own 'Under Review' demonstration (`sql/20_app/31_pending_demonstration.sql`) IF it has a project number; a no-project-number pending demo is held back non-gating (logged `_parity_pending_approved` category `pending_only_deferred`). | Approved wins; then, among orphans sharing a medicaid_id, the RED-4 region-suffix/lowest-legacy-id winner (loser held, logged `_parity_pending_demonstration_held`) | Pending demos carry no status column (uniformly 'Under Review') and no secondary-number column (chip_id always NULL). |
-| `mdcd_demo_aplctn` / *(none)* | `application` | 1:1 | n/a | Already the application table in source |
-| `mdcd_demo_amndmt` / `mdcd_pendg_demo_amndmt` | `amendment` | Collapse | Approved wins | |
+| `mdcd_demo_aplctn` / *(none)* | `application` + `application_date` + `application_phase` | 1:1 | n/a | Already the application table in source. **Milestone dates + phases BUILT (2026-07-14):** every high-confidence phase-milestone column loads into `application_date` (approved + pending, via `sql/10_stg/25_application_milestone.sql` + `sql/20_app/36_application_date.sql`), and `sql/23_app_derived/50_application_phase.sql` derives the 8 `application_phase` rows with a Federal Comment past-window failsafe (cutover `2026-08-20`). Granular phase_3 clearance sub-dates + the status date are deferred for SME review (logged non-gating in `_parity_application_milestone_unmapped`). See `reports/narrative/milestone_date_mapping.md`. |
+| `mdcd_demo_amndmt` / `mdcd_pendg_demo_amndmt` | `amendment` (+ `application_phase`) | Collapse | Approved wins | Amendments also get the 8 `application_phase` rows (status-derived `current_phase_id`, via `sql/23_app_derived/50_application_phase.sql`); they carry no confidently-mappable milestone-date column, so `amndmt_aplctn_dt` / `amndmt_stus_dt` are deferred for SME review (logged in `_parity_application_milestone_unmapped`) and amendments get no `application_date` rows. |
 | `mdcd_demo_rnwl` / `mdcd_pendg_demo_rnwl` | `extension` | Collapse | Approved wins | Renewals map to extensions in DEMOS |
 | `mdcd_demo_cntct` / `mdcd_pendg_demo_cntct` | contact-only `person` + `person_state` + `demonstration_role_assignment` | **DEFER (contact workstream):** the source is a wide per-role model (`state_mdcd_drctr_email_adr`, `ro_fincl_lead_email_adr`, `sota_email_adr`, ...), not a long `(demo, role, email)` table -- there is no single `cntct_email` column to key on. The target is the three-table contact shape (a `person` per distinct contact email with no `users` row, its `person_state` grants, and a `demonstration_role_assignment` per role column); see `docs/specs/pmda-cross-cutting-derivation-spec.md` §5. The earlier `demonstration_role_assignment` + `person` shorthand omitted `person_state` and is superseded by this row. | Approved wins | Pivot the wide email columns to `(demonstration, role_column, email)` before resolving `person`. |
 | `mdcd_*_pgm_dtl` / `mdcd_pendg_*_pgm_dtl` | `demonstration_type_tag_assignment` | Approved side BUILT (`21_app_associative/10`/`11` + `pgm_dtl_tag_mapping.csv`). Pending side BUILT (2026-07-14): fold-aware fixed-tag loader `21_app_associative/12` and free-text "Other" loader `21_app_associative/13` resolve the parent via `stg._pendg_demo_fold.demo_uuid` (a folded pending demo's tags attach to its approved counterpart), driven by `crosswalk_pendg_pgm_dtl_tag` (`04_crosswalks/47`) whose `reports/pgm_dtl_tag_mapping_pending.csv` is now **POPULATED** (68 rows derived mechanically from the filled base by prefix-swap `mdcd_`->`mdcd_pendg_`; no new SME judgment). Parity `99_parity/55` logs held free-text "Other" rows (non-gating) and fail-closes on any mapped-but-unseeded tag. | Approved wins (fold) | Templated transform mirroring the base 10/11/54 trio as pending 12/13/55. |
@@ -131,6 +131,25 @@ SME to ratify the reversal.
 
 - [ ] Reversal reviewed and the residual no-project-number deferrals accepted.
 - Decided by: ____________  Date: __________  (sign `pending_approved_deferrals.csv`)
+
+### D3. Date-only timestamp anchoring (America/New_York)
+
+**Status:** RESOLVED (2026-07-14, engineer, from the timestamp audit); SME
+awareness only -- no scope change. A data engineer flagged migrated calendar
+dates rendering one day early for Eastern users. The migration was casting MySQL
+`date` columns with a bare `::timestamptz` (midnight UTC under the RDS UTC
+session), but DEMOS anchors date-only values to **America/New_York** -- start-of-
+day, or end-of-day `23:59:59.999` for the two "End of Day" types
+(`Completeness Review Due Date`, `Federal Comment Period End Date`), per
+`server/src/constants.ts` `DATE_TYPES_WITH_EXPECTED_TIMESTAMPS`, the GraphQL
+`TZDate` write path, and the `server/src/sql/functions.sql` triggers. Every
+date-only value is now anchored via `migration.eastern_day_start` /
+`migration.eastern_day_end` (`sql/00_init/03_helper_fns.sql`); true instants
+(`created_at`/`updated_at`) are untouched. This matches DEMOS bit-for-bit and is
+not an SME judgment call, so no options/sign-off are offered; the full write-up
+is `reports/narrative/timestamp_timezone_audit.md`. Recorded here for visibility
+because it changes the stored value of every migrated milestone/effective/
+expiration/tag-window date.
 
 ## Sign-off
 

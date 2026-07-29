@@ -82,11 +82,11 @@ SELECT
   d.mdcd_chip_div_cd::int AS sdg_division_cd,
   NULLIF(btrim(d.mdcd_demo_num), '') AS medicaid_id,
   NULLIF(btrim(d.mdcd_scndry_demo_num), '') AS chip_id_legacy,
-  d.state_prfmnc_yr_strt_dt::timestamptz AS effective_date,
-  d.state_prfmnc_yr_end_dt::timestamptz AS expiration_date,
+  migration.eastern_day_start(d.state_prfmnc_yr_strt_dt) AS effective_date,
+  migration.eastern_day_end(d.state_prfmnc_yr_end_dt) AS expiration_date,
   d.creatd_dt::timestamptz AS created_at,
   COALESCE(d.updtd_dt, d.creatd_dt)::timestamptz AS updated_at,
-  d.aprvl_dt::timestamptz AS approval_date,
+  migration.eastern_day_start(d.aprvl_dt) AS approval_date,
   CASE WHEN d.aprvl_dt IS NOT NULL
     OR ap.phase_6_any IS NOT NULL THEN
     'Approval Summary'

@@ -477,8 +477,20 @@ class Env(BaseSettings):
         if self.pg_url:
             return self.pg_url
         ca = self._ensure_ca_bundle()
+        # Pin the session TimeZone to UTC (libpq ``options``) so every psycopg
+        # connection built from this DSN is deterministic. Defense-in-depth: the
+        # loaders anchor calendar dates to Eastern explicitly
+        # (migration.eastern_day_start/_end), but a fixed UTC session keeps any
+        # remaining implicit ``date::timestamptz`` / ``now()`` behavior stable
+        # and matches the DEMOS server's UTC-storage posture. quote_via=quote
+        # encodes the space as %20 (not '+'), which libpq requires in a URI.
         query = urllib.parse.urlencode(
-            {"sslmode": "verify-full", "sslrootcert": str(ca)}
+            {
+                "sslmode": "verify-full",
+                "sslrootcert": str(ca),
+                "options": "-c timezone=UTC",
+            },
+            quote_via=urllib.parse.quote,
         )
         return urllib.parse.urlunsplit(
             ("postgresql", self._netloc(), f"/{self.db_name}", query, "")

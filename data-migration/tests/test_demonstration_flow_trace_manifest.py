@@ -105,7 +105,8 @@ def test_preserved_chip_is_concrete_deferred_chip_is_null() -> None:
     assert preserved, "fixture should exercise at least one preserved chip"
     assert deferred, "fixture should exercise at least one deferred (NULL) chip"
     for r in preserved:
-        assert r["chip_id"] and r["chip_id"].startswith("21-W-")
+        assert r["chip_id"]
+        assert r["chip_id"].startswith("21-W-")
         assert "\u2026" not in r["chip_id"]  # nothing is masked anymore
     for r in deferred:
         assert r["chip_id"] is None

@@ -26,9 +26,10 @@ def _shaped_query(default: tuple[object, ...]):
     its ``leaked`` probe returns empty (no RED) while its ``pending_only_deferred``
     probe returns one deferral, which reconciles to PENDING against an absent
     baseline (tests point ``PARITY_ACCEPTED_DIR`` at an empty dir). The two
-    ``_parity_(pendg_)?pgm_dtl_tag*`` views and ``_parity_amendment_unmapped_status``
-    read empty so those stay vacuously GREEN (the fail-closed guards never red the
-    rollup here).
+    ``_parity_(pendg_)?pgm_dtl_tag*`` views, the milestone
+    ``_parity_application_milestone_unmapped`` / ``_parity_application_phase_fed_comment_guard``
+    views, and ``_parity_amendment_unmapped_status`` read empty so those stay
+    vacuously GREEN (the fail-closed guards never red the rollup here).
     """
 
     def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
@@ -37,6 +38,11 @@ def _shaped_query(default: tuple[object, ...]):
         if "'pending_only_deferred'" in sql:
             return [(1, "no_approved_counterpart")]
         if "_parity_pgm_dtl_tag" in sql or "_parity_pendg_pgm_dtl_tag" in sql:
+            return []
+        if (
+            "_parity_application_milestone_unmapped" in sql
+            or "_parity_application_phase_fed_comment_guard" in sql
+        ):
             return []
         if "_parity_amendment_unmapped_status" in sql:
             return []
@@ -1277,6 +1283,82 @@ def test_pendg_pgm_dtl_unseeded_reds_on_unseeded_mapping(monkeypatch: pytest.Mon
     assert result.status == "RED"
     assert "1 pending pgm_dtl mapping(s)" in result.detail
     assert "mdcd_pendg_bnfts_pgm_dtl" in result.detail
+
+
+def test_milestone_unmapped_green_when_view_absent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Milestone unmapped log: no view yet -> vacuously GREEN, no CSV."""
+    monkeypatch.setattr(parity, "psql_query", lambda _env, _sql: [(False,)])
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._application_milestone_unmapped(env)
+    assert result.status == "GREEN"
+    assert "vacuously green" in result.detail
+
+
+def test_milestone_unmapped_is_non_gating_and_logs_csv(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Deferred date columns -> GREEN (non-gating) AND logged per-column."""
+    rows: list[tuple[object, ...]] = [
+        ("mdcd_demo_aplctn", "phase_3_a_sme_strt_dt", 42),
+        ("mdcd_demo_amndmt", "amndmt_aplctn_dt", 7),
+    ]
+
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        return [(True,)] if "to_regclass" in sql else rows
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    monkeypatch.setattr(parity, "REPORTS_DIR", tmp_path)
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._application_milestone_unmapped(env)
+
+    assert result.status == "GREEN"  # non-gating, deferred for SME
+    assert "2 legacy date column(s) deferred to SME (49 non-null value(s))" in result.detail
+    assert "mdcd_demo_aplctn.phase_3_a_sme_strt_dt=42" in result.detail
+    out = tmp_path / "orphans" / "application_milestone_unmapped.csv"
+    assert out.exists()
+    body = out.read_text(encoding="utf-8")
+    assert "source_table,source_column,non_null_count" in body
+    assert "amndmt_aplctn_dt,7" in body
+
+
+def test_fed_comment_guard_green_when_view_absent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Fed-comment guard: no view yet -> vacuously GREEN."""
+    monkeypatch.setattr(parity, "psql_query", lambda _env, _sql: [(False,)])
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._application_phase_fed_comment_guard(env)
+    assert result.status == "GREEN"
+    assert "vacuously green" in result.detail
+
+
+def test_fed_comment_guard_green_when_empty(monkeypatch: pytest.MonkeyPatch) -> None:
+    """No pre-cutover window still Not Started/Started -> GREEN."""
+
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        return [(True,)] if "to_regclass" in sql else [(0,)]
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._application_phase_fed_comment_guard(env)
+    assert result.status == "GREEN"
+
+
+def test_fed_comment_guard_reds_on_violation(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A pre-cutover window still Not Started/Started fails the gate RED."""
+
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        return [(True,)] if "to_regclass" in sql else [(3,)]
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._application_phase_fed_comment_guard(env)
+    assert result.status == "RED"
+    assert "3 application(s)" in result.detail
+    assert "2026-08-20" in result.detail
 
 
 def test_scope_coverage_green_when_view_absent(

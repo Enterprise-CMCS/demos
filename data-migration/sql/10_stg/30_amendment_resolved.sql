@@ -54,7 +54,7 @@ SELECT
   NULLIF(btrim(a.amndmt_desc), '') AS description,
   a.mdcd_demo_amndmt_stus_cd::int AS status_cd,
   a.mdcd_demo_aplctn_sgntr_lvl_cd::int AS signature_cd,
-  a.amndmt_prd_from_dt::timestamptz AS effective_date,
+  migration.eastern_day_start(a.amndmt_prd_from_dt) AS effective_date,
   a.creatd_dt::timestamptz AS created_at,
   a.creatd_dt::timestamptz AS updated_at
 FROM

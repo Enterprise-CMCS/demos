@@ -132,7 +132,7 @@ END IF;
   skipped_ct := skipped_ct + skipped;
   EXECUTE format('INSERT INTO demos_app.demonstration_type_tag_assignment(demonstration_id, tag_name_id, tag_type_id, effective_date, expiration_date, created_at, updated_at)
     SELECT
-      pf.demo_uuid, tg.tag_name_id, tg.tag_type_id, s.%1$I::timestamptz, s.%2$I::timestamptz, COALESCE(s.creatd_dt::timestamptz, now()), COALESCE(s.creatd_dt::timestamptz, now())
+      pf.demo_uuid, tg.tag_name_id, tg.tag_type_id, migration.eastern_day_start(s.%1$I), migration.eastern_day_end(s.%2$I), COALESCE(s.creatd_dt::timestamptz, now()), COALESCE(s.creatd_dt::timestamptz, now())
   FROM mysql_raw.%3$I s
   JOIN stg._pendg_demo_fold pf ON pf.legacy_pendg_demo_id = s.mdcd_pendg_demo_id
   JOIN demos_app.demonstration dem ON dem.id = pf.demo_uuid

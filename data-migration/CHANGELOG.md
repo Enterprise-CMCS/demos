@@ -34,6 +34,23 @@ behavior changes. Commit history follows [Conventional Commits](https://www.conv
   `sql/99_parity/55_pendg_pgm_dtl_tag_othr_held.sql` logs held free-text "Other"
   rows (non-gating) and fail-closes on any mapped-but-unseeded tag -- mirroring the
   base 10/11/54 trio as pending 12/13/55.
+- Milestone dates and per-phase status now migrate (per the 2026-07-10 SME
+  answers). `sql/10_stg/25_application_milestone.sql` is a source-only tall
+  crosswalk mapping every high-confidence legacy phase-milestone column (approved
+  + pending demonstrations, both from `mdcd_demo_aplctn`) to a seeded DEMOS
+  `date_type`; `sql/20_app/36_application_date.sql` (rewritten from approval-date-
+  only) loads all of them into `demos_app.application_date`, and
+  `sql/23_app_derived/50_application_phase.sql` derives the 8
+  `demos_app.application_phase` rows per loaded demonstration (approved + pending)
+  and amendment from the loaded `current_phase_id`. A Federal Comment past-window
+  failsafe forces that phase to 'Completed' when its loaded end date is before
+  cutover (`2026-08-20`, a single documented SQL constant) so the DEMOS nightly
+  `update_federal_comment_phase_status()` cron cannot spuriously advance a window
+  that closed by cutover. Parity `sql/99_parity/56_application_milestone.sql` logs
+  the granular phase_3 clearance sub-dates + amendment dates deferred for SME
+  review (non-gating) and fail-closes on the Federal Comment guard. The full
+  legacy-column crosswalk + deferred columns are documented in
+  `reports/narrative/milestone_date_mapping.md`.
 
 ### Changed
 - Amendments resolve their parent fold-aware
@@ -89,6 +106,33 @@ behavior changes. Commit history follows [Conventional Commits](https://www.conv
   Node toolchain added here), and a pre-flip `conformance` gate kept distinct
   from parity. Implementation is deferred until the date/phase/document
   loaders land.
+
+### Fixed
+- Date-only values are now anchored to **America/New_York**, matching the DEMOS
+  convention, instead of being cast as midnight UTC (which rendered one day early
+  for Eastern users). New helpers `migration.eastern_day_start` /
+  `migration.eastern_day_end` in `sql/00_init/03_helper_fns.sql` wrap every
+  calendar-date column at write time -- start-of-day for most types, end-of-day
+  for `Completeness Review Due Date` and `Federal Comment Period End Date` (per
+  `server/src/constants.ts` `DATE_TYPES_WITH_EXPECTED_TIMESTAMPS`). Applied across
+  `sql/10_stg/25_application_milestone.sql` (17 milestone values),
+  `sql/10_stg/22_demonstration_resolved.sql`,
+  `sql/10_stg/24_pending_demonstration_resolved.sql`,
+  `sql/10_stg/28_deliverable_resolved.sql`,
+  `sql/10_stg/30_amendment_resolved.sql`, and the tag validity windows in
+  `sql/21_app_associative/10`-`13`. True instants (`created_at` / `updated_at`)
+  are left untouched. The amendment name-synthesis render
+  (`sql/20_app/35_amendment.sql`, `sql/99_parity/52_amendment_load.sql`) now
+  wraps `to_char(effective_date, ...)` with `AT TIME ZONE 'America/New_York'`, and
+  the Federal Comment cutover constant was re-anchored to Eastern midnight
+  (`'2026-08-20 00:00:00-04:00'`) in `sql/23_app_derived/50_application_phase.sql`
+  and `sql/99_parity/56_application_milestone.sql`. See
+  `reports/narrative/timestamp_timezone_audit.md`.
+- The migration now pins its Postgres session to UTC (defense-in-depth):
+  `migration/lib.py` `pg_dsn()` appends `options=-c timezone=UTC` and the pgloader
+  scripts (`pgloader/schema.load`, `pgloader/delta.tmpl.load`) add
+  `timezone to 'UTC'`, so the run is deterministic on any host and the 16 audit
+  `datetime` columns convert to `timestamptz` deterministically.
 
 ## [0.7.0] - 2026-06-25
 

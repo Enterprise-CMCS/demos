@@ -23,7 +23,7 @@ import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from tests.sql._skeleton import create_mysql_raw_skeleton
+from tests.sql._skeleton import apply_migration_helper_fns, create_mysql_raw_skeleton
 
 if TYPE_CHECKING:
     import psycopg
@@ -67,6 +67,7 @@ def _provision(conn: Any) -> None:
     conn.execute("DROP SCHEMA IF EXISTS stg, migration, demos_app CASCADE")
     for schema in ("stg", "migration", "demos_app"):
         conn.execute(f"CREATE SCHEMA {schema}")
+    apply_migration_helper_fns(conn)  # 22_demonstration_resolved calls eastern_day_*
 
     for legacy, num, state in DEMOS:
         conn.execute(
@@ -173,6 +174,25 @@ def test_singleton_demo_is_unaffected(pg_db: psycopg.Connection) -> None:
     """A demo with no medicaid_id collision loads normally."""
     _provision(pg_db)
     assert _loaded(pg_db, MA_SOLO)
+
+
+def test_effective_expiration_anchored_to_eastern(pg_db: psycopg.Connection) -> None:
+    """demonstration_resolved anchors effective/expiration to Eastern day bounds.
+
+    The fixture's state_prfmnc window is 2020-01-01..2025-12-31; viewed in
+    America/New_York, effective_date round-trips to the start day and
+    expiration_date to the end day, regardless of session TimeZone.
+    """
+    _provision(pg_db)
+    row = pg_db.execute(
+        "SELECT (effective_date AT TIME ZONE 'America/New_York')::date, "
+        "(expiration_date AT TIME ZONE 'America/New_York')::date "
+        "FROM demos_app.demonstration WHERE id = %s",
+        (_u(MA_SOLO),),
+    ).fetchone()
+    assert row is not None
+    assert str(row[0]) == "2020-01-01"
+    assert str(row[1]) == "2025-12-31"
 
 
 def test_held_losers_are_logged_with_kept_winner(pg_db: psycopg.Connection) -> None:

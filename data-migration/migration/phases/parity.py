@@ -1685,6 +1685,111 @@ def _pendg_pgm_dtl_tag_unseeded(env: Env) -> CheckResult:
     )
 
 
+def _application_milestone_unmapped(env: Env) -> CheckResult:
+    """Legacy milestone date columns deferred to SME (non-gating log).
+
+    Reads ``migration._parity_application_milestone_unmapped`` (created by
+    ``sql/99_parity/56_application_milestone.sql`` only when its inputs exist).
+    The milestone crosswalk (``sql/10_stg/25_application_milestone.sql``) maps
+    only the high-confidence legacy date columns; the granular phase_3 clearance
+    sub-dates (SME / FRVT / CMCS / OGC / OMB start+end), the application-status
+    date, and the amendment application/status dates are deferred because their
+    DEMOS target is not high-confidence. This logs, per deferred column, how many
+    in-scope source rows carry a value SME still needs to place (written to
+    ``reports/orphans/application_milestone_unmapped.csv``); the status stays
+    GREEN (reported, not gated). Vacuously GREEN before the view is built.
+    """
+    name = "Milestone date columns deferred to SME"
+    exists = psql_query(
+        env,
+        "SELECT to_regclass('migration._parity_application_milestone_unmapped') IS NOT NULL",
+    )
+    if not exists or not exists[0][0]:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="view not built yet; no deferred milestone columns to log (vacuously green)",
+        )
+    rows = psql_query(
+        env,
+        "SELECT source_table, source_column, non_null_count "
+        "FROM migration._parity_application_milestone_unmapped "
+        "ORDER BY source_table, source_column",
+    )
+    if not rows:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="every legacy milestone date column is either mapped or empty in source",
+        )
+    out: Path = REPORTS_DIR / "orphans" / "application_milestone_unmapped.csv"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["source_table", "source_column", "non_null_count"])
+        for r in rows:
+            w.writerow(["" if v is None else v for v in r])
+    total = sum(int(r[2]) for r in rows if len(r) > 2 and r[2] is not None)
+    bits = "; ".join(f"{r[0]}.{r[1]}={r[2]}" for r in rows[:12] if len(r) > 2)
+    return CheckResult(
+        name=name,
+        status="GREEN",
+        detail=(
+            f"{len(rows)} legacy date column(s) deferred to SME ({total} non-null value(s)) "
+            f"logged to {rel(out)} (non-gating); {bits}"
+        ),
+    )
+
+
+def _application_phase_fed_comment_guard(env: Env) -> CheckResult:
+    """Federal Comment past-window failsafe held (fail-closed guard).
+
+    Reads ``migration._parity_application_phase_fed_comment_guard`` (created by
+    ``sql/99_parity/56_application_milestone.sql``). The application_phase loader
+    (``sql/23_app_derived/50_application_phase.sql``) forces the Federal Comment
+    phase to 'Completed' whenever the loaded 'Federal Comment Period End Date' is
+    before cutover (2026-08-20), so the DEMOS nightly cron cannot spuriously
+    advance a window that closed by cutover. Any row here is an application whose
+    window closed pre-cutover yet is still 'Not Started'/'Started' -- the failsafe
+    did not hold, so the gate goes RED. Expected empty; vacuously GREEN before the
+    view is built.
+    """
+    name = "Federal Comment past-window failsafe"
+    exists = psql_query(
+        env,
+        "SELECT to_regclass('migration._parity_application_phase_fed_comment_guard') IS NOT NULL",
+    )
+    if not exists or not exists[0][0]:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="view not built yet; no application_phase rows to validate (vacuously green)",
+        )
+    rows = psql_query(
+        env,
+        "SELECT count(*) FROM migration._parity_application_phase_fed_comment_guard",
+    )
+    count = int(rows[0][0]) if rows else 0
+    if count == 0:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail=(
+                "no application with a pre-cutover Federal Comment end date is still "
+                "Not Started/Started"
+            ),
+        )
+    return CheckResult(
+        name=name,
+        status="RED",
+        detail=(
+            f"{count} application(s) whose Federal Comment window closed before cutover "
+            "(2026-08-20) still have the phase Not Started/Started; the loader failsafe did not "
+            "hold; see view migration._parity_application_phase_fed_comment_guard"
+        ),
+    )
+
+
 def _comment_completeness(env: Env) -> CheckResult:
     """Comment load completeness (loadable-but-unloaded rows).
 
@@ -2342,6 +2447,8 @@ def build_parity_report(env: Env) -> ParityReport:
         ("pgm_dtl tag unseeded", _pgm_dtl_tag_unseeded),
         ("pending pgm_dtl othr held", _pendg_pgm_dtl_tag_othr_held),
         ("pending pgm_dtl tag unseeded", _pendg_pgm_dtl_tag_unseeded),
+        ("milestone dates deferred to SME", _application_milestone_unmapped),
+        ("fed-comment past-window failsafe", _application_phase_fed_comment_guard),
         ("comment completeness", _comment_completeness),
         ("comment integrity", _comment_integrity),
         ("comment held", _comment_held),

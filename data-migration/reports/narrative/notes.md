@@ -529,3 +529,49 @@ fixed-tag loader `21_app_associative/12` and free-text "Other" loader
 any mapped-but-unseeded tag -- mirroring the base 10/11/54 trio as pending
 12/13/55. This branch also stacks the two prior unmerged branches (2026-07-10
 crosswalk sign-offs; stop minting chip_id) via cherry-pick.
+
+Milestone dates and per-phase status now migrate. `10_stg/25` is a source-only
+tall crosswalk mapping every high-confidence legacy phase-milestone column
+(approved + pending demonstrations, both from `mdcd_demo_aplctn`, aggregated to
+the furthest milestone reached) to a seeded DEMOS `date_type`; `20_app/36`
+(rewritten from approval-date-only) loads them into `application_date`, and
+`23_app_derived/50` derives the 8 `application_phase` rows per loaded
+demonstration (approved + pending) and amendment from the loaded
+`current_phase_id` (earlier=Completed, current=Started, later=Not Started;
+Concept never Not Started). A Federal Comment past-window failsafe forces that
+phase to 'Completed' when its loaded end date is before cutover (`2026-08-20`, a
+single documented SQL constant in `23_app_derived/50` mirrored in
+`99_parity/56`) so the DEMOS nightly `update_federal_comment_phase_status()` cron
+cannot spuriously advance a window that closed by cutover. Amendments get phases
+only (no confidently-mappable milestone-date column). The granular phase_3
+clearance sub-dates (SME/FRVT/CMCS/OGC/OMB), the application-status date, and the
+amendment application/status dates are deferred for SME review and logged
+non-gating in `_parity_application_milestone_unmapped` (`99_parity/56`); the full
+crosswalk + deferred columns live in `reports/narrative/milestone_date_mapping.md`.
+
+2026-07-14 timestamps: a data engineer flagged migrated dates as one day early
+for Eastern users. Audit confirmed the cause: the migration cast MySQL `date`
+columns with a bare `::timestamptz`, which under the UTC RDS session stores
+midnight UTC -- but DEMOS anchors date-only values to **America/New_York**
+(start-of-day, or end-of-day `23:59:59.999` for the two "End of Day" types),
+proven by `server/src/constants.ts` `DATE_TYPES_WITH_EXPECTED_TIMESTAMPS`, the
+GraphQL `TZDate` write path, and the `timezone('America/New_York', date_trunc('day', ...))`
+triggers in `server/src/sql/functions.sql`; every consumer renders back through
+Eastern (`AT TIME ZONE 'America/New_York'` in SQL, browser-local in the client),
+so midnight UTC displays as the prior day. Fixed by anchoring every date-only
+value at write time via new helpers `migration.eastern_day_start` /
+`migration.eastern_day_end` (`00_init/03_helper_fns.sql`, SQL/STABLE/STRICT)
+across loaders `10_stg/25` (17 milestone values), `10_stg/22`, `10_stg/24`,
+`10_stg/28`, `10_stg/30`, and tag windows `21_app_associative/10`-`13`; true
+instants (`created_at`/`updated_at`) untouched. The amendment name render
+(`20_app/35`, `99_parity/52`) now wraps `to_char(effective_date, ...)` in
+`AT TIME ZONE 'America/New_York'`, and the Federal Comment cutover constant was
+re-anchored to Eastern midnight (`'2026-08-20 00:00:00-04:00'`) in
+`23_app_derived/50` + `99_parity/56`. The Postgres session is also pinned to UTC
+(`lib.py` `pg_dsn()` `options=-c timezone=UTC`; pgloader `timezone to 'UTC'`) as
+defense-in-depth. Sweep found and included two beyond the initial enumeration:
+`10_stg/24` (pending effective/expiration) and `10_stg/28` (deliverable due_date).
+The DuckDB `pmda_exporter.py` `datetime`->naive `timestamp` divergence is a
+separate, non-load-path issue -- left as a handoff recommendation to the
+data-tools team (DEMOS + pgloader remain source of truth). Full write-up:
+`reports/narrative/timestamp_timezone_audit.md`.

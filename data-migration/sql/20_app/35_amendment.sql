@@ -99,7 +99,7 @@ BEGIN
       NULLIF(btrim(d.name), '')
         || ' Amendment'
         || CASE WHEN r.effective_date IS NOT NULL
-             THEN ' (effective ' || to_char(r.effective_date, 'YYYY-MM-DD') || ')'
+             THEN ' (effective ' || to_char(r.effective_date AT TIME ZONE 'America/New_York', 'YYYY-MM-DD') || ')'
              ELSE '' END,
       'Amendment'
     )                                                 AS name,

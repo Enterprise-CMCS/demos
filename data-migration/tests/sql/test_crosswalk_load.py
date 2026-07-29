@@ -18,6 +18,8 @@ from typing import TYPE_CHECKING, LiteralString, cast
 
 import pytest
 
+from tests.sql._skeleton import apply_migration_helper_fns
+
 if TYPE_CHECKING:
     import psycopg
 
@@ -208,6 +210,7 @@ def _provision_fold_loop(conn: psycopg.Connection) -> None:
     conn.execute("CREATE SCHEMA mysql_raw")
     conn.execute("CREATE SCHEMA demos_app")
     conn.execute("CREATE SCHEMA migration")
+    apply_migration_helper_fns(conn)  # loader 10 calls eastern_day_start/_end
 
     # Source table with NON-standard date column names (the divergence case).
     conn.execute(
@@ -281,8 +284,13 @@ def test_pgm_dtl_tag_honors_custom_date_cols(pg_db: psycopg.Connection) -> None:
     _provision_fold_loop(pg_db)
     pg_db.execute(cast(LiteralString, TAG_ASSIGNMENT_SQL.read_text(encoding="utf-8")))
     with pg_db.cursor() as cur:
+        # Viewed in Eastern, the anchored instants round-trip to the source
+        # calendar day (effective = start-of-day, expiration = end-of-day),
+        # regardless of the session TimeZone.
         cur.execute(
-            "SELECT tag_name_id, effective_date::date, expiration_date::date "
+            "SELECT tag_name_id, "
+            "(effective_date AT TIME ZONE 'America/New_York')::date, "
+            "(expiration_date AT TIME ZONE 'America/New_York')::date "
             "FROM demos_app.demonstration_type_tag_assignment"
         )
         rows = cur.fetchall()
@@ -303,6 +311,7 @@ def _provision_window_check(conn: psycopg.Connection) -> None:
     conn.execute("CREATE SCHEMA mysql_raw")
     conn.execute("CREATE SCHEMA demos_app")
     conn.execute("CREATE SCHEMA migration")
+    apply_migration_helper_fns(conn)  # loader 10 calls eastern_day_start/_end
     conn.execute(
         "CREATE TABLE mysql_raw.mdcd_cmnty_enggmt_pgm_dtl "
         "(mdcd_demo_id int, from_dt date, to_dt date, "
@@ -364,7 +373,9 @@ def test_pgm_dtl_tag_filters_nonpositive_window(pg_db: psycopg.Connection) -> No
     pg_db.execute(cast(LiteralString, TAG_ASSIGNMENT_SQL.read_text(encoding="utf-8")))
     with pg_db.cursor() as cur:
         cur.execute(
-            "SELECT demonstration_id, effective_date::date, expiration_date::date "
+            "SELECT demonstration_id, "
+            "(effective_date AT TIME ZONE 'America/New_York')::date, "
+            "(expiration_date AT TIME ZONE 'America/New_York')::date "
             "FROM demos_app.demonstration_type_tag_assignment"
         )
         rows = cur.fetchall()

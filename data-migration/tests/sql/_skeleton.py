@@ -16,6 +16,20 @@ from typing import Any, LiteralString, cast
 
 ROOT = Path(__file__).resolve().parents[2]
 COLUMNS_CSV = ROOT / "tests" / "sql" / "fixtures" / "schema_snapshot" / "columns.csv"
+HELPER_FNS_SQL = ROOT / "sql" / "00_init" / "03_helper_fns.sql"
+
+
+def apply_migration_helper_fns(conn: Any) -> None:
+    """Provision the ``migration`` helper functions the stg layer depends on.
+
+    ``sql/00_init/03_helper_fns.sql`` defines lookup_uuid / crosswalk /
+    eastern_day_start / eastern_day_end. The resolved views (22/30), milestone
+    staging (25), and tag loaders (10-13) call the eastern_day_* anchors, so any
+    harness that applies those files must create these functions first. The
+    ``migration`` schema must already exist; the rest of ``00_init`` needs the
+    ``pg_jsonschema`` extension vanilla PG lacks and is out of scope here.
+    """
+    conn.execute(cast(LiteralString, HELPER_FNS_SQL.read_text(encoding="utf-8")))
 
 # Map MySQL information_schema DATA_TYPE -> a Postgres type close enough that
 # the views/transforms (extract(), numeric/date comparisons, regex, SUM, ...)

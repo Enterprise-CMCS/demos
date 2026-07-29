@@ -26,7 +26,11 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from migration import lib
-from tests.sql._skeleton import COLUMNS_CSV, create_mysql_raw_skeleton
+from tests.sql._skeleton import (
+    COLUMNS_CSV,
+    apply_migration_helper_fns,
+    create_mysql_raw_skeleton,
+)
 
 if TYPE_CHECKING:
     import psycopg
@@ -74,6 +78,10 @@ def _provision(conn: Any) -> None:
     # 00_init. pg_jsonschema is deliberately NOT required by the stg layer.
     conn.execute("CREATE EXTENSION IF NOT EXISTS pgcrypto")
     conn.execute('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"')
+
+    # The stg resolved views (22/30) call the migration helper functions
+    # (lookup_uuid/crosswalk/eastern_day_start/eastern_day_end); provision them.
+    apply_migration_helper_fns(conn)
 
     create_mysql_raw_skeleton(conn)
 

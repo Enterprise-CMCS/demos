@@ -25,7 +25,7 @@ import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from tests.sql._skeleton import create_mysql_raw_skeleton
+from tests.sql._skeleton import apply_migration_helper_fns, create_mysql_raw_skeleton
 
 if TYPE_CHECKING:
     import psycopg
@@ -71,6 +71,7 @@ def _provision(conn: Any) -> None:
     conn.execute("DROP SCHEMA IF EXISTS stg, migration, demos_app CASCADE")
     for schema in ("stg", "migration", "demos_app"):
         conn.execute(f"CREATE SCHEMA {schema}")
+    apply_migration_helper_fns(conn)  # 22_demonstration_resolved calls eastern_day_*
 
     for legacy, num, state in PENDG:
         conn.execute(

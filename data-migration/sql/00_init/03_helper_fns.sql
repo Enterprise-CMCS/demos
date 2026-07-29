@@ -23,6 +23,19 @@
  *     text id via `mysql_raw.crosswalk_<rfrnc>`. Raises when the legacy
  *     code is non-null but unmapped so SMEs notice missing crosswalk
  *     rows instead of silently dropping data.
+ *
+ *   migration.eastern_day_start(date) / migration.eastern_day_end(date)
+ *     Anchor a legacy calendar date to the DEMOS timestamptz convention:
+ *     midnight (start-of-day) or 23:59:59.999 (end-of-day) in
+ *     America/New_York, expressed as a UTC instant. This reproduces the
+ *     DEMOS server write path (server/src/dateUtilities.ts +
+ *     server/src/sql/functions.sql) so migrated dates round-trip through
+ *     `... AT TIME ZONE 'America/New_York'` (reports) and the client's
+ *     local-tz formatting on the correct calendar day, instead of the
+ *     day-early shift a bare `date::timestamptz` (midnight UTC) produces.
+ *     STABLE (the value depends on the tz database) and STRICT (NULL in,
+ *     NULL out). DST-aware: the offset is -05:00 (EST) or -04:00 (EDT)
+ *     per the input date.
  */
 CREATE OR REPLACE FUNCTION migration.lookup_uuid(p_table text, p_legacy_id bigint)
   RETURNS uuid
@@ -74,5 +87,26 @@ BEGIN
   END IF;
   RETURN v_id;
 END
+$$;
+
+CREATE OR REPLACE FUNCTION migration.eastern_day_start(p_date date)
+  RETURNS timestamptz
+  LANGUAGE sql
+  STABLE
+  STRICT
+  AS $$
+    SELECT timezone('America/New_York', p_date::timestamp);
+$$;
+
+CREATE OR REPLACE FUNCTION migration.eastern_day_end(p_date date)
+  RETURNS timestamptz
+  LANGUAGE sql
+  STABLE
+  STRICT
+  AS $$
+    SELECT timezone(
+      'America/New_York',
+      p_date::timestamp + interval '1 day' - interval '1 millisecond'
+    );
 $$;
 

@@ -34,6 +34,8 @@ import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from tests.sql._skeleton import apply_migration_helper_fns
+
 if TYPE_CHECKING:
     import psycopg
 
@@ -66,6 +68,7 @@ def _provision(conn: Any) -> None:
     for schema in ("stg", "mysql_raw", "migration", "demos_app"):
         conn.execute(f"CREATE SCHEMA {schema}")
     conn.execute("CREATE EXTENSION IF NOT EXISTS pgcrypto")
+    apply_migration_helper_fns(conn)  # 30_amendment_resolved calls eastern_day_start
 
     conn.execute(
         "CREATE TABLE mysql_raw.mdcd_demo_amndmt ("

@@ -78,8 +78,8 @@ END IF;
     pf.demo_uuid,
     tg.tag_name_id,
     tg.tag_type_id,
-    s.from_dt::timestamptz,
-    s.to_dt::timestamptz,
+    migration.eastern_day_start(s.from_dt),
+    migration.eastern_day_end(s.to_dt),
     COALESCE(s.creatd_dt::timestamptz, now()),
     COALESCE(s.creatd_dt::timestamptz, now())
   FROM

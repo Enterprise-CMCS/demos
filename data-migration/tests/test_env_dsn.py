@@ -52,6 +52,30 @@ def test_secret_path_builds_ssl_dsns(monkeypatch: pytest.MonkeyPatch) -> None:
     assert calls["n"] == 1
 
 
+def test_pg_dsn_pins_session_timezone_utc(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The built RDS DSN pins the session TimeZone to UTC via libpq ``options``.
+
+    The space and ``=`` MUST be percent-encoded (%20 / %3D), not '+', or libpq
+    would receive a malformed ``options`` value in the URI.
+    """
+    monkeypatch.setattr(
+        secrets,
+        "get_secret_json",
+        lambda sid, region=None: {
+            "username": "admin",
+            "password": "pw",  # pragma: allowlist secret
+            "host": "db.demos",
+            "port": 5432,
+        },
+    )
+    monkeypatch.setattr(lib.Env, "_ensure_ca_bundle", lambda self: Path("/tmp/ca.pem"))
+    env = lib.Env(pg_url="", mysql_url="mysql://u:p@h/m", demos_env="prod", db_name="demos")
+
+    dsn = env.pg_dsn()
+    assert "options=-c%20timezone%3DUTC" in dsn
+    assert "+" not in dsn.split("options=", 1)[1]
+
+
 def test_secret_missing_fields_dies(monkeypatch: pytest.MonkeyPatch) -> None:
     """A secret missing required fields hard-fails."""
     monkeypatch.setattr(secrets, "get_secret_json", lambda sid, region=None: {"username": "u"})

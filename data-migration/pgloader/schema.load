@@ -27,7 +27,8 @@ LOAD DATABASE
 
    SET work_mem to '256MB',
        maintenance_work_mem to '1GB',
-       search_path to 'mysql_raw,public'
+       search_path to 'mysql_raw,public',
+       timezone to 'UTC'
 
 ALTER SCHEMA '{{MYSQL_DB}}' RENAME TO 'mysql_raw'
 

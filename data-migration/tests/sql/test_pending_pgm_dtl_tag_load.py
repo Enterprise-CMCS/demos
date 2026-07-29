@@ -22,7 +22,7 @@ import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from tests.sql._skeleton import create_mysql_raw_skeleton
+from tests.sql._skeleton import apply_migration_helper_fns, create_mysql_raw_skeleton
 
 if TYPE_CHECKING:
     import psycopg
@@ -55,6 +55,7 @@ def _provision(conn: Any) -> None:
     conn.execute("DROP SCHEMA IF EXISTS stg, migration, demos_app CASCADE")
     for schema in ("stg", "migration", "demos_app"):
         conn.execute(f"CREATE SCHEMA {schema}")
+    apply_migration_helper_fns(conn)  # loaders 12/13 call eastern_day_start/_end
 
     # Pending + approved demo rows the fold classifier reads.
     for legacy, num in ((P_ORPHAN, "11-W-03001/6"), (P_FOLD, "11-W-04000/6")):

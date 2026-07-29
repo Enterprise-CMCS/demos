@@ -35,7 +35,11 @@
  *                             demos-cms-user} (a state-user creator is an
  *                             anomaly, surfaced in _parity_deliverable_held)
  *   due_date                  dlvrbl_due_dt, else dlvrbl_prd_strt_dt +
- *                             dlvrbl_days_due_num days, else dlvrbl_due_dt_chg_dt
+ *                             dlvrbl_days_due_num days, else dlvrbl_due_dt_chg_dt;
+ *                             each date-only source anchored to Eastern midnight
+ *                             (migration.eastern_day_start) so the calendar day
+ *                             renders correctly under America/New_York (a bare
+ *                             ::timestamptz under a UTC session lands the prior day)
  *   deliverable_type_cd /     carried raw; deliverable_type_cd feeds the
  *   budget_neutrality_ind     single-input deliverable_type crosswalk
  *                             (sql/04_crosswalks/52_*; the code is the rich
@@ -62,7 +66,7 @@ SELECT
 (d.bdgt_ntrlty_ind)::int AS budget_neutrality_ind,
   ou.new_uuid AS cms_owner_user_id,
   ur.person_type_id AS cms_owner_person_type_id,
-  COALESCE(d.dlvrbl_due_dt::timestamptz,(d.dlvrbl_prd_strt_dt::date +(d.dlvrbl_days_due_num::int) * interval '1 day')::timestamptz, d.dlvrbl_due_dt_chg_dt::timestamptz) AS due_date,
+  COALESCE(migration.eastern_day_start(d.dlvrbl_due_dt), migration.eastern_day_start((d.dlvrbl_prd_strt_dt::date +(d.dlvrbl_days_due_num::int))::date), migration.eastern_day_start(d.dlvrbl_due_dt_chg_dt)) AS due_date,
   d.creatd_dt::timestamptz AS created_at,
   COALESCE(d.updtd_dt, d.creatd_dt)::timestamptz AS updated_at
 FROM
