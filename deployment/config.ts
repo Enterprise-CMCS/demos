@@ -25,6 +25,7 @@ export interface DeploymentConfigProperties {
   srrConfigured: boolean;
   dataConnectRoleArn: string;
   enableAlarms?: boolean;
+  pmdaDataSyncArn?: string;
 }
 
 export const determineDeploymentConfig = async (

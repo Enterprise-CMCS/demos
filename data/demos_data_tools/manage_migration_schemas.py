@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Literal
 
 from dotenv import load_dotenv
 
-from check_if_in_devcontainer import check_if_in_devcontainer
 from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME, create_duckdb_conn, attach_demos_to_conn
 from logger_utils import config_logger
 
@@ -64,7 +63,6 @@ def _drop_schema(conn: "DuckConn", which: MigrationSchemaType) -> None:
         conn (DuckConn): A DuckDB connection with the DEMOS DB attached.
         which (MigrationSchemaType): Which schema to drop (one of "raw", "staging").
     """
-    check_if_in_devcontainer()
     match which:
         case "raw":
             schema = RAW_SCHEMA
