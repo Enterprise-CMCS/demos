@@ -6,7 +6,7 @@ FROM
 INNER JOIN
     {{ ref('users_cleaned_demos_app_person_state_user') }} AS cp
     ON
-        au.user_id = cp._legacy_id
+        au.user_id = cp._legacy_users_id
 WHERE
     au.geo_ansi_state_cd NOT IN (
         SELECT e1.geo_ansi_state_cd FROM {{ ref('errors_pmda_person_states_with_invalid_states') }} AS e1

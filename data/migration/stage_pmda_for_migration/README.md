@@ -65,4 +65,4 @@ To help keep the SQL code in this project clean, there is a pre-commit hook that
 
 ## Conventions / Styling
 
-Often in the final cleaned tables there is use for additional metadata columns which will not be exported to DEMOS. For instance, a record of the original ID used in PMDA assists with joining dependent tables. For these columns, we should denote their metadata status by prefixing an underscore to the column name. Ex: final_demos_app_person._legacy_id
+Often in the final cleaned tables there is use for additional metadata columns which will not be exported to DEMOS. For instance, a record of the original ID used in PMDA assists with joining dependent tables. For these columns, we should denote their metadata status by prefixing an underscore to the column name. Ex: final_demos_app_person._legacy_users_id

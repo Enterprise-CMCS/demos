@@ -277,3 +277,31 @@ The current phase is determined by evaluating phase statuses in order and select
 
 **Phase Progression Limit:**
 The current phase logic does not evaluate beyond SDG Preparation phase as requisite dates for completing the SDG Preparation phase do not exist in PMDA, so demonstrations cannot have progressed further than that phase.
+
+# Deliverables
+
+## Status Code
+
+There is a status code in PMDA that is just labeled 'N/A'. It appears on two non-deleted deliverables. These were filtered out of the migration. Deleted deliverables were also filtered out.
+
+In PMDA, a status code of 16 indicated Pending Due Date Changed. There are a small number of non-deleted deliverables with this status. For now, these are just being filtered out. `#open-question`
+
+The "Past Due" status from PMDA was not migrated at all. Instead, things which were marked Past Due were migrated as Upcoming. Then, the stored procedure which marks things past due was triggered. This ensures that all the Past Due items marked in DEMOS are marked as such based on the DEMOS logic.
+
+There are some unusual records right now for this; additional information from PMDA has been added into the staging tables so that it's possible to debug some of this. Things like resubmissions being requested aren't currently represented in the activity log, meaning that we get records that look like something is Past Due when it was submitted, with no other rows. We'll need to continue improving this. `#known-issue`
+
+## Expected To Be Submitted
+
+It's been tough to track down a direct analogue for `expected_to_be_submitted` based on the meaning of this as something the users could set in PMDA. It's unclear if we can just derive it from the status map entirely. For now, the migration sets it to TRUE for all cases. `#open-question`
+
+## Due Dates
+
+When a due date was attached to something determined to be open-ended, it was set to the expiration date of the associated demonstration. This was done before the run of the Upcoming -> Past Due code.
+
+## CMS Owner
+
+As an initial pass, the CMS owner was set to the creator of the deliverable. If this was not resolvable, the user Elizabeth Hill was assigned as the owner. `#open-question`
+
+## Submission Date
+
+There's been a first-pass effort (still work in progress) on importing the submission events from the database and figuring out what the due dates were at the time of the submission event. This is still in progress and needs refinement.

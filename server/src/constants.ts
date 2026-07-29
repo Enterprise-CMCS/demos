@@ -24,6 +24,7 @@ export const DELIVERABLE_ACTION_TYPES = [
   "Approved Deliverable",
   "Received and Filed Deliverable",
   "Deleted Deliverable",
+  "Migrated Deliverable From PMDA",
 ] as const;
 
 export const DELIVERABLE_TYPES = [
