@@ -118,8 +118,8 @@ All timestamps are converted to `America/New_York` timezone during migration.
 
 - **Concept Start Date**: Directly mapped from PMDA `phase_1_strt_dt`, with fallback to application created date (`creatd_dt`) when phase start date is NULL
 - **Concept Paper Submitted Date**: ❌ Excluded - No equivalent field in PMDA (may be derived later from document metadata if available)
-- **Concept Completion Date**: Directly mapped from PMDA `phase_1_end_dt`
-- **Concept Skipped Date**: Derived date set to one day before State Application Submitted Date when the Concept phase was not completed (indicates the concept phase was skipped)
+- **Concept Completion Date**: Directly mapped from PMDA `phase_1_end_dt`. Must be mutually exclusive to Concept Skipped Date.
+- **Concept Skipped Date**: Derived date set to one day before State Application Submitted Date when the Concept phase was not completed (indicates the concept phase was skipped). Must be mutually exclusive to Concept Completion Date.
 
 ##### Application Intake Phase
 
@@ -266,7 +266,6 @@ Note: The current phase logic does not evaluate beyond SDG Preparation phase as 
 # OUTSTANDING TODO
 - Refactor phase completion logic to break up into multiple CTEs. Because the phase status should cascade depending on the status of the previous phase, the clearest way to represent this using DBT is a series of 7 CTEs, each representing its own phase. (priority 1)
 - in apps_in_prog_phase_completion we are checking against the application_intake_start_date to determine if the concept start date has been skipped. Instead, we should check against the status of the application intake start date. 
-- we should add a test to ensure that the concept phase's skipped or completed dates are mutually exclusive to eachother
 - we should rewire the inclusion of the current_phase_id to a new model between the Cleaned demonstration and the final demonstration tables, so clean up the existing final demonstration table which currently includes that join. We should strive to keep that table as clean as possible, relying primerily on selects and unions. 
 - in cleaned_demos_app_app_phases_in_prog_demos, we have an inner join that may silently filter. We should replace it with an left join and add a corresponding test for nullness
 - we can replace the apps_in_prog_missing_aplctn test with an inline test in the models.yaml since it is simple enough and concentrates the check back to the main configuration. 
