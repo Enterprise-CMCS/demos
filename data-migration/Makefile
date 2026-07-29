@@ -109,7 +109,7 @@ migrate-local: ; @$(STEP) migrate-local "$(RUN) python scripts/migrate_local.py 
 
 # --- dev ---
 test:      ; @$(STEP) test "$(RUN) pytest --cov=migration --cov-report=term-missing"
-lint:      ; @$(STEP) lint "$(RUN) ruff check migration tests"
+lint:      ; @$(STEP) lint "$(RUN) ruff check migration tests scripts"
 typecheck: ; @$(STEP) typecheck "$(RUN) ty check migration tests"
 
 # --- SQL hygiene ---

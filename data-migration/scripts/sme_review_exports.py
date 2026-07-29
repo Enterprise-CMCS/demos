@@ -841,7 +841,7 @@ def main(argv: list[str] | None = None) -> int:
                     raise
                 failures.append(f"{cmd} (inputs absent)")
                 log(f"SKIPPED {cmd}: inputs absent (see the FATAL line above)")
-            except Exception as exc:  # noqa: BLE001 -- reported, then re-raised as exit 1
+            except Exception as exc:  # broad on purpose: reported, then re-raised as exit 1
                 if len(selected) == 1:
                     raise
                 failures.append(f"{cmd} (error)")
