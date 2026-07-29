@@ -207,29 +207,15 @@ export const getApprovalSummaryPhaseFromApplication = (
     .filter((p) => p.phaseName !== "Concept" && p.phaseName !== "Approval Summary")
     .every((phase) => phase.phaseStatus === "Completed" || phase.phaseStatus === "Skipped");
 
-  const demonstrationId =
+  const demonstration =
     workflowApplicationType === "demonstration"
-      ? application.id
-      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
-          .id;
+      ? (application as ApplicationWorkflowDemonstration)
+      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration;
 
-  const demonstrationTypes =
-    workflowApplicationType === "demonstration"
-      ? (application as ApplicationWorkflowDemonstration).demonstrationTypes
-      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
-          .demonstrationTypes;
-
-  const demonstrationStatus =
-    workflowApplicationType === "demonstration"
-      ? (application as ApplicationWorkflowDemonstration).status
-      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
-          .status;
-
-  const medicaidId =
-    workflowApplicationType === "demonstration"
-      ? (application as ApplicationWorkflowDemonstration).medicaidId
-      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
-          .medicaidId;
+  const demonstrationId = demonstration.id;
+  const demonstrationTypes = demonstration.demonstrationTypes;
+  const demonstrationStatus = demonstration.status;
+  const medicaidId = demonstration.medicaidId;
 
   return (
     <ApprovalSummaryPhase
