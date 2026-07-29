@@ -266,4 +266,3 @@ Note: The current phase logic does not evaluate beyond SDG Preparation phase as 
 # OUTSTANDING TODO
 - Refactor phase completion logic to break up into multiple CTEs. Because the phase status should cascade depending on the status of the previous phase, the clearest way to represent this using DBT is a series of 7 CTEs, each representing its own phase. (priority 1)
 - in apps_in_prog_phase_completion we are checking against the application_intake_start_date to determine if the concept start date has been skipped. Instead, we should check against the status of the application intake start date. 
-- in cleaned_demos_app_app_phases_in_prog_demos, we have an inner join that may silently filter. We should replace it with an left join and add a corresponding test for nullness
