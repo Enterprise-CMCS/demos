@@ -11,8 +11,8 @@
   from `data-migration/`-only (§3) onto the shared surface. See §3.1 for the
   divergence and for why running both against one database double-loads. §3.1's
   coverage figures were recomputed against dbt's actual output rather than its
-  raw source, which supersedes the earlier "27 deliverables" claim. §4.3 opens
-  the one gap where dbt is richer: the due date at submission time.
+  raw source, which supersedes the earlier "27 deliverables" claim. §4.3 closes
+  the one gap where dbt was richer: the due date at submission time.
 - **Decision basis (session):** The two tools remain separate. The goal is a
   divergence report + TODOs (not byte-identical output). For forks where dbt is
   cruder, `data-migration/` keeps the richer behavior and dbt gets a catch-up
@@ -138,7 +138,7 @@ builds are **not** interchangeable:
 | Submission events | 6,018 over 5,135 deliverables (6,307 over 5,405 before dbt's own scope filters) | 7,874 over 5,378 deliverables |
 | Actor | Liz Hill (legacy id 828) on **every** row | the actual uploader, 438 distinct, 7,874 / 7,874 |
 | Duplicate source rows | one action per history row, so 76 exact duplicates on `(deliverable, timestamp)` across 53 deliverables become 76 indistinguishable actions | collapsed by batch grouping |
-| Due date on the action | the value in effect **at submission time**, via `deliverables_history_due_date_by_date_range` | the deliverable's **current** value (see TODO 13) |
+| Due date on the action | the value in effect **at submission time**, via `deliverables_history_due_date_by_date_range`, but back-projected before the earliest history row and overlapping on a recurring date | the value in effect **at each action's own timestamp**, via `stg.deliverable_due_date_window` (TODO 13) |
 | Timeline | self-transitions only, plus one marker stamped `current_timestamp` at load | seeded legal status progression, strictly increasing timestamps |
 | Re-runnable | no: `gen_random_uuid()` + bare `INSERT`, so re-running duplicates its own output | yes: deterministic ids from `migration._id_map_deliverable_action` |
 
@@ -229,24 +229,43 @@ Consolidated here (this doc only). No item is executed by this spec.
 12. **Reconcile documents/contacts/waivers/history dispositions** (both omit
     today; record DEMOS-owned vs. migrated intent explicitly on the dbt side).
 
-### 4.3 `data-migration/` TODOs — open (added 2026-07-29)
+### 4.3 `data-migration/` TODOs (added 2026-07-29)
 
-13. **Record the due date in effect at submission time, not the current one.**
-    `sql/23_app_derived/60_deliverable_action.sql` populates
-    `migration._deliverable_action_plan.due_date` from `d.due_date`, the
-    deliverable's value in `demos_app.deliverable`, and writes it to both
-    `old_due_date` and `new_due_date` on every action. A submission that
-    predates a due-date extension therefore records the extended date rather
-    than the one it was actually judged against. dbt resolves the historical
-    value by joining `deliverables_history_due_date_by_date_range` on
-    `sub_evt.creatd_dt BETWEEN from_time AND to_time`, built from
-    `mdcd_dlvrbl_hstry` with `coalesce(dlvrbl_due_dt, mdcd_dlvrbl_prvs_due_dt)`
-    and `lead()` windows. **Exposure: 3,133 of 7,874 submission actions (39.8%)
-    sit on the 1,744 deliverables whose due date changed at least once.** Port
-    the date-range lookup. Note that `mdcd_dlvrbl_hstry` is the one PMDA table
-    carrying true UTC timestamps, whereas the file and status tables are Eastern
-    wall-clock stored at `+00`, so the window join needs an explicit conversion
-    rather than a naive comparison.
+13. **Record the due date in effect at an action's own timestamp. DONE
+    (2026-07-29).** Previously `sql/23_app_derived/60_deliverable_action.sql`
+    populated `migration._deliverable_action_plan.due_date` from `d.due_date`,
+    the deliverable's *current* value, and wrote it to both `old_due_date` and
+    `new_due_date` on every action, so a submission predating an extension
+    recorded the extended date rather than the one it was judged against.
+    Built `stg.deliverable_due_date_window`
+    (`sql/10_stg/40_deliverable_due_date_window.sql`) from `mdcd_dlvrbl_hstry`,
+    and 60_* now re-points each hop at the window covering its own timestamp,
+    keeping the current value when no window matches.
+
+    Three things this does *not* copy from dbt's
+    `deliverables_history_due_date_by_date_range`:
+
+    * dbt coalesces `mdcd_dlvrbl_prvs_due_dt` into the post-change value and so
+      never opens a window for the period *before* the earliest history row,
+      back-projecting the first recorded value over a span it was never in
+      effect for. Each row records both the new and the prior value, so n rows
+      describe n+1 intervals; the view emits the leading one.
+    * dbt partitions by `(deliverable, due_date)` and takes `first_value` of
+      each edge, so a due date that recurs (A -> B -> A) merges into one span
+      overlapping B's. Contiguous `lead()` windows plus an explicit merge of
+      adjacent equal values cannot do that. Verified on live data: zero
+      overlapping windows, and zero actions matching more than one window.
+    * The timezone conversion is explicit and DST-aware. `mdcd_dlvrbl_hstry` is
+      true UTC while every other migrated timestamp is Eastern wall-clock stored
+      at `+00`; pairing each history row with its nearest status event puts
+      17,476 pairs at exactly +4h and 8,950 at +5h, i.e. EDT and EST.
+
+    Measured on the current snapshot: 12,385 windows over 8,693 deliverables;
+    2,188 of 21,605 actions take a different due date, 111 of them
+    `Submitted Deliverable`. (The earlier "3,133 of 7,874" in this section was
+    an upper bound — actions on deliverables whose due date changed at all —
+    not the count that actually differs. That snapshot also predates the
+    batch-aware loader, so the submission figure will rise with it.)
 
 ## 5. Evidence appendix (verified this session)
 
