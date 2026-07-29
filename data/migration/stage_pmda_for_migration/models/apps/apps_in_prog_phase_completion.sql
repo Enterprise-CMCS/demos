@@ -48,13 +48,13 @@ SELECT
     *,
     CASE
         WHEN
-            concept_phase_status <> 'Completed'
-            AND concept_phase_status <> 'Skipped'
-            AND application_intake_start_date IS NULL
+            concept_phase_status = 'Started'
+            AND application_intake_phase_status = 'Not Started'
             THEN 'Concept'
-        WHEN application_intake_phase_status <> 'Completed' THEN 'Application Intake'
-        WHEN completeness_phase_status <> 'Completed' THEN 'Completeness'
-        WHEN federal_comment_period_phase_status <> 'Completed' THEN 'Federal Comment'
+        WHEN application_intake_phase_status IN ('Not Started', 'Started')
+            THEN 'Application Intake'
+        WHEN completeness_phase_status IN ('Not Started', 'Started')
+            THEN 'Completeness'
         ELSE 'SDG Preparation'
     END AS current_phase_id
 FROM phase_statuses
