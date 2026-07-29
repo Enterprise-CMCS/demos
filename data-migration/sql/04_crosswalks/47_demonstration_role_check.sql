@@ -2,7 +2,7 @@
  * Purpose:    Fail-closed completeness + integrity check for crosswalk_demonstration_role.
  * Inputs:     mysql_raw.crosswalk_demonstration_role, information_schema.columns, demos_app.role, demos_app.demonstration_grant_level_limit
  * Outputs:    none (validation only; RAISEs EXCEPTION on a violation)
- * Invariants: fail-closed; to_regclass-guarded no-op before load; every mapped source_column must exist on its source_table once that table is loaded (a not-yet-loaded source_table defers, mirroring the sibling completeness checks); (role_id, grant_level_id) in demos_app.role; grant_level_id 'Demonstration' and in demonstration_grant_level_limit; at most one is_primary column per source_table.
+ * Invariants: fail-closed; to_regclass-guarded no-op before load; every mapped source_column must exist on its source_table once that table is loaded (a not-yet-loaded source_table defers, mirroring the sibling completeness checks); (role_id, grant_level_id) in demos_app.role; grant_level_id 'Demonstration' and in demonstration_grant_level_limit; at most one is_primary column per (source_table, role_id).
  * Refs:       sql/04_crosswalks/46_demonstration_role.sql
  *
  * Completeness + integrity check for crosswalk_demonstration_role
@@ -18,7 +18,8 @@
  * (b) each (role_id, grant_level_id) must exist in demos_app.role;
  * (c) grant_level_id must be 'Demonstration' and exist in
  *     demos_app.demonstration_grant_level_limit;
- * (d) at most one is_primary column per source_table (the primary-PO slot).
+ * (d) at most one is_primary column per (source_table, role_id): the target PK
+ *     is (demonstration_id, role_id), so each role admits a single primary column.
  */
 DO $$
 DECLARE
@@ -96,22 +97,25 @@ BEGIN
       RAISE EXCEPTION 'crosswalk_demonstration_role has % row(s) whose grant_level_id is not a valid Demonstration limit', bad_grant;
     END IF;
   END IF;
-  -- (d) one primary slot per source table at most.
+  -- (d) one primary slot per (source_table, role_id) at most (the target PK is
+  -- (demonstration_id, role_id), so each role admits a single primary column).
   SELECT
     count(*) INTO bad_primary
   FROM (
     SELECT
-      source_table
+      source_table,
+      role_id
     FROM
       mysql_raw.crosswalk_demonstration_role
     WHERE
       is_primary
     GROUP BY
-      source_table
+      source_table,
+      role_id
     HAVING
       count(*) > 1) t;
   IF bad_primary > 0 THEN
-    RAISE EXCEPTION 'crosswalk_demonstration_role has % source_table(s) with more than one is_primary column', bad_primary;
+    RAISE EXCEPTION 'crosswalk_demonstration_role has % (source_table, role_id) pair(s) with more than one is_primary column', bad_primary;
   END IF;
 END
 $$;

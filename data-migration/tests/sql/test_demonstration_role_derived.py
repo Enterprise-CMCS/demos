@@ -14,7 +14,9 @@ FK-free schema, asserting the row-selection rules the spec fixes:
     flagged person_type_not_permitted (role_person_type leg);
   * a state user assigned to an out-of-state demonstration is dropped and
     flagged person_state_missing_for_state (person_state leg);
-  * only the is_primary Project Officer feeds primary_demonstration_role_assignment;
+  * each role's is_primary column feeds primary_demonstration_role_assignment,
+    one primary per (demonstration, role) (PO, Policy TD, DDME Analyst, State
+    POC in this fixture);
   * the integrity view is empty and the loaders are idempotent.
 
 Runs against a throwaway Postgres (``PG_TEST_DSN``); self-skips without it.
@@ -102,9 +104,9 @@ def _provision(conn: Any) -> None:
         "(source_table, source_column, role_id, grant_level_id, is_primary, treat_zero_as_null) VALUES "
         f"('mdcd_demo','proj_ofcr_user_id','{PO}','Demonstration',true,false),"
         f"('mdcd_demo','bkup_proj_ofcr_user_id','{PO}','Demonstration',false,true),"
-        f"('mdcd_demo','tchncl_drctr_user_id','{POLICY_TD}','Demonstration',false,false),"
-        f"('mdcd_demo','anlyst_user_id','{ANALYST}','Demonstration',false,false),"
-        f"('mdcd_demo','state_prmry_poc_user_id','{STATE_POC}','Demonstration',false,false)"
+        f"('mdcd_demo','tchncl_drctr_user_id','{POLICY_TD}','Demonstration',true,false),"
+        f"('mdcd_demo','anlyst_user_id','{ANALYST}','Demonstration',true,false),"
+        f"('mdcd_demo','state_prmry_poc_user_id','{STATE_POC}','Demonstration',true,false)"
     )
 
     # D1 (CA): A=PO + Policy TD (same person, two columns), B=analyst,
@@ -309,8 +311,11 @@ def test_out_of_state_dropped_and_flagged(pg_db: psycopg.Connection) -> None:
     assert (PUID[103], DUID[3], STATE_POC, "person_state_missing_for_state") in flags
 
 
-def test_primary_project_officer_loaded(pg_db: psycopg.Connection) -> None:
-    """Only the is_primary Project Officer feeds primary_demonstration_role_assignment."""
+def test_primary_roles_loaded(pg_db: psycopg.Connection) -> None:
+    """Each is_primary column feeds primary_demonstration_role_assignment, one
+    primary per (demonstration, role). On D1 that is PO + Policy TD (person
+    101), DDME Analyst (102), and State POC (103). D2/D3 primaries are absent
+    because their underlying assignments were dropped upstream (FK051)."""
     _provision(pg_db)
     _run_all(pg_db)
     rows = {
@@ -320,7 +325,12 @@ def test_primary_project_officer_loaded(pg_db: psycopg.Connection) -> None:
             "FROM demos_app.primary_demonstration_role_assignment"
         ).fetchall()
     }
-    assert rows == {(PUID[101], DUID[1], PO)}
+    assert rows == {
+        (PUID[101], DUID[1], PO),
+        (PUID[101], DUID[1], POLICY_TD),
+        (PUID[102], DUID[1], ANALYST),
+        (PUID[103], DUID[1], STATE_POC),
+    }
 
 
 def test_integrity_view_empty(pg_db: psycopg.Connection) -> None:
@@ -349,4 +359,4 @@ def test_loaders_idempotent(pg_db: psycopg.Connection) -> None:
     first = counts()
     _apply(pg_db, DRA_LOAD, PRIMARY_LOAD)
     assert counts() == first
-    assert first == (4, 1)
+    assert first == (4, 4)

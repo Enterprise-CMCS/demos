@@ -1,0 +1,6 @@
+legacy_int_cd,legacy_name,demos_text_id,in_scope,notes
+1,Budget Neutrality file,,false,"D3: BN-flagged file (bdgt_ntrlty_fil_ind); out of scope (retired / DEMOS-owned), excluded from the loader"
+2,Monitoring Report file,Monitoring Report,true,"D6: mntrg_rpt_fil_ind; collapses with code 3 into DEMOS Monitoring Report"
+3,Monitoring Report file,Monitoring Report,true,"D6: mntrg_rpt_fil_ind; collapses with code 2 into DEMOS Monitoring Report"
+7,Monitoring Protocol file,Monitoring Protocol,true,"D6: mntrg_prtcl_fil_ind; collapses with code 9 into DEMOS Monitoring Protocol"
+9,Monitoring Protocol file,Monitoring Protocol,true,"D6: mntrg_prtcl_fil_ind; collapses with code 7 into DEMOS Monitoring Protocol"

@@ -2,7 +2,7 @@
  * Purpose:    Define (DDL) the crosswalk table mapping each legacy mdcd_demo per-role user_id COLUMN to a DEMOS Demonstration-grant role assignment tuple.
  * Inputs:     none (DDL only); rows loaded from reports/crosswalks/demonstration_role.csv by the crosswalks phase.
  * Outputs:    mysql_raw.crosswalk_demonstration_role
- * Invariants: idempotent (DROP TABLE IF EXISTS + CREATE); scoped to the Demonstration grant level (System tuples live in 44_system_role.sql); at most one is_primary column per source_table; treat_zero_as_null drops 0-valued source columns; the CSV is the single source (never edit the table directly); 47_demonstration_role_check.sql validates rows against the DEMOS seeds.
+ * Invariants: idempotent (DROP TABLE IF EXISTS + CREATE); scoped to the Demonstration grant level (System tuples live in 44_system_role.sql); at most one is_primary column per (source_table, role_id); treat_zero_as_null drops 0-valued source columns; the CSV is the single source (never edit the table directly); 47_demonstration_role_check.sql validates rows against the DEMOS seeds.
  * Refs:       reports/crosswalks/demonstration_role.csv, sql/04_crosswalks/44_system_role.sql
  *
  * Crosswalk: legacy MySQL per-role user_id COLUMN -> DEMOS demonstration-level
@@ -37,8 +37,14 @@
  *   proj_ofcr_user_id         -> Project Officer, is_primary = true (feeds
  *     primary_demonstration_role_assignment).
  *
- * is_primary marks the single tuple per demonstration that DEMOS records in
- * primary_demonstration_role_assignment (only proj_ofcr_user_id today).
+ * is_primary marks, per (demonstration, role), the single tuple DEMOS records
+ * in primary_demonstration_role_assignment. Per SME input the primary columns
+ * are proj_ofcr_user_id (Project Officer), tchncl_drctr_user_id (Policy TD),
+ * mntrg_eval_tchncl_drctr_user_id (M&E TD), anlyst_user_id (DDME Analyst), and
+ * state_prmry_poc_user_id (State POC) -- one per role. DEMOS enforces a
+ * required, non-removable primary only for Project Officer (the
+ * check_demonstration_*_primary_project_officer triggers); the other four are
+ * recorded but otherwise inert on the DEMOS side.
  * treat_zero_as_null tells the resolver to drop a 0-valued source column.
  *
  * SCOPE: live mdcd_demo only. mdcd_pendg_demo is NOT yet loaded as a

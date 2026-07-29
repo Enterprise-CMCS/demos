@@ -261,6 +261,67 @@ migrated.
 
 - [x] BN out of scope; migration BN machinery retired. Decided by: SME  Date: 2026-07-16
 
+### D7. `deliverable_action` backfill from PMDA deliverable-status history
+
+**Status:** IN SCOPE (SME-confirmed via grill, 2026-07-17); fidelity + genesis
+question OPEN. Full design in
+`docs/specs/pmda-history-tables-derivation-spec.md`.
+
+**Context.** `deliverable_action` is a real, app-written **append-only workflow
+event log** (one row per `old_status -> new_status` transition by an actor at an
+instant), NOT a `*_history` table -- so the `history_strategy.md` "leave history
+empty; DEMOS capture triggers fill it post-cutover" rule does not cover it.
+DEMOS capture triggers only record actions that happen *after* cutover, so
+without a backfill every migrated deliverable shows its current status with no
+trail behind it. The source is a genuine append-only log:
+`mdcd_dlvrbl_stus_hstry` (41,018 live events / 9,370 deliverables, avg 4.38
+each, 100% timestamped, actor on ~88.7%), joined to `mdcd_dlvrbl_hstry` (full-row
+snapshots) for the NOT NULL `old_due_date`/`new_due_date` and change-reason
+note text. The migration reads neither today.
+
+**Decision (SME).** Backfill the pre-cutover action trail from PMDA history. The
+loader mirrors the deliverable family's hold-back-and-log posture; it runs
+inside `build_app` (before `refreshDbObjects.ts` installs the
+`log_changes_deliverable_action` capture trigger, so backfilled rows generate no
+history rows). Every row must be a **legal** transition against the DDL-seeded
+`deliverable_action_configuration` (only 8 statuses) and match a seeded
+`deliverable_action_type` (14 types, fixed booleans). `action_type` is not a
+pure function of `(old,new)` -- self-transitions are shared by several action
+types and need extra disambiguation.
+
+**Gating (from grill):** gate on "each loaded deliverable's latest reconstructed
+action `new_status` = its current `deliverable.status_id`" + FK/CHECK integrity;
+coverage and held rows are non-gating (logged per-row to `reports/orphans/`).
+
+**Open (fidelity):** Full (one action per legal transition, ~41k) vs Minimal
+(synthetic genesis + current-status action per deliverable). Recommend Full.
+
+**Open (genesis):** no DB constraint requires >=1 action per deliverable
+(verified against the baseline DDL). Whether the DEMOS UI/GraphQL resolver
+assumes a genesis `Created Deliverable Slot` is a follow-up for DEMOS
+engineering; it governs whether Full also synthesizes a genesis row.
+
+- [x] FULL fidelity. Decided by: Zoe Elkins  Date: 07/17/2026
+- [ ] Genesis-action requirement (DEMOS engineering). Decided by: ______  Date: ______
+
+### D8. Deliverable status codes with no direct DEMOS status
+
+**Status:** OPEN (SME crosswalk authoring). Blocks the `deliverable_action`
+loader (D7); the loader stays a guarded no-op until authored.
+
+**Context.** PMDA `mdcd_dlvrbl_stus_rfrnc` has 17 codes; DEMOS has only 8
+`deliverable_status` values. Codes with no direct DEMOS status:
+`2 Work in Progress` (11,362 -- the largest), `7 Overridden`,
+`10 Overridden/Accepted`, `11 Overridden/Request Resubmission`,
+`16 Pending Due Date Change`, `15 Open-ended`. These need SME-authored crosswalk
+targets and action-type disambiguation (`crosswalk_deliverable_action`). Any
+transition that maps to no legal DEMOS `(action_type, old, new)` triple is held
+back non-gating and logged for SME review (repo pattern). Fail-closed
+`_check.sql` on in-scope unmapped codes.
+
+- [ ] Deliverable status/action crosswalk authored for the unmapped codes.
+- Decided by: ____________  Date: __________
+
 ## Sign-off
 
 - Reviewer: SME

@@ -250,14 +250,25 @@ def _read_structural_with_root(module, spec, root: Path):
 
 
 def test_load_registry_classifies_kinds() -> None:
-    """The real registry resolves all 14 crosswalks into code/structural kinds."""
+    """The real registry resolves each crosswalk into code/structural kinds.
+
+    ``crosswalk_deliverable_file_type`` is the one intentional exception:
+    ``fil_doc_cd`` has no ``*_rfrnc`` lookup (it mirrors the boolean type flags,
+    D6), so it carries no ``source:`` block and load_registry returns it with
+    ``kind == ""`` -- reported by the audit as un-audited (skipped) rather than
+    silently dropped.
+    """
     specs = ca.load_registry()
     by_name = {s.name: s for s in specs}
     assert by_name["crosswalk_demo_status"].kind == "code"
     assert by_name["crosswalk_demonstration_role"].kind == "structural"
     assert by_name["crosswalk_pgm_dtl_tag"].kind == "structural"
     assert by_name["crosswalk_system_role"].source.get("code_subset") == [1, 4]
-    assert all(s.kind in ("code", "structural") for s in specs)
+    assert by_name["crosswalk_deliverable_file_type"].kind == ""
+    un_audited = {"crosswalk_deliverable_file_type"}
+    assert all(
+        s.kind in ("code", "structural") for s in specs if s.name not in un_audited
+    )
 
 
 # --- _subset_clause / _safe_ident ----------------------------------------- #

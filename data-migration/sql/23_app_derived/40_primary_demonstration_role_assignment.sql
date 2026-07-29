@@ -1,5 +1,5 @@
 /*
- * Purpose:    Load demos_app.primary_demonstration_role_assignment (one primary Project Officer per demonstration) from the is_primary tuples in stg.demonstration_role_assignment_resolved.
+ * Purpose:    Load demos_app.primary_demonstration_role_assignment (one primary holder per (demonstration, role)) from the is_primary tuples in stg.demonstration_role_assignment_resolved.
  * Inputs:     stg.demonstration_role_assignment_resolved; demos_app.demonstration_role_assignment (JOIN).
  * Outputs:    demos_app.primary_demonstration_role_assignment
  * Invariants: runs inside the deferred-constraint build_app txn; FKs dropped during build, re-validated in the constraints phase; the JOIN to demonstration_role_assignment enforces FK051 (a primary row must reference an existing assignment), so a dropped project officer yields no primary row; the DEMOS check_demonstration_retains_primary_project_officer trigger fires only on UPDATE/DELETE and is deployed AFTER this load; guarded inert until demos_app.demonstration_role_assignment is populated; idempotent via ON CONFLICT (demonstration_id, role_id) DO NOTHING.
@@ -8,13 +8,15 @@
  * App load: demos_app.primary_demonstration_role_assignment from the
  * is_primary tuples in stg.demonstration_role_assignment_resolved.
  *
- * DEMOS records, per (demonstration, role), the single PRIMARY holder. Only the
- * PMDA proj_ofcr_user_id column is marked is_primary in
- * crosswalk_demonstration_role, so this loads one primary Project Officer per
+ * DEMOS records, per (demonstration, role), the single PRIMARY holder. The PMDA
+ * columns marked is_primary in crosswalk_demonstration_role (proj_ofcr_user_id
+ * -> Project Officer, tchncl_drctr_user_id -> Policy TD,
+ * mntrg_eval_tchncl_drctr_user_id -> M&E TD, anlyst_user_id -> DDME Analyst,
+ * state_prmry_poc_user_id -> State POC) each feed one primary row per role per
  * demonstration. The JOIN to demos_app.demonstration_role_assignment enforces
- * FK051 (a primary row must reference an existing assignment): if the project
- * officer was dropped upstream (person_type / person_state / unloaded demo),
- * no primary row is created for that demonstration.
+ * FK051 (a primary row must reference an existing assignment): if the primary
+ * holder was dropped upstream (person_type / person_state / unloaded demo),
+ * no primary row is created for that (demonstration, role).
  *
  * The DEMOS check_demonstration_retains_primary_project_officer trigger fires
  * only on UPDATE/DELETE and is deployed by the DEMOS app AFTER this load, so it

@@ -35,3 +35,21 @@ This supersedes every earlier "BACKFILL / SNAPSHOT / EMPTY per table" rule: all
 The former P4 `history` phase, the `sql/22_app_history/` backfill transforms,
 and the `history` cutover gate were removed. The cutover sequence collapses to
 `build_app -> constraints` (no `history` step in between).
+
+## Scope note: source-history mining is a different thing
+
+This "leave history empty" rule is about the DEMOS **`*_history` tables** (the
+revision shadows DEMOS owns and its capture triggers fill). It does **not**
+forbid *reading* the PMDA source `*_hstry` tables to derive real target values.
+Two consumers are in scope (see
+`docs/specs/pmda-history-tables-derivation-spec.md`):
+
+- **`deliverable_action`** is NOT a `*_history` table -- it is a real,
+  app-written workflow event log. DEMOS capture triggers only record
+  post-cutover actions, so the pre-cutover trail is backfilled from
+  `mdcd_dlvrbl_stus_hstry` (+ `mdcd_dlvrbl_hstry`) during `build_app`, before the
+  capture trigger is installed (decision D7).
+- **`status_updated_at`** on `demonstration` / `amendment` is derived from the
+  PMDA status-change history tables to replace the synthetic value.
+
+Neither writes any `demos_app.*_history` row; those stay empty for DEMOS.

@@ -86,6 +86,7 @@ def test_registry_yaml_parses() -> None:
         "crosswalk_pgm_dtl_tag",
         "crosswalk_application_status",
         "crosswalk_document_type",
+        "crosswalk_deliverable_file_type",
     }
     assert expected <= tables, f"registry missing tables: {expected - tables}"
     for e in entries:

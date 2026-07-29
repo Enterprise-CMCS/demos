@@ -1,6 +1,6 @@
 /*
  * Purpose:    Informational disposition + current row count of each DEMOS target table this migration owns (BUILT vs DEFERRED / OUT-OF-SCOPE); not an anomaly view.
- * Inputs:     demos_app.* (users, person, person_state, system_role_assignment, demonstration_role_assignment, primary_demonstration_role_assignment, demonstration, application, application_date, demonstration_type_tag_assignment, amendment, extension, deliverable, private_comment, public_comment, document)
+ * Inputs:     demos_app.* (users, person, person_state, system_role_assignment, demonstration_role_assignment, primary_demonstration_role_assignment, demonstration, application, application_date, demonstration_type_tag_assignment, amendment, extension, deliverable, deliverable_action, private_comment, public_comment, document)
  * Outputs:    migration._scope_coverage (deliberately NOT migration._parity_*, so it is exempt from the parity-views-empty harness contract)
  * Invariants: Always returns one row per tracked table; informational and non-gating GREEN (never REDs the gate); conditional-DDL guard on demos_app.demonstration so it is a clean no-op until build_app has applied the Prisma DDL; idempotent via CREATE OR REPLACE.
  * Refs:       reports/narrative/pending_approved_decisions.md (Workflow-level scope dispositions); migration/phases/parity.py; tests/sql/test_app_layers_idempotency.py::test_parity_views_empty
@@ -51,6 +51,7 @@ BEGIN
         ('4', 'demonstration_type_tag_assignment',    'PARTIAL',      (SELECT count(*) FROM demos_app.demonstration_type_tag_assignment)),
         ('3', 'extension',                            'DEFERRED',     (SELECT count(*) FROM demos_app.extension)),
         ('6', 'deliverable',                          'BUILT',        (SELECT count(*) FROM demos_app.deliverable)),
+        ('6', 'deliverable_action',                   'DEFERRED',     (SELECT count(*) FROM demos_app.deliverable_action)),
         ('6', 'private_comment',                      'BUILT',        (SELECT count(*) FROM demos_app.private_comment)),
         ('6', 'public_comment',                       'BUILT',        (SELECT count(*) FROM demos_app.public_comment)),
         ('6', 'document',                             'DEFERRED',     (SELECT count(*) FROM demos_app.document))

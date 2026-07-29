@@ -660,3 +660,47 @@ is unchanged (empty at cutover, for DEMOS to fill). The
 (`sql/99_parity/43_deliverable_bn_qa.sql`) is unrelated to the BN corpus and
 stays. See `pending_approved_decisions.md` D6 and the `[Unreleased]` CHANGELOG
 "Removed" entry.
+
+2026-07-17 history-tables-investigation: profiled the PMDA source `*_hstry`
+tables (LIVE PROD `cma_pro_11_1_000`, read-only via the `mysql-ducksplorer`
+skill) to see whether they can fill phase/date/deliverable_action derivation
+gaps. Headline: the migration reads **no** source history table today
+(`grep hstry sql/**` = 0). Three usable consumers found, specced in
+`docs/specs/pmda-history-tables-derivation-spec.md`:
+
+- **`deliverable_action` backfill (main effort, decision D7).** The DEMOS
+  `deliverable_action` is an append-only workflow event log (NOT a `*_history`
+  table), so DEMOS capture triggers only record post-cutover actions and the
+  pre-cutover trail is otherwise lost. `mdcd_dlvrbl_stus_hstry` (41,018 live
+  events / 9,370 deliverables, avg 4.38, 100% timestamped, actor ~88.7%) is a
+  true transition log; join `mdcd_dlvrbl_hstry` for the NOT NULL due dates +
+  change-reason note text. Grounded against the baseline DDL: only 8
+  `deliverable_status` values, 14 seeded `deliverable_action_type` rows (fixed
+  booleans), and a fixed `deliverable_action_configuration` legal-transition
+  set. Two hard facts: (1) `action_type` is NOT a pure function of
+  `(old,new)` -- self-transitions are shared by Created-Slot / the four
+  extension actions / Manually-Changed-Due-Date and need disambiguation;
+  (2) null-actor rows are coherent -- PMDA auto "Past Due" flips map to
+  `Marked as Past Due`, the one type whose `should_have_user_id=FALSE` requires
+  `user_id IS NULL`. Gate on latest-action==current-status + integrity;
+  everything else held non-gating. Blocked on the SME
+  `crosswalk_deliverable_action` (decision D8, unmapped codes: Work in Progress
+  / Overridden* / Pending Due Date Change / Open-ended) and a Full-vs-Minimal
+  fidelity choice. No genesis action needed at the DB level (no such
+  constraint); DEMOS-eng to confirm any resolver assumption.
+- **Real `status_updated_at` (small, separate branch).** Replace the synthetic
+  `demonstration.status_updated_at = updated_at` / `amendment = created_at` with
+  the last real status-change instant from `mdcd_demo_stus_hstry` (no actor
+  column) / `mdcd_demo_amndmt_stus_hstry` (actor, but only 30 rows -> keep
+  fallback).
+- **Phase divergence audit (non-gating, no load change).** `mdcd_demo_aplctn_hstry`
+  (full per-revision snapshots + `hstry_ts`) can reconstruct the furthest phase
+  reached; add a non-gating parity check comparing it to the point-in-time
+  `current_phase_id`. No load change: `application_phase` has only a
+  `phase_status` enum (no per-phase date columns), so history cannot add stored
+  per-phase timing.
+
+Not fixable by history (target-side/SME gaps, kept out of scope): the `phase_3`
+clearance sub-dates, `Application Status Date`, and amendment application date.
+See `pending_approved_decisions.md` D7/D8 and the scope note in
+`history_strategy.md`.

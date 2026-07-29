@@ -937,6 +937,131 @@ def test_document_type_unmapped_code_raises(pg_db: psycopg.Connection) -> None:
         _run(pg_db, DOCUMENT_TYPE_CHECK)
 
 
+# --- deliverable-file type crosswalk: deliverable_file_type -------------------
+#
+# 71/72 map mdcd_dlvrbl_fil_doc.fil_doc_cd -> DEMOS document_type (D6): 1=BN
+# (excluded per D3, NULL target), 2/3=Monitoring Report, 7/9=Monitoring Protocol.
+# NULL fil_doc_cd is the D2 General File default (loader-applied, not a code).
+# Like document_type, an empty source is a legitimate NOTICE no-op (a deliverable
+# may have no files). Each test applies the REAL DDL-only 71_*.sql + COPYs the
+# load-ready CSV (as run_crosswalks does), provisions the real DEMOS
+# document_type seed so check clause (b) runs, then exercises clause (a).
+
+DELIVERABLE_FILE_TYPE_SQL = CHECK_DIR / "71_deliverable_file_type.sql"
+DELIVERABLE_FILE_TYPE_CHECK = CHECK_DIR / "72_deliverable_file_type_check.sql"
+DELIVERABLE_FILE_TYPE_CSV = REPORTS_DIR / "crosswalks" / "deliverable_file_type.csv"
+
+
+def _provision_deliverable_file_type(conn: Any) -> None:
+    """Real crosswalk SQL + the DEMOS document_type seed check (b) validates against."""
+    conn.execute("DROP SCHEMA IF EXISTS mysql_raw CASCADE")
+    conn.execute("DROP SCHEMA IF EXISTS demos_app CASCADE")
+    conn.execute("CREATE SCHEMA mysql_raw")
+    conn.execute("CREATE SCHEMA demos_app")
+    conn.execute("CREATE TABLE demos_app.document_type (id text PRIMARY KEY)")
+    conn.execute(
+        "INSERT INTO demos_app.document_type VALUES "
+        "('General File'),('Monitoring Report'),('Monitoring Protocol')"
+    )
+    conn.execute("CREATE TABLE mysql_raw.mdcd_dlvrbl_fil_doc (fil_doc_cd int)")
+    _load_crosswalk_csv(
+        conn,
+        DELIVERABLE_FILE_TYPE_SQL,
+        "crosswalk_deliverable_file_type",
+        DELIVERABLE_FILE_TYPE_CSV,
+    )
+
+
+def test_deliverable_file_type_idempotent(pg_db: psycopg.Connection) -> None:
+    """The crosswalk DDL+COPY applies twice and holds all 5 source codes (1,2,3,7,9)."""
+    _provision_deliverable_file_type(pg_db)
+    _load_crosswalk_csv(  # second apply
+        pg_db,
+        DELIVERABLE_FILE_TYPE_SQL,
+        "crosswalk_deliverable_file_type",
+        DELIVERABLE_FILE_TYPE_CSV,
+    )
+    with pg_db.cursor() as cur:
+        cur.execute("SELECT count(*) FROM mysql_raw.crosswalk_deliverable_file_type")
+        assert cur.fetchone() == (5,)
+
+
+def test_deliverable_file_type_collapse_and_exclusion(pg_db: psycopg.Connection) -> None:
+    """D6/D3: 2&3 -> Monitoring Report; 7&9 -> Monitoring Protocol; 1 excluded (NULL, not in_scope)."""
+    _provision_deliverable_file_type(pg_db)
+    with pg_db.cursor() as cur:
+        cur.execute(
+            "SELECT legacy_int_cd, demos_text_id, in_scope "
+            "FROM mysql_raw.crosswalk_deliverable_file_type ORDER BY legacy_int_cd"
+        )
+        assert cur.fetchall() == [
+            (1, None, False),
+            (2, "Monitoring Report", True),
+            (3, "Monitoring Report", True),
+            (7, "Monitoring Protocol", True),
+            (9, "Monitoring Protocol", True),
+        ]
+
+
+def test_deliverable_file_type_mapped_codes_pass(pg_db: psycopg.Connection) -> None:
+    """Every populated code is a crosswalk row -> (a)+(b) green, no raise.
+
+    Also proves every non-NULL demos_text_id exists in the real DEMOS
+    document_type seed (a typo would fail clause (b) here).
+    """
+    _provision_deliverable_file_type(pg_db)
+    pg_db.execute(
+        "INSERT INTO mysql_raw.mdcd_dlvrbl_fil_doc (fil_doc_cd) VALUES (1),(2),(3),(7),(9)"
+    )
+    _run(pg_db, DELIVERABLE_FILE_TYPE_CHECK)
+
+
+def test_deliverable_file_type_null_code_general_default_passes(
+    pg_db: psycopg.Connection,
+) -> None:
+    """D2: NULL fil_doc_cd is the General File default (not a code) -> no raise."""
+    _provision_deliverable_file_type(pg_db)
+    pg_db.execute("INSERT INTO mysql_raw.mdcd_dlvrbl_fil_doc (fil_doc_cd) VALUES (NULL)")
+    _run(pg_db, DELIVERABLE_FILE_TYPE_CHECK)  # must NOT raise
+
+
+def test_deliverable_file_type_present_but_empty_no_raise(pg_db: psycopg.Connection) -> None:
+    """A deliverable with no files is legitimate -> NOTICE no-op, not a failure."""
+    _provision_deliverable_file_type(pg_db)
+    _run(pg_db, DELIVERABLE_FILE_TYPE_CHECK)  # empty source must NOT raise
+
+
+def test_deliverable_file_type_unmapped_code_raises(pg_db: psycopg.Connection) -> None:
+    """A populated fil_doc_cd with no crosswalk row fails closed (clause a)."""
+    import psycopg
+
+    _provision_deliverable_file_type(pg_db)
+    pg_db.execute("INSERT INTO mysql_raw.mdcd_dlvrbl_fil_doc (fil_doc_cd) VALUES (42)")
+    with pytest.raises(psycopg.errors.RaiseException):
+        _run(pg_db, DELIVERABLE_FILE_TYPE_CHECK)
+
+
+def test_deliverable_file_type_target_not_in_seed_raises(pg_db: psycopg.Connection) -> None:
+    """Clause (b): a mapped target absent from the document_type seed fails closed."""
+    import psycopg
+
+    pg_db.execute("DROP SCHEMA IF EXISTS mysql_raw CASCADE")
+    pg_db.execute("DROP SCHEMA IF EXISTS demos_app CASCADE")
+    pg_db.execute("CREATE SCHEMA mysql_raw")
+    pg_db.execute("CREATE SCHEMA demos_app")
+    pg_db.execute("CREATE TABLE demos_app.document_type (id text PRIMARY KEY)")
+    pg_db.execute("INSERT INTO demos_app.document_type VALUES ('General File')")
+    pg_db.execute("CREATE TABLE mysql_raw.mdcd_dlvrbl_fil_doc (fil_doc_cd int)")
+    _load_crosswalk_csv(
+        pg_db,
+        DELIVERABLE_FILE_TYPE_SQL,
+        "crosswalk_deliverable_file_type",
+        DELIVERABLE_FILE_TYPE_CSV,
+    )
+    with pytest.raises(psycopg.errors.RaiseException):
+        _run(pg_db, DELIVERABLE_FILE_TYPE_CHECK)
+
+
 # --- column-mapping crosswalk: demonstration_role ----------------------------
 #
 # 47's clause (a) verifies that every mapped source_column exists on its
@@ -975,8 +1100,9 @@ def _provision_demonstration_role(conn: Any) -> None:
     """Apply the real crosswalk DDL + COPY its load CSV; no demos_app schema.
 
     Clauses (b)/(c) are to_regclass-guarded on demos_app and stay inert here,
-    so these tests exercise clause (a) (column existence) and clause (d) (the
-    single is_primary slot, which the CSV satisfies).
+    so these tests exercise clause (a) (column existence) and clause (d) (at
+    most one is_primary column per (source_table, role_id), which the CSV
+    satisfies).
     """
     conn.execute("DROP SCHEMA IF EXISTS mysql_raw CASCADE")
     conn.execute("CREATE SCHEMA mysql_raw")
@@ -1010,3 +1136,21 @@ def test_demonstration_role_complete_columns_pass(pg_db: psycopg.Connection) -> 
     cols = ", ".join(f"{c} int" for c in _DEMONSTRATION_ROLE_COLUMNS)
     pg_db.execute(f"CREATE TABLE mysql_raw.mdcd_demo ({cols})")
     _run(pg_db, DEMONSTRATION_ROLE_CHECK)  # must NOT raise
+
+
+def test_demonstration_role_two_primaries_same_role_raises(
+    pg_db: psycopg.Connection,
+) -> None:
+    """Clause (d): two is_primary columns mapping to the same role fail closed.
+
+    The CSV keeps one primary per role; promoting a second Project Officer
+    column (ro_fincl_lead_user_id) to is_primary must trip clause (d)."""
+    import psycopg
+
+    _provision_demonstration_role(pg_db)
+    pg_db.execute(
+        "UPDATE mysql_raw.crosswalk_demonstration_role SET is_primary = true "
+        "WHERE source_column = 'ro_fincl_lead_user_id'"
+    )
+    with pytest.raises(psycopg.errors.RaiseException):
+        _run(pg_db, DEMONSTRATION_ROLE_CHECK)
