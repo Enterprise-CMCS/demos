@@ -336,6 +336,16 @@ models:
         data_type: timestamptz
 
   # Cleaned Models
+  - name: cleaned_demos_app_demonstration_in_prog_demos
+    columns: 
+      - name: mdcd_demo_aplctn_id
+        data_type: integer
+        data_tests:
+          - relationships:
+              name: assert_mdcd_demo_aplctn_id_exists_in_apps_in_prog_phase_completion
+              arguments:
+                to: ref('apps_in_prog_phase_completion')
+                field: mdcd_demo_aplctn_id
   - name: cleaned_demos_app_demonstration_finalized_demos
     data_tests:
       - dbt_utils.expression_is_true:
@@ -400,6 +410,7 @@ models:
         data_type: timestamptz
 
   # Apps Models
+  
   - name: apps_in_prog_dates_crosswalked
     description: converts the dates stored in PMDA to applicable date types in DEMOS, extrapolating to phase start and end dates where needed.
 
