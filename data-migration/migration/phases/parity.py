@@ -1378,6 +1378,61 @@ def _deliverable_action_not_synthesized(env: Env) -> CheckResult:
     )
 
 
+def _deliverable_submission_batch(env: Env) -> CheckResult:
+    """Submission-batch reconstruction obeys the grouping rule it claims.
+
+    Reads ``migration._parity_deliverable_submission_batch`` (created by
+    ``sql/99_parity/64_deliverable_submission_batch.sql``). The check recomputes
+    the expected grouping from ``mysql_raw`` rather than trusting the stg views,
+    so it catches files silently dropped or fanned out by the id-map join as
+    well as sessions merged or split against the rule.
+
+    GATING: 60_deliverable_action.sql mints one ``Submitted Deliverable`` action
+    per batch and the document loader attaches each file to the submission it
+    arrived in, so a grouping defect rewrites deliverable history into something
+    that still looks plausible. Nothing downstream would notice.
+    """
+    name = "Deliverable submission batches"
+    exists = psql_query(
+        env,
+        "SELECT to_regclass('migration._parity_deliverable_submission_batch') IS NOT NULL",
+    )
+    if not exists or not exists[0][0]:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="submission batches not reconstructed yet (vacuously green)",
+        )
+    rows = psql_query(
+        env,
+        "SELECT legacy_dlvrbl_id, origin_cd, batch_seq, reason, detail "
+        "FROM migration._parity_deliverable_submission_batch "
+        "ORDER BY reason, legacy_dlvrbl_id LIMIT 25",
+    )
+    batch_rows = psql_query(env, "SELECT count(*) FROM stg.deliverable_submission_batch")
+    file_rows = psql_query(env, "SELECT count(*) FROM stg.deliverable_file_batch")
+    batches = batch_rows[0][0] if batch_rows else 0
+    files = file_rows[0][0] if file_rows else 0
+    if not rows:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail=(
+                f"{batches} submission batch(es) over {files} file(s); every file "
+                "batched exactly once, sessions split only on an uploader change "
+                "or a window gap, and no status event claimed twice"
+            ),
+        )
+    sample = "; ".join(f"{r[0]}/{r[1]}/{r[2]} {r[3]} ({r[4]})" for r in rows[:5])
+    return CheckResult(
+        name=name,
+        status="RED",
+        detail=(
+            f"{len(rows)} submission-batch defect(s) against {batches} batch(es): {sample}"
+        ),
+    )
+
+
 def _chip_id_not_normalizable(env: Env) -> CheckResult:
     """Legacy CHIP numbers that could not be preserved (non-gating per-row log).
 
@@ -3180,6 +3235,7 @@ def build_parity_report(env: Env) -> ParityReport:
         ("deliverable BN QA", _deliverable_bn_qa),
         ("deliverable action completeness", _deliverable_action_completeness),
         ("deliverable actions not synthesized", _deliverable_action_not_synthesized),
+        ("deliverable submission batches", _deliverable_submission_batch),
         ("pgm_dtl othr held", _pgm_dtl_tag_othr_held),
         ("pgm_dtl tag unseeded", _pgm_dtl_tag_unseeded),
         ("pending pgm_dtl othr held", _pendg_pgm_dtl_tag_othr_held),
