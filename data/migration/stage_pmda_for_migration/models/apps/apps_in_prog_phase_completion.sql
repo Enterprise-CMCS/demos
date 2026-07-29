@@ -23,14 +23,8 @@ WITH phase_statuses AS (
                 THEN 'Started'
             ELSE 'Not Started'
         END AS completeness_phase_status,
-        -- currently, no applications fall within federal comment period, 
-        -- so we can assume based on date existence its status
-        CASE
-            WHEN
-                cleaned_federal_comment_period_end_date IS NOT NULL
-                THEN 'Completed'
-            ELSE 'Not Started'
-        END AS federal_comment_period_phase_status,
+        -- rely on stored proc to update fed comment period accordingly
+        'Not Started' AS federal_comment_period_phase_status,
         CASE
             WHEN cleaned_sdg_preparation_start_date IS NOT NULL
                 THEN 'Started'
