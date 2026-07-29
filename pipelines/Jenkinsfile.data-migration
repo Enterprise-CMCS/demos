@@ -16,7 +16,7 @@ spec:
   serviceAccountName: jenkins-role
   containers:
   - name: python
-    image: artifactory.cloud.cms.gov/docker/python:3.13-alpine
+    image: artifactory.cloud.cms.gov/docker/python:3.13-slim
     command:
     - sleep
     args:
@@ -56,10 +56,6 @@ spec:
         }
     }
 
-    triggers {
-      cron('H * * * *') // Run every hour
-    }
-
     options {
       disableConcurrentBuilds(abortPrevious: true)
       buildDiscarder(logRotator(
@@ -68,24 +64,66 @@ spec:
       ))
     }
 
+    environment {
+      PMDA_MYSQL_PWD = credentials('pmda-prod-mysql-db-restore-pw')
+      DEMOS_PGSQL_PWD = credentials('demos-prod-pgsql-db-pw')
+    }
+
     stages {
-        stage('validate containers') {
+        stage('Install Python dependencies') {
           steps {
             script {
               // assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
               sh """
-                apk add --no-cache postgresql-dev gcc musl-dev python3-dev
+                apt-get update
+                apt-get install -y --no-install-recommends libpq-dev gcc python3-dev
+                
                 python -m venv /app/venv
-                source /app/venv/bin/activate
 
-                pip install -r .devcontainer/python/requirements.txt
+                /app/venv/bin/pip install -r .devcontainer/python/requirements.txt
 
-                dbt --version
+                /app/venv/bin/dbt --version
               """
             }
           }
         }
+
+      stage("Test connectivity") {
+        steps {
+          script {
+            dir("data/demos_data_tools") {
+            sh """
+            /app/venv/bin/python -c 'import duckdb_connection_manager as d
+conn = d.create_duckdb_conn()
+d.attach_pmda_to_conn(conn)
+d.attach_demos_to_conn(conn)
+print(conn.sql("SHOW DATABASES").fetchall())
+# Perform migration/query work here
+conn.close()
+            '
+            """
+          }
+          }
+        }
       }
+      stage("Run migration management functions") {
+        steps {
+          script {
+        dir("data/demos_data_tools") {
+          // just a test, no ENVs are currently set to allow this to work
+          sh """
+          /app/venv/bin/python manage_migration_schemas.py drop raw
+          /app/venv/bin/python manage_migration_schemas.py drop staging
+          /app/venv/bin/python manage_migration_schemas.py create raw
+          /app/venv/bin/python manage_migration_schemas.py create staging
+          """
+        }
+      }
+        }
+      }
+
+      }
+
 
   post {
     always {
