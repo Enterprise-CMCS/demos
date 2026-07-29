@@ -1,9 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 
 import { ExitIcon, SearchIcon } from "components/icons";
 import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "components/input/Input";
 import { useDebounced } from "hooks/useDebounced";
-import { useLocalStorage } from "hooks";
 
 import { CellContext, Row, Table } from "@tanstack/react-table";
 
@@ -12,7 +11,6 @@ export const TEST_IDS = {
   clearButton: "button-clear-search",
 };
 
-export const DEFAULT_KEYWORD_SEARCH_STORAGE_KEY = "keyword-search";
 export interface KeywordSearchProps<T> {
   table: Table<T>;
   label?: string;
@@ -74,7 +72,7 @@ export function KeywordSearch<T>({
   debounceMs = 300,
   placeholder = "Search",
 }: KeywordSearchProps<T>) {
-  const [queryString, setQueryString] = useLocalStorage(DEFAULT_KEYWORD_SEARCH_STORAGE_KEY);
+  const [queryString, setQueryString] = useState("");
 
   const debouncedQueryString = useDebounced(queryString, debounceMs);
 
