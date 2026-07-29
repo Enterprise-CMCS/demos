@@ -262,3 +262,12 @@ The current phase is determined by evaluating phase statuses in order and select
 5. **SDG Preparation**: Default for all other cases
 
 Note: The current phase logic does not evaluate beyond SDG Preparation phase as requisite dates for completing the SDG Preparation phase do not exist so demonstrations can not have progressed further than that.  
+
+# OUTSTANDING TODO
+- Refactor phase completion logic to break up into multiple CTEs. Because the phase status should cascade depending on the status of the previous phase, the clearest way to represent this using DBT is a series of 7 CTEs, each representing its own phase. (priority 1)
+- in apps_in_prog_phase_completion we are checking against the application_intake_start_date to determine if the concept start date has been skipped. Instead, we should check against the status of the application intake start date. 
+- when initializing the federal comment period status, we should load it in as "Not Started" then rely on the existing stored procedure to update the phase status according to the its own rules. 
+- we should add a test to ensure that the concept phase's skipped or completed dates are mutually exclusive to eachother
+- we should rewire the inclusion of the current_phase_id to a new model between the Cleaned demonstration and the final demonstration tables, so clean up the existing final demonstration table which currently includes that join. We should strive to keep that table as clean as possible, relying primerily on selects and unions. 
+- in cleaned_demos_app_app_phases_in_prog_demos, we have an inner join that may silently filter. We should replace it with an left join and add a corresponding test for nullness
+- we can replace the apps_in_prog_missing_aplctn test with an inline test in the models.yaml since it is simple enough and concentrates the check back to the main configuration. 
