@@ -9,7 +9,10 @@
   catch-up TODOs are otherwise unchanged and out of scope here.
 - **Updated 2026-07-29:** DEMOS-2413 moved deliverables and `deliverable_action`
   from `data-migration/`-only (§3) onto the shared surface. See §3.1 for the
-  divergence and for why running both against one database double-loads.
+  divergence and for why running both against one database double-loads. §3.1's
+  coverage figures were recomputed against dbt's actual output rather than its
+  raw source, which supersedes the earlier "27 deliverables" claim. §4.3 opens
+  the one gap where dbt is richer: the due date at submission time.
 - **Decision basis (session):** The two tools remain separate. The goal is a
   divergence report + TODOs (not byte-identical output). For forks where dbt is
   cruder, `data-migration/` keeps the richer behavior and dbt gets a catch-up
@@ -132,14 +135,29 @@ builds are **not** interchangeable:
 | | dbt (`data/`) | warm cutover (`data-migration/`) |
 |---|---|---|
 | Submission source | `mdcd_dlvrbl_stus_hstry` where `mdcd_dlvrbl_stus_cd = 3` — `.../cleaned_demos_app_deliverable_action_submission_events.sql` | file-upload batches, corroborated by status event and status field — `sql/10_stg/39`, `sql/23_app_derived/60` |
-| Submission events | 6,307 over 5,405 deliverables | 7,874 over 5,378 deliverables |
-| Actor | Liz Hill (legacy id 828) on **every** row | the actual uploader, 7,874 / 7,874 |
+| Submission events | 6,018 over 5,135 deliverables (6,307 over 5,405 before dbt's own scope filters) | 7,874 over 5,378 deliverables |
+| Actor | Liz Hill (legacy id 828) on **every** row | the actual uploader, 438 distinct, 7,874 / 7,874 |
+| Duplicate source rows | one action per history row, so 76 exact duplicates on `(deliverable, timestamp)` across 53 deliverables become 76 indistinguishable actions | collapsed by batch grouping |
+| Due date on the action | the value in effect **at submission time**, via `deliverables_history_due_date_by_date_range` | the deliverable's **current** value (see TODO 13) |
 | Timeline | self-transitions only, plus one marker stamped `current_timestamp` at load | seeded legal status progression, strictly increasing timestamps |
 | Re-runnable | no: `gen_random_uuid()` + bare `INSERT`, so re-running duplicates its own output | yes: deterministic ids from `migration._id_map_deliverable_action` |
 
-Neither coverage figure is a superset; dbt reaches 27 deliverables the batch
-path does not, which is why `60_deliverable_action.sql` consumes three evidence
-sources rather than one.
+Compared against dbt's **actual output** rather than its raw source — that is,
+after `dltd_ind = 0 AND mdcd_dlvrbl_crnt_stus_cd NOT IN (0, 16)`, the
+Approved-parent-demo requirement, and the non-null `due_date` filter — the two
+sets divide as 5,128 shared, 7 dbt-only, 250 warm-cutover-only.
+
+All 7 dbt-only deliverables have zero surviving file rows, so the batch path has
+nothing to group. All 7 are already covered by the `status_event` source and
+carry a `Submitted Deliverable` action today, so **none is missing from the
+warm-cutover output**. That is why `60_deliverable_action.sql` consumes three
+evidence sources rather than one.
+
+Of the 250, 160 sit **inside** dbt's own scope but have no
+`mdcd_dlvrbl_stus_cd = 3` row at all, so dbt structurally cannot emit them; 108
+of those 160 are from 2016, where PMDA logged status transitions inconsistently
+while the uploads survive. The remaining 90 are a scope disagreement rather than
+an evidence one, and need an explicit decision.
 
 **Running both against one database silently doubles the action rows.** The id
 spaces cannot overlap (`gen_random_uuid()` versus our id map), so our
@@ -210,6 +228,25 @@ Consolidated here (this doc only). No item is executed by this spec.
     collisions.
 12. **Reconcile documents/contacts/waivers/history dispositions** (both omit
     today; record DEMOS-owned vs. migrated intent explicitly on the dbt side).
+
+### 4.3 `data-migration/` TODOs — open (added 2026-07-29)
+
+13. **Record the due date in effect at submission time, not the current one.**
+    `sql/23_app_derived/60_deliverable_action.sql` populates
+    `migration._deliverable_action_plan.due_date` from `d.due_date`, the
+    deliverable's value in `demos_app.deliverable`, and writes it to both
+    `old_due_date` and `new_due_date` on every action. A submission that
+    predates a due-date extension therefore records the extended date rather
+    than the one it was actually judged against. dbt resolves the historical
+    value by joining `deliverables_history_due_date_by_date_range` on
+    `sub_evt.creatd_dt BETWEEN from_time AND to_time`, built from
+    `mdcd_dlvrbl_hstry` with `coalesce(dlvrbl_due_dt, mdcd_dlvrbl_prvs_due_dt)`
+    and `lead()` windows. **Exposure: 3,133 of 7,874 submission actions (39.8%)
+    sit on the 1,744 deliverables whose due date changed at least once.** Port
+    the date-range lookup. Note that `mdcd_dlvrbl_hstry` is the one PMDA table
+    carrying true UTC timestamps, whereas the file and status tables are Eastern
+    wall-clock stored at `+00`, so the window join needs an explicit conversion
+    rather than a naive comparison.
 
 ## 5. Evidence appendix (verified this session)
 
