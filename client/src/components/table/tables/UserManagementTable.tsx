@@ -5,8 +5,6 @@ import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
 import { isUnassigned, ManagedUser, UserManagementColumns } from "../columns/UserManagementColumns";
 
-const SEARCH_STORAGE_KEY = "user-management-keyword-search";
-
 export const USER_MANAGEMENT_QUERY = gql`
   query GetUsersForUserManagement {
     users {
@@ -53,7 +51,7 @@ export const UserManagementTable: React.FC = () => {
     <Table<ManagedUser>
       data={orderedUsers}
       columns={UserManagementColumns()}
-      keywordSearch={(table) => <KeywordSearch table={table} storageKey={SEARCH_STORAGE_KEY} />}
+      keywordSearch={(table) => <KeywordSearch table={table} />}
       pagination={(table) => <PaginationControls table={table} />}
       emptyRowsMessage="No users available."
       noResultsFoundMessage="No results match your search"

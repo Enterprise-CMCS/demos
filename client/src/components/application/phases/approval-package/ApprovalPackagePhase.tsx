@@ -7,7 +7,11 @@ import {
 import { Button } from "components/button";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 import { useToast } from "components/toast";
-import { FAILED_TO_SAVE_MESSAGE, getPhaseCompletedMessage } from "util/messages";
+import {
+  FAILED_TO_SAVE_MESSAGE,
+  getPhaseCompletedMessage,
+  MISSING_REQUIRED_SECTIONS_TOOLTIP,
+} from "util/messages";
 import { formatDateForDisplay } from "util/formatDate";
 import { REQUIRED_DOCUMENT_TYPES } from "./approvalPackagePhaseData";
 
@@ -89,6 +93,9 @@ export const ApprovalPackagePhase = ({
           size="small"
           disabled={!finishEnabled}
           onClick={handleFinish}
+          eagerTooltip={
+            !finishEnabled && !isReadonly ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined
+          }
         >
           Finish
         </Button>

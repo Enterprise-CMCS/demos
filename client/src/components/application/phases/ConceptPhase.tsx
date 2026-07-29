@@ -1,20 +1,17 @@
 import React, { useEffect, useState } from "react";
+import { useSessionStorage } from "hooks";
 import { compareDesc } from "date-fns";
 
 import { tw } from "tags/tw";
 import { Button, SecondaryButton } from "components/button";
 import { ChevronRightIcon, ExportIcon } from "components/icons";
 
-import {
-  WorkflowApplication,
-  ApplicationWorkflowDocument,
-  WorkflowApplicationType,
-} from "components/application";
+import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { formatDateForServer } from "util/formatDate";
 import { DocumentList } from "./sections";
 import { useDialog } from "components/dialog/DialogContext";
 import { useToast } from "components/toast";
-import { getPhaseCompletedMessage } from "util/messages";
+import { getPhaseCompletedMessage, MISSING_REQUIRED_SECTIONS_TOOLTIP } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import type { DateType, LocalDate, PhaseName, PhaseStatus } from "demos-server";
@@ -62,7 +59,6 @@ export const CONCEPT_PHASE_STEP_TWO_DESCRIPTION = {
 
 export const getConceptPhaseComponentFromApplication = (
   application: WorkflowApplication,
-  workflowApplicationType: WorkflowApplicationType,
   setSelectedPhase: (phase: PhaseName) => void
 ) => {
   const conceptPhaseDocuments = application.documents.filter(
@@ -135,7 +131,9 @@ export const ConceptPhase = ({
   const { skipConceptPhase } = useSkipConceptPhase();
 
   // User can override the calculated date via the datepicker
-  const [userSubmittedDateOverride, setUserSubmittedDateOverride] = useState<string>("");
+  const [userSubmittedDateOverride, setUserSubmittedDateOverride] = useSessionStorage(
+    `concept-phase-submitted-date-${applicationId}`
+  );
   const [isFinishEnabled, setIsFinishEnabled] = useState<boolean>(false);
   const [isSkipEnabled, setIsSkipEnabled] = useState<boolean>(true);
 
@@ -277,6 +275,9 @@ export const ConceptPhase = ({
           aria-label="Finish this section"
           onClick={onFinish}
           disabled={!isFinishEnabled}
+          eagerTooltip={
+            !isFinishEnabled && !isPhaseFinalized ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined
+          }
         >
           Finish
         </Button>

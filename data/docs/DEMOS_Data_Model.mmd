@@ -394,6 +394,7 @@ erDiagram
   application:::dataTable {
     uuid id PK, UK "UK: (id, application_type_id)"
     text application_type_id FK, UK "FK007: application_type_id ∈ application_type.id<br>UK: (id, application_type_id)"
+    bool is_migrated_from_pmda "Default: FALSE"
     CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_application_type_record_exists "Verify that a corresponding record exists in the demonstration, amendment, or extension tables."
     TRIGGER_AFTER_INSERT create_phases_and_dates_for_new_application "Create phases and initial dates for new application."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
