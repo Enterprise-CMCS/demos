@@ -100,9 +100,10 @@ include::../shared/generated/demonstration-flow-stages.adoc[]
 The trace below is a real run of the pipeline above against a curated
 nine-row fixture chosen to exercise every disposition (loaded, held back,
 excluded, filtered). Minted UUIDs are normalized to stable
-`DEMONSTRATION_UUID_NN` tokens (ordered by `medicaid_id`) and minted `21-W` chip
-sequence numbers are masked, so the trace is byte-stable across reruns on the
-same fixture; preserved chips and source-driven values are shown verbatim.
+`DEMONSTRATION_UUID_NN` tokens (ordered by `medicaid_id`), so the trace is
+byte-stable across reruns on the same fixture. `chip_id` is shown verbatim when
+preserved from the legacy `21-W` number, or as deferred to the DEMOS app when
+the source has none; the migration never mints it.
 
 include::../shared/generated/live/demonstration-flow-trace.adoc[]
 

@@ -4,8 +4,8 @@ legacy_int_cd,legacy_name,demos_text_id,notes
 3,Signed Decision Memo,Signed Decision Memo,high; verbatim identity with document_type seed
 4,Payment Ratio Analysis,Payment Ratio Analysis,high; verbatim identity with document_type seed
 5,State Application,State Application,high; verbatim identity with document_type seed
-6,Temporary Extension Letter,General File,"SME fold; no document_type target, folded to General File"
-7,Final BN Worksheet,BN Workbook,medium; closest seed is BN Workbook (confirm vs BN Template)
+6,Temporary Extension Letter,General File,"SME-settled 2026-07-10; no document_type target, filed under General File (no new type added)"
+7,Final BN Worksheet,BN Workbook,"SME-settled 2026-07-10; filed under BN Workbook (no new type added)"
 8,Formal OMB Policy Concurrence Email,Formal OMB Policy Concurrence Email,high; verbatim identity with document_type seed
 9,Q&A,Q&A,high; verbatim identity with document_type seed
-99,Other,General File,high; legacy catch-all -> General File (DEMOS catch-all)
+99,Other,General File,"SME-settled 2026-07-10; legacy catch-all filed under General File (DEMOS catch-all, no new type added)"

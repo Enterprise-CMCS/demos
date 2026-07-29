@@ -52,6 +52,8 @@ GOOD_FILES = [
     "18_populate_id_map_mdcd_demo",
     "19_populate_id_map_mdcd_pendg_demo",
     "22_demonstration_resolved",
+    "23_pendg_demo_fold",
+    "24_pending_demonstration_resolved",
     "29_populate_id_map_mdcd_demo_amndmt",
     "30_amendment_resolved",
     "99_filter_report",

@@ -114,6 +114,18 @@ crosswalks:
       tables_from_column: source_table
       columns_from: [from_dt_col, to_dt_col]
       pending_blank_column: tag_name
+  # Pending-track counterpart (mdcd_pendg_*_pgm_dtl, keyed on mdcd_pendg_demo_id).
+  # POPULATED: pgm_dtl_tag_mapping_pending.csv is derived mechanically from the
+  # filled base pgm_dtl_tag_mapping.csv (prefix-swap mdcd_ -> mdcd_pendg_), consumed
+  # by 21_app_associative/12 (fixed-tag) + 13 (free-text "Other"), both fold-aware.
+  - table: crosswalk_pendg_pgm_dtl_tag
+    csv: pgm_dtl_tag_mapping_pending.csv
+    columns: [source_table, tag_name, from_dt_col, to_dt_col, additional_attrs, notes]
+    source:
+      kind: structural
+      tables_from_column: source_table
+      columns_from: [from_dt_col, to_dt_col]
+      pending_blank_column: tag_name
   - table: crosswalk_deliverable_status
     csv: crosswalks/deliverable_status.csv
     columns: [legacy_int_cd, legacy_name, status_id, due_date_type_id, expected_to_be_submitted, emit_extension_status, null_ok, notes]

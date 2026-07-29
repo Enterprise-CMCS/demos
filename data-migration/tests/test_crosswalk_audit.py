@@ -250,7 +250,7 @@ def _read_structural_with_root(module, spec, root: Path):
 
 
 def test_load_registry_classifies_kinds() -> None:
-    """The real registry resolves all 13 crosswalks into code/structural kinds."""
+    """The real registry resolves all 14 crosswalks into code/structural kinds."""
     specs = ca.load_registry()
     by_name = {s.name: s for s in specs}
     assert by_name["crosswalk_demo_status"].kind == "code"

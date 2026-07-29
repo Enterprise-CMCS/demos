@@ -12,7 +12,10 @@
  * (reports/crosswalks/proposed/_review.md, P4 document_type; Zoe Elkins
  * 2026-06-26): 8/10 codes are verbatim identity with the document_type seed;
  * codes 6 (Temporary Extension Letter) and 99 (Other) fold to 'General File',
- * code 7 (Final BN Worksheet) to 'BN Workbook'.
+ * code 7 (Final BN Worksheet) to 'BN Workbook'. The three no-clean-match
+ * application codes (6, 7, 99) are SME-settled 2026-07-10: no new document_type
+ * is added -- they are filed under the existing seeds above (David rubber-stamp
+ * pending, does not block the mapping).
  *
  * SCOPE: document_type in DEMOS is the union of several legacy doc-type
  * families (site-visit, template, reference-material). This crosswalk maps the

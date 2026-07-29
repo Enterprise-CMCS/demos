@@ -109,6 +109,12 @@ def _provision(conn: Any) -> None:
         "INSERT INTO stg._valid_amndmt_ids (amndmt_id) VALUES (%s),(%s),(%s),(%s),(%s)",
         (A_REALNAME, A_NULLNAME_DATE, A_EMPTYNAME_DATE, A_NULLNAME_NODATE, A_NULLNAME_NOPARENT),
     )
+    # Empty stub: 30_amendment_resolved references stg._pendg_demo_fold for
+    # fold-aware pending parentage; no fold rows keeps this name-synthesis
+    # fixture on the approved-parent path it asserts.
+    conn.execute(
+        "CREATE TABLE stg._pendg_demo_fold (legacy_pendg_demo_id bigint, demo_uuid uuid)"
+    )
     _apply(conn, IDMAP_CREATE)
     _apply(conn, IDMAP_POP)
     _apply(conn, RESOLVED)

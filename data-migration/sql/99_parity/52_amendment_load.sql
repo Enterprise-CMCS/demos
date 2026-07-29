@@ -2,7 +2,7 @@
  * Purpose:    Amendment load accounting: held-back amendments, dropped legacy signature levels, synthesized names, and the status-derived current_phase tally for SME review.
  * Inputs:     stg.amendment_resolved; demos_app.demonstration; mysql_raw.crosswalk_amendment_status
  * Outputs:    migration._parity_amendment_held; migration._parity_amendment_held_missing_field; migration._parity_amendment_signature_dropped; migration._parity_amendment_name_synthesized; migration._parity_amendment_phase_derived; migration._parity_amendment_unmapped_status
- * Invariants: the accounting views (held/held_missing_field/signature_dropped/name_synthesized/phase_derived) back the NON-GATING check 19 (always GREEN, per-row to reports/orphans/amendment_*.csv); _parity_amendment_unmapped_status backs a FAIL-CLOSED guard (RED when non-empty) surfacing staged amendments with a loaded parent whose status_cd the loader's inner crosswalk JOIN would silently drop; conditional-DDL guard via to_regclass so it is a clean no-op before the staging view, crosswalk, and demonstration table exist; idempotent via CREATE OR REPLACE.
+ * Invariants: the accounting views (held/held_missing_field/signature_dropped/name_synthesized/phase_derived) back the NON-GATING check 19 (always GREEN, per-row to reports/orphans/amendment_*.csv); _parity_amendment_unmapped_status backs a FAIL-CLOSED guard (RED when non-empty) surfacing staged amendments with a loaded parent whose status the loader cannot assign (an approved-track amendment with an unmapped/NULL source status); a pending-track amendment (no approved parent) with a NULL source status is intentionally assigned 'Under Review' by the loader and is NOT flagged; conditional-DDL guard via to_regclass so it is a clean no-op before the staging view, crosswalk, and demonstration table exist; idempotent via CREATE OR REPLACE.
  * Refs:       migration/phases/parity.py (non-gating check 19); sql/20_app/35_amendment.sql
  *
  * Parity check 19: amendment load accounting (non-gating informational logs).
@@ -27,16 +27,17 @@
  * writes any rows per-row to reports/orphans/amendment_*.csv. These are review
  * signals, not build failures.
  *
- * FAIL-CLOSED companion (_parity_amendment_unmapped_status): the loader joins
- * stg.amendment_resolved to crosswalk_amendment_status with an INNER join on
- * status_cd, so a staged amendment whose status_cd is NULL or absent from the
- * crosswalk is dropped from the load with no error and no held-row log -- and
- * every accounting view above shares that inner join, so the drop is invisible
- * there too. This view captures each such amendment that HAS a loaded parent
- * demonstration (i.e. would otherwise load), so the reading check (parity.py)
- * can fail the gate RED rather than let those rows silently vanish. The
- * parent-not-loaded case is already covered by _parity_amendment_held, so this
- * view requires a loaded parent to avoid double-counting.
+ * FAIL-CLOSED companion (_parity_amendment_unmapped_status): the loader assigns
+ * status_id = COALESCE(crosswalk_amendment_status(status_cd), pending-track ->
+ * 'Under Review') and drops any row whose result is still NULL, with no error
+ * and no held-row log. This view captures each such dropped amendment that HAS a
+ * loaded parent demonstration (i.e. would otherwise load) -- an approved-track
+ * amendment with an unmapped/NULL source status -- so the reading check
+ * (parity.py) can fail the gate RED rather than let those rows silently vanish.
+ * Its WHERE clause mirrors the loader's drop condition exactly, so a pending-
+ * track statusless amendment (assigned 'Under Review') is never flagged here.
+ * The parent-not-loaded case is already covered by _parity_amendment_held, so
+ * this view requires a loaded parent to avoid double-counting.
  *
  * Conditional DDL: guarded with to_regclass so it is a clean no-op before the
  * staging view, crosswalk, and demonstration table exist; CREATE OR REPLACE
@@ -57,7 +58,7 @@ BEGIN
       r.demo_uuid                                      AS demo_uuid,
       r.name                                           AS name,
       CASE
-        WHEN r.demo_uuid IS NULL THEN 'pending-only or unmapped parent'
+        WHEN r.demo_uuid IS NULL OR r.parent_is_pending THEN 'pending-only or unmapped parent'
         ELSE 'approved parent held back'
       END                                              AS reason
     FROM stg.amendment_resolved r
@@ -118,16 +119,17 @@ BEGIN
   EXECUTE $v$
     CREATE OR REPLACE VIEW migration._parity_amendment_phase_derived AS
     SELECT
-      cw.demos_text_id                                 AS status_id,
-      CASE cw.demos_text_id
+      COALESCE(cw.demos_text_id, CASE WHEN r.parent_is_pending THEN 'Under Review' END) AS status_id,
+      CASE COALESCE(cw.demos_text_id, CASE WHEN r.parent_is_pending THEN 'Under Review' END)
         WHEN 'Approved'     THEN 'Approval Summary'
         WHEN 'Under Review' THEN 'Review'
         ELSE 'Concept'
       END                                              AS derived_phase,
       count(*)                                         AS n
     FROM stg.amendment_resolved r
-    JOIN mysql_raw.crosswalk_amendment_status cw ON cw.legacy_int_cd = r.status_cd
+    LEFT JOIN mysql_raw.crosswalk_amendment_status cw ON cw.legacy_int_cd = r.status_cd
     JOIN demos_app.demonstration d               ON d.id = r.demo_uuid
+    WHERE COALESCE(cw.demos_text_id, CASE WHEN r.parent_is_pending THEN 'Under Review' END) IS NOT NULL
     GROUP BY 1, 2;
   $v$;
   EXECUTE $v$
@@ -140,7 +142,7 @@ BEGIN
     FROM stg.amendment_resolved r
     JOIN demos_app.demonstration d                    ON d.id = r.demo_uuid
     LEFT JOIN mysql_raw.crosswalk_amendment_status cw ON cw.legacy_int_cd = r.status_cd
-    WHERE cw.legacy_int_cd IS NULL;
+    WHERE COALESCE(cw.demos_text_id, CASE WHEN r.parent_is_pending THEN 'Under Review' END) IS NULL;
   $v$;
 END
 $$;

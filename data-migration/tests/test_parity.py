@@ -26,8 +26,8 @@ def _shaped_query(default: tuple[object, ...]):
     its ``leaked`` probe returns empty (no RED) while its ``pending_only_deferred``
     probe returns one deferral, which reconciles to PENDING against an absent
     baseline (tests point ``PARITY_ACCEPTED_DIR`` at an empty dir). The two
-    ``_parity_pgm_dtl_tag*`` views and ``_parity_amendment_unmapped_status`` read
-    empty so those stay vacuously GREEN (the fail-closed guards never red the
+    ``_parity_(pendg_)?pgm_dtl_tag*`` views and ``_parity_amendment_unmapped_status``
+    read empty so those stay vacuously GREEN (the fail-closed guards never red the
     rollup here).
     """
 
@@ -36,7 +36,7 @@ def _shaped_query(default: tuple[object, ...]):
             return []
         if "'pending_only_deferred'" in sql:
             return [(1, "no_approved_counterpart")]
-        if "_parity_pgm_dtl_tag" in sql:
+        if "_parity_pgm_dtl_tag" in sql or "_parity_pendg_pgm_dtl_tag" in sql:
             return []
         if "_parity_amendment_unmapped_status" in sql:
             return []
@@ -1209,6 +1209,74 @@ def test_pgm_dtl_unseeded_reds_on_unseeded_mapping(monkeypatch: pytest.MonkeyPat
     assert result.status == "RED"
     assert "2 pgm_dtl mapping(s)" in result.detail
     assert "mdcd_bnfts_pgm_dtl" in result.detail
+
+
+def test_pendg_pgm_dtl_othr_held_green_when_view_absent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Pending othr-held: no view yet -> vacuously GREEN, no CSV."""
+    monkeypatch.setattr(parity, "psql_query", lambda _env, _sql: [(False,)])
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._pendg_pgm_dtl_tag_othr_held(env)
+    assert result.status == "GREEN"
+    assert "vacuously green" in result.detail
+
+
+def test_pendg_pgm_dtl_othr_held_is_non_gating_and_logs_csv(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Held pending free-text othr rows -> GREEN (non-gating) AND logged per-row."""
+    rows: list[tuple[object, ...]] = [
+        (1, 3001, "uuid-1", "Badger Care", "free-text name is not a seeded demonstration-type tag (1115 name held per SME)"),
+        (2, 3002, None, "Centennial Care", "free-text name is not a seeded demonstration-type tag (1115 name held per SME); parent demonstration not migrated (held-back / no-project pending demo)"),
+    ]
+
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        return [(True,)] if "to_regclass" in sql else rows
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    monkeypatch.setattr(parity, "REPORTS_DIR", tmp_path)
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._pendg_pgm_dtl_tag_othr_held(env)
+
+    assert result.status == "GREEN"  # non-gating by SME decision
+    assert "2 pending other-program (mdcd_pendg_othr_pgm_dtl) row(s) held back" in result.detail
+    assert "Badger Care" in result.detail
+    out = tmp_path / "orphans" / "pendg_pgm_dtl_tag_othr_held.csv"
+    assert out.exists()
+    body = out.read_text(encoding="utf-8")
+    assert "legacy_id,legacy_pendg_demo_id,demonstration_id,othr_name,reason" in body
+    assert "Centennial Care" in body
+    assert "1115 name held per SME" in body
+
+
+def test_pendg_pgm_dtl_unseeded_green_when_view_absent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Pending unseeded: no view yet -> vacuously GREEN."""
+    monkeypatch.setattr(parity, "psql_query", lambda _env, _sql: [(False,)])
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._pendg_pgm_dtl_tag_unseeded(env)
+    assert result.status == "GREEN"
+    assert "vacuously green" in result.detail
+
+
+def test_pendg_pgm_dtl_unseeded_reds_on_unseeded_mapping(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A mapped-but-unseeded pending tag_name fails the gate RED (fail-closed guard)."""
+    rows: list[tuple[object, ...]] = [
+        ("mdcd_pendg_bnfts_pgm_dtl", "Benefits"),
+    ]
+
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        return [(True,)] if "to_regclass" in sql else rows
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._pendg_pgm_dtl_tag_unseeded(env)
+    assert result.status == "RED"
+    assert "1 pending pgm_dtl mapping(s)" in result.detail
+    assert "mdcd_pendg_bnfts_pgm_dtl" in result.detail
 
 
 def test_scope_coverage_green_when_view_absent(

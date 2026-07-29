@@ -9,7 +9,55 @@ behavior changes. Commit history follows [Conventional Commits](https://www.conv
 
 ## [Unreleased]
 
+### Added
+- Pending demonstrations now migrate (workflow-7 reversal, per the 2026-07-10
+  SME answers). `sql/10_stg/23_pendg_demo_fold.sql` classifies each PMDA-valid
+  pending demo "approved wins" (folded / orphan_loadable / held_no_project);
+  `sql/10_stg/24_pending_demonstration_resolved.sql` + the loader
+  `sql/20_app/31_pending_demonstration.sql` load orphan pending demos (a project
+  number, no approved counterpart) as their own 'Under Review' demonstration
+  (chip_id always NULL; no source status column), folding matched pending demos
+  into their approved counterpart and holding back no-project-number pending
+  demos. The RED-4 duplicate-medicaid loser and any state absent from
+  `state_region` are held back non-gating and logged in
+  `migration._parity_pending_demonstration_held`.
+- Fold-aware pending program-detail tags now load. `reports/pgm_dtl_tag_mapping_pending.csv`
+  is populated with 68 rows derived mechanically from the filled base
+  `pgm_dtl_tag_mapping.csv` (prefix-swap `mdcd_`->`mdcd_pendg_`, same tags + date
+  columns; the source-absent `mdcd_pendg_fincl_pool_pgm_dtl` is dropped -- no new
+  SME judgment), driven by `sql/04_crosswalks/47_pendg_pgm_dtl_tag.sql` + a
+  `crosswalk_pendg_pgm_dtl_tag` registry entry. Two fold-aware loaders resolve the
+  parent via `stg._pendg_demo_fold`: the fixed-tag
+  `sql/21_app_associative/12_pending_demonstration_type_tag_assignment.sql` and the
+  free-text "Other"
+  `sql/21_app_associative/13_pending_demonstration_type_tag_othr.sql`. Parity
+  `sql/99_parity/55_pendg_pgm_dtl_tag_othr_held.sql` logs held free-text "Other"
+  rows (non-gating) and fail-closes on any mapped-but-unseeded tag -- mirroring the
+  base 10/11/54 trio as pending 12/13/55.
+
 ### Changed
+- Amendments resolve their parent fold-aware
+  (`sql/10_stg/30_amendment_resolved.sql` LEFT JOINs `stg._pendg_demo_fold` and
+  adds `parent_is_pending`); the loader (`sql/20_app/35_amendment.sql`) assigns
+  'Under Review' to the 162 statusless pending-track amendments (LEFT JOIN the
+  status crosswalk + COALESCE), and the fail-closed unmapped-status guard in
+  `sql/99_parity/52_amendment_load.sql` mirrors the loader's drop condition so
+  those pending-track amendments are not falsely flagged.
+- Parity check 4 (`sql/99_parity/04_pending_approved.sql`) was redefined for the
+  reversal: `leaked` now flags a must-not-load (folded / no-project) pending demo
+  that nevertheless got its own demonstration row, and `pending_only_deferred`
+  is the residual no-project-number set. `reports/parity_accepted/pending_approved_deferrals.csv`
+  was repurposed as the SME-signed reversal record (former
+  `no_approved_counterpart` rows removed because they now load).
+- The demonstration loader (`sql/20_app/30_demonstration.sql`) no longer mints
+  `chip_id`. Per the 2026-07-10 SME decision, CMS assigns CHIP ids and the DEMOS
+  app owns `chip_id` (nullable column + post-load backfill), so the migration
+  preserves the legacy 21-W number when present and otherwise leaves `chip_id`
+  NULL instead of minting a `21-W-<seq>/<region>` fallback. It still advances
+  `chip_id_number_seq` past every preserved legacy 21-W number so a later DEMOS
+  backfill / in-app mint cannot collide with a preserved value. The demonstration
+  flow-trace `chip_source` vocabulary changed from `preserved|minted` to
+  `preserved|deferred` (deferred rows carry a NULL `chip_id`).
 - All crosswalk values are now CSV-authored and loaded via the registry; no
   inline `INSERT`s remain in `sql/04_crosswalks`. The four formerly-inline
   crosswalks moved their values to load-ready CSVs:

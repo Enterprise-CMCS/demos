@@ -314,21 +314,24 @@ def _jsonb_shape(env: Env) -> CheckResult:
 
 
 def _pending_approved_audit(env: Env) -> CheckResult:
-    """Check 4: pending/approved unification audit.
+    """Check 4: pending/approved unification audit (workflow-7 reversal).
 
     Reads ``migration._parity_pending_approved``
-    (``sql/99_parity/04_pending_approved.sql``). RED when any ``leaked`` row
-    exists -- a pending demo (id resolving to
-    ``migration._id_map_mdcd_pendg_demo``) was loaded as a
-    ``demos_app.demonstration``, violating the "approved wins / pending
-    deferred" rule in ``reports/narrative/pending_approved_decisions.md``. Otherwise the
-    intentionally-deferred pending-only set (a valid pending demo with no
-    approved counterpart) is reconciled against the SME-signed baseline
-    ``reports/parity_accepted/pending_approved_deferrals.csv``: GREEN once every
-    live deferral is covered by a SIGNED baseline, else PENDING (a new deferral
-    or an unsigned baseline forces re-review). Vacuously GREEN when the view is
-    empty (pipeline not built yet). Leakage-only by SME decision; a stronger
-    counterpart-loaded invariant is documented in 04_pending_approved.sql.
+    (``sql/99_parity/04_pending_approved.sql``). Per the 2026-07-10 SME reversal
+    in ``reports/narrative/pending_approved_decisions.md``, an ORPHAN pending demo
+    (a project number, no approved counterpart) now LOADS as its own 'Under
+    Review' demonstration; a pending demo that FOLDS into an approved counterpart,
+    or that has NO project number, does not. RED when any ``leaked`` row exists --
+    a pending demo whose disposition is NOT ``orphan_loadable`` (folded or
+    no-project) nevertheless got its own ``demos_app.demonstration`` row. Otherwise
+    the residual no-project-number deferred set (``pending_only_deferred``, reason
+    ``no_project_number``) is reconciled against the SME-signed baseline
+    ``reports/parity_accepted/pending_approved_deferrals.csv`` (which doubles as
+    the reversal record): GREEN once every live deferral is covered by a SIGNED
+    baseline, else PENDING (a new deferral or an unsigned baseline forces
+    re-review). Vacuously GREEN when the view is empty (pipeline not built yet).
+    The deliberate load-time hold-backs (state-unresolvable, duplicate medicaid_id)
+    are logged non-gating in ``migration._parity_pending_demonstration_held``.
     """
     name = "4. Pending/approved unification audit"
     leaked = psql_query(
@@ -371,9 +374,9 @@ def _pending_approved_audit(env: Env) -> CheckResult:
         name=name,
         status=status,
         detail=(
-            f"{phrase}; no pending demo leaked into demos_app.demonstration; "
-            "pending-only demonstrations deferred per "
-            "reports/narrative/pending_approved_decisions.md (see "
+            f"{phrase}; no must-not-load pending demo leaked into "
+            "demos_app.demonstration; no-project-number pending demos deferred "
+            "per reports/narrative/pending_approved_decisions.md (see "
             "migration._parity_pending_approved)"
         ),
     )
@@ -683,7 +686,8 @@ def _demonstration_completeness(env: Env) -> CheckResult:
     build that reaches parity every status code is already crosswalked (the
     ``11_demo_status_check`` hard gate blocks any unmapped status code upstream;
     code 1 'Pending' now maps to 'Under Review' per D1), so the residual cause
-    is a NULL/unmapped state leaving no CMS region to mint the 21-W chip.
+    is a NULL/unmapped state that leaves the loader's state_region inner join
+    with no row, so the demo is held back.
     Completeness counterpart to check 6 (provenance guards the reverse edge).
     Vacuously GREEN before ``build_stg`` builds the staging view.
     """
@@ -1574,6 +1578,113 @@ def _pgm_dtl_tag_unseeded(env: Env) -> CheckResult:
     )
 
 
+def _pendg_pgm_dtl_tag_othr_held(env: Env) -> CheckResult:
+    """Pending other-program demonstration-type tags held back (non-gating log).
+
+    Pending-track counterpart of ``_pgm_dtl_tag_othr_held``. Reads
+    ``migration._parity_pendg_pgm_dtl_tag_othr_held`` (created by
+    ``sql/99_parity/55_pendg_pgm_dtl_tag_othr_held.sql`` only when its inputs
+    exist). ``mdcd_pendg_othr_pgm_dtl`` carries a per-row free-text program name;
+    per the SME decision (2026-07-09) a name is turned into a demonstration-type
+    tag only when it exactly equals a seeded tag, so 1115 demonstration names are
+    held. Every active source row that did not produce an assignment is written
+    per-row to ``reports/orphans/pendg_pgm_dtl_tag_othr_held.csv`` for SME/SDG
+    review; the status stays GREEN (reported, not gated). Vacuously GREEN before
+    the view is built.
+    """
+    name = "Pending other-program demonstration-type tags held back"
+    exists = psql_query(
+        env,
+        "SELECT to_regclass('migration._parity_pendg_pgm_dtl_tag_othr_held') IS NOT NULL",
+    )
+    if not exists or not exists[0][0]:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="view not built yet; no pending other-program tag hold-backs to log (vacuously green)",
+        )
+    rows = psql_query(
+        env,
+        "SELECT legacy_id, legacy_pendg_demo_id, demonstration_id, othr_name, reason "
+        "FROM migration._parity_pendg_pgm_dtl_tag_othr_held ORDER BY legacy_id",
+    )
+    if not rows:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="no pending other-program tag row was held back from the load",
+        )
+    out: Path = REPORTS_DIR / "orphans" / "pendg_pgm_dtl_tag_othr_held.csv"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(
+            ["legacy_id", "legacy_pendg_demo_id", "demonstration_id", "othr_name", "reason"]
+        )
+        for r in rows:
+            w.writerow(["" if v is None else v for v in r])
+    sample = ", ".join(str(r[3]) for r in rows[:8] if len(r) > 3)
+    return CheckResult(
+        name=name,
+        status="GREEN",
+        detail=(
+            f"{len(rows)} pending other-program (mdcd_pendg_othr_pgm_dtl) row(s) held back and "
+            f"logged per-row for SME/SDG review in {rel(out)} (non-gating); name(s): {sample}"
+        ),
+    )
+
+
+def _pendg_pgm_dtl_tag_unseeded(env: Env) -> CheckResult:
+    """Pending pgm_dtl tag mapped-but-unseeded (fail-closed guard).
+
+    Pending-track counterpart of ``_pgm_dtl_tag_unseeded``. Reads
+    ``migration._parity_pendg_pgm_dtl_tag_unseeded`` (created by
+    ``sql/99_parity/55_pendg_pgm_dtl_tag_othr_held.sql``). The fixed-tag pending
+    fold loader
+    (``sql/21_app_associative/12_pending_demonstration_type_tag_assignment.sql``)
+    silently skips (fail-open NOTICE) any ``crosswalk_pendg_pgm_dtl_tag`` mapping
+    whose ``tag_name`` is not a seeded demonstration-type tag, which would drop
+    that table's rows with no error. This makes that silent skip visible and
+    fails the gate RED. Expected empty: the pending mapping is derived from
+    ``reports/pgm_dtl_tag_mapping.csv``, whose tag_names are all seeded (the seven
+    User/Unapproved tags are created in
+    ``sql/21_app_associative/05_demonstration_type_tags_user.sql``). Vacuously
+    GREEN before the view is built.
+    """
+    name = "pending pgm_dtl tag mapped-but-unseeded"
+    exists = psql_query(
+        env,
+        "SELECT to_regclass('migration._parity_pendg_pgm_dtl_tag_unseeded') IS NOT NULL",
+    )
+    if not exists or not exists[0][0]:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="view not built yet; no pending pgm_dtl tag mappings to validate (vacuously green)",
+        )
+    rows = psql_query(
+        env,
+        "SELECT source_table, tag_name FROM migration._parity_pendg_pgm_dtl_tag_unseeded "
+        "ORDER BY source_table",
+    )
+    if not rows:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="every mapped pending pgm_dtl tag_name resolves to a seeded demonstration-type tag",
+        )
+    detail = "; ".join(f"{r[0]} -> {r[1]!r}" for r in rows[:10])
+    return CheckResult(
+        name=name,
+        status="RED",
+        detail=(
+            f"{len(rows)} pending pgm_dtl mapping(s) reference a tag_name that is not a seeded "
+            f"demonstration-type tag (the fold loader would silently skip them): {detail}; "
+            "create the tag (see sql/21_app_associative/05) or blank the mapping"
+        ),
+    )
+
+
 def _comment_completeness(env: Env) -> CheckResult:
     """Comment load completeness (loadable-but-unloaded rows).
 
@@ -2229,6 +2340,8 @@ def build_parity_report(env: Env) -> ParityReport:
         ("deliverable BN QA", _deliverable_bn_qa),
         ("pgm_dtl othr held", _pgm_dtl_tag_othr_held),
         ("pgm_dtl tag unseeded", _pgm_dtl_tag_unseeded),
+        ("pending pgm_dtl othr held", _pendg_pgm_dtl_tag_othr_held),
+        ("pending pgm_dtl tag unseeded", _pendg_pgm_dtl_tag_unseeded),
         ("comment completeness", _comment_completeness),
         ("comment integrity", _comment_integrity),
         ("comment held", _comment_held),

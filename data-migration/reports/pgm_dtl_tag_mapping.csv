@@ -50,7 +50,7 @@ mdcd_mktplc_cvrg_pgm_dtl,Marketplace Coverage/Premium Assistance Wrap,from_dt,to
 mdcd_new_adlt_grp_expnsn_pgm_dtl,New Adult Group Expansion,from_dt,to_dt,,
 mdcd_non_elgblty_prd_pgm_dtl,Non-Eligibility Period,from_dt,to_dt,,
 mdcd_non_emer_mdcl_trnsprtn_pgm_dtl,Non-Emergency Medical Transportation (NEMT),from_dt,to_dt,,
-mdcd_othr_pgm_dtl,,from_dt,to_dt,,"SME-approved 2026-07-09; free-text per-row, NOT a single tag -- handled by 21_app_associative/11 (exact name match to a seeded tag, else held); tag_name intentionally blank so the fold loader skips it"
+mdcd_othr_pgm_dtl,,from_dt,to_dt,,"SME-approved 2026-07-09; free-text per-row, NOT a single tag -- handled by 21_app_associative/11 (exact name match to a seeded tag, else held); tag_name intentionally blank so the fold loader skips it; held names exported non-gating in 99_parity/54 (_parity_pgm_dtl_tag_othr_held) for SDG review"
 mdcd_phrmcy_pgm_dtl,Pharmacy,from_dt,to_dt,,
 mdcd_prm_pgm_dtl,Premiums/Cost-Sharing,from_dt,to_dt,,"SME-approved 2026-07-09; tag already in the DEMOS seed"
 mdcd_prtl_expnsn_pgm_dtl,Partial Expansion of the New Adult Group,from_dt,to_dt,,

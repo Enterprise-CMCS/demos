@@ -71,7 +71,7 @@ CONFIGS: dict[str, TableFlowConfig] = {
             ("sql/04_crosswalks/62_sdg_division.sql",
              "SDG division crosswalk table (legacy sentinel 0 -> NULL)"),
             ("sql/20_app/30_demonstration.sql",
-             "Load `application` anchor + `demonstration`; hold-backs; chip-id mint"),
+             "Load `application` anchor + `demonstration`; hold-backs; chip-id preserve/defer"),
             ("sql/99_parity/10_demonstration_id_provenance.sql",
              "Parity 6: every `demonstration.id` traces to a PMDA legacy row"),
             ("sql/99_parity/11_demonstration_completeness.sql",

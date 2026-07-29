@@ -249,14 +249,19 @@ nothing of PMDA's real numbers.
 - `medicaid_id` ← PMDA `mdcd_demo.mdcd_demo_num` (`varchar(20)`). **High-confidence,
   data-grounded, important** — letting DEMOS mint instead would assign every
   demonstration a fake waiver number. Verify uniqueness before load.
-- `chip_id` ← PMDA `mdcd_demo.mdcd_scndry_demo_num`. **Not a simple copy**: the
-  source secondary number is *nullable* but the target is `NOT NULL` + `UNIQUE`.
-  Mint a fallback (mirror `21-W-<seq>/<region>`) only where the source is
-  missing, and advance `chip_id_number_seq` past our minted values so a later
-  app insert cannot collide.
-- **Timing:** populate both at *insert time*. The migration disables
-  `prevent_changing_immutable_demonstration_fields` to backfill; that trigger
-  blocks later changes, so a post-insert `UPDATE` would fail.
+- `chip_id` ← PMDA `mdcd_demo.mdcd_scndry_demo_num`. Preserve the legacy 21-W
+  number when the source has one; otherwise leave `chip_id` **NULL**. The
+  migration **never mints** a CHIP id: per the 2026-07-10 SME decision the DEMOS
+  app owns `chip_id` (it makes the column nullable and backfills/mints the NULLs
+  after load), because PMDA carries no CHIP number for these rows and CMS, not
+  the migration, assigns them. The loader still advances `chip_id_number_seq`
+  past every preserved legacy 21-W number so DEMOS's later mint cannot collide
+  with a preserved value.
+- **Timing:** `medicaid_id` is populated at *insert time* (legacy-preserved,
+  never minted). `chip_id` is set at insert time when a legacy value exists,
+  else left NULL for the DEMOS app to backfill post-load; the migration never
+  mints or `UPDATE`s it. DEMOS's `prevent_changing_immutable_demonstration_fields`
+  trigger governs any later change on the DEMOS side.
 - Not yet in `reports/source_target_columns.csv` — blocked on refreshing the
   DEMOS model snapshot (`mmd_sql_compare/demos_data_model.mmd`) which predates
   this migration; the column-map lint requires the target column to exist there.

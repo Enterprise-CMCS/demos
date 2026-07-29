@@ -34,7 +34,14 @@
  *                        is NULL/empty for a meaningful subset; synthesized names
  *                        are logged non-gating to
  *                        migration._parity_amendment_name_synthesized (99_parity/52)
- *   status_id            crosswalk_amendment_status(mdcd_demo_amndmt_stus_cd)
+ *   status_id            crosswalk_amendment_status(mdcd_demo_amndmt_stus_cd);
+ *                        a pending-track amendment (resolved via the pending
+ *                        parent, no approved parent) with a NULL source status is
+ *                        assigned 'Under Review' -- the pending demonstrations
+ *                        carry no status, so the 162 statusless pending-track
+ *                        amendments mirror their parent (LEFT JOIN + COALESCE;
+ *                        an approved-track amendment whose status is unmapped/NULL
+ *                        is still dropped fail-closed and logged by 99_parity/52)
  *   current_phase_id     status-derived (no source column): Approved->'Approval Summary',
  *                        Under Review->'Review', Withdrawn/Denied->'Concept'
  *                        (proposed; SME-ratify; logged by 99_parity/52)
@@ -70,8 +77,9 @@ BEGIN
     RAISE NOTICE 'skip amendment load: stg.amendment_resolved not built yet';
     RETURN;
   END IF;
-  -- Resolve each loadable amendment (status mapped + parent demonstration
-  -- loaded) into the target column set once, on a temp table, so the
+  -- Resolve each loadable amendment (status mapped, or pending-track defaulted
+  -- to 'Under Review', AND parent demonstration loaded) into the target column
+  -- set once, on a temp table, so the
   -- application-anchor insert, the amendment insert, and the fail-closed
   -- hold-back guard all share a single derivation. ON COMMIT DROP + a defensive
   -- pre-DROP keep re-apply clean in either autocommit or one-txn mode.
@@ -98,8 +106,12 @@ BEGIN
     (NULLIF(btrim(r.name), '') IS NULL)               AS name_synthesized,
     r.description                                     AS description,
     r.effective_date                                  AS effective_date,
-    cw.demos_text_id                                  AS status_id,
-    CASE cw.demos_text_id
+    COALESCE(cw.demos_text_id, CASE WHEN r.parent_is_pending THEN
+        'Under Review'
+      END)                                            AS status_id,
+    CASE COALESCE(cw.demos_text_id, CASE WHEN r.parent_is_pending THEN
+        'Under Review'
+      END)
     WHEN 'Approved' THEN
       'Approval Summary'
     WHEN 'Under Review' THEN
@@ -119,8 +131,12 @@ BEGIN
     r.updated_at                                      AS updated_at
   FROM
     stg.amendment_resolved r
-    JOIN mysql_raw.crosswalk_amendment_status cw ON cw.legacy_int_cd = r.status_cd
-    JOIN demos_app.demonstration d ON d.id = r.demo_uuid;
+    LEFT JOIN mysql_raw.crosswalk_amendment_status cw ON cw.legacy_int_cd = r.status_cd
+    JOIN demos_app.demonstration d ON d.id = r.demo_uuid
+  WHERE
+    COALESCE(cw.demos_text_id, CASE WHEN r.parent_is_pending THEN
+        'Under Review'
+      END) IS NOT NULL;
   -- Fail-closed hold-back mirroring check_amendment_non_null_fields_when_approved
   -- (as the demonstration loader mirrors its own Approved CHECK): an Approved
   -- amendment with a NULL effective_date or NULL signature_level_id would violate

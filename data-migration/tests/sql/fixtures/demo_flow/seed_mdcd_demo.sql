@@ -10,7 +10,7 @@
  * trace (docs/tools/table_flow_trace.py) exercises every disposition:
  *
  *   id 1  LOADED  Approved, chip preserved, Approval Summary (aprvl_dt)
- *   id 2  LOADED  Approved, chip MINTED (NULL secondary), Approval Summary
+ *   id 2  LOADED  Approved, chip DEFERRED (NULL secondary -> NULL chip_id), Approval Summary
  *   id 3  HELD    Approved but sdg_division sentinel 0 -> NULL  (parity check 13)
  *   id 4  HELD    Approved but NULL state -> no state_region row (parity check 8)
  *   id 5  FILTERED  project number contains TEST -> fails 11-W regex
@@ -23,8 +23,8 @@
  * Every row carries a crosswalked status code (2,3,8). Code 1 'Pending' is also
  * mapped now (-> 'Under Review' per D1), but this fixture does not exercise it;
  * the 04_crosswalks/11_demo_status_check hard gate stays green. All timestamps are
- * fixed so the trace is deterministic; only the minted UUIDs (and the minted
- * chip sequence) vary run to run and are normalized by the emitter.
+ * fixed so the trace is deterministic; only the minted UUIDs vary run to run and
+ * are normalized by the emitter (chip_id is preserved-or-NULL, never minted).
  *
  * Applied against the typed mysql_raw skeleton built from
  * reports/schema_snapshot/columns.csv (tests/sql/_skeleton.py), where every
@@ -32,7 +32,7 @@
  */
 INSERT INTO mysql_raw.mdcd_demo(mdcd_demo_id, mdcd_demo_num, mdcd_scndry_demo_num, mdcd_demo_name, mdcd_demo_desc, state_prfmnc_yr_strt_dt, state_prfmnc_yr_end_dt, mdcd_demo_stus_cd, geo_ansi_state_cd, mdcd_chip_div_cd, creatd_dt, updtd_dt, aprvl_dt, dltd_ind)
   VALUES (1, '11-W-00001/1', '21-W-00100/1', '  Alpha Demonstration  ', 'First approved demo', '2021-03-01', '2026-02-28', 2, 'MA', 2, '2021-01-10 09:00:00+00', '2021-02-01 09:00:00+00', '2021-02-15', 0),
-(2, '11-W-00002/1', NULL, 'Beta Demonstration', 'Approved, chip minted', '2021-06-01', '2026-05-31', 2, 'CT', 3, '2021-04-12 09:00:00+00', NULL, '2021-05-20', 0),
+(2, '11-W-00002/1', NULL, 'Beta Demonstration', 'Approved, NULL secondary -> chip deferred', '2021-06-01', '2026-05-31', 2, 'CT', 3, '2021-04-12 09:00:00+00', NULL, '2021-05-20', 0),
 (3, '11-W-00003/4', '21-W-00200/4', 'Gamma Demonstration', 'Approved but missing sdg division', '2021-09-01', '2026-08-31', 2, 'FL', 0, '2021-07-01 09:00:00+00', '2021-07-15 09:00:00+00', '2021-08-10', 0),
   -- NULL state passes the filter (geo_ansi_state_cd is only format-checked when
   -- present) and the crosswalk_state completeness gate (which ignores NULL), so

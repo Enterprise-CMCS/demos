@@ -425,3 +425,107 @@ Surprises worth carrying forward:
   SME disposition rather than letting them silently disappear. Pattern to watch:
   any loader whose crosswalk join is INNER can silently shed unmapped-key rows,
   and if the accounting view reuses that same join the loss is doubly invisible.
+
+2026-07-10 sme-answers: the SME answered the 2026-07-10 question set. This entry
+records the dispositions; the code lands across five dedicated branches (see the
+approved spec). This branch (`migration/sme-decision-ratifications`) is docs-only.
+
+- **Ratified, already implemented (no logic change):** signature level 'OA' on
+  every demonstration; the 'DD' hard-stop (no live demo is DD; a live DD still
+  fails closed); deliverable confirmation-status drop (`Not Ready / Ready for
+  CMS Review` has no target); deleted deliverables left behind (soft-delete
+  excluded, same as demos); demonstration `type` = 'Demonstration'; role routing
+  by source table/column (external evaluator -> non-login contact; Technical
+  Director split Policy TD vs M&E TD); 'Not Applicable' demo type dropped;
+  state-access hold for all-states / unrecognized non-CMS users; comments
+  default to internal and move to public when needed (route by author until SDG
+  supplies the origin-code meanings -- remind SDG; contractors won't always be
+  caught by CMS-vs-EE, accepted).
+- **Amendment statuses RATIFIED (2026-07-10):** 1->Under Review, 2->Approved,
+  3->Withdrawn, 4->Denied (was in-session-accepted; `64_amendment_status.sql`,
+  `amendment_status.csv`, `_review.md` P2 updated).
+- **Document-type leftovers SETTLED (2026-07-10):** codes 6/99 -> General File,
+  7 -> BN Workbook; no new document_type added -- just filed under existing
+  seeds (David rubber-stamp pending, non-blocking).
+- **Semi-annual BN -> keep Quarterly** ("identical"). Resolves the workflow-8
+  open item. Mechanics: profile the source first; add a `bdgt_ntrlty_ind`
+  override -> Quarterly BN Report only if live semi-annual BN deliverables
+  exist (rpt_ocrnc code 6 'Semi-Annually' is seen only on soft-deleted rows
+  today). Gated behind the still-blocked deliverable loader.
+- **CHIP id -- STOP MINTING (reverses the 2026-06-24 "mint 21-W fallback"
+  decision).** SME: CMS/DEMOS mints CHIP ids, the migration must not invent
+  them. Contract (built in `migration/chip-id-no-mint`): the migration preserves
+  the real legacy 11-W medicaid_id and 21-W chip_id, leaves chip_id (and, for
+  pending demos, medicaid_id) NULL when the source has none, and drops the
+  `21-W-<seq>/<region>` fallback. The DEMOS side makes medicaid_id/chip_id
+  nullable for the migration window and ships a null-only backfill (disable the
+  immutable-fields trigger, mint region-based ids ONLY where NULL, re-enable,
+  re-set NOT NULL -- the pattern already used in migration `20260602201004`).
+  NOTE: DEMOS `generate_medicaid_chip_id_numbers` mints BOTH ids and forbids
+  manual set, and `prevent_changing_immutable_demonstration_fields` makes them
+  immutable -- so the backfill must mint chip_id only where NULL and must never
+  touch a preserved medicaid_id. No `is_migrated_from_pmda` column is added to
+  `demonstration` (that idea is dropped).
+- **Pending demonstrations -- IN SCOPE to build** (`migration/pending-demonstrations`;
+  see D1 scope update in `pending_approved_decisions.md`). Status 'Under Review';
+  the 162 statusless pending amendments take 'Under Review' (mirror parent).
+- **All milestone dates -- bring them** (`migration/milestone-dates`), guarding
+  the federal comment period: DEMOS's cron `update_federal_comment_phase_status()`
+  auto-starts the Federal Comment phase when 'now' is inside a loaded window, so
+  pre-set the Federal Comment phase_status to avoid spuriously advancing
+  cutover-spanning windows. Today only the approval date is migrated
+  (`20_app/36`).
+- **Withdrawn demonstrations -- keep loading + list for SDG** (SDG clarification
+  still wanted, non-blocking).
+- **Two SME-requested exports** (`migration/sme-review-exports`): held 'Other'
+  program names (source `99_parity/54`) and a comments snapshot.
+- **Routed to owners (no code yet):** deliverable acceptance-status precedence
+  (David -- does it override the main status?); renewals/extensions (David --
+  kept deferred post-MVP, profile for his call); BN summary-only sufficiency
+  (Vivian -- proceeding tentatively); phase-mapping ordinals 4/5/6, clearance
+  collapse into SDG Preparation, early-step split, Concept default (David &
+  Vivian -- current mapping kept meanwhile); comment origin-code meanings (SDG).
+
+2026-07-14 chip-id: **the migration no longer mints `chip_id` (supersedes the
+2026-06-24 mint decision).** Per the 2026-07-10 SME answers, CMS (not the
+migration) assigns CHIP ids and the DEMOS app owns `chip_id`: it makes the
+column nullable and backfills/mints the NULLs after load. So
+`20_app/30_demonstration.sql` now sets `chip_id` to the preserved legacy 21-W
+number when the source has one, else **NULL** (never a `21-W-<seq>/<region>`
+fallback). The loader still advances `chip_id_number_seq` past every preserved
+legacy 21-W number so DEMOS's later backfill / in-app mint cannot collide with a
+preserved value. `medicaid_id` is unchanged (always legacy-preserved, never
+minted). The demonstration flow-trace `chip_source` vocabulary changed from
+`preserved|minted` to `preserved|deferred` (deferred rows carry a NULL
+`chip_id`); the manifest, tests, and generated partials were updated to match.
+
+2026-07-14 pending demonstrations (workflow 7 reversal, `migration/pending-demonstrations`):
+per the 2026-07-10 SME answers, pending demos now migrate. `stg._pendg_demo_fold`
+(`10_stg/23`) classifies each PMDA-valid pending demo "approved wins": a pending
+demo whose project number matches a valid approved demo **folds** into it; one
+with no counterpart is an **orphan_loadable**; one with no project number is
+**held_no_project**. `10_stg/24` projects orphans and `20_app/31` loads them as
+their own 'Under Review' demonstration (chip_id always NULL, no status column ->
+uniformly Under Review), holding back the RED-4 duplicate-medicaid loser and any
+state absent from `state_region` (logged non-gating in
+`_parity_pending_demonstration_held`). Amendments resolve fold-aware
+(`10_stg/30` LEFT JOINs the fold; `20_app/35` assigns 'Under Review' to the 162
+statusless pending-track amendments; `99_parity/52` unmapped-status guard mirrors
+the loader's drop condition so they are not falsely flagged). Parity check 4
+(`99_parity/04`) was redefined: `leaked` = a must-not-load (folded/no-project)
+pending demo that got its own row; `pending_only_deferred` = the residual
+no-project-number set, reconciled against
+`reports/parity_accepted/pending_approved_deferrals.csv` (now the SME-signed
+reversal record; the former `no_approved_counterpart` rows were removed because
+they load). Pending program-detail tags now **load** fold-aware:
+`reports/pgm_dtl_tag_mapping_pending.csv` is populated (68 rows derived
+mechanically from the filled base `pgm_dtl_tag_mapping.csv` by prefix-swap
+`mdcd_`->`mdcd_pendg_`, same tags + date columns; the source-absent
+`mdcd_pendg_fincl_pool_pgm_dtl` is dropped -- no new SME judgment), driven by
+`04_crosswalks/47_pendg_pgm_dtl_tag.sql` + registry entry. The fold-aware
+fixed-tag loader `21_app_associative/12` and free-text "Other" loader
+`21_app_associative/13` resolve the parent via `stg._pendg_demo_fold`; parity
+`99_parity/55` logs held free-text "Other" rows (non-gating) and fail-closes on
+any mapped-but-unseeded tag -- mirroring the base 10/11/54 trio as pending
+12/13/55. This branch also stacks the two prior unmerged branches (2026-07-10
+crosswalk sign-offs; stop minting chip_id) via cherry-pick.

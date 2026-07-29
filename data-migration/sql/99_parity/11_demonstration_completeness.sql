@@ -15,9 +15,10 @@
  * 11_demo_status_check hard gate fails `migrate crosswalks` on any status code
  * absent from crosswalk_demo_status upstream (code 1 'Pending' is now mapped to
  * 'Under Review' per D1) -- so the residual cause is an unresolvable state:
- * the loader inner-joins migration.state_region to mint the 21-W chip region,
- * so a demo with a NULL / unmapped geo_ansi_state_cd is silently held back with
- * only a build NOTICE. This view makes that gap durable and fail-closed.
+ * the loader inner-joins migration.state_region (a load requires a resolvable
+ * CMS region), so a demo with a NULL / unmapped geo_ansi_state_cd is silently
+ * held back with only a build NOTICE. This view makes that gap durable and
+ * fail-closed.
  *
  * Consumed by migration/phases/parity.py as the
  * "8. Demonstration load completeness" CheckResult. Non-empty -> RED at Gate 6.

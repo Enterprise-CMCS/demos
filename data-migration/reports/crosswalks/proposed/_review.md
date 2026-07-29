@@ -26,11 +26,11 @@ than author from a blank sheet.
   already LOADED -- `44/45_system_role` (`system_role.csv`) +
   `46/47_demonstration_role` (`demonstration_role.csv`), plus the
   self-contained `42/43_role_person_type` (`role_person_type.csv`).
-  **amendment_status (2026-06-26):** `64_amendment_status` is loaded from
-  `amendment_status.csv` alongside the other live crosswalks above
+  **amendment_status (2026-06-26; SME-ratified 2026-07-10):** `64_amendment_status`
+  is loaded from `amendment_status.csv` alongside the other live crosswalks above
   (`demo_status`, `signature_level`, `deliverable_status`); its 4 proposed
-  values were accepted in-session to unblock the amendment loader `20_app/35`,
-  but formal sign-off in the table below is still pending (SME-ratify).
+  values were accepted in-session to unblock the amendment loader `20_app/35`
+  and were formally SME-ratified on 2026-07-10 (see the sign-off table below).
   `deliverable_type` SQL is deliberately not authored yet -- it is gated on
   `deliverable_type_bn_routing.md`.
 - Data-backed identity maps are populated (like `state`), not gated on SME
@@ -134,9 +134,12 @@ than author from a blank sheet.
     `Approved` alone loses the distinction, so the demonstration transform must
     carry those dates.
   - Code 1 (`Pending`) is resolved to `Under Review` per decision D1
-    (`reports/narrative/pending_approved_decisions.md`), medium confidence; secondary SME
-    confirmation (`Under Review` vs `Pre-Submission`) still wanted.
+    (`reports/narrative/pending_approved_decisions.md`); **SME-confirmed
+    2026-07-10** (`Under Review` over `Pre-Submission`; load as Under Review and
+    verify the auto-calculated federal comment period behaves).
   - `Withdrawn` (code 9) is migration-only -- DEMOS has no in-app path to it.
+    **SME 2026-07-10:** keep loading Withdrawn demonstrations and add them to a
+    review list for SDG (SDG clarification still wanted, non-blocking).
 - **Renewals are DEFERRED (post-MVP).** DEMOS has no renewals concept. The
   earlier "Renewal == Extension" framing is withdrawn; `renewal_status` is not
   mapped and `sql/04_crosswalks/70_renewal_status_deferred.sql` is a documented
@@ -180,9 +183,11 @@ than author from a blank sheet.
   `mdcd_demo_aplctn_doc_type_rfrnc` is 8/11 verbatim with the `document_type`
   seed (proposed CSV added). But `document_type` is the union of several legacy
   doc-type families (site-visit, template, reference-material, help/support);
-  promoting it live needs SME reconciliation of those other families plus the
-  three application leftovers (`Temporary Extension Letter`, `Final BN
-  Worksheet`, `Other`). The proposal documents the application subset only.
+  promoting it live needs SME reconciliation of those other families. The three
+  application leftovers (`Temporary Extension Letter`, `Final BN Worksheet`,
+  `Other`) are **SME-settled 2026-07-10**: filed under existing seeds
+  (General File / BN Workbook) with no new document_type added. The proposal
+  documents the application subset only.
 - **deliverable_type BN routing is under investigation.** Legacy types are
   cadence-based (Q1-Q4 / Semi-Annual / Annual); DEMOS types are content-based,
   with distinct `Annual Budget Neutrality Report` / `Quarterly Budget
@@ -289,16 +294,16 @@ preserve data; they are **not** crosswalk mappings and are tracked separately.
 | application_status | Zoe Elkins | 2026-06-26 | approved; LOADED (load-only via `application_status.csv` + `registry.yaml`); not yet consumed (`application.status_id` still demo_status-derived) |
 | application_type | Zoe Elkins | 2026-06-26 | approved; data-backed identity (LOADED); confirm if any future code beyond 1/2/3 |
 | sdg_division | Zoe Elkins | 2026-06-26 | approved; data-backed identity (LOADED); confirm 0/`-- Please Select --` -> NULL; 2026-06-30 audit added code `1` -> NULL (retired/undefined division, no rfrnc entry, only on 24 soft-deleted demos) |
-| amendment_status | Droid (in-session) | 2026-06-26 | edits accepted in-session to unblock loader (1->Under Review, 2->Approved, 3->Withdrawn, 4->Denied); loaded from `amendment_status.csv` via `registry.yaml`; **awaiting formal SME ratification** (esp. Pending->Under Review vs Pre-Submission, Disapproved->Denied) |
+| amendment_status | SME | 2026-07-10 | **ratified** (1->Under Review, 2->Approved, 3->Withdrawn, 4->Denied); Pending->Under Review confirmed over Pre-Submission, Disapproved->Denied confirmed; loaded from `amendment_status.csv` via `registry.yaml` |
 | renewal_status | | | DEFERRED post-MVP (no mapping) |
 | deliverable_status | Zoe Elkins | 2026-07-09 | approved |
 | deliverable_type | Zoe Elkins | 2026-07-09 | approved |
-| deliverable_cnfrmtn_status | | | |
-| deliverable_acptnc_status | | | |
+| deliverable_cnfrmtn_status | SME | 2026-07-10 | **drop confirmed** (Not Ready / Ready for CMS Review has no DEMOS target; readiness is implicit in the deliverable action timeline) |
+| deliverable_acptnc_status | | | **open -- David question**: does acceptance status override the main deliverable status in any case, or does main status win? Held pending David |
 | deliverable_extension_status | Zoe Elkins | 2026-07-09 | approved; data-backed; confirm Not Approved->Denied, Approved/Alternate Date->Approved, undetermined->Requested |
-| deliverable_extension_reason_code | | | data-backed; confirm State Level Emergency->Other (lossy) and Covid-19 case-fold |
-| document_type | Zoe Elkins | 2026-06-26 | approved (application subset); LOADED (load-only via `document_type.csv` + `registry.yaml`); completeness inert until `mdcd_demo_aplctn_doc` loads; reconcile other doc-type families separately |
+| deliverable_extension_reason_code | SME | 2026-07-10 | **confirmed**: State Level Emergency->Other (lossy, no new reason added) and Covid-19 case-fold to COVID-19; promote proposal to a live crosswalk when the deliverable_extension workstream lands |
+| document_type | Zoe Elkins / SME | 2026-07-10 | approved (application subset); LOADED (load-only via `document_type.csv` + `registry.yaml`); the three no-clean-match codes (6 Temporary Extension Letter, 7 Final BN Worksheet, 99 Other) are **SME-settled 2026-07-10** -- filed under existing seeds (General File / BN Workbook), no new type added (David rubber-stamp pending, non-blocking); completeness inert until `mdcd_demo_aplctn_doc` loads; reconcile other doc-type families separately |
 | contact_type | Zoe Elkins | 2026-06-26 | folded into the demonstration-role split (`demonstration_role.csv`); standalone proposal removed |
 | role | Zoe Elkins | 2026-06-26 | approved; system-level LOADED (`system_role.csv`); demonstration-level LOADED via column-keyed `crosswalk_demonstration_role` (`demonstration_role.csv`) |
 | demonstration_type | Zoe Elkins | 2026-06-26 | approved; data-backed identity; drop '0'/Not Applicable and filter/flag 'OTHR'/Other rows |
-| pgm_dtl_tag | Zoe Elkins | 2026-07-09 | approved; 10 source tables ratified by SME |
+| pgm_dtl_tag | Zoe Elkins | 2026-07-09 | approved; 10 source tables ratified by SME -- all tag_names + date columns applied in `pgm_dtl_tag_mapping.csv`. `mdcd_hlthy_adlt_oprtnty_pgm_dtl` date period = `hlthy_adlt_oprtnty_from_dt/to_dt`; `mdcd_intgrtd_care_pgm_dtl` = CMMI - Integrated Care for Kids (IncK) and `mdcd_prm_pgm_dtl` = Premiums/Cost-Sharing both confirmed; `mdcd_othr_pgm_dtl` stays free-text (name-match-else-held via `21_app_associative/11`), held names exported non-gating in `99_parity/54` for SDG review |

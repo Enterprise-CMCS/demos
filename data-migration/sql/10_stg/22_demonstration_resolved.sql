@@ -15,8 +15,9 @@
  * the id map, and stg._valid_demo_ids -- never the crosswalks (04) or
  * seeds (02) -- so it builds in the stg-only idempotency harness
  * (tests/sql/test_stg_idempotency.py). The status crosswalk join, the
- * state-region lookup, the chip_id fallback mint and the status-based phase
- * fallback all live in the loader, which runs after crosswalks + seeds.
+ * state-region lookup, the chip_id preservation (never minted) and the
+ * status-based phase fallback all live in the loader, which runs after
+ * crosswalks + seeds.
  *
  * current_phase_by_date implements the DEMOS "highest started phase by date"
  * rule (server applicationPhaseConstants.ts; reports/narrative/p1_demonstration_mapping_worksheet.md

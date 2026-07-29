@@ -111,6 +111,14 @@ def _provision(conn: Any) -> None:
         "INSERT INTO stg._valid_amndmt_ids (amndmt_id) VALUES (%s),(%s),(%s),(%s),(%s)",
         (A_APPROVED, A_OGD, A_PENDING_ONLY, A_PARENT_HELD, A_APPROVED_NOSIG),
     )
+    # stg._pendg_demo_fold is referenced by 30_amendment_resolved for fold-aware
+    # pending parentage; an empty stub keeps A_PENDING_ONLY (pendg id 99) held
+    # (no fold row -> demo_uuid NULL -> parent_is_pending FALSE), preserving the
+    # pre-fold behavior this harness asserts. The pending-track loading path is
+    # covered by tests/sql/test_pending_amendment_load.py.
+    conn.execute(
+        "CREATE TABLE stg._pendg_demo_fold (legacy_pendg_demo_id bigint, demo_uuid uuid)"
+    )
     _apply(conn, IDMAP_CREATE)  # migration._id_map_mdcd_demo_amndmt (empty)
     _apply(conn, IDMAP_POP)     # mint a UUID per valid id
     _apply(conn, RESOLVED)      # stg.amendment_resolved view

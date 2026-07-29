@@ -205,6 +205,23 @@ def test_held_losers_excluded_from_completeness(pg_db: psycopg.Connection) -> No
     assert _u(VT_LOSE) not in completeness_ids
 
 
+def test_missing_secondary_number_leaves_chip_id_null(pg_db: psycopg.Connection) -> None:
+    """No minting: a demo with a NULL mdcd_scndry_demo_num loads with chip_id NULL.
+
+    Every fixture demo has a NULL secondary number, so if the loader still minted
+    a 21-W fallback we would see a non-NULL chip_id here. The migration must leave
+    chip_id NULL for the DEMOS app to backfill.
+    """
+    _provision(pg_db)
+    minted = _scalar(
+        pg_db, "SELECT count(*) FROM demos_app.demonstration WHERE chip_id IS NOT NULL"
+    )
+    assert minted == 0
+    # The chip sequence must not have been consumed by a mint (no nextval calls);
+    # the loader only floors it via setval, which leaves last_value at the START.
+    assert _scalar(pg_db, "SELECT last_value FROM demos_app.chip_id_number_seq") == 1000
+
+
 def test_loader_is_idempotent(pg_db: psycopg.Connection) -> None:
     """Re-applying the loader inserts nothing new."""
     _provision(pg_db)

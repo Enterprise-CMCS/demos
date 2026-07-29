@@ -10,7 +10,7 @@ mdcd_demo,updtd_dt,demonstration,updated_at,cast,MySQL timestamp -> Postgres tim
 mdcd_demo,mdcd_demo_stus_cd,demonstration,status_id,crosswalk:demo_status,Status crosswalk (codes 2-9 promoted; code 1 'Pending' withheld pending SME)
 mdcd_demo,,demonstration,application_type_id,constant,"Constant 'Demonstration' (§6.3); composite FK demonstration(id, application_type_id) -> application"
 mdcd_demo,mdcd_demo_num,demonstration,medicaid_id,derive,"Legacy-preserved 11-W-NNNNN/R number (§6.6); never minted"
-mdcd_demo,mdcd_scndry_demo_num,demonstration,chip_id,derive,"Preserve legacy 21-W number when present; else mint from demos_app.chip_id_number_seq (§6.6)"
+mdcd_demo,mdcd_scndry_demo_num,demonstration,chip_id,derive,"Preserve legacy 21-W number when present; else NULL (the DEMOS app backfills/mints it). The migration never mints CHIP ids (§6.6)"
 mdcd_demo,,demonstration,current_phase_id,derive,"Date-derived from stg.demonstration_resolved -> Approved fallback -> Concept (§6.1); SME-ratify"
 mdcd_demo,aprvl_dt,application_date,date_value,derive,Approval date -> application_date (date_type_id = 'Application Approval Date'); only for loaded demonstrations where aprvl_dt IS NOT NULL
 mdcd_demo,mdcd_demo_id,application_date,application_id,id_map,"Shared application UUID (stg.demonstration_resolved.new_uuid); IS-A shared PK with application"

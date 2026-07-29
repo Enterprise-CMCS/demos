@@ -77,8 +77,13 @@ def test_loaded_rows_have_uuid_and_chip() -> None:
             assert r["uuid_token"].startswith("DEMONSTRATION_UUID_")
             assert r["status_id"]
             assert r["current_phase_id"]
-            assert r["chip_source"] in {"preserved", "minted"}
-            assert r["chip_id"]
+            assert r["chip_source"] in {"preserved", "deferred"}
+            # The migration never mints chip_id: preserved rows carry the legacy
+            # 21-W number, deferred rows carry NULL (DEMOS backfills them).
+            if r["chip_source"] == "preserved":
+                assert r["chip_id"]
+            else:
+                assert r["chip_id"] is None
         else:
             assert "uuid_token" not in r
             assert r["reason"]
@@ -93,14 +98,17 @@ def test_uuid_tokens_unique_and_ordered_by_medicaid_id() -> None:
     assert [r["uuid_token"] for r in by_id] == sorted(tokens)
 
 
-def test_minted_chips_are_masked_preserved_is_concrete() -> None:
-    minted = [r for r in ROWS if r.get("chip_source") == "minted"]
+def test_preserved_chip_is_concrete_deferred_chip_is_null() -> None:
+    """The migration never mints: preserved chips are concrete, deferred are NULL."""
     preserved = [r for r in ROWS if r.get("chip_source") == "preserved"]
-    assert minted, "fixture should exercise at least one minted chip"
-    for r in minted:
-        assert "\u2026" in r["chip_id"]  # masked sequence number
+    deferred = [r for r in ROWS if r.get("chip_source") == "deferred"]
+    assert preserved, "fixture should exercise at least one preserved chip"
+    assert deferred, "fixture should exercise at least one deferred (NULL) chip"
     for r in preserved:
-        assert "\u2026" not in r["chip_id"]
+        assert r["chip_id"] and r["chip_id"].startswith("21-W-")
+        assert "\u2026" not in r["chip_id"]  # nothing is masked anymore
+    for r in deferred:
+        assert r["chip_id"] is None
 
 
 def test_committed_trace_partial_renders_from_committed_manifest() -> None:

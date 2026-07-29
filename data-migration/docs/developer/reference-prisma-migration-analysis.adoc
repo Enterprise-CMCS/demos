@@ -89,7 +89,7 @@ That mint is the app's *clone* path -- it has no knowledge of PMDA's real
 numbers. For our migration:
 
 * `medicaid_id` <- PMDA `mdcd_demo.mdcd_demo_num`. High-confidence, data-grounded, and *important*: if we let DEMOS mint instead, every demonstration gets a fake waiver number. Source is `varchar(20)` and present on real rows; verify uniqueness before load (target index is `UNIQUE`).
-* `chip_id` <- PMDA `mdcd_demo.mdcd_scndry_demo_num`. **Not** a simple copy: the source secondary number is *nullable*, but the target is `NOT NULL` + `UNIQUE`. We must mint a fallback (mirroring the `21-W-<seq>/<region>` shape) only where the source is missing, and **advance `chip_id_number_seq` past our minted values** so a later app insert cannot collide.
+* `chip_id` <- PMDA `mdcd_demo.mdcd_scndry_demo_num`. Preserve the legacy 21-W number when present, else leave `chip_id` **NULL**. The migration **never mints** a CHIP id: per the 2026-07-10 SME decision the DEMOS app owns `chip_id` (it makes the column nullable and backfills/mints the NULLs after load), since PMDA carries no CHIP number for these rows and CMS assigns them. The loader still **advances `chip_id_number_seq` past every preserved legacy 21-W number** so a later DEMOS mint cannot collide with a preserved value.
 
 The triggers the migration disables during its backfill
 (`prevent_changing_immutable_demonstration_fields`,

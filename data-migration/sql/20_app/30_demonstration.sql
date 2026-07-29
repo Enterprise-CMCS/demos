@@ -1,8 +1,8 @@
 /*
- * Purpose:    Load the demos_app.application anchor + demos_app.demonstration from stg.demonstration_resolved, deriving status/phase/ids and minting chip_id fallbacks.
+ * Purpose:    Load the demos_app.application anchor + demos_app.demonstration from stg.demonstration_resolved, deriving status/phase/ids (chip_id is legacy-preserved or left NULL; the migration never mints it).
  * Inputs:     stg.demonstration_resolved; mysql_raw.crosswalk_demo_status; mysql_raw.crosswalk_sdg_division; migration.state_region; sequences demos_app.chip_id_number_seq / demos_app.medicaid_id_number_seq.
  * Outputs:    demos_app.application, demos_app.demonstration
- * Invariants: runs inside the deferred-constraint build_app txn; FKs dropped during build, re-validated in the constraints phase; fail-closed (a demo loads only when its status code is mapped and its state resolves); mirrors check_demonstration_non_null_fields_when_approved by holding back Approved rows missing sdg_division/effective/expiration (non-gating, logged to migration._parity_approved_demo_held); holds back the non-winning row of a duplicate medicaid_id (RED-4) instead of violating demonstration_medicaid_id_key (non-gating, logged to migration._parity_demonstration_held_dup_medicaid_id); pre-advances chip_id_number_seq before minting so a minted chip_id cannot collide with a preserved one; idempotent via NOT EXISTS + ON CONFLICT (id) DO NOTHING (keeps nextval stable on re-run).
+ * Invariants: runs inside the deferred-constraint build_app txn; FKs dropped during build, re-validated in the constraints phase; fail-closed (a demo loads only when its status code is mapped and its state resolves); mirrors check_demonstration_non_null_fields_when_approved by holding back Approved rows missing sdg_division/effective/expiration (non-gating, logged to migration._parity_approved_demo_held); holds back the non-winning row of a duplicate medicaid_id (RED-4) instead of violating demonstration_medicaid_id_key (non-gating, logged to migration._parity_demonstration_held_dup_medicaid_id); the migration NEVER mints chip_id (leaves it NULL when the source has no secondary number, for the DEMOS app to backfill), but still advances chip_id_number_seq past every preserved legacy 21-W number so a later DEMOS backfill / in-app mint cannot collide with a preserved chip_id; idempotent via NOT EXISTS + ON CONFLICT (id) DO NOTHING (keeps nextval stable on re-run).
  * Refs:       reports/narrative/p1_demonstration_mapping_worksheet.md, sql/04_crosswalks/10_demo_status.sql, sql/99_parity/12_approved_demo_held_for_division.sql, docs/specs/pmda-cross-cutting-derivation-spec.md
  *
  * App load: demos_app.application (anchor) + demos_app.demonstration from the
@@ -23,7 +23,7 @@
  *   status_id            crosswalk_demo_status(mdcd_demo_stus_cd)       (§3)
  *   current_phase_id     date-derived (stg) -> Approved fallback -> Concept (§6.1)
  *   medicaid_id          mdcd_demo_num (legacy-preserved)               (§6.6)
- *   chip_id              mdcd_scndry_demo_num, else minted 21-W-<seq>/<region> (§6.6)
+ *   chip_id              mdcd_scndry_demo_num, else NULL (DEMOS app backfills; never minted here) (§6.6)
  *   effective/expiration state_prfmnc_yr_strt/end_dt
  *   sdg_division_id      crosswalk_sdg_division(mdcd_chip_div_cd) (data-backed
  *                        identity map; sentinel 0 / unmapped -> NULL)
@@ -45,17 +45,18 @@
  * the primary project officer are deferred
  * (docs/specs/pmda-cross-cutting-derivation-spec.md).
  *
- * Idempotent: NOT EXISTS + ON CONFLICT (id) DO NOTHING keep re-apply a no-op,
- * which also stops the chip mint nextval from advancing on re-runs. The
- * sequence reconciliation recomputes from loaded data, so it is stable too.
+ * Idempotent: NOT EXISTS + ON CONFLICT (id) DO NOTHING keep re-apply a no-op.
+ * The sequence reconciliation recomputes from source/loaded data, so it is
+ * stable across re-runs.
  *
- * chip_id_number_seq STARTS AT 1000 and DEMOS only ever mints onto an empty
- * table, so it has no legacy 21-W numbers to dodge. We do: we both preserve
- * legacy secondary numbers and mint fallbacks from that one sequence, so we
- * pre-advance the sequence past the largest legacy 21-W number BEFORE minting,
- * guaranteeing every minted chip_id sorts above (and cannot collide with) a
- * preserved one in the same load. medicaid_id is always legacy-preserved (never
- * minted), so only a post-load advance (for the later DEMOS minter) is needed.
+ * chip_id: the migration does NOT mint. It preserves the legacy 21-W secondary
+ * number when present and otherwise leaves chip_id NULL; the DEMOS application
+ * owns chip_id (its column is nullable and it backfills/mints the NULLs after
+ * load). We still advance chip_id_number_seq past the largest preserved legacy
+ * 21-W number so that whenever DEMOS next mints (backfill or a new in-app demo)
+ * it starts above every preserved chip_id and cannot collide with one.
+ * medicaid_id is always legacy-preserved (never minted), so a post-load advance
+ * of medicaid_id_number_seq likewise floors the later DEMOS minter above it.
  */
 SET search_path TO demos_app, stg, migration, mysql_raw, public;
 
@@ -67,8 +68,10 @@ BEGIN
     RAISE NOTICE 'skip demonstration load: stg.demonstration_resolved not built yet';
     RETURN;
   END IF;
-  -- Pre-advance the chip sequence past every preserved legacy 21-W number so a
-  -- minted fallback below cannot collide with one in the same batch.
+  -- The migration never mints chip_id, but it still advances chip_id_number_seq
+  -- past every preserved legacy 21-W number so that whenever the DEMOS app next
+  -- mints (backfilling the NULLs we leave, or a new in-app demo) it starts above
+  -- them and cannot collide with a preserved chip_id.
   PERFORM
     setval('demos_app.chip_id_number_seq', GREATEST((
         SELECT
@@ -149,11 +152,9 @@ BEGIN
       END, 'Concept'),
     r.state_id,
     r.medicaid_id,
-    CASE WHEN r.chip_id_legacy IS NOT NULL THEN
-      r.chip_id_legacy
-    ELSE
-      format('21-W-%s/%s', lpad(nextval('demos_app.chip_id_number_seq')::text, 5, '0'), sr.region)
-    END,
+    -- Legacy 21-W secondary number when present, else NULL. The migration never
+    -- mints chip_id; the DEMOS app backfills the NULLs after load.
+    r.chip_id_legacy,
     r.created_at,
     r.updated_at,
     -- DEMOS migration 20260616155913 added status_updated_at (NOT NULL, DEFAULT
@@ -276,7 +277,7 @@ BEGIN
   END IF;
   -- Advance the medicaid sequence past the largest legacy-preserved 11-W number
   -- so a later DEMOS app insert cannot mint a colliding medicaid_id. (The chip
-  -- sequence is already past every loaded value from the pre-advance + minting.)
+  -- sequence was floored the same way above, before the load.)
   PERFORM
     setval('demos_app.medicaid_id_number_seq', GREATEST((
         SELECT

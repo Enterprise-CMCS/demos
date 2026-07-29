@@ -18,7 +18,7 @@
 | `mdcd_demo` | `mdcd_demo_stus_cd` | int | `demonstration` | `status_id` | TEXT | `crosswalk:demo_status` | WARN | Status crosswalk (codes 2-9 promoted; code 1 'Pending' withheld pending SME)
 | `mdcd_demo` | `` | — | `demonstration` | `application_type_id` | TEXT | `constant` | MISMATCH | Constant 'Demonstration' (§6.3); composite FK demonstration(id, application_type_id) -> application
 | `mdcd_demo` | `mdcd_demo_num` | varchar(20) | `demonstration` | `medicaid_id` | TEXT | `derive` | OK | Legacy-preserved 11-W-NNNNN/R number (§6.6); never minted
-| `mdcd_demo` | `mdcd_scndry_demo_num` | varchar(20) | `demonstration` | `chip_id` | TEXT | `derive` | OK | Preserve legacy 21-W number when present; else mint from demos_app.chip_id_number_seq (§6.6)
+| `mdcd_demo` | `mdcd_scndry_demo_num` | varchar(20) | `demonstration` | `chip_id` | TEXT | `derive` | OK | Preserve legacy 21-W number when present; else NULL (the DEMOS app backfills/mints it). The migration never mints CHIP ids (§6.6)
 | `mdcd_demo` | `` | — | `demonstration` | `current_phase_id` | TEXT | `derive` | MISMATCH | Date-derived from stg.demonstration_resolved -> Approved fallback -> Concept (§6.1); SME-ratify
 | `mdcd_demo` | `aprvl_dt` | date | `application_date` | `date_value` | TIMESTAMPTZ | `derive` | WARN | Approval date -> application_date (date_type_id = 'Application Approval Date'); only for loaded demonstrations where aprvl_dt IS NOT NULL
 | `mdcd_demo` | `mdcd_demo_id` | int | `application_date` | `application_id` | UUID | `id_map` | WARN | Shared application UUID (stg.demonstration_resolved.new_uuid); IS-A shared PK with application

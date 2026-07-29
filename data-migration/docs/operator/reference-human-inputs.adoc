@@ -103,6 +103,12 @@ xref:../sme/howto-author-a-crosswalk-csv.adoc[the SME crosswalk how-to]).
 | `sql/04_crosswalks/46_pgm_dtl_tag.sql` (no check; consumed by `21_app_associative/10_demonstration_type_tag_assignment.sql`)
 | Populated; drives the tag-pivot fold. Per-row `from_dt_col`/`to_dt_col` override default date columns
 
+| pendg_pgm_dtl_tag
+| -- (derived from base `pgm_dtl_tag`)
+| `reports/pgm_dtl_tag_mapping_pending.csv`
+| `sql/04_crosswalks/47_pendg_pgm_dtl_tag.sql` (no check; consumed by `21_app_associative/12_pending_demonstration_type_tag_assignment.sql` + `13_pending_demonstration_type_tag_othr.sql`)
+| Populated (68 rows derived mechanically from the filled base by prefix-swap `mdcd_`->`mdcd_pendg_`; no new SME judgment). Fold-aware pending counterpart of `pgm_dtl_tag` (parent resolved via `stg._pendg_demo_fold`)
+
 | deliverable_status
 | `reports/crosswalks/proposed/archive/deliverable_status.proposed.csv`
 | `reports/crosswalks/deliverable_status.csv`
