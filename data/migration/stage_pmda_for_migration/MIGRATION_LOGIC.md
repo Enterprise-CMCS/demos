@@ -263,7 +263,7 @@ The current phase is determined by evaluating phase statuses in order and select
 
 Note: The current phase logic does not evaluate beyond SDG Preparation phase as requisite dates for completing the SDG Preparation phase do not exist so demonstrations can not have progressed further than that.  
 
-# OUTSTANDING TODO
+### OUTSTANDING TODO
 - Refactor phase completion logic to break up into multiple CTEs. Because the phase status should cascade depending on the status of the previous phase, the clearest way to represent this using DBT is a series of 7 CTEs, each representing its own phase. (priority 1)
 - in apps_in_prog_phase_completion we are checking against the application_intake_start_date to determine if the concept start date has been skipped. Instead, we should check against the status of the application intake start date. 
 - when initializing the federal comment period status, we should load it in as "Not Started" then rely on the existing stored procedure to update the phase status according to the its own rules. 
@@ -271,3 +271,32 @@ Note: The current phase logic does not evaluate beyond SDG Preparation phase as 
 - we should rewire the inclusion of the current_phase_id to a new model between the Cleaned demonstration and the final demonstration tables, so clean up the existing final demonstration table which currently includes that join. We should strive to keep that table as clean as possible, relying primerily on selects and unions. 
 - in cleaned_demos_app_app_phases_in_prog_demos, we have an inner join that may silently filter. We should replace it with an left join and add a corresponding test for nullness
 - we can replace the apps_in_prog_missing_aplctn test with an inline test in the models.yaml since it is simple enough and concentrates the check back to the main configuration. 
+
+# Deliverables
+
+## Status Code
+
+There is a status code in PMDA that is just labeled 'N/A'. It appears on two non-deleted deliverables. These were filtered out of the migration. Deleted deliverables were also filtered out.
+
+In PMDA, a status code of 16 indicated Pending Due Date Changed. There are a small number of non-deleted deliverables with this status. For now, these are just being filtered out. `#open-question`
+
+The "Past Due" status from PMDA was not migrated at all. Instead, things which were marked Past Due were migrated as Upcoming. Then, the stored procedure which marks things past due was triggered. This ensures that all the Past Due items marked in DEMOS are marked as such based on the DEMOS logic.
+
+There are some unusual records right now for this; additional information from PMDA has been added into the staging tables so that it's possible to debug some of this. Things like resubmissions being requested aren't currently represented in the activity log, meaning that we get records that look like something is Past Due when it was submitted, with no other rows. We'll need to continue improving this. `#known-issue`
+
+## Expected To Be Submitted
+
+It's been tough to track down a direct analogue for `expected_to_be_submitted` based on the meaning of this as something the users could set in PMDA. It's unclear if we can just derive it from the status map entirely. For now, the migration sets it to TRUE for all cases. `#open-question`
+
+## Due Dates
+
+When a due date was attached to something determined to be open-ended, it was set to the expiration date of the associated demonstration. This was done before the run of the Upcoming -> Past Due code.
+
+## CMS Owner
+
+As an initial pass, the CMS owner was set to the creator of the deliverable. If this was not resolvable, the user Elizabeth Hill was assigned as the owner. `#open-question`
+
+## Submission Date
+
+There's been a first-pass effort (still work in progress) on importing the submission events from the database and figuring out what the due dates were at the time of the submission event. This is still in progress and needs refinement.
+

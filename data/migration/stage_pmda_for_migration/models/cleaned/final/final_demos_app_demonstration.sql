@@ -16,7 +16,8 @@ SELECT
     chip_id,
     created_at,
     updated_at,
-    _legacy_proj_ofcr_user_id
+    _legacy_proj_ofcr_user_id,
+    _legacy_mdcd_demo_id
 FROM {{ ref('cleaned_demos_app_demonstration_finalized_demos') }}
 UNION ALL
 SELECT
@@ -37,7 +38,8 @@ SELECT
     cleaned_demos.chip_id,
     cleaned_demos.created_at,
     cleaned_demos.updated_at,
-    cleaned_demos._legacy_proj_ofcr_user_id
+    cleaned_demos._legacy_proj_ofcr_user_id,
+    NULL AS _legacy_mdcd_demo_id
 FROM {{ ref('cleaned_demos_app_demonstration_in_prog_demos') }} AS cleaned_demos
 LEFT JOIN {{ ref('apps_in_prog_phase_completion') }} AS phase_completion
     ON
