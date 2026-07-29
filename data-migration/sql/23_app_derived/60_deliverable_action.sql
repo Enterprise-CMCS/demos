@@ -113,6 +113,7 @@ DECLARE
   held int;
   batches_available boolean;
   hstry_available boolean;
+  due_windows_available boolean;
 BEGIN
   IF to_regclass('demos_app.deliverable_action') IS NULL OR to_regclass('demos_app.deliverable') IS NULL THEN
     RAISE NOTICE 'skip deliverable_action derive: demos_app.deliverable_action not built yet';
@@ -128,6 +129,7 @@ BEGIN
   END IF;
   batches_available := to_regclass('stg.deliverable_submission_batch') IS NOT NULL;
   hstry_available := to_regclass('mysql_raw.mdcd_dlvrbl_stus_hstry') IS NOT NULL;
+  due_windows_available := to_regclass('stg.deliverable_due_date_window') IS NOT NULL;
   CREATE TABLE IF NOT EXISTS migration._parity_deliverable_action_held(
     deliverable_id uuid PRIMARY KEY,
     status_id text,
@@ -368,6 +370,27 @@ BEGIN
         JOIN migration.deliverable_action_chain ch ON ch.terminal_status_id = a.status_id
           AND ch.action_type_id = 'Submitted Deliverable'
         JOIN migration._deliverable_submission_event e ON e.deliverable_id = a.deliverable_id;
+    -- Re-point each hop at the due date in effect at its OWN timestamp. Until
+    -- this ran, every action carried the deliverable's current due date, so a
+    -- submission predating an extension recorded the extended date rather than
+    -- the one it was judged against. Windows tile contiguously and never
+    -- overlap, so at most one row matches and the result does not depend on
+    -- physical order. A deliverable with no recorded history matches nothing and
+    -- keeps the current value, which is the intended fallback, not a failure.
+    IF due_windows_available THEN
+      EXECUTE $q$
+        UPDATE
+          migration._deliverable_action_plan p
+        SET
+          due_date = w.due_date
+        FROM
+          stg.deliverable_due_date_window w
+        WHERE
+          w.deliverable_id = p.deliverable_id
+          AND p.action_timestamp >= w.valid_from
+          AND p.action_timestamp < w.valid_to
+      $q$;
+    END IF;
     -- Mint a stable uuid per (deliverable, hop) before inserting, so a rebuild
     -- reuses the same action ids.
     INSERT INTO migration._id_map_deliverable_action(deliverable_id, hop_seq)
