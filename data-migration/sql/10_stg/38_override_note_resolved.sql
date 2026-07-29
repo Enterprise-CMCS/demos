@@ -46,11 +46,13 @@ SELECT
   d.mdcd_dlvrbl_id AS legacy_id,
   onm.new_uuid AS new_uuid,
   dm.new_uuid AS deliverable_id,
-  CASE WHEN uu.new_uuid IS NOT NULL THEN
-    uu.new_uuid
-  ELSE
-    cu.new_uuid
-  END AS author_user_id,
+  COALESCE(uu.new_uuid, cu.new_uuid) AS author_user_id,
+  -- Deliberately NOT a COALESCE, despite branching on the same condition as
+  -- author_user_id above. The test column and the result columns differ, so
+  -- COALESCE(uur.person_type_id, cur.person_type_id) would fall through to the
+  -- creating user's type whenever the updating user resolves but carries no
+  -- person_type -- storing one user's uuid beside another user's type and
+  -- breaking the pairing the loader's CMS floor relies on.
   CASE WHEN uu.new_uuid IS NOT NULL THEN
     uur.person_type_id
   ELSE
