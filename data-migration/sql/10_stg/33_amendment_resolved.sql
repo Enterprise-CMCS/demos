@@ -32,8 +32,11 @@
  * parent_is_pending marks an amendment resolved through the pending parent (no
  * approved parent). The pending demonstrations carry NO source status, so the
  * loader assigns 'Under Review' to a pending-track amendment whose source status
- * is NULL (the 162 statusless pending-track amendments); a pending-track
- * amendment that DOES carry a status maps through the crosswalk as usual.
+ * is NULL; a pending-track amendment that DOES carry a status maps through the
+ * crosswalk as usual. NOTE: in the current source every kept amendment resolves
+ * via an approved parent (0 pending-track), so the statusless amendments (162
+ * this run) are approved-track and are dropped fail-closed (RED-D, logged by
+ * 99_parity/52), not defaulted to 'Under Review' here.
  *
  * No updated-at column exists on mdcd_demo_amndmt (only creatd_dt), so the
  * loader sets created_at = updated_at = status_updated_at = creatd_dt, matching

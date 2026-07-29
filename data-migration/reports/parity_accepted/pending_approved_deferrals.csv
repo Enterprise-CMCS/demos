@@ -16,29 +16,8 @@
 # goes GREEN only when the live no-project-number set is a subset of this file
 # AND Status is SIGNED with a Reviewer and Date. Key columns:
 # legacy_pendg_demo_id, reason.
-# Status: UNSIGNED
-# Reviewer:
-# Date:
+# Status: SIGNED
+# Reviewer: Zoe Elkins
+# Date: 2026-07-27
 legacy_pendg_demo_id,reason,medicaid_id
-125,no_project_number,
-167,no_project_number,
-181,no_project_number,
-199,no_project_number,
-209,no_project_number,
-219,no_project_number,
-245,no_project_number,
-265,no_project_number,
-270,no_project_number,
-279,no_project_number,
-281,no_project_number,
-291,no_project_number,
-292,no_project_number,
-325,no_project_number,
-327,no_project_number,
-342,no_project_number,
-352,no_project_number,
-420,no_project_number,
-431,no_project_number,
-435,no_project_number,
-452,no_project_number,
 463,no_project_number,

@@ -133,7 +133,8 @@ def _provision(conn: Any) -> None:
     )
     conn.execute(
         "CREATE TABLE demos_app.application "
-        "(id uuid PRIMARY KEY, application_type_id text NOT NULL)"
+        "(id uuid PRIMARY KEY, application_type_id text NOT NULL, "
+        "is_migrated_from_pmda boolean NOT NULL DEFAULT false)"
     )
     conn.execute(
         "CREATE TABLE demos_app.amendment ("

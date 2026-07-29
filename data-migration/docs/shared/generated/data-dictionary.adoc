@@ -1,0 +1,1410 @@
+// Generated from the pinned Prisma DDL by docs/tools/data_dictionary_to_adoc.py -- do not edit.
+// Run `make data-dictionary` (in docs/) to regenerate.
+
+== Identity
+
+=== `demos_app.person`
+
+Real-world individual; source of users (CMS identity) and target of *_role_assignment / person_state.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `UUID` | N | 
+| `person_type_id` | `TEXT` | N | FK
+| `email` | `TEXT` | N | 
+| `first_name` | `TEXT` | N | 
+| `last_name` | `TEXT` | N | 
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+|===
+
+*Foreign keys:*
+** `person_type_id` -> `person_type`(`id`)
+
+*Composite unique indexes:*
+** (`id`, `person_type_id`) (`person_id_person_type_id_key`)
+
+*History shadow:* `person_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.users`
+
+CMS identity. One users row per person; carries the Cognito subject.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `UUID` | N | FK
+| `person_type_id` | `TEXT` | N | FK
+| `cognito_subject` | `UUID` | Y | UK
+| `username` | `TEXT` | Y | UK
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+| `is_migrated_from_pmda` | `BOOLEAN` | N | 
+| `has_logged_in` | `BOOLEAN` | N | 
+|===
+
+*Foreign keys:*
+** (`id`, `person_type_id`) -> `person`(`id`, `person_type_id`)
+** `person_type_id` -> `user_person_type_limit`(`id`)
+
+*Composite unique indexes:*
+** (`id`, `person_type_id`) (`users_id_person_type_id_key`)
+
+*CHECK constraints:*
+** `check_external_fields_exist_for_logged_in_users`: `( has_logged_in AND ( cognito_subject IS NOT NULL AND username IS NOT NULL ) ) OR ( NOT has_logged_in AND ( cognito_subject IS NULL AND username IS NULL ) )`
+** `check_all_regular_users_are_logged_in`: `(NOT is_migrated_from_pmda AND has_logged_in) OR (is_migrated_from_pmda)`
+
+*History shadow:* `users_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+
+== Application core
+
+=== `demos_app.application`
+
+Unifying handle for an application of any type; legacy pending and approved fold here.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `UUID` | N | 
+| `application_type_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** `application_type_id` -> `application_type`(`id`)
+
+*Composite unique indexes:*
+** (`id`, `application_type_id`) (`application_id_application_type_id_key`)
+
+*History shadow:* `application_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.demonstration`
+
+An application of type 'demonstration'; carries SDG / signature / clearance metadata and the approval-time-required fields.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `UUID` | N | FK
+| `application_type_id` | `TEXT` | N | FK
+| `name` | `TEXT` | N | 
+| `description` | `TEXT` | Y | 
+| `effective_date` | `TIMESTAMPTZ` | Y | 
+| `expiration_date` | `TIMESTAMPTZ` | Y | 
+| `sdg_division_id` | `TEXT` | Y | FK
+| `signature_level_id` | `TEXT` | Y | FK
+| `status_id` | `TEXT` | N | FK
+| `current_phase_id` | `TEXT` | N | FK
+| `state_id` | `TEXT` | N | FK
+| `clearance_level_id` | `TEXT` | N | FK, DEFAULT `'CMS (OSORA)'`
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+| `medicaid_id` | `TEXT` | N | UK
+| `chip_id` | `TEXT` | N | UK
+| `status_updated_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+|===
+
+*Foreign keys:*
+** `application_type_id` -> `demonstration_application_type_limit`(`id`)
+** `sdg_division_id` -> `sdg_division`(`id`)
+** `signature_level_id` -> `signature_level`(`id`)
+** `status_id` -> `application_status`(`id`)
+** `current_phase_id` -> `phase`(`id`)
+** `state_id` -> `state`(`id`)
+** `clearance_level_id` -> `clearance_level`(`id`)
+** (`id`, `application_type_id`) -> `application`(`id`, `application_type_id`) (DEFERRABLE)
+
+*Composite unique indexes:*
+** (`id`, `state_id`) (`demonstration_id_state_id_key`)
+** (`id`, `status_id`) (`demonstration_id_status_id_key`)
+** (`id`, `application_type_id`) (`demonstration_id_application_type_id_key`)
+
+*CHECK constraints:*
+** `check_demonstration_non_null_fields_when_approved`: `NOT ( status_id = 'Approved' AND ( effective_date IS NULL OR expiration_date IS NULL OR sdg_division_id IS NULL OR signature_level_id IS NULL ) )`
+** `check_non_empty_name`: `trim(name) != ''`
+** `effective_date_check`: `effective_date < expiration_date`
+** `check_demonstration_name_trimmed`: `name = trim(name)`
+** `check_demonstration_description_trimmed`: `description IS NULL OR description = trim(description)`
+** `demonstration_signature_level_check`: `signature_level_id IS NOT NULL AND signature_level_id = 'OA'`
+
+*History shadow:* `demonstration_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.amendment`
+
+An application of type 'amendment' against an existing demonstration.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `UUID` | N | FK
+| `application_type_id` | `TEXT` | N | FK
+| `demonstration_id` | `UUID` | N | FK
+| `name` | `TEXT` | N | 
+| `description` | `TEXT` | Y | 
+| `effective_date` | `TIMESTAMPTZ` | Y | 
+| `status_id` | `TEXT` | N | FK
+| `current_phase_id` | `TEXT` | N | FK
+| `clearance_level_id` | `TEXT` | N | FK, DEFAULT `'CMS (OSORA)'`
+| `signature_level_id` | `TEXT` | Y | FK
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+| `status_updated_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `demonstration_status_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** `application_type_id` -> `amendment_application_type_limit`(`id`)
+** `demonstration_id` -> `demonstration`(`id`)
+** `status_id` -> `application_status`(`id`)
+** `current_phase_id` -> `phase`(`id`)
+** `clearance_level_id` -> `clearance_level`(`id`)
+** `signature_level_id` -> `signature_level`(`id`)
+** (`id`, `application_type_id`) -> `application`(`id`, `application_type_id`) (DEFERRABLE)
+** (`demonstration_id`, `demonstration_status_id`) -> `demonstration`(`id`, `status_id`)
+** `demonstration_status_id` -> `approved_application_status_limit`(`id`)
+
+*Composite unique indexes:*
+** (`id`, `application_type_id`) (`amendment_id_application_type_id_key`)
+
+*CHECK constraints:*
+** `check_amendment_non_null_fields_when_approved`: `NOT ( status_id = 'Approved' AND ( effective_date IS NULL OR signature_level_id IS NULL ) )`
+** `check_non_empty_name`: `trim(name) != ''`
+** `amendment_signature_level_check`: `signature_level_id IS NULL OR signature_level_id IN ('OA', 'OCD')`
+
+*History shadow:* `amendment_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.extension`
+
+An application of type 'extension' against an existing demonstration.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `UUID` | N | FK
+| `application_type_id` | `TEXT` | N | FK
+| `demonstration_id` | `UUID` | N | FK
+| `name` | `TEXT` | N | 
+| `description` | `TEXT` | Y | 
+| `effective_date` | `TIMESTAMPTZ` | Y | 
+| `status_id` | `TEXT` | N | FK
+| `current_phase_id` | `TEXT` | N | FK
+| `clearance_level_id` | `TEXT` | N | FK, DEFAULT `'CMS (OSORA)'`
+| `signature_level_id` | `TEXT` | Y | FK
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+| `status_updated_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `demonstration_status_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** `application_type_id` -> `extension_application_type_limit`(`id`)
+** `status_id` -> `application_status`(`id`)
+** `current_phase_id` -> `phase`(`id`)
+** `clearance_level_id` -> `clearance_level`(`id`)
+** `signature_level_id` -> `signature_level`(`id`)
+** (`id`, `application_type_id`) -> `application`(`id`, `application_type_id`) (DEFERRABLE)
+** (`demonstration_id`, `demonstration_status_id`) -> `demonstration`(`id`, `status_id`)
+** `demonstration_status_id` -> `approved_application_status_limit`(`id`)
+
+*Composite unique indexes:*
+** (`id`, `application_type_id`) (`extension_id_application_type_id_key`)
+
+*CHECK constraints:*
+** `check_extension_non_null_fields_when_approved`: `NOT ( status_id = 'Approved' AND ( effective_date IS NULL OR signature_level_id IS NULL ) )`
+** `check_non_empty_name`: `trim(name) != ''`
+** `extension_signature_level_check`: `signature_level_id IS NULL OR signature_level_id IN ('OA', 'OCD')`
+
+*History shadow:* `extension_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.application_date`
+
+Dated milestones attached to an application, keyed by date_type_id.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `application_id` | `UUID` | N | FK
+| `date_type_id` | `TEXT` | N | FK
+| `date_value` | `TIMESTAMPTZ` | N | 
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+|===
+
+*Foreign keys:*
+** `application_id` -> `application`(`id`)
+** `date_type_id` -> `date_type`(`id`)
+
+*Composite primary key:* (`application_id`, `date_type_id`)
+
+*History shadow:* `application_date_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.application_note`
+
+Free-text notes attached to an application, keyed by note_type_id.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `application_id` | `UUID` | N | FK
+| `note_type_id` | `TEXT` | N | FK
+| `content` | `TEXT` | N | 
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+|===
+
+*Foreign keys:*
+** `application_id` -> `application`(`id`)
+** `note_type_id` -> `note_type`(`id`)
+
+*Composite primary key:* (`application_id`, `note_type_id`)
+
+*History shadow:* `application_note_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.application_phase`
+
+Status of each phase an application has entered.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `application_id` | `UUID` | N | FK
+| `phase_id` | `TEXT` | N | FK
+| `phase_status_id` | `TEXT` | N | FK
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+|===
+
+*Foreign keys:*
+** `application_id` -> `application`(`id`)
+** (`phase_id`, `phase_status_id`) -> `phase_phase_status`(`phase_id`, `phase_status_id`)
+
+*Composite primary key:* (`application_id`, `phase_id`)
+
+*History shadow:* `application_phase_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+
+== Tag system
+
+=== `demos_app.tag_name`
+
+Free-form tag literal (e.g. 'managed-care'); shared across tag types.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `TEXT` | N | 
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+|===
+
+*History shadow:* `tag_name_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.tag`
+
+Pairing of name + type with source and status.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `tag_name_id` | `TEXT` | N | FK
+| `tag_type_id` | `TEXT` | N | FK
+| `source_id` | `TEXT` | N | FK
+| `status_id` | `TEXT` | N | FK
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+|===
+
+*Foreign keys:*
+** `tag_name_id` -> `tag_name`(`id`)
+** `tag_type_id` -> `tag_type`(`id`)
+** `source_id` -> `tag_source`(`id`)
+** `status_id` -> `tag_status`(`id`)
+
+*Composite primary key:* (`tag_name_id`, `tag_type_id`)
+
+*History shadow:* `tag_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.demonstration_type_tag_assignment`
+
+Tag attached to a demonstration with effective window. Primary target for legacy *_pgm_dtl rows.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `demonstration_id` | `UUID` | N | FK
+| `tag_name_id` | `TEXT` | N | FK
+| `tag_type_id` | `TEXT` | N | FK
+| `effective_date` | `TIMESTAMPTZ` | N | 
+| `expiration_date` | `TIMESTAMPTZ` | N | 
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+|===
+
+*Foreign keys:*
+** `demonstration_id` -> `demonstration`(`id`)
+** (`tag_name_id`, `tag_type_id`) -> `tag`(`tag_name_id`, `tag_type_id`)
+** `tag_type_id` -> `demonstration_type_tag_type_limit`(`id`)
+
+*CHECK constraints:*
+** `effective_date_check`: `effective_date < expiration_date`
+
+*Composite primary key:* (`demonstration_id`, `tag_name_id`)
+
+*History shadow:* `demonstration_type_tag_assignment_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.application_tag_assignment`
+
+Tag attached to an application; no effective window.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `application_id` | `UUID` | N | FK
+| `tag_name_id` | `TEXT` | N | FK
+| `tag_type_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** `application_id` -> `application`(`id`)
+** (`tag_name_id`, `tag_type_id`) -> `tag`(`tag_name_id`, `tag_type_id`)
+** `tag_type_id` -> `application_tag_type_limit`(`id`)
+
+*Composite primary key:* (`application_id`, `tag_name_id`)
+
+*History shadow:* `application_tag_assignment_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.application_tag_suggestion`
+
+Net-new in DEMOS. AI-suggested tag value awaiting reconciliation.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `application_id` | `UUID` | N | FK
+| `value` | `TEXT` | N | 
+| `status_id` | `TEXT` | N | FK
+| `replaced_value` | `TEXT` | Y | 
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+|===
+
+*Foreign keys:*
+** `status_id` -> `application_tag_suggestion_status`(`id`)
+** `application_id` -> `application`(`id`)
+
+*CHECK constraints:*
+** `check_application_tag_suggestion_non_null_replaced_value_when_replaced`: `( status_id = 'Replaced' AND replaced_value IS NOT NULL ) OR ( status_id != 'Replaced' AND replaced_value IS NULL )`
+
+*Composite primary key:* (`application_id`, `value`)
+
+*History shadow:* `application_tag_suggestion_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.application_tag_suggestion_extract`
+
+Source-trace for a suggestion (UiPath value, document position, field).
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `uipath_value_id` | `UUID` | N | FK
+| `application_id` | `UUID` | N | FK
+| `field_id` | `TEXT` | N | FK
+| `value` | `TEXT` | N | FK
+| `start_page_no` | `INTEGER` | N | 
+| `end_page_no` | `INTEGER` | N | 
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+|===
+
+*Foreign keys:*
+** (`uipath_value_id`, `application_id`, `field_id`, `value`) -> `uipath_value`(`id`, `application_id`, `field_id`, `value`)
+** `field_id` -> `application_tag_suggestion_extract_field_limit`(`id`)
+** (`application_id`, `value`) -> `application_tag_suggestion`(`application_id`, `value`) (DEFERRABLE)
+
+*Composite primary key:* (`uipath_value_id`, `application_id`, `value`)
+
+*History shadow:* `application_tag_suggestion_extract_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+
+== Deliverables
+
+=== `demos_app.deliverable`
+
+A unit of work produced by a state, tracked through phases.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `UUID` | N | 
+| `deliverable_type_id` | `TEXT` | N | FK
+| `name` | `TEXT` | N | 
+| `demonstration_id` | `UUID` | N | FK
+| `demonstration_status_id` | `TEXT` | N | FK
+| `status_id` | `TEXT` | N | FK
+| `cms_owner_user_id` | `UUID` | N | FK
+| `cms_owner_person_type_id` | `TEXT` | N | FK
+| `due_date` | `TIMESTAMPTZ` | N | 
+| `due_date_type_id` | `TEXT` | N | FK
+| `expected_to_be_submitted` | `BOOLEAN` | N | 
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+|===
+
+*Foreign keys:*
+** `deliverable_type_id` -> `deliverable_type`(`id`)
+** `status_id` -> `deliverable_status`(`id`)
+** (`demonstration_id`, `demonstration_status_id`) -> `demonstration`(`id`, `status_id`)
+** (`cms_owner_user_id`, `cms_owner_person_type_id`) -> `users`(`id`, `person_type_id`)
+** `cms_owner_person_type_id` -> `cms_user_person_type_limit`(`id`)
+** `due_date_type_id` -> `deliverable_due_date_type`(`id`)
+** `demonstration_status_id` -> `approved_application_status_limit`(`id`)
+
+*Composite unique indexes:*
+** (`id`, `demonstration_id`) (`deliverable_id_demonstration_id_key`)
+** (`id`, `demonstration_id`, `deliverable_type_id`) (`deliverable_id_demonstration_id_deliverable_type_id_key`)
+
+*CHECK constraints:*
+** `check_non_empty_name`: `trim(name) != ''`
+** `check_deliverable_name_has_no_leading_trailing_whitespace`: `name = trim(name)`
+
+*History shadow:* `deliverable_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.deliverable_action`
+
+Append-only event log for a deliverable; CHECKs forbid unsupported transitions.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `UUID` | N | 
+| `action_timestamp` | `TIMESTAMPTZ` | N | 
+| `deliverable_id` | `UUID` | N | FK
+| `action_type_id` | `TEXT` | N | FK
+| `old_status_id` | `TEXT` | N | FK
+| `new_status_id` | `TEXT` | N | FK
+| `note` | `TEXT` | Y | 
+| `active_extension_id` | `UUID` | Y | FK
+| `due_date_change_allowed` | `BOOLEAN` | N | FK
+| `should_have_note` | `BOOLEAN` | N | FK
+| `should_have_user_id` | `BOOLEAN` | N | FK
+| `extension_id_optional` | `BOOLEAN` | N | FK
+| `old_due_date` | `TIMESTAMPTZ` | N | 
+| `new_due_date` | `TIMESTAMPTZ` | N | 
+| `user_id` | `UUID` | Y | FK
+|===
+
+*Foreign keys:*
+** `deliverable_id` -> `deliverable`(`id`)
+** (`active_extension_id`, `deliverable_id`) -> `deliverable_extension`(`id`, `deliverable_id`)
+** `user_id` -> `users`(`id`)
+** (`action_type_id`, `due_date_change_allowed`, `should_have_note`, `should_have_user_id`, `extension_id_optional`) -> `deliverable_action_type`(`id`, `due_date_change_allowed`, `should_have_note`, `should_have_user_id`, `extension_id_optional`)
+** (`action_type_id`, `old_status_id`, `new_status_id`) -> `deliverable_action_configuration`(`action_type_id`, `old_status_id`, `new_status_id`)
+
+*Composite unique indexes:*
+** (`id`, `action_type_id`) (`deliverable_action_id_action_type_id_key`)
+** (`action_type_id`, `active_extension_id`) (`unique_index_on_deliverable_extension_actions`)
+
+*CHECK constraints:*
+** `block_unpermitted_due_date_changes`: `NOT ( due_date_change_allowed = FALSE AND old_due_date != new_due_date )`
+** `check_non_empty_note`: `(note IS NULL OR trim(note) != '')`
+** `require_extension_id_for_extension_actions`: `(extension_id_optional = TRUE) OR (extension_id_optional = FALSE AND active_extension_id IS NOT NULL)`
+** `require_notes_for_user_actions`: `(should_have_note = FALSE AND note IS NULL) OR (should_have_note = TRUE AND note IS NOT NULL)`
+** `require_user_id_for_user_actions`: `(should_have_user_id = FALSE AND user_id IS NULL) OR (should_have_user_id = TRUE AND user_id IS NOT NULL)`
+
+*History shadow:* `deliverable_action_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.deliverable_action_configuration`
+
+Configuration: which action_type_id may move from old_status_id to new_status_id.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `action_type_id` | `TEXT` | N | FK
+| `old_status_id` | `TEXT` | N | FK
+| `new_status_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** `action_type_id` -> `deliverable_action_type`(`id`)
+** `old_status_id` -> `deliverable_status`(`id`)
+** `new_status_id` -> `deliverable_status`(`id`)
+
+*Composite primary key:* (`action_type_id`, `old_status_id`, `new_status_id`)
+
+*History shadow:* none.
+
+=== `demos_app.deliverable_extension`
+
+A request to push a deliverable's due date out.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `UUID` | N | 
+| `deliverable_id` | `UUID` | N | FK
+| `status_id` | `TEXT` | N | FK
+| `reason_code_id` | `TEXT` | N | FK
+| `original_date_requested` | `TIMESTAMPTZ` | N | 
+| `final_date_granted` | `TIMESTAMPTZ` | Y | 
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+|===
+
+*Foreign keys:*
+** `deliverable_id` -> `deliverable`(`id`)
+** `status_id` -> `deliverable_extension_status`(`id`)
+** `reason_code_id` -> `deliverable_extension_reason_code`(`id`)
+
+*Composite unique indexes:*
+** (`id`, `deliverable_id`, `status_id`) (`deliverable_extension_id_deliverable_id_status_id_key`)
+** (`id`, `deliverable_id`) (`deliverable_extension_id_deliverable_id_key`)
+
+*CHECK constraints:*
+** `require_final_date_for_finished_requests`: `( status_id = 'Approved' AND final_date_granted IS NOT NULL ) OR ( status_id != 'Approved' AND final_date_granted IS NULL )`
+
+*History shadow:* `deliverable_extension_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.deliverable_active_extension`
+
+Singleton pointer: currently active extension per deliverable.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `deliverable_extension_id` | `UUID` | N | FK
+| `deliverable_id` | `UUID` | N | UK, FK
+| `status_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** `status_id` -> `deliverable_active_extension_status_limit`(`id`)
+** (`deliverable_extension_id`, `deliverable_id`, `status_id`) -> `deliverable_extension`(`id`, `deliverable_id`, `status_id`) (DEFERRABLE)
+
+*History shadow:* none.
+
+=== `demos_app.deliverable_demonstration_type`
+
+Associative table tying a deliverable to a demonstration-type tag.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `deliverable_id` | `UUID` | N | FK
+| `demonstration_id` | `UUID` | N | FK
+| `demonstration_type_tag_name_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** (`deliverable_id`, `demonstration_id`) -> `deliverable`(`id`, `demonstration_id`)
+** (`demonstration_id`, `demonstration_type_tag_name_id`) -> `demonstration_type_tag_assignment`(`demonstration_id`, `tag_name_id`)
+
+*Composite primary key:* (`deliverable_id`, `demonstration_id`, `demonstration_type_tag_name_id`)
+
+*History shadow:* `deliverable_demonstration_type_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.deliverable_type_document_type`
+
+Configuration: which document_type_id values are legal for a deliverable_type_id.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `deliverable_type_id` | `TEXT` | N | FK
+| `document_type_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** `deliverable_type_id` -> `deliverable_type`(`id`)
+** `document_type_id` -> `document_type`(`id`)
+
+*Composite primary key:* (`deliverable_type_id`, `document_type_id`)
+
+*History shadow:* none.
+
+
+== Documents
+
+=== `demos_app.document`
+
+Clean, S3-resident document.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `UUID` | N | 
+| `name` | `TEXT` | N | 
+| `description` | `TEXT` | Y | 
+| `s3_path` | `TEXT` | N | 
+| `owner_user_id` | `UUID` | N | FK
+| `document_type_id` | `TEXT` | N | FK
+| `application_id` | `UUID` | N | FK
+| `phase_id` | `TEXT` | Y | FK
+| `deliverable_id` | `UUID` | Y | FK
+| `deliverable_type_id` | `TEXT` | Y | FK
+| `deliverable_is_cms_attached_file` | `BOOLEAN` | Y | 
+| `deliverable_submission_action_id` | `UUID` | Y | FK
+| `deliverable_submission_action_type_id` | `TEXT` | Y | FK
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+|===
+
+*Foreign keys:*
+** `owner_user_id` -> `users`(`id`)
+** `application_id` -> `application`(`id`)
+** (`phase_id`, `document_type_id`) -> `phase_document_type`(`phase_id`, `document_type_id`)
+** (`deliverable_id`, `application_id`, `deliverable_type_id`) -> `deliverable`(`id`, `demonstration_id`, `deliverable_type_id`)
+** (`deliverable_type_id`, `document_type_id`) -> `deliverable_type_document_type`(`deliverable_type_id`, `document_type_id`)
+** (`deliverable_submission_action_id`, `deliverable_submission_action_type_id`) -> `deliverable_action`(`id`, `action_type_id`)
+** `deliverable_submission_action_type_id` -> `deliverable_submission_action_type_limit`(`id`)
+
+*Composite unique indexes:*
+** (`id`, `document_type_id`) (`document_id_document_type_id_key`)
+** (`id`, `application_id`) (`document_id_application_id_key`)
+
+*CHECK constraints:*
+** `check_deliverable_null_states`: `(deliverable_id IS NULL AND deliverable_type_id IS NULL AND deliverable_is_cms_attached_file IS NULL AND deliverable_submission_action_id IS NULL AND deliverable_submission_action_type_id IS NULL) OR (deliverable_id IS NOT NULL AND deliverable_type_id IS NOT NULL AND deliverable_is_cms_attached_file IS NOT NULL)`
+** `check_non_empty_name`: `trim(name) != ''`
+** `check_non_empty_s3_path`: `trim(s3_path) != ''`
+** `check_phase_id_deliverable_id_null`: `phase_id IS NULL OR deliverable_id IS NULL`
+** `no_submitted_deliverable_cms_files`: `NOT (deliverable_is_cms_attached_file = true AND deliverable_submission_action_id IS NOT NULL)`
+
+*History shadow:* `document_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.document_pending_upload`
+
+Document in flight; no s3_path until the AV scan clears.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `UUID` | N | 
+| `name` | `TEXT` | N | 
+| `description` | `TEXT` | Y | 
+| `owner_user_id` | `UUID` | N | FK
+| `document_type_id` | `TEXT` | N | FK
+| `application_id` | `UUID` | N | FK
+| `phase_id` | `TEXT` | Y | FK
+| `deliverable_id` | `UUID` | Y | FK
+| `deliverable_type_id` | `TEXT` | Y | FK
+| `deliverable_is_cms_attached_file` | `BOOLEAN` | Y | 
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+|===
+
+*Foreign keys:*
+** `owner_user_id` -> `users`(`id`)
+** `application_id` -> `application`(`id`)
+** (`phase_id`, `document_type_id`) -> `phase_document_type`(`phase_id`, `document_type_id`)
+** (`deliverable_id`, `application_id`, `deliverable_type_id`) -> `deliverable`(`id`, `demonstration_id`, `deliverable_type_id`)
+** (`deliverable_type_id`, `document_type_id`) -> `deliverable_type_document_type`(`deliverable_type_id`, `document_type_id`)
+
+*CHECK constraints:*
+** `check_deliverable_null_states`: `(deliverable_id IS NULL AND deliverable_type_id IS NULL AND deliverable_is_cms_attached_file IS NULL) OR (deliverable_id IS NOT NULL AND deliverable_type_id IS NOT NULL AND deliverable_is_cms_attached_file IS NOT NULL)`
+** `check_phase_id_deliverable_id_null`: `phase_id IS NULL OR deliverable_id IS NULL`
+** `check_non_empty_name`: `trim(name) != ''`
+
+*History shadow:* `document_pending_upload_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.document_infected`
+
+Document failed the AV scan; carries scan result.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `UUID` | N | 
+| `name` | `TEXT` | N | 
+| `description` | `TEXT` | Y | 
+| `s3_path` | `TEXT` | N | 
+| `owner_user_id` | `UUID` | N | FK
+| `document_type_id` | `TEXT` | N | FK
+| `application_id` | `UUID` | N | FK
+| `phase_id` | `TEXT` | Y | FK
+| `deliverable_id` | `UUID` | Y | FK
+| `deliverable_type_id` | `TEXT` | Y | FK
+| `deliverable_is_cms_attached_file` | `BOOLEAN` | Y | 
+| `infection_status` | `TEXT` | N | 
+| `infection_threats` | `TEXT` | N | 
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+|===
+
+*Foreign keys:*
+** `owner_user_id` -> `users`(`id`)
+** `application_id` -> `application`(`id`)
+** (`phase_id`, `document_type_id`) -> `phase_document_type`(`phase_id`, `document_type_id`)
+** (`deliverable_id`, `application_id`, `deliverable_type_id`) -> `deliverable`(`id`, `demonstration_id`, `deliverable_type_id`)
+** (`deliverable_type_id`, `document_type_id`) -> `deliverable_type_document_type`(`deliverable_type_id`, `document_type_id`)
+
+*CHECK constraints:*
+** `check_deliverable_null_states`: `( deliverable_id IS NULL AND deliverable_type_id IS NULL AND deliverable_is_cms_attached_file IS NULL ) OR ( deliverable_id IS NOT NULL AND deliverable_type_id IS NOT NULL AND deliverable_is_cms_attached_file IS NOT NULL )`
+** `check_non_empty_name`: `trim(name) != ''`
+** `check_non_empty_s3_path`: `trim(s3_path) != ''`
+** `check_phase_id_deliverable_id_null`: `phase_id IS NULL OR deliverable_id IS NULL`
+
+*History shadow:* `document_infected_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+
+== Comments
+
+=== `demos_app.private_comment`
+
+Internal-only commentary by CMS users; carries author's person type.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `UUID` | N | 
+| `deliverable_id` | `UUID` | N | FK
+| `author_user_id` | `UUID` | N | FK
+| `author_person_type_id` | `TEXT` | N | FK
+| `content` | `TEXT` | N | 
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+|===
+
+*Foreign keys:*
+** `deliverable_id` -> `deliverable`(`id`)
+** (`author_user_id`, `author_person_type_id`) -> `users`(`id`, `person_type_id`)
+** `author_person_type_id` -> `cms_user_person_type_limit`(`id`)
+
+*CHECK constraints:*
+** `check_non_empty_content`: `trim(content) != ''`
+
+*History shadow:* `private_comment_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.public_comment`
+
+State-originating commentary; visible across the audience boundary.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `UUID` | N | 
+| `deliverable_id` | `UUID` | N | FK
+| `author_user_id` | `UUID` | N | FK
+| `content` | `TEXT` | N | 
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+|===
+
+*Foreign keys:*
+** `deliverable_id` -> `deliverable`(`id`)
+** `author_user_id` -> `users`(`id`)
+
+*CHECK constraints:*
+** `check_non_empty_content`: `trim(content) != ''`
+
+*History shadow:* `public_comment_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+
+== Budget neutrality
+
+=== `demos_app.budget_neutrality_workbook`
+
+One row per workbook; contents stored as JSONB validated by the BN schema.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `UUID` | N | FK
+| `document_type_id` | `TEXT` | N | FK
+| `validation_status_id` | `TEXT` | N | FK
+| `validation_data` | `JSONB` | N | 
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+| `actuals` | `TEXT` | Y | 
+| `net_variance_total` | `double precision` | Y | 
+|===
+
+*Foreign keys:*
+** `document_type_id` -> `budget_neutrality_workbook_document_type_limit`(`id`)
+** `validation_status_id` -> `budget_neutrality_validation_status`(`id`)
+** (`id`, `document_type_id`) -> `document`(`id`, `document_type_id`) (DEFERRABLE)
+
+*CHECK constraints:*
+** `check_budget_neutrality_workbook_non_null_fields_when_succeeded`: `NOT ( validation_status_id = 'Succeeded' AND ( actuals IS NULL OR net_variance_total IS NULL ) )`
+
+*History shadow:* `budget_neutrality_workbook_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+
+== UiPath
+
+=== `demos_app.uipath_result`
+
+One row per UiPath document-processing request.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `UUID` | N | 
+| `request_id` | `TEXT` | N | UK
+| `response` | `JSONB` | N | 
+| `project_id` | `TEXT` | N | 
+| `document_id` | `UUID` | N | UK, FK
+| `application_id` | `UUID` | N | FK
+| `status_id` | `TEXT` | N | FK, DEFAULT `'Pending'`
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+|===
+
+*Foreign keys:*
+** `status_id` -> `uipath_result_status`(`id`)
+** (`document_id`, `application_id`) -> `document`(`id`, `application_id`)
+
+*Composite unique indexes:*
+** (`id`, `document_id`, `application_id`) (`uipath_result_id_document_id_application_id_key`)
+
+*History shadow:* `uipath_result_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.uipath_value`
+
+One row per extracted value from a UiPath result.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `UUID` | N | 
+| `uipath_result_id` | `UUID` | N | FK
+| `document_id` | `UUID` | N | FK
+| `application_id` | `UUID` | N | FK
+| `field_id` | `TEXT` | N | 
+| `value` | `TEXT` | N | 
+| `text_length` | `INTEGER` | N | 
+| `text_start_index` | `INTEGER` | N | 
+| `confidence` | `double precision` | N | 
+| `token_list` | `JSONB` | N | 
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+|===
+
+*Foreign keys:*
+** (`uipath_result_id`, `document_id`, `application_id`) -> `uipath_result`(`id`, `document_id`, `application_id`)
+
+*Composite unique indexes:*
+** (`id`, `application_id`, `field_id`, `value`) (`uipath_value_id_application_id_field_id_value_key`)
+
+*History shadow:* `uipath_value_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+
+== RBAC
+
+=== `demos_app.role_permission`
+
+Which permissions a role grants, qualified by grant level.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `role_id` | `TEXT` | N | FK
+| `grant_level_id` | `TEXT` | N | FK
+| `permission_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** (`role_id`, `grant_level_id`) -> `role`(`id`, `grant_level_id`)
+** (`permission_id`, `grant_level_id`) -> `permission`(`id`, `grant_level_id`)
+
+*Composite primary key:* (`role_id`, `grant_level_id`, `permission_id`)
+
+*History shadow:* `role_permission_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.role_person_type`
+
+Which person types may hold a given role.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `role_id` | `TEXT` | N | FK
+| `person_type_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** `role_id` -> `role`(`id`)
+** `person_type_id` -> `person_type`(`id`)
+
+*Composite primary key:* (`role_id`, `person_type_id`)
+
+*History shadow:* none.
+
+=== `demos_app.system_role_assignment`
+
+Person's system-wide (non-demonstration-scoped) role.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `person_id` | `UUID` | N | FK
+| `role_id` | `TEXT` | N | FK
+| `person_type_id` | `TEXT` | N | FK
+| `grant_level_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** (`person_id`, `person_type_id`) -> `person`(`id`, `person_type_id`)
+** (`role_id`, `person_type_id`) -> `role_person_type`(`role_id`, `person_type_id`)
+** (`role_id`, `grant_level_id`) -> `role`(`id`, `grant_level_id`)
+** `grant_level_id` -> `system_grant_level_limit`(`id`)
+
+*Composite primary key:* (`person_id`, `role_id`)
+
+*History shadow:* `system_role_assignment_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.demonstration_role_assignment`
+
+Person's role scoped to a single demonstration.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `person_id` | `UUID` | N | FK
+| `demonstration_id` | `UUID` | N | FK
+| `role_id` | `TEXT` | N | FK
+| `state_id` | `TEXT` | N | FK
+| `person_type_id` | `TEXT` | N | FK
+| `grant_level_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** (`person_id`, `state_id`) -> `person_state`(`person_id`, `state_id`)
+** (`person_id`, `person_type_id`) -> `person`(`id`, `person_type_id`)
+** (`demonstration_id`, `state_id`) -> `demonstration`(`id`, `state_id`)
+** (`role_id`, `person_type_id`) -> `role_person_type`(`role_id`, `person_type_id`)
+** (`role_id`, `grant_level_id`) -> `role`(`id`, `grant_level_id`)
+** `grant_level_id` -> `demonstration_grant_level_limit`(`id`)
+
+*Composite primary key:* (`person_id`, `demonstration_id`, `role_id`)
+
+*History shadow:* `demonstration_role_assignment_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.primary_demonstration_role_assignment`
+
+Unique primary holder of each role on a demonstration.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `person_id` | `UUID` | N | FK
+| `demonstration_id` | `UUID` | N | FK
+| `role_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** (`person_id`, `demonstration_id`, `role_id`) -> `demonstration_role_assignment`(`person_id`, `demonstration_id`, `role_id`)
+
+*Composite unique indexes:*
+** (`person_id`, `demonstration_id`, `role_id`) (`primary_demonstration_role_assignment_person_id_demonstrati_key`)
+
+*Composite primary key:* (`demonstration_id`, `role_id`)
+
+*History shadow:* `primary_demonstration_role_assignment_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.person_state`
+
+States a CMS person is authorised to act in (M:N).
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `person_id` | `UUID` | N | FK
+| `state_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** `person_id` -> `person`(`id`)
+** `state_id` -> `state`(`id`)
+
+*Composite primary key:* (`person_id`, `state_id`)
+
+*History shadow:* `person_state_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+
+== Phase associative
+
+=== `demos_app.phase_phase_status`
+
+Configuration: which phase_status_id values are legal for a phase.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `phase_id` | `TEXT` | N | FK
+| `phase_status_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** `phase_id` -> `phase`(`id`)
+** `phase_status_id` -> `phase_status`(`id`)
+
+*Composite primary key:* (`phase_id`, `phase_status_id`)
+
+*History shadow:* none.
+
+=== `demos_app.phase_date_type`
+
+Configuration: which date_type_id values are legal for a phase.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `phase_id` | `TEXT` | N | FK
+| `date_type_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** `phase_id` -> `phase`(`id`)
+** `date_type_id` -> `date_type`(`id`)
+
+*Composite primary key:* (`phase_id`, `date_type_id`)
+
+*History shadow:* none.
+
+=== `demos_app.phase_note_type`
+
+Configuration: which note_type_id values are legal for a phase.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `phase_id` | `TEXT` | N | FK
+| `note_type_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** `phase_id` -> `phase`(`id`)
+** `note_type_id` -> `note_type`(`id`)
+
+*Composite primary key:* (`phase_id`, `note_type_id`)
+
+*History shadow:* none.
+
+=== `demos_app.phase_document_type`
+
+Configuration: which document_type_id values are legal for a phase.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `phase_id` | `TEXT` | N | FK
+| `document_type_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** `phase_id` -> `phase`(`id`)
+** `document_type_id` -> `document_type`(`id`)
+
+*Composite primary key:* (`phase_id`, `document_type_id`)
+
+*History shadow:* none.
+
+
+== Reference system
+
+=== `demos_app.reference`
+
+Net-new in DEMOS. A curated reference document (policy guidance, templates) addressable by id and tagged by demonstration type.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `UUID` | N | 
+| `name` | `TEXT` | N | 
+| `s3_path` | `TEXT` | N | 
+| `owner_user_id` | `UUID` | N | FK
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+| `description` | `TEXT` | N | 
+| `owner_person_type_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** (`owner_user_id`, `owner_person_type_id`) -> `users`(`id`, `person_type_id`)
+** `owner_person_type_id` -> `cms_user_person_type_limit`(`id`)
+
+*CHECK constraints:*
+** `check_non_empty_name`: `trim(name) != ''`
+** `check_non_empty_s3_path`: `trim(s3_path) != ''`
+** `check_non_empty_description`: `trim(description) != ''`
+
+*History shadow:* `reference_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.reference_agreement`
+
+An agreement a user must accept before viewing a reference.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `UUID` | N | 
+| `name` | `TEXT` | N | 
+| `s3_path` | `TEXT` | N | 
+| `owner_user_id` | `UUID` | N | FK
+| `created_at` | `TIMESTAMPTZ` | N | DEFAULT CURRENT_TIMESTAMP
+| `updated_at` | `TIMESTAMPTZ` | N | 
+| `owner_person_type_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** (`owner_user_id`, `owner_person_type_id`) -> `users`(`id`, `person_type_id`)
+** `owner_person_type_id` -> `cms_user_person_type_limit`(`id`)
+
+*CHECK constraints:*
+** `check_non_empty_name`: `trim(name) != ''`
+** `check_non_empty_s3_path`: `trim(s3_path) != ''`
+
+*History shadow:* `reference_agreement_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.reference_agreement_acceptance`
+
+Per-user acceptance record for a reference agreement; 4-column composite PK. No history table.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `reference_id` | `UUID` | N | PK, FK
+| `reference_agreement_id` | `UUID` | N | PK, FK
+| `user_id` | `UUID` | N | PK, FK
+| `acceptance_timestamp` | `TIMESTAMPTZ` | N | PK, DEFAULT CURRENT_TIMESTAMP
+|===
+
+*Foreign keys:*
+** (`reference_id`, `reference_agreement_id`) -> `reference_configuration`(`reference_id`, `reference_agreement_id`)
+** `user_id` -> `users`(`id`)
+
+*Composite primary key:* (`reference_id`, `reference_agreement_id`, `user_id`, `acceptance_timestamp`)
+
+*History shadow:* none.
+
+=== `demos_app.reference_configuration`
+
+Configuration controlling reference visibility / lifecycle by status.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `UUID` | N | 
+| `reference_id` | `UUID` | N | UK, FK
+| `reference_agreement_id` | `UUID` | Y | FK
+| `status_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** `reference_id` -> `reference`(`id`)
+** `reference_agreement_id` -> `reference_agreement`(`id`)
+** `status_id` -> `reference_configuration_status`(`id`)
+
+*Composite unique indexes:*
+** (`reference_id`, `reference_agreement_id`) (`reference_configuration_reference_id_reference_agreement_id_key`)
+
+*History shadow:* `reference_configuration_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.reference_demonstration_type`
+
+Associative table tying a reference to a demonstration-type tag.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `reference_id` | `UUID` | N | FK
+| `demonstration_type_tag_name_id` | `TEXT` | N | FK
+| `demonstration_type_tag_type_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** `reference_id` -> `reference`(`id`)
+** (`demonstration_type_tag_name_id`, `demonstration_type_tag_type_id`) -> `tag`(`tag_name_id`, `tag_type_id`)
+** `demonstration_type_tag_type_id` -> `demonstration_type_tag_type_limit`(`id`)
+
+*Composite primary key:* (`reference_id`, `demonstration_type_tag_name_id`, `demonstration_type_tag_type_id`)
+
+*History shadow:* `reference_demonstration_type_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+=== `demos_app.reference_tag_assignment`
+
+Tag attached to a reference.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `reference_id` | `UUID` | N | FK
+| `tag_name_id` | `TEXT` | N | FK
+| `tag_type_id` | `TEXT` | N | FK
+|===
+
+*Foreign keys:*
+** `reference_id` -> `reference`(`id`)
+** (`tag_name_id`, `tag_type_id`) -> `tag`(`tag_name_id`, `tag_type_id`)
+** `tag_type_id` -> `reference_tag_type_limit`(`id`)
+
+*Composite primary key:* (`reference_id`, `tag_name_id`, `tag_type_id`)
+
+*History shadow:* `reference_tag_assignment_history` (`revision_id`, `revision_type`, `modified_at` + the parent columns mirroring nullability).
+
+
+== On-demand reports
+
+=== `demos_app.on_demand_report`
+
+Net-new in DEMOS. An on-demand generated report stored in S3; carries the requesting user, report type, and status. No history table.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `id` | `UUID` | N | 
+| `s3_path` | `TEXT` | N | 
+| `requesting_user_id` | `UUID` | N | FK
+| `report_type_id` | `TEXT` | N | FK
+| `status_id` | `TEXT` | N | FK
+| `report_generated_at` | `TIMESTAMPTZ` | N | 
+| `generated_file_name` | `TEXT` | N | 
+|===
+
+*Foreign keys:*
+** `requesting_user_id` -> `users`(`id`)
+** `report_type_id` -> `on_demand_report_type`(`id`)
+** `status_id` -> `on_demand_report_status`(`id`)
+
+*CHECK constraints:*
+** `check_non_empty_s3_path`: `trim(s3_path) != ''`
+
+*History shadow:* none.
+
+
+== Sessions
+
+=== `demos_app.user_session`
+
+Per-user authentication session counter. One row per (user_id, auth_time); subsequent auth events for the same session bump last_auth_event_time and increment auth_event_count. No history table.
+
+
+[cols="2,2,1,3",role=sortable]
+|===
+| Column | Type | Null | Default / Key
+| `user_id` | `UUID` | N | FK
+| `auth_time` | `TIMESTAMPTZ` | N | 
+| `last_auth_event_time` | `TIMESTAMPTZ` | N | 
+| `auth_event_count` | `INTEGER` | N | 
+|===
+
+*Foreign keys:*
+** `user_id` -> `users`(`id`)
+
+*Composite primary key:* (`user_id`, `auth_time`)
+
+*History shadow:* none.
+
+
+== Static-constraint tables
+
+Static-constraint text-ID lookup. Seed values live in sql/02_seeds_static/.
+See xref:../sme/reference-static-constraint-tables.adoc[the SME static-constraint reference] for the seeded values.
+
+[cols="2,1,2"]
+|===
+| Table | Class | Columns
+| `application_status` | Static-constraint tables | 1
+| `application_tag_suggestion_status` | Static-constraint tables | 1
+| `application_type` | Static-constraint tables | 1
+| `budget_neutrality_validation_status` | Static-constraint tables | 1
+| `clearance_level` | Static-constraint tables | 1
+| `date_type` | Static-constraint tables | 1
+| `deliverable_action_type` | Static-constraint tables | 5
+| `deliverable_due_date_type` | Static-constraint tables | 1
+| `deliverable_extension_reason_code` | Static-constraint tables | 1
+| `deliverable_extension_status` | Static-constraint tables | 1
+| `deliverable_status` | Static-constraint tables | 1
+| `deliverable_type` | Static-constraint tables | 1
+| `document_type` | Static-constraint tables | 1
+| `grant_level` | Static-constraint tables | 1
+| `note_type` | Static-constraint tables | 1
+| `on_demand_report_status` | Static-constraint tables | 1
+| `on_demand_report_type` | Static-constraint tables | 1
+| `permission` | Static-constraint tables | 2
+| `person_type` | Static-constraint tables | 1
+| `phase` | Static-constraint tables | 2
+| `phase_status` | Static-constraint tables | 1
+| `reference_configuration_status` | Static-constraint tables | 1
+| `role` | Static-constraint tables | 2
+| `sdg_division` | Static-constraint tables | 1
+| `signature_level` | Static-constraint tables | 1
+| `state` | Static-constraint tables | 3
+| `tag_source` | Static-constraint tables | 1
+| `tag_status` | Static-constraint tables | 1
+| `tag_type` | Static-constraint tables | 1
+| `uipath_result_status` | Static-constraint tables | 1
+|===
+
+== Type-limiter tables
+
+Type limiter. Constrains which static-constraint id values are legal in a given context. Seed values live in sql/03_seeds_limiters/.
+See xref:../sme/reference-static-constraint-tables.adoc[the SME static-constraint reference] for the seeded values.
+
+[cols="2,1,2"]
+|===
+| Table | Class | Columns
+| `amendment_application_type_limit` | Type-limiter tables | 1
+| `application_tag_suggestion_extract_field_limit` | Type-limiter tables | 1
+| `application_tag_type_limit` | Type-limiter tables | 1
+| `approved_application_status_limit` | Type-limiter tables | 1
+| `budget_neutrality_workbook_document_type_limit` | Type-limiter tables | 1
+| `cms_user_person_type_limit` | Type-limiter tables | 1
+| `deliverable_active_extension_status_limit` | Type-limiter tables | 1
+| `deliverable_submission_action_type_limit` | Type-limiter tables | 1
+| `demonstration_application_type_limit` | Type-limiter tables | 1
+| `demonstration_grant_level_limit` | Type-limiter tables | 1
+| `demonstration_type_tag_type_limit` | Type-limiter tables | 1
+| `extension_application_type_limit` | Type-limiter tables | 1
+| `reference_tag_type_limit` | Type-limiter tables | 1
+| `system_grant_level_limit` | Type-limiter tables | 1
+| `user_person_type_limit` | Type-limiter tables | 1
+|===

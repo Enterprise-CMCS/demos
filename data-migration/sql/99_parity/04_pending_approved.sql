@@ -24,6 +24,14 @@
  *     loaded but did (a fold that got its own row, or a no-project row loaded).
  *     Expected empty: the loader only ever loads orphan_loadable rows.
  *
+ *   - 'region_digit_repaired' (non-gating report): a pending demo that folded
+ *     into an approved counterpart via the tier-1 region-digit repair in
+ *     stg._pendg_demo_fold (same state, same 5-digit project number, differing
+ *     region digit). The reason string names the authoritative medicaid_id it
+ *     folded into and states whether THAT row's region suffix is state-correct,
+ *     which is the check the fold view itself cannot make (it is source-only and
+ *     migration.state_region is a seed). Reported so no repair is silent.
+ *
  *   - 'pending_only_deferred' (baseline set): the residual pending demos the
  *     migration deliberately does NOT load -- the no-project-number pending
  *     demos ('held_no_project'), reason 'no_project_number'. Gate 4 reconciles
@@ -31,11 +39,16 @@
  *     doubles as the SME-signed record of the workflow-7 reversal, so a newly-
  *     appearing no-project pending demo forces re-review.
  *
- * migration._parity_pending_demonstration_held is a NON-GATING per-row log of
- * loadable orphan pending demos that were nonetheless held back at load: state
- * unresolvable in migration.state_region, or the non-winning row of a duplicate
- * medicaid_id (the RED-4 hold-back mirrored from the approved loader). It is for
- * SME review, not a gate (the deliberate hold-backs must not RED the build).
+ * migration._parity_pending_demonstration_held is a per-row log of loadable
+ * orphan pending demos held back at load, tagged by reason:
+ *   - 'state_unresolvable'      : state not in migration.state_region (non-gating);
+ *   - 'duplicate_medicaid_id'   : the non-winning row of a duplicate whose group
+ *                                 HAS a region-correct winner (non-gating);
+ *   - 'region_incorrect_duplicate': a member of a duplicate group whose region
+ *                                 suffix matches no member's state region -- the
+ *                                 whole group is held and this GATES check 4 RED
+ *                                 for SME source-correction (no lowest-id fallback).
+ * The first two are for SME review only; the third is a hard gate.
  *
  * Conditional DDL: references the stg fold view, the pending resolved view, and
  * the loaded target, which exist only in the full pipeline; guarded so the
@@ -84,7 +97,22 @@ BEGIN
       f.medicaid_id AS medicaid_id,
       'no_project_number'::text AS reason
     FROM stg._pendg_demo_fold f
-    WHERE f.disposition = 'held_no_project';
+    WHERE f.disposition = 'held_no_project'
+    UNION ALL
+    SELECT
+      'region_digit_repaired'::text AS category,
+      f.legacy_pendg_demo_id AS legacy_pendg_demo_id,
+      f.medicaid_id AS medicaid_id,
+      ('folded into ' || f.folded_into_medicaid_id
+        || CASE WHEN sr.region IS NULL THEN ' (state region unknown)'
+             WHEN substring(f.folded_into_medicaid_id FROM '/([0-9]+)$')::int = sr.region
+               THEN ' (approved counterpart region is state-correct)'
+             ELSE ' (WARNING: approved counterpart region is ALSO not state-correct)'
+           END)::text AS reason
+    FROM stg._pendg_demo_fold f
+    JOIN mysql_raw.mdcd_pendg_demo p ON p.mdcd_pendg_demo_id = f.legacy_pendg_demo_id
+    LEFT JOIN migration.state_region sr ON sr.state_id = p.geo_ansi_state_cd
+    WHERE f.region_digit_repaired;
   $v$;
   EXECUTE $v$
     CREATE OR REPLACE VIEW migration._parity_pending_demonstration_held AS
@@ -97,24 +125,35 @@ BEGIN
       SELECT 1 FROM migration.state_region sr WHERE sr.state_id = r.state_id)
     UNION ALL
     SELECT
-      ranked.legacy_pendg_demo_id AS legacy_pendg_demo_id,
-      ranked.medicaid_id AS medicaid_id,
-      'duplicate_medicaid_id'::text AS reason
+      g.legacy_pendg_demo_id AS legacy_pendg_demo_id,
+      g.medicaid_id AS medicaid_id,
+      (CASE WHEN g.has_region_match THEN 'duplicate_medicaid_id'
+            ELSE 'region_incorrect_duplicate' END)::text AS reason
     FROM (
       SELECT
         r.legacy_pendg_demo_id AS legacy_pendg_demo_id,
         r.medicaid_id AS medicaid_id,
-        ROW_NUMBER() OVER (PARTITION BY r.medicaid_id ORDER BY
-          CASE WHEN substring(r.medicaid_id FROM '/([0-9]+)$') IS NOT NULL
-            AND (substring(r.medicaid_id FROM '/([0-9]+)$')::int = sr.region
-              OR (substring(r.medicaid_id FROM '/([0-9]+)$') = '0' AND sr.region = 10))
-            THEN 0 ELSE 1 END,
-          r.legacy_pendg_demo_id) AS rn
+        CASE WHEN substring(r.medicaid_id FROM '/([0-9]+)$') IS NOT NULL
+          AND (substring(r.medicaid_id FROM '/([0-9]+)$')::int = sr.region
+            OR (substring(r.medicaid_id FROM '/([0-9]+)$') = '0' AND sr.region = 10))
+          THEN 0 ELSE 1 END AS region_rank,
+        count(*) OVER (PARTITION BY r.medicaid_id) AS grp_size,
+        bool_or(substring(r.medicaid_id FROM '/([0-9]+)$') IS NOT NULL
+          AND (substring(r.medicaid_id FROM '/([0-9]+)$')::int = sr.region
+            OR (substring(r.medicaid_id FROM '/([0-9]+)$') = '0' AND sr.region = 10)))
+          OVER (PARTITION BY r.medicaid_id) AS has_region_match,
+        min(r.legacy_pendg_demo_id) FILTER (WHERE substring(r.medicaid_id FROM '/([0-9]+)$') IS NOT NULL
+          AND (substring(r.medicaid_id FROM '/([0-9]+)$')::int = sr.region
+            OR (substring(r.medicaid_id FROM '/([0-9]+)$') = '0' AND sr.region = 10)))
+          OVER (PARTITION BY r.medicaid_id) AS winner_legacy_id
       FROM stg.pending_demonstration_resolved r
       JOIN migration.state_region sr ON sr.state_id = r.state_id
       WHERE r.medicaid_id IS NOT NULL
-    ) ranked
-    WHERE ranked.rn > 1;
+    ) g
+    WHERE g.grp_size > 1
+      AND (NOT g.has_region_match
+        OR NOT (g.region_rank = 0 AND g.legacy_pendg_demo_id = g.winner_legacy_id));
   $v$;
 END
 $$;
+

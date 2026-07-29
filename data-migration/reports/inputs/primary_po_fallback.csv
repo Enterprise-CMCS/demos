@@ -1,0 +1,2 @@
+scope,legacy_user_id,notes
+default,828,"Global fallback primary Project Officer (legacy user 828, a CMS user authorized for all states). Assigned to any demonstration that would otherwise load without a primary PO. Change here to reconfigure; re-run the crosswalks phase."

@@ -77,11 +77,16 @@ def test_loaded_rows_have_uuid_and_chip() -> None:
             assert r["uuid_token"].startswith("DEMONSTRATION_UUID_")
             assert r["status_id"]
             assert r["current_phase_id"]
-            assert r["chip_source"] in {"preserved", "deferred"}
-            # The migration never mints chip_id: preserved rows carry the legacy
-            # 21-W number, deferred rows carry NULL (DEMOS backfills them).
+            assert r["chip_source"] in {"preserved", "minted", "deferred"}
+            # chip_id is either the preserved legacy 21-W number, a minted value
+            # (normalized to a stable DEMONSTRATION_CHIP_NN token for determinism),
+            # or NULL if -- unexpectedly -- neither preserved nor minted.
             if r["chip_source"] == "preserved":
                 assert r["chip_id"]
+                assert r["chip_id"].startswith("21-W-")
+            elif r["chip_source"] == "minted":
+                assert r["chip_id"]
+                assert r["chip_id"].startswith("DEMONSTRATION_CHIP_")
             else:
                 assert r["chip_id"] is None
         else:
@@ -98,18 +103,24 @@ def test_uuid_tokens_unique_and_ordered_by_medicaid_id() -> None:
     assert [r["uuid_token"] for r in by_id] == sorted(tokens)
 
 
-def test_preserved_chip_is_concrete_deferred_chip_is_null() -> None:
-    """The migration never mints: preserved chips are concrete, deferred are NULL."""
+def test_preserved_chip_is_concrete_minted_chip_is_tokenized() -> None:
+    """Preserved chips carry the legacy 21-W value; minted chips are tokenized.
+
+    chip_id is NOT NULL, so a row without a legacy 21-W number is minted at
+    INSERT by generate_medicaid_chip_id_numbers. The minted sequence value is
+    INSERT-order dependent, so -- like the UUIDs -- it is normalized to a stable
+    DEMONSTRATION_CHIP_NN token to keep the committed trace byte-identical.
+    """
     preserved = [r for r in ROWS if r.get("chip_source") == "preserved"]
-    deferred = [r for r in ROWS if r.get("chip_source") == "deferred"]
+    minted = [r for r in ROWS if r.get("chip_source") == "minted"]
     assert preserved, "fixture should exercise at least one preserved chip"
-    assert deferred, "fixture should exercise at least one deferred (NULL) chip"
+    assert minted, "fixture should exercise at least one minted chip"
     for r in preserved:
         assert r["chip_id"]
         assert r["chip_id"].startswith("21-W-")
-        assert "\u2026" not in r["chip_id"]  # nothing is masked anymore
-    for r in deferred:
-        assert r["chip_id"] is None
+    for r in minted:
+        assert r["chip_id"]
+        assert r["chip_id"].startswith("DEMONSTRATION_CHIP_")
 
 
 def test_committed_trace_partial_renders_from_committed_manifest() -> None:

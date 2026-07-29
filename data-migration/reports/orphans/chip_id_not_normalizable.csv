@@ -1,0 +1,3 @@
+legacy_demo_id,state_id,medicaid_id,chip_id_source,reason
+2265,TN,11-W-00369/4,11-W-001514,a Medicaid (11-W) number is filed in the CHIP column
+2522,ME,11-W-00338/1,None,"placeholder text, not a CHIP number"

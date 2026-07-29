@@ -1,0 +1,9 @@
+{
+  "duckdb_version": "1.5.2",
+  "freeze_instant": null,
+  "generated_at": "2026-07-22T14:04:03Z",
+  "mismatches": 0,
+  "mysql_db": "cma_pro_11_1_000",
+  "stamp": "20260722_140403Z",
+  "tables_compared": 507
+}

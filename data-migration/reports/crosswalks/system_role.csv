@@ -1,3 +1,4 @@
-legacy_role_cd,legacy_name,role_id,grant_level_id,person_type_id,notes
-1,Internal Administrator,Admin User,System,demos-admin,system-level; role_person_type allows only demos-admin
-4,State User,State User,System,demos-state-user,system-level; role_person_type allows only demos-state-user
+person_type_id,role_id,grant_level_id,notes
+demos-admin,Admin User,System,person-type-derived System role; role_person_type pairs Admin User with demos-admin
+demos-cms-user,CMS User,System,person-type-derived System role; role_person_type pairs CMS User with demos-cms-user
+demos-state-user,State User,System,person-type-derived System role; role_person_type pairs State User with demos-state-user

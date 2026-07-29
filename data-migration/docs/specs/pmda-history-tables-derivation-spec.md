@@ -4,6 +4,24 @@
 **Date**: 2026-07-17
 **Source Spec**: `~/.factory/specs/2026-07-17-utilizing-pmda-history-tables-to-enhance-the-demos-migration.md`
 
+> **2026-07-20 SME reconciliation** (`reports/narrative/sme_signoff_2026-07-20.md`):
+> Stephanie's "backfill vs one synthetic 'migrated from PMDA' action; easiest
+> wins" is **resolved as a history backfill** (not a synthetic action type: a
+> synthetic action/transition has no legal row in the seeded
+> `deliverable_action_configuration` composite FK and would need a cross-repo
+> DEMOS seed change, so it is neither easier nor legal).
+>
+> **2026-07-21 fidelity re-decision (supersedes FULL): MINIMAL.** David's CMS
+> priority ranking (§11 of the ledger;
+> `docs/specs/deliverable-action-cms-priority-alignment-spec.md`) places
+> `deliverable_action` in his lowest band and accepts a read-only snapshot for
+> extensions/resubmit requests (D12). The **MINIMAL legal trail** (one seeded
+> genesis `Created Deliverable Slot` + one current-status action per loaded
+> deliverable) is now the primary plan. It keeps Workstream 1's staging/loader
+> skeleton but derives only the genesis + current-status rows, so the FULL
+> per-transition crosswalk (D8 unmapped codes + self-transition disambiguation)
+> is off the critical path. Workstreams 2 and 3 are unchanged.
+
 ---
 
 ## Goal
@@ -178,20 +196,28 @@ nearest revision at/under `creatd_dt` for `old_due_date` / `new_due_date` (for
 `action_type` and the legality of each `(action_type, old, new)` triple come
 from `crosswalk_deliverable_action`.
 
-### SME fork (decision D7): Full vs Minimal fidelity
+### SME fork (decision D7): Full vs Minimal fidelity -- DECIDED MINIMAL (2026-07-21)
 
-- **Full**: one action row per legal transition (~41k source events). Highest
-  fidelity; largest crosswalk + held-row surface. Recommended -- the value is
-  exactly the pre-cutover trail.
-- **Minimal**: one synthetic `Created Deliverable Slot` genesis + one
+- **Minimal (CHOSEN)**: one seeded `Created Deliverable Slot` genesis + one
   current-status action per deliverable. Trail non-empty, status explained,
-  near-zero crosswalk risk.
+  near-zero crosswalk risk. Chosen because David ranks `deliverable_action` in
+  his lowest priority band and accepts a read-only snapshot for the
+  per-transition resubmit/extension history (D12).
+- ~~**Full**: one action row per legal transition (~41k source events).~~
+  Superseded; retained only as a future option if per-transition detail is later
+  promoted from the D12 snapshot into live actions.
+
+Under MINIMAL the reconstruction reduces to two rows per deliverable: a genesis
+`Created Deliverable Slot` (whose `old_status = new_status = 'Upcoming'` seed
+start) and a single terminal action landing on the deliverable's current
+`status_id` (via `crosswalk_deliverable_status`), so only the current status
+must map -- the six unmapped PMDA status codes (D8) and self-transition
+disambiguation no longer gate the build.
 
 No DB constraint requires >=1 action per deliverable (verified against the
 baseline DDL). Whether the DEMOS UI/GraphQL resolver assumes a genesis
-`Created Deliverable Slot` for every deliverable is a follow-up question for
-DEMOS engineering; it governs whether Full also synthesizes a genesis row for
-deliverables whose history begins mid-lifecycle.
+`Created Deliverable Slot` remains a follow-up for DEMOS engineering; under
+MINIMAL the genesis row is synthesized for every loaded deliverable regardless.
 
 ### Gating posture (decision from grill)
 
@@ -277,13 +303,16 @@ visibility.
 
 ## Open questions surfaced to SME (see `pending_approved_decisions.md` D7/D8)
 
-- **D7**: `deliverable_action` confirmed in-scope to backfill; Full vs Minimal
-  fidelity awaits SME. Genesis-action requirement awaits DEMOS-engineering
-  confirmation of any resolver-level assumption.
-- **D8**: PMDA status codes with no direct DEMOS status (`Work in Progress`,
-  `Overridden`, `Overridden/Accepted`, `Overridden/Request Resubmission`,
-  `Pending Due Date Change`, `Open-ended`) need crosswalk targets + action-type
-  disambiguation authored by SME; unmapped transitions are held non-gating.
+- **D7**: `deliverable_action` in-scope to backfill; **fidelity RESOLVED MINIMAL
+  (2026-07-21)**, superseding FULL (David CMS priority alignment). Genesis-action
+  requirement awaits DEMOS-engineering confirmation of any resolver-level
+  assumption; MINIMAL synthesizes it regardless.
+- **D8**: OFF the critical path under MINIMAL - only the current status maps
+  (already handled by `crosswalk_deliverable_status`). The PMDA status codes with
+  no direct DEMOS status (`Work in Progress`, `Overridden`, `Overridden/Accepted`,
+  `Overridden/Request Resubmission`, `Pending Due Date Change`, `Open-ended`)
+  only need per-transition crosswalk targets if FULL detail is later promoted
+  from the D12 snapshot.
 
 ## Explicitly out of scope
 

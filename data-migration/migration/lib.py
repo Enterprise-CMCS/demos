@@ -849,6 +849,86 @@ def cast_block(path: Path | None = None) -> str:
     return cast_file.read_text(encoding="utf-8").rstrip("\n")
 
 
+# --------------------------------------------------------------------------
+# DEMOS server SQL: single-source-of-truth extraction of the migration_mode-
+# gated chip_id mint trigger.
+#
+# The demonstration column ``chip_id`` is NOT NULL in the DEMOS schema, yet the
+# migration can only *preserve* a legacy 21-W secondary number and must leave
+# chip_id NULL for rows that never had one. DEMOS resolves this with the
+# ``generate_medicaid_chip_id_numbers`` BEFORE INSERT trigger, which -- when the
+# session GUC ``demos_app.migration_mode='on'`` -- lets the migration set
+# medicaid_id/chip_id explicitly (legacy-preserve) and mints a chip_id from
+# ``demos_app.chip_id_number_seq`` for any row left NULL. The migration deploys
+# ONLY this trigger (the pinned Prisma DDL ships the sequences but not the app
+# triggers) and runs build_app with migration_mode on; the other application
+# triggers (create_phases_and_dates_for_new_application,
+# check_demonstration_primary_project_officer) stay ABSENT because the migration
+# sets phases/roles itself. Preflight P0.9 verifies exactly this trigger state.
+# The definition is read verbatim from ``server/src/sql/functions.sql`` so the
+# migration never drifts from the app's own source of truth.
+# --------------------------------------------------------------------------
+
+_MINT_FN_RE = re.compile(
+    r"CREATE FUNCTION demos_app\.generate_medicaid_chip_id_numbers\(\)[\s\S]*?\$\$;"
+)
+_MINT_TRG_RE = re.compile(
+    r"CREATE TRIGGER generate_medicaid_chip_id_numbers[\s\S]*?;"
+)
+
+
+def demos_functions_sql_path(demos_local: str | None = None) -> Path:
+    """Resolve the canonical DEMOS ``server/src/sql/functions.sql``.
+
+    Tries, in order: an explicit ``demos_local`` checkout (relative paths
+    resolve against the migration repo root, matching ``Env.demos_local``), the
+    monorepo layout (``server/`` a sibling of ``data-migration/``), and the
+    default sibling ``../demos`` checkout. Returns the first path that exists;
+    otherwise returns the monorepo candidate (callers surface a clear read
+    error).
+    """
+    candidates: list[Path] = []
+    if demos_local:
+        candidates.append(ROOT_DIR / demos_local / "server/src/sql/functions.sql")
+    candidates.append(ROOT_DIR.parent / "server" / "src" / "sql" / "functions.sql")
+    candidates.append(ROOT_DIR / "../demos/server/src/sql/functions.sql")
+    for c in candidates:
+        resolved = c.resolve()
+        if resolved.is_file():
+            return resolved
+    return candidates[1].resolve()
+
+
+def extract_mint_trigger_sql(functions_sql_text: str) -> str:
+    """Extract ONLY the ``generate_medicaid_chip_id_numbers`` function+trigger.
+
+    Returns an idempotent deploy script: ``DROP ... IF EXISTS`` guards (so a
+    re-run on an already-deployed schema is a no-op) followed by the function
+    and trigger ``CREATE`` statements copied verbatim from ``functions.sql``.
+    Raises ``ValueError`` if either object is missing (fail closed rather than
+    deploy a half-trigger).
+    """
+    fn = _MINT_FN_RE.search(functions_sql_text)
+    trg = _MINT_TRG_RE.search(functions_sql_text)
+    if fn is None or trg is None:
+        raise ValueError(
+            "could not extract generate_medicaid_chip_id_numbers "
+            f"(function={fn is not None}, trigger={trg is not None}) from functions.sql"
+        )
+    return (
+        "DROP TRIGGER IF EXISTS generate_medicaid_chip_id_numbers "
+        "ON demos_app.demonstration;\n"
+        "DROP FUNCTION IF EXISTS demos_app.generate_medicaid_chip_id_numbers();\n"
+        f"{fn.group(0)}\n\n{trg.group(0)}\n"
+    )
+
+
+def mint_trigger_deploy_sql(demos_local: str | None = None) -> str:
+    """Read the canonical functions.sql and return the mint-trigger deploy SQL."""
+    path = demos_functions_sql_path(demos_local)
+    return extract_mint_trigger_sql(path.read_text(encoding="utf-8"))
+
+
 def psql_file(env: Env, sql_path: Path) -> None:
     """Apply one SQL file in its own implicit transaction (autocommit)."""
     with psycopg.connect(env.pg_dsn(), autocommit=True) as conn:

@@ -65,14 +65,44 @@ def test_stamped_path_uses_prefix_and_stamp(tmp_path: Path) -> None:
     assert p.suffix == ".csv"
 
 
-def test_parse_args_defaults_to_both() -> None:
-    """No subcommand defaults to running both exports."""
+def test_parse_args_defaults_to_all() -> None:
+    """No subcommand runs every export, so a new one is reachable by default."""
     args = sre.parse_args([])
-    assert args.command == "both"
+    assert args.command == "all"
+
+
+def test_all_selects_every_registered_export() -> None:
+    """`all` must be derived from the registry, never a hand-maintained list.
+
+    Guards the regression this replaced: `dup-medicaid` was implemented, tested
+    and documented but unreachable from `make sme_review_exports`, because the
+    aggregate subcommand enumerated its members by hand.
+    """
+    assert sre._selected_exports("all") == list(sre.EXPORTS)
+    assert "dup-medicaid" in sre._selected_exports("all")
+
+
+def test_both_remains_the_original_pair() -> None:
+    """`both` is a deprecated alias and must not silently widen."""
+    assert sre._selected_exports("both") == ["othr-names", "comments-snapshot"]
+
+
+def test_single_subcommand_selects_only_itself() -> None:
+    assert sre._selected_exports("dup-medicaid") == ["dup-medicaid"]
 
 
 @pytest.mark.parametrize(
-    "command", ["othr-names", "comments-snapshot", "authorities-snapshot", "both"]
+    "command",
+    [
+        "othr-names",
+        "comments-snapshot",
+        "authorities-snapshot",
+        "comment-route-diff",
+        "softdeleted-demos-snapshot",
+        "dup-medicaid",
+        "all",
+        "both",
+    ],
 )
 def test_parse_args_accepts_each_subcommand(command: str) -> None:
     assert sre.parse_args([command]).command == command

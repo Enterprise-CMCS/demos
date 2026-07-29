@@ -12,9 +12,13 @@ Asserts the 2026-07-10 SME reversal:
     number) is classified 'folded' and does NOT get its own row;
   * a pending demo with NO project number is held back ('held_no_project') and
     logged as pending_only_deferred / no_project_number in check 4;
-  * among orphans, a duplicate medicaid_id loads one deterministic winner and
-    holds the loser back (RED-4), and a state absent from state_region is held;
-    both are logged (non-gating) in _parity_pending_demonstration_held;
+  * among orphans, a duplicate medicaid_id whose group has a region-correct
+    member loads one deterministic winner and holds the loser back (RED-4),
+    and a state absent from state_region is held; both are logged (non-gating)
+    in _parity_pending_demonstration_held;
+  * a duplicate medicaid_id whose group matches NO member's state region is held
+    ENTIRELY (none loaded) and logged as ``region_incorrect_duplicate`` -- the
+    gating reason that REDs parity check 4 (no lowest-id fallback);
   * no pending demo that must NOT load leaks into the target (leaked == 0);
   * re-applying the loader is a no-op (idempotent).
 """
@@ -43,6 +47,10 @@ P_FOLD = 1003       # 11-W-00900/6 == approved A_APPROVED -> folded, NOT loaded
 P_DUP_WIN = 1004    # 11-W-00810/6, LA (region 6 match) -> dup WINNER, loads
 P_DUP_LOSE = 1005   # 11-W-00810/6, VT (region 1, suffix 6 != 1) -> dup loser, held
 P_BADSTATE = 1006   # 11-W-00820/6, ZZ (not in state_region) -> held (state)
+# Region-INCORRECT duplicate group: NO member matches its state region, so the
+# whole group is held and parity check 4 gates RED (no lowest-id fallback).
+P_RI_A = 1007       # 11-W-00036/4, DE (region 3, suffix 4 != 3) -> held (gating)
+P_RI_B = 1008       # 11-W-00036/4, DE (region 3, suffix 4 != 3) -> held (gating)
 
 A_APPROVED = 5001   # approved 11-W-00900/6, LA -> the fold target for P_FOLD
 
@@ -54,8 +62,10 @@ PENDG = [
     (P_DUP_WIN, "11-W-00810/6", "LA"),
     (P_DUP_LOSE, "11-W-00810/6", "VT"),
     (P_BADSTATE, "11-W-00820/6", "ZZ"),
+    (P_RI_A, "11-W-00036/4", "DE"),
+    (P_RI_B, "11-W-00036/4", "DE"),
 ]
-STATE_REGION = [("LA", 6), ("VT", 1)]
+STATE_REGION = [("LA", 6), ("VT", 1), ("DE", 3)]
 
 
 def _u(legacy: int) -> uuid.UUID:
@@ -135,7 +145,8 @@ def _provision(conn: Any) -> None:
 
     conn.execute(
         "CREATE TABLE demos_app.application "
-        "(id uuid PRIMARY KEY, application_type_id text NOT NULL)"
+        "(id uuid PRIMARY KEY, application_type_id text NOT NULL, "
+        "is_migrated_from_pmda boolean NOT NULL DEFAULT false)"
     )
     conn.execute(
         "CREATE TABLE demos_app.demonstration ("
@@ -182,6 +193,20 @@ def test_orphan_with_project_loads_under_review(pg_db: psycopg.Connection) -> No
     assert row[3] == "11-W-00801/6"
 
 
+def test_application_rows_are_flagged_migrated(pg_db: psycopg.Connection) -> None:
+    """Pending-track applications must also set is_migrated_from_pmda.
+
+    The column is ``NOT NULL DEFAULT false`` upstream, so a loader that omits it
+    records the row as natively created instead of migrated, with no error.
+    """
+    _provision(pg_db)
+    assert _scalar(pg_db, "SELECT count(*) FROM demos_app.application") > 0
+    assert (
+        _scalar(pg_db, "SELECT count(*) FROM demos_app.application WHERE NOT is_migrated_from_pmda")
+        == 0
+    )
+
+
 def test_no_project_number_held_and_deferred(pg_db: psycopg.Connection) -> None:
     """A pending demo with no project number is held back and logged deferred."""
     _provision(pg_db)
@@ -219,6 +244,21 @@ def test_duplicate_medicaid_winner_and_state_holdbacks(pg_db: psycopg.Connection
     }
     assert (P_DUP_LOSE, "duplicate_medicaid_id") in held
     assert (P_BADSTATE, "state_unresolvable") in held
+
+
+def test_region_incorrect_duplicate_group_fully_held_and_gates(pg_db: psycopg.Connection) -> None:
+    """A dup group matching no member's state region is held entirely and gates check 4."""
+    _provision(pg_db)
+    assert not _loaded(pg_db, P_RI_A)
+    assert not _loaded(pg_db, P_RI_B)
+    held = {
+        (int(r[0]), r[1])
+        for r in pg_db.execute(
+            "SELECT legacy_pendg_demo_id, reason FROM migration._parity_pending_demonstration_held"
+        ).fetchall()
+    }
+    assert (P_RI_A, "region_incorrect_duplicate") in held
+    assert (P_RI_B, "region_incorrect_duplicate") in held
 
 
 def test_no_pending_leak(pg_db: psycopg.Connection) -> None:

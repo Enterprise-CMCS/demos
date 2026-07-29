@@ -1,6 +1,6 @@
 /*
- * Purpose:    Load demos_app.private_comment + demos_app.public_comment from stg.comment_resolved, routing each deliverable comment by the (gated) cmt_orgn_cd crosswalk or the author-person-type default.
- * Inputs:     stg.comment_resolved; mysql_raw.crosswalk_comment_origin (gated, empty today); demos_app.deliverable (loaded-parent JOIN).
+ * Purpose:    Load demos_app.private_comment + demos_app.public_comment from stg.comment_resolved, routing each deliverable comment by the authored cmt_orgn_cd crosswalk, defaulting a code-less comment to private (state-authored: public).
+ * Inputs:     stg.comment_resolved; mysql_raw.crosswalk_comment_origin (authored); demos_app.deliverable (loaded-parent JOIN).
  * Outputs:    demos_app.private_comment, demos_app.public_comment
  * Invariants: runs inside the deferred-constraint build_app txn; RETURNs before the INSERTs while stg.comment_resolved is absent (app-layers idempotency harness no-op); inner-join demos_app.deliverable so a comment whose parent deliverable was not loaded is held back; private route requires a CMS author person_type (cms_user_person_type_limit); public route requires an auth-user person_type (user_person_type_limit) so its author_user_id FK holds; empty content + unresolved author held back; held-back rows logged for SME review by the parity views; idempotent via NOT EXISTS + ON CONFLICT (id) DO NOTHING.
  * Refs:       sql/04_crosswalks/68_comment_origin.sql, sql/10_stg/36_comment_resolved.sql, sql/99_parity/44_comment_held.sql, sql/99_parity/45_comment_completeness.sql, sql/99_parity/46_comment_integrity.sql, sql/99_parity/47_comment_routing_coverage.sql, docs/specs/comment-deliverable-resourcing-spec.md
@@ -16,14 +16,27 @@
  *
  * Routing: DEMOS splits comments into private_comment (CMS-internal; author
  * person_type FK -> cms_user_person_type_limit) and public_comment
- * (state-visible). The legacy cmt_orgn_cd code chooses the route via the GATED
- * crosswalk mysql_raw.crosswalk_comment_origin (sql/04_crosswalks/68_*), which
- * is EMPTY until SME authors a route per origin code. While empty, the route
- * falls back to the author's person_type:
+ * (state-visible). The legacy cmt_orgn_cd code chooses the route via
+ * mysql_raw.crosswalk_comment_origin (sql/04_crosswalks/68_*, authored in
+ * reports/crosswalks/comment_origin.csv):
  *   route = COALESCE(crosswalk_comment_origin.demos_route,
- *                    CASE WHEN author is CMS user THEN 'private' ELSE 'public' END)
- * Paper comments (source='paper') carry no origin code, so they always take the
- * author-default route.
+ *                    CASE WHEN author is a state user THEN 'public'
+ *                         ELSE 'private' END)
+ *
+ * An authored route always wins. The fallback only covers a comment with NO
+ * origin code (paper comments, and 96 deliverable comments), and it defaults to
+ * PRIVATE rather than inferring visibility from who typed the comment. That
+ * inference does not hold: 649 of 650 'R' comments and all 172 'B' comments are
+ * CMS-authored yet sit in state threads, so an author-type rule and a route rule
+ * disagree on ~822 rows, and publishing a CMS comment to a state cannot be undone
+ * after cutover. sql/04_crosswalks/73_comment_origin_check.sql fails the run if a
+ * code appears that no SME has ruled on, so the private default can never become
+ * the answer for a whole new code.
+ *
+ * The one exception is a STATE-authored comment, which routes public: the state
+ * wrote it, so showing it back to that state discloses nothing, and defaulting it
+ * private would instead hold it back (private_comment requires a CMS author
+ * person_type) and lose it for no safety gain.
  *
  * Hold-backs (logged, non-gating; see sql/99_parity/44_comment_held.sql):
  *   - parent deliverable not loaded (held-back deliverable)
@@ -36,8 +49,13 @@
  *     row; the user_person_type_limit floor holds these back so the
  *     public_comment.author_user_id -> users FK holds at the constraints phase
  *
- * DEFERRED-SME: (1) the cmt_orgn_cd routes for the observed code domain
- * {A,B,C,I,R,S} are not authored yet (crosswalk_comment_origin is gated);
+ * DEFERRED-SME: (1) codes 'R' and 'B' are routed private on the fail-safe rule
+ * rather than on a positive SME determination -- the source cannot distinguish a
+ * CMS reply the state should see from a CMS internal note in a state thread. If
+ * SME later rules either one state-facing, the reversal is a one-line CSV edit
+ * (demos_route public) plus a rebuild; there is no data loss in the meantime,
+ * only reduced state visibility. reports/generated/comment_route_diff.csv (from
+ * scripts/sme_review_exports.py comment-route-diff) is the review artifact;
  * (2) the non-deliverable comment sources (mdcd_demo_cmt, mdcd_demo_amndmt_cmt,
  * mdcd_demo_rnwl_cmt, mdcd_pgm_cmt, mdcd_demo_finl_dcsn_dtl_cmt,
  * mdcd_demo_pgm_mntrg_doc_cmt, bdgt_ntrlty_fil_doc_cmt) have no deliverable and
@@ -70,10 +88,10 @@ BEGIN
     JOIN demos_app.deliverable d ON d.id = r.deliverable_id
     LEFT JOIN mysql_raw.crosswalk_comment_origin co ON co.legacy_cd = r.origin_cd
   WHERE
-    COALESCE(co.demos_route, CASE WHEN r.author_person_type_id IN ('demos-admin', 'demos-cms-user') THEN
-        'private'
-      ELSE
+    COALESCE(co.demos_route, CASE WHEN r.author_person_type_id = 'demos-state-user' THEN
         'public'
+      ELSE
+        'private'
       END) = 'private'
     AND r.author_user_id IS NOT NULL
     AND r.author_person_type_id IN ('demos-admin', 'demos-cms-user')
@@ -100,10 +118,10 @@ BEGIN
     JOIN demos_app.deliverable d ON d.id = r.deliverable_id
     LEFT JOIN mysql_raw.crosswalk_comment_origin co ON co.legacy_cd = r.origin_cd
   WHERE
-    COALESCE(co.demos_route, CASE WHEN r.author_person_type_id IN ('demos-admin', 'demos-cms-user') THEN
-        'private'
-      ELSE
+    COALESCE(co.demos_route, CASE WHEN r.author_person_type_id = 'demos-state-user' THEN
         'public'
+      ELSE
+        'private'
       END) = 'public'
     AND r.author_user_id IS NOT NULL
     AND r.author_person_type_id IN (

@@ -4,6 +4,14 @@
 **Date**: 2026-06-18  
 **Source Spec**: `~/.factory/specs/2026-06-18-pmda-cross-cutting-derivation-spec.md`
 
+> **2026-07-20 SME reconciliation** (`reports/narrative/sme_signoff_2026-07-20.md`):
+> demo status `1` `Pending` -> `Under Review` (built); semi-annual BN ->
+> Quarterly BN; signature-level `OA` scope confirmed; `chip_id` stays a DEMOS-app
+> dependency (loader writes NULL, DEMOS makes the column nullable + adds
+> `is_migrated_from_pmda`). Phase/date: Stephanie's legacy-phase -> date-type
+> table is the spec; Table 3 below uses placeholder `date_type` names and needs
+> an audit (see the ledger's follow-up queue).
+
 ---
 
 ## Goal
@@ -31,13 +39,13 @@ Legend: `PMDA schema` = `reports/schema_snapshot` / loaded `mysql_raw`; `Crosswa
 
 - **Project IDs**: Preserve valid `mdcd_demo_num → demonstration.medicaid_id`; `mdcd_scndry_demo_num → demonstration.chip_id` when valid. Missing target-required IDs block until supplied via validated sidecar keyed by `(source_table, legacy_id, target_column)`.
 - **Signature Levels** (corrected 2026-06-24 against pinned Prisma DDL `20260602115947_check_signature_level`): `demonstration_signature_level_check` forces `signature_level_id` NOT NULL AND `= 'OA'`, so the demonstration loader sets the constant `'OA'` and the per-application PMDA code (incl. `OGD`) is **not** carried at the demonstration grain — the "preserve `OGD` / CHECK widening is an external blocker" position is **superseded** for `demonstration`. Signature-level derivation re-scopes to **amendment / extension**, whose CHECKs allow `signature_level_id` NULL OR `IN ('OA','OCD')`; crosswalk the PMDA code to `{OA, OCD}` and leave NULL when unmappable. See `reports/narrative/notes.md` (2026-06-24 pmda-scope).
-- **Demo Status Code 1 (`Pending`)**: Remains blocked until SME review. Current proposal maps to `Pre-Submission` (confidence=medium) but SMEs must confirm vs `Under Review`.
+- **Demo Status Code 1 (`Pending`)**: **RESOLVED 2026-07-20 -> `Under Review`** (SME: "load as Under Review and observe"); built and tested. Supersedes the earlier `Pre-Submission` proposal.
 - **Phase/Date Model**: Materialize full `application_date` and `application_phase`; derive `current_phase_id` from phase dates with status-based fallback and parity logging.
 - **Soft Deletes**: Migrate in-scope business rows with `dltd_ind=1` using target lifecycle states (e.g., deliverable → `Deleted`). Drop technical tables (`*_hstry`, `*_pendg_*`, `bdgt_ntrlty_*`, `sys_parm`).
 - **Owner/Author FKs**: Resolve from source `users`; block unresolved required owners.
 - **Contact Migration**: **Not implemented on current `main`** — only filter views (`16_filter_cntct.sql`) and proposed crosswalk exist. New workstream needed for contact-only `person`, `person_state`, `demonstration_role_assignment`.
 - **Program-Detail Tags**: Expand beyond current 10-table mapping to **all mappable non-backup base/pending `*_pgm_dtl` tables** (see Table 1 below).
-- **BN Deliverable Routing**: `mdcd_dlvrbl.bdgt_ntrlty_ind` authoritative; `bdgt_ntrlty_fil_ind` creates workbook rows. Semi-annual BN (type 5/6 + `bdgt_ntrlty_ind=1`) has no DEMOS type — **blocked on SME decision**.
+- **BN Deliverable Routing**: `mdcd_dlvrbl.bdgt_ntrlty_ind` authoritative; `bdgt_ntrlty_fil_ind` creates workbook rows. Semi-annual BN (type 5/6 + `bdgt_ntrlty_ind=1`) -> **Quarterly BN (RESOLVED 2026-07-20, "identical")**.
 - **Document Routing**: Source family → explicit flags → type-code crosswalk (see Table 2).
 - **`mdcd_demo_type_cd`**: Scoped metadata only; canonical demo tags from program-detail rows.
 - **Reference Materials**: `rfrnc_matl` → `reference` + `reference_tag_assignment` where crosswalkable.
@@ -127,7 +135,7 @@ Derive `application_phase` rows from highest completed phase; `current_phase_id`
 - Parity checks: Approved-completeness hold-back is parity check 13 (non-gating log); completeness check 8 excludes the deliberate hold-backs.
 
 ### 3. Status & Phase Derivations
-- Keep demo status code `1` unmapped until SME confirmation.
+- Demo status code `1` -> `Under Review` (RESOLVED 2026-07-20; built and tested).
 - Build phase-date → `date_type`/`phase` mapping (Table 3).
 - Insert `application_date` rows for non-null mapped dates.
 - Insert `application_phase` rows; derive `current_phase_id` with status fallback + parity logging.
@@ -145,7 +153,7 @@ Derive `application_phase` rows from highest completed phase; `current_phase_id`
 
 ### 6. Deliverables, Documents, Comments, BN
 - Resolve deliverable status tuples: `status_id`, `due_date_type_id`, `expected_to_be_submitted`, extension/action rows.
-- Route deliverable type via `(mdcd_dlvrbl_type_cd, bdgt_ntrlty_ind)` matrix; block semi-annual BN pending SME.
+- Route deliverable type via `(mdcd_dlvrbl_type_cd, bdgt_ntrlty_ind)` matrix; semi-annual BN -> Quarterly BN (RESOLVED 2026-07-20).
 - Route documents by source family (Table 2), flags, type crosswalk.
 - Route comments: `cmt_orgn_cd` state-origin → `public_comment`; CMS/internal/missing → `private_comment`; fallback + parity warnings.
 
@@ -167,7 +175,7 @@ Derive `application_phase` rows from highest completed phase; `current_phase_id`
 - No soft-deleted in-scope business row lost solely due to `dltd_ind`.
 - Contact-only persons and role assignments represented on current `main`.
 - Program-detail coverage expands beyond 10-row manifest to all mappable in-scope tables (Table 1).
-- All blockers explicit: demo status code `1`, missing SME project IDs, `OGD` CHECK widening (external), unknown program stems, unresolved required owners, semi-annual BN rows, unresolved document/reference mappings.
+- All remaining blockers explicit: missing SME project IDs, `OGD` CHECK widening (external), unknown program stems, unresolved required owners, unresolved document/reference mappings. (Demo status code `1` and semi-annual BN resolved 2026-07-20.)
 
 ---
 
@@ -177,8 +185,8 @@ Derive `application_phase` rows from highest completed phase; `current_phase_id`
 |---------|-------|--------|
 | DEMOS CHECK widening for `OGD`/`DD` signature levels | DEMOS team | **Required before OGD rows load** |
 | SME sidecar values for missing Medicaid/CHIP IDs | State SMEs | **Required before demonstration load** |
-| Demo status code `1` (`Pending`) mapping | CMS/State SMEs | **Required before demo load** |
-| Semi-annual BN deliverable type decision | SMEs | **Required if source rows exist** |
+| Demo status code `1` (`Pending`) mapping | CMS/State SMEs | **RESOLVED 2026-07-20 -> `Under Review` (built)** |
+| Semi-annual BN deliverable type decision | SMEs | **RESOLVED 2026-07-20 -> Quarterly BN ("identical")** |
 | Unknown program-detail stem mappings | SMEs | **Required before tag derivation** |
 
 ---

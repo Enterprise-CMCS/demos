@@ -122,5 +122,9 @@
   {
     "name": "20260709182129_add_generated_file_name_for_reports",
     "sha256": "2f7cd19dde11505d91ae861d85f2016419a25a7ede62543e19df0bc64bd68a04"
+  },
+  {
+    "name": "20260721192255_add_is_migrated_to_apps",
+    "sha256": "891542c3eb046822a6feb0e9fb146dfa5939b2ef1f488bb5ebdac4b27a3289c3"
   }
 ]

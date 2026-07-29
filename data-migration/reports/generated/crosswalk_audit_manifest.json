@@ -1,0 +1,16 @@
+{
+  "blocking": 0,
+  "code_crosswalks": 12,
+  "deferred": [
+    "crosswalk_document_type"
+  ],
+  "duckdb_version": "1.5.2",
+  "generated_at": "2026-07-22T14:06:20Z",
+  "mysql_db": "cma_pro_11_1_000",
+  "skipped": [
+    "crosswalk_deliverable_file_type"
+  ],
+  "snapshot_baseline": "2026-07-10T15:55:16Z",
+  "stamp": "20260722_140620Z",
+  "structural_crosswalks": 3
+}

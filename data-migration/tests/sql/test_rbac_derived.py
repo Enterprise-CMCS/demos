@@ -8,9 +8,9 @@ rules the spec fixes:
   * non-CMS users get only their explicit user_authrzd_state_acs states;
   * the 'XX' all-states sentinel on a non-CMS user is held (flagged, not
     granted), as is an unmapped state code;
-  * a system_role_assignment row is emitted only when the user's derived
-    person_type matches the System role's required person_type (so an
-    admin who also holds State User gets only the Admin row).
+  * every user gets exactly one system_role_assignment row: the System role
+    the crosswalk pairs with the user's derived person_type (CMS user -> CMS
+    User, state user -> State User, admin -> Admin User).
 
 Runs against a throwaway Postgres (``PG_TEST_DSN``); self-skips without it.
 """
@@ -57,18 +57,15 @@ def _provision(conn: Any) -> None:
     conn.execute(
         "CREATE TABLE mysql_raw.crosswalk_state (legacy_cd text, demos_text_id text)"
     )
-    conn.execute("CREATE TABLE mysql_raw.role_rfrnc (role_cd int)")
-    conn.execute("INSERT INTO mysql_raw.role_rfrnc VALUES (1), (4)")
     conn.execute(SYSTEM_ROLE_CROSSWALK.read_text(encoding="utf-8"))
     # 44_system_role.sql is now DDL-only (production load is the crosswalks
-    # phase CSV loader); insert the two System rows directly for the test.
+    # phase CSV loader); insert the person_type rows directly for the test.
     conn.execute(
         "INSERT INTO mysql_raw.crosswalk_system_role "
-        "(legacy_role_cd, legacy_name, role_id, grant_level_id, person_type_id, notes) VALUES "
-        "(1, 'Internal Administrator', 'Admin User', 'System', 'demos-admin', "
-        "'system-level; role_person_type allows only demos-admin'), "
-        "(4, 'State User', 'State User', 'System', 'demos-state-user', "
-        "'system-level; role_person_type allows only demos-state-user')"
+        "(person_type_id, role_id, grant_level_id, notes) VALUES "
+        "('demos-admin', 'Admin User', 'System', 'pairs Admin User with demos-admin'), "
+        "('demos-cms-user', 'CMS User', 'System', 'pairs CMS User with demos-cms-user'), "
+        "('demos-state-user', 'State User', 'System', 'pairs State User with demos-state-user')"
     )
 
     conn.execute(
@@ -82,11 +79,14 @@ def _provision(conn: Any) -> None:
         f"({LEGACY['C']},'XX'),"  # state user, all-states sentinel -> held
         f"({LEGACY['D']},'XX')"  # admin: ignored, gets all states regardless
     )
+    # Legacy role rows; the system_role_assignment resolver now derives from
+    # person_type (users_resolved), not these, so they are here only to mirror
+    # real source shape.
     conn.execute(
         "INSERT INTO mysql_raw.user_role_asgnmt (user_id, role_cd) VALUES "
-        f"({LEGACY['A']}, 2),"  # CMS PO: demonstration role, not in system crosswalk
-        f"({LEGACY['B']}, 4),"  # State User
-        f"({LEGACY['D']}, 1), ({LEGACY['D']}, 4)"  # admin also holds State User
+        f"({LEGACY['A']}, 2),"
+        f"({LEGACY['B']}, 4),"
+        f"({LEGACY['D']}, 1), ({LEGACY['D']}, 4)"
     )
 
     # --- id map + stg.users_resolved stand-in (real one needs the role crosswalk) ---
@@ -209,7 +209,7 @@ def test_person_state_flags_hold_xx_and_unmapped(pg_db: psycopg.Connection) -> N
 
 
 def test_system_role_assignment_person_type_match(pg_db: psycopg.Connection) -> None:
-    """Admin (D) gets only the Admin row; state user (B) gets State User; CMS PO drops."""
+    """Each user gets the System role its derived person_type pairs with."""
     _provision(pg_db)
     _run_all(pg_db)
     rows = {
@@ -219,8 +219,10 @@ def test_system_role_assignment_person_type_match(pg_db: psycopg.Connection) -> 
         ).fetchall()
     }
     assert rows == {
-        (uuid.UUID(UID["D"]), "Admin User"),
+        (uuid.UUID(UID["A"]), "CMS User"),
         (uuid.UUID(UID["B"]), "State User"),
+        (uuid.UUID(UID["C"]), "State User"),
+        (uuid.UUID(UID["D"]), "Admin User"),
     }
 
 
@@ -237,4 +239,4 @@ def test_loaders_idempotent(pg_db: psycopg.Connection) -> None:
     first = counts()
     _apply(pg_db, PERSON_STATE_LOAD, SRA_LOAD)
     assert counts() == first
-    assert first == (8, 2)  # 3 (A) + 3 (D) + 2 (B) states; 2 system roles
+    assert first == (8, 4)  # 3 (A) + 3 (D) + 2 (B) states; 4 system roles (one per user)

@@ -1,0 +1,7 @@
+legacy_cd,demos_route,notes
+A,private,"CMS-authored (648/648 live rows). Routes private: same as the author-person-type default it replaces."
+B,private,"CMS-authored (172/172 live rows). Appears alongside state comments on 88% of its deliverables, so it MAY be a state-facing reply, but nothing in the source distinguishes a CMS reply from a CMS internal note in a state thread. Routed private per the fail-safe rule (unknown -> private); see the reversal path in sql/04_crosswalks/68_comment_origin.sql."
+C,private,"CMS-authored (894/898 live rows). Routes private: same as the author-person-type default it replaces."
+I,private,"CMS-authored (1511/1886 live rows; the remaining 375 have an unresolved author and are held back regardless). Routes private: same as the author-person-type default it replaces."
+R,private,"CMS-authored (649/650 live rows). Co-occurs with state comments on 85% of its deliverables and is short (avg 46 chars), consistent with a reply, but that is inference. Routed private per the fail-safe rule (unknown -> private); see the reversal path in sql/04_crosswalks/68_comment_origin.sql."
+S,public,"The ONLY state-origin code: 4320 of 4325 live rows are state-authored. Routes public. This is the one code whose crosswalk route differs from the author-person-type default it replaces -- it also correctly publishes the 3 S comments that happen to be CMS-keyed, which the author-type default would have made private."

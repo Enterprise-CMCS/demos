@@ -10,6 +10,17 @@ loader; all source families addressed; metadata now, real blob/S3 migration
 deferred to the DEMOS team.
 **Canonical copy**: `~/.factory/specs/2026-07-16-document-document_type-migration-scope-c-crosswalk-metadata-only-loader.md`
 
+> **2026-07-20 SME reconciliation** (`reports/narrative/sme_signoff_2026-07-20.md`):
+> D5 (`cmt_orgn_cd` = `S` state / `C` CMS) and D7 (untyped docs typed by parent
+> deliverable + filename) confirmed by Stephanie (D5 pending a PMDA add-file
+> spot-check). The metadata-only `document` loader stays **deferred** until DEMOS
+> supplies an `s3_path` strategy (the `owner_user_id` / `s3_path` / `application_id`
+> NOT NULL gaps are listed in the ledger). The 3 application doc types with no
+> DEMOS match (Temporary Extension Letter, Final BN Worksheet, Other) go to David
+> to **file, not add**: proposed General File / Final Budget Neutrality
+> Formulation Workbook / General File. Do not confuse this document `cmt_orgn_cd`
+> (`{S,C}`) with the comment-table `cmt_orgn_cd` (`{A,B,C,I,R,S}`).
+
 ---
 
 ## Goal

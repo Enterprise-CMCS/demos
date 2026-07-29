@@ -17,6 +17,9 @@
  *     1115 demonstration name, not a category). The remaining reasons mirror the
  *     fold loaders (parent demonstration not migrated, NULL or non-positive
  *     period). Reported, not gated: the count + rows are logged for SME review.
+ *     demonstration_name carries the migrated parent's DEMOS name so the SME can
+ *     read a held free-text name in context; it is NULL exactly when the parent
+ *     demonstration did not migrate.
  *
  *   migration._parity_pgm_dtl_tag_unseeded (GATING) -- one row per
  *     crosswalk_pgm_dtl_tag mapping whose tag_name is non-blank but does not
@@ -43,6 +46,7 @@ BEGIN
         s.mdcd_othr_pgm_dtl_id           AS legacy_id,
         s.mdcd_demo_id                   AS legacy_demo_id,
         idm.new_uuid                     AS demonstration_id,
+        dem.name                         AS demonstration_name,
         btrim(s.mdcd_othr_pgm_dtl_name)  AS othr_name,
         concat_ws('; ',
           CASE WHEN tg.tag_name_id IS NULL

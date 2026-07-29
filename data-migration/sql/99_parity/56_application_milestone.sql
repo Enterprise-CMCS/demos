@@ -1,8 +1,8 @@
 /*
- * Purpose:    Parity for the milestone-date / application_phase load: a NON-GATING SME log of legacy date columns deliberately NOT mapped to a DEMOS date_type, and a GATING invariant that the Federal Comment past-window failsafe held.
+ * Purpose:    Parity for the milestone-date / application_phase load: a NON-GATING SME log of legacy date columns deliberately NOT mapped to a DEMOS date_type (including the high-confidence phase_* columns dropped for Amendment/Extension applications because every milestone view filters type_cd=1), and a GATING invariant that the Federal Comment past-window failsafe held.
  * Inputs:     mysql_raw.mdcd_demo_aplctn, mysql_raw.mdcd_demo_amndmt; demos_app.application_phase, demos_app.application_date.
  * Outputs:    migration._parity_application_milestone_unmapped; migration._parity_application_phase_fed_comment_guard.
- * Invariants: unmapped log is NON-GATING (surfaces, per deferred source column, how many in-scope rows carry a value SME still needs to place); the fed-comment guard is GATING (fail-closed: after the loader, no application whose loaded Federal Comment Period End Date is before cutover 2026-08-20 may still be 'Not Started'/'Started'); conditional-DDL guarded so each view is created only when its inputs exist (the app-layers idempotency harness applies both as no-ops); idempotent via CREATE OR REPLACE.
+ * Invariants: unmapped log is NON-GATING (surfaces, per deferred source column, how many in-scope rows carry a value SME still needs to place); the fed-comment guard is GATING (fail-closed: after the loader, no application whose loaded Federal Comment Period End Date is before cutover 2026-08-13 may still be 'Not Started'/'Started'); conditional-DDL guarded so each view is created only when its inputs exist (the app-layers idempotency harness applies both as no-ops); idempotent via CREATE OR REPLACE.
  * Refs:       migration/phases/parity.py; reports/narrative/milestone_date_mapping.md; sql/10_stg/27_application_milestone.sql; sql/23_app_derived/50_application_phase.sql.
  *
  * Parity: milestone-date coverage + Federal Comment guard.
@@ -14,12 +14,19 @@
  *     FRVT / CMCS / OGC / OMB start+end), the application-status date, and the
  *     amendment application/status dates -- deferred to SME because their
  *     semantic target (SDG-prep sub-dates vs Review clearances) is not
- *     high-confidence. Reported, not gated: the counts tell SME how much data
- *     awaits placement (see reports/narrative/milestone_date_mapping.md).
+ *     high-confidence. It ALSO surfaces, per type, the high-confidence
+ *     phase-milestone columns that ARE mapped for type_cd=1 (Demonstration) but
+ *     are currently dropped for type_cd=2 (Amendment) and type_cd=3 (Extension):
+ *     every milestone view filters type_cd=1, so the amendment/extension
+ *     application rows carry a populated phase_* timeline that no application_date
+ *     row captures. This was invisible until now and is the evidence behind the
+ *     re-opened amendment-milestone-date SME decision. Reported, not gated: the
+ *     counts tell SME how much data awaits placement (see
+ *     reports/narrative/milestone_date_mapping.md).
  *
  *   migration._parity_application_phase_fed_comment_guard (GATING) -- one row per
  *     application whose loaded 'Federal Comment Period End Date' is before
- *     cutover (2026-08-20) yet whose Federal Comment phase is still
+ *     cutover (2026-08-13) yet whose Federal Comment phase is still
  *     'Not Started'/'Started'. The loader forces such rows to 'Completed' so the
  *     DEMOS nightly cron cannot spuriously advance a window that closed by
  *     cutover; any row here means the failsafe did not hold. Expected empty.
@@ -64,6 +71,34 @@ BEGIN
           count(amndmt_stus_dt)   AS amndmt_stus_dt
         FROM mysql_raw.mdcd_demo_amndmt
         WHERE (dltd_ind)::int IS DISTINCT FROM 1
+      ),
+      -- The high-confidence phase-milestone columns 27_application_milestone
+      -- maps for type_cd=1 (Demonstration) are dropped for type_cd=2 (Amendment)
+      -- and type_cd=3 (Extension): every milestone view filters type_cd=1, so the
+      -- amendment/extension application rows carry a populated phase_* timeline
+      -- that no application_date row captures. Count them per type so SME sees
+      -- how much amendment/extension timeline data awaits a coverage decision.
+      phase23 AS (
+        SELECT
+          mdcd_demo_aplctn_type_cd::int AS tc,
+          count(phase_1_strt_dt) AS phase_1_strt_dt,
+          count(phase_1_end_dt) AS phase_1_end_dt,
+          count(phase_2_rcvd_dt) AS phase_2_rcvd_dt,
+          count(phase_2_cmpltns_rvw_dt) AS phase_2_cmpltns_rvw_dt,
+          count(phase_2_state_aplctn_deemd_cmpltn_dt) AS phase_2_state_aplctn_deemd_cmpltn_dt,
+          count(phase_2_fed_cmt_prd_strt_dt) AS phase_2_fed_cmt_prd_strt_dt,
+          count(phase_2_fed_cmt_prd_end_dt) AS phase_2_fed_cmt_prd_end_dt,
+          count(phase_2_dsrd_aprvl_dt) AS phase_2_dsrd_aprvl_dt,
+          count(phase_4_strt_dt) AS phase_4_strt_dt,
+          count(phase_4_end_dt) AS phase_4_end_dt,
+          count(phase_5_strt_dt) AS phase_5_strt_dt,
+          count(phase_5_end_dt) AS phase_5_end_dt,
+          count(phase_6_strt_dt) AS phase_6_strt_dt,
+          count(phase_6_end_dt) AS phase_6_end_dt
+        FROM mysql_raw.mdcd_demo_aplctn
+        WHERE mdcd_demo_aplctn_type_cd::int IN (2, 3)
+          AND (dltd_ind)::int IS DISTINCT FROM 1
+        GROUP BY 1
       )
       SELECT
         source_table,
@@ -89,7 +124,29 @@ BEGIN
           ('mdcd_demo_amndmt', 'amndmt_aplctn_dt', (SELECT amndmt_aplctn_dt FROM amdt)),
           ('mdcd_demo_amndmt', 'amndmt_stus_dt',   (SELECT amndmt_stus_dt FROM amdt))
       ) t (source_table, source_column, non_null_count)
-      WHERE non_null_count > 0;
+      WHERE non_null_count > 0
+      UNION ALL
+      SELECT
+        'mdcd_demo_aplctn (' || CASE p.tc WHEN 2 THEN 'Amendment' ELSE 'Extension' END || ', type_cd=' || p.tc::text || ')' AS source_table,
+        u.source_column,
+        u.non_null_count
+      FROM phase23 p
+      CROSS JOIN LATERAL (
+        VALUES ('phase_1_strt_dt', p.phase_1_strt_dt),
+          ('phase_1_end_dt', p.phase_1_end_dt),
+          ('phase_2_rcvd_dt', p.phase_2_rcvd_dt),
+          ('phase_2_cmpltns_rvw_dt', p.phase_2_cmpltns_rvw_dt),
+          ('phase_2_state_aplctn_deemd_cmpltn_dt', p.phase_2_state_aplctn_deemd_cmpltn_dt),
+          ('phase_2_fed_cmt_prd_strt_dt', p.phase_2_fed_cmt_prd_strt_dt),
+          ('phase_2_fed_cmt_prd_end_dt', p.phase_2_fed_cmt_prd_end_dt),
+          ('phase_2_dsrd_aprvl_dt', p.phase_2_dsrd_aprvl_dt),
+          ('phase_4_strt_dt', p.phase_4_strt_dt),
+          ('phase_4_end_dt', p.phase_4_end_dt),
+          ('phase_5_strt_dt', p.phase_5_strt_dt),
+          ('phase_5_end_dt', p.phase_5_end_dt),
+          ('phase_6_strt_dt', p.phase_6_strt_dt),
+          ('phase_6_end_dt', p.phase_6_end_dt)) u (source_column, non_null_count)
+      WHERE u.non_null_count > 0;
     $v$;
   END IF;
 
@@ -109,7 +166,7 @@ BEGIN
       WHERE ap.phase_id = 'Federal Comment'
         AND ap.phase_status_id IN ('Not Started', 'Started')
         -- Eastern-midnight cutover instant; must match sql/23_app_derived/50_application_phase.sql.
-        AND ad.date_value < TIMESTAMPTZ '2026-08-20 00:00:00-04:00';
+        AND ad.date_value < TIMESTAMPTZ '2026-08-13 00:00:00-04:00';
     $v$;
   END IF;
 END

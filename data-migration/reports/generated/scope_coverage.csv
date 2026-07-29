@@ -1,0 +1,20 @@
+workflow,target_table,disposition,row_count
+3,amendment,BUILT,199
+7,application,BUILT,351
+3,application_date,BUILT,537
+3,application_phase,BUILT,2808
+1,crosswalks (reference data),BUILT,
+6,deliverable,BUILT,6621
+6,deliverable_action,BUILT,21605
+3,demonstration,BUILT,152
+2,demonstration_role_assignment,BUILT,838
+4,demonstration_type_tag_assignment,PARTIAL,523
+6,document,OUT-OF-SCOPE,0
+3,extension,DEFERRED,0
+2,person,BUILT,1182
+2,person_state,BUILT,25002
+2,primary_demonstration_role_assignment,BUILT,543
+6,private_comment,BUILT,3690
+6,public_comment,BUILT,4294
+2,system_role_assignment,BUILT,985
+2,users,BUILT,985

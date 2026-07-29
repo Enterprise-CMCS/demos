@@ -22,7 +22,7 @@
  * current phase or earlier, is only ever Started/Completed -- never the
  * forbidden 'Not Started').
  *
- * Federal Comment guard (cutover 2026-08-20 Eastern midnight -- keep in sync
+ * Federal Comment guard (cutover 2026-08-13 Eastern midnight -- keep in sync
  * with the go-live date): the DEMOS nightly cron update_federal_comment_phase_status() advances
  * the Federal Comment / SDG Preparation phases (and inserts an 'SDG Preparation
  * Start Date' of "today") for any application whose Federal Comment window has
@@ -98,8 +98,8 @@ BEGIN
     AND ap.phase_status_id IN ('Not Started', 'Started')
     AND ad.application_id = ap.application_id
     AND ad.date_type_id = 'Federal Comment Period End Date'
-    -- Cutover boundary is Eastern midnight (-04:00 EDT on 2026-08-20): date_value
+    -- Cutover boundary is Eastern midnight (-04:00 EDT on 2026-08-13): date_value
     -- is anchored to America/New_York, so the threshold must be the same instant.
-    AND ad.date_value < TIMESTAMPTZ '2026-08-20 00:00:00-04:00';
+    AND ad.date_value < TIMESTAMPTZ '2026-08-13 00:00:00-04:00';
 END
 $$;

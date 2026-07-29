@@ -1,6 +1,6 @@
 /*
  * Purpose:    Asserts integrity + provenance of demos_app.demonstration_role_assignment, plus a flags view of candidate tuples that did not load.
- * Inputs:     demos_app.demonstration_role_assignment; demos_app.person; demos_app.role_person_type; demos_app.person_state; demos_app.demonstration; migration._id_map_users; migration._id_map_mdcd_demo; stg.demonstration_role_assignment_resolved
+ * Inputs:     demos_app.demonstration_role_assignment; demos_app.person; demos_app.role_person_type; demos_app.person_state; demos_app.demonstration; migration._id_map_users; migration._id_map_mdcd_demo; migration._id_map_mdcd_pendg_demo; stg.demonstration_role_assignment_resolved
  * Outputs:    migration._parity_demonstration_role_assignment_integrity; migration._parity_demonstration_role_assignment_flags
  * Invariants: Integrity view non-empty -> RED at Gate 6, vacuously GREEN until the guarded loader populates the base table; flags view is conditional-DDL guarded with an empty stand-in when stg.demonstration_role_assignment_resolved is absent (so the idempotency harness applies it as a no-op); idempotent via CREATE OR REPLACE.
  * Refs:       migration/phases/parity.py "demonstration role assignment" CheckResult
@@ -14,7 +14,10 @@
  *   c) a row whose (person_id, state_id) has no demos_app.person_state grant;
  *   d) a row whose (demonstration_id, state_id) has no demos_app.demonstration;
  *   e) a person_id the migration did not mint (migration._id_map_users);
- *   f) a demonstration_id the migration did not mint (_id_map_mdcd_demo).
+ *   f) a demonstration_id the migration did not mint (neither the approved
+ *      _id_map_mdcd_demo nor the pending _id_map_mdcd_pendg_demo -- a pending
+ *      'Under Review' demonstration is minted via the latter and is legitimate,
+ *      e.g. the fallback primary Project Officer backfill attaches to it).
  * The loader's JOINs already enforce (a)-(d), so a non-empty result is a real
  * defect; the check is the belt-and-suspenders that proves it.
  *
@@ -103,8 +106,10 @@ SELECT
 FROM
   demos_app.demonstration_role_assignment dra
   LEFT JOIN migration._id_map_mdcd_demo m ON m.new_uuid = dra.demonstration_id
+  LEFT JOIN migration._id_map_mdcd_pendg_demo pm ON pm.new_uuid = dra.demonstration_id
 WHERE
-  m.new_uuid IS NULL;
+  m.new_uuid IS NULL
+  AND pm.new_uuid IS NULL;
 
 DO $$
 BEGIN

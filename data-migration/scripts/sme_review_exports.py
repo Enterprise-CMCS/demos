@@ -8,9 +8,10 @@ run-stamped CSVs into the gitignored ``reports/runs/`` directory:
                              back from the demonstration-type tag fold, read
                              from the parity view
                              ``migration._parity_pgm_dtl_tag_othr_held`` (one row
-                             per held name + the reason). Sent to SDG for review:
-                             each is a 1115 demonstration name, not a category
-                             tag.
+                             per held name + the reason + the migrated parent
+                             demonstration's name, NULL when that parent did not
+                             migrate). Sent to SDG for review: each is a 1115
+                             demonstration name, not a category tag.
   ``comments-snapshot``    -- a reach-back snapshot of the seven non-deliverable
                              comment tables PMDA hangs off demonstrations,
                              amendments, renewals, programs, final decisions,
@@ -33,8 +34,37 @@ run-stamped CSVs into the gitignored ``reports/runs/`` directory:
                              overlap for SME triage. The SME cover note that
                              ships with these CSVs is
                              ``reports/narrative/authorities_snapshot_sme_note.md``.
-  ``both`` (default)       -- run othr-names + comments-snapshot (not
-                             authorities-snapshot; run that explicitly).
+  ``comment-route-diff``   -- per (cmt_orgn_cd, author person_type), the route
+                             the crosswalk authored, the row volume, and how many
+                             comments a flip to public would make state-visible.
+                             The review artifact for the private-by-default
+                             routing decision: codes 'R' and 'B' are
+                             CMS-authored but sit in state threads, and they are
+                             routed private because the source cannot prove they
+                             are state-facing. Reads stg.comment_resolved so the
+                             denominator includes held-back rows.
+  ``softdeleted-demos``    -- (``softdeleted-demos-snapshot``) every soft-deleted
+                             PMDA demonstration, approved and pending. The
+                             migration drops ``dltd_ind = 1`` rows outright, so
+                             this is the SME's last look at what disappears;
+                             ``project_number_lost_entirely`` marks the set that
+                             reaches DEMOS by no other row.
+  ``dup-medicaid``         -- the demonstrations held back because two live rows
+                             shared a ``mdcd_demo_num``, with BOTH sides named
+                             (``held_name`` / ``kept_name``). The loader picks a
+                             winner mechanically (region suffix, then lowest
+                             legacy id), which cannot know which program is
+                             which, so parity check 21 is fail-closed until an
+                             SME signs each hold-back off.
+  ``all`` (default)        -- run every export above. An export that cannot
+                             produce its artifact is reported (``SKIPPED`` when
+                             its inputs are absent, ``FAILED`` with the error when
+                             it breaks) and the rest still run, but the run then
+                             exits non-zero so a partial set is never mistaken
+                             for a complete one.
+  ``both``                 -- DEPRECATED alias for othr-names +
+                             comments-snapshot, kept because runbooks and the
+                             decision docs record it. Use ``all``.
 
 Security: the connection DSN is built by ``migration.lib`` (credentials are
 URL-encoded and never logged; ``lib.log`` redacts). The comment + authority
@@ -47,7 +77,8 @@ DSN/paths come from the CLI.
 Run from the repo root::
 
     uv run python scripts/sme_review_exports.py \\
-        [othr-names|comments-snapshot|authorities-snapshot|both]
+        [othr-names|comments-snapshot|authorities-snapshot|comment-route-diff\\
+         |softdeleted-demos-snapshot|dup-medicaid|all|both]
 """
 
 from __future__ import annotations
@@ -58,6 +89,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     import psycopg
 
 from migration.lib import RUNS_DIR, Env, die, file_stamp, log, rel
@@ -69,6 +102,7 @@ OTHR_HELD_COLUMNS = [
     "legacy_id",
     "legacy_demo_id",
     "demonstration_id",
+    "demonstration_name",
     "othr_name",
     "reason",
 ]
@@ -293,6 +327,234 @@ def fetch_othr_held(conn: Any) -> list[dict[str, Any]]:
     return [dict(zip(OTHR_HELD_COLUMNS, r, strict=True)) for r in rows]
 
 
+SOFTDELETED_DEMO_COLUMNS = [
+    "source_table",
+    "source_id",
+    "project_number_source",
+    "project_number_normalized",
+    "demonstration_name",
+    "state_cd",
+    "status_cd",
+    "deleted_by_user_id",
+    "deleted_date",
+    "created_date",
+    "performance_year_start",
+    "performance_year_end",
+    "has_loaded_counterpart",
+    "project_number_lost_entirely",
+]
+
+
+DUP_MEDICAID_VIEW = "migration._parity_demonstration_held_dup_medicaid_id"
+DUP_MEDICAID_COLUMNS = [
+    "held_legacy_demo_id",
+    "held_name",
+    "held_state_id",
+    "held_status_id",
+    "held_effective_date",
+    "held_expiration_date",
+    "medicaid_id",
+    "kept_legacy_demo_id",
+    "kept_name",
+    "disposition",
+    "gating",
+    "reason",
+]
+
+
+def fetch_dup_medicaid(conn: Any) -> list[dict[str, Any]]:
+    """Return the demonstrations held back for a duplicate medicaid_id, named.
+
+    DEMOS enforces ``demonstration_medicaid_id_key`` UNIQUE; PMDA does not. When
+    two live demonstrations share a project number the loader keeps one by a
+    mechanical rule (region suffix matching the state's CMS region, then lowest
+    legacy id) and holds the rest. Only an SME can say whether that was the right
+    row, and they can only do that if they can see WHICH DEMONSTRATIONS are
+    involved.
+
+    The 2026-07-28 SDG review is the cautionary case this export exists for. It
+    was run off an artifact carrying ids, ``medicaid_id``, state and status but
+    no name, so the reviewer answered about "Healthy Texas Women" (legacy 2477,
+    Approved through 2030, already correct on ``11-W-00326/6``) when the row
+    actually colliding with Louisiana on ``11-W-00232/6`` is legacy 2513 "Texas
+    Women's Health Waiver" (Expired 2007-2012). Both sides of every collision are
+    therefore named here: ``held_name`` and ``kept_name``.
+
+    Dies (non-zero) when the parity view is absent: that means the parity phase
+    has not run, and an empty CSV would read as "no collisions" -- the most
+    dangerous possible misreport for a check that exists to stop a silent drop.
+    """
+    if not _table_exists(conn, DUP_MEDICAID_VIEW):
+        die(f"{DUP_MEDICAID_VIEW} not found; run the migration parity phase before exporting")
+    rows = conn.execute(
+        """
+        SELECT legacy_demo_id, name, state_id, status_id, effective_date,
+               expiration_date, medicaid_id, kept_legacy_demo_id, kept_name,
+               disposition, gating, reason
+        FROM migration._parity_demonstration_held_dup_medicaid_id
+        ORDER BY medicaid_id, legacy_demo_id
+        """
+    ).fetchall()
+    return [dict(zip(DUP_MEDICAID_COLUMNS, r, strict=True)) for r in rows]
+
+
+def fetch_softdeleted_demos(conn: Any) -> list[dict[str, Any]]:
+    """Return every soft-deleted PMDA demonstration, approved and pending.
+
+    The migration drops ``dltd_ind = 1`` rows outright: DEMOS has no soft-delete
+    concept, so a deleted demonstration has nowhere to land. That is the agreed
+    behaviour, but it is irreversible at cutover, so the SME needs to see what
+    is being dropped while there is still time to object.
+
+    Two columns carry the judgement:
+
+    ``has_loaded_counterpart``
+        the same normalized project number reached DEMOS by some other row
+        (a live approved demo, or a pending demo that folded into one). The
+        deleted row's *content* is still lost, but the demonstration exists.
+    ``project_number_lost_entirely``
+        no row with that project number reached DEMOS at all. This is the set
+        that actually disappears, and the only one worth arguing about.
+
+    A soft-deleted row with a NULL/unnormalizable project number cannot be
+    matched to anything, so it is reported with ``has_loaded_counterpart`` false
+    and ``project_number_lost_entirely`` false -- neither claim is supportable,
+    and asserting either would be a guess.
+    """
+    if not _table_exists(conn, "mysql_raw.mdcd_demo"):
+        die("mysql_raw.mdcd_demo not found; run the load before exporting")
+    if not _table_exists(conn, "demos_app.demonstration"):
+        die("demos_app.demonstration not found; run build_app before exporting")
+
+    sql = """
+    WITH soft AS (
+      SELECT
+        'mdcd_demo'::text                                       AS source_table,
+        d.mdcd_demo_id::text                                    AS source_id,
+        d.mdcd_demo_num                                         AS project_number_source,
+        migration.normalize_medicaid_id(d.mdcd_demo_num)        AS project_number_normalized,
+        d.mdcd_demo_name                                        AS demonstration_name,
+        d.geo_ansi_state_cd::text                               AS state_cd,
+        d.mdcd_demo_stus_cd::text                               AS status_cd,
+        d.dltd_user_id::text                                    AS deleted_by_user_id,
+        d.dltd_dt::text                                         AS deleted_date,
+        d.creatd_dt::text                                       AS created_date,
+        d.state_prfmnc_yr_strt_dt::text                         AS performance_year_start,
+        d.state_prfmnc_yr_end_dt::text                          AS performance_year_end
+      FROM mysql_raw.mdcd_demo d
+      WHERE (d.dltd_ind)::int = 1
+      UNION ALL
+      SELECT
+        'mdcd_pendg_demo',
+        p.mdcd_pendg_demo_id::text,
+        p.mdcd_demo_num,
+        migration.normalize_medicaid_id(p.mdcd_demo_num),
+        p.mdcd_demo_name,
+        p.geo_ansi_state_cd::text,
+        NULL,
+        p.dltd_user_id::text,
+        p.dltd_dt::text,
+        p.creatd_dt::text,
+        p.state_prfmnc_yr_strt_dt::text,
+        p.state_prfmnc_yr_end_dt::text
+      FROM mysql_raw.mdcd_pendg_demo p
+      WHERE (p.dltd_ind)::int = 1
+    )
+    SELECT
+      s.source_table,
+      s.source_id,
+      s.project_number_source,
+      s.project_number_normalized,
+      s.demonstration_name,
+      s.state_cd,
+      s.status_cd,
+      s.deleted_by_user_id,
+      s.deleted_date,
+      s.created_date,
+      s.performance_year_start,
+      s.performance_year_end,
+      (s.project_number_normalized IS NOT NULL AND EXISTS (
+         SELECT 1 FROM demos_app.demonstration t
+         WHERE t.medicaid_id = s.project_number_normalized))     AS has_loaded_counterpart,
+      (s.project_number_normalized IS NOT NULL AND NOT EXISTS (
+         SELECT 1 FROM demos_app.demonstration t
+         WHERE t.medicaid_id = s.project_number_normalized))     AS project_number_lost_entirely
+    FROM soft s
+    ORDER BY s.project_number_normalized NULLS LAST, s.source_table, s.source_id
+    """
+    rows = conn.execute(sql).fetchall()
+    return [dict(zip(SOFTDELETED_DEMO_COLUMNS, r, strict=True)) for r in rows]
+
+
+COMMENT_ROUTE_DIFF_COLUMNS = [
+    "origin_cd",
+    "authored_route",
+    "author_person_type_id",
+    "rows",
+    "route_if_public",
+    "route_if_private",
+    "would_change_visibility",
+]
+
+
+def fetch_comment_route_diff(conn: Any) -> list[dict[str, Any]]:
+    """Return, per (origin code, author person_type), what each candidate route does.
+
+    The comment-origin crosswalk decides whether a state can read a CMS comment,
+    and 'R' and 'B' are routed private on the fail-safe rule rather than on a
+    positive SME determination (sql/04_crosswalks/68_comment_origin.sql). This
+    export is what an SME needs to overturn that: for every origin code it shows
+    the authored route, the volume, and how many rows would become state-visible
+    if the code were flipped to public.
+
+    Reads the staging projection (``stg.comment_resolved``) rather than the loaded
+    tables, so it reports the full candidate population including rows currently
+    held back -- an SME reviewing a disclosure decision needs the denominator, not
+    just what happened to load.
+    """
+    if not _table_exists(conn, "stg.comment_resolved"):
+        die("stg.comment_resolved not found; run the migration build phase before exporting")
+    crosswalk = "mysql_raw.crosswalk_comment_origin"
+    has_crosswalk = _table_exists(conn, crosswalk)
+    route_expr = "COALESCE(co.demos_route, 'private')" if has_crosswalk else "'private'"
+    join = f"LEFT JOIN {crosswalk} co ON co.legacy_cd = r.origin_cd" if has_crosswalk else ""
+    rows = conn.execute(
+        f"""
+        SELECT
+          COALESCE(r.origin_cd, '(none)')                AS origin_cd,
+          {route_expr}                                   AS authored_route,
+          COALESCE(r.author_person_type_id, '(unresolved)') AS author_person_type_id,
+          count(*)                                       AS rows
+        FROM stg.comment_resolved r
+        {join}
+        GROUP BY 1, 2, 3
+        ORDER BY 1, 3
+        """
+    ).fetchall()
+    out: list[dict[str, Any]] = []
+    for origin_cd, authored_route, person_type, n in rows:
+        # A private->public flip is the only direction that discloses anything, so
+        # that is the column an SME actually has to sign off on.
+        cms_authored = person_type in ("demos-admin", "demos-cms-user")
+        out.append(
+            {
+                "origin_cd": origin_cd,
+                "authored_route": authored_route,
+                "author_person_type_id": person_type,
+                "rows": n,
+                "route_if_public": "public",
+                "route_if_private": "private",
+                "would_change_visibility": (
+                    f"flipping {origin_cd} to public would make {n} "
+                    f"{'CMS-authored ' if cms_authored else ''}comment(s) state-visible"
+                    if authored_route == "private"
+                    else f"already public: {n} comment(s) are state-visible"
+                ),
+            }
+        )
+    return out
+
+
 def fetch_comments_snapshot(conn: Any) -> list[dict[str, Any]]:
     """Return the normalized snapshot across every present non-deliverable table.
 
@@ -385,6 +647,27 @@ def export_comments_snapshot(conn: Any, out_dir: Path) -> tuple[Path, int]:
     return path, len(rows)
 
 
+def export_comment_route_diff(conn: Any, out_dir: Path) -> tuple[Path, int]:
+    rows = fetch_comment_route_diff(conn)
+    path = stamped_path(out_dir, "sme_review_comment_route_diff")
+    write_csv(rows, path, COMMENT_ROUTE_DIFF_COLUMNS)
+    return path, len(rows)
+
+
+def export_softdeleted_demos(conn: Any, out_dir: Path) -> tuple[Path, int]:
+    rows = fetch_softdeleted_demos(conn)
+    path = stamped_path(out_dir, "sme_review_softdeleted_demos")
+    write_csv(rows, path, SOFTDELETED_DEMO_COLUMNS)
+    return path, len(rows)
+
+
+def export_dup_medicaid(conn: Any, out_dir: Path) -> tuple[Path, int]:
+    rows = fetch_dup_medicaid(conn)
+    path = stamped_path(out_dir, "sme_review_dup_medicaid")
+    write_csv(rows, path, DUP_MEDICAID_COLUMNS)
+    return path, len(rows)
+
+
 def export_authorities_snapshot(conn: Any, out_dir: Path) -> tuple[Path, int]:
     """Write one verbatim CSV per present authority table plus a manifest.
 
@@ -432,6 +715,69 @@ def _connect(dsn: str | None) -> psycopg.Connection:
     return psycopg.connect(dsn or Env.load().pg_dsn(), autocommit=True)
 
 
+# --- subcommand registry ---------------------------------------------------- #
+#
+# One runner per export, each logging its own result line. The registry is what
+# `all` iterates, so a new export becomes reachable from the default invocation
+# by being added here -- the failure mode this replaced was `dup-medicaid` being
+# implemented, tested and documented yet unreachable from `make
+# sme_review_exports`, because the aggregate was a hard-coded pair.
+
+
+def _run_othr_names(conn: Any, out_dir: Path) -> None:
+    path, n = export_othr_names(conn, out_dir)
+    log(f"held Other program names: {n} row(s) -> {rel(path)}")
+
+
+def _run_comments_snapshot(conn: Any, out_dir: Path) -> None:
+    path, n = export_comments_snapshot(conn, out_dir)
+    log(f"non-deliverable comments snapshot: {n} row(s) -> {rel(path)}")
+
+
+def _run_authorities_snapshot(conn: Any, out_dir: Path) -> None:
+    path, n = export_authorities_snapshot(conn, out_dir)
+    log(f"waiver/expenditure authorities snapshot: {n} row(s) -> {rel(path)}")
+
+
+def _run_comment_route_diff(conn: Any, out_dir: Path) -> None:
+    path, n = export_comment_route_diff(conn, out_dir)
+    log(f"comment route diff: {n} row(s) -> {rel(path)}")
+
+
+def _run_softdeleted_demos(conn: Any, out_dir: Path) -> None:
+    rows = fetch_softdeleted_demos(conn)
+    path = stamped_path(out_dir, "sme_review_softdeleted_demos")
+    write_csv(rows, path, SOFTDELETED_DEMO_COLUMNS)
+    lost = len({r["project_number_normalized"] for r in rows if r["project_number_lost_entirely"]})
+    log(
+        f"soft-deleted demonstrations: {len(rows)} row(s) -> {rel(path)}; "
+        f"{lost} project number(s) reach DEMOS by no other row"
+    )
+
+
+def _run_dup_medicaid(conn: Any, out_dir: Path) -> None:
+    path, n = export_dup_medicaid(conn, out_dir)
+    log(
+        f"duplicate-medicaid_id hold-backs: {n} row(s) -> {rel(path)}; "
+        f"both sides of each collision are named (held_name / kept_name)"
+    )
+
+
+EXPORTS: dict[str, Callable[[Any, Path], None]] = {
+    "othr-names": _run_othr_names,
+    "comments-snapshot": _run_comments_snapshot,
+    "authorities-snapshot": _run_authorities_snapshot,
+    "comment-route-diff": _run_comment_route_diff,
+    "softdeleted-demos-snapshot": _run_softdeleted_demos,
+    "dup-medicaid": _run_dup_medicaid,
+}
+
+# 'both' predates the other four exports and means exactly these two. It is kept
+# as a deprecated alias so existing runbooks and the ARGS= invocations recorded
+# in the decision docs keep working; 'all' is the aggregate to use.
+BOTH_EXPORTS: tuple[str, ...] = ("othr-names", "comments-snapshot")
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="sme_review_exports",
@@ -440,9 +786,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "command",
         nargs="?",
-        default="both",
-        choices=["othr-names", "comments-snapshot", "authorities-snapshot", "both"],
-        help="which export to run (default: both = othr-names + comments-snapshot)",
+        default="all",
+        choices=[*EXPORTS, "all", "both"],
+        help=(
+            "which export to run (default: all = every export; 'both' is a "
+            "deprecated alias for othr-names + comments-snapshot)"
+        ),
     )
     parser.add_argument(
         "--dsn",
@@ -457,22 +806,51 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def _selected_exports(command: str) -> list[str]:
+    """Resolve a subcommand to the ordered list of exports to run."""
+    if command == "all":
+        return list(EXPORTS)
+    if command == "both":
+        log(
+            "note: 'both' is a deprecated alias for othr-names + comments-snapshot; "
+            "use 'all' to run every export"
+        )
+        return list(BOTH_EXPORTS)
+    return [command]
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     out_dir = Path(args.out_dir) if args.out_dir else RUNS_DIR
+    selected = _selected_exports(args.command)
     conn = _connect(args.dsn)
+    # In a multi-export run one bad export must not suppress the artifacts that
+    # CAN be built, but the run still has to fail: a partial set that exited 0
+    # would let an operator believe an artifact was produced when it was not.
+    # 'Inputs absent' (die()) and 'blew up' (anything else, e.g. schema drift
+    # past the existence check) are reported distinctly so a real defect is never
+    # filed as a benign skip. A single explicit subcommand keeps its original
+    # behaviour, traceback and exit code.
+    failures: list[str] = []
     try:
-        if args.command in ("othr-names", "both"):
-            path, n = export_othr_names(conn, out_dir)
-            log(f"held Other program names: {n} row(s) -> {rel(path)}")
-        if args.command in ("comments-snapshot", "both"):
-            path, n = export_comments_snapshot(conn, out_dir)
-            log(f"non-deliverable comments snapshot: {n} row(s) -> {rel(path)}")
-        if args.command == "authorities-snapshot":
-            path, n = export_authorities_snapshot(conn, out_dir)
-            log(f"waiver/expenditure authorities snapshot: {n} row(s) -> {rel(path)}")
+        for cmd in selected:
+            try:
+                EXPORTS[cmd](conn, out_dir)
+            except SystemExit:
+                if len(selected) == 1:
+                    raise
+                failures.append(f"{cmd} (inputs absent)")
+                log(f"SKIPPED {cmd}: inputs absent (see the FATAL line above)")
+            except Exception as exc:  # noqa: BLE001 -- reported, then re-raised as exit 1
+                if len(selected) == 1:
+                    raise
+                failures.append(f"{cmd} (error)")
+                log(f"FAILED {cmd}: {type(exc).__name__}: {exc}")
     finally:
         conn.close()
+    if failures:
+        log(f"{len(failures)} of {len(selected)} export(s) did not produce an artifact: {', '.join(failures)}")
+        return 1
     return 0
 
 

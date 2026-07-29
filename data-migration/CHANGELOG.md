@@ -10,6 +10,48 @@ behavior changes. Commit history follows [Conventional Commits](https://www.conv
 ## [Unreleased]
 
 ### Added
+- The four `data-migration/`-side alignment TODOs from
+  `docs/specs/data-dbt-alignment-spec.md` §4.1 are now implemented (decisions
+  D14-D17 in `reports/narrative/pending_approved_decisions.md`), closing the
+  shared-surface gaps against the `data/` dbt migration:
+  - **System roles for every user (D14).** The System-role backfill is re-keyed
+    from the legacy `role_cd` to the user's derived `person_type` (1:1 with
+    DEMOS `role_person_type`), so every migrated user - including the ~382
+    `demos-cms-user` accounts that previously loaded permission-less - gets the
+    System role it would have in-app. `crosswalk_system_role`
+    (`sql/04_crosswalks/44_system_role.sql`, `reports/crosswalks/system_role.csv`)
+    now carries three `person_type` rows; `45_system_role_check.sql` asserts
+    every System-grant `(role, person_type)` pairing is covered; the resolver
+    `sql/10_stg/26_system_role_assignment_resolved.sql` emits one row per user.
+  - **Fallback primary Project Officer (D15).** Every demonstration missing a
+    primary Project Officer is backfilled with a configurable fallback holder
+    (default legacy user 828, a CMS user authorized for all states), satisfying
+    the DEMOS primary-PO requirement. New operator config
+    `crosswalk_primary_po_fallback` (`sql/04_crosswalks/69_primary_po_fallback.sql`,
+    `reports/inputs/primary_po_fallback.csv`), loader
+    `sql/23_app_derived/41_primary_po_fallback.sql`, and provenance parity check
+    23 (`sql/99_parity/58_primary_officer_fallback.sql`); residual check 22 now
+    normally reports zero. Because the fallback also covers Under Review (pending)
+    demonstrations, the demonstration-role-assignment integrity check 12
+    (`sql/99_parity/24_demonstration_role_assignment_provenance.sql`) was
+    corrected to recognize a demonstration minted via the pending id-map
+    (`migration._id_map_mdcd_pendg_demo`), not only the approved
+    `_id_map_mdcd_demo` -- a latent gap since the fallback is the first loader to
+    attach a role assignment to a pending demonstration.
+  - **Demonstration-type floor (D16).** Every **Approved** demonstration that
+    migrates with zero demonstration types is floored with a single
+    `Migrated From PMDA` User/Unapproved placeholder tag over the demonstration's
+    own effective/expiration window (Under Review demos are intentionally left
+    unfloored). Loader `sql/21_app_associative/14_demonstration_type_tag_floor.sql`
+    and provenance parity check 24 (`sql/99_parity/59_demonstration_type_floor.sql`).
+  - **Bounded Medicaid-ID normalization (D17).** `migration.normalize_medicaid_id`
+    (`sql/00_init/03_helper_fns.sql`) strips `-`/`/`/whitespace, requires
+    `11W`+5 digits+region 1-10, reassembles to canonical `11-W-NNNNN/R`, and
+    re-validates - rescuing non-canonical IDs without fuzzy matching. The demo
+    filter (`sql/10_stg/10_filter_demo.sql`) and resolved view
+    (`sql/10_stg/22_demonstration_resolved.sql`) use it; recovers 16 net-new
+    rehearsal demonstrations while still dropping and flagging the genuinely
+    malformed.
 - SME-review exports (`scripts/sme_review_exports.py`, `make sme_review_exports`)
   close two open SME action items with two run-stamped CSVs written to the
   gitignored `reports/runs/`. `othr-names` reads the parity view
@@ -63,9 +105,12 @@ behavior changes. Commit history follows [Conventional Commits](https://www.conv
   number, no approved counterpart) as their own 'Under Review' demonstration
   (chip_id always NULL; no source status column), folding matched pending demos
   into their approved counterpart and holding back no-project-number pending
-  demos. The RED-4 duplicate-medicaid loser and any state absent from
-  `state_region` are held back non-gating and logged in
-  `migration._parity_pending_demonstration_held`.
+  demos. The RED-4 duplicate-medicaid loser (the region-suffix-correct row wins,
+  lowest legacy id breaking a tie) and any state absent from `state_region` are
+  held back non-gating and logged in `migration._parity_pending_demonstration_held`;
+  a duplicate group matching NO member's state region is held ENTIRELY and gates
+  parity RED (`region_incorrect_duplicate`, check 4 pending / check 21 approved)
+  for SME source-correction -- no lowest-id fallback.
 - Fold-aware pending program-detail tags now load. `reports/pgm_dtl_tag_mapping_pending.csv`
   is populated with 68 rows derived mechanically from the filled base
   `pgm_dtl_tag_mapping.csv` (prefix-swap `mdcd_`->`mdcd_pendg_`, same tags + date
@@ -98,6 +143,58 @@ behavior changes. Commit history follows [Conventional Commits](https://www.conv
   `reports/narrative/milestone_date_mapping.md`.
 
 ### Changed
+- `sme_review_exports.py` gained an `all` aggregate, now the default, replacing
+  `both` as what a bare `make sme_review_exports` runs. `both` predates four of
+  the six exports and enumerated its two members by hand, so every export added
+  since (`authorities-snapshot`, `comment-route-diff`,
+  `softdeleted-demos-snapshot`, `dup-medicaid`) was implemented, tested and
+  documented yet unreachable without knowing to pass `ARGS`. `all` is derived
+  from a new `EXPORTS` registry, so adding an export makes it reachable by
+  default; a test asserts `all` equals the registry rather than a hand-kept list.
+  An export that cannot produce its artifact no longer aborts the others: it is
+  reported `SKIPPED` (inputs absent, via `die()`) or `FAILED` (anything else,
+  e.g. schema drift past the existence check), the rest still run, and the run
+  exits 1 so a partial set cannot be mistaken for a complete one. A single
+  explicit subcommand keeps its original traceback and exit code. `both` remains
+  as a deprecated alias, unchanged and covered by a test that it never silently
+  widens, since runbooks and the decision docs record it. `fetch_dup_medicaid`
+  also gained the `to_regclass` precondition every other fetcher already had --
+  without it an absent parity view raised a raw `UndefinedTable` instead of a
+  clean FATAL, and an empty CSV would have read as "no collisions", the most
+  dangerous possible misreport for a check that exists to stop a silent drop.
+- Duplicate-medicaid_id hold-backs (parity check 21) are now **fail-closed
+  against an SME-signed baseline** instead of reported non-gating, and the
+  report names the demonstrations involved. DEMOS enforces
+  `demonstration_medicaid_id_key` UNIQUE where PMDA does not, so when two live
+  demonstrations share a project number the loader keeps one by a mechanical
+  rule (region suffix matching the state's CMS region, then lowest legacy id).
+  That rule cannot know which program is which: on the only live collision,
+  `11-W-00232/6`, it kept Louisiana #2506 purely because 2506 < 2513, and the
+  2026-07-28 SDG ruling happened to agree. Check 21 now holds the gate at
+  PENDING until every held row is listed in
+  `reports/parity_accepted/demonstration_dup_medicaid.csv` with
+  `Status: SIGNED`, mirroring gates 10 and 12.
+  `migration._parity_demonstration_held_dup_medicaid_id` and the
+  `reports/orphans/demonstration_held_dup_medicaid.csv` export gained
+  `name`, `status_id`, `effective_date`, `expiration_date` and `kept_name`
+  (appended last, since `CREATE OR REPLACE VIEW` cannot reorder columns), plus a
+  new `sme_review_exports.py dup-medicaid` artifact naming both sides of each
+  collision. The SDG review had answered against the wrong Texas demonstration
+  because the artifact it was run from carried no name: legacy 2513 "Texas
+  Women's Health Waiver" (Expired 2007-2012) is the row colliding with
+  Louisiana, not the already-correct legacy 2477 "Healthy Texas Women"
+  (`11-W-00326/6`, Approved through 2030). 2513 stays held pending an SDG answer
+  on its correct number; see D2 "Resolution (2026-07-28, SDG)".
+- The Delaware region defect (formerly the deliberate forcing-function RED-C) is
+  **retired**. SDG confirmed DE is region 3, that the approved `11-W-00036/3`
+  stands, and that no pending Delaware actions need combining -- the five
+  `mdcd_pendg_demo` rows are stale 2022-2023 drafts of the same already-approved
+  program. The tier-1 region-digit repair folds 197/252/256 (`/4`) into `/3`
+  in-migration and reports each repair per-row, so DEMOS ends with exactly one
+  Delaware demonstration and check 4 is GREEN without a source change. The same
+  repair covers Iowa Wellness Plan pending 29/148 (`11W002895` -> `/5`, folded
+  into the state-correct `11-W-00289/7`), recorded explicitly in D2 for SDG to
+  object to.
 - Renumbered SQL files that shared a numeric prefix within a directory, so the
   `sorted(glob("*.sql"))` run order every phase uses is now unambiguous. In
   `sql/04_crosswalks` the `pgm_dtl_tag` family moved off the `demonstration_role`

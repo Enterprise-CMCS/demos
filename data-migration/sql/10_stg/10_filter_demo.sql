@@ -28,16 +28,22 @@ WITH bad_prjct_nbr AS (
   -- CMS canonical: 11-W-NNNNN/R, where N is a single digit (5 digits
   -- total) and R is the HHS regional office number 1-10 (see
   -- sql/02_seeds_static/25_state_region.sql). Required on approved
-  -- demonstrations. Rows whose mdcd_demo_num contains "test" are
-  -- auto-dropped silently; non-test rows that fail the canonical
-  -- regex are flagged for SME review (see 99_filter_report.sql).
+  -- demonstrations. migration.normalize_medicaid_id strips separators and
+  -- reassembles a rescuable 11-W number into the canonical form (adopting the
+  -- dbt strip-and-reassemble standardization), returning NULL for anything it
+  -- cannot rescue: a NULL/empty value, a malformed number, or a 21-W CHIP id
+  -- sitting in the Medicaid field. Rows whose mdcd_demo_num contains "test"
+  -- normalize to NULL and are still auto-dropped; non-test rows that fail even
+  -- after reassembly are flagged for SME review (see 99_filter_report.sql).
+  -- The same helper feeds the medicaid_id projection in
+  -- sql/10_stg/22_demonstration_resolved.sql so the kept set and the emitted
+  -- id never drift.
   SELECT
     mdcd_demo_id AS demo_id
   FROM
     mysql_raw.mdcd_demo
   WHERE
-    mdcd_demo_num IS NULL
-    OR mdcd_demo_num !~ '^11-W-[0-9]{5}/(10|[1-9])$'
+    migration.normalize_medicaid_id(mdcd_demo_num) IS NULL
 ),
 bad_state_cd AS (
   -- 2-letter ANSI; only checked when present.

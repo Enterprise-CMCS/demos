@@ -8,12 +8,12 @@ FK-free schema, asserting:
   * status is derived from the current phase ordinal: earlier = Completed,
     current = Started, later = Not Started; Concept is never 'Not Started';
   * the Federal Comment past-window failsafe forces 'Completed' when the loaded
-    Federal Comment Period End Date is before cutover (2026-08-20), and leaves a
+    Federal Comment Period End Date is before cutover (2026-08-13), and leaves a
     window still open at cutover at its derived status;
   * the cutover threshold is Eastern midnight (not UTC): a window that closed
-    end-of-day 2026-08-19 Eastern is pre-cutover (forced Completed) while a
-    window ending end-of-day 2026-08-20 Eastern is not -- a UTC-anchored
-    threshold would misjudge the 08-19 boundary by the tz offset;
+    end-of-day 2026-08-12 Eastern is pre-cutover (forced Completed) while a
+    window ending end-of-day 2026-08-13 Eastern is not -- a UTC-anchored
+    threshold would misjudge the 08-12 boundary by the tz offset;
   * amendments get phase rows even though they carry no milestone dates;
   * re-applying the loader is a no-op (idempotent);
   * the loader is a clean no-op before demos_app.application_phase exists.
@@ -38,17 +38,17 @@ DEMO_A = uuid.UUID(int=0xA1)  # current 'Review'
 DEMO_B = uuid.UUID(int=0xB2)  # current 'Federal Comment', window closed pre-cutover
 DEMO_C = uuid.UUID(int=0xC3)  # current 'Federal Comment', window open past cutover
 AMDT_M = uuid.UUID(int=0xD4)  # amendment, current 'Approval Summary'
-DEMO_D = uuid.UUID(int=0xD5)  # 'Federal Comment', end EOD 2026-08-19 ET -> pre-cutover
-DEMO_E = uuid.UUID(int=0xE6)  # 'Federal Comment', end EOD 2026-08-20 ET -> at cutover
+DEMO_D = uuid.UUID(int=0xD5)  # 'Federal Comment', end EOD 2026-08-12 ET -> pre-cutover
+DEMO_E = uuid.UUID(int=0xE6)  # 'Federal Comment', end EOD 2026-08-13 ET -> at cutover
 
 # End-of-day America/New_York instants at the cutover boundary (migration.
 # eastern_day_end): 2026-08 is EDT (-04:00), so the last millisecond of the day
 # is 03:59:59.999 UTC the next calendar day. A UTC-anchored cutover would place
-# EOD-08-19 (2026-08-20 03:59:59.999+00) AFTER 2026-08-20 00:00:00+00 and fail
-# to force it; the Eastern cutover (2026-08-20 00:00:00-04:00 = ...04:00+00) is
-# strictly greater, so EOD-08-19 is correctly pre-cutover.
-FED_END_EOD_08_19_ET = "2026-08-20 03:59:59.999+00"
-FED_END_EOD_08_20_ET = "2026-08-21 03:59:59.999+00"
+# EOD-08-12 (2026-08-13 03:59:59.999+00) AFTER 2026-08-13 00:00:00+00 and fail
+# to force it; the Eastern cutover (2026-08-13 00:00:00-04:00 = ...04:00+00) is
+# strictly greater, so EOD-08-12 is correctly pre-cutover.
+FED_END_EOD_08_12_ET = "2026-08-13 03:59:59.999+00"
+FED_END_EOD_08_13_ET = "2026-08-14 03:59:59.999+00"
 
 PHASES = [
     ("Concept", 1),
@@ -127,9 +127,9 @@ def _provision(conn: Any) -> None:
         "INSERT INTO demos_app.application_date (application_id, date_type_id, date_value) VALUES "
         "(%s, 'Federal Comment Period End Date', '2024-10-31 00:00:00+00'),"  # B: closed
         "(%s, 'Federal Comment Period End Date', '2026-12-01 00:00:00+00'),"  # C: open
-        "(%s, 'Federal Comment Period End Date', %s),"   # D: EOD 2026-08-19 ET -> pre-cutover
-        "(%s, 'Federal Comment Period End Date', %s)",   # E: EOD 2026-08-20 ET -> at cutover
-        (DEMO_B, DEMO_C, DEMO_D, FED_END_EOD_08_19_ET, DEMO_E, FED_END_EOD_08_20_ET),
+        "(%s, 'Federal Comment Period End Date', %s),"   # D: EOD 2026-08-12 ET -> pre-cutover
+        "(%s, 'Federal Comment Period End Date', %s)",   # E: EOD 2026-08-13 ET -> at cutover
+        (DEMO_B, DEMO_C, DEMO_D, FED_END_EOD_08_12_ET, DEMO_E, FED_END_EOD_08_13_ET),
     )
 
     conn.execute(
@@ -193,10 +193,10 @@ def test_fed_comment_open_window_keeps_derived_status(pg_db: psycopg.Connection)
 def test_fed_comment_cutover_boundary_is_eastern(pg_db: psycopg.Connection) -> None:
     """The cutover threshold is Eastern midnight, not UTC.
 
-    DEMO_D closed end-of-day 2026-08-19 Eastern (2026-08-20 03:59:59.999+00),
-    which is before the Eastern cutover (2026-08-20 00:00:00-04:00) -> forced
-    Completed. DEMO_E closed end-of-day 2026-08-20 Eastern -> at/after cutover,
-    so it keeps its derived 'Started'. A UTC-anchored threshold (2026-08-20
+    DEMO_D closed end-of-day 2026-08-12 Eastern (2026-08-13 03:59:59.999+00),
+    which is before the Eastern cutover (2026-08-13 00:00:00-04:00) -> forced
+    Completed. DEMO_E closed end-of-day 2026-08-13 Eastern -> at/after cutover,
+    so it keeps its derived 'Started'. A UTC-anchored threshold (2026-08-13
     00:00:00+00) would wrongly leave DEMO_D open, so this pins the anchor.
     """
     _provision(pg_db)

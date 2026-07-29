@@ -335,8 +335,11 @@ def run_build_app() -> None:
     (``state/prisma_seeded_tables.json``); the bulk build only repopulates
     the data tables and references those lookups, so wiping them would break
     every FK at the constraints phase (B8). Then applies every collected SQL
-    file in a single deferred-constraint transaction and marks the
-    ``build_app`` gate on success.
+    file in a single deferred-constraint transaction -- with
+    ``demos_app.migration_mode='on'`` set txn-locally so the
+    generate_medicaid_chip_id_numbers trigger (deployed at ddl time) accepts the
+    loader's legacy-preserved medicaid_id/chip_id and mints a chip_id for rows
+    without a legacy 21-W number -- and marks the ``build_app`` gate on success.
     """
     env = Env.load()
     require_gate("build_stg")
@@ -362,7 +365,16 @@ def run_build_app() -> None:
 
     files = _collect_app_files()
     log(f"applying {len(files)} demos_app build files in a single transaction")
-    psql_files(env, files, pre_sql="SET CONSTRAINTS ALL DEFERRED")
+    # migration_mode='on' (txn-scoped) lets the generate_medicaid_chip_id_numbers
+    # trigger (deployed at ddl time) legacy-preserve the explicit medicaid_id/
+    # chip_id the demonstration loader sets and mint a chip_id for rows without a
+    # legacy 21-W number. Without it the trigger RAISES on a manually-set
+    # medicaid_id; without the trigger the NOT NULL chip_id insert fails.
+    psql_files(
+        env,
+        files,
+        pre_sql="SET CONSTRAINTS ALL DEFERRED;\nSET LOCAL demos_app.migration_mode = 'on'",
+    )
 
     mark_gate("build_app")
 

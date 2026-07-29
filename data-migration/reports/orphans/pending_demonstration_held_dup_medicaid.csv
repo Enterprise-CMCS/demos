@@ -1,0 +1,3 @@
+legacy_pendg_demo_id,medicaid_id,state_id,kept_legacy_pendg_demo_id,reason
+252,11-W-00036/4,DE,197,"duplicate medicaid_id; kept legacy pendg demo 197 (region-suffix mismatch)"
+256,11-W-00036/4,DE,197,"duplicate medicaid_id; kept legacy pendg demo 197 (region-suffix mismatch)"

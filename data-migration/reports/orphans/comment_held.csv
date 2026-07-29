@@ -1,0 +1,731 @@
+comment_id,legacy_id,deliverable_id,source,origin_cd,reason
+bb64dd5f-9d84-47ca-9e28-86fc3d11a66d,5,3f69cf4a-36e4-48ab-824d-e544defb7fef,dlvrbl,C,parent deliverable not loaded
+5ec67387-9de1-4e5f-a36d-6f5a8d6b7e6e,9,2d5832c8-0b7d-4667-9bc8-e878fbd142b0,dlvrbl,C,parent deliverable not loaded
+8bbfedf0-6e09-4647-ac00-33a82e9c5be8,10,74c08493-c09f-45a2-8745-0187cd8d1a1c,dlvrbl,C,parent deliverable not loaded
+0f08d507-8b52-400c-995b-ba7b1de0312e,11,6483a8ad-bb8e-4959-b73d-369030d438fe,dlvrbl,C,parent deliverable not loaded
+283a5be1-2316-496c-b75a-e1c1e2373b5c,12,a0c418b4-6198-4ce3-a548-ac458478ad97,dlvrbl,C,parent deliverable not loaded
+4b983bb1-c697-465c-8413-ec192f86d46c,13,a36bfc19-c5eb-4bd1-a641-632edd61051a,dlvrbl,C,parent deliverable not loaded
+aaa2b47c-5271-4dbd-ba3a-f2db83f6b018,14,6f53b757-7b09-4bd6-8ec2-149e80f25e24,dlvrbl,C,parent deliverable not loaded
+cf043ebe-3856-4091-a6ce-ef0ef07d22a6,15,0e0148a7-13ae-4a58-85c4-60a363451c8c,dlvrbl,C,parent deliverable not loaded
+7148bacd-e1a1-4c53-b755-7d6d6af21559,16,d3945c60-a2d9-4350-bc78-4af0738828d1,dlvrbl,C,parent deliverable not loaded
+4da93150-6a08-4d48-8279-0f2f15be1487,24,002e2ce6-7d4d-44e6-9d4b-4cd6580db1f4,dlvrbl,C,parent deliverable not loaded
+65209882-d625-480d-999e-76163b41fc5d,26,b88ab810-6239-472c-990d-5c51806a8f8a,dlvrbl,C,parent deliverable not loaded
+72f0f862-d66a-4c91-9060-185e6cfdb556,27,5c43ada5-b01e-4012-84e3-907a1ca4ee7d,dlvrbl,C,parent deliverable not loaded
+5425d90e-feaa-4589-aae0-5cdf15157ffd,29,716d7f73-8eaf-4010-94dd-d199c98a240a,dlvrbl,C,parent deliverable not loaded
+644df643-8a74-413a-b286-0048709520a5,37,224b8209-d1f7-4dda-8949-c3158a17f038,dlvrbl,C,parent deliverable not loaded
+241495b5-8120-475f-95d1-73803e608706,38,82227614-4dd9-4cdb-ada0-9d13ebaa58e0,dlvrbl,C,parent deliverable not loaded
+b7250caf-2325-48fd-b7e6-001306399d1c,39,82f663e1-4275-4270-922d-e9a501a6ff81,dlvrbl,C,parent deliverable not loaded
+66da1ac0-77b3-4ac8-aef9-a7b029a6c485,40,fdc6e844-eb66-41ba-ae0c-fa7daf674aef,dlvrbl,C,parent deliverable not loaded
+7bc21bd9-4ea2-4d4b-9e1b-c1275199e264,41,cc6476fd-daad-41ee-beac-8ce64aae17c9,dlvrbl,C,parent deliverable not loaded
+840dc1f1-5788-48b3-9661-0c8049909fd9,42,f3de3820-8c42-409d-9cf5-422b8a8712db,dlvrbl,C,parent deliverable not loaded
+a357e00d-2232-4cc1-b0ee-f4d0946a72e8,43,002d150b-57dc-493e-8598-c4262a67c59d,dlvrbl,C,parent deliverable not loaded
+689e5e9a-68cb-4cf8-83aa-83966fe7b48e,44,be04ac20-825e-4a6c-ac59-df7e6b4ea770,dlvrbl,C,parent deliverable not loaded
+e0a76c3b-3c4b-46b2-818f-465116488e55,46,7470ab0e-f888-4aae-8c51-03958ac38412,dlvrbl,C,parent deliverable not loaded
+1a8392cd-6df7-4c7f-8d89-a0506f6ed88a,55,dc778739-242e-4db2-b4a8-3089ffffbb8a,dlvrbl,C,parent deliverable not loaded
+887a847d-468b-4e59-9834-6327c63e940f,58,7f339474-f866-4e2b-b9e6-514abceb53d7,dlvrbl,C,parent deliverable not loaded
+718d35c3-672c-4a58-b9a4-118362a41ed1,59,f9f5eab5-adff-48b3-850c-c14822152e95,dlvrbl,C,parent deliverable not loaded
+2e71e072-9bc4-48e4-857a-4be16623f995,60,cf32c425-d762-4852-a954-af10b4e3a4d4,dlvrbl,C,parent deliverable not loaded
+97920ff3-0afd-4c07-abec-a6a883f4b806,61,d5f9a664-0059-469f-85a9-00ab710298c5,dlvrbl,C,parent deliverable not loaded
+b5770deb-2276-4d2e-af7e-93c7ee4bb079,62,89a06a4a-397a-45bb-ad8a-838886663369,dlvrbl,C,parent deliverable not loaded
+5b849e31-cd6e-408c-82f7-16e55fbe4470,63,f85c8eb5-5668-4cb7-9d6b-c1248cf269fe,dlvrbl,C,parent deliverable not loaded
+bc334284-dcfa-4f5b-b4ba-97c2b3884a79,66,03438b1e-1290-4a62-878e-f399e6101638,dlvrbl,C,parent deliverable not loaded
+0897cbc9-e095-498e-927c-8398edb6ba89,68,e606ac15-a525-4c63-a6b9-736898101294,dlvrbl,C,parent deliverable not loaded
+ce8efcff-0dc6-429a-83e2-90a021e6e3c2,71,440275c3-2c7c-44e8-b834-73198f597fe6,dlvrbl,C,parent deliverable not loaded
+76b4a2f8-d375-4665-aca7-62a52d2b79b3,72,5f5a4867-bda2-4047-822f-4a801278624b,dlvrbl,C,parent deliverable not loaded
+69f3b411-1a4c-462a-9c1a-c09ec1dcb4a4,73,c147c194-d17b-4f03-a8f3-653d535da642,dlvrbl,C,parent deliverable not loaded
+3362315a-97a2-44ab-849d-c5798eed63b3,74,72192f0e-6156-48bf-aa62-3d2a153c212f,dlvrbl,C,parent deliverable not loaded
+07a205a0-1c81-4754-b70a-ca9b44f1a34a,80,c6181225-96ed-4c44-8271-57306055dfb5,dlvrbl,C,parent deliverable not loaded
+e37f4736-fd0a-4795-befd-769dbb85402b,81,f9ba9e84-72e1-4661-8d7e-7c0839626bbf,dlvrbl,C,parent deliverable not loaded
+0065b240-cd87-4f0f-af09-45e6aee532e4,84,5bc798be-21c2-4047-9b55-46de02e80b6f,dlvrbl,C,parent deliverable not loaded
+cd436e0f-c73b-49e2-ae20-e2dccbe8bd92,85,0f79c9f7-7577-469b-a5fe-0c5cf5b7387e,dlvrbl,C,parent deliverable not loaded
+59d3eb05-c10f-4f73-80fd-16d789652fc1,88,abe6b126-e3cf-4064-b7e2-1e4154e90224,dlvrbl,C,parent deliverable not loaded
+d766f654-769a-44ba-bca8-5d6fcff616e1,91,d5811f7a-3b09-4fef-9133-cc052307661b,dlvrbl,C,parent deliverable not loaded
+cec9ec24-1b35-4cfd-b6a5-02b73603c094,95,df293c70-85c0-4bed-94ed-6ff7a1040a03,dlvrbl,C,parent deliverable not loaded
+970f201d-7425-427b-a000-fa81db659993,96,fa6aa99a-006a-46a8-a9e0-11c6288ae53e,dlvrbl,C,parent deliverable not loaded
+e0517e6f-1a4c-4ad5-a498-c342113a9caf,98,900487ea-c198-4c10-84d4-9c7511dd52a1,dlvrbl,C,parent deliverable not loaded
+f71acfe6-caf9-4c51-8ba3-f6dba8844f50,107,109b4943-027e-49e2-ad1b-017b296f31ca,dlvrbl,C,parent deliverable not loaded
+0a09191a-7e82-430c-b403-dd6af7303285,108,23beea56-88bd-4a4c-92ec-1f2e037c936e,dlvrbl,C,parent deliverable not loaded
+ba630935-80d9-4bfb-be2e-11371d8c363d,113,22cd24f4-25ad-44fb-9119-2f6c84699ca2,dlvrbl,C,parent deliverable not loaded
+bdde303e-471e-4288-84d7-0e4b701c0c49,114,e581c4a1-f71c-4e66-98c2-3d591307def4,dlvrbl,C,parent deliverable not loaded
+84679c1f-1290-4c77-8302-386d303c7af5,116,b69b9ab4-5014-494f-ab13-b4d1fd403463,dlvrbl,C,parent deliverable not loaded
+29ed37da-e65f-4283-8891-6578177714b8,119,00998fd1-50fe-4d4c-b9a0-aac330e315d2,dlvrbl,C,parent deliverable not loaded
+d38403d0-03f7-4031-8ee8-a60f0a6575d0,120,cee6e8f3-8d75-4017-a77e-50d63e522649,dlvrbl,C,parent deliverable not loaded
+0de2c348-0dfe-45f8-9e31-b12eeac7bac4,121,84202497-b0b2-4955-a488-1c3b78901408,dlvrbl,C,parent deliverable not loaded
+b5d4f000-7493-477a-a54f-fb77d73c808d,123,d9689c8b-a6a4-4891-8704-148f95b64773,dlvrbl,C,parent deliverable not loaded
+615f493a-9a8e-42ec-a76a-2f2e4af99fb4,127,b213e0ba-78ec-420b-b520-686e92ee72d9,dlvrbl,C,parent deliverable not loaded
+955c39e6-6d70-44d0-b958-d1e819c2c950,128,d680a254-9a2b-4a2d-a226-752f5a86eb6a,dlvrbl,C,parent deliverable not loaded
+0947939a-7ba6-4863-b608-b80bfebb00a2,135,4da2cbd8-e8df-47f7-846d-e4dd28819cb3,dlvrbl,C,parent deliverable not loaded
+a5e58542-96bd-4f12-ac0c-b555303a2e61,137,b98f4590-4234-4e8e-be7c-0847190619a4,dlvrbl,C,parent deliverable not loaded
+46eec2cb-2da6-4e16-8a0e-2147142b33d3,139,0ca888ba-d700-40e6-852b-873bfb7570ba,dlvrbl,C,parent deliverable not loaded
+0d9722ea-7870-4abc-a883-d66fcd814ab0,141,bd2bee55-e0db-463a-8181-dbff65340e3b,dlvrbl,C,parent deliverable not loaded
+e6032b39-c9da-48b7-8948-b6e44fc17319,143,9ff3c5a0-961a-4fd6-bd59-dbc328cc9100,dlvrbl,C,parent deliverable not loaded
+316ff34e-c898-48b8-adf0-1121d25b77c1,145,2196f0ed-843f-4d7b-8fc3-85d303505911,dlvrbl,C,parent deliverable not loaded
+6320d044-9b70-47c1-8191-3ee74a8d7407,149,5857e58b-4e9e-43aa-914d-92f58ce0c66c,dlvrbl,C,parent deliverable not loaded
+94662a38-5b26-4f27-a3e6-616d0f629442,151,7458b436-dcf6-42c6-85d8-abb0e724f79a,dlvrbl,C,parent deliverable not loaded
+08d41b53-304a-48d4-92f8-5e24d8451d36,153,63ca9cab-1e99-41d5-9781-5941fdc13be7,dlvrbl,C,parent deliverable not loaded
+e304ce40-0b56-4126-a157-cd30c177329b,155,0974aba1-e945-4eb0-87e9-014d6ef02b3a,dlvrbl,C,parent deliverable not loaded
+a39f3a34-02a5-4191-ab92-1f213ffd466c,158,25efbb33-04ae-4116-9a45-b7aaed27cf41,dlvrbl,C,parent deliverable not loaded
+7612a4e9-581e-492b-99ce-03f6d2851c1f,160,356bb217-cc8c-4cbc-bfe3-77eb6f43c0b1,dlvrbl,C,parent deliverable not loaded
+dccbfe78-712a-4442-bfb5-b2688d3425b6,162,05af756d-9d4c-4267-968f-e8a7ff4b0283,dlvrbl,C,parent deliverable not loaded
+97e1f3f5-123a-4036-aaa7-8e726c705378,164,affdddd4-50d8-42ea-9398-a7fbaa170e8e,dlvrbl,C,parent deliverable not loaded
+2d15554f-34bf-4e0a-998e-c5997e1943e5,167,791d45dd-5bfd-4a0d-9d73-8a5a677edf2b,dlvrbl,C,parent deliverable not loaded
+65ac94ba-d085-4c97-9dc4-99978765b862,169,fd6499ac-40a3-474d-824f-b9f98ed3f3ba,dlvrbl,C,parent deliverable not loaded
+f020ec2c-ea9d-47be-9fa0-f882beb25f29,171,6dc7700d-9356-41fb-87c5-7c92a80cdf6d,dlvrbl,C,parent deliverable not loaded
+44751694-fa66-4e1b-972e-2d9795e8a31a,173,4277c116-03cf-4c38-8b1d-b0de06dce86c,dlvrbl,C,parent deliverable not loaded
+53eecb70-cf17-46e1-8e21-80c6134a5271,175,0139f3c0-e7e6-43b5-a722-7fb6bcf2f5f1,dlvrbl,C,parent deliverable not loaded
+1d12f3ba-d793-4909-a042-9a51fba55613,176,7496a120-68e4-46e8-bbd7-257712eca551,dlvrbl,C,parent deliverable not loaded
+029f9704-2793-49c6-b5c8-c5d446f218bf,186,ff7584f4-9115-491d-8aad-89672436afcc,dlvrbl,C,parent deliverable not loaded
+64347516-125f-4628-9d8a-4f51b0425341,187,8b9123b7-6bad-4856-bd0f-a739fd975db5,dlvrbl,C,parent deliverable not loaded
+9dd937ee-b06a-410d-90b3-506eb84e9f73,188,8b2eea92-1090-4a3d-bf94-107b0aeaba81,dlvrbl,C,parent deliverable not loaded
+e468dfa1-aa0a-4d52-b18e-5f41599cbc75,189,fb821fdb-6288-41a9-842b-36e180cd130e,dlvrbl,C,parent deliverable not loaded
+4504365b-f9b0-4df0-8a2d-a4e46c25d798,190,0a80fc0d-9e04-4bb2-a4d0-f34e09d16659,dlvrbl,C,parent deliverable not loaded
+30217e57-1026-4e0d-bbc4-6646c6295dd8,191,15a903fe-c70f-46ba-a46b-78ebd70006dc,dlvrbl,C,parent deliverable not loaded
+fdf05344-62df-49d3-ac8f-2d27d3e164aa,192,e165e388-0e19-49ca-b98f-b77dc190acc5,dlvrbl,C,parent deliverable not loaded
+aec100d3-b682-4db0-849c-bd8e8dbacd94,193,b18026e6-a9a3-4fee-8cbf-c78799a0ba6b,dlvrbl,C,parent deliverable not loaded
+3a01f634-0c26-42d5-9112-e6aa60bf3774,194,74246034-d957-4e0f-9359-03c788349c12,dlvrbl,C,parent deliverable not loaded
+5367f1bd-3c9a-4610-b6d3-449e830ad601,195,a47122a0-80cc-4a89-86d1-a47f4d3a5ddb,dlvrbl,C,parent deliverable not loaded
+d6a78736-0c26-4f53-958b-32b9781798f4,196,143e4b9f-830b-4346-aec3-ce2053c266a6,dlvrbl,C,parent deliverable not loaded
+627b2b4f-d043-4617-9071-b872c9929054,198,89f6d2c4-3bd0-401f-b8e8-aee3cad42764,dlvrbl,C,parent deliverable not loaded
+f9c47bce-bfd8-444d-b687-5a3c1d33e0ab,199,85071971-15c7-4dcd-8b8c-62bbd189bd4e,dlvrbl,C,parent deliverable not loaded
+839cbb7f-a956-4ff0-a28d-c5e7207668e9,200,8629d29e-3be4-402b-afa3-2985689cd08d,dlvrbl,C,parent deliverable not loaded
+a78ad17c-6bfd-45a3-8c69-6b1c1d347e7e,201,abf397df-6e25-4749-8b0f-4843b3f5030d,dlvrbl,C,parent deliverable not loaded
+eccf5375-ba2e-4708-b506-046001563189,202,1060baf8-fb97-4143-ae9a-fe856aad45c9,dlvrbl,C,parent deliverable not loaded
+8546dde9-f7ce-4859-bf38-399ec7c10957,203,0a56cf3b-de42-44ce-bc6a-3b37aca01f35,dlvrbl,C,parent deliverable not loaded
+480ea191-4fd0-4c73-b9b1-dfa3363f8ac5,204,1d5f212e-d0c0-4155-8a6a-bb4324abaa08,dlvrbl,C,parent deliverable not loaded
+d7e30dec-9a42-4907-a484-6b1d9fd8d187,220,0f13034f-d1b6-4857-aa7c-943d60daa42b,dlvrbl,C,parent deliverable not loaded
+7be60a52-bc79-49f3-8ce0-d97137163c68,221,69376932-9776-47ad-b20d-1167ef9811b3,dlvrbl,C,parent deliverable not loaded
+f6e2fe85-7b65-465a-bb6b-090fc4b899c8,234,977752f5-0a49-4c21-bcb5-f1123f96f2aa,dlvrbl,C,parent deliverable not loaded
+ddbf7e6e-b41d-456d-820e-a37bb51c6051,238,6dcd9eb0-ec76-40f3-ab31-bfc4dbf3b12d,dlvrbl,C,parent deliverable not loaded
+ba4cbe9e-6162-452f-9914-e68984ef5e32,239,e48fd7dd-6c04-4fbc-911f-5f4d2465aa4b,dlvrbl,C,parent deliverable not loaded
+def19d64-97e3-4a09-85d3-1f23ef808f7d,240,26ca4220-bb6f-451c-aeeb-361466ce90ee,dlvrbl,C,parent deliverable not loaded
+b238392e-2652-4e67-b9af-2460f49c3961,241,ba8f680d-b172-44d3-abee-dc8d4dcd2fb6,dlvrbl,C,parent deliverable not loaded
+a6ba5b60-5337-4f99-bd23-7e379a4ceb1c,242,0642f82d-8ae1-48e0-8e60-892bcb096a4d,dlvrbl,C,parent deliverable not loaded
+f788e075-f221-4794-9c6e-e7ec405ef5cc,243,4560dd6e-8263-4285-ab98-8d09482b72ad,dlvrbl,C,parent deliverable not loaded
+8ae2732c-a245-40c1-ba77-5410e6564df1,244,f5351197-7789-4d9e-9b79-a19c84c855f7,dlvrbl,C,parent deliverable not loaded
+27061a9c-a1c3-4f7b-a77c-4131a5869fe4,245,e9ab9727-c175-49d1-bbb0-0b66935ff8c4,dlvrbl,C,parent deliverable not loaded
+0cce73a5-16cd-4f53-a2ae-0208264195c1,246,b0e465f4-4526-494f-b3e2-adf0eee106eb,dlvrbl,C,parent deliverable not loaded
+2a78a49c-b535-4316-97f5-7293c2f5b48a,247,f912ccf3-b5fc-4401-ad84-a0c648124c10,dlvrbl,C,parent deliverable not loaded
+36fec7d8-ca2a-4ae3-b7cf-0ea25761614c,248,cbf31d6c-04ed-4518-a078-7bc953078e14,dlvrbl,C,parent deliverable not loaded
+16173890-e5d1-436d-9f12-f35272ceb5e5,249,d28b19eb-bdad-4d00-a097-781a24021bd0,dlvrbl,C,parent deliverable not loaded
+1a8cd828-275e-4a3e-897b-a1ebcd6f3c5a,250,96289d3e-6455-466e-9219-8bf06f01d257,dlvrbl,C,parent deliverable not loaded
+eb677836-af9a-4e90-8ecd-acdd921f73d2,251,dbf77a3b-2173-4903-916d-745cbe65bc69,dlvrbl,C,parent deliverable not loaded
+dc393a65-f886-4877-857c-dcf31d0d9082,252,352faad2-8353-4621-9891-fd6a0e073cef,dlvrbl,C,parent deliverable not loaded
+bcaa5889-ac2a-4506-aded-5d8e72c42692,253,e46ef221-8123-432b-b682-2b73695c57e5,dlvrbl,C,parent deliverable not loaded
+ae3713c9-a65d-4d1e-bac7-dcbbd2bf5336,254,4b746661-3e12-47a0-b437-412ca0542526,dlvrbl,C,parent deliverable not loaded
+70c26a05-fda7-42bb-b43b-b6b948e2145c,255,5fc26ef3-8cdd-4d2d-b77b-bd030373d9c0,dlvrbl,C,parent deliverable not loaded
+29a2b7b5-acc0-449e-b657-1abd5aa57acd,256,8a2f92d9-5059-41ef-b05c-7575292f812d,dlvrbl,C,parent deliverable not loaded
+ff100252-2ca2-4dbc-8c0c-6f56b5afa247,257,22423dbb-a4b7-43c1-9c2e-b4d51bf03656,dlvrbl,C,parent deliverable not loaded
+65397131-5522-4bbd-a7f7-d1129b92d2e4,258,3ee1d4d6-0322-43cd-95e2-0933fae97ff4,dlvrbl,C,parent deliverable not loaded
+f185ecb7-693b-4caa-8db5-ae253252eca2,259,41699357-0ebb-4299-9c1d-70f27a2cccc7,dlvrbl,C,parent deliverable not loaded
+c39467ea-53b4-4ecf-90ec-1add95e0d2cb,260,7a7cc3e6-55b9-4d02-8a9f-85bc697fdcb7,dlvrbl,C,parent deliverable not loaded
+65914c31-b1ef-4b66-bf91-a321209567e9,261,e875d91e-44e0-4d0f-a408-46be61c722af,dlvrbl,C,parent deliverable not loaded
+1b792162-85ea-4741-8921-d2f118963d50,262,2c2373c9-8eb8-44d6-b7fb-5e6f0d7b6351,dlvrbl,C,parent deliverable not loaded
+6015b167-1210-4737-b427-8793689c0d2c,264,e4f87d0b-c164-4db6-89a5-6a5c744eca2a,dlvrbl,C,parent deliverable not loaded
+9039f4da-b72d-4798-b254-a7d064ae0ab2,271,57f5e6b9-6e38-477b-99e3-c75aaab383e3,dlvrbl,C,parent deliverable not loaded
+f1f0405b-8711-43ec-9b18-78c7e8e485e4,272,784e4346-7457-4419-a15f-6f72b25c6f26,dlvrbl,C,parent deliverable not loaded
+fc54a110-d272-412a-abd3-6bcb3e535060,273,83f7a399-b530-47e6-b601-7bfab2b1c4e6,dlvrbl,C,parent deliverable not loaded
+ba1e2d9f-dbca-4b00-8a06-b376955f07e1,274,243df0f4-a70d-4bf9-88f7-205770a26bf0,dlvrbl,C,parent deliverable not loaded
+49cce3d3-5a21-4b10-8914-30c605201170,289,2cb4f7ee-2240-4378-bca9-9b014eb6bed1,dlvrbl,C,parent deliverable not loaded
+001e92ef-1ab2-4f88-a213-5dc746faa414,290,2ab67860-609f-475a-8594-dc58849432d9,dlvrbl,C,parent deliverable not loaded
+6c80c49d-f856-42a9-91db-06ebeb41c5cf,291,3058f207-cb2e-4cdb-a1a0-30c8a8a7332e,dlvrbl,C,parent deliverable not loaded
+68eb05ed-10d2-4ec2-a8b4-f48106f6a665,292,3aaaba6c-d07f-4289-abb2-4e15b77bf62e,dlvrbl,C,parent deliverable not loaded
+4c55fb5d-8622-4c50-80ed-f22271b4ba6c,293,d584deae-b275-4081-98f4-76c4f3cc9b86,dlvrbl,C,parent deliverable not loaded
+7b25869f-853d-4fa6-bed2-cb3dba1e1cb7,294,530b223e-6f0f-432e-94f5-438d6b1a130c,dlvrbl,C,parent deliverable not loaded
+61e392ff-c759-4a88-ad7c-46c2a9559293,295,19345867-e999-404f-a651-76ee071229f4,dlvrbl,C,parent deliverable not loaded
+9e7fd466-5e73-4213-9a04-e16d65536132,296,78108b41-e995-4024-bbbb-08296fb46d00,dlvrbl,C,parent deliverable not loaded
+c8edef44-e0b5-4050-84c0-0e242892e234,297,7ee628cb-4e9f-4234-b09b-f5d1d0bf3265,dlvrbl,C,parent deliverable not loaded
+99de7572-cd04-4972-b03a-e28eeb4262a7,301,bd4ae54b-84fc-40a5-850b-a110010baae0,dlvrbl,C,parent deliverable not loaded
+43a5b915-8efc-45b6-88fd-b680c4bc306e,302,cddc4c69-1de7-44af-98b4-74f1b99a5b67,dlvrbl,C,parent deliverable not loaded
+9006dbec-c1a2-4d23-89d3-f2beeb6a99c0,303,c36fe14e-20ff-46dd-8dca-181d49c27112,dlvrbl,C,parent deliverable not loaded
+dd61de60-358c-40a2-b21d-663a6eb4deb7,304,dc9f2a6a-ffbe-4e6d-b66e-ae6afb1efc34,dlvrbl,C,parent deliverable not loaded
+f6e64865-5118-4d40-ae20-52d1c3a8d275,306,19bc2685-dca2-4788-b1a7-45286d400a45,dlvrbl,C,parent deliverable not loaded
+e266b9b7-1401-455f-abe9-95f0e11b7993,307,3e1ea8cb-e0dd-428b-8811-27984a167279,dlvrbl,C,parent deliverable not loaded
+2a3d0c68-1792-4674-a4c2-b136a4db7e0d,308,4dc018a6-3ae7-4e4b-8449-51f055c8431a,dlvrbl,C,parent deliverable not loaded
+bd4d3102-385e-4f6e-bfa1-90e17c40f8bf,309,011b5504-352b-42e0-92ad-1375031529a9,dlvrbl,C,parent deliverable not loaded
+8fdab8bf-84e7-4d3c-a982-f7e4b86536b4,311,cd7a39ef-e406-4e2d-8adf-d21ca19c764d,dlvrbl,C,parent deliverable not loaded
+98ba7eac-517c-44ca-8b3e-901876d2ecf3,317,f6280df3-37c0-480f-b2e4-453278d9a46e,dlvrbl,C,parent deliverable not loaded
+8a6025af-4df9-43af-9a53-46d1e870809b,323,f69ab008-723f-494d-8e92-91e03f9b9bf1,dlvrbl,C,parent deliverable not loaded
+17d3508c-b10d-49d9-a8e5-eb01f04a45c5,324,2c3ab6b2-75ac-4a5e-8837-e8b03a673348,dlvrbl,C,parent deliverable not loaded
+34bd8457-5cba-4d6c-bc1b-5ced99f0ebd8,325,125aa7ab-cecb-4c4c-87bf-3f135b6d215a,dlvrbl,C,parent deliverable not loaded
+ae051fcc-7817-4bd5-85d5-94ccc59101a5,330,2551622c-81e8-4b08-8e7d-c909cc5fcb6f,dlvrbl,C,parent deliverable not loaded
+a6757b4a-1943-4680-b4c9-2a270f96fd4e,331,649a1cdf-123f-43c8-b761-1990c36855ae,dlvrbl,C,parent deliverable not loaded
+e179d7a5-0980-419b-afeb-0d0585dc79cb,368,0257f894-d3df-41bb-8914-1973afe3b569,dlvrbl,C,parent deliverable not loaded
+37d40fce-fd07-4afa-b586-fd15e3012355,372,1e124136-e0bb-42d3-a272-7713d4a53937,dlvrbl,C,parent deliverable not loaded
+3e52778d-3525-47d0-b5b1-98695f650359,373,ccb9689d-bda1-4a2e-8c3d-5e5ef98940db,dlvrbl,C,parent deliverable not loaded
+d1da29c2-5df1-4b53-a218-53aa57e4d308,378,0203ad37-f255-454d-94c6-1108f7a556a3,dlvrbl,C,parent deliverable not loaded
+9a98c1f8-ae59-4f86-b5d5-f945cb7cf8f8,379,0af5fce9-5dba-4f69-9881-b84507b5c58d,dlvrbl,C,parent deliverable not loaded
+e7dfa930-d743-4726-8b8c-6b82efbb4b76,380,c7df1b2a-f2e3-4ecd-9553-a4c7883f3206,dlvrbl,C,parent deliverable not loaded
+0fa61a88-185a-48d4-80ce-b77d4fe54312,381,3a8aa282-1869-4e9e-8f66-82ba4c13177d,dlvrbl,C,parent deliverable not loaded
+c02947dd-6c3d-4807-a982-185ef5e5844f,382,df1371b8-2122-4e08-870d-6000c1eea6d9,dlvrbl,C,parent deliverable not loaded
+6536a0c4-791a-467a-aa23-bb2f16f6da50,385,cefe58fe-d5cd-4dc4-89ec-30e9f68c4c78,dlvrbl,C,parent deliverable not loaded
+4b574f82-7e2b-4a2d-b756-60544e8aec3e,387,92ca657f-b205-4cc2-b838-ddb3c1bc8925,dlvrbl,C,parent deliverable not loaded
+621d8f55-6855-469d-a9af-3f3aad1af15f,388,75a3a9e5-a83c-49a3-ab11-8ad5a6eacb97,dlvrbl,C,parent deliverable not loaded
+f90138c8-e167-4537-8042-b0211d84085c,394,8b70c9fb-29b1-4b64-b719-52bbf21a3473,dlvrbl,C,parent deliverable not loaded
+fe335fec-0180-43fc-bf66-d219bcf3f832,395,2190a6dc-b277-48c2-9115-1c3bef3e852c,dlvrbl,C,parent deliverable not loaded
+87bca8a8-f1dc-4557-9489-6829ad321957,396,6bc0224e-87c0-4997-b505-b406a86ef9c8,dlvrbl,C,parent deliverable not loaded
+5b01dbc7-1904-44e5-9808-a7fad9c551d4,402,557eb90d-bfae-4b65-b7ee-de5b13333e3a,dlvrbl,C,parent deliverable not loaded
+295fcc24-2344-420b-861e-a33ad6ac6190,411,21f82655-f6de-43a8-884d-87cd8b922a39,dlvrbl,C,parent deliverable not loaded
+cd9b49bc-85d2-4fba-b43f-92a5bbb2fe4a,412,247e80f4-4fd4-4990-bfca-2b94351efbcb,dlvrbl,C,parent deliverable not loaded
+635c7251-2ac4-47cf-abff-450ab8e79a1a,422,9449f7ef-d200-498e-9568-b1bfe7258374,dlvrbl,C,parent deliverable not loaded
+4673071d-3bba-45f4-8ac1-1bea440e7a3b,423,be39b8fd-5e55-499c-8d89-3d32f5bb631f,dlvrbl,C,parent deliverable not loaded
+8f7d99c1-1f5a-4b06-a5e0-ab18f2d916d6,424,d15de451-6bd0-45ff-90be-8ded955b2398,dlvrbl,C,parent deliverable not loaded
+2dbacf73-be46-4e9f-9e68-678874da7801,435,9910e718-f575-4d9e-9955-ff5c847809a1,dlvrbl,C,parent deliverable not loaded
+baa7bb3e-607d-4317-a255-5d4b517dbb89,436,191d91ab-41ba-4c27-acb5-81f6840754c6,dlvrbl,C,parent deliverable not loaded
+ac26f76e-9ef3-4db3-9631-33031e403dd7,441,a1ed01b7-e1fc-446f-9355-f705864b900d,dlvrbl,C,parent deliverable not loaded
+ab3e9823-ba0a-4601-8b21-4973911f3fcb,445,1b0cb489-c6d8-4c22-b63b-1d98f26d5b0e,dlvrbl,C,parent deliverable not loaded
+1d12cf0a-279e-4eba-a5e0-cbecc97b683d,446,85006da4-4dc2-44d2-b08e-b15b73a68b7a,dlvrbl,C,parent deliverable not loaded
+65c6bf77-12e7-4505-8813-f90f28d18e8c,447,22fc4ce4-037b-4403-9dcc-bae618bfc183,dlvrbl,C,parent deliverable not loaded
+d90786b7-203d-4645-b046-3a70d94db4d9,448,50a2c2cd-fa8a-4b0a-939d-3ef2331093e0,dlvrbl,C,parent deliverable not loaded
+94450d32-bcbc-4ad5-aeef-de8dcd0d284b,450,22b174a9-ee30-43ad-a6ab-be22e14a9b4f,dlvrbl,C,parent deliverable not loaded
+1081b6ff-d8ed-4d45-bbaf-640ee502abc5,459,e490832e-bbd1-438d-8a44-a660ad5148ec,dlvrbl,C,parent deliverable not loaded
+23c560ae-4c41-4424-8e76-2b75d2404295,471,2d8aa88e-d369-4dd1-8bca-92f23ec342cf,dlvrbl,C,parent deliverable not loaded
+16395d1f-2ccd-490a-b874-b672f1b7169b,472,7576ab12-c632-4b16-b9a4-ef9b0357d0d6,dlvrbl,C,parent deliverable not loaded
+1b38ec9d-8fde-41bb-ac6e-eaa52de3ce37,534,9c28dd89-a436-4b18-914a-ab9d98a4d097,dlvrbl,S,parent deliverable not loaded
+500d88c2-89c6-40f4-aea7-7084c1afd469,539,3dd3b093-1958-4f5f-a27d-87e2c72af37c,dlvrbl,R,private route but author is not a CMS user (anomaly)
+237e1aa9-f603-4d56-b784-6afdae413f4b,606,75057e7d-5058-45f5-8ff2-eaf93fcb591d,dlvrbl,C,parent deliverable not loaded
+2b1206df-0e91-4ffd-bb97-7bc058653b90,607,c55ffd99-1742-44cf-a78a-52c5ae59820c,dlvrbl,S,parent deliverable not loaded
+89c0f6f4-5254-45f7-aaa5-b59619da25ad,632,9c28dd89-a436-4b18-914a-ab9d98a4d097,dlvrbl,S,parent deliverable not loaded
+2c348c6f-e430-4826-ae20-edb5e23f605d,633,4da2cbd8-e8df-47f7-846d-e4dd28819cb3,dlvrbl,S,parent deliverable not loaded
+a9b088c8-2c11-4034-9aff-5bca374f528a,635,fdca74b6-6732-4525-8185-180d20b1bf05,dlvrbl,C,parent deliverable not loaded
+afbadcbc-9a27-4fd4-beca-2d9a1c6dc8c3,660,0af667d8-5d97-4281-bb7a-f625c5ff9df2,dlvrbl,I,parent deliverable not loaded
+0b85b782-6d66-464a-b844-c442f3d6c317,663,5bc798be-21c2-4047-9b55-46de02e80b6f,dlvrbl,S,parent deliverable not loaded
+be3fce5a-ce20-4ff5-9b22-cbd84fe97c14,697,f6280df3-37c0-480f-b2e4-453278d9a46e,dlvrbl,S,parent deliverable not loaded
+8016a26d-0516-468b-9241-a8205d8ffddc,757,3266953f-fbb4-4a54-adac-b20552723311,dlvrbl,I,parent deliverable not loaded
+78be7fa1-46ed-467e-ad55-f75d7e7d5bdb,758,9a6185d0-37de-470e-b6a9-2a47bdd1ff57,dlvrbl,I,parent deliverable not loaded
+51a0f6f2-443e-4e64-8c57-f13e96e21517,759,fedc4bf0-d6e6-4ac2-b524-a78ea0d12a7f,dlvrbl,I,parent deliverable not loaded
+63919d95-d3f3-4337-a7bd-200d0d7ee149,760,37bcff02-2d0a-4614-8989-0d91d55c3c6d,dlvrbl,I,parent deliverable not loaded
+e24f7fe7-0d12-454c-af53-86b5cdd6fb8f,761,2ba185f0-ce6b-4e7c-8467-bad626019265,dlvrbl,I,parent deliverable not loaded
+5a0b3140-e0e6-4100-b25b-45da79304b5d,762,942ef705-b286-439e-9a7a-f2b2b2a9ed6e,dlvrbl,I,parent deliverable not loaded
+73b1509e-533f-4ae1-ad0f-959c1595d185,763,a0a35917-c065-4139-8709-f6fcf5c5b585,dlvrbl,I,parent deliverable not loaded
+cecd434c-90c5-4bda-b41e-0a4d5394f4e5,764,72a106e4-e2aa-4afa-93c9-0b47c2530e86,dlvrbl,I,parent deliverable not loaded
+604aa1ca-6eb9-4ea1-8b4c-426628e8112c,765,22dccd24-ae80-4fce-956f-a1aa5a4bfc32,dlvrbl,I,parent deliverable not loaded
+89be2357-f404-4c3f-982b-5ccf6688e024,766,a9c25ed0-96be-428b-aefb-25b29a04c704,dlvrbl,I,parent deliverable not loaded
+53725145-72f9-47e1-a787-6ff9fc8c7ef0,767,d2266be2-d4ff-4431-8288-0b38b530ee4b,dlvrbl,I,parent deliverable not loaded
+cb4fe03f-7cc4-4e35-a8be-62f9b0923361,768,f2ed4f8f-e23b-4c4d-ae80-22a64b655cbf,dlvrbl,I,parent deliverable not loaded
+448f695d-57cf-44e3-8a2d-66342a282aa9,769,728f9f08-2485-45b2-b01e-cf9c56a98d30,dlvrbl,I,parent deliverable not loaded
+c1febce2-0b15-41a2-883b-1d30977e6f69,770,47fbb4ca-fe76-481c-b0cc-55950bbbbdf2,dlvrbl,I,parent deliverable not loaded
+128c2a81-f0e7-4b05-9dd8-9db1076cf470,801,477f4796-12a6-405a-8b59-602925de61a0,dlvrbl,I,parent deliverable not loaded
+758702c2-eb8c-4567-ab3c-e9bbd4cf9851,821,3e1ea8cb-e0dd-428b-8811-27984a167279,dlvrbl,I,parent deliverable not loaded
+c9c60983-24c8-4dd9-9088-18e11c3ef8a7,822,4dc018a6-3ae7-4e4b-8449-51f055c8431a,dlvrbl,I,parent deliverable not loaded
+0787d045-778e-42fe-a727-4a74f0d8fb40,850,38e90407-5681-4626-bbad-3bcef13cacf2,dlvrbl,I,parent deliverable not loaded
+246a8be5-b55b-45fe-924e-28c45b22213e,852,b0b9a470-54e3-42ce-8d2a-daebb2c30235,dlvrbl,I,parent deliverable not loaded
+1444713e-ad1a-4f54-bfd1-b3058daf3a5e,854,bba771dd-3bed-404e-846d-bf2c77cc88d2,dlvrbl,I,parent deliverable not loaded
+8a42dffe-36be-4831-a894-95eb20a9720b,922,a1ed01b7-e1fc-446f-9355-f705864b900d,dlvrbl,I,parent deliverable not loaded
+5c75e7fe-3085-469d-acdc-a232c886161f,923,a1ed01b7-e1fc-446f-9355-f705864b900d,dlvrbl,R,parent deliverable not loaded
+e71897a6-b02e-4c1e-aa34-65d232d2a480,924,1b0cb489-c6d8-4c22-b63b-1d98f26d5b0e,dlvrbl,I,parent deliverable not loaded
+d25f177b-810e-4d95-b69a-721098d99708,925,1b0cb489-c6d8-4c22-b63b-1d98f26d5b0e,dlvrbl,R,parent deliverable not loaded
+df9e3848-4da3-4fd8-9cb3-42519a3701b0,934,1b0cb489-c6d8-4c22-b63b-1d98f26d5b0e,dlvrbl,S,parent deliverable not loaded
+d82b77de-b0b0-4ab9-ab2d-939604bb6407,935,1b0cb489-c6d8-4c22-b63b-1d98f26d5b0e,dlvrbl,S,parent deliverable not loaded
+9dd8af40-a965-4583-8d63-46d1e14fc08f,1024,2551622c-81e8-4b08-8e7d-c909cc5fcb6f,dlvrbl,I,parent deliverable not loaded
+ce0b1fa7-1586-4703-ad23-1e6760f939fc,1030,e613bbe9-a06a-4e18-a0ef-83e1fd122138,dlvrbl,S,parent deliverable not loaded
+5ba70c3a-93a2-491b-825c-88fd303151b6,1096,1835f273-3041-4418-aafb-9405699fd929,dlvrbl,I,parent deliverable not loaded
+9a2d41dd-1340-4ce7-a854-b38b0fe3eb1c,1131,0aa68299-869b-4df3-8024-1ac0935a23bf,dlvrbl,I,author did not migrate (unresolved user_id)
+5a0336b6-24cf-4c59-95dd-602d5984ca7c,1134,72982479-1417-452b-ae05-4578c1f97c49,dlvrbl,I,author did not migrate (unresolved user_id)
+00bf56a7-602e-4a04-9464-e222ce0bf141,1141,a2e95da7-c429-4de0-a27b-f0e42815ef52,dlvrbl,I,author did not migrate (unresolved user_id)
+85c87386-3a2b-47b8-89a4-575e575515e4,1144,980a096a-b395-428d-875e-4b4efa5dfb81,dlvrbl,I,author did not migrate (unresolved user_id)
+7f2bff14-e14c-4a58-b550-a8dadb19c503,1155,b006b8e1-b16f-4960-bfba-dd9830fe0236,dlvrbl,I,parent deliverable not loaded
+b6e47df0-c68e-4346-9f0e-4bef54faa51b,1156,66e53aa8-885a-41bc-bad7-830bfc3a6ecd,dlvrbl,I,parent deliverable not loaded
+b1f6fd99-e27d-46c4-bfb7-84e20fe73b74,1182,72d2fdd1-c379-4bb1-b783-a8951e0e0dd5,dlvrbl,I,author did not migrate (unresolved user_id)
+ee461dac-9656-44f4-9332-a2441a99ac2e,1185,7e0e9b64-ceb2-412c-8d01-47c97e011f7a,dlvrbl,I,author did not migrate (unresolved user_id)
+d83779b6-2ce8-467d-b85a-f797b0339c2b,1189,ca88357b-1509-435b-a78d-4a3ea64a47b2,dlvrbl,I,author did not migrate (unresolved user_id)
+d18d3b42-0562-4b67-a829-554cb9278546,1198,06ea1c66-1605-4af3-9967-a39b06050f75,dlvrbl,I,author did not migrate (unresolved user_id)
+dd312f51-6239-49cc-ad66-ba47b924fd90,1199,a9ae5264-03f7-4975-a739-1b6c8a5d64ae,dlvrbl,I,author did not migrate (unresolved user_id)
+abeb671c-0bfa-4a40-bf3d-485f1cff0b3b,1212,36beb1f6-1f1d-4d36-8818-23077f81e99d,dlvrbl,I,author did not migrate (unresolved user_id)
+526eb972-d018-4d1e-a652-f7446758f81d,1216,19d8d088-726c-4876-80c5-f5e30abece50,dlvrbl,I,author did not migrate (unresolved user_id)
+a49a79a2-f2e4-437c-b14c-31f53461fea9,1217,3ac44ca7-43e2-48cd-9b7a-fb71351b9b3e,dlvrbl,I,author did not migrate (unresolved user_id)
+77f754d9-5b85-459c-8e5e-09a85e621f78,1218,b365942c-88a6-4cf2-9308-cb13fe71ff5a,dlvrbl,I,author did not migrate (unresolved user_id)
+9e0020fe-3707-4d09-b607-77649a374c47,1243,45c77fef-fddb-42a2-b79e-5211f430e48d,dlvrbl,I,author did not migrate (unresolved user_id)
+4e3646b5-469a-4036-91d9-daa8e9e2dcf4,1249,5c8284a5-353b-439b-bb45-a2bb1deda8a0,dlvrbl,I,author did not migrate (unresolved user_id)
+fb4a6dce-1996-4137-bd44-b5e93abf9ed7,1257,0338c390-2268-4046-b525-46185122665e,dlvrbl,I,author did not migrate (unresolved user_id)
+0e9abfb2-3882-4309-991e-dde0c263ea06,1258,d00b0079-2c75-4586-b5b6-9c6f88c5c4c2,dlvrbl,I,author did not migrate (unresolved user_id)
+043d45ed-d96e-4a8b-a5cf-8ae1b85dc882,1260,ece03439-70d0-49fd-8d70-7cdf74db5894,dlvrbl,I,author did not migrate (unresolved user_id)
+9e89a758-c079-43a8-baec-14c935ddc86e,1263,7f2ff9b9-3ccb-4dda-9bb7-6f488490a9c5,dlvrbl,I,parent deliverable not loaded
+30371bc3-5deb-4e62-b1de-c7b98eb0eb70,1274,d4202cc9-3284-4b06-bd82-5b5d2e8f855f,dlvrbl,I,author did not migrate (unresolved user_id)
+d05e3a0d-d08c-47df-8cd7-2e591a3c1a90,1275,42505ce4-9133-4681-bf7a-3dde9c6b7623,dlvrbl,I,author did not migrate (unresolved user_id)
+b7d3b997-5175-4f41-863f-42e2314844ab,1287,b53d6e78-4dd6-4662-a781-279471ccbcfe,dlvrbl,I,author did not migrate (unresolved user_id)
+06373b6a-48e4-47bd-9b1f-7c9d981f000c,1288,4b1268b9-81ff-43e8-b6dc-2c881daa13db,dlvrbl,I,author did not migrate (unresolved user_id)
+e0556b41-01da-4de8-8285-d3ab3d19866f,1289,856fd183-945b-4f8a-adfd-1e69955a549f,dlvrbl,I,author did not migrate (unresolved user_id)
+0ccb90ce-10c3-49e6-8e8e-ddb1740819bd,1300,503c945d-a56c-445c-8e91-d6cf552675fd,dlvrbl,I,author did not migrate (unresolved user_id)
+ac35755d-9f2d-4c0f-9017-7c1d20899571,1305,4a9346cd-39be-4164-af78-86f2669e32fb,dlvrbl,I,parent deliverable not loaded
+595b0a1b-5144-4738-8602-59befcbd706a,1324,8eda7442-1048-45c0-a72e-b8fca66c1f74,dlvrbl,I,author did not migrate (unresolved user_id)
+e1f18e94-3ebd-45aa-9383-5955c8a5e2a2,1325,853af1b6-7877-4c06-b6a0-e9d797d4c5d5,dlvrbl,I,author did not migrate (unresolved user_id)
+1c8dbf0f-8abf-4d18-bc4f-360d5e4e061d,1332,9a70120f-cef6-4bd4-b089-826c99d2f041,dlvrbl,I,author did not migrate (unresolved user_id)
+881ff8a4-a54c-4ade-ab76-17adaedef08a,1338,ba7f37f8-cd87-447e-a09f-a3eaba986d7d,dlvrbl,I,author did not migrate (unresolved user_id)
+18fc0692-2381-4ccb-ac54-9f57100d9f7e,1339,7c578372-27f8-4692-967b-8d9febfbb967,dlvrbl,I,author did not migrate (unresolved user_id)
+c5eb5879-03f8-4ab1-929e-37300b3be5dc,1341,a99f5fd7-be34-4a10-8ce0-e5eafa8427c1,dlvrbl,I,author did not migrate (unresolved user_id)
+f80b7856-69f9-419d-8675-61e2dddad11b,1349,f5fc94dd-d5c6-4802-a2d3-3ac9d924545a,dlvrbl,I,author did not migrate (unresolved user_id)
+59c2f2ad-bb9b-4470-9d20-e40b8d425bd4,1352,039fe1f6-f31a-4dce-bc98-bafd611bc1bb,dlvrbl,I,author did not migrate (unresolved user_id)
+c39f1113-28e8-4f31-b6de-628257f46db2,1356,b7f81ebb-8a6d-4fac-83e5-b0e1106ec4fc,dlvrbl,I,author did not migrate (unresolved user_id)
+90505df6-9c86-4438-8996-d3760363c498,1366,84ed3fc5-a5bf-4ad3-b728-b9c3e0bac5a6,dlvrbl,I,author did not migrate (unresolved user_id)
+062aca84-3194-4f37-9a66-2da3e7d6a336,1380,9d3e3486-6014-4228-897e-eb42cb72badd,dlvrbl,I,author did not migrate (unresolved user_id)
+78462e96-3b90-4f3b-b195-90c622ae4c84,1381,9a161d19-0e7b-475b-bd21-0b15ef0afb1f,dlvrbl,R,parent deliverable not loaded
+505abbec-ee30-4056-b04a-35673107ec10,1382,346230c2-648c-4fbd-8d8e-7959be1ad3ac,dlvrbl,I,author did not migrate (unresolved user_id)
+7fbd38a3-9fe5-4ef9-a73e-b218f833a1d9,1414,11852d4c-77d8-422a-ad80-2e5a705aa6f6,dlvrbl,I,author did not migrate (unresolved user_id)
+ac9e5162-4a0d-4d03-b871-b7c2afad728d,1424,fca9b3d5-7e08-40ea-854b-2a2b1f4252ad,dlvrbl,I,author did not migrate (unresolved user_id)
+547a5bfd-b781-4dce-999d-f700ce4e887e,1439,7f2ff9b9-3ccb-4dda-9bb7-6f488490a9c5,dlvrbl,I,parent deliverable not loaded
+8fbb0ab6-1a25-46d5-a182-0302e16fa1cd,1440,69f46064-4b4a-47be-bed3-3e93b73d12ce,dlvrbl,I,author did not migrate (unresolved user_id)
+2704fb9a-cd18-459b-a482-57ee9e43985b,1446,a98650fb-cf60-4c4b-a98f-e202709b3fb1,dlvrbl,I,author did not migrate (unresolved user_id)
+3207e8ae-04e5-446a-b0a5-1894afa48a51,1447,d914823b-b8f1-423c-a740-8705dfedfbe2,dlvrbl,I,author did not migrate (unresolved user_id)
+c7e90abe-ba85-4418-92e9-41746866af1a,1457,575ab303-b4fc-43f3-b347-e14da2c2562e,dlvrbl,I,author did not migrate (unresolved user_id)
+726dc6a7-6786-4162-a7fc-138fb74d87ae,1469,1fea95f5-fddb-4542-8c8c-2aa58c371402,dlvrbl,I,author did not migrate (unresolved user_id)
+e659c492-337d-4c21-8bb1-98b67e2b8784,1470,e39c1aeb-2291-4543-9bd5-8837961fbc6e,dlvrbl,I,author did not migrate (unresolved user_id)
+487b02e3-0ba6-44a5-8adc-49825a57d07f,1471,7f2ff9b9-3ccb-4dda-9bb7-6f488490a9c5,dlvrbl,I,parent deliverable not loaded
+c8be48b9-1629-43cb-84f2-2bb85b1a4171,1472,fef2a6a4-9056-46ff-921b-4350d379cfbc,dlvrbl,I,parent deliverable not loaded
+5993527e-a59a-479a-a3f1-84c9d7e90362,1473,426a77d4-9514-4e53-abcd-574547379cff,dlvrbl,I,author did not migrate (unresolved user_id)
+89807c36-5a0c-49ef-a74f-b4f4b83d26dd,1474,2dadf2a0-df2a-4b65-8d6c-47f434b150c1,dlvrbl,I,author did not migrate (unresolved user_id)
+ad983426-308b-4e4c-8d90-a79d3ef49801,1475,dbbebcc6-cd42-4a98-940c-adccd873cf98,dlvrbl,I,author did not migrate (unresolved user_id)
+0ba552d2-8749-4432-804c-71725e179a5a,1482,ab30d011-4173-4c05-80a3-a2b116220171,dlvrbl,I,author did not migrate (unresolved user_id)
+2a68a456-dc96-48f3-991a-1436bafb95cb,1483,ae5b6bd2-6ecc-4170-a347-717dfee2d43c,dlvrbl,S,parent deliverable not loaded
+f33cc653-ce2d-4189-b9f1-3d1e3889c821,1485,ae5b6bd2-6ecc-4170-a347-717dfee2d43c,dlvrbl,S,parent deliverable not loaded
+379fa00b-972e-4574-8f4c-352588f459fc,1488,b835825c-7d0d-4e2f-a8e4-29de33cc3b8a,dlvrbl,I,author did not migrate (unresolved user_id)
+88028a71-d72a-4c83-b6e0-53f72f884065,1489,74a58eb1-fd75-47a7-9c0e-d5f516bc9d95,dlvrbl,I,author did not migrate (unresolved user_id)
+75221257-d27d-41ec-a54e-be78c60682d7,1497,4290ec16-1eb9-435b-b2d8-15b1e574edb2,dlvrbl,I,author did not migrate (unresolved user_id)
+6b0d1d8b-f7b8-493b-a168-319e01b893d9,1498,6ce78c41-1884-415b-b3d6-72381f5c7a58,dlvrbl,I,author did not migrate (unresolved user_id)
+b90698db-3c32-40eb-858d-b45a49ccfab5,1501,25e11782-7ed4-4047-9ec2-9bb33e92d099,dlvrbl,I,author did not migrate (unresolved user_id)
+300cc19c-9ad4-43fc-a1e7-a396f657d2d1,1502,b472c77b-4e64-44ec-8502-628b42f8895b,dlvrbl,I,author did not migrate (unresolved user_id)
+36271145-493c-4919-ae3f-d1ac47ad83d0,1507,8a85abcd-3e39-4d13-a9f6-28204417913d,dlvrbl,I,author did not migrate (unresolved user_id)
+c9a894a5-689a-46d2-bc53-208bee67fa89,1508,cab73a1d-4de6-4fbc-ae19-d1f90d9bcdf0,dlvrbl,I,author did not migrate (unresolved user_id)
+ed52bb5d-90d7-44ef-ac38-138664a094c2,1509,4b411451-513b-4392-a9b5-985757c0a49c,dlvrbl,I,author did not migrate (unresolved user_id)
+521043ce-e0c7-41ed-a2be-8d8d31ab8226,1510,5092499b-e801-4beb-ab98-ffec8681d758,dlvrbl,I,author did not migrate (unresolved user_id)
+1345a8ed-7a87-4310-a5a8-9df67bf789c9,1511,36b4a10c-3d3e-4ae6-b1b9-4e95c569a145,dlvrbl,I,author did not migrate (unresolved user_id)
+ee3e609b-0322-4bf9-975a-e79eaecd34f5,1521,1373b3b0-2fac-43a9-a69c-be5fec51b99d,dlvrbl,I,author did not migrate (unresolved user_id)
+513b9c5a-fdf3-4d4c-9f8b-bd7da1132a54,1522,8386dded-cbf4-495a-b1b8-20818b3f16af,dlvrbl,I,author did not migrate (unresolved user_id)
+4f4a460a-0353-4a89-b59c-5236caa47b8b,1535,fdd71804-0782-44fc-ad4a-010bacaa68c8,dlvrbl,I,author did not migrate (unresolved user_id)
+eea7b1fb-7255-4682-99ed-a14ba81c9660,1536,453501b1-510c-4e84-a9ff-8bcdf3755f2f,dlvrbl,I,author did not migrate (unresolved user_id)
+672ff834-1e6c-4098-a71b-84a0c61fea53,1537,0f9986cf-c79f-4504-9ff1-c0db3d74c7e2,dlvrbl,I,author did not migrate (unresolved user_id)
+010cfb78-4ede-4406-ac40-1801137340c5,1538,b1c08b03-1eb5-4d72-95b7-5269d54e0b8b,dlvrbl,I,author did not migrate (unresolved user_id)
+cf5dd6c1-48d6-48e0-8e74-78db7c03656d,1539,cf34a3a6-3b03-4f54-81c0-0d46c4653285,dlvrbl,I,author did not migrate (unresolved user_id)
+7b560353-e586-4daf-b24d-09f810095823,1540,2910f7a4-eb40-4a09-aea7-36db6edb40d3,dlvrbl,I,author did not migrate (unresolved user_id)
+c37bb3b8-4b6e-41c6-8aa6-1ea87cf71cac,1541,685db3ab-4d02-42f3-b11b-9196e05be98c,dlvrbl,I,author did not migrate (unresolved user_id)
+7c515142-c5b0-4dcb-88dc-63d3b32006be,1542,9b17d026-c427-4256-b9f2-6b4529891595,dlvrbl,I,author did not migrate (unresolved user_id)
+c6689d88-c08f-48de-8e6e-1e4b7d9b9be8,1543,36e94562-8078-4816-94e7-93eca777d88a,dlvrbl,I,author did not migrate (unresolved user_id)
+e2d4df74-8952-4b8a-b964-098173eb3c72,1544,8d5b4a9d-7453-41dc-a201-3200080eab19,dlvrbl,I,author did not migrate (unresolved user_id)
+9dec9fb3-10c8-4cc7-b612-d3c3eebf3c04,1555,7f2ff9b9-3ccb-4dda-9bb7-6f488490a9c5,dlvrbl,I,parent deliverable not loaded
+7c03e329-d274-4d1a-a14b-836e93b3bf7f,1573,77fdc71b-4dca-427e-9c50-c2400f5417f9,dlvrbl,I,author did not migrate (unresolved user_id)
+3d570338-727e-426e-94f2-b8e6dfbeda76,1574,29d606a2-05c3-402f-9b69-85846681d935,dlvrbl,I,author did not migrate (unresolved user_id)
+3a60040d-4a09-49e6-b96d-653e0b2f8e26,1575,12db150b-ed1b-47eb-9305-e627d5ef795c,dlvrbl,I,author did not migrate (unresolved user_id)
+ef65afa2-de57-4f4a-aeb2-72c41c1ed54b,1576,d4f0dc02-5ced-447f-8931-ccb0b8e1604a,dlvrbl,I,author did not migrate (unresolved user_id)
+362b3c04-b1d6-432e-8a66-ca8df7a73a1b,1595,fef2a6a4-9056-46ff-921b-4350d379cfbc,dlvrbl,I,parent deliverable not loaded
+979dd860-ef4a-4f19-a6ca-bfe84ea200f7,1609,e522301d-1e62-4329-8c10-4e1642e75733,dlvrbl,I,author did not migrate (unresolved user_id)
+32e2b7c0-a6fa-4ae3-b023-bb1a8e49c8a1,1610,d0b21ea2-ecbb-486a-b98f-1d8b57f2e4c1,dlvrbl,I,author did not migrate (unresolved user_id)
+6735df0a-b309-45c7-8a0f-d06192257bf8,1611,d4da1b50-0740-4c96-81dd-de77164d98d8,dlvrbl,I,author did not migrate (unresolved user_id)
+ff119b89-baf5-4b17-a3bb-572c42acc3a0,1612,48e49cc6-a64f-46f9-b7a0-8e1001cc386f,dlvrbl,I,author did not migrate (unresolved user_id)
+97b4d134-a014-4f15-af2c-ec835f46147e,1627,148876dc-a2f3-4dfd-809f-75d29f0cb248,dlvrbl,I,author did not migrate (unresolved user_id)
+2a1db250-e469-4fcf-97ae-759b2fdcfd80,1633,884ab8d8-b3ba-4cf8-9fa0-05644f004dc1,dlvrbl,I,author did not migrate (unresolved user_id)
+df0d55bc-bcac-4ab7-961f-595e1b1ea145,1634,ae702819-9193-4a18-a7d2-80961407b849,dlvrbl,I,author did not migrate (unresolved user_id)
+8aff15fc-2c2e-4445-a3c1-edb7901f6433,1657,14b12aac-36f2-42d7-af71-762ca6d9abc8,dlvrbl,I,author did not migrate (unresolved user_id)
+49019e55-daa4-4564-bfb4-0832e9999dfd,1661,7048b9c7-8448-4dde-a5a7-ca8d805de441,dlvrbl,I,author did not migrate (unresolved user_id)
+66850c91-7c00-4d20-8840-6ecf06ae8e27,1662,ed158f5c-697d-433d-90e3-f390176a2cd8,dlvrbl,I,author did not migrate (unresolved user_id)
+42d123e2-c6c7-42a4-b0f3-b80edd3fd926,1663,bbdb9f09-1db4-492b-959c-e678fd626180,dlvrbl,I,author did not migrate (unresolved user_id)
+768e8ed6-7529-4c2d-88c2-6fe3ba2f5fed,1669,2afdfc80-252d-4a13-9638-59f8c0fc85df,dlvrbl,I,author did not migrate (unresolved user_id)
+42912fd1-4aac-4b63-92f7-13b8c7593338,1676,0ec2a3a8-965c-4ec5-843d-0eef5b8093de,dlvrbl,I,parent deliverable not loaded
+66a03908-be99-4e91-8fdd-b78c039c516f,1677,ad951ca1-345b-4a68-9be3-08fb25cb3580,dlvrbl,I,author did not migrate (unresolved user_id)
+24aa975c-5aaa-4be5-9691-4ce106871cd8,1682,15549e04-c67e-40d9-9802-d5f37885d91b,dlvrbl,I,author did not migrate (unresolved user_id)
+0bd32c9b-bcd8-46b9-bd65-cf0dcf4113e4,1691,e2cdee96-434e-4eec-9365-4969a5a62edd,dlvrbl,I,author did not migrate (unresolved user_id)
+cf79e116-0a23-4b43-9012-67b0bef63e0d,1692,0ad40d70-b45d-4e23-b37f-c0cfa28c4099,dlvrbl,I,author did not migrate (unresolved user_id)
+4a5d6ab7-f4c9-4cbe-95e1-57822715ab55,1694,ae5b6bd2-6ecc-4170-a347-717dfee2d43c,dlvrbl,I,parent deliverable not loaded; author did not migrate (unresolved user_id)
+5036ebcb-2243-4202-964e-8779ecaf2e10,1719,56a05924-b6a8-4833-86f8-4436f4c914f3,dlvrbl,I,author did not migrate (unresolved user_id)
+82e384e9-2657-4dd9-8877-14296da8bde8,1720,3ad41857-4e12-4ae6-8df3-862209a48291,dlvrbl,I,author did not migrate (unresolved user_id)
+68a38f8b-32a8-4dcf-bfa9-184f8472f6df,1730,e53fc970-713c-408d-bd58-cb9e89a4b2b8,dlvrbl,I,author did not migrate (unresolved user_id)
+2ac907cf-4e84-4f19-8de0-2a7c6e84b760,1731,f94f5fec-f3ea-4867-a483-911b448ac6b4,dlvrbl,I,author did not migrate (unresolved user_id)
+18c8f0bf-baca-4231-8a92-45659c9d4637,1732,41b86203-bf34-4a08-8d13-d6c3c6989010,dlvrbl,I,author did not migrate (unresolved user_id)
+0868aafb-7c01-4b17-ba30-98cd4b38c9b4,1739,0b1eec3e-e916-4e99-aa17-a0e26bc6a063,dlvrbl,I,author did not migrate (unresolved user_id)
+8627314a-8169-46f1-8c8b-15fda9c35374,1742,ed2f3d37-5fbb-4872-aa55-da63244f88ac,dlvrbl,I,author did not migrate (unresolved user_id)
+e275210e-1d1b-4f4d-b362-6614e2f50be7,1743,9273106a-5906-4c40-b35a-80af8d818830,dlvrbl,I,author did not migrate (unresolved user_id)
+58b83d83-21db-4b7a-b2c3-d93d90e6ed75,1746,b5d41bc0-650a-4c3e-82ff-03cd781489d6,dlvrbl,I,parent deliverable not loaded
+a5afa6be-f3c2-498f-8901-4632c7da2c20,1747,b5d41bc0-650a-4c3e-82ff-03cd781489d6,dlvrbl,I,parent deliverable not loaded
+6d3c6051-f0a6-487a-a44b-efa32afdff79,1749,8273cd93-0d78-4fc9-938a-4f0c2e6d82f4,dlvrbl,I,author did not migrate (unresolved user_id)
+26595149-df20-4922-af8a-b81bc4c0847a,1750,22e0efc5-dbf4-4794-a9d5-b225987eb920,dlvrbl,I,author did not migrate (unresolved user_id)
+67e3e980-6204-4767-bdbc-4ccd656514bb,1754,1af51ef5-1752-4a75-9208-7b7c1ca8e1be,dlvrbl,I,author did not migrate (unresolved user_id)
+7cd8a171-db6f-4ae1-8ace-7d9d576de945,1769,5a163fdd-4927-4064-8b51-75c5b3306a25,dlvrbl,I,author did not migrate (unresolved user_id)
+a737e8ca-0b4a-47e4-849d-01b008efc543,1770,6cab6aeb-186a-4711-be50-ef91f1f4e18b,dlvrbl,I,author did not migrate (unresolved user_id)
+b8ff0678-616a-4af1-a2aa-1034d0e3ee00,1778,1d5794c7-5967-44a0-9685-b16f80309949,dlvrbl,I,author did not migrate (unresolved user_id)
+e789deee-bdcb-44f4-bed1-36527c0323bf,1782,cd9686f0-4b64-4ff5-a7ac-f38bad3dc130,dlvrbl,I,author did not migrate (unresolved user_id)
+651243af-1fd8-49ec-afd6-f02b73147fc9,1784,6f4ec556-052c-417d-88f4-4394db4a2342,dlvrbl,I,author did not migrate (unresolved user_id)
+7ba996e0-0e8c-4656-8664-0ef6f43e61c8,1785,b77ee144-c344-4cbf-a8c3-f3f2c2f0ea3e,dlvrbl,I,author did not migrate (unresolved user_id)
+dd829543-73d6-4d8c-9284-dfef3124046c,1786,751e8575-95da-4185-9570-4033ecf7703e,dlvrbl,I,author did not migrate (unresolved user_id)
+abbf4598-e4a7-41b3-9d81-4e3698468889,1787,56e01ee2-506f-4d7d-9fac-c4730543c564,dlvrbl,I,author did not migrate (unresolved user_id)
+6d77f4e6-090e-49e9-b56a-1036fc325153,1788,8f894d5f-4bda-4148-b52d-cec163076324,dlvrbl,I,author did not migrate (unresolved user_id)
+0bad31d5-daec-4cb7-81f5-9f5eec484cd5,1791,c762507a-e397-4b4c-b936-b28eea2eaaf5,dlvrbl,I,author did not migrate (unresolved user_id)
+7fde1ac1-26df-4d6d-8099-8507b0ace49b,1792,557239ac-ce8c-4e3b-b4fe-e9a9e85f858d,dlvrbl,I,author did not migrate (unresolved user_id)
+46956a47-354b-4427-9b88-701a2e6cae4c,1805,e8aa79c6-4517-4312-a802-8172d0c907d6,dlvrbl,I,author did not migrate (unresolved user_id)
+5a972d96-31dd-4765-99ff-beabfbee66c1,1808,9598f9eb-1162-4bf1-b6e9-2095360e6bea,dlvrbl,I,author did not migrate (unresolved user_id)
+82c95d93-441e-4013-a624-78477d24003a,1812,86134ba2-1ab8-4971-bc49-2a7c6623b9ab,dlvrbl,I,author did not migrate (unresolved user_id)
+103bb0b9-1316-484f-8ff8-2b55f9d07187,1836,f258d22c-0af9-4873-8de4-8b67662acbe9,dlvrbl,I,author did not migrate (unresolved user_id)
+8ec1a32e-9363-4d40-9d88-3532d76b5cfa,1837,5acea899-8b08-42f4-acf3-b34c25344c42,dlvrbl,I,author did not migrate (unresolved user_id)
+fc71cd3f-3428-41b9-bc6a-3ab3bd1929c8,1853,20aaae03-3603-425c-b7b3-294d7fdec2f4,dlvrbl,I,author did not migrate (unresolved user_id)
+39d785d2-7906-4f69-9777-5bb6f130328f,1863,38b2e081-3b8d-4129-b468-8859edcce276,dlvrbl,I,author did not migrate (unresolved user_id)
+78425818-691f-476e-ab2c-e9456ce2b49f,1864,5f2ab860-fb32-4105-9520-573e8e2fb640,dlvrbl,I,author did not migrate (unresolved user_id)
+83251b34-696e-4061-9fcb-71f8c5d40285,1865,21d600d0-b753-4347-aa88-94b29636d4c3,dlvrbl,I,author did not migrate (unresolved user_id)
+ce77f4ed-9d06-4f25-be9b-e15ec8b3cd86,1866,92b2c94d-9ae5-42a4-aed8-762e5aa93889,dlvrbl,I,author did not migrate (unresolved user_id)
+8c592fd7-a71a-488d-ac92-7305135fb35f,1868,7b7906ab-1f9f-4da8-bad2-1ecd65d21725,dlvrbl,I,author did not migrate (unresolved user_id)
+2b2cff64-9d9b-46f0-8135-bd2654774239,1873,c769f9c3-03e2-4ade-a109-5d7885a74d0b,dlvrbl,I,author did not migrate (unresolved user_id)
+e8215fdb-04e1-48de-a61c-08059355b39f,1874,c769f9c3-03e2-4ade-a109-5d7885a74d0b,dlvrbl,I,author did not migrate (unresolved user_id)
+c9a43a1b-2950-4035-aad4-eb6b511d707d,1875,bf6cd790-d571-47ef-b056-f009295ea8f7,dlvrbl,C,parent deliverable not loaded
+f7244f9d-5c0a-4963-a2cc-2e96464a6e90,1878,c22b723f-c6f1-411e-9fad-f9953e7dcbf5,dlvrbl,I,parent deliverable not loaded
+113b3b04-4b2b-4071-b878-77d3804edbb3,1879,c22b723f-c6f1-411e-9fad-f9953e7dcbf5,dlvrbl,A,parent deliverable not loaded
+dce1ced8-02b6-4cc5-9461-1c7b186dab4a,1912,4e26419a-ce52-4193-ab49-5e7147b31daf,dlvrbl,I,author did not migrate (unresolved user_id)
+b795f979-c60a-423d-bd8f-3bbf2b4fa6e9,1913,4e26419a-ce52-4193-ab49-5e7147b31daf,dlvrbl,I,author did not migrate (unresolved user_id)
+1b3c52a7-a887-481a-b4fa-2d2583502a73,1940,c0ef8e56-14dc-4d82-986f-1e14577528a2,dlvrbl,I,author did not migrate (unresolved user_id)
+fcd856c5-6633-4642-b8ef-059fd8fa719b,1941,57ebd11c-aabc-49c6-a5f5-0ebbc09b89b6,dlvrbl,I,author did not migrate (unresolved user_id)
+41a7a1d0-f1ac-4fe6-a45d-fc0ef3b7019b,1942,57ebd11c-aabc-49c6-a5f5-0ebbc09b89b6,dlvrbl,I,author did not migrate (unresolved user_id)
+f956fe37-49c1-4ccb-b36c-fd5652db821d,1943,1db81074-afa7-4743-b2c0-10766d6bd32a,dlvrbl,I,author did not migrate (unresolved user_id)
+a390be00-b0f1-499b-ba77-b0762b2485f3,1944,23c39486-8b36-45bf-8e28-e69f0d311a96,dlvrbl,I,author did not migrate (unresolved user_id)
+409265a7-6f64-4fd5-939c-2ecd774d0508,1945,23c39486-8b36-45bf-8e28-e69f0d311a96,dlvrbl,I,author did not migrate (unresolved user_id)
+e82ecc53-9062-4589-81e6-fd6b6eef185f,1949,0980fd66-29f4-48a9-babd-9db0d43b01ab,dlvrbl,I,author did not migrate (unresolved user_id)
+d9cbd0ac-7fd8-458e-8b42-ffa174b0b827,1950,ca7a0d32-75fa-47d7-bb0a-8fd70e328a61,dlvrbl,I,author did not migrate (unresolved user_id)
+21219f37-2ad4-487f-b554-40f31940409d,1951,e86f9757-364e-4197-864f-3db6298fc74a,dlvrbl,I,author did not migrate (unresolved user_id)
+00e9e550-556e-4886-8f49-53a69344a077,1952,02861225-f3eb-4e5f-8250-6bb96da95903,dlvrbl,I,author did not migrate (unresolved user_id)
+255eba1b-53df-42ab-bed3-6bc184002a43,1953,4d1e72f2-54c2-4ab1-aa74-5209c535d255,dlvrbl,I,author did not migrate (unresolved user_id)
+d79232c2-8d3d-4825-b221-d38c4be80bf7,1954,5a7925ba-c470-4e5d-bf55-12518d388ab9,dlvrbl,I,author did not migrate (unresolved user_id)
+dd6c4c71-ae11-4f26-80f1-2adbe7fabe8d,1955,910f6053-d1eb-40e8-9d60-9adbefbeb30f,dlvrbl,I,author did not migrate (unresolved user_id)
+f5d0cf4d-7958-4baa-b084-e404132859c4,1959,5f3aaf3a-3a21-4547-b653-dd26543a2231,dlvrbl,I,author did not migrate (unresolved user_id)
+e56ab1c6-d346-41d7-8ab2-69c4fc61f992,1960,5f3aaf3a-3a21-4547-b653-dd26543a2231,dlvrbl,I,author did not migrate (unresolved user_id)
+2da51bf6-9ba4-4b7a-9014-320945162932,1961,3be0c057-7096-4ffb-9777-baad326d92d4,dlvrbl,I,author did not migrate (unresolved user_id)
+19ad758f-2058-43a8-aaf4-66345072364a,1962,28781a13-c5d8-4431-85c3-ef22e523e2e2,dlvrbl,I,author did not migrate (unresolved user_id)
+86611a15-b9fe-411c-a073-958d6ddb333f,1967,f38e7c35-30a8-431a-90e5-f34d8b5dbbfb,dlvrbl,I,author did not migrate (unresolved user_id)
+efaa3af8-8312-4ef9-8101-ac47ba1b8d0c,1968,f38e7c35-30a8-431a-90e5-f34d8b5dbbfb,dlvrbl,I,author did not migrate (unresolved user_id)
+30dbcc11-9293-440b-a7df-982b8116133f,1969,8ff07a6c-54c3-48cf-8f0c-fe46115c981c,dlvrbl,I,author did not migrate (unresolved user_id)
+8a165bd7-6102-42c5-b798-a60a9b1cab3e,1970,77570697-e167-4730-892a-7a1ca769e40b,dlvrbl,I,author did not migrate (unresolved user_id)
+ea3830e2-f283-4374-add0-d52f4fe0951f,2019,c22b723f-c6f1-411e-9fad-f9953e7dcbf5,dlvrbl,A,parent deliverable not loaded
+9e583247-2643-46f0-85ff-93b99d0b6c7b,2028,b0a16e0b-de8d-498a-8969-3b915d27a105,dlvrbl,I,author did not migrate (unresolved user_id)
+50f238f6-3e94-47d5-a7b9-0e341ddfaf9e,2029,55a829f4-6a2a-4b43-8e78-cf143c18e51e,dlvrbl,I,author did not migrate (unresolved user_id)
+9d56d713-5be6-481e-a7dd-b3882c70e98e,2030,55a829f4-6a2a-4b43-8e78-cf143c18e51e,dlvrbl,I,author did not migrate (unresolved user_id)
+2414e32c-25c4-4cd6-ac76-16e9410da7fd,2031,ae2c8240-dc6c-4b16-8f99-8b269f557534,dlvrbl,I,author did not migrate (unresolved user_id)
+4866510b-1acd-46a7-bc49-d3cf5003d0b0,2046,f7f2b459-03fb-41b1-89fe-48650afb9b7f,dlvrbl,I,author did not migrate (unresolved user_id)
+f7c2db5d-83de-4d5b-af8b-2011e8309752,2047,a031a6cb-5fab-4c5a-ac73-0106359d5c5f,dlvrbl,I,author did not migrate (unresolved user_id)
+21b403f6-6233-430a-922e-f844be9151b5,2048,3cb05f8b-f349-4054-9b18-4aff2adef07f,dlvrbl,I,author did not migrate (unresolved user_id)
+8478a60c-15c6-4252-9b01-1c554435c468,2059,e1f5dc0b-acff-42df-8888-63066fdf8ad2,dlvrbl,I,author did not migrate (unresolved user_id)
+3a6181f7-9969-4e77-ad91-c8ee4ab2f3cc,2064,37d7bc9c-d4a6-4b94-8413-525495883efd,dlvrbl,I,author did not migrate (unresolved user_id)
+425c1a81-4f6d-473e-aea8-b6125a2d8c55,2068,aa41105b-10c1-4706-98f7-3e1e58143cba,dlvrbl,I,author did not migrate (unresolved user_id)
+3158f886-3c70-4c2a-853e-9b1a5460a13c,2081,b9b6566d-5683-45ec-9b12-5d321ef39c35,dlvrbl,I,author did not migrate (unresolved user_id)
+1d9cc136-8de6-4d65-abea-31a535e1f6b2,2082,307da853-4235-445b-acaf-ccede450bad9,dlvrbl,I,author did not migrate (unresolved user_id)
+a1eae41e-8b70-47f5-8e67-26cce3d4ad60,2105,caab68ca-5215-4885-892e-9f6e038bbfcc,dlvrbl,I,author did not migrate (unresolved user_id)
+d00c9ebb-d8b7-4c81-8e54-7cabf0ab9165,2106,031165ab-8a5a-4d48-b0e8-6a631d3bbf7d,dlvrbl,I,author did not migrate (unresolved user_id)
+f25867ef-7ff8-4358-910b-133d47052991,2114,e0582e1d-6435-4ee7-8b8a-5492130a37d9,dlvrbl,I,author did not migrate (unresolved user_id)
+33f07c75-aca9-4bbc-8507-1ebbab2b080c,2116,3849b84c-d36c-4e70-ac3f-bd95fa64c35a,dlvrbl,A,parent deliverable not loaded
+4b504be9-c8ec-4451-a307-bbe1db386a1c,2121,1ba89779-b0fb-44ff-84b5-9aa5e20f6f84,dlvrbl,I,author did not migrate (unresolved user_id)
+e8baa85b-df23-44b6-9515-2a027edc6eda,2125,2401d7db-5a85-4eb4-b6e5-e4b001ed9b8d,dlvrbl,I,author did not migrate (unresolved user_id)
+db4ff238-3b62-4126-a446-e5b1fea080cb,2142,e5360c6a-230c-4390-b766-4c17d4a928e9,dlvrbl,I,author did not migrate (unresolved user_id)
+feae3357-d0ab-45f8-bd31-0961023f7471,2146,3b1ac0c1-396b-4c10-86bb-474501dc98fc,dlvrbl,I,author did not migrate (unresolved user_id)
+f469d7e9-bbd4-4b07-a7b1-3391baf98cd3,2157,b8405dfd-3dab-49ff-8ea8-7d1bf1627b3f,dlvrbl,I,author did not migrate (unresolved user_id)
+3dbe0358-1f89-42e2-8a81-75c11938da6c,2196,0fc7ed1e-b21e-4027-924d-f7d864a8de4b,dlvrbl,I,author did not migrate (unresolved user_id)
+56a7eddd-1f6b-494f-9d4d-2d429a472aca,2198,000cbfb8-4a96-4ccd-b0f2-276f0cd05483,dlvrbl,I,author did not migrate (unresolved user_id)
+35f19748-1557-40fb-8e4b-22ea81539abd,2201,7289fe31-9b6f-450c-8747-09589827a96d,dlvrbl,I,author did not migrate (unresolved user_id)
+30e98369-f46b-46d1-8dd7-1158c186639c,2202,7a534495-f93c-4903-b9e1-338e3f8b5698,dlvrbl,I,author did not migrate (unresolved user_id)
+34bd8050-04ad-4c8e-9d52-e2c3c066c50f,2244,ac4a29ea-2726-4162-835f-cfe2a34760c8,dlvrbl,I,author did not migrate (unresolved user_id)
+230dddf3-dda8-4ba4-9c80-e9c54b50253c,2270,10e82644-9006-417c-bf16-213a00d41b9e,dlvrbl,I,author did not migrate (unresolved user_id)
+09b5e511-b051-4b1e-88cf-8517f5aba0ed,2271,2256a0d8-f4fd-4895-8d85-a8f82d8f148e,dlvrbl,I,author did not migrate (unresolved user_id)
+2916a93a-6a2a-4c55-aaef-c75b11ae1817,2272,71b61fe3-dbdc-464a-b20b-a7877d24c522,dlvrbl,I,author did not migrate (unresolved user_id)
+a8a32f25-94e7-4376-a479-874e0c184759,2273,6ed0da27-7300-4eb2-8f17-e82e40809b11,dlvrbl,I,author did not migrate (unresolved user_id)
+18cc7289-d5f8-4fef-bae9-d8ded5005faf,2286,a21a7ad2-f28e-4525-94df-b3d7f14838ba,dlvrbl,I,author did not migrate (unresolved user_id)
+fea408e6-d5d9-47d3-84cf-919990145d1f,2287,dff5c98b-dbf5-4fd1-8bfd-4b38fcc42338,dlvrbl,I,author did not migrate (unresolved user_id)
+e39cbe51-dc9d-4809-8f9e-8990c78c193e,2290,bf3cfd7f-a9d7-47e8-8692-3e7111998b3d,dlvrbl,I,author did not migrate (unresolved user_id)
+183bae9c-4226-453d-a46f-75e0f8bc2aff,2298,54d3054f-1a45-4c95-bfe8-bf3aa93745e3,dlvrbl,I,author did not migrate (unresolved user_id)
+91709bef-7951-470a-9ef4-3ee277363fda,2299,6c4424da-f42d-4863-964d-7c5538638e2b,dlvrbl,I,author did not migrate (unresolved user_id)
+3b6d409c-4e5b-424e-b7dd-1be0a295beaf,2320,537db03a-4c4e-4870-8714-34b87181b624,dlvrbl,I,author did not migrate (unresolved user_id)
+0acc850b-d66e-4168-8500-c761efd2aa95,2322,75605b9e-c62c-4ec5-a37b-b5d41e8b8560,dlvrbl,I,author did not migrate (unresolved user_id)
+69b536a7-7ce0-4057-b254-96f2444aecfe,2323,2f112efb-6ba9-43a1-84b7-cb64ea4991e6,dlvrbl,I,author did not migrate (unresolved user_id)
+ba76ac91-76fd-4fa5-bacf-2a957d24d93b,2324,2e05b329-323e-419d-b6df-6bc7b09a305b,dlvrbl,I,author did not migrate (unresolved user_id)
+e4e49f20-4f55-4da0-bdf5-48e3ba3b0c8a,2330,d920f569-032e-438b-ba53-0ac3beb61055,dlvrbl,I,author did not migrate (unresolved user_id)
+0b99a7ff-6eed-422d-a4bf-5c62796d1841,2342,ad630344-0231-4df1-bb67-837753a6b6dc,dlvrbl,I,author did not migrate (unresolved user_id)
+b4d4c524-c9ec-4aa6-b0db-36c796ae9549,2343,f8a3161e-83c0-4082-af74-ea892e5b48fc,dlvrbl,I,author did not migrate (unresolved user_id)
+f09c5c6d-2527-487e-8482-72c8a788db85,2347,9f909377-1175-418a-a535-2004b2be2c19,dlvrbl,I,author did not migrate (unresolved user_id)
+0c66efa8-9a26-42d7-96fe-5baf7459c7bc,2350,a809f186-4381-4ef1-9197-be78ec4423fc,dlvrbl,I,author did not migrate (unresolved user_id)
+6710aca6-6a86-4f44-918d-bae4f7574799,2352,29b58331-06f7-458f-b47b-f3a9ce7be2e9,dlvrbl,I,author did not migrate (unresolved user_id)
+981b9d62-7bda-4acc-be5a-cbc4cf979ee2,2356,bc2bf2f5-089b-4108-9013-2a66752f2a24,dlvrbl,I,author did not migrate (unresolved user_id)
+247473a0-12db-452e-a20c-73f2f3704b70,2358,df651ba1-e8ae-4ec4-88d7-bf9524c80722,dlvrbl,I,author did not migrate (unresolved user_id)
+9abaf645-3e24-49c2-8885-59abd1e586ba,2359,0083f12b-f486-4ee8-8447-6e0c80bf6529,dlvrbl,I,author did not migrate (unresolved user_id)
+6f5bcbe2-a8f2-4900-9263-683a4b9ff70b,2389,0b9de63c-4da0-4be6-8120-2747dd8b0eb8,dlvrbl,C,private route but author is not a CMS user (anomaly)
+fbbfecf5-8940-4fa5-a8da-69bcbdf7cf2b,2390,02a38c8b-1b11-43f5-97e7-8a19ddef917d,dlvrbl,C,private route but author is not a CMS user (anomaly)
+38e2cf72-83db-4429-a014-9689a5946002,2391,f12d6ed9-a6ea-4502-8f0b-59688ecbbc7b,dlvrbl,C,private route but author is not a CMS user (anomaly)
+fa4df518-db2f-4011-b284-7ea0a20d6037,2392,742f0421-0e3b-4538-b132-0a65dfc743f4,dlvrbl,C,private route but author is not a CMS user (anomaly)
+8d71f16b-d919-4c00-9ddc-d23270cf201e,2398,60442148-d464-4f99-8159-4ca8dac037f8,dlvrbl,I,author did not migrate (unresolved user_id)
+992648c6-4c92-4bce-a859-47080bcc6744,2412,0137c7cb-2e1b-45e4-830e-29a01072f6d2,dlvrbl,I,author did not migrate (unresolved user_id)
+bd470bc0-0dd1-437c-82ba-858db5056c30,2434,3b744926-5f93-45ca-a1a5-05dc918b7834,dlvrbl,I,author did not migrate (unresolved user_id)
+df19ed9b-5b9c-4844-959f-b4358688dcae,2435,5f44773b-8955-4382-a994-60f8c7333656,dlvrbl,I,author did not migrate (unresolved user_id)
+fd6f260f-a3d5-46c4-ba29-55aedc4cdf82,2436,b13cb367-b178-4043-98ec-b807a8780b79,dlvrbl,I,author did not migrate (unresolved user_id)
+96456f32-1df1-4054-a76c-70a29f8b799d,2437,ac44d931-020b-4a5c-9e11-d8ec55412b5d,dlvrbl,I,author did not migrate (unresolved user_id)
+45779938-8ca2-4db9-9bcd-a27d2309c638,2438,33399896-ed2f-4fd7-962e-8d7dc8177a1e,dlvrbl,I,author did not migrate (unresolved user_id)
+38ee6739-82da-45ce-b0eb-8d960e3153e7,2439,e50cf997-b679-4f9e-ada0-5e35c15683c1,dlvrbl,I,author did not migrate (unresolved user_id)
+c2b13f24-f68c-4bec-98b4-11c7953effee,2440,ab28047a-a23d-4d8c-9623-ce87bfe09fff,dlvrbl,I,author did not migrate (unresolved user_id)
+97be584c-7b53-4cf0-acb2-2c3b2fb3fe1b,2455,acea88d0-57c8-4ba3-baa1-a80063718fe9,dlvrbl,I,author did not migrate (unresolved user_id)
+91529432-9586-4106-a2ac-3b05804f6f1c,2456,0832a213-4228-494c-af8f-f0e2be32e5fa,dlvrbl,I,author did not migrate (unresolved user_id)
+54b384bb-8a57-4d0a-bf96-72cba1f78109,2460,f0dc3059-bed2-4fb9-b197-49d145d827d5,dlvrbl,I,author did not migrate (unresolved user_id)
+f38b08e4-1d76-4a02-9ad3-c6529fe9714a,2474,756dc5c8-0e2d-4ea6-9b35-6bd9194f6fac,dlvrbl,I,author did not migrate (unresolved user_id)
+3669dd81-45d0-4f83-8de5-d3fddac6b971,2475,972b83e4-79db-4419-be9f-a7f6599df0ce,dlvrbl,I,author did not migrate (unresolved user_id)
+dce697e4-d7e1-4c03-ba10-4af753433fdc,2480,636f62f6-c27e-4572-b560-c79dccda684e,dlvrbl,I,author did not migrate (unresolved user_id)
+2908aa0b-0e0e-473b-8f96-75bd1191a276,2506,f2b95e27-189e-4202-9f52-3b216f3859aa,dlvrbl,I,author did not migrate (unresolved user_id)
+e278becc-b275-4cb4-a9e4-43a7428845fd,2507,d46975f3-a525-4cbc-bba6-770581bc2ba9,dlvrbl,I,author did not migrate (unresolved user_id)
+c58b2128-1e52-43be-ba89-3480431f5a3d,2508,7e0c7503-44ee-4e3c-b413-55afe7fd2087,dlvrbl,I,author did not migrate (unresolved user_id)
+e03cc949-d6e9-4b0c-be1e-ff92e6654461,2509,88bddee0-e77f-41dd-aa48-ca4cbf2b91df,dlvrbl,I,author did not migrate (unresolved user_id)
+550bf1d5-cd45-4f16-8ea0-039f55069b99,2529,95b726fe-f7be-47a9-a806-58f59c56e975,dlvrbl,I,author did not migrate (unresolved user_id)
+5e41c601-d349-4ddc-ad0e-a3bbe269eaaa,2530,ca4ff952-7ba7-4d50-b441-0c8a05397236,dlvrbl,I,author did not migrate (unresolved user_id)
+a623f0c3-cc7f-44ee-ba59-74e92cb2fcce,2531,d2bd8c20-df5d-42f2-b367-86fd476477ff,dlvrbl,I,author did not migrate (unresolved user_id)
+24f3d1fc-8786-4205-a9e1-5a57cda85fcf,2532,ace3bf3a-e115-4ef3-acb3-cf003e7f1e5d,dlvrbl,I,author did not migrate (unresolved user_id)
+9d4a2f07-7fc5-4dcd-aec1-a415888a64b4,2533,23e1a0d8-906c-49e4-9b35-f32c7572b8b3,dlvrbl,I,author did not migrate (unresolved user_id)
+312d174c-4861-4b5d-8db7-5660d7a9f8c7,2535,fef3c3fd-3b94-46b8-80ef-d18a970098c0,dlvrbl,I,author did not migrate (unresolved user_id)
+b571e471-fe73-432d-8116-0b1f1b5aed7a,2546,f111ad13-bb1e-40f3-9265-9edd683422bf,dlvrbl,I,author did not migrate (unresolved user_id)
+8a665ea8-665b-47ac-84ab-5b7dbd52d6a9,2549,142e234a-aa5c-44d8-83ff-694dc13dd8a6,dlvrbl,I,author did not migrate (unresolved user_id)
+f9bf8c68-1e20-43c2-9cbe-7ccb54c43644,2552,effccb16-9572-4965-baa4-5c305b8fc972,dlvrbl,I,author did not migrate (unresolved user_id)
+8817dc71-0caa-4b4e-981d-72a5ab8f32bd,2554,0e4e01bd-fa73-45d9-87ee-fb846d6fab71,dlvrbl,I,author did not migrate (unresolved user_id)
+541a3465-fc1b-4022-bb4f-26a1a7f2c3a6,2555,18874af8-7a28-48c1-9d32-e890fb3c6226,dlvrbl,I,author did not migrate (unresolved user_id)
+9e81e9e4-a6b0-4f75-8361-c20249fc2808,2559,9386311d-c3bd-4361-b24a-fad112815392,dlvrbl,I,author did not migrate (unresolved user_id)
+aac8d05d-2413-4b25-82c4-6be33e2dd022,2563,3e8437cf-0014-4475-a473-dc800c841ded,dlvrbl,I,author did not migrate (unresolved user_id)
+fb95034d-84c7-428f-8121-5ba87bb53c97,2564,41742b7f-6ff3-4f90-b16c-488dc66d2aaf,dlvrbl,I,author did not migrate (unresolved user_id)
+fc1b8b3e-474a-4e68-9a13-0f693462ad8e,2568,1843d322-abb1-48cd-99b9-ef58e74737ed,dlvrbl,I,author did not migrate (unresolved user_id)
+af501519-7df4-4843-b15e-767a1d5d8c6e,2570,22018be1-eebc-44d9-87a2-9ed648dc9ec9,dlvrbl,I,author did not migrate (unresolved user_id)
+8bdfd61e-cd68-4694-82bc-0f587197e5a0,2571,578a4e8b-612f-4a5c-a92f-5bb0d88bb5df,dlvrbl,I,author did not migrate (unresolved user_id)
+1b7f4015-d632-4e0c-8346-45017bbbdd3f,2576,461ec68e-fd8e-4b25-9697-4f2b38af67d6,dlvrbl,I,author did not migrate (unresolved user_id)
+3b8818f6-441f-4cfa-8f59-ccea5f337fca,2587,01adbf53-794b-4107-9b2f-f1d38ad2252a,dlvrbl,I,author did not migrate (unresolved user_id)
+71d1786a-4ff4-428e-8c7a-01db2fae35ac,2629,373a93ef-9004-4316-b5e4-738923f52837,dlvrbl,I,author did not migrate (unresolved user_id)
+02b41e52-12a0-4b77-b7df-ebf8d9130b74,2653,9f7f295f-bda9-42b6-8c9c-eb7d474168c0,dlvrbl,I,author did not migrate (unresolved user_id)
+1798c555-a6c7-4757-8614-ec8d741c9215,2654,4cb8d007-9756-4e58-8a74-a61e76eb5ce4,dlvrbl,I,author did not migrate (unresolved user_id)
+3f3f37dd-911c-4892-85c7-65c880408ee5,2667,b51cd805-c3e1-4106-81ca-7d27217fe867,dlvrbl,I,author did not migrate (unresolved user_id)
+6ecf3232-967e-4b73-beda-3344d462ff9b,2685,a4cdf6e0-1f88-4e21-9fdf-0887a96b3505,dlvrbl,I,author did not migrate (unresolved user_id)
+01c987db-4c8a-4370-b8d0-71f6c114c6ed,2705,7edc89d9-c632-40d9-88a7-fdb5c3ad64f0,dlvrbl,I,author did not migrate (unresolved user_id)
+39f34638-be2e-41e8-86ad-6b5a11725945,2742,86795ee8-6aa1-4b4b-9fb1-ca46ea13e01b,dlvrbl,I,author did not migrate (unresolved user_id)
+8e8f3088-2cdd-49af-8f4c-54873707d071,2764,2d944420-ba34-42c7-a693-f20d5c882565,dlvrbl,I,author did not migrate (unresolved user_id)
+49a0ad37-7625-4118-a25f-e69aeb851e1c,2765,b1bb6835-6226-49b7-86fc-826d09fe00ff,dlvrbl,I,author did not migrate (unresolved user_id)
+dcf5a7f7-3031-4800-969b-cd2d2a8334fa,2777,4677366f-0c0f-4bea-a6c8-70c5d68a8be8,dlvrbl,I,author did not migrate (unresolved user_id)
+6a1eb3ee-bcf9-43ef-a4a1-50598009f669,2795,b1eeff59-d24e-4a84-a0b2-2fde5184293d,dlvrbl,I,author did not migrate (unresolved user_id)
+47fcebfc-b8c9-4025-b0a2-2e30fa26b0ea,2806,073c3d55-6aef-4eb3-b65c-d6d207255345,dlvrbl,I,author did not migrate (unresolved user_id)
+69087a17-d14f-478d-9bb5-12d6f8160c6e,2807,78837cc6-a5bc-4515-adac-27b9d83a8890,dlvrbl,I,author did not migrate (unresolved user_id)
+b1856ff2-8919-43f2-8af7-c4f88261e8b8,2808,38a7c5e4-59d1-4bd3-9d32-7c9a4756a61e,dlvrbl,I,author did not migrate (unresolved user_id)
+6b0f3a51-442e-49ba-8a8c-87c866a277ba,2812,6d401281-1499-4eea-a7f2-e3b63efd3741,dlvrbl,I,author did not migrate (unresolved user_id)
+b97b4af6-8dfc-4eca-87dc-5659dcdfd1ed,2813,2aea34df-42e4-4caf-9ab7-778149e4c96e,dlvrbl,I,author did not migrate (unresolved user_id)
+05d1940d-d2ac-4371-9c53-85120d384fea,2824,bc6dac3d-88d5-4033-890a-665026179fce,dlvrbl,I,author did not migrate (unresolved user_id)
+145c507a-38e6-4017-bd39-5bbf4cf14262,2825,c22a69fc-9f5e-41ac-9dfb-18703137afe2,dlvrbl,I,author did not migrate (unresolved user_id)
+4411ca80-dee3-4b04-98fb-da11c7bfa570,2826,5ab3f347-6f1a-4298-bdbe-6ebb49a2f316,dlvrbl,I,author did not migrate (unresolved user_id)
+30f8f20a-0eb0-40f7-9002-baf83e6a2791,2829,4ae4e21e-bea3-4d10-8728-24231da0536f,dlvrbl,I,author did not migrate (unresolved user_id)
+1ac62747-8503-4927-a899-db3f50dfe7a7,2830,e94ccfd1-9a5f-4294-843d-ac45c41293f3,dlvrbl,I,author did not migrate (unresolved user_id)
+bfb37de7-517a-48d4-9e38-a9e60bd61e04,2831,9a92d03d-bff2-4de6-93bd-ab34bf821108,dlvrbl,I,author did not migrate (unresolved user_id)
+32d43081-a192-4c10-b36b-aa84fddee4fc,2842,20e99001-1436-4f46-aad6-e6451a7e2c0e,dlvrbl,I,author did not migrate (unresolved user_id)
+9f5a3459-c9d0-4901-a00d-2c90328f5de1,2843,fce4b471-c9b2-444d-bea3-fdf2d7212097,dlvrbl,I,author did not migrate (unresolved user_id)
+67e9b434-d97f-41be-8880-c23a2c19e65e,2854,483d2e0f-bf29-4e93-8fe8-be3575e87226,dlvrbl,S,parent deliverable not loaded
+c89bf36c-35d3-4321-9045-18efe88e8399,2864,a9fd075c-bdce-4a37-afad-5f1b77a1828c,dlvrbl,I,author did not migrate (unresolved user_id)
+2f05f60a-f6d3-4d99-9fcb-2e2fdebb4ef5,2867,60148b9b-7a69-4897-a006-6f363439c242,dlvrbl,I,author did not migrate (unresolved user_id)
+cf609598-c749-4328-a94a-3a29951a9035,2868,e9b7fe4a-1adc-45e9-9a5c-2d66394cf69c,dlvrbl,I,author did not migrate (unresolved user_id)
+5c776a64-b7c1-418e-8b38-ae9269226ce6,2882,f6b9059e-8aeb-4b3a-a32c-50320850454a,dlvrbl,I,parent deliverable not loaded
+d8cbdfb6-2ba3-4942-b674-e8133c28f61d,2883,81e7dda2-fdde-4bb3-820a-3880df00b7cf,dlvrbl,I,parent deliverable not loaded
+578590ca-5f01-402e-8470-74bebd1dfc4c,2884,cf79e812-3997-4763-aa8a-adab803e44a5,dlvrbl,I,parent deliverable not loaded
+e3f70d0c-9df5-4f66-ad89-fd5192491f1e,2885,5794a56e-22af-4365-a202-896bf5fc6daf,dlvrbl,I,parent deliverable not loaded
+a8ee7b30-d4e4-4924-bac2-d7a0f60ffb50,2907,bb8a03fa-48cc-4f17-b69f-cb6b8cdf506e,dlvrbl,I,author did not migrate (unresolved user_id)
+672599a1-1bad-4bf9-bcd9-de49183fe6e1,2915,0006feb5-30de-4328-ba62-41099c60d1b4,dlvrbl,I,author did not migrate (unresolved user_id)
+8da1d494-7e02-4687-819a-7687c15379e0,2922,f3625a65-6b40-43a7-8205-7ab273d1a1fc,dlvrbl,I,author did not migrate (unresolved user_id)
+fec788e1-7b3e-41d1-968e-ab426eb26cea,2924,1a4bdcc6-f0ef-413b-8613-bef6c1c1dd21,dlvrbl,I,author did not migrate (unresolved user_id)
+968dabb6-c70b-4d00-901a-e6bf78ebcf25,2930,a19cf271-e0e9-4326-a532-9714e954d14a,dlvrbl,I,author did not migrate (unresolved user_id)
+c6722530-9d0e-445e-91bf-eee5955247a5,2931,9f7f295f-bda9-42b6-8c9c-eb7d474168c0,dlvrbl,I,author did not migrate (unresolved user_id)
+d93e0109-b7a9-4b33-a7a4-59af30e4854f,2932,4cb8d007-9756-4e58-8a74-a61e76eb5ce4,dlvrbl,I,author did not migrate (unresolved user_id)
+cfac8ca2-5a36-49d3-9736-fa1e19e78b74,2934,0abbfc07-0277-4b17-b9c3-b0ece0f76ed0,dlvrbl,I,author did not migrate (unresolved user_id)
+e9faab47-9c80-4590-aebc-f653a8224b8e,2936,aea10902-373b-4d1f-a987-ea82695866be,dlvrbl,I,author did not migrate (unresolved user_id)
+35b4a192-9aff-481a-9abf-a7b42ec637ad,2937,6f64e9b3-c616-4673-b088-3fb3bc5b2e8f,dlvrbl,I,author did not migrate (unresolved user_id)
+be951c88-2266-425c-ab26-599bfee0e339,2939,e5dfc0b6-3d7e-4e45-b7c3-e4850ffd89f8,dlvrbl,I,author did not migrate (unresolved user_id)
+fa7c1e43-b996-4dd6-99e8-d5ab940722bb,2943,ffd74723-588a-466d-bad2-f431dc3a2d6d,dlvrbl,I,author did not migrate (unresolved user_id)
+527401b4-6785-4611-af30-b60a2de49b87,2958,cd4af9dd-e440-4bfd-971e-ed27c5cc5b08,dlvrbl,I,author did not migrate (unresolved user_id)
+9dc0d1bc-7ca1-46c8-a569-84b9f192bff4,2959,c57051fa-a0c0-4b08-8c13-b1470f206053,dlvrbl,I,author did not migrate (unresolved user_id)
+9b7adae9-4f04-4163-91be-c63099645048,2960,5eaace53-927d-49c6-b6ca-c88a04a87f33,dlvrbl,I,author did not migrate (unresolved user_id)
+17d934ee-4610-453f-ba8c-97dae65a984f,2961,a2792e65-0ff8-42d4-bb89-beca41d9118c,dlvrbl,I,author did not migrate (unresolved user_id)
+d464cfd4-4d31-4200-844a-d20c585bd9b7,2962,884e37f5-1c2a-4a7a-8a22-59b38afb1f28,dlvrbl,I,author did not migrate (unresolved user_id)
+9c941753-22bc-49bf-ae19-c06f571e2f6e,2976,5cd3d99f-7f3b-4ad9-b99f-216c442be0e1,dlvrbl,I,author did not migrate (unresolved user_id)
+e3ed3f3c-4100-4cda-b8e8-171cb8098097,2993,4a643c35-fb41-4e5d-baeb-9e6f22cfc366,dlvrbl,I,author did not migrate (unresolved user_id)
+7117ca12-0295-4a5e-81d4-05b32e1f960c,2994,add9a33b-e4de-4fb3-9793-410f6793a66a,dlvrbl,I,author did not migrate (unresolved user_id)
+270b78ef-4f10-43d6-97c4-ead58ee499fe,3033,62849586-e1a1-4a28-b8d8-f0c1242686a4,dlvrbl,I,author did not migrate (unresolved user_id)
+3580ca9d-8897-4727-b534-c6a04fe94146,3043,a32c0e82-e82b-4a10-8187-ba287c5acf9a,dlvrbl,I,author did not migrate (unresolved user_id)
+fde8b2c1-5580-4624-a1de-687675742c46,3068,28054591-1806-4bd4-9aa2-ccc1ba4507fa,dlvrbl,I,author did not migrate (unresolved user_id)
+bd2a5e6e-dda2-4fc8-ab71-fad79801af38,3069,3dc02943-b79f-4e52-a20e-d86ee1760ac3,dlvrbl,I,author did not migrate (unresolved user_id)
+e574b8fe-6223-405f-8607-8e99bf5a6ce1,3093,6b93807a-f808-449c-ad08-c1dd5ac234cf,dlvrbl,I,author did not migrate (unresolved user_id)
+2f135708-0dc5-4953-8bd3-890b2889ba69,3104,b66979a1-f591-41c3-9ac7-25fbc445c94e,dlvrbl,I,author did not migrate (unresolved user_id)
+f012cf47-889d-4f57-93f6-b3210e9bb469,3105,fa4c09e1-40b4-4bd7-abd9-0a60476d7e63,dlvrbl,I,author did not migrate (unresolved user_id)
+627adc91-7286-4d7f-b7be-759836f85a7a,3106,14713763-cc8a-4cac-99a5-37a3517459ed,dlvrbl,I,author did not migrate (unresolved user_id)
+1289e33f-edac-4ce0-be20-69e44d1f7627,3112,bbd788d9-dfb3-4c55-a1e6-33594672e4b4,dlvrbl,I,author did not migrate (unresolved user_id)
+b7051d9f-e1e2-477b-9ffe-9d2ddc816540,3113,62676e6e-8238-4eba-918d-0e514997fe81,dlvrbl,I,author did not migrate (unresolved user_id)
+a44fdceb-0047-47f6-bd95-ac2d2ef3436a,3114,7d764f70-1492-41b7-8423-0a05771b74c1,dlvrbl,I,author did not migrate (unresolved user_id)
+556413be-804d-4a0c-bf68-45e53a0a8e59,3115,f322637d-1241-463f-91e8-2e9125c95452,dlvrbl,I,author did not migrate (unresolved user_id)
+1a9c77a6-daf7-4438-aeac-96c5cc37b70e,3116,aceecec6-4df0-404e-9d84-1f5e034f8b90,dlvrbl,I,author did not migrate (unresolved user_id)
+9f5ae32d-704f-43ce-adc3-30abaecae9da,3121,e8360765-9c7d-4662-a7ab-ca811c3130f1,dlvrbl,I,parent deliverable not loaded
+ec176f45-cfb5-43ad-84d0-5bfac419628b,3122,f6b9059e-8aeb-4b3a-a32c-50320850454a,dlvrbl,I,parent deliverable not loaded
+b7b27d88-d082-4851-97e9-fa20f3e6499c,3123,81e7dda2-fdde-4bb3-820a-3880df00b7cf,dlvrbl,I,parent deliverable not loaded
+19d2a30f-9c35-4f00-9af5-7a7ca61ca8c7,3124,5794a56e-22af-4365-a202-896bf5fc6daf,dlvrbl,I,parent deliverable not loaded
+ffe2f390-f577-45d3-a482-620e10ccdd96,3126,4d2bcb57-2a86-4482-81f2-9e91575f5460,dlvrbl,I,parent deliverable not loaded
+fa678cff-ea9f-413c-86dc-9a6497ecdba9,3127,f34173c8-fe00-4d2a-a3ed-cab12af643e5,dlvrbl,I,parent deliverable not loaded
+99367fb9-2a49-4f35-bb61-73a9474222c8,3128,a919b6c0-4e35-4967-be83-8c97c688aa78,dlvrbl,I,parent deliverable not loaded
+25d787fa-b3c5-4d26-8fd1-c726a10241e4,3132,beea4575-9313-4447-9b6f-9b9baf6f62e5,dlvrbl,I,author did not migrate (unresolved user_id)
+20503c62-c075-44cb-a866-9f8d864ed8cc,3133,26d658a0-3011-4b6e-854d-b374a9d5e16a,dlvrbl,I,author did not migrate (unresolved user_id)
+3449924f-b00e-4085-aa83-8862b6c65a06,3134,2279b624-3325-48fc-b240-cb34d9cf01ba,dlvrbl,I,author did not migrate (unresolved user_id)
+a0114e8e-37e2-4b51-968d-171d644208ae,3151,fab24af4-cde9-4391-b101-ea45858dbb40,dlvrbl,I,author did not migrate (unresolved user_id)
+8bd60013-ee84-41ff-a55e-41191fc38446,3160,d386499c-3227-4e8e-8fc3-1f0937a960d0,dlvrbl,I,author did not migrate (unresolved user_id)
+a17355fa-cbb6-4f8f-bdd6-ddb90fa606a4,3178,0df1e1d2-001d-4f7f-8f04-10961dd17a96,dlvrbl,I,author did not migrate (unresolved user_id)
+4f68f272-35d8-4250-a190-2c207ad00053,3199,baa222e1-8c9f-435c-912d-8a6eaa4e34fd,dlvrbl,I,author did not migrate (unresolved user_id)
+016b18b6-78e5-45f7-807f-a5beac5721b8,3206,ceb8e7c6-9abd-4b54-a477-6c7c9fc99129,dlvrbl,I,author did not migrate (unresolved user_id)
+55e84e0a-6663-4a7f-bdd4-4de6f5700d08,3207,a7336fff-83fe-4432-86d0-11ae204da199,dlvrbl,I,author did not migrate (unresolved user_id)
+6c46e701-ee25-4490-a43f-fbf204bd4be6,3220,11f9c479-e48a-4c0f-a509-80e8448f687e,dlvrbl,I,author did not migrate (unresolved user_id)
+c51973ec-5e2e-450f-9f67-48ec731e51d7,3232,b36a8611-81f4-45b7-8c5e-93c68e5dc16e,dlvrbl,I,author did not migrate (unresolved user_id)
+a45a8cb0-2ef5-4b45-82df-c27f0d20a709,3268,21a0105c-a337-453b-ae5a-c45f12248ec3,dlvrbl,I,author did not migrate (unresolved user_id)
+999ab185-8a21-4cb5-8130-d85ecc9e5d19,3295,e6feb5d9-d783-40ce-9eea-a3c712cc9d28,dlvrbl,I,author did not migrate (unresolved user_id)
+e24dc443-f18b-4cf8-81ea-eba8032ac0a3,3304,3898f8e0-2bbd-492d-8d18-a0232741ee26,dlvrbl,I,author did not migrate (unresolved user_id)
+fe2b38d5-a56d-470e-bdfc-d8b527b2234d,3309,44b4ef61-c838-432a-9887-1bc64ab162fe,dlvrbl,R,parent deliverable not loaded
+48f161b0-946f-4028-b00f-12dfff1e9792,3325,fef4ae37-823e-4dd1-a23f-11a066073d75,dlvrbl,I,author did not migrate (unresolved user_id)
+d76c932c-de0a-4946-a5ea-518c77f01b09,3326,32a77d63-7ef8-4654-a752-94b1a889ed4b,dlvrbl,I,author did not migrate (unresolved user_id)
+bf1d4f11-e541-4a9c-bc3a-71cc34fd633c,3327,767b3273-ead4-4baa-9aa5-014e81266f64,dlvrbl,I,author did not migrate (unresolved user_id)
+2ecc82ca-6c2a-42de-9e6c-a50b68e0f20b,3342,b71e97bb-c549-41f7-8706-daef181a88b5,dlvrbl,I,author did not migrate (unresolved user_id)
+a607df85-d611-4f9c-81fa-773dd5fb7eb3,3343,6f0dc37e-84b8-4073-a5f9-502b54b1e7aa,dlvrbl,I,author did not migrate (unresolved user_id)
+5d0f8094-165b-4ac5-badc-b26c60e0bcdf,3352,0e2e963c-4420-4912-bcf9-5c9b915c8648,dlvrbl,I,author did not migrate (unresolved user_id)
+b29c4a0a-facc-402a-a765-8db8cecea61f,3353,64583c85-378d-4af6-bc36-5bb2772a39e8,dlvrbl,I,author did not migrate (unresolved user_id)
+8ab56371-0c2c-479e-8060-e8a9a573a586,3354,cae08579-f7c8-4295-b8c9-e182f1151339,dlvrbl,I,author did not migrate (unresolved user_id)
+fcd43ae7-84b3-4ba7-9fed-8a0e821c131c,3355,9e8707b6-e876-4676-a57f-86abfb8d44e7,dlvrbl,I,author did not migrate (unresolved user_id)
+087bb41f-9af1-424f-a9ae-e6f6a8098ff6,3356,f169c1e0-1c35-43fe-8cf0-fbe307208d07,dlvrbl,I,author did not migrate (unresolved user_id)
+dbc250bd-0d8a-4ded-b08c-2e780f7c8bb3,3359,8232ea89-2f57-45bc-b09a-7a5b3eb57d78,dlvrbl,I,author did not migrate (unresolved user_id)
+29f567e8-8094-48d9-9499-1d4821f8d64b,3360,9a902cf2-2e49-49e0-bbe4-82ae9543a66a,dlvrbl,I,author did not migrate (unresolved user_id)
+f52631b9-e495-40cd-96d6-0c9e6a978ac3,3364,7d84e0d1-fe31-4ca2-8c26-d88c442fcebc,dlvrbl,I,author did not migrate (unresolved user_id)
+07d88cb0-53fb-47ad-8859-3ab8551e2875,3365,57ea655a-500f-49b8-a239-fa6c293d8a11,dlvrbl,I,author did not migrate (unresolved user_id)
+933701d4-c950-4c8f-9b62-0d3988c54f3f,3389,4a39fb0a-e9ae-4ca3-81bc-8a0fba18cfc0,dlvrbl,I,author did not migrate (unresolved user_id)
+bef1720d-2091-413a-8a7d-7a7251029c72,3393,6db0aeef-e425-44e5-bc81-55a10105854d,dlvrbl,I,author did not migrate (unresolved user_id)
+f92b69d3-5378-4966-b86f-5a5317a37ff9,3394,477f1e91-c4d3-41f2-8cc4-050144637249,dlvrbl,I,author did not migrate (unresolved user_id)
+1f27f96a-4579-478f-a62a-1af8ce14664a,3411,7d9caaea-0280-41c2-9039-4e6c77647188,dlvrbl,I,author did not migrate (unresolved user_id)
+4e9003be-3fb7-451a-9ee5-68a150eaaeb9,3412,ce491566-7a55-4f9c-b709-6a1a1a8d6727,dlvrbl,I,author did not migrate (unresolved user_id)
+0f398311-8f24-4d73-b6a0-b680a63b60a6,3429,0ea091c7-5066-4fd1-9ce4-dc3c34ba87ae,dlvrbl,I,author did not migrate (unresolved user_id)
+e5085a95-8db8-4c55-9208-3522cfffb32a,3446,e0b8b626-8eed-425b-867a-02c8e416a0da,dlvrbl,I,author did not migrate (unresolved user_id)
+d4d61b20-90f7-4866-9e35-790b389431f4,3449,bf13afa3-0b6f-40b0-b80e-d677a45c21c9,dlvrbl,I,author did not migrate (unresolved user_id)
+f8884de7-522b-4a5e-be16-fbeae6296396,3455,3aaa4780-b441-4185-9e32-dffafcabe40d,dlvrbl,I,author did not migrate (unresolved user_id)
+16e40f73-e97c-44ba-bbaa-7fa7ea903a90,3456,be7a11ce-132d-4614-bb42-97032c969fdd,dlvrbl,I,author did not migrate (unresolved user_id)
+52ff2a6c-e351-4794-80a9-0e3543c08a56,3457,938c76f9-4292-4a69-9735-3e501ea60fc1,dlvrbl,I,author did not migrate (unresolved user_id)
+934cc752-b5e7-430b-b9d1-1269f4efeb71,3467,ad4d2912-f9ad-4e8e-8334-b5e3bec81607,dlvrbl,I,author did not migrate (unresolved user_id)
+aabfda8d-cd11-41c3-9192-4b7effa45cb5,3468,c3e0542c-cac2-40eb-854e-04c6172abd71,dlvrbl,I,author did not migrate (unresolved user_id)
+08ec94d8-4448-47aa-aaf7-b6537d4baaed,3469,bdcf70a5-8037-478e-bea5-d2d096d52742,dlvrbl,I,author did not migrate (unresolved user_id)
+49e98139-505c-4bd9-a5a8-2b93f7d72239,3470,4fbda3d9-165a-43f0-bc2f-1d1695d45ecb,dlvrbl,I,author did not migrate (unresolved user_id)
+e5beca00-2dc3-4bf2-bfeb-d4b0cac767f1,3475,f290a66e-be24-4b98-b3cb-6ebbf24c4b81,dlvrbl,I,author did not migrate (unresolved user_id)
+d946273c-3ab4-4083-8fe4-20061353ab11,3477,c72bf104-a85b-41c8-a26a-6753056a2011,dlvrbl,S,parent deliverable not loaded
+8a71b594-b99f-4e4c-a247-4c0b2574cb2d,3489,4ab2776e-038b-4936-ae1e-0925034cb789,dlvrbl,I,author did not migrate (unresolved user_id)
+bb02ab55-c354-43fc-9f88-71317cf13b23,3490,61558759-f935-4edc-93c1-162b27e4400f,dlvrbl,I,author did not migrate (unresolved user_id)
+4aa7ab67-322b-4a8e-b569-fc873d514cfe,3510,d5a8afa6-cdb2-4e4e-8cd2-b28b5474e877,dlvrbl,I,author did not migrate (unresolved user_id)
+2c8120bc-34df-4623-9456-40c8be94425a,3511,b79f1ba0-33ab-4783-a06a-285e1d3d9999,dlvrbl,A,parent deliverable not loaded
+293a0929-f5d0-44e4-b9e1-abc069aa097b,3512,b79f1ba0-33ab-4783-a06a-285e1d3d9999,dlvrbl,R,parent deliverable not loaded
+232c644a-cd85-4524-8ac5-c226e9b79413,3523,52dc7875-7da1-4e42-bb65-15d4503f1360,dlvrbl,I,author did not migrate (unresolved user_id)
+61ea324f-5fcc-4a17-af52-4926d656970d,3528,2724b127-eca3-4c9f-9eb2-dc90e3bd9827,dlvrbl,I,author did not migrate (unresolved user_id)
+450d3a53-f80c-457c-addb-89c45993b360,3529,37335718-5b34-4fd8-ad2d-058651a8bc89,dlvrbl,I,author did not migrate (unresolved user_id)
+3c957716-e8b4-45a6-8022-004cf05f09b9,3530,d601a7f1-4e8b-4abc-b389-0502bac93cd8,dlvrbl,I,author did not migrate (unresolved user_id)
+22409bf4-a20c-49fb-97df-c2be95961e36,3540,dd148e75-e3a0-4622-bc50-ab91dd0026d1,dlvrbl,I,author did not migrate (unresolved user_id)
+2b8ce9ec-4c4a-4792-ad37-31ca0b17d50e,3557,93567eda-3694-4cc4-8eaf-6c80c8b67524,dlvrbl,I,author did not migrate (unresolved user_id)
+8e27baf7-d77c-4381-83bb-dc2c4518fc1e,3558,d72accaa-2de4-4ef8-a058-df2258617a50,dlvrbl,I,author did not migrate (unresolved user_id)
+311f7c15-6160-4230-a6c7-88b587eb67f9,3559,a4a6c4e1-6f76-45b6-b077-2f096719fd04,dlvrbl,I,author did not migrate (unresolved user_id)
+bb73bb18-fd89-4911-9ec0-6eba4b308f50,3570,994e5a0a-150d-4d15-863b-9f677640bc61,dlvrbl,I,parent deliverable not loaded
+3b33deb9-dafe-493a-b1ef-b3fe45b97c33,3571,a2d18f31-453f-4920-9c54-aa05f494ca66,dlvrbl,I,parent deliverable not loaded
+3e3450d3-cfd6-475f-83f4-0479349f373a,3572,3a578eca-c0e5-4528-b236-672101013582,dlvrbl,I,parent deliverable not loaded
+2d50caaa-2366-4237-92a9-d71e6f93e91d,3573,ab4704cf-fa99-44d3-b69b-3c5fdaef4236,dlvrbl,I,parent deliverable not loaded
+74bef3a3-e5b6-4424-856d-2e772f092d9e,3575,903cf69a-7d98-44bc-9cb8-b0cc9d18b526,dlvrbl,I,parent deliverable not loaded
+358cb22a-b141-4795-8dd6-694dbe76672f,3576,c419205a-4664-4924-9a3a-deb1a4f21a1b,dlvrbl,I,parent deliverable not loaded
+1513aa46-1537-4ec2-863a-6f6da538825b,3577,dfe265b5-b16e-4bec-9ae7-8c824e3dde6e,dlvrbl,I,parent deliverable not loaded
+bc1194fd-66ae-4f87-bc6a-267fc35c22ca,3586,8261ff65-4112-4c64-a069-c6873711319d,dlvrbl,I,author did not migrate (unresolved user_id)
+c4ab353a-73f3-4587-8cc6-ab4e3702cb83,3587,3f7f4738-273c-45ee-afaa-8f65fcfbc39d,dlvrbl,I,author did not migrate (unresolved user_id)
+9ef8604c-5f1c-4c80-955a-babfd6d55784,3596,cf97df2b-ac1b-4e94-b61d-e3fce5d034d3,dlvrbl,I,author did not migrate (unresolved user_id)
+c54bf823-6515-436b-938b-e6cf35f89345,3602,46d84c63-b4f6-4e64-a871-5cd46956fb25,dlvrbl,I,author did not migrate (unresolved user_id)
+c435d8ee-e59d-41a8-933d-791035560206,3603,7fa9973a-8a6d-4ba0-98d2-836351f05276,dlvrbl,I,author did not migrate (unresolved user_id)
+a4c4736f-e0ce-4785-8f78-3cc6fb93b444,3625,4a9eddc5-778f-4a68-8137-63a3dc12c4b3,dlvrbl,I,author did not migrate (unresolved user_id)
+aad272b2-6198-4f3c-a8de-21d0a4fd31ea,3626,56f71711-c72f-4935-9abd-1f8acca5e9ba,dlvrbl,I,author did not migrate (unresolved user_id)
+bf8f372b-d73a-425a-856f-78e75d29328d,3627,e069ae75-1f4a-4f13-b625-6149dbbe16cf,dlvrbl,I,author did not migrate (unresolved user_id)
+0ec01ad9-9d21-4574-918a-1227844a3156,3638,f28a4f27-4729-4839-af8c-9ee06bf1207c,dlvrbl,I,author did not migrate (unresolved user_id)
+e6075ae8-8d64-44bf-8eb0-88fa66b524e5,3639,28dffc24-01f5-4fee-87cb-fab638d86893,dlvrbl,I,author did not migrate (unresolved user_id)
+f378ea6d-20f8-4bd1-bca5-80fc2cea9728,3640,9f8a5276-49e7-4937-9fc7-d4eb57903e8f,dlvrbl,I,author did not migrate (unresolved user_id)
+03d9951f-a098-49c2-b430-711aaa0da4ed,3641,ce32f4b2-debb-401f-91d9-b86e4fc16c7e,dlvrbl,I,author did not migrate (unresolved user_id)
+577f06cb-cbb3-42bc-9bc2-fbac69b784af,3644,25cfc679-0ba1-4333-ac05-5ce4236933b4,dlvrbl,I,author did not migrate (unresolved user_id)
+afb3d51a-1fe4-401c-a2c7-923fdb9cd6aa,3661,6b209065-e24a-45c9-8965-f8e9b4343329,dlvrbl,I,author did not migrate (unresolved user_id)
+81a50cf8-d715-4621-849e-04935fc7508d,3670,dd521acc-7db8-4419-b926-c0b7ff668ee1,dlvrbl,I,author did not migrate (unresolved user_id)
+79d477a7-727d-462f-99eb-0274df0d6bf6,3672,80832c12-c4d1-48bd-95cc-e2d4a92e3c60,dlvrbl,I,author did not migrate (unresolved user_id)
+b10ba943-4cba-4d28-b9a1-28dd78d30f2b,3679,8b99e091-c167-482f-a529-e2dd9b9e3a91,dlvrbl,S,parent deliverable not loaded
+f1b06aaa-d6c2-4389-8c68-e1811ab47658,3680,ba78cc23-e8aa-4324-beb4-af24fa0e5ecd,dlvrbl,S,parent deliverable not loaded
+378cd5b2-6095-4ff2-9b55-0dc95d6916c8,3682,cddc5f67-4b3b-47da-89d3-51406a0ea5cd,dlvrbl,I,author did not migrate (unresolved user_id)
+9793c50b-9e25-4efe-85e2-06b17ee8ecd6,3687,b0aa2fa2-1313-4089-a71c-7ad3c07da7d5,dlvrbl,I,author did not migrate (unresolved user_id)
+d1b40197-cdf5-44cd-bab1-38687abd8924,3690,90fd4d9f-4bfc-4c1c-87fd-b2859747f1d3,dlvrbl,I,parent deliverable not loaded
+84fcdca8-a41c-4a2a-92c8-26dc3eeb859b,3695,eaf37da4-4808-4b68-8b1d-d2a902fcbaf1,dlvrbl,I,author did not migrate (unresolved user_id)
+2a2cf8e5-e089-4ce7-8e6d-db874a733750,3705,1ea84804-f0e5-4614-8a5b-ddf0c039963e,dlvrbl,I,author did not migrate (unresolved user_id)
+69038f1c-d7e6-4510-b42d-e361da17a674,3706,f0e3c88d-5f96-4201-98e1-039a10c09081,dlvrbl,I,author did not migrate (unresolved user_id)
+b61403bf-dbbb-4b20-814c-a6f5167aea86,3736,ab6c58d7-0ed9-49cc-b9e2-55be8c010f66,dlvrbl,I,author did not migrate (unresolved user_id)
+cc36c3f7-fe39-4dd8-891e-5b4c6de8415a,3737,4cf752a2-afa0-43de-8aff-488c53f0c873,dlvrbl,I,author did not migrate (unresolved user_id)
+e669b0e3-80cd-4dfb-b9f0-e075bda6312b,3738,e95150e0-dd49-42e7-b265-150a483f393f,dlvrbl,I,author did not migrate (unresolved user_id)
+02454f4e-f4c1-4686-886e-08ed607ea1bc,3792,4c574019-d0ec-463a-ad85-74e4ed74f83a,dlvrbl,I,parent deliverable not loaded
+d01152aa-0343-4419-bb13-fbef3c29e553,3927,15dea4eb-e427-43f8-810d-9cc2a71dc0e0,dlvrbl,S,parent deliverable not loaded
+67e531c7-1be5-4c84-af51-34aaa5ce624e,3973,b51e3a58-c750-4f56-b792-2a8e9ab90acc,dlvrbl,R,parent deliverable not loaded
+4f83911f-90d5-4775-a4bb-6a6f4a633b0a,3974,b51e3a58-c750-4f56-b792-2a8e9ab90acc,dlvrbl,S,parent deliverable not loaded
+4937de5b-f7ee-4926-bce2-d2e18d5fef3a,4220,04ebe854-a5b3-49e6-bebc-010636106c4a,dlvrbl,R,parent deliverable not loaded
+d7579f84-06ba-4aff-b5da-c24c624b91e0,4221,04ebe854-a5b3-49e6-bebc-010636106c4a,dlvrbl,S,parent deliverable not loaded
+40d0296a-8505-42d5-82f5-fcc48afa48f3,4222,04ebe854-a5b3-49e6-bebc-010636106c4a,dlvrbl,R,parent deliverable not loaded
+fbf27eae-59b2-4392-a981-ecf11968b79e,4223,04ebe854-a5b3-49e6-bebc-010636106c4a,dlvrbl,S,parent deliverable not loaded
+4057f74f-745b-43c7-ad36-fb5956cbda1f,4224,04ebe854-a5b3-49e6-bebc-010636106c4a,dlvrbl,R,parent deliverable not loaded
+a559eb5a-095e-4c3a-8076-f5a2f1b74d94,4225,04ebe854-a5b3-49e6-bebc-010636106c4a,dlvrbl,S,parent deliverable not loaded
+9921301d-9a98-4abf-9b65-734a32a16029,4226,04ebe854-a5b3-49e6-bebc-010636106c4a,dlvrbl,R,parent deliverable not loaded
+388fd032-8933-49c7-88a9-54fb29a6c2a1,4227,04ebe854-a5b3-49e6-bebc-010636106c4a,dlvrbl,S,parent deliverable not loaded
+491d3cb3-ea8a-4050-a9bb-c7edf8507d43,4228,04ebe854-a5b3-49e6-bebc-010636106c4a,dlvrbl,R,parent deliverable not loaded
+d0ef39c7-5380-4f32-b61f-c11b6841f14e,4229,0f57eb91-0d7a-4da8-a8ba-d3843b049f49,dlvrbl,S,parent deliverable not loaded
+b7da9e3c-e6ca-4bd7-9aa2-4c477fca97db,4246,77a0dc5e-9fc1-4a32-9a33-ce72649fcc7a,dlvrbl,I,parent deliverable not loaded
+5f2051d9-63e1-438f-8515-b33691714fdb,4503,36ce6c34-a59e-4fdf-81ce-130730486408,dlvrbl,S,public route but author is not an auth user (no users row)
+e54e31c8-3150-4ee4-b5ab-6b31d007d6f0,4528,715e7afc-74c4-46df-ae67-cba416900fae,dlvrbl,R,parent deliverable not loaded
+16c8887b-84ed-4b4d-8045-73c066924191,4529,2f5a8c9d-682c-49f1-b99c-21f381bfc0e9,dlvrbl,S,parent deliverable not loaded
+0b4876f8-d2ff-41f6-98fd-5a2deb38888a,4530,2f5a8c9d-682c-49f1-b99c-21f381bfc0e9,dlvrbl,I,parent deliverable not loaded
+7a732e09-1731-46a7-a92c-6ebcefcee3f4,4531,2f5a8c9d-682c-49f1-b99c-21f381bfc0e9,dlvrbl,I,parent deliverable not loaded
+e68a823e-9d5b-437f-bf72-c66e2bc9e725,4532,5092ebfb-ad3c-466c-b9d6-428a8d239996,dlvrbl,A,parent deliverable not loaded
+a41682fa-ad1e-452b-b141-5cdb832119fc,4533,2f5a8c9d-682c-49f1-b99c-21f381bfc0e9,dlvrbl,R,parent deliverable not loaded
+c518641f-83a8-475d-9cc3-5d60bf73345e,4534,0a5f5a77-d02f-4f80-a833-4bef1f7ea3e0,dlvrbl,R,parent deliverable not loaded
+2d419a54-d27f-4dd8-9e9f-e288c6e1f86a,4535,44aec1dc-7885-4ac3-9fe8-64f18a8a2808,dlvrbl,R,parent deliverable not loaded
+07b7760f-3470-46b8-bf9e-cc41638f11ef,4576,66b1eecf-57b7-490b-9b6e-42c294aa0a8a,dlvrbl,C,parent deliverable not loaded
+61dda521-2983-49f0-8de1-1fe69bd1dda2,4594,a4f5c588-0e92-40fa-a49b-6af3164dacf3,dlvrbl,A,parent deliverable not loaded
+e990fd2a-9932-4b8d-8941-ea870d82cc1d,4659,fe0df93d-eb5f-43ea-bd29-5d0a202462d3,dlvrbl,I,parent deliverable not loaded
+ce1baa6d-93fb-4b69-a8be-65cfe213a7be,4660,224fb477-437e-4bf6-8c05-4f85374a8ebb,dlvrbl,I,parent deliverable not loaded
+02beff33-d046-4389-9bba-6c2644bd7c48,4661,8c27a2b5-6937-4588-8a07-ed30cf63d8a5,dlvrbl,I,parent deliverable not loaded
+3f054b83-eeb7-4afa-913d-cbc9ecc47263,4662,dcc8c9e0-be30-450e-90fb-79dea2c2fb9a,dlvrbl,I,parent deliverable not loaded
+a807c49e-46ec-41ee-855b-a315149049d6,4663,e6daa689-0e9b-41a3-91e0-e9cfe713c20d,dlvrbl,I,parent deliverable not loaded
+933a6e63-f9a2-4a2e-8b9c-b75ac5da55d0,4664,547261d2-3d12-4316-b8cd-bdc31766f3df,dlvrbl,I,parent deliverable not loaded
+d674fc82-27c6-42bc-8ff0-5ace816589f4,4665,b42658fe-50fe-43e6-a366-09a67268e573,dlvrbl,I,parent deliverable not loaded
+f40333c6-59f1-4761-b1c1-003f641b760d,4673,64bc9f6a-b073-4942-b6d2-e3a5891533cb,dlvrbl,I,parent deliverable not loaded
+ae2c76b6-3e7a-4571-8e6e-67afba8fc9b1,4794,d41f1106-1a50-463f-b6ae-6fcddbc77edd,dlvrbl,I,parent deliverable not loaded
+05a55500-8dd6-443d-bb51-4338ca5088ac,4795,d41f1106-1a50-463f-b6ae-6fcddbc77edd,dlvrbl,A,parent deliverable not loaded
+666c89c8-ba2a-4f9e-ad53-f0b3c90d74e2,4796,0d5230da-83ea-4131-86f3-b01730acbc99,dlvrbl,I,parent deliverable not loaded
+51191601-3da6-4bc0-93b0-2c5fa705463f,4797,0d5230da-83ea-4131-86f3-b01730acbc99,dlvrbl,A,parent deliverable not loaded
+96a5eaf7-f370-4861-9e92-87650de87c60,4933,a4f5c588-0e92-40fa-a49b-6af3164dacf3,dlvrbl,S,parent deliverable not loaded
+f47eda90-12aa-4cda-803d-6c49cc856e62,5228,d0abc8fd-8c24-4f91-aad2-d159ee3a723a,dlvrbl,S,parent deliverable not loaded
+be65d615-74dd-4cf2-bf4a-4931da586626,5333,ea5b5d3e-1b0c-4b71-8942-3ad63145f0a6,dlvrbl,S,parent deliverable not loaded
+eb941f5e-fc79-4cf0-8681-507966027fad,5496,dbf21e00-4179-44e2-8475-23c1035aac82,dlvrbl,A,empty comment content
+919ab64d-9707-455e-a800-6382abbe2d1b,5622,94a92873-edf0-43d7-9cd4-94f944e3c2b4,dlvrbl,I,parent deliverable not loaded
+edc62c08-5f2e-417f-8ea2-b07c8b20553c,5647,3bebe4fd-9a50-4231-b667-7d9cf1d86cfb,dlvrbl,I,author did not migrate (unresolved user_id)
+1c910827-e46b-40eb-a056-2f7f2f968198,5655,9a6dae54-c6e7-488a-8b19-4eab3bbd0b84,dlvrbl,R,parent deliverable not loaded
+13fdcb83-90d7-440f-840d-168d091aa2ef,5656,4e904ec7-7f1b-44de-b59a-70fd9d2899aa,dlvrbl,I,parent deliverable not loaded
+04da8778-9b8a-4c9b-95cf-2c1a07e04433,5947,1d9d3d21-ce83-4942-8264-3f8ee7d0d150,dlvrbl,I,parent deliverable not loaded
+339516a6-9dfa-4f68-8880-f613e78c6852,5948,20d546a5-4708-4429-8c28-d135aa62ffe6,dlvrbl,I,parent deliverable not loaded
+4cf5c210-1956-4505-8357-19e083f4d108,5949,a0785c74-1cb6-4eab-b9fe-d56aba077d17,dlvrbl,A,parent deliverable not loaded
+c7fb4d3b-3200-4f48-8ed5-0362529e9c0c,5950,a0785c74-1cb6-4eab-b9fe-d56aba077d17,dlvrbl,R,parent deliverable not loaded
+e4b29d84-500c-4bf1-85cd-ea521819d005,5951,9bad67f1-4897-4ec2-b5ab-dbe4c648ec1c,dlvrbl,I,parent deliverable not loaded
+3d8feb9d-4489-4fb6-b762-2179c16a9533,5956,82cbe6eb-bcd4-4bbb-a945-baefa2a6a8c0,dlvrbl,I,parent deliverable not loaded
+02847a9a-cec7-4be3-8245-887f7521f855,5957,5dadacea-ce32-4291-8380-d37adef2e932,dlvrbl,I,parent deliverable not loaded
+2dcb6f10-5f52-45b9-a6e3-2d87a9002430,5958,89e352e9-49d5-4264-a6f5-8b60ecddac38,dlvrbl,I,parent deliverable not loaded
+12a6e830-712b-4ef9-8f79-7420d88bfc5a,6060,2e8c7dbf-1868-483f-a731-631b8e27e3e9,dlvrbl,I,parent deliverable not loaded
+dc9e4ffb-e999-4b7c-84c6-052eee3b7a25,6656,37b4b99d-0167-4000-8160-6f3a1e739d2c,dlvrbl,I,parent deliverable not loaded
+97cbaecc-c729-4ce7-b111-3f0d2e13a006,7155,1d4c071d-fc29-4a4b-98f1-d4203f077de6,dlvrbl,S,parent deliverable not loaded
+88c592ad-b476-4cd9-94e6-acc374e5de0e,7315,3b2c4049-f384-4a04-a580-a8f60d8e7c22,dlvrbl,S,parent deliverable not loaded
+1644a659-9697-4396-bc0a-10ebf0c3af46,7349,0b7a1d9d-a3a1-47db-9765-c7fba056f37e,dlvrbl,I,parent deliverable not loaded
+4304fac9-dd2e-4692-9b9f-1018f6776b9c,7463,92e2aa82-b8a0-44af-97f7-a987db1e0f37,dlvrbl,I,parent deliverable not loaded
+fba76381-e138-441a-a5b2-b1e2a18e911c,7464,046b1288-d200-401b-a70c-bd6be7b82849,dlvrbl,I,parent deliverable not loaded
+4a14d32b-7492-49c0-ac60-15234679dcf5,7465,a33783f3-d848-4a41-af69-0d00aadd387d,dlvrbl,I,parent deliverable not loaded
+a85ee12d-33f9-4e11-adc2-026ebf7ebb01,7466,9af6b9b9-0b75-4f5c-a594-8712401a5782,dlvrbl,I,parent deliverable not loaded
+b82fd749-30ea-4360-bbdf-47d09c5b2ef1,7467,aa96faa1-a5a3-437c-b9e7-eb0cb18bb894,dlvrbl,I,parent deliverable not loaded
+4666c65a-e291-4c99-9dcc-2078f85b6de0,7468,b8ab1473-7252-47ac-9447-bf9cf25a63b6,dlvrbl,I,parent deliverable not loaded
+e80273be-0183-4cf6-bf46-e3b4595ddfc2,7469,c9095da6-68d5-43df-a4bb-9c6451206539,dlvrbl,I,parent deliverable not loaded
+5f5ed6a5-a8d1-43a3-b5df-1c7fe4909004,7470,9b00eb6f-48fa-4c27-a3c0-33570f7369e4,dlvrbl,I,parent deliverable not loaded
+eedfcdb0-db66-4cbd-b93b-0dc4db1bd1ed,7471,1e5ab68e-d0b4-4b62-8a8c-e1ffd4ac7e82,dlvrbl,I,parent deliverable not loaded
+669fa488-b8c8-4031-bc7e-77730f05ac55,7472,9600b296-802d-40e0-92d7-f525c7cf9692,dlvrbl,I,parent deliverable not loaded
+023f6073-ccb0-49db-9319-f0628fc9a6f2,7473,f1162a23-cb9b-4aa7-9373-d26018a32e1f,dlvrbl,I,parent deliverable not loaded
+2141b825-e262-4370-9a57-bf6738ebc4a9,7474,e3c1ecba-debe-4d1e-9fda-2f830efed20f,dlvrbl,I,parent deliverable not loaded
+33bfa866-93f2-49c4-8b19-e1824b54ae80,7475,ae1e261f-dfe1-4a4d-ad33-70755535bf5b,dlvrbl,I,parent deliverable not loaded
+f57195c9-e0c5-466e-8d52-39b2fb6e614f,7476,a948f9e7-55be-4cbe-9ea2-cdc067c4f884,dlvrbl,I,parent deliverable not loaded
+63685023-3c04-4b65-a02a-a3cd2ed63e73,7627,e10464e5-f5b8-41be-a253-ffce4c3ac30c,dlvrbl,S,public route but author is not an auth user (no users row)
+16327c7f-8ce9-42ec-b70e-329f2fbd25c2,7744,c9944482-905e-403e-8bfa-1284a90899d2,dlvrbl,I,parent deliverable not loaded
+6ede095b-f4aa-440d-b61e-4e144bf86c3a,7745,c9944482-905e-403e-8bfa-1284a90899d2,dlvrbl,A,parent deliverable not loaded
+7d5ba9d1-3113-4e77-b2f0-b92a76d1fe8d,8036,203693a6-1497-4fff-bb3f-efeff17f692a,dlvrbl,I,parent deliverable not loaded
+0bc3c6aa-893d-4701-b02d-cab2ae5763c2,8037,203693a6-1497-4fff-bb3f-efeff17f692a,dlvrbl,A,parent deliverable not loaded
+b2d13a7c-5a34-4427-ad2d-61b8a8925ab6,8062,c881bea5-59ef-4cc5-8a39-16f41e678531,dlvrbl,S,parent deliverable not loaded
+24c0fb23-7573-4230-8285-dea65b4d929c,8558,66e53aa8-885a-41bc-bad7-830bfc3a6ecd,dlvrbl,I,parent deliverable not loaded
+9fc482d7-4b3c-47b1-8153-21b190b4ce4f,8559,ba1ca420-69b5-464e-a745-3df8b7840cda,dlvrbl,I,parent deliverable not loaded
+dda3391a-530a-4d25-9045-6cc3a36ca0b4,8560,fe2202fe-9f0b-4d89-8cbc-072b8ca6fc5c,dlvrbl,I,parent deliverable not loaded
+445aaa92-bec2-4899-a14a-d196b9267825,8561,c22b723f-c6f1-411e-9fad-f9953e7dcbf5,dlvrbl,I,parent deliverable not loaded
+c0c9890c-d99c-407b-a8fc-8f9bbc2064d4,8562,3849b84c-d36c-4e70-ac3f-bd95fa64c35a,dlvrbl,I,parent deliverable not loaded
+f83f56ce-b4e2-4e65-965b-5e4608162c66,8563,814febe4-6794-4b75-ac26-13915abc864a,dlvrbl,I,parent deliverable not loaded
+681449f0-5588-4217-9488-054b58fb7e0a,8,0b9de63c-4da0-4be6-8120-2747dd8b0eb8,paper,,public route but author is not an auth user (no users row)

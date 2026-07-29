@@ -15,9 +15,11 @@ to every source row. The output is two committed artifacts:
 Determinism: minted UUIDs (random per run) are normalized to stable
 ``<TABLE>_UUID_NN`` tokens ordered by the natural key, so re-running on the
 same fixture yields a byte-identical trace (CI checks ``git diff --exit-code``).
-The demonstration loader no longer mints chip_id: a demonstration either
-preserves its legacy 21-W number or carries a NULL chip_id (deferred to the
-DEMOS app), so there is no minted sequence to mask.
+A demonstration either preserves its legacy 21-W chip_id (deterministic, emitted
+verbatim) or has one minted at INSERT by the migration_mode-gated
+``generate_medicaid_chip_id_numbers`` trigger; the minted sequence value is
+INSERT-order dependent, so it is likewise normalized to a stable
+``DEMONSTRATION_CHIP_NN`` token.
 
 Run it via the Make target (resolves/boots the harness Postgres for you):
 
@@ -45,7 +47,12 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from migration.lib import REPORTS_DIR, SQL_DIR, copy_csv_into_table  # noqa: E402
+from migration.lib import (  # noqa: E402
+    REPORTS_DIR,
+    SQL_DIR,
+    copy_csv_into_table,
+    mint_trigger_deploy_sql,
+)
 from migration.phases.init_pg import _load_crosswalk_registry  # noqa: E402
 from tests.sql._skeleton import create_mysql_raw_skeleton  # noqa: E402
 
@@ -134,6 +141,12 @@ def _standup(conn: Any) -> None:
     _load_jsonb_schemas(conn)
     _apply_dir(conn, SEEDS_STATIC_DIR)
     _apply_dir(conn, SEEDS_LIMITERS_DIR)
+    # Deploy ONLY the migration_mode-gated generate_medicaid_chip_id_numbers
+    # mint trigger, exactly as init_pg.run_ddl does, from the DEMOS source of
+    # truth. _run_build then sets demos_app.migration_mode='on' so the loader's
+    # explicit medicaid_id/chip_id is legacy-preserved and a chip_id is minted
+    # for rows without a legacy 21-W number (chip_id is NOT NULL).
+    conn.execute(mint_trigger_deploy_sql())
 
 
 def _build_source(conn: Any, seed_path: Path) -> None:
@@ -166,6 +179,11 @@ def _run_crosswalks(conn: Any) -> None:
 
 def _run_build(conn: Any) -> None:
     """Apply the real stg / app / associative / parity SQL in order."""
+    # Session-level (the harness conn is autocommit, so SET LOCAL would not
+    # persist) migration_mode='on' mirrors build_app's txn-local pre_sql: it
+    # lets the generate_medicaid_chip_id_numbers trigger accept the loader's
+    # legacy medicaid_id/chip_id and mint a chip_id for the NULL rows.
+    conn.execute("SET demos_app.migration_mode = 'on'")
     for directory in (STG_DIR, APP_DIR, APP_ASSOC_DIR, PARITY_DIR):
         _apply_dir(conn, directory)
 
@@ -207,26 +225,42 @@ def _demonstration_manifest(conn: Any) -> dict[str, Any]:
     loaded = _rows(
         conn,
         """
-        SELECT d.id::text, d.medicaid_id, d.status_id, d.current_phase_id, d.chip_id
+        SELECT d.id::text, d.medicaid_id, d.status_id, d.current_phase_id,
+               d.chip_id, r.chip_id_legacy
           FROM demos_app.demonstration d
+          LEFT JOIN stg.demonstration_resolved r ON r.new_uuid = d.id
          ORDER BY d.medicaid_id
         """,
     )
     token_by_uuid = {row[0]: f"DEMONSTRATION_UUID_{i:02d}" for i, row in enumerate(loaded, 1)}
 
     rows: list[dict[str, Any]] = []
-    for uuid_str, medicaid_id, status_id, phase_id, chip_id in loaded:
-        # The migration never mints chip_id: it is either the preserved legacy
-        # 21-W number or NULL (deferred to the DEMOS app to backfill).
-        chip_deferred = chip_id is None
+    # chip_id is now minted at INSERT by generate_medicaid_chip_id_numbers for
+    # rows without a legacy 21-W number. The minted sequence value is INSERT-
+    # order dependent, so -- exactly like the random UUIDs -- normalize each
+    # minted chip_id to a stable DEMONSTRATION_CHIP_NN token (ordered by
+    # medicaid_id) to keep the trace byte-identical across runs. A preserved
+    # legacy chip_id is deterministic and is emitted verbatim.
+    mint_seq = 0
+    for uuid_str, medicaid_id, status_id, phase_id, chip_id, chip_id_legacy in loaded:
+        if chip_id_legacy is not None:
+            chip_source = "preserved"
+            chip_token = chip_id
+        elif chip_id is not None:
+            mint_seq += 1
+            chip_source = "minted"
+            chip_token = f"DEMONSTRATION_CHIP_{mint_seq:02d}"
+        else:
+            chip_source = "deferred"
+            chip_token = None
         rows.append({
             "medicaid_id": medicaid_id,
             "uuid_token": token_by_uuid[uuid_str],
             "disposition": "loaded",
             "status_id": status_id,
             "current_phase_id": phase_id,
-            "chip_source": "deferred" if chip_deferred else "preserved",
-            "chip_id": chip_id,
+            "chip_source": chip_source,
+            "chip_id": chip_token,
         })
 
     for medicaid_id, status_cd, reason in _rows(
@@ -377,8 +411,9 @@ def _render_demonstration_trace(manifest: dict[str, Any]) -> str:
         "// Do not edit by hand; rerun `make demonstration-flow-trace`.",
         "// Minted UUIDs are normalized to stable DEMONSTRATION_UUID_NN tokens",
         "// (ordered by medicaid_id), so re-running on the same fixture is",
-        "// byte-identical. chip_id is preserved from the legacy 21-W number or",
-        "// left NULL (deferred to the DEMOS app); the migration never mints it.",
+        "// byte-identical. chip_id is the preserved legacy 21-W number, or is",
+        "// minted at INSERT by generate_medicaid_chip_id_numbers (migration_mode",
+        "// on) and normalized to a stable DEMONSTRATION_CHIP_NN token.",
         "",
         ".Stage row counts (curated fixture)",
         "[%header%autowidth]",
@@ -402,6 +437,8 @@ def _render_demonstration_trace(manifest: dict[str, Any]) -> str:
         chip = row.get("chip_id")
         if row.get("chip_source") == "preserved" and chip:
             chip = f"{chip} (preserved)"
+        elif row.get("chip_source") == "minted" and chip:
+            chip = f"{chip} (minted)"
         elif row.get("chip_source") == "deferred":
             chip = "— (deferred to DEMOS)"
         out.append(

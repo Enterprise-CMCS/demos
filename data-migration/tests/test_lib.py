@@ -97,10 +97,13 @@ def test_redact(raw: str, expected: str) -> None:
 
 
 class _FakeConn:
-    """Minimal stand-in for psycopg.Connection."""
+    """Minimal stand-in for psycopg.Connection.
+
+    Construction records that a new connection was opened and shares the SQL
+    capture list.
+    """
 
     def __init__(self, captured_dsn: list[str], captured_sql: list[str]) -> None:
-        """Record that a new connection was opened and share the SQL capture list."""
         self._captured_sql = captured_sql
         captured_dsn.append("called")
         self.transaction_entered = False
@@ -417,3 +420,75 @@ def test_phase_decorator_does_not_mark_on_exception(tmp_state_dir: Path) -> None
     with pytest.raises(RuntimeError):
         go()
     assert not lib.gate_path("p_d").exists()
+
+
+_FAKE_FUNCTIONS_SQL = """\
+-- some_other_function
+CREATE FUNCTION demos_app.some_other_function()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+    RETURN NEW;
+END;
+$$;
+
+-- generate_medicaid_chip_id_numbers
+CREATE FUNCTION demos_app.generate_medicaid_chip_id_numbers()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    migration_mode_on BOOL;
+BEGIN
+    migration_mode_on := coalesce(current_setting('demos_app.migration_mode', true), 'off') = 'on';
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER generate_medicaid_chip_id_numbers
+BEFORE INSERT ON demos_app.demonstration
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.generate_medicaid_chip_id_numbers();
+
+-- prevent_changing_immutable_demonstration_fields
+CREATE FUNCTION demos_app.prevent_changing_immutable_demonstration_fields()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+    RETURN NEW;
+END;
+$$;
+"""
+
+
+def test_extract_mint_trigger_sql_captures_only_the_mint_object() -> None:
+    """Extraction returns the exact function+trigger and nothing else from the file."""
+    sql = lib.extract_mint_trigger_sql(_FAKE_FUNCTIONS_SQL)
+    # Verbatim function + trigger for the mint object are present.
+    assert "CREATE FUNCTION demos_app.generate_medicaid_chip_id_numbers()" in sql
+    assert (
+        "current_setting('demos_app.migration_mode', true)" in sql
+    ), "the migration_mode gate body must be preserved verbatim"
+    assert "CREATE TRIGGER generate_medicaid_chip_id_numbers" in sql
+    assert "BEFORE INSERT ON demos_app.demonstration" in sql
+    # Neighbouring objects must NOT be pulled in.
+    assert "some_other_function" not in sql
+    assert "prevent_changing_immutable_demonstration_fields" not in sql
+    # Idempotent deploy: DROP guards precede the CREATEs so a re-run is a no-op.
+    assert "DROP TRIGGER IF EXISTS generate_medicaid_chip_id_numbers" in sql
+    assert "DROP FUNCTION IF EXISTS demos_app.generate_medicaid_chip_id_numbers" in sql
+
+
+def test_extract_mint_trigger_sql_raises_when_absent() -> None:
+    """A functions.sql missing the mint object must fail closed, not return empty."""
+    with pytest.raises(ValueError, match="generate_medicaid_chip_id_numbers"):
+        lib.extract_mint_trigger_sql("-- nothing to see here\nSELECT 1;\n")
+
+
+def test_mint_trigger_deploy_sql_reads_the_real_functions_sql() -> None:
+    """The resolver locates the canonical DEMOS functions.sql and extracts the trigger."""
+    path = lib.demos_functions_sql_path()
+    if not path.is_file():
+        pytest.skip("DEMOS server/src/sql/functions.sql not present in this checkout")
+    sql = lib.mint_trigger_deploy_sql()
+    assert "CREATE TRIGGER generate_medicaid_chip_id_numbers" in sql
+    assert "BEFORE INSERT ON demos_app.demonstration" in sql
+    assert "current_setting('demos_app.migration_mode', true)" in sql

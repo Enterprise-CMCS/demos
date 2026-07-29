@@ -1,0 +1,38 @@
+repo: Enterprise-CMCS/demos
+ref: main
+path: server/src/model/migrations
+sha256: a4dd0db9dae1333c423e6eb66e90fc8835a41c5c884b21ce406474b217d6a9f3
+fetched_at: 2026-07-27T18:00:35Z
+migrations (32):
+  - 20260312131729_prisma_init_baseline
+  - 20260312131759_init_baseline
+  - 20260520153709_remove_unneeded_permissions
+  - 20260520180111_state_updates_and_fixes
+  - 20260520220756_prisma_add_bn_values
+  - 20260526140859_initialize_demonstration_role_assignment_permissions
+  - 20260528190017_prisma_create_reference_system_tables
+  - 20260528190834_create_reference_system_tables
+  - 20260528211105_check_deliverable_name_whitespace
+  - 20260529095037_check_demonstration_text_whitespace
+  - 20260529170904_prisma_add_description_field
+  - 20260601203441_prisma_fix_pk_for_acceptance_table
+  - 20260602115947_check_signature_level
+  - 20260602132950_prisma_add_person_type_restriction_references
+  - 20260602201004_add_medicaid_chip_id_values
+  - 20260604132135_initialize_document_mutation_permissions
+  - 20260604191542_prisma_add_on_demand_report_tables
+  - 20260604191621_add_on_demand_report_tables
+  - 20260608200226_add_proper_report_name
+  - 20260611163107_add_app_details_report
+  - 20260612133841_date_name_changes
+  - 20260615182033_add_demo_overview_report
+  - 20260616155913_add_status_updated_at_to_applications
+  - 20260616212836_add_demo_type_report
+  - 20260617124348_add_application_approval_date
+  - 20260623125420_no_deliverable_submitted_cms_files
+  - 20260623222056_add_migrated_user_features
+  - 20260624205341_prisma_no_modifications_on_approved_demonstrations
+  - 20260625125653_no_modifications_on_approved_demonstrations
+  - 20260706142328_initialize_admin_schema_permissions
+  - 20260709182129_add_generated_file_name_for_reports
+  - 20260721192255_add_is_migrated_to_apps

@@ -2,7 +2,7 @@
  * Purpose:    Row-count reconciliation per consolidated BUILT family: every loadable source row is either in the target or in a recorded hold-back (no silent gaps, no over-count).
  * Inputs:     stg.*_resolved (loadable source-of-truth); demos_app.* targets; migration._parity_*_held / dup hold-back views.
  * Outputs:    migration._parity_row_counts (one row per family: source_count, target_count, held_count, delta).
- * Invariants: Any row with delta<>0 -> RED at Gate 1; the column cross-foot (sum source vs sum target+held) is Gate 2's count-checksum; conditional-DDL guarded to an empty view when any dependency is absent (idempotency harness no-op); idempotent via CREATE OR REPLACE. Applies after 14/40/44/48 (lexical order 90 > those) so the held views exist.
+ * Invariants: Any row with delta<>0 -> RED at Gate 1; the column cross-foot (sum source vs sum target+held) is Gate 2's count-checksum; conditional-DDL guarded to an empty view when any dependency is absent (idempotency harness no-op); idempotent via CREATE OR REPLACE. Applies after 04/14/40/44/48 (lexical order 90 > those) so the approved + pending held views exist.
  * Refs:       migration/phases/parity.py "1. Row count parity" + "2. Numeric sum parity" CheckResults; reports/narrative/pending_approved_decisions.md (family rules).
  *
  * Parity check 1 (row-count parity) + check 2 (count-checksum).
@@ -22,8 +22,16 @@
  *                              deferred, so person == resolved users today; if a
  *                              contact loader lands, person exceeds it and this
  *                              gate goes RED, forcing an update -- intended).
- *   - demonstration          : stg.demonstration_resolved -> demonstration
- *                              + duplicate-medicaid_id hold-back.
+ *   - demonstration          : stg.demonstration_resolved (approved track)
+ *                              + stg.pending_demonstration_resolved (workflow-7
+ *                              orphan pending demos, loaded by 20_app/31) ->
+ *                              the single consolidated demos_app.demonstration
+ *                              target + the approved duplicate-medicaid_id
+ *                              hold-back + the pending load-time hold-back
+ *                              (_parity_pending_demonstration_held). Both tracks
+ *                              land in the SAME target, so both source terms and
+ *                              both hold-backs must be counted or the cross-foot
+ *                              goes RED by the number of loaded pending demos.
  *   - deliverable            : stg.deliverable_resolved -> deliverable + held.
  *   - comment                : stg.comment_resolved + stg.override_note_resolved
  *                              -> private_comment + public_comment
@@ -50,7 +58,7 @@ SET search_path TO migration, stg, demos_app, public;
 
 DO $$
 DECLARE
-  deps text[] := ARRAY['stg.users_resolved', 'stg.demonstration_resolved', 'stg.deliverable_resolved', 'stg.comment_resolved', 'stg.override_note_resolved', 'stg.system_role_assignment_resolved', 'migration._parity_deliverable_held', 'migration._parity_comment_held', 'migration._parity_override_note_held', 'migration._parity_demonstration_held_dup_medicaid_id'];
+  deps text[] := ARRAY['stg.users_resolved', 'stg.demonstration_resolved', 'stg.pending_demonstration_resolved', 'stg.deliverable_resolved', 'stg.comment_resolved', 'stg.override_note_resolved', 'stg.system_role_assignment_resolved', 'migration._parity_deliverable_held', 'migration._parity_comment_held', 'migration._parity_override_note_held', 'migration._parity_demonstration_held_dup_medicaid_id', 'migration._parity_pending_demonstration_held'];
   d text;
 BEGIN
   FOREACH d IN ARRAY deps LOOP
@@ -75,9 +83,11 @@ BEGIN
           (SELECT count(*) FROM demos_app.person),
           0::bigint),
         ('demonstration',
-          (SELECT count(*) FROM stg.demonstration_resolved),
+          (SELECT count(*) FROM stg.demonstration_resolved)
+            + (SELECT count(*) FROM stg.pending_demonstration_resolved),
           (SELECT count(*) FROM demos_app.demonstration),
-          (SELECT count(*) FROM migration._parity_demonstration_held_dup_medicaid_id)),
+          (SELECT count(*) FROM migration._parity_demonstration_held_dup_medicaid_id)
+            + (SELECT count(*) FROM migration._parity_pending_demonstration_held)),
         ('deliverable',
           (SELECT count(*) FROM stg.deliverable_resolved),
           (SELECT count(*) FROM demos_app.deliverable),

@@ -1,0 +1,932 @@
+id,status_name,date_column,filled
+1,On Hold - Pending Policy Decision,mdcd_demo_aplctn_stus_dt,1
+1,On Hold - Pending Policy Decision,phase_2_state_aplctn_deemd_cmpltn_dt,1
+1,On Hold - Pending Policy Decision,phase_2_cmpltns_rvw_dt,1
+1,On Hold - Pending Policy Decision,phase_2_rcvd_dt,1
+2,On Hold - Pending Policy Decision,mdcd_demo_aplctn_stus_dt,1
+2,On Hold - Pending Policy Decision,phase_2_state_aplctn_deemd_cmpltn_dt,1
+2,On Hold - Pending Policy Decision,phase_2_cmpltns_rvw_dt,1
+2,On Hold - Pending Policy Decision,phase_2_rcvd_dt,1
+3,Approved,mdcd_demo_aplctn_stus_dt,1
+3,Approved,phase_3_c_ogc_strt_dt,1
+3,Approved,phase_3_a_sme_strt_dt,1
+3,Approved,phase_2_state_aplctn_deemd_cmpltn_dt,1
+3,Approved,phase_3_b_cmcs_strt_dt,1
+3,Approved,phase_3_b_omb_strt_dt,1
+3,Approved,phase_2_dsrd_aprvl_dt,1
+3,Approved,phase_3_c_omb_end_dt,1
+3,Approved,phase_2_fed_cmt_prd_strt_dt,1
+3,Approved,phase_3_b_ogc_strt_dt,1
+3,Approved,phase_2_fed_cmt_prd_end_dt,1
+3,Approved,phase_4_end_dt,1
+3,Approved,phase_3_c_ogc_end_dt,1
+3,Approved,phase_3_c_omb_strt_dt,1
+3,Approved,phase_3_a_sme_end_dt,1
+3,Approved,phase_4_strt_dt,1
+3,Approved,phase_2_cmpltns_rvw_dt,1
+3,Approved,phase_2_rcvd_dt,1
+4,Approved,mdcd_demo_aplctn_stus_dt,1
+4,Approved,phase_3_b_ogc_end_dt,1
+4,Approved,phase_2_state_aplctn_deemd_cmpltn_dt,1
+4,Approved,phase_3_a_sme_end_dt,1
+4,Approved,phase_3_c_ogc_strt_dt,1
+4,Approved,phase_3_b_ogc_strt_dt,1
+4,Approved,phase_3_b_omb_strt_dt,1
+4,Approved,phase_2_fed_cmt_prd_end_dt,1
+4,Approved,phase_3_c_omb_strt_dt,1
+4,Approved,phase_3_b_cmcs_strt_dt,1
+4,Approved,phase_3_a_sme_strt_dt,1
+4,Approved,phase_2_fed_cmt_prd_strt_dt,1
+4,Approved,phase_2_cmpltns_rvw_dt,1
+4,Approved,phase_2_rcvd_dt,1
+5,Under Review,mdcd_demo_aplctn_stus_dt,1
+5,Under Review,phase_2_fed_cmt_prd_strt_dt,1
+5,Under Review,phase_3_a_sme_end_dt,1
+5,Under Review,phase_3_b_cmcs_strt_dt,1
+5,Under Review,phase_2_fed_cmt_prd_end_dt,1
+5,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+5,Under Review,phase_3_a_sme_strt_dt,1
+5,Under Review,phase_2_dsrd_aprvl_dt,1
+5,Under Review,phase_2_cmpltns_rvw_dt,1
+5,Under Review,phase_2_rcvd_dt,1
+5,Under Review,phase_1_end_dt,1
+5,Under Review,phase_1_strt_dt,1
+6,On Hold - Pending Policy Decision,mdcd_demo_aplctn_stus_dt,1
+6,On Hold - Pending Policy Decision,phase_3_a_sme_end_dt,1
+6,On Hold - Pending Policy Decision,phase_3_a_sme_strt_dt,1
+6,On Hold - Pending Policy Decision,phase_2_fed_cmt_prd_end_dt,1
+6,On Hold - Pending Policy Decision,phase_2_fed_cmt_prd_strt_dt,1
+6,On Hold - Pending Policy Decision,phase_2_state_aplctn_deemd_cmpltn_dt,1
+6,On Hold - Pending Policy Decision,phase_2_cmpltns_rvw_dt,1
+6,On Hold - Pending Policy Decision,phase_2_rcvd_dt,1
+6,On Hold - Pending Policy Decision,phase_1_strt_dt,1
+6,On Hold - Pending Policy Decision,phase_1_end_dt,1
+7,On Hold - Pending Policy Decision,mdcd_demo_aplctn_stus_dt,1
+7,On Hold - Pending Policy Decision,phase_3_a_sme_strt_dt,1
+7,On Hold - Pending Policy Decision,phase_2_fed_cmt_prd_strt_dt,1
+7,On Hold - Pending Policy Decision,phase_2_state_aplctn_deemd_cmpltn_dt,1
+7,On Hold - Pending Policy Decision,phase_2_fed_cmt_prd_end_dt,1
+7,On Hold - Pending Policy Decision,phase_3_a_sme_end_dt,1
+7,On Hold - Pending Policy Decision,phase_2_cmpltns_rvw_dt,1
+7,On Hold - Pending Policy Decision,phase_2_rcvd_dt,1
+8,Withdrawn,mdcd_demo_aplctn_stus_dt,1
+8,Withdrawn,phase_3_b_cmcs_end_dt,1
+8,Withdrawn,phase_3_a_sme_strt_dt,1
+8,Withdrawn,phase_2_state_aplctn_deemd_cmpltn_dt,1
+8,Withdrawn,phase_3_c_ogc_end_dt,1
+8,Withdrawn,phase_2_fed_cmt_prd_strt_dt,1
+8,Withdrawn,phase_3_c_ogc_strt_dt,1
+8,Withdrawn,phase_2_fed_cmt_prd_end_dt,1
+8,Withdrawn,phase_3_b_omb_end_dt,1
+8,Withdrawn,phase_3_a_sme_end_dt,1
+8,Withdrawn,phase_3_b_omb_strt_dt,1
+8,Withdrawn,phase_3_b_cmcs_strt_dt,1
+8,Withdrawn,phase_3_b_ogc_end_dt,1
+8,Withdrawn,phase_2_dsrd_aprvl_dt,1
+8,Withdrawn,phase_3_c_omb_end_dt,1
+8,Withdrawn,phase_3_b_ogc_strt_dt,1
+8,Withdrawn,phase_3_c_omb_strt_dt,1
+8,Withdrawn,phase_2_cmpltns_rvw_dt,1
+8,Withdrawn,phase_2_rcvd_dt,1
+9,Withdrawn,mdcd_demo_aplctn_stus_dt,1
+9,Withdrawn,phase_3_a_sme_end_dt,1
+9,Withdrawn,phase_3_b_ogc_strt_dt,1
+9,Withdrawn,phase_4_strt_dt,1
+9,Withdrawn,phase_3_a_sme_strt_dt,1
+9,Withdrawn,phase_2_fed_cmt_prd_end_dt,1
+9,Withdrawn,phase_3_b_cmcs_strt_dt,1
+9,Withdrawn,phase_3_b_omb_strt_dt,1
+9,Withdrawn,phase_2_state_aplctn_deemd_cmpltn_dt,1
+9,Withdrawn,phase_2_fed_cmt_prd_strt_dt,1
+9,Withdrawn,phase_2_cmpltns_rvw_dt,1
+9,Withdrawn,phase_2_rcvd_dt,1
+9,Withdrawn,phase_1_end_dt,1
+9,Withdrawn,phase_1_strt_dt,1
+10,On Hold - Pending Policy Decision,mdcd_demo_aplctn_stus_dt,1
+10,On Hold - Pending Policy Decision,phase_3_b_omb_strt_dt,1
+10,On Hold - Pending Policy Decision,phase_2_fed_cmt_prd_end_dt,1
+10,On Hold - Pending Policy Decision,phase_3_b_ogc_strt_dt,1
+10,On Hold - Pending Policy Decision,phase_3_b_cmcs_strt_dt,1
+10,On Hold - Pending Policy Decision,phase_2_state_aplctn_deemd_cmpltn_dt,1
+10,On Hold - Pending Policy Decision,phase_3_c_omb_strt_dt,1
+10,On Hold - Pending Policy Decision,phase_3_a_sme_end_dt,1
+10,On Hold - Pending Policy Decision,phase_3_c_ogc_strt_dt,1
+10,On Hold - Pending Policy Decision,phase_2_fed_cmt_prd_strt_dt,1
+10,On Hold - Pending Policy Decision,phase_3_a_sme_strt_dt,1
+10,On Hold - Pending Policy Decision,phase_2_cmpltns_rvw_dt,1
+10,On Hold - Pending Policy Decision,phase_2_rcvd_dt,1
+10,On Hold - Pending Policy Decision,phase_1_end_dt,1
+10,On Hold - Pending Policy Decision,phase_1_strt_dt,1
+11,Approved,mdcd_demo_aplctn_stus_dt,1
+11,Approved,phase_2_rcvd_dt,1
+12,On Hold - Pending Policy Decision,mdcd_demo_aplctn_stus_dt,1
+12,On Hold - Pending Policy Decision,phase_2_fed_cmt_prd_strt_dt,1
+12,On Hold - Pending Policy Decision,phase_3_a_sme_end_dt,1
+12,On Hold - Pending Policy Decision,phase_3_a_sme_strt_dt,1
+12,On Hold - Pending Policy Decision,phase_2_state_aplctn_deemd_cmpltn_dt,1
+12,On Hold - Pending Policy Decision,phase_3_b_cmcs_strt_dt,1
+12,On Hold - Pending Policy Decision,phase_2_fed_cmt_prd_end_dt,1
+12,On Hold - Pending Policy Decision,phase_2_cmpltns_rvw_dt,1
+12,On Hold - Pending Policy Decision,phase_2_rcvd_dt,1
+12,On Hold - Pending Policy Decision,phase_1_end_dt,1
+12,On Hold - Pending Policy Decision,phase_1_strt_dt,1
+13,Withdrawn,mdcd_demo_aplctn_stus_dt,1
+13,Withdrawn,phase_2_fed_cmt_prd_strt_dt,1
+13,Withdrawn,phase_2_state_aplctn_deemd_cmpltn_dt,1
+13,Withdrawn,phase_3_a_sme_end_dt,1
+13,Withdrawn,phase_3_a_sme_strt_dt,1
+13,Withdrawn,phase_3_b_cmcs_strt_dt,1
+13,Withdrawn,phase_2_fed_cmt_prd_end_dt,1
+13,Withdrawn,phase_3_b_ogc_strt_dt,1
+13,Withdrawn,phase_2_cmpltns_rvw_dt,1
+13,Withdrawn,phase_2_rcvd_dt,1
+14,Withdrawn,mdcd_demo_aplctn_stus_dt,1
+14,Withdrawn,phase_3_a_sme_strt_dt,1
+14,Withdrawn,phase_2_fed_cmt_prd_end_dt,1
+14,Withdrawn,phase_2_state_aplctn_deemd_cmpltn_dt,1
+14,Withdrawn,phase_3_b_cmcs_strt_dt,1
+14,Withdrawn,phase_3_a_sme_end_dt,1
+14,Withdrawn,phase_2_fed_cmt_prd_strt_dt,1
+14,Withdrawn,phase_2_cmpltns_rvw_dt,1
+14,Withdrawn,phase_2_rcvd_dt,1
+15,On Hold - State Request,mdcd_demo_aplctn_stus_dt,1
+15,On Hold - State Request,phase_2_fed_cmt_prd_end_dt,1
+15,On Hold - State Request,phase_2_state_aplctn_deemd_cmpltn_dt,1
+15,On Hold - State Request,phase_2_fed_cmt_prd_strt_dt,1
+15,On Hold - State Request,phase_2_cmpltns_rvw_dt,1
+15,On Hold - State Request,phase_2_rcvd_dt,1
+16,On Hold - State Request,mdcd_demo_aplctn_stus_dt,1
+16,On Hold - State Request,phase_3_b_cmcs_strt_dt,1
+16,On Hold - State Request,phase_4_end_dt,1
+16,On Hold - State Request,phase_3_c_omb_end_dt,1
+16,On Hold - State Request,phase_3_b_ogc_strt_dt,1
+16,On Hold - State Request,phase_3_b_ogc_end_dt,1
+16,On Hold - State Request,phase_4_strt_dt,1
+16,On Hold - State Request,phase_2_state_aplctn_deemd_cmpltn_dt,1
+16,On Hold - State Request,phase_3_c_ogc_strt_dt,1
+16,On Hold - State Request,phase_5_strt_dt,1
+16,On Hold - State Request,phase_3_c_omb_strt_dt,1
+16,On Hold - State Request,phase_3_a_sme_strt_dt,1
+16,On Hold - State Request,phase_3_b_omb_strt_dt,1
+16,On Hold - State Request,phase_2_cmpltns_rvw_dt,1
+16,On Hold - State Request,phase_2_rcvd_dt,1
+16,On Hold - State Request,phase_1_strt_dt,1
+17,Withdrawn,mdcd_demo_aplctn_stus_dt,1
+17,Withdrawn,phase_2_state_aplctn_deemd_cmpltn_dt,1
+17,Withdrawn,phase_2_cmpltns_rvw_dt,1
+17,Withdrawn,phase_2_rcvd_dt,1
+17,Withdrawn,phase_1_end_dt,1
+17,Withdrawn,phase_1_strt_dt,1
+18,Under Review,mdcd_demo_aplctn_stus_dt,1
+18,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+18,Under Review,phase_3_b_ogc_strt_dt,1
+18,Under Review,phase_2_fed_cmt_prd_end_dt,1
+18,Under Review,phase_3_b_omb_strt_dt,1
+18,Under Review,phase_2_fed_cmt_prd_strt_dt,1
+18,Under Review,phase_2_rcvd_dt,1
+88,Approved,mdcd_demo_aplctn_stus_dt,1
+88,Approved,phase_2_cmpltns_rvw_dt,1
+88,Approved,phase_2_rcvd_dt,1
+89,Approved,mdcd_demo_aplctn_stus_dt,1
+89,Approved,phase_2_cmpltns_rvw_dt,1
+89,Approved,phase_2_rcvd_dt,1
+91,Approved,mdcd_demo_aplctn_stus_dt,1
+91,Approved,phase_3_c_omb_end_dt,1
+91,Approved,phase_3_c_omb_strt_dt,1
+91,Approved,phase_2_cmpltns_rvw_dt,1
+91,Approved,phase_2_rcvd_dt,1
+93,Approved,mdcd_demo_aplctn_stus_dt,1
+93,Approved,phase_6_end_dt,1
+93,Approved,phase_3_c_ogc_end_dt,1
+93,Approved,phase_3_b_omb_strt_dt,1
+93,Approved,phase_5_end_dt,1
+93,Approved,phase_6_strt_dt,1
+93,Approved,phase_2_fed_cmt_prd_end_dt,1
+93,Approved,phase_3_c_ogc_strt_dt,1
+93,Approved,phase_3_c_omb_end_dt,1
+93,Approved,phase_4_end_dt,1
+93,Approved,phase_2_state_aplctn_deemd_cmpltn_dt,1
+93,Approved,phase_3_c_omb_strt_dt,1
+93,Approved,phase_4_strt_dt,1
+93,Approved,phase_3_b_ogc_end_dt,1
+93,Approved,phase_3_a_sme_strt_dt,1
+93,Approved,phase_3_b_ogc_strt_dt,1
+93,Approved,phase_5_strt_dt,1
+93,Approved,phase_2_dsrd_aprvl_dt,1
+93,Approved,phase_2_fed_cmt_prd_strt_dt,1
+93,Approved,phase_3_b_omb_end_dt,1
+93,Approved,phase_3_a_sme_end_dt,1
+93,Approved,phase_2_cmpltns_rvw_dt,1
+93,Approved,phase_2_rcvd_dt,1
+97,Approved,mdcd_demo_aplctn_stus_dt,1
+97,Approved,phase_2_cmpltns_rvw_dt,1
+97,Approved,phase_2_rcvd_dt,1
+99,Under Review,mdcd_demo_aplctn_stus_dt,1
+99,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+99,Under Review,phase_3_a_sme_strt_dt,1
+99,Under Review,phase_2_fed_cmt_prd_strt_dt,1
+99,Under Review,phase_2_fed_cmt_prd_end_dt,1
+99,Under Review,phase_3_a_sme_end_dt,1
+99,Under Review,phase_2_dsrd_aprvl_dt,1
+99,Under Review,phase_2_cmpltns_rvw_dt,1
+99,Under Review,phase_2_rcvd_dt,1
+101,Approved,mdcd_demo_aplctn_stus_dt,1
+101,Approved,phase_2_state_aplctn_deemd_cmpltn_dt,1
+101,Approved,phase_3_a_sme_strt_dt,1
+101,Approved,phase_2_fed_cmt_prd_strt_dt,1
+101,Approved,phase_2_dsrd_aprvl_dt,1
+101,Approved,phase_2_fed_cmt_prd_end_dt,1
+101,Approved,phase_3_b_cmcs_strt_dt,1
+101,Approved,phase_3_a_sme_end_dt,1
+101,Approved,phase_2_cmpltns_rvw_dt,1
+101,Approved,phase_2_rcvd_dt,1
+102,Under Review,mdcd_demo_aplctn_stus_dt,1
+102,Under Review,phase_2_cmpltns_rvw_dt,1
+102,Under Review,phase_2_rcvd_dt,1
+104,Under Review,mdcd_demo_aplctn_stus_dt,1
+104,Under Review,phase_2_cmpltns_rvw_dt,1
+104,Under Review,phase_2_rcvd_dt,1
+105,Approved,mdcd_demo_aplctn_stus_dt,1
+105,Approved,phase_2_cmpltns_rvw_dt,1
+105,Approved,phase_2_rcvd_dt,1
+109,Approved,mdcd_demo_aplctn_stus_dt,1
+109,Approved,phase_2_cmpltns_rvw_dt,1
+109,Approved,phase_2_rcvd_dt,1
+114,Approved,mdcd_demo_aplctn_stus_dt,1
+114,Approved,phase_2_state_aplctn_deemd_cmpltn_dt,1
+114,Approved,phase_2_dsrd_aprvl_dt,1
+114,Approved,phase_2_cmpltns_rvw_dt,1
+114,Approved,phase_2_rcvd_dt,1
+115,Under Review,mdcd_demo_aplctn_stus_dt,1
+115,Under Review,phase_2_cmpltns_rvw_dt,1
+115,Under Review,phase_2_rcvd_dt,1
+116,Approved,mdcd_demo_aplctn_stus_dt,1
+116,Approved,phase_3_a_sme_end_dt,1
+116,Approved,phase_3_b_cmcs_end_dt,1
+116,Approved,phase_3_c_omb_end_dt,1
+116,Approved,phase_3_b_cmcs_strt_dt,1
+116,Approved,phase_3_b_omb_strt_dt,1
+116,Approved,phase_3_c_ogc_strt_dt,1
+116,Approved,phase_4_end_dt,1
+116,Approved,phase_2_fed_cmt_prd_end_dt,1
+116,Approved,phase_3_a_frvt_end_dt,1
+116,Approved,phase_2_dsrd_aprvl_dt,1
+116,Approved,phase_3_a_frvt_strt_dt,1
+116,Approved,phase_3_a_sme_strt_dt,1
+116,Approved,phase_3_b_ogc_strt_dt,1
+116,Approved,phase_3_b_ogc_end_dt,1
+116,Approved,phase_3_b_omb_end_dt,1
+116,Approved,phase_5_strt_dt,1
+116,Approved,phase_4_strt_dt,1
+116,Approved,phase_2_fed_cmt_prd_strt_dt,1
+116,Approved,phase_3_c_omb_strt_dt,1
+116,Approved,phase_2_state_aplctn_deemd_cmpltn_dt,1
+116,Approved,phase_6_strt_dt,1
+116,Approved,phase_2_cmpltns_rvw_dt,1
+116,Approved,phase_2_rcvd_dt,1
+117,Approved,mdcd_demo_aplctn_stus_dt,1
+117,Approved,phase_2_cmpltns_rvw_dt,1
+117,Approved,phase_2_rcvd_dt,1
+118,Approved,mdcd_demo_aplctn_stus_dt,1
+118,Approved,phase_2_cmpltns_rvw_dt,1
+118,Approved,phase_2_rcvd_dt,1
+122,Approved,mdcd_demo_aplctn_stus_dt,1
+122,Approved,phase_2_cmpltns_rvw_dt,1
+122,Approved,phase_2_rcvd_dt,1
+125,Under Review,mdcd_demo_aplctn_stus_dt,1
+131,Approved,mdcd_demo_aplctn_stus_dt,1
+131,Approved,phase_2_cmpltns_rvw_dt,1
+131,Approved,phase_2_rcvd_dt,1
+133,Under Review,mdcd_demo_aplctn_stus_dt,1
+133,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+133,Under Review,phase_3_a_sme_strt_dt,1
+133,Under Review,phase_2_dsrd_aprvl_dt,1
+133,Under Review,phase_3_a_frvt_strt_dt,1
+133,Under Review,phase_3_b_ogc_strt_dt,1
+133,Under Review,phase_3_a_frvt_end_dt,1
+133,Under Review,phase_3_a_sme_end_dt,1
+133,Under Review,phase_3_b_omb_strt_dt,1
+133,Under Review,phase_2_cmpltns_rvw_dt,1
+133,Under Review,phase_2_rcvd_dt,1
+136,Under Review,mdcd_demo_aplctn_stus_dt,1
+136,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+136,Under Review,phase_2_fed_cmt_prd_strt_dt,1
+136,Under Review,phase_2_dsrd_aprvl_dt,1
+136,Under Review,phase_3_a_sme_strt_dt,1
+136,Under Review,phase_2_fed_cmt_prd_end_dt,1
+136,Under Review,phase_2_cmpltns_rvw_dt,1
+136,Under Review,phase_2_rcvd_dt,1
+137,Under Review,mdcd_demo_aplctn_stus_dt,1
+137,Under Review,phase_2_fed_cmt_prd_strt_dt,1
+137,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+137,Under Review,phase_2_fed_cmt_prd_end_dt,1
+137,Under Review,phase_2_dsrd_aprvl_dt,1
+137,Under Review,phase_3_a_sme_strt_dt,1
+137,Under Review,phase_2_cmpltns_rvw_dt,1
+137,Under Review,phase_2_rcvd_dt,1
+149,Approved,mdcd_demo_aplctn_stus_dt,1
+149,Approved,phase_2_dsrd_aprvl_dt,1
+149,Approved,phase_2_cmpltns_rvw_dt,1
+149,Approved,phase_2_rcvd_dt,1
+157,Approved,mdcd_demo_aplctn_stus_dt,1
+157,Approved,phase_6_end_dt,1
+157,Approved,phase_6_strt_dt,1
+157,Approved,phase_2_state_aplctn_deemd_cmpltn_dt,1
+157,Approved,phase_3_a_frvt_strt_dt,1
+157,Approved,phase_3_a_frvt_end_dt,1
+157,Approved,phase_2_fed_cmt_prd_strt_dt,1
+157,Approved,phase_3_a_sme_end_dt,1
+157,Approved,phase_3_c_ogc_strt_dt,1
+157,Approved,phase_3_c_ogc_end_dt,1
+157,Approved,phase_3_b_cmcs_end_dt,1
+157,Approved,phase_5_strt_dt,1
+157,Approved,phase_3_b_omb_end_dt,1
+157,Approved,phase_3_b_omb_strt_dt,1
+157,Approved,phase_3_b_ogc_strt_dt,1
+157,Approved,phase_2_fed_cmt_prd_end_dt,1
+157,Approved,phase_3_a_sme_strt_dt,1
+157,Approved,phase_3_c_omb_strt_dt,1
+157,Approved,phase_3_b_cmcs_strt_dt,1
+157,Approved,phase_4_strt_dt,1
+157,Approved,phase_4_end_dt,1
+157,Approved,phase_3_c_omb_end_dt,1
+157,Approved,phase_5_end_dt,1
+157,Approved,phase_3_b_ogc_end_dt,1
+157,Approved,phase_2_cmpltns_rvw_dt,1
+157,Approved,phase_2_rcvd_dt,1
+160,Approved,mdcd_demo_aplctn_stus_dt,1
+160,Approved,phase_2_cmpltns_rvw_dt,1
+160,Approved,phase_2_rcvd_dt,1
+162,Approved,mdcd_demo_aplctn_stus_dt,1
+162,Approved,phase_2_dsrd_aprvl_dt,1
+162,Approved,phase_2_state_aplctn_deemd_cmpltn_dt,1
+162,Approved,phase_2_cmpltns_rvw_dt,1
+162,Approved,phase_2_rcvd_dt,1
+164,Approved,mdcd_demo_aplctn_stus_dt,1
+164,Approved,phase_2_cmpltns_rvw_dt,1
+164,Approved,phase_2_rcvd_dt,1
+167,Under Review,mdcd_demo_aplctn_stus_dt,1
+167,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+168,Approved,mdcd_demo_aplctn_stus_dt,1
+168,Approved,phase_2_state_aplctn_deemd_cmpltn_dt,1
+168,Approved,phase_2_dsrd_aprvl_dt,1
+168,Approved,phase_2_cmpltns_rvw_dt,1
+168,Approved,phase_2_rcvd_dt,1
+169,Approved,mdcd_demo_aplctn_stus_dt,1
+169,Approved,phase_2_cmpltns_rvw_dt,1
+169,Approved,phase_2_rcvd_dt,1
+170,Approved,mdcd_demo_aplctn_stus_dt,1
+170,Approved,phase_2_cmpltns_rvw_dt,1
+170,Approved,phase_2_rcvd_dt,1
+173,Approved,mdcd_demo_aplctn_stus_dt,1
+173,Approved,phase_6_strt_dt,1
+173,Approved,phase_2_state_aplctn_deemd_cmpltn_dt,1
+173,Approved,phase_4_end_dt,1
+173,Approved,phase_4_strt_dt,1
+173,Approved,phase_3_a_frvt_end_dt,1
+173,Approved,phase_2_fed_cmt_prd_end_dt,1
+173,Approved,phase_3_a_sme_strt_dt,1
+173,Approved,phase_3_a_frvt_strt_dt,1
+173,Approved,phase_3_b_ogc_strt_dt,1
+173,Approved,phase_3_b_omb_end_dt,1
+173,Approved,phase_3_b_omb_strt_dt,1
+173,Approved,phase_5_strt_dt,1
+173,Approved,phase_3_c_ogc_end_dt,1
+173,Approved,phase_3_b_ogc_end_dt,1
+173,Approved,phase_6_end_dt,1
+173,Approved,phase_3_c_ogc_strt_dt,1
+173,Approved,phase_3_b_cmcs_end_dt,1
+173,Approved,phase_3_c_omb_strt_dt,1
+173,Approved,phase_2_fed_cmt_prd_strt_dt,1
+173,Approved,phase_5_end_dt,1
+173,Approved,phase_3_c_omb_end_dt,1
+173,Approved,phase_2_dsrd_aprvl_dt,1
+173,Approved,phase_2_cmpltns_rvw_dt,1
+173,Approved,phase_2_rcvd_dt,1
+174,Approved,mdcd_demo_aplctn_stus_dt,1
+174,Approved,phase_2_cmpltns_rvw_dt,1
+174,Approved,phase_2_rcvd_dt,1
+178,Approved,mdcd_demo_aplctn_stus_dt,1
+178,Approved,phase_2_cmpltns_rvw_dt,1
+178,Approved,phase_2_rcvd_dt,1
+179,Approved,mdcd_demo_aplctn_stus_dt,1
+179,Approved,phase_3_a_sme_strt_dt,1
+179,Approved,phase_3_a_frvt_strt_dt,1
+179,Approved,phase_2_cmpltns_rvw_dt,1
+179,Approved,phase_2_rcvd_dt,1
+180,Approved,mdcd_demo_aplctn_stus_dt,1
+180,Approved,phase_3_a_frvt_strt_dt,1
+180,Approved,phase_2_cmpltns_rvw_dt,1
+180,Approved,phase_2_rcvd_dt,1
+181,Under Review,mdcd_demo_aplctn_stus_dt,1
+181,Under Review,phase_3_a_frvt_strt_dt,1
+182,Approved,mdcd_demo_aplctn_stus_dt,1
+182,Approved,phase_2_cmpltns_rvw_dt,1
+182,Approved,phase_2_rcvd_dt,1
+189,Under Review,mdcd_demo_aplctn_stus_dt,1
+189,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+189,Under Review,phase_2_fed_cmt_prd_strt_dt,1
+189,Under Review,phase_2_fed_cmt_prd_end_dt,1
+189,Under Review,phase_2_cmpltns_rvw_dt,1
+189,Under Review,phase_2_rcvd_dt,1
+190,Approved,mdcd_demo_aplctn_stus_dt,1
+190,Approved,phase_2_cmpltns_rvw_dt,1
+190,Approved,phase_2_rcvd_dt,1
+191,Approved,mdcd_demo_aplctn_stus_dt,1
+191,Approved,phase_2_dsrd_aprvl_dt,1
+191,Approved,phase_2_cmpltns_rvw_dt,1
+191,Approved,phase_2_rcvd_dt,1
+193,Approved,mdcd_demo_aplctn_stus_dt,1
+193,Approved,phase_2_cmpltns_rvw_dt,1
+193,Approved,phase_2_rcvd_dt,1
+198,Approved,mdcd_demo_aplctn_stus_dt,1
+198,Approved,phase_3_b_cmcs_end_dt,1
+198,Approved,phase_3_c_omb_end_dt,1
+198,Approved,phase_2_state_aplctn_deemd_cmpltn_dt,1
+198,Approved,phase_3_a_frvt_strt_dt,1
+198,Approved,phase_2_fed_cmt_prd_end_dt,1
+198,Approved,phase_2_dsrd_aprvl_dt,1
+198,Approved,phase_2_fed_cmt_prd_strt_dt,1
+198,Approved,phase_3_c_ogc_strt_dt,1
+198,Approved,phase_3_a_frvt_end_dt,1
+198,Approved,phase_3_b_omb_end_dt,1
+198,Approved,phase_3_b_omb_strt_dt,1
+198,Approved,phase_3_a_sme_strt_dt,1
+198,Approved,phase_3_a_sme_end_dt,1
+198,Approved,phase_3_c_omb_strt_dt,1
+198,Approved,phase_3_b_ogc_end_dt,1
+198,Approved,phase_3_b_cmcs_strt_dt,1
+198,Approved,phase_3_b_ogc_strt_dt,1
+198,Approved,phase_2_cmpltns_rvw_dt,1
+198,Approved,phase_2_rcvd_dt,1
+199,Under Review,mdcd_demo_aplctn_stus_dt,1
+200,Approved,mdcd_demo_aplctn_stus_dt,1
+200,Approved,phase_2_cmpltns_rvw_dt,1
+200,Approved,phase_2_rcvd_dt,1
+202,Under Review,mdcd_demo_aplctn_stus_dt,1
+202,Under Review,phase_2_cmpltns_rvw_dt,1
+202,Under Review,phase_2_rcvd_dt,1
+202,Under Review,phase_1_strt_dt,1
+202,Under Review,phase_1_end_dt,1
+203,Approved,mdcd_demo_aplctn_stus_dt,1
+203,Approved,phase_2_cmpltns_rvw_dt,1
+203,Approved,phase_2_rcvd_dt,1
+204,Approved,mdcd_demo_aplctn_stus_dt,1
+204,Approved,phase_2_dsrd_aprvl_dt,1
+204,Approved,phase_2_fed_cmt_prd_end_dt,1
+204,Approved,phase_2_state_aplctn_deemd_cmpltn_dt,1
+204,Approved,phase_6_end_dt,1
+204,Approved,phase_2_fed_cmt_prd_strt_dt,1
+204,Approved,phase_2_cmpltns_rvw_dt,1
+204,Approved,phase_2_rcvd_dt,1
+208,Approved,mdcd_demo_aplctn_stus_dt,1
+208,Approved,phase_2_dsrd_aprvl_dt,1
+208,Approved,phase_5_end_dt,1
+208,Approved,phase_6_end_dt,1
+208,Approved,phase_2_cmpltns_rvw_dt,1
+208,Approved,phase_2_rcvd_dt,1
+209,Under Review,mdcd_demo_aplctn_stus_dt,1
+212,Approved,mdcd_demo_aplctn_stus_dt,1
+212,Approved,phase_2_cmpltns_rvw_dt,1
+212,Approved,phase_2_rcvd_dt,1
+215,Approved,mdcd_demo_aplctn_stus_dt,1
+215,Approved,phase_2_cmpltns_rvw_dt,1
+215,Approved,phase_2_rcvd_dt,1
+216,Approved,mdcd_demo_aplctn_stus_dt,1
+216,Approved,phase_2_cmpltns_rvw_dt,1
+216,Approved,phase_2_rcvd_dt,1
+217,Approved,mdcd_demo_aplctn_stus_dt,1
+217,Approved,phase_2_cmpltns_rvw_dt,1
+217,Approved,phase_2_rcvd_dt,1
+218,Under Review,mdcd_demo_aplctn_stus_dt,1
+218,Under Review,phase_2_cmpltns_rvw_dt,1
+218,Under Review,phase_2_rcvd_dt,1
+219,Under Review,mdcd_demo_aplctn_stus_dt,1
+220,Approved,mdcd_demo_aplctn_stus_dt,1
+220,Approved,phase_2_cmpltns_rvw_dt,1
+220,Approved,phase_2_rcvd_dt,1
+221,Approved,mdcd_demo_aplctn_stus_dt,1
+221,Approved,phase_2_cmpltns_rvw_dt,1
+221,Approved,phase_2_rcvd_dt,1
+222,Approved,mdcd_demo_aplctn_stus_dt,1
+222,Approved,phase_2_cmpltns_rvw_dt,1
+222,Approved,phase_2_rcvd_dt,1
+225,Approved,mdcd_demo_aplctn_stus_dt,1
+225,Approved,phase_2_dsrd_aprvl_dt,1
+225,Approved,phase_2_cmpltns_rvw_dt,1
+225,Approved,phase_2_rcvd_dt,1
+226,Approved,mdcd_demo_aplctn_stus_dt,1
+226,Approved,phase_2_cmpltns_rvw_dt,1
+226,Approved,phase_2_rcvd_dt,1
+228,Approved,mdcd_demo_aplctn_stus_dt,1
+228,Approved,phase_2_cmpltns_rvw_dt,1
+228,Approved,phase_2_rcvd_dt,1
+232,Approved,mdcd_demo_aplctn_stus_dt,1
+232,Approved,phase_2_dsrd_aprvl_dt,1
+232,Approved,phase_5_strt_dt,1
+232,Approved,phase_6_strt_dt,1
+232,Approved,phase_2_state_aplctn_deemd_cmpltn_dt,1
+232,Approved,phase_2_fed_cmt_prd_strt_dt,1
+232,Approved,phase_2_fed_cmt_prd_end_dt,1
+232,Approved,phase_2_cmpltns_rvw_dt,1
+232,Approved,phase_2_rcvd_dt,1
+233,Approved,mdcd_demo_aplctn_stus_dt,1
+233,Approved,phase_2_dsrd_aprvl_dt,1
+233,Approved,phase_2_state_aplctn_deemd_cmpltn_dt,1
+233,Approved,phase_2_cmpltns_rvw_dt,1
+233,Approved,phase_2_rcvd_dt,1
+235,Approved,mdcd_demo_aplctn_stus_dt,1
+235,Approved,phase_2_cmpltns_rvw_dt,1
+235,Approved,phase_2_rcvd_dt,1
+245,Under Review,mdcd_demo_aplctn_stus_dt,1
+247,Under Review,mdcd_demo_aplctn_stus_dt,1
+247,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+247,Under Review,phase_2_cmpltns_rvw_dt,1
+247,Under Review,phase_2_rcvd_dt,1
+249,Approved,mdcd_demo_aplctn_stus_dt,1
+249,Approved,phase_2_cmpltns_rvw_dt,1
+249,Approved,phase_2_rcvd_dt,1
+258,Approved,mdcd_demo_aplctn_stus_dt,1
+258,Approved,phase_2_cmpltns_rvw_dt,1
+258,Approved,phase_2_rcvd_dt,1
+259,Approved,mdcd_demo_aplctn_stus_dt,1
+259,Approved,phase_2_cmpltns_rvw_dt,1
+259,Approved,phase_2_rcvd_dt,1
+265,Under Review,mdcd_demo_aplctn_stus_dt,1
+268,Approved,mdcd_demo_aplctn_stus_dt,1
+268,Approved,phase_2_cmpltns_rvw_dt,1
+268,Approved,phase_2_rcvd_dt,1
+269,Approved,mdcd_demo_aplctn_stus_dt,1
+269,Approved,phase_2_cmpltns_rvw_dt,1
+269,Approved,phase_2_rcvd_dt,1
+270,Under Review,mdcd_demo_aplctn_stus_dt,1
+271,Under Review,mdcd_demo_aplctn_stus_dt,1
+271,Under Review,phase_2_cmpltns_rvw_dt,1
+271,Under Review,phase_2_rcvd_dt,1
+277,Approved,mdcd_demo_aplctn_stus_dt,1
+277,Approved,phase_2_cmpltns_rvw_dt,1
+277,Approved,phase_2_rcvd_dt,1
+278,Approved,mdcd_demo_aplctn_stus_dt,1
+278,Approved,phase_6_strt_dt,1
+278,Approved,phase_3_a_sme_strt_dt,1
+278,Approved,phase_2_state_aplctn_deemd_cmpltn_dt,1
+278,Approved,phase_6_end_dt,1
+278,Approved,phase_3_a_sme_end_dt,1
+278,Approved,phase_2_dsrd_aprvl_dt,1
+278,Approved,phase_2_cmpltns_rvw_dt,1
+278,Approved,phase_2_rcvd_dt,1
+279,Under Review,mdcd_demo_aplctn_stus_dt,1
+279,Under Review,phase_2_dsrd_aprvl_dt,1
+281,Under Review,mdcd_demo_aplctn_stus_dt,1
+283,Approved,mdcd_demo_aplctn_stus_dt,1
+283,Approved,phase_2_cmpltns_rvw_dt,1
+283,Approved,phase_2_rcvd_dt,1
+291,Under Review,mdcd_demo_aplctn_stus_dt,1
+291,Under Review,phase_2_dsrd_aprvl_dt,1
+292,Under Review,mdcd_demo_aplctn_stus_dt,1
+295,Approved,mdcd_demo_aplctn_stus_dt,1
+295,Approved,phase_2_dsrd_aprvl_dt,1
+295,Approved,phase_2_fed_cmt_prd_strt_dt,1
+295,Approved,phase_2_fed_cmt_prd_end_dt,1
+295,Approved,phase_3_a_frvt_strt_dt,1
+295,Approved,phase_3_a_sme_strt_dt,1
+295,Approved,phase_2_state_aplctn_deemd_cmpltn_dt,1
+295,Approved,phase_2_cmpltns_rvw_dt,1
+295,Approved,phase_2_rcvd_dt,1
+297,Approved,mdcd_demo_aplctn_stus_dt,1
+297,Approved,phase_2_cmpltns_rvw_dt,1
+297,Approved,phase_2_rcvd_dt,1
+298,Approved,mdcd_demo_aplctn_stus_dt,1
+298,Approved,phase_2_cmpltns_rvw_dt,1
+298,Approved,phase_2_rcvd_dt,1
+303,Approved,mdcd_demo_aplctn_stus_dt,1
+303,Approved,phase_2_cmpltns_rvw_dt,1
+303,Approved,phase_2_rcvd_dt,1
+306,Approved,mdcd_demo_aplctn_stus_dt,1
+306,Approved,phase_2_cmpltns_rvw_dt,1
+306,Approved,phase_2_rcvd_dt,1
+307,Approved,mdcd_demo_aplctn_stus_dt,1
+307,Approved,phase_2_cmpltns_rvw_dt,1
+307,Approved,phase_2_rcvd_dt,1
+310,Approved,mdcd_demo_aplctn_stus_dt,1
+310,Approved,phase_2_cmpltns_rvw_dt,1
+310,Approved,phase_2_rcvd_dt,1
+312,Under Review,mdcd_demo_aplctn_stus_dt,1
+312,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+312,Under Review,phase_3_a_frvt_strt_dt,1
+312,Under Review,phase_2_dsrd_aprvl_dt,1
+312,Under Review,phase_2_fed_cmt_prd_strt_dt,1
+312,Under Review,phase_3_a_sme_end_dt,1
+312,Under Review,phase_2_fed_cmt_prd_end_dt,1
+312,Under Review,phase_3_a_sme_strt_dt,1
+312,Under Review,phase_2_cmpltns_rvw_dt,1
+312,Under Review,phase_2_rcvd_dt,1
+313,Approved,mdcd_demo_aplctn_stus_dt,1
+313,Approved,phase_2_cmpltns_rvw_dt,1
+313,Approved,phase_2_rcvd_dt,1
+314,Under Review,mdcd_demo_aplctn_stus_dt,1
+314,Under Review,phase_2_cmpltns_rvw_dt,1
+314,Under Review,phase_2_rcvd_dt,1
+315,Approved,mdcd_demo_aplctn_stus_dt,1
+315,Approved,phase_2_cmpltns_rvw_dt,1
+315,Approved,phase_2_rcvd_dt,1
+316,Under Review,mdcd_demo_aplctn_stus_dt,1
+316,Under Review,phase_2_cmpltns_rvw_dt,1
+316,Under Review,phase_2_rcvd_dt,1
+317,Approved,mdcd_demo_aplctn_stus_dt,1
+317,Approved,phase_2_cmpltns_rvw_dt,1
+317,Approved,phase_2_rcvd_dt,1
+318,Approved,mdcd_demo_aplctn_stus_dt,1
+318,Approved,phase_2_cmpltns_rvw_dt,1
+318,Approved,phase_2_rcvd_dt,1
+319,Approved,mdcd_demo_aplctn_stus_dt,1
+319,Approved,phase_2_cmpltns_rvw_dt,1
+319,Approved,phase_2_rcvd_dt,1
+320,Approved,mdcd_demo_aplctn_stus_dt,1
+320,Approved,phase_2_cmpltns_rvw_dt,1
+320,Approved,phase_2_rcvd_dt,1
+323,Approved,mdcd_demo_aplctn_stus_dt,1
+323,Approved,phase_2_cmpltns_rvw_dt,1
+323,Approved,phase_2_rcvd_dt,1
+325,Under Review,mdcd_demo_aplctn_stus_dt,1
+327,Under Review,mdcd_demo_aplctn_stus_dt,1
+331,Approved,mdcd_demo_aplctn_stus_dt,1
+331,Approved,phase_2_cmpltns_rvw_dt,1
+331,Approved,phase_2_rcvd_dt,1
+333,Under Review,mdcd_demo_aplctn_stus_dt,1
+333,Under Review,phase_3_a_sme_end_dt,1
+333,Under Review,phase_2_fed_cmt_prd_strt_dt,1
+333,Under Review,phase_3_a_frvt_strt_dt,1
+333,Under Review,phase_2_dsrd_aprvl_dt,1
+333,Under Review,phase_2_fed_cmt_prd_end_dt,1
+333,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+333,Under Review,phase_3_a_frvt_end_dt,1
+333,Under Review,phase_3_a_sme_strt_dt,1
+333,Under Review,phase_2_cmpltns_rvw_dt,1
+333,Under Review,phase_2_rcvd_dt,1
+333,Under Review,phase_1_strt_dt,1
+333,Under Review,phase_1_end_dt,1
+335,Approved,mdcd_demo_aplctn_stus_dt,1
+335,Approved,phase_2_cmpltns_rvw_dt,1
+335,Approved,phase_2_rcvd_dt,1
+337,Under Review,mdcd_demo_aplctn_stus_dt,1
+337,Under Review,phase_3_b_cmcs_end_dt,1
+337,Under Review,phase_2_dsrd_aprvl_dt,1
+337,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+337,Under Review,phase_2_cmpltns_rvw_dt,1
+337,Under Review,phase_2_rcvd_dt,1
+338,Approved,mdcd_demo_aplctn_stus_dt,1
+338,Approved,phase_2_dsrd_aprvl_dt,1
+338,Approved,phase_2_cmpltns_rvw_dt,1
+338,Approved,phase_2_rcvd_dt,1
+340,Under Review,mdcd_demo_aplctn_stus_dt,1
+340,Under Review,phase_2_fed_cmt_prd_end_dt,1
+340,Under Review,phase_2_fed_cmt_prd_strt_dt,1
+340,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+340,Under Review,phase_2_dsrd_aprvl_dt,1
+340,Under Review,phase_2_cmpltns_rvw_dt,1
+340,Under Review,phase_2_rcvd_dt,1
+341,Approved,mdcd_demo_aplctn_stus_dt,1
+341,Approved,phase_2_cmpltns_rvw_dt,1
+341,Approved,phase_2_rcvd_dt,1
+342,Under Review,mdcd_demo_aplctn_stus_dt,1
+344,Approved,mdcd_demo_aplctn_stus_dt,1
+344,Approved,phase_2_cmpltns_rvw_dt,1
+344,Approved,phase_2_rcvd_dt,1
+345,Under Review,mdcd_demo_aplctn_stus_dt,1
+345,Under Review,phase_2_cmpltns_rvw_dt,1
+345,Under Review,phase_2_rcvd_dt,1
+347,Withdrawn,mdcd_demo_aplctn_stus_dt,1
+347,Withdrawn,phase_2_fed_cmt_prd_end_dt,1
+347,Withdrawn,phase_2_dsrd_aprvl_dt,1
+347,Withdrawn,phase_2_fed_cmt_prd_strt_dt,1
+347,Withdrawn,phase_2_state_aplctn_deemd_cmpltn_dt,1
+347,Withdrawn,phase_2_cmpltns_rvw_dt,1
+347,Withdrawn,phase_2_rcvd_dt,1
+348,Under Review,mdcd_demo_aplctn_stus_dt,1
+348,Under Review,phase_2_dsrd_aprvl_dt,1
+348,Under Review,phase_2_fed_cmt_prd_end_dt,1
+348,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+348,Under Review,phase_2_fed_cmt_prd_strt_dt,1
+348,Under Review,phase_2_cmpltns_rvw_dt,1
+348,Under Review,phase_2_rcvd_dt,1
+350,Approved,mdcd_demo_aplctn_stus_dt,1
+350,Approved,phase_2_cmpltns_rvw_dt,1
+350,Approved,phase_2_rcvd_dt,1
+351,Approved,mdcd_demo_aplctn_stus_dt,1
+351,Approved,phase_3_c_omb_strt_dt,1
+351,Approved,phase_3_c_ogc_strt_dt,1
+351,Approved,phase_3_c_omb_end_dt,1
+351,Approved,phase_3_c_ogc_end_dt,1
+351,Approved,phase_2_dsrd_aprvl_dt,1
+351,Approved,phase_2_cmpltns_rvw_dt,1
+351,Approved,phase_2_rcvd_dt,1
+352,Under Review,mdcd_demo_aplctn_stus_dt,1
+354,Approved,mdcd_demo_aplctn_stus_dt,1
+354,Approved,phase_2_cmpltns_rvw_dt,1
+354,Approved,phase_2_rcvd_dt,1
+356,Approved,mdcd_demo_aplctn_stus_dt,1
+356,Approved,phase_2_cmpltns_rvw_dt,1
+356,Approved,phase_2_rcvd_dt,1
+359,Approved,mdcd_demo_aplctn_stus_dt,1
+359,Approved,phase_2_dsrd_aprvl_dt,1
+359,Approved,phase_2_cmpltns_rvw_dt,1
+359,Approved,phase_2_rcvd_dt,1
+368,Under Review,mdcd_demo_aplctn_stus_dt,1
+368,Under Review,phase_2_dsrd_aprvl_dt,1
+368,Under Review,phase_2_cmpltns_rvw_dt,1
+368,Under Review,phase_2_rcvd_dt,1
+369,Approved,mdcd_demo_aplctn_stus_dt,1
+369,Approved,phase_2_cmpltns_rvw_dt,1
+369,Approved,phase_2_rcvd_dt,1
+370,Approved,mdcd_demo_aplctn_stus_dt,1
+370,Approved,phase_2_cmpltns_rvw_dt,1
+370,Approved,phase_2_rcvd_dt,1
+374,Approved,mdcd_demo_aplctn_stus_dt,1
+374,Approved,phase_2_cmpltns_rvw_dt,1
+374,Approved,phase_2_rcvd_dt,1
+375,Under Review,mdcd_demo_aplctn_stus_dt,1
+375,Under Review,phase_3_a_sme_end_dt,1
+375,Under Review,phase_2_fed_cmt_prd_end_dt,1
+375,Under Review,phase_2_dsrd_aprvl_dt,1
+375,Under Review,phase_2_fed_cmt_prd_strt_dt,1
+375,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+375,Under Review,phase_3_b_cmcs_strt_dt,1
+375,Under Review,phase_3_a_frvt_strt_dt,1
+375,Under Review,phase_3_a_sme_strt_dt,1
+375,Under Review,phase_2_cmpltns_rvw_dt,1
+375,Under Review,phase_2_rcvd_dt,1
+375,Under Review,phase_1_end_dt,1
+375,Under Review,phase_1_strt_dt,1
+377,Approved,mdcd_demo_aplctn_stus_dt,1
+377,Approved,phase_2_cmpltns_rvw_dt,1
+377,Approved,phase_2_rcvd_dt,1
+378,Under Review,mdcd_demo_aplctn_stus_dt,1
+378,Under Review,phase_2_cmpltns_rvw_dt,1
+378,Under Review,phase_2_rcvd_dt,1
+379,Approved,mdcd_demo_aplctn_stus_dt,1
+379,Approved,phase_2_cmpltns_rvw_dt,1
+379,Approved,phase_2_rcvd_dt,1
+380,Under Review,mdcd_demo_aplctn_stus_dt,1
+380,Under Review,phase_2_cmpltns_rvw_dt,1
+380,Under Review,phase_2_rcvd_dt,1
+381,Approved,mdcd_demo_aplctn_stus_dt,1
+381,Approved,phase_2_cmpltns_rvw_dt,1
+381,Approved,phase_2_rcvd_dt,1
+383,Approved,mdcd_demo_aplctn_stus_dt,1
+383,Approved,phase_2_cmpltns_rvw_dt,1
+383,Approved,phase_2_rcvd_dt,1
+384,Approved,mdcd_demo_aplctn_stus_dt,1
+384,Approved,phase_2_fed_cmt_prd_strt_dt,1
+384,Approved,phase_2_dsrd_aprvl_dt,1
+384,Approved,phase_2_state_aplctn_deemd_cmpltn_dt,1
+384,Approved,phase_2_fed_cmt_prd_end_dt,1
+384,Approved,phase_2_cmpltns_rvw_dt,1
+384,Approved,phase_2_rcvd_dt,1
+384,Approved,phase_1_end_dt,1
+384,Approved,phase_1_strt_dt,1
+386,Approved,mdcd_demo_aplctn_stus_dt,1
+386,Approved,phase_2_cmpltns_rvw_dt,1
+386,Approved,phase_2_rcvd_dt,1
+387,Approved,mdcd_demo_aplctn_stus_dt,1
+387,Approved,phase_2_cmpltns_rvw_dt,1
+387,Approved,phase_2_rcvd_dt,1
+388,Approved,mdcd_demo_aplctn_stus_dt,1
+388,Approved,phase_2_cmpltns_rvw_dt,1
+388,Approved,phase_2_rcvd_dt,1
+392,Approved,mdcd_demo_aplctn_stus_dt,1
+392,Approved,phase_2_cmpltns_rvw_dt,1
+392,Approved,phase_2_rcvd_dt,1
+399,Approved,mdcd_demo_aplctn_stus_dt,1
+399,Approved,phase_2_cmpltns_rvw_dt,1
+399,Approved,phase_2_rcvd_dt,1
+408,Approved,mdcd_demo_aplctn_stus_dt,1
+408,Approved,phase_2_cmpltns_rvw_dt,1
+408,Approved,phase_2_rcvd_dt,1
+411,Under Review,mdcd_demo_aplctn_stus_dt,1
+411,Under Review,phase_2_dsrd_aprvl_dt,1
+411,Under Review,phase_2_cmpltns_rvw_dt,1
+411,Under Review,phase_2_rcvd_dt,1
+413,Approved,mdcd_demo_aplctn_stus_dt,1
+413,Approved,phase_2_cmpltns_rvw_dt,1
+413,Approved,phase_2_rcvd_dt,1
+415,Approved,mdcd_demo_aplctn_stus_dt,1
+415,Approved,phase_2_cmpltns_rvw_dt,1
+415,Approved,phase_2_rcvd_dt,1
+416,Approved,mdcd_demo_aplctn_stus_dt,1
+416,Approved,phase_2_cmpltns_rvw_dt,1
+416,Approved,phase_2_rcvd_dt,1
+419,Approved,mdcd_demo_aplctn_stus_dt,1
+419,Approved,phase_2_cmpltns_rvw_dt,1
+419,Approved,phase_2_rcvd_dt,1
+420,Under Review,mdcd_demo_aplctn_stus_dt,1
+422,Under Review,mdcd_demo_aplctn_stus_dt,1
+422,Under Review,phase_2_dsrd_aprvl_dt,1
+422,Under Review,phase_2_cmpltns_rvw_dt,1
+422,Under Review,phase_2_rcvd_dt,1
+424,Approved,mdcd_demo_aplctn_stus_dt,1
+424,Approved,phase_2_cmpltns_rvw_dt,1
+424,Approved,phase_2_rcvd_dt,1
+427,Under Review,mdcd_demo_aplctn_stus_dt,1
+427,Under Review,phase_2_fed_cmt_prd_strt_dt,1
+427,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+427,Under Review,phase_2_fed_cmt_prd_end_dt,1
+427,Under Review,phase_2_cmpltns_rvw_dt,1
+427,Under Review,phase_2_rcvd_dt,1
+431,Under Review,mdcd_demo_aplctn_stus_dt,1
+435,Under Review,mdcd_demo_aplctn_stus_dt,1
+437,Approved,mdcd_demo_aplctn_stus_dt,1
+437,Approved,phase_2_fed_cmt_prd_strt_dt,1
+437,Approved,phase_3_a_sme_end_dt,1
+437,Approved,phase_2_state_aplctn_deemd_cmpltn_dt,1
+437,Approved,phase_3_a_sme_strt_dt,1
+437,Approved,phase_2_fed_cmt_prd_end_dt,1
+437,Approved,phase_2_cmpltns_rvw_dt,1
+437,Approved,phase_2_rcvd_dt,1
+441,Under Review,mdcd_demo_aplctn_stus_dt,1
+441,Under Review,phase_2_cmpltns_rvw_dt,1
+441,Under Review,phase_2_rcvd_dt,1
+444,Approved,mdcd_demo_aplctn_stus_dt,1
+444,Approved,phase_3_c_ogc_strt_dt,1
+444,Approved,phase_2_dsrd_aprvl_dt,1
+444,Approved,phase_5_strt_dt,1
+444,Approved,phase_3_b_ogc_strt_dt,1
+444,Approved,phase_3_b_omb_strt_dt,1
+444,Approved,phase_3_b_omb_end_dt,1
+444,Approved,phase_3_a_sme_end_dt,1
+444,Approved,phase_3_b_ogc_end_dt,1
+444,Approved,phase_6_strt_dt,1
+444,Approved,phase_3_a_sme_strt_dt,1
+444,Approved,phase_3_c_omb_strt_dt,1
+444,Approved,phase_3_c_omb_end_dt,1
+444,Approved,phase_3_c_ogc_end_dt,1
+444,Approved,phase_2_rcvd_dt,1
+445,Under Review,mdcd_demo_aplctn_stus_dt,1
+445,Under Review,phase_2_fed_cmt_prd_end_dt,1
+445,Under Review,phase_2_fed_cmt_prd_strt_dt,1
+445,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+445,Under Review,phase_2_cmpltns_rvw_dt,1
+445,Under Review,phase_2_rcvd_dt,1
+445,Under Review,phase_1_end_dt,1
+445,Under Review,phase_1_strt_dt,1
+452,Under Review,mdcd_demo_aplctn_stus_dt,1
+454,Under Review,mdcd_demo_aplctn_stus_dt,1
+454,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+454,Under Review,phase_3_a_frvt_end_dt,1
+454,Under Review,phase_2_dsrd_aprvl_dt,1
+454,Under Review,phase_2_fed_cmt_prd_strt_dt,1
+454,Under Review,phase_3_a_frvt_strt_dt,1
+454,Under Review,phase_3_a_sme_end_dt,1
+454,Under Review,phase_3_a_sme_strt_dt,1
+454,Under Review,phase_2_fed_cmt_prd_end_dt,1
+454,Under Review,phase_2_cmpltns_rvw_dt,1
+454,Under Review,phase_2_rcvd_dt,1
+454,Under Review,phase_1_end_dt,1
+454,Under Review,phase_1_strt_dt,1
+455,Under Review,mdcd_demo_aplctn_stus_dt,1
+455,Under Review,phase_2_fed_cmt_prd_end_dt,1
+455,Under Review,phase_2_fed_cmt_prd_strt_dt,1
+455,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+455,Under Review,phase_2_cmpltns_rvw_dt,1
+455,Under Review,phase_2_rcvd_dt,1
+463,Under Review,mdcd_demo_aplctn_stus_dt,1
+465,Indefinite Hold,mdcd_demo_aplctn_stus_dt,1
+465,Indefinite Hold,phase_2_fed_cmt_prd_end_dt,1
+465,Indefinite Hold,phase_2_fed_cmt_prd_strt_dt,1
+465,Indefinite Hold,phase_2_state_aplctn_deemd_cmpltn_dt,1
+465,Indefinite Hold,phase_2_cmpltns_rvw_dt,1
+465,Indefinite Hold,phase_2_rcvd_dt,1
+468,Under Review,mdcd_demo_aplctn_stus_dt,1
+468,Under Review,phase_2_fed_cmt_prd_strt_dt,1
+468,Under Review,phase_2_fed_cmt_prd_end_dt,1
+468,Under Review,phase_3_a_sme_strt_dt,1
+468,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+468,Under Review,phase_2_cmpltns_rvw_dt,1
+468,Under Review,phase_2_rcvd_dt,1
+470,Under Review,mdcd_demo_aplctn_stus_dt,1
+470,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+470,Under Review,phase_2_cmpltns_rvw_dt,1
+470,Under Review,phase_2_rcvd_dt,1
+474,Under Review,mdcd_demo_aplctn_stus_dt,1
+474,Under Review,phase_2_fed_cmt_prd_strt_dt,1
+474,Under Review,phase_2_fed_cmt_prd_end_dt,1
+474,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+474,Under Review,phase_2_cmpltns_rvw_dt,1
+474,Under Review,phase_2_rcvd_dt,1
+484,On Hold - Workplan Queue,mdcd_demo_aplctn_stus_dt,1
+484,On Hold - Workplan Queue,phase_2_fed_cmt_prd_strt_dt,1
+484,On Hold - Workplan Queue,phase_2_fed_cmt_prd_end_dt,1
+484,On Hold - Workplan Queue,phase_2_state_aplctn_deemd_cmpltn_dt,1
+484,On Hold - Workplan Queue,phase_2_cmpltns_rvw_dt,1
+484,On Hold - Workplan Queue,phase_2_rcvd_dt,1
+485,Under Review,mdcd_demo_aplctn_stus_dt,1
+485,Under Review,phase_2_fed_cmt_prd_strt_dt,1
+485,Under Review,phase_2_fed_cmt_prd_end_dt,1
+485,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+485,Under Review,phase_2_cmpltns_rvw_dt,1
+485,Under Review,phase_2_rcvd_dt,1
+489,Under Review,mdcd_demo_aplctn_stus_dt,1
+489,Under Review,phase_2_dsrd_aprvl_dt,1
+489,Under Review,phase_2_state_aplctn_deemd_cmpltn_dt,1
+489,Under Review,phase_2_cmpltns_rvw_dt,1
+489,Under Review,phase_2_rcvd_dt,1

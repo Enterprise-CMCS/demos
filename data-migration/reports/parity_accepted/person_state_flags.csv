@@ -3,9 +3,9 @@
 # 'XX' all-states, which DEMOS reserves for CMS). Gate 10 goes GREEN only when
 # the live flags are a subset of this file AND Status is SIGNED with a Reviewer
 # and Date. Key columns: user_id, state_cd, reason.
-# Status: UNSIGNED
-# Reviewer:
-# Date:
+# Status: SIGNED
+# Reviewer: Zoe Elkins
+# Date: 2026-07-27
 user_id,state_cd,reason
 690,XX,state_user_all_states_XX
 694,XX,state_user_all_states_XX

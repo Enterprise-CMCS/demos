@@ -1,5 +1,17 @@
 # Spec: Re-source `private_comment` / `public_comment` from deliverable comments
 
+> **2026-07-20 SME reconciliation** (`reports/narrative/sme_signoff_2026-07-20.md`):
+> the `cmt_orgn_cd` `{A,B,C,I,R,S}` semantics are now known from legacy PMDA PHP
+> - `A` = analyst/reviewer, `B` = BN resubmission, `C` = CMS, `I` = CMS internal,
+> `R` = resubmission, `S` = state. `crosswalk_comment_origin` (all six confirmed
+> 2026-07-20): `A,C,I` -> `private`, `S,R,B` -> `public` (CMS-side private,
+> state-side public, which matches the author floor below). Resubmission is
+> state-only; *requesting* resubmission is a separate CMS-only action, not an
+> origin code. Deliverable
+> acceptance-status vs main-status precedence -> David. Extension reason "State
+> Level Emergency" -> `Other`. This comment `cmt_orgn_cd` is distinct from the
+> document-file `cmt_orgn_cd` (`{S,C}`); see the ledger's disambiguation.
+
 ## Problem & root cause
 
 DEMOS `private_comment.deliverable_id` and `public_comment.deliverable_id` are
@@ -77,7 +89,7 @@ _id_map_*_cmt, users_resolved                     \-(held back)-----> parity: co
 ## Files to add
 
 Crosswalk (gated, DDL only; empty until SME authors values):
-- `sql/04_crosswalks/68_comment_origin.sql` -- `mysql_raw.crosswalk_comment_origin(legacy_cd text PK, demos_route text, notes text)`, `demos_route IN ('private','public')`. No registry entry / CSV yet. No fail-closed `_check.sql` yet (coverage is a non-gating parity check).
+- `sql/04_crosswalks/68_comment_origin.sql` -- `mysql_raw.crosswalk_comment_origin(legacy_cd text PK, demos_route text, notes text)`, `demos_route IN ('private','public')`. No registry entry / CSV yet. No fail-closed `_check.sql` yet (coverage is a non-gating parity check). Values confirmed 2026-07-20 (ledger §5): `A,C,I` -> `private`, `S,R,B` -> `public` (all six codes; no SDG gate).
 
 Id maps:
 - `sql/05_id_maps/17_mdcd_dlvrbl_cmt.sql`, `sql/05_id_maps/18_mdcd_dlvrbl_paper_cmt.sql`.

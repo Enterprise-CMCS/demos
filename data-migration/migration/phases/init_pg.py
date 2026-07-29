@@ -27,6 +27,7 @@ from migration.lib import (
     apply_dir,
     copy_csv_into_table,
     log,
+    mint_trigger_deploy_sql,
     progress_for,
     psql_command,
     psql_exec_composed,
@@ -215,6 +216,15 @@ def run_ddl() -> None:
     6. Apply ``sql/01_ddl_supplements/*`` (migration-private JSONB
        registry; the ``*_history`` tables are Prisma-owned, not authored
        here).
+    7. Deploy ONLY the DEMOS ``generate_medicaid_chip_id_numbers`` mint
+       trigger (function+trigger, read verbatim from
+       ``server/src/sql/functions.sql``). The pinned Prisma DDL ships the
+       medicaid/chip sequences but not the app triggers; build_app runs with
+       ``demos_app.migration_mode='on'`` so this trigger legacy-preserves the
+       explicit medicaid_id/chip_id the loader sets and mints a chip_id (NOT
+       NULL in the schema) for any row without a legacy 21-W number. The other
+       application triggers stay ABSENT (the migration sets phases/roles
+       itself); preflight P0.9 verifies this trigger state.
     """
     env = Env.load()
 
@@ -246,6 +256,16 @@ def run_ddl() -> None:
     _drop_fks(env, fks)
 
     apply_dir(env, SQL_DIR / "01_ddl_supplements", expect_files=True)
+
+    # Deploy ONLY the migration_mode-gated generate_medicaid_chip_id_numbers
+    # mint trigger from the DEMOS source of truth (server/src/sql/functions.sql).
+    # The pinned Prisma DDL created the chip/medicaid sequences but not the app
+    # triggers; build_app sets demos_app.migration_mode='on' so the loader can
+    # legacy-preserve medicaid_id/chip_id and this trigger mints a chip_id for
+    # rows that never had a legacy 21-W number (chip_id is NOT NULL). The other
+    # application triggers stay absent (preflight P0.9).
+    log("deploying generate_medicaid_chip_id_numbers mint trigger from DEMOS functions.sql")
+    psql_command(env, mint_trigger_deploy_sql(env.demos_local))
 
     # Record the Prisma-seeded reference tables (non-empty demos_app.*
     # tables at ddl time) so build_app can skip them when truncating; otherwise the

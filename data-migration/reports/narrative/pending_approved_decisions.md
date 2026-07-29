@@ -20,9 +20,9 @@ For every MySQL `mdcd_<x>` / `mdcd_pendg_<x>` pair, record the rule used to coll
 
 | Pair | DEMOS target | Rule | Tie-break | Notes |
 |---|---|---|---|---|
-| `mdcd_demo` / `mdcd_pendg_demo` | `application` + `demonstration` | **BUILT (2026-07-14).** "Approved wins": a pending demo whose project number matches a PMDA-valid approved demo FOLDS into that approved demonstration (`stg._pendg_demo_fold`); a pending demo with no approved counterpart loads as its own 'Under Review' demonstration (`sql/20_app/31_pending_demonstration.sql`) IF it has a project number; a no-project-number pending demo is held back non-gating (logged `_parity_pending_approved` category `pending_only_deferred`). | Approved wins; then, among orphans sharing a medicaid_id, the RED-4 region-suffix/lowest-legacy-id winner (loser held, logged `_parity_pending_demonstration_held`) | Pending demos carry no status column (uniformly 'Under Review') and no secondary-number column (chip_id always NULL). |
+| `mdcd_demo` / `mdcd_pendg_demo` | `application` + `demonstration` | **BUILT (2026-07-14).** "Approved wins": a pending demo whose project number matches a PMDA-valid approved demo FOLDS into that approved demonstration (`stg._pendg_demo_fold`); a pending demo with no approved counterpart loads as its own 'Under Review' demonstration (`sql/20_app/31_pending_demonstration.sql`) IF it has a project number; a no-project-number pending demo is held back non-gating (logged `_parity_pending_approved` category `pending_only_deferred`). | Approved wins; then, among orphans sharing a medicaid_id, the RED-4 winner is the region-suffix-correct row (lowest legacy id breaks a tie; loser held non-gating). A group whose suffix matches NO member's state region is held ENTIRELY and gates RED (`region_incorrect_duplicate`); both logged `_parity_pending_demonstration_held` | Pending demos carry no status column (uniformly 'Under Review') and no secondary-number column (chip_id always NULL). |
 | `mdcd_demo_aplctn` / *(none)* | `application` + `application_date` + `application_phase` | 1:1 | n/a | Already the application table in source. **Milestone dates + phases BUILT (2026-07-14):** every high-confidence phase-milestone column loads into `application_date` (approved + pending, via `sql/10_stg/27_application_milestone.sql` + `sql/20_app/36_application_date.sql`), and `sql/23_app_derived/50_application_phase.sql` derives the 8 `application_phase` rows with a Federal Comment past-window failsafe (cutover `2026-08-20`). Granular phase_3 clearance sub-dates + the status date are deferred for SME review (logged non-gating in `_parity_application_milestone_unmapped`). See `reports/narrative/milestone_date_mapping.md`. |
-| `mdcd_demo_amndmt` / `mdcd_pendg_demo_amndmt` | `amendment` (+ `application_phase`) | Collapse | Approved wins | Amendments also get the 8 `application_phase` rows (status-derived `current_phase_id`, via `sql/23_app_derived/50_application_phase.sql`); they carry no confidently-mappable milestone-date column, so `amndmt_aplctn_dt` / `amndmt_stus_dt` are deferred for SME review (logged in `_parity_application_milestone_unmapped`) and amendments get no `application_date` rows. |
+| `mdcd_demo_amndmt` / `mdcd_pendg_demo_amndmt` | `amendment` (+ `application_phase`) | Collapse | Approved wins | Amendments also get the 8 `application_phase` rows (status-derived `current_phase_id`, via `sql/23_app_derived/50_application_phase.sql`); they get no `application_date` rows today, and the satellite `amndmt_aplctn_dt` / `amndmt_stus_dt` are deferred (logged in `_parity_application_milestone_unmapped`). **RE-OPENED 2026-07-21 (D9):** the type-2 (Amendment) `mdcd_demo_aplctn` rows carry the same high-confidence `phase_1..phase_6` columns as demonstrations (173 of 205 live amendments populated), invisible until now because every milestone view filters `type_cd=1`; surfaced non-gating by `sql/99_parity/56`, so the status-only decision is pending SME re-ratification. |
 | `mdcd_demo_rnwl` / `mdcd_pendg_demo_rnwl` | `extension` | Collapse | Approved wins | Renewals map to extensions in DEMOS |
 | `mdcd_demo_cntct` / `mdcd_pendg_demo_cntct` | contact-only `person` + `person_state` + `demonstration_role_assignment` | **DEFER (contact workstream):** the source is a wide per-role model (`state_mdcd_drctr_email_adr`, `ro_fincl_lead_email_adr`, `sota_email_adr`, ...), not a long `(demo, role, email)` table -- there is no single `cntct_email` column to key on. The target is the three-table contact shape (a `person` per distinct contact email with no `users` row, its `person_state` grants, and a `demonstration_role_assignment` per role column); see `docs/specs/pmda-cross-cutting-derivation-spec.md` §5. The earlier `demonstration_role_assignment` + `person` shorthand omitted `person_state` and is superseded by this row. | Approved wins | Pivot the wide email columns to `(demonstration, role_column, email)` before resolving `person`. |
 | `mdcd_*_pgm_dtl` / `mdcd_pendg_*_pgm_dtl` | `demonstration_type_tag_assignment` | Approved side BUILT (`21_app_associative/10`/`11` + `pgm_dtl_tag_mapping.csv`). Pending side BUILT (2026-07-14): fold-aware fixed-tag loader `21_app_associative/12` and free-text "Other" loader `21_app_associative/13` resolve the parent via `stg._pendg_demo_fold.demo_uuid` (a folded pending demo's tags attach to its approved counterpart), driven by `crosswalk_pendg_pgm_dtl_tag` (`04_crosswalks/49`) whose `reports/pgm_dtl_tag_mapping_pending.csv` is now **POPULATED** (68 rows derived mechanically from the filled base by prefix-swap `mdcd_`->`mdcd_pendg_`; no new SME judgment). Parity `99_parity/55` logs held free-text "Other" rows (non-gating) and fail-closes on any mapped-but-unseeded tag. | Approved wins (fold) | Templated transform mirroring the base 10/11/54 trio as pending 12/13/55. |
@@ -132,6 +132,89 @@ SME to ratify the reversal.
 - [ ] Reversal reviewed and the residual no-project-number deferrals accepted.
 - Decided by: ____________  Date: __________  (sign `pending_approved_deferrals.csv`)
 
+**Empirical finding (2026-07-21, probe via `mysql-ducksplorer`).** The RED-4
+duplicate-medicaid_id hold-back among loadable orphan pending demos touches
+exactly ONE project number in the current source: `11-W-00036/4`, carried by
+three Delaware (DE) rows -- `mdcd_pendg_demo_id` 197, 252, 256. The region
+suffix `/4` (CMS Region 4) does not match DE's actual region (3), so **no member
+of the group is region-correct**.
+
+**Refinement (2026-07-21, D2 amendment).** Because no member's region suffix
+matches its state region, the lowest-id tie-break must NOT silently pick a
+winner off a wrong project number. The loaders (`30_demonstration.sql` /
+`31_pending_demonstration.sql`) now HOLD THE WHOLE GROUP -- none of 197/252/256
+load -- and the parity checks GATE RED (`region_incorrect_duplicate`, check 4 for
+pending / check 21 for approved) so the SME corrects the region at source before
+cutover. The lowest-id tie-break survives only for duplicate groups where at
+least one member IS region-correct (there the region-correct row wins, lowest id
+breaking a tie, and the losers are held non-gating). All held rows are logged
+`migration._parity_pending_demonstration_held` (pending) /
+`migration._parity_demonstration_held_dup_medicaid_id` (approved, now with
+`disposition` + `gating` columns), snapshot
+`reports/orphans/pending_demonstration_held_dup_medicaid.csv`. Reproduce the
+source scope with `scripts/_pending_dups.sql` (Workbench) or
+`scripts/_probe_pending_dups.py` (DuckDB, needs source-DB network access).
+
+**Resolution (2026-07-28, SDG).** SDG ruled on the Delaware group and on the
+`11-W-00232/6` pair. Verified against the source mirror loaded 2026-07-27 21:29Z.
+
+*Delaware -- RESOLVED, no code change.* SDG: "Delaware should be updated to
+region 3 ... The current demonstration number is `11-W-00036/3` and should
+remain that ... there are currently no pending actions for Delaware ... there
+should be no need to combine anything." Confirmed: approved demo 1840 already
+carries `11-W-00036/3`, and the five live `mdcd_pendg_demo` rows (129, 130, 197,
+252, 256) are all the SAME already-approved program (`mdcd_pgm_id = 20`, Diamond
+State Health Plan) -- stale 2022-01..2023-01 drafts last touched by a bulk job
+(user 99) on 2023-06-09, which is why nothing shows as pending in the PMDA UI.
+The tier-1 region-digit repair already folds 197/252/256 (`/4`) into the
+state-correct approved `/3`, so DEMOS ends with exactly one Delaware
+demonstration. RED-C is therefore retired: the region defect is repaired
+in-migration and reported per-row (`_parity_pending_approved`, category
+`region_digit_repaired`), not gated.
+
+*Iowa -- covered by the Delaware principle, recorded for objection.* The same
+repair fires for Iowa Wellness Plan pending 29 and 148: source `11W002895`
+normalizes to `11-W-00289/5`, folded into the state-correct approved
+`11-W-00289/7` (IA is region 7) on the identically-named approved demo 2233. SDG
+named only Delaware, but the ruling states a general rule -- keep the
+state-correct approved number, do not combine -- and the repair is deliberately
+conditioned on the approved counterpart's region being state-correct. Logged
+here explicitly so SDG can object; no separate sign-off is being awaited.
+
+*Louisiana / Texas -- both SDG numbers were ALREADY correct; the real collision
+is still open.* SDG: "Louisiana Take Charge Family Planning Program ... should be
+`11-W-00232/6` while Healthy Texas Women ... should be `11-W-00326/6`." Both are
+already true in the load: legacy 2506 (LA) loads as `11-W-00232/6`, and legacy
+2477 "Healthy Texas Women" (Approved, 2020-01-22..2030-06-30) loads as
+`11-W-00326/6` after `normalize_medicaid_id` strips the stray space in the source
+value `11 -W-00326/6`. Neither ruling changes the migration.
+
+The row actually colliding with LA 2506 is a THIRD demonstration SDG was never
+shown: legacy 2513 TX **"Texas Women's Health Waiver"** (Expired,
+2007-01-01..2012-12-31), also carrying `11-W-00232/6`. It is distinct from 2477
+-- different name, different performance period (an 8-year gap), different
+status -- so renumbering it to `11-W-00326/6` would collide with the Approved
+2477 and merge two different waiver periods, moving the collision rather than
+resolving it. Its correct number is not derivable from the source and must not
+be guessed.
+
+Root cause of the mis-answer: the SME export
+(`reports/orphans/demonstration_held_dup_medicaid.csv`) carried only ids,
+`medicaid_id`, state and `status_cd` -- **no demonstration name** -- so 2513 and
+2477 were indistinguishable in the artifact SDG reviewed. The export now carries
+`name`, `status_id`, `effective_date`, `expiration_date` and `kept_name`.
+
+2513 remains held and reported. Until SDG answers, check 21 is fail-closed
+against `reports/parity_accepted/demonstration_dup_medicaid.csv`, which is
+deliberately UNSIGNED and holds the gate at PENDING. Note that the loader's
+mechanical tie-break kept LA only because 2506 < 2513; it agreed with SDG by
+coincidence, not by review, which is why the check no longer accepts an
+unreviewed hold-back.
+
+- [ ] SDG: what is the correct demonstration number for "Texas Women's Health
+      Waiver" (legacy 2513, TX, Expired 2007-2012), or should it be excluded?
+- Decided by: ____________  Date: __________  (sign `demonstration_dup_medicaid.csv`)
+
 ### D3. Date-only timestamp anchoring (America/New_York)
 
 **Status:** RESOLVED (2026-07-14, engineer, from the timestamp audit); SME
@@ -163,7 +246,9 @@ review**; (2) PMDA hangs comments off many parents (demonstrations, amendments,
 renewals, programs, final decisions, monitoring docs, BN file docs) but DEMOS
 keeps comments only on deliverables, so the rest stay in PMDA and a **snapshot**
 suffices for reach-back. Both are now produced by
-`scripts/sme_review_exports.py` (`make sme_review_exports`): `othr-names` reads
+`scripts/sme_review_exports.py` (`make sme_review_exports`, which since
+2026-07-28 defaults to `all` and runs every export in the registry, not just
+these two): `othr-names` reads
 the parity view `migration._parity_pgm_dtl_tag_othr_held`; `comments-snapshot`
 normalizes the seven non-deliverable comment tables (`mdcd_demo_cmt`,
 `mdcd_demo_amndmt_cmt`, `mdcd_demo_rnwl_cmt`, `mdcd_pgm_cmt`,
@@ -299,15 +384,30 @@ coverage and held rows are non-gating (logged per-row to `reports/orphans/`).
 **Open (genesis):** no DB constraint requires >=1 action per deliverable
 (verified against the baseline DDL). Whether the DEMOS UI/GraphQL resolver
 assumes a genesis `Created Deliverable Slot` is a follow-up for DEMOS
-engineering; it governs whether Full also synthesizes a genesis row.
+engineering; under MINIMAL the genesis row is synthesized regardless.
 
-- [x] FULL fidelity. Decided by: Zoe Elkins  Date: 07/17/2026
+**Fidelity RE-DECIDED MINIMAL (2026-07-21), supersedes FULL.** David's CMS
+priority ranking (see §11 of `reports/narrative/sme_signoff_2026-07-20.md` and
+`docs/specs/deliverable-action-cms-priority-alignment-spec.md`) puts
+`deliverable_action` in his lowest band and accepts a read-only snapshot for
+extensions/resubmit requests (D12). MINIMAL (seeded genesis + one current-status
+action per loaded deliverable) satisfies the gating rule (latest action
+`new_status` = `deliverable.status_id`) and the DEMOS genesis assumption, and
+takes the D8 unmapped-code crosswalk + self-transition disambiguation off the
+critical path.
+
+- [x] ~~FULL fidelity. Decided by: Zoe Elkins  Date: 07/17/2026~~ **Superseded 2026-07-21.**
+- [x] **MINIMAL fidelity.** Decided by: Zoe Elkins (David priority alignment)  Date: 07/21/2026
 - [ ] Genesis-action requirement (DEMOS engineering). Decided by: ______  Date: ______
 
 ### D8. Deliverable status codes with no direct DEMOS status
 
-**Status:** OPEN (SME crosswalk authoring). Blocks the `deliverable_action`
-loader (D7); the loader stays a guarded no-op until authored.
+**Status:** OFF CRITICAL PATH (2026-07-21) after D7 switched to MINIMAL. MINIMAL
+maps only each deliverable's *current* status (already handled by
+`crosswalk_deliverable_status`), so the per-transition `crosswalk_deliverable_action`
+is no longer required for the backfill. Re-open only if FULL per-transition
+detail is later promoted from the #5 snapshot (D12) into live actions. Original
+context retained below.
 
 **Context.** PMDA `mdcd_dlvrbl_stus_rfrnc` has 17 codes; DEMOS has only 8
 `deliverable_status` values. Codes with no direct DEMOS status:
@@ -321,6 +421,281 @@ back non-gating and logged for SME review (repo pattern). Fail-closed
 
 - [ ] Deliverable status/action crosswalk authored for the unmapped codes.
 - Decided by: ____________  Date: __________
+
+### D9. Amendment milestone dates -- re-open of the 2026-07-10 status-only decision
+
+**Status:** OPEN (SME re-ratification). Gates the amendment `application_date`
+loader; not built pending this decision.
+
+**Context.** The 2026-07-10 coverage answer set amendments to per-phase
+`application_phase` status rows but NO milestone dates, on the stated premise
+that "amendments carry no confidently-mappable milestone-date column." A
+2026-07-21 recon of live PMDA (the colleague's application inventory query, run
+via DuckDB / `mysql-ducksplorer`) shows the premise is incomplete:
+`mdcd_demo_aplctn` is a unified application table with a type discriminator
+(`mdcd_demo_aplctn_type_cd` 1=Demonstration, 2=Amendment, 3=Extension), and the
+type-2 (Amendment) rows carry the SAME high-confidence `phase_1..phase_6`
+columns as demonstrations. Every milestone view filters `type_cd=1`, so those
+dates were never loaded or even logged. Live evidence:
+
+- 173 of 205 non-deleted amendments (and 53 of 66 extensions) carry >=1
+  populated `phase_*` date that no `application_date` row captures.
+- The type-2 row is the amendment's own application record: 204 of 205 link 1:1
+  to `mdcd_demo_amndmt` via `mdcd_pendg_demo_id`, and 0 link to a non-amendment
+  application.
+- Its `phase_*` dates are a distinct review timeline, not an echo of the parent
+  demonstration (0 of 18 comparable rows echo the parent's `phase_1_strt_dt`;
+  they start after / extend beyond it) and are chronologically sane.
+- The satellite `amndmt_prd_from_dt` (the column the SME was shown) is populated
+  for only 1 of 204 -- i.e. the amendment's real timeline lives in the type-2
+  `mdcd_demo_aplctn` `phase_*` set, not the satellite date columns.
+
+`sql/99_parity/56` now surfaces these counts per type (non-gating) as the
+evidence for this decision.
+
+**Proposed build if ratified** (design of record; matches the approved plan):
+add an amendment branch to `sql/10_stg/27_application_milestone.sql` keyed by
+`mdcd_pendg_demo_id -> type-2 mdcd_demo_aplctn` (aggregated `max()` per pending
+demo, mirroring the demo aggregation), emitting `application_id` = the amendment
+UUID via `migration._id_map_mdcd_demo_amndmt`; reuse the exact `phase_* ->
+date_type` crosswalk but only the `phase_1..phase_6`-derived types (exclude the
+demo-only 'Application Approval Date' / `submsn` / `rcvd` fallbacks);
+`sql/20_app/36_application_date.sql` joins `demos_app.amendment` so a held-back
+amendment gets no rows. Extensions stay deferred (renewals are post-MVP).
+
+- [ ] SME re-ratifies whether amendment phase-milestone dates load into
+  `application_date`, or the status-only decision stands.
+- Decided by: ____________  Date: __________
+
+### D10. Federal executive policy decisions (`mdcd_fed_exctv_plcy_dcsn`) disposition
+
+**Status:** OPEN (SME). No code this cycle.
+
+**Context.** `mdcd_fed_exctv_plcy_dcsn` (OA reported date, decision date, key
+issues text per application) is uncovered: not migrated, not on the drop list,
+in the "awaiting SME mapping" set. Live volume is small -- 6 non-deleted rows
+across 6 applications (0:1 per application); in the colleague's recon query it
+is a LEFT JOIN with no selected columns (contributes nothing to the output).
+Both candidate DEMOS targets have hard dependencies: `application_date` needs a
+DEMOS-owned `date_type` for the OA-reported / decision dates (none exists;
+`date_type` is seeded by DEMOS Prisma migrations, not this repo, and the repo
+discipline is "not invented as a `date_type`"); `application_note` is an unbuilt
+`GAP_table_pending` whose intended primary source is `mdcd_demo_aplctn_cmt` and
+which needs a seeded `note_type` domain + crosswalk. Given 6 rows and those
+dependencies, no loader is built this cycle.
+
+- [ ] SME decides: explicit drop-list entry (out of scope) vs map after the
+  DEMOS `date_type`/`note_type` additions and `application_note`'s primary
+  source (`mdcd_demo_aplctn_cmt`) land.
+- Decided by: ____________  Date: __________
+
+### D11. Files (#2) via `document_pending_upload` (metadata-only, no s3_path)
+
+**Status:** PROPOSED (2026-07-21). From David's priority alignment (§11 of
+`sme_signoff_2026-07-20.md`; `docs/specs/deliverable-action-cms-priority-alignment-spec.md`).
+
+**Context.** David ranks "Files Submitted exist in DEMOS" #2, but the `document`
+loader is DEFERRED on the DEMOS `s3_path` strategy. The `s3_path` NOT NULL wall
+applies **only to full `document`**. DEMOS `document_pending_upload`
+(`server/src/model/documentPendingUpload/documentPendingUpload.prisma`) has **no
+`s3_path` column** ("upload in progress"); its NOT NULLs are `owner_user_id`
+(rule already decided - D4: Primary Project Officer, DDME for M&E) and
+`application_id` (resolvable deliverable -> demonstration -> application). So file
+*records* can exist in DEMOS now, decoupled from the `s3_path` decision and from
+`deliverable_action` (the pending-upload variant has no submission-action link).
+
+**Proposed disposition.** Build a metadata-only `document_pending_upload` loader
+for in-scope deliverable files (reusing the committed
+`crosswalk_deliverable_file_type` foundation), leaving full `document` + real
+S3 blob migration to DEMOS. Confirm this satisfies David's #2 as an interim.
+
+- [ ] Approve `document_pending_upload` metadata-only path for #2.
+- Decided by: ____________  Date: __________
+
+### D12. #5 "represented some how" - read-only snapshot for extensions/resubmits
+
+**Status:** DECIDED (2026-07-21, per grill). David's #5 (comments, extensions,
+resubmit requests) is his explicitly lowest band ("big drop off after 1-4").
+
+**Decision.** Comments load live (built). Extensions and resubmit requests are
+represented via a **read-only export/snapshot** for reach-back (mirroring the
+existing non-deliverable comments snapshot, D4), not as live
+`deliverable_extension` / per-transition `deliverable_action` rows for MVP. This
+is what lets D7 drop to MINIMAL: the per-transition resubmit/extension history
+lives in the snapshot, not the action log.
+
+**Proposed build.** Extend `scripts/sme_review_exports.py` with a deliverable
+extensions + resubmit-requests snapshot (from `mdcd_due_dt_chg_rqst` +
+`mdcd_dlvrbl_stus_hstry` resubmission events), run-stamped under
+`reports/runs/`, shared out-of-band.
+
+- [x] Snapshot bar accepted for extensions/resubmits (comments stay live).
+  Decided by: David priority alignment  Date: 2026-07-21
+- [ ] Snapshot exporter authored.
+
+### D13. "Deliverable determination" (#3) - RESOLVED (David, 2026-07-21)
+
+**Status:** RESOLVED. David: *"SDG uses the term 'Determination' to refer to the
+outcome of a deliverable review. Accepted, Approved, or Received and Filed."*
+
+**Disposition: BUILT.** The three determination outcomes are exactly three of the
+eight seeded DEMOS `deliverable_status` values, and all are mapped by the existing
+`crosswalk_deliverable_status` (`sql/04_crosswalks/50_deliverable_status.sql` +
+`reports/crosswalks/deliverable_status.csv`) from `mdcd_dlvrbl.mdcd_dlvrbl_crnt_stus_cd`
+(consistent with D1: status comes from `crnt_stus_cd`, not the BN-only
+`acptnc_stus`):
+
+| Determination | PMDA code(s) | -> DEMOS `deliverable_status` |
+|---|---|---|
+| Accepted | `6 Accepted`, `10 Overridden / Accepted` | `Accepted` (terminal) |
+| Approved | `13 Approved` | `Approved` (terminal) |
+| Received and Filed | `12 Received` | `Received and Filed` (terminal) |
+
+So determination is the **terminal subset of gross status (#4)** and is carried by
+`deliverable.status_id` on every loaded deliverable - #3 and #4 are served by the
+same built mechanism. The other former candidates (`cnfrmtn_stus`, BN-only
+`acptnc_stus`, due-date-change `dtrmntn`) are **not** what David means and keep
+their prior dispositions.
+
+**MINIMAL `deliverable_action` implication (D7).** To keep the determination in
+the action log legally, a deliverable whose current status is a terminal
+determination cannot be reached in a single hop from the genesis (the seeded
+`deliverable_action_configuration` only allows `Under CMS Review -> {Accepted,
+Approved, Received and Filed}`). The MINIMAL loader must therefore synthesize a
+short **legal** chain to the terminal status (e.g. genesis `Created Deliverable
+Slot`, then `Submitted -> Under CMS Review -> <determination>`), so the gating
+rule (latest action `new_status` = `deliverable.status_id`) holds with every row
+a seeded-legal triple. Non-terminal current statuses still resolve in one hop.
+
+- [x] Determination = review outcome (Accepted / Approved / Received and Filed);
+  BUILT via `deliverable.status_id`. Decided by: David  Date: 2026-07-21
+
+### D14. System roles derived from person_type for every user (workflow 2)
+
+**Status:** DECIDED (2026-07-24, per grill). Extends the workflow-2 RBAC build.
+
+**Problem.** The System-role backfill was keyed on the legacy `role_rfrnc.role_cd`
+(`crosswalk_system_role`, codes 1 Internal Administrator -> Admin User, 4 State
+User -> State User). PMDA has no System role code for CMS users, so every
+`demos-cms-user` (382 of them in the rehearsal DB) and 7 `demos-state-user`
+loaded with **zero** `system_role_assignment` rows -- i.e. no permissions.
+DEMOS resolves a user's entire permission set from `system_role_assignment`
+(`server/src/auth/user/findUserByClaims.ts`), and `demos_app.role_person_type`
+pairs each System role 1:1 with a user person_type (Admin User<->demos-admin,
+CMS User<->demos-cms-user, State User<->demos-state-user).
+
+**Decision.** Assign every migrated user the System role that matches its
+**derived person_type**, so a migrated user has the same permissions it would
+have if created in-app (and matches the dbt loader, which derives System roles
+from person_type too).
+
+**BUILT.** `crosswalk_system_role` re-keyed in place from `legacy_role_cd` to
+`person_type_id` (`sql/04_crosswalks/44_system_role.sql`,
+`reports/crosswalks/system_role.csv` = 3 person_type rows,
+`registry.yaml`); `45_system_role_check.sql` rewritten to assert every
+System-grant `(role, person_type)` pairing DEMOS seeds is covered.
+`sql/10_stg/26_system_role_assignment_resolved.sql` now emits one row per user
+by joining `stg.users_resolved (new_uuid, person_type_id)` to the re-keyed
+crosswalk. The crosswalk has no MySQL reference-code domain, so it is un-audited
+(kind "") in the live crosswalk audit, like `crosswalk_deliverable_file_type`.
+
+- [x] Full person-type-based System roles for all users. Decided by: SME (in-session)  Date: 2026-07-24
+- [ ] Formal SME sign-off on the person_type<->role pairings (matches DEMOS `role_person_type` seed).
+
+### D15. Fallback primary Project Officer for demonstrations missing one (workflow 3)
+
+**Status:** DECIDED (2026-07-24, per grill). Extends the workflow-3 demonstration build.
+
+**Problem.** DEMOS enforces (`check_demonstration_primary_project_officer`,
+`server/src/sql/functions.sql`) that every demonstration has a
+`primary_demonstration_role_assignment` with `role_id = 'Project Officer'`.
+PMDA has no such guarantee: 38 rehearsal demos (13 Approved, 25 Under Review)
+loaded with no primary PO (empty `proj_ofcr_user_id`, or the holder dropped
+upstream). The trigger is deployed post-load and does not retroactively reject
+migrated rows, so these are silently invalid for DEMOS.
+
+**Decision.** Backfill **every** missing-primary-PO demonstration with a
+**configurable** fallback Project Officer; default is legacy user 828 (a CMS
+user authorized for all states, so the assignment satisfies the
+`demonstration_role_assignment` composite FKs on any demonstration's state).
+
+**BUILT.** Operator config `crosswalk_primary_po_fallback`
+(`sql/04_crosswalks/69_primary_po_fallback.sql`,
+`reports/inputs/primary_po_fallback.csv` = one `scope=default,legacy_user_id=828`
+row, `registry.yaml`, un-audited). Loader
+`sql/23_app_derived/41_primary_po_fallback.sql` runs after the primary-PO loader
+(40): for each demo with no primary PO it inserts the fallback
+`demonstration_role_assignment` (Project Officer, the demo's own state) + the
+`primary_demonstration_role_assignment`, recording each in
+`migration._primary_officer_fallback_applied`. Provenance is surfaced non-gating
+by parity check 23 (`sql/99_parity/58_primary_officer_fallback.sql`); the
+residual missing-PO check 22 now normally reports zero. Operators reconfigure by
+editing the CSV and re-running the crosswalks phase. Because the fallback also
+covers 'Under Review' (pending) demonstrations, the DRA integrity check 12
+(`sql/99_parity/24_demonstration_role_assignment_provenance.sql`) was corrected
+to recognize a demonstration minted via the pending id-map
+(`migration._id_map_mdcd_pendg_demo`), not only the approved `_id_map_mdcd_demo`
+-- matching check 6 and this file's own flags view (a latent gap surfaced because
+the fallback is the first loader to attach a role assignment to a pending
+demonstration).
+
+- [x] Fallback for ALL missing-PO demos, configurable, 828 default. Decided by: SME (in-session)  Date: 2026-07-24
+- [ ] SME confirms 828 is the correct standing fallback PO.
+
+### D16. Demonstration-type floor for Approved zero-type demonstrations (workflow 4)
+
+**Status:** DECIDED (2026-07-24, per grill). Extends the workflow-4 program/demo-type build.
+
+**Problem.** The `mdcd_*_pgm_dtl` fold only emits a demonstration type when the
+source carries a program-detail row with a valid window, so a demonstration
+whose PMDA record had none migrates with **zero** demonstration types. 32
+rehearsal demos are type-less (17 Approved, 15 Under Review). For an *Approved*
+demonstration (a settled, user-visible record) a missing type is misleading.
+
+**Decision.** Floor every **Approved** zero-type demonstration with a single
+`Migrated From PMDA` placeholder demonstration-type tag, created the way DEMOS
+creates a user-entered type (source `User`, status `Unapproved`, so it shows as
+"Migrated From PMDA (Unapproved)" pending SME assigning the real type in-app),
+spanning the demonstration's **own** effective/expiration window. Under Review
+(and other non-Approved) zero-type demos are intentionally NOT floored.
+
+**BUILT.** `sql/21_app_associative/14_demonstration_type_tag_floor.sql` seeds the
+placeholder tag and assigns it to Approved zero-type demos whose own window is
+loadable (`effective_date < expiration_date`, satisfying the DEMOS CHECK);
+degenerate-window demos are left uncovered and reported. Provenance is surfaced
+non-gating by parity check 24 (`sql/99_parity/59_demonstration_type_floor.sql`).
+
+- [x] Floor Approved zero-type demos with a "Migrated From PMDA" placeholder using the demo's own dates. Decided by: SME (in-session)  Date: 2026-07-24
+- [ ] SME assigns real demonstration type(s) in-app (retires the placeholder).
+
+### D17. Medicaid demonstration number normalization (bounded strip-and-reassemble)
+
+**Status:** DECIDED (2026-07-24, per grill). Refines the demonstration-id invariant above.
+
+**Problem.** The strict project-number filter drops any `mdcd_demo_num` not
+already in exact canonical `11-W-NNNNN/R` form. 97 non-test rehearsal IDs fail
+strictly, of which 16 are net-new demonstrations that are recoverable by a
+bounded normalization (surrounding whitespace, or `-`/`/` punctuation variants
+of an otherwise canonical value); the other 76 are genuinely malformed and stay
+dropped.
+
+**Decision.** Normalize `mdcd_demo_num` by a **bounded** strip-and-reassemble
+before the canonical-form test: strip `-`, `/`, and whitespace, require exactly
+`11W` + 5 digits + a region `1-9` or `10`, reassemble to `11-W-NNNNN/R`, then
+re-validate against the canonical regex (else NULL). No fuzzy matching, no
+digit-count inference -- a value that is not unambiguously a canonical number
+after normalization is still dropped and flagged.
+
+**BUILT.** `migration.normalize_medicaid_id(text)` (IMMUTABLE STRICT,
+`sql/00_init/03_helper_fns.sql`); the staging filter
+(`sql/10_stg/10_filter_demo.sql`) drops a demo only when
+`normalize_medicaid_id(mdcd_demo_num) IS NULL`, and
+`sql/10_stg/22_demonstration_resolved.sql` emits the normalized `medicaid_id`.
+Validated against the rehearsal DB (183 valid IDs; 16 net-new recovered,
+region-correct, no medicaid_id collisions).
+
+- [x] Bounded strip-and-reassemble (no fuzzy matching). Decided by: SME (in-session)  Date: 2026-07-24
+- [ ] SME reviews the 76 still-dropped malformed IDs (per-run filter report).
 
 ## Sign-off
 

@@ -1,11 +1,12 @@
 """Live-PG harness for the System-role crosswalk check (45_system_role_check.sql).
 
 The DO block must: skip when crosswalk_system_role is absent (standalone dev),
-pass when the two System rows validate against the DEMOS seeds, and hard-fail
-on a missing System code, a (role_id, grant_level_id) absent from demos_app.role,
-a non-System / unknown grant level, or a (role_id, person_type_id) the
-role_person_type seed does not permit. Runs the real SQL against a throwaway
-Postgres (``PG_TEST_DSN``); self-skips without it.
+pass when the person_type rows validate against the DEMOS seeds, and hard-fail
+on a missing System-grant (role, person_type) pairing, a (role_id,
+grant_level_id) absent from demos_app.role, a non-System / unknown grant level,
+or a (role_id, person_type_id) the role_person_type seed does not permit. Runs
+the real SQL against a throwaway Postgres (``PG_TEST_DSN``); self-skips without
+it.
 """
 
 from __future__ import annotations
@@ -42,26 +43,23 @@ def _seed_demos(conn: Any) -> None:
     )
 
 
-def _seed_source(conn: Any, role_cds: tuple[int, ...] = (1, 4)) -> None:
-    """mysql_raw with role_rfrnc + the crosswalk_system_role table.
+def _seed_source(conn: Any) -> None:
+    """mysql_raw with the crosswalk_system_role table (person_type-keyed).
 
     Applies 44_system_role.sql for the DDL (now CREATE TABLE only -- the
     production load path is the crosswalks phase CSV loader), then inserts
-    the two System rows directly so the check has data to validate.
+    the person_type rows directly so the check has data to validate.
     """
     conn.execute("DROP SCHEMA IF EXISTS mysql_raw CASCADE")
     conn.execute("CREATE SCHEMA mysql_raw")
-    conn.execute("CREATE TABLE mysql_raw.role_rfrnc (role_cd int, role_name text)")
-    for cd in role_cds:
-        conn.execute("INSERT INTO mysql_raw.role_rfrnc (role_cd) VALUES (%s)", (cd,))
     conn.execute(SYSTEM_ROLE.read_text(encoding="utf-8"))
     conn.execute(
         "INSERT INTO mysql_raw.crosswalk_system_role "
-        "(legacy_role_cd, legacy_name, role_id, grant_level_id, person_type_id, notes) VALUES "
-        "(1, 'Internal Administrator', 'Admin User', 'System', 'demos-admin', "
-        "'system-level; role_person_type allows only demos-admin'), "
-        "(4, 'State User', 'State User', 'System', 'demos-state-user', "
-        "'system-level; role_person_type allows only demos-state-user')"
+        "(person_type_id, role_id, grant_level_id, notes) VALUES "
+        "('demos-admin', 'Admin User', 'System', "
+        "'system-level; role_person_type pairs Admin User with demos-admin'), "
+        "('demos-state-user', 'State User', 'System', "
+        "'system-level; role_person_type pairs State User with demos-state-user')"
     )
 
 
@@ -77,20 +75,23 @@ def test_absent_crosswalk_skips(pg_db: psycopg.Connection) -> None:
 
 
 def test_complete_mapping_passes(pg_db: psycopg.Connection) -> None:
-    """The two System rows validate against the DEMOS seeds."""
+    """The person_type rows validate against the DEMOS seeds."""
     _seed_demos(pg_db)
     _seed_source(pg_db)
     _run_check(pg_db)
 
 
-def test_missing_system_code_raises(pg_db: psycopg.Connection) -> None:
-    """A System code in role_rfrnc with no crosswalk row hard-fails."""
+def test_missing_person_type_mapping_raises(pg_db: psycopg.Connection) -> None:
+    """A System-grant (role, person_type) pairing with no crosswalk row hard-fails."""
     import psycopg
 
     _seed_demos(pg_db)
     _seed_source(pg_db)
-    # role_rfrnc now also has code 4, but drop its crosswalk row to create a gap.
-    pg_db.execute("DELETE FROM mysql_raw.crosswalk_system_role WHERE legacy_role_cd = 4")
+    # demos permits (State User, demos-state-user) at System grant; drop its
+    # crosswalk row to create a completeness gap.
+    pg_db.execute(
+        "DELETE FROM mysql_raw.crosswalk_system_role WHERE person_type_id = 'demos-state-user'"
+    )
     with pytest.raises(psycopg.errors.RaiseException):
         _run_check(pg_db)
 

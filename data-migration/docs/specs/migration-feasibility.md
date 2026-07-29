@@ -97,7 +97,7 @@ the dagger note).
 | 18 | State-region seed vs source drift | GREEN | - |
 | 19 | Amendment load accounting | GREEN | 21 loaded, 6 held back, 92 signatures dropped to NULL |
 | 20 | Medicaid.gov 1115 outcome-fact parity | GREEN | vacuously green |
-| 21 | Demonstrations held back for duplicate medicaid_id | GREEN | non-gating; 1 held (11-W-00232/6) |
+| 21 | Demonstrations held back for duplicate medicaid_id | GREEN | mixed gating; 1 held (11-W-00232/6, region-correct group -> non-gating). RED only if a group matches no member's state region |
 | - | Deliverable BN routing QA; override-note completeness/held | GREEN | non-gating; new checks, exercised in the Jul 9 run |
 | - | Comment completeness / integrity / held | GREEN | 6718 comments loaded, 610 held back |
 

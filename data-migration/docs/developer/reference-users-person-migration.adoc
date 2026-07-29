@@ -275,9 +275,13 @@ Before cutover, confirm against the live `mysql_raw` snapshot:
   SME sign-off; `43_role_person_type_check.sql` guards against source
   drift. The separate role-*assignment* crosswalks
   (`sql/04_crosswalks/44_system_role.sql` +
-  `46_demonstration_role.sql`, full `role_id`/`grant_level`/table tuples)
-  are distinct, CSV-canonical workstreams that superseded the earlier
-  unified `40_role.sql`.
+  `46_demonstration_role.sql`) are distinct, CSV-canonical workstreams
+  that superseded the earlier unified `40_role.sql`. `44_system_role.sql`
+  is keyed by the user's derived `person_type` (one System role per
+  person_type: `demos-admin` -> Admin User, `demos-cms-user` -> CMS User,
+  `demos-state-user` -> State User), so every migrated user carries the same
+  System role it would have had if created in-app; `46_demonstration_role.sql`
+  carries the demonstration-level `role_id`/`grant_level`/table tuples.
 * Contact-only persons (the `mdcd_*_cntct` deferral) also populate
   `person` but are out of scope for this page; they share the same
   `person` table and `person_type` rules.

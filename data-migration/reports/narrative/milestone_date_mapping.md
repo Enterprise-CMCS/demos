@@ -12,7 +12,10 @@ legacy date columns are deliberately deferred for SME review.
   (non-gating) and fail-closes on the Federal Comment guard (gating).
 - Coverage (per the 2026-07-10 SME answers): demonstrations + pending
   demonstrations get milestone dates; demonstrations + pending demonstrations +
-  amendments get per-phase status rows.
+  amendments get per-phase status rows. **Re-opened 2026-07-21 for amendments
+  (D9):** amendment applications DO carry the high-confidence `phase_*` columns
+  (see "Amendment milestone dates" below); the status-only decision is pending
+  SME re-ratification and no amendment `application_date` load is built yet.
 
 ## High-confidence date mapping
 
@@ -50,8 +53,10 @@ America/New_York** per the DEMOS convention (see "Timezone convention" below), n
 as a bare midnight-UTC cast; `created_at` / `updated_at` are taken from the
 demonstration's own audit timestamps (true instants, left as-is). A held-back
 demonstration (absent from `demos_app.demonstration`) contributes no row.
-Amendments carry no confidently mappable milestone-date column, so they get **no
-application_date rows** (their dates are deferred below).
+Amendments get **no application_date rows today** (status-only, per 2026-07-10),
+but that decision is **re-opened (2026-07-21, D9)**: amendment applications carry
+the same high-confidence `phase_*` columns as demonstrations. See "Amendment
+milestone dates (re-opened)" below.
 
 ## application_phase derivation
 
@@ -119,12 +124,44 @@ needs a home. These are **not** invented as a `date_type`.
 | `mdcd_demo_aplctn.phase_3_a_sme_strt_dt` / `phase_3_a_sme_end_dt` | SME clearance sub-dates; candidate target `SME Initial Review Date` is not high-confidence (start vs end, and which of several SDG-prep sub-dates). |
 | `mdcd_demo_aplctn.phase_3_a_frvt_*`, `phase_3_b_cmcs_*`, `phase_3_b_ogc_*`, `phase_3_b_omb_*`, `phase_3_c_ogc_*`, `phase_3_c_omb_*` (start+end) | FRT / BNPMT / OGC / OMB clearance sub-dates; their DEMOS targets (`FRT Initial Meeting Date`, `BNPMT Initial Meeting Date`, and the Review-phase clearances) require SME ratification of the ordinal/semantic match. Their earliest start already feeds `SDG Preparation Start Date`. |
 | `mdcd_demo_aplctn.mdcd_demo_aplctn_stus_dt` | Application-status date; no single milestone `date_type` target. |
-| `mdcd_demo_amndmt.amndmt_aplctn_dt`, `amndmt_stus_dt` | Amendment application / status dates; amendments get phase rows (status-derived) but no confidently-mappable milestone `date_type`. |
+| `mdcd_demo_amndmt.amndmt_aplctn_dt`, `amndmt_stus_dt` | Amendment application / status dates on the satellite table (populated for ~1 of 204 amendments). The amendment's real timeline lives in its type-2 `mdcd_demo_aplctn` `phase_*` columns, not here -- see "Amendment milestone dates (re-opened)" below (D9). |
 
 Columns consumed elsewhere (not "unmapped"): `mdcd_demo_amndmt.amndmt_prd_from_dt`
 / `amndmt_prd_to_dt` (amendment effective/period in `sql/20_app/35_amendment.sql`),
 `mdcd_demo.state_prfmnc_yr_strt_dt` / `state_prfmnc_yr_end_dt` (demonstration
 effective/expiration), and the `creatd_dt` / `updtd_dt` audit columns.
+
+## Amendment milestone dates (re-opened 2026-07-21, D9)
+
+`mdcd_demo_aplctn` is a unified application table with a type discriminator
+(`mdcd_demo_aplctn_type_cd` 1=Demonstration, 2=Amendment, 3=Extension). The
+milestone loader and the unmapped-parity log both filter `type_cd=1`, so the
+`phase_*` timeline on the Amendment (type 2) and Extension (type 3) application
+rows was never loaded and, until now, never even counted. A 2026-07-21 recon of
+live PMDA (via DuckDB / `mysql-ducksplorer`) found:
+
+- 173 of 205 non-deleted amendments (and 53 of 66 extensions) carry >=1
+  populated `phase_*` date -- the same high-confidence columns mapped for
+  demonstrations.
+- The type-2 row is the amendment's own application record: 204 of 205 link 1:1
+  to `mdcd_demo_amndmt` via `mdcd_pendg_demo_id`; 0 link to a non-amendment app.
+- The `phase_*` dates are a distinct, chronologically-sane review timeline, not
+  an echo of the parent demonstration (0 of 18 comparable rows echo the parent's
+  `phase_1_strt_dt`; they start after / extend beyond it).
+
+`sql/99_parity/56_application_milestone.sql` now surfaces these counts per type
+(non-gating) as the evidence for the re-opened decision.
+
+**Gated build design** (matches `pending_approved_decisions.md` D9; NOT built
+until SME re-ratifies): add an amendment branch to `sql/10_stg/27_application_milestone.sql`
+keyed by `mdcd_pendg_demo_id -> type-2 mdcd_demo_aplctn` (aggregated `max()` per
+pending demo, mirroring the approved/pending aggregation), emitting
+`application_id` = the amendment UUID via `migration._id_map_mdcd_demo_amndmt`;
+reuse the same `phase_* -> date_type` crosswalk but only the
+`phase_1..phase_6`-derived types (exclude the demo-only 'Application Approval
+Date' / `submsn` / `rcvd` fallbacks); `sql/20_app/36_application_date.sql` joins
+`demos_app.amendment` so a held-back amendment gets no rows. Extensions remain
+deferred (renewals are post-MVP).
 
 ## Notes
 

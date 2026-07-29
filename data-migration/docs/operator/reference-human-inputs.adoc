@@ -89,13 +89,19 @@ xref:../sme/howto-author-a-crosswalk-csv.adoc[the SME crosswalk how-to]).
 | -- (self-contained; no proposal)
 | `reports/crosswalks/system_role.csv`
 | `sql/04_crosswalks/44_system_role.sql` / `45_system_role_check.sql`
-| Populated (2 System roles); CSV-canonical, multi-column tuple
+| Populated (3 person_types); CSV-canonical, keyed by DEMOS person_type (one System role per user person_type)
 
 | demonstration_role
 | -- (self-contained; no proposal)
 | `reports/crosswalks/demonstration_role.csv`
 | `sql/04_crosswalks/46_demonstration_role.sql` / `47_demonstration_role_check.sql`
 | Populated; loaded into `crosswalk_demonstration_role` (`registry.yaml`); drives the demonstration-level RBAC derivation in `23_app_derived/30_demonstration_role_assignment.sql`
+
+| primary_po_fallback
+| -- (operator config; no proposal)
+| `reports/inputs/primary_po_fallback.csv`
+| `sql/04_crosswalks/69_primary_po_fallback.sql` (no check; consumed by `23_app_derived/41_primary_po_fallback.sql`)
+| Populated (1 row; default legacy user 828). Operator-configurable fallback primary Project Officer backfilled onto demonstrations that would otherwise load without one (DEMOS `check_demonstration_primary_project_officer`); provenance in parity check 23
 
 | pgm_dtl_tag
 | -- (SME worksheet)
@@ -410,15 +416,21 @@ As of *2026-06-26*. Hand-audited; not enforced by `verify-doc-facts`
   not affect the migrated database (pgloader + DEMOS remain source of truth), but
   the data-tools team should align the exporter or document it as a naive
   convenience snapshot.
-* *SME-review exports (2026-07-15):* `scripts/sme_review_exports.py`
-  (`make sme_review_exports`) produces the two 2026-07-10 SME review artifacts:
-  `othr-names` exports the held free-text "Other" program-detail names (from
-  `migration._parity_pgm_dtl_tag_othr_held`) for *SDG* review, and
-  `comments-snapshot` snapshots the seven non-deliverable comment tables PMDA
-  keeps but DEMOS drops (all rows, with a `deleted` flag). Both write run-stamped
-  CSVs to the gitignored `reports/runs/`; the comment text is potentially
-  sensitive, so *operator handoff:* run post-parity and share the CSVs with SDG
-  out-of-band (never commit them).
+* *SME-review exports (2026-07-15; default widened 2026-07-28):*
+  `scripts/sme_review_exports.py` (`make sme_review_exports`) defaults to `all`
+  and produces every SME review artifact in one pass: `othr-names` (the held
+  free-text "Other" program-detail names from
+  `migration._parity_pgm_dtl_tag_othr_held`, for *SDG* review),
+  `comments-snapshot` (the seven non-deliverable comment tables PMDA keeps but
+  DEMOS drops, all rows with a `deleted` flag), `authorities-snapshot`,
+  `comment-route-diff`, `softdeleted-demos-snapshot`, and `dup-medicaid` (the
+  duplicate-`medicaid_id` hold-backs, with both colliding demonstrations named --
+  the artifact the outstanding *SDG* question on legacy 2513 "Texas Women's
+  Health Waiver" needs). All write run-stamped CSVs to the gitignored
+  `reports/runs/`; the comment text is potentially sensitive, so *operator
+  handoff:* run post-parity and share the CSVs with SDG out-of-band (never commit
+  them). An export whose inputs are absent is reported and skipped, but the run
+  exits 1 so a partial set is never mistaken for a complete one.
 
 // docnav-start
 ifndef::nested[]

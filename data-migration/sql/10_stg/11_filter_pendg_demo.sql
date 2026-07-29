@@ -1,8 +1,8 @@
 /*
  * Purpose:    Build the row-level allowlist of valid pending-demonstration ids (lifecycle-aware: project number optional).
- * Inputs:     mysql_raw.mdcd_pendg_demo, stg._keep_ids, stg._drop_ids
+ * Inputs:     mysql_raw.mdcd_pendg_demo, stg._keep_ids, stg._drop_ids, migration.normalize_medicaid_id
  * Outputs:    CREATE OR REPLACE VIEW stg._valid_pendg_demo_ids
- * Invariants: source-only (no crosswalks/seeds); fail-closed regex rules; project number optional on pending (only malformed non-null values flagged); force-keep only ids present in source (CODE_REVIEW H5).
+ * Invariants: source-only (no crosswalks/seeds); fail-closed rules; project number optional on pending (only non-normalizable non-null values flagged); the project-number rule calls migration.normalize_medicaid_id, the same helper the approved anchor and the fold key use, so the two anchors never disagree about which numbers are rescuable; force-keep only ids present in source (CODE_REVIEW H5).
  * Refs:       -
  *
  * Row-level allowlist filter on the pending demonstration anchor
@@ -24,15 +24,22 @@ WITH bad_prjct_nbr AS (
   -- total) and R is the HHS regional office number 1-10. Optional on
   -- pending; only flag malformed non-null values. Rows whose
   -- mdcd_demo_num contains "test" are auto-dropped silently;
-  -- non-test rows that fail the canonical regex are flagged for SME
+  -- non-test rows that fail even after reassembly are flagged for SME
   -- review (see 99_filter_report.sql).
+  --
+  -- migration.normalize_medicaid_id is the SAME helper the approved anchor
+  -- (10_filter_demo.sql) and the fold key (23_pendg_demo_fold.sql) use. The
+  -- pending anchor must not apply a stricter rule than the approved one:
+  -- otherwise a pending row whose number the approved side would rescue is
+  -- dropped here and can never fold into its approved counterpart, and the two
+  -- anchors emit demonstration.medicaid_id in two different shapes.
   SELECT
     mdcd_pendg_demo_id AS demo_id
   FROM
     mysql_raw.mdcd_pendg_demo
   WHERE
     mdcd_demo_num IS NOT NULL
-    AND mdcd_demo_num !~ '^11-W-[0-9]{5}/(10|[1-9])$'
+    AND migration.normalize_medicaid_id(mdcd_demo_num) IS NULL
 ),
 bad_state_cd AS (
   SELECT

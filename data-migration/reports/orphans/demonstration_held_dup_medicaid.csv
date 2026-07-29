@@ -1,0 +1,2 @@
+demonstration_id,legacy_demo_id,medicaid_id,state_id,status_cd,kept_legacy_demo_id,kept_demonstration_id,disposition,gating,reason,name,status_id,effective_date,expiration_date,kept_name
+ea9d34e0-1b94-456d-87c9-94fb02a9faab,2513,11-W-00232/6,TX,6,2506,4ac33e36-e034-4905-bc81-18c4fb117723,held_nonwinner,False,duplicate medicaid_id; kept legacy demo 2506 (lower legacy id),Texas Women's Health Waiver,Approved,2007-01-01 05:00:00+00:00,2013-01-01 04:59:59.999000+00:00,Louisiana Take Charge Family Planning Program

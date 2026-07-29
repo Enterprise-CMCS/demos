@@ -506,14 +506,19 @@ demo whose project number matches a valid approved demo **folds** into it; one
 with no counterpart is an **orphan_loadable**; one with no project number is
 **held_no_project**. `10_stg/25` projects orphans and `20_app/31` loads them as
 their own 'Under Review' demonstration (chip_id always NULL, no status column ->
-uniformly Under Review), holding back the RED-4 duplicate-medicaid loser and any
-state absent from `state_region` (logged non-gating in
-`_parity_pending_demonstration_held`). Amendments resolve fold-aware
+uniformly Under Review), holding back the RED-4 duplicate-medicaid loser (the
+region-suffix-correct row wins, lowest legacy id breaking a tie) and any state
+absent from `state_region` (both logged non-gating in
+`_parity_pending_demonstration_held`); a duplicate group matching NO member's
+state region is held ENTIRELY and gates check 4 RED (`region_incorrect_duplicate`)
+for SME source-correction. Amendments resolve fold-aware
 (`10_stg/33` LEFT JOINs the fold; `20_app/35` assigns 'Under Review' to the 162
 statusless pending-track amendments; `99_parity/52` unmapped-status guard mirrors
 the loader's drop condition so they are not falsely flagged). Parity check 4
 (`99_parity/04`) was redefined: `leaked` = a must-not-load (folded/no-project)
-pending demo that got its own row; `pending_only_deferred` = the residual
+pending demo that got its own row; a `region_incorrect_duplicate` held row
+(a duplicate whose region suffix matches no member's state region) also REDs the
+check; `pending_only_deferred` = the residual
 no-project-number set, reconciled against
 `reports/parity_accepted/pending_approved_deferrals.csv` (now the SME-signed
 reversal record; the former `no_approved_counterpart` rows were removed because
@@ -704,3 +709,205 @@ Not fixable by history (target-side/SME gaps, kept out of scope): the `phase_3`
 clearance sub-dates, `Application Status Date`, and amendment application date.
 See `pending_approved_decisions.md` D7/D8 and the scope note in
 `history_strategy.md`.
+
+2026-07-21 PMDA application-query recon (a colleague's `mdcd_demo_aplctn`
+inventory query, run read-only on live PMDA via DuckDB / `mysql-ducksplorer`).
+The query itself is a clean 1:1 denormalized read (355 live rows, no fan-out:
+`mdcd_pendg_demo_id` is 1:1 with the application, amendments/renewals are 1:1 per
+pending demo, and `mdcd_fed_exctv_plcy_dcsn` is 0:1), so there is no missing
+transform to port. It surfaced two things worth acting on. (1) **Amendment
+milestone dates.** `mdcd_demo_aplctn` is a unified application table with a type
+discriminator (`mdcd_demo_aplctn_type_cd` 1/2/3 = Demonstration/Amendment/
+Extension). The type-2 (Amendment) rows carry the SAME high-confidence
+`phase_1..phase_6` columns as demonstrations -- 173 of 205 live amendments (and
+53 of 66 extensions) have >=1 populated phase date -- but every milestone view
+filters `type_cd=1`, so those dates were neither loaded nor even counted in the
+unmapped log. The type-2 row is the amendment's own application record (204/205
+link 1:1 to `mdcd_demo_amndmt` via `mdcd_pendg_demo_id`; 0 to a non-amendment
+app), its phase dates are a distinct, chronologically-sane review timeline (not
+an echo of the parent demonstration), and the satellite `amndmt_prd_from_dt` the
+SME was shown is populated for only 1 of 204. So the 2026-07-10 "amendments get
+status rows, no milestone dates" answer rests on an incomplete premise; it is
+re-opened as D9. `99_parity/56` now also surfaces the type-2/3 `phase_*` counts
+per type (non-gating) as the evidence. The amendment `application_date` load is
+NOT built pending SME re-ratification. (2) **`mdcd_fed_exctv_plcy_dcsn`** (OA
+reported date, decision date, key issues text) is uncovered (not migrated, not
+dropped, awaiting SME) -- 6 live rows. Both candidate targets have DEMOS-owned
+dependencies (`application_date` needs a `date_type` that does not exist and is
+Prisma-seeded, not repo-seeded; `application_note` is an unbuilt
+`GAP_table_pending` needing a `note_type` domain and whose primary source is
+`mdcd_demo_aplctn_cmt`), so no code this cycle; logged as D10. Extensions/
+renewals stay deferred (post-MVP), no action.
+
+2026-07-22 dress-rehearsal (live PROD, current tree): full forced chain ran
+GREEN through constraints (4,046,883 rows loaded, 161 FKs, 0 violations) but
+**parity RED**. Two findings worth remembering (artifacts under
+`reports/rehearsals/rehearsal_20260722_135331Z/`):
+
+- RED-C (source defect, gating parity check 4): pending demos legacy
+  197/252/256 share medicaid_id `11-W-00036/4`; the region suffix `/4` matches
+  no member's state region, so the new dup logic holds the whole group as
+  `region_incorrect_duplicate` with no lowest-id fallback. Working as designed
+  -- needs an SME source-correction of the project-number region, not a code
+  change.
+- RED-D (open SME item, sme_signoff_2026-07-20.md §7.3): 162 approved-track
+  amendments with a loaded parent carry NULL/unmapped `mdcd_demo_amndmt_stus_cd`
+  and are dropped fail-closed (`reports/orphans/amendment_unmapped_status.csv`).
+  Net effect this run: **`demos_app.amendment` loaded 0 rows** (162
+  unmapped-status + 6 parent-not-loaded + 21 Approved held for a NULL signature).
+  Blocked on the statusless-amendment status disposition. (See the amendment
+  follow-up entry below for the corrected cause of the 6 and 21 buckets.)
+
+2026-07-22 dress-rehearsal (amendment follow-up): traced the 0-row
+`demos_app.amendment` outcome against the disposable container; two corrections
+to the entry above.
+
+- The **6 parent-not-loaded** amendments hang off 3 soft-deleted (`dltd_ind=1`)
+  test demos (legacy 2545 "Anthony's demo", 2569 "CT 06242022 - 2", 2580 "CT
+  09222022 General Approved App"), filtered out of the demo load -- not
+  pending-track, and not the dup-medicaid hold. The held non-winner 11-W-00232/6
+  (legacy 2513) has NO amendments at all, so the dup-medicaid hold has zero
+  amendment fallout.
+- The **21 Approved held** are NOT an OGD/DD conflict. All 21 have an
+  `effective_date` and are held purely on signature: source `signature_cd = 0`
+  decodes via `mysql_raw.mdcd_demo_aplctn_sgntr_lvl_rfrnc` as "-- Please Select
+  --" (unset), i.e. no signature was ever entered. Loader maps 1->OA / 2->OCD /
+  else NULL, so 0 -> NULL, and `check_amendment_non_null_fields_when_approved`
+  rejects a NULL-signature Approved amendment. OGD is code 3 (3 rows, none
+  Approved), DD code 4 (0 rows). So it is a source-data completeness gap, not a
+  signature-domain conflict. These 21 are REAL amendments on 11 loaded state
+  demos (Medicaid Redesign Team x4, Diamond State x3, Medicaid Reform 1115 x3,
+  MassHealth / SoonerCare / NH Granite Advantage x2, +5 demos x1). SME/DEMOS:
+  backfill OA/OCD at source, relax the Approved-signature CHECK for migrated
+  rows, or accept the loss. Logged: `_parity_amendment_held_missing_field`.
+
+2026-07-22 dress-rehearsal (RED-D deep-dive): traced the 162 NULL-status
+amendments (RED-D, the one gating amendment issue).
+
+- All 162 have a strictly NULL `mdcd_demo_amndmt_stus_cd` (not unmapped-non-null)
+  and all are approved-track, so the pending-track NULL->'Under Review' default
+  does not reach them and they drop fail-closed.
+- The source status column is essentially unpopulated: across all 189 resolved
+  amendments, `status_cd` is only ever NULL (168) or 2/Approved (21) -- never
+  1/Pending, 3/Withdrawn, 4/Disapproved. ~89% carry no status; Approved is the
+  only value ever used. The crosswalk is fine; the source column just is not
+  filled in.
+- Scope: 49 distinct loaded state demos (Medicaid Reform 1115 x19, CalAIM x11,
+  AHCCCS x10, MassHealth x9, Medicaid Redesign Team x7, RI/GA/TX x5, ...). Real
+  amendments, not test noise.
+- Downstream projection: of the 162, only 1 has an effective_date, 94 have a
+  valid OA/OCD signature, 0 have both. So mapping NULL->Approved recovers 0 (all
+  re-held for missing effective_date), but mapping NULL->a non-Approved status
+  (e.g. 'Under Review') recovers all 162 (non-Approved requires neither field;
+  all 162 have a source name).
+- Recommended §7.3 disposition: mirror the pending-track rule -- default
+  statusless approved-track amendments to 'Under Review' (one-line loader change
+  extending the COALESCE default). Status+effective_date absence reads as "never
+  finalized", so 'Under Review' is also semantically natural. Pending SME.
+
+2026-07-22 bn: chip_id mint-trigger integration + amendment date-tiered rule
+validated end-to-end on the PROD-scale rehearsal dataset (targeted re-run,
+`reports/rehearsals/rehearsal_20260722_201925Z/`).
+
+- chip_id: the migration now DEPLOYS only the `generate_medicaid_chip_id_numbers`
+  trigger (verbatim from `server/src/sql/functions.sql`, via
+  `lib.mint_trigger_deploy_sql`) at `ddl` time, and runs `build_app` with
+  `demos_app.migration_mode='on'` (txn-local pre_sql; the DuckDB/dbt loader in
+  `data/demos_data_tools/load_staged_data_to_demos_app.py` uses the identical
+  SET LOCAL pattern). This ELIMINATES the baseline rehearsal-only `chip_id DROP
+  NOT NULL` hack. Post-load: 0 NULL chip_ids, 5 preserved + rest minted, 0 dupes
+  (loader floors chip_id_number_seq above legacy 21-W before the inserts). T0.1
+  is now resolved at load, not by a cross-repo DDL relaxation.
+- Determinism for the flow-trace: minted chip_ids are INSERT-order dependent, so
+  the emitter normalizes them to stable DEMONSTRATION_CHIP_NN tokens (like the
+  UUIDs); `test_demonstration_flow_live` is green and byte-identical.
+- amendment: date-tiered rule loaded 161 amendments (all Under Review; every
+  resolved amendment has a NULL amndmt_prd_from_dt), 6 held for parent-not-loaded.
+  RED-D resolved; amendment parity checks GREEN.
+- parity: baseline 4 hard REDs -> 3 (RED-D gone). RED-A/B/C (row-count / numeric-
+  sum / pending-dup source defect 11-W-00036/4) are unchanged pre-existing backlog.
+- FOLLOW-UP (standalone cutover, not the monorepo): functions.sql is read from a
+  local checkout (`Env.demos_local` / monorepo sibling). A fully vendored/CI run
+  would need functions.sql (or just the mint trigger) fetched + hash-pinned like
+  the Prisma artifacts. Also coordinate with DEMOS so post-load refreshDbObjects.ts
+  tolerates the already-present mint trigger (deploy uses DROP ... IF EXISTS guards).
+
+2026-07-22 bn: parity RED-A/B (checks 1 + 2) FIXED; RED-C (check 4) retained
+by design. Follow-up to the chip_id/amendment re-run above; validated on the
+same rehearsal DB (parity report parity_20260722_211606Z.md).
+
+- RED-A/B root cause: sql/99_parity/90_row_counts.sql reconciled the
+  `demonstration` family against ONLY the approved-track source
+  (stg.demonstration_resolved) + approved dup hold-back, but
+  demos_app.demonstration is a CONSOLIDATED target -- the workflow-7 orphan
+  pending demos (stg.pending_demonstration_resolved, loaded by 20_app/31) land
+  in the SAME table. So the source side under-counted by the number of loaded
+  pending demos, giving delta -25 (check 1 RED) and rippling into the check-2
+  count-checksum (RED-B). The check was written before workflow-7 (pending
+  loading) and never updated.
+- Fix: the demonstration family now adds `+ count(pending_demonstration_resolved)`
+  to source_count and `+ count(_parity_pending_demonstration_held)` to
+  held_count; both new objects added to the dep guard. 04_pending_approved
+  (order 04) creates the pending held view before 90 runs. Post-fix on live DB:
+  demonstration 129 = tgt 125 + held 4 (delta 0); checksum 15008 = 14319 + 689.
+  Checks 1 + 2 GREEN. TDD: new tests/sql/test_row_count_parity.py (4 tests) --
+  watched RED (demonstration delta -2 on the seeded harness) then GREEN;
+  apply-twice idempotent; full tests/sql/ + make test green.
+- RED-C (check 4): 3 Delaware pending demos (197/252/256) share the typo'd
+  medicaid_id 11-W-00036/4 (DE is region 3; should be /3). Per D2 this is a
+  DELIBERATE forcing-function RED (no lowest-id fallback) so the SME corrects
+  the region at source before cutover. Operator decision 2026-07-22: LEAVE AS
+  DESIGNED -- not a migration-code bug; the rows load automatically once the
+  source /4 -> /3 is fixed. Parity now: 1 hard RED (RED-C only).
+  RETIRED 2026-07-28: SDG confirmed DE is region 3 and that `11-W-00036/3` (the
+  approved demo 1840 number) stands, with no pending Delaware actions to combine
+  -- the five pending rows are stale 2022-2023 drafts of the same already-
+  approved program. The tier-1 region-digit repair now folds 197/252/256 into
+  `/3` in-migration and reports each repair per-row (`_parity_pending_approved`,
+  category `region_digit_repaired`), so the source no longer has to change and
+  check 4 is GREEN. See D2 "Resolution (2026-07-28, SDG)".
+
+## Document migration: investigated, then declared out of scope (2026-07-27)
+
+Operator decision: **document migration is out of scope for `data-migration/`.** A
+metadata-only loader targeting `demos_app.document_pending_upload` was built and
+proven end-to-end (10,887 loaded / 187 held / 11,074 resolved, parity GREEN,
+`make constraints` clean) and then removed. Recording what the investigation
+established, because whoever builds it elsewhere needs these facts and they cost
+real probing to get.
+
+- **`document_pending_upload` is a transit table, not a resting place.**
+  `documentPendingUploadResolvers.ts` exports `Mutation:` only -- there is **no
+  read query** -- and the sole exit is
+  `demos_app.move_document_from_pending_to_clean(p_id, p_s3_path)`
+  (`server/src/sql/functions.sql`), which copies the row into `document` and then
+  DELETEs it. It is driven by `lambdas/fileprocess` after a GuardDuty scan of a
+  real S3 object. Metadata parked there is invisible to every DEMOS user and
+  would be destroyed by any future stale-upload cleanup.
+- **`s3_path` does not have to be invented.** `lambdas/fileprocess/index.ts` sets
+  `destinationKey = ${applicationId}/${documentId}` and passes it as `p_s3_path`.
+  So the correct value for a migrated document is derivable:
+  `application_id || '/' || document_id`.
+- **A byte-copy tool already exists with no producer.**
+  `data/demos_data_tools/migrate_files.py` copies objects between S3 buckets by
+  reading `{STAGING_SCHEMA}.system_file_migration_queue (old_path, new_path,
+  flag)`. Nothing in the monorepo creates or populates that table. A real
+  document migration must produce it.
+- **`old_path` is NOT recoverable from PMDA data.** `dlvrbl_fil_name` is a bare
+  filename, not a path (9 of 16,214 contain a slash), and it is not unique
+  (15,091 distinct of 16,214). The legacy bucket key layout has to come from ops.
+- **BN leak: `fil_doc_cd = 1` alone does not exclude Budget Neutrality.** 1,872
+  rows carry `bdgt_ntrlty_fil_ind = 1` with a NULL `fil_doc_cd`; **76 of them are
+  live (not soft-deleted)**. Filtering on the code alone would migrate 76 BN files
+  as `General File`, violating repo-wide BN scope. Both signals must be excluded.
+  This contradicts the claim in `sql/04_crosswalks/71_deliverable_file_type.sql`
+  that `fil_doc_cd` mirrors the boolean type flags 1:1; 8 further rows (all
+  soft-deleted) have `mntrg_rpt_fil_ind = 1` with a protocol code.
+- Live shape, for whoever picks this up: 16,214 source rows; 3,467 soft-deleted;
+  `fil_doc_cd` NULL 13,867 / 1 (BN) 1,847 / 2 131 / 3 268 / 7 48 / 9 53;
+  `cmt_orgn_cd` S 15,818 and C 396 with **zero** NULLs; 0 illegal
+  `(deliverable_type_id, document_type_id)` pairs against
+  `deliverable_type_document_type`.
+- `sql/10_stg/30_document_deliverable_link_resolved.sql` and
+  `sql/99_parity/49_document_cms_file_submission_invariant.sql` remain correctly
+  inert: both guard on a `stg.document_resolved` that no longer gets created.

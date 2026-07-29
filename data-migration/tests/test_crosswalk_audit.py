@@ -252,20 +252,35 @@ def _read_structural_with_root(module, spec, root: Path):
 def test_load_registry_classifies_kinds() -> None:
     """The real registry resolves each crosswalk into code/structural kinds.
 
-    ``crosswalk_deliverable_file_type`` is the one intentional exception:
-    ``fil_doc_cd`` has no ``*_rfrnc`` lookup (it mirrors the boolean type flags,
-    D6), so it carries no ``source:`` block and load_registry returns it with
-    ``kind == ""`` -- reported by the audit as un-audited (skipped) rather than
-    silently dropped.
+    Three crosswalks are intentional exceptions with no MySQL reference-code
+    domain to audit against, so they carry no ``source:`` block and
+    load_registry returns them with ``kind == ""`` -- reported by the audit as
+    un-audited (skipped) rather than silently dropped:
+    ``crosswalk_deliverable_file_type`` (``fil_doc_cd`` has no ``*_rfrnc``
+    lookup; it mirrors the boolean type flags, D6), ``crosswalk_system_role``
+    (keyed by DEMOS person_type, validated by 45_system_role_check.sql instead),
+    ``crosswalk_primary_po_fallback`` (operator config for the fallback
+    primary Project Officer, not a legacy code domain), and
+    ``crosswalk_comment_origin`` (``cmt_orgn_cd`` has no ``*_rfrnc`` lookup
+    anywhere in the source, which is why its six codes had to be decoded by
+    cross-tabbing against author person_type; coverage is enforced fail-closed
+    by 73_comment_origin_check.sql instead).
     """
     specs = ca.load_registry()
     by_name = {s.name: s for s in specs}
     assert by_name["crosswalk_demo_status"].kind == "code"
     assert by_name["crosswalk_demonstration_role"].kind == "structural"
     assert by_name["crosswalk_pgm_dtl_tag"].kind == "structural"
-    assert by_name["crosswalk_system_role"].source.get("code_subset") == [1, 4]
+    assert by_name["crosswalk_system_role"].kind == ""
     assert by_name["crosswalk_deliverable_file_type"].kind == ""
-    un_audited = {"crosswalk_deliverable_file_type"}
+    assert by_name["crosswalk_primary_po_fallback"].kind == ""
+    assert by_name["crosswalk_comment_origin"].kind == ""
+    un_audited = {
+        "crosswalk_deliverable_file_type",
+        "crosswalk_system_role",
+        "crosswalk_primary_po_fallback",
+        "crosswalk_comment_origin",
+    }
     assert all(
         s.kind in ("code", "structural") for s in specs if s.name not in un_audited
     )

@@ -1,0 +1,4 @@
+comment_id,legacy_id,deliverable_id,reason
+d42f1fea-5179-41bc-b3f8-43343cff6854,5330,8b30ff2a-23de-468f-8fcc-cbd21d86ef9b,author is not a CMS user (private_comment requires a CMS author)
+5448a88e-4832-4577-aad5-75133dbe72a4,6565,4aaa427a-5a4e-48ca-9a79-78a8e78b923c,author is not a CMS user (private_comment requires a CMS author)
+e17c98a2-d7a5-46d6-b8f1-1eea1aeedb7a,9800,0f57eb91-0d7a-4da8-a8ba-d3843b049f49,parent deliverable not loaded

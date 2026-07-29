@@ -85,20 +85,14 @@ crosswalks:
       crosswalk_code_column: legacy_int_cd
       crosswalk_name_column: legacy_name
       snapshot_csv: reference_data/role_rfrnc.csv
+  # Keyed by DEMOS person_type (not a legacy role code), so it has no source:
+  # block -- there is no MySQL reference-code domain to audit against; the live
+  # crosswalk audit treats it as un-audited (kind ""). Completeness/integrity is
+  # enforced by sql/04_crosswalks/45_system_role_check.sql against the DEMOS
+  # role/role_person_type seeds instead.
   - table: crosswalk_system_role
     csv: crosswalks/system_role.csv
-    columns: [legacy_role_cd, legacy_name, role_id, grant_level_id, person_type_id, notes]
-    source:
-      kind: code
-      fact_table: role_rfrnc
-      fact_column: role_cd
-      code_subset: [1, 4]
-      rfrnc_table: role_rfrnc
-      rfrnc_code_column: role_cd
-      rfrnc_name_column: role_name
-      crosswalk_code_column: legacy_role_cd
-      crosswalk_name_column: legacy_name
-      snapshot_csv: reference_data/role_rfrnc.csv
+    columns: [person_type_id, role_id, grant_level_id, notes]
   - table: crosswalk_demonstration_role
     csv: crosswalks/demonstration_role.csv
     columns: [source_table, source_column, role_id, grant_level_id, is_primary, treat_zero_as_null, notes]
@@ -226,3 +220,21 @@ crosswalks:
   - table: crosswalk_deliverable_file_type
     csv: crosswalks/deliverable_file_type.csv
     columns: [legacy_int_cd, legacy_name, demos_text_id, in_scope, notes]
+  # Comment routing (mdcd_dlvrbl_cmt.cmt_orgn_cd -> private_comment |
+  # public_comment). No source: block by design -- cmt_orgn_cd has no *_rfrnc
+  # lookup, so there are no official code labels to drift-check and the live
+  # crosswalk audit treats it as un-audited (load_registry returns kind "").
+  # Completeness is enforced instead by
+  # sql/04_crosswalks/73_comment_origin_check.sql against the loaded fact table.
+  - table: crosswalk_comment_origin
+    csv: crosswalks/comment_origin.csv
+    columns: [legacy_cd, demos_route, notes]
+  # Operator config, not a legacy reference-code domain: the fallback primary
+  # Project Officer assigned to demonstrations that would otherwise load
+  # without one (sql/23_app_derived/41_primary_po_fallback.sql). CSV lives under
+  # inputs/ (not crosswalks/) because it has no seeded-DEMOS target for
+  # verify_crosswalks to resolve. No source: block -> un-audited (kind "") in
+  # the live crosswalk audit.
+  - table: crosswalk_primary_po_fallback
+    csv: inputs/primary_po_fallback.csv
+    columns: [scope, legacy_user_id, notes]

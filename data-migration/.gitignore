@@ -1,1 +1,19 @@
 **/__pycache__/
+
+# Pipeline run state (wiped by `make clean-state`)
+state/
+!state/.gitkeep
+
+# Generated bulk dumps and run artifacts
+reports/schema_snapshot/
+reports/reference_data/
+reports/runs/
+reports/rehearsals/
+reports/orphans/reconstructed_fk_orphans.csv
+
+# Local build and coverage artifacts
+.coverage
+demos_migration.egg-info/
+
+# Local agent configuration
+.factory/

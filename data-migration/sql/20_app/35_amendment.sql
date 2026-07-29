@@ -34,14 +34,21 @@
  *                        is NULL/empty for a meaningful subset; synthesized names
  *                        are logged non-gating to
  *                        migration._parity_amendment_name_synthesized (99_parity/52)
- *   status_id            crosswalk_amendment_status(mdcd_demo_amndmt_stus_cd);
- *                        a pending-track amendment (resolved via the pending
- *                        parent, no approved parent) with a NULL source status is
- *                        assigned 'Under Review' -- the pending demonstrations
- *                        carry no status, so the 162 statusless pending-track
- *                        amendments mirror their parent (LEFT JOIN + COALESCE;
- *                        an approved-track amendment whose status is unmapped/NULL
- *                        is still dropped fail-closed and logged by 99_parity/52)
+ *   status_id            migration.derive_amendment_status(crosswalk_amendment_status
+ *                        (mdcd_demo_amndmt_stus_cd), parent_is_pending, status_cd,
+ *                        effective_date) -- the shared derivation (00_init/03):
+ *                        (1) the mapped crosswalk text when status_cd maps;
+ *                        (2) else a pending-track amendment (pending parent, NULL
+ *                        source status) -> 'Under Review'; (3) else a statusless
+ *                        approved-track amendment (status_cd IS NULL) is
+ *                        date-tiered -- amndmt_prd_from_dt-derived effective_date
+ *                        present -> 'Approved', else -> 'Under Review'. A non-NULL
+ *                        but UNMAPPED status_cd -> NULL -> dropped fail-closed and
+ *                        logged by 99_parity/52. NOTE: in the current source every
+ *                        kept amendment is approved-track (0 pending-track); the
+ *                        statusless amendments (162 this run) resolve via the date
+ *                        tier -- 161 -> 'Under Review' (load), 1 -> 'Approved'
+ *                        (then held for a missing signature).
  *   current_phase_id     status-derived (no source column): Approved->'Approval Summary',
  *                        Under Review->'Review', Withdrawn/Denied->'Concept'
  *                        (proposed; SME-ratify; logged by 99_parity/52)
@@ -77,66 +84,47 @@ BEGIN
     RAISE NOTICE 'skip amendment load: stg.amendment_resolved not built yet';
     RETURN;
   END IF;
-  -- Resolve each loadable amendment (status mapped, or pending-track defaulted
-  -- to 'Under Review', AND parent demonstration loaded) into the target column
-  -- set once, on a temp table, so the
+  -- Resolve each loadable amendment (status mapped, pending-track defaulted to
+  -- 'Under Review', or statusless approved-track date-tiered per
+  -- migration.derive_amendment_status; AND parent demonstration loaded) into the
+  -- target column set once, on a temp table, so the
   -- application-anchor insert, the amendment insert, and the fail-closed
   -- hold-back guard all share a single derivation. ON COMMIT DROP + a defensive
   -- pre-DROP keep re-apply clean in either autocommit or one-txn mode.
   DROP TABLE IF EXISTS pg_temp._amd_load;
   CREATE TEMP TABLE _amd_load ON COMMIT DROP AS
   SELECT
-    r.new_uuid                                        AS new_uuid,
-    r.demo_uuid                                       AS demo_uuid,
-    d.status_id                                       AS demo_status_id,
+    r.new_uuid AS new_uuid, r.demo_uuid AS demo_uuid, d.status_id AS demo_status_id,
     -- name synthesis (RED-5): DEMOS requires a non-empty amendment.name, but the
     -- source name is NULL/empty for a meaningful subset of amendments. Keep the
     -- source name when present; else synthesize from the loaded parent + effective
     -- date. NULLIF(btrim(d.name),'') || ... is NULL when the parent name is empty,
     -- so COALESCE falls through to the constant last resort.
-    COALESCE(
-      NULLIF(btrim(r.name), ''),
-      NULLIF(btrim(d.name), '')
-        || ' Amendment'
-        || CASE WHEN r.effective_date IS NOT NULL
-             THEN ' (effective ' || to_char(r.effective_date AT TIME ZONE 'America/New_York', 'YYYY-MM-DD') || ')'
-             ELSE '' END,
-      'Amendment'
-    )                                                 AS name,
-    (NULLIF(btrim(r.name), '') IS NULL)               AS name_synthesized,
-    r.description                                     AS description,
-    r.effective_date                                  AS effective_date,
-    COALESCE(cw.demos_text_id, CASE WHEN r.parent_is_pending THEN
-        'Under Review'
-      END)                                            AS status_id,
-    CASE COALESCE(cw.demos_text_id, CASE WHEN r.parent_is_pending THEN
-        'Under Review'
-      END)
+    COALESCE(NULLIF(btrim(r.name), ''), NULLIF(btrim(d.name), '') || ' Amendment' || CASE WHEN r.effective_date IS NOT NULL THEN
+        ' (effective ' || to_char(r.effective_date AT TIME ZONE 'America/New_York', 'YYYY-MM-DD') || ')'
+      ELSE
+        ''
+      END, 'Amendment') AS name,(NULLIF(btrim(r.name), '') IS NULL) AS name_synthesized, r.description AS description, r.effective_date AS effective_date, migration.derive_amendment_status(cw.demos_text_id, r.parent_is_pending, r.status_cd, r.effective_date) AS status_id, CASE migration.derive_amendment_status(cw.demos_text_id, r.parent_is_pending, r.status_cd, r.effective_date)
     WHEN 'Approved' THEN
       'Approval Summary'
     WHEN 'Under Review' THEN
       'Review'
     ELSE
       'Concept'
-    END                                               AS current_phase_id,
-    CASE r.signature_cd
+    END AS current_phase_id, CASE r.signature_cd
     WHEN 1 THEN
       'OA'
     WHEN 2 THEN
       'OCD'
     ELSE
       NULL
-    END                                               AS signature_level_id,
-    r.created_at                                      AS created_at,
-    r.updated_at                                      AS updated_at
+    END AS signature_level_id, r.created_at AS created_at, r.updated_at AS updated_at
   FROM
     stg.amendment_resolved r
     LEFT JOIN mysql_raw.crosswalk_amendment_status cw ON cw.legacy_int_cd = r.status_cd
     JOIN demos_app.demonstration d ON d.id = r.demo_uuid
   WHERE
-    COALESCE(cw.demos_text_id, CASE WHEN r.parent_is_pending THEN
-        'Under Review'
-      END) IS NOT NULL;
+    migration.derive_amendment_status(cw.demos_text_id, r.parent_is_pending, r.status_cd, r.effective_date) IS NOT NULL;
   -- Fail-closed hold-back mirroring check_amendment_non_null_fields_when_approved
   -- (as the demonstration loader mirrors its own Approved CHECK): an Approved
   -- amendment with a NULL effective_date or NULL signature_level_id would violate
@@ -145,14 +133,23 @@ BEGIN
   WITH removed AS (
     DELETE FROM _amd_load
     WHERE status_id = 'Approved'
-      AND (effective_date IS NULL OR signature_level_id IS NULL)
-    RETURNING 1
-  )
-  SELECT count(*) INTO held_missing FROM removed;
-  INSERT INTO demos_app.application(id, application_type_id)
+      AND (effective_date IS NULL
+        OR signature_level_id IS NULL)
+    RETURNING
+      1
+)
+  SELECT
+    count(*)
+  INTO
+    held_missing
+  FROM
+    removed;
+  INSERT INTO demos_app.application(id, application_type_id, is_migrated_from_pmda)
   SELECT
     l.new_uuid,
-    'Amendment'
+    'Amendment',
+    -- See sql/20_app/30_demonstration.sql for why the migration stamps this.
+    TRUE
   FROM
     _amd_load l
   WHERE
@@ -195,7 +192,9 @@ BEGIN
   -- Held back: a valid amendment whose parent demonstration is not loaded
   -- (pending-only parent, or an approved parent that was itself held back).
   SELECT
-    count(*) INTO held
+    count(*)
+  INTO
+    held
   FROM
     stg.amendment_resolved r
   WHERE
@@ -212,7 +211,14 @@ BEGIN
   IF held_missing > 0 THEN
     RAISE NOTICE 'amendment load: % Approved amendment(s) held back for a missing required field (effective_date/signature); see migration._parity_amendment_held_missing_field', held_missing;
   END IF;
-  SELECT count(*) INTO synthesized FROM _amd_load WHERE name_synthesized;
+  SELECT
+    count(*)
+  INTO
+    synthesized
+  FROM
+    _amd_load
+  WHERE
+    name_synthesized;
   IF synthesized > 0 THEN
     RAISE NOTICE 'amendment load: % amendment(s) loaded with a synthesized name (source name null/empty); see migration._parity_amendment_name_synthesized', synthesized;
   END IF;

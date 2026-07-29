@@ -77,10 +77,14 @@ BEGIN
              AND (xdiv.demos_text_id IS NULL OR r.effective_date IS NULL OR r.expiration_date IS NULL)
            )
        -- Exclude deliberate dup-medicaid_id hold-backs (RED-4; logged by parity
-       -- check 21, migration._parity_demonstration_held_dup_medicaid_id): the
-       -- non-winning row of a shared medicaid_id is intentionally not loaded, so
-       -- it is not a completeness anomaly. Winner rule mirrors the loader
-       -- (region-suffix match, then lowest legacy id).
+       -- check 21, migration._parity_demonstration_held_dup_medicaid_id): a row
+       -- the loader intentionally did not load for a shared medicaid_id is not a
+       -- completeness anomaly. Winner rule mirrors the loader: among duplicates
+       -- the region-suffix-correct row wins (lowest legacy id breaks a tie); if
+       -- NO member matches its state region the WHOLE group is held. So exclude r
+       -- when it is part of a duplicate group AND is not the region-correct
+       -- winner -- this covers the ordinary non-winners and every row of a
+       -- region-incorrect group (whose would-be lowest-id winner no longer loads).
        AND NOT (
              r.medicaid_id IS NOT NULL
              AND EXISTS (
@@ -93,14 +97,27 @@ BEGIN
                  AND r2.new_uuid <> r.new_uuid
                  AND NOT (cw2.demos_text_id = 'Approved'
                    AND (xd2.demos_text_id IS NULL OR r2.effective_date IS NULL OR r2.expiration_date IS NULL))
-                 AND (CASE WHEN substring(r2.medicaid_id FROM '/([0-9]+)$') IS NOT NULL
-                       AND (substring(r2.medicaid_id FROM '/([0-9]+)$')::int = sr2.region
-                         OR (substring(r2.medicaid_id FROM '/([0-9]+)$') = '0' AND sr2.region = 10))
-                       THEN 0 ELSE 1 END, r2.legacy_demo_id)
-                   < (CASE WHEN substring(r.medicaid_id FROM '/([0-9]+)$') IS NOT NULL
-                       AND (substring(r.medicaid_id FROM '/([0-9]+)$')::int = sr.region
-                         OR (substring(r.medicaid_id FROM '/([0-9]+)$') = '0' AND sr.region = 10))
-                       THEN 0 ELSE 1 END, r.legacy_demo_id))
+             )
+             AND NOT (
+               (substring(r.medicaid_id FROM '/([0-9]+)$') IS NOT NULL
+                 AND (substring(r.medicaid_id FROM '/([0-9]+)$')::int = sr.region
+                   OR (substring(r.medicaid_id FROM '/([0-9]+)$') = '0' AND sr.region = 10)))
+               AND NOT EXISTS (
+                 SELECT 1
+                 FROM stg.demonstration_resolved r2
+                 JOIN mysql_raw.crosswalk_demo_status cw2 ON cw2.legacy_int_cd = r2.status_cd
+                 JOIN migration.state_region sr2 ON sr2.state_id = r2.state_id
+                 LEFT JOIN mysql_raw.crosswalk_sdg_division xd2 ON xd2.legacy_int_cd = r2.sdg_division_cd
+                 WHERE r2.medicaid_id = r.medicaid_id
+                   AND r2.new_uuid <> r.new_uuid
+                   AND NOT (cw2.demos_text_id = 'Approved'
+                     AND (xd2.demos_text_id IS NULL OR r2.effective_date IS NULL OR r2.expiration_date IS NULL))
+                   AND substring(r2.medicaid_id FROM '/([0-9]+)$') IS NOT NULL
+                   AND (substring(r2.medicaid_id FROM '/([0-9]+)$')::int = sr2.region
+                     OR (substring(r2.medicaid_id FROM '/([0-9]+)$') = '0' AND sr2.region = 10))
+                   AND r2.legacy_demo_id < r.legacy_demo_id
+               )
+             )
            );
   $v$;
 END

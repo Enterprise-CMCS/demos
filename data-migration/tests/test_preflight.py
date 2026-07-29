@@ -48,7 +48,13 @@ def _arrange_all_pass(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     )
 
     def _q(_env: object, sql: str, *_a: object, **_k: object) -> list[tuple[object, ...]]:
-        return [(1,)] if "SELECT 1" in sql else [("100 MB",)]
+        if "SELECT 1" in sql:
+            return [(1,)]
+        if "is_nullable" in sql:  # P0.8 chip_id nullability (informational)
+            return [("YES",)]
+        if "pg_trigger" in sql:  # P0.9: mint trigger present, forbidden two absent
+            return [("generate_medicaid_chip_id_numbers",)]
+        return [("100 MB",)]
 
     monkeypatch.setattr(preflight, "psql_query", _q)
     monkeypatch.setattr(preflight.shutil, "which", lambda name: f"/usr/bin/{name}")
@@ -199,6 +205,108 @@ def test_prisma_artifact_not_cached_dies(
     assert not lib.gate_path("preflight").exists()
 
 
+def test_chip_id_not_nullable_ok(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """P0.8: a NOT NULL demonstration.chip_id is now informational (mint-on-insert),
+    so it no longer HOLDs; the gate still marks when P0.9 is satisfied."""
+    _arrange_all_pass(monkeypatch, tmp_path)
+
+    def _q(_env: object, sql: str, *_a: object, **_k: object) -> list[tuple[object, ...]]:
+        if "SELECT 1" in sql:
+            return [(1,)]
+        if "is_nullable" in sql:
+            return [("NO",)]
+        if "pg_trigger" in sql:  # mint trigger present, forbidden two absent
+            return [("generate_medicaid_chip_id_numbers",)]
+        return [("100 MB",)]
+
+    monkeypatch.setattr(preflight, "psql_query", _q)
+
+    preflight.run_preflight()
+    err = _captured_err(capsys)
+    assert "chip_id nullability: NO" in err
+    assert "preflight failed" not in err
+    assert lib.gate_path("preflight").exists()
+
+
+def test_chip_id_column_absent_dies(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """P0.8: a missing chip_id column (schema not applied) flips ok and dies."""
+    _arrange_all_pass(monkeypatch, tmp_path)
+
+    def _q(_env: object, sql: str, *_a: object, **_k: object) -> list[tuple[object, ...]]:
+        if "SELECT 1" in sql:
+            return [(1,)]
+        if "is_nullable" in sql:
+            return []
+        if "pg_trigger" in sql:  # isolate P0.8: keep P0.9 satisfied
+            return [("generate_medicaid_chip_id_numbers",)]
+        return [("100 MB",)]
+
+    monkeypatch.setattr(preflight, "psql_query", _q)
+
+    with pytest.raises(SystemExit):
+        preflight.run_preflight()
+    err = _captured_err(capsys)
+    assert "chip_id not found" in err
+    assert not lib.gate_path("preflight").exists()
+
+
+def test_forbidden_app_trigger_present_dies(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """P0.9: a MUST-BE-ABSENT DEMOS app trigger present before the load dies."""
+    _arrange_all_pass(monkeypatch, tmp_path)
+
+    def _q(_env: object, sql: str, *_a: object, **_k: object) -> list[tuple[object, ...]]:
+        if "SELECT 1" in sql:
+            return [(1,)]
+        if "is_nullable" in sql:
+            return [("YES",)]
+        if "pg_trigger" in sql:  # mint trigger present + a forbidden trigger present
+            return [
+                ("generate_medicaid_chip_id_numbers",),
+                ("create_phases_and_dates_for_new_application",),
+            ]
+        return [("100 MB",)]
+
+    monkeypatch.setattr(preflight, "psql_query", _q)
+
+    with pytest.raises(SystemExit):
+        preflight.run_preflight()
+    err = _captured_err(capsys)
+    assert "application trigger(s) present before build_app" in err
+    assert "create_phases_and_dates_for_new_application" in err
+    assert not lib.gate_path("preflight").exists()
+
+
+def test_mint_trigger_absent_dies(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """P0.9: generate_medicaid_chip_id_numbers absent means migrated NULL chip_ids
+    cannot be minted on insert, so preflight dies without marking."""
+    _arrange_all_pass(monkeypatch, tmp_path)
+
+    def _q(_env: object, sql: str, *_a: object, **_k: object) -> list[tuple[object, ...]]:
+        if "SELECT 1" in sql:
+            return [(1,)]
+        if "is_nullable" in sql:
+            return [("YES",)]
+        if "pg_trigger" in sql:  # no triggers present at all
+            return []
+        return [("100 MB",)]
+
+    monkeypatch.setattr(preflight, "psql_query", _q)
+
+    with pytest.raises(SystemExit):
+        preflight.run_preflight()
+    err = _captured_err(capsys)
+    assert "generate_medicaid_chip_id_numbers is absent" in err
+    assert not lib.gate_path("preflight").exists()
+
+
 def test_prod_schema_guard_runs_only_when_checks_pass(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -218,5 +326,5 @@ def test_prod_schema_guard_runs_only_when_checks_pass(
     with pytest.raises(SystemExit):
         preflight.run_preflight()
     err = _captured_err(capsys)
-    assert "P0.6 prod-schema guard skipped (earlier checks failed)" in err
+    assert "P0.6/P0.8/P0.9 schema checks skipped (earlier checks failed)" in err
     assert calls == []

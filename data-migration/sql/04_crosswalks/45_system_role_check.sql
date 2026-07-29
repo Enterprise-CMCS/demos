@@ -1,15 +1,16 @@
 /*
- * Purpose:    Fail-closed completeness + integrity check for crosswalk_system_role.
- * Inputs:     mysql_raw.crosswalk_system_role, mysql_raw.role_rfrnc, demos_app.role, demos_app.system_grant_level_limit, demos_app.role_person_type
+ * Purpose:    Fail-closed completeness + integrity check for crosswalk_system_role (person_type-keyed).
+ * Inputs:     mysql_raw.crosswalk_system_role, demos_app.role, demos_app.system_grant_level_limit, demos_app.role_person_type
  * Outputs:    none (validation only; RAISEs EXCEPTION on a violation)
- * Invariants: fail-closed; to_regclass-guarded no-op before load; System subset {1, 4} complete; (role_id, grant_level_id) in demos_app.role; grant_level_id 'System' and in system_grant_level_limit; (role_id, person_type_id) permitted by role_person_type.
+ * Invariants: fail-closed; to_regclass-guarded no-op before load; every System-grant (role_id, person_type_id) pairing DEMOS seeds is covered; (role_id, grant_level_id) in demos_app.role; grant_level_id 'System' and in system_grant_level_limit; (role_id, person_type_id) permitted by role_person_type.
  * Refs:       sql/04_crosswalks/44_system_role.sql
  *
  * Completeness + integrity check for crosswalk_system_role (44_system_role.sql).
- * Guarded by to_regclass so it is a no-op before the source / DEMOS seeds load.
+ * Guarded by to_regclass so it is a no-op before the DEMOS seeds load.
  *
- * (a) every System role code present in mysql_raw.role_rfrnc (the curated set
- *     {1, 4}) must have a mapping row;
+ * (a) every System-grant (role_id, person_type_id) pairing DEMOS seeds (a
+ *     role_person_type row whose role is a System-grant role) must have a
+ *     mapping row, so no user person_type loads permission-less;
  * (b) each (role_id, grant_level_id) must exist in demos_app.role;
  * (c) grant_level_id must be 'System' and exist in system_grant_level_limit;
  * (d) each (role_id, person_type_id) must be permitted by role_person_type.
@@ -25,26 +26,32 @@ BEGIN
     RAISE NOTICE 'crosswalk_system_role check skipped: table not created yet';
     RETURN;
   END IF;
-  -- (a) System-subset completeness against the loaded source.
-  IF to_regclass('mysql_raw.role_rfrnc') IS NOT NULL THEN
+  -- (a) System-grant coverage: every (System role, person_type) DEMOS permits
+  --     must be mapped so no user person_type is left without a system role.
+  IF to_regclass('demos_app.role') IS NOT NULL
+    AND to_regclass('demos_app.role_person_type') IS NOT NULL THEN
     SELECT
       count(*) INTO missing
-    FROM ( SELECT DISTINCT
-        role_cd AS cd
+    FROM (
+      SELECT
+        rp.role_id,
+        rp.person_type_id
       FROM
-        mysql_raw.role_rfrnc
+        demos_app.role_person_type rp
+        JOIN demos_app.role r ON r.id = rp.role_id
       WHERE
-        role_cd IN (1, 4)
+        r.grant_level_id = 'System'
       EXCEPT
       SELECT
-        legacy_role_cd
+        role_id,
+        person_type_id
       FROM
         mysql_raw.crosswalk_system_role) t;
     IF missing > 0 THEN
-      RAISE EXCEPTION 'crosswalk_system_role is missing % System role code(s) present in role_rfrnc', missing;
+      RAISE EXCEPTION 'crosswalk_system_role is missing % System-grant (role, person_type) pairing(s) DEMOS permits', missing;
     END IF;
   ELSE
-    RAISE NOTICE 'crosswalk_system_role check: mysql_raw.role_rfrnc not loaded yet; skipping completeness';
+    RAISE NOTICE 'crosswalk_system_role check: demos_app seeds not loaded yet; skipping completeness';
   END IF;
   IF to_regclass('demos_app.role') IS NOT NULL THEN
     SELECT
@@ -102,4 +109,3 @@ BEGIN
   END IF;
 END
 $$;
-

@@ -2,7 +2,7 @@
  * Purpose:    Project each PMDA-valid demonstration into the application + demonstration loader column set, deriving current_phase_by_date from legacy phase milestones.
  * Inputs:     mysql_raw.mdcd_demo, mysql_raw.mdcd_demo_aplctn, stg._valid_demo_ids, migration._id_map_mdcd_demo
  * Outputs:    CREATE OR REPLACE VIEW stg.demonstration_resolved
- * Invariants: source-only (mysql_raw + id map + stg only; never crosswalks 04 / seeds 02) so it builds in the stg-only idempotency harness; idempotent (CREATE OR REPLACE VIEW); soft-delete exclusion (dltd_ind = 1); phase mapping is a best-effort §6.1 approximation pending SME ratification.
+ * Invariants: source-only (mysql_raw + id map + stg only; never crosswalks 04 / seeds 02) so it builds in the stg-only idempotency harness; idempotent (CREATE OR REPLACE VIEW); soft-delete exclusion (dltd_ind = 1); medicaid_id standardized via migration.normalize_medicaid_id and chip_id_legacy via migration.normalize_chip_id (strip-and-reassemble, the same helpers the row-level filter uses so the kept set and emitted ids never drift), with chip_id_source retained unnormalized for the SME drop log (99_parity/15_chip_id_not_normalizable.sql); phase mapping is a best-effort §6.1 approximation pending SME ratification.
  * Refs:       reports/narrative/p1_demonstration_mapping_worksheet.md, docs/specs/pmda-cross-cutting-derivation-spec.md
  *
  * Staging projection of each PMDA-valid demonstration (mysql_raw.mdcd_demo)
@@ -80,8 +80,8 @@ SELECT
   d.mdcd_demo_stus_cd::int AS status_cd,
   d.geo_ansi_state_cd AS state_id,
   d.mdcd_chip_div_cd::int AS sdg_division_cd,
-  NULLIF(btrim(d.mdcd_demo_num), '') AS medicaid_id,
-  NULLIF(btrim(d.mdcd_scndry_demo_num), '') AS chip_id_legacy,
+  migration.normalize_medicaid_id(d.mdcd_demo_num) AS medicaid_id,
+  migration.normalize_chip_id(d.mdcd_scndry_demo_num) AS chip_id_legacy,
   migration.eastern_day_start(d.state_prfmnc_yr_strt_dt) AS effective_date,
   migration.eastern_day_end(d.state_prfmnc_yr_end_dt) AS expiration_date,
   d.creatd_dt::timestamptz AS created_at,
@@ -109,7 +109,11 @@ SELECT
     'Application Intake'
   ELSE
     NULL
-  END AS current_phase_by_date
+  END AS current_phase_by_date,
+  -- Appended LAST on purpose: CREATE OR REPLACE VIEW can only ADD trailing
+  -- columns, so inserting this beside chip_id_legacy would make every re-apply
+  -- fail with 42P16 (cannot change name of view column).
+  NULLIF(btrim(d.mdcd_scndry_demo_num), '') AS chip_id_source
 FROM
   mysql_raw.mdcd_demo d
   JOIN stg._valid_demo_ids v ON v.demo_id = d.mdcd_demo_id

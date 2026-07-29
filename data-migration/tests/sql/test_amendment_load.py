@@ -18,6 +18,16 @@ schema, asserting the derivations the spec fixes:
     code neither OA nor OCD) is held back (not loaded) rather than violating
     check_amendment_non_null_fields_when_approved, and appears in
     migration._parity_amendment_held_missing_field;
+  * a statusless approved-track amendment (source status_cd NULL) with no
+    amndmt_prd_from_dt loads as status_id 'Under Review' / 'Review' (the
+    date-tiered default in migration.derive_amendment_status);
+  * a statusless approved-track amendment WITH an amndmt_prd_from_dt and a valid
+    signature derives status_id 'Approved' / 'Approval Summary' and loads;
+  * a statusless approved-track amendment WITH an amndmt_prd_from_dt but no valid
+    signature derives 'Approved' and is held back (missing signature), appearing
+    in migration._parity_amendment_held_missing_field;
+  * an amendment carrying a non-NULL but UNMAPPED source status is dropped
+    fail-closed and appears in migration._parity_amendment_unmapped_status (RED);
   * re-applying the loader is a no-op (idempotent).
 
 Runs against a throwaway Postgres (``PG_TEST_DSN`` via the ``pg_db`` fixture);
@@ -54,6 +64,10 @@ A_OGD = 20       # parent demo 1 loaded, Pending(1)->Under Review, OGD(3)->NULL
 A_PENDING_ONLY = 30  # only pending parent -> held
 A_PARENT_HELD = 40   # approved parent demo 2 not loaded -> held
 A_APPROVED_NOSIG = 50  # parent demo 1 loaded, Approved(2), OGD(3)->NULL sig -> held (missing field)
+A_NULL_UR = 60         # parent demo 1 loaded, status_cd NULL, no prd_from -> Under Review (loads)
+A_NULL_DATED = 70      # parent demo 1 loaded, status_cd NULL, prd_from + OA -> Approved (loads)
+A_NULL_DATED_NOSIG = 80  # parent demo 1 loaded, status_cd NULL, prd_from, OGD->NULL sig -> Approved held
+A_UNMAPPED = 90        # parent demo 1 loaded, status_cd 99 unmapped -> dropped fail-closed (RED-D)
 
 
 def _apply(conn: Any, path: Path) -> None:
@@ -82,6 +96,10 @@ def _provision(conn: Any) -> None:
         (A_PENDING_ONLY, None, "99", "Pending-Only Amd", None, "2", "1", None, "2024-01-03", "0"),
         (A_PARENT_HELD, "2", None, "Parent-Held Amd", None, "2", "2", None, "2024-01-04", "0"),
         (A_APPROVED_NOSIG, "1", None, "Approved NoSig Amd", "desc e", "2", "3", "2024-05-01", "2024-01-05", "0"),
+        (A_NULL_UR, "1", None, "Statusless NoDate Amd", None, None, "1", None, "2024-06-01", "0"),
+        (A_NULL_DATED, "1", None, "Statusless Dated Amd", None, None, "1", "2024-07-01", "2024-06-02", "0"),
+        (A_NULL_DATED_NOSIG, "1", None, "Statusless Dated NoSig Amd", None, None, "3", "2024-08-01", "2024-06-03", "0"),
+        (A_UNMAPPED, "1", None, "Unmapped Status Amd", None, "99", "1", None, "2024-06-04", "0"),
     ]
     for r in rows:
         conn.execute(
@@ -111,8 +129,12 @@ def _provision(conn: Any) -> None:
     )
     conn.execute("CREATE TABLE stg._valid_amndmt_ids (amndmt_id bigint)")
     conn.execute(
-        "INSERT INTO stg._valid_amndmt_ids (amndmt_id) VALUES (%s),(%s),(%s),(%s),(%s)",
-        (A_APPROVED, A_OGD, A_PENDING_ONLY, A_PARENT_HELD, A_APPROVED_NOSIG),
+        "INSERT INTO stg._valid_amndmt_ids (amndmt_id) "
+        "VALUES (%s),(%s),(%s),(%s),(%s),(%s),(%s),(%s),(%s)",
+        (
+            A_APPROVED, A_OGD, A_PENDING_ONLY, A_PARENT_HELD, A_APPROVED_NOSIG,
+            A_NULL_UR, A_NULL_DATED, A_NULL_DATED_NOSIG, A_UNMAPPED,
+        ),
     )
     # stg._pendg_demo_fold is referenced by 33_amendment_resolved for fold-aware
     # pending parentage; an empty stub keeps A_PENDING_ONLY (pendg id 99) held
@@ -138,7 +160,8 @@ def _provision(conn: Any) -> None:
     )
     conn.execute(
         "CREATE TABLE demos_app.application "
-        "(id uuid PRIMARY KEY, application_type_id text NOT NULL)"
+        "(id uuid PRIMARY KEY, application_type_id text NOT NULL, "
+        "is_migrated_from_pmda boolean NOT NULL DEFAULT false)"
     )
     conn.execute(
         "CREATE TABLE demos_app.amendment ("
@@ -176,16 +199,36 @@ def _amndmt_uuid(conn: Any, legacy: int) -> uuid.UUID:
     return row[0]
 
 
-def test_only_loaded_parents_load(pg_db: psycopg.Connection) -> None:
-    """Exactly the two amendments with a loaded parent demonstration load."""
+def test_only_loadable_amendments_load(pg_db: psycopg.Connection) -> None:
+    """The four loadable amendments load; held/dropped ones do not.
+
+    Loadable: A_APPROVED (Approved), A_OGD (Under Review), A_NULL_UR
+    (statusless -> Under Review), A_NULL_DATED (statusless + date -> Approved).
+    Not loaded: pending-only/held parents, missing-signature Approved (incl. the
+    dated statusless one), and the unmapped-status row.
+    """
     _provision(pg_db)
     n_amd = _scalar(pg_db, "SELECT count(*) FROM demos_app.amendment")
     n_app = _scalar(
         pg_db,
         "SELECT count(*) FROM demos_app.application WHERE application_type_id = 'Amendment'",
     )
-    assert n_amd == 2
-    assert n_app == 2  # IS-A: one application anchor per amendment
+    assert n_amd == 4
+    assert n_app == 4  # IS-A: one application anchor per amendment
+
+
+def test_application_rows_are_flagged_migrated(pg_db: psycopg.Connection) -> None:
+    """Amendment applications must also set is_migrated_from_pmda.
+
+    The column is ``NOT NULL DEFAULT false`` upstream, so a loader that omits it
+    records the row as natively created instead of migrated, with no error.
+    """
+    _provision(pg_db)
+    assert _scalar(pg_db, "SELECT count(*) FROM demos_app.application") > 0
+    assert (
+        _scalar(pg_db, "SELECT count(*) FROM demos_app.application WHERE NOT is_migrated_from_pmda")
+        == 0
+    )
 
 
 def test_approved_amendment_derivations(pg_db: psycopg.Connection) -> None:
@@ -240,7 +283,7 @@ def test_unloaded_parents_held_back(pg_db: psycopg.Connection) -> None:
     assert held[_amndmt_uuid(pg_db, A_PARENT_HELD)] == "approved parent held back"
     # Neither held amendment reached the target table.
     loaded = _scalar(pg_db, "SELECT count(*) FROM demos_app.amendment")
-    assert loaded == 2
+    assert loaded == 4
 
 
 def test_approved_missing_signature_held_back(pg_db: psycopg.Connection) -> None:
@@ -268,10 +311,83 @@ def test_approved_missing_signature_held_back(pg_db: psycopg.Connection) -> None
     assert row[1] is False
 
 
+def test_statusless_no_date_loads_under_review(pg_db: psycopg.Connection) -> None:
+    """Statusless approved-track, no amndmt_prd_from_dt -> Under Review / Review."""
+    _provision(pg_db)
+    row = pg_db.execute(
+        "SELECT status_id, current_phase_id, effective_date "
+        "FROM demos_app.amendment WHERE id = %s",
+        (_amndmt_uuid(pg_db, A_NULL_UR),),
+    ).fetchone()
+    assert row is not None
+    assert row[0] == "Under Review"
+    assert row[1] == "Review"
+    assert row[2] is None
+
+
+def test_statusless_dated_loads_approved(pg_db: psycopg.Connection) -> None:
+    """Statusless approved-track WITH amndmt_prd_from_dt + valid sig -> Approved."""
+    _provision(pg_db)
+    row = pg_db.execute(
+        "SELECT status_id, current_phase_id, signature_level_id "
+        "FROM demos_app.amendment WHERE id = %s",
+        (_amndmt_uuid(pg_db, A_NULL_DATED),),
+    ).fetchone()
+    assert row is not None
+    assert row[0] == "Approved"
+    assert row[1] == "Approval Summary"
+    assert row[2] == "OA"
+
+
+def test_statusless_dated_missing_signature_held(pg_db: psycopg.Connection) -> None:
+    """Statusless + date derives Approved; a NULL signature holds it back."""
+    _provision(pg_db)
+    amd_uuid = _amndmt_uuid(pg_db, A_NULL_DATED_NOSIG)
+    loaded = _scalar(
+        pg_db,
+        "SELECT count(*) FROM demos_app.amendment WHERE id = %s",
+        (amd_uuid,),
+    )
+    assert loaded == 0
+    row = pg_db.execute(
+        "SELECT status_id, missing_signature, missing_effective_date "
+        "FROM migration._parity_amendment_held_missing_field WHERE amendment_uuid = %s",
+        (amd_uuid,),
+    ).fetchone()
+    assert row is not None
+    assert row[0] == "Approved"  # derived via the date tier, not the crosswalk
+    assert row[1] is True
+    assert row[2] is False
+
+
+def test_unmapped_status_dropped_and_flagged(pg_db: psycopg.Connection) -> None:
+    """A non-NULL but unmapped source status is dropped fail-closed and flagged RED."""
+    _provision(pg_db)
+    amd_uuid = _amndmt_uuid(pg_db, A_UNMAPPED)
+    loaded = _scalar(
+        pg_db,
+        "SELECT count(*) FROM demos_app.amendment WHERE id = %s",
+        (amd_uuid,),
+    )
+    assert loaded == 0
+    flagged = pg_db.execute(
+        "SELECT status_cd FROM migration._parity_amendment_unmapped_status "
+        "WHERE amendment_uuid = %s",
+        (amd_uuid,),
+    ).fetchone()
+    assert flagged is not None
+    assert flagged[0] == 99
+    # The statusless (NULL) rows are resolved, not flagged as unmapped.
+    total_flagged = _scalar(
+        pg_db, "SELECT count(*) FROM migration._parity_amendment_unmapped_status"
+    )
+    assert total_flagged == 1
+
+
 def test_loader_is_idempotent(pg_db: psycopg.Connection) -> None:
     """Re-applying the loader inserts nothing new."""
     _provision(pg_db)
     before = _scalar(pg_db, "SELECT count(*) FROM demos_app.amendment")
     _apply(pg_db, LOADER)
     after = _scalar(pg_db, "SELECT count(*) FROM demos_app.amendment")
-    assert before == after == 2
+    assert before == after == 4

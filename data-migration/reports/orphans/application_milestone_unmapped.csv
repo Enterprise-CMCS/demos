@@ -1,0 +1,46 @@
+source_table,source_column,non_null_count
+mdcd_demo_amndmt,amndmt_aplctn_dt,23
+mdcd_demo_amndmt,amndmt_stus_dt,28
+mdcd_demo_aplctn,mdcd_demo_aplctn_stus_dt,84
+mdcd_demo_aplctn,phase_3_a_frvt_end_dt,6
+mdcd_demo_aplctn,phase_3_a_frvt_strt_dt,9
+mdcd_demo_aplctn,phase_3_a_sme_end_dt,22
+mdcd_demo_aplctn,phase_3_a_sme_strt_dt,25
+mdcd_demo_aplctn,phase_3_b_cmcs_end_dt,5
+mdcd_demo_aplctn,phase_3_b_cmcs_strt_dt,14
+mdcd_demo_aplctn,phase_3_b_ogc_end_dt,9
+mdcd_demo_aplctn,phase_3_b_ogc_strt_dt,14
+mdcd_demo_aplctn,phase_3_b_omb_end_dt,7
+mdcd_demo_aplctn,phase_3_b_omb_strt_dt,13
+mdcd_demo_aplctn,phase_3_c_ogc_end_dt,7
+mdcd_demo_aplctn,phase_3_c_ogc_strt_dt,12
+mdcd_demo_aplctn,phase_3_c_omb_end_dt,11
+mdcd_demo_aplctn,phase_3_c_omb_strt_dt,13
+"mdcd_demo_aplctn (Amendment, type_cd=2)",phase_1_end_dt,24
+"mdcd_demo_aplctn (Amendment, type_cd=2)",phase_1_strt_dt,33
+"mdcd_demo_aplctn (Amendment, type_cd=2)",phase_2_cmpltns_rvw_dt,157
+"mdcd_demo_aplctn (Amendment, type_cd=2)",phase_2_dsrd_aprvl_dt,100
+"mdcd_demo_aplctn (Amendment, type_cd=2)",phase_2_fed_cmt_prd_end_dt,114
+"mdcd_demo_aplctn (Amendment, type_cd=2)",phase_2_fed_cmt_prd_strt_dt,115
+"mdcd_demo_aplctn (Amendment, type_cd=2)",phase_2_rcvd_dt,169
+"mdcd_demo_aplctn (Amendment, type_cd=2)",phase_2_state_aplctn_deemd_cmpltn_dt,158
+"mdcd_demo_aplctn (Amendment, type_cd=2)",phase_4_end_dt,29
+"mdcd_demo_aplctn (Amendment, type_cd=2)",phase_4_strt_dt,47
+"mdcd_demo_aplctn (Amendment, type_cd=2)",phase_5_end_dt,15
+"mdcd_demo_aplctn (Amendment, type_cd=2)",phase_5_strt_dt,19
+"mdcd_demo_aplctn (Amendment, type_cd=2)",phase_6_end_dt,32
+"mdcd_demo_aplctn (Amendment, type_cd=2)",phase_6_strt_dt,42
+"mdcd_demo_aplctn (Extension, type_cd=3)",phase_1_end_dt,10
+"mdcd_demo_aplctn (Extension, type_cd=3)",phase_1_strt_dt,10
+"mdcd_demo_aplctn (Extension, type_cd=3)",phase_2_cmpltns_rvw_dt,51
+"mdcd_demo_aplctn (Extension, type_cd=3)",phase_2_dsrd_aprvl_dt,44
+"mdcd_demo_aplctn (Extension, type_cd=3)",phase_2_fed_cmt_prd_end_dt,45
+"mdcd_demo_aplctn (Extension, type_cd=3)",phase_2_fed_cmt_prd_strt_dt,48
+"mdcd_demo_aplctn (Extension, type_cd=3)",phase_2_rcvd_dt,52
+"mdcd_demo_aplctn (Extension, type_cd=3)",phase_2_state_aplctn_deemd_cmpltn_dt,52
+"mdcd_demo_aplctn (Extension, type_cd=3)",phase_4_end_dt,9
+"mdcd_demo_aplctn (Extension, type_cd=3)",phase_4_strt_dt,12
+"mdcd_demo_aplctn (Extension, type_cd=3)",phase_5_end_dt,8
+"mdcd_demo_aplctn (Extension, type_cd=3)",phase_5_strt_dt,7
+"mdcd_demo_aplctn (Extension, type_cd=3)",phase_6_end_dt,12
+"mdcd_demo_aplctn (Extension, type_cd=3)",phase_6_strt_dt,13

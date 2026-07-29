@@ -245,8 +245,9 @@ def _numeric_sum_parity(env: Env) -> CheckResult:
     """Check 2: count-checksum cross-foot (literal numeric value-sum N/A).
 
     No numeric business column moves into the BUILT ``demos_app`` targets
-    (values are UUIDs/text/dates/enums; monetary BN data is JSONB, covered by
-    check 3), so a literal source-vs-target value-sum has nothing to compare.
+    (values are UUIDs/text/dates/enums; the only monetary data is Budget
+    Neutrality JSONB, which is out of migration scope entirely), so a literal
+    source-vs-target value-sum has nothing to compare.
     Per the repurposing decision this folds into the row-count reconciliation:
     it cross-foots the column totals of ``migration._parity_row_counts`` (sum of
     source vs sum of target + held). Equal -> GREEN; a mismatch the per-family
@@ -276,7 +277,8 @@ def _numeric_sum_parity(env: Env) -> CheckResult:
         status="GREEN",
         detail=(
             "literal numeric value-sum N/A (no numeric business columns move to "
-            "demos_app; BN monetary shape covered by check 3); count-checksum "
+            "demos_app; the only monetary data is Budget Neutrality JSONB, which "
+            "is out of migration scope); count-checksum "
             f"cross-foots: source {src} = target {tgt} + held {held}"
         ),
     )
@@ -299,8 +301,18 @@ def _pending_approved_audit(env: Env) -> CheckResult:
     the reversal record): GREEN once every live deferral is covered by a SIGNED
     baseline, else PENDING (a new deferral or an unsigned baseline forces
     re-review). Vacuously GREEN when the view is empty (pipeline not built yet).
-    The deliberate load-time hold-backs (state-unresolvable, duplicate medicaid_id)
-    are logged non-gating in ``migration._parity_pending_demonstration_held``.
+    The deliberate load-time hold-backs (state-unresolvable, and the non-winning
+    rows of a duplicate whose group has a region-correct winner) are logged
+    non-gating in ``migration._parity_pending_demonstration_held``; a region-
+    incorrect duplicate (reason ``region_incorrect_duplicate``) whose whole group
+    is held for a wrong project-number region GATES this check RED for SME
+    source-correction (no lowest-id fallback).
+
+    Rows folded by the tier-1 region-digit repair in ``stg._pendg_demo_fold``
+    (``category = 'region_digit_repaired'``) are reported per-row and are
+    non-gating -- EXCEPT when the approved counterpart they folded into is itself
+    not state-correct, which gates RED rather than laundering one wrong id into
+    another.
     """
     name = "4. Pending/approved unification audit"
     leaked = psql_query(
@@ -319,6 +331,63 @@ def _pending_approved_audit(env: Env) -> CheckResult:
                 f"violated): {detail}; see migration._parity_pending_approved"
             ),
         )
+    held_exists = psql_query(
+        env,
+        "SELECT to_regclass('migration._parity_pending_demonstration_held') IS NOT NULL",
+    )
+    if held_exists and held_exists[0][0]:
+        region_incorrect = psql_query(
+            env,
+            "SELECT legacy_pendg_demo_id, medicaid_id "
+            "FROM migration._parity_pending_demonstration_held "
+            "WHERE reason = 'region_incorrect_duplicate' "
+            "ORDER BY medicaid_id, legacy_pendg_demo_id",
+        )
+        if region_incorrect:
+            gated_ids = sorted({str(r[1]) for r in region_incorrect})
+            detail = "; ".join(f"pendg {r[0]} ({r[1]})" for r in region_incorrect[:10])
+            return CheckResult(
+                name=name,
+                status="RED",
+                detail=(
+                    f"{len(region_incorrect)} pending demonstration(s) across "
+                    f"{len(gated_ids)} duplicate medicaid_id group(s) have a region "
+                    "suffix matching no member's state region; the whole group is "
+                    f"held (no lowest-id fallback) and must be corrected at source: "
+                    f"{detail}; see migration._parity_pending_demonstration_held"
+                ),
+            )
+    repaired = psql_query(
+        env,
+        "SELECT legacy_pendg_demo_id, medicaid_id, reason "
+        "FROM migration._parity_pending_approved "
+        "WHERE category = 'region_digit_repaired' "
+        "ORDER BY medicaid_id, legacy_pendg_demo_id",
+    )
+    # A repair folds a mis-keyed pending row into the approved row that owns the
+    # same project number in the same state. That is only sound if the approved
+    # row's own region suffix is state-correct; folding into a row that is itself
+    # wrong would launder one bad id into another, so it fails closed.
+    bad_target = [r for r in repaired if "WARNING" in str(r[2])]
+    if bad_target:
+        detail = "; ".join(f"pendg {r[0]} ({r[1]}) {r[2]}" for r in bad_target[:10])
+        return CheckResult(
+            name=name,
+            status="RED",
+            detail=(
+                f"{len(bad_target)} pending demonstration(s) folded via the "
+                "region-digit repair into an approved counterpart whose OWN region "
+                "suffix is not state-correct; correct the approved row at source: "
+                f"{detail}; see migration._parity_pending_approved"
+            ),
+        )
+    repair_note = ""
+    if repaired:
+        shown = "; ".join(f"pendg {r[0]} ({r[1]} {r[2]})" for r in repaired[:10])
+        repair_note = (
+            f"; {len(repaired)} pending demo(s) folded via the region-digit repair "
+            f"(non-gating, every row reported): {shown}"
+        )
     deferred = psql_query(
         env,
         "SELECT legacy_pendg_demo_id, reason "
@@ -330,7 +399,7 @@ def _pending_approved_audit(env: Env) -> CheckResult:
             status="GREEN",
             detail=(
                 "no pending demo leaked into demos_app.demonstration and no "
-                "pending-only demonstration to defer (vacuously satisfied)"
+                f"pending-only demonstration to defer (vacuously satisfied){repair_note}"
             ),
         )
     live_keys = {(str(r[0]), str(r[1])) for r in deferred}
@@ -346,7 +415,7 @@ def _pending_approved_audit(env: Env) -> CheckResult:
             f"{phrase}; no must-not-load pending demo leaked into "
             "demos_app.demonstration; no-project-number pending demos deferred "
             "per reports/narrative/pending_approved_decisions.md (see "
-            "migration._parity_pending_approved)"
+            f"migration._parity_pending_approved){repair_note}"
         ),
     )
 
@@ -844,25 +913,37 @@ def _classify_held_flags(
     GREEN when every live flag is in a SIGNED baseline; PENDING when new flags
     appear that the baseline has not accepted, or when the baseline covers them
     but is not yet SME-signed.
+
+    Only the ``live - baseline`` direction gates. The opposite direction --
+    baseline rows that no longer occur live -- cannot make the migration wrong, so
+    it stays non-gating, but it is reported: a baseline that has silently drifted
+    into describing rows the pipeline no longer produces is an SME signature over
+    fiction, and without this line nothing anywhere surfaces it.
     """
     total = len(live_keys)
     new = live_keys - baseline.keys
+    stale = baseline.keys - live_keys
+    stale_note = (
+        f"; NOTE {len(stale)} baseline row(s) no longer occur live (stale, non-gating)"
+        if stale
+        else ""
+    )
     if new:
         return (
             "PENDING",
             f"{len(new)} new unreviewed flag(s) absent from the accepted baseline "
-            f"({total} held total); review and add to the baseline",
+            f"({total} held total); review and add to the baseline{stale_note}",
         )
     if not baseline.signed:
         return (
             "PENDING",
             f"all {total} held flag(s) are recorded in the accepted baseline but it "
-            "is not yet SME-signed (set Status: SIGNED with a Reviewer and Date)",
+            f"is not yet SME-signed (set Status: SIGNED with a Reviewer and Date){stale_note}",
         )
     return (
         "GREEN",
         f"all {total} held flag(s) accepted per baseline signed by "
-        f"{baseline.reviewer} on {baseline.date}",
+        f"{baseline.reviewer} on {baseline.date}{stale_note}",
     )
 
 
@@ -1102,20 +1183,283 @@ def _approved_demo_held_for_division(env: Env) -> CheckResult:
     )
 
 
+def _approved_project_number_collision(env: Env) -> CheckResult:
+    """Approved demos sharing a project number under different medicaid_ids (non-gating).
+
+    Reads ``migration._parity_approved_project_number_collision`` (created by
+    ``sql/99_parity/16_approved_project_number_collision.sql``). The 5-digit CMS
+    project number in ``11-W-NNNNN/R`` identifies the waiver, so two approved rows
+    carrying the same NNNNN under different medicaid_ids are one waiver written
+    two ways -- normally a mistyped region digit. The UNIQUE constraint is on the
+    full medicaid_id, so both load and the waiver becomes two demonstrations, each
+    holding part of its amendments, contacts and tags. Check 21 does not cover it
+    (that is the same-medicaid_id case).
+
+    NON-GATING and detect-only. Unlike the pending-side repair in
+    ``sql/10_stg/23_pendg_demo_fold.sql`` -- where the folded row is not yet a
+    demonstration -- resolving a collision here means merging two already-valid
+    approved demonstrations and discarding one medicaid_id, which is a question
+    about the source that only an SME can answer. There are zero live occurrences,
+    so this exists to make a new one visible rather than silent.
+    """
+    name = "Approved project-number collisions"
+    exists = psql_query(
+        env,
+        "SELECT to_regclass('migration._parity_approved_project_number_collision') IS NOT NULL",
+    )
+    if not exists or not exists[0][0]:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="staging view not built yet; no project numbers to compare (vacuously green)",
+        )
+    rows = psql_query(
+        env,
+        "SELECT legacy_demo_id, state_id, medicaid_id, project_number, state_region, "
+        "region_matches_state, colliding_with, reason "
+        "FROM migration._parity_approved_project_number_collision "
+        "ORDER BY project_number, legacy_demo_id",
+    )
+    if not rows:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail=(
+                "every approved demonstration's 5-digit CMS project number maps to "
+                "exactly one medicaid_id; no waiver is about to load as two "
+                "demonstrations"
+            ),
+        )
+    out: Path = REPORTS_DIR / "orphans" / "approved_project_number_collision.csv"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(
+            [
+                "legacy_demo_id",
+                "state_id",
+                "medicaid_id",
+                "project_number",
+                "state_region",
+                "region_matches_state",
+                "colliding_with",
+                "reason",
+            ]
+        )
+        for r in rows:
+            w.writerow(["" if v is None else v for v in r])
+    groups = sorted({str(r[3]) for r in rows})
+    sample = "; ".join(
+        f"demo {r[0]} {r[2]} ({r[1]}, state region {r[4]}, "
+        f"region_matches_state={r[5]}) collides with {r[6]}"
+        for r in rows[:6]
+    )
+    return CheckResult(
+        name=name,
+        status="GREEN",
+        detail=(
+            f"{len(rows)} approved demonstration(s) across {len(groups)} project "
+            f"number(s) {groups} share a CMS project number under different "
+            "medicaid_ids, so one waiver will load as two demonstrations; "
+            "resolving this requires an SME source correction (detect-only, "
+            f"non-gating), logged per-row in {rel(out)}: {sample}"
+        ),
+    )
+
+
+def _deliverable_action_completeness(env: Env) -> CheckResult:
+    """Every loaded deliverable carries exactly the action chain its status implies.
+
+    Reads ``migration._parity_deliverable_action_completeness`` (created by
+    ``sql/99_parity/62_deliverable_action_completeness.sql``). The action rows are
+    synthesized rather than migrated (PMDA records no per-transition history), so
+    the assertion is internal consistency rather than source-to-target parity: one
+    row per seeded hop, strictly increasing timestamps, a chain that lands on the
+    deliverable's own ``status_id``, and no hop that moved the due date.
+
+    GATING: a deliverable whose timeline disagrees with its status is a defect the
+    DEMOS UI would render directly, and a hop-count drift means the synthesis
+    double-applied or lost rows.
+    """
+    name = "Deliverable action completeness"
+    exists = psql_query(
+        env,
+        "SELECT to_regclass('migration._parity_deliverable_action_completeness') IS NOT NULL",
+    )
+    if not exists or not exists[0][0]:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="deliverable_action not synthesized yet (vacuously green)",
+        )
+    rows = psql_query(
+        env,
+        "SELECT deliverable_id, status_id, expected_hops, actual_hops, reason "
+        "FROM migration._parity_deliverable_action_completeness "
+        "ORDER BY reason, deliverable_id LIMIT 25",
+    )
+    total = psql_query(
+        env,
+        "SELECT count(*) FROM demos_app.deliverable_action",
+    )
+    loaded = total[0][0] if total else 0
+    if not rows:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail=(
+                f"{loaded} synthesized deliverable_action row(s); every loaded "
+                "deliverable has its full seeded hop chain, strictly ordered, "
+                "landing on its own status with an unchanged due date"
+            ),
+        )
+    sample = "; ".join(f"{r[0]} {r[1]} expected {r[2]} got {r[3]} ({r[4]})" for r in rows[:5])
+    return CheckResult(
+        name=name,
+        status="RED",
+        detail=(
+            f"{len(rows)} deliverable(s) have an action chain that does not match "
+            f"the seed (of {loaded} action rows): {sample}"
+        ),
+    )
+
+
+def _deliverable_action_not_synthesized(env: Env) -> CheckResult:
+    """Loaded deliverables that received no action chain (non-gating per-row log).
+
+    Reads ``migration._parity_deliverable_action_held_report`` (created by
+    ``sql/99_parity/63_deliverable_action_held.sql``). A deliverable lands here
+    when its loaded status has no chain in ``migration.deliverable_action_chain``.
+
+    NON-GATING: the deliverable itself loads and displays correctly; only its
+    history is empty. Expected to be empty today, and it becoming non-empty means
+    DEMOS added a deliverable status the seed has not been extended for.
+    """
+    name = "Deliverable actions not synthesized"
+    exists = psql_query(
+        env,
+        "SELECT to_regclass('migration._parity_deliverable_action_held_report') IS NOT NULL",
+    )
+    if not exists or not exists[0][0]:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="deliverable_action not synthesized yet; nothing held (vacuously green)",
+        )
+    rows = psql_query(
+        env,
+        "SELECT deliverable_id, status_id, deliverable_name, demonstration_name, reason "
+        "FROM migration._parity_deliverable_action_held_report",
+    )
+    if not rows:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="every loaded deliverable status has a seeded action chain",
+        )
+    out: Path = REPORTS_DIR / "orphans" / "deliverable_action_not_synthesized.csv"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(
+            ["deliverable_id", "status_id", "deliverable_name", "demonstration_name", "reason"]
+        )
+        for r in rows:
+            w.writerow(["" if v is None else v for v in r])
+    statuses = sorted({str(r[1]) for r in rows})
+    return CheckResult(
+        name=name,
+        status="GREEN",
+        detail=(
+            f"{len(rows)} loaded deliverable(s) have no seeded action chain and so "
+            f"migrate with an empty timeline; status(es) {', '.join(statuses)}; "
+            f"logged per-row in {rel(out)} (non-gating)"
+        ),
+    )
+
+
+def _chip_id_not_normalizable(env: Env) -> CheckResult:
+    """Legacy CHIP numbers that could not be preserved (non-gating per-row log).
+
+    Reads ``migration._parity_chip_id_not_normalizable`` (created by
+    ``sql/99_parity/15_chip_id_not_normalizable.sql``). ``mdcd_scndry_demo_num``
+    is free text and the live source carries non-CHIP content in it (the literal
+    'None', and a Medicaid ``11-W`` number misfiled into the CHIP field), so
+    ``stg.demonstration_resolved`` normalizes it through
+    ``migration.normalize_chip_id`` and an unnormalizable value becomes NULL --
+    which makes the ``generate_medicaid_chip_id_numbers`` trigger mint a fresh,
+    valid CHIP number instead of writing a bogus one.
+
+    NON-GATING: the demonstration still lands with a valid chip_id, so the only
+    loss is the legacy number, which is an SME review item rather than a build
+    blocker. Every dropped value is written per-row so the source can be
+    corrected before cutover.
+    """
+    name = "Legacy CHIP numbers not preserved"
+    exists = psql_query(
+        env,
+        "SELECT to_regclass('migration._parity_chip_id_not_normalizable') IS NOT NULL",
+    )
+    if not exists or not exists[0][0]:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="staging view not built yet; no CHIP ids to review (vacuously green)",
+        )
+    rows = psql_query(
+        env,
+        "SELECT legacy_demo_id, state_id, medicaid_id, chip_id_source, reason "
+        "FROM migration._parity_chip_id_not_normalizable ORDER BY legacy_demo_id",
+    )
+    if not rows:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail=(
+                "every legacy CHIP number present in the source normalized to "
+                "21-W-NNNNN/R and was preserved in demonstration.chip_id"
+            ),
+        )
+    out: Path = REPORTS_DIR / "orphans" / "chip_id_not_normalizable.csv"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["legacy_demo_id", "state_id", "medicaid_id", "chip_id_source", "reason"])
+        for r in rows:
+            w.writerow(["" if v is None else v for v in r])
+    sample = "; ".join(f"demo {r[0]} {r[3]!r} ({r[4]})" for r in rows[:10])
+    return CheckResult(
+        name=name,
+        status="GREEN",
+        detail=(
+            f"{len(rows)} legacy CHIP number(s) were not normalizable and were "
+            "replaced by a freshly minted chip_id; logged per-row for SME review "
+            f"in {rel(out)} (non-gating): {sample}"
+        ),
+    )
+
+
 def _demonstration_held_dup_medicaid(env: Env) -> CheckResult:
-    """Check 21: demonstrations held back for a duplicate medicaid_id (non-gating log).
+    """Check 21: demonstrations held back for a duplicate medicaid_id (mixed gating).
 
     Reads ``migration._parity_demonstration_held_dup_medicaid_id`` (created by
     ``sql/99_parity/14_demonstration_held_dup_medicaid.sql`` only when the
     staging view + crosswalks + state_region exist). DEMOS enforces
     ``demonstration_medicaid_id_key`` UNIQUE, but the source can carry the same
     ``mdcd_demo_num`` on two live demonstrations (RED-4). The loader
-    (``sql/20_app/30_demonstration.sql``) loads one deterministic winner per
-    medicaid_id and holds the rest back instead of failing the whole build. Per
-    the cutover scope decision this is reported, not gated: every held-back row
-    is written per-row to ``reports/orphans/demonstration_held_dup_medicaid.csv``
-    for SME source-correction, and the status stays GREEN so a recorded, logged
-    hold-back never blocks the gate. Vacuously GREEN before the staging view exists.
+    (``sql/20_app/30_demonstration.sql``) resolves each duplicate group by
+    region: the row whose medicaid_id region suffix matches its state's region
+    wins (lowest legacy id breaks a tie). If NO member matches its state's region
+    the project number's region is wrong and the WHOLE group is held -- those
+    rows carry ``gating=true`` and RED this check for SME source-correction
+    (there is no lowest-id fallback). Ordinary non-winners of a resolvable group
+    carry ``gating=false``; they do not RED, but they are fail-closed against
+    ``reports/parity_accepted/demonstration_dup_medicaid.csv`` -- GREEN only once
+    every held row is named on a SIGNED baseline, else PENDING. Every held-back
+    row (both kinds) is written per-row, with the name/status/performance-period
+    fields an SME needs to tell the colliding demonstrations apart, to
+    ``reports/orphans/demonstration_held_dup_medicaid.csv``. Vacuously GREEN
+    before the staging view exists.
     """
     name = "21. Demonstrations held back for duplicate medicaid_id"
     exists = psql_query(
@@ -1131,7 +1475,8 @@ def _demonstration_held_dup_medicaid(env: Env) -> CheckResult:
     rows = psql_query(
         env,
         "SELECT demonstration_id, legacy_demo_id, medicaid_id, state_id, status_cd, "
-        "kept_legacy_demo_id, kept_demonstration_id, reason "
+        "kept_legacy_demo_id, kept_demonstration_id, disposition, gating, reason, "
+        "name, status_id, effective_date, expiration_date, kept_name "
         "FROM migration._parity_demonstration_held_dup_medicaid_id ORDER BY medicaid_id, legacy_demo_id",
     )
     if not rows:
@@ -1153,20 +1498,242 @@ def _demonstration_held_dup_medicaid(env: Env) -> CheckResult:
                 "status_cd",
                 "kept_legacy_demo_id",
                 "kept_demonstration_id",
+                "disposition",
+                "gating",
                 "reason",
+                "name",
+                "status_id",
+                "effective_date",
+                "expiration_date",
+                "kept_name",
             ]
         )
         for r in rows:
             w.writerow(["" if v is None else v for v in r])
-    # medicaid_id is column index 2; guard the slice so the check never raises.
-    sample = ", ".join(str(r[2]) for r in rows[:10] if len(r) > 2)
+    # gating is column index 8; medicaid_id is column index 2.
+    gated = [r for r in rows if len(r) > 8 and r[8]]
+    if gated:
+        gated_ids = sorted({str(r[2]) for r in gated if len(r) > 2})
+        return CheckResult(
+            name=name,
+            status="RED",
+            detail=(
+                f"{len(gated)} demonstration(s) across {len(gated_ids)} duplicate "
+                f"medicaid_id group(s) have a region suffix matching no member's state "
+                f"region; the whole group is held (no lowest-id fallback) and must be "
+                f"corrected at source. All {len(rows)} held row(s) logged in {rel(out)}; "
+                f"gating medicaid_id(s): {', '.join(gated_ids[:10])}"
+            ),
+        )
+    # Which row of a colliding pair the loader keeps is decided by a mechanical
+    # region/lowest-id rule, not by anyone who knows the programs. On the
+    # 11-W-00232/6 collision that rule kept Louisiana, which the 2026-07-28 SDG
+    # review independently confirmed -- but it would have "confirmed" the
+    # opposite just as silently had the ids sorted the other way. Agreement by
+    # coincidence is not review, so every hold-back must be named on an
+    # SME-signed baseline before this check can go GREEN.
+    baseline = _read_accepted_baseline(
+        PARITY_ACCEPTED_DIR / "demonstration_dup_medicaid.csv",
+        ["legacy_demo_id", "medicaid_id"],
+    )
+    live_keys = {(str(r[1]), str(r[2])) for r in rows if len(r) > 2}
+    status, phrase = _classify_held_flags(live_keys, baseline)
+    sample = ", ".join(
+        f"{r[2]} ({r[10] or 'unnamed'})" for r in rows[:10] if len(r) > 10
+    )
+    return CheckResult(
+        name=name,
+        status=status,
+        detail=(
+            f"{len(rows)} demonstration(s) held back as the non-winning row of a "
+            f"duplicate medicaid_id, logged per-row in {rel(out)}; {phrase}; "
+            f"held: {sample}"
+        ),
+    )
+
+
+def _demonstration_missing_primary_officer(env: Env) -> CheckResult:
+    """Check 22: demonstrations loaded without a primary Project Officer (non-gating log).
+
+    Reads ``migration._parity_demonstration_missing_primary_officer`` (created by
+    ``sql/99_parity/57_primary_officer_missing.sql`` only when the demos_app
+    tables exist). DEMOS enforces, via the constraint trigger
+    ``check_demonstration_primary_project_officer``
+    (``server/src/sql/functions.sql``), that every demonstration has a
+    ``primary_demonstration_role_assignment`` with ``role_id = 'Project
+    Officer'``. That trigger is deployed by ``refreshDbObjects.ts`` AFTER the
+    load and does not retroactively validate the rows this migration inserted,
+    so a demo missing a primary PO does not abort the load but is semantically
+    invalid for DEMOS. The primary-PO loader
+    (``sql/23_app_derived/40_primary_demonstration_role_assignment.sql``) yields
+    no primary row when the PO holder was dropped upstream, but the fallback
+    loader (``sql/23_app_derived/41_primary_po_fallback.sql``, surfaced by check
+    23) then backfills a configurable fallback PO onto every such demo, so this
+    check normally reports zero; a nonzero count means the fallback could not
+    cover a demo (e.g. no fallback configured, or its person cannot hold the
+    demo's state). Per the cutover scope decision this is reported, not gated:
+    every affected demo is written per-row to
+    ``reports/orphans/demonstration_missing_primary_officer.csv`` for SME
+    review, and the status stays GREEN so a recorded, logged gap never blocks
+    the gate. Vacuously GREEN before demos_app is built.
+    """
+    name = "22. Demonstrations missing a primary Project Officer"
+    exists = psql_query(
+        env,
+        "SELECT to_regclass('migration._parity_demonstration_missing_primary_officer') IS NOT NULL",
+    )
+    if not exists or not exists[0][0]:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="demos_app not built yet; no primary-PO gaps to log (vacuously green)",
+        )
+    rows = psql_query(
+        env,
+        "SELECT demonstration_id, medicaid_id, state_id, status_id "
+        "FROM migration._parity_demonstration_missing_primary_officer "
+        "ORDER BY medicaid_id, demonstration_id",
+    )
+    if not rows:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="every loaded demonstration has a primary Project Officer",
+        )
+    out: Path = REPORTS_DIR / "orphans" / "demonstration_missing_primary_officer.csv"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["demonstration_id", "medicaid_id", "state_id", "status_id"])
+        for r in rows:
+            w.writerow(["" if v is None else v for v in r])
+    # medicaid_id is column index 1; guard the slice so the check never raises.
+    sample = ", ".join(str(r[1]) for r in rows[:10] if len(r) > 1 and r[1] is not None)
     return CheckResult(
         name=name,
         status="GREEN",
         detail=(
-            f"{len(rows)} demonstration(s) held back as the non-winning row of a "
-            f"duplicate medicaid_id and logged per-row for SME review in {rel(out)} "
+            f"{len(rows)} loaded demonstration(s) have no primary Project Officer and "
+            f"were logged per-row for SME review in {rel(out)} (non-gating); DEMOS "
+            f"requires one per demonstration; medicaid_id(s): {sample}"
+        ),
+    )
+
+
+def _demonstration_primary_officer_fallback(env: Env) -> CheckResult:
+    """Check 23: demonstrations backfilled with the fallback primary PO (non-gating log).
+
+    Reads ``migration._parity_demonstration_primary_officer_fallback`` (created
+    by ``sql/99_parity/58_primary_officer_fallback.sql`` only when the fallback
+    loader ``sql/23_app_derived/41_primary_po_fallback.sql`` filled at least one
+    gap). Per the SME decision, every demonstration that would otherwise load
+    without a primary Project Officer is backfilled with a configurable fallback
+    PO (``mysql_raw.crosswalk_primary_po_fallback``, default legacy user 828) so
+    the DEMOS ``check_demonstration_primary_project_officer`` invariant holds.
+    This surfaces exactly which demonstrations carry a synthetic (fallback)
+    primary PO rather than one migrated from PMDA, written per-row to
+    ``reports/orphans/demonstration_primary_officer_fallback.csv`` for SME
+    review. Always GREEN: it records provenance, it does not gate. Vacuously
+    GREEN when no demonstration required the fallback.
+    """
+    name = "23. Demonstrations assigned the fallback primary Project Officer"
+    exists = psql_query(
+        env,
+        "SELECT to_regclass('migration._parity_demonstration_primary_officer_fallback') IS NOT NULL",
+    )
+    if not exists or not exists[0][0]:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="no demonstration required the fallback primary Project Officer (vacuously green)",
+        )
+    rows = psql_query(
+        env,
+        "SELECT demonstration_id, medicaid_id, state_id, status_id, fallback_legacy_user_id "
+        "FROM migration._parity_demonstration_primary_officer_fallback "
+        "ORDER BY medicaid_id, demonstration_id",
+    )
+    if not rows:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="no demonstration required the fallback primary Project Officer",
+        )
+    out: Path = REPORTS_DIR / "orphans" / "demonstration_primary_officer_fallback.csv"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(
+            ["demonstration_id", "medicaid_id", "state_id", "status_id", "fallback_legacy_user_id"]
+        )
+        for r in rows:
+            w.writerow(["" if v is None else v for v in r])
+    sample = ", ".join(str(r[1]) for r in rows[:10] if len(r) > 1 and r[1] is not None)
+    return CheckResult(
+        name=name,
+        status="GREEN",
+        detail=(
+            f"{len(rows)} demonstration(s) were backfilled with the configured fallback "
+            f"primary Project Officer and logged per-row for SME review in {rel(out)} "
             f"(non-gating); medicaid_id(s): {sample}"
+        ),
+    )
+
+
+def _demonstration_type_floor(env: Env) -> CheckResult:
+    """Check 24: demonstrations floored with the "Migrated From PMDA" type (non-gating log).
+
+    Reads ``migration._parity_demonstration_type_floor`` (created by
+    ``sql/99_parity/59_demonstration_type_floor.sql`` once ``demos_app`` is
+    built). Per the SME decision, every Approved demonstration that migrated
+    with zero demonstration types is floored with a single "Migrated From PMDA"
+    placeholder demonstration-type tag
+    (``sql/21_app_associative/14_demonstration_type_tag_floor.sql``) so a
+    settled record is never type-less. This surfaces exactly which Approved
+    demonstrations carry the placeholder pending in-app assignment of the real
+    type(s), written per-row to
+    ``reports/orphans/demonstration_type_floor.csv`` for SME review. Always
+    GREEN: it records provenance, it does not gate. Vacuously GREEN when no
+    demonstration required the floor.
+    """
+    name = "24. Demonstrations floored with the Migrated From PMDA demonstration type"
+    exists = psql_query(
+        env,
+        "SELECT to_regclass('migration._parity_demonstration_type_floor') IS NOT NULL",
+    )
+    if not exists or not exists[0][0]:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="no demonstration required the demonstration-type floor (vacuously green)",
+        )
+    rows = psql_query(
+        env,
+        "SELECT demonstration_id, medicaid_id, state_id, status_id "
+        "FROM migration._parity_demonstration_type_floor "
+        "ORDER BY medicaid_id, demonstration_id",
+    )
+    if not rows:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="no demonstration required the demonstration-type floor",
+        )
+    out: Path = REPORTS_DIR / "orphans" / "demonstration_type_floor.csv"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["demonstration_id", "medicaid_id", "state_id", "status_id"])
+        for r in rows:
+            w.writerow(["" if v is None else v for v in r])
+    sample = ", ".join(str(r[1]) for r in rows[:10] if len(r) > 1 and r[1] is not None)
+    return CheckResult(
+        name=name,
+        status="GREEN",
+        detail=(
+            f"{len(rows)} Approved demonstration(s) with zero types were floored with the "
+            f"'Migrated From PMDA' placeholder type and logged per-row for SME review in "
+            f"{rel(out)} (non-gating); medicaid_id(s): {sample}"
         ),
     )
 
@@ -1468,9 +2035,18 @@ def _pgm_dtl_tag_othr_held(env: Env) -> CheckResult:
             status="GREEN",
             detail="view not built yet; no other-program tag hold-backs to log (vacuously green)",
         )
+    columns = [
+        "legacy_id",
+        "legacy_demo_id",
+        "demonstration_id",
+        "demonstration_name",
+        "othr_name",
+        "reason",
+    ]
+    othr_name_idx = columns.index("othr_name")
     rows = psql_query(
         env,
-        "SELECT legacy_id, legacy_demo_id, demonstration_id, othr_name, reason "
+        f"SELECT {', '.join(columns)} "
         "FROM migration._parity_pgm_dtl_tag_othr_held ORDER BY legacy_id",
     )
     if not rows:
@@ -1483,12 +2059,12 @@ def _pgm_dtl_tag_othr_held(env: Env) -> CheckResult:
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w", encoding="utf-8", newline="") as f:
         w = csv.writer(f)
-        w.writerow(
-            ["legacy_id", "legacy_demo_id", "demonstration_id", "othr_name", "reason"]
-        )
+        w.writerow(columns)
         for r in rows:
             w.writerow(["" if v is None else v for v in r])
-    sample = ", ".join(str(r[3]) for r in rows[:8] if len(r) > 3)
+    sample = ", ".join(
+        str(r[othr_name_idx]) for r in rows[:8] if len(r) > othr_name_idx
+    )
     return CheckResult(
         name=name,
         status="GREEN",
@@ -1717,7 +2293,7 @@ def _application_phase_fed_comment_guard(env: Env) -> CheckResult:
     ``sql/99_parity/56_application_milestone.sql``). The application_phase loader
     (``sql/23_app_derived/50_application_phase.sql``) forces the Federal Comment
     phase to 'Completed' whenever the loaded 'Federal Comment Period End Date' is
-    before cutover (2026-08-20), so the DEMOS nightly cron cannot spuriously
+    before cutover (2026-08-13), so the DEMOS nightly cron cannot spuriously
     advance a window that closed by cutover. Any row here is an application whose
     window closed pre-cutover yet is still 'Not Started'/'Started' -- the failsafe
     did not hold, so the gate goes RED. Expected empty; vacuously GREEN before the
@@ -1753,8 +2329,165 @@ def _application_phase_fed_comment_guard(env: Env) -> CheckResult:
         status="RED",
         detail=(
             f"{count} application(s) whose Federal Comment window closed before cutover "
-            "(2026-08-20) still have the phase Not Started/Started; the loader failsafe did not "
+            "(2026-08-13) still have the phase Not Started/Started; the loader failsafe did not "
             "hold; see view migration._parity_application_phase_fed_comment_guard"
+        ),
+    )
+
+
+def _application_date_consistency(env: Env) -> CheckResult:
+    """Application dates that would fail DEMOS date validation (non-gating log).
+
+    Reads ``migration._parity_application_date_consistency`` (created by
+    ``sql/99_parity/60_application_date_consistency.sql``). DEMOS runs
+    ``validateInputDates`` only on the GraphQL mutation path, so a bulk load
+    cannot trip it -- but the rules fire against the merged date map as soon as
+    a user edits ANY date on the application, turning a migrated violation into
+    an error that user has to clear.
+
+    Four modes, all reported, none gating:
+
+    * ``boundary`` -- not exactly the Eastern start/end-of-day the date type
+      requires. Expected to be empty: the milestone loader normalizes through
+      ``migration.eastern_day_start``/``_end``. A non-zero count means a date
+      type was wired to the wrong helper.
+    * ``missing_counterpart`` -- the application holds one half of an ordering
+      or offset pair. A violation in DEMOS regardless of the value present,
+      because the server throws on the absent side instead of skipping the rule.
+      Unfixable without fabricating a date, so it is quantified, not repaired.
+    * ``ordering`` -- a completion date precedes its start date.
+    * ``offset`` -- a fixed +/-15, +/-30 or +/-1 day pair that does not hold.
+
+    Written per-row to ``reports/orphans/application_date_consistency.csv``.
+    Vacuously GREEN before the view exists.
+    """
+    name = "Application date consistency vs DEMOS validation"
+    exists = psql_query(
+        env,
+        "SELECT to_regclass('migration._parity_application_date_consistency') IS NOT NULL",
+    )
+    if not exists or not exists[0][0]:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="application_date not built yet; nothing to audit (vacuously green)",
+        )
+    rows = psql_query(
+        env,
+        "SELECT application_id, date_type_id, violation, counterpart_date_type_id, detail "
+        "FROM migration._parity_application_date_consistency "
+        "ORDER BY violation, date_type_id, application_id",
+    )
+    if not rows:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="every loaded application_date row satisfies DEMOS's date validation",
+        )
+    out: Path = REPORTS_DIR / "orphans" / "application_date_consistency.csv"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(
+            [
+                "application_id",
+                "date_type_id",
+                "violation",
+                "counterpart_date_type_id",
+                "detail",
+            ]
+        )
+        for r in rows:
+            w.writerow(["" if v is None else v for v in r])
+    by_mode: dict[str, int] = {}
+    for r in rows:
+        by_mode[str(r[2])] = by_mode.get(str(r[2]), 0) + 1
+    mode_summary = "; ".join(f"{k}={v}" for k, v in sorted(by_mode.items()))
+    affected = len({r[0] for r in rows})
+    return CheckResult(
+        name=name,
+        status="GREEN",
+        detail=(
+            f"{len(rows)} loaded application_date violation(s) of DEMOS's own date "
+            f"validation across {affected} application(s) ({mode_summary}); logged "
+            f"per-row in {rel(out)} (non-gating -- the rules run only on the mutation "
+            "path, and missing_counterpart cannot be fixed without fabricating dates)"
+        ),
+    )
+
+
+def _phantom_phase(env: Env) -> CheckResult:
+    """Phantom phase completions (non-gating log).
+
+    Reads ``migration._parity_phantom_phase`` /
+    ``_parity_phantom_phase_summary`` (created by
+    ``sql/99_parity/61_phantom_phase.sql``). DEMOS gates phase completion in
+    application code (``checkPhaseCompletionRules``), never in the database, so
+    a bulk load of ``application_phase`` cannot trip it and DEMOS never
+    re-validates a row that already reads 'Completed'. Because the migration
+    derives phase status from legacy PMDA status codes rather than from evidence
+    that the work products exist, some completions are "phantom": the row says
+    done, the required dates/documents/prior phases say otherwise.
+
+    Accepted, not a defect (the audit spec rates it Tier 2): nothing breaks
+    until a user reopens such a phase and tries to re-complete it, at which
+    point the real gate demands evidence that was never migrated. This check
+    exists to replace the spec's prose estimate with an exact, re-runnable,
+    per-row count, written to ``reports/orphans/phantom_phase.csv``. Always
+    GREEN. Vacuously GREEN before the view exists.
+    """
+    name = "Phantom phase completions"
+    exists = psql_query(
+        env,
+        "SELECT to_regclass('migration._parity_phantom_phase') IS NOT NULL",
+    )
+    if not exists or not exists[0][0]:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="application_phase not built yet; nothing to audit (vacuously green)",
+        )
+    rows = psql_query(
+        env,
+        "SELECT application_id, phase_id, unmet_kind, unmet_requirement, "
+        "is_clearance_conditional FROM migration._parity_phantom_phase "
+        "ORDER BY phase_id, unmet_kind, unmet_requirement, application_id",
+    )
+    if not rows:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="every migrated 'Completed' phase meets its DEMOS completion requirements",
+        )
+    out: Path = REPORTS_DIR / "orphans" / "phantom_phase.csv"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(
+            [
+                "application_id",
+                "phase_id",
+                "unmet_kind",
+                "unmet_requirement",
+                "is_clearance_conditional",
+            ]
+        )
+        for r in rows:
+            w.writerow(["" if v is None else v for v in r])
+    affected = len({(r[0], r[1]) for r in rows})
+    by_kind: dict[str, int] = {}
+    for r in rows:
+        by_kind[str(r[2])] = by_kind.get(str(r[2]), 0) + 1
+    kind_summary = "; ".join(f"{k}={v}" for k, v in sorted(by_kind.items()))
+    return CheckResult(
+        name=name,
+        status="GREEN",
+        detail=(
+            f"{affected} 'Completed' phase row(s) would fail DEMOS's own completion "
+            f"validation if it were re-run, across {len(rows)} unmet requirement(s) "
+            f"({kind_summary}); logged per-row in {rel(out)} (non-gating -- accepted "
+            "consequence of deriving phase status from legacy status codes; documents "
+            "are unmet by construction while document migration is out of scope)"
         ),
     )
 
@@ -2123,14 +2856,18 @@ def _amendment_load(env: Env) -> CheckResult:
     Reads the views created by ``sql/99_parity/52_amendment_load.sql`` only when
     the amendment staging view, crosswalk, and demonstration table all exist:
     ``migration._parity_amendment_held`` (amendments excluded because their parent
-    demonstration is not loaded), ``_parity_amendment_signature_dropped`` (legacy
+    demonstration is not loaded), ``_parity_amendment_held_missing_field``
+    (Approved amendments excluded because a NULL ``effective_date``/signature
+    would violate ``check_amendment_non_null_fields_when_approved``),
+    ``_parity_amendment_signature_dropped`` (legacy
     OGD/DD signatures NULLed -- DEMOS bars them on amendments),
     ``_parity_amendment_name_synthesized`` (loaded amendments whose NULL/empty
     source name was replaced with a synthesized ``<parent> Amendment (effective
     DATE)`` name), and ``_parity_amendment_phase_derived`` (per-status tally of the
     status-derived ``current_phase_id`` for SME ratification). All are deliberate,
     documented loader choices, so any rows are reported per-row to
-    ``reports/orphans/amendment_held.csv`` / ``amendment_signature_dropped.csv`` /
+    ``reports/orphans/amendment_held.csv`` / ``amendment_held_missing_field.csv`` /
+    ``amendment_signature_dropped.csv`` /
     ``amendment_name_synthesized.csv`` and the status stays GREEN. Vacuously GREEN
     before the views exist.
     """
@@ -2150,6 +2887,12 @@ def _amendment_load(env: Env) -> CheckResult:
         env,
         "SELECT amendment_uuid, demo_uuid, name, reason "
         "FROM migration._parity_amendment_held ORDER BY amendment_uuid",
+    )
+    held_missing = psql_query(
+        env,
+        "SELECT amendment_uuid, demo_uuid, name, status_id, missing_effective_date, "
+        "missing_signature "
+        "FROM migration._parity_amendment_held_missing_field ORDER BY amendment_uuid",
     )
     dropped = psql_query(
         env,
@@ -2176,6 +2919,23 @@ def _amendment_load(env: Env) -> CheckResult:
             w = csv.writer(f)
             w.writerow(["amendment_uuid", "demo_uuid", "name", "reason"])
             for r in held:
+                w.writerow(["" if v is None else v for v in r])
+    if held_missing:
+        orphans_dir.mkdir(parents=True, exist_ok=True)
+        out_held_missing = orphans_dir / "amendment_held_missing_field.csv"
+        with out_held_missing.open("w", encoding="utf-8", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(
+                [
+                    "amendment_uuid",
+                    "demo_uuid",
+                    "name",
+                    "status_id",
+                    "missing_effective_date",
+                    "missing_signature",
+                ]
+            )
+            for r in held_missing:
                 w.writerow(["" if v is None else v for v in r])
     if dropped:
         orphans_dir.mkdir(parents=True, exist_ok=True)
@@ -2210,6 +2970,8 @@ def _amendment_load(env: Env) -> CheckResult:
         status="GREEN",
         detail=(
             f"{len(held)} amendment(s) held back (parent demonstration not loaded), "
+            f"{len(held_missing)} Approved amendment(s) held back for a missing "
+            "required field (effective_date/signature), "
             f"{len(dropped)} signature(s) dropped to NULL (OGD/DD), "
             f"{len(synthesized)} name(s) synthesized (source null/empty), logged per-row in "
             f"{rel(orphans_dir)} (non-gating); derived phase tally: {phase_summary}"
@@ -2405,18 +3167,27 @@ def build_parity_report(env: Env) -> ParityReport:
         ("person/state integrity", _person_state_integrity),
         ("active-users coverage", _active_users_coverage),
         ("demonstration-role assignment integrity", _demonstration_role_assignment_integrity),
+        ("demonstration missing primary PO", _demonstration_missing_primary_officer),
+        ("demonstration fallback primary PO", _demonstration_primary_officer_fallback),
+        ("demonstration type floor", _demonstration_type_floor),
         ("approved demo held for division", _approved_demo_held_for_division),
+        ("legacy chip id not preserved", _chip_id_not_normalizable),
+        ("approved project-number collisions", _approved_project_number_collision),
         ("scope coverage", _scope_coverage),
         ("deliverable completeness", _deliverable_completeness),
         ("deliverable integrity", _deliverable_integrity),
         ("deliverable held", _deliverable_held),
         ("deliverable BN QA", _deliverable_bn_qa),
+        ("deliverable action completeness", _deliverable_action_completeness),
+        ("deliverable actions not synthesized", _deliverable_action_not_synthesized),
         ("pgm_dtl othr held", _pgm_dtl_tag_othr_held),
         ("pgm_dtl tag unseeded", _pgm_dtl_tag_unseeded),
         ("pending pgm_dtl othr held", _pendg_pgm_dtl_tag_othr_held),
         ("pending pgm_dtl tag unseeded", _pendg_pgm_dtl_tag_unseeded),
         ("milestone dates deferred to SME", _application_milestone_unmapped),
         ("fed-comment past-window failsafe", _application_phase_fed_comment_guard),
+        ("phantom phase completions", _phantom_phase),
+        ("application date consistency", _application_date_consistency),
         ("comment completeness", _comment_completeness),
         ("comment integrity", _comment_integrity),
         ("comment held", _comment_held),

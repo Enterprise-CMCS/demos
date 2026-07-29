@@ -1,0 +1,51 @@
+# Parity accepted-flags baseline -- Check 21: demonstrations held back for a
+# duplicate medicaid_id.
+#
+# DEMOS enforces demonstration_medicaid_id_key UNIQUE; the source does not. When
+# two live demonstrations carry the same mdcd_demo_num the loader keeps one by a
+# mechanical rule (region suffix matching the state's CMS region, then lowest
+# legacy id) and holds the rest. That rule cannot know which program is which,
+# so each held row must be named here by an SME. Check 21 goes GREEN only when
+# every live held row is listed below AND Status is SIGNED with a Reviewer and
+# Date; otherwise it is PENDING. Key columns: legacy_demo_id, medicaid_id.
+#
+# OUTSTANDING -- do not sign until SDG answers the question below.
+#
+# On 2026-07-28 SDG ruled: "Louisiana Take Charge Family Planning Program
+# demonstration number should be 11-W-00232/6 while Healthy Texas Women
+# demonstration number should be 11-W-00326/6 per the latest Demonstration
+# Approval in 2025."
+#
+# Both halves of that ruling are already true in the load, so neither resolves
+# this collision:
+#   - legacy 2506 LA "Louisiana Take Charge Family Planning Program" already
+#     loads as 11-W-00232/6.
+#   - legacy 2477 TX "Healthy Texas Women" (Approved, 2020-01-22..2030-06-30)
+#     already loads as 11-W-00326/6. Its source value carries a stray space
+#     ("11 -W-00326/6") that migration.normalize_medicaid_id strips.
+#
+# The row actually colliding with LA 2506 is a THIRD demonstration SDG was never
+# shown, because the export it was reviewed from carried no name column:
+#   - legacy 2513 TX "Texas Women's Health Waiver" (Expired, 2007-01-01..
+#     2012-12-31) also carrying 11-W-00232/6.
+#
+# 2513 is a different demonstration from 2477: different name, different
+# performance period (an 8-year gap), different status. Renumbering it to
+# 11-W-00326/6 would collide with the Approved 2477 and merge two distinct
+# waiver periods, so it moves the collision rather than resolving it. Its
+# correct number is not derivable from the source and MUST NOT be guessed.
+#
+# QUESTION FOR SDG: PMDA holds a third row, "Texas Women's Health Waiver"
+# (Expired, 2007-2012), carrying 11-W-00232/6 -- the number you assigned to
+# Louisiana. It is not "Healthy Texas Women" (11-W-00326/6, Approved through
+# 2030), which is already correct. What is the correct demonstration number for
+# "Texas Women's Health Waiver", or should it be excluded from DEMOS?
+#
+# Until that is answered the row below stays held and reported, and this file
+# stays unsigned so check 21 holds the gate at PENDING.
+#
+# Status: PENDING SDG
+# Reviewer:
+# Date:
+legacy_demo_id,medicaid_id,state_id,name,status_id,disposition,note
+2513,11-W-00232/6,TX,Texas Women's Health Waiver,Approved,held_nonwinner,Expired 2007-2012; awaiting SDG on the correct demonstration number. Held (not loaded) meanwhile. status_id is Approved because legacy status 6 'Expired' maps to Approved (expiry is a date overlay in DEMOS).

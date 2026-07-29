@@ -30,8 +30,8 @@
       "disposition": "loaded",
       "status_id": "Approved",
       "current_phase_id": "Approval Summary",
-      "chip_source": "deferred",
-      "chip_id": null
+      "chip_source": "minted",
+      "chip_id": "DEMONSTRATION_CHIP_01"
     },
     {
       "medicaid_id": "11-W-00007/5",
@@ -39,8 +39,8 @@
       "disposition": "loaded",
       "status_id": "Under Review",
       "current_phase_id": "Review",
-      "chip_source": "deferred",
-      "chip_id": null
+      "chip_source": "minted",
+      "chip_id": "DEMONSTRATION_CHIP_02"
     },
     {
       "medicaid_id": "11-W-00008/5",
@@ -48,8 +48,8 @@
       "disposition": "loaded",
       "status_id": "On-hold",
       "current_phase_id": "Concept",
-      "chip_source": "deferred",
-      "chip_id": null
+      "chip_source": "minted",
+      "chip_id": "DEMONSTRATION_CHIP_03"
     },
     {
       "medicaid_id": "11-W-00003/4",

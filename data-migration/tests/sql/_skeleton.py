@@ -23,9 +23,12 @@ def apply_migration_helper_fns(conn: Any) -> None:
     """Provision the ``migration`` helper functions the stg layer depends on.
 
     ``sql/00_init/03_helper_fns.sql`` defines lookup_uuid / crosswalk /
-    eastern_day_start / eastern_day_end. The resolved views (22/30), milestone
-    staging (25), and tag loaders (10-13) call the eastern_day_* anchors, so any
-    harness that applies those files must create these functions first. The
+    normalize_medicaid_id / normalize_chip_id / medicaid_project_number /
+    eastern_day_start / eastern_day_end / derive_amendment_status. The resolved
+    views (22/30), milestone staging (25), and tag loaders (10-13) call the
+    eastern_day_* anchors and the demo filters (10/11) and pending fold (23) call
+    the waiver-number normalizers, so any harness that applies those files must
+    create these functions first. The
     ``migration`` schema must already exist; the rest of ``00_init`` needs the
     ``pg_jsonschema`` extension vanilla PG lacks and is out of scope here.
     """

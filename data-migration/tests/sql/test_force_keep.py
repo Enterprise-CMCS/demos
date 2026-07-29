@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from migration.phases import build
+from tests.sql._skeleton import apply_migration_helper_fns
 
 if TYPE_CHECKING:
     import psycopg
@@ -24,9 +25,14 @@ STG_DIR = ROOT / "sql" / "10_stg"
 
 def _provision(conn: Any) -> None:
     """Minimal mysql_raw.mdcd_demo + override tables + the demo filter view."""
-    conn.execute("DROP SCHEMA IF EXISTS stg, mysql_raw CASCADE")
+    conn.execute("DROP SCHEMA IF EXISTS stg, mysql_raw, migration CASCADE")
     conn.execute("CREATE SCHEMA stg")
     conn.execute("CREATE SCHEMA mysql_raw")
+    # 10_filter_demo.sql calls migration.normalize_medicaid_id. Provision it here
+    # rather than relying on a migration schema some earlier test left behind,
+    # which made this module pass or fail depending on collection order.
+    conn.execute("CREATE SCHEMA migration")
+    apply_migration_helper_fns(conn)
     conn.execute(
         "CREATE TABLE mysql_raw.mdcd_demo ("
         " mdcd_demo_id bigint, mdcd_demo_num text, geo_ansi_state_cd text,"

@@ -142,6 +142,72 @@ def test_non_user_contact_author_held_not_loaded(pg_db: psycopg.Connection) -> N
     assert "not an auth user" in reason[0]
 
 
+def test_authored_route_overrides_author_type(pg_db: psycopg.Connection) -> None:
+    """A mapped origin code decides the route even against the author's type.
+
+    Whether a state may read a comment is a property of the comment, not of who
+    keyed it: in the live source 649 of 650 'R' comments are CMS-authored yet sit
+    in state threads, and 3 state-origin 'S' comments are CMS-keyed. If the author
+    type could override the crosswalk, an SME route decision would be silently
+    partial.
+    """
+    _provision(pg_db)
+    pg_db.execute(
+        "INSERT INTO mysql_raw.crosswalk_comment_origin (legacy_cd, demos_route) "
+        "VALUES ('S', 'public'), ('R', 'private')"
+    )
+    # A CMS author with a state-origin code, and a state author with a CMS code.
+    pg_db.execute(
+        "UPDATE stg.comment_resolved SET origin_cd = 'S' WHERE legacy_id = 1"
+    )  # CMS-authored
+    pg_db.execute(
+        "UPDATE stg.comment_resolved SET origin_cd = 'R' WHERE legacy_id = 2"
+    )  # state-authored
+    pg_db.execute("TRUNCATE demos_app.private_comment, demos_app.public_comment")
+    _apply(pg_db, LOADER)
+
+    pub = {r[0] for r in pg_db.execute("SELECT id FROM demos_app.public_comment").fetchall()}
+    priv = {r[0] for r in pg_db.execute("SELECT id FROM demos_app.private_comment").fetchall()}
+    assert C_CMS in pub, "an authored 'public' route must publish a CMS-authored comment"
+    assert C_CMS not in priv
+    # The reverse combination is contradictory (private_comment requires a CMS
+    # author person_type), so it is held and logged rather than published.
+    assert C_STATE not in priv
+    assert C_STATE not in pub
+    reason = pg_db.execute(
+        "SELECT reason FROM migration._parity_comment_held WHERE comment_id = %s",
+        (C_STATE,),
+    ).fetchone()
+    assert reason is not None
+    assert "not a CMS user" in reason[0]
+
+
+def test_codeless_cms_comment_defaults_private(pg_db: psycopg.Connection) -> None:
+    """With no origin code and no mapping, a CMS-authored comment stays private.
+
+    The fallback must not publish CMS content: an origin code nobody has ruled on
+    is exactly the case where guessing is unsafe, and publishing to a state cannot
+    be undone after cutover.
+    """
+    _provision(pg_db)
+    assert (
+        _scalar(
+            pg_db,
+            "SELECT count(*) FROM demos_app.public_comment WHERE id = %s",
+            (C_CMS,),
+        )
+        == 0
+    )
+    assert (
+        _scalar(
+            pg_db,
+            "SELECT count(*) FROM demos_app.private_comment WHERE id = %s",
+            (C_CMS,),
+        )
+        == 1
+    )
+
+
 def test_held_reasons_are_specific(pg_db: psycopg.Connection) -> None:
     """Every held-back comment is logged with its specific reason."""
     _provision(pg_db)

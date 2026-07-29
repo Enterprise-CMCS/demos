@@ -1,0 +1,39 @@
+demonstration_id,medicaid_id,state_id,status_id
+fe0d0cd6-268b-42a8-a671-88f6cf199192,11-W-00165/5,IL,Approved
+1b4db82b-54a7-4da0-b5ae-9d677c54a565,11-W-00182/4,NC,Approved
+fe371a3a-ba6b-4f7c-83e7-60f36602e89d,11-W-00189/7,IA,Approved
+2dc270c0-27f0-4992-8602-1fbbdcafa7b0,11-W-00191/6,VT,Approved
+4ac33e36-e034-4905-bc81-18c4fb117723,11-W-00232/6,LA,Approved
+b4397db8-6c82-4093-8872-91cbf5698efe,11-W-00234/2,NY,Approved
+349f4f06-0e6c-491c-9e39-16073e2ee0f3,11-W-00252/6,LA,Approved
+388ac56a-d77a-47d8-a1a9-223726638ee9,11-W-00254/10,WA,Approved
+f8750186-e249-4421-8246-abb93a6a80e2,11-W-00280/8,CO,Approved
+656ea06b-143e-4e04-981b-cc409f142662,11-W-00281/5,IL,Approved
+b2b50a67-a9c7-4796-8bbb-2885202e8cf5,11-W-00282/5,OH,Approved
+65abf3d1-0cd4-4d40-bcce-156a76c0a035,11-W-00295/3,PA,Approved
+ccf6abde-3eae-4fb9-a473-bcf38786512f,11-W-00323/5,OH,Approved
+6e8a0329-4bdb-454f-bf70-3718526ded6b,11-W-00324/4,MS,Under Review
+ecc9c0ed-2d1d-4a59-9d83-4c3431cfb144,11-W-00327/8,SD,Under Review
+b4fdb539-22a8-407f-8ce0-1226acac5b27,11-W-00328/4,SC,Under Review
+b93e171d-8d45-4f17-92d5-adac4866e548,11-W-00329/8,WY,Under Review
+e0cbb5b9-393e-4b35-8d2c-f5e3adf551af,11-W-00331/8,SD,Under Review
+5a88a48c-be2a-4ea2-a58e-c18791fe9104,11-W-00333/8,WY,Under Review
+47d34a19-20af-453d-ab23-0220c875f015,11-W-00352/3,WV,Under Review
+f1f0fbcd-558c-4f0b-96a0-3004ae019846,11-W-00361/4,AL,Under Review
+dd2fb878-c1f6-4cdc-bf30-53b78a858f68,11-W-00364/4,AL,Under Review
+5c34d3d0-1936-4271-8fd6-75df66ff3866,11-W-00366/6,LA,Under Review
+12d5ea2c-39f6-43af-ba29-0226e0daeafe,11-W-00435/5,WI,Under Review
+2f359794-acc9-448b-9d78-688316494cdb,11-W-00449/9,CA,Under Review
+4c6dc7a2-d2cb-43e4-b152-40125666dab8,11-W-00460/4,AL,Under Review
+eee52288-0cd7-4fe4-9e6a-a85ace8df4b4,11-W-00464/6,NM,Under Review
+5d57bdd1-b045-435e-b7b4-64a57a0b451c,11-W-00468/8,CO,Under Review
+24d0aa55-6041-43b0-8e4b-5ef69afa5505,11-W-00477/8,WY,Under Review
+ed53410f-9827-495c-9d86-0d65a2ffc847,11-W-00498/6,LA,Under Review
+ca1d4801-fc20-45e9-9f7e-8d7d5f7746ad,11-W-00500/9,NV,Under Review
+bf1f52ca-0c3b-4f54-ad12-a2b503b76c7a,11-W-00505/5,MN,Under Review
+20cf31ac-c083-4d90-8028-8685c18a1751,11-W-00506/6,AR,Under Review
+81e1fec1-9bde-4a7a-ae6e-2b00df15a2cd,11-W-00507/4,FL,Under Review
+cd264625-039e-4096-acc7-cb52f69da2d8,11-W-00509/4,SC,Under Review
+291eb311-4a9a-48ff-b096-fd0df6e11d73,11-W-00510/8,MT,Under Review
+98f9e541-362d-4893-ad83-81bdfea6d66c,11-W-00511/4,FL,Under Review
+c948646b-f026-482b-a299-c42a17ab7c62,11-W-00513/8,UT,Under Review

@@ -29,11 +29,29 @@ def _shaped_query(default: tuple[object, ...]):
     ``_parity_(pendg_)?pgm_dtl_tag*`` views, the milestone
     ``_parity_application_milestone_unmapped`` / ``_parity_application_phase_fed_comment_guard``
     views, and ``_parity_amendment_unmapped_status`` read empty so those stay
-    vacuously GREEN (the fail-closed guards never red the rollup here).
+    vacuously GREEN (the fail-closed guards never red the rollup here). The
+    ``region_digit_repaired`` probe, the two ``_parity_deliverable_action*``
+    views, ``_parity_phantom_phase`` and
+    ``_parity_application_date_consistency`` also read empty: they are per-row
+    detail reads whose columns the single-scalar ``default`` cannot stand in for.
     """
 
     def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
         if "'leaked'" in sql:
+            return []
+        if "region_incorrect_duplicate" in sql:
+            return []
+        if "'region_digit_repaired'" in sql:
+            return []
+        if "_parity_deliverable_action" in sql:
+            return []
+        if "_parity_chip_id_not_normalizable" in sql:
+            return []
+        if "_parity_approved_project_number_collision" in sql:
+            return []
+        if "_parity_phantom_phase" in sql:
+            return []
+        if "_parity_application_date_consistency" in sql:
             return []
         if "'pending_only_deferred'" in sql:
             return [(1, "no_approved_counterpart")]
@@ -731,6 +749,12 @@ def test_pending_approved_pending_when_baseline_unsigned(
     def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
         if "'leaked'" in sql:
             return []
+        if "to_regclass" in sql:
+            return [(True,)]
+        if "region_incorrect_duplicate" in sql:
+            return []
+        if "'region_digit_repaired'" in sql:
+            return []
         return [(101, "no_approved_counterpart"), (102, "no_project_number")]
 
     (tmp_path / "pending_approved_deferrals.csv").write_text(
@@ -754,6 +778,12 @@ def test_pending_approved_green_when_baseline_signed(
 
     def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
         if "'leaked'" in sql:
+            return []
+        if "to_regclass" in sql:
+            return [(True,)]
+        if "region_incorrect_duplicate" in sql:
+            return []
+        if "'region_digit_repaired'" in sql:
             return []
         return [(101, "no_approved_counterpart"), (102, "no_project_number")]
 
@@ -779,6 +809,12 @@ def test_pending_approved_pending_on_new_deferral(
     def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
         if "'leaked'" in sql:
             return []
+        if "to_regclass" in sql:
+            return [(True,)]
+        if "region_incorrect_duplicate" in sql:
+            return []
+        if "'region_digit_repaired'" in sql:
+            return []
         return [(101, "no_approved_counterpart"), (999, "no_approved_counterpart")]
 
     (tmp_path / "pending_approved_deferrals.csv").write_text(
@@ -792,6 +828,30 @@ def test_pending_approved_pending_on_new_deferral(
     result = parity._pending_approved_audit(env)
     assert result.status == "PENDING"
     assert "1 new unreviewed flag(s)" in result.detail
+
+
+def test_pending_approved_red_on_region_incorrect_duplicate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A region-incorrect duplicate pending group (no member matches its state region)
+    gates check 4 RED, before any deferrals baseline is consulted."""
+
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        if "'leaked'" in sql:
+            return []
+        if "to_regclass" in sql:
+            return [(True,)]
+        if "region_incorrect_duplicate" in sql:
+            return [(197, "11-W-00036/4"), (252, "11-W-00036/4")]
+        return []
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._pending_approved_audit(env)
+    assert result.status == "RED"
+    assert "region suffix matching no member's state region" in result.detail
+    assert "11-W-00036/4" in result.detail
+    assert "_parity_pending_demonstration_held" in result.detail
 
 
 def test_active_users_coverage_green_on_zero(
@@ -1093,6 +1153,365 @@ def test_approved_demo_held_is_non_gating_and_logs_csv(
     assert "missing sdg_division" in body
 
 
+def test_demonstration_held_dup_medicaid_green_when_view_absent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """No staging view yet (to_regclass NULL) -> vacuously GREEN, no CSV."""
+    monkeypatch.setattr(parity, "psql_query", lambda _env, _sql: [(False,)])
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._demonstration_held_dup_medicaid(env)
+    assert result.status == "GREEN"
+    assert "vacuously green" in result.detail
+
+
+_DUP_HELD_ROW: tuple[object, ...] = (
+    "uuid-tx", 2513, "11-W-00232/6", "TX", 6, 2506, "uuid-la",
+    "held_nonwinner", False,
+    "duplicate medicaid_id; kept legacy demo 2506 (lower legacy id)",
+    "Texas Women's Health Waiver", "Approved", "2007-01-01", "2013-01-01",
+    "Louisiana Take Charge Family Planning Program",
+)
+
+
+def _dup_medicaid_baseline(tmp_path: Path, body: str) -> Path:
+    """Write a check-21 accepted baseline and return its directory."""
+    d = tmp_path / "reports" / "parity_accepted"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "demonstration_dup_medicaid.csv").write_text(body, encoding="utf-8")
+    return d
+
+
+def test_demonstration_held_dup_medicaid_pending_when_baseline_unsigned(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A held non-winner listed on an UNSIGNED baseline holds the gate at PENDING.
+
+    This is the live 11-W-00232/6 state while SDG is asked which demonstration
+    "Texas Women's Health Waiver" really is.
+    """
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        return [(True,)] if "to_regclass" in sql else [_DUP_HELD_ROW]
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    monkeypatch.setattr(parity, "REPORTS_DIR", tmp_path)
+    monkeypatch.setattr(
+        parity,
+        "PARITY_ACCEPTED_DIR",
+        _dup_medicaid_baseline(
+            tmp_path,
+            "# Status: PENDING SDG\n# Reviewer:\n# Date:\n"
+            "legacy_demo_id,medicaid_id\n2513,11-W-00232/6\n",
+        ),
+    )
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._demonstration_held_dup_medicaid(env)
+    assert result.status == "PENDING"
+    assert "not yet SME-signed" in result.detail
+    # The name is what makes the collision adjudicable; it must reach the SME.
+    assert "Texas Women's Health Waiver" in result.detail
+    out = tmp_path / "orphans" / "demonstration_held_dup_medicaid.csv"
+    body = out.read_text(encoding="utf-8")
+    assert "disposition,gating,reason,name,status_id" in body
+    assert "kept_name" in body
+    assert "Texas Women's Health Waiver" in body
+    assert "Louisiana Take Charge Family Planning Program" in body
+
+
+def test_demonstration_held_dup_medicaid_green_when_baseline_signed(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Signing the baseline clears check 21 -- the GREEN branch stays reachable."""
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        return [(True,)] if "to_regclass" in sql else [_DUP_HELD_ROW]
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    monkeypatch.setattr(parity, "REPORTS_DIR", tmp_path)
+    monkeypatch.setattr(
+        parity,
+        "PARITY_ACCEPTED_DIR",
+        _dup_medicaid_baseline(
+            tmp_path,
+            "# Status: SIGNED\n# Reviewer: SDG\n# Date: 2026-07-28\n"
+            "legacy_demo_id,medicaid_id\n2513,11-W-00232/6\n",
+        ),
+    )
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._demonstration_held_dup_medicaid(env)
+    assert result.status == "GREEN"
+    assert "signed by SDG on 2026-07-28" in result.detail
+
+
+def test_demonstration_held_dup_medicaid_pending_when_hold_unreviewed(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Negative control: a hold-back absent from the baseline cannot pass silently.
+
+    Guards the regression this check was rewritten to prevent -- the loader
+    picking a collision winner by lowest legacy id with nobody reviewing it.
+    """
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        return [(True,)] if "to_regclass" in sql else [_DUP_HELD_ROW]
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    monkeypatch.setattr(parity, "REPORTS_DIR", tmp_path)
+    monkeypatch.setattr(
+        parity,
+        "PARITY_ACCEPTED_DIR",
+        _dup_medicaid_baseline(
+            tmp_path, "# Status: SIGNED\n# Reviewer: SDG\n# Date: 2026-07-28\n"
+            "legacy_demo_id,medicaid_id\n"
+        ),
+    )
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._demonstration_held_dup_medicaid(env)
+    assert result.status == "PENDING"
+    assert "unreviewed" in result.detail
+
+
+def test_demonstration_held_dup_medicaid_pending_when_baseline_missing(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Negative control: deleting the baseline must not turn the gate GREEN."""
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        return [(True,)] if "to_regclass" in sql else [_DUP_HELD_ROW]
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    monkeypatch.setattr(parity, "REPORTS_DIR", tmp_path)
+    monkeypatch.setattr(parity, "PARITY_ACCEPTED_DIR", tmp_path / "nonexistent")
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._demonstration_held_dup_medicaid(env)
+    assert result.status == "PENDING"
+
+
+def test_demonstration_held_dup_medicaid_red_on_region_incorrect_group(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A group matching no member's state region carries gating=true -> RED, still logs all rows.
+
+    A SIGNED baseline is in place to prove RED outranks the accepted-baseline
+    path: a region-incorrect group must be fixed at source and cannot be waved
+    through by signing it off.
+    """
+    reason = (
+        "duplicate medicaid_id whose region suffix matches no member state region; "
+        "whole group held, gate RED"
+    )
+    rows: list[tuple[object, ...]] = [
+        (
+            "uuid-de1", 197, "11-W-00036/4", "DE", 6, None, None,
+            "region_incorrect", True, reason,
+            "Diamond State Health Plan", "Approved", "2022-01-01", "2023-01-01", None,
+        ),
+        (
+            "uuid-de2", 252, "11-W-00036/4", "DE", 6, None, None,
+            "region_incorrect", True, reason,
+            "Diamond State Health Plan", "Approved", "2022-01-01", "2023-01-01", None,
+        ),
+    ]
+
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        return [(True,)] if "to_regclass" in sql else rows
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    monkeypatch.setattr(parity, "REPORTS_DIR", tmp_path)
+    monkeypatch.setattr(
+        parity,
+        "PARITY_ACCEPTED_DIR",
+        _dup_medicaid_baseline(
+            tmp_path,
+            "# Status: SIGNED\n# Reviewer: SDG\n# Date: 2026-07-28\n"
+            "legacy_demo_id,medicaid_id\n197,11-W-00036/4\n252,11-W-00036/4\n",
+        ),
+    )
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._demonstration_held_dup_medicaid(env)
+    assert result.status == "RED"
+    assert "region suffix matching no member's state region" in result.detail
+    assert "11-W-00036/4" in result.detail
+    out = tmp_path / "orphans" / "demonstration_held_dup_medicaid.csv"
+    assert out.exists()
+    body = out.read_text(encoding="utf-8")
+    assert "region_incorrect" in body
+
+
+def test_missing_primary_officer_green_when_view_absent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """No view yet (to_regclass NULL) -> vacuously GREEN, no CSV."""
+    monkeypatch.setattr(parity, "psql_query", lambda _env, _sql: [(False,)])
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._demonstration_missing_primary_officer(env)
+    assert result.status == "GREEN"
+    assert "vacuously green" in result.detail
+
+
+def test_missing_primary_officer_green_on_zero(monkeypatch: pytest.MonkeyPatch) -> None:
+    """View present and empty -> GREEN, every demo has a primary PO."""
+
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        return [(True,)] if "to_regclass" in sql else []
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._demonstration_missing_primary_officer(env)
+    assert result.status == "GREEN"
+    assert "every loaded demonstration has a primary Project Officer" in result.detail
+
+
+def test_missing_primary_officer_is_non_gating_and_logs_csv(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Demos with no primary PO -> still GREEN (non-gating) AND logged per-row.
+
+    DEMOS requires a primary Project Officer per demonstration, but that
+    constraint trigger is deployed post-load and does not retroactively reject
+    migrated rows, so a missing primary PO must be surfaced for SME review, not
+    used to block the cutover gate. GREEN proves the non-gating consequence; the
+    CSV proves the per-row log.
+    """
+    rows: list[tuple[object, ...]] = [
+        ("uuid-1", "11-W-00123/4", "CA", "Approved"),
+        ("uuid-2", "11-W-00999/9", "NY", "Pending"),
+    ]
+
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        return [(True,)] if "to_regclass" in sql else rows
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    monkeypatch.setattr(parity, "REPORTS_DIR", tmp_path)
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._demonstration_missing_primary_officer(env)
+
+    assert result.status == "GREEN"  # non-gating by decision
+    assert "2 loaded demonstration(s) have no primary Project Officer" in result.detail
+    assert "11-W-00123/4" in result.detail
+    out = tmp_path / "orphans" / "demonstration_missing_primary_officer.csv"
+    assert out.exists()
+    body = out.read_text(encoding="utf-8")
+    assert "demonstration_id,medicaid_id,state_id,status_id" in body
+    assert "11-W-00999/9" in body
+
+
+def test_primary_officer_fallback_green_when_view_absent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """No view yet (to_regclass NULL) -> vacuously GREEN, no CSV."""
+    monkeypatch.setattr(parity, "psql_query", lambda _env, _sql: [(False,)])
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._demonstration_primary_officer_fallback(env)
+    assert result.status == "GREEN"
+    assert "vacuously green" in result.detail
+
+
+def test_primary_officer_fallback_green_on_zero(monkeypatch: pytest.MonkeyPatch) -> None:
+    """View present and empty -> GREEN, no demo required the fallback."""
+
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        return [(True,)] if "to_regclass" in sql else []
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._demonstration_primary_officer_fallback(env)
+    assert result.status == "GREEN"
+    assert "no demonstration required the fallback primary Project Officer" in result.detail
+
+
+def test_primary_officer_fallback_is_non_gating_and_logs_csv(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Demos backfilled with the fallback PO -> GREEN (non-gating) AND logged per-row.
+
+    The fallback is a recorded SME decision, not a defect, so the provenance is
+    surfaced for review without gating. GREEN proves the non-gating consequence;
+    the CSV proves the per-row provenance log.
+    """
+    rows: list[tuple[object, ...]] = [
+        ("uuid-1", "11-W-00123/4", "CA", "Approved", 828),
+        ("uuid-2", "11-W-00999/9", "NY", "Under Review", 828),
+    ]
+
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        return [(True,)] if "to_regclass" in sql else rows
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    monkeypatch.setattr(parity, "REPORTS_DIR", tmp_path)
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._demonstration_primary_officer_fallback(env)
+
+    assert result.status == "GREEN"  # non-gating by decision
+    assert "2 demonstration(s) were backfilled with the configured fallback" in result.detail
+    assert "11-W-00123/4" in result.detail
+    out = tmp_path / "orphans" / "demonstration_primary_officer_fallback.csv"
+    assert out.exists()
+    body = out.read_text(encoding="utf-8")
+    assert "demonstration_id,medicaid_id,state_id,status_id,fallback_legacy_user_id" in body
+    assert "11-W-00999/9" in body
+
+
+def test_demonstration_type_floor_green_when_view_absent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """No view yet (to_regclass NULL) -> vacuously GREEN, no CSV."""
+    monkeypatch.setattr(parity, "psql_query", lambda _env, _sql: [(False,)])
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._demonstration_type_floor(env)
+    assert result.status == "GREEN"
+    assert "vacuously green" in result.detail
+
+
+def test_demonstration_type_floor_green_on_zero(monkeypatch: pytest.MonkeyPatch) -> None:
+    """View present and empty -> GREEN, no demo required the floor."""
+
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        return [(True,)] if "to_regclass" in sql else []
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._demonstration_type_floor(env)
+    assert result.status == "GREEN"
+    assert "no demonstration required the demonstration-type floor" in result.detail
+
+
+def test_demonstration_type_floor_is_non_gating_and_logs_csv(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Approved zero-type demos floored -> GREEN (non-gating) AND logged per-row.
+
+    The floor is a recorded SME decision (a placeholder type on a settled
+    record), not a defect, so its provenance is surfaced without gating. GREEN
+    proves the non-gating consequence; the CSV proves the per-row log.
+    """
+    rows: list[tuple[object, ...]] = [
+        ("uuid-1", "11-W-00123/4", "CA", "Approved"),
+        ("uuid-2", "11-W-00999/9", "NY", "Approved"),
+    ]
+
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        return [(True,)] if "to_regclass" in sql else rows
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    monkeypatch.setattr(parity, "REPORTS_DIR", tmp_path)
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._demonstration_type_floor(env)
+
+    assert result.status == "GREEN"  # non-gating by decision
+    assert "2 Approved demonstration(s) with zero types were floored" in result.detail
+    assert "11-W-00123/4" in result.detail
+    out = tmp_path / "orphans" / "demonstration_type_floor.csv"
+    assert out.exists()
+    body = out.read_text(encoding="utf-8")
+    assert "demonstration_id,medicaid_id,state_id,status_id" in body
+    assert "11-W-00999/9" in body
+
+
 def test_pgm_dtl_othr_held_green_when_view_absent(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1129,8 +1548,8 @@ def test_pgm_dtl_othr_held_is_non_gating_and_logs_csv(
     SME log.
     """
     rows: list[tuple[object, ...]] = [
-        (1, 1574, "uuid-1", "Badger Care", "free-text name is not a seeded demonstration-type tag (1115 name held per SME)"),
-        (6, 1667, None, "Centennial Care", "free-text name is not a seeded demonstration-type tag (1115 name held per SME); parent demonstration not migrated"),
+        (1, 1574, "uuid-1", "Wisconsin BadgerCare Plus", "Badger Care", "free-text name is not a seeded demonstration-type tag (1115 name held per SME)"),
+        (6, 1667, None, None, "Centennial Care", "free-text name is not a seeded demonstration-type tag (1115 name held per SME); parent demonstration not migrated"),
     ]
 
     def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
@@ -1147,8 +1566,12 @@ def test_pgm_dtl_othr_held_is_non_gating_and_logs_csv(
     out = tmp_path / "orphans" / "pgm_dtl_tag_othr_held.csv"
     assert out.exists()
     body = out.read_text(encoding="utf-8")
-    assert "legacy_id,legacy_demo_id,demonstration_id,othr_name,reason" in body
+    assert (
+        "legacy_id,legacy_demo_id,demonstration_id,demonstration_name,othr_name,reason"
+        in body
+    )
     assert "Centennial Care" in body
+    assert "Wisconsin BadgerCare Plus" in body
     assert "1115 name held per SME" in body
 
 
@@ -1340,7 +1763,7 @@ def test_fed_comment_guard_reds_on_violation(monkeypatch: pytest.MonkeyPatch) ->
     result = parity._application_phase_fed_comment_guard(env)
     assert result.status == "RED"
     assert "3 application(s)" in result.detail
-    assert "2026-08-20" in result.detail
+    assert "2026-08-13" in result.detail
 
 
 def test_scope_coverage_green_when_view_absent(
@@ -1446,6 +1869,162 @@ def test_state_region_drift_is_non_gating_and_logs_csv(
     assert "region mismatch" in body
 
 
+def test_application_date_consistency_green_when_view_absent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """application_date not built (to_regclass NULL) -> vacuously GREEN."""
+    monkeypatch.setattr(parity, "psql_query", lambda _env, _sql: [(False,)])
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._application_date_consistency(env)
+    assert result.status == "GREEN"
+    assert "vacuously green" in result.detail
+
+
+def test_application_date_consistency_green_when_clean(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Negative control: view present and empty -> GREEN and NO CSV written."""
+
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        return [(True,)] if "to_regclass" in sql else []
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    monkeypatch.setattr(parity, "REPORTS_DIR", tmp_path)
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._application_date_consistency(env)
+    assert result.status == "GREEN"
+    assert "satisfies DEMOS's date validation" in result.detail
+    assert not (tmp_path / "orphans" / "application_date_consistency.csv").exists()
+
+
+def test_application_date_consistency_is_non_gating_and_tallies_modes(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Violations stay GREEN, are logged per-row, and are tallied by mode.
+
+    The per-mode tally is the point of the check: 'missing_counterpart' is
+    unfixable without fabricating data while 'offset' is a real legacy data
+    defect, so collapsing them into one number would hide the actionable half.
+    Distinct applications are counted separately from total violations because
+    one application can violate several rules at once.
+    """
+    rows: list[tuple[object, ...]] = [
+        (
+            "app1",
+            "Federal Comment Period End Date",
+            "offset",
+            "Federal Comment Period Start Date",
+            "must be +30 day(s)",
+        ),
+        (
+            "app1",
+            "State Application Submitted Date",
+            "missing_counterpart",
+            "Completeness Review Due Date",
+            "no counterpart",
+        ),
+        (
+            "app2",
+            "State Application Submitted Date",
+            "missing_counterpart",
+            "Completeness Review Due Date",
+            "no counterpart",
+        ),
+    ]
+
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        return [(True,)] if "to_regclass" in sql else rows
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    monkeypatch.setattr(parity, "REPORTS_DIR", tmp_path)
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._application_date_consistency(env)
+
+    assert result.status == "GREEN"  # non-gating by decision
+    assert "3 loaded application_date violation(s)" in result.detail
+    assert "across 2 application(s)" in result.detail
+    assert "missing_counterpart=2" in result.detail
+    assert "offset=1" in result.detail
+
+    out = tmp_path / "orphans" / "application_date_consistency.csv"
+    assert out.exists()
+    body = out.read_text(encoding="utf-8")
+    assert (
+        "application_id,date_type_id,violation,counterpart_date_type_id,detail" in body
+    )
+    assert "app2,State Application Submitted Date,missing_counterpart" in body
+
+
+def test_phantom_phase_green_when_view_absent(monkeypatch: pytest.MonkeyPatch) -> None:
+    """application_phase not built (to_regclass NULL) -> vacuously GREEN."""
+    monkeypatch.setattr(parity, "psql_query", lambda _env, _sql: [(False,)])
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._phantom_phase(env)
+    assert result.status == "GREEN"
+    assert "vacuously green" in result.detail
+
+
+def test_phantom_phase_green_when_no_phantoms(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Negative control: view present and empty -> GREEN, and NO CSV written.
+
+    Distinguishes "nothing to report" from "reported zero", which matters here
+    because an empty CSV left over from a previous run would read as evidence.
+    """
+
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        return [(True,)] if "to_regclass" in sql else []
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    monkeypatch.setattr(parity, "REPORTS_DIR", tmp_path)
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._phantom_phase(env)
+    assert result.status == "GREEN"
+    assert "meets its DEMOS completion requirements" in result.detail
+    assert not (tmp_path / "orphans" / "phantom_phase.csv").exists()
+
+
+def test_phantom_phase_is_non_gating_and_counts_distinct_rows(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Phantom completions stay GREEN, are logged, and are counted correctly.
+
+    Two unmet requirements on the SAME (application, phase) must count as ONE
+    affected phase row but TWO unmet requirements -- conflating them would
+    inflate the reported blast radius, which is the whole number this check
+    exists to get right.
+    """
+    rows: list[tuple[object, ...]] = [
+        ("app1", "Concept", "date", "Concept Paper Submitted Date", False),
+        ("app1", "Concept", "document", "Pre-Submission", False),
+        ("app2", "Review", "date", "CMS (OSORA) Clearance End", True),
+    ]
+
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        return [(True,)] if "to_regclass" in sql else rows
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    monkeypatch.setattr(parity, "REPORTS_DIR", tmp_path)
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._phantom_phase(env)
+
+    assert result.status == "GREEN"  # non-gating by decision
+    assert "2 'Completed' phase row(s)" in result.detail  # app1/Concept counted once
+    assert "3 unmet requirement(s)" in result.detail
+    assert "date=2" in result.detail
+    assert "document=1" in result.detail
+
+    out = tmp_path / "orphans" / "phantom_phase.csv"
+    assert out.exists()
+    body = out.read_text(encoding="utf-8")
+    assert (
+        "application_id,phase_id,unmet_kind,unmet_requirement,is_clearance_conditional"
+        in body
+    )
+    assert "app2,Review,date,CMS (OSORA) Clearance End,True" in body
+
+
 def test_amendment_load_green_when_view_absent(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1494,6 +2073,10 @@ def test_amendment_load_is_non_gating_and_logs_csv(
     def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
         if "to_regclass" in sql:
             return [(True,)]
+        # Order matters: '_parity_amendment_held' is a prefix of
+        # '_parity_amendment_held_missing_field'.
+        if "_parity_amendment_held_missing_field" in sql:
+            return []
         if "_parity_amendment_held" in sql:
             return held
         if "_parity_amendment_signature_dropped" in sql:
@@ -1517,6 +2100,50 @@ def test_amendment_load_is_non_gating_and_logs_csv(
     assert "amendment_uuid,demo_uuid,name,reason" in held_csv.read_text(encoding="utf-8")
     assert "approved parent held back" in held_csv.read_text(encoding="utf-8")
     assert "amendment_uuid,name,signature_cd" in dropped_csv.read_text(encoding="utf-8")
+    # Negative control: the missing-field view was empty, so no CSV for it.
+    assert not (tmp_path / "orphans" / "amendment_held_missing_field.csv").exists()
+    assert "0 Approved amendment(s) held back for a missing" in result.detail
+
+
+def test_amendment_load_reports_approved_held_for_missing_field(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Approved amendments held for a NULL effective_date/signature are surfaced.
+
+    The loader silently withholds these to avoid violating
+    ``check_amendment_non_null_fields_when_approved``. Before this read they
+    appeared in no report at all, so the only evidence a row had been dropped
+    was a build-time NOTICE. Still non-gating (the hold-back is the documented
+    choice), but it must be visible and enumerable.
+    """
+    held_missing: list[tuple[object, ...]] = [
+        ("a9", "d9", "Amd Nine", "Approved", False, True)
+    ]
+
+    def _q(_env: object, sql: str) -> list[tuple[object, ...]]:
+        if "to_regclass" in sql:
+            return [(True,)]
+        if "_parity_amendment_held_missing_field" in sql:
+            return held_missing
+        return []
+
+    monkeypatch.setattr(parity, "psql_query", _q)
+    monkeypatch.setattr(parity, "REPORTS_DIR", tmp_path)
+    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
+    result = parity._amendment_load(env)
+
+    assert result.status == "GREEN"  # non-gating by decision
+    assert "1 Approved amendment(s) held back for a missing required field" in result.detail
+    csv_path = tmp_path / "orphans" / "amendment_held_missing_field.csv"
+    assert csv_path.exists()
+    text = csv_path.read_text(encoding="utf-8")
+    assert (
+        "amendment_uuid,demo_uuid,name,status_id,missing_effective_date,missing_signature"
+        in text
+    )
+    assert "a9,d9,Amd Nine,Approved,False,True" in text
+    # Negative control: an unrelated hold-back view stayed empty, so no CSV.
+    assert not (tmp_path / "orphans" / "amendment_held.csv").exists()
 
 
 def test_amendment_unmapped_status_green_when_view_absent(

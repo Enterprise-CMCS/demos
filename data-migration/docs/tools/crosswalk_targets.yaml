@@ -16,8 +16,8 @@ overrides:
   # verify_crosswalks then skips the value check (no demos_text_id column) and
   # 43_role_person_type_check.sql validates person_type_id against the seed.
   role_person_type: person_type
-  # system_role is a multi-column tuple crosswalk (role_id, grant_level_id,
-  # person_type_id) validated by 45_system_role_check.sql, not a single
+  # system_role is a person_type-keyed tuple crosswalk (person_type_id ->
+  # role_id, grant_level_id) validated by 45_system_role_check.sql, not a single
   # demos_text_id -> seeded row. Listed here so verify_crosswalks resolves
   # the target; it then skips the value check (no demos_text_id column).
   system_role: role
