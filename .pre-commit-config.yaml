@@ -30,3 +30,16 @@ repos:
     hooks:
       - id: sqlfluff-lint
         files: ^data/migration/stage_pmda_for_migration/
+
+  # data-migration/ needs pg_format and a front-matter check alongside
+  # sqlfluff, and all three must run with data-migration as the working
+  # directory. See data-migration/scripts/precommit_sql.sh for why.
+  - repo: local
+    hooks:
+      - id: data-migration-sql
+        name: data-migration SQL (pg_format, sqlfluff, front-matter)
+        entry: data-migration/scripts/precommit_sql.sh
+        language: script
+        files: ^data-migration/.*\.sql$
+        pass_filenames: true
+        stages: [pre-commit]

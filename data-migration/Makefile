@@ -117,8 +117,9 @@ typecheck: ; @$(STEP) typecheck "$(RUN) ty check"
 # --- SQL hygiene ---
 # pg_format owns all SQL layout + case; sqlfluff is lint-only; every authored
 # file carries a structured front-matter block. See
-# docs/developer/reference-sql-conventions.adoc. pre-commit runs the same three
-# checks on staged .sql (run `uv run pre-commit install` once).
+# docs/developer/reference-sql-conventions.adoc. The repo-root pre-commit
+# config runs these same three checks per-file on staged data-migration .sql,
+# via scripts/precommit_sql.sh (`uv run pre-commit install` at the repo root).
 sql-fmt:         ; @$(STEP) sql-fmt "$(RUN) python scripts/sql_fmt.py --write"
 sql-fmt-check:   ; @$(STEP) sql-fmt-check "$(RUN) python scripts/sql_fmt.py --check"
 sql-lint:        ; @$(STEP) sql-lint "$(RUN) sqlfluff lint sql scripts tests/sql/fixtures"

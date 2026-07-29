@@ -196,18 +196,30 @@ make sql-frontmatter  # every file has its front-matter block
 make sql-check        # all three checks (fmt-check + lint + frontmatter)
 ----
 
-These run automatically via `.pre-commit-config.yaml`: on *commit* the
-three per-file checks run against the staged `.sql` files (fast), and on
-*push* `make sql-check` re-runs the full set across every in-scope file
-as a final guard. Install both hook types once:
+On *commit*, all three run against staged `data-migration/**.sql` files
+via the `data-migration-sql` hook in the *repository-root*
+`.pre-commit-config.yaml`. Install once, from the repository root:
 
 [source,bash]
 ----
-uv run pre-commit install --hook-type pre-commit --hook-type pre-push
+uv run pre-commit install
 ----
 
-There is no CI gate for these; `make sql-check` plus the commit and push
-hooks are the enforcement contract.
+The entry lives in the root config rather than here because pre-commit
+installs a single hook per stage at the git top level: a config under
+`data-migration/` cannot be installed without displacing the repo-wide
+gitleaks and detect-secrets hooks. It delegates to
+`data-migration/scripts/precommit_sql.sh`, which switches to this
+directory first -- sqlfluff honours `templater = raw` only from a
+`.sqlfluff` in the current directory, and falls back to jinja otherwise.
+
+The commit hook is deliberately per-file. A full-tree `make sql-check` is
+red on pre-existing files, so gating every commit on it would block work
+unrelated to that backlog; checking only the files a commit touches pays
+the debt down as those files are edited.
+
+There is no CI gate and no push hook, so a deliberate `make sql-check` is
+the only full-tree enforcement.
 
 == Related
 
