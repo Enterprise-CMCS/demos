@@ -122,9 +122,15 @@ models:
         data_type: timestamptz
       - name: updated_at
         data_type: timestamptz
+      - name: _legacy_mdcd_demo_id
+        data_type: integer
+        description: The legacy ID of the demonstration in PMDA.
       - name: _legacy_proj_ofcr_user_id
         data_type: integer
         description: The legacy user ID of the project officer; when null or 0, fall back to 828 (Liz Hill).
+      - name: _legacy_mdcd_demo_aplctn_id
+        data_type: integer
+        description: The legacy application ID of the demonstration in PMDA.
 
   - name: final_demos_app_person_state
     description: All cleaned person-state relations with state users and valid states
