@@ -18,9 +18,12 @@
  * single synthetic action.
  *
  * mdcd_dlvrbl_stus_hstry cannot fix this on its own:
- *   - coverage: deliverables created before 2021 are 20-41% missing from it
- *     entirely; 2021+ is ~0% missing.
- *   - attribution: only 84.0% of its `Submitted` events carry an actor.
+ *   - coverage: on 22.0% of deliverables that have state uploads (1,167/5,296)
+ *     it records FEWER submissions than the file trail shows. This is not an
+ *     era effect -- it runs 20-29% in every creation year from 2016 to 2026.
+ *     Separately, 14.1% of 2016 deliverables have no status row at all,
+ *     against at most 2.8% in any other year.
+ *   - attribution: only 84.1% of its `Submitted` events carry an actor.
  * The file table is strictly better on both counts -- user_id is NOT NULL and
  * 100% of in-scope live uploaders (12,682/12,682) resolve to a migrated DEMOS
  * user -- and it is the table that actually holds the artifact a submission
@@ -33,9 +36,10 @@
  * batch starts on the first file, on any change of uploader, or on any gap over
  * the window.
  *
- * The 60-minute window is not load-bearing. Batch counts across the plausible
- * range are 7,748 (15 min) / 7,633 (60 min) / 7,580 (4 h) / 7,509 (24 h): a 3%
- * spread, so the reconstruction is insensitive to the exact choice.
+ * The 60-minute window is not load-bearing. Origin-'S' batch counts across the
+ * plausible range are 7,748 (15 min) / 7,633 (60 min) / 7,580 (4 h) / 7,509
+ * (24 h): a 3% spread, so the reconstruction is insensitive to the exact
+ * choice. (The view emits both origins, so it returns 7,874 rows at 60 min.)
  *
  * Ordering inside the window is (uploaded_at, mdcd_dlvrbl_fil_doc_id). The PK
  * tiebreak matters: without it, files sharing a timestamp order
@@ -58,11 +62,12 @@
  * it is matched and exposed, and submitted_at prefers it -- the event is the
  * system's own record of the submission instant, while batch_end_at is only the
  * last upload. Matching is mutual-nearest and 1:1 in both directions, so a
- * single event can never be claimed by two batches. 78% of `Submitted` events
- * (4,784/6,165) have a batch within the window, and batch count equals event
- * count on 71% of deliverables that have either signal, so the two sources
- * broadly agree; where they disagree the batch is the more reliable side for
- * attribution and the event is the more reliable side for timing.
+ * single event can never be claimed by two batches. 4,781 of 6,165 `Submitted`
+ * events have a batch somewhere in the window and 4,769 (77%) survive the 1:1
+ * matching, and batch count equals event count on 74% of deliverables that
+ * have either signal, so the two sources broadly agree; where they disagree
+ * the batch is the more reliable side for attribution and the event is the
+ * more reliable side for timing.
  *
  * KNOWN SKEW (deliberately not corrected here)
  *
@@ -73,13 +78,14 @@
  * 31_deliverable_resolved.sql (created_at) and 36_comment_resolved.sql, so
  * submission timestamps stay consistent with every other migrated timestamp. If
  * the pipeline ever reinterprets Eastern -> UTC, it must be done for all of
- * them at once, not here alone. (mdcd_dlvrbl_hstry, unused here, is true UTC
- * and would shift the other way.)
+ * them at once, not here alone. (mdcd_dlvrbl_hstry, not read by this view, is
+ * true UTC and would shift the other way; 40_deliverable_due_date_window.sql
+ * does read it and converts explicitly for exactly that reason.)
  *
  * WHAT THIS DOES NOT COVER
  *
  * Batch count is a floor, not a truth: 16,215 files exist but only 12,748 are
- * live, so a submission whose files were all later deleted leaves no batch (219
+ * live, so a submission whose files were all later deleted leaves no batch (225
  * deliverables have more `Submitted` events than batches). And 40 deliverables
  * reached a submitted-or-beyond status through the CMS Override path without
  * ever being submitted -- they must NOT receive a submission action, and 8 of
