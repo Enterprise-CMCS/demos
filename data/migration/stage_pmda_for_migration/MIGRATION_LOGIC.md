@@ -123,14 +123,20 @@ All timestamps are converted to `America/New_York` timezone during migration.
 
 ##### Application Intake Phase
 
-- **Application Intake Start Date**: Conditionally derived as one day before State Application Submitted Date **only when** `phase_2_rcvd_dt` is NOT NULL
+- **Application Intake Start Date**:
+  - **Primary Derivation**: One day before State Application Submitted Date when available
+  - **Fallback Derivation**: Application created date (`creatd_dt`) when primary derivation is not available but the phase has other dates
+  - **Otherwise**: NULL
 - **State Application Submitted Date**: Directly mapped from PMDA `phase_2_rcvd_dt`
 - **Completeness Review Due Date**: Directly mapped from PMDA `phase_2_cmpltns_rvw_dt` (End of Day timestamp: 23:59:59.999)
 - **Application Intake Completion Date**: Directly mapped from PMDA `phase_2_cmpltns_rvw_dt` (same source as Completeness Review Due Date, Start of Day timestamp)
 
 ##### Completeness Phase
 
-- **Completeness Start Date**: Conditionally derived as one day after Completeness Review Due Date (Application Intake Completion Date) **only when** `phase_2_cmpltns_rvw_dt` is NOT NULL
+- **Completeness Start Date**:
+  - **Primary Derivation**: One day after Completeness Review Due Date when available
+  - **Fallback Derivation**: Application created date (`creatd_dt`) when primary derivation is not available but the phase has other dates
+  - **Otherwise**: NULL
 - **State Application Deemed Complete**: Directly mapped from PMDA `phase_2_state_aplctn_deemd_cmpltn_dt`
 - **Federal Comment Period Start Date**: Directly mapped from PMDA `phase_2_fed_cmt_prd_strt_dt`
 - **Federal Comment Period End Date**: Directly mapped from PMDA `phase_2_fed_cmt_prd_end_dt` (End of Day timestamp: 23:59:59.999)
@@ -138,7 +144,10 @@ All timestamps are converted to `America/New_York` timezone during migration.
 
 ##### SDG Preparation Phase
 
-- **SDG Preparation Start Date**: Conditionally derived as one day after Federal Comment Period End Date **only when** `phase_2_fed_cmt_prd_end_dt` is NOT NULL
+- **SDG Preparation Start Date**:
+  - **Primary Derivation**: One day after Federal Comment Period End Date when available
+  - **Fallback Derivation**: Application created date (`creatd_dt`) when primary derivation is not available but the phase has other dates
+  - **Otherwise**: NULL
 - **Expected Approval Date**: Directly mapped from PMDA `phase_2_dsrd_aprvl_dt`
 - **SME Initial Review Date**: Directly mapped from PMDA `phase_3_a_sme_strt_dt`
 - **FRT Initial Meeting Date**: Directly mapped from PMDA `phase_3_a_frvt_strt_dt`
@@ -147,7 +156,10 @@ All timestamps are converted to `America/New_York` timezone during migration.
 
 ##### Review Phase
 
-- **Review Start Date**: Conditionally derived as the earliest (LEAST) of Receive OGC Legal Clearance, Receive OMB Concurrence, or Submit Approval Package to OSORA dates **only when** at least one of these dates is NOT NULL
+- **Review Start Date**:
+  - **Primary Derivation**: Earliest (LEAST) of Receive OGC Legal Clearance, Receive OMB Concurrence, or Submit Approval Package to OSORA when at least one is available
+  - **Fallback Derivation**: Application created date (`creatd_dt`) when primary derivation is not available but the phase has other dates
+  - **Otherwise**: NULL
 - **OGD Approval to Share with SMEs**: ❌ Excluded - No equivalent field in PMDA
 - **Draft Approval Package to Prep**: ❌ Excluded - No equivalent field in PMDA
 - **DDME Approval Received**: ❌ Excluded - No equivalent field in PMDA

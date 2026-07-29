@@ -4,7 +4,7 @@
 -- - If phase status is 'Started', phase must have a start date
 -- - If phase status is 'Completed', phase must have both start and completion dates
 -- - If previous phase is 'Completed', next phase must be 'Started' (except Completeness → Federal Comment Period)
--- - If milestone dates exist for a phase, the phase must have a start date and be 'Started' (inverse check)
+-- - If dates exist for a phase, the phase must have a start date and be 'Started' (inverse check)
 
 WITH phase_data AS (
     SELECT
