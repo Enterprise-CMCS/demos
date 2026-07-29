@@ -1433,6 +1433,58 @@ def _deliverable_submission_batch(env: Env) -> CheckResult:
     )
 
 
+def _deliverable_action_provenance(env: Env) -> CheckResult:
+    """Every deliverable_action row was minted by this pipeline.
+
+    Reads ``migration._parity_deliverable_action_provenance`` (created by
+    ``sql/99_parity/65_deliverable_action_provenance.sql``).
+
+    GATING: ``demos_app.deliverable_action`` is written by two independent
+    migrations whose id spaces cannot overlap, so neither can see the other's
+    rows, and the table has no natural key that would reject the duplicate.
+    Running both doubles a deliverable's timeline silently, with the two halves
+    disagreeing about who acted. Check 22 cannot substitute: it walks the
+    deliverables this pipeline loaded, so actions hanging off another
+    migration's deliverable ids are outside its frame.
+    """
+    name = "Deliverable action provenance"
+    exists = psql_query(
+        env,
+        "SELECT to_regclass('migration._parity_deliverable_action_provenance') IS NOT NULL",
+    )
+    if not exists or not exists[0][0]:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="deliverable_action not loaded yet (vacuously green)",
+        )
+    rows = psql_query(
+        env,
+        "SELECT action_id, deliverable_id, action_type_id, detail "
+        "FROM migration._parity_deliverable_action_provenance "
+        "ORDER BY detail, action_id LIMIT 25",
+    )
+    total = psql_query(env, "SELECT count(*) FROM demos_app.deliverable_action")
+    loaded = total[0][0] if total else 0
+    if not rows:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail=(
+                f"all {loaded} deliverable_action row(s) trace to this pipeline's id map"
+            ),
+        )
+    sample = "; ".join(f"{r[0]} {r[2]} ({r[3]})" for r in rows[:5])
+    return CheckResult(
+        name=name,
+        status="RED",
+        detail=(
+            f"{len(rows)} deliverable_action row(s) of {loaded} were not minted by "
+            f"this pipeline, so a second migration has written to the same table: {sample}"
+        ),
+    )
+
+
 def _chip_id_not_normalizable(env: Env) -> CheckResult:
     """Legacy CHIP numbers that could not be preserved (non-gating per-row log).
 
@@ -3236,6 +3288,7 @@ def build_parity_report(env: Env) -> ParityReport:
         ("deliverable action completeness", _deliverable_action_completeness),
         ("deliverable actions not synthesized", _deliverable_action_not_synthesized),
         ("deliverable submission batches", _deliverable_submission_batch),
+        ("deliverable action provenance", _deliverable_action_provenance),
         ("pgm_dtl othr held", _pgm_dtl_tag_othr_held),
         ("pgm_dtl tag unseeded", _pgm_dtl_tag_unseeded),
         ("pending pgm_dtl othr held", _pendg_pgm_dtl_tag_othr_held),

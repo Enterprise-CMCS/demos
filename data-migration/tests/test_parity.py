@@ -30,7 +30,7 @@ def _shaped_query(default: tuple[object, ...]):
     ``_parity_application_milestone_unmapped`` / ``_parity_application_phase_fed_comment_guard``
     views, and ``_parity_amendment_unmapped_status`` read empty so those stay
     vacuously GREEN (the fail-closed guards never red the rollup here). The
-    ``region_digit_repaired`` probe, the two ``_parity_deliverable_action*``
+    ``region_digit_repaired`` probe, the three ``_parity_deliverable_action*``
     views, ``_parity_deliverable_submission_batch``, ``_parity_phantom_phase`` and
     ``_parity_application_date_consistency`` also read empty: they are per-row
     detail reads whose columns the single-scalar ``default`` cannot stand in for.
