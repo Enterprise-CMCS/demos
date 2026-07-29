@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 /**
  * localStorage — persists across sessions, shared across tabs.
@@ -69,11 +69,19 @@ export function useSessionStorageJson<T extends object>(
   storageKey: string
 ): [T | undefined, (value: T) => void] {
   const [stringValue, setStringValue] = useWebStorage(storageKey, "sessionStorage");
-  return [
-    stringValue ? tryParseJson<T>(stringValue) : undefined,
-    (next) => {
+
+  const parsedValue = useMemo(
+    () => (stringValue ? tryParseJson<T>(stringValue) : undefined),
+    [stringValue]
+  );
+
+  const setValue = useCallback(
+    (next: T) => {
       const serialized = tryStringifyJson(next);
       if (serialized !== undefined) setStringValue(serialized);
     },
-  ];
+    [setStringValue]
+  );
+
+  return [parsedValue, setValue];
 }
