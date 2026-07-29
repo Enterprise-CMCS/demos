@@ -49,12 +49,31 @@ export function useSessionStorage(
   return useWebStorage(storageKey, "sessionStorage");
 }
 
+function tryStringifyJson<T>(value: T): string | undefined {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return undefined;
+  }
+}
+
+function tryParseJson<T>(value: string): T | undefined {
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return undefined;
+  }
+}
+
 export function useSessionStorageJson<T extends object>(
   storageKey: string
 ): [T | undefined, (value: T) => void] {
   const [stringValue, setStringValue] = useWebStorage(storageKey, "sessionStorage");
   return [
-    stringValue ? (JSON.parse(stringValue) as T) : undefined,
-    (next) => setStringValue(JSON.stringify(next)),
+    stringValue ? tryParseJson<T>(stringValue) : undefined,
+    (next) => {
+      const serialized = tryStringifyJson(next);
+      if (serialized !== undefined) setStringValue(serialized);
+    },
   ];
 }
