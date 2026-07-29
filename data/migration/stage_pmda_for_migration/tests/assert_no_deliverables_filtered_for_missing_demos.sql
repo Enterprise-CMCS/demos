@@ -4,4 +4,4 @@
 
 SELECT *
 FROM
-    {{ ref('errors_active_crosswaked_pmda_deliverables_with_no_final_demo') }}
+    {{ ref('errors_delivs_crosswalked_with_no_final_demo') }}

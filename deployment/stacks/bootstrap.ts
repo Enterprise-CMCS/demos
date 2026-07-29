@@ -4,8 +4,12 @@ import { Construct } from "constructs";
 import { DeploymentConfigProperties } from "../config";
 import { PrivateHostedZone } from "aws-cdk-lib/aws-route53";
 
+interface BootstrapStackProps {
+  bootstrapProd: boolean;
+}
+
 export class BootstrapStack extends Stack {
-  constructor(scope: Construct, id: string, props: StackProps & DeploymentConfigProperties) {
+  constructor(scope: Construct, id: string, props: StackProps & DeploymentConfigProperties & BootstrapStackProps) {
     super(scope, id, {
       ...props,
       terminationProtection: false,
@@ -74,8 +78,7 @@ export class BootstrapStack extends Stack {
 
     const cbcJenkinsRole = aws_iam.Role.fromRoleName(commonProps.scope, "cbcJenkinsRole", "jenkins-role");
 
-    const policy = new aws_iam.Policy(commonProps.scope, "actionsPolicy", {
-      statements: [
+    const policyStatements = [
         new aws_iam.PolicyStatement({
           actions: ["secretsmanager:GetSecretValue"],
           resources: [
@@ -125,6 +128,16 @@ export class BootstrapStack extends Stack {
           resources: ["*"],
         }),
         new aws_iam.PolicyStatement({
+          actions: [
+            "cloudformation:DescribeChangeSet",
+            "cloudformation:DeleteChangeSet"
+          ],
+          resources: ["*"]
+        })
+      ]
+
+    if (!props.bootstrapProd) {
+      policyStatements.push(new aws_iam.PolicyStatement({
           actions: ["s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:ListBucket", "s3:DeleteObjectVersion", "s3:ListBucketVersions"],
           resources: [
             "arn:aws:s3:::demos-dev-file-upload-*",
@@ -134,15 +147,11 @@ export class BootstrapStack extends Stack {
             "arn:aws:s3:::demos-impl-file-upload-*",
             "arn:aws:s3:::demos-impl-file-upload-*/*"
           ],
-        }),
-        new aws_iam.PolicyStatement({
-          actions: [
-            "cloudformation:DescribeChangeSet",
-            "cloudformation:DeleteChangeSet"
-          ],
-          resources: ["*"]
-        })
-      ],
+        }))
+    }
+
+    const policy = new aws_iam.Policy(commonProps.scope, "actionsPolicy", {
+      statements: policyStatements,
     });
 
     githubActionsRole.attachInlinePolicy(policy);
@@ -150,16 +159,19 @@ export class BootstrapStack extends Stack {
     cbcJenkinsRole.attachInlinePolicy(policy);
 
     // Private Hosted Zones
-
-    createPHZ(commonProps.scope, "dev");
-    createPHZ(commonProps.scope, "test");
-    createPHZ(commonProps.scope, "impl");
+    if (props.bootstrapProd) {
+      createPHZ(commonProps.scope, "prod")
+    } else {
+      createPHZ(commonProps.scope, "dev");
+      createPHZ(commonProps.scope, "test");
+      createPHZ(commonProps.scope, "impl");
+    }
 
     // Wait function
     new aws_lambda.SingletonFunction(commonProps.scope, "SharedWaitLambda", {
       functionName: `cdk-wait-${commonProps.scope.account}`,
       uuid: "c0d7adea-b43d-4022-a438-551724eb7e0f",
-      runtime: aws_lambda.Runtime.NODEJS_22_X,
+      runtime: aws_lambda.Runtime.NODEJS_24_X,
       handler: "index.handler",
       timeout: Duration.minutes(5),
       code: aws_lambda.Code.fromInline(`

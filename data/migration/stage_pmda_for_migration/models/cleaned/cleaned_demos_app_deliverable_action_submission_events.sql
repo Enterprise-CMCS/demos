@@ -3,7 +3,7 @@ WITH liz_hill AS (
     FROM
         {{ ref('final_demos_app_person') }}
     WHERE
-        _legacy_id = 828
+        _legacy_users_id = 828
 )
 
 SELECT
@@ -24,20 +24,21 @@ SELECT
     liz_hill.id AS user_id
 FROM
     {{ ref('deliverables_deliverable_submission_events') }} AS sub_evt
+
 LEFT JOIN
     {{ ref('deliverables_history_due_date_by_date_range') }} AS due_date_hist
     ON
         sub_evt.mdcd_dlvrbl_id = due_date_hist.mdcd_dlvrbl_id
         AND sub_evt.creatd_dt BETWEEN due_date_hist.from_time AND due_date_hist.to_time
+
+-- Inner join acceptable here; we want actions for all the final deliverables
 INNER JOIN
     {{ ref('final_demos_app_deliverable') }} AS f_deliv
     ON
         sub_evt.mdcd_dlvrbl_id = f_deliv._legacy_mdcd_dlvrbl_id
+
+-- Just putting the ID on every row
 INNER JOIN
     liz_hill
     ON
         TRUE
-WHERE
-    sub_evt.mdcd_dlvrbl_id NOT IN (
-        SELECT e1.mdcd_dlvrbl_id FROM {{ ref('errors_deliverable_history_with_incomplete_due_date_info') }} AS e1
-    )

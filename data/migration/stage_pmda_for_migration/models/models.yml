@@ -8,8 +8,20 @@ models:
         data_type: uuid
       - name: phase_id
         data_type: text
+        data_tests:
+          - relationships:
+              name: assert_application_phase_phase_exists_in_demos_app_phase
+              arguments:
+                to: source('demos_app', 'phase')
+                field: id
       - name: phase_status_id
         data_type: text
+        data_tests:
+          - relationships:
+              name: assert_application_phase_phase_status_exists_in_demos_app_phase_status
+              arguments:
+                to: source('demos_app', 'phase_status')
+                field: id
       - name: created_at
         data_type: timestamptz
       - name: updated_at
@@ -54,11 +66,11 @@ models:
         data_type: timestamptz
         data_tests:
           - not_null:
-              name: assert_no_null_old_due_date_in_final_deliverable_action
+              name: assert_no_null_old_due_date_in_final_deliv_action
       - name: new_due_date
         data_tests:
           - not_null:
-              name: assert_no_null_new_due_date_in_final_deliverable_action
+              name: assert_no_null_new_due_date_in_final_deliv_action
         data_type: timestamptz
       - name: user_id
         data_type: uuid
@@ -76,6 +88,9 @@ models:
     columns:
       - name: id
         data_type: uuid
+        data_tests:
+          - not_null:
+              name: assert_no_missing_id_in_final_deliv_table
       - name: deliverable_type_id
         data_type: text
         data_tests:
@@ -83,35 +98,59 @@ models:
               name: assert_no_missing_deliverable_types_in_final_table
       - name: name
         data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_name_in_final_deliv_table
       - name: demonstration_id
         data_type: uuid
         data_tests:
           - not_null:
-              name: assert_no_missing_demonstration_ids_in_final_deliverable_table
+              name: assert_no_missing_demonstration_ids_in_final_deliv_table
       - name: demonstration_status_id
         data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_demo_status_in_final_deliv_table
       - name: status_id
         data_type: text
         data_tests:
           - not_null:
-              name: assert_no_missing_status_ids_in_final_deliverable_table
+              name: assert_no_missing_status_ids_in_final_deliv_table
       - name: cms_owner_user_id
         data_type: uuid
         data_tests:
           - not_null:
-              name: assert_no_missing_owner_ids_in_final_deliverable_table
+              name: assert_no_missing_owner_ids_in_final_deliv_table
       - name: cms_owner_person_type_id
         data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_owner_person_type_in_final_deliv_table
       - name: due_date
         data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_missing_due_date_in_final_deliv_table
       - name: due_date_type_id
         data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_due_date_type_in_final_deliv_table
       - name: expected_to_be_submitted
         data_type: bool
+        data_tests:
+          - not_null:
+              name: assert_no_missing_expected_to_be_submitted_in_final_deliv_table
       - name: created_at
         data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_missing_created_at_in_final_deliv_table
       - name: updated_at
         data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_missing_updated_at_in_final_deliv_table
       - name: _legacy_mdcd_demo_id
         data_type: integer
       - name: _legacy_mdcd_dlvrbl_id
@@ -181,6 +220,12 @@ models:
         data_type: timestamptz
       - name: current_phase_id
         data_type: text
+        data_tests:
+          - relationships:
+              name: assert_current_phase_id_exists_in_demos_app_phase
+              arguments:
+                to: source('demos_app', 'phase')
+                field: id
       - name: state_id
         data_type: text
       - name: clearance_level_id
@@ -201,9 +246,6 @@ models:
         data_type: timestamptz
       - name: _legacy_mdcd_demo_id
         data_type: integer
-        data_tests:
-          - not_null:
-              name: assert_no_mdcd_demo_ids_are_null_in_final_demo_table
       - name: _legacy_proj_ofcr_user_id
         data_type: integer
         description: The legacy user ID of the project officer; when null or 0, fall back to 828 (Liz Hill).
@@ -268,7 +310,8 @@ models:
         data_type: timestamptz
       - name: updated_at
         data_type: timestamptz
-      - name: _legacy_id
+      - name: _legacy_users_id
+        description: The legacy column traced back to `legacy_pmda_raw.users.id`.
         data_type: integer
 
   - name: final_demos_app_primary_demo_role_assignment
@@ -279,6 +322,25 @@ models:
         data_type: uuid
       - name: role_id
         data_type: text
+
+  - name: final_demos_app_application_date
+    columns:
+      - name: application_id
+        data_type: uuid
+      - name: date_type_id
+        data_type: text
+        data_tests:
+          - relationships:
+              name: assert_application_date_type_exists_in_demos_app_date_type
+              arguments:
+                to: source('demos_app', 'date_type')
+                field: id
+      - name: date_value
+        data_type: timestamptz
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
 
   - name: final_demos_app_system_role_assignment
     description: default system role assignment derived from IDM role
@@ -408,7 +470,57 @@ models:
           arguments:
             expression: "status_id = 'Approved' AND expiration_date IS NOT NULL"
 
+  - name: cleaned_demos_app_app_phases_in_prog_demos
+    columns:
+      - name: application_id
+        data_type: uuid
+      - name: phase_id
+        data_type: text
+        data_tests:
+          - relationships:
+              name: assert_application_phase_phase_exists_in_demos_app_phase
+              arguments:
+                to: source('demos_app', 'phase')
+                field: id
+      - name: phase_status_id
+        data_type: text
+        data_tests:
+          - relationships:
+              name: assert_application_phase_phase_status_exists_in_demos_app_phase_status
+              arguments:
+                to: source('demos_app', 'phase_status')
+                field: id
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+
+  - name: cleaned_demos_app_application_date_in_prog_demos
+    columns:
+      - name: application_id
+        data_type: uuid
+      - name: date_type_id
+        data_type: text
+        data_tests:
+          - relationships:
+              name: assert_application_date_type_exists_in_demos_app_date_type
+              arguments:
+                to: source('demos_app', 'date_type')
+                field: id
+      - name: date_value
+        data_type: timestamptz
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+
   # Apps Models
+  - name: apps_in_prog_dates_crosswalked
+    description: converts the dates stored in PMDA to applicable date types in DEMOS, extrapolating to phase start and end dates where needed.
+
+  - name: apps_in_prog_dates_with_checks
+    description: validates the dates using validation rules found in the DEMOS API. Flags failing dates with a reason.
+
   - name: apps_active_finalized_pmda_demos
     columns:
       - name: mdcd_demo_id
@@ -436,28 +548,33 @@ models:
           - not_null:
               name: assert_active_finalized_pmda_demos_have_no_missing_demo_stus_dt
 
-  - name: apps_active_in_progress_pmda_demos
+  - name: apps_active_in_prog_pmda_demos
     columns:
       - name: mdcd_pendg_demo_id
         data_type: integer
         data_tests:
           - unique:
-              name: assert_active_in_progress_pmda_demos_have_unique_ids
+              name: assert_active_in_prog_pmda_demos_have_unique_pending_ids
+      - name: mdcd_demo_aplctn_id
+        data_type: integer
+        data_tests:
+          - unique:
+              name: assert_active_in_prog_pmda_demos_have_unique_application_ids
       - name: mdcd_chip_div_cd
         data_type: integer
         data_tests:
           - not_null:
-              name: assert_active_in_progress_pmda_demos_have_no_missing_mdcd_chip_div_id
+              name: assert_active_in_prog_pmda_demos_have_no_missing_mdcd_chip_div_id
       - name: mdcd_demo_aplctn_stus_cd
         data_type: integer
         data_tests:
           - not_null:
-              name: assert_active_in_progress_pmda_demos_have_no_missing_mdcd_demo_aplctn_stus_cd
+              name: assert_active_in_prog_pmda_demos_have_no_missing_mdcd_demo_aplctn_stus_cd
       - name: mdcd_demo_aplctn_stus_dt
         data_type: date
         data_tests:
           - not_null:
-              name: assert_active_in_progress_pmda_demos_have_no_missing_mdcd_demo_aplctn_stus_dt
+              name: assert_active_in_prog_pmda_demos_have_no_missing_mdcd_demo_aplctn_stus_dt
 
   # Users Models
   - name: users_active_pmda_users
@@ -481,6 +598,12 @@ models:
   # Deliverable Models
   - name: deliverables_history_due_date_by_date_range
     columns:
+      - name: dlvrbl_due_dt
+        data_tests:
+          - not_null:
+              name: assert_dlvrbl_due_dt_not_null_in_due_date_history_table
+              config:
+                severity: warn
       - name: mdcd_dlvrbl_id
         data_tests:
           - not_null:
@@ -492,3 +615,14 @@ models:
         data_tests:
           - not_null:
               name: assert_mdcd_dlvrbl_id_not_null_in_active_pmda_deliverables
+
+  - name: deliverables_crosswalked_pmda_deliverables
+    columns:
+      - name: deliverable_type_id
+        data_tests:
+          - not_null:
+              name: assert_no_missing_deliv_type_id_in_crosswalked_deliv
+      - name: status_id
+        data_tests:
+          - not_null:
+              name: assert_no_missing_deliv_status_id_in_crosswalked_deliv

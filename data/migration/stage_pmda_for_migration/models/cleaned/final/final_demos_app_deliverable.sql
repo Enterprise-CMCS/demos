@@ -16,9 +16,13 @@ SELECT
     _legacy_mdcd_dlvrbl_id,
     _legacy_mdcd_dlvrbl_crnt_stus_cd
 FROM
-    {{ ref('deliverables_crosswalked_pmda_with_fixes') }}
+    {{ ref('deliverables_crosswalked_pmda_deliverables') }}
 WHERE
-    _legacy_mdcd_demo_id NOT IN (
-        SELECT e1._legacy_mdcd_demo_id
-        FROM {{ ref('errors_active_crosswaked_pmda_deliverables_with_no_final_demo') }} AS e1
+    _legacy_mdcd_dlvrbl_id NOT IN (
+        SELECT e1._legacy_mdcd_dlvrbl_id
+        FROM {{ ref('errors_delivs_crosswalked_with_no_final_demo') }} AS e1
+    )
+    AND _legacy_mdcd_dlvrbl_id NOT IN (
+        SELECT e2._legacy_mdcd_dlvrbl_id
+        FROM {{ ref('errors_delivs_crosswalked_with_null_due_date') }} AS e2
     )

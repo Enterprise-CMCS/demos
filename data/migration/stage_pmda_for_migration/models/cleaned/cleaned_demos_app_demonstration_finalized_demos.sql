@@ -1,5 +1,6 @@
 SELECT
     gen_random_uuid() AS id,
+    NULL AS mdcd_demo_aplctn_id,
     application_type_id,
     name, -- noqa: RF04
     description,

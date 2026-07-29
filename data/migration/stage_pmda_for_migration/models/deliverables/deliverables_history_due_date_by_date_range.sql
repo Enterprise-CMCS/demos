@@ -5,6 +5,7 @@ WITH filtered_and_cleaned_history AS (
         history.hstry_updtd_dt
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_dlvrbl_hstry') }} AS history
+    -- This filter is because we don't care about histories for deliverables that aren't going to be included
     INNER JOIN
         {{ ref('deliverables_active_pmda_deliverables') }} AS active_deliv
         ON

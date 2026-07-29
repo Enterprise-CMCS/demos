@@ -6,7 +6,7 @@ SELECT
     au.lastname AS last_name,
     coalesce(au.created_at, current_timestamp) AS created_at,
     coalesce(au.updated_at, au.created_at, current_timestamp) AS updated_at,
-    au.id AS _legacy_id
+    au.id AS _legacy_users_id
 FROM
     {{ ref('users_active_pmda_users') }} AS au
 WHERE

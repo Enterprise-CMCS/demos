@@ -53,6 +53,7 @@ export async function main(passedContext?: { [key: string]: any }) {
   const stage = app.node.getContext("stage");
   const hostEnv = app.node.tryGetContext("hostEnv");
   const forceAlarms = app.node.tryGetContext("alarms")
+  const bootstrapProd = app.node.tryGetContext("bootstrap") == "prod"
   const config = await determineDeploymentConfig(stage, hostEnv, forceAlarms);
 
   const project = config.project;
@@ -72,6 +73,7 @@ export async function main(passedContext?: { [key: string]: any }) {
         account: process.env.CDK_DEFAULT_ACCOUNT,
         region: process.env.CDK_DEFAULT_REGION,
       },
+      bootstrapProd,
     });
     return app;
   }
