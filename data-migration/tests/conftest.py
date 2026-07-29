@@ -17,8 +17,12 @@ if TYPE_CHECKING:
 def pg_db() -> Iterator[psycopg.Connection]:
     """Yield an autocommit connection to a throwaway Postgres for SQL harness tests.
 
-    Reads ``PG_TEST_DSN`` and ``pytest.skip``s when it is unset or the
-    server is unreachable, so the suite stays runnable without a database.
+    Skips only when ``PG_TEST_DSN`` is UNSET, so the suite stays runnable
+    without a database. When it IS set the operator asked for the DB tier, so
+    an unreachable server is a failure, not a skip: skipping there reports a
+    green run for a harness that never executed, which is how the SQL tier sat
+    silently unrun behind a broken ``make test-db-up`` password.
+
     CI sets ``PG_TEST_DSN`` to a postgres service so these tests execute
     there. The connection is plain (no SSL forcing): unlike ``Env.pg_dsn``
     this targets a disposable local/CI server, never the DEMOS RDS.
@@ -32,7 +36,11 @@ def pg_db() -> Iterator[psycopg.Connection]:
     try:
         conn = psycopg.connect(dsn, autocommit=True)
     except psycopg.Error as e:
-        pytest.skip(f"PG_TEST_DSN set but unreachable: {e}")
+        pytest.fail(
+            f"PG_TEST_DSN is set but the server is unreachable, so the SQL harness "
+            f"did not run: {type(e).__name__}: {str(e).splitlines()[0]}",
+            pytrace=False,
+        )
     try:
         yield conn
     finally:

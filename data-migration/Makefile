@@ -150,7 +150,7 @@ PG_TEST_PASS  := postgres
 PG_TEST_PORT  := 55432
 PG_TEST_DB    := harness
 test-db-up:
-	@$(STEP) test-db-up "docker run -d --name demos-test-pg -e POSTGRES_PASSWORD=*************** -e POSTGRES_DB=$(PG_TEST_DB) -p $(PG_TEST_PORT):5432 $(PG_TEST_IMAGE) >/dev/null"
+	@POSTGRES_PASSWORD='$(PG_TEST_PASS)' $(STEP) test-db-up "docker run -d --name demos-test-pg -e POSTGRES_PASSWORD -e POSTGRES_DB=$(PG_TEST_DB) -p $(PG_TEST_PORT):5432 $(PG_TEST_IMAGE) >/dev/null"
 	@$(PRETTY) msg "demos-test-pg up on localhost:$(PG_TEST_PORT) (db $(PG_TEST_DB), user $(PG_TEST_USER)). Build PG_TEST_DSN from the PG_TEST_* Makefile vars into a gitignored .env file, source it, then run make test."
 test-db-down:
 	@$(STEP) test-db-down "docker rm -f demos-test-pg >/dev/null"
