@@ -4,4 +4,4 @@
 
 SELECT *
 FROM
-    {{ ref('errors_invalid_demo_nums_in_in_progress_pmda_demos') }}
+    {{ ref('errors_invalid_demo_nums_in_in_prog_pmda_demos') }}

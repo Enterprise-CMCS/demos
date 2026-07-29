@@ -1,5 +1,5 @@
 SELECT
-    NULL AS mdcd_demo_id,
+    ipd.mdcd_demo_aplctn_id,
     ipd.mdcd_pendg_demo_id,
     'Demonstration' AS application_type_id,
     ipd.mdcd_demo_name AS name, -- noqa: RF04
@@ -17,9 +17,11 @@ SELECT
     cw2.status_id,
     (ipd.mdcd_demo_aplctn_stus_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS status_updated_at,
     ipdnum.cleaned_mdcd_demo_num AS medicaid_id,
-    NULL AS chip_id
+    NULL AS chip_id,
+    ipd.geo_ansi_state_cd AS state_id,
+    ipd.proj_ofcr_user_id
 FROM
-    {{ ref('apps_active_in_progress_pmda_demos') }} AS ipd
+    {{ ref('apps_active_in_prog_pmda_demos') }} AS ipd
 LEFT JOIN
     {{ ref('crosswalk_mdcd_chip_dv_cd_to_sdg_division_id') }} AS cw1
     ON
@@ -29,6 +31,6 @@ LEFT JOIN
     ON
         ipd.mdcd_demo_aplctn_stus_cd = cw2.mdcd_demo_aplctn_stus_cd
 LEFT JOIN
-    {{ ref('apps_active_in_progress_pmda_demos_mdcd_num_validations') }} AS ipdnum
+    {{ ref('apps_active_in_prog_pmda_demos_mdcd_num_validations') }} AS ipdnum
     ON
         ipd.mdcd_pendg_demo_id = ipdnum.mdcd_pendg_demo_id
