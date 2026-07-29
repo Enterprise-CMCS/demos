@@ -6,7 +6,10 @@
 - **Status:** Report + TODO list. The four `data-migration/` TODOs in §4.1 are
   now **implemented** (2026-07-24; decisions D14-D17 in
   `reports/narrative/pending_approved_decisions.md`); the §4.2 `data/` dbt
-  catch-up TODOs are unchanged and out of scope here.
+  catch-up TODOs are otherwise unchanged and out of scope here.
+- **Updated 2026-07-29:** DEMOS-2413 moved deliverables and `deliverable_action`
+  from `data-migration/`-only (§3) onto the shared surface. See §3.1 for the
+  divergence and for why running both against one database double-loads.
 - **Decision basis (session):** The two tools remain separate. The goal is a
   divergence report + TODOs (not byte-identical output). For forks where dbt is
   cruder, `data-migration/` keeps the richer behavior and dbt gets a catch-up
@@ -20,7 +23,7 @@
 | Runs | At Go-Live | Post-Go-Live |
 | Engine | Python/Typer CLI + pgloader + numbered SQL + ~40 parity gates | dbt (`stage_pmda_for_migration`) → DuckDB loader (`demos_data_tools/load_staged_data_to_demos_app.py`) |
 | Source | MySQL PMDA → `mysql_raw` → `stg` → `demos_app` | PMDA-in-Postgres `legacy_pmda_raw` → `legacy_pmda_staged` (`final_demos_app_*`) → `demos_app` |
-| Scope | Broad (see §3) | Narrow: finalized/approved demos + users/roles/tags |
+| Scope | Broad (see §3) | Narrow: finalized/approved demos + users/roles/tags + deliverables (since DEMOS-2413, §3.1) |
 
 They are **not** being merged or made byte-identical. This document harmonizes
 the documented decisions on the shared surface and records catch-up work each
@@ -105,7 +108,7 @@ Each row is a candidate to port INTO dbt (see dbt catch-up TODOs 5-8).
 |---|---|---|
 | Pending demonstrations (fold: "approved wins") | `sql/20_app/31_pending_demonstration.sql`, `sql/10_stg/23,25` | Staged only, **not loaded** |
 | Amendments (`application` + `amendment` IS-A) | `sql/20_app/35_amendment.sql`, `sql/10_stg/33` | **No** |
-| Deliverables | `sql/20_app/40_deliverable.sql`, `sql/10_stg/31` | **No** |
+| Deliverables + `deliverable_action` | `sql/20_app/40_deliverable.sql`, `sql/10_stg/31`, `sql/23_app_derived/60_deliverable_action.sql` | **Yes, since DEMOS-2413** (2026-07-28) — no longer extra-scope; now a shared surface, see §3.1 |
 | Private/public comments + BN override notes | `sql/20_app/50_comment.sql`, `sql/20_app/51_override_note.sql` | **No** |
 | `application_date` (17 milestone types) | `sql/20_app/36_application_date.sql`, `sql/10_stg/27` | **No** (null) |
 | `application_phase` (8-row ordinal derivation) | `sql/23_app_derived/50_application_phase.sql` | Present but all `'Completed'` |
@@ -116,6 +119,44 @@ Deferred/out-of-scope in **both**: documents, contacts, waiver/expenditure
 authorities, extensions/renewals, `*_history` tables (DEMOS-owned), Budget
 Neutrality, MRT, STC. See `docs/specs/migration-feasibility.md` and
 `reports/narrative/history_strategy.md`.
+
+### 3.1 `deliverable_action` is now built by both (added 2026-07-29)
+
+DEMOS-2413 (#1630) gave dbt `final_demos_app_deliverable` and
+`final_demos_app_deliverable_action`, and added the
+`'Migrated Deliverable From PMDA'` action type to the app schema
+(`server/src/model/migrations/20260722172545_add_migration_deliverable_action`).
+Deliverables therefore moved out of §3 and onto the shared surface. The two
+builds are **not** interchangeable:
+
+| | dbt (`data/`) | warm cutover (`data-migration/`) |
+|---|---|---|
+| Submission source | `mdcd_dlvrbl_stus_hstry` where `mdcd_dlvrbl_stus_cd = 3` — `.../cleaned_demos_app_deliverable_action_submission_events.sql` | file-upload batches, corroborated by status event and status field — `sql/10_stg/39`, `sql/23_app_derived/60` |
+| Submission events | 6,307 over 5,405 deliverables | 7,874 over 5,378 deliverables |
+| Actor | Liz Hill (legacy id 828) on **every** row | the actual uploader, 7,874 / 7,874 |
+| Timeline | self-transitions only, plus one marker stamped `current_timestamp` at load | seeded legal status progression, strictly increasing timestamps |
+| Re-runnable | no: `gen_random_uuid()` + bare `INSERT`, so re-running duplicates its own output | yes: deterministic ids from `migration._id_map_deliverable_action` |
+
+Neither coverage figure is a superset; dbt reaches 27 deliverables the batch
+path does not, which is why `60_deliverable_action.sql` consumes three evidence
+sources rather than one.
+
+**Running both against one database silently doubles the action rows.** The id
+spaces cannot overlap (`gen_random_uuid()` versus our id map), so our
+`NOT EXISTS ... ex.id = m.new_uuid` guard and `ON CONFLICT (id) DO NOTHING`
+never fire on dbt's rows, and dbt has no conflict handling at all.
+`demos_app.deliverable_action` carries only `PRIMARY KEY (id)` and a
+`UNIQUE (id, action_type_id)` that is a PK superset for FK targeting, so no
+natural key catches it, and the
+`(action_type_id, old_status_id, new_status_id)` FK does not either: both sides
+emit legal triples. Verified by inserting a dbt-shaped row beside ours in a
+rolled-back transaction: one row became two, with two different actors and no
+error. Neither pipeline is invoked from CI, so today the only safeguard is
+knowing to run exactly one.
+
+Parity check 25 (`sql/99_parity/65_deliverable_action_provenance.sql`) turns
+that silent doubling into a RED gate by flagging any `deliverable_action` row
+this pipeline did not mint.
 
 ## 4. TODOs
 
@@ -153,7 +194,10 @@ Consolidated here (this doc only). No item is executed by this spec.
 
 5. **Load pending demonstrations** (currently staged, not loaded); port the
    "approved-wins" fold logic.
-6. **Add amendments, deliverables, private/public comments, override notes.**
+6. **Add amendments, private/public comments, override notes.** Deliverables
+   **DONE** by DEMOS-2413 (2026-07-28), but see §3.1: the dbt build attributes
+   every submission to a single fallback person and is not re-runnable, and
+   running it alongside the warm cutover silently doubles `deliverable_action`.
 7. **Populate `application_date`** (17 milestone types) instead of leaving null.
 8. **Replace all-phases-`'Completed'`** with the ordinal date-derived
    `application_phase` status (+ Federal Comment failsafe).
