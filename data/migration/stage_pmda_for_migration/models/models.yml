@@ -441,6 +441,8 @@ models:
         data_tests:
           - unique:
               name: assert_active_in_prog_pmda_demos_have_unique_application_ids
+          - not_null:
+              name: assert_active_in_prog_pmda_demos_have_no_missing_mdcd_demo_aplctn_id
       - name: mdcd_chip_div_cd
         data_type: integer
         data_tests:
