@@ -11,9 +11,15 @@
  * row comparison does not apply. What can still be asserted is that the
  * synthesis did exactly what the seed says it should:
  *
- *   1. hop count      a loaded deliverable has one action per seeded hop for
- *                     its status -- neither fewer (a lost hop) nor more (a
- *                     double apply that ON CONFLICT failed to absorb)
+ *   1. hop count      a loaded deliverable has one action per seeded
+ *                     NON-submission hop, plus one per resolved submission
+ *                     event -- neither fewer (a lost hop) nor more (a double
+ *                     apply that ON CONFLICT failed to absorb). The submission
+ *                     hop is not a fixed 1: 60_* expands it to one action per
+ *                     state upload session, and suppresses it entirely when the
+ *                     source carries neither an upload nor a Submitted event.
+ *                     migration._deliverable_submission_event is the resolved
+ *                     evidence that expansion is driven from.
  *   2. terminal state the chain's last hop lands on the deliverable's own
  *                     status_id, so the timeline cannot disagree with the
  *                     status DEMOS displays
@@ -37,8 +43,8 @@ SET search_path TO migration, demos_app, public;
 
 DO $$
 BEGIN
-  IF to_regclass('demos_app.deliverable_action') IS NULL OR to_regclass('migration.deliverable_action_chain') IS NULL OR to_regclass('migration._parity_deliverable_action_held') IS NULL THEN
-    RAISE NOTICE 'parity deliverable_action_completeness: deliverable_action, chain seed, or held log absent; view not created';
+  IF to_regclass('demos_app.deliverable_action') IS NULL OR to_regclass('migration.deliverable_action_chain') IS NULL OR to_regclass('migration._parity_deliverable_action_held') IS NULL OR to_regclass('migration._deliverable_submission_event') IS NULL THEN
+    RAISE NOTICE 'parity deliverable_action_completeness: deliverable_action, chain seed, held log, or submission-event log absent; view not created';
     RETURN;
   END IF;
   EXECUTE $v$
@@ -47,7 +53,14 @@ BEGIN
       SELECT d.id            AS deliverable_id,
              d.status_id     AS status_id,
              d.due_date      AS due_date,
-             count(ch.hop_seq) AS expected_hops
+             count(*) FILTER (WHERE ch.action_type_id <> 'Submitted Deliverable')
+               + CASE
+                   WHEN count(*) FILTER (WHERE ch.action_type_id = 'Submitted Deliverable') > 0
+                   THEN (SELECT count(*)
+                           FROM migration._deliverable_submission_event e
+                          WHERE e.deliverable_id = d.id)
+                   ELSE 0
+                 END AS expected_hops
       FROM demos_app.deliverable d
       JOIN migration.deliverable_action_chain ch
         ON ch.terminal_status_id = d.status_id

@@ -60,6 +60,24 @@ D_TIGHT = uuid.UUID(int=0x308)      # created_at inside the chain window -> clam
 D_NO_SRC_DATE = uuid.UUID(int=0x309)  # no dlvrbl_stus_updt_dt -> falls back
 D_UNSEEDED = uuid.UUID(int=0x30A)   # status with no seeded chain -> held
 
+# Batch-mode only. These exercise the submission evidence cascade and are added
+# to the fixture solely when stg.deliverable_submission_batch is provisioned, so
+# the degraded-mode tests above keep their exact original population.
+D_MULTI = uuid.UUID(int=0x310)       # three state upload sessions -> three submissions
+D_CMS_ONLY = uuid.UUID(int=0x311)    # only a CMS attachment -> no submission
+D_BARE = uuid.UUID(int=0x312)        # no upload, no submitted event -> no submission
+D_HSTRY = uuid.UUID(int=0x313)       # no upload but a real Submitted event -> one hop
+D_GHOST = uuid.UUID(int=0x314)       # uploader absent from users -> falls back to owner
+
+UPLOADER = uuid.UUID(int=0xB1)
+GHOST_UPLOADER = uuid.UUID(int=0xB2)  # deliberately never inserted into users
+
+BATCH_TS = [
+    dt.datetime(2024, 2, 1, 15, 30, tzinfo=dt.UTC),
+    dt.datetime(2024, 3, 1, 9, 5, tzinfo=dt.UTC),
+    dt.datetime(2024, 4, 1, 18, 45, tzinfo=dt.UTC),
+]
+
 STATUSES = {
     D_UPCOMING: ("Upcoming", 1),
     D_PAST_DUE: ("Past Due", 2),
@@ -88,8 +106,8 @@ def _scalar(conn: Any, sql: str, params: tuple[Any, ...] | None = None) -> Any:
     return row[0]
 
 
-def _provision(conn: Any) -> None:
-    conn.execute("DROP SCHEMA IF EXISTS migration, mysql_raw, demos_app CASCADE")
+def _provision(conn: Any, *, with_batches: bool = False) -> None:
+    conn.execute("DROP SCHEMA IF EXISTS migration, mysql_raw, demos_app, stg CASCADE")
     for schema in ("migration", "mysql_raw", "demos_app"):
         conn.execute(f"CREATE SCHEMA {schema}")
 
@@ -186,6 +204,12 @@ def _provision(conn: Any) -> None:
     rows.append((D_TIGHT, "Accepted", STATUS_TS - dt.timedelta(seconds=2), UPDATED, 90))
     rows.append((D_NO_SRC_DATE, "Submitted", CREATED, UPDATED, 91))
     rows.append((D_UNSEEDED, "Deleted", CREATED, UPDATED, 92))
+    if with_batches:
+        rows.append((D_MULTI, "Accepted", CREATED, UPDATED, 93))
+        rows.append((D_CMS_ONLY, "Accepted", CREATED, UPDATED, 94))
+        rows.append((D_BARE, "Accepted", CREATED, UPDATED, 95))
+        rows.append((D_HSTRY, "Accepted", CREATED, UPDATED, 96))
+        rows.append((D_GHOST, "Accepted", CREATED, UPDATED, 97))
 
     conn.execute("INSERT INTO demos_app.demonstration (id, name) VALUES (%s, 'Demo')", (OWNER,))
     for did, status, created, updated, legacy in rows:
@@ -206,12 +230,58 @@ def _provision(conn: Any) -> None:
             (legacy, None if did == D_NO_SRC_DATE else STATUS_DATE),
         )
 
+    if with_batches:
+        _provision_submission_evidence(conn)
+
     _apply(conn, SEED)
     _apply(conn, CHECK)
     _apply(conn, IDMAP)
     _apply(conn, LOADER)
     _apply(conn, HELD)
     _apply(conn, COMPLETENESS)
+
+
+def _provision_submission_evidence(conn: Any) -> None:
+    """Build the two optional inputs the loader reads submissions from.
+
+    Only the columns 60_* actually consumes are modelled; the real view in
+    sql/10_stg/39_deliverable_submission_batch.sql carries more.
+    """
+    conn.execute("CREATE SCHEMA stg")
+    conn.execute("CREATE TABLE demos_app.users (id uuid PRIMARY KEY, username text)")
+    conn.execute(
+        "INSERT INTO demos_app.users (id, username) VALUES (%s, 'state.uploader'), (%s, 'cms.owner')",
+        (UPLOADER, OWNER),
+    )
+    conn.execute(
+        "CREATE TABLE stg.deliverable_submission_batch ("
+        " deliverable_id uuid NOT NULL, legacy_dlvrbl_id bigint NOT NULL,"
+        " origin_cd text NOT NULL, batch_seq integer NOT NULL,"
+        " anchor_fil_doc_id bigint NOT NULL, uploader_user_id uuid,"
+        " submitted_at timestamptz NOT NULL)"
+    )
+    batches = [
+        (D_MULTI, 93, "S", i + 1, 9300 + i, UPLOADER, ts) for i, ts in enumerate(BATCH_TS)
+    ]
+    # A CMS attachment is not a state submission; it must not mint a hop.
+    batches.append((D_CMS_ONLY, 94, "C", 1, 9400, UPLOADER, BATCH_TS[0]))
+    batches.append((D_GHOST, 97, "S", 1, 9700, GHOST_UPLOADER, BATCH_TS[0]))
+    for row in batches:
+        conn.execute(
+            "INSERT INTO stg.deliverable_submission_batch (deliverable_id, legacy_dlvrbl_id,"
+            " origin_cd, batch_seq, anchor_fil_doc_id, uploader_user_id, submitted_at)"
+            " VALUES (%s, %s, %s, %s, %s, %s, %s)",
+            row,
+        )
+    conn.execute(
+        "CREATE TABLE mysql_raw.mdcd_dlvrbl_stus_hstry ("
+        " mdcd_dlvrbl_id bigint NOT NULL, mdcd_dlvrbl_stus_cd integer NOT NULL)"
+    )
+    # 3 = Submitted. Only D_HSTRY has one, and it has no uploads.
+    conn.execute(
+        "INSERT INTO mysql_raw.mdcd_dlvrbl_stus_hstry (mdcd_dlvrbl_id, mdcd_dlvrbl_stus_cd)"
+        " VALUES (96, 3)"
+    )
 
 
 @pytest.mark.parametrize(("deliverable", "status", "hops"), [
@@ -488,3 +558,233 @@ def test_validator_rejects_a_chain_that_misses_its_terminal_status(
     )
     with pytest.raises(Exception, match="end on the terminal status"):
         _apply(pg_db, CHECK)
+
+
+# ---------------------------------------------------------------------------
+# Batch mode: the loader reads real submissions from stg.deliverable_submission_batch.
+# Every test below provisions the optional inputs; the tests above deliberately
+# do not, and so cover the degraded fallback.
+# ---------------------------------------------------------------------------
+
+
+def test_each_upload_session_becomes_its_own_submission(pg_db: psycopg.Connection) -> None:
+    """k state upload sessions produce k submissions, each at its real clock reading.
+
+    The seeded chain has exactly one 'Submitted Deliverable' hop. Keeping that
+    literally would collapse a deliverable that was submitted, rejected and
+    resubmitted into a single event and leave later documents with no action to
+    attach to.
+    """
+    _provision(pg_db, with_batches=True)
+    got = pg_db.execute(
+        "SELECT action_timestamp FROM demos_app.deliverable_action"
+        " WHERE deliverable_id = %s AND action_type_id = 'Submitted Deliverable'"
+        " ORDER BY action_timestamp",
+        (D_MULTI,),
+    ).fetchall()
+    assert [r[0] for r in got] == BATCH_TS
+
+
+def test_repeat_submissions_use_the_submitted_self_transition(
+    pg_db: psycopg.Connection,
+) -> None:
+    """The first submission leaves 'Upcoming'; later ones are Submitted -> Submitted.
+
+    'Submitted Deliverable' is only configured from 'Upcoming', so a second hop
+    copying that old_status_id would claim the deliverable went back to Upcoming.
+    The self-transition is the legal way to say "submitted again".
+    """
+    _provision(pg_db, with_batches=True)
+    got = pg_db.execute(
+        "SELECT old_status_id, new_status_id FROM demos_app.deliverable_action"
+        " WHERE deliverable_id = %s AND action_type_id = 'Submitted Deliverable'"
+        " ORDER BY action_timestamp",
+        (D_MULTI,),
+    ).fetchall()
+    assert got == [("Upcoming", "Submitted"), ("Submitted", "Submitted"), ("Submitted", "Submitted")]
+
+
+def test_submission_actor_is_the_uploader_not_the_cms_owner(
+    pg_db: psycopg.Connection,
+) -> None:
+    """A submission is attributed to whoever uploaded the file.
+
+    Every other hop is synthesized and falls back to the deliverable's CMS
+    owner, but the uploader is recorded fact and is the whole reason for
+    preferring mdcd_dlvrbl_fil_doc over the status log.
+    """
+    _provision(pg_db, with_batches=True)
+    actors = {
+        r[0]
+        for r in pg_db.execute(
+            "SELECT DISTINCT user_id FROM demos_app.deliverable_action"
+            " WHERE deliverable_id = %s AND action_type_id = 'Submitted Deliverable'",
+            (D_MULTI,),
+        ).fetchall()
+    }
+    assert actors == {UPLOADER}
+    others = {
+        r[0]
+        for r in pg_db.execute(
+            "SELECT DISTINCT user_id FROM demos_app.deliverable_action"
+            " WHERE deliverable_id = %s AND action_type_id <> 'Submitted Deliverable'",
+            (D_MULTI,),
+        ).fetchall()
+    }
+    assert others == {OWNER}
+
+
+def test_unresolvable_uploader_falls_back_to_the_cms_owner(
+    pg_db: psycopg.Connection,
+) -> None:
+    """An uploader with no migrated user still yields a loadable submission.
+
+    require_user_id_for_user_actions rejects a NULL user_id on this type, so the
+    row would otherwise fail the constraints phase rather than degrade.
+    """
+    _provision(pg_db, with_batches=True)
+    got = pg_db.execute(
+        "SELECT user_id FROM demos_app.deliverable_action"
+        " WHERE deliverable_id = %s AND action_type_id = 'Submitted Deliverable'",
+        (D_GHOST,),
+    ).fetchall()
+    assert [r[0] for r in got] == [OWNER]
+
+
+def test_a_cms_attachment_does_not_mint_a_submission(pg_db: psycopg.Connection) -> None:
+    """origin_cd = 'C' is a CMS-side file, not a state submission.
+
+    DEMOS enforces no_submitted_deliverable_cms_files, so treating a CMS
+    attachment as evidence of a submission would assert something the source
+    contradicts.
+    """
+    _provision(pg_db, with_batches=True)
+    assert (
+        _scalar(
+            pg_db,
+            "SELECT count(*) FROM demos_app.deliverable_action"
+            " WHERE deliverable_id = %s AND action_type_id = 'Submitted Deliverable'",
+            (D_CMS_ONLY,),
+        )
+        == 0
+    )
+
+
+def test_no_evidence_suppresses_the_submission_hop(pg_db: psycopg.Connection) -> None:
+    """A deliverable with neither an upload nor a Submitted event gets no submission.
+
+    Its terminal status sits past 'Submitted' in the chain, which is exactly the
+    reasoning that used to fabricate one. The remaining hops still land on the
+    deliverable's own status.
+    """
+    _provision(pg_db, with_batches=True)
+    got = pg_db.execute(
+        "SELECT action_type_id FROM demos_app.deliverable_action"
+        " WHERE deliverable_id = %s ORDER BY action_timestamp",
+        (D_BARE,),
+    ).fetchall()
+    assert [r[0] for r in got] == [
+        "Created Deliverable Slot",
+        "Started Review",
+        "Accepted Deliverable",
+    ]
+
+
+def test_a_real_submitted_event_still_yields_one_synthetic_hop(
+    pg_db: psycopg.Connection,
+) -> None:
+    """No surviving upload but a real Submitted status event keeps one hop.
+
+    The event proves the submission happened; it just carries no usable clock
+    reading or actor, so the hop stays synthetic rather than being dropped.
+    """
+    _provision(pg_db, with_batches=True)
+    got = pg_db.execute(
+        "SELECT action_timestamp, user_id FROM demos_app.deliverable_action"
+        " WHERE deliverable_id = %s AND action_type_id = 'Submitted Deliverable'",
+        (D_HSTRY,),
+    ).fetchall()
+    assert len(got) == 1
+    assert got[0][0] not in BATCH_TS
+    assert CREATED < got[0][0] < STATUS_TS
+    assert got[0][1] == OWNER
+    assert (
+        _scalar(
+            pg_db,
+            "SELECT source FROM migration._deliverable_submission_event WHERE deliverable_id = %s",
+            (D_HSTRY,),
+        )
+        == "status_event"
+    )
+
+
+def test_timestamps_strictly_increase_across_expanded_submissions(
+    pg_db: psycopg.Connection,
+) -> None:
+    """Real submission timestamps are spliced in without breaking chain ordering.
+
+    The synthetic hops are placed relative to the terminal timestamp, so real
+    readings dropped between them are the one thing that can invert the order.
+    """
+    _provision(pg_db, with_batches=True)
+    for did in (D_MULTI, D_GHOST, D_BARE, D_CMS_ONLY, D_HSTRY):
+        ts = [
+            r[0]
+            for r in pg_db.execute(
+                "SELECT action_timestamp FROM demos_app.deliverable_action"
+                " WHERE deliverable_id = %s ORDER BY action_timestamp",
+                (did,),
+            ).fetchall()
+        ]
+        assert ts == sorted(ts), did
+        assert len(set(ts)) == len(ts), did
+
+
+def test_completeness_view_is_empty_in_batch_mode(pg_db: psycopg.Connection) -> None:
+    """The gating view accounts for expanded and suppressed submissions.
+
+    Its expectation is no longer "one action per seeded hop": it is the seeded
+    non-submission hops plus however many submissions the evidence resolved to.
+    """
+    _provision(pg_db, with_batches=True)
+    rows = pg_db.execute(
+        "SELECT deliverable_id, expected_hops, actual_hops, reason"
+        " FROM migration._parity_deliverable_action_completeness"
+    ).fetchall()
+    assert rows == []
+
+
+def test_completeness_view_catches_a_lost_submission_in_batch_mode(
+    pg_db: psycopg.Connection,
+) -> None:
+    """Negative control: dropping one of three submissions turns the view non-empty."""
+    _provision(pg_db, with_batches=True)
+    pg_db.execute(
+        "DELETE FROM demos_app.deliverable_action WHERE deliverable_id = %s"
+        " AND action_type_id = 'Submitted Deliverable' AND action_timestamp = %s",
+        (D_MULTI, BATCH_TS[2]),
+    )
+    rows = pg_db.execute(
+        "SELECT deliverable_id, expected_hops, actual_hops FROM"
+        " migration._parity_deliverable_action_completeness"
+    ).fetchall()
+    assert rows == [(D_MULTI, 6, 5)]
+
+
+def test_loader_is_idempotent_in_batch_mode(pg_db: psycopg.Connection) -> None:
+    """Re-applying with batches present reuses every minted id and adds nothing.
+
+    The expanded hops take synthetic hop_seq values, so a second apply that
+    numbered them differently would duplicate every repeat submission.
+    """
+    _provision(pg_db, with_batches=True)
+    before = pg_db.execute(
+        "SELECT id, deliverable_id, action_timestamp, action_type_id, user_id"
+        " FROM demos_app.deliverable_action ORDER BY id"
+    ).fetchall()
+    _apply(pg_db, LOADER)
+    after = pg_db.execute(
+        "SELECT id, deliverable_id, action_timestamp, action_type_id, user_id"
+        " FROM demos_app.deliverable_action ORDER BY id"
+    ).fetchall()
+    assert before == after

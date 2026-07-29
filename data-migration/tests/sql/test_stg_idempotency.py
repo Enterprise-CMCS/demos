@@ -60,6 +60,7 @@ GOOD_FILES = [
     "25_pending_demonstration_resolved",
     "32_populate_id_map_mdcd_demo_amndmt",
     "33_amendment_resolved",
+    "39_deliverable_submission_batch",
     "99_filter_report",
 ]
 
