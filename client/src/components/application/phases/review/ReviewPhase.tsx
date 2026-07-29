@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
-import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
+import {
+  getPhaseCompletedMessage,
+  MISSING_REQUIRED_SECTIONS_TOOLTIP,
+  SAVE_FOR_LATER_MESSAGE,
+} from "util/messages";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { useSetApplicationNotes } from "components/application/note/noteQueries";
 import { ClearanceLevel, ReviewPhaseDateTypes, ReviewPhaseNoteTypes } from "demos-server";
@@ -108,8 +112,7 @@ export const ReviewPhase = ({
 
   const [reviewPhaseFormData, setReviewPhaseFormData] =
     useState<ReviewPhaseFormData>(initialFormData);
-  const [lastSavedFormData, setLastSavedFormData] =
-    useState<ReviewPhaseFormData>(initialFormData);
+  const [lastSavedFormData, setLastSavedFormData] = useState<ReviewPhaseFormData>(initialFormData);
   const [reviewPhaseSectionsComplete, setReviewPhaseSectionsComplete] =
     useState<ReviewPhaseSectionsComplete>(getPhaseStateInitialization());
 
@@ -168,6 +171,19 @@ export const ReviewPhase = ({
       console.error("Error completing Review phase:", error);
     }
   };
+
+  const clearanceSectionComplete =
+    (reviewPhaseFormData.clearanceLevel === "COMMs" &&
+      reviewPhaseSectionsComplete["COMMs Clearance"]) ||
+    (reviewPhaseFormData.clearanceLevel === "CMS (OSORA)" &&
+      reviewPhaseSectionsComplete["CMS (OSORA) Clearance"]);
+
+  const isFinishEnabled =
+    !isReadonly &&
+    allPreviousPhasesDone &&
+    reviewPhaseSectionsComplete["PO and OGD"] &&
+    reviewPhaseSectionsComplete["OGC and OMB"] &&
+    clearanceSectionComplete;
 
   useEffect(() => {
     setReviewPhaseSectionsComplete({
@@ -266,17 +282,9 @@ export const ReviewPhase = ({
             onClick={handleFinish}
             size="large"
             name="review-finish"
-            disabled={
-              isReadonly ||
-              !allPreviousPhasesDone ||
-              !reviewPhaseSectionsComplete["PO and OGD"] ||
-              !reviewPhaseSectionsComplete["OGC and OMB"] ||
-              !(
-                (reviewPhaseFormData.clearanceLevel === "COMMs" &&
-                  reviewPhaseSectionsComplete["COMMs Clearance"]) ||
-                (reviewPhaseFormData.clearanceLevel === "CMS (OSORA)" &&
-                  reviewPhaseSectionsComplete["CMS (OSORA) Clearance"])
-              )
+            disabled={!isFinishEnabled}
+            eagerTooltip={
+              !isFinishEnabled && !isReadonly ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined
             }
           >
             Finish

@@ -220,7 +220,8 @@ export const createCloudfrontRules = (
     ...baseWafRules
   ];
 
-  if (commonProps.stage != "prod") {
+  // Add a WAF rule that only allows access from ZScaler
+   if (commonProps.stage != "prod" || process.env.PROD_LIVE != "true") {
     rules.unshift(createCombinedBlockRule("ZScalerOrCloudbees", ipSet, commonProps.zapHeaderValue),);
   }
 

@@ -11,13 +11,9 @@ vi.mock("../demonstrationRoleAssignment", () => ({
   getManyDemonstrationRoleAssignments: vi.fn(),
 }));
 
-vi.mock("../personState", () => ({
-  setPersonStates: vi.fn(),
-}));
-
-const mockUser = {} as unknown as ContextUser;
-const mockContext: GraphQLContext = {
-  user: mockUser,
+const mockUser: Partial<ContextUser> = {};
+const mockContext: Partial<GraphQLContext> = {
+  user: mockUser as ContextUser,
 };
 
 describe("personResolvers", () => {
@@ -34,7 +30,7 @@ describe("personResolvers", () => {
       await personResolvers.Person.roles(
         { id: "personId" } as PrismaPerson,
         undefined,
-        mockContext
+        mockContext as GraphQLContext
       );
       expect(getManyDemonstrationRoleAssignments).toHaveBeenCalledExactlyOnceWith(
         { personId: "personId" },

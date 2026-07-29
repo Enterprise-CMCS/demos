@@ -663,11 +663,7 @@ describe("ConceptPhase", () => {
         tags: [],
       };
 
-      const component = getConceptPhaseComponentFromApplication(
-        mockDemonstration,
-        "demonstration",
-        () => {}
-      );
+      const component = getConceptPhaseComponentFromApplication(mockDemonstration, () => {});
       expect(component).toBeDefined();
       if (component) {
         expect(component.type).toBe(ConceptPhase);
@@ -707,11 +703,7 @@ describe("ConceptPhase", () => {
         tags: [],
       };
 
-      const component = getConceptPhaseComponentFromApplication(
-        mockDemonstration,
-        "demonstration",
-        () => {}
-      );
+      const component = getConceptPhaseComponentFromApplication(mockDemonstration, () => {});
       expect(component).toBeDefined();
       if (component) {
         expect(component.type).toBe(ConceptPhase);

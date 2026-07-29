@@ -62,50 +62,38 @@ export class BudgetNeutralityProcessor extends Construct {
       `demos-${props.hostEnvironment}-rds-demos_upload`
     );
 
-    const budgetNeutralityDir = path.resolve(
-      process.cwd(),
-      "..",
-      "lambdas",
-      "budgetNeutrality"
-    );
-    const budgetNeutralityLockFile = path.join(
-      budgetNeutralityDir,
-      "package-lock.json"
-    );
+    const budgetNeutralityDir = path.resolve(process.cwd(), "..", "lambdas", "budgetNeutrality");
+    const budgetNeutralityLockFile = path.join(budgetNeutralityDir, "package-lock.json");
 
     const cleanReadBucket = props.readBuckets?.[0];
 
-    const budgetNeutralityLambda = new demosLambda.Lambda(
-      this,
-      "budgetNeutrality",
-      {
-        ...props,
-        scope: this,
-        entry: path.join(budgetNeutralityDir, "index.ts"),
-        depsLockFilePath: budgetNeutralityLockFile,
-        handler: "index.handler",
-        timeout: Duration.seconds(60),
-        asCode: false,
-        externalModules: ["@aws-sdk", "@aws-sdk/client-secrets-manager"],
-        nodeModules: ["pg"], 
-        vpc: props.vpc,
-        securityGroup: props.securityGroup,
-        format: OutputFormat.ESM,
-        memorySize: 2048,
-        environment: {
-          DB_SSL_MODE: "verify-full",
-          DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
-          LOG_LEVEL: process.env.LOG_LEVEL ?? "info",
-          NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
-          CLEAN_BUCKET: cleanReadBucket?.bucketName ?? "",
-        },
-      }
-    );
+    const budgetNeutralityLambda = new demosLambda.Lambda(this, "budgetNeutrality", {
+      ...props,
+      scope: this,
+      entry: path.join(budgetNeutralityDir, "index.ts"),
+      depsLockFilePath: budgetNeutralityLockFile,
+      handler: "index.handler",
+      timeout: Duration.seconds(60),
+      asCode: false,
+      externalModules: ["@aws-sdk", "@aws-sdk/client-secrets-manager"],
+      // pino must be installed, not bundled: it is CommonJS, and esbuild's ESM output
+      // turns its internal require() into a shim that throws at cold start.
+      nodeModules: ["pg", "pino"],
+      vpc: props.vpc,
+      securityGroup: props.securityGroup,
+      format: OutputFormat.ESM,
+      memorySize: 2048,
+      environment: {
+        DB_SSL_MODE: "verify-full",
+        DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
+        LOG_LEVEL: process.env.LOG_LEVEL ?? "info",
+        NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
+        CLEAN_BUCKET: cleanReadBucket?.bucketName ?? "",
+      },
+    });
     alarmResources.registerLambda("budgetNeutrality", budgetNeutralityLambda.lambda);
 
-    budgetNeutralityLambda.lambda.addEventSource(
-      new SqsEventSource(this.queue, { batchSize: 1 })
-    );
+    budgetNeutralityLambda.lambda.addEventSource(new SqsEventSource(this.queue, { batchSize: 1 }));
 
     this.setupCloudWatchAlarms(props, alarmResources);
 
@@ -171,7 +159,8 @@ export class BudgetNeutralityProcessor extends Construct {
       scope: this,
       id: "BudgetNeutralityLambdaThrottlesAlarm",
       name: "budget-neutrality-lambda-throttles",
-      description: "Budget neutrality Lambda has one or more throttled invocations in a 5-minute period.",
+      description:
+        "Budget neutrality Lambda has one or more throttled invocations in a 5-minute period.",
       lambdaFunction: resources.lambda("budgetNeutrality"),
       period: alarmPeriod,
       threshold: 0,

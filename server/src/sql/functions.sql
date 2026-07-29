@@ -1642,9 +1642,13 @@ DECLARE
     region_number INT;
     medicaid_seq_number INT;
     chip_seq_number INT;
+    migration_mode_on BOOL;
 BEGIN
-    IF NEW.medicaid_id IS NOT NULL OR NEW.chip_id IS NOT NULL THEN
-        RAISE EXCEPTION 'medicaid_id and chip_id are system-generated and must not be set manually';
+    migration_mode_on := coalesce(current_setting('demos_app.migration_mode', true), 'off') = 'on';
+    IF
+        NOT migration_mode_on
+        AND (NEW.medicaid_id IS NOT NULL OR NEW.chip_id IS NOT NULL) THEN
+            RAISE EXCEPTION 'medicaid_id and chip_id are system-generated and must not be set manually';
     END IF;
 
     SELECT
@@ -1660,11 +1664,15 @@ BEGIN
         RAISE EXCEPTION 'Unknown state code: %', NEW.state_id;
     END IF;
 
-    medicaid_seq_number := nextval('demos_app.medicaid_id_number_seq');
-    chip_seq_number := nextval('demos_app.chip_id_number_seq');
+    IF NEW.medicaid_id IS NULL THEN
+        medicaid_seq_number := nextval('demos_app.medicaid_id_number_seq');
+        NEW.medicaid_id := format('11-W-%s/%s', lpad(medicaid_seq_number::TEXT, 5, '0'), region_number);
+    END IF;
 
-    NEW.medicaid_id := format('11-W-%s/%s', lpad(medicaid_seq_number::TEXT, 5, '0'), region_number);
-    NEW.chip_id := format('21-W-%s/%s', lpad(chip_seq_number::TEXT, 5, '0'), region_number);
+    IF NEW.chip_id IS NULL THEN
+        chip_seq_number := nextval('demos_app.chip_id_number_seq');
+        NEW.chip_id := format('21-W-%s/%s', lpad(chip_seq_number::TEXT, 5, '0'), region_number);
+    END IF;
 
     RETURN NEW;
 END;

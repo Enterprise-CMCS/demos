@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Literal
 from dotenv import load_dotenv
 
 from check_if_in_devcontainer import check_if_in_devcontainer
-from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME, create_duckdb_conn
+from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME, create_duckdb_conn, attach_demos_to_conn
 from logger_utils import config_logger
 
 if TYPE_CHECKING:
@@ -41,7 +41,7 @@ def _create_schema(conn: "DuckConn", which: MigrationSchemaType) -> None:
     """Create one of the migration schemas.
 
     Args:
-        conn (DuckConn): A DuckDB connection to the DEMOS database.
+        conn (DuckConn): A DuckDB connection with the DEMOS DB attached.
         which (MigrationSchemaType): Which schema to create (one of "raw", "staging").
     """
     match which:
@@ -61,7 +61,7 @@ def _drop_schema(conn: "DuckConn", which: MigrationSchemaType) -> None:
     """Drop one of the migration schemas.
 
     Args:
-        conn (DuckConn): A DuckDB connection to the DEMOS database.
+        conn (DuckConn): A DuckDB connection with the DEMOS DB attached.
         which (MigrationSchemaType): Which schema to drop (one of "raw", "staging").
     """
     match which:
@@ -80,7 +80,7 @@ def _drop_schema(conn: "DuckConn", which: MigrationSchemaType) -> None:
 def main(args: "Namespace") -> None:
     """Main program function."""
     check_if_in_devcontainer()
-    conn = create_duckdb_conn()
+    conn = attach_demos_to_conn(create_duckdb_conn())
     if args.action == "create":
         _create_schema(conn, args.schema)
     elif args.action == "drop":

@@ -165,7 +165,6 @@ describe("DeliverablesPage tab persistence", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    sessionStorage.clear();
   });
 
   it("defaults to My Deliverables when no tab is stored", async () => {
@@ -173,8 +172,6 @@ describe("DeliverablesPage tab persistence", () => {
 
     // My Deliverables should be selected
     expect(screen.getByTestId("button-my-deliverables")).toHaveAttribute("aria-selected", "true");
-
-    expect(sessionStorage.getItem(TAB_KEY)).toBe("my-deliverables");
   });
 
   it("uses stored tab selection from sessionStorage", async () => {

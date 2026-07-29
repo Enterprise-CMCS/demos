@@ -1,5 +1,6 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { ReferenceAgreementDialog } from "./ReferenceAgreementDialog";
 import { DialogProvider } from "../DialogContext";
 import { useDownloadReference } from "hooks/useDownloadReference";
@@ -15,6 +16,7 @@ describe("ReferenceAgreementDialog", () => {
   const downloadReferenceAgreement = vi.fn();
   beforeEach(() => {
     vi.clearAllMocks();
+    downloadReference.mockResolvedValue("https://example.com/reference");
     vi.mocked(useDownloadReference).mockReturnValue({
       downloadReference,
       downloadReferenceAgreement,
@@ -104,5 +106,35 @@ describe("ReferenceAgreementDialog", () => {
       id: "reference-123",
       acceptedAgreementId: "agreement-456",
     });
+  });
+
+  it("shows a spinner while an accepted reference download is being prepared", async () => {
+    const user = userEvent.setup();
+    downloadReference.mockReturnValueOnce(new Promise(() => {}));
+    const mockReference: Pick<Reference, "id"> & {
+      agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt">;
+    } = {
+      id: "reference-123",
+      agreement: {
+        id: "agreement-456",
+        name: "Agreement abc",
+        createdAt: new Date("2024-01-01"),
+      },
+    };
+
+    render(
+      <DialogProvider>
+        <ToastProvider>
+          <ReferenceAgreementDialog reference={mockReference} />
+        </ToastProvider>
+      </DialogProvider>
+    );
+
+    await user.click(screen.getByTestId("checkbox-accept-terms"));
+    const downloadButton = screen.getByRole("button", { name: "button-download-reference" });
+    await user.click(downloadButton);
+
+    expect(downloadButton).toBeDisabled();
+    expect(within(downloadButton).getByRole("img", { name: "Loading" })).toBeInTheDocument();
   });
 });
