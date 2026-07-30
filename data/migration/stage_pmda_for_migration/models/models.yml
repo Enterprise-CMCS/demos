@@ -2,6 +2,45 @@ version: 2
 
 models:
   # Final Models
+  - name: final_demos_app_document
+    columns:
+      - name: id
+        data_type: uuid
+      - name: name
+        data_type: text
+      - name: description
+        data_type: text
+      - name: s3_path
+        data_type: text
+      - name: owner_user_id
+        data_type: uuid
+      - name: document_type_id
+        data_type: text
+      - name: application_id
+        data_type: uuid
+        data_tests:
+          - not_null:
+              name: assert_no_missing_application_id_in_final_docs
+      - name: phase_id
+        data_type: text
+      - name: deliverable_id
+        data_type: uuid
+      - name: deliverable_type_id
+        data_type: text
+      - name: deliverable_is_cms_attached_file
+        data_type: boolean
+      - name: deliverable_submission_action_id
+        data_type: uuid
+      - name: deliverable_submission_action_type_id
+        data_type: text
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+      - name: _legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id
+        data_type: integer
+      - name: _legacy_mdcd_demo_aplctn_id
+        data_type: integer
   - name: final_demos_app_application_phase
     columns:
       - name: application_id
@@ -459,7 +498,7 @@ models:
 
   # Cleaned Models
   - name: cleaned_demos_app_demonstration_in_prog_demos
-    columns: 
+    columns:
       - name: mdcd_demo_aplctn_id
         data_type: integer
         data_tests:
@@ -532,7 +571,7 @@ models:
         data_type: timestamptz
 
   # Apps Models
-  
+
   - name: apps_in_prog_dates_crosswalked
     description: converts the dates stored in PMDA to applicable date types in DEMOS, extrapolating to phase start and end dates where needed.
 
@@ -646,3 +685,11 @@ models:
         data_tests:
           - not_null:
               name: assert_no_missing_deliv_status_id_in_crosswalked_deliv
+    # Documents Models
+
+  - name: docs_pmda_docs_rpstry_doc_type_crosswalked
+    columns:
+      - name: document_type_id
+        data_tests:
+          - not_null:
+              name: assert_no_missing_document_type_id_in_crosswalked_docs

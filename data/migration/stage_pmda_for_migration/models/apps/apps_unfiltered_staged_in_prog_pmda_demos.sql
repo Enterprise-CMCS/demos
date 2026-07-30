@@ -38,7 +38,8 @@ SELECT
     ipd.phase_5_strt_dt,
     ipd.phase_5_end_dt,
     ipd.phase_6_strt_dt,
-    ipd.phase_6_end_dt
+    ipd.phase_6_end_dt,
+    ipd.mdcd_demo_aplctn_type_cd
 FROM
     {{ ref('apps_active_in_prog_pmda_demos') }} AS ipd
 LEFT JOIN

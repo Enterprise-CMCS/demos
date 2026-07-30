@@ -15,7 +15,8 @@ SELECT
     fdnum.cleaned_mdcd_demo_num AS medicaid_id,
     fdnum.cleaned_mdcd_scndry_demo_num AS chip_id,
     fd.creatd_dt,
-    fd.updtd_dt
+    fd.updtd_dt,
+    fd.mdcd_demo_aplctn_id
 FROM
     {{ ref('apps_active_finalized_pmda_demos') }} AS fd
 LEFT JOIN

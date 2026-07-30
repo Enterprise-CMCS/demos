@@ -37,7 +37,8 @@ SELECT
     phase_5_end_dt,
     phase_6_strt_dt,
     phase_6_end_dt,
-    proj_ofcr_user_id AS _legacy_proj_ofcr_user_id
+    proj_ofcr_user_id AS _legacy_proj_ofcr_user_id,
+    mdcd_demo_aplctn_type_cd
 FROM
     {{ ref('apps_unfiltered_staged_in_prog_pmda_demos') }}
 WHERE
