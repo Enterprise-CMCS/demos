@@ -8,8 +8,23 @@ describe("sanitizeDownloadFileName", () => {
     expect(sanitizeDownloadFileName("Quarterly Report", fallback)).toBe("Quarterly Report");
   });
 
-  it("strips characters that are invalid in file names", () => {
-    expect(sanitizeDownloadFileName('Report: Q1/Q2 "final"', fallback)).toBe("Report Q1Q2 final");
+  it("keeps characters that are valid in file names", () => {
+    const name = "Smith & Jones_final v2.1 (draft) #3, 100% approved";
+    expect(sanitizeDownloadFileName(name, fallback)).toBe(name);
+  });
+
+  it("keeps non-ASCII characters", () => {
+    expect(sanitizeDownloadFileName("Café Résumé – naïve", fallback)).toBe("Café Résumé – naïve");
+  });
+
+  it("replaces characters that are invalid in file names with a space", () => {
+    expect(sanitizeDownloadFileName("Budget FY25/26", fallback)).toBe("Budget FY25 26");
+  });
+
+  it("collapses the whitespace left behind by a run of invalid characters", () => {
+    expect(sanitizeDownloadFileName('DEMOS-892 (3) \\ / : * ? " < > |', fallback)).toBe(
+      "DEMOS-892 (3)"
+    );
   });
 
   it("trims surrounding whitespace", () => {
@@ -25,6 +40,6 @@ describe("sanitizeDownloadFileName", () => {
   });
 
   it("sanitizes the fallback itself if it contains separators", () => {
-    expect(sanitizeDownloadFileName("", "reports/on-demand/abc")).toBe("reportson-demandabc");
+    expect(sanitizeDownloadFileName("", "reports/on-demand/abc")).toBe("reports on-demand abc");
   });
 });

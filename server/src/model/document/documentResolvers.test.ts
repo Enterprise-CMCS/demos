@@ -111,6 +111,7 @@ describe("documentResolvers", () => {
   const mockS3Adapter = {
     uploadDocument: vi.fn(),
     getPresignedDownloadUrl: vi.fn(),
+    getDownloadFileName: vi.fn(),
     moveDocumentFromCleanToDeleted: vi.fn(),
   };
 
@@ -179,6 +180,24 @@ describe("documentResolvers", () => {
         document.s3Path,
         document.name
       );
+    });
+  });
+
+  describe("Document.downloadFileName", () => {
+    it("delegates to s3adapter.getDownloadFileName with the raw document name", async () => {
+      const document = {
+        s3Path: "s3/path/to/document",
+        name: 'DEMOS-892 (3) \\ / : * ? " < > |',
+      } as PrismaDocument;
+      mockS3Adapter.getDownloadFileName.mockResolvedValue("DEMOS-892 (3).docx");
+
+      const result = await documentResolvers.Document.downloadFileName(document);
+
+      expect(mockS3Adapter.getDownloadFileName).toHaveBeenCalledExactlyOnceWith(
+        document.s3Path,
+        document.name
+      );
+      expect(result).toBe("DEMOS-892 (3).docx");
     });
   });
 
