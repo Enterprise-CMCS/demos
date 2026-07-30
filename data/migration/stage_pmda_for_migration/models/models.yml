@@ -249,6 +249,9 @@ models:
       - name: _legacy_proj_ofcr_user_id
         data_type: integer
         description: The legacy user ID of the project officer; when null or 0, fall back to 828 (Liz Hill).
+      - name: _legacy_mdcd_demo_aplctn_id
+        data_type: integer
+        description: The legacy application ID of the demonstration in PMDA.
 
   - name: final_demos_app_person_state
     description: All cleaned person-state relations with state users and valid states
@@ -455,6 +458,16 @@ models:
         data_type: timestamptz
 
   # Cleaned Models
+  - name: cleaned_demos_app_demonstration_in_prog_demos
+    columns: 
+      - name: mdcd_demo_aplctn_id
+        data_type: integer
+        data_tests:
+          - relationships:
+              name: assert_mdcd_demo_aplctn_id_exists_in_apps_in_prog_phase_completion
+              arguments:
+                to: ref('apps_in_prog_phase_completion')
+                field: mdcd_demo_aplctn_id
   - name: cleaned_demos_app_demonstration_finalized_demos
     data_tests:
       - dbt_utils.expression_is_true:
@@ -474,6 +487,10 @@ models:
     columns:
       - name: application_id
         data_type: uuid
+        data_tests:
+          - not_null:
+              name: assert_id_not_null_in_cleaned_demos_app_app_phases_in_prog_demos
+
       - name: phase_id
         data_type: text
         data_tests:
@@ -515,6 +532,7 @@ models:
         data_type: timestamptz
 
   # Apps Models
+  
   - name: apps_in_prog_dates_crosswalked
     description: converts the dates stored in PMDA to applicable date types in DEMOS, extrapolating to phase start and end dates where needed.
 
@@ -560,6 +578,8 @@ models:
         data_tests:
           - unique:
               name: assert_active_in_prog_pmda_demos_have_unique_application_ids
+          - not_null:
+              name: assert_active_in_prog_pmda_demos_have_no_missing_mdcd_demo_aplctn_id
       - name: mdcd_chip_div_cd
         data_type: integer
         data_tests:

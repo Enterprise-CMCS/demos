@@ -16,7 +16,7 @@ WITH phase_status_unpivot AS (
             ('Approval Package', d.approval_package_phase_status),
             ('Approval Summary', d.approval_summary_phase_status)
         ) AS phases (phase_name, phase_status)
-    INNER JOIN {{ ref('cleaned_demos_app_demonstration_in_prog_demos') }} AS demos
+    LEFT JOIN {{ ref('cleaned_demos_app_demonstration_in_prog_demos') }} AS demos
         ON
             d.mdcd_demo_aplctn_id = demos.mdcd_demo_aplctn_id
 )

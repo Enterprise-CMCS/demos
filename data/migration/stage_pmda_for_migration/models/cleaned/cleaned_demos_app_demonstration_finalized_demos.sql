@@ -1,6 +1,5 @@
 SELECT
     gen_random_uuid() AS id,
-    NULL AS mdcd_demo_aplctn_id,
     application_type_id,
     name, -- noqa: RF04
     description,
@@ -18,7 +17,8 @@ SELECT
     coalesce(creatd_dt, current_timestamp) AS created_at,
     coalesce(updtd_dt, creatd_dt, current_timestamp) AS updated_at,
     mdcd_demo_id AS _legacy_mdcd_demo_id,
-    proj_ofcr_user_id AS _legacy_proj_ofcr_user_id
+    proj_ofcr_user_id AS _legacy_proj_ofcr_user_id,
+    NULL::INTEGER AS _legacy_mdcd_demo_aplctn_id
 FROM
     {{ ref('apps_unfiltered_staged_finalized_pmda_demos') }}
 WHERE
