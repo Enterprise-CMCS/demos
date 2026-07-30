@@ -32,6 +32,10 @@ vi.mock("../deliverableAction/queries", () => ({
   insertDeliverableAction: vi.fn(),
 }));
 
+vi.mock("../email", () => ({
+  dispatchDeliverableCreatedEmail: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient";
 import {
   parseCreateDeliverableInput,
@@ -41,6 +45,7 @@ import {
 } from ".";
 import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 import { insertDeliverableAction } from "../deliverableAction/queries";
+import { dispatchDeliverableCreatedEmail } from "../email";
 
 describe("createDeliverable", () => {
   // Test inputs
@@ -71,6 +76,7 @@ describe("createDeliverable", () => {
   const mockNewDeliverable: Partial<PrismaDeliverable> = {
     id: "2563ded3-b5c5-4d89-9ee4-0a9bc072e89e",
   };
+  const mockDeliverableActionId = "2a527c98-8227-46cd-884d-a73e72817d9c";
   // Mock transaction
   const mockTransaction: any = "Test!";
   const mockPrismaClient = {
@@ -82,6 +88,9 @@ describe("createDeliverable", () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(parseCreateDeliverableInput).mockReturnValue(mockParsedInput);
     vi.mocked(insertDeliverable).mockResolvedValue(mockNewDeliverable as PrismaDeliverable);
+    vi.mocked(insertDeliverableAction).mockResolvedValue({
+      id: mockDeliverableActionId,
+    } as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
@@ -171,5 +180,25 @@ describe("createDeliverable", () => {
       },
       mockTransaction
     );
+  });
+
+  it("should dispatch the created email after the transaction succeeds", async () => {
+    await createDeliverable(testInput, testContext as GraphQLContext);
+
+    expect(dispatchDeliverableCreatedEmail).toHaveBeenCalledExactlyOnceWith({
+      deliverableId: mockNewDeliverable.id,
+      sourceActionId: mockDeliverableActionId,
+      triggeredByUserId: testContext.user!.id,
+    });
+  });
+
+  it("should not dispatch the created email if the transaction fails", async () => {
+    mockPrismaClient.$transaction.mockRejectedValueOnce(new Error("transaction failed"));
+
+    await expect(
+      createDeliverable(testInput, testContext as GraphQLContext)
+    ).rejects.toThrow("transaction failed");
+
+    expect(dispatchDeliverableCreatedEmail).not.toHaveBeenCalled();
   });
 });

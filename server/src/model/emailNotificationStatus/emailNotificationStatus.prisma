@@ -1,0 +1,9 @@
+// Flags: STATIC_CONSTRAINT
+model EmailNotificationStatus {
+  id String
+
+  emailNotifications EmailNotification[]
+
+  @@id([id])
+  @@map("email_notification_status")
+}

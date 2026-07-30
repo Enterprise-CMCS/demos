@@ -11,6 +11,8 @@ import {
   DELIVERABLE_EXTENSION_REASON_CODES,
   DELIVERABLE_EXTENSION_STATUSES,
   DEMONSTRATION_TYPE_STATUSES,
+  EMAIL_NOTIFICATION_STATUSES,
+  EMAIL_NOTIFICATION_TYPES,
   GRANT_LEVELS,
   NOTE_TYPES,
   PERMISSIONS,
@@ -161,6 +163,8 @@ export type ExtensionSignatureLevel = (typeof SIGNATURE_LEVEL)[number];
 export type PhaseStatus = (typeof PHASE_STATUS)[number];
 export type PersonType = (typeof PERSON_TYPES)[number];
 export type UserType = (typeof USER_TYPES)[number];
+export type EmailNotificationType = (typeof EMAIL_NOTIFICATION_TYPES)[number];
+export type EmailNotificationStatus = (typeof EMAIL_NOTIFICATION_STATUSES)[number];
 export type GrantLevel = (typeof GRANT_LEVELS)[number];
 export type Role = (typeof ROLES)[number];
 export type NoteType = (typeof NOTE_TYPES)[number];

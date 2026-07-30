@@ -1,14 +1,8 @@
 import { GetQueueUrlCommand, SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
-import { PRIMARY_AWS_REGION } from "../constants";
+import { EMAIL_NOTIFICATION_TYPES, PRIMARY_AWS_REGION } from "../constants";
 import { log } from "../log";
 
-export const REALTIME_EMAIL_TYPES = [
-  "Deliverable Created",
-  "Deliverable Submitted",
-  "Deliverable Accepted",
-  "Deliverable Approved",
-  "Deliverable Received and Filed",
-] as const;
+export const REALTIME_EMAIL_TYPES = EMAIL_NOTIFICATION_TYPES;
 
 export type RealtimeEmailType = (typeof REALTIME_EMAIL_TYPES)[number];
 
@@ -68,6 +62,7 @@ export function buildRealtimeEmailEnvelope(input: {
   entityType: string;
   entityId: string;
   triggeredById: string;
+  idempotencyKey?: string;
   payload: RealtimeEmailEnvelope["payload"];
 }): RealtimeEmailEnvelope {
   if (!REALTIME_EMAIL_TYPES.includes(input.emailType as RealtimeEmailType)) {
@@ -83,7 +78,8 @@ export function buildRealtimeEmailEnvelope(input: {
       id: input.triggeredById,
     },
     triggeredAt: new Date().toISOString(),
-    idempotencyKey: `${input.emailType}:${input.entityType}:${input.entityId}`,
+    idempotencyKey:
+      input.idempotencyKey ?? `${input.emailType}:${input.entityType}:${input.entityId}`,
     payload: input.payload,
   };
 }

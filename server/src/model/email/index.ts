@@ -1,4 +1,7 @@
-export { dispatchDeliverableSubmittedEmail } from "./deliverableEmail";
+export {
+  dispatchDeliverableCreatedEmail,
+  dispatchDeliverableSubmittedEmail,
+} from "./deliverableEmail";
 export { createTestEmail } from "./createTestEmail";
 export { emailResolvers } from "./emailResolvers";
 export { emailSchema } from "./emailSchema";

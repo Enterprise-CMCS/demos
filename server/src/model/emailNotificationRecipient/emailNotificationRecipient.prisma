@@ -1,0 +1,17 @@
+// Flags: NO_UPDATED_TS, NO_HISTORY
+// Recipient rows are append-only audit snapshots and are never updated
+model EmailNotificationRecipient {
+  id                  String   @default(uuid()) @db.Uuid
+  emailNotificationId String   @map("email_notification_id") @db.Uuid
+  personId            String?  @map("person_id") @db.Uuid
+  emailAddress        String   @map("email_address")
+  normalizedEmail     String   @map("normalized_email")
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  emailNotification EmailNotification @relation(fields: [emailNotificationId], references: [id], onDelete: Restrict)
+  person            Person?           @relation(fields: [personId], references: [id], onDelete: Restrict)
+
+  @@id([id])
+  @@unique([emailNotificationId, normalizedEmail])
+  @@map("email_notification_recipient")
+}

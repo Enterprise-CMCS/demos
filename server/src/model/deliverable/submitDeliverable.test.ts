@@ -53,6 +53,7 @@ describe("submitDeliverable", () => {
     statusId: "Submitted",
     dueDate: new Date(2026, 9, 13, 4, 59, 59, 999),
   };
+  const mockDeliverableActionId = "2a527c98-8227-46cd-884d-a73e72817d9c";
 
   // Mock transaction
   const mockTransaction: any = "Test!";
@@ -67,6 +68,9 @@ describe("submitDeliverable", () => {
       mockUnsubmittedDeliverable as PrismaDeliverable
     );
     vi.mocked(editDeliverable).mockResolvedValue(mockSubmittedDeliverable as PrismaDeliverable);
+    vi.mocked(insertDeliverableAction).mockResolvedValue({
+      id: mockDeliverableActionId,
+    } as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
@@ -116,6 +120,7 @@ describe("submitDeliverable", () => {
 
     expect(dispatchDeliverableSubmittedEmail).toHaveBeenCalledExactlyOnceWith({
       deliverableId: testDeliverableId,
+      sourceActionId: mockDeliverableActionId,
       triggeredByUserId: testContext.user!.id,
     });
   });

@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { log } from "../../log";
 import { prisma } from "../../prismaClient";
+import { buildRealtimeEmailEnvelope } from "../../services/emailQueue";
+import { enqueueTrackedRealtimeEmail } from "./emailNotification";
 import {
-  buildRealtimeEmailEnvelope,
-  enqueueRealtimeEmail,
-} from "../../services/emailQueue";
-import { dispatchDeliverableSubmittedEmail } from "./deliverableEmail";
+  dispatchDeliverableCreatedEmail,
+  dispatchDeliverableSubmittedEmail,
+} from "./deliverableEmail";
 
 vi.mock("../../log", () => ({
   log: {
@@ -20,11 +21,15 @@ vi.mock("../../prismaClient", () => ({
 
 vi.mock("../../services/emailQueue", () => ({
   buildRealtimeEmailEnvelope: vi.fn(),
-  enqueueRealtimeEmail: vi.fn(),
 }));
 
-describe("dispatchDeliverableSubmittedEmail", () => {
+vi.mock("./emailNotification", () => ({
+  enqueueTrackedRealtimeEmail: vi.fn(),
+}));
+
+describe("deliverable email dispatch", () => {
   const findUniqueOrThrow = vi.fn();
+  const sourceActionId = "action-1";
   const deliverable = {
     id: "deliverable-1",
     name: "Quarterly Report",
@@ -43,6 +48,26 @@ describe("dispatchDeliverableSubmittedEmail", () => {
       id: "demonstration-1",
       name: "Example Demonstration",
       stateId: "MD",
+      demonstrationRoleAssignments: [
+        {
+          roleId: "Project Officer",
+          person: {
+            id: "cms-owner-1",
+            firstName: "CMS",
+            lastName: "Owner",
+            email: "CMS.Owner@example.com",
+          },
+        },
+        {
+          roleId: "DDME Analyst",
+          person: {
+            id: "cms-contact-1",
+            firstName: "CMS",
+            lastName: "Contact",
+            email: "cms.contact@example.com",
+          },
+        },
+      ],
     },
   };
   const envelope = {
@@ -62,12 +87,13 @@ describe("dispatchDeliverableSubmittedEmail", () => {
     } as any);
     findUniqueOrThrow.mockResolvedValue(deliverable);
     vi.mocked(buildRealtimeEmailEnvelope).mockReturnValue(envelope);
-    vi.mocked(enqueueRealtimeEmail).mockResolvedValue("message-1");
+    vi.mocked(enqueueTrackedRealtimeEmail).mockResolvedValue("message-1");
   });
 
-  it("sends submitted email to the CMS owner", async () => {
+  it("BCCs the CMS owner for a submitted deliverable", async () => {
     await dispatchDeliverableSubmittedEmail({
       deliverableId: deliverable.id,
+      sourceActionId,
       triggeredByUserId: "user-1",
     });
 
@@ -77,9 +103,11 @@ describe("dispatchDeliverableSubmittedEmail", () => {
         entityType: "deliverable",
         entityId: deliverable.id,
         triggeredById: "user-1",
+        idempotencyKey: `Deliverable Submitted:deliverable-action:${sourceActionId}`,
         payload: expect.objectContaining({
           recipients: {
-            to: [
+            to: [],
+            bcc: [
               {
                 name: "CMS Owner",
                 address: "cms.owner@example.com",
@@ -89,7 +117,160 @@ describe("dispatchDeliverableSubmittedEmail", () => {
         }),
       })
     );
-    expect(enqueueRealtimeEmail).toHaveBeenCalledExactlyOnceWith(envelope);
+    expect(enqueueTrackedRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
+      envelope,
+      sourceActionId,
+      [
+        {
+          personId: "cms-owner-1",
+          emailAddress: "cms.owner@example.com",
+        },
+      ]
+    );
+  });
+
+  it("BCCs the CMS owner and demonstration CMS contacts for a created deliverable", async () => {
+    await dispatchDeliverableCreatedEmail({
+      deliverableId: deliverable.id,
+      sourceActionId,
+      triggeredByUserId: "user-1",
+    });
+
+    expect(findUniqueOrThrow).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        where: { id: deliverable.id },
+        include: expect.objectContaining({
+          demonstration: {
+            include: {
+              demonstrationRoleAssignments: {
+                where: {
+                  roleId: {
+                    in: [
+                      "Project Officer",
+                      "DDME Analyst",
+                      "Policy Technical Director",
+                      "Monitoring & Evaluation Technical Director",
+                    ],
+                  },
+                },
+                include: { person: true },
+              },
+            },
+          },
+        }),
+      })
+    );
+    expect(buildRealtimeEmailEnvelope).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        emailType: "Deliverable Created",
+        entityType: "deliverable",
+        entityId: deliverable.id,
+        triggeredById: "user-1",
+        idempotencyKey: `Deliverable Created:deliverable-action:${sourceActionId}`,
+        payload: expect.objectContaining({
+          recipients: {
+            to: [],
+            bcc: [
+              {
+                name: "CMS Owner",
+                address: "cms.owner@example.com",
+              },
+              {
+                name: "CMS Contact",
+                address: "cms.contact@example.com",
+              },
+            ],
+          },
+        }),
+      })
+    );
+    expect(enqueueTrackedRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
+      envelope,
+      sourceActionId,
+      [
+        {
+          personId: "cms-owner-1",
+          emailAddress: "cms.owner@example.com",
+        },
+        {
+          personId: "cms-contact-1",
+          emailAddress: "cms.contact@example.com",
+        },
+      ]
+    );
+  });
+
+  it("logs created email failures without rejecting", async () => {
+    findUniqueOrThrow.mockRejectedValueOnce(new Error("database unavailable"));
+
+    await expect(
+      dispatchDeliverableCreatedEmail({
+        deliverableId: deliverable.id,
+        sourceActionId,
+        triggeredByUserId: "user-1",
+      })
+    ).resolves.toBeUndefined();
+
+    expect(log.error).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        error: expect.any(Error),
+        deliverableId: deliverable.id,
+        emailType: "Deliverable Created",
+      }),
+      "Failed to dispatch deliverable email"
+    );
+  });
+
+  it("logs created email queue failures without rejecting", async () => {
+    vi.mocked(enqueueTrackedRealtimeEmail).mockRejectedValueOnce(
+      new Error("queue unavailable")
+    );
+
+    await expect(
+      dispatchDeliverableCreatedEmail({
+        deliverableId: deliverable.id,
+        sourceActionId,
+        triggeredByUserId: "user-1",
+      })
+    ).resolves.toBeUndefined();
+
+    expect(log.error).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        error: expect.objectContaining({ message: "queue unavailable" }),
+        deliverableId: deliverable.id,
+        emailType: "Deliverable Created",
+      }),
+      "Failed to dispatch deliverable email"
+    );
+  });
+
+  it("logs missing created email recipient addresses without queueing", async () => {
+    findUniqueOrThrow.mockResolvedValueOnce({
+      ...deliverable,
+      cmsOwner: {
+        person: {
+          ...deliverable.cmsOwner.person,
+          email: " ",
+        },
+      },
+    });
+
+    await dispatchDeliverableCreatedEmail({
+      deliverableId: deliverable.id,
+      sourceActionId,
+      triggeredByUserId: "user-1",
+    });
+
+    expect(enqueueTrackedRealtimeEmail).not.toHaveBeenCalled();
+    expect(log.error).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        error: expect.objectContaining({
+          message: expect.stringContaining("person cms-owner-1 has no email address"),
+        }),
+        emailType: "Deliverable Created",
+      }),
+      "Failed to dispatch deliverable email"
+    );
   });
 
   it("logs dispatch failures with deliverable context", async () => {
@@ -98,6 +279,7 @@ describe("dispatchDeliverableSubmittedEmail", () => {
     await expect(
       dispatchDeliverableSubmittedEmail({
         deliverableId: deliverable.id,
+        sourceActionId,
         triggeredByUserId: "user-1",
       })
     ).resolves.toBeUndefined();

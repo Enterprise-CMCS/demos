@@ -69,6 +69,23 @@ describe("emailQueue", () => {
     ).toThrow("Unsupported realtime email type: Unknown Email");
   });
 
+  it("uses an explicit idempotency key", async () => {
+    const { buildRealtimeEmailEnvelope } = await loadModule();
+
+    const out = buildRealtimeEmailEnvelope({
+      emailType: "Deliverable Created",
+      entityType: "deliverable",
+      entityId: "del-123",
+      triggeredById: "user-123",
+      idempotencyKey: "Deliverable Created:deliverable-action:action-123",
+      payload: {},
+    });
+
+    expect(out.idempotencyKey).toBe(
+      "Deliverable Created:deliverable-action:action-123"
+    );
+  });
+
   it("enqueues message and returns message id", async () => {
     process.env.EMAILER_QUEUE_URL = "http://example.com/emailer-queue";
     sendMock.mockResolvedValue({ MessageId: "msg-1" });
