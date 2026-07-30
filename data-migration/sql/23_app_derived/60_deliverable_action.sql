@@ -22,22 +22,41 @@
  * into upload sessions by stg.deliverable_submission_batch, it yields one
  * submission per session with a real timestamp and a real actor. It beats
  * mdcd_dlvrbl_stus_hstry on both counts: user_id is NOT NULL and 100% of
- * in-scope live uploaders resolve to a migrated DEMOS user, against 84.0% actor
- * coverage on the status log; and the status log is 20-41% missing outright for
- * deliverables created before 2021.
+ * in-scope live uploaders resolve to a migrated DEMOS user, against 84.1% actor
+ * coverage on the status log; and on 22.0% of deliverables with state uploads
+ * (1,167 of 5,296) the log records fewer submissions than the file trail, a gap
+ * that runs 20-29% in every year from 2016 to 2026.
+ *
+ * That gap is a shortfall in what the log RECORDS, not in whether a row exists:
+ * deliverables with no status row at all peak at 14.1% in 2016 and sit under
+ * 3% everywhere else. An earlier revision of this header claimed the log was
+ * "20-41% missing outright before 2021"; that does not reproduce under any
+ * reading and has been withdrawn. The genuine pre-2019 defect is a different
+ * one -- creatd_dt carries no time of day -- and is described in
+ * stg.deliverable_submission_batch.
  *
  * Only cmt_orgn_cd = 'S' (state upload) becomes a submission. 'C' is a
  * CMS attachment and must carry a NULL submission link
  * (no_submitted_deliverable_cms_files); it is excluded here.
  *
- * Three populations, resolved into migration._deliverable_submission_event:
+ * Four populations, resolved into migration._deliverable_submission_event:
  *
  *   file_batch    the deliverable has state upload sessions -> one real
  *                 submission per session, real timestamp, real uploader.
- *                 5,223 deliverables / 7,478 submissions.
+ *                 5,276 deliverables / 7,225 submissions. Sessions flagged
+ *                 after_accepted_ind are excluded: a late addition to a closed
+ *                 deliverable is not evidence it was submitted. That drops 320
+ *                 sessions and costs no deliverable its entire evidence -- the
+ *                 deliverable count is 5,276 with or without the filter.
  *   status_event  no uploads survive, but the source does carry a real
  *                 'Submitted' status event -> keep ONE synthetic hop, exactly
  *                 as before this loader consumed batches. 7 deliverables.
+ *   status_field  no uploads and no event, but the deliverable's own status IS
+ *                 'Submitted', so the submission is the chain's terminal hop ->
+ *                 keep ONE hop carrying submitted_at = NULL. The status field
+ *                 is source data and it attests the submission; what no source
+ *                 attests is WHEN, so no timestamp is invented. 0 deliverables
+ *                 today, and it is the reason the row below is safe.
  *   (suppressed)  no uploads and no submitted event -> emit NO submission hop.
  *                 6 deliverables. Previously these were handed a fabricated
  *                 `Submitted Deliverable` action purely because their terminal
