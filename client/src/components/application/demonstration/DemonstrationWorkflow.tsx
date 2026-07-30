@@ -3,7 +3,7 @@ import { PhaseSelector } from "components/application/phase-selector/PhaseSelect
 import { ApplicationStatusBadge } from "components/badge/ApplicationStatusBadge";
 import type { Demonstration, Person, State, DemonstrationTypeAssignment } from "demos-server";
 import { gql, useQuery } from "@apollo/client";
-import { Loading } from "components/loading/Loading";
+import { Loading } from "components/loading";
 import { WorkflowApplication } from "components/application";
 import { WORKFLOW_PHASE_FIELDS, WORKFLOW_DOCUMENT_FIELDS } from "fragments";
 

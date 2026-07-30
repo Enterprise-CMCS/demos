@@ -8,8 +8,8 @@ import { MockedProvider, MockedProviderProps } from "@apollo/client/testing";
 import { GraphQLError } from "graphql";
 import { MemoryRouter } from "react-router-dom";
 import { CurrentUser } from "components/user/UserContext";
-import { TestUserProvider } from "components/user/UserProvider";
 import { developmentMockUser } from "mock-data/userMocks";
+import { TestUserProvider } from "test-utils/TestUserProvider";
 
 vi.mock("components/toast/ToastContext", () => ({
   useToast: () => ({

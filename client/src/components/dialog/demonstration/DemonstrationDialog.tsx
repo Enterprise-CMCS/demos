@@ -14,7 +14,7 @@ import { isBefore } from "date-fns";
 import { Input } from "components/input/Input";
 import { STATES_AND_TERRITORIES } from "demos-server-constants";
 import { Button } from "components/button";
-import { Spinner } from "components/loading/Spinner";
+import { Spinner } from "components/loading";
 
 export const DEMONSTRATION_DIALOG_DESCRIPTION_NAME = "textarea-demonstration-description";
 export const SUBMIT_BUTTON_NAME = "button-submit-demonstration-dialog";

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Loading } from "components/loading/Loading";
+import { Loading } from "components/loading";
 import { useToast } from "components/toast";
 import {
   Demonstration as ServerDemonstration,
