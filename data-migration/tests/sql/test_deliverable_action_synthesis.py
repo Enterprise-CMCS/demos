@@ -68,6 +68,7 @@ D_CMS_ONLY = uuid.UUID(int=0x311)    # only a CMS attachment -> no submission
 D_BARE = uuid.UUID(int=0x312)        # no upload, no submitted event -> no submission
 D_HSTRY = uuid.UUID(int=0x313)       # no upload but a real Submitted event -> one hop
 D_GHOST = uuid.UUID(int=0x314)       # uploader absent from users -> falls back to owner
+D_AFTER_ACPT = uuid.UUID(int=0x315)  # upload flagged after-accepted -> no submission
 
 UPLOADER = uuid.UUID(int=0xB1)
 GHOST_UPLOADER = uuid.UUID(int=0xB2)  # deliberately never inserted into users
@@ -210,6 +211,7 @@ def _provision(conn: Any, *, with_batches: bool = False) -> None:
         rows.append((D_BARE, "Accepted", CREATED, UPDATED, 95))
         rows.append((D_HSTRY, "Accepted", CREATED, UPDATED, 96))
         rows.append((D_GHOST, "Accepted", CREATED, UPDATED, 97))
+        rows.append((D_AFTER_ACPT, "Accepted", CREATED, UPDATED, 98))
 
     conn.execute("INSERT INTO demos_app.demonstration (id, name) VALUES (%s, 'Demo')", (OWNER,))
     for did, status, created, updated, legacy in rows:
@@ -258,19 +260,23 @@ def _provision_submission_evidence(conn: Any) -> None:
         " deliverable_id uuid NOT NULL, legacy_dlvrbl_id bigint NOT NULL,"
         " origin_cd text NOT NULL, batch_seq integer NOT NULL,"
         " anchor_fil_doc_id bigint NOT NULL, uploader_user_id uuid,"
-        " submitted_at timestamptz NOT NULL)"
+        " after_accepted_ind smallint NOT NULL, submitted_at timestamptz NOT NULL)"
     )
     batches = [
-        (D_MULTI, 93, "S", i + 1, 9300 + i, UPLOADER, ts) for i, ts in enumerate(BATCH_TS)
+        (D_MULTI, 93, "S", i + 1, 9300 + i, UPLOADER, 0, ts) for i, ts in enumerate(BATCH_TS)
     ]
     # A CMS attachment is not a state submission; it must not mint a hop.
-    batches.append((D_CMS_ONLY, 94, "C", 1, 9400, UPLOADER, BATCH_TS[0]))
-    batches.append((D_GHOST, 97, "S", 1, 9700, GHOST_UPLOADER, BATCH_TS[0]))
+    batches.append((D_CMS_ONLY, 94, "C", 1, 9400, UPLOADER, 0, BATCH_TS[0]))
+    batches.append((D_GHOST, 97, "S", 1, 9700, GHOST_UPLOADER, 0, BATCH_TS[0]))
+    # A state upload the source flags as arriving after acceptance. It is a
+    # later addition to a closed deliverable, not a submission of it.
+    batches.append((D_AFTER_ACPT, 98, "S", 1, 9800, UPLOADER, 1, BATCH_TS[0]))
     for row in batches:
         conn.execute(
             "INSERT INTO stg.deliverable_submission_batch (deliverable_id, legacy_dlvrbl_id,"
-            " origin_cd, batch_seq, anchor_fil_doc_id, uploader_user_id, submitted_at)"
-            " VALUES (%s, %s, %s, %s, %s, %s, %s)",
+            " origin_cd, batch_seq, anchor_fil_doc_id, uploader_user_id,"
+            " after_accepted_ind, submitted_at)"
+            " VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
             row,
         )
     conn.execute(
@@ -667,6 +673,48 @@ def test_a_cms_attachment_does_not_mint_a_submission(pg_db: psycopg.Connection) 
             (D_CMS_ONLY,),
         )
         == 0
+    )
+
+
+def test_an_after_accepted_upload_does_not_mint_a_submission(
+    pg_db: psycopg.Connection,
+) -> None:
+    """upld_aftr_acptd_ind = 1 is a late addition, not a submission.
+
+    The source flags these itself: the file arrived after the deliverable was
+    already accepted, so it cannot be evidence that the deliverable was
+    submitted. Live, 320 batches carry the flag and every one of them was
+    minting a spurious `Submitted Deliverable`.
+    """
+    _provision(pg_db, with_batches=True)
+    assert (
+        _scalar(
+            pg_db,
+            "SELECT count(*) FROM demos_app.deliverable_action"
+            " WHERE deliverable_id = %s AND action_type_id = 'Submitted Deliverable'",
+            (D_AFTER_ACPT,),
+        )
+        == 0
+    )
+
+
+def test_a_normal_state_upload_still_mints_a_submission(
+    pg_db: psycopg.Connection,
+) -> None:
+    """Regression guard on the after-accepted filter.
+
+    Excluding the flagged batches must not be implemented as something that also
+    drops the ordinary ones; D_GHOST has a single unflagged state upload.
+    """
+    _provision(pg_db, with_batches=True)
+    assert (
+        _scalar(
+            pg_db,
+            "SELECT count(*) FROM demos_app.deliverable_action"
+            " WHERE deliverable_id = %s AND action_type_id = 'Submitted Deliverable'",
+            (D_GHOST,),
+        )
+        == 1
     )
 
 

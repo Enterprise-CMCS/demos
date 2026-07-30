@@ -216,7 +216,7 @@ def _provision_loader(conn: Any) -> None:
         " deliverable_id uuid NOT NULL, legacy_dlvrbl_id bigint NOT NULL,"
         " origin_cd text NOT NULL, batch_seq integer NOT NULL,"
         " anchor_fil_doc_id bigint NOT NULL, uploader_user_id uuid,"
-        " submitted_at timestamptz NOT NULL)"
+        " after_accepted_ind smallint NOT NULL, submitted_at timestamptz NOT NULL)"
     )
     conn.execute("INSERT INTO demos_app.demonstration (id, name) VALUES (%s, 'Demo')", (OWNER,))
 
@@ -239,16 +239,18 @@ def _provision_loader(conn: Any) -> None:
     # matching how 39_deliverable_submission_batch.sql emits submitted_at.
     conn.execute(
         "INSERT INTO stg.deliverable_submission_batch (deliverable_id, legacy_dlvrbl_id,"
-        " origin_cd, batch_seq, anchor_fil_doc_id, uploader_user_id, submitted_at)"
-        " VALUES (%s, %s, 'S', 1, 4010, %s, %s)",
+        " origin_cd, batch_seq, anchor_fil_doc_id, uploader_user_id,"
+        " after_accepted_ind, submitted_at)"
+        " VALUES (%s, %s, 'S', 1, 4010, %s, 0, %s)",
         (D_TWO_WINDOWS, LEGACY[D_TWO_WINDOWS], UPLOADER,
          dt.datetime(2024, 2, 1, 10, 0, tzinfo=dt.UTC)),
     )
     # A submission for a deliverable with no history at all.
     conn.execute(
         "INSERT INTO stg.deliverable_submission_batch (deliverable_id, legacy_dlvrbl_id,"
-        " origin_cd, batch_seq, anchor_fil_doc_id, uploader_user_id, submitted_at)"
-        " VALUES (%s, %s, 'S', 1, 4020, %s, %s)",
+        " origin_cd, batch_seq, anchor_fil_doc_id, uploader_user_id,"
+        " after_accepted_ind, submitted_at)"
+        " VALUES (%s, %s, 'S', 1, 4020, %s, 0, %s)",
         (D_NO_HISTORY, LEGACY[D_NO_HISTORY], UPLOADER,
          dt.datetime(2024, 2, 1, 10, 0, tzinfo=dt.UTC)),
     )

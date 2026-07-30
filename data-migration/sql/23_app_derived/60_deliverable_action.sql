@@ -190,6 +190,10 @@ BEGIN
         LEFT JOIN demos_app.users u ON u.id = b.uploader_user_id
       WHERE
         b.origin_cd = 'S'
+        -- The source flags uploads that arrived after the deliverable was
+        -- already accepted. A late addition to a closed deliverable is not
+        -- evidence that it was submitted, so it mints no hop.
+        AND b.after_accepted_ind = 0
     $q$;
     IF hstry_available THEN
       -- No surviving uploads, but the source does record a real submission.
