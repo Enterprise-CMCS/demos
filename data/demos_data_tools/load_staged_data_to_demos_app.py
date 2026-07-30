@@ -290,6 +290,10 @@ MIGRATION_CONFIGURATION: MigrationConfiguration = (
         "Run due date calculation",
         f"CALL postgres_execute('{DEMOS_DDB_ATTACH_NAME}', 'CALL {APP_SCHEMA}.mark_deliverables_as_past_due()')",
     ),
+    ArbitraryActionSql(
+        "Run phase status update for Federal Comment Period",
+        f"CALL postgres_execute('{DEMOS_DDB_ATTACH_NAME}', 'CALL {APP_SCHEMA}.update_federal_comment_phase_status()')",
+    ),
 )
 
 

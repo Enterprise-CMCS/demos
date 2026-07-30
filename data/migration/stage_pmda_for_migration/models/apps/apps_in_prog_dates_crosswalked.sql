@@ -16,6 +16,10 @@ SELECT
     (CASE
         WHEN apps.phase_2_rcvd_dt IS NOT NULL
             THEN (apps.phase_2_rcvd_dt - INTERVAL '1 day')
+        WHEN
+            apps.phase_2_rcvd_dt IS NOT NULL
+            OR apps.phase_2_cmpltns_rvw_dt IS NOT NULL
+            THEN (apps.creatd_dt AT TIME ZONE 'America/New_York')::DATE
     END + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS application_intake_start_date,
     (apps.phase_2_rcvd_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS state_application_submitted_date,
     (apps.phase_2_cmpltns_rvw_dt + TIME '23:59:59.999') AT TIME ZONE 'America/New_York'
@@ -27,6 +31,11 @@ SELECT
     (CASE
         WHEN apps.phase_2_cmpltns_rvw_dt IS NOT NULL
             THEN (apps.phase_2_cmpltns_rvw_dt + INTERVAL '1 day')
+        WHEN
+            apps.phase_2_state_aplctn_deemd_cmpltn_dt IS NOT NULL
+            OR apps.phase_2_fed_cmt_prd_strt_dt IS NOT NULL
+            OR apps.phase_2_fed_cmt_prd_end_dt IS NOT NULL
+            THEN (apps.creatd_dt AT TIME ZONE 'America/New_York')::DATE
     END + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS completeness_start_date,
     (apps.phase_2_state_aplctn_deemd_cmpltn_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York'
         AS state_application_deemed_complete,
@@ -43,6 +52,11 @@ SELECT
     (CASE
         WHEN apps.phase_2_fed_cmt_prd_end_dt IS NOT NULL
             THEN (apps.phase_2_fed_cmt_prd_end_dt + INTERVAL '1 day')
+        WHEN
+            apps.phase_3_a_sme_strt_dt IS NOT NULL
+            OR apps.phase_3_a_frvt_strt_dt IS NOT NULL
+            OR apps.phase_2_dsrd_aprvl_dt IS NOT NULL
+            THEN (apps.creatd_dt AT TIME ZONE 'America/New_York')::DATE
     END + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS sdg_preparation_start_date,
     (apps.phase_2_dsrd_aprvl_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS expected_approval_date,
     (apps.phase_3_a_sme_strt_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS sme_initial_review_date,
@@ -51,11 +65,21 @@ SELECT
     AT TIME ZONE 'America/New_York' AS sdg_preparation_completion_date,
 
     -- Review Phase
-    (least(
-        apps.phase_3_c_ogc_strt_dt,
-        apps.phase_3_c_omb_strt_dt,
-        apps.phase_5_strt_dt
-    ) + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS review_start_date,
+    (CASE
+        WHEN
+            apps.phase_3_c_ogc_strt_dt IS NOT NULL
+            OR apps.phase_3_c_omb_strt_dt IS NOT NULL
+            OR apps.phase_5_strt_dt IS NOT NULL
+            THEN least(apps.phase_3_c_ogc_strt_dt, apps.phase_3_c_omb_strt_dt, apps.phase_5_strt_dt)
+        WHEN
+            apps.phase_3_c_ogc_strt_dt IS NOT NULL
+            OR apps.phase_3_c_omb_strt_dt IS NOT NULL
+            OR apps.phase_5_strt_dt IS NOT NULL
+            OR apps.phase_5_end_dt IS NOT NULL
+            OR apps.phase_6_strt_dt IS NOT NULL
+            OR apps.phase_6_end_dt IS NOT NULL
+            THEN (apps.creatd_dt AT TIME ZONE 'America/New_York')::DATE
+    END + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS review_start_date,
     (apps.phase_3_c_ogc_strt_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS receive_ogc_legal_clearance,
     (apps.phase_3_c_omb_strt_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS receive_omb_concurrence,
     (apps.phase_5_strt_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York'
@@ -72,7 +96,4 @@ SELECT
     (apps.phase_4_strt_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS approval_package_start_date,
     (apps.phase_4_end_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS approval_package_completion_date
 
-FROM {{ ref('apps_active_in_prog_pmda_demos') }} AS apps
-WHERE
-    apps.mdcd_pendg_demo_id NOT IN
-    (SELECT e1.mdcd_pendg_demo_id FROM {{ ref('errors_apps_in_prog_missing_aplctn') }} AS e1)
+FROM {{ ref('cleaned_demos_app_demonstration_in_prog_demos') }} AS apps

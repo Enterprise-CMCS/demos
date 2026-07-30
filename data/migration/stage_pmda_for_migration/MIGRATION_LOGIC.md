@@ -116,38 +116,50 @@ All timestamps are converted to `America/New_York` timezone during migration.
 
 ##### Concept Phase
 
-- **Concept Start Date**: Directly mapped from PMDA `phase_1_strt_dt`, with fallback to application created date (`creatd_dt`) when phase start date is NULL
+- **Concept Start Date**: Directly mapped from PMDA `phase_1_strt_dt`, with fallback to application created date (`creatd_dt`) converted to Eastern date when `phase_1_strt_dt` is NULL
 - **Concept Paper Submitted Date**: ❌ Excluded - No equivalent field in PMDA (may be derived later from document metadata if available)
-- **Concept Completion Date**: Directly mapped from PMDA `phase_1_end_dt`
-- **Concept Skipped Date**: Derived date set to one day before State Application Submitted Date when the Concept phase was not completed (indicates the concept phase was skipped)
+- **Concept Completion Date**: Directly mapped from PMDA `phase_1_end_dt`. Must be mutually exclusive to Concept Skipped Date.
+- **Concept Skipped Date**: Conditionally derived as one day before State Application Submitted Date **only when** `phase_1_end_dt` is NULL AND `phase_2_rcvd_dt` is NOT NULL (indicates the concept phase was skipped). Must be mutually exclusive to Concept Completion Date.
 
 ##### Application Intake Phase
 
-- **Application Intake Start Date**: Derived date set to one day before the State Application Submitted Date
+- **Application Intake Start Date**:
+  - **Primary Derivation**: One day before State Application Submitted Date when available
+  - **Fallback Derivation**: Application created date (`creatd_dt`) when primary derivation is not available but the phase has other dates
+  - **Otherwise**: NULL
 - **State Application Submitted Date**: Directly mapped from PMDA `phase_2_rcvd_dt`
 - **Completeness Review Due Date**: Directly mapped from PMDA `phase_2_cmpltns_rvw_dt` (End of Day timestamp: 23:59:59.999)
-- **Application Intake Completion Date**: Directly mapped from PMDA `phase_2_cmpltns_rvw_dt`
+- **Application Intake Completion Date**: Directly mapped from PMDA `phase_2_cmpltns_rvw_dt` (same source as Completeness Review Due Date, Start of Day timestamp)
 
 ##### Completeness Phase
 
-- **Completeness Start Date**: Derived date set to one day after the Completeness Review Due Date (Application Intake Completion Date)
+- **Completeness Start Date**:
+  - **Primary Derivation**: One day after Completeness Review Due Date when available
+  - **Fallback Derivation**: Application created date (`creatd_dt`) when primary derivation is not available but the phase has other dates
+  - **Otherwise**: NULL
 - **State Application Deemed Complete**: Directly mapped from PMDA `phase_2_state_aplctn_deemd_cmpltn_dt`
 - **Federal Comment Period Start Date**: Directly mapped from PMDA `phase_2_fed_cmt_prd_strt_dt`
 - **Federal Comment Period End Date**: Directly mapped from PMDA `phase_2_fed_cmt_prd_end_dt` (End of Day timestamp: 23:59:59.999)
-- **Completeness Completion Date**: Derived date set to one day before the Federal Comment Period Start Date
+- **Completeness Completion Date**: Conditionally derived as one day before Federal Comment Period Start Date **only when** `phase_2_fed_cmt_prd_strt_dt` is NOT NULL
 
 ##### SDG Preparation Phase
 
-- **SDG Preparation Start Date**: Derived date set to one day after the Federal Comment Period End Date
+- **SDG Preparation Start Date**:
+  - **Primary Derivation**: One day after Federal Comment Period End Date when available
+  - **Fallback Derivation**: Application created date (`creatd_dt`) when primary derivation is not available but the phase has other dates
+  - **Otherwise**: NULL
 - **Expected Approval Date**: Directly mapped from PMDA `phase_2_dsrd_aprvl_dt`
 - **SME Initial Review Date**: Directly mapped from PMDA `phase_3_a_sme_strt_dt`
 - **FRT Initial Meeting Date**: Directly mapped from PMDA `phase_3_a_frvt_strt_dt`
 - **BNPMT Initial Meeting Date**: ❌ Excluded - No equivalent field in PMDA
-- **SDG Preparation Completion Date**: Derived as the later of SME Initial Review Date or FRT Initial Meeting Date
+- **SDG Preparation Completion Date**: Conditionally derived as the later (GREATEST) of SME Initial Review Date or FRT Initial Meeting Date **only when** at least one of these dates is NOT NULL
 
 ##### Review Phase
 
-- **Review Start Date**: Derived as the earliest of Receive OGC Legal Clearance, Receive OMB Concurrence, or Submit Approval Package to OSORA dates
+- **Review Start Date**:
+  - **Primary Derivation**: Earliest (LEAST) of Receive OGC Legal Clearance, Receive OMB Concurrence, or Submit Approval Package to OSORA when at least one is available
+  - **Fallback Derivation**: Application created date (`creatd_dt`) when primary derivation is not available but the phase has other dates
+  - **Otherwise**: NULL
 - **OGD Approval to Share with SMEs**: ❌ Excluded - No equivalent field in PMDA
 - **Draft Approval Package to Prep**: ❌ Excluded - No equivalent field in PMDA
 - **DDME Approval Received**: ❌ Excluded - No equivalent field in PMDA
@@ -162,7 +174,7 @@ All timestamps are converted to `America/New_York` timezone during migration.
 - **CMS (OSORA) Clearance End**: Directly mapped from PMDA `phase_5_end_dt` (End of Day timestamp: 23:59:59.999)
 - **Package Sent for COMMs Clearance**: Directly mapped from PMDA `phase_6_strt_dt`
 - **COMMs Clearance Received**: Directly mapped from PMDA `phase_6_end_dt`
-- **Review Completion Date**: Derived as the later of CMS (OSORA) Clearance End or COMMs Clearance Received dates
+- **Review Completion Date**: Conditionally derived as the later (GREATEST) of CMS (OSORA) Clearance End or COMMs Clearance Received dates **only when** at least one of these dates is NOT NULL
 
 ##### Approval Package Phase
 
@@ -221,10 +233,11 @@ The Concept phase is always at least "Started" (since all in-progress demos must
 
 ###### Federal Comment Period
 
-This is tracked as a separate status (though it overlaps with Completeness phase):
+This is tracked as a separate status (though it overlaps with Completeness phase). The migration logic hardcodes this status to **'Not Started'** and relies on the stored procedure `update_federal_comment_phase_status()` to calculate the actual status based on date ranges after migration completes.
 
-- **Completed**: If `cleaned_federal_comment_period_end_date` is NOT NULL
-- **Not Started**: Otherwise
+- **During Migration**: Always set to 'Not Started'
+- **Post-Migration**: Status set to 'Completed' by `demos_app.update_federal_comment_phase_status()` stored procedure (runs via cron schedule) when Federal Comment Period dates exist, because all Federal Comment Period dates in PMDA are historical (already ended)
+- **Never 'Started'**: This phase is never in 'Started' status because migrated data is never within an active comment period
 
 ###### SDG Preparation Phase
 
@@ -253,24 +266,20 @@ This phase is always set to **"Not Started"** for all in-progress demonstrations
 
 ##### Current Phase Determination
 
-The current phase is determined by evaluating phase statuses in order and selecting the **first phase that is not yet completed**. The logic checks:
+The current phase is determined by evaluating phase statuses in order and selecting the **first phase that has not yet been completed**. The logic explicitly checks for incomplete statuses:
 
-1. **Concept**: Current if the phase status is not 'Completed' AND not 'Skipped' AND `application_intake_start_date` is NULL
-2. **Application Intake**: Current if the Application Intake phase status is not 'Completed'
-3. **Completeness**: Current if the Completeness phase status is not 'Completed'
-4. **Federal Comment**: Current if the Federal Comment Period phase status is not 'Completed'
-5. **SDG Preparation**: Default for all other cases
+1. **Concept**: Current if the phase status is 'Started' AND Application Intake phase status is 'Not Started'
+2. **Application Intake**: Current if the phase status is 'Not Started' OR 'Started'
+3. **Completeness**: Current if the phase status is 'Not Started' OR 'Started'
+4. **SDG Preparation**: Default for all other cases (when Completeness is completed)
 
-Note: The current phase logic does not evaluate beyond SDG Preparation phase as requisite dates for completing the SDG Preparation phase do not exist so demonstrations can not have progressed further than that.  
+**Note on Federal Comment Period:** The Federal Comment Period is not evaluated in current_phase_id logic because migrated data is never within an active comment period. When Federal Comment Period dates exist in PMDA, they represent periods that have already ended, so the phase is always completed (never current).
 
-### OUTSTANDING TODO
-- Refactor phase completion logic to break up into multiple CTEs. Because the phase status should cascade depending on the status of the previous phase, the clearest way to represent this using DBT is a series of 7 CTEs, each representing its own phase. (priority 1)
-- in apps_in_prog_phase_completion we are checking against the application_intake_start_date to determine if the concept start date has been skipped. Instead, we should check against the status of the application intake start date. 
-- when initializing the federal comment period status, we should load it in as "Not Started" then rely on the existing stored procedure to update the phase status according to the its own rules. 
-- we should add a test to ensure that the concept phase's skipped or completed dates are mutually exclusive to eachother
-- we should rewire the inclusion of the current_phase_id to a new model between the Cleaned demonstration and the final demonstration tables, so clean up the existing final demonstration table which currently includes that join. We should strive to keep that table as clean as possible, relying primerily on selects and unions. 
-- in cleaned_demos_app_app_phases_in_prog_demos, we have an inner join that may silently filter. We should replace it with an left join and add a corresponding test for nullness
-- we can replace the apps_in_prog_missing_aplctn test with an inline test in the models.yaml since it is simple enough and concentrates the check back to the main configuration. 
+**Phase Progression Limit:**
+The current phase logic does not evaluate beyond SDG Preparation phase as requisite dates for completing the SDG Preparation phase do not exist in PMDA, so demonstrations cannot have progressed further than that phase.
+
+## Outstanding Todo:
+- integrate the Concept Paper Submitted Date into date crosswalk when we have documents migrated. 
 
 # Deliverables
 
