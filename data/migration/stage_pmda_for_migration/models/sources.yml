@@ -2124,6 +2124,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_demo
+        config:
+          tags: ['source_in_use']
         columns:
           - name: mdcd_demo_id
             data_type: integer
@@ -2313,6 +2315,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_demo_aplctn
+        config:
+          tags: ['source_in_use']
         columns:
           - name: mdcd_demo_aplctn_id
             data_type: integer
@@ -2615,6 +2619,8 @@ sources:
             data_type: smallint
 
       - name: mdcd_demo_aplctn_stus_rfrnc
+        config:
+          tags: ['source_in_use']
         columns:
           - name: mdcd_demo_aplctn_stus_cd
             data_type: integer
@@ -3342,6 +3348,8 @@ sources:
             data_type: date
 
       - name: mdcd_demo_stus_rfrnc
+        config:
+          tags: ['source_in_use']
         columns:
           - name: mdcd_demo_stus_cd
             data_type: integer
@@ -6776,6 +6784,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_demo
+        config:
+          tags: ['source_in_use']
         columns:
           - name: mdcd_pendg_demo_id
             data_type: integer
@@ -12075,6 +12085,8 @@ sources:
             data_type: smallint
 
       - name: role_rfrnc
+        config:
+          tags: ['source_in_use']
         columns:
           - name: role_cd
             data_type: integer
@@ -12370,6 +12382,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: user_authrzd_state_acs
+        config:
+          tags: ['source_in_use']
         columns:
           - name: user_id
             data_type: integer
@@ -12397,6 +12411,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: user_role_asgnmt
+        config:
+          tags: ['source_in_use']
         columns:
           - name: user_id
             data_type: integer
@@ -12420,6 +12436,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: users
+        config:
+          tags: ['source_in_use']
         columns:
           - name: id
             data_type: integer
@@ -13946,11 +13964,15 @@ sources:
             data_type: text
 
       - name: person_type
+        config:
+          tags: ['source_in_use']
         columns:
           - name: id
             data_type: text
 
       - name: phase
+        config:
+          tags: ['source_in_use']
         columns:
           - name: id
             data_type: text
@@ -14272,6 +14294,8 @@ sources:
             data_type: text
 
       - name: role
+        config:
+          tags: ['source_in_use']
         columns:
           - name: id
             data_type: text
@@ -14320,6 +14344,8 @@ sources:
             data_type: text
 
       - name: state
+        config:
+          tags: ['source_in_use']
         columns:
           - name: id
             data_type: text
@@ -14550,6 +14576,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: user_person_type_limit
+        config:
+          tags: ['source_in_use']
         columns:
           - name: id
             data_type: text

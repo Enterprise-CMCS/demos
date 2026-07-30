@@ -211,7 +211,6 @@ describe("Demonstrations", () => {
   let user: ReturnType<typeof userEvent.setup>;
 
   beforeEach(() => {
-    localStorage.removeItem("keyword-search");
     user = userEvent.setup();
   });
 
@@ -232,7 +231,6 @@ describe("Demonstrations", () => {
 
   describe("Table rendering", () => {
     beforeEach(async () => {
-      localStorage.removeItem("keyword-search");
       renderDemonstrations();
       await waitForTableData();
     });
@@ -304,7 +302,6 @@ describe("Demonstrations", () => {
 
   describe("Table features", () => {
     beforeEach(async () => {
-      localStorage.removeItem("keyword-search");
       renderDemonstrations();
       await waitForTableData();
     });
@@ -390,7 +387,6 @@ describe("Demonstrations", () => {
   });
   describe("Applications column", () => {
     beforeEach(async () => {
-      localStorage.removeItem("keyword-search");
       renderDemonstrations();
       await waitForTableData();
     });
@@ -425,7 +421,6 @@ describe("Demonstrations", () => {
 
   describe("Nested view and row expansion for amendments and extensions", () => {
     beforeEach(async () => {
-      localStorage.removeItem("keyword-search");
       renderDemonstrations();
       await waitForTableData();
     });

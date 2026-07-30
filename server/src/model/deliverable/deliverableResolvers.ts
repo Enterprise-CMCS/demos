@@ -25,7 +25,6 @@ import {
   getDeliverable,
   getManyDeliverables,
   selectDeliverable,
-  selectManyDeliverables,
   selectDeliverableOrThrow,
 } from ".";
 import {
@@ -44,15 +43,7 @@ import {
   TagStatus,
   UpdateDeliverableInput,
 } from "../../types";
-import { selectUserOrThrow } from "../user/queries";
-import { getManyDocuments } from "../document";
-import { getFormattedDeliverableActions } from "../deliverableAction";
-import { selectManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType/queries";
-import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
-import { selectManyPublicComments } from "../publicComment/queries";
-import { selectManyPrivateComments } from "../privateComment/queries";
-import { selectDemonstrationOrThrow } from "../demonstration/queries";
-import { selectDocumentTypesForDeliverableType } from "../deliverableTypeDocumentType/selectDocumentTypesForDeliverableType";
+import { formatDeliverableAction } from "../deliverableAction";
 
 export async function resolveDeliverable(
   parent: PrismaDocument | PrismaDocumentPendingUpload | PrismaPrivateComment | PrismaPublicComment,
@@ -87,20 +78,15 @@ export async function resolveManyDeliverables(
   info: GraphQLResolveInfo
 ): Promise<PrismaDeliverable[]> {
   const parentType = info.parentType.name;
-  let filter: Prisma.DeliverableWhereInput;
 
   switch (parentType) {
     case Prisma.ModelName.Demonstration:
-      filter = { demonstrationId: parent.id };
-      break;
+      return context.loaders.deliverablesByDemonstrationId.load(parent.id);
     case Prisma.ModelName.User:
-      filter = { cmsOwnerUserId: parent.id };
-      break;
+      return context.loaders.deliverablesByCmsOwnerId.load(parent.id);
     default:
       throw new Error(`Unsupported parent type: ${parentType}`);
   }
-
-  return selectManyDeliverables(filter);
 }
 
 export const deliverableResolvers = {
@@ -194,17 +180,40 @@ export const deliverableResolvers = {
     deliverableType: (parent: PrismaDeliverable): DeliverableType => {
       return parent.deliverableTypeId as DeliverableType;
     },
-    demonstration: (parent: PrismaDeliverable): Promise<PrismaDemonstration> =>
-      selectDemonstrationOrThrow({ id: parent.demonstrationId }),
+    demonstration: async (
+      parent: PrismaDeliverable,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaDemonstration> => {
+      const demonstration = await context.loaders.demonstrationById.load(parent.demonstrationId);
+      if (!demonstration) {
+        throw new Error("No demonstration found matching the provided filter");
+      }
+      return demonstration;
+    },
     status: (parent: PrismaDeliverable): DeliverableStatus => {
       return parent.statusId as DeliverableStatus;
     },
-    cmsOwner: (parent: PrismaDeliverable) => selectUserOrThrow({ id: parent.cmsOwnerUserId }),
+    cmsOwner: async (
+      parent: PrismaDeliverable,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaUser> => {
+      const user = await context.loaders.userById.load(parent.cmsOwnerUserId);
+      if (!user) {
+        throw new Error("No user found matching the provided filter");
+      }
+      return user;
+    },
     dueDateType: (parent: PrismaDeliverable): DeliverableDueDateType => {
       return parent.dueDateTypeId as DeliverableDueDateType;
     },
-    demonstrationTypes: async (parent: PrismaDeliverable): Promise<Tag[]> =>
-      (await selectManyDeliverableDemonstrationTypes({ deliverableId: parent.id })).map(
+    demonstrationTypes: async (
+      parent: PrismaDeliverable,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<Tag[]> =>
+      (await context.loaders.deliverableDemonstrationTypesByDeliverableId.load(parent.id)).map(
         (deliverableDemonstrationType) => {
           const { statusId, tagNameId } =
             deliverableDemonstrationType.demonstrationTypeTagAssignment.tag;
@@ -214,37 +223,47 @@ export const deliverableResolvers = {
           };
         }
       ),
-    cmsDocuments: async (
+    cmsDocuments: (
       parent: PrismaDeliverable,
       args: unknown,
       context: GraphQLContext
-    ): Promise<PrismaDocument[]> =>
-      await getManyDocuments(
-        {
-          AND: [{ deliverableId: parent.id }, { deliverableIsCmsAttachedFile: true }],
-        },
-        context.user
-      ),
-    stateDocuments: async (
+    ): Promise<PrismaDocument[]> => context.loaders.cmsDocumentsByDeliverableId.load(parent.id),
+    stateDocuments: (
       parent: PrismaDeliverable,
       args: unknown,
       context: GraphQLContext
-    ): Promise<PrismaDocument[]> =>
-      await getManyDocuments(
-        {
-          AND: [{ deliverableId: parent.id }, { deliverableIsCmsAttachedFile: false }],
-        },
-        context.user
+    ): Promise<PrismaDocument[]> => context.loaders.stateDocumentsByDeliverableId.load(parent.id),
+    allowedDocumentTypes: (
+      parent: PrismaDeliverable,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<DocumentType[]> =>
+      context.loaders.documentTypesByDeliverableTypeId.load(parent.deliverableTypeId),
+    deliverableActions: async (
+      parent: PrismaDeliverable,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<DeliverableAction[]> =>
+      (await context.loaders.deliverableActionsByDeliverableId.load(parent.id)).map((action) =>
+        formatDeliverableAction(action)
       ),
-    allowedDocumentTypes: (parent: PrismaDeliverable): Promise<DocumentType[]> =>
-      selectDocumentTypesForDeliverableType(parent.deliverableTypeId),
-    deliverableActions: (parent: PrismaDeliverable): Promise<DeliverableAction[]> =>
-      getFormattedDeliverableActions(parent.id),
-    extensionRequests: (parent: PrismaDeliverable): Promise<PrismaDeliverableExtension[]> =>
-      selectManyDeliverableExtensions({ deliverableId: parent.id }),
-    publicComments: (parent: PrismaDeliverable): Promise<PrismaPublicComment[]> =>
-      selectManyPublicComments({ deliverableId: parent.id }),
-    privateComments: (parent: PrismaDeliverable): Promise<PrismaPrivateComment[]> =>
-      selectManyPrivateComments({ deliverableId: parent.id }),
+    extensionRequests: (
+      parent: PrismaDeliverable,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaDeliverableExtension[]> =>
+      context.loaders.deliverableExtensionsByDeliverableId.load(parent.id),
+    publicComments: (
+      parent: PrismaDeliverable,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaPublicComment[]> =>
+      context.loaders.publicCommentsByDeliverableId.load(parent.id),
+    privateComments: (
+      parent: PrismaDeliverable,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaPrivateComment[]> =>
+      context.loaders.privateCommentsByDeliverableId.load(parent.id),
   },
 };

@@ -22,7 +22,6 @@ import {
   SignatureLevel,
   Tag,
   TagStatus,
-  UiPathResultStatus,
   UpdateDemonstrationInput,
 } from "../../types";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
@@ -33,22 +32,6 @@ import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeSt
 import { resolveManyDeliverables } from "../deliverable";
 import { GraphQLContext } from "../../auth";
 import { getDemonstration, getManyDemonstrations } from "./demonstrationData";
-import { getManyAmendments } from "../amendment";
-import { getManyExtensions } from "../extension";
-import { getManyDocuments } from "../document";
-import { selectManyApplicationPhases } from "../applicationPhase/queries";
-import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
-import {
-  selectDemonstrationTypeTagAssignment,
-  selectManyDemonstrationTypeTagAssignments,
-} from "../demonstrationTypeTagAssignment/queries";
-import {
-  selectDemonstrationRoleAssignmentOrThrow,
-  selectManyDemonstrationRoleAssignments,
-} from "../demonstrationRoleAssignment/queries";
-import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
-import { selectPersonOrThrow } from "../person/queries";
-import { selectStateOrThrow } from "../state/queries";
 import { CHIP_DEMONSTRATION_TYPE_TAG_NAME } from "../../constants";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
@@ -246,71 +229,96 @@ export const demonstrationResolvers = {
   },
 
   Demonstration: {
-    state: (parent: PrismaDemonstration): Promise<PrismaState> =>
-      selectStateOrThrow({ id: parent.stateId }),
+    state: async (
+      parent: PrismaDemonstration,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaState> => {
+      const state = await context.loaders.stateById.load(parent.stateId);
+      if (!state) {
+        throw new Error("No state found matching the provided filter");
+      }
+      return state;
+    },
     documents: (
       parent: PrismaDemonstration,
       args: unknown,
       context: GraphQLContext
-    ): Promise<PrismaDocument[]> => getManyDocuments({ applicationId: parent.id }, context.user),
+    ): Promise<PrismaDocument[]> => context.loaders.documentsByApplicationId.load(parent.id),
     amendments: (
       parent: PrismaDemonstration,
       args: unknown,
       context: GraphQLContext
-    ): Promise<PrismaAmendment[]> =>
-      getManyAmendments({ demonstrationId: parent.id }, context.user),
+    ): Promise<PrismaAmendment[]> => context.loaders.amendmentsByDemonstrationId.load(parent.id),
     extensions: (
       parent: PrismaDemonstration,
       args: unknown,
       context: GraphQLContext
-    ): Promise<PrismaExtension[]> =>
-      getManyExtensions({ demonstrationId: parent.id }, context.user),
+    ): Promise<PrismaExtension[]> => context.loaders.extensionsByDemonstrationId.load(parent.id),
     sdgDivision: (parent: PrismaDemonstration): SdgDivision => parent.sdgDivisionId as SdgDivision,
     signatureLevel: (parent: PrismaDemonstration): SignatureLevel =>
       parent.signatureLevelId as SignatureLevel,
     currentPhaseName: (parent: PrismaDemonstration): PhaseName =>
       parent.currentPhaseId as PhaseName,
-    roles: (parent: PrismaDemonstration): Promise<PrismaDemonstrationRoleAssignment[]> =>
-      selectManyDemonstrationRoleAssignments({ demonstrationId: parent.id }),
+    roles: (
+      parent: PrismaDemonstration,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaDemonstrationRoleAssignment[]> =>
+      context.loaders.rolesByDemonstrationId.load(parent.id),
     status: (parent: PrismaDemonstration): ApplicationStatus =>
       parent.statusId as ApplicationStatus,
-    phases: (parent: PrismaDemonstration): Promise<PrismaApplicationPhase[]> =>
-      selectManyApplicationPhases({ applicationId: parent.id }),
-    primaryProjectOfficer: async (parent: PrismaDemonstration): Promise<PrismaPerson> => {
-      const primaryProjectOfficerAssignment = await selectDemonstrationRoleAssignmentOrThrow({
-        demonstrationId: parent.id,
-        roleId: roleProjectOfficer,
-        primaryDemonstrationRoleAssignment: {
-          isNot: null,
-        },
-      });
-      return selectPersonOrThrow({ id: primaryProjectOfficerAssignment.personId });
+    phases: (
+      parent: PrismaDemonstration,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaApplicationPhase[]> => context.loaders.phasesByApplicationId.load(parent.id),
+    primaryProjectOfficer: async (
+      parent: PrismaDemonstration,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaPerson> => {
+      const [primaryProjectOfficerAssignment] =
+        await context.loaders.primaryProjectOfficerAssignmentsByDemonstrationId.load(parent.id);
+      if (!primaryProjectOfficerAssignment) {
+        throw new Error("No demonstrationRoleAssignment found matching the provided filter");
+      }
+      const person = await context.loaders.personById.load(
+        primaryProjectOfficerAssignment.personId
+      );
+      if (!person) {
+        throw new Error("No person found matching the provided filter");
+      }
+      return person;
     },
     clearanceLevel: (parent: PrismaDemonstration): ClearanceLevel =>
       parent.clearanceLevelId as ClearanceLevel,
-    tags: async (parent: PrismaDemonstration): Promise<Tag[]> =>
-      (await selectManyApplicationTagAssignments({ applicationId: parent.id })).map(
-        (assignment) => {
-          const { statusId, tagNameId } = assignment.tag;
-          return {
-            tagName: tagNameId,
-            approvalStatus: statusId as TagStatus,
-          };
-        }
+    tags: async (
+      parent: PrismaDemonstration,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<Tag[]> =>
+      (await context.loaders.tagAssignmentsByApplicationId.load(parent.id)).map((assignment) => {
+        const { statusId, tagNameId } = assignment.tag;
+        return {
+          tagName: tagNameId,
+          approvalStatus: statusId as TagStatus,
+        };
+      }),
+    suggestedApplicationTags: async (
+      parent: PrismaDemonstration,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<string[]> =>
+      (await context.loaders.suggestedTagsByApplicationId.load(parent.id)).map(
+        (suggestion) => suggestion.value
       ),
-    suggestedApplicationTags: async (parent: PrismaDemonstration): Promise<string[]> =>
-      (
-        await selectManyApplicationTagSuggestions({
-          applicationId: parent.id,
-          statusId: {
-            in: ["Pending" satisfies UiPathResultStatus],
-          },
-        })
-      ).map((suggestion) => suggestion.value),
     demonstrationTypes: async (
-      parent: PrismaDemonstration
+      parent: PrismaDemonstration,
+      args: unknown,
+      context: GraphQLContext
     ): Promise<DemonstrationTypeAssignment[]> =>
-      (await selectManyDemonstrationTypeTagAssignments({ demonstrationId: parent.id })).map(
+      (await context.loaders.demonstrationTypeAssignmentsByDemonstrationId.load(parent.id)).map(
         (assignment) => {
           const { tagNameId, tag, ...rest } = assignment;
           return {
@@ -325,16 +333,17 @@ export const demonstrationResolvers = {
         }
       ),
     deliverables: resolveManyDeliverables,
-    chipId: async (parent: PrismaDemonstration): Promise<string | null> => {
-      const chipDemonstrationType = await selectDemonstrationTypeTagAssignment({
-        demonstrationId: parent.id,
-        tagNameId: CHIP_DEMONSTRATION_TYPE_TAG_NAME,
-      });
-      if (chipDemonstrationType) {
-        return parent.chipId;
-      } else {
-        return null;
-      }
+    chipId: async (
+      parent: PrismaDemonstration,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<string | null> => {
+      const demonstrationTypeAssignments =
+        await context.loaders.demonstrationTypeAssignmentsByDemonstrationId.load(parent.id);
+      const hasChipDemonstrationType = demonstrationTypeAssignments.some(
+        (assignment) => assignment.tagNameId === CHIP_DEMONSTRATION_TYPE_TAG_NAME
+      );
+      return hasChipDemonstrationType ? parent.chipId : null;
     },
   },
 };

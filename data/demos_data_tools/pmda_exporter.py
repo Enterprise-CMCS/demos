@@ -8,7 +8,13 @@ from typing import TYPE_CHECKING, List, Tuple
 
 from dotenv import load_dotenv
 
-from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME, PMDA_DDB_ATTACH_NAME, create_duckdb_conn
+from duckdb_connection_manager import (
+    DEMOS_DDB_ATTACH_NAME,
+    PMDA_DDB_ATTACH_NAME,
+    create_duckdb_conn,
+    attach_demos_to_conn,
+    attach_pmda_to_conn,
+)
 from logger_utils import config_logger
 
 if TYPE_CHECKING:
@@ -222,7 +228,7 @@ def main() -> None:
     """Execute main program function."""
     source_schema = os.environ["PMDA_EXPORT_SOURCE_SCHEMA"]
     target_schema = os.environ["PMDA_EXPORT_TARGET_SCHEMA"]
-    duck_conn = create_duckdb_conn()
+    duck_conn = attach_demos_to_conn(attach_pmda_to_conn(create_duckdb_conn()))
     tbl_list = get_pmda_table_list(duck_conn, source_schema)
     tbl_details = get_pmda_column_details(duck_conn, tbl_list, source_schema)
 

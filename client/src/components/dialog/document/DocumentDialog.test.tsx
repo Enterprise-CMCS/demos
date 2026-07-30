@@ -237,3 +237,26 @@ describe("DocumentDialog BN Workbook pre-validation", () => {
     expect(screen.getByTestId("button-confirm-upload-document")).not.toBeDisabled();
   });
 });
+
+describe("DocumentDialog upload failure handling", () => {
+  it("keeps the dialog usable when onSubmit throws", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const onSubmit = vi.fn(() => Promise.reject(new Error("Failed to fetch")));
+    const onClose = vi.fn();
+
+    renderAddDialog("General File", onSubmit, onClose);
+    selectFile("general.docx");
+    fireEvent.click(screen.getByTestId("button-confirm-upload-document"));
+
+    // A throw must not strand the dialog in "uploading", which disables both Cancel and Upload
+    // and leaves a page refresh as the only way out.
+    expect(
+      await screen.findByText(/could not be added because of an unknown problem/i)
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("button-dialog-cancel")).not.toBeDisabled();
+    expect(screen.getByTestId("button-confirm-upload-document")).not.toBeDisabled();
+    expect(onClose).not.toHaveBeenCalled();
+
+    consoleError.mockRestore();
+  });
+});

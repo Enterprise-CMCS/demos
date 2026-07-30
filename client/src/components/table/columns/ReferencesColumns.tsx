@@ -4,13 +4,52 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { highlightCell } from "components/table/KeywordSearch";
 import { SecondaryButton } from "components/button";
 import { useDialog } from "components/dialog/DialogContext";
-import { useDownloadReference } from "hooks/useDownloadReference";
 import { Reference, ReferenceAgreement, Tag } from "demos-server";
 import { formatDateForDisplay } from "util/formatDate";
+import { Spinner } from "components/loading/Spinner";
+import { useDownloadReference } from "hooks/useDownloadReference";
+
+const ReferenceDownloadButton = ({
+  referenceId,
+  onDownload,
+}: {
+  referenceId: string;
+  onDownload: (referenceId: string) => Promise<string>;
+}) => {
+  const [isDownloading, setIsDownloading] = React.useState(false);
+
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    try {
+      await onDownload(referenceId);
+    } catch {
+      // useDownloadReference reports download errors to the user.
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  return (
+    <SecondaryButton
+      name={`download-${referenceId}`}
+      aria-label={`Download ${referenceId}`}
+      onClick={handleDownload}
+      disabled={isDownloading}
+    >
+      <span className="relative inline-flex items-center justify-center">
+        <span className={isDownloading ? "invisible" : ""}>Download</span>
+        {isDownloading && (
+          <span className="absolute inset-0 flex items-center justify-center">
+            <Spinner />
+          </span>
+        )}
+      </span>
+    </SecondaryButton>
+  );
+};
 
 export function ReferencesColumns() {
   const { showReferenceAgreementDialog } = useDialog();
-
   const { downloadReference } = useDownloadReference();
   const columnHelper = createColumnHelper<
     Pick<Reference, "id" | "name" | "description" | "updatedAt"> & {
@@ -25,17 +64,18 @@ export function ReferencesColumns() {
       cell: highlightCell,
       enableColumnFilter: false,
     }),
-    columnHelper.accessor("demonstrationTypes", {
-      header: "Demo Type",
-      cell: (cell) => {
-        const value = cell.getValue();
-        if (value.length === 0) {
-          return "-";
-        }
-        return value.map((tag) => tag.tagName).join(", ");
-      },
-      enableColumnFilter: false,
-    }),
+    columnHelper.accessor(
+      (reference) => reference.demonstrationTypes.map((tag) => tag.tagName).join(", "),
+      {
+        id: "demonstrationTypes",
+        header: "Demo Type",
+        cell: (cell) => {
+          const value = cell.getValue();
+          return value ? highlightCell(cell) : "-";
+        },
+        enableColumnFilter: false,
+      }
+    ),
     columnHelper.accessor("description", {
       header: "Description",
       cell: highlightCell,
@@ -50,28 +90,32 @@ export function ReferencesColumns() {
       id: "actions",
       header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => {
+        const reference = row.original;
+        const agreement = reference.agreement;
+
         return (
           <div className="flex gap-2 justify-center">
-            <SecondaryButton
-              name={`download-${row.original.id}`}
-              aria-label={
-                row.original.agreement
-                  ? `Open ${row.original.id} agreement`
-                  : `Download ${row.original.id}`
-              }
-              onClick={() => {
-                if (row.original.agreement) {
+            {agreement ? (
+              <SecondaryButton
+                name={`download-${reference.id}`}
+                aria-label={`Open ${reference.id} agreement`}
+                onClick={() => {
                   showReferenceAgreementDialog({
-                    ...row.original,
-                    agreement: row.original.agreement,
+                    ...reference,
+                    agreement,
                   });
-                } else {
-                  downloadReference({ id: row.original.id, acceptedAgreementId: null });
+                }}
+              >
+                Download
+              </SecondaryButton>
+            ) : (
+              <ReferenceDownloadButton
+                referenceId={reference.id}
+                onDownload={(referenceId) =>
+                  downloadReference({ id: referenceId, acceptedAgreementId: null })
                 }
-              }}
-            >
-              Download
-            </SecondaryButton>
+              />
+            )}
           </div>
         );
       },

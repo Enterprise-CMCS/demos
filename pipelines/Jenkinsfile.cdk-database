@@ -1,5 +1,3 @@
-@Library('demos-lib@DEMOS-2206-database-pipeline') _
-
 pipeline {
   agent {
     kubernetes {

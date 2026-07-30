@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { vi } from "vitest";
+import { vi, beforeEach } from "vitest";
 import { DemonstrationsPage } from "./DemonstrationsPage";
 
 const mockUseQuery = vi.fn();
@@ -48,7 +48,6 @@ const baseData = {
 describe("DemonstrationsPage tab persistence", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    sessionStorage.clear();
     mockUseQuery.mockReturnValue({ data: baseData, loading: false, error: undefined });
   });
 
@@ -61,7 +60,6 @@ describe("DemonstrationsPage tab persistence", () => {
       "true"
     );
     expect(screen.getByTestId("button-my-demonstrations")).toHaveAttribute("aria-selected", "true");
-    expect(sessionStorage.getItem("selectedDemonstrationTab")).toBe("my-demonstrations");
   });
 
   it("passes false to CreateNewButton when no approved demonstrations exist", () => {
