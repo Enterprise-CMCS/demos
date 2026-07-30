@@ -10,11 +10,17 @@
  *   migration._parity_application_milestone_unmapped (NON-GATING) -- one row per
  *     legacy date column the milestone crosswalk deliberately did NOT map to a
  *     DEMOS date_type, with the count of non-null occurrences among in-scope
- *     source rows. These are the granular phase_3 clearance sub-dates (SME /
- *     FRVT / CMCS / OGC / OMB start+end), the application-status date, and the
+ *     source rows. These are the remaining phase_3 clearance sub-dates (SME /
+ *     FRVT end, CMCS / OGC / OMB start+end), the application-status date, and the
  *     amendment application/status dates -- deferred to SME because their
  *     semantic target (SDG-prep sub-dates vs Review clearances) is not
- *     high-confidence. It ALSO surfaces, per type, the high-confidence
+ *     high-confidence. D18 removed phase_3_a_sme_strt_dt and
+ *     phase_3_a_frvt_strt_dt from this list: each now maps to an
+ *     unambiguously-named target ('SME Initial Review Date' /
+ *     'FRT Initial Meeting Date'), matching the dbt migration. The OGC/OMB pair
+ *     stays deferred because it is ambiguous in two directions at once
+ *     (phase_3_b vs phase_3_c, start vs end), and dbt's phase_3_c_*_strt_dt
+ *     choice maps a start date onto a receipt event. It ALSO surfaces, per type, the high-confidence
  *     phase-milestone columns that ARE mapped for type_cd=1 (Demonstration) but
  *     are currently dropped for type_cd=2 (Amendment) and type_cd=3 (Extension):
  *     every milestone view filters type_cd=1, so the amendment/extension
@@ -46,9 +52,7 @@ BEGIN
       CREATE OR REPLACE VIEW migration._parity_application_milestone_unmapped AS
       WITH ap AS (
         SELECT
-          count(phase_3_a_sme_strt_dt)  AS phase_3_a_sme_strt_dt,
           count(phase_3_a_sme_end_dt)   AS phase_3_a_sme_end_dt,
-          count(phase_3_a_frvt_strt_dt) AS phase_3_a_frvt_strt_dt,
           count(phase_3_a_frvt_end_dt)  AS phase_3_a_frvt_end_dt,
           count(phase_3_b_cmcs_strt_dt) AS phase_3_b_cmcs_strt_dt,
           count(phase_3_b_cmcs_end_dt)  AS phase_3_b_cmcs_end_dt,
@@ -106,9 +110,7 @@ BEGIN
         non_null_count
       FROM (
         VALUES
-          ('mdcd_demo_aplctn', 'phase_3_a_sme_strt_dt',  (SELECT phase_3_a_sme_strt_dt FROM ap)),
           ('mdcd_demo_aplctn', 'phase_3_a_sme_end_dt',   (SELECT phase_3_a_sme_end_dt FROM ap)),
-          ('mdcd_demo_aplctn', 'phase_3_a_frvt_strt_dt', (SELECT phase_3_a_frvt_strt_dt FROM ap)),
           ('mdcd_demo_aplctn', 'phase_3_a_frvt_end_dt',  (SELECT phase_3_a_frvt_end_dt FROM ap)),
           ('mdcd_demo_aplctn', 'phase_3_b_cmcs_strt_dt', (SELECT phase_3_b_cmcs_strt_dt FROM ap)),
           ('mdcd_demo_aplctn', 'phase_3_b_cmcs_end_dt',  (SELECT phase_3_b_cmcs_end_dt FROM ap)),

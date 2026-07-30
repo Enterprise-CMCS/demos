@@ -9,10 +9,22 @@
  * legacy phase-milestone date column maps to exactly one seeded demos_app
  * date_type (the mapping is documented, with the deferred columns, in
  * reports/narrative/milestone_date_mapping.md). Only the high-confidence,
- * semantically-clear columns are mapped here; the granular phase_3 clearance
+ * semantically-clear columns are mapped here; the remaining phase_3 clearance
  * sub-dates and the application-status date are held for SME review (logged by
- * sql/99_parity/56_application_milestone_unmapped.sql), never invented as a
- * date_type.
+ * sql/99_parity/56_application_milestone.sql), never invented as a date_type.
+ *
+ * D18 adopted two of the phase_3 sub-dates the dbt migration also maps, because
+ * each is a single source column landing on an unambiguously-named target:
+ * phase_3_a_sme_strt_dt -> 'SME Initial Review Date' and phase_3_a_frvt_strt_dt
+ * -> 'FRT Initial Meeting Date'. Both keep feeding phase_3_any_start as well, so
+ * 'SDG Preparation Start Date' is unchanged. The other eleven types dbt emits
+ * were NOT adopted: six reuse a column this view already maps to a different
+ * date_type (dbt reads phase_4/5/6 as Approval Package / OSORA clearance / COMMs
+ * clearance where this view reads them as Review / Approval Package / Approval
+ * Summary), three have no source column at all (date arithmetic or greatest()
+ * over two start dates), and the OGC/OMB pair is ambiguous in two directions at
+ * once (phase_3_b vs phase_3_c, start vs end). All eleven are escalated under
+ * D18 rather than guessed. See explanation-dbt-alignment-updates.adoc.
  *
  * Both approved (mdcd_demo_id) and pending (mdcd_pendg_demo_id) demonstrations
  * draw their phase dates from the same mdcd_demo_aplctn table (type 1),
@@ -41,6 +53,8 @@ WITH demo_ap AS (
     max(a.phase_2_fed_cmt_prd_end_dt) AS phase_2_fed_cmt_prd_end_dt,
     max(a.phase_2_dsrd_aprvl_dt) AS phase_2_dsrd_aprvl_dt,
     max(COALESCE(a.phase_3_a_sme_strt_dt, a.phase_3_a_frvt_strt_dt, a.phase_3_b_cmcs_strt_dt, a.phase_3_b_ogc_strt_dt, a.phase_3_b_omb_strt_dt, a.phase_3_c_ogc_strt_dt, a.phase_3_c_omb_strt_dt)) AS phase_3_any_start,
+    max(a.phase_3_a_sme_strt_dt) AS phase_3_a_sme_strt_dt,
+    max(a.phase_3_a_frvt_strt_dt) AS phase_3_a_frvt_strt_dt,
     max(a.phase_4_strt_dt) AS phase_4_strt_dt,
     max(a.phase_4_end_dt) AS phase_4_end_dt,
     max(a.phase_5_strt_dt) AS phase_5_strt_dt,
@@ -69,6 +83,8 @@ pend_ap AS (
     max(a.phase_2_fed_cmt_prd_end_dt) AS phase_2_fed_cmt_prd_end_dt,
     max(a.phase_2_dsrd_aprvl_dt) AS phase_2_dsrd_aprvl_dt,
     max(COALESCE(a.phase_3_a_sme_strt_dt, a.phase_3_a_frvt_strt_dt, a.phase_3_b_cmcs_strt_dt, a.phase_3_b_ogc_strt_dt, a.phase_3_b_omb_strt_dt, a.phase_3_c_ogc_strt_dt, a.phase_3_c_omb_strt_dt)) AS phase_3_any_start,
+    max(a.phase_3_a_sme_strt_dt) AS phase_3_a_sme_strt_dt,
+    max(a.phase_3_a_frvt_strt_dt) AS phase_3_a_frvt_strt_dt,
     max(a.phase_4_strt_dt) AS phase_4_strt_dt,
     max(a.phase_4_end_dt) AS phase_4_end_dt,
     max(a.phase_5_strt_dt) AS phase_5_strt_dt,
@@ -106,6 +122,8 @@ approved AS (
 ('Federal Comment Period End Date', migration.eastern_day_end(ap.phase_2_fed_cmt_prd_end_dt)),
 ('Expected Approval Date', migration.eastern_day_start(ap.phase_2_dsrd_aprvl_dt)),
 ('SDG Preparation Start Date', migration.eastern_day_start(ap.phase_3_any_start)),
+('SME Initial Review Date', migration.eastern_day_start(ap.phase_3_a_sme_strt_dt)),
+('FRT Initial Meeting Date', migration.eastern_day_start(ap.phase_3_a_frvt_strt_dt)),
 ('Review Start Date', migration.eastern_day_start(ap.phase_4_strt_dt)),
 ('Review Completion Date', migration.eastern_day_start(ap.phase_4_end_dt)),
 ('Approval Package Start Date', migration.eastern_day_start(ap.phase_5_strt_dt)),
@@ -133,6 +151,8 @@ pending AS (
 ('Federal Comment Period End Date', migration.eastern_day_end(ap.phase_2_fed_cmt_prd_end_dt)),
 ('Expected Approval Date', migration.eastern_day_start(ap.phase_2_dsrd_aprvl_dt)),
 ('SDG Preparation Start Date', migration.eastern_day_start(ap.phase_3_any_start)),
+('SME Initial Review Date', migration.eastern_day_start(ap.phase_3_a_sme_strt_dt)),
+('FRT Initial Meeting Date', migration.eastern_day_start(ap.phase_3_a_frvt_strt_dt)),
 ('Review Start Date', migration.eastern_day_start(ap.phase_4_strt_dt)),
 ('Review Completion Date', migration.eastern_day_start(ap.phase_4_end_dt)),
 ('Approval Package Start Date', migration.eastern_day_start(ap.phase_5_strt_dt)),

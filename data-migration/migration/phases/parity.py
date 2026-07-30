@@ -1485,6 +1485,105 @@ def _deliverable_action_provenance(env: Env) -> CheckResult:
     )
 
 
+def _tag_provenance(env: Env) -> CheckResult:
+    """The 'Migrated From PMDA' placeholder tag still carries this pipeline's values.
+
+    Reads ``migration._parity_tag_provenance`` (created by
+    ``sql/99_parity/66_tag_provenance.sql``).
+
+    GATING: ``demos_app.tag_name`` is keyed by text and ``demos_app.tag`` by
+    ``(tag_name_id, tag_type_id)``, so the dbt migration's placeholder collides
+    with ours on a shared natural key instead of doubling rows. D16 seeds the
+    Demonstration Type row as ``User`` / ``Unapproved`` precisely so floored
+    demos surface as "(Unapproved)" pending SME ratification; dbt writes
+    ``System`` / ``Approved``. Because our floor seeds ``ON CONFLICT DO
+    NOTHING``, a dbt load that ran first survives untouched and silently
+    converts every floored demonstration into an approved system tag with the
+    right row count and every FK satisfied. No id map exists to catch it, so
+    this asserts the value of the shared key instead.
+    """
+    name = "Tag provenance"
+    exists = psql_query(
+        env,
+        "SELECT to_regclass('migration._parity_tag_provenance') IS NOT NULL",
+    )
+    if not exists or not exists[0][0]:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="tag vocabulary not present (vacuously green)",
+        )
+    rows = psql_query(
+        env,
+        "SELECT tag_name_id, tag_type_id, source_id, status_id, reason "
+        "FROM migration._parity_tag_provenance "
+        "ORDER BY tag_type_id LIMIT 25",
+    )
+    if not rows:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="placeholder tag absent or carries this pipeline's User/Unapproved values",
+        )
+    sample = "; ".join(f"{r[1]} -> {r[2]}/{r[3]} ({r[4]})" for r in rows[:5])
+    return CheckResult(
+        name=name,
+        status="RED",
+        detail=(
+            f"{len(rows)} placeholder-tag row(s) were written by another migration, "
+            f"so D16's Unapproved floor no longer holds: {sample}"
+        ),
+    )
+
+
+def _shared_entity_provenance(env: Env) -> CheckResult:
+    """Per-entity count of demos_app rows this pipeline did not mint (advisory).
+
+    Reads ``migration._parity_shared_entity_provenance`` (created by
+    ``sql/99_parity/67_shared_entity_provenance.sql``).
+
+    NON-GATING: the dbt migration writes sixteen demos_app entities, but by the
+    time parity runs the load has happened, so a RED here would fail a cutover
+    over a condition whose only remedy is a restore -- a rollback decision, not
+    a gate decision. The two unrecoverable cases already gate (deliverable
+    action provenance, tag provenance). This sweep exists so the operator learns
+    from the parity report that a second writer touched the database. Preflight
+    P0.6/P0.10 covers "dbt ran first"; this covers "dbt ran after us", which
+    preflight structurally cannot see.
+    """
+    name = "Shared-entity provenance"
+    exists = psql_query(
+        env,
+        "SELECT to_regclass('migration._parity_shared_entity_provenance') IS NOT NULL",
+    )
+    if not exists or not exists[0][0]:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="no shared entity has both a table and an id map (vacuously green)",
+        )
+    rows = psql_query(
+        env,
+        "SELECT entity, foreign_rows FROM migration._parity_shared_entity_provenance "
+        "WHERE foreign_rows > 0 ORDER BY foreign_rows DESC, entity",
+    )
+    if not rows:
+        return CheckResult(
+            name=name,
+            status="GREEN",
+            detail="every shared-entity row traces to this pipeline's id maps",
+        )
+    sample = ", ".join(f"{r[0]}={r[1]}" for r in rows)
+    return CheckResult(
+        name=name,
+        status="GREEN",
+        detail=(
+            "ADVISORY: rows not minted by this pipeline are present, so a parallel "
+            f"migration has written to the same database: {sample}"
+        ),
+    )
+
+
 def _chip_id_not_normalizable(env: Env) -> CheckResult:
     """Legacy CHIP numbers that could not be preserved (non-gating per-row log).
 
@@ -3295,6 +3394,8 @@ def build_parity_report(env: Env) -> ParityReport:
         ("deliverable actions not synthesized", _deliverable_action_not_synthesized),
         ("deliverable submission batches", _deliverable_submission_batch),
         ("deliverable action provenance", _deliverable_action_provenance),
+        ("tag provenance", _tag_provenance),
+        ("shared-entity provenance", _shared_entity_provenance),
         ("pgm_dtl othr held", _pgm_dtl_tag_othr_held),
         ("pgm_dtl tag unseeded", _pgm_dtl_tag_unseeded),
         ("pending pgm_dtl othr held", _pendg_pgm_dtl_tag_othr_held),

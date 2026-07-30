@@ -207,5 +207,41 @@ def run_preflight() -> None:
 
     log("P0.7 backup operator + on-call rotation -- manual confirmation required")
 
+    # P0.10 is ADVISORY on purpose. The sibling dbt migration in
+    # data/migration/stage_pmda_for_migration loads the same PMDA data into the same
+    # demos_app, and running both against one database corrupts it: deliverable_action
+    # doubles silently, and the 'Migrated From PMDA' tag collides on a shared natural
+    # key. If dbt already loaded, P0.6's emptiness guard has ALREADY hard-failed above
+    # -- this probe exists to name the cause, because "demos_app is not empty" does not
+    # tell the operator that a parallel migration is why. The staging schemas are the
+    # tell: dbt materializes into legacy_pmda_raw / legacy_pmda_staged.
+    #
+    # The converse case -- dbt running AFTER this pipeline -- is structurally invisible
+    # here, since preflight has already passed by then. That one is covered at parity
+    # time by the "Shared-entity provenance" sweep
+    # (sql/99_parity/67_shared_entity_provenance.sql).
+    log("P0.10 parallel dbt migration detection (advisory)")
+    try:
+        rows = psql_query(
+            env,
+            "SELECT nspname FROM pg_namespace "
+            "WHERE nspname IN ('legacy_pmda_raw', 'legacy_pmda_staged') "
+            "ORDER BY nspname",
+        )
+        if rows:
+            found = ", ".join(str(r[0]) for r in rows)
+            log(
+                f"  WARNING: dbt migration schema(s) present: {found}. The dbt "
+                "migration in data/migration/stage_pmda_for_migration writes the same "
+                "demos_app entities as this pipeline. Run exactly one against a given "
+                "database: running both doubles deliverable_action silently and "
+                "collides on the 'Migrated From PMDA' tag. Advisory only -- not a "
+                "gate; see docs/developer/explanation-dbt-alignment-updates.adoc."
+            )
+        else:
+            log("  no dbt staging schemas present")
+    except Exception as e:
+        log(f"  WARNING: could not probe for dbt schemas: {e}")
+
     if not ok:
         die("preflight failed; do not proceed")

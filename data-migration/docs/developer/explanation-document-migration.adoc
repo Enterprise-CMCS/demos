@@ -660,7 +660,7 @@ ifndef::nested[]
 
 [.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
 |===
-|xref:explanation-dbt-alignment.adoc[< prev]
+|xref:explanation-dbt-alignment-updates.adoc[< prev]
 ^|xref:../toc.adoc[Table of contents]
 >|xref:explanation-jenkins-pipelines.adoc[next >]
 |===

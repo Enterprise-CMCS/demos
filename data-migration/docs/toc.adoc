@@ -110,6 +110,7 @@ long-form plan.
 * xref:developer/explanation-api-validation-audit.adoc[API validation audit]
 * xref:developer/explanation-migration-feasibility.adoc[What can migrate at all]
 * xref:developer/explanation-dbt-alignment.adoc[Alignment with the dbt build]
+* xref:developer/explanation-dbt-alignment-updates.adoc[Alignment updates from the dbt re-verification]
 * xref:developer/explanation-document-migration.adoc[Document migration]
 * xref:developer/explanation-jenkins-pipelines.adoc[Jenkins pipelines]
 

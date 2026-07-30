@@ -1,9 +1,9 @@
 /*
  * Purpose:    Asserts every demos_app.deliverable_action row was minted by this pipeline, so a second migration writing the same table cannot double-load a deliverable's timeline unnoticed.
- * Inputs:     demos_app.deliverable_action; migration._id_map_deliverable_action; migration._id_map_mdcd_dlvrbl
+ * Inputs:     demos_app.deliverable_action; migration._id_map_deliverable_action; migration._id_map_mdcd_dlvrbl; mysql_raw._delta_log
  * Outputs:    migration._parity_deliverable_action_provenance
- * Invariants: Non-empty -> RED; conditional-DDL guard (created only when the target table and the id map are both present, so partial harnesses apply it as a no-op); idempotent via CREATE OR REPLACE; asserts provenance only in the target-row direction.
- * Refs:       migration/phases/parity.py "Deliverable action provenance" CheckResult; sql/23_app_derived/60_deliverable_action.sql; docs/developer/explanation-dbt-alignment.adoc#deliverable-action-both
+ * Invariants: Non-empty -> RED; conditional-DDL guard (created only when the target table and the id map are both present, so partial harnesses apply it as a no-op); idempotent via CREATE OR REPLACE; asserts provenance only in the target-row direction; the DEMOS past-due cron signature after the freeze instant is excluded so a post-flip re-run does not RED on legitimate app activity.
+ * Refs:       migration/phases/parity.py "Deliverable action provenance" CheckResult; sql/23_app_derived/60_deliverable_action.sql; server/src/sql/functions.sql (mark_deliverables_as_past_due); docs/developer/explanation-dbt-alignment.adoc#deliverable-action-both
  *
  * Parity check: deliverable_action provenance.
  *
@@ -50,6 +50,29 @@
  * risk a gate that reds on a state we have never observed. The forward direction
  * is what catches the double-load.
  *
+ * THE ONE EXCLUSION, AND WHY IT IS NARROW
+ *
+ * demos_app has a nightly cron (server/src/sql/cron_schedules.sql) calling
+ * mark_deliverables_as_past_due(), which flips Upcoming -> Past Due and inserts
+ * a 'Marked as Past Due' action per flipped deliverable with gen_random_uuid()
+ * and user_id NULL. Those rows are legitimate DEMOS activity, not a parallel
+ * migration, but they are foreign to our id map by construction. Parity runs
+ * before flip so a cutover run never sees them; a post-flip re-run or
+ * `migrate diagnose` would otherwise RED on them forever.
+ *
+ * The exclusion is therefore scoped to that cron's exact signature -- action
+ * type 'Marked as Past Due', NULL actor, timestamp after the freeze instant --
+ * and NOT to "everything after the freeze instant". A blanket post-freeze bound
+ * would also hide the dbt migration's own marker rows, which are stamped
+ * current_timestamp at load and so land after freeze too; that would open a
+ * blind spot exactly where this check earns its keep. dbt's markers carry
+ * 'Migrated Deliverable From PMDA' and its submission rows carry source-derived
+ * timestamps, so both remain caught.
+ *
+ * When no freeze instant has been recorded (mysql_raw._delta_log empty, or the
+ * table absent in a partial harness) nothing is excluded and the check behaves
+ * exactly as before.
+ *
  * Consumed by migration/phases/parity.py. Non-empty -> RED.
  *
  * Conditional DDL: guarded so a harness that stands up demos_app without ever
@@ -58,10 +81,23 @@
 SET search_path TO migration, demos_app, public;
 
 DO $$
+DECLARE
+  -- Empty unless mysql_raw._delta_log exists to supply a freeze instant, so a
+  -- harness without the delta log still gets the unbounded (original) check.
+  past_due_cron_exclusion text := '';
 BEGIN
   IF to_regclass('demos_app.deliverable_action') IS NULL OR to_regclass('migration._id_map_deliverable_action') IS NULL THEN
     RAISE NOTICE 'parity deliverable_action_provenance: target table or id map absent; view not created';
     RETURN;
+  END IF;
+  IF to_regclass('mysql_raw._delta_log') IS NOT NULL THEN
+    past_due_cron_exclusion := $x$
+      AND NOT (da.action_type_id = 'Marked as Past Due'
+        AND da.user_id IS NULL
+        AND da.action_timestamp > COALESCE((
+          SELECT
+            max(dl.freeze_instant)
+          FROM mysql_raw._delta_log dl), 'infinity'::timestamptz)) $x$;
   END IF;
   EXECUTE $v$
     CREATE OR REPLACE VIEW migration._parity_deliverable_action_provenance AS
@@ -84,7 +120,7 @@ BEGIN
       SELECT 1
       FROM migration._id_map_deliverable_action m
       WHERE m.new_uuid = da.id)
-  $v$;
+  $v$ || past_due_cron_exclusion;
 END
 $$;
 

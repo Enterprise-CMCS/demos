@@ -87,6 +87,7 @@ ORDER: list[str] = [
     "developer/explanation-api-validation-audit.adoc",
     "developer/explanation-migration-feasibility.adoc",
     "developer/explanation-dbt-alignment.adoc",
+    "developer/explanation-dbt-alignment-updates.adoc",
     "developer/explanation-document-migration.adoc",
     "developer/explanation-jenkins-pipelines.adoc",
     # sme

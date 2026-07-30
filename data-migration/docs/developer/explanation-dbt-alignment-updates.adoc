@@ -1,0 +1,264 @@
+= Explanation: `data-migration/` updates from the dbt re-verification
+:toc: left
+
+xref:explanation-dbt-alignment.adoc[The alignment report] says what the two
+pipelines do differently. This page is its companion: what *this* pipeline
+changed as a result, what it deliberately did not change, and what is left.
+Audience: a developer reviewing the 2026-07-30 alignment work, and the SME
+holding the four open questions in <<open>>.
+
+[IMPORTANT]
+====
+The report is a report. This page is the proposal, and everything in
+<<shipped>> has since shipped -- every SQL and Python file cited exists in the
+tree.
+
+The single most important finding is in <<collision>>: most of what looked like
+a catch-up list turned out to be a *disagreement*, not a gap. Reading it as a
+catch-up list and adopting it would have silently relabelled dates that already
+load correctly.
+====
+
+[[why]]
+== Why the report was re-verified
+
+The report was authored 2026-07-22 and marked reconciled 2026-07-30, but two
+`data/` commits landed on or just before that date and were not reflected in it:
+`ca4a797d` ("Demos 2446 additional refactors and cleanup", #1636) and
+`872f55e6` (DEMOS-2445 due-date casting, #1637). A re-verification against the
+current tree found nine stale claims, which have been corrected in place in the
+report. This page covers only the *consequences* for this pipeline.
+
+[[collision]]
+== The finding that changed the plan
+
+The report lists date types dbt emits and this pipeline does not. The obvious
+reading is "adopt them". That reading is wrong for six of them.
+
+dbt and this pipeline disagree about what PMDA's `phase_4`, `phase_5` and
+`phase_6` *are*. Both read the same six source columns; both map them to
+DEMOS date types; the two sets of date types are disjoint and shifted by one
+phase.
+
+[cols="1,1,1"]
+|===
+|PMDA column |This pipeline |dbt
+
+|`phase_4_strt_dt` |Review Start Date |Approval Package Start Date
+|`phase_4_end_dt` |Review Completion Date |Approval Package Completion Date
+|`phase_5_strt_dt` |Approval Package Start Date |Submit Approval Package to OSORA
+|`phase_5_end_dt` |Approval Package Completion Date |CMS (OSORA) Clearance End
+|`phase_6_strt_dt` |Approval Summary Start Date |Package Sent for COMMs Clearance
+|`phase_6_end_dt` |Approval Summary Completion Date |COMMs Clearance Received
+|===
+
+Each column already carries a value in this pipeline. "Adopting dbt's mapping"
+would not add six dates; it would move six existing dates onto different date
+types. Both readings are internally consistent, so this is a question about
+PMDA's phase semantics, and only the SME can answer it. dbt compounds it by
+deriving Review Completion Date as `greatest(phase_6_end_dt, phase_5_end_dt)`
+rather than from `phase_4_end_dt`, which puts a seventh type in play.
+
+Of the thirteen dbt date types this pipeline did not emit, then:
+
+* *six* are the collisions above -- escalated, nothing changed;
+* *two* map `phase_3_c_ogc_strt_dt` / `phase_3_c_omb_strt_dt` to
+  `'Receive OGC Legal Clearance'` / `'Receive OMB Concurrence'`, reading a
+  `*_strt_dt` column as a *receipt* date. The inversion may be right, but it is
+  not derivable from the column name -- escalated, nothing changed;
+* *three* have no source column at all and are synthesized by arithmetic --
+  rejected, see <<no-fabrication>>;
+* *two* are clean additions -- adopted, see <<shipped>>.
+
+All of this is recorded as decision *D18* in
+`reports/narrative/pending_approved_decisions.md`.
+
+[[no-fabrication]]
+== Why the three synthesized dates were rejected
+
+dbt manufactures three date types from arithmetic on other columns:
+`'Concept Skipped Date'` as `phase_2_rcvd_dt - INTERVAL '1 day'`, Completeness
+Start Date as `phase_2_cmpltns_rvw_dt + INTERVAL '1 day'`, and SDG Preparation
+Completion Date as `greatest(phase_3_a_sme_strt_dt, phase_3_a_frvt_strt_dt)`.
+
+This pipeline does not fabricate dates. A migrated date that PMDA never recorded
+is indistinguishable, in DEMOS, from one it did.
+
+The Concept Skipped Date case is worth stating separately, because it also
+disarms one of dbt's own gates. dbt's
+`assert_concept_completion_and_skipped_dates_are_mutually_exclusive` test is
+hard-failing (default severity), and it can never fail: `concept_skipped_date`
+is emitted only `WHEN phase_1_end_dt IS NULL`, and `concept_completion_date` is
+`phase_1_end_dt`, so the two are mutually exclusive *by construction of the CASE
+expression*. The test asserts a property of dbt's own SQL, not a property of
+PMDA.
+
+That is also why the DEMOS `Skipped` Concept phase status stays deferred here
+rather than being adopted on its own. DEMOS models a skipped Concept phase as
+the status *and* the date; taking the status without a defensible date would
+leave the phase in a shape DEMOS reads as incomplete. The two move together or
+not at all.
+
+[[shipped]]
+== What shipped
+
+[[shipped-dates]]
+=== Two new application date types
+
+`phase_3_a_sme_strt_dt` and `phase_3_a_frvt_strt_dt` were previously folded into
+`phase_3_any_start` (SDG Preparation Start Date) and otherwise discarded. They
+now also emit `'SME Initial Review Date'` and `'FRT Initial Meeting Date'`.
+Both keep feeding `phase_3_any_start`, so no existing value changes -- the two
+dates are purely additive, which is exactly what made them safe to adopt while
+the other eleven were not.
+
+Coverage is deliberately wider than dbt's. `sql/10_stg/27_application_milestone.sql`
+emits both types on the approved (`demo_ap`) *and* pending (`pend_ap`) branches;
+dbt emits them on its in-progress branch only.
+
+`sql/99_parity/56_application_milestone.sql` no longer reports the two columns
+as unmapped. The `phase_3_c` OGC/OMB columns stay in that deferred set.
+
+[[shipped-tag]]
+=== Tag provenance gate (parity 66)
+
+The report's warning about running both pipelines against one database now
+covers two distinct failure modes, and this is the second one.
+
+`demos_app.tag_name` is keyed by text and `demos_app.tag` by
+`(tag_name_id, tag_type_id)`, so the two pipelines' `'Migrated From PMDA'`
+placeholders *collide on a shared natural key* rather than doubling rows. This
+pipeline writes one row at `source_id = 'User'` / `status_id = 'Unapproved'`
+(decision D16, so floored demonstrations surface in-app as "(Unapproved)"
+pending SME ratification), using `ON CONFLICT DO NOTHING`. dbt writes two rows,
+both `'System'` / `'Approved'`, with a bare INSERT.
+
+The two orderings fail differently, and the dangerous one is silent:
+
+dbt after us:: dbt's INSERT raises `ERROR 23505` and its load aborts partway.
+Loud, and self-limiting.
+us after dbt:: our `ON CONFLICT DO NOTHING` leaves dbt's rows untouched. Every
+floored demonstration silently becomes an *approved system* tag. Row counts are
+correct, every FK is satisfied, and D16 is violated with nothing to notice it.
+
+`sql/99_parity/66_tag_provenance.sql` and the `Tag provenance` check therefore
+assert the *value* of the shared key, not the presence of a minted id -- the
+id-based provenance pattern used elsewhere cannot work on a text-keyed table.
+It gates RED, because unlike the advisory sweep below there is a real chance of
+catching this before anything downstream depends on it.
+
+[[shipped-sweep]]
+=== Shared-entity provenance sweep (parity 67), advisory
+
+`sql/99_parity/67_shared_entity_provenance.sql` counts, per shared entity, the
+`demos_app` rows that do not trace to one of this pipeline's id maps.
+
+It reports GREEN with an `ADVISORY:` detail even when it finds foreign rows.
+That is deliberate. By the time parity runs, the load has happened; a RED here
+would fail a cutover over a condition whose only remedy is a restore. That is a
+rollback decision, not a gate decision. The two genuinely unrecoverable cases
+already gate on their own (deliverable action provenance, tag provenance); this
+sweep exists so the operator *learns from the parity report* that a second
+writer touched the database.
+
+It also covers the one direction preflight structurally cannot see. Preflight
+P0.6 and the new P0.10 catch "dbt ran first". Nothing else catches "dbt ran
+after us".
+
+[[shipped-preflight]]
+=== Preflight P0.10, advisory
+
+`migration/phases/preflight.py` now probes for the `legacy_pmda_raw` and
+`legacy_pmda_staged` schemas that dbt materializes into.
+
+This is advisory rather than a gate for a specific reason: if dbt already
+loaded, P0.6's emptiness guard has *already* hard-failed. P0.10 adds no
+enforcement. What it adds is the *cause*: "demos_app is not empty" does not tell
+an operator that a parallel migration is why, and that is the difference between
+a five-minute diagnosis and an afternoon.
+
+[[shipped-bound]]
+=== Parity check 65 no longer false-positives after the flip
+
+Check 65 asserts every `deliverable_action` row was minted by this pipeline. It
+began reporting RED against a correctly-migrated database, because DEMOS itself
+writes actions after cutover.
+
+The obvious fix -- bound the check to rows created before the freeze instant --
+was rejected. It would exclude *all* post-freeze rows, including any dbt marker
+rows written after the flip, which is precisely the case the check exists to
+catch. It would trade a false positive for a blind spot.
+
+Instead the exclusion is narrow: only rows matching the DEMOS cron job's own
+signature are exempt, and only when that signature is present. Anything else
+written after the freeze still gates. See the file header in
+`sql/99_parity/65_deliverable_action_provenance.sql` for the exact predicate and
+why each conjunct is there.
+
+[[shipped-ddt]]
+=== `deliverable_demonstration_type` loader
+
+`sql/21_app_associative/15_deliverable_demonstration_type.sql` fills an entity
+this pipeline previously left empty and dbt did not.
+
+The keying diverges from dbt on purpose. dbt writes a single synthetic
+`'Migrated From PMDA'` tag, and only for
+`deliverable_type_id IN ('Implementation Plan', 'Monitoring Protocol')`. Neither
+choice is adopted:
+
+* dbt needs the synthetic tag because it force-assigns that one type to every
+  finalized demonstration, so it has no real types to draw on. This pipeline
+  has the real ones, from the `*_pgm_dtl` fold.
+* The two-deliverable-type filter has no counterpart in the DEMOS model.
+  `setDeliverableDemonstrationTypes()` is generic and `createDeliverable()`
+  calls it for any deliverable type, so narrowing to two types would discard
+  loadable links for no stated reason.
+
+PMDA has no per-deliverable demonstration-type linkage to migrate --
+`mdcd_dlvrbl` carries `mdcd_demo_id` and nothing that narrows a deliverable to a
+subset of its demonstration's programs. The only fact the source supports is
+"this deliverable belongs to this demonstration, which is of these types", so
+each deliverable receives its parent's full type set. Deriving the rows *from*
+`demonstration_type_tag_assignment` also satisfies both composite FKs by
+construction, so an orphan is not expressible.
+
+[[open]]
+== What is still open
+
+Four items sit with the SME as decision D18 in
+`reports/narrative/pending_approved_decisions.md`. None of them is blocked on
+engineering; all four are questions about what PMDA means.
+
+. *The six `phase_4`/`phase_5`/`phase_6` mappings* in <<collision>>, and Review
+  Completion Date with them. Until this is settled, one of the two migrations is
+  mislabelling six dates.
+. *Whether `phase_3_c_ogc_strt_dt` / `phase_3_c_omb_strt_dt` are clearance
+  receipt dates*, as dbt reads them, or start dates, as their names say.
+. *Whether any of the three synthesized dates may be fabricated* --
+  Concept Skipped, Completeness Start, SDG Preparation Completion.
+. *The `Skipped` Concept phase status*, which stands or falls with item 3.
+
+The dbt-side catch-up items are not tracked here. They belong to another repo
+and are recorded in xref:explanation-dbt-alignment.adoc#dbt-catchup[the report].
+
+== See also
+
+* xref:explanation-dbt-alignment.adoc[Alignment with the `data/` dbt migration]
+  -- the divergence report this page responds to.
+* xref:howto-write-a-parity-check.adoc[Write a parity check] -- how checks 66
+  and 67 are built.
+* xref:../sme/reference-pending-approved-rules.adoc[Pending/approved rules] --
+  where decision D18 is recorded.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:explanation-dbt-alignment.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:explanation-document-migration.adoc[next >]
+|===
+endif::[]
+// docnav-end

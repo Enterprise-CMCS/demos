@@ -31,8 +31,9 @@ def _shaped_query(default: tuple[object, ...]):
     views, and ``_parity_amendment_unmapped_status`` read empty so those stay
     vacuously GREEN (the fail-closed guards never red the rollup here). The
     ``region_digit_repaired`` probe, the three ``_parity_deliverable_action*``
-    views, ``_parity_deliverable_submission_batch``, ``_parity_phantom_phase`` and
-    ``_parity_application_date_consistency`` also read empty: they are per-row
+    views, ``_parity_deliverable_submission_batch``, ``_parity_phantom_phase``,
+    ``_parity_application_date_consistency``, ``_parity_tag_provenance`` and
+    ``_parity_shared_entity_provenance`` also read empty: they are per-row
     detail reads whose columns the single-scalar ``default`` cannot stand in for.
     """
 
@@ -54,6 +55,10 @@ def _shaped_query(default: tuple[object, ...]):
         if "_parity_phantom_phase" in sql:
             return []
         if "_parity_application_date_consistency" in sql:
+            return []
+        if "_parity_tag_provenance" in sql:
+            return []
+        if "_parity_shared_entity_provenance" in sql:
             return []
         if "'pending_only_deferred'" in sql:
             return [(1, "no_approved_counterpart")]

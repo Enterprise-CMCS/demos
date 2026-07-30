@@ -40,6 +40,8 @@ addition).
 | Federal Comment Period End Date | Federal Comment | `mdcd_demo_aplctn.phase_2_fed_cmt_prd_end_dt` | yes | yes |
 | Expected Approval Date | SDG Preparation | `mdcd_demo_aplctn.phase_2_dsrd_aprvl_dt` (desired approval) | yes | yes |
 | SDG Preparation Start Date | SDG Preparation | earliest non-null of the seven `phase_3_*_strt_dt` (SME/FRVT/CMCS/OGC/OMB) | yes | yes |
+| SME Initial Review Date | SDG Preparation | `mdcd_demo_aplctn.phase_3_a_sme_strt_dt` (D18, 2026-07-30) | yes | yes |
+| FRT Initial Meeting Date | SDG Preparation | `mdcd_demo_aplctn.phase_3_a_frvt_strt_dt` (D18, 2026-07-30) | yes | yes |
 | Review Start Date | Review | `mdcd_demo_aplctn.phase_4_strt_dt` | yes | yes |
 | Review Completion Date | Review | `mdcd_demo_aplctn.phase_4_end_dt` | yes | yes |
 | Approval Package Start Date | Approval Package | `mdcd_demo_aplctn.phase_5_strt_dt` | yes | yes |
@@ -121,8 +123,8 @@ needs a home. These are **not** invented as a `date_type`.
 
 | Legacy column(s) | Why deferred |
 |---|---|
-| `mdcd_demo_aplctn.phase_3_a_sme_strt_dt` / `phase_3_a_sme_end_dt` | SME clearance sub-dates; candidate target `SME Initial Review Date` is not high-confidence (start vs end, and which of several SDG-prep sub-dates). |
-| `mdcd_demo_aplctn.phase_3_a_frvt_*`, `phase_3_b_cmcs_*`, `phase_3_b_ogc_*`, `phase_3_b_omb_*`, `phase_3_c_ogc_*`, `phase_3_c_omb_*` (start+end) | FRT / BNPMT / OGC / OMB clearance sub-dates; their DEMOS targets (`FRT Initial Meeting Date`, `BNPMT Initial Meeting Date`, and the Review-phase clearances) require SME ratification of the ordinal/semantic match. Their earliest start already feeds `SDG Preparation Start Date`. |
+| `mdcd_demo_aplctn.phase_3_a_sme_end_dt`, `phase_3_a_frvt_end_dt` | The *end* halves of the two pairs mapped under D18 (`pending_approved_decisions.md`); their DEMOS targets are the phase-completion types contested in the `phase_4`/`phase_5`/`phase_6` collision, so they stay deferred with it. |
+| `mdcd_demo_aplctn.phase_3_b_cmcs_*`, `phase_3_b_ogc_*`, `phase_3_b_omb_*`, `phase_3_c_ogc_*`, `phase_3_c_omb_*` (start+end) | BNPMT / OGC / OMB clearance sub-dates; their DEMOS targets (`BNPMT Initial Meeting Date` and the Review-phase clearances) require SME ratification of the ordinal/semantic match. Their earliest start already feeds `SDG Preparation Start Date`. The dbt migration maps `phase_3_c_ogc_strt_dt` / `phase_3_c_omb_strt_dt` to `Receive OGC Legal Clearance` / `Receive OMB Concurrence`, i.e. reads a `*_strt_dt` column as a *receipt* date; that inversion is exactly the ratification D18 asks for. |
 | `mdcd_demo_aplctn.mdcd_demo_aplctn_stus_dt` | Application-status date; no single milestone `date_type` target. |
 | `mdcd_demo_amndmt.amndmt_aplctn_dt`, `amndmt_stus_dt` | Amendment application / status dates on the satellite table (populated for ~1 of 204 amendments). The amendment's real timeline lives in its type-2 `mdcd_demo_aplctn` `phase_*` columns, not here -- see "Amendment milestone dates (re-opened)" below (D9). |
 

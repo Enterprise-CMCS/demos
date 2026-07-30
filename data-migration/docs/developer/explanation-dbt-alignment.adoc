@@ -19,11 +19,20 @@ The `data/` dbt catch-up items in <<dbt-catchup>> are recorded here only. They
 belong to another repo, this page does not track their progress, and three of
 them have since been partly closed upstream -- see <<demos-2446>>.
 
+Proposed follow-up work arising from this report lives in
+xref:explanation-dbt-alignment-updates.adoc[the alignment updates page]. This
+page stays the report.
+
 This page changes no SQL, no dbt model, no Python, and no config.
 ====
 
-Originally authored 2026-07-22 against the `data/` tree as it then stood, and
-last reconciled against it on 2026-07-30.
+Originally authored 2026-07-22 against the `data/` tree as it then stood,
+reconciled on 2026-07-30, and re-verified later that same day against
+`ca4a797d` ("Demos 2446 additional refactors and cleanup", #1636) and
+`872f55e6` (DEMOS-2445 due-date casting, #1637). That re-verification is what
+produced the corrections in <<aligned>>, <<completeness-gaps>>,
+<<deliverable-action-both>>, <<demos-2446>>, <<due-date-window>> and the new
+<<dbt-tests>>.
 
 [[the-two-tools]]
 == The two tools
@@ -117,7 +126,7 @@ File references are relative to each folder root, except that paths beginning
 | `mysql_raw.crosswalk_sdg_division` (sentinel 0 and unmapped -> NULL)
 
 | `chip_id` minting
-| left NULL, so the DEMOS `generate_medicaid_chip_id_numbers` trigger mints under `migration_mode`
+| carries the legacy value through on the finalized branch -- `fdnum.cleaned_mdcd_scndry_demo_num AS chip_id` in `models/apps/apps_unfiltered_staged_finalized_pmda_demos.sql`; left NULL on the in-progress branch, so the DEMOS `generate_medicaid_chip_id_numbers` trigger mints under `migration_mode`
 | legacy `21-W` preserved when present, else NULL for the same trigger to mint; *additionally floors `chip_id_number_seq` and `medicaid_id_number_seq`* to prevent post-load collisions
 
 | `current_phase_id` (approved)
@@ -129,10 +138,15 @@ File references are relative to each folder root, except that paths beginning
 | most-privileged wins, same order, plus a euaId fallback -- `sql/10_stg/21_users_resolved.sql`
 |===
 
-Two notes on that table. Chip minting is aligned, but the sequence-flooring is a
+Three notes on that table. `chip_id` is aligned on the finalized branch, where
+both sides carry a valid legacy `21-W` through; the sequence-flooring remains a
 `data-migration/` extra and so appears again as dbt catch-up item 11.
 `current_phase_id` is aligned for approved demos; `data-migration/` is
-additionally date-aware.
+additionally date-aware. And dbt nulls the PMDA sentinel dates on the
+in-progress branch -- `WHEN ipd.state_prfmnc_yr_strt_dt = '2099-01-01'::DATE
+THEN NULL`, and `'2099-01-31'` for the end date, in
+`models/apps/apps_unfiltered_staged_in_prog_pmda_demos.sql` -- for which
+`data-migration/` has no counterpart.
 
 [[divergent-dbt-cruder]]
 === Divergent decisions where dbt is cruder
@@ -199,7 +213,7 @@ complete than dbt. Both gaps are now closed with a `data-migration/` floor
 | Expectation | dbt (`data/`) | warm cutover (`data-migration/`)
 
 | Every approved demo has a *primary Project Officer*
-| falls back to *Liz Hill (legacy id 828)* when the PO is NULL or 0 -- `models/cleaned/cleaned_demos_app_demo_role_prim_po_finalized_demos.sql`
+| falls back to *Liz Hill (legacy id 828)* when the PO is NULL or 0, on *both* branches: `models/cleaned/cleaned_demos_app_demo_role_prim_po_finalized_demos.sql` and the identical CASE in `models/cleaned/cleaned_demos_app_demo_role_prim_po_in_prog_demos.sql`, UNION ALLed by `final_demos_app_primary_demo_role_assignment.sql`
 | *RESOLVED (D15):* a configurable fallback PO (default legacy id 828), backfilled onto *every* demo missing a primary PO -- `sql/04_crosswalks/69_primary_po_fallback.sql`, `reports/inputs/primary_po_fallback.csv`, `sql/23_app_derived/41_primary_po_fallback.sql`; provenance parity check 23 (`sql/99_parity/58_primary_officer_fallback.sql`), and residual check 22 now normally zero. (`data-migration/` item 1 done.)
 
 | Every approved demo has at least one *demonstration type*
@@ -253,6 +267,13 @@ Each row is a candidate to port INTO dbt; see dbt catch-up items 5-8.
 | Synthetic single type only
 |===
 
+The reverse direction has one entry: dbt writes
+`final_demos_app_deliverable_demonstration_type.sql`, which `data-migration/`
+did not build, and `data-migration/` is now adding a
+`deliverable_demonstration_type` loader keyed on real `*_pgm_dtl` types rather
+than dbt's synthetic tag -- see
+xref:explanation-dbt-alignment-updates.adoc[the alignment updates page].
+
 Deferred or out-of-scope in *both*: documents, contacts, waiver and expenditure
 authorities, extensions and renewals, `*_history` tables (DEMOS-owned), Budget
 Neutrality, MRT, and STC. See
@@ -282,7 +303,7 @@ The two builds are *not* interchangeable:
 | 7,225 minted from 7,633 state batches, after excluding 320 flagged upload-after-accepted; 5,583 of 6,165 `Submitted` events (90.6%) corroborate one
 
 | Actor
-| Liz Hill (legacy id 828) on *every* row
+| Liz Hill (legacy id 828) on every *submission* row, via `INNER JOIN liz_hill ON TRUE` -- `models/cleaned/cleaned_demos_app_deliverable_action_submission_events.sql`. The marker rows carry no actor at all: `NULL::UUID AS user_id` and `FALSE AS should_have_user_id` -- `models/cleaned/cleaned_demos_app_deliverable_action_migration_events.sql`
 | the actual uploader, 438 distinct, 7,874 of 7,874
 
 | Duplicate source rows
@@ -301,6 +322,12 @@ The two builds are *not* interchangeable:
 | no: `gen_random_uuid()` plus a bare `INSERT`, so re-running duplicates its own output
 | yes: deterministic ids from `migration._id_map_deliverable_action`
 |===
+
+NOTE: `INNER JOIN liz_hill ON TRUE` is an all-or-nothing coupling. Every
+submission action depends on legacy person 828 surviving dbt's user filters --
+`active = 1`, email shape, name shape, resolvable person type. If 828 ever
+fails one of them the join yields nothing and *every* submission action
+disappears silently, with no error and no row to count.
 
 Compared against dbt's *actual output* rather than its raw source -- that is,
 after `dltd_ind = 0 AND mdcd_dlvrbl_crnt_stus_cd NOT IN (0, 16)`, the
@@ -332,14 +359,36 @@ does not either: both sides emit legal triples. Verified by inserting a
 dbt-shaped row beside ours in a rolled-back transaction: one row became two,
 with two different actors and no error. Neither pipeline is invoked from CI, so
 today the only safeguard is knowing to run exactly one.
+
+*The placeholder tag is a second and different failure mode.* Both pipelines
+write the tag_name `'Migrated From PMDA'`. `demos_app.tag_name` is
+`PRIMARY KEY (id)` while `demos_app.tag` is
+`PRIMARY KEY (tag_name_id, tag_type_id)`
+(`server/src/model/migrations/20260312131729_prisma_init_baseline/migration.sql`
+lines 1146-1178). `data-migration/` writes *one* tag row,
+`('Migrated From PMDA', 'Demonstration Type')`, with `source_id = 'User'` and
+`status_id = 'Unapproved'` per D16 -- so floored demos surface in-app as
+"(Unapproved)" pending SME ratification -- using `ON CONFLICT DO NOTHING`. dbt
+writes *two*, `('...', 'Application')` and `('...', 'Demonstration Type')`, both
+`source_id = 'System'` and `status_id = 'Approved'`, with a bare INSERT and no
+conflict handling. So dbt-after-us raises `ERROR 23505` and aborts dbt's load
+partway, while us-after-dbt silently inherits dbt's System/Approved values: D16
+violated, row counts correct, every FK satisfied, nothing to notice. The
+id-based provenance pattern cannot catch this one, because `tag` and `tag_name`
+are keyed by text rather than by a minted uuid.
 ====
 
 The deliverable-action provenance check
 (`sql/99_parity/65_deliverable_action_provenance.sql`) turns that silent doubling
 into a RED gate by flagging any `deliverable_action` row this pipeline did not
 mint. It is registered in `migration/phases/parity.py` unnumbered, as
-`Deliverable action provenance`: the numbered series runs 1 to 24 with no 3, and
-the deliverable-action group was added without numbers.
+`Deliverable action provenance`. That file registers 46 checks: 23 numbered
+(1, 2, 4-24, the gap at 3 being the retired BN JSONB-shape oracle) and 23
+unnumbered, spread across eight groups rather than the deliverable-action group
+alone -- deliverable-action (4), comment and override-note (6), `pgm_dtl` (4),
+application-phase and date (4), plus phase derivation, chip id, project-number
+collision, BN QA, and amendment unmapped status. Registration order is not
+numeric order either: 22, 23 and 24 execute before 13, 14 and 17-21.
 
 [[demos-2446]]
 === DEMOS-2446 moved dates and phases onto the shared surface
@@ -349,10 +398,15 @@ DEMOS-2413 (#1630) at 16:36 UTC. It closes or partly closes three of the dbt
 catch-up items, so three rows above that once read "not in dbt" no longer do:
 
 Pending demonstrations are now loaded.:: `final_demos_app_demonstration.sql`
-`UNION ALL`s `cleaned_demos_app_demonstration_in_prog_demos` onto the finalized
-branch, gated on a matching `apps_in_prog_phase_completion` row, and the loader
-writes `final_demos_app_demonstration`. Item 5 is therefore largely done, though
-the "approved-wins" fold this repo applies has no dbt counterpart.
+`UNION ALL`s `cleaned_demos_app_demonstration_in_prog_demos_current_phase` onto
+the finalized branch, and the loader writes `final_demos_app_demonstration`.
+That model is net-new in `ca4a797d`:
+`cleaned_demos_app_demonstration_in_prog_demos.sql` now emits
+`NULL AS current_phase_id`, and the new model attaches
+`phase_completion.current_phase_id` and carries the gate
+`WHERE phase_completion.mdcd_demo_aplctn_id IS NOT NULL`. Item 5 is therefore
+largely done, though the "approved-wins" fold this repo applies has no dbt
+counterpart.
 
 `application_date` is now populated for in-progress demos.::
 `final_demos_app_application_date.sql` is
@@ -367,13 +421,71 @@ In-progress phase status is now date-derived.::
 from `apps_in_prog_phase_completion.sql` with Completed, Skipped, Started and
 Not Started statuses. Item 8 remains open for the finalized branch only.
 
+`ca4a797d` also rewrote the in-progress `current_phase_id` CASE in
+`apps_in_prog_phase_completion.sql`. It now reads: `'Concept'` when
+`concept_phase_status = 'Started' AND application_intake_phase_status = 'Not
+Started'`; `'Application Intake'` when `application_intake_phase_status IN
+('Not Started', 'Started')`; `'Completeness'` when `completeness_phase_status IN
+('Not Started', 'Started')`; `'SDG Preparation'` otherwise. The Federal Comment
+branch was removed, and per dbt's own `MIGRATION_LOGIC.md` "The current phase
+logic does not evaluate beyond SDG Preparation phase."
+
 Two differences survive on that last point. dbt has a `'Skipped'` status this
 repo does not, and it hardcodes `approval_summary_phase_status` to
 `'Not Started'`. And where this repo carries an explicit Federal Comment
-past-window failsafe, dbt keys the phase off date existence alone under a
-stated assumption -- its own comment reads "currently, no applications fall
-within federal comment period, so we can assume based on date existence its
-status".
+past-window failsafe, dbt no longer derives that phase at all: since `ca4a797d`
+`apps_in_prog_phase_completion.sql` emits the bare literal
+`'Not Started' AS federal_comment_period_phase_status` under the comment "rely
+on stored proc to update fed comment period accordingly", and the loader runs
+`CALL {APP_SCHEMA}.update_federal_comment_phase_status()` after the load. The
+earlier date-existence assumption -- and the comment that stated it, "currently,
+no applications fall within federal comment period, so we can assume based on
+date existence its status" -- is gone from the tree. The handoff it was replaced
+by has a defect of its own: see dbt catch-up item 14.
+
+[[dbt-tests]]
+=== dbt's test surface, and why the severity split matters
+
+dbt's `tests/` directory holds 20 files, and `models/models.yml` declares inline
+schema assertions alongside them. That is dbt's equivalent of the parity gates
+on this side, so the severity split is the thing to compare against a RED gate.
+
+Hard-failing, 11, at dbt's default severity `error`:
+
+* `assert_phase_statuses_match_dates.sql` -- roughly 20 UNIONed violation
+  classes: Started without a start date, Completed without dates, Skipped
+  without a skipped date, and the phase cascade rules.
+* Timestamp-convention gates:
+  `assert_application_date_timestamps_match_expected_conventions.sql`,
+  `assert_demo_effective_dates_are_start_of_day.sql`,
+  `assert_demo_expiration_dates_are_end_of_day.sql`,
+  `assert_deliv_due_dates_are_end_of_day.sql`,
+  `assert_deliv_action_due_dates_are_end_of_day.sql`,
+  `assert_concept_completion_and_skipped_dates_are_mutually_exclusive.sql`.
+* `assert_no_mdcd_demo_ids_null_for_finalized_demos_in_final_tbl.sql`.
+* Crosswalk coverage:
+  `assert_aplctn_status_crosswalk_has_all_pmda_statuses.sql`,
+  `assert_demo_status_crosswalk_has_all_pmda_statuses.sql`,
+  `assert_role_person_type_crosswalk_has_all_pmda_roles.sql`.
+
+Warn-only, 9, each carrying `{{ config(severity='warn') }}`, so reports rather
+than gates:
+
+* Dropped demos: `assert_no_finalized_pmda_demos_filtered_out_by_dupe_ids.sql`,
+  `assert_no_finalized_pmda_demos_filtered_out_by_malformed_id.sql`,
+  `assert_no_in_progress_pmda_demos_filtered_out_by_malformed_id.sql`.
+* Dropped users:
+  `assert_no_pmda_users_filtered_out_by_email_firstname_lastname.sql`,
+  `assert_no_pmda_users_filtered_out_by_person_type.sql`,
+  `assert_pmda_user_resolves_to_single_demos_person_type_id.sql`.
+* Dropped or substituted deliverables:
+  `assert_no_deliverables_filtered_for_missing_due_date.sql`,
+  `assert_no_deliverables_filtered_for_missing_demos.sql`,
+  `assert_no_deliverable_owners_replaced_by_placeholder.sql`.
+
+Stated plainly: every one of dbt's DROP reports is warn-only, whereas the
+equivalent hold-backs on this side either gate RED or fail closed against a
+signed baseline.
 
 [[work-items]]
 == Work items
@@ -447,6 +559,45 @@ ledger].
   them today; record DEMOS-owned against migrated intent explicitly on the dbt
   side.
 
+Added by the 2026-07-30 re-verification. The numbering continues past item 13,
+which is the `data-migration/` item in <<due-date-window>>.
+
+[start=14]
+. *Federal-comment handoff defect.* `update_federal_comment_phase_status()`
+  (`server/src/sql/functions.sql`, line 649) completes the Federal Comment phase
+  only when `completeness_phase_status = 'Completed'`, but its
+  `start_sdg_prep_phase` branch carries no such condition. So an in-progress
+  demo whose comment window closed before go-live, and whose Completeness is not
+  Completed, keeps Federal Comment at `'Not Started'` permanently while SDG
+  Preparation flips to `'Started'` and receives a synthetic
+  `'SDG Preparation Start Date'` of go-live day. This repo's past-window
+  failsafe forces Federal Comment to `'Completed'` first, which neutralizes all
+  three branches of the proc.
+. *Three FK-breaking `date_type` literals.*
+  `models/apps/apps_in_prog_dates_long.sql` emits
+  `'Comms Clearance Received'`, `'CMS OSORA Clearance End'` and
+  `'Package Sent for Comms Clearance'`. The DEMOS canonical values are
+  `'COMMs Clearance Received'`, `'CMS (OSORA) Clearance End'` and
+  `'Package Sent for COMMs Clearance'` (`server/src/constants.ts` lines 231-239,
+  `server/src/seeder.ts`). Three of dbt's 27 in-progress date types therefore
+  cannot satisfy the FK to `demos_app.date_type`, so either dbt's own
+  `relationships` test is red today or its seed differs from the app's.
+. *Copy-paste bug in `apps_in_prog_dates_long.sql`.* The final VALUES row reads
+  `('Approval Package Completion Date', a.approval_package_completion_date,
+  a.cleaned_approval_package_start_date)`, so that date type loads the *start*
+  date's cleaned value.
+. *`person_state` under-populates.* `final_demos_app_person_state.sql` derives
+  only from `final_demos_app_person WHERE person_type_id = 'demos-state-user'`,
+  so a `demos-cms-user` with authorized states gets no rows. This repo's
+  `sql/23_app_derived/10_person_state.sql` grants CMS users and admins every
+  state, matching the DEMOS `assign_cms_user_to_all_states` trigger that is
+  installed after the load.
+. *`MIGRATION_LOGIC.md` is itself stale.* It cites error models
+  `errors_apps_in_prog_missing_aplctn` and
+  `errors_apps_in_prog_demos_missing_phase_completion`, neither of which exists
+  in the tree any more; `ca4a797d` replaced them with inline `models.yml`
+  assertions.
+
 [[due-date-window]]
 === Recording the due date in effect at an action's own timestamp
 
@@ -478,7 +629,13 @@ Three things this does _not_ copy from dbt's
 * The timezone conversion is explicit and DST-aware. `mdcd_dlvrbl_hstry` is
   true UTC while every other migrated timestamp is Eastern wall-clock stored at
   `+00`; pairing each history row with its nearest status event puts 17,476
-  pairs at exactly +4h and 8,950 at +5h, which is EDT and EST.
+  pairs at exactly +4h and 8,950 at +5h, which is EDT and EST. `872f55e6`
+  (DEMOS-2445, 2026-07-29) anchored the due-date *value* to Eastern --
+  `(history.dlvrbl_due_dt + TIME '23:59:59.999') AT TIME ZONE
+  'America/New_York'` -- but the window *boundaries* are still raw
+  `hstry_updtd_dt` compared against raw `sub_evt.creatd_dt`. So no
+  UTC-versus-Eastern-wall-clock correction exists anywhere in the dbt path. The
+  critique stands, for that narrower reason.
 
 Measured on the current snapshot: 12,385 windows over 8,693 deliverables, and
 2,188 of 21,605 actions take a different due date, 111 of them
@@ -588,7 +745,7 @@ ifndef::nested[]
 |===
 |xref:explanation-migration-feasibility.adoc[< prev]
 ^|xref:../toc.adoc[Table of contents]
->|xref:explanation-document-migration.adoc[next >]
+>|xref:explanation-dbt-alignment-updates.adoc[next >]
 |===
 endif::[]
 // docnav-end

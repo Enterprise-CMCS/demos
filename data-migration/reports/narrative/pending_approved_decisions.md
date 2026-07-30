@@ -700,6 +700,85 @@ region-correct, no medicaid_id collisions).
 - [x] Bounded strip-and-reassemble (no fuzzy matching). Decided by: SME (in-session)  Date: 2026-07-24
 - [ ] SME reviews the 76 still-dropped malformed IDs (per-run filter report).
 
+### D18. `phase_3`-`phase_6` milestone semantics, raised by the dbt re-verification
+
+**Status:** PARTLY DECIDED (2026-07-30). Two sub-items built; four escalated to
+SME. Refines the `mdcd_demo_aplctn` row in the decision table above and re-opens
+part of the deferred set behind `_parity_application_milestone_unmapped`.
+
+**Problem.** Re-verifying this pipeline against the sibling dbt migration
+(`docs/developer/explanation-dbt-alignment.adoc`) showed dbt emits application
+dates from PMDA columns this pipeline defers, which reads at first as a simple
+catch-up list. It is not. Six of dbt's date types are **not** additions: they
+read the same source column as a *different* DEMOS date type than this pipeline
+does. Adopting them wholesale would not add dates, it would silently relabel
+dates that already load.
+
+**The collision.** For `phase_4`, `phase_5` and `phase_6` the two pipelines
+disagree about what the phase *is*:
+
+| PMDA column | pgloader+python | dbt (`apps_in_prog_dates_crosswalked.sql`) |
+|---|---|---|
+| `phase_4_strt_dt` | Review Start Date | Approval Package Start Date |
+| `phase_4_end_dt` | Review Completion Date | Approval Package Completion Date |
+| `phase_5_strt_dt` | Approval Package Start Date | Submit Approval Package to OSORA |
+| `phase_5_end_dt` | Approval Package Completion Date | CMS (OSORA) Clearance End |
+| `phase_6_strt_dt` | Approval Summary Start Date | Package Sent for COMMs Clearance |
+| `phase_6_end_dt` | Approval Summary Completion Date | COMMs Clearance Received |
+
+Both readings are internally consistent and neither is self-evidently wrong, so
+this is a question about what PMDA's phases *mean*, which only the SME can
+settle. Note dbt also derives Review Completion Date as
+`greatest(phase_6_end_dt, phase_5_end_dt)` rather than from `phase_4_end_dt`,
+so that seventh type is contested by implication.
+
+**Decision (built).** Adopt only the two dbt mappings that add a date type
+without contesting an existing one, because both read a `phase_3_a` column this
+pipeline previously folded into `phase_3_any_start` and discarded:
+
+- `phase_3_a_sme_strt_dt` -> `'SME Initial Review Date'`
+- `phase_3_a_frvt_strt_dt` -> `'FRT Initial Meeting Date'`
+
+Both columns keep feeding `phase_3_any_start` (SDG Preparation Start Date), so
+no existing value changes; the two dates are additive only.
+
+**BUILT.** `sql/10_stg/27_application_milestone.sql` emits both types on the
+approved (`demo_ap`) and pending (`pend_ap`) branches -- wider coverage than
+dbt, which emits them on the in-progress branch only.
+`sql/99_parity/56_application_milestone.sql` no longer reports the two columns
+as unmapped.
+
+**Escalated to SME (nothing built, nothing guessed).**
+
+1. **The six colliding mappings above.** Until the SME rules, this pipeline
+   keeps its existing reading unchanged. Whichever way it goes, one of the two
+   migrations is mislabelling six dates today.
+2. **`phase_3_c_ogc_strt_dt` / `phase_3_c_omb_strt_dt`.** dbt maps these to
+   `'Receive OGC Legal Clearance'` and `'Receive OMB Concurrence'`. Both are
+   `*_strt_dt` columns being read as *receipt* dates, i.e. the end of the
+   clearance rather than its start. That inversion may be correct, but it is
+   not derivable from the column names, so both stay deferred.
+3. **Three dbt date types with no source column at all.** dbt synthesizes
+   `'Concept Skipped Date'` (`phase_2_rcvd_dt - 1 day`), Completeness Start Date
+   (`phase_2_cmpltns_rvw_dt + 1 day`) and SDG Preparation Completion Date
+   (`greatest(phase_3_a_sme_strt_dt, phase_3_a_frvt_strt_dt)`). This pipeline
+   does not fabricate dates, so none are adopted. Worth flagging for the SME:
+   because `concept_skipped_date` is fabricated to be exactly one day before
+   `phase_2_rcvd_dt` and Concept Completion Date is only non-NULL when
+   `phase_1_end_dt` is, dbt's own
+   `assert_concept_completion_and_skipped_dates_are_mutually_exclusive` test can
+   never fail. It asserts a property of its own CASE expression, not of PMDA.
+4. **The `Skipped` phase status.** DEMOS models a skipped Concept phase as a
+   status plus a Concept Skipped Date. Adopting the status without a defensible
+   date would leave the phase in a state DEMOS treats as incomplete, so the
+   status is deferred *together with* item 3 and stands or falls with it.
+
+- [x] Adopt `phase_3_a_sme_strt_dt` / `phase_3_a_frvt_strt_dt`. Decided by: SME (in-session)  Date: 2026-07-30
+- [ ] SME arbitrates the six `phase_4`/`phase_5`/`phase_6` mappings (and Review Completion Date with them).
+- [ ] SME confirms whether `phase_3_c_*_strt_dt` are clearance *receipt* dates.
+- [ ] SME decides whether any of the three synthesized dates may be fabricated.
+- [ ] SME decides the `Skipped` Concept status, jointly with the item above.
+
 ## Sign-off
 
 - Reviewer: SME
