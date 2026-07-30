@@ -47,7 +47,11 @@ export const ApplicationHealthTypeTags = ({
 }: ApplicationHealthTypeTagsProps) => {
   const { showApplyTagsDialog } = useDialog();
 
-  const { data, loading, error } = useQuery(GET_APPLICATION_TAG_OPTIONS);
+  const { data, loading, error } = useQuery(GET_APPLICATION_TAG_OPTIONS, {
+    // retreive demos types tags between demonstration/extension/amendment workflows.
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
+  });
 
   if (loading) return <div>Loading tags...</div>;
   if (error || !data) return <div>Error loading tags.</div>;
