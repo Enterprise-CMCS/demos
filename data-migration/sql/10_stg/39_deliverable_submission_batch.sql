@@ -19,10 +19,10 @@
  *
  * mdcd_dlvrbl_stus_hstry cannot fix this on its own:
  *   - coverage: on 22.0% of deliverables that have state uploads (1,167/5,296)
- *     it records FEWER submissions than the file trail shows. This is not an
- *     era effect -- it runs 20-29% in every creation year from 2016 to 2026.
- *     Separately, 14.1% of 2016 deliverables have no status row at all,
- *     against at most 2.8% in any other year.
+ *     it records FEWER submissions than the file trail shows, and that runs
+ *     20-29% in every creation year from 2016 to 2026. Separately, 14.1% of
+ *     2016 deliverables have no status row at all, against at most 2.8% in any
+ *     other year.
  *   - attribution: only 84.1% of its `Submitted` events carry an actor.
  * The file table is strictly better on both counts -- user_id is NOT NULL and
  * 100% of in-scope live uploaders (12,682/12,682) resolve to a migrated DEMOS
@@ -54,7 +54,10 @@
  * action (the no_submitted_deliverable_cms_files CHECK). Both origins are
  * emitted here, batched independently, because stg stays source-only and the
  * document loader needs the 'C' batches too. The loader filters to
- * origin_cd = 'S' when minting `Submitted Deliverable` actions.
+ * origin_cd = 'S' AND after_accepted_ind = 0 when minting
+ * `Submitted Deliverable` actions: a file the source flags as arriving after
+ * acceptance is a late addition to a closed deliverable, not evidence that it
+ * was submitted (320 batches).
  *
  * CORROBORATION, NOT SUBSTITUTION
  *
@@ -62,12 +65,22 @@
  * it is matched and exposed, and submitted_at prefers it -- the event is the
  * system's own record of the submission instant, while batch_end_at is only the
  * last upload. Matching is mutual-nearest and 1:1 in both directions, so a
- * single event can never be claimed by two batches. 4,781 of 6,165 `Submitted`
- * events have a batch somewhere in the window and 4,769 (77%) survive the 1:1
- * matching, and batch count equals event count on 74% of deliverables that
- * have either signal, so the two sources broadly agree; where they disagree
- * the batch is the more reliable side for attribution and the event is the
- * more reliable side for timing.
+ * single event can never be claimed by two batches. 5,583 of 6,165 `Submitted`
+ * events (90.6%) are matched, and where they disagree the batch is the more
+ * reliable side for attribution and the event is the more reliable side for
+ * timing.
+ *
+ * TWO KINDS OF TIMESTAMP
+ *
+ * Status rows written before 2019 carry a date with no time of day and land at
+ * midnight: 2016-2018 are 100% date-only, 2019 is 32%, 2020+ is ~0%. File
+ * uploads never are (0 of 12,748). A single window centred on the batch cannot
+ * reach both kinds -- a midnight event sits hours before the upload it
+ * describes -- so date-only events were matching at 1.5% against 91.8% for
+ * events with a real time, and the loader minted a duplicate submission beside
+ * each one the source had already recorded. Date-only events therefore match
+ * anywhere in their own calendar day, and never set submitted_at, because
+ * midnight is not an instant anyone submitted at. This recovered 814 matches.
  *
  * KNOWN SKEW (deliberately not corrected here)
  *
@@ -81,6 +94,15 @@
  * them at once, not here alone. (mdcd_dlvrbl_hstry, not read by this view, is
  * true UTC and would shift the other way; 40_deliverable_due_date_window.sql
  * does read it and converts explicitly for exactly that reason.)
+ *
+ * This is why the date-only test above renders at UTC rather than converting to
+ * America/New_York. AT TIME ZONE 'UTC' on a value stored at +00 returns the
+ * stored digits, which already ARE the Eastern wall clock. Converting would
+ * apply the offset a second time: all 1,012 date-only rows become 20:00 on the
+ * previous day, the midnight test matches nothing, and the calendar-day rule
+ * silently stops working. A bare ::time would be worse still -- it reads the
+ * session's TimeZone, so the rule would fire for 1,012 rows under UTC and 0
+ * under America/New_York.
  *
  * WHAT THIS DOES NOT COVER
  *
@@ -183,27 +205,62 @@ WITH agg AS (
 ),
 -- Candidate (batch, Submitted-event) pairs within the corroboration window,
 -- ranked from both sides so the match can be forced 1:1.
+-- Submitted events, with the shape of their timestamp worked out once.
+--
+-- AT TIME ZONE 'UTC' here is NOT a claim that these rows are UTC. It reads the
+-- stored wall clock verbatim: the column holds Eastern wall-clock stored at
+-- +00 (see KNOWN SKEW above), so rendering it at +00 returns the digits a
+-- DEMOS user typed. Converting to America/New_York instead would double-apply
+-- the offset -- every one of the 1,012 date-only rows becomes 20:00 the
+-- previous day -- and the date-only test would match nothing at all. The one
+-- PMDA table that IS true UTC, mdcd_dlvrbl_hstry, is converted explicitly, in
+-- 40_deliverable_due_date_window.sql.
+sub_event AS (
+  SELECT
+    h.mdcd_dlvrbl_id,
+    h.mdcd_dlvrbl_stus_hstry_id AS event_id,
+    h.creatd_dt::timestamptz AS event_at,
+    h.creatd_user_id AS event_user_id,
+(h.creatd_dt::timestamptz AT TIME ZONE 'UTC') AS event_wall_clock
+  FROM
+    mysql_raw.mdcd_dlvrbl_stus_hstry h
+  WHERE
+    h.mdcd_dlvrbl_stus_cd = 3
+    AND h.dltd_ind = 0
+),
+dated AS (
+  SELECT
+    s.*,
+(s.event_wall_clock::time = '00:00:00') AS event_is_date_only
+  FROM
+    sub_event s
+),
 pairing AS (
   SELECT
     a.legacy_dlvrbl_id,
     a.origin_cd,
     a.batch_seq,
-    h.mdcd_dlvrbl_stus_hstry_id AS event_id,
-    h.creatd_dt::timestamptz AS event_at,
-    h.creatd_user_id AS event_user_id,
-    row_number() OVER (PARTITION BY h.mdcd_dlvrbl_stus_hstry_id ORDER BY abs(extract(EPOCH FROM h.creatd_dt::timestamptz - a.batch_end_at)),
+    e.event_id,
+    e.event_at,
+    e.event_user_id,
+    e.event_is_date_only,
+    row_number() OVER (PARTITION BY e.event_id ORDER BY abs(extract(EPOCH FROM e.event_at - a.batch_end_at)),
       a.batch_seq) AS event_rank,
     row_number() OVER (PARTITION BY a.legacy_dlvrbl_id,
       a.origin_cd,
-      a.batch_seq ORDER BY abs(extract(EPOCH FROM h.creatd_dt::timestamptz - a.batch_end_at)),
-      h.mdcd_dlvrbl_stus_hstry_id) AS batch_rank
+      a.batch_seq ORDER BY abs(extract(EPOCH FROM e.event_at - a.batch_end_at)),
+      e.event_id) AS batch_rank
   FROM
     agg a
-    JOIN mysql_raw.mdcd_dlvrbl_stus_hstry h ON h.mdcd_dlvrbl_id = a.legacy_dlvrbl_id
-      AND h.mdcd_dlvrbl_stus_cd = 3
-      AND h.dltd_ind = 0
-      AND h.creatd_dt::timestamptz >= a.batch_end_at - interval '1 hour'
-      AND h.creatd_dt::timestamptz <= a.batch_end_at + interval '24 hours'
+    JOIN dated e ON e.mdcd_dlvrbl_id = a.legacy_dlvrbl_id
+    -- A status row written before 2019 carries a date with no time of day and
+    -- lands at midnight, hours before the upload it describes, so the window
+    -- below can never reach it. Those get their whole calendar day instead.
+      AND ((e.event_is_date_only
+          AND e.event_wall_clock::date =(a.batch_end_at AT TIME ZONE 'UTC')::date)
+        OR (NOT e.event_is_date_only
+          AND e.event_at >= a.batch_end_at - interval '1 hour'
+          AND e.event_at <= a.batch_end_at + interval '24 hours'))
   WHERE
     -- Only a state upload can corroborate a state submission.
     a.origin_cd = 'S'
@@ -217,7 +274,8 @@ matched AS (
     p.batch_seq,
     p.event_id,
     p.event_at,
-    p.event_user_id
+    p.event_user_id,
+    p.event_is_date_only
   FROM
     pairing p
   WHERE
@@ -240,7 +298,14 @@ SELECT
   m.event_at AS corroborating_status_event_at,
   m.event_user_id AS corroborating_status_event_user_id,
   -- Prefer the system's own submission instant; fall back to the last upload.
-  COALESCE(m.event_at, a.batch_end_at) AS submitted_at
+  -- A date-only event has no instant to offer -- adopting its midnight would
+  -- move the submission back to the start of the day and throw away the only
+  -- real time we have -- so it corroborates without setting the timestamp.
+  CASE WHEN m.event_is_date_only THEN
+    a.batch_end_at
+  ELSE
+    COALESCE(m.event_at, a.batch_end_at)
+  END AS submitted_at
 FROM
   agg a
   LEFT JOIN matched m ON m.legacy_dlvrbl_id = a.legacy_dlvrbl_id
