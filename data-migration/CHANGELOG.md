@@ -215,6 +215,16 @@ behavior changes. Commit history follows [Conventional Commits](https://www.conv
   what is true: `.github/workflows/ci.yml` does not exist, no parent-repository
   workflow matches `data-migration/`, and the local `make` targets plus the
   `sql-check` pre-commit hook are the only gates.
+- The 43-file SQL formatting backlog is drained and `make sql-check` is green
+  on the full tree for the first time. The backlog existed because
+  `data-migration/.pre-commit-config.yaml` was a nested config and pre-commit
+  reads only the root one, so the pg_format hook never ran between the
+  2026-07-10 import and the 2026-07-29 rewiring. Verified layout-only by a
+  negative-controlled token-stream comparison (literals byte-exact, PL/pgSQL
+  bodies parsed recursively) and by running the apply harness against Postgres.
+  `scripts/_pending_dups.sql`, a MySQL-dialect diagnostic that Postgres tooling
+  cannot parse, is quarantined from both formatting and linting via a new
+  `.sqlfluffignore`, and remains front-matter-checked.
 - `sme_review_exports.py` gained an `all` aggregate, now the default, replacing
   `both` as what a bare `make sme_review_exports` runs. `both` predates four of
   the six exports and enumerated its two members by hand, so every export added

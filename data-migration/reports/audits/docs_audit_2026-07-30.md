@@ -246,20 +246,54 @@ reporting them as unknown, and `schema_model.py` parses `CREATE SEQUENCE`.
    distinguish "not started" from "nothing to do". The status legend needs to
    say whether a deliberate non-build counts as Done.
 
-3. **43 SQL files disagree with the installed pg_format 5.10.** Pre-existing
-   and unrelated to this audit; verified byte-identical against a `git
-   worktree` at HEAD before and after. The formatter's output de-indents
-   `VALUES` rows and open parens to column 0, which is why the files were
-   committed unformatted. Either pin the formatter version or accept its
-   output wholesale, but not per-commit.
+3. ~~**43 SQL files disagree with the installed pg_format 5.10.**~~ **Resolved,
+   and the original diagnosis here was wrong.** This section first claimed a
+   formatter-version disagreement, and that the formatter "de-indents `VALUES`
+   rows and open parens to column 0, which is why the files were committed
+   unformatted." Both halves were false, and the same wrong reasoning appears
+   in three commit messages on this branch that skipped the pre-commit hook.
 
-4. **`scripts/_pending_dups.sql` fails sqlfluff with 7 violations.**
-   Pre-existing. It is a MySQL-dialect scratch script linted as Postgres.
+   The real cause: `data-migration/.pre-commit-config.yaml` was a *nested*
+   config. pre-commit installs one hook at the git top level and reads only the
+   root config, so the pg_format hook **never executed once** between the
+   2026-07-10 monorepo import and commit `26f1a31d` on 2026-07-29 that rewired
+   it. The backlog was 19 days of unenforced formatting, not a tool regression.
+   `26f1a31d`'s own message says so.
 
-5. **There is no CI.** Now documented as fact rather than implied away, but
+   The mechanism was wrong too. pg_format does not de-indent `VALUES` rows;
+   they are already at column 0 in the committed files. 17 of the 43 differed
+   from the formatter's output by **exactly one byte**, a trailing blank line,
+   including the only file that ever blocked a commit here. The remaining 26
+   differed by `VALUES` placement, `SELECT count(*) INTO x` splitting across
+   three lines, and PL/pgSQL `IF` block indentation.
+
+   `26f1a31d` gated per-file deliberately, so that "checking only what a commit
+   touches pays the debt down as those files are edited". Using
+   `SKIP=data-migration-sql` three times defeated exactly that mechanism. The
+   backlog was drained in `cef9ad8a`, verified layout-only by a
+   negative-controlled token-stream comparison and by running the SQL apply
+   harness against Postgres.
+
+4. ~~**`scripts/_pending_dups.sql` fails sqlfluff with 7 violations.**~~
+   **Resolved.** A MySQL-dialect diagnostic linted as Postgres, so its `REGEXP`
+   operator is an unparsable section and the violations report the dialect
+   mismatch rather than a defect. pg_format also expanded its compact 56-row
+   region CTE from 52 to 281 lines. Quarantined from both in `cef9ad8a`, via
+   `EXCLUDE` in `sql_fmt.py` and a new `.sqlfluffignore`; still
+   front-matter-checked. `make sql-check` is now green on the full tree.
+
+5. **The SQL apply harness is not part of a default test run.** `pytest` skips
+   372 tests without `PG_TEST_DSN`, and those are the ones that apply this
+   repo's SQL to Postgres. With the `demos-test-pg` container running the suite
+   is 979 passed / 8 skipped. Nothing makes the database-backed run the default
+   or warns that a bare `pytest` covers under two-thirds of the suite.
+
+6. **There is no CI.** Now documented as fact rather than implied away, but
    the underlying gap is real: nothing runs `pytest`, `ruff`, `ty`, or
    `sql-check` on push or PR. The `sql-check` pre-commit hook is the only
-   automated gate, and it only fires locally.
+   automated gate, it only fires locally, and items 3 and 5 above are both
+   direct consequences: a hook nobody notices is disabled drifts for 19 days,
+   and a test suite nobody runs with a database silently covers two-thirds.
 
 ---
 
@@ -273,10 +307,16 @@ cd docs && make verify      # 15 checks, exit 0
 cd docs && make html        # asciidoctor --failure-level=WARN, exit 0
 make lint                   # ruff
 make typecheck              # ty
+make sql-check              # pg_format + sqlfluff + front-matter, full tree
 uv run pytest               # 615 passed, 372 skipped
-uv run python scripts/check_sql_frontmatter.py
+PG_TEST_DSN=... uv run pytest   # 979 passed, 8 skipped
 ```
 
+The database-backed run is the one that matters for the SQL, and it is not the
+default. Without `PG_TEST_DSN` the 372 skips are almost entirely the apply
+harness, so a bare `pytest` never executes this repository's SQL.
+
 Final state: 86 built pages in both navigation surfaces, 95 pages passing
-reference-integrity checks, 133 pages with no Markdown leakage, and 10 more
-unit tests than at the start.
+reference-integrity checks, 133 pages with no Markdown leakage, 10 more unit
+tests than at the start, and `make sql-check` green on the full tree for the
+first time.
