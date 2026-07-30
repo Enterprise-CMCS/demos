@@ -253,6 +253,49 @@ models:
         data_type: integer
         description: The legacy application ID of the demonstration in PMDA.
 
+  - name: final_demos_app_document
+    columns:
+      - name: id
+        data_type: uuid
+      - name: name
+        data_type: text
+      - name: description
+        data_type: text
+      - name: s3_path
+        data_type: text
+      - name: owner_user_id
+        data_type: uuid
+        data_tests:
+          - not_null:
+              name: assert_no_null_owners_in_final_docs_table
+      - name: document_type_id
+        data_type: text
+      - name: application_id
+        data_type: uuid
+        data_tests:
+          - not_null:
+              name: assert_no_null_app_ids_in_final_docs_table
+      - name: phase_id
+        data_type: text
+      - name: deliverable_id
+        data_type: uuid
+      - name: deliverable_type_id
+        data_type: text
+      - name: deliverable_is_cms_attached_file
+        data_type: bool
+      - name: deliverable_submission_action_id
+        data_type: uuid
+      - name: deliverable_submission_action_type_id
+        data_type: text
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+      - name: _legacy_mdcd_dlvrbl_fil_doc_id
+        data_type: integer
+      - name: _legacy_mdcd_dlvrbl_id
+        data_type: integer
+
   - name: final_demos_app_person_state
     description: All cleaned person-state relations with state users and valid states
     columns:
@@ -531,6 +574,14 @@ models:
       - name: updated_at
         data_type: timestamptz
 
+  - name: cleaned_demos_app_deliverable_docs
+    columns:
+      - name: deliverable_type_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_null_deliverable_type_ids_in_cleaned_deliverable_docs
+
   # Apps Models
   
   - name: apps_in_prog_dates_crosswalked
@@ -646,3 +697,12 @@ models:
         data_tests:
           - not_null:
               name: assert_no_missing_deliv_status_id_in_crosswalked_deliv
+  
+  # Document Models
+  - name: docs_base_pmda_deliv_docs
+    columns:
+      - name: creatd_dt
+        data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_missing_creatd_dt_in_base_pmda_deliv_docs
