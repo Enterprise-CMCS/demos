@@ -135,7 +135,7 @@ builds are **not** interchangeable:
 | | dbt (`data/`) | warm cutover (`data-migration/`) |
 |---|---|---|
 | Submission source | `mdcd_dlvrbl_stus_hstry` where `mdcd_dlvrbl_stus_cd = 3` — `.../cleaned_demos_app_deliverable_action_submission_events.sql` | file-upload batches, corroborated by status event and status field — `sql/10_stg/39`, `sql/23_app_derived/60` |
-| Submission events | 6,018 over 5,135 deliverables (6,307 over 5,405 before dbt's own scope filters) | 7,874 over 5,378 deliverables |
+| Submission events | 6,018 over 5,135 deliverables (6,307 over 5,405 before dbt's own scope filters) | 7,225 minted from 7,633 state batches, after excluding 320 flagged upload-after-accepted; 5,583 of 6,165 `Submitted` events (90.6%) corroborate one |
 | Actor | Liz Hill (legacy id 828) on **every** row | the actual uploader, 438 distinct, 7,874 / 7,874 |
 | Duplicate source rows | one action per history row, so 76 exact duplicates on `(deliverable, timestamp)` across 53 deliverables become 76 indistinguishable actions | collapsed by batch grouping |
 | Due date on the action | the value in effect **at submission time**, via `deliverables_history_due_date_by_date_range`, but back-projected before the earliest history row and overlapping on a recurring date | the value in effect **at each action's own timestamp**, via `stg.deliverable_due_date_window` (TODO 13) |
@@ -266,6 +266,28 @@ Consolidated here (this doc only). No item is executed by this spec.
     an upper bound — actions on deliverables whose due date changed at all —
     not the count that actually differs. That snapshot also predates the
     batch-aware loader, so the submission figure will rise with it.)
+
+### 4.4 Pre-2019 status rows carry no time of day
+
+`mdcd_dlvrbl_stus_hstry.creatd_dt` is date-only before 2019 and lands at
+midnight: 2016-2018 are 100% date-only, 2019 is 32%, 2020 onwards is ~0%. File
+uploads never are, 0 of 12,748. Anything correlating the two tables on a time
+window has to treat the two kinds of row differently, or it will silently
+compare a midnight placeholder against a real afternoon timestamp. When
+`39_deliverable_submission_batch.sql` used one window for both, date-only events
+matched at 1.5% against 91.8% for events with a real time.
+
+Note this is a *precision* artifact, not missing data. A separate and unrelated
+measure, the status log recording fewer submissions than the file trail, runs
+20-29% in every year from 2016 to 2026 and is not era-specific. The two are easy
+to conflate and were conflated here at first.
+
+Reading the flag needs care in both directions. These columns hold an Eastern
+wall clock stored at `+00`, so `AT TIME ZONE 'UTC'` returns the stored digits,
+which already are the intended Eastern time. Converting to `America/New_York`
+applies the offset twice and moves all 1,012 date-only rows to 20:00 the
+previous day; a bare `::time` reads the session's `TimeZone` and finds 1,012
+date-only rows under UTC but 0 under `America/New_York`.
 
 ## 5. Evidence appendix (verified this session)
 
