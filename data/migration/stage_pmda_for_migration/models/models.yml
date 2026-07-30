@@ -683,6 +683,6 @@ models:
     columns:
       - name: creatd_dt
         data_type: timestamptz
-        data_test:
+        data_tests:
           - not_null:
               name: assert_no_missing_creatd_dt_in_base_pmda_deliv_docs
