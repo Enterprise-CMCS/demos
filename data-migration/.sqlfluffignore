@@ -1,0 +1,6 @@
+# scripts/_pending_dups.sql is a MySQL-dialect diagnostic run against the
+# source database, not Postgres migration SQL. sqlfluff parses this tree as
+# postgres, so its REGEXP operator is an unparsable section and the rules that
+# depend on a parse tree cannot apply. Linting it reports the dialect mismatch,
+# not a defect. It stays front-matter-checked.
+scripts/_pending_dups.sql

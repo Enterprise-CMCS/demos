@@ -36,7 +36,9 @@ BEGIN
   RETURN;
 END IF;
   SELECT
-    count(*) INTO missing
+    count(*)
+  INTO
+    missing
   FROM ( SELECT DISTINCT
       mdcd_demo_amndmt_stus_cd AS cd
     FROM
@@ -48,9 +50,9 @@ END IF;
       legacy_int_cd
     FROM
       mysql_raw.crosswalk_amendment_status) t;
-  IF missing > 0 THEN
-    RAISE EXCEPTION 'crosswalk_amendment_status is missing % legacy amendment status code(s) present in mdcd_demo_amndmt. This crosswalk is an SME blocker: proposed values are in reports/crosswalks/amendment_status.csv and await sign-off (reports/crosswalks/proposed/_review.md, P2 amendment_status). Amendments are not migrated until it is confirmed and inlined.', missing;
-  END IF;
+    IF missing > 0 THEN
+      RAISE EXCEPTION 'crosswalk_amendment_status is missing % legacy amendment status code(s) present in mdcd_demo_amndmt. This crosswalk is an SME blocker: proposed values are in reports/crosswalks/amendment_status.csv and await sign-off (reports/crosswalks/proposed/_review.md, P2 amendment_status). Amendments are not migrated until it is confirmed and inlined.', missing;
+    END IF;
 END
 $$;
 

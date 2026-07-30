@@ -28,7 +28,9 @@ BEGIN
   RAISE EXCEPTION 'crosswalk_state check: mysql_raw.mdcd_demo is present but empty; load did not populate the source';
 END IF;
   SELECT
-    count(*) INTO missing
+    count(*)
+  INTO
+    missing
   FROM ( SELECT DISTINCT
       geo_ansi_state_cd AS cd
     FROM
@@ -40,9 +42,9 @@ END IF;
       legacy_cd
     FROM
       mysql_raw.crosswalk_state) t;
-  IF missing > 0 THEN
-    RAISE EXCEPTION 'crosswalk_state is missing % legacy state code(s) present in mdcd_demo', missing;
-  END IF;
+    IF missing > 0 THEN
+      RAISE EXCEPTION 'crosswalk_state is missing % legacy state code(s) present in mdcd_demo', missing;
+    END IF;
 END
 $$;
 

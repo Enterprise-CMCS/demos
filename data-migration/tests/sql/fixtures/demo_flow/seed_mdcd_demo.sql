@@ -31,7 +31,8 @@
  * column is nullable, so these partial column lists are sufficient.
  */
 INSERT INTO mysql_raw.mdcd_demo(mdcd_demo_id, mdcd_demo_num, mdcd_scndry_demo_num, mdcd_demo_name, mdcd_demo_desc, state_prfmnc_yr_strt_dt, state_prfmnc_yr_end_dt, mdcd_demo_stus_cd, geo_ansi_state_cd, mdcd_chip_div_cd, creatd_dt, updtd_dt, aprvl_dt, dltd_ind)
-  VALUES (1, '11-W-00001/1', '21-W-00100/1', '  Alpha Demonstration  ', 'First approved demo', '2021-03-01', '2026-02-28', 2, 'MA', 2, '2021-01-10 09:00:00+00', '2021-02-01 09:00:00+00', '2021-02-15', 0),
+VALUES
+  (1, '11-W-00001/1', '21-W-00100/1', '  Alpha Demonstration  ', 'First approved demo', '2021-03-01', '2026-02-28', 2, 'MA', 2, '2021-01-10 09:00:00+00', '2021-02-01 09:00:00+00', '2021-02-15', 0),
 (2, '11-W-00002/1', NULL, 'Beta Demonstration', 'Approved, NULL secondary -> chip deferred', '2021-06-01', '2026-05-31', 2, 'CT', 3, '2021-04-12 09:00:00+00', NULL, '2021-05-20', 0),
 (3, '11-W-00003/4', '21-W-00200/4', 'Gamma Demonstration', 'Approved but missing sdg division', '2021-09-01', '2026-08-31', 2, 'FL', 0, '2021-07-01 09:00:00+00', '2021-07-15 09:00:00+00', '2021-08-10', 0),
   -- NULL state passes the filter (geo_ansi_state_cd is only format-checked when
@@ -51,6 +52,7 @@ INSERT INTO mysql_raw.mdcd_demo(mdcd_demo_id, mdcd_demo_num, mdcd_scndry_demo_nu
 -- row for demo 8 must be ignored (otherwise its phase_6 date would wrongly
 -- promote demo 8 to 'Approval Summary' instead of the phase_4 'Review').
 INSERT INTO mysql_raw.mdcd_demo_aplctn(mdcd_demo_aplctn_id, mdcd_pendg_demo_id, mdcd_demo_id, mdcd_demo_aplctn_stus_cd, mdcd_demo_aplctn_stus_dt, mdcd_demo_aplctn_type_cd, phase_4_strt_dt, phase_6_strt_dt, creatd_dt, dltd_ind)
-  VALUES (1, 0, 8, 1, '2022-03-01', 1, '2022-03-01', NULL, '2022-03-01 09:00:00+00', 0),
+VALUES
+  (1, 0, 8, 1, '2022-03-01', 1, '2022-03-01', NULL, '2022-03-01 09:00:00+00', 0),
 (2, 0, 8, 1, '2022-09-01', 2, NULL, '2022-09-01', '2022-09-01 09:00:00+00', 0);
 

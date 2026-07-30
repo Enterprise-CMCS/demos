@@ -30,7 +30,9 @@ BEGIN
   RAISE EXCEPTION 'crosswalk_sdg_division check: mysql_raw.mdcd_demo is present but empty; load did not populate the source';
 END IF;
   SELECT
-    count(*) INTO missing
+    count(*)
+  INTO
+    missing
   FROM ( SELECT DISTINCT
       mdcd_chip_div_cd AS cd
     FROM
@@ -42,27 +44,29 @@ END IF;
       legacy_int_cd
     FROM
       mysql_raw.crosswalk_sdg_division) t;
-  IF missing > 0 THEN
-    RAISE EXCEPTION 'crosswalk_sdg_division is missing % legacy division code(s) present in mdcd_demo', missing;
-  END IF;
-  IF to_regclass('demos_app.sdg_division') IS NOT NULL THEN
-    SELECT
-      count(*) INTO bad_target
-    FROM
-      mysql_raw.crosswalk_sdg_division x
-    WHERE
-      x.demos_text_id IS NOT NULL
-      AND NOT EXISTS (
-        SELECT
-          1
-        FROM
-          demos_app.sdg_division s
-        WHERE
-          s.id = x.demos_text_id);
-    IF bad_target > 0 THEN
-      RAISE EXCEPTION 'crosswalk_sdg_division has % demos_text_id value(s) not in demos_app.sdg_division', bad_target;
+    IF missing > 0 THEN
+      RAISE EXCEPTION 'crosswalk_sdg_division is missing % legacy division code(s) present in mdcd_demo', missing;
     END IF;
-  END IF;
+    IF to_regclass('demos_app.sdg_division') IS NOT NULL THEN
+      SELECT
+        count(*)
+      INTO
+        bad_target
+      FROM
+        mysql_raw.crosswalk_sdg_division x
+      WHERE
+        x.demos_text_id IS NOT NULL
+        AND NOT EXISTS (
+          SELECT
+            1
+          FROM
+            demos_app.sdg_division s
+          WHERE
+            s.id = x.demos_text_id);
+      IF bad_target > 0 THEN
+        RAISE EXCEPTION 'crosswalk_sdg_division has % demos_text_id value(s) not in demos_app.sdg_division', bad_target;
+      END IF;
+    END IF;
 END
 $$;
 

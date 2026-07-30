@@ -149,7 +149,6 @@ BEGIN
       WHERE u.non_null_count > 0;
     $v$;
   END IF;
-
   IF to_regclass('demos_app.application_phase') IS NULL OR to_regclass('demos_app.application_date') IS NULL THEN
     RAISE NOTICE 'parity application phase fed-comment guard: inputs absent; view not created';
   ELSE
@@ -171,3 +170,4 @@ BEGIN
   END IF;
 END
 $$;
+

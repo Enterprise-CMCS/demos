@@ -38,7 +38,8 @@ CREATE TABLE IF NOT EXISTS migration.state_region(
 );
 
 INSERT INTO migration.state_region(state_id, region)
-  VALUES ('CT', 1),
+VALUES
+  ('CT', 1),
 ('MA', 1),
 ('ME', 1),
 ('NH', 1),

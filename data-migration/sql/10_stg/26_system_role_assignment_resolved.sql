@@ -38,3 +38,4 @@ CREATE OR REPLACE VIEW stg.system_role_assignment_resolved AS SELECT DISTINCT
 FROM
   stg.users_resolved r
   JOIN mysql_raw.crosswalk_system_role csr ON csr.person_type_id = r.person_type_id;
+

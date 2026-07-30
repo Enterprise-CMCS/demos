@@ -30,7 +30,9 @@ BEGIN
   RAISE EXCEPTION 'crosswalk_application_status check: mysql_raw.mdcd_demo_aplctn is present but empty; load did not populate the source';
 END IF;
   SELECT
-    count(*) INTO missing
+    count(*)
+  INTO
+    missing
   FROM ( SELECT DISTINCT
       mdcd_demo_aplctn_stus_cd AS cd
     FROM
@@ -42,27 +44,29 @@ END IF;
       legacy_int_cd
     FROM
       mysql_raw.crosswalk_application_status) t;
-  IF missing > 0 THEN
-    RAISE EXCEPTION 'crosswalk_application_status is missing % legacy application-status code(s) present in mdcd_demo_aplctn', missing;
-  END IF;
-  IF to_regclass('demos_app.application_status') IS NOT NULL THEN
-    SELECT
-      count(*) INTO bad_target
-    FROM
-      mysql_raw.crosswalk_application_status x
-    WHERE
-      x.demos_text_id IS NOT NULL
-      AND NOT EXISTS (
-        SELECT
-          1
-        FROM
-          demos_app.application_status s
-        WHERE
-          s.id = x.demos_text_id);
-    IF bad_target > 0 THEN
-      RAISE EXCEPTION 'crosswalk_application_status has % demos_text_id value(s) not in demos_app.application_status', bad_target;
+    IF missing > 0 THEN
+      RAISE EXCEPTION 'crosswalk_application_status is missing % legacy application-status code(s) present in mdcd_demo_aplctn', missing;
     END IF;
-  END IF;
+    IF to_regclass('demos_app.application_status') IS NOT NULL THEN
+      SELECT
+        count(*)
+      INTO
+        bad_target
+      FROM
+        mysql_raw.crosswalk_application_status x
+      WHERE
+        x.demos_text_id IS NOT NULL
+        AND NOT EXISTS (
+          SELECT
+            1
+          FROM
+            demos_app.application_status s
+          WHERE
+            s.id = x.demos_text_id);
+      IF bad_target > 0 THEN
+        RAISE EXCEPTION 'crosswalk_application_status has % demos_text_id value(s) not in demos_app.application_status', bad_target;
+      END IF;
+    END IF;
 END
 $$;
 

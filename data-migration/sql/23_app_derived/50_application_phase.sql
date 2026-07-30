@@ -44,9 +44,8 @@ BEGIN
     RAISE NOTICE 'skip application_phase load: demos_app.application_phase not built yet';
     RETURN;
   END IF;
-
   INSERT INTO demos_app.application_phase(application_id, phase_id, phase_status_id, created_at, updated_at)
-  WITH app_current AS (
+  WITH app_current AS(
     SELECT
       id AS application_id,
       current_phase_id,
@@ -62,12 +61,11 @@ BEGIN
       updated_at
     FROM
       demos_app.amendment
-  )
+)
   SELECT
     ac.application_id,
     ph.id,
-    CASE
-    WHEN ph.phase_number < cur.phase_number THEN
+    CASE WHEN ph.phase_number < cur.phase_number THEN
       'Completed'
     WHEN ph.phase_number = cur.phase_number THEN
       'Started'
@@ -85,7 +83,6 @@ BEGIN
   ON CONFLICT(application_id,
     phase_id)
     DO NOTHING;
-
   UPDATE
     demos_app.application_phase ap
   SET
@@ -95,7 +92,7 @@ BEGIN
     demos_app.application_date ad
   WHERE
     ap.phase_id = 'Federal Comment'
-    AND ap.phase_status_id IN ('Not Started', 'Started')
+    AND ap.phase_status_id IN('Not Started', 'Started')
     AND ad.application_id = ap.application_id
     AND ad.date_type_id = 'Federal Comment Period End Date'
     -- Cutover boundary is Eastern midnight (-04:00 EDT on 2026-08-13): date_value
@@ -103,3 +100,4 @@ BEGIN
     AND ad.date_value < TIMESTAMPTZ '2026-08-13 00:00:00-04:00';
 END
 $$;
+

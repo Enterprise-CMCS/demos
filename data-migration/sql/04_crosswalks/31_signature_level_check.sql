@@ -45,7 +45,9 @@ BEGIN
   RAISE EXCEPTION 'crosswalk_signature_level check: mysql_raw.mdcd_demo is present but empty; load did not populate the source';
 END IF;
   SELECT
-    count(*) INTO missing
+    count(*)
+  INTO
+    missing
   FROM ( SELECT DISTINCT
       mdcd_demo_aplctn_sgntr_lvl_cd AS cd
     FROM
@@ -57,37 +59,39 @@ END IF;
       legacy_int_cd
     FROM
       mysql_raw.crosswalk_signature_level) t;
-  IF missing > 0 THEN
-    RAISE EXCEPTION 'crosswalk_signature_level is missing % legacy signature code(s) present in mdcd_demo', missing;
-  END IF;
-  IF to_regclass('demos_app.signature_level') IS NOT NULL THEN
-    SELECT
-      count(*) INTO bad_target
-    FROM
-      mysql_raw.crosswalk_signature_level x
-    WHERE
-      x.demos_text_id IS NOT NULL
-      AND NOT EXISTS (
-        SELECT
-          1
-        FROM
-          demos_app.signature_level s
-        WHERE
-          s.id = x.demos_text_id);
-    IF bad_target > 0 THEN
-      RAISE EXCEPTION 'crosswalk_signature_level has % demos_text_id value(s) not in demos_app.signature_level', bad_target;
+    IF missing > 0 THEN
+      RAISE EXCEPTION 'crosswalk_signature_level is missing % legacy signature code(s) present in mdcd_demo', missing;
     END IF;
-  END IF;
-  -- (c) approved demonstration resolving to NULL signature level.
-  -- Scope to rows that actually migrate: when the stg filter exists
-  -- (stg._valid_demo_ids -- format-valid and not drop-listed), restrict to it
-  -- and skip soft-deletes, so demonstrations the loader drops (soft-deleted,
-  -- malformed, or SME-deferred via reports/filter/drop_ids.csv) do not trip a
-  -- gate they never reach. Standalone (no stg schema, e.g. `migrate crosswalks`
-  -- before build, and the SQL harness) keeps the raw-source check so the
-  -- integrity guard still fails closed.
-  IF to_regclass('stg._valid_demo_ids') IS NOT NULL THEN
-    EXECUTE $q$
+    IF to_regclass('demos_app.signature_level') IS NOT NULL THEN
+      SELECT
+        count(*)
+      INTO
+        bad_target
+      FROM
+        mysql_raw.crosswalk_signature_level x
+      WHERE
+        x.demos_text_id IS NOT NULL
+        AND NOT EXISTS (
+          SELECT
+            1
+          FROM
+            demos_app.signature_level s
+          WHERE
+            s.id = x.demos_text_id);
+      IF bad_target > 0 THEN
+        RAISE EXCEPTION 'crosswalk_signature_level has % demos_text_id value(s) not in demos_app.signature_level', bad_target;
+      END IF;
+    END IF;
+    -- (c) approved demonstration resolving to NULL signature level.
+    -- Scope to rows that actually migrate: when the stg filter exists
+    -- (stg._valid_demo_ids -- format-valid and not drop-listed), restrict to it
+    -- and skip soft-deletes, so demonstrations the loader drops (soft-deleted,
+    -- malformed, or SME-deferred via reports/filter/drop_ids.csv) do not trip a
+    -- gate they never reach. Standalone (no stg schema, e.g. `migrate crosswalks`
+    -- before build, and the SQL harness) keeps the raw-source check so the
+    -- integrity guard still fails closed.
+    IF to_regclass('stg._valid_demo_ids') IS NOT NULL THEN
+      EXECUTE $q$
       SELECT
         count(*)
       FROM
@@ -100,21 +104,23 @@ END IF;
         AND COALESCE(d.dltd_ind, 0) = 0
         AND d.mdcd_demo_id IN (SELECT demo_id FROM stg._valid_demo_ids)
     $q$ INTO approved_null;
-  ELSE
-    SELECT
-      count(*) INTO approved_null
-    FROM
-      mysql_raw.mdcd_demo d
-      JOIN mysql_raw.crosswalk_signature_level x ON x.legacy_int_cd = d.mdcd_demo_aplctn_sgntr_lvl_cd
-    WHERE
-      d.mdcd_demo_stus_cd IN (2, 4, 5, 6, 7)
-      AND x.demos_text_id IS NULL
-      AND NOT x.null_ok
-      AND COALESCE(d.dltd_ind, 0) = 0;
-  END IF;
-  IF approved_null > 0 THEN
-    RAISE EXCEPTION 'crosswalk_signature_level would set NULL signature on % approved demonstration(s) -- DEMOS forbids NULL signature when approved; resolve as a data-quality exception or map the signature level', approved_null;
-  END IF;
+    ELSE
+      SELECT
+        count(*)
+      INTO
+        approved_null
+      FROM
+        mysql_raw.mdcd_demo d
+        JOIN mysql_raw.crosswalk_signature_level x ON x.legacy_int_cd = d.mdcd_demo_aplctn_sgntr_lvl_cd
+      WHERE
+        d.mdcd_demo_stus_cd IN (2, 4, 5, 6, 7)
+        AND x.demos_text_id IS NULL
+        AND NOT x.null_ok
+        AND COALESCE(d.dltd_ind, 0) = 0;
+    END IF;
+    IF approved_null > 0 THEN
+      RAISE EXCEPTION 'crosswalk_signature_level would set NULL signature on % approved demonstration(s) -- DEMOS forbids NULL signature when approved; resolve as a data-quality exception or map the signature level', approved_null;
+    END IF;
 END
 $$;
 

@@ -49,7 +49,19 @@ SCOPE_GLOBS = ("sql/**/*.sql", "scripts/*.sql", "tests/sql/fixtures/**/*.sql")
 # (drops the backslash, inserts spaces). The mangled output is itself
 # round-trip stable, so only a token-level diff catches it. Quarantined from
 # formatting; still linted and front-matter-checked.
-EXCLUDE = frozenset({REPO_ROOT / "scripts" / "generate_fk_candidates.sql"})
+#
+# _pending_dups.sql is a MySQL-dialect diagnostic. Its region lookup is a
+# deliberately compact 56-row `SELECT 'CT',1 UNION ALL ...` CTE; pg_format puts
+# every column value on its own line and expands the file from 52 lines to 281,
+# which defeats the point of a script meant to be read at a glance. Quarantined
+# from formatting and (in .sqlfluffignore) from linting; still
+# front-matter-checked.
+EXCLUDE = frozenset(
+    {
+        REPO_ROOT / "scripts" / "generate_fk_candidates.sql",
+        REPO_ROOT / "scripts" / "_pending_dups.sql",
+    }
+)
 
 
 def in_scope_files() -> list[Path]:

@@ -36,3 +36,4 @@ CREATE TABLE mysql_raw.crosswalk_pendg_pgm_dtl_tag(
   additional_attrs text,
   notes text
 );
+

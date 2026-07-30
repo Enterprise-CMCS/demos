@@ -33,7 +33,9 @@ BEGIN
   RAISE EXCEPTION 'crosswalk_role_person_type check: mysql_raw.role_rfrnc is present but empty; load did not populate the source';
 END IF;
   SELECT
-    count(*) INTO missing
+    count(*)
+  INTO
+    missing
   FROM (
     SELECT
       role_cd AS cd
@@ -46,36 +48,40 @@ END IF;
       legacy_int_cd
     FROM
       mysql_raw.crosswalk_role_person_type) t;
-  IF missing > 0 THEN
-    RAISE EXCEPTION 'crosswalk_role_person_type is missing % legacy role code(s) present in role_rfrnc', missing;
-  END IF;
-  SELECT
-    count(*) INTO bad_name
-  FROM
-    mysql_raw.crosswalk_role_person_type x
-    JOIN mysql_raw.role_rfrnc r ON r.role_cd = x.legacy_int_cd
-  WHERE
-    lower(btrim(r.role_name)) IS DISTINCT FROM lower(btrim(x.legacy_name));
-  IF bad_name > 0 THEN
-    RAISE EXCEPTION 'crosswalk_role_person_type has % legacy_name(s) that disagree with role_rfrnc.role_name', bad_name;
-  END IF;
-  IF to_regclass('demos_app.person_type') IS NOT NULL THEN
+    IF missing > 0 THEN
+      RAISE EXCEPTION 'crosswalk_role_person_type is missing % legacy role code(s) present in role_rfrnc', missing;
+    END IF;
     SELECT
-      count(*) INTO bad_ptype
+      count(*)
+    INTO
+      bad_name
     FROM
       mysql_raw.crosswalk_role_person_type x
+      JOIN mysql_raw.role_rfrnc r ON r.role_cd = x.legacy_int_cd
     WHERE
-      NOT EXISTS (
-        SELECT
-          1
-        FROM
-          demos_app.person_type pt
-        WHERE
-          pt.id = x.person_type_id);
-    IF bad_ptype > 0 THEN
-      RAISE EXCEPTION 'crosswalk_role_person_type has % person_type_id(s) not in demos_app.person_type', bad_ptype;
+      lower(btrim(r.role_name)) IS DISTINCT FROM lower(btrim(x.legacy_name));
+    IF bad_name > 0 THEN
+      RAISE EXCEPTION 'crosswalk_role_person_type has % legacy_name(s) that disagree with role_rfrnc.role_name', bad_name;
     END IF;
-  END IF;
+    IF to_regclass('demos_app.person_type') IS NOT NULL THEN
+      SELECT
+        count(*)
+      INTO
+        bad_ptype
+      FROM
+        mysql_raw.crosswalk_role_person_type x
+      WHERE
+        NOT EXISTS (
+          SELECT
+            1
+          FROM
+            demos_app.person_type pt
+          WHERE
+            pt.id = x.person_type_id);
+      IF bad_ptype > 0 THEN
+        RAISE EXCEPTION 'crosswalk_role_person_type has % person_type_id(s) not in demos_app.person_type', bad_ptype;
+      END IF;
+    END IF;
 END
 $$;
 

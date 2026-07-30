@@ -42,7 +42,9 @@ BEGIN
     RAISE NOTICE 'crosswalk_deliverable_file_type check: no source deliverable files present; nothing to map';
   ELSE
     SELECT
-      count(*) INTO missing
+      count(*)
+    INTO
+      missing
     FROM ( SELECT DISTINCT
         fil_doc_cd AS cd
       FROM
@@ -60,7 +62,9 @@ BEGIN
   END IF;
   IF to_regclass('demos_app.document_type') IS NOT NULL AND to_regclass('mysql_raw.crosswalk_deliverable_file_type') IS NOT NULL THEN
     SELECT
-      count(*) INTO bad_target
+      count(*)
+    INTO
+      bad_target
     FROM
       mysql_raw.crosswalk_deliverable_file_type x
     WHERE

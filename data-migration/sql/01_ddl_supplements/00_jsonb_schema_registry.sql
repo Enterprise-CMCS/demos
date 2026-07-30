@@ -36,7 +36,9 @@ BEGIN
     RETURN NULL;
   END IF;
   SELECT
-    SCHEMA INTO v_schema
+    SCHEMA
+  INTO
+    v_schema
   FROM
     migration.jsonb_schemas
   WHERE
@@ -44,12 +46,12 @@ BEGIN
   IF v_schema IS NULL THEN
     RAISE EXCEPTION 'JSONB schema % is not registered (table %.%, column %)', v_schema_name, TG_TABLE_SCHEMA, TG_TABLE_NAME, v_col_name
       USING ERRCODE = 'check_violation';
-    END IF;
-    IF NOT jsonb_matches_schema(v_schema::json, v_instance) THEN
-      RAISE EXCEPTION 'JSONB column %.%.% failed validation against schema %', TG_TABLE_SCHEMA, TG_TABLE_NAME, v_col_name, v_schema_name
-        USING ERRCODE = 'check_violation';
-      END IF;
-      RETURN NULL;
+  END IF;
+  IF NOT jsonb_matches_schema(v_schema::json, v_instance) THEN
+    RAISE EXCEPTION 'JSONB column %.%.% failed validation against schema %', TG_TABLE_SCHEMA, TG_TABLE_NAME, v_col_name, v_schema_name
+      USING ERRCODE = 'check_violation';
+  END IF;
+  RETURN NULL;
 END
 $$;
 
@@ -68,7 +70,9 @@ DECLARE
   v_count bigint;
 BEGIN
   SELECT
-    SCHEMA INTO v_schema
+    SCHEMA
+  INTO
+    v_schema
   FROM
     migration.jsonb_schemas
   WHERE
@@ -76,10 +80,10 @@ BEGIN
   IF v_schema IS NULL THEN
     RAISE EXCEPTION 'JSONB schema % is not registered', p_schema
       USING ERRCODE = 'check_violation';
-    END IF;
-    EXECUTE format('SELECT count(*) FROM %s WHERE %I IS NOT NULL AND NOT jsonb_matches_schema($1::json, %I)', p_table, p_col, p_col) INTO v_count
-    USING v_schema;
-    RETURN v_count;
+  END IF;
+  EXECUTE format('SELECT count(*) FROM %s WHERE %I IS NOT NULL AND NOT jsonb_matches_schema($1::json, %I)', p_table, p_col, p_col) INTO v_count
+  USING v_schema;
+  RETURN v_count;
 END
 $$;
 

@@ -49,12 +49,14 @@ BEGIN
     RAISE NOTICE 'skip primary PO fallback: crosswalk_primary_po_fallback not loaded';
     RETURN;
   END IF;
-  IF to_regclass('demos_app.primary_demonstration_role_assignment') IS NULL
-    OR NOT EXISTS (SELECT 1 FROM demos_app.demonstration) THEN
+  IF to_regclass('demos_app.primary_demonstration_role_assignment') IS NULL OR NOT EXISTS (
+    SELECT
+      1
+    FROM
+      demos_app.demonstration) THEN
     RAISE NOTICE 'skip primary PO fallback: demos_app not built yet';
     RETURN;
   END IF;
-
   -- Authoritative for the current run: (re)create empty so a targeted rebuild
   -- never leaves stale provenance from a previous run's gap set.
   CREATE TABLE IF NOT EXISTS migration._primary_officer_fallback_applied(
@@ -63,64 +65,80 @@ BEGIN
     legacy_user_id integer NOT NULL
   );
   TRUNCATE migration._primary_officer_fallback_applied;
-
   CREATE TEMP TABLE _po_gap ON COMMIT DROP AS
   SELECT
-    d.id AS demonstration_id,
-    d.state_id AS state_id
+    d.id AS demonstration_id, d.state_id AS state_id
   FROM
     demos_app.demonstration d
   WHERE
     NOT EXISTS (
-      SELECT 1
-      FROM demos_app.primary_demonstration_role_assignment pdra
-      WHERE pdra.demonstration_id = d.id
+      SELECT
+        1
+      FROM
+        demos_app.primary_demonstration_role_assignment pdra
+      WHERE
+        pdra.demonstration_id = d.id
         AND pdra.role_id = 'Project Officer');
-
-  SELECT count(*) INTO n_gaps FROM _po_gap;
-  IF n_gaps = 0 THEN
-    RAISE NOTICE 'primary PO fallback: no demonstrations missing a primary Project Officer; nothing to backfill';
-    RETURN;
-  END IF;
-
-  SELECT legacy_user_id INTO fb_legacy
-  FROM mysql_raw.crosswalk_primary_po_fallback
-  WHERE scope = 'default';
-  IF fb_legacy IS NULL THEN
-    RAISE EXCEPTION 'primary PO fallback: % demonstration(s) need a fallback but no scope=default row is configured in crosswalk_primary_po_fallback', n_gaps;
-  END IF;
-
-  SELECT mu.new_uuid INTO fb_person
-  FROM migration._id_map_users mu
-  WHERE mu.legacy_int_id = fb_legacy;
-  IF fb_person IS NULL THEN
-    RAISE EXCEPTION 'primary PO fallback: configured legacy user % has no migration._id_map_users entry', fb_legacy;
-  END IF;
-
-  IF NOT EXISTS (
-    SELECT 1
-    FROM demos_app.person p
-    JOIN demos_app.role_person_type rpt ON rpt.person_type_id = p.person_type_id
-    WHERE p.id = fb_person
-      AND rpt.role_id = 'Project Officer') THEN
+    SELECT
+      count(*)
+    INTO
+      n_gaps
+    FROM
+      _po_gap;
+    IF n_gaps = 0 THEN
+      RAISE NOTICE 'primary PO fallback: no demonstrations missing a primary Project Officer; nothing to backfill';
+      RETURN;
+    END IF;
+    SELECT
+      legacy_user_id
+    INTO
+      fb_legacy
+    FROM
+      mysql_raw.crosswalk_primary_po_fallback
+    WHERE
+      scope = 'default';
+    IF fb_legacy IS NULL THEN
+      RAISE EXCEPTION 'primary PO fallback: % demonstration(s) need a fallback but no scope=default row is configured in crosswalk_primary_po_fallback', n_gaps;
+    END IF;
+    SELECT
+      mu.new_uuid
+    INTO
+      fb_person
+    FROM
+      migration._id_map_users mu
+    WHERE
+      mu.legacy_int_id = fb_legacy;
+    IF fb_person IS NULL THEN
+      RAISE EXCEPTION 'primary PO fallback: configured legacy user % has no migration._id_map_users entry', fb_legacy;
+    END IF;
+    IF NOT EXISTS (
+      SELECT
+        1
+      FROM
+        demos_app.person p
+        JOIN demos_app.role_person_type rpt ON rpt.person_type_id = p.person_type_id
+      WHERE
+        p.id = fb_person
+        AND rpt.role_id = 'Project Officer') THEN
     RAISE EXCEPTION 'primary PO fallback: configured person % (legacy user %) is not a loaded person whose person_type may hold Project Officer', fb_person, fb_legacy;
-  END IF;
-
-  INSERT INTO demos_app.demonstration_role_assignment(person_id, demonstration_id, role_id, state_id, person_type_id, grant_level_id)
-  SELECT
-    fb_person,
-    g.demonstration_id,
-    'Project Officer',
-    g.state_id,
-    p.person_type_id,
-    'Demonstration'
-  FROM
-    _po_gap g
-    JOIN demos_app.person p ON p.id = fb_person
-    JOIN demos_app.person_state ps ON ps.person_id = fb_person
-      AND ps.state_id = g.state_id
-  ON CONFLICT (person_id, demonstration_id, role_id) DO NOTHING;
-
+END IF;
+INSERT INTO demos_app.demonstration_role_assignment(person_id, demonstration_id, role_id, state_id, person_type_id, grant_level_id)
+SELECT
+  fb_person,
+  g.demonstration_id,
+  'Project Officer',
+  g.state_id,
+  p.person_type_id,
+  'Demonstration'
+FROM
+  _po_gap g
+  JOIN demos_app.person p ON p.id = fb_person
+  JOIN demos_app.person_state ps ON ps.person_id = fb_person
+    AND ps.state_id = g.state_id
+  ON CONFLICT (person_id,
+    demonstration_id,
+    role_id)
+    DO NOTHING;
   INSERT INTO demos_app.primary_demonstration_role_assignment(person_id, demonstration_id, role_id)
   SELECT
     fb_person,
@@ -131,21 +149,28 @@ BEGIN
     JOIN demos_app.demonstration_role_assignment dra ON dra.person_id = fb_person
       AND dra.demonstration_id = g.demonstration_id
       AND dra.role_id = 'Project Officer'
-  ON CONFLICT (demonstration_id, role_id) DO NOTHING;
-
-  INSERT INTO migration._primary_officer_fallback_applied(demonstration_id, person_id, legacy_user_id)
-  SELECT
-    g.demonstration_id,
-    fb_person,
-    fb_legacy
-  FROM
-    _po_gap g
-    JOIN demos_app.primary_demonstration_role_assignment pdra ON pdra.demonstration_id = g.demonstration_id
-      AND pdra.role_id = 'Project Officer'
-      AND pdra.person_id = fb_person
-  ON CONFLICT (demonstration_id) DO NOTHING;
-
-  SELECT count(*) INTO n_filled FROM migration._primary_officer_fallback_applied;
-  RAISE NOTICE 'primary PO fallback: backfilled % of % demonstration(s) missing a primary Project Officer with fallback legacy user %', n_filled, n_gaps, fb_legacy;
+    ON CONFLICT (demonstration_id,
+      role_id)
+      DO NOTHING;
+    INSERT INTO migration._primary_officer_fallback_applied(demonstration_id, person_id, legacy_user_id)
+    SELECT
+      g.demonstration_id,
+      fb_person,
+      fb_legacy
+    FROM
+      _po_gap g
+      JOIN demos_app.primary_demonstration_role_assignment pdra ON pdra.demonstration_id = g.demonstration_id
+        AND pdra.role_id = 'Project Officer'
+        AND pdra.person_id = fb_person
+      ON CONFLICT (demonstration_id)
+        DO NOTHING;
+    SELECT
+      count(*)
+    INTO
+      n_filled
+    FROM
+      migration._primary_officer_fallback_applied;
+    RAISE NOTICE 'primary PO fallback: backfilled % of % demonstration(s) missing a primary Project Officer with fallback legacy user %', n_filled, n_gaps, fb_legacy;
 END
 $$;
+

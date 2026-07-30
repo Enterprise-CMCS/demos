@@ -19,3 +19,4 @@ CREATE TABLE IF NOT EXISTS migration._id_map_mdcd_dlvrbl_paper_cmt(
   new_uuid uuid UNIQUE NOT NULL DEFAULT gen_random_uuid(),
   _created_at timestamptz NOT NULL DEFAULT now()
 );
+

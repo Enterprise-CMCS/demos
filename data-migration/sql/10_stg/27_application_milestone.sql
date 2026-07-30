@@ -57,7 +57,6 @@ WITH demo_ap AS (
   GROUP BY
     a.mdcd_demo_id
 ),
-
 pend_ap AS (
   SELECT
     a.mdcd_pendg_demo_id AS mdcd_pendg_demo_id,
@@ -86,7 +85,6 @@ pend_ap AS (
   GROUP BY
     a.mdcd_pendg_demo_id
 ),
-
 approved AS (
   SELECT
     m.new_uuid AS application_id,
@@ -98,28 +96,25 @@ approved AS (
     JOIN migration._id_map_mdcd_demo m ON m.legacy_int_id = d.mdcd_demo_id
     LEFT JOIN demo_ap ap ON ap.mdcd_demo_id = d.mdcd_demo_id
     CROSS JOIN LATERAL (
-      VALUES
-        ('Concept Start Date', migration.eastern_day_start(ap.phase_1_strt_dt)),
-        ('Concept Completion Date', migration.eastern_day_start(ap.phase_1_end_dt)),
-        ('Application Intake Start Date', migration.eastern_day_start(COALESCE(ap.phase_2_rcvd_dt, d.phase_2_rcvd_dt, d.rcvd_dt))),
-        ('State Application Submitted Date', migration.eastern_day_start(d.submsn_dt)),
-        ('Completeness Review Due Date', migration.eastern_day_end(ap.phase_2_cmpltns_rvw_dt)),
-        ('Completeness Completion Date', migration.eastern_day_start(COALESCE(ap.phase_2_deemd_cmpltn_dt, d.phase_2_state_aplctn_deemd_cmpltn_dt))),
-        ('Federal Comment Period Start Date', migration.eastern_day_start(ap.phase_2_fed_cmt_prd_strt_dt)),
-        ('Federal Comment Period End Date', migration.eastern_day_end(ap.phase_2_fed_cmt_prd_end_dt)),
-        ('Expected Approval Date', migration.eastern_day_start(ap.phase_2_dsrd_aprvl_dt)),
-        ('SDG Preparation Start Date', migration.eastern_day_start(ap.phase_3_any_start)),
-        ('Review Start Date', migration.eastern_day_start(ap.phase_4_strt_dt)),
-        ('Review Completion Date', migration.eastern_day_start(ap.phase_4_end_dt)),
-        ('Approval Package Start Date', migration.eastern_day_start(ap.phase_5_strt_dt)),
-        ('Approval Package Completion Date', migration.eastern_day_start(ap.phase_5_end_dt)),
-        ('Approval Summary Start Date', migration.eastern_day_start(ap.phase_6_strt_dt)),
-        ('Approval Summary Completion Date', migration.eastern_day_start(ap.phase_6_end_dt)),
-        ('Application Approval Date', migration.eastern_day_start(d.aprvl_dt))
-    ) v (date_type_id, date_value)
-  WHERE (d.dltd_ind)::int IS DISTINCT FROM 1
+      VALUES ('Concept Start Date', migration.eastern_day_start(ap.phase_1_strt_dt)),
+('Concept Completion Date', migration.eastern_day_start(ap.phase_1_end_dt)),
+('Application Intake Start Date', migration.eastern_day_start(COALESCE(ap.phase_2_rcvd_dt, d.phase_2_rcvd_dt, d.rcvd_dt))),
+('State Application Submitted Date', migration.eastern_day_start(d.submsn_dt)),
+('Completeness Review Due Date', migration.eastern_day_end(ap.phase_2_cmpltns_rvw_dt)),
+('Completeness Completion Date', migration.eastern_day_start(COALESCE(ap.phase_2_deemd_cmpltn_dt, d.phase_2_state_aplctn_deemd_cmpltn_dt))),
+('Federal Comment Period Start Date', migration.eastern_day_start(ap.phase_2_fed_cmt_prd_strt_dt)),
+('Federal Comment Period End Date', migration.eastern_day_end(ap.phase_2_fed_cmt_prd_end_dt)),
+('Expected Approval Date', migration.eastern_day_start(ap.phase_2_dsrd_aprvl_dt)),
+('SDG Preparation Start Date', migration.eastern_day_start(ap.phase_3_any_start)),
+('Review Start Date', migration.eastern_day_start(ap.phase_4_strt_dt)),
+('Review Completion Date', migration.eastern_day_start(ap.phase_4_end_dt)),
+('Approval Package Start Date', migration.eastern_day_start(ap.phase_5_strt_dt)),
+('Approval Package Completion Date', migration.eastern_day_start(ap.phase_5_end_dt)),
+('Approval Summary Start Date', migration.eastern_day_start(ap.phase_6_strt_dt)),
+('Approval Summary Completion Date', migration.eastern_day_start(ap.phase_6_end_dt)),
+('Application Approval Date', migration.eastern_day_start(d.aprvl_dt))) v(date_type_id, date_value)
+    WHERE (d.dltd_ind)::int IS DISTINCT FROM 1
 ),
-
 pending AS (
   SELECT
     f.pending_uuid AS application_id,
@@ -129,41 +124,39 @@ pending AS (
     stg._pendg_demo_fold f
     LEFT JOIN pend_ap ap ON ap.mdcd_pendg_demo_id = f.legacy_pendg_demo_id
     CROSS JOIN LATERAL (
-      VALUES
-        ('Concept Start Date', migration.eastern_day_start(ap.phase_1_strt_dt)),
-        ('Concept Completion Date', migration.eastern_day_start(ap.phase_1_end_dt)),
-        ('Application Intake Start Date', migration.eastern_day_start(ap.phase_2_rcvd_dt)),
-        ('Completeness Review Due Date', migration.eastern_day_end(ap.phase_2_cmpltns_rvw_dt)),
-        ('Completeness Completion Date', migration.eastern_day_start(ap.phase_2_deemd_cmpltn_dt)),
-        ('Federal Comment Period Start Date', migration.eastern_day_start(ap.phase_2_fed_cmt_prd_strt_dt)),
-        ('Federal Comment Period End Date', migration.eastern_day_end(ap.phase_2_fed_cmt_prd_end_dt)),
-        ('Expected Approval Date', migration.eastern_day_start(ap.phase_2_dsrd_aprvl_dt)),
-        ('SDG Preparation Start Date', migration.eastern_day_start(ap.phase_3_any_start)),
-        ('Review Start Date', migration.eastern_day_start(ap.phase_4_strt_dt)),
-        ('Review Completion Date', migration.eastern_day_start(ap.phase_4_end_dt)),
-        ('Approval Package Start Date', migration.eastern_day_start(ap.phase_5_strt_dt)),
-        ('Approval Package Completion Date', migration.eastern_day_start(ap.phase_5_end_dt)),
-        ('Approval Summary Start Date', migration.eastern_day_start(ap.phase_6_strt_dt)),
-        ('Approval Summary Completion Date', migration.eastern_day_start(ap.phase_6_end_dt))
-    ) v (date_type_id, date_value)
-  WHERE
-    f.disposition = 'orphan_loadable'
+      VALUES ('Concept Start Date', migration.eastern_day_start(ap.phase_1_strt_dt)),
+('Concept Completion Date', migration.eastern_day_start(ap.phase_1_end_dt)),
+('Application Intake Start Date', migration.eastern_day_start(ap.phase_2_rcvd_dt)),
+('Completeness Review Due Date', migration.eastern_day_end(ap.phase_2_cmpltns_rvw_dt)),
+('Completeness Completion Date', migration.eastern_day_start(ap.phase_2_deemd_cmpltn_dt)),
+('Federal Comment Period Start Date', migration.eastern_day_start(ap.phase_2_fed_cmt_prd_strt_dt)),
+('Federal Comment Period End Date', migration.eastern_day_end(ap.phase_2_fed_cmt_prd_end_dt)),
+('Expected Approval Date', migration.eastern_day_start(ap.phase_2_dsrd_aprvl_dt)),
+('SDG Preparation Start Date', migration.eastern_day_start(ap.phase_3_any_start)),
+('Review Start Date', migration.eastern_day_start(ap.phase_4_strt_dt)),
+('Review Completion Date', migration.eastern_day_start(ap.phase_4_end_dt)),
+('Approval Package Start Date', migration.eastern_day_start(ap.phase_5_strt_dt)),
+('Approval Package Completion Date', migration.eastern_day_start(ap.phase_5_end_dt)),
+('Approval Summary Start Date', migration.eastern_day_start(ap.phase_6_strt_dt)),
+('Approval Summary Completion Date', migration.eastern_day_start(ap.phase_6_end_dt))) v(date_type_id, date_value)
+    WHERE
+      f.disposition = 'orphan_loadable'
 )
+  SELECT
+    application_id,
+    date_type_id,
+    date_value
+  FROM
+    approved
+  WHERE
+    date_value IS NOT NULL
+  UNION ALL
+  SELECT
+    application_id,
+    date_type_id,
+    date_value
+  FROM
+    pending
+  WHERE
+    date_value IS NOT NULL;
 
-SELECT
-  application_id,
-  date_type_id,
-  date_value
-FROM
-  approved
-WHERE
-  date_value IS NOT NULL
-UNION ALL
-SELECT
-  application_id,
-  date_type_id,
-  date_value
-FROM
-  pending
-WHERE
-  date_value IS NOT NULL;

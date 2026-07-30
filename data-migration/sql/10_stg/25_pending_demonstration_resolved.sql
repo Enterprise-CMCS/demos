@@ -91,3 +91,4 @@ FROM
   LEFT JOIN aplctn ap ON ap.mdcd_pendg_demo_id = f.legacy_pendg_demo_id
 WHERE
   f.disposition = 'orphan_loadable';
+

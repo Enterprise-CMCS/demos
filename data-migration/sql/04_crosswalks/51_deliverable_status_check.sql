@@ -69,7 +69,9 @@ END IF;
     $q$ INTO missing;
   ELSE
     SELECT
-      count(*) INTO missing
+      count(*)
+    INTO
+      missing
     FROM ( SELECT DISTINCT
         mdcd_dlvrbl_crnt_stus_cd AS cd
       FROM
@@ -85,60 +87,66 @@ END IF;
         status_id IS NOT NULL
         OR null_ok) t;
   END IF;
-  IF missing > 0 THEN
-    RAISE EXCEPTION 'crosswalk_deliverable_status is missing % legacy status code(s) present in mdcd_dlvrbl', missing;
-  END IF;
-  -- (b) referential sanity against the seeded DEMOS domains
-  IF to_regclass('demos_app.deliverable_status') IS NOT NULL THEN
-    SELECT
-      count(*) INTO bad_status
-    FROM
-      mysql_raw.crosswalk_deliverable_status x
-    WHERE
-      x.status_id IS NOT NULL
-      AND NOT EXISTS (
-        SELECT
-          1
-        FROM
-          demos_app.deliverable_status s
-        WHERE
-          s.id = x.status_id);
-    IF bad_status > 0 THEN
-      RAISE EXCEPTION 'crosswalk_deliverable_status has % status_id value(s) not in demos_app.deliverable_status', bad_status;
+    IF missing > 0 THEN
+      RAISE EXCEPTION 'crosswalk_deliverable_status is missing % legacy status code(s) present in mdcd_dlvrbl', missing;
     END IF;
-    SELECT
-      count(*) INTO bad_due_type
-    FROM
-      mysql_raw.crosswalk_deliverable_status x
-    WHERE
-      x.due_date_type_id IS NOT NULL
-      AND NOT EXISTS (
-        SELECT
-          1
-        FROM
-          demos_app.deliverable_due_date_type d
-        WHERE
-          d.id = x.due_date_type_id);
-    IF bad_due_type > 0 THEN
-      RAISE EXCEPTION 'crosswalk_deliverable_status has % due_date_type_id value(s) not in demos_app.deliverable_due_date_type', bad_due_type;
+    -- (b) referential sanity against the seeded DEMOS domains
+    IF to_regclass('demos_app.deliverable_status') IS NOT NULL THEN
+      SELECT
+        count(*)
+      INTO
+        bad_status
+      FROM
+        mysql_raw.crosswalk_deliverable_status x
+      WHERE
+        x.status_id IS NOT NULL
+        AND NOT EXISTS (
+          SELECT
+            1
+          FROM
+            demos_app.deliverable_status s
+          WHERE
+            s.id = x.status_id);
+      IF bad_status > 0 THEN
+        RAISE EXCEPTION 'crosswalk_deliverable_status has % status_id value(s) not in demos_app.deliverable_status', bad_status;
+      END IF;
+      SELECT
+        count(*)
+      INTO
+        bad_due_type
+      FROM
+        mysql_raw.crosswalk_deliverable_status x
+      WHERE
+        x.due_date_type_id IS NOT NULL
+        AND NOT EXISTS (
+          SELECT
+            1
+          FROM
+            demos_app.deliverable_due_date_type d
+          WHERE
+            d.id = x.due_date_type_id);
+      IF bad_due_type > 0 THEN
+        RAISE EXCEPTION 'crosswalk_deliverable_status has % due_date_type_id value(s) not in demos_app.deliverable_due_date_type', bad_due_type;
+      END IF;
+      SELECT
+        count(*)
+      INTO
+        bad_extension
+      FROM
+        mysql_raw.crosswalk_deliverable_status x
+      WHERE
+        x.emit_extension_status IS NOT NULL
+        AND NOT EXISTS (
+          SELECT
+            1
+          FROM
+            demos_app.deliverable_extension_status e
+          WHERE
+            e.id = x.emit_extension_status);
+      IF bad_extension > 0 THEN
+        RAISE EXCEPTION 'crosswalk_deliverable_status has % emit_extension_status value(s) not in demos_app.deliverable_extension_status', bad_extension;
+      END IF;
     END IF;
-    SELECT
-      count(*) INTO bad_extension
-    FROM
-      mysql_raw.crosswalk_deliverable_status x
-    WHERE
-      x.emit_extension_status IS NOT NULL
-      AND NOT EXISTS (
-        SELECT
-          1
-        FROM
-          demos_app.deliverable_extension_status e
-        WHERE
-          e.id = x.emit_extension_status);
-    IF bad_extension > 0 THEN
-      RAISE EXCEPTION 'crosswalk_deliverable_status has % emit_extension_status value(s) not in demos_app.deliverable_extension_status', bad_extension;
-    END IF;
-  END IF;
 END
 $$;
 

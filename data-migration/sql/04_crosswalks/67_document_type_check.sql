@@ -39,7 +39,9 @@ BEGIN
     RAISE NOTICE 'crosswalk_document_type check: no source application documents present; nothing to map';
   ELSE
     SELECT
-      count(*) INTO missing
+      count(*)
+    INTO
+      missing
     FROM ( SELECT DISTINCT
         mdcd_demo_aplctn_doc_type_cd AS cd
       FROM
@@ -57,7 +59,9 @@ BEGIN
   END IF;
   IF to_regclass('demos_app.document_type') IS NOT NULL AND to_regclass('mysql_raw.crosswalk_document_type') IS NOT NULL THEN
     SELECT
-      count(*) INTO bad_target
+      count(*)
+    INTO
+      bad_target
     FROM
       mysql_raw.crosswalk_document_type x
     WHERE

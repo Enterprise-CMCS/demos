@@ -51,7 +51,7 @@ CREATE OR REPLACE VIEW stg.amendment_resolved AS
 SELECT
   am.new_uuid AS new_uuid,
   COALESCE(dm.new_uuid, pf.demo_uuid) AS demo_uuid,
-  (dm.new_uuid IS NULL
+(dm.new_uuid IS NULL
     AND pf.demo_uuid IS NOT NULL) AS parent_is_pending,
   btrim(a.mdcd_demo_amndmt_name) AS name,
   NULLIF(btrim(a.amndmt_desc), '') AS description,

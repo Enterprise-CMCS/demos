@@ -53,10 +53,14 @@ BEGIN
     RAISE NOTICE 'skip demonstration-type floor: demos_app.demonstration absent';
     RETURN;
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM demos_app.demonstration) THEN
-    RAISE NOTICE 'skip demonstration-type floor: demos_app.demonstration not loaded yet';
-    RETURN;
-  END IF;
+  IF NOT EXISTS (
+    SELECT
+      1
+    FROM
+      demos_app.demonstration) THEN
+  RAISE NOTICE 'skip demonstration-type floor: demos_app.demonstration not loaded yet';
+  RETURN;
+END IF;
   IF to_regclass('demos_app.tag') IS NULL THEN
     RAISE NOTICE 'skip demonstration-type floor: demos_app.tag absent';
     RETURN;
@@ -74,31 +78,44 @@ BEGIN
     RETURN;
   END IF;
   IF NOT EXISTS (
-    SELECT 1 FROM demos_app.demonstration_type_tag_type_limit WHERE id = 'Demonstration Type') THEN
-    RAISE NOTICE 'skip demonstration-type floor: Demonstration Type tag type not seeded';
-    RETURN;
-  END IF;
-
+    SELECT
+      1
+    FROM
+      demos_app.demonstration_type_tag_type_limit
+    WHERE
+      id = 'Demonstration Type') THEN
+  RAISE NOTICE 'skip demonstration-type floor: Demonstration Type tag type not seeded';
+  RETURN;
+END IF;
   -- Seed the placeholder demonstration-type tag (User/Unapproved), like 05_*.
   INSERT INTO demos_app.tag_name(id, created_at, updated_at)
     VALUES ('Migrated From PMDA', now(), now())
-  ON CONFLICT (id) DO NOTHING;
+  ON CONFLICT (id)
+    DO NOTHING;
   INSERT INTO demos_app.tag(tag_name_id, tag_type_id, source_id, status_id, created_at, updated_at)
     VALUES ('Migrated From PMDA', 'Demonstration Type', 'User', 'Unapproved', now(), now())
-  ON CONFLICT (tag_name_id, tag_type_id) DO NOTHING;
-
+  ON CONFLICT (tag_name_id, tag_type_id)
+    DO NOTHING;
   -- Approved zero-type demos we cannot floor because their own window is
   -- degenerate (would violate CHECK effective_date < expiration_date).
-  SELECT count(*) INTO skipped
-  FROM demos_app.demonstration d
-  WHERE d.status_id = 'Approved'
+  SELECT
+    count(*)
+  INTO
+    skipped
+  FROM
+    demos_app.demonstration d
+  WHERE
+    d.status_id = 'Approved'
     AND NOT EXISTS (
-      SELECT 1 FROM demos_app.demonstration_type_tag_assignment a
-      WHERE a.demonstration_id = d.id)
+      SELECT
+        1
+      FROM
+        demos_app.demonstration_type_tag_assignment a
+      WHERE
+        a.demonstration_id = d.id)
     AND NOT (d.effective_date IS NOT NULL
       AND d.expiration_date IS NOT NULL
       AND d.effective_date < d.expiration_date);
-
   INSERT INTO demos_app.demonstration_type_tag_assignment(demonstration_id, tag_name_id, tag_type_id, effective_date, expiration_date, created_at, updated_at)
   SELECT
     d.id,
@@ -118,11 +135,17 @@ BEGIN
     AND d.expiration_date IS NOT NULL
     AND d.effective_date < d.expiration_date
     AND NOT EXISTS (
-      SELECT 1 FROM demos_app.demonstration_type_tag_assignment a
-      WHERE a.demonstration_id = d.id)
-  ON CONFLICT (demonstration_id, tag_name_id) DO NOTHING;
+      SELECT
+        1
+      FROM
+        demos_app.demonstration_type_tag_assignment a
+      WHERE
+        a.demonstration_id = d.id)
+  ON CONFLICT (demonstration_id,
+    tag_name_id)
+    DO NOTHING;
   GET DIAGNOSTICS ins = ROW_COUNT;
-
   RAISE NOTICE 'demonstration-type floor: floored % Approved zero-type demonstration(s) with "Migrated From PMDA" (% left uncovered for a degenerate/NULL demonstration window)', ins, skipped;
 END
 $$;
+

@@ -37,7 +37,9 @@ BEGIN
   -- into mysql_raw, so a standalone `migrate crosswalks` (before load-full) is
   -- a no-op here rather than reporting every mapped column as absent.
   SELECT
-    count(*) INTO bad_col
+    count(*)
+  INTO
+    bad_col
   FROM
     mysql_raw.crosswalk_demonstration_role x
   WHERE
@@ -63,7 +65,9 @@ BEGIN
   END IF;
   IF to_regclass('demos_app.role') IS NOT NULL THEN
     SELECT
-      count(*) INTO bad_role
+      count(*)
+    INTO
+      bad_role
     FROM
       mysql_raw.crosswalk_demonstration_role x
     WHERE
@@ -81,7 +85,9 @@ BEGIN
   END IF;
   IF to_regclass('demos_app.demonstration_grant_level_limit') IS NOT NULL THEN
     SELECT
-      count(*) INTO bad_grant
+      count(*)
+    INTO
+      bad_grant
     FROM
       mysql_raw.crosswalk_demonstration_role x
     WHERE
@@ -100,7 +106,9 @@ BEGIN
   -- (d) one primary slot per (source_table, role_id) at most (the target PK is
   -- (demonstration_id, role_id), so each role admits a single primary column).
   SELECT
-    count(*) INTO bad_primary
+    count(*)
+  INTO
+    bad_primary
   FROM (
     SELECT
       source_table,

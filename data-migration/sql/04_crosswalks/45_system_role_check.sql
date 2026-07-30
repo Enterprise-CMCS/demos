@@ -28,10 +28,11 @@ BEGIN
   END IF;
   -- (a) System-grant coverage: every (System role, person_type) DEMOS permits
   --     must be mapped so no user person_type is left without a system role.
-  IF to_regclass('demos_app.role') IS NOT NULL
-    AND to_regclass('demos_app.role_person_type') IS NOT NULL THEN
+  IF to_regclass('demos_app.role') IS NOT NULL AND to_regclass('demos_app.role_person_type') IS NOT NULL THEN
     SELECT
-      count(*) INTO missing
+      count(*)
+    INTO
+      missing
     FROM (
       SELECT
         rp.role_id,
@@ -55,7 +56,9 @@ BEGIN
   END IF;
   IF to_regclass('demos_app.role') IS NOT NULL THEN
     SELECT
-      count(*) INTO bad_role
+      count(*)
+    INTO
+      bad_role
     FROM
       mysql_raw.crosswalk_system_role x
     WHERE
@@ -73,7 +76,9 @@ BEGIN
   END IF;
   IF to_regclass('demos_app.system_grant_level_limit') IS NOT NULL THEN
     SELECT
-      count(*) INTO bad_grant
+      count(*)
+    INTO
+      bad_grant
     FROM
       mysql_raw.crosswalk_system_role x
     WHERE
@@ -91,7 +96,9 @@ BEGIN
   END IF;
   IF to_regclass('demos_app.role_person_type') IS NOT NULL THEN
     SELECT
-      count(*) INTO bad_ptype
+      count(*)
+    INTO
+      bad_ptype
     FROM
       mysql_raw.crosswalk_system_role x
     WHERE
@@ -109,3 +116,4 @@ BEGIN
   END IF;
 END
 $$;
+

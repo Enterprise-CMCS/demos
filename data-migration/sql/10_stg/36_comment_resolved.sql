@@ -78,3 +78,4 @@ FROM
   JOIN migration._id_map_mdcd_dlvrbl dm ON dm.legacy_int_id = p.mdcd_dlvrbl_id
   LEFT JOIN migration._id_map_users au ON au.legacy_int_id = pc.user_id
   LEFT JOIN stg.users_resolved ur ON ur.new_uuid = au.new_uuid;
+

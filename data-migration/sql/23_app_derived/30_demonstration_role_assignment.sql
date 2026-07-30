@@ -72,7 +72,9 @@ FROM
     role_id)
     DO NOTHING;
   SELECT
-    count(*) INTO held
+    count(*)
+  INTO
+    held
   FROM ( SELECT DISTINCT
       r.person_id,
       r.demonstration_id,

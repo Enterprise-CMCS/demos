@@ -27,7 +27,9 @@ BEGIN
   RAISE EXCEPTION 'crosswalk_demo_status check: mysql_raw.mdcd_demo is present but empty; load did not populate the source';
 END IF;
   SELECT
-    count(*) INTO missing
+    count(*)
+  INTO
+    missing
   FROM ( SELECT DISTINCT
       mdcd_demo_stus_cd AS cd
     FROM
@@ -39,9 +41,9 @@ END IF;
       legacy_int_cd
     FROM
       mysql_raw.crosswalk_demo_status) t;
-  IF missing > 0 THEN
-    RAISE EXCEPTION 'crosswalk_demo_status is missing % legacy status code(s) present in mdcd_demo', missing;
-  END IF;
+    IF missing > 0 THEN
+      RAISE EXCEPTION 'crosswalk_demo_status is missing % legacy status code(s) present in mdcd_demo', missing;
+    END IF;
 END
 $$;
 

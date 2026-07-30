@@ -150,3 +150,4 @@ END LOOP;
   RAISE NOTICE 'pending tag-assignment load: % row(s) inserted, % source row(s) skipped for NULL or non-positive period', loaded_ct, skipped_ct;
 END
 $$;
+

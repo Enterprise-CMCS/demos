@@ -94,7 +94,9 @@ END IF;
   -- resolve to a seeded demonstration-type tag (e.g. '0'/Not Applicable,
   -- 'OTHR'/Other). These are reported, not loaded.
   SELECT
-    count(*) INTO skipped_ct
+    count(*)
+  INTO
+    skipped_ct
   FROM
     mysql_raw.rfrnc_matl r
     JOIN migration._id_map_rfrnc_matl idm ON idm.legacy_int_id = r.rfrnc_matl_id

@@ -25,3 +25,4 @@ FROM
   JOIN migration._id_map_mdcd_dlvrbl dm ON dm.legacy_int_id = c.mdcd_dlvrbl_id
 ON CONFLICT
   DO NOTHING;
+
