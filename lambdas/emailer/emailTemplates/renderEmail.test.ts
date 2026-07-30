@@ -4,7 +4,7 @@ import { renderEmail } from "./renderEmail";
 
 const deliverableCreatedInput = {
   recipients: {
-    to: [{ name: "Current User", address: "current.user@example.com" }],
+    to: [],
     bcc: ["cms.owner@example.com"],
   },
   demonstration: {
@@ -29,9 +29,7 @@ describe("renderEmail", () => {
   it("renders a deliverable-created emailer payload", async () => {
     const payload = await renderEmail("deliverable-created", deliverableCreatedInput);
 
-    expect(payload.to).toEqual([
-      { name: "Current User", address: "current.user@example.com" },
-    ]);
+    expect(payload.to).toEqual([]);
     expect(payload.bcc).toEqual(["cms.owner@example.com"]);
     expect(payload.subject).toBe("CMS DEMOS Deliverable: Deliverable Created");
     expect(payload.text).toContain("You have been assigned a new Close Out Report deliverable");
@@ -68,5 +66,17 @@ describe("renderEmail", () => {
         recipients: undefined,
       })
     ).rejects.toThrow("Missing value for recipients while rendering deliverable-created.data");
+  });
+
+  it("requires at least one recipient across all BCC-only recipient groups", async () => {
+    await expect(
+      renderEmail("deliverable-created", {
+        ...deliverableCreatedInput,
+        recipients: {
+          to: [],
+          bcc: [],
+        },
+      })
+    ).rejects.toThrow("Email template must include at least one recipient.");
   });
 });

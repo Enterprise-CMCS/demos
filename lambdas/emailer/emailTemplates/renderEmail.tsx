@@ -45,20 +45,29 @@ function normalizeRecipientGroups(recipients: EmailRecipientGroups): EmailRecipi
     throw new Error("Email template must include recipient groups.");
   }
 
-  return {
-    to: normalizeRecipients(recipients.to, "to", true),
+  const normalizedRecipients = {
+    to: normalizeRecipients(recipients.to, "to"),
     ...(recipients.cc ? { cc: normalizeRecipients(recipients.cc, "cc") } : {}),
     ...(recipients.bcc ? { bcc: normalizeRecipients(recipients.bcc, "bcc") } : {}),
   };
+
+  const recipientCount =
+    normalizedRecipients.to.length +
+    (normalizedRecipients.cc?.length ?? 0) +
+    (normalizedRecipients.bcc?.length ?? 0);
+  if (recipientCount === 0) {
+    throw new Error("Email template must include at least one recipient.");
+  }
+
+  return normalizedRecipients;
 }
 
 function normalizeRecipients(
   recipients: EmailRecipient[],
-  group: keyof EmailRecipientGroups,
-  required = false
+  group: keyof EmailRecipientGroups
 ): EmailRecipient[] {
-  if (!Array.isArray(recipients) || (required && recipients.length === 0)) {
-    throw new Error("Email template must include at least one recipient.");
+  if (!Array.isArray(recipients)) {
+    throw new Error(`Email template ${group} recipients must be an array.`);
   }
 
   return recipients.map((recipient, index) => {
