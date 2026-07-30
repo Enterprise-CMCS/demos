@@ -1,8 +1,6 @@
-import { CREATE_DEMONSTRATION_MUTATION } from "components/dialog/demonstration/CreateDemonstrationDialog";
-import {
-  GET_DEMONSTRATION_BY_ID_QUERY,
-  UPDATE_DEMONSTRATION_MUTATION,
-} from "components/dialog/demonstration/EditDemonstrationDialog";
+import { CREATE_DEMONSTRATION_MUTATION } from "components/dialog/demonstration/CreateDemonstration/useCreateDemonstration";
+import { GET_DEMONSTRATION_BY_ID_QUERY } from "components/dialog/demonstration/EditDemonstration/EditDemonstrationDialog";
+import { UPDATE_DEMONSTRATION_MUTATION } from "components/dialog/demonstration/EditDemonstration/useUpdateDemonstration";
 import { GET_DEMONSTRATION_BY_ID_QUERY as HOOK_GET_DEMONSTRATION_BY_ID_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application";
 
@@ -31,7 +29,14 @@ import { DEMONSTRATION_HEADER_DETAILS_QUERY } from "pages/DemonstrationDetail/De
 
 export type MockDemonstration = Pick<
   Demonstration,
-  "id" | "name" | "description" | "sdgDivision" | "signatureLevel" | "currentPhaseName" | "medicaidId" | "chipId"
+  | "id"
+  | "name"
+  | "description"
+  | "sdgDivision"
+  | "signatureLevel"
+  | "currentPhaseName"
+  | "medicaidId"
+  | "chipId"
 > & {
   effectiveDate: Date;
   expirationDate: Date;
