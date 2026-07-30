@@ -15,7 +15,7 @@
 | Column-pair type matches (OK) | 15
 | Column-pair type warnings (WARN; transform explains the diff) | 57
 | Column-pair type mismatches (MISMATCH; needs review) | 18
-| DEMOS tables hit by at least one mapping | 11 of 94 (11.7%)
+| DEMOS tables hit by at least one mapping | 11 of 93 (11.8%)
 | MySQL tables not yet covered (no CSV rows, not on drop list) | 500
 |===
 

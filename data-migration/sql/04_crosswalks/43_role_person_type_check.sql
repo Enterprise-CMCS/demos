@@ -2,13 +2,13 @@
  * Purpose:    Fail-closed completeness + integrity check for crosswalk_role_person_type.
  * Inputs:     mysql_raw.role_rfrnc, mysql_raw.crosswalk_role_person_type, demos_app.person_type
  * Outputs:    none (validation only; RAISEs EXCEPTION on a violation)
- * Invariants: fail-closed; to_regclass-guarded no-op before load; a present-but-empty source RAISEs (no vacuous pass) (CODE_REVIEW H4); each legacy_name must match role_rfrnc.role_name (trimmed, case-insensitive); every person_type_id must exist in demos_app.person_type.
- * Refs:       CODE_REVIEW.md (H4), sql/04_crosswalks/42_role_person_type.sql
+ * Invariants: fail-closed; to_regclass-guarded no-op before load; a present-but-empty source RAISEs (no vacuous pass); each legacy_name must match role_rfrnc.role_name (trimmed, case-insensitive); every person_type_id must exist in demos_app.person_type.
+ * Refs:       sql/04_crosswalks/42_role_person_type.sql
  *
  * Completeness + integrity check for crosswalk_role_person_type.
  * Guarded by to_regclass so it is a no-op before the source / DEMOS seeds load;
  * once role_rfrnc exists it must be non-empty, otherwise the completeness check
- * would pass vacuously on a half-loaded source (CODE_REVIEW H4).
+ * would pass vacuously on a half-loaded source.
  *
  * (a) every legacy role_cd present in mysql_raw.role_rfrnc must have a mapping row;
  * (b) each mapping's legacy_name must match role_rfrnc.role_name for that code

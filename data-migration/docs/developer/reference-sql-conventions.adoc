@@ -70,6 +70,25 @@ In-scope files are `sql/**/*.sql`, `scripts/*.sql`, and
 (`tests/test_sql_frontmatter.py`) fails if any in-scope file loses its
 block.
 
+=== Refs must resolve
+
+`Refs` is the one field whose *content* is checked, because its whole
+value is repo paths and a renamed file turns every citation of it into
+a lie. Each token starting with a known top-level directory -- `sql/`,
+`reports/`, `state/`, `pgloader/`, `migration/`, `docs/`, `scripts/`,
+`runbooks/`, `tests/`, or the sibling application's `server/`,
+`client/`, `lambdas/` -- must exist, resolved against this repository
+and then against the monorepo root. Separate citations with `;` or `,`.
+
+The checker strips an AsciiDoc anchor (`page.adoc#section`), a pytest
+node id (`file.py::test_name`), and surrounding punctuation before
+resolving, so all three are safe to write. Tokens containing `<`, `>`,
+`*`, or `?` are treated as placeholders and skipped, as is prose that
+merely happens to contain a slash. Paths that are deliberately absent
+from the tree -- runtime-generated artifacts, or inputs produced on
+demand by an external tool -- go in `docs/tools/doc_absent_paths.txt`,
+the same allow-list `docs/tools/verify_schema_refs.py` reads.
+
 == Formatting: pg_format owns layout and case
 
 pgFormatter (`pg_format`) owns *all* SQL layout and case. There is no
@@ -236,7 +255,7 @@ ifndef::nested[]
 |===
 |xref:reference-pipeline-stages.adoc[< prev]
 ^|xref:../toc.adoc[Table of contents]
->|xref:tutorial-follow-an-entity.adoc[next >]
+>|xref:reference-python-package.adoc[next >]
 |===
 endif::[]
 // docnav-end

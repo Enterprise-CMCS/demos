@@ -1,0 +1,51 @@
+= Reference: SME sign-off ledger, 2026-07-20
+:toc: left
+
+The dispositions from the 2026-07-20 SME round: what each answer confirmed,
+which decisions it resolved, what is still blocked on other people, and which
+gaps nobody has asked about yet. Audience: anyone who needs to know whether a
+given migration behaviour has been signed off, and by whom.
+
+This ledger is *decisions only*. No loader changed in the pass that produced it;
+its section 7 is the resulting build queue.
+
+[NOTE]
+====
+Dated ledgers are append-only records of what was true on a given date. Where a
+later round supersedes an entry, the ledger says so inline (see the MINIMAL vs
+FULL `deliverable_action` reversal in section 11) rather than being rewritten.
+Treat the newest dated statement as authoritative.
+====
+
+== The ledger
+
+The body below is the live `reports/narrative/sme_signoff_2026-07-20.md`,
+rendered. It stays Markdown so it reads on GitHub and the SME can edit it there;
+this page is its view in the wiki. Edit the ledger, then run
+`make live-partials` (in `docs/`) to refresh this page.
+
+include::../shared/generated/live/sme-signoff-2026-07-20.adoc[leveloffset=+1]
+
+== Related
+
+* xref:reference-pending-approved-rules.adoc[Pending/approved rules] -- the
+  decision register this ledger ratifies against.
+* xref:reference-milestone-date-mapping.adoc[Milestone date mapping] -- the
+  detail behind the phase/date decisions in sections 2.5 and 8.
+* xref:explanation-comments-routing.adoc[Comments: private vs public] -- the
+  `cmt_orgn_cd` routing resolved in sections 2.4 and 5.
+* xref:reference-history-strategy.adoc[History strategy] -- the
+  `deliverable_action` backfill whose fidelity section 11.2 revises.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-milestone-date-mapping.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:explanation-data-shape-decisions.adoc[next >]
+|===
+endif::[]
+// docnav-end

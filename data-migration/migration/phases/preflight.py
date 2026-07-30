@@ -181,7 +181,7 @@ def run_preflight() -> None:
                     "refreshDbObjects.ts AFTER P5 (constraints), never before the load; "
                     "at load they would collide on application_phase/date PKs or fire "
                     "the primary-PO check. Rebuild the schema (migrate ddl) so they are "
-                    "absent. See docs/specs/api-validation-migration-audit-spec.md "
+                    "absent. See docs/developer/explanation-api-validation-audit.adoc "
                     "T0.2/T0.4."
                 )
                 ok = False
@@ -191,7 +191,7 @@ def run_preflight() -> None:
                     "build_app so migrated rows with a NULL chip_id are minted on insert "
                     "(the migration supplies medicaid_id + preserved legacy chip_id and "
                     "leaves the remainder NULL). Deploy the modified trigger, then "
-                    "re-run. See docs/specs/api-validation-migration-audit-spec.md T0.1."
+                    "re-run. See docs/developer/explanation-api-validation-audit.adoc T0.1."
                 )
                 ok = False
             if not forbidden_present and mint_trigger in present:

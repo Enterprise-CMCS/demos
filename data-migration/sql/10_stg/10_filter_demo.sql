@@ -2,7 +2,7 @@
  * Purpose:    Build the row-level allowlist of valid demonstration ids by EXCEPTing format-rule violators and applying keep/drop overrides.
  * Inputs:     mysql_raw.mdcd_demo, stg._keep_ids, stg._drop_ids
  * Outputs:    CREATE OR REPLACE VIEW stg._valid_demo_ids
- * Invariants: source-only (no crosswalks/seeds); fail-closed regex rules (one bad_<col> CTE per rule, EXCEPTed out); force-keep only ids present in source (CODE_REVIEW H5); drop list applied last.
+ * Invariants: source-only (no crosswalks/seeds); fail-closed regex rules (one bad_<col> CTE per rule, EXCEPTed out); force-keep only ids present in source; drop list applied last.
  * Refs:       docs/operator/howto-curate-filter.adoc
  *
  * Row-level allowlist filter on the demonstration anchor `mysql_raw.mdcd_demo`.
@@ -69,7 +69,7 @@ bad_dates AS (
 ),
 keep AS (
   -- Force-keep only ids that exist in the source; a typo'd override must
-  -- not mint a UUID for a nonexistent row (CODE_REVIEW H5).
+  -- not mint a UUID for a nonexistent row.
   SELECT
     k.legacy_id AS demo_id
   FROM

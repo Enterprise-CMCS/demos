@@ -1,6 +1,6 @@
 /*
  * Purpose: Define and seed migration.phase_completion_rule, a SQL transcription of the DEMOS server's phase-completion validation table, so migration can quantify how many phases it stamped 'Completed' would fail that validation if DEMOS re-ran it; migration-private reference data; idempotent.
- * Refs:    server/src/model/applicationPhase/checkPhaseCompletionRules.ts, sql/99_parity/61_phantom_phase.sql, docs/specs/api-validation-migration-audit-spec.md
+ * Refs:    server/src/model/applicationPhase/checkPhaseCompletionRules.ts, sql/99_parity/61_phantom_phase.sql, docs/developer/explanation-api-validation-audit.adoc
  *
  * DEMOS gates a phase transition to 'Completed' behind
  * checkPhaseCompletionRules(): the application must carry every date in

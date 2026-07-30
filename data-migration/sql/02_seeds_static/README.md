@@ -5,10 +5,10 @@ Applied by `migrate seeds` (after `migrate ddl`, before `migrate crosswalks`).
 ## What lives here now
 
 Migration-private reference data and registry loads that the
-Prisma-owned `app.*` schema does **not** provide:
+Prisma-owned `demos_app.*` schema does **not** provide:
 
 - `25_state_region.sql` — `migration.state_region`, the CMS/HHS region
-  (1–10) per state. Prisma's `app.state` is `(id, name)` only and has no
+  (1–10) per state. Prisma's `demos_app.state` is `(id, name)` only and has no
   `region` column, but the migration needs the region to validate the
   PMDA `11-W-NNNNN/R` project number.
 
@@ -19,7 +19,7 @@ psycopg, where `pg_read_file` of a repo-relative path is not reliable).
 
 ## What does NOT live here (Prisma owns it)
 
-Per the DDL-ownership amendment, the DEMOS app team owns the `app.*`
+Per the DDL-ownership amendment, the DEMOS app team owns the `demos_app.*`
 schema **and seeds its lookup data** via the Prisma artifact that
 `migrate ddl` fetches, pins, and applies. All **29 static-constraint**
 tables (`application_status`, `document_type`, `deliverable_type`,

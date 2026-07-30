@@ -1,6 +1,6 @@
 /*
  * Purpose: Create the (empty) migration._id_map_mdcd_dlvrbl_cmt table mapping legacy mdcd_dlvrbl_cmt.mdcd_dlvrbl_cmt_id to a minted DEMOS uuid; populated later in 10_stg. Idempotent.
- * Refs:    docs/developer/reference-id-maps.adoc, docs/specs/comment-deliverable-resourcing-spec.md
+ * Refs:    docs/developer/reference-id-maps.adoc, docs/sme/explanation-comments-routing.adoc
  *
  * Id map: legacy mysql_raw.mdcd_dlvrbl_cmt.mdcd_dlvrbl_cmt_id (int) -> DEMOS uuid.
  *

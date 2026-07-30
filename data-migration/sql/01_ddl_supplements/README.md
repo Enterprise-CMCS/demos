@@ -56,5 +56,5 @@ locally available.
 make init                      # 00_init/
 uv run migrate fetch-prisma    # GH Contents API + raw.githubusercontent.com
 make ddl                       # apply Prisma + capture/drop FKs + supplements
-psql "$PG_URL" -c '\dt app.*'  # primary tables come from Prisma; *_history from supplements
+psql "$PG_URL" -c '\dt demos_app.*'  # primary tables come from Prisma; *_history from supplements
 ```

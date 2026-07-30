@@ -3,7 +3,7 @@
  * Inputs:     mysql_raw.mdcd_dlvrbl_hstry, migration._id_map_mdcd_dlvrbl
  * Outputs:    CREATE OR REPLACE VIEW stg.deliverable_due_date_window
  * Invariants: source-only (mysql_raw + id map only); idempotent (CREATE OR REPLACE VIEW); windows tile each deliverable's timeline contiguously with no gaps and no overlaps, so at most one window matches any instant; hstry_updtd_dt is converted from true UTC to the Eastern-wall-clock-at-+00 convention every other migrated timestamp uses; rows carrying no due date at all contribute no window.
- * Refs:       sql/10_stg/39_deliverable_submission_batch.sql (KNOWN SKEW), sql/23_app_derived/60_deliverable_action.sql, docs/specs/data-dbt-alignment-spec.md (TODO 13)
+ * Refs:       sql/10_stg/39_deliverable_submission_batch.sql (KNOWN SKEW), sql/23_app_derived/60_deliverable_action.sql, docs/developer/explanation-dbt-alignment.adoc#due-date-window
  *
  * Due-date history windows for deliverables.
  *

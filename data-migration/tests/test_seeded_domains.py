@@ -1,5 +1,6 @@
-"""Item 1 (docs/specs/document-migration.md): the committed DEMOS seed snapshot
-and offline composite-FK legality of the document crosswalks.
+"""Item 1 (docs/developer/explanation-document-migration.adoc): the committed
+DEMOS seed snapshot and offline composite-FK legality of the document
+crosswalks.
 
 These run without a database: the SQL ``*_check.sql`` gates validate crosswalk
 targets against the live ``demos_app`` seed at pipeline time; this is the fast,

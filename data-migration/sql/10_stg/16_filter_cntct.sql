@@ -2,7 +2,7 @@
  * Purpose:    Build the demo-grain allowlists of valid contact rows on the approved and pending contact anchors, screening each present role email.
  * Inputs:     mysql_raw.mdcd_demo_cntct, mysql_raw.mdcd_pendg_demo_cntct, stg._valid_demo_ids, stg._valid_pendg_demo_ids, stg._keep_ids, stg._drop_ids
  * Outputs:    CREATE OR REPLACE VIEW stg._valid_cntct_ids, stg._valid_pendg_cntct_ids
- * Invariants: source-only (no crosswalks/seeds); demo-grain key (cntct_demo_id = parent demo id, no surrogate contact id); fail-closed email pattern on each present role email; cascades from the demo filter; force-keep only ids present in source (CODE_REVIEW H5).
+ * Invariants: source-only (no crosswalks/seeds); demo-grain key (cntct_demo_id = parent demo id, no surrogate contact id); fail-closed email pattern on each present role email; cascades from the demo filter; force-keep only ids present in source.
  * Refs:       -
  *
  * Row-level allowlist filter on contact anchors:
@@ -52,7 +52,7 @@ bad_parent AS (
         v.demo_id = c.mdcd_demo_id)
 ),
 keep AS (
-  -- Force-keep only ids that exist in the source (CODE_REVIEW H5).
+  -- Force-keep only ids that exist in the source.
   SELECT
     k.legacy_id AS cntct_demo_id
   FROM
@@ -130,7 +130,7 @@ bad_parent AS (
         p.demo_id = c.mdcd_pendg_demo_id)
 ),
 keep AS (
-  -- Force-keep only ids that exist in the source (CODE_REVIEW H5).
+  -- Force-keep only ids that exist in the source.
   SELECT
     k.legacy_id AS cntct_demo_id
   FROM

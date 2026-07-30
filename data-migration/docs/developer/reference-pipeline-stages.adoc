@@ -79,13 +79,19 @@ canonical idempotent patterns:
 
 * DDL: `CREATE TABLE IF NOT EXISTS` + `ALTER TABLE ... DROP CONSTRAINT
   IF EXISTS ... ; ADD CONSTRAINT ...`.
-* Stage / app data: `TRUNCATE` then `INSERT`. No upsert. No
-  conditional partial inserts.
+* Stage / app data: `TRUNCATE` then `INSERT`. No conditional partial
+  inserts.
 * Id maps: `INSERT ... ON CONFLICT DO NOTHING` so re-running does
   not regenerate UUIDs.
-* Crosswalks: `DROP TABLE IF EXISTS` + `CREATE TABLE` + inlined
-  `INSERT ... VALUES` (the pipeline applies SQL through psycopg, where
-  psql's `\copy` is unavailable).
+* Crosswalks: `DROP TABLE IF EXISTS` + `CREATE TABLE`. The SQL under
+  `sql/04_crosswalks/` is DDL and fail-closed `_check` queries only;
+  the phase COPYs values from `reports/crosswalks/*.csv` per
+  `reports/crosswalks/registry.yaml`.
+* Static seeds: `INSERT ... ON CONFLICT DO UPDATE` in
+  `sql/02_seeds_static/25_state_region.sql` and
+  `sql/02_seeds_static/30_deliverable_action_chain.sql`, so a corrected
+  seed value lands on re-run. These and the JSONB registry load in
+  `migration/phases/init_pg.py` are the pipeline's only upserts.
 
 See xref:explanation-idempotency.adoc[explanation: idempotency] for
 the why.
@@ -119,9 +125,9 @@ ifndef::nested[]
 
 [.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
 |===
-|xref:howto-run-tests-locally.adoc[< prev]
+|xref:reference-repo-layout.adoc[< prev]
 ^|xref:../toc.adoc[Table of contents]
->|xref:reference-python-package.adoc[next >]
+>|xref:reference-sql-conventions.adoc[next >]
 |===
 endif::[]
 // docnav-end

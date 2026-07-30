@@ -10,10 +10,41 @@ behavior changes. Commit history follows [Conventional Commits](https://www.conv
 ## [Unreleased]
 
 ### Added
+- **The documentation set is now a single Asciidoctor wiki, and the build
+  fails if it drifts back.** Every markdown design document under `docs/` has
+  been folded into the wiki and deleted. `docs/specs/` and `docs/superpowers/`
+  matched none of the `html` target's globs, so eleven files - the primary
+  design record for several shipped subsystems - were never rendered, never
+  linked, and never checked. Nine new pages carry that material:
+  `developer/explanation-{dbt-alignment,api-validation-audit,deliverable-action-backfill,document-migration,migration-feasibility,jenkins-pipelines}.adoc`,
+  `developer/reference-{cross-cutting-derivations,repo-layout,legacy-pmda-workflows}.adoc`;
+  `sme/explanation-comments-routing.adoc` was rewritten from 95 to 599 lines
+  against the live crosswalk. Five working documents under
+  `reports/narrative/` and `runbooks/` that were live but invisible to the
+  wiki now render as live-partials, so the markdown stays the editing surface
+  and the wiki cannot fall behind it.
+- Three build-time guards, each proven to fail closed against a probe before
+  being trusted:
+  - `docs/tools/verify_docnav.py` (`make verify-docnav`) - the two navigation
+    surfaces, `toc.adoc` and the `docnav.py` `ORDER` list, can no longer
+    diverge from the built page set. Only one was checked before.
+  - `docs/tools/verify_docs_markdown.py` (`make verify-docs-markdown`) - no
+    tracked `.md` under `docs/`, no `xref:`/`link:` ending in `.md`, no ATX
+    headings, no fences or `[label](target)` links in an `.adoc`. It caught a
+    live defect on its first run.
+  - `scripts/check_sql_frontmatter.py` now resolves `Refs:` paths. That field's
+    entire value is repo paths, so a rename silently turned every citation of
+    the old name into a lie; every token starting with a known top-level
+    directory must now resolve, against this repo and then the monorepo root.
+    Two stale citations surfaced immediately. 10 new unit tests, including a
+    repo-wide sweep.
+- `reports/audits/docs_audit_2026-07-30.md` - the full audit write-up, with
+  the findings, what was deliberately left alone and why, and five open items
+  it did not resolve.
 - The four `data-migration/`-side alignment TODOs from
-  `docs/specs/data-dbt-alignment-spec.md` §4.1 are now implemented (decisions
-  D14-D17 in `reports/narrative/pending_approved_decisions.md`), closing the
-  shared-surface gaps against the `data/` dbt migration:
+  `docs/developer/explanation-dbt-alignment.adoc#dm-items` are now implemented
+  (decisions D14-D17 in `reports/narrative/pending_approved_decisions.md`),
+  closing the shared-surface gaps against the `data/` dbt migration:
   - **System roles for every user (D14).** The System-role backfill is re-keyed
     from the legacy `role_cd` to the user's derived `person_type` (1:1 with
     DEMOS `role_person_type`), so every migrated user - including the ~382
@@ -134,7 +165,7 @@ behavior changes. Commit history follows [Conventional Commits](https://www.conv
   `demos_app.application_phase` rows per loaded demonstration (approved + pending)
   and amendment from the loaded `current_phase_id`. A Federal Comment past-window
   failsafe forces that phase to 'Completed' when its loaded end date is before
-  cutover (`2026-08-20`, a single documented SQL constant) so the DEMOS nightly
+  cutover (`2026-08-13`, a single documented SQL constant) so the DEMOS nightly
   `update_federal_comment_phase_status()` cron cannot spuriously advance a window
   that closed by cutover. Parity `sql/99_parity/56_application_milestone.sql` logs
   the granular phase_3 clearance sub-dates + amendment dates deferred for SME
@@ -143,6 +174,47 @@ behavior changes. Commit history follows [Conventional Commits](https://www.conv
   `reports/narrative/milestone_date_mapping.md`.
 
 ### Changed
+- **The cutover date is `2026-08-13` (Thursday) everywhere.** It had been three
+  different dates: `2026-07-01` on the landing page and throughout the
+  canonical spec's timeline, `2026-08-20` in the SQL constant governing the
+  Federal Comment past-window failsafe and in four prose sites, and the decided
+  date nowhere at all. The constant in
+  `sql/23_app_derived/50_application_phase.sql` decides which phases the loader
+  forces to `Completed`, so this was not only a documentation defect.
+- The landing page and the canonical spec's timeline described the position on
+  2026-07-09 and understated delivery by three shipped loaders. Both now report
+  the real state - 16 of 19 scope-ledger tables BUILT, one PARTIAL, one
+  DEFERRED, one OUT-OF-SCOPE, two Tier-1 rehearsals run 2026-07-22, no Tier-2
+  rehearsal yet - and the 8-week plan is framed as the lapsed original rather
+  than the current schedule.
+- Parity check 14's summary line tallied BUILT, PARTIAL, and DEFERRED but not
+  OUT-OF-SCOPE, so 19 tables reported as `16 BUILT, 1 PARTIAL, 1 DEFERRED`.
+  Non-gating and always GREEN, so no behaviour changes, but a summary that does
+  not add up teaches people to stop reading it.
+- `README.md` slimmed 410 to 160 lines. The repository layout moved to
+  `docs/developer/reference-repo-layout.adoc`, where `verify_schema_refs.py`
+  asserts every backticked path still exists, so it cannot rot silently again.
+- Documentation claims corrected against the code: crosswalk loading (DDL plus
+  `_check` queries, values COPYed from `reports/crosswalks/` per
+  `registry.yaml`, not inlined `INSERT ... VALUES`); FK re-application (from
+  `state/prisma_fks.json`, not from the `.gitkeep`-only `sql/30_constraints/`);
+  idempotency (three deliberate `ON CONFLICT DO UPDATE` sites, not "never
+  upsert"); `crosswalk_comment_origin` (populated and registry-wired, routes
+  `private`/`public`, not gated and empty with `cms`/`state`); the comment
+  source count (10 tables, 2 of which load, not 9); the parity check registry
+  (46 checks, 23 numbered 1-24 with 3 a permanent gap, and 23 unnumbered, so no
+  "check 25"); `fil_doc_cd` (does not mirror the type flags 1:1 - 1,872
+  counterexamples, 76 live); `deliverable_action` (BUILT, not net-new); filter
+  reports (`reports/runs/`, and `reports/filter/archive/` has never existed);
+  the schema name in five `sql/*/README.md` files (`demos_app`, not `app`); and
+  every file count in the spec's implementation-state section.
+- `make help` no longer advertises a `history` cutover phase. There is none:
+  not in `lib.PHASES`, not in the CLI, not in the Makefile, not in
+  `migration/phases/`. It survived only as a hard-coded banner string.
+- The pages claiming CI runs `pytest`, `ruff`, and `ty` on push and PR now say
+  what is true: `.github/workflows/ci.yml` does not exist, no parent-repository
+  workflow matches `data-migration/`, and the local `make` targets plus the
+  `sql-check` pre-commit hook are the only gates.
 - `sme_review_exports.py` gained an `all` aggregate, now the default, replacing
   `both` as what a bare `make sme_review_exports` runs. `both` predates four of
   the six exports and enumerated its two members by hand, so every export added
@@ -238,6 +310,36 @@ behavior changes. Commit history follows [Conventional Commits](https://www.conv
   so a renamed/reordered/missing CSV column fails closed instead of mis-loading.
 
 ### Removed
+- Fourteen markdown files superseded by the wiki fold: `docs/specs/` (5),
+  `docs/superpowers/` (2), `docs/spec/jenkins-pipelines.md`, `APPS.md` (an
+  auto-generated application registry nothing read, closing W7 of the ownership
+  remediation plan), `reports/audits/docs_audit.md` (superseded by the dated
+  audit; its undated name made a stale snapshot read as current), and
+  `pmda_highlights_reel.md`.
+  - The reel was **folded, not discarded.** It is the only surviving
+    description of the legacy PMDA application, reconstructed by reading
+    `cma-site` and `cma-service`, neither of which is in this tree, and two
+    live records cite it: the workflow-level scope disposition table in
+    `pending_approved_decisions.md` is keyed to its eleven numbered workflows,
+    and a `notes.md` entry cites it for the `mdcd_demo_num` reading behind the
+    medicaid_id/chip_id decision. All eleven workflows and all 41 extract
+    queries are preserved in
+    `docs/developer/reference-legacy-pmda-workflows.adoc` with `#workflow-N`
+    anchors so the disposition table can deep-link, under an admonition that it
+    describes the source system, is dated, and has not been re-verified. Three
+    of its claims are contradicted by this repository and were left in place,
+    because the page is evidence; they are listed in the audit instead.
+  - `reports/crosswalks/proposed/archive/signature_level_sme_decisions.md` was
+    kept: already archived, and the signature-level decision is still open.
+- References that resolved to nothing: 18 citations of `CODE_REVIEW.md`
+  findings `H4`, `H5`, and `H7` across 19 files (the file entered in the
+  squashed import already describing a prior review as superseded, so those
+  labels never existed here and cannot be recovered - the invariant text each
+  citation carried was kept); five `migration-plan.adoc` evidence-column commit
+  SHAs that stopped resolving at the same import; eight CHANGELOG
+  version-comparison links to a private LAN Gitea instance, which also
+  disclosed an RFC 1918 address and port, and for which no `v0.x` tag was ever
+  cut in this repository; and two absolute `/Users/` paths.
 - Budget-neutrality migration machinery, per the SME decision that DEMOS owns
   BN ingestion from uploaded workbooks (the SME will translate the existing
   v2.13 workbooks to v2.14 and upload them post-launch). Deleted the staging
@@ -529,11 +631,8 @@ ingestion, staging, crosswalks, parity, and cutover guards.
 - Initial migration repo skeleton (Week 1 deliverables) establishing the
   project structure, packaging, and baseline orchestration.
 
-[0.7.0]: http://192.168.1.237:3000/zoekomrade/demos-data-migration/compare/v0.6.0...v0.7.0
-[0.6.0]: http://192.168.1.237:3000/zoekomrade/demos-data-migration/compare/v0.5.0...v0.6.0
-[0.5.0]: http://192.168.1.237:3000/zoekomrade/demos-data-migration/compare/v0.4.1...v0.5.0
-[0.4.1]: http://192.168.1.237:3000/zoekomrade/demos-data-migration/compare/v0.4.0...v0.4.1
-[0.4.0]: http://192.168.1.237:3000/zoekomrade/demos-data-migration/compare/v0.3.0...v0.4.0
-[0.3.0]: http://192.168.1.237:3000/zoekomrade/demos-data-migration/compare/v0.2.0...v0.3.0
-[0.2.0]: http://192.168.1.237:3000/zoekomrade/demos-data-migration/compare/v0.1.0...v0.2.0
-[0.1.0]: http://192.168.1.237:3000/zoekomrade/demos-data-migration/releases/tag/v0.1.0
+<!-- Version comparison links intentionally omitted. This history was
+     written against a private Gitea instance whose URLs resolved only on
+     one LAN, and no v0.x tag was ever cut in this repository -- `git tag`
+     lists only the two `archive/*` tags. Compare releases with
+     `git log --oneline` against the commits recorded in each entry. -->

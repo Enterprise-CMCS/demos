@@ -49,6 +49,11 @@ sys.path.insert(0, str(REPO_ROOT))
 from migration.cli import app as typer_app  # noqa: E402
 from migration.lib import PHASES  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from docnav import block_for  # noqa: E402
+
+PAGE = "operator/reference-cli.adoc"
+
 PHASE_DESCRIPTIONS: dict[str, str] = {
     "preflight": "P0  Pre-flight checks (5 green checks or HOLD).",
     "freeze": "P1  Capture freeze instant; old app set read-only.",
@@ -75,7 +80,17 @@ def _help_text(command_name: str) -> str | None:
         argv = ["uv", "run", "migrate", "--help"]
     else:
         argv = ["uv", "run", "migrate", command_name, "--help"]
-    env = {**os.environ, "NO_COLOR": "1", "TERM": "dumb", "COLUMNS": "100"}
+    # Rich >= 15 clamps non-TTY console width to 80 and ignores COLUMNS /
+    # TERMINAL_WIDTH, so pin the width we actually get rather than a wider
+    # one we do not: an aspirational value silently re-wraps every panel and
+    # shows up as a whole-file diff against the committed page.
+    env = {
+        **os.environ,
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "COLUMNS": "80",
+        "TERMINAL_WIDTH": "80",
+    }
     proc = subprocess.run(
         argv,
         check=False,
@@ -184,7 +199,11 @@ def main() -> None:
             out.append("")
         _emit_help(f"migrate {name}", _help_text(name))
 
-    sys.stdout.write("\n".join(out).rstrip() + "\n")
+    # This script writes the whole page, so it has to emit the prev/next
+    # footer too; otherwise `make cli-ref` strips what `make docnav` appended
+    # and the two targets churn the file against each other. Same renderer,
+    # so both produce byte-identical output.
+    sys.stdout.write("\n".join(out).rstrip() + "\n" + block_for(PAGE))
 
 
 if __name__ == "__main__":

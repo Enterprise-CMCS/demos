@@ -42,7 +42,7 @@ This "leave history empty" rule is about the DEMOS **`*_history` tables** (the
 revision shadows DEMOS owns and its capture triggers fill). It does **not**
 forbid *reading* the PMDA source `*_hstry` tables to derive real target values.
 Two consumers are in scope (see
-`docs/specs/pmda-history-tables-derivation-spec.md`):
+`docs/developer/explanation-deliverable-action-backfill.adoc`):
 
 - **`deliverable_action`** is NOT a `*_history` table -- it is a real,
   app-written workflow event log. DEMOS capture triggers only record

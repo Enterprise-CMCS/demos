@@ -14,7 +14,7 @@ SCHEMA_LOAD = PGLOADER_DIR / "schema.load"
 DELTA_LOAD = PGLOADER_DIR / "delta.tmpl.load"
 
 # Casts that must survive both loads. Missing these in the delta (the C5
-# sibling, CODE_REVIEW H7) silently drifts re-pulled rows' types.
+# sibling) silently drifts re-pulled rows' types.
 _KEY_CASTS = (
     "type int when (= precision 1) to boolean",
     "type year to integer",

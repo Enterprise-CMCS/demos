@@ -3,7 +3,7 @@
  * Inputs:     stg.document_resolved (not yet authored; guarded by to_regclass)
  * Outputs:    CREATE OR REPLACE VIEW stg.document_deliverable_link_resolved (guarded no-op until stg.document_resolved exists)
  * Invariants: inert today (guards on to_regclass('stg.document_resolved'), RETURNs early as a clean no-op); idempotent (CREATE OR REPLACE VIEW); output routing pinned to the document contract (check_deliverable_null_states, no_submitted_deliverable_cms_files); column names against stg.document_resolved are speculative.
- * Refs:       docs/specs/pmda-cross-cutting-derivation-spec.md
+ * Refs:       docs/developer/reference-cross-cutting-derivations.adoc
  *
  * INERT FORWARD-SCAFFOLD -- NOT YET ACTIVE.
  *
@@ -27,12 +27,13 @@
  * WHY THIS IS A NO-OP TODAY: there is no document loader yet, so the source
  * projection stg.document_resolved does NOT exist in any schema. The document
  * source-family -> document_type / attachment-origin fan-in is still SME-blocked
- * (docs/specs/pmda-cross-cutting-derivation-spec.md, §6 "Deliverables,
- * Documents, Comments, BN" + Table 2 "Document Source Families"; "unresolved
- * document/reference mappings" in the Blocker Summary). This file therefore
- * GUARDS on to_regclass('stg.document_resolved') and RETURNs early as a clean
- * no-op everywhere it is applied today (the full pipeline included), only
- * minting the view once a future document loader authors stg.document_resolved.
+ * (docs/developer/reference-cross-cutting-derivations.adoc, "Deliverables,
+ * documents, comments, budget neutrality" + "Document source families";
+ * "unresolved document/reference mappings" in the Blocker summary). This file
+ * therefore GUARDS on to_regclass('stg.document_resolved') and RETURNs early as
+ * a clean no-op everywhere it is applied today (the full pipeline included),
+ * only minting the view once a future document loader authors
+ * stg.document_resolved.
  *
  * The SELECT below is written against PLAUSIBLE, not-yet-authored
  * stg.document_resolved columns (attachment_origin / submission_action_id are

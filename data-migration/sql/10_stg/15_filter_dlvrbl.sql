@@ -2,7 +2,7 @@
  * Purpose:    Build the row-level allowlist of valid deliverable ids, cascading from the demonstration filter.
  * Inputs:     mysql_raw.mdcd_dlvrbl, stg._valid_demo_ids, stg._keep_ids, stg._drop_ids
  * Outputs:    CREATE OR REPLACE VIEW stg._valid_dlvrbl_ids
- * Invariants: source-only (no crosswalks/seeds); single-parent cascade (drop when parent demo excluded); fail-closed created-date rule; force-keep only ids present in source (CODE_REVIEW H5).
+ * Invariants: source-only (no crosswalks/seeds); single-parent cascade (drop when parent demo excluded); fail-closed created-date rule; force-keep only ids present in source.
  * Refs:       -
  *
  * Row-level allowlist filter on the deliverable anchor
@@ -40,7 +40,7 @@ bad_parent AS (
         v.demo_id = d.mdcd_demo_id)
 ),
 keep AS (
-  -- Force-keep only ids that exist in the source (CODE_REVIEW H5).
+  -- Force-keep only ids that exist in the source.
   SELECT
     k.legacy_id AS dlvrbl_id
   FROM

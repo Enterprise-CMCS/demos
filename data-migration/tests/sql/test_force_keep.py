@@ -1,4 +1,4 @@
-"""Live-PG harness for force-keep override integrity (CODE_REVIEW H5).
+"""Live-PG harness for force-keep override integrity.
 
 A force-keep id that does not exist in the source must neither survive the
 filter view's ``keep`` union (so no phantom UUID is minted) nor pass the

@@ -1,0 +1,264 @@
+= Reference: repository layout
+:toc: left
+
+The audience is anyone opening this repository for the first time and
+trying to find the file that owns a given behaviour. By the end you will
+know what each top-level directory holds, which files a human edits
+versus which are generated, where per-run artifacts land, and how the
+project is versioned. Every path on this page sits in inline monospace
+so `docs/tools/verify_schema_refs.py` asserts it still exists: the page
+cannot drift from the tree without failing the build.
+
+== Top-level directories
+
+[cols="2,4"]
+|===
+| Path | What lives there
+
+| `migration/` | The Python package: Typer CLI, shared helpers, one module per phase.
+| `sql/` | The numbered SQL pipeline. SQL is the source of truth for every transform; Python only orchestrates.
+| `pgloader/` | pgloader load templates plus the two human-curated table lists.
+| `reports/` | Curated inputs, generated audit artifacts, and per-run output.
+| `runbooks/` | Operator playbooks and stakeholder comms templates.
+| `scripts/` | Standalone tooling that is not a pipeline phase.
+| `state/` | Runtime gate files and rendered templates. Gitignored.
+| `tests/` | Unit tests, the live SQL harness, and the integration tier.
+| `docs/` | This documentation set (Asciidoctor).
+|===
+
+Alongside them at the repo root: `Makefile` (operator-facing wrappers
+around `uv run migrate`), `pyproject.toml` plus `uv.lock` (dependencies,
+pinned and committed), `.env.example` (the template for the uncommitted
+`.env`), `.sqlfluff` (lint config), `docker-compose.test.yml` (MySQL +
+Postgres engines for the integration tier), and the standing documents in
+<<root-documents>>.
+
+== The Python package
+
+[cols="2,4"]
+|===
+| Path | Purpose
+
+| `migration/cli.py` | Typer entry point. Every phase is a command: `migrate <phase>`.
+| `migration/lib.py` | Env snapshot, path constants, gate state, psql and pgloader wrappers, template rendering, credential redaction.
+| `migration/duck.py` | DuckDB conduit: the `migrate analyze` views, the load-fidelity dual-attach, and the prod-schema guard scanner.
+| `migration/prisma_schema.py` | Dependency-free parser for the pinned `.prisma` model files, used for FK cross-validation.
+| `migration/secrets.py` | Optional AWS Secrets Manager resolver for the target connection string.
+| `migration/phases/` | One module per phase (`preflight`, `freeze`, `build`, `parity`, and the rest).
+|===
+
+xref:reference-python-package.adoc[Python package and `lib.py`] documents
+the per-symbol surface, and `docs/tools/verify_doc_facts.py` fails when a
+phase module or public `lib.py` symbol is missing from it.
+
+== The SQL pipeline
+
+Stages run in numeric order. Two stage directories are deliberately
+`.gitkeep`-only today; they are kept so the numbering stays stable.
+
+[cols="2,4"]
+|===
+| Path | What it holds
+
+| `sql/00_init/` | Roles, schemas, extensions, helper functions, and the delta log table.
+| `sql/01_ddl_supplements/` | Migration-private DDL layered on the Prisma artifact (the JSONB schema registry).
+| `sql/02_seeds_static/` | Repo-authored reference seeds (`sql/02_seeds_static/25_state_region.sql`, `sql/02_seeds_static/30_deliverable_action_chain.sql`) and the hand-transcribed DEMOS validation-rule tables (`sql/02_seeds_static/35_phase_completion_rule.sql`, `sql/02_seeds_static/36_application_date_rule.sql`).
+| `sql/03_seeds_limiters/` | Reserved for type-limiter seeds. Empty today: Prisma seeds them.
+| `sql/04_crosswalks/` | Crosswalk table DDL plus the fail-closed `_check` queries. The values load from CSV, not from inlined inserts.
+| `sql/05_id_maps/` | Legacy-id to UUID maps, one per entity.
+| `sql/10_stg/` | Staging transforms and the row-level filter.
+| `sql/20_app/` | App-layer entity loaders.
+| `sql/21_app_associative/` | Association-table loaders.
+| `sql/23_app_derived/` | Derived rows and views computed from the loaded entities.
+| `sql/30_constraints/` | Migration-owned constraint DDL. Empty today: the Prisma FKs are re-applied from `state/prisma_fks.json`.
+| `sql/31_constraint_triggers/` | Cross-row invariant triggers, attached after the data lands.
+| `sql/32_app_triggers/` | App audit triggers, attached after the data lands.
+| `sql/40_indexes/` | Migration-owned indexes. Empty today.
+| `sql/50_sequences/` | Sequence resets.
+| `sql/99_parity/` | Parity views and checks consumed by `migrate parity`.
+|===
+
+xref:reference-pipeline-stages.adoc[Pipeline stages] is authoritative for
+ordering, ownership, and which phase consumes each stage;
+xref:reference-sql-conventions.adoc[SQL conventions] covers how an
+individual file is shaped.
+
+== Load definitions
+
+[cols="2,4"]
+|===
+| Path | Purpose
+
+| `pgloader/schema.load` | Full-load template, rendered to `state/schema.rendered.load`.
+| `pgloader/delta.tmpl.load` | Delta-load template, rendered to `state/delta.rendered.load`.
+| `pgloader/casts.load` | Shared CAST block rendered into both templates so type coercion cannot diverge.
+| `pgloader/drop_list.txt` | Table names skipped during the full load. Human-curated; the rationale lives in `reports/narrative/drop_list.md`.
+| `pgloader/delta_tables.tsv` | Tables re-pulled during the cutover-day delta. Human-curated.
+|===
+
+== Curated inputs under reports/
+
+These are edited by a human. xref:../operator/reference-human-inputs.adoc[Human
+inputs and review gates] is the enumerated checklist, and
+`docs/tools/verify_doc_facts.py` fails when a consumed input is missing
+from it.
+
+[cols="2,4"]
+|===
+| Path | Purpose
+
+| `reports/crosswalks/` | Confirmed crosswalk CSVs plus `reports/crosswalks/registry.yaml`, the list the crosswalks phase loads from. Proposals awaiting SME review sit in `reports/crosswalks/proposed/`.
+| `reports/inputs/` | Operator- and SME-authored inputs: `reports/inputs/fk_overrides.yaml`, `reports/inputs/derivability_verdicts.yaml`, `reports/inputs/proposed_table_map.yaml`, `reports/inputs/primary_po_fallback.csv`, `reports/inputs/demos_data_dictionary.xlsx`.
+| `reports/filter/` | Row-level filter overrides: `reports/filter/keep_ids.csv` (force keep) and `reports/filter/drop_ids.csv` (force drop).
+| `reports/jsonb_schemas/` | JSON Schemas registered into the `migration.jsonb_schemas` registry and used as parity oracles.
+| `reports/narrative/` | The decision record: drop-list rationale, history strategy, pending and approved decisions, worksheets, and the append-only `reports/narrative/notes.md`.
+| `reports/parity_accepted/` | SME-signed accepted-flag baselines that three parity gates reconcile against.
+| `reports/pgm_dtl_tag_mapping.csv` | SME-authored tag map driving the tag-assignment fold, with its mechanically derived counterpart `reports/pgm_dtl_tag_mapping_pending.csv`.
+| `reports/source_target_columns.csv` | The source-to-target column map the doc generators read.
+| `reports/prisma_ddl.sha256` | Hash pin for the upstream Prisma DDL; `reports/prisma_schema.sha256` pins the `.prisma` models. Provenance notes live in `reports/prisma/`.
+| `reports/audits/` | Dated audit write-ups kept for the record.
+|===
+
+== Generated artifacts under reports/
+
+Never edit these by hand; re-run the command that produces them.
+
+[cols="2,4"]
+|===
+| Path | Produced by
+
+| `reports/generated/` | `reports/generated/fk_candidates.csv` from `migrate fk-candidates`, coverage CSVs, the derivability audit output, and the committed AsciiDoc partials.
+| `reports/runs/` | Timestamped per-run artifacts: parity, filter, load-fidelity and crosswalk-audit reports, pgloader logs, and the SME review exports. Gitignored.
+| `reports/rehearsals/` | Frozen per-rehearsal bundles. Gitignored.
+| `reports/orphans/` | Per-row held and dropped accounting CSVs written by the non-gating parity views for SME review.
+| `reports/schema_snapshot/` | MySQL `information_schema` metadata pulled through DuckDB, as CSV plus Parquet. Gitignored.
+| `reports/reference_data/` | Source lookup-table rows and view result sets pulled through DuckDB. Gitignored.
+|===
+
+== Runtime state
+
+`state/` is the only mutable runtime contract: a phase reads the prior
+phase's gate file, runs, then writes its own. Everything else a phase
+touches is either a source-controlled input or a generated audit
+artifact. The directory also holds the rendered pgloader templates
+(`chmod 0600`, because they carry expanded credentials), the captured
+Prisma FK definitions in `state/prisma_fks.json`, the seeded-table
+inventory in `state/prisma_seeded_tables.json`, the freeze instant, and
+the cached Prisma artifacts under `state/prisma_ddl` and
+`state/prisma_schema`. `make clean-state` wipes it.
+
+xref:../operator/reference-gates-state.adoc[Gates and the `state/`
+directory] enumerates every gate file and its writer.
+
+== Scripts
+
+`scripts/` holds tooling invoked from `make` or by hand, never as a
+pipeline phase.
+
+[cols="2,4"]
+|===
+| Path | Purpose
+
+| `scripts/cutover.sh` | Thin shim: `./scripts/cutover.sh <phase>` forwards argv verbatim to `uv run migrate <phase>`.
+| `scripts/mk_pretty.py` | Rich-rendered output for both Makefiles.
+| `scripts/sql_fmt.py` | pg_format wrapper pinning the canonical flags, with a round-trip stability assertion.
+| `scripts/check_sql_frontmatter.py` | Enforces the structured front-matter block on every hand-written SQL file.
+| `scripts/precommit_sql.sh` | Per-file SQL hygiene entry point for the repo-root pre-commit hook.
+| `scripts/generate_fk_candidates.sql` | Heuristic FK-candidate scanner over `mysql_raw` column naming.
+| `scripts/derivability_audit.py` | Enumerates target columns with no direct source mapping.
+| `scripts/propose_mappings.py` | Emits confidence-tagged skeleton column-mapping proposals.
+| `scripts/crosswalk_audit.py` | Audits the committed crosswalks against live PROD MySQL.
+| `scripts/refresh_parity_baselines.py` | Refreshes and signs the `reports/parity_accepted/` baselines.
+| `scripts/sme_review_exports.py` | Produces the SME review CSVs into `reports/runs/`.
+| `scripts/migrate_local.py` | Builds in a scratch Postgres and ships only the app schema into the DEMOS devcontainer.
+| `scripts/spin_up.sh` | Starts a local target Postgres from the `.env` connection vars.
+| `scripts/ensure_test_db.sh` | Resolves a working SQL-harness DSN, reusing a running container when it can.
+| `scripts/provision_scratch.sh` | Provisions the devcontainer-internal scratch database.
+| `scripts/pg_format_functions.txt` | Extra function names pg_format must not render as keywords.
+|===
+
+Files prefixed with an underscore (`scripts/_probe_file_batches.py`,
+`scripts/_probe_file_batches_mysql.py`,
+`scripts/_probe_pending_dups.py`, `scripts/_pending_dups.sql`) are
+throwaway investigation probes kept for provenance, not part of any
+pipeline.
+
+== Tests
+
+[cols="2,4"]
+|===
+| Path | Tier
+
+| `tests/` | Unit tests over the Python package: gate plumbing, template rendering, phase logic, parity arithmetic. No external services.
+| `tests/conftest.py` | The two autouse fixtures every state- or env-touching test relies on.
+| `tests/sql/` | Live SQL harness: applies real SQL against a throwaway Postgres with `pg_jsonschema`. Skips without a harness DSN.
+| `tests/sql/fixtures/fake_demos` | The curated `mysql_raw` fixture the harness and the migration-flow traces replay against.
+| `tests/integration/` | Integration tier against live MySQL plus Postgres, driven by `docker-compose.test.yml`.
+|===
+
+xref:howto-run-tests-locally.adoc[Run tests locally] has the commands and
+the coverage story.
+
+== Runbooks
+
+[cols="2,4"]
+|===
+| Path | Purpose
+
+| `runbooks/cutover.md` | Cutover-day playbook: commands and expected output per phase.
+| `runbooks/rollback.md` | Rollback playbook.
+| `runbooks/dress-rehearsal-probe.md` | Dress-rehearsal probe procedure.
+| `runbooks/demos-devcontainer-load.md` | Loading migrated data into the DEMOS devcontainer.
+| `runbooks/revalidate-jsonb.md` | Revalidating a JSONB column against its registered schema.
+| `runbooks/comms/` | Stakeholder comms templates: freeze begin, freeze extended, flip complete, rollback.
+|===
+
+[[root-documents]]
+== Root-level documents
+
+[cols="2,4"]
+|===
+| File | What it is
+
+| `README.md` | Landing page: orientation, bootstrap, the sources-of-truth table, and pointers into this documentation set.
+| `CHANGELOG.md` | Release notes, Keep a Changelog format.
+| `AGENTS.md` | Repo conventions for coding agents, including which project skills to load.
+| `CODE_REVIEW.md` | A dated code-review snapshot (2026-06-21, findings updated in place 2026-06-26), not a standing log. Findings carry their own resolution notes; treat line-number citations in it as historical.
+| `SECURITY_REVIEW.md` | A dated targeted security review (2026-07-10, extended 2026-07-29) over four CWE classes.
+|===
+
+The legacy PMDA application's shape, reconstructed from its `cma-site` and
+`cma-service` source repositories, used to sit at the root as a markdown file.
+It is now xref:reference-legacy-pmda-workflows.adoc[Reference: legacy PMDA
+workflows].
+
+== Versioning
+
+The project follows Semantic Versioning, driven by Conventional Commits
+(`feat`, `fix`, `docs`, and so on). The version is pinned in two places
+kept in sync, `pyproject.toml` and `migration/__init__.py`, and notable
+changes are recorded in `CHANGELOG.md` in Keep a Changelog format. While
+the project is pre-1.0, a minor bump may carry behaviour changes
+alongside features. `uv.lock` is committed and pins exact dependency
+versions, so `uv sync` reproduces the same environment on every machine.
+
+== Related
+
+* xref:reference-pipeline-stages.adoc[Pipeline stages] -- ordering and ownership of the `sql/` tree
+* xref:reference-sql-conventions.adoc[SQL conventions] -- how an individual SQL file is shaped
+* xref:reference-python-package.adoc[Python package and `lib.py`] -- the per-symbol surface of `migration/`
+* xref:../operator/reference-human-inputs.adoc[Human inputs and review gates] -- every file a human edits or signs
+* xref:../operator/reference-gates-state.adoc[Gates and the `state/` directory] -- the runtime gate contract
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:howto-load-demos-devcontainer.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-pipeline-stages.adoc[next >]
+|===
+endif::[]
+// docnav-end

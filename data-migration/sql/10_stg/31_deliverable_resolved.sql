@@ -3,7 +3,7 @@
  * Inputs:     mysql_raw.mdcd_dlvrbl, stg._valid_dlvrbl_ids, migration._id_map_mdcd_dlvrbl, migration._id_map_mdcd_demo, migration._id_map_users, stg.users_resolved
  * Outputs:    CREATE OR REPLACE VIEW stg.deliverable_resolved
  * Invariants: source-only (mysql_raw + id maps + stg only; never crosswalks 04 / seeds 02); idempotent (CREATE OR REPLACE VIEW); soft-delete exclusion (dltd_ind = 1); status-tuple and deliverable_type routing deferred to the loader.
- * Refs:       docs/specs/pmda-cross-cutting-derivation-spec.md, reports/inputs/source_target_columns.proposed.csv
+ * Refs:       docs/developer/reference-cross-cutting-derivations.adoc, reports/inputs/source_target_columns.proposed.csv
  *
  * Staging projection of each PMDA-valid deliverable (mysql_raw.mdcd_dlvrbl)
  * into the column set the demos_app.deliverable loader consumes
@@ -18,8 +18,8 @@
  * the parent-Approved gate and the (still-unsigned) deliverable_type routing
  * all live in the loader, which runs after crosswalks + seeds.
  *
- * Column derivations (see docs/specs/pmda-cross-cutting-derivation-spec.md and
- * reports/inputs/source_target_columns.proposed.csv):
+ * Column derivations (see docs/developer/reference-cross-cutting-derivations.adoc
+ * and reports/inputs/source_target_columns.proposed.csv):
  *   demonstration_id          parent demo UUID via migration._id_map_mdcd_demo
  *   name                      btrim(mdcd_dlvrbl_name) -- the loader holds back
  *                             an empty name (check_non_empty_name) and the

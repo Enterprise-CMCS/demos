@@ -84,7 +84,7 @@ ifndef::nested[]
 
 [.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
 |===
-|xref:reference-source-target-columns.adoc[< prev]
+|xref:reference-sme-signoff-2026-07-20.adoc[< prev]
 ^|xref:../toc.adoc[Table of contents]
 >|xref:explanation-comments-routing.adoc[next >]
 |===

@@ -9,10 +9,12 @@ Three checks, all reading the same authoritative model as the generators:
 1. ``xref:`` targets resolve to a real ``.adoc`` file (relative to the page).
 2. Backticked repo-path references (``sql/...``, ``reports/...``, ...) exist
    on disk. Placeholders (``<sha>``, globs) are skipped.
-3. Qualified ``demos_app.<table>[.<column>]`` references exist in the target
-   schema, and -- on the data-layer pages only -- every bare snake_case
-   identifier in inline monospace is a known schema name or an entry in the
-   committed vocabulary allow-list (``docs/tools/doc_vocab.txt``).
+3. Qualified ``demos_app.<name>[.<column>]`` references name a real object --
+   a table or sequence parsed from the pinned DDL, or a session GUC listed in
+   ``docs/tools/doc_demos_app_gucs.txt`` -- and, on the data-layer pages only,
+   every bare snake_case identifier in inline monospace is a known schema name
+   or an entry in the committed vocabulary allow-list
+   (``docs/tools/doc_vocab.txt``).
 
 Exits non-zero (failing ``make all``) when any reference does not resolve.
 """
@@ -33,6 +35,7 @@ from schema_model import (
 
 VOCAB_FILE = Path(__file__).resolve().parent / "doc_vocab.txt"
 ABSENT_PATHS_FILE = Path(__file__).resolve().parent / "doc_absent_paths.txt"
+GUCS_FILE = Path(__file__).resolve().parent / "doc_demos_app_gucs.txt"
 CROSSWALK_DIR = REPO_ROOT / "reports" / "crosswalks"
 SOURCE_TARGET_COLUMNS = REPO_ROOT / "reports" / "source_target_columns.csv"
 
@@ -133,6 +136,10 @@ def load_absent_paths() -> set[str]:
     return _load_list(ABSENT_PATHS_FILE)
 
 
+def load_gucs() -> set[str]:
+    return _load_list(GUCS_FILE)
+
+
 def crosswalk_names() -> set[str]:
     names: set[str] = set()
     if CROSSWALK_DIR.exists():
@@ -175,7 +182,7 @@ def check_paths(docs: list[Path], problems: list[str]) -> None:
             problems.append(f"{doc.relative_to(REPO_ROOT)}: missing path -> `{tok}`")
 
 
-def check_qualified(docs: list[Path], target_tables, problems: list[str]) -> None:
+def check_qualified(docs: list[Path], known: set[str], problems: list[str]) -> None:
     # Table existence only: docs legitimately discuss non-existent *columns*
     # (e.g. "no demos_app.application.validation_data column exists").
     for doc in docs:
@@ -183,9 +190,9 @@ def check_qualified(docs: list[Path], target_tables, problems: list[str]) -> Non
             continue
         for m in _DEMOS_QUAL_RE.finditer(doc.read_text()):
             table = m.group(1)
-            if table not in target_tables:
+            if table not in known:
                 problems.append(
-                    f"{doc.relative_to(REPO_ROOT)}: unknown demos_app table -> `{table}`"
+                    f"{doc.relative_to(REPO_ROOT)}: unknown demos_app object -> `{table}`"
                 )
 
 
@@ -224,7 +231,7 @@ def main() -> int:
     problems: list[str] = []
     check_xrefs(docs, problems)
     check_paths(docs, problems)
-    check_qualified(docs, target_tables, problems)
+    check_qualified(docs, target_tables | model.sequences | load_gucs(), problems)
     check_bare_names(dictionary, problems)
 
     if problems:

@@ -1,0 +1,1064 @@
+= Reference: cross-cutting PMDA derivations
+:toc: left
+
+The derivation rules that turn PMDA source columns into DEMOS migration
+columns where the rule spans more than one entity: project ids, signature
+levels, status and phase, soft deletes, program-detail tags, deliverable and
+document routing, and the `deliverable_action` state machine. Audience: a
+developer authoring or reviewing one of these derivations. By the end you will
+know which rule governs each target column, whether it is built today, and
+which SQL file owns it.
+
+[IMPORTANT]
+====
+*Partly implemented (as of 2026-07-30).* Most of this page is shipped code;
+four derivations are not, and three shipped differently from the original
+2026-06-18 design. <<status,Implementation status>> is authoritative -- the
+design prose below has been corrected against the tree wherever the two
+disagreed.
+====
+
+== Goal
+
+Implement cross-cutting PMDA source derivations for DEMOS migration columns,
+using the `8bf725d` role-to-`person_type_id` pattern as the model: explicit
+crosswalk data, staging derivation views, app loaders, and fail-closed parity
+checks.
+
+[[status]]
+== Implementation status
+
+.Per-derivation status, verified against the tree on 2026-07-30
+[cols="2,1,4"]
+|===
+| Derivation | Status | Implementing files / evidence
+
+| Project ids (`medicaid_id`, `chip_id`)
+| Built, redesigned
+| `sql/20_app/30_demonstration.sql`. The SME sidecar was never built (no
+`sidecar` transform kind exists in `reports/source_target_columns.csv`, and no
+sidecar table or CSV exists anywhere in the tree). See
+<<project-ids,Project ids>>.
+
+| Signature levels
+| Built
+| `sql/04_crosswalks/30_signature_level.sql`,
+`31_signature_level_check.sql`, `reports/crosswalks/signature_level.csv`;
+constant `'OA'` at `sql/20_app/30_demonstration.sql`; the amendment branch at
+`sql/20_app/35_amendment.sql`; `sql/99_parity/52_amendment_load.sql`.
+
+| Demonstration status code `1`
+| Built
+| `reports/crosswalks/demo_status.csv` row `1,Pending,Under Review`;
+`sql/04_crosswalks/10_demo_status.sql`, `11_demo_status_check.sql`.
+
+| Phase and date model
+| Built (demonstrations + pending)
+| `sql/10_stg/27_application_milestone.sql`,
+`sql/20_app/36_application_date.sql`,
+`sql/23_app_derived/50_application_phase.sql`,
+`sql/99_parity/56_application_milestone.sql`. Amendment `application_date` is
+gated on SME re-ratification (D9).
+
+| Soft deletes
+| *Not built as designed -- reversed*
+| Every staging view excludes `dltd_ind = 1`
+(`sql/10_stg/22_demonstration_resolved.sql`, `23_pendg_demo_fold.sql`,
+`31_deliverable_resolved.sql`, `33_amendment_resolved.sql`). See
+<<soft-deletes,Soft deletes>>.
+
+| Owner / author FKs
+| Built
+| `sql/10_stg/21_users_resolved.sql`, `sql/20_app/10_person.sql`,
+`sql/20_app/20_users.sql`; owner hold-back in `sql/20_app/40_deliverable.sql`
+logged by `sql/99_parity/40_deliverable_held.sql`.
+
+| Contact-only persons
+| *Not built*
+| `sql/10_stg/16_filter_cntct.sql` builds the allowlists, but no loader
+consumes them: `sql/20_app/10_person.sql` states contact-only persons "are
+added by their own loader, not here" and no such loader exists in `sql/20_app/`
+or `sql/23_app_derived/`.
+
+| `person_state`, `system_role_assignment`, `demonstration_role_assignment`,
+primary assignment
+| Built
+| `sql/23_app_derived/10_person_state.sql`, `20_system_role_assignment.sql`,
+`30_demonstration_role_assignment.sql`,
+`40_primary_demonstration_role_assignment.sql`,
+`41_primary_po_fallback.sql`; provenance parity checks
+`sql/99_parity/21_*`, `22_*`, `24_*`, `57_*`, `58_*`.
+
+| Program-detail tags
+| Built, coverage complete
+| `sql/04_crosswalks/48_pgm_dtl_tag.sql`, `49_pendg_pgm_dtl_tag.sql`,
+`sql/21_app_associative/10_demonstration_type_tag_assignment.sql` through
+`14_demonstration_type_tag_floor.sql`. All 69 base and 68 pending
+`+*_pgm_dtl+` tables are mapped. See <<program-detail-coverage>>.
+
+| Deliverables (status tuple, type)
+| Built
+| `sql/10_stg/31_deliverable_resolved.sql`, `sql/20_app/40_deliverable.sql`,
+`sql/04_crosswalks/50_deliverable_status.sql` through
+`53_deliverable_type_check.sql`; parity `sql/99_parity/40_*` to `43_*`.
+
+| Budget-neutrality deliverable routing
+| *Superseded*
+| Single-input crosswalk on the report-occurrence code
+(`sql/04_crosswalks/52_deliverable_type.sql`). No BN matrix; BN itself is out
+of scope. See <<bn-routing,Budget-neutrality deliverable routing>>.
+
+| Comment routing
+| Built
+| `sql/04_crosswalks/68_comment_origin.sql`, `73_comment_origin_check.sql`,
+`reports/crosswalks/comment_origin.csv`,
+`sql/10_stg/36_comment_resolved.sql`, `sql/20_app/50_comment.sql`; parity
+`sql/99_parity/44_*` to `47_*`.
+
+| `deliverable_action` state machine
+| Built
+| `sql/23_app_derived/60_deliverable_action.sql`,
+`sql/02_seeds_static/30_deliverable_action_chain.sql`,
+`sql/10_stg/39_deliverable_submission_batch.sql`,
+`40_deliverable_due_date_window.sql`,
+`sql/04_crosswalks/74_deliverable_action_chain_check.sql`; parity
+`sql/99_parity/62_*` to `65_*`.
+
+| Document routing (`demos_app.document`)
+| *Not built*
+| Two of four source-family crosswalks are authored and validated but
+unconsumed (`sql/04_crosswalks/66_document_type.sql`,
+`71_deliverable_file_type.sql`).
+`sql/10_stg/30_document_deliverable_link_resolved.sql` is an inert
+forward-scaffold guarded on a `stg.document_resolved` that does not exist.
+
+| Reference materials (`rfrnc_matl`)
+| *Not built*
+| `sql/05_id_maps/14_rfrnc_matl.sql` creates the id map empty;
+`sql/21_app_associative/20_reference_demonstration_type.sql` is authored but
+inert until that map has rows. No `rfrnc_matl -> demos_app.reference` loader
+exists.
+|===
+
+[NOTE]
+====
+The original spec cited parity checks by ordinal ("parity check 13",
+"completeness check 8"). Those ordinals have since shifted -- the registry in
+`migration/phases/parity.py` now runs "demonstration completeness" 7th,
+"demonstration phase derivation" 8th and "approved demo held for division"
+16th. This page cites checks by name and file path instead.
+====
+
+== Data-flow design
+
+[mermaid]
+....
+flowchart TD
+  A[PMDA schema] --> B[Crosswalks]
+  A --> C[Seeds]
+  B --> D[stg views]
+  C --> D
+  D --> E[demos_app]
+  E --> F[Parity]
+  F --> G[SME gates]
+....
+
+`PMDA schema` is `reports/schema_snapshot/` plus the loaded `mysql_raw`;
+`Crosswalks` are the reviewed source-to-target domains under
+`sql/04_crosswalks/` fed by `reports/crosswalks/*.csv`; `Seeds` are the
+migration-owned static rows and limiter tables under `sql/02_seeds_static/`
+and `sql/03_seeds_limiters/`; `stg views` are the deterministic derivation
+layer. The original spec's second input class was an SME-supplied "sidecar",
+which was never built -- seeds took its place.
+
+== Locked decisions
+
+[[project-ids]]
+=== Project ids
+
+*Design.* Preserve a valid `mdcd_demo_num` into
+`demonstration.medicaid_id`, and `mdcd_scndry_demo_num` into
+`demonstration.chip_id` when valid. Missing target-required ids block until
+supplied via a validated SME sidecar keyed by
+`(source_table, legacy_id, target_column)`.
+
+*What shipped instead.* No sidecar. `medicaid_id` is always
+legacy-preserved; `chip_id` is legacy-preserved when the source carries a
+secondary `21-W` number and otherwise left NULL for the
+`generate_medicaid_chip_id_numbers` BEFORE INSERT trigger to mint from
+`demos_app.chip_id_number_seq` under `demos_app.migration_mode = 'on'`. The
+loader floors that sequence above every preserved legacy `21-W` number before
+inserting, so minted values cannot collide with a preserved `chip_id`. Both
+values are normalized through `migration.normalize_medicaid_id` /
+`migration.normalize_chip_id`, the same helpers the row-level filter uses, so
+the kept set and the emitted ids never drift.
+
+Three fail-closed or logged conditions replace the sidecar block:
+
+* duplicate `medicaid_id` hold-back (the region-suffix-correct row wins,
+  lowest legacy id breaks a tie; a group matching no member's region is held
+  entirely and gates RED) --
+  `sql/99_parity/14_demonstration_held_dup_medicaid.sql`;
+* non-normalizable legacy `chip_id` logged for SME --
+  `sql/99_parity/15_chip_id_not_normalizable.sql`;
+* approved project-number collisions --
+  `sql/99_parity/16_approved_project_number_collision.sql`.
+
+The 2026-07-20 SME reconciliation recorded `chip_id` as a DEMOS-app
+dependency ("loader writes NULL, DEMOS makes the column nullable"). That is
+half superseded: `chip_id` is still NOT NULL in the pinned DDL and the trigger
+mints it, so no nullability change is needed for the load. The
+`is_migrated_from_pmda` half did land -- `sql/20_app/30_demonstration.sql`
+stamps `application.is_migrated_from_pmda = TRUE`.
+
+=== Signature levels
+
+Corrected 2026-06-24 against the pinned Prisma DDL migration
+`20260602115947_check_signature_level`:
+`demonstration_signature_level_check` forces `signature_level_id` NOT NULL AND
+`= 'OA'`, so the demonstration loader sets the constant `'OA'` and the
+per-application PMDA code (including `OGD`) is *not* carried at the
+demonstration grain. The earlier "preserve `OGD` / CHECK widening is an
+external blocker" position is *superseded for `demonstration`*.
+
+Signature-level derivation re-scopes to *amendment and extension*, whose
+CHECKs allow `signature_level_id` NULL OR IN `+{OA, OCD}+`. The crosswalk maps
+the PMDA code to that pair and leaves NULL when unmappable
+(`sql/20_app/35_amendment.sql`: `OA -> 'OA'`, `OCD -> 'OCD'`, else NULL,
+since `OGD` and `DD` are not valid amendment values). See
+`reports/narrative/notes.md` (2026-06-24 pmda-scope).
+
+`reports/crosswalks/signature_level.csv` carries five legacy codes. Code `0`
+(`-- Please Select --`) is the sentinel: `null_ok=true`, and the loader
+coerces an approved code-0 demonstration to `'OA'`. Code `3` (`OGD`) is
+preserved in the crosswalk and the DEMOS `signature_level` seed; only the
+demonstration / amendment / extension CHECKs block loading `OGD`-level rows.
+Code `4` (`DD`) has no DEMOS target, stays `null_ok=false`, and fails closed
+for any live approved demonstration.
+
+=== Demonstration status code `1` (`Pending`)
+
+Status: RESOLVED 2026-07-20 -> `Under Review` (SME: "load as Under Review and
+observe"). Built. This supersedes the earlier `Pre-Submission` proposal.
+`reports/crosswalks/demo_status.csv` maps all nine legacy codes; five of them
+(`Extended`, `Temporarily Extended`, `Expired`, `Extension Pending`) collapse
+to `Approved` because DEMOS has no stored equivalent and the distinction is a
+date overlay or a separate extension entity.
+
+=== Phase and date model
+
+Materialize full `application_date` and `application_phase`; derive
+`current_phase_id` from phase dates with a status-based fallback and parity
+logging. See <<phase-date-mapping>>.
+
+[[soft-deletes]]
+=== Soft deletes
+
+*Design.* Migrate in-scope business rows carrying `dltd_ind=1` using target
+lifecycle states (for example, a deleted deliverable becomes
+`status_id='Deleted'`). Drop the technical tables.
+
+*What shipped instead.* The drop half shipped; the migrate half was
+reversed. Every staging view excludes `dltd_ind = 1` outright, because
+representing a soft-deleted row is a *deferred SME decision* and the loaders
+do not invent one:
+
+* `demonstration` has no target `Deleted` lifecycle state, so resurrecting
+  soft-deleted demonstrations as live rows would be wrong
+  (`sql/10_stg/22_demonstration_resolved.sql`);
+* `amendment` likewise has no `Deleted` state
+  (`sql/10_stg/33_amendment_resolved.sql`);
+* whether a soft-deleted deliverable should resurrect as the DEMOS `Deleted`
+  `deliverable_status` is explicitly left to SME
+  (`sql/10_stg/31_deliverable_resolved.sql`).
+
+<<soft-delete-handling>> records the corrected handling.
+
+=== Owner and author FKs
+
+Resolve from source `users`; block unresolved required owners.
+`sql/10_stg/21_users_resolved.sql` derives each account's `person_type` from
+its role assignment with an `euaId` fallback, so every row resolves a non-NULL
+`person_type` and `demos_app.person.person_type_id` (NOT NULL) is satisfied
+without a schema change. A deliverable whose creator did not migrate is held
+back and logged.
+
+=== Contact migration
+
+Status: still *not implemented on current `main`*, but narrower than the
+original claim. `sql/10_stg/16_filter_cntct.sql` builds demo-grain allowlists
+(`stg._valid_cntct_ids`, `stg._valid_pendg_cntct_ids`) over the wide contact
+anchors, fail-closed on each present role email and cascading from the
+demonstration filter. What is missing is only the *contact-only `person`*
+loader over `mdcd_demo_cntct` / `mdcd_pendg_demo_cntct`.
+
+`person_state`, `system_role_assignment`, `demonstration_role_assignment` and
+the primary assignment are all built -- they source from the 15 per-role
+`user_id` FK columns on `mdcd_demo`, unpivoted in
+`sql/10_stg/28_demonstration_role_assignment_resolved.sql`, not from the
+contact tables. PMDA has no `(user, demonstration, role)` association table;
+the role is fixed by the *column*, mapped through
+`mysql_raw.crosswalk_demonstration_role`.
+
+=== Program-detail tags
+
+The 10-table mapping has been expanded to all mappable non-backup base and
+pending `+*_pgm_dtl+` tables. `reports/pgm_dtl_tag_mapping.csv` now carries 69
+rows covering every base `+*_pgm_dtl+` table in
+`reports/schema_snapshot/table_stats.csv`, and
+`reports/pgm_dtl_tag_mapping_pending.csv` carries the 68 pending
+counterparts. One row (`mdcd_othr_pgm_dtl`) has a blank `tag_name` and is
+SME-pending; the tag-assignment loader skips blank rows. See
+<<program-detail-coverage>>.
+
+[[bn-routing]]
+=== Budget-neutrality deliverable routing
+
+*Design.* `mdcd_dlvrbl.bdgt_ntrlty_ind` authoritative;
+`bdgt_ntrlty_fil_ind` creates workbook rows; semi-annual BN (type 5/6 plus
+`bdgt_ntrlty_ind=1`) routes to Quarterly BN.
+
+*Superseded on two counts.* Post-load verification against
+`mysql_raw.mdcd_dlvrbl` overturned both premises (see the correction banner in
+`reports/crosswalks/proposed/deliverable_type_bn_routing.md`):
+
+. `mdcd_dlvrbl.mdcd_dlvrbl_type_cd` is not the coarse cadence code. It
+  carries the rich report-occurrence vocabulary
+  (`mdcd_dlvrbl_rpt_ocrnc_rfrnc`): 40 of 40 distinct live type codes resolve
+  against it and 0 of 40 against `mdcd_dlvrbl_type_rfrnc`. Codes `57`
+  (Quarterly BN) and `70` (Annual BN) are already carried per deliverable.
+. There is therefore *no BN matrix and no second routing input*.
+  `deliverable_type` is a single-input direct map
+  (`reports/crosswalks/deliverable_type.csv`,
+  `sql/04_crosswalks/52_deliverable_type.sql`, fail-closed check
+  `53_deliverable_type_check.sql`). `bdgt_ntrlty_ind` was retired as a routing
+  input and kept only as a non-gating QA signal in
+  `sql/99_parity/43_deliverable_bn_qa.sql`, which flags every row where the
+  type-based classification disagrees with the legacy flag or the free-text
+  name.
+
+The semi-annual question is moot under a direct map: legacy code `6`
+(Semi-Annually) and `54` (Semi-Annual Monitoring Report) both route to
+`Monitoring Report` on cadence collapse, with the period surviving as
+`due_date`; code `6` is seen only on soft-deleted deliverables.
+
+Budget neutrality itself is out of scope (SME decision 2026-07-16): DEMOS
+owns it, users upload v2.14 workbooks into DEMOS, and the migration builds no
+BN aggregate. `bdgt_ntrlty_fil_ind` (`fil_doc_cd = 1`) is excluded from the
+document crosswalk with a NULL target and `in_scope=false`
+(`sql/04_crosswalks/71_deliverable_file_type.sql`).
+
+=== Document routing
+
+Source family, then explicit flags, then a type-code crosswalk. See
+<<document-source-families>>.
+
+=== `mdcd_demo_type_cd`
+
+Scoped metadata only. The canonical demonstration-type tags come from the
+program-detail rows, not from this column. Its one consumer is the
+reference-material fold, where `rfrnc_matl.mdcd_demo_type_cd` is resolved
+data-backed against its own source lookup `mysql_raw.mdcd_demo_type_rfrnc`
+(61 of 63 codes are identity matches with `demos_app.tag_name.id`).
+
+=== Reference materials
+
+*Design.* Map `rfrnc_matl` to `reference` plus `reference_tag_assignment`
+where crosswalkable.
+
+*Corrected target.* The demonstration-type vocabulary lives in the
+`Demonstration Type` tag_type (`demos_app.demonstration_type_tag_type_limit`),
+so the correct target is `demos_app.reference_demonstration_type`, *not*
+`reference_tag_assignment` -- the latter is restricted to the `Reference`
+tag_type, of which only one tag (FAQ) is seeded. The associative fold is
+authored (`sql/21_app_associative/20_reference_demonstration_type.sql`) and
+reuses the same 61-tag vocabulary as the demonstration fold, but stays inert:
+`sql/05_id_maps/14_rfrnc_matl.sql` creates
+`migration._id_map_rfrnc_matl` empty and no `rfrnc_matl -> demos_app.reference`
+loader exists yet (it needs an owner user / person-type FK decision). Codes
+`0` (Not Applicable) and `OTHR` (Other) are not seeded tags and fall out of
+the JOIN, reported as skipped.
+
+[[program-detail-coverage]]
+== Program-detail table coverage
+
+Corrected 2026-07-30: the "Required coverage" gap this table originally
+recorded is closed. Every row it flagged as absent is now mapped, and the row
+counts below come from `reports/schema_snapshot/table_stats.csv` rather than
+the spec's `>0` placeholders.
+
+.Program-detail tables: volume, mapping status, and the original priority
+[cols="3,^1,^1,^1"]
+|===
+| Source table | Rows (`table_stats`) | In `pgm_dtl_tag_mapping.csv`? | Original priority
+
+| `mdcd_hcbs_pgm_dtl` | 23 | icon:check[] | --
+| `mdcd_fmly_plng_pgm_dtl` | 37 | icon:check[] | --
+| `mdcd_dntl_pgm_dtl` | 19 | icon:check[] | --
+| `mdcd_hiv_pgm_dtl` | 4 | icon:check[] | --
+| `mdcd_sud_pgm_dtl` | 102 | icon:check[] | --
+| `mdcd_srus_mentl_ill_pgm_dtl` footnote:[The spec listed this as
+`mdcd_smi_pgm_dtl`, which does not exist in PMDA. The real table is
+`mdcd_srus_mentl_ill_pgm_dtl`.] | 39 | icon:check[] | --
+| `mdcd_ltss_pgm_dtl` | 46 | icon:check[] | --
+| `mdcd_vsn_pgm_dtl` | 3 | icon:check[] | --
+| `mdcd_mc_pgm_dtl` | 32 | icon:check[] | --
+| `mdcd_prm_astnc_pgm_dtl` | 35 | icon:check[] | --
+| `mdcd_dsrip_pgm_dtl` | 50 | icon:check[] | HIGH
+| `mdcd_elgblty_and_cvrg_pgm_dtl` | 64 | icon:check[] | HIGH
+| `mdcd_bene_enggmt_pgm_dtl` | 34 | icon:check[] | HIGH
+| `mdcd_cmnty_enggmt_pgm_dtl` | 24 | icon:check[] | HIGH
+| `mdcd_emer_wvr_authrty_pgm_dtl` | 36 | icon:check[] | HIGH
+| `mdcd_chip_pgm_dtl` | 15 | icon:check[] | HIGH
+| `mdcd_bhvrl_hlth_pgm_dtl` | 25 | icon:check[] | MEDIUM
+| `mdcd_bnfts_pgm_dtl` | 20 | icon:check[] | MEDIUM
+| `mdcd_ffcy_pgm_dtl` | 26 | icon:check[] | MEDIUM
+| `mdcd_covid_pgm_dtl` | 25 | icon:check[] | MEDIUM
+| `mdcd_ann_lmts_pgm_dtl` | 2 | icon:check[] | LOW
+| `mdcd_apndx_k_pgm_dtl` | 16 | icon:check[] | LOW
+| the remaining 47 base tables | -- | icon:check[] | LOW
+|===
+
+Coverage today: 69 of 69 base `+*_pgm_dtl+` tables mapped, and 68 of 68
+pending counterparts in `reports/pgm_dtl_tag_mapping_pending.csv`. Six of the
+previously-absent tables were SME-approved on 2026-07-09 as new
+User/Unapproved demonstration-type tags, created in
+`sql/21_app_associative/05_demonstration_type_tags_user.sql`;
+`mdcd_emer_wvr_authrty_pgm_dtl` carries non-standard prefixed date columns
+recorded in the CSV's `from_dt_col` / `to_dt_col`.
+
+The remaining action is narrower than the original: `mdcd_othr_pgm_dtl` has a
+blank `tag_name` and is skipped by the loader, with its free-text program
+names exported for SDG review rather than invented as tags. Unknown stems
+still route to an SME review report, and `sql/99_parity/54_pgm_dtl_tag_othr_held.sql`
+/ `55_pendg_pgm_dtl_tag_othr_held.sql` block if in-scope rows would drop.
+
+[[document-source-families]]
+== Document source families
+
+.The four legacy document families and their crosswalk status
+[cols="2,2,2,2,3"]
+|===
+| Family | Source table | Type column | BN flag column | Status and notes
+
+| Deliverable files
+| `mdcd_dlvrbl_fil_doc`
+| `fil_doc_cd`
+| `bdgt_ntrlty_fil_ind`
+| Crosswalk authored and validated (`sql/04_crosswalks/71_deliverable_file_type.sql`),
+not consumed. BN files (`fil_doc_cd = 1`) are *out of scope*, not workbook
+rows. NULL `fil_doc_cd` is 85% of live files and defaults to `General File`.
+
+| Application docs
+| `mdcd_demo_aplctn_doc`
+| `mdcd_demo_aplctn_doc_type_cd`
+| --
+| Crosswalk authored and validated (`sql/04_crosswalks/66_document_type.sql`),
+not consumed. SME-approved 2026-06-26: 8 of 10 codes are verbatim identity
+with the `document_type` seed; codes `6` and `99` fold to `General File`,
+code `7` to `BN Workbook`.
+
+| Template files
+| `tmplt_fil_doc`
+| `tmplt_fil_doc_type_cd`
+| --
+| Not mapped. Tracked as a separate reconciliation in
+`reports/crosswalks/proposed/_review.md`.
+
+| Reference materials
+| `rfrnc_matl`
+| `rfrnc_matl_doc_type_cd`
+| --
+| Not mapped. Also carries `mdcd_demo_type_cd` and `plcy_area_type_cd`.
+|===
+
+`demos_app.document_type` in DEMOS is the union of these families, so each
+crosswalk deliberately maps one family only. No `demos_app.document` loader
+exists, so neither authored crosswalk is consumed yet.
+
+[[phase-date-mapping]]
+== Phase and date column mapping
+
+[WARNING]
+====
+The original table used placeholder `date_type` names
+(`ApplicationReceived`, `ApplicationSubmitted`, `Phase2Received`,
+`Phase2DeemedComplete`, `Approved`, `Implemented`) that match neither the
+DEMOS `date_type` seed nor Stephanie's legacy-phase table. They are replaced
+below with the ratified mapping from
+`reports/narrative/milestone_date_mapping.md`, cross-checked against the
+`INSERT INTO demos_app.date_type` seed in
+`state/prisma_ddl/<sha>.sql` (pinned by `reports/prisma_ddl.sha256`).
+====
+
+Both approved (`mdcd_demo`) and pending (`mdcd_pendg_demo`) demonstrations
+draw their phase dates from `mdcd_demo_aplctn` (type 1, non-deleted),
+aggregated per demo with `max()` to the furthest milestone reached. Only
+high-confidence, semantically clear columns are mapped, and every mapped
+`date_type_id` is a seeded DEMOS `date_type`.
+
+.The 17 ratified legacy-column to `date_type` mappings
+[cols="3,2,2,^1,^1"]
+|===
+| Legacy source | DEMOS `date_type_id` | DEMOS phase | Approved | Pending
+
+| `mdcd_demo_aplctn.phase_1_strt_dt` | `Concept Start Date` | Concept | icon:check[] | icon:check[]
+| `mdcd_demo_aplctn.phase_1_end_dt` | `Concept Completion Date` | Concept | icon:check[] | icon:check[]
+| `COALESCE(aplctn.phase_2_rcvd_dt, demo.phase_2_rcvd_dt, demo.rcvd_dt)` (pending: `aplctn.phase_2_rcvd_dt`) | `Application Intake Start Date` | Application Intake | icon:check[] | icon:check[]
+| `mdcd_demo.submsn_dt` | `State Application Submitted Date` | Application Intake | icon:check[] | icon:times[] (no demo-level column)
+| `mdcd_demo_aplctn.phase_2_cmpltns_rvw_dt` | `Completeness Review Due Date` | Application Intake / Completeness | icon:check[] | icon:check[]
+| `COALESCE(aplctn.phase_2_state_aplctn_deemd_cmpltn_dt, demo.phase_2_state_aplctn_deemd_cmpltn_dt)` | `Completeness Completion Date` | Completeness | icon:check[] | icon:check[]
+| `mdcd_demo_aplctn.phase_2_fed_cmt_prd_strt_dt` | `Federal Comment Period Start Date` | Federal Comment | icon:check[] | icon:check[]
+| `mdcd_demo_aplctn.phase_2_fed_cmt_prd_end_dt` | `Federal Comment Period End Date` | Federal Comment | icon:check[] | icon:check[]
+| `mdcd_demo_aplctn.phase_2_dsrd_aprvl_dt` | `Expected Approval Date` | SDG Preparation | icon:check[] | icon:check[]
+| earliest non-null of the seven `phase_3_*_strt_dt` (SME/FRVT/CMCS/OGC/OMB) | `SDG Preparation Start Date` | SDG Preparation | icon:check[] | icon:check[]
+| `mdcd_demo_aplctn.phase_4_strt_dt` | `Review Start Date` | Review | icon:check[] | icon:check[]
+| `mdcd_demo_aplctn.phase_4_end_dt` | `Review Completion Date` | Review | icon:check[] | icon:check[]
+| `mdcd_demo_aplctn.phase_5_strt_dt` | `Approval Package Start Date` | Approval Package | icon:check[] | icon:check[]
+| `mdcd_demo_aplctn.phase_5_end_dt` | `Approval Package Completion Date` | Approval Package | icon:check[] | icon:check[]
+| `mdcd_demo_aplctn.phase_6_strt_dt` | `Approval Summary Start Date` | Approval Summary | icon:check[] | icon:check[]
+| `mdcd_demo_aplctn.phase_6_end_dt` | `Approval Summary Completion Date` | Approval Summary | icon:check[] | icon:check[]
+| `mdcd_demo.aprvl_dt` | `Application Approval Date` | Approval Summary | icon:check[] | icon:times[] (a pending demo is not approved)
+|===
+
+Three corrections to the placeholder table beyond the names:
+
+* `mdcd_demo.rcvd_dt` is not its own `date_type`. It is the third fallback in
+  the `Application Intake Start Date` COALESCE.
+* `mdcd_demo.impltn_dt` has no target. DEMOS seeds no `Implemented` or
+  Implementation-phase `date_type`, and the column is neither mapped nor in
+  the deferred-log list. It is unmapped and uncounted today.
+* `Approved` was not the target for `aprvl_dt`. The real id is
+  `Application Approval Date`, added by the DEMOS migration
+  `20260617124348_add_application_approval_date` together with the
+  `phase_date_type` pair `('Approval Summary', 'Application Approval Date')`.
+
+`application_date.date_value` is `timestamptz` anchored to
+America/New_York, not a bare midnight-UTC cast. Of the 17 mapped types only
+`Completeness Review Due Date` and `Federal Comment Period End Date` are
+end-of-day (`migration.eastern_day_end`); the other 15 are start-of-day.
+
+`application_phase` derives one row per real phase from the `current_phase_id`
+the demonstration and amendment loaders already set: earlier phases
+`Completed`, the current phase `Started`, later phases `Not Started`.
+`current_phase_id` itself is date-derived in
+`stg.demonstration_resolved.current_phase_by_date`, then falls back to the
+status (`Approved -> Approval Summary`) and finally to the `Concept` entry
+phase. That approximation is documented as best-effort pending SME
+ratification, and the phase-3 collapse (seven sub-phases to one) is
+SME-confirmed. Deferred columns are logged, not invented, in
+`migration._parity_application_milestone_unmapped`.
+
+[[soft-delete-handling]]
+== Soft-delete handling by table category
+
+.Corrected handling: soft deletes are excluded, not resurrected
+[cols="1,3,3"]
+|===
+| Category | Tables | `dltd_ind=1` handling
+
+| Core business
+| `mdcd_demo`, `mdcd_dlvrbl`, `mdcd_demo_aplctn`, `mdcd_demo_amndmt`,
+`mdcd_demo_rnwl`, `mdcd_pendg_demo`
+| *Excluded.* No target `Deleted` lifecycle state exists for
+`demonstration` or `amendment`, and whether a deleted deliverable should
+resurrect as `deliverable_status = 'Deleted'` is a deferred SME decision. The
+original design ("migrate with target lifecycle state") was not built.
+
+| Backup / history
+| `+*_hstry+`
+| Dropped -- technical only.
+
+| Pending mirrors
+| `+mdcd_pendg_*+`
+| Dropped -- superseded by the base table. Pending *demonstrations* are a
+separate matter: they fold into an approved counterpart or load as orphans.
+
+| Budget neutrality
+| `+bdgt_ntrlty_*+`
+| Dropped -- BN is DEMOS-owned and out of scope entirely.
+
+| System params
+| `sys_parm`, `sys_parm_rfrnc`
+| Dropped.
+|===
+
+== Implementation plan
+
+=== Project id completeness
+
+* No sidecar. `medicaid_id` is legacy-preserved; `chip_id` is
+  legacy-preserved or trigger-minted. See <<project-ids,Project ids>>.
+* Derive in the demonstration staging layer
+  (`sql/10_stg/22_demonstration_resolved.sql`).
+* Fail closed on duplicate and non-normalizable ids, each with an actionable
+  parity row.
+
+=== Approval-time fields
+
+* Done 2026-06-24: crosswalk `mdcd_chip_div_cd -> sdg_division_id` via
+  `mysql_raw.crosswalk_sdg_division`, carried through
+  `stg.demonstration_resolved.sdg_division_cd` and populated in
+  `sql/20_app/30_demonstration.sql`. Approved demonstrations missing
+  `sdg_division_id`, `effective_date` or `expiration_date` are held back
+  (non-fatal) and logged to `migration._parity_approved_demo_held` by
+  `sql/99_parity/12_approved_demo_held_for_division.sql`, surfaced as the
+  non-gating "approved demo held for division" check.
+* `signature_level_id` on `demonstration` is the constant `'OA'`
+  (CHECK-forced); per-application signature derivation re-scopes to amendment
+  and extension.
+* The "demonstration completeness" check
+  (`sql/99_parity/11_demonstration_completeness.sql`) excludes those
+  deliberate hold-backs so they are not double-counted.
+
+=== Status and phase derivations
+
+* Demonstration status code `1` maps to `Under Review` (resolved 2026-07-20,
+  built).
+* The legacy-date to `date_type` and phase mapping is
+  <<phase-date-mapping,the 17-row table above>>, implemented in
+  `sql/10_stg/27_application_milestone.sql`.
+* `application_date` rows are inserted for every non-null mapped date
+  (`sql/20_app/36_application_date.sql`). A held-back demonstration
+  contributes no row.
+* `application_phase` rows are derived with the status fallback and parity
+  logging (`sql/23_app_derived/50_application_phase.sql`,
+  `sql/99_parity/56_application_milestone.sql`). The Federal Comment
+  past-window failsafe forces that phase `Completed` when its loaded end date
+  precedes the cutover constant, so the DEMOS nightly cron does not spuriously
+  advance a historical window.
+
+=== Program-detail tags
+
+* `reports/pgm_dtl_tag_mapping.csv` covers all 69 base tables and
+  `reports/pgm_dtl_tag_mapping_pending.csv` all 68 pending ones.
+* `demonstration_type_tag_assignment` is generated from the table stem plus
+  `from_dt` / `to_dt`, driven off `mysql_raw.crosswalk_pgm_dtl_tag` rather
+  than a hardcoded `VALUES` list, so the CSV stays the single source.
+* Unknown stems route to an SME review report;
+  `sql/99_parity/54_*` and `55_*` block if in-scope rows would drop, and
+  `59_demonstration_type_floor.sql` enforces the coverage floor.
+
+=== Users, contacts, states, roles
+
+* Keep `role_cd -> person_type_id` (`sql/04_crosswalks/42_role_person_type.sql`,
+  9 rows in `reports/crosswalks/role_person_type.csv`).
+* *Still to build:* contact-only `person` staging from the wide contact
+  tables (`mdcd_demo_cntct`, `mdcd_pendg_demo_cntct`), keyed by normalized
+  email where no `users` row exists. The allowlists exist; the loader does
+  not.
+* `person_state`, `system_role_assignment`,
+  `demonstration_role_assignment` and the primary assignment are built.
+  System roles are keyed by derived `person_type`, not the legacy role code,
+  so a CMS user with no legacy System role code still receives the CMS User
+  role instead of loading permission-less.
+* Column-specific derivation resolves the ambiguous roles:
+  `tchncl_drctr_user_id -> Policy Technical Director` always (the M&E TD has
+  its own column), `ro_mntrg_lead_user_id -> Monitoring & Evaluation
+  Technical Director`, `ro_fincl_lead_user_id -> Project Officer` (Financial
+  Lead fold), `mc_anlyst_id` / `hcbs_anlyst_id -> DDME Analyst`, and
+  `bkup_proj_ofcr_user_id -> Project Officer` (non-primary, with
+  `treat_zero_as_null` because the source column is NOT NULL DEFAULT 0).
+  Role-code-only ambiguity is blocked.
+
+[NOTE]
+====
+`demonstration_role_assignment` is *not* permission-bearing -- the pinned DDL
+seeds zero `role_permission` rows at the Demonstration grant level. It is the
+membership, scoping and title layer; capability rides on the System role. A
+column fold therefore mislabels a title, never a privilege grant.
+====
+
+=== Deliverables, documents, comments, budget neutrality
+
+* Deliverable status tuples (`status_id`, `due_date_type_id`,
+  `expected_to_be_submitted`) resolve through
+  `mysql_raw.crosswalk_deliverable_status`; code `0` (`N/A`) carries a NULL
+  `status_id` flagged `null_ok` and is held back for SME.
+* Deliverable type routes on the single report-occurrence code, with no BN
+  matrix. See <<bn-routing,Budget-neutrality deliverable routing>>.
+* Extension and action rows are built:
+  `sql/23_app_derived/60_deliverable_action.sql`. See
+  <<deliverable-action,the state-machine derivation>>.
+* *Still to build:* document routing by source family. Two of the four
+  crosswalks are authored; no loader consumes them.
+* Comment routing is built. The route comes from
+  `mysql_raw.crosswalk_comment_origin`, and an authored route always wins:
++
+[source,sql]
+----
+route = COALESCE(crosswalk_comment_origin.demos_route,
+                 CASE WHEN author is a state user THEN 'public'
+                      ELSE 'private' END)
+----
++
+Corrected from the original design: `S` is the *only* state-origin code and
+the only one routing `public`. Codes `A`, `B`, `C`, `I` and `R` are all
+CMS-authored and route `private`, including `B` and `R`, which co-occur with
+state comments on 85-88% of their deliverables and look like replies but
+carry nothing in the source that distinguishes a CMS reply from a CMS
+internal note. The fallback covers only comments with no origin code (paper
+comments and 96 deliverable comments) and defaults to *private* rather than
+inferring visibility from the author, because publishing a CMS comment to a
+state cannot be undone after cutover.
+`sql/04_crosswalks/73_comment_origin_check.sql` fails the run if an
+un-ruled-on code appears, so the private default can never silently become
+the answer for a new code.
+
+=== Reference materials
+
+* *Still to build:* `rfrnc_matl -> demos_app.reference`, blocked on the owner
+  user / person-type FK decision.
+* The derived associative rows target `reference_demonstration_type`, not
+  `reference_tag_assignment`, and the loader is authored but inert.
+* Unresolved document-type and tag combinations block unless SMEs mark them
+  out of scope.
+
+=== Column map and validation
+
+* `reports/source_target_columns.csv` (104 rows) records the rule for every
+  mapped column. The `transform` kinds actually in use are `derive` (25),
+  `crosswalk:<name>` (19), `drop` (14), `id_map` (13), `cast` (12), `copy`
+  (9), `constant` (7), `comment_route` (3) and `tag_pivot:<tag>` (2). There is
+  no `sidecar` kind -- that rule class was never adopted.
+* Fail-closed parity views cover the blocked conditions and row accounting.
+* Repo validators: Python tests, SQL idempotency tests, docs and schema
+  verification, Makefile checks.
+
+== Acceptance criteria
+
+* Every target NOT NULL or FK field from these derivations is populated
+  deterministically or fails with an actionable parity row.
+* No soft-deleted in-scope business row is lost *silently*. The current
+  answer is that soft-deleted rows are excluded by design pending an SME
+  decision, not that they are migrated.
+* Contact-only persons and their role assignments are represented on current
+  `main`. *Not met:* role assignments are, contact-only persons are not.
+* Program-detail coverage extends beyond the 10-row manifest to all mappable
+  in-scope tables. *Met:* 69 of 69 base and 68 of 68 pending.
+* All remaining blockers are explicit.
+
+== Blocker summary
+
+.External dependencies, corrected 2026-07-30
+[cols="3,1,3"]
+|===
+| Blocker | Owner | Status
+
+| DEMOS CHECK widening for `OGD` / `DD` signature levels
+| DEMOS team
+| Required before `OGD`-level rows load. Narrowed: the demonstration grain no
+longer needs it (constant `'OA'`), so this now gates amendment and extension
+only. `DD` additionally has no seeded `signature_level` target.
+
+| SME sidecar values for missing Medicaid / CHIP ids
+| State SMEs
+| *No longer a blocker.* `medicaid_id` is legacy-preserved and `chip_id` is
+trigger-minted; the sidecar was never built.
+
+| Demonstration status code `1` (`Pending`) mapping
+| CMS / State SMEs
+| RESOLVED 2026-07-20 -> `Under Review`, built.
+
+| Semi-annual BN deliverable type decision
+| SMEs
+| RESOLVED 2026-07-20 ("identical"), then made moot by the single-input
+report-occurrence map.
+
+| Unknown program-detail stem mappings
+| SMEs
+| Narrowed to `mdcd_othr_pgm_dtl` (blank `tag_name`, free-text names exported
+for SDG review).
+
+| Document `document_type` / attachment-origin fan-in
+| SMEs
+| Required before any `demos_app.document` loader
+(`reports/crosswalks/proposed/_review.md` P4).
+
+| `rfrnc_matl` owner user / person-type FK rule
+| DEMOS team + SMEs
+| Required before the reference loader.
+
+| Contact-only `person` workstream
+| Migration team
+| Not blocked externally; simply unbuilt.
+|===
+
+[[document-linkage]]
+== Document-to-deliverable linkage routing
+
+DEMOS migration `20260623125420_no_deliverable_submitted_cms_files`, mirrored
+into the pinned Prisma DDL `state/prisma_ddl/<sha>.sql` (pinned via
+`reports/prisma_ddl.sha256`), finalizes a three-way routing rule for every
+migrated `demos_app.document` row. Its intent is that a file *attached by CMS*
+to a deliverable can never simultaneously be recorded as a *state submission*:
+the migration first runs
+`UPDATE demos_app.document SET deliverable_submission_action_id = NULL WHERE deliverable_is_cms_attached_file = TRUE`,
+then adds the guard CHECK below. The constraint name reorders the words --
+migration `20260623125420_no_deliverable_submitted_cms_files`, constraint
+`no_submitted_deliverable_cms_files`.
+
+The relevant `document` columns, all nullable, are `deliverable_id` (UUID),
+`deliverable_type_id` (TEXT), `deliverable_is_cms_attached_file` (BOOLEAN),
+`deliverable_submission_action_id` (UUID) and
+`deliverable_submission_action_type_id` (TEXT). Two CHECK constraints jointly
+fix the legal combinations.
+
+`check_deliverable_null_states` ties the deliverable columns together as
+all-absent or linked:
+
+[source,sql]
+----
+CHECK (
+    (deliverable_id IS NULL
+        AND deliverable_type_id IS NULL
+        AND deliverable_is_cms_attached_file IS NULL
+        AND deliverable_submission_action_id IS NULL
+        AND deliverable_submission_action_type_id IS NULL)
+    OR
+    (deliverable_id IS NOT NULL
+        AND deliverable_type_id IS NOT NULL
+        AND deliverable_is_cms_attached_file IS NOT NULL)
+);
+----
+
+`no_submitted_deliverable_cms_files`, new in `20260623125420`, forbids a
+CMS-attached file from carrying a submission action:
+
+[source,sql]
+----
+CHECK (
+    NOT (deliverable_is_cms_attached_file = true AND deliverable_submission_action_id IS NOT NULL)
+);
+----
+
+[NOTE]
+====
+`demos_app.document_infected` carries its own, narrower
+`check_deliverable_null_states` covering only the first three columns. The
+five-column form quoted above is the one on `demos_app.document`.
+====
+
+Together these route every `document` row into exactly one of three states:
+
+. *Non-deliverable document*: not linked to any deliverable
+  (`deliverable_id IS NULL`). `check_deliverable_null_states` then forces
+  `deliverable_is_cms_attached_file IS NULL` and
+  `deliverable_submission_action_id IS NULL` -- the flag is NULL, not `false`.
+. *State-submitted deliverable document*: linked to a deliverable and
+  submitted by a state user. `deliverable_is_cms_attached_file = false`;
+  `deliverable_submission_action_id` points at the submitting
+  `deliverable_action` row. Permitted by
+  `no_submitted_deliverable_cms_files` because the CMS-attached flag is false.
+. *CMS-attached deliverable file*: linked to a deliverable but attached by
+  CMS rather than submitted by the state.
+  `deliverable_is_cms_attached_file = true`, so
+  `no_submitted_deliverable_cms_files` requires
+  `deliverable_submission_action_id IS NULL`.
+
+[[document-linkage-states]]
+.The three legal document deliverable-linkage states
+[cols="3,^1,^2,^3"]
+|===
+| State | `deliverable_id` | `deliverable_is_cms_attached_file` | `deliverable_submission_action_id`
+
+| Non-deliverable document
+| `NULL`
+| `NULL` footnote:nondel[Per `check_deliverable_null_states`, a
+non-deliverable document carries `deliverable_is_cms_attached_file = NULL`,
+not `false`; the flag is meaningful only when `deliverable_id IS NOT NULL`.]
+| `NULL`
+
+| State-submitted deliverable document
+| `NOT NULL`
+| `false`
+| `NOT NULL` (the submitting `deliverable_action`)
+
+| CMS-attached deliverable file
+| `NOT NULL`
+| `true`
+| `NULL` (forced by the CHECK)
+|===
+
+Precision notes:
+
+* `deliverable_submission_action_id` is column-level nullable even in state 2.
+  The CHECKs also permit a deliverable-linked, non-CMS document with no
+  submission action, for example a `General File` on a not-yet-submitted
+  deliverable. The `NOT NULL` entry above describes the routing target when
+  the document *is* the submitted artifact, not a NOT NULL column.
+* `deliverable_submission_action_type_id` travels with
+  `deliverable_submission_action_id` via the composite FK
+  `document(deliverable_submission_action_id, deliverable_submission_action_type_id) -> deliverable_action(id, action_type_id)`,
+  and is independently FK-limited to the single seeded submission action type.
+  It is NULL in states 1 and 3.
+
+*Status: spec contract only; document loader deferred.* The source signal that
+distinguishes state 2 from state 3 -- the `document_type` and
+attachment-origin fan-in across the legacy upload tables -- is still
+SME-blocked (`reports/crosswalks/proposed/_review.md` P4;
+`reports/narrative/notes.md` 2026-06-24 WP4). The routing rule is recorded so
+the loader can be built deterministically once the fan-in resolves; until then
+no `demos_app.document` deliverable loader is authored. Two artifacts hold the
+contract in the meantime:
+`sql/10_stg/30_document_deliverable_link_resolved.sql`, an inert
+forward-scaffold guarded on `to_regclass('stg.document_resolved')`, and
+`sql/99_parity/49_document_cms_file_submission_invariant.sql`.
+
+[[deliverable-action]]
+== The `deliverable_action` state-machine derivation
+
+The `deliverable_action` loader synthesizes the per-deliverable workflow
+events DEMOS would otherwise create at runtime. *The pinned DDL seeds no
+`deliverable_action` rows* -- every `demos_app.deliverable_action` statement is
+an `ALTER TABLE ... ADD CONSTRAINT`, never an `INSERT`. It seeds only the
+supporting domains, so the loader derives the event rows from the legacy
+deliverable source.
+
+What the DDL does seed:
+
+* `deliverable_action_type`: the action-name domain, `id` plus four boolean
+  flags, 14 rows reproduced verbatim in <<deliverable-action-types>>.
+* `deliverable_action_configuration`: the legal state machine, as
+  `(action_type_id, old_status_id, new_status_id)` triples.
+* `deliverable_submission_action_type_limit`: exactly one row,
+  `('Submitted Deliverable')`.
+* the `deliverable_status` domain, 8 ids: `'Upcoming'`, `'Past Due'`,
+  `'Submitted'`, `'Under CMS Review'`, `'Accepted'`, `'Approved'`,
+  `'Received and Filed'`, `'Deleted'`.
+
+[[deliverable-action-types]]
+.The 14 seeded `deliverable_action_type` rows, verbatim from the pinned DDL
+[cols="3,^1,^1,^1,^1"]
+|===
+| `id` | `due_date_change_allowed` | `should_have_note` | `should_have_user_id` | `extension_id_optional`
+
+| `Created Deliverable Slot` | FALSE | FALSE | TRUE | TRUE
+| `Marked as Past Due` | FALSE | FALSE | FALSE | TRUE
+| `Requested Extension` | FALSE | TRUE | TRUE | FALSE
+| `Approved Extension Request` | TRUE | FALSE | TRUE | FALSE
+| `Denied Extension Request` | FALSE | TRUE | TRUE | FALSE
+| `Withdrew Extension Request` | FALSE | FALSE | TRUE | FALSE
+| `Manually Changed Due Date` | TRUE | TRUE | TRUE | TRUE
+| `Requested Resubmission` | TRUE | TRUE | TRUE | TRUE
+| `Submitted Deliverable` | FALSE | FALSE | TRUE | TRUE
+| `Started Review` | FALSE | FALSE | TRUE | TRUE
+| `Accepted Deliverable` | FALSE | FALSE | TRUE | TRUE
+| `Approved Deliverable` | FALSE | FALSE | TRUE | TRUE
+| `Received and Filed Deliverable` | FALSE | FALSE | TRUE | TRUE
+| `Deleted Deliverable` | FALSE | FALSE | TRUE | TRUE
+|===
+
+=== State machine
+
+`deliverable_action_configuration` enumerates the allowed
+`(action_type_id, old_status_id -> new_status_id)` transitions over the
+`deliverable_status` domain; every derived `deliverable_action` row must match
+one seeded triple. The submission action's transitions are:
+
+[source,sql]
+----
+('Submitted Deliverable', 'Upcoming', 'Submitted'),
+('Submitted Deliverable', 'Past Due', 'Submitted'),
+('Submitted Deliverable', 'Submitted', 'Submitted'),
+('Submitted Deliverable', 'Under CMS Review', 'Submitted'),
+----
+
+=== Submission-linkage contract
+
+`document.deliverable_submission_action_id` references the specific submission
+`deliverable_action` for a deliverable through the composite FK
+`document(deliverable_submission_action_id, deliverable_submission_action_type_id) -> deliverable_action(id, action_type_id)`.
+The accompanying `document.deliverable_submission_action_type_id` is
+FK-constrained to `deliverable_submission_action_type_limit`, which the DDL
+seeds with the single value `'Submitted Deliverable'`. The referenced action's
+`action_type_id` must therefore be exactly `'Submitted Deliverable'`; no other
+action type can be a document's submission action.
+
+=== Per-row integrity a loader must satisfy
+
+Verbatim CHECK constraints on `demos_app.deliverable_action`:
+
+* `block_unpermitted_due_date_changes`:
+  `NOT (due_date_change_allowed = FALSE AND old_due_date != new_due_date)`
+* `check_non_empty_note`: `(note IS NULL OR trim(note) != '')`
+* `require_extension_id_for_extension_actions`:
+  `(extension_id_optional = TRUE) OR (extension_id_optional = FALSE AND active_extension_id IS NOT NULL)`
+* `require_notes_for_user_actions`:
+  `(should_have_note = FALSE AND note IS NULL) OR (should_have_note = TRUE AND note IS NOT NULL)`
+* `require_user_id_for_user_actions`:
+  `(should_have_user_id = FALSE AND user_id IS NULL) OR (should_have_user_id = TRUE AND user_id IS NOT NULL)`
+
+The four boolean flags on each row are not free: they must equal the seeded
+`deliverable_action_type` row for that `action_type_id`, via the composite FK
+`deliverable_action(action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional) -> deliverable_action_type(...)`,
+and `(action_type_id, old_status_id, new_status_id)` must exist in
+`deliverable_action_configuration`. `deliverable_id -> deliverable`,
+`user_id -> users` and `active_extension_id -> deliverable_extension`
+complete the FK shape.
+
+=== Status: built
+
+Corrected 2026-07-30. The original spec recorded this derivation as deferred
+alongside the document loader. It is not: `sql/23_app_derived/60_deliverable_action.sql`
+builds it, and the 2026-07-21 SME revision (`sme_signoff_2026-07-20.md`
+section 11.2) switched the plan from a full history backfill to a *minimal*
+legal trail after David's CMS priority ranking accepted a snapshot.
+
+The design that shipped:
+
+* `sql/02_seeds_static/30_deliverable_action_chain.sql` supplies the skeleton
+  -- the shortest legal path from `'Upcoming'` to the status the deliverable
+  loaded with, validated by
+  `sql/04_crosswalks/74_deliverable_action_chain_check.sql`.
+* `sql/10_stg/39_deliverable_submission_batch.sql` clusters
+  `mdcd_dlvrbl_fil_doc` uploads into sessions, yielding one real submission
+  per session with a real timestamp and actor. It beats
+  `mdcd_dlvrbl_stus_hstry` on both counts: `user_id` is NOT NULL and 100% of
+  in-scope live uploaders resolve to a migrated DEMOS user against 84.0%
+  actor coverage on the status log, and the status log is 20-41% missing
+  outright for deliverables created before 2021.
+* Only `cmt_orgn_cd = 'S'` (state upload) becomes a submission. `'C'` is a
+  CMS attachment and must carry a NULL submission link per
+  `no_submitted_deliverable_cms_files`, so it is excluded.
+* Three populations resolve into
+  `migration._deliverable_submission_event`: `file_batch` (5,223
+  deliverables, 7,478 submissions), `status_event` (7 deliverables that keep
+  one synthetic hop), and suppressed (6 deliverables with neither uploads nor
+  a submitted event, which now get no submission hop rather than a fabricated
+  one).
+* A deliverable whose status has no seeded chain is held and logged, never
+  silently skipped (`sql/99_parity/63_deliverable_action_held.sql`);
+  `62_deliverable_action_completeness.sql`,
+  `64_deliverable_submission_batch.sql` and
+  `65_deliverable_action_provenance.sql` complete the parity coverage.
+
+The `document.deliverable_submission_action_id` linkage itself remains
+unbuilt, because the document loader is. That is the only half of the original
+"derivation deferred" note that still holds.
+
+== Related
+
+* xref:reference-pipeline-stages.adoc[Pipeline stages] -- which numbered stage
+  owns each derivation named here.
+* xref:reference-source-target-columns.adoc[Source/target column map] -- the
+  per-column rule ledger these derivations register in.
+* xref:reference-demonstration-role-migration.adoc[Demonstration role
+  assignment migration] -- the column-fold role derivation in full.
+* xref:../sme/reference-milestone-date-mapping.adoc[Milestone date mapping] --
+  the ratified source of truth for <<phase-date-mapping,the date table>>.
+* xref:../sme/reference-sme-signoff-2026-07-20.adoc[SME sign-off ledger,
+  2026-07-20] -- the reconciliation that resolved the status and BN decisions.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-source-target-columns.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-derivability-audit.adoc[next >]
+|===
+endif::[]
+// docnav-end

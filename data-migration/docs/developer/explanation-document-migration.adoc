@@ -1,0 +1,668 @@
+= Explanation: Document and `document_type` migration
+:toc: left
+
+The design that was written for migrating PMDA's uploaded files into DEMOS's
+`document` and `reference` tables: a crosswalk reconciliation plus a
+metadata-only loader, with real file blobs deferred. Audience: a developer
+picking the workstream up (here or in another repo) and an SME who needs to know
+which document decisions were settled and which were never answered. By the end
+you will know the target contract, every source family and its disposition, the
+seven resolved decisions, and precisely why none of the loader shipped.
+
+[IMPORTANT]
+====
+*Proposed -- not implemented (as of 2026-07-30).* There is no
+`demos_app.document` loader in this repo: `sql/20_app/` contains no document
+file and there is no `INSERT INTO demos_app.document` anywhere under `sql/`.
+`sql/99_parity/30_scope_coverage.sql` records the entity as `OUT-OF-SCOPE` on an
+operator decision dated 2026-07-27, because the byte-copy queue that would
+supply `s3_path` has no producer. The crosswalks and the two inert scaffolds
+described below *did* ship; the loader, the staging projection and the family
+work items did not. See <<what-shipped>> before you trust any "we will" in the
+rest of this page.
+====
+
+[[what-shipped]]
+== What shipped and what did not
+
+[cols="2,1,3"]
+|===
+| Artifact | State | Evidence
+
+| `reports/crosswalks/document_type.csv` + `sql/04_crosswalks/66_document_type.sql`
+| Shipped, load-only
+| Header: "`NOT YET CONSUMED: there is no demos_app.document loader yet`"
+
+| `sql/04_crosswalks/67_document_type_check.sql`
+| Shipped, fail-closed
+| `to_regclass`-guarded no-op before the application fact table is loaded
+
+| `reports/crosswalks/deliverable_file_type.csv` + `sql/04_crosswalks/71_deliverable_file_type.sql`
+| Shipped, load-only
+| Header: "`NOT YET CONSUMED: ... metadata-only loader deferred, blocked on the s3_path strategy`"
+
+| `sql/04_crosswalks/72_deliverable_file_type_check.sql`
+| Shipped, fail-closed
+| Fails closed on any unmapped populated `fil_doc_cd`; NULL is exempt (D2 default)
+
+| Seed-input snapshot (`reports/prisma/seeded/`)
+| Shipped
+| `document_type.csv`, `phase_document_type.csv`, `deliverable_type_document_type.csv`, plus `tests/test_seeded_domains.py`
+
+| `sql/10_stg/30_document_deliverable_link_resolved.sql`
+| Shipped but inert
+| Header: "`INERT FORWARD-SCAFFOLD -- NOT YET ACTIVE.`"
+
+| `sql/99_parity/49_document_cms_file_submission_invariant.sql`
+| Shipped but inert
+| Guards on `stg.document_resolved`, which nothing creates
+
+| `stg.document_resolved`
+| Not built
+| No file authors it; both scaffolds no-op because of that
+
+| `sql/20_app/` document loader
+| Not built
+| `sql/20_app/` holds person, users, demonstration, pending_demonstration, amendment, application_date, deliverable, comment and override_note only
+
+| Application doc-type code `10`
+| Not added
+| `reports/crosswalks/document_type.csv` carries codes 1--9 and 99; there is no row `10`
+
+| Site-visit, final-decision and reference-type crosswalks
+| Not built
+| No such CSV or DDL under `reports/crosswalks/` or `sql/04_crosswalks/`
+|===
+
+The two inert scaffolds are deliberate, not oversights. Both quote the reason in
+their front matter:
+
+[source,sql]
+----
+ * INERT FORWARD-SCAFFOLD -- NOT YET ACTIVE.
+ ...
+ * WHY THIS IS A NO-OP TODAY: there is no document loader yet, so the source
+ * projection stg.document_resolved does NOT exist in any schema.
+----
+
+and the crosswalk that carries the deliverable-file typing says the same about
+its own consumer:
+
+[source,sql]
+----
+ * NOT YET CONSUMED: there is no demos_app.document loader yet (metadata-only
+ * loader deferred, blocked on the s3_path strategy). This crosswalk is loaded
+ * and validated now so the deliverable-file family is ready when that loader
+ * lands.
+----
+
+The scope-coverage view states the disposition that supersedes this whole
+design:
+
+[source,sql]
+----
+        -- Operator decision 2026-07-27: document migration is out of scope for
+        -- this repo. The metadata has no home here (demos_app.document requires
+        -- an s3_path, and the byte-copy queue that would supply it has no
+        -- producer); see reports/narrative/notes.md for the full investigation.
+        ('6', 'document',                             'OUT-OF-SCOPE', (SELECT count(*) FROM demos_app.document))
+----
+
+== Status and provenance
+
+Original status, 2026-07-16: proposed. David input received 2026-07-17 (D2--D4);
+`cmt_orgn_cd` and `fil_doc_cd` reverse-engineered from the source DB (D5--D6).
+Open at that point: the orphan and soft-deleted drops, application code `10`,
+family scope, and the David-owned `s3_path` / `6`, `7`, `99` rubber-stamp /
+seed-legality items.
+
+Scope decision, owner-confirmed at the time: crosswalk reconciliation plus a
+metadata-only loader; all source families addressed; metadata now, real blob and
+S3 migration deferred to the DEMOS team.
+
+[NOTE]
+.2026-07-20 SME reconciliation (`reports/narrative/sme_signoff_2026-07-20.md`)
+====
+D5 (`cmt_orgn_cd` = `S` state / `C` CMS) and D7 (untyped docs typed by parent
+deliverable plus filename) confirmed by Stephanie, with D5 pending a PMDA
+add-file spot-check. The metadata-only `document` loader stays *deferred* until
+DEMOS supplies an `s3_path` strategy; the `owner_user_id` / `s3_path` /
+`application_id` NOT NULL gaps are listed in the ledger. The three application
+doc types with no DEMOS match (Temporary Extension Letter, Final BN Worksheet,
+Other) go to David to *file, not add*: proposed General File / Final Budget
+Neutrality Formulation Workbook / General File.
+
+Do not confuse this document `cmt_orgn_cd` (`+{S,C}+`) with the comment-table
+`cmt_orgn_cd` (`+{A,B,C,I,R,S}+`); see
+xref:../sme/explanation-comments-routing.adoc[comments: private vs public].
+====
+
+The ledger itself is blunter than the spec. Section 2.3, "Document metadata
+loader = deferred behind an s3_path strategy", reads: "The deliverable-file
+typing crosswalk foundation (`crosswalk_deliverable_file_type`, seed snapshot)
+is committed and *load-only*. The `demos_app.document` loader stays deferred
+until DEMOS supplies an `s3_path` strategy. No `document` rows are loaded in the
+interim."
+
+== Goal
+
+Take documents from "application-subset crosswalk only, unconsumed" to: all
+in-scope source families mapped to a valid DEMOS type, fail-closed validated,
+SME and David signed, and consumed by a metadata-only `demos_app.document`
+loader. Real file blobs and S3, `deliverable_action` (state-2 submission
+linkage), and the full `reference` loader were explicitly deferred.
+
+Only the first clause was ever reached, and even that only for two families.
+
+== Grounded target contract
+
+The spec pinned the DEMOS DDL snapshot `30c6ee7c...`. That pin has since moved:
+`reports/prisma_ddl.sha256` now points at `a4dd0db9...b217d6a9f3`, and
+`state/prisma_ddl/` holds both snapshots. Every contract claim below still holds
+against the current pin.
+
+* `document` NOT NULL columns: `id`, `name`, `s3_path`, `owner_user_id`,
+  `document_type_id`, `application_id`. Nullable: `phase_id`, the deliverable
+  linkage columns, and `description`.
+* Composite FKs force legal combinations. `document(phase_id, document_type_id)`
+  references `phase_document_type`, and
+  `document(deliverable_type_id, document_type_id)` references
+  `deliverable_type_document_type`. `document_type` and both junction tables are
+  Prisma-seeded (see `state/prisma_seeded_tables.json`), so a mapping must
+  target a seeded value that is also legal in its phase or deliverable-type
+  context.
+* Three-state deliverable routing is enforced by
+  `check_deliverable_null_states` and `no_submitted_deliverable_cms_files`; see
+  xref:reference-cross-cutting-derivations.adoc#document-source-families[document
+  source families] for the same contract in the derivation reference.
+* `check_non_empty_s3_path` applies to `document` and `reference`.
+  `document_pending_upload` is the only document variant without an `s3_path`
+  column.
+
+The inert staging scaffold encodes the routing the loader would have had to
+produce:
+
+[cols="1,2,2"]
+|===
+| State | Condition | Required column values
+
+| 1 non-deliverable
+| `deliverable_id IS NULL`
+| all `deliverable_*` columns NULL; `check_deliverable_null_states` forces `is_cms_attached_file = NULL` (not false) and `submission_action_id = NULL`
+
+| 2 state-submitted
+| linked, plus a state submission action
+| `is_cms_attached_file = false`, `submission_action_id = <deliverable_action id>`
+
+| 3 cms-attached
+| linked, plus a CMS-attached file
+| `is_cms_attached_file = true`, `submission_action_id = NULL`
+|===
+
+== Family dispositions
+
+All source families were addressed on paper. Only the first two got a crosswalk.
+
+[cols="1,2,2,2"]
+|===
+| Family | Source (rows) | Target | Type crosswalk
+
+| Application docs
+| `mdcd_demo_aplctn_doc`
+| `document` (app-scoped, phase-linked, non-deliverable)
+| extend existing `document_type.csv`
+
+| Deliverable files
+| `mdcd_dlvrbl_fil_doc` (16,201 total / 12,735 live; BN-flagged out of scope, D3)
+| `document` (deliverable-linked; origin `cmt_orgn_cd` S=state / C=CMS, D5)
+| General File default (D2) plus monitoring types (D6); see <<source-profile>>
+
+| Site-visit files
+| `mdcd_demo_sv_fil_doc` (6)
+| `document` if app-resolvable, else drop
+| new small map
+
+| Authority files
+| `mdcd_demo_authrty_fil_doc` (77)
+| scope call (authorities out-of-scope)
+| disposition only
+
+| Final-decision files
+| `mdcd_demo_finl_dcsn_dtl_fil_doc` (15)
+| `document` or drop
+| new small map
+
+| Templates
+| `tmplt_fil_doc` (335)
+| `reference` (library; loader deferred)
+| new reference-type map
+
+| Reference materials
+| `rfrnc_matl` (281)
+| `reference` plus tags; loader deferred
+| new reference-type map
+
+| Help/support
+| `mdcd_help_and_sprt_matl_type_rfrnc`
+| `reference` or drop
+| disposition only
+
+| BN files
+| `+bdgt_ntrlty_*+`
+| out-of-scope (retired / DEMOS-owned)
+| none
+|===
+
+[[source-profile]]
+== Source profile: `mdcd_dlvrbl_fil_doc`
+
+Read-only DuckDB-over-MySQL profile of the live source, taken 2026-07-16 over
+live rows (`dltd_ind=0`). The schema snapshot's 14,483 is stale; the table is
+16,201 rows total, 12,735 live, 3,466 soft-deleted. `mdcd_dlvrbl_fil_doc_id` is
+an auto-increment row number and is not mapped; files group on `mdcd_dlvrbl_id`.
+
+=== Files per deliverable
+
+5,410 live deliverables hold 12,735 live files; average 2.35, median 1, max 64
+(p90 5, p95 7, p99 11).
+
+[cols="1,^1,^1"]
+|===
+| Files per deliverable | Deliverables | Files
+
+| 1 | 2,752 (50.9%) | 2,752
+| 2 | 1,094 (20.2%) | 2,188
+| 3 | 560 (10.4%) | 1,680
+| 4-5 | 582 (10.8%) | 2,558
+| 6-10 | 355 (6.6%) | 2,561
+| 11-20 | 62 (1.1%) | 821
+| 21+ | 5 | 175
+|===
+
+=== Type signal is weak and mostly absent
+
+* `fil_doc_cd` is NULL for 10,857 of 12,735 live files (85%). The only populated
+  values are `1` (1,537), `3` (189), `2` (90), `9` (34) and `7` (28) -- about
+  1,878 files in total.
+* Boolean type flags cover only about 15%: `bdgt_ntrlty_fil_ind` 1,613,
+  `mntrg_rpt_fil_ind` 279, `mntrg_prtcl_fil_ind` 62. 10,781 files (85%) carry no
+  type flag at all. `upld_aftr_acptd_ind` is set on 499.
+
+=== Origin signal
+
+`cmt_orgn_cd` is `char(1)` with default `S`: `S` = 12,387 (97.3%), `C` = 348
+(2.7%). This is the likely state-submitted versus CMS-attached distinction, and
+D5 confirms it.
+
+=== Integrity
+
+166 live files reference a `mdcd_dlvrbl_id` that is missing or soft-deleted in
+`mdcd_dlvrbl`. Those are orphans to drop.
+
+The implication drawn at the time: typing reduces to General File plus the two
+monitoring types. See <<d5>> for the origin signal and <<d6>> for the typing,
+both resolved from the source DB.
+
+== Work items
+
+Test-driven, fail-closed, stacked branches off `main`, re-invoking the
+`migration-tdd` and `live-pg-tester` skills. Items 1 and part of 3 landed;
+nothing from 4 onwards did.
+
+. *Seed-input snapshot.* Capture the seeded `document_type` domain plus the legal
+  `phase_document_type` and `deliverable_type_document_type` pairs, read from
+  `demos_app` after `ddl`, as crosswalk inputs, so mappings can be checked
+  against composite-FK legality rather than only the type domain.
+. *Application family.* Add the missing code `10` (Final Budget Neutrality
+  Formulation Workbook) to `document_type.csv`; record David's rubber-stamp for
+  codes `6` / `7` / `99`.
+. *Deliverable-file typing.* Per D6, `fil_doc_cd` mirrors the type flags:
+  `1` = BN (excluded, D3), `2` / `3` = Monitoring Report, `7` / `9` = Monitoring
+  Protocol, NULL or no flag = General File (D2 default, with the crosswalk CSV as
+  the correction point). The `2` / `3` and `7` / `9` pairs each collapse to one
+  DEMOS type. A crosswalk (CSV under `reports/crosswalks/`, DDL under
+  `sql/04_crosswalks/`, a `reports/crosswalks/registry.yaml` entry, and a
+  fail-closed check) encodes this, respecting `deliverable_type_document_type`.
+  Remaining dependency: confirm the Monitoring Report and Monitoring Protocol
+  DEMOS types are legal for the relevant deliverable types (David seed-legality
+  item).
+. *Small families.* Site-visit and final-decision crosswalks; authority-file
+  disposition.
+. *Library families.* Reference-type crosswalks for templates, reference
+  materials, and help/support into the DEMOS `reference` type domain. The
+  `reference` loader itself is deferred: crosswalk, disposition and accounting
+  only.
+. *Validation.* Per-family fail-closed checks plus a `sql/99_parity` coverage
+  check confirming every migrated document's `(context, document_type_id)` is a
+  seeded legal pair. Unmapped in-scope codes fail closed; held or dropped rows
+  are logged non-gating.
+. *Staging.* Author `stg.document_resolved` (metadata-only projection) and
+  thereby activate the currently inert
+  `sql/10_stg/30_document_deliverable_link_resolved.sql`.
+. *Metadata-only loader.* A new loader under `sql/20_app/` routes by
+  `cmt_orgn_cd` (D5): `C` -> state 3 (CMS-attached), `S` -> state 2
+  (state-submitted); state 1 for non-deliverable docs. Caution from David: this
+  file-origin concept is distinct from comment visibility (private versus
+  public); the `cmt_` prefix on the file column is a naming trap, and the comment
+  table's same-named column carries a different six-value domain.
+  `owner_user_id` falls back to the demonstration's Primary Project Officer, or
+  the DDME for monitoring and evaluation deliverables (D4). `s3_path` is handled
+  per the David decision below (sentinel path versus
+  `document_pending_upload`).
+. *Parity and docs.* Completeness, integrity and held checks; update
+  `reports/source_target_columns.csv`, the wiki, and the CHANGELOG; run
+  `make verify`, `docs/tools/verify_doc_facts.py`, and the live idempotency and
+  parity suites; add a decision record.
+
+== Decisions requiring SME and David sign-off
+
+These were open when the spec was written and were never closed. The 2026-07-27
+out-of-scope decision made them moot for this repo, not answered.
+
+=== SME (still open)
+
+* *Application code `10`.* Target type: BN Workbook, General File, or a new
+  type. This is a document label, unrelated to the retired BN corpus.
+* *Family scope.* Confirm authority, site-visit and final-decision files migrate
+  to `document` versus drop; confirm templates, reference materials and
+  help/support route to `reference` versus drop.
+* *Drops, to Stephanie Hauf and Liz Hill.* David defers the 166 orphaned live
+  files and 3,466 soft-deleted rows to SH/LH. Proposed disposition: exclude from
+  DEMOS but preserve out-of-band (export the table to a spreadsheet and copy the
+  files to a shared folder), since these are already unreachable in PMDA today.
+
+=== David (still open)
+
+* *Rubber-stamp* the codes `6` / `7` / `99` folds (General File / BN Workbook),
+  currently "pending, non-blocking".
+* *`s3_path` strategy* for metadata-only documents: a sentinel path (downloads
+  404 until blobs move), `document_pending_upload` (no `s3_path`, but
+  semantically "upload in progress"), or block. This owner also holds the
+  deferred real blob-to-S3 migration.
+* *Seed legality.* Confirm the seeded `phase_document_type` and
+  `deliverable_type_document_type` combinations cover the migrated codes, or
+  point to the source of truth so mappings can be checked before load.
+
+NOTE: The `s3_path` item was later shown not to need a policy invention at all;
+see <<out-of-scope>>.
+
+== Resolved decisions
+
+[[d1]]
+=== D1 (2026-07-16): deliverable status source = `mdcd_dlvrbl.mdcd_dlvrbl_crnt_stus_cd`
+
+Deliverable status is sourced directly from
+`mdcd_dlvrbl.mdcd_dlvrbl_crnt_stus_cd` (ref `mdcd_dlvrbl_stus_rfrnc`). The
+BN-file "acceptance status" is not used, and
+`mdcd_dlvrbl_fil_doc.upld_aftr_acptd_ind` is not a tie-breaker between the two.
+
+Evidence, from the read-only source profile over live rows:
+
+* Acceptance status (`mdcd_dlvrbl_acptnc_stus_cd`) is BN-only. It is referenced
+  by a single table, `bdgt_ntrlty_fil_doc_stus`; all 1,771 acceptance rows
+  (1,302 distinct files) resolve to `bdgt_ntrlty_fil_ind=1` files (0 monitoring,
+  0 non-BN). BN is retired and DEMOS-owned, so acceptance status is out of scope.
+* `upld_aftr_acptd_ind` does not align with acceptance status: of 499 live files
+  with the flag set, 466 (93%) are non-BN (no acceptance status) and only 33 are
+  BN. Just 3 files have the flag set plus both a deliverable status and an
+  acceptance status, so there is no meaningful tie to break.
+* The two enums are disjoint vocabularies (deliverable status 17 values,
+  acceptance status 7 values) and never agree by name (0 matches; the dominant
+  pair is "Accepted" / "Past Due"). They also reuse integer codes with different
+  meanings: code `6` is "Accepted" for deliverable status but "Past Due" for
+  acceptance status. They must never be compared by raw code.
+
+Relating acceptance status to a deliverable must bridge through the file
+(`bdgt_ntrlty_fil_doc_stus.mdcd_dlvrbl_fil_doc_id` ->
+`mdcd_dlvrbl_fil_doc.mdcd_dlvrbl_id` -> `mdcd_dlvrbl.mdcd_dlvrbl_id`), not by
+equating a file id to a deliverable id. Bridged correctly, the 1,302 BN files
+with acceptance status span 1,078 deliverables.
+
+[[d2]]
+=== D2 (2026-07-17, David): untyped deliverable files default to "General File"
+
+DEMOS deliverables only carry general files, so the roughly 85% of live files
+with no `fil_doc_cd` and no type flag default to the DEMOS *General File* type.
+David notes it is unlikely that all of them are truly general files, so the
+migration must allow for later corrections; the crosswalk CSV is the correction
+point and post-migration reclassification is expected. See <<d7>>: the parent
+deliverable (type plus name), not the sparse file-level tag, is the richer
+classifier and the recommended basis for that reclassification.
+
+[[d3]]
+=== D3 (2026-07-17, David): BN-flagged deliverable files are out of scope
+
+The 1,613 live files with `bdgt_ntrlty_fil_ind=1` are out of scope, consistent
+with the retired, DEMOS-owned budget-neutrality machinery. They are excluded
+from the deliverable-file loader.
+
+[[d4]]
+=== D4 (2026-07-17, David): owner fallback = Primary Project Officer, DDME for M&E
+
+When the source uploader (`user_id`) is not in the migrated users,
+`owner_user_id` falls back to the demonstration's Primary Project Officer. For
+monitoring and evaluation deliverables, prefer the demonstration's DDME when
+available.
+
+[[d5]]
+=== D5 (2026-07-17, source-derived): `cmt_orgn_cd` on the file table is file origin
+
+`mdcd_dlvrbl_fil_doc.cmt_orgn_cd` is the file-origin signal David described:
+`S` = state-attached, `C` = CMS-attached. The PMDA application source is not
+available in this environment, so this was reverse-engineered from the source DB,
+which is authoritative. Cross-tabbing origin against the uploader's PMDA role
+(`user_role_asgnmt` -> `role_rfrnc`) on live rows: `S` files are uploaded by the
+`State User` role in 12,368 of 12,388 cases (99.8%); `C` files are uploaded by
+CMS or federal-side roles (CMS Project Officer, CMS Technical Director, DDME
+Analyst, Monitoring/Financial Lead, Internal Administrator) in 347 of 348 cases
+(99.7%). Only S and C occur.
+
+CAUTION: This is a different concept from the same-named `cmt_orgn_cd` on the
+comment table (`mdcd_dlvrbl_cmt`), which has a six-value domain
+`+{A,B,C,I,R,S}+` routing to private or public visibility. Same column name, two
+tables, two meanings; the `cmt_` prefix on the file column is a naming trap.
+
+The loader would route `C` -> state 3 (CMS-attached) and `S` -> state 2
+(state-submitted).
+
+[[d6]]
+=== D6 (2026-07-17, source-derived): `fil_doc_cd` mirrors the type flags 1:1
+
+The populated `fil_doc_cd` values align with the boolean type flags on live rows,
+so they carry no information beyond the flags and collapse to three DEMOS
+meanings:
+
+* `1` corresponds to `bdgt_ntrlty_fil_ind=1` (Budget Neutrality), 1,537 files,
+  excluded per D3.
+* `2` and `3` correspond to `mntrg_rpt_fil_ind=1` (Monitoring Report),
+  90 + 189 = 279 files, folding to one DEMOS "Monitoring Report" type. Code `2`
+  additionally carries `proc_mntrg_rpt_ind` on 37 rows; both variants collapse.
+* `7` and `9` correspond to `mntrg_prtcl_fil_ind=1` (Monitoring Protocol),
+  28 + 34 = 62 files, folding to one DEMOS "Monitoring Protocol" type. Protocol
+  report versus workbook collapse, which was exactly David's example.
+* NULL or no flag maps to General File (D2 default).
+
+Every typed file is `cmt_orgn='S'` (state-submitted); all 348 CMS-attached files
+are untyped. The only remaining dependency was confirming the Monitoring Report
+and Monitoring Protocol DEMOS types are legal per
+`deliverable_type_document_type` (David seed-legality item).
+
+This is the one decision whose target artifact exists.
+`reports/crosswalks/deliverable_file_type.csv` carries five rows: code `1`
+(Budget Neutrality file) with an empty `demos_text_id` and `in_scope=false`,
+codes `2` and `3` both to `Monitoring Report`, and codes `7` and `9` both to
+`Monitoring Protocol`, all three `in_scope=true`. NULL carries no row at all,
+because it is not a source code.
+
+The seed-legality dependency was closed in the same crosswalk. Its header
+records:
+
+[source,sql]
+----
+ * The collapse targets are legal for their monitoring deliverable types in the
+ * DEMOS seed: ('Monitoring Report','Monitoring Report') and
+ * ('Monitoring Protocol','Monitoring Protocol') both exist in
+ * deliverable_type_document_type (see reports/prisma/seeded/). Composite-FK
+ * legality per row is enforced at load time against the deliverable's own type;
+ * where a typed file sits on a non-monitoring deliverable the loader falls back
+ * to General File (universally legal).
+----
+
+WARNING: The "1:1" claim in this decision is *not* safe as a filter. A 2026-07-27
+re-probe found 1,872 rows carrying `bdgt_ntrlty_fil_ind = 1` with a NULL
+`fil_doc_cd`, 76 of them live. Filtering on the code alone would migrate 76 BN
+files as General File, violating repo-wide BN scope; both signals must be
+excluded. The spec's own numbers already implied this, since 1,613 BN-flagged
+live files minus 1,537 files at code `1` leaves exactly 76. A further 8 rows, all
+soft-deleted, carry `mntrg_rpt_fil_ind = 1` with a protocol code. See
+<<out-of-scope>>.
+
+[[d7]]
+=== D7 (2026-07-17, source-derived): the "General File" files are typed by their deliverable
+
+The file-level type (`fil_doc_cd` or the boolean flags) is applied to only about
+15% of live files. The roughly 10,782 untyped files are not genuinely
+uncategorized; they are substantive deliverable documents that were simply never
+tagged. Three independent signals agree, from the read-only source profile over
+live rows.
+
+*Parent deliverable name* is the strongest: monitoring 4,597 (43%), other reports
+1,614, evaluation/design 1,351, quarterly reports 1,305, annual reports 780,
+plans 233, protocols 174, interim/summative eval 73, STC/terms 46,
+budget-neutrality reports 30, extension/amendment/waiver 47. Only about 527 (5%)
+are uncategorizable by deliverable context.
+
+*File format*: the real extension is in `doc_name`. `dlvrbl_fil_name` is
+`doc_name` plus a version suffix such as `.0`, which garbles naive extension
+parsing. Counts: pdf 4,811 (45%), docx 2,877 (27%), xlsx 2,498 (23%), xlsm 300,
+zip 161, xls 79, doc 40. That is about 72% narrative documents and about 26%
+spreadsheets.
+
+*File name*: names are explicit, for example
+`1115 Waiver Monitoring Report Q2 Final.pdf`,
+`OK_SMI-DY3Q2_Report_Part-A_20230829.xlsx`, and
+`... Summative Evaluation Report_Final...pdf`. They are often clearly monitoring
+or evaluation despite no file-level tag.
+
+Implication: "General File" (D2) is a defensible day-one default but a lower
+bound that masks real categories. Context is preserved through the deliverable
+link, so nothing is lost. The recommended reclassification path (the D2
+correction point) is to derive `document_type` from the parent deliverable's type
+and name plus filename heuristics, for example `Report_Part-A` -> monitoring
+report workbook, which is far richer than the sparse `fil_doc_cd`.
+
+Two edges:
+
+* The parent deliverable type-code space (`mdcd_dlvrbl_type_cd` values `0` and
+  `50`--`88`) does not resolve against `mdcd_dlvrbl_type_rfrnc` (codes `1`--`8`;
+  code `8` is "Demonstration Specific"), so a fuller deliverable-type reference
+  must be located, or the deliverable *name* is the authoritative label. See
+  <<document-deferred>>.
+* About 30 general files hang off budget-neutrality-*named* deliverables but are
+  not BN-*flagged* (`bn=0`), so D3 does not exclude them and they would migrate
+  as General File.
+
+[[out-of-scope]]
+== The 2026-07-27 out-of-scope decision
+
+The operator decision recorded in `reports/narrative/notes.md` supersedes this
+spec for `data-migration/`. A metadata-only loader targeting
+`demos_app.document_pending_upload` was built and proven end-to-end (10,887
+loaded, 187 held, 11,074 resolved, parity GREEN, `make constraints` clean) and
+then removed. The facts that investigation established are worth more than the
+code was:
+
+* *`document_pending_upload` is a transit table, not a resting place.* Its
+  resolver module exports mutations only, with no read query, and the sole exit
+  is the `move_document_from_pending_to_clean(p_id, p_s3_path)` function in the
+  `demos_app` schema, which copies the row into `document` and then deletes it.
+  That function is driven by
+  the file-process lambda after a GuardDuty scan of a real S3 object. Metadata
+  parked in the pending table is invisible to every DEMOS user and would be
+  destroyed by any future stale-upload cleanup.
+* *`s3_path` does not have to be invented.* The file-process lambda sets its
+  destination key and passes it as `p_s3_path`, so the correct value for a
+  migrated document is derivable:
++
+[source,text]
+----
+destinationKey = ${applicationId}/${documentId}
+s3_path        = application_id || '/' || document_id
+----
+* *A byte-copy tool already exists with no producer.* The DEMOS data tool
+  `migrate_files.py` copies objects between S3 buckets by reading
+  `{STAGING_SCHEMA}.system_file_migration_queue (old_path, new_path, flag)`.
+  Nothing in the monorepo creates or populates that table. A real document
+  migration must produce it. This is the gap the scope-coverage comment names.
+* *`old_path` is not recoverable from PMDA data.* `dlvrbl_fil_name` is a bare
+  filename, not a path (9 of 16,214 rows contain a slash), and it is not unique
+  (15,091 distinct of 16,214). The legacy bucket key layout has to come from ops.
+* *The BN leak* described in the <<d6>> warning.
+* *Live shape at 2026-07-27, for whoever picks this up:* 16,214 source rows;
+  3,467 soft-deleted; `fil_doc_cd` NULL 13,867, `1` (BN) 1,847, `2` 131, `3` 268,
+  `7` 48, `9` 53; `cmt_orgn_cd` `S` 15,818 and `C` 396, with *zero* NULLs; and 0
+  illegal `(deliverable_type_id, document_type_id)` pairs against
+  `deliverable_type_document_type`. These are all-row counts, so they are not
+  directly comparable with the live-only figures in <<source-profile>>.
+* Both scaffolds remain correctly inert: they guard on a `stg.document_resolved`
+  that no longer gets created.
+
+The zero-NULL `cmt_orgn_cd` finding also closes ledger gap 4.4, which asked
+whether routing could assume only `S` and `C` or needed a NULL default.
+
+[[document-deferred]]
+== Deferred and out-of-scope (recorded, not built)
+
+* Real file-blob and S3 migration.
+* `deliverable_action` derivation, meaning the deliverable's own submission
+  lifecycle; state-2 file routing is driven by `cmt_orgn_cd` (D5). See
+  xref:explanation-deliverable-action-backfill.adoc[the deliverable-action
+  backfill] for what did ship there.
+* Locating the fuller deliverable-type reference behind `mdcd_dlvrbl_type_cd`
+  values `0` and `50`--`88`; only codes `1`--`8` resolve today. Needed for the D7
+  deliverable-context reclassification.
+* Post-migration document reclassification from deliverable type and name plus
+  filename heuristics (D2, D7).
+* The full `reference` and `reference_tag_assignment` loader.
+* `document_history`, `document_infected` and the pending-upload lifecycle.
+* BN documents and BN-flagged deliverable files (D3).
+
+== Deliverables
+
+As proposed: completed and extended crosswalks plus
+`reports/crosswalks/registry.yaml` entries and fail-closed checks; the
+seed-input snapshot; `stg.document_resolved`; the metadata-only `sql/20_app`
+document loader (states 1 and 3); parity checks; column-map, wiki and CHANGELOG
+updates; and a decision record capturing the SME and David items above.
+
+Actually delivered: the two crosswalks with their registry entries and
+fail-closed checks, the seed-input snapshot, and the two inert scaffolds. The
+staging projection, the loader, the parity coverage check and the column-map
+entry were not built. `reports/source_target_columns.csv` contains no `document`
+rows.
+
+== Related
+
+* xref:reference-cross-cutting-derivations.adoc#document-source-families[Document
+  source families] -- the same target contract inside the derivation reference.
+* xref:../sme/reference-sme-signoff-2026-07-20.adoc[SME sign-off ledger,
+  2026-07-20] -- section 2.3 is the deferral of record.
+* xref:../sme/explanation-data-shape-decisions.adoc[Data-shape decisions] -- why
+  DEMOS has one `document` table rather than per-family tables.
+* xref:howto-add-a-crosswalk.adoc[Add a crosswalk] -- the procedure the two
+  shipped document crosswalks follow.
+* xref:reference-crosswalk-audit.adoc[Crosswalk audit] -- why
+  `crosswalk_deliverable_file_type` is treated as un-audited.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:explanation-dbt-alignment.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:explanation-jenkins-pipelines.adoc[next >]
+|===
+endif::[]
+// docnav-end

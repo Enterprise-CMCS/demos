@@ -39,6 +39,11 @@ include::reference-source-target-map.adoc[leveloffset=+1]
 * xref:reference-pending-approved-rules.adoc[Pending/approved rules]
 * xref:reference-history-strategy.adoc[History strategy]
 * xref:reference-drop-list.adoc[Drop list]
+* xref:reference-demonstration-mapping-worksheet.adoc[P1 demonstration
+  mapping worksheet]
+* xref:reference-milestone-date-mapping.adoc[Milestone date mapping]
+* xref:reference-sme-signoff-2026-07-20.adoc[SME sign-off ledger,
+  2026-07-20]
 
 === Explanation
 
@@ -58,7 +63,7 @@ ifndef::nested[]
 
 [.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
 |===
-|xref:../developer/explanation-demos-clone-vs-id-maps.adoc[< prev]
+|xref:../developer/explanation-jenkins-pipelines.adoc[< prev]
 ^|xref:../toc.adoc[Table of contents]
 >|xref:howto-author-a-crosswalk-csv.adoc[next >]
 |===

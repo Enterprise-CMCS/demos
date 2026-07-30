@@ -10,11 +10,11 @@ recovery action.
 This is the command inventory; it does not teach the *why*. For the
 walkthrough, read xref:tutorial-first-cutover-rehearsal.adoc[the first
 rehearsal tutorial] first, then come back here for the per-command detail.
-For the prose procedure and acceptance criteria, see the
-`runbooks/dress-rehearsal-probe.md` runbook. For every target's full
-definition, see xref:reference-makefile.adoc[the Makefile reference]; for
-every CLI flag, see xref:reference-cli.adoc[the auto-generated CLI
-reference].
+For the prose procedure and acceptance criteria, see
+xref:howto-dress-rehearsal-probe.adoc[how to run the dress-rehearsal probe].
+For every target's full definition, see xref:reference-makefile.adoc[the
+Makefile reference]; for every CLI flag, see xref:reference-cli.adoc[the
+auto-generated CLI reference].
 
 == Orientation: what can I run?
 

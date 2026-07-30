@@ -59,10 +59,22 @@ open htmlcov/index.html
 
 == CI
 
-`.github/workflows/ci.yml` runs `uv run pytest ... --cov-fail-under=69`,
-`uv run ruff check`, and `uv run ty check` on every push and PR. These
-are the same commands behind `make test` / `make lint` / `make typecheck`,
-so green-locally implies green-CI.
+*There is no CI for this subtree today.* The planned
+`.github/workflows/ci.yml` was never authored, and none of the parent
+repository's workflows (`pull-request.yml`, `deploy.yml`, and the rest)
+match anything under `data-migration/`. Nothing runs `pytest`, `ruff`,
+or `ty` on push or PR.
+
+Until that changes, the gate is local and you are it:
+
+* `make test` -- `pytest` with `--cov-fail-under=69`.
+* `make lint` -- `ruff check`.
+* `make typecheck` -- `ty check`.
+* `make sql-check` -- SQL hygiene; also installed as a pre-commit hook
+  on staged SQL (`uv run pre-commit install` once, from the repository
+  root). This hook is the only check that runs without you asking.
+
+Run all four before pushing.
 
 == Things tests do NOT cover today
 
@@ -90,7 +102,7 @@ ifndef::nested[]
 |===
 |xref:howto-write-a-parity-check.adoc[< prev]
 ^|xref:../toc.adoc[Table of contents]
->|xref:reference-pipeline-stages.adoc[next >]
+>|xref:howto-load-demos-devcontainer.adoc[next >]
 |===
 endif::[]
 // docnav-end

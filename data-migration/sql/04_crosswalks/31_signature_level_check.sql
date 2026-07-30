@@ -2,13 +2,13 @@
  * Purpose:    Fail-closed completeness + integrity check for crosswalk_signature_level.
  * Inputs:     mysql_raw.mdcd_demo, mysql_raw.crosswalk_signature_level, demos_app.signature_level
  * Outputs:    none (validation only; RAISEs EXCEPTION on a violation)
- * Invariants: fail-closed; to_regclass-guarded no-op before load; a present-but-empty source RAISEs (no vacuous pass) (CODE_REVIEW H4); every mapped demos_text_id must exist in the DEMOS signature_level seed; no LIVE APPROVED-equivalent demonstration (mdcd_demo_stus_cd 2,4,5,6,7) may resolve to a NULL signature level unless the crosswalk row is null_ok.
- * Refs:       CODE_REVIEW.md (H4), sql/04_crosswalks/30_signature_level.sql
+ * Invariants: fail-closed; to_regclass-guarded no-op before load; a present-but-empty source RAISEs (no vacuous pass); every mapped demos_text_id must exist in the DEMOS signature_level seed; no LIVE APPROVED-equivalent demonstration (mdcd_demo_stus_cd 2,4,5,6,7) may resolve to a NULL signature level unless the crosswalk row is null_ok.
+ * Refs:       sql/04_crosswalks/30_signature_level.sql
  *
  * Completeness + integrity check for crosswalk_signature_level.
  * Guarded by to_regclass so it is a no-op before pgloader populates mysql_raw;
  * once the table exists it must be non-empty, otherwise the check would pass
- * vacuously on a half-loaded source (CODE_REVIEW H4).
+ * vacuously on a half-loaded source.
  *
  * (a) every legacy mdcd_demo_aplctn_sgntr_lvl_cd present in the source must
  *     have a mapping row;

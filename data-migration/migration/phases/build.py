@@ -74,7 +74,7 @@ def _assert_overrides_exist(conn: psycopg.Connection) -> None:
     through the filter view's ``keep`` union and (for the demo anchors) mint a
     permanent UUID for a phantom row. Validated here, on the same connection
     that loaded the overrides, so the build dies loudly with the full offender
-    list instead of silently fabricating data (CODE_REVIEW H5).
+    list instead of silently fabricating data.
     """
     unknown: list[str] = []
     missing: list[str] = []

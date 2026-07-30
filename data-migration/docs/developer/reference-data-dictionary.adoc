@@ -102,3 +102,15 @@ table uses the header `Column | Type | Null | Default / Key`.
 
 include::../shared/generated/data-dictionary.adoc[]
 
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-id-maps.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-legacy-pmda-workflows.adoc[next >]
+|===
+endif::[]
+// docnav-end

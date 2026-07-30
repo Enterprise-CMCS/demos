@@ -193,11 +193,17 @@ xref:../sme/howto-author-a-crosswalk-csv.adoc[the SME crosswalk how-to]).
 | `sql/04_crosswalks/66_document_type.sql` / `67_document_type_check.sql`
 | Populated (10 codes, application subset); CSV-canonical (`registry.yaml`). LOADED load-only -- completeness inert until `mdcd_demo_aplctn_doc` loads; multi-source fan-in still needs SME
 
+| deliverable_file_type
+| (none; data-derived from the `*_fil_ind` flags)
+| `reports/crosswalks/deliverable_file_type.csv`
+| `sql/04_crosswalks/71_deliverable_file_type.sql` / `72_deliverable_file_type_check.sql`
+| Populated (5 codes); CSV-canonical (`registry.yaml`). Maps the legacy file-type codes onto `document_type` text ids, with two deliberate lossy collapses (2+3 -> Monitoring Report, 7+9 -> Monitoring Protocol) and code 1 (Budget Neutrality) marked `in_scope=false` -- retired and DEMOS-owned, so the loader excludes it
+
 | comment_origin
-| (none yet -- gated)
-| (none yet -- gated)
-| `sql/04_crosswalks/68_comment_origin.sql` (no check; consumed by `sql/20_app/50_comment.sql`)
-| GATED -- DDL only, recreated empty (no `registry.yaml` entry). Routes `mdcd_dlvrbl_cmt.cmt_orgn_cd` {A,B,C,I,R,S} -> private/public; until SME authors routes, loader falls back to author person_type. Coverage surfaced by `sql/99_parity/47_comment_routing_coverage.sql`
+| (none; no `*_rfrnc` lookup to propose from)
+| `reports/crosswalks/comment_origin.csv`
+| `sql/04_crosswalks/68_comment_origin.sql` / `73_comment_origin_check.sql`
+| Populated (6 codes); CSV-canonical (`registry.yaml`). Routes `mdcd_dlvrbl_cmt.cmt_orgn_cd` {A,B,C,I,R,S} -> `private_comment`/`public_comment`; `S` is the only public route. B and R are routed private per the fail-safe unknown -> private rule, with the reversal path documented in `68_comment_origin.sql`. Check is full-coverage today (empty deferred allow-list); coverage also surfaced by `sql/99_parity/47_comment_routing_coverage.sql`
 |===
 
 === A.2 Other edited inputs
@@ -226,6 +232,20 @@ xref:../sme/howto-author-a-crosswalk-csv.adoc[the SME crosswalk how-to]).
 | seeds
 | `migrate seeds`; PMDA `11-W-NNNNN/R` region validation
 | Populated; `sql/03_seeds_limiters/` empty (Prisma owns limiter seeds)
+
+| Deliverable action chain
+| `sql/02_seeds_static/30_deliverable_action_chain.sql`
+| SME
+| seeds
+| `sql/23_app_derived/60_deliverable_action.sql` synthesis; `sql/04_crosswalks/74_deliverable_action_chain_check.sql`
+| Populated. PMDA keeps no per-transition action history, so this is the ordered minimal hop sequence that reconstructs how a deliverable reached each terminal status. Edit it to change the synthesized timeline, not the loader
+
+| DEMOS validation-rule transcriptions
+| `sql/02_seeds_static/35_phase_completion_rule.sql`, `sql/02_seeds_static/36_application_date_rule.sql`
+| Developer
+| seeds
+| `sql/99_parity/61_phantom_phase.sql`, `sql/99_parity/60_application_date_consistency.sql`
+| Populated. Hand-transcribed from `server/src/model/applicationPhase/checkPhaseCompletionRules.ts` and `server/src/model/applicationDate/validateInputDates.ts`; re-transcribe when the server's validation tables change so the parity counts stay honest
 
 | JSONB validation schemas
 | `reports/jsonb_schemas/application_validation.schema.json`, `reports/jsonb_schemas/uipath_response.schema.json`, `reports/jsonb_schemas/uipath_token_list.schema.json`
@@ -401,7 +421,7 @@ As of *2026-06-26*. Hand-audited; not enforced by `verify-doc-facts`
   deferred for SME/SDG placement and logged non-gating in
   `migration._parity_application_milestone_unmapped`
   (`sql/99_parity/56_application_milestone.sql`). The
-  Federal Comment past-window failsafe references cutover `2026-08-20` as a single
+  Federal Comment past-window failsafe references cutover `2026-08-13` as a single
   documented SQL constant in `sql/23_app_derived/50_application_phase.sql`
   (anchored to Eastern midnight, `-04:00` EDT, per the timezone fix below).
 * *Timezone anchoring (2026-07-14):* date-only values are anchored to

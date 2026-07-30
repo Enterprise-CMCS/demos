@@ -1,6 +1,6 @@
 # 50_sequences/
 
-Intentionally empty for the demonstration entity: `app.demonstration.id`
+Intentionally empty for the demonstration entity: `demos_app.demonstration.id`
 is a `uuid` (see `docs/developer/reference-data-dictionary.adoc`),
 and the DEMOS backend mints new UUIDs without a PG sequence. There is
 nothing to `setval` after the migration to align with post-cutover

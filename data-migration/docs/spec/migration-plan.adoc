@@ -18,6 +18,16 @@ board, and the dependency map.
 
 Branch numbering is stable: cite "Branch 8" in commits and reviews.
 
+[NOTE]
+====
+The Evidence column used to cite commit SHAs. Those were written before
+`data-migration/` was imported into the DEMOS monorepo as a single squashed
+commit (`5ee40a5c`, 2026-07-10), and none of them resolve here any more. They
+were removed on 2026-07-30 rather than left looking authoritative. The column
+now cites files, which are checkable: `docs/tools/verify_schema_refs.py` fails
+the build if any of them stops existing.
+====
+
 [[status-legend]]
 == Status legend
 
@@ -28,6 +38,7 @@ Branch numbering is stable: cite "Branch 8" in commits and reviews.
 | *Done* | Decision made and the committed artifact reflects it.
 | *In progress* | Started; some follow-up work remains.
 | *Pending* | Decided (or scoped) but implementation not yet started.
+| *Superseded* | A later decision retired the branch; nothing is left to build.
 |===
 
 [[decision-tree]]
@@ -52,7 +63,7 @@ retired. See the `[Unreleased]` CHANGELOG "Removed" entry and
 | Target-contract refresh (root)
 | Re-pin the Prisma DDL to the current migration set, diff old->new, propagate the delta before further P2-P6 work.
 | In progress
-| Pin refreshed (`53a9ef9f`); diff + propagation pending. `reports/prisma_ddl.sha256`, `reports/prisma_ddl_source.txt`
+| Pin refreshed; diff + propagation pending. `reports/prisma_ddl.sha256`, `reports/prisma_ddl_source.txt`
 
 | 2
 | History (DEMOS-owned)
@@ -64,13 +75,13 @@ retired. See the `[Unreleased]` CHANGELOG "Removed" entry and
 | JSONB-validator disposition
 | No shape trigger on any live `demos_app.*` column; BN is out of scope (DEMOS-owned; see the note above); uipath_* and application_validation stay registered-but-unwired.
 | Done
-| `a93580d`, `e9bc54a`; `sql/31_constraint_triggers/00_jsonb_validation.sql`
+| `sql/31_constraint_triggers/00_jsonb_validation.sql`
 
 | 4
 | Crosswalk confidence
 | Mine the DEMOS baseline seeds + action state machine to raise `none`/`low` mappings to proposed-with-rationale (review-only, unwired).
 | Done
-| `8682a83`; `reports/crosswalks/proposed/`
+| `reports/crosswalks/proposed/`
 
 | 5
 | BN load target
@@ -94,19 +105,19 @@ retired. See the `[Unreleased]` CHANGELOG "Removed" entry and
 | BN source scope + staging
 | Enumerate `bdgt_ntrlty_*` + `mdcd_dlvrbl_fil_doc`; add the staging step that populated `migration.bn_workbook_detail`.
 | Superseded
-| `13b3eb7` landed, then retired: BN is DEMOS-owned (see the note above). `reports/narrative/bn_source_enumeration.md` (historical).
+| Landed, then retired: BN is DEMOS-owned (see the note above). `reports/narrative/bn_source_enumeration.md` (historical).
 
 | 9
 | Spec amendment (BN + JSONB)
 | Reframe workstream I: `validation_data` is not a load target; the aggregate is a migration-private parity oracle.
 | Done
-| `e9bc54a`; `docs/spec/canonical-spec.adoc`
+| `docs/spec/canonical-spec.adoc`
 
 | 10
 | Document / S3 handling
 | The database carries `s3_path` only; copying the S3 object is a separate runbook plus a path-resolvability parity check.
-| Pending
-| `e9bc54a` (spec); DEMOS `document.prisma`
+| Superseded
+| Overtaken by the operator decision of 2026-07-27 that document migration is out of scope for this repo: `sql/99_parity/30_scope_coverage.sql` records `document` as `OUT-OF-SCOPE`, and no `20_app` document loader or path-resolvability check exists. The investigation behind the decision is in `reports/narrative/notes.md`; the facts a future owner needs are in xref:../developer/explanation-document-migration.adoc[document migration].
 
 | 11
 | Derived status overlay
@@ -123,8 +134,8 @@ retired. See the `[Unreleased]` CHANGELOG "Removed" entry and
 | 13
 | `functions.sql` duties
 | Materialize derived rows; pre-trim text before the new whitespace CHECKs; re-assert four invariants in `99_parity`.
-| Pending
-| DEMOS `server/src/sql/functions.sql`
+| In progress
+| DEMOS `server/src/sql/functions.sql`. Shipped: the derived rows are materialized in `sql/23_app_derived/` (person_state, the three role-assignment layers, the fallback PO, `application_phase`, `deliverable_action`), and text is pre-trimmed ahead of the whitespace CHECKs (`sql/10_stg/31_deliverable_resolved.sql` `btrim`s `name` for `check_deliverable_name_has_no_leading_trailing_whitespace`, and 16 further staging/app files `btrim`). Outstanding: only one parity view re-asserts a `functions.sql` invariant so far (`sql/99_parity/57_primary_officer_missing.sql`, `check_demonstration_primary_project_officer`).
 |===
 
 [[critical-path]]

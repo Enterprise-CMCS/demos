@@ -3,7 +3,7 @@
  * Inputs:     demos_app.document (guarded on stg.document_resolved)
  * Outputs:    migration._parity_document_cms_file_submission
  * Invariants: Empty == healthy; INERT FORWARD-SCAFFOLD, NON-GATING for now (the parity runner does not yet read this view); conditional-DDL guard on stg.document_resolved (NOT demos_app.document) so the fake-row app-layers idempotency harness does not create it and break test_parity_views_empty; idempotent via CREATE OR REPLACE.
- * Refs:       Prisma migration 20260623125420_no_deliverable_submitted_cms_files; docs/specs/pmda-cross-cutting-derivation-spec.md, section 6 + Table 2 "Document Source Families"; migration/phases/parity.py
+ * Refs:       Prisma migration 20260623125420_no_deliverable_submitted_cms_files; docs/developer/reference-cross-cutting-derivations.adoc, "Deliverables, documents, comments, budget neutrality" + "Document source families"; migration/phases/parity.py
  *
  * Parity check (forward-scaffold): documents that VIOLATE the DEMOS invariant
  * no_submitted_deliverable_cms_files -- a CMS-attached file may NOT also carry a
@@ -15,11 +15,11 @@
  *
  * INERT FORWARD-SCAFFOLD -- NON-GATING for now. There is no document loader yet
  * (the document source-family fan-in is SME-blocked; see
- * docs/specs/pmda-cross-cutting-derivation-spec.md, §6 "Deliverables, Documents,
- * Comments, BN" + Table 2 "Document Source Families"), so nothing populates
- * demos_app.document and there is nothing to assert. The parity runner
- * (migration/phases/parity.py) does not yet read this view; it lands here so the
- * invariant is already wired the moment a real loader does.
+ * docs/developer/reference-cross-cutting-derivations.adoc, "Deliverables,
+ * documents, comments, budget neutrality" + "Document source families"), so
+ * nothing populates demos_app.document and there is nothing to assert. The
+ * parity runner (migration/phases/parity.py) does not yet read this view; it
+ * lands here so the invariant is already wired the moment a real loader does.
  *
  * Conditional DDL -- WHY THE GUARD IS ON stg.document_resolved, NOT
  * demos_app.document: the app-layers idempotency harness

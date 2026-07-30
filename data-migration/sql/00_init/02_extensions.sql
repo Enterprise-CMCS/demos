@@ -1,6 +1,6 @@
 /*
  * Purpose: Install the always-required Postgres extensions (pgcrypto, uuid-ossp); idempotent. pg_jsonschema is installed separately in 02b so it can be skipped on a stock cluster.
- * Refs:    sql/00_init/02b_extensions_jsonschema.sql, sql/01_ddl/00_jsonb_schema_registry.sql
+ * Refs:    sql/00_init/02b_extensions_jsonschema.sql, sql/01_ddl_supplements/00_jsonb_schema_registry.sql
  *
  * Postgres extensions required by the DEMOS schema and migration tooling.
  *

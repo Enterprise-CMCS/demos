@@ -28,6 +28,7 @@ long-form plan.
 
 === How-to
 
+* xref:operator/howto-dress-rehearsal-probe.adoc[Run the dress-rehearsal probe]
 * xref:operator/howto-cutover-day.adoc[Cutover day]
 * xref:operator/howto-rollback.adoc[Rollback]
 * xref:operator/howto-rebuild-from-scratch.adoc[Rebuild from scratch]
@@ -73,9 +74,11 @@ long-form plan.
 * xref:developer/howto-revalidate-jsonb.adoc[Revalidate a JSONB column]
 * xref:developer/howto-write-a-parity-check.adoc[Write a parity check]
 * xref:developer/howto-run-tests-locally.adoc[Run tests locally]
+* xref:developer/howto-load-demos-devcontainer.adoc[Load migrated data into the DEMOS devcontainer]
 
 === Reference
 
+* xref:developer/reference-repo-layout.adoc[Repository layout]
 * xref:developer/reference-pipeline-stages.adoc[Pipeline stages]
 * xref:developer/reference-sql-conventions.adoc[SQL conventions]
 * xref:developer/reference-python-package.adoc[Python package and `lib.py`]
@@ -87,8 +90,11 @@ long-form plan.
 * xref:developer/reference-schema-diagrams.adoc[Schema diagrams (generated)]
 * xref:developer/reference-id-maps.adoc[id maps]
 * xref:developer/reference-data-dictionary.adoc[DEMOS data dictionary]
+* xref:developer/reference-legacy-pmda-workflows.adoc[Legacy PMDA workflows]
 * xref:developer/reference-source-target-columns.adoc[Source/target column map]
+* xref:developer/reference-cross-cutting-derivations.adoc[Cross-cutting derivations]
 * xref:developer/reference-derivability-audit.adoc[Derivability audit]
+* xref:developer/reference-crosswalk-audit.adoc[Crosswalk audit]
 * xref:developer/reference-users-person-migration.adoc[Users and person migration]
 * xref:developer/reference-demonstration-role-migration.adoc[Demonstration role assignment migration]
 
@@ -98,7 +104,14 @@ long-form plan.
 * xref:developer/explanation-idempotency.adoc[Idempotency]
 * xref:developer/explanation-fk-strategy.adoc[FK strategy]
 * xref:developer/explanation-history-backfill.adoc[History is DEMOS-owned, not migrated]
+* xref:developer/explanation-deliverable-action-backfill.adoc[Synthesizing the deliverable action trail]
 * xref:developer/explanation-demos-clone-vs-id-maps.adoc[The DEMOS clone tool vs. our id maps]
+* xref:developer/explanation-api-validator-conformance.adoc[Conformance to the DEMOS API validator]
+* xref:developer/explanation-api-validation-audit.adoc[API validation audit]
+* xref:developer/explanation-migration-feasibility.adoc[What can migrate at all]
+* xref:developer/explanation-dbt-alignment.adoc[Alignment with the dbt build]
+* xref:developer/explanation-document-migration.adoc[Document migration]
+* xref:developer/explanation-jenkins-pipelines.adoc[Jenkins pipelines]
 
 == SME book
 
@@ -120,6 +133,9 @@ long-form plan.
 * xref:sme/reference-pending-approved-rules.adoc[Pending/approved rules]
 * xref:sme/reference-history-strategy.adoc[History strategy]
 * xref:sme/reference-drop-list.adoc[Drop list]
+* xref:sme/reference-demonstration-mapping-worksheet.adoc[P1 demonstration mapping worksheet]
+* xref:sme/reference-milestone-date-mapping.adoc[Milestone date mapping]
+* xref:sme/reference-sme-signoff-2026-07-20.adoc[SME sign-off ledger, 2026-07-20]
 
 === Explanation
 

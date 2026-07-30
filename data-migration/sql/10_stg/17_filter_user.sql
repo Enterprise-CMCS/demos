@@ -2,7 +2,7 @@
  * Purpose:    Build the row-level allowlist of valid user ids by screening usernames and requiring a present, well-formed email.
  * Inputs:     mysql_raw.users, stg._keep_ids, stg._drop_ids
  * Outputs:    CREATE OR REPLACE VIEW stg._valid_user_ids
- * Invariants: source-only (no crosswalks/seeds); independent of the demonstration filter; email mandatory (drops NULL-email service accounts SHAREPOINT/PMDA and malformed rows); testing_user_ind NOT trusted (0 on every row); force-keep only ids present in source (CODE_REVIEW H5).
+ * Invariants: source-only (no crosswalks/seeds); independent of the demonstration filter; email mandatory (drops NULL-email service accounts SHAREPOINT/PMDA and malformed rows); testing_user_ind NOT trusted (0 on every row); force-keep only ids present in source.
  * Refs:       -
  *
  * Row-level allowlist filter on the user anchor `mysql_raw.users`.
@@ -50,7 +50,7 @@ no_email AS (
     OR email !~ '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$'
 ),
 keep AS (
-  -- Force-keep only ids that exist in the source (CODE_REVIEW H5).
+  -- Force-keep only ids that exist in the source.
   SELECT
     k.legacy_id AS user_id
   FROM

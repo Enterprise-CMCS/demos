@@ -17,6 +17,10 @@ The target table is resolved, in order, by:
    -> the mapped demos column -> its FK parent table;
 3. the crosswalk file stem itself being a seeded table.
 
+Crosswalks listed under ``skip:`` in ``crosswalk_targets.yaml`` resolve a legacy
+value to a route or a tuple rather than to a seeded row, so they have no target
+to verify; their own ``*_check.sql`` is the validation of record.
+
 Exits non-zero (failing ``make all``) on any unknown id or unresolvable target.
 """
 
@@ -37,12 +41,24 @@ OVERRIDES_FILE = Path(__file__).resolve().parent / "crosswalk_targets.yaml"
 VALUE_COLUMNS = ("sme_confirmed_value", "proposed_demos_text_id", "demos_text_id")
 
 
-def load_overrides() -> dict[str, str]:
+def _load_targets_config() -> dict[str, dict[str, str]]:
     if not OVERRIDES_FILE.exists():
         return {}
-    data = yaml.safe_load(OVERRIDES_FILE.read_text()) or {}
-    overrides = data.get("overrides") or {}
-    return {str(k): str(v) for k, v in overrides.items()}
+    return yaml.safe_load(OVERRIDES_FILE.read_text()) or {}
+
+
+def _str_map(data: dict[str, dict[str, str]], key: str) -> dict[str, str]:
+    section = data.get(key) or {}
+    return {str(k): str(v) for k, v in section.items()}
+
+
+def load_overrides() -> dict[str, str]:
+    return _str_map(_load_targets_config(), "overrides")
+
+
+def load_skips() -> dict[str, str]:
+    """Return ``stem -> reason`` for crosswalks with no seeded target."""
+    return _str_map(_load_targets_config(), "skip")
 
 
 def crosswalk_column_targets() -> dict[str, tuple[str, str]]:
@@ -88,13 +104,18 @@ def value_column(fieldnames) -> str | None:
 def main() -> int:
     model = load_target_model(include_history=True)
     overrides = load_overrides()
+    skips = load_skips()
     col_targets = crosswalk_column_targets()
 
     problems: list[str] = []
     checked = 0
+    skipped = 0
     for csv_path in sorted(CROSSWALK_DIR.glob("*.csv")):
         stem = csv_path.stem
         rel = csv_path.relative_to(REPO_ROOT)
+        if stem in skips:
+            skipped += 1
+            continue
         table, how = resolve_target(stem, overrides, col_targets, model)
         if table is None:
             problems.append(f"{rel}: cannot resolve target table ({how})")
@@ -127,7 +148,10 @@ def main() -> int:
         for p in problems:
             print(f"  - {p}", file=sys.stderr)
         return 1
-    print(f"verify-crosswalks: OK ({checked} crosswalk file(s) checked)")
+    print(
+        f"verify-crosswalks: OK ({checked} crosswalk file(s) checked, "
+        f"{skipped} skipped by crosswalk_targets.yaml)"
+    )
     return 0
 
 

@@ -102,7 +102,7 @@ ifndef::nested[]
 
 [.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
 |===
-|xref:explanation-history-backfill.adoc[< prev]
+|xref:explanation-deliverable-action-backfill.adoc[< prev]
 ^|xref:../toc.adoc[Table of contents]
 >|xref:explanation-api-validator-conformance.adoc[next >]
 |===

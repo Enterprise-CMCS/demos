@@ -8,6 +8,11 @@ lighter Purpose+Refs subset. This checker parses only the leading comment block
 of each file and asserts the required labels are present -- it does not police
 the prose beneath them.
 
+The one exception is `Refs:`, whose whole value is repo paths. Those are
+resolved against the tree, so a header cannot keep pointing at a file that was
+renamed or deleted. Paths that are deliberately absent live in
+docs/tools/doc_absent_paths.txt, shared with docs/tools/verify_schema_refs.py.
+
 Usage:
   python scripts/check_sql_frontmatter.py [FILE ...]   # exit 1 on any offender
 
@@ -22,6 +27,12 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+
+# Refs may cite the sibling DEMOS application (server/, client/), which lives
+# one level up in the monorepo.
+MONOREPO_ROOT = REPO_ROOT.parent
+
+ABSENT_PATHS_FILE = REPO_ROOT / "docs" / "tools" / "doc_absent_paths.txt"
 
 SCOPE_GLOBS = ("sql/**/*.sql", "scripts/*.sql", "tests/sql/fixtures/**/*.sql")
 
@@ -39,6 +50,19 @@ FULL_LAYERS = frozenset({
     "31_constraint_triggers",
     "99_parity",
 })
+
+# A Refs token is only treated as a path if it starts with one of these. Prose
+# containing a slash ("Pending/approved", "fail-closed w/ NULL") is left alone.
+REF_PATH_PREFIXES = (
+    "sql/", "reports/", "state/", "pgloader/", "migration/", "docs/",
+    "scripts/", "runbooks/", "tests/", "server/", "client/", "lambdas/",
+)
+
+# Adornments a citation may carry after the path proper: an AsciiDoc anchor,
+# a pytest node id, or a line number.
+_REF_SUFFIX = re.compile(r"(?:#|::|:\d).*$")
+_REF_PLACEHOLDER = re.compile(r"[<>*?]")
+_REF_SPLIT = re.compile(r"[;,]|\s+")
 
 
 def in_scope_files() -> list[Path]:
@@ -88,6 +112,66 @@ def missing_from_text(text: str, labels: tuple[str, ...]) -> list[str]:
 def missing_labels(path: Path) -> list[str]:
     """Required labels absent from a file's front-matter block."""
     return missing_from_text(path.read_text(), required_labels(path))
+
+
+def load_absent_paths() -> set[str]:
+    """Repo-relative paths that are deliberately not in the tree."""
+    if not ABSENT_PATHS_FILE.exists():
+        return set()
+    return {
+        stripped
+        for line in ABSENT_PATHS_FILE.read_text().splitlines()
+        if (stripped := line.split("#", 1)[0].strip())
+    }
+
+
+def _uncomment(line: str) -> str:
+    """A header line with its comment marker (`--`, `/*`, `*`) removed."""
+    return re.sub(r"^\s*(?:--|/\*|\*)\s?", "", line).rstrip()
+
+
+def refs_value(text: str) -> str | None:
+    """The `Refs:` value from a file's front-matter, or None if it has no Refs.
+
+    Continuation lines are folded in; the value ends at the first blank line or
+    the next `Label:` line.
+    """
+    collected: list[str] | None = None
+    for line in map(_uncomment, leading_comment(text).splitlines()):
+        if collected is None:
+            if m := re.match(r"\s*Refs\s*:(.*)$", line):
+                collected = [m.group(1).strip()]
+            continue
+        if not line.strip() or re.match(r"\s*[A-Z][A-Za-z ]{2,20}\s*:", line):
+            break
+        collected.append(line.strip())
+    return " ".join(collected).strip() if collected is not None else None
+
+
+def ref_paths(text: str) -> list[str]:
+    """Repo paths cited in a file's `Refs:` front-matter field."""
+    value = refs_value(text)
+    if value is None:
+        return []
+    paths = []
+    for raw in _REF_SPLIT.split(value):
+        tok = _REF_SUFFIX.sub("", raw.strip().strip(".,;()[]`'\"")).rstrip(".")
+        if tok.startswith(REF_PATH_PREFIXES) and not _REF_PLACEHOLDER.search(tok):
+            paths.append(tok)
+    return paths
+
+
+def dangling_refs(text: str, allowed: set[str]) -> list[str]:
+    """Cited paths that resolve nowhere, in file order and without repeats."""
+    seen: set[str] = set()
+    out: list[str] = []
+    for ref in ref_paths(text):
+        if ref in allowed or ref in seen:
+            continue
+        seen.add(ref)
+        if not (REPO_ROOT / ref).exists() and not (MONOREPO_ROOT / ref).exists():
+            out.append(ref)
+    return out
 
 
 def block_comment_unterminated(text: str) -> bool:
@@ -146,12 +230,17 @@ def _selected(paths: list[str]) -> list[Path]:
 def main(argv: list[str]) -> int:
     offenders: list[tuple[Path, list[str]]] = []
     comment_offenders: list[Path] = []
+    ref_offenders: list[tuple[Path, list[str]]] = []
+    allowed = load_absent_paths()
     for path in _selected(argv):
-        missing = missing_labels(path)
+        text = path.read_text()
+        missing = missing_from_text(text, required_labels(path))
         if missing:
             offenders.append((path, missing))
-        if block_comment_unterminated(path.read_text()):
+        if block_comment_unterminated(text):
             comment_offenders.append(path)
+        if dangling := dangling_refs(text, allowed):
+            ref_offenders.append((path, dangling))
 
     if offenders:
         print("SQL files missing front-matter fields:", file=sys.stderr)
@@ -165,8 +254,17 @@ def main(argv: list[str]) -> int:
         )
         for path in comment_offenders:
             print(f"  {path.relative_to(REPO_ROOT)}", file=sys.stderr)
+    if ref_offenders:
+        print(
+            "SQL files whose front-matter Refs point at paths that do not exist "
+            "(fix the citation, or allow-list it in docs/tools/doc_absent_paths.txt "
+            "if the file is deliberately absent):",
+            file=sys.stderr,
+        )
+        for path, dangling in ref_offenders:
+            print(f"  {path.relative_to(REPO_ROOT)}: {', '.join(dangling)}", file=sys.stderr)
 
-    if offenders or comment_offenders:
+    if offenders or comment_offenders or ref_offenders:
         print(
             "\nSee docs/developer/reference-sql-conventions.adoc for the template.",
             file=sys.stderr,

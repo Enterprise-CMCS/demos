@@ -3,7 +3,7 @@
  * Inputs:     mysql_raw.mdcd_demo, mysql_raw.mdcd_demo_aplctn, stg._valid_demo_ids, migration._id_map_mdcd_demo
  * Outputs:    CREATE OR REPLACE VIEW stg.demonstration_resolved
  * Invariants: source-only (mysql_raw + id map + stg only; never crosswalks 04 / seeds 02) so it builds in the stg-only idempotency harness; idempotent (CREATE OR REPLACE VIEW); soft-delete exclusion (dltd_ind = 1); medicaid_id standardized via migration.normalize_medicaid_id and chip_id_legacy via migration.normalize_chip_id (strip-and-reassemble, the same helpers the row-level filter uses so the kept set and emitted ids never drift), with chip_id_source retained unnormalized for the SME drop log (99_parity/15_chip_id_not_normalizable.sql); phase mapping is a best-effort §6.1 approximation pending SME ratification.
- * Refs:       reports/narrative/p1_demonstration_mapping_worksheet.md, docs/specs/pmda-cross-cutting-derivation-spec.md
+ * Refs:       reports/narrative/p1_demonstration_mapping_worksheet.md, docs/developer/reference-cross-cutting-derivations.adoc
  *
  * Staging projection of each PMDA-valid demonstration (mysql_raw.mdcd_demo)
  * into the column set the demos_app.application + demos_app.demonstration
@@ -45,7 +45,7 @@
  * Soft deletes (mdcd_demo.dltd_ind = 1) are excluded: demonstration has no
  * target "Deleted" lifecycle state, so resurrecting them as live rows would be
  * wrong. Representing soft-deleted demonstrations is a deferred SME decision
- * (docs/specs/pmda-cross-cutting-derivation-spec.md, Soft Deletes).
+ * (docs/developer/reference-cross-cutting-derivations.adoc#soft-deletes).
  */
 SET search_path TO stg, mysql_raw, migration, public;
 

@@ -57,7 +57,7 @@ ifndef::nested[]
 
 [.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
 |===
-|xref:reference-users-person-migration.adoc[< prev]
+|xref:reference-demonstration-role-migration.adoc[< prev]
 ^|xref:../toc.adoc[Table of contents]
 >|xref:explanation-idempotency.adoc[next >]
 |===

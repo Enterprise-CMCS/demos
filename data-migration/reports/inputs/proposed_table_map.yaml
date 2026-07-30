@@ -22,7 +22,11 @@ net_new:
   application_tag_assignment: "tag system; populated by the app, no PMDA source"
   application_tag_suggestion: "AI tag-suggestion artifact; net-new"
   application_tag_suggestion_extract: "AI extraction artifact; net-new"
-  deliverable_action: "deliverable workflow-action model; net-new (PMDA stores status, not discrete actions)"
+  # NOT net-new in the bucket's literal sense (it is neither empty at cutover
+  # nor populated by the app), but there is no better bucket: the partition has
+  # no slot for "synthesized by the migration from source data without a column
+  # map". Kept here so the partition stays total; do not read it as "no source".
+  deliverable_action: "PMDA stores a deliverable's status, not discrete actions, so no column maps across. BUILT anyway: sql/23_app_derived/60_deliverable_action.sql synthesizes the minimal legal hop chain implied by each loaded deliverable's status."
   deliverable_active_extension: "formal deliverable extensions; net-new"
   deliverable_extension: "formal deliverable extensions; net-new"
   document_infected: "AV-scan lifecycle of the new upload pipeline; net-new"

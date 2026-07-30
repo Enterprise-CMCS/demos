@@ -72,6 +72,7 @@ Unifying handle for an application of any type; legacy pending and approved fold
 | Column | Type | Null | Default / Key
 | `id` | `UUID` | N | 
 | `application_type_id` | `TEXT` | N | FK
+| `is_migrated_from_pmda` | `BOOLEAN` | N | DEFAULT `false`
 |===
 
 *Foreign keys:*

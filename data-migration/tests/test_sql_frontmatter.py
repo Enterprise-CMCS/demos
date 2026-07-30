@@ -121,3 +121,69 @@ def test_no_in_scope_file_has_unterminated_block_comment():
         if fm.block_comment_unterminated(path.read_text())
     ]
     assert offenders == [], f"SQL files with nested/unterminated block comments: {offenders}"
+
+
+def test_refs_value_folds_continuation_lines():
+    block = "/*\n * Purpose: x\n * Refs:    sql/a.sql;\n *          sql/b.sql\n *\n * Prose.\n */\n"
+    assert fm.refs_value(block) == "sql/a.sql; sql/b.sql"
+
+
+def test_refs_value_stops_at_next_label():
+    assert fm.refs_value(FULL_BLOCK) == "reports/narrative/p1_demonstration_mapping_worksheet.md"
+
+
+def test_refs_value_absent_is_none():
+    assert fm.refs_value("/*\n * Purpose: x\n */\n") is None
+
+
+def test_ref_paths_keeps_only_repo_paths():
+    block = (
+        "/*\n * Purpose: x\n * Refs:    sql/20_app/30_demonstration.sql; "
+        "Pending/approved decisions; the document-ocr extract-facts command\n */\n"
+    )
+    assert fm.ref_paths(block) == ["sql/20_app/30_demonstration.sql"]
+
+
+def test_ref_paths_strips_anchors_node_ids_and_punctuation():
+    block = (
+        "/*\n * Purpose: x\n * Refs:    docs/developer/x.adoc#some-anchor, "
+        "(tests/test_a.py::test_b), `scripts/c.sql`.\n */\n"
+    )
+    assert fm.ref_paths(block) == [
+        "docs/developer/x.adoc",
+        "tests/test_a.py",
+        "scripts/c.sql",
+    ]
+
+
+def test_ref_paths_skips_placeholders():
+    block = "/*\n * Purpose: x\n * Refs:    sql/10_stg/<NN>_thing.sql\n */\n"
+    assert fm.ref_paths(block) == []
+
+
+def test_dangling_refs_reports_only_missing():
+    block = (
+        "/*\n * Purpose: x\n * Refs:    docs/developer/reference-sql-conventions.adoc; "
+        "sql/nope/999_ghost.sql\n */\n"
+    )
+    assert fm.dangling_refs(block, set()) == ["sql/nope/999_ghost.sql"]
+
+
+def test_dangling_refs_honours_the_allow_list():
+    block = "/*\n * Purpose: x\n * Refs:    sql/nope/999_ghost.sql\n */\n"
+    assert fm.dangling_refs(block, {"sql/nope/999_ghost.sql"}) == []
+
+
+def test_dangling_refs_resolves_against_the_monorepo_root():
+    block = "/*\n * Purpose: x\n * Refs:    server/src/sql/permissions.sql\n */\n"
+    assert fm.dangling_refs(block, set()) == []
+
+
+def test_every_in_scope_repo_file_has_resolvable_refs():
+    allowed = fm.load_absent_paths()
+    offenders = {
+        str(path.relative_to(_REPO_ROOT)): dangling
+        for path in fm.in_scope_files()
+        if (dangling := fm.dangling_refs(path.read_text(), allowed))
+    }
+    assert offenders == {}, f"SQL front-matter Refs pointing at nothing: {offenders}"

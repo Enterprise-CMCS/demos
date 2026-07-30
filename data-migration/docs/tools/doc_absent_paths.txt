@@ -16,3 +16,16 @@ sql/30_constraints/01_fks.sql
 # Investigation artifacts produced on demand, not committed.
 reports/orphans/baseline.md
 scripts/dev_pg.sh
+
+# Orphan log for 99_parity/63_deliverable_action_held.sql. The seeded hop chain
+# covers every status a loaded deliverable currently carries, so the check holds
+# nothing and never writes the file.
+reports/orphans/deliverable_action_not_synthesized.csv
+
+# Warn-only drift report written by `make schema-drift`; local-only and wiped by
+# `make clean-reports`, so it is absent on a fresh checkout.
+reports/schema_drift_report.md
+
+# Produced on demand by the external document-ocr `extract-facts` command and
+# not committed. Parity check 20 skips cleanly when it is absent.
+reports/medicaid_gov_1115_snapshot.csv

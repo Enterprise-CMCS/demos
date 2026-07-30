@@ -2,7 +2,7 @@
  * Purpose:    Build the row-level allowlist of valid amendment ids, cascading from both the approved- and pending-demo filters.
  * Inputs:     mysql_raw.mdcd_demo_amndmt, stg._valid_demo_ids, stg._valid_pendg_demo_ids, stg._keep_ids, stg._drop_ids
  * Outputs:    CREATE OR REPLACE VIEW stg._valid_amndmt_ids
- * Invariants: source-only (no crosswalks/seeds); dual parentage (keep when EITHER parent survives, drop only when neither does); fail-closed created-date rule; force-keep only ids present in source (CODE_REVIEW H5).
+ * Invariants: source-only (no crosswalks/seeds); dual parentage (keep when EITHER parent survives, drop only when neither does); fail-closed created-date rule; force-keep only ids present in source.
  * Refs:       -
  *
  * Row-level allowlist filter on the amendment anchor
@@ -54,7 +54,7 @@ bad_parent AS (
           p.demo_id = a.mdcd_pendg_demo_id)
 ),
 keep AS (
-  -- Force-keep only ids that exist in the source (CODE_REVIEW H5).
+  -- Force-keep only ids that exist in the source.
   SELECT
     k.legacy_id AS amndmt_id
   FROM

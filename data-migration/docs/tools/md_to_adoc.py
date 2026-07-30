@@ -36,9 +36,16 @@ MAPPINGS: dict[str, str] = {
     "reports/narrative/drop_list.md": "drop-list.adoc",
     "reports/narrative/pending_approved_decisions.md": "pending-approved-decisions.adoc",
     "reports/narrative/history_strategy.md": "history-strategy.adoc",
+    "reports/narrative/milestone_date_mapping.md": "milestone-date-mapping.adoc",
+    "reports/narrative/p1_demonstration_mapping_worksheet.md": (
+        "p1-demonstration-mapping-worksheet.adoc"
+    ),
+    "reports/narrative/sme_signoff_2026-07-20.md": "sme-signoff-2026-07-20.adoc",
     "runbooks/rollback.md": "rollback.adoc",
     "runbooks/cutover.md": "cutover.adoc",
     "runbooks/revalidate-jsonb.md": "revalidate-jsonb.adoc",
+    "runbooks/demos-devcontainer-load.md": "demos-devcontainer-load.adoc",
+    "runbooks/dress-rehearsal-probe.md": "dress-rehearsal-probe.adoc",
 }
 
 

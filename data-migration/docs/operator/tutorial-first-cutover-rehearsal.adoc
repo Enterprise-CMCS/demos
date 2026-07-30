@@ -102,7 +102,7 @@ ifndef::nested[]
 |===
 |xref:index.adoc[< prev]
 ^|xref:../toc.adoc[Table of contents]
->|xref:howto-cutover-day.adoc[next >]
+>|xref:howto-dress-rehearsal-probe.adoc[next >]
 |===
 endif::[]
 // docnav-end

@@ -73,10 +73,10 @@
 | `users` | `email` | varchar(256) | `person` | `email` | TEXT | `copy` | OK | Direct copy; the user filter guarantees a present valid email
 | `users` | `euaId` | varchar(4) | `person` | `person_type_id` | TEXT | `derive` | OK | No-role fallback CMS-vs-state signal (present->cms-user
 | `user_role_asgnmt` | `role_cd` | int | `person` | `person_type_id` | TEXT | `derive` | WARN | Primary person_type signal via crosswalk_role_person_type; most-privileged role wins
-| `user_role_asgnmt` | `role_cd` | int | `system_role_assignment` | `role_id` | TEXT | `crosswalk:system_role` | WARN | System roles only (code 1 Internal Administrator->Admin User; code 4 State User->State User)
+| `user_role_asgnmt` | `role_cd` | int | `system_role_assignment` | `role_id` | TEXT | `derive` | WARN | System role derived from the user's person_type (stg.users_resolved) via crosswalk_system_role (demos-admin->Admin User, demos-cms-user->CMS User, demos-state-user->State User)
 | `user_role_asgnmt` | `user_id` | int | `system_role_assignment` | `person_id` | UUID | `id_map` | WARN | user_role_asgnmt user -> migration._id_map_users
-| `user_role_asgnmt` | `` | — | `system_role_assignment` | `grant_level_id` | TEXT | `derive` | MISMATCH | crosswalk_system_role.grant_level_id (constant 'System'); validated by sql/04_crosswalks/45_system_role_check.sql
-| `user_role_asgnmt` | `` | — | `system_role_assignment` | `person_type_id` | TEXT | `derive` | MISMATCH | crosswalk_system_role.person_type_id (e.g. demos-admin); JOIN-guarded against person(id, person_type_id)
+| `user_role_asgnmt` | `` | — | `system_role_assignment` | `grant_level_id` | TEXT | `derive` | MISMATCH | crosswalk_system_role.grant_level_id (constant 'System'), keyed by person_type; validated by sql/04_crosswalks/45_system_role_check.sql
+| `user_role_asgnmt` | `` | — | `system_role_assignment` | `person_type_id` | TEXT | `derive` | MISMATCH | the user's own derived person_type (stg.users_resolved); JOIN-guarded against person(id, person_type_id)
 | `mdcd_demo` | `proj_ofcr_user_id` | int | `demonstration_role_assignment` | `person_id` | UUID | `crosswalk:demonstration_role` | WARN | Project Officer (PRIMARY); person via _id_map_users; demonstration via _id_map_demo
 | `mdcd_demo` | `bkup_proj_ofcr_user_id` | int | `demonstration_role_assignment` | `person_id` | UUID | `crosswalk:demonstration_role` | WARN | Project Officer (non-primary); source NOT NULL DEFAULT 0 so 0 dropped
 | `mdcd_demo` | `ro_fincl_lead_user_id` | int | `demonstration_role_assignment` | `person_id` | UUID | `crosswalk:demonstration_role` | WARN | Financial Lead folds to Project Officer

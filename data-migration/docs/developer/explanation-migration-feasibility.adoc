@@ -1,0 +1,831 @@
+= Explanation: the migration feasibility study and how it turned out
+:toc: left
+
+On 2026-07-09 the migration was put through a structured feasibility review -- a
+"grill me" session -- to decide whether a July cutover date could be committed
+to. This page preserves that review and reconciles every verdict in it against
+what the repo actually shipped. Audience: anyone deciding what is in scope,
+anyone re-reading the original date call, and anyone who needs to know which of
+its judgements are still true. By the end you will know which PMDA entities can
+migrate, which cannot, which verdicts have since been overturned, and where the
+evidence for each one lives.
+
+[IMPORTANT]
+====
+*Historical assessment, reconciled 2026-07-30.* Both cutover dates the study
+proposed -- Fri 2026-07-17 primary and Fri 2026-07-24 fallback -- passed without
+a cutover. `state/` carries no `flip`, `smoke` or `decom` gate; the newest gate
+present is `parity`, marked `2026-07-28T18:25:48Z`. The only cutover date now
+encoded anywhere in the pipeline is the Federal Comment past-window failsafe
+constant `2026-08-20` in `sql/23_app_derived/50_application_phase.sql`.
+
+Read <<verdicts>> before <<as-written>>. The reconciliation is current; the
+preserved study text is not, and several of its verdicts are wrong today.
+====
+
+[[reconciling]]
+== How this page reconciles the study
+
+The authoritative scope ledger is `sql/99_parity/30_scope_coverage.sql`. It
+names every DEMOS target table this migration owns, gives each a disposition
+(`BUILT`, `PARTIAL`, `DEFERRED`, `OUT-OF-SCOPE`) and a live row count, and
+carries the dated operator decisions in its own comments. Parity check 14 reads
+it and writes `reports/generated/scope_coverage.csv` at every gate, so the
+ledger is refreshed by running the pipeline, not by editing prose.
+
+Two other artifacts settle what the study left open: the decision ledger
+`reports/narrative/pending_approved_decisions.md` (workflow-level dispositions
+plus decisions D1-D17), and the long-form investigation record
+`reports/narrative/notes.md`. Parity statuses come from the most recent full
+run, generated `2026-07-28T18:25:27Z` against the source mirror loaded
+`2026-07-27T21:29:40Z`.
+
+For each entity or check the study judged, the tables below give what the study
+said, what is true today, and where to verify it.
+
+[[verdicts]]
+== Spec verdict versus today
+
+[[scope-verdicts]]
+=== Scope verdicts, by PMDA workflow
+
+[cols="2,2,3,2"]
+|===
+| Entity (PMDA workflow) | Spec verdict | Today | Evidence
+
+| Users, persons, roles, state access (2)
+| BUILT -- users 980, person 1176, person_state 24822, `system_role_assignment`
+  591, `demonstration_role_assignment` 668,
+  `primary_demonstration_role_assignment` 87
+| *Still BUILT.* Counts now 985 / 1182 / 25002 / 985 / 838 / 543. The system-role
+  jump is decision D14, which re-keyed the backfill from the legacy role code to
+  the user's derived `person_type` so every CMS user gets a role instead of
+  loading permission-less. The primary-role jump is D15, the fallback Project
+  Officer.
+| `reports/generated/scope_coverage.csv`; `sql/04_crosswalks/44_system_role.sql`;
+  `sql/23_app_derived/41_primary_po_fallback.sql`
+
+| Demonstrations, applications, amendments, dates (3)
+| BUILT -- demonstration 100, application 100, `application_date` 96, amendment
+  21 loaded
+| *Still BUILT.* Now 152 / 351 / 537 / 199, and `application_phase` (2808 rows)
+  is tracked as its own BUILT ledger row rather than folded into this line.
+  Amendment status is now assigned by a date-tiered rule,
+  `migration.derive_amendment_status`, which loads the statusless amendments the
+  earlier build dropped.
+| `reports/generated/scope_coverage.csv`; `sql/00_init/03_helper_fns.sql`;
+  `sql/23_app_derived/50_application_phase.sql`
+
+| Deliverables (6)
+| BUILT (validated) -- deliverable 5640; `deliverable_type` single-input
+  crosswalk; `deliverable_status` codes 0 and 7 resolved; checks 15-17 GREEN
+| *Still BUILT,* 6621 rows. Both crosswalks are unchanged in shape: code 0 (N/A)
+  carries a NULL status and is held back, code 7 (Overridden) maps to
+  `Under CMS Review`.
+| `sql/20_app/40_deliverable.sql`;
+  `sql/04_crosswalks/52_deliverable_type.sql`;
+  `sql/04_crosswalks/50_deliverable_status.sql`
+
+| Comments (6)
+| BUILT (validated) -- `private_comment` 3074, `public_comment` 3644; re-sourced
+  from the deliverable-scoped `mdcd_dlvrbl_cmt`; budget-neutrality override
+  notes routed to `private_comment`
+| *Still BUILT,* 3690 and 4294. One thing the study listed as outstanding has
+  closed: the `cmt_orgn_cd` route authoring. Parity now reports that every used
+  origin code has a route in `crosswalk_comment_origin`, where the 2026-07-22
+  run still listed six unmapped codes falling back to author-default routing.
+| `sql/20_app/50_comment.sql`; `sql/20_app/51_override_note.sql`;
+  `sql/04_crosswalks/68_comment_origin.sql`;
+  `sql/04_crosswalks/73_comment_origin_check.sql`
+
+| Demonstration type tags (4)
+| PARTIAL -- 248 assignments; the full `+*_pgm_dtl+` set still unbuilt
+| *Still PARTIAL,* 523 assignments. The base mapping is still the same 10
+  `+*_pgm_dtl+` tables and expanding it remains an SME task; the pending side is
+  now built fold-aware from a mechanically derived mapping. Separately, D16 added
+  a `Migrated From PMDA` floor for Approved zero-type demonstrations (26 floored
+  in the latest run).
+| `reports/pgm_dtl_tag_mapping.csv`; `reports/pgm_dtl_tag_mapping_pending.csv`;
+  `sql/04_crosswalks/49_pendg_pgm_dtl_tag.sql`;
+  `sql/21_app_associative/14_demonstration_type_tag_floor.sql`
+
+| Documents (6)
+| DEFERRED (scaffolded) -- `document_type` crosswalk plus a staging link exist;
+  no app loader yet
+| *Overturned: OUT-OF-SCOPE,* operator decision 2026-07-27. A metadata-only
+  loader targeting `demos_app.document_pending_upload` was built, proven
+  end-to-end (10,887 loaded / 187 held / 11,074 resolved, parity GREEN,
+  `make constraints` clean) and then removed, because that table is a transit
+  table with no read query whose only exit deletes the row. The crosswalk and
+  the staging link survive, inert.
+| `sql/99_parity/30_scope_coverage.sql` (the `document` ledger row and its dated
+  comment); `reports/narrative/notes.md`;
+  `sql/04_crosswalks/66_document_type.sql`;
+  `sql/10_stg/30_document_deliverable_link_resolved.sql`
+
+| Waiver and expenditure authorities (5)
+| SNAPSHOT DELIVERED; loader DEFERRED (non-gating). Target model confirmed as
+  none; no loader built
+| *Unchanged.* Still no `demos_app` loader, still discharged as an all-tier
+  SME-review snapshot over roughly 38 source tables. The entity appears nowhere
+  in the ledger, because the ledger tracks target tables and there is no target.
+| Decision D5 in `reports/narrative/pending_approved_decisions.md`;
+  `scripts/sme_review_exports.py` (`authorities-snapshot`)
+
+| Contacts (3, remainder)
+| DEFERRED -- staging filter only; no app loader (a wide-email pivot to person,
+  `person_state` and role assignment)
+| *Unchanged.* `sql/10_stg/16_filter_cntct.sql` is still the only artifact and
+  `sql/20_app/` holds no contact loader. The source is a wide per-role email
+  model with no single column to key on, which is why the pivot is still unbuilt.
+| `sql/10_stg/16_filter_cntct.sql`; the contact row of the decision table in
+  `reports/narrative/pending_approved_decisions.md`
+
+| Extensions and renewals (3)
+| DEFERRED post-MVP; DEMOS has no renewals concept
+| *Unchanged.* `extension` is the ledger's only DEFERRED row, at 0 rows, and the
+  renewal-status crosswalk is still a documented no-op that raises a NOTICE
+  rather than failing closed.
+| `sql/04_crosswalks/70_renewal_status_deferred.sql`;
+  `reports/generated/scope_coverage.csv`
+
+| Budget neutrality (8), MRT (9), STC (10), email and admin (11)
+| OUT-OF-SCOPE -- DEMOS-owned or dropped
+| *Unchanged, and budget neutrality is now formally settled* by SME decision D6
+  on 2026-07-16: DEMOS owns ingestion from uploaded workbooks. The migration's BN
+  machinery was retired -- staging aggregate, migration-private parity oracle,
+  BN id map, the JSONB-shape parity view and its check, and the JSON schema were
+  all deleted. `demos_app.budget_neutrality_workbook` stays a real table, left
+  empty for DEMOS to fill.
+| Decision D6 in `reports/narrative/pending_approved_decisions.md`;
+  `sql/31_constraint_triggers/00_jsonb_validation.sql` (now wires no trigger)
+
+| `deliverable_action` (6) and `application_phase` (3)
+| Not judged. `deliverable_action` was still classified net-new with no PMDA
+  source; `application_phase` was folded into the workflow-3 line
+| *Both BUILT and separately tracked:* `deliverable_action` at 21,605 rows and
+  `application_phase` at 2808. The action log is the MINIMAL fidelity chosen in
+  D7 -- a seeded legal hop chain per loaded deliverable, with real submissions
+  reconstructed from state file-upload batches.
+| `sql/23_app_derived/60_deliverable_action.sql`;
+  `sql/10_stg/39_deliverable_submission_batch.sql`;
+  `sql/02_seeds_static/30_deliverable_action_chain.sql`
+|===
+
+[[ledger]]
+=== The scope ledger today
+
+Nineteen target tables, from `reports/generated/scope_coverage.csv` as written by
+the 2026-07-28 run. The study saw 17 tables at 14 BUILT, 1 PARTIAL and 2
+DEFERRED.
+
+[cols="1,3,2,^1"]
+|===
+| Workflow | Target table | Disposition | Rows
+
+| 1 | crosswalks (reference data) | BUILT | n/a
+| 2 | `users` | BUILT | 985
+| 2 | `person` | BUILT | 1182
+| 2 | `person_state` | BUILT | 25002
+| 2 | `system_role_assignment` | BUILT | 985
+| 2 | `demonstration_role_assignment` | BUILT | 838
+| 2 | `primary_demonstration_role_assignment` | BUILT | 543
+| 3 | `demonstration` | BUILT | 152
+| 3 | `application_date` | BUILT | 537
+| 3 | `amendment` | BUILT | 199
+| 3 | `application_phase` | BUILT | 2808
+| 3 | `extension` | DEFERRED | 0
+| 4 | `demonstration_type_tag_assignment` | PARTIAL | 523
+| 6 | `deliverable` | BUILT | 6621
+| 6 | `deliverable_action` | BUILT | 21605
+| 6 | `private_comment` | BUILT | 3690
+| 6 | `public_comment` | BUILT | 4294
+| 6 | `document` | OUT-OF-SCOPE | 0
+| 7 | `application` | BUILT | 351
+|===
+
+NOTE: Check 14's summary line used to tally only BUILT, PARTIAL, and DEFERRED,
+so the counts did not add up to the row total and the OUT-OF-SCOPE `document`
+row was the unlisted nineteenth. Corrected 2026-07-30: the line now reads "19
+target table(s): 16 BUILT, 1 PARTIAL, 1 DEFERRED, 1 OUT-OF-SCOPE". The CSV
+always carried all four.
+
+[[parity-verdicts]]
+=== Parity-check verdicts
+
+Statuses in the "Today" column are from the 2026-07-28 run unless the row says
+otherwise. Production cutover still requires `OVERALL STATUS: GREEN`;
+`--accept-pending` remains rehearsal-only. That run was *PENDING* overall, with
+zero hard RED and exactly one PENDING check.
+
+[cols="1,3,2,3,2"]
+|===
+| # | Check | Spec verdict | Today | Evidence
+
+| 1 | Row count parity per consolidated family
+| PENDING footnote:wired[Checks 1, 2, 4, 10 and 12 were wired -- SQL plus accepted-flags and deferrals baselines -- after the study's last parity run, so they still presented as PENDING in it. The study named one validating post-wiring run as the single remaining step to confirm whether they went GREEN.]
+| *GREEN.* Every BUILT family cross-foots: comment 8717 = 7984 + 733 held;
+  deliverable 6693 = 6621 + 72; demonstration 153 = 152 + 1; person 1182 = 1182 +
+  0; `system_role_assignment` 985 = 985 + 0.
+| `sql/99_parity/90_row_counts.sql`
+
+| 2 | Numeric sum and count-checksum parity
+| PENDING footnote:wired[]
+| *GREEN.* No literal numeric business column moves to `demos_app`; the
+  count-checksum cross-foots source 17730 = target 16924 + held 806.
+| `sql/99_parity/90_row_counts.sql`
+
+| 3 | JSONB shape conformance
+| GREEN
+| *Retired.* Deleted with the BN machinery under D6; the check position is left
+  as a documented numbering gap so the other numbers stay stable. There is no
+  check 3 today.
+| Decision D6 in `reports/narrative/pending_approved_decisions.md`
+
+| 4 | Pending/approved unification audit
+| PENDING footnote:wired[]
+| *GREEN,* after going hard RED in between. The Delaware group whose `/4` region
+  suffix matched no member's state region gated RED on 2026-07-22; SDG's
+  2026-07-28 ruling retired that, and a tier-1 region-digit repair now folds the
+  five affected pending demonstrations into their state-correct approved
+  counterpart and reports each repair per row.
+| `sql/99_parity/04_pending_approved.sql`;
+  `reports/parity_accepted/pending_approved_deferrals.csv` (signed 2026-07-27)
+
+| 5 | Reconstructed-FK orphan checks
+| GREEN -- non-gating, load-surface scoped; 23,336 orphan rows logged per row
+| *GREEN,* 23,403 orphan rows over 27 in-scope edges, 1 edge uncheckable, 1238
+  out-of-scope edges skipped.
+| the run's own per-row log under `reports/orphans/`
+
+| 6 | Demonstration ID provenance | GREEN | *GREEN.* Every
+  `demos_app.demonstration` id resolves through a PMDA id map.
+| `sql/99_parity/10_demonstration_id_provenance.sql`
+
+| 7 | Users and person integrity | GREEN | *GREEN.*
+| `sql/99_parity/20_users_person_provenance.sql`
+
+| 8 | Demonstration load completeness | GREEN -- 100 demonstrations | *GREEN,* now
+  152 loaded and 1 held. | `sql/99_parity/11_demonstration_completeness.sql`
+
+| 9 | System role assignment integrity | GREEN | *GREEN.*
+| `sql/99_parity/22_system_role_assignment_provenance.sql`
+
+| 10 | Person state integrity
+| PENDING footnote:wired[]
+| *GREEN.* All 154 held flags accepted against a baseline now signed.
+| `reports/parity_accepted/person_state_flags.csv` (signed 2026-07-27);
+  `sql/99_parity/21_person_state_provenance.sql`
+
+| 11 | Active-users coverage cross-check | GREEN | *GREEN.*
+| `sql/99_parity/23_active_users_coverage.sql`
+
+| 12 | Demonstration role assignment integrity
+| PENDING footnote:wired[]
+| *GREEN.* 172 held flags accepted (the study counted 166). The check was also
+  corrected to recognise a demonstration minted via the pending id map, a latent
+  gap the D15 fallback surfaced.
+| `reports/parity_accepted/demonstration_role_assignment_flags.csv` (signed
+  2026-07-27); `sql/99_parity/24_demonstration_role_assignment_provenance.sql`
+
+| 13 | Approved demos held back for a missing required field | GREEN | *GREEN.* No
+  Approved demonstration was held. | `sql/99_parity/11_demonstration_completeness.sql`
+
+| 14 | PMDA workflow scope coverage
+| GREEN -- non-gating; 17 tables at 14 BUILT, 1 PARTIAL, 2 DEFERRED
+| *GREEN,* 19 tables at 16 BUILT, 1 PARTIAL, 1 DEFERRED, 1 OUT-OF-SCOPE.
+| `sql/99_parity/30_scope_coverage.sql`
+
+| 15 | Deliverable load completeness | GREEN -- 5640 loaded, 89 held | *GREEN,*
+  6621 loaded, 72 held. | `sql/99_parity/41_deliverable_completeness.sql`
+
+| 16 | Deliverable integrity | GREEN | *GREEN.*
+| `sql/99_parity/42_deliverable_integrity.sql`
+
+| 17 | Deliverables held back | GREEN -- non-gating; 89 held, logged per row
+| *GREEN,* 72 held. | `reports/orphans/deliverable_held.csv`
+
+| 18 | State-region seed versus source drift | GREEN | *GREEN.*
+| `sql/99_parity/50_state_region_source_drift.sql`
+
+| 19 | Amendment load accounting
+| GREEN -- 21 loaded, 6 held back, 92 signatures dropped to NULL
+| *GREEN.* 199 amendment rows in the ledger; 6 held for an unloaded parent, 23
+  Approved held for a missing effective date or signature, 112 signatures dropped
+  to NULL, 0 names synthesized.
+| `sql/99_parity/52_amendment_load.sql`
+
+| 20 | Medicaid.gov 1115 outcome-fact parity | GREEN -- vacuously green | *GREEN,*
+  still vacuous: no snapshot CSV is committed.
+| `sql/99_parity/53_medicaid_gov_1115_snapshot.sql`
+
+| 21 | Demonstrations held back for a duplicate `medicaid_id`
+| GREEN -- mixed gating; 1 held, region-correct group so non-gating; RED only if
+  a group matches no member's state region
+| *Overturned: PENDING,* and the only non-GREEN check in the pipeline. The check
+  no longer accepts an unreviewed hold-back, so it is fail-closed against a
+  deliberately unsigned baseline. The held row is legacy 2513, the Texas
+  Women's Health Waiver, whose correct number is not derivable from the source.
+| `reports/parity_accepted/demonstration_dup_medicaid.csv` (Status: PENDING SDG);
+  decision D2 in `reports/narrative/pending_approved_decisions.md`;
+  `reports/orphans/demonstration_held_dup_medicaid.csv`
+
+| 22-24 | Primary Project Officer missing, and the fallback applied;
+  demonstration-type floor
+| Not in the study
+| All *GREEN*: check 22 now finds no demonstration without a primary Project
+  Officer, check 23 records 44 fallback backfills, and check 24 records 26
+  floored Approved demonstrations.
+| `sql/99_parity/57_primary_officer_missing.sql`;
+  `sql/99_parity/58_primary_officer_fallback.sql`;
+  `sql/99_parity/59_demonstration_type_floor.sql`
+
+| (unnumbered) | `deliverable_action` provenance; deliverable submission batches
+| Not in the study
+| *Not yet exercised.* Both landed after the 2026-07-28 run and appear in no
+  committed report. The provenance check REDs on any `deliverable_action` row
+  this pipeline did not mint, which is what stops a second migration writing the
+  same table from silently doubling a deliverable's timeline.
+| `sql/99_parity/65_deliverable_action_provenance.sql`;
+  `sql/99_parity/64_deliverable_submission_batch.sql`
+
+| (unnumbered) | Deliverable BN routing QA; override-note completeness and held
+| GREEN -- non-gating; new checks, exercised in the Jul 9 run
+| *GREEN.* 56 deliverables now carry a type-versus-flag BN disagreement (was 31
+  on 2026-07-22); 3 override notes held.
+| `sql/99_parity/43_deliverable_bn_qa.sql`; `sql/99_parity/48_override_note.sql`
+
+| (unnumbered) | Comment completeness, integrity and held
+| GREEN -- 6718 comments loaded, 610 held back
+| *GREEN,* 7984 loaded and 730 held.
+| `sql/99_parity/45_comment_completeness.sql`;
+  `sql/99_parity/46_comment_integrity.sql`; `sql/99_parity/44_comment_held.sql`
+|===
+
+The study's list stopped at 21 numbered checks plus 2 unnumbered families. The
+current run also carries checks the study never saw: demonstration phase
+derivation, approved project-number collisions, unnormalizable legacy CHIP
+numbers, `deliverable_action` completeness and not-synthesized, both
+`+*_pgm_dtl+` mapped-but-unseeded guards, deferred milestone date columns, the
+Federal Comment failsafe, phantom phase completions, application-date consistency
+against DEMOS's own validation, comment routing coverage, and amendment unmapped
+status.
+
+[[signoff-verdicts]]
+=== SME sign-off verdicts
+
+[cols="1,3,2,3"]
+|===
+| # | Sign-off | Spec verdict | Today
+
+| 1 | Consolidated-family mapping freeze (checks 1-2)
+| DONE -- reconciliation encoded in the row-count parity SQL
+| *Confirmed by a GREEN run.* Checks 1 and 2 both pass.
+
+| 2 | Sign the pending/approved decisions (check 4)
+| DONE -- signed deferrals baseline committed
+| *Actually signed* on 2026-07-27, by Zoe Elkins, in
+  `reports/parity_accepted/pending_approved_deferrals.csv`. Check 4 is GREEN.
+
+| 3 | Adjudicate the 154 person-state holds (check 10)
+| DONE -- accepted-flags baseline committed
+| *Signed* 2026-07-27. Check 10 is GREEN.
+
+| 4 | Adjudicate the 166 demonstration-role-assignment holds (check 12)
+| DONE -- accepted-flags baseline committed
+| *Signed* 2026-07-27, now covering 172 flags. Check 12 is GREEN.
+
+| 5 | Confirm the waiver and expenditure DEMOS target model
+| RESOLVED 2026-07-15 -- target model is none; no loader; discharged as a
+  non-gating SME-review snapshot
+| *Unchanged* (D5). One non-blocking follow-up remains: the emergency-waiver
+  overlap and the fate of deleted, history and pending mirrors, both surfaced to
+  the SME through the snapshot manifest.
+
+| 6 | Secondary confirmation of D1 (demo-status code 1 to `Under Review`)
+| Non-blocking; still wanted
+| *Still non-blocking.* D1 was SME-confirmed on 2026-07-10 -- `Under Review` over
+  `Pre-Submission` -- and the same answer put pending demonstrations in scope,
+  which is why they load today.
+|===
+
+[WARNING]
+====
+The study concluded that no blocking sign-off remained. That is no longer true.
+One blocking question has opened since: SDG has to state the correct
+demonstration number for legacy 2513, the Texas Women's Health Waiver, or
+exclude it. Until then `reports/parity_accepted/demonstration_dup_medicaid.csv`
+stays unsigned, check 21 stays PENDING, and overall parity cannot reach GREEN --
+so the study's own go/no-go rule fails on its first clause.
+====
+
+[[date-verdicts]]
+=== Date and rehearsal verdicts
+
+Three of the study's non-scope premises are still open.
+
+Both cutover dates lapsed.:: No production cutover has run. `state/` holds
+gates through `parity` only, with no `flip`, `smoke` or `decom`. The repo's own
+date statements now disagree with each other: the docs overview and the
+canonical spec still name Wed 2026-07-01, this study named Jul 17 with a Jul 24
+fallback, and the only date the code depends on is the 2026-08-20 Federal Comment
+failsafe constant.
+
+The rollback drill has still never been exercised.:: The study scheduled it for
+R1 and noted it had never run. It still has not. Every rehearsal on record is a
+tier-1 script shakedown with no flip, smoke or decom phase; rollback is exercised
+against a rehearsal target only, never production.
+
+The DEMOS `refreshDbObjects` step has still not been tested.:: The study
+scheduled that for R1 too. The 2026-07-22 rehearsal's preflight recorded the
+opposite result: the `generate_medicaid_chip_id_numbers` mint trigger was
+present, but the phase and primary-Project-Officer triggers were absent. That
+step lives in the DEMOS repo and is still a manual operator action.
+
+[[as-written]]
+== The study as written
+
+Everything from here down is the 2026-07-09 review, revised the same day and
+again on 2026-07-15, reproduced for the record. Do not act on its verdicts
+without checking <<verdicts>>.
+
+[cols="1,2"]
+|===
+| Field | Value
+
+| Authored
+| 2026-07-09, revised 2026-07-09 to reflect post-deliverable and parity-wiring
+  status
+
+| Target cutover (primary)
+| 2026-07-17 (Fri)
+
+| Fallback cutover
+| 2026-07-24 (Fri)
+
+| Status
+| Conditionally feasible; the built scope is close to GREEN
+|===
+
+As written, the status read: the deliverable and comment family is built and
+validated; the parity wiring for the remaining PENDING checks (1, 2, 4, 10, 12)
+is committed; overall parity is PENDING with no hard RED. What remains is three
+unbuilt full-scope loaders (documents, waivers, contacts) plus the `+*_pgm_dtl+`
+expansion, the outstanding waiver and expenditure SME model confirmation, and one
+validating post-wiring parity run. Feasibility still hinges on the Jul 9-12
+crunch reaching a local full-scale GREEN.
+
+[[banner]]
+=== Update, 2026-07-15: workflow 5 unblocked
+
+The one remaining blocking sign-off -- the waiver and expenditure DEMOS
+target-model confirmation, sign-off 5 -- is resolved and no longer blocks
+cutover. The confirmed target model is *none*: DEMOS has no authority entity,
+verified across the Prisma models and the DEMOS `server/src` tree, and the
+budget-neutrality workbook path is a separate DEMOS-owned concern. So no loader
+is built. Workflow 5 is discharged instead as an all-tier SME-review snapshot,
+non-gating, produced by the `authorities-snapshot` subcommand of
+`scripts/sme_review_exports.py`; see decision D5 in
+`reports/narrative/pending_approved_decisions.md`. The remaining full-scope build
+items -- documents and contacts loaders plus the `+*_pgm_dtl+` expansion -- are
+unaffected.
+
+=== TL;DR
+
+The pipeline is mechanically sound and now further along: it runs end-to-end, the
+Jul 8 tier-1 rehearsal hit the constraints gate GREEN, and a Jul 9 full run
+reached *OVERALL STATUS: PENDING* with no hard RED, with the deliverable and
+comment family loaded and validated (5640 deliverables, 6718 comments, checks
+15-17 GREEN). The three parity SQL files that were unauthored are now committed:
+`sql/99_parity/90_row_counts.sql` for checks 1-2 and
+`sql/99_parity/04_pending_approved.sql` for check 4. Four of the six SME
+sign-offs are encoded as accepted-flags or deferrals baselines under
+`reports/parity_accepted/`.
+
+What remains for the full-scope cutover: documents, waivers and contacts still
+have no app loaders -- only crosswalk and staging scaffolding for documents,
+nothing for waivers or contacts -- the `+*_pgm_dtl+` tag set is still PARTIAL at
+248, and the waiver and expenditure DEMOS target-model confirmation is the one
+SME sign-off still outstanding. The newly-wired checks (1, 2, 4, 10, 12) are
+committed but have not yet been exercised by a post-wiring validating parity run.
+
+July 17 is feasible *only if* the Jul 9-12 crunch builds the three remaining
+loaders, closes the waiver SME confirmation, and reaches a local full-scale
+GREEN. The Jul 24 fallback is pre-wired. The chief danger remains the temptation
+to "fix and go" on the 17th after a half-clean rehearsal 2; the rehearsal
+strategy explicitly warns against conflating "we found bugs" with "we ran a clean
+rehearsal."
+
+=== Current state: pipeline mechanics are sound
+
+The full cutover chain executes end-to-end. The 2026-07-08 tier-1 script
+shakedown, against a 288-demonstration subset snapshot, ran from init through
+`parity --accept-pending` and hit the constraints gate GREEN. Seven REDs were
+found; five were mechanical and fixed in code with regression tests, two were
+data or SME questions. Three rehearsal-only bypasses were reverted at wrap-up.
+The mechanical fixes and tests, and the three data/SME REDs (RED-2, RED-5,
+RED-6), all have permanent code fixes committed on `main`.
+
+=== Current state: the parity gate is PENDING overall
+
+Production cutover requires `OVERALL STATUS: GREEN`; the `--accept-pending` flag
+is rehearsal-only. The latest parity run, 2026-07-09 14:27 UTC, is PENDING with
+zero hard RED. Check 5, reconstructed-FK orphans, is now GREEN -- non-gating and
+load-surface scoped, with 23,336 orphan rows logged per row. Checks 1, 2, 4, 10
+and 12 still reported PENDING in that run, but their wiring was committed shortly
+after it.
+
+=== Current state: core, deliverables and comments built and validated
+
+Per the Jul 9 run of check 14: 17 target tables at 14 BUILT, 1 PARTIAL and 2
+DEFERRED. Row counts were taken from the refreshed
+`reports/generated/scope_coverage.csv`.
+
+[cols="2,2,3"]
+|===
+| Workflow or table | Disposition | Note
+
+| 2 Users, persons, roles, state | BUILT | users 980, person 1176,
+  `person_state` 24822, `system_role_assignment` 591,
+  `demonstration_role_assignment` 668,
+  `primary_demonstration_role_assignment` 87
+
+| 3 Demos, applications, amendments, dates | BUILT | demonstration 100,
+  application 100, `application_date` 96, amendment 21 loaded (check 19)
+
+| 6 Deliverables | BUILT (validated) | deliverable 5640; `deliverable_type`
+  single-input crosswalk; `deliverable_status` codes 0 and 7 resolved; checks
+  15-17 GREEN
+
+| 6 Comments | BUILT (validated) | `private_comment` 3074, `public_comment`
+  3644; re-sourced from the deliverable-scoped `mdcd_dlvrbl_cmt`; BN override
+  notes routed to `private_comment`
+
+| 4 Demo type tags | PARTIAL | 248; the full `+*_pgm_dtl+` set is still unbuilt
+
+| 6 Documents | DEFERRED (scaffolded) | `document_type` crosswalk plus the
+  staging link exist; no app loader yet
+
+| 5 Waiver and expenditure authorities | SNAPSHOT DELIVERED; loader DEFERRED
+  (non-gating) | Target model confirmed as none, so no loader is built; an
+  all-tier SME-review snapshot instead (see D5)
+
+| 3 Contacts (workflow 3 remainder) | DEFERRED | staging filter only; no app
+  loader (a wide-email pivot to person, `person_state` and role assignment)
+
+| 3 Extensions and renewals | DEFERRED | post-MVP; DEMOS has no renewals concept
+
+| 8 BN corpus, 9 MRT, 10 STC, 11 admin | OUT-OF-SCOPE | DEMOS-owned or dropped
+|===
+
+NOTE: Waivers and contacts are not tracked in
+`reports/generated/scope_coverage.csv` at all, because there is no loader. BN
+corpus, MRT, STC, and email/admin remain OUT-OF-SCOPE, DEMOS-owned or dropped.
+
+[[assumptions]]
+=== Assumptions resolved (the grilling)
+
+Each of these was a branch in the feasibility decision tree, and all had to hold
+for the primary date to stand.
+
+. *Scope is full, over the in-scope workflows.* Deliverables (workflow 6) and
+  comments are BUILT and validated. Waiver and expenditure authorities (workflow
+  5) are discharged as an SME-review snapshot with the loader deferred, so they
+  are no longer an unbuilt loader. Documents (a workflow 6 child), contacts
+  (workflow 3 remainder), and the full `+*_pgm_dtl+` demo-type tag set (workflow
+  4) remain in scope but unbuilt. BN corpus, MRT, STC and email/admin remain
+  OUT-OF-SCOPE.
+. *A full-PROD static snapshot is ready now* for both timed rehearsals. The Jul 8
+  run was only a 288-demo subset, and two of its REDs were subset artifacts.
+. *The SME is available this week.* Five of the six sign-offs are encoded as
+  accepted-flags or deferrals baselines, including the waiver and expenditure
+  target-model confirmation resolved on 2026-07-15 as none, snapshot and defer.
+  No blocking sign-offs remain outstanding.
+. *A backup operator is identified and available* for rehearsal 2 and cutover
+  day.
+. *Two loaders remain to be built by Jul 12* -- documents and contacts -- plus the
+  `+*_pgm_dtl+` expansion. Waivers are no longer a loader. The deliverable loader
+  and comments are done and validated at full scale.
+. *Loaders ready and a local full-scale build GREEN by Jul 12,* so R1 on Jul 13
+  is a shakedown of proven code rather than a first run.
+. *Parity SQL is done.* `sql/99_parity/90_row_counts.sql` (checks 1-2) and
+  `sql/99_parity/04_pending_approved.sql` (check 4) are authored and wired. What
+  remains is one validating post-wiring `make parity` run to confirm checks 1, 2,
+  4, 10 and 12 go GREEN.
+. *RED-2, RED-5 and RED-6 are resolved in code,* not rehearsal placeholders:
+  `deliverable_status` codes 0 and 7; the amendment naming rule, which synthesizes
+  a name when the source name is empty; and the amendment signature code-0 rule,
+  which allows a NULL signature level and holds back Approved amendments missing
+  required fields. Formal SME ratification is still wanted where the decisions
+  were made in session.
+. *Rollback is drilled in R1* -- flip, then roll back, then confirm a clean
+  pre-flip state. It has never been exercised.
+. *The DEMOS `refreshDbObjects` step is tested in R1* -- history triggers,
+  functions, utility views, role grants, pg_cron -- with the DEMOS `server/`
+  checkout pinned and `DATABASE_URL` prepared.
+. *Stakeholder go/no-go is Jul 16,* conditional on a clean R2. Comms templates
+  are ready; freeze-begin and flip-complete are rehearsed in R2.
+. *The Jul 24 fallback is pre-wired* with stakeholders and the backup operator.
+
+[[signoffs-original]]
+=== SME sign-offs on the critical path
+
+[cols="1,3,3"]
+|===
+| # | Sign-off | Status
+
+| 1 | Consolidated-family mapping freeze (checks 1-2) | *DONE* -- row-count
+  reconciliation encoded in `sql/99_parity/90_row_counts.sql`
+
+| 2 | Sign `reports/narrative/pending_approved_decisions.md` (check 4) | *DONE* --
+  signed deferrals baseline
+  `reports/parity_accepted/pending_approved_deferrals.csv`
+
+| 3 | Adjudicate the 154 person-state holds (check 10) | *DONE* -- accepted-flags
+  baseline `reports/parity_accepted/person_state_flags.csv`
+
+| 4 | Adjudicate the 166 demo-role-assignment holds (check 12) | *DONE* --
+  accepted-flags baseline
+  `reports/parity_accepted/demonstration_role_assignment_flags.csv`
+
+| 5 | Confirm the waiver and expenditure DEMOS target model | *RESOLVED
+  (2026-07-15)* -- target model is none; no loader built; discharged as an
+  all-tier SME-review snapshot, non-gating. See D5.
+
+| 6 | Secondary confirmation of D1 (demo-status code 1 to `Under Review`) |
+  Non-blocking; still wanted
+|===
+
+NOTE: "DONE" meant encoded or baselined in committed code. The validating parity
+run in <<assumptions,assumption 7>> was still needed to confirm that checks 1, 2,
+4, 10 and 12 actually report GREEN. RED-2, RED-5 and RED-6 are resolved in code
+per assumption 8; only ratification remained.
+
+[[timeline-a]]
+=== Timeline A, primary: Jul 17 cutover
+
+Days of week: Jul 9 Thu, 10 Fri, 11 Sat, 12 Sun, 13 Mon, 14 Tue, 15 Wed, 16 Thu,
+17 Fri.
+
+[cols="1,2,3"]
+|===
+| Date | Milestone | Detail
+
+| Jul 9-12 | *The crunch* | Build 3 loaders (documents, waivers, contacts) plus
+  the `+*_pgm_dtl+` expansion; close the waiver and expenditure SME model
+  confirmation; run the validating post-wiring `make parity` to confirm checks 1,
+  2, 4, 10 and 12 GREEN; local full-scale GREEN by Jul 12
+
+| Jul 13 (Mon) | R1, full-scale shakedown | Full chain on the full static snapshot
+  plus a rollback drill plus the DEMOS `refreshDbObjects` test
+
+| Jul 14 (Tue) | Fix R1 surprises; reach parity GREEN | R1 is expected to surface
+  surprises; fixes land here
+
+| Jul 15 (Wed) | R2, zero-intervention GREEN | Backup operator observing; comms
+  rehearsal of freeze-begin and flip-complete to a private channel
+
+| Jul 16 (Thu) | Stakeholder go/no-go | Conditional on a clean R2; pre-cutover prep
+
+| Jul 17 (Fri) | *Cutover* | Production cutover
+
+| Jul 24 (Fri) | Fallback | Pre-wired slip date (see <<timeline-b>>)
+|===
+
+[[timeline-b]]
+=== Timeline B, fallback: Jul 24 cutover
+
+Used if any R1 or R2 surprise required a fix, the waiver SME confirmation slipped
+past Jul 14, or any loader was not GREEN by Jul 12. The extra week absorbs the
+crunch overflow and restores weekday buffer. Days of week: Jul 18 Sat, 19 Sun, 20
+Mon, 21 Tue, 22 Wed, 23 Thu, 24 Fri.
+
+[cols="1,2,3"]
+|===
+| Date | Milestone | Detail
+
+| Jul 9-15 | *Extended crunch* | Same build scope as Timeline A -- 3 loaders plus
+  `+*_pgm_dtl+`, the waiver SME confirmation, the validating parity run -- with
+  three more weekdays of buffer through Wed Jul 15; local full-scale GREEN by
+  Jul 15
+
+| Jul 20 (Mon) | R1, full-scale shakedown | Full chain on the full static snapshot
+  plus a rollback drill plus the DEMOS `refreshDbObjects` test
+
+| Jul 21 (Tue) | Fix R1 surprises; reach parity GREEN | -
+
+| Jul 22 (Wed) | R2, zero-intervention GREEN | Backup operator observing; comms
+  rehearsal
+
+| Jul 23 (Thu) | Stakeholder go/no-go | Conditional on a clean R2; pre-cutover prep
+
+| Jul 24 (Fri) | *Cutover* | Production cutover, fallback date
+|===
+
+=== Single point of failure
+
+The parity-SQL and most-SME-sign-off burden that dominated the earlier plan is
+discharged: the row-count and pending/approved parity files are authored, and
+four of six sign-offs are encoded as accepted-flags or deferrals baselines. The
+remaining single point of failure is the build crunch -- Jul 9-12 for Timeline A,
+Jul 9-15 for Timeline B -- which must deliver:
+
+* Two new loaders, documents and contacts, plus the `+*_pgm_dtl+` expansion, each
+  with derivations and tests. The deliverable and comment loaders are built and
+  validated; waivers are discharged as an SME-review snapshot with the loader
+  deferred, so they are no longer a crunch build item.
+* One validating post-wiring `make parity` run to confirm checks 1, 2, 4, 10 and
+  12 go GREEN with the newly-committed wiring.
+
+If any of that slips past the crunch window, R1 cannot be a shakedown of proven
+code, the two-rehearsal exit gate collapses, and the date slips to Jul 24.
+
+=== Go / no-go rule
+
+GO on the cutover date if and only if all of these hold:
+
+* The local full-scale build is GREEN by the end of the crunch window, including
+  the post-wiring checks 1, 2, 4, 10 and 12.
+* R1, the rollback drill and the `refreshDbObjects` test are all clean on R1 day.
+* Parity is GREEN by the day before R2.
+* R2 is zero-intervention GREEN, co-signed by the backup operator.
+* The stakeholder go-decision is recorded on go/no-go day.
+
+NO-GO, slipping to Jul 24, if any of these hold:
+
+* Any R1 or R2 surprise requires a fix. A "fix and go" on cutover day is not
+  acceptable.
+* Any loader is not GREEN by the end of the crunch window.
+* The validating parity run shows any of checks 1, 2, 4, 10 or 12 still RED or
+  PENDING for a reason not covered by an accepted baseline.
+
+=== Do today, not Jul 12
+
+The single step the study asked for immediately was the validating post-wiring
+run against a fresh full-scale build:
+
+[source,bash]
+----
+make rebuild
+make parity
+----
+
+This is what confirms whether the newly-wired checks 1, 2, 4, 10 and 12 -- row
+counts, count-checksum, pending/approved unification, person-state flags,
+demo-role flags -- actually report GREEN. If any is RED or PENDING for a reason
+not covered by its baseline, that becomes a crunch-day-1 fix.
+
+The study's second immediate item, getting the waiver and expenditure
+target-model SME confirmation, was already struck out when the document was last
+revised: it was answered on 2026-07-15 as none, so no workflow 5 loader is built
+and workflow 5 is discharged as an all-tier SME-review snapshot, non-gating. See
+<<banner>> and decision D5.
+
+That run did eventually happen, on 2026-07-28, and all five checks came back
+GREEN. See <<parity-verdicts>>.
+
+== What the study got right, and where it drifted
+
+Right: the mechanics. Every one of the study's GREEN mechanical verdicts is still
+GREEN, and the five checks it flagged as wired-but-unproven all passed on first
+validation. Right, too, about the shape of the risk -- the build crunch, not the
+parity SQL, is what consumed the following three weeks.
+
+Wrong in three directions. It treated documents as a deferred build item when the
+answer turned out to be that there is nowhere in `demos_app` for the metadata to
+rest, so the entity left scope entirely on 2026-07-27. It declared the sign-off
+burden closed a fortnight before a new blocking question opened on a single
+duplicate `medicaid_id`. And it read check 21 as safely non-gating, when the
+check has since been tightened to refuse an unreviewed hold-back -- which is
+exactly the class of judgement the study warned about, a mechanical rule agreeing
+with the reviewer by coincidence rather than by review.
+
+Its most durable contribution is not the date. It is the go/no-go rule, which
+still names the correct gates, and the warning against conflating "we found bugs"
+with "we ran a clean rehearsal."
+
+== Related
+
+* xref:../sme/reference-pending-approved-rules.adoc[Pending/approved rules] --
+  the decision ledger that settled most of the verdicts on this page.
+* xref:explanation-dbt-alignment.adoc[Alignment with the `data/` dbt migration]
+  -- the same scope question asked against the sibling pipeline.
+* xref:explanation-document-migration.adoc[Document migration] -- why the
+  document entity left scope on 2026-07-27.
+* xref:../operator/explanation-rehearsal-strategy.adoc[Why we rehearse twice] --
+  the two-rehearsal exit gate this study's timelines are built on.
+* xref:../operator/reference-gates-state.adoc[Gates and `state/` files] -- the
+  gate record that shows no cutover has run.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:explanation-api-validation-audit.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:explanation-dbt-alignment.adoc[next >]
+|===
+endif::[]
+// docnav-end

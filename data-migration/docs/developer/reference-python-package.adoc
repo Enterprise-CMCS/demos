@@ -83,6 +83,9 @@ page catalogs the public surface.
 | `require_schema(env, schema)` | Hard-fail if a schema is not present.
 | `truncate_schema_data(env, schema, exclude_patterns, exclude_tables)` | TRUNCATE every base table in a schema, minus `exclude_patterns` (LIKE) and `exclude_tables` (exact names) -- both identifier-guarded.
 | `render_template(template, output, substitutions)` | Jinja2 with `StrictUndefined`; output `chmod 0600`.
+| `demos_functions_sql_path(demos_local=None)` | Resolve the canonical DEMOS `server/src/sql/functions.sql`. Tries `Env.demos_local` (relative paths resolve against this repo's root), then the monorepo layout (`server/` a sibling of `data-migration/`), then a sibling `../demos` checkout; returns the monorepo candidate when none exists so the caller surfaces a clear read error.
+| `extract_mint_trigger_sql(functions_sql_text)` | Extract only the `generate_medicaid_chip_id_numbers` function and trigger from `functions.sql` text, wrapped in `DROP ... IF EXISTS` guards so re-deploying is a no-op. Raises `ValueError` if either object is missing, rather than deploying half a trigger.
+| `mint_trigger_deploy_sql(demos_local=None)` | The two above composed: read the canonical `functions.sql` and return the idempotent mint-trigger deploy SQL.
 | `PHASES` | Canonical phase order tuple.
 |===
 
@@ -108,7 +111,7 @@ ifndef::nested[]
 
 [.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
 |===
-|xref:reference-pipeline-stages.adoc[< prev]
+|xref:reference-sql-conventions.adoc[< prev]
 ^|xref:../toc.adoc[Table of contents]
 >|xref:reference-templates.adoc[next >]
 |===

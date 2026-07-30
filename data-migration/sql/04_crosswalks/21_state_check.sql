@@ -2,15 +2,15 @@
  * Purpose:    Fail-closed completeness check that every legacy geo_ansi_state_cd in the loaded source has a mapping row in crosswalk_state.
  * Inputs:     mysql_raw.mdcd_demo, mysql_raw.crosswalk_state
  * Outputs:    none (validation only; RAISEs EXCEPTION on a gap)
- * Invariants: fail-closed completeness check; to_regclass-guarded no-op before load; a present-but-empty source RAISEs (no vacuous pass) (CODE_REVIEW H4).
- * Refs:       CODE_REVIEW.md (H4), sql/04_crosswalks/20_state.sql
+ * Invariants: fail-closed completeness check; to_regclass-guarded no-op before load; a present-but-empty source RAISEs (no vacuous pass).
+ * Refs:       sql/04_crosswalks/20_state.sql
  *
  * Completeness check for crosswalk_state: every legacy geo_ansi_state_cd
  * present in the loaded source data must have a mapping. Guarded by
  * to_regclass so it is a no-op before pgloader has populated mysql_raw
  * (e.g. when `migrate crosswalks` is run standalone during development).
  * Once the table exists it must be non-empty, otherwise the check would
- * pass vacuously on a half-loaded source (CODE_REVIEW H4).
+ * pass vacuously on a half-loaded source.
  */
 DO $$
 DECLARE

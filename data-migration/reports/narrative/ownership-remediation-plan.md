@@ -14,8 +14,9 @@ describes the *pre-remediation* state.
 Author: automated analysis
 Date: 2026-05-29 (status refreshed 2026-06-09)
 Inputs:
-- This repo: `/Users/zoeelkins/Documents/specs/demos-data-migration`
-- DEMOS app (cloned): `/Users/zoeelkins/Documents/specs/demos`
+- This repo, then a standalone checkout, now the `data-migration/` subtree
+- The DEMOS application, then a separate clone alongside it, now the
+  `client/`, `server/`, and `lambdas/` subtrees of the same repository
 
 ## 1. Purpose
 
@@ -155,7 +156,10 @@ Verification: runbook reflects the agreed order; a stg dry run follows it.
 ### W7 — Guardrails / docs
 - Add to `reports/narrative/notes.md` and `CODE_REVIEW.md` the ownership decisions
   D1–D7 and the faker-seeder prohibition (D6).
-- Update `APPS.md` target-DB row (`demos_app`, not `demos_migration`/`app`).
+- ~~Update `APPS.md` target-DB row (`demos_app`, not `demos_migration`/`app`).~~
+  Closed 2026-07-30 by deletion: `APPS.md` was an auto-generated application
+  registry that nothing read, and the target-DB fact it got wrong is stated
+  correctly in `docs/shared/architecture-overview.adoc`.
 
 ## 6. Suggested order & dependencies
 

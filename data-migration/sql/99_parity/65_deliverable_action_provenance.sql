@@ -3,7 +3,7 @@
  * Inputs:     demos_app.deliverable_action; migration._id_map_deliverable_action; migration._id_map_mdcd_dlvrbl
  * Outputs:    migration._parity_deliverable_action_provenance
  * Invariants: Non-empty -> RED; conditional-DDL guard (created only when the target table and the id map are both present, so partial harnesses apply it as a no-op); idempotent via CREATE OR REPLACE; asserts provenance only in the target-row direction.
- * Refs:       migration/phases/parity.py "Deliverable action provenance" CheckResult; sql/23_app_derived/60_deliverable_action.sql; docs/specs/data-dbt-alignment-spec.md section 3.1
+ * Refs:       migration/phases/parity.py "Deliverable action provenance" CheckResult; sql/23_app_derived/60_deliverable_action.sql; docs/developer/explanation-dbt-alignment.adoc#deliverable-action-both
  *
  * Parity check: deliverable_action provenance.
  *

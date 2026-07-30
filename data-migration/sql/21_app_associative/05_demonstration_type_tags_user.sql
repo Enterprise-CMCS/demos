@@ -3,7 +3,7 @@
  * Inputs:     none (data-only); demos_app.tag_name, demos_app.tag, demos_app.tag_type, demos_app.tag_source, demos_app.tag_status.
  * Outputs:    demos_app.tag_name (+7 rows), demos_app.tag (+7 demonstration-type rows).
  * Invariants: source_id='User', status_id='Unapproved' (identical to the app's createNewTagIfNotExists, so they surface as "(Unapproved)" in the UI pending in-app ratification); guarded inert unless all five tag tables exist (each a separate IF so an absent relation is never planned); idempotent via ON CONFLICT DO NOTHING; survives build_app truncation because tag/tag_name are Prisma-seeded (excluded from truncate_schema_data).
- * Refs:       reports/crosswalks/proposed/pgm_dtl_tag_sme_decisions.md; ../demos/server/src/model/tag/queries/createNewTagIfNotExists.ts; sql/21_app_associative/10_demonstration_type_tag_assignment.sql.
+ * Refs:       reports/crosswalks/proposed/pgm_dtl_tag_sme_decisions.md; server/src/model/tag/queries/createNewTagIfNotExists.ts; sql/21_app_associative/10_demonstration_type_tag_assignment.sql.
  *
  * App vocabulary: the seven SME-approved demonstration-type tags that are NOT
  * in the DEMOS Prisma seed.

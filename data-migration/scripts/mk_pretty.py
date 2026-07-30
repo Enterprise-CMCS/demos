@@ -88,7 +88,7 @@ ROOT_HELP: list[tuple[str, list[tuple[str, str]]]] = [
         ("id_maps", "migrate id-maps (05)"),
     ]),
     ("Cutover phases (in order)", [
-        ("preflight freeze delta build history constraints parity flip smoke decom",
+        ("preflight freeze delta build constraints parity flip smoke decom",
          "run in order; chain them in one make invocation, or run each on its own"),
         ("resume", "run all remaining"),
         ("rollback", "revert flip"),
@@ -153,11 +153,16 @@ DOCS_HELP: list[tuple[str, list[tuple[str, str]]]] = [
          "relevant statement (CREATE TABLE/SEQUENCE, INSERT, ADD\n"
          "COLUMN, SET/DROP DEFAULT, SET NOT NULL, ADD CHECK,\n"
          "UPDATE backfills, DELETE, trigger toggles)"),
+        ("docnav",
+         "rewrite the prev/next footer on every page in the\n"
+         "docnav.py reading order (idempotent; commit the result)"),
         ("verify", "run all doc<->code consistency checks (fails on drift)"),
         ("verify-schema-refs", "xref / path / demos_app + bare-name checks"),
         ("verify-crosswalks", "crosswalk ids vs seeded constraint rows"),
         ("verify-counts", "committed count attributes vs the model"),
         ("verify-doc-facts", "gate/env/template/makefile/etc tables vs code"),
+        ("verify-docnav", "every built page is in docnav ORDER + toc.adoc"),
+        ("verify-docs-markdown", "no Markdown under docs/, no Markdown residue in pages"),
         ("verify-prisma-analysis", "committed prisma analysis vs the pinned DDL"),
         ("watch", "rebuild html on any *.adoc change (requires entr)"),
         ("all", "cli-ref + column-map + schema-diagrams + flow-pages + data-dictionary + verify + html + deck"),

@@ -1,0 +1,594 @@
+= Explanation: Alignment with the `data/` dbt migration
+:toc: left
+
+Two independent tools load PMDA into DEMOS: this repo's single-use warm cutover,
+and the re-runnable dbt migration in the sibling `data/` repo. This page is the
+divergence report between them -- what they agree on, where they disagree, which
+side is richer, and what each side still owes the other. Audience: a developer
+changing either pipeline, and anyone deciding which of the two to run against a
+given database.
+
+[IMPORTANT]
+====
+*This is a report, not a proposal.* The four `data-migration/` items in
+<<dm-items>> shipped on 2026-07-24 as decisions D14-D17, and
+<<due-date-window>> shipped on 2026-07-29. Every SQL file cited for them exists
+in the tree.
+
+The `data/` dbt catch-up items in <<dbt-catchup>> are recorded here only. They
+belong to another repo, this page does not track their progress, and three of
+them have since been partly closed upstream -- see <<demos-2446>>.
+
+This page changes no SQL, no dbt model, no Python, and no config.
+====
+
+Originally authored 2026-07-22 against the `data/` tree as it then stood, and
+last reconciled against it on 2026-07-30.
+
+[[the-two-tools]]
+== The two tools
+
+[cols="1,2,2"]
+|===
+|  | `data-migration/` | `data/migration/`
+
+| Kind
+| Single-use *warm cutover*
+| Re-runnable *dbt* migration
+
+| Runs
+| At Go-Live
+| Post-Go-Live
+
+| Engine
+| Python/Typer CLI + pgloader + numbered SQL + ~40 parity gates
+| dbt (`stage_pmda_for_migration`) -> DuckDB loader (`demos_data_tools/load_staged_data_to_demos_app.py`)
+
+| Source
+| MySQL PMDA -> `mysql_raw` -> `stg` -> `demos_app`
+| PMDA-in-Postgres `legacy_pmda_raw` -> `legacy_pmda_staged` (`final_demos_app_*`) -> `demos_app`
+
+| Scope
+| Broad (see <<extra-scope>>)
+| Narrow: finalized and in-progress demos + users/roles/tags + deliverables + application dates
+|===
+
+They are *not* being merged or made byte-identical. This page harmonizes the
+documented decisions on the shared surface and records catch-up work each side
+may want. The decision basis is that the two tools remain separate: the goal is
+a divergence report plus a work list, not identical output. Where dbt is cruder,
+`data-migration/` keeps the richer behavior and dbt gets a catch-up item. Extra
+`data-migration/` scope is flagged as a port-to-dbt item.
+
+[mermaid]
+....
+flowchart LR
+    PMDA[(PMDA source)]
+    subgraph WC[data-migration warm cutover]
+      WC1[approved plus pending demos]
+      WC2[amendments deliverables comments]
+      WC3[app_date app_phase tags]
+    end
+    subgraph DBT[data dbt]
+      D1[finalized plus in-progress demos]
+      D2[users roles tags]
+    end
+    PMDA --> WC
+    PMDA --> DBT
+    WC1 -. shared surface .- D1
+    WC3 -. shared surface .- D2
+....
+
+[[divergence-matrix]]
+== Shared-entity divergence matrix
+
+The dbt loader writes 16 `final_demos_app_*` entities. This section covers them
+and their `data-migration/` counterparts. Verdicts:
+
+Aligned:: Same effective result.
+Divergent:: Different result, with a note on whether dbt is cruder.
+Gap:: `data-migration/` may under-populate a DEMOS completeness expectation that
+dbt force-satisfies.
+
+File references are relative to each folder root, except that paths beginning
+`models/` are relative to `data/migration/stage_pmda_for_migration/`.
+
+[[aligned]]
+=== Aligned decisions, no action
+
+[cols="1,2,2"]
+|===
+| Decision | dbt (`data/`) | warm cutover (`data-migration/`)
+
+| `clearance_level_id`
+| hardcodes `'CMS (OSORA)'` -- `models/cleaned/cleaned_demos_app_demonstration_finalized_demos.sql`
+| omitted at INSERT, so the Prisma table DEFAULT `'CMS (OSORA)'` applies -- `sql/20_app/30_demonstration.sql`
+
+| `signature_level_id`
+| `'OA'`
+| `'OA'` (the demonstration CHECK forces it) -- `sql/20_app/30_demonstration.sql`
+
+| `effective_date` / `expiration_date`
+| `state_prfmnc_yr_strt/end_dt`, anchored America/New_York
+| same, Eastern-anchored via `migration.eastern_day_start/end`
+
+| `sdg_division_id`
+| seed `crosswalk_mdcd_chip_dv_cd_to_sdg_division_id` (0/1 -> NULL, 2/3 -> division)
+| `mysql_raw.crosswalk_sdg_division` (sentinel 0 and unmapped -> NULL)
+
+| `chip_id` minting
+| left NULL, so the DEMOS `generate_medicaid_chip_id_numbers` trigger mints under `migration_mode`
+| legacy `21-W` preserved when present, else NULL for the same trigger to mint; *additionally floors `chip_id_number_seq` and `medicaid_id_number_seq`* to prevent post-load collisions
+
+| `current_phase_id` (approved)
+| hardcoded `'Approval Summary'`
+| date-derived, with an Approved fallback to `'Approval Summary'`, else `'Concept'` -- `sql/20_app/30_demonstration.sql`
+
+| person_type tie-break
+| HIGHEST person_type wins (`demos-admin > demos-cms-user > demos-state-user > non-user-contact`) -- `models/users/users_active_pmda_users.sql`
+| most-privileged wins, same order, plus a euaId fallback -- `sql/10_stg/21_users_resolved.sql`
+|===
+
+Two notes on that table. Chip minting is aligned, but the sequence-flooring is a
+`data-migration/` extra and so appears again as dbt catch-up item 11.
+`current_phase_id` is aligned for approved demos; `data-migration/` is
+additionally date-aware.
+
+[[divergent-dbt-cruder]]
+=== Divergent decisions where dbt is cruder
+
+`data-migration/` keeps the richer behavior in each of these and dbt gets a
+catch-up item.
+
+[cols="1,2,2"]
+|===
+| Decision | dbt (`data/`) | warm cutover (`data-migration/`)
+
+| Finalized phases
+| cross-joins *all* `demos_app.phase` and stamps every row `'Completed'`; `application_date` is never populated on this branch -- `models/cleaned/cleaned_demos_app_app_phases_finalized_demos.sql`
+| ordinal date-derived `application_phase` status (Completed/Started/Not Started) plus a Federal Comment past-window failsafe; 17 `application_date` types -- `sql/23_app_derived/50_application_phase.sql`, `sql/20_app/36_application_date.sql`
+
+| Duplicate `medicaid_id`
+| *drop all* duplicates -- `models/errors/errors_duplicate_demo_nums_in_finalized_pmda_demos.sql`
+| the region-suffix *winner* is kept, with the lowest legacy id breaking ties; the group is held entirely only when no member matches its state region (parity 21) -- `sql/20_app/30_demonstration.sql`
+
+| User filtering
+| *active=1 only*; drops bad email, bad name, and no-person-type rows -- `models/users/users_active_pmda_users.sql`, `models/errors/*`
+| *keep all users*, including inactive and deleted, for FK integrity; drops only test and service accounts plus malformed email; active coverage is a non-gating parity check -- `sql/10_stg/17_filter_user.sql`
+|===
+
+NOTE: The finalized-phases row is scoped to the finalized branch. Since
+DEMOS-2446 dbt derives in-progress phases from dates instead. See
+<<demos-2446>>.
+
+[[divergent-resolved]]
+=== Divergent decisions, since resolved
+
+[cols="1,2,3,2"]
+|===
+| Decision | dbt (`data/`) | warm cutover (`data-migration/`) | Note
+
+| Medicaid/CHIP validation
+| strip-and-reassemble, rescuing non-canonical IDs; regex `+^(11\|21)-W-[0-9]{5}/([1-9]\|10)$+` -- `MIGRATION_LOGIC.md`, `models/apps/apps_active_finalized_pmda_demos_mdcd_num_validations.sql`
+| *RESOLVED (D17):* bounded strip-and-reassemble via `migration.normalize_medicaid_id` (strip `-`, `/` and whitespace -> require `11W` plus 5 digits plus region 1-10 -> reassemble -> re-validate canonical, else NULL); regex `+^11-W-[0-9]{5}/(10\|[1-9])$+`, with a `21-W` secondary routed to chip -- `sql/00_init/03_helper_fns.sql`, `sql/10_stg/10_filter_demo.sql`, `sql/10_stg/22_demonstration_resolved.sql`
+| *CLOSED.* Adopts dbt's rescue intent, but bounded, with no fuzzy matching: it recovers 16 net-new rehearsal demos, and the 76 genuinely malformed stay dropped and flagged. (`data-migration/` item 3 done.)
+
+| `system_role_assignment` mapping
+| `demos-admin` -> `Admin User`, `demos-cms-user` -> `CMS User`, `demos-state-user` -> `State User` (seed)
+| *RESOLVED (D14):* the system role is derived from the user's `person_type` (1:1 with `role_person_type`), one row per user -- `sql/04_crosswalks/44_system_role.sql` (re-keyed on `person_type_id`), `sql/10_stg/26_system_role_assignment_resolved.sql`, `sql/23_app_derived/20_system_role_assignment.sql`
+| *CLOSED.* Now identical in effect to dbt: every CMS user gets `CMS User`, where previously they were permission-less. (`data-migration/` item 4 done.)
+
+| Status scope
+| finalized only (`mdcd_demo_stus_cd != 9`); tests expect `'Approved'` -- `models/apps/apps_active_finalized_pmda_demos.sql`
+| codes 1-9 are all mapped; code 1 -> `'Under Review'` (D1); codes 4-7 -> `'Approved'` -- `sql/04_crosswalks/10_demo_status.sql`
+| Intentional scope difference; document it (dbt catch-up item 5).
+|===
+
+[[completeness-gaps]]
+=== Completeness gaps, both now floored
+
+Neither of these was a load-blocking DB constraint. DEMOS enforces both via
+triggers that fire on a later UPDATE or DELETE -- and those triggers are
+deployed *after* the migration load -- or at the app layer. So
+`data-migration/` never failed the load; it simply left some approved demos less
+complete than dbt. Both gaps are now closed with a `data-migration/` floor
+(D15, D16).
+
+[cols="1,2,3"]
+|===
+| Expectation | dbt (`data/`) | warm cutover (`data-migration/`)
+
+| Every approved demo has a *primary Project Officer*
+| falls back to *Liz Hill (legacy id 828)* when the PO is NULL or 0 -- `models/cleaned/cleaned_demos_app_demo_role_prim_po_finalized_demos.sql`
+| *RESOLVED (D15):* a configurable fallback PO (default legacy id 828), backfilled onto *every* demo missing a primary PO -- `sql/04_crosswalks/69_primary_po_fallback.sql`, `reports/inputs/primary_po_fallback.csv`, `sql/23_app_derived/41_primary_po_fallback.sql`; provenance parity check 23 (`sql/99_parity/58_primary_officer_fallback.sql`), and residual check 22 now normally zero. (`data-migration/` item 1 done.)
+
+| Every approved demo has at least one *demonstration type*
+| force-assigns a synthetic `'Migrated From PMDA'` type to every finalized demo, where a single tag_name backs both an `'Application'` and a `'Demonstration Type'` tag row -- `models/cleaned/cleaned_demos_app_tag_migrated_from_pmda.sql`, `models/cleaned/cleaned_demos_app_demo_type_tag_assign_migrated_from_pmda.sql`
+| *RESOLVED (D16):* real types from `*_pgm_dtl` (10 tables) plus 7 SME-seeded tags, *plus* a `'Migrated From PMDA'` User/Unapproved floor for every *Approved* zero-type demo, over the demo's own window -- `sql/21_app_associative/14_demonstration_type_tag_floor.sql`; provenance parity check 24 (`sql/99_parity/59_demonstration_type_floor.sql`). Under Review zero-type demos are intentionally not floored. (`data-migration/` item 2 done.)
+|===
+
+[[extra-scope]]
+== Extra-scope coverage that `data-migration/` builds and dbt does not
+
+Each row is a candidate to port INTO dbt; see dbt catch-up items 5-8.
+
+[cols="2,2,1"]
+|===
+| `demos_app` entity or concern | `data-migration/` source | In dbt?
+
+| Pending demonstrations (fold: "approved wins")
+| `sql/20_app/31_pending_demonstration.sql`, `sql/10_stg/23_pendg_demo_fold.sql`,
+  `sql/10_stg/25_pending_demonstration_resolved.sql`
+| *Yes, since DEMOS-2446* -- no longer extra-scope, see <<demos-2446>>
+
+| Amendments (`application` plus `amendment` IS-A)
+| `sql/20_app/35_amendment.sql`, `sql/10_stg/33_amendment_resolved.sql`
+| *No*
+
+| Deliverables plus `deliverable_action`
+| `sql/20_app/40_deliverable.sql`, `sql/10_stg/31_deliverable_resolved.sql`,
+  `sql/23_app_derived/60_deliverable_action.sql`
+| *Yes, since DEMOS-2413* (2026-07-28) -- now a shared surface, see <<deliverable-action-both>>
+
+| Private and public comments plus BN override notes
+| `sql/20_app/50_comment.sql`, `sql/20_app/51_override_note.sql`
+| *No*
+
+| `application_date` (17 milestone types)
+| `sql/20_app/36_application_date.sql`, `sql/10_stg/27_application_milestone.sql`
+| *Partial, since DEMOS-2446* -- in-progress demos only, see <<demos-2446>>
+
+| `application_phase` (8-row ordinal derivation)
+| `sql/23_app_derived/50_application_phase.sql`
+| Present; all `'Completed'` on the finalized branch, date-derived on the in-progress branch since DEMOS-2446
+
+| `demonstration_role_assignment` (column-keyed folds)
+| `sql/23_app_derived/30_demonstration_role_assignment.sql`,
+  `sql/04_crosswalks/46_demonstration_role.sql`
+| Partial (PO only)
+
+| `demonstration_type_tag_assignment` (`*_pgm_dtl` pivot)
+| `sql/21_app_associative/10_demonstration_type_tag_assignment.sql` through
+  `sql/21_app_associative/13_pending_demonstration_type_tag_othr.sql`
+| Synthetic single type only
+|===
+
+Deferred or out-of-scope in *both*: documents, contacts, waiver and expenditure
+authorities, extensions and renewals, `*_history` tables (DEMOS-owned), Budget
+Neutrality, MRT, and STC. See
+xref:explanation-migration-feasibility.adoc[the feasibility assessment] and
+xref:../sme/reference-history-strategy.adoc[the history strategy].
+
+[[deliverable-action-both]]
+=== `deliverable_action` is now built by both
+
+DEMOS-2413 (#1630) gave dbt `final_demos_app_deliverable` and
+`final_demos_app_deliverable_action`, and added the
+`'Migrated Deliverable From PMDA'` action type to the app schema
+(`server/src/model/migrations/20260722172545_add_migration_deliverable_action`).
+Deliverables therefore moved out of <<extra-scope>> and onto the shared surface.
+The two builds are *not* interchangeable:
+
+[cols="1,2,2"]
+|===
+|  | dbt (`data/`) | warm cutover (`data-migration/`)
+
+| Submission source
+| `mdcd_dlvrbl_stus_hstry` where `mdcd_dlvrbl_stus_cd = 3` -- `models/cleaned/cleaned_demos_app_deliverable_action_submission_events.sql`
+| file-upload batches, corroborated by status event and status field -- `sql/10_stg/39_deliverable_submission_batch.sql`, `sql/23_app_derived/60_deliverable_action.sql`
+
+| Submission events
+| 6,018 over 5,135 deliverables (6,307 over 5,405 before dbt's own scope filters)
+| 7,225 minted from 7,633 state batches, after excluding 320 flagged upload-after-accepted; 5,583 of 6,165 `Submitted` events (90.6%) corroborate one
+
+| Actor
+| Liz Hill (legacy id 828) on *every* row
+| the actual uploader, 438 distinct, 7,874 of 7,874
+
+| Duplicate source rows
+| one action per history row, so 76 exact duplicates on `(deliverable, timestamp)` across 53 deliverables become 76 indistinguishable actions
+| collapsed by batch grouping
+
+| Due date on the action
+| the value in effect *at submission time*, via `deliverables_history_due_date_by_date_range`, but back-projected before the earliest history row and overlapping on a recurring date
+| the value in effect *at each action's own timestamp*, via `stg.deliverable_due_date_window` (<<due-date-window>>)
+
+| Timeline
+| self-transitions only, plus one marker stamped `current_timestamp` at load
+| seeded legal status progression, strictly increasing timestamps
+
+| Re-runnable
+| no: `gen_random_uuid()` plus a bare `INSERT`, so re-running duplicates its own output
+| yes: deterministic ids from `migration._id_map_deliverable_action`
+|===
+
+Compared against dbt's *actual output* rather than its raw source -- that is,
+after `dltd_ind = 0 AND mdcd_dlvrbl_crnt_stus_cd NOT IN (0, 16)`, the
+Approved-parent-demo requirement, and the non-null `due_date` filter -- the two
+sets divide as 5,128 shared, 7 dbt-only, and 250 warm-cutover-only.
+
+All 7 dbt-only deliverables have zero surviving file rows, so the batch path has
+nothing to group. All 7 are already covered by the `status_event` source and
+carry a `Submitted Deliverable` action today, so *none is missing from the
+warm-cutover output*. That is why `60_deliverable_action.sql` consumes three
+evidence sources rather than one.
+
+Of the 250, 160 sit *inside* dbt's own scope but have no
+`mdcd_dlvrbl_stus_cd = 3` row at all, so dbt structurally cannot emit them; 108
+of those 160 are from 2016, where PMDA logged status transitions inconsistently
+while the uploads survive. The remaining 90 are a scope disagreement rather than
+an evidence one, and need an explicit decision.
+
+[WARNING]
+====
+*Running both against one database silently doubles the action rows.* The id
+spaces cannot overlap (`gen_random_uuid()` versus our id map), so our
+`NOT EXISTS ... ex.id = m.new_uuid` guard and `ON CONFLICT (id) DO NOTHING`
+never fire on dbt's rows, and dbt has no conflict handling at all.
+`demos_app.deliverable_action` carries only `PRIMARY KEY (id)` and a
+`UNIQUE (id, action_type_id)` that is a PK superset for FK targeting, so no
+natural key catches it. The `(action_type_id, old_status_id, new_status_id)` FK
+does not either: both sides emit legal triples. Verified by inserting a
+dbt-shaped row beside ours in a rolled-back transaction: one row became two,
+with two different actors and no error. Neither pipeline is invoked from CI, so
+today the only safeguard is knowing to run exactly one.
+====
+
+The deliverable-action provenance check
+(`sql/99_parity/65_deliverable_action_provenance.sql`) turns that silent doubling
+into a RED gate by flagging any `deliverable_action` row this pipeline did not
+mint. It is registered in `migration/phases/parity.py` unnumbered, as
+`Deliverable action provenance`: the numbered series runs 1 to 24 with no 3, and
+the deliverable-action group was added without numbers.
+
+[[demos-2446]]
+=== DEMOS-2446 moved dates and phases onto the shared surface
+
+DEMOS-2446 (#1615) landed on 2026-07-29 at 12:42 UTC, about four hours before
+DEMOS-2413 (#1630) at 16:36 UTC. It closes or partly closes three of the dbt
+catch-up items, so three rows above that once read "not in dbt" no longer do:
+
+Pending demonstrations are now loaded.:: `final_demos_app_demonstration.sql`
+`UNION ALL`s `cleaned_demos_app_demonstration_in_prog_demos` onto the finalized
+branch, gated on a matching `apps_in_prog_phase_completion` row, and the loader
+writes `final_demos_app_demonstration`. Item 5 is therefore largely done, though
+the "approved-wins" fold this repo applies has no dbt counterpart.
+
+`application_date` is now populated for in-progress demos.::
+`final_demos_app_application_date.sql` is
+`SELECT * FROM cleaned_demos_app_application_date_in_prog_demos`, itself an
+unpivot of `apps_in_prog_dates_long.sql` over 27 distinct date types, and the
+loader writes it. The finalized branch still emits none. On in-progress demos
+dbt now carries *more* date types than this repo's 17.
+
+In-progress phase status is now date-derived.::
+`final_demos_app_application_phase.sql` `UNION ALL`s
+`cleaned_demos_app_app_phases_in_prog_demos`, which unpivots the same 8 phases
+from `apps_in_prog_phase_completion.sql` with Completed, Skipped, Started and
+Not Started statuses. Item 8 remains open for the finalized branch only.
+
+Two differences survive on that last point. dbt has a `'Skipped'` status this
+repo does not, and it hardcodes `approval_summary_phase_status` to
+`'Not Started'`. And where this repo carries an explicit Federal Comment
+past-window failsafe, dbt keys the phase off date existence alone under a
+stated assumption -- its own comment reads "currently, no applications fall
+within federal comment period, so we can assume based on date existence its
+status".
+
+[[work-items]]
+== Work items
+
+Consolidated here, in this document only. No item is executed by this page.
+
+[[dm-items]]
+=== `data-migration/` items, all implemented 2026-07-24
+
+Decisions D14-D17 in
+xref:../sme/reference-pending-approved-rules.adoc[the pending/approved decision
+ledger].
+
+. *Primary-PO completeness. DONE (D15).* 38 rehearsal demos (13 Approved, 25
+  Under Review) loaded with no primary PO. Adopted a *configurable* fallback
+  holder (default legacy id 828, matching dbt) for *every* missing-PO demo.
+  Built: `crosswalk_primary_po_fallback`
+  (`sql/04_crosswalks/69_primary_po_fallback.sql`,
+  `reports/inputs/primary_po_fallback.csv`), the loader
+  `sql/23_app_derived/41_primary_po_fallback.sql`, and provenance parity check
+  23 (`sql/99_parity/58_primary_officer_fallback.sql`); residual check 22 now
+  zeros.
+. *Demonstration-type floor. DONE (D16).* 32 rehearsal demos loaded with zero
+  types (17 Approved, 15 Under Review). Added a `'Migrated From PMDA'`
+  User/Unapproved floor for every *Approved* zero-type demo over the demo's own
+  window, leaving Under Review unfloored. Built:
+  `sql/21_app_associative/14_demonstration_type_tag_floor.sql` and provenance
+  parity check 24 (`sql/99_parity/59_demonstration_type_floor.sql`). No
+  app-layer rejection of type-less demos was found, only history-logging
+  triggers.
+. *Medicaid/CHIP validation. DONE (D17).* Adopted a *bounded*
+  strip-and-reassemble (`migration.normalize_medicaid_id`), which recovers
+  dbt-style non-canonical IDs without fuzzy matching. It rescues 16 net-new
+  rehearsal demos; 76 genuinely malformed stay dropped and flagged. Built:
+  `sql/00_init/03_helper_fns.sql`, `sql/10_stg/10_filter_demo.sql`,
+  `sql/10_stg/22_demonstration_resolved.sql`.
+. *`system_role_assignment` for CMS users. DONE (D14).* Root cause: 382
+  `demos-cms-user` and 7 `demos-state-user` loaded permission-less. Re-keyed the
+  System-role backfill from `legacy_role_cd` to *`person_type`* (1:1 with
+  `role_person_type`), one row per user, which is now identical in effect to
+  dbt. Built: `sql/04_crosswalks/44_system_role.sql`,
+  `sql/04_crosswalks/45_system_role_check.sql`,
+  `sql/10_stg/26_system_role_assignment_resolved.sql`.
+
+[[dbt-catchup]]
+=== `data/` dbt catch-up items, recorded here only
+
+[start=5]
+. *Load pending demonstrations* and port the "approved-wins" fold logic.
+  Largely superseded by DEMOS-2446, which now loads in-progress demos; the fold
+  is still unported. See <<demos-2446>>.
+. *Add amendments, private and public comments, and override notes.*
+  Deliverables are *DONE* by DEMOS-2413 (2026-07-28), but see
+  <<deliverable-action-both>>: the dbt build attributes every submission to a
+  single fallback person, is not re-runnable, and running it alongside the warm
+  cutover silently doubles `deliverable_action`.
+. *Populate `application_date`* (17 milestone types) instead of leaving null.
+  Done for in-progress demos by DEMOS-2446, with 27 date types; still null on
+  the finalized branch.
+. *Replace all-phases-`'Completed'`* with the ordinal date-derived
+  `application_phase` status, plus the Federal Comment failsafe. Done for
+  in-progress demos by DEMOS-2446; still open for the finalized branch.
+. *Replace drop-all-duplicates* with the region-suffix winner rule for
+  duplicate `medicaid_id`.
+. *Reconsider active-only user filtering* against keep-all-for-FK, and document
+  the FK-safety rationale. dbt drops inactive and deleted users that are
+  referenced by role and state assignments.
+. *Add `medicaid_id` and `chip_id` sequence flooring* to prevent post-load mint
+  collisions.
+. *Reconcile documents, contacts, waivers and history dispositions.* Both omit
+  them today; record DEMOS-owned against migrated intent explicitly on the dbt
+  side.
+
+[[due-date-window]]
+=== Recording the due date in effect at an action's own timestamp
+
+[start=13]
+. *DONE (2026-07-29).* Previously
+  `sql/23_app_derived/60_deliverable_action.sql` populated
+  `migration._deliverable_action_plan.due_date` from `d.due_date`, the
+  deliverable's _current_ value, and wrote it to both `old_due_date` and
+  `new_due_date` on every action. So a submission predating an extension
+  recorded the extended date rather than the one it was judged against. Built
+  `stg.deliverable_due_date_window`
+  (`sql/10_stg/40_deliverable_due_date_window.sql`) from `mdcd_dlvrbl_hstry`,
+  and `60_deliverable_action.sql` now re-points each hop at the window covering
+  its own timestamp, keeping the current value when no window matches.
+
+Three things this does _not_ copy from dbt's
+`deliverables_history_due_date_by_date_range`:
+
+* dbt coalesces `mdcd_dlvrbl_prvs_due_dt` into the post-change value and so
+  never opens a window for the period _before_ the earliest history row,
+  back-projecting the first recorded value over a span it was never in effect
+  for. Each row records both the new and the prior value, so n rows describe
+  n+1 intervals; the view emits the leading one.
+* dbt partitions by `(deliverable, due_date)` and takes `first_value` of each
+  edge, so a due date that recurs (A -> B -> A) merges into one span
+  overlapping B's. Contiguous `lead()` windows plus an explicit merge of
+  adjacent equal values cannot do that. Verified on live data: zero overlapping
+  windows, and zero actions matching more than one window.
+* The timezone conversion is explicit and DST-aware. `mdcd_dlvrbl_hstry` is
+  true UTC while every other migrated timestamp is Eastern wall-clock stored at
+  `+00`; pairing each history row with its nearest status event puts 17,476
+  pairs at exactly +4h and 8,950 at +5h, which is EDT and EST.
+
+Measured on the current snapshot: 12,385 windows over 8,693 deliverables, and
+2,188 of 21,605 actions take a different due date, 111 of them
+`Submitted Deliverable`.
+
+NOTE: An earlier figure of "3,133 of 7,874" for this section was an upper bound
+-- actions on deliverables whose due date changed at all -- not the count that
+actually differs. That snapshot also predates the batch-aware loader, so the
+submission figure will rise with it.
+
+[[date-only]]
+=== Pre-2019 status rows carry no time of day
+
+`mdcd_dlvrbl_stus_hstry.creatd_dt` is date-only before 2019 and lands at
+midnight: 2016-2018 are 100% date-only, 2019 is 32%, and 2020 onwards is about
+0%. File uploads never are, 0 of 12,748. Anything correlating the two tables on
+a time window has to treat the two kinds of row differently, or it will silently
+compare a midnight placeholder against a real afternoon timestamp. When
+`39_deliverable_submission_batch.sql` used one window for both, date-only events
+matched at 1.5% against 91.8% for events with a real time.
+
+This is a _precision_ artifact, not missing data. A separate and unrelated
+measure -- the status log recording fewer submissions than the file trail --
+runs 20-29% in every year from 2016 to 2026 and is not era-specific. The two are
+easy to conflate and were conflated here at first.
+
+[CAUTION]
+====
+Reading the flag needs care in both directions. These columns hold an Eastern
+wall clock stored at `+00`, so `AT TIME ZONE 'UTC'` returns the stored digits,
+which already are the intended Eastern time. Converting to `America/New_York`
+applies the offset twice and moves all 1,012 date-only rows to 20:00 the
+previous day. A bare `::time` reads the session's `TimeZone` and finds 1,012
+date-only rows under UTC but 0 under `America/New_York`.
+====
+
+[[evidence]]
+== Evidence appendix
+
+`data-migration/`:
+
+* Demonstration derivations, the dedup winner rule, and chip/medicaid sequence
+  flooring: `sql/20_app/30_demonstration.sql` (read in full).
+* The pre-D15 absence of a primary-PO fallback:
+  `sql/23_app_derived/40_primary_demonstration_role_assignment.sql`. The
+  fallback now sits beside it in
+  `sql/23_app_derived/41_primary_po_fallback.sql`.
+* The status crosswalk (codes 1-9; code 1 -> `'Under Review'`; 4-7 ->
+  `'Approved'`): `sql/04_crosswalks/10_demo_status.sql`.
+* The demonstration-type layers, before the D16 synthetic floor:
+  `+sql/21_app_associative/{05,10,11,12,13,20}_*.sql+`. The floor is
+  `sql/21_app_associative/14_demonstration_type_tag_floor.sql`.
+
+`data/` (paths relative to `data/migration/stage_pmda_for_migration/` unless
+noted):
+
+* dbt clearance hardcode plus the duplicate and invalid drop filters:
+  `models/cleaned/cleaned_demos_app_demonstration_finalized_demos.sql`. The
+  `'OA'` signature level, the Eastern-anchored dates, the sdg crosswalk and the
+  hardcoded `'Approval Summary'` are one model upstream, in
+  `models/apps/apps_unfiltered_staged_finalized_pmda_demos.sql`.
+* dbt Liz Hill (828) PO fallback:
+  `models/cleaned/cleaned_demos_app_demo_role_prim_po_finalized_demos.sql`.
+* dbt all-phases-`'Completed'` on the finalized branch:
+  `models/cleaned/cleaned_demos_app_app_phases_finalized_demos.sql`.
+* dbt synthetic `'Migrated From PMDA'` tag, backing both Application and
+  Demonstration Type:
+  `models/cleaned/cleaned_demos_app_tag_migrated_from_pmda.sql`.
+* dbt `active = 1` user filter plus the HIGHEST person_type tie-break:
+  `models/users/users_active_pmda_users.sql`.
+* dbt loader order, the trigger and `migration_mode` toggles, and the per-table
+  column lists: `data/demos_data_tools/load_staged_data_to_demos_app.py`. It
+  writes 16 `final_demos_app_*` entities.
+* dbt migration decisions -- clearance, Medicaid/CHIP rules, the Liz Hill PO,
+  the synthetic type, all-phases-Completed: `MIGRATION_LOGIC.md`.
+* dbt in-progress date and phase derivation:
+  `models/cleaned/final/final_demos_app_application_date.sql`,
+  `models/cleaned/cleaned_demos_app_application_date_in_prog_demos.sql`,
+  `models/apps/apps_in_prog_dates_long.sql`,
+  `models/cleaned/cleaned_demos_app_app_phases_in_prog_demos.sql`,
+  `models/apps/apps_in_prog_phase_completion.sql`.
+
+Enforcement level: DEMOS primary-PO retention is a trigger on UPDATE and DELETE
+deployed post-load, and no DB-level "at least one demonstration type" constraint
+was found in `data-migration/state/prisma_schema/` or `server/src/sql/`, only
+history-logging triggers. Both <<completeness-gaps>> items are therefore
+data-completeness gaps, not load blockers.
+
+== Related
+
+* xref:reference-pipeline-stages.adoc[Pipeline stages] -- the phase order the
+  warm cutover runs in.
+* xref:explanation-idempotency.adoc[Idempotency] -- why our ids are
+  deterministic and dbt's are not.
+* xref:reference-id-maps.adoc[id maps] -- the `migration._id_map_*` tables that
+  make re-runs safe.
+* xref:howto-write-a-parity-check.adoc[Write a parity check] -- how the
+  provenance gates in <<deliverable-action-both>> are built.
+* xref:../sme/reference-pending-approved-rules.adoc[Pending/approved rules] --
+  where decisions D14-D17 are recorded.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:explanation-migration-feasibility.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:explanation-document-migration.adoc[next >]
+|===
+endif::[]
+// docnav-end

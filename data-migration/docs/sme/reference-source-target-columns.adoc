@@ -92,7 +92,7 @@ ifndef::nested[]
 |===
 |xref:reference-source-target-map.adoc[< prev]
 ^|xref:../toc.adoc[Table of contents]
->|xref:explanation-data-shape-decisions.adoc[next >]
+>|xref:reference-demonstration-mapping-worksheet.adoc[next >]
 |===
 endif::[]
 // docnav-end

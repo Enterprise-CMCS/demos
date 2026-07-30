@@ -1,0 +1,50 @@
+= Reference: P1 demonstration mapping worksheet
+:toc: left
+
+The working record of how `demos_app.demonstration` gets every column it
+requires: which legacy columns map directly, which are derived, which are
+forced to a constant by a target CHECK, and what still needs SME confirmation.
+Audience: the SME ratifying the mapping, and the developer implementing it.
+
+[IMPORTANT]
+====
+This is a *decisions worksheet*, not a description of shipped code. Its status
+line and per-row verdicts are the record of what has been settled; several
+sections mark work explicitly deferred to a later phase. For what is actually
+built, read xref:../operator/reference-demonstration-flow.adoc[the
+demonstration migration flow], which is regenerated from the SQL.
+====
+
+== The worksheet
+
+The body below is the live
+`reports/narrative/p1_demonstration_mapping_worksheet.md`, rendered. It stays
+Markdown so it reads on GitHub and the SME can edit it there; this page is its
+view in the wiki. Edit the worksheet, then run `make live-partials` (in
+`docs/`) to refresh this page.
+
+include::../shared/generated/live/p1-demonstration-mapping-worksheet.adoc[leveloffset=+1]
+
+== Related
+
+* xref:../operator/reference-demonstration-flow.adoc[The demonstration
+  migration flow] -- the generated, code-derived view of the same transform.
+* xref:reference-static-constraint-tables.adoc[Static constraint tables] -- the
+  CHECKs and seeded domains that force several of the decisions above.
+* xref:howto-author-a-crosswalk-csv.adoc[Review and sign off a crosswalk] --
+  the process for the `demo_status` and `signature_level` mappings.
+* xref:reference-source-target-map.adoc[Top-level source/target map] -- the
+  table-level view this column-level worksheet sits inside.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-source-target-columns.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-milestone-date-mapping.adoc[next >]
+|===
+endif::[]
+// docnav-end

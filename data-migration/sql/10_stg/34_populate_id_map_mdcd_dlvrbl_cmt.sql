@@ -3,7 +3,7 @@
  * Inputs:     mysql_raw.mdcd_dlvrbl_cmt, migration._id_map_mdcd_dlvrbl
  * Outputs:    INSERT INTO migration._id_map_mdcd_dlvrbl_cmt (ON CONFLICT DO NOTHING)
  * Invariants: source-only; idempotent via ON CONFLICT DO NOTHING (UUID stability); cascades from the deliverable id map, so no UUID is minted for a comment whose parent deliverable was dropped by the demo/deliverable filter.
- * Refs:       docs/developer/reference-id-maps.adoc, docs/specs/comment-deliverable-resourcing-spec.md
+ * Refs:       docs/developer/reference-id-maps.adoc, docs/sme/explanation-comments-routing.adoc
  *
  * Populate migration._id_map_mdcd_dlvrbl_cmt from deliverable comments whose
  * parent deliverable already minted a UUID (migration._id_map_mdcd_dlvrbl,

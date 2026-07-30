@@ -1,0 +1,257 @@
+= Explanation: Jenkins pipelines for the migration
+:toc: left
+
+The approved design for running this repo's CI and its cutover under Jenkins,
+following the conventions and shared library already in `pipelines/`. Audience:
+a developer or platform engineer implementing it, and an operator who wants to
+know what a Jenkins-driven cutover would feel like.
+
+[IMPORTANT]
+====
+*Proposed -- not implemented (as of 2026-07-30).* Neither Jenkinsfile exists in
+`pipelines/`, and `pipelines/lib/vars/kubeBlock.groovy` has no `python` preset
+(its presets are `node`, `aws-cli`, `scanner`, `snyk`, `zap`, `checkov`). Every
+`Jenkinsfile.data-migration*` path and Groovy snippet below describes intended
+work, not shipped code. The local path in
+xref:../operator/howto-cutover-day.adoc[cutover day] is what actually runs
+today.
+====
+
+== Goal
+
+Two pipelines:
+
+. `Jenkinsfile.data-migration` -- automatic CI validation on PR and push.
+. `Jenkinsfile.data-migration-cutover` -- manually triggered, parameterized
+  cutover with human `input` gates that stand in for the CLI's own `confirm()`
+  prompts when nobody is at a terminal.
+
+Jenkins is *additive*. It removes no local capability: `uv run migrate <phase>`
+still works on an operator's machine and stays the break-glass fallback if
+Jenkins is unavailable mid-cutover.
+
+== Shared-library change: a `python` preset for `kubeBlock`
+
+`pipelines/lib/vars/kubeBlock.groovy` gains a preset alongside the existing
+ones:
+
+[source,groovy]
+----
+'python': """
+- name: python
+  image: ${opts.PYTHON_IMAGE ?: 'artifactory.cloud.cms.gov/docker/library/python:3.11-slim-bookworm'}
+  command: [cat]
+  tty: true
+  resources:
+    requests: { cpu: 1000m, memory: 2Gi, ephemeral-storage: "2Gi" }
+    limits:   { cpu: 2000m, memory: 4Gi, ephemeral-storage: "10Gi" }
+"""
+----
+
+Each stage installs uv once with
+`pip install --disable-pip-version-check uv` from the Artifactory PyPI proxy,
+and exports `UV_PROJECT_ENVIRONMENT=$WORKSPACE/.uvenv`. The root `Makefile`
+already documents that this variable must be overridden in CI; see
+xref:../operator/reference-environment.adoc[environment variables].
+
+== CI pipeline
+
+Agent: `kubeBlock(containerNames:['python','snyk'])`.
+
+`options`: `disableConcurrentBuilds(abortPrevious: true)` and
+`buildDiscarder(retentionPolicy(env.BRANCH_NAME))`.
+
+A `HANDLE_ERRORS` boolean parameter drives `handleError(params.HANDLE_ERRORS){}`
+around each stage, and every stage is gated on `hasChange('data-migration')` so
+an unrelated push does no work.
+
+Stages, each inside `dirCon('data-migration','python')`:
+
+[cols="1,3"]
+|===
+| Stage | Command
+
+| Sync | `uv sync --extra dev`
+| Lint | `uv run ruff check migration tests`
+| Typecheck | `uv run ty check migration tests`
+| Test | `uv run pytest --cov=migration --cov-report=term-missing`
+| SQL hygiene | `apt-get install -y pgformatter`, then `make sql-check`
+| Snyk SAST | `snykCodeScan('data-migration')`
+|===
+
+The DB-gated and integration tests skip cleanly when no `*_TEST_DSN` is set, so
+the Test stage needs no database; see
+xref:howto-run-tests-locally.adoc[run tests locally] for what those gates are.
+
+[NOTE]
+====
+If pgFormatter is not mirrored in Artifactory, the SQL hygiene stage falls back
+to `uv run sqlfluff lint ...` plus
+`uv run python scripts/check_sql_frontmatter.py`, leaving `sql-fmt-check` to the
+pre-commit hook. See xref:reference-sql-conventions.adoc[SQL conventions] for
+what each tool owns.
+====
+
+`post`: `slackPipelineFail('Data Migration')`,
+`handleError.setFailureDescription()`, `cleanWs(deleteDirs: true)`.
+
+== Cutover pipeline
+
+The cutover pipeline runs a *selectable slice* of the runbook. No single Jenkins
+run can span a T-2h through Day 7+ timeline, so continuity comes from the CLI's
+own gate state (`state/*.ok`) plus `migrate resume` -- exactly the mechanism
+described in xref:../operator/reference-gates-state.adoc[gates and `state/`
+files].
+
+Parameters: `START_PHASE` and `STOP_PHASE` (choice over
+`preflight,freeze,delta,build,constraints,parity,flip,smoke,decom`), `ROLLBACK`
+(boolean, runs the emergency rollback path instead), and `DEMOS_ENV` (choice).
+
+=== State durability
+
+Gate state must outlive an ephemeral pod and `cleanWs`, so it is synced to S3:
+`aws s3 sync s3://<bucket>/cutover-state/ data-migration/state/` before the
+first phase, and back up after every phase. That also yields an auditable
+trail. It uses the existing `assumeRole(accountNumber: <prod acct>)` step.
+
+=== Non-gated phases
+
+`preflight`, `delta`, `build`, `constraints` and `parity` run with
+`MIGRATE_NONINTERACTIVE=1` exported as a guard. None of them prompts today; the
+variable makes an *accidental* prompt die loudly instead of hanging a pod.
+
+=== Gated phases
+
+`freeze`, `flip`, `smoke`, `decom` and `rollback` use a stage-level `input`
+directive. Declarative Jenkins evaluates that before allocating the pod, so no
+executor is held during the human wait. Each carries a `submitter` allowlist, a
+`timeout`, and a typed token piped into the CLI. `MIGRATE_NONINTERACTIVE` is
+deliberately left *unset* for these.
+
+[cols="1,1"]
+|===
+| Phase | Token
+
+| `freeze`, `flip`, `smoke` | `y`
+| `decom` | `decom`
+| `rollback` | `rollback`
+|===
+
+[source,groovy]
+----
+stage('P1 Freeze') {
+  when { expression { runPhase('freeze') } }
+  input {
+    message "DBA confirmed MySQL writes paused + read-only banner up?"
+    ok "Run freeze"; submitter "demos-migration-approvers"
+    parameter { string(name:'TOKEN', defaultValue:'', description:"Type 'y' to proceed") }
+  }
+  agent { kubernetes { yaml kubeBlock(containerNames:['python','aws-cli']) } }
+  steps { script {
+    assumeRole(accountNumber: env.DEMOS_AWS_PROD_ACCOUNT_NUMBER)
+    dirCon('data-migration','python') {
+      sh 'aws s3 sync s3://$STATE_BUCKET/cutover-state/ state/'
+      sh 'printf "%s\\n" "$TOKEN" | uv run migrate freeze'
+      sh 'aws s3 sync state/ s3://$STATE_BUCKET/cutover-state/'
+    }
+  }}
+}
+----
+
+`flip` additionally requires `NEW_APP_HEALTHZ_URL`. `preflight` requires the
+pinned Prisma artifact under `state/prisma_ddl/`, restored by the S3 sync; see
+xref:reference-prisma-ddl.adoc[the Prisma DDL pipeline]. Rollback is a separate
+gated stage guarded by the `ROLLBACK` parameter.
+
+=== The flow, with gates marked
+
+[mermaid]
+....
+flowchart TD
+  PF[preflight auto] --> FZ{{freeze gate y}}
+  FZ --> DL[delta auto]
+  DL --> BD[build auto]
+  BD --> CN[constraints auto]
+  CN --> PR[parity auto GREEN]
+  PR --> GO{{go/no-go input}}
+  GO --> FL{{flip gate y}}
+  FL --> SM{{smoke gate y}}
+  SM --> HC[hypercare days]
+  HC --> DC{{decom gate decom}}
+  PR -. fail .-> RB{{rollback gate}}
+....
+
+[NOTE]
+.Legend
+====
+`{{...}}` is a human `input` step. `auto` means the stage runs with
+`MIGRATE_NONINTERACTIVE=1`.
+====
+
+Compare this against
+xref:../operator/explanation-cutover-state-machine.adoc[the cutover state
+machine], which is the same graph without the Jenkins wrapper.
+
+== Out-of-repo prerequisites
+
+These are documented, not implemented, and none of them can be done from this
+repo:
+
+* Jenkins/CloudBees admin registers both Jenkinsfiles as jobs and creates the
+  `demos-migration-approvers` submitter group.
+* Confirm the `python` base image and the uv install work against the CMS
+  Artifactory mirror, and whether `pgformatter` is available there.
+* Jenkins credentials and env for cutover: the prod `assumeRole` account,
+  `STATE_BUCKET`, `REFERENCE_PG_URL`, `NEW_APP_HEALTHZ_URL`, `MYSQL_URL` and
+  the `MYSQL_*` parts, `DB_NAME`, `AWS_REGION`, optionally `DB_SECRET_NAME`
+  and `GITHUB_TOKEN`.
+* The cutover pod needs Java and a pgloader v4 jar (`PGLOADER_JAR`,
+  `JAVA_BIN`) for the `delta` load; add both to the `python` stage image or
+  install them in-stage.
+* The DEMOS post-Prisma step (`npx tsx src/refreshDbObjects.ts` from the
+  `server/` checkout, after P5 and before flip) stays a manual operator step in
+  that other repo.
+
+== Validating the Groovy
+
+There is no local Jenkins controller, so validation is structural: review the
+declarative syntax against the sibling Jenkinsfiles in `pipelines/`, and run
+the Jenkins CLI `declarative-linter` if it is reachable. The commands the CI
+stage invokes are all runnable locally (`make lint`, `make typecheck`,
+`make test`, `make sql-check`), so the stage bodies can be confirmed
+independently of Jenkins.
+
+== Files this would touch
+
+[cols="1,3"]
+|===
+| Action | Path
+
+| Edit | `pipelines/lib/vars/kubeBlock.groovy` (add the `python` preset)
+| Create | `pipelines/Jenkinsfile.data-migration`
+| Create | `pipelines/Jenkinsfile.data-migration-cutover`
+|===
+
+== Related
+
+* xref:../operator/howto-cutover-day.adoc[Cutover day] -- the local procedure
+  these pipelines would wrap.
+* xref:../operator/reference-gates-state.adoc[Gates and `state/` files] -- the
+  continuity mechanism the pipeline depends on.
+* xref:../operator/reference-cli.adoc[CLI reference] -- every phase and flag the
+  stages invoke.
+* xref:howto-run-tests-locally.adoc[Run tests locally] -- the CI Test stage,
+  run by hand.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:explanation-document-migration.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:../sme/index.adoc[next >]
+|===
+endif::[]
+// docnav-end

@@ -3,7 +3,7 @@
  * Inputs:     stg.demonstration_resolved; mysql_raw.crosswalk_demo_status; mysql_raw.crosswalk_sdg_division; migration.state_region; sequences demos_app.chip_id_number_seq / demos_app.medicaid_id_number_seq.
  * Outputs:    demos_app.application, demos_app.demonstration
  * Invariants: runs inside the deferred-constraint build_app txn (with demos_app.migration_mode='on'); FKs dropped during build, re-validated in the constraints phase; stamps application.is_migrated_from_pmda = TRUE so the specified cross-repo date/phase-validator relaxations have a flag to key on; fail-closed (a demo loads only when its status code is mapped and its state resolves); mirrors check_demonstration_non_null_fields_when_approved by holding back Approved rows missing sdg_division/effective/expiration (non-gating, logged to migration._parity_approved_demo_held); holds back duplicate-medicaid_id rows (RED-4) instead of violating demonstration_medicaid_id_key: among duplicates the region-suffix-correct row wins (lowest legacy id breaks a tie); a group whose region suffix matches NO member's state region is held ENTIRELY (no lowest-id fallback) and gates RED at parity check 21 (logged to migration._parity_demonstration_held_dup_medicaid_id); medicaid_id is always legacy-preserved and chip_id is legacy-preserved when the source carries a secondary 21-W number, else left NULL for the generate_medicaid_chip_id_numbers trigger to mint at INSERT (chip_id is NOT NULL); this loader still floors chip_id_number_seq above every preserved legacy 21-W number BEFORE the inserts so the trigger's minted values (and any later DEMOS in-app mint) start above -- and cannot collide with -- a preserved chip_id; idempotent via NOT EXISTS + ON CONFLICT (id) DO NOTHING (no row inserted on re-run means the trigger does not mint again, keeping chip_ids stable).
- * Refs:       reports/narrative/p1_demonstration_mapping_worksheet.md, sql/04_crosswalks/10_demo_status.sql, sql/99_parity/12_approved_demo_held_for_division.sql, docs/specs/pmda-cross-cutting-derivation-spec.md
+ * Refs:       reports/narrative/p1_demonstration_mapping_worksheet.md, sql/04_crosswalks/10_demo_status.sql, sql/99_parity/12_approved_demo_held_for_division.sql, docs/developer/reference-cross-cutting-derivations.adoc
  *
  * App load: demos_app.application (anchor) + demos_app.demonstration from the
  * PMDA demonstrations resolved in stg.demonstration_resolved (22_*).
@@ -48,7 +48,7 @@
  * gate on status mapping. signature crosswalk (forced 'OA' by the demonstration
  * CHECK), application_date/application_phase materialization, tags, roles and
  * the primary project officer are deferred
- * (docs/specs/pmda-cross-cutting-derivation-spec.md).
+ * (docs/developer/reference-cross-cutting-derivations.adoc).
  *
  * Idempotent: NOT EXISTS + ON CONFLICT (id) DO NOTHING keep re-apply a no-op.
  * The sequence reconciliation recomputes from source/loaded data, so it is

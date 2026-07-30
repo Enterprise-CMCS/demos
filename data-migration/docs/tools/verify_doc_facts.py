@@ -52,12 +52,16 @@ JSONB_DOC = DOCS_DIR / "developer" / "reference-jsonb-schema-registry.adoc"
 ID_MAPS_DOC = DOCS_DIR / "developer" / "reference-id-maps.adoc"
 STAGE_MAP_DOC = DOCS_DIR / "shared" / "pipeline-stage-map.adoc"
 
-FILTER_SQL = [
-    SQL_DIR / "10_stg" / "10_filter_demo.sql",
-    SQL_DIR / "10_stg" / "11_filter_pendg_demo.sql",
-    SQL_DIR / "10_stg" / "12_filter_aplctn.sql",
-    SQL_DIR / "10_stg" / "99_filter_report.sql",
-]
+# The canonical waiver-number rule lives in one place: the parameterised
+# `migration.normalize_waiver_number(text, prefix)` helper. The row-level
+# filters, the pending/approved fold, the demonstration projection and the
+# violations report all call it rather than inlining a regex, so this is the
+# only file to re-derive the pattern from.
+WAIVER_HELPER_SQL = SQL_DIR / "00_init" / "03_helper_fns.sql"
+
+# Medicaid demonstrations are the `11` prefix; CHIP is `21`. The doc cites the
+# Medicaid form.
+MEDICAID_WAIVER_PREFIX = "11"
 
 # Vars documented in reference-environment.adoc that are read straight from
 # os.environ rather than declared on migration.lib.Env (flip.py reads
@@ -91,7 +95,14 @@ _ENV_ROW_RE = re.compile(r"^\|\s*`([A-Z][A-Z0-9_]*)`")
 _PHASE_PATH_RE = re.compile(r"migration/phases/(\w+)\.py")
 _MAKE_TARGET_RE = re.compile(r"\bmake ([a-z][a-z0-9_-]*)")
 _MIGRATE_CMD_RE = re.compile(r"\bmigrate ([a-z][a-z0-9-]*)")
-_REGEX_LITERAL_RE = re.compile(r"!~\s*'([^']*11-W-[^']*)'")
+# Matches the canonical-FORM assertion inside normalize_waiver_number:
+#   ~ ('^' || p_prefix || '-W-[0-9]{5}/(10|[1-9])$')
+# The `-W-` is what distinguishes it from the sibling gate on the stripped
+# input form (`'^' || p_prefix || 'W[0-9]{6,7}$'`), which is not the id shape
+# the docs quote.
+_WAIVER_PATTERN_RE = re.compile(
+    r"~\s*\(\s*'\^'\s*\|\|\s*p_prefix\s*\|\|\s*'(-W-[^']*)'\s*\)"
+)
 
 
 def _read(path: Path) -> str:
@@ -134,26 +145,27 @@ def _str_or_tuple(node: ast.expr) -> list[str]:
 
 
 def check_regex() -> list[str]:
-    problems: list[str] = []
-    found: dict[str, list[str]] = {}
-    for sql in FILTER_SQL:
-        if not sql.exists():
-            problems.append(f"missing filter SQL file: {sql.relative_to(REPO_ROOT)}")
-            continue
-        for rx in _REGEX_LITERAL_RE.findall(_read(sql)):
-            found.setdefault(rx, []).append(sql.name)
-    if not found:
-        return [*problems, "no PMDA project-number regex found in the filter SQL files"]
-    if len(found) > 1:
-        problems.append(f"filter SQL files disagree on the PMDA regex: {found}")
-    canonical = max(found, key=lambda k: len(found[k]))
+    if not WAIVER_HELPER_SQL.exists():
+        return [f"missing waiver helper SQL: {WAIVER_HELPER_SQL.relative_to(REPO_ROOT)}"]
+    suffixes = set(_WAIVER_PATTERN_RE.findall(_read(WAIVER_HELPER_SQL)))
+    if not suffixes:
+        return [
+            "no canonical waiver-number pattern found in "
+            f"{WAIVER_HELPER_SQL.relative_to(REPO_ROOT)} "
+            "(expected `~ ('^' || p_prefix || '-W-<pattern>')` in "
+            "migration.normalize_waiver_number)"
+        ]
+    if len(suffixes) > 1:
+        return [
+            f"{WAIVER_HELPER_SQL.relative_to(REPO_ROOT)} declares more than one "
+            f"canonical waiver pattern: {sorted(suffixes)}"
+        ]
+    canonical = f"^{MEDICAID_WAIVER_PREFIX}{suffixes.pop()}"
     if not ID_MAPS_DOC.exists():
-        return [*problems, f"missing {ID_MAPS_DOC.relative_to(REPO_ROOT)}"]
+        return [f"missing {ID_MAPS_DOC.relative_to(REPO_ROOT)}"]
     if canonical not in _read(ID_MAPS_DOC):
-        problems.append(
-            f"reference-id-maps.adoc does not cite the canonical PMDA regex `{canonical}`"
-        )
-    return problems
+        return [f"reference-id-maps.adoc does not cite the canonical PMDA regex `{canonical}`"]
+    return []
 
 
 # --------------------------------------------------------------------------- #

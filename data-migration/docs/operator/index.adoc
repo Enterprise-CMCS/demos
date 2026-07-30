@@ -47,6 +47,7 @@ explanation].
 
 === How-to
 
+* xref:howto-dress-rehearsal-probe.adoc[Run the dress-rehearsal probe]
 * xref:howto-cutover-day.adoc[Cutover day]
 * xref:howto-rollback.adoc[Rollback]
 * xref:howto-rebuild-from-scratch.adoc[Rebuild from scratch]

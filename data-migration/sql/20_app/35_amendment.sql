@@ -3,7 +3,7 @@
  * Inputs:     stg.amendment_resolved; mysql_raw.crosswalk_amendment_status; demos_app.demonstration (parent JOIN).
  * Outputs:    demos_app.application, demos_app.amendment
  * Invariants: runs inside the deferred-constraint build_app txn; FKs dropped during build, re-validated in the constraints phase; guarded inert until stg.amendment_resolved exists; demonstration_id is NOT NULL so a pending-only or held-back parent cascades the amendment out (held-back, non-gating, logged to migration._parity_amendment_held); mirrors check_amendment_non_null_fields_when_approved by holding back Approved amendments with a NULL effective_date/signature (non-gating, logged to migration._parity_amendment_held_missing_field), exactly as the demonstration loader holds back Approved demos missing required fields; idempotent via NOT EXISTS + ON CONFLICT (id) DO NOTHING.
- * Refs:       docs/specs/pmda-cross-cutting-derivation-spec.md, reports/narrative/pending_approved_decisions.md, sql/20_app/30_demonstration.sql
+ * Refs:       docs/developer/reference-cross-cutting-derivations.adoc, reports/narrative/pending_approved_decisions.md, sql/20_app/30_demonstration.sql
  *
  * App load: demos_app.application (anchor) + demos_app.amendment from the
  * PMDA amendments resolved in stg.amendment_resolved (10_stg/33).
@@ -14,7 +14,7 @@
  * in the single deferred-constraint build_app transaction; FKs are dropped during
  * build and re-validated in the constraints phase, so ids are set directly here.
  *
- * Column derivations (docs/specs/pmda-cross-cutting-derivation-spec.md;
+ * Column derivations (docs/developer/reference-cross-cutting-derivations.adoc;
  * reports/narrative/pending_approved_decisions.md workflow 3):
  *   application_type_id  constant 'Amendment'
  *   demonstration_id     parent approved demo UUID (stg.amendment_resolved.demo_uuid),

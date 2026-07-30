@@ -3,7 +3,7 @@
  * Inputs:     mysql_raw.mdcd_dlvrbl_fil_doc, mysql_raw.mdcd_dlvrbl_stus_hstry, stg._valid_dlvrbl_ids, migration._id_map_mdcd_dlvrbl, migration._id_map_users
  * Outputs:    CREATE OR REPLACE VIEW stg.deliverable_file_batch, stg.deliverable_submission_batch
  * Invariants: source-only (mysql_raw + id maps + stg only; never crosswalks 04 / seeds 02); idempotent (CREATE OR REPLACE VIEW); batch numbering is deterministic (ordered by uploaded_at then the fil_doc PK, so a re-run reproduces identical batch_seq); one row per (deliverable, origin, batch) in the aggregate; corroborating status events are matched 1:1 (no event is claimed by two batches); emits BOTH origins -- the 'S'-only routing decision belongs to the loader.
- * Refs:       docs/specs/pmda-history-tables-derivation-spec.md, sql/10_stg/30_document_deliverable_link_resolved.sql, sql/23_app_derived/60_deliverable_action.sql
+ * Refs:       docs/developer/explanation-deliverable-action-backfill.adoc, sql/10_stg/30_document_deliverable_link_resolved.sql, sql/23_app_derived/60_deliverable_action.sql
  *
  * WHY THIS EXISTS
  *

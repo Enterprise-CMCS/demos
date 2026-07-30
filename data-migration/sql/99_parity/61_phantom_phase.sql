@@ -3,7 +3,7 @@
  * Inputs:     demos_app.application_phase; demos_app.application_date; demos_app.document; demos_app.demonstration; demos_app.amendment; demos_app.extension; migration.phase_completion_rule
  * Outputs:    migration._parity_phantom_phase; migration._parity_phantom_phase_summary
  * Invariants: NON-GATING (quantifies a known, accepted consequence of status-derived phases; does not RED the gate); conditional-DDL guarded so it is a no-op on harnesses that never build application_phase; idempotent via CREATE OR REPLACE.
- * Refs:       sql/02_seeds_static/35_phase_completion_rule.sql; sql/23_app_derived/50_application_phase.sql; server/src/model/applicationPhase/checkPhaseCompletionRules.ts; docs/specs/api-validation-migration-audit-spec.md
+ * Refs:       sql/02_seeds_static/35_phase_completion_rule.sql; sql/23_app_derived/50_application_phase.sql; server/src/model/applicationPhase/checkPhaseCompletionRules.ts; docs/developer/explanation-api-validation-audit.adoc
  *
  * DEMOS enforces phase completion in application code (checkPhaseCompletionRules),
  * not in the database. Bulk-loading application_phase therefore cannot trip it,

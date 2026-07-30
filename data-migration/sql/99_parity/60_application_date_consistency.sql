@@ -3,7 +3,7 @@
  * Inputs:     demos_app.application_date; migration.date_type_expected_timestamp; migration.application_date_rule
  * Outputs:    migration._parity_application_date_consistency; migration._parity_application_date_consistency_summary
  * Invariants: NON-GATING (quantifies the residual that pairs with the DEMOS-side validation skip; does not RED the gate); conditional-DDL guarded so it is a no-op on harnesses that never build application_date; idempotent via CREATE OR REPLACE.
- * Refs:       sql/02_seeds_static/36_application_date_rule.sql; sql/10_stg/27_application_milestone.sql; server/src/model/applicationDate/validateInputDates.ts; docs/specs/api-validation-migration-audit-spec.md
+ * Refs:       sql/02_seeds_static/36_application_date_rule.sql; sql/10_stg/27_application_milestone.sql; server/src/model/applicationDate/validateInputDates.ts; docs/developer/explanation-api-validation-audit.adoc
  *
  * DEMOS validates application dates only on the GraphQL mutation path
  * (validateInputDates), so a bulk load cannot trip it. The rules still matter

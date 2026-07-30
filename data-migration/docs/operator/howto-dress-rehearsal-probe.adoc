@@ -1,0 +1,62 @@
+= How to run the dress-rehearsal probe
+:toc: left
+
+The Tier-1 *script-shakedown* rehearsal: the first end-to-end pass of the
+pipeline against a static MySQL snapshot into a fresh local target, run to
+surface mechanical breakages and turn parity risks into a concrete fix list.
+Audience: the solo operator (and backup). By the end you will have taken every
+phase from `spin_up` to `parity` and produced a rehearsal log.
+
+This is the *procedure and acceptance criteria*. It is deliberately narrower
+than the two neighbouring pages:
+
+[cols="1,3"]
+|===
+| Page | Answers
+
+| xref:tutorial-first-cutover-rehearsal.adoc[First cutover rehearsal]
+| Why each phase exists, for someone who has never run one.
+
+| This page
+| What to run, in order, and what counts as a pass.
+
+| xref:reference-rehearsal-commands.adoc[Rehearsal command inventory]
+| Per-command expected output, the REDs a real run surfaced, recovery
+  actions, and the diagnostic toolkit.
+|===
+
+For why we rehearse twice at all, see
+xref:explanation-rehearsal-strategy.adoc[the rehearsal strategy].
+
+== Procedure
+
+The body below is the live `runbooks/dress-rehearsal-probe.md` runbook,
+rendered. It stays Markdown because it is run from a terminal alongside the
+repo and edited during a rehearsal; this page is its view in the wiki. Edit the
+runbook, then run `make live-partials` (in `docs/`) to refresh this page.
+
+include::../shared/generated/live/dress-rehearsal-probe.adoc[leveloffset=+1]
+
+== Related
+
+* xref:reference-rehearsal-commands.adoc[Rehearsal command inventory] --
+  per-command detail for every step above.
+* xref:howto-troubleshoot-parity-red.adoc[Troubleshoot red parity] -- for the
+  W5/W6 REDs the probe is expected to surface.
+* xref:howto-cutover-day.adoc[Cutover day] -- the real thing, which this
+  rehearses.
+* xref:reference-gates-state.adoc[Gates and `state/` files] -- why the phase
+  chain cannot be short-circuited.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:tutorial-first-cutover-rehearsal.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:howto-cutover-day.adoc[next >]
+|===
+endif::[]
+// docnav-end

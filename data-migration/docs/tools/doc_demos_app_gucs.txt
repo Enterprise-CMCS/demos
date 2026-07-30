@@ -1,0 +1,10 @@
+# Session GUCs in the `demos_app` namespace. Consumed by
+# docs/tools/verify_schema_refs.py, which otherwise reads every `demos_app.<x>`
+# reference as a table name. Tables and sequences are parsed from the pinned
+# Prisma DDL and do not belong here; list a name only when it is a run-time
+# setting with no object in the schema.
+
+# Read by generate_medicaid_chip_id_numbers in server/src/sql/functions.sql --
+# deployed by init_pg.run_ddl and set txn-locally by build_app. Not in the
+# pinned DDL, which is why it cannot be derived.
+migration_mode

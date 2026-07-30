@@ -3,7 +3,7 @@
  * Inputs:     mysql_raw.mdcd_dlvrbl_cmt, mysql_raw.mdcd_dlvrbl_paper_cmt, mysql_raw.mdcd_dlvrbl_paper, migration._id_map_mdcd_dlvrbl_cmt, migration._id_map_mdcd_dlvrbl_paper_cmt, migration._id_map_mdcd_dlvrbl, migration._id_map_users, stg.users_resolved
  * Outputs:    CREATE OR REPLACE VIEW stg.comment_resolved
  * Invariants: source-only (mysql_raw + id maps + stg only; never crosswalks 04 / seeds 02); idempotent (CREATE OR REPLACE VIEW); deliverable_id always resolvable (inner join the deliverable id map -- the same cascade that minted the comment UUID); routing (private vs public) and the author-person-type floor are deferred to the loader.
- * Refs:       docs/specs/comment-deliverable-resourcing-spec.md, reports/source_target_columns.csv, sql/20_app/50_comment.sql
+ * Refs:       docs/sme/explanation-comments-routing.adoc, reports/source_target_columns.csv, sql/20_app/50_comment.sql
  *
  * Staging projection of each deliverable comment into the column set the
  * demos_app.private_comment / demos_app.public_comment loader consumes

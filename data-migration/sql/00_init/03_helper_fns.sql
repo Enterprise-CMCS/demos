@@ -180,7 +180,7 @@ parsed AS(
       -- state.region -- so a migrated id is indistinguishable in shape from
       -- an in-app minted one. Dropping these instead (what the canonical
       -- regex did before, and what the dbt slice still does) silently loses
-      -- an entire CMS region: see docs/specs/data-dbt-alignment-spec.md.
+      -- an entire CMS region: see docs/developer/explanation-dbt-alignment.adoc.
     WHEN length(s) = 9
       AND substring(s, 9) = '0' THEN
       '10'

@@ -213,10 +213,11 @@ crosswalks:
       snapshot_csv: reference_data/mdcd_demo_aplctn_doc_type_rfrnc.csv
   # Deliverable-file type subset (mdcd_dlvrbl_fil_doc.fil_doc_cd). No source:
   # block by design -- fil_doc_cd has no *_rfrnc lookup; it mirrors the boolean
-  # type flags (docs/specs/document-migration.md D6), so the live-PROD crosswalk
-  # audit treats it as un-audited (load_registry returns kind ""). Completeness
-  # is enforced by sql/04_crosswalks/72_deliverable_file_type_check.sql against
-  # the loaded fact table instead.
+  # type flags (docs/developer/explanation-document-migration.adoc D6), so the
+  # live-PROD crosswalk audit treats it as un-audited (load_registry returns
+  # kind ""). Completeness is enforced by
+  # sql/04_crosswalks/72_deliverable_file_type_check.sql against the loaded fact
+  # table instead.
   - table: crosswalk_deliverable_file_type
     csv: crosswalks/deliverable_file_type.csv
     columns: [legacy_int_cd, legacy_name, demos_text_id, in_scope, notes]

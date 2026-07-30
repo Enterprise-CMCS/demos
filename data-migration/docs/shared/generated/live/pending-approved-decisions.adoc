@@ -32,7 +32,7 @@ For every MySQL `mdcd_<x>` / `mdcd_pendg_<x>` pair, record the rule used to coll
 | `application` + `application_date` + `application_phase`
 | 1:1
 | n/a
-| Already the application table in source. *Milestone dates + phases BUILT (2026-07-14):* every high-confidence phase-milestone column loads into `application_date` (approved + pending, via `sql/10_stg/27_application_milestone.sql` + `sql/20_app/36_application_date.sql`), and `sql/23_app_derived/50_application_phase.sql` derives the 8 `application_phase` rows with a Federal Comment past-window failsafe (cutover `2026-08-20`). Granular phase_3 clearance sub-dates + the status date are deferred for SME review (logged non-gating in `_parity_application_milestone_unmapped`). See `reports/narrative/milestone_date_mapping.md`.
+| Already the application table in source. *Milestone dates + phases BUILT (2026-07-14):* every high-confidence phase-milestone column loads into `application_date` (approved + pending, via `sql/10_stg/27_application_milestone.sql` + `sql/20_app/36_application_date.sql`), and `sql/23_app_derived/50_application_phase.sql` derives the 8 `application_phase` rows with a Federal Comment past-window failsafe (cutover `2026-08-13`). Granular phase_3 clearance sub-dates + the status date are deferred for SME review (logged non-gating in `_parity_application_milestone_unmapped`). See `reports/narrative/milestone_date_mapping.md`.
 
 | `mdcd_demo_amndmt` / `mdcd_pendg_demo_amndmt`
 | `amendment` (+ `application_phase`)
@@ -48,7 +48,7 @@ For every MySQL `mdcd_<x>` / `mdcd_pendg_<x>` pair, record the rule used to coll
 
 | `mdcd_demo_cntct` / `mdcd_pendg_demo_cntct`
 | contact-only `person` + `person_state` + `demonstration_role_assignment`
-| *DEFER (contact workstream):* the source is a wide per-role model (`state_mdcd_drctr_email_adr`, `ro_fincl_lead_email_adr`, `sota_email_adr`, ...), not a long `(demo, role, email)` table -- there is no single `cntct_email` column to key on. The target is the three-table contact shape (a `person` per distinct contact email with no `users` row, its `person_state` grants, and a `demonstration_role_assignment` per role column); see `docs/specs/pmda-cross-cutting-derivation-spec.md` §5. The earlier `demonstration_role_assignment` + `person` shorthand omitted `person_state` and is superseded by this row.
+| *DEFER (contact workstream):* the source is a wide per-role model (`state_mdcd_drctr_email_adr`, `ro_fincl_lead_email_adr`, `sota_email_adr`, ...), not a long `(demo, role, email)` table -- there is no single `cntct_email` column to key on. The target is the three-table contact shape (a `person` per distinct contact email with no `users` row, its `person_state` grants, and a `demonstration_role_assignment` per role column); see `docs/developer/reference-cross-cutting-derivations.adoc` ("Contact migration"). The earlier `demonstration_role_assignment` + `person` shorthand omitted `person_state` and is superseded by this row.
 | Approved wins
 | Pivot the wide email columns to `(demonstration, role_column, email)` before resolving `person`.
 
@@ -73,8 +73,11 @@ For every MySQL `mdcd_<x>` / `mdcd_pendg_<x>` pair, record the rule used to coll
 
 == Workflow-level scope dispositions
 
-PMDA is workflow-centric (see `pmda_highlights_reel.md`, "Most Important
-Migration Workflows" 1-11). The decision table above records _entity_ rules;
+PMDA is workflow-centric. The eleven numbered workflows below are the ones
+described in `docs/developer/reference-legacy-pmda-workflows.adoc`, which is
+the surviving record of the source application's shape (reconstructed from
+PMDA's `cma-site` and `cma-service` repositories; anchors `#workflow-1`
+through `#workflow-11`). The decision table above records _entity_ rules;
 this section records the _disposition_ of each numbered source workflow so a
 reviewer can see, at a glance, what is built, what is deliberately deferred,
 and what is out of scope. `BUILT` = a live `sql/20_app`/`sql/23_app_derived`
@@ -105,7 +108,7 @@ Scope coverage is surfaced non-gating at the parity gate by
 | 4
 | Programs and demo types
 | *BUILT*
-| `demonstration_type_tag_assignment` BUILT from the 10-table `pgm_dtl_tag_mapping.csv` (approved fixed-tag `21_app_associative/10` + free-text "Other" `21_app_associative/11`). Pending track BUILT (2026-07-14): `04_crosswalks/49_pendg_pgm_dtl_tag.sql` + `reports/pgm_dtl_tag_mapping_pending.csv` (*POPULATED*, 68 rows derived mechanically from the filled base by prefix-swap; the source-absent `mdcd_pendg_fincl_pool_pgm_dtl` is dropped) + registry entry + fold-aware fixed-tag loader `21_app_associative/12` and free-text "Other" loader `21_app_associative/13`, both resolving the parent via `stg._pendg_demo_fold`; parity `99_parity/55` logs held free-text "Other" rows (non-gating) and fail-closes on any mapped-but-unseeded tag. *Deferred:* the base-mapping expansion to any additional `*_pgm_dtl` tables beyond the current 10 (an SME task); the pending CSV auto-inherits that expansion via the same prefix-swap. See `docs/specs/pmda-cross-cutting-derivation-spec.md` Table 1.
+| `demonstration_type_tag_assignment` BUILT from the 10-table `pgm_dtl_tag_mapping.csv` (approved fixed-tag `21_app_associative/10` + free-text "Other" `21_app_associative/11`). Pending track BUILT (2026-07-14): `04_crosswalks/49_pendg_pgm_dtl_tag.sql` + `reports/pgm_dtl_tag_mapping_pending.csv` (*POPULATED*, 68 rows derived mechanically from the filled base by prefix-swap; the source-absent `mdcd_pendg_fincl_pool_pgm_dtl` is dropped) + registry entry + fold-aware fixed-tag loader `21_app_associative/12` and free-text "Other" loader `21_app_associative/13`, both resolving the parent via `stg._pendg_demo_fold`; parity `99_parity/55` logs held free-text "Other" rows (non-gating) and fail-closes on any mapped-but-unseeded tag. *Deferred:* the base-mapping expansion to any additional `*_pgm_dtl` tables beyond the current 10 (an SME task); the pending CSV auto-inherits that expansion via the same prefix-swap. See `docs/developer/reference-cross-cutting-derivations.adoc#program-detail-coverage`.
 
 | 5
 | Waiver and expenditure authorities
@@ -115,7 +118,7 @@ Scope coverage is surfaced non-gating at the parity gate by
 | 6
 | Deliverables
 | *BUILT*
-| `deliverable` loader (`20_app/40_deliverable.sql`) is *live*: `deliverable_type_id` (NOT NULL) resolves via the now-authored single-input report-occurrence crosswalk `crosswalk_deliverable_type` (`04_crosswalks/52_deliverable_type.sql` + `reports/crosswalks/deliverable_type.csv`, registry-wired; the legacy `mdcd_dlvrbl_type_cd` maps directly to `demos_text_id` -- no BN matrix / second signal, per the correction banner in `reports/crosswalks/proposed/deliverable_type_bn_routing.md`). `demonstration_status_id` = constant 'Approved' (the composite FK forces attach only to a loaded Approved demonstration); `status_id`/`due_date_type_id`/`expected_to_be_submitted` via `crosswalk_deliverable_status` (50/51, code 0 N/A held back, fail-closed on undecided codes 7/9); `cms_owner_user_id`/`cms_owner_person_type_id` resolved (a state-user creator is held back). The RETURN still in the loader is now a *defensive guard* for a partial crosswalk build, not a block. Held-back rows are logged non-gating (`99_parity/40`, check 17) plus gating completeness/integrity (`99_parity/41`/`42`, checks 15/16). *Deliverable comments BUILT* -- `20_app/50_comment.sql` cascades each deliverable comment into `private_comment`/`public_comment`, routed by the (still-gated, empty) `crosswalk_comment_origin` with an author-person-type fallback (`docs/sme/explanation-comments-routing.adoc`). *Still deferred:* the seven non-deliverable comment sources (now exported as an SME snapshot by Branch 5 `scripts/sme_review_exports.py comments-snapshot`; their migration fate is still an SME decision) and the `cmt_orgn_cd` route authoring (SDG); uploaded files \-> `document` (no `20_app` document loader yet; blocked on the `document_type` multi-source fan-in, `_review.md` P4); status history (DEMOS-owned, filled post-cutover by capture triggers); paper records; due-date-change requests \-> `deliverable_extension` (proposed, not live); `deliverable_acptnc_status`/`deliverable_cnfrmtn_status` (overlap / no target \-> likely drop).
+| `deliverable` loader (`20_app/40_deliverable.sql`) is *live*: `deliverable_type_id` (NOT NULL) resolves via the now-authored single-input report-occurrence crosswalk `crosswalk_deliverable_type` (`04_crosswalks/52_deliverable_type.sql` + `reports/crosswalks/deliverable_type.csv`, registry-wired; the legacy `mdcd_dlvrbl_type_cd` maps directly to `demos_text_id` -- no BN matrix / second signal, per the correction banner in `reports/crosswalks/proposed/deliverable_type_bn_routing.md`). `demonstration_status_id` = constant 'Approved' (the composite FK forces attach only to a loaded Approved demonstration); `status_id`/`due_date_type_id`/`expected_to_be_submitted` via `crosswalk_deliverable_status` (50/51, code 0 N/A held back, fail-closed on undecided codes 7/9); `cms_owner_user_id`/`cms_owner_person_type_id` resolved (a state-user creator is held back). The RETURN still in the loader is now a *defensive guard* for a partial crosswalk build, not a block. Held-back rows are logged non-gating (`99_parity/40`, check 17) plus gating completeness/integrity (`99_parity/41`/`42`, checks 15/16). *Deliverable comments BUILT* -- `20_app/50_comment.sql` cascades each deliverable comment into `private_comment`/`public_comment`, routed by the *now-authored* `crosswalk_comment_origin` (`04_crosswalks/68_comment_origin.sql` + `reports/crosswalks/comment_origin.csv`, registry-wired; all six live `cmt_orgn_cd` codes mapped, `S` the only `public` route, `A`/`B`/`C`/`I`/`R` `private` per the fail-safe rule), with the author-person-type fallback surviving only for comments that carry no code, and fail-closed coverage in `04_crosswalks/73_comment_origin_check.sql` (`docs/sme/explanation-comments-routing.adoc`). *Still deferred:* the seven non-deliverable comment sources (now exported as an SME snapshot by Branch 5 `scripts/sme_review_exports.py comments-snapshot`; their migration fate is still an SME decision); uploaded files \-> `document` (no `20_app` document loader yet; blocked on the `document_type` multi-source fan-in, `_review.md` P4); status history (DEMOS-owned, filled post-cutover by capture triggers); paper records; due-date-change requests \-> `deliverable_extension` (proposed, not live); `deliverable_acptnc_status`/`deliverable_cnfrmtn_status` (overlap / no target \-> likely drop).
 
 | 7
 | Application management / pending demos
@@ -366,7 +369,7 @@ meanings and Withdrawn-demo guidance \-> SDG).
 *Status:* RESOLVED (2026-07-15, engineer + SME grill); the deliverable is the
 SME-review snapshot, so no further blocking sign-off is required. This closes
 the one previously-outstanding blocking sign-off (the "waiver/expenditure DEMOS
-target model" in `docs/specs/migration-feasibility.md`).
+target model" in `docs/developer/explanation-migration-feasibility.adoc`).
 
 *Decision (SME-confirmed via grill).* The DEMOS target model for workflow 5 is
 *none* -- DEMOS has no waiver/expenditure/authority/section/cap/bene-group
@@ -451,7 +454,7 @@ migrated.
 
 *Status:* IN SCOPE (SME-confirmed via grill, 2026-07-17); fidelity + genesis
 question OPEN. Full design in
-`docs/specs/pmda-history-tables-derivation-spec.md`.
+`docs/developer/explanation-deliverable-action-backfill.adoc`.
 
 *Context.* `deliverable_action` is a real, app-written *append-only workflow
 event log* (one row per `+old_status -> new_status+` transition by an actor at an
@@ -488,10 +491,10 @@ assumes a genesis `Created Deliverable Slot` is a follow-up for DEMOS
 engineering; under MINIMAL the genesis row is synthesized regardless.
 
 *Fidelity RE-DECIDED MINIMAL (2026-07-21), supersedes FULL.* David's CMS
-priority ranking (see §11 of `reports/narrative/sme_signoff_2026-07-20.md` and
-`docs/specs/deliverable-action-cms-priority-alignment-spec.md`) puts
-`deliverable_action` in his lowest band and accepts a read-only snapshot for
-extensions/resubmit requests (D12). MINIMAL (seeded genesis + one current-status
+priority ranking of 2026-07-21 (see §11 of
+`reports/narrative/sme_signoff_2026-07-20.md`) puts `deliverable_action` in his
+lowest band and accepts a read-only snapshot for extensions/resubmit requests
+(D12). MINIMAL (seeded genesis + one current-status
 action per loaded deliverable) satisfies the gating rule (latest action
 `new_status` = `deliverable.status_id`) and the DEMOS genesis assumption, and
 takes the D8 unmapped-code crosswalk + self-transition disambiguation off the
@@ -593,7 +596,7 @@ source (`mdcd_demo_aplctn_cmt`) land.
 === D11. Files (#2) via `document_pending_upload` (metadata-only, no s3_path)
 
 *Status:* PROPOSED (2026-07-21). From David's priority alignment (§11 of
-`sme_signoff_2026-07-20.md`; `docs/specs/deliverable-action-cms-priority-alignment-spec.md`).
+`sme_signoff_2026-07-20.md`).
 
 *Context.* David ranks "Files Submitted exist in DEMOS" #2, but the `document`
 loader is DEFERRED on the DEMOS `s3_path` strategy. The `s3_path` NOT NULL wall

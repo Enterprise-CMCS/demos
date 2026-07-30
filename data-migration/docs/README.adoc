@@ -4,7 +4,7 @@
 This is the documentation set for the DEMOS data migration -- the
 project that moves program data off the legacy PMDA system and onto the new
 database that backs DEMOS. Go-live is planned for
-*Wednesday, July 1, 2026*.
+*Thursday, August 13, 2026*.
 
 This page is the high-level briefing. Use the timeline below to see
 where we are, then jump into the audience book that matches your role.
@@ -17,13 +17,17 @@ where we are, then jump into the audience book that matches your role.
 * *Approach.* Stand the new system up alongside the old one, check it
   against the SME-defined source of truth, rehearse the switch twice, and cut over
   in a planned window.
-* *Go-live.* Wednesday, *2026-07-01*.
-* *Where we are today (2026-07-09).* Mid-build: foundation is complete and the
-  "move & reshape the data" phase is in flight. The first application-core
-  loaders have landed (identity, demonstration, and the RBAC role assignments)
-  while the deliverable / document / comment / amendment loaders remain
-  outstanding. The go-live date is held at 2026-07-01; delivered work currently
-  trails the calendar.
+* *Go-live.* Thursday, *2026-08-13*.
+* *Where we are today (2026-07-30).* The application layer is built. Of the 19
+  target tables in the scope ledger
+  (`sql/99_parity/30_scope_coverage.sql`), 16 are BUILT, one is PARTIAL
+  (program-detail tag assignment, pending an SME mapping expansion), one is
+  DEFERRED post-MVP (extensions/renewals), and one is OUT-OF-SCOPE by operator
+  decision (documents). Two Tier-1 rehearsals ran on 2026-07-22 against
+  PROD-scale data; the second cleared the amendment-status and chip_id-mint
+  findings from the first and left three REDs, all pre-existing source-data
+  row-count findings. A full Tier-2 rehearsal, taking the flip / smoke / decom
+  path end to end, has not been run yet.
 
 == Timeline (50,000-foot view)
 
@@ -34,7 +38,7 @@ xref:spec/canonical-spec.adoc[canonical spec].
 [mermaid, width=1600]
 ....
 gantt
-  title DEMOS migration -- go-live Wed 2026-07-01 (status 2026-07-09)
+  title DEMOS migration -- go-live Thu 2026-08-13 (status 2026-07-30)
   dateFormat  YYYY-MM-DD
   axisFormat  %b %d
   excludes    weekends
@@ -42,15 +46,16 @@ gantt
 
   section Build
   Foundation & design                    :done, p1, 2026-05-04, 10d
-  Move & reshape the data                :active, p2, after p1, 20d
+  Move & reshape the data                :done, p2, after p1, 50d
 
   section Validate
-  Integration & user testing             :p3, after p2, 5d
-  Cutover rehearsals                     :p4, after p3, 5d
+  Tier-1 rehearsals (script shakedown)   :done, p4a, 2026-07-22, 1d
+  Integration & user testing             :active, p3, 2026-07-27, 10d
+  Tier-2 rehearsal (full cutover path)   :p4b, 2026-08-06, 4d
 
   section Go-live
-  Final prep                             :pre, after p4, 2d
-  Go-live (Wed 2026-07-01)               :crit, milestone, golive, 2026-07-01, 0d
+  Final prep                             :pre, 2026-08-12, 1d
+  Go-live (Thu 2026-08-13)               :crit, milestone, golive, 2026-08-13, 0d
   Hypercare support                      :hc, after golive, 4d
   Retire legacy system                   :dc, after hc, 3d
 ....
@@ -68,13 +73,17 @@ gantt
 | Every record from the legacy system has been carried over and
   reshaped so the new application can read it.
 
+| Tier-1 rehearsals
+| The build path runs clean against PROD-scale data. Script shakedown
+  only: no flip, smoke, or decom.
+
 | Integration & user testing
 | DEMOS runs against the new database and clears a full
   round of user-acceptance testing with no severe issues open.
 
-| Cutover rehearsals
-| The full switch-over procedure has been timed end-to-end, twice,
-  with no surprises and a validated rollback.
+| Tier-2 rehearsal
+| The full switch-over procedure has been timed end to end, with no
+  surprises and a validated rollback.
 
 | Go-live & hypercare
 | The new system is in production, supported through a four-day
@@ -96,7 +105,7 @@ gantt
 | Phase not yet started.
 
 | Red diamond
-| Go-live milestone (Wed 2026-07-01).
+| Go-live milestone (Thu 2026-08-13).
 
 | Vertical red line
 | Today.

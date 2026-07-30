@@ -162,7 +162,7 @@ def _run_crosswalks(conn: Any) -> None:
     The ``*_check.sql`` completeness gates are intentionally skipped here: the
     skeleton creates every snapshot table (including ones the curated fixture
     does not seed, e.g. ``role_rfrnc``, ``mdcd_dlvrbl``), and several checks
-    fail-closed on a present-but-empty source (CODE_REVIEW H4).  Those gates are
+    fail-closed on a present-but-empty source.  Those gates are
     validated by ``tests/sql/test_crosswalk_checks.py`` against purpose-built
     fixtures; this harness only needs the crosswalk *tables* populated so the
     stg/app/parity SQL can join to them.

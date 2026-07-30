@@ -82,8 +82,8 @@ forces Federal Comment = `Completed` whenever its loaded end date is before the
 cutover date. A window still open at cutover keeps its derived status and the
 cron transitions it correctly on schedule.
 
-**Cutover constant.** The failsafe reference date is `2026-08-20` (planned
-go-live), inlined as `TIMESTAMPTZ '2026-08-20 00:00:00-04:00'` (Eastern midnight,
+**Cutover constant.** The failsafe reference date is `2026-08-13` (planned
+go-live), inlined as `TIMESTAMPTZ '2026-08-13 00:00:00-04:00'` (Eastern midnight,
 EDT) in `sql/23_app_derived/50_application_phase.sql` and mirrored in the parity
 guard `sql/99_parity/56_application_milestone.sql`. It is anchored to Eastern
 because the `Federal Comment Period End Date` it compares against is now an

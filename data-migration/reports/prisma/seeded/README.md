@@ -4,7 +4,7 @@ Point-in-time snapshot of the three Prisma-seeded tables that govern which
 `document_type` values are legal in DEMOS, captured so document crosswalk
 mappings can be checked against composite-FK legality offline (no live
 `demos_app` required). This is work item 1 of
-`docs/specs/document-migration.md`.
+`docs/developer/explanation-document-migration.adoc`.
 
 ## Source of truth
 

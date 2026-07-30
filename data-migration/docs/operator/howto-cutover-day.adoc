@@ -19,7 +19,7 @@ ifndef::nested[]
 
 [.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
 |===
-|xref:tutorial-first-cutover-rehearsal.adoc[< prev]
+|xref:howto-dress-rehearsal-probe.adoc[< prev]
 ^|xref:../toc.adoc[Table of contents]
 >|xref:howto-rollback.adoc[next >]
 |===

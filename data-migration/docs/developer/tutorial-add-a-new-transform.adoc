@@ -152,7 +152,7 @@ ifndef::nested[]
 
 [.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
 |===
-|xref:index.adoc[< prev]
+|xref:tutorial-follow-an-entity.adoc[< prev]
 ^|xref:../toc.adoc[Table of contents]
 >|xref:howto-add-a-phase.adoc[next >]
 |===

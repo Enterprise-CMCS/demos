@@ -2,14 +2,14 @@
  * Purpose:    Fail-closed completeness + integrity check for crosswalk_deliverable_status.
  * Inputs:     mysql_raw.mdcd_dlvrbl, mysql_raw.crosswalk_deliverable_status, demos_app.deliverable_status, demos_app.deliverable_due_date_type, demos_app.deliverable_extension_status
  * Outputs:    none (validation only; RAISEs EXCEPTION on a violation)
- * Invariants: fail-closed; to_regclass-guarded no-op before load; a present-but-empty source RAISEs (no vacuous pass) (CODE_REVIEW H4); every used legacy code must have a confirmed non-NULL status_id OR be flagged null_ok (SME-accepted NULL, e.g. code 0 N/A -- held back + logged); every status_id / due_date_type_id / emit_extension_status must exist in its DEMOS seed domain.
- * Refs:       CODE_REVIEW.md (H4), sql/04_crosswalks/50_deliverable_status.sql
+ * Invariants: fail-closed; to_regclass-guarded no-op before load; a present-but-empty source RAISEs (no vacuous pass); every used legacy code must have a confirmed non-NULL status_id OR be flagged null_ok (SME-accepted NULL, e.g. code 0 N/A -- held back + logged); every status_id / due_date_type_id / emit_extension_status must exist in its DEMOS seed domain.
+ * Refs:       sql/04_crosswalks/50_deliverable_status.sql
  *
  * Completeness + integrity check for crosswalk_deliverable_status.
  * Guarded by to_regclass so it is a no-op before pgloader populates
  * mysql_raw and before the DEMOS seed domains are present; once mdcd_dlvrbl
  * exists it must be non-empty, otherwise the completeness check would pass
- * vacuously on a half-loaded source (CODE_REVIEW H4).
+ * vacuously on a half-loaded source.
  *
  * (a) every legacy mdcd_dlvrbl_crnt_stus_cd present in the loaded source
  *     must have a confirmed mapping with a non-NULL status_id, OR be flagged

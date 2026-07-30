@@ -1,0 +1,1014 @@
+= Explanation: backfilling `deliverable_action` from PMDA history
+:toc: left
+
+PMDA carries populated per-revision transition-history tables. This page is the
+design for mining them, and the record of what that design became once it hit
+the target's constraints. Audience: a developer changing the
+`deliverable_action` loader or its parity gates, and anyone who needs to know
+which claim in the original 2026-07-17 plan still holds. By the end you will
+know why the fidelity decision moved twice, what the shipped loader actually
+derives, and which two of the three workstreams were never built.
+
+[IMPORTANT]
+====
+*Workstream 1 shipped, but not as specified.* The `deliverable_action` backfill
+is built and gated: `sql/23_app_derived/60_deliverable_action.sql` derives the
+rows, `sql/02_seeds_static/30_deliverable_action_chain.sql` seeds the hop
+skeleton, and `sql/99_parity/30_scope_coverage.sql` line 58 records
+`deliverable_action` as `BUILT`. The fidelity decision moved twice after this
+design was approved -- FULL (2026-07-17) to MINIMAL (2026-07-21) to batch-aware
+MINIMAL (2026-07-29/30) -- and the shipped shape differs from all three in
+detail. See <<fidelity>> and <<specified-vs-shipped>>.
+
+*Workstreams 2 and 3 are proposed -- not implemented (as of 2026-07-30).*
+`mdcd_demo_stus_hstry`, `mdcd_demo_amndmt_stus_hstry` and
+`mdcd_demo_aplctn_hstry` appear nowhere under `sql/`. The only PMDA history
+tables the migration reads are `mdcd_dlvrbl_stus_hstry` and `mdcd_dlvrbl_hstry`,
+in three files: `sql/10_stg/39_deliverable_submission_batch.sql`,
+`sql/10_stg/40_deliverable_due_date_window.sql` and
+`sql/23_app_derived/60_deliverable_action.sql`.
+`demonstration.status_updated_at` is still `updated_at`
+(`sql/20_app/30_demonstration.sql`) and `amendment.status_updated_at` is still
+`updated_at`, which for an amendment is itself `creatd_dt`
+(`sql/20_app/35_amendment.sql`, `sql/10_stg/33_amendment_resolved.sql`).
+====
+
+[[not-a-history-table]]
+== Why this is not the history-tables decision
+
+xref:explanation-history-backfill.adoc[History is DEMOS-owned, not migrated]
+governs the `+demos_app.*_history+` tables: revision shadows whose schema, capture
+triggers and rows all belong to DEMOS, left empty at cutover for the
+`log_changes_*` triggers to fill afterwards. That page is unchanged by anything
+here, and the two pages do not overlap.
+
+`deliverable_action` is *not* a `+*_history+` table. It is a real, app-written
+workflow event log that DEMOS itself renders a deliverable's timeline from, and
+that `demos_app.document` attaches a state-submitted file to. DEMOS capture
+triggers can only record actions that happen *after* cutover, so without a
+backfill every migrated deliverable shows its current status with no trail
+explaining how it got there, and every migrated document has a dangling
+submission link.
+
+The division of labour is therefore clean:
+
+[cols="1,2,2"]
+|===
+| Table family | Owner of the rows | Page
+
+| `+demos_app.*_history+`
+| DEMOS, from cutover forward. This migration writes nothing.
+| xref:explanation-history-backfill.adoc[History is DEMOS-owned, not migrated]
+
+| `demos_app.deliverable_action`
+| This migration synthesizes the pre-cutover trail; DEMOS appends after cutover.
+| This page
+|===
+
+Because the backfill runs inside `build_app`, and the operator installs the
+`log_changes_deliverable_action` capture trigger later via `refreshDbObjects.ts`
+after constraints (P5), the backfilled rows generate no
+`deliverable_action_history` rows. The empty-history strategy survives intact.
+See xref:reference-pipeline-stages.adoc[pipeline stages] for the phase order and
+xref:../operator/reference-human-inputs.adoc[human inputs] for the operator step.
+
+[[source-tables]]
+== What the source actually carries
+
+Validated read-only against LIVE PROD `cma_pro_11_1_000` on 2026-07-16/17 via
+the `mysql-ducksplorer` skill. Implementation-database counts will differ.
+
+[cols="2,1,1,2"]
+|===
+| History table | Rows (live) | Shape | Key temporal signal
+
+| `mdcd_dlvrbl_stus_hstry`
+| 41,018 (all `dltd_ind=0`)
+| append-only event log
+| `creatd_dt` (100%), `creatd_user_id` (88.7%), status per row
+
+| `mdcd_dlvrbl_hstry`
+| 45,344 (45,033 live)
+| full-row snapshot / revision
+| `hstry_updtd_dt`, per-revision due dates and change-reason note text
+
+| `mdcd_demo_stus_hstry`
+| 276
+| event log
+| `creatd_dt` plus effective `mdcd_demo_stus_dt`; *no actor column*
+
+| `mdcd_demo_amndmt_stus_hstry`
+| 30
+| event log
+| `creatd_dt` plus `creatd_user_id` (actor); thin coverage
+
+| `mdcd_demo_aplctn_hstry`
+| 3,780 (3,705 live)
+| full-row snapshot / revision
+| `hstry_ts` plus every `phase_*` milestone date per revision
+|===
+
+`mdcd_dlvrbl_stus_hstry` covers 9,370 distinct deliverables, averaging *4.38*
+transitions each (min 1, max 86). Null-actor rows (about 11.3%) are
+system-generated transitions: automated "Past Due" flips under system user id
+99. History date ranges span the demonstrations we migrate --
+`mdcd_dlvrbl_stus_hstry` runs 2016-10 to 2026-07, `mdcd_demo_aplctn_hstry`
+2021-08 to 2026-07.
+
+The distinct status codes observed in `mdcd_dlvrbl_stus_hstry`, against PMDA
+`mdcd_dlvrbl_stus_rfrnc`, with live counts:
+
+[cols="^1,3,^1"]
+|===
+| Code | PMDA status | Live rows
+
+| 2 | Work in Progress | 11,362
+| 1 | Upcoming | 6,926
+| 3 | Submitted | 6,298
+| 6 | Accepted | 4,345
+| 5 | Past Due | 3,778
+| 14 | Under CMS Review | 3,067
+| 12 | Received | 2,492
+| 16 | Pending Due Date Change | 1,480
+| 4 | Requested Resubmission | 816
+| 13 | Approved | 320
+| 15 | Open-ended | 53
+| 7 | Overridden | 51
+| 11 | Overridden/Request Resubmission | 21
+| 10 | Overridden/Accepted | 9
+|===
+
+[NOTE]
+====
+The original spec observed that a repo-wide `grep hstry sql/**` returned zero
+hits, and that every phase, date and status derivation read only the
+point-in-time base tables `mdcd_demo`, `mdcd_demo_aplctn`, `mdcd_demo_amndmt`
+and `mdcd_dlvrbl`. That is no longer true for deliverables. It remains true for
+demonstrations, applications and amendments.
+====
+
+[[target-contract]]
+== The target contract
+
+Source of truth: `server/src/model/deliverableAction/deliverableAction.prisma`,
+realised in the pinned Prisma artifact this repo builds against (see
+xref:reference-prisma-ddl.adoc[the Prisma DDL pipeline]).
+
+`deliverable_action` is an append-only event log. There is no `created_at` or
+`updated_at`; time is the `action_timestamp`. Every row is one transition
+`old_status_id -> new_status_id` by an actor at an instant.
+
+NOT NULL columns: `id`, `action_timestamp`, `deliverable_id`, `action_type_id`,
+`old_status_id`, `new_status_id`, `old_due_date`, `new_due_date`, and the four
+type booleans `due_date_change_allowed`, `should_have_note`,
+`should_have_user_id`, `extension_id_optional`. Nullable: `note`,
+`active_extension_id`, `user_id`.
+
+=== Composite FKs and CHECKs
+
+Composite FKs constrain every row to a *legal* action:
+
+* `(action_type_id, old_status_id, new_status_id) -> deliverable_action_configuration`
+  -- the transition must be in the seeded state machine.
+* `(action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional) -> deliverable_action_type`
+  -- the four booleans are not free; they must match the seeded action-type row.
+* `(active_extension_id, deliverable_id) -> deliverable_extension(id, deliverableId)`.
+* `user_id -> users(id)`.
+
+CHECK constraints a loader must satisfy:
+
+[cols="2,3"]
+|===
+| Constraint | Rule
+
+| `block_unpermitted_due_date_changes`
+| `due_date_change_allowed = FALSE` implies `old_due_date = new_due_date`
+
+| `check_non_empty_note`
+| `note IS NULL OR trim(note) != ''`
+
+| `require_extension_id_for_extension_actions`
+| `extension_id_optional = FALSE` implies `active_extension_id IS NOT NULL`
+
+| `require_notes_for_user_actions`
+| `should_have_note` if and only if `note IS NOT NULL`
+
+| `require_user_id_for_user_actions`
+| `should_have_user_id` if and only if `user_id IS NOT NULL`
+|===
+
+[[state-machine]]
+=== The seeded state machine
+
+Grounded in `20260312131759_init_baseline/migration.sql`, which is the seed the
+pinned artifact carries. Only 8 statuses exist: `Upcoming`, `Past Due`,
+`Submitted`, `Under CMS Review`, `Accepted`, `Approved`, `Received and Filed`,
+`Deleted`. The 14 action types and their
+`(due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)`
+flags:
+
+[cols="3,^1,^1,^1,^1"]
+|===
+| Action type | ddc | note | user | ext_opt
+
+| Created Deliverable Slot | F | F | T | T
+| Marked as Past Due | F | F | *F* | T
+| Requested Extension | F | T | T | F
+| Approved Extension Request | T | F | T | F
+| Denied Extension Request | F | T | T | F
+| Withdrew Extension Request | F | F | T | F
+| Manually Changed Due Date | T | T | T | T
+| Requested Resubmission | T | T | T | T
+| Submitted Deliverable | F | F | T | T
+| Started Review | F | F | T | T
+| Accepted Deliverable | F | F | T | T
+| Approved Deliverable | F | F | T | T
+| Received and Filed Deliverable | F | F | T | T
+| Deleted Deliverable | F | F | T | T
+|===
+
+The full `deliverable_action_configuration` seed, which is what the composite FK
+checks against:
+
+[cols="3,4"]
+|===
+| Action type | Configured `old -> new`
+
+| Created Deliverable Slot
+| Upcoming -> Upcoming
+
+| Marked as Past Due
+| Upcoming -> Past Due
+
+| Requested Extension
+| Upcoming -> Upcoming; Past Due -> Past Due
+
+| Approved Extension Request
+| Upcoming -> Upcoming; Past Due -> *Upcoming*; Submitted -> Submitted;
+  Under CMS Review -> Under CMS Review
+
+| Denied Extension Request
+| Upcoming -> Upcoming; Past Due -> Past Due; Submitted -> Submitted;
+  Under CMS Review -> Under CMS Review
+
+| Withdrew Extension Request
+| Upcoming -> Upcoming; Past Due -> Past Due; Submitted -> Submitted;
+  Under CMS Review -> Under CMS Review
+
+| Manually Changed Due Date
+| Upcoming -> Upcoming; Past Due -> *Upcoming*; Submitted -> Submitted;
+  Under CMS Review -> Under CMS Review
+
+| Requested Resubmission
+| Submitted -> Upcoming; Under CMS Review -> Upcoming
+
+| Submitted Deliverable
+| Upcoming -> Submitted; Past Due -> Submitted; Submitted -> Submitted;
+  Under CMS Review -> Submitted
+
+| Started Review
+| Submitted -> Under CMS Review
+
+| Accepted Deliverable
+| Under CMS Review -> Accepted
+
+| Approved Deliverable
+| Under CMS Review -> Approved
+
+| Received and Filed Deliverable
+| Under CMS Review -> Received and Filed
+
+| Deleted Deliverable
+| Upcoming -> Deleted; Past Due -> Deleted
+|===
+
+The original spec abbreviated this as "self-transitions (X to X) for
+`Created Deliverable Slot`, the four extension actions, and
+`Manually Changed Due Date`". The table above is the exact seed, and it shows two
+exceptions to that summary: `Approved Extension Request` and
+`Manually Changed Due Date` each also configure `Past Due -> Upcoming`, which is
+not a self-transition.
+
+[NOTE]
+====
+DEMOS has since added a 15th action type,
+`Migrated Deliverable From PMDA` (`FALSE, FALSE, FALSE, TRUE`), with one
+self-transition per status, in
+`server/src/model/migrations/20260722172545_add_migration_deliverable_action`.
+It is *absent from the pinned artifact* this repo builds against
+(`state/prisma_ddl/a4dd0db9....sql`), so the migration's seeded state machine is
+still the 14 types above. This matters to the 2026-07-20 sign-off rationale: see
+<<full>>. The dbt migration in the sibling `data/` repo does use the new type;
+see xref:explanation-dbt-alignment.adoc[alignment with the dbt migration].
+====
+
+=== Two hard derivation facts
+
+. *`action_type` is not a pure function of `(old_status, new_status)`.*
+  Self-transitions are shared by `Created Deliverable Slot`, all four extension
+  actions and `Manually Changed Due Date`. A pure status log cannot
+  disambiguate them. A per-transition crosswalk would have to use extra signal
+  -- PMDA status-code semantics such as `16 Pending Due Date Change`, and a
+  detected due-date change in `mdcd_dlvrbl_hstry` -- and hold back unresolved
+  self-transitions.
+. *Null-actor rows are coherent, not a defect.* PMDA's automated "Past Due"
+  flips carry no `creatd_user_id`. They map to `Marked as Past Due`, the one
+  action type whose `should_have_user_id = FALSE` and which therefore *requires*
+  `user_id IS NULL`. Conversely a user-required action type with a null actor,
+  or a note-required type (`Requested Extension`, `Denied Extension Request`,
+  `Manually Changed Due Date`, `Requested Resubmission`) with no change-reason
+  text, cannot satisfy its CHECK and has to be held back.
+
+[[fidelity]]
+== Fidelity: FULL, then MINIMAL, then batch-aware
+
+Three decisions in thirteen days. Each is recorded below with its date and the
+evidence that fixes it.
+
+[[full]]
+=== FULL (2026-07-17, reaffirmed 2026-07-20)
+
+The original plan: one action row per legal transition, roughly 41k source
+events, reconstructed from `mdcd_dlvrbl_stus_hstry` joined to
+`mdcd_dlvrbl_hstry`.
+
+Per deliverable, order `mdcd_dlvrbl_stus_hstry` by `creatd_dt`; derive
+`old_status` via `LAG` over the crosswalked status; `new_status` is the current
+row's crosswalked status; `action_timestamp` is `creatd_dt`; `user_id` is
+`creatd_user_id` via `migration._id_map_users`; join `mdcd_dlvrbl_hstry` on the
+nearest revision at or under `creatd_dt` for `old_due_date` and `new_due_date`
+(forcing `old = new` for `due_date_change_allowed = FALSE` types) and for the
+note text (`mdcd_dlvrbl_due_dt_chg_rsn_cmt_txt` /
+`mdcd_dlvrbl_late_submsn_rsn_cmt_txt`). `action_type` and the legality of each
+`(action_type, old, new)` triple would come from a new
+`crosswalk_deliverable_action`.
+
+The proposed data flow:
+
+[mermaid]
+....
+flowchart LR
+  subgraph SRC["PMDA history, unread at the time"]
+    DSH["dlvrbl_stus_hstry"]
+    DH["dlvrbl_hstry"]
+    MSH["demo_stus_hstry"]
+    ASH["amndmt_stus_hstry"]
+    APH["demo_aplctn_hstry"]
+  end
+  subgraph STG["stg plus crosswalks"]
+    R["deliverable_action_resolved"]
+    X["crosswalk_deliverable_action"]
+  end
+  subgraph TGT["demos_app"]
+    DA["deliverable_action"]
+    SU["status_updated_at"]
+  end
+  P["parity plus orphans log"]
+  DSH --> R
+  DH --> R
+  X --> R
+  R --> DA
+  MSH --> SU
+  ASH --> SU
+  DA --> P
+  APH --> P
+....
+
+Section 2.1 of
+xref:../sme/reference-sme-signoff-2026-07-20.adoc[the SME sign-off ledger]
+reaffirmed FULL against Stephanie's alternative -- "backfill from PMDA history
+(doable), or one synthetic 'migrated from PMDA' action; easiest wins" -- on the
+grounds that the shortcut was not actually easier:
+
+* A synthetic "migrated from PMDA" action had *no seeded row* in
+  `deliverable_action_configuration`, so it could not be inserted without a
+  cross-repo DEMOS seed change, and DEMOS owns the state machine.
+* It also had to satisfy the action-type boolean composite FK and the row
+  CHECKs, which a pseudo-action does not.
+* The backfill's harder plumbing was already designed and approved, and
+  produces a real, legal trail.
+
+The ledger noted a fallback: a *minimal legal trail*, one legal seeded
+transition per deliverable, rather than a synthetic action type.
+
+[WARNING]
+====
+The legality half of that rationale has since expired. DEMOS shipped exactly the
+seed change it said was needed, in migration
+`20260722172545_add_migration_deliverable_action`, adding
+`Migrated Deliverable From PMDA` with a self-transition on every status. The
+argument still holds against *this repo's* pinned artifact, which does not carry
+that type, but it is no longer an argument about what DEMOS permits.
+====
+
+=== MINIMAL (2026-07-21, supersedes FULL)
+
+Section 11.2 of the ledger records the re-decision. David's CMS priority ranking
+of 2026-07-21 (section 11 of the ledger) puts `deliverable_action` in his lowest
+band and accepts a read-only snapshot for extensions and resubmit requests
+(D12). The FULL 41k-row backfill was therefore over-scoped.
+
+The decision as written: a seeded genesis `Created Deliverable Slot` plus one
+current-status action per loaded deliverable. Two rows. It satisfies the gating
+rule (the latest action's `new_status` equals `deliverable.status_id`) and the
+DEMOS genesis assumption, and it takes two hard problems off the critical path:
+
+* *D8, the unmapped PMDA status codes.* Under MINIMAL only the deliverable's
+  *current* status must map, and `crosswalk_deliverable_status` already does
+  that. The six codes with no direct DEMOS status -- `Work in Progress`,
+  `Overridden`, `Overridden/Accepted`, `Overridden/Request Resubmission`,
+  `Pending Due Date Change`, `Open-ended` -- only need per-transition crosswalk
+  targets if FULL detail is later promoted from the D12 snapshot.
+* *Self-transition disambiguation.* No per-transition rows means no ambiguous
+  `X -> X` to resolve, so `crosswalk_deliverable_action` was never needed.
+
+Both changes are recorded in D7 and D8 of
+xref:../sme/reference-pending-approved-rules.adoc[the pending/approved rules],
+with the FULL sign-off struck through and MINIMAL signed 07/21/2026.
+
+D7's genesis question remains open: no DB constraint requires at least one action
+per deliverable, verified against the baseline DDL, and whether the DEMOS
+UI/GraphQL resolver assumes a genesis `Created Deliverable Slot` is still a
+follow-up for DEMOS engineering. Under MINIMAL the genesis row is synthesized
+for every loaded deliverable regardless, so nothing waits on the answer.
+
+=== Batch-aware MINIMAL (2026-07-29 to 2026-07-30)
+
+MINIMAL as decided cannot be built as decided. There is no configured transition
+from `Upcoming` straight to `Accepted`, so "genesis plus one current-status
+action" is not a legal two-row chain for most statuses. What shipped is the
+*shortest legal path* through DEMOS's own configuration graph from `Upcoming` to
+the loaded status: one to four hops, seeded in
+`sql/02_seeds_static/30_deliverable_action_chain.sql`.
+
+That skeleton then proved too thin for the document contract, and the loader was
+made batch-aware. `demos_app.document` routes a state-submitted file to a
+*specific* submission action via `deliverable_submission_action_id`, and 704
+in-scope deliverables were submitted more than once (565 twice, 107 three times,
+one thirteen times). With a single synthetic `Submitted Deliverable` hop per
+deliverable, every document across every resubmission round collapses onto one
+action.
+
+The commits, in order:
+
+[cols="1,1,3"]
+|===
+| Commit | Date | Change
+
+| `909ae4d4`
+| 2026-07-29
+| First MINIMAL implementation: the chain seed, the fail-closed chain check, the
+  id map, the loader, and parity 62 and 63.
+
+| `902562a2`
+| 2026-07-29
+| `sql/10_stg/39_deliverable_submission_batch.sql`: derive submissions from
+  file-upload sessions instead of one synthetic hop.
+
+| `6c8bd538`
+| 2026-07-29
+| `sql/10_stg/40_deliverable_due_date_window.sql`: record the due date in effect
+  at each action rather than today's.
+
+| `5ad002e9`
+| 2026-07-29
+| Correct the measured figures in the batch view header.
+
+| `4893db01`
+| 2026-07-30
+| Match date-only status events on their calendar day.
+
+| `7256a25f`
+| 2026-07-30
+| Stop minting submissions from uploads flagged as arriving after acceptance.
+|===
+
+[[shipped]]
+== What shipped
+
+[mermaid]
+....
+flowchart LR
+  subgraph SRC["PMDA source"]
+    FD["mdcd_dlvrbl_fil_doc"]
+    DSH["mdcd_dlvrbl_stus_hstry"]
+    DH["mdcd_dlvrbl_hstry"]
+    DL["mdcd_dlvrbl"]
+  end
+  subgraph STGV["stg views"]
+    B["deliverable_submission_batch"]
+    W["deliverable_due_date_window"]
+  end
+  subgraph SEED["migration seeds and maps"]
+    CH["deliverable_action_chain"]
+    IM["_id_map_deliverable_action"]
+  end
+  subgraph DER["23_app_derived/60"]
+    EV["_deliverable_submission_event"]
+    PL["_deliverable_action_plan"]
+  end
+  DA["demos_app.deliverable_action"]
+  P["parity 62 to 65"]
+  FD --> B
+  DSH --> B
+  DH --> W
+  B --> EV
+  DSH --> EV
+  CH --> PL
+  EV --> PL
+  DL --> PL
+  W --> PL
+  IM --> DA
+  PL --> DA
+  DA --> P
+....
+
+=== The seeded hop chain
+
+`migration.deliverable_action_chain` is migration-private reference data: for
+each terminal status, the shortest hop sequence through DEMOS's configuration
+graph that starts at `Upcoming` and ends there.
+
+[source,sql]
+----
+INSERT INTO migration.deliverable_action_chain(terminal_status_id, hop_seq, action_type_id, old_status_id, new_status_id)
+VALUES
+  ('Upcoming', 1, 'Created Deliverable Slot', 'Upcoming', 'Upcoming'),
+('Past Due', 1, 'Created Deliverable Slot', 'Upcoming', 'Upcoming'),
+('Past Due', 2, 'Marked as Past Due', 'Upcoming', 'Past Due'),
+('Submitted', 1, 'Created Deliverable Slot', 'Upcoming', 'Upcoming'),
+('Submitted', 2, 'Submitted Deliverable', 'Upcoming', 'Submitted'),
+('Under CMS Review', 1, 'Created Deliverable Slot', 'Upcoming', 'Upcoming'),
+('Under CMS Review', 2, 'Submitted Deliverable', 'Upcoming', 'Submitted'),
+('Under CMS Review', 3, 'Started Review', 'Submitted', 'Under CMS Review'),
+('Accepted', 1, 'Created Deliverable Slot', 'Upcoming', 'Upcoming'),
+('Accepted', 2, 'Submitted Deliverable', 'Upcoming', 'Submitted'),
+('Accepted', 3, 'Started Review', 'Submitted', 'Under CMS Review'),
+('Accepted', 4, 'Accepted Deliverable', 'Under CMS Review', 'Accepted'),
+('Approved', 1, 'Created Deliverable Slot', 'Upcoming', 'Upcoming'),
+('Approved', 2, 'Submitted Deliverable', 'Upcoming', 'Submitted'),
+('Approved', 3, 'Started Review', 'Submitted', 'Under CMS Review'),
+('Approved', 4, 'Approved Deliverable', 'Under CMS Review', 'Approved'),
+('Received and Filed', 1, 'Created Deliverable Slot', 'Upcoming', 'Upcoming'),
+('Received and Filed', 2, 'Submitted Deliverable', 'Upcoming', 'Submitted'),
+('Received and Filed', 3, 'Started Review', 'Submitted', 'Under CMS Review'),
+('Received and Filed', 4, 'Received and Filed Deliverable', 'Under CMS Review', 'Received and Filed')
+ON CONFLICT (terminal_status_id, hop_seq)
+  DO UPDATE SET
+    action_type_id = excluded.action_type_id,
+    old_status_id = excluded.old_status_id,
+    new_status_id = excluded.new_status_id;
+----
+
+`Deleted` is deliberately unseeded: soft-deleted deliverables are out of
+migration scope, so no loaded deliverable can carry it.
+
+Only the shortest path is seeded, so a deliverable that really bounced --
+submitted, resubmission requested, submitted again -- collapses to one pass. Re-
+derivation of the real bounces is impossible from the source, and inventing
+plausible extra loops would add fiction without adding truth.
+
+`sql/04_crosswalks/74_deliverable_action_chain_check.sql` validates the seed
+fail-closed, before any row is derived, against DEMOS's own seeds. It asserts
+that every hop is a configured transition; that every hop's action type is
+MINIMAL-safe (`due_date_change_allowed = FALSE`, `should_have_note = FALSE`,
+`extension_id_optional = TRUE`, so the row can be note-free and
+due-date-frozen); that each chain starts at `Upcoming` with hop 1, runs
+contiguously, and lands on its terminal status; and that every status named is a
+real `deliverable_status`. `should_have_user_id` is deliberately not constrained
+to one value, because it is `TRUE` for the six human action types and `FALSE`
+for `Marked as Past Due`, and the loader reads the seeded value per type.
+
+=== Where submissions come from
+
+`mdcd_dlvrbl_fil_doc` is the record of what a state actually sent. Clustered
+into upload sessions by `stg.deliverable_submission_batch`, it yields one
+submission per session with a real timestamp and a real actor. It beats
+`mdcd_dlvrbl_stus_hstry` on both counts: `user_id` is NOT NULL and 100% of
+in-scope live uploaders resolve to a migrated DEMOS user, against 84.0% actor
+coverage on the status log, and the status log is 20-41% missing outright for
+deliverables created before 2021.
+
+A submission is a *session* of uploads: consecutive live files on the same
+deliverable, by the same uploader, with no gap longer than 60 minutes. The
+window is not load-bearing -- origin-`S` batch counts across the plausible range
+are 7,748 at 15 minutes, 7,633 at 60 minutes, 7,580 at 4 hours and 7,509 at 24
+hours, a 3% spread. Ordering inside the window is
+`(uploaded_at, mdcd_dlvrbl_fil_doc_id)`; the PK tiebreak is what makes
+`batch_seq` reproducible across runs.
+
+Only `cmt_orgn_cd = 'S'` (state upload) becomes a submission. `'C'` is a CMS
+attachment and must carry a NULL submission link, per the
+`no_submitted_deliverable_cms_files` CHECK, so it is excluded in the loader. The
+stg view emits both origins because stg stays source-only and the document
+loader needs the `'C'` batches too.
+
+The loader resolves three populations into
+`migration._deliverable_submission_event`:
+
+[cols="1,3,1"]
+|===
+| Source | Rule | Scale
+
+| `file_batch`
+| The deliverable has state upload sessions, so one real submission per session,
+  with a real timestamp and a real uploader.
+| 5,223 deliverables / 7,478 submissions
+
+| `status_event`
+| No uploads survive, but the source does carry a real `Submitted` status event
+  (`mdcd_dlvrbl_stus_cd = 3`), so keep one synthetic hop.
+| 7 deliverables
+
+| `status_field`
+| The chain's *terminal* hop is the submission, meaning the status is
+  `Submitted`. Suppressing it would end the timeline on `Upcoming` while DEMOS
+  displays `Submitted`, which is a contradiction rather than a conservative
+  omission, so one synthetic hop is kept.
+| n/a
+
+| (suppressed)
+| No uploads and no submitted event. Emit no submission hop. These were
+  previously handed a fabricated `Submitted Deliverable` action purely because
+  their terminal status sits past `Submitted` in the chain, which asserted a
+  submission the source contradicts.
+| 6 deliverables
+|===
+
+A deliverable whose terminal status has no submission hop in its chain
+(`Upcoming`, `Past Due`) is untouched even when it has upload sessions: the
+chain, not the loader, decides which hops exist. That currently leaves 53
+deliverables' 67 batches unused, which is a chain-seed question rather than a
+submission-evidence one.
+
+[NOTE]
+====
+Where a `Submitted` status event sits near a batch it is matched and exposed, and
+`submitted_at` prefers it: the event is the system's own record of the submission
+instant, while `batch_end_at` is only the last upload. Matching is
+mutual-nearest and 1:1 in both directions, so one event can never be claimed by
+two batches. 5,583 of 6,165 `Submitted` events (90.6%) match.
+
+Status rows written before 2019 carry a date with no time of day and land at
+midnight: 2016-2018 are 100% date-only, 2019 is 32%, 2020 onward is about 0%.
+File uploads never are, 0 of 12,748. A single window centred on the batch cannot
+reach both kinds, so date-only events were matching at 1.5% against 91.8% for
+events with a real time, and the loader minted a duplicate submission beside each
+one the source had already recorded. Date-only events therefore match anywhere
+in their own calendar day and never set `submitted_at`, because midnight is not
+an instant anyone submitted at. That recovered 814 matches.
+====
+
+=== What is real and what is synthesized
+
+Stated plainly, because these rows sit in what reads like an audit trail.
+
+[cols="1,3"]
+|===
+| Class | Content
+
+| Real
+| The deliverable, its terminal status, its due date, the terminal timestamp
+  (`mdcd_dlvrbl.dlvrbl_stus_updt_dt`), the hop-1 timestamp when `created_at`
+  precedes the chain, and every `file_batch` submission's timestamp and actor.
+
+| Synthesized
+| The existence of every non-submission intermediate hop, their timestamps, and
+  their actor.
+|===
+
+The per-hop source dates are deliberately unused for the other hops.
+`mdcd_dlvrbl` carries `last_rcvd_dt` and `rvw_dt`, which look like natural
+anchors for `Started Review`. They are not usable: live PROD has 126 rows with
+`last_rcvd_dt < creatd_dt`, 23 with `rvw_dt < last_rcvd_dt`, 2 with
+`dlvrbl_stus_updt_dt < rvw_dt` and 36 with `dlvrbl_stus_updt_dt < creatd_dt`.
+Anchoring hops on those columns would emit chains that travel backwards in time.
+They are also sparse: `rvw_dt` is present on 0 of 320 `Submitted` and 0 of 244
+`Under CMS Review` rows.
+
+=== The timestamp rule
+
+With `n` the chain length and `k` the number of submissions on the deliverable:
+
+[cols="1,2"]
+|===
+| Hop | `action_timestamp`
+
+| Terminal hop
+| `COALESCE(migration.eastern_day_start(dlvrbl_stus_updt_dt), updated_at)`
+
+| Submission `j`
+| `LEAST(real submitted_at, terminal - ((n-2) + (k-j)) seconds)`
+
+| Other hop `h > 1`
+| `terminal - (n-h) seconds`
+
+| Hop 1
+| `LEAST(created_at, terminal - ((n-1) + GREATEST(k-1,0)) seconds)`
+|===
+
+The caps are what keep the chain strictly increasing when a real submission
+lands at or after the terminal timestamp, which 870 of 7,545 do -- about half
+genuinely (files uploaded after acceptance, see `upld_aftr_acptd_ind`) and half
+as an artifact of `dlvrbl_stus_updt_dt` being a DATE read at Eastern midnight. A
+capped submission keeps its ordering, not its clock reading. For `k <= 1` every
+formula collapses to the pre-batch rule exactly.
+
+=== Actor attribution
+
+A `file_batch` submission is attributed to the uploader. Everything else keeps
+the deliverable's `cms_owner_user_id`: PMDA records `creatd_user_id` and
+`updtd_user_id` but nothing per transition, so attributing a middle hop to
+either would be a guess dressed as provenance. The uploader falls back to the
+owner if it does not resolve to a `demos_app.users` row (2 batches today),
+because `require_user_id_for_user_actions` forbids a NULL there.
+`Marked as Past Due` carries NULL by reading `should_have_user_id` off the seeded
+type rather than by special-casing the type name.
+
+=== The due date in effect at each hop
+
+`stg.deliverable_due_date_window` reconstructs, for any instant, the due date
+then in effect, from `mdcd_dlvrbl_hstry`. Until it existed, every action carried
+the deliverable's *current* due date, so a submission predating an extension
+recorded the extended date rather than the one it was judged against. Windows
+tile each deliverable's timeline contiguously with no gaps and no overlaps, so at
+most one row matches any instant and the result does not depend on physical
+order. A deliverable with no recorded history matches nothing and keeps the
+current value, which is the intended fallback.
+
+[CAUTION]
+====
+`mdcd_dlvrbl_hstry.hstry_updtd_dt` is *true UTC*. Every other timestamp this
+pipeline migrates -- `mdcd_dlvrbl_fil_doc.creatd_dt`,
+`mdcd_dlvrbl_stus_hstry.creatd_dt`, and therefore every
+`deliverable_action.action_timestamp` -- is Eastern wall clock stored at `+00`.
+Comparing the two raw would misplace every window boundary by the Eastern
+offset; pairing each history row with the nearest status event puts 17,476 pairs
+at exactly +4h and 8,950 at exactly +5h, which is EDT and EST and nothing else.
+`40_deliverable_due_date_window.sql` converts explicitly and is DST-aware by
+construction. If the pipeline ever reinterprets Eastern to UTC, it must be done
+for all of these tables at once.
+====
+
+=== Identity and idempotency
+
+`migration._id_map_deliverable_action` is keyed
+`(deliverable_id uuid, hop_seq smallint) -> new_uuid`. Unlike every other id map
+it is not keyed on a legacy id, because PMDA has no per-transition row to point
+at. The table is created empty in `sql/05_id_maps/20_deliverable_action.sql` and
+populated in `23_app_derived`, after `20_app` has loaded
+`demos_app.deliverable`. It persists across rebuilds, so a re-run mints the same
+action uuid for the same hop, and `NOT EXISTS` plus
+`ON CONFLICT (id) DO NOTHING` make the second insert a no-op. See
+xref:reference-id-maps.adoc[id maps] and
+xref:explanation-idempotency.adoc[idempotency].
+
+The submission hop is hop 2 in every seeded chain. Submission 1 keeps
+`hop_seq` 2 so previously minted uuids are reused; submissions 2 to `k` take
+`hop_seq` `100 + j`. Chains are at most 4 hops and the busiest deliverable has 15
+submissions, so the two ranges cannot collide. A repeat submission departs from
+`Submitted`, which `deliverable_action_configuration` permits as a
+self-transition.
+
+The loader degrades rather than failing: it is guarded inert until
+`demos_app.deliverable_action` exists, and if `stg.deliverable_submission_batch`
+is absent it reproduces the pre-batch behaviour exactly, one synthetic hop for
+every chain that has one, rather than silently dropping submissions.
+
+[[gating]]
+== Gating posture
+
+The original gate was "for each loaded deliverable, the latest reconstructed
+action's `new_status` must equal `deliverable.status_id`, plus FK and CHECK
+integrity", with coverage and held rows non-gating. What shipped is four parity
+checks registered in `migration/phases/parity.py`, three gating and one not.
+
+[cols="2,2,1,3"]
+|===
+| Check | SQL | Gating | What it asserts
+
+| Deliverable action completeness
+| `sql/99_parity/62_deliverable_action_completeness.sql`
+| Yes
+| Hop count (one action per seeded non-submission hop plus one per resolved
+  submission event, neither fewer nor more); the chain's last hop lands on the
+  deliverable's own `status_id`; `action_timestamp` strictly increases; every hop
+  carries the deliverable's `due_date` on both sides.
+
+| Deliverable actions not synthesized
+| `sql/99_parity/63_deliverable_action_held.sql`
+| No
+| Per-deliverable log of loaded statuses with no seeded chain, written to
+  `reports/orphans/deliverable_action_not_synthesized.csv`. Expected empty: the
+  seed covers all seven statuses any loaded deliverable currently carries.
+
+| Deliverable submission batches
+| `sql/99_parity/64_deliverable_submission_batch.sql`
+| Yes
+| Recomputes the grouping straight from `mysql_raw` rather than sampling the
+  view: conservation (every live in-scope file in exactly one batch),
+  sequencing, grouping (no batch spans two uploaders, no internal gap exceeds
+  the window, every boundary is justified), aggregation, and 1:1 corroboration.
+
+| Deliverable action provenance
+| `sql/99_parity/65_deliverable_action_provenance.sql`
+| Yes
+| Every `demos_app.deliverable_action` row has its id in
+  `migration._id_map_deliverable_action`.
+|===
+
+A deliverable listed in `migration._parity_deliverable_action_held` is exempt
+from the completeness check: it is recorded as having no chain, and check 63
+reports it separately. That keeps completeness about synthesis defects rather
+than re-reporting seed gaps.
+
+[WARNING]
+====
+`demos_app.deliverable_action` is written by *two* independent migrations. This
+one derives ids from `migration._id_map_deliverable_action`; the dbt migration in
+`data/migration/stage_pmda_for_migration` mints `gen_random_uuid()` per run and
+inserts with no conflict handling. The two id spaces cannot overlap, so neither
+pipeline can see the other's rows, and nothing in the schema catches the
+collision either: `deliverable_action` carries only `PRIMARY KEY (id)` plus a
+`UNIQUE (id, action_type_id)` that is a PK superset used as an FK target, and
+both sides emit legal `(action_type_id, old_status_id, new_status_id)` triples.
+Running both silently doubles a deliverable's timeline, and the two halves
+disagree about who acted. Check 65 is the only safeguard. See
+xref:explanation-dbt-alignment.adoc[alignment with the dbt migration].
+====
+
+For how to add to this set, see
+xref:howto-write-a-parity-check.adoc[write a parity check].
+
+[[specified-vs-shipped]]
+== Specified versus shipped
+
+[cols="2,2,3"]
+|===
+| Specified (2026-07-17) | Shipped | Difference
+
+| `sql/04_crosswalks/<NN>_deliverable_action.sql` -- a
+  `mysql_raw.crosswalk_deliverable_action` with `prev_code`, `new_code`, a
+  disambiguator and `action_type_id`, empty until SME-authored, blocking SME
+  sign-off
+| `sql/04_crosswalks/74_deliverable_action_chain_check.sql`
+| No crosswalk was ever built. MINIMAL removed the need for one, so the blocking
+  SME sign-off dissolved. What sits at 04 instead is a fail-closed *validator*
+  of the migration-authored chain seed against DEMOS's own seeds.
+
+| `sql/05_id_maps/<NN>_mdcd_dlvrbl_stus_hstry.sql` plus
+  `sql/10_stg/<NN>_populate_*` -- a minted UUID PK per source event
+| `sql/05_id_maps/20_deliverable_action.sql`
+| Keyed `(deliverable uuid, hop_seq)`, not per source event, because there is no
+  per-transition source row to key on. Created empty at 05, populated at 23.
+
+| `sql/10_stg/<NN>_deliverable_action_resolved.sql` -- a source-only resolver
+  implementing the `LAG` algorithm
+| `sql/10_stg/39_deliverable_submission_batch.sql`,
+  `sql/10_stg/40_deliverable_due_date_window.sql`
+| No `LAG`-over-status resolver exists. Two different source-only views ship
+  instead: upload-session batches, and due-date windows.
+
+| `sql/20_app/<NN>_deliverable_action.sql` -- loader in `20_app`
+| `sql/23_app_derived/60_deliverable_action.sql`
+| Moved to `23_app_derived`, which runs after `20_app/40_deliverable.sql`,
+  because a hop exists only for a deliverable that survived the load.
+
+| `sql/99_parity/<NN>_deliverable_action_latest_matches_status.sql` (gating),
+  `..._integrity.sql` (gating), `..._held.sql` and `..._coverage.sql`
+  (non-gating)
+| `62_deliverable_action_completeness.sql`,
+  `63_deliverable_action_held.sql`,
+  `64_deliverable_submission_batch.sql`,
+  `65_deliverable_action_provenance.sql`
+| The latest-matches-status and integrity gates were folded into one
+  completeness check. Coverage was dropped. Two gates nobody specified were
+  added: batch-grouping correctness, and provenance against a second pipeline.
+
+| `migration/phases/parity.py` -- register the new checks
+| Done
+| Four `CheckResult` functions, registered at lines 3288-3291.
+
+| `sql/99_parity/30_scope_coverage.sql` -- add a `deliverable_action` row,
+  `DEFERRED` until the loader lands then `BUILT`/`PARTIAL`
+| Done
+| Line 58 records `BUILT`.
+
+| `reports/source_target_columns.csv` -- add the `deliverable_action` column
+  rules
+| *Not done*
+| The file contains zero `deliverable_action` rows.
+
+| `reports/inputs/proposed_table_map.yaml` -- update the `deliverable_action`
+  note
+| *Not done*
+| Line 25 still reads "deliverable workflow-action model; net-new (PMDA stores
+  status, not discrete actions)".
+
+| FULL fidelity: one row per legal transition, roughly 41k
+| Shortest legal path per terminal status (1 to 4 hops), with the submission hop
+  expanded per upload session
+| Two revisions: FULL to MINIMAL (2026-07-21), MINIMAL to batch-aware
+  (2026-07-29/30). See <<fidelity>>.
+
+| Workstream 2: real `status_updated_at` on `demonstration` and `amendment`
+| *Not done*
+| `mdcd_demo_stus_hstry` and `mdcd_demo_amndmt_stus_hstry` are read nowhere
+  under `sql/`.
+
+| Workstream 3: non-gating phase-derivation divergence audit
+| *Not done*
+| `mdcd_demo_aplctn_hstry` is read nowhere under `sql/`.
+|===
+
+[[still-proposed]]
+== Still proposed
+
+Both remaining workstreams are independently shippable and neither has any code.
+
+=== Workstream 2: real `status_updated_at`
+
+Today `demonstration.status_updated_at = updated_at` and
+`amendment.status_updated_at = updated_at`, itself `creatd_dt`. Both are
+synthetic, mirroring the DEMOS backfill convention from migration
+`20260616155913` rather than a real status-change instant. The proposal replaces
+them with the latest real status-change instant:
+
+* *Demonstration*: from `mdcd_demo_stus_hstry` -- recorded `creatd_dt`,
+  effective `mdcd_demo_stus_dt`. There is no actor column, so no attribution;
+  only the timestamp improves. Date-only values would be anchored via
+  `migration.eastern_day_*`, per decision D3.
+* *Amendment*: from `mdcd_demo_amndmt_stus_hstry` (`creatd_dt` plus actor). Only
+  30 source rows exist, so the current fallback stays where history is absent.
+
+Files: `sql/10_stg/22_demonstration_resolved.sql`,
+`sql/20_app/30_demonstration.sql`, `sql/20_app/35_amendment.sql`, plus a
+non-gating parity view logging where the history-derived value differs from the
+synthetic one.
+
+=== Workstream 3: phase-derivation divergence audit
+
+A non-gating `sql/99_parity/` check comparing the current point-in-time
+`current_phase_id` (the highest started phase) against a history-derived
+furthest-phase reconstruction from `mdcd_demo_aplctn_hstry` (`hstry_ts` plus
+per-revision `phase_*` dates). Divergences log to `reports/orphans/` only.
+
+There is deliberately *no load change*: the DEMOS `application_phase` target has
+only a `phase_status` enum and no per-phase started or completed date columns, so
+history cannot add stored per-phase timing. The audit only surfaces cases where
+the point-in-time snapshot disagrees with the historical progression, for SME
+visibility. The phase derivation it would audit is documented in
+xref:reference-cross-cutting-derivations.adoc[cross-cutting PMDA derivations].
+
+== Explicitly out of scope
+
+* `phase_3` clearance sub-dates (SME/FRT/BNPMT), and `Application Status Date` /
+  the amendment application date. These are target-side or SME-mapping gaps that
+  transition history does not fix: the same columns exist in history and would
+  not resolve the semantic ambiguity, and some have no seeded `date_type`
+  target.
+* Populating the DEMOS `+*_history+` tables. Unchanged: DEMOS-owned, empty at
+  cutover. See xref:explanation-history-backfill.adoc[history is DEMOS-owned].
+* Any load requiring the DEFERRED `deliverable_extension` family. Extension-typed
+  actions are consequently absent from every seeded chain, and
+  `active_extension_id` is always NULL.
+
+== Verification
+
+. `make test` for the unit suite, plus the SQL harness (`PG_TEST_DSN`) for the
+  loaders and parity views.
+. `make sql-check` -- pg_format layout, sqlfluff lint and front-matter -- on
+  every new or changed `.sql`. See
+  xref:reference-sql-conventions.adoc[SQL conventions].
+. Apply-twice idempotency for each SQL file via the app-layers harness. Every
+  transform is a guarded no-op until its inputs exist, which is what lets the
+  harness stand up `demos_app` without `stg` and still apply these files
+  cleanly.
+. Regenerate the fixture-based flow traces and `git diff` for intentional drift
+  only.
+
+== Related
+
+* xref:explanation-history-backfill.adoc[History is DEMOS-owned, not migrated]
+  -- the `+*_history+` decision this page does not overlap.
+* xref:../sme/reference-history-strategy.adoc[SME reference: history strategy]
+  -- the same decision, SME-facing.
+* xref:reference-cross-cutting-derivations.adoc[Cross-cutting PMDA derivations]
+  -- where the `deliverable_action` state machine sits among the other rules.
+* xref:explanation-dbt-alignment.adoc[Alignment with the `data/` dbt migration]
+  -- the second pipeline that writes this same table.
+* xref:explanation-api-validation-audit.adoc[API-level validation and migration
+  compliance] -- which DEMOS read-time rules the synthesized rows trip.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:explanation-history-backfill.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:explanation-demos-clone-vs-id-maps.adoc[next >]
+|===
+endif::[]
+// docnav-end

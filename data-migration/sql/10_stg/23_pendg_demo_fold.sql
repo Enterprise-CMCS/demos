@@ -3,7 +3,7 @@
  * Inputs:     stg._valid_pendg_demo_ids, stg._valid_demo_ids, mysql_raw.mdcd_pendg_demo, mysql_raw.mdcd_demo, migration._id_map_mdcd_pendg_demo, migration._id_map_mdcd_demo, migration.normalize_medicaid_id
  * Outputs:    CREATE OR REPLACE VIEW stg._pendg_demo_fold
  * Invariants: source-only (mysql_raw + id maps + stg filters only; never crosswalks 04 / seeds 02) so it builds in the stg-only idempotency harness; idempotent (CREATE OR REPLACE VIEW); soft-delete exclusion (dltd_ind = 1); approved wins (a pending demo whose NORMALIZED project number matches a PMDA-valid approved demo's NORMALIZED project number folds into it -- both sides go through migration.normalize_medicaid_id, so the fold key, the emitted medicaid_id and the row-level filters are the same predicate); project number REQUIRED to load an orphan (a pending demo with no normalizable project number is held back, per the 2026-07-10 SME answer).
- * Refs:       reports/narrative/pending_approved_decisions.md, docs/specs/pmda-cross-cutting-derivation-spec.md, sql/99_parity/04_pending_approved.sql
+ * Refs:       reports/narrative/pending_approved_decisions.md, docs/developer/reference-cross-cutting-derivations.adoc, sql/99_parity/04_pending_approved.sql
  *
  * Pending/approved unification fold.
  *

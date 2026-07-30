@@ -1,0 +1,56 @@
+= How to load migrated data into the DEMOS devcontainer
+:toc: left
+
+Load the transformed `demos_app` rows into the sister `../demos` devcontainer
+Postgres so DEMOS can be exercised against real migrated data. Audience: a
+developer who wants to click around the app, or run a GraphQL query, against
+what the migration actually produces. Success criterion: the app boots and
+GraphQL returns migrated rows.
+
+This is a *development* aid, not part of the cutover path. It ships only the
+`demos_app` data onto a schema the local app created canonically via
+`prisma migrate deploy`, so the scratch build's `mysql_raw` / `stg` /
+`migration` schemas never reach the devcontainer.
+
+[IMPORTANT]
+====
+Full parity is *not* run here. The default devcontainer scratch builds with
+`SKIP_JSONSCHEMA`, so its jsonb-shape parity check is trivially green. Parity
+belongs in the supabase-image environment (`make spin_up` / `make test-db-up`),
+which has a real `pg_jsonschema`. See
+xref:../operator/explanation-rehearsal-strategy.adoc[the rehearsal strategy].
+====
+
+== Procedure
+
+The body below is the live `runbooks/demos-devcontainer-load.md` runbook,
+rendered. It stays Markdown because it is run from a terminal and tracks the
+`scripts/migrate_local.py` flags closely; this page is its view in the wiki.
+Edit the runbook, then run `make live-partials` (in `docs/`) to refresh this
+page.
+
+include::../shared/generated/live/demos-devcontainer-load.adoc[leveloffset=+1]
+
+== Related
+
+* xref:explanation-demos-clone-vs-id-maps.adoc[The DEMOS clone tool vs. our id
+  maps] -- why we ship data rather than clone.
+* xref:reference-prisma-ddl.adoc[Prisma DDL pipeline] -- the pin this flow
+  verifies `../demos` against.
+* xref:howto-run-tests-locally.adoc[Run tests locally] -- the other local
+  Postgres you may already have running.
+* xref:../operator/reference-makefile.adoc[Makefile targets] -- the full
+  definition of `migrate-local` and its `ARGS=` flags.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:howto-run-tests-locally.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-repo-layout.adoc[next >]
+|===
+endif::[]
+// docnav-end

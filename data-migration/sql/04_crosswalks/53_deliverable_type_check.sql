@@ -2,14 +2,14 @@
  * Purpose:    Fail-closed completeness + integrity check for crosswalk_deliverable_type.
  * Inputs:     mysql_raw.mdcd_dlvrbl, mysql_raw.crosswalk_deliverable_type, demos_app.deliverable_type, stg._valid_dlvrbl_ids (when present)
  * Outputs:    none (validation only; RAISEs EXCEPTION on a gap)
- * Invariants: fail-closed; to_regclass-guarded no-op before load; a present-but-empty source RAISEs (no vacuous pass, CODE_REVIEW H4); every used legacy mdcd_dlvrbl_type_cd must have a mapping row; every mapped demos_text_id must exist in the DEMOS deliverable_type seed.
- * Refs:       CODE_REVIEW.md (H4), sql/04_crosswalks/52_deliverable_type.sql, sql/04_crosswalks/51_deliverable_status_check.sql
+ * Invariants: fail-closed; to_regclass-guarded no-op before load; a present-but-empty source RAISEs (no vacuous pass); every used legacy mdcd_dlvrbl_type_cd must have a mapping row; every mapped demos_text_id must exist in the DEMOS deliverable_type seed.
+ * Refs:       sql/04_crosswalks/52_deliverable_type.sql, sql/04_crosswalks/51_deliverable_status_check.sql
  *
  * Completeness + integrity check for crosswalk_deliverable_type.
  * Guarded by to_regclass so it is a no-op before pgloader populates mysql_raw
  * and before the DEMOS seed domain is present; once mdcd_dlvrbl exists it must
  * be non-empty, otherwise the completeness check would pass vacuously on a
- * half-loaded source (CODE_REVIEW H4).
+ * half-loaded source.
  *
  * (a) every legacy mdcd_dlvrbl_type_cd present in the loaded source must have a
  *     mapping row. When the stg filter exists, completeness scopes to the

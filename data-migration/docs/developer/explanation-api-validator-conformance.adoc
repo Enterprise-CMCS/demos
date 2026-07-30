@@ -233,7 +233,7 @@ ifndef::nested[]
 |===
 |xref:explanation-demos-clone-vs-id-maps.adoc[< prev]
 ^|xref:../toc.adoc[Table of contents]
->|xref:../sme/index.adoc[next >]
+>|xref:explanation-api-validation-audit.adoc[next >]
 |===
 endif::[]
 // docnav-end

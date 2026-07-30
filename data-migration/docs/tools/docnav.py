@@ -25,6 +25,7 @@ ORDER: list[str] = [
     # operator
     "operator/index.adoc",
     "operator/tutorial-first-cutover-rehearsal.adoc",
+    "operator/howto-dress-rehearsal-probe.adoc",
     "operator/howto-cutover-day.adoc",
     "operator/howto-rollback.adoc",
     "operator/howto-rebuild-from-scratch.adoc",
@@ -34,6 +35,7 @@ ORDER: list[str] = [
     "operator/howto-troubleshoot-parity-red.adoc",
     "operator/reference-cli.adoc",
     "operator/reference-makefile.adoc",
+    "operator/reference-rehearsal-commands.adoc",
     "operator/reference-gates-state.adoc",
     "operator/reference-environment.adoc",
     "operator/reference-human-inputs.adoc",
@@ -44,6 +46,7 @@ ORDER: list[str] = [
     "operator/explanation-rehearsal-strategy.adoc",
     # developer
     "developer/index.adoc",
+    "developer/tutorial-follow-an-entity.adoc",
     "developer/tutorial-add-a-new-transform.adoc",
     "developer/howto-add-a-phase.adoc",
     "developer/howto-snapshot-source-schema.adoc",
@@ -54,22 +57,38 @@ ORDER: list[str] = [
     "developer/howto-revalidate-jsonb.adoc",
     "developer/howto-write-a-parity-check.adoc",
     "developer/howto-run-tests-locally.adoc",
+    "developer/howto-load-demos-devcontainer.adoc",
+    "developer/reference-repo-layout.adoc",
     "developer/reference-pipeline-stages.adoc",
+    "developer/reference-sql-conventions.adoc",
     "developer/reference-python-package.adoc",
     "developer/reference-templates.adoc",
     "developer/reference-fk-overrides-yaml.adoc",
     "developer/reference-jsonb-schema-registry.adoc",
     "developer/reference-prisma-ddl.adoc",
+    "developer/reference-prisma-migration-analysis.adoc",
     "developer/reference-schema-diagrams.adoc",
     "developer/reference-id-maps.adoc",
     "developer/reference-data-dictionary.adoc",
+    "developer/reference-legacy-pmda-workflows.adoc",
     "developer/reference-source-target-columns.adoc",
+    "developer/reference-cross-cutting-derivations.adoc",
     "developer/reference-derivability-audit.adoc",
+    "developer/reference-crosswalk-audit.adoc",
     "developer/reference-users-person-migration.adoc",
+    "developer/reference-demonstration-role-migration.adoc",
     "developer/explanation-why-python-not-bash.adoc",
     "developer/explanation-idempotency.adoc",
     "developer/explanation-fk-strategy.adoc",
     "developer/explanation-history-backfill.adoc",
+    "developer/explanation-deliverable-action-backfill.adoc",
+    "developer/explanation-demos-clone-vs-id-maps.adoc",
+    "developer/explanation-api-validator-conformance.adoc",
+    "developer/explanation-api-validation-audit.adoc",
+    "developer/explanation-migration-feasibility.adoc",
+    "developer/explanation-dbt-alignment.adoc",
+    "developer/explanation-document-migration.adoc",
+    "developer/explanation-jenkins-pipelines.adoc",
     # sme
     "sme/index.adoc",
     "sme/howto-author-a-crosswalk-csv.adoc",
@@ -83,6 +102,9 @@ ORDER: list[str] = [
     "sme/reference-drop-list.adoc",
     "sme/reference-source-target-map.adoc",
     "sme/reference-source-target-columns.adoc",
+    "sme/reference-demonstration-mapping-worksheet.adoc",
+    "sme/reference-milestone-date-mapping.adoc",
+    "sme/reference-sme-signoff-2026-07-20.adoc",
     "sme/explanation-data-shape-decisions.adoc",
     "sme/explanation-comments-routing.adoc",
     "sme/explanation-derivability.adoc",
@@ -138,6 +160,19 @@ def render_block(prev: str | None, next_: str | None, source_dir: str) -> str:
     )
 
 
+def block_for(rel: str) -> str:
+    """Return the docnav block for ``rel``, a path in :data:`ORDER`.
+
+    Exposed so a generator that writes a whole page (which would otherwise
+    clobber the footer this script appends) can emit the identical block
+    itself, keeping ``make cli-ref`` and ``make docnav`` from fighting.
+    """
+    i = ORDER.index(rel)
+    prev = ORDER[i - 1] if i > 0 else None
+    next_ = ORDER[i + 1] if i < len(ORDER) - 1 else None
+    return render_block(prev, next_, "/".join(rel.split("/")[:-1]))
+
+
 def update(path: Path, block: str) -> None:
     """Rewrite ``path`` with the current docnav block appended (idempotent)."""
     text = path.read_text(encoding="utf-8")
@@ -148,15 +183,11 @@ def update(path: Path, block: str) -> None:
 
 def main() -> None:
     """Append a freshly rendered docnav footer to every page in :data:`ORDER`."""
-    for i, rel in enumerate(ORDER):
+    for rel in ORDER:
         path = DOCS / rel
         if not path.exists():
             raise SystemExit(f"missing: {rel}")
-        prev = ORDER[i - 1] if i > 0 else None
-        next_ = ORDER[i + 1] if i < len(ORDER) - 1 else None
-        source_dir = "/".join(rel.split("/")[:-1])
-        block = render_block(prev, next_, source_dir)
-        update(path, block)
+        update(path, block_for(rel))
     print(f"Wrote docnav footer to {len(ORDER)} files.")
 
 

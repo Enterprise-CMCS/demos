@@ -3,17 +3,27 @@
  * Inputs:     none (DDL only); rows mirror reports/crosswalks/deliverable_file_type.csv, loaded from CSV by the crosswalks phase.
  * Outputs:    mysql_raw.crosswalk_deliverable_file_type
  * Invariants: idempotent (DROP TABLE IF EXISTS + CREATE); DELIVERABLE-file family only (application/site-visit/reference families tracked separately); load-only (no document loader yet); the CSV is the single source (do not add values here); 72_deliverable_file_type_check.sql fails closed on any unmapped populated fil_doc_cd; demos_text_id nullable (excluded codes carry no target).
- * Refs:       reports/crosswalks/deliverable_file_type.csv, docs/specs/document-migration.md (D2, D3, D6)
+ * Refs:       reports/crosswalks/deliverable_file_type.csv, docs/developer/explanation-document-migration.adoc (D2, D3, D6)
  *
  * Crosswalk: legacy MySQL mdcd_dlvrbl_fil_doc.fil_doc_cd (integer) -> DEMOS
  * demos_app.document_type.id (text), DELIVERABLE-file type subset only.
  *
- * fil_doc_cd mirrors the boolean type flags 1:1 (docs/specs/document-migration.md
- * D6, reverse-engineered from the source DB):
+ * Each populated fil_doc_cd corresponds to one of the boolean type flags
+ * (docs/developer/explanation-document-migration.adoc D6, reverse-engineered
+ * from the source DB):
  *   1       -> Budget Neutrality (bdgt_ntrlty_fil_ind); OUT OF SCOPE per D3,
  *              excluded from the loader (NULL demos_text_id, in_scope=false).
  *   2, 3    -> Monitoring Report (mntrg_rpt_fil_ind); collapse to one DEMOS type.
  *   7, 9    -> Monitoring Protocol (mntrg_prtcl_fil_ind); collapse to one DEMOS type.
+ *
+ * The correspondence is NOT 1:1, and a code may not be used as a proxy for its
+ * flag. A live-PROD re-probe (2026-07-27, recorded in
+ * reports/narrative/notes.md) found 1,872 rows carrying bdgt_ntrlty_fil_ind = 1
+ * with a NULL fil_doc_cd -- 76 of them live, not soft-deleted -- so filtering BN
+ * on fil_doc_cd = 1 alone would migrate 76 BN files as General File and breach
+ * repo-wide BN scope. Both signals must be excluded. The same probe found 8
+ * further rows (all soft-deleted) carrying mntrg_rpt_fil_ind = 1 with a protocol
+ * code, so flag and code can also disagree in the other direction.
  *
  * NULL fil_doc_cd (85% of live files, and every CMS-attached file) is the D2
  * "General File" default; it is not a source code and so carries no crosswalk

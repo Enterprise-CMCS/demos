@@ -506,7 +506,7 @@ Bash remains as a one-line shim (`scripts/cutover.sh`) so the muscle-memory invo
 | `pytest` + `pytest-cov`
 
 | CI
-| GitHub Actions workflow at `.github/workflows/ci.yml` (uv sync + pytest + ruff + ty on push / PR)
+| *Not built.* The planned GitHub Actions workflow was never authored, and no parent-repository workflow matches `data-migration/`. The gate is local: `make test`, `make lint`, `make typecheck`, `make sql-check`, plus the `sql-check` pre-commit hook.
 |===
 
 '''
@@ -712,7 +712,7 @@ All commands shown as `uv run migrate <phase>`. The `./scripts/cutover.sh <phase
 | T+2h30m → T+3h
 | `uv run migrate parity`
 | `migration.phases.parity`
-| (1) `apply_dir(sql/99_parity)` runs the pure-Postgres parity views (`mysql_raw` vs `demos_app`; no DuckDB). (2) `ParityReport` dataclass collects thirty-one ``CheckResult``s. The original gating set: row-count parity (PENDING on the SME consolidated-family mapping), numeric-sum parity (PENDING, same), JSONB shape of the BN parity oracle (retired 2026-07-16 -- BN is out of scope and DEMOS-owned; see workstream I), pending/approved unification audit (PENDING on sign-off of `reports/narrative/pending_approved_decisions.md`), reconstructed-FK orphans (CSV-driven from `reports/generated/fk_candidates.csv`), demonstration-id provenance, and users/person integrity. Plus, added with the application-core load: demonstration load completeness, system-role-assignment integrity, person-state integrity, active-users coverage, demonstration-role-assignment integrity, and the non-gating logs -- Approved demos held back, PMDA workflow scope coverage, deliverable completeness/integrity/held, deliverable BN routing QA, pgm_dtl tag hold-backs and unseeded guard, comment completeness/integrity/held, override-note completeness/held, comment routing coverage, demonstration phase derivation, state/region drift, amendment load accounting, medicaid.gov 1115 parity, and duplicate-medicaid hold-backs. The full check list is in the `parity.py` module docstring. (3) Markdown report rendered to `reports/runs/parity_<timestamp>.md` with `+**OVERALL STATUS: GREEN/RED/PENDING**+`. (4) Gate is marked only on GREEN -- or on PENDING when invoked with `--accept-pending` (dress rehearsals only; logs a WARN naming each pending check).
+| (1) `apply_dir(sql/99_parity)` runs the pure-Postgres parity views (`mysql_raw` vs `demos_app`; no DuckDB). (2) `ParityReport` dataclass collects 46 ``CheckResult``s -- 23 numbered 1 to 24 (number 3 is a permanent gap, the retired BN JSONB check) and 23 registered without a number. The original gating set: row-count parity (PENDING on the SME consolidated-family mapping), numeric-sum parity (PENDING, same), JSONB shape of the BN parity oracle (retired 2026-07-16 -- BN is out of scope and DEMOS-owned; see workstream I), pending/approved unification audit (PENDING on sign-off of `reports/narrative/pending_approved_decisions.md`), reconstructed-FK orphans (CSV-driven from `reports/generated/fk_candidates.csv`), demonstration-id provenance, and users/person integrity. Plus, added with the application-core load: demonstration load completeness, system-role-assignment integrity, person-state integrity, active-users coverage, demonstration-role-assignment integrity, and the non-gating logs -- Approved demos held back, PMDA workflow scope coverage, deliverable completeness/integrity/held, deliverable BN routing QA, pgm_dtl tag hold-backs and unseeded guard, comment completeness/integrity/held, override-note completeness/held, comment routing coverage, demonstration phase derivation, state/region drift, amendment load accounting, medicaid.gov 1115 parity, and duplicate-medicaid hold-backs. The full check list is in the `parity.py` module docstring. (3) Markdown report rendered to `reports/runs/parity_<timestamp>.md` with `+**OVERALL STATUS: GREEN/RED/PENDING**+`. (4) Gate is marked only on GREEN -- or on PENDING when invoked with `--accept-pending` (dress rehearsals only; logs a WARN naming each pending check).
 | *Gate 6:* parity report `OVERALL STATUS: GREEN` (or PENDING + `--accept-pending` for rehearsal)
 
 | *Manual go/no-go*
@@ -807,7 +807,7 @@ The canonical phase order (`lib.PHASES`) -- used by `migrate status` and `migrat
 
 * *History population.* The `demos_app.*_history` tables are owned by DEMOS and left empty by this migration; DEMOS's capture triggers fill them post-cutover. Nothing in the cutover script touches them.
 * *DDL changes.* `30_constraints/`, `31_constraint_triggers/`, `40_indexes/`, `50_sequences/` files are *frozen* at end of Week 8 (after the second rehearsal). Any change after that requires explicit re-rehearsal.
-* *DEMOS post-Prisma DB objects.* The `demos_app.*_history` tables and `revision_type_enum` (Prisma baseline) and the `log_changes_*` capture triggers, application functions, utility views, role grants, and `pg_cron` schedules (`server/src/sql/*` applied via `server/src/refreshDbObjects.ts`) are *owned by DEMOS*. This repo never authors them. The operator applies `refreshDbObjects.ts` against the staging clone *after* P5 and *before* flip; the history tables start empty and the capture triggers populate them from then on. `sql/32_app_triggers/` is therefore intentionally empty. See xref:../../reports/narrative/ownership-remediation-plan.md[the ownership remediation plan].
+* *DEMOS post-Prisma DB objects.* The `demos_app.*_history` tables and `revision_type_enum` (Prisma baseline) and the `log_changes_*` capture triggers, application functions, utility views, role grants, and `pg_cron` schedules (`server/src/sql/*` applied via `server/src/refreshDbObjects.ts`) are *owned by DEMOS*. This repo never authors them. The operator applies `refreshDbObjects.ts` against the staging clone *after* P5 and *before* flip; the history tables start empty and the capture triggers populate them from then on. `sql/32_app_triggers/` is therefore intentionally empty. The working record is `reports/narrative/ownership-remediation-plan.md`; the wiki view is xref:../developer/explanation-history-backfill.adoc[history is DEMOS-owned, not migrated].
 * *Manual SQL.* Every action is a script. If something needs to be done that isn't a script, the cutover halts.
 
 === One-line summary
@@ -831,9 +831,26 @@ ____
 
 '''
 
-== 12. Timeline (8 weeks + cutover week, cutover Wed 2026-07-01)
+== 12. Timeline (8 weeks + cutover week, as originally planned)
 
-The original 11-week plan has been compressed to fit the actual repo start (Mon 2026-05-04, first commit 2026-05-05) and the fixed cutover date (Wed 2026-07-01). Two pairs of weeks are merged -- the original Weeks 3 + 4 collapse into one combined "raw refresh + application core" week, and the original Weeks 8 + 9 collapse into one combined "integration + UAT + performance" week. The slip buffer is dropped; if a transform week overruns, the cutover-day prep buffer absorbs the slip. Each week below is broken into day-by-day steps with the *goal*, the *steps*, the *artifacts*, and an *exit gate* that must be green before moving on. Weeks assume a 5-day work week.
+[IMPORTANT]
+.This schedule lapsed; the cutover moved to Thu 2026-08-13
+====
+The week-by-week schedule in this section was built around a Wed 2026-07-01
+cutover. That date passed without a cutover and the go-live moved to *Thursday
+2026-08-13*, the date now carried by the single SQL constant in
+`sql/23_app_derived/50_application_phase.sql` and by
+xref:../README.adoc[the overview page].
+
+The week table and Gantt below are kept as the *original plan of record* --
+they are what the exit gates were written against, and several later sections
+reference "W4" or "W7" by number. Read the dates as history, not as a
+commitment. Current delivery status is in the *Current status* paragraph after
+the Gantt, and per-branch status is tracked in
+xref:migration-plan.adoc[the migration-plan branch tracker].
+====
+
+The original 11-week plan has been compressed to fit the actual repo start (Mon 2026-05-04, first commit 2026-05-05) and the then-fixed cutover date (Wed 2026-07-01). Two pairs of weeks are merged -- the original Weeks 3 + 4 collapse into one combined "raw refresh + application core" week, and the original Weeks 8 + 9 collapse into one combined "integration + UAT + performance" week. The slip buffer is dropped; if a transform week overruns, the cutover-day prep buffer absorbs the slip. Each week below is broken into day-by-day steps with the *goal*, the *steps*, the *artifacts*, and an *exit gate* that must be green before moving on. Weeks assume a 5-day work week.
 
 === Quick view
 
@@ -889,7 +906,7 @@ The original 11-week plan has been compressed to fit the actual repo start (Mon 
 [mermaid, width=1600]
 ....
 gantt
-  title DEMOS migration — cutover Wed 2026-07-01 (8-week plan; status 2026-07-09)
+  title DEMOS migration — original 8-week plan (lapsed; cutover moved to Thu 2026-08-13)
   dateFormat  YYYY-MM-DD
   axisFormat  %b %d
   excludes    weekends
@@ -911,7 +928,7 @@ gantt
   section Cutover
   W8 Two timed rehearsals                                     :w8, after w7, 5d
   Cutover-day prep                                            :pre, after w8, 2d
-  Cutover (Wed 2026-07-01)                                    :crit, milestone, cut, 2026-07-01, 0d
+  Planned cutover (lapsed)                                    :crit, milestone, cut, 2026-07-01, 0d
   Hypercare                                                   :hc, after cut, 4d
   Decom                                                       :dc, after hc, 3d
 ....
@@ -923,31 +940,40 @@ gantt
 * {empty}🟠 *Partial / in progress* -- some deliverables shipped, others still pending (W2-W6 today)
 * {empty}🔵 *Active* -- a future week being actively worked on; reserved colour for when future week(s) flips from "not started" to "actively in flight"
 * {empty}⚪ *Not started* -- scaffolded but no SQL yet
-* {empty}🔴 *Critical / cutover milestone* -- production cutover date (Wed 2026-07-01)
+* {empty}🔴 *Critical / cutover milestone* -- the originally planned cutover date (Wed 2026-07-01), which lapsed
 ====
 
 [WARNING]
-.Amber W3-W6: application-core load is partial
+.The Gantt colours are frozen at 2026-07-09 and understate delivery
 ====
-W2-W6 are amber because committed artifacts advance each week beyond
-scaffolding -- but progress is *not* sequential. The keystone application-core
-load has *begun but is incomplete*: `sql/20_app/` (person, users,
-demonstration), `sql/21_app_associative/`, and `sql/23_app_derived/`
-(person-state + the system / demonstration / primary role assignments) are
-authored, while the deliverable / document / comment / amendment / extension
-loaders are not, and `sql/30_constraints/`, `sql/32_app_triggers/`,
-`sql/40_indexes/`, `sql/50_sequences/` remain `.gitkeep`-only. The W3 staging
-layer (`sql/10_stg/`, `sql/05_id_maps/`) is authored. History is DEMOS-owned
-and not migrated, so there is no history-backfill stage (see
+The amber W2-W6 bars above record the position on 2026-07-09, when the
+application-core load had begun but the deliverable, comment, and amendment
+loaders did not exist. They now do -- `sql/20_app/40_deliverable.sql`,
+`sql/20_app/50_comment.sql`, and `sql/20_app/35_amendment.sql` are all
+authored and BUILT in the scope ledger. Extensions are DEFERRED post-MVP and
+documents are OUT-OF-SCOPE by operator decision, so neither is outstanding
+work. `sql/30_constraints/` and `sql/40_indexes/` are still `.gitkeep`-only:
+FKs are captured from the Prisma artifact at `migrate ddl` and re-applied by
+`migrate constraints`, so no static file is expected there. History is
+DEMOS-owned and not migrated, so there is no history-backfill stage (see
 migration-plan.adoc Branch 2).
-Read amber as "load started, remaining entities outstanding," not "almost
-done." Per-week and per-branch status is tracked authoritatively in
-xref:migration-plan.adoc[the migration-plan branch tracker]; this Gantt mirrors
-it. The cutover date is held at Wed 2026-07-01; the today-marker (2026-07-09)
-now sits past the W6 calendar slot while delivered work trails it.
+
+Do not read delivery status off this Gantt. Read it from
+`sql/99_parity/30_scope_coverage.sql`, which reports every target table's
+disposition and live row count, or from
+xref:migration-plan.adoc[the migration-plan branch tracker].
 ====
 
-*Current status (as of 2026-07-09).* Week 1 was completed in May (environment, `sql/00_init/`, the original `sql/01_ddl/`, pgloader templates + drop list, FK candidate scanner, draft JSONB schemas). Since then the DDL ownership has shifted to Prisma upstream: `sql/01_ddl/` (45 files) and `sql/30_constraints/01_fks.sql` (22 KB hand-authored FKs) have been removed and replaced by a `migrate fetch-prisma` + `migrate ddl` flow that downloads, hash-pins, applies, and captures FKs from the DEMOS app's Prisma artifact (which also owns the `*_history` tables and `revision_type_enum`), plus `sql/01_ddl_supplements/` (the JSONB schema registry only) for the migration-private DDL.
+*Status as of 2026-07-30.* 16 of the 19 target tables in the scope ledger are
+BUILT; `demonstration_type_tag_assignment` is PARTIAL pending an SME mapping
+expansion, `extension` is DEFERRED post-MVP, and `document` is OUT-OF-SCOPE by
+operator decision (2026-07-27). Two Tier-1 rehearsals ran on 2026-07-22 against
+PROD-scale data, the second clearing the amendment-status and chip_id-mint
+findings from the first and leaving three REDs, all pre-existing source-data
+row-count findings. A Tier-2 rehearsal covering flip / smoke / decom has not
+been run.
+
+*Position as of 2026-07-09.* Week 1 was completed in May (environment, `sql/00_init/`, the original `sql/01_ddl/`, pgloader templates + drop list, FK candidate scanner, draft JSONB schemas). Since then the DDL ownership has shifted to Prisma upstream: `sql/01_ddl/` (45 files) and `sql/30_constraints/01_fks.sql` (22 KB hand-authored FKs) have been removed and replaced by a `migrate fetch-prisma` + `migrate ddl` flow that downloads, hash-pins, applies, and captures FKs from the DEMOS app's Prisma artifact (which also owns the `*_history` tables and `revision_type_enum`), plus `sql/01_ddl_supplements/` (the JSONB schema registry only) for the migration-private DDL.
 
 [IMPORTANT]
 .Prisma pivot reshaped the Week 2 plan
@@ -1125,7 +1151,7 @@ steps stand.
 | BN parity aggregate v2
 
 | Fri
-| (1) Build `10_stg/70_comments.sql` routing the 9 comment tables to `private_comment` (CMS) or `public_comment` (state) by `cmt_orgn_cd`. (2) Wire `20_app/60_bn.sql` and `20_app/70_comments.sql`. (3) Clean rebuild.
+| (1) Build `10_stg/70_comments.sql` routing the 10 comment tables to `private_comment` (CMS) or `public_comment` (state) by `cmt_orgn_cd`. (2) Wire `20_app/60_bn.sql` and `20_app/70_comments.sql`. (3) Clean rebuild. _(Shipped differently: only the 2 deliverable-scoped `*_cmt` tables load, as `sql/10_stg/36_comment_resolved.sql` + `sql/20_app/50_comment.sql`; `20_app/60_bn.sql` was never authored, BN being out of scope.)_
 | Full Week 5 done
 |===
 
@@ -1309,9 +1335,9 @@ Confirm before Monday:
 . Author `sql/00_init/` SQL: `00_roles.sql` (`migration_owner` plus the DEMOS app-facing roles `demos_read`, `demos_write`, `demos_delete`), `01_schemas.sql` (`mysql_raw`, `stg`, `demos_app`, `migration` + per-role `search_path`; app-facing grants on `demos_app` are owned by the DEMOS `permissions.sql`, not set here), `02_extensions.sql` (`pgcrypto`, `uuid-ossp`, `pg_jsonschema`), `03_helper_fns.sql` (`migration.lookup_uuid`, `migration.crosswalk`, `migration.assert_zero`), `04_delta_log.sql` (`mysql_raw._delta_log` written by `freeze.py` and updated by ``delta.tmpl.load``'s `AFTER LOAD DO`).
 . Smoke test: `make sync && uv run migrate init` against an empty cluster runs clean.
 . Author `tests/test_lib.py` (gate plumbing, `render_template`, `redact`, `truncate_schema_data` guards) and `tests/conftest.py` (`tmp_state_dir`, `reset_env_cache` autouse). Add `tests/test_cli.py` to lock down the Typer command surface. `make test` reports green. (Sets the bar that every later phase ships with at least one unit test.)
-. Add `.github/workflows/ci.yml` running `uv sync --extra dev --frozen`, `pytest --cov`, `ruff check`, and `ty check` on push and PR.
+. Add `.github/workflows/ci.yml` running `uv sync --extra dev --frozen`, `pytest --cov`, `ruff check`, and `ty check` on push and PR. *Not done.* No workflow was ever authored for this subtree; see the tooling table above.
 
-*Output:* `pyproject.toml`, `uv.lock`, `migration/` package, `sql/00_init/`, passing test suite, green CI on first push.
+*Output:* `pyproject.toml`, `uv.lock`, `migration/` package, `sql/00_init/`, passing test suite. CI was not delivered.
 
 ==== Tuesday -- DEMOS DDL extraction
 
@@ -1412,13 +1438,13 @@ A snapshot of what exists in `demos-data-migration/` today versus the plan above
  ** `00_jsonb_schema_registry.sql` -- the `migration.jsonb_schemas` registry plus the `migration.tg_validate_jsonb_against_registered_schema()` trigger function and `migration.revalidate_jsonb(...)` helper. The previous `migration.jsonb_matches_registered_schema(text, jsonb)` STABLE wrapper is retired (it hid a cross-row registry lookup behind a CHECK, which PostgreSQL disallows in principle); JSONB validation would run through a CONSTRAINT TRIGGER instead, but none is wired today (the former budget-neutrality parity oracle on `migration.bn_workbook_detail` was retired -- BN is out of scope). `sql/31_constraint_triggers/00_jsonb_validation.sql` is a disposition note that wires no trigger.
  ** A prior `10_history_shadows.sql` that re-created the history tables under a `history_id`/`op`/`recorded_at` convention was *removed as superseded* once the DEMOS repo was confirmed to own them (Prisma baseline + `log_changes_*` triggers in `server/src/sql/history_triggers.sql`). `sql/32_app_triggers/` is correspondingly empty.
  ** For developers without a local cluster, an ephemeral-PG bring-up script (`/tmp` cluster + initdb + apply `00_init/` + Prisma artifact) stubs `+jsonb_matches_schema -> TRUE+` when `pg_jsonschema` is unavailable, so DDL can be checked locally without the extension.
-* *Seeds + crosswalks (Week 2).* `02_seeds_static/` holds `25_state_region.sql` (`migration.state_region`) and a README; the JSONB registry is loaded in Python from `reports/jsonb_schemas/*.schema.json` at the end of `migrate seeds`. `03_seeds_limiters/` is intentionally empty (Prisma-owned). `04_crosswalks/` ships 29 SQL files covering `state`, `demo_status`, `application_status`, `signature_level`, `role_person_type`, `system_role`, `demonstration_role`, `pgm_dtl_tag`, `deliverable_status`, `deliverable_type`, `application_type`, `sdg_division`, `amendment_status`, `document_type`, `comment_origin`, and `renewal_status` importers + completeness checks. The lookup-table seeds and `fk_final.sql` from the original §9 plan are *Prisma-superseded* (see the Week-2 status note above).
-* *SQL transform stages -- partially landed.* Populated today: `05_id_maps` (10 files), `10_stg` (29 files: the row-level filter subsystem `00_keep_drop_ids` + `10-17_filter_*`, the id-map populators `18-20_populate_id_map_*`, the `21-25_*_resolved` staging views, and `99_filter_report`), `20_app` (8 files: `10_person`, `20_users`, `30_demonstration`, `35_amendment`, `36_application_date`, `40_deliverable`, `50_comment`, `51_override_note`), `21_app_associative` (4 files), `23_app_derived` (4 files: `person_state` + the system / demonstration / primary role assignments), and `99_parity` (28 files feeding the 31-check `ParityReport`). History is DEMOS-owned and not migrated, so there is no `22_app_history` stage. Still scaffolded with ``.gitkeep``s only (`apply_dir` returns 0 and logs a `skip:` line): `30_constraints`, `32_app_triggers`, `40_indexes`, `50_sequences`. `31_constraint_triggers/` ships `00_jsonb_validation.sql`, which is now a disposition note that wires **no** trigger on any table (the former BN parity trigger on `migration.bn_workbook_detail` was retired -- BN is out of scope); the rest of that directory is scaffolded.
+* *Seeds + crosswalks (Week 2).* `02_seeds_static/` holds `25_state_region.sql` (`migration.state_region`) and a README; the JSONB registry is loaded in Python from `reports/jsonb_schemas/*.schema.json` at the end of `migrate seeds`. `03_seeds_limiters/` is intentionally empty (Prisma-owned). `04_crosswalks/` ships 35 SQL files covering `state`, `demo_status`, `application_status`, `signature_level`, `role_person_type`, `system_role`, `demonstration_role`, `pgm_dtl_tag`, `deliverable_status`, `deliverable_type`, `application_type`, `sdg_division`, `amendment_status`, `document_type`, `comment_origin`, and `renewal_status` importers + completeness checks. The lookup-table seeds and `fk_final.sql` from the original §9 plan are *Prisma-superseded* (see the Week-2 status note above).
+* *SQL transform stages -- partially landed.* Populated today: `05_id_maps` (10 files), `10_stg` (33 files: the row-level filter subsystem `00_keep_drop_ids` + `10-17_filter_*`, the id-map populators `18-20_populate_id_map_*`, the `21-25_*_resolved` staging views, and `99_filter_report`), `20_app` (9 files: `10_person`, `20_users`, `30_demonstration`, `35_amendment`, `36_application_date`, `40_deliverable`, `50_comment`, `51_override_note`), `21_app_associative` (7 files), `23_app_derived` (7 files: `person_state`, the system / demonstration / primary role assignments, the PO fallback, `application_phase`, and `deliverable_action`), and `99_parity` (40 files feeding the 46-check `ParityReport`). History is DEMOS-owned and not migrated, so there is no `22_app_history` stage. Still scaffolded with ``.gitkeep``s only (`apply_dir` returns 0 and logs a `skip:` line): `30_constraints`, `32_app_triggers`, `40_indexes`, `50_sequences`. `31_constraint_triggers/` ships `00_jsonb_validation.sql`, which is now a disposition note that wires **no** trigger on any table (the former BN parity trigger on `migration.bn_workbook_detail` was retired -- BN is out of scope); the rest of that directory is scaffolded.
 * *Tests:* `tests/conftest.py`, `test_lib.py`, `test_cli.py`, `test_drop_list.py`, `test_load_delta.py`, `test_flip.py`, `test_parity.py`, `test_constraints.py`, `test_build.py`, plus `test_duck.py`, `test_env_dsn.py`, `test_fetch_prisma.py`, `test_fetch_prisma_schema.py`, `test_fk_candidates.py`, `test_gate_graph.py`, `test_init_pg.py`, `test_load_fidelity.py`, `test_pgloader_log.py`, `test_pgloader_load_mode.py`, `test_prisma_schema.py`, `test_prod_schema_guard.py`, `test_reference_data.py`, `test_schema_diagrams.py`, `test_schema_snapshot.py`, `test_secrets.py`, `test_source_target_columns.py`, `test_derivability_audit.py`, `test_demonstration_idmap.py`, an `integration/` tier (`docker-compose.test.yml` + `make compose-up`/`integration-test`), and a `sql/` fixture tier. `make test` runs `pytest --cov=migration --cov-report=term-missing`.
 * *Tooling:* `pyproject.toml` (deps + `[project.scripts] migrate`), committed `uv.lock`, `Makefile` (1:1 with CLI commands plus `make rebuild`, `make clean`, `make clean-state`, `make clean-all`), `.env.example`, `scripts/cutover.sh` shim, `scripts/generate_fk_candidates.sql`.
 * *Runbooks + comms:* `runbooks/cutover.md`, `runbooks/rollback.md`, `runbooks/comms/freeze_begin.md`, `freeze_extended.md`, `flip_complete.md`, `rollback.md`.
 * *Reports:* `reports/narrative/drop_list.md`, `fk_candidates.csv`, `fk_overrides.yaml` (committed manual-patch layer with documented schema and example entries; `[]` until heuristics need correcting), `pending_approved_decisions.md`, `pgm_dtl_tag_mapping.csv`, `history_strategy.md`, `notes.md`, promoted JSON Schemas under `reports/jsonb_schemas/` (`application_validation.schema.json`, `uipath_response.schema.json`, `uipath_token_list.schema.json`) loaded into `migration.jsonb_schemas` by `migrate seeds`; plus the `reports/filter/` keep/drop override subsystem, `reports/generated/derivability_audit.csv` + `derivability_verdicts.yaml`, `reports/source_target_columns.csv` (+ `proposed.csv`), `reports/inputs/proposed_table_map.yaml`, `reports/schema_drift_report.md`, `reports/narrative/bn_source_enumeration.md`, and `reports/narrative/ownership-remediation-plan.md`.
-* *CI:* `.github/workflows/ci.yml` runs `uv sync --extra dev --frozen`, `pytest --cov`, `ruff check`, and `ty check` on push and PR against Python 3.11.
+* *CI:* none. The planned workflow was never authored; the checks run locally through `make test`, `make lint`, `make typecheck`, and `make sql-check`, with `sql-check` also wired as a pre-commit hook.
 * *Audit:* `CODE_REVIEW.md` is a standing review log capturing correctness/risk findings. The two largest fixes it drove -- making `build_app` actually transactional via `psql_files` and surfacing the `mysql_raw._delta_log` table the delta template depends on -- are reflected above.
 
 === Outstanding (as of the current snapshot)

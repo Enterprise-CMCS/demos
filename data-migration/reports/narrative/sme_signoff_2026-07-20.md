@@ -6,10 +6,10 @@ items.
 **Purpose**: single source of truth for the 2026-07-20 dispositions, mapping
 each answer to its current build state, recording the decisions resolved this
 round, and listing what is still blocked on other people or unasked entirely.
-**Reconciles**: `docs/specs/pmda-history-tables-derivation-spec.md`,
-`docs/specs/pmda-cross-cutting-derivation-spec.md`,
-`docs/specs/document-migration.md`,
-`docs/specs/comment-deliverable-resourcing-spec.md`.
+**Reconciles**: `docs/developer/explanation-deliverable-action-backfill.adoc`,
+`docs/developer/reference-cross-cutting-derivations.adoc`,
+`docs/developer/explanation-document-migration.adoc`,
+`docs/sme/explanation-comments-routing.adoc`.
 
 > Scope of this ledger: decisions only. No code, schema, or loader changes were
 > made in the pass that produced it; the follow-up build queue is in section 7.
@@ -598,8 +598,9 @@ that reviewer in only 24 (usually a different person than `mdcd_dlvrbl.rvwr_*`).
 ## 11. David CMS-priority alignment (2026-07-21)
 
 David (SME), asked how to fill the DEMOS `deliverable_action` table from PMDA
-history, returned a strict priority order for the deliverable migration. Full
-analysis: `docs/specs/deliverable-action-cms-priority-alignment-spec.md`.
+history, returned a strict priority order for the deliverable migration. The
+2026-07-21 analysis grading the migration against that order is folded into
+11.1-11.3 below.
 
 **David's order (verbatim intent):** (1) Deliverables exist in DEMOS; (2) Files
 Submitted exist in DEMOS; (3) Deliverable *determination* matches PMDA;

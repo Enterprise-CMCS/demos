@@ -3,7 +3,7 @@
  * Inputs:     mysql_raw.mdcd_demo, mysql_raw.mdcd_demo_aplctn, stg._valid_demo_ids, stg._pendg_demo_fold, migration._id_map_mdcd_demo, migration._id_map_mdcd_pendg_demo
  * Outputs:    CREATE OR REPLACE VIEW stg.application_milestone
  * Invariants: source-only (mysql_raw + id maps + the source-only stg._pendg_demo_fold / stg._valid_demo_ids; never crosswalks 04 / seeds 02) so it builds in the stg-only idempotency harness; idempotent (CREATE OR REPLACE VIEW); one row per (application_id, date_type_id) with a non-null date; soft deletes excluded (dltd_ind = 1); pending demos carry no approval date (never 'Application Approval Date'); the loader filters to demonstrations actually loaded.
- * Refs:       docs/specs/pmda-cross-cutting-derivation-spec.md (Table 3), reports/narrative/milestone_date_mapping.md, sql/10_stg/22_demonstration_resolved.sql
+ * Refs:       docs/developer/reference-cross-cutting-derivations.adoc#phase-date-mapping, reports/narrative/milestone_date_mapping.md, sql/10_stg/22_demonstration_resolved.sql
  *
  * The §6.1 "legacy-date-column -> DEMOS-date-type" crosswalk in tall form. Each
  * legacy phase-milestone date column maps to exactly one seeded demos_app

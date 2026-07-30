@@ -3,7 +3,7 @@
  * Inputs:     none (DDL only); values load from reports/crosswalks/comment_origin.csv via reports/crosswalks/registry.yaml.
  * Outputs:    mysql_raw.crosswalk_comment_origin
  * Invariants: idempotent (DROP TABLE IF EXISTS + CREATE); demos_route CHECK constrains values to {private, public}; a code-less comment routes PRIVATE in the loader (sql/20_app/50_comment.sql) unless its author is a state user, so CMS content is never published by default; coverage is fail-closed via sql/04_crosswalks/73_comment_origin_check.sql (plus the non-gating parity check 47_comment_routing_coverage.sql).
- * Refs:       docs/sme/explanation-comments-routing.adoc, sql/20_app/50_comment.sql, sql/99_parity/47_comment_routing_coverage.sql, docs/specs/comment-deliverable-resourcing-spec.md
+ * Refs:       docs/sme/explanation-comments-routing.adoc, sql/20_app/50_comment.sql, sql/99_parity/47_comment_routing_coverage.sql
  *
  * Crosswalk: legacy MySQL mdcd_dlvrbl_cmt.cmt_orgn_cd (char(1)) -> DEMOS comment
  * route. PMDA records a single-character comment-origin code (observed domain

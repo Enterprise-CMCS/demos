@@ -124,6 +124,7 @@ class TargetModel:
     classes: dict[str, str]
     fks: list[FK]
     seeds: dict[str, list[str]]
+    sequences: set[str]
     ddl_label: str
 
 
@@ -646,6 +647,10 @@ _INSERT_RE = re.compile(
     re.DOTALL | re.IGNORECASE,
 )
 _FIRST_VALUE_RE = re.compile(r"\(\s*'(?P<id>(?:[^']|'')*)'")
+_SEQUENCE_RE = re.compile(
+    r"CREATE\s+SEQUENCE\s+(?:IF\s+NOT\s+EXISTS\s+)?demos_app\.(\w+)",
+    re.IGNORECASE,
+)
 
 
 def parse_seed_values(text: str) -> dict[str, list[str]]:
@@ -670,6 +675,11 @@ def parse_seed_values(text: str) -> dict[str, list[str]]:
         if ids:
             out.setdefault(table, []).extend(ids)
     return out
+
+
+def parse_sequences(text: str) -> set[str]:
+    """Extract every ``demos_app`` sequence name from the Prisma artifact."""
+    return set(_SEQUENCE_RE.findall(text))
 
 
 # --------------------------------------------------------------------------- #
@@ -749,7 +759,14 @@ def load_target_model(*, include_history: bool = True) -> TargetModel:
     overrides = load_class_overrides()
     classes = {name: classify(tbl, overrides) for name, tbl in tables.items()}
     seeds = parse_seed_values(text)
-    return TargetModel(tables=tables, classes=classes, fks=fks, seeds=seeds, ddl_label=ddl_path.stem)
+    return TargetModel(
+        tables=tables,
+        classes=classes,
+        fks=fks,
+        seeds=seeds,
+        sequences=parse_sequences(text),
+        ddl_label=ddl_path.stem,
+    )
 
 
 # --------------------------------------------------------------------------- #

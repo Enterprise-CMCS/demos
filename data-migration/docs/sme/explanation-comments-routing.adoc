@@ -1,85 +1,589 @@
 = Explanation: comments routing
+:toc: left
 
-The MySQL `*_cmt` tables collapse into two DEMOS tables:
-`private_comment` (CMS-internal) and `public_comment` (state-facing).
-The SME review sets the routing rule.
+PMDA hangs comments off ten different parents. DEMOS keeps them on deliverables
+only, split across two tables with different visibility, so the migration has to
+decide for every legacy comment whether a state can read it. This page is for
+the SME who signs off on that decision. By the end you will know which legacy
+comments migrate, which single origin code makes a comment state-visible, why
+the other five do not, and what the migration deliberately leaves behind in
+PMDA.
 
-== The routing key
+[IMPORTANT]
+====
+*Built and live (as of 2026-07-30).* The origin-code crosswalk is authored, both
+loaders run, and comments cascade in behind the deliverable load.
 
-Four of the source `*_cmt` tables carry `cmt_orgn_cd` (comment origin
-code, a single-character column). The remaining tables have no origin
-column and default to `private_comment`. A crosswalk for
-`cmt_orgn_cd` is *not yet authored*: when it lands it will map each
-single-character origin code to either `'cms'` (internal) or `'state'`
-(external).
+An earlier version of this page said the crosswalk was "not yet authored" and
+that it would map each code to `'cms'` or `'state'`. Both statements are now
+wrong. The two route values are `'private'` and `'public'`, the routes live in
+`reports/crosswalks/comment_origin.csv`, and `S` is the only code that routes to
+the state-visible side. See <<shipped,what changed against the spec>> for the
+full list of corrections.
+====
 
-Routing rule:
+== Where DEMOS keeps a comment
 
-[cols="2,3"]
-|===
-| `cmt_orgn_cd` resolves to | DEMOS table
+DEMOS has two comment tables, and both are deliverable-scoped:
 
-| `'cms'` (or any internal CMS division) | `demos_app.private_comment`
-| `'state'` (or any external state party) | `demos_app.public_comment`
-| no `cmt_orgn_cd` column / NULL | `demos_app.private_comment` (default, with a parity warning)
-|===
+* `demos_app.private_comment` -- CMS-internal. Columns `deliverable_id`,
+  `author_user_id`, `author_person_type_id`, `content`, `created_at`,
+  `updated_at`. The person-type column is NOT NULL and points at
+  `demos_app.cms_user_person_type_limit`, so *a state-authored comment cannot be
+  private by construction*.
+* `demos_app.public_comment` -- state-visible. Same columns minus
+  `author_person_type_id`; its `author_user_id` points straight at
+  `demos_app.users`.
+
+On both tables `deliverable_id` is `UUID NOT NULL` with a foreign key to
+`demos_app.deliverable`. That single fact decides the migration's scope: a DEMOS
+comment must hang off a deliverable, so a legacy comment that hangs off
+something else has nowhere to go.
+
+Both tables also have `+*_history+` mirrors. The migration leaves those empty --
+see xref:reference-history-strategy.adoc[the history strategy].
 
 == Why two tables
 
-. *Different visibility model.* CMS-internal comments are not
-  surfaced to states; state comments go on the public record.
-. *Different audit needs.* CMS-internal comments may carry sensitive
-  evaluation language; state comments are FOIA-eligible.
-. *Different lifecycle.* Internal comments can be edited or deleted
-  by their author for a window; public comments are append-only.
+. *Different visibility model.* CMS-internal comments are not surfaced to
+  states; state comments go on the public record.
+. *Different audit needs.* CMS-internal comments may carry sensitive evaluation
+  language; state comments are FOIA-eligible.
+. *Different lifecycle.* Internal comments can be edited or deleted by their
+  author for a window; public comments are append-only.
 
-== Source tables
+[NOTE]
+====
+Only the first of those three is visible in the DEMOS schema, as the
+CMS-only author person-type column on the private side. The audit and lifecycle
+differences are DEMOS application behaviour, not table constraints, and the
+migration does not depend on them. The visibility difference is what makes a
+misroute unrecoverable, and it is the reason the
+<<fail-safe,fail-safe routing rule>> points the way it does.
+====
 
-* `mdcd_demo_cmt`
-* `mdcd_demo_amndmt_cmt` (carries `cmt_orgn_cd`)
-* `mdcd_demo_rnwl_cmt` (carries `cmt_orgn_cd`)
-* `mdcd_dlvrbl_cmt` (carries `cmt_orgn_cd`)
-* `mdcd_dlvrbl_paper_cmt`
-* `mdcd_pgm_cmt`
-* `mdcd_demo_finl_dcsn_dtl_cmt` (carries `cmt_orgn_cd`)
-* `mdcd_demo_aplctn_cmt`
-* `mdcd_demo_pgm_mntrg_doc_cmt`
-* `bdgt_ntrlty_fil_doc_cmt`
+== Which legacy comments migrate
 
-All ten route through the same rule; the six without `cmt_orgn_cd`
-default to `private_comment`.
+Two of the ten source comment tables are deliverable-scoped, and only those two
+load.
 
-== Origin-code mapping (not yet authored)
+`mdcd_dlvrbl_cmt`:: Direct deliverable comments. Carries `mdcd_dlvrbl_id` and
+the `cmt_orgn_cd` routing key. Profiled at 8,624 rows on the PROD snapshot, with
+zero rows whose parent deliverable could not be resolved.
 
-The `cmt_orgn_cd` column is `char(1) DEFAULT '0'`, so the literal
-codes are single characters, not the `'cms'`/`'state'` labels above
-(those are the *targets* of the mapping). A `cmt_orgn_cd` crosswalk
-CSV must be authored under `reports/crosswalks/` and loaded by
-`sql/04_crosswalks/` before the four origin-bearing tables can route
-anything other than the default. Until then, every comment routes to
-`private_comment` and the parity report flags the unmapped origins.
+`mdcd_dlvrbl_paper_cmt`:: Comments on a deliverable paper. Reaches its
+deliverable in two hops, through `mdcd_dlvrbl_paper.mdcd_dlvrbl_id`, and carries
+no origin code. All 98 profiled rows resolved through the two-hop.
+
+Both are unioned into one staging projection, `stg.comment_resolved`, which
+mints nothing and decides nothing: it resolves the parent deliverable, the
+author, and the trimmed text, and leaves routing to the loader.
+
+=== The ten source comment tables and their fate
+
+[cols="3,^1,4"]
+|===
+| Source table | Has `cmt_orgn_cd` | Fate
+
+| `mdcd_dlvrbl_cmt`
+| icon:check[]
+| Loads. Routed by its origin code.
+
+| `mdcd_dlvrbl_paper_cmt`
+| icon:times[]
+| Loads through the paper two-hop. Routed by the author default.
+
+| `mdcd_demo_cmt`
+| icon:times[]
+| Demonstration-scoped. Read-only snapshot only.
+
+| `mdcd_demo_amndmt_cmt`
+| icon:check[]
+| Amendment-scoped. Read-only snapshot only; its origin code is never read.
+
+| `mdcd_demo_rnwl_cmt`
+| icon:check[]
+| Renewal-scoped. Read-only snapshot only; its origin code is never read.
+
+| `mdcd_demo_finl_dcsn_dtl_cmt`
+| icon:check[]
+| Final-decision-scoped. Read-only snapshot only; its origin code is never read.
+
+| `mdcd_pgm_cmt`
+| icon:times[]
+| Program-scoped. Read-only snapshot only.
+
+| `mdcd_demo_pgm_mntrg_doc_cmt`
+| icon:times[]
+| Monitoring-document-scoped. Read-only snapshot only.
+
+| `bdgt_ntrlty_fil_doc_cmt`
+| icon:times[]
+| Budget-neutrality-file-scoped. Read-only snapshot only.
+
+| `mdcd_demo_aplctn_cmt`
+| icon:times[]
+| Application-scoped. Neither loaded nor snapshotted. Its proposed target is
+`demos_app.application_note`, a different table with no loader yet.
+|===
+
+The seven snapshot-only tables are normalised into one run-stamped CSV by
+`scripts/sme_review_exports.py` (the `comments-snapshot` subcommand), written
+under `reports/runs/` and shared out of band because the comment text may be
+sensitive. That snapshot is the agreed representation, not a deferred load: see
+decisions D4 and D12 in `reports/narrative/pending_approved_decisions.md`. Their
+eventual fate is still an SME call.
+
+[WARNING]
+====
+Three of the snapshot-only tables carry a `cmt_orgn_cd` column of their own. The
+migration reads none of them. If the SME later rules that any of those parents
+should migrate, the routes below have to be re-confirmed for that table -- the
+codes were profiled on `mdcd_dlvrbl_cmt` only.
+====
+
+[[routing]]
+== The routing key
+
+`cmt_orgn_cd` on `mdcd_dlvrbl_cmt` is a single-character column, declared
+`char(1) NOT NULL DEFAULT '0'`. The declared default is a red herring: the live
+data never stores `0`. The domain is exactly `+{A, B, C, I, R, S}+`, and the
+legacy PMDA PHP gives each code its meaning, confirmed on 2026-07-20 in
+xref:reference-sme-signoff-2026-07-20.adoc[the SME sign-off ledger].
+
+=== The authored routes
+
+The routes are in `reports/crosswalks/comment_origin.csv`, wired through
+`reports/crosswalks/registry.yaml` into `mysql_raw.crosswalk_comment_origin`.
+The CSV carries three columns -- `legacy_cd`, the route, and `notes` -- and a
+CHECK constraint on the table limits the route to the two allowed values.
+
+Row counts below are live rows in the current build, taken from the `notes`
+column of that CSV.
+
+[cols="^1,^1,>1,2,4"]
+|===
+| Code | Route | Rows | Meaning in PMDA | Why this route
+
+| `A`
+| `'private'`
+| 648
+| Analyst or reviewer comment
+| All 648 rows are CMS-authored. Analyst and reviewer comments were CMS-internal
+in PMDA and never surfaced to states.
+
+| `B`
+| `'private'`
+| 172
+| Budget-neutrality resubmission
+| All 172 rows are CMS-authored. State comments appear on 88% of the same
+deliverables, so it may be a state-facing reply, but nothing in the source
+separates a CMS reply from a CMS note that happens to sit in a state thread.
+Routed private under the <<fail-safe,fail-safe rule>>.
+
+| `C`
+| `'private'`
+| 898
+| CMS comment
+| 894 of 898 rows are CMS-authored. Same route as the author default it
+replaces.
+
+| `I`
+| `'private'`
+| 1,886
+| CMS internal comment
+| Unambiguous. 1,511 rows are CMS-authored; the remaining 375 have an unresolved
+author and are held back regardless of route.
+
+| `R`
+| `'private'`
+| 650
+| Resubmission comment
+| 649 of 650 rows are CMS-authored. Co-occurs with state comments on 85% of its
+deliverables and averages 46 characters, which is consistent with a reply, but
+that is inference. Routed private under the <<fail-safe,fail-safe rule>>.
+
+| `S`
+| `'public'`
+| 4,325
+| State origin
+| The only state-origin code: 4,320 of its 4,325 rows are state-authored. This
+is also the one code whose route differs from the author default it replaces --
+it correctly publishes the 3 `S` comments that happen to be CMS-keyed, which the
+author default would have made private.
+|===
+
+[[fail-safe]]
+=== Why S is the only public code
+
+The routes are deliberately *not* derived from who authored the comment. If they
+were, `B` and `R` would be private anyway, because they are almost entirely
+CMS-authored. The tempting reading is the opposite one: resubmission is a state
+action, `B` and `R` sit on deliverables that also carry state comments 85% to
+88% of the time, and `R` is short enough to look like a reply. So the codes
+plausibly belong to the CMS-to-state exchange.
+
+The evidence does not carry that reading. Only 40% to 50% of those comments
+actually follow a state comment in time, and nothing in the source separates
+"CMS reply the state should read" from "CMS note that happens to sit in a state
+thread". Routing them public would make 822 CMS-authored comments state-visible.
+
+So the migration takes the recoverable direction. Routing a state-facing comment
+private costs reduced visibility, and the text is still there to be republished.
+Routing a CMS-internal comment public discloses it, and after cutover that
+cannot be taken back.
+
+[TIP]
+====
+Reversing this is a one-cell edit, not a code change. Change the route to
+`'public'` for that code's row in `reports/crosswalks/comment_origin.csv` and
+rebuild. No data is lost in the meantime.
+
+Before you decide, run the `comment-route-diff` subcommand of
+`scripts/sme_review_exports.py`. For every origin code it reports the authored
+route, the author person type, the row count, and exactly how many comments
+would become state-visible if that code were flipped. It reads the staging
+projection rather than the loaded tables, so you get the whole candidate
+population including rows currently held back -- a disclosure decision needs the
+denominator, not just what happened to load.
+====
+
+=== Comments with no origin code
+
+Every paper comment, and 96 direct deliverable comments in the current build,
+carry no origin code at all. An authored route always wins; this fallback only
+covers those rows:
+
+[source,sql]
+----
+route = COALESCE(crosswalk_comment_origin.demos_route,
+                 CASE WHEN author is a state user THEN 'public'
+                      ELSE 'private' END)
+----
+
+The fallback defaults to private rather than inferring visibility from who typed
+the comment, for the reason in <<fail-safe,why S is the only public code>>. The
+single exception is a state-authored comment, which goes public: the state wrote
+it, so showing it back to that state discloses nothing, and defaulting it
+private would instead hold it back, because `demos_app.private_comment` requires
+a CMS author person type.
+
+[NOTE]
+====
+The PROD profile recorded when this routing was first specified found no
+code-less rows. The current build has 96. The fail-closed coverage
+check in <<fail-closed,coverage cannot be guessed>> treats an absent code as
+exempt rather than as an unknown code, because an absent code is not a code --
+the fallback above is its documented answer.
+====
+
+=== Two different columns are called cmt_orgn_cd
+
+`cmt_orgn_cd` appears on more than one source table and means different things.
+Conflating them misroutes data, so the ledger keeps them apart:
+
+[cols="2,^1,4"]
+|===
+| Column | Domain | What it means
+
+| `cmt_orgn_cd` on `mdcd_dlvrbl_cmt`
+| `+{A, B, C, I, R, S}+`
+| Comment origin. Drives everything on this page.
+
+| `cmt_orgn_cd` on `mdcd_dlvrbl_fil_doc`
+| `+{S, C}+`
+| *File* origin: state-submitted versus CMS-attached. Drives document routing,
+not comment routing. Its declared default is `S`, not `0`.
+|===
+
+A re-probe on 2026-07-27, recorded in `reports/narrative/notes.md`, found the
+*document* column carrying `S` on 15,818 rows and `C` on 396, with zero NULLs.
+Those figures close a gap on document routing. They are not comment counts and
+must not be read as such.
+
+Coverage of the comment column is exact in both directions: every code the live
+data carries has a route, and the crosswalk lists no code the data does not
+carry.
+
+== The routing decision, end to end
+
+[mermaid]
+....
+flowchart TD
+  D["mdcd_dlvrbl_cmt"] --> R["stg.comment_resolved"]
+  P["mdcd_dlvrbl_paper_cmt"] --> R
+  R --> Q{"parent deliverable loaded"}
+  Q -->|no| H["held back and logged"]
+  Q -->|yes| A{"origin code mapped"}
+  A -->|"S"| PUB["public_comment"]
+  A -->|"A B C I R"| PRI["private_comment"]
+  A -->|"no code"| W{"state author"}
+  W -->|yes| PUB
+  W -->|no| PRI
+  PRI --> F{"CMS person type"}
+  F -->|no| H
+  PUB --> G{"is an auth user"}
+  G -->|no| H
+....
+
+[[fail-closed]]
+== Coverage cannot be guessed
+
+Because a route decides whether a state can read a comment, an origin code the
+migration has never seen must not be resolved by a default. So coverage is
+fail-closed: `sql/04_crosswalks/73_comment_origin_check.sql` stops the run when
+a live `cmt_orgn_cd` is neither mapped in the crosswalk nor named on its
+SME-deferred allow-list.
+
+That allow-list is empty today, which makes the check a full-coverage check. Its
+real job is to catch a *seventh* code appearing in the source between now and
+cutover. Without it, the private fallback would quietly become the migration's
+answer for a whole new code.
+
+A second, non-gating check reports coverage on every run rather than failing:
+`sql/99_parity/47_comment_routing_coverage.sql` lists any origin code the source
+uses that has no route, with its comment count. It has nothing to report while
+all six codes are mapped.
+
+The allow-list is a deliberate escape hatch, not an oversight, so a deferral is
+recorded as such. Adding a code to it requires an SME decision written into the
+`notes` column of `reports/crosswalks/comment_origin.csv`.
+
+[[override]]
+== Budget-neutrality override notes
+
+One further stream of legacy free text lands in `demos_app.private_comment`, and
+it never routes. Each deliverable can carry a budget-neutrality override note in
+`mdcd_dlvrbl.bdgt_ntrlty_ovrrd_cmt_txt` -- a Medicaid-side reviewer's note on why
+the budget-neutrality treatment was overridden. It is CMS-internal by nature, so
+it is always private: no origin code, no public route, no crosswalk.
+
+The mechanics run parallel to the comment path but stay separate end to end:
+
+* One note per deliverable, only where the text is non-empty.
+* Its UUID is minted in its own id map, so it can never collide with a
+  deliverable comment.
+* Its author is resolved as `updtd_user_id` first, then `creatd_user_id`, and the
+  author UUID and person type are always taken from the *same* user so the
+  CMS-only floor is applied to the user actually stored.
+* `created_at` is `creatd_dt`; `updated_at` falls back to `creatd_dt` when
+  `updtd_dt` is absent.
+* Hold-backs mirror the comment path: parent deliverable not loaded, unresolved
+  author, non-CMS author, or empty text.
+
+[NOTE]
+====
+This is the one place budget-neutrality free text crosses into DEMOS.
+xref:explanation-data-shape-decisions.adoc[The data-shape decisions] explain why
+no budget-neutrality *figures* are migrated: DEMOS owns that workbook end to
+end. An override note is a reviewer's sentence about a deliverable, not a
+workbook value, so it migrates as a comment on that deliverable.
+====
+
+== What the migration drops
+
+* `cmt_aftr_acptd_ind` on `mdcd_dlvrbl_cmt` (0 on 8,027 rows, 1 on 597 in the
+  PROD profile) has no DEMOS target column and is dropped. Confirming that DEMOS
+  has no home for "comment made after acceptance" is an open SME item.
+* Neither source table has an update timestamp, so `updated_at` is set from
+  `creatd_dt`. A migrated comment therefore looks never-edited, which is
+  accurate: PMDA recorded no edit.
+* Whitespace-only content is trimmed to empty and held back rather than loaded.
+  The PROD profile found exactly one such row.
+* DEMOS has no threading: neither comment table has a parent-comment column.
+
+== Held-back comments and how you see them
+
+The loader never fails the build over a comment it cannot place. It holds the
+comment back and logs it. A comment is either loaded, or held back with a
+recorded reason -- never silently dropped.
+
+[cols="2,3"]
+|===
+| Reason held back | What it means
+
+| Parent deliverable not loaded
+| Comments cascade from deliverables. A comment on a held-back deliverable is
+itself held back.
+
+| Author did not migrate
+| The legacy `user_id` resolved to no DEMOS user.
+
+| Empty or whitespace content
+| `content` is NOT NULL in DEMOS and an empty comment carries nothing.
+
+| Private route, non-CMS author
+| `demos_app.private_comment` accepts only a CMS author person type. Surfaced as
+an integrity anomaly, because an authored route and the author disagree.
+
+| Public route, author is not an auth user
+| For example an external evaluator who has a person row but no users row. The
+`demos_app.user_person_type_limit` floor holds these back so the
+`author_user_id` foreign key still holds when constraints are validated.
+|===
+
+Six parity checks cover this ground, registered in `migration/phases/parity.py`:
+
+[cols="2,^1,4"]
+|===
+| Check | Gating | What it asserts
+
+| comment held
+| icon:times[]
+| Durable per-row log of every held-back comment and its reason. Surfaces the
+count; does not fail the gate.
+
+| comment completeness
+| icon:check[]
+| Every resolved comment that is not a recorded hold-back is present in one of
+the two comment tables. A row here is a migration bug.
+
+| comment integrity
+| icon:check[]
+| Every loaded comment has a real deliverable, a real author, and -- on the
+private side -- a CMS author person type.
+
+| comment routing coverage
+| icon:times[]
+| Origin codes in use with no authored route. Empty today.
+
+| override-note held
+| icon:times[]
+| The same per-row log for budget-neutrality override notes.
+
+| override-note completeness
+| icon:check[]
+| Every resolvable override note is loaded or recorded as held.
+|===
 
 == Edge cases
 
-. *Comments referencing deleted entities.* Dropped at the staging
-  step; counted in the parity report.
-. *Comments with mixed-origin threads.* Each row routes
-  independently; threading is reconstructed in the new app.
+. *Comments on deleted or filtered entities.* A UUID is minted only for a
+  comment whose parent deliverable minted one, so a comment on a soft-deleted or
+  filtered-out deliverable never reaches staging at all. It is not a hold-back;
+  it is out of scope with its parent.
+. *Mixed-origin threads.* Each row routes independently, and DEMOS keeps no
+  thread structure. A CMS-and-state exchange on one deliverable becomes a
+  private list and a public list on that deliverable, each ordered by
+  `created_at`.
+. *An author who is neither CMS nor state.* The fallback treats "not a state
+  user" as private, so an unresolved or unexpected person type lands on the
+  private side and is then held back by the CMS-only floor. It is never
+  published.
+
+[[shipped]]
+== What changed against the spec
+
+The original comment and deliverable-resourcing spec, now folded into this page,
+and the 2026-07-20 ledger proposed this work. Four things shipped differently.
+
+[cols="3,3"]
+|===
+| Proposed | Shipped
+
+| Ledger: `A`, `C`, `I` route private and `S`, `R`, `B` route public, on the
+reading that resubmission is a state action.
+| `S` alone routes public. `B` and `R` were reversed to private on the fail-safe
+rule, because the source cannot distinguish a CMS reply from a CMS internal note
+and 822 CMS-authored comments would otherwise become state-visible
+irreversibly. Reversal stays a one-cell CSV edit. See
+<<fail-safe,the fail-safe rule>>.
+
+| Spec: crosswalk DDL only, empty until authored, with no registry entry, no CSV
+and no fail-closed check -- coverage left to a non-gating parity check.
+| The CSV and its registry entry are authored, and a fail-closed check was added
+*on top of* the non-gating parity check. Coverage now stops the run rather than
+only reporting. See <<fail-closed,fail-closed coverage>>.
+
+| Spec: default to private until the crosswalk is authored, floored by author
+person type.
+| The crosswalk is authored and always wins. The author default survives only
+for code-less comments, and the person-type floor survives as a hold-back rule
+rather than as the routing rule.
+
+| Spec fallback: private when the author is a CMS user, otherwise public.
+| Fallback inverted to public when the author is a state user, otherwise
+private. Identical for the two expected person types, but fail-safe for an
+unresolved or unexpected one.
+|===
+
+Unchanged from the spec: the two deliverable-scoped sources and the paper
+two-hop, the deliverable-cascade hold-back semantics, the drop of
+`cmt_aftr_acptd_ind`, and the decision to leave the non-deliverable comment
+sources to an SME ruling.
+
+== Where each rule lives
+
+[cols="2,3"]
+|===
+| Concern | File
+
+| Route values (authored data)
+| `reports/crosswalks/comment_origin.csv`
+
+| Crosswalk table definition
+| `sql/04_crosswalks/68_comment_origin.sql`
+
+| Fail-closed coverage
+| `sql/04_crosswalks/73_comment_origin_check.sql`
+
+| UUID minting
+| `sql/05_id_maps/17_mdcd_dlvrbl_cmt.sql`,
+`sql/05_id_maps/18_mdcd_dlvrbl_paper_cmt.sql`,
+`sql/10_stg/34_populate_id_map_mdcd_dlvrbl_cmt.sql`,
+`sql/10_stg/35_populate_id_map_mdcd_dlvrbl_paper_cmt.sql`
+
+| Staging projection
+| `sql/10_stg/36_comment_resolved.sql`
+
+| Routing and load
+| `sql/20_app/50_comment.sql`
+
+| Override notes
+| `sql/05_id_maps/19_override_note.sql`,
+`sql/10_stg/37_populate_id_map_override_note.sql`,
+`sql/10_stg/38_override_note_resolved.sql`,
+`sql/20_app/51_override_note.sql`
+
+| Parity
+| `sql/99_parity/44_comment_held.sql`,
+`sql/99_parity/45_comment_completeness.sql`,
+`sql/99_parity/46_comment_integrity.sql`,
+`sql/99_parity/47_comment_routing_coverage.sql`,
+`sql/99_parity/48_override_note.sql`
+
+| Column-by-column rules
+| `reports/source_target_columns.csv`
+|===
 
 == Review checklist
 
-* [ ] `cmt_orgn_cd` crosswalk covers every distinct origin code in
-      the four origin-bearing source tables.
-* [ ] Sample of CMS routing reads as expected.
-* [ ] Sample of state routing reads as expected.
-* [ ] Parity warnings for unmapped / NULL origins are zero or
-      explained.
+* [ ] The six routes in `reports/crosswalks/comment_origin.csv` read correctly
+  for your programme, in particular that `S` is the only state-visible code.
+* [ ] `B` and `R` staying private is acceptable, or you have run the
+  `comment-route-diff` export and want one of them flipped.
+* [ ] A sample of `S` comments reads as state-authored content that belongs on
+  the public record.
+* [ ] A sample of `I` comments reads as content that must *not* reach a state.
+* [ ] The held-back log carries no comment you expected to see loaded.
+* [ ] Leaving the seven non-deliverable comment sources as a read-only snapshot
+  is still the right call, and `mdcd_demo_aplctn_cmt` staying behind entirely is
+  understood.
+* [ ] `cmt_aftr_acptd_ind` genuinely has no DEMOS home.
 
 == Related
 
-* xref:howto-author-a-crosswalk-csv.adoc[Review and sign off a crosswalk]
-  (the `cmt_orgn_cd` crosswalk is not yet authored).
-* xref:reference-source-target-map.adoc[Source/target map]
+* xref:howto-author-a-crosswalk-csv.adoc[Review and sign off a crosswalk] -- the
+  workflow that produced the routes above.
+* xref:reference-sme-signoff-2026-07-20.adoc[SME sign-off ledger, 2026-07-20] --
+  where the six code meanings were confirmed, and the disambiguation of the two
+  `cmt_orgn_cd` columns.
+* xref:../developer/reference-cross-cutting-derivations.adoc[Cross-cutting
+  derivations] -- the engineer's view of this and every neighbouring derivation.
+* xref:explanation-data-shape-decisions.adoc[Data-shape decisions] -- why
+  budget-neutrality figures stay out while an override note comes in.
+* xref:reference-source-target-map.adoc[Source/target map] -- every source table
+  and where it lands.
 
 // docnav-start
 ifndef::nested[]

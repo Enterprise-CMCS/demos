@@ -3,7 +3,7 @@
  * Inputs:     stg.comment_resolved; mysql_raw.crosswalk_comment_origin (authored); demos_app.deliverable (loaded-parent JOIN).
  * Outputs:    demos_app.private_comment, demos_app.public_comment
  * Invariants: runs inside the deferred-constraint build_app txn; RETURNs before the INSERTs while stg.comment_resolved is absent (app-layers idempotency harness no-op); inner-join demos_app.deliverable so a comment whose parent deliverable was not loaded is held back; private route requires a CMS author person_type (cms_user_person_type_limit); public route requires an auth-user person_type (user_person_type_limit) so its author_user_id FK holds; empty content + unresolved author held back; held-back rows logged for SME review by the parity views; idempotent via NOT EXISTS + ON CONFLICT (id) DO NOTHING.
- * Refs:       sql/04_crosswalks/68_comment_origin.sql, sql/10_stg/36_comment_resolved.sql, sql/99_parity/44_comment_held.sql, sql/99_parity/45_comment_completeness.sql, sql/99_parity/46_comment_integrity.sql, sql/99_parity/47_comment_routing_coverage.sql, docs/specs/comment-deliverable-resourcing-spec.md
+ * Refs:       sql/04_crosswalks/68_comment_origin.sql, sql/10_stg/36_comment_resolved.sql, sql/99_parity/44_comment_held.sql, sql/99_parity/45_comment_completeness.sql, sql/99_parity/46_comment_integrity.sql, sql/99_parity/47_comment_routing_coverage.sql, docs/sme/explanation-comments-routing.adoc
  *
  * App load: demos_app.private_comment / demos_app.public_comment from the
  * deliverable comments resolved in stg.comment_resolved (10_stg/33_*).

@@ -1,0 +1,826 @@
+= Explanation: API-level validation and migration compliance
+:toc: left
+
+An audit of every DEMOS API-level validation check that migrated data can trip,
+split by *when* it fires, with each migration data category mapped to the checks
+it violates. Audience: a developer deciding whether a given DEMOS rule is a
+load-time blocker, a read-time breaker, or a post-cutover workflow problem, plus
+the reader who needs to know which of the audit's fixes actually shipped. By the
+end you will know why phantom `Completed` phases do not block anything, why
+`validateInputDates` is the one rule that does, and what is still owed by the
+DEMOS server.
+
+[IMPORTANT]
+====
+*Audit accurate; fixes mostly shipped, with a live cross-repo gap (as of
+2026-07-30).* Every migration-repo fix this audit proposed is now implemented
+(see <<build-queue>>), and the DEMOS `is_migrated_from_pmda` flag shipped on
+`application`. The two DEMOS-side validator skips that the audit called
+mandatory -- <<demos-requests,4B.2>> (phase completion) and
+<<date-skip,4B.3>> (the date path) -- are *not* implemented:
+`server/src/model/applicationPhase/validatePhaseCompletion.ts` calls
+`checkPhaseCompletionRules` unconditionally, and
+`server/src/model/applicationDate/validateAndUpdateDates.ts` calls
+`validateInputDates` unconditionally. Until they land, operators cannot advance
+or date-edit a migrated demonstration.
+====
+
+The audit was performed 2026-07-20 against the DEMOS server checkout, tracing
+the phase-date mapping and the `is_migrated` exemption. It reconciles
+xref:../sme/reference-sme-signoff-2026-07-20.adoc[the SME sign-off ledger] and
+xref:reference-cross-cutting-derivations.adoc[the cross-cutting derivations
+reference]. Per the approved plan the actionable fixes are *migration-repo
+only*; DEMOS-server changes are written as ready-to-hand-off cross-repo
+requests, because this repo cannot merge them.
+
+== What this page is not
+
+This page is the *audit*: an enumeration of the DEMOS rules, when each fires,
+and the disposition of each against migrated data. It is deliberately
+complementary to
+xref:explanation-api-validator-conformance.adoc[conformance to the DEMOS API
+validator], which is the *design record* for the conformance harness -- how the
+migration will re-run the real TypeScript validators against the loaded
+database, why that harness lives in the DEMOS repo rather than here, and where
+its gate slots into the pipeline.
+
+Read that page for the mechanism. Read this page for the rule-by-rule ledger,
+the tier classification, and the shipped guards that quantify each residual.
+Where the two overlap -- the date and phase rules of its bucket B -- this page
+supplies the concrete violation modes and the SQL transcriptions that count
+them.
+
+[[surfaces]]
+== The two enforcement surfaces
+
+DEMOS enforces data validity on two surfaces that fire at completely different
+times. Conflating them is the root of the mis-scoping in the SME ledger.
+
+[mermaid]
+....
+flowchart TD
+  L[migration load via pgloader and SQL] --> DB{DB constraints}
+  DB -->|violated| ABORT[load aborts]
+  DB -->|ok| ROW[migrated row in demos_app]
+  ROW --> R{API read}
+  ROW --> M{API mutate}
+  R -->|resolver throws| BRK[record unviewable]
+  M -->|validator throws| WF[cannot advance or edit]
+....
+
+*Surface A -- DB-enforced* (+server/src/model/**/*.prisma+,
+`server/src/sql/functions.sql`, +server/src/model/migrations/**/migration.sql+):
+NOT NULL, `@unique`/`@@unique`, `CHECK`, FK and composite-FK, `dbgenerated()`
+defaults, and INSERT/AFTER-INSERT triggers. These fire on the *direct load* and
+hard-abort it. The migration writes straight to Postgres, so it must satisfy or
+work around every one of these.
+
+*Surface B -- app-enforced* (TypeScript validators, GraphQL resolvers, Zod
+report schemas): fire *only when the DEMOS API later reads or mutates* a
+migrated row. The load bypasses them entirely; they become live only
+post-cutover when operators touch migrated records.
+
+=== Correction to the SME ledger
+
+The SME sign-off ledger states that 97.7% of loaded demos "sit in a `Completed`
+state that DEMOS's own rules call impossible" and that this *blocks*. Verified
+against code, this is overstated:
+
+* `checkPhaseCompletionRules` is invoked *only* from `completePhase`
+  (`server/src/model/applicationPhase/completePhase.ts:24`), via
+  `validatePhaseCompletion`.
+* It validates *only the single phase named in the mutation*, and for prior
+  phases calls `checkPriorPhaseCompleteForCompletion`, which checks
+  `status === "Completed"` *and nothing else* -- no retroactive date or document
+  re-check (`server/src/model/applicationPhase/checkPhaseFunctions.ts:98-112`).
+* No read or list resolver re-runs any completion rule.
+
+So phantom `Completed` phases do *not* break the load and do *not* break reads.
+They bite on *forward workflow* (Tier 2). This reclassification is why the
+phantom-phase item is downgraded from Tier 0 to Tier 2 below.
+
+[[split-trigger-state]]
+=== The DEMOS application triggers at load time (split state)
+
+A second, decisive correction: the DEMOS *application triggers* are *not part of
+the pinned schema the migration loads against*. The migration pins a Prisma DDL
+snapshot (`reports/prisma_ddl.sha256` -> `state/prisma_ddl/<sha>.sql`) and loads
+into that. That pinned artifact contains *no* `CREATE TRIGGER` or
+`CREATE FUNCTION` -- `create_phases_and_dates_for_new_application`,
+`generate_medicaid_chip_id_numbers`, and
+`check_demonstration_primary_project_officer` live in
+`server/src/sql/functions.sql`. Historically all three were deployed only by
+DEMOS's `refreshDbObjects.ts` *after P5, before the flip* (after the load). See
+xref:reference-prisma-ddl.adoc[the Prisma DDL pipeline] for the pin mechanism.
+
+That is still true for *two* of them, but the medicaid/chip mint trigger split
+off. DEMOS made `generate_medicaid_chip_id_numbers` *migration-aware*: gated on
+the session GUC `demos_app.migration_mode`
+(`server/src/sql/functions.sql:1645-1649`), it now *permits* an explicitly-set
+`medicaid_id`/`chip_id` (legacy-preserve) and *mints* a `chip_id` from
+`chip_id_number_seq` for any row left NULL, instead of unconditionally
+`RAISE`-ing. So the migration now *deploys this one trigger itself* -- verbatim
+from `functions.sql` via `lib.mint_trigger_deploy_sql` in `migration/lib.py`,
+applied in `init_pg.run_ddl` (`migration/phases/init_pg.py`) right after the
+pinned DDL -- and runs `build_app` with `demos_app.migration_mode='on'` as
+txn-local `pre_sql` (`migration/phases/build.py`). The DuckDB/dbt reference
+migration (`data/demos_data_tools/load_staged_data_to_demos_app.py`) uses the
+identical pattern: `SET LOCAL demos_app.migration_mode='on'` wrapping the
+application and demonstration inserts, with the mint trigger left enabled and
+`create_phases_and_dates_for_new_application` disabled.
+
+Consequence for Tier 0:
+
+* *T0.1 (`chip_id` NOT NULL) is resolved by the mint trigger*, not by a schema
+  change. The loader still writes NULL for rows with no legacy 21-W number; the
+  trigger mints one on insert, so the NOT NULL column is satisfied and *no
+  cross-repo DDL relaxation is required*. The loader floors `chip_id_number_seq`
+  above every preserved legacy 21-W number *before* the inserts, so minted
+  values cannot collide with a preserved `chip_id`
+  (`demonstration_chip_id_key` UNIQUE).
+* *T0.4 (medicaid/chip `RAISE EXCEPTION`) is neutralized by migration_mode*:
+  with the GUC on, the trigger accepts the loader-supplied ids and only mints
+  the NULLs.
+* *T0.2 (phase and date auto-population)* and *T0.3 (primary Project Officer)*
+  remain *avoided by deploy order*: their triggers stay ABSENT at load (the
+  migration sets phases and roles itself) and are deployed only post-load by
+  `refreshDbObjects.ts`.
+
+*Preflight P0.9* (`migration/phases/preflight.py`) now enforces exactly this
+split trigger state before `build_app`: `generate_medicaid_chip_id_numbers`
+*MUST BE PRESENT*, while `create_phases_and_dates_for_new_application` and
+`check_demonstration_primary_project_officer` *MUST BE ABSENT*. There is no
+longer a genuine Tier-0 load-abort: T0.1 is covered by the mint trigger, and the
+demonstration flow-trace harness (`tests/sql/test_demonstration_flow_live.py`)
+proves the load completes with `chip_id` NOT NULL intact.
+
+== Findings by severity tier
+
+[[tier-0]]
+=== Tier 0 -- load-time hard constraints
+
+There is *no genuine load-abort today*. Per <<split-trigger-state>>, T0.1
+(`chip_id` NOT NULL) is resolved at load by the migration-mode-gated
+`generate_medicaid_chip_id_numbers` mint trigger (the migration deploys it and
+runs `build_app` with `migration_mode='on'`); T0.4 is neutralized by the same
+GUC; the phase and primary-PO triggers stay absent at load (deploy order); T0.3
+is a post-load `AFTER INSERT` trigger that never validates the migrated rows.
+They are kept in the table for traceability with their corrected disposition.
+
+[cols="1,2a,2,3a",options="header"]
+|===
+| # | Constraint (verbatim where useful) | Where | Disposition (corrected)
+
+| *T0.1*
+| `chip_id String @default(dbgenerated())` NOT NULL + `@@unique([chipId])`;
+  loaders write the legacy 21-W number or `NULL`
+| `server/src/model/demonstration/demonstration.prisma:16,40`;
+  `sql/20_app/30_demonstration.sql`,
+  `sql/20_app/31_pending_demonstration.sql`
+| *RESOLVED at load by the mint trigger* (<<split-trigger-state>>). The
+  migration deploys `generate_medicaid_chip_id_numbers` verbatim from
+  `functions.sql` and runs `build_app` with `migration_mode='on'`, so NULL
+  `chip_id` values are minted on insert and the NOT NULL column is satisfied --
+  *no cross-repo DDL change needed*. Guarded by *Preflight P0.9* (mint trigger
+  MUST BE PRESENT) and proven by `test_demonstration_flow_live`. P0.8 is now
+  informational.
+
+| T0.2
+| `create_phases_and_dates_for_new_application` AFTER INSERT on `application`
+  auto-inserts all `application_phase` rows (phase 1 = `Started`) *and* a
+  `Concept Start Date` `application_date`
+| `server/src/sql/functions.sql:170-227`
+| *AVOIDED by deploy order* (<<split-trigger-state>>): trigger absent in the
+  pinned DDL, deployed by `refreshDbObjects.ts` after P5. No PK collision at
+  load. Enforced ABSENT by *Preflight P0.9*.
+
+| T0.3
+| `check_demonstration_primary_project_officer` (AFTER INSERT, DEFERRABLE
+  INITIALLY DEFERRED): every demonstration must have a
+  `primary_demonstration_role_assignment` with `role_id = 'Project Officer'` by
+  commit
+| `server/src/sql/functions.sql:104-127`
+| *NOT a load-abort*: trigger deployed post-load, never validates migrated rows;
+  kept ABSENT at load by *Preflight P0.9*. Refocused to the non-gating parity
+  check `sql/99_parity/57_primary_officer_missing.sql` -- a demo missing a
+  primary PO is logged per-row for SME review, not blocked. Since the audit, a
+  configurable fallback PO also backfills the gap
+  (`sql/23_app_derived/41_primary_po_fallback.sql`).
+
+| T0.4
+| `generate_medicaid_chip_id_numbers` (BEFORE INSERT): under
+  `migration_mode='off'` `RAISE EXCEPTION` if `medicaid_id`/`chip_id` is set;
+  `RAISE EXCEPTION` on unknown `state_id`; mints medicaid and chip from the
+  sequences when NULL
+| `server/src/sql/functions.sql:1637-1684`
+| *NEUTRALIZED by migration_mode* (<<split-trigger-state>>): `build_app` sets
+  `demos_app.migration_mode='on'`, so the trigger accepts the loader's legacy
+  medicaid and chip ids and mints only the NULL `chip_id` values. The migration
+  deploys this trigger itself; *Preflight P0.9* asserts it PRESENT.
+|===
+
+*Guarded today* (mirror-checked by loader hold-backs and fail-closed crosswalks;
+documented for completeness, not re-fixed):
+`check_demonstration_non_null_fields_when_approved` and the amendment and
+extension mirrors, `effective_date < expiration_date`,
+`demonstration_signature_level_check` (`= 'OA'`, which the loader hardcodes),
+`approved_application_status_limit` (`'Approved'` only), all `*TypeLimit` and
+`*StatusLimit` FKs, the non-empty text CHECKs (`check_non_empty_name`,
+`check_non_empty_content`, `check_non_empty_s3_path`), and duplicate
+`medicaid_id` (`demonstration_medicaid_id_key`).
+
+=== Tier 1 -- runtime read-breakers (record unviewable, no user action needed)
+
+[cols="1,3a,2,2a",options="header"]
+|===
+| # | Rule | Where | Status
+
+| T1.1
+| `formatDetailsMessage` dereferences `input.activeExtension!` / `input.note!`
+  for action types `Requested Extension`, `Denied Extension Request`,
+  `Requested Resubmission`, `Manually Changed Due Date` -> TypeError on read of
+  the deliverable or document
+| `server/src/model/deliverableAction/deliverableActionFormattingFunctions.ts`,
+  `formatDetailsMessage`
+| *latent by construction.* `deliverable_action` is now loaded (synthesized), but
+  the seeded hop chains
+  (`sql/02_seeds_static/30_deliverable_action_chain.sql`) mint only
+  `Created Deliverable Slot`, `Submitted Deliverable`,
+  `Received and Filed Deliverable`, `Started Review`, `Approved Deliverable`,
+  `Accepted Deliverable` and `Marked as Past Due` -- none of the four types
+  `formatDetailsMessage` dereferences. `note` is always NULL and
+  `old_due_date = new_due_date`
+  (`sql/23_app_derived/60_deliverable_action.sql`).
+
+| T1.2
+| `Deliverable.cmsOwner` / `Document.owner` throw
+  "No user found matching the provided filter"
+| `server/src/model/deliverable/deliverableResolvers.ts:197-207` (now via
+  `context.loaders.userById`, no longer `selectUserOrThrow`);
+  `server/src/model/document/documentResolvers.ts:156` ->
+  `server/src/model/user/queries/selectUserOrThrow.ts:11`
+| *mitigated* -- the loader mints `user` rows for owners and holds back any
+  owner lacking one. See
+  xref:reference-users-person-migration.adoc[users and person migration].
+
+| T1.3
+| On-demand report `z.array(reportRowSchema).parse(results)` with `.strict()`
+  plus `z.enum(...)` and `usDateString`: a single out-of-enum status, division
+  or signature, a null-in-string, or an unparseable date throws
+  `ON_DEMAND_REPORT_ZOD_ERROR` and fails the *entire* report
+| `server/src/onDemandReports/runOnDemandReport.ts:17` plus configs (for example
+  `server/src/onDemandReports/configs/demonstrationOverviewReportConfig.ts:40-65`);
+  error code raised at
+  `server/src/model/onDemandReport/onDemandReportResolvers.ts:62`
+| report-time
+|===
+
+=== Tier 2 -- forward-workflow blocks (migrated demo cannot be advanced or edited)
+
+[cols="1,3a,2,2",options="header"]
+|===
+| # | Rule | Where | Trigger
+
+| T2.1
+| `checkPhaseCompletionRules`: the current `Started` phase's `datesMustExist`
+  and `documentTypesMustExist` must be present
+| `checkPhaseCompletionRules.ts`, `checkPhaseFunctions.ts`
+| completing the current phase
+
+| *T2.2*
+| *`validateInputDates` -- the dominant blocker.* `completePhase` calls
+  `validateAndUpdateDates` *after* `validatePhaseCompletion`, and that re-runs
+  `validateInputDates` over the *entire merged existing plus new date set*
+| `completePhase.ts:24-25`, `validateAndUpdateDates.ts`,
+  `validateInputDates.ts`, `checkInputDateFunctions.ts:36-158`
+| completing *any* phase, or *any* date edit
+
+| T2.3
+| `validateAllowedDateChangeByPhase`: cannot modify a date tied to a finished
+  phase; `Expected Approval Date` cannot be deleted after SDG Prep complete
+| `validateAllowedDateChangeByPhase.ts`
+| editing historical dates (most phases are finished on migrated demos)
+|===
+
+[[tier-2-dates]]
+==== Why T2.2 is the dominant forward-workflow blocker
+
+`validateInputDates` iterates every date present in the merged set and, for
+each, runs timestamp, ordering and offset checks. Three of its failure modes are
+guaranteed to trip on PMDA data:
+
+. *Exact Eastern-boundary timestamps.* Every date value must be exactly Eastern
+  midnight (`Start of Day`) or `23:59:59.999` (`End of Day`)
+  (`checkInputDateIsStartOfDay` at `checkInputDateFunctions.ts:36`,
+  `checkInputDateIsEndOfDay` at `:54`). Raw `phase_*_dt` values are not
+  normalized to those boundaries.
+. *Missing offset counterpart -> hard throw.*
+  `getDateValueFromApplicationDateMap` throws when a required counterpart date
+  is absent (`checkInputDateFunctions.ts:72-82`). The offset rules are
+  bidirectional (for example `Completeness Review Due Date` and
+  `State Application Submitted Date` at +/-15 days;
+  `Federal Comment Period Start Date` and `Federal Comment Period End Date` at
+  +/-30 days). If a migrated demo has one side but not the other -- common given
+  the sparsity documented in the SME ledger -- the check for the present side
+  throws.
+. *Exact offsets.* Even with both sides present, legacy data almost never
+  satisfies the exact 15, 30 or 1-day offsets. The server compares
+  year/month/day only (`doYMDMatch`, `checkInputDateFunctions.ts:138`, throwing
+  at `:157`).
+
+Because `validateInputDates` runs over the *full existing date set* on *any*
+phase completion or date edit, the very first attempt to advance or correct a
+migrated demo throws -- independently of, and more pervasively than, the
+phase-completion date requirement (T2.1). A DEMOS `is_migrated` skip on
+`checkPhaseCompletionRules` alone is therefore insufficient; it must also cover
+the date-validation path (see <<date-skip>>).
+
+=== Tier 3 -- analytics and report drift
+
+Covered by T1.3 (report Zod). No separate items.
+
+== Migration data category to violation map
+
+[cols="2,1,2a,2,3a",options="header"]
+|===
+| Category | Surface / tier | Exact check | Where | Disposition
+
+| demonstration (all)
+| A / T0.1
+| `chip_id` NOT NULL and unique; loader writes legacy 21-W or NULL
+| `demonstration.prisma:16,40`
+| Resolved at load by the mint trigger plus `migration_mode='on'`
+  (<<split-trigger-state>>); no DDL relaxation needed. Preflight P0.9 asserts
+  the trigger present.
+
+| demonstration, amendment
+| A / T0.2
+| app trigger auto-creates phases plus a Concept date -> PK collision
+| `functions.sql:170-227`
+| Avoided by deploy order (<<split-trigger-state>>); Preflight P0.9 asserts the
+  trigger absent.
+
+| demonstration
+| A / T0.3
+| primary Project Officer required by commit
+| `functions.sql:104-127`
+| Not a load-abort (post-load trigger); non-gating parity check
+  `sql/99_parity/57_primary_officer_missing.sql`, plus the fallback backfill in
+  `sql/23_app_derived/41_primary_po_fallback.sql`.
+
+| demonstration (legacy IDs)
+| A / T0.4
+| medicaid and chip trigger raises if set unless `migration_mode='on'`; mints
+  NULLs
+| `functions.sql:1637-1684`
+| Neutralized by `migration_mode='on'`; the migration deploys the trigger;
+  Preflight P0.9.
+
+| application_date (demos)
+| B / T2.2
+| timestamp boundary plus offset and ordering
+| `validateInputDates.ts`
+| Dates normalized at stage
+  (<<date-normalization>>) plus the DEMOS skip (<<date-skip>>).
+
+| application_date (amendments)
+| B / T2.1 + T2.2
+| amendments get *zero* `application_date` rows; a missing counterpart throws
+| `sql/20_app/36_application_date.sql:46` (the JOIN to
+  `demos_app.demonstration` makes the loader demonstrations-only)
+| DEMOS skip (<<date-skip>>); quantified by
+  `sql/99_parity/60_application_date_consistency.sql`.
+
+| application_phase (all)
+| B / T2.1
+| phases carry a `Completed` status derived from the legacy status ordinal,
+  without dates or documents
+| `sql/23_app_derived/50_application_phase.sql`
+| phantom -- non-blocking; needs the DEMOS skip and is counted by
+  `sql/99_parity/61_phantom_phase.sql`.
+
+| deliverable
+| B / T1.2
+| owner must resolve to a login `User`
+| `deliverableResolvers.ts:197-207`
+| mitigated (owner user rows plus hold-back)
+
+| comments
+| routing
+| `crosswalk_comment_origin` empty -> author-default fallback
+| `sql/04_crosswalks/68_comment_origin.sql`
+| Authored crosswalk (<<comment-origin>>).
+
+| document / deliverable_action / extension
+| A/B
+| s3_path, owner and application_id NOT NULL; action composite FKs; T1.1
+| <<audit-deferred-entities>>
+| Superseded: `deliverable_action` is now BUILT, `document` is OUT-OF-SCOPE and
+  `extension` is DEFERRED. See <<audit-deferred-entities>>.
+
+| users, person
+| A
+| `is_migrated_from_pmda`/`has_logged_in` CHECK pair
+| `20260623222056_add_migrated_user_features`
+| already flag-gated
+
+| roles
+| A / T0.3
+| PO and primary role rows
+| `sql/23_app_derived/30_*`, `sql/23_app_derived/40_*`
+| ensure loaded; see
+  xref:reference-demonstration-role-migration.adoc[demonstration role
+  assignment migration].
+
+| tags
+| A
+| `effective_date < expiration_date`
+| +sql/21_app_associative/*+
+| non-positive periods dropped
+|===
+
+== Fixes and their status
+
+[[migration-fixes]]
+=== Migration-repo fixes
+
+==== Tier-0 load-time guards
+
+Per <<split-trigger-state>> the phase and primary-PO triggers are absent from
+the pinned DDL at load (no PK collision T0.2, no primary-PO abort T0.3), and the
+medicaid/chip trigger is migration-mode-aware: the migration deploys it and runs
+`build_app` with `migration_mode='on'`, so it legacy-preserves the loader ids
+and mints only NULL `chip_id` values (T0.1 and T0.4). The implemented guards
+codify that split invariant fail-closed:
+
+* *Preflight P0.8* (`migration/phases/preflight.py`) -- *informational* since the
+  mint trigger resolves T0.1. Confirms `demos_app.demonstration.chip_id` exists
+  and logs its nullability, but no longer `die`s on NOT NULL: the mint trigger
+  generates a `chip_id` for the NULL rows during `build_app`, so the column may
+  stay NOT NULL.
+* *Preflight P0.9* (`migration/phases/preflight.py`) -- the
+  split-trigger-state guard. `generate_medicaid_chip_id_numbers` *MUST BE
+  PRESENT* (the migration deploys it; it mints NULL `chip_id` values on insert),
+  while the other two DEMOS app triggers
+  (`create_phases_and_dates_for_new_application`,
+  `check_demonstration_primary_project_officer`) must be *absent* before
+  `build_app`, catching the only residual risk: an operator applying
+  `functions.sql` early.
+* *Non-gating primary-PO parity check*
+  (`sql/99_parity/57_primary_officer_missing.sql` plus
+  `migration/phases/parity.py`) -- T0.3. Logs every loaded demonstration with no
+  primary Project Officer to
+  `reports/orphans/demonstration_missing_primary_officer.csv` for SME review;
+  scoped to the full run (gated on
+  `stg.demonstration_role_assignment_resolved`) so the app-layers idempotency
+  harness treats it as a no-op. GREEN by decision: the post-load trigger never
+  rejects these rows, so the gap is reported, not blocked.
+
+[[date-normalization]]
+==== T2.2 date normalization plus consistency guard
+
+Normalize every emitted `date_value` to the exact Eastern boundary the target
+`date_type` expects (Start-of-Day versus End-of-Day per
+`DATE_TYPES_WITH_EXPECTED_TIMESTAMPS`):
+
+[source,sql]
+----
+-- start-of-day date types
+(date_value AT TIME ZONE 'America/New_York')::date::timestamp
+  AT TIME ZONE 'America/New_York'                              AS date_value
+-- end-of-day date types: same date at 23:59:59.999 America/New_York
+((date_value AT TIME ZONE 'America/New_York')::date + interval '1 day'
+  - interval '1 millisecond') AT TIME ZONE 'America/New_York'  AS date_value
+----
+
+This removes the timestamp-boundary throw (mode 1 of <<tier-2-dates>>). It
+cannot fix missing offset counterparts or inexact legacy offsets without
+fabricating data, so it pairs with the DEMOS skip (<<date-skip>>). The paired
+*non-gating* parity view flags rows failing the boundary, the +/-15, +/-30 or
++/-1-day offsets, or a missing offset counterpart, so the residual dependent on
+the DEMOS skip is quantified rather than silent.
+
+[NOTE]
+====
+As shipped, the normalization lives one stage earlier than proposed: the tall
+milestone view `sql/10_stg/27_application_milestone.sql` wraps every mapped
+column in `migration.eastern_day_start()` or `migration.eastern_day_end()`
+(both defined in `sql/00_init/03_helper_fns.sql`), and
+`sql/20_app/36_application_date.sql` simply projects the already-normalized
+values. The parity view shipped as
+`sql/99_parity/60_application_date_consistency.sql`.
+====
+
+==== New non-gating parity checks
+
+These close the visibility gaps the fact-net misses:
+
+* A phantom-phase check reproduces the phantom-phase count as an enforced query
+  -- `application_phase` rows carrying `Completed` whose phase's
+  `datesMustExist` and `documentTypesMustExist` are unmet. This turns the SME
+  ledger's 497-626 prose figure into a check. Shipped as
+  `sql/99_parity/61_phantom_phase.sql`.
+* A `chip_id` preload guard was proposed and then dropped: the
+  chip_id-nullable assertion moved to Preflight P0.8 so it fail-closes *before*
+  the load starts (fail-fast) rather than at the P6 parity gate. Status:
+  RESOLVED, superseded by P0.8.
+
+Both shipped parity views read a SQL transcription of the DEMOS validation
+tables -- `sql/02_seeds_static/35_phase_completion_rule.sql` and
+`sql/02_seeds_static/36_application_date_rule.sql`. The TypeScript is the source
+of truth, not the transcription:
+`tests/test_phase_completion_rule_drift.py` and
+`tests/test_application_date_rule_drift.py` re-parse
+`checkPhaseCompletionRules.ts`, `validateInputDates.ts` and `constants.ts` on
+every run and fail if the two disagree. See
+xref:howto-write-a-parity-check.adoc[how to write a parity check] for the
+conventions these follow.
+
+[[comment-origin]]
+==== Author the comment-origin crosswalk
+
+Author `crosswalk_comment_origin` (`sql/04_crosswalks/68_comment_origin.sql`)
+from the confirmed values in the SME ledger, replacing the author-type fallback
+as the primary route while keeping the fallback as a safety floor -- a
+state-authored comment cannot be `private`.
+
+[NOTE]
+====
+The audit's proposed mapping (`A,C,I -> private`, `S,R,B -> public`) is
+superseded by what shipped. Routes live in
+`reports/crosswalks/comment_origin.csv`: `S` is the only public code; `A`, `B`,
+`C`, `I` and `R` all route private, because routing 822 CMS-authored comments
+public is the unrecoverable direction. Coverage is fail-closed in
+`sql/04_crosswalks/73_comment_origin_check.sql`. The reasoning is in
+xref:../sme/explanation-comments-routing.adoc[comments: private versus public].
+====
+
+[[demos-requests]]
+=== DEMOS-server cross-repo change requests
+
+Written as precise requests so the DEMOS team can implement directly. This repo
+cannot merge them.
+
+*4B.1 -- a `demonstration` migrated-features migration* mirroring
+`20260623222056_add_migrated_user_features`:
+
+[source,sql]
+----
+ALTER TABLE demos_app.demonstration
+  ADD COLUMN is_migrated_from_pmda BOOLEAN NOT NULL DEFAULT false;
+----
+
+Dropping `chip_id` NOT NULL is *not* required: the migration-mode-gated
+`generate_medicaid_chip_id_numbers` trigger mints a `chip_id` for the NULL rows
+on insert (<<split-trigger-state>>), so `chip_id` can stay NOT NULL. Also gate
+`demonstration_signature_level_check` on `NOT is_migrated_from_pmda`, and extend
+the flag to `amendment` and `extension` for the same reason -- amendments carry
+no phase dates at all.
+
+Status: *RESOLVED (2026-07-21)*, in a better shape than requested. DEMOS shipped
+`server/src/model/migrations/20260721192255_add_is_migrated_to_apps/migration.sql`,
+which adds the column to the `application` supertype rather than each subtype:
+
+[source,sql]
+----
+ALTER TABLE "application" ADD COLUMN "is_migrated_from_pmda" BOOLEAN NOT NULL DEFAULT false;
+----
+
+`server/src/model/application/application.prisma:6` carries the matching
+`isMigratedFromPmda Boolean @default(false)`, and the migration stamps it TRUE
+for every loaded application (`sql/20_app/30_demonstration.sql:91`,
+`sql/20_app/31_pending_demonstration.sql:57`,
+`sql/20_app/35_amendment.sql:147`). The
+`demonstration_signature_level_check` gating was *not* included:
+`20260602115947_check_signature_level` is unchanged, which is harmless today
+because the loader hardcodes `'OA'`.
+
+*4B.2 -- phase-completion skip.* In `validatePhaseCompletion` / `completePhase`,
+early-return the completion rules when the application `is_migrated_from_pmda`,
+so migrated demos can still be advanced:
+
+[source,typescript]
+----
+if (application.isMigratedFromPmda) return;
+----
+
+Status: *not implemented (as of 2026-07-30).*
+`server/src/model/applicationPhase/validatePhaseCompletion.ts` fetches the
+dates, document types, phase statuses and clearance level and then calls
+`checkPhaseCompletionRules` with no flag branch.
+
+[[date-skip]]
+*4B.3 -- date-path skip, required in addition to 4B.2.*
+`validateAndUpdateDates` must skip `validateInputDates` and
+`validateAllowedDateChangeByPhase` (or run a relaxed mode) for migrated
+applications. Otherwise 4B.2 alone still throws in the date path when a migrated
+demo's stored dates fail the boundary, offset or ordering rules.
+
+Status: *not implemented (as of 2026-07-30).*
+`server/src/model/applicationDate/validateAndUpdateDates.ts` runs
+`validateAllowedDateChangeForApplication`, then
+`validateAllowedDateChangeByPhase`, then
+`validateInputDates(updatedApplicationDates)` over the merged set --
+unconditionally, with no `isMigratedFromPmda` branch.
+
+*4B.4 -- T1.1 null-safety.* Make `formatDetailsMessage` tolerate NULL `note` and
+`activeExtension` on historical or migrated actions, replacing the `!`
+assertions with graceful fallbacks.
+
+Status: *not implemented (as of 2026-07-30).*
+`deliverableActionFormattingFunctions.ts` still dereferences
+`input.activeExtension!` and `input.note!`. This is currently harmless because
+the synthesized hop chains never mint the four affected action types (T1.1
+above), so the request is precautionary rather than blocking.
+
+*4B.5 -- T1.3 report resilience.* Widen the report Zod enums, coerce nulls, or
+filter unparseable rows so a single migrated row cannot fail an entire report.
+
+Status: *not implemented (as of 2026-07-30).* `runOnDemandReport.ts:17` still
+does an unguarded `z.array(reportRowSchema).parse(results)`, and
+`demonstrationOverviewReportSchema` is still `.strict()` over `z.enum(...)` and
+`usDateString`.
+
+*4B.6 -- re-pin.* After any DEMOS ship, the migration re-pins its Prisma DDL
+snapshot (`reports/prisma_ddl.sha256` plus `state/prisma_ddl/<sha>.sql`).
+
+Status: *RESOLVED.* `reports/prisma_ddl.sha256` points at
+`a4dd0db9...b217d6a9f3`, and `state/prisma_ddl/` holds two snapshots, the
+earlier one being the pre-4B.1 pin.
+
+[[audit-deferred-entities]]
+== Deferred and out-of-scope entities
+
+The audit recorded `document`, `deliverable_action` and `extension` as not
+loaded, with the nastiest constraints in the schema, and required their future
+loaders to be designed constraint-aware. Two of the three have since moved
+(`sql/99_parity/30_scope_coverage.sql`):
+
+[cols="1,1,3a",options="header"]
+|===
+| Entity | Disposition now | Constraints and consequence
+
+| `deliverable_action`
+| BUILT (line 58)
+| Composite FK
+  `(action_type_id, old_status_id, new_status_id) -> deliverable_action_configuration`
+  (must match one of roughly 30 seeded triples), the 5-column action-type FK
+  `(action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)`,
+  and the coupled CHECKs `require_notes_for_user_actions`,
+  `require_user_id_for_user_actions`,
+  `require_extension_id_for_extension_actions`. Satisfied by synthesizing the
+  minimal legal hop chain implied by each deliverable's loaded status
+  (`sql/23_app_derived/60_deliverable_action.sql`), with `note` always NULL and
+  `old_due_date = new_due_date`. PMDA records no per-transition history, so
+  these rows are synthesized, not migrated. Carries T1.1, which stays latent
+  because the minted action types avoid it.
+
+| `document`
+| OUT-OF-SCOPE (line 65)
+| `check_non_empty_s3_path` (`trim(s3_path) != ''`), `owner_user_id` and
+  `application_id` NOT NULL, `check_deliverable_null_states`,
+  `check_phase_id_deliverable_id_null`,
+  `no_submitted_deliverable_cms_files`. Operator decision 2026-07-27: document
+  migration is out of scope for this repo. `demos_app.document` requires an
+  `s3_path`, and the byte-copy queue that would supply it has no producer. The
+  practical effect on this audit is that every `documentTypesMustExist`
+  requirement is unmet by construction, which is why
+  `unmet_kind = 'document'` dominates the phantom-phase view and is not a
+  defect.
+
+| `extension`
+| DEFERRED (line 53)
+| `check_extension_non_null_fields_when_approved`,
+  `extension_signature_level_check` (`IN ('OA','OCD')`). Still not loaded, still
+  not blocking.
+|===
+
+The `deliverable_action` history question is treated separately in
+xref:explanation-history-backfill.adoc[history is DEMOS-owned, not migrated].
+
+== Key considerations
+
+* *Ordering.* No Tier-0 item blocks a full load: T0.1 and T0.4 are handled at
+  load by the migration deploying the migration-mode-gated mint trigger and
+  running `build_app` with `migration_mode='on'`
+  (<<split-trigger-state>>), and T0.2 and T0.3 are avoided by the
+  `refreshDbObjects.ts` deploy order, their triggers staying absent at load. No
+  cross-repo DDL change is required before load. The Tier 2 items matter only
+  once operators actively work migrated demos post-cutover.
+* *Trigger deploy order is load-bearing.* The Tier-0 reprieve on T0.2 and T0.3
+  rests entirely on `refreshDbObjects.ts` running *after* the load (P5 to flip),
+  and on the migration deploying ONLY the mint trigger, not the whole
+  `functions.sql`, before `build_app`. If that order ever changes, those items
+  become live load-aborts again. Preflight P0.9 is the tripwire that fails
+  closed if the triggers appear early; see
+  xref:../operator/reference-gates-state.adoc[gates and `state/` files].
+* *The date fix is split and neither half suffices alone.* Normalization removes
+  one of three throw modes but cannot repair missing offset counterparts or
+  inexact legacy offsets without fabricating data, so the DEMOS date-path skip
+  (<<date-skip>>) is required, not optional.
+* *No fabrication.* "X"-source dates stay absent under the exemption; the parity
+  views quantify the residual rather than invent values.
+* *Cross-repo dependency is on the critical path.* Everything Surface-B depends
+  on the DEMOS validator skips. `is_migrated_from_pmda` has shipped on
+  `application`, but nothing reads it in the date or phase validators yet, so
+  the migration guards keep the gap visible and fail-closed rather than silently
+  loading rows DEMOS will later reject.
+
+[[build-queue]]
+== Build queue and current status
+
+Every migration-repo item is now shipped. Two of them shipped at a different
+file number or a different pipeline stage than the audit proposed, which is
+worth knowing when following a reference from an older document.
+
+[cols="3a,1,4a",options="header"]
+|===
+| Item | Status | Evidence
+
+| Preflight P0.8 (chip_id) plus P0.9 (app-trigger state)
+| icon:check[] shipped
+| `migration/phases/preflight.py`; P0.8 probes
+  `demos_app.demonstration.chip_id` and logs nullability without dying, P0.9
+  asserts `generate_medicaid_chip_id_numbers` PRESENT and the other two
+  triggers ABSENT. Tests in `tests/test_preflight.py`.
+
+| Non-gating primary-PO gap check
+| icon:check[] shipped, extended
+| `sql/99_parity/57_primary_officer_missing.sql`, wired in
+  `migration/phases/parity.py` as `demonstration missing primary PO`. Went
+  further than the audit asked: `sql/04_crosswalks/69_primary_po_fallback.sql`
+  plus `sql/23_app_derived/41_primary_po_fallback.sql` backfill a
+  configurable fallback primary PO, and
+  `sql/99_parity/58_primary_officer_fallback.sql` logs which demonstrations
+  received it. The audit's "check 22" numbering no longer holds -- the checks
+  are registered by label, not number.
+
+| Date normalization plus the date-consistency parity view
+| icon:check[] shipped, relocated and renumbered
+| Normalization landed one stage earlier than proposed, in
+  `sql/10_stg/27_application_milestone.sql` via
+  `migration.eastern_day_start()` / `migration.eastern_day_end()`
+  (both defined in `sql/00_init/03_helper_fns.sql`), not in
+  `sql/20_app/36_application_date.sql`. The view shipped as
+  `sql/99_parity/60_application_date_consistency.sql`, not `58_`, backed by
+  `sql/02_seeds_static/36_application_date_rule.sql` and wired as
+  `application date consistency`. Reports the four modes `boundary`,
+  `missing_counterpart`, `ordering` and `offset`.
+
+| Non-gating phantom-phase check
+| icon:check[] shipped, renumbered
+| `sql/99_parity/61_phantom_phase.sql`, not `59_`, backed by
+  `sql/02_seeds_static/35_phase_completion_rule.sql` and wired as
+  `phantom phase completions`. Drift is caught by
+  `tests/test_phase_completion_rule_drift.py` and
+  `tests/test_application_date_rule_drift.py`.
+
+| `crosswalk_comment_origin` authoring
+| icon:check[] shipped, routes changed
+| `sql/04_crosswalks/68_comment_origin.sql` with routes in
+  `reports/crosswalks/comment_origin.csv`; fail-closed coverage in
+  `sql/04_crosswalks/73_comment_origin_check.sql`; reported by
+  `sql/99_parity/47_comment_routing_coverage.sql`. Only `S` routes public
+  (<<comment-origin>>).
+
+| DEMOS requests 4B.1 to 4B.5, plus the re-pin
+| Partly
+| 4B.1 shipped as
+  `20260721192255_add_is_migrated_to_apps` on the `application` supertype, and
+  the re-pin (4B.6) is done. icon:times[] 4B.2, 4B.3, 4B.4 and 4B.5 are all
+  unimplemented, with the per-request evidence in <<demos-requests>>. 4B.2 and
+  4B.3 are the blocking pair.
+
+| Deferred-entity loaders designed against the deferred-entity constraints
+| Superseded
+| `deliverable_action` is BUILT (synthesized), `document` is OUT-OF-SCOPE by
+  operator decision 2026-07-27, `extension` is still DEFERRED
+  (`sql/99_parity/30_scope_coverage.sql:53,58,65`). See
+  <<audit-deferred-entities>>.
+|===
+
+== Related
+
+* xref:explanation-api-validator-conformance.adoc[Conformance to the DEMOS API
+  validator] -- the harness design that re-runs these validators for real.
+* xref:howto-write-a-parity-check.adoc[Write a parity check] -- the conventions
+  the phantom-phase and date-consistency views follow.
+* xref:reference-cross-cutting-derivations.adoc[Cross-cutting derivations] --
+  the legacy-column to date_type mapping this audit reconciles against.
+* xref:../sme/reference-sme-signoff-2026-07-20.adoc[SME sign-off ledger] -- the
+  source of the phantom-completion figure this page corrects.
+* xref:reference-prisma-ddl.adoc[Prisma DDL pipeline] -- the pinned snapshot
+  that determines which triggers exist at load.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:explanation-api-validator-conformance.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:explanation-migration-feasibility.adoc[next >]
+|===
+endif::[]
+// docnav-end

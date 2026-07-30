@@ -69,8 +69,9 @@ ASCII_OPTS := \
   $(ASCII_ATTRS)
 
 .PHONY: help all install html deck cli-ref column-map schema-diagrams schema-drift live-partials \
-        flow-pages derivability data-dictionary prisma-analysis verify verify-schema-refs verify-crosswalks \
-        verify-counts verify-doc-facts verify-prisma-analysis watch clean
+        flow-pages derivability data-dictionary prisma-analysis docnav verify verify-schema-refs verify-crosswalks \
+        verify-counts verify-doc-facts verify-docnav verify-docs-markdown verify-prisma-analysis \
+        watch clean
 
 help:
 	@$(PRETTY) help docs
@@ -138,6 +139,13 @@ data-dictionary:
 prisma-analysis:
 	@$(STEP) prisma-analysis "cd .. && $(PYTHON) docs/tools/prisma_migration_analysis.py"
 
+# Rewrite the prev/next footer on every page in the docnav reading order
+# (idempotent: the block sits between `// docnav-start` / `// docnav-end`
+# markers and is replaced wholesale). Run after adding or reordering a page,
+# then commit the footers. verify-docnav is what catches a page you forgot.
+docnav:
+	@$(STEP) docnav "cd .. && $(PYTHON) docs/tools/docnav.py"
+
 # Documentation <-> code consistency checks. Each script reads the same
 # authoritative model as the generators and exits non-zero on drift, so a
 # stale reference, crosswalk, or count fails `make all`. The generated
@@ -157,12 +165,24 @@ verify-counts: schema-diagrams
 verify-doc-facts:
 	@$(STEP) verify-doc-facts "cd .. && $(PYTHON) docs/tools/verify_doc_facts.py"
 
+# Assert every page the html target builds is reachable from BOTH navigation
+# surfaces (docnav.py ORDER and toc.adoc). Asciidoctor is happy to render an
+# orphan page, so nothing else catches this.
+verify-docnav:
+	@$(STEP) verify-docnav "cd .. && $(PYTHON) docs/tools/verify_docnav.py"
+
+# Markdown under docs/ is never built, so it rots unseen: nine such specs
+# accumulated before this check existed. Also catches half-converted pages
+# (Markdown headings, fences, links) that Asciidoctor renders without complaint.
+verify-docs-markdown:
+	@$(STEP) verify-docs-markdown "cd .. && $(PYTHON) docs/tools/verify_docs_markdown.py"
+
 # Fail closed if the committed Prisma migration analysis partial is stale
 # relative to the pinned DDL (same git-diff contract as the other generators).
 verify-prisma-analysis:
 	@$(STEP) verify-prisma-analysis "cd .. && $(PYTHON) docs/tools/prisma_migration_analysis.py --check"
 
-verify: schema-diagrams derivability verify-schema-refs verify-crosswalks verify-counts verify-doc-facts verify-prisma-analysis
+verify: schema-diagrams derivability verify-schema-refs verify-crosswalks verify-counts verify-doc-facts verify-docnav verify-docs-markdown verify-prisma-analysis
 
 # Multi-page documentation set. Each .adoc renders to its own .html at
 # the matching relative path under build/, so `xref:foo.adoc#bar[]`

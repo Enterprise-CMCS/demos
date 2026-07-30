@@ -124,11 +124,12 @@ The generated `filter_<stamp>.md` ends with a `Sign-off` footer block
 `migration.phases.build.emit_filter_report`. That signed report -- not a
 gate file -- is the approval artifact.
 
-* *Per-rehearsal*: SME reads the latest `filter_<stamp>.md`, edits
-  the CSV overrides, re-runs, and signs the report's footer block.
+* *Per-rehearsal*: SME reads the latest `reports/runs/filter_<stamp>.md`,
+  edits the CSV overrides, re-runs, and signs the report's footer block.
 * *Cutover (T-24h)*: the final report is regenerated against the freeze
-  image; the SME signs and dates its footer, and the run is archived to
-  `reports/filter/archive/cutover_<date>.md` for audit.
+  image and the SME signs and dates its footer. It stays where the build
+  wrote it, under `reports/runs/`, which is never pruned automatically;
+  the stamp in the filename identifies the cutover run.
 
 [NOTE]
 ====

@@ -32,6 +32,7 @@ amendment_history,updated_at,timestamptz,no,no,yes,no,,audit_timestamp
 amendment_history,status_updated_at,timestamptz,no,no,yes,no,,GAP_table_pending
 application,id,uuid,no,no,no,no,,GAP_table_pending
 application,application_type_id,text,no,no,no,no,,GAP_table_pending
+application,is_migrated_from_pmda,boolean,no,yes,no,no,,default
 application_date,application_id,uuid,no,no,no,yes,mdcd_demo,mapped
 application_date,date_type_id,text,no,no,no,yes,mdcd_demo,mapped
 application_date,date_value,timestamptz,no,no,no,yes,mdcd_demo,mapped

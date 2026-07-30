@@ -1887,12 +1887,14 @@ def _scope_coverage(env: Env) -> CheckResult:
     built = sum(1 for d in dispositions if d == "BUILT")
     partial = sum(1 for d in dispositions if d == "PARTIAL")
     deferred = sum(1 for d in dispositions if d == "DEFERRED")
+    out_of_scope = sum(1 for d in dispositions if d == "OUT-OF-SCOPE")
     return CheckResult(
         name=name,
         status="GREEN",
         detail=(
             f"{len(rows)} target table(s): {built} BUILT, {partial} PARTIAL, "
-            f"{deferred} DEFERRED; coverage written to {rel(out)} (non-gating)"
+            f"{deferred} DEFERRED, {out_of_scope} OUT-OF-SCOPE; "
+            f"coverage written to {rel(out)} (non-gating)"
         ),
     )
 
@@ -2856,11 +2858,14 @@ def _comment_routing_coverage(env: Env) -> CheckResult:
     Reads ``migration._parity_comment_routing_coverage`` (created by
     ``sql/99_parity/47_comment_routing_coverage.sql`` only when
     ``stg.comment_resolved`` exists). The cmt_orgn_cd -> route crosswalk is
-    deliberately gated/empty until SME sign-off, so this lists each origin code
-    the source uses that has no route yet, with its comment count, written to
-    ``reports/orphans/comment_routing_coverage.csv``. NON-GATING: an unmapped
-    code is expected today, so the status stays GREEN. Vacuously GREEN before the
-    staging view is built.
+    authored: all six codes the live source uses have a route in
+    ``reports/crosswalks/comment_origin.csv``, so this normally has nothing to
+    report. It lists any origin code the source uses that has no route, with its
+    comment count, written to
+    ``reports/orphans/comment_routing_coverage.csv``. NON-GATING: the fail-closed
+    twin is ``sql/04_crosswalks/73_comment_origin_check.sql``, which stops the run
+    on an unmapped, non-SME-deferred code. Vacuously GREEN before the staging view
+    is built.
     """
     name = "Comment routing coverage"
     exists = psql_query(
@@ -2896,8 +2901,9 @@ def _comment_routing_coverage(env: Env) -> CheckResult:
         name=name,
         status="GREEN",
         detail=(
-            f"{len(rows)} cmt_orgn_cd code(s) not yet mapped in crosswalk_comment_origin "
-            f"(gated; author-default routing applies); codes: {codes}; logged in {rel(out)} (non-gating)"
+            f"{len(rows)} cmt_orgn_cd code(s) with no authored route in "
+            f"crosswalk_comment_origin (the code-less fallback does not apply to a code "
+            f"that is present); codes: {codes}; logged in {rel(out)} (non-gating)"
         ),
     )
 

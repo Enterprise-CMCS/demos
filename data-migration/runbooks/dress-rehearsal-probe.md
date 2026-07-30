@@ -110,4 +110,8 @@ make spin_down      # remove the local target container
 
 ## See also
 
-- [Rehearsal command inventory](../docs/operator/reference-rehearsal-commands.adoc) -- per-command expected output, known REDs, recovery, and the diagnostic toolkit for this probe.
+- `docs/operator/reference-rehearsal-commands.adoc` -- per-command expected
+  output, known REDs, recovery, and the diagnostic toolkit for this probe.
+  (Rendered in the wiki as "Reference: rehearsal command inventory". Kept as a
+  plain path rather than a link so this file reads correctly both on GitHub and
+  when included into the wiki, where the wiki page supplies the real `xref:`.)

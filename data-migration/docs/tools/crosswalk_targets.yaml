@@ -34,3 +34,20 @@ overrides:
   # `demonstration_type`), and there is no crosswalk:demonstration_type
   # column-map row, so resolve it here.
   demonstration_type: tag_name
+  # deliverable_file_type maps mdcd_dlvrbl_fil_doc.fil_doc_cd to
+  # demos_app.document_type.id. The stem is not a seeded table and there is no
+  # crosswalk:deliverable_file_type column-map row yet (the document loader is
+  # deferred), so resolve it here; 72_deliverable_file_type_check.sql asserts
+  # the same target against the seed.
+  deliverable_file_type: document_type
+
+# Crosswalks that have no seeded target table by design: they resolve a legacy
+# value to a routing decision or a tuple, not to a row in a static-constraint
+# table. Listing a stem here skips target resolution entirely; its own
+# fail-closed `*_check.sql` is the validation of record. Give a reason.
+skip:
+  # comment_origin maps mdcd_dlvrbl_cmt.cmt_orgn_cd to a route ('private' |
+  # 'public') that selects between demos_app.private_comment and
+  # demos_app.public_comment. Neither is a seeded constraint table, so there is
+  # no id to verify; 73_comment_origin_check.sql enforces coverage fail-closed.
+  comment_origin: routes to a comment table, not to a seeded row

@@ -2,7 +2,7 @@
  * Purpose:    Build the row-level allowlist of valid pending-demonstration ids (lifecycle-aware: project number optional).
  * Inputs:     mysql_raw.mdcd_pendg_demo, stg._keep_ids, stg._drop_ids, migration.normalize_medicaid_id
  * Outputs:    CREATE OR REPLACE VIEW stg._valid_pendg_demo_ids
- * Invariants: source-only (no crosswalks/seeds); fail-closed rules; project number optional on pending (only non-normalizable non-null values flagged); the project-number rule calls migration.normalize_medicaid_id, the same helper the approved anchor and the fold key use, so the two anchors never disagree about which numbers are rescuable; force-keep only ids present in source (CODE_REVIEW H5).
+ * Invariants: source-only (no crosswalks/seeds); fail-closed rules; project number optional on pending (only non-normalizable non-null values flagged); the project-number rule calls migration.normalize_medicaid_id, the same helper the approved anchor and the fold key use, so the two anchors never disagree about which numbers are rescuable; force-keep only ids present in source.
  * Refs:       -
  *
  * Row-level allowlist filter on the pending demonstration anchor
@@ -62,7 +62,7 @@ bad_dates AS (
         OR extract(year FROM state_prfmnc_yr_strt_dt) > 2099))
 ),
 keep AS (
-  -- Force-keep only ids that exist in the source (CODE_REVIEW H5).
+  -- Force-keep only ids that exist in the source.
   SELECT
     k.legacy_id AS demo_id
   FROM

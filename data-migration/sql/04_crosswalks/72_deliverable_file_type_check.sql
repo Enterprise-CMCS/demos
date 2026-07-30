@@ -3,7 +3,7 @@
  * Inputs:     mysql_raw.mdcd_dlvrbl_fil_doc, mysql_raw.crosswalk_deliverable_file_type, demos_app.document_type
  * Outputs:    none (validation only; RAISEs EXCEPTION on a gap)
  * Invariants: fail-closed; to_regclass-guarded no-op before load; covers the deliverable-file family only; a present-but-empty source is a NOTICE no-op; NULL fil_doc_cd (General File default, D2) is not a code and is exempt; every mapped demos_text_id must exist in the DEMOS document_type seed.
- * Refs:       docs/specs/document-migration.md (D2, D3, D6), sql/04_crosswalks/71_deliverable_file_type.sql
+ * Refs:       docs/developer/explanation-document-migration.adoc (D2, D3, D6), sql/04_crosswalks/71_deliverable_file_type.sql
  *
  * Completeness + integrity check for crosswalk_deliverable_file_type
  * (deliverable-file type subset). Guarded by to_regclass so it no-ops before

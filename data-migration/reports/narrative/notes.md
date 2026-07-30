@@ -234,7 +234,7 @@ as **PARTIAL** (was DEFERRED); `document` stays DEFERRED.
   from submissions (`NOT (deliverable_is_cms_attached_file = true AND
   deliverable_submission_action_id IS NOT NULL)`). The 3-state document routing
   and the `deliverable_action` state machine are captured as spec contracts in
-  `docs/specs/pmda-cross-cutting-derivation-spec.md`, with inert, guarded
+  `docs/developer/reference-cross-cutting-derivations.adoc`, with inert, guarded
   scaffolds (`sql/10_stg/30_document_deliverable_link_resolved.sql`,
   `sql/99_parity/49_document_cms_file_submission_invariant.sql`, both no-ops
   until a `stg.document_resolved` loader lands). The document loader stays
@@ -671,7 +671,7 @@ tables (LIVE PROD `cma_pro_11_1_000`, read-only via the `mysql-ducksplorer`
 skill) to see whether they can fill phase/date/deliverable_action derivation
 gaps. Headline: the migration reads **no** source history table today
 (`grep hstry sql/**` = 0). Three usable consumers found, specced in
-`docs/specs/pmda-history-tables-derivation-spec.md`:
+`docs/developer/explanation-deliverable-action-backfill.adoc`:
 
 - **`deliverable_action` backfill (main effort, decision D7).** The DEMOS
   `deliverable_action` is an append-only workflow event log (NOT a `*_history`
@@ -911,3 +911,20 @@ real probing to get.
 - `sql/10_stg/30_document_deliverable_link_resolved.sql` and
   `sql/99_parity/49_document_cms_file_submission_invariant.sql` remain correctly
   inert: both guard on a `stg.document_resolved` that no longer gets created.
+
+2026-07-30 docs: **`pmda_highlights_reel.md` moved into the wiki.** The
+root-level markdown was folded to
+`docs/developer/reference-legacy-pmda-workflows.adoc` and deleted. Content is
+unchanged (all eleven workflows, all 41 extract queries); the workflow numbering
+survives as anchors `#workflow-1` .. `#workflow-11`. The 2026-06-24 pmda-scope
+entry above cites it under the old name -- that entry stands as written, per the
+append-only rule.
+
+2026-07-30 docs: **cutover constant corrected to 2026-08-13.** The
+2026-06-25 application_phase entry above records the Federal Comment
+past-window failsafe constant as `2026-08-20`. That was the value at the time;
+the go-live moved and `sql/23_app_derived/50_application_phase.sql`,
+`migration/phases/parity.py`, and the prose sites now all read **2026-08-13**
+(Thursday, Eastern midnight). The earlier entry stands as written, per the
+append-only rule. Full reconciliation in
+`reports/audits/docs_audit_2026-07-30.md`.

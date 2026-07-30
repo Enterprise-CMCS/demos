@@ -13,13 +13,13 @@ single-transaction `build_app` stage) on one or more directories.
 | 01 | Prisma migrations (fetched from DEMOS GitHub repo) + `sql/01_ddl_supplements/` | `migrate ddl` lists Prisma migration directories under `$PRISMA_MIGRATIONS_PATH` in `$PRISMA_REPO@$PRISMA_REPO_REF` via the GitHub Contents API, fetches each `migration.sql`, concatenates them chronologically, verifies SHA256 against `reports/prisma_ddl.sha256`, drops + re-creates `demos_app`, applies the cached artifact, captures Prisma's inline FKs to `state/prisma_fks.json` and drops them, then applies the migration-private supplement (`00_jsonb_schema_registry.sql`). The `*_history` tables ship in the Prisma artifact, not here.
 | 02 | `sql/02_seeds_static/` | Static-constraint rows (text IDs).
 | 03 | `sql/03_seeds_limiters/` | Type-limiter rows.
-| 04 | `sql/04_crosswalks/` | Loads SME-authored CSVs into `mysql_raw.crosswalk_*`.
+| 04 | `sql/04_crosswalks/` | DDL only (`DROP`/`CREATE TABLE` for each `mysql_raw.crosswalk_*`) plus the fail-closed `*_check.sql` completeness queries. No `INSERT` or `COPY` lives here: `init_pg.run_crosswalks` applies the DDL, then COPYs each SME-authored CSV listed in `reports/crosswalks/registry.yaml` into its table via `copy_csv_into_table`, then applies the checks.
 | 05 | `sql/05_id_maps/` | Creates and populates `migration._id_map_<src>`.
 | 10 | `sql/10_stg/` | Stage transforms (one file per source table family).
 | 20 | `sql/20_app/` | Builds `demos_app.*` from `stg.*`.
 | 21 | `sql/21_app_associative/` | App-layer associative tables.
 | 23 | `sql/23_app_derived/` | Phases, person_state, role assignments.
-| 30 | `sql/30_constraints/` | FKs as `NOT VALID`, then `VALIDATE`.
+| 30 | `sql/30_constraints/` | Empty (`.gitkeep` only), and kept for future migration-owned constraint SQL. FKs are Prisma-owned: `migrate ddl` captures them to `state/prisma_fks.json` and drops them, and `constraints.py` re-adds each one `NOT VALID` and then `VALIDATE`s it, hard-failing on any FK left unvalidated.
 | 31 | `sql/31_constraint_triggers/` | Reserved for late `CONSTRAINT TRIGGER`s. Currently a disposition note only (`00_jsonb_validation.sql`): no JSONB trigger is wired on any table (the former BN parity trigger on `migration.bn_workbook_detail` was retired).
 | 32 | `sql/32_app_triggers/` | Empty: DEMOS owns the `log_changes_*` history-capture triggers (applied via `refreshDbObjects.ts`), not this repo.
 | 40 | `sql/40_indexes/` | Indexes (built last for speed).
@@ -39,7 +39,7 @@ flowchart TD
   G --> H[10_stg/* per family]
   H --> I[20_app + 21_app_associative]
   I --> K[23_app_derived person_state, role_assn]
-  K --> L[30_constraints FKs NOT VALID]
+  K --> L[constraints phase re-adds Prisma FKs]
   L --> M[31_constraint_triggers]
   M --> N[32_app_triggers]
   N --> O[40_indexes + 50_sequences]

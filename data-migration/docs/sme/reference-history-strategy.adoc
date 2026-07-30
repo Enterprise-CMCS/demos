@@ -1,4 +1,5 @@
 = Reference: history strategy
+:toc: left
 
 Live contents of `reports/narrative/history_strategy.md`. The short version: this
 migration does **not** populate the DEMOS `*_history` tables. They are
@@ -16,7 +17,16 @@ Per the SMEs, the DEMOS history tables do not have to be populated; DEMOS
 triggers history-row creation on its own once the capture triggers are
 installed (after constraints, via `refreshDbObjects.ts`). Every
 `demos_app.*_history` table is therefore left EMPTY by this migration --
-including the entities that previously had a MySQL `*_hstry` shadow.
+including the entities that previously had a MySQL `+*_hstry+` shadow.
+
+That is a statement about the *targets*, not about the sources. The MySQL
+`+*_hstry+` tables are not off limits: three shipped files read
+`mdcd_dlvrbl_stus_hstry` and `mdcd_dlvrbl_hstry` as ordinary evidence about
+the past, to date and corroborate the synthesized deliverable action trail.
+See
+xref:../developer/explanation-deliverable-action-backfill.adoc[synthesizing
+the deliverable action trail]. Reading a source history table is not the
+same as writing a target history row, and no target history row is written.
 
 // docnav-start
 ifndef::nested[]

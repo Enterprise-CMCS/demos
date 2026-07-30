@@ -146,9 +146,9 @@ ifndef::nested[]
 
 [.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
 |===
-|xref:reference-data-dictionary.adoc[< prev]
+|xref:reference-legacy-pmda-workflows.adoc[< prev]
 ^|xref:../toc.adoc[Table of contents]
->|xref:reference-derivability-audit.adoc[next >]
+>|xref:reference-cross-cutting-derivations.adoc[next >]
 |===
 endif::[]
 // docnav-end

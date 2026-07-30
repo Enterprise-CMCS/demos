@@ -1,4 +1,4 @@
-"""Live-PG harness for the crosswalk completeness checks (CODE_REVIEW H4).
+"""Live-PG harness for the crosswalk completeness checks.
 
 The two ``sql/04_crosswalks/*_check.sql`` DO blocks must: skip when the source
 table is absent (standalone dev), hard-fail when it is present but empty,

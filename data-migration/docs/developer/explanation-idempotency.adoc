@@ -1,8 +1,9 @@
 = Explanation: idempotency
 
-Every transform in this pipeline is *drop-and-rebuild*, never upsert.
-Re-running a phase on the same upstream state produces the same
-downstream rows, byte-for-byte (modulo timestamps).
+Every transform in this pipeline is re-runnable: the same upstream state
+produces the same downstream rows, byte-for-byte (modulo timestamps). The
+mechanism is *drop-and-rebuild* almost everywhere, with three deliberate
+upserts named below.
 
 == Why
 
@@ -28,7 +29,8 @@ downstream rows, byte-for-byte (modulo timestamps).
 | `ALTER TABLE ... DROP CONSTRAINT IF EXISTS ... ; ADD CONSTRAINT ...` | DDL constraints.
 | `TRUNCATE` then `INSERT` | Stage and app rows.
 | `INSERT ... ON CONFLICT DO NOTHING` | Id maps (preserve existing UUIDs across rebuilds).
-| `DROP TABLE IF EXISTS` then `CREATE TABLE` then inlined `INSERT ... VALUES` | Crosswalks (the pipeline applies SQL through psycopg, where psql's `\copy` is unavailable).
+| `DROP TABLE IF EXISTS` then `CREATE TABLE` | Crosswalk tables. The SQL is DDL and fail-closed `_check` queries only; the phase COPYs values from `reports/crosswalks/*.csv` per `reports/crosswalks/registry.yaml`.
+| `INSERT ... ON CONFLICT DO UPDATE` | The three deliberate upserts: `sql/02_seeds_static/25_state_region.sql`, `sql/02_seeds_static/30_deliverable_action_chain.sql`, and the JSONB schema registry load in `migration/phases/init_pg.py`. Each reconciles a small repo-authored value set against rows that may already exist, so a changed seed value takes effect on re-run instead of being silently ignored.
 | `CREATE OR REPLACE VIEW` | Parity views.
 | `lib.truncate_schema_data(env, schema, exclude_patterns, exclude_tables)` | Wholesale wipe of a schema's data tables, minus LIKE-pattern and exact-name exclusions (with identifier guards).
 |===
@@ -65,8 +67,11 @@ downstream rows, byte-for-byte (modulo timestamps).
 
 * In-place fixes to `demos_app` rows. If a row is wrong, fix the
   upstream stage and re-run; do not patch.
-* Upsert-style transforms. They break re-run determinism on
-  partial source updates.
+* Upserting *migrated* rows. The three `DO UPDATE` sites above all
+  reconcile small repo-authored value sets whose keys the migration
+  itself owns. Applying the same pattern to stage or app data would
+  make a re-run depend on what the previous run left behind, which is
+  exactly the determinism this page is protecting.
 * Manual hot-fix INSERTs into `mysql_raw`. The next pgloader
   refresh will overwrite them.
 

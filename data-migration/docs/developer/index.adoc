@@ -35,9 +35,12 @@ include::../shared/schema-overview.adoc[]
 * xref:howto-revalidate-jsonb.adoc[Revalidate a JSONB column]
 * xref:howto-write-a-parity-check.adoc[Write a parity check]
 * xref:howto-run-tests-locally.adoc[Run tests locally]
+* xref:howto-load-demos-devcontainer.adoc[Load migrated data into the DEMOS
+  devcontainer]
 
 === Reference
 
+* xref:reference-repo-layout.adoc[Repository layout]
 * xref:reference-pipeline-stages.adoc[Pipeline stages]
 * xref:reference-sql-conventions.adoc[SQL conventions]
 * xref:reference-python-package.adoc[Python package and `lib.py`]
@@ -49,7 +52,9 @@ include::../shared/schema-overview.adoc[]
 * xref:reference-schema-diagrams.adoc[Generated schema diagrams]
 * xref:reference-id-maps.adoc[id maps]
 * xref:reference-data-dictionary.adoc[DEMOS data dictionary]
+* xref:reference-legacy-pmda-workflows.adoc[Legacy PMDA workflows (source system)]
 * xref:reference-source-target-columns.adoc[Source/target column map]
+* xref:reference-cross-cutting-derivations.adoc[Cross-cutting derivations]
 * xref:reference-derivability-audit.adoc[Derivability audit]
 * xref:reference-crosswalk-audit.adoc[Crosswalk audit (vs live PROD)]
 * xref:reference-users-person-migration.adoc[Users and person migration]
@@ -61,8 +66,14 @@ include::../shared/schema-overview.adoc[]
 * xref:explanation-idempotency.adoc[Idempotency]
 * xref:explanation-fk-strategy.adoc[FK strategy]
 * xref:explanation-history-backfill.adoc[History is DEMOS-owned, not migrated]
+* xref:explanation-deliverable-action-backfill.adoc[Synthesizing the deliverable action trail]
 * xref:explanation-demos-clone-vs-id-maps.adoc[The DEMOS clone tool vs. our id maps]
 * xref:explanation-api-validator-conformance.adoc[Conformance to the DEMOS API validator]
+* xref:explanation-api-validation-audit.adoc[API validation audit]
+* xref:explanation-migration-feasibility.adoc[What can migrate at all]
+* xref:explanation-dbt-alignment.adoc[Alignment with the dbt build]
+* xref:explanation-document-migration.adoc[Document migration]
+* xref:explanation-jenkins-pipelines.adoc[Jenkins pipelines]
 
 == Glossary
 
@@ -76,7 +87,7 @@ ifndef::nested[]
 |===
 |xref:../operator/explanation-rehearsal-strategy.adoc[< prev]
 ^|xref:../toc.adoc[Table of contents]
->|xref:tutorial-add-a-new-transform.adoc[next >]
+>|xref:tutorial-follow-an-entity.adoc[next >]
 |===
 endif::[]
 // docnav-end

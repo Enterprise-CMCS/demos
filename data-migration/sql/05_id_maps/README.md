@@ -11,7 +11,7 @@ in `10_stg/`) and the build applies `05_id_maps/` before `10_stg/`. See
 
 ## Demonstration-ID invariant (must not be violated)
 
-Every `app.demonstration.id` in DEMOS PG originates from a PMDA row
+Every `demos_app.demonstration.id` in DEMOS PG originates from a PMDA row
 via the id maps. New demonstration IDs are created post-migration
 by the DEMOS backend and are *out of scope* for this migration.
 
@@ -22,7 +22,7 @@ In concrete terms:
 - `migration._id_map_mdcd_pendg_demo` is populated only from
   `stg._valid_pendg_demo_ids` (filtered `mysql_raw.mdcd_pendg_demo`).
 - No transform may insert into either map from any other source.
-- No transform may insert into `app.demonstration` with an `id` that
+- No transform may insert into `demos_app.demonstration` with an `id` that
   is not drawn from one of those two maps.
 - Pending demos that fold into an approved counterpart **reuse the
   approved UUID** (per `reports/narrative/pending_approved_decisions.md`).

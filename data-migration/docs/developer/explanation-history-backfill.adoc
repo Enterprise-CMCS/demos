@@ -1,4 +1,5 @@
 = Explanation: history is DEMOS-owned, not migrated
+:toc: left
 
 The `demos_app.*_history` tables are *owned by DEMOS*, both the schema and
 the rows. This migration does **not** populate them: every
@@ -29,6 +30,19 @@ This removed the former P4 `history` phase, the `sql/22_app_history/`
 backfill transforms, and the `history` cutover gate. The cutover sequence
 now runs `build_app -> constraints` with no history step in between.
 
+== The MySQL history tables are still readable sources
+
+"We do not write history" is a claim about the *target*. It says nothing
+about the MySQL `+*_hstry+` shadow tables, which remain ordinary evidence
+about the past. Three shipped files read `mdcd_dlvrbl_stus_hstry` and
+`mdcd_dlvrbl_hstry` to date and corroborate the synthesized
+`demos_app.deliverable_action` trail, described in
+xref:explanation-deliverable-action-backfill.adoc[synthesizing the
+deliverable action trail]. Those actions land in a normal table, not a
+history table, and the backfill runs inside `build_app` -- before the
+capture triggers exist -- so it writes no `deliverable_action_history` row
+either.
+
 == The DEMOS history shape
 
 Each `*_history` table is `revision_id SERIAL` (PK, auto-assigned),
@@ -41,6 +55,8 @@ cutover is the table's first row.
 == Related
 
 * xref:reference-id-maps.adoc[id maps]
+* xref:explanation-deliverable-action-backfill.adoc[Synthesizing the
+  deliverable action trail]
 * xref:../sme/reference-history-strategy.adoc[SME reference: history
   strategy]
 
@@ -52,7 +68,7 @@ ifndef::nested[]
 |===
 |xref:explanation-fk-strategy.adoc[< prev]
 ^|xref:../toc.adoc[Table of contents]
->|xref:explanation-demos-clone-vs-id-maps.adoc[next >]
+>|xref:explanation-deliverable-action-backfill.adoc[next >]
 |===
 endif::[]
 // docnav-end

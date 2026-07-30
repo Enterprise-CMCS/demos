@@ -3,7 +3,7 @@
  * Inputs:     mysql_raw.mdcd_demo_amndmt, stg._valid_amndmt_ids, migration._id_map_mdcd_demo_amndmt, migration._id_map_mdcd_demo
  * Outputs:    CREATE OR REPLACE VIEW stg.amendment_resolved
  * Invariants: source-only (mysql_raw + id maps + the source-only stg._pendg_demo_fold view; never crosswalks 04 / seeds 02) so it builds in the stg-only idempotency harness; idempotent (CREATE OR REPLACE VIEW); soft-delete exclusion (dltd_ind = 1); demo_uuid resolves via the approved parent, else the fold-aware pending parent (a truly parentless amendment gets NULL, held by the loader); parent_is_pending flags a pending-track amendment so the loader can assign 'Under Review' to the statusless ones.
- * Refs:       docs/specs/pmda-cross-cutting-derivation-spec.md
+ * Refs:       docs/developer/reference-cross-cutting-derivations.adoc
  *
  * Staging projection of each PMDA-valid amendment (mysql_raw.mdcd_demo_amndmt)
  * into the column set the demos_app.application + demos_app.amendment loader
