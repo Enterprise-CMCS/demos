@@ -43,11 +43,14 @@
  *
  *   file_batch    the deliverable has state upload sessions -> one real
  *                 submission per session, real timestamp, real uploader.
- *                 5,276 deliverables / 7,225 submissions. Sessions flagged
- *                 after_accepted_ind are excluded: a late addition to a closed
- *                 deliverable is not evidence it was submitted. That drops 320
- *                 sessions and costs no deliverable its entire evidence -- the
- *                 deliverable count is 5,276 with or without the filter.
+ *                 Two counts, because they differ and confusing them is easy:
+ *                 5,276 deliverables / 7,225 rows land in the event table, of
+ *                 which 5,223 / 7,158 become actions. The 53 deliverables and
+ *                 67 rows in between are the no-submission-hop chains noted
+ *                 below. Sessions flagged after_accepted_ind are excluded: a
+ *                 late addition to a closed deliverable is not evidence it was
+ *                 submitted. That drops 320 sessions and costs no deliverable
+ *                 its entire evidence.
  *   status_event  no uploads survive, but the source does carry a real
  *                 'Submitted' status event -> keep ONE synthetic hop, exactly
  *                 as before this loader consumed batches. 7 deliverables.
