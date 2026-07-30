@@ -101,6 +101,7 @@ type MigrationSql = List[SqlStatement]
 MIGRATION_CONFIGURATION: MigrationConfiguration = (
     TriggerActionConfiguration("disable", "application", "create_phases_and_dates_for_new_application"),
     TriggerActionConfiguration("disable", "deliverable", "trim_input_text_fields"),
+    TriggerActionConfiguration("disable", "document", "trim_input_text_fields"),
     TableInsertActionConfiguration(
         "final_demos_app_person",
         "person",
@@ -284,8 +285,30 @@ MIGRATION_CONFIGURATION: MigrationConfiguration = (
         ],
     ),
     TransactionActionConfiguration("commit"),
+    TableInsertActionConfiguration(
+        "final_demos_app_document",
+        "document",
+        [
+            "id",
+            "name",
+            "description",
+            "s3_path",
+            "owner_user_id",
+            "document_type_id",
+            "application_id",
+            "phase_id",
+            "deliverable_id",
+            "deliverable_type_id",
+            "deliverable_is_cms_attached_file",
+            "deliverable_submission_action_id",
+            "deliverable_submission_action_type_id",
+            "created_at",
+            "updated_at",
+        ],
+    ),
     TriggerActionConfiguration("enable", "application", "create_phases_and_dates_for_new_application"),
     TriggerActionConfiguration("enable", "deliverable", "trim_input_text_fields"),
+    TriggerActionConfiguration("enable", "document", "trim_input_text_fields"),
     ArbitraryActionSql(
         "Run due date calculation",
         f"CALL postgres_execute('{DEMOS_DDB_ATTACH_NAME}', 'CALL {APP_SCHEMA}.mark_deliverables_as_past_due()')",

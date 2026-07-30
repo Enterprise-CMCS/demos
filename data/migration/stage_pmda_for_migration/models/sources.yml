@@ -3833,9 +3833,14 @@ sources:
             data_type: smallint
 
       - name: mdcd_dlvrbl_fil_doc
+        config:
+          tags: ['source_in_use']
         columns:
           - name: mdcd_dlvrbl_fil_doc_id
             data_type: integer
+            data_tests:
+              - unique:
+                  name: assert_mdcd_dlvrbl_fil_doc_id_unique_in_pmda
           - name: mdcd_dlvrbl_id
             data_type: integer
           - name: doc_name
