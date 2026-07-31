@@ -15,7 +15,8 @@ WITH no_s3_path AS (
         deliv_docs.creatd_dt AS created_at,
         deliv_docs.creatd_dt AS updated_at,
         deliv_docs.mdcd_dlvrbl_fil_doc_id AS _legacy_mdcd_dlvrbl_fil_doc_id,
-        deliv_docs.mdcd_dlvrbl_id AS _legacy_mdcd_dlvrbl_id
+        deliv_docs.mdcd_dlvrbl_id AS _legacy_mdcd_dlvrbl_id,
+        NULL::INTEGER AS _legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id
     FROM
         {{ ref('docs_base_pmda_deliv_docs') }} AS deliv_docs
     WHERE
@@ -44,6 +45,7 @@ SELECT
     created_at,
     updated_at,
     _legacy_mdcd_dlvrbl_fil_doc_id,
-    _legacy_mdcd_dlvrbl_id
+    _legacy_mdcd_dlvrbl_id,
+    _legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id
 FROM
     no_s3_path

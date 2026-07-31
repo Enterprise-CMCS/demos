@@ -15,7 +15,10 @@ import {
   resolveHasPendingUIPathResult,
 } from "./documentResolvers";
 import { editDocument, getDocument, removeDocument } from "./documentData";
-import { selectDeliverableAction, SelectDeliverableActionRowResult } from "../deliverableAction/queries";
+import {
+  selectDeliverableAction,
+  SelectDeliverableActionRowResult,
+} from "../deliverableAction/queries";
 
 // Mock dependencies
 vi.mock("../../prismaClient", () => ({
@@ -85,7 +88,7 @@ describe("documentResolvers", () => {
   const testApplicationId = "app-123-456";
   const testDocumentS3Path = "s3/path/to/document.pdf";
 
-  const mockDocument: PrismaDocument = {
+  const mockDocument: Partial<PrismaDocument> = {
     name: "Test Document",
     id: testDocumentId,
     description: "Test document description",
@@ -229,7 +232,7 @@ describe("documentResolvers", () => {
           },
         },
       } as SelectDeliverableActionRowResult);
-         
+
       const result = await documentResolvers.Document.deliverableSubmissionAction(document);
       expect(selectDeliverableAction).toHaveBeenCalledExactlyOnceWith(
         {
@@ -259,7 +262,7 @@ describe("documentResolvers", () => {
 
   describe("Document.owner", () => {
     it("delegates to userData/queries.selectUserOrThrow", () => {
-      documentResolvers.Document.owner(mockDocument);
+      documentResolvers.Document.owner(mockDocument as PrismaDocument);
       expect(selectUserOrThrow).toHaveBeenCalledExactlyOnceWith({ id: mockDocument.ownerUserId });
     });
   });
@@ -306,7 +309,7 @@ describe("documentResolvers", () => {
         name: "Updated Document",
         description: "Updated description",
       };
-      vi.mocked(editDocument).mockResolvedValue(mockDocument);
+      vi.mocked(editDocument).mockResolvedValue(mockDocument as PrismaDocument);
       const updatedDocument = await documentResolvers.Mutation.updateDocument(
         undefined,
         {
@@ -345,7 +348,7 @@ describe("documentResolvers", () => {
   describe("Mutation.deleteDocuments", () => {
     it("should delete multiple documents in a transaction and return count", async () => {
       const documentIds = ["doc-1", "doc-2", "doc-3"];
-      vi.mocked(removeDocument).mockResolvedValue(mockDocument);
+      vi.mocked(removeDocument).mockResolvedValue(mockDocument as PrismaDocument);
 
       const result = await documentResolvers.Mutation.deleteDocuments(
         undefined,
@@ -382,7 +385,7 @@ describe("documentResolvers", () => {
     it("should defer to Application.getApplication", async () => {
       vi.mocked(getApplication).mockResolvedValue(mockApplication as any);
 
-      const result = await documentResolvers.Document.application(mockDocument);
+      const result = await documentResolvers.Document.application(mockDocument as PrismaDocument);
 
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
       expect(result).toEqual(mockApplication);
@@ -393,7 +396,7 @@ describe("documentResolvers", () => {
     it("should return false when pending UiPath result exists", async () => {
       vi.mocked(mockPrismaClient.uiPathResult.findFirst).mockResolvedValue(null);
 
-      const result = await resolveHasPendingUIPathResult(mockDocument);
+      const result = await resolveHasPendingUIPathResult(mockDocument as PrismaDocument);
       expect(result).toBe(false);
     });
 
@@ -402,7 +405,7 @@ describe("documentResolvers", () => {
         id: "some-id",
       } as any);
 
-      const result = await resolveHasPendingUIPathResult(mockDocument);
+      const result = await resolveHasPendingUIPathResult(mockDocument as PrismaDocument);
 
       expect(mockPrismaClient.uiPathResult.findFirst).toHaveBeenCalledOnce();
       expect(result).toBe(true);
@@ -411,7 +414,9 @@ describe("documentResolvers", () => {
     it("should throw when an error is occurred during DB processing", async () => {
       vi.mocked(mockPrismaClient.uiPathResult.findFirst).mockRejectedValue(new Error("DB error"));
 
-      await expect(resolveHasPendingUIPathResult(mockDocument)).rejects.toThrow("DB error");
+      await expect(resolveHasPendingUIPathResult(mockDocument as PrismaDocument)).rejects.toThrow(
+        "DB error"
+      );
     });
   });
 
@@ -419,7 +424,7 @@ describe("documentResolvers", () => {
     it("returns null when no budget_neutrality_workbook row exists for the document", async () => {
       vi.mocked(mockPrismaClient.budgetNeutralityWorkbook.findUnique).mockResolvedValue(null);
 
-      const result = await resolveBudgetNeutralityValidation(mockDocument);
+      const result = await resolveBudgetNeutralityValidation(mockDocument as PrismaDocument);
 
       expect(mockPrismaClient.budgetNeutralityWorkbook.findUnique).toHaveBeenCalledExactlyOnceWith({
         where: { id: testDocumentId },
@@ -434,7 +439,7 @@ describe("documentResolvers", () => {
         validationData: [],
       } as any);
 
-      const result = await resolveBudgetNeutralityValidation(mockDocument);
+      const result = await resolveBudgetNeutralityValidation(mockDocument as PrismaDocument);
 
       expect(result).toEqual({ status: "Succeeded", errors: [] });
     });
@@ -449,7 +454,7 @@ describe("documentResolvers", () => {
         validationData: errors,
       } as any);
 
-      const result = await resolveBudgetNeutralityValidation(mockDocument);
+      const result = await resolveBudgetNeutralityValidation(mockDocument as PrismaDocument);
 
       expect(result).toEqual({ status: "Failed", errors });
     });
@@ -459,7 +464,9 @@ describe("documentResolvers", () => {
         new Error("DB error")
       );
 
-      await expect(resolveBudgetNeutralityValidation(mockDocument)).rejects.toThrow("DB error");
+      await expect(
+        resolveBudgetNeutralityValidation(mockDocument as PrismaDocument)
+      ).rejects.toThrow("DB error");
     });
   });
 

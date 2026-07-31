@@ -29,7 +29,8 @@ SELECT
     aplctn.phase_5_strt_dt,
     aplctn.phase_5_end_dt,
     aplctn.phase_6_strt_dt,
-    aplctn.phase_6_end_dt
+    aplctn.phase_6_end_dt,
+    aplctn.mdcd_demo_aplctn_type_cd
 FROM
     {{ source('legacy_pmda_raw', 'mdcd_pendg_demo') }} AS pendg
 LEFT JOIN {{ source('legacy_pmda_raw', 'mdcd_demo_aplctn') }} AS aplctn

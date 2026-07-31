@@ -18,7 +18,8 @@ SELECT
     cleaned_demos.updated_at,
     NULL::INTEGER AS _legacy_mdcd_demo_id,
     cleaned_demos._legacy_proj_ofcr_user_id,
-    cleaned_demos.mdcd_demo_aplctn_id AS _legacy_mdcd_demo_aplctn_id
+    cleaned_demos.mdcd_demo_aplctn_id AS _legacy_mdcd_demo_aplctn_id,
+    cleaned_demos.mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id
 FROM {{ ref('cleaned_demos_app_demonstration_in_prog_demos') }} AS cleaned_demos
 LEFT JOIN {{ ref('apps_in_prog_phase_completion') }} AS phase_completion
     ON
