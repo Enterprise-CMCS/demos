@@ -18,7 +18,8 @@ SELECT
     coalesce(updtd_dt, creatd_dt, current_timestamp) AS updated_at,
     mdcd_demo_id AS _legacy_mdcd_demo_id,
     proj_ofcr_user_id AS _legacy_proj_ofcr_user_id,
-    NULL::INTEGER AS _legacy_mdcd_demo_aplctn_id
+    _legacy_mdcd_demo_aplctn_id,
+    _legacy_mdcd_pendg_demo_id
 FROM
     {{ ref('apps_unfiltered_staged_finalized_pmda_demos') }}
 WHERE

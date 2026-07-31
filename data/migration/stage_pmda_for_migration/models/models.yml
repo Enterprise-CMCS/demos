@@ -252,6 +252,9 @@ models:
       - name: _legacy_mdcd_demo_aplctn_id
         data_type: integer
         description: The legacy application ID of the demonstration in PMDA.
+      - name: _legacy_mdcd_pendg_demo_id
+        data_type: integer
+        description: The legacy pending demonstration ID of the demonstration in PMDA.
 
   - name: final_demos_app_document
     columns:
@@ -294,6 +297,8 @@ models:
       - name: _legacy_mdcd_dlvrbl_fil_doc_id
         data_type: integer
       - name: _legacy_mdcd_dlvrbl_id
+        data_type: integer
+      - name: _legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id
         data_type: integer
 
   - name: final_demos_app_person_state
