@@ -502,11 +502,7 @@ models:
 
   # Cleaned Models
   - name: cleaned_demos_app_demonstration_in_prog_demos
-<<<<<<< HEAD
     columns:
-=======
-    columns: 
->>>>>>> 3a07f0faa2e5c6787b4516a2b2789b9c3c882202
       - name: mdcd_demo_aplctn_id
         data_type: integer
         data_tests:
@@ -587,11 +583,7 @@ models:
               name: assert_no_null_deliverable_type_ids_in_cleaned_deliverable_docs
 
   # Apps Models
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> 3a07f0faa2e5c6787b4516a2b2789b9c3c882202
   - name: apps_in_prog_dates_crosswalked
     description: converts the dates stored in PMDA to applicable date types in DEMOS, extrapolating to phase start and end dates where needed.
 
@@ -705,17 +697,7 @@ models:
         data_tests:
           - not_null:
               name: assert_no_missing_deliv_status_id_in_crosswalked_deliv
-<<<<<<< HEAD
-    # Documents Models
 
-  - name: docs_pmda_docs_rpstry_doc_type_crosswalked
-    columns:
-      - name: document_type_id
-        data_tests:
-          - not_null:
-              name: assert_no_missing_document_type_id_in_crosswalked_docs
-=======
-  
   # Document Models
   - name: docs_base_pmda_deliv_docs
     columns:
@@ -724,4 +706,3 @@ models:
         data_tests:
           - not_null:
               name: assert_no_missing_creatd_dt_in_base_pmda_deliv_docs
->>>>>>> 3a07f0faa2e5c6787b4516a2b2789b9c3c882202
