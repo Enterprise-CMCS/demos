@@ -150,6 +150,21 @@ export class BootstrapStack extends Stack {
         }))
     }
 
+    const targetEnv = props.bootstrapProd ? "prod" : "impl"
+    policyStatements.push(new aws_iam.PolicyStatement({
+      actions: ["s3:ListBucket","s3:ListBucketVersions"],
+      resources: [`arn:aws:s3:::demos-${targetEnv}-pmda-efs-transfer`, `arn:aws:s3:::demos-${targetEnv}-pmda-efs-transfer/*`]
+    }))
+    policyStatements.push(new aws_iam.PolicyStatement({
+      actions: ["s3:PutObject"],
+      resources: [`arn:aws:s3:::demos-${targetEnv}-pmda-efs-transfer/s3_file_list.csv`]
+    }))
+
+    policyStatements.push(new aws_iam.PolicyStatement({
+      actions: ["budgets:ViewBudget"],
+      resources: ["*"]
+    }))
+
     const policy = new aws_iam.Policy(commonProps.scope, "actionsPolicy", {
       statements: policyStatements,
     });
