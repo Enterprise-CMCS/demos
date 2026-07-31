@@ -82,6 +82,7 @@ parameters {
   booleanParam(name: 'RECREATE_RAW_STAGING', defaultValue: false, description: 'Recreate the raw and staging schemas in the demos database. WARNING: This will delete all data in those schemas.')
   booleanParam(name: 'RESET_DEMOS_DATABASE', defaultValue: false, description: 'Recreate the DEMOS APP database. WARNING: THIS WILL DELETE ALL DATA IN THE DEMOS APP DATABASE.')
   booleanParam(name: 'MYSQL_TO_POSTGRES', defaultValue: false, description: 'Migrate data from MySQL to Postgres')
+  booleanParam(name: 'RUN_DBT', defaultValue: false, description: 'Run DBT transformations')
 }
 
 stages {
@@ -97,6 +98,9 @@ stages {
         }
         if (params.MYSQL_TO_POSTGRES) {
           description += '\n    - This will migrate data from MySQL to Postgres'
+        }
+        if (params.RUN_DBT) {
+          description += '\n    - This will run DBT transformations'
         }
 
         def inputParams = [booleanParam(
@@ -207,6 +211,25 @@ conn.close()
         dir("data/demos_data_tools") {
           sh """
           /app/venv/bin/python pmda_exporter.py
+          """
+        }
+      }
+    }
+  }
+
+  stage("Run DBT") {
+    when {
+      expression {
+        return params.RUN_DBT
+      }
+    }
+    steps {
+      script {
+        dir("data/migration/stage_pmda_for_migration") {
+          sh """
+          mv profiles.yml.jenkins profiles.yml
+          /app/venv/bin/dbt deps
+          /app/venv/bin/dbt build --profiles-dir ./
           """
         }
       }
