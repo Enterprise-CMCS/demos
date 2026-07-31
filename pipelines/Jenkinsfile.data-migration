@@ -67,9 +67,20 @@ spec:
     environment {
       PMDA_MYSQL_PWD = credentials('pmda-prod-mysql-db-restore-pw')
       DEMOS_PGSQL_PWD = credentials('demos-prod-pgsql-db-pw')
+      FAKE_CREDENTIALS = credentials('fake-credentials')
     }
 
     stages {
+        stage('Confirm') {
+          steps {
+            script {
+              sh """
+              echo "postgresql://username:\$FAKE_CREDENTIALS@host:port/\$DEMOS_PGSQL_DB?schema=demos_app";
+              """
+              input message: "Are you sure you want to run this pipeline?"
+            }
+          }
+        }
         stage('Install Python dependencies') {
           steps {
             script {
