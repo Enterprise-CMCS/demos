@@ -44,6 +44,11 @@ export function createLocalS3Adapter(): S3Adapter {
       return `${key} does not exist!`;
     },
 
+    // No stored Content-Type locally, so the name comes back without an extension.
+    async getDownloadFileName(key: string, fileName: string): Promise<string> {
+      return sanitizeDownloadFileName(fileName, key.split("/").pop() ?? key);
+    },
+
     async moveDocumentFromCleanToDeleted(key: string): Promise<void> {
       uploadedFiles.delete(key);
     },

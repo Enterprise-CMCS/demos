@@ -12,16 +12,21 @@ import {
 
 // Mock DocumentPreview component
 vi.mock("./DocumentPreview", () => ({
-  DocumentPreview: ({ filename }: { filename: string; presignedDownloadUrl: string }) => (
-    <div data-testid="document-preview">Preview: {filename}</div>
-  ),
+  DocumentPreview: ({
+    downloadFileName,
+  }: {
+    downloadFileName: string;
+    presignedDownloadUrl: string;
+  }) => <div data-testid="document-preview">Preview: {downloadFileName}</div>,
 }));
 
+// The title keeps whatever the user typed; only the download name is sanitized.
 const mockDocument = {
   id: "doc-123",
-  name: "test-document.pdf",
+  name: 'test-document \\ / : * ? " < > |',
   createdAt: "2026-02-10T10:00:00Z",
   presignedDownloadUrl: "https://example.com/presigned-url",
+  downloadFileName: "test-document.pdf",
   application: {
     __typename: "Demonstration" as const,
     id: "demo-123",
@@ -160,8 +165,9 @@ describe("DocumentDetail", () => {
   it("renders document details successfully", async () => {
     renderDocumentDetail("doc-123", [DocumentDetailMock]);
 
+    // The heading shows the title exactly as the user saved it, invalid characters included.
     await waitFor(() => {
-      expect(screen.getByText("test-document.pdf")).toBeInTheDocument();
+      expect(screen.getByText(mockDocument.name)).toBeInTheDocument();
     });
 
     expect(screen.getByText("Test Demonstration")).toBeInTheDocument();
@@ -227,7 +233,7 @@ describe("DocumentDetailPage", () => {
     renderWithRouter();
 
     await waitFor(() => {
-      expect(screen.getByText("test-document.pdf")).toBeInTheDocument();
+      expect(screen.getByText(mockDocument.name)).toBeInTheDocument();
     });
   });
 

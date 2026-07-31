@@ -1,7 +1,10 @@
 WITH filtered_and_cleaned_history AS (
     SELECT
         history.mdcd_dlvrbl_id,
-        coalesce(history.dlvrbl_due_dt, history.mdcd_dlvrbl_prvs_due_dt) AS dlvrbl_due_dt,
+        coalesce(
+            (history.dlvrbl_due_dt + TIME '23:59:59.999') AT TIME ZONE 'America/New_York',
+            (history.mdcd_dlvrbl_prvs_due_dt + TIME '23:59:59.999') AT TIME ZONE 'America/New_York'
+        ) AS dlvrbl_due_dt,
         history.hstry_updtd_dt
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_dlvrbl_hstry') }} AS history
