@@ -2125,7 +2125,7 @@ sources:
 
       - name: mdcd_demo
         config:
-          tags: ['source_in_use']
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_demo_id
             data_type: integer
@@ -2182,13 +2182,13 @@ sources:
           - name: geo_ansi_state_cd
             data_type: character varying
             data_tests:
-            - not_null:
-                name: assert_no_null_state_codes_for_mdcd_demo
-            - relationships:
-                name: assert_no_mdcd_demo_state_codes_not_existing_in_demos
-                arguments:
-                  to: source('demos_app', 'state')
-                  field: id
+              - not_null:
+                  name: assert_no_null_state_codes_for_mdcd_demo
+              - relationships:
+                  name: assert_no_mdcd_demo_state_codes_not_existing_in_demos
+                  arguments:
+                    to: source('demos_app', 'state')
+                    field: id
           - name: creatd_user_id
             data_type: integer
           - name: anlyst_user_id
@@ -2316,7 +2316,7 @@ sources:
 
       - name: mdcd_demo_aplctn
         config:
-          tags: ['source_in_use']
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_demo_aplctn_id
             data_type: integer
@@ -2452,6 +2452,7 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_demo_aplctn_doc_rpstry_dtl
+        tags: ["source_in_use"]
         columns:
           - name: mdcd_demo_aplctn_doc_rpstry_dtl_id
             data_type: integer
@@ -2481,6 +2482,7 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_demo_aplctn_doc_rpstry_fil
+        tags: ["source_in_use"]
         columns:
           - name: mdcd_demo_aplctn_doc_rpstry_fil_id
             data_type: integer
@@ -2620,16 +2622,16 @@ sources:
 
       - name: mdcd_demo_aplctn_stus_rfrnc
         config:
-          tags: ['source_in_use']
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_demo_aplctn_stus_cd
             data_type: integer
             data_tests:
-            - relationships:
-                name: assert_all_mdcd_demo_aplctn_stus_cd_in_crosswalk_exist_in_pmda
-                arguments:
-                  to: ref('crosswalk_mdcd_demo_aplctn_stus_cd_to_application_status_id')
-                  field: mdcd_demo_aplctn_stus_cd
+              - relationships:
+                  name: assert_all_mdcd_demo_aplctn_stus_cd_in_pmda_exist_in_crosswalk
+                  arguments:
+                    to: ref('crosswalk_mdcd_demo_aplctn_stus_cd_to_application_status_id')
+                    field: mdcd_demo_aplctn_stus_cd
           - name: mdcd_demo_aplctn_stus_name
             data_type: character varying
           - name: dsply_sqnc_num
@@ -3181,6 +3183,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_demo_pgm_mntrg_doc
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_demo_pgm_mntrg_doc_id
             data_type: integer
@@ -3349,16 +3353,16 @@ sources:
 
       - name: mdcd_demo_stus_rfrnc
         config:
-          tags: ['source_in_use']
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_demo_stus_cd
             data_type: integer
             data_tests:
-            - relationships:
-                name: assert_all_mdcd_demo_stus_cd_in_crosswalk_exist_in_pmda
-                arguments:
-                  to: ref('crosswalk_mdcd_demo_stus_cd_to_application_status_id')
-                  field: mdcd_demo_stus_cd
+              - relationships:
+                  name: assert_all_mdcd_demo_stus_cd_in_pmda_exist_in_crosswalk
+                  arguments:
+                    to: ref('crosswalk_mdcd_demo_stus_cd_to_application_status_id')
+                    field: mdcd_demo_stus_cd
           - name: mdcd_demo_stus_name
             data_type: character varying
           - name: dsply_sqnc_num
@@ -3672,6 +3676,9 @@ sources:
             data_type: integer
           - name: mdcd_dlvrbl_crnt_stus_cd
             data_type: integer
+            data_tests:
+              - not_null:
+                  name: assert_no_null_mdcd_dlvrbl_crnt_stus_cds_in_mdcd_dlvrbl
           - name: mdcd_dlvrbl_cnfrmtn_stus_cd
             data_type: integer
           - name: dlvrbl_due_dt
@@ -3830,9 +3837,14 @@ sources:
             data_type: smallint
 
       - name: mdcd_dlvrbl_fil_doc
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_dlvrbl_fil_doc_id
             data_type: integer
+            data_tests:
+              - unique:
+                  name: assert_mdcd_dlvrbl_fil_doc_id_unique_in_pmda
           - name: mdcd_dlvrbl_id
             data_type: integer
           - name: doc_name
@@ -4108,6 +4120,12 @@ sources:
         columns:
           - name: mdcd_dlvrbl_rpt_ocrnc_cd
             data_type: integer
+            data_tests:
+              - relationships:
+                  name: assert_all_mdcd_dlvrbl_rpt_ocrnc_cd_in_pmda_exist_in_crosswalk
+                  arguments:
+                    to: ref('crosswalk_mdcd_dlvrbl_type_cd_to_deliverable_type_id')
+                    field: mdcd_dlvrbl_type_cd
           - name: mdcd_dlvrbl_rpt_ocrnc_name
             data_type: character varying
           - name: dsply_sqnc_num
@@ -4156,9 +4174,17 @@ sources:
             data_type: integer
 
       - name: mdcd_dlvrbl_stus_rfrnc
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_dlvrbl_stus_cd
             data_type: integer
+            data_tests:
+              - relationships:
+                  name: assert_all_mdcd_dlvrbl_stus_cd_in_pmda_exist_in_crosswalk
+                  arguments:
+                    to: ref('crosswalk_mdcd_dlvrbl_crnt_stus_cd_to_deliverable_status_id')
+                    field: mdcd_dlvrbl_crnt_stus_cd
           - name: mdcd_dlvrbl_stus_name
             data_type: character varying
           - name: dsply_sqnc_num
@@ -6785,7 +6811,7 @@ sources:
 
       - name: mdcd_pendg_demo
         config:
-          tags: ['source_in_use']
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_demo_id
             data_type: integer
@@ -6796,13 +6822,13 @@ sources:
           - name: geo_ansi_state_cd
             data_type: character varying
             data_tests:
-            - not_null:
-                name: assert_no_null_state_codes_for_mdcd_pendg_demo
-            - relationships:
-                name: assert_no_mdcd_pendg_demo_state_codes_not_existing_in_demos
-                arguments:
-                  to: source('demos_app', 'state')
-                  field: id
+              - not_null:
+                  name: assert_no_null_state_codes_for_mdcd_pendg_demo
+              - relationships:
+                  name: assert_no_mdcd_pendg_demo_state_codes_not_existing_in_demos
+                  arguments:
+                    to: source('demos_app', 'state')
+                    field: id
           - name: mdcd_demo_desc
             data_type: character varying
           - name: mdcd_chip_div_cd
@@ -12086,16 +12112,16 @@ sources:
 
       - name: role_rfrnc
         config:
-          tags: ['source_in_use']
+          tags: ["source_in_use"]
         columns:
           - name: role_cd
             data_type: integer
             data_tests:
-            - relationships:
-                name: assert_all_role_cd_in_crosswalk_exist_in_pmda
-                arguments:
-                  to: ref('crosswalk_role_cd_to_person_type_id')
-                  field: role_cd
+              - relationships:
+                  name: assert_all_role_cd_in_pmda_exist_in_crosswalk
+                  arguments:
+                    to: ref('crosswalk_role_cd_to_person_type_id')
+                    field: role_cd
           - name: role_name
             data_type: character varying
           - name: creatd_dt
@@ -12383,7 +12409,7 @@ sources:
 
       - name: user_authrzd_state_acs
         config:
-          tags: ['source_in_use']
+          tags: ["source_in_use"]
         columns:
           - name: user_id
             data_type: integer
@@ -12412,32 +12438,32 @@ sources:
 
       - name: user_role_asgnmt
         config:
-          tags: ['source_in_use']
+          tags: ["source_in_use"]
         columns:
           - name: user_id
             data_type: integer
             data_tests:
-            - relationships:
-                name: assert_no_pmda_nonexistent_users_assigned_to_roles
-                config:
-                  severity: warn
-                arguments:
-                  to: source('legacy_pmda_raw', 'users')
-                  field: id
+              - relationships:
+                  name: assert_no_pmda_nonexistent_users_assigned_to_roles
+                  config:
+                    severity: warn
+                  arguments:
+                    to: source('legacy_pmda_raw', 'users')
+                    field: id
           - name: role_cd
             data_type: integer
             data_tests:
-            - relationships:
-                name: assert_no_pmda_nonexistent_roles_assigned_to_users
-                arguments:
-                  to: source('legacy_pmda_raw', 'role_rfrnc')
-                  field: role_cd
+              - relationships:
+                  name: assert_no_pmda_nonexistent_roles_assigned_to_users
+                  arguments:
+                    to: source('legacy_pmda_raw', 'role_rfrnc')
+                    field: role_cd
           - name: creatd_dt
             data_type: timestamp with time zone
 
       - name: users
         config:
-          tags: ['source_in_use']
+          tags: ["source_in_use"]
         columns:
           - name: id
             data_type: integer
@@ -13965,14 +13991,14 @@ sources:
 
       - name: person_type
         config:
-          tags: ['source_in_use']
+          tags: ["source_in_use"]
         columns:
           - name: id
             data_type: text
 
       - name: phase
         config:
-          tags: ['source_in_use']
+          tags: ["source_in_use"]
         columns:
           - name: id
             data_type: text
@@ -14295,7 +14321,7 @@ sources:
 
       - name: role
         config:
-          tags: ['source_in_use']
+          tags: ["source_in_use"]
         columns:
           - name: id
             data_type: text
@@ -14345,7 +14371,7 @@ sources:
 
       - name: state
         config:
-          tags: ['source_in_use']
+          tags: ["source_in_use"]
         columns:
           - name: id
             data_type: text
@@ -14577,7 +14603,7 @@ sources:
 
       - name: user_person_type_limit
         config:
-          tags: ['source_in_use']
+          tags: ["source_in_use"]
         columns:
           - name: id
             data_type: text

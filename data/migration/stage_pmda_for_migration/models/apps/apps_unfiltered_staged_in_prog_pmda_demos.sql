@@ -19,7 +19,26 @@ SELECT
     ipdnum.cleaned_mdcd_demo_num AS medicaid_id,
     NULL AS chip_id,
     ipd.geo_ansi_state_cd AS state_id,
-    ipd.proj_ofcr_user_id
+    ipd.proj_ofcr_user_id,
+    ipd.creatd_dt,
+    ipd.phase_1_strt_dt,
+    ipd.phase_1_end_dt,
+    ipd.phase_2_rcvd_dt,
+    ipd.phase_2_cmpltns_rvw_dt,
+    ipd.phase_2_state_aplctn_deemd_cmpltn_dt,
+    ipd.phase_2_fed_cmt_prd_strt_dt,
+    ipd.phase_2_fed_cmt_prd_end_dt,
+    ipd.phase_2_dsrd_aprvl_dt,
+    ipd.phase_3_a_sme_strt_dt,
+    ipd.phase_3_a_frvt_strt_dt,
+    ipd.phase_3_c_ogc_strt_dt,
+    ipd.phase_3_c_omb_strt_dt,
+    ipd.phase_4_strt_dt,
+    ipd.phase_4_end_dt,
+    ipd.phase_5_strt_dt,
+    ipd.phase_5_end_dt,
+    ipd.phase_6_strt_dt,
+    ipd.phase_6_end_dt
 FROM
     {{ ref('apps_active_in_prog_pmda_demos') }} AS ipd
 LEFT JOIN
