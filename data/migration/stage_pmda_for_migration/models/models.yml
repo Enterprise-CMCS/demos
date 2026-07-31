@@ -37,10 +37,6 @@ models:
         data_type: timestamptz
       - name: updated_at
         data_type: timestamptz
-      - name: _legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id
-        data_type: integer
-      - name: _legacy_mdcd_demo_aplctn_id
-        data_type: integer
   - name: final_demos_app_application_phase
     columns:
       - name: application_id

@@ -1,6 +1,17 @@
+WITH demos AS (
+    (
+        SELECT id
+        FROM {{ ref('cleaned_demos_app_demonstration_in_prog_demos') }}
+    )
+    UNION ALL
+    (
+        SELECT id
+        FROM {{ ref('cleaned_demos_app_demonstration_finalized_demos') }}
+    )
+)
+
 SELECT
     docs.mdcd_demo_aplctn_doc_rpstry_dtl_id,
-    docs.mdcd_pendg_demo_id,
     docs.orgnl_fil_name,
     docs.mdcd_demo_aplctn_doc_desc,
     docs.owner_user_id,
@@ -8,9 +19,8 @@ SELECT
     docs.phase_id,
     docs.created_at,
     docs.updated_at,
-    apps.mdcd_demo_aplctn_id,
-    apps.mdcd_demo_aplctn_type_cd
+    demos.id AS application_id
 FROM {{ ref('docs_pmda_docs_with_person') }} AS docs
-LEFT JOIN {{ source('legacy_pmda_raw', 'mdcd_demo_aplctn') }} AS apps
+LEFT JOIN demos
     ON
-        docs.mdcd_pendg_demo_id = apps.mdcd_pendg_demo_id
+        docs.mdcd_pendg_demo_id = demos.mdcd_pendg_demo_id

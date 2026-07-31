@@ -13,7 +13,8 @@ SELECT
     demo.proj_ofcr_user_id,
     demo.creatd_dt,
     demo.updtd_dt,
-    app.mdcd_demo_aplctn_id
+    app.mdcd_demo_aplctn_id,
+    app.mdcd_pendg_demo_id
 FROM
     {{ source('legacy_pmda_raw', 'mdcd_demo') }} AS demo
 LEFT JOIN
