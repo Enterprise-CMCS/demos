@@ -1,8 +1,8 @@
 import java.math.RoundingMode
 
 pipeline {
-    agent {
-        kubernetes {
+  agent {
+    kubernetes {
             yaml '''
 apiVersion: v1
 kind: Pod
@@ -51,75 +51,106 @@ spec:
         memory: 512Mi
         ephemeral-storage: "5Gi"
 '''
-            defaultContainer 'python'
-            retries 2
+      defaultContainer 'python'
+      retries 2
+    }
+  }
+
+  options {
+    disableConcurrentBuilds(abortPrevious: true)
+    buildDiscarder(logRotator(
+      numToKeepStr: "5",
+      artifactNumToKeepStr: "5"
+  ))
+}
+
+environment {
+  PMDA_MYSQL_PWD = credentials('pmda-prod-mysql-db-restore-pw')
+  DEMOS_PGSQL_PWD = credentials('demos-prod-pgsql-db-pw')
+}
+
+parameters {
+  booleanParam(name: 'RECREATE_RAW_STAGING', defaultValue: false, description: 'Recreate the raw and staging schemas in the demos database. WARNING: This will delete all data in those schemas.')
+  booleanParam(name: 'RESET_DEMOS_DATABASE', defaultValue: false, description: 'Recreate the DEMOS APP database. WARNING: THIS WILL DELETE ALL DATA IN THE DEMOS APP DATABASE.')
+  booleanParam(name: 'MYSQL_TO_POSTGRES', defaultValue: false, description: 'Migrate data from MySQL to Postgres')
+}
+
+stages {
+  stage('Confirm') {
+    steps {
+      script {
+        def description = 'I understand that this will run against the PROD database and potentially delete data.'
+        if (params.RECREATE_RAW_STAGING) {
+          description += '\n    - This will recreate the raw and staging schemas in the demos database'
         }
-    }
-
-    options {
-      disableConcurrentBuilds(abortPrevious: true)
-      buildDiscarder(logRotator(
-        numToKeepStr: "5",
-        artifactNumToKeepStr: "5"
-      ))
-    }
-
-    environment {
-      PMDA_MYSQL_PWD = credentials('pmda-prod-mysql-db-restore-pw')
-      DEMOS_PGSQL_PWD = credentials('demos-prod-pgsql-db-pw')
-      FAKE_CREDENTIALS = credentials('fake-credentials')
-    }
-
-    stages {
-        stage('Confirm') {
-          steps {
-            script {
-              sh """
-              echo "postgresql://username:\$FAKE_CREDENTIALS@host:port/\$DEMOS_PGSQL_DB?schema=demos_app";
-              """
-              input message: "Are you sure you want to run this pipeline?"
-            }
-          }
+        if (params.RESET_DEMOS_DATABASE) {
+          description += '\n    - This will recreate the DEMOS APP database and delete all data in the database'
         }
-        stage('Install Python dependencies') {
-          steps {
-            script {
-              // assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
-              sh """
-                apt-get update
-                apt-get install -y --no-install-recommends libpq-dev gcc python3-dev
-                
-                python -m venv /app/venv
-
-                /app/venv/bin/pip install -r .devcontainer/python/requirements.txt
-
-                /app/venv/bin/dbt --version
-              """
-            }
-          }
+        if (params.MYSQL_TO_POSTGRES) {
+          description += '\n    - This will migrate data from MySQL to Postgres'
         }
 
-      stage("Test connectivity") {
-        steps {
-          script {
-            dir("data/demos_data_tools") {
-            sh """
-            /app/venv/bin/python -c 'import duckdb_connection_manager as d
+        def inputParams = [booleanParam(
+              defaultValue: false, 
+              description: description, 
+              name: 'APPROVE_PIPELINE_RUN'
+            )]
+
+        def userInput = input(
+          message: "Are you sure you want to run this pipeline?",
+          submitter: 'database_approvers',
+          submitterParameter: 'APPROVED_BY',
+          parameters: inputParams
+        )
+        if (userInput.APPROVE_PIPELINE_RUN != true) {
+          error("User did not confirm. Aborting pipeline.")
+        }
+      }
+    }
+  }
+  stage('Install Python dependencies') {
+    steps {
+      script {
+        // assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
+        sh """
+        apt-get update
+        apt-get install -y --no-install-recommends libpq-dev gcc python3-dev
+
+        python -m venv /app/venv
+
+        /app/venv/bin/pip install -r .devcontainer/python/requirements.txt
+
+        /app/venv/bin/dbt --version
+        """
+      }
+    }
+  }
+
+  stage("Test connectivity") {
+    steps {
+      script {
+        dir("data/demos_data_tools") {
+          sh """
+          /app/venv/bin/python -c 'import duckdb_connection_manager as d
 conn = d.create_duckdb_conn()
 d.attach_pmda_to_conn(conn)
 d.attach_demos_to_conn(conn)
 print(conn.sql("SHOW DATABASES").fetchall())
-# Perform migration/query work here
 conn.close()
-            '
-            """
-          }
-          }
+'
+          """
         }
       }
-      stage("Run migration management functions") {
-        steps {
-          script {
+    }
+  }
+  stage("Run migration management functions") {
+    when {
+      expression {
+        return params.RECREATE_RAW_STAGING
+      }
+    }
+    steps {
+      script {
         dir("data/demos_data_tools") {
           sh """
           /app/venv/bin/python manage_migration_schemas.py drop raw
@@ -129,15 +160,55 @@ conn.close()
           """
         }
       }
-        }
-      }
-
-      }
-
-
-  post {
-    always {
-      cleanWs(deleteDirs: true)
     }
   }
+
+  stage("Reset DEMOS database") {
+    when {
+      expression {
+        return params.RESET_DEMOS_DATABASE
+      }
+    }
+    steps {
+      script {
+        dirCon("shared_library", "node") {
+          sh """
+          npm ci
+          """
+        }
+        dirCon("server", "node") {
+          sh """
+          npm ci
+          export DATABASE_URL="postgresql://\$DEMOS_PGSQL_USER:\$DEMOS_PGSQL_PWD@\$DEMOS_PGSQL_HOST:\$DEMOS_PGSQL_PORT/\$DEMOS_PGSQL_DB?schema=demos_app"
+          npm run migrate:deploy
+          """
+        }
+      }
+    }
+  }
+
+  stage("Move data from MySQL to Postgres") {
+    when {
+      expression {
+        return params.MYSQL_TO_POSTGRES
+      }
+    }
+    steps {
+      script {
+        dir("data/demos_data_tools") {
+          sh """
+          /app/venv/bin/python pmda_exporter.py
+          """
+        }
+      }
+    }
+  }
+
+}
+
+post {
+  always {
+    cleanWs(deleteDirs: true)
+  }
+}
 }
