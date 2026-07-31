@@ -1,6 +1,6 @@
 SELECT
-    doc_file.orgnl_fil_name AS name, -- noqa: RF04
-    doc_detail.mdcd_demo_aplctn_doc_desc AS description,
+    trim(doc_file.orgnl_fil_name) AS name, -- noqa: RF04
+    trim(doc_detail.mdcd_demo_aplctn_doc_desc) AS description,
     doc_detail.creatd_dt AS created_at,
     coalesce(doc_detail.updtd_dt, doc_detail.creatd_dt) AS updated_at,
     doc_detail.mdcd_demo_aplctn_doc_type_cd AS _legacy_mdcd_demo_aplctn_doc_type_cd,
