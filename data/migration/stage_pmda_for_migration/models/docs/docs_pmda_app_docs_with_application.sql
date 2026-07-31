@@ -24,7 +24,7 @@ SELECT
     docs.created_at,
     docs.updated_at,
     docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id
-FROM {{ ref('docs_pmda_docs_with_person') }} AS docs
+FROM {{ ref('docs_pmda_app_docs_with_person') }} AS docs
 LEFT JOIN demos
     ON
         docs._legacy_mdcd_pendg_demo_id = demos._legacy_mdcd_pendg_demo_id

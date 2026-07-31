@@ -12,3 +12,6 @@ FROM {{ source('legacy_pmda_raw', 'mdcd_demo_aplctn_doc_rpstry_dtl') }} AS doc_d
 LEFT JOIN {{ source('legacy_pmda_raw', 'mdcd_demo_aplctn_doc_rpstry_fil') }} AS doc_file
     ON
         doc_detail.mdcd_demo_aplctn_doc_rpstry_dtl_id = doc_file.mdcd_demo_aplctn_doc_rpstry_dtl_id
+WHERE
+    doc_detail.dltd_ind = 0
+    AND doc_file.dltd_ind = 0

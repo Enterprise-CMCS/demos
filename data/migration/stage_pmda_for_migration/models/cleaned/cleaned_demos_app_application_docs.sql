@@ -17,7 +17,7 @@ WITH no_s3_path AS (
         NULL::INTEGER AS _legacy_mdcd_dlvrbl_fil_doc_id,
         NULL::INTEGER AS _legacy_mdcd_dlvrbl_id,
         docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id
-    FROM {{ ref('docs_pmda_docs_with_application') }} AS docs
+    FROM {{ ref('docs_pmda_app_docs_with_application') }} AS docs
     WHERE
         docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id NOT IN (
             SELECT e1._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id FROM {{ ref('errors_docs_missing_application') }} AS e1
