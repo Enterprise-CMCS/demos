@@ -110,7 +110,6 @@ conn.close()
         steps {
           script {
         dir("data/demos_data_tools") {
-          // just a test, no ENVs are currently set to allow this to work
           sh """
           /app/venv/bin/python manage_migration_schemas.py drop raw
           /app/venv/bin/python manage_migration_schemas.py drop staging

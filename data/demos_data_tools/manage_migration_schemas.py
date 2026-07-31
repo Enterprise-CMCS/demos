@@ -79,7 +79,7 @@ def _drop_schema(conn: "DuckConn", which: MigrationSchemaType) -> None:
 
 def main(args: "Namespace") -> None:
     """Main program function."""
-    check_if_in_devcontainer()
+    # check_if_in_devcontainer() running this from jenkins, so we don't want to check for devcontainer
     conn = attach_demos_to_conn(create_duckdb_conn())
     if args.action == "create":
         _create_schema(conn, args.schema)
