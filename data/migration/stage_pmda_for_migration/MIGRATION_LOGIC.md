@@ -323,3 +323,7 @@ To enable rapid iteration, the following short-term approaches have been taken, 
  - At present, all documents are being assigned as "General File". It _may_ be possible to derive some of the document types from the fields in PMDA (specifically, `bdgt_ntrlty_fil_ind`, `mntrg_rpt_fil_ind`, `mntrg_prtcl_fil_ind`, and `proc_mntrg_rpt_ind`), but the `mdcd_dlvrbl_fil_doc` table doesn't seem to have the same document type concept as other places in PMDA.
  - `cmd_orgn_cd` is used to derive CMS file vs state file; `C` for CMS, and `S` for state.
  - None of the documents are being included in submissions yet - we need to probably work backwards from the `mdcd_dlvrbl_fil_doc` table to extrapolate to submissions from that rather than the current approach of using the `stus_hstry` table per discussion with Zoe.
+
+## Program Monitoring Documents
+
+A collection of documents on demonstrations in PMDA come from a Program Monitoring Document section. These documents have been imported as "General File" documents without a phase in DEMOS. While these documents do have a category, it does not correspond to any speicific Document Type in DEMOS. Because of this, they have been assigned the "General File" document type. In addition, there is a notion of archival in PMDA that we dont have in DEMOS. It is involved in one of the main search queries for these documents, so seems important enough to at least note. Documents marked as being archived have "(Archived)" appended to their description. 

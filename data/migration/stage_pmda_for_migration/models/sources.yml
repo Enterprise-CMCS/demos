@@ -3183,6 +3183,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_demo_pgm_mntrg_doc
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_demo_pgm_mntrg_doc_id
             data_type: integer

@@ -8,7 +8,7 @@ SELECT
     docs.updated_at,
     docs._legacy_mdcd_pendg_demo_id,
     docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id
-FROM {{ ref('docs_pmda_docs_rpstry_doc_type_phase') }} AS docs
+FROM {{ ref('docs_pmda_app_docs_rpstry_doc_type_phase') }} AS docs
 LEFT JOIN {{ ref('final_demos_app_person') }} AS person
     ON
         docs._legacy_creatd_user_id = person._legacy_users_id

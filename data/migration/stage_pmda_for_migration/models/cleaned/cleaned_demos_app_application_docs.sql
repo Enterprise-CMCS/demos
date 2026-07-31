@@ -16,19 +16,22 @@ WITH no_s3_path AS (
         docs.updated_at,
         NULL::INTEGER AS _legacy_mdcd_dlvrbl_fil_doc_id,
         NULL::INTEGER AS _legacy_mdcd_dlvrbl_id,
-        docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id
-    FROM {{ ref('docs_pmda_docs_with_application') }} AS docs
+        docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id,
+        NULL::INTEGER AS _legacy_mdcd_demo_pgm_mntrg_doc_id
+
+    FROM {{ ref('docs_pmda_app_docs_with_application') }} AS docs
     WHERE
         docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id NOT IN (
-            SELECT e1._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id FROM {{ ref('errors_docs_missing_application') }} AS e1
+            SELECT e1._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id
+            FROM {{ ref('errors_app_docs_missing_application') }} AS e1
         )
         AND
         docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id NOT IN (
-            SELECT e2._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id FROM {{ ref('errors_docs_missing_file') }} AS e2
+            SELECT e2._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id FROM {{ ref('errors_app_docs_missing_file') }} AS e2
         )
         AND
         docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id NOT IN (
-            SELECT e3._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id FROM {{ ref('errors_docs_missing_owner') }} AS e3
+            SELECT e3._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id FROM {{ ref('errors_app_docs_missing_owner') }} AS e3
         )
 )
 
@@ -50,6 +53,8 @@ SELECT
     updated_at,
     _legacy_mdcd_dlvrbl_fil_doc_id,
     _legacy_mdcd_dlvrbl_id,
-    _legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id
+    _legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id,
+    _legacy_mdcd_demo_pgm_mntrg_doc_id
+
 FROM
     no_s3_path
