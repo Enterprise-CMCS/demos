@@ -300,6 +300,14 @@ models:
         data_type: integer
       - name: _legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id
         data_type: integer
+      - name: is_migrated_from_pmda
+        data_type: boolean
+        data_tests:
+          - accepted_values:
+              name: assert_is_migrated_from_pmda_is_true_in_final_docs_table
+              arguments:
+                values:
+                  - TRUE
 
   - name: final_demos_app_person_state
     description: All cleaned person-state relations with state users and valid states
@@ -392,6 +400,14 @@ models:
         data_type: timestamptz
       - name: updated_at
         data_type: timestamptz
+      - name: is_migrated_from_pmda
+        data_type: boolean
+        data_tests:
+          - accepted_values:
+              name: assert_is_migrated_from_pmda_is_true_in_final_dates_table
+              arguments:
+                values:
+                  - TRUE
 
   - name: final_demos_app_system_role_assignment
     description: default system role assignment derived from IDM role
