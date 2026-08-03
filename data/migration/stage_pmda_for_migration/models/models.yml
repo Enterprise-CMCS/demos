@@ -274,7 +274,7 @@ models:
           - relationships:
               name: assert_document_owner_user_exists_in_user
               arguments:
-                to: ref('final_demos_app_user')
+                to: ref('final_demos_app_users')
                 field: id
       - name: document_type_id
         data_type: text
