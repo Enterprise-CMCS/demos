@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useSessionStorageJson } from "hooks";
 import { useMutation, gql } from "@apollo/client";
 import { formatDateForDisplay, formatDateForServer, getTodayEst } from "util/formatDate";
 import {
@@ -207,15 +206,29 @@ export const getApprovalSummaryPhaseFromApplication = (
     .filter((p) => p.phaseName !== "Concept" && p.phaseName !== "Approval Summary")
     .every((phase) => phase.phaseStatus === "Completed" || phase.phaseStatus === "Skipped");
 
-  const demonstration =
+  const demonstrationId =
     workflowApplicationType === "demonstration"
-      ? (application as ApplicationWorkflowDemonstration)
-      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration;
+      ? application.id
+      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
+        .id;
 
-  const demonstrationId = demonstration.id;
-  const demonstrationTypes = demonstration.demonstrationTypes;
-  const demonstrationStatus = demonstration.status;
-  const medicaidId = demonstration.medicaidId;
+  const demonstrationTypes =
+    workflowApplicationType === "demonstration"
+      ? (application as ApplicationWorkflowDemonstration).demonstrationTypes
+      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
+        .demonstrationTypes;
+
+  const demonstrationStatus =
+    workflowApplicationType === "demonstration"
+      ? (application as ApplicationWorkflowDemonstration).status
+      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
+        .status;
+
+  const medicaidId =
+    workflowApplicationType === "demonstration"
+      ? (application as ApplicationWorkflowDemonstration).medicaidId
+      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
+        .medicaidId;
 
   return (
     <ApprovalSummaryPhase
@@ -246,11 +259,8 @@ export const ApprovalSummaryPhase = ({
   const capitalizedType =
     initialFormData.applicationType.charAt(0).toUpperCase() +
     initialFormData.applicationType.slice(1);
-  const [localFormData, setApprovalSummaryFormData] =
-    useSessionStorageJson<ApplicationDetailsFormData>(
-      `approval-summary-form-data-${applicationId}`
-    );
-  const approvalSummaryFormData = localFormData ?? initialFormData;
+  const [approvalSummaryFormData, setApprovalSummaryFormData] =
+    useState<ApplicationDetailsFormData>(initialFormData);
 
   const { showConfirmApproveDialog } = useDialog();
   const { showSuccess, showError } = useToast();
@@ -442,10 +452,10 @@ export const ApprovalSummaryPhase = ({
         dateValue: null,
       });
 
-      setApprovalSummaryFormData({
-        ...approvalSummaryFormData,
-        readonlyFields: getReadonlyFields(approvalSummaryFormData),
-      });
+      setApprovalSummaryFormData((previousFormData) => ({
+        ...previousFormData,
+        readonlyFields: getReadonlyFields(previousFormData), // Recalculate readonly fields based on current form data when marking incomplete
+      }));
 
       setApplicationDetailsUIState(false);
     } catch (error) {
@@ -482,13 +492,13 @@ export const ApprovalSummaryPhase = ({
         phaseName: "Approval Summary",
       });
 
-      setApprovalSummaryFormData({
-        ...approvalSummaryFormData,
+      setApprovalSummaryFormData((previousFormData) => ({
+        ...previousFormData,
         status: "Approved",
         readonlyFields: Object.fromEntries(
-          Object.keys(approvalSummaryFormData.readonlyFields).map((key) => [key, true])
-        ) as typeof approvalSummaryFormData.readonlyFields,
-      });
+          Object.keys(previousFormData.readonlyFields).map((key) => [key, true])
+        ) as typeof previousFormData.readonlyFields,
+      }));
 
       setApprovalSummaryCompletionDate(formatDateForDisplay(today));
 

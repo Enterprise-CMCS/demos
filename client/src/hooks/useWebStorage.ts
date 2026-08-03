@@ -53,6 +53,7 @@ function tryStringifyJson<T>(value: T): string | undefined {
   try {
     return JSON.stringify(value);
   } catch {
+    console.warn("Failed to serialize value to JSON:", value);
     return undefined;
   }
 }
@@ -61,6 +62,7 @@ function tryParseJson<T>(value: string): T | undefined {
   try {
     return JSON.parse(value) as T;
   } catch {
+    console.warn("Failed to parse JSON string:", value);
     return undefined;
   }
 }
