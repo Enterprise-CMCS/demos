@@ -38,6 +38,7 @@ You can use the scripts found in `data/migration/scripts` to help set up and run
 - Copy `data/demos_data_tools/.env.example` to `data/demos_data_tools/.env` and fill in the credentials accordingly. All the Python scripts in `demos_data_tools` rely on the configuration in this `.env` file.
 - Copy `data/migration/stage_pmda_for_migration/profiles.yml.example` to `data/migration/stage_pmda_for_migration/profiles.yml` and configure the `dev` connection correctly.
 - Obtain a set of short-lived AWS credentials and put them into `~/.aws/credentials`, replacing the `[default]` section. The `devcontainer` configures these with fake credentials by default to support the `localstack` tooling; however, you will need actual credentials to connect to S3 and pull the file list from there. These generally will expire on a short timeframe, so you will need to get them regularly.
+  - Remember: the contents of `~/.aws/credentials` are overwritten whenever you rebuild your `devcontainer`, so you will need to get the keys again if you rebuild. Since they are not long-lived anyway, this is unlikely to come up frequently.
 
 ### Migration Scripts
 
