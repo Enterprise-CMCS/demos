@@ -83,6 +83,7 @@ parameters {
   booleanParam(name: 'RESET_DEMOS_DATABASE', defaultValue: false, description: 'Recreate the DEMOS APP database. WARNING: THIS WILL DELETE ALL DATA IN THE DEMOS APP DATABASE.')
   booleanParam(name: 'MYSQL_TO_POSTGRES', defaultValue: false, description: 'Migrate data from MySQL to Postgres')
   booleanParam(name: 'RUN_DBT', defaultValue: false, description: 'Run DBT transformations')
+  booleanParam(name: 'LOAD_STAGED_DATA', defaultValue: false, description: 'Load staged data to DEMOS app')
 }
 
 stages {
@@ -91,16 +92,19 @@ stages {
       script {
         def description = 'I understand that this will run against the PROD database and potentially delete data.'
         if (params.RECREATE_RAW_STAGING) {
-          description += '\n    - This will recreate the raw and staging schemas in the demos database'
+          description += '\n    - recreate the raw and staging schemas in the demos database'
         }
         if (params.RESET_DEMOS_DATABASE) {
-          description += '\n    - This will recreate the DEMOS APP database and delete all data in the database'
+          description += '\n    - recreate the DEMOS APP database and delete all data in the database'
         }
         if (params.MYSQL_TO_POSTGRES) {
-          description += '\n    - This will migrate data from MySQL to Postgres'
+          description += '\n    - migrate data from MySQL to Postgres'
         }
         if (params.RUN_DBT) {
-          description += '\n    - This will run DBT transformations'
+          description += '\n    - run DBT transformations'
+        }
+        if (params.LOAD_STAGED_DATA) {
+          description += '\n    - load staged data to the DEMOS app'
         }
 
         def inputParams = [booleanParam(
@@ -124,7 +128,6 @@ stages {
   stage('Install Python dependencies') {
     steps {
       script {
-        // assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
         sh """
         apt-get update
         apt-get install -y --no-install-recommends libpq-dev gcc python3-dev
@@ -193,7 +196,9 @@ conn.close()
           sh """
           npm ci
           export DATABASE_URL="postgresql://\$DEMOS_PGSQL_USER:\$DEMOS_PGSQL_PWD@\$DEMOS_PGSQL_HOST:\$DEMOS_PGSQL_PORT/\$DEMOS_PGSQL_DB?schema=demos_app"
-          npm run migrate:deploy
+          
+          npm run migrate:reset
+          npm run dbrefresh
           """
         }
       }
@@ -231,6 +236,39 @@ conn.close()
           /app/venv/bin/dbt deps
           /app/venv/bin/dbt build --profiles-dir ./
           """
+        }
+      }
+    }
+  }
+
+  stage("Load staged data to DEMOS app") {
+    when {
+      expression {
+        return params.LOAD_STAGED_DATA
+      }
+    }
+    steps {
+      script {
+        dir("data/demos_data_tools") {
+          sh """
+          /app/venv/bin/python load_staged_data_to_demos_app.py
+          """
+        }
+      }
+    }
+  }
+
+  stage("Move file data") {
+    when {
+      expression {
+        return params.LOAD_STAGED_DATA
+      }
+    }
+    steps {
+      script {
+        dir("data/demos_data_tools") {
+          assumeRole(accountNumber: env.DEMOS_AWS_PROD_ACCOUNT_NUMBER)
+          // Not yet completed
         }
       }
     }
