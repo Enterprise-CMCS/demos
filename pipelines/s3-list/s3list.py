@@ -10,7 +10,7 @@ output_file = 's3_file_list.csv'
 with open(output_file, 'w', newline='', encoding='utf-8') as f:
     writer = csv.writer(f)
     # Write CSV Header
-    writer.writerow(['File_Path', 'Size_Bytes', 'ETag'])
+    writer.writerow(['file_path', 'size_bytes', 'etag'])
     
     # Handle pagination for buckets with more than 1,000 files
     paginator = s3.get_paginator('list_objects_v2')
