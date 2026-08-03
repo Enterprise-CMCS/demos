@@ -27,12 +27,41 @@ zip -jqr lambda.zip dist/index.cjs dist/index.cjs.map
 
 cd - > /dev/null
 
-# Create or update local allowlist parameter. Empty allowlist keeps smoke tests in log-only mode.
-$AWS_CMD ssm put-parameter \
-    --name "$ALLOW_LIST_PARAM_NAME" \
-    --type String \
-    --value "[]" \
-    --overwrite >/dev/null
+# Initialize the local allowlist only when it does not already exist.
+if ! $AWS_CMD ssm get-parameter --name "$ALLOW_LIST_PARAM_NAME" >/dev/null 2>&1; then
+    $AWS_CMD ssm put-parameter \
+        --name "$ALLOW_LIST_PARAM_NAME" \
+        --type String \
+        --value "[]" >/dev/null
+fi
+
+# Resolve the queue before replacing its Lambda mapping.
+QUEUE_URL=$($AWS_CMD sqs get-queue-url --queue-name "$QUEUE_NAME" --output text --query 'QueueUrl')
+QUEUE_ARN=$($AWS_CMD sqs get-queue-attributes \
+    --queue-url "$QUEUE_URL" \
+    --attribute-names QueueArn \
+    --output text --query 'Attributes.QueueArn')
+
+# Delete the mapping before the function. LocalStack can retain a mapping briefly
+# after its function is deleted, which prevents the replacement mapping.
+EXISTING_MAPPINGS=$($AWS_CMD lambda list-event-source-mappings \
+    --event-source-arn "$QUEUE_ARN" \
+    --query 'EventSourceMappings[].UUID' \
+    --output text)
+
+for UUID in $EXISTING_MAPPINGS; do
+    $AWS_CMD lambda delete-event-source-mapping --uuid "$UUID" >/dev/null
+    for i in {1..15}; do
+        if ! $AWS_CMD lambda get-event-source-mapping --uuid "$UUID" >/dev/null 2>&1; then
+            break
+        fi
+        if [ "$i" = 15 ]; then
+            echo "❌ Timed out deleting emailer event source mapping $UUID"
+            exit 1
+        fi
+        sleep 1
+    done
+done
 
 # Delete existing Lambda if exists
 $AWS_CMD lambda delete-function --function-name $LAMBDA_NAME 2>/dev/null || true
@@ -75,26 +104,7 @@ for i in {1..15}; do
     sleep 2
 done
 
-# Get queue ARN
-QUEUE_URL=$($AWS_CMD sqs get-queue-url --queue-name $QUEUE_NAME --output text --query 'QueueUrl')
-QUEUE_ARN=$($AWS_CMD sqs get-queue-attributes \
-    --queue-url $QUEUE_URL \
-    --attribute-names QueueArn \
-    --output text --query 'Attributes.QueueArn')
-
 echo "📬 Connecting emailer Lambda to emailer SQS queue..."
-
-# Delete existing event source mappings
-EXISTING_MAPPINGS=$($AWS_CMD lambda list-event-source-mappings \
-    --function-name $LAMBDA_NAME \
-    --query 'EventSourceMappings[].UUID' \
-    --output text 2>/dev/null || echo "")
-
-if [ -n "$EXISTING_MAPPINGS" ]; then
-    for UUID in $EXISTING_MAPPINGS; do
-        $AWS_CMD lambda delete-event-source-mapping --uuid $UUID >/dev/null 2>&1 || true
-    done
-fi
 
 # Create event source mapping (SQS -> Lambda)
 $AWS_CMD lambda create-event-source-mapping \
