@@ -8,7 +8,8 @@ import { dispatchDeliverableSubmittedEmail } from "../email";
 
 export async function submitDeliverable(
   deliverableId: string,
-  context: GraphQLContext
+  context: GraphQLContext,
+  options: { sendEmailNotifications?: boolean } = {}
 ): Promise<PrismaDeliverable> {
   const { submittedDeliverable, sourceActionId } = await prisma().$transaction(async (tx) => {
     const unsubmittedDeliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
@@ -40,11 +41,13 @@ export async function submitDeliverable(
     };
   });
 
-  await dispatchDeliverableSubmittedEmail({
-    deliverableId: submittedDeliverable.id,
-    sourceActionId,
-    triggeredByUserId: context.user.id,
-  });
+  if (options.sendEmailNotifications !== false) {
+    await dispatchDeliverableSubmittedEmail({
+      deliverableId: submittedDeliverable.id,
+      sourceActionId,
+      triggeredByUserId: context.user.id,
+    });
+  }
 
   return submittedDeliverable;
 }

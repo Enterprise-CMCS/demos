@@ -261,7 +261,9 @@ async function seedDeliverables(actionUserId: string, actionUserPersonTypeId: Pe
         .slice(0, 10) as CreateDeliverableInput["dueDate"],
       demonstrationTypes: selectedDemonstrationTypes,
     };
-    createdDeliverables.push(await createDeliverable(createInput, context));
+    createdDeliverables.push(
+      await createDeliverable(createInput, context, { sendEmailNotifications: false })
+    );
   }
   return createdDeliverables;
 }
@@ -344,7 +346,7 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
       createdAt: new Date(),
     },
   });
-  await submitDeliverable(deliverable.id, context);
+  await submitDeliverable(deliverable.id, context, { sendEmailNotifications: false });
   await requestDeliverableResubmission(
     deliverable.id,
     {
@@ -367,7 +369,7 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
     },
     context
   );
-  await submitDeliverable(deliverable.id, context);
+  await submitDeliverable(deliverable.id, context, { sendEmailNotifications: false });
   await startDeliverableReview(deliverable.id, context);
   await requestDeliverableResubmission(
     deliverable.id,
@@ -393,7 +395,7 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
     },
     true
   );
-  await submitDeliverable(deliverable.id, context);
+  await submitDeliverable(deliverable.id, context, { sendEmailNotifications: false });
   await startDeliverableReview(deliverable.id, context);
   await denyDeliverableExtension(
     deliverable.id,
@@ -807,6 +809,8 @@ async function clearDatabase() {
     prisma().uiPathValue.deleteMany(),
     prisma().uiPathResult.deleteMany(),
     prisma().document.deleteMany(),
+    prisma().emailNotificationRecipient.deleteMany(),
+    prisma().emailNotification.deleteMany(),
     prisma().deliverableAction.deleteMany(),
     prisma().deliverableExtension.deleteMany(),
     prisma().deliverable.deleteMany(),

@@ -124,4 +124,12 @@ describe("submitDeliverable", () => {
       triggeredByUserId: testContext.user!.id,
     });
   });
+
+  it("should not dispatch the submitted email when notifications are disabled", async () => {
+    await submitDeliverable(testDeliverableId, testContext as GraphQLContext, {
+      sendEmailNotifications: false,
+    });
+
+    expect(dispatchDeliverableSubmittedEmail).not.toHaveBeenCalled();
+  });
 });

@@ -192,6 +192,14 @@ describe("createDeliverable", () => {
     });
   });
 
+  it("should not dispatch the created email when notifications are disabled", async () => {
+    await createDeliverable(testInput, testContext as GraphQLContext, {
+      sendEmailNotifications: false,
+    });
+
+    expect(dispatchDeliverableCreatedEmail).not.toHaveBeenCalled();
+  });
+
   it("should not dispatch the created email if the transaction fails", async () => {
     mockPrismaClient.$transaction.mockRejectedValueOnce(new Error("transaction failed"));
 
