@@ -1,54 +1,48 @@
 import React from "react";
-import { useLazyQuery } from "@apollo/client";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { CONTACT_US_MAILTO, DEMOS_ADDRESS, Footer, REFERENCES_PATH } from "./Footer";
+import { render, screen } from "@testing-library/react";
+import {
+  CONTACT_US_MAILTO,
+  DEMOS_ADDRESS,
+  DEMOS_VIDEOS_LINK,
+  Footer,
+  REFERENCES_PATH,
+} from "./Footer";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useDownloadReference } from "hooks/useDownloadReference";
-import { MockedProvider } from "@apollo/client/testing";
-import { ToastProvider } from "components/toast";
+import { TestProvider } from "test-utils/TestProvider";
+import { developmentMockUser, MockUser } from "mock-data/userMocks";
 
-vi.mock("@apollo/client", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@apollo/client")>();
-
+vi.mock("config/env", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("config/env")>();
   return {
     ...actual,
-    useLazyQuery: vi.fn(),
+    isLocalDevelopment: vi.fn(),
   };
 });
 
-vi.mock("hooks/useDownloadReference", () => ({
-  useDownloadReference: vi.fn(),
-}));
+const cmsUser: MockUser = {
+  ...developmentMockUser,
+  person: { ...developmentMockUser.person, personType: "demos-cms-user" },
+};
 
-vi.mock("config/env", () => ({
-  isLocalDevelopment: vi.fn(),
-}));
+const adminUser: MockUser = {
+  ...developmentMockUser,
+  person: { ...developmentMockUser.person, personType: "demos-admin" },
+};
 
-type UseLazyQueryTuple = ReturnType<typeof useLazyQuery>;
+const stateUser: MockUser = {
+  ...developmentMockUser,
+  person: { ...developmentMockUser.person, personType: "demos-state-user" },
+};
 
-const fetchFaqReferenceMaterial = vi.fn();
-const downloadReference = vi.fn();
-
-const renderWithProviders = () =>
+const renderWithProviders = (currentUser: MockUser = cmsUser) =>
   render(
-    <MockedProvider mocks={[]}>
-      <ToastProvider>
-        <Footer />
-      </ToastProvider>
-    </MockedProvider>
+    <TestProvider currentUser={currentUser} mocks={[]}>
+      <Footer />
+    </TestProvider>
   );
 
 describe("Footer Component", () => {
   beforeEach(async () => {
-    vi.clearAllMocks();
-    vi.mocked(useLazyQuery).mockReturnValue([
-      fetchFaqReferenceMaterial,
-      {},
-    ] as unknown as UseLazyQueryTuple);
-    vi.mocked(useDownloadReference).mockReturnValue({
-      downloadReference,
-      downloadReferenceAgreement: vi.fn(),
-    });
     const { isLocalDevelopment } = await import("config/env");
     vi.mocked(isLocalDevelopment).mockReturnValue(false);
   });
@@ -67,7 +61,6 @@ describe("Footer Component", () => {
     renderWithProviders();
     expect(screen.getByText(/References/i)).toBeInTheDocument();
     expect(screen.getByText(/Contact Us/i)).toBeInTheDocument();
-    expect(screen.getByText(/FAQ/i)).toBeInTheDocument();
   });
 
   it("links References to the /references page", () => {
@@ -88,29 +81,6 @@ describe("Footer Component", () => {
     );
   });
 
-  it("downloads the latest FAQ reference when FAQ is clicked", async () => {
-    fetchFaqReferenceMaterial.mockResolvedValue({
-      data: {
-        references: [
-          { id: "faq-older", createdAt: new Date("2024-01-01T00:00:00.000Z") },
-          { id: "faq-latest", createdAt: new Date("2025-01-01T00:00:00.000Z") },
-        ],
-      },
-    });
-
-    renderWithProviders();
-
-    fireEvent.click(screen.getByRole("button", { name: /FAQ/i }));
-
-    await waitFor(() => expect(fetchFaqReferenceMaterial).toHaveBeenCalledTimes(1));
-    await waitFor(() =>
-      expect(downloadReference).toHaveBeenCalledWith({
-        id: "faq-latest",
-        acceptedAgreementId: null,
-      })
-    );
-  });
-
   it("displays the main logo", () => {
     renderWithProviders();
     expect(screen.getByTestId("demos-logo-simplified")).toBeInTheDocument();
@@ -125,6 +95,34 @@ describe("Footer Component", () => {
   it("displays the address", () => {
     renderWithProviders();
     expect(screen.getByText(DEMOS_ADDRESS)).toBeInTheDocument();
+  });
+
+  describe("DEMOS Orientation Videos link", () => {
+    it("is visible for CMS users", () => {
+      renderWithProviders(cmsUser);
+      expect(screen.getByRole("link", { name: /DEMOS Orientation Videos/i })).toBeInTheDocument();
+    });
+
+    it("is visible for admin users", () => {
+      renderWithProviders(adminUser);
+      expect(screen.getByRole("link", { name: /DEMOS Orientation Videos/i })).toBeInTheDocument();
+    });
+
+    it("is not visible for state users", () => {
+      renderWithProviders(stateUser);
+      expect(
+        screen.queryByRole("link", { name: /DEMOS Orientation Videos/i })
+      ).not.toBeInTheDocument();
+    });
+
+    it("points to box.com", () => {
+      renderWithProviders(cmsUser);
+      expect(screen.getByRole("link", { name: /DEMOS Orientation Videos/i })).toHaveAttribute(
+        "href",
+        DEMOS_VIDEOS_LINK
+      );
+      expect(DEMOS_VIDEOS_LINK).toContain("box.com");
+    });
   });
 
   it("displays the git commit hash in local development", async () => {
