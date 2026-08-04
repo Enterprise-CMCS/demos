@@ -182,6 +182,26 @@ MIGRATION_CONFIGURATION: MigrationConfiguration = (
         ],
     ),
     TableInsertActionConfiguration(
+        "final_demos_app_amendment",
+        "amendment",
+        [
+            "id",
+            "application_type_id",
+            "demonstration_id",
+            "demonstration_status_id",
+            "name",
+            "description",
+            "effective_date",
+            "status_id",
+            "status_updated_at",
+            "current_phase_id",
+            "clearance_level_id",
+            "signature_level_id",
+            "created_at",
+            "updated_at",
+        ],
+    ),
+    TableInsertActionConfiguration(
         "final_demos_app_application_phase",
         "application_phase",
         [

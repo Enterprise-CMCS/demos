@@ -2,6 +2,109 @@ version: 2
 
 models:
   # Final Models
+  - name: final_demos_app_amendment
+    columns:
+      - name: id
+        data_type: uuid
+        data_tests:
+          - not_null:
+              name: assert_no_missing_id_in_final_amendment_table
+      - name: application_type_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_application_type_id_in_final_amendment_table
+          - relationships:
+              name: assert_application_type_id_exists_in_demos_app_application_type
+              arguments:
+                to: source('demos_app', 'application_type')
+                field: id
+      - name: demonstration_id
+        data_type: uuid
+        data_tests:
+          - not_null:
+              name: assert_no_missing_demonstration_id_in_final_amendment_table
+          - relationships:
+              name: assert_demonstration_id_exists_in_demos_app_demonstration
+              arguments:
+                to: ref('final_demos_app_demonstration')
+                field: id
+      - name: demonstration_status_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_demonstration_status_id_in_final_amendment_table
+          - relationships:
+              name: assert_demonstration_status_id_exists_in_demos_app_application_status
+              arguments:
+                to: source('demos_app', 'application_status')
+                field: id
+      - name: name
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_name_in_final_amendment_table
+      - name: description
+        data_type: text
+      - name: effective_date
+        data_type: timestamptz
+      - name: status_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_status_id_in_final_amendment_table
+          - relationships:
+              name: assert_status_id_exists_in_demos_app_application_status
+              arguments:
+                to: source('demos_app', 'application_status')
+                field: id
+      - name: status_updated_at
+        data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_missing_status_updated_at_in_final_amendment_table
+      - name: current_phase_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_current_phase_id_in_final_amendment_table
+          - relationships:
+              name: assert_current_phase_id_exists_in_demos_app_phase
+              arguments:
+                to: source('demos_app', 'phase')
+                field: id
+      - name: clearance_level_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_clearance_level_id_in_final_amendment_table
+          - relationships:
+              name: assert_clearance_level_id_exists_in_demos_app_clearance_level
+              arguments:
+                to: source('demos_app', 'clearance_level')
+                field: id
+      - name: signature_level_id
+        data_type: text
+        data_tests:
+          - accepted_values:
+              name: assert_signature_level_id_is_valid_in_final_amendment_table
+              arguments:
+                values:
+                  - "OA"
+                  - "OCD"
+      - name: created_at
+        data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_missing_created_at_in_final_amendment_table
+      - name: updated_at
+        data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_missing_updated_at_in_final_amendment_table
+      - name: _legacy_mdcd_demo_amndmt_id
+        data_type: integer
+
   - name: final_demos_app_application_phase
     columns:
       - name: application_id
@@ -644,8 +747,30 @@ models:
           - not_null:
               name: assert_no_null_deliverable_type_ids_in_cleaned_deliverable_docs
 
-  # Apps Models
+  - name: cleaned_demos_app_finalized_amendment
+    columns:
+      - name: status_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_status_id_in_cleaned_finalized_amendment
+          - accepted_values:
+              name: assert_status_id_is_approved_in_cleaned_finalized_amendment
+              arguments:
+                values:
+                  - Approved
+      - name: signature_level_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_signature_level_id_in_cleaned_finalized_amendment
+      - name: effective_date
+        data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_missing_effective_date_in_cleaned_finalized_amendment
 
+  # Apps Models
   - name: apps_in_prog_dates_crosswalked
     description: converts the dates stored in PMDA to applicable date types in DEMOS, extrapolating to phase start and end dates where needed.
 
