@@ -1,18 +1,18 @@
 import { HhsLogo } from "components/brand/HhsLogo";
 import { LogoSimplified } from "components/brand/LogoSimplified";
 import { DebugOnly } from "components/debug/DebugOnly";
-import { useToast } from "components/toast";
+import { getCurrentUser } from "components/user/UserContext";
 import React from "react";
 import { tw } from "tags/tw";
-import { TypedDocumentNode, useLazyQuery } from "@apollo/client";
+import { TypedDocumentNode } from "@apollo/client";
 import { Reference, TagName } from "demos-server";
 import gql from "graphql-tag";
-import { FAQ_REFERENCE_TAG } from "demos-server-constants";
-import { useDownloadReference } from "hooks/useDownloadReference";
 
 export const DEMOS_ADDRESS = "7500 Security Boulevard Baltimore, MD 21244";
 export const CONTACT_US_MAILTO = "mailto:DEMOS_Help@cms.hhs.gov";
 export const REFERENCES_PATH = "/references";
+export const DEMOS_VIDEOS_LINK =
+  "https://app.box.com/folder/405875918185?s=bu3ebr1fi8pral6hlqwrttnw4xpozgn1";
 
 const linkStyles = tw`text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded cursor-pointer`;
 
@@ -33,30 +33,10 @@ export const GET_FAQ_REFERENCES_QUERY: TypedDocumentNode<
 `;
 
 const FooterLinks: React.FC = () => {
-  const { showError } = useToast();
-  const { downloadReference } = useDownloadReference();
-
-  const [getFaqReferenceMaterial] = useLazyQuery(GET_FAQ_REFERENCES_QUERY);
-
-  const handleFaqClick = async () => {
-    try {
-      const { data } = await getFaqReferenceMaterial({
-        variables: { withTag: FAQ_REFERENCE_TAG },
-      });
-      const faqReferences = data?.references;
-      if (!faqReferences || faqReferences.length === 0) {
-        showError("No FAQ reference material found.");
-        throw new Error("No FAQ reference material found.");
-      }
-      const latestFaqReference = faqReferences.sort(
-        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-      )[0];
-
-      await downloadReference({ id: latestFaqReference.id, acceptedAgreementId: null });
-    } catch {
-      showError("Unable to download the FAQ.");
-    }
-  };
+  const { currentUser } = getCurrentUser();
+  const isCmsOrAdmin =
+    currentUser.person.personType === "demos-admin" ||
+    currentUser.person.personType === "demos-cms-user";
 
   return (
     <ul
@@ -75,12 +55,16 @@ const FooterLinks: React.FC = () => {
           Contact Us
         </a>
       </li>
-      |
-      <li>
-        <button type="button" onClick={handleFaqClick} className={linkStyles}>
-          FAQ
-        </button>
-      </li>
+      {isCmsOrAdmin && (
+        <>
+          |
+          <li>
+            <a href={DEMOS_VIDEOS_LINK} className={linkStyles}>
+              DEMOS Orientation Videos
+            </a>
+          </li>
+        </>
+      )}
     </ul>
   );
 };
