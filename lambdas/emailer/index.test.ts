@@ -41,6 +41,7 @@ const realtimeDeliverableCreatedEnvelope = {
       name: "Quarterly Budget Report",
       deliverableTypeId: "Close Out Report",
       dueDate: "2026-06-01T12:00:00.000Z",
+      previousDueDate: "2026-05-01T12:00:00.000Z",
       statusId: "Upcoming",
     },
   },
@@ -211,6 +212,10 @@ describe("emailer", () => {
   });
 
   it.each([
+    [
+      "Deliverable Due Date Updated",
+      "CMS DEMOS Deliverable: Deliverable Due Date Updated",
+    ],
     ["Deliverable Accepted", "CMS DEMOS Deliverable: Deliverable Accepted"],
     ["Deliverable Approved", "CMS DEMOS Deliverable: Deliverable Approved"],
     [

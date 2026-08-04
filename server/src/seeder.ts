@@ -320,7 +320,8 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
   await updateDeliverable(
     deliverable.id,
     { dueDate: { newDueDate: "2028-11-01" as DateTimeOrLocalDate, dateChangeNote: "Test change" } },
-    context
+    context,
+    { sendEmailNotifications: false }
   );
   await requestDeliverableExtension(
     deliverable.id,
@@ -405,7 +406,9 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
     },
     context
   );
-  await completeDeliverable(deliverable.id, "Approved", context);
+  await completeDeliverable(deliverable.id, "Approved", context, {
+    sendEmailNotifications: false,
+  });
 }
 
 async function seedNotes() {

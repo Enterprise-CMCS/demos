@@ -14,17 +14,23 @@ import {
 import { prisma } from "../../prismaClient";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { selectUserOrThrow } from "../user/queries";
+import { dispatchDeliverableDueDateUpdatedEmail } from "../email";
+
+type UpdateDeliverableOptions = {
+  sendEmailNotifications?: boolean;
+};
 
 export async function updateDeliverable(
   deliverableId: string,
   input: UpdateDeliverableInput,
-  context: GraphQLContext
+  context: GraphQLContext,
+  options: UpdateDeliverableOptions = {}
 ): Promise<PrismaDeliverable> {
   validateUserPersonTypeAllowed(context, "updateDeliverable", ["demos-admin", "demos-cms-user"]);
   checkOptionalNotNullFields(["name", "cmsOwnerUserId", "dueDate", "demonstrationTypes"], input);
   const parsedInput = parseUpdateDeliverableInput(input);
 
-  return await prisma().$transaction(async (tx) => {
+  const { deliverable, dueDateUpdate } = await prisma().$transaction(async (tx) => {
     await validateUpdateDeliverableInput(deliverableId, parsedInput, tx);
 
     // Directly edit name and CMS owner
@@ -46,8 +52,27 @@ export async function updateDeliverable(
 
     // Update demonstration types and due date
     await updateDeliverableDemonstrationTypes(deliverableId, parsedInput, tx);
-    await manuallyUpdateDeliverableDueDate(deliverableId, parsedInput, context, tx);
+    const dueDateUpdate = await manuallyUpdateDeliverableDueDate(
+      deliverableId,
+      parsedInput,
+      context,
+      tx
+    );
 
-    return await selectDeliverableOrThrow({ id: deliverableId }, tx);
+    return {
+      deliverable: await selectDeliverableOrThrow({ id: deliverableId }, tx),
+      dueDateUpdate,
+    };
   });
+
+  if (dueDateUpdate && options.sendEmailNotifications !== false) {
+    await dispatchDeliverableDueDateUpdatedEmail({
+      deliverableId,
+      previousDueDate: dueDateUpdate.previousDueDate,
+      sourceActionId: dueDateUpdate.sourceActionId,
+      triggeredByUserId: context.user.id,
+    });
+  }
+
+  return deliverable;
 }

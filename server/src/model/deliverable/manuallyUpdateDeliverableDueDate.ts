@@ -9,12 +9,17 @@ import { PrismaTransactionClient } from "../../prismaClient";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 import { GraphQLContext } from "../../auth";
 
+export type ManualDueDateUpdate = {
+  previousDueDate: Date;
+  sourceActionId: string;
+};
+
 export async function manuallyUpdateDeliverableDueDate(
   deliverableId: string,
   input: ParsedUpdateDeliverableInput,
   context: GraphQLContext,
   tx: PrismaTransactionClient
-): Promise<void> {
+): Promise<ManualDueDateUpdate | undefined> {
   // Just do nothing if there's no date input
   if (!input.dueDate) {
     return undefined;
@@ -49,7 +54,7 @@ export async function manuallyUpdateDeliverableDueDate(
       tx
     );
 
-    await insertDeliverableAction(
+    const action = await insertDeliverableAction(
       {
         deliverableId: deliverableId,
         actionType: "Manually Changed Due Date",
@@ -62,5 +67,10 @@ export async function manuallyUpdateDeliverableDueDate(
       },
       tx
     );
+
+    return {
+      previousDueDate: currentDeliverable.dueDate,
+      sourceActionId: action.id,
+    };
   }
 }

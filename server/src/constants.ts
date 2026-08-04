@@ -143,10 +143,17 @@ export const USER_TYPES = ["demos-admin", "demos-cms-user", "demos-state-user"] 
 
 export const EMAIL_NOTIFICATION_TYPES = [
   "Deliverable Created",
+  "Deliverable Due Date Updated",
   "Deliverable Submitted",
   "Deliverable Accepted",
   "Deliverable Approved",
   "Deliverable Received and Filed",
+  "Extension Requested",
+  "Extension Decision Made",
+  "Resubmission Requested",
+  "Public Comment Added",
+  "Terms And Conditions Requested",
+  "Application Status Updated",
 ] as const;
 
 export const EMAIL_NOTIFICATION_STATUSES = ["Pending", "Queued", "Failed"] as const;

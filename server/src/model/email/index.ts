@@ -1,5 +1,7 @@
 export {
   dispatchDeliverableCreatedEmail,
+  dispatchDeliverableCompletedEmail,
+  dispatchDeliverableDueDateUpdatedEmail,
   dispatchDeliverableSubmittedEmail,
 } from "./deliverableEmail";
 export { createTestEmail } from "./createTestEmail";

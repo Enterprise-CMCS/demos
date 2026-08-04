@@ -23,7 +23,14 @@ VALUES
     ('Deliverable Submitted'),
     ('Deliverable Accepted'),
     ('Deliverable Approved'),
-    ('Deliverable Received and Filed')
+    ('Deliverable Received and Filed'),
+    ('Deliverable Due Date Updated'),
+    ('Extension Requested'),
+    ('Extension Decision Made'),
+    ('Resubmission Requested'),
+    ('Public Comment Added'),
+    ('Terms And Conditions Requested'),
+    ('Application Status Updated')
 ;
 
 CREATE TABLE demos_app.email_notification (

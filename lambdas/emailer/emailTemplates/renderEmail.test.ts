@@ -17,6 +17,7 @@ const deliverableCreatedInput = {
     name: "Quarterly Budget Report",
     deliverableTypeId: "Close Out Report",
     dueDate: "2026-06-01T12:00:00.000Z",
+    previousDueDate: "2026-05-01T12:00:00.000Z",
     statusId: "Upcoming",
   },
 };
@@ -51,6 +52,36 @@ describe("renderEmail", () => {
     expect(payload.text).toContain("Action: Deliverable Submitted");
     expect(payload.text).toContain("Current due date: 2026-06-01");
     expect(cleanHtml(payload.html)).toContain("Demonstration: Medicaid Demonstration");
+  });
+
+  it("renders a deliverable due date updated email", async () => {
+    const payload = await renderEmail(
+      "deliverable-due-date-updated",
+      deliverableCreatedInput
+    );
+
+    expect(payload.subject).toBe("CMS DEMOS Deliverable: Deliverable Due Date Updated");
+    expect(payload.text).toContain(
+      "A Close Out Report deliverable has a new due date. Submission is now due on 2026-06-01."
+    );
+    expect(payload.text).toContain("Action: Deliverable Due Date Updated");
+    expect(payload.text).toContain("Previous due date: 2026-05-01");
+    expect(payload.text).toContain("Current due date: 2026-06-01");
+    expect(payload.text).toContain("http://localhost:3000/deliverables/deliverable-1");
+  });
+
+  it("reports a missing previous due date for a due date updated email", async () => {
+    await expect(
+      renderEmail("deliverable-due-date-updated", {
+        ...deliverableCreatedInput,
+        deliverable: {
+          ...deliverableCreatedInput.deliverable,
+          previousDueDate: undefined,
+        },
+      })
+    ).rejects.toThrow(
+      "Missing value for deliverable.previousDueDate while rendering deliverable-due-date-updated.data"
+    );
   });
 
   it("reports unknown templates", async () => {

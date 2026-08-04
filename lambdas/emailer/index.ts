@@ -23,6 +23,7 @@ type RealtimeEmailEnvelope = {
 
 const templateByEmailType: Record<string, string> = {
   "Deliverable Created": "deliverable-created",
+  "Deliverable Due Date Updated": "deliverable-due-date-updated",
   "Deliverable Submitted": "deliverable-submitted",
   "Deliverable Accepted": "deliverable-accepted",
   "Deliverable Approved": "deliverable-approved",

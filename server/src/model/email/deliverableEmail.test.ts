@@ -4,7 +4,9 @@ import { prisma } from "../../prismaClient";
 import { buildRealtimeEmailEnvelope } from "../../services/emailQueue";
 import { enqueueTrackedRealtimeEmail } from "./emailNotification";
 import {
+  dispatchDeliverableCompletedEmail,
   dispatchDeliverableCreatedEmail,
+  dispatchDeliverableDueDateUpdatedEmail,
   dispatchDeliverableSubmittedEmail,
 } from "./deliverableEmail";
 
@@ -197,6 +199,135 @@ describe("deliverable email dispatch", () => {
           emailAddress: "cms.contact@example.com",
         },
       ]
+    );
+  });
+
+  it("BCCs all State POCs when a deliverable due date is updated", async () => {
+    const previousDueDate = new Date("2026-07-01T03:59:59.999Z");
+    findUniqueOrThrow.mockResolvedValueOnce({
+      ...deliverable,
+      demonstration: {
+        ...deliverable.demonstration,
+        demonstrationRoleAssignments: [
+          {
+            roleId: "State Point of Contact",
+            person: {
+              id: "state-poc-1",
+              firstName: "State",
+              lastName: "POC One",
+              email: "state.one@example.com",
+            },
+          },
+          {
+            roleId: "State Point of Contact",
+            person: {
+              id: "state-poc-2",
+              firstName: "State",
+              lastName: "POC Two",
+              email: "state.two@example.com",
+            },
+          },
+        ],
+      },
+    });
+
+    await dispatchDeliverableDueDateUpdatedEmail({
+      deliverableId: deliverable.id,
+      previousDueDate,
+      sourceActionId,
+      triggeredByUserId: "user-1",
+    });
+
+    expect(findUniqueOrThrow).toHaveBeenCalledExactlyOnceWith({
+      where: { id: deliverable.id },
+      include: {
+        demonstration: {
+          include: {
+            demonstrationRoleAssignments: {
+              where: {
+                roleId: { in: ["State Point of Contact"] },
+              },
+              include: { person: true },
+            },
+          },
+        },
+      },
+    });
+    expect(buildRealtimeEmailEnvelope).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        emailType: "Deliverable Due Date Updated",
+        idempotencyKey: `Deliverable Due Date Updated:deliverable-action:${sourceActionId}`,
+        payload: expect.objectContaining({
+          recipients: {
+            to: [],
+            bcc: [
+              { name: "State POC One", address: "state.one@example.com" },
+              { name: "State POC Two", address: "state.two@example.com" },
+            ],
+          },
+          deliverable: expect.objectContaining({
+            dueDate: deliverable.dueDate.toISOString(),
+            previousDueDate: previousDueDate.toISOString(),
+          }),
+        }),
+      })
+    );
+    expect(enqueueTrackedRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
+      envelope,
+      sourceActionId,
+      [
+        { personId: "state-poc-1", emailAddress: "state.one@example.com" },
+        { personId: "state-poc-2", emailAddress: "state.two@example.com" },
+      ]
+    );
+  });
+
+  it.each([
+    ["Accepted", "Deliverable Accepted"],
+    ["Approved", "Deliverable Approved"],
+    ["Received and Filed", "Deliverable Received and Filed"],
+  ] as const)("queues the %s completion email for all State POCs", async (finalStatus, emailType) => {
+    findUniqueOrThrow.mockResolvedValueOnce({
+      ...deliverable,
+      demonstration: {
+        ...deliverable.demonstration,
+        demonstrationRoleAssignments: [
+          {
+            roleId: "State Point of Contact",
+            person: {
+              id: "state-poc-1",
+              firstName: "State",
+              lastName: "POC",
+              email: "state.poc@example.com",
+            },
+          },
+        ],
+      },
+    });
+
+    await dispatchDeliverableCompletedEmail({
+      deliverableId: deliverable.id,
+      finalStatus,
+      sourceActionId,
+      triggeredByUserId: "user-1",
+    });
+
+    expect(buildRealtimeEmailEnvelope).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        emailType,
+        idempotencyKey: `${emailType}:deliverable-action:${sourceActionId}`,
+        payload: expect.objectContaining({
+          recipients: {
+            to: [],
+            bcc: [{ name: "State POC", address: "state.poc@example.com" }],
+          },
+        }),
+      })
+    );
+    expect(enqueueTrackedRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
+      envelope,
+      sourceActionId,
+      [{ personId: "state-poc-1", emailAddress: "state.poc@example.com" }]
     );
   });
 

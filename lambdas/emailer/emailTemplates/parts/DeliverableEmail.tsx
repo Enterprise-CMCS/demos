@@ -17,6 +17,7 @@ export function DeliverableEmail({
   demonstrationTitle,
   deliverableName,
   deliverableType,
+  previousDueDate,
   state,
 }: Props) {
   return (
@@ -30,6 +31,9 @@ export function DeliverableEmail({
       <Text style={detailStyle}>Deliverable type: {deliverableType}</Text>
       <Text style={detailStyle}>Deliverable: {deliverableName}</Text>
       <Text style={detailStyle}>Action: {action}</Text>
+      {previousDueDate && (
+        <Text style={detailStyle}>Previous due date: {previousDueDate}</Text>
+      )}
       <Text style={detailStyle}>Current due date: {currentDueDate}</Text>
     </EmailLayout>
   );

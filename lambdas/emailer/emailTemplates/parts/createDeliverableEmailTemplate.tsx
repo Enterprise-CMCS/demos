@@ -30,7 +30,7 @@ export function createDeliverableEmailTemplate(
         config.id
       );
 
-      return {
+      const props: DeliverableEmailProps = {
         demonstrationTitle: getRequiredValue(
           input.demonstration?.name,
           "demonstration.name",
@@ -56,6 +56,18 @@ export function createDeliverableEmailTemplate(
         ),
         link: `${demosAppUrl}/deliverables/${deliverableId}`,
       };
+
+      if (config.includePreviousDueDate) {
+        props.previousDueDate = formatDate(
+          getRequiredValue(
+            input.deliverable?.previousDueDate,
+            "deliverable.previousDueDate",
+            config.id
+          )
+        );
+      }
+
+      return props;
     },
     getRecipients(input) {
       return getRequiredValue<EmailRecipientGroups>(input.recipients, "recipients", config.id);

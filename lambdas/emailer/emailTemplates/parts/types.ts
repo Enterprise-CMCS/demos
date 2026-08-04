@@ -14,6 +14,7 @@ export type DeliverableEmailInput = {
     name: string;
     deliverableTypeId: string;
     dueDate: string;
+    previousDueDate?: string;
     statusId: string;
   };
 };
@@ -24,11 +25,13 @@ export type DeliverableEmailProps = {
   deliverableName: string;
   deliverableType: string;
   link: string;
+  previousDueDate?: string;
   state: string;
 };
 
 export type DeliverableEmailConfig = {
   action: string;
   id: string;
+  includePreviousDueDate?: boolean;
   Message: ComponentType<DeliverableEmailProps>;
 };

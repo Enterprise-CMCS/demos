@@ -9,14 +9,20 @@ import {
   selectDeliverableOrThrow,
 } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
+import { dispatchDeliverableCompletedEmail } from "../email";
+
+type CompleteDeliverableOptions = {
+  sendEmailNotifications?: boolean;
+};
 
 export async function completeDeliverable(
   deliverableId: string,
   finalStatus: FinalDeliverableStatus,
-  context: GraphQLContext
+  context: GraphQLContext,
+  options: CompleteDeliverableOptions = {}
 ): Promise<PrismaDeliverable> {
   validateUserPersonTypeAllowed(context, "completeDeliverable", ["demos-admin", "demos-cms-user"]);
-  return await prisma().$transaction(async (tx) => {
+  const { completedDeliverable, sourceActionId } = await prisma().$transaction(async (tx) => {
     const incompleteDeliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
     await validateCompleteDeliverableInput(incompleteDeliverable, tx);
 
@@ -33,7 +39,7 @@ export async function completeDeliverable(
     };
 
     // Casts below enforced by database
-    await insertDeliverableAction(
+    const action = await insertDeliverableAction(
       {
         deliverableId: deliverableId,
         actionType: statusToAction[finalStatus],
@@ -46,6 +52,20 @@ export async function completeDeliverable(
       tx
     );
 
-    return completedDeliverable;
+    return {
+      completedDeliverable,
+      sourceActionId: action.id,
+    };
   });
+
+  if (options.sendEmailNotifications !== false) {
+    await dispatchDeliverableCompletedEmail({
+      deliverableId,
+      finalStatus,
+      sourceActionId,
+      triggeredByUserId: context.user.id,
+    });
+  }
+
+  return completedDeliverable;
 }

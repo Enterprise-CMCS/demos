@@ -17,6 +17,17 @@ export const deliverableEmailConfigById = {
       </Text>
     ),
   },
+  "deliverable-due-date-updated": {
+    id: "deliverable-due-date-updated",
+    action: "Deliverable Due Date Updated",
+    includePreviousDueDate: true,
+    Message: ({ currentDueDate, deliverableType, link }) => (
+      <Text style={textStyle}>
+        A {deliverableType} deliverable has a new due date. Submission is now due on {currentDueDate}.{" "}
+        <DeliverableLink href={link} />
+      </Text>
+    ),
+  },
   "deliverable-submitted": {
     id: "deliverable-submitted",
     action: "Deliverable Submitted",

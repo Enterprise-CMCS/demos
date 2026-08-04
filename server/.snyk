@@ -2,41 +2,21 @@
 version: v1.25.0
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
-  SNYK-JS-BRACEEXPANSION-17706650:
-    - '*':
-        reason: No clean fix available in current ESLint React plugin stack
-        expires: 2026-07-14T00:00:00.000Z
-        created: 2026-06-30T14:21:33.964Z
-  SNYK-JS-FASTURI-17675102:
-    - '*':
-        reason: No clean fix available yet in current Prisma stack
-        expires: 2026-07-14T00:00:00.000Z
-        created: 2026-06-30T14:21:33.964Z
-  SNYK-JS-HONO-17900542:
-    - '*':
-        reason: No fix available yet in Prisma stack.
-        expires: 2026-07-15T23:59:59.999-04:00
-        created: 2026-07-09T00:00:00.000-04:00
-  SNYK-JS-FASTURI-18021349:
-    - '*':
-        reason: No clean fix available yet in current Prisma stack
-        expires: 2026-08-03T00:00:00.000Z
-        created: 2026-07-20T14:21:33.964Z
-  SNYK-JS-FINDMYWAY-18313040:
-    - '*':
-        reason: Patch is in 7 day cooldown period
-        expires: 2026-08-04T00:00:00.000Z
-        created: 2026-07-28T13:18:05.183Z
-  SNYK-JS-BRACEEXPANSION-18313044:
+  SNYK-JS-NANOID-18506894:
     - '*':
         reason: No patch available
-        expires: 2026-08-11T00:00:00.000Z
-        created: 2026-07-28T13:18:19.786Z
-  SNYK-JS-POSTCSS-18313038:
+        expires: 2026-08-17T00:00:00.000Z
+        created: 2026-08-03T13:23:12.851Z
+  SNYK-JS-NANOID-18506897:
     - '*':
-          reason: No patch available
-          expires: 2026-08-29T00:00:00.000Z
-          created: 2026-07-29T13:02:53.851Z
+        reason: No patch available
+        expires: 2026-08-17T00:00:00.000Z
+        created: 2026-08-03T13:23:17.427Z
+  SNYK-JS-FASTURI-18506908:
+    - '*':
+        reason: No patch available
+        expires: 2026-08-17T00:00:00.000Z
+        created: 2026-08-03T14:02:02.049Z
 patch: {}
 exclude:
   global:
