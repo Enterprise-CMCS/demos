@@ -28,6 +28,9 @@ WITH no_s3_path AS (
         AND deliv_docs.mdcd_dlvrbl_fil_doc_id NOT IN (
             SELECT e2.mdcd_dlvrbl_fil_doc_id FROM {{ ref('errors_deliv_docs_with_no_resolved_owner') }} AS e2
         )
+        AND deliv_docs.mdcd_dlvrbl_fil_doc_id NOT IN (
+            SELECT e3.mdcd_dlvrbl_fil_doc_id FROM {{ ref('errors_deliv_docs_with_no_matched_file') }} AS e3
+        )
 )
 
 SELECT

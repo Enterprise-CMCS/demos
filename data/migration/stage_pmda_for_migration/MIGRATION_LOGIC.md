@@ -312,9 +312,67 @@ There's been a first-pass effort (still work in progress) on importing the submi
 
 # Documents
 
+## File Structure
+
+The PMDA system appears to have embedded some information about the specific file into the actual _path_ of the file. Profiling the contents of the production bucket where the EFS files were extracted, we see this for the file structure of the `upload/` prefix in specific.
+
+- upload
+  - appmgmtdemo
+    - docrepo
+      - (integers)
+  - deliverable
+    - cms
+      - (integers)
+    - deliverable_paper
+      - (integers)
+    - state
+      - (integers)
+  - demonstration
+    - (integers)
+    - bn_template
+      - (integers)
+    - contactReport
+    - finalDecision
+      - (integers)
+    - mrt_evaluation_design_reference_only
+      - CE
+        - (various Package.(integer) values)
+      - EandC
+        - (various Package.(integer) values)
+      - HBI
+        - (various Package.(integer) values)
+      - PRCS
+        - (various Package.(integer) values)
+      - QHP
+        - (various Package.(integer) values)
+      - SMI
+        - (various Package.(integer) values)
+      - SUD
+        - (various Package.(integer) values)
+    - mrt_historical_data
+    - mrt_point_and_click
+    - mrt_technical_specification
+      - sud
+    - mrt_technical_specification_reference_only
+      - This nests two more layers but with Package.(integer) values mostly
+    - mrt_template
+      - (integers, one empty string)
+    - postAwardForum
+      - 975 (literally the number 975)
+    - program_monitoring
+      - (integers)
+    - site_visit
+      - (integers)
+    - stc-index
+    - stc-text
+  - faq
+  - stc
+    - src
+      - (integers)
+
 ## Deliverable Documents
 
-The base for deliverable documents are the records in `mdcd_dlvrbl_fil_doc`. We select those that are not deleted (`dltd_ind = 0`), and then filter out ones where we cannot resolve an owner or a deliverable in those final sets. These are logged warnings for the testing system.
+The base for deliverable documents are the records in `mdcd_dlvrbl_fil_doc`. We select those that are not deleted (`dltd_ind = 0`), and then filter out ones where we cannot resolve an owner, or a deliverable in those final sets. These are logged warnings for the testing system. We also filter out those that we cannot resolve to known documents found in `docs_pmda_s3_file_list`. The match is made based on file name, the deliverable ID we have attempted to extract from the path, and the state or CMS file flag.
 
 To enable rapid iteration, the following short-term approaches have been taken, most of which are `#open-question` to be refined further.
 

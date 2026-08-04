@@ -763,6 +763,11 @@ models:
   # Document Models
   - name: docs_base_pmda_deliv_docs
     columns:
+      - name: mdcd_dlvrbl_fil_doc_id
+        data_type: integer
+        data_tests:
+          - unique:
+              name: assert_no_duplicate_mdcd_dlvrbl_fil_doc_ids_in_base_tbl
       - name: creatd_dt
         data_type: timestamptz
         data_tests:
