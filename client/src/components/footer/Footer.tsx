@@ -55,9 +55,9 @@ const FooterLinks: React.FC = () => {
           Contact Us
         </a>
       </li>
-      |
       {isCmsOrAdmin && (
         <>
+          |
           <li>
             <a href={DEMOS_VIDEOS_LINK} className={linkStyles}>
               DEMOS Orientation Videos
