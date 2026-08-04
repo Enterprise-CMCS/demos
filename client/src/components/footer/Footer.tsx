@@ -1,15 +1,12 @@
 import { HhsLogo } from "components/brand/HhsLogo";
 import { LogoSimplified } from "components/brand/LogoSimplified";
 import { DebugOnly } from "components/debug/DebugOnly";
-import { useToast } from "components/toast";
 import { getCurrentUser } from "components/user/UserContext";
 import React from "react";
 import { tw } from "tags/tw";
-import { TypedDocumentNode, useLazyQuery } from "@apollo/client";
+import { TypedDocumentNode } from "@apollo/client";
 import { Reference, TagName } from "demos-server";
 import gql from "graphql-tag";
-import { FAQ_REFERENCE_TAG } from "demos-server-constants";
-import { useDownloadReference } from "hooks/useDownloadReference";
 
 export const DEMOS_ADDRESS = "7500 Security Boulevard Baltimore, MD 21244";
 export const CONTACT_US_MAILTO = "mailto:DEMOS_Help@cms.hhs.gov";
@@ -37,33 +34,9 @@ export const GET_FAQ_REFERENCES_QUERY: TypedDocumentNode<
 
 const FooterLinks: React.FC = () => {
   const { currentUser } = getCurrentUser();
-  const { showError } = useToast();
-  const { downloadReference } = useDownloadReference();
   const isCmsOrAdmin =
     currentUser.person.personType === "demos-admin" ||
     currentUser.person.personType === "demos-cms-user";
-
-  const [getFaqReferenceMaterial] = useLazyQuery(GET_FAQ_REFERENCES_QUERY);
-
-  const handleFaqClick = async () => {
-    try {
-      const { data } = await getFaqReferenceMaterial({
-        variables: { withTag: FAQ_REFERENCE_TAG },
-      });
-      const faqReferences = data?.references;
-      if (!faqReferences || faqReferences.length === 0) {
-        showError("No FAQ reference material found.");
-        throw new Error("No FAQ reference material found.");
-      }
-      const latestFaqReference = faqReferences.sort(
-        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-      )[0];
-
-      await downloadReference({ id: latestFaqReference.id, acceptedAgreementId: null });
-    } catch {
-      showError("Unable to download the FAQ.");
-    }
-  };
 
   return (
     <ul
@@ -90,14 +63,8 @@ const FooterLinks: React.FC = () => {
               DEMOS Orientation Videos
             </a>
           </li>
-          |
         </>
       )}
-      <li>
-        <button type="button" onClick={handleFaqClick} className={linkStyles}>
-          FAQ
-        </button>
-      </li>
     </ul>
   );
 };

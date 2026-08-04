@@ -1,6 +1,5 @@
 import React from "react";
-import { useLazyQuery } from "@apollo/client";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import {
   CONTACT_US_MAILTO,
   DEMOS_ADDRESS,
@@ -9,26 +8,8 @@ import {
   REFERENCES_PATH,
 } from "./Footer";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useDownloadReference } from "hooks/useDownloadReference";
 import { TestProvider } from "test-utils/TestProvider";
 import { developmentMockUser, MockUser } from "mock-data/userMocks";
-
-vi.mock("@apollo/client", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@apollo/client")>();
-
-  return {
-    ...actual,
-    useLazyQuery: vi.fn(),
-  };
-});
-
-vi.mock("hooks/useDownloadReference", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("hooks/useDownloadReference")>();
-  return {
-    ...actual,
-    useDownloadReference: vi.fn(),
-  };
-});
 
 vi.mock("config/env", async (importOriginal) => {
   const actual = await importOriginal<typeof import("config/env")>();
@@ -37,11 +18,6 @@ vi.mock("config/env", async (importOriginal) => {
     isLocalDevelopment: vi.fn(),
   };
 });
-
-type UseLazyQueryTuple = ReturnType<typeof useLazyQuery>;
-
-const fetchFaqReferenceMaterial = vi.fn();
-const downloadReference = vi.fn();
 
 const cmsUser: MockUser = {
   ...developmentMockUser,
@@ -67,15 +43,6 @@ const renderWithProviders = (currentUser: MockUser = cmsUser) =>
 
 describe("Footer Component", () => {
   beforeEach(async () => {
-    vi.clearAllMocks();
-    vi.mocked(useLazyQuery).mockReturnValue([
-      fetchFaqReferenceMaterial,
-      {},
-    ] as unknown as UseLazyQueryTuple);
-    vi.mocked(useDownloadReference).mockReturnValue({
-      downloadReference,
-      downloadReferenceAgreement: vi.fn(),
-    });
     const { isLocalDevelopment } = await import("config/env");
     vi.mocked(isLocalDevelopment).mockReturnValue(false);
   });
@@ -94,7 +61,6 @@ describe("Footer Component", () => {
     renderWithProviders();
     expect(screen.getByText(/References/i)).toBeInTheDocument();
     expect(screen.getByText(/Contact Us/i)).toBeInTheDocument();
-    expect(screen.getByText(/FAQ/i)).toBeInTheDocument();
   });
 
   it("links References to the /references page", () => {
@@ -112,29 +78,6 @@ describe("Footer Component", () => {
     expect(screen.getByRole("link", { name: /Contact Us/i })).toHaveAttribute(
       "href",
       CONTACT_US_MAILTO
-    );
-  });
-
-  it("downloads the latest FAQ reference when FAQ is clicked", async () => {
-    fetchFaqReferenceMaterial.mockResolvedValue({
-      data: {
-        references: [
-          { id: "faq-older", createdAt: new Date("2024-01-01T00:00:00.000Z") },
-          { id: "faq-latest", createdAt: new Date("2025-01-01T00:00:00.000Z") },
-        ],
-      },
-    });
-
-    renderWithProviders();
-
-    fireEvent.click(screen.getByRole("button", { name: /FAQ/i }));
-
-    await waitFor(() => expect(fetchFaqReferenceMaterial).toHaveBeenCalledTimes(1));
-    await waitFor(() =>
-      expect(downloadReference).toHaveBeenCalledWith({
-        id: "faq-latest",
-        acceptedAgreementId: null,
-      })
     );
   });
 
