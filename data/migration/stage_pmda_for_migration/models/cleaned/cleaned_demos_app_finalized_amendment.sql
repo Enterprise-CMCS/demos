@@ -14,7 +14,8 @@ SELECT
     coalesce(creatd_dt, current_timestamp) AS created_at,
     coalesce(creatd_dt, current_timestamp) AS updated_at,
     _legacy_mdcd_demo_amndmt_id,
-    _legacy_mdcd_pendg_demo_id
+    _legacy_mdcd_pendg_demo_id,
+    _legacy_mdcd_demo_aplctn_id
 FROM
     {{ ref('apps_unfiltered_staged_finalized_pmda_amendment') }}
 WHERE _legacy_mdcd_demo_amndmt_id NOT IN (

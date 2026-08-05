@@ -12,8 +12,27 @@ SELECT
     signature_level_id,
     created_at,
     updated_at,
+    phase_1_strt_dt,
+    phase_1_end_dt,
+    phase_2_rcvd_dt,
+    phase_2_cmpltns_rvw_dt,
+    phase_2_state_aplctn_deemd_cmpltn_dt,
+    phase_2_fed_cmt_prd_strt_dt,
+    phase_2_fed_cmt_prd_end_dt,
+    phase_2_dsrd_aprvl_dt,
+    phase_3_a_sme_strt_dt,
+    phase_3_a_frvt_strt_dt,
+    phase_3_c_ogc_strt_dt,
+    phase_3_c_omb_strt_dt,
+    phase_4_strt_dt,
+    phase_4_end_dt,
+    phase_5_strt_dt,
+    phase_5_end_dt,
+    phase_6_strt_dt,
+    phase_6_end_dt,
     NULL::INTEGER AS _legacy_mdcd_demo_amndmt_id,
-    _legacy_mdcd_pendg_demo_id
+    _legacy_mdcd_pendg_demo_id,
+    _legacy_mdcd_demo_aplctn_id
 FROM
     {{ ref('apps_unfiltered_staged_in_prog_amendments') }}
 WHERE _legacy_mdcd_pendg_demo_id NOT IN (

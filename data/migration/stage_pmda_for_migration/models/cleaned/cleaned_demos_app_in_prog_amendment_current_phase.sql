@@ -14,6 +14,7 @@ SELECT
     created_at,
     updated_at,
     _legacy_mdcd_demo_amndmt_id,
-    _legacy_mdcd_pendg_demo_id
+    _legacy_mdcd_pendg_demo_id,
+    _legacy_mdcd_demo_aplctn_id
 FROM
     {{ ref('cleaned_demos_app_in_prog_amendment') }}

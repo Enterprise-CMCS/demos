@@ -9,7 +9,26 @@ SELECT
     coalesce(pending_demo.creatd_dt, current_timestamp) AS created_at,
     coalesce(pending_demo.updtd_dt, pending_demo.creatd_dt, current_timestamp) AS updated_at,
     pending_demo.mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-    amendment_application._legacy_mdcd_demo_aplctn_stus_cd
+    amendment_application._legacy_mdcd_demo_aplctn_id,
+    amendment_application._legacy_mdcd_demo_aplctn_stus_cd,
+    amendment_application.phase_1_strt_dt,
+    amendment_application.phase_1_end_dt,
+    amendment_application.phase_2_rcvd_dt,
+    amendment_application.phase_2_cmpltns_rvw_dt,
+    amendment_application.phase_2_state_aplctn_deemd_cmpltn_dt,
+    amendment_application.phase_2_fed_cmt_prd_strt_dt,
+    amendment_application.phase_2_fed_cmt_prd_end_dt,
+    amendment_application.phase_2_dsrd_aprvl_dt,
+    amendment_application.phase_3_a_sme_strt_dt,
+    amendment_application.phase_3_a_frvt_strt_dt,
+    amendment_application.phase_3_c_ogc_strt_dt,
+    amendment_application.phase_3_c_omb_strt_dt,
+    amendment_application.phase_4_strt_dt,
+    amendment_application.phase_4_end_dt,
+    amendment_application.phase_5_strt_dt,
+    amendment_application.phase_5_end_dt,
+    amendment_application.phase_6_strt_dt,
+    amendment_application.phase_6_end_dt
 FROM
     {{ ref('apps_amendment_applications') }} AS amendment_application
 LEFT JOIN {{ source('legacy_pmda_raw', 'mdcd_pendg_demo') }} AS pending_demo
