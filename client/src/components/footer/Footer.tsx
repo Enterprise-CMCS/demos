@@ -59,7 +59,12 @@ const FooterLinks: React.FC = () => {
         <>
           |
           <li>
-            <a href={DEMOS_VIDEOS_LINK} className={linkStyles}>
+            <a
+              href={DEMOS_VIDEOS_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={linkStyles}
+            >
               DEMOS Orientation Videos
             </a>
           </li>
