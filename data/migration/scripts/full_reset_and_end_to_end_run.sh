@@ -34,6 +34,7 @@ aws s3 cp s3://demos-prod-pmda-efs-transfer/s3_file_list.csv raw_pmda_s3_file_li
 cd /workspaces/demos/data/migration/stage_pmda_for_migration
 dbt build
 
-# Run final step
+# Migrate files, then load data into DEMOS schema
 cd /workspaces/demos/data/demos_data_tools
+python migrate_files.py
 python load_staged_data_to_demos_app.py

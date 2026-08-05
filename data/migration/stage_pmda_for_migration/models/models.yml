@@ -781,6 +781,11 @@ models:
   - name: system_file_move_tracker
     description: This table is used to track the file copy from legacy PMDA to DEMOs.
     columns:
+      - name: final_document_id
+        data_type: uuid
+        data_tests:
+          - unique:
+              name: assert_all_final_doc_ids_unique_in_file_move_tracker
       - name: _internal_pmda_s3_file_id
         data_type: bigint
         data_tests:
