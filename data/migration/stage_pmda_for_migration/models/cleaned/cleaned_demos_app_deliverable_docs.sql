@@ -17,7 +17,8 @@ WITH no_s3_path AS (
         deliv_docs.mdcd_dlvrbl_fil_doc_id AS _legacy_mdcd_dlvrbl_fil_doc_id,
         deliv_docs.mdcd_dlvrbl_id AS _legacy_mdcd_dlvrbl_id,
         NULL::INTEGER AS _legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id,
-        NULL::INTEGER AS _legacy_mdcd_demo_pgm_mntrg_doc_id
+        NULL::INTEGER AS _legacy_mdcd_demo_pgm_mntrg_doc_id,
+        deliv_docs.pmda_s3_file_id AS _internal_pmda_s3_file_id
 
     FROM
         {{ ref('docs_base_pmda_deliv_docs') }} AS deliv_docs
@@ -27,6 +28,9 @@ WITH no_s3_path AS (
         )
         AND deliv_docs.mdcd_dlvrbl_fil_doc_id NOT IN (
             SELECT e2.mdcd_dlvrbl_fil_doc_id FROM {{ ref('errors_deliv_docs_with_no_resolved_owner') }} AS e2
+        )
+        AND deliv_docs.mdcd_dlvrbl_fil_doc_id NOT IN (
+            SELECT e3.mdcd_dlvrbl_fil_doc_id FROM {{ ref('errors_deliv_docs_with_no_matched_file') }} AS e3
         )
 )
 
@@ -49,6 +53,7 @@ SELECT
     _legacy_mdcd_dlvrbl_fil_doc_id,
     _legacy_mdcd_dlvrbl_id,
     _legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id,
-    _legacy_mdcd_demo_pgm_mntrg_doc_id
+    _legacy_mdcd_demo_pgm_mntrg_doc_id,
+    _internal_pmda_s3_file_id
 FROM
     no_s3_path

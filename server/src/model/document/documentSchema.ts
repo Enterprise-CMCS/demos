@@ -29,11 +29,11 @@ export const documentSchema = gql`
     s3Path: NonEmptyString! @auth(requires: ["Access CMS Field"])
     owner: User!
     documentType: DocumentType!
-    application: Application! @auth(requires: ["Access CMS Field"])
+    application: Application!
     phaseName: PhaseName @auth(requires: ["Access CMS Field"])
-    presignedDownloadUrl: String! @auth(requires: ["Access CMS Field"])
+    presignedDownloadUrl: String!
     "The sanitized file name, with extension, that this document should download as."
-    downloadFileName: String! @auth(requires: ["Access CMS Field"])
+    downloadFileName: String!
     deliverable: Deliverable @auth(requires: ["Access CMS Field"])
     deliverableSubmissionAction: DeliverableAction
     hasPendingUIPathResult: Boolean! @auth(requires: ["Access CMS Field"])
