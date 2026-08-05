@@ -407,6 +407,7 @@ erDiagram
     timestamptz date_value
     timestamptz created_at
     timestamptz updated_at
+    bool is_migrated_from_pmda "Default: FALSE"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }
@@ -615,6 +616,7 @@ erDiagram
     text deliverable_submission_action_type_id FK "FK116: (deliverable_submission_action_id, deliverable_submission_action_type_id) ∈ deliverable_action.(id, action_type_id)<br>FK117: deliverable_submission_action_type_id ∈ deliverable_submission_action_type_limit.id<br>NULLABLE"
     timestamptz created_at
     timestamptz updated_at
+    bool is_migrated_from_pmda "Default: FALSE"
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK check_non_empty_s3_path "Validate that the S3 path is not empty or only whitespace."
     CONSTRAINT_CHECK check_phase_id_deliverable_id_null "Validate that at least one of phase_id and deliverable_id are NULL."

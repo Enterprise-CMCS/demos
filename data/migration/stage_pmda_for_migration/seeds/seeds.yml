@@ -50,3 +50,23 @@ seeds:
               arguments:
                 to: source('legacy_pmda_raw', 'role_rfrnc')
                 field: role_cd
+
+  - name: crosswalk_mdcd_demo_aplctn_doc_type_cd_to_document_type
+    columns:
+      - name: _legacy_mdcd_demo_aplctn_doc_type_cd
+        data_tests:
+          - relationships:
+              name: assert_all_mdcd_demo_aplctn_doc_type_cd_in_crosswalk_exist_in_pmda
+              arguments:
+                to: source('legacy_pmda_raw', 'mdcd_demo_aplctn_doc_type_rfrnc')
+                field: mdcd_demo_aplctn_doc_type_cd
+
+  - name: crosswalk_pgm_mntrg_ctgry_type_cd_to_desc
+    columns:
+      - name: _legacy_pgm_mntrg_ctgry_type_cd
+        data_tests:
+          - relationships:
+              name: assert_all_pgm_mntrg_ctgry_type_cd_in_crosswalk_exist_in_pmda
+              arguments:
+                to: source('legacy_pmda_raw', 'pgm_mntrg_ctgry_type_rfrnc')
+                field: pgm_mntrg_ctgry_type_cd
