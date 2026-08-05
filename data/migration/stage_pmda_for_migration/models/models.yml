@@ -449,6 +449,9 @@ models:
         data_type: integer
       - name: _legacy_mdcd_demo_pgm_mntrg_doc_id
         data_type: integer
+      - name: _internal_pmda_s3_file_id
+        data_type: bigint
+        description: NOTE - should add not null and unique checks here once fully implemented
       - name: is_migrated_from_pmda
         data_type: boolean
         data_tests:
@@ -893,8 +896,35 @@ models:
   # Document Models
   - name: docs_base_pmda_deliv_docs
     columns:
+      - name: mdcd_dlvrbl_fil_doc_id
+        data_type: integer
+        data_tests:
+          - unique:
+              name: assert_no_duplicate_mdcd_dlvrbl_fil_doc_ids_in_base_tbl
       - name: creatd_dt
         data_type: timestamptz
         data_tests:
           - not_null:
               name: assert_no_missing_creatd_dt_in_base_pmda_deliv_docs
+
+  # System Models
+  - name: system_file_move_tracker
+    description: This table is used to track the file copy from legacy PMDA to DEMOs.
+    columns:
+      - name: final_document_id
+        data_type: uuid
+        data_tests:
+          - unique:
+              name: assert_all_final_doc_ids_unique_in_file_move_tracker
+      - name: _internal_pmda_s3_file_id
+        data_type: bigint
+        data_tests:
+          - unique:
+              name: assert_all_internal_pmda_file_ids_unique_in_file_move_tracker
+          - not_null:
+              name: assert_all_internal_pmda_file_ids_not_null_in_file_move_tracker
+      - name: legacy_pmda_s3_path
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_all_legacy_s3_paths_not_null_in_file_move_tracker
