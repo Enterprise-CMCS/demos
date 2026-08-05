@@ -5,6 +5,7 @@ import { AdminPage } from "./AdminPage";
 import { TestProvider } from "test-utils/TestProvider";
 import { developmentMockUser } from "mock-data/userMocks";
 import { CurrentUser } from "components/user/UserContext";
+import { DialogProvider } from "components/dialog/DialogContext";
 import { USER_MANAGEMENT_TEST_ID } from "./UserManagement";
 
 const ADMIN_USER: CurrentUser = {...developmentMockUser, person: { ...developmentMockUser.person, personType: "demos-admin" } };
@@ -12,7 +13,9 @@ const ADMIN_USER: CurrentUser = {...developmentMockUser, person: { ...developmen
 const renderAdminPage = () => {
   render(
     <TestProvider currentUser={ADMIN_USER}>
-      <AdminPage />
+      <DialogProvider>
+        <AdminPage />
+      </DialogProvider>
     </TestProvider>
   );
 };
