@@ -67,6 +67,24 @@ export function createDeliverableEmailTemplate(
         );
       }
 
+      if (config.includeRequestedDueDate) {
+        props.requestedDueDate = formatDate(
+          getRequiredValue(
+            input.deliverable?.requestedDueDate,
+            "deliverable.requestedDueDate",
+            config.id
+          )
+        );
+      }
+
+      if (config.requiresExtensionDecision) {
+        props.extensionDecision = getRequiredValue(
+          input.deliverable?.extensionDecision,
+          "deliverable.extensionDecision",
+          config.id
+        );
+      }
+
       return props;
     },
     getRecipients(input) {

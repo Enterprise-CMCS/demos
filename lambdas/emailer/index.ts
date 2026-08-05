@@ -28,6 +28,9 @@ const templateByEmailType: Record<string, string> = {
   "Deliverable Accepted": "deliverable-accepted",
   "Deliverable Approved": "deliverable-approved",
   "Deliverable Received and Filed": "deliverable-received-and-filed",
+  "Extension Requested": "extension-requested",
+  "Extension Decision Made": "extension-decision-made",
+  "Resubmission Requested": "resubmission-requested",
 };
 
 export interface EmailData extends Pick<Options, "html" | "cc" | "bcc"> {

@@ -17,7 +17,9 @@ const deliverableCreatedInput = {
     name: "Quarterly Budget Report",
     deliverableTypeId: "Close Out Report",
     dueDate: "2026-06-01T12:00:00.000Z",
+    extensionDecision: "Approved" as const,
     previousDueDate: "2026-05-01T12:00:00.000Z",
+    requestedDueDate: "2026-07-01T12:00:00.000Z",
     statusId: "Upcoming",
   },
 };
@@ -81,6 +83,76 @@ describe("renderEmail", () => {
       })
     ).rejects.toThrow(
       "Missing value for deliverable.previousDueDate while rendering deliverable-due-date-updated.data"
+    );
+  });
+
+  it.each([
+    ["deliverable-accepted", "Accepted"],
+    ["deliverable-approved", "Approved"],
+    ["deliverable-received-and-filed", "Received and Filed"],
+  ])("renders the %s completion template", async (templateId, action) => {
+    const payload = await renderEmail(templateId, deliverableCreatedInput);
+
+    expect(payload.subject).toBe(`CMS DEMOS Deliverable: ${action}`);
+    expect(payload.text).toContain(
+      `CMS has ${action} a Close Out Report deliverable. View this deliverable in the DEMOS system:`
+    );
+    expect(payload.text).toContain(`Action: ${action}`);
+  });
+
+  it("renders an extension-requested template", async () => {
+    const payload = await renderEmail("extension-requested", deliverableCreatedInput);
+
+    expect(payload.subject).toBe("CMS DEMOS Deliverable: Extension Requested");
+    expect(payload.text).toContain(
+      "A state user has requested an extension for a Close Out Report deliverable, originally due on 2026-06-01."
+    );
+    expect(payload.text).toContain("Requested due date: 2026-07-01");
+  });
+
+  it("renders an extension-decision-made template", async () => {
+    const payload = await renderEmail("extension-decision-made", deliverableCreatedInput);
+
+    expect(payload.subject).toBe("CMS DEMOS Deliverable: Extension Decision Made");
+    expect(payload.text).toContain(
+      "CMS has Approved an extension request for your Close Out Report deliverable. The current due date is 2026-06-01."
+    );
+    expect(payload.text).toContain("Previous due date: 2026-05-01");
+  });
+
+  it("renders a resubmission-requested template", async () => {
+    const payload = await renderEmail("resubmission-requested", deliverableCreatedInput);
+
+    expect(payload.subject).toBe("CMS DEMOS Deliverable: Resubmission Requested");
+    expect(payload.text).toContain(
+      "CMS has requested a resubmission for a Close Out Report deliverable, due on 2026-06-01."
+    );
+    expect(payload.text).toContain("Previous due date: 2026-05-01");
+  });
+
+  it("reports missing extension-specific values", async () => {
+    await expect(
+      renderEmail("extension-requested", {
+        ...deliverableCreatedInput,
+        deliverable: {
+          ...deliverableCreatedInput.deliverable,
+          requestedDueDate: undefined,
+        },
+      })
+    ).rejects.toThrow(
+      "Missing value for deliverable.requestedDueDate while rendering extension-requested.data"
+    );
+
+    await expect(
+      renderEmail("extension-decision-made", {
+        ...deliverableCreatedInput,
+        deliverable: {
+          ...deliverableCreatedInput.deliverable,
+          extensionDecision: undefined,
+        },
+      })
+    ).rejects.toThrow(
+      "Missing value for deliverable.extensionDecision while rendering extension-decision-made.data"
     );
   });
 

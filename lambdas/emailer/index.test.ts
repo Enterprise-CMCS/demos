@@ -41,7 +41,9 @@ const realtimeDeliverableCreatedEnvelope = {
       name: "Quarterly Budget Report",
       deliverableTypeId: "Close Out Report",
       dueDate: "2026-06-01T12:00:00.000Z",
+      extensionDecision: "Approved",
       previousDueDate: "2026-05-01T12:00:00.000Z",
+      requestedDueDate: "2026-07-01T12:00:00.000Z",
       statusId: "Upcoming",
     },
   },
@@ -216,12 +218,15 @@ describe("emailer", () => {
       "Deliverable Due Date Updated",
       "CMS DEMOS Deliverable: Deliverable Due Date Updated",
     ],
-    ["Deliverable Accepted", "CMS DEMOS Deliverable: Deliverable Accepted"],
-    ["Deliverable Approved", "CMS DEMOS Deliverable: Deliverable Approved"],
+    ["Deliverable Accepted", "CMS DEMOS Deliverable: Accepted"],
+    ["Deliverable Approved", "CMS DEMOS Deliverable: Approved"],
     [
       "Deliverable Received and Filed",
-      "CMS DEMOS Deliverable: Deliverable Received and Filed",
+      "CMS DEMOS Deliverable: Received and Filed",
     ],
+    ["Extension Requested", "CMS DEMOS Deliverable: Extension Requested"],
+    ["Extension Decision Made", "CMS DEMOS Deliverable: Extension Decision Made"],
+    ["Resubmission Requested", "CMS DEMOS Deliverable: Resubmission Requested"],
   ])("should select the %s template by email type", async (emailType, subject) => {
     const email = await renderRealtimeEmailIfNeeded({
       ...realtimeDeliverableCreatedEnvelope,

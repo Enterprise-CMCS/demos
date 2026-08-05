@@ -39,28 +39,62 @@ export const deliverableEmailConfigById = {
   },
   "deliverable-accepted": {
     id: "deliverable-accepted",
-    action: "Deliverable Accepted",
+    action: "Accepted",
     Message: ({ deliverableType, link }) => (
       <Text style={textStyle}>
-        Your {deliverableType} deliverable has been accepted. <DeliverableLink href={link} />
+        CMS has Accepted a {deliverableType} deliverable. <DeliverableLink href={link} includeNextSteps={false} />
       </Text>
     ),
   },
   "deliverable-approved": {
     id: "deliverable-approved",
-    action: "Deliverable Approved",
+    action: "Approved",
     Message: ({ deliverableType, link }) => (
       <Text style={textStyle}>
-        Your {deliverableType} deliverable has been approved. <DeliverableLink href={link} />
+        CMS has Approved a {deliverableType} deliverable. <DeliverableLink href={link} includeNextSteps={false} />
       </Text>
     ),
   },
   "deliverable-received-and-filed": {
     id: "deliverable-received-and-filed",
-    action: "Deliverable Received and Filed",
+    action: "Received and Filed",
     Message: ({ deliverableType, link }) => (
       <Text style={textStyle}>
-        Your {deliverableType} deliverable has been received and filed.{" "}
+        CMS has Received and Filed a {deliverableType} deliverable.{" "}
+        <DeliverableLink href={link} includeNextSteps={false} />
+      </Text>
+    ),
+  },
+  "extension-requested": {
+    id: "extension-requested",
+    action: "Extension Requested",
+    includeRequestedDueDate: true,
+    Message: ({ currentDueDate, deliverableType, link }) => (
+      <Text style={textStyle}>
+        A state user has requested an extension for a {deliverableType} deliverable, originally due on {currentDueDate}.{" "}
+        <DeliverableLink href={link} />
+      </Text>
+    ),
+  },
+  "extension-decision-made": {
+    id: "extension-decision-made",
+    action: "Extension Decision Made",
+    includePreviousDueDate: true,
+    requiresExtensionDecision: true,
+    Message: ({ currentDueDate, deliverableType, extensionDecision, link }) => (
+      <Text style={textStyle}>
+        CMS has {extensionDecision} an extension request for your {deliverableType} deliverable. The current due date is {currentDueDate}.{" "}
+        <DeliverableLink href={link} />
+      </Text>
+    ),
+  },
+  "resubmission-requested": {
+    id: "resubmission-requested",
+    action: "Resubmission Requested",
+    includePreviousDueDate: true,
+    Message: ({ currentDueDate, deliverableType, link }) => (
+      <Text style={textStyle}>
+        CMS has requested a resubmission for a {deliverableType} deliverable, due on {currentDueDate}.{" "}
         <DeliverableLink href={link} />
       </Text>
     ),

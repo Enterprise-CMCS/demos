@@ -14,7 +14,9 @@ export type DeliverableEmailInput = {
     name: string;
     deliverableTypeId: string;
     dueDate: string;
+    extensionDecision?: "Approved" | "Denied";
     previousDueDate?: string;
+    requestedDueDate?: string;
     statusId: string;
   };
 };
@@ -24,8 +26,10 @@ export type DeliverableEmailProps = {
   demonstrationTitle: string;
   deliverableName: string;
   deliverableType: string;
+  extensionDecision?: "Approved" | "Denied";
   link: string;
   previousDueDate?: string;
+  requestedDueDate?: string;
   state: string;
 };
 
@@ -33,5 +37,7 @@ export type DeliverableEmailConfig = {
   action: string;
   id: string;
   includePreviousDueDate?: boolean;
+  includeRequestedDueDate?: boolean;
   Message: ComponentType<DeliverableEmailProps>;
+  requiresExtensionDecision?: boolean;
 };
