@@ -11,7 +11,8 @@ SELECT
     coalesce(amendment.amndmt_stus_dt, app.mdcd_demo_aplctn_stus_dt) AS amndmt_stus_dt,
     amendment.mdcd_demo_aplctn_sgntr_lvl_cd,
     amendment.creatd_dt,
-    amendment.mdcd_demo_amndmt_id AS _legacy_mdcd_demo_amndmt_id
+    amendment.mdcd_demo_amndmt_id AS _legacy_mdcd_demo_amndmt_id,
+    amendment.mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id
 FROM
     {{ source('legacy_pmda_raw', 'mdcd_demo_amndmt') }} AS amendment
 LEFT JOIN

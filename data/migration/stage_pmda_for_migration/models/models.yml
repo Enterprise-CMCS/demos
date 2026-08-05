@@ -104,6 +104,11 @@ models:
               name: assert_no_missing_updated_at_in_final_amendment_table
       - name: _legacy_mdcd_demo_amndmt_id
         data_type: integer
+      - name: _legacy_mdcd_pendg_demo_id
+        data_type: integer
+        data_tests:
+          - unique:
+              name: assert_legacy_mdcd_pendg_demo_id_is_unique_in_final_amendment_table
 
   - name: final_demos_app_application_phase
     columns:

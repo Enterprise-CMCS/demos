@@ -13,12 +13,13 @@ SELECT
     signature_level_id,
     coalesce(creatd_dt, current_timestamp) AS created_at,
     coalesce(creatd_dt, current_timestamp) AS updated_at,
-    _legacy_mdcd_demo_amndmt_id
+    _legacy_mdcd_demo_amndmt_id,
+    _legacy_mdcd_pendg_demo_id
 FROM
     {{ ref('apps_unfiltered_staged_finalized_pmda_amendment') }}
 WHERE _legacy_mdcd_demo_amndmt_id NOT IN (
     SELECT e1._legacy_mdcd_demo_amndmt_id FROM {{ ref('errors_app_amendment_without_demo') }} AS e1
 )
 AND _legacy_mdcd_demo_amndmt_id NOT IN (
-    SELECT e2._legacy_mdcd_demo_amndmt_id FROM {{ ref('errors_app_amendment_invalid_signature_level') }} AS e2
+    SELECT e2._legacy_mdcd_demo_amndmt_id FROM {{ ref('errors_app_finalized_amendment_invalid_signature_level') }} AS e2
 )
