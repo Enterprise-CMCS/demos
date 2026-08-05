@@ -10,8 +10,8 @@ source /opt/demos-data/bin/activate
 python check_if_in_devcontainer.py
 
 # Drop and recreate migration schemas entirely
-# python manage_migration_schemas.py drop raw
-# python manage_migration_schemas.py create raw
+python manage_migration_schemas.py drop raw
+python manage_migration_schemas.py create raw
 python manage_migration_schemas.py drop staging
 python manage_migration_schemas.py create staging
 
@@ -21,8 +21,8 @@ npm run migrate:reset
 npm run dbrefresh
 
 # Move data from MySQL to PostgreSQL
-# cd /workspaces/demos/data/demos_data_tools
-# python pmda_exporter.py
+cd /workspaces/demos/data/demos_data_tools
+python pmda_exporter.py
 
 # Remove the PMDA S3 file list if it exists in seeds
 # Then, pull it down from S3

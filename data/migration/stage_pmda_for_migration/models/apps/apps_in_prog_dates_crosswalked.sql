@@ -108,7 +108,7 @@ completion_date_derivations AS (
             WHEN
                 state_application_submitted_date IS NOT NULL
                 AND completeness_review_due_date IS NOT NULL
-                THEN completeness_review_due_date
+                THEN state_application_submitted_date
         END AS application_intake_completion_date,
         CASE
             WHEN
@@ -148,7 +148,7 @@ start_date_derivations AS (
         coalesce(phase_1_strt_dt, creatd_dt::DATE) AS concept_start_date,
         CASE
             WHEN concept_completion_date IS NOT NULL
-                THEN concept_completion_date + INTERVAL '1 day'
+                THEN (concept_completion_date + INTERVAL '1 day')::DATE
             WHEN
                 state_application_submitted_date IS NOT NULL
                 OR completeness_review_due_date IS NOT NULL
@@ -156,7 +156,7 @@ start_date_derivations AS (
         END AS application_intake_start_date,
         CASE
             WHEN application_intake_completion_date IS NOT NULL
-                THEN application_intake_completion_date + INTERVAL '1 day'
+                THEN (application_intake_completion_date + INTERVAL '1 day')::DATE
             WHEN
                 state_application_deemed_complete IS NOT NULL
                 OR federal_comment_period_start_date IS NOT NULL
@@ -165,7 +165,7 @@ start_date_derivations AS (
         END AS completeness_start_date,
         CASE
             WHEN federal_comment_period_end_date IS NOT NULL
-                THEN federal_comment_period_end_date + INTERVAL '1 day'
+                THEN (federal_comment_period_end_date + INTERVAL '1 day')::DATE
             WHEN
                 expected_approval_date IS NOT NULL
                 OR sme_initial_review_date IS NOT NULL
