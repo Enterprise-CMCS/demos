@@ -2,6 +2,7 @@ import { createColumnHelper, SortingFn } from "@tanstack/react-table";
 import { Person, State, User, UserType } from "demos-server";
 import { formatDateForDisplay } from "util/formatDate";
 import { highlightCell } from "../KeywordSearch";
+import { createSelectColumnDef } from "./selectColumn";
 
 const ALL_STATES = "All States";
 
@@ -48,6 +49,7 @@ const sortByLastLoginDate: SortingFn<ManagedUser> = (rowA, rowB) => {
 const columnHelper = createColumnHelper<ManagedUser>();
 
 export const UserManagementColumns = () => [
+  createSelectColumnDef(columnHelper),
   columnHelper.accessor((user) => user.person.fullName, {
     id: "name",
     header: "Name",
