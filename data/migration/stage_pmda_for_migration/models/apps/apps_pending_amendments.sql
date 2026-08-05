@@ -3,7 +3,7 @@ SELECT
     amendment_application.demonstration_status_id,
     pending_demo.mdcd_demo_name AS name, -- noqa: RF04
     pending_demo.mdcd_demo_desc AS description,
-    pending_demo.state_prfmnc_yr_strt_dt AS effective_date,
+    (pending_demo.state_prfmnc_yr_strt_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS effective_date,
     amendment_application.status_updated_at,
     pending_demo.mdcd_demo_aplctn_sgntr_lvl_cd AS _legacy_signature_level_id,
     coalesce(pending_demo.creatd_dt, current_timestamp) AS created_at,
