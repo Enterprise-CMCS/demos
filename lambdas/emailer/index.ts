@@ -31,6 +31,7 @@ const templateByEmailType: Record<string, string> = {
   "Extension Requested": "extension-requested",
   "Extension Decision Made": "extension-decision-made",
   "Resubmission Requested": "resubmission-requested",
+  "Public Comment Added": "public-comment-added",
 };
 
 export interface EmailData extends Pick<Options, "html" | "cc" | "bcc"> {

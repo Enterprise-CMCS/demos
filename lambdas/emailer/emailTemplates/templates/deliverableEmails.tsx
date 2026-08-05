@@ -99,6 +99,16 @@ export const deliverableEmailConfigById = {
       </Text>
     ),
   },
+  "public-comment-added": {
+    id: "public-comment-added",
+    action: "Public Comment Added",
+    Message: ({ deliverableType, link }) => (
+      <Text style={textStyle}>
+        A public comment has been added to a {deliverableType} deliverable.{" "}
+        <DeliverableLink href={link} />
+      </Text>
+    ),
+  },
 } satisfies Record<string, DeliverableEmailConfig>;
 
 export const deliverableEmailTemplates = Object.fromEntries(

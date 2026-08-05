@@ -6,20 +6,32 @@ import {
   STATE_USER_DEMONSTRATION_ROLES,
 } from "../../constants";
 import { enqueueTrackedRealtimeEmail } from "./emailNotification";
-import { FinalDeliverableStatus } from "../../types";
+import { FinalDeliverableStatus, PersonType } from "../../types";
 
-type DeliverableEmailDispatchInput = {
+type DeliverableEmailContextInput = {
   deliverableId: string;
-  sourceActionId: string;
   triggeredByUserId: string;
 };
 
-type DeliverableDueDateUpdatedEmailDispatchInput = DeliverableEmailDispatchInput & {
+type DeliverableEmailDispatchInput = DeliverableEmailContextInput & {
+  sourceActionId: string;
+};
+
+type DeliverablePreviousDueDateEmailDispatchInput = DeliverableEmailDispatchInput & {
   previousDueDate: Date;
+};
+
+type ExtensionRequestedEmailDispatchInput = DeliverableEmailDispatchInput & {
+  requestedDueDate: Date;
 };
 
 type DeliverableCompletedEmailDispatchInput = DeliverableEmailDispatchInput & {
   finalStatus: FinalDeliverableStatus;
+};
+
+type PublicCommentAddedEmailDispatchInput = DeliverableEmailContextInput & {
+  authorPersonTypeId: PersonType;
+  publicCommentId: string;
 };
 
 type ResolvedEmailRecipient = {
@@ -44,13 +56,41 @@ export async function dispatchDeliverableSubmittedEmail(
   );
 }
 
+export async function dispatchExtensionRequestedEmail(
+  input: ExtensionRequestedEmailDispatchInput
+): Promise<void> {
+  return dispatchDeliverableEmail(input, "Extension Requested", enqueueExtensionRequestedEmail);
+}
+
+export async function dispatchPublicCommentAddedEmail(
+  input: PublicCommentAddedEmailDispatchInput
+): Promise<void> {
+  return dispatchDeliverableEmail(
+    input,
+    "Public Comment Added",
+    enqueuePublicCommentAddedEmail
+  );
+}
+
 export async function dispatchDeliverableDueDateUpdatedEmail(
-  input: DeliverableDueDateUpdatedEmailDispatchInput
+  input: DeliverablePreviousDueDateEmailDispatchInput
 ): Promise<void> {
   return dispatchDeliverableEmail(
     input,
     "Deliverable Due Date Updated",
-    enqueueDeliverableDueDateUpdatedEmail
+    (dispatchInput) =>
+      enqueueDeliverablePreviousDueDateEmail(
+        dispatchInput,
+        "Deliverable Due Date Updated"
+      )
+  );
+}
+
+export async function dispatchResubmissionRequestedEmail(
+  input: DeliverablePreviousDueDateEmailDispatchInput
+): Promise<void> {
+  return dispatchDeliverableEmail(input, "Resubmission Requested", (dispatchInput) =>
+    enqueueDeliverablePreviousDueDateEmail(dispatchInput, "Resubmission Requested")
   );
 }
 
@@ -69,7 +109,7 @@ export async function dispatchDeliverableCompletedEmail(
   );
 }
 
-async function dispatchDeliverableEmail<T extends DeliverableEmailDispatchInput>(
+async function dispatchDeliverableEmail<T extends DeliverableEmailContextInput>(
   input: T,
   emailType: string,
   enqueueEmail: (input: T) => Promise<string>
@@ -96,8 +136,94 @@ async function dispatchDeliverableEmail<T extends DeliverableEmailDispatchInput>
   }
 }
 
-async function enqueueDeliverableDueDateUpdatedEmail(
-  input: DeliverableDueDateUpdatedEmailDispatchInput
+async function enqueuePublicCommentAddedEmail(
+  input: PublicCommentAddedEmailDispatchInput
+): Promise<string> {
+  const deliverable = await prisma().deliverable.findUniqueOrThrow({
+    where: { id: input.deliverableId },
+    include: {
+      cmsOwner: { include: { person: true } },
+      demonstration: {
+        include: {
+          demonstrationRoleAssignments: {
+            where: {
+              roleId: { in: Array.from(STATE_USER_DEMONSTRATION_ROLES) },
+            },
+            include: { person: true },
+          },
+        },
+      },
+    },
+  });
+
+  let recipientPeople;
+  if (input.authorPersonTypeId === "demos-state-user") {
+    recipientPeople = [deliverable.cmsOwner.person];
+  } else if (
+    input.authorPersonTypeId === "demos-cms-user" ||
+    input.authorPersonTypeId === "demos-admin"
+  ) {
+    recipientPeople = deliverable.demonstration.demonstrationRoleAssignments.map(
+      (assignment) => assignment.person
+    );
+  } else {
+    throw new Error(
+      `Cannot dispatch Public Comment Added email for deliverable ${input.deliverableId}: ` +
+        `unsupported author person type ${input.authorPersonTypeId}.`
+    );
+  }
+
+  const bcc = deduplicateRecipients(
+    recipientPeople,
+    input.deliverableId,
+    "Public Comment Added"
+  );
+  if (bcc.length === 0) {
+    throw new Error(
+      `Cannot dispatch Public Comment Added email for deliverable ${input.deliverableId}: ` +
+        "no recipients were found."
+    );
+  }
+
+  const message = buildRealtimeEmailEnvelope({
+    emailType: "Public Comment Added",
+    entityType: "deliverable",
+    entityId: deliverable.id,
+    triggeredById: input.triggeredByUserId,
+    idempotencyKey: `Public Comment Added:public-comment:${input.publicCommentId}`,
+    payload: {
+      recipients: {
+        to: [],
+        bcc: bcc.map(({ name, address }) => ({ name, address })),
+      },
+      demonstration: {
+        id: deliverable.demonstration.id,
+        name: deliverable.demonstration.name,
+        stateId: deliverable.demonstration.stateId,
+      },
+      deliverable: {
+        id: deliverable.id,
+        name: deliverable.name,
+        deliverableTypeId: deliverable.deliverableTypeId,
+        dueDate: deliverable.dueDate.toISOString(),
+        statusId: deliverable.statusId,
+      },
+    },
+  });
+
+  return enqueueTrackedRealtimeEmail(
+    message,
+    undefined,
+    bcc.map(({ personId, address }) => ({
+      personId,
+      emailAddress: address,
+    }))
+  );
+}
+
+async function enqueueDeliverablePreviousDueDateEmail(
+  input: DeliverablePreviousDueDateEmailDispatchInput,
+  emailType: string
 ): Promise<string> {
   const deliverable = await prisma().deliverable.findUniqueOrThrow({
     where: { id: input.deliverableId },
@@ -120,22 +246,22 @@ async function enqueueDeliverableDueDateUpdatedEmail(
       (assignment) => assignment.person
     ),
     input.deliverableId,
-    "Deliverable Due Date Updated"
+    emailType
   );
 
   if (bcc.length === 0) {
     throw new Error(
-      `Cannot dispatch Deliverable Due Date Updated email for deliverable ${input.deliverableId}: ` +
+      `Cannot dispatch ${emailType} email for deliverable ${input.deliverableId}: ` +
         "no State Points of Contact were found on the demonstration."
     );
   }
 
   const message = buildRealtimeEmailEnvelope({
-    emailType: "Deliverable Due Date Updated",
+    emailType,
     entityType: "deliverable",
     entityId: deliverable.id,
     triggeredById: input.triggeredByUserId,
-    idempotencyKey: `Deliverable Due Date Updated:deliverable-action:${input.sourceActionId}`,
+    idempotencyKey: `${emailType}:deliverable-action:${input.sourceActionId}`,
     payload: {
       recipients: {
         to: [],
@@ -315,6 +441,22 @@ async function enqueueDeliverableCreatedEmail(
 async function enqueueDeliverableSubmittedEmail(
   input: DeliverableEmailDispatchInput
 ): Promise<string> {
+  return enqueueCmsOwnerDeliverableEmail(input, "Deliverable Submitted");
+}
+
+async function enqueueExtensionRequestedEmail(
+  input: ExtensionRequestedEmailDispatchInput
+): Promise<string> {
+  return enqueueCmsOwnerDeliverableEmail(input, "Extension Requested", {
+    requestedDueDate: input.requestedDueDate.toISOString(),
+  });
+}
+
+async function enqueueCmsOwnerDeliverableEmail(
+  input: DeliverableEmailDispatchInput,
+  emailType: string,
+  extraDeliverablePayload: Record<string, string> = {}
+): Promise<string> {
   const deliverable = await prisma().deliverable.findUniqueOrThrow({
     where: { id: input.deliverableId },
     include: {
@@ -326,17 +468,17 @@ async function enqueueDeliverableSubmittedEmail(
   const cmsOwnerEmail = deliverable.cmsOwner.person.email.trim();
   if (!cmsOwnerEmail) {
     throw new Error(
-      `Cannot dispatch Deliverable Submitted email for deliverable ${input.deliverableId}: ` +
+      `Cannot dispatch ${emailType} email for deliverable ${input.deliverableId}: ` +
         `CMS owner ${deliverable.cmsOwner.person.id} has no email address.`
     );
   }
 
   const message = buildRealtimeEmailEnvelope({
-    emailType: "Deliverable Submitted",
+    emailType,
     entityType: "deliverable",
     entityId: deliverable.id,
     triggeredById: input.triggeredByUserId,
-    idempotencyKey: `Deliverable Submitted:deliverable-action:${input.sourceActionId}`,
+    idempotencyKey: `${emailType}:deliverable-action:${input.sourceActionId}`,
     payload: {
       recipients: {
         to: [],
@@ -358,6 +500,7 @@ async function enqueueDeliverableSubmittedEmail(
         deliverableTypeId: deliverable.deliverableTypeId,
         dueDate: deliverable.dueDate.toISOString(),
         statusId: deliverable.statusId,
+        ...extraDeliverablePayload,
       },
     },
   });

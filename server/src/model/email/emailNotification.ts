@@ -13,7 +13,7 @@ export type EmailNotificationRecipient = {
 
 export async function enqueueTrackedRealtimeEmail(
   message: RealtimeEmailEnvelope,
-  sourceActionId: string,
+  sourceActionId: string | undefined,
   recipients: EmailNotificationRecipient[]
 ): Promise<string> {
   const notification = await prisma().emailNotification.create({

@@ -130,6 +130,17 @@ describe("renderEmail", () => {
     expect(payload.text).toContain("Previous due date: 2026-05-01");
   });
 
+  it("renders a public-comment-added template", async () => {
+    const payload = await renderEmail("public-comment-added", deliverableCreatedInput);
+
+    expect(payload.subject).toBe("CMS DEMOS Deliverable: Public Comment Added");
+    expect(payload.text).toContain(
+      "A public comment has been added to a Close Out Report deliverable."
+    );
+    expect(payload.text).toContain("Action: Public Comment Added");
+    expect(payload.text).not.toContain("Free insulin is a good policy proposal");
+  });
+
   it("reports missing extension-specific values", async () => {
     await expect(
       renderEmail("extension-requested", {

@@ -8,6 +8,9 @@ import {
   dispatchDeliverableCreatedEmail,
   dispatchDeliverableDueDateUpdatedEmail,
   dispatchDeliverableSubmittedEmail,
+  dispatchExtensionRequestedEmail,
+  dispatchPublicCommentAddedEmail,
+  dispatchResubmissionRequestedEmail,
 } from "./deliverableEmail";
 
 vi.mock("../../log", () => ({
@@ -128,6 +131,118 @@ describe("deliverable email dispatch", () => {
           emailAddress: "cms.owner@example.com",
         },
       ]
+    );
+  });
+
+  it("BCCs the CMS owner when a state user requests an extension", async () => {
+    const requestedDueDate = new Date("2026-09-01T03:59:59.999Z");
+
+    await dispatchExtensionRequestedEmail({
+      deliverableId: deliverable.id,
+      requestedDueDate,
+      sourceActionId,
+      triggeredByUserId: "state-user-1",
+    });
+
+    expect(buildRealtimeEmailEnvelope).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        emailType: "Extension Requested",
+        entityType: "deliverable",
+        entityId: deliverable.id,
+        triggeredById: "state-user-1",
+        idempotencyKey: `Extension Requested:deliverable-action:${sourceActionId}`,
+        payload: expect.objectContaining({
+          recipients: {
+            to: [],
+            bcc: [
+              {
+                name: "CMS Owner",
+                address: "cms.owner@example.com",
+              },
+            ],
+          },
+          deliverable: expect.objectContaining({
+            dueDate: deliverable.dueDate.toISOString(),
+            requestedDueDate: requestedDueDate.toISOString(),
+          }),
+        }),
+      })
+    );
+    expect(enqueueTrackedRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
+      envelope,
+      sourceActionId,
+      [
+        {
+          personId: "cms-owner-1",
+          emailAddress: "cms.owner@example.com",
+        },
+      ]
+    );
+  });
+
+  it("BCCs the CMS owner for a state-authored public comment", async () => {
+    await dispatchPublicCommentAddedEmail({
+      authorPersonTypeId: "demos-state-user",
+      deliverableId: deliverable.id,
+      publicCommentId: "public-comment-1",
+      triggeredByUserId: "state-user-1",
+    });
+
+    expect(buildRealtimeEmailEnvelope).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        emailType: "Public Comment Added",
+        idempotencyKey: "Public Comment Added:public-comment:public-comment-1",
+        payload: expect.objectContaining({
+          recipients: {
+            to: [],
+            bcc: [{ name: "CMS Owner", address: "cms.owner@example.com" }],
+          },
+        }),
+      })
+    );
+    expect(enqueueTrackedRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
+      envelope,
+      undefined,
+      [{ personId: "cms-owner-1", emailAddress: "cms.owner@example.com" }]
+    );
+  });
+
+  it("BCCs all State POCs for a CMS-authored public comment", async () => {
+    findUniqueOrThrow.mockResolvedValueOnce({
+      ...deliverable,
+      demonstration: {
+        ...deliverable.demonstration,
+        demonstrationRoleAssignments: [
+          {
+            roleId: "State Point of Contact",
+            person: {
+              id: "state-poc-1",
+              firstName: "State",
+              lastName: "POC",
+              email: "state.poc@example.com",
+            },
+          },
+        ],
+      },
+    });
+
+    await dispatchPublicCommentAddedEmail({
+      authorPersonTypeId: "demos-cms-user",
+      deliverableId: deliverable.id,
+      publicCommentId: "public-comment-1",
+      triggeredByUserId: "cms-user-1",
+    });
+
+    expect(buildRealtimeEmailEnvelope).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        emailType: "Public Comment Added",
+        payload: expect.objectContaining({
+          recipients: {
+            to: [],
+            bcc: [{ name: "State POC", address: "state.poc@example.com" }],
+          },
+        }),
+      })
     );
   });
 
@@ -279,6 +394,56 @@ describe("deliverable email dispatch", () => {
         { personId: "state-poc-1", emailAddress: "state.one@example.com" },
         { personId: "state-poc-2", emailAddress: "state.two@example.com" },
       ]
+    );
+  });
+
+  it("BCCs all State POCs when a resubmission is requested", async () => {
+    const previousDueDate = new Date("2026-07-01T03:59:59.999Z");
+    findUniqueOrThrow.mockResolvedValueOnce({
+      ...deliverable,
+      demonstration: {
+        ...deliverable.demonstration,
+        demonstrationRoleAssignments: [
+          {
+            roleId: "State Point of Contact",
+            person: {
+              id: "state-poc-1",
+              firstName: "State",
+              lastName: "POC",
+              email: "state.poc@example.com",
+            },
+          },
+        ],
+      },
+    });
+
+    await dispatchResubmissionRequestedEmail({
+      deliverableId: deliverable.id,
+      previousDueDate,
+      sourceActionId,
+      triggeredByUserId: "user-1",
+    });
+
+    expect(buildRealtimeEmailEnvelope).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        emailType: "Resubmission Requested",
+        idempotencyKey: `Resubmission Requested:deliverable-action:${sourceActionId}`,
+        payload: expect.objectContaining({
+          recipients: {
+            to: [],
+            bcc: [{ name: "State POC", address: "state.poc@example.com" }],
+          },
+          deliverable: expect.objectContaining({
+            dueDate: deliverable.dueDate.toISOString(),
+            previousDueDate: previousDueDate.toISOString(),
+          }),
+        }),
+      })
+    );
+    expect(enqueueTrackedRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
+      envelope,
+      sourceActionId,
+      [{ personId: "state-poc-1", emailAddress: "state.poc@example.com" }]
     );
   });
 

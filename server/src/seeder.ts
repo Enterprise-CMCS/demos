@@ -330,7 +330,8 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
       details: "This is a thing",
       requestedDueDate: "2028-11-30" as DateTimeOrLocalDate,
     },
-    context
+    context,
+    { sendEmailNotifications: false }
   );
   // Need a document of the right type to submit
   await prisma().document.create({
@@ -354,7 +355,8 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
       details: "This is a resubmission request",
       newDueDate: "2028-12-31" as DateTimeOrLocalDate,
     },
-    context
+    context,
+    { sendEmailNotifications: false }
   );
   const firstDeliverableExtension = await selectDeliverableExtension(
     {
@@ -378,7 +380,8 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
       details: "This is a secondary resubmission request",
       newDueDate: "2029-01-31" as DateTimeOrLocalDate,
     },
-    context
+    context,
+    { sendEmailNotifications: false }
   );
   await requestDeliverableExtension(
     deliverable.id,
@@ -387,7 +390,8 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
       details: "Need more time for the resubmission request",
       requestedDueDate: "2029-02-15" as DateTimeOrLocalDate,
     },
-    context
+    context,
+    { sendEmailNotifications: false }
   );
   const secondDeliverableExtension = await selectDeliverableExtension(
     {

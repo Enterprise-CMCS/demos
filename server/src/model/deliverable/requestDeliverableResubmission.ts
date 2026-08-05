@@ -10,11 +10,13 @@ import {
 } from ".";
 import { prisma } from "../../prismaClient";
 import { insertDeliverableAction } from "../deliverableAction/queries";
+import { dispatchResubmissionRequestedEmail } from "../email";
 
 export async function requestDeliverableResubmission(
   deliverableId: string,
   input: RequestDeliverableResubmissionInput,
-  context: GraphQLContext
+  context: GraphQLContext,
+  options: { sendEmailNotifications?: boolean } = {}
 ): Promise<PrismaDeliverable> {
   validateUserPersonTypeAllowed(context, "requestDeliverableResubmission", [
     "demos-admin",
@@ -22,34 +24,50 @@ export async function requestDeliverableResubmission(
   ]);
   const parsedInput = parseRequestDeliverableResubmissionInput(input);
 
-  return await prisma().$transaction(async (tx) => {
-    const unrequestedDeliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
-    validateRequestDeliverableResubmissionInput(unrequestedDeliverable, parsedInput);
+  const { previousDueDate, requestedDeliverable, sourceActionId } =
+    await prisma().$transaction(async (tx) => {
+      const unrequestedDeliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
+      validateRequestDeliverableResubmissionInput(unrequestedDeliverable, parsedInput);
 
-    const requestedDeliverable = await editDeliverable(
+      const requestedDeliverable = await editDeliverable(
+        deliverableId,
+        {
+          statusId: "Upcoming",
+          dueDate: parsedInput.newDueDate.easternTZDate,
+        },
+        tx
+      );
+
+      // Casts below enforced by database
+      const action = await insertDeliverableAction(
+        {
+          deliverableId: deliverableId,
+          actionType: "Requested Resubmission",
+          oldStatus: unrequestedDeliverable.statusId as DeliverableStatus,
+          newStatus: requestedDeliverable.statusId as DeliverableStatus,
+          note: input.details,
+          oldDueDate: unrequestedDeliverable.dueDate,
+          newDueDate: requestedDeliverable.dueDate,
+          userId: context.user.id,
+        },
+        tx
+      );
+
+      return {
+        previousDueDate: unrequestedDeliverable.dueDate,
+        requestedDeliverable,
+        sourceActionId: action.id,
+      };
+    });
+
+  if (options.sendEmailNotifications !== false) {
+    await dispatchResubmissionRequestedEmail({
       deliverableId,
-      {
-        statusId: "Upcoming",
-        dueDate: parsedInput.newDueDate.easternTZDate,
-      },
-      tx
-    );
+      previousDueDate,
+      sourceActionId,
+      triggeredByUserId: context.user.id,
+    });
+  }
 
-    // Casts below enforced by database
-    await insertDeliverableAction(
-      {
-        deliverableId: deliverableId,
-        actionType: "Requested Resubmission",
-        oldStatus: unrequestedDeliverable.statusId as DeliverableStatus,
-        newStatus: requestedDeliverable.statusId as DeliverableStatus,
-        note: input.details,
-        oldDueDate: unrequestedDeliverable.dueDate,
-        newDueDate: requestedDeliverable.dueDate,
-        userId: context.user.id,
-      },
-      tx
-    );
-
-    return requestedDeliverable;
-  });
+  return requestedDeliverable;
 }

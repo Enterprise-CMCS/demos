@@ -2,6 +2,9 @@ export {
   dispatchDeliverableCreatedEmail,
   dispatchDeliverableCompletedEmail,
   dispatchDeliverableDueDateUpdatedEmail,
+  dispatchExtensionRequestedEmail,
+  dispatchPublicCommentAddedEmail,
+  dispatchResubmissionRequestedEmail,
   dispatchDeliverableSubmittedEmail,
 } from "./deliverableEmail";
 export { createTestEmail } from "./createTestEmail";
