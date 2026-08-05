@@ -1,6 +1,7 @@
 """Migrate files from PMDA to DEMOS S3 buckets based on staged data in PostgreSQL."""
 
 import os
+import sys
 from dataclasses import dataclass, replace
 from logging import getLogger
 from typing import TYPE_CHECKING, List
@@ -187,7 +188,8 @@ def main() -> None:
     ]
     logger.info(f"Migrated {len(successful_files)} files successfully")
     if failed_files:
-        logger.error(f"Failed to migrate {len(failed_files)} successfully")
+        logger.error(f"Failed to migrate {len(failed_files)} files successfully")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

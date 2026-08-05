@@ -336,8 +336,10 @@ class TestMigrateFiles:
             "migrate_files.migrate_file", side_effect=[*mock_success_results, *mock_failure_results]
         )
 
-        migrate_files.main()
+        with pytest.raises(SystemExit) as exit_info:
+            migrate_files.main()
 
+        assert exit_info.value.code == 1
         mock_create_duckdb_conn.assert_called_once()
         mock_attach_demos_to_conn.assert_called_once_with(mock_conn)
         mock_get_s3_client.assert_called_once()
