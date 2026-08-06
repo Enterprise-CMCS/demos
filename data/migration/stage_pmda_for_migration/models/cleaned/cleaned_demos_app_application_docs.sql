@@ -6,6 +6,7 @@ WITH no_s3_path AS (
         docs.owner_user_id,
         docs.document_type_id,
         docs.application_id,
+        docs.demonstration_id,
         docs.phase_id,
         NULL::UUID AS deliverable_id,
         NULL::TEXT AS deliverable_type_id,
@@ -14,6 +15,7 @@ WITH no_s3_path AS (
         NULL::TEXT AS deliverable_submission_action_type_id,
         docs.created_at,
         docs.updated_at,
+        docs.application_type_id,
         NULL::INTEGER AS _legacy_mdcd_dlvrbl_fil_doc_id,
         NULL::INTEGER AS _legacy_mdcd_dlvrbl_id,
         docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id,
@@ -33,13 +35,23 @@ WITH no_s3_path AS (
         docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id NOT IN (
             SELECT e3._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id FROM {{ ref('errors_app_docs_missing_owner') }} AS e3
         )
+        AND
+        docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id NOT IN (
+            SELECT e4._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id
+            FROM {{ ref('errors_application_docs_of_type_bn_workbook') }} AS e4
+        )
 )
 
 SELECT
     id,
     name,
     description,
-    application_id || '/' || id AS s3_path,
+    CASE
+        WHEN application_type_id = 'Demonstration'
+            THEN application_id || '/' || id
+        WHEN application_type_id = 'Amendment'
+            THEN demonstration_id || '/' || id
+    END AS s3_path,
     owner_user_id,
     document_type_id,
     application_id,

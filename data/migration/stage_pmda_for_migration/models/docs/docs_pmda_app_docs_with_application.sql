@@ -2,15 +2,19 @@ WITH demos AS (
     (
         SELECT
             id,
-            mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id
-        FROM {{ ref('cleaned_demos_app_demonstration_in_prog_demos') }}
+            application_type_id,
+            _legacy_mdcd_pendg_demo_id,
+            NULL::UUID AS demonstration_id
+        FROM {{ ref('final_demos_app_demonstration') }}
     )
     UNION ALL
     (
         SELECT
             id,
-            _legacy_mdcd_pendg_demo_id
-        FROM {{ ref('cleaned_demos_app_demonstration_finalized_demos') }}
+            application_type_id,
+            _legacy_mdcd_pendg_demo_id,
+            demonstration_id
+        FROM {{ ref('final_demos_app_amendment') }}
     )
 )
 
@@ -20,6 +24,8 @@ SELECT
     docs.owner_user_id,
     docs.document_type_id,
     demos.id AS application_id,
+    demos.application_type_id,
+    demos.demonstration_id,
     docs.phase_id,
     docs.created_at,
     docs.updated_at,
