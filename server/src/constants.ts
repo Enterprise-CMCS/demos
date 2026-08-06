@@ -156,7 +156,24 @@ export const EMAIL_NOTIFICATION_TYPES = [
   "Application Status Updated",
 ] as const;
 
-export const EMAIL_NOTIFICATION_STATUSES = ["Pending", "Queued", "Failed"] as const;
+export const EMAIL_NOTIFICATION_ENTITY_TYPES = ["deliverable", "application"] as const;
+
+export const EMAIL_NOTIFICATION_TYPE_ENTITY_TYPES = [
+  ["Deliverable Created", "deliverable"],
+  ["Deliverable Due Date Updated", "deliverable"],
+  ["Deliverable Submitted", "deliverable"],
+  ["Deliverable Accepted", "deliverable"],
+  ["Deliverable Approved", "deliverable"],
+  ["Deliverable Received and Filed", "deliverable"],
+  ["Extension Requested", "deliverable"],
+  ["Extension Decision Made", "deliverable"],
+  ["Resubmission Requested", "deliverable"],
+  ["Public Comment Added", "deliverable"],
+  ["Terms And Conditions Requested", "application"],
+  ["Application Status Updated", "application"],
+] as const;
+
+export const EMAIL_NOTIFICATION_STATUSES = ["Pending", "Queued", "Sent", "Failed"] as const;
 
 export const GRANT_LEVELS = ["System", "Demonstration"] as const;
 

@@ -27,7 +27,7 @@ describe("createTestEmail", () => {
   };
   const envelope = {
     emailType: "Deliverable Created" as const,
-    entityType: "deliverable",
+    entityType: "deliverable" as const,
     entityId: "deliverable-1",
     triggeredBy: { type: "realtime" as const, id: "user-1" },
     triggeredAt: "2026-07-13T00:00:00.000Z",

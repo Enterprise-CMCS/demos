@@ -77,7 +77,7 @@ describe("deliverable email dispatch", () => {
   };
   const envelope = {
     emailType: "Deliverable Submitted" as const,
-    entityType: "deliverable",
+    entityType: "deliverable" as const,
     entityId: deliverable.id,
     triggeredBy: { type: "realtime" as const, id: "user-1" },
     triggeredAt: "2026-07-23T00:00:00.000Z",

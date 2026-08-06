@@ -37,7 +37,7 @@ describe("emailQueue", () => {
     const { buildRealtimeEmailEnvelope } = await loadModule();
 
     const out = buildRealtimeEmailEnvelope({
-      emailType: "Deliverable Created",
+      emailType: "Application Status Updated",
       entityType: "application",
       entityId: "del-123",
       triggeredById: "user-123",
@@ -48,11 +48,11 @@ describe("emailQueue", () => {
       },
     });
 
-    expect(out.emailType).toBe("Deliverable Created");
+    expect(out.emailType).toBe("Application Status Updated");
     expect(out).not.toHaveProperty("template");
     expect(out.entityType).toBe("application");
     expect(out.entityId).toBe("del-123");
-    expect(out.idempotencyKey).toBe("Deliverable Created:application:del-123");
+    expect(out.idempotencyKey).toBe("Application Status Updated:application:del-123");
   });
 
   it("rejects unsupported realtime email types", async () => {
@@ -67,6 +67,36 @@ describe("emailQueue", () => {
         payload: {},
       })
     ).toThrow("Unsupported realtime email type: Unknown Email");
+  });
+
+  it("rejects unsupported realtime email entity types", async () => {
+    const { buildRealtimeEmailEnvelope } = await loadModule();
+
+    expect(() =>
+      buildRealtimeEmailEnvelope({
+        emailType: "Deliverable Created",
+        entityType: "demonstration",
+        entityId: "demonstration-1",
+        triggeredById: "user-123",
+        payload: {},
+      })
+    ).toThrow("Unsupported realtime email entity type: demonstration");
+  });
+
+  it("rejects unsupported email type and entity type combinations", async () => {
+    const { buildRealtimeEmailEnvelope } = await loadModule();
+
+    expect(() =>
+      buildRealtimeEmailEnvelope({
+        emailType: "Deliverable Created",
+        entityType: "application",
+        entityId: "application-1",
+        triggeredById: "user-123",
+        payload: {},
+      })
+    ).toThrow(
+      "Unsupported realtime email type/entity type combination: Deliverable Created / application"
+    );
   });
 
   it("uses an explicit idempotency key", async () => {

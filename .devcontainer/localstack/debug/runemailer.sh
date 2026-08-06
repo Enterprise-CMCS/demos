@@ -6,6 +6,16 @@ AWS_REGION="${AWS_REGION:-us-east-1}"
 AWS_CMD="aws --endpoint-url=$LOCALSTACK_ENDPOINT --region $AWS_REGION"
 QUEUE_NAME="emailer-queue"
 
+if [[ -z "${LOCAL_EMAIL:-}" ]]; then
+    echo "❌ LOCAL_EMAIL must be set before sending a local email"
+    exit 1
+fi
+
+if [[ ! "$LOCAL_EMAIL" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]]; then
+    echo "❌ LOCAL_EMAIL must be a valid email address"
+    exit 1
+fi
+
 QUEUE_URL=$($AWS_CMD sqs get-queue-url --queue-name $QUEUE_NAME --output text --query 'QueueUrl')
 
 $AWS_CMD sqs send-message \
@@ -22,7 +32,7 @@ $AWS_CMD sqs send-message \
       "idempotencyKey": "Deliverable Created:deliverable:local-deliverable-1",
       "payload": {
         "recipients": {
-          "to": ["not-allowed@example.com"]
+          "to": ["'"$LOCAL_EMAIL"'"]
         },
         "demonstration": {
           "id": "local-demonstration-1",

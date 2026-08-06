@@ -8,6 +8,7 @@ INSERT INTO demos_app.email_notification_status (id)
 VALUES
     ('Pending'),
     ('Queued'),
+    ('Sent'),
     ('Failed')
 ;
 
@@ -33,6 +34,52 @@ VALUES
     ('Application Status Updated')
 ;
 
+CREATE TABLE demos_app.email_notification_entity_type (
+    id TEXT NOT NULL,
+
+    CONSTRAINT email_notification_entity_type_pkey PRIMARY KEY (id)
+);
+
+INSERT INTO demos_app.email_notification_entity_type (id)
+VALUES
+    ('deliverable'),
+    ('application')
+;
+
+CREATE TABLE demos_app.email_notification_type_entity_type (
+    email_type_id TEXT NOT NULL,
+    entity_type_id TEXT NOT NULL,
+
+    CONSTRAINT email_notification_type_entity_type_pkey
+        PRIMARY KEY (email_type_id, entity_type_id),
+    CONSTRAINT email_notification_type_entity_type_email_type_id_fkey
+        FOREIGN KEY (email_type_id)
+        REFERENCES demos_app.email_notification_type (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    CONSTRAINT email_notification_type_entity_type_entity_type_id_fkey
+        FOREIGN KEY (entity_type_id)
+        REFERENCES demos_app.email_notification_entity_type (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+);
+
+INSERT INTO demos_app.email_notification_type_entity_type (email_type_id, entity_type_id)
+VALUES
+    ('Deliverable Created', 'deliverable'),
+    ('Deliverable Due Date Updated', 'deliverable'),
+    ('Deliverable Submitted', 'deliverable'),
+    ('Deliverable Accepted', 'deliverable'),
+    ('Deliverable Approved', 'deliverable'),
+    ('Deliverable Received and Filed', 'deliverable'),
+    ('Extension Requested', 'deliverable'),
+    ('Extension Decision Made', 'deliverable'),
+    ('Resubmission Requested', 'deliverable'),
+    ('Public Comment Added', 'deliverable'),
+    ('Terms And Conditions Requested', 'application'),
+    ('Application Status Updated', 'application')
+;
+
 CREATE TABLE demos_app.email_notification (
     id UUID NOT NULL,
     email_type_id TEXT NOT NULL,
@@ -49,9 +96,9 @@ CREATE TABLE demos_app.email_notification (
     updated_at TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT email_notification_pkey PRIMARY KEY (id),
-    CONSTRAINT email_notification_email_type_id_fkey
-        FOREIGN KEY (email_type_id)
-        REFERENCES demos_app.email_notification_type (id)
+    CONSTRAINT email_notification_email_type_id_entity_type_fkey
+        FOREIGN KEY (email_type_id, entity_type)
+        REFERENCES demos_app.email_notification_type_entity_type (email_type_id, entity_type_id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
     CONSTRAINT email_notification_source_action_id_fkey

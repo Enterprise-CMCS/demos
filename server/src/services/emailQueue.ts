@@ -1,14 +1,20 @@
 import { GetQueueUrlCommand, SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
-import { EMAIL_NOTIFICATION_TYPES, PRIMARY_AWS_REGION } from "../constants";
+import {
+  EMAIL_NOTIFICATION_ENTITY_TYPES,
+  EMAIL_NOTIFICATION_TYPE_ENTITY_TYPES,
+  EMAIL_NOTIFICATION_TYPES,
+  PRIMARY_AWS_REGION,
+} from "../constants";
 import { log } from "../log";
 
 export const REALTIME_EMAIL_TYPES = EMAIL_NOTIFICATION_TYPES;
 
 export type RealtimeEmailType = (typeof REALTIME_EMAIL_TYPES)[number];
+export type RealtimeEmailEntityType = (typeof EMAIL_NOTIFICATION_ENTITY_TYPES)[number];
 
 export type RealtimeEmailEnvelope = {
   emailType: RealtimeEmailType;
-  entityType: string;
+  entityType: RealtimeEmailEntityType;
   entityId: string;
   triggeredBy: {
     type: "realtime";
@@ -68,10 +74,23 @@ export function buildRealtimeEmailEnvelope(input: {
   if (!REALTIME_EMAIL_TYPES.includes(input.emailType as RealtimeEmailType)) {
     throw new Error(`Unsupported realtime email type: ${input.emailType}`);
   }
+  if (!EMAIL_NOTIFICATION_ENTITY_TYPES.includes(input.entityType as RealtimeEmailEntityType)) {
+    throw new Error(`Unsupported realtime email entity type: ${input.entityType}`);
+  }
+  if (
+    !EMAIL_NOTIFICATION_TYPE_ENTITY_TYPES.some(
+      ([emailType, entityType]) =>
+        emailType === input.emailType && entityType === input.entityType
+    )
+  ) {
+    throw new Error(
+      `Unsupported realtime email type/entity type combination: ${input.emailType} / ${input.entityType}`
+    );
+  }
 
   return {
     emailType: input.emailType as RealtimeEmailType,
-    entityType: input.entityType,
+    entityType: input.entityType as RealtimeEmailEntityType,
     entityId: input.entityId,
     triggeredBy: {
       type: "realtime",

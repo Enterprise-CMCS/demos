@@ -13,11 +13,11 @@ model EmailNotification {
   createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  emailType    EmailNotificationType        @relation(fields: [emailTypeId], references: [id])
-  sourceAction DeliverableAction?           @relation(fields: [sourceActionId], references: [id], onDelete: Restrict)
-  triggeredBy  User                         @relation(fields: [triggeredByUserId], references: [id], onDelete: Restrict)
-  status       EmailNotificationStatus      @relation(fields: [statusId], references: [id])
-  recipients   EmailNotificationRecipient[]
+  emailTypeEntityType EmailNotificationTypeEntityType @relation(fields: [emailTypeId, entityType], references: [emailTypeId, entityTypeId])
+  sourceAction        DeliverableAction?              @relation(fields: [sourceActionId], references: [id], onDelete: Restrict)
+  triggeredBy         User                            @relation(fields: [triggeredByUserId], references: [id], onDelete: Restrict)
+  status              EmailNotificationStatus         @relation(fields: [statusId], references: [id])
+  recipients          EmailNotificationRecipient[]
 
   @@id([id])
   @@unique([idempotencyKey])

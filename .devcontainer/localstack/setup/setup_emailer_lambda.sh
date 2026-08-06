@@ -9,6 +9,19 @@ AWS_CMD="aws --endpoint-url=$LOCALSTACK_ENDPOINT --region $AWS_REGION"
 QUEUE_NAME="emailer-queue"
 LAMBDA_NAME="emailer"
 ALLOW_LIST_PARAM_NAME="/demos/nonprod/email/allowlist"
+EMAIL_HOST="${LOCAL_EMAIL_HOST:-smtp.cloud.internal.cms.gov}"
+EMAIL_PORT="${LOCAL_EMAIL_PORT:-587}"
+EMAIL_FROM="${LOCAL_EMAIL_FROM:-DEMOS-local-no-reply@cms.hhs.gov}"
+
+if [[ -z "${LOCAL_EMAIL:-}" ]]; then
+    echo "❌ LOCAL_EMAIL must be set before deploying the local emailer"
+    exit 1
+fi
+
+if [[ ! "$LOCAL_EMAIL" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]]; then
+    echo "❌ LOCAL_EMAIL must be a valid email address"
+    exit 1
+fi
 
 # Build Lambda package
 cd /workspaces/demos/lambdas/emailer
@@ -23,17 +36,16 @@ npx esbuild build/index.js \
   --sourcemap \
   --outfile=dist/index.cjs
 rm -f lambda.zip
-zip -jqr lambda.zip dist/index.cjs dist/index.cjs.map
+zip -jqr lambda.zip dist/index.cjs dist/index.cjs.map ../../deployment/cert.pem
 
 cd - > /dev/null
 
-# Initialize the local allowlist only when it does not already exist.
-if ! $AWS_CMD ssm get-parameter --name "$ALLOW_LIST_PARAM_NAME" >/dev/null 2>&1; then
-    $AWS_CMD ssm put-parameter \
-        --name "$ALLOW_LIST_PARAM_NAME" \
-        --type String \
-        --value "[]" >/dev/null
-fi
+# Local email delivery is restricted to Dustin while SMTP testing is enabled.
+$AWS_CMD ssm put-parameter \
+    --name "$ALLOW_LIST_PARAM_NAME" \
+    --type String \
+    --value "[\"$LOCAL_EMAIL\"]" \
+    --overwrite >/dev/null
 
 # Resolve the queue before replacing its Lambda mapping.
 QUEUE_URL=$($AWS_CMD sqs get-queue-url --queue-name "$QUEUE_NAME" --output text --query 'QueueUrl')
@@ -80,9 +92,10 @@ $AWS_CMD lambda create-function \
         AWS_ENDPOINT_URL=$LOCALSTACK_ENDPOINT,
         ALLOW_LIST_PARAM_NAME=$ALLOW_LIST_PARAM_NAME,
         DISABLE_EMAIL_ALLOWLIST=false,
-        EMAIL_FROM=demos-local-no-reply@example.com,
-        EMAIL_HOST=localhost,
-        EMAIL_PORT=1025,
+        EMAIL_FROM=$EMAIL_FROM,
+        EMAIL_HOST=$EMAIL_HOST,
+        EMAIL_PORT=$EMAIL_PORT,
+        NODE_EXTRA_CA_CERTS=/var/task/cert.pem,
         NODE_OPTIONS=--enable-source-maps
     }" >/dev/null
 
@@ -116,6 +129,8 @@ $AWS_CMD lambda create-event-source-mapping \
 
 echo "✅ emailer Lambda connected to emailer SQS queue"
 echo "   Queue ARN: $QUEUE_ARN"
+echo "   SMTP relay: $EMAIL_HOST:$EMAIL_PORT"
+echo "   Allowed recipient: $LOCAL_EMAIL"
 
 cd /workspaces/demos/lambdas/emailer
 rm lambda.zip
