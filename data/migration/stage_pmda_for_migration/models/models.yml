@@ -906,6 +906,11 @@ models:
         data_tests:
           - not_null:
               name: assert_no_missing_creatd_dt_in_base_pmda_deliv_docs
+      - name: _internal_submission_id
+        data_type: integer
+        data_tests:
+          - not_null:
+              name: assert_no_null_computed_submission_ids_from_delivs
 
   # System Models
   - name: system_file_move_tracker

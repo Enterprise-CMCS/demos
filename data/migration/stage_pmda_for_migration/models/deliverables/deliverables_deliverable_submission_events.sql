@@ -1,9 +1,26 @@
-SELECT history.*
+-- Note: something with no state documents is not considered a submission
+-- CMS documents are not part of submissions
+WITH possible_submissions AS (
+    SELECT
+        _internal_submission_id,
+        _internal_submission_date,
+        mdcd_dlvrbl_id AS _legacy_mdcd_dlvrbl_id,
+        user_id AS _legacy_mdcd_dlvrbl_fil_doc_user_id,
+        demos_deliverable_id,
+        demos_user_id,
+        sum(CASE WHEN cmt_orgn_cd = 'S' THEN 1 ELSE 0 END) AS n_state_docs
+    FROM
+        {{ ref('docs_base_pmda_deliv_docs') }}
+    GROUP BY
+        _internal_submission_id,
+        _internal_submission_date,
+        mdcd_dlvrbl_id,
+        user_id,
+        demos_deliverable_id,
+        demos_user_id
+)
+
+SELECT *
 FROM
-    {{ source('legacy_pmda_raw', 'mdcd_dlvrbl_stus_hstry') }} AS history
-WHERE
-    history.dltd_ind = 0
-    AND history.mdcd_dlvrbl_stus_cd = 3
-    AND history.mdcd_dlvrbl_id IN (
-        SELECT active.mdcd_dlvrbl_id FROM {{ ref('deliverables_active_pmda_deliverables') }} AS active
-    )
+    possible_submissions
+WHERE n_state_docs > 0
