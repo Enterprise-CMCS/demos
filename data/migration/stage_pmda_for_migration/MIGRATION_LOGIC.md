@@ -279,7 +279,20 @@ The current phase is determined by evaluating phase statuses in order and select
 The current phase logic does not evaluate beyond SDG Preparation phase as requisite dates for completing the SDG Preparation phase do not exist in PMDA, so demonstrations cannot have progressed further than that phase.
 
 ## Outstanding Todo:
-- integrate the Concept Paper Submitted Date into date crosswalk when we have documents migrated. 
+
+- integrate the Concept Paper Submitted Date into date crosswalk when we have documents migrated.
+
+## Amendments
+
+### Finalized Amendments
+
+Some finalized amendments are missing required fields. These were either filtered or adjusted, depending on the severity.
+
+- name: an amendment without a name was given the name "Amendment on 'demonstration_name'"
+- effective_date: an amendment without an effective date inherited the effective_date of its parent demonstration
+- status_updated_at: an amendment without a status updated at inherited the status of its relevant application row
+
+Similarly to finalized demonstrations, these amendments had each phase completed thorough the approval_summary phase. No relevent dates or documents were loaded.
 
 # Deliverables
 
@@ -308,7 +321,6 @@ As an initial pass, the CMS owner was set to the creator of the deliverable. If 
 ## Submission Date
 
 There's been a first-pass effort (still work in progress) on importing the submission events from the database and figuring out what the due dates were at the time of the submission event. This is still in progress and needs refinement.
-
 
 # Documents
 
@@ -376,12 +388,12 @@ The base for deliverable documents are the records in `mdcd_dlvrbl_fil_doc`. We 
 
 To enable rapid iteration, the following short-term approaches have been taken, most of which are `#open-question` to be refined further.
 
- - The field `doc_name` was assigned as the name (note that this often has a file extension in PMDA)
- - The field `intrnl_cmt_txt` was assigned as the description
- - At present, all documents are being assigned as "General File". It _may_ be possible to derive some of the document types from the fields in PMDA (specifically, `bdgt_ntrlty_fil_ind`, `mntrg_rpt_fil_ind`, `mntrg_prtcl_fil_ind`, and `proc_mntrg_rpt_ind`), but the `mdcd_dlvrbl_fil_doc` table doesn't seem to have the same document type concept as other places in PMDA.
- - `cmd_orgn_cd` is used to derive CMS file vs state file; `C` for CMS, and `S` for state.
- - None of the documents are being included in submissions yet - we need to probably work backwards from the `mdcd_dlvrbl_fil_doc` table to extrapolate to submissions from that rather than the current approach of using the `stus_hstry` table per discussion with Zoe.
+- The field `doc_name` was assigned as the name (note that this often has a file extension in PMDA)
+- The field `intrnl_cmt_txt` was assigned as the description
+- At present, all documents are being assigned as "General File". It _may_ be possible to derive some of the document types from the fields in PMDA (specifically, `bdgt_ntrlty_fil_ind`, `mntrg_rpt_fil_ind`, `mntrg_prtcl_fil_ind`, and `proc_mntrg_rpt_ind`), but the `mdcd_dlvrbl_fil_doc` table doesn't seem to have the same document type concept as other places in PMDA.
+- `cmd_orgn_cd` is used to derive CMS file vs state file; `C` for CMS, and `S` for state.
+- None of the documents are being included in submissions yet - we need to probably work backwards from the `mdcd_dlvrbl_fil_doc` table to extrapolate to submissions from that rather than the current approach of using the `stus_hstry` table per discussion with Zoe.
 
 ## Program Monitoring Documents
 
-A collection of documents on demonstrations in PMDA come from a Program Monitoring Document section. These documents have been imported as "General File" documents without a phase in DEMOS. While these documents do have a category, it does not correspond to any speicific Document Type in DEMOS. Because of this, they have been assigned the "General File" document type. In addition, there is a notion of archival in PMDA that we dont have in DEMOS. It is involved in one of the main search queries for these documents, so seems important enough to at least note. Documents marked as being archived have "(Archived)" appended to their description. 
+A collection of documents on demonstrations in PMDA come from a Program Monitoring Document section. These documents have been imported as "General File" documents without a phase in DEMOS. While these documents do have a category, it does not correspond to any speicific Document Type in DEMOS. Because of this, they have been assigned the "General File" document type. In addition, there is a notion of archival in PMDA that we dont have in DEMOS. It is involved in one of the main search queries for these documents, so seems important enough to at least note. Documents marked as being archived have "(Archived)" appended to their description.
