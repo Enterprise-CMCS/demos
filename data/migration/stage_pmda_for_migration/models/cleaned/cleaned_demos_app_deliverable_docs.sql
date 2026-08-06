@@ -10,18 +10,29 @@ WITH no_s3_path AS (
         deliv_docs.demos_deliverable_id AS deliverable_id,
         deliv_docs.demos_deliverable_type_id AS deliverable_type_id,
         deliv_docs.cmt_orgn_cd = 'C' AS deliverable_is_cms_attached_file,
-        NULL::UUID AS deliverable_submission_action_id,
-        NULL AS deliverable_submission_action_type_id,
+        CASE
+            WHEN deliv_docs.cmt_orgn_cd = 'C' THEN NULL
+            ELSE clean_sub_evt.id
+        END AS deliverable_submission_action_id,
+        CASE
+            WHEN deliv_docs.cmt_orgn_cd = 'C' THEN NULL
+            ELSE 'Submitted Deliverable'
+        END AS deliverable_submission_action_type_id,
         deliv_docs.creatd_dt AS created_at,
         deliv_docs.creatd_dt AS updated_at,
         deliv_docs.mdcd_dlvrbl_fil_doc_id AS _legacy_mdcd_dlvrbl_fil_doc_id,
         deliv_docs.mdcd_dlvrbl_id AS _legacy_mdcd_dlvrbl_id,
         NULL::INTEGER AS _legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id,
         NULL::INTEGER AS _legacy_mdcd_demo_pgm_mntrg_doc_id,
-        deliv_docs.pmda_s3_file_id AS _internal_pmda_s3_file_id
+        deliv_docs.pmda_s3_file_id AS _internal_pmda_s3_file_id,
+        deliv_docs._internal_submission_id
 
     FROM
         {{ ref('docs_base_pmda_deliv_docs') }} AS deliv_docs
+    LEFT JOIN
+        {{ ref('cleaned_demos_app_deliverable_action_submission_events') }} AS clean_sub_evt
+        ON
+            deliv_docs._internal_submission_id = clean_sub_evt._internal_submission_id
     WHERE
         deliv_docs.mdcd_dlvrbl_fil_doc_id NOT IN (
             SELECT e1.mdcd_dlvrbl_fil_doc_id FROM {{ ref('errors_deliv_docs_with_no_resolved_deliverable') }} AS e1

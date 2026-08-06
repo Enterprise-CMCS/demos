@@ -8,7 +8,7 @@ WITH liz_hill AS (
 
 SELECT
     gen_random_uuid() AS id,
-    sub_evt.creatd_dt AS action_timestamp,
+    sub_evt._internal_submission_date AS action_timestamp,
     f_deliv.id AS deliverable_id,
     'Submitted Deliverable' AS action_type_id,
     'Submitted' AS old_status_id,
@@ -21,21 +21,22 @@ SELECT
     TRUE AS extension_id_optional,
     coalesce(due_date_hist.dlvrbl_due_dt, f_deliv.due_date) AS old_due_date,
     coalesce(due_date_hist.dlvrbl_due_dt, f_deliv.due_date) AS new_due_date,
-    liz_hill.id AS user_id
+    coalesce(sub_evt.demos_user_id, liz_hill.id) AS user_id,
+    sub_evt._internal_submission_id
 FROM
     {{ ref('deliverables_deliverable_submission_events') }} AS sub_evt
 
 LEFT JOIN
     {{ ref('deliverables_history_due_date_by_date_range') }} AS due_date_hist
     ON
-        sub_evt.mdcd_dlvrbl_id = due_date_hist.mdcd_dlvrbl_id
-        AND sub_evt.creatd_dt BETWEEN due_date_hist.from_time AND due_date_hist.to_time
+        sub_evt._legacy_mdcd_dlvrbl_id = due_date_hist.mdcd_dlvrbl_id
+        AND sub_evt._internal_submission_date BETWEEN due_date_hist.from_time AND due_date_hist.to_time
 
 -- Inner join acceptable here; we want actions for all the final deliverables
 INNER JOIN
     {{ ref('final_demos_app_deliverable') }} AS f_deliv
     ON
-        sub_evt.mdcd_dlvrbl_id = f_deliv._legacy_mdcd_dlvrbl_id
+        sub_evt._legacy_mdcd_dlvrbl_id = f_deliv._legacy_mdcd_dlvrbl_id
 
 -- Just putting the ID on every row
 INNER JOIN
