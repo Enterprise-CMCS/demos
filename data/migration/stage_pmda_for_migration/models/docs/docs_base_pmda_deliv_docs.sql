@@ -57,6 +57,7 @@ interval_time AS (
         base_deliv_docs
 ),
 
+-- Can tune the time here if we want to make more or less submissions
 submission_ids AS (
     SELECT
         mdcd_dlvrbl_fil_doc_id,
