@@ -318,9 +318,20 @@ When a due date was attached to something determined to be open-ended, it was se
 
 As an initial pass, the CMS owner was set to the creator of the deliverable. If this was not resolvable, the user Elizabeth Hill was assigned as the owner. `#open-question`
 
-## Submission Date
+## Submissions / Submission Date
 
-There's been a first-pass effort (still work in progress) on importing the submission events from the database and figuring out what the due dates were at the time of the submission event. This is still in progress and needs refinement.
+Submissions were extrapolated from the deliverable files table (`mdcd_dlvrbl_fil_doc`) using an approach suggested by Zoe originally. That makes this section tightly tied with [Deliverable Documents](#deliverable-documents). A submission is defined as...
+
+Any group of files
+- for the same deliverable
+- with the same PMDA user
+- that were created within five minutes of another file in the same group.
+
+We can tune the time differently if we want; five minutes was chosen relatively arbitrarily. The advantage of this process is that it allows us to place _all_ files in a submission, and neatly sidesteps the challenge of interpreting the status history table which seems to be inconsistent.
+
+We exclude CMS files from this because CMS files cannot be part of submissions in DEMOS. If an extracted submission contains only CMS files, we do not insert it into the `deliverable_action` table as it has no state files and is therefore not a "real" submission.
+
+The submitting user was defined as the user who created the files in PMDA, with a fallback to Elizabeth Hill if needed.
 
 # Documents
 
@@ -384,7 +395,11 @@ The PMDA system appears to have embedded some information about the specific fil
 
 ## Deliverable Documents
 
-The base for deliverable documents are the records in `mdcd_dlvrbl_fil_doc`. We select those that are not deleted (`dltd_ind = 0`), and then filter out ones where we cannot resolve an owner, or a deliverable in those final sets. These are logged warnings for the testing system. We also filter out those that we cannot resolve to known documents found in `docs_pmda_s3_file_list`. The match is made based on file name, the deliverable ID we have attempted to extract from the path, and the state or CMS file flag.
+The base for deliverable documents are the records in `mdcd_dlvrbl_fil_doc`. We select those that are not deleted (`dltd_ind = 0`), and then filter out ones where we cannot resolve an owner, or a deliverable in those final sets. These are logged warnings for the testing system.
+
+We also filter out those that we cannot resolve to known documents found in `docs_pmda_s3_file_list`. The match is made based on file name, the deliverable ID we have attempted to extract from the path, and the state or CMS file flag.
+
+We derive the submissions from this result set as described in [Submissions / Submission Date](#submissions--submission-date).
 
 To enable rapid iteration, the following short-term approaches have been taken, most of which are `#open-question` to be refined further.
 
@@ -392,7 +407,6 @@ To enable rapid iteration, the following short-term approaches have been taken, 
 - The field `intrnl_cmt_txt` was assigned as the description
 - At present, all documents are being assigned as "General File". It _may_ be possible to derive some of the document types from the fields in PMDA (specifically, `bdgt_ntrlty_fil_ind`, `mntrg_rpt_fil_ind`, `mntrg_prtcl_fil_ind`, and `proc_mntrg_rpt_ind`), but the `mdcd_dlvrbl_fil_doc` table doesn't seem to have the same document type concept as other places in PMDA.
 - `cmd_orgn_cd` is used to derive CMS file vs state file; `C` for CMS, and `S` for state.
-- None of the documents are being included in submissions yet - we need to probably work backwards from the `mdcd_dlvrbl_fil_doc` table to extrapolate to submissions from that rather than the current approach of using the `stus_hstry` table per discussion with Zoe.
 
 ## Program Monitoring Documents
 

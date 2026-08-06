@@ -21,5 +21,3 @@ FROM
 LEFT JOIN {{ ref('apps_in_prog_phase_completion') }} AS phase_completion
     ON
         amendment._legacy_mdcd_demo_aplctn_id = phase_completion.mdcd_demo_aplctn_id
-WHERE
-    phase_completion.mdcd_demo_aplctn_id IS NOT NULL
