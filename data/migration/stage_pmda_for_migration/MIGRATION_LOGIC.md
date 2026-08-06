@@ -411,3 +411,7 @@ To enable rapid iteration, the following short-term approaches have been taken, 
 ## Program Monitoring Documents
 
 A collection of documents on demonstrations in PMDA come from a Program Monitoring Document section. These documents have been imported as "General File" documents without a phase in DEMOS. While these documents do have a category, it does not correspond to any speicific Document Type in DEMOS. Because of this, they have been assigned the "General File" document type. In addition, there is a notion of archival in PMDA that we dont have in DEMOS. It is involved in one of the main search queries for these documents, so seems important enough to at least note. Documents marked as being archived have "(Archived)" appended to their description.
+
+## Application Documents
+
+Three document of type 'BN Workbook' were found in the application documents. Because of the parsing required by these types to populate the paired BN data table, these documents have been excluded from the migration, with a warning. 

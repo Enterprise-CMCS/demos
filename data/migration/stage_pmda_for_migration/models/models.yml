@@ -146,6 +146,8 @@ models:
         data_type: uuid
       - name: application_type_id
         data_type: text
+      - name: _legacy_mdcd_pendg_demo_id
+        data_type: integer
       - name: is_migrated_from_pmda
         data_type: boolean
 
@@ -373,12 +375,22 @@ models:
     columns:
       - name: id
         data_type: uuid
+        data_tests:
+          - not_null:
+              name: assert_no_missing_id_in_final_docs_table
+          - unique:
+              name: assert_id_is_unique_in_final_docs_table
       - name: name
         data_type: text
       - name: description
         data_type: text
       - name: s3_path
         data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_s3_path_in_final_docs_table
+          - unique:
+              name: assert_s3_path_is_unique_in_final_docs_table
       - name: owner_user_id
         data_type: uuid
         data_tests:

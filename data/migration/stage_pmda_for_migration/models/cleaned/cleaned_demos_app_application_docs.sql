@@ -33,6 +33,11 @@ WITH no_s3_path AS (
         docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id NOT IN (
             SELECT e3._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id FROM {{ ref('errors_app_docs_missing_owner') }} AS e3
         )
+        AND
+        docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id NOT IN (
+            SELECT e4._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id
+            FROM {{ ref('errors_application_docs_of_type_bn_workbook') }} AS e4
+        )
 )
 
 SELECT
