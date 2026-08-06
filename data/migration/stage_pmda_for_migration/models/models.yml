@@ -817,6 +817,32 @@ models:
           - not_null:
               name: assert_active_finalized_pmda_demos_have_no_missing_demo_stus_dt
 
+  - name: cleaned_demos_app_demonstration_in_prog_demos_current_phase
+    columns:
+      - name: current_phase_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_current_phase_id_in_cleaned_demos_app_demonstration_in_prog_demos_current_phase
+          - relationships:
+              name: assert_current_phase_id_exists_in_demos_app_phase
+              arguments:
+                to: source('demos_app', 'phase')
+                field: id
+
+  - name: cleaned_demos_app_in_prog_amendment_current_phase
+    columns:
+      - name: current_phase_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_current_phase_id_in_cleaned_in_prog_amendment_current_phase
+          - relationships:
+              name: assert_current_phase_id_exists_in_demos_app_phase
+              arguments:
+                to: source('demos_app', 'phase')
+                field: id
+
   - name: apps_active_in_prog_pmda_demos
     columns:
       - name: mdcd_pendg_demo_id
