@@ -9,19 +9,41 @@ AWS_CMD="aws --endpoint-url=$LOCALSTACK_ENDPOINT --region $AWS_REGION"
 QUEUE_NAME="emailer-queue"
 LAMBDA_NAME="emailer"
 ALLOW_LIST_PARAM_NAME="/demos/nonprod/email/allowlist"
-EMAIL_HOST="${LOCAL_EMAIL_HOST:-smtp.cloud.internal.cms.gov}"
-EMAIL_PORT="${LOCAL_EMAIL_PORT:-587}"
-EMAIL_FROM="${LOCAL_EMAIL_FROM:-DEMOS-local-no-reply@cms.hhs.gov}"
+EMAIL_MODE="${LOCAL_EMAIL_MODE:-mailpit}"
 
-if [[ -z "${LOCAL_EMAIL:-}" ]]; then
-    echo "❌ LOCAL_EMAIL must be set before deploying the local emailer"
-    exit 1
-fi
+case "$EMAIL_MODE" in
+    mailpit)
+        EMAIL_HOST="mailpit"
+        EMAIL_PORT="1025"
+        EMAIL_FROM="${LOCAL_EMAIL_FROM:-demos-local-no-reply@example.test}"
+        DISABLE_EMAIL_ALLOWLIST="true"
+        ALLOW_LIST_VALUE="[]"
+        RECIPIENT_SUMMARY="all recipients captured by Mailpit"
+        ;;
+    relay)
+        EMAIL_HOST="${LOCAL_EMAIL_HOST:-smtp.cloud.internal.cms.gov}"
+        EMAIL_PORT="${LOCAL_EMAIL_PORT:-587}"
+        EMAIL_FROM="${LOCAL_EMAIL_FROM:-DEMOS-local-no-reply@cms.hhs.gov}"
+        DISABLE_EMAIL_ALLOWLIST="false"
 
-if [[ ! "$LOCAL_EMAIL" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]]; then
-    echo "❌ LOCAL_EMAIL must be a valid email address"
-    exit 1
-fi
+        if [[ -z "${LOCAL_EMAIL:-}" ]]; then
+            echo "❌ LOCAL_EMAIL must be set when LOCAL_EMAIL_MODE=relay"
+            exit 1
+        fi
+
+        if [[ ! "$LOCAL_EMAIL" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]]; then
+            echo "❌ LOCAL_EMAIL must be a valid email address"
+            exit 1
+        fi
+
+        ALLOW_LIST_VALUE="[\"$LOCAL_EMAIL\"]"
+        RECIPIENT_SUMMARY="$LOCAL_EMAIL"
+        ;;
+    *)
+        echo "❌ Unsupported LOCAL_EMAIL_MODE: $EMAIL_MODE. Expected mailpit or relay."
+        exit 1
+        ;;
+esac
 
 # Build Lambda package
 cd /workspaces/demos/lambdas/emailer
@@ -40,11 +62,11 @@ zip -jqr lambda.zip dist/index.cjs dist/index.cjs.map ../../deployment/cert.pem
 
 cd - > /dev/null
 
-# Local email delivery is restricted to Dustin while SMTP testing is enabled.
+# Mailpit captures every local recipient. Relay mode restricts delivery to LOCAL_EMAIL.
 $AWS_CMD ssm put-parameter \
     --name "$ALLOW_LIST_PARAM_NAME" \
     --type String \
-    --value "[\"$LOCAL_EMAIL\"]" \
+    --value "$ALLOW_LIST_VALUE" \
     --overwrite >/dev/null
 
 # Resolve the queue before replacing its Lambda mapping.
@@ -91,7 +113,7 @@ $AWS_CMD lambda create-function \
         AWS_REGION=$AWS_REGION,
         AWS_ENDPOINT_URL=$LOCALSTACK_ENDPOINT,
         ALLOW_LIST_PARAM_NAME=$ALLOW_LIST_PARAM_NAME,
-        DISABLE_EMAIL_ALLOWLIST=false,
+        DISABLE_EMAIL_ALLOWLIST=$DISABLE_EMAIL_ALLOWLIST,
         EMAIL_FROM=$EMAIL_FROM,
         EMAIL_HOST=$EMAIL_HOST,
         EMAIL_PORT=$EMAIL_PORT,
@@ -129,8 +151,9 @@ $AWS_CMD lambda create-event-source-mapping \
 
 echo "✅ emailer Lambda connected to emailer SQS queue"
 echo "   Queue ARN: $QUEUE_ARN"
-echo "   SMTP relay: $EMAIL_HOST:$EMAIL_PORT"
-echo "   Allowed recipient: $LOCAL_EMAIL"
+echo "   Email mode: $EMAIL_MODE"
+echo "   SMTP server: $EMAIL_HOST:$EMAIL_PORT"
+echo "   Recipients: $RECIPIENT_SUMMARY"
 
 cd /workspaces/demos/lambdas/emailer
 rm lambda.zip
