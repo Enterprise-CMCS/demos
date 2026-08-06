@@ -22,6 +22,11 @@ ignore:
         reason: No patch available
         expires: 2026-08-17T00:00:00.000Z
         created: 2026-08-03T12:33:18.809Z
+  SNYK-JS-BRACEEXPANSION-18512280:
+    - '*':
+        reason: No patch available
+        expires: 2026-08-20T00:00:00.000Z
+        created: 2026-08-06T12:27:41.717Z
 exclude:
   global:
     - node_modules
