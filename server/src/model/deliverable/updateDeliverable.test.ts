@@ -35,6 +35,10 @@ vi.mock("../user/queries", () => ({
   selectUserOrThrow: vi.fn(),
 }));
 
+vi.mock("../email", () => ({
+  dispatchDeliverableDueDateUpdatedEmail: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient";
 import {
   editDeliverable,
@@ -47,6 +51,7 @@ import {
 } from ".";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { selectUserOrThrow } from "../user/queries";
+import { dispatchDeliverableDueDateUpdatedEmail } from "../email";
 
 describe("updateDeliverable", () => {
   // Test inputs
@@ -243,5 +248,44 @@ describe("updateDeliverable", () => {
       testContext,
       mockTransaction
     );
+  });
+
+  it("dispatches an email after a due date is changed", async () => {
+    const previousDueDate = new Date("2026-08-01T03:59:59.999Z");
+    vi.mocked(manuallyUpdateDeliverableDueDate).mockResolvedValue({
+      previousDueDate,
+      sourceActionId: "action-1",
+    });
+
+    await updateDeliverable(testDeliverableId, basicTestInput, testContext as GraphQLContext);
+
+    expect(dispatchDeliverableDueDateUpdatedEmail).toHaveBeenCalledExactlyOnceWith({
+      deliverableId: testDeliverableId,
+      previousDueDate,
+      sourceActionId: "action-1",
+      triggeredByUserId: testContext.user!.id,
+    });
+  });
+
+  it("does not dispatch an email when the due date is unchanged", async () => {
+    await updateDeliverable(testDeliverableId, basicTestInput, testContext as GraphQLContext);
+
+    expect(dispatchDeliverableDueDateUpdatedEmail).not.toHaveBeenCalled();
+  });
+
+  it("allows the seeder to suppress due date emails", async () => {
+    vi.mocked(manuallyUpdateDeliverableDueDate).mockResolvedValue({
+      previousDueDate: new Date("2026-08-01T03:59:59.999Z"),
+      sourceActionId: "action-1",
+    });
+
+    await updateDeliverable(
+      testDeliverableId,
+      basicTestInput,
+      testContext as GraphQLContext,
+      { sendEmailNotifications: false }
+    );
+
+    expect(dispatchDeliverableDueDateUpdatedEmail).not.toHaveBeenCalled();
   });
 });

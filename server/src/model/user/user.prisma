@@ -22,6 +22,7 @@ model User {
   referenceAgreements           ReferenceAgreement[]
   referenceAgreementAcceptances ReferenceAgreementAcceptance[]
   onDemandReportsRequested      OnDemandReport[]
+  emailNotificationsTriggered   EmailNotification[]
 
   @@id([id])
   @@unique([id, personTypeId]) // Not required by Postgres, but Prisma requires this notation

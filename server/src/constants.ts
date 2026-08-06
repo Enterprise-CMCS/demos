@@ -141,6 +141,40 @@ export const PERSON_TYPES = [
 
 export const USER_TYPES = ["demos-admin", "demos-cms-user", "demos-state-user"] as const;
 
+export const EMAIL_NOTIFICATION_TYPES = [
+  "Deliverable Created",
+  "Deliverable Due Date Updated",
+  "Deliverable Submitted",
+  "Deliverable Accepted",
+  "Deliverable Approved",
+  "Deliverable Received and Filed",
+  "Extension Requested",
+  "Extension Decision Made",
+  "Resubmission Requested",
+  "Public Comment Added",
+  "Terms And Conditions Requested",
+  "Application Status Updated",
+] as const;
+
+export const EMAIL_NOTIFICATION_ENTITY_TYPES = ["deliverable", "application"] as const;
+
+export const EMAIL_NOTIFICATION_TYPE_ENTITY_TYPES = [
+  ["Deliverable Created", "deliverable"],
+  ["Deliverable Due Date Updated", "deliverable"],
+  ["Deliverable Submitted", "deliverable"],
+  ["Deliverable Accepted", "deliverable"],
+  ["Deliverable Approved", "deliverable"],
+  ["Deliverable Received and Filed", "deliverable"],
+  ["Extension Requested", "deliverable"],
+  ["Extension Decision Made", "deliverable"],
+  ["Resubmission Requested", "deliverable"],
+  ["Public Comment Added", "deliverable"],
+  ["Terms And Conditions Requested", "application"],
+  ["Application Status Updated", "application"],
+] as const;
+
+export const EMAIL_NOTIFICATION_STATUSES = ["Pending", "Queued", "Sent", "Failed"] as const;
+
 export const GRANT_LEVELS = ["System", "Demonstration"] as const;
 
 export const APPLICATION_TYPES = ["Demonstration", "Amendment", "Extension"] as const;

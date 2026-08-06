@@ -39,6 +39,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
   const mockCurrentDate = new Date(2025, 3, 17, 14, 33, 19, 205);
   const mockGeneralDate = new Date(2026, 4, 1, 3, 59, 59, 999);
   const mockDemonstrationId = "6ba5407b-3706-4795-b8a8-3e32e8fa77ac";
+  const mockActionId = "0782a76e-6b72-4df4-97a8-a6e11c19a142";
   const mockDeliverable: Partial<PrismaDeliverable> = {
     id: testDeliverableId,
     demonstrationId: mockDemonstrationId,
@@ -54,6 +55,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
     vi.useFakeTimers();
     vi.setSystemTime(mockCurrentDate);
     vi.mocked(selectDeliverableOrThrow).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+    vi.mocked(insertDeliverableAction).mockResolvedValue({ id: mockActionId } as any);
   });
 
   it("should do nothing if the test input has no due date", async () => {
@@ -118,7 +120,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
       },
     };
 
-    await manuallyUpdateDeliverableDueDate(
+    const result = await manuallyUpdateDeliverableDueDate(
       testDeliverableId,
       testInput,
       testContext as GraphQLContext,
@@ -131,6 +133,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
     );
     expect(editDeliverable).not.toHaveBeenCalled();
     expect(insertDeliverableAction).not.toHaveBeenCalled();
+    expect(result).toBeUndefined();
   });
 
   it("should use the existing status when it is not Past Due", async () => {
@@ -145,7 +148,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
       },
     };
 
-    await manuallyUpdateDeliverableDueDate(
+    const result = await manuallyUpdateDeliverableDueDate(
       testDeliverableId,
       testInput,
       testContext as GraphQLContext,
@@ -177,6 +180,10 @@ describe("manuallyUpdateDeliverableDueDate", () => {
       },
       mockTransaction
     );
+    expect(result).toEqual({
+      previousDueDate: mockDeliverable.dueDate,
+      sourceActionId: mockActionId,
+    });
   });
 
   it("should properly set to Upcoming when the status is Past Due", async () => {

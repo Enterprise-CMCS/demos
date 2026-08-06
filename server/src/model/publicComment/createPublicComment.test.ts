@@ -21,14 +21,20 @@ vi.mock("./queries", () => ({
   insertPublicComment: vi.fn(),
 }));
 
+vi.mock("../email", () => ({
+  dispatchPublicCommentAddedEmail: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient";
 import { validateUserPermittedToMakePublicComment } from ".";
 import { insertPublicComment } from "./queries";
+import { dispatchPublicCommentAddedEmail } from "../email";
 
 describe("createPublicComment", () => {
   // Test inputs
   const testDeliverableId = "e1b4a166-9a23-480c-9ac8-d5361414dfd0";
   const testComment = "Free insulin is a good policy proposal!";
+  const publicCommentId = "7a1e395f-2abe-4cc7-bf9f-14548513c92c";
   const testContext: DeepPartial<GraphQLContext> = {
     user: {
       id: "03728c69-1676-4cb5-8b31-c98b24cbda76",
@@ -45,6 +51,7 @@ describe("createPublicComment", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
+    vi.mocked(insertPublicComment).mockResolvedValue({ id: publicCommentId } as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
@@ -72,5 +79,16 @@ describe("createPublicComment", () => {
       },
       mockTransaction
     );
+  });
+
+  it("queues an email after a public comment is created", async () => {
+    await createPublicComment(testDeliverableId, testComment, testContext as GraphQLContext);
+
+    expect(dispatchPublicCommentAddedEmail).toHaveBeenCalledExactlyOnceWith({
+      authorPersonTypeId: testContext.user!.personTypeId,
+      deliverableId: testDeliverableId,
+      publicCommentId,
+      triggeredByUserId: testContext.user!.id,
+    });
   });
 });

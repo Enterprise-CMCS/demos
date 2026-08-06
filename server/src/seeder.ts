@@ -261,7 +261,9 @@ async function seedDeliverables(actionUserId: string, actionUserPersonTypeId: Pe
         .slice(0, 10) as CreateDeliverableInput["dueDate"],
       demonstrationTypes: selectedDemonstrationTypes,
     };
-    createdDeliverables.push(await createDeliverable(createInput, context));
+    createdDeliverables.push(
+      await createDeliverable(createInput, context, { sendEmailNotifications: false })
+    );
   }
   return createdDeliverables;
 }
@@ -318,7 +320,8 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
   await updateDeliverable(
     deliverable.id,
     { dueDate: { newDueDate: "2028-11-01" as DateTimeOrLocalDate, dateChangeNote: "Test change" } },
-    context
+    context,
+    { sendEmailNotifications: false }
   );
   await requestDeliverableExtension(
     deliverable.id,
@@ -327,7 +330,8 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
       details: "This is a thing",
       requestedDueDate: "2028-11-30" as DateTimeOrLocalDate,
     },
-    context
+    context,
+    { sendEmailNotifications: false }
   );
   // Need a document of the right type to submit
   await prisma().document.create({
@@ -344,14 +348,15 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
       createdAt: new Date(),
     },
   });
-  await submitDeliverable(deliverable.id, context);
+  await submitDeliverable(deliverable.id, context, { sendEmailNotifications: false });
   await requestDeliverableResubmission(
     deliverable.id,
     {
       details: "This is a resubmission request",
       newDueDate: "2028-12-31" as DateTimeOrLocalDate,
     },
-    context
+    context,
+    { sendEmailNotifications: false }
   );
   const firstDeliverableExtension = await selectDeliverableExtension(
     {
@@ -367,7 +372,7 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
     },
     context
   );
-  await submitDeliverable(deliverable.id, context);
+  await submitDeliverable(deliverable.id, context, { sendEmailNotifications: false });
   await startDeliverableReview(deliverable.id, context);
   await requestDeliverableResubmission(
     deliverable.id,
@@ -375,7 +380,8 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
       details: "This is a secondary resubmission request",
       newDueDate: "2029-01-31" as DateTimeOrLocalDate,
     },
-    context
+    context,
+    { sendEmailNotifications: false }
   );
   await requestDeliverableExtension(
     deliverable.id,
@@ -384,7 +390,8 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
       details: "Need more time for the resubmission request",
       requestedDueDate: "2029-02-15" as DateTimeOrLocalDate,
     },
-    context
+    context,
+    { sendEmailNotifications: false }
   );
   const secondDeliverableExtension = await selectDeliverableExtension(
     {
@@ -393,7 +400,7 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
     },
     true
   );
-  await submitDeliverable(deliverable.id, context);
+  await submitDeliverable(deliverable.id, context, { sendEmailNotifications: false });
   await startDeliverableReview(deliverable.id, context);
   await denyDeliverableExtension(
     deliverable.id,
@@ -403,7 +410,9 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
     },
     context
   );
-  await completeDeliverable(deliverable.id, "Approved", context);
+  await completeDeliverable(deliverable.id, "Approved", context, {
+    sendEmailNotifications: false,
+  });
 }
 
 async function seedNotes() {
@@ -807,6 +816,8 @@ async function clearDatabase() {
     prisma().uiPathValue.deleteMany(),
     prisma().uiPathResult.deleteMany(),
     prisma().document.deleteMany(),
+    prisma().emailNotificationRecipient.deleteMany(),
+    prisma().emailNotification.deleteMany(),
     prisma().deliverableAction.deleteMany(),
     prisma().deliverableExtension.deleteMany(),
     prisma().deliverable.deleteMany(),

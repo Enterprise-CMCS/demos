@@ -10,15 +10,18 @@ import {
 import { prisma } from "../../prismaClient";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
+import { dispatchDeliverableCreatedEmail } from "../email";
 
 export async function createDeliverable(
   input: CreateDeliverableInput,
-  context: GraphQLContext
+  context: GraphQLContext,
+  options: { sendEmailNotifications?: boolean } = {}
 ): Promise<PrismaDeliverable> {
   const currentUserId = context.user.id;
   validateUserPersonTypeAllowed(context, "createDeliverable", ["demos-admin", "demos-cms-user"]);
+
   const parsedInput = parseCreateDeliverableInput(input);
-  const createdDeliverable = await prisma().$transaction(async (tx) => {
+  const { newDeliverable, sourceActionId } = await prisma().$transaction(async (tx) => {
     await validateCreateDeliverableInput(parsedInput, tx);
 
     const newDeliverable = await insertDeliverable(parsedInput, tx);
@@ -33,7 +36,7 @@ export async function createDeliverable(
       tx
     );
 
-    await insertDeliverableAction(
+    const action = await insertDeliverableAction(
       {
         deliverableId: newDeliverable.id,
         actionType: "Created Deliverable Slot",
@@ -46,7 +49,19 @@ export async function createDeliverable(
       tx
     );
 
-    return newDeliverable;
+    return {
+      newDeliverable,
+      sourceActionId: action.id,
+    };
   });
-  return createdDeliverable;
+
+  if (options.sendEmailNotifications !== false) {
+    await dispatchDeliverableCreatedEmail({
+      deliverableId: newDeliverable.id,
+      sourceActionId,
+      triggeredByUserId: currentUserId,
+    });
+  }
+
+  return newDeliverable;
 }

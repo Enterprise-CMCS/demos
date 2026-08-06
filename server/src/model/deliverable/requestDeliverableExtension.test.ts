@@ -30,6 +30,10 @@ vi.mock("../deliverableExtension/queries", () => ({
   insertDeliverableExtension: vi.fn(),
 }));
 
+vi.mock("../email", () => ({
+  dispatchExtensionRequestedEmail: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient";
 import {
   selectDeliverableOrThrow,
@@ -41,6 +45,7 @@ import {
 import { insertDeliverableAction } from "../deliverableAction/queries";
 import { insertDeliverableExtension } from "../deliverableExtension/queries";
 import { TZDate } from "@date-fns/tz";
+import { dispatchExtensionRequestedEmail } from "../email";
 
 describe("requestDeliverableExtension", () => {
   // Test inputs
@@ -71,6 +76,7 @@ describe("requestDeliverableExtension", () => {
       easternTZDate: new TZDate(2026, 9, 12, 23, 59, 59, 999, "America/New_York"),
     },
   };
+  const mockActionId = "action-1";
 
   // Mock transaction
   const mockTransaction: any = "Test!";
@@ -83,6 +89,7 @@ describe("requestDeliverableExtension", () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(selectDeliverableOrThrow).mockResolvedValue(mockDeliverable as PrismaDeliverable);
     vi.mocked(parseRequestDeliverableExtensionInput).mockReturnValue(mockParsedInput);
+    vi.mocked(insertDeliverableAction).mockResolvedValue({ id: mockActionId } as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
@@ -174,5 +181,31 @@ describe("requestDeliverableExtension", () => {
       },
       mockTransaction
     );
+  });
+
+  it("queues an extension-requested email after the transaction", async () => {
+    await requestDeliverableExtension(
+      testDeliverableId,
+      testInput,
+      testContext as GraphQLContext
+    );
+
+    expect(dispatchExtensionRequestedEmail).toHaveBeenCalledExactlyOnceWith({
+      deliverableId: testDeliverableId,
+      requestedDueDate: mockParsedInput.requestedDueDate.easternTZDate,
+      sourceActionId: mockActionId,
+      triggeredByUserId: testContext.user!.id,
+    });
+  });
+
+  it("allows the seeder to suppress extension-requested emails", async () => {
+    await requestDeliverableExtension(
+      testDeliverableId,
+      testInput,
+      testContext as GraphQLContext,
+      { sendEmailNotifications: false }
+    );
+
+    expect(dispatchExtensionRequestedEmail).not.toHaveBeenCalled();
   });
 });
