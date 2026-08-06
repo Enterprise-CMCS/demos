@@ -67,6 +67,22 @@ describe("CreateNewButton", () => {
     expect(screen.queryByText("Create New")).not.toBeInTheDocument();
   });
 
+  it("does not show the menu for readonly users", () => {
+    mockGetCurrentUser.mockReturnValue({
+      currentUser: {
+        ...mockUsers[0],
+        person: {
+          ...mockUsers[0].person,
+          personType: "demos-readonly",
+        },
+      },
+    });
+
+    renderCreateNewButton();
+
+    expect(screen.queryByText("Create New")).not.toBeInTheDocument();
+  });
+
   it("opens CreateDemonstrationDialog when demonstration is clicked", () => {
     mockGetCurrentUser.mockReturnValue({
       currentUser: mockUsers[0],
