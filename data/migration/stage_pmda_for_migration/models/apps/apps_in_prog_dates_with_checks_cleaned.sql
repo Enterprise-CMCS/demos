@@ -46,7 +46,9 @@ SELECT
             OR state_application_deemed_complete_before_state_application_submitted
             OR state_application_deemed_complete_missing_federal_comment_period_start_date
             OR state_application_deemed_complete_not_1_day_before_federal_comment_period_start
+            OR federal_comment_period_start_date_missing_federal_comment_period_end_date
             OR state_application_deemed_complete_has_invalid_submitted_date
+            OR federal_comment_period_start_date_not_30_days_before_federal_comment_period_end
             THEN NULL
         ELSE state_application_deemed_complete
     END AS cleaned_state_application_deemed_complete,
@@ -57,13 +59,19 @@ SELECT
             OR state_application_deemed_complete_missing_federal_comment_period_start_date
             OR state_application_deemed_complete_not_1_day_before_federal_comment_period_start
             OR federal_comment_period_start_date_missing_federal_comment_period_end_date
+            OR state_application_deemed_complete_has_invalid_submitted_date
             OR federal_comment_period_start_date_not_30_days_before_federal_comment_period_end
             THEN NULL
         ELSE federal_comment_period_start_date
     END AS cleaned_federal_comment_period_start_date,
     CASE
         WHEN
-            federal_comment_period_start_date_missing_federal_comment_period_end_date
+            state_application_deemed_complete_missing_state_application_submitted_date
+            OR state_application_deemed_complete_before_state_application_submitted
+            OR state_application_deemed_complete_missing_federal_comment_period_start_date
+            OR state_application_deemed_complete_not_1_day_before_federal_comment_period_start
+            OR federal_comment_period_start_date_missing_federal_comment_period_end_date
+            OR state_application_deemed_complete_has_invalid_submitted_date
             OR federal_comment_period_start_date_not_30_days_before_federal_comment_period_end
             THEN NULL
         ELSE federal_comment_period_end_date

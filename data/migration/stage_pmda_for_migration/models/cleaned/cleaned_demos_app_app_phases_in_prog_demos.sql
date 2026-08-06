@@ -1,6 +1,18 @@
-WITH phase_status_unpivot AS (
+WITH applications AS (
     SELECT
-        demos.id,
+        id,
+        mdcd_demo_aplctn_id
+    FROM {{ ref('cleaned_demos_app_demonstration_in_prog_demos') }}
+    UNION ALL
+    SELECT
+        id,
+        _legacy_mdcd_demo_aplctn_id AS mdcd_demo_aplctn_id
+    FROM {{ ref('cleaned_demos_app_in_prog_amendment') }}
+),
+
+phase_status_unpivot AS (
+    SELECT
+        applications.id,
         phases.phase_name,
         phases.phase_status
     FROM {{ ref('apps_in_prog_phase_completion') }} AS d
@@ -16,9 +28,9 @@ WITH phase_status_unpivot AS (
             ('Approval Package', d.approval_package_phase_status),
             ('Approval Summary', d.approval_summary_phase_status)
         ) AS phases (phase_name, phase_status)
-    LEFT JOIN {{ ref('cleaned_demos_app_demonstration_in_prog_demos') }} AS demos
+    LEFT JOIN applications
         ON
-            d.mdcd_demo_aplctn_id = demos.mdcd_demo_aplctn_id
+            d.mdcd_demo_aplctn_id = applications.mdcd_demo_aplctn_id
 )
 
 SELECT
