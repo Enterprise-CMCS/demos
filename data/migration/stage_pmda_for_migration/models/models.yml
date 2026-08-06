@@ -146,6 +146,8 @@ models:
         data_type: uuid
       - name: application_type_id
         data_type: text
+      - name: _legacy_mdcd_pendg_demo_id
+        data_type: integer
       - name: is_migrated_from_pmda
         data_type: boolean
 
