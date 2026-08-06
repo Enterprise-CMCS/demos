@@ -10,7 +10,8 @@ SELECT
     'Approval Summary' AS current_phase_id,
     cw1.signature_level_id,
     fa.creatd_dt,
-    fa._legacy_mdcd_demo_amndmt_id
+    fa._legacy_mdcd_demo_amndmt_id,
+    fa._legacy_mdcd_pendg_demo_id
 FROM
     {{ ref('apps_active_finalized_pmda_amendments') }} AS fa
 LEFT JOIN {{ ref('crosswalk_mdcd_demo_aplctn_sgntr_lvl_cd_to_signature_level_id') }} AS cw1
