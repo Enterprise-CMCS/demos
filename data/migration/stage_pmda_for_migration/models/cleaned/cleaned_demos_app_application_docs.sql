@@ -17,9 +17,11 @@ WITH no_s3_path AS (
         NULL::INTEGER AS _legacy_mdcd_dlvrbl_fil_doc_id,
         NULL::INTEGER AS _legacy_mdcd_dlvrbl_id,
         docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id,
-        NULL::INTEGER AS _legacy_mdcd_demo_pgm_mntrg_doc_id
+        NULL::INTEGER AS _legacy_mdcd_demo_pgm_mntrg_doc_id,
+        docs.pmda_s3_file_id AS _internal_pmda_s3_file_id
 
-    FROM {{ ref('docs_pmda_app_docs_with_application') }} AS docs
+    FROM
+        {{ ref('docs_pmda_app_docs_with_application') }} AS docs
     WHERE
         docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id NOT IN (
             SELECT e1._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id
@@ -27,7 +29,8 @@ WITH no_s3_path AS (
         )
         AND
         docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id NOT IN (
-            SELECT e2._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id FROM {{ ref('errors_app_docs_missing_file') }} AS e2
+            SELECT e2._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id
+            FROM {{ ref('errors_app_docs_missing_pmda_file_record') }} AS e2
         )
         AND
         docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id NOT IN (
@@ -36,7 +39,12 @@ WITH no_s3_path AS (
         AND
         docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id NOT IN (
             SELECT e4._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id
-            FROM {{ ref('errors_application_docs_of_type_bn_workbook') }} AS e4
+            FROM {{ ref('errors_app_docs_of_type_bn_workbook') }} AS e4
+        )
+        AND
+        docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id NOT IN (
+            SELECT e5._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id
+            FROM {{ ref('errors_app_docs_with_no_matched_file') }} AS e5
         )
 )
 
@@ -60,7 +68,7 @@ SELECT
     _legacy_mdcd_dlvrbl_id,
     _legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id,
     _legacy_mdcd_demo_pgm_mntrg_doc_id,
-    NULL::BIGINT AS _internal_pmda_s3_file_id
-
+    _internal_pmda_s3_file_id,
+    NULL::BIGINT AS _internal_submission_id
 FROM
     no_s3_path

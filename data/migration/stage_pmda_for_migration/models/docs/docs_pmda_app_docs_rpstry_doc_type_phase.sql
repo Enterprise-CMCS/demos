@@ -5,9 +5,13 @@ SELECT
     phase_document_type.phase_id,
     docs.created_at,
     docs.updated_at,
-    docs._legacy_mdcd_pendg_demo_id,
+    docs._legacy_mdcd_demo_aplctn_doc_type_cd,
     docs._legacy_creatd_user_id,
-    docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id
+    docs._legacy_mdcd_pendg_demo_id,
+    docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id,
+    docs._legacy_mdcd_demo_aplctn_doc_rpstry_fil_id,
+    docs._legacy_upldd_fil_name,
+    docs.pmda_s3_file_id
 FROM {{ ref('docs_pmda_app_docs_rpstry') }} AS docs
 LEFT JOIN {{ ref('crosswalk_mdcd_demo_aplctn_doc_type_cd_to_document_type') }} AS doc_type
     ON

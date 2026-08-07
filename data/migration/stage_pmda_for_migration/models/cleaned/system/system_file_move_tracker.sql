@@ -10,9 +10,6 @@ WITH base_list AS (
         {{ ref('docs_pmda_s3_file_list') }} AS s3_files
         ON
             final_docs._internal_pmda_s3_file_id = s3_files.pmda_s3_file_id
-    -- Filter to be removed once NOT NULL enforced by tests!
-    WHERE
-        final_docs._internal_pmda_s3_file_id IS NOT NULL
 ),
 
 file_extensions AS (

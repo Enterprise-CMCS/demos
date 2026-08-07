@@ -2,9 +2,6 @@ WITH c1 AS (
     SELECT count(*) AS doc_count
     FROM
         {{ ref('final_demos_app_document') }}
-    -- To be removed once files associated with all docs!
-    WHERE
-        _internal_pmda_s3_file_id IS NOT NULL
 ),
 
 c2 AS (
