@@ -1540,6 +1540,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_agg_cap_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_agg_cap_pgm_dtl_id
             data_type: integer
@@ -1587,6 +1589,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_ahead_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_ahead_pgm_dtl_id
             data_type: integer
@@ -1625,6 +1629,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_ann_lmts_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_ann_lmts_pgm_dtl_id
             data_type: integer
@@ -1663,6 +1669,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_apndx_k_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_apndx_k_pgm_dtl_id
             data_type: integer
@@ -1701,6 +1709,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_basic_hlth_plan_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_basic_hlth_plan_pgm_dtl_id
             data_type: integer
@@ -1739,6 +1749,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_bene_enggmt_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_bene_enggmt_pgm_dtl_id
             data_type: integer
@@ -1777,6 +1789,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_bhvrl_hlth_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_bhvrl_hlth_pgm_dtl_id
             data_type: integer
@@ -1904,6 +1918,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_chip_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_chip_pgm_dtl_id
             data_type: integer
@@ -1942,6 +1958,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_cmnty_enggmt_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_cmnty_enggmt_pgm_dtl_id
             data_type: integer
@@ -1980,6 +1998,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_cntgcy_mgmt_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_cntgcy_mgmt_pgm_dtl_id
             data_type: integer
@@ -2018,6 +2038,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_cntnus_elgblty_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_cntnus_elgblty_pgm_dtl_id
             data_type: integer
@@ -2056,6 +2078,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_covid_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_covid_pgm_dtl_id
             data_type: integer
@@ -4216,6 +4240,8 @@ sources:
             data_type: date
 
       - name: mdcd_dntl_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_dntl_pgm_dtl_id
             data_type: integer
@@ -4254,6 +4280,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_dsgntd_state_hlth_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_dsgntd_state_hlth_pgm_dtl_id
             data_type: integer
@@ -4334,6 +4362,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_dsrip_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_dsrip_pgm_dtl_id
             data_type: integer
@@ -4557,6 +4587,8 @@ sources:
             data_type: smallint
 
       - name: mdcd_emplymt_sprt_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_emplymt_sprt_pgm_dtl_id
             data_type: integer
@@ -4595,6 +4627,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_enrlmt_cap_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_enrlmt_cap_pgm_dtl_id
             data_type: integer
@@ -4633,6 +4667,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_esrd_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_esrd_pgm_dtl_id
             data_type: integer
@@ -4671,6 +4707,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_expndtr_cap_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_expndtr_cap_pgm_dtl_id
             data_type: integer
@@ -4771,6 +4809,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_ffcy_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_ffcy_pgm_dtl_id
             data_type: integer
@@ -4847,6 +4887,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_fmly_plng_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_fmly_plng_pgm_dtl_id
             data_type: integer
@@ -5030,6 +5072,8 @@ sources:
             data_type: smallint
 
       - name: mdcd_frtlty_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_frtlty_pgm_dtl_id
             data_type: integer
@@ -5068,6 +5112,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_glbl_pymt_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_glbl_pymt_pgm_dtl_id
             data_type: integer
@@ -5106,6 +5152,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_hcbs_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_hcbs_pgm_dtl_id
             data_type: integer
@@ -5195,6 +5243,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_hiv_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_hiv_pgm_dtl_id
             data_type: integer
@@ -5233,6 +5283,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_hlth_eqty_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_hlth_eqty_pgm_dtl_id
             data_type: integer
@@ -5275,6 +5327,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_hlth_rltd_scl_nds_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_hlth_rltd_scl_nds_pgm_dtl_id
             data_type: integer
@@ -5379,6 +5433,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_hlthy_bhvr_incntv_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_hlthy_bhvr_incntv_pgm_dtl_id
             data_type: integer
@@ -5417,6 +5473,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_hyde_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_hyde_pgm_dtl_id
             data_type: integer
@@ -5455,6 +5513,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_intgrtd_care_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_intgrtd_care_pgm_dtl_id
             data_type: integer
@@ -5493,6 +5553,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_lead_expo_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_lead_expo_pgm_dtl_id
             data_type: integer
@@ -5531,6 +5593,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_lftm_lmts_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_lftm_lmts_pgm_dtl_id
             data_type: integer
@@ -5569,6 +5633,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_ltss_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_ltss_pgm_dtl_id
             data_type: integer
@@ -5691,6 +5757,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_matrnl_hlth_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_matrnl_hlth_pgm_dtl_id
             data_type: integer
@@ -5729,6 +5797,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_matrnl_opioid_use_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_matrnl_opioid_use_pgm_dtl_id
             data_type: integer
@@ -5767,6 +5837,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_mc_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_mc_pgm_dtl_id
             data_type: integer
@@ -5805,6 +5877,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_mktplc_cvrg_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_mktplc_cvrg_pgm_dtl_id
             data_type: integer
@@ -5914,6 +5988,8 @@ sources:
             data_type: character varying
 
       - name: mdcd_new_adlt_grp_expnsn_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_new_adlt_grp_expnsn_pgm_dtl_id
             data_type: integer
@@ -5952,6 +6028,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_non_elgblty_prd_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_non_elgblty_prd_pgm_dtl_id
             data_type: integer
@@ -5990,6 +6068,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_non_emer_mdcl_trnsprtn_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_non_emer_mdcl_trnsprtn_pgm_dtl_id
             data_type: integer
@@ -6028,6 +6108,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_othr_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_othr_pgm_dtl_id
             data_type: integer
@@ -6074,6 +6156,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_pendg_agg_cap_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_agg_cap_pgm_dtl_id
             data_type: integer
@@ -6128,6 +6212,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_ahead_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_ahead_pgm_dtl_id
             data_type: integer
@@ -6182,6 +6268,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_ann_lmts_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_ann_lmts_pgm_dtl_id
             data_type: integer
@@ -6236,6 +6324,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_apndx_k_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_apndx_k_pgm_dtl_id
             data_type: integer
@@ -6290,6 +6380,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_basic_hlth_plan_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_basic_hlth_plan_pgm_dtl_id
             data_type: integer
@@ -6344,6 +6436,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_bene_enggmt_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_bene_enggmt_pgm_dtl_id
             data_type: integer
@@ -6398,6 +6492,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_bhvrl_hlth_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_bhvrl_hlth_pgm_dtl_id
             data_type: integer
@@ -6552,6 +6648,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_chip_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_chip_pgm_dtl_id
             data_type: integer
@@ -6606,6 +6704,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_cmnty_enggmt_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_cmnty_enggmt_pgm_dtl_id
             data_type: integer
@@ -6660,6 +6760,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_cntgcy_mgmt_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_cntgcy_mgmt_pgm_dtl_id
             data_type: integer
@@ -6714,6 +6816,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_cntnus_elgblty_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_cntnus_elgblty_pgm_dtl_id
             data_type: integer
@@ -6768,6 +6872,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_covid_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_covid_pgm_dtl_id
             data_type: integer
@@ -7108,6 +7214,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_dntl_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_dntl_pgm_dtl_id
             data_type: integer
@@ -7162,6 +7270,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_dsgntd_state_hlth_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_dsgntd_state_hlth_pgm_dtl_id
             data_type: integer
@@ -7266,6 +7376,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_dsrip_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_dsrip_pgm_dtl_id
             data_type: integer
@@ -7508,6 +7620,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_pendg_emplymt_sprt_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_emplymt_sprt_pgm_dtl_id
             data_type: integer
@@ -7562,6 +7676,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_enrlmt_cap_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_enrlmt_cap_pgm_dtl_id
             data_type: integer
@@ -7616,6 +7732,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_esrd_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_esrd_pgm_dtl_id
             data_type: integer
@@ -7670,6 +7788,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_expndtr_cap_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_expndtr_cap_pgm_dtl_id
             data_type: integer
@@ -7724,6 +7844,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_ffcy_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_ffcy_pgm_dtl_id
             data_type: integer
@@ -7778,6 +7900,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_fmly_plng_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_fmly_plng_pgm_dtl_id
             data_type: integer
@@ -7928,6 +8052,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_frtlty_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_frtlty_pgm_dtl_id
             data_type: integer
@@ -7982,6 +8108,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_glbl_pymt_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_glbl_pymt_pgm_dtl_id
             data_type: integer
@@ -8036,6 +8164,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_hcbs_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_hcbs_pgm_dtl_id
             data_type: integer
@@ -8090,6 +8220,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_hiv_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_hiv_pgm_dtl_id
             data_type: integer
@@ -8144,6 +8276,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_hlth_eqty_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_hlth_eqty_pgm_dtl_id
             data_type: integer
@@ -8202,6 +8336,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_hlth_rltd_scl_nds_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_hlth_rltd_scl_nds_pgm_dtl_id
             data_type: integer
@@ -8330,6 +8466,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_hlthy_bhvr_incntv_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_hlthy_bhvr_incntv_pgm_dtl_id
             data_type: integer
@@ -8384,6 +8522,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_hyde_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_hyde_pgm_dtl_id
             data_type: integer
@@ -8438,6 +8578,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_intgrtd_care_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_intgrtd_care_pgm_dtl_id
             data_type: integer
@@ -8492,6 +8634,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_lead_expo_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_lead_expo_pgm_dtl_id
             data_type: integer
@@ -8546,6 +8690,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_lftm_lmts_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_lftm_lmts_pgm_dtl_id
             data_type: integer
@@ -8600,6 +8746,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_ltss_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_ltss_pgm_dtl_id
             data_type: integer
@@ -8758,6 +8906,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_matrnl_hlth_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_matrnl_hlth_pgm_dtl_id
             data_type: integer
@@ -8812,6 +8962,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_matrnl_opioid_use_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_matrnl_opioid_use_pgm_dtl_id
             data_type: integer
@@ -8866,6 +9018,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_mc_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_mc_pgm_dtl_id
             data_type: integer
@@ -8920,6 +9074,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_mktplc_cvrg_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_mktplc_cvrg_pgm_dtl_id
             data_type: integer
@@ -8974,6 +9130,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_new_adlt_grp_expnsn_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_new_adlt_grp_expnsn_pgm_dtl_id
             data_type: integer
@@ -9028,6 +9186,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_non_elgblty_prd_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_non_elgblty_prd_pgm_dtl_id
             data_type: integer
@@ -9082,6 +9242,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_non_emer_mdcl_trnsprtn_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_non_emer_mdcl_trnsprtn_pgm_dtl_id
             data_type: integer
@@ -9136,6 +9298,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_othr_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_othr_pgm_dtl_id
             data_type: integer
@@ -9268,6 +9432,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_pendg_phrmcy_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_phrmcy_pgm_dtl_id
             data_type: integer
@@ -9322,6 +9488,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_prm_astnc_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_prm_astnc_pgm_dtl_id
             data_type: integer
@@ -9376,6 +9544,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_prm_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_prm_pgm_dtl_id
             data_type: integer
@@ -9430,6 +9600,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_prtl_expnsn_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_prtl_expnsn_pgm_dtl_id
             data_type: integer
@@ -9484,6 +9656,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_prvdr_cap_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_prvdr_cap_pgm_dtl_id
             data_type: integer
@@ -9538,6 +9712,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_prvdr_rstctn_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_prvdr_rstctn_pgm_dtl_id
             data_type: integer
@@ -9592,6 +9768,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_pstprtm_extnsn_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_pstprtm_extnsn_pgm_dtl_id
             data_type: integer
@@ -9646,6 +9824,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_reentry_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_reentry_pgm_dtl_id
             data_type: integer
@@ -9700,6 +9880,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_risk_mtgtn_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_risk_mtgtn_pgm_dtl_id
             data_type: integer
@@ -9754,6 +9936,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_rsnbl_oprtnty_prd_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_rsnbl_oprtnty_prd_pgm_dtl_id
             data_type: integer
@@ -9808,6 +9992,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_rsrcs_abrtn_dlvry_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_rsrcs_abrtn_dlvry_pgm_dtl_id
             data_type: integer
@@ -9862,6 +10048,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_rtro_elgblty_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_rtro_elgblty_pgm_dtl_id
             data_type: integer
@@ -9966,6 +10154,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_spcl_nds_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_spcl_nds_pgm_dtl_id
             data_type: integer
@@ -10020,6 +10210,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_srus_mentl_ill_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_srus_mentl_ill_pgm_dtl_id
             data_type: integer
@@ -10078,6 +10270,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_sud_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_sud_pgm_dtl_id
             data_type: integer
@@ -10132,6 +10326,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_trbl_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_trbl_pgm_dtl_id
             data_type: integer
@@ -10186,6 +10382,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_trgtd_expnsn_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_trgtd_expnsn_pgm_dtl_id
             data_type: integer
@@ -10240,6 +10438,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_uncompd_care_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_uncompd_care_pgm_dtl_id
             data_type: integer
@@ -10294,6 +10494,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_val_bsd_care_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_val_bsd_care_pgm_dtl_id
             data_type: integer
@@ -10348,6 +10550,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_vccn_cvrg_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_vccn_cvrg_pgm_dtl_id
             data_type: integer
@@ -10402,6 +10606,8 @@ sources:
             data_type: integer
 
       - name: mdcd_pendg_vsn_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pendg_vsn_pgm_dtl_id
             data_type: integer
@@ -10519,6 +10725,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_phrmcy_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_phrmcy_pgm_dtl_id
             data_type: integer
@@ -10557,6 +10765,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_prm_astnc_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_prm_astnc_pgm_dtl_id
             data_type: integer
@@ -10620,6 +10830,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_prm_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_prm_pgm_dtl_id
             data_type: integer
@@ -10658,6 +10870,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_prtl_expnsn_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_prtl_expnsn_pgm_dtl_id
             data_type: integer
@@ -10696,6 +10910,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_prvdr_cap_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_prvdr_cap_pgm_dtl_id
             data_type: integer
@@ -10734,6 +10950,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_prvdr_rstctn_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_prvdr_rstctn_pgm_dtl_id
             data_type: integer
@@ -10862,6 +11080,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_pstprtm_extnsn_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_pstprtm_extnsn_pgm_dtl_id
             data_type: integer
@@ -10900,6 +11120,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_reentry_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_reentry_pgm_dtl_id
             data_type: integer
@@ -10954,6 +11176,8 @@ sources:
             data_type: character varying
 
       - name: mdcd_risk_mtgtn_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_risk_mtgtn_pgm_dtl_id
             data_type: integer
@@ -10992,6 +11216,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_rsnbl_oprtnty_prd_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_rsnbl_oprtnty_prd_pgm_dtl_id
             data_type: integer
@@ -11030,6 +11256,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_rsrcs_abrtn_dlvry_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_rsrcs_abrtn_dlvry_pgm_dtl_id
             data_type: integer
@@ -11068,6 +11296,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_rtro_elgblty_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_rtro_elgblty_pgm_dtl_id
             data_type: integer
@@ -11193,6 +11423,8 @@ sources:
             data_type: integer
 
       - name: mdcd_spcl_nds_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_spcl_nds_pgm_dtl_id
             data_type: integer
@@ -11231,6 +11463,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_srus_mentl_ill_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_srus_mentl_ill_pgm_dtl_id
             data_type: integer
@@ -11554,6 +11788,8 @@ sources:
             data_type: integer
 
       - name: mdcd_sud_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_sud_pgm_dtl_id
             data_type: integer
@@ -11592,6 +11828,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_trbl_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_trbl_pgm_dtl_id
             data_type: integer
@@ -11630,6 +11868,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_trgtd_expnsn_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_trgtd_expnsn_pgm_dtl_id
             data_type: integer
@@ -11668,6 +11908,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_uncompd_care_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_uncompd_care_pgm_dtl_id
             data_type: integer
@@ -11706,6 +11948,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_val_bsd_care_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_val_bsd_care_pgm_dtl_id
             data_type: integer
@@ -11744,6 +11988,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_vccn_cvrg_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_vccn_cvrg_pgm_dtl_id
             data_type: integer
@@ -11782,6 +12028,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_vsn_pgm_dtl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_vsn_pgm_dtl_id
             data_type: integer

@@ -255,6 +255,11 @@ MIGRATION_CONFIGURATION: MigrationConfiguration = (
             "updated_at",
         ],
     ),
+    TableInsertActionConfiguration(
+        "final_demos_app_application_tag_assignment",
+        "application_tag_assignment",
+        ["application_id", "tag_name_id", "tag_type_id"],
+    ),
     TransactionActionConfiguration("begin"),
     TableInsertActionConfiguration(
         "final_demos_app_deliverable",
