@@ -16,6 +16,11 @@ const nonAdminUser: MockUser = {
   person: { ...developmentMockUser.person, personType: "demos-cms-user" },
 };
 
+const readonlyUser: MockUser = {
+  ...developmentMockUser,
+  person: { ...developmentMockUser.person, personType: "demos-readonly" },
+};
+
 const setup = (
   currentUser = adminUser,
   routerEntries: MemoryRouterProps["initialEntries"] = ["/"]
@@ -36,6 +41,11 @@ describe("QuickLinks", () => {
 
     it("does not render the Admin link for a non-admin user", () => {
       setup(nonAdminUser);
+      expect(screen.queryByTestId(ADMIN_LINK_NAME)).not.toBeInTheDocument();
+    });
+
+    it("does not render the Admin link for a readonly user", () => {
+      setup(readonlyUser);
       expect(screen.queryByTestId(ADMIN_LINK_NAME)).not.toBeInTheDocument();
     });
 
