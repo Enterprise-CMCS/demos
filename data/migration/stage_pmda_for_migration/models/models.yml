@@ -312,9 +312,9 @@ models:
           - not_null:
               name: assert_no_missing_tag_name_id_in_final_demos_app_application_tag_assignment
           - relationships:
-              name: assert_tag_name_id_exists_in_final_demos_app_tag_name
+              name: assert_application_tag_assignment_tag_name_id_exists_in_cleaned_demos_app_tag_name
               arguments:
-                to: ref('final_demos_app_tag_name')
+                to: ref('cleaned_demos_app_tag_name')
                 field: id
       - name: tag_type_id
         data_type: text
@@ -345,9 +345,9 @@ models:
           - not_null:
               name: assert_no_missing_tag_name_id_in_final_demos_app_demo_type_tag_assignment
           - relationships:
-              name: assert_tag_name_id_exists_in_final_demos_app_tag_name
+              name: assert_demo_type_tag_assignment_tag_name_id_exists_in_cleaned_demos_app_tag_name
               arguments:
-                to: ref('final_demos_app_tag_name')
+                to: ref('cleaned_demos_app_tag_name')
                 field: id
       - name: tag_type_id
         data_type: text
@@ -716,7 +716,7 @@ models:
           - not_null:
               name: assert_no_missing_tag_name_id_in_final_demos_app_tag
           - relationships:
-              name: assert_tag_name_id_exists_in_final_demos_app_tag_name
+              name: assert_tag_tag_name_id_exists_in_final_demos_app_tag_name
               arguments:
                 to: ref('final_demos_app_tag_name')
                 field: id

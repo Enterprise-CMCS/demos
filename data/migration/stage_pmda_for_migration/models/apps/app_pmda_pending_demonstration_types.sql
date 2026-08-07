@@ -6,7 +6,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_ann_lmts_pgm_dtl') }}
     UNION ALL
@@ -16,7 +17,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_agg_cap_pgm_dtl') }}
     UNION ALL
@@ -26,7 +28,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_basic_hlth_plan_pgm_dtl') }}
     UNION ALL
@@ -36,7 +39,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_bhvrl_hlth_pgm_dtl') }}
     UNION ALL
@@ -46,7 +50,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_bene_enggmt_pgm_dtl') }}
     UNION ALL
@@ -56,7 +61,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_chip_pgm_dtl') }}
     UNION ALL
@@ -66,7 +72,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_ahead_pgm_dtl') }}
     UNION ALL
@@ -76,7 +83,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_intgrtd_care_pgm_dtl') }}
     UNION ALL
@@ -86,7 +94,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_matrnl_opioid_use_pgm_dtl') }}
     UNION ALL
@@ -96,7 +105,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_cmnty_enggmt_pgm_dtl') }}
     UNION ALL
@@ -106,7 +116,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_cntgcy_mgmt_pgm_dtl') }}
     UNION ALL
@@ -116,17 +127,19 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_cntnus_elgblty_pgm_dtl') }}
     UNION ALL
     SELECT
-        'Delivery system Reform Incentive Payment (DSRIP)' AS tag_name_id,
+        'Delivery System Reform Incentive Payment (DSRIP)' AS tag_name_id,
         from_dt AS _legacy_from_dt,
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_dsrip_pgm_dtl') }}
     UNION ALL
@@ -136,7 +149,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_dntl_pgm_dtl') }}
     UNION ALL
@@ -146,7 +160,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_dsgntd_state_hlth_pgm_dtl') }}
     UNION ALL
@@ -156,7 +171,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_emplymt_sprt_pgm_dtl') }}
     UNION ALL
@@ -166,7 +182,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_esrd_pgm_dtl') }}
     UNION ALL
@@ -176,7 +193,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_enrlmt_cap_pgm_dtl') }}
     UNION ALL
@@ -186,7 +204,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_expndtr_cap_pgm_dtl') }}
     UNION ALL
@@ -196,7 +215,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_ffcy_pgm_dtl') }}
     UNION ALL
@@ -206,7 +226,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_glbl_pymt_pgm_dtl') }}
     UNION ALL
@@ -216,7 +237,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_hlth_eqty_pgm_dtl') }}
     UNION ALL
@@ -226,7 +248,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_hlth_rltd_scl_nds_pgm_dtl') }}
     UNION ALL
@@ -236,7 +259,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_hlthy_bhvr_incntv_pgm_dtl') }}
     UNION ALL
@@ -246,7 +270,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_hiv_pgm_dtl') }}
     UNION ALL
@@ -256,7 +281,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_hcbs_pgm_dtl') }}
     UNION ALL
@@ -266,7 +292,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_lead_expo_pgm_dtl') }}
     UNION ALL
@@ -276,7 +303,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_lftm_lmts_pgm_dtl') }}
     UNION ALL
@@ -286,7 +314,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_ltss_pgm_dtl') }}
     UNION ALL
@@ -296,17 +325,19 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_mc_pgm_dtl') }}
     UNION ALL
     SELECT
-        'Marketplace Coverage / Premium Assistance Wrap' AS tag_name_id,
+        'Marketplace Coverage/Premium Assistance Wrap' AS tag_name_id,
         from_dt AS _legacy_from_dt,
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_mktplc_cvrg_pgm_dtl') }}
     UNION ALL
@@ -316,7 +347,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_new_adlt_grp_expnsn_pgm_dtl') }}
     UNION ALL
@@ -326,7 +358,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_non_elgblty_prd_pgm_dtl') }}
     UNION ALL
@@ -336,7 +369,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_non_emer_mdcl_trnsprtn_pgm_dtl') }}
     UNION ALL
@@ -346,7 +380,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_prtl_expnsn_pgm_dtl') }}
     UNION ALL
@@ -356,7 +391,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_phrmcy_pgm_dtl') }}
     UNION ALL
@@ -366,7 +402,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_apndx_k_pgm_dtl') }}
     UNION ALL
@@ -376,7 +413,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_covid_pgm_dtl') }}
     UNION ALL
@@ -386,7 +424,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_rsnbl_oprtnty_prd_pgm_dtl') }}
     UNION ALL
@@ -396,7 +435,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_risk_mtgtn_pgm_dtl') }}
     UNION ALL
@@ -406,27 +446,30 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_vccn_cvrg_pgm_dtl') }}
     UNION ALL
     SELECT
-        'Premium Assistance / Employer-Sponsored Health Insurance (ESI)/ Qualified Health Plan (QHP)' AS tag_name_id,
+        'Premium Assistance/Employer-Sponsored Health Insurance (ESI)/Qualified Health Plan (QHP)' AS tag_name_id,
         from_dt AS _legacy_from_dt,
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_prm_astnc_pgm_dtl') }}
     UNION ALL
     SELECT
-        'Premiums / Cost-Sharing' AS tag_name_id,
+        'Premiums/Cost-Sharing' AS tag_name_id,
         from_dt AS _legacy_from_dt,
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_prm_pgm_dtl') }}
     UNION ALL
@@ -436,7 +479,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_prvdr_cap_pgm_dtl') }}
     UNION ALL
@@ -446,7 +490,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_prvdr_rstctn_pgm_dtl') }}
     UNION ALL
@@ -456,7 +501,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_reentry_pgm_dtl') }}
     UNION ALL
@@ -466,7 +512,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_fmly_plng_pgm_dtl') }}
     UNION ALL
@@ -476,7 +523,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_frtlty_pgm_dtl') }}
     UNION ALL
@@ -486,7 +534,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_hyde_pgm_dtl') }}
     UNION ALL
@@ -496,7 +545,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_matrnl_hlth_pgm_dtl') }}
     UNION ALL
@@ -506,7 +556,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_pstprtm_extnsn_pgm_dtl') }}
     UNION ALL
@@ -516,7 +567,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_rsrcs_abrtn_dlvry_pgm_dtl') }}
     UNION ALL
@@ -526,7 +578,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_rtro_elgblty_pgm_dtl') }}
     UNION ALL
@@ -536,7 +589,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_srus_mentl_ill_pgm_dtl') }}
     UNION ALL
@@ -546,17 +600,19 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_spcl_nds_pgm_dtl') }}
     UNION ALL
     SELECT
-        'Substance use Disorder (SUD)' AS tag_name_id,
+        'Substance Use Disorder (SUD)' AS tag_name_id,
         from_dt AS _legacy_from_dt,
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_sud_pgm_dtl') }}
     UNION ALL
@@ -566,7 +622,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_trgtd_expnsn_pgm_dtl') }}
     UNION ALL
@@ -576,7 +633,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_trbl_pgm_dtl') }}
     UNION ALL
@@ -586,7 +644,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_uncompd_care_pgm_dtl') }}
     UNION ALL
@@ -596,7 +655,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_val_bsd_care_pgm_dtl') }}
     UNION ALL
@@ -606,7 +666,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        FALSE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_vsn_pgm_dtl') }}
     UNION ALL
@@ -617,7 +678,8 @@ WITH demo_types_union AS (
         to_dt AS _legacy_to_dt,
         creatd_dt AS _legacy_creatd_dt,
         mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        dltd_ind AS _legacy_dltd_ind
+        dltd_ind AS _legacy_dltd_ind,
+        TRUE AS _is_other
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_othr_pgm_dtl') }}
 )
@@ -629,6 +691,7 @@ SELECT
     (_legacy_to_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS expiration_date,
     _legacy_creatd_dt AS created_at,
     _legacy_creatd_dt AS updated_at,
-    _legacy_mdcd_pendg_demo_id
+    _legacy_mdcd_pendg_demo_id,
+    _is_other
 FROM demo_types_union
 WHERE _legacy_dltd_ind = 0

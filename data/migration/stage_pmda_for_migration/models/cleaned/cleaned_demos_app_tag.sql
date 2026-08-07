@@ -3,8 +3,8 @@ SELECT
     'Application' AS tag_type_id,
     'System' AS source_id,
     'Approved' AS status_id,
-    min(created_at) AS created_at,
-    min(updated_at) AS updated_at
+    current_timestamp AS created_at,
+    current_timestamp AS updated_at
 FROM
     {{ ref('cleaned_demos_app_demo_type_tag_assign') }}
 GROUP BY
