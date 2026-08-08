@@ -2269,6 +2269,8 @@ sources:
             data_type: integer
 
       - name: mdcd_demo_amndmt
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_demo_amndmt_id
             data_type: integer
@@ -4185,8 +4187,6 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_dlvrbl_stus_hstry
-        config:
-          tags: ["source_in_use"]
         columns:
           - name: mdcd_dlvrbl_stus_hstry_id
             data_type: integer
@@ -13217,6 +13217,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: application_status
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: id
             data_type: text
@@ -13341,6 +13343,8 @@ sources:
             data_type: text
 
       - name: application_type
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: id
             data_type: text
@@ -13405,6 +13409,8 @@ sources:
             data_type: double precision
 
       - name: clearance_level
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: id
             data_type: text
@@ -13694,8 +13700,6 @@ sources:
             data_type: text
 
       - name: deliverable_type_document_type
-        config:
-          tags: ["source_in_use"]
         columns:
           - name: deliverable_type_id
             data_type: text
@@ -14078,6 +14082,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: document_type
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: id
             data_type: text

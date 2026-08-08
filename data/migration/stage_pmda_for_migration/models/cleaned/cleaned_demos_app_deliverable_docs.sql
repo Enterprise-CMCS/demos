@@ -65,6 +65,7 @@ SELECT
     _legacy_mdcd_dlvrbl_id,
     _legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id,
     _legacy_mdcd_demo_pgm_mntrg_doc_id,
-    _internal_pmda_s3_file_id
+    _internal_pmda_s3_file_id,
+    _internal_submission_id
 FROM
     no_s3_path
