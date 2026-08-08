@@ -317,7 +317,7 @@ VALUES
 	('UT', 'Utah', 8),
 	('VT', 'Vermont', 1),
 	('VA', 'Virginia', 3),
-	('VI', 'Virgin Islands', 2),
+	('VI', 'US Virgin Islands', 2),
 	('WA', 'Washington', 10),
 	('WV', 'West Virginia', 3),
 	('WI', 'Wisconsin', 5),
