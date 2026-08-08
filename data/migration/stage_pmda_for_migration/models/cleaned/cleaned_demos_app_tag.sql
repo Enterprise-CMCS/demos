@@ -20,7 +20,6 @@ SELECT
     current_timestamp AS updated_at
 FROM
     tag_names
-INNER JOIN
-    tag_types
+INNER JOIN tag_types
     ON
-        tag_types.tag_type_id = 'Application'
+        TRUE
