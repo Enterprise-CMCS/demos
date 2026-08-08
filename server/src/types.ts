@@ -157,7 +157,9 @@ export type SignatureLevel = (typeof SIGNATURE_LEVEL)[number];
 export type AmendmentSignatureLevel = (typeof SIGNATURE_LEVEL)[number];
 export type ExtensionSignatureLevel = (typeof SIGNATURE_LEVEL)[number];
 export type PhaseStatus = (typeof PHASE_STATUS)[number];
-export type PersonType = (typeof PERSON_TYPES)[number];
+// Temporary, replace when we have a real user from IDM with this role.
+// Currently only used in mocks for DEMOS-2537
+export type PersonType = (typeof PERSON_TYPES)[number] | "demos-readonly";
 export type UserType = (typeof USER_TYPES)[number];
 export type GrantLevel = (typeof GRANT_LEVELS)[number];
 export type Role = (typeof ROLES)[number];
