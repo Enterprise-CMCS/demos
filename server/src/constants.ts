@@ -138,9 +138,7 @@ export const PERSON_TYPES = [
   "demos-cms-user",
   "demos-state-user",
   "non-user-contact",
-  // Temporary, replace when we have a real user from IDM with this role.
-  // Currently only used in mocks for DEMOS-2537
-  "demos-readonly",
+
 ] as const;
 
 export const USER_TYPES = ["demos-admin", "demos-cms-user", "demos-state-user"] as const;
