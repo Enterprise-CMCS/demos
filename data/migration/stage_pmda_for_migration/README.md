@@ -58,7 +58,7 @@ Run `dbt deps` to install the packages used in this project, and then `dbt debug
 
 Whenever you want to start fresh from staging without reloading the raw data, use `./reset_from_staging.sh` to do so. You'll need to do this any time you've loaded data into `demos_app` and want to try again, since otherwise, DEMOS will block duplicates of certain types of records.
 
-You can use `dbt build` to rebuild the project, which loads data into `legacy_pmda_staging`. `dbt` does a drop and reload each time, so you can just run this command as many times as you want, keeping in mind the note above about `dbt` not cleaning up old tables.
+You can use `dbt build` to rebuild the project, which loads data into `legacy_pmda_staged`. `dbt` does a drop and reload each time, so you can just run this command as many times as you want, keeping in mind the note above about `dbt` not cleaning up old tables.
 
 When you want to load data from the staging schema into `demos_app`, use the `load_staged_data_to_demos_app.py` script in `data/demos_data_tools`.
 

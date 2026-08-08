@@ -10,11 +10,9 @@ source /opt/demos-data/bin/activate
 # Not for use outside of devcontainer
 python check_if_in_devcontainer.py
 
-# Drop and recreate migration schemas entirely
+# Drop migration schemas entirely
 python manage_migration_schemas.py drop raw
-python manage_migration_schemas.py create raw
 python manage_migration_schemas.py drop staging
-python manage_migration_schemas.py create staging
 
 # Reset the database to empty
 cd /workspaces/demos/server
