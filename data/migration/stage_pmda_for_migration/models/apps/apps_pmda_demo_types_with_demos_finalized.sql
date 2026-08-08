@@ -8,7 +8,7 @@ SELECT
     demo_types.updated_at,
     demo_types._legacy_mdcd_demo_id,
     demo_types._is_other
-FROM {{ ref('app_pmda_demo_types') }} AS demo_types
+FROM {{ ref('apps_pmda_demo_types') }} AS demo_types
 LEFT JOIN
     {{ ref('cleaned_demos_app_demonstration_finalized_demos') }} AS finalized_demos
     ON

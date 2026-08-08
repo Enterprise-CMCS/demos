@@ -71,6 +71,14 @@ In the rare case where a `mdcd_demo_num` existed more than once after being prop
 
 Demonstrations in DEMOS are required to have a primary Project Officer. In cases where `legacy_pmda_raw.mdcd_demo.proj_ofcr_user_id` is `NULL` or cannot be resolved to a user, the user Elizabeth Hill was assigned as the primary Project Officer.
 
+### Third Party Evaluation Analysts
+
+Some users were identified in PMDA as `Third Party Evaluation Analyst` roles. This maps them to the `non-user-contact` `person_type_id` in DEMOS unless they have another PMDA role. Most of these people don't end up assigned to anything, but a small subset of them are mapped to DDME Analysts by the migration logic. DEMOS does not support assigning any persons with the `non-user-contact` to a role right now, so we have to filter these people out.
+
+### Role Mismatches
+
+A small number of individuals were assigned to roles not permitted in DEMOS (e.g. a CMS user as a state POC). These users were logged and filtered out.
+
 ### Demonstration Type
 
 Approved demonstrations in DEMOS are required to have at least one demonstration type. To ensure that this constraint was met, a demonstration type called `Migrated From PMDA` was added, and assigned to all the "finalized" demonstrations that were migrated.
