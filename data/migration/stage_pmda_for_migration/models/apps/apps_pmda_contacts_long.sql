@@ -2,8 +2,8 @@ WITH long_pmda_demo_contacts AS (
     SELECT
         pmda_demo.mdcd_demo_id AS _legacy_mdcd_demo_id,
         NULL::INTEGER AS _legacy_mdcd_pendg_demo_id,
-        pmda_role.demos_role_id,
-        pmda_role.demos_is_primary_role,
+        pmda_role.role_id,
+        pmda_role._internal_is_primary,
         pmda_role._legacy_pmda_user_id
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_demo') }} AS pmda_demo
@@ -24,7 +24,7 @@ WITH long_pmda_demo_contacts AS (
             ('Project Officer', pmda_demo.bkup_proj_ofcr_user_id, FALSE),
             ('DDME Analyst', pmda_demo.mc_anlyst_id, FALSE),
             ('DDME Analyst', pmda_demo.hcbs_anlyst_id, FALSE)
-        ) AS pmda_role (demos_role_id, _legacy_pmda_user_id, demos_is_primary_role)
+        ) AS pmda_role (role_id, _legacy_pmda_user_id, _internal_is_primary)
     WHERE
         pmda_demo.dltd_ind = 0
         AND pmda_role._legacy_pmda_user_id IS NOT NULL
@@ -34,8 +34,8 @@ long_pmda_pendg_demo_contacts AS (
     SELECT
         NULL::INTEGER AS _legacy_mdcd_demo_id,
         pmda_pendg_demo.mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-        pmda_pendg_role.demos_role_id,
-        pmda_pendg_role.demos_is_primary_role,
+        pmda_pendg_role.role_id,
+        pmda_pendg_role._internal_is_primary,
         pmda_pendg_role._legacy_pmda_user_id
     FROM
         {{ source('legacy_pmda_raw', 'mdcd_pendg_demo') }} AS pmda_pendg_demo
@@ -57,7 +57,7 @@ long_pmda_pendg_demo_contacts AS (
             ('State Point of Contact', pmda_pendg_demo.state_3rd_poc_user_id, FALSE),
             ('State Point of Contact', pmda_pendg_demo.state_4th_poc_user_id, FALSE),
             ('State Point of Contact', pmda_pendg_demo.state_5th_poc_user_id, FALSE)
-        ) AS pmda_pendg_role (demos_role_id, _legacy_pmda_user_id, demos_is_primary_role)
+        ) AS pmda_pendg_role (role_id, _legacy_pmda_user_id, _internal_is_primary)
     WHERE
         pmda_pendg_demo.dltd_ind = 0
         AND pmda_pendg_role._legacy_pmda_user_id IS NOT NULL
@@ -67,48 +67,81 @@ pmda_demo_contacts_with_joins AS (
     SELECT
         contact._legacy_mdcd_demo_id,
         contact._legacy_mdcd_pendg_demo_id,
-        contact.demos_role_id,
-        contact.demos_is_primary_role,
+        contact.role_id,
+        contact._internal_is_primary,
         contact._legacy_pmda_user_id,
-        app.id AS demo_id,
-        person.id AS person_id
+        demo.id AS demonstration_id,
+        demo.state_id,
+        person.id AS person_id,
+        person.person_type_id
     FROM
         long_pmda_demo_contacts AS contact
-    -- Fine to inner join here; don't care about filtering contacts if the application isn't thered
+    -- Fine to inner join here; don't care about filtering contacts if the demonstration isn't there
     INNER JOIN
-        {{ ref('final_demos_app_application' ) }} AS app
+        {{ ref('final_demos_app_demonstration' ) }} AS demo
         ON
-            contact._legacy_mdcd_demo_id = app._legacy_mdcd_demo_id
-            AND app.application_type_id = 'Demonstration'
+            contact._legacy_mdcd_demo_id = demo._legacy_mdcd_demo_id
     LEFT JOIN
         {{ ref('final_demos_app_person') }} AS person
         ON
             contact._legacy_pmda_user_id = person._legacy_users_id
+    -- We don't care about primary project officers as there's a different code path to handle that
+    WHERE
+        NOT (contact.role_id = 'Project Officer' AND contact._internal_is_primary)
 ),
 
 pmda_pendg_demo_contacts_with_joins AS (
     SELECT
         contact._legacy_mdcd_demo_id,
         contact._legacy_mdcd_pendg_demo_id,
-        contact.demos_role_id,
-        contact.demos_is_primary_role,
+        contact.role_id,
+        contact._internal_is_primary,
         contact._legacy_pmda_user_id,
-        app.id AS demo_id,
-        person.id AS person_id
+        demo.id AS demonstration_id,
+        demo.state_id,
+        person.id AS person_id,
+        person.person_type_id
     FROM
         long_pmda_pendg_demo_contacts AS contact
-    -- Fine to inner join here; don't care about filtering contacts if the application isn't thered
+    -- Fine to inner join here; don't care about filtering contacts if the demonstration isn't there
+    -- Want to only pick the pending demo ID in cases where a regular demo ID doesn't exist in final
     INNER JOIN
-        {{ ref('final_demos_app_application' ) }} AS app
+        {{ ref('final_demos_app_demonstration' ) }} AS demo
         ON
-            contact._legacy_mdcd_demo_id = app._legacy_mdcd_demo_id
-            AND app.application_type_id = 'Demonstration'
+            contact._legacy_mdcd_pendg_demo_id = demo._legacy_mdcd_pendg_demo_id
+            AND demo._legacy_mdcd_demo_id IS NULL
     LEFT JOIN
         {{ ref('final_demos_app_person') }} AS person
         ON
             contact._legacy_pmda_user_id = person._legacy_users_id
+    -- We don't care about primary project officers as there's a different code path to handle that
+    WHERE
+        NOT (contact.role_id = 'Project Officer' AND contact._internal_is_primary)
 )
 
-SELECT * FROM pmda_demo_contacts_with_joins
+SELECT
+    person_id,
+    demonstration_id,
+    role_id,
+    state_id,
+    person_type_id,
+    'Demonstration' AS grant_level_id,
+    _internal_is_primary,
+    _legacy_mdcd_demo_id,
+    _legacy_mdcd_pendg_demo_id,
+    _legacy_pmda_user_id
+FROM pmda_demo_contacts_with_joins
 UNION ALL
-SELECT * FROM pmda_pendg_demo_contacts_with_joins
+SELECT
+    person_id,
+    demonstration_id,
+    role_id,
+    state_id,
+    person_type_id,
+    'Demonstration' AS grant_level_id,
+    _internal_is_primary,
+    _legacy_mdcd_demo_id,
+    _legacy_mdcd_pendg_demo_id,
+    _legacy_pmda_user_id
+FROM
+    pmda_pendg_demo_contacts_with_joins
