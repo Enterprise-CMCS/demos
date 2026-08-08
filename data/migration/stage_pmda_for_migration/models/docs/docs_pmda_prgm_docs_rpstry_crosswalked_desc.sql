@@ -6,9 +6,13 @@ SELECT
     'General File' AS document_type_id,
     doc.creatd_user_id AS _legacy_creatd_user_id,
     doc.mdcd_demo_pgm_mntrg_doc_id AS _legacy_mdcd_demo_pgm_mntrg_doc_id,
-    doc.mdcd_demo_id AS _legacy_mdcd_demo_id
-FROM {{ source('legacy_pmda_raw', 'mdcd_demo_pgm_mntrg_doc') }} AS doc
-LEFT JOIN {{ ref('crosswalk_pgm_mntrg_ctgry_type_cd_to_desc') }} AS doc_type
+    doc.mdcd_demo_id AS _legacy_mdcd_demo_id,
+    doc.upldd_fil_name AS _legacy_upldd_fil_name
+FROM
+    {{ source('legacy_pmda_raw', 'mdcd_demo_pgm_mntrg_doc') }} AS doc
+LEFT JOIN
+    {{ ref('crosswalk_pgm_mntrg_ctgry_type_cd_to_desc') }} AS doc_type
     ON
         doc.pgm_mntrg_ctgry_type_cd = doc_type._legacy_pgm_mntrg_ctgry_type_cd
-WHERE doc.dltd_ind = 0
+WHERE
+    doc.dltd_ind = 0

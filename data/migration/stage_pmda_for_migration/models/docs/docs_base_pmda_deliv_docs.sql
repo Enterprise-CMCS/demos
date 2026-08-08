@@ -32,8 +32,9 @@ WITH base_deliv_docs AS (
         {{ ref('docs_pmda_s3_file_list') }} AS s3_files
         ON
             deliv_doc.dlvrbl_fil_name = s3_files.file_name
-            AND deliv_doc.mdcd_dlvrbl_id = s3_files.deliv_extracted_mdcd_dlvrbl_id
-            AND deliv_doc.cmt_orgn_cd = s3_files.deliv_extracted_cmt_orgn_cd
+            AND deliv_doc.mdcd_dlvrbl_id = s3_files.extracted_mdcd_dlvrbl_id
+            AND deliv_doc.cmt_orgn_cd = s3_files.extracted_cmt_orgn_cd
+            AND s3_files.pmda_s3_doc_source_type = 'deliverable'
     WHERE
         deliv_doc.dltd_ind = 0
 ),
