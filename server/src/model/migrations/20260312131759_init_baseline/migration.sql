@@ -26,6 +26,11 @@ VALUES
     ('Extension');
 
 INSERT INTO
+    demos_app.approved_application_status_limit
+VALUES
+    ('Approved');
+
+INSERT INTO
     demos_app.budget_neutrality_validation_status
 VALUES
     ('Succeeded'),
@@ -43,7 +48,7 @@ INSERT INTO
     demos_app.date_type
 VALUES
     ('Concept Start Date'),
-    ('Pre-Submission Submitted Date'),
+    ('Concept Paper Submitted Date'),
     ('Concept Completion Date'),
     ('Application Intake Start Date'),
     ('State Application Submitted Date'),
@@ -56,7 +61,7 @@ VALUES
     ('Completeness Completion Date'),
     ('SDG Preparation Start Date'),
     ('Expected Approval Date'),
-    ('SME Review Date'),
+    ('SME Initial Review Date'),
     ('FRT Initial Meeting Date'),
     ('BNPMT Initial Meeting Date'),
     ('SDG Preparation Completion Date'),
@@ -82,7 +87,8 @@ VALUES
     ('Approval Summary Start Date'),
     ('Approval Summary Completion Date'),
     ('Application Details Marked Complete Date'),
-    ('Application Demonstration Types Marked Complete Date');
+    ('Application Demonstration Types Marked Complete Date'),
+    ('Application Approval Date');
 
 INSERT INTO
     demos_app.deliverable_action_type
@@ -100,7 +106,9 @@ VALUES
     ('Accepted Deliverable', FALSE, FALSE, TRUE, TRUE),
     ('Approved Deliverable', FALSE, FALSE, TRUE, TRUE),
     ('Received and Filed Deliverable', FALSE, FALSE, TRUE, TRUE),
-    ('Deleted Deliverable', FALSE, FALSE, TRUE, TRUE);
+    ('Deleted Deliverable', FALSE, FALSE, TRUE, TRUE),
+    ('Migrated Deliverable From PMDA', FALSE, FALSE, FALSE, TRUE);
+
 
 INSERT INTO
     demos_app.deliverable_due_date_type
@@ -234,6 +242,12 @@ VALUES
     ('Skipped');
 
 INSERT INTO
+    demos_app.reference_configuration_status
+VALUES
+    ('Active'),
+    ('Inactive');
+
+INSERT INTO
     demos_app.sdg_division
 VALUES
     ('Division of System Reform Demonstrations'),
@@ -249,62 +263,65 @@ VALUES
 INSERT INTO
     demos_app.state
 VALUES
-    ('AL', 'Alabama'),
-    ('AK', 'Alaska'),
-    ('AZ', 'Arizona'),
-    ('AR', 'Arkansas'),
-    ('CA', 'California'),
-    ('CO', 'Colorado'),
-    ('CT', 'Connecticut'),
-    ('DE', 'Delaware'),
-    ('FL', 'Florida'),
-    ('GA', 'Georgia'),
-    ('HI', 'Hawaii'),
-    ('ID', 'Idaho'),
-    ('IL', 'Illinois'),
-    ('IN', 'Indiana'),
-    ('IA', 'Iowa'),
-    ('KS', 'Kansas'),
-    ('KY', 'Kentucky'),
-    ('LA', 'Louisiana'),
-    ('ME', 'Maine'),
-    ('MD', 'Maryland'),
-    ('MA', 'Massachusetts'),
-    ('MI', 'Michigan'),
-    ('MN', 'Minnesota'),
-    ('MS', 'Mississippi'),
-    ('MO', 'Missouri'),
-    ('MT', 'Montana'),
-    ('NE', 'Nebraska'),
-    ('NV', 'Nevada'),
-    ('NH', 'New Hampshire'),
-    ('NJ', 'New Jersey'),
-    ('NM', 'New Mexico'),
-    ('NY', 'New York'),
-    ('NC', 'North Carolina'),
-    ('ND', 'North Dakota'),
-    ('OH', 'Ohio'),
-    ('OK', 'Oklahoma'),
-    ('OR', 'Oregon'),
-    ('PA', 'Pennsylvania'),
-    ('RI', 'Rhode Island'),
-    ('SC', 'South Carolina'),
-    ('SD', 'South Dakota'),
-    ('TN', 'Tennessee'),
-    ('TX', 'Texas'),
-    ('UT', 'Utah'),
-    ('VT', 'Vermont'),
-    ('VA', 'Virginia'),
-    ('WA', 'Washington'),
-    ('WV', 'West Virginia'),
-    ('WI', 'Wisconsin'),
-    ('WY', 'Wyoming'),
-    ('AS', 'American Samoa'),
-    ('DC', 'District of Columbia'),
-    ('GU', 'Guam'),
-    ('MP', 'Northern Mariana Islands'),
-    ('PR', 'Puerto Rico'),
-    ('VI', 'Virgin Islands');
+	('AL', 'Alabama', 4),
+	('AK', 'Alaska', 10),
+	('AS', 'American Samoa', 9),
+	('AZ', 'Arizona', 9),
+	('AR', 'Arkansas', 6),
+	('CA', 'California', 9),
+	('CO', 'Colorado', 8),
+	('CT', 'Connecticut', 1),
+	('DE', 'Delaware', 3),
+	('DC', 'District of Columbia', 3),
+	('FM', 'Federated States of Micronesia', 9),
+	('FL', 'Florida', 4),
+	('GA', 'Georgia', 4),
+	('GU', 'Guam', 9),
+	('HI', 'Hawaii', 9),
+	('ID', 'Idaho', 10),
+	('IL', 'Illinois', 5),
+	('IN', 'Indiana', 5),
+	('IA', 'Iowa', 7),
+	('KS', 'Kansas', 7),
+	('KY', 'Kentucky', 4),
+	('LA', 'Louisiana', 6),
+	('ME', 'Maine', 1),
+	('MD', 'Maryland', 3),
+	('MA', 'Massachusetts', 1),
+	('MI', 'Michigan', 5),
+	('MN', 'Minnesota', 5),
+	('MS', 'Mississippi', 4),
+	('MO', 'Missouri', 7),
+	('MT', 'Montana', 8),
+	('NE', 'Nebraska', 7),
+	('NV', 'Nevada', 9),
+	('NH', 'New Hampshire', 1),
+	('NJ', 'New Jersey', 2),
+	('NM', 'New Mexico', 6),
+	('NY', 'New York', 2),
+	('NC', 'North Carolina', 4),
+	('ND', 'North Dakota', 8),
+	('MP', 'Northern Mariana Islands', 9),
+	('OH', 'Ohio', 5),
+	('OK', 'Oklahoma', 6),
+	('OR', 'Oregon', 10),
+	('PA', 'Pennsylvania', 3),
+	('PR', 'Puerto Rico', 2),
+	('PW', 'Republic of Palau', 9),
+	('MH', 'Republic of the Marshall Islands', 9),
+	('RI', 'Rhode Island', 1),
+	('SC', 'South Carolina', 4),
+	('SD', 'South Dakota', 8),
+	('TN', 'Tennessee', 4),
+	('TX', 'Texas', 6),
+	('UT', 'Utah', 8),
+	('VT', 'Vermont', 1),
+	('VA', 'Virginia', 3),
+	('VI', 'US Virgin Islands', 2),
+	('WA', 'Washington', 10),
+	('WV', 'West Virginia', 3),
+	('WI', 'Wisconsin', 5),
+	('WY', 'Wyoming', 8);
 
 INSERT INTO
     demos_app.tag_name
@@ -369,7 +386,8 @@ VALUES
     ('Tribal', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
     ('Uncompensated Care', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
     ('Value Based Care (VBC)', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-    ('Vision', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+    ('Vision', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('FAQ', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO
     demos_app.tag_source
@@ -387,7 +405,13 @@ INSERT INTO
     demos_app.tag_type
 VALUES
     ('Application'),
-    ('Demonstration Type');
+    ('Demonstration Type'),
+    ('Reference');
+
+INSERT INTO
+    demos_app.reference_tag_type_limit
+VALUES
+    ('Reference');
 
 INSERT INTO
     demos_app.uipath_result_status
@@ -445,7 +469,16 @@ VALUES
     ('Received and Filed Deliverable', 'Under CMS Review', 'Received and Filed'),
 
     ('Deleted Deliverable', 'Upcoming', 'Deleted'),
-    ('Deleted Deliverable', 'Past Due', 'Deleted');
+    ('Deleted Deliverable', 'Past Due', 'Deleted'),
+
+    ('Migrated Deliverable From PMDA', 'Upcoming', 'Upcoming'),
+    ('Migrated Deliverable From PMDA', 'Past Due', 'Past Due'),
+    ('Migrated Deliverable From PMDA', 'Submitted', 'Submitted'),
+    ('Migrated Deliverable From PMDA', 'Under CMS Review', 'Under CMS Review'),
+    ('Migrated Deliverable From PMDA', 'Accepted', 'Accepted'),
+    ('Migrated Deliverable From PMDA', 'Approved', 'Approved'),
+    ('Migrated Deliverable From PMDA', 'Received and Filed', 'Received and Filed'),
+    ('Migrated Deliverable From PMDA', 'Deleted', 'Deleted');
 
 INSERT INTO
     demos_app.deliverable_type_document_type
@@ -493,10 +526,24 @@ VALUES
     ('Quarterly Budget Neutrality Report', 'BN Template');
 
 INSERT INTO
+    demos_app.on_demand_report_status
+VALUES
+    ('Available');
+
+INSERT INTO
+    demos_app.on_demand_report_type
+VALUES
+    ('Basic Test Report'),
+    ('Deliverable Status Report'),
+    ('Application Details Report'),
+    ('Demonstration Overview Report'),
+    ('Demonstration Types Report');
+
+INSERT INTO
     demos_app.phase_date_type
 VALUES
     ('Concept', 'Concept Start Date'),
-    ('Concept', 'Pre-Submission Submitted Date'),
+    ('Concept', 'Concept Paper Submitted Date'),
     ('Concept', 'Concept Completion Date'),
     ('Concept', 'Concept Skipped Date'),
     ('Application Intake', 'Application Intake Start Date'),
@@ -513,7 +560,7 @@ VALUES
     ('Federal Comment', 'Federal Comment Period End Date'),
     ('SDG Preparation', 'SDG Preparation Start Date'),
     ('SDG Preparation', 'Expected Approval Date'),
-    ('SDG Preparation', 'SME Review Date'),
+    ('SDG Preparation', 'SME Initial Review Date'),
     ('SDG Preparation', 'FRT Initial Meeting Date'),
     ('SDG Preparation', 'BNPMT Initial Meeting Date'),
     ('SDG Preparation', 'SDG Preparation Completion Date'),
@@ -538,7 +585,8 @@ VALUES
     ('Approval Summary', 'Application Details Marked Complete Date'),
     ('Approval Summary', 'Application Demonstration Types Marked Complete Date'),
     ('Approval Summary', 'Approval Summary Start Date'),
-    ('Approval Summary', 'Approval Summary Completion Date');
+    ('Approval Summary', 'Approval Summary Completion Date'),
+    ('Approval Summary', 'Application Approval Date');
 
 INSERT INTO
     demos_app.phase_document_type
@@ -620,35 +668,20 @@ VALUES
     ('View All Extensions', 'System'),
     ('View Extensions on Assigned Demonstrations', 'System'),
     ('View All Documents', 'System'),
-    ('View Documents on Assigned Demonstrations', 'System'),
-    ('View Owned Documents', 'System'),
-    ('View All ApplicationPhases', 'System'),
-    ('View ApplicationPhases on Assigned Demonstrations', 'System'),
-    ('View All ApplicationDates', 'System'),
-    ('View ApplicationDates on Assigned Demonstrations', 'System'),
-    ('View All ApplicationNotes', 'System'),
-    ('View ApplicationNotes on Assigned Demonstrations', 'System'),
-    ('View All ApplicationTagAssignments', 'System'),
-    ('View ApplicationTagAssignments on Assigned Demonstrations', 'System'),
-    ('View All DemonstrationTypeTagAssignments', 'System'),
-    ('View DemonstrationTypeTagAssignments on Assigned Demonstrations', 'System'),
-    ('View All DeliverableDemonstrationTypes', 'System'),
-    ('View DeliverableDemonstrationTypes on Assigned Demonstrations', 'System'),
-    ('View All DemonstrationRoleAssignments', 'System'),
-    ('View DemonstrationRoleAssignments on Assigned Demonstrations', 'System'),
-    ('View All ApplicationTagSuggestions', 'System'),
-    ('View ApplicationTagSuggestions on Assigned Demonstrations', 'System'),
-    ('View All People', 'System'),
-    ('View People on Assigned Demonstrations', 'System'),
-    ('View My Person', 'System'),
-    ('View All Users', 'System'),
-    ('View Users on Assigned Demonstrations', 'System'),
-    ('View My User', 'System'),
-    ('View All SystemRoleAssignments', 'System'),
-    ('View My SystemRoleAssignments', 'System'),
     ('View All Deliverables', 'System'),
     ('View Deliverables on Assigned Demonstrations', 'System'),
+    ('View All DemonstrationRoleAssignments', 'System'),
+    ('View DemonstrationRoleAssignments on Assigned Demonstrations', 'System'),
+    ('View Documents on Assigned Deliverables', 'System'),
+    ('Edit All Documents', 'System'),
+    ('Edit State Documents on Assigned Deliverables', 'System'),
+    ('Delete All Documents', 'System'),
+    ('Delete State Documents on Assigned Deliverables', 'System'),
+
     -- Field Level Permissions
+    ('Access Admin Field', 'System'),
+    ('Access Admin Query', 'System'),
+    ('Perform Admin Action', 'System'),
     ('Access CMS Field', 'System'),
     ('Access CMS Query', 'System'),
     ('Perform CMS Action', 'System'),
@@ -685,74 +718,7 @@ VALUES
     ('CMS User', 'System', 'View Extensions on Assigned Demonstrations'),
     ('State User', 'System', 'View Extensions on Assigned Demonstrations'),
     ('Admin User', 'System', 'View All Documents'),
-    ('Admin User', 'System', 'View Documents on Assigned Demonstrations'),
-    ('Admin User', 'System', 'View Owned Documents'),
     ('CMS User', 'System', 'View All Documents'),
-    ('CMS User', 'System', 'View Documents on Assigned Demonstrations'),
-    ('CMS User', 'System', 'View Owned Documents'),
-    ('State User', 'System', 'View Documents on Assigned Demonstrations'),
-    ('State User', 'System', 'View Owned Documents'),
-    ('Admin User', 'System', 'View All ApplicationPhases'),
-    ('Admin User', 'System', 'View ApplicationPhases on Assigned Demonstrations'),
-    ('CMS User', 'System', 'View All ApplicationPhases'),
-    ('CMS User', 'System', 'View ApplicationPhases on Assigned Demonstrations'),
-    ('State User', 'System', 'View ApplicationPhases on Assigned Demonstrations'),
-    ('Admin User', 'System', 'View All ApplicationDates'),
-    ('Admin User', 'System', 'View ApplicationDates on Assigned Demonstrations'),
-    ('Admin User', 'System', 'View All ApplicationNotes'),
-    ('Admin User', 'System', 'View ApplicationNotes on Assigned Demonstrations'),
-    ('CMS User', 'System', 'View All ApplicationDates'),
-    ('CMS User', 'System', 'View ApplicationDates on Assigned Demonstrations'),
-    ('CMS User', 'System', 'View All ApplicationNotes'),
-    ('CMS User', 'System', 'View ApplicationNotes on Assigned Demonstrations'),
-    ('State User', 'System', 'View ApplicationDates on Assigned Demonstrations'),
-    ('State User', 'System', 'View ApplicationNotes on Assigned Demonstrations'),
-    ('Admin User', 'System', 'View All ApplicationTagAssignments'),
-    ('Admin User', 'System', 'View ApplicationTagAssignments on Assigned Demonstrations'),
-    ('CMS User', 'System', 'View All ApplicationTagAssignments'),
-    ('CMS User', 'System', 'View ApplicationTagAssignments on Assigned Demonstrations'),
-    ('State User', 'System', 'View ApplicationTagAssignments on Assigned Demonstrations'),
-    ('Admin User', 'System', 'View All DemonstrationTypeTagAssignments'),
-    ('Admin User', 'System', 'View DemonstrationTypeTagAssignments on Assigned Demonstrations'),
-    ('CMS User', 'System', 'View All DemonstrationTypeTagAssignments'),
-    ('CMS User', 'System', 'View DemonstrationTypeTagAssignments on Assigned Demonstrations'),
-    ('State User', 'System', 'View DemonstrationTypeTagAssignments on Assigned Demonstrations'),
-    ('Admin User', 'System', 'View All DeliverableDemonstrationTypes'),
-    ('Admin User', 'System', 'View DeliverableDemonstrationTypes on Assigned Demonstrations'),
-    ('CMS User', 'System', 'View All DeliverableDemonstrationTypes'),
-    ('CMS User', 'System', 'View DeliverableDemonstrationTypes on Assigned Demonstrations'),
-    ('State User', 'System', 'View DeliverableDemonstrationTypes on Assigned Demonstrations'),
-    ('Admin User', 'System', 'View All DemonstrationRoleAssignments'),
-    ('Admin User', 'System', 'View DemonstrationRoleAssignments on Assigned Demonstrations'),
-    ('CMS User', 'System', 'View All DemonstrationRoleAssignments'),
-    ('CMS User', 'System', 'View DemonstrationRoleAssignments on Assigned Demonstrations'),
-    ('State User', 'System', 'View DemonstrationRoleAssignments on Assigned Demonstrations'),
-    ('Admin User', 'System', 'View All ApplicationTagSuggestions'),
-    ('Admin User', 'System', 'View ApplicationTagSuggestions on Assigned Demonstrations'),
-    ('CMS User', 'System', 'View All ApplicationTagSuggestions'),
-    ('CMS User', 'System', 'View ApplicationTagSuggestions on Assigned Demonstrations'),
-    ('State User', 'System', 'View ApplicationTagSuggestions on Assigned Demonstrations'),
-    ('Admin User', 'System', 'View All People'),
-    ('Admin User', 'System', 'View People on Assigned Demonstrations'),
-    ('Admin User', 'System', 'View My Person'),
-    ('CMS User', 'System', 'View All People'),
-    ('CMS User', 'System', 'View People on Assigned Demonstrations'),
-    ('CMS User', 'System', 'View My Person'),
-    ('State User', 'System', 'View People on Assigned Demonstrations'),
-    ('State User', 'System', 'View My Person'),
-    ('Admin User', 'System', 'View All Users'),
-    ('Admin User', 'System', 'View Users on Assigned Demonstrations'),
-    ('Admin User', 'System', 'View My User'),
-    ('CMS User', 'System', 'View All Users'),
-    ('CMS User', 'System', 'View Users on Assigned Demonstrations'),
-    ('CMS User', 'System', 'View My User'),
-    ('State User', 'System', 'View Users on Assigned Demonstrations'),
-    ('State User', 'System', 'View My User'),
-    ('Admin User', 'System', 'View All SystemRoleAssignments'),
-    ('Admin User', 'System', 'View My SystemRoleAssignments'),
-    ('CMS User', 'System', 'View All SystemRoleAssignments'),
-    ('CMS User', 'System', 'View My SystemRoleAssignments'),
-    ('State User', 'System', 'View My SystemRoleAssignments'),
     ('Admin User', 'System', 'View All Deliverables'),
     ('Admin User', 'System', 'View Deliverables on Assigned Demonstrations'),
     ('CMS User', 'System', 'View All Deliverables'),
@@ -765,7 +731,28 @@ VALUES
     ('CMS User', 'System', 'Access CMS Field'),
     ('CMS User', 'System', 'Access CMS Query'),
     ('CMS User', 'System', 'Perform CMS Action'),
-    ('State User', 'System', 'Perform State Action');
+    ('State User', 'System', 'Perform State Action'),
+    ('Admin User', 'System', 'View All DemonstrationRoleAssignments'),
+    ('Admin User', 'System', 'View DemonstrationRoleAssignments on Assigned Demonstrations'),
+    ('CMS User', 'System', 'View All DemonstrationRoleAssignments'),
+    ('CMS User', 'System', 'View DemonstrationRoleAssignments on Assigned Demonstrations'),
+    ('State User', 'System', 'View DemonstrationRoleAssignments on Assigned Demonstrations'),
+    ('Admin User', 'System', 'View Documents on Assigned Deliverables'),
+    ('Admin User', 'System', 'Edit All Documents'),
+    ('Admin User', 'System', 'Edit State Documents on Assigned Deliverables'),
+    ('Admin User', 'System', 'Delete All Documents'),
+    ('Admin User', 'System', 'Delete State Documents on Assigned Deliverables'),
+    ('CMS User', 'System', 'View Documents on Assigned Deliverables'),
+    ('CMS User', 'System', 'Edit All Documents'),
+    ('CMS User', 'System', 'Edit State Documents on Assigned Deliverables'),
+    ('CMS User', 'System', 'Delete All Documents'),
+    ('CMS User', 'System', 'Delete State Documents on Assigned Deliverables'),
+    ('State User', 'System', 'View Documents on Assigned Deliverables'),
+    ('State User', 'System', 'Edit State Documents on Assigned Deliverables'),
+    ('State User', 'System', 'Delete State Documents on Assigned Deliverables'),
+    ('Admin User', 'System', 'Access Admin Field'),
+    ('Admin User', 'System', 'Access Admin Query'),
+    ('Admin User', 'System', 'Perform Admin Action');
 
 INSERT INTO
     demos_app.role_person_type
@@ -908,7 +895,8 @@ VALUES
     ('Tribal', 'Demonstration Type', 'System', 'Approved', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
     ('Uncompensated Care', 'Demonstration Type', 'System', 'Approved', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
     ('Value Based Care (VBC)', 'Demonstration Type', 'System', 'Approved', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-    ('Vision', 'Demonstration Type', 'System', 'Approved', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+    ('Vision', 'Demonstration Type', 'System', 'Approved', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('FAQ', 'Reference', 'System', 'Approved', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- Limit Tables (depending on other tables existing)
 -- Sorted by: table name
@@ -942,11 +930,6 @@ INSERT INTO
     demos_app.deliverable_active_extension_status_limit
 VALUES
     ('Requested');
-
-INSERT INTO
-    demos_app.deliverable_demonstration_status_limit
-VALUES
-    ('Approved');
 
 INSERT INTO
     demos_app.deliverable_submission_action_type_limit
@@ -1009,6 +992,13 @@ CHECK (
     trim(name) != ''
 );
 
+ALTER TABLE demos_app.amendment
+ADD CONSTRAINT amendment_signature_level_check
+CHECK (
+  signature_level_id IS NULL
+  OR signature_level_id IN ('OA', 'OCD')
+);
+
 ALTER TABLE
     demos_app.application_tag_suggestion
 ADD CONSTRAINT
@@ -1024,11 +1014,33 @@ CHECK (
 );
 
 ALTER TABLE
+    demos_app.budget_neutrality_workbook
+ADD CONSTRAINT
+    check_budget_neutrality_workbook_non_null_fields_when_succeeded
+CHECK (
+    NOT (
+        validation_status_id = 'Succeeded'
+        AND (
+            actuals IS NULL
+            OR net_variance_total IS NULL           
+        )
+    )
+);
+
+ALTER TABLE
     demos_app.deliverable
 ADD CONSTRAINT
     check_non_empty_name
 CHECK (
     trim(name) != ''
+);
+
+ALTER TABLE
+    demos_app.deliverable
+ADD CONSTRAINT
+    check_deliverable_name_has_no_leading_trailing_whitespace
+CHECK (
+    name = trim(name)
 );
 
 ALTER TABLE
@@ -1116,9 +1128,33 @@ CHECK (
 ALTER TABLE
     demos_app.demonstration
 ADD CONSTRAINT
+    check_demonstration_name_trimmed
+CHECK (
+    name = trim(name)
+);
+
+ALTER TABLE
+    demos_app.demonstration
+ADD CONSTRAINT
+    check_demonstration_description_trimmed
+CHECK (
+    description IS NULL
+    OR description = trim(description)
+);
+
+ALTER TABLE
+    demos_app.demonstration
+ADD CONSTRAINT
     effective_date_check
 CHECK (
     effective_date < expiration_date
+);
+
+ALTER TABLE demos_app.demonstration
+ADD CONSTRAINT demonstration_signature_level_check
+CHECK (
+  signature_level_id IS NOT NULL
+  AND signature_level_id = 'OA'
 );
 
 ALTER TABLE
@@ -1168,6 +1204,14 @@ ADD CONSTRAINT
     check_phase_id_deliverable_id_null
 CHECK (
     phase_id IS NULL OR deliverable_id IS NULL
+);
+
+ALTER TABLE
+    demos_app.document
+ADD CONSTRAINT
+    no_submitted_deliverable_cms_files
+CHECK (
+    NOT (deliverable_is_cms_attached_file = true AND deliverable_submission_action_id IS NOT NULL)
 );
 
 ALTER TABLE
@@ -1258,6 +1302,21 @@ CHECK (
     trim(name) != ''
 );
 
+ALTER TABLE demos_app.extension
+ADD CONSTRAINT extension_signature_level_check
+CHECK (
+  signature_level_id IS NULL
+  OR signature_level_id IN ('OA', 'OCD')
+);
+
+ALTER TABLE
+    demos_app.on_demand_report
+ADD CONSTRAINT
+    check_non_empty_s3_path
+CHECK (
+    trim(s3_path) != ''
+);
+
 ALTER TABLE
     demos_app.private_comment
 ADD CONSTRAINT
@@ -1272,6 +1331,81 @@ ADD CONSTRAINT
     check_non_empty_content
 CHECK (
     trim(content) != ''
+);
+
+ALTER TABLE
+    demos_app.reference
+ADD CONSTRAINT
+    check_non_empty_description
+CHECK (
+    trim(description) != ''
+);
+
+ALTER TABLE
+    demos_app.reference
+ADD CONSTRAINT
+    check_non_empty_name
+CHECK (
+    trim(name) != ''
+);
+
+ALTER TABLE
+    demos_app.reference
+ADD CONSTRAINT
+    check_non_empty_s3_path
+CHECK (
+    trim(s3_path) != ''
+);
+
+ALTER TABLE
+    demos_app.reference_agreement
+ADD CONSTRAINT
+    check_non_empty_name
+CHECK (
+    trim(name) != ''
+);
+
+ALTER TABLE
+    demos_app.reference_agreement
+ADD CONSTRAINT
+    check_non_empty_s3_path
+CHECK (
+    trim(s3_path) != ''
+);
+
+ALTER TABLE
+    demos_app.state
+ADD CONSTRAINT
+    check_region_is_valid
+CHECK (
+    region BETWEEN 1 AND 10
+);
+
+ALTER TABLE
+    demos_app.users
+ADD CONSTRAINT
+    check_external_fields_exist_for_logged_in_users
+CHECK (
+    (
+        has_logged_in
+        AND (
+            cognito_subject IS NOT NULL
+            AND username IS NOT NULL
+        )
+    ) OR (
+        NOT has_logged_in AND (
+            cognito_subject IS NULL
+            AND username IS NULL
+        )
+    )
+);
+
+ALTER TABLE
+    demos_app.users
+ADD CONSTRAINT
+    check_all_regular_users_are_logged_in
+CHECK (
+    (NOT is_migrated_from_pmda AND has_logged_in) OR (is_migrated_from_pmda)
 );
 
 -- Deferred Keys
@@ -1342,3 +1476,33 @@ WHERE
         'Requested Extension',
         'Denied Extension Request'
     );
+
+CREATE UNIQUE INDEX reference_configuration_unique_index_on_active_reference_id
+ON demos_app.reference_configuration (reference_id)
+WHERE
+    status_id = 'Active';
+    
+-- Sequences
+CREATE SEQUENCE
+    demos_app.medicaid_id_number_seq
+START WITH
+    11000
+INCREMENT BY
+    1
+MINVALUE
+    11000
+MAXVALUE
+    99999
+NO CYCLE;
+
+CREATE SEQUENCE
+    demos_app.chip_id_number_seq
+START WITH
+    1000
+INCREMENT BY
+    1
+MINVALUE
+    1000
+MAXVALUE
+    99999
+NO CYCLE;

@@ -19,7 +19,7 @@ SELECT
     pmda_po.state_id,
     p.person_type_id,
     'Demonstration' AS grant_level_id,
-    'Primary Project Officer' AS _internal_grant_type
+    TRUE AS _internal_is_primary
 FROM
     cleaned_demos_and_pos AS pmda_po
 LEFT JOIN

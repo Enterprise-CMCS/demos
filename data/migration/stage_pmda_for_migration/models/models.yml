@@ -146,6 +146,8 @@ models:
         data_type: uuid
       - name: application_type_id
         data_type: text
+      - name: _legacy_mdcd_demo_id
+        data_type: integer
       - name: _legacy_mdcd_pendg_demo_id
         data_type: integer
       - name: is_migrated_from_pmda
@@ -170,13 +172,13 @@ models:
       - name: active_extension_id
         data_type: uuid
       - name: due_date_change_allowed
-        data_type: bool
+        data_type: boolean
       - name: should_have_note
-        data_type: bool
+        data_type: boolean
       - name: should_have_user_id
-        data_type: bool
+        data_type: boolean
       - name: extension_id_optional
-        data_type: bool
+        data_type: boolean
       - name: old_due_date
         data_type: timestamptz
         data_tests:
@@ -252,7 +254,7 @@ models:
           - not_null:
               name: assert_no_missing_due_date_type_in_final_deliv_table
       - name: expected_to_be_submitted
-        data_type: bool
+        data_type: boolean
         data_tests:
           - not_null:
               name: assert_no_missing_expected_to_be_submitted_in_final_deliv_table
@@ -274,6 +276,14 @@ models:
         data_type: integer
 
   - name: final_demos_app_demo_role_assignment
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          name: assert_no_duplicate_final_demo_role_assignments
+          arguments:
+            combination_of_columns:
+              - person_id
+              - demonstration_id
+              - role_id
     columns:
       - name: person_id
         data_type: uuid
@@ -290,9 +300,9 @@ models:
         data_type: text
       - name: grant_level_id
         data_type: text
-      - name: _internal_grant_type
-        data_type: text
-        description: Internal flag used for filtering downstream models.
+      - name: _internal_is_primary
+        data_type: boolean
+        description: Internal flag used to identify primary roles for downstream filtering.
 
   - name: final_demos_app_application_tag_assignment
     columns:
@@ -516,7 +526,7 @@ models:
                 to: source('demos_app', 'deliverable_type')
                 field: id
       - name: deliverable_is_cms_attached_file
-        data_type: bool
+        data_type: boolean
       - name: deliverable_submission_action_id
         data_type: uuid
       - name: deliverable_submission_action_type_id
@@ -616,6 +626,20 @@ models:
         data_type: integer
 
   - name: final_demos_app_primary_demo_role_assignment
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          name: assert_no_duplicate_final_primary_demo_role_assignments
+          arguments:
+            combination_of_columns:
+              - person_id
+              - demonstration_id
+              - role_id
+      - dbt_utils.unique_combination_of_columns:
+          name: assert_only_one_primary_demo_role_assignment_per_role_demo
+          arguments:
+            combination_of_columns:
+              - demonstration_id
+              - role_id
     columns:
       - name: person_id
         data_type: uuid
