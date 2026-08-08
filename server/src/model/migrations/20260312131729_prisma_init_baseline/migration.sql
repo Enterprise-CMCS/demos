@@ -1,5 +1,3 @@
-SET search_path TO demos_app;
-
 -- CreateEnum
 CREATE TYPE "revision_type_enum" AS ENUM ('I', 'U', 'D');
 
@@ -8,10 +6,12 @@ CREATE TABLE "amendment" (
     "id" UUID NOT NULL,
     "application_type_id" TEXT NOT NULL,
     "demonstration_id" UUID NOT NULL,
+    "demonstration_status_id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
     "effective_date" TIMESTAMPTZ,
     "status_id" TEXT NOT NULL,
+    "status_updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "current_phase_id" TEXT NOT NULL,
     "clearance_level_id" TEXT NOT NULL DEFAULT 'CMS (OSORA)',
     "signature_level_id" TEXT,
@@ -33,6 +33,7 @@ CREATE TABLE "amendment_history" (
     "description" TEXT,
     "effective_date" TIMESTAMPTZ,
     "status_id" TEXT NOT NULL,
+    "status_updated_at" TIMESTAMPTZ NOT NULL,
     "current_phase_id" TEXT NOT NULL,
     "clearance_level_id" TEXT NOT NULL,
     "signature_level_id" TEXT,
@@ -53,6 +54,7 @@ CREATE TABLE "amendment_application_type_limit" (
 CREATE TABLE "application" (
     "id" UUID NOT NULL,
     "application_type_id" TEXT NOT NULL,
+    "is_migrated_from_pmda" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "application_pkey" PRIMARY KEY ("id")
 );
@@ -75,6 +77,7 @@ CREATE TABLE "application_date" (
     "date_value" TIMESTAMPTZ NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
+    "is_migrated_from_pmda" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "application_date_pkey" PRIMARY KEY ("application_id","date_type_id")
 );
@@ -258,6 +261,13 @@ CREATE TABLE "application_type" (
 );
 
 -- CreateTable
+CREATE TABLE "approved_application_status_limit" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "approved_application_status_limit_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "budget_neutrality_validation_status" (
     "id" TEXT NOT NULL,
 
@@ -270,6 +280,8 @@ CREATE TABLE "budget_neutrality_workbook" (
     "document_type_id" TEXT NOT NULL,
     "validation_status_id" TEXT NOT NULL,
     "validation_data" JSONB NOT NULL,
+    "actuals" TEXT,
+    "net_variance_total" DOUBLE PRECISION,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
@@ -285,6 +297,8 @@ CREATE TABLE "budget_neutrality_workbook_history" (
     "document_type_id" TEXT NOT NULL,
     "validation_status_id" TEXT NOT NULL,
     "validation_data" JSONB NOT NULL,
+    "actuals" TEXT,
+    "net_variance_total" DOUBLE PRECISION,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
@@ -442,13 +456,6 @@ CREATE TABLE "deliverable_active_extension_status_limit" (
 );
 
 -- CreateTable
-CREATE TABLE "deliverable_demonstration_status_limit" (
-    "id" TEXT NOT NULL,
-
-    CONSTRAINT "deliverable_demonstration_status_limit_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "deliverable_demonstration_type" (
     "deliverable_id" UUID NOT NULL,
     "demonstration_id" UUID NOT NULL,
@@ -561,9 +568,12 @@ CREATE TABLE "demonstration" (
     "sdg_division_id" TEXT,
     "signature_level_id" TEXT,
     "status_id" TEXT NOT NULL,
+    "status_updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "current_phase_id" TEXT NOT NULL,
     "state_id" TEXT NOT NULL,
     "clearance_level_id" TEXT NOT NULL DEFAULT 'CMS (OSORA)',
+    "medicaid_id" TEXT NOT NULL,
+    "chip_id" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
@@ -584,9 +594,12 @@ CREATE TABLE "demonstration_history" (
     "sdg_division_id" TEXT,
     "signature_level_id" TEXT,
     "status_id" TEXT NOT NULL,
+    "status_updated_at" TIMESTAMPTZ NOT NULL,
     "current_phase_id" TEXT NOT NULL,
     "state_id" TEXT NOT NULL,
     "clearance_level_id" TEXT NOT NULL,
+    "medicaid_id" TEXT NOT NULL,
+    "chip_id" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
@@ -687,6 +700,7 @@ CREATE TABLE "document" (
     "deliverable_submission_action_type_id" TEXT,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
+    "is_migrated_from_pmda" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "document_pkey" PRIMARY KEY ("id")
 );
@@ -811,10 +825,12 @@ CREATE TABLE "extension" (
     "id" UUID NOT NULL,
     "application_type_id" TEXT NOT NULL,
     "demonstration_id" UUID NOT NULL,
+    "demonstration_status_id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
     "effective_date" TIMESTAMPTZ,
     "status_id" TEXT NOT NULL,
+    "status_updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "current_phase_id" TEXT NOT NULL,
     "clearance_level_id" TEXT NOT NULL DEFAULT 'CMS (OSORA)',
     "signature_level_id" TEXT,
@@ -836,6 +852,7 @@ CREATE TABLE "extension_history" (
     "description" TEXT,
     "effective_date" TIMESTAMPTZ,
     "status_id" TEXT NOT NULL,
+    "status_updated_at" TIMESTAMPTZ NOT NULL,
     "current_phase_id" TEXT NOT NULL,
     "clearance_level_id" TEXT NOT NULL,
     "signature_level_id" TEXT,
@@ -864,6 +881,33 @@ CREATE TABLE "note_type" (
     "id" TEXT NOT NULL,
 
     CONSTRAINT "note_type_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "on_demand_report" (
+    "id" UUID NOT NULL,
+    "s3_path" TEXT NOT NULL,
+    "generated_file_name" TEXT NOT NULL,
+    "requesting_user_id" UUID NOT NULL,
+    "report_type_id" TEXT NOT NULL,
+    "status_id" TEXT NOT NULL,
+    "report_generated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "on_demand_report_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "on_demand_report_status" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "on_demand_report_status_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "on_demand_report_type" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "on_demand_report_type_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -1054,6 +1098,155 @@ CREATE TABLE "public_comment_history" (
 );
 
 -- CreateTable
+CREATE TABLE "reference" (
+    "id" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "s3_path" TEXT NOT NULL,
+    "owner_user_id" UUID NOT NULL,
+    "owner_person_type_id" TEXT NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "reference_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "reference_history" (
+    "revision_id" SERIAL NOT NULL,
+    "revision_type" "revision_type_enum" NOT NULL,
+    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "id" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "s3_path" TEXT NOT NULL,
+    "owner_user_id" UUID NOT NULL,
+    "owner_person_type_id" TEXT NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "reference_history_pkey" PRIMARY KEY ("revision_id")
+);
+
+-- CreateTable
+CREATE TABLE "reference_agreement" (
+    "id" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "s3_path" TEXT NOT NULL,
+    "owner_user_id" UUID NOT NULL,
+    "owner_person_type_id" TEXT NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "reference_agreement_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "reference_agreement_history" (
+    "revision_id" SERIAL NOT NULL,
+    "revision_type" "revision_type_enum" NOT NULL,
+    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "id" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "s3_path" TEXT NOT NULL,
+    "owner_user_id" UUID NOT NULL,
+    "owner_person_type_id" TEXT NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "reference_agreement_history_pkey" PRIMARY KEY ("revision_id")
+);
+
+-- CreateTable
+CREATE TABLE "reference_agreement_acceptance" (
+    "reference_id" UUID NOT NULL,
+    "reference_agreement_id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
+    "acceptance_timestamp" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "reference_agreement_acceptance_pkey" PRIMARY KEY ("reference_id","reference_agreement_id","user_id","acceptance_timestamp")
+);
+
+-- CreateTable
+CREATE TABLE "reference_configuration" (
+    "id" UUID NOT NULL,
+    "reference_id" UUID NOT NULL,
+    "reference_agreement_id" UUID,
+    "status_id" TEXT NOT NULL,
+
+    CONSTRAINT "reference_configuration_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "reference_configuration_history" (
+    "revision_id" SERIAL NOT NULL,
+    "revision_type" "revision_type_enum" NOT NULL,
+    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "id" UUID NOT NULL,
+    "reference_id" UUID NOT NULL,
+    "reference_agreement_id" UUID,
+    "status_id" TEXT NOT NULL,
+
+    CONSTRAINT "reference_configuration_history_pkey" PRIMARY KEY ("revision_id")
+);
+
+-- CreateTable
+CREATE TABLE "reference_configuration_status" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "reference_configuration_status_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "reference_demonstration_type" (
+    "reference_id" UUID NOT NULL,
+    "demonstration_type_tag_name_id" TEXT NOT NULL,
+    "demonstration_type_tag_type_id" TEXT NOT NULL,
+
+    CONSTRAINT "reference_demonstration_type_pkey" PRIMARY KEY ("reference_id","demonstration_type_tag_name_id","demonstration_type_tag_type_id")
+);
+
+-- CreateTable
+CREATE TABLE "reference_demonstration_type_history" (
+    "revision_id" SERIAL NOT NULL,
+    "revision_type" "revision_type_enum" NOT NULL,
+    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "reference_id" UUID NOT NULL,
+    "demonstration_type_tag_name_id" TEXT NOT NULL,
+    "demonstration_type_tag_type_id" TEXT NOT NULL,
+
+    CONSTRAINT "reference_demonstration_type_history_pkey" PRIMARY KEY ("revision_id")
+);
+
+-- CreateTable
+CREATE TABLE "reference_tag_assignment" (
+    "reference_id" UUID NOT NULL,
+    "tag_name_id" TEXT NOT NULL,
+    "tag_type_id" TEXT NOT NULL,
+
+    CONSTRAINT "reference_tag_assignment_pkey" PRIMARY KEY ("reference_id","tag_name_id","tag_type_id")
+);
+
+-- CreateTable
+CREATE TABLE "reference_tag_assignment_history" (
+    "revision_id" SERIAL NOT NULL,
+    "revision_type" "revision_type_enum" NOT NULL,
+    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "reference_id" UUID NOT NULL,
+    "tag_name_id" TEXT NOT NULL,
+    "tag_type_id" TEXT NOT NULL,
+
+    CONSTRAINT "reference_tag_assignment_history_pkey" PRIMARY KEY ("revision_id")
+);
+
+-- CreateTable
+CREATE TABLE "reference_tag_type_limit" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "reference_tag_type_limit_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "role" (
     "id" TEXT NOT NULL,
     "grant_level_id" TEXT NOT NULL,
@@ -1108,6 +1301,7 @@ CREATE TABLE "signature_level" (
 CREATE TABLE "state" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "region" INTEGER NOT NULL,
 
     CONSTRAINT "state_pkey" PRIMARY KEY ("id")
 );
@@ -1294,8 +1488,10 @@ CREATE TABLE "uipath_value_history" (
 CREATE TABLE "users" (
     "id" UUID NOT NULL,
     "person_type_id" TEXT NOT NULL,
-    "cognito_subject" UUID NOT NULL,
-    "username" TEXT NOT NULL,
+    "cognito_subject" UUID,
+    "username" TEXT,
+    "is_migrated_from_pmda" BOOLEAN NOT NULL,
+    "has_logged_in" BOOLEAN NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
@@ -1309,8 +1505,10 @@ CREATE TABLE "users_history" (
     "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "id" UUID NOT NULL,
     "person_type_id" TEXT NOT NULL,
-    "cognito_subject" UUID NOT NULL,
-    "username" TEXT NOT NULL,
+    "cognito_subject" UUID,
+    "username" TEXT,
+    "is_migrated_from_pmda" BOOLEAN NOT NULL,
+    "has_logged_in" BOOLEAN NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
@@ -1371,6 +1569,12 @@ CREATE UNIQUE INDEX "demonstration_id_status_id_key" ON "demonstration"("id", "s
 CREATE UNIQUE INDEX "demonstration_id_application_type_id_key" ON "demonstration"("id", "application_type_id");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "demonstration_medicaid_id_key" ON "demonstration"("medicaid_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "demonstration_chip_id_key" ON "demonstration"("chip_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "document_id_document_type_id_key" ON "document"("id", "document_type_id");
 
 -- CreateIndex
@@ -1390,6 +1594,9 @@ CREATE UNIQUE INDEX "phase_phase_number_key" ON "phase"("phase_number");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "primary_demonstration_role_assignment_person_id_demonstrati_key" ON "primary_demonstration_role_assignment"("person_id", "demonstration_id", "role_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "reference_configuration_reference_id_reference_agreement_id_key" ON "reference_configuration"("reference_id", "reference_agreement_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "role_id_grant_level_id_key" ON "role"("id", "grant_level_id");
@@ -1412,6 +1619,9 @@ CREATE UNIQUE INDEX "users_id_person_type_id_key" ON "users"("id", "person_type_
 -- CreateIndex
 CREATE UNIQUE INDEX "users_cognito_subject_key" ON "users"("cognito_subject");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "users_username_key" ON "users"("username");
+
 -- AddForeignKey
 ALTER TABLE "amendment" ADD CONSTRAINT "amendment_id_application_type_id_fkey" FOREIGN KEY ("id", "application_type_id") REFERENCES "application"("id", "application_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -1419,7 +1629,10 @@ ALTER TABLE "amendment" ADD CONSTRAINT "amendment_id_application_type_id_fkey" F
 ALTER TABLE "amendment" ADD CONSTRAINT "amendment_application_type_id_fkey" FOREIGN KEY ("application_type_id") REFERENCES "amendment_application_type_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "amendment" ADD CONSTRAINT "amendment_demonstration_id_fkey" FOREIGN KEY ("demonstration_id") REFERENCES "demonstration"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "amendment" ADD CONSTRAINT "amendment_demonstration_id_demonstration_status_id_fkey" FOREIGN KEY ("demonstration_id", "demonstration_status_id") REFERENCES "demonstration"("id", "status_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "amendment" ADD CONSTRAINT "amendment_demonstration_status_id_fkey" FOREIGN KEY ("demonstration_status_id") REFERENCES "approved_application_status_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "amendment" ADD CONSTRAINT "amendment_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "application_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1485,6 +1698,9 @@ ALTER TABLE "application_tag_suggestion_extract" ADD CONSTRAINT "application_tag
 ALTER TABLE "application_tag_type_limit" ADD CONSTRAINT "application_tag_type_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "tag_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "approved_application_status_limit" ADD CONSTRAINT "approved_application_status_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "application_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "budget_neutrality_workbook" ADD CONSTRAINT "budget_neutrality_workbook_id_document_type_id_fkey" FOREIGN KEY ("id", "document_type_id") REFERENCES "document"("id", "document_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1509,7 +1725,7 @@ ALTER TABLE "deliverable" ADD CONSTRAINT "deliverable_status_id_fkey" FOREIGN KE
 ALTER TABLE "deliverable" ADD CONSTRAINT "deliverable_demonstration_id_demonstration_status_id_fkey" FOREIGN KEY ("demonstration_id", "demonstration_status_id") REFERENCES "demonstration"("id", "status_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "deliverable" ADD CONSTRAINT "deliverable_demonstration_status_id_fkey" FOREIGN KEY ("demonstration_status_id") REFERENCES "deliverable_demonstration_status_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "deliverable" ADD CONSTRAINT "deliverable_demonstration_status_id_fkey" FOREIGN KEY ("demonstration_status_id") REFERENCES "approved_application_status_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "deliverable" ADD CONSTRAINT "deliverable_cms_owner_user_id_cms_owner_person_type_id_fkey" FOREIGN KEY ("cms_owner_user_id", "cms_owner_person_type_id") REFERENCES "users"("id", "person_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1552,9 +1768,6 @@ ALTER TABLE "deliverable_active_extension" ADD CONSTRAINT "deliverable_active_ex
 
 -- AddForeignKey
 ALTER TABLE "deliverable_active_extension_status_limit" ADD CONSTRAINT "deliverable_active_extension_status_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "deliverable_extension_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "deliverable_demonstration_status_limit" ADD CONSTRAINT "deliverable_demonstration_status_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "application_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "deliverable_demonstration_type" ADD CONSTRAINT "deliverable_demonstration_type_deliverable_id_demonstratio_fkey" FOREIGN KEY ("deliverable_id", "demonstration_id") REFERENCES "deliverable"("id", "demonstration_id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1698,7 +1911,10 @@ ALTER TABLE "extension" ADD CONSTRAINT "extension_id_application_type_id_fkey" F
 ALTER TABLE "extension" ADD CONSTRAINT "extension_application_type_id_fkey" FOREIGN KEY ("application_type_id") REFERENCES "extension_application_type_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "extension" ADD CONSTRAINT "extension_demonstration_id_fkey" FOREIGN KEY ("demonstration_id") REFERENCES "demonstration"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "extension" ADD CONSTRAINT "extension_demonstration_id_demonstration_status_id_fkey" FOREIGN KEY ("demonstration_id", "demonstration_status_id") REFERENCES "demonstration"("id", "status_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "extension" ADD CONSTRAINT "extension_demonstration_status_id_fkey" FOREIGN KEY ("demonstration_status_id") REFERENCES "approved_application_status_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "extension" ADD CONSTRAINT "extension_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "application_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1714,6 +1930,15 @@ ALTER TABLE "extension" ADD CONSTRAINT "extension_signature_level_id_fkey" FOREI
 
 -- AddForeignKey
 ALTER TABLE "extension_application_type_limit" ADD CONSTRAINT "extension_application_type_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "application_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "on_demand_report" ADD CONSTRAINT "on_demand_report_requesting_user_id_fkey" FOREIGN KEY ("requesting_user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "on_demand_report" ADD CONSTRAINT "on_demand_report_report_type_id_fkey" FOREIGN KEY ("report_type_id") REFERENCES "on_demand_report_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "on_demand_report" ADD CONSTRAINT "on_demand_report_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "on_demand_report_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "permission" ADD CONSTRAINT "permission_grant_level_id_fkey" FOREIGN KEY ("grant_level_id") REFERENCES "grant_level"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1768,6 +1993,54 @@ ALTER TABLE "public_comment" ADD CONSTRAINT "public_comment_deliverable_id_fkey"
 
 -- AddForeignKey
 ALTER TABLE "public_comment" ADD CONSTRAINT "public_comment_author_user_id_fkey" FOREIGN KEY ("author_user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "reference" ADD CONSTRAINT "reference_owner_user_id_owner_person_type_id_fkey" FOREIGN KEY ("owner_user_id", "owner_person_type_id") REFERENCES "users"("id", "person_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "reference" ADD CONSTRAINT "reference_owner_person_type_id_fkey" FOREIGN KEY ("owner_person_type_id") REFERENCES "cms_user_person_type_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "reference_agreement" ADD CONSTRAINT "reference_agreement_owner_user_id_owner_person_type_id_fkey" FOREIGN KEY ("owner_user_id", "owner_person_type_id") REFERENCES "users"("id", "person_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "reference_agreement" ADD CONSTRAINT "reference_agreement_owner_person_type_id_fkey" FOREIGN KEY ("owner_person_type_id") REFERENCES "cms_user_person_type_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "reference_agreement_acceptance" ADD CONSTRAINT "reference_agreement_acceptance_reference_id_reference_agre_fkey" FOREIGN KEY ("reference_id", "reference_agreement_id") REFERENCES "reference_configuration"("reference_id", "reference_agreement_id") ON DELETE RESTRICT ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "reference_agreement_acceptance" ADD CONSTRAINT "reference_agreement_acceptance_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "reference_configuration" ADD CONSTRAINT "reference_configuration_reference_id_fkey" FOREIGN KEY ("reference_id") REFERENCES "reference"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "reference_configuration" ADD CONSTRAINT "reference_configuration_reference_agreement_id_fkey" FOREIGN KEY ("reference_agreement_id") REFERENCES "reference_agreement"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "reference_configuration" ADD CONSTRAINT "reference_configuration_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "reference_configuration_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "reference_demonstration_type" ADD CONSTRAINT "reference_demonstration_type_reference_id_fkey" FOREIGN KEY ("reference_id") REFERENCES "reference"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "reference_demonstration_type" ADD CONSTRAINT "reference_demonstration_type_demonstration_type_tag_name_i_fkey" FOREIGN KEY ("demonstration_type_tag_name_id", "demonstration_type_tag_type_id") REFERENCES "tag"("tag_name_id", "tag_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "reference_demonstration_type" ADD CONSTRAINT "reference_demonstration_type_demonstration_type_tag_type_i_fkey" FOREIGN KEY ("demonstration_type_tag_type_id") REFERENCES "demonstration_type_tag_type_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "reference_tag_assignment" ADD CONSTRAINT "reference_tag_assignment_reference_id_fkey" FOREIGN KEY ("reference_id") REFERENCES "reference"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "reference_tag_assignment" ADD CONSTRAINT "reference_tag_assignment_tag_name_id_tag_type_id_fkey" FOREIGN KEY ("tag_name_id", "tag_type_id") REFERENCES "tag"("tag_name_id", "tag_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "reference_tag_assignment" ADD CONSTRAINT "reference_tag_assignment_tag_type_id_fkey" FOREIGN KEY ("tag_type_id") REFERENCES "reference_tag_type_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "reference_tag_type_limit" ADD CONSTRAINT "reference_tag_type_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "tag_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "role" ADD CONSTRAINT "role_grant_level_id_fkey" FOREIGN KEY ("grant_level_id") REFERENCES "grant_level"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
