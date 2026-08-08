@@ -1,5 +1,5 @@
 SELECT pmda_tag_name.*
-FROM {{ ref('app_pmda_demonstration_types_finalized_demos') }} AS pmda_tag_name
+FROM {{ ref('app_pmda_demo_types_pending') }} AS pmda_tag_name
 WHERE
     pmda_tag_name.tag_name_id NOT IN (
         SELECT demos_tag_name.id

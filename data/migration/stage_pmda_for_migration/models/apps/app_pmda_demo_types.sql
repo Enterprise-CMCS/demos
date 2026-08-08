@@ -1,6 +1,6 @@
 -- in PMDA demonstration types are each stored in their own table. In order to extract the relevent
 -- data, we need to union all the tables together. This process is applied for demontration types on 
--- pending demonstration and approved demonstrations. 
+-- pending demonstrations and approved demonstrations. 
 WITH demo_types_union AS (
 
     SELECT
