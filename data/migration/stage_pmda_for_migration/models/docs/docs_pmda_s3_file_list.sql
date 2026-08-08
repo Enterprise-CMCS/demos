@@ -51,10 +51,22 @@ SELECT
     etag,
     CASE
         WHEN s3_prefix LIKE 'upload/deliverable/%' THEN s3_prefix_p4::INTEGER
-    END AS deliv_extracted_mdcd_dlvrbl_id,
+    END AS extracted_mdcd_dlvrbl_id,
     CASE
         WHEN s3_prefix LIKE 'upload/deliverable/cms/%' THEN 'C'
         WHEN s3_prefix LIKE 'upload/deliverable/state/%' THEN 'S'
-    END AS deliv_extracted_cmt_orgn_cd
+    END AS extracted_cmt_orgn_cd,
+    CASE
+        WHEN s3_prefix LIKE 'upload/demonstration/program_monitoring/%' THEN s3_prefix_p4::INTEGER
+    END AS extracted_mdcd_demo_id,
+    CASE
+        WHEN s3_prefix LIKE 'upload/appmgmtdemo/docrepo/%' THEN s3_prefix_p4::INTEGER
+    END AS extracted_mdcd_pendg_demo_id,
+    CASE
+        WHEN s3_prefix LIKE 'upload/deliverable/%' THEN 'deliverable'
+        WHEN s3_prefix LIKE 'upload/appmgmtdemo/docrepo/%' THEN 'docrepo'
+        WHEN s3_prefix LIKE 'upload/demonstration/program_monitoring/%' THEN 'program_monitoring'
+    END AS pmda_s3_doc_source_type
+
 FROM
     with_prefix_parts

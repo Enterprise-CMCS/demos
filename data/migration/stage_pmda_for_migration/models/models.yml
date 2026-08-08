@@ -470,7 +470,13 @@ models:
         data_type: integer
       - name: _internal_pmda_s3_file_id
         data_type: bigint
-        description: NOTE - should add not null and unique checks here once fully implemented
+        data_tests:
+          - unique:
+              name: assert_internal_pmda_s3_file_id_unique_in_final_docs
+          - not_null:
+              name: assert_internal_pmda_s3_file_id_not_null_in_final_docs
+      - name: _internal_submission_id
+        data_type: bigint
       - name: is_migrated_from_pmda
         data_type: boolean
         data_tests:
@@ -939,6 +945,19 @@ models:
               name: assert_no_missing_deliv_status_id_in_crosswalked_deliv
 
   # Document Models
+  - name: docs_pmda_app_docs_rpstry
+    columns:
+      - name: _legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id
+        data_type: integer
+        data_tests:
+          - unique:
+              name: assert_no_duplicate_app_doc_rpstry_dtl_ids_in_rpstry
+      - name: _legacy_mdcd_demo_aplctn_doc_rpstry_fil_id
+        data_type: integer
+        data_tests:
+          - unique:
+              name: assert_no_duplicate_app_doc_rpstry_fil_ids_in_rpstry
+
   - name: docs_base_pmda_deliv_docs
     columns:
       - name: mdcd_dlvrbl_fil_doc_id
