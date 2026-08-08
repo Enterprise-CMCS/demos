@@ -20,11 +20,11 @@ SELECT
 FROM {{ ref('app_pmda_demonstration_types_finalized_demos') }} AS finalized_demo_types
 WHERE
     finalized_demo_types._legacy_mdcd_demo_id NOT IN (
-        SELECT e1._legacy_mdcd_demo_id FROM {{ ref('error_demonstration_types_with_no_finalized_demo') }} AS e1
+        SELECT e1._legacy_mdcd_demo_id FROM {{ ref('errors_demonstration_types_with_no_finalized_demo') }} AS e1
     )
     AND NOT EXISTS (
         SELECT 1
-        FROM {{ ref('error_demo_type_effective_expiration_dates') }} AS e2
+        FROM {{ ref('errors_demo_type_effective_expiration_dates') }} AS e2
         WHERE
             e2._legacy_mdcd_demo_id = finalized_demo_types._legacy_mdcd_demo_id
             AND e2.tag_name_id = finalized_demo_types.tag_name_id
@@ -42,11 +42,11 @@ FROM {{ ref('app_pmda_demonstration_types_in_prog_demos') }} AS in_prog_demo_typ
 WHERE
     in_prog_demo_types._legacy_mdcd_pendg_demo_id NOT IN (
         SELECT e1._legacy_mdcd_pendg_demo_id
-        FROM {{ ref('error_pending_demonstration_types_with_no_in_prog_demo') }} AS e1
+        FROM {{ ref('errors_pending_demonstration_types_with_no_in_prog_demo') }} AS e1
     )
     AND NOT EXISTS (
         SELECT 1
-        FROM {{ ref('error_pending_demo_type_effective_expiration_dates') }} AS e2
+        FROM {{ ref('errors_pending_demo_type_effective_expiration_dates') }} AS e2
         WHERE
             e2._legacy_mdcd_pendg_demo_id = in_prog_demo_types._legacy_mdcd_pendg_demo_id
             AND e2.tag_name_id = in_prog_demo_types.tag_name_id
