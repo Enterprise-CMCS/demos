@@ -296,22 +296,89 @@ models:
         data_type: text
         description: Internal flag used for filtering downstream models.
 
-  - name: final_demos_app_demo_type_tag_assignment
+  - name: final_demos_app_application_tag_assignment
+    columns:
+      - name: application_id
+        data_type: uuid
+        data_tests:
+          - not_null:
+              name: assert_no_missing_application_id_in_final_demos_app_application_tag_assignment
+          - relationships:
+              name: assert_application_id_exists_in_final_demos_app_application
+              arguments:
+                to: ref('final_demos_app_application')
+                field: id
+      - name: tag_name_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_tag_name_id_in_final_demos_app_application_tag_assignment
+          - relationships:
+              name: assert_application_tag_assignment_tag_name_id_exists_in_cleaned_demos_app_tag_name
+              arguments:
+                to: ref('cleaned_demos_app_tag_name')
+                field: id
+      - name: tag_type_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_tag_type_id_in_final_demos_app_application_tag_assignment
+          - relationships:
+              name: assert_tag_type_id_exists_in_demos_app_tag_type
+              arguments:
+                to: source('demos_app', 'application_tag_type_limit')
+                field: id
+
+  - name: final_demos_app_demonstration_type_tag_assignment
     columns:
       - name: demonstration_id
         data_type: uuid
+        data_tests:
+          - not_null:
+              name: assert_no_missing_demonstration_id_in_final_demos_app_demo_type_tag_assignment
+          - relationships:
+              name: assert_demonstration_id_exists_in_final_demos_app_demonstration
+              arguments:
+                to: ref('final_demos_app_demonstration')
+                field: id
       - name: tag_name_id
         data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_tag_name_id_in_final_demos_app_demo_type_tag_assignment
+          - relationships:
+              name: assert_demo_type_tag_assignment_tag_name_id_exists_in_cleaned_demos_app_tag_name
+              arguments:
+                to: ref('cleaned_demos_app_tag_name')
+                field: id
       - name: tag_type_id
         data_type: text
+        data_tests:
+          - relationships:
+              name: assert_tag_type_id_exists_in_demos_app_tag_type
+              arguments:
+                to: source('demos_app', 'demonstration_type_tag_type_limit')
+                field: id
       - name: effective_date
         data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_missing_effective_date_in_final_demos_app_demo_type_tag_assignment
       - name: expiration_date
         data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_missing_expiration_date_in_final_demos_app_demo_type_tag_assignment
       - name: created_at
         data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_missing_created_at_in_final_demos_app_demo_type_tag_assignment
       - name: updated_at
         data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_missing_updated_at_in_final_demos_app_demo_type_tag_assignment
 
   - name: final_demos_app_demonstration
     columns:
@@ -633,25 +700,74 @@ models:
     columns:
       - name: id
         data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_tag_name_id_in_final_tag_name_table
+          - unique:
+              name: assert_tag_name_id_is_unique_in_final_tag_name_table
       - name: created_at
         data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_missing_created_at_in_final_tag_name_table
       - name: updated_at
         data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_missing_updated_at_in_final_tag_name_table
 
   - name: final_demos_app_tag
     columns:
       - name: tag_name_id
         data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_tag_name_id_in_final_demos_app_tag
+          - relationships:
+              name: assert_tag_tag_name_id_exists_in_final_demos_app_tag_name
+              arguments:
+                to: ref('final_demos_app_tag_name')
+                field: id
       - name: tag_type_id
         data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_tag_type_id_in_final_demos_app_tag
+          - relationships:
+              name: assert_tag_type_id_exists_in_demos_app_tag_type
+              arguments:
+                to: source('demos_app', 'tag_type')
+                field: id
       - name: source_id
         data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_source_id_in_final_demos_app_tag
+          - relationships:
+              name: assert_source_id_exists_in_demos_app_tag_source
+              arguments:
+                to: source('demos_app', 'tag_source')
+                field: id
       - name: status_id
         data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_status_id_in_final_demos_app_tag
+          - relationships:
+              name: assert_status_id_exists_in_demos_app_tag_status
+              arguments:
+                to: source('demos_app', 'tag_status')
+                field: id
       - name: created_at
         data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_missing_created_at_in_final_demos_app_tag
       - name: updated_at
         data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_missing_updated_at_in_final_demos_app_tag
 
   - name: final_demos_app_users
     description: This is the cleaned data from PMDA prepared for insert into demos_app.users; this is derived entirely from `final_demos_app_person`.

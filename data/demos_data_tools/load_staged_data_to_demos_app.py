@@ -243,7 +243,7 @@ MIGRATION_CONFIGURATION: MigrationConfiguration = (
         ],
     ),
     TableInsertActionConfiguration(
-        "final_demos_app_demo_type_tag_assignment",
+        "final_demos_app_demonstration_type_tag_assignment",
         "demonstration_type_tag_assignment",
         [
             "demonstration_id",
@@ -254,6 +254,11 @@ MIGRATION_CONFIGURATION: MigrationConfiguration = (
             "created_at",
             "updated_at",
         ],
+    ),
+    TableInsertActionConfiguration(
+        "final_demos_app_application_tag_assignment",
+        "application_tag_assignment",
+        ["application_id", "tag_name_id", "tag_type_id"],
     ),
     TransactionActionConfiguration("begin"),
     TableInsertActionConfiguration(
