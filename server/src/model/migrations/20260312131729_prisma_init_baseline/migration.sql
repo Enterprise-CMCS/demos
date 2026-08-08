@@ -1596,7 +1596,10 @@ CREATE UNIQUE INDEX "phase_phase_number_key" ON "phase"("phase_number");
 CREATE UNIQUE INDEX "primary_demonstration_role_assignment_person_id_demonstrati_key" ON "primary_demonstration_role_assignment"("person_id", "demonstration_id", "role_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "reference_configuration_reference_id_reference_agreement_id_key" ON "reference_configuration"("reference_id", "reference_agreement_id");
+-- Customized with NULLS NOT DISTINCT
+CREATE UNIQUE INDEX reference_configuration_reference_id_reference_agreement_id_key
+ON demos_app.reference_configuration (reference_id, reference_agreement_id)
+NULLS NOT DISTINCT;
 
 -- CreateIndex
 CREATE UNIQUE INDEX "role_id_grant_level_id_key" ON "role"("id", "grant_level_id");
