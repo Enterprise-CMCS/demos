@@ -327,7 +327,7 @@ models:
                 to: source('demos_app', 'application_tag_type_limit')
                 field: id
 
-  - name: final_demos_app_demo_type_tag_assignment
+  - name: final_demos_app_demonstration_type_tag_assignment
     columns:
       - name: demonstration_id
         data_type: uuid

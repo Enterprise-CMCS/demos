@@ -691,7 +691,7 @@ SELECT
     tag_name_id,
     'Demonstration Type' AS tag_type_id,
     (_legacy_from_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS effective_date,
-    (_legacy_to_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS expiration_date,
+    (_legacy_to_dt + TIME '23:59:59.999') AT TIME ZONE 'America/New_York' AS expiration_date,
     _legacy_creatd_dt AS created_at,
     _legacy_creatd_dt AS updated_at,
     _legacy_mdcd_pendg_demo_id,

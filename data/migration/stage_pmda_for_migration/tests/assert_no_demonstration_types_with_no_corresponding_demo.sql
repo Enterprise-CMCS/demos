@@ -3,6 +3,6 @@
 {{ config(severity='warn') }}
 
 
-SELECT * FROM {{ ref('errors_demonstration_types_with_no_finalized_demo') }}
+SELECT * FROM {{ ref('errors_demo_type_with_no_demo_finalized') }}
 UNION ALL
-SELECT * FROM {{ ref('errors_pending_demonstration_types_with_no_in_prog_demo') }}
+SELECT * FROM {{ ref('errors_demo_type_with_no_demo_in_prog') }}

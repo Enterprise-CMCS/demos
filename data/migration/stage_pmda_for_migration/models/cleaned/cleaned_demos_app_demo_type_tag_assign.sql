@@ -42,7 +42,7 @@ FROM {{ ref('app_pmda_demo_types_pending_with_demos_in_prog') }} AS in_prog_demo
 WHERE
     in_prog_demo_types._legacy_mdcd_pendg_demo_id NOT IN (
         SELECT e1._legacy_mdcd_pendg_demo_id
-        FROM {{ ref('errors_demo_type_with_no_demo_pending') }} AS e1
+        FROM {{ ref('errors_demo_type_with_no_demo_in_prog') }} AS e1
     )
     AND NOT EXISTS (
         SELECT 1

@@ -5,7 +5,7 @@
 
 SELECT *
 FROM
-    {{ ref('errors_pending_demo_type_effective_expiration_dates') }}
+    {{ ref('errors_demo_type_effective_expiration_dates_pending') }}
 UNION ALL
 SELECT *
 FROM {{ ref('errors_demo_type_effective_expiration_dates') }}
