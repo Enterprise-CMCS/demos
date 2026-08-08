@@ -1,3 +1,5 @@
+SET search_path TO demos_app;
+
 -- CreateEnum
 CREATE TYPE "revision_type_enum" AS ENUM ('I', 'U', 'D');
 
