@@ -5,8 +5,6 @@ import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
 import { LoginHistoryUserRow, LoginHistoryColumns } from "../columns/LoginHistoryColumns";
 
-const SEARCH_STORAGE_KEY = "login-history-keyword-search";
-
 export const LOGIN_HISTORY_QUERY = gql`
   query GetLoginHistory {
     users {
@@ -44,7 +42,7 @@ export const LoginHistoryTable: React.FC = () => {
     <Table<LoginHistoryUserRow>
       data={sortedUsers}
       columns={LoginHistoryColumns()}
-      keywordSearch={(table) => <KeywordSearch table={table} storageKey={SEARCH_STORAGE_KEY} />}
+      keywordSearch={(table) => <KeywordSearch table={table} />}
       pagination={(table) => <PaginationControls table={table} />}
       emptyRowsMessage="No users available."
       noResultsFoundMessage="No results match your search"
