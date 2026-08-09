@@ -161,6 +161,7 @@ export function Table<T extends { id: string }>({
     initialState,
     onRowSelectionChange: setRowSelection,
     paginateExpandedRows: false,
+    autoResetPageIndex: false,
   });
 
   // Auto-expand parents with visible children after filtering

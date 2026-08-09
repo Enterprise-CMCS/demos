@@ -31,6 +31,16 @@ export function PaginationControls<T>({
   const canPreviousPage = getCanPreviousPage();
   const canNextPage = getCanNextPage();
 
+  /*
+   * This effect ensures that if the user is on a page that no longer exists
+   * (e.g., after deleting a row), we reset to the last available page.
+   */
+  React.useEffect(() => {
+    if (totalPages > 0 && pageIndex >= totalPages) {
+      setPageIndex(totalPages - 1);
+    }
+  }, [pageIndex, totalPages, setPageIndex]);
+
   const handlePageSizeChange = (newSize: number) => {
     if (newSize < 0) {
       // "All" option - set to total rows
