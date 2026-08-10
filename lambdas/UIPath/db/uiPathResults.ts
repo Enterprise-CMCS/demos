@@ -3,6 +3,7 @@ import type { PoolClient } from "pg";
 import { getDbPool } from "../db";
 import { ExtractionStatus } from "../fetchExtractResult";
 import {
+  DEMO_TYPE_FIELD_ID,
   getConfidence,
   getExtractedFields,
   getTextStartIndex,
@@ -33,6 +34,7 @@ const INSERT_VALUE_SQL = `insert into ${DEMOS_SCHEMA}.uipath_value
   (id, uipath_result_id, document_id, application_id, field_id, value, text_length, text_start_index, confidence, token_list, updated_at)
  values
   ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, now())`;
+const SELECT_TAG_NAMES_SQL = `select id from ${DEMOS_SCHEMA}.tag_name`;
 
 export type PersistedUiPathExtraction = {
   extractedFieldCount: number;
@@ -153,9 +155,27 @@ export async function persistFinishedUiPathExtraction(
     );
 
     const extractedFields = getExtractedFields(status);
+    let canonicalTagNames: string[] = [];
+    if (
+      extractedFields.some(
+        (field) => field.FieldId === DEMO_TYPE_FIELD_ID && !field.IsMissing,
+      )
+    ) {
+      const tagNames = await client.query<{ id: string }>(SELECT_TAG_NAMES_SQL);
+      canonicalTagNames = tagNames.rows.map((row) => row.id);
+      if (!canonicalTagNames.length) {
+        throw new Error(
+          "Cannot normalize UiPath demo_type values: no application tag names found.",
+        );
+      }
+    }
+
     const uiPathValues: PersistedUiPathValue[] = [];
     for (const field of extractedFields) {
-      const persistableValues = toPersistableFieldValues(field);
+      const persistableValues = toPersistableFieldValues(
+        field,
+        canonicalTagNames,
+      );
       if (!persistableValues.length) continue;
 
       for (const row of persistableValues) {
