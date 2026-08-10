@@ -1,11 +1,11 @@
 model ApplicationDate {
-  applicationId String   @map("application_id") @db.Uuid
-  dateTypeId    String   @map("date_type_id")
-  dateValue     DateTime @map("date_value") @db.Timestamptz
-  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz
-  isMigratedFromPmda Boolean @default(false) @map("is_migrated_from_pmda")
-  
+  applicationId      String   @map("application_id") @db.Uuid
+  dateTypeId         String   @map("date_type_id")
+  dateValue          DateTime @map("date_value") @db.Timestamptz
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  isMigratedFromPmda Boolean  @default(false) @map("is_migrated_from_pmda")
+
   application Application @relation(fields: [applicationId], references: [id])
   dateType    DateType    @relation(fields: [dateTypeId], references: [id])
 
