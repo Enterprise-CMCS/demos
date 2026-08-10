@@ -16,6 +16,7 @@ import { log, reqIdChild, als, store } from "./log.js";
 import type { APIGatewayProxyEvent } from "aws-lambda";
 import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 import { fieldAuthPlugin } from "./plugins/fieldAuthPlugin.js";
+import { compressResponseMiddleware } from "./plugins/compression.middleware.js";
 import { formatGraphQLErrorCode } from "./errors/errorCodes.js";
 import { createLoaders } from "./loaders";
 
@@ -77,6 +78,7 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
   server,
   handlers.createAPIGatewayProxyEventRequestHandler(),
   {
+    middleware: [compressResponseMiddleware],
     context: async ({ event, context }) =>
       als.run(store, async () => {
         try {
