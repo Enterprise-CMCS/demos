@@ -72,6 +72,14 @@ export const handler = async (event: APIGatewayTokenAuthorizerEvent, context: Co
       );
     }
 
+    // Check if user is in allowed list (if configured)
+    if (process.env.ALLOWED_USER_IDS) {
+      const allowedUserIds = process.env.ALLOWED_USER_IDS.split(",").map((id) => id.trim());
+      if (!allowedUserIds.includes(userId)) {
+        throw new Error("Unauthorized");
+      }
+    }
+
     if (!roles) {
       log.info(
         {
