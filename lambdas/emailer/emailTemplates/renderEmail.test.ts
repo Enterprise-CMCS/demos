@@ -46,6 +46,51 @@ describe("renderEmail", () => {
     expect(cleanHtml(payload.html)).toContain("Close Out Report");
   });
 
+  it("renders one email for multiple created deliverables", async () => {
+    const payload = await renderEmail("multiple-deliverables-created", {
+      recipients: deliverableCreatedInput.recipients,
+      demonstration: deliverableCreatedInput.demonstration,
+      deliverables: [
+        deliverableCreatedInput.deliverable,
+        {
+          ...deliverableCreatedInput.deliverable,
+          id: "deliverable-2",
+          name: "DY1Q2 Quarterly Budget Report",
+          dueDate: "2026-09-01T12:00:00.000Z",
+        },
+      ],
+    });
+
+    expect(payload.subject).toBe(
+      "CMS DEMOS Deliverables: Multiple Deliverables Created"
+    );
+    expect(payload.text).toContain(
+      "You have been assigned new Close Out Report deliverables for your Demonstration."
+    );
+    expect(payload.text).toContain(
+      "http://localhost:3000/deliverables/deliverable-1 due on 2026-06-01"
+    );
+    expect(payload.text).toContain(
+      "http://localhost:3000/deliverables/deliverable-2 due on 2026-09-01"
+    );
+    expect(payload.text).toContain(
+      "Deliverables: Quarterly Budget Report, DY1Q2 Quarterly Budget Report"
+    );
+    expect(payload.text).toContain("Action: Multiple Deliverables Created");
+  });
+
+  it("requires multiple deliverables for the grouped template", async () => {
+    await expect(
+      renderEmail("multiple-deliverables-created", {
+        recipients: deliverableCreatedInput.recipients,
+        demonstration: deliverableCreatedInput.demonstration,
+        deliverables: [deliverableCreatedInput.deliverable],
+      })
+    ).rejects.toThrow(
+      "Multiple Deliverables Created email requires at least two deliverables."
+    );
+  });
+
   it("renders a deliverable-submitted email from the same shared parts", async () => {
     const payload = await renderEmail("deliverable-submitted", deliverableCreatedInput);
 

@@ -21,6 +21,23 @@ export type DeliverableEmailInput = {
   };
 };
 
+export type MultipleDeliverablesEmailInput = {
+  recipients: EmailRecipientGroups;
+  demonstration: DeliverableEmailInput["demonstration"];
+  deliverables: DeliverableEmailInput["deliverable"][];
+};
+
+export type MultipleDeliverablesEmailProps = {
+  demonstrationTitle: string;
+  deliverableNames: string;
+  deliverableType: string;
+  deliverables: Array<{
+    dueDate: string;
+    link: string;
+  }>;
+  state: string;
+};
+
 export type DeliverableEmailProps = {
   currentDueDate: string;
   demonstrationTitle: string;

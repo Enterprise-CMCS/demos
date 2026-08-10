@@ -6,6 +6,7 @@ import { enqueueTrackedRealtimeEmail } from "./emailNotification";
 import {
   dispatchDeliverableCompletedEmail,
   dispatchDeliverableCreatedEmail,
+  dispatchMultipleDeliverablesCreatedEmail,
   dispatchDeliverableDueDateUpdatedEmail,
   dispatchDeliverableSubmittedEmail,
   dispatchExtensionRequestedEmail,
@@ -34,9 +35,11 @@ vi.mock("./emailNotification", () => ({
 
 describe("deliverable email dispatch", () => {
   const findUniqueOrThrow = vi.fn();
+  const findMany = vi.fn();
   const sourceActionId = "action-1";
   const deliverable = {
     id: "deliverable-1",
+    demonstrationId: "demonstration-1",
     name: "Quarterly Report",
     deliverableTypeId: "Monitoring Report",
     dueDate: new Date("2026-08-01T03:59:59.999Z"),
@@ -88,9 +91,10 @@ describe("deliverable email dispatch", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue({
-      deliverable: { findUniqueOrThrow },
+      deliverable: { findUniqueOrThrow, findMany },
     } as any);
     findUniqueOrThrow.mockResolvedValue(deliverable);
+    findMany.mockResolvedValue([deliverable]);
     vi.mocked(buildRealtimeEmailEnvelope).mockReturnValue(envelope);
     vi.mocked(enqueueTrackedRealtimeEmail).mockResolvedValue("message-1");
   });
@@ -304,6 +308,55 @@ describe("deliverable email dispatch", () => {
     expect(enqueueTrackedRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
       envelope,
       sourceActionId,
+      [
+        {
+          personId: "cms-owner-1",
+          emailAddress: "cms.owner@example.com",
+        },
+        {
+          personId: "cms-contact-1",
+          emailAddress: "cms.contact@example.com",
+        },
+      ]
+    );
+  });
+
+  it("queues one tracked email for multiple created deliverables", async () => {
+    const secondDeliverable = {
+      ...deliverable,
+      id: "deliverable-2",
+      name: "DY1Q2 Quarterly Report",
+      dueDate: new Date("2026-11-01T03:59:59.999Z"),
+    };
+    findMany.mockResolvedValueOnce([secondDeliverable, deliverable]);
+
+    await dispatchMultipleDeliverablesCreatedEmail({
+      deliverableIds: [deliverable.id, secondDeliverable.id],
+      triggeredByUserId: "user-1",
+    });
+
+    expect(buildRealtimeEmailEnvelope).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        emailType: "Multiple Deliverables Created",
+        entityType: "deliverable",
+        entityId: deliverable.id,
+        triggeredById: "user-1",
+        idempotencyKey:
+          "Multiple Deliverables Created:deliverables:deliverable-1,deliverable-2",
+        payload: expect.objectContaining({
+          deliverables: [
+            expect.objectContaining({ id: deliverable.id, name: deliverable.name }),
+            expect.objectContaining({
+              id: secondDeliverable.id,
+              name: secondDeliverable.name,
+            }),
+          ],
+        }),
+      })
+    );
+    expect(enqueueTrackedRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
+      envelope,
+      undefined,
       [
         {
           personId: "cms-owner-1",

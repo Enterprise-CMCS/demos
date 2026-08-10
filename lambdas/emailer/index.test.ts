@@ -17,6 +17,16 @@ import { SQSEvent } from "aws-lambda";
 import nodemailer, { SentMessageInfo } from "nodemailer";
 import Mail, { Options } from "nodemailer/lib/mailer";
 
+const statusMocks = vi.hoisted(() => ({
+  update: vi.fn(),
+}));
+
+vi.mock("./emailNotificationStatus", () => ({
+  updateEmailNotificationStatus: statusMocks.update,
+}));
+
+const originalEnv = { ...process.env };
+
 const mockEmailData = {
   to: "test@example.com",
   subject: "unit test subject",
@@ -24,6 +34,7 @@ const mockEmailData = {
 };
 
 const realtimeDeliverableCreatedEnvelope = {
+  emailNotificationId: "01c20d4d-c918-4c8e-89be-6b73178a66f2",
   emailType: "Deliverable Created",
   entityType: "deliverable",
   entityId: "deliverable-1",
@@ -77,9 +88,11 @@ vi.mock("nodemailer");
 
 describe("emailer", () => {
   beforeEach(() => {
+    process.env = { ...originalEnv };
     ssmMock.reset();
     clearCache();
     vi.clearAllMocks();
+    statusMocks.update.mockResolvedValue(undefined);
   });
 
   it("should properly handle a valid sqs event", async () => {
@@ -197,6 +210,65 @@ describe("emailer", () => {
       }),
       "log only: email not in allowlist"
     );
+    expect(statusMocks.update).toHaveBeenCalledWith(
+      realtimeDeliverableCreatedEnvelope.emailNotificationId,
+      "Failed",
+      "Email blocked by recipient allowlist."
+    );
+  });
+
+  it("should mark a tracked realtime email sent after SMTP succeeds", async () => {
+    process.env.DISABLE_EMAIL_ALLOWLIST = "true";
+    const sendMailSpy = vi.fn(() => ({ messageId: "unit-test" }));
+    vi.spyOn(nodemailer, "createTransport").mockImplementation(
+      () => ({ sendMail: sendMailSpy } as unknown as Mail<SentMessageInfo, Options>)
+    );
+
+    await expect(
+      handler(sqsEvent(JSON.stringify(realtimeDeliverableCreatedEnvelope)))
+    ).resolves.toBe("success");
+
+    expect(statusMocks.update).toHaveBeenCalledExactlyOnceWith(
+      realtimeDeliverableCreatedEnvelope.emailNotificationId,
+      "Sent",
+      null
+    );
+  });
+
+  it("should mark a tracked realtime email failed when SMTP rejects it", async () => {
+    process.env.DISABLE_EMAIL_ALLOWLIST = "true";
+    vi.spyOn(nodemailer, "createTransport").mockImplementation(
+      () => ({ sendMail: vi.fn().mockRejectedValue(new Error("SMTP unavailable")) }) as unknown as Mail<SentMessageInfo, Options>
+    );
+
+    await expect(
+      handler(sqsEvent(JSON.stringify(realtimeDeliverableCreatedEnvelope)))
+    ).rejects.toThrow("SMTP unavailable");
+
+    expect(statusMocks.update).toHaveBeenCalledExactlyOnceWith(
+      realtimeDeliverableCreatedEnvelope.emailNotificationId,
+      "Failed",
+      "SMTP unavailable"
+    );
+  });
+
+  it("should not resend an email when recording Sent fails", async () => {
+    process.env.DISABLE_EMAIL_ALLOWLIST = "true";
+    const errorSpy = vi.spyOn(log, "error");
+    statusMocks.update.mockRejectedValueOnce(new Error("database unavailable"));
+    const sendMailSpy = vi.fn(() => ({ messageId: "unit-test" }));
+    vi.spyOn(nodemailer, "createTransport").mockImplementation(
+      () => ({ sendMail: sendMailSpy } as unknown as Mail<SentMessageInfo, Options>)
+    );
+
+    await expect(
+      handler(sqsEvent(JSON.stringify(realtimeDeliverableCreatedEnvelope)))
+    ).resolves.toBe("success");
+    expect(sendMailSpy).toHaveBeenCalledOnce();
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "database unavailable", status: "Sent" }),
+      "unable to update email notification delivery status"
+    );
   });
 
   it("should select the deliverable-submitted template by email type", async () => {
@@ -209,6 +281,32 @@ describe("emailer", () => {
       expect.objectContaining({
         subject: "CMS DEMOS Deliverable: Deliverable Submitted",
         text: expect.stringContaining("has been submitted for your Demonstration"),
+      })
+    );
+  });
+
+  it("should select the multiple-deliverables-created template", async () => {
+    const email = await renderRealtimeEmailIfNeeded({
+      ...realtimeDeliverableCreatedEnvelope,
+      emailType: "Multiple Deliverables Created",
+      payload: {
+        recipients: realtimeDeliverableCreatedEnvelope.payload.recipients,
+        demonstration: realtimeDeliverableCreatedEnvelope.payload.demonstration,
+        deliverables: [
+          realtimeDeliverableCreatedEnvelope.payload.deliverable,
+          {
+            ...realtimeDeliverableCreatedEnvelope.payload.deliverable,
+            id: "deliverable-2",
+            name: "DY1Q2 Quarterly Budget Report",
+          },
+        ],
+      },
+    });
+
+    expect(email).toEqual(
+      expect.objectContaining({
+        subject: "CMS DEMOS Deliverables: Multiple Deliverables Created",
+        text: expect.stringContaining("View these deliverables"),
       })
     );
   });
@@ -262,6 +360,11 @@ describe("emailer", () => {
         )
       )
     ).rejects.toThrow(
+      "Missing value for deliverable.name while rendering deliverable-created.data"
+    );
+    expect(statusMocks.update).toHaveBeenCalledWith(
+      realtimeDeliverableCreatedEnvelope.emailNotificationId,
+      "Failed",
       "Missing value for deliverable.name while rendering deliverable-created.data"
     );
   });

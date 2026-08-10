@@ -116,6 +116,21 @@ describe("emailQueue", () => {
     );
   });
 
+  it("supports grouped deliverable-created emails", async () => {
+    const { buildRealtimeEmailEnvelope } = await loadModule();
+
+    const out = buildRealtimeEmailEnvelope({
+      emailType: "Multiple Deliverables Created",
+      entityType: "deliverable",
+      entityId: "del-123",
+      triggeredById: "user-123",
+      payload: { deliverables: [{ id: "del-123" }, { id: "del-456" }] },
+    });
+
+    expect(out.emailType).toBe("Multiple Deliverables Created");
+    expect(out.entityType).toBe("deliverable");
+  });
+
   it("enqueues message and returns message id", async () => {
     process.env.EMAILER_QUEUE_URL = "http://example.com/emailer-queue";
     sendMock.mockResolvedValue({ MessageId: "msg-1" });

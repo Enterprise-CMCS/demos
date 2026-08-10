@@ -41,6 +41,7 @@ vi.mock(".", () => ({
   approveDeliverableExtension: vi.fn(),
   completeDeliverable: vi.fn(),
   createDeliverable: vi.fn(),
+  createDeliverables: vi.fn(),
   deleteDeliverable: vi.fn(),
   denyDeliverableExtension: vi.fn(),
   selectDeliverable: vi.fn(),
@@ -59,6 +60,7 @@ import {
   approveDeliverableExtension,
   completeDeliverable,
   createDeliverable,
+  createDeliverables,
   deleteDeliverable,
   denyDeliverableExtension,
   requestDeliverableExtension,
@@ -635,6 +637,29 @@ describe("deliverableResolvers", () => {
           {} as GraphQLContext
         );
         expect(createDeliverable).toHaveBeenCalledExactlyOnceWith(testInput, {});
+      });
+    });
+
+    describe("Mutation.createDeliverables", () => {
+      it("should call createDeliverables with the batch", async () => {
+        const inputs = [
+          {
+            name: "A name!",
+            deliverableType: "Close Out Report",
+            demonstrationId: testDemonstrationId,
+            cmsOwnerUserId: "161f3a85-7b6d-4217-abec-93494db3a207",
+            dueDate: "2025-11-30" as DateTimeOrLocalDate,
+          },
+        ] satisfies CreateDeliverableInput[];
+        const context = {} as GraphQLContext;
+
+        await deliverableResolvers.Mutation.createDeliverables(
+          {},
+          { inputs },
+          context
+        );
+
+        expect(createDeliverables).toHaveBeenCalledExactlyOnceWith(inputs, context);
       });
     });
 

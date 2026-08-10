@@ -6,10 +6,15 @@ import * as ssm from "@aws-sdk/client-ssm";
 import { log } from "./log";
 import { Address, Options } from "nodemailer/lib/mailer";
 import { renderEmail } from "./emailTemplates/renderEmail";
+import {
+  DeliveryStatus,
+  updateEmailNotificationStatus,
+} from "./emailNotificationStatus";
 
 type EmailerAddress = string | Address | Array<string | Address>;
 
 type RealtimeEmailEnvelope = {
+  emailNotificationId?: string;
   emailType: string;
   entityType?: string;
   entityId?: string;
@@ -23,6 +28,7 @@ type RealtimeEmailEnvelope = {
 
 const templateByEmailType: Record<string, string> = {
   "Deliverable Created": "deliverable-created",
+  "Multiple Deliverables Created": "multiple-deliverables-created",
   "Deliverable Due Date Updated": "deliverable-due-date-updated",
   "Deliverable Submitted": "deliverable-submitted",
   "Deliverable Accepted": "deliverable-accepted",
@@ -73,16 +79,25 @@ export const handler = async (event: SQSEvent) => {
         idempotencyKey: email.idempotencyKey,
         triggeredBy: email.triggeredBy,
       }
-    : {};
+      : {};
+  const realtimeEmail = isRealtimeEmailEnvelope(email) ? email : undefined;
 
   try {
     email = await renderRealtimeEmailIfNeeded(email);
   } catch (err) {
+    await recordDeliveryStatus(realtimeEmail, "Failed", getErrorMessage(err));
     log.error({ error: (err as Error).message }, "unable to render realtime email");
     throw err;
   }
 
   if (!isValidEmailData(email)) {
+    if (realtimeEmail?.emailNotificationId) {
+      const error = new Error(
+        `Tracked realtime email did not render valid email data: ${realtimeEmail.emailNotificationId}`
+      );
+      await recordDeliveryStatus(realtimeEmail, "Failed", error.message);
+      throw error;
+    }
     return;
   }
 
@@ -123,12 +138,20 @@ export const handler = async (event: SQSEvent) => {
         },
         "log only: email not in allowlist"
       );
-      info = { messageId: "log-only" };
+      await recordDeliveryStatus(
+        realtimeEmail,
+        "Failed",
+        "Email blocked by recipient allowlist."
+      );
+      return "success";
     }
   } catch (err) {
+    await recordDeliveryStatus(realtimeEmail, "Failed", getErrorMessage(err));
     log.error({ error: (err as Error).message }, "unable to send email:");
     throw err;
   }
+
+  await recordDeliveryStatus(realtimeEmail, "Sent");
 
   log.info(
     {
@@ -145,6 +168,33 @@ export const handler = async (event: SQSEvent) => {
 
   return "success";
 };
+
+async function recordDeliveryStatus(
+  email: RealtimeEmailEnvelope | undefined,
+  status: DeliveryStatus,
+  lastError: string | null = null
+): Promise<void> {
+  if (!email?.emailNotificationId) {
+    return;
+  }
+
+  try {
+    await updateEmailNotificationStatus(email.emailNotificationId, status, lastError);
+  } catch (error) {
+    log.error(
+      {
+        error: getErrorMessage(error),
+        emailNotificationId: email.emailNotificationId,
+        status,
+      },
+      "unable to update email notification delivery status"
+    );
+  }
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
 
 export async function renderRealtimeEmailIfNeeded(email: unknown): Promise<unknown> {
   if (!isRealtimeEmailEnvelope(email)) {

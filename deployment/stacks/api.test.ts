@@ -207,23 +207,17 @@ describe("Api Stack", () => {
     });
     template.hasResourceProperties("AWS::Lambda::Function", {
       FunctionName: "demos-unittest-emailer",
+      Environment: {
+        Variables: Match.objectLike({
+          DATABASE_SECRET_ARN: "demos-unitTestHost-rds-demos_server", // pragma: allowlist secret
+          DB_SCHEMA: "demos_app",
+        }),
+      },
     });
 
-    expectLambdaErrorsAlarm(
-      template,
-      "demos-unittest-authorizer-lambda-errors",
-      "authorizer"
-    );
-    expectLambdaErrorsAlarm(
-      template,
-      "demos-unittest-graphql-lambda-errors",
-      "graphql"
-    );
-    expectLambdaErrorsAlarm(
-      template,
-      "demos-unittest-emailer-lambda-errors",
-      "emailer"
-    );
+    expectLambdaErrorsAlarm(template, "demos-unittest-authorizer-lambda-errors", "authorizer");
+    expectLambdaErrorsAlarm(template, "demos-unittest-graphql-lambda-errors", "graphql");
+    expectLambdaErrorsAlarm(template, "demos-unittest-emailer-lambda-errors", "emailer");
     expectLambdaDurationAlarm(
       template,
       "demos-unittest-authorizer-lambda-duration-near-timeout",
@@ -241,16 +235,8 @@ describe("Api Stack", () => {
       "demos-unittest-authorizer-lambda-throttles",
       "authorizer"
     );
-    expectLambdaThrottlesAlarm(
-      template,
-      "demos-unittest-graphql-lambda-throttles",
-      "graphql"
-    );
-    expectLambdaThrottlesAlarm(
-      template,
-      "demos-unittest-emailer-lambda-throttles",
-      "emailer"
-    );
+    expectLambdaThrottlesAlarm(template, "demos-unittest-graphql-lambda-throttles", "graphql");
+    expectLambdaThrottlesAlarm(template, "demos-unittest-emailer-lambda-throttles", "emailer");
     template.resourcePropertiesCountIs(
       "AWS::CloudWatch::Alarm",
       {
@@ -263,10 +249,7 @@ describe("Api Stack", () => {
       "demos-unittest-emailer-queue-oldest-message-age-high",
       900
     );
-    expectSqsVisibleMessagesAlarm(
-      template,
-      "demos-unittest-emailer-dlq-visible-messages"
-    );
+    expectSqsVisibleMessagesAlarm(template, "demos-unittest-emailer-dlq-visible-messages");
 
     template.hasResourceProperties("AWS::EC2::SecurityGroupEgress", {
       GroupId: Match.objectEquals({

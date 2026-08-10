@@ -23,22 +23,22 @@ import { DELIVERABLES_PAGE_QUERY } from "components/table/tables/DeliverableTabl
 import { dueDateIsTodayOrFuture } from "./deliverableDueDateValidation";
 import { getCurrentUser } from "components/user/UserContext";
 
-export const CREATE_DELIVERABLE_MUTATION = gql`
-  mutation CreateDeliverable($input: CreateDeliverableInput!) {
-    createDeliverable(input: $input) {
+export const CREATE_DELIVERABLES_MUTATION = gql`
+  mutation CreateDeliverables($inputs: [CreateDeliverableInput!]!) {
+    createDeliverables(inputs: $inputs) {
       id
     }
   }
 `;
 
-export const useCreateDeliverable = () => {
-  const [createDeliverable, { loading }] = useMutation(CREATE_DELIVERABLE_MUTATION, {
+export const useCreateDeliverables = () => {
+  const [createDeliverablesMutation, { loading }] = useMutation(CREATE_DELIVERABLES_MUTATION, {
     refetchQueries: [{ query: DELIVERABLES_PAGE_QUERY }],
     awaitRefetchQueries: true,
   });
 
   const createDeliverables = async (inputs: CreateDeliverableInput[]) => {
-    await Promise.all(inputs.map((input) => createDeliverable({ variables: { input } })));
+    await createDeliverablesMutation({ variables: { inputs } });
   };
 
   return { createDeliverables, loading };
@@ -142,7 +142,7 @@ export const AddDeliverableSlotDialog = ({
   demonstration: AddDeliverableSlotDemonstration;
 }) => {
   const { showSuccess } = useToast();
-  const { createDeliverables, loading } = useCreateDeliverable();
+  const { createDeliverables, loading } = useCreateDeliverables();
 
   const contextUser = getCurrentUser();
   if (!contextUser) {

@@ -19,6 +19,7 @@ export {
 } from "./checkDeliverableInputFunctions";
 export { completeDeliverable } from "./completeDeliverable";
 export { createDeliverable } from "./createDeliverable";
+export { createDeliverables } from "./createDeliverables";
 export { deleteDeliverable } from "./deleteDeliverable";
 export { denyDeliverableExtension } from "./denyDeliverableExtension";
 export { resolveDeliverable, resolveManyDeliverables } from "./deliverableResolvers";

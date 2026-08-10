@@ -236,6 +236,11 @@ describe("AddDeliverableSlotDialog", () => {
 
     await user.click(screen.getByTestId(ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME));
 
+    expect(mockMutate).toHaveBeenCalledExactlyOnceWith({
+      variables: {
+        inputs: [expect.objectContaining({ name: "Test Deliverable" })],
+      },
+    });
     expect(mockShowSuccess).toHaveBeenCalledWith(DELIVERABLE_SLOTS_CREATED_MESSAGE);
     expect(onClose).toHaveBeenCalledTimes(1);
   });

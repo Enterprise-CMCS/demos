@@ -247,6 +247,28 @@ export class ApiStack extends Stack {
       vpc: props.vpc,
     });
 
+    rdsSg.addIngressRule(
+      aws_ec2.Peer.securityGroupId(
+        emailerLambdaSecurityGroup.securityGroup.securityGroupId
+      ),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow ingress from Emailer Security Group",
+      true
+    );
+
+    emailerLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(rdsSecurityGroupId),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow egress to RDS",
+      true
+    );
+
+    emailerLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to secrets manager VPCE"
+    );
+
     const sharedServicesSG = aws_ec2.SecurityGroup.fromLookupByName(
       commonProps.scope,
       "cmsSharedServcices",
@@ -282,6 +304,7 @@ export class ApiStack extends Stack {
         "@react-email/components",
         "@react-email/render",
         "nodemailer",
+        "pg",
         "pino",
         "react",
         "react-dom",
@@ -291,6 +314,8 @@ export class ApiStack extends Stack {
       depsLockFilePath: path.join(emailerPath, "package-lock.json"),
       timeout: emailerTimeout,
       environment: {
+        DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
+        DB_SCHEMA: "demos_app",
         EMAIL_HOST: "smtp.cloud.internal.cms.gov",
         EMAIL_PORT: "587",
         EMAIL_FROM: `"DEMOS${emailSuffix}" <DEMOS${emailSuffix}-no-reply@cms.hhs.gov>`,
@@ -311,6 +336,7 @@ export class ApiStack extends Stack {
       },
     });
     alarmResources.registerLambda("emailer", emailerLambda.lambda);
+    dbSecret.grantRead(emailerLambda.role);
 
     if (commonProps.stage != "prod") {
       const allowListParam = aws_ssm.StringParameter.fromStringParameterName(

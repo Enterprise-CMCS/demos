@@ -15,7 +15,7 @@ const ATTESTATION_STATEMENT =
   "By uploading this Budget Neutrality (BN) notebook, I attest the information included " +
   "with this submission is true and accurate to the best of my knowledge.";
 
-const ACKNOWLEDGEMENT_LABEL = "I acknowledge and attest to the statement above.";
+const ACKNOWLEDGEMENT_LABEL = "\u00A0 I acknowledge and attest to the statement above.";
 
 export const AttestationDialog: React.FC<{
   onConfirm: () => void;

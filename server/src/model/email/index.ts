@@ -1,5 +1,6 @@
 export {
   dispatchDeliverableCreatedEmail,
+  dispatchMultipleDeliverablesCreatedEmail,
   dispatchDeliverableCompletedEmail,
   dispatchDeliverableDueDateUpdatedEmail,
   dispatchExtensionRequestedEmail,

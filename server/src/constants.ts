@@ -143,6 +143,7 @@ export const USER_TYPES = ["demos-admin", "demos-cms-user", "demos-state-user"] 
 
 export const EMAIL_NOTIFICATION_TYPES = [
   "Deliverable Created",
+  "Multiple Deliverables Created",
   "Deliverable Due Date Updated",
   "Deliverable Submitted",
   "Deliverable Accepted",
@@ -160,6 +161,7 @@ export const EMAIL_NOTIFICATION_ENTITY_TYPES = ["deliverable", "application"] as
 
 export const EMAIL_NOTIFICATION_TYPE_ENTITY_TYPES = [
   ["Deliverable Created", "deliverable"],
+  ["Multiple Deliverables Created", "deliverable"],
   ["Deliverable Due Date Updated", "deliverable"],
   ["Deliverable Submitted", "deliverable"],
   ["Deliverable Accepted", "deliverable"],

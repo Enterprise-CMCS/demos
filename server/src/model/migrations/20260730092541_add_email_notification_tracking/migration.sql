@@ -21,6 +21,7 @@ CREATE TABLE demos_app.email_notification_type (
 INSERT INTO demos_app.email_notification_type (id)
 VALUES
     ('Deliverable Created'),
+    ('Multiple Deliverables Created'),
     ('Deliverable Submitted'),
     ('Deliverable Accepted'),
     ('Deliverable Approved'),
@@ -67,6 +68,7 @@ CREATE TABLE demos_app.email_notification_type_entity_type (
 INSERT INTO demos_app.email_notification_type_entity_type (email_type_id, entity_type_id)
 VALUES
     ('Deliverable Created', 'deliverable'),
+    ('Multiple Deliverables Created', 'deliverable'),
     ('Deliverable Due Date Updated', 'deliverable'),
     ('Deliverable Submitted', 'deliverable'),
     ('Deliverable Accepted', 'deliverable'),

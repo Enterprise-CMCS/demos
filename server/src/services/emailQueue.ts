@@ -13,6 +13,7 @@ export type RealtimeEmailType = (typeof REALTIME_EMAIL_TYPES)[number];
 export type RealtimeEmailEntityType = (typeof EMAIL_NOTIFICATION_ENTITY_TYPES)[number];
 
 export type RealtimeEmailEnvelope = {
+  emailNotificationId?: string;
   emailType: RealtimeEmailType;
   entityType: RealtimeEmailEntityType;
   entityId: string;

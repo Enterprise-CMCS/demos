@@ -20,6 +20,7 @@ vi.mock("../../services/emailQueue", () => ({
 describe("enqueueTrackedRealtimeEmail", () => {
   const create = vi.fn();
   const update = vi.fn();
+  const updateMany = vi.fn();
   const message: RealtimeEmailEnvelope = {
     emailType: "Deliverable Created",
     entityType: "deliverable",
@@ -52,10 +53,12 @@ describe("enqueueTrackedRealtimeEmail", () => {
       emailNotification: {
         create,
         update,
+        updateMany,
       },
     } as any);
     create.mockResolvedValue({ id: "notification-1" });
     update.mockResolvedValue({ id: "notification-1" });
+    updateMany.mockResolvedValue({ count: 1 });
     vi.mocked(enqueueRealtimeEmail).mockResolvedValue("message-1");
   });
 
@@ -85,12 +88,23 @@ describe("enqueueTrackedRealtimeEmail", () => {
         },
       },
     });
+    expect(enqueueRealtimeEmail).toHaveBeenCalledExactlyOnceWith({
+      ...message,
+      emailNotificationId: "notification-1",
+    });
     expect(update).toHaveBeenCalledExactlyOnceWith({
       where: { id: "notification-1" },
       data: {
-        statusId: "Queued",
         sqsMessageId: "message-1",
-        lastError: null,
+      },
+    });
+    expect(updateMany).toHaveBeenCalledExactlyOnceWith({
+      where: {
+        id: "notification-1",
+        statusId: "Pending",
+      },
+      data: {
+        statusId: "Queued",
       },
     });
   });
@@ -111,5 +125,6 @@ describe("enqueueTrackedRealtimeEmail", () => {
         lastError: "queue unavailable",
       },
     });
+    expect(updateMany).not.toHaveBeenCalled();
   });
 });

@@ -4,7 +4,96 @@ import { textStyle } from "../components/styles";
 import { createDeliverableEmailTemplate } from "../parts/createDeliverableEmailTemplate";
 import { DeliverableLink } from "../parts/DeliverableLink";
 import type { DeliverableEmailConfig } from "../parts/types";
+import type {
+  MultipleDeliverablesEmailInput,
+  MultipleDeliverablesEmailProps,
+} from "../parts/types";
+import { MultipleDeliverablesEmail } from "../parts/MultipleDeliverablesEmail";
+import { formatDate, getRequiredValue } from "../EmailHelper";
+import type { EmailRecipientGroups } from "../types";
 import type { EmailTemplateDefinition } from "../types";
+
+const demosAppUrl = "http://localhost:3000";
+
+const multipleDeliverablesCreatedTemplate: EmailTemplateDefinition<
+  MultipleDeliverablesEmailProps,
+  MultipleDeliverablesEmailInput
+> = {
+  id: "multiple-deliverables-created",
+  subject: "CMS DEMOS Deliverables: Multiple Deliverables Created",
+  Component: MultipleDeliverablesEmail,
+  getProps(input) {
+    const deliverables = getRequiredValue(
+      input.deliverables,
+      "deliverables",
+      "multiple-deliverables-created"
+    );
+    if (deliverables.length < 2) {
+      throw new Error(
+        "Multiple Deliverables Created email requires at least two deliverables."
+      );
+    }
+
+    const firstDeliverable = deliverables[0];
+    const deliverableType = getRequiredValue(
+      firstDeliverable.deliverableTypeId,
+      "deliverables[0].deliverableTypeId",
+      "multiple-deliverables-created"
+    );
+
+    return {
+      demonstrationTitle: getRequiredValue(
+        input.demonstration?.name,
+        "demonstration.name",
+        "multiple-deliverables-created"
+      ),
+      state: getRequiredValue(
+        input.demonstration?.stateId,
+        "demonstration.stateId",
+        "multiple-deliverables-created"
+      ),
+      deliverableType,
+      deliverableNames: deliverables
+        .map((deliverable, index) =>
+          getRequiredValue(
+            deliverable.name,
+            `deliverables[${index}].name`,
+            "multiple-deliverables-created"
+          )
+        )
+        .join(", "),
+      deliverables: deliverables.map((deliverable, index) => {
+        if (deliverable.deliverableTypeId !== deliverableType) {
+          throw new Error(
+            "Multiple Deliverables Created email requires one deliverable type."
+          );
+        }
+        const id = getRequiredValue(
+          deliverable.id,
+          `deliverables[${index}].id`,
+          "multiple-deliverables-created"
+        );
+        return {
+          dueDate: formatDate(
+            getRequiredValue(
+              deliverable.dueDate,
+              `deliverables[${index}].dueDate`,
+              "multiple-deliverables-created"
+            )
+          ),
+          link: `${demosAppUrl}/deliverables/${id}`,
+        };
+      }),
+    };
+  },
+  getRecipients(input) {
+    return getRequiredValue<EmailRecipientGroups>(
+      input.recipients,
+      "recipients",
+      "multiple-deliverables-created"
+    );
+  },
+};
 
 export const deliverableEmailConfigById = {
   "deliverable-created": {
@@ -117,3 +206,6 @@ export const deliverableEmailTemplates = Object.fromEntries(
     return [template.id, template];
   })
 ) as Record<string, EmailTemplateDefinition>;
+
+deliverableEmailTemplates[multipleDeliverablesCreatedTemplate.id] =
+  multipleDeliverablesCreatedTemplate;

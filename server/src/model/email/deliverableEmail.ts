@@ -17,6 +17,11 @@ type DeliverableEmailDispatchInput = DeliverableEmailContextInput & {
   sourceActionId: string;
 };
 
+type MultipleDeliverablesCreatedEmailDispatchInput = {
+  deliverableIds: string[];
+  triggeredByUserId: string;
+};
+
 type DeliverablePreviousDueDateEmailDispatchInput = DeliverableEmailDispatchInput & {
   previousDueDate: Date;
 };
@@ -44,6 +49,31 @@ export async function dispatchDeliverableCreatedEmail(
   input: DeliverableEmailDispatchInput
 ): Promise<void> {
   return dispatchDeliverableEmail(input, "Deliverable Created", enqueueDeliverableCreatedEmail);
+}
+
+export async function dispatchMultipleDeliverablesCreatedEmail(
+  input: MultipleDeliverablesCreatedEmailDispatchInput
+): Promise<void> {
+  try {
+    const messageId = await enqueueMultipleDeliverablesCreatedEmail(input);
+    log.info(
+      {
+        messageId,
+        deliverableIds: input.deliverableIds,
+        emailType: "Multiple Deliverables Created",
+      },
+      "Deliverable email dispatched"
+    );
+  } catch (error) {
+    log.error(
+      {
+        error,
+        deliverableIds: input.deliverableIds,
+        emailType: "Multiple Deliverables Created",
+      },
+      "Failed to dispatch deliverable email"
+    );
+  }
 }
 
 export async function dispatchDeliverableSubmittedEmail(
@@ -431,6 +461,107 @@ async function enqueueDeliverableCreatedEmail(
   return enqueueTrackedRealtimeEmail(
     message,
     input.sourceActionId,
+    bcc.map(({ personId, address }) => ({
+      personId,
+      emailAddress: address,
+    }))
+  );
+}
+
+async function enqueueMultipleDeliverablesCreatedEmail(
+  input: MultipleDeliverablesCreatedEmailDispatchInput
+): Promise<string> {
+  if (input.deliverableIds.length < 2) {
+    throw new Error(
+      "Cannot dispatch Multiple Deliverables Created email with fewer than two deliverables."
+    );
+  }
+
+  const rows = await prisma().deliverable.findMany({
+    where: { id: { in: input.deliverableIds } },
+    include: {
+      cmsOwner: { include: { person: true } },
+      demonstration: {
+        include: {
+          demonstrationRoleAssignments: {
+            where: {
+              roleId: { in: Array.from(CMS_USER_DEMONSTRATION_ROLES) },
+            },
+            include: { person: true },
+          },
+        },
+      },
+    },
+  });
+  const rowsById = new Map(rows.map((deliverable) => [deliverable.id, deliverable]));
+  const deliverables = input.deliverableIds.map((id) => rowsById.get(id));
+  const missingIds = input.deliverableIds.filter((id) => !rowsById.has(id));
+  if (missingIds.length > 0) {
+    throw new Error(
+      `Cannot dispatch Multiple Deliverables Created email: deliverables not found: ${missingIds.join(", ")}.`
+    );
+  }
+
+  const firstDeliverable = deliverables[0]!;
+  if (
+    deliverables.some(
+      (deliverable) =>
+        deliverable!.demonstrationId !== firstDeliverable.demonstrationId ||
+        deliverable!.deliverableTypeId !== firstDeliverable.deliverableTypeId
+    )
+  ) {
+    throw new Error(
+      "Cannot dispatch Multiple Deliverables Created email for different demonstrations or deliverable types."
+    );
+  }
+
+  const bcc = deduplicateRecipients(
+    deliverables.flatMap((deliverable) => [
+      deliverable!.cmsOwner.person,
+      ...deliverable!.demonstration.demonstrationRoleAssignments.map(
+        (assignment) => assignment.person
+      ),
+    ]),
+    firstDeliverable.id,
+    "Multiple Deliverables Created"
+  );
+  if (bcc.length === 0) {
+    throw new Error(
+      "Cannot dispatch Multiple Deliverables Created email: no recipients were found."
+    );
+  }
+
+  const message = buildRealtimeEmailEnvelope({
+    emailType: "Multiple Deliverables Created",
+    entityType: "deliverable",
+    entityId: firstDeliverable.id,
+    triggeredById: input.triggeredByUserId,
+    idempotencyKey:
+      `Multiple Deliverables Created:deliverables:` +
+      [...input.deliverableIds].sort().join(","),
+    payload: {
+      recipients: {
+        to: [],
+        bcc: bcc.map(({ name, address }) => ({ name, address })),
+      },
+      demonstration: {
+        id: firstDeliverable.demonstration.id,
+        name: firstDeliverable.demonstration.name,
+        stateId: firstDeliverable.demonstration.stateId,
+      },
+      deliverables: deliverables.map((deliverable) => ({
+        id: deliverable!.id,
+        name: deliverable!.name,
+        deliverableTypeId: deliverable!.deliverableTypeId,
+        dueDate: deliverable!.dueDate.toISOString(),
+        statusId: deliverable!.statusId,
+      })),
+    },
+  });
+
+  return enqueueTrackedRealtimeEmail(
+    message,
+    undefined,
     bcc.map(({ personId, address }) => ({
       personId,
       emailAddress: address,
