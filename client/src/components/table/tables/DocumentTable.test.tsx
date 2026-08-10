@@ -21,16 +21,44 @@ vi.mock("components/dialog/DialogContext", () => ({
   }),
 }));
 
+const { mockIsReadonly } = vi.hoisted(() => ({
+  mockIsReadonly: vi.fn().mockReturnValue(false),
+}));
+
+vi.mock("components/user/UserContext", () => ({
+  getCurrentUser: () => ({
+    currentUser: {
+      id: "user-1",
+      username: "test-user",
+      person: {
+        id: "person-1",
+        personType: "demos-user",
+        fullName: "Test User",
+        firstName: "Test",
+        lastName: "User",
+        email: "test@example.com",
+      },
+    },
+  }),
+  isReadonly: mockIsReadonly,
+}));
+
+const renderDocumentTable = () => {
+  render(
+    <MockedProvider mocks={ALL_MOCKS}>
+      <DocumentTable documents={mockDocuments} />
+    </MockedProvider>
+  );
+};
+
 describe("DocumentTable", () => {
   beforeEach(() => {
-    render(
-      <MockedProvider mocks={ALL_MOCKS}>
-        <DocumentTable documents={mockDocuments} />
-      </MockedProvider>
-    );
+    mockIsReadonly.mockReset();
+    mockIsReadonly.mockReturnValue(false);
   });
 
   it("renders action buttons (edit/delete)", async () => {
+    renderDocumentTable();
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
@@ -38,7 +66,28 @@ describe("DocumentTable", () => {
     expect(screen.getByLabelText(/Remove Document/i)).toBeInTheDocument();
   });
 
+  it("hides action buttons and row selection for readonly users", async () => {
+    mockIsReadonly.mockReturnValue(true);
+
+    // Re-render because the component needs to evaluate isReadonly()
+    // with the readonly value set.
+    const { unmount } = render(
+      <DocumentTable documents={mockDocuments} />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByLabelText(/Edit Document/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Remove Document/i)).not.toBeInTheDocument();
+
+    unmount();
+    mockIsReadonly.mockReturnValue(false);
+  });
+
   it("disables Edit button when no or multiple documents are selected, enables for one", async () => {
+    renderDocumentTable();
     const user = userEvent.setup();
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
@@ -54,6 +103,7 @@ describe("DocumentTable", () => {
   });
 
   it("opens EditDocumentModal with correct documentId when edit button is clicked", async () => {
+    renderDocumentTable();
     const user = userEvent.setup();
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
@@ -67,6 +117,7 @@ describe("DocumentTable", () => {
   });
 
   it("renders the filter dropdown initially", async () => {
+    renderDocumentTable();
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
@@ -74,6 +125,7 @@ describe("DocumentTable", () => {
   });
 
   it("renders all document titles initially", async () => {
+    renderDocumentTable();
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
@@ -84,6 +136,7 @@ describe("DocumentTable", () => {
   });
 
   it("filters documents by upload date range when 'Upload Date' filter is used", async () => {
+    renderDocumentTable();
     const user = userEvent.setup();
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
@@ -109,6 +162,7 @@ describe("DocumentTable", () => {
   }, 10000);
 
   it("shows no documents if filter matches none", async () => {
+    renderDocumentTable();
     const user = userEvent.setup();
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
@@ -135,6 +189,7 @@ describe("DocumentTable", () => {
   });
 
   it("defaults to sorting by createdAt descending (newest first)", async () => {
+    renderDocumentTable();
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
@@ -150,6 +205,7 @@ describe("DocumentTable", () => {
 
   describe("Keyword Search functionality", () => {
     it("shows a visible and accessible search bar", async () => {
+      renderDocumentTable();
       await waitFor(() => {
         expect(screen.getByRole("table")).toBeInTheDocument();
       });
@@ -158,6 +214,7 @@ describe("DocumentTable", () => {
     });
 
     it("allows typing keywords and returns matching documents immediately", async () => {
+      renderDocumentTable();
       const user = userEvent.setup();
       await waitFor(() => {
         expect(screen.getByRole("table")).toBeInTheDocument();
@@ -182,6 +239,7 @@ describe("DocumentTable", () => {
     });
 
     it("matches keywords against all relevant columns", async () => {
+      renderDocumentTable();
       const user = userEvent.setup();
       await waitFor(() => {
         expect(screen.getByRole("table")).toBeInTheDocument();
@@ -211,6 +269,7 @@ describe("DocumentTable", () => {
     });
 
     it("highlights keywords in search results", async () => {
+      renderDocumentTable();
       const user = userEvent.setup();
       await waitFor(() => {
         expect(screen.getByRole("table")).toBeInTheDocument();
@@ -237,6 +296,7 @@ describe("DocumentTable", () => {
     });
 
     it("shows a 'no results found' message if no records match", async () => {
+      renderDocumentTable();
       const user = userEvent.setup();
       await waitFor(() => {
         expect(screen.getByRole("table")).toBeInTheDocument();
@@ -252,6 +312,7 @@ describe("DocumentTable", () => {
     });
 
     it("shows a clear (X) icon and resets results when clicked", async () => {
+      renderDocumentTable();
       const user = userEvent.setup();
       await waitFor(() => {
         expect(screen.getByRole("table")).toBeInTheDocument();
@@ -276,6 +337,7 @@ describe("DocumentTable", () => {
     });
 
     it("restores previous sort settings after clearing search", async () => {
+      renderDocumentTable();
       const user = userEvent.setup();
       await waitFor(() => {
         expect(screen.getByRole("table")).toBeInTheDocument();
@@ -312,6 +374,7 @@ describe("DocumentTable", () => {
     });
 
     it("shows default sort order after clearing search if no sort was applied", async () => {
+      renderDocumentTable();
       const user = userEvent.setup();
       await waitFor(() => {
         expect(screen.getByRole("table")).toBeInTheDocument();

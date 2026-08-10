@@ -20,6 +20,28 @@ vi.mock("components/dialog/DialogContext", () => ({
   }),
 }));
 
+const { mockIsReadonly } = vi.hoisted(() => ({
+  mockIsReadonly: vi.fn().mockReturnValue(false),
+}));
+
+vi.mock("components/user/UserContext", () => ({
+  getCurrentUser: () => ({
+    currentUser: {
+      id: "user-1",
+      username: "test-user",
+      person: {
+        id: "person-1",
+        personType: "demos-user",
+        fullName: "Test User",
+        firstName: "Test",
+        lastName: "User",
+        email: "test@example.com",
+      },
+    },
+  }),
+  isReadonly: mockIsReadonly,
+}));
+
 const mockDemonstration: DemonstrationTabDemonstration = {
   id: "demo-123",
   state: {
@@ -101,7 +123,7 @@ const mockDemonstrationEmptyRoles: DemonstrationTabDemonstration = {
   roles: [],
 };
 
-describe("DemonstrationTab", () => {
+describe("ContactsTab", () => {
   describe("Main display", () => {
     beforeEach(() => {
       vi.clearAllMocks();
@@ -172,6 +194,18 @@ describe("DemonstrationTab", () => {
         "NC",
         []
       );
+    });
+  });
+  describe("readonly user", () => {
+    beforeEach(() => {
+      mockIsReadonly.mockReset();
+      mockIsReadonly.mockReturnValue(true);
+      vi.clearAllMocks();
+      return render(<ContactsTab demonstration={mockDemonstration} />);
+    });
+
+    it("disables Manage Contact(s) button for readonly user", async () => {
+      expect( screen.queryByRole("button", { name: "manage-contacts" }) ).not.toBeInTheDocument();
     });
   });
 });

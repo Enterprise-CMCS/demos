@@ -12,6 +12,7 @@ import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/
 import { useDialog } from "components/dialog/DialogContext";
 import { Notice } from "components/notice";
 import { selectionTooltip } from "./actionTooltips";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
 export type TypeTableRow = {
   id: string;
@@ -84,6 +85,10 @@ export const TypesTable: React.FC<TypesTableProps> = ({
           emptyRowsMessage="You have no assigned Types at this time"
           noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
           actionButtons={(table) => {
+            const { currentUser } = getCurrentUser();
+            if (isReadonly(currentUser)) {
+              return null;
+            }
             const selected = table.getSelectedRowModel().rows.map((r) => r.original);
             const selectedCount = selected.length;
             const editDisabled = selectedCount !== 1;

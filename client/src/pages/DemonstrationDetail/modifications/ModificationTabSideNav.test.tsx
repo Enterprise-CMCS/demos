@@ -7,6 +7,21 @@ import { ModificationItem } from "./ModificationTabs";
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { NON_DELIVERABLE_DOCUMENT_TYPES } from "demos-server-constants";
+import { PersonType } from "demos-server";
+import { CurrentUser } from "components/user/UserContext";
+
+const MOCK_READONLY_USER = {
+  id: "user-1",
+  username: "readonlyuser",
+  person: {
+    id: "person-1",
+    personType: "demos-readonly" as PersonType,
+    fullName: "Readonly User",
+    firstName: "Readonly",
+    lastName: "User",
+    email: "readonly@test.com",
+  },
+};
 
 vi.mock("components/application", async (importOriginal) => {
   const actual = await importOriginal<typeof import("components/application")>();
@@ -36,9 +51,9 @@ describe("ModificationTabSideNav", () => {
     { label: "Documents (0)", value: "documents" },
   ];
 
-  const setup = (modificationItem: ModificationItem) => {
+  const setup = (modificationItem: ModificationItem, currentUser?: CurrentUser) => {
     render(
-      <TestProvider>
+      <TestProvider currentUser={currentUser}>
         <DialogProvider>
           <ModificationTabSideNav modificationItem={modificationItem} />
         </DialogProvider>
@@ -186,6 +201,14 @@ describe("ModificationTabSideNav", () => {
         expect(screen.getByText(docType)).toBeInTheDocument();
       }
       expect(screen.queryByText("Interim Evaluation Report")).not.toBeInTheDocument();
+    });
+
+    it("does not render Add Document button for readonly users", () => {
+      setup(mockModificationItem, MOCK_READONLY_USER);
+
+      fireEvent.click(screen.getByTestId("button-documents"));
+
+      expect(screen.queryByTestId("add-new-document")).not.toBeInTheDocument();
     });
   });
 });

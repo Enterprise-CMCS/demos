@@ -9,6 +9,7 @@ import { DemonstrationTab, DemonstrationTabDemonstration } from "./Demonstration
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { deliverableMocks } from "mock-data/deliverableMocks";
+import { PersonType } from "demos-server";
 
 const mockDemonstration: DemonstrationTabDemonstration = {
   id: "demo-123",
@@ -61,9 +62,22 @@ const mockDemonstration: DemonstrationTabDemonstration = {
   ],
 };
 
-const renderWithProvider = (component: React.ReactElement) => {
+const mockReadonlyUser = {
+  id: "user-1",
+  username: "readonlyuser",
+  person: {
+    id: "person-1",
+    personType: "demos-readonly" as PersonType,
+    fullName: "Readonly User",
+    firstName: "Readonly",
+    lastName: "User",
+    email: "readonly@test.com",
+  },
+};
+
+const renderWithProvider = (component: React.ReactElement, useReadonlyUser = false) => {
   return render(
-    <TestProvider mocks={deliverableMocks}>
+    <TestProvider mocks={deliverableMocks} currentUser={useReadonlyUser ? mockReadonlyUser : undefined}>
       <DialogProvider>{component}</DialogProvider>
     </TestProvider>
   );
@@ -204,6 +218,40 @@ describe("DemonstrationTab", () => {
 
       // Deliverables tab should be selected by default
       expect(screen.getByTestId("button-deliverables")).toHaveAttribute("aria-selected", "true");
+    });
+  });
+
+  describe("Readonly User Behaviors", () => {
+    it("does not show Upload Documents button for readonly users", () => {
+      const user = userEvent.setup();
+
+      renderWithProvider(
+        <DemonstrationTab demonstration={mockDemonstration} />,
+        true
+      );
+
+      const documentsTab = screen.getByRole("button", { name: "Documents (2)" });
+      user.click(documentsTab);
+
+      expect(
+        screen.queryByRole("button", { name: "add-new-document" })
+      ).not.toBeInTheDocument();
+    });
+
+    it("does not show Apply Types button for readonly users", () => {
+      const user = userEvent.setup();
+
+      renderWithProvider(
+        <DemonstrationTab demonstration={mockDemonstration} />,
+        true
+      );
+
+      const typesTab = screen.getByRole("button", { name: "Types (0)" });
+      user.click(typesTab);
+
+      expect(
+        screen.queryByRole("button", { name: "button-apply-demonstration-types" })
+      ).not.toBeInTheDocument();
     });
   });
 });

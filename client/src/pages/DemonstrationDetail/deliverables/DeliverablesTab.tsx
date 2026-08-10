@@ -5,7 +5,7 @@ import { TabHeader } from "components/table/TabHeader";
 import { useDialog } from "components/dialog/DialogContext";
 import { AddDeliverableSlotDemonstration } from "components/dialog/deliverable/AddDeliverableSlotDialog";
 import { DemonstrationDeliverableTable } from "components/table/tables/DemonstrationDeliverableTable";
-import { getCurrentUser } from "components/user/UserContext";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 import type { UserType } from "demos-server";
 import { type DeliverablesQueryResult } from "components/table/tables/DeliverableTable";
 import { gql, useQuery } from "@apollo/client";
@@ -77,7 +77,8 @@ export const DeliverablesTab = ({
   parentDemonstration: AddDeliverableSlotDemonstration;
 }) => {
   const { showAddDeliverableSlotDialog } = useDialog();
-  const rawPersonType = getCurrentUser().currentUser.person.personType;
+  const { currentUser } = getCurrentUser();
+  const rawPersonType = currentUser.person.personType;
   const viewMode = rawPersonType as UserType;
   const navigate = useNavigate();
   const { data, loading, error } = useQuery<{ demonstration: DeliverablesQueryResult }>(
@@ -95,14 +96,16 @@ export const DeliverablesTab = ({
   return (
     <div className="flex flex-col">
       <TabHeader title="Deliverables">
-        <IconButton
-          icon={<AddNewIcon />}
-          name={ADD_DELIVERABLE_SLOT_BUTTON_NAME}
-          size="small"
-          onClick={() => showAddDeliverableSlotDialog(parentDemonstration)}
-        >
-          Add Deliverable Slot(s)
-        </IconButton>
+        {!isReadonly(currentUser) && (
+          <IconButton
+            icon={<AddNewIcon />}
+            name={ADD_DELIVERABLE_SLOT_BUTTON_NAME}
+            size="small"
+            onClick={() => showAddDeliverableSlotDialog(parentDemonstration)}
+          >
+            Add Deliverable Slot(s)
+          </IconButton>
+        )}
       </TabHeader>
       {loading && <div className="p-4">Loading deliverables...</div>}
       {error && <div className="p-4 text-red-500">Error loading deliverables.</div>}
@@ -110,6 +113,7 @@ export const DeliverablesTab = ({
         <DemonstrationDeliverableTable
           deliverables={deliverables}
           viewMode={viewMode}
+          isReadonlyUser={isReadonly(currentUser)}
           onViewDeliverable={(selectedDeliverableId) =>
             navigate(`/deliverables/${selectedDeliverableId}`)
           }
