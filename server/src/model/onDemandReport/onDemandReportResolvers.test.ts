@@ -74,7 +74,9 @@ import { generateOnDemandReportFileName } from "./generateOnDemandReportFileName
 
 describe("onDemandReportResolvers", () => {
   const testContextUser: Partial<ContextUser> = { id: "user-123" };
-  const testContext: GraphQLContext = { user: testContextUser as ContextUser };
+  const testContext: Partial<GraphQLContext> = {
+    user: testContextUser as ContextUser,
+  };
   const testReportType: OnDemandReportType = "Basic Test Report";
 
   const mockEasternNow: Partial<EasternNow> = {
@@ -128,7 +130,7 @@ describe("onDemandReportResolvers", () => {
       const result = await onDemandReportResolvers.Mutation.generateOnDemandReport(
         undefined,
         { reportType: testReportType },
-        testContext
+        testContext as GraphQLContext
       );
 
       expect(runOnDemandReport).toHaveBeenCalledExactlyOnceWith(testReportType, mockTransaction);
@@ -171,7 +173,7 @@ describe("onDemandReportResolvers", () => {
         onDemandReportResolvers.Mutation.generateOnDemandReport(
           undefined,
           { reportType: testReportType },
-          testContext
+          testContext as GraphQLContext
         )
       ).rejects.toThrow(testCustomGQLError);
 
@@ -191,7 +193,7 @@ describe("onDemandReportResolvers", () => {
         onDemandReportResolvers.Mutation.generateOnDemandReport(
           undefined,
           { reportType: testReportType },
-          testContext
+          testContext as GraphQLContext
         )
       ).rejects.toThrow(testCustomGQLError);
 
@@ -208,7 +210,7 @@ describe("onDemandReportResolvers", () => {
         onDemandReportResolvers.Mutation.generateOnDemandReport(
           undefined,
           { reportType: testReportType },
-          testContext
+          testContext as GraphQLContext
         )
       ).rejects.toThrow(testCustomGQLError);
 
@@ -230,7 +232,7 @@ describe("onDemandReportResolvers", () => {
         onDemandReportResolvers.Mutation.generateOnDemandReport(
           undefined,
           { reportType: testReportType },
-          testContext
+          testContext as GraphQLContext
         )
       ).rejects.toThrow(testHandlePrismaError);
 

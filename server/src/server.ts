@@ -8,7 +8,7 @@ import { loggingPlugin } from "./plugins/logging.plugin";
 import {
   type AuthorizationClaims,
   type GraphQLContext,
-  buildContextFromClaims,
+  buildContextUserFromClaims,
   validateClaims,
   validatePersonTypeInClaim,
 } from "./auth";
@@ -17,6 +17,7 @@ import type { APIGatewayProxyEvent } from "aws-lambda";
 import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 import { fieldAuthPlugin } from "./plugins/fieldAuthPlugin.js";
 import { formatGraphQLErrorCode } from "./errors/errorCodes.js";
+import { createLoaders } from "./loaders";
 
 log.info({ type: "graphql.startup.loaded" });
 
@@ -83,10 +84,10 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
 
           const claims = extractClaimsFromEvent(event);
           validatePersonTypeInClaim(claims);
-          const gqlCtx = await buildContextFromClaims(claims);
+          const gqlCtx = { user: await buildContextUserFromClaims(claims) };
 
           const additionalContext = {
-            callerUserId: gqlCtx?.user?.id,
+            callerUserId: gqlCtx.user.id,
             correlationId: event.headers?.["x-correlation-id"],
             callerCognitoSub: claims?.sub,
           };
@@ -97,6 +98,7 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
 
           return {
             ...gqlCtx,
+            loaders: createLoaders(gqlCtx.user),
             lambdaEvent: event,
             lambdaContext: context,
             log: reqLog,

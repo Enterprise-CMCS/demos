@@ -6,8 +6,16 @@ devcontainer schema created canonically by the local ``../demos`` app's
 ``prisma migrate deploy``. The scratch build's ``mysql_raw``/``stg``/
 ``migration`` schemas never reach the devcontainer.
 
+By default the scratch is a separate ``demos_migration`` database *inside the
+devcontainer's own Postgres* (provisioned first, built with SKIP_JSONSCHEMA),
+so the whole flow needs only the devcontainer -- no separate spin_up container.
+Pass ``--external-scratch`` (or ``--scratch-dsn`` / ``PG_URL``) to build against
+a standalone scratch Postgres instead (e.g. the supabase spin_up target).
+
 Steps (see runbooks/demos-devcontainer-load.md):
 
+  0. provision-scratch    -- role + grants + owned db inside the devcontainer
+                             (default flow only)
   1. verify-prisma-local  -- fail closed if ../demos drifts from the pin
   2. scratch build        -- init .. constraints against the scratch DSN
   3. prisma migrate deploy -- build the devcontainer demos_app schema
@@ -46,6 +54,10 @@ BUILD_PHASES: tuple[str, ...] = (
 )
 
 DUMP_FILE = ROOT_DIR / "state" / "migrate_local_demos_app.dump"
+
+# Idempotent bootstrap for the in-devcontainer scratch database (role + grants
+# + owned db), run as the devcontainer superuser before the build.
+PROVISION_SCRIPT = ROOT_DIR / "scripts" / "provision_scratch.sh"
 
 # Truncate every demos_app table except Prisma's bookkeeping table (which lives
 # in demos_app because DATABASE_URL uses schema=demos_app). CASCADE clears
@@ -102,6 +114,13 @@ class LocalLoadConfig:
     do_schema: bool = True
     do_dbrefresh: bool = True
     parity: bool = False
+    # When true, prepend a step that provisions the scratch role + database
+    # inside the devcontainer's Postgres (as superuser_dsn) before the build.
+    provision_scratch: bool = False
+    superuser_dsn: str = ""
+    scratch_role: str = "migration_owner"
+    scratch_password: str = "postgres"  # pragma: allowlist secret
+    scratch_db: str = "demos_migration"
 
 
 def prisma_database_url(devcontainer_dsn: str) -> str:
@@ -131,6 +150,20 @@ def build_plan(cfg: LocalLoadConfig) -> list[Step]:
             env={"DEMOS_LOCAL": str(cfg.demos_local)},
         )
     ]
+
+    if cfg.provision_scratch:
+        steps.append(
+            Step(
+                "provision-scratch",
+                ["sh", str(PROVISION_SCRIPT)],
+                env={
+                    "ADMIN_DSN": cfg.superuser_dsn,
+                    "SCRATCH_ROLE": cfg.scratch_role,
+                    "SCRATCH_PASS": cfg.scratch_password,
+                    "SCRATCH_DB": cfg.scratch_db,
+                },
+            )
+        )
 
     if cfg.do_build:
         for phase in BUILD_PHASES:
@@ -235,26 +268,53 @@ def _resolve_demos_local(raw: str) -> Path:
 
 
 def _config_from_args(args: argparse.Namespace) -> LocalLoadConfig:
-    """Build a :class:`LocalLoadConfig`, falling back to ``Env`` for defaults."""
+    """Build a :class:`LocalLoadConfig`, falling back to ``Env`` for defaults.
+
+    Default: build the scratch inside the devcontainer's own Postgres (a
+    separate ``demos_migration`` database), provisioned first and built with
+    SKIP_JSONSCHEMA -- so the whole flow needs only the devcontainer, no
+    separate spin_up container. Pass ``--external-scratch`` (or an explicit
+    ``--scratch-dsn`` / ``PG_URL``) to build against a standalone scratch
+    Postgres instead (e.g. the supabase spin_up target used for parity).
+    """
     from migration.lib import Env
 
     env = Env.load()
-    scratch = args.scratch_dsn or env.pg_url
-    if not scratch:
-        raise SystemExit(
-            "no scratch DSN: pass --scratch-dsn or set PG_URL to your scratch target"
-        )
     devcontainer = args.devcontainer_dsn or env.devcontainer_pg_dsn()
     demos_local = _resolve_demos_local(args.demos_local or env.demos_local)
+
+    if args.external_scratch or args.scratch_dsn:
+        scratch = args.scratch_dsn or env.pg_url
+        if not scratch:
+            raise SystemExit(
+                "no scratch DSN: pass --scratch-dsn or set PG_URL for --external-scratch"
+            )
+        return LocalLoadConfig(
+            scratch_dsn=scratch,
+            devcontainer_dsn=devcontainer,
+            demos_local=demos_local,
+            skip_jsonschema=args.skip_jsonschema,
+            do_build=not args.no_build,
+            do_schema=not args.no_schema,
+            do_dbrefresh=not args.no_dbrefresh,
+            parity=args.parity,
+        )
+
+    # Default: scratch lives inside the devcontainer's own Postgres.
     return LocalLoadConfig(
-        scratch_dsn=scratch,
+        scratch_dsn=env.devcontainer_scratch_dsn(),
         devcontainer_dsn=devcontainer,
         demos_local=demos_local,
-        skip_jsonschema=args.skip_jsonschema,
+        skip_jsonschema=True,
         do_build=not args.no_build,
         do_schema=not args.no_schema,
         do_dbrefresh=not args.no_dbrefresh,
         parity=args.parity,
+        provision_scratch=True,
+        superuser_dsn=env.devcontainer_pg_dsn(),
+        scratch_role=env.scratch_pg_user,
+        scratch_password=env.scratch_pg_password,
+        scratch_db=env.scratch_pg_db,
     )
 
 
@@ -263,7 +323,17 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         prog="migrate-local",
         description="Load the transformed demos_app into the DEMOS devcontainer.",
     )
-    ap.add_argument("--scratch-dsn", default="", help="scratch Postgres DSN (default: PG_URL)")
+    ap.add_argument(
+        "--scratch-dsn",
+        default="",
+        help="external scratch Postgres DSN (implies --external-scratch)",
+    )
+    ap.add_argument(
+        "--external-scratch",
+        action="store_true",
+        help="build against a standalone scratch PG (--scratch-dsn / PG_URL) "
+        "instead of provisioning one inside the devcontainer",
+    )
     ap.add_argument(
         "--devcontainer-dsn",
         default="",
@@ -273,7 +343,7 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     ap.add_argument(
         "--skip-jsonschema",
         action="store_true",
-        help="build without pg_jsonschema (stock scratch Postgres)",
+        help="build without pg_jsonschema (stock external scratch Postgres)",
     )
     ap.add_argument("--no-build", action="store_true", help="reuse an existing scratch build")
     ap.add_argument(

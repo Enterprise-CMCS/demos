@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSessionStorage } from "hooks";
 
 import { gql, TypedDocumentNode, useMutation } from "@apollo/client";
 
@@ -12,7 +13,7 @@ import { useCompletePhase } from "components/application/phase-status/phaseCompl
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { useDialog } from "components/dialog/DialogContext";
 import { DocumentList } from "./sections";
-import { getPhaseCompletedMessage } from "util/messages";
+import { getPhaseCompletedMessage, MISSING_REQUIRED_SECTIONS_TOOLTIP } from "util/messages";
 import { useToast } from "components/toast";
 import { DatePicker } from "components/input/date/DatePicker";
 import { ApplicationHealthTypeTags } from "components/tags/ApplicationHealthTypeTags";
@@ -325,7 +326,9 @@ export const ApplicationIntakePhase = ({
     REFETCH_ACTIVE_QUERIES_AFTER_SUGGESTION_UPDATE
   );
 
-  const [submittedDateOverride, setSubmittedDateOverride] = useState<string>("");
+  const [submittedDateOverride, setSubmittedDateOverride] = useSessionStorage(
+    `application-intake-submitted-date-${applicationId}`
+  );
   const [selectedSuggestedTag, setSelectedSuggestedTag] = useState<TagName | null>(null);
 
   // Calculate the dates to display based on the following rules:
@@ -471,6 +474,11 @@ export const ApplicationIntakePhase = ({
           onClick={onFinishButtonClick}
           disabled={!isFinishButtonEnabled}
           size="small"
+          eagerTooltip={
+            !isFinishButtonEnabled && !isPhaseFinalized
+              ? MISSING_REQUIRED_SECTIONS_TOOLTIP
+              : undefined
+          }
         >
           Finish
         </Button>

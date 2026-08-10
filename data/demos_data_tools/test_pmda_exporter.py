@@ -1,5 +1,6 @@
 """A module containing tests for the pmda_exporter.py file."""
 
+import logging
 from pathlib import Path
 from textwrap import dedent
 from unittest.mock import call
@@ -91,6 +92,58 @@ class TestPmdaExporter:
         ]
         assert actual_calls == expected_calls
 
+    def test_sanitize_column_name_01(self):
+        """Test pmda_exporter.py functions.
+
+        ::sanitize_column_name
+
+        ::It should leave normal column names unchanged.
+        """
+        input = "this_column_is_fine"
+        result = pmda_exporter.sanitize_column_name(input)
+        assert result == input
+
+    def test_sanitize_column_name_02(self, caplog):
+        """Test pmda_exporter.py functions.
+
+        ::sanitize_column_name
+
+        ::It should silently make capital letters lowercase.
+        """
+        input = "this_Column_is_otherwise_fine"
+        expected_result = "this_column_is_otherwise_fine"
+        result = pmda_exporter.sanitize_column_name(input)
+        assert result == expected_result
+        assert [r for r in caplog.records if r.levelno >= logging.WARNING] == []
+
+    def test_sanitize_column_name_03(self, caplog):
+        """Test pmda_exporter.py functions.
+
+        ::sanitize_column_name
+
+        ::It should correct and warn in other cases.
+        """
+        input = "some people Have no sense of ! shame about what they use as COLUMN NAMES$$!!#!"
+        expected_result = "some_people_have_no_sense_of___shame_about_what_they_use_as_column_names______"
+        result = pmda_exporter.sanitize_column_name(input)
+        assert result == expected_result
+        warnings = [r.getMessage() for r in caplog.records if r.levelno >= logging.WARNING]
+        assert warnings == [f"Renamed column {input} to {expected_result} to avoid formatting issues"]
+
+    def test_sanitize_column_name_04(self, caplog):
+        """Test pmda_exporter.py functions.
+
+        ::sanitize_column_name
+
+        ::It should add an underscore if the table starts with a digit and warn.
+        """
+        input = "3mybest_table"
+        expected_result = "_3mybest_table"
+        result = pmda_exporter.sanitize_column_name(input)
+        assert result == expected_result
+        warnings = [r.getMessage() for r in caplog.records if r.levelno >= logging.WARNING]
+        assert warnings == [f"Renamed column {input} to {expected_result} to avoid formatting issues"]
+
     @pytest.mark.parametrize("col_tuple,expected_output", test_column_data, ids=[x[0][4] for x in test_column_data])
     def test_make_postgresql_column_definition(self, col_tuple, expected_output):
         """Test pmda_exporter.py functions.
@@ -102,16 +155,28 @@ class TestPmdaExporter:
         result = pmda_exporter.make_postgresql_column_definition(col_tuple)
         assert result == expected_output
 
-    def test_sanitize_table_name(self):
+    def test_sanitize_table_name_01(self):
         """Test pmda_exporter.py functions.
 
         ::sanitize_table_name
 
-        ::If given a table name with dashes, it should quote it.
+        ::If given a table name with invalid characters, it should quote it.
         """
-        test_strings = ["regular_table", "escaped-table"]
+        test_strings = ["regular_table", "invalid-table", "The worst (table) in the world"]
         result = [pmda_exporter.sanitize_table_name(x) for x in test_strings]
-        expected_result = ["regular_table", '"escaped-table"']
+        expected_result = ["regular_table", '"invalid-table"', '"The worst (table) in the world"']
+        assert result == expected_result
+
+    def test_sanitize_table_name_02(self):
+        """Test pmda_exporter.py functions.
+
+        ::sanitize_table_name
+
+        ::If given a table name with a quote in it, it should escape it.
+        """
+        test_strings = ["regular_table", 'tableWith"AQuoteWhy']
+        result = [pmda_exporter.sanitize_table_name(x) for x in test_strings]
+        expected_result = ["regular_table", '"tableWith""AQuoteWhy"']
         assert result == expected_result
 
     def test_generate_demos_ddl_01(self, mocker):

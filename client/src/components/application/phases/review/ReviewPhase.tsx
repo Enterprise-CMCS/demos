@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { useSessionStorageJson } from "hooks";
 import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
-import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
+import {
+  getPhaseCompletedMessage,
+  MISSING_REQUIRED_SECTIONS_TOOLTIP,
+  SAVE_FOR_LATER_MESSAGE,
+} from "util/messages";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { useSetApplicationNotes } from "components/application/note/noteQueries";
 import { ClearanceLevel, ReviewPhaseDateTypes, ReviewPhaseNoteTypes } from "demos-server";
@@ -106,10 +111,11 @@ export const ReviewPhase = ({
   const [setApplicationClearanceLevel] = useMutation(SET_APPLICATION_CLEARANCE_LEVEL);
   const { completePhase } = useCompletePhase();
 
-  const [reviewPhaseFormData, setReviewPhaseFormData] =
-    useState<ReviewPhaseFormData>(initialFormData);
-  const [lastSavedFormData, setLastSavedFormData] =
-    useState<ReviewPhaseFormData>(initialFormData);
+  const [localFormData, setReviewPhaseFormData] = useSessionStorageJson<ReviewPhaseFormData>(
+    `review-form-data-${applicationId}`
+  );
+  const reviewPhaseFormData = localFormData ?? initialFormData;
+  const [lastSavedFormData, setLastSavedFormData] = useState<ReviewPhaseFormData>(initialFormData);
   const [reviewPhaseSectionsComplete, setReviewPhaseSectionsComplete] =
     useState<ReviewPhaseSectionsComplete>(getPhaseStateInitialization());
 
@@ -169,6 +175,19 @@ export const ReviewPhase = ({
     }
   };
 
+  const clearanceSectionComplete =
+    (reviewPhaseFormData.clearanceLevel === "COMMs" &&
+      reviewPhaseSectionsComplete["COMMs Clearance"]) ||
+    (reviewPhaseFormData.clearanceLevel === "CMS (OSORA)" &&
+      reviewPhaseSectionsComplete["CMS (OSORA) Clearance"]);
+
+  const isFinishEnabled =
+    !isReadonly &&
+    allPreviousPhasesDone &&
+    reviewPhaseSectionsComplete["PO and OGD"] &&
+    reviewPhaseSectionsComplete["OGC and OMB"] &&
+    clearanceSectionComplete;
+
   useEffect(() => {
     setReviewPhaseSectionsComplete({
       "PO and OGD": PO_AND_OGD_DATE_TYPES.every(
@@ -198,7 +217,7 @@ export const ReviewPhase = ({
         <PoAndOgdSection
           sectionFormData={reviewPhaseFormData}
           setSectionFormData={(formData) =>
-            setReviewPhaseFormData((prev) => ({ ...prev, ...formData }))
+            setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
           }
           isComplete={reviewPhaseSectionsComplete["PO and OGD"]}
           isReadonly={isReadonly}
@@ -206,7 +225,7 @@ export const ReviewPhase = ({
         <OgcAndOmbSection
           sectionFormData={reviewPhaseFormData}
           setSectionFormData={(formData) =>
-            setReviewPhaseFormData((prev) => ({ ...prev, ...formData }))
+            setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
           }
           isComplete={reviewPhaseSectionsComplete["OGC and OMB"]}
           isReadonly={isReadonly}
@@ -225,10 +244,10 @@ export const ReviewPhase = ({
           ]}
           value={reviewPhaseFormData.clearanceLevel}
           onChange={(value) =>
-            setReviewPhaseFormData((prev) => ({
-              ...prev,
+            setReviewPhaseFormData({
+              ...reviewPhaseFormData,
               clearanceLevel: value as ClearanceLevel,
-            }))
+            })
           }
           isInline
           isDisabled={isReadonly}
@@ -237,7 +256,7 @@ export const ReviewPhase = ({
           <CommsClearanceSection
             sectionFormData={reviewPhaseFormData}
             setSectionFormData={(formData) =>
-              setReviewPhaseFormData((prev) => ({ ...prev, ...formData }))
+              setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
             }
             isComplete={reviewPhaseSectionsComplete["COMMs Clearance"]}
             isReadonly={isReadonly}
@@ -247,7 +266,7 @@ export const ReviewPhase = ({
           <CmsOsoraClearanceSection
             sectionFormData={reviewPhaseFormData}
             setSectionFormData={(formData) =>
-              setReviewPhaseFormData((prev) => ({ ...prev, ...formData }))
+              setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
             }
             isComplete={reviewPhaseSectionsComplete["CMS (OSORA) Clearance"]}
             isReadonly={isReadonly}
@@ -266,17 +285,9 @@ export const ReviewPhase = ({
             onClick={handleFinish}
             size="large"
             name="review-finish"
-            disabled={
-              isReadonly ||
-              !allPreviousPhasesDone ||
-              !reviewPhaseSectionsComplete["PO and OGD"] ||
-              !reviewPhaseSectionsComplete["OGC and OMB"] ||
-              !(
-                (reviewPhaseFormData.clearanceLevel === "COMMs" &&
-                  reviewPhaseSectionsComplete["COMMs Clearance"]) ||
-                (reviewPhaseFormData.clearanceLevel === "CMS (OSORA)" &&
-                  reviewPhaseSectionsComplete["CMS (OSORA) Clearance"])
-              )
+            disabled={!isFinishEnabled}
+            eagerTooltip={
+              !isFinishEnabled && !isReadonly ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined
             }
           >
             Finish

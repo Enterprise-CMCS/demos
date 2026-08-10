@@ -2,6 +2,7 @@ import { prisma, PrismaTransactionClient } from "../../prismaClient";
 import { GetPresignedDownloadUrlOptions, S3Adapter } from "../";
 import { sanitizeDownloadFileName } from "./sanitizeDownloadFileName";
 import { Prisma, DocumentPendingUpload as PrismaDocumentPendingUpload } from "@prisma/client";
+import { BN_WORKBOOK_DOCUMENT_TYPE } from "../../constants";
 
 const HOSTNAME = "LocalS3Adapter";
 const BUCKET_NAME = "local-demos-bucket";
@@ -43,6 +44,11 @@ export function createLocalS3Adapter(): S3Adapter {
       return `${key} does not exist!`;
     },
 
+    // No stored Content-Type locally, so the name comes back without an extension.
+    async getDownloadFileName(key: string, fileName: string): Promise<string> {
+      return sanitizeDownloadFileName(fileName, key.split("/").pop() ?? key);
+    },
+
     async moveDocumentFromCleanToDeleted(key: string): Promise<void> {
       uploadedFiles.delete(key);
     },
@@ -63,6 +69,19 @@ export function createLocalS3Adapter(): S3Adapter {
             s3Path: `${HOSTNAME}/${BUCKET_NAME}/${documentPendingUpload.id}`,
           },
         });
+        // Deployed, the clean-move SQL creates this row (as "Pending") once GuardDuty clears
+        // the file. That step is bypassed here, so create it inline to satisfy the
+        // check_budget_neutrality_validation_record_exists constraint trigger on `document`.
+        if (documentData.documentTypeId === BN_WORKBOOK_DOCUMENT_TYPE) {
+          await transaction.budgetNeutralityWorkbook.create({
+            data: {
+              id: documentPendingUpload.id,
+              documentTypeId: BN_WORKBOOK_DOCUMENT_TYPE,
+              validationStatusId: "Pending",
+              validationData: {},
+            },
+          });
+        }
         return documentPendingUpload;
       };
 

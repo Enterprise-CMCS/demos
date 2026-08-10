@@ -385,6 +385,7 @@ erDiagram
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK check_amendment_non_null_fields_when_approved "Validate that required fields exist if amendment is approved."
+    CONSTRAINT_CHECK amendment_signature_level_check "Validate that the signature level is correct for amendments."
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
@@ -394,6 +395,7 @@ erDiagram
   application:::dataTable {
     uuid id PK, UK "UK: (id, application_type_id)"
     text application_type_id FK, UK "FK007: application_type_id ∈ application_type.id<br>UK: (id, application_type_id)"
+    bool is_migrated_from_pmda "Default: FALSE"
     CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_application_type_record_exists "Verify that a corresponding record exists in the demonstration, amendment, or extension tables."
     TRIGGER_AFTER_INSERT create_phases_and_dates_for_new_application "Create phases and initial dates for new application."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
@@ -406,6 +408,7 @@ erDiagram
     timestamptz date_value
     timestamptz created_at
     timestamptz updated_at
+    bool is_migrated_from_pmda "Default: FALSE"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }
@@ -466,8 +469,8 @@ erDiagram
     text document_type_id FK "FK119: (id, document_type_id) ∈ document.(id, document_type_id) DEFERRED<br>FK120: document_type_id ∈ budget_neutrality_workbook_document_type_limit.id"
     text validation_status_id FK "FK121: validation_status_id ∈ budget_neutrality_validation_status.id"
     jsonb validation_data
-    text actuals
-    double net_variance_total
+    text actuals "NULLABLE"
+    double net_variance_total "NULLABLE"
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_budget_neutrality_workbook_non_null_fields_when_succeeded "actuals and netVarianceTotal non null when status is succeeded"
@@ -573,6 +576,7 @@ erDiagram
     CONSTRAINT_CHECK check_demonstration_non_null_fields_when_approved "Validate that required fields exist if demonstration is approved."
     CONSTRAINT_CHECK check_demonstration_name_trimmed "Validate that the trim of the name is identical to the name."
     CONSTRAINT_CHECK check_demonstration_description_trimmed "Validate that the trim of the description is identical to the description."
+    CONSTRAINT_CHECK demonstration_signature_level_check "Validate that the signature level is correct for demonstrations."
     CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT check_demonstration_primary_project_officer "Check that a primary project officer exists for this demonstration."
     TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
     TRIGGER_BEFORE_INSERT generate_medicaid_chip_id_numbers "Create the Medicaid and CHIP ID numbers before inserting to the table."
@@ -614,6 +618,7 @@ erDiagram
     text deliverable_submission_action_type_id FK "FK116: (deliverable_submission_action_id, deliverable_submission_action_type_id) ∈ deliverable_action.(id, action_type_id)<br>FK117: deliverable_submission_action_type_id ∈ deliverable_submission_action_type_limit.id<br>NULLABLE"
     timestamptz created_at
     timestamptz updated_at
+    bool is_migrated_from_pmda "Default: FALSE"
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK check_non_empty_s3_path "Validate that the S3 path is not empty or only whitespace."
     CONSTRAINT_CHECK check_phase_id_deliverable_id_null "Validate that at least one of phase_id and deliverable_id are NULL."
@@ -688,6 +693,7 @@ erDiagram
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK check_extension_non_null_fields_when_approved "Validate that required fields exist if extension is approved."
+    CONSTRAINT_CHECK extension_signature_level_check "Validate that the signature level is correct for extensions."
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."

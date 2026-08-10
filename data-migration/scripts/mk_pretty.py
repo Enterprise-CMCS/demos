@@ -93,9 +93,10 @@ ROOT_HELP: list[tuple[str, list[tuple[str, str]]]] = [
     ]),
     ("Devcontainer load", [
         ("migrate-local",
-         "build in a scratch PG (PG_URL) and ship ONLY demos_app into the DEMOS\n"
-         "devcontainer (DEVCONTAINER_PG_URL); ARGS passes flags\n"
-         "(e.g. ARGS=\"--no-build --skip-jsonschema\"). See\n"
+         "build a scratch inside the devcontainer's own Postgres (no separate\n"
+         "spin_up container) and ship ONLY demos_app into the devcontainer demos\n"
+         "DB; ARGS passes flags (e.g. ARGS=\"--no-build\", or\n"
+         "ARGS=\"--external-scratch\" for a standalone scratch PG). See\n"
          "runbooks/demos-devcontainer-load.md"),
         ("migrate-local-verify",
          "guard only -- assert the local ../demos migration set matches the\n"

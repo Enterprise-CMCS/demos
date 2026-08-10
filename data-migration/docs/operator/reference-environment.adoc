@@ -39,6 +39,10 @@ loaded once per process via `Env.load()`.
 | `DEVCONTAINER_PG_HOST` | no (default `localhost`) | Devcontainer PG host (used when `DEVCONTAINER_PG_URL` is unset).
 | `DEVCONTAINER_PG_PORT` | no (default `5432`) | Devcontainer PG port (used when `DEVCONTAINER_PG_URL` is unset).
 | `DEVCONTAINER_PG_DB` | no (default `demos`) | Devcontainer PG database name (used when `DEVCONTAINER_PG_URL` is unset).
+| `SCRATCH_PG_USER` | no (default `migration_owner`) | Owner role of the in-devcontainer scratch database that `make migrate-local` builds by default (assembled into the scratch DSN by `Env.devcontainer_scratch_dsn()`).
+| `SCRATCH_PG_PASSWORD` | no (default `postgres`) | Password for `SCRATCH_PG_USER`.
+| `SCRATCH_PG_DB` | no (default `demos_migration`) | Name of the in-devcontainer scratch database (a separate DB in the devcontainer's Postgres, isolated from the app's `demos` DB).
+| `SKIP_JSONSCHEMA` | no (default false) | Build against a stock Postgres that lacks the non-trusted `pg_jsonschema` extension: `run_init` skips it and installs a permissive `jsonb_matches_schema` stub. Migration-internal only (no live `demos_app.*` column uses it); the jsonb-shape parity check is then trivially GREEN. Forced on by the default `make migrate-local` (devcontainer postgres:17). Honored via the env var or the `.env` field.
 |===
 
 The committed template:

@@ -2,11 +2,21 @@
 version: v1.25.0
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
-  SNYK-JS-WS-17988732:
+  SNYK-JS-BRACEEXPANSION-18512280:
+    - '*': null
+    - reason: Brace Expansion 5.0.9 not out for 7 days yet
+    - expires: 2026-08-08T14:00:00.000Z
+    - created: 2026-08-04T14:00:00.000Z
+  SNYK-JS-NANOID-18506897:
     - '*':
-      reason: No clean fix available for JSDOM to upgrade WS
-      expires: 2026-07-30T04:00:00.000Z
-      created: 2026-07-16T16:00:59.209Z
+        reason: No patch available
+        expires: 2026-08-17T00:00:00.000Z
+        created: 2026-08-03T12:45:48.316Z
+  SNYK-JS-NANOID-18506894:
+    - '*':
+        reason: No patch available
+        expires: 2026-08-17T00:00:00.000Z
+        created: 2026-08-03T12:45:53.557Z
 patch: {}
 exclude:
   global:

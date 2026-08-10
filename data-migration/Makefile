@@ -96,10 +96,13 @@ rebuild: init ddl load_full seeds crosswalks id_maps build constraints parity
 	@$(PRETTY) msg "Full rebuild complete."
 
 # --- devcontainer load (ship transformed demos_app into ../demos) ---
-# migrate-local builds the pipeline in a scratch PG (PG_URL) and ships ONLY the
-# demos_app data into the DEMOS devcontainer (DEVCONTAINER_PG_URL). Pass extra
-# flags via ARGS (e.g. ARGS="--no-build --skip-jsonschema"). migrate-local-verify
-# runs just the pin-vs-local guard. See runbooks/demos-devcontainer-load.md.
+# migrate-local builds the pipeline in a scratch demos_migration DB inside the
+# DEMOS devcontainer's own Postgres (no separate spin_up container, built with
+# SKIP_JSONSCHEMA) and ships ONLY the demos_app data into the devcontainer's
+# demos DB. Pass extra flags via ARGS (e.g. ARGS="--no-build", or
+# ARGS="--external-scratch" to build against a standalone scratch PG / PG_URL).
+# migrate-local-verify runs just the pin-vs-local guard. See
+# runbooks/demos-devcontainer-load.md.
 migrate-local-verify: ; @$(STEP) migrate-local-verify "$(MIGRATE) verify-prisma-local"
 migrate-local: ; @$(STEP) migrate-local "$(RUN) python scripts/migrate_local.py $(ARGS)"
 

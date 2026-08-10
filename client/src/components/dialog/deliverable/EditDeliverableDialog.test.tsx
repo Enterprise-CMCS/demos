@@ -53,6 +53,8 @@ const TEST_DELIVERABLE: EditDeliverableDialogDeliverable = {
   demonstrationTypes: [],
 };
 
+const FUTURE_DUE_DATE = "2222-06-30";
+
 const MOCK_TAGS: Tag[] = [
   { tagName: "Aggregate Cap", approvalStatus: "Approved" },
   { tagName: "Annual Limits", approvalStatus: "Approved" },
@@ -113,7 +115,7 @@ describe("EditDeliverableDialog", () => {
   it("shows the Reason for Change field when due date is modified", () => {
     setup();
     fireEvent.change(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME), {
-      target: { value: "2026-07-20" },
+      target: { value: FUTURE_DUE_DATE },
     });
     expect(screen.getByTestId(EDIT_DELIVERABLE_REASON_FIELD_NAME)).toBeInTheDocument();
   });
@@ -146,7 +148,7 @@ describe("EditDeliverableDialog", () => {
     await user.click(screen.getByText("Aggregate Cap"));
 
     fireEvent.change(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME), {
-      target: { value: "2026-07-20" },
+      target: { value: FUTURE_DUE_DATE },
     });
 
     expect(screen.getByTestId(EDIT_DELIVERABLE_SAVE_BUTTON_NAME)).toBeDisabled();
@@ -173,7 +175,7 @@ describe("EditDeliverableDialog", () => {
     await user.click(screen.getByText("Aggregate Cap"));
 
     fireEvent.change(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME), {
-      target: { value: "2026-07-20" },
+      target: { value: FUTURE_DUE_DATE },
     });
 
     await user.type(screen.getByTestId(EDIT_DELIVERABLE_REASON_FIELD_NAME), "Schedule slip");
@@ -184,7 +186,7 @@ describe("EditDeliverableDialog", () => {
     expect(onSave).toHaveBeenCalledWith(
       expect.objectContaining({
         id: "deliverable-1",
-        dueDate: "2026-07-20",
+        dueDate: FUTURE_DUE_DATE,
         demonstrationTypes: ["Aggregate Cap"],
       }),
       "Schedule slip"
@@ -218,9 +220,7 @@ describe("EditDeliverableDialog", () => {
         },
       },
     });
-    await waitFor(() =>
-      expect(mockShowSuccess).toHaveBeenCalledWith(DELIVERABLE_UPDATED_MESSAGE)
-    );
+    await waitFor(() => expect(mockShowSuccess).toHaveBeenCalledWith(DELIVERABLE_UPDATED_MESSAGE));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -304,15 +304,15 @@ describe("formIsValid / formHasChanges / buildInitialFormData", () => {
   });
 
   it("formIsValid is false when demonstration types empty for Implementation Plan / Monitoring Protocol", () => {
-    expect(formIsValid(initial, { ...initial, demonstrationTypes: [] }, TODAY, TYPE_REQUIRES_DEMO)).toBe(
-      false
-    );
+    expect(
+      formIsValid(initial, { ...initial, demonstrationTypes: [] }, TODAY, TYPE_REQUIRES_DEMO)
+    ).toBe(false);
   });
 
   it("formIsValid is true when demonstration types empty for other deliverable types", () => {
-    expect(formIsValid(initial, { ...initial, demonstrationTypes: [] }, TODAY, TYPE_DEMO_OPTIONAL)).toBe(
-      true
-    );
+    expect(
+      formIsValid(initial, { ...initial, demonstrationTypes: [] }, TODAY, TYPE_DEMO_OPTIONAL)
+    ).toBe(true);
   });
 
   it("formIsValid requires reason when due date changes", () => {

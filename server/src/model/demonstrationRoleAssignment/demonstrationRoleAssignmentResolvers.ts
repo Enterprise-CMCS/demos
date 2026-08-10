@@ -13,6 +13,7 @@ import { selectDemonstrationRoleAssignmentOrThrow } from "./queries/selectDemons
 import { selectPersonOrThrow } from "../person/queries/selectPersonOrThrow.js";
 import { selectDemonstrationOrThrow } from "../demonstration/queries";
 import { Role } from "../../types.js";
+import { GraphQLContext } from "../../auth";
 
 const DEMONSTRATION_GRANT_LEVEL = "Demonstration";
 
@@ -215,11 +216,29 @@ export const demonstrationRoleAssigmentResolvers = {
   },
 
   DemonstrationRoleAssignment: {
-    person: async (parent: PrismaDemonstrationRoleAssignment): Promise<Person> =>
-      selectPersonOrThrow({ id: parent.personId }),
+    person: async (
+      parent: PrismaDemonstrationRoleAssignment,
+      _args: unknown,
+      context: GraphQLContext
+    ): Promise<Person> => {
+      const person = await context.loaders.personById.load(parent.personId);
+      if (!person) {
+        throw new Error("No person found matching the provided filter");
+      }
+      return person;
+    },
     role: (parent: PrismaDemonstrationRoleAssignment): Role => parent.roleId as Role,
-    demonstration: (parent: PrismaDemonstrationRoleAssignment): Promise<Demonstration> =>
-      selectDemonstrationOrThrow({ id: parent.demonstrationId }),
+    demonstration: async (
+      parent: PrismaDemonstrationRoleAssignment,
+      _args: unknown,
+      context: GraphQLContext
+    ): Promise<Demonstration> => {
+      const demonstration = await context.loaders.demonstrationById.load(parent.demonstrationId);
+      if (!demonstration) {
+        throw new Error("No demonstration found matching the provided filter");
+      }
+      return demonstration;
+    },
     isPrimary: async (parent: PrismaDemonstrationRoleAssignment): Promise<boolean> => {
       return !!(await prisma().primaryDemonstrationRoleAssignment.findUnique({
         where: {

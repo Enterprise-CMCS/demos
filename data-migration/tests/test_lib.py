@@ -202,6 +202,67 @@ def test_devcontainer_pg_dsn_prefers_explicit_url() -> None:
     assert env.devcontainer_pg_dsn() == "postgresql://x/db"
 
 
+def test_devcontainer_scratch_dsn_builds_from_parts() -> None:
+    """The scratch DSN assembles from scratch_pg_* + the devcontainer host/port."""
+    env = lib.Env(mysql_url="y")
+    parts = urllib.parse.urlsplit(env.devcontainer_scratch_dsn())
+    assert parts.scheme == "postgresql"
+    assert parts.username == "migration_owner"
+    assert parts.password == "postgres"  # pragma: allowlist secret
+    assert parts.hostname == "localhost"
+    assert parts.port == 5432
+    assert parts.path == "/demos_migration"
+
+
+def test_devcontainer_scratch_dsn_shares_server_with_app_db() -> None:
+    """Scratch and app databases live on one server, different database names."""
+    env = lib.Env(mysql_url="y")
+    scratch = urllib.parse.urlsplit(env.devcontainer_scratch_dsn())
+    app = urllib.parse.urlsplit(env.devcontainer_pg_dsn())
+    assert (scratch.hostname, scratch.port) == (app.hostname, app.port)
+    assert scratch.path != app.path
+
+
+def test_devcontainer_scratch_dsn_url_encodes_credentials() -> None:
+    """Special characters in the scratch credentials are URL-encoded."""
+    env = lib.Env(
+        mysql_url="y",
+        scratch_pg_user="a@b",
+        scratch_pg_password="p@ss/word",  # pragma: allowlist secret
+    )
+    parts = urllib.parse.urlsplit(env.devcontainer_scratch_dsn())
+    assert parts.username == "a%40b"
+    assert parts.password == "p%40ss%2Fword"  # pragma: allowlist secret
+    assert urllib.parse.unquote(parts.username or "") == "a@b"
+    assert urllib.parse.unquote(parts.password or "") == "p@ss/word"
+
+
+def test_env_skip_jsonschema_field_defaults_false() -> None:
+    assert lib.Env(mysql_url="y").skip_jsonschema is False
+    assert lib.Env(mysql_url="y", skip_jsonschema=True).skip_jsonschema is True
+
+
+def test_skip_jsonschema_reads_os_environ_first(monkeypatch: pytest.MonkeyPatch) -> None:
+    """An injected SKIP_JSONSCHEMA is honored without loading the full Env."""
+    monkeypatch.setenv("SKIP_JSONSCHEMA", "1")
+    assert lib.skip_jsonschema() is True
+
+
+def test_skip_jsonschema_falls_back_to_env_field(monkeypatch: pytest.MonkeyPatch) -> None:
+    """With no env var, the .env-driven Env field decides."""
+    monkeypatch.delenv("SKIP_JSONSCHEMA", raising=False)
+    monkeypatch.setattr(
+        lib.Env, "load", classmethod(lambda cls: lib.Env(mysql_url="y", skip_jsonschema=True))
+    )
+    assert lib.skip_jsonschema() is True
+
+
+def test_skip_jsonschema_false_without_env_or_field(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("SKIP_JSONSCHEMA", raising=False)
+    monkeypatch.setattr(lib.Env, "load", classmethod(lambda cls: lib.Env(mysql_url="y")))
+    assert lib.skip_jsonschema() is False
+
+
 @pytest.mark.parametrize(
     "bad_schema",
     ["1bad", "drop table x; --", "stg-schema", "", "stg.app", "stg' --"],
