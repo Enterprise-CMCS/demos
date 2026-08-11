@@ -34,7 +34,7 @@ const INSERT_VALUE_SQL = `insert into ${DEMOS_SCHEMA}.uipath_value
   (id, uipath_result_id, document_id, application_id, field_id, value, text_length, text_start_index, confidence, token_list, updated_at)
  values
   ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, now())`;
-const SELECT_TAG_NAMES_SQL = `select id from ${DEMOS_SCHEMA}.tag_name`;
+const SELECT_APPLICATION_TAG_NAMES_SQL = `select tag_name_id from ${DEMOS_SCHEMA}.tag where tag_type_id = 'Application'`;
 
 export type PersistedUiPathExtraction = {
   extractedFieldCount: number;
@@ -161,8 +161,10 @@ export async function persistFinishedUiPathExtraction(
         (field) => field.FieldId === DEMO_TYPE_FIELD_ID && !field.IsMissing,
       )
     ) {
-      const tagNames = await client.query<{ id: string }>(SELECT_TAG_NAMES_SQL);
-      canonicalTagNames = tagNames.rows.map((row) => row.id);
+      const tagNames = await client.query<{ tag_name_id: string }>(
+        SELECT_APPLICATION_TAG_NAMES_SQL
+      );
+      canonicalTagNames = tagNames.rows.map((row) => row.tag_name_id);
       if (!canonicalTagNames.length) {
         throw new Error(
           "Cannot normalize UiPath demo_type values: no application tag names found.",

@@ -50,8 +50,8 @@ function mockSuccessfulDbQueries(
   tagNames: string[] = [],
 ) {
   mocks.queryMock.mockImplementation((sql: string) => {
-    if (sql.includes("demos_app.tag_name")) {
-      return Promise.resolve({ rows: tagNames.map((id) => ({ id })) });
+    if (sql.includes("from demos_app.tag")) {
+      return Promise.resolve({ rows: tagNames.map((tag_name_id) => ({ tag_name_id })) });
     }
 
     if (sql.includes("application_tag_suggestion_extract_field_limit")) {
@@ -333,6 +333,9 @@ describe("runDocumentUnderstanding", () => {
     await promise;
 
     expect(mocks.queryMock).toHaveBeenCalledTimes(12);
+    expect(mocks.queryMock.mock.calls[3]?.[0]).toContain(
+      "from demos_app.tag where tag_type_id = 'Application'"
+    );
     const sudInsertArgs = mocks.queryMock.mock.calls[4]?.[1];
     const bhpInsertArgs = mocks.queryMock.mock.calls[5]?.[1];
     expect(sudInsertArgs).toEqual([
