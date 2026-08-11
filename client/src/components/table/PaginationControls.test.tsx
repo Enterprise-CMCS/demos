@@ -312,4 +312,55 @@ describe("PaginationControls", () => {
       expect(options[2]).toHaveValue("25");
     });
   });
+
+  describe("Dynamic data updates", () => {
+    it("updates pagination when row count changes after page size selection", async () => {
+      const initialData = createTestData(50);
+      const { rerender } = render(<TestWrapper data={initialData} />);
+
+      // Initial state: 50 rows, default page size of 10
+      expect(screen.getByText("1 – 10 of 50")).toBeInTheDocument();
+      expect(screen.getAllByTestId("table-row")).toHaveLength(10);
+
+      // Change page size to 20
+      const select = screen.getByRole("combobox", { name: "Items per page:" });
+      await userEvent.selectOptions(select, "20");
+      expect(screen.getByText("1 – 20 of 50")).toBeInTheDocument();
+      expect(screen.getAllByTestId("table-row")).toHaveLength(20);
+
+      // Simulate adding new data (e.g., new items added to the list)
+      const updatedData = createTestData(75);
+      rerender(<TestWrapper data={updatedData} />);
+
+      // Verify pagination updates with new total while maintaining page size
+      expect(screen.getByText("1 – 20 of 75")).toBeInTheDocument();
+      expect(screen.getAllByTestId("table-row")).toHaveLength(20);
+
+      // Verify page size selection is still set to 20
+      expect(select).toHaveValue("20");
+    });
+
+    it("updates pagination when row count changes with 'All' page size selected", async () => {
+      const initialData = createTestData(30);
+      const { rerender } = render(<TestWrapper data={initialData} />);
+
+      expect(screen.getByText("1 – 10 of 30")).toBeInTheDocument();
+
+      expect(screen.queryByRole("button", { name: "Go to page 2" })).toBeInTheDocument();
+
+      const select = screen.getByRole("combobox", { name: "Items per page:" });
+      await userEvent.selectOptions(select, "-1");
+      expect(screen.getByText("1 – 30 of 30")).toBeInTheDocument();
+      expect(screen.getAllByTestId("table-row")).toHaveLength(30);
+
+      const updatedData = createTestData(31);
+      rerender(<TestWrapper data={updatedData} />);
+
+      expect(screen.getByText("1 – 31 of 31")).toBeInTheDocument();
+      expect(screen.getAllByTestId("table-row")).toHaveLength(31);
+      expect(select).toHaveValue("-1");
+
+      expect(screen.queryByRole("button", { name: "Go to page 2" })).not.toBeInTheDocument();
+    });
+  });
 });
