@@ -1,10 +1,11 @@
 model PublicComment {
-  id            String   @default(uuid()) @db.Uuid
-  deliverableId String   @map("deliverable_id") @db.Uuid
-  authorUserId  String   @map("author_user_id") @db.Uuid
-  content       String
-  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  id                 String   @default(uuid()) @db.Uuid
+  deliverableId      String   @map("deliverable_id") @db.Uuid
+  authorUserId       String   @map("author_user_id") @db.Uuid
+  content            String
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  isMigratedFromPmda Boolean  @default(false) @map("is_migrated_from_pmda")
 
   deliverable Deliverable @relation(fields: [deliverableId], references: [id])
   author      User        @relation(fields: [authorUserId], references: [id])

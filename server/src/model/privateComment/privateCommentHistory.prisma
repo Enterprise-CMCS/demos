@@ -9,6 +9,7 @@ model PrivateCommentHistory {
   content            String
   createdAt          DateTime     @map("created_at") @db.Timestamptz
   updatedAt          DateTime     @map("updated_at") @db.Timestamptz
+  isMigratedFromPmda Boolean      @map("is_migrated_from_pmda")
 
   @@map("private_comment_history")
 }

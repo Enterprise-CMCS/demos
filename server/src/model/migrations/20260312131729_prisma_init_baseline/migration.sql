@@ -1055,6 +1055,7 @@ CREATE TABLE "private_comment" (
     "content" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
+    "is_migrated_from_pmda" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "private_comment_pkey" PRIMARY KEY ("id")
 );
@@ -1071,6 +1072,7 @@ CREATE TABLE "private_comment_history" (
     "content" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
+    "is_migrated_from_pmda" BOOLEAN NOT NULL,
 
     CONSTRAINT "private_comment_history_pkey" PRIMARY KEY ("revision_id")
 );
@@ -1083,6 +1085,7 @@ CREATE TABLE "public_comment" (
     "content" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
+    "is_migrated_from_pmda" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "public_comment_pkey" PRIMARY KEY ("id")
 );
@@ -1098,6 +1101,7 @@ CREATE TABLE "public_comment_history" (
     "content" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
+    "is_migrated_from_pmda" BOOLEAN NOT NULL,
 
     CONSTRAINT "public_comment_history_pkey" PRIMARY KEY ("revision_id")
 );
