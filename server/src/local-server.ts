@@ -18,6 +18,7 @@ import { GraphQLArmorConfig } from "./plugins/graphQLArmorConfig.js";
 import { JwtPayload } from "jsonwebtoken";
 import { parseCookie } from "cookie";
 import { fieldAuthPlugin } from "./plugins/fieldAuthPlugin.js";
+import { compressStandaloneResponse } from "./plugins/compression.middleware.js";
 import { formatGraphQLErrorCode } from "./errors/errorCodes.js";
 import { createLoaders } from "./loaders";
 
@@ -55,8 +56,10 @@ export function extractClaimsFromDecodedToken(decodedToken: JwtPayload): Authori
 
 const { url } = await startStandaloneServer<GraphQLContext>(server, {
   listen: { port: 4000 },
-  context: async ({ req }) =>
-    als.run(store, async () => {
+  context: async ({ req, res }) => {
+    compressStandaloneResponse(req, res);
+
+    return als.run(store, async () => {
       const token = parseCookie(req.headers.cookie || "")["id_token"];
       if (!token) {
         throw new Error("Missing Authorization header with Bearer token");
@@ -81,7 +84,8 @@ const { url } = await startStandaloneServer<GraphQLContext>(server, {
         loaders: createLoaders(ctx.user),
         log: reqLog,
       };
-    }),
+    });
+  },
 });
 
 log.info(`🚀 Server listening 👂 at: ${url}`);

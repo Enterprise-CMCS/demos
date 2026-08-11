@@ -1546,7 +1546,8 @@ BEGIN
             author_person_type_id,
             content,
             created_at,
-            updated_at
+            updated_at,
+            is_migrated_from_pmda
         )
         VALUES (
             CASE TG_OP
@@ -1559,7 +1560,8 @@ BEGIN
             NEW.author_person_type_id,
             NEW.content,
             NEW.created_at,
-            NEW.updated_at
+            NEW.updated_at,
+            NEW.is_migrated_from_pmda
         );
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
@@ -1571,7 +1573,8 @@ BEGIN
             author_person_type_id,
             content,
             created_at,
-            updated_at
+            updated_at,
+            is_migrated_from_pmda
         )
         VALUES (
             'D'::demos_app.revision_type_enum,
@@ -1581,7 +1584,8 @@ BEGIN
             OLD.author_person_type_id,
             OLD.content,
             OLD.created_at,
-            OLD.updated_at
+            OLD.updated_at,
+            OLD.is_migrated_from_pmda
         );
         RETURN OLD;
     END IF;
@@ -1604,7 +1608,8 @@ BEGIN
             author_user_id,
             content,
             created_at,
-            updated_at
+            updated_at,
+            is_migrated_from_pmda
         )
         VALUES (
             CASE TG_OP
@@ -1616,7 +1621,8 @@ BEGIN
             NEW.author_user_id,
             NEW.content,
             NEW.created_at,
-            NEW.updated_at
+            NEW.updated_at,
+            NEW.is_migrated_from_pmda
         );
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
@@ -1627,7 +1633,8 @@ BEGIN
             author_user_id,
             content,
             created_at,
-            updated_at
+            updated_at,
+            is_migrated_from_pmda
         )
         VALUES (
             'D'::demos_app.revision_type_enum,
@@ -1636,7 +1643,8 @@ BEGIN
             OLD.author_user_id,
             OLD.content,
             OLD.created_at,
-            OLD.updated_at
+            OLD.updated_at,
+            OLD.is_migrated_from_pmda
         );
         RETURN OLD;
     END IF;
