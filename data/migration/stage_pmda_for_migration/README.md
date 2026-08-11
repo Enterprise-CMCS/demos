@@ -77,6 +77,12 @@ This is a useful command to show which of the sources are in use (so you can mak
 dbt ls --select "resource_type:source,+resource_type:model" "resource_type:source,+resource_type:test" --output name
 ```
 
+This command lists the ones that are actually tagged, so you can compare to the above command.
+
+```sh
+dbt ls --resource-type source --select tag:source_in_use --output name
+```
+
 ## Documentation
 
 You can generate `dbt` documentation using `dbt docs generate --static` for a static file, or `dbt docs generate && dbt docs serve`. However, when serving, the `devcontainer` hasn't been configured yet to make that port available and visible, so it's usually simpler to just do the static generation, and then look in `target/` for the `static_index.html` file.
