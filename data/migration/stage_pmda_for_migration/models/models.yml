@@ -997,7 +997,7 @@ models:
         data_type: uuid
       - name: author_user_id
         data_type: uuid
-      - name: author_person_type_id,
+      - name: author_person_type_id
         data_type: text
       - name: content
         data_type: text
