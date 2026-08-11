@@ -346,7 +346,7 @@ describe("PaginationControls", () => {
 
       expect(screen.getByText("1 – 10 of 30")).toBeInTheDocument();
 
-      expect(screen.queryByRole("button", { name: "Go to page 2" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Go to page 2" })).toBeInTheDocument();
 
       const select = screen.getByRole("combobox", { name: "Items per page:" });
       await userEvent.selectOptions(select, "-1");
