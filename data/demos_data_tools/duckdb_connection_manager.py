@@ -79,7 +79,7 @@ def create_duckdb_conn() -> "DuckConn":
         DuckConn: An instantiated DuckDB connection.
     """
     logger.info("Creating DuckDB database")
-    conn = duckdb.connect(":memory:", config={"memory_limit": "8GB", "threads": 8})
+    conn = duckdb.connect(":memory:", config={"memory_limit": "2GB", "threads": 2})
     conn.install_extension("postgres")
     conn.install_extension("mysql")
     return conn
