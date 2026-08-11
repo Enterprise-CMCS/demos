@@ -3828,6 +3828,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: mdcd_dlvrbl_cmt
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: mdcd_dlvrbl_cmt_id
             data_type: integer
@@ -13338,6 +13340,8 @@ sources:
             data_type: text
 
       - name: application_tag_type_limit
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: id
             data_type: text
@@ -13873,6 +13877,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: demonstration_type_tag_type_limit
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: id
             data_type: text
@@ -14692,6 +14698,8 @@ sources:
             data_type: text
 
       - name: tag
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: tag_name_id
             data_type: text
@@ -14728,6 +14736,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: tag_name
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: id
             data_type: text
@@ -14752,16 +14762,22 @@ sources:
             data_type: timestamp with time zone
 
       - name: tag_source
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: id
             data_type: text
 
       - name: tag_status
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: id
             data_type: text
 
       - name: tag_type
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: id
             data_type: text
