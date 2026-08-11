@@ -1,11 +1,11 @@
 import { ExtractionStatus } from "./fetchExtractResult";
 import { log } from "./log";
 
-const DEMO_TYPE_FIELD_ID = "demo_type";
+export const DEMO_TYPE_FIELD_ID = "demo_type";
 
 export interface UiPathFieldValue {
-  Value?: string;
-  UnformattedValue?: string;
+  Value?: string | string[];
+  UnformattedValue?: string | string[];
   Confidence?: number;
   Reference?: {
     TextLength?: number;
@@ -74,39 +74,132 @@ export function getTokenList(value: UiPathFieldValue): unknown[] {
   return Array.isArray(tokenList) ? tokenList : [];
 }
 
-function coerceValueText(value: UiPathFieldValue): string | null {
+function coerceValueTexts(value: UiPathFieldValue): string[] {
   const text = value.UnformattedValue ?? value.Value;
-  if (typeof text !== "string") {
-    return null;
+  if (typeof text === "string") {
+    return [text.trim()].filter(Boolean);
   }
 
-  return text.trim();
+  if (Array.isArray(text)) {
+    return text
+      .filter((item): item is string => typeof item === "string")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  return [];
 }
 
-export function toPersistableFieldValues(field: UiPathField): PersistableFieldValue[] {
+function normalizeTagLookupKey(value: string): string {
+  return value.trim().toUpperCase();
+}
+
+type CanonicalTagLookup = {
+  exactNames: Map<string, string>;
+  aliases: Map<string, string | null>;
+};
+
+function buildCanonicalTagLookup(
+  tagNames: readonly string[],
+): CanonicalTagLookup {
+  const exactNames = new Map<string, string>();
+  const aliasesByKey = new Map<string, Set<string>>();
+
+  const addAlias = (key: string, tagName: string) => {
+    const candidates = aliasesByKey.get(key) ?? new Set<string>();
+    candidates.add(tagName);
+    aliasesByKey.set(key, candidates);
+  };
+
+  for (const tagName of tagNames) {
+    exactNames.set(normalizeTagLookupKey(tagName), tagName);
+
+    for (const match of tagName.matchAll(/\(([^()]+)\)/g)) {
+      const alias = match[1]?.trim();
+      if (!alias) continue;
+      addAlias(normalizeTagLookupKey(alias), tagName);
+      addAlias(normalizeTagLookupKey(`(${alias})`), tagName);
+    }
+  }
+
+  return {
+    exactNames,
+    aliases: new Map(
+      Array.from(aliasesByKey, ([key, candidates]) => [
+        key,
+        candidates.size === 1
+          ? (candidates.values().next().value ?? null)
+          : null,
+      ]),
+    ),
+  };
+}
+
+function resolveCanonicalTagName(
+  lookup: CanonicalTagLookup,
+  value: string,
+): string | null {
+  const key = normalizeTagLookupKey(value);
+  return lookup.exactNames.get(key) ?? lookup.aliases.get(key) ?? null;
+}
+
+function toDemoTypeCandidates(value: UiPathFieldValue): string[] {
+  return coerceValueTexts(value).flatMap((text) =>
+    text
+      .split(",")
+      .map((candidate) => candidate.trim())
+      .filter(Boolean),
+  );
+}
+
+export function toPersistableFieldValues(
+  field: UiPathField,
+  canonicalTagNames: readonly string[] = [],
+): PersistableFieldValue[] {
   if (field.IsMissing) return [];
   if (!field.FieldId || !field.FieldName) return [];
   const values = field.Values ?? [];
   const fieldType = field.FieldType || "Text";
+  const isDemoType = field.FieldId === DEMO_TYPE_FIELD_ID;
+  const canonicalTagLookup = isDemoType
+    ? buildCanonicalTagLookup(canonicalTagNames)
+    : null;
 
   const persistableValues: PersistableFieldValue[] = [];
   for (const fieldValue of values) {
     try {
-      const valueText = coerceValueText(fieldValue);
-      if (!valueText) continue;
-      persistableValues.push({
-        FieldId: field.FieldId,
-        FieldName: field.FieldName,
-        FieldType: fieldType,
-        valueText,
-        fieldValue,
-      });
+      const valueTexts = isDemoType
+        ? toDemoTypeCandidates(fieldValue)
+        : coerceValueTexts(fieldValue);
+      for (const valueText of valueTexts) {
+        const canonicalValue = canonicalTagLookup
+          ? resolveCanonicalTagName(canonicalTagLookup, valueText)
+          : null;
+        if (isDemoType && !canonicalValue) {
+          log.warn(
+            { fieldId: field.FieldId, value: valueText },
+            "Skipping unknown or ambiguous UiPath tag suggestion",
+          );
+          continue;
+        }
+
+        persistableValues.push({
+          FieldId: field.FieldId,
+          FieldName: field.FieldName,
+          FieldType: fieldType,
+          valueText: canonicalValue ?? valueText,
+          fieldValue,
+        });
+      }
     } catch (error) {
-      log.warn({ error, fieldId: field.FieldId }, "Skipping invalid UiPath field value");
+      log.warn(
+        { error, fieldId: field.FieldId },
+        "Skipping invalid UiPath field value",
+      );
     }
   }
 
-  if (field.FieldId !== DEMO_TYPE_FIELD_ID || persistableValues.length <= 1) {
+  if (!isDemoType || persistableValues.length <= 1) {
     return persistableValues;
   }
 
@@ -114,35 +207,14 @@ export function toPersistableFieldValues(field: UiPathField): PersistableFieldVa
   for (const persistableValue of persistableValues) {
     const key = persistableValue.valueText.toUpperCase();
     const existing = bestByValue.get(key);
-    if (!existing || getConfidence(persistableValue.fieldValue) > getConfidence(existing.fieldValue)) {
+    if (
+      !existing ||
+      getConfidence(persistableValue.fieldValue) >
+        getConfidence(existing.fieldValue)
+    ) {
       bestByValue.set(key, persistableValue);
     }
   }
 
-  const uniqueValues = Array.from(bestByValue.values());
-  if (uniqueValues.length <= 1) {
-    return uniqueValues;
-  }
-
-  uniqueValues.sort((a, b) => getConfidence(b.fieldValue) - getConfidence(a.fieldValue));
-  const combinedValueText = uniqueValues.map((value) => value.valueText).join(", ");
-  const maxConfidence = Math.max(...uniqueValues.map((value) => getConfidence(value.fieldValue)));
-  const sample = uniqueValues[0];
-  if (!sample) return [];
-
-  return [
-    {
-      FieldId: sample.FieldId,
-      FieldName: sample.FieldName,
-      FieldType: sample.FieldType,
-      valueText: combinedValueText,
-      fieldValue: {
-        Value: combinedValueText,
-        Confidence: maxConfidence,
-        SelectedValues: uniqueValues.map((value) => value.valueText),
-        RawValues: uniqueValues.map((value) => value.fieldValue),
-        TokenList: uniqueValues.flatMap((value) => getTokenList(value.fieldValue)),
-      },
-    },
-  ];
+  return Array.from(bestByValue.values());
 }
