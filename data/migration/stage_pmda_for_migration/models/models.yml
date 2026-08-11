@@ -836,6 +836,54 @@ models:
       - name: updated_at
         data_type: timestamptz
 
+  - name: final_demos_app_private_comment
+    columns:
+      - name: id
+        data_type: uuid
+      - name: deliverable_id
+        data_type: uuid
+      - name: author_user_id
+        data_type: uuid
+      - name: author_person_type_id
+        data_type: text
+      - name: content
+        data_type: text
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+      - name: is_migrated_from_pmda
+        data_type: boolean
+      - name: _legacy_mdcd_dlvrbl_cmt_id
+        data_type: integer
+      - name: _legacy_mdcd_dlvrbl_id
+        data_type: integer
+      - name: _legacy_mdcd_dlvrbl_cmt_user_id
+        data_type: integer
+
+  - name: final_demos_app_public_comment
+    columns:
+      - name: id
+        data_type: uuid
+      - name: deliverable_id
+        data_type: uuid
+      - name: author_user_id
+        data_type: uuid
+      - name: content
+        data_type: text
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+      - name: is_migrated_from_pmda
+        data_type: boolean
+      - name: _legacy_mdcd_dlvrbl_cmt_id
+        data_type: integer
+      - name: _legacy_mdcd_dlvrbl_id
+        data_type: integer
+      - name: _legacy_mdcd_dlvrbl_cmt_user_id
+        data_type: integer
+
   # Cleaned Models
   - name: cleaned_demos_app_demonstration_in_prog_demos
     columns:
@@ -940,6 +988,42 @@ models:
         data_tests:
           - not_null:
               name: assert_no_missing_effective_date_in_cleaned_finalized_amendment
+
+  - name: cleaned_demos_app_comments
+    columns:
+      - name: id
+        data_type: uuid
+      - name: deliverable_id
+        data_type: uuid
+      - name: author_user_id
+        data_type: uuid
+      - name: author_person_type_id,
+        data_type: text
+      - name: content
+        data_type: text
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+      - name: is_migrated_from_pmda
+        data_type: boolean
+      - name: _legacy_mdcd_dlvrbl_cmt_id
+        data_type: integer
+      - name: _legacy_mdcd_dlvrbl_id
+        data_type: integer
+      - name: _legacy_mdcd_dlvrbl_cmt_user_id
+        data_type: integer
+      - name: _internal_demos_comment_type
+        data_type: text
+        data_test:
+          - accepted_values:
+              name: assert_all_cleaned_comments_have_type
+              arguments:
+              values:
+                  - Private
+                  - Public
+          - not_null:
+              name: assert_no_null_comment_types_in_cleaned
 
   # Apps Models
   - name: apps_in_prog_dates_crosswalked
@@ -1081,6 +1165,40 @@ models:
         data_tests:
           - not_null:
               name: assert_no_missing_deliv_status_id_in_crosswalked_deliv
+
+  - name: deliverables_pmda_dlvrbl_comment
+    columns:
+      - name: _legacy_mdcd_dlvrbl_cmt_id
+        data_type: integer
+        data_tests:
+          - unique:
+              name: assert_legacy_mdcd_dlvrbl_cmt_id_is_unique
+          - not_null:
+              name: assert_legacy_mdcd_dlvrbl_cmt_id_is_not_null
+      - name: _legacy_mdcd_dlvrbl_id
+        data_type: integer
+        data_tests:
+          - not_null:
+              name: assert_mdcd_dlvrbl_id_in_pmda_comment_table_not_null
+      - name: _legacy_mdcd_dlvrbl_cmt_user_id
+        data_type: integer
+        data_tests:
+          - not_null:
+              name: assert_user_id_in_pmda_comment_table_not_null
+      - name: content
+        data_type: text
+      - name: creatd_dt
+        data_type: timestamptz
+      - name: cmt_orgn_cd
+        data_type: text
+      - name: cmt_aftr_acptd_ind
+        data_type: integer
+      - name: deliverable_id
+        data_type: uuid
+      - name: author_user_id
+        data_type: uuid
+      - name: author_person_type_id
+        data_type: text
 
   # Document Models
   - name: docs_pmda_app_docs_rpstry
