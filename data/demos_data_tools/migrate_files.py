@@ -28,8 +28,8 @@ logger = config_logger(getLogger(__name__))
 class FileMigrationTrackerRecord:
     """A file migration tracker record for a single file being migrated."""
 
-    final_document_id: str
-    final_document_s3_path: str
+    final_file_id: str
+    final_file_s3_path: str
     _internal_pmda_s3_file_id: int
     legacy_pmda_s3_path: str
     legacy_pmda_file_extension: str
@@ -67,8 +67,8 @@ def get_unmigrated_files(connection: "DuckConn") -> List[FileMigrationTrackerRec
     logger.info("Getting list of unmigrated files from PostgreSQL")
     query = f"""
         SELECT
-            final_document_id::TEXT,
-            final_document_s3_path,
+            final_file_id::TEXT,
+            final_file_s3_path,
             _internal_pmda_s3_file_id,
             legacy_pmda_s3_path,
             legacy_pmda_file_extension,
@@ -103,23 +103,23 @@ def _mark_file_migrated_in_db(
         SET
             file_has_been_moved = TRUE
         WHERE
-            final_document_id = $final_document_id;
+            final_file_id = $final_file_id;
     """
     if not file_record._local_file_has_been_moved:
         logger.warning(
-            f"Attempted to mark {file_record.final_document_id} migrated in DB "
+            f"Attempted to mark {file_record.final_file_id} migrated in DB "
             "without local migration marked complete; no action was taken"
         )
         return file_record
     try:
-        connection.execute(query, {"final_document_id": file_record.final_document_id})
+        connection.execute(query, {"final_file_id": file_record.final_file_id})
     except Exception as e:
         logger.error(
-            f"Exception {e} encountered while attempting to mark {file_record.final_document_id} completed in database"
+            f"Exception {e} encountered while attempting to mark {file_record.final_file_id} completed in database"
         )
         return file_record
     updated_file_record = replace(file_record, file_has_been_moved=True)
-    logger.debug(f"Marked {file_record.final_document_id} as migrated in database")
+    logger.debug(f"Marked {file_record.final_file_id} as migrated in database")
     return updated_file_record
 
 
@@ -137,17 +137,17 @@ def _migrate_file_in_s3(s3_client: "S3Client", file_record: FileMigrationTracker
         s3_client.copy(
             {"Bucket": PMDA_S3_BUCKET, "Key": file_record.legacy_pmda_s3_path},
             DEMOS_S3_BUCKET,
-            file_record.final_document_s3_path,
+            file_record.final_file_s3_path,
             ExtraArgs={
                 "MetadataDirective": "REPLACE",
                 "ContentType": file_record.file_mime_type,
             },
         )
     except Exception as e:
-        logger.error(f"Exception {e} encountered while attempting to move file {file_record.final_document_id} in S3")
+        logger.error(f"Exception {e} encountered while attempting to move file {file_record.final_file_id} in S3")
         return file_record
     updated_file_record = replace(file_record, _local_file_has_been_moved=True)
-    logger.debug(f"Migrated {file_record.final_document_id} in S3 from PMDA to DEMOS")
+    logger.debug(f"Migrated {file_record.final_file_id} in S3 from PMDA to DEMOS")
     return updated_file_record
 
 
@@ -175,7 +175,11 @@ def main() -> None:
     db_connection = attach_demos_to_conn(create_duckdb_conn())
     s3_client = get_s3_client()
     unmigrated_files = get_unmigrated_files(db_connection)
-    migration_result = [migrate_file(db_connection, s3_client, file_record) for file_record in unmigrated_files]
+    migration_result = []
+    for i, file_record in enumerate(unmigrated_files):
+        migration_result.append(migrate_file(db_connection, s3_client, file_record))
+        if (i % 100) == 0 and i != 0:
+            logger.info(f"Migrated {i - 1}th file")
     successful_files = [
         file_record
         for file_record in migration_result
