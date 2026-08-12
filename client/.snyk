@@ -2,6 +2,7 @@
 version: v1.25.0
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
+<<<<<<< HEAD
   SNYK-JS-BRACEEXPANSION-18313044:
     - '*':
       reason: No clean fix available for JSDOM to upgrade WS
@@ -12,6 +13,8 @@ ignore:
           reason: No patch available
           expires: 2026-08-29T00:00:00.000Z
           created: 2026-07-29T13:02:53.851Z
+=======
+>>>>>>> main
 patch: {}
 exclude:
   global:

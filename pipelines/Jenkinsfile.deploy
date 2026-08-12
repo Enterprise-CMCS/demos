@@ -55,6 +55,7 @@ pipeline {
               parallel(
                 'Build Client': {
                   dirCon('deployment','node') {
+<<<<<<< HEAD
                     if (env.STAGE == 'prod' && env.PROD_LIVE != 'true') {
                       // Prior to the prod launch, a mock index.html file is
                       // used to prevent access to the actual DEMOS site
@@ -66,6 +67,9 @@ pipeline {
                       sh "npx tsx demosctl/index build:client ${env.STAGE}"
                     }
                       
+=======
+                    sh "npx tsx demosctl/index build:client ${env.STAGE}"                                          
+>>>>>>> main
                   }
                 }, 'Build Server': {
                   dirCon('deployment', 'node') {

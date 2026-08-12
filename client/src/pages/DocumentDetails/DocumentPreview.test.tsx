@@ -33,7 +33,7 @@ describe("DocumentPreview", () => {
     // Mock fetch to never resolve
     globalThis.fetch = vi.fn(() => new Promise(() => {})) as typeof fetch;
 
-    render(<DocumentPreview presignedDownloadUrl={mockPresignedUrl} filename={mockFilename} />);
+    render(<DocumentPreview presignedDownloadUrl={mockPresignedUrl} downloadFileName={mockFilename} />);
 
     expect(screen.getByText("Loading file...")).toBeInTheDocument();
   });
@@ -41,7 +41,7 @@ describe("DocumentPreview", () => {
   it("displays error when fetch fails", async () => {
     globalThis.fetch = vi.fn(() => Promise.reject(new Error("Network error"))) as typeof fetch;
 
-    render(<DocumentPreview presignedDownloadUrl={mockPresignedUrl} filename={mockFilename} />);
+    render(<DocumentPreview presignedDownloadUrl={mockPresignedUrl} downloadFileName={mockFilename} />);
 
     await waitFor(() => {
       expect(screen.getByText(/Error loading file: Network error/)).toBeInTheDocument();
@@ -56,7 +56,7 @@ describe("DocumentPreview", () => {
       } as Response)
     ) as typeof fetch;
 
-    render(<DocumentPreview presignedDownloadUrl={mockPresignedUrl} filename={mockFilename} />);
+    render(<DocumentPreview presignedDownloadUrl={mockPresignedUrl} downloadFileName={mockFilename} />);
 
     await waitFor(() => {
       expect(
@@ -81,7 +81,7 @@ describe("DocumentPreview", () => {
       mime: "application/pdf",
     });
 
-    render(<DocumentPreview presignedDownloadUrl={mockPresignedUrl} filename={mockFilename} />);
+    render(<DocumentPreview presignedDownloadUrl={mockPresignedUrl} downloadFileName={mockFilename} />);
 
     await waitFor(() => {
       const embed = document.querySelector("embed");
@@ -109,12 +109,11 @@ describe("DocumentPreview", () => {
       mime: "image/png",
     });
 
-    // The download uses the document title verbatim, consistent with what's
-    // stored and displayed elsewhere (no extension appended/slugified).
+    // The download uses the server-sanitized name, which already includes the extension.
     render(
       <DocumentPreview
         presignedDownloadUrl={mockPresignedUrl}
-        filename="Budget Neutrality Workbook Ohio"
+        downloadFileName="Budget Neutrality Workbook Ohio.xlsx"
       />
     );
 
@@ -122,7 +121,35 @@ describe("DocumentPreview", () => {
       expect(screen.getByText("Download File")).toBeInTheDocument();
       const link = screen.getByText("Download File").closest("a");
       expect(link).toHaveAttribute("href", "blob:mock-url");
-      expect(link).toHaveAttribute("download", "Budget Neutrality Workbook Ohio");
+      expect(link).toHaveAttribute("download", "Budget Neutrality Workbook Ohio.xlsx");
+    });
+  });
+
+  it("downloads with a sanitized name so the browser has nothing to replace", async () => {
+    const mockBlob = new Blob(["fake content"], { type: "application/msword" });
+
+    globalThis.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        blob: () => Promise.resolve(mockBlob),
+      } as Response)
+    ) as typeof fetch;
+
+    const { fileTypeFromBlob } = await import("file-type");
+    vi.mocked(fileTypeFromBlob).mockResolvedValue({ ext: "docx", mime: "application/msword" });
+
+    // A raw title here would make the browser substitute underscores: "DEMOS-892 (3)_________".
+    render(
+      <DocumentPreview
+        presignedDownloadUrl={mockPresignedUrl}
+        downloadFileName="DEMOS-892 (3).docx"
+      />
+    );
+
+    await waitFor(() => {
+      const link = screen.getByText("Download File").closest("a");
+      expect(link).toHaveAttribute("download", "DEMOS-892 (3).docx");
+      expect(link?.getAttribute("download")).not.toContain("_");
     });
   });
 
@@ -139,7 +166,7 @@ describe("DocumentPreview", () => {
     const { fileTypeFromBlob } = await import("file-type");
     vi.mocked(fileTypeFromBlob).mockResolvedValue(undefined);
 
-    render(<DocumentPreview presignedDownloadUrl={mockPresignedUrl} filename={mockFilename} />);
+    render(<DocumentPreview presignedDownloadUrl={mockPresignedUrl} downloadFileName={mockFilename} />);
 
     await waitFor(() => {
       expect(screen.getByText("Download File")).toBeInTheDocument();
@@ -163,7 +190,7 @@ describe("DocumentPreview", () => {
       mime: "application/pdf",
     });
 
-    render(<DocumentPreview presignedDownloadUrl={mockPresignedUrl} filename={mockFilename} />);
+    render(<DocumentPreview presignedDownloadUrl={mockPresignedUrl} downloadFileName={mockFilename} />);
 
     await waitFor(() => {
       expect(fileConstructorSpy).toHaveBeenCalledWith([mockBlob], mockFilename, {

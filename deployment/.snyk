@@ -6,6 +6,7 @@ ignore:
   SNYK-JS-BRACEEXPANSION-17706650:
     - '*':
         reason: No direct upgrade or patch available.
+<<<<<<< HEAD
         expires: 2026-08-15T00:00:00.000Z
   SNYK-JS-BRACEEXPANSION-18313044:
     - '*':
@@ -17,6 +18,29 @@ ignore:
           reason: No patch available
           expires: 2026-08-29T00:00:00.000Z
           created: 2026-07-29T13:02:53.851Z
+=======
+        expires: 2026-08-20T00:00:00.000Z
+  SNYK-JS-BRACEEXPANSION-18313044:
+    - '*':
+        reason: No patch available
+        expires: 2026-08-20T00:00:00.000Z
+        created: 2026-07-28T13:02:53.851Z
+  SNYK-JS-NANOID-18506894:
+    - '*':
+        reason: No patch available
+        expires: 2026-08-20T00:00:00.000Z
+        created: 2026-08-03T12:33:08.663Z
+  SNYK-JS-NANOID-18506897:
+    - '*':
+        reason: No patch available
+        expires: 2026-08-20T00:00:00.000Z
+        created: 2026-08-03T12:33:18.809Z
+  SNYK-JS-BRACEEXPANSION-18512280:
+    - '*':
+        reason: No patch available
+        expires: 2026-08-20T00:00:00.000Z
+        created: 2026-08-06T12:27:41.717Z
+>>>>>>> main
 exclude:
   global:
     - node_modules

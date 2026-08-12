@@ -96,11 +96,15 @@ export const handler = async (event: SQSEvent, context: Context) =>
       }
 
       log.info("Parsing completed. Starting validation against ruleset.");
+<<<<<<< HEAD
       const validationResults = await validateBNWorkbook(
         parsedData,
         validations,
         extractorFunctions
       );
+=======
+      const validationResults = await validateBNWorkbook(parsedData, validations, extractorFunctions);
+>>>>>>> main
 
       log.info("Validation completed. Inserting BN results into database.");
       results.existingDocuments = 1;

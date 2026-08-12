@@ -15,6 +15,13 @@ export function create(props: CommonProps) {
     restApiName: `${props.project}-${props.stage}-api`,
     deploy: true,
     cloudWatchRole: false,
+    // The graphql lambda gzips large responses to stay under Lambda's 6 MB
+    // payload limit and returns them base64-encoded. API Gateway only decodes
+    // those back into bytes when the request's Accept media type is declared
+    // binary, and clients send `Accept: */*`, so that is what we declare.
+    // Integrations that return text (the mock /api/health response, CORS
+    // preflight) leave contentHandling unset and still pass through as text.
+    binaryMediaTypes: ["*/*"],
     deployOptions: {
       stageName: props.stage,
       tracingEnabled: true,

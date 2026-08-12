@@ -6,7 +6,11 @@ import {
 } from "@prisma/client";
 import { resolveManyDeliverables } from "../deliverable";
 import { getManyDocuments } from "../document";
+<<<<<<< HEAD
 import { selectManyUsers, selectUserOrThrow } from "./queries";
+=======
+import { selectUserOrThrow } from "./queries";
+>>>>>>> main
 import { Permission, Role } from "../../types";
 import { selectManySystemRoleAssignments } from "../systemRoleAssignment";
 import { selectLastLoginForUser } from "../userSession/queries";

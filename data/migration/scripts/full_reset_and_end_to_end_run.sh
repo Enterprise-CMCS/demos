@@ -11,8 +11,13 @@ python check_if_in_devcontainer.py
 
 # Drop and recreate migration schemas entirely
 python manage_migration_schemas.py drop raw
+<<<<<<< HEAD
 python manage_migration_schemas.py drop staging
 python manage_migration_schemas.py create raw
+=======
+python manage_migration_schemas.py create raw
+python manage_migration_schemas.py drop staging
+>>>>>>> main
 python manage_migration_schemas.py create staging
 
 # Reset the database to empty
@@ -24,10 +29,25 @@ npm run dbrefresh
 cd /workspaces/demos/data/demos_data_tools
 python pmda_exporter.py
 
+<<<<<<< HEAD
+=======
+# Remove the PMDA S3 file list if it exists in seeds
+# Then, pull it down from S3
+cd /workspaces/demos/data/migration/stage_pmda_for_migration/seeds
+rm -f raw_pmda_s3_file_list.csv
+aws s3 cp s3://demos-prod-pmda-efs-transfer/s3_file_list.csv raw_pmda_s3_file_list.csv
+
+>>>>>>> main
 # Run dbt project
 cd /workspaces/demos/data/migration/stage_pmda_for_migration
 dbt build
 
+<<<<<<< HEAD
 # Run final step
 cd /workspaces/demos/data/demos_data_tools
+=======
+# Migrate files, then load data into DEMOS schema
+cd /workspaces/demos/data/demos_data_tools
+python migrate_files.py
+>>>>>>> main
 python load_staged_data_to_demos_app.py

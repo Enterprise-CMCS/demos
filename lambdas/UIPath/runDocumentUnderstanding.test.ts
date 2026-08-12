@@ -45,8 +45,15 @@ import { getToken } from "./getToken";
 const TEST_DOCUMENT_ID = "4cdfe542-90aa-489f-93d5-e786aaff49a2";
 const TEST_APPLICATION_ID = "app-1";
 
-function mockSuccessfulDbQueries(allowedTagSuggestionFieldIds: string[] = []) {
+function mockSuccessfulDbQueries(
+  allowedTagSuggestionFieldIds: string[] = [],
+  tagNames: string[] = [],
+) {
   mocks.queryMock.mockImplementation((sql: string) => {
+    if (sql.includes("from demos_app.tag")) {
+      return Promise.resolve({ rows: tagNames.map((tag_name_id) => ({ tag_name_id })) });
+    }
+
     if (sql.includes("application_tag_suggestion_extract_field_limit")) {
       return Promise.resolve({
         rows: allowedTagSuggestionFieldIds.map((id) => ({ id })),
@@ -280,10 +287,13 @@ describe("runDocumentUnderstanding", () => {
     expect(mocks.queryMock.mock.calls.map((call) => call[0])).toContain("ROLLBACK");
   });
 
-  it("deduplicates multi-value demo_type and persists combined value", async () => {
+  it("canonicalizes and persists one value per demo_type suggestion", async () => {
     mocks.uploadDocumentMock.mockResolvedValue("doc-1");
     mocks.extractDocMock.mockResolvedValue("result-url");
-    mockSuccessfulDbQueries(["demo_type"]);
+    mockSuccessfulDbQueries(
+      ["demo_type"],
+      ["Substance Use Disorder (SUD)", "Basic Health Plan (BHP)"],
+    );
     mocks.fetchExtractionResultMock.mockResolvedValue({
       status: "Succeeded",
       Fields: [
@@ -322,29 +332,53 @@ describe("runDocumentUnderstanding", () => {
     await vi.runAllTimersAsync();
     await promise;
 
-    expect(mocks.queryMock).toHaveBeenCalledTimes(9);
-    const fieldInsertArgs = mocks.queryMock.mock.calls[3]?.[1];
-    expect(fieldInsertArgs).toEqual([
+    expect(mocks.queryMock).toHaveBeenCalledTimes(12);
+    expect(mocks.queryMock.mock.calls[3]?.[0]).toContain(
+      "from demos_app.tag where tag_type_id = 'Application'"
+    );
+    const sudInsertArgs = mocks.queryMock.mock.calls[4]?.[1];
+    const bhpInsertArgs = mocks.queryMock.mock.calls[5]?.[1];
+    expect(sudInsertArgs).toEqual([
       expect.any(String),
       "result-1",
       TEST_DOCUMENT_ID,
       TEST_APPLICATION_ID,
       "demo_type",
-      "SUD, BHP",
-      8,
+      "Substance Use Disorder (SUD)",
+      28,
       0,
       0.5224329,
-      JSON.stringify([{ Page: 0 }, { Page: 1 }]),
+      JSON.stringify([{ Page: 0 }]),
     ]);
-    expect(mocks.queryMock.mock.calls[7]?.[0]).toContain(
-      "insert into demos_app.application_tag_suggestion_extract"
-    );
-    expect(mocks.queryMock.mock.calls[7]?.[1]).toEqual([
-      fieldInsertArgs?.[0],
+    expect(bhpInsertArgs).toEqual([
+      expect.any(String),
+      "result-1",
+      TEST_DOCUMENT_ID,
       TEST_APPLICATION_ID,
       "demo_type",
-      "SUD, BHP",
+      "Basic Health Plan (BHP)",
+      23,
+      0,
+      0.3818529,
+      JSON.stringify([{ Page: 1 }]),
+    ]);
+    expect(mocks.queryMock.mock.calls[9]?.[0]).toContain(
+      "insert into demos_app.application_tag_suggestion_extract",
+    );
+    expect(mocks.queryMock.mock.calls[9]?.[1]).toEqual([
+      sudInsertArgs?.[0],
+      TEST_APPLICATION_ID,
+      "demo_type",
+      "Substance Use Disorder (SUD)",
       1,
+      1,
+    ]);
+    expect(mocks.queryMock.mock.calls[10]?.[1]).toEqual([
+      bhpInsertArgs?.[0],
+      TEST_APPLICATION_ID,
+      "demo_type",
+      "Basic Health Plan (BHP)",
+      2,
       2,
     ]);
   });
@@ -352,7 +386,7 @@ describe("runDocumentUnderstanding", () => {
   it("throws when a tag suggestion field has no token page after committing UiPath values", async () => {
     mocks.uploadDocumentMock.mockResolvedValue("doc-1");
     mocks.extractDocMock.mockResolvedValue("result-url");
-    mockSuccessfulDbQueries(["demo_type"]);
+    mockSuccessfulDbQueries(["demo_type"], ["Substance Use Disorder (SUD)"]);
     mocks.fetchExtractionResultMock.mockResolvedValue({
       status: "Succeeded",
       Fields: [
@@ -378,10 +412,12 @@ describe("runDocumentUnderstanding", () => {
     await vi.runAllTimersAsync();
     await expectation;
 
-    expect(mocks.queryMock.mock.calls[4]?.[0]).toBe("COMMIT");
-    expect(mocks.queryMock.mock.calls[7]?.[0]).toBe("ROLLBACK");
+    expect(mocks.queryMock.mock.calls[5]?.[0]).toBe("COMMIT");
+    expect(mocks.queryMock.mock.calls[8]?.[0]).toBe("ROLLBACK");
     expect(
-      mocks.queryMock.mock.calls.some((call) => Array.isArray(call[1]) && call[1][5] === "Failed")
+      mocks.queryMock.mock.calls.some(
+        (call) => Array.isArray(call[1]) && call[1][5] === "Failed"
+      )
     ).toBe(true);
   });
 

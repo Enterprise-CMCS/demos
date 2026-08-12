@@ -18,3 +18,4 @@ export default defineConfig({
 
 // Set default timezone for tests to UTC to avoid timezone-related test failures
 process.env.TZ = "UTC";
+process.env.CDK_VALIDATION = "false";

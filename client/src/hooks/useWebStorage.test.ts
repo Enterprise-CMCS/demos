@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import { act, renderHook } from "@testing-library/react";
 
+<<<<<<< HEAD
 import { useLocalStorage, useSessionStorage } from "./useWebStorage";
+=======
+import { useLocalStorage, useSessionStorage, useSessionStorageJson } from "./useWebStorage";
+>>>>>>> main
 
 describe("useLocalStorage", () => {
   it("returns empty string when no value is stored", () => {
@@ -55,3 +59,35 @@ describe("useSessionStorage", () => {
     expect(window.localStorage.getItem("test-key")).toBeNull();
   });
 });
+<<<<<<< HEAD
+=======
+
+describe("useSessionStorageJson", () => {
+  it("returns undefined when no value is stored", () => {
+    const { result } = renderHook(() => useSessionStorageJson("dates-key"));
+    expect(result.current[0]).toBeUndefined();
+  });
+
+  it("reads an existing value from sessionStorage", () => {
+    const stored = { startDate: "2025-02-01", endDate: "2025-03-01" };
+    window.sessionStorage.setItem("dates-key", JSON.stringify(stored));
+    const { result } = renderHook(() => useSessionStorageJson("dates-key"));
+    expect(result.current[0]).toEqual(stored);
+  });
+
+  it("writes a value to sessionStorage as JSON", () => {
+    const { result } = renderHook(() => useSessionStorageJson("dates-key"));
+    act(() => result.current[1]({ startDate: "2025-05-01" }));
+    expect(result.current[0]).toEqual({ startDate: "2025-05-01" });
+    expect(JSON.parse(window.sessionStorage.getItem("dates-key")!)).toEqual({
+      startDate: "2025-05-01",
+    });
+  });
+
+  it("does not affect localStorage when writing", () => {
+    const { result } = renderHook(() => useSessionStorageJson("dates-key"));
+    act(() => result.current[1]({ startDate: "2025-05-01" }));
+    expect(window.localStorage.getItem("dates-key")).toBeNull();
+  });
+});
+>>>>>>> main

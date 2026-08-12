@@ -17,7 +17,11 @@
     "demos-shared-library": "file:../../shared_library"
   },
   "devDependencies": {
+<<<<<<< HEAD
     "@aws-sdk/client-ssm": "^3.1081.0",
+=======
+    "@aws-sdk/client-ssm": "^3.1095.0",
+>>>>>>> main
     "@types/aws-lambda": "^8.10.162",
     "@types/nodemailer": "^7.0.12",
     "@vitest/coverage-v8": "^4.1.10",
