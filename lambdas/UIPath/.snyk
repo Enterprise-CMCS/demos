@@ -2,14 +2,6 @@
 version: v1.25.0
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
-<<<<<<< HEAD
-  SNYK-JS-POSTCSS-18313038:
-    - '*':
-        reason: No patch available
-        expires: 2026-08-29T00:00:00.000Z
-        created: 2026-07-29T13:02:53.851Z
-
-=======
   SNYK-JS-NANOID-18506897:
     - '*':
         reason: No patch available
@@ -20,5 +12,4 @@ ignore:
         reason: No patch available
         expires: 2026-08-17T00:00:00.000Z
         created: 2026-08-03T12:52:17.525Z
->>>>>>> main
 patch: {}

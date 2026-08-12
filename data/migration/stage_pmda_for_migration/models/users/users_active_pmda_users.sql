@@ -4,11 +4,6 @@ SELECT
     u.firstname,
     u.lastname,
     u.email,
-<<<<<<< HEAD
-=======
-    u.datecreated AS created_at,
-    u.updated_at,
->>>>>>> main
     CASE
         WHEN role_pivot.has_demos_admin = 1 THEN 'demos-admin'
         WHEN role_pivot.has_demos_cms_user = 1 THEN 'demos-cms-user'

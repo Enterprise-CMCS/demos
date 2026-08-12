@@ -23,7 +23,6 @@ export const onDemandReportResolvers = {
       const reportId = randomUUID();
       const s3Adapter = getS3Adapter();
       try {
-<<<<<<< HEAD
         uploadedReportPaths = await prisma().$transaction(async (tx) => {
           const reportResults = await runOnDemandReport(args.reportType, tx);
           const generatedDate = getEasternNow();
@@ -48,38 +47,6 @@ export const onDemandReportResolvers = {
           );
           return [fileS3Path, generatedFileName];
         });
-=======
-        uploadedReportPaths = await prisma().$transaction(
-          async (tx) => {
-            const reportResults = await runOnDemandReport(args.reportType, tx);
-            const generatedDate = getEasternNow();
-            const formattedReport = await formatOnDemandReportInExcel(
-              args.reportType,
-              reportResults,
-              { requestId: reportId, requestTimestamp: generatedDate["Current Time"] }
-            );
-            const fileS3Path = await s3Adapter.uploadOnDemandReport(reportId, formattedReport);
-            const generatedFileName = generateOnDemandReportFileName(
-              args.reportType,
-              generatedDate
-            );
-            await insertOnDemandReport(
-              {
-                id: reportId,
-                s3Path: fileS3Path,
-                generatedFileName: generatedFileName + ".xlsx",
-                requestingUserId: context.user.id,
-                reportTypeId: args.reportType,
-                statusId: "Available",
-                reportGeneratedAt: generatedDate["Current Time"].easternTZDate,
-              },
-              tx
-            );
-            return [fileS3Path, generatedFileName];
-          },
-          { timeout: 30000 }
-        );
->>>>>>> main
       } catch (error) {
         await s3Adapter.deleteOnDemandReport(reportId).catch((cleanupError) => {
           const cleanupErrorMessage =

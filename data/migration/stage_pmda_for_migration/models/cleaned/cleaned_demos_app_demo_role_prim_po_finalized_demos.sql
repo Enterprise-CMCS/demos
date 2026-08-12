@@ -19,18 +19,10 @@ SELECT
     pmda_po.state_id,
     p.person_type_id,
     'Demonstration' AS grant_level_id,
-<<<<<<< HEAD
     'Primary Project Officer' AS _internal_grant_type
-=======
-    TRUE AS _internal_is_primary
->>>>>>> main
 FROM
     cleaned_demos_and_pos AS pmda_po
 LEFT JOIN
     {{ ref('final_demos_app_person') }} AS p
     ON
-<<<<<<< HEAD
         pmda_po._legacy_proj_ofcr_user_id = p._legacy_id
-=======
-        pmda_po._legacy_proj_ofcr_user_id = p._legacy_users_id
->>>>>>> main

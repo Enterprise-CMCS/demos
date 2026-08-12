@@ -12,13 +12,6 @@ ignore:
         reason: No patch available
         expires: 2026-04-10T00:00:00.000Z
         created: 2026-03-27T12:13:20.054Z
-<<<<<<< HEAD
-  SNYK-JS-POSTCSS-18313038:
-    - '*':
-        reason: No patch available
-        expires: 2026-08-29T00:00:00.000Z
-        created: 2026-07-29T13:02:53.851Z
-=======
   SNYK-JS-NANOID-18506897:
     - '*':
         reason: No patch available
@@ -29,5 +22,4 @@ ignore:
         reason: No patch available
         expires: 2026-08-17T00:00:00.000Z
         created: 2026-08-03T12:50:57.474Z
->>>>>>> main
 patch: {}

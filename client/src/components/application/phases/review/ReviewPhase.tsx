@@ -111,15 +111,8 @@ export const ReviewPhase = ({
   const [setApplicationClearanceLevel] = useMutation(SET_APPLICATION_CLEARANCE_LEVEL);
   const { completePhase } = useCompletePhase();
 
-<<<<<<< HEAD
   const [reviewPhaseFormData, setReviewPhaseFormData] =
     useState<ReviewPhaseFormData>(initialFormData);
-=======
-  const [localFormData, setReviewPhaseFormData] = useSessionStorageJson<ReviewPhaseFormData>(
-    `review-form-data-${applicationId}`
-  );
-  const reviewPhaseFormData = localFormData ?? initialFormData;
->>>>>>> main
   const [lastSavedFormData, setLastSavedFormData] = useState<ReviewPhaseFormData>(initialFormData);
   const [reviewPhaseSectionsComplete, setReviewPhaseSectionsComplete] =
     useState<ReviewPhaseSectionsComplete>(getPhaseStateInitialization());

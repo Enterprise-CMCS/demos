@@ -4,15 +4,9 @@ SELECT
     au.email,
     au.firstname AS first_name,
     au.lastname AS last_name,
-<<<<<<< HEAD
     current_timestamp AS created_at,
     current_timestamp AS updated_at,
     au.id AS _legacy_id
-=======
-    coalesce(au.created_at, current_timestamp) AS created_at,
-    coalesce(au.updated_at, au.created_at, current_timestamp) AS updated_at,
-    au.id AS _legacy_users_id
->>>>>>> main
 FROM
     {{ ref('users_active_pmda_users') }} AS au
 WHERE

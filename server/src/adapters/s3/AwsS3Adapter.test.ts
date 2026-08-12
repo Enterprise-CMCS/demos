@@ -158,7 +158,6 @@ describe("AwsS3Adapter", () => {
         ResponseContentDisposition:
           String.raw`inline; filename="Qu?rterly Report.pdf"; ` +
           String.raw`filename*=UTF-8''Qu%C3%A2rterly%20Report.pdf`,
-<<<<<<< HEAD
       });
     });
 
@@ -192,8 +191,6 @@ describe("AwsS3Adapter", () => {
         Bucket: testCleanBucket,
         Key: "reports/on-demand/r1.xlsx",
         ResponseContentDisposition: 'attachment; filename="Deliverable Report.xlsx"',
-=======
->>>>>>> main
       });
     });
 

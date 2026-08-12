@@ -24,10 +24,7 @@ vi.mock("../document", () => ({
 
 vi.mock("./queries", () => ({
   selectUserOrThrow: vi.fn(),
-<<<<<<< HEAD
   selectManyUsers: vi.fn(),
-=======
->>>>>>> main
 }));
 
 vi.mock("../userSession/queries", () => ({
@@ -36,11 +33,7 @@ vi.mock("../userSession/queries", () => ({
 
 import { selectManySystemRoleAssignments } from "../systemRoleAssignment";
 import { getManyDocuments } from "../document";
-<<<<<<< HEAD
 import { selectUserOrThrow, selectManyUsers } from "./queries";
-=======
-import { selectUserOrThrow } from "./queries";
->>>>>>> main
 import { selectLastLoginForUser } from "../userSession/queries";
 
 describe("userResolvers", () => {
