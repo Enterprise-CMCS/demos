@@ -1,0 +1,358 @@
+import java.math.RoundingMode
+
+pipeline {
+  agent {
+    kubernetes {
+            yaml '''
+apiVersion: v1
+kind: Pod
+metadata:
+  name: demos-jenkins-agent
+  labels:
+    jenkins: "agent"
+spec:
+  nodeSelector:
+    node-pool: "agent"
+  serviceAccountName: jenkins-role
+  containers:
+  - name: python
+    image: artifactory.cloud.cms.gov/docker/python:3.13-slim
+    command:
+    - sleep
+    args:
+    - infinity
+    resources:
+      requests:
+        cpu: '1'
+        memory: '2Gi'
+        ephemeral-storage: "2Gi"
+      limits:
+        cpu: '2'
+        memory: '8Gi'
+        ephemeral-storage: "10Gi"
+  - name: node
+    image: 'artifactory.cloud.cms.gov/docker/node:24-alpine'
+    command:
+    - cat
+    tty: true
+    resources:
+      requests:
+        cpu: '750m'
+        memory: '1Gi'
+        ephemeral-storage: "2Gi"
+      limits:
+        cpu: '1500m'
+        memory: '2Gi'
+        ephemeral-storage: "10Gi"
+  - name: aws-cli
+    image: artifactory.cloud.cms.gov/docker/amazon/aws-cli:latest
+    command:
+    - sleep
+    - 99999
+    tty: true
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+        ephemeral-storage: "1Gi"
+      limits:
+        cpu: 400m
+        memory: 512Mi
+        ephemeral-storage: "5Gi"
+'''
+      defaultContainer 'python'
+      retries 2
+    }
+  }
+
+  options {
+    disableConcurrentBuilds(abortPrevious: true)
+    buildDiscarder(logRotator(
+      numToKeepStr: "5",
+      artifactNumToKeepStr: "5"
+  ))
+}
+
+environment {
+  PMDA_MYSQL_PWD = credentials('pmda-prod-mysql-db-restore-pw')
+  DEMOS_PGSQL_PWD = credentials('demos-prod-pgsql-db-pw')
+}
+
+parameters {
+  booleanParam(name: 'RECREATE_RAW', defaultValue: false, description: 'Recreate the raw schema in the demos database. WARNING: This will delete all data in the raw schema.')
+  booleanParam(name: 'RECREATE_STAGING', defaultValue: false, description: 'Recreate the staging schema in the demos database. WARNING: This will delete all data in the staging schema.')
+  booleanParam(name: 'RESET_DEMOS_DATABASE', defaultValue: false, description: 'Recreate the DEMOS APP database. WARNING: THIS WILL DELETE ALL DATA IN THE DEMOS APP DATABASE.')
+  booleanParam(name: 'MYSQL_TO_POSTGRES', defaultValue: false, description: 'Migrate data from MySQL to Postgres')
+  booleanParam(name: 'COPY_S3_FILE', defaultValue: false, description: 'Copy file from S3 to DBT project')
+  booleanParam(name: 'RUN_DBT', defaultValue: false, description: 'Run DBT transformations')
+  booleanParam(name: 'COPY_FILE_DATA', defaultValue: false, description: 'Copy data between S3 buckets')
+  booleanParam(name: 'LOAD_STAGED_DATA', defaultValue: false, description: 'Load staged data to DEMOS app')
+  booleanParam(name: 'TAKE_SNAPSHOT', defaultValue: false, description: 'Take a snapshot of the migration schema')
+}
+
+stages {
+  stage('Confirm') {
+    steps {
+      script {
+        def description = 'I understand that this will run against the PROD database and potentially delete data.'
+        if (params.RECREATE_RAW_STAGING) {
+          description += '\n    - recreate the raw and staging schemas in the demos database'
+        }
+        if (params.RESET_DEMOS_DATABASE) {
+          description += '\n    - recreate the DEMOS APP database and delete all data in the database'
+        }
+        if (params.MYSQL_TO_POSTGRES) {
+          description += '\n    - migrate data from MySQL to Postgres'
+        }
+        if (params.COPY_S3_FILE) {
+          description += '\n    - copy file from S3 to DBT project'
+        }
+        if (params.RUN_DBT) {
+          description += '\n    - run DBT transformations'
+        }
+        if (params.COPY_FILE_DATA) {
+          description += '\n    - copy data between PMDA and DEMOS S3 buckets'
+        }
+        if (params.LOAD_STAGED_DATA) {
+          description += '\n    - load staged data to the DEMOS app'
+        }
+        if (params.TAKE_SNAPSHOT) {
+          description += '\n    - take a snapshot of the migration schema'
+        }
+
+        def inputParams = [booleanParam(
+              defaultValue: false, 
+              description: description, 
+              name: 'APPROVE_PIPELINE_RUN'
+            )]
+
+        def userInput = input(
+          message: "Are you sure you want to run this pipeline?",
+          submitter: 'database_approvers',
+          submitterParameter: 'APPROVED_BY',
+          parameters: inputParams
+        )
+        if (userInput.APPROVE_PIPELINE_RUN != true) {
+          error("User did not confirm. Aborting pipeline.")
+        }
+      }
+    }
+  }
+  stage('Install Python dependencies') {
+    steps {
+      script {
+        sh """
+        apt-get update
+        apt-get install -y --no-install-recommends libpq-dev gcc python3-dev
+
+        python -m venv /app/venv
+
+        /app/venv/bin/pip install -r .devcontainer/python/requirements.txt
+
+        /app/venv/bin/dbt --version
+        """
+      }
+    }
+  }
+
+  stage("Test connectivity") {
+    steps {
+      script {
+        dir("data/demos_data_tools") {
+          sh """
+          /app/venv/bin/python -c 'import duckdb_connection_manager as d
+conn = d.create_duckdb_conn()
+d.attach_pmda_to_conn(conn)
+d.attach_demos_to_conn(conn)
+print(conn.sql("SHOW DATABASES").fetchall())
+conn.close()
+'
+          """
+          assumeRole(accountNumber: env.DEMOS_AWS_PROD_ACCOUNT_NUMBER)
+        }
+      }
+    }
+  }
+  stage("Drop & Recreate RAW Schema") {
+    when {
+      expression {
+        return params.RECREATE_RAW
+      }
+    }
+    steps {
+      script {
+        dir("data/demos_data_tools") {
+          sh """
+          set -e
+          /app/venv/bin/python manage_migration_schemas.py drop raw
+          /app/venv/bin/python manage_migration_schemas.py create raw
+          """
+        }
+      }
+    }
+  }
+  stage("Drop & Recreate STAGING Schema") {
+    when {
+      expression {
+        return params.RECREATE_STAGING
+      }
+    }
+    steps {
+      script {
+        dir("data/demos_data_tools") {
+          sh """
+          set -e
+          /app/venv/bin/python manage_migration_schemas.py drop staging
+          /app/venv/bin/python manage_migration_schemas.py create staging
+          """
+        }
+      }
+    }
+  }
+
+  stage("Move data from MySQL to Postgres") {
+    when {
+      expression {
+        return params.MYSQL_TO_POSTGRES
+      }
+    }
+    steps {
+      script {
+        dir("data/demos_data_tools") {
+          sh """
+          set -e
+          /app/venv/bin/python pmda_exporter.py
+          """
+        }
+      }
+    }
+  }
+
+  stage("Reset DEMOS database") {
+    when {
+      expression {
+        return params.RESET_DEMOS_DATABASE
+      }
+    }
+    steps {
+      script {
+        dirCon("shared_library", "node") {
+          sh """
+          npm ci
+          """
+        }
+        dirCon("server", "node") {
+          sh """
+          npm ci
+          export DATABASE_URL="postgresql://\$DEMOS_PGSQL_USER:\$DEMOS_PGSQL_PWD@\$DEMOS_PGSQL_HOST:\$DEMOS_PGSQL_PORT/\$DEMOS_PGSQL_DB?schema=demos_app"
+          
+          npm run migrate:reset
+          npm run dbrefresh
+          """
+        }
+      }
+    }
+  }
+
+
+  stage("Copy manifest from S3 to DBT Project") {
+    when {
+      expression {
+        return params.COPY_S3_FILE
+      }
+    }
+    steps {
+      script {
+        dirCon("data/migration/stage_pmda_for_migration/seeds", "aws-cli") {
+          sh """
+          set -e
+          rm -f raw_pmda_s3_file_list.csv
+          aws s3 cp s3://${PMDA_S3_BUCKET}/s3_file_list.csv raw_pmda_s3_file_list.csv
+          """
+        }
+      }
+    }
+  }
+
+  stage("Run DBT") {
+    when {
+      expression {
+        return params.RUN_DBT
+      }
+    }
+    steps {
+      script {
+        dir("data/migration/stage_pmda_for_migration") {
+          sh """
+          set -e
+          mv profiles.yml.jenkins profiles.yml
+          /app/venv/bin/dbt deps
+          /app/venv/bin/dbt build --profiles-dir ./
+          """
+        }
+      }
+    }
+  }
+
+  stage("Move file data") {
+    when {
+      expression {
+        return params.COPY_FILE_DATA
+      }
+    }
+    steps {
+      script {
+        dir("data/demos_data_tools") {
+          sh """
+          set -e
+          /app/venv/bin/python migrate_files.py
+          """
+        }
+      }
+    }
+  }
+
+  stage("Load staged data to DEMOS app") {
+    when {
+      expression {
+        return params.LOAD_STAGED_DATA
+      }
+    }
+    steps {
+      script {
+        dir("data/demos_data_tools") {
+          sh """
+          set -e
+          /app/venv/bin/python load_staged_data_to_demos_app.py
+          """
+        }
+      }
+    }
+  }
+
+  stage("Snapshot") {
+    when {
+      expression {
+        return params.TAKE_SNAPSHOT
+      }
+    }
+    steps {
+      script {
+        dir("data/demos_data_tools") {
+          sh """
+          set -e
+          /app/venv/bin/python snapshot_migration_schema.py
+          """
+        }
+      }
+    }
+  }
+
+}
+
+post {
+  always {
+    cleanWs(deleteDirs: true)
+  }
+}
+}
