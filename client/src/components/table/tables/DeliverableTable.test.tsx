@@ -4,7 +4,6 @@ import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import {
-  DELIVERABLES_PAGE_QUERY,
   DeliverableTable,
   formatDeliverableStatus,
   getLatestSubmissionDate,
@@ -132,7 +131,6 @@ describe("DeliverableTable", () => {
 
     expect(showRemoveDeliverableDialog).toHaveBeenCalledWith(
       [sortedFirstPageIds[0]],
-      [DELIVERABLES_PAGE_QUERY],
       expect.any(Function)
     );
   });
@@ -143,7 +141,7 @@ describe("DeliverableTable", () => {
     await user.click(screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`));
     await user.click(screen.getByTestId("remove-deliverable"));
 
-    const onDeleted = showRemoveDeliverableDialog.mock.calls[0][2];
+    const onDeleted = showRemoveDeliverableDialog.mock.calls[0][1];
     act(() => {
       onDeleted();
     });

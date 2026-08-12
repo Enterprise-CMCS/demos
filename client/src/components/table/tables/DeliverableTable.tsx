@@ -188,7 +188,10 @@ const NO_RESULTS_FOUND = "No deliverables match your search.";
 const FINAL_STATUSES = ["Accepted", "Approved", "Received and Filed"];
 
 export const formatDeliverableStatus = (
-  deliverable: Pick<DeliverableTableRow, "status" | "deliverableActions" | "extensionRequests">
+  deliverable: Pick<
+  DeliverableTableRow,
+  "status" | "deliverableActions" | "extensionRequests"
+  >
 ) => {
   const { status, deliverableActions, extensionRequests } = deliverable;
 
@@ -229,7 +232,8 @@ export const getLatestSubmissionDate = (
     return undefined;
   }
 
-  submissions.sort((a, b) => compareDesc(a.actionTimestamp, b.actionTimestamp));
+  submissions
+    .sort((a, b) => compareDesc(a.actionTimestamp, b.actionTimestamp));
 
   return formatDateForDisplay(submissions[0].actionTimestamp);
 };
@@ -240,7 +244,10 @@ export const getLatestSubmissionDate = (
  * without needing to display the resubmission count in the filter options.
  */
 export const formatDeliverableFilterStatus = (
-  deliverable: Pick<DeliverableTableRow, "status" | "extensionRequests">
+  deliverable: Pick<
+    DeliverableTableRow,
+    "status" | "extensionRequests"
+  >
 ) => {
   const { status, extensionRequests } = deliverable;
 
@@ -252,7 +259,9 @@ export const formatDeliverableFilterStatus = (
     (request) => request.status === "Requested"
   );
 
-  return hasOpenExtensionRequest ? `${status} - Extension Requested` : status;
+  return hasOpenExtensionRequest
+    ? `${status} - Extension Requested`
+    : status;
 };
 
 export const DeliverableTable: React.FC<{
@@ -278,7 +287,7 @@ export const DeliverableTable: React.FC<{
   >;
 
   const renderActionButtons: RenderDeliverableActionButtons = (table) => (
-    <DeliverableActionButtons table={table} refetchQueries={[DELIVERABLES_PAGE_QUERY]} />
+    <DeliverableActionButtons table={table} />
   );
 
   const actionButtons = viewMode === "demos-state-user" ? undefined : renderActionButtons;

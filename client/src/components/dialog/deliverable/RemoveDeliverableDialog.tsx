@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { DocumentNode, gql, useMutation } from "@apollo/client";
+import { gql, useMutation } from "@apollo/client";
 import { ErrorButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { useToast } from "components/toast";
@@ -27,13 +27,12 @@ export const getRemoveDeliverableConfirmMessage = (deliverableCount: number): st
 export const RemoveDeliverableDialog: React.FC<{
   deliverableIds: string[];
   onClose: () => void;
-  refetchQueries: DocumentNode[];
   onDeleted?: () => void;
-}> = ({ deliverableIds, onClose, onDeleted, refetchQueries }) => {
+}> = ({ deliverableIds, onClose, onDeleted }) => {
   const { showSuccess, showError } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteDeliverable] = useMutation(DELETE_DELIVERABLE_MUTATION, {
-    refetchQueries,
+    refetchQueries: "active",
     awaitRefetchQueries: true,
   });
 

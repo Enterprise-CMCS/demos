@@ -40,12 +40,7 @@ describe("RemoveDeliverableDialog", () => {
   const setup = (ids: string[] = ["deliverable-1"], onClose = vi.fn(), onDeleted = vi.fn()) => {
     render(
       <ToastProvider>
-        <RemoveDeliverableDialog
-          deliverableIds={ids}
-          onClose={onClose}
-          onDeleted={onDeleted}
-          refetchQueries={[]}
-        />
+        <RemoveDeliverableDialog deliverableIds={ids} onClose={onClose} onDeleted={onDeleted} />
         <ToastContainer />
       </ToastProvider>
     );
@@ -79,7 +74,7 @@ describe("RemoveDeliverableDialog", () => {
     const { onClose, onDeleted } = setup(["deliverable-1", "deliverable-2"]);
 
     expect(mockUseMutation).toHaveBeenCalledWith(DELETE_DELIVERABLE_MUTATION, {
-      refetchQueries: [],
+      refetchQueries: "active",
       awaitRefetchQueries: true,
     });
 
