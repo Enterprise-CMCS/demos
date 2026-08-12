@@ -116,6 +116,8 @@ export const EditDemonstrationTypeDialog = ({
     try {
       await editDemonstrationType({
         variables: { input: editDemonstrationTypeInput },
+        refetchQueries: ["DemonstrationDetailQuery"],
+        awaitRefetchQueries: true,
       });
       showSuccess("Demonstration type edited successfully.");
     } catch (error) {

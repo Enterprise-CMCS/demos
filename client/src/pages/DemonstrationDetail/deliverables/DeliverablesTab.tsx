@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 export const ADD_DELIVERABLE_SLOT_BUTTON_NAME = "button-add-deliverable-slot";
 
 export const DEMONSTRATION_DELIVERABLE_TAB = gql`
-  query GetDeliverablesPage($id: ID!) {
+  query GetDemonstrationDeliverables($id: ID!) {
     demonstration(id: $id) {
       deliverables {
         id

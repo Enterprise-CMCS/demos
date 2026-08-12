@@ -57,6 +57,8 @@ export const RemoveDemonstrationTypesDialog = ({
     try {
       await removeDemonstrationTypes({
         variables: { input: setDemonstrationTypeInput },
+        refetchQueries: ["DemonstrationDetailQuery"],
+        awaitRefetchQueries: true,
       });
       showSuccess("Demonstration type(s) removed successfully.");
     } catch (error) {
