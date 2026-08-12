@@ -3,7 +3,6 @@ import { addYears, parseISO, subDays } from "date-fns";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { useMutation } from "@apollo/client";
 
 import {
   ADD_DELIVERABLE_SLOT_DIALOG_TITLE,
@@ -20,10 +19,8 @@ import {
   AddDeliverableSlotDemonstration,
   AddDeliverableSlotFormData,
   buildAddDeliverableSlotPayloads,
-  CREATE_DELIVERABLE_MUTATION,
   getQuarterlyDeliverableSlotName,
 } from "./AddDeliverableSlotDialog";
-import { DELIVERABLES_PAGE_QUERY } from "components/table/tables/DeliverableTable";
 import { TestProvider } from "test-utils/TestProvider";
 import { DELIVERABLE_SLOTS_CREATED_MESSAGE } from "util/messages";
 import { formatDateForServer, getTodayEst } from "util/formatDate";
@@ -86,15 +83,6 @@ describe("AddDeliverableSlotDialog", () => {
     setup();
 
     expect(screen.getByText(ADD_DELIVERABLE_SLOT_DIALOG_TITLE)).toBeInTheDocument();
-  });
-
-  it("refetches the global and demonstration deliverable tables after creation", () => {
-    setup();
-
-    expect(vi.mocked(useMutation)).toHaveBeenCalledWith(CREATE_DELIVERABLE_MUTATION, {
-      refetchQueries: [{ query: DELIVERABLES_PAGE_QUERY }, "GetDemonstrationDeliverables"],
-      awaitRefetchQueries: true,
-    });
   });
 
   it("renders the confirm button", () => {

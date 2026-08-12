@@ -33,7 +33,7 @@ export const CREATE_DELIVERABLE_MUTATION = gql`
 
 export const useCreateDeliverable = () => {
   const [createDeliverable, { loading }] = useMutation(CREATE_DELIVERABLE_MUTATION, {
-    refetchQueries: [{ query: DELIVERABLES_PAGE_QUERY }, "GetDemonstrationDeliverables"],
+    refetchQueries: [{ query: DELIVERABLES_PAGE_QUERY }],
     awaitRefetchQueries: true,
   });
 
