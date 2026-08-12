@@ -15,6 +15,7 @@ import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import { getDeliverableFilterOptions } from "./deliverablesFilterOptions";
 import { DeliverableActionButtons } from "./DeliverableActionButtons";
 import { DeliverableColumns } from "../columns/DeliverableColumns";
+import { DEMONSTRATION_DELIVERABLE_TAB } from "pages/DemonstrationDetail/deliverables/DeliverablesTab";
 
 const DEFAULT_EMPTY_ROWS_MESSAGE = "You have no assigned Deliverables at this time";
 const DEFAULT_NO_SEARCH_RESULTS_MESSAGE = "No deliverables match your search";
@@ -43,7 +44,7 @@ export const DemonstrationDeliverableTable: React.FC<{
     TableProps<FormattedDeliverableTableRow>["actionButtons"]
   >;
   const renderActionButtons: DemonstrationDeliverableActionButtons = (table) => (
-    <DeliverableActionButtons table={table} />
+    <DeliverableActionButtons table={table} refetchQueries={[DEMONSTRATION_DELIVERABLE_TAB]} />
   );
   const actionButtons = viewMode === "demos-state-user" ? undefined : renderActionButtons;
 

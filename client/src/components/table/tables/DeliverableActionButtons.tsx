@@ -9,6 +9,7 @@ import { EditIcon } from "components/icons/Navigation/EditIcon";
 
 import { selectionTooltip } from "./actionTooltips";
 import type { FormattedDeliverableTableRow } from "./DeliverableTable";
+import { DocumentNode } from "@apollo/client";
 
 export const DELIVERABLE_CANT_DELETE_HAS_FILES =
   "Only Upcoming/Past Due \ndeliverables w/o comments \nor files can be deleted.";
@@ -43,7 +44,8 @@ const getDeleteTooltip = (selectedCount: number, selectedHasFilesOrComments: boo
  */
 export const DeliverableActionButtons: React.FC<{
   table: TanstackTable<FormattedDeliverableTableRow>;
-}> = ({ table }) => {
+  refetchQueries: DocumentNode[];
+}> = ({ table, refetchQueries }) => {
   const { showEditDeliverableDialog, showRemoveDeliverableDialog } = useDialog();
   const selectedRows = table.getSelectedRowModel().rows;
   const selectedCount = selectedRows.length;
@@ -92,6 +94,7 @@ export const DeliverableActionButtons: React.FC<{
         onClick={() => {
           showRemoveDeliverableDialog(
             selectedDeliverables.map((deliverable) => deliverable.id),
+            refetchQueries,
             () => table.resetRowSelection()
           );
         }}

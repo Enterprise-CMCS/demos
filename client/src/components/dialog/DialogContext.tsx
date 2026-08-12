@@ -293,11 +293,16 @@ export const useDialog = () => {
     );
   };
 
-  const showRemoveDeliverableDialog = (deliverableIds: string[], onDeleted?: () => void) => {
+  const showRemoveDeliverableDialog = (
+    deliverableIds: string[],
+    refetchQueries: DocumentNode[],
+    onDeleted?: () => void
+  ) => {
     context.showDialog(
       <RemoveDeliverableDialog
         deliverableIds={deliverableIds}
         onClose={context.hideDialog}
+        refetchQueries={refetchQueries}
         onDeleted={onDeleted}
       />
     );
