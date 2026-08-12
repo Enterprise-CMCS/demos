@@ -16,6 +16,7 @@ export const ADD_DELIVERABLE_SLOT_BUTTON_NAME = "button-add-deliverable-slot";
 export const DEMONSTRATION_DELIVERABLE_TAB = gql`
   query GetDemonstrationDeliverables($id: ID!) {
     demonstration(id: $id) {
+      id
       deliverables {
         id
         deliverableType
