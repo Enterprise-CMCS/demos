@@ -16,7 +16,9 @@ export const checkPersonCanBePrimary = async (
 
   if (
     input.isPrimary &&
-    !PRIMARY_DEMONSTRATION_ROLE_ASSIGNMENT_PERSON_TYPES.includes(person.personTypeId)
+    !(PRIMARY_DEMONSTRATION_ROLE_ASSIGNMENT_PERSON_TYPES as readonly string[]).includes(
+      person.personTypeId
+    )
   ) {
     return `A user of type ${person.personTypeId} is not permitted to be assigned as the primary role for a demonstration.`;
   }
