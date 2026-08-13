@@ -1,7 +1,36 @@
-WITH base_list AS (
+WITH ref_files AS (
     SELECT
-        final_docs.id AS final_document_id,
-        final_docs.s3_path AS final_document_s3_path,
+        final_refs.id AS final_file_id,
+        final_refs.s3_path AS final_file_s3_path,
+        final_refs._internal_pmda_s3_file_id,
+        s3_files.s3_prefix_and_file_name AS legacy_pmda_s3_path
+    FROM
+        {{ ref('final_demos_app_reference') }} AS final_refs
+    LEFT JOIN
+        {{ ref('docs_pmda_s3_file_list') }} AS s3_files
+        ON
+            final_refs._internal_pmda_s3_file_id = s3_files.pmda_s3_file_id
+),
+
+ref_agreement_files AS (
+    SELECT
+        final_ref_agreements.id AS final_file_id,
+        final_ref_agreements.s3_path AS final_file_s3_path,
+        final_ref_agreements._internal_pmda_s3_file_id,
+        s3_files.s3_prefix_and_file_name AS legacy_pmda_s3_path
+    FROM
+        {{ ref('final_demos_app_reference_agreement') }} AS final_ref_agreements
+    LEFT JOIN
+        {{ ref('docs_pmda_s3_file_list') }} AS s3_files
+        ON
+            final_ref_agreements._internal_pmda_s3_file_id = s3_files.pmda_s3_file_id
+
+),
+
+doc_files AS (
+    SELECT
+        final_docs.id AS final_file_id,
+        final_docs.s3_path AS final_file_s3_path,
         final_docs._internal_pmda_s3_file_id,
         s3_files.s3_prefix_and_file_name AS legacy_pmda_s3_path
     FROM
@@ -12,10 +41,18 @@ WITH base_list AS (
             final_docs._internal_pmda_s3_file_id = s3_files.pmda_s3_file_id
 ),
 
+full_list AS (
+    SELECT * FROM ref_files
+    UNION ALL
+    SELECT * FROM ref_agreement_files
+    UNION ALL
+    SELECT * FROM doc_files
+),
+
 file_extensions AS (
     SELECT
-        final_document_id,
-        final_document_s3_path,
+        final_file_id,
+        final_file_s3_path,
         _internal_pmda_s3_file_id,
         legacy_pmda_s3_path,
         CASE
@@ -25,12 +62,12 @@ file_extensions AS (
             ELSE lower(split_part(legacy_pmda_s3_path, '.', -1))
         END AS legacy_pmda_file_extension
     FROM
-        base_list
+        full_list
 )
 
 SELECT
-    final_document_id,
-    final_document_s3_path,
+    final_file_id,
+    final_file_s3_path,
     _internal_pmda_s3_file_id,
     legacy_pmda_s3_path,
     legacy_pmda_file_extension,

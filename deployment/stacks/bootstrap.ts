@@ -148,7 +148,44 @@ export class BootstrapStack extends Stack {
             "arn:aws:s3:::demos-impl-file-upload-*/*"
           ],
         }))
+
+      policyStatements.push(new aws_iam.PolicyStatement({
+        actions: ["bedrock:InvokeModel"],
+        resources: ["*"]
+      }))
+    } else {
+      policyStatements.push(new aws_iam.PolicyStatement({
+          actions: ["s3:GetObject", "s3:ListBucket", "s3:ListBucketVersions", "s3:HeadObject"],
+          resources: [
+            "arn:aws:s3:::demos-prod-file-upload-*",
+            "arn:aws:s3:::demos-prod-file-upload-*/*",
+            "arn:aws:s3:::demos-prod-pmda-efs-transfer",
+            "arn:aws:s3:::demos-prod-pmda-efs-transfer/*",
+          ],
+        }))
+      policyStatements.push(new aws_iam.PolicyStatement({
+          actions: ["s3:PutObject", "s3:PutObjectTagging"],
+          resources: [
+            "arn:aws:s3:::demos-prod-file-upload-*",
+            "arn:aws:s3:::demos-prod-file-upload-*/*"
+          ],
+        }))
     }
+
+    const targetEnv = props.bootstrapProd ? "prod" : "impl"
+    policyStatements.push(new aws_iam.PolicyStatement({
+      actions: ["s3:ListBucket","s3:ListBucketVersions"],
+      resources: [`arn:aws:s3:::demos-${targetEnv}-pmda-efs-transfer`, `arn:aws:s3:::demos-${targetEnv}-pmda-efs-transfer/*`]
+    }))
+    policyStatements.push(new aws_iam.PolicyStatement({
+      actions: ["s3:PutObject"],
+      resources: [`arn:aws:s3:::demos-${targetEnv}-pmda-efs-transfer/s3_file_list.csv`]
+    }))
+
+    policyStatements.push(new aws_iam.PolicyStatement({
+      actions: ["budgets:ViewBudget"],
+      resources: ["*"]
+    }))
 
     const policy = new aws_iam.Policy(commonProps.scope, "actionsPolicy", {
       statements: policyStatements,
