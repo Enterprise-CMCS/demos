@@ -33,13 +33,6 @@ vi.mock("./queries/selectDemonstrationRoleAssignmentOrThrow", () => ({
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(() => ({
     $transaction: vi.fn((callback) => callback(mockPrismaTransaction)),
-    demonstrationRoleAssignment: {
-      upsert: vi.fn(),
-    },
-    primaryDemonstrationRoleAssignment: {
-      upsert: vi.fn(),
-      deleteMany: vi.fn(),
-    },
   })),
 }));
 
@@ -106,8 +99,8 @@ describe("demonstrationRoleAssignmentResolvers", () => {
 
       await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRoles(null, { input });
 
-      expect(validateSetDemonstrationRoleInput).toHaveBeenNthCalledWith(1, input[0]);
-      expect(validateSetDemonstrationRoleInput).toHaveBeenNthCalledWith(2, input[1]);
+      expect(validateSetDemonstrationRoleInput).toHaveBeenNthCalledWith(1, input[0], expect.any(Object));
+      expect(validateSetDemonstrationRoleInput).toHaveBeenNthCalledWith(2, input[1], expect.any(Object));
     });
   });
 
@@ -122,7 +115,7 @@ describe("demonstrationRoleAssignmentResolvers", () => {
 
       await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRole(null, { input });
 
-      expect(validateSetDemonstrationRoleInput).toHaveBeenCalledWith(input);
+      expect(validateSetDemonstrationRoleInput).toHaveBeenCalledWith(input, expect.any(Object));
     });
   });
 

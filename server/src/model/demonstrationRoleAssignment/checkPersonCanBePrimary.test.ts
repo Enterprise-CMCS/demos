@@ -3,20 +3,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { checkPersonCanBePrimary } from "./checkPersonCanBePrimary";
 import { SetDemonstrationRoleInput } from "./demonstrationRoleAssignmentSchema";
 import { Role, PersonType } from "../../types";
-import { prisma } from "../../prismaClient";
 import type { Person as PrismaPerson } from "@prisma/client";
 
-vi.mock("../../prismaClient", () => ({
-  prisma: vi.fn(),
-}));
+const mockTransaction = {
+  person: {
+    findUnique: vi.fn(),
+  },
+} as any;
 
 describe("checkPersonCanBePrimary", () => {
-  const mockPrisma = {
-    person: {
-      findUnique: vi.fn(),
-    },
-  };
-
   const testInput: SetDemonstrationRoleInput = {
     demonstrationId: "test-demo-id",
     personId: "test-person-id",
@@ -31,7 +26,6 @@ describe("checkPersonCanBePrimary", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.mocked(prisma).mockReturnValue(mockPrisma as any);
   });
 
   it("should return undefined when isPrimary is false", async () => {
@@ -40,9 +34,9 @@ describe("checkPersonCanBePrimary", () => {
       isPrimary: false,
     };
 
-    mockPrisma.person.findUnique.mockResolvedValue(mockPerson as PrismaPerson);
+    mockTransaction.person.findUnique.mockResolvedValue(mockPerson as PrismaPerson);
 
-    const result = await checkPersonCanBePrimary(input);
+    const result = await checkPersonCanBePrimary(input, mockTransaction);
     expect(result).toBeUndefined();
   });
 
@@ -52,29 +46,29 @@ describe("checkPersonCanBePrimary", () => {
       personTypeId: "demos-cms-user" satisfies PersonType,
     };
 
-    mockPrisma.person.findUnique.mockResolvedValue(personWithCmsType as PrismaPerson);
+    mockTransaction.person.findUnique.mockResolvedValue(personWithCmsType as PrismaPerson);
 
-    const result = await checkPersonCanBePrimary(testInput);
+    const result = await checkPersonCanBePrimary(testInput, mockTransaction);
     expect(result).toBeUndefined();
   });
 
   it("should return error message when isPrimary is true and person type is not allowed", async () => {
-    const personWithExternalType: Partial<PrismaPerson> = {
+    const personWithRestrictedType: Partial<PrismaPerson> = {
       ...mockPerson,
       personTypeId: "demos-restricted-cms-user" satisfies PersonType,
     };
 
-    mockPrisma.person.findUnique.mockResolvedValue(personWithExternalType as PrismaPerson);
+    mockTransaction.person.findUnique.mockResolvedValue(personWithRestrictedType as PrismaPerson);
 
-    const result = await checkPersonCanBePrimary(testInput);
+    const result = await checkPersonCanBePrimary(testInput, mockTransaction);
     expect(result).toBeDefined();
     expect(result).toContain("not permitted to be assigned as the primary role");
   });
 
   it("should throw an error when person is not found", async () => {
-    mockPrisma.person.findUnique.mockResolvedValue(null);
+    mockTransaction.person.findUnique.mockResolvedValue(null);
 
-    await expect(checkPersonCanBePrimary(testInput)).rejects.toThrow(
+    await expect(checkPersonCanBePrimary(testInput, mockTransaction)).rejects.toThrow(
       `Person with ID ${testInput.personId} not found.`
     );
   });

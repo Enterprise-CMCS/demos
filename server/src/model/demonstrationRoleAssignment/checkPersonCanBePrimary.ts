@@ -1,11 +1,12 @@
 import { PRIMARY_DEMONSTRATION_ROLE_ASSIGNMENT_PERSON_TYPES } from "../../constants";
-import { prisma } from "../../prismaClient";
+import { PrismaTransactionClient } from "../../prismaClient";
 import { SetDemonstrationRoleInput } from "./demonstrationRoleAssignmentSchema";
 
 export const checkPersonCanBePrimary = async (
-  input: SetDemonstrationRoleInput
+  input: SetDemonstrationRoleInput,
+  tx: PrismaTransactionClient
 ): Promise<string | undefined> => {
-  const person = await prisma().person.findUnique({
+  const person = await tx.person.findUnique({
     where: { id: input.personId },
   });
 
@@ -17,6 +18,6 @@ export const checkPersonCanBePrimary = async (
     input.isPrimary &&
     !PRIMARY_DEMONSTRATION_ROLE_ASSIGNMENT_PERSON_TYPES.includes(person.personTypeId)
   ) {
-    return `A user of type ${person} is not permitted to be assigned as the primary role for a demonstration.`;
+    return `A user of type ${person.personTypeId} is not permitted to be assigned as the primary role for a demonstration.`;
   }
 };

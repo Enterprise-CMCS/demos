@@ -12,6 +12,12 @@ vi.mock("./checkPersonCanBePrimary", () => ({
 
 import { checkPersonCanBePrimary } from "./checkPersonCanBePrimary";
 
+const mockTransaction = {
+  person: {
+    findUnique: vi.fn(),
+  },
+} as any;
+
 describe("validateSetDemonstrationRoleInput", () => {
   const testInput: SetDemonstrationRoleInput = {
     demonstrationId: "test-demo-id",
@@ -27,14 +33,14 @@ describe("validateSetDemonstrationRoleInput", () => {
   it("should not throw when checkPersonCanBePrimary returns undefined", async () => {
     vi.mocked(checkPersonCanBePrimary).mockResolvedValue(undefined);
 
-    await expect(validateSetDemonstrationRoleInput(testInput)).resolves.toBeUndefined();
+    await expect(validateSetDemonstrationRoleInput(testInput, mockTransaction)).resolves.toBeUndefined();
   });
 
-  it("should call checkPersonCanBePrimary with the input", async () => {
+  it("should call checkPersonCanBePrimary with the input and transaction", async () => {
     vi.mocked(checkPersonCanBePrimary).mockResolvedValue(undefined);
 
-    await validateSetDemonstrationRoleInput(testInput);
-    expect(checkPersonCanBePrimary).toHaveBeenCalledExactlyOnceWith(testInput);
+    await validateSetDemonstrationRoleInput(testInput, mockTransaction);
+    expect(checkPersonCanBePrimary).toHaveBeenCalledExactlyOnceWith(testInput, mockTransaction);
   });
 
   it("should throw GraphQLError when checkPersonCanBePrimary returns an error message", async () => {
@@ -43,7 +49,7 @@ describe("validateSetDemonstrationRoleInput", () => {
     vi.mocked(checkPersonCanBePrimary).mockResolvedValue(errorMessage);
 
     try {
-      await validateSetDemonstrationRoleInput(testInput);
+      await validateSetDemonstrationRoleInput(testInput, mockTransaction);
       throw new Error("Expected validateSetDemonstrationRoleInput to throw, but it did not.");
     } catch (e) {
       expect(e).toBeInstanceOf(GraphQLError);

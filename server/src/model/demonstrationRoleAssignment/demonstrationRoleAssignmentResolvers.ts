@@ -57,12 +57,12 @@ export async function setDemonstrationRole(
   parent: unknown,
   { input }: { input: SetDemonstrationRoleInput }
 ): Promise<PrismaDemonstrationRoleAssignment> {
-  await validateSetDemonstrationRoleInput(input);
   return prisma().$transaction(async (tx) => {
+    await validateSetDemonstrationRoleInput(input, tx);
     const person = await selectPersonOrThrow({ id: input.personId }, tx);
     const demonstration = await selectDemonstrationOrThrow({ id: input.demonstrationId }, tx);
 
-    await prisma().demonstrationRoleAssignment.upsert({
+    await tx.demonstrationRoleAssignment.upsert({
       where: {
         personId_demonstrationId_roleId: {
           personId: person.id,
@@ -82,7 +82,7 @@ export async function setDemonstrationRole(
     });
 
     if (input.isPrimary === true) {
-      await prisma().primaryDemonstrationRoleAssignment.upsert({
+      await tx.primaryDemonstrationRoleAssignment.upsert({
         where: {
           demonstrationId_roleId: {
             demonstrationId: demonstration.id,
@@ -100,7 +100,7 @@ export async function setDemonstrationRole(
         },
       });
     } else if (input.isPrimary === false) {
-      await prisma().primaryDemonstrationRoleAssignment.deleteMany({
+      await tx.primaryDemonstrationRoleAssignment.deleteMany({
         where: {
           demonstrationId: demonstration.id,
           roleId: input.roleId,
@@ -124,7 +124,7 @@ export async function setDemonstrationRoles(
     const results = [];
 
     for (const roleInput of input) {
-      await validateSetDemonstrationRoleInput(roleInput);
+      await validateSetDemonstrationRoleInput(roleInput, tx);
 
       const person = await selectPersonOrThrow({ id: roleInput.personId }, tx);
       const demonstration = await selectDemonstrationOrThrow({ id: roleInput.demonstrationId }, tx);
@@ -179,11 +179,14 @@ export async function setDemonstrationRoles(
       }
 
       // Fetch the created/updated role assignment
-      const result = await selectDemonstrationRoleAssignmentOrThrow({
-        personId: roleInput.personId,
-        demonstrationId: roleInput.demonstrationId,
-        roleId: roleInput.roleId,
-      });
+      const result = await selectDemonstrationRoleAssignmentOrThrow(
+        {
+          personId: roleInput.personId,
+          demonstrationId: roleInput.demonstrationId,
+          roleId: roleInput.roleId,
+        },
+        tx
+      );
 
       if (result) {
         results.push(result);
