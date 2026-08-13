@@ -178,8 +178,8 @@ def main() -> None:
     migration_result = []
     for i, file_record in enumerate(unmigrated_files):
         migration_result.append(migrate_file(db_connection, s3_client, file_record))
-        if (i % 100) == 0 and i != 0:
-            logger.info(f"Migrated {i - 1}th file")
+        if ((i + 1) % 100) == 0:
+            logger.info(f"Migrated {i + 1} files")
     successful_files = [
         file_record
         for file_record in migration_result

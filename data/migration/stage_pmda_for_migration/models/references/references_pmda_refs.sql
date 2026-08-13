@@ -20,7 +20,6 @@ WITH references_from_seed AS (
                     'reference/mrt_templates_reference_only/Base/1.00/',
                     'reference/mrt_technical_specification_reference_only/Base/',
                     'reference/mrt_technical_specification_reference_only/Base/1.00/',
-                    'reference/mrt_templates_reference_only/Demo/1.00/',
                     'reference/mrt_templates_reference_only/Demo/1.00/'
                 ) THEN 1
             ELSE 0
