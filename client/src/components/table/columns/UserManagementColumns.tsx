@@ -9,6 +9,7 @@ const IDM_USER_ROLE_LABELS: Record<UserType, string> = {
   "demos-admin": "Admin User",
   "demos-cms-user": "CMS User",
   "demos-state-user": "State User",
+  "demos-restricted-cms-user": "Restricted CMS User",
 };
 
 // Narrowed to UserType: user_person_type_limit rules out non-user-contact.
