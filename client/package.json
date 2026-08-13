@@ -61,7 +61,7 @@
     "dev:mocks:state": "VITE_MOCK_PERSON_TYPE=demos-state-user npm run dev:mocks",
     "dev:mocks:cms": "VITE_MOCK_PERSON_TYPE=demos-cms-user npm run dev:mocks",
     "dev:mocks:admin": "VITE_MOCK_PERSON_TYPE=demos-admin npm run dev:mocks",
-    "dev:mocks:readonly": "VITE_MOCK_PERSON_TYPE=demos-readonly npm run dev:mocks",
+    "dev:mocks:readonly": "VITE_MOCK_PERSON_TYPE=demos-restricted-cms-user npm run dev:mocks",
     "dev:mocks:unauth": "VITE_MOCK_PERSON_TYPE=unauth npm run dev:mocks",
     "format": "prettier --write src",
     "format:check": "prettier --check src",
