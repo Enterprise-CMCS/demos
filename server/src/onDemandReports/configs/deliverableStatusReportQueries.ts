@@ -184,7 +184,7 @@ aggregate_private_comments AS (
 )
 
 SELECT
-    demo.state_id AS state,
+    demo_state.name AS state,
     demo.name AS demonstration_title,
     demo.medicaid_id AS demonstration_number,
     to_char(demo.effective_date AT TIME ZONE 'America/New_York', 'MM/DD/YYYY') AS effective_date,
@@ -228,6 +228,12 @@ INNER JOIN
     demos_app.demonstration AS demo
     ON
         deliv.demonstration_id = demo.id
+
+-- Every demonstration has a state
+INNER JOIN
+    demos_app.state AS demo_state
+    ON
+        demo.state_id = demo_state.id
 
 -- Primary Project Officer is guaranteed to exist
 INNER JOIN
