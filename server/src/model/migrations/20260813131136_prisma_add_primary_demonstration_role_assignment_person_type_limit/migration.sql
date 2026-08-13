@@ -6,10 +6,6 @@ ALTER TABLE "primary_demonstration_role_assignment" DROP CONSTRAINT "primary_dem
 DROP INDEX "primary_demonstration_role_assignment_person_id_demonstrati_key";
 
 -- AlterTable
-ALTER TABLE "demonstration_role_assignment" DROP CONSTRAINT "demonstration_role_assignment_pkey",
-ADD CONSTRAINT "demonstration_role_assignment_pkey" PRIMARY KEY ("person_id", "demonstration_id", "role_id", "person_type_id");
-
--- AlterTable
 ALTER TABLE "primary_demonstration_role_assignment" ADD COLUMN     "person_type_id" TEXT;
 
 UPDATE "primary_demonstration_role_assignment" 
@@ -38,6 +34,9 @@ INSERT INTO "primary_demonstration_role_assignment_person_type_limit" ("id") VAL
   ('demos-cms-user'),
   ('demos-state-user')
 ;
+
+-- CreateIndex
+CREATE UNIQUE INDEX "demonstration_role_assignment_person_id_demonstration_id_ro_key" ON "demonstration_role_assignment"("person_id", "demonstration_id", "role_id", "person_type_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "primary_demonstration_role_assignment_person_id_demonstrati_key" ON "primary_demonstration_role_assignment"("person_id", "demonstration_id", "role_id", "person_type_id");
