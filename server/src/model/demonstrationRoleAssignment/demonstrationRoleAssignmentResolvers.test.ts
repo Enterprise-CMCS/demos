@@ -99,8 +99,16 @@ describe("demonstrationRoleAssignmentResolvers", () => {
 
       await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRoles(null, { input });
 
-      expect(validateSetDemonstrationRoleInput).toHaveBeenNthCalledWith(1, input[0], expect.any(Object));
-      expect(validateSetDemonstrationRoleInput).toHaveBeenNthCalledWith(2, input[1], expect.any(Object));
+      expect(validateSetDemonstrationRoleInput).toHaveBeenNthCalledWith(
+        1,
+        input[0],
+        mockPrismaTransaction
+      );
+      expect(validateSetDemonstrationRoleInput).toHaveBeenNthCalledWith(
+        2,
+        input[1],
+        mockPrismaTransaction
+      );
     });
   });
 

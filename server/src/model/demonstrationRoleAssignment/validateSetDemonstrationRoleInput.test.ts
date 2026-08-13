@@ -33,7 +33,9 @@ describe("validateSetDemonstrationRoleInput", () => {
   it("should not throw when checkPersonCanBePrimary returns undefined", async () => {
     vi.mocked(checkPersonCanBePrimary).mockResolvedValue(undefined);
 
-    await expect(validateSetDemonstrationRoleInput(testInput, mockTransaction)).resolves.toBeUndefined();
+    await expect(
+      validateSetDemonstrationRoleInput(testInput, mockTransaction)
+    ).resolves.toBeUndefined();
   });
 
   it("should call checkPersonCanBePrimary with the input and transaction", async () => {
@@ -44,8 +46,7 @@ describe("validateSetDemonstrationRoleInput", () => {
   });
 
   it("should throw GraphQLError when checkPersonCanBePrimary returns an error message", async () => {
-    const errorMessage =
-      "this error forbids you from doing that!";
+    const errorMessage = "this error forbids you from doing that!";
     vi.mocked(checkPersonCanBePrimary).mockResolvedValue(errorMessage);
 
     try {
