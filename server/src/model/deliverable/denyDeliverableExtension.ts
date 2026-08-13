@@ -12,18 +12,20 @@ import {
   selectDeliverableExtension,
   updateDeliverableExtension,
 } from "../deliverableExtension/queries";
+import { dispatchExtensionDecisionMadeEmail } from "../email";
 
 export async function denyDeliverableExtension(
   deliverableId: string,
   input: DenyDeliverableExtensionInput,
-  context: GraphQLContext
+  context: GraphQLContext,
+  options: { sendEmailNotifications?: boolean } = {}
 ): Promise<PrismaDeliverable> {
   validateUserPersonTypeAllowed(context, "denyDeliverableExtension", [
     "demos-admin",
     "demos-cms-user",
   ]);
 
-  return await prisma().$transaction(async (tx) => {
+  const { deliverable, sourceActionId } = await prisma().$transaction(async (tx) => {
     const deliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
     const deliverableExtension = await selectDeliverableExtension(
       { id: input.deliverableExtensionId },
@@ -36,7 +38,7 @@ export async function denyDeliverableExtension(
     // All casts below enforced by database
     // Make changes in order: insert action, close extension
     // This ensures that action record has the extension ID attached by triggers
-    await insertDeliverableAction(
+    const action = await insertDeliverableAction(
       {
         deliverableId: deliverableId,
         actionType: "Denied Extension Request",
@@ -56,6 +58,18 @@ export async function denyDeliverableExtension(
       },
       tx
     );
-    return deliverable;
+    return { deliverable, sourceActionId: action.id };
   });
+
+  if (options.sendEmailNotifications !== false) {
+    await dispatchExtensionDecisionMadeEmail({
+      deliverableId,
+      extensionDecision: "Denied",
+      previousDueDate: deliverable.dueDate,
+      sourceActionId,
+      triggeredByUserId: context.user.id,
+    });
+  }
+
+  return deliverable;
 }

@@ -4,6 +4,7 @@ export {
   dispatchDeliverableCompletedEmail,
   dispatchDeliverableDueDateUpdatedEmail,
   dispatchExtensionRequestedEmail,
+  dispatchExtensionDecisionMadeEmail,
   dispatchPublicCommentAddedEmail,
   dispatchResubmissionRequestedEmail,
   dispatchDeliverableSubmittedEmail,

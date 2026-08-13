@@ -15,11 +15,13 @@ import {
   updateDeliverableExtension,
 } from "../deliverableExtension/queries";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
+import { dispatchExtensionDecisionMadeEmail } from "../email";
 
 export async function approveDeliverableExtension(
   deliverableId: string,
   input: ApproveDeliverableExtensionInput,
-  context: GraphQLContext
+  context: GraphQLContext,
+  options: { sendEmailNotifications?: boolean } = {}
 ): Promise<PrismaDeliverable> {
   validateUserPersonTypeAllowed(context, "approveDeliverableExtension", [
     "demos-admin",
@@ -27,7 +29,7 @@ export async function approveDeliverableExtension(
   ]);
   checkOptionalNotNullFields(["newDueDate"], input);
 
-  return await prisma().$transaction(async (tx) => {
+  const { approvedDeliverable, sourceActionId, previousDueDate } = await prisma().$transaction(async (tx) => {
     // Note that parsing is inside tx here because we need to get the extension first
     // This is passed to the parser to give back the final date to use
     const unapprovedDeliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
@@ -64,7 +66,7 @@ export async function approveDeliverableExtension(
       },
       tx
     );
-    await insertDeliverableAction(
+    const action = await insertDeliverableAction(
       {
         deliverableId: deliverableId,
         actionType: "Approved Extension Request",
@@ -84,6 +86,22 @@ export async function approveDeliverableExtension(
       },
       tx
     );
-    return approvedDeliverable;
+    return {
+      approvedDeliverable,
+      sourceActionId: action.id,
+      previousDueDate: unapprovedDeliverable.dueDate,
+    };
   });
+
+  if (options.sendEmailNotifications !== false) {
+    await dispatchExtensionDecisionMadeEmail({
+      deliverableId,
+      extensionDecision: "Approved",
+      previousDueDate,
+      sourceActionId,
+      triggeredByUserId: context.user.id,
+    });
+  }
+
+  return approvedDeliverable;
 }

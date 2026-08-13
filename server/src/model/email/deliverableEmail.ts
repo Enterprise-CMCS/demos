@@ -2,11 +2,12 @@ import { log } from "../../log";
 import { prisma } from "../../prismaClient";
 import { buildRealtimeEmailEnvelope } from "../../services/emailQueue";
 import {
+  ADMIN_DEMONSTRATION_ROLES,
   CMS_USER_DEMONSTRATION_ROLES,
   STATE_USER_DEMONSTRATION_ROLES,
 } from "../../constants";
 import { enqueueTrackedRealtimeEmail } from "./emailNotification";
-import { FinalDeliverableStatus, PersonType } from "../../types";
+import { FinalDeliverableStatus } from "../../types";
 
 type DeliverableEmailContextInput = {
   deliverableId: string;
@@ -30,12 +31,15 @@ type ExtensionRequestedEmailDispatchInput = DeliverableEmailDispatchInput & {
   requestedDueDate: Date;
 };
 
+type ExtensionDecisionMadeEmailDispatchInput = DeliverablePreviousDueDateEmailDispatchInput & {
+  extensionDecision: "Approved" | "Denied";
+};
+
 type DeliverableCompletedEmailDispatchInput = DeliverableEmailDispatchInput & {
   finalStatus: FinalDeliverableStatus;
 };
 
 type PublicCommentAddedEmailDispatchInput = DeliverableEmailContextInput & {
-  authorPersonTypeId: PersonType;
   publicCommentId: string;
 };
 
@@ -90,6 +94,16 @@ export async function dispatchExtensionRequestedEmail(
   input: ExtensionRequestedEmailDispatchInput
 ): Promise<void> {
   return dispatchDeliverableEmail(input, "Extension Requested", enqueueExtensionRequestedEmail);
+}
+
+export async function dispatchExtensionDecisionMadeEmail(
+  input: ExtensionDecisionMadeEmailDispatchInput
+): Promise<void> {
+  return dispatchDeliverableEmail(
+    input,
+    "Extension Decision Made",
+    enqueueExtensionDecisionMadeEmail
+  );
 }
 
 export async function dispatchPublicCommentAddedEmail(
@@ -177,7 +191,7 @@ async function enqueuePublicCommentAddedEmail(
         include: {
           demonstrationRoleAssignments: {
             where: {
-              roleId: { in: Array.from(STATE_USER_DEMONSTRATION_ROLES) },
+              roleId: { in: Array.from(ADMIN_DEMONSTRATION_ROLES) },
             },
             include: { person: true },
           },
@@ -186,25 +200,13 @@ async function enqueuePublicCommentAddedEmail(
     },
   });
 
-  let recipientPeople;
-  if (input.authorPersonTypeId === "demos-state-user") {
-    recipientPeople = [deliverable.cmsOwner.person];
-  } else if (
-    input.authorPersonTypeId === "demos-cms-user" ||
-    input.authorPersonTypeId === "demos-admin"
-  ) {
-    recipientPeople = deliverable.demonstration.demonstrationRoleAssignments.map(
-      (assignment) => assignment.person
-    );
-  } else {
-    throw new Error(
-      `Cannot dispatch Public Comment Added email for deliverable ${input.deliverableId}: ` +
-        `unsupported author person type ${input.authorPersonTypeId}.`
-    );
-  }
-
   const bcc = deduplicateRecipients(
-    recipientPeople,
+    [
+      deliverable.cmsOwner.person,
+      ...deliverable.demonstration.demonstrationRoleAssignments.map(
+        (assignment) => assignment.person
+      ),
+    ],
     input.deliverableId,
     "Public Comment Added"
   );
@@ -308,6 +310,77 @@ async function enqueueDeliverablePreviousDueDateEmail(
         deliverableTypeId: deliverable.deliverableTypeId,
         dueDate: deliverable.dueDate.toISOString(),
         previousDueDate: input.previousDueDate.toISOString(),
+        statusId: deliverable.statusId,
+      },
+    },
+  });
+
+  return enqueueTrackedRealtimeEmail(
+    message,
+    input.sourceActionId,
+    bcc.map(({ personId, address }) => ({
+      personId,
+      emailAddress: address,
+    }))
+  );
+}
+
+async function enqueueExtensionDecisionMadeEmail(
+  input: ExtensionDecisionMadeEmailDispatchInput
+): Promise<string> {
+  const deliverable = await prisma().deliverable.findUniqueOrThrow({
+    where: { id: input.deliverableId },
+    include: {
+      demonstration: {
+        include: {
+          demonstrationRoleAssignments: {
+            where: {
+              roleId: { in: Array.from(STATE_USER_DEMONSTRATION_ROLES) },
+            },
+            include: { person: true },
+          },
+        },
+      },
+    },
+  });
+
+  const bcc = deduplicateRecipients(
+    deliverable.demonstration.demonstrationRoleAssignments.map(
+      (assignment) => assignment.person
+    ),
+    input.deliverableId,
+    "Extension Decision Made"
+  );
+  if (bcc.length === 0) {
+    throw new Error(
+      `Cannot dispatch Extension Decision Made email for deliverable ${input.deliverableId}: ` +
+        "no State Points of Contact were found on the demonstration."
+    );
+  }
+
+  const message = buildRealtimeEmailEnvelope({
+    emailType: "Extension Decision Made",
+    entityType: "deliverable",
+    entityId: deliverable.id,
+    triggeredById: input.triggeredByUserId,
+    idempotencyKey: `Extension Decision Made:deliverable-action:${input.sourceActionId}`,
+    payload: {
+      recipients: {
+        to: [],
+        bcc: bcc.map(({ name, address }) => ({ name, address })),
+      },
+      demonstration: {
+        id: deliverable.demonstration.id,
+        name: deliverable.demonstration.name,
+        stateId: deliverable.demonstration.stateId,
+      },
+      deliverable: {
+        id: deliverable.id,
+        name: deliverable.name,
+        deliverableTypeId: deliverable.deliverableTypeId,
+        dueDate: deliverable.dueDate.toISOString(),
+        previousDueDate: input.previousDueDate.toISOString(),
+        extensionDecision: input.extensionDecision,
         statusId: deliverable.statusId,
       },
     },

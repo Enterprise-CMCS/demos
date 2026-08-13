@@ -9,6 +9,7 @@ import {
   dispatchMultipleDeliverablesCreatedEmail,
   dispatchDeliverableDueDateUpdatedEmail,
   dispatchDeliverableSubmittedEmail,
+  dispatchExtensionDecisionMadeEmail,
   dispatchExtensionRequestedEmail,
   dispatchPublicCommentAddedEmail,
   dispatchResubmissionRequestedEmail,
@@ -184,9 +185,8 @@ describe("deliverable email dispatch", () => {
     );
   });
 
-  it("BCCs the CMS owner for a state-authored public comment", async () => {
+  it("BCCs all demonstration contacts and the CMS owner for a public comment", async () => {
     await dispatchPublicCommentAddedEmail({
-      authorPersonTypeId: "demos-state-user",
       deliverableId: deliverable.id,
       publicCommentId: "public-comment-1",
       triggeredByUserId: "state-user-1",
@@ -199,7 +199,10 @@ describe("deliverable email dispatch", () => {
         payload: expect.objectContaining({
           recipients: {
             to: [],
-            bcc: [{ name: "CMS Owner", address: "cms.owner@example.com" }],
+            bcc: [
+              { name: "CMS Owner", address: "cms.owner@example.com" },
+              { name: "CMS Contact", address: "cms.contact@example.com" },
+            ],
           },
         }),
       })
@@ -207,11 +210,14 @@ describe("deliverable email dispatch", () => {
     expect(enqueueTrackedRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
       envelope,
       undefined,
-      [{ personId: "cms-owner-1", emailAddress: "cms.owner@example.com" }]
+      [
+        { personId: "cms-owner-1", emailAddress: "cms.owner@example.com" },
+        { personId: "cms-contact-1", emailAddress: "cms.contact@example.com" },
+      ]
     );
   });
 
-  it("BCCs all State POCs for a CMS-authored public comment", async () => {
+  it("includes the CMS owner when the demonstration contact list does not", async () => {
     findUniqueOrThrow.mockResolvedValueOnce({
       ...deliverable,
       demonstration: {
@@ -231,7 +237,6 @@ describe("deliverable email dispatch", () => {
     });
 
     await dispatchPublicCommentAddedEmail({
-      authorPersonTypeId: "demos-cms-user",
       deliverableId: deliverable.id,
       publicCommentId: "public-comment-1",
       triggeredByUserId: "cms-user-1",
@@ -243,7 +248,10 @@ describe("deliverable email dispatch", () => {
         payload: expect.objectContaining({
           recipients: {
             to: [],
-            bcc: [{ name: "State POC", address: "state.poc@example.com" }],
+            bcc: [
+              { name: "CMS Owner", address: "cms.owner@example.com" },
+              { name: "State POC", address: "state.poc@example.com" },
+            ],
           },
         }),
       })
@@ -499,6 +507,61 @@ describe("deliverable email dispatch", () => {
       [{ personId: "state-poc-1", emailAddress: "state.poc@example.com" }]
     );
   });
+
+  it.each(["Approved", "Denied"] as const)(
+    "BCCs all State POCs when an extension is %s",
+    async (extensionDecision) => {
+      const previousDueDate = new Date("2026-07-01T03:59:59.999Z");
+      findUniqueOrThrow.mockResolvedValueOnce({
+        ...deliverable,
+        demonstration: {
+          ...deliverable.demonstration,
+          demonstrationRoleAssignments: [
+            {
+              roleId: "State Point of Contact",
+              person: {
+                id: "state-poc-1",
+                firstName: "State",
+                lastName: "POC",
+                email: "state.poc@example.com",
+              },
+            },
+          ],
+        },
+      });
+
+      await dispatchExtensionDecisionMadeEmail({
+        deliverableId: deliverable.id,
+        extensionDecision,
+        previousDueDate,
+        sourceActionId,
+        triggeredByUserId: "user-1",
+      });
+
+      expect(buildRealtimeEmailEnvelope).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({
+          emailType: "Extension Decision Made",
+          idempotencyKey: `Extension Decision Made:deliverable-action:${sourceActionId}`,
+          payload: expect.objectContaining({
+            recipients: {
+              to: [],
+              bcc: [{ name: "State POC", address: "state.poc@example.com" }],
+            },
+            deliverable: expect.objectContaining({
+              dueDate: deliverable.dueDate.toISOString(),
+              previousDueDate: previousDueDate.toISOString(),
+              extensionDecision,
+            }),
+          }),
+        })
+      );
+      expect(enqueueTrackedRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
+        envelope,
+        sourceActionId,
+        [{ personId: "state-poc-1", emailAddress: "state.poc@example.com" }]
+      );
+    }
+  );
 
   it.each([
     ["Accepted", "Deliverable Accepted"],

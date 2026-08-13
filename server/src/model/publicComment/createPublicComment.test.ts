@@ -43,16 +43,25 @@ describe("createPublicComment", () => {
   };
 
   // Mock transaction
-  const mockTransaction: any = "Test!";
   const mockPrismaClient = {
     $transaction: vi.fn(),
+  };
+  const mockTransactionClient = {
+    deliverable: {
+      findUniqueOrThrow: vi.fn(),
+    },
   };
 
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(insertPublicComment).mockResolvedValue({ id: publicCommentId } as any);
-    mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
+    mockTransactionClient.deliverable.findUniqueOrThrow.mockResolvedValue({
+      statusId: "Approved",
+    });
+    mockPrismaClient.$transaction.mockImplementation((callback) =>
+      callback(mockTransactionClient)
+    );
   });
 
   it("should create a transaction whenever it is called", async () => {
@@ -65,7 +74,7 @@ describe("createPublicComment", () => {
     expect(validateUserPermittedToMakePublicComment).toHaveBeenCalledExactlyOnceWith(
       testDeliverableId,
       testContext,
-      mockTransaction
+      mockTransactionClient
     );
   });
 
@@ -77,7 +86,7 @@ describe("createPublicComment", () => {
         authorUserId: testContext.user!.id,
         content: testComment,
       },
-      mockTransaction
+      mockTransactionClient
     );
   });
 
@@ -85,10 +94,19 @@ describe("createPublicComment", () => {
     await createPublicComment(testDeliverableId, testComment, testContext as GraphQLContext);
 
     expect(dispatchPublicCommentAddedEmail).toHaveBeenCalledExactlyOnceWith({
-      authorPersonTypeId: testContext.user!.personTypeId,
       deliverableId: testDeliverableId,
       publicCommentId,
       triggeredByUserId: testContext.user!.id,
     });
+  });
+
+  it("does not queue an email for an incomplete deliverable", async () => {
+    mockTransactionClient.deliverable.findUniqueOrThrow.mockResolvedValue({
+      statusId: "Submitted",
+    });
+
+    await createPublicComment(testDeliverableId, testComment, testContext as GraphQLContext);
+
+    expect(dispatchPublicCommentAddedEmail).not.toHaveBeenCalled();
   });
 });
