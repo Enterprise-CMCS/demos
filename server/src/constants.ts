@@ -148,6 +148,12 @@ export const USER_TYPES = [
   "demos-restricted-cms-user",
 ] as const;
 
+export const PRIMARY_DEMONSTRATION_ROLE_ASSIGNMENT_PERSON_TYPES = [
+  "demos-admin",
+  "demos-cms-user",
+  "demos-state-user",
+];
+
 export const GRANT_LEVELS = ["System", "Demonstration"] as const;
 
 export const APPLICATION_TYPES = ["Demonstration", "Amendment", "Extension"] as const;

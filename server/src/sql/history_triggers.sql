@@ -1499,8 +1499,7 @@ BEGIN
             revision_type,
             person_id,
             demonstration_id,
-            role_id,
-            person_type_id
+            role_id
         )
         VALUES (
             CASE TG_OP
@@ -1509,8 +1508,7 @@ BEGIN
             END,
             NEW.person_id,
             NEW.demonstration_id,
-            NEW.role_id,
-            NEW.person_type_id
+            NEW.role_id
         );
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
@@ -1518,15 +1516,13 @@ BEGIN
             revision_type,
             person_id,
             demonstration_id,
-            role_id,
-            person_type_id
+            role_id
         )
         VALUES (
             'D'::demos_app.revision_type_enum,
             OLD.person_id,
             OLD.demonstration_id,
-            OLD.role_id,
-            OLD.person_type_id
+            OLD.role_id
         );
         RETURN OLD;
     END IF;

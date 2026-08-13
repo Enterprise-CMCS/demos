@@ -1,8 +1,10 @@
 SET search_path TO demos_app;
 
-INSERT INTO person_type values ('demos-restricted-cms-user');
+INSERT INTO person_type VALUES ('demos-restricted-cms-user');
 
-INSERT INTO role values ('Restricted CMS User', 'System');
+INSERT INTO user_person_type_limit VALUES ('demos-restricted-cms-user');
+
+INSERT INTO role VALUES ('Restricted CMS User', 'System');
 
 INSERT INTO role_person_type VALUES
     -- system roles
