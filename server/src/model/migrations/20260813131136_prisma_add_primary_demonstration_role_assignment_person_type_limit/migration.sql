@@ -29,10 +29,10 @@ CREATE TABLE "primary_demonstration_role_assignment_person_type_limit" (
     CONSTRAINT "primary_demonstration_role_assignment_person_type_limit_pkey" PRIMARY KEY ("id")
 );
 
-INSERT INTO "primary_demonstration_role_assignment_person_type_limit" ("id") VALUES 
-  ('demos-admin'),
-  ('demos-cms-user'),
-  ('demos-state-user')
+INSERT INTO primary_demonstration_role_assignment_person_type_limit VALUES 
+    ('demos-admin'),
+    ('demos-cms-user'),
+    ('demos-state-user')
 ;
 
 -- CreateIndex

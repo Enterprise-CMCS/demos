@@ -18,7 +18,7 @@ INSERT INTO role_person_type VALUES
 ;
 
 INSERT INTO role_permission VALUES
-	  -- field-based permissions
+	-- field-based permissions
     ('Restricted CMS User','System','Access CMS Field'),
     ('Restricted CMS User','System','Access CMS Query'),
 
