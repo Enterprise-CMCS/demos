@@ -81,7 +81,7 @@ type ApplicationDetailsReportColumn =
 
 const applicationDetailsReportSchema = z
   .object({
-    state: z.enum(STATES_AND_TERRITORIES.map((state) => state.id)),
+    state: z.enum(STATES_AND_TERRITORIES.map((state) => state.name)),
     application_type: z.enum(APPLICATION_TYPES),
     application_title: z.string(),
     demonstration_number: z.string(),

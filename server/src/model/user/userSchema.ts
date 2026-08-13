@@ -17,6 +17,7 @@ export const userSchema = gql`
   }
 
   type Query {
+    users: [User!]! @auth(requires: ["Access Admin Query"])
     currentUser: User!
   }
 `;

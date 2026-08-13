@@ -33,7 +33,7 @@ export type DeliverableTableRow = Omit<
 > & {
   name: string;
   demonstration: Pick<Deliverable["demonstration"], "id" | "name"> & {
-    state: Pick<State, "id">;
+    state: Pick<State, "id" | "name">;
     demonstrationTypes: {
       demonstrationTypeName: string;
       approvalStatus: "Approved" | "Unapproved";
@@ -88,6 +88,7 @@ export const DELIVERABLES_PAGE_QUERY = gql`
         name
         state {
           id
+          name
         }
         demonstrationTypes {
           demonstrationTypeName
@@ -150,6 +151,7 @@ export const STATE_USER_DELIVERABLES_PAGE_QUERY = gql`
                 name
                 state {
                   id
+                  name
                 }
                 demonstrationTypes {
                   demonstrationTypeName

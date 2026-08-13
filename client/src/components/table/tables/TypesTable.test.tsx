@@ -42,6 +42,16 @@ const MOCK_DEMONSTRATION = {
   demonstrationTypes: mockTypes,
 };
 
+const MOCK_DEMONSTRATION_WITH_DELIVERABLE = {
+  ...MOCK_DEMONSTRATION,
+  deliverables: [
+    {
+      id: "deliverable-1",
+      demonstrationTypes: [{ tagName: "Environmental" }],
+    },
+  ],
+};
+
 describe("TypesTable", () => {
   it("renders required columns", async () => {
     render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
@@ -168,6 +178,18 @@ describe("TypesTable", () => {
 
       const deleteButton = screen.getByTestId("delete-type");
       expect(deleteButton).not.toBeDisabled();
+    });
+
+    it("disables delete when a selected demonstration type is linked to a deliverable", async () => {
+      render(<TypesTable demonstration={MOCK_DEMONSTRATION_WITH_DELIVERABLE} />);
+
+      const user = userEvent.setup();
+
+      await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
+
+      const deleteButton = screen.getByTestId("delete-type");
+
+      expect(deleteButton).toBeDisabled();
     });
   });
 
