@@ -17,6 +17,7 @@ model DocumentHistory {
   deliverableSubmissionActionTypeId String?      @map("deliverable_submission_action_type_id")
   createdAt                         DateTime     @map("created_at") @db.Timestamptz
   updatedAt                         DateTime     @map("updated_at") @db.Timestamptz
+  isMigratedFromPmda                Boolean      @map("is_migrated_from_pmda")
 
   @@map("document_history")
 }

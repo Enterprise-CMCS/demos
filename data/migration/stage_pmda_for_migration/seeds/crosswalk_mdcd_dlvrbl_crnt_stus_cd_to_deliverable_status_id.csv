@@ -1,0 +1,18 @@
+mdcd_dlvrbl_crnt_stus_cd,deliverable_status_id
+0,NULL
+1,Upcoming
+2,Upcoming
+3,Submitted
+4,Upcoming
+5,Upcoming
+6,Accepted
+7,Under CMS Review
+8,Under CMS Review
+9,Under CMS Review
+10,Accepted
+11,Upcoming
+12,Received and Filed
+13,Approved
+14,Under CMS Review
+15,Upcoming
+16,NULL

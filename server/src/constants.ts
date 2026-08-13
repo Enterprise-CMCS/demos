@@ -24,6 +24,7 @@ export const DELIVERABLE_ACTION_TYPES = [
   "Approved Deliverable",
   "Received and Filed Deliverable",
   "Deleted Deliverable",
+  "Migrated Deliverable From PMDA",
 ] as const;
 
 export const DELIVERABLE_TYPES = [
@@ -137,6 +138,7 @@ export const PERSON_TYPES = [
   "demos-cms-user",
   "demos-state-user",
   "non-user-contact",
+
 ] as const;
 
 export const USER_TYPES = ["demos-admin", "demos-cms-user", "demos-state-user"] as const;

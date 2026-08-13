@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 /**
  * localStorage — persists across sessions, shared across tabs.
@@ -47,4 +47,43 @@ export function useSessionStorage(
   storageKey: string
 ): [value: string, setValue: (value: string) => void] {
   return useWebStorage(storageKey, "sessionStorage");
+}
+
+function tryStringifyJson<T>(value: T): string | undefined {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    console.warn("Failed to serialize value to JSON:", value);
+    return undefined;
+  }
+}
+
+function tryParseJson<T>(value: string): T | undefined {
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    console.warn("Failed to parse JSON string:", value);
+    return undefined;
+  }
+}
+
+export function useSessionStorageJson<T extends object>(
+  storageKey: string
+): [T | undefined, (value: T) => void] {
+  const [stringValue, setStringValue] = useWebStorage(storageKey, "sessionStorage");
+
+  const parsedValue = useMemo(
+    () => (stringValue ? tryParseJson<T>(stringValue) : undefined),
+    [stringValue]
+  );
+
+  const setValue = useCallback(
+    (next: T) => {
+      const serialized = tryStringifyJson(next);
+      if (serialized !== undefined) setStringValue(serialized);
+    },
+    [setStringValue]
+  );
+
+  return [parsedValue, setValue];
 }

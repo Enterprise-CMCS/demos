@@ -135,7 +135,8 @@ BEGIN
         INSERT INTO demos_app.application_history (
             revision_type,
             id,
-            application_type_id
+            application_type_id,
+            is_migrated_from_pmda
         )
         VALUES (
             CASE TG_OP
@@ -143,19 +144,22 @@ BEGIN
                 WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
             END,
             NEW.id,
-            NEW.application_type_id
+            NEW.application_type_id,
+            NEW.is_migrated_from_pmda
         );
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO demos_app.application_history (
             revision_type,
             id,
-            application_type_id
+            application_type_id,
+            is_migrated_from_pmda
         )
         VALUES (
             'D'::demos_app.revision_type_enum,
             OLD.id,
-            OLD.application_type_id
+            OLD.application_type_id,
+            OLD.is_migrated_from_pmda
         );
         RETURN OLD;
     END IF;
@@ -177,7 +181,8 @@ BEGIN
             date_type_id,
             date_value,
             created_at,
-            updated_at
+            updated_at,
+            is_migrated_from_pmda
         )
         VALUES (
             CASE TG_OP
@@ -188,7 +193,8 @@ BEGIN
             NEW.date_type_id,
             NEW.date_value,
             NEW.created_at,
-            NEW.updated_at
+            NEW.updated_at,
+            NEW.is_migrated_from_pmda
         );
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
@@ -198,7 +204,8 @@ BEGIN
             date_type_id,
             date_value,
             created_at,
-            updated_at
+            updated_at,
+            is_migrated_from_pmda
         )
         VALUES (
             'D'::demos_app.revision_type_enum,
@@ -206,7 +213,8 @@ BEGIN
             OLD.date_type_id,
             OLD.date_value,
             OLD.created_at,
-            OLD.updated_at
+            OLD.updated_at,
+            OLD.is_migrated_from_pmda
         );
         RETURN OLD;
     END IF;
@@ -1057,7 +1065,8 @@ BEGIN
             deliverable_submission_action_id,
             deliverable_submission_action_type_id,
             created_at,
-            updated_at
+            updated_at,
+            is_migrated_from_pmda
         )
         VALUES (
             CASE TG_OP
@@ -1078,7 +1087,8 @@ BEGIN
             NEW.deliverable_submission_action_id,
             NEW.deliverable_submission_action_type_id,
             NEW.created_at,
-            NEW.updated_at
+            NEW.updated_at,
+            NEW.is_migrated_from_pmda
         );
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
@@ -1098,7 +1108,8 @@ BEGIN
             deliverable_submission_action_id,
             deliverable_submission_action_type_id,
             created_at,
-            updated_at
+            updated_at,
+            is_migrated_from_pmda
         )
         VALUES (
             'D'::demos_app.revision_type_enum,
@@ -1116,7 +1127,8 @@ BEGIN
             OLD.deliverable_submission_action_id,
             OLD.deliverable_submission_action_type_id,
             OLD.created_at,
-            OLD.updated_at
+            OLD.updated_at,
+            OLD.is_migrated_from_pmda
         );
         RETURN OLD;
     END IF;
@@ -1617,7 +1629,8 @@ BEGIN
             author_person_type_id,
             content,
             created_at,
-            updated_at
+            updated_at,
+            is_migrated_from_pmda
         )
         VALUES (
             CASE TG_OP
@@ -1630,7 +1643,8 @@ BEGIN
             NEW.author_person_type_id,
             NEW.content,
             NEW.created_at,
-            NEW.updated_at
+            NEW.updated_at,
+            NEW.is_migrated_from_pmda
         );
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
@@ -1642,7 +1656,8 @@ BEGIN
             author_person_type_id,
             content,
             created_at,
-            updated_at
+            updated_at,
+            is_migrated_from_pmda
         )
         VALUES (
             'D'::demos_app.revision_type_enum,
@@ -1652,7 +1667,8 @@ BEGIN
             OLD.author_person_type_id,
             OLD.content,
             OLD.created_at,
-            OLD.updated_at
+            OLD.updated_at,
+            OLD.is_migrated_from_pmda
         );
         RETURN OLD;
     END IF;
@@ -1675,7 +1691,8 @@ BEGIN
             author_user_id,
             content,
             created_at,
-            updated_at
+            updated_at,
+            is_migrated_from_pmda
         )
         VALUES (
             CASE TG_OP
@@ -1687,7 +1704,8 @@ BEGIN
             NEW.author_user_id,
             NEW.content,
             NEW.created_at,
-            NEW.updated_at
+            NEW.updated_at,
+            NEW.is_migrated_from_pmda
         );
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
@@ -1698,7 +1716,8 @@ BEGIN
             author_user_id,
             content,
             created_at,
-            updated_at
+            updated_at,
+            is_migrated_from_pmda
         )
         VALUES (
             'D'::demos_app.revision_type_enum,
@@ -1707,7 +1726,8 @@ BEGIN
             OLD.author_user_id,
             OLD.content,
             OLD.created_at,
-            OLD.updated_at
+            OLD.updated_at,
+            OLD.is_migrated_from_pmda
         );
         RETURN OLD;
     END IF;

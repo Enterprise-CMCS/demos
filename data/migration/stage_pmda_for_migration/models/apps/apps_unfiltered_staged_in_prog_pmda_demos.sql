@@ -1,0 +1,55 @@
+SELECT
+    ipd.mdcd_demo_aplctn_id,
+    ipd.mdcd_pendg_demo_id,
+    'Demonstration' AS application_type_id,
+    ipd.mdcd_demo_name AS name, -- noqa: RF04
+    trim(ipd.mdcd_demo_desc) AS description,
+    CASE
+        WHEN ipd.state_prfmnc_yr_strt_dt = '2099-01-01'::DATE THEN NULL
+        ELSE (ipd.state_prfmnc_yr_strt_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York'
+    END AS effective_date,
+    CASE
+        WHEN ipd.state_prfmnc_yr_end_dt = '2099-01-31'::DATE THEN NULL
+        ELSE (ipd.state_prfmnc_yr_end_dt + TIME '23:59:59.999') AT TIME ZONE 'America/New_York'
+    END AS expiration_date,
+    cw1.sdg_division_id,
+    'OA' AS signature_level_id,
+    cw2.status_id,
+    (ipd.mdcd_demo_aplctn_stus_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York' AS status_updated_at,
+    ipdnum.cleaned_mdcd_demo_num AS medicaid_id,
+    NULL AS chip_id,
+    ipd.geo_ansi_state_cd AS state_id,
+    ipd.proj_ofcr_user_id,
+    ipd.creatd_dt,
+    ipd.phase_1_strt_dt,
+    ipd.phase_1_end_dt,
+    ipd.phase_2_rcvd_dt,
+    ipd.phase_2_cmpltns_rvw_dt,
+    ipd.phase_2_state_aplctn_deemd_cmpltn_dt,
+    ipd.phase_2_fed_cmt_prd_strt_dt,
+    ipd.phase_2_fed_cmt_prd_end_dt,
+    ipd.phase_2_dsrd_aprvl_dt,
+    ipd.phase_3_a_sme_strt_dt,
+    ipd.phase_3_a_frvt_strt_dt,
+    ipd.phase_3_c_ogc_strt_dt,
+    ipd.phase_3_c_omb_strt_dt,
+    ipd.phase_4_strt_dt,
+    ipd.phase_4_end_dt,
+    ipd.phase_5_strt_dt,
+    ipd.phase_5_end_dt,
+    ipd.phase_6_strt_dt,
+    ipd.phase_6_end_dt
+FROM
+    {{ ref('apps_active_in_prog_pmda_demos') }} AS ipd
+LEFT JOIN
+    {{ ref('crosswalk_mdcd_chip_dv_cd_to_sdg_division_id') }} AS cw1
+    ON
+        ipd.mdcd_chip_div_cd = cw1.mdcd_chip_div_cd
+LEFT JOIN
+    {{ ref('crosswalk_mdcd_demo_aplctn_stus_cd_to_application_status_id') }} AS cw2
+    ON
+        ipd.mdcd_demo_aplctn_stus_cd = cw2.mdcd_demo_aplctn_stus_cd
+LEFT JOIN
+    {{ ref('apps_active_in_prog_pmda_demos_mdcd_num_validations') }} AS ipdnum
+    ON
+        ipd.mdcd_pendg_demo_id = ipdnum.mdcd_pendg_demo_id

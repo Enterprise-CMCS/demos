@@ -1,5 +1,5 @@
 import React from "react";
-import { addYears, subDays } from "date-fns";
+import { addYears, parseISO, subDays } from "date-fns";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -23,7 +23,7 @@ import {
 } from "./AddDeliverableSlotDialog";
 import { TestProvider } from "test-utils/TestProvider";
 import { DELIVERABLE_SLOTS_CREATED_MESSAGE } from "util/messages";
-import { formatDateForServer } from "util/formatDate";
+import { formatDateForServer, getTodayEst } from "util/formatDate";
 import { CurrentUser } from "components/user/UserContext";
 
 const mockMutate = vi.fn(() => Promise.resolve({ data: {} }));
@@ -202,7 +202,9 @@ describe("AddDeliverableSlotDialog", () => {
     );
 
     fireEvent.change(screen.getByTestId("quarter-1"), {
-      target: { value: formatDateForServer(subDays(new Date(), 1)) },
+      // Anchored to Eastern Time, the zone the due date validation compares
+      // against, so this stays a past date at every hour of the day.
+      target: { value: formatDateForServer(subDays(parseISO(getTodayEst()), 1)) },
     });
 
     expect(screen.getByTestId(ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME)).toBeDisabled();
@@ -272,7 +274,9 @@ describe("AddDeliverableSlotDialog", () => {
     );
 
     fireEvent.change(dueDateField, {
-      target: { value: formatDateForServer(subDays(new Date(), 1)) },
+      // Anchored to Eastern Time, the zone the due date validation compares
+      // against, so this stays a past date at every hour of the day.
+      target: { value: formatDateForServer(subDays(parseISO(getTodayEst()), 1)) },
     });
 
     expect(screen.getByTestId(ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME)).toBeDisabled();
