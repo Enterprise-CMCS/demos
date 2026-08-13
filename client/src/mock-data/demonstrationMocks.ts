@@ -22,6 +22,7 @@ import { MockDocument, mockDocuments } from "./documentMocks";
 import { MockExtension, mockExtensions } from "./extensionMocks";
 import { mockPeople, MockPerson } from "./personMocks";
 import { MockState, mockStates } from "./stateMocks";
+import { MOCK_PHASES } from "./workflowMocks";
 import {
   MOCK_DEMONSTRATION_TYPE_ASSIGNMENTS,
   MockDemonstrationTypeAssignment,
@@ -31,7 +32,14 @@ import { DEMONSTRATION_HEADER_DETAILS_QUERY } from "pages/DemonstrationDetail/De
 
 export type MockDemonstration = Pick<
   Demonstration,
-  "id" | "name" | "description" | "sdgDivision" | "signatureLevel" | "currentPhaseName" | "medicaidId" | "chipId"
+  | "id"
+  | "name"
+  | "description"
+  | "sdgDivision"
+  | "signatureLevel"
+  | "currentPhaseName"
+  | "medicaidId"
+  | "chipId"
 > & {
   effectiveDate: Date;
   expirationDate: Date;
@@ -110,7 +118,10 @@ export const demonstrationMocks: MockedResponse[] = [
     },
     result: {
       data: {
-        demonstration: { ...MOCK_DEMONSTRATION, phases: [] },
+        demonstration: {
+          ...MOCK_DEMONSTRATION,
+          phases: MOCK_PHASES,
+        },
       },
     },
     maxUsageCount: Number.POSITIVE_INFINITY,
