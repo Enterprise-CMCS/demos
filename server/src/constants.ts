@@ -152,7 +152,7 @@ export const PRIMARY_DEMONSTRATION_ROLE_ASSIGNMENT_PERSON_TYPES = [
   "demos-admin",
   "demos-cms-user",
   "demos-state-user",
-];
+] as const;
 
 export const GRANT_LEVELS = ["System", "Demonstration"] as const;
 
