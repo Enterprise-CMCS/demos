@@ -14,7 +14,7 @@ initial_validation_status AS (
     SELECT
         mdcd_demo_id,
         original_mdcd_demo_num,
-        stripped_mdcd_demo_num,
+        stripped_mdcd_demo_num AS stripped_mdcd_demo_num_unfixed,
         CASE
             WHEN original_mdcd_demo_num ~ '^11-W-[0-9]{5}/([1-9]|10)$' THEN 'Valid Medicaid ID'
             WHEN original_mdcd_demo_num ~ '^21-W-[0-9]{5}/([1-9]|10)$' THEN 'Valid CHIP ID'
@@ -24,18 +24,22 @@ initial_validation_status AS (
             WHEN length(stripped_mdcd_demo_num) = 10 AND substring(stripped_mdcd_demo_num, 9, 2) != '10' THEN 'Invalid'
             WHEN
                 length(stripped_mdcd_demo_num) = 9
-                AND substring(stripped_mdcd_demo_num, 9, 1) NOT IN ('1', '2', '3', '4', '5', '6', '7', '8', '9')
+                AND substring(stripped_mdcd_demo_num, 9, 1) NOT IN ('1', '2', '3', '4', '5', '6', '7', '8', '9', '0')
                 THEN 'Invalid'
             WHEN substring(stripped_mdcd_demo_num, 1, 2) = '21' THEN 'Possibly Valid CHIP ID'
             WHEN substring(stripped_mdcd_demo_num, 1, 2) = '11' THEN 'Possibly Valid Medicaid ID'
             ELSE 'Invalid'
         END AS mdcd_demo_num_initial_validation_status,
         original_mdcd_scndry_demo_num,
-        stripped_mdcd_scndry_demo_num,
+        stripped_mdcd_scndry_demo_num AS stripped_mdcd_scndry_demo_num_unfixed,
         CASE
             WHEN original_mdcd_scndry_demo_num ~ '^11-W-[0-9]{5}/([1-9]|10)$' THEN 'Valid Medicaid ID'
             WHEN original_mdcd_scndry_demo_num ~ '^21-W-[0-9]{5}/([1-9]|10)$' THEN 'Valid CHIP ID'
-            WHEN stripped_mdcd_scndry_demo_num IS NULL OR trim(stripped_mdcd_scndry_demo_num) = '' THEN 'Valid Missing'
+            WHEN
+                stripped_mdcd_scndry_demo_num IS NULL
+                OR trim(stripped_mdcd_scndry_demo_num) = ''
+                OR trim(stripped_mdcd_scndry_demo_num) = 'None' -- Handles specific case of Maine demo 2522
+                THEN 'Valid Missing'
             WHEN length(stripped_mdcd_scndry_demo_num) NOT BETWEEN 9 AND 10 THEN 'Invalid'
             WHEN substring(stripped_mdcd_scndry_demo_num, 3, 1) != 'W' THEN 'Invalid'
             WHEN
@@ -43,7 +47,9 @@ initial_validation_status AS (
                 THEN 'Invalid'
             WHEN
                 length(stripped_mdcd_scndry_demo_num) = 9
-                AND substring(stripped_mdcd_scndry_demo_num, 9, 1) NOT IN ('1', '2', '3', '4', '5', '6', '7', '8', '9')
+                AND substring(stripped_mdcd_scndry_demo_num, 9, 1) NOT IN (
+                    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'
+                )
                 THEN 'Invalid'
             WHEN substring(stripped_mdcd_scndry_demo_num, 1, 2) = '21' THEN 'Possibly Valid CHIP ID'
             WHEN substring(stripped_mdcd_scndry_demo_num, 1, 2) = '11' THEN 'Possibly Valid Medicaid ID'
@@ -51,6 +57,35 @@ initial_validation_status AS (
         END AS mdcd_scndry_demo_num_initial_validation_status
     FROM
         stripped_down_medicaid_number
+),
+
+region_10_correction AS (
+    SELECT
+        mdcd_demo_id,
+        original_mdcd_demo_num,
+        mdcd_demo_num_initial_validation_status,
+        CASE
+            WHEN
+                mdcd_demo_num_initial_validation_status IN ('Possibly Valid CHIP ID', 'Possibly Valid Medicaid ID')
+                AND length(stripped_mdcd_demo_num_unfixed) = 9
+                AND substring(stripped_mdcd_demo_num_unfixed, 9, 1) = '0'
+                THEN substring(stripped_mdcd_demo_num_unfixed, 1, 8) || '10'
+            ELSE stripped_mdcd_demo_num_unfixed
+        END AS stripped_mdcd_demo_num,
+        original_mdcd_scndry_demo_num,
+        mdcd_scndry_demo_num_initial_validation_status,
+        CASE
+            WHEN
+                mdcd_scndry_demo_num_initial_validation_status IN (
+                    'Possibly Valid CHIP ID', 'Possibly Valid Medicaid ID'
+                )
+                AND length(stripped_mdcd_scndry_demo_num_unfixed) = 9
+                AND substring(stripped_mdcd_scndry_demo_num_unfixed, 9, 1) = '0'
+                THEN substring(stripped_mdcd_scndry_demo_num_unfixed, 1, 8) || '10'
+            ELSE stripped_mdcd_scndry_demo_num_unfixed
+        END AS stripped_mdcd_scndry_demo_num
+    FROM
+        initial_validation_status
 ),
 
 cleaned_medicaid_nums AS (
@@ -103,25 +138,39 @@ cleaned_medicaid_nums AS (
                     || substring(stripped_mdcd_scndry_demo_num, 9, 2)
         END AS cleaned_mdcd_scndry_demo_num
     FROM
-        initial_validation_status
+        region_10_correction
 )
 
 SELECT
     mdcd_demo_id,
     original_mdcd_demo_num,
-    cleaned_mdcd_demo_num,
+    -- Fixing the three that had primary CHIP IDs
+    -- Medicaid ID exists for one, but not the other two
     CASE
+        WHEN mdcd_demo_id = 2470 THEN '11-W-00381/3'
+        WHEN mdcd_demo_id IN (2481, 2648) THEN NULL
+        ELSE cleaned_mdcd_demo_num
+    END AS cleaned_mdcd_demo_num,
+    CASE
+        WHEN mdcd_demo_id IN (2470, 2481, 2648) THEN 'Valid'
         WHEN cleaned_mdcd_demo_num IS NOT NULL THEN 'Valid'
         ELSE 'Invalid'
     END AS cleaned_mdcd_demo_num_format_valid,
     CASE
+        WHEN mdcd_demo_id IN (2470, 2481, 2648) THEN 'Valid'
         WHEN cleaned_mdcd_demo_num IS NULL THEN 'Invalid'
         WHEN mdcd_demo_num_initial_validation_status IN ('Valid Medicaid ID', 'Possibly Valid Medicaid ID') THEN 'Valid'
         WHEN mdcd_demo_num_initial_validation_status IN ('Valid CHIP ID', 'Possibly Valid CHIP ID') THEN 'Invalid'
     END AS cleaned_mdcd_demo_num_location_valid,
     original_mdcd_scndry_demo_num,
-    cleaned_mdcd_scndry_demo_num,
     CASE
+        WHEN mdcd_demo_id = 2265 THEN NULL --TennCare III fix for having TennCare II ID in secondary slot
+        WHEN mdcd_demo_id IN (2470, 2481, 2648) THEN cleaned_mdcd_demo_num
+        ELSE cleaned_mdcd_scndry_demo_num
+    END AS cleaned_mdcd_scndry_demo_num,
+    CASE
+        WHEN mdcd_demo_id = 2265 THEN NULL
+        WHEN mdcd_demo_id IN (2470, 2481, 2648) THEN 'Valid'
         WHEN cleaned_mdcd_scndry_demo_num IS NOT NULL THEN 'Valid'
         WHEN
             cleaned_mdcd_scndry_demo_num IS NULL AND mdcd_scndry_demo_num_initial_validation_status = 'Valid Missing'
@@ -129,6 +178,11 @@ SELECT
         ELSE 'Invalid'
     END AS cleaned_mdcd_scndry_demo_num_format_valid,
     CASE
+        -- Next two tagged as CHIP in PMDA but has no code, added based on Medicaid.gov
+        WHEN mdcd_demo_id = 2266 THEN '21-W-00074/9'
+        WHEN mdcd_demo_id = 2232 THEN '21-W-00068/2'
+        WHEN mdcd_demo_id = 2265 THEN NULL
+        WHEN mdcd_demo_id IN (2470, 2481, 2648) THEN 'Valid'
         WHEN
             cleaned_mdcd_scndry_demo_num IS NULL AND mdcd_scndry_demo_num_initial_validation_status = 'Valid Missing'
             THEN 'Valid'

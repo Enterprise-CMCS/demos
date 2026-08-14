@@ -1,53 +1,91 @@
+WITH unioned_types AS (
+    SELECT
+        id AS demonstration_id,
+        'Migrated From PMDA' AS tag_name_id,
+        'Demonstration Type' AS tag_type_id,
+        effective_date,
+        expiration_date,
+        current_timestamp AS created_at,
+        current_timestamp AS updated_at,
+        _legacy_mdcd_demo_id
+    FROM
+        {{ ref('cleaned_demos_app_demonstration_finalized_demos') }}
+    UNION ALL
+    SELECT
+        demonstration_id,
+        tag_name_id,
+        tag_type_id,
+        effective_date,
+        expiration_date,
+        created_at,
+        updated_at,
+        _legacy_mdcd_demo_id
+    FROM {{ ref('apps_pmda_demo_types_with_demos_finalized') }} AS finalized_demo_types
+    WHERE
+        finalized_demo_types._legacy_mdcd_demo_id NOT IN (
+            SELECT e1._legacy_mdcd_demo_id FROM {{ ref('errors_demo_type_with_no_demo_finalized') }} AS e1
+        )
+        AND NOT EXISTS (
+            SELECT 1
+            FROM {{ ref('errors_demo_type_effective_expiration_dates') }} AS e2
+            WHERE
+                e2._legacy_mdcd_demo_id = finalized_demo_types._legacy_mdcd_demo_id
+                AND e2.tag_name_id = finalized_demo_types.tag_name_id
+        )
+    UNION ALL
+    SELECT
+        demonstration_id,
+        tag_name_id,
+        tag_type_id,
+        effective_date,
+        expiration_date,
+        created_at,
+        updated_at,
+        NULL AS _legacy_mdcd_demo_id
+    FROM {{ ref('apps_pmda_demo_types_pending_with_demos_in_prog') }} AS in_prog_demo_types
+    WHERE
+        in_prog_demo_types._legacy_mdcd_pendg_demo_id NOT IN (
+            SELECT e1._legacy_mdcd_pendg_demo_id
+            FROM {{ ref('errors_demo_type_with_no_demo_in_prog') }} AS e1
+        )
+        AND NOT EXISTS (
+            SELECT 1
+            FROM {{ ref('errors_demo_type_effective_expiration_dates_pending') }} AS e2
+            WHERE
+                e2._legacy_mdcd_pendg_demo_id = in_prog_demo_types._legacy_mdcd_pendg_demo_id
+                AND e2.tag_name_id = in_prog_demo_types.tag_name_id
+        )
+    -- These four demos have CHIP IDs and are identified publicly with them
+    -- Do not have the demo type in PMDA; this means CHIP ID will not display in DEMOS
+    -- Adding the tag here with effective and expiration of the demonstration
+    UNION ALL
+    SELECT
+        id AS demonstration_id,
+        'Children''s Health Insurance Program (CHIP)' AS tag_name_id,
+        'Demonstration Type' AS tag_type_id,
+        effective_date,
+        expiration_date,
+        current_timestamp AS created_at,
+        current_timestamp AS updated_at,
+        _legacy_mdcd_demo_id
+    FROM
+        {{ ref('final_demos_app_demonstration') }}
+    WHERE
+        _legacy_mdcd_demo_id IN (2564, 1620, 2441, 1457)
+)
+
 SELECT
-    id AS demonstration_id,
-    'Migrated From PMDA' AS tag_name_id,
-    'Demonstration Type' AS tag_type_id,
+    demonstration_id,
+    tag_name_id,
+    tag_type_id,
     effective_date,
     expiration_date,
-    current_timestamp AS created_at,
-    current_timestamp AS updated_at
+    created_at,
+    updated_at
 FROM
-    {{ ref('cleaned_demos_app_demonstration_finalized_demos') }}
-UNION ALL
-SELECT
-    demonstration_id,
-    tag_name_id,
-    tag_type_id,
-    effective_date,
-    expiration_date,
-    created_at,
-    updated_at
-FROM {{ ref('apps_pmda_demo_types_with_demos_finalized') }} AS finalized_demo_types
+    unioned_types
+-- Except Diamond State Health Plan CHIP Tag
+-- Demonstration has the tag but Medicaid.gov does not indicate it is a CHIP demo
+-- Cannot locate 21-W style number anywhere
 WHERE
-    finalized_demo_types._legacy_mdcd_demo_id NOT IN (
-        SELECT e1._legacy_mdcd_demo_id FROM {{ ref('errors_demo_type_with_no_demo_finalized') }} AS e1
-    )
-    AND NOT EXISTS (
-        SELECT 1
-        FROM {{ ref('errors_demo_type_effective_expiration_dates') }} AS e2
-        WHERE
-            e2._legacy_mdcd_demo_id = finalized_demo_types._legacy_mdcd_demo_id
-            AND e2.tag_name_id = finalized_demo_types.tag_name_id
-    )
-UNION ALL
-SELECT
-    demonstration_id,
-    tag_name_id,
-    tag_type_id,
-    effective_date,
-    expiration_date,
-    created_at,
-    updated_at
-FROM {{ ref('apps_pmda_demo_types_pending_with_demos_in_prog') }} AS in_prog_demo_types
-WHERE
-    in_prog_demo_types._legacy_mdcd_pendg_demo_id NOT IN (
-        SELECT e1._legacy_mdcd_pendg_demo_id
-        FROM {{ ref('errors_demo_type_with_no_demo_in_prog') }} AS e1
-    )
-    AND NOT EXISTS (
-        SELECT 1
-        FROM {{ ref('errors_demo_type_effective_expiration_dates_pending') }} AS e2
-        WHERE
-            e2._legacy_mdcd_pendg_demo_id = in_prog_demo_types._legacy_mdcd_pendg_demo_id
-            AND e2.tag_name_id = in_prog_demo_types.tag_name_id
-    )
+    NOT (_legacy_mdcd_demo_id = 1840 AND tag_name_id = 'Children''s Health Insurance Program (CHIP)')
