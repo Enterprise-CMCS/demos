@@ -1,0 +1,396 @@
+= Reference: Human inputs and review gates
+
+The comprehensive list of every file a human edits, reviews, or signs
+off before the data migration runs. It is grounded in the files the
+pipeline actually consumes: each row names a real artifact and the code
+that reads it. Use it as a pre-cutover checklist and as the index to the
+deeper SME / developer pages.
+
+Inputs fall into three tiers:
+
+* *Tier A* -- files you _edit_; code consumes them directly.
+* *Tier B* -- artifacts you _review and sign off_; their signature
+  unblocks a gate.
+* *Tier C* -- changes owned by the *DEMOS app team* (target schema),
+  outside this repo, that the migration depends on.
+
+== How to read this page
+
+* *Owner* is who holds the pen: *Operator* (runs the cutover), *SME*
+  (subject-matter expert confirming business mappings), or *DEMOS app
+  team* (owns the Prisma-managed `demos_app` schema).
+* *Phase / gate* maps to the pipeline stages in
+  xref:reference-cli.adoc[the CLI reference] and the gate files in
+  xref:reference-gates-state.adoc[gates and state].
+* *Validation* is the fail-closed check or verifier that catches a
+  missing or wrong input -- the forcing function that keeps a guess from
+  silently passing.
+* The <<status-snapshot,status snapshot>> at the bottom is dated prose,
+  re-audited by hand; it is the only part of this page not enforced by
+  `verify-doc-facts`.
+
+The dominant Tier A pattern is the crosswalk lifecycle: a proposed CSV is
+reviewed by an SME, transcribed into the live `04_crosswalks` SQL, and
+guarded by a fail-closed `_check.sql` that stays red until the mapping is
+complete.
+
+[mermaid]
+....
+flowchart LR
+  prop["proposed.csv"] --> rev["_review.md (SME)"]
+  rev --> sql["04_crosswalks SQL"]
+  sql --> chk["_check (fail-closed)"]
+  chk --> gate["build / parity gate"]
+....
+
+== Tier A -- input files you edit
+
+=== A.1 Code and enum crosswalks
+
+Legacy MySQL reference codes mapped to DEMOS target values. Proposals
+live under `reports/crosswalks/proposed/` (not read by code); confirmed
+values are transcribed into `reports/crosswalks/<name>.csv`, loaded from
+CSV by the crosswalks phase (the SQL files are DDL only), and enforced
+by the matching `_check.sql`. The phase reads
+`reports/crosswalks/registry.yaml` for the list of crosswalk tables to
+load. Owner: *SME* confirms, *Operator* edits the CSV + registry.
+Phase: `crosswalks` (Gate: crosswalk sign-off in
+xref:../sme/howto-author-a-crosswalk-csv.adoc[the SME crosswalk how-to]).
+
+[cols="2,3,2,3,3"]
+|===
+| Domain | Proposed CSV | Confirmed CSV | Live SQL (+ check) | Status
+
+| demo_status
+| `reports/crosswalks/proposed/archive/demo_status.proposed.csv`
+| `reports/crosswalks/demo_status.csv`
+| `sql/04_crosswalks/10_demo_status.sql` / `11_demo_status_check.sql`
+| TODO -- empty; check red until inlined
+
+| state
+| (identity; no proposal)
+| `reports/crosswalks/state.csv`
+| `sql/04_crosswalks/20_state.sql` / `21_state_check.sql`
+| Populated
+
+| signature_level
+| `reports/crosswalks/proposed/archive/signature_level.proposed.csv`
+| `reports/crosswalks/signature_level.csv`
+| `sql/04_crosswalks/30_signature_level.sql` / `31_signature_level_check.sql`
+| Populated (5 codes); CSV-canonical (`registry.yaml`). Codes 0/4 -> NULL pending SME; Tier C CHECK widening (OGD/DD) still open
+
+| role -> person_type
+| -- (self-contained; no proposal)
+| `reports/crosswalks/role_person_type.csv`
+| `sql/04_crosswalks/42_role_person_type.sql` / `43_role_person_type_check.sql`
+| Populated (9 codes); CSV-canonical (`registry.yaml`); drives the person/users person_type derivation. Pending SME sign-off
+
+| system_role
+| -- (self-contained; no proposal)
+| `reports/crosswalks/system_role.csv`
+| `sql/04_crosswalks/44_system_role.sql` / `45_system_role_check.sql`
+| Populated (2 System roles); CSV-canonical, multi-column tuple
+
+| demonstration_role
+| -- (self-contained; no proposal)
+| `reports/crosswalks/demonstration_role.csv`
+| `sql/04_crosswalks/46_demonstration_role.sql` / `47_demonstration_role_check.sql`
+| Populated; loaded into `crosswalk_demonstration_role` (`registry.yaml`); drives the demonstration-level RBAC derivation in `23_app_derived/30_demonstration_role_assignment.sql`
+
+| pgm_dtl_tag
+| -- (SME worksheet)
+| `reports/pgm_dtl_tag_mapping.csv`
+| `sql/04_crosswalks/46_pgm_dtl_tag.sql` (no check; consumed by `21_app_associative/10_demonstration_type_tag_assignment.sql`)
+| Populated; drives the tag-pivot fold. Per-row `from_dt_col`/`to_dt_col` override default date columns
+
+| deliverable_status
+| `reports/crosswalks/proposed/archive/deliverable_status.proposed.csv`
+| `reports/crosswalks/deliverable_status.csv`
+| `sql/04_crosswalks/50_deliverable_status.sql` / `51_deliverable_status_check.sql`
+| Populated (17 codes); CSV-canonical (`registry.yaml`), multi-column overlay. Codes 7/9 -> NULL status_id pending SME
+
+| renewal_status
+| `reports/crosswalks/proposed/renewal_status.proposed.csv`
+| `reports/crosswalks/renewal_status.csv`
+| `sql/04_crosswalks/70_renewal_status_deferred.sql`
+| DEFERRED post-MVP -- documented no-op, fails open
+
+| application_status
+| `reports/crosswalks/proposed/archive/application_status.proposed.csv`
+| `reports/crosswalks/application_status.csv`
+| `sql/04_crosswalks/12_application_status.sql` / `13_application_status_check.sql`
+| Populated (11 codes); CSV-canonical (`registry.yaml`). LOADED load-only -- not yet consumed (`application.status_id` still demo_status-derived)
+
+| amendment_status
+| `reports/crosswalks/proposed/archive/amendment_status.proposed.csv`
+| `reports/crosswalks/amendment_status.csv`
+| `sql/04_crosswalks/64_amendment_status.sql` / `65_amendment_status_check.sql`
+| Populated (4 codes); CSV-canonical (`registry.yaml`). In-session accepted 2026-06-26; `_review.md` P2 formal SME sign-off still pending
+
+| application_type
+| `reports/crosswalks/proposed/archive/application_type.proposed.csv`
+| `reports/crosswalks/application_type.csv`
+| `sql/04_crosswalks/60_application_type.sql` / `61_application_type_check.sql`
+| Populated -- data-backed identity (source name IS the DEMOS seed id)
+
+| sdg_division
+| `reports/crosswalks/proposed/archive/sdg_division.proposed.csv`
+| `reports/crosswalks/sdg_division.csv`
+| `sql/04_crosswalks/62_sdg_division.sql` / `63_sdg_division_check.sql`
+| Populated -- data-backed identity; `0`/`-- Please Select --` -> NULL
+
+| demonstration_type
+| `reports/crosswalks/proposed/archive/demonstration_type.proposed.csv`
+| `reports/crosswalks/demonstration_type.csv`
+| `sql/21_app_associative/20_reference_demonstration_type.sql` (loader, not a `04_crosswalks` check)
+| Data-backed identity; resolves the code in the loader by joining the source lookup. SME calls: `0`/Not Applicable, `OTHR`/Other
+
+| deliverable_type
+| `reports/crosswalks/proposed/archive/deliverable_type.proposed.csv`
+| `reports/crosswalks/deliverable_type.csv`
+| `sql/04_crosswalks/52_deliverable_type.sql` / `53_deliverable_type_check.sql`
+| Populated (41 codes); single-input crosswalk (`mdcd_dlvrbl_type_cd` -> `deliverable_type.id`). BN routing by report-occurrence code (57 = Quarterly BN, 70 = Annual BN)
+
+| deliverable_acptnc_status
+| `reports/crosswalks/proposed/deliverable_acptnc_status.proposed.csv`
+| --
+| --
+| Proposed, awaiting SME review
+
+| deliverable_cnfrmtn_status
+| `reports/crosswalks/proposed/deliverable_cnfrmtn_status.proposed.csv`
+| --
+| --
+| Proposed, awaiting SME review
+
+| deliverable_extension_status
+| `reports/crosswalks/proposed/deliverable_extension_status.proposed.csv`
+| --
+| --
+| Proposed -- data-backed with minor judgment; rides P3 deliverable workstream
+
+| deliverable_extension_reason_code
+| `reports/crosswalks/proposed/deliverable_extension_reason_code.proposed.csv`
+| --
+| --
+| Proposed -- data-backed with one lossy collapse; rides P3 deliverable workstream
+
+| document_type
+| `reports/crosswalks/proposed/document_type.proposed.csv`
+| `reports/crosswalks/document_type.csv`
+| `sql/04_crosswalks/66_document_type.sql` / `67_document_type_check.sql`
+| Populated (10 codes, application subset); CSV-canonical (`registry.yaml`). LOADED load-only -- completeness inert until `mdcd_demo_aplctn_doc` loads; multi-source fan-in still needs SME
+
+| comment_origin
+| (none yet -- gated)
+| (none yet -- gated)
+| `sql/04_crosswalks/68_comment_origin.sql` (no check; consumed by `sql/20_app/50_comment.sql`)
+| GATED -- DDL only, recreated empty (no `registry.yaml` entry). Routes `mdcd_dlvrbl_cmt.cmt_orgn_cd` {A,B,C,I,R,S} -> private/public; until SME authors routes, loader falls back to author person_type. Coverage surfaced by `sql/99_parity/47_comment_routing_coverage.sql`
+|===
+
+=== A.2 Other edited inputs
+
+[cols="2,3,1,2,3,2"]
+|===
+| Task | File(s) | Owner | Phase / gate | Consumed by + validation | Status
+
+| Row-level filter overrides
+| `reports/filter/keep_ids.csv`, `reports/filter/drop_ids.csv`
+| SME
+| stg / build (filter sign-off)
+| `sql/10_stg/0*_filter_*.sql`; per-run filter report + force-keep id check. See xref:howto-curate-filter.adoc[curate the filter].
+| Active overrides; report signed each rehearsal
+
+| FK overrides
+| `reports/inputs/fk_overrides.yaml`
+| Operator
+| fk-candidates
+| `migrate fk-candidates` -> `reports/generated/fk_candidates.csv`; stale-entry warning. See xref:../developer/reference-fk-overrides-yaml.adoc[the YAML reference].
+| `overrides: []` (no manual overrides today)
+
+| Migration-private seeds
+| `sql/02_seeds_static/25_state_region.sql`
+| Operator
+| seeds
+| `migrate seeds`; PMDA `11-W-NNNNN/R` region validation
+| Populated; `sql/03_seeds_limiters/` empty (Prisma owns limiter seeds)
+
+| JSONB validation schemas
+| `reports/jsonb_schemas/application_validation.schema.json`, `reports/jsonb_schemas/budget_neutrality.schema.json`, `reports/jsonb_schemas/uipath_response.schema.json`, `reports/jsonb_schemas/uipath_token_list.schema.json`
+| Developer / SME
+| seeds (`load_jsonb_schemas`)
+| `init_pg.load_jsonb_schemas`; registry trigger + xref:../developer/reference-jsonb-schema-registry.adoc[registry]. See {runbooks-dir}/revalidate-jsonb.md.
+| Registered; wiring per registry page
+
+| Source/target column map
+| `reports/source_target_columns.csv`
+| SME / Developer
+| authoring reference
+| Doc generators; `verify-schema-refs`
+| Maintained
+
+| Crosswalk registry
+| `reports/crosswalks/registry.yaml`
+| Operator
+| crosswalks
+| `init_pg.run_crosswalks`; lists every crosswalk table + CSV the phase loads
+| Maintained
+
+| pgm_dtl tag map
+| `reports/pgm_dtl_tag_mapping.csv`
+| SME
+| crosswalks / build
+| Loaded into `mysql_raw.crosswalk_pgm_dtl_tag` (`46_pgm_dtl_tag.sql`); tag-assignment fold loop. SME review (see Tier B)
+| Maintained
+
+| Target-schema pins
+| `reports/prisma_ddl.sha256`, `reports/prisma_schema.sha256`
+| Operator / Developer
+| ddl / fetch-prisma
+| `migrate fetch-prisma` / `fetch-prisma-schema`; SHA256 verify
+| Pinned to current DEMOS ref
+
+| Connection + runtime config
+| `.env` (from `.env.example`)
+| Operator
+| all phases
+| `migration.lib.Env`. Full variable table in xref:reference-environment.adoc[environment variables].
+| Per-environment; never committed
+|===
+
+== Tier B -- review and sign-off artifacts
+
+Artifacts a human reviews and signs; the signature is the gate evidence.
+None are read by code, but several are the documented forcing function
+for a gate.
+
+[cols="2,3,1,2,2"]
+|===
+| Artifact | File | Reviewer | Gate it unblocks | Status
+
+| Crosswalk proposals review
+| `reports/crosswalks/proposed/_review.md`
+| SME
+| crosswalk sign-off
+| In progress; per-domain confidence captured
+
+| Deliverable-type BN routing
+| `reports/crosswalks/proposed/deliverable_type_bn_routing.md`
+| SME
+| deliverable_type crosswalk
+| Resolved; deliverable_type crosswalk now authored
+
+| Per-run filter report
+| `reports/runs/filter_<stamp>.md` (footer block)
+| Operator + SME
+| row-level filter approved (T-24h)
+| Regenerated per stg build; sign before cutover
+
+| Unification decisions
+| `reports/narrative/pending_approved_decisions.md`
+| SME
+| mdcd pair collapse rules
+| Sign-off block blank; P5 contact rule deferred
+
+| Demonstration mapping worksheet
+| `reports/narrative/p1_demonstration_mapping_worksheet.md`
+| SME
+| P1 demonstration shape
+| Working draft
+
+| Drop list
+| `reports/narrative/drop_list.md`
+| Operator / SME
+| decommission scope
+| Maintained
+
+| History strategy
+| `reports/narrative/history_strategy.md`
+| Developer / SME
+| history handling
+| Decided; DEMOS owns + populates history. See xref:../developer/explanation-history-backfill.adoc[history is DEMOS-owned]
+
+| Ownership remediation plan
+| `reports/narrative/ownership-remediation-plan.md`
+| Operator / SME
+| ownership / role assignment
+| Open actions
+
+| BN source enumeration
+| `reports/narrative/bn_source_enumeration.md`
+| SME
+| budget-neutrality payload
+| Reference for BN JSONB
+
+| DEMOS data dictionary
+| `reports/inputs/demos_data_dictionary.xlsx`
+| SME
+| n/a (reference input)
+| Source artifact
+|===
+
+== Tier C -- DEMOS app-team target-schema tasks
+
+Changes the migration depends on but cannot make itself: they live in the
+Prisma-managed `demos_app` schema owned by the DEMOS app team.
+
+[cols="3,1,3,2"]
+|===
+| Task | Owner | Blocks | Tracked in
+
+| Widen `signature_level` CHECK constraints to admit OGD/DD (`demonstration_signature_level_check`, `amendment_signature_level_check`, `extension_signature_level_check`)
+| DEMOS app team
+| Loading OGD/DD-level demonstrations without data loss
+| `reports/crosswalks/proposed/_review.md`, `sql/04_crosswalks/30_signature_level.sql`
+
+| Other target-schema adjustments surfaced during review
+| DEMOS app team
+| Specific crosswalk / load rows
+| `reports/crosswalks/proposed/_review.md`
+|===
+
+[[status-snapshot]]
+== Current status snapshot
+
+As of *2026-06-26*. Hand-audited; not enforced by `verify-doc-facts`
+(the file enumeration is). Re-audit before each rehearsal and at T-24h.
+
+* *Crosswalk SQL:* every `04_crosswalks` SQL file is now DDL only; values
+  live in `reports/crosswalks/*.csv` and load via `registry.yaml` (the
+  crosswalks phase COPYs each CSV, validating its header against the
+  registry `columns`). `20_state.sql`, `60_application_type.sql`, and
+  `62_sdg_division.sql` are data-backed identity maps (the source `*_rfrnc`
+  name IS the DEMOS seed id). `30_signature_level.sql`,
+  `42_role_person_type.sql`, `50_deliverable_status.sql`, and
+  `64_amendment_status.sql` are populated from their load CSVs (formerly
+  inline INSERTs). `44_system_role.sql` and `46_demonstration_role.sql`
+  superseded the earlier unified `40_role.sql` / `41_role_check.sql`
+  workstream, which was removed. `10_demo_status.sql` is wired but its CSV
+  withholds code 1 pending SME. `70_renewal_status_deferred.sql` is an
+  intentional no-op (renewals are post-MVP). `deliverable_type` is
+  populated from its load CSV (`52_deliverable_type.sql` / `53_deliverable_type_check.sql`).
+* *Confirmed-but-not-loaded:* `application_status` carries
+  `sme_confirmed_value` in its proposal CSV but has no live SQL/load CSV
+  yet; `renewal_status` is deferred (no-op loader).
+* *Unreviewed proposals:* `contact_type`,
+  `deliverable_acptnc_status`, `deliverable_cnfrmtn_status`,
+  `deliverable_extension_status`, `deliverable_extension_reason_code`,
+  `document_type`.
+* *Sign-offs outstanding:* the reviewer/date blocks in
+  `reports/narrative/pending_approved_decisions.md` and the footer of the latest
+  `reports/runs/filter_<stamp>.md` are unsigned.
+* *Tier C open:* `signature_level` CHECK widening is not yet applied to
+  the target schema.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-environment.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-demonstration-flow.adoc[next >]
+|===
+endif::[]
+// docnav-end

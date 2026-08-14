@@ -1,0 +1,21 @@
+stage_pmda_for_migration:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: db
+      port: 5432
+      user: postgres
+      password: postgres # pragma: allowlist secret
+      dbname: demos
+      schema: legacy_pmda_staged
+      threads: 4
+    prod:
+      type: postgres
+      host: "{{ env_var('DBT_HOST') }}"
+      port: "{{ env_var('DBT_PORT') | int }}"
+      user: "{{ env_var('DBT_USER') }}"
+      password: "{{ env_var('DBT_PASSWORD') }}"
+      dbname: "{{ env_var('DBT_DBNAME') }}"
+      schema: "{{ env_var('DBT_SCHEMA') }}"
+      threads: 8

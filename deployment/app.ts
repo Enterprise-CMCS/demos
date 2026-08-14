@@ -18,6 +18,7 @@ import {
 } from "./nag-suppressions";
 import { FileUploadStack } from "./stacks/fileupload";
 import { DBRoleStack } from "./stacks/dbRoles";
+import { PMDATransfer } from "./stacks/pmdaTransfer";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function main(passedContext?: { [key: string]: any }) {
@@ -53,6 +54,7 @@ export async function main(passedContext?: { [key: string]: any }) {
   const stage = app.node.getContext("stage");
   const hostEnv = app.node.tryGetContext("hostEnv");
   const forceAlarms = app.node.tryGetContext("alarms")
+  const bootstrapProd = app.node.tryGetContext("bootstrap") == "prod"
   const config = await determineDeploymentConfig(stage, hostEnv, forceAlarms);
 
   const project = config.project;
@@ -72,6 +74,7 @@ export async function main(passedContext?: { [key: string]: any }) {
         account: process.env.CDK_DEFAULT_ACCOUNT,
         region: process.env.CDK_DEFAULT_REGION,
       },
+      bootstrapProd,
     });
     return app;
   }
@@ -97,6 +100,17 @@ export async function main(passedContext?: { [key: string]: any }) {
     });
     applyDatabaseSuppressions(database, stage);
     database.addDependency(core);
+  }
+
+  if (app.node.tryGetContext("pmda") == "include") {
+    const pmda = new PMDATransfer(app, `${project}-${stage}-pmda-transfer`, {
+      ...config,
+      env: {
+        account: process.env.CDK_DEFAULT_ACCOUNT,
+        region: process.env.CDK_DEFAULT_REGION,
+      },
+    })
+    pmda.addDependency(core)
   }
 
   const fileUpload = new FileUploadStack(app, `${project}-${stage}-file-upload`, {

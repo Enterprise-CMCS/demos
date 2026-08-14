@@ -1,0 +1,83 @@
+= How-to: dump source reference data
+
+The source declares *no* enums, so its value domains live entirely in
+the ~68 `*_rfrnc` lookup tables (`mdcd_demo_stus_rfrnc`,
+`mdcd_demo_type_rfrnc`, `mdcd_dlvrbl_stus_rfrnc`, ...). To author the
+`04_crosswalks` mappings you need the *rows* of those tables -- and the
+xref:howto-snapshot-source-schema.adoc[schema snapshot] captures
+metadata only, not row data.
+
+`migrate reference-data` dumps that row data into
+`reports/reference_data/`. It is the row-data companion to the schema
+snapshot.
+
+== Run it
+
+[source,sh]
+----
+make reference_data           # or: uv run migrate reference-data
+----
+
+It reads `MYSQL_URL` / `MYSQL_DB` from `.env`, attaches the source
+database *read-only* through the DuckDB sidecar (the same engine
+`preflight` validates), and `SELECT *`s each lookup table and source
+view through DuckDB's `mysql_query` passthrough. Nothing is written back
+to MySQL, and no credentials are persisted to disk. It does **not**
+require a prior `load-full` -- the whole point is to author crosswalks
+*before* the bulk load. It is safe to run against the live source at any
+time and is idempotent (each run overwrites the artifacts).
+
+== What you get
+
+[cols="1,3"]
+|===
+| File | Use
+
+| `<table>_rfrnc.csv` | One file per `*_rfrnc` lookup table, full rows ordered by the first (code) column. The authoritative value domain for the matching crosswalk.
+| `v_demo_status_dtl.csv` | Derived approval-status rows (`mdcd_demo_stus_cd=2` + amendment/renewal counts). The spec the `demo_status` crosswalk must reproduce.
+| `v_demo_mgmt_demo_types.csv`, `v_app_mgmt_demo_types.csv`, ... | The demonstration-type vocabulary, materialized. Input for the `demonstration_type` tag mapping.
+| `_manifest.json` | Audit record: source db, capture timestamp, DuckDB version, per-file row counts.
+|===
+
+A table or view that errors yields a `WARNING` log line and is skipped,
+never an aborted run.
+
+== Typical workflow
+
+. Run `make reference_data` against the source (or a rehearsal copy).
+. Open the relevant `*_rfrnc.csv` (e.g. `mdcd_demo_stus_rfrnc.csv`) and
+  map each source code to its DEMOS lookup id when seeding
+  `reports/crosswalks/<name>.csv` (see
+  xref:howto-add-a-crosswalk.adoc[add a crosswalk]).
+. Read `v_demo_status_dtl.csv` before finalizing the `demo_status`
+  crosswalk -- it is the live status derivation, not just the raw
+  reference codes.
+
+== Why DuckDB, not a new MySQL driver
+
+Same rationale as the schema snapshot: the toolkit already depends on
+DuckDB and validates its `mysql_scanner` in `preflight`, so the
+passthrough gives direct read-only SQL access to the source with no
+extra dependency.
+
+== Caveats
+
+* A MySQL password containing a space cannot be expressed in DuckDB's
+  space-delimited attach DSN; URL-encode special characters in
+  `MYSQL_URL` (they are decoded before the DSN is built).
+* Object names are validated against `^[A-Za-z0-9_]+$` before being
+  inlined into the dump query; any surprising name is skipped with a
+  warning rather than executed.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:howto-snapshot-source-schema.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:howto-add-a-crosswalk.adoc[next >]
+|===
+endif::[]
+// docnav-end

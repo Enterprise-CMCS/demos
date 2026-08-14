@@ -1,0 +1,87 @@
+= Explanation: why we rehearse twice
+
+A solo operator running a brand-new cutover under live conditions is
+the single largest risk in the project. Two timed dress rehearsals
+materially reduce that risk; one is not enough.
+
+== What each rehearsal proves
+
+=== Rehearsal #1
+
+Proves that the *script* works end-to-end on a recent MySQL snapshot
+in a fresh PostgreSQL cluster. Surprises are expected. The deliverable
+is not "green parity in target time" but a *list of surprises and
+fixes* committed to `reports/narrative/notes.md`.
+
+=== Rehearsal #2
+
+Proves that the script works end-to-end *with no unscripted
+interventions*, in target wall-clock time, with the backup operator
+observing. The deliverable is a green parity report and a wall-clock
+within budget.
+
+== Why two
+
+. *Surprise budget.* The first rehearsal will produce 3-10 small
+  surprises (timing, error messages, missing comms templates, et
+  cetera). Trying to fix them and re-prove cleanliness in the same
+  run conflates "we found bugs" with "we ran a clean rehearsal".
+. *Backup operator confidence.* The backup operator should observe
+  one rehearsal where everything works. If the only rehearsal they
+  see is the bumpy first one, they will not be confident on cutover
+  day.
+. *Comms cadence.* Comms templates are easy to forget. The second
+  rehearsal lets you practice sending the freeze-begin and
+  flip-complete messages in real time.
+
+== What "rehearsal" includes
+
+* Same scripts. No "we'll run it manually this time".
+* Same gates. Parity must be GREEN; do not accept PENDING for
+  rehearsal #2.
+* Same state directory. `make clean-state` between rehearsals.
+* Same comms. Send the templates to a private channel.
+* Same wall-clock budget. Stopwatch on; no pauses for breakfast.
+
+== What "rehearsal" does NOT include
+
+* No real cutover traffic. `flip` probes whatever `NEW_APP_HEALTHZ_URL`
+  is set to; in rehearsal, point it at a fake/stand-in DEMOS healthz
+  endpoint, and confirm the rehearsal PMDA stand-in is in read-only
+  mode. (PMDA and DEMOS are separate apps on separate URLs, so there
+  is no DNS or load-balancer swap to rehearse either way.)
+* No rollback drill against production. Rollback is exercised
+  against the rehearsal target only.
+* No production user comms. Use a private channel.
+
+== Acceptance for cutover
+
+* Rehearsal #2 ran end-to-end with zero unscripted interventions.
+* Total wall-clock < target.
+* Backup operator confident.
+* Stakeholders signed off.
+* Runbook + comms templates final and committed.
+
+If any of these is red on the Friday of Week 10, *do not schedule
+production cutover*. Slip the date.
+
+== Related
+
+* xref:tutorial-first-cutover-rehearsal.adoc[Tutorial: first cutover
+  rehearsal]
+* xref:reference-rehearsal-commands.adoc[Rehearsal command inventory]
+* xref:explanation-cutover-state-machine.adoc[The cutover state
+  machine]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:explanation-cutover-state-machine.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:../developer/index.adoc[next >]
+|===
+endif::[]
+// docnav-end

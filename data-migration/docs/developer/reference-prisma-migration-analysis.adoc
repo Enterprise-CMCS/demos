@@ -1,0 +1,206 @@
+= Reference: Prisma migration analysis
+
+The audience is the engineer who has to react when the DEMOS app team adds a
+Prisma migration and the pin in `reports/prisma_ddl.sha256` moves. The
+xref:reference-prisma-ddl.adoc[Prisma DDL pipeline] page covers *fetching and
+pinning* that DDL; this page covers *reading* it -- turning a new migration
+set into concrete loader work (a column we must source, a CHECK that becomes a
+blocker, a backfill that mints synthetic ids we would rather take from PMDA).
+
+The analysis is not prose someone keeps up to date by hand. It is generated
+from the pinned DDL by `docs/tools/prisma_migration_analysis.py` and
+drift-checked in CI (`make verify-prisma-analysis`), exactly like the
+xref:reference-data-dictionary.adoc[data dictionary] and
+xref:reference-schema-diagrams.adoc[schema diagrams].
+
+== What to inspect when the pin moves
+
+The DEMOS migration set is a concatenation of per-migration `migration.sql`
+files. A migration can touch our load in nine ways. The tool classifies every
+statement into exactly these categories so none is missed:
+
+[cols="2,5"]
+|===
+| Statement | Why it matters to *our* loader
+
+| `CREATE TABLE`
+| A new parent table. Either it needs a source mapping (PMDA -> DEMOS) or it is internal-only and belongs on the xref:../sme/reference-drop-list.adoc[drop list]'s mental model (nothing to load).
+
+| `INSERT INTO ... VALUES`
+| A seed/vocabulary table. A new value domain may become a new crosswalk *target* (see xref:howto-add-a-crosswalk.adoc[add a crosswalk]).
+
+| `CREATE SEQUENCE`
+| A generator. If we populate the same column from PMDA we must reconcile the sequence so app-minted values cannot collide with migrated ones.
+
+| `ALTER TABLE ... ADD COLUMN`
+| A new column we may have to populate -- especially paired with `SET NOT NULL` below.
+
+| `ALTER COLUMN ... SET DEFAULT` / `DROP DEFAULT`
+| A default the loader must *not* lean on. A `DEFAULT CURRENT_TIMESTAMP` is almost always semantically wrong for migrated rows, which carry their own timestamps.
+
+| `ALTER COLUMN ... SET NOT NULL`
+| A new not-null obligation. If the source column is nullable, we need a fallback (mint, or a documented default).
+
+| `ADD CONSTRAINT ... CHECK`
+| A narrowed value domain. These turn into hard blockers when migrated data falls outside the accepted set.
+
+| `UPDATE` / `WITH ... UPDATE`
+| A backfill. Often this *is* the app's clone/seed path; when it derives a value we hold authoritatively in PMDA, we must override it rather than inherit synthetic data.
+
+| `DELETE FROM ... WHERE`
+| Reseed housekeeping (e.g. permission churn). Usually informational.
+|===
+
+The tool also asserts the *absence* of `ON CONFLICT` / `MERGE` / `upsert`. Our
+idempotency model (xref:explanation-idempotency.adoc[idempotency]) assumes the
+upstream DDL never silently merges; if that count goes non-zero, revisit it.
+
+[NOTE]
+====
+A naive `grep -c "UPDATE"` over the concatenated DDL reports hundreds of
+hits because trigger function bodies (`$$ ... $$`) are full of them. The
+tool tokenises statements with dollar-quote awareness, so a `DO $$ ... $$;`
+block counts as one statement and inner `UPDATE`s do not leak into the
+backfill count.
+====
+
+== Generated analysis of the current pin
+
+include::../shared/generated/prisma-migration-analysis.adoc[]
+
+== Current loader-impacting findings
+
+These are the human judgements the generated inventory above cannot make for
+you. They are the live follow-ups from the most recent pin.
+
+=== `medicaid_id` / `chip_id` (`20260602201004_add_medicaid_chip_id_values`)
+
+The migration adds `demonstration.medicaid_id` and `demonstration.chip_id`,
+makes both `NOT NULL`, adds unique indexes, and backfills *existing* rows by
+**minting** values from two sequences joined to `state.region`:
+
+[source,sql]
+----
+format('11-W-%s/%s', lpad(nextval('medicaid_id_number_seq')::text, 5, '0'), s.region)  -- medicaid
+format('21-W-%s/%s', lpad(nextval('chip_id_number_seq')::text,    5, '0'), s.region)  -- chip
+----
+
+That mint is the app's *clone* path -- it has no knowledge of PMDA's real
+numbers. For our migration:
+
+* `medicaid_id` <- PMDA `mdcd_demo.mdcd_demo_num`. High-confidence, data-grounded, and *important*: if we let DEMOS mint instead, every demonstration gets a fake waiver number. Source is `varchar(20)` and present on real rows; verify uniqueness before load (target index is `UNIQUE`).
+* `chip_id` <- PMDA `mdcd_demo.mdcd_scndry_demo_num`. **Not** a simple copy: the source secondary number is *nullable*, but the target is `NOT NULL` + `UNIQUE`. We must mint a fallback (mirroring the `21-W-<seq>/<region>` shape) only where the source is missing, and **advance `chip_id_number_seq` past our minted values** so a later app insert cannot collide.
+
+The triggers the migration disables during its backfill
+(`prevent_changing_immutable_demonstration_fields`,
+`log_changes_demonstration`, `check_demonstration_primary_project_officer`,
+`_disable_redundant_updates`) tell us *when* we may write these columns:
+populate them at **insert time**, not via a post-insert `UPDATE`, because
+`prevent_changing_immutable_demonstration_fields` blocks later changes.
+
+NOTE: These two column pairs are not yet in
+`reports/source_target_columns.csv` because the DEMOS model snapshot
+(`mmd_sql_compare/demos_data_model.mmd`) predates this migration and the
+column-map lint requires every target column to exist in that model. Refresh
+the DEMOS model first (then the rows can be added without tripping
+xref:reference-source-target-columns.adoc[the column map] lint).
+
+=== Signature-level CHECK is a live blocker (`20260602115947_check_signature_level`)
+
+[source,sql]
+----
+demonstration: signature_level_id IS NOT NULL AND signature_level_id = 'OA'
+amendment/extension: signature_level_id IS NULL OR signature_level_id IN ('OA', 'OCD')
+----
+
+`demonstration.signature_level_id` is now forced to the single value `OA`.
+Any PMDA demonstration whose signature level maps to OGD/DD (or anything
+other than OA) will fail this CHECK on insert. This elevates the earlier
+"OGD/DD note" into a real blocker until DEMOS widens the check or we confirm
+every in-scope demonstration is OA.
+
+=== `reference.description` is now mandatory and non-empty (`20260529170904_prisma_add_description_field`)
+
+`reference.description` was added `NOT NULL DEFAULT 'Description'`, then the
+default was dropped and a `check_non_empty_description` CHECK added (alongside
+the existing non-empty `name` / `s3_path` gates). The
+xref:explanation-demos-clone-vs-id-maps.adoc[reference loader] must source a
+real description -- it can no longer rely on the temporary default.
+
+=== `status_updated_at` default is a trap (`20260616155913_add_status_updated_at_to_applications`)
+
+`status_updated_at` was added to `demonstration` / `amendment` / `extension`
+as `NOT NULL DEFAULT CURRENT_TIMESTAMP`. The default is correct for live app
+writes but **wrong for migrated rows**, which should carry the legacy status
+timestamp, not the load wall-clock. Populate it explicitly.
+
+=== New internal-only tables
+
+`on_demand_report`, `on_demand_report_status`, `on_demand_report_type` (plus
+additive reporting/permission seeds) are app-internal reporting machinery with
+no PMDA source. Nothing to load.
+
+== Running the tool
+
+Regenerate the committed partial (also runs inside `make html` / `make all`
+in `docs/`):
+
+[source,bash]
+----
+uv run python docs/tools/prisma_migration_analysis.py
+----
+
+Fail closed if the committed copy is stale relative to the pin (CI; also part
+of `make verify`):
+
+[source,bash]
+----
+uv run python docs/tools/prisma_migration_analysis.py --check
+----
+
+When *bumping* the pin, diff the new DDL against the previously cached SHA to
+see exactly which migrations were added and what each one touches (operator
+aid; prints to stdout, writes nothing):
+
+[source,bash]
+----
+uv run python docs/tools/prisma_migration_analysis.py --against <old-sha>
+----
+
+== Why a generator, not a skill or generated SQL
+
+This analysis is a *generated, version-controlled, CI-verified doc* rather
+than:
+
+* **A skill.** A skill is operator guidance the agent reads; it cannot be
+  diffed against the actual pinned DDL, so it would rot the moment the pin
+  moves. The checklist in this page is the durable part; the per-pin facts
+  belong in a generator. (The checklist could still be lifted into a skill as
+  a secondary aid, but the generator is the source of truth.)
+* **Generated loader SQL.** Tempting, but every finding above is a *judgement
+  call* -- which source column, what fallback to mint, how to reconcile a
+  sequence, whether a CHECK is a blocker. Emitting SQL would encode guesses as
+  code. The right ROI is this analysis plus the existing crosswalk/id-map
+  machinery, which keeps the judgement explicit and reviewable. Revisit
+  codegen only once the analysis has been stable across several pin bumps.
+
+== Related
+
+* xref:reference-prisma-ddl.adoc[Prisma DDL pipeline]
+* xref:reference-data-dictionary.adoc[DEMOS data dictionary]
+* xref:reference-source-target-columns.adoc[Source/target column map]
+* xref:reference-derivability-audit.adoc[Derivability audit]
+* xref:explanation-demos-clone-vs-id-maps.adoc[The DEMOS clone tool vs. our id maps]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-prisma-ddl.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-schema-diagrams.adoc[next >]
+|===
+endif::[]
+// docnav-end

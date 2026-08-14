@@ -41,8 +41,8 @@ export const useBNWorkbookPreValidation = (
 
     (async () => {
       const [{ parseBNFile }, { validations }] = await Promise.all([
-        import("demos-shared-library/dist/src/BN/index.js"),
-        import("demos-shared-library/dist/src/BN/rulesets/v1/index.js"),
+        import("demos-shared-library/BN"),
+        import("demos-shared-library/BN/rulesets"),
       ]);
 
       let data;

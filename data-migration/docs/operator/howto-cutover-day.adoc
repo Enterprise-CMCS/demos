@@ -1,0 +1,27 @@
+= How-to: cutover day
+
+The literal sequence of `uv run migrate` commands for the production
+cutover, with expected output snippets. If a snippet does not match,
+*HOLD* and call the backup operator.
+
+The canonical version of this playbook lives at
+`runbooks/cutover.md`; this page renders it for the documentation
+build. Edit the runbook, not this page.
+
+include::../shared/generated/live/cutover.adoc[]
+
+For the rollback procedure, see xref:howto-rollback.adoc[the rollback
+how-to].
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:tutorial-first-cutover-rehearsal.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:howto-rollback.adoc[next >]
+|===
+endif::[]
+// docnav-end

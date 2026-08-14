@@ -1,0 +1,192 @@
+= Migration plan: branch decision tree and status
+:toc: left
+
+This page is the canonical tracker for the cross-repo migration work that
+mines the sister DEMOS application repo (`Enterprise-CMCS/demos`) to advance
+the PMDA MySQL -> DEMOS PostgreSQL (`demos_app`) migration. Each "branch" is a
+resolved decision plus its follow-up work. The xref:canonical-spec.adoc[canonical
+specification] carries the full narrative; this page is the index, the status
+board, and the dependency map.
+
+== How to read this page
+
+* The <<decision-tree,decision tree>> lists every branch, its resolution, the
+  DEMOS asset that resolved it, and its current status.
+* The <<critical-path,critical path>> shows which branches gate which.
+* The <<provenance,decision provenance>> table says where on disk each
+  decision is recorded, so this page never becomes the only source of truth.
+
+Branch numbering is stable: cite "Branch 8" in commits and reviews.
+
+[[status-legend]]
+== Status legend
+
+[cols="1,4"]
+|===
+| Status | Meaning
+
+| *Done* | Decision made and the committed artifact reflects it.
+| *In progress* | Started; some follow-up work remains.
+| *Pending* | Decided (or scoped) but implementation not yet started.
+|===
+
+[[decision-tree]]
+== Branch decision tree
+
+[cols="1,3,4,1,2",options="header"]
+|===
+| # | Branch | Resolution | Status | Evidence / artifact
+
+| 1
+| Target-contract refresh (root)
+| Re-pin the Prisma DDL to the current migration set, diff old->new, propagate the delta before further P2-P6 work.
+| In progress
+| Pin refreshed (`53a9ef9f`); diff + propagation pending. `reports/prisma_ddl.sha256`, `reports/prisma_ddl_source.txt`
+
+| 2
+| History (DEMOS-owned)
+| The migration does not populate the `demos_app.*_history` tables. Per the SMEs, DEMOS owns them and its `log_changes_*` capture triggers fill them post-cutover. The former P4 backfill phase, `sql/22_app_history/`, and the `history` gate were removed; cutover collapses to `build_app -> constraints`.
+| Done
+| `reports/narrative/history_strategy.md`; DEMOS `server/src/sql/history_triggers.sql`
+
+| 3
+| JSONB-validator disposition
+| No shape trigger on any live `demos_app.*` column; BN validates a migration-private parity table; uipath_* and application_validation stay registered-but-unwired.
+| Done
+| `a93580d`, `e9bc54a`; `sql/31_constraint_triggers/00_jsonb_validation.sql`
+
+| 4
+| Crosswalk confidence
+| Mine the DEMOS baseline seeds + action state machine to raise `none`/`low` mappings to proposed-with-rationale (review-only, unwired).
+| Done
+| `8682a83`; `reports/crosswalks/proposed/`
+
+| 5
+| BN load target
+| Migrate the BN document + workbook row + scalar fields; the rich aggregate stays migration-private.
+| In progress
+| Source aggregate landed (`13b3eb7`); the `sql/20_app` workbook loader is pending.
+
+| 6
+| BN fill convention
+| Migrated workbooks load with `validation_status_id='Pending'` and `validation_data='{}'::jsonb`.
+| Pending
+| `e9bc54a` (spec); mirrors DEMOS `functions.sql` `move_document_from_pending_to_clean`
+
+| 7
+| BN revalidation at flip
+| Flip enqueues one SQS revalidation message per migrated workbook; DEMOS recomputes and is checked against the parity oracle.
+| Pending
+| `e9bc54a` (spec); DEMOS `lambdas/budgetNeutrality`
+
+| 8
+| BN source scope + staging
+| Enumerate `bdgt_ntrlty_*` + `mdcd_dlvrbl_fil_doc`; add the staging step that populates `migration.bn_workbook_detail`.
+| Done
+| `13b3eb7`; `reports/narrative/bn_source_enumeration.md`, `sql/10_stg/60_budget_neutrality.sql`
+
+| 9
+| Spec amendment (BN + JSONB)
+| Reframe workstream I: `validation_data` is not a load target; the aggregate is a migration-private parity oracle.
+| Done
+| `e9bc54a`; `docs/spec/canonical-spec.adoc`
+
+| 10
+| Document / S3 handling
+| The database carries `s3_path` only; copying the S3 object is a separate runbook plus a path-resolvability parity check.
+| Pending
+| `e9bc54a` (spec); DEMOS `document.prisma`
+
+| 11
+| Derived status overlay
+| Store `status_id` + dates only; do not materialize the computed Pending/Active/Expired overlay. (`sql/23_app_derived` now holds the RBAC role-assignment derivations, but this demonstration *status* overlay is intentionally not materialized.)
+| Pending
+| DEMOS `determineDemonstrationTypeStatus.ts`
+
+| 12
+| Ownership / grant parity
+| Reuse the DEMOS `utility_views.sql` views as the post-flip owner/grant oracle.
+| Pending
+| DEMOS `server/src/sql/utility_views.sql`
+
+| 13
+| `functions.sql` duties
+| Materialize derived rows; pre-trim text before the new whitespace CHECKs; re-assert four invariants in `99_parity`.
+| Pending
+| DEMOS `server/src/sql/functions.sql`
+|===
+
+[[critical-path]]
+== Critical path
+
+Branch 1 is the root dependency: the refreshed Prisma contract gates the BN
+fill domain (Branch 6), the whitespace-CHECK coupling (Branch 13), and the
+`30_constraints` / `99_parity` deltas. Branch 3 provides the parity table that
+Branch 8 fills; Branch 8 feeds the Branch 5 loader, which feeds Branch 7.
+Branch 4 runs in parallel with Branch 1. Branch 2's transforms are authored
+against the source-of-truth trigger contract but snapshot the *live* tables, so
+they only produce rows once Branch 5 loads `demos_app.*` (B5 -> B2 below).
+
+[mermaid]
+....
+flowchart TD
+  B1[B1 Contract refresh] --> B6[B6 BN fill domain]
+  B1 --> B13[B13 functions.sql trim + invariants]
+  B1 --> CP[30_constraints + 99_parity deltas]
+  B1 --> B5[B5 BN target load - 20_app]
+  B4[B4 Crosswalk confidence] -.parallel.-> CP
+  B3[B3 JSONB disposition] --> B8[B8 BN source + staging]
+  B8 --> B5
+  B6 --> B5
+  B5 --> B7[B7 BN revalidation at flip]
+  B5 --> B2[B2 History - DEMOS-owned, not migrated]
+  B13 --> CP
+....
+
+[NOTE]
+====
+Solid arrows are hard dependencies; the dashed edge marks Branch 4 as
+parallelizable with the Branch 1 critical path.
+====
+
+[[provenance]]
+== Decision provenance
+
+Where each decision actually lives on disk, so this tracker stays an index
+rather than a second source of truth.
+
+[cols="2,3",options="header"]
+|===
+| Location | What it records
+
+| xref:canonical-spec.adoc[`docs/spec/canonical-spec.adoc`]
+| Branches 3, 5, 6, 9, 10 (BN reframe, JSONB-validator disposition, workstream I, `s3_path` handling).
+
+| `reports/crosswalks/proposed/_review.md`
+| Branch 4 cross-cutting decisions and confidence tallies.
+
+| `reports/narrative/bn_source_enumeration.md`
+| Branch 8 source census, table->schema map, and deferred enrichments.
+
+| `reports/narrative/notes.md`, `reports/narrative/pending_approved_decisions.md`
+| Earlier ownership decisions (D1-D7) underpinning Branches 10-12.
+
+| `reports/prisma_ddl_source.txt`, `reports/prisma_ddl.sha256`
+| Branch 1 pinned Prisma contract.
+
+| `reports/narrative/history_strategy.md`
+| Branch 2 history handling (DEMOS-owned; no backfill).
+|===
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:canonical-spec.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:../operator/index.adoc[next >]
+|===
+endif::[]
+// docnav-end

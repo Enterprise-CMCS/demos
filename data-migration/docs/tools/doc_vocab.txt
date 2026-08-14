@@ -1,0 +1,134 @@
+# Allow-list of bare snake_case identifiers that are legitimate in the
+# data-layer docs but are NOT schema table/column names. Consumed by
+# docs/tools/verify_schema_refs.py. One token per line; `#` starts a comment.
+#
+# This is the "custom dictionary" for the doc spell-checker: schema names come
+# from the live model, and everything genuinely non-schema (types, tools,
+# domain terms, CSV column headers) is enumerated here. A NEW unknown token in
+# a data-layer page fails the check until it is either corrected or added here.
+
+# SQL / Postgres types and keywords
+boolean
+enum
+int
+integer
+jsonb
+number
+text
+timestamptz
+uuid
+
+# Database schemas and namespaces
+demos_app
+migration
+mysql_raw
+stg
+main
+public_repo
+
+# CLI tools and Postgres utilities
+jq
+migrate
+psql
+pg_constraint
+pg_dump
+pg_jsonschema
+pg_restore
+
+# DuckDB extensions (load-fidelity / prod-schema-guard scanners)
+mysql_scanner
+postgres_scanner
+
+# Crosswalk / CSV column headers
+legacy_cd
+legacy_int_cd
+legacy_name
+proposed_demos_text_id
+sme_confirmed_value
+source_table
+
+# Crosswalk registry keys (reports/crosswalks/registry.yaml) and the
+# copy_csv_into_table header_expect guard
+columns
+csv
+header_expect
+
+# Transform kinds (source_target_columns.csv `transform` column)
+cast
+comment_route
+copy
+derive
+drop
+id_map
+tag_pivot
+transform
+
+# JSONB schema registry names
+additional_attrs
+jsonb_schemas
+uipath_response
+uipath_token_list
+
+# Budget-neutrality domain terms
+actuals
+budget_neutrality
+by_month
+demo_years
+demo_yr_id
+expenditures
+member
+member_months
+month
+projected
+savings
+spending_limits
+total_with_waiver
+total_without_waiver
+waivers
+workbook_origin
+eligibility_groups
+home_and_community_based_services
+managed_care
+
+# Source (PMDA) column / table fragments referenced in prose
+begin_dt
+cmt_orgn_cd_rfrnc
+elgblty_grp_name
+from_dt_col
+mdcd_elgblty_grp_id
+mdcd_managed_care_dtl
+to_dt_col
+
+# Status / confidence / enum literals
+approved
+blocked
+high
+low
+medium
+none
+pending_unify
+pending_upload
+required
+revision_type_enum
+
+# Net-new DEMOS tables owned/populated by the app (absent from the pinned
+# Prisma DDL by design; empty at cutover).
+event
+event_data
+
+# Pipeline concepts and worked-example labels
+application_validation
+build_app
+check_violation
+definition
+demonstration_id_provenance
+edits
+m_grandparent
+m_parent
+m_self
+pattern
+schema
+summary
+table
+test
+version

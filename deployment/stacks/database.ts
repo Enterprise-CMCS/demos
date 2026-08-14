@@ -129,7 +129,7 @@ export class DatabaseStack extends Stack {
         removalPolicy: ["prod", "impl"].includes(commonProps.stage) ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
         deleteAutomatedBackups: true,
         instanceIdentifier: `${commonProps.project}-${commonProps.stage}-rds`,
-        backupRetention: Duration.days(7),
+        backupRetention: commonProps.stage == "prod" ? Duration.days(30) : Duration.days(7),
         cloudwatchLogsExports: ["postgresql", "upgrade"],
         cloudwatchLogsRetention: RetentionDays.THREE_MONTHS,
         storageEncryptionKey: rdsKMSKey,

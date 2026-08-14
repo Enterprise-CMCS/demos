@@ -1,0 +1,135 @@
+= Reference: JSONB schema registry
+
+The migration-private contract for validating a JSONB value against a
+named JSON Schema, without abusing PostgreSQL's
+CHECK-cannot-reference-other-rows semantics. DEMOS performs no
+in-database JSONB validation and owns its runtime JSONB columns, so
+this registry drives a trigger only on *migration-private* tables --
+today, just the budget-neutrality parity aggregate
+(`migration.bn_workbook_detail`). No live `demos_app.*` column has a
+validation trigger.
+
+== The three artifacts
+
+[cols="2,5"]
+|===
+| Artifact | Purpose
+
+| `migration.jsonb_schemas`
+| Table holding the registered schemas: `(name TEXT PK, schema JSONB NOT NULL, registered_at TIMESTAMPTZ DEFAULT now())`.
+
+| `migration.tg_validate_jsonb_against_registered_schema()`
+| `LANGUAGE plpgsql` trigger function. Reads `TG_ARGV[0]` (registered schema name) and `TG_ARGV[1]` (JSONB column on the target table), looks the schema up in `migration.jsonb_schemas`, and raises `check_violation` if the value fails validation. Fails closed when the schema is not registered.
+
+| `migration.revalidate_jsonb(p_table regclass, p_col text, p_schema text) RETURNS bigint`
+| One-shot helper that returns the number of existing rows whose JSONB value fails the registered schema. Used after promoting or revising a schema in the registry; see xref:howto-revalidate-jsonb.adoc[the revalidate-jsonb how-to].
+|===
+
+== Why a trigger, not a CHECK
+
+PostgreSQL forbids subqueries in `CHECK` because a CHECK is supposed to
+evaluate only the current row. The previous implementation hid the
+registry lookup behind a `LANGUAGE sql STABLE` wrapper:
+
+[source,sql]
+----
+CHECK (migration.jsonb_matches_registered_schema('foo', value))
+----
+
+That worked, but violated the contract -- the planner is allowed to
+cache `STABLE` results and skip CHECK re-evaluation when columns are
+unchanged; `pg_dump` / `pg_restore` can reorder schema and data so the
+registry is empty when CHECKs fire; and there is no way to ask
+PostgreSQL to re-validate after the registry changes.
+
+A `CONSTRAINT TRIGGER` is the right tool: it can legally query other
+tables, it can be disabled around a `pg_restore`, and re-validation can
+be driven explicitly with `migration.revalidate_jsonb(...)`.
+
+== Authoring a schema
+
+. Draft as `reports/jsonb_schemas/<name>.draft.json`.
+. SME review.
+. Promote to `<name>.schema.json` (see
+  xref:howto-promote-jsonb-schema.adoc[promote a JSONB schema]).
+. The registry is loaded from `reports/jsonb_schemas/*.schema.json` by
+  `migration.phases.init_pg.load_jsonb_schemas`, which runs at the end
+  of `migrate seeds`. It upserts one row per promoted file (the
+  filename minus `.schema.json` is the registry name), so promotion is
+  just a rename plus `make seeds` -- no SQL file to edit. (The loader
+  reads the files in Python and passes the JSON as a bound parameter;
+  the pipeline applies SQL through psycopg, so a `pg_read_file()` of a
+  repo-relative path would not work here.)
+. Wire the CONSTRAINT TRIGGER, *only if* the schema guards a
+  migration-private table (never a live `demos_app` column). The BN
+  oracle does this in `sql/01_ddl_supplements/10_bn_workbook_detail.sql`:
++
+[source,sql]
+----
+CREATE CONSTRAINT TRIGGER <table>_<col>_schema
+  AFTER INSERT OR UPDATE OF <col>
+  ON migration.<table>
+  DEFERRABLE INITIALLY IMMEDIATE
+  FOR EACH ROW
+  EXECUTE FUNCTION migration.tg_validate_jsonb_against_registered_schema(
+    '<schema_name>', '<col>');
+----
++
+`AFTER ... OF <col>` ensures the validator only fires when the JSONB
+column is supplied on INSERT or actually changes on UPDATE. Most
+promotions skip this step entirely -- registering the schema is enough
+for parity-reference purposes.
+
+== Failure modes
+
+* *Schema not registered.* A trigger bound to the missing schema
+  raises `check_violation`; the insert / update fails closed for
+  non-NULL JSONB. This is intentional and surfaces when the
+  migration-private table the trigger guards is first written (the BN
+  trigger is created during `migrate ddl`).
+* *Schema registered but invalid.* `pg_jsonschema` returns false; the
+  trigger raises `check_violation` naming the schema, table, and
+  column. Fix the schema or the data.
+* *Trigger function missing.* Defined in
+  `sql/01_ddl_supplements/00_jsonb_schema_registry.sql` alongside the
+  registry table. Both ship together as migration-private DDL on top
+  of the Prisma schema.
+
+== Schemas in the registry today
+
+Promoted (`reports/jsonb_schemas/*.schema.json`, loaded by `migrate seeds`):
+
+* `budget_neutrality` — *wired.* Validates the migration-private
+  `migration.bn_workbook_detail` aggregate (the parity oracle), *not*
+  the live `demos_app.budget_neutrality_workbook.validation_data`
+  column, which DEMOS owns and revalidates at flip.
+* `uipath_response` — *registered, not wired.* Documents the shape of
+  the full UiPath OCR `{ "Fields": [...] }` result;
+  `demos_app.uipath_result.response` is DEMOS-era with no legacy source
+  to validate.
+* `uipath_token_list` — *registered, not wired.* The per-value
+  `Reference.Tokens` array shape, split out from `uipath_response`
+  because the two columns hold different shapes.
+  `demos_app.uipath_value.token_list` is likewise unvalidated in-DB.
+* `application_validation` — *registered, not wired.* No producer
+  pipeline and no `demos_app.application.validation_data` column exist
+  in the Prisma contract; the schema is a reference artifact only.
+
+== Related
+
+* xref:howto-promote-jsonb-schema.adoc[Promote a JSONB schema]
+* xref:howto-write-a-parity-check.adoc[Write a parity check]
+* xref:howto-revalidate-jsonb.adoc[Revalidate a JSONB column]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-fk-overrides-yaml.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-prisma-ddl.adoc[next >]
+|===
+endif::[]
+// docnav-end

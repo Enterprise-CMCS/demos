@@ -1,0 +1,176 @@
+# Parity accepted-flags baseline -- Gate 12: dropped demonstration role assignments
+# Each data row is an SME-reviewed, ACCEPTED dropped candidate (role the person_type
+# may not hold, person not authorized for the demo's state, or an unloaded demo).
+# Gate 12 goes GREEN only when the live flags are a subset of this file AND Status
+# is SIGNED with a Reviewer and Date.
+# Key columns: legacy_user_id, legacy_demonstration_id, role_id, person_type_id, reason.
+# Status: UNSIGNED
+# Reviewer:
+# Date:
+legacy_user_id,legacy_demonstration_id,role_id,person_type_id,reason
+704,2583,Policy Technical Director,demos-cms-user,demonstration_not_loaded
+704,2586,Policy Technical Director,demos-cms-user,demonstration_not_loaded
+704,2587,Policy Technical Director,demos-cms-user,demonstration_not_loaded
+784,2623,Project Officer,demos-cms-user,demonstration_not_loaded
+785,2604,Policy Technical Director,demos-cms-user,demonstration_not_loaded
+812,2547,Project Officer,demos-cms-user,demonstration_not_loaded
+812,2580,Project Officer,demos-cms-user,demonstration_not_loaded
+812,2588,Project Officer,demos-cms-user,demonstration_not_loaded
+812,2613,Project Officer,demos-cms-user,demonstration_not_loaded
+812,2620,Project Officer,demos-cms-user,demonstration_not_loaded
+812,2628,Project Officer,demos-cms-user,demonstration_not_loaded
+812,2629,Project Officer,demos-cms-user,demonstration_not_loaded
+812,2633,Project Officer,demos-cms-user,demonstration_not_loaded
+820,2547,Policy Technical Director,demos-cms-user,demonstration_not_loaded
+820,2552,Monitoring & Evaluation Technical Director,demos-cms-user,demonstration_not_loaded
+820,2559,Policy Technical Director,demos-cms-user,demonstration_not_loaded
+820,2560,Project Officer,demos-cms-user,demonstration_not_loaded
+820,2561,Project Officer,demos-cms-user,demonstration_not_loaded
+820,2568,Project Officer,demos-cms-user,demonstration_not_loaded
+820,2569,Project Officer,demos-cms-user,demonstration_not_loaded
+820,2570,Project Officer,demos-cms-user,demonstration_not_loaded
+820,2581,Project Officer,demos-cms-user,demonstration_not_loaded
+820,2583,Project Officer,demos-cms-user,demonstration_not_loaded
+820,2584,Project Officer,demos-cms-user,demonstration_not_loaded
+820,2586,Project Officer,demos-cms-user,demonstration_not_loaded
+820,2587,Project Officer,demos-cms-user,demonstration_not_loaded
+820,2597,Project Officer,demos-cms-user,demonstration_not_loaded
+820,2608,DDME Analyst,demos-cms-user,demonstration_not_loaded
+820,2609,Project Officer,demos-cms-user,demonstration_not_loaded
+820,2610,Project Officer,demos-cms-user,demonstration_not_loaded
+820,2612,Project Officer,demos-cms-user,demonstration_not_loaded
+820,2634,Project Officer,demos-cms-user,demonstration_not_loaded
+821,2545,Project Officer,demos-cms-user,demonstration_not_loaded
+821,2546,Project Officer,demos-cms-user,demonstration_not_loaded
+821,2552,Project Officer,demos-cms-user,demonstration_not_loaded
+9188,2604,Monitoring & Evaluation Technical Director,demos-cms-user,demonstration_not_loaded
+9211,2547,State Point of Contact,demos-state-user,demonstration_not_loaded
+9211,2547,State Point of Contact,demos-state-user,person_state_missing_for_state
+9211,2552,State Point of Contact,demos-state-user,demonstration_not_loaded
+9211,2552,State Point of Contact,demos-state-user,person_state_missing_for_state
+9211,2559,State Point of Contact,demos-state-user,demonstration_not_loaded
+9211,2559,State Point of Contact,demos-state-user,person_state_missing_for_state
+9211,2608,State Point of Contact,demos-state-user,demonstration_not_loaded
+9211,2608,State Point of Contact,demos-state-user,person_state_missing_for_state
+9227,2549,Project Officer,demos-cms-user,demonstration_not_loaded
+9227,2552,Policy Technical Director,demos-cms-user,demonstration_not_loaded
+9227,2553,Project Officer,demos-cms-user,demonstration_not_loaded
+9227,2576,Project Officer,demos-cms-user,demonstration_not_loaded
+9258,2581,Policy Technical Director,demos-cms-user,demonstration_not_loaded
+9281,2583,Project Officer,demos-cms-user,demonstration_not_loaded
+9281,2586,Project Officer,demos-cms-user,demonstration_not_loaded
+9291,1457,DDME Analyst,non-user-contact,person_type_not_permitted
+9293,2581,Project Officer,demos-cms-user,demonstration_not_loaded
+9301,1633,DDME Analyst,non-user-contact,person_state_missing_for_state
+9301,1633,DDME Analyst,non-user-contact,person_type_not_permitted
+9332,2544,Project Officer,demos-cms-user,demonstration_not_loaded
+10128,2544,Monitoring & Evaluation Technical Director,demos-cms-user,demonstration_not_loaded
+10161,1618,DDME Analyst,non-user-contact,person_state_missing_for_state
+10161,1618,DDME Analyst,non-user-contact,person_type_not_permitted
+10161,2239,DDME Analyst,non-user-contact,person_state_missing_for_state
+10161,2239,DDME Analyst,non-user-contact,person_type_not_permitted
+10161,2316,DDME Analyst,non-user-contact,person_state_missing_for_state
+10161,2316,DDME Analyst,non-user-contact,person_type_not_permitted
+10179,2606,Policy Technical Director,demos-cms-user,demonstration_not_loaded
+10191,2544,Policy Technical Director,demos-cms-user,demonstration_not_loaded
+10231,2583,DDME Analyst,demos-cms-user,demonstration_not_loaded
+10231,2586,DDME Analyst,demos-cms-user,demonstration_not_loaded
+10240,2547,Project Officer,demos-cms-user,demonstration_not_loaded
+10240,2552,Project Officer,demos-cms-user,demonstration_not_loaded
+10240,2559,Project Officer,demos-cms-user,demonstration_not_loaded
+10240,2582,Project Officer,demos-cms-user,demonstration_not_loaded
+10251,2581,Monitoring & Evaluation Technical Director,demos-cms-user,demonstration_not_loaded
+10279,2552,State Point of Contact,demos-state-user,demonstration_not_loaded
+10279,2552,State Point of Contact,demos-state-user,person_state_missing_for_state
+10295,2580,Monitoring & Evaluation Technical Director,demos-cms-user,demonstration_not_loaded
+10295,2587,DDME Analyst,demos-cms-user,demonstration_not_loaded
+10295,2596,DDME Analyst,demos-cms-user,demonstration_not_loaded
+10295,2630,Project Officer,demos-cms-user,demonstration_not_loaded
+10304,2552,Monitoring & Evaluation Technical Director,demos-cms-user,demonstration_not_loaded
+10304,2559,Monitoring & Evaluation Technical Director,demos-cms-user,demonstration_not_loaded
+10304,2582,Monitoring & Evaluation Technical Director,demos-cms-user,demonstration_not_loaded
+10304,2608,Monitoring & Evaluation Technical Director,demos-cms-user,demonstration_not_loaded
+10333,2544,Monitoring & Evaluation Technical Director,demos-cms-user,demonstration_not_loaded
+10333,2586,Monitoring & Evaluation Technical Director,demos-cms-user,demonstration_not_loaded
+10340,2552,DDME Analyst,demos-cms-user,demonstration_not_loaded
+10340,2559,DDME Analyst,demos-cms-user,demonstration_not_loaded
+10340,2580,DDME Analyst,demos-cms-user,demonstration_not_loaded
+10340,2608,DDME Analyst,demos-cms-user,demonstration_not_loaded
+10340,2610,DDME Analyst,demos-cms-user,demonstration_not_loaded
+10340,2619,DDME Analyst,demos-cms-user,demonstration_not_loaded
+10377,2590,Project Officer,demos-cms-user,demonstration_not_loaded
+10377,2604,Project Officer,demos-cms-user,demonstration_not_loaded
+10377,2605,Project Officer,demos-cms-user,demonstration_not_loaded
+10377,2622,Project Officer,demos-cms-user,demonstration_not_loaded
+10380,2544,DDME Analyst,demos-cms-user,demonstration_not_loaded
+10396,2604,Monitoring & Evaluation Technical Director,demos-cms-user,demonstration_not_loaded
+10396,2606,Monitoring & Evaluation Technical Director,demos-cms-user,demonstration_not_loaded
+10403,1458,DDME Analyst,non-user-contact,person_type_not_permitted
+10403,1639,DDME Analyst,non-user-contact,person_type_not_permitted
+10427,2605,Monitoring & Evaluation Technical Director,demos-cms-user,demonstration_not_loaded
+10427,2606,Monitoring & Evaluation Technical Director,demos-cms-user,demonstration_not_loaded
+10447,2582,DDME Analyst,demos-cms-user,demonstration_not_loaded
+10451,2557,Project Officer,demos-cms-user,demonstration_not_loaded
+10451,2559,Project Officer,demos-cms-user,demonstration_not_loaded
+10451,2582,Project Officer,demos-cms-user,demonstration_not_loaded
+10451,2596,Project Officer,demos-cms-user,demonstration_not_loaded
+10451,2608,Project Officer,demos-cms-user,demonstration_not_loaded
+10451,2611,Project Officer,demos-cms-user,demonstration_not_loaded
+10451,2614,Project Officer,demos-cms-user,demonstration_not_loaded
+10456,2461,DDME Analyst,non-user-contact,person_type_not_permitted
+10456,2583,Monitoring & Evaluation Technical Director,non-user-contact,demonstration_not_loaded
+10456,2583,Monitoring & Evaluation Technical Director,non-user-contact,person_state_missing_for_state
+10456,2583,Monitoring & Evaluation Technical Director,non-user-contact,person_type_not_permitted
+10456,2587,Monitoring & Evaluation Technical Director,non-user-contact,demonstration_not_loaded
+10456,2587,Monitoring & Evaluation Technical Director,non-user-contact,person_state_missing_for_state
+10456,2587,Monitoring & Evaluation Technical Director,non-user-contact,person_type_not_permitted
+10487,2604,Project Officer,demos-cms-user,demonstration_not_loaded
+10493,1840,DDME Analyst,non-user-contact,person_type_not_permitted
+10498,2596,Monitoring & Evaluation Technical Director,demos-cms-user,demonstration_not_loaded
+10508,2536,State Point of Contact,demos-cms-user,person_type_not_permitted
+10514,1619,DDME Analyst,non-user-contact,person_type_not_permitted
+10514,2233,DDME Analyst,non-user-contact,person_state_missing_for_state
+10514,2233,DDME Analyst,non-user-contact,person_type_not_permitted
+10514,2521,DDME Analyst,non-user-contact,person_type_not_permitted
+10520,2581,DDME Analyst,demos-cms-user,demonstration_not_loaded
+10538,1620,DDME Analyst,non-user-contact,person_type_not_permitted
+10538,1818,DDME Analyst,non-user-contact,person_type_not_permitted
+10544,1642,DDME Analyst,non-user-contact,person_state_missing_for_state
+10544,1642,DDME Analyst,non-user-contact,person_type_not_permitted
+10545,2559,State Point of Contact,demos-state-user,demonstration_not_loaded
+10545,2559,State Point of Contact,demos-state-user,person_state_missing_for_state
+10550,2461,DDME Analyst,non-user-contact,person_type_not_permitted
+10557,2232,DDME Analyst,non-user-contact,person_type_not_permitted
+10574,2587,Project Officer,demos-cms-user,demonstration_not_loaded
+10582,2606,DDME Analyst,demos-cms-user,demonstration_not_loaded
+10584,2596,Project Officer,demos-cms-user,demonstration_not_loaded
+10586,2569,DDME Analyst,non-user-contact,demonstration_not_loaded
+10586,2569,DDME Analyst,non-user-contact,person_state_missing_for_state
+10586,2569,DDME Analyst,non-user-contact,person_type_not_permitted
+10598,2441,DDME Analyst,non-user-contact,person_type_not_permitted
+10598,2449,DDME Analyst,non-user-contact,person_type_not_permitted
+10598,2526,DDME Analyst,non-user-contact,person_type_not_permitted
+10624,2582,Policy Technical Director,demos-cms-user,demonstration_not_loaded
+10626,2596,Policy Technical Director,demos-cms-user,demonstration_not_loaded
+10657,2457,DDME Analyst,non-user-contact,person_type_not_permitted
+10676,1456,DDME Analyst,non-user-contact,person_state_missing_for_state
+10676,1456,DDME Analyst,non-user-contact,person_type_not_permitted
+10676,1818,DDME Analyst,non-user-contact,person_state_missing_for_state
+10676,1818,DDME Analyst,non-user-contact,person_type_not_permitted
+10676,2266,DDME Analyst,non-user-contact,person_state_missing_for_state
+10676,2266,DDME Analyst,non-user-contact,person_type_not_permitted
+10678,1620,DDME Analyst,non-user-contact,person_type_not_permitted
+10682,1786,DDME Analyst,non-user-contact,person_type_not_permitted
+10695,1642,DDME Analyst,non-user-contact,person_state_missing_for_state
+10695,1642,DDME Analyst,non-user-contact,person_type_not_permitted
+10695,1654,DDME Analyst,non-user-contact,person_state_missing_for_state
+10695,1654,DDME Analyst,non-user-contact,person_type_not_permitted
+10695,2232,DDME Analyst,non-user-contact,person_state_missing_for_state
+10695,2232,DDME Analyst,non-user-contact,person_type_not_permitted
+10697,2605,DDME Analyst,demos-cms-user,demonstration_not_loaded
+10716,1486,DDME Analyst,non-user-contact,person_type_not_permitted
+10729,2457,DDME Analyst,non-user-contact,person_type_not_permitted
+10729,2631,DDME Analyst,non-user-contact,person_type_not_permitted
+10731,1943,DDME Analyst,non-user-contact,person_type_not_permitted
+10898,2266,DDME Analyst,non-user-contact,person_type_not_permitted
+10907,2449,DDME Analyst,non-user-contact,person_type_not_permitted

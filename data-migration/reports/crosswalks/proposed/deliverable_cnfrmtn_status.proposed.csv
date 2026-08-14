@@ -1,0 +1,4 @@
+legacy_int_cd,legacy_name,proposed_demos_text_id,confidence,sme_confirmed_value,notes
+0,N/A,,n/a,,"sentinel; map to NULL"
+1,Not Ready,,none,,"DDL-confirmed: no confirmation-status table/enum exists in schema; readiness is implicit in the action timeline"
+2,Ready for CMS Review,,none,,"DDL-confirmed: no confirmation-status table/enum exists in schema; modeled by action events, not a stored status"

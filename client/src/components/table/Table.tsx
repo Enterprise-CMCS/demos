@@ -190,15 +190,7 @@ export function Table<T extends { id: string }>({
 
   // On data update, remove rows from selection if they no longer exist in the table
   React.useEffect(() => {
-    setRowSelection((prev) => {
-      const validRowIds = new Set(table.getRowModel().rows.map((r) => r.id));
-
-      const filtered = Object.fromEntries(
-        Object.entries(prev).filter(([key]) => validRowIds.has(key))
-      );
-
-      return filtered;
-    });
+    setRowSelection({});
   }, [data]);
 
   return (

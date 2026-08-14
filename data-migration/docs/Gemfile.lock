@@ -1,0 +1,52 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    asciidoctor (2.0.26)
+    asciidoctor-diagram (2.3.2)
+      asciidoctor (>= 1.5.7, < 3.x)
+      asciidoctor-diagram-ditaamini (~> 1.0)
+      asciidoctor-diagram-plantuml (~> 1.2021)
+      rexml
+    asciidoctor-diagram-batik (1.19)
+    asciidoctor-diagram-ditaamini (1.0.3)
+    asciidoctor-diagram-plantuml (1.2025.3)
+      asciidoctor-diagram-batik (~> 1.17)
+    asciidoctor-revealjs (5.2.0)
+      asciidoctor (>= 2.0.0, < 3.0.0)
+    kramdown (2.4.0)
+      rexml
+    kramdown-asciidoc (2.1.1)
+      kramdown (~> 2.4.0)
+      kramdown-parser-gfm (~> 1.1.0)
+    kramdown-parser-gfm (1.1.0)
+      kramdown (~> 2.0)
+    rexml (3.4.4)
+    rouge (4.7.0)
+
+PLATFORMS
+  ruby
+  x86_64-linux-gnu
+
+DEPENDENCIES
+  asciidoctor (~> 2.0)
+  asciidoctor-diagram (~> 2.3)
+  asciidoctor-revealjs (~> 5.1)
+  kramdown-asciidoc (~> 2.1)
+  rouge (~> 4.2)
+
+CHECKSUMS
+  asciidoctor (2.0.26) sha256=16e3accf1fc206bbd6335848649d7fd65f31d2daa60d85af13d47a8ee4b071c1
+  asciidoctor-diagram (2.3.2) sha256=837e978032b53c4ee7d42e9b29ff4100d32a7cb86ab3ec5d56fa0dc9c4dbffe9
+  asciidoctor-diagram-batik (1.19) sha256=d16df4143913fd2e167ec83e3bac4fcc4b1e57f575fe44189a7532fa6ffa59ca
+  asciidoctor-diagram-ditaamini (1.0.3) sha256=a630b2a80ee049a35ed39bc93ba33b571996381215583cc73f0c1ebcdc2a068e
+  asciidoctor-diagram-plantuml (1.2025.3) sha256=7d1550d25bd222b34634f78fb94295cf8e2c889777eae9e1b1bcd2d6f101a43f
+  asciidoctor-revealjs (5.2.0) sha256=3504a5e7eaf2c91de37f96189314ffb1e6bf94dad9d646d5c9a24c6691bf6ae2
+  bundler (4.0.13) sha256=19f08be7f27022cf0b89f27da0b044ae075e8270a9ef44ad248a932614e1ca3b
+  kramdown (2.4.0) sha256=b62e5bcbd6ea20c7a6730ebbb2a107237856e14f29cebf5b10c876cc1a2481c5
+  kramdown-asciidoc (2.1.1) sha256=5823c2d8b6e8770773f701b08fb34fbe3e04e95d5eb9f7308379439b33c4f89f
+  kramdown-parser-gfm (1.1.0) sha256=fb39745516427d2988543bf01fc4cf0ab1149476382393e0e9c48592f6581729
+  rexml (3.4.4) sha256=19e0a2c3425dfbf2d4fc1189747bdb2f849b6c5e74180401b15734bc97b5d142
+  rouge (4.7.0) sha256=dba5896715c0325c362e895460a6d350803dbf6427454f49a47500f3193ea739
+
+BUNDLED WITH
+  4.0.13

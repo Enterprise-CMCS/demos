@@ -96,7 +96,7 @@ export class DBRoleStack extends Stack {
       securityGroup: dbRoleManagementSecurityGroup.securityGroup,
       asCode: false,
       externalModules: ["@aws-sdk"],
-      nodeModules: ["pg", "pino"],
+      nodeModules: ["pg"],
       timeout: Duration.minutes(2),
       environment: {
         DATABASE_SECRET_ARN: `demos-${props.hostEnvironment}-rds-admin`, // pragma: allowlist secret

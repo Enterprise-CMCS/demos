@@ -1,0 +1,58 @@
+= Explanation: history is DEMOS-owned, not migrated
+
+The `demos_app.*_history` tables are *owned by DEMOS*, both the schema and
+the rows. This migration does **not** populate them: every
+`demos_app.*_history` table is left empty at cutover, and DEMOS fills it
+from cutover forward.
+
+[IMPORTANT]
+====
+We do not own the history schema, its triggers, *or* its rows. The Prisma
+baseline defines the `*_history` tables and the `revision_type_enum`; the
+`log_changes_*` capture triggers live in the DEMOS repo
+(`server/src/sql/history_triggers.sql`) and are installed by the operator
+via `refreshDbObjects.ts` after constraints (P5). Once those triggers are
+live, every insert/update/delete on a parent row writes its own
+`revision_type` (`I`/`U`/`D`) revision.
+====
+
+== Why the migration does not backfill
+
+Per the SMEs, the DEMOS history tables do not have to be populated at
+cutover; DEMOS triggers history-row creation on its own. Seeding initial
+rows ourselves would only duplicate work the application performs anyway,
+and any row written before the capture triggers were installed would not
+match the trigger's own first-write semantics. Leaving the tables empty is
+the source-of-truth-aligned outcome.
+
+This removed the former P4 `history` phase, the `sql/22_app_history/`
+backfill transforms, and the `history` cutover gate. The cutover sequence
+now runs `build_app -> constraints` with no history step in between.
+
+== The DEMOS history shape
+
+Each `*_history` table is `revision_id SERIAL` (PK, auto-assigned),
+`revision_type revision_type_enum ('I','U','D')`, `modified_at
+timestamptz`, then the parent row's columns (mirroring the parent's
+nullability). The tables ship empty in the pinned Prisma artifact and stay
+empty through this pipeline; the first capture-trigger revision after
+cutover is the table's first row.
+
+== Related
+
+* xref:reference-id-maps.adoc[id maps]
+* xref:../sme/reference-history-strategy.adoc[SME reference: history
+  strategy]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:explanation-fk-strategy.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:explanation-demos-clone-vs-id-maps.adoc[next >]
+|===
+endif::[]
+// docnav-end

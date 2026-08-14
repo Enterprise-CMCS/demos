@@ -1,0 +1,5 @@
+legacy_int_cd,legacy_name,demos_text_id,notes
+1,Pending,Under Review,in-session accepted 2026-06-26; could also be Pre-Submission (SME ratify)
+2,Approved,Approved,DDL-confirmed identity (application_status seed)
+3,Withdrawn,Withdrawn,DDL-confirmed identity (application_status seed)
+4,Disapproved,Denied,Disapproved approx Denied (semantic approximation)

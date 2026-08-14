@@ -1,0 +1,25 @@
+= Reference: pending/approved rules
+
+Live contents of `reports/narrative/pending_approved_decisions.md`. Each row is
+a rule for how a MySQL `mdcd_<x>` / `mdcd_pendg_<x>` pair collapses
+into the DEMOS `application` flow.
+
+include::../shared/generated/live/pending-approved-decisions.adoc[]
+
+== Authoring
+
+See xref:howto-review-pending-approved-decisions.adoc[the SME
+how-to] for the review checklist and the default rule.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-pgm-dtl-tag-mapping.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-history-strategy.adoc[next >]
+|===
+endif::[]
+// docnav-end

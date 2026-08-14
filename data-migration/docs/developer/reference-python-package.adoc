@@ -1,0 +1,116 @@
+= Reference: Python package
+
+The `migration/` package is a small, opinionated orchestrator. This
+page catalogs the public surface.
+
+== Layout
+
+[cols="2,5"]
+|===
+| Path | Role
+
+| `migration/__init__.py` | Empty marker.
+| `migration/cli.py` | Typer CLI app; one `@app.command` per phase.
+| `migration/lib.py` | Shared helpers (env, gates, psql + pgloader wrappers, template render).
+| `migration/duck.py` | `migrate analyze` -- offline DuckDB analysis over `reports/schema_snapshot/` and Parquet companions; also backs the load-fidelity and prod-schema-guard scanners.
+| `migration/prisma_schema.py` | Parses the declarative `.prisma` model-file artifact (cached by `fetch_prisma_schema`) for `migrate fk-candidates` cross-validation.
+| `migration/secrets.py` | Secrets Manager resolution of the DEMOS RDS admin DSN when `PG_URL` is unset.
+| `migration/phases/init_pg.py` | `migrate init`, `migrate ddl`, `migrate seeds`, `migrate crosswalks`, `migrate id-maps`. `run_ddl` runs the prod-schema guard against `REFERENCE_PG_URL` (HOLD on drift), fetches the Prisma artifact, resets `demos_app`, applies it, captures Prisma FKs to `state/prisma_fks.json` and drops them, applies `sql/01_ddl_supplements/`, then captures the Prisma-seeded reference tables to `state/prisma_seeded_tables.json` for `build_app`'s truncation guard.
+| `migration/phases/fetch_prisma.py` | `migrate fetch-prisma`. Lists Prisma migration directories in `$PRISMA_REPO@$PRISMA_REPO_REF` via the GitHub Contents API, fetches each `migration.sql` from `raw.githubusercontent.com`, concatenates them chronologically (with banner comments separating each migration), verifies the SHA256 against `reports/prisma_ddl.sha256`, caches the result under `state/prisma_ddl/<sha>.sql`, and writes provenance (repo, ref, ordered migration list, sha256, fetched_at) to `reports/prisma_ddl_source.txt`. Reused by `run_ddl` and the P0.5 preflight check; on cache hit, no network call is made.
+| `migration/phases/fetch_prisma_schema.py` | `migrate fetch-prisma-schema`. Lists the declarative `.prisma` model files under `$PRISMA_SCHEMA_PATH` in `$PRISMA_REPO@$PRISMA_REPO_REF` via the GitHub Trees API, fetches each, concatenates them path-sorted, verifies the SHA256 against `reports/prisma_schema.sha256`, caches the result under `state/prisma_schema/<sha>.sql`, and writes provenance to `reports/prisma_schema_source.txt`. Read-only cross-validation input for `migrate fk-candidates` (parsed by `migration/prisma_schema.py`); off the cutover apply path. On cache hit, no network call is made.
+| `migration/phases/load_full.py` | `migrate load-full` -- pgloader full load.
+| `migration/phases/load_delta.py` | `migrate delta` -- pgloader delta load.
+| `migration/phases/load_fidelity.py` | `migrate load-fidelity` -- non-gating DuckDB check (`mysql_scanner` + `postgres_scanner`) that diffs live MySQL vs `mysql_raw` row counts after the full or delta load.
+| `migration/phases/fk_candidates.py` | `migrate fk-candidates` -- regenerate `reports/generated/fk_candidates.csv`.
+| `migration/phases/schema_snapshot.py` | `migrate schema-snapshot` -- read the live MySQL `information_schema` via the DuckDB MySQL passthrough (read-only) and write metadata CSVs (columns, enums, FKs, views, indexes, triggers, table stats) to `reports/schema_snapshot/`. Captures the enum domains, declared FKs, and view bodies that pgloader drops when loading `mysql_raw`.
+| `migration/phases/reference_data.py` | `migrate reference-data` -- the row-data companion to the snapshot: dump every `*_rfrnc` lookup table's rows and the source views' result sets (read-only, via the same DuckDB passthrough) to `reports/reference_data/`. The authoritative value domains for authoring `04_crosswalks` (the source declares no enums).
+| `migration/phases/preflight.py` | P0. P0.5 verifies the Prisma DDL artifact named by `reports/prisma_ddl.sha256` is cached locally so cutover does not depend on network access. P0.6 runs the prod-schema guard against `REFERENCE_PG_URL` (HOLD on schema/seed/emptiness drift). P0.7 is the manual backup-operator confirmation. Any automated failure `die()`s.
+| `migration/phases/freeze.py` | P1; writes `state/freeze_instant.txt`; inserts row into `mysql_raw._delta_log`.
+| `migration/phases/build.py` | P3 (`build_stg` + `build_app`).
+| `migration/phases/constraints.py` | P5; reads `state/prisma_fks.json` and re-creates each captured FK as `NOT VALID` (regex-guards the `FOREIGN KEY` definition before splicing); psycopg `Identifier`-quoted `VALIDATE CONSTRAINT` loop; writes `state/fk_violations.csv`.
+| `migration/phases/parity.py` | P6; `ParityReport` dataclass; `--accept-pending` flag.
+| `migration/phases/flip.py` | P7; tenacity-backed healthz with scheme allowlist.
+| `migration/phases/smoke.py` | P8 (manual checklist).
+| `migration/phases/decom.py` | P10.
+| `migration/phases/rollback.py` | Rollback the flip.
+| `migration/phases/diagnose.py` | `migrate diagnose` -- read-only triage: best-effort aggregate of the non-gating probes (parity report-only via `build_parity_report` + load-fidelity) into `reports/runs/diagnose_<stamp>.md`. Marks no gates and exits 0 even when a probe's prerequisites are missing.
+| `migration/phases/prod_schema_guard.py` | `migrate verify-prod-schema` -- the standalone prod-schema guard entrypoint (also called from `preflight` P0.6 and `run_ddl` before the rebuild DROP). DuckDB `postgres_scanner` dual-attaches the live target and `REFERENCE_PG_URL`, diffs schema, Prisma-seeded rows, and emptiness, and HOLDs on drift.
+| `migration/phases/verify_prisma_local.py` | `migrate verify-prisma-local` -- assert the local `../demos` migration set matches the pinned Prisma manifest; die on drift.
+|===
+
+== `lib.py` surface
+
+[cols="2,5"]
+|===
+| Symbol | Purpose
+
+| `Env(BaseSettings)` | Snapshot of `PG_URL`, `REFERENCE_PG_URL`, `MYSQL_URL`, `MYSQL_DB`, `PG_DB`, `DEMOS_ENV`, `DB_SECRET_NAME`, `DB_NAME`, `AWS_REGION`, `RDS_CA_BUNDLE_URL`, `NEW_APP_HEALTHZ_URL`, `PRISMA_REPO`, `PRISMA_REPO_REF`, `PRISMA_MIGRATIONS_PATH`, `PRISMA_SCHEMA_PATH`, `GITHUB_TOKEN` from env / `.env`. See xref:../operator/reference-environment.adoc[environment variables] for the per-field semantics.
+| `Env.load()` | Cached factory; first call reads, later calls return the same instance.
+| `reset_env_cache()` | Test-only; drops the cache.
+| `ROOT_DIR`, `SQL_DIR`, `PGLOADER_DIR`, `SCRIPTS_DIR`, `REPORTS_DIR`, `RUNBOOKS_DIR`, `STATE_DIR`, `RUNS_DIR` (`reports/runs/`) | Path constants relative to the repo root. `RUNS_DIR` holds timestamped run artifacts (parity reports, pgloader logs, diagnose output, filter reports, load-fidelity checks).
+| `CA_BUNDLE_FILE` (`state/rds-ca.pem`) | Cached RDS CA bundle for `sslmode=verify-full`; fetched on demand when resolving the DEMOS RDS DSN.
+| `PRISMA_CACHE_DIR` (`state/prisma_ddl/`), `PRISMA_PIN_FILE` (`reports/prisma_ddl.sha256`), `PRISMA_SOURCE_FILE` (`reports/prisma_ddl_source.txt`), `PRISMA_FKS_FILE` (`state/prisma_fks.json`), `PRISMA_DDL_MANIFEST_FILE` (`reports/prisma_ddl.manifest.json`) | Path constants for the Prisma DDL pipeline. The manifest carries per-migration content digests consumed by `verify-prisma-local`.
+| `PRISMA_SCHEMA_CACHE_DIR` (`state/prisma_schema/`), `PRISMA_SCHEMA_PIN_FILE` (`reports/prisma_schema.sha256`), `PRISMA_SCHEMA_SOURCE_FILE` (`reports/prisma_schema_source.txt`) | Path constants for the declarative `.prisma` model-file pipeline (FK cross-validation).
+| `PRISMA_SEEDED_TABLES_FILE` (`state/prisma_seeded_tables.json`) | Tables seeded by the Prisma artifact, excluded from `truncate_schema_data` during `build_app`.
+| `console`, `stdout_console` | Rich consoles. `console` is stderr (logs); `stdout_console` is stdout (tables).
+| `redact(s)` | Mask passwords in connection strings before logging.
+| `ts()`, `file_stamp()` | UTC timestamps for logs / filenames.
+| `log(msg)`, `die(msg)` | Operator-facing log + `sys.exit(1)`.
+| `set_verbose(enabled)`, `verbose_enabled()`, `debug_log(msg)` | Verbose-diagnostics knob. `set_verbose` is the process override set by the CLI `--verbose/-v` flag (wins over the `VERBOSE` env var); `verbose_enabled` reports the effective state; `debug_log` is a `log` that emits only when verbose. Never changes gate or exit behavior.
+| `progress_for(total, description)`, `progress_spinner(description)` | Context managers yielding a Rich progress handle (determinate bar / indeterminate spinner) on the stderr console when interactive; yield a null handle otherwise so non-interactive output is unchanged.
+| `mark_gate(name)`, `require_gate(name)`, `clear_gate(name)`, `list_gates()` | Gate primitives.
+| `phase(name, requires=..., mark=True)` | Decorator: `require_gate` on entry; `mark_gate` on clean exit.
+| `PHASE_REQUIRES` | Registry mapping phase name to its required gate names, populated by the `phase()` decorator and read by the gate-graph tests.
+| `confirm(prompt, expected)` | Prompt; refuses with `MIGRATE_NONINTERACTIVE=1`.
+| `run(cmd, **kwargs)` | `subprocess.run` wrapper that streams output and redacts logs.
+| `run_teed(cmd, log_path, *, on_line=None)` | Run `cmd`, tee combined stdout+stderr byte-for-byte into `log_path` (so parsers like `assert_pgloader_ok` see exactly what the child emitted); `on_line` gets each decoded line for best-effort live UI. Hard-fails on non-zero exit.
+| `assert_pgloader_ok(log_path)` | Parse a captured pgloader log; `die` on fatal markers or a non-zero error count (pgloader exits 0 even on per-table failures).
+| `require_pgloader(env)` | Fail early with an actionable message when a load cannot run: missing `pgloader` binary on PATH, or unset `MYSQL_URL`.
+| `pgloader_runner_problem(env)` | Return an actionable message when the configured pgloader runner is unusable (missing jar/binary); `None` when OK. Used by `preflight` P0.4.
+| `skip_jsonschema()` | True when the build should not require the `pg_jsonschema` extension (set `SKIP_JSONSCHEMA=1` for stock Postgres).
+| `strip_pgloader_comments(text)` | Drop C-style `/* */` block comments the pgloader v4 (JVM) command parser cannot handle.
+| `pgloader_argv(rendered)` | Build the `pgloader` argv for a rendered `.load` file, prepending SBCL's `--dynamic-space-size` (MB) so the Lisp heap survives a full load. Defaults to 4096 MB; override per host via `PGLOADER_DYNAMIC_SPACE_MB`.
+| `read_drop_list(path=None)` | Parse `pgloader/drop_list.txt` (or a given path); strip `#` comments and blanks. Shared by the full and delta loads.
+| `excluding_block(path=None)` | Render the drop list as pgloader's `EXCLUDING TABLE NAMES MATCHING (...)` clause; empty string when the list is empty.
+| `cast_block(path=None)` | Return the shared CAST block from `pgloader/casts.load`; rendered into both the full and delta loads so type coercion never diverges.
+| `psql_file(env, path)` | One file, autocommit.
+| `psql_files(env, files, pre_sql)` | Multiple files in one transaction with optional preamble.
+| `psql_command(env, sql)` | One literal SQL string, autocommit.
+| `psql_query(env, sql, params)` | Query returning rows; literal SQL only.
+| `psql_exec_composed(env, query)` | `psycopg.sql.Composed`/`SQL` execution (safe DDL with identifier quoting).
+| `apply_dir(env, dir, expect_files)` | Apply every `*.sql` in lexical order; one connection, file-per-transaction autocommit.
+| `copy_csv_into_table(conn, schema, table, csv_path, *, header_expect)` | TRUNCATE + COPY a CSV into `<schema>.<table>`; empty cells -> NULL. Dies on missing file or (when `header_expect` set) header mismatch. Shared by the crosswalks phase and the filter-override loader.
+| `require_schema(env, schema)` | Hard-fail if a schema is not present.
+| `truncate_schema_data(env, schema, exclude_patterns, exclude_tables)` | TRUNCATE every base table in a schema, minus `exclude_patterns` (LIKE) and `exclude_tables` (exact names) -- both identifier-guarded.
+| `render_template(template, output, substitutions)` | Jinja2 with `StrictUndefined`; output `chmod 0600`.
+| `PHASES` | Canonical phase order tuple.
+|===
+
+== Conventions
+
+* All `psql_*` calls take literal SQL authored in code. Identifiers
+  are interpolated via `psycopg.sql.Identifier`; values via `params`.
+  See `truncate_schema_data` for the canonical example of identifier
+  + LIKE-pattern guards.
+* All phases use the `@phase()` decorator unless they need to mark
+  their gate manually (parity does this).
+* `console` prints go to stderr so `migrate status` (which uses
+  `stdout_console`) is pipeable.
+
+== Related
+
+* xref:howto-add-a-phase.adoc[Add a phase]
+* xref:explanation-why-python-not-bash.adoc[Why Python over bash]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-pipeline-stages.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-templates.adoc[next >]
+|===
+endif::[]
+// docnav-end

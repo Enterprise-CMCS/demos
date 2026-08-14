@@ -23,7 +23,7 @@
   "disclaimerURL": "",
   "disclaimerText": "",
   "vcs": "git",
-  "laborHours": 18047,
+  "laborHours": 21959,
   "reuseFrequency": {
     "forks": 0,
     "clones": 0
@@ -41,16 +41,18 @@
   "softwareType": "standalone/web",
   "languages": [
     "TypeScript",
+    "Python",
     "PLpgSQL",
     "Mermaid",
     "Shell",
     "JavaScript",
-    "Python",
+    "Makefile",
     "Groovy",
     "CSS",
+    "HTML",
     "ZAP",
-    "Dockerfile",
-    "HTML"
+    "Ruby",
+    "Dockerfile"
   ],
   "maintenance": "contract",
   "contractNumber": [
@@ -62,8 +64,8 @@
   "partners": [],
   "date": {
     "created": "2025-05-08T12:52:27Z",
-    "lastModified": "2026-06-30T19:56:41Z",
-    "metadataLastUpdated": "2026-07-01T00:22:09.180Z"
+    "lastModified": "2026-07-31T18:31:16Z",
+    "metadataLastUpdated": "2026-08-01T00:16:56.729Z"
   },
   "tags": [
     "PMDA",

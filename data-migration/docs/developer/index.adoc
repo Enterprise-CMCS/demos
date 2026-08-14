@@ -1,0 +1,82 @@
+= Developer book
+:toc: left
+
+The audience is the engineer extending the migration pipeline -- adding
+or changing SQL transforms, Python phases, pgloader rules, JSONB
+schemas, or tests.
+
+== Architecture
+
+include::../shared/architecture-overview.adoc[]
+
+== Pipeline stages
+
+include::../shared/pipeline-stage-map.adoc[]
+
+== Schemas
+
+include::../shared/schema-overview.adoc[]
+
+== Pages
+
+=== Tutorial
+
+* xref:tutorial-follow-an-entity.adoc[Follow a demonstration through the SQL]
+* xref:tutorial-add-a-new-transform.adoc[Add a new transform end-to-end]
+
+=== How-to
+
+* xref:howto-add-a-phase.adoc[Add a phase]
+* xref:howto-snapshot-source-schema.adoc[Snapshot the source schema]
+* xref:howto-dump-reference-data.adoc[Dump source reference data]
+* xref:howto-add-a-crosswalk.adoc[Add a crosswalk]
+* xref:howto-edit-pgloader-cast.adoc[Edit pgloader CAST rules]
+* xref:howto-promote-jsonb-schema.adoc[Promote a JSONB schema]
+* xref:howto-revalidate-jsonb.adoc[Revalidate a JSONB column]
+* xref:howto-write-a-parity-check.adoc[Write a parity check]
+* xref:howto-run-tests-locally.adoc[Run tests locally]
+
+=== Reference
+
+* xref:reference-pipeline-stages.adoc[Pipeline stages]
+* xref:reference-sql-conventions.adoc[SQL conventions]
+* xref:reference-python-package.adoc[Python package and `lib.py`]
+* xref:reference-templates.adoc[pgloader template contract]
+* xref:reference-fk-overrides-yaml.adoc[`fk_overrides.yaml`]
+* xref:reference-jsonb-schema-registry.adoc[JSONB schema registry]
+* xref:reference-prisma-ddl.adoc[Prisma DDL pipeline]
+* xref:reference-prisma-migration-analysis.adoc[Prisma migration analysis]
+* xref:reference-schema-diagrams.adoc[Generated schema diagrams]
+* xref:reference-id-maps.adoc[id maps]
+* xref:reference-data-dictionary.adoc[DEMOS data dictionary]
+* xref:reference-source-target-columns.adoc[Source/target column map]
+* xref:reference-derivability-audit.adoc[Derivability audit]
+* xref:reference-crosswalk-audit.adoc[Crosswalk audit (vs live PROD)]
+* xref:reference-users-person-migration.adoc[Users and person migration]
+* xref:reference-demonstration-role-migration.adoc[Demonstration role assignment migration]
+
+=== Explanation
+
+* xref:explanation-why-python-not-bash.adoc[Why Python over bash]
+* xref:explanation-idempotency.adoc[Idempotency]
+* xref:explanation-fk-strategy.adoc[FK strategy]
+* xref:explanation-history-backfill.adoc[History is DEMOS-owned, not migrated]
+* xref:explanation-demos-clone-vs-id-maps.adoc[The DEMOS clone tool vs. our id maps]
+* xref:explanation-api-validator-conformance.adoc[Conformance to the DEMOS API validator]
+
+== Glossary
+
+include::../shared/glossary.adoc[]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:../operator/explanation-rehearsal-strategy.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:tutorial-add-a-new-transform.adoc[next >]
+|===
+endif::[]
+// docnav-end

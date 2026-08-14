@@ -1,0 +1,49 @@
+{
+    "prettier.configPath": "client/.prettierrc",
+    "prettier.prettierPath": "./client/node_modules/prettier",
+    "prettier.requireConfig": true,
+    "python.testing.pytestEnabled": true,
+    "python.testing.cwd": "${workspaceFolder}/data/demos_data_tools",
+    "python.analysis.typeCheckingMode": "off",
+    "python.analysis.extraPaths": ["data/demos_data_tools"],
+    "python.defaultInterpreterPath": "/opt/demos-data/bin/python",
+    "python.terminal.activateEnvironment": false,
+    "mypy-type-checker.preferDaemon": false,
+    "mypy-type-checker.cwd": "${workspaceFolder}/data/demos_data_tools",
+    "sqlfluff.linter.run":"onType",
+    "sqlfluff.linter.delay": 500,
+    "sqlfluff.config": "${workspaceFolder}/data/.sqlfluff",
+    "sqlfluff.executablePath": "/opt/demos-data/bin/sqlfluff",
+    "[typescript]": {
+        "editor.insertSpaces": true,
+        "editor.indentSize": 2,
+        "editor.tabSize": 2,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+    },
+    "[typescriptreact]": {
+        "editor.insertSpaces": true,
+        "editor.indentSize": 2,
+        "editor.tabSize": 2,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+    },
+    "[javascript]": {
+        "editor.insertSpaces": true,
+        "editor.indentSize": 2,
+        "editor.tabSize": 2,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+    },
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll.ruff": "explicit"
+        }
+    },
+    "[sql]": {
+        "editor.defaultFormatter": "sqlfluff.vscode-sqlfluff",
+        "editor.formatOnSave": true
+    }
+}

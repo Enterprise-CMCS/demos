@@ -1,0 +1,82 @@
+= Reference: pgloader template contract
+
+The two pgloader files in `pgloader/` are Jinja2 templates rendered by
+`migration/phases/load_full.py` and `migration/phases/load_delta.py`
+into `state/<name>.rendered.load` (`chmod 0600`).
+
+== Markers
+
+[cols="2,1,5"]
+|===
+| Marker | Used in | Meaning
+
+| `{{MYSQL_URL}}` | `schema.load`, `delta.tmpl.load` | `Env.mysql_url` -- pgloader-style MySQL URI.
+| `{{PG_URL}}` | `schema.load`, `delta.tmpl.load` | `Env.pg_url_pgloader()` -- pgloader-style PostgreSQL URI (`sslmode=require`). The psycopg helpers use `Env.pg_url()` (`sslmode=verify-full`) instead; the two DSNs differ by SSL mode.
+| `{{MYSQL_DB}}` | `schema.load`, `delta.tmpl.load` | MySQL database name; the `ALTER SCHEMA '...' RENAME TO 'mysql_raw'` source.
+| `{{CAST_BLOCK}}` | `schema.load`, `delta.tmpl.load` | Shared `CAST ...` type-coercion block from `pgloader/casts.load` (`migration.lib.cast_block`), rendered identically into both loads so they never diverge.
+| `{{EXCLUDING_BLOCK}}` | `schema.load`, `delta.tmpl.load` | Rendered `EXCLUDING TABLE NAMES MATCHING (...)` clause computed from `pgloader/drop_list.txt` (`migration.lib.excluding_block`). Empty string when the drop list is empty. Both loads apply it so the delta never attempts the dropped tables.
+| `{{FREEZE_INSTANT}}` | `delta.tmpl.load` | UTC ISO timestamp from `state/freeze_instant.txt`.
+| `{{TABLES_BLOCK}}` | `delta.tmpl.load` | `INCLUDING ONLY TABLE NAMES MATCHING (...)` clause built by `load_delta._build_tables_block` from `pgloader/delta_tables.tsv`. Empty string when the manifest is empty.
+|===
+
+== Rendering rules
+
+* Jinja2 environment: `StrictUndefined`, `autoescape=False`,
+  `keep_trailing_newline=True`.
+* Any `{{KEY}}` not present in the substitution dict raises
+  `UndefinedError`. Half-rendered files do not ship.
+* PostgreSQL dollar-quoted blocks (`$$ ... $$`) and `%I` / `%s`
+  format markers are *not* Jinja sigils. They render through
+  unchanged.
+* Rendered file mode is `0o600` (operator-only readable). The
+  rendered file commonly contains expanded credentials.
+
+== AFTER LOAD blocks
+
+`schema.load` ships with an `AFTER LOAD DO ... $$;` block that adds
+`_loaded_at timestamptz NOT NULL DEFAULT now()` to every base table
+in `mysql_raw`. Any new SQL fragment that needs to run after the
+load goes inside this same block; pgloader expects a single block.
+
+`delta.tmpl.load` ships with an `AFTER LOAD DO ... $$;` block that
+updates `mysql_raw._delta_log` with the freeze instant and the
+table list.
+
+== Adding a new marker
+
+. Add the placeholder to the template (`{{NEW_KEY}}`).
+. In the corresponding phase (`load_full.py` /
+  `load_delta.py`), pass the value into `render_template`'s
+  `substitutions` argument.
+. Add a row to the table above.
+. Add a `tests/test_*.py` case that drives the new marker.
+
+== Verifying renders
+
+[source,sh]
+----
+ls -l state/schema.rendered.load   # mode 0600
+head -20 state/schema.rendered.load
+----
+
+The rendered file holds expanded credentials -- never paste it into
+a ticket.
+
+== Related
+
+* xref:howto-edit-pgloader-cast.adoc[Edit pgloader CAST rules]
+* xref:../operator/howto-troubleshoot-pgloader.adoc[Troubleshoot
+  pgloader]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-python-package.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-fk-overrides-yaml.adoc[next >]
+|===
+endif::[]
+// docnav-end

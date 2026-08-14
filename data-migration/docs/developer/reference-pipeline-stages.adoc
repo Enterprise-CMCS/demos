@@ -1,0 +1,128 @@
+= Reference: pipeline stages
+
+Authoritative ordering and ownership of the numbered SQL stages.
+
+include::../shared/pipeline-stage-map.adoc[]
+
+== File numbering inside each stage
+
+Files within a stage run in lexical order. By convention:
+
+[cols="2,5"]
+|===
+| Range | Use
+
+| `00-09` | Bootstrap / setup (e.g. `00_drop_list_check.sql` in `10_stg/`).
+| `10-29` | Identity / application core (`person`, `users`, `application`, `demonstration`, `amendment`, `extension`).
+| `30-49` | Tag system.
+| `50-69` | Deliverables, documents, comments.
+| `70-79` | Budget neutrality.
+| `80-89` | UiPath.
+| `90-99` | RBAC, phase associative.
+|===
+
+The same numbering applies inside `10_stg/`, `20_app/`,
+`30_constraints/`, etc. so the file at slot `13` in any stage refers
+to the same logical entity (`demonstration`). Stage `01` is the
+exception: the parent-table DDL is now a single Prisma-generated
+artifact (see below), and only the migration-private supplements
+follow the numbering convention.
+
+[NOTE]
+====
+The ranges above are the *intended* entity-slot map, not an invariant the
+checker enforces. Several early-landed files do not follow it yet: budget
+neutrality sits at slot `60` (`10_stg/60_budget_neutrality.sql`, not `70-79`),
+and the RBAC / associative loaders sit at slots `10-40` (`10_stg/24-25_*`,
+`21_app_associative/`, `23_app_derived/20-40_*`, not `90-99`). Treat the table
+as the target convention and consult the actual stage directory for the slot a
+given entity occupies today.
+====
+
+== Stage 01: Prisma DDL + supplements
+
+The DEMOS app team owns the `demos_app.*` schema (parent tables, columns,
+indexes, FKs, sequences) and publishes Prisma migrations under
+`$PRISMA_MIGRATIONS_PATH` (default `server/src/model/migrations`)
+in `$PRISMA_REPO@$PRISMA_REPO_REF` (default
+`Enterprise-CMCS/demos@main`). Each migration is its own
+timestamp-prefixed directory containing a single `migration.sql`.
+
+`migrate ddl` (via `migrate fetch-prisma`) lists those directories
+through the GitHub Contents API, fetches each `migration.sql` from
+`raw.githubusercontent.com`, concatenates them chronologically with
+banner comments separating each migration, and verifies the SHA256
+against `reports/prisma_ddl.sha256`. It then drops and re-creates
+`demos_app`, applies the cached artifact, captures every Prisma-emitted FK
+definition to `state/prisma_fks.json`, drops the FKs so the bulk
+build can run unconstrained, then applies `sql/01_ddl_supplements/*`
+in lexical order:
+
+* `00_jsonb_schema_registry.sql` -- `migration.jsonb_schemas`
+  registry, `migration.tg_validate_jsonb_against_registered_schema()`
+  trigger function, and the `migration.revalidate_jsonb(...)` helper.
+
+The `demos_app.*_history` tables are *not* supplements -- they ship in
+the Prisma artifact (DEMOS audit shape). This migration does not
+populate them: they are left empty for the DEMOS `log_changes_*`
+capture triggers to fill post-cutover. A prior `10_history_shadows.sql`
+that re-created them under a different convention was removed as
+superseded.
+
+Static-constraint and type-limiter tables are part of the Prisma
+artifact; this repo only seeds their data via `sql/02_seeds_static/`
+and `sql/03_seeds_limiters/`.
+
+== Idempotency contract
+
+Every stage is *re-runnable on the same upstream state*. The
+canonical idempotent patterns:
+
+* DDL: `CREATE TABLE IF NOT EXISTS` + `ALTER TABLE ... DROP CONSTRAINT
+  IF EXISTS ... ; ADD CONSTRAINT ...`.
+* Stage / app data: `TRUNCATE` then `INSERT`. No upsert. No
+  conditional partial inserts.
+* Id maps: `INSERT ... ON CONFLICT DO NOTHING` so re-running does
+  not regenerate UUIDs.
+* Crosswalks: `DROP TABLE IF EXISTS` + `CREATE TABLE` + inlined
+  `INSERT ... VALUES` (the pipeline applies SQL through psycopg, where
+  psql's `\copy` is unavailable).
+
+See xref:explanation-idempotency.adoc[explanation: idempotency] for
+the why.
+
+== Phases that consume each stage
+
+[cols="1,2,3"]
+|===
+| Stage | Consumed by | Notes
+
+| `00_init` | `migrate init` | Once per fresh cluster.
+| Prisma DDL artifact + `01_ddl_supplements` | `migrate ddl` (`migrate fetch-prisma` runs implicitly to populate `state/prisma_ddl/`) | Once per fresh cluster. `migrate ddl` `DROP SCHEMA demos_app CASCADE`s and re-creates it; the JSONB-registry supplement is itself idempotent. See xref:reference-prisma-ddl.adoc[reference: Prisma DDL pipeline] for the fetch + drift-detection details.
+| `02_seeds_static` + `03_seeds_limiters` | `migrate seeds` | After DDL.
+| `04_crosswalks` | `migrate crosswalks` | Requires CSVs in `reports/crosswalks/`.
+| `05_id_maps` | `migrate id-maps` | Requires `mysql_raw` populated.
+| `10_stg` | `build_stg` (inside `migrate build`) | Per-file autocommit on a shared psycopg connection.
+| `20_app` + `21_app_associative` + `23_app_derived` | `build_app` (inside `migrate build`) | One transaction with `SET CONSTRAINTS ALL DEFERRED`.
+| `30_constraints` + `31_constraint_triggers` + `32_app_triggers` + `40_indexes` + `50_sequences` | `migrate constraints` | FKs validated last; triggers attached after data.
+| `99_parity` | `migrate parity` | Pure-Postgres views/checks (`mysql_raw` vs `demos_app`).
+|===
+
+== Related
+
+* xref:explanation-idempotency.adoc[Idempotency]
+* xref:explanation-fk-strategy.adoc[FK strategy]
+* xref:reference-id-maps.adoc[id maps]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:howto-run-tests-locally.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-python-package.adoc[next >]
+|===
+endif::[]
+// docnav-end

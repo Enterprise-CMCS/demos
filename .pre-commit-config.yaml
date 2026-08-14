@@ -6,13 +6,27 @@ repos:
         args: ['--maxkb=2048']
       - id: no-commit-to-branch
       - id: check-case-conflict
+
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.24.2
     hooks:
       - id: gitleaks
+
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.5.0
     hooks:
     - id: detect-secrets
       args: ['--baseline', '.secrets.baseline']
+      exclude: '(data-migration/reports/prisma_ddl\.manifest\.json|data/migration/stage_pmda_for_migration/package-lock\.yml)'
 
+  - repo: https://github.com/jsh9/pydoclint
+    rev: 0.6.6
+    hooks:
+    - id: pydoclint
+      args: ["--config=data/demos-data-tools/pyproject.toml"]
+
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 4.2.2
+    hooks:
+      - id: sqlfluff-lint
+        files: ^data/migration/stage_pmda_for_migration/

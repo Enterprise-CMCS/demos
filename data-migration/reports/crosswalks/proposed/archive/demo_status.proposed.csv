@@ -1,0 +1,10 @@
+legacy_int_cd,legacy_name,proposed_demos_text_id,confidence,sme_confirmed_value,notes
+1,Pending,Pre-Submission,medium,Under Review,"resolved to Under Review per decision D1 (reports/narrative/pending_approved_decisions.md); Pre-Submission also valid in seed, secondary SME confirmation still wanted"
+2,Approved,Approved,high,Approved,DDL-confirmed direct match (application_status seed; demonstration.status_id FK)
+3,Under Review,Under Review,high,Under Review,DDL-confirmed direct match (application_status seed)
+4,Extended,Approved,medium,Approved,"stored status = Approved; the Extended display state is a date overlay (determineDemonstrationTypeStatus). REQUIRES migrating the effective/expiration dates so the overlay computes -- mapping to Approved alone loses the Extended distinction unless those dates come in"
+5,Temporarily Extended,Approved,medium,Approved,"see code 4: stored Approved + REQUIRES effective/expiration dates for the date overlay"
+6,Expired,Approved,medium,Approved,"stored status = Approved; Expired is a date overlay (expiration_date < now). REQUIRES the expiration_date to migrate or the row will not display as Expired"
+7,Extension Pending,Approved,medium,Approved,"stored status = Approved; pending extension surfaces via a separate extension entity/status, not this column. REQUIRES the extension record + dates to migrate"
+8,Demonstration Hold,On-hold,high,On-hold,DDL-confirmed direct match (application_status seed)
+9,Withdrawn,Withdrawn,high,Withdrawn,"DDL-confirmed direct match; NOTE Withdrawn is migration-only -- DEMOS has no in-app path to reach it (SME review)"

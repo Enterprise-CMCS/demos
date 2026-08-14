@@ -1,0 +1,25 @@
+[sqlfluff]
+# Lint-only. pgFormatter (pg_format) owns all layout and case; sqlfluff is
+# here for semantic nudges (references, ambiguity, structure, conventions) on
+# new and edited SQL. We never run `sqlfluff fix` in this repo -- see
+# docs/developer/reference-sql-conventions.adoc.
+dialect = postgres
+templater = raw
+# pg_format owns line wrapping; do not double-police it.
+max_line_length = 0
+# Excluded so the existing, pg_format'd codebase lints 100% green and sqlfluff
+# only surfaces NEW problems. Two groups:
+#   * layout, capitalisation         -- owned by pg_format
+#   * the rules below                -- established house style, intentional:
+#       AL01 table aliases without AS      AL03 unaliased column expressions
+#       AL09 explicit self-aliases         AM05 unqualified INNER/LEFT joins
+#       AM06 mixed qualification in GROUP BY  ST01 explicit ELSE NULL in CASE
+#       ST06 select-list column ordering   ST07 USING joins
+#       ST09 join-condition table order    RF02 unqualified column references
+#       RF04 reserved words as identifiers (DEMOS/legacy column names: name, desc, type)
+#       PG01 CREATE INDEX CONCURRENTLY (illegal in our in-transaction migration DDL)
+exclude_rules = layout, capitalisation, AL01, AL03, AL09, AM05, AM06, ST01, ST06, ST07, ST09, RF02, RF04, PG01
+
+[sqlfluff:indentation]
+indent_unit = space
+tab_space_size = 2

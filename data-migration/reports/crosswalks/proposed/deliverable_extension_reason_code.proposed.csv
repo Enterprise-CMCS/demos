@@ -1,0 +1,6 @@
+legacy_int_cd,legacy_name,proposed_demos_text_id,confidence,sme_confirmed_value,notes
+0,-- Please Select --,,n/a,,Legacy UI sentinel -> NULL
+1,Other,Other,high,,Verbatim identity with deliverable_extension_reason_code seed
+2,Covid-19,COVID-19,high,,"Identity modulo case normalization (Covid-19 -> COVID-19)"
+3,State Level Emergency,Other,medium,,"Lossy: no DEMOS target; collapse to Other (DEMOS keeps only COVID-19/Technical Difficulties/Other)"
+4,Technical Difficulties,Technical Difficulties,high,,Verbatim identity with deliverable_extension_reason_code seed

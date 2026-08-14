@@ -1,0 +1,37 @@
+= Reference: drop list
+
+Tables we explicitly do *not* migrate from MySQL. The SME review
+ensures we are not silently losing live data.
+
+== Authoritative list
+
+`pgloader/drop_list.txt` -- one table name per line, `#` comments
+allowed. Rendered into pgloader's `EXCLUDING TABLE NAMES MATCHING`
+clause by `migration/phases/load_full.py`.
+
+== Rationale
+
+Live contents of `reports/narrative/drop_list.md`. SME review confirms no table
+on the drop list holds live data the new app needs; complete the
+sign-off block in the file when satisfied.
+
+include::../shared/generated/live/drop-list.adoc[leveloffset=+1]
+
+== Related
+
+* xref:explanation-data-shape-decisions.adoc[Data-shape decisions]
+* xref:../operator/howto-troubleshoot-pgloader.adoc[Troubleshoot
+  pgloader] (drop list mismatches surface here).
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-history-strategy.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-source-target-map.adoc[next >]
+|===
+endif::[]
+// docnav-end

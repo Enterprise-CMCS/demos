@@ -1,0 +1,75 @@
+= Reference: schema diagrams (generated)
+
+The entity-relationship diagrams below are *generated*, not hand-drawn.
+`docs/tools/schema_diagrams_to_adoc.py` reads the authoritative target
+schema -- the Prisma DDL (`state/prisma_ddl/<sha>.sql`, the concatenated
+migration set) plus the captured FKs (`state/prisma_fks.json`) -- and
+emits one diagram per table _class_ into `docs/shared/generated/`.
+Regenerate with `make schema-diagrams` (in `docs/`); the partials are
+committed and CI fails on drift.
+
+`*_history` tables are excluded (they mirror their parent's columns).
+Cardinality is derived from the DDL: a relationship is one-to-one when
+the child's FK columns are its PK or a UNIQUE key, otherwise
+zero-or-many; the parent side is optional (`|o`) when the FK column is
+nullable. Each edge is labelled with its child-side FK column(s).
+
+Tables are assigned to a class structurally (`*_limit` ->
+type limiter; composite PK -> associative; single `text` id PK ->
+static constraint; else data table), with curated exceptions in
+`docs/tools/table_classes.yaml`. `make schema-drift` cross-checks the
+generated model against the legacy hand-authored `DEMOS_Data_Model.mmd`
+and writes `reports/schema_drift_report.md` (warn-only).
+
+See xref:reference-prisma-ddl.adoc[the Prisma DDL pipeline] for how the
+DDL artifact is fetched and pinned.
+
+== Static constraint tables
+
+Text-ID lookup tables seeded by `sql/02_seeds_static/`.
+
+include::../shared/generated/schema-target-static-constraints.adoc[]
+
+== Type limiter tables
+
+`*_limit` tables that constrain which type rows are valid in a given
+context; seeded by `sql/03_seeds_limiters/`.
+
+include::../shared/generated/schema-target-type-limiters.adoc[]
+
+== Data tables
+
+The first-class business entities (UUID-keyed, plus the curated
+exceptions in `table_classes.yaml`).
+
+include::../shared/generated/schema-target-data-tables.adoc[]
+
+== Associative tables
+
+Junction tables with composite primary keys linking two parents.
+
+include::../shared/generated/schema-target-associative-tables.adoc[]
+
+== Source schema overview
+
+A 50,000-foot, prefix-clustered view of the MySQL source (drop list
+applied), generated from `reports/schema_snapshot/table_stats.csv`.
+Group-level edges appear where `reports/inputs/fk_overrides.yaml` /
+`reports/generated/fk_candidates.csv` declare them. For the curated source/target
+story see xref:../sme/reference-source-target-map.adoc[the source/target
+map].
+
+include::../shared/generated/schema-source-overview.adoc[]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-prisma-migration-analysis.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-id-maps.adoc[next >]
+|===
+endif::[]
+// docnav-end

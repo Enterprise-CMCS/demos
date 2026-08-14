@@ -1,0 +1,1462 @@
+= Canonical migration specification: MySQL -> DEMOS PostgreSQL warm cutover
+:diagram-nocache: true
+
+Solo-operator migration spec for the CMS Medicaid Demonstrations management system.
+Source: legacy MySQL (no FKs, ~300 tables, <50 GB).
+Target: DEMOS PostgreSQL (heavy remodel, FKs, JSONB, history tables, triggers).
+Strategy: warm cutover into a brand-new application; old MySQL goes read-only and users flip URLs.
+
+This page is the unified plan; the audience books in
+xref:../operator/index.adoc[operator],
+xref:../developer/index.adoc[developer], and
+xref:../sme/index.adoc[SME] reorganise its content for specific
+readers and link back here for the full picture.
+
+[NOTE]
+====
+*Amendment (2026-05-21): Prisma DDL ownership.* The DEMOS app team
+now owns the `demos_app.*` schema (tables, columns, indexes, FKs,
+sequences) via Prisma. The Prisma migrations live in the DEMOS
+GitHub repo (`Enterprise-CMCS/demos`) under
+`server/src/model/migrations/`, one timestamp-prefixed directory per
+migration, each containing a single `migration.sql`. This repo no
+longer hand-authors `sql/01_ddl/`. `migrate fetch-prisma` lists the
+migration directories via the GitHub Contents API, fetches each
+`migration.sql` from `raw.githubusercontent.com`, concatenates them
+chronologically, and verifies the SHA256 against
+`reports/prisma_ddl.sha256`. `migrate ddl` then `DROP SCHEMA demos_app
+CASCADE`s and re-creates `demos_app`, applies the cached artifact,
+captures Prisma's inline FKs to `state/prisma_fks.json`, drops them
+so the bulk build is unconstrained, and applies the migration-private
+supplement under `sql/01_ddl_supplements/` (the JSONB schema registry;
+the `*_history` tables ship in the Prisma artifact, not here).
+`migrate constraints` re-creates each captured FK
+as `NOT VALID` and `VALIDATE`s it. Read the rest of this spec with
+that pivot in mind: every reference to `sql/01_ddl/`, to
+hand-authored FKs in `sql/30_constraints/01_fks.sql`, and to the
+Week 1/§10 DDL deliverables describes the original plan; the
+operator and developer books -- in particular
+xref:../developer/reference-prisma-ddl.adoc[reference: Prisma DDL
+pipeline] -- reflect the current state.
+====
+
+[NOTE]
+.Amendment (2026-05-29): DEMOS ownership reconciliation
+====
+Reconciled against the cloned DEMOS app repo. Decisions and evidence
+in `reports/narrative/ownership-remediation-plan.md`:
+
+* The target schema is *`demos_app`* (Prisma only `SET search_path TO
+  demos_app` and never creates it, so this repo (re)creates the empty
+  schema before applying the artifact). All references renamed from
+  the earlier `app`.
+* The `demos_app.*_history` tables and `revision_type_enum` are
+  Prisma-owned (audit shape `revision_id`/`revision_type`/`modified_at`);
+  the `log_changes_*` capture triggers are DEMOS-owned
+  (`server/src/sql/history_triggers.sql`). The migration does not
+  populate these tables: they ship empty and the DEMOS capture triggers
+  fill them post-cutover. The conflicting `10_history_shadows.sql` was
+  removed and `sql/32_app_triggers/` left empty.
+* App-facing roles are `demos_read` / `demos_write` / `demos_delete`
+  (from DEMOS `permissions.sql`), which also owns the grants.
+* DEMOS post-Prisma objects (history triggers, functions, views,
+  grants, cron) are applied by the operator via
+  `server/src/refreshDbObjects.ts` after P5 and before flip.
+* *Resolved:* DEMOS does no in-database JSONB validation, so this repo
+  wires no trigger on any live `demos_app.*` column.
+  `sql/31_constraint_triggers/00_jsonb_validation.sql` is now a
+  disposition note; the only JSONB trigger is the migration-private
+  budget-neutrality parity oracle on `migration.bn_workbook_detail`
+  (`sql/01_ddl_supplements/10_bn_workbook_detail.sql`). See
+  `CODE_REVIEW.md`.
+====
+
+'''
+
+== 1. Inputs recap
+
+* *Source DB:* MySQL CMS Medicaid Demonstrations, ~300 tables, no FKs, <50 GB.
+* *Target DB:* DEMOS PostgreSQL schema (provided ER model). Heavy remodel into `application` / `demonstration` / `amendment` / `extension` / `deliverable` core, tag system, JSONB consolidations, FKs / CHECKs / triggers, and history tables.
+* *Application:* brand-new app on DEMOS. Old app goes read-only at cutover; users flip URLs.
+* *Tooling:* `pgloader` for raw MySQL \-> PG load, plain numbered SQL scripts for transforms (no dbt), DuckDB sidecar for offline analysis and the non-gating load-fidelity row-count checks (parity itself is pure-Postgres).
+* *FK derivation:* inferred from naming conventions in the supplied digraph, then team-reviewed.
+* *Operator profile:* solo, minimal dbt experience.
+* *Downtime tolerance:* up to a week; planned freeze targeted at hours, not days.
+
+'''
+
+== 2. Architecture
+
+[mermaid]
+....
+flowchart LR
+  M[MySQL prod] -->|pgloader| R[mysql_raw]
+  R -->|sql/10_stg/| S[stg]
+  S -->|sql/20_app/| A[demos_app]
+  SD[seeds]:::seed --> A
+  XW[crosswalks]:::seed --> S
+  A --> N[New backend]
+  M -.RO.-> O[Old app users]
+  O -.URL flip.-> N
+  D[DuckDB] -.attach RO.-> M
+  D -.load-fidelity.-> R
+....
+
+*Legend.*
+`M` = MySQL prod source.
+`R` = `mysql_raw` schema, 1:1 mirror of MySQL after pgloader.
+`S` = `stg` schema, cleansed and remodeled intermediate rows.
+`A` = `demos_app` schema, final DEMOS shape.
+`SD` = static-constraint and type-limiter seeds (text IDs).
+`XW` = reference-code crosswalks: legacy integer codes \-> DEMOS text IDs.
+`N` = new backend pointed at `demos_app`.
+`O` = old-app users (read-only; redirected at flip).
+`D` = DuckDB: the pre-load source conduit (schema/reference dumps) and the separate, non-gating load-fidelity check (live MySQL vs `mysql_raw` via `mysql_scanner` and `postgres_scanner`). Parity itself is *pure Postgres* (`mysql_raw` vs `demos_app`), not a DuckDB job.
+
+All four schemas (`mysql_raw`, `stg`, `demos_app`, plus a `migration` housekeeping schema) live in a single PostgreSQL cluster.
+
+'''
+
+== 3. Source schema characteristics (from supplied digraph)
+
+These are the realities that drive the transform topology:
+
+|===
+| Pattern | Examples | Count | Implication
+
+| *Approved/pending duality*
+| `mdcd_demo` vs `mdcd_pendg_demo`, `mdcd_demo_cntct` vs `mdcd_pendg_demo_cntct`, `mdcd_X_pgm_dtl` vs `mdcd_pendg_X_pgm_dtl`
+| parallel for ~80% of entities
+| Unify into DEMOS `application` + `demonstration`/`amendment`/`extension` flow keyed by `application_status`.
+
+| *Program-detail twin tables*
+| `mdcd_mc_pgm_dtl`, `mdcd_hcbs_pgm_dtl`, `mdcd_dntl_pgm_dtl`, `mdcd_vsn_pgm_dtl`, ...
+| ~40 distinct program types, each with `_dtl` + `_dtl_hstry` + `_pendg_dtl` + `_pendg_dtl_hstry` (~160 tables total)
+| Collapse into DEMOS `demonstration_type_tag_assignment` rows where `tag_name` derives from the table name; `from_dt` / `to_dt` carry over.
+
+| *Source history tables*
+| `mdcd_demo_hstry`, `mdcd_demo_aplctn_hstry`, `mdcd_dlvrbl_hstry`, ...
+| almost every data table has `*_hstry`
+| Not migrated. The Prisma-owned DEMOS `*_history` tables are left empty for the DEMOS `log_changes_*` capture triggers to fill post-cutover; this migration does not backfill from the source `*_hstry` tables.
+
+| *Budget-neutrality machinery*
+| `bdgt_ntrlty_demo_yr`, `bdgt_ntrlty_mdcd_elgblty_grp`, `bdgt_ntrlty_mmbr_mo_actl`, `bdgt_ntrlty_mmbr_mo_prjtd`, `bdgt_ntrlty_wvr*`, `bdgt_ntrlty_pgm_spnd_lmt*`, `bdgt_ntrlty_smry_*`
+| ~12 tables
+| One `budget_neutrality_workbook` row per BN file (`mdcd_dlvrbl_fil_doc.bdgt_ntrlty_fil_ind = 1`), loaded as `validation_status_id = 'Pending'` / `validation_data = '{}'::jsonb` (DEMOS revalidates at flip). The detailed figures aggregate into a *migration-private* parity table, **not** the live `validation_data` column -- see workstream I.
+
+| *Document-family tables*
+| `tmplt_fil_doc`, `mdcd_dlvrbl_fil_doc`, `mdcd_pst_awd_frm_fil_doc`, `mdcd_demo_authrty_fil_doc`, `mdcd_demo_finl_dcsn_dtl_fil_doc`, `mdcd_demo_sv_fil_doc`, `mdcd_demo_aplctn_doc_rpstry_fil`, `mdcd_demo_pgm_mntrg_doc`, `spcl_term_and_cond_doc`, `mdcd_help_and_sprt_matl`
+| ~10 tables
+| Consolidate into DEMOS `document` with `document_type_id` discriminator (text seed); origin recorded for forensics; phase / deliverable / application linkage rebuilt via id maps.
+
+| *Reference tables (int \-> name)*
+| `mdcd_demo_stus_rfrnc`, `mdcd_dlvrbl_stus_rfrnc`, `mdcd_dlvrbl_type_rfrnc`, `mdcd_demo_aplctn_stus_rfrnc`, `mdcd_demo_aplctn_type_rfrnc`, `geo_ansi_state_rfrnc`, `role_rfrnc`, ~30 more
+| ~30 tables
+| Map integer codes to DEMOS text IDs via authored crosswalk CSVs in `reports/crosswalks/`.
+
+| *Comment tables*
+| `mdcd_demo_cmt`, `mdcd_demo_amndmt_cmt`, `mdcd_demo_rnwl_cmt`, `mdcd_dlvrbl_cmt`, `mdcd_dlvrbl_paper_cmt`, `mdcd_pgm_cmt`, `mdcd_demo_finl_dcsn_dtl_cmt`, `mdcd_demo_aplctn_cmt`, `mdcd_demo_pgm_mntrg_doc_cmt`
+| ~9 tables
+| Route to DEMOS `private_comment` (CMS) or `public_comment` (state) by `cmt_orgn_cd` / source semantics.
+
+| *Backup tables*
+| `mdcd_ltss_pgm_dtl_bkup`, `mdcd_pendg_fmly_plng_pgm_dtl_bkup`, `mdcd_pendg_ltss_pgm_dtl_hstry_bkup`, `mdcd_prm_astnc_pgm_dtl_bkup`, ...
+| several `*_bkup` tables
+| *Drop*, do not migrate.
+
+| *Views*
+| `v_demo_mgmt_demo_types`, `v_app_mgmt_demo_types`, `v_demo_status_dtl`, `v_demo_mgmt_mrt_demo_types`, `v_app_mgmt_demo_types_incl_dltd`
+| 5 views
+| *Drop*, do not migrate. Rebuild as PG views in `demos_app` if the new app needs them.
+
+| *Email/notification machinery*
+| `email_hstry`, `email_prmry_rcpnt`, `email_cpy_rcpnt`, `email_blnd_cpy_rcpnt`, `email_dstrbtn_grp_*`, `email_subj_rfrnc`, `email_tmplt_rfrnc`
+| ~7 tables
+| Net-old; *drop* (no DEMOS counterpart). New app handles notifications differently.
+
+| *Operational tables*
+| `err_log`, `user_login_hstry`, `mntrg_rpt_tmplt_dwnld_hstry`, `mdcd_help_and_sprt_matl_dwnld_hstry`
+| ~4 tables
+| *Drop*; new app has its own logging.
+
+| *Legacy flat import*
+| `aplctn_mngmt_raw_cleaned` (100+ varchar columns from a SharePoint export)
+| 1 table
+| *Drop*; long deprecated.
+
+| *Net-new in DEMOS*
+| `tag*`, `application_tag_suggestion*`, `uipath_*`, `deliverable_extension*`, `event`
+| n/a
+| Empty at cutover; populated by the new app over time.
+|===
+
+'''
+
+== 4. Top-level source \-> target mapping
+
+[mermaid]
+....
+flowchart LR
+  subgraph MY[MySQL]
+    pdemo[mdcd_pendg_demo]
+    demo[mdcd_demo]
+    aplctn[mdcd_demo_aplctn]
+    amndmt[mdcd_demo_amndmt]
+    rnwl[mdcd_demo_rnwl]
+    dlvrbl[mdcd_dlvrbl]
+    pgmdtl[mdcd_*_pgm_dtl x70]
+    bn[bdgt_ntrlty_* x12]
+    docs[doc tables x10]
+    cmts[cmt tables x10]
+    usr[users + user_* + cntct]
+    refs[*_rfrnc]
+  end
+  subgraph PG[DEMOS]
+    app[application]
+    dem[demonstration]
+    amd[amendment]
+    ext[extension]
+    dlv[deliverable]
+    tag[demonstration_type_tag_assignment]
+    bnw[budget_neutrality_workbook]
+    doc[document]
+    pcm[private_comment]
+    ucm[public_comment]
+    pers[person + users + person_state]
+    sc[static constraints + limiters]
+  end
+  pdemo --> app
+  demo --> dem
+  aplctn --> app
+  amndmt --> amd
+  rnwl --> ext
+  dlvrbl --> dlv
+  pgmdtl --> tag
+  bn --> bnw
+  docs --> doc
+  cmts --> pcm
+  cmts --> ucm
+  usr --> pers
+  refs --> sc
+....
+
+'''
+
+== 5. Why this changes the build plan
+
+Versus a generic MySQL \-> PG migration:
+
+. *History is DEMOS-owned, not migrated.* Per the SMEs, the Prisma-owned DEMOS `*_history` tables do not have to be populated at cutover; they are left empty and the DEMOS `log_changes_*` capture triggers fill them post-cutover. The migration does not backfill from the MySQL `*_hstry` tables.
+. *Reference-code crosswalks become a first-class artifact.* Every `*_rfrnc` int \-> DEMOS text-id mapping must be authored as CSV, reviewed, and seeded into `mysql_raw.crosswalk_*` tables before `stg` builds.
+. *Program-detail consolidation is templated.* ~40 near-identical source tables get one templated SQL transform (one file) parameterized by table name + tag-name; not 40 separate hand-written transforms.
+. *Pending/approved unification is its own workstream.* For each pending+approved entity pair, decide:
+ ** same business object across both \-> single `application` row, status flow captures the lifecycle;
+ ** separate transient draft \-> only the most recent pending row materializes if nothing in approved;
+ ** inconsistent (pending and approved disagree) \-> approved wins; pending logged as a parity warning.
+. *ID mapping is unavoidable.* MySQL `int` PKs \-> DEMOS `uuid` PKs; we need `migration._id_map_<table>` for every data table to reconstruct FKs.
+
+'''
+
+== 6. Cutover state machine
+
+[mermaid]
+....
+stateDiagram-v2
+  [*] --> Live
+  Live --> Freeze: planned start
+  Freeze --> Delta: pgloader delta
+  Delta --> Build: stg + app + history
+  Build --> Constraints: FKs + triggers + indexes
+  Constraints --> Parity: pure-PG checks
+  Parity --> Flip: go decision
+  Parity --> Rollback: no-go
+  Flip --> Hypercare
+  Hypercare --> Decom: stable for N days
+  Rollback --> Live
+  Decom --> [*]
+....
+
+*Legend.*
+`Live` = both DBs writable, old app serving traffic.
+`Freeze` = MySQL writes paused; old app set read-only.
+`Delta` = pgloader pulls last delta into `mysql_raw`.
+`Build` = numbered SQL rebuilds `stg` and `demos_app`. The `demos_app.*_history` tables are left empty for DEMOS to populate post-cutover (this migration does not backfill history).
+`Constraints` = FKs validated; triggers attached; indexes built.
+`Parity` = pure-Postgres checks (row counts, numeric sums, JSONB shape, pending/approved, reconstructed FK orphans, demonstration ID provenance, users/person integrity, demonstration completeness, RBAC integrity for the system-role / person-state / demonstration-role assignments, active-users coverage, plus the non-gating Approved-held and scope-coverage logs -- 31 in all) comparing `mysql_raw` and `demos_app` in one PG cluster. Not a DuckDB job.
+`Flip` = go-live verification. PMDA (legacy) and DEMOS (new) are separate apps on separate URLs; the dev team owns the URL/redirect work outside this repo. This phase confirms DEMOS healthz is responsive and that PMDA has been placed in read-only mode.
+`Hypercare` = on-call window for tickets; no schema changes.
+`Decom` = MySQL reader retired.
+`Rollback` = restore old app to read-write; reset to `Live`; root cause + reschedule.
+
+'''
+
+== 7. Load-order flow
+
+[mermaid]
+....
+flowchart TD
+  A[00_init] --> B[ddl: apply Prisma artifact + 01_ddl_supplements]
+  B --> C[02_seeds_static]
+  C --> D[03_seeds_limiters]
+  D --> E[04_crosswalks CSV import]
+  E --> F[pgloader full -> mysql_raw]
+  F --> G[05_id_maps populate]
+  G --> H[10_stg filter + id-map populate + BN staging]
+  H --> I[20_app + 21_app_associative]
+  I --> K[23_app_derived person_state, role_assn]
+  K --> L[30_constraints FKs NOT VALID]
+  L --> M[31_constraint_triggers]
+  M --> N[32_app_triggers]
+  N --> O[40_indexes + 50_sequences]
+  O --> P[VALIDATE constraints]
+  P --> Q[99_parity]
+....
+
+*Legend.*
+`A`-`E` = bootstrap PG: schemas, DDL without FKs, seeds, crosswalks.
+`F` = pgloader does a full load into `mysql_raw` (drop list excluded).
+`G` = `migration._id_map_*` tables populated (legacy int \-> new UUID).
+`H`-`K` = transforms in stages: staging, app rows, derived associative tables.
+`L`-`P` = constraints and indexes added late: FKs `NOT VALID` first, then triggers, indexes, then `VALIDATE`.
+`Q` = parity (counts, sums, JSONB shape, orphan checks) before any go decision.
+
+'''
+
+== 8. Repository layout
+
+The orchestration is a Python package (`migration/`) with a Typer CLI (`migrate`) wrapping the numbered SQL pipeline. `uv` manages the venv and lockfile; `make` targets are 1:1 with `uv run migrate <phase>` invocations. SQL is the source of truth for transforms; Python is only the orchestrator.
+
+----
+migration/                          # Python package
+  __init__.py
+  cli.py                            # Typer entry point: `migrate <phase>`
+  lib.py                            # env, paths, gate state, psql + pgloader wrappers
+  prisma_schema.py                  # parse .prisma model files (@@map/@relation) for FK enrichment
+  phases/
+    init_pg.py                      # init / ddl / seeds / crosswalks / id-maps
+    fetch_prisma.py                 # download + hash-pin the Prisma DDL artifact
+    fetch_prisma_schema.py          # download + hash-pin the .prisma model files (cross-validation)
+    load_full.py                    # full pgloader -> mysql_raw with drop list
+    load_delta.py                   # cutover delta load
+    load_fidelity.py                # non-gating DuckDB row-count check: live MySQL vs mysql_raw
+    prod_schema_guard.py            # prod-schema drift guard (preflight P0.6 + ddl pre-DROP + verify-prod-schema)
+    fk_candidates.py                # generate fk_candidates.csv + apply fk_overrides.yaml
+    schema_snapshot.py              # dump MySQL information_schema -> reports/schema_snapshot/
+    reference_data.py               # dump MySQL *_rfrnc rows + views -> reports/reference_data/
+    preflight.py                    # P0 (P0.1-P0.6 automated + P0.7 manual backup-operator)
+    freeze.py                       # P1
+    build.py                        # P3 (build_stg + build_app; incl. filter overrides + report)
+    constraints.py                  # P5 FKs/triggers/indexes/sequences
+    parity.py                       # P6 (pure-Postgres checks + report dataclass)
+    flip.py                         # P7
+    smoke.py                        # P8
+    decom.py                        # P10
+    rollback.py
+  duck.py                           # offline DuckDB analysis + scanners (migrate analyze)
+  secrets.py                        # Secrets Manager DSN resolution when PG_URL is unset
+tests/                              # pytest unit tests
+  conftest.py                       # tmp_state_dir, env-cache reset autouse fixtures
+  test_lib.py                       # gates, render_template, redact, truncate guards
+  test_cli.py                       # Typer command surface
+  test_drop_list.py                 # pgloader drop list parsing
+  test_load_delta.py                # delta manifest + freeze-instant validation
+  test_flip.py                      # healthz retry / scheme-allowlist
+  test_parity.py                    # ParityReport overall/pending logic
+pgloader/
+  schema.load                       # full load template (Jinja2 markers: {{MYSQL_URL}} etc.)
+                                    # AFTER LOAD adds `_loaded_at timestamptz` to every mysql_raw table
+  delta.tmpl.load                   # truncate-and-reload delta template
+                                    # AFTER LOAD updates mysql_raw._delta_log
+  drop_list.txt                     # tables explicitly skipped (rendered into EXCLUDING TABLE NAMES MATCHING)
+  delta_tables.tsv                  # table_name<TAB>updated_col manifest for delta
+sql/
+  00_init/                          # 00_roles, 01_schemas, 02_extensions, 03_helper_fns, 04_delta_log
+  01_ddl_supplements/               # migration-private DDL layered on the Prisma artifact.
+                                    # The demos_app schema itself (parent tables, FKs, indexes,
+                                    # sequences, the *_history tables, and revision_type_enum) is
+                                    # owned by Prisma and fetched by `migrate ddl`; this repo does
+                                    # not author it.
+                                    # 00_jsonb_schema_registry.sql defines migration.jsonb_schemas,
+                                    # the migration.tg_validate_jsonb_against_registered_schema()
+                                    # trigger function used by the JSONB CONSTRAINT TRIGGERs in
+                                    # 31_constraint_triggers/, and the migration.revalidate_jsonb()
+                                    # helper for post-promotion sweeps (CHECK can't legally
+                                    # consult other rows, so a CONSTRAINT TRIGGER is used).
+  02_seeds_static/                  # static constraint rows (text IDs)
+  03_seeds_limiters/                # type limiter rows
+  04_crosswalks/                    # int-code -> DEMOS-text-id maps imported from CSV
+  05_id_maps/                       # CREATE TABLE migration._id_map_<table> ...
+  10_stg/                           # row-level filter subsystem + id-map populators + BN staging
+    00_keep_drop_ids.sql            # stg._keep_ids / stg._drop_ids override tables
+    10_filter_demo.sql              # filter + project-number regex on mdcd_demo
+    11_filter_pendg_demo.sql        # filter mdcd_pendg_demo
+    12_filter_aplctn.sql            # filter mdcd_demo_aplctn (date-sanity + parent cascade)
+    13_filter_amndmt.sql            # filter mdcd_demo_amndmt
+    14_filter_rnwl.sql              # filter mdcd_demo_rnwl
+    15_filter_dlvrbl.sql            # filter mdcd_dlvrbl
+    16_filter_cntct.sql             # filter mdcd_demo_cntct
+    17_filter_user.sql              # filter users
+    18_populate_id_map_mdcd_demo.sql
+    19_populate_id_map_mdcd_pendg_demo.sql
+    20_populate_id_map_users.sql
+    21_users_resolved.sql           # users + person staging from filtered users/cntct
+    60_budget_neutrality.sql        # ~12 bn tables -> stg.bn_workbook (Pending/'{}') + migration.bn_workbook_detail parity aggregate
+    99_filter_report.sql            # emits reports/runs/filter_*.md sign-off artifact
+    ...                             # per-family app transforms (20_app) are still pending
+  20_app/                           # builds demos_app schema rows from stg
+  21_app_associative/
+  23_app_derived/                   # phases, person_state, role assignments
+  30_constraints/                   # FKs (NOT VALID), then VALIDATE
+  31_constraint_triggers/           # migration-private JSONB validation triggers
+  32_app_triggers/                  # empty: log_changes_* history triggers owned by DEMOS
+  40_indexes/
+  50_sequences/
+  99_parity/
+scripts/
+  generate_fk_candidates.sql        # SQL helper run via `migrate fk-candidates`
+  cutover.sh                        # thin shim: `./scripts/cutover.sh <phase>` -> `uv run migrate <phase>`
+reports/
+  fk_candidates.csv
+  fk_overrides.yaml                 # manual FK decisions overlaid on the auto candidates
+  drop_list.md                      # tables not migrated, with rationale
+  crosswalks/                       # one CSV per crosswalked reference table (DEMOS-side names)
+    state.csv
+    demo_status.csv
+    ...
+  pending_approved_decisions.md     # per-entity unification rules
+  pgm_dtl_tag_mapping.csv           # mdcd_<X>_pgm_dtl -> tag_name
+  history_strategy.md               # DEMOS-owned history; not migrated
+  jsonb_schemas/
+runbooks/
+  cutover.md
+  rollback.md
+  comms/                            # freeze_begin.md, freeze_extended.md, flip_complete.md, rollback.md
+state/                              # runtime state (preflight.ok, freeze_instant.txt, fk_violations.csv,
+                                    # *.rendered.load — rendered pgloader templates, chmod 0600)
+.github/
+  workflows/
+    ci.yml                          # GitHub Actions: uv sync, pytest --cov, ruff, ty
+CODE_REVIEW.md                      # standing audit log of correctness/risk findings
+pyproject.toml                      # uv project + deps + entry points
+uv.lock                             # pinned lockfile (committed)
+Makefile                            # `make sync`, `make test`, `make <phase>`, `make rebuild`
+.env.example                        # PG_HOST/PORT/DB/USER/PASSWORD, MYSQL_*, PG_URL, MYSQL_URL
+                                    # NEW_APP_HEALTHZ_URL read directly from env in flip.py
+----
+
+=== Why Python over bash
+
+The orchestration started in bash and was ported to Python early in Week 1 because:
+
+. *Solo-operator readability.* Coming back to a Typer subcommand in Week 7 (UAT + perf bug-fix rounds) is faster to re-understand than a heredoc-laden bash script.
+. *Type-checking + tests.* `ty check` and `pytest` catch bugs that bash silently passes. A 1-day port pays back in Weeks 6-9.
+. *Robust template rendering.* Jinja2 with `StrictUndefined` (in `lib.render_template`) handles arbitrary URLs that contain `|`, `&`, `/`, refuses to silently ship a half-rendered file when a marker is missing, and emits rendered files as `0600` so embedded credentials are not world-readable; `sed` does not handle any of this without extensive escaping.
+. *Proper CSV/JSON handling.* `csv.DictReader`, `pyyaml`, and `jsonschema` are stdlib-or-near. The bash equivalents are fragile.
+. *One language end-to-end.* Parity (pure Postgres), FK validation loops, JSONB schema checks, manual-override YAML overlays -- all fit naturally in Python and would be painful in bash.
+
+Bash remains as a one-line shim (`scripts/cutover.sh`) so the muscle-memory invocation still works.
+
+=== Toolchain
+
+|===
+| Concern | Tool
+
+| Environment + deps
+| `uv` (lockfile committed; `uv sync --extra dev`)
+
+| CLI framework
+| `typer` + `rich`
+
+| PG queries returning rows
+| `psycopg` 3 (autocommit + per-file connection in `apply_dir`)
+
+| PG batched-transaction SQL
+| `psycopg` 3 with `conn.transaction()` in `lib.psql_files` (used by ``build_app``'s `SET CONSTRAINTS ALL DEFERRED` block)
+
+| Composed identifiers
+| `psycopg.sql.Identifier` / `psycopg.sql.SQL` for safe DDL (used in `constraints.run_constraints`)
+
+| pgloader invocation
+| `subprocess.run` of rendered `.load` files (logs to `reports/runs/pgloader_*.log`)
+
+| Template rendering
+| `jinja2` with `StrictUndefined` (`lib.render_template` for pgloader templates; rendered files `chmod 0600`)
+
+| Env loading
+| `pydantic-settings` `BaseSettings` (reads process env first, `.env` fallback; cached via `Env.load()`)
+
+| Healthz retries
+| `tenacity` `Retrying(stop_after_attempt, wait_fixed)` in `flip._check_healthz`
+
+| DuckDB conduit + load-fidelity
+| `duckdb` Python module with `mysql_scanner` + `postgres_scanner` (pre-load source dumps and the non-gating load-fidelity check; parity itself is pure PG)
+
+| YAML overrides
+| `pyyaml` (with `types-PyYAML` in dev)
+
+| JSONB schema validation
+| `jsonschema` (in tests + parity report; canonical schemas seeded into `migration.jsonb_schemas`)
+
+| Linter / formatter
+| `ruff`
+
+| Type checker
+| `ty` (Astral)
+
+| Tests
+| `pytest` + `pytest-cov`
+
+| CI
+| GitHub Actions workflow at `.github/workflows/ci.yml` (uv sync + pytest + ruff + ty on push / PR)
+|===
+
+'''
+
+== 9. Workstreams
+
+=== A. Target DDL acquisition
+
+Fetch the DEMOS Prisma migration artifact (via `migrate fetch-prisma` / `migrate ddl`) and apply it to an empty `demos_app`. The artifact carries the parent tables, CHECK constraints, type limiters, JSONB columns, the `*_history` tables, and the `revision_type_enum` -- all Prisma-owned. FKs are captured and dropped before the bulk build, then re-applied by `migrate constraints`. The only migration-private DDL is `01_ddl_supplements/00_jsonb_schema_registry.sql`.
+
+=== B. Static + limiter seeds
+
+Author canonical text IDs for every static constraint (`application_status`, `deliverable_status`, `document_type`, etc.) and every type limiter. Seed files live in `02_seeds_static/` and `03_seeds_limiters/`.
+
+=== C. Source extraction (`mysql_raw`)
+
+* pgloader full load *excluding* the drop list (`pgloader/drop_list.txt`).
+* Each row gets a `_loaded_at` timestamp.
+* Same load file is reusable for the cutover delta with a `delta.tmpl.load` template.
+
+=== D. Drop list
+
+Single file, reviewed and signed off in Week 1. Categories: backups, views, email/notification, operational logs, legacy flat exports.
+Recorded in both `pgloader/drop_list.txt` (loader-readable) and `reports/narrative/drop_list.md` (rationale per table).
+
+=== E. Crosswalks
+
+For every `*_rfrnc` table that maps to a DEMOS static constraint, author a CSV `legacy_int_cd, demos_text_id, notes`. Imported into `mysql_raw.crosswalk_<rfrnc_name>` and joined inside `10_stg`. The reviewed list of crosswalks is the deliverable; SQL is mechanical. A consistency check verifies every distinct legacy code present in `mysql_raw` data has a mapping.
+
+=== F. ID maps
+
+*Invariant.* Every `demos_app.demonstration.id` in DEMOS PG originates
+from PMDA (`mdcd_demo` or `mdcd_pendg_demo`) via
+`migration._id_map_*`. New demonstration IDs are created
+post-migration by the DEMOS backend and are out of scope.
+PMDA-issued demonstration project numbers conform to
+`^11-W-[0-9]{5}/(10|[1-9])$` (`11-W-NNNNN/R`, `N` a single digit,
+`R` the CMS Region 1-10). Enforced at Gate 6 by
+`sql/99_parity/10_demonstration_id_provenance.sql`.
+
+For every data table that becomes a DEMOS data table:
+
+[,sql]
+----
+CREATE TABLE migration._id_map_<source_table> (
+  legacy_int_id  BIGINT PRIMARY KEY,
+  new_uuid       UUID UNIQUE NOT NULL,
+  _created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+----
+
+Populated as the very first thing in `10_stg/`. Every downstream FK reconstruction looks up new UUIDs through these maps.
+
+=== G. Pending/approved unification
+
+`reports/narrative/pending_approved_decisions.md` enumerates each pending/approved pair and the rule. Default: collapse to a single `application` row keyed by demo identity; status flow captures lifecycle. `mdcd_pendg_*` rows that have no approved counterpart become `application` with a "pending" status. Inconsistencies (pending and approved disagree) are resolved with approved-wins; pending logged as a parity warning.
+
+=== H. Program-detail consolidation
+
+* One templated SQL file `10_stg/30_pgm_detail_consolidated.sql` plus a manifest `reports/pgm_dtl_tag_mapping.csv` of (`source_table`, `tag_name`, `from_dt_col`, `to_dt_col`, `additional_attrs`).
+* For each row in each `mdcd_*_pgm_dtl`: emit a `stg.demonstration_type_tag_assignment` row tied to the demonstration UUID (via id map) with the tag derived from the table name.
+* Pending equivalents become tag assignments tied to the pending application's demonstration row, with status carried via `application_status`.
+
+=== I. Budget-neutrality
+
+[NOTE]
+====
+*Amendment (2026-06-03, sourced from `../demos`).* The DEMOS BN lambda
+(`lambdas/budgetNeutrality/index.ts`) writes `validation_data` as a
+`ValidationError[]` *array* (`JSON.stringify(validationResults.errors)`); the
+runtime contract of `demos_app.budget_neutrality_workbook.validation_data` is
+therefore the lambda's validation-error output, **not** an aggregated BN
+object. The earlier plan to consolidate the `bdgt_ntrlty_*` numbers *into*
+that column is superseded: the migration must not pre-fill the live column
+with an incompatible object shape (DEMOS would mis-read it and overwrite it on
+the next revalidation). See `reports/narrative/notes.md` D4.
+====
+
+* For each `mdcd_dlvrbl_fil_doc` representing a BN file (filtered by `bdgt_ntrlty_fil_ind = 1`), assemble one `budget_neutrality_workbook` row. Mirror the shape DEMOS itself uses when it first creates a workbook (`functions.sql` / `move_document_from_pending_to_clean`): `validation_status_id = 'Pending'`, `validation_data = '{}'::jsonb`. The row is mandatory -- `check_budget_neutrality_validation_record_exists` requires every `BN Workbook` document to have a matching workbook row.
+* The scalar `actuals` / `net_variance_total` columns are populated from the aggregated source figures where derivable; otherwise left NULL for DEMOS to fill on revalidation.
+* The detailed `bdgt_ntrlty_mmbr_mo_actl`, `bdgt_ntrlty_mmbr_mo_prjtd`, `bdgt_ntrlty_wvr*`, `bdgt_ntrlty_pgm_spnd_lmt*`, `bdgt_ntrlty_smry_*` figures, grouped by `bdgt_ntrlty_demo_yr_id` \-> nested per-eligibility-group structure, are aggregated into a *migration-private* table (`migration.bn_workbook_detail`), **not** into the live `validation_data` column.
+* `reports/jsonb_schemas/budget_neutrality.schema.json` (authored Week 2) is repurposed as a *migration-private parity oracle*: it validates the aggregate in `migration.bn_workbook_detail` via `pg_jsonschema` in the migration environment, and is the reference DEMOS's post-flip recompute is checked against. No object-shaped constraint trigger is shipped on `demos_app.budget_neutrality_workbook`.
+* At flip, one BN revalidation message is enqueued per migrated workbook so the DEMOS lambda repopulates `validation_data` authoritatively (its `ValidationError[]` shape) and sets the final `validation_status_id`. The `Pending` / `'{}'` load state is interim only.
+
+=== J. Document consolidation
+
+* All ~10 doc-family tables \-> `stg.document` with `source_table` recorded. Map each to a DEMOS `document_type_id` (seeded text id). Linkage to phase / deliverable / application reconstructed from source FK columns via id maps.
+* Special cases: `tmplt_fil_doc` rows that are templates (`tmplt_ind`) skip `demos_app.document` and become app-config seeds instead, or are dropped if not referenced from migrated data.
+* `mdcd_dlvrbl_fil_doc` rows with `bdgt_ntrlty_fil_ind = 1` are BN workbooks (covered in workstream I).
+
+=== K. Comments
+
+`cmt_orgn_cd` distinguishes CMS vs state. Route to `private_comment` or `public_comment` accordingly. Comments referencing entities not migrated are dropped with a parity warning.
+
+=== L. Users + person model
+
+* `users` (simple) row \-> DEMOS `users` row (uuid).
+* Build a synthetic `person` row from each `users` row with `person_type_id` derived from `user_role_asgnmt.role_cd` mapped via `role_rfrnc` crosswalk.
+* `user_authrzd_state_acs` \-> `person_state`.
+* `user_role_asgnmt` \-> `system_role_assignment` (DEMOS RBAC has fewer rows; map via crosswalk).
+* `mdcd_demo_cntct` rows (state Medicaid director, RO leads, SOTAs) materialize as additional persons + `demonstration_role_assignment` rows.
+
+=== M. History (DEMOS-owned)
+
+* The `demos_app.*_history` tables are *owned by DEMOS*, both schema and rows. This migration does not populate them: every history table is left *empty* at cutover.
+* The DEMOS `log_changes_*` capture triggers (installed after constraints via `refreshDbObjects.ts`) fill the history tables from cutover forward. We do not backfill from the MySQL `*_hstry` tables and do not fabricate anchor rows.
+* Recorded in `reports/narrative/history_strategy.md`. The former P4 backfill phase, `sql/22_app_history/`, and the `history` gate were removed; cutover collapses to `build_app -> constraints`.
+
+=== N. Constraints / triggers / indexes / sequences
+
+* `30_constraints/` adds FKs as `NOT VALID` first, then runs `VALIDATE CONSTRAINT` after data is fully built.
+* `31_constraint_triggers/` adds DEMOS ``CONSTRAINT TRIGGER``s last so they don't fire mid-build.
+* `32_app_triggers/` adds application-level triggers (e.g., history capture on UPDATE).
+* `40_indexes/` and `50_sequences/` last (`setval` for any int sequences in `migration`).
+
+=== O. Parity (pure-Postgres)
+
+* Row-count parity per consolidated table family (sum of source counts ~= target where 1:1 expected; or business-rule counts where many-to-one).
+* Numeric-sum parity for money columns and core counts.
+* JSONB shape conformance for the migration-private `migration.bn_workbook_detail` aggregate against the authored BN parity schema (the live `budget_neutrality_workbook.validation_data` column is owned by DEMOS and revalidated at flip -- see workstream I).
+* Pending/approved unification audit: every `mdcd_pendg_demo` row accounted for (matched, materialized, or warned).
+* Orphan checks: every reconstructed FK resolves; misses logged in `reports/orphans/`.
+
+NOTE: The bullets above are the original gating families. The live suite is the *14*-check `ParityReport` enumerated in §10 P6 -- the families above plus demonstration completeness, the RBAC integrity checks (system-role / person-state / demonstration-role assignments), active-users coverage, and the two non-gating logs (Approved demos held back, PMDA scope coverage).
+
+'''
+
+== 10. Cutover orchestrator end-to-end
+
+The `migrate` CLI (Python; entry point `migration.cli:app`) is a single orchestrator that runs the production cutover with *hard go/no-go gates* between phases. Every gate halts on red and prints `[HOLD] reason: …`; the operator must run an explicit `uv run migrate resume` to continue. Every phase is *idempotent*: a phase can be re-run after fixing a transient issue and produce the same output.
+
+Bash equivalent: `./scripts/cutover.sh <phase>` is a thin shim that forwards to `uv run migrate <phase>`.
+
+=== Phase map
+
+[mermaid]
+....
+flowchart TD
+  P0[P0 Pre-flight] --> G0{Gate 0}
+  G0 --> P1[P1 Freeze]
+  P1 --> P2[P2 Final delta]
+  P2 --> G2{Gate 2 pgloader ok}
+  G2 --> P3[P3 Build stg+app]
+  P3 --> P5[P5 Constraints+triggers+indexes]
+  P5 --> P6[P6 Parity]
+  P6 --> G6{Gate 6 go/no-go}
+  G6 -->|go| P7[P7 Flip]
+  G6 -->|no-go| RB[Rollback]
+  P7 --> P8[P8 Smoke]
+  P8 --> P9[P9 Hypercare]
+  P9 --> P10[P10 Decom]
+  RB --> Live[Old app live]
+....
+
+=== Phases in detail
+
+Times are wall-clock targets validated in the Week 8 rehearsals. Replace with real measured timings before cutover day.
+
+All commands shown as `uv run migrate <phase>`. The `./scripts/cutover.sh <phase>` shim is identical and provided for muscle memory.
+
+|===
+| Phase | Wall-clock | Operator action | Module | What happens | Gate
+
+| *P0 Pre-flight*
+| T-2h
+| `uv run migrate preflight`
+| `migration.phases.preflight`
+| (1) `psql SELECT 1` confirms PG reachable. (2) Query `pg_database_size`. (3) `duckdb` import + `INSTALL mysql_scanner; INSTALL postgres_scanner`. (4) `pgloader` on PATH. (5) pinned Prisma DDL artifact cached for an offline cutover (P0.5). (6) prod-schema guard vs `REFERENCE_PG_URL`, including the emptiness check, before `build_app` writes (P0.6). (7) Manual confirm backup operator + on-call (P0.7).
+| *Gate 0:* all 6 automated checks green (P0.7 backup-operator confirmation is manual); any failure `die()`s the cutover (no HOLD state).
+
+| *P1 Freeze*
+| T-0
+| `uv run migrate freeze`
+| `migration.phases.freeze`
+| (1) DBA stops application writes to MySQL. (2) Old app config switched to read-only mode. (3) Capture freeze instant to `state/freeze_instant.txt`. (4) Send "freeze begin" comms.
+| *Implicit:* freeze instant captured
+
+| *P2 Final delta*
+| T+0 → T+30m
+| `uv run migrate delta`
+| `migration.phases.load_delta`
+| (1) Render `delta.tmpl.load` from manifest `pgloader/delta_tables.tsv` and freeze instant. (2) `subprocess` invokes pgloader. (3) `assert_pgloader_ok` parses the run log and dies on any table-level error (pgloader exits 0 even when individual tables fail); row-count drift is the separate, non-gating `migrate load-fidelity`.
+| *Gate 2:* pgloader delta load completes with zero table-level errors (`assert_pgloader_ok`); row-count drift is checked separately by `migrate load-fidelity` (non-gating)
+
+| *P3 Build stg + app*
+| T+30m → T+1h30m
+| `uv run migrate build`
+| `migration.phases.build`
+| Two sub-phases marked separately so `resume` can pick up mid-build. *build_stg:* `lib.truncate_schema_data('stg')`, then `apply_dir(sql/05_id_maps)` + `apply_dir(sql/10_stg)` (each file in its own autocommit on a shared psycopg connection). Before the id-map step, `build.run_build_stg` loads the row-level filter overrides from `reports/filter/keep_ids.csv` + `drop_ids.csv` into `stg._keep_ids` / `stg._drop_ids`, asserts every override row exists in the post-delta source, and emits `reports/runs/filter_*.md` as the SME sign-off artifact (`10_stg/99_filter_report.sql`). The id-map step is the *only* place demonstration UUIDs are minted, and only from PMDA rows (see §9.F invariant); transforms must read from `migration._id_map_mdcd_demo` and `migration._id_map_mdcd_pendg_demo` -- never `gen_random_uuid()`. *build_app:* `lib.truncate_schema_data('demos_app', exclude_tables=...)`, where the excluded set is the Prisma-seeded reference tables captured at ddl time in `state/prisma_seeded_tables.json` (so the bulk build truncates only the data tables it repopulates and never wipes the Prisma-seeded lookups; if that capture file is missing it falls back to the coarse `('%_status', '%_type')` patterns with a warning -- see §16/B8). Then `+lib.psql_files(...)+` runs every `*.sql` under `20_app/`, `21_app_associative/`, `23_app_derived/` inside a single `psycopg` `conn.transaction()` block prefixed with `SET CONSTRAINTS ALL DEFERRED` -- any failure rolls the whole stage back.
+| *Two implicit gates:* `build_stg.ok` then `build_app.ok`
+
+| *P5 Constraints + triggers + indexes*
+| T+1h30m → T+2h
+| `uv run migrate constraints`
+| `migration.phases.constraints`
+| (1) Re-create each FK captured in `state/prisma_fks.json` as `NOT VALID` (`_readd_captured_fks`: `DROP CONSTRAINT IF EXISTS` + `ADD CONSTRAINT … NOT VALID`, regex-guarded to a `FOREIGN KEY …` def), then apply the otherwise-empty `sql/30_constraints/`. (2) `_list_invalid_fks` queries `pg_constraint` (`contype='f' AND NOT convalidated AND nspname='demos_app'`); each invalid FK is validated via `psycopg.sql.Composed` (`+ALTER TABLE {tbl} VALIDATE CONSTRAINT {con}+` with `Identifier`-quoted names). (3) Apply `sql/31_constraint_triggers/`, `sql/32_app_triggers/`, `sql/40_indexes/`, `sql/50_sequences/`. (4) Re-list still-invalid FKs and write `state/fk_violations.csv`; *die() if non-empty*.
+| *Gate 5:* `state/fk_violations.csv` is empty (otherwise `die()` halts the cutover)
+
+| *P6 Parity*
+| T+2h30m → T+3h
+| `uv run migrate parity`
+| `migration.phases.parity`
+| (1) `apply_dir(sql/99_parity)` runs the pure-Postgres parity views (`mysql_raw` vs `demos_app`; no DuckDB). (2) `ParityReport` dataclass collects thirty-one ``CheckResult``s. The original gating set: row-count parity (PENDING on the SME consolidated-family mapping), numeric-sum parity (PENDING, same), JSONB shape of the BN parity oracle (reads the `migration._parity_jsonb_shape` view), pending/approved unification audit (PENDING on sign-off of `reports/narrative/pending_approved_decisions.md`), reconstructed-FK orphans (CSV-driven from `reports/generated/fk_candidates.csv`), demonstration-id provenance, and users/person integrity. Plus, added with the application-core load: demonstration load completeness, system-role-assignment integrity, person-state integrity, active-users coverage, demonstration-role-assignment integrity, and the non-gating logs -- Approved demos held back, PMDA workflow scope coverage, deliverable completeness/integrity/held, deliverable BN routing QA, pgm_dtl tag hold-backs and unseeded guard, comment completeness/integrity/held, override-note completeness/held, comment routing coverage, demonstration phase derivation, state/region drift, amendment load accounting, medicaid.gov 1115 parity, and duplicate-medicaid hold-backs. The full check list is in the `parity.py` module docstring. (3) Markdown report rendered to `reports/runs/parity_<timestamp>.md` with `+**OVERALL STATUS: GREEN/RED/PENDING**+`. (4) Gate is marked only on GREEN -- or on PENDING when invoked with `--accept-pending` (dress rehearsals only; logs a WARN naming each pending check).
+| *Gate 6:* parity report `OVERALL STATUS: GREEN` (or PENDING + `--accept-pending` for rehearsal)
+
+| *Manual go/no-go*
+| T+3h
+| Operator + backup + SME confirm
+| (none)
+| Operator reads parity report aloud to backup operator and SME. All three say "go" or "no-go".
+| *Hard gate:* unanimous *go* required
+
+| *P7 Flip*
+| T+3h → T+3h15m
+| `uv run migrate flip`
+| `migration.phases.flip`
+| (1) Operator confirms via `lib.confirm` that PMDA is in read-only mode. PMDA and DEMOS are separate apps on separate URLs; the dev team owns the URL/redirect work outside this repo, so no DNS or LB swap happens here. (2) `_check_healthz` against `$NEW_APP_HEALTHZ_URL` (required -- `flip` `die()`s if unset rather than probe a placeholder); URL scheme restricted to `http`/`https`; `tenacity.Retrying` with `stop_after_attempt(5)` + `wait_fixed(2.0)` and a 10-second per-attempt timeout. (3) PMDA stays read-only behind a "we have moved" banner managed by the dev team.
+| *Implicit:* healthz returns 200 within 5 attempts
+
+| *P8 Smoke*
+| T+3h15m → T+4h
+| `uv run migrate smoke`
+| `migration.phases.smoke`
+| (1) Run scripted smoke suite covering top-10 user journeys. (2) Verify auth flow against new backend. (3) Send "flip complete" comms with parity report attached.
+| *Gate 8:* smoke suite all green; if not, run `uv run migrate rollback`
+
+| *P9 Hypercare*
+| T+4h → Day 4
+| On-call window
+| (manual)
+| (1) Operator + backup operator on call. (2) Single ticket channel. (3) Daily 15-min standup with SME. (4) *No schema changes.* Every transform fix lives in a fix-forward branch and ships as a versioned patch only after the day's standup.
+| *Gate 9:* zero open Sev-1/Sev-2 by Day 4 standup
+
+| *P10 Decom*
+| Day 7+
+| `uv run migrate decom`
+| `migration.phases.decom`
+| (1) Revoke app access to MySQL (drop app user). (2) Capture final MySQL backup. (3) Schedule MySQL teardown with DBA. (4) Author post-mortem doc.
+| *Implicit:* post-mortem committed
+|===
+
+=== Gate state mechanics
+
+`migration/lib.py` exposes `mark_gate(name)`, `require_gate(name)`, `clear_gate(name)`, and `list_gates()`. Each `mark_gate("foo")` writes `state/foo.ok` containing the UTC timestamp. `require_gate("foo")` calls `die()` (which ``sys.exit(1)``s) if the file is absent. `migrate status` renders the gate table in the terminal via `rich.table` on `stdout_console`; operator-facing logs go to `stderr_console` so `migrate status` output is pipeable. Re-running an already-completed phase is allowed and idempotent: it overwrites `.ok` with a fresh timestamp.
+
+Two helpers reduce boilerplate inside phase modules:
+
+* `+lib.phase(name, requires=..., mark=True)+` is a decorator that wraps a phase function with `require_gate(<requires>)` on entry and `mark_gate(<name>)` on clean exit. `mark=False` lets phases like `parity` decide for themselves when to mark (only on GREEN or `--accept-pending`).
+* `lib.confirm(prompt, expected="y")` reads stdin and dies if `MIGRATE_NONINTERACTIVE=1` is set -- the operator gets a loud refusal rather than every gated phase silently aborting in CI / piped invocations.
+
+The canonical phase order (`lib.PHASES`) -- used by `migrate status` and `migrate resume` -- is: `preflight, freeze, delta, build_stg, build_app, constraints, parity, flip, smoke, decom`. `migrate resume` walks this order, skipping phases whose `.ok` already exists; `decom` is deliberately excluded from `resume` (`cli._RESUME_PHASES`) as a Day-7+ chore outside the cutover-day sequence.
+
+=== Rollback path
+
+|===
+| Trigger | Where | Action
+
+| Gate 0 red
+| P0
+| Cancel cutover; reschedule.
+
+| Gate 2 red (row counts)
+| P2
+| Re-run `uv run migrate delta`. Persistent failure \-> rollback.
+
+| FK violations non-empty
+| P5
+| Triage; if fixable in < 30 min, fix-forward; otherwise rollback.
+
+| Parity red
+| P6
+| Rollback.
+
+| Manual no-go
+| After P6
+| Rollback.
+
+| Smoke red
+| P8
+| `uv run migrate rollback`: restore PMDA to read-write, place DEMOS in read-only with banner, send rollback comms.
+
+| Sev-1 in hypercare
+| P9
+| Decision: fix-forward vs rollback. Rollback only if data integrity is at risk.
+|===
+
+`uv run migrate rollback` does these in order, all idempotent:
+
+. PMDA restored to read-write mode (manual; coordinate with DBA).
+. DEMOS placed in read-only with banner: "Migration paused; service restored."
+. Send rollback comms (use `runbooks/comms/rollback.md`).
+. Triage in post-mortem channel.
+
+=== What is *not* in the cutover script
+
+* *History population.* The `demos_app.*_history` tables are owned by DEMOS and left empty by this migration; DEMOS's capture triggers fill them post-cutover. Nothing in the cutover script touches them.
+* *DDL changes.* `30_constraints/`, `31_constraint_triggers/`, `40_indexes/`, `50_sequences/` files are *frozen* at end of Week 8 (after the second rehearsal). Any change after that requires explicit re-rehearsal.
+* *DEMOS post-Prisma DB objects.* The `demos_app.*_history` tables and `revision_type_enum` (Prisma baseline) and the `log_changes_*` capture triggers, application functions, utility views, role grants, and `pg_cron` schedules (`server/src/sql/*` applied via `server/src/refreshDbObjects.ts`) are *owned by DEMOS*. This repo never authors them. The operator applies `refreshDbObjects.ts` against the staging clone *after* P5 and *before* flip; the history tables start empty and the capture triggers populate them from then on. `sql/32_app_triggers/` is therefore intentionally empty. See xref:../../reports/narrative/ownership-remediation-plan.md[the ownership remediation plan].
+* *Manual SQL.* Every action is a script. If something needs to be done that isn't a script, the cutover halts.
+
+=== One-line summary
+
+____
+History is DEMOS-owned and not migrated. The cutover only runs final-delta + rebuild + constraints + parity + flip + smoke + hypercare + decom, with hard gates between every phase.
+____
+
+'''
+
+== 11. Solo-operator safeguards
+
+* *Two timed dress rehearsals* before the real cutover. Same scripts, same data, same gates. Rehearsal logs (timings, surprises, fixes) committed to the repo.
+* *One-command steps.* Every cutover phase is a single shell command with idempotent semantics (re-run-safe).
+* *Hard go/no-go gates.* Parity report has a single overall pass/fail line; the script halts and asks for explicit approval at each gate.
+* *Idempotent re-runs.* Every transform script can be re-run on the same `mysql_raw` snapshot and produce the same `demos_app` rows (drop-and-rebuild, not incremental upsert).
+* *Copy-pasteable runbook.* `runbooks/cutover.md` lists each step with the literal command to run, expected stdout snippet, and what to do if the snippet differs.
+* *Comms templates pre-written.* "Freeze begin," "freeze extended," "flip complete," "flip rolled back" -- all drafted, stored, ready to paste.
+* *Backup operator on standby.* Even minimal involvement (a second pair of eyes during freeze and parity) materially reduces risk.
+* *Quiet-hours scheduling.* Cutover starts in a low-traffic window and ends well before peak.
+
+'''
+
+== 12. Timeline (8 weeks + cutover week, cutover Wed 2026-07-01)
+
+The original 11-week plan has been compressed to fit the actual repo start (Mon 2026-05-04, first commit 2026-05-05) and the fixed cutover date (Wed 2026-07-01). Two pairs of weeks are merged -- the original Weeks 3 + 4 collapse into one combined "raw refresh + application core" week, and the original Weeks 8 + 9 collapse into one combined "integration + UAT + performance" week. The slip buffer is dropped; if a transform week overruns, the cutover-day prep buffer absorbs the slip. Each week below is broken into day-by-day steps with the *goal*, the *steps*, the *artifacts*, and an *exit gate* that must be green before moving on. Weeks assume a 5-day work week.
+
+=== Quick view
+
+|===
+| Week | Dates | Theme | Exit gate
+
+| 1
+| Mon 2026-05-04 → Fri 2026-05-08
+| Discovery, environment, DDL, drop list
+| DEMOS DDL loads clean into empty PG; pgloader full load runs end-to-end into `mysql_raw`
+
+| 2
+| Mon 2026-05-11 → Fri 2026-05-15
+| Seeds, crosswalks, FK design, decisions, JSONB schema promotion
+| Every `*_rfrnc` has a reviewed CSV; `fk_final.sql` signed off; pending/approved decisions doc complete; JSONB schemas promoted into `migration.jsonb_schemas`
+
+| 3
+| Mon 2026-05-18 → Fri 2026-05-22
+| Raw refresh + ID maps + person/users + application core (merged old W3 + W4)
+| Every source data table has an id map; users/persons/states load with zero orphans; `mdcd_demo`, `mdcd_pendg_demo`, `mdcd_demo_aplctn`, amendments, extensions all flowing to `stg` and `demos_app`
+
+| 4
+| Mon 2026-05-25 → Fri 2026-05-29
+| Program-detail consolidation + deliverables
+| All ~40 program-detail families produce `demonstration_type_tag_assignment` rows; deliverables migrate
+
+| 5
+| Mon 2026-06-01 → Fri 2026-06-05
+| Documents + comments + JSONB BN
+| `document` populated from 10 source tables; BN workbooks loaded as `Pending`/`'{}'` with detail aggregated to a migration-private parity table; comments routed
+
+| 6
+| Mon 2026-06-08 → Fri 2026-06-12
+| Constraints + triggers + indexes
+| FKs validated; triggers attached; indexes built; full clean rebuild < target time. (History is DEMOS-owned and not migrated; the `*_history` tables ship empty.)
+
+| 7
+| Mon 2026-06-15 → Fri 2026-06-19
+| New-app integration + UAT + performance (merged old W8 + W9)
+| Every top-10 user journey works on staging; zero open Sev-1/Sev-2 UAT tickets; perf SLOs met for JSONB and denorm reads; SME signs off on data correctness
+
+| 8
+| Mon 2026-06-22 → Fri 2026-06-26
+| Two timed rehearsals
+| Rehearsal #2 completes within the target window with zero unscripted interventions; rollback validated; production window scheduled
+
+| Cutover week
+| Mon 2026-06-29 → Fri 2026-07-10
+| Cutover-day prep, cutover (Wed 2026-07-01), hypercare, decom
+| New app stable for ≥ 4 days; zero rollback triggers fired; final MySQL backup captured; decom plan signed off
+|===
+
+[mermaid, width=1600]
+....
+gantt
+  title DEMOS migration — cutover Wed 2026-07-01 (8-week plan; status 2026-07-09)
+  dateFormat  YYYY-MM-DD
+  axisFormat  %b %d
+  excludes    weekends
+  todayMarker stroke-width:3px,stroke:#d33,opacity:0.7
+
+  section Foundation
+  W1 Discovery, environment, DDL, drop list                   :done, w1, 2026-05-04, 5d
+  W2 Seeds, crosswalks, FK design, JSONB schemas              :crit, w2, after w1, 5d
+
+  section Transforms
+  W3 ID maps + person/users + application core                :crit, w3, after w2, 5d
+  W4 Program-detail consolidation + deliverables              :crit, w4, after w3, 5d
+  W5 Documents + comments + JSONB BN                          :crit, w5, after w4, 5d
+
+  section Integration
+  W6 History + constraints + triggers + indexes               :crit, w6, after w5, 5d
+  W7 New-app integration + UAT + performance                  :w7, after w6, 5d
+
+  section Cutover
+  W8 Two timed rehearsals                                     :w8, after w7, 5d
+  Cutover-day prep                                            :pre, after w8, 2d
+  Cutover (Wed 2026-07-01)                                    :crit, milestone, cut, 2026-07-01, 0d
+  Hypercare                                                   :hc, after cut, 4d
+  Decom                                                       :dc, after hc, 3d
+....
+
+[NOTE]
+.Legend (color codes used in the Gantt above)
+====
+* {empty}🟢 *Completed* -- work fully shipped (W1)
+* {empty}🟠 *Partial / in progress* -- some deliverables shipped, others still pending (W2-W6 today)
+* {empty}🔵 *Active* -- a future week being actively worked on; reserved colour for when future week(s) flips from "not started" to "actively in flight"
+* {empty}⚪ *Not started* -- scaffolded but no SQL yet
+* {empty}🔴 *Critical / cutover milestone* -- production cutover date (Wed 2026-07-01)
+====
+
+[WARNING]
+.Amber W3-W6: application-core load is partial
+====
+W2-W6 are amber because committed artifacts advance each week beyond
+scaffolding -- but progress is *not* sequential. The keystone application-core
+load has *begun but is incomplete*: `sql/20_app/` (person, users,
+demonstration), `sql/21_app_associative/`, and `sql/23_app_derived/`
+(person-state + the system / demonstration / primary role assignments) are
+authored, while the deliverable / document / comment / amendment / extension
+loaders are not, and `sql/30_constraints/`, `sql/32_app_triggers/`,
+`sql/40_indexes/`, `sql/50_sequences/` remain `.gitkeep`-only. The W3 staging
+layer (`sql/10_stg/`, `sql/05_id_maps/`) is authored. History is DEMOS-owned
+and not migrated, so there is no history-backfill stage (see
+migration-plan.adoc Branch 2).
+Read amber as "load started, remaining entities outstanding," not "almost
+done." Per-week and per-branch status is tracked authoritatively in
+xref:migration-plan.adoc[the migration-plan branch tracker]; this Gantt mirrors
+it. The cutover date is held at Wed 2026-07-01; the today-marker (2026-07-09)
+now sits past the W6 calendar slot while delivered work trails it.
+====
+
+*Current status (as of 2026-07-09).* Week 1 was completed in May (environment, `sql/00_init/`, the original `sql/01_ddl/`, pgloader templates + drop list, FK candidate scanner, draft JSONB schemas). Since then the DDL ownership has shifted to Prisma upstream: `sql/01_ddl/` (45 files) and `sql/30_constraints/01_fks.sql` (22 KB hand-authored FKs) have been removed and replaced by a `migrate fetch-prisma` + `migrate ddl` flow that downloads, hash-pins, applies, and captures FKs from the DEMOS app's Prisma artifact (which also owns the `*_history` tables and `revision_type_enum`), plus `sql/01_ddl_supplements/` (the JSONB schema registry only) for the migration-private DDL.
+
+[IMPORTANT]
+.Prisma pivot reshaped the Week 2 plan
+====
+Two of the original Week 2 deliverables are now *superseded by the
+Prisma artifact* and are no longer authored in this repo:
+
+* *Static + limiter seeds (workstream B).* The pinned Prisma artifact
+  `INSERT`s all *29 static-constraint* and *14 type-limiter* tables
+  (including `state`). This repo no longer authors lookup seeds;
+  `sql/02_seeds_static/` carries only migration-private reference data
+  (`migration.state_region`, since Prisma's `demos_app.state` has no
+  `region` column) plus the JSONB registry load, and
+  `sql/03_seeds_limiters/` is intentionally empty (see the READMEs in
+  each directory).
+* *`fk_final.sql` (workstream E/§9).* FKs ship in the Prisma artifact;
+  `migrate ddl` captures them to `state/prisma_fks.json` and
+  `migrate constraints` re-applies them late. The hand-authored
+  `fk_final.sql` / `fk_candidates.csv` review path no longer gates
+  Week 2.
+====
+
+Week 2 status: `reports/narrative/pending_approved_decisions.md`, `reports/pgm_dtl_tag_mapping.csv`, `reports/narrative/history_strategy.md`, and `reports/inputs/fk_overrides.yaml` are authored. *Done this week:* the broken `02_seeds_static/25_state.sql` (it targeted a non-existent `demos_app.state.region`) was replaced by `migration.state_region`; the four JSONB schemas were promoted (`*.draft.json` -> `*.schema.json`, loaded into `migration.jsonb_schemas` by `init_pg.load_jsonb_schemas` during `migrate seeds`) -- including a real `uipath_response` schema for the UiPath OCR result and a split-out `uipath_token_list` schema for `demos_app.uipath_value.token_list`; and the `state` and `demo_status` crosswalk importers + completeness checks landed under `sql/04_crosswalks/` (`state` fully mapped in `reports/crosswalks/state.csv`; `demo_status` rows await the source `mdcd_demo_stus_rfrnc` / SME). *Still pending in Week 2:* authoring the remaining `*_rfrnc` crosswalk CSVs and the `demo_status` rows (both need the loaded MySQL source). *Advances since 2026-05-28 (why W3-W6 are now amber, not white).* Work has moved non-sequentially by mining the sister DEMOS repo: the W3 ID-map foundation (`sql/05_id_maps/`, 5 files) and the staging/filter layer (`sql/10_stg/`, 19 files incl. `60_budget_neutrality.sql`) are authored; the W5 budget-neutrality source census + parity staging landed (Branch 8, `reports/narrative/bn_source_enumeration.md`, `sql/99_parity/10_demonstration_id_provenance.sql`); and the budget-neutrality JSONB parity `CONSTRAINT TRIGGER` (`sql/01_ddl_supplements/10_bn_workbook_detail.sql` on `migration.bn_workbook_detail`) landed. (History is DEMOS-owned and not migrated, so there is no history-backfill stage.) *The keystone gap (now partial):* the first application-core loaders have landed -- `sql/20_app/` (person, users, demonstration), `sql/21_app_associative/`, and `sql/23_app_derived/` (person-state + the system / demonstration / primary role assignments) -- but the deliverable / document / comment / amendment / extension loaders are not authored, and `sql/30_constraints/`, `sql/32_app_triggers/`, `sql/40_indexes/`, and `sql/50_sequences/` are still `.gitkeep`-only, so W3-W6 cannot fully close until the remaining entities land. Per-week and per-branch status is now tracked authoritatively in the xref:migration-plan.adoc[migration-plan branch tracker]; this section mirrors it. Off-plan work landed earlier -- the standing `CODE_REVIEW.md` audit log, the Asciidoctor multi-audience docs set under `docs/`, and the JSONB-validation refactor from in-line CHECKs to a migration-private `CONSTRAINT TRIGGER` (now on `migration.bn_workbook_detail`) -- does not advance Gantt weeks but does change the constraint-application ordering noted in §10/Week 6.
+
+=== Week 1 -- Discovery, environment, DDL, drop list
+
+*Goal:* stand up the migration environment end-to-end on dummy data so every later week is just adding logic, not infrastructure.
+
+|===
+| Day | Steps | Output
+
+| Mon
+| (1) Create the migration repo with the layout from §8. (2) Provision the PG cluster and create roles (`migration_owner` plus the DEMOS app-facing roles `demos_read`, `demos_write`, `demos_delete` from the DEMOS `permissions.sql`). (3) Install extensions: `pg_jsonschema`, `pgcrypto`, `uuid-ossp`. (4) Create empty `mysql_raw`, `stg`, `demos_app`, `migration` schemas.
+| Empty cluster ready; `00_init/` committed
+
+| Tue
+| (1) Wire `migrate fetch-prisma` to download + hash-pin the DEMOS Prisma migration artifact. (2) `migrate ddl` drops/re-creates `demos_app`, applies the artifact (parent tables, CHECKs, JSONB columns, `*_history` tables, `revision_type_enum`), captures + drops FKs, then applies `01_ddl_supplements/`. (3) Smoke test: `migrate ddl` against empty PG returns clean.
+| pinned Prisma artifact; `01_ddl_supplements/*.sql`
+
+| Wed
+| (1) Author `pgloader/schema.load` with CAST rules (e.g., MySQL `tinyint(1)` \-> PG `boolean`, MySQL `datetime` \-> PG `timestamptz`). (2) First dry-run pgloader load against a copy of MySQL into `mysql_raw`. (3) Catalog every error / unsupported type.
+| `pgloader/schema.load`; first error log
+
+| Thu
+| (1) Draft `pgloader/drop_list.txt` from the digraph (backups, views, email, ops logs, legacy flat). (2) Re-run pgloader with the drop list applied; confirm clean load. (3) Write `reports/narrative/drop_list.md` with rationale per table.
+| `drop_list.txt`, `drop_list.md`; mysql_raw populated
+
+| Fri
+| (1) Generate `reports/generated/fk_candidates.csv` by scanning `mysql_raw.information_schema` columns matching naming patterns (`*_id` columns vs PK columns). (2) Draft JSONB schemas for `budget_neutrality_workbook.validation_data`, `event.event_data`, `application.validation_data`. (3) Demo to team / SME.
+| `fk_candidates.csv`; `reports/jsonb_schemas/*.draft.json`
+|===
+
+*Exit gate (Friday):* `migrate ddl` applies the pinned Prisma artifact clean on empty PG *and* `make load_full` runs pgloader to completion against MySQL with the drop list applied *and* `mysql_raw` row counts within 0.1% of MySQL `information_schema` row counts.
+
+=== Week 2 -- Seeds, crosswalks, FK design, decisions
+
+*Goal:* all "lookup" data and all design decisions are committed so transforms in Weeks 3-6 only do mechanical work.
+
+|===
+| Day | Steps | Output
+
+| Mon
+| (1) Author `02_seeds_static/` text IDs for every static-constraint table (`application_status`, `deliverable_status`, `document_type`, `comment_type`, `role`, etc.). (2) Author `03_seeds_limiters/` for every type-limiter pair.
+| `02_seeds_static/*.sql`, `03_seeds_limiters/*.sql`
+
+| Tue
+| (1) For each `*_rfrnc` in scope, query `mysql_raw` for the distinct values. (2) Create a CSV in `reports/crosswalks/<rfrnc_name>.csv` with `legacy_int_cd`, `legacy_name`, `demos_text_id`, `notes`. (3) Fill in the `demos_text_id` column (this is the manual judgment work).
+| One CSV per ref table
+
+| Wed
+| (1) Build `04_crosswalks/` SQL importers that load each CSV into `mysql_raw.crosswalk_<rfrnc>`. (2) Run a completeness check: `SELECT distinct legacy code from <data table> EXCEPT SELECT legacy_int_cd FROM crosswalk_<rfrnc>` returns zero rows for every reference.
+| `04_crosswalks/*.sql`; completeness report
+
+| Thu
+| (1) Review `fk_candidates.csv` with the team / SME. (2) Convert approved candidates into `reports/fk_final.sql` in DEMOS composite form (multi-column FKs where DEMOS uses them). (3) Draft `reports/narrative/pending_approved_decisions.md` -- one row per source pending/approved pair with the rule (collapse, drop, parity-warn).
+| `fk_final.sql`, `pending_approved_decisions.md`
+
+| Fri
+| (1) Author `reports/pgm_dtl_tag_mapping.csv` listing every `mdcd_*_pgm_dtl` table, its derived `tag_name`, and the column names for `from_dt`/`to_dt` and any extra attributes. (2) Confirm history disposition with the SMEs (DEMOS-owned, not migrated); record in `reports/narrative/history_strategy.md`. (3) Finalize JSONB schemas (move from `.draft.json` to canonical).
+| `pgm_dtl_tag_mapping.csv`, `history_strategy.md`, `jsonb_schemas/*.json`
+|===
+
+*Exit gate:* crosswalk completeness check passes for every reference table; SME has signed off on `pending_approved_decisions.md`, `pgm_dtl_tag_mapping.csv`, and `fk_final.sql`. After Week 2, every transform in Weeks 3-6 is mechanical.
+
+=== Week 3 -- Raw refresh + ID maps + person/users + application core
+
+*Goal:* rebuild `mysql_raw` automatically, prove the id-map + person-model pattern end-to-end on the simplest entities, and migrate the central "what is a demonstration" graph (demo + amendment + extension). Originally two weeks (W3 + W4); compressed into one.
+
+|===
+| Day | Steps | Output
+
+| Mon
+| (1) Extend `migration/phases/load_full.py` to also apply seeds + crosswalks (or add a `make load_full_seeded` target); add `_loaded_at` timestamp default to every `mysql_raw` table; run a fresh full reload via `uv run migrate load-full` and record duration. (2) Author `05_id_maps/` -- one `migration._id_map_<src>` table per source data table that becomes a DEMOS data table; populate with `INSERT … SELECT legacy_int_id, gen_random_uuid()`.
+| `load_full.py` working; baseline load timing; `05_id_maps/*.sql` populated
+
+| Tue
+| (1) Build `10_stg/10_users_person.sql`: collapse `users` + `user_role_asgnmt` + `user_authrzd_state_acs` + `mdcd_demo_cntct` into `stg.person`, `stg.users`, `stg.person_state`, `stg.role_assignment`. (2) Build `10_stg/11_states.sql` aligning `geo_ansi_state_rfrnc` to seeded DEMOS `state` rows. (3) Wire `20_app/10_users.sql` and `20_app/11_person.sql` to read from `stg`.
+| `10_users_person.sql`, `11_states.sql`; first end-to-end transform
+
+| Wed
+| (1) Build `10_stg/20_demo_application.sql` collapsing `mdcd_demo` + `mdcd_pendg_demo` + `mdcd_demo_aplctn` into `stg.application` and `stg.demonstration`, applying the rules from `pending_approved_decisions.md`. (2) Build `10_stg/21_amendment.sql` from `mdcd_demo_amndmt` + `mdcd_demo_amndmt_*`; pending equivalents follow the same status flow.
+| `20_demo_application.sql`, `21_amendment.sql`
+
+| Thu
+| (1) Build `10_stg/22_extension.sql` (renewals \-> extensions) from `mdcd_demo_rnwl`. (2) Wire `20_app/20_application.sql`, `20_app/21_demonstration.sql`, `20_app/22_amendment.sql`, `20_app/23_extension.sql`. (3) Verify a pending-only demo and an approved-with-amendments demo both reconstruct correctly.
+| `22_extension.sql`; full app-layer transforms
+
+| Fri
+| (1) Run a clean end-to-end rebuild including all of W3. (2) Spot-check ~20 known demonstrations against the old app UI for fidelity. (3) Run an "orphan baseline" report: every reconstructed FK in users/persons/states + demo graph resolves; record metrics. (4) Commit a "Friday clean rebuild" log.
+| `reports/orphans/baseline.md`; rebuild log; spot-check report
+|===
+
+*Exit gate:* clean rebuild of `mysql_raw` \-> `stg.{users, person, state, application, demonstration, amendment, extension}` \-> `demos_app.*` runs in one command with zero orphans for those entities; SME can pick any demonstration ID from MySQL and find it in `demos_app.demonstration` with the correct status, dates, state, amendments list, and extensions list.
+
+=== Week 4 -- Program-detail consolidation + deliverables
+
+*Goal:* the largest table-count workstream (~160 source tables) collapses into a single tag-driven model, and deliverables migrate.
+
+|===
+| Day | Steps | Output
+
+| Mon
+| (1) Author the templated `10_stg/30_pgm_detail_consolidated.sql` driven by `pgm_dtl_tag_mapping.csv`. The script iterates the manifest and emits `INSERT INTO stg.demonstration_type_tag_assignment …` for each source table.
+| Templated transform v1
+
+| Tue
+| (1) Run for the 5 highest-volume program types first (likely `mc`, `hcbs`, `dntl`, `vsn`, `ltss`); validate counts and sample rows. (2) Iterate template until clean.
+| Templated transform v2
+
+| Wed
+| (1) Run for all ~40 program types. (2) Add the pending equivalents. (3) Wire `20_app/30_tag_assignment.sql`.
+| Full pgm-detail load
+
+| Thu
+| (1) Build `10_stg/40_deliverable.sql` from `mdcd_dlvrbl` + `mdcd_dlvrbl_*` (excluding BN files which go to Week 5). (2) Build `10_stg/41_deliverable_paper.sql` for paper deliverables.
+| Deliverables transforms
+
+| Fri
+| (1) Wire `20_app/40_deliverable.sql`. (2) Clean rebuild. (3) Spot-check program-detail counts per demo against MySQL via the DuckDB sidecar.
+| Rebuild + parity check
+|===
+
+*Exit gate:* for each of 5 sampled demonstrations, the count of tag assignments per program type matches the row count in the corresponding `mdcd_*_pgm_dtl` table.
+
+=== Week 5 -- Documents, comments, JSONB BN
+
+*Goal:* the "long tail" of files, comments, and budget-neutrality data is in.
+
+|===
+| Day | Steps | Output
+
+| Mon
+| (1) Build `10_stg/50_documents.sql` consolidating all 10 doc-family tables into `stg.document` with `document_type_id` discriminators. (2) Reconstruct phase / deliverable / application linkage via id maps.
+| `50_documents.sql`
+
+| Tue
+| (1) Wire `20_app/50_document.sql`. (2) Run an orphan check on document linkage. (3) Capture stragglers (templates that should become app config; orphan docs that should drop).
+| Document load + orphan report
+
+| Wed
+| (1) Build `10_stg/60_budget_neutrality.sql`: one `stg.budget_neutrality_workbook` row per BN file with `validation_status_id = 'Pending'` / `validation_data = '{}'::jsonb`. (2) Aggregate the `bdgt_ntrlty_*` figures per `bdgt_ntrlty_demo_yr_id` into the migration-private `migration.bn_workbook_detail` parity table.
+| BN load + parity aggregate v1
+
+| Thu
+| (1) Validate the `migration.bn_workbook_detail` aggregate against `jsonb_schemas/budget_neutrality.schema.json` using `pg_jsonschema` (migration-private parity oracle). (2) Have SME review 5 sample aggregates. (3) Iterate.
+| BN parity aggregate v2
+
+| Fri
+| (1) Build `10_stg/70_comments.sql` routing the 9 comment tables to `private_comment` (CMS) or `public_comment` (state) by `cmt_orgn_cd`. (2) Wire `20_app/60_bn.sql` and `20_app/70_comments.sql`. (3) Clean rebuild.
+| Full Week 5 done
+|===
+
+*Exit gate:* the `migration.bn_workbook_detail` aggregate validates against the parity schema for 100% of workbooks; every migrated `BN Workbook` document has a matching `budget_neutrality_workbook` row (`Pending` / `'{}'`); SME approves 5 sample aggregates as faithful to the source spreadsheets; a flip-time revalidation enqueue list is produced.
+
+=== Week 6 -- Constraints + triggers + indexes
+
+*Goal:* the schema becomes "production-shaped." After this week, `demos_app` is no longer a flat data shed -- it has integrity. (History is DEMOS-owned and not migrated; the `*_history` tables ship empty for the DEMOS capture triggers to fill post-cutover.)
+
+|===
+| Day | Steps | Output
+
+| Mon-Thu
+| (1) Apply `30_constraints/` (FKs as `NOT VALID`), then `31_constraint_triggers/`, then `32_app_triggers/`. (2) Run `VALIDATE CONSTRAINT` for every FK; capture violations. (3) Fix transforms upstream and rebuild -- never patch around FKs.
+| Constraints active
+
+| Fri
+| (1) Apply `40_indexes/` and `50_sequences/`. (2) Run a full clean rebuild from empty `mysql_raw` \-> all the way to `demos_app` with constraints, triggers, indexes. (3) Record total duration as the "build budget."
+| First fully integrated rebuild; build budget recorded
+|===
+
+*Exit gate:* full clean rebuild completes within the target build budget (e.g., < 4 hours); 100% of FKs validate; all triggers attached; all indexes present.
+
+=== Week 7 -- New-app integration + UAT + performance
+
+*Goal:* the new backend reads `demos_app` and works; UAT bug-bashes the build; performance is tuned to SLO. Originally two weeks (W8 + W9); compressed into one.
+
+|===
+| Day | Steps | Output
+
+| Mon
+| (1) Point the new backend's connection string at staging `demos_app`; smoke-test core read paths. (2) First UAT tester (single SME) runs through the top 10 user journeys.
+| Staging up; UAT round 0 report
+
+| Tue
+| (1) Triage failing reads / writes; categorize as transform-side bugs vs new-app bugs. (2) Open transform fixes; rebuild affected slices. (3) Wider UAT group joins; runs expanded scenarios.
+| Bug tickets; UAT log
+
+| Wed
+| (1) Continue UAT triage. (2) Performance pass: capture top-20 slow queries from the new app's logs; add indexes / rewrite queries / denormalize as needed.
+| Index updates
+
+| Thu
+| (1) JSONB query plans reviewed (especially BN workbook reads); add expression indexes on hot JSONB paths. (2) Final UAT round on full scenario list.
+| Perf updates
+
+| Fri
+| (1) Final UAT bug bash; bug fixes batched into a Friday rebuild. (2) Sign-off on data-correctness from SME.
+| UAT sign-off; stable staging
+|===
+
+*Exit gate:* every top-10 user journey works on staging end-to-end with no transform-side blockers open; zero open Sev-1/Sev-2 UAT tickets; p95 read latency within app SLO; SME signs off on data correctness.
+
+=== Week 8 -- Dress rehearsals
+
+*Goal:* prove the cutover playbook works under realistic conditions, twice.
+
+|===
+| Day | Steps | Output
+
+| Mon
+| (1) Finalize `runbooks/cutover.md` and `runbooks/rollback.md`. (2) Pre-write comms templates: freeze-begin, freeze-extended, flip-complete, rollback.
+| Runbook v1
+
+| Tue
+| (1) *Rehearsal #1*: simulate full cutover end-to-end against a recent MySQL snapshot. (2) Time every phase. (3) Identify failures and surprises.
+| Rehearsal #1 log
+
+| Wed
+| (1) Apply learnings to runbook + scripts. (2) Backup operator briefed.
+| Runbook v2
+
+| Thu
+| (1) *Rehearsal #2*: re-run the whole cutover, target wall-clock < target. (2) Confirm rollback works.
+| Rehearsal #2 log
+
+| Fri
+| (1) Final go/no-go review meeting with stakeholders. (2) Schedule the production cutover window. (3) Send "cutover scheduled" comms.
+| Go decision
+|===
+
+*Exit gate:* Rehearsal #2 completes within the target window with zero unscripted interventions; rollback validated; backup operator confident; stakeholders signed off; production window scheduled.
+
+=== Cutover week (Mon 2026-06-29 → Fri 2026-07-10) -- Cutover, hypercare, decommission
+
+*Goal:* flip production safely; keep it stable; retire MySQL.
+
+|===
+| Day | Steps | Output
+
+| Mon (cutover day)
+| *T-2h*: `uv run migrate preflight`; send freeze-begin comms; backup operator on call. *T-0*: `uv run migrate freeze` (DBA pauses MySQL writes; old app banner up). *T+0*: `uv run migrate delta`. *T+30m*: `uv run migrate build`. *T+1h30m*: `uv run migrate constraints`. *T+2h*: `uv run migrate parity`. *Hard go/no-go gate*. *T+2h30m*: `uv run migrate flip`. *T+2h45m*: `uv run migrate smoke`. *T+3h30m*: send flip-complete comms.
+| New app live
+
+| Tue-Thu
+| Hypercare: on-call window for tickets; no schema changes; daily standup with SME and backup operator; track tickets in a single channel.
+| Hypercare log
+
+| Fri
+| Hypercare review; if stable for 4 days, plan decom for next week.
+| Hypercare exit
+
+| Following week
+| (1) `uv run migrate decom` revokes app access to MySQL. (2) Capture final MySQL backup. (3) Schedule MySQL teardown. (4) Post-mortem written.
+| Decom complete; post-mortem
+|===
+
+*Exit gate:* new app stable for ≥ 4 days; zero rollback triggers fired; final MySQL backup captured; decom plan signed off.
+
+=== Buffers and contingencies
+
+* *No formal slip week* in the compressed plan. If a transform week overruns (most likely candidates: W4 program-detail consolidation or W5 BN JSONB data-quality issues that need SME negotiation), the cutover-day prep buffer (Mon-Tue 2026-06-29/30) absorbs the slip; if that's not enough, the cutover date itself slips out of the 2026-07-01 target window and the change-management review reconvenes.
+* *Cutover-day hands-on window target:* 2-4 hours. The 1-week downtime budget remains the safety reservoir; rollback triggers if parity fails or if Sev-1 bugs appear in the first 2 hours after flip.
+* *Weekly Friday rule:* every week ends with a clean end-to-end rebuild from empty PG. If Friday rebuild fails, that's the highest-priority bug Monday morning.
+* *Idempotency rule:* every script can be re-run on the same `mysql_raw` snapshot and produce the same `demos_app` rows; no week ever ends with a non-rebuildable state.
+
+'''
+
+== 13. Risks and mitigations
+
+* *Pending/approved data inconsistencies.* Mitigation: explicit decision doc per pair; parity check that every pending row is accounted for; warnings logged.
+* *Crosswalk completeness.* Mitigation: every `*_rfrnc` table in scope has a CSV; SQL check confirms every distinct legacy code in `mysql_raw` has a mapping.
+* *Program-detail tag explosion.* Mitigation: tag dictionary signed off in Week 2; templated transform reviewed once vs. 40 hand-written.
+* *Document linkage gaps.* Doc tables reference many parent entities; some may not migrate cleanly. Mitigation: orphan-doc parity report; doc `description` field captures source for forensics.
+* *Backup tables hiding live data.* Mitigation: pre-load comparison of `*_bkup` vs base to confirm bkup is stale; documented in drop list.
+* *JSONB BN shape drift over time.* Mitigation: JSON Schema validation as parity check; representative sample manually reviewed by SME.
+* *Solo execution under pressure.* Mitigation: two timed rehearsals, scripted go/no-go, pre-written comms, backup operator.
+* *Reference-table semantics changing post-freeze.* Mitigation: crosswalks frozen at Week 2; any new reference codes added during cutover week trigger an explicit review gate.
+* *New-app behavior diverging from old-app expectations.* Mitigation: UAT in Week 7 with real users on cloned data; bug list fed back into transform fixes.
+
+'''
+
+== 14. Deliverables checklist
+
+* [ ] `migrate fetch-prisma` + `migrate ddl` fetching, pinning, and applying the Prisma artifact (parent tables, CHECKs, `*_history` tables); `01_ddl_supplements/` JSONB registry
+* [ ] `02_seeds_static/` and `03_seeds_limiters/` with canonical text IDs
+* [ ] `04_crosswalks/` SQL importers + `reports/crosswalks/*.csv`
+* [ ] `05_id_maps/` for every migrated source data table
+* [ ] `pgloader/schema.load`, `pgloader/delta.tmpl.load`, `pgloader/drop_list.txt`
+* [ ] `10_stg/`, `20_app/`, `21_app_associative/`, `23_app_derived/`
+* [ ] `30_constraints/`, `31_constraint_triggers/`, `32_app_triggers/`, `40_indexes/`, `50_sequences/`
+* [ ] `fk_candidates.csv` + `reports/inputs/fk_overrides.yaml` review layer (the FKs themselves ship in the Prisma artifact and are re-applied by `migrate constraints`)
+* [ ] `reports/narrative/drop_list.md`
+* [ ] `reports/narrative/pending_approved_decisions.md`
+* [ ] `reports/pgm_dtl_tag_mapping.csv`
+* [ ] `reports/jsonb_schemas/*.json`
+* [ ] `reports/narrative/history_strategy.md`
+* [ ] `migration/` Python package: `cli.py`, `lib.py`, and one module per phase under `phases/`
+* [ ] `pyproject.toml` + `uv.lock` (committed) + `Makefile` targets (`make sync`, `make test`, `make lint`, `make typecheck`, plus per-phase targets)
+* [ ] `99_parity/` pure-Postgres parity views/checks (`mysql_raw` vs `demos_app`)
+* [ ] prod-schema guard (DuckDB `postgres_scanner` PG↔PG diff of live PROD `demos_app` vs reference; HOLD on drift)
+* [ ] `runbooks/cutover.md` and `runbooks/rollback.md`
+* [ ] Two completed rehearsal logs with timings
+* [ ] Decommission plan for MySQL
+
+'''
+
+== 15. First concrete week
+
+The goal of Week 1 is to *stand up the migration environment end-to-end on real (but read-only) data* so every later week is just adding logic, not infrastructure. By Friday, you can run `make load_full` and watch a clean copy of MySQL land in `mysql_raw` on PostgreSQL with the drop list applied.
+
+=== Pre-Week-1 prerequisites
+
+Confirm before Monday:
+
+* Read-only credentials to MySQL prod (or a recent restore on a dedicated host).
+* A PostgreSQL 16+ cluster you control (local dev is fine for Week 1).
+* Local install of `uv` (`brew install uv`), `pgloader`, `psql`, `duckdb`, and `git`.
+* A copy of the DEMOS ER model on hand.
+* The MySQL digraph file committed somewhere accessible.
+
+=== Day-by-day
+
+==== Monday -- Repo + cluster + roles + Python toolkit
+
+*Goal:* an empty cluster ready to receive data, and the `migrate` CLI runnable end-to-end against an empty PG.
+
+. `mkdir demos-data-migration && cd demos-data-migration && git init`. Commit the directory layout from §8 with empty `.gitkeep` files where needed.
+. Author `pyproject.toml` with deps: `typer`, `rich`, `psycopg[binary]`, `pydantic-settings`, `tenacity`, `jinja2`, `pyyaml`, `jsonschema`, `duckdb`. Dev extras: `pytest`, `pytest-cov`, `ty`, `ruff`, `types-PyYAML`. Wire `[project.scripts] migrate = "migration.cli:app"`. Run `uv sync --extra dev`; commit `uv.lock`.
+. Stub `migration/__init__.py`, `migration/lib.py` (env loading via `pydantic-settings` `BaseSettings` with cached `Env.load()`, `STATE_DIR`/gate helpers, `phase()` decorator, `psql_file`/`psql_command`/`psql_query`/`psql_files`/`psql_exec_composed` wrappers, `+apply_dir(..., expect_files=...)+`, `truncate_schema_data` with identifier/LIKE-pattern guards, `redact()` for connection-string-safe logs, Jinja2 `render_template` with `StrictUndefined` + `0600` rendered output), `migration/cli.py` (Typer app with `init`, `ddl`, `seeds`, `crosswalks`, `id-maps`, `load-full`, `fk-candidates`, plus the cutover phases and `resume`/`status`), and `migration/phases/` modules. Confirm `uv run migrate --help` lists every phase.
+. Author `sql/00_init/` SQL: `00_roles.sql` (`migration_owner` plus the DEMOS app-facing roles `demos_read`, `demos_write`, `demos_delete`), `01_schemas.sql` (`mysql_raw`, `stg`, `demos_app`, `migration` + per-role `search_path`; app-facing grants on `demos_app` are owned by the DEMOS `permissions.sql`, not set here), `02_extensions.sql` (`pgcrypto`, `uuid-ossp`, `pg_jsonschema`), `03_helper_fns.sql` (`migration.lookup_uuid`, `migration.crosswalk`, `migration.assert_zero`), `04_delta_log.sql` (`mysql_raw._delta_log` written by `freeze.py` and updated by ``delta.tmpl.load``'s `AFTER LOAD DO`).
+. Smoke test: `make sync && uv run migrate init` against an empty cluster runs clean.
+. Author `tests/test_lib.py` (gate plumbing, `render_template`, `redact`, `truncate_schema_data` guards) and `tests/conftest.py` (`tmp_state_dir`, `reset_env_cache` autouse). Add `tests/test_cli.py` to lock down the Typer command surface. `make test` reports green. (Sets the bar that every later phase ships with at least one unit test.)
+. Add `.github/workflows/ci.yml` running `uv sync --extra dev --frozen`, `pytest --cov`, `ruff check`, and `ty check` on push and PR.
+
+*Output:* `pyproject.toml`, `uv.lock`, `migration/` package, `sql/00_init/`, passing test suite, green CI on first push.
+
+==== Tuesday -- DEMOS DDL extraction
+
+*Goal:* every DEMOS table exists in `demos_app`, with CHECK constraints and JSONB columns, but *no FKs* and *no triggers*.
+
+. Wire `migrate fetch-prisma` to list the Prisma migration directories under `$PRISMA_MIGRATIONS_PATH` in `$PRISMA_REPO@$PRISMA_REPO_REF` via the GitHub Contents API, fetch each `migration.sql`, concatenate them chronologically, and hash-pin the result to `reports/prisma_ddl.sha256` (cache at `state/prisma_ddl/<sha>.sql`).
+. The Prisma artifact carries the entire `demos_app` shape -- parent tables, CHECK constraints, JSONB columns, the static-constraint and type-limiter tables, *and* the `*_history` tables plus the `revision_type_enum` (DEMOS audit shape: `revision_id SERIAL` PK, `revision_type`, `modified_at`, then the parent columns). This repo authors none of it. `migrate ddl` `DROP SCHEMA demos_app CASCADE`s, applies the artifact, captures Prisma's inline FKs to `state/prisma_fks.json`, and drops them so the bulk build runs unconstrained.
+. The only migration-private DDL is `sql/01_ddl_supplements/00_jsonb_schema_registry.sql` with three artifacts: (a) the `migration.jsonb_schemas (name PK, schema jsonb, registered_at)` registry; (b) the `migration.tg_validate_jsonb_against_registered_schema() RETURNS trigger LANGUAGE plpgsql` trigger function that reads `TG_ARGV[0]` (schema name) and `TG_ARGV[1]` (JSONB column) and raises `check_violation` on a mismatch; (c) the `migration.revalidate_jsonb(p_table regclass, p_col text, p_schema text) RETURNS bigint` helper for post-promotion sweeps. PostgreSQL CHECK can only see the current row, so a JSONB shape rule is wired up as a CONSTRAINT TRIGGER instead. For budget-neutrality the check is *migration-private* (the trigger ships in `sql/01_ddl_supplements/10_bn_workbook_detail.sql`) -- it validates the parity aggregate, **not** the live `demos_app.budget_neutrality_workbook.validation_data` column (owned by DEMOS, which writes a `ValidationError[]` array and revalidates at flip; see workstream I):
++
+[,sql]
+----
+CREATE CONSTRAINT TRIGGER bn_workbook_detail_validation_data_schema
+  AFTER INSERT OR UPDATE OF validation_data
+  ON migration.bn_workbook_detail
+  DEFERRABLE INITIALLY IMMEDIATE
+  FOR EACH ROW
+  EXECUTE FUNCTION migration.tg_validate_jsonb_against_registered_schema(
+    'budget_neutrality', 'validation_data');
+----
++
+The trigger lands in phase P5 (constraints + triggers), matching the late-binding FK pattern, and fails closed for non-NULL JSONB until `reports/jsonb_schemas/*.json` are loaded into the registry -- that is intentional and matches the Week 2 schema-promotion task. (The disposition of the other registered schemas -- `uipath_response`, `uipath_token_list`, `application_validation` -- is covered separately; see the JSONB-validator disposition note in the "Outstanding" section.)
+
+. Run `uv run migrate ddl` against the empty cluster. It re-creates `demos_app`, applies the pinned Prisma artifact, captures + drops FKs, then `apply_dir(sql/01_ddl_supplements, expect_files=True)`. Re-running must remain clean (the supplement uses `CREATE TABLE IF NOT EXISTS` + `+ALTER TABLE ... DROP CONSTRAINT IF EXISTS ...; ADD CONSTRAINT ...+`; the Prisma apply is made repeatable by the `DROP SCHEMA` reset).
+. Run `\dt demos_app.*` and confirm the Prisma-defined table census (primary tables, static-constraint + type-limiter tables, and `*_history` tables) matches the artifact.
+. For developers without a local cluster, `make test-db-up` brings up a throwaway PostgreSQL container (the `supabase/postgres` image) with `00_init/` and the Prisma artifact applied, so DDL can be verified without a real RDS instance. (`pg_jsonschema` is not required locally; the JSONB CONSTRAINT TRIGGER is migration-private and gated on the registry, so an empty registry skips validation.)
+
+*Output:* `migrate fetch-prisma` + `migrate ddl` wired and pinned; `sql/01_ddl_supplements/00_jsonb_schema_registry.sql` committed; clean smoke apply; table census matching the Prisma artifact.
+
+==== Wednesday -- pgloader CAST file + first dry-run
+
+*Goal:* prove `uv run migrate load-full` can pull a full copy of MySQL into `mysql_raw` on demand.
+
+. Author `pgloader/schema.load` as a Jinja2 template with `+{{MYSQL_URL}}+`, `+{{PG_URL}}+`, `+{{MYSQL_DB}}+`, `+{{EXCLUDING_BLOCK}}+` markers. CAST rules cover MySQL `tinyint(1)` / `int(1)` \-> `boolean`, `datetime`/`timestamp` \-> `timestamptz`, `decimal` \-> `numeric` (`keep typemod`), `text`/`mediumtext`/`longtext`/`tinytext` \-> `text`, blob family \-> `bytea`. Add an `+AFTER LOAD DO $$ ... $$;+` block that adds `_loaded_at timestamptz NOT NULL DEFAULT now()` to every base table in `mysql_raw`.
+. Implement `migration/phases/load_full.py`: `_read_drop_list()`, `_excluding_block()`, `+render_template(...)+` (Jinja2 with `StrictUndefined`; rendered file `chmod 0600`), then `run(["pgloader", str(rendered)])` with stdout/stderr captured to `reports/runs/pgloader_run_<timestamp>.log`. Hard-fail via `require_schema('mysql_raw')` before invoking pgloader so a missing `init` is caught early.
+. Run `uv run migrate load-full` -- expect errors. Iterate the CAST file until pgloader runs clean.
+. Don't worry about the drop list yet -- leave `pgloader/drop_list.txt` empty (the `_excluding_block()` returns `""`); let everything in.
+. Confirm row counts in `mysql_raw` match MySQL within 0.1%.
+
+*Output:* `pgloader/schema.load`, `migration/phases/load_full.py`, first full `mysql_raw` populated (every table now has `_loaded_at`), `tests/test_drop_list.py` covering the parser.
+
+==== Thursday -- Drop list
+
+*Goal:* the load explicitly excludes tables that won't migrate, so the catalog stays honest.
+
+. Walk the digraph and tag every table with one of: `MIGRATE`, `DROP_BACKUP`, `DROP_VIEW`, `DROP_EMAIL`, `DROP_OPS`, `DROP_LEGACY`. Record in `reports/narrative/drop_list.md` with rationale per table.
+. Populate `pgloader/drop_list.txt` (one table name per line, `#` comments allowed). The `_excluding_block()` helper in `load_full.py` will render it into pgloader's `+EXCLUDING TABLE NAMES MATCHING ('a','b',...)+` clause automatically.
+. Drop the existing `mysql_raw` schema; re-run `uv run migrate load-full`. Confirm none of the dropped tables exist in `mysql_raw`.
+. Get a sign-off from someone with operational context (former dev, DBA, or SME) on the drop list before end of day.
+
+*Output:* `drop_list.txt`, `drop_list.md`; `mysql_raw` reloaded clean with drop list applied.
+
+==== Friday -- FK candidates + JSONB schemas + demo
+
+*Goal:* raw materials for Week 2's design work are ready, and the team has seen the environment work.
+
+. Author `scripts/generate_fk_candidates.sql` (the algorithm: for each `mysql_raw` column ending in `_id` or `_cd` that isn't a PK, look for a candidate target table by stripping the suffix and matching exact / `mdcd_*` / `mdcd_pendg_*` / `*_rfrnc` patterns; assign `HIGH/MEDIUM/LOW` confidence).
+. Implement `migration/phases/fk_candidates.py`: read the SQL, run via `psql_query`, optionally overlay manual decisions from `reports/inputs/fk_overrides.yaml` (parsed via `pyyaml`), and write `reports/generated/fk_candidates.csv`. Run `uv run migrate fk-candidates` to produce the first version.
+. Draft JSONB schemas under `reports/jsonb_schemas/` (`.draft.json` suffix):
+ ** `budget_neutrality.draft.json` -- covers `budget_neutrality_workbook.validation_data`.
+ ** `event.draft.json` -- covers `event.event_data`.
+ ** `application_validation.draft.json` -- covers `application.validation_data`.
+ ** `uipath_response.draft.json` -- covers UiPath `response` and `token_list`.
+These will be reviewed and frozen Friday of Week 2. (Their final enforcement disposition -- which schemas wire triggers and where -- is recorded in the JSONB-validator disposition note in the "Outstanding" section.)
+. Run a Friday demo: live walk-through of the toolchain in front of the team (or recorded async). Show:
+ ** empty PG cluster,
+ ** `uv run migrate init && uv run migrate ddl && uv run migrate load-full` running end-to-end,
+ ** `mysql_raw` table list with drop list applied,
+ ** `\dt demos_app.*` showing the DEMOS DDL,
+ ** `uv run migrate fk-candidates` regenerating `fk_candidates.csv`,
+ ** `uv run migrate status` showing the gate table,
+ ** `make test` and `make lint` green.
+. Tag the repo `week-1-end`. Note any surprises in `reports/narrative/notes.md`.
+
+*Output:* `scripts/generate_fk_candidates.sql`, `migration/phases/fk_candidates.py`, `reports/generated/fk_candidates.csv`, `reports/jsonb_schemas/*.draft.json`, demo recording, repo tag.
+
+=== Exit gate (Friday afternoon)
+
+All five must be green:
+
+. `make sync` succeeds; `uv.lock` committed.
+. `uv run migrate init && uv run migrate ddl` runs clean against an empty PG cluster.
+. `uv run migrate load-full` runs pgloader to completion and exits 0.
+. Row counts in `mysql_raw` match MySQL within 0.1% for every non-dropped table.
+. `make test` and `make lint` green; `reports/narrative/drop_list.md` has a sign-off line from a second person.
+
+If any of the four is red on Friday, that's the highest-priority work for Monday of Week 2. Do not start Week 2 design work on a broken environment.
+
+=== What you intentionally do *not* do in Week 1
+
+* *No transforms.* Not a single `INSERT INTO stg.* SELECT …`. That starts Week 3.
+* *No FKs in DEMOS DDL.* They're added in Week 6.
+* *No seed data.* That's Tuesday of Week 2.
+* *No crosswalk CSVs.* That's also Week 2.
+* *No id maps.* Those are Week 3.
+
+Resisting these is the discipline that lets you build the rest in order.
+
+'''
+
+== 16. Current implementation state
+
+A snapshot of what exists in `demos-data-migration/` today versus the plan above. This section is updated alongside the codebase; treat the timeline as the target and this section as the actual.
+
+=== Implemented
+
+* *Python orchestrator (`migration/`):* `cli.py` with every phase command listed in §10 plus `init`, `ddl`, `seeds`, `crosswalks`, `id-maps`, `load-full`, `fk-candidates`, `schema-snapshot` (reads the source MySQL `information_schema` via the DuckDB passthrough into `reports/schema_snapshot/` -- the enum domains, declared FKs, and view bodies pgloader drops), `reference-data` (its row-data companion: dumps every `*_rfrnc` lookup table's rows and the source views' result sets to `reports/reference_data/` for crosswalk authoring), `fetch-prisma`, `fetch-prisma-schema`, `load-fidelity`, `analyze` (offline DuckDB analysis), `diagnose` (read-only triage), `verify-prod-schema`, `verify-prisma-local` (pin-vs-local guard), `resume`, `status`. `lib.py` with env loading (`pydantic-settings`), gate plumbing, the `phase()` decorator, `confirm()` (with `MIGRATE_NONINTERACTIVE` refusal), Jinja2 `render_template`, `redact()`, `truncate_schema_data` with identifier guards, `+apply_dir(..., expect_files=...)+`, and the `psql_*` family (autocommit + batched-transaction variants). Every phase module under `migration/phases/` is wired and runnable end-to-end on stub data.
+* *Cutover wiring:* `preflight.py`, `freeze.py` (writes `state/freeze_instant.txt` + inserts a row into `mysql_raw._delta_log`), `load_full.py`, `load_delta.py` (with `_validate_freeze_instant` regex guard), `build.py` (split `build_stg`/`build_app`; `build_app` uses `psql_files` for a single real psycopg transaction with `SET CONSTRAINTS ALL DEFERRED`), `constraints.py` (psycopg `Identifier`-quoted `VALIDATE CONSTRAINT` loop; `state/fk_violations.csv`), `parity.py` (`ParityReport` dataclass; `--accept-pending` for rehearsals), `flip.py` (tenacity-backed healthz with scheme allowlist), `smoke.py` (manual checklist), `decom.py`, `rollback.py`, `fk_candidates.py` (with `reports/inputs/fk_overrides.yaml` overlay).
+* *pgloader templates:* `pgloader/schema.load`, `pgloader/delta.tmpl.load`, `pgloader/drop_list.txt`, `pgloader/delta_tables.tsv`. ``schema.load``'s `AFTER LOAD DO` adds `_loaded_at` to every `mysql_raw` table; ``delta.tmpl.load``'s `AFTER LOAD DO` updates `mysql_raw._delta_log`.
+* *SQL bootstrap:* `sql/00_init/` (`00_roles`, `01_schemas`, `02_extensions`, `03_helper_fns`, `04_delta_log`) is complete.
+* *Target DDL* is *owned by the DEMOS Prisma migrations*, not authored here. `migrate fetch-prisma` + `migrate ddl` download, hash-pin (`reports/prisma_ddl.sha256`), and apply the artifact -- parent tables, CHECK constraints, JSONB columns, the static-constraint and type-limiter lookup tables, and the `*_history` tables plus `revision_type_enum` (DEMOS audit shape). FKs are captured to `state/prisma_fks.json` and re-applied late by `migrate constraints`. The only migration-private DDL is `sql/01_ddl_supplements/`:
+ ** `00_jsonb_schema_registry.sql` -- the `migration.jsonb_schemas` registry plus the `migration.tg_validate_jsonb_against_registered_schema()` trigger function and `migration.revalidate_jsonb(...)` helper. The previous `migration.jsonb_matches_registered_schema(text, jsonb)` STABLE wrapper is retired (it hid a cross-row registry lookup behind a CHECK, which PostgreSQL disallows in principle); JSONB validation is wired up as a CONSTRAINT TRIGGER instead -- for budget-neutrality, on the migration-private `migration.bn_workbook_detail` (`sql/01_ddl_supplements/10_bn_workbook_detail.sql`). `sql/31_constraint_triggers/00_jsonb_validation.sql` is a disposition note that wires no live-column trigger.
+ ** A prior `10_history_shadows.sql` that re-created the history tables under a `history_id`/`op`/`recorded_at` convention was *removed as superseded* once the DEMOS repo was confirmed to own them (Prisma baseline + `log_changes_*` triggers in `server/src/sql/history_triggers.sql`). `sql/32_app_triggers/` is correspondingly empty.
+ ** For developers without a local cluster, an ephemeral-PG bring-up script (`/tmp` cluster + initdb + apply `00_init/` + Prisma artifact) stubs `+jsonb_matches_schema -> TRUE+` when `pg_jsonschema` is unavailable, so DDL can be checked locally without the extension.
+* *Seeds + crosswalks (Week 2).* `02_seeds_static/` holds `25_state_region.sql` (`migration.state_region`) and a README; the JSONB registry is loaded in Python from `reports/jsonb_schemas/*.schema.json` at the end of `migrate seeds`. `03_seeds_limiters/` is intentionally empty (Prisma-owned). `04_crosswalks/` ships 29 SQL files covering `state`, `demo_status`, `application_status`, `signature_level`, `role_person_type`, `system_role`, `demonstration_role`, `pgm_dtl_tag`, `deliverable_status`, `deliverable_type`, `application_type`, `sdg_division`, `amendment_status`, `document_type`, `comment_origin`, and `renewal_status` importers + completeness checks. The lookup-table seeds and `fk_final.sql` from the original §9 plan are *Prisma-superseded* (see the Week-2 status note above).
+* *SQL transform stages -- partially landed.* Populated today: `05_id_maps` (10 files), `10_stg` (29 files: the row-level filter subsystem `00_keep_drop_ids` + `10-17_filter_*`, the id-map populators `18-20_populate_id_map_*`, the `21-25_*_resolved` staging views, `60_budget_neutrality`, and `99_filter_report`), `20_app` (8 files: `10_person`, `20_users`, `30_demonstration`, `35_amendment`, `36_application_date`, `40_deliverable`, `50_comment`, `51_override_note`), `21_app_associative` (4 files), `23_app_derived` (4 files: `person_state` + the system / demonstration / primary role assignments), and `99_parity` (28 files feeding the 31-check `ParityReport`). History is DEMOS-owned and not migrated, so there is no `22_app_history` stage. Still scaffolded with ``.gitkeep``s only (`apply_dir` returns 0 and logs a `skip:` line): `30_constraints`, `32_app_triggers`, `40_indexes`, `50_sequences`. `31_constraint_triggers/` ships `00_jsonb_validation.sql`, which is now a disposition note that wires **no** trigger on any live `demos_app.*` column (the BN parity trigger lives in `01_ddl_supplements/10_bn_workbook_detail.sql` on `migration.bn_workbook_detail`); the rest of that directory is scaffolded.
+* *Tests:* `tests/conftest.py`, `test_lib.py`, `test_cli.py`, `test_drop_list.py`, `test_load_delta.py`, `test_flip.py`, `test_parity.py`, `test_constraints.py`, `test_build.py`, plus `test_duck.py`, `test_env_dsn.py`, `test_fetch_prisma.py`, `test_fetch_prisma_schema.py`, `test_fk_candidates.py`, `test_gate_graph.py`, `test_init_pg.py`, `test_load_fidelity.py`, `test_pgloader_log.py`, `test_pgloader_load_mode.py`, `test_prisma_schema.py`, `test_prod_schema_guard.py`, `test_reference_data.py`, `test_schema_diagrams.py`, `test_schema_snapshot.py`, `test_secrets.py`, `test_source_target_columns.py`, `test_derivability_audit.py`, `test_demonstration_idmap.py`, an `integration/` tier (`docker-compose.test.yml` + `make compose-up`/`integration-test`), and a `sql/` fixture tier. `make test` runs `pytest --cov=migration --cov-report=term-missing`.
+* *Tooling:* `pyproject.toml` (deps + `[project.scripts] migrate`), committed `uv.lock`, `Makefile` (1:1 with CLI commands plus `make rebuild`, `make clean`, `make clean-state`, `make clean-all`), `.env.example`, `scripts/cutover.sh` shim, `scripts/generate_fk_candidates.sql`.
+* *Runbooks + comms:* `runbooks/cutover.md`, `runbooks/rollback.md`, `runbooks/comms/freeze_begin.md`, `freeze_extended.md`, `flip_complete.md`, `rollback.md`.
+* *Reports:* `reports/narrative/drop_list.md`, `fk_candidates.csv`, `fk_overrides.yaml` (committed manual-patch layer with documented schema and example entries; `[]` until heuristics need correcting), `pending_approved_decisions.md`, `pgm_dtl_tag_mapping.csv`, `history_strategy.md`, `notes.md`, promoted JSON Schemas under `reports/jsonb_schemas/` (`application_validation.schema.json`, `budget_neutrality.schema.json`, `uipath_response.schema.json`, `uipath_token_list.schema.json`) loaded into `migration.jsonb_schemas` by `migrate seeds`; plus the `reports/filter/` keep/drop override subsystem, `reports/generated/derivability_audit.csv` + `derivability_verdicts.yaml`, `reports/source_target_columns.csv` (+ `proposed.csv`), `reports/inputs/proposed_table_map.yaml`, `reports/schema_drift_report.md`, `reports/narrative/bn_source_enumeration.md`, and `reports/narrative/ownership-remediation-plan.md`.
+* *CI:* `.github/workflows/ci.yml` runs `uv sync --extra dev --frozen`, `pytest --cov`, `ruff check`, and `ty check` on push and PR against Python 3.11.
+* *Audit:* `CODE_REVIEW.md` is a standing review log capturing correctness/risk findings. The two largest fixes it drove -- making `build_app` actually transactional via `psql_files` and surfacing the `mysql_raw._delta_log` table the delta template depends on -- are reflected above.
+
+=== Outstanding (as of the current snapshot)
+
+* The application-core load is *partially landed*: `sql/20_app/` (person, users, demonstration, amendment, application_date, deliverable, comment, override_note), `sql/21_app_associative/`, and `sql/23_app_derived/` (person-state + the system / demonstration / primary role assignments) are authored, while the document and extension loaders are still outstanding. `sql/30_constraints/`, `sql/32_app_triggers/`, `sql/40_indexes/`, and `sql/50_sequences/` remain scaffolded with `.gitkeep` only. `sql/31_constraint_triggers/00_jsonb_validation.sql` now ships **no** trigger on any live `demos_app` column -- the BN check was relocated to `migration.bn_workbook_detail` (in `01_ddl_supplements/10_bn_workbook_detail.sql`) and the uipath triggers dropped, per the JSONB-validator disposition note below. The rest of that directory is otherwise still `.gitkeep`. `sql/99_parity/` ships 28 SQL views feeding the 31-check `ParityReport`; checks 1, 2, and 4 stay PENDING on the SME consolidated-family mapping and the pending/approved sign-off.
+* `reports/crosswalks/` now carries fifteen CSVs: `state.csv` is fully mapped (57 rows), and `application_status`, `deliverable_status`, `deliverable_type`, `demonstration_role`, `demonstration_type`, `demo_status`, `document_type`, `application_type`, `sdg_division`, `system_role`, `role_person_type`, `signature_level`, `amendment_status`, and `renewal_status` carry proposed/confirmed values in varying states of SME sign-off -- some load live, others back a still-empty scaffold whose `_check.sql` fails closed (see xref:../operator/reference-human-inputs.adoc[the human-inputs reference] for per-crosswalk status).
+* `reports/orphans/` is empty until first parity run.
+* JSONB schemas are registered: `application_validation`, `budget_neutrality`, `uipath_response`, and `uipath_token_list` ship as `*.schema.json` under `reports/jsonb_schemas/` and load into `migration.jsonb_schemas` via `init_pg.load_jsonb_schemas` during `migrate seeds`. Their *enforcement* disposition -- which (if any) wire CONSTRAINT TRIGGERs, and where -- is recorded in the note below. **None are wired on a live `demos_app` column.** Where a trigger does exist (BN parity aggregate), it fails closed for non-NULL JSONB until the loader has run in a given build -- by design.
+
+[NOTE]
+====
+*JSONB-validator disposition (2026-06-03, sourced from `../demos`).* DEMOS performs **no in-DB JSONB validation** (`server/` carries no `pg_jsonschema`); these CONSTRAINT TRIGGERs are a migration-side construct only. The four registered schemas are dispositioned as follows:
+
+* `budget_neutrality` -- *migration-private parity oracle.* Validates the `migration.bn_workbook_detail` aggregate, **not** the live `demos_app.budget_neutrality_workbook.validation_data` column (DEMOS writes a `ValidationError[]` array there and revalidates at flip; see workstream I).
+* `uipath_response`, `uipath_token_list` -- *not shipped on the live app.* `uipath_result.response` / `uipath_value.token_list` have **no legacy source** (UiPath OCR is DEMOS-era; these columns are empty at cutover), so there is no migrated data to validate and no parity aggregate to guard. DEMOS owns these columns at runtime. The schema files are retained under `reports/jsonb_schemas/` as reference documentation only.
+* `application_validation` -- *not wired.* No producer pipeline and no `application.validation_data` column exist in the Prisma contract; the schema is a draft artifact only.
+
+*Implementation status:* this disposition is now in effect. `sql/31_constraint_triggers/00_jsonb_validation.sql` is a comments-only disposition note that wires no trigger on any live `demos_app` column; the `budget_neutrality` check runs on `migration.bn_workbook_detail` (created in `sql/01_ddl_supplements/10_bn_workbook_detail.sql`), and `uipath_response` / `uipath_token_list` ship no trigger.
+====
+* `reports/generated/fk_candidates.csv` is currently the bare CSV header; the SQL scanner needs `mysql_raw` to be loaded before it can produce candidates.
+* `reports/inputs/fk_overrides.yaml` is committed with `overrides: []` plus documented schema and worked examples; entries land as the SQL scanner output is reviewed.
+* No `test_freeze.py` or `test_preflight.py` yet -- these track the stable surface of those phases. (`test_constraints.py` and `test_build.py` now exist.)
+
+'''
+
+_End of spec._
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:../README.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:migration-plan.adoc[next >]
+|===
+endif::[]
+// docnav-end

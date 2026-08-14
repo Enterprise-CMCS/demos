@@ -1,0 +1,39 @@
+{
+  "theme": "default",
+  "flowchart": {
+    "useMaxWidth": true,
+    "wrappingWidth": 600,
+    "padding": 12,
+    "nodeSpacing": 40,
+    "rankSpacing": 50
+  },
+  "sequence": {
+    "useMaxWidth": true,
+    "wrap": true
+  },
+  "state": {
+    "useMaxWidth": true,
+    "padding": 12
+  },
+  "class": {
+    "useMaxWidth": true
+  },
+  "gantt": {
+    "useMaxWidth": true,
+    "fontSize": 14,
+    "leftPadding": 170,
+    "rightPadding": 60,
+    "topPadding": 60,
+    "barHeight": 26,
+    "barGap": 8,
+    "gridLineStartPadding": 40,
+    "sectionFontSize": 16,
+    "titleTopMargin": 28
+  },
+  "er": {
+    "useMaxWidth": true
+  },
+  "journey": {
+    "useMaxWidth": true
+  }
+}

@@ -129,7 +129,7 @@ export const validations: ValidationFunction[] = [
   },
 
   function error8(data: ExcelData) {
-    const rowStart = 47;
+    const rowStart = 7;
     const rowEnd = 500;
     const columnStart = "D";
     const columnEnd = "AH";
@@ -161,7 +161,7 @@ export const validations: ValidationFunction[] = [
   },
 
   function error9(data: ExcelData) {
-    const rowStart = 47;
+    const rowStart = 7;
     const rowEnd = 500;
     const columnStart = "D";
     const columnEnd = "AH";
@@ -197,7 +197,7 @@ export const validations: ValidationFunction[] = [
   },
 
   function error10(data: ExcelData) {
-    const rowStart = 68;
+    const rowStart = 8;
     const rowEnd = 500;
     const columnStart = "D";
     const columnEnd = "BX";
@@ -236,7 +236,7 @@ export const validations: ValidationFunction[] = [
   },
 
   function error11(data: ExcelData) {
-    const rowStart = 68;
+    const rowStart = 8;
     const rowEnd = 467;
     const columnStart = "D";
     const columnEnd = "BV";

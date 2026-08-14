@@ -1,0 +1,43 @@
+date_type_id,expected_timestamp
+Concept Start Date,Start of Day
+Concept Paper Submitted Date,Start of Day
+Concept Completion Date,Start of Day
+Concept Skipped Date,Start of Day
+Application Intake Start Date,Start of Day
+State Application Submitted Date,Start of Day
+Completeness Review Due Date,End of Day
+Application Intake Completion Date,Start of Day
+Completeness Start Date,Start of Day
+State Application Deemed Complete,Start of Day
+Federal Comment Period Start Date,Start of Day
+Federal Comment Period End Date,End of Day
+Completeness Completion Date,Start of Day
+SDG Preparation Start Date,Start of Day
+Expected Approval Date,Start of Day
+SME Initial Review Date,Start of Day
+FRT Initial Meeting Date,Start of Day
+BNPMT Initial Meeting Date,Start of Day
+SDG Preparation Completion Date,Start of Day
+Review Start Date,Start of Day
+Review Completion Date,Start of Day
+OGD Approval to Share with SMEs,Start of Day
+Draft Approval Package to Prep,Start of Day
+DDME Approval Received,Start of Day
+State Concurrence,Start of Day
+BN PMT Approval to Send to OMB,Start of Day
+Draft Approval Package Shared,Start of Day
+Receive OMB Concurrence,Start of Day
+Receive OGC Legal Clearance,Start of Day
+Approval Package Start Date,Start of Day
+Approval Package Completion Date,Start of Day
+COMMs Clearance Received,Start of Day
+Submit Approval Package to OSORA,Start of Day
+Package Sent for COMMs Clearance,Start of Day
+OSORA R1 Comments Due,End of Day
+OSORA R2 Comments Due,End of Day
+CMS (OSORA) Clearance End,End of Day
+Application Details Marked Complete Date,Start of Day
+Application Demonstration Types Marked Complete Date,Start of Day
+Approval Summary Start Date,Start of Day
+Approval Summary Completion Date,Start of Day
+Application Approval Date,Start of Day

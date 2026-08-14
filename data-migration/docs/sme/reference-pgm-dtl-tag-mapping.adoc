@@ -1,0 +1,43 @@
+= Reference: `reports/pgm_dtl_tag_mapping.csv`
+
+Live contents of the SME-authored mapping from MySQL
+`mdcd_<X>_pgm_dtl` source tables to DEMOS `tag_name` values.
+
+== Live file
+
+[source,csv]
+----
+include::../../reports/pgm_dtl_tag_mapping.csv[]
+----
+
+== How it is consumed
+
+The `20_app` tag-assignment transform (not yet authored) reads this
+CSV. For every row in the mapping, it emits a
+`demos_app.demonstration_type_tag_assignment` row keyed on the
+`source_table` and resolved from `tag_name` to its `tag_name_id`.
+
+`mdcd_pendg_*_pgm_dtl` (pending) tables are *not* listed here -- the
+transform infers them from the corresponding approved table and the
+pending/approved rule.
+
+== Editing
+
+* See xref:howto-review-pgm-dtl-tag-mapping.adoc[the SME how-to]
+  for the review checklist.
+* See xref:reference-static-constraint-tables.adoc[the
+  static-constraint reference] for the list of legal `tag_name`
+  values (defined in `demos_app.tag_name`).
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-static-constraint-tables.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-pending-approved-rules.adoc[next >]
+|===
+endif::[]
+// docnav-end

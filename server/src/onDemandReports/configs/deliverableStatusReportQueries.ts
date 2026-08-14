@@ -137,10 +137,54 @@ most_recent_valid_bn_data AS (
         ON
             doc.deliverable_submission_action_id = da.id
             AND bn.validation_status_id = 'Succeeded'
+),
+
+aggregate_public_comments AS (
+    SELECT
+        pbc.deliverable_id,
+        string_agg(
+            p.first_name
+            || ' '
+            || p.last_name
+            || ':'
+            || to_char(pbc.created_at AT TIME ZONE 'America/New_York', 'MM/DD/YYYY')
+            || ':'
+            || pbc.content,
+            E'\r\n' ORDER BY pbc.created_at
+        ) AS comment_value
+    FROM
+        demos_app.public_comment AS pbc
+    INNER JOIN
+        demos_app.person AS p
+        ON
+            pbc.author_user_id = p.id
+    GROUP BY pbc.deliverable_id
+),
+
+aggregate_private_comments AS (
+    SELECT
+        pvc.deliverable_id,
+        string_agg(
+            p.first_name
+            || ' '
+            || p.last_name
+            || ':'
+            || to_char(pvc.created_at AT TIME ZONE 'America/New_York', 'MM/DD/YYYY')
+            || ':'
+            || pvc.content,
+            E'\r\n' ORDER BY pvc.created_at
+        ) AS comment_value
+    FROM
+        demos_app.private_comment AS pvc
+    INNER JOIN
+        demos_app.person AS p
+        ON
+            pvc.author_user_id = p.id
+    GROUP BY pvc.deliverable_id
 )
 
 SELECT
-    demo.state_id AS state,
+    demo_state.name AS state,
     demo.name AS demonstration_title,
     demo.medicaid_id AS demonstration_number,
     to_char(demo.effective_date AT TIME ZONE 'America/New_York', 'MM/DD/YYYY') AS effective_date,
@@ -173,7 +217,9 @@ SELECT
     coalesce(to_char(most_recent_review_start.action_timestamp AT TIME ZONE 'America/New_York', 'MM/DD/YYYY'), '-')
         AS deliverable_review_date,
     coalesce(most_recent_valid_bn_data.net_variance_total::TEXT, '-') AS budget_neutrality_variance,
-    coalesce(most_recent_valid_bn_data.actuals, '-') AS actuals
+    coalesce(most_recent_valid_bn_data.actuals, '-') AS actuals,
+    left(coalesce(aggregate_public_comments.comment_value, '-'), 32000) AS public_comments,
+    left(coalesce(aggregate_private_comments.comment_value, '-'), 32000) AS private_comments
 FROM
     demos_app.deliverable AS deliv
 
@@ -182,6 +228,12 @@ INNER JOIN
     demos_app.demonstration AS demo
     ON
         deliv.demonstration_id = demo.id
+
+-- Every demonstration has a state
+INNER JOIN
+    demos_app.state AS demo_state
+    ON
+        demo.state_id = demo_state.id
 
 -- Primary Project Officer is guaranteed to exist
 INNER JOIN
@@ -250,6 +302,17 @@ LEFT JOIN
     most_recent_valid_bn_data
     ON
         deliv.id = most_recent_valid_bn_data.deliverable_id
+
+-- Not all deliverables have comments (again)
+LEFT JOIN
+    aggregate_public_comments
+    ON
+        deliv.id = aggregate_public_comments.deliverable_id
+
+LEFT JOIN
+    aggregate_private_comments
+    ON
+        deliv.id = aggregate_private_comments.deliverable_id
 
 -- Finally: don't show deleted deliverables
 WHERE

@@ -1,0 +1,103 @@
+= How-to: rebuild from scratch
+
+Drop every schema in the target cluster and re-run the entire pipeline
+to a clean parity green. Use this between rehearsals or after a major
+transform change.
+
+== Caveat
+
+Rebuild is *destructive*. It targets your `PG_URL` cluster; never run
+it against production after cutover.
+
+== Steps
+
+=== 1. Wipe runtime state
+
+[source,sh]
+----
+make clean-state
+----
+
+Removes `state/*.ok`, `state/*.txt`, `state/*.csv`, rendered
+`state/*.rendered.load`, and `reports/runs/pgloader_*.log`. Preserves
+audit reports.
+
+=== 2. Wipe schemas
+
+[source,sh]
+----
+psql "$PG_URL" -c "DROP SCHEMA IF EXISTS demos_app CASCADE; \
+                   DROP SCHEMA IF EXISTS stg CASCADE; \
+                   DROP SCHEMA IF EXISTS mysql_raw CASCADE; \
+                   DROP SCHEMA IF EXISTS migration CASCADE;"
+----
+
+=== 3. Confirm the Prisma DDL artifact is cached
+
+[source,sh]
+----
+uv run migrate fetch-prisma --verify-only
+----
+
+`migrate fetch-prisma` lists Prisma migration directories under
+`$PRISMA_MIGRATIONS_PATH` in `$PRISMA_REPO@$PRISMA_REPO_REF` (default
+`Enterprise-CMCS/demos@main`) via the GitHub Contents API, fetches
+each `migration.sql`, and concatenates them chronologically. The
+hash-verified cache lives at `state/prisma_ddl/<sha>.sql` and is
+keyed by `reports/prisma_ddl.sha256`. Drift (composed artifact's
+SHA256 != pin) hard-fails: review the upstream change and bump the
+pin if expected. See xref:../developer/reference-prisma-ddl.adoc[the
+Prisma DDL pipeline reference] for the bump workflow.
+
+=== 4. Run the rebuild target
+
+[source,sh]
+----
+make rebuild
+----
+
+This runs (in order): `init`, `ddl`, `load_full`, `seeds`,
+`crosswalks`, `id_maps`, `build`, `constraints`, `parity`.
+`migrate ddl` runs the prod-schema guard against `REFERENCE_PG_URL`
+(HOLD on schema/seed/emptiness drift), `DROP SCHEMA demos_app CASCADE`s
+and re-creates `demos_app` before applying the cached Prisma artifact,
+captures Prisma's FKs to `state/prisma_fks.json`, drops them, applies
+the migration-private supplements (`01_ddl_supplements/`), then captures
+the Prisma-seeded reference tables to `state/prisma_seeded_tables.json`
+for `build_app`'s truncation guard (the `*_history` tables ship in the
+Prisma artifact).
+
+Expected last line: `Full rebuild complete.`
+
+=== 5. Verify parity
+
+Open `reports/runs/parity_<latest>.md`. The header line must read
+`**OVERALL STATUS: GREEN**`. PENDING is acceptable for rehearsals
+when `--accept-pending` was used.
+
+== If rebuild fails
+
+* `pgloader` errors -- see
+  xref:howto-troubleshoot-pgloader.adoc[troubleshoot pgloader].
+* FK validation errors at P5 -- see
+  xref:howto-troubleshoot-fk-violations.adoc[troubleshoot FK
+  violations].
+* Parity red -- see
+  xref:howto-troubleshoot-parity-red.adoc[troubleshoot red parity].
+
+`make rebuild` is idempotent: re-running on the same `mysql_raw`
+snapshot produces the same `demos_app` rows. Fix the upstream issue and
+re-run; do not patch `demos_app` rows by hand.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:howto-rollback.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:howto-curate-filter.adoc[next >]
+|===
+endif::[]
+// docnav-end

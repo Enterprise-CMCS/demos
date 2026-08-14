@@ -1,6 +1,6 @@
 import { z } from "zod";
 import {
-  OnDemandReportColumnHeader,
+  OnDemandReportColumnConfiguration,
   OnDemandReportColumnSchema,
   OnDemandReportConfiguration,
 } from "./onDemandReportConfigTypes";
@@ -15,11 +15,11 @@ export const basicTestReportSchema = z
   .strict();
 
 export const basicTestReportColumnHeaders = {
-  col1: "Column 1",
-} satisfies OnDemandReportColumnHeader<BasicTestReportColumn>;
+  col1: { columnName: "Column 1" },
+} satisfies OnDemandReportColumnConfiguration<BasicTestReportColumn>;
 
 export const basicTestReportConfiguration = {
   sqlQueries: basicTestReportQueries,
   reportRowSchema: basicTestReportSchema,
-  excelConfiguration: { columnNames: basicTestReportColumnHeaders },
+  excelConfiguration: { columns: basicTestReportColumnHeaders },
 } satisfies OnDemandReportConfiguration;

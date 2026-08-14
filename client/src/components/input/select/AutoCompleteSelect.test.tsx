@@ -6,6 +6,7 @@ import { AutoCompleteSelect, AUTOCOMPLETE_SELECT_TEST_ID } from "./AutoCompleteS
 import { Option } from "./Select";
 
 const onSelect: (value: string) => void = vi.fn();
+const scrollIntoView = vi.mocked(HTMLElement.prototype.scrollIntoView);
 
 const options: Option[] = [
   { label: "Apple", value: "apple" },
@@ -137,12 +138,47 @@ describe("AutoCompleteSelect", () => {
   it("keyboard navigation: ArrowDown/ArrowUp moves highlight", async () => {
     render(<AutoCompleteSelect value="" options={options} onSelect={onSelect} />);
     const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
-    input.focus();
+    fireEvent.focus(input);
     fireEvent.keyDown(input, { key: "ArrowDown" }); // index 0
     fireEvent.keyDown(input, { key: "ArrowDown" }); // index 1
     fireEvent.keyDown(input, { key: "ArrowUp" }); // index 0
     fireEvent.keyDown(input, { key: "Enter" });
     expect(onSelect).toHaveBeenCalledWith("apple");
+  });
+
+  it("uses one active highlight for mouse and keyboard navigation", () => {
+    render(<AutoCompleteSelect value="" options={options} onSelect={onSelect} />);
+    const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
+    fireEvent.focus(input);
+
+    fireEvent.mouseEnter(screen.getByText("Apple"));
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+
+    const optionButtons = screen.getAllByRole("option").map((option) => option.firstElementChild!);
+    expect(
+      optionButtons.some((option) => option.classList.contains("hover:bg-surface-focus"))
+    ).toBe(false);
+    expect(
+      optionButtons.filter((option) => option.classList.contains("bg-surface-focus"))
+    ).toHaveLength(1);
+  });
+
+  it("scrolls the active option into view during keyboard navigation", () => {
+    scrollIntoView.mockClear();
+    const longOptions = Array.from({ length: 20 }, (_, index) => ({
+      label: `Option ${index + 1}`,
+      value: `option-${index + 1}`,
+    }));
+
+    render(<AutoCompleteSelect value="" options={longOptions} onSelect={onSelect} />);
+    const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
+    input.focus();
+
+    for (let index = 0; index < 10; index += 1) {
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+    }
+
+    expect(scrollIntoView).toHaveBeenLastCalledWith({ block: "nearest" });
   });
 
   it("closes dropdown on Escape", async () => {

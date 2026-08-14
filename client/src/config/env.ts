@@ -49,7 +49,7 @@ export const getMockPersonType = (): PersonType => {
   const envMockPersonType = import.meta.env.VITE_MOCK_PERSON_TYPE;
   if (!envMockPersonType) return defaultMockPersonType;
 
-  if (PERSON_TYPES.includes(envMockPersonType as PersonType)) {
+  if ([...PERSON_TYPES, "demos-readonly"].includes(envMockPersonType as PersonType)) {
     return envMockPersonType as PersonType;
   } else {
     console.warn(

@@ -1,0 +1,81 @@
+{
+  "table": "demonstration",
+  "source_anchor": "mysql_raw.mdcd_demo",
+  "generated_by": "docs/tools/table_flow_trace.py --table demonstration",
+  "fixture": "tests/sql/fixtures/demo_flow/seed_mdcd_demo.sql",
+  "stage_counts": {
+    "mysql_raw.mdcd_demo": 9,
+    "stg._valid_demo_ids": 7,
+    "migration._id_map_mdcd_demo": 7,
+    "stg.demonstration_resolved": 6,
+    "demos_app.application (Demonstration)": 4,
+    "demos_app.demonstration": 4,
+    "migration._parity_demonstration_id_provenance": 0,
+    "migration._parity_demonstration_completeness": 1,
+    "migration._parity_approved_demo_held": 1
+  },
+  "rows": [
+    {
+      "medicaid_id": "11-W-00001/1",
+      "uuid_token": "DEMONSTRATION_UUID_01",
+      "disposition": "loaded",
+      "status_id": "Approved",
+      "current_phase_id": "Approval Summary",
+      "chip_source": "preserved",
+      "chip_id": "21-W-00100/1"
+    },
+    {
+      "medicaid_id": "11-W-00002/1",
+      "uuid_token": "DEMONSTRATION_UUID_02",
+      "disposition": "loaded",
+      "status_id": "Approved",
+      "current_phase_id": "Approval Summary",
+      "chip_source": "minted",
+      "chip_id": "21-W-\u2026/1"
+    },
+    {
+      "medicaid_id": "11-W-00007/5",
+      "uuid_token": "DEMONSTRATION_UUID_03",
+      "disposition": "loaded",
+      "status_id": "Under Review",
+      "current_phase_id": "Review",
+      "chip_source": "minted",
+      "chip_id": "21-W-\u2026/5"
+    },
+    {
+      "medicaid_id": "11-W-00008/5",
+      "uuid_token": "DEMONSTRATION_UUID_04",
+      "disposition": "loaded",
+      "status_id": "On-hold",
+      "current_phase_id": "Concept",
+      "chip_source": "minted",
+      "chip_id": "21-W-\u2026/5"
+    },
+    {
+      "medicaid_id": "11-W-00003/4",
+      "disposition": "held_back_approved_field",
+      "status_id": "Approved",
+      "reason": "missing sdg_division"
+    },
+    {
+      "medicaid_id": "11-W-00004/9",
+      "disposition": "held_back_state",
+      "reason": "NULL state code; no migration.state_region row"
+    },
+    {
+      "medicaid_id": "11-W-00006/2",
+      "disposition": "excluded_soft_delete",
+      "reason": "soft-deleted (dltd_ind=1); excluded at stg.demonstration_resolved"
+    },
+    {
+      "medicaid_id": "11-W-123/4",
+      "disposition": "filtered_bad_project_number",
+      "reason": "fails the 11-W-NNNNN/R project-number rule in stg._valid_demo_ids"
+    },
+    {
+      "medicaid_id": "11-W-TEST/1",
+      "disposition": "filtered_bad_project_number",
+      "reason": "fails the 11-W-NNNNN/R project-number rule in stg._valid_demo_ids"
+    }
+  ]
+}

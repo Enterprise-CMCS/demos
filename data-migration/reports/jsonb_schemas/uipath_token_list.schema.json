@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "demos://jsonb/uipath_token_list.json",
+  "title": "DEMOS UiPath token list (app.uipath_value.token_list)",
+  "description": "Token bounding boxes / offsets for a single extracted UiPath value -- the Reference.Tokens array of a uipath_response value, stored per-value on app.uipath_value.token_list.",
+  "type": "array",
+  "items": { "$ref": "#/$defs/token" },
+  "$defs": {
+    "token": {
+      "type": "object",
+      "required": ["Page", "Boxes"],
+      "properties": {
+        "Page": { "type": "integer", "minimum": 0 },
+        "Boxes": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": { "type": "number" }
+          }
+        },
+        "PageWidth": { "type": "number" },
+        "PageHeight": { "type": "number" },
+        "TextLength": { "type": "integer" },
+        "TextStartIndex": { "type": "integer" }
+      }
+    }
+  }
+}

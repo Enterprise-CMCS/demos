@@ -19,6 +19,9 @@ const variants = {
   "warning-outlined": (props: ButtonProps) => <WarningButton {...props} isOutlined={true} />,
 };
 
+const LONG_TOOLTIP_TEXT =
+  "This is a rather long tooltip text that should be wrapped when displayed in the tooltip.";
+
 export const ButtonGrid: React.FC = () => {
   const [allDisabled, setAllDisabled] = React.useState(false);
 
@@ -45,7 +48,8 @@ export const ButtonGrid: React.FC = () => {
             name="test-circle-button-save"
             onClick={() => {}}
             disabled={allDisabled}
-            tooltip={allDisabled ? "Enable this button to make changes" : "Save your changes"}
+            tooltip={allDisabled ? undefined : "Save your changes"}
+            eagerTooltip={allDisabled ? "Must enable button first!" : undefined}
           >
             <SaveIcon />
           </CircleButton>
@@ -55,7 +59,8 @@ export const ButtonGrid: React.FC = () => {
             name="test-circle-button-trash"
             onClick={() => {}}
             disabled={allDisabled}
-            tooltip={allDisabled ? "Enable this button to make changes" : "Delete item"}
+            tooltip={allDisabled ? undefined : "Delete item"}
+            eagerTooltip={allDisabled ? LONG_TOOLTIP_TEXT : undefined}
           >
             <DeleteIcon />
           </CircleButton>
@@ -88,7 +93,8 @@ export const ButtonGrid: React.FC = () => {
                 onClick={() => {}}
                 size={size}
                 disabled={allDisabled}
-                tooltip={allDisabled ? "Enable this button to make changes" : "Save your changes"}
+                tooltip={allDisabled ? undefined : "Save your changes"}
+                eagerTooltip={allDisabled ? "Must enable button first!" : undefined}
               >
                 Save
               </VariantButton>

@@ -1,0 +1,6 @@
+legacy_int_cd,legacy_name,proposed_demos_text_id,confidence,sme_confirmed_value,notes
+0,-- Please Select --,Requested,medium,,"Judgment: an undetermined request = DEMOS initial state Requested (which has no determination code of its own)"
+1,Approved,Approved,high,,Verbatim identity with deliverable_extension_status seed
+2,Approved/Alternate Date,Approved,medium,,"Judgment: maps to Approved; the alternate date lives in mdcd_due_dt_chg_rqst.altrnt_dlvrbl_due_dt, not the status"
+3,Not Approved,Denied,medium,,"Semantic: Not Approved == DEMOS Denied (no verbatim 'Not Approved' value)"
+4,Withdrawn,Withdrawn,high,,Verbatim identity with deliverable_extension_status seed

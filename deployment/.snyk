@@ -1,16 +1,37 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.0
-# ignores vulnerabilities until expiry date; change duration by modifying expiry date
 patch: {}
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
   SNYK-JS-BRACEEXPANSION-17706650:
     - '*':
         reason: No direct upgrade or patch available.
-        expires: 2026-07-15T00:00:00.000Z
-  SNYK-JS-FASTURI-17675102:
+        expires: 2026-08-20T00:00:00.000Z
+  SNYK-JS-BRACEEXPANSION-18313044:
     - '*':
-        reason: No direct upgrade or patch available.
-        expires: 2026-07-15T00:00:00.000Z
+        reason: No patch available
+        expires: 2026-08-20T00:00:00.000Z
+        created: 2026-07-28T13:02:53.851Z
+  SNYK-JS-NANOID-18506894:
+    - '*':
+        reason: No patch available
+        expires: 2026-08-20T00:00:00.000Z
+        created: 2026-08-03T12:33:08.663Z
+  SNYK-JS-NANOID-18506897:
+    - '*':
+        reason: No patch available
+        expires: 2026-08-20T00:00:00.000Z
+        created: 2026-08-03T12:33:18.809Z
+  SNYK-JS-BRACEEXPANSION-18512280:
+    - '*':
+        reason: No patch available
+        expires: 2026-08-20T00:00:00.000Z
+        created: 2026-08-06T12:27:41.717Z
+  SNYK-JS-POSTCSS-18313038:
+    - '*':
+        reason: No patch available
+        expires: 2026-08-29T00:00:00.000Z
+        created: 2026-07-29T13:02:53.851Z
 exclude:
   global:
     - node_modules

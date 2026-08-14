@@ -25,6 +25,7 @@ export interface DeploymentConfigProperties {
   srrConfigured: boolean;
   dataConnectRoleArn: string;
   enableAlarms?: boolean;
+  pmdaDataSyncArn?: string;
 }
 
 export const determineDeploymentConfig = async (
@@ -57,18 +58,18 @@ export const determineDeploymentConfig = async (
 
   const zScalerIps = await getZScalerIps();
 
-  let cloudfrontHost = `${hostEnvironment}.demos.internal.cms.gov`;
+  let cloudfrontHost = hostEnvironment == "prod" ? "demos.cms.gov" : `${hostEnvironment}.demos.internal.cms.gov`;
 
   if (isEphemeral) {
     cloudfrontHost = `${stage}.${cloudfrontHost}`;
   }
 
-  const pubCertData = await getParameter("/demos/pub-cms-cert-1")
+  const pubCertData = stage != "bootstrap" ? await getParameter("/demos/pub-cms-cert-1") : ""
   fs.writeFileSync("./cert.pem", `${pubCertData}`);
 
   let srrConfigured = false
   try {
-    const cloudfrontReady = await getParameter(`/demos/cloudfront/${stage}`)
+    const cloudfrontReady = stage != "bootstrap" ? await getParameter(`/demos/cloudfront/${stage}`) : ""
     if (cloudfrontReady.startsWith("SRR has been configured:") && stage != "bootstrap") {
       srrConfigured = true
     } else if (["dev", "test"].includes(stage) || await configuredDistributionExists(stage)) {

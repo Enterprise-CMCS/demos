@@ -1,0 +1,148 @@
+= Reference: id maps
+
+Every MySQL `int` PK that becomes a DEMOS `uuid` PK passes through
+an id map: `migration._id_map_<source_table>`.
+
+== Why
+
+Two reasons:
+
+. *FK reconstruction.* Source rows reference each other by `int`
+  PK. DEMOS uses `uuid`. Without an id map we cannot translate the
+  parent reference at insert time.
+. *Idempotency.* The map is populated with `INSERT ... ON CONFLICT
+  DO NOTHING`, so re-running on the same source snapshot does not
+  regenerate UUIDs. A given legacy row keeps its DEMOS UUID across
+  rebuilds.
+
+== Shape
+
+[source,sql]
+----
+CREATE TABLE migration._id_map_<source_table> (
+  legacy_int_id BIGINT PRIMARY KEY,
+  new_uuid      UUID UNIQUE NOT NULL DEFAULT gen_random_uuid(),
+  _created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+----
+
+`BIGINT` is intentional even when source PKs fit in `INT`; future
+sources may not.
+
+== Population
+
+[source,sql]
+----
+INSERT INTO migration._id_map_<source_table> (legacy_int_id)
+SELECT <pk_col> FROM mysql_raw.<source_table>
+ON CONFLICT DO NOTHING;
+----
+
+Population happens once per source data table. For tables whose map
+draws straight from `mysql_raw`, the `CREATE` and the `INSERT` both
+live in `sql/05_id_maps/`. The transforms in `10_stg/` and `20_app/`
+then JOIN against the map.
+
+[NOTE]
+====
+The two *demonstration* maps are an exception. Their population must
+draw only from the PMDA-valid filter views (`stg._valid_demo_ids`,
+`stg._valid_pendg_demo_ids` — see the invariant below), which are
+defined in `10_stg/`. Because the build applies `05_id_maps/` *before*
+`10_stg/`, those views do not yet exist when `05` runs. So the map
+*table* is created in `sql/05_id_maps/10_mdcd_demo.sql` /
+`11_mdcd_pendg_demo.sql`, and the *population* runs afterward in
+`sql/10_stg/18_populate_id_map_mdcd_demo.sql` /
+`19_populate_id_map_mdcd_pendg_demo.sql`.
+====
+
+== Lookup pattern
+
+[source,sql]
+----
+INSERT INTO stg.<target> (id, parent_id, ...)
+SELECT
+  m_self.new_uuid,
+  m_parent.new_uuid,
+  ...
+FROM mysql_raw.<source> src
+JOIN migration._id_map_<source>        m_self   ON m_self.legacy_int_id   = src.id
+JOIN migration._id_map_<parent_source> m_parent ON m_parent.legacy_int_id = src.parent_id;
+----
+
+Use a distinct alias for each id map join (`m_self`, `m_parent`,
+`m_grandparent`, ...) so SQL is readable in code review.
+
+== Convenience helper
+
+`migration.lookup_uuid(source_table TEXT, legacy_id BIGINT) RETURNS UUID` is
+a `STABLE` helper in `sql/00_init/03_helper_fns.sql` for ad-hoc
+queries. Production transforms always JOIN explicitly so the planner
+sees the dependency.
+
+== Naming
+
+`migration._id_map_<source_table>` -- always include the schema
+prefix in callers (`migration._id_map_mdcd_demo`, never just
+`_id_map_mdcd_demo`).
+
+== Demonstration provenance (invariant)
+
+Every `demos_app.demonstration.id` in DEMOS PG originates from PMDA via
+the id maps. New demonstration IDs are created post-migration by
+the DEMOS backend and are *out of scope* for this migration.
+
+Concretely:
+
+* `migration._id_map_mdcd_demo` is populated only from
+  `stg._valid_demo_ids` (filtered `mysql_raw.mdcd_demo`).
+* `migration._id_map_mdcd_pendg_demo` is populated only from
+  `stg._valid_pendg_demo_ids` (filtered `mysql_raw.mdcd_pendg_demo`).
+* No transform may insert into either map from any other source.
+* No transform may insert into `demos_app.demonstration` with an `id`
+  not drawn from one of those two maps.
+* Pending demos that fold into an approved counterpart reuse the
+  approved UUID (see
+  `reports/narrative/pending_approved_decisions.md`); only orphan-pending
+  rows take a UUID from `_id_map_mdcd_pendg_demo`.
+
+PMDA-issued project numbers conform to
+`^11-W-[0-9]{5}/(10|[1-9])$` -- `11-W-NNNNN/R`, where `N` is a
+single digit (5 digits total) and `R` is the CMS Region number
+1-10. The row-level filter in `sql/10_stg/10_filter_demo.sql` and
+`11_filter_pendg_demo.sql` enforces the regex; values containing the substring `test` (case-insensitive)
+are auto-dropped silently, and everything else that fails the
+regex is flagged for SME review (see
+xref:../operator/howto-curate-filter.adoc[how-to: curate the
+filter]).
+
+The invariant is enforced at Gate 6 by
+`sql/99_parity/10_demonstration_id_provenance.sql` and the
+`demonstration_id_provenance` `CheckResult` in
+`migration/phases/parity.py`. Any non-empty result is RED and
+blocks the cutover.
+
+== Related
+
+* xref:tutorial-add-a-new-transform.adoc[Tutorial: add a new
+  transform]
+* xref:explanation-history-backfill.adoc[History is DEMOS-owned, not
+  migrated].
+* xref:explanation-demos-clone-vs-id-maps.adoc[Explanation: the DEMOS
+  clone tool vs. our id maps] (why the DEMOS UAT clone tool does not
+  replace these).
+* xref:../operator/howto-curate-filter.adoc[How-to: curate the
+  filter] (test/review-required severity).
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-schema-diagrams.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-data-dictionary.adoc[next >]
+|===
+endif::[]
+// docnav-end

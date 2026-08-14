@@ -1,0 +1,55 @@
+-- Full MySQL -> PostgreSQL load into the mysql_raw schema.
+--
+-- Run via: uv run migrate load-full
+--   (implemented in migration/phases/load_full.py; reads env from .env)
+--
+-- Drop list applied via EXCLUDING TABLE NAMES MATCHING block at the bottom;
+-- the literal table list lives in pgloader/drop_list.txt and is rendered
+-- into the {{EXCLUDING_BLOCK}} marker by migration.phases.load_full.
+--
+-- Markers replaced by migration.lib.render_template:
+--   {{MYSQL_URL}}, {{PG_URL}}, {{MYSQL_DB}}, {{CAST_BLOCK}}, {{EXCLUDING_BLOCK}}
+--
+-- CAST_BLOCK is the shared type-coercion block from pgloader/casts.load
+-- (migration.lib.cast_block), rendered identically into the full and delta
+-- loads so the two never diverge.
+--
+-- Comment style is `--` (not C-style block comments): pgloader v4
+-- (Clojure/JVM) rejects block comments in the command file; both v3 and
+-- v4 accept `--`.
+
+LOAD DATABASE
+     FROM      {{MYSQL_URL}}
+     INTO      {{PG_URL}}
+
+  WITH include drop, create tables, create indexes, reset sequences,
+       foreign keys, downcase identifiers
+
+   SET work_mem to '256MB',
+       maintenance_work_mem to '1GB',
+       search_path to 'mysql_raw,public'
+
+ALTER SCHEMA '{{MYSQL_DB}}' RENAME TO 'mysql_raw'
+
+{{CAST_BLOCK}}
+
+BEFORE LOAD DO
+$$ CREATE SCHEMA IF NOT EXISTS mysql_raw; $$
+
+AFTER LOAD DO
+$$ DO LANGUAGE plpgsql $body$
+   DECLARE r record;
+   BEGIN
+     FOR r IN
+       SELECT format('ALTER TABLE %I.%I ADD COLUMN IF NOT EXISTS _loaded_at timestamptz NOT NULL DEFAULT now()',
+                     table_schema, table_name) AS sql
+       FROM information_schema.tables
+       WHERE table_schema = 'mysql_raw' AND table_type = 'BASE TABLE'
+     LOOP
+       EXECUTE r.sql;
+     END LOOP;
+   END
+   $body$; $$
+
+{{EXCLUDING_BLOCK}}
+;

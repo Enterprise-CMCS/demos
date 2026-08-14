@@ -1,0 +1,18 @@
+# Allow-list for path references that are intentionally absent from the tree.
+# Consumed by docs/tools/verify_schema_refs.py. One repo-relative path per line;
+# `#` starts a comment. Add an entry only when a doc deliberately names a file
+# that is runtime-generated, superseded, or planned-but-not-yet-built. Remove
+# the entry once the file actually exists (the checker will then verify it).
+
+# Superseded by the Prisma-owned DDL; canonical-spec records the removal.
+reports/fk_final.sql
+sql/01_ddl/
+sql/22_app_history/
+
+# Not committed: the constraints stage is .gitkeep-only; FKs are re-applied from
+# state/prisma_fks.json (captured at `migrate ddl`), not a static 01_fks.sql.
+sql/30_constraints/01_fks.sql
+
+# Investigation artifacts produced on demand, not committed.
+reports/orphans/baseline.md
+scripts/dev_pg.sh

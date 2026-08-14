@@ -1,0 +1,108 @@
+/* Injected into every mermaid diagram via --cssFile so node labels are
+   never clipped when the viewing browser's font metrics differ slightly
+   from mmdc's headless Chrome measurement of the rendered HTML inside
+   foreignObject elements. The only change is removing the foreignObject
+   clip so text that's a pixel or two wider than mmdc thought still
+   renders inside the surrounding rect padding instead of being cut. */
+foreignObject {
+    overflow: visible !important;
+}
+
+.nodeLabel p,
+.edgeLabel p,
+.cluster-label p {
+    margin: 0 !important;
+}
+
+/* Gantt: distinct colour for "completed" tasks (mermaid's default `done`
+   is a muted gray, not visibly green). Override across all four section
+   indices that the current chart uses. */
+.task.done0,
+.task.done1,
+.task.done2,
+.task.done3 {
+    fill: #5cb85c !important;
+    stroke: #3d8b3d !important;
+    stroke-width: 1px !important;
+}
+
+/* Gantt: default (untagged) tasks represent "not started" weeks.
+   Mermaid's default fill for these is a blue/purple, which conflicts
+   with the legend's reservation of blue for "active / in flight". Force
+   them to a neutral light gray instead. */
+.task.task0,
+.task.task1,
+.task.task2,
+.task.task3 {
+    fill: #d6d6d6 !important;
+    stroke: #8a8a8a !important;
+    stroke-width: 1px !important;
+}
+
+/* Gantt: force *untagged* task labels (the gray "not started" weeks) to
+   render black. The `.task*` selectors above match the SVG <rect> bars,
+   not the labels, and SVG <text> elements are coloured via `fill` (not
+   `color`), which is why the prior `color: #111` had no effect.
+
+   Every Gantt task label gets `taskText` (or `taskTextOutsideRight` /
+   `taskTextOutsideLeft`) in its class list, so we match those as the
+   base selector. Tasks tagged `:done`, `:crit`, `:active`, or rendered
+   as a milestone additionally pick up a state token in their classes:
+     - doneText{0-3}, doneCritText{0-3}
+     - critText{0-3}, activeCritText{0-3}
+     - activeText{0-3}
+     - milestoneText
+   The `:not([class*="…" i])` chain excludes those — `i` makes the
+   substring match case-insensitive so `critText` catches the lowercase
+   `critText*` as well as the mixed-case `activeCritText*` /
+   `doneCritText*` variants in a single test. The net effect: amber
+   `:crit` bars and the red milestone keep their default light label
+   colour for contrast, while only the gray untagged bars get black. */
+text.taskText:not([class*="doneText" i]):not([class*="critText" i]):not(
+        [class*="activeText" i]
+    ):not(.milestoneText),
+text.taskTextOutsideRight:not([class*="doneText" i]):not(
+        [class*="critText" i]
+    ):not([class*="activeText" i]):not(.milestoneText),
+text.taskTextOutsideLeft:not([class*="doneText" i]):not(
+        [class*="critText" i]
+    ):not([class*="activeText" i]):not(.milestoneText) {
+    fill: #111 !important;
+}
+
+/* Gantt: tasks tagged `:active` represent a week currently being worked
+   on in full (reserved colour, not used today but kept in the palette
+   for future status updates). */
+.task.active0,
+.task.active1,
+.task.active2,
+.task.active3 {
+    fill: #4a90e2 !important;
+    stroke: #1f5a8a !important;
+    stroke-width: 1px !important;
+}
+
+/* Gantt: partial / in-progress weeks are tagged `:crit` in the source so
+   they pick up a separate colour from `:active` (reserved for future
+   in-flight weeks). Amber maps to "partial / in progress" in the legend
+   under §12 of canonical-spec.adoc. */
+.task.crit0,
+.task.crit1,
+.task.crit2,
+.task.crit3 {
+    fill: #f0ad4e !important;
+    stroke: #c08124 !important;
+    stroke-width: 1px !important;
+}
+
+/* Gantt: the cutover milestone also carries the `:crit` tag, so the
+   amber rule above would otherwise apply. The more specific selector
+   below puts the milestone back to red. */
+.task.milestone.crit0,
+.task.milestone.crit1,
+.task.milestone.crit2,
+.task.milestone.crit3 {
+    fill: #d9534f !important;
+    stroke: #a8302b !important;
+    stroke-width: 1.5px !important;
+}

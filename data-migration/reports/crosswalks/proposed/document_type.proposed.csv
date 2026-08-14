@@ -1,0 +1,11 @@
+legacy_int_cd,legacy_name,proposed_demos_text_id,confidence,sme_confirmed_value,notes
+1,Application Completeness Letter,Application Completeness Letter,high,Application Completeness Letter,Verbatim identity with document_type seed
+2,Approval Letter,Approval Letter,high,Approval Letter,Verbatim identity with document_type seed
+3,Signed Decision Memo,Signed Decision Memo,high,Signed Decision Memo,Verbatim identity with document_type seed
+4,Payment Ratio Analysis,Payment Ratio Analysis,high,Payment Ratio Analysis,Verbatim identity with document_type seed
+5,State Application,State Application,high,State Application,Verbatim identity with document_type seed
+6,Temporary Extension Letter,General File,none,General File,"No document_type target; SME call -- folded to General File"
+7,Final BN Worksheet,BN Workbook,medium,BN Workbook,"Judgment: closest seed is BN Workbook. Confirm vs BN Template"
+8,Formal OMB Policy Concurrence Email,Formal OMB Policy Concurrence Email,high,Formal OMB Policy Concurrence Email,Verbatim identity with document_type seed
+9,Q&A,Q&A,high,Q&A,Verbatim identity with document_type seed
+99,Other,General File,high,General File,"Legacy catch-all; General File is the DEMOS catch-all. Confirm vs leaving NULL"

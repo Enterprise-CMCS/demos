@@ -1,5 +1,4 @@
 import prettierConfig from "eslint-config-prettier/flat";
-import reactPlugin from "eslint-plugin-react";
 import tseslint from "typescript-eslint";
 
 import js from "@eslint/js";
@@ -10,7 +9,6 @@ import { noNonstandardDateFormatting } from "./eslint-rules/no-nonstandard-date-
 export default [
   js.configs.recommended,
   ...tseslint.configs.recommended,
-  reactPlugin.configs.flat.recommended,
   prettierConfig,
 
   {
@@ -55,8 +53,5 @@ export default [
   },
   {
     files: ["**/*.ts", "**/*.tsx"],
-    rules: {
-      "react/prop-types": "off",
-    },
   },
 ];

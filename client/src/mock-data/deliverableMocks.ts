@@ -8,6 +8,7 @@ import {
   DELIVERABLES_PAGE_QUERY,
   DeliverableTableRow,
 } from "components/table/tables/DeliverableTable";
+import { DEMONSTRATION_DELIVERABLE_TAB } from "pages/DemonstrationDetail/deliverables/DeliverablesTab";
 
 export const MOCK_DELIVERABLE_TABLE_ROW: DeliverableTableRow = {
   id: "8f3a0c8a-2f9f-4bf0-9a3a-6b7eac31f201",
@@ -17,6 +18,7 @@ export const MOCK_DELIVERABLE_TABLE_ROW: DeliverableTableRow = {
     name: "Dusty Demo",
     state: {
       id: "CA",
+      name: "California",
     },
     demonstrationTypes: [],
   },
@@ -46,6 +48,7 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
     expirationDate: new Date("2026-12-31"),
     state: {
       id: "CA",
+      name: "California",
     },
     demonstrationTypes: [],
   },
@@ -106,6 +109,32 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
 };
 
 export const deliverableMocks: MockedResponse[] = [
+  {
+    request: {
+      query: DEMONSTRATION_DELIVERABLE_TAB,
+      variables: { id: "demo-does-not-exist" },
+    },
+    result: {
+      data: {
+        demonstration: {
+          deliverables: [],
+        },
+      },
+    },
+  },
+  {
+    request: {
+      query: DEMONSTRATION_DELIVERABLE_TAB,
+      variables: { id: "demo-1" },
+    },
+    result: {
+      data: {
+        demonstration: {
+          deliverables: [MOCK_DELIVERABLE_1, MOCK_DELIVERABLE_TABLE_ROW],
+        },
+      },
+    },
+  },
   {
     request: {
       query: DELIVERABLES_PAGE_QUERY,

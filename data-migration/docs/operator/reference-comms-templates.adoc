@@ -1,0 +1,61 @@
+= Reference: comms templates
+
+Pre-written stakeholder messages in `runbooks/comms/`. Send the right
+one at the right time; do not improvise on cutover day.
+
+[cols="2,2,4"]
+|===
+| When | Template | Audience
+
+| Just before P1 freeze | `runbooks/comms/freeze_begin.md` | Users + stakeholders
+| Freeze running long | `runbooks/comms/freeze_extended.md` | Stakeholders + on-call
+| Just after P8 smoke green | `runbooks/comms/flip_complete.md` | Users + stakeholders (attach parity report)
+| On rollback | `runbooks/comms/rollback.md` | Users + stakeholders + on-call
+|===
+
+== Freeze begin
+
+[source]
+----
+include::../../runbooks/comms/freeze_begin.md[]
+----
+
+== Freeze extended
+
+[source]
+----
+include::../../runbooks/comms/freeze_extended.md[]
+----
+
+== Flip complete
+
+[source]
+----
+include::../../runbooks/comms/flip_complete.md[]
+----
+
+== Rollback
+
+[source]
+----
+include::../../runbooks/comms/rollback.md[]
+----
+
+== Editing
+
+Edit the `.md` files directly. They are markdown, but rendered into
+this AsciiDoc page as fenced source blocks for verbatim display, so
+no AsciiDoc translation is needed.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-amendment-flow.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:explanation-cutover-state-machine.adoc[next >]
+|===
+endif::[]
+// docnav-end

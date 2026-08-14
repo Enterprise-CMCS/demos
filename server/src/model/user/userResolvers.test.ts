@@ -3,9 +3,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // Mock imports
 import { DeepPartial } from "../../testUtilities";
 
-import { User as PrismaUser } from "@prisma/client";
+import { Person as PrismaPerson, User as PrismaUser } from "@prisma/client";
 import type { SystemRoleAssignmentQueryResult } from "../systemRoleAssignment";
 import type { GraphQLContext } from "../../auth";
+import type { Loaders } from "../../loaders";
 
 import { userResolvers } from "./userResolvers";
 
@@ -23,11 +24,6 @@ vi.mock("../document", () => ({
 
 vi.mock("./queries", () => ({
   selectUserOrThrow: vi.fn(),
-  selectManyUsers: vi.fn(),
-}));
-
-vi.mock("../person/queries", () => ({
-  selectPersonOrThrow: vi.fn(),
 }));
 
 vi.mock("../userSession/queries", () => ({
@@ -36,17 +32,20 @@ vi.mock("../userSession/queries", () => ({
 
 import { selectManySystemRoleAssignments } from "../systemRoleAssignment";
 import { getManyDocuments } from "../document";
-import { selectManyUsers, selectUserOrThrow } from "./queries";
-import { selectPersonOrThrow } from "../person/queries";
+import { selectUserOrThrow } from "./queries";
 import { selectLastLoginForUser } from "../userSession/queries";
 
 describe("userResolvers", () => {
   const testUserId = "abc123";
-  const mockContext: GraphQLContext = {
+  const mockLoaders = {
+    personById: { load: vi.fn() },
+  } as unknown as Loaders;
+  const mockContext = {
     user: {
       id: testUserId,
     },
-  } as GraphQLContext;
+    loaders: mockLoaders,
+  } as unknown as GraphQLContext;
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -59,13 +58,6 @@ describe("userResolvers", () => {
       } as PrismaUser;
       await userResolvers.Query.currentUser(mockUser, undefined, mockContext);
       expect(selectUserOrThrow).toHaveBeenCalledExactlyOnceWith({ id: "abc123" });
-    });
-  });
-
-  describe("Query.users", () => {
-    it("delegates to `userData/queries.selectManyUsers`", async () => {
-      await userResolvers.Query.users();
-      expect(selectManyUsers).toHaveBeenCalledExactlyOnceWith({});
     });
   });
 
@@ -83,12 +75,15 @@ describe("userResolvers", () => {
   });
 
   describe("User.person", () => {
-    it("delegates to `personData/queries.selectPerson`", async () => {
+    it("delegates to the personById loader", async () => {
       const mockUser = {
         id: "abc123",
       } as PrismaUser;
-      await userResolvers.User.person(mockUser);
-      expect(selectPersonOrThrow).toHaveBeenCalledExactlyOnceWith({ id: "abc123" });
+      const person = { id: "abc123" } as PrismaPerson;
+      vi.mocked(mockLoaders.personById.load).mockResolvedValue(person);
+      const result = await userResolvers.User.person(mockUser, undefined, mockContext);
+      expect(mockLoaders.personById.load).toHaveBeenCalledExactlyOnceWith("abc123");
+      expect(result).toBe(person);
     });
   });
 

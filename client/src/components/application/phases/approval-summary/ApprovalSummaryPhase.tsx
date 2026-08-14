@@ -23,7 +23,7 @@ import { useSetApplicationDate } from "components/application/date/dateQueries";
 import { Button } from "components/button";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 import { useToast } from "components/toast";
-import { getPhaseCompletedMessage } from "util/messages";
+import { getPhaseCompletedMessage, MISSING_REQUIRED_SECTIONS_TOOLTIP } from "util/messages";
 import { useDialog } from "components/dialog/DialogContext";
 
 export const UPDATE_DEMONSTRATION_MUTATION = gql`
@@ -552,6 +552,11 @@ export const ApprovalSummaryPhase = ({
           disabled={!canApproveApplication}
           onClick={() =>
             showConfirmApproveDialog(handleApproveApplication, initialFormData.applicationType)
+          }
+          eagerTooltip={
+            !canApproveApplication && !isDemonstrationApproved
+              ? MISSING_REQUIRED_SECTIONS_TOOLTIP
+              : undefined
           }
         >
           Approve {capitalizedType}

@@ -1,0 +1,111 @@
+= How-to: add a phase
+
+When a step needs to live in Python (not SQL), add a phase module.
+This is the recipe.
+
+== When to add a phase
+
+Use a phase when the step:
+
+* invokes an external tool (pgloader, DuckDB, curl);
+* needs Python-side branching that SQL cannot express cleanly;
+* writes a non-SQL artifact (a CSV, a YAML, a markdown report);
+* needs gate enforcement.
+
+If it is just SQL, add a numbered file under `sql/` and call it from
+an existing phase.
+
+== Recipe
+
+=== 1. Create the module
+
+`migration/phases/<name>.py`:
+
+[source,python]
+----
+"""<one-line description>"""
+
+from migration.lib import Env, log, mark_gate, phase, require_gate
+
+
+@phase("<name>", requires=("<prior_gate>",))
+def run_<name>() -> None:
+    env = Env.load()
+    log("doing <name>")
+    # ... work ...
+----
+
+The `phase()` decorator handles `require_gate` on entry and
+`mark_gate` on clean exit. Set `mark=False` if the phase decides
+when to mark (parity does this).
+
+=== 2. Wire the CLI
+
+`migration/cli.py`:
+
+[source,python]
+----
+from migration.phases import <name> as <name>_module
+
+@app.command("<cli-name>")
+def cmd_<name>() -> None:
+    """One-line help (renders in `migrate --help`)."""
+    <name>_module.run_<name>()
+----
+
+If the phase is part of `resume`, add it to `_RESUME_PHASES` and to
+`PHASES` in `migration/lib.py`. Build-pipeline phases (e.g.
+`fetch-prisma`) are not in `_RESUME_PHASES`; only the cutover-day
+sequence is.
+
+=== 3. Wire the Makefile
+
+`Makefile` (root):
+
+[source,make]
+----
+<name>: ; $(MIGRATE) <cli-name>
+----
+
+=== 4. Tests
+
+`tests/test_<name>.py` should cover at minimum:
+
+* the gate is required;
+* the gate is marked on success;
+* a representative failure exits cleanly (no half-written artifacts).
+
+=== 5. Docs
+
+* If the phase is operator-facing (a cutover step), add a row to
+  xref:../operator/reference-gates-state.adoc[gates and `state/`].
+* If the phase changes a gate state machine, update
+  xref:../operator/explanation-cutover-state-machine.adoc[the state
+  machine explanation].
+* Re-run `make cli-ref` so the
+  xref:../operator/reference-cli.adoc[CLI reference] picks up the
+  new command.
+
+== Idempotency
+
+The phase function MUST be safe to re-run on the same upstream state.
+Re-running a completed phase overwrites `state/<name>.ok` with a
+fresh timestamp; the underlying work is drop-and-rebuild.
+
+== Related
+
+* xref:reference-python-package.adoc[Python package internals]
+* xref:explanation-idempotency.adoc[Idempotency]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:tutorial-add-a-new-transform.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:howto-snapshot-source-schema.adoc[next >]
+|===
+endif::[]
+// docnav-end

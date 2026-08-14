@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "demos://jsonb/uipath_response.json",
+  "title": "DEMOS UiPath OCR response (app.uipath_result.response)",
+  "description": "UiPath Document Understanding result for a processed document: the OCR model fields and, per extracted value, the token references back into the source document.",
+  "type": "object",
+  "required": ["Fields"],
+  "properties": {
+    "Fields": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/field" }
+    }
+  },
+  "$defs": {
+    "field": {
+      "type": "object",
+      "required": ["FieldId", "FieldName", "FieldType", "Values"],
+      "properties": {
+        "FieldId": { "type": "string" },
+        "FieldName": { "type": "string" },
+        "FieldType": { "type": "string" },
+        "IsMissing": { "type": "boolean" },
+        "DataSource": { "type": "string" },
+        "DataVersion": { "type": "integer" },
+        "ValidatorNotes": { "type": "string" },
+        "OperatorConfirmed": { "type": "boolean" },
+        "ValidatorNotesInfo": { "type": "string" },
+        "Values": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/value" }
+        }
+      }
+    },
+    "value": {
+      "type": "object",
+      "required": ["Value"],
+      "properties": {
+        "Value": { "type": "string" },
+        "TextType": { "type": "string" },
+        "UnformattedValue": { "type": "string" },
+        "Confidence": { "type": "number" },
+        "OcrConfidence": { "type": "number" },
+        "OperatorConfirmed": { "type": "boolean" },
+        "ValidatorNotes": { "type": "string" },
+        "ValidatorNotesInfo": { "type": "string" },
+        "Components": { "type": "array" },
+        "DerivedFields": { "type": "array" },
+        "Reference": { "$ref": "#/$defs/reference" }
+      }
+    },
+    "reference": {
+      "type": "object",
+      "required": ["Tokens"],
+      "properties": {
+        "TextLength": { "type": "integer" },
+        "TextStartIndex": { "type": "integer" },
+        "Tokens": { "$ref": "#/$defs/tokenList" }
+      }
+    },
+    "tokenList": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/token" }
+    },
+    "token": {
+      "type": "object",
+      "required": ["Page", "Boxes"],
+      "properties": {
+        "Page": { "type": "integer", "minimum": 0 },
+        "Boxes": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": { "type": "number" }
+          }
+        },
+        "PageWidth": { "type": "number" },
+        "PageHeight": { "type": "number" },
+        "TextLength": { "type": "integer" },
+        "TextStartIndex": { "type": "integer" }
+      }
+    }
+  }
+}

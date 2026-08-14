@@ -1,0 +1,90 @@
+= Explanation: idempotency
+
+Every transform in this pipeline is *drop-and-rebuild*, never upsert.
+Re-running a phase on the same upstream state produces the same
+downstream rows, byte-for-byte (modulo timestamps).
+
+== Why
+
+. *A solo operator under pressure makes errors.* A re-runnable phase
+  is a forgiving phase. If an FK violation surfaces in `constraints`,
+  the operator can fix the upstream stage and re-run from `build`
+  without worrying about partial state.
+. *Rehearsals require it.* `make rebuild` runs the full pipeline end
+  to end. If any stage is non-idempotent, the second rehearsal
+  diverges from the first and the operator cannot tell whether a
+  change is intentional or a re-run artifact.
+. *Test repeatability.* Tests rely on the assumption that a stage
+  produces the same output for the same input.
+
+== The patterns
+
+[cols="2,5"]
+|===
+| Pattern | When
+
+| `DROP SCHEMA demos_app CASCADE; CREATE SCHEMA demos_app;` then apply Prisma SQL | Top of `migrate ddl`. Resets a Prisma-owned schema for a clean apply (Prisma SQL is not itself idempotent).
+| `CREATE TABLE IF NOT EXISTS` | Migration-private supplements (`sql/01_ddl_supplements/`) and any other migration-owned DDL.
+| `ALTER TABLE ... DROP CONSTRAINT IF EXISTS ... ; ADD CONSTRAINT ...` | DDL constraints.
+| `TRUNCATE` then `INSERT` | Stage and app rows.
+| `INSERT ... ON CONFLICT DO NOTHING` | Id maps (preserve existing UUIDs across rebuilds).
+| `DROP TABLE IF EXISTS` then `CREATE TABLE` then inlined `INSERT ... VALUES` | Crosswalks (the pipeline applies SQL through psycopg, where psql's `\copy` is unavailable).
+| `CREATE OR REPLACE VIEW` | Parity views.
+| `lib.truncate_schema_data(env, schema, exclude_patterns, exclude_tables)` | Wholesale wipe of a schema's data tables, minus LIKE-pattern and exact-name exclusions (with identifier guards).
+|===
+
+== What is *not* idempotent
+
+* `freeze` writes `state/freeze_instant.txt` with the current
+  wall-clock instant. Re-running advances the instant -- on
+  purpose. The freeze is the last point at which writes were
+  allowed to MySQL.
+* `delta` is keyed off the freeze instant; re-running re-pulls
+  rows changed since that instant.
+* Logs in `reports/runs/pgloader_*.log` and parity reports in
+  `reports/runs/parity_*.md` are timestamped per run; old runs are
+  preserved for audit.
+* `migrate ddl` is *destructive on the `demos_app` schema*: it issues
+  `DROP SCHEMA demos_app CASCADE; CREATE SCHEMA demos_app;` before applying the
+  Prisma SQL, because the upstream artifact is generally not
+  idempotent against an already-built schema. Re-running it on a
+  populated cluster will wipe the `demos_app` schema. The migration-
+  private supplements that follow (`sql/01_ddl_supplements/*`) are
+  themselves idempotent (`CREATE TABLE IF NOT EXISTS`, etc.), as is
+  `migrate fetch-prisma` (a hash-verified cache hit is a no-op).
+
+== What this lets us do
+
+* Run `make rebuild` between rehearsals and trust the result.
+* Re-run any phase after fixing a bug without partial-state
+  cleanup.
+* Re-run after a transient connection failure with no extra
+  steps.
+
+== What this rules out
+
+* In-place fixes to `demos_app` rows. If a row is wrong, fix the
+  upstream stage and re-run; do not patch.
+* Upsert-style transforms. They break re-run determinism on
+  partial source updates.
+* Manual hot-fix INSERTs into `mysql_raw`. The next pgloader
+  refresh will overwrite them.
+
+== Related
+
+* xref:reference-pipeline-stages.adoc[Reference: pipeline stages]
+* xref:../operator/explanation-cutover-state-machine.adoc[Cutover
+  state machine]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:explanation-why-python-not-bash.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:explanation-fk-strategy.adoc[next >]
+|===
+endif::[]
+// docnav-end

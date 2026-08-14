@@ -1,0 +1,60 @@
+-- Delta load template. Runs *after* MySQL writes are frozen; the freeze
+-- instant itself is the cutoff. Each table named in
+-- pgloader/delta_tables.tsv is TRUNCATEd and re-pulled in full so
+-- mysql_raw reflects the post-freeze MySQL snapshot.
+--
+-- Run via: uv run migrate delta
+--   (implemented in migration/phases/load_delta.py)
+--
+-- Markers replaced by migration.lib.render_template:
+--   {{MYSQL_URL}}, {{PG_URL}}, {{MYSQL_DB}}, {{CAST_BLOCK}},
+--   {{FREEZE_INSTANT}}, {{TABLES_BLOCK}}, {{EXCLUDING_BLOCK}}
+--
+-- CAST_BLOCK is the shared type-coercion block from pgloader/casts.load
+-- (migration.lib.cast_block); the delta must coerce types exactly as the
+-- full load did or the re-pulled rows drift (e.g. tinyint(1) -> boolean).
+--
+-- TABLES_BLOCK is an `INCLUDING ONLY TABLE NAMES MATCHING ...` clause
+-- built by migration.phases.load_delta._build_tables_block from the
+-- manifest at pgloader/delta_tables.tsv. Empty manifest -> empty block ->
+-- pgloader loads every table the schema clause exposes.
+--
+-- EXCLUDING_BLOCK is the same drop-list `EXCLUDING TABLE NAMES MATCHING ...`
+-- clause the full load applies (migration.lib.excluding_block from
+-- pgloader/drop_list.txt). Without it, an empty manifest makes pgloader
+-- attempt every table, including the dropped ones that mysql_raw lacks.
+--
+-- AFTER LOAD updates mysql_raw._delta_log (created by
+-- sql/00_init/04_delta_log.sql; row inserted by freeze.py).
+--
+-- Comment style is `--` (not C-style block comments): pgloader v4
+-- (Clojure/JVM) rejects block comments in the command file; both v3 and
+-- v4 accept `--`.
+
+LOAD DATABASE
+     FROM      {{MYSQL_URL}}
+     INTO      {{PG_URL}}
+
+  -- `data only` already implies no schema DDL (no create tables/indexes) and
+  -- no FK management; pgloader v4 rejects the explicit `create no indexes` /
+  -- `no foreign keys` options the v3 grammar accepted, so state the intent via
+  -- `data only` alone. Valid on both the v3 and v4 runners.
+  WITH include no drop, truncate, downcase identifiers, data only
+
+   SET work_mem to '256MB',
+       maintenance_work_mem to '1GB',
+       search_path to 'mysql_raw,public'
+
+ALTER SCHEMA '{{MYSQL_DB}}' RENAME TO 'mysql_raw'
+
+{{CAST_BLOCK}}
+
+{{TABLES_BLOCK}}
+
+{{EXCLUDING_BLOCK}}
+
+AFTER LOAD DO
+$$ UPDATE mysql_raw._delta_log SET delta_applied_at = now(),
+       freeze_instant = '{{FREEZE_INSTANT}}'::timestamptz
+   WHERE id = (SELECT max(id) FROM mysql_raw._delta_log); $$
+;

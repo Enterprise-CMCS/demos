@@ -1,0 +1,81 @@
+{
+  "table": "amendment",
+  "source_anchor": "mysql_raw.mdcd_demo_amndmt",
+  "generated_by": "docs/tools/table_flow_trace.py --table amendment",
+  "fixture": "tests/sql/fixtures/amendment_flow/seed_mdcd_demo_amndmt.sql",
+  "stage_counts": {
+    "mysql_raw.mdcd_demo_amndmt": 8,
+    "stg._valid_amndmt_ids": 6,
+    "migration._id_map_mdcd_demo_amndmt": 6,
+    "stg.amendment_resolved": 5,
+    "demos_app.application (Amendment)": 3,
+    "demos_app.amendment": 3,
+    "migration._parity_amendment_held": 2,
+    "migration._parity_amendment_signature_dropped": 1,
+    "migration._parity_amendment_phase_derived": 3
+  },
+  "rows": [
+    {
+      "amndmt_id": 1,
+      "name": "Alpha Amendment",
+      "uuid_token": "AMENDMENT_UUID_01",
+      "disposition": "loaded",
+      "parent_medicaid_id": "11-W-00001/1",
+      "status_id": "Approved",
+      "current_phase_id": "Approval Summary",
+      "signature_level_id": "OA"
+    },
+    {
+      "amndmt_id": 2,
+      "name": "Beta Amendment",
+      "uuid_token": "AMENDMENT_UUID_02",
+      "disposition": "loaded",
+      "parent_medicaid_id": "11-W-00001/1",
+      "status_id": "Under Review",
+      "current_phase_id": "Review",
+      "signature_level_id": "OCD"
+    },
+    {
+      "amndmt_id": 3,
+      "name": "Gamma Amendment",
+      "uuid_token": "AMENDMENT_UUID_03",
+      "disposition": "loaded",
+      "parent_medicaid_id": "11-W-00001/1",
+      "status_id": "Withdrawn",
+      "current_phase_id": "Concept",
+      "signature_level_id": null
+    },
+    {
+      "amndmt_id": 4,
+      "name": "Delta Amendment",
+      "disposition": "held_back_parent",
+      "parent_medicaid_id": "11-W-00004/9",
+      "reason": "approved parent held back"
+    },
+    {
+      "amndmt_id": 5,
+      "name": "Epsilon Amendment",
+      "disposition": "held_back_parent",
+      "parent_medicaid_id": null,
+      "reason": "pending-only or unmapped parent"
+    },
+    {
+      "amndmt_id": 6,
+      "name": "Zeta Amendment",
+      "disposition": "excluded_soft_delete",
+      "reason": "soft-deleted (dltd_ind=1); excluded at stg.amendment_resolved"
+    },
+    {
+      "amndmt_id": 7,
+      "name": "Eta Amendment",
+      "disposition": "filtered_invalid",
+      "reason": "invalid creatd_dt/amndmt_aplctn_dt; fails the date rule in stg._valid_amndmt_ids"
+    },
+    {
+      "amndmt_id": 8,
+      "name": "Theta Amendment",
+      "disposition": "filtered_invalid",
+      "reason": "neither approved nor pending parent survives its filter (stg._valid_amndmt_ids)"
+    }
+  ]
+}

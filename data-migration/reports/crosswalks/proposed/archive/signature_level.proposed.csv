@@ -1,0 +1,6 @@
+legacy_int_cd,legacy_name,proposed_demos_text_id,confidence,sme_confirmed_value,notes
+0,-- Please Select --,,n/a,,"sentinel placeholder -> NULL; but a NULL signature is rejected on APPROVED demonstrations by a DEMOS trigger, so approved rows with code 0 are a pre-load data-quality exception, not a NULL mapping"
+1,OA,OA,high,OA,"DDL-confirmed direct match (signature_level seed)"
+2,OCD,OCD,high,OCD,"DDL-confirmed direct match (signature_level seed); valid on amendment/extension"
+3,OGD,OGD,high,OGD,"PRESERVE OGD (exists in signature_level seed). Do NOT collapse to NULL/OA -- that is data loss. Blocked only by CHECK demonstration_signature_level_check (=OA) and amendment/extension checks (OA/OCD). Migrating OGD-level items requires the DEMOS team to widen those CHECKs -- see DEMOS schema-change task in _review.md"
+4,DD,,none,,"deleted in source (dltd_ind=1); no 'DD' in signature_level seed. SME decision: treat as OGD, request a new 'DD' signature_level, or confirm no live DD rows exist"

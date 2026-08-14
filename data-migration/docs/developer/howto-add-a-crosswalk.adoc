@@ -1,0 +1,158 @@
+= How-to: add a crosswalk
+
+A crosswalk maps legacy MySQL reference codes to DEMOS text IDs. The
+codes are usually integers (`legacy_int_cd`), but code-keyed domains
+such as `state` use a short text key (`legacy_cd`). Every `*_rfrnc`
+table that the new app needs gets one.
+
+The live CSV is a *transcription of an SME-signed proposal*, not
+freehand work: the SME reviews and signs off
+`reports/crosswalks/proposed/<rfrnc>.proposed.csv` first (see
+xref:../sme/howto-author-a-crosswalk-csv.adoc[the SME review-and-sign-off
+how-to]); only confirmed values are copied into the live artifacts below.
+
+== Files involved
+
+[cols="1,3"]
+|===
+| Path | Role
+
+| `reports/crosswalks/proposed/<rfrnc>.proposed.csv` | SME review/sign-off draft (read by no code). Source of the confirmed values.
+| `reports/crosswalks/<rfrnc>.csv` | Live CSV (`legacy_int_cd` or `legacy_cd`, `legacy_name`, `demos_text_id`, `notes`). Transcribed from the signed proposal; the single source of truth the phase loads.
+| `reports/crosswalks/registry.yaml` | The explicit list of crosswalk tables the phase loads. Add an entry per crosswalk.
+| `sql/04_crosswalks/<NN>_<rfrnc>.sql` | DDL only: `DROP`/`CREATE TABLE` for `mysql_raw.crosswalk_<rfrnc>`. No `INSERT` -- the phase COPYs the CSV.
+| `sql/04_crosswalks/<NN>_<rfrnc>_check.sql` | Completeness check (every legacy code present in `mysql_raw` data has a mapping).
+|===
+
+== Recipe
+
+=== 1. Transcribe the confirmed CSV
+
+Copy the SME-confirmed values from the signed
+`reports/crosswalks/proposed/<rfrnc>.proposed.csv` into the live CSV:
+
+[source,csv]
+----
+legacy_int_cd,legacy_name,demos_text_id,notes
+1,active,active,
+2,inactive,inactive,
+3,suspended,suspended,Renamed in DEMOS UI but not in id
+4,deleted,archived,DEMOS folds 'deleted' into 'archived'
+----
+
+Conventions:
+
+* `legacy_int_cd` is the integer code in the source (use `legacy_cd` text for code-keyed domains such as `state`).
+* `legacy_name` is the human-readable source value (informational).
+* `demos_text_id` is the DEMOS text ID (matches a row in a static
+  constraint table seeded under `sql/02_seeds_static/`).
+* `notes` carries SME rationale for non-obvious mappings.
+
+=== 2. Author the DDL
+
+`sql/04_crosswalks/<NN>_<rfrnc>.sql` -- the table contract only; no `INSERT`:
+
+[source,sql]
+----
+DROP TABLE IF EXISTS mysql_raw.crosswalk_<rfrnc>;
+
+CREATE TABLE mysql_raw.crosswalk_<rfrnc> (
+  legacy_int_cd  INTEGER PRIMARY KEY,
+  legacy_name    TEXT,
+  demos_text_id  TEXT NOT NULL,
+  notes          TEXT
+);
+
+-- Values loaded from reports/crosswalks/<rfrnc>.csv by the crosswalks phase.
+----
+
+NOTE: For a code-keyed domain, the PK is text, not integer. The `state`
+crosswalk uses `legacy_cd text PRIMARY KEY` (see
+`sql/04_crosswalks/20_state.sql`); match the key column name and type to
+the source `*_rfrnc` table.
+
+The CSV header must match the table column names (the phase COPYs the
+header as the column list). Empty cells become `NULL`.
+
+=== 3. Register the crosswalk
+
+Add an entry to `reports/crosswalks/registry.yaml` so the phase loads it:
+
+[source,yaml]
+----
+crosswalks:
+  # ... existing entries ...
+  - table: crosswalk_<rfrnc>
+    csv: crosswalks/<rfrnc>.csv
+    columns: [legacy_int_cd, legacy_name, demos_text_id, notes]
+----
+
+The phase reads this file, applies the DDL, COPYs each CSV, then runs the
+checks. `columns` is the exact, ordered CSV header; it is passed to
+`copy_csv_into_table` as `header_expect`, so a renamed/reordered/missing
+column fails closed instead of mis-loading. A missing entry leaves the table
+empty and the completeness check RED.
+
+=== 4. Author the completeness check
+
+`sql/04_crosswalks/<NN>_<rfrnc>_check.sql`:
+
+[source,sql]
+----
+DO $$
+DECLARE missing INT;
+BEGIN
+  SELECT count(*) INTO missing FROM (
+    SELECT DISTINCT <legacy_code_col> FROM mysql_raw.<source_table>
+    EXCEPT
+    SELECT legacy_int_cd FROM mysql_raw.crosswalk_<rfrnc>
+  ) t;
+  IF missing > 0 THEN
+    RAISE EXCEPTION 'crosswalk_<rfrnc> is missing % legacy codes', missing;
+  END IF;
+END $$;
+----
+
+The check fails the build at `make crosswalks` if a legacy code
+exists in the data but not in the CSV.
+
+=== 5. Use the crosswalk in stage transforms
+
+[source,sql]
+----
+SELECT cw.demos_text_id AS status_id
+FROM mysql_raw.<source_table> src
+JOIN mysql_raw.crosswalk_<rfrnc> cw ON cw.legacy_int_cd = src.<legacy_code_col>;
+----
+
+=== 6. Verify
+
+[source,sh]
+----
+make crosswalks
+----
+
+The phase runs in three ordered steps: (1) apply every non-check
+`sql/04_crosswalks/*.sql` for the DDL, (2) COPY each registry CSV into
+its table, (3) apply every `*_check.sql` fail-closed check. The CSV is
+the single source -- never edit the SQL `INSERT` (there is none) or the
+loaded table directly.
+
+== Related
+
+* xref:../sme/howto-author-a-crosswalk-csv.adoc[SME how-to: review and
+  sign off a crosswalk]
+* xref:reference-id-maps.adoc[id maps]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:howto-dump-reference-data.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:howto-edit-pgloader-cast.adoc[next >]
+|===
+endif::[]
+// docnav-end

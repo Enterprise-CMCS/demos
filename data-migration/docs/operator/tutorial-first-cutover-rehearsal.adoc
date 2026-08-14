@@ -1,0 +1,108 @@
+= Tutorial: your first cutover rehearsal
+
+This walks an operator through one full timed rehearsal end-to-end
+against a recent MySQL snapshot. Two completed rehearsals are an exit
+gate for Week 10; this tutorial is what you do on each rehearsal day.
+
+== Prerequisites
+
+* A copy of MySQL on a host you can read.
+* A throwaway PostgreSQL 16+ cluster you can drop schemas from freely.
+* `uv`, `pgloader`, `duckdb`, `psql` on `PATH`.
+* `.env` populated against the rehearsal hosts.
+* `state/` empty: `make clean-state` (preferred) or
+  `rm -f state/*.ok state/*.txt state/*.csv`.
+
+== Walkthrough
+
+=== 1. Bootstrap the cluster
+
+[source,sh]
+----
+make sync
+make init
+make ddl
+----
+
+Expected: each command completes without error. Gate-satisfied lines
+(`gate '<name>' satisfied`) appear only for the cutover phases
+(preflight..smoke) in step 4; `make init` and `make ddl` are not
+`@phase`-decorated and do not mark gates.
+
+=== 2. Full pgloader load
+
+[source,sh]
+----
+make load_full
+----
+
+The drop list in `pgloader/drop_list.txt` is rendered into the load
+file's `EXCLUDING TABLE NAMES MATCHING` clause. Watch
+`reports/runs/pgloader_run_*.log` for warnings and confirm row counts in
+`mysql_raw` match MySQL within 0.1%.
+
+=== 3. Seeds, crosswalks, id maps
+
+[source,sh]
+----
+make seeds crosswalks id_maps
+----
+
+Crosswalks completeness is checked inside `04_crosswalks/`; failure
+halts the build.
+
+=== 4. Rehearsal cutover sequence
+
+Pretend it is cutover day. Start your stopwatch.
+
+[source,sh]
+----
+uv run migrate preflight
+uv run migrate freeze
+uv run migrate delta
+uv run migrate build
+uv run migrate constraints
+uv run migrate parity
+uv run migrate flip
+uv run migrate smoke
+----
+
+Stop your stopwatch at the end of `smoke`.
+
+=== 5. Record the rehearsal
+
+Append to `reports/narrative/notes.md`: total duration, per-phase duration,
+any phases that failed (and the fix), and any commands that you ran
+outside the script.
+
+== Acceptance
+
+You have completed one rehearsal when:
+
+* every gate from `preflight` to `smoke` is green in
+  `uv run migrate status`;
+* `reports/runs/parity_*.md` shows `OVERALL STATUS: GREEN` (or PENDING
+  with `--accept-pending` and a documented justification);
+* total wall-clock is under your target (typically 4 hours);
+* the rehearsal note is committed.
+
+== Next
+
+After two clean rehearsals, schedule the production cutover and run
+xref:howto-cutover-day.adoc[the cutover-day how-to] verbatim.
+
+For the per-command detail (expected output, known REDs, recovery), see
+xref:reference-rehearsal-commands.adoc[the rehearsal command inventory].
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:index.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:howto-cutover-day.adoc[next >]
+|===
+endif::[]
+// docnav-end

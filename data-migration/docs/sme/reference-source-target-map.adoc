@@ -1,0 +1,118 @@
+= Reference: top-level source/target map
+
+The 50,000-foot picture: which MySQL tables become which DEMOS
+tables.
+
+[mermaid]
+....
+flowchart LR
+  subgraph MY[MySQL]
+    pdemo[mdcd_pendg_demo]
+    demo[mdcd_demo]
+    aplctn[mdcd_demo_aplctn]
+    amndmt[mdcd_demo_amndmt]
+    rnwl[mdcd_demo_rnwl]
+    dlvrbl[mdcd_dlvrbl]
+    pgmdtl[mdcd_*_pgm_dtl x70]
+    bn[bdgt_ntrlty_* x12]
+    docs[doc tables x10]
+    cmts[cmt tables x10]
+    usr[users + user_* + cntct]
+    refs[*_rfrnc]
+  end
+  subgraph PG[DEMOS]
+    app[application]
+    dem[demonstration]
+    amd[amendment]
+    ext[extension]
+    dlv[deliverable]
+    tag[demonstration_type_tag_assignment]
+    bnw[budget_neutrality_workbook]
+    doc[document]
+    pcm[private_comment]
+    ucm[public_comment]
+    pers[person + users + person_state]
+    sc[static constraints + limiters]
+  end
+  pdemo --> app
+  demo --> dem
+  aplctn --> app
+  amndmt --> amd
+  rnwl --> ext
+  dlvrbl --> dlv
+  pgmdtl --> tag
+  bn --> bnw
+  docs --> doc
+  cmts --> pcm
+  cmts --> ucm
+  usr --> pers
+  refs --> sc
+....
+
+== Highlights
+
+* *Pending and approved fold into one application.* Status flow
+  captures the lifecycle. See
+  xref:howto-review-pending-approved-decisions.adoc[pending/approved
+  review].
+* *Program-detail tables collapse into tag assignments.* ~70 approved
+  source tables (plus their `mdcd_pendg_*` counterparts) become rows
+  in `demonstration_type_tag_assignment` keyed
+  by `tag_name`. See
+  xref:reference-pgm-dtl-tag-mapping.adoc[tag mapping].
+* *Budget-neutrality machinery becomes one workbook row + JSONB.*
+  See xref:howto-review-bn-jsonb-payload.adoc[review a BN payload].
+* *All ~10 document tables collapse into one `document` table* with
+  `document_type_id` as the discriminator.
+* *Comments split by origin* into `private_comment` (CMS) or
+  `public_comment` (state). See
+  xref:explanation-comments-routing.adoc[comments routing].
+* *Reference tables become text-ID lookups.* See
+  xref:reference-static-constraint-tables.adoc[the static-constraint
+  reference] and
+  xref:howto-author-a-crosswalk-csv.adoc[crosswalks].
+
+== What is dropped
+
+See xref:reference-drop-list.adoc[the drop list].
+
+== What is net-new in DEMOS
+
+* `tag*` -- the tag system itself.
+* `application_tag_suggestion*` -- AI suggestion artifacts.
+* `uipath_*` -- UiPath integration.
+* `deliverable_extension*` -- formal extensions of deliverable due
+  dates.
+* `event` -- audit event stream.
+
+These are empty at cutover and populated by the new app over time.
+
+== Source schema, by prefix (generated)
+
+The curated picture above is hand-drawn. For a complete, auto-generated
+inventory of the source MySQL schema -- every in-scope table grouped by
+name prefix (drop list applied), with counts -- see the diagram below.
+It is regenerated from `reports/schema_snapshot/table_stats.csv` by
+`make schema-diagrams`; group-level edges appear where
+`reports/inputs/fk_overrides.yaml` declares them.
+
+include::../shared/generated/schema-source-overview.adoc[]
+
+== Column-level detail
+
+For the per-column join behind every arrow above, see
+xref:reference-source-target-columns.adoc[the source/target column
+map].
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-drop-list.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-source-target-columns.adoc[next >]
+|===
+endif::[]
+// docnav-end

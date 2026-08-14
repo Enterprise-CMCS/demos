@@ -4,6 +4,7 @@ import {
   EasternTZDate,
 } from "../../dateUtilities";
 import {
+  DeliverableAction,
   DeliverableActionType,
   DeliverableExtensionReasonCode,
   NonEmptyString,
@@ -61,6 +62,16 @@ function makeResubmissionRequestedOrDateChangedMessage(
   const formattedOldDue = formatEasternTZDateToMMDDYYYY(oldDueDate);
   const formattedNewDue = formatEasternTZDateToMMDDYYYY(newDueDate);
   return `Old Due Date: ${formattedOldDue}\nNew Due Date: ${formattedNewDue}\nReason Details: ${reason}`;
+}
+
+export function formatDeliverableAction(input: SelectDeliverableActionRowResult): DeliverableAction {
+  return {
+    id: input.id,
+    actionTimestamp: input.actionTimestamp,
+    actionType: input.actionTypeId as DeliverableActionType,
+    details: formatDetailsMessage(input),
+    userFullName: formatFullUserName(input),
+  };
 }
 
 export function formatDetailsMessage(input: SelectDeliverableActionRowResult): string {

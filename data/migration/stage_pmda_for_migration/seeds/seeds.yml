@@ -1,0 +1,99 @@
+version: 2
+
+seeds:
+  - name: crosswalk_mdcd_demo_aplctn_stus_cd_to_application_status_id
+    columns:
+      - name: mdcd_demo_aplctn_stus_cd
+        data_tests:
+          - relationships:
+              name: assert_all_mdcd_demo_aplctn_stus_cd_in_crosswalk_exist_in_pmda
+              arguments:
+                to: source('legacy_pmda_raw', 'mdcd_demo_aplctn_stus_rfrnc')
+                field: mdcd_demo_aplctn_stus_cd
+
+  - name: crosswalk_mdcd_demo_stus_cd_to_application_status_id
+    columns:
+      - name: mdcd_demo_stus_cd
+        data_tests:
+          - relationships:
+              name: assert_all_mdcd_demo_stus_cd_in_crosswalk_exist_in_pmda
+              arguments:
+                to: source('legacy_pmda_raw', 'mdcd_demo_stus_rfrnc')
+                field: mdcd_demo_stus_cd
+
+  - name: crosswalk_mdcd_dlvrbl_crnt_stus_cd_to_deliverable_status_id
+    columns:
+      - name: mdcd_dlvrbl_crnt_stus_cd
+        data_tests:
+          - relationships:
+              name: assert_all_mdcd_dlvrbl_crnt_stus_cd_in_crosswalk_exist_in_pmda
+              arguments:
+                to: source('legacy_pmda_raw', 'mdcd_dlvrbl_stus_rfrnc')
+                field: mdcd_dlvrbl_stus_cd
+
+  - name: crosswalk_mdcd_dlvrbl_type_cd_to_deliverable_type_id
+    columns:
+      - name: mdcd_dlvrbl_type_cd
+        data_tests:
+          - relationships:
+              name: assert_all_mdcd_dlvrbl_type_cd_in_crosswalk_exist_in_pmda
+              arguments:
+                to: source('legacy_pmda_raw', 'mdcd_dlvrbl_rpt_ocrnc_rfrnc')
+                field: mdcd_dlvrbl_rpt_ocrnc_cd
+
+  - name: crosswalk_role_cd_to_person_type_id
+    columns:
+      - name: role_cd
+        data_tests:
+          - relationships:
+              name: assert_all_role_cd_in_crosswalk_exist_in_pmda
+              arguments:
+                to: source('legacy_pmda_raw', 'role_rfrnc')
+                field: role_cd
+
+  - name: crosswalk_mdcd_demo_aplctn_doc_type_cd_to_document_type
+    columns:
+      - name: _legacy_mdcd_demo_aplctn_doc_type_cd
+        data_tests:
+          - relationships:
+              name: assert_all_mdcd_demo_aplctn_doc_type_cd_in_crosswalk_exist_in_pmda
+              arguments:
+                to: source('legacy_pmda_raw', 'mdcd_demo_aplctn_doc_type_rfrnc')
+                field: mdcd_demo_aplctn_doc_type_cd
+
+  - name: crosswalk_pgm_mntrg_ctgry_type_cd_to_desc
+    columns:
+      - name: _legacy_pgm_mntrg_ctgry_type_cd
+        data_tests:
+          - relationships:
+              name: assert_all_pgm_mntrg_ctgry_type_cd_in_crosswalk_exist_in_pmda
+              arguments:
+                to: source('legacy_pmda_raw', 'pgm_mntrg_ctgry_type_rfrnc')
+                field: pgm_mntrg_ctgry_type_cd
+
+  - name: extracted_reference_agreements_from_pmda
+    columns:
+      - name: file_name
+        data_tests:
+          - unique:
+              name: assert_agreement_file_names_unique_in_seed
+      - name: file_path
+        data_tests:
+          - unique:
+              name: assert_agreement_file_paths_unique_in_seed
+
+  - name: extracted_references_from_pmda
+    columns:
+      - name: rfrnc_matl_id
+        data_tests:
+          - unique:
+              name: assert_reference_rfrnc_matl_ids_unique_in_seed
+          - relationships:
+              name: assert_all_extracted_refs_exist_in_rfrnc_matl
+              arguments:
+                to: source('legacy_pmda_raw', 'rfrnc_matl')
+                field: rfrnc_matl_id
+      - name: file_name
+        data_tests:
+          - unique:
+              name: assert_reference_file_names_unique_in_seed

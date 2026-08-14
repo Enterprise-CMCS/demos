@@ -22,7 +22,7 @@ export const DemonstrationTypesList = ({
     demonstrationTypes.length > 0 && (
       <div className="flex flex-col gap-1">
         <p className="font-bold">Types to be added ({demonstrationTypes.length})</p>
-        <ul className="border border-gray-300 border-b-0">
+        <ul className="border border-gray-300 border-b-0 max-h-[40vh] overflow-y-auto">
           {demonstrationTypes.map((demonstrationType) => (
             <li
               key={demonstrationType.demonstrationTypeName}

@@ -1,0 +1,112 @@
+= Explanation: the cutover state machine
+
+Why the cutover is a state machine with hard gates between every
+phase, and how that shapes operator actions.
+
+== The states
+
+[mermaid]
+....
+stateDiagram-v2
+  [*] --> Live
+  Live --> Freeze: planned start
+  Freeze --> Delta: pgloader delta
+  Delta --> Build: stg + app
+  Build --> Constraints: FKs + triggers + indexes
+  Constraints --> Parity: pure-PG parity checks
+  Parity --> Flip: go decision
+  Parity --> Rollback: no-go
+  Flip --> Hypercare
+  Hypercare --> Decom: stable for N days
+  Rollback --> Live
+  Decom --> [*]
+....
+
+* `Live` -- both DBs writable, old app serving traffic.
+* `Freeze` -- MySQL writes paused; old app set read-only.
+* `Delta` -- pgloader pulls last delta into `mysql_raw`.
+* `Build` -- numbered SQL rebuilds `stg` and `demos_app`. The
+  `demos_app.*_history` tables are left empty for DEMOS to populate
+  post-cutover (this migration does not backfill history).
+* `Constraints` -- FKs validated; triggers attached; indexes built.
+* `Parity` -- pure-Postgres checks (row counts, numeric sums, JSONB
+  shape, pending/approved, reconstructed FK orphans, demonstration ID
+  provenance, users/person integrity, demonstration completeness, RBAC
+  integrity for the system-role / person-state / demonstration-role
+  assignments, active-users coverage, plus the non-gating Approved-held
+  and scope-coverage logs -- 31 in all) comparing `mysql_raw` and
+  `demos_app`, which co-live in one PG cluster. Not a DuckDB job.
+* `Flip` -- go-live verification. PMDA (legacy) and DEMOS (new) are
+  separate apps on separate URLs; the dev team owns the URL/redirect
+  work outside this repo. This state confirms DEMOS healthz is
+  responsive and that PMDA has been placed in read-only mode.
+* `Hypercare` -- on-call window for tickets; no schema changes.
+* `Decom` -- MySQL reader retired.
+* `Rollback` -- restore old app to read-write; reset to `Live`.
+
+== Why gates
+
+A solo operator under pressure makes errors. Hard gates between
+phases reduce the surface for those errors:
+
+. *No phase starts until the prior gate is satisfied.* You cannot
+  build before the delta load has completed cleanly; you cannot
+  flip before parity is GREEN.
+. *Re-running a completed phase is safe.* Every transform is
+  drop-and-rebuild. Re-running overwrites the gate file with a fresh
+  timestamp.
+. *Status is queryable.* `migrate status` shows the gate table in a
+  pipeable form. There is no ambiguity about how far the cutover has
+  progressed.
+
+== Gating policy by phase
+
+[cols="1,3"]
+|===
+| Phase | Gate
+
+| Pre-flight | All 6 automated checks green (P0.7 backup-operator confirmation is manual); any failure `die()`s the cutover.
+| Freeze | Freeze instant captured implicitly.
+| Delta | pgloader delta load completes with zero table-level errors (`assert_pgloader_ok`); row-count drift is checked separately by `migrate load-fidelity` (non-gating).
+| Build_stg, build_app | Each marks its own gate on clean SQL exit.
+| Constraints | `state/fk_violations.csv` is empty (otherwise `die()` halts cutover).
+| Parity | `OVERALL STATUS: GREEN` (or PENDING + `--accept-pending` for rehearsals).
+| Manual go/no-go | Operator + backup + SME unanimously say `go`.
+| Flip | DEMOS healthz returns 200 within 5 retry attempts; operator confirms PMDA is read-only.
+| Smoke | All checklist items pass.
+| Hypercare | Zero open Sev-1/Sev-2 by Day 4 standup.
+| Decom | Post-mortem committed.
+|===
+
+== Why parity ranks above schedule
+
+Parity GREEN is the single objective signal that data is faithful.
+Schedule pressure is the most common cause of post-cutover incidents
+in this kind of migration; a hard gate at parity creates a moment
+where the operator can refuse to proceed.
+
+== Why rollback resets to `Live`
+
+Rollback is not a recovery from a bad state -- it is a return to
+`Live`. The pre-flip data is still correct in `demos_app`; we are simply
+choosing not to serve from it. The next attempt starts the state
+machine from `Live` after the root cause is fixed.
+
+== Related
+
+* xref:reference-gates-state.adoc[Reference: gates and `state/`]
+* xref:explanation-rehearsal-strategy.adoc[Why we rehearse twice]
+* xref:howto-rollback.adoc[Rollback]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-comms-templates.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:explanation-rehearsal-strategy.adoc[next >]
+|===
+endif::[]
+// docnav-end

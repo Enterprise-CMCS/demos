@@ -1,0 +1,48 @@
+# Manual patch layer over scripts/generate_fk_candidates.sql.
+#
+# When `migrate fk-candidates` runs, the SQL scanner emits a row for every
+# inferred (from_table, from_column) -> (to_table, to_column) candidate.
+# Before the merged result is written to reports/generated/fk_candidates.csv, every
+# entry below is consumed. Each entry is keyed on (from_table, from_column);
+# the override's to_table / to_column / confidence / notes win over the
+# scanner's guess.
+#
+# Use this file when:
+#   - the heuristic resolves to the wrong target,
+#   - the heuristic misses an FK that you know exists,
+#   - you want to bump or lower the confidence with a rationale.
+#
+# Schema (one entry per `- ...` block):
+#   from_table:  "<schema>.<table>"   # required, e.g. "mysql_raw.mdcd_demo"
+#   from_column: "<column>"           # required
+#   to_table:    "<table>"            # optional; falls back to scanner output
+#   to_column:   "<column>"           # optional; falls back to scanner output
+#   confidence:  "HIGH" | "MED" | "LOW" | "NONE"   # optional
+#   notes:       "<free text>"        # optional but strongly encouraged
+#
+# Stale entries (no scanner row matches the key) are surfaced as a WARNING
+# at the end of the run. Prune them when you see one.
+#
+# This file is committed; the merged reports/generated/fk_candidates.csv is also
+# committed (so reviewers can see the FK landscape at a glance), but the
+# CSV regenerates whenever this YAML or the SQL scanner changes -- never
+# edit the CSV by hand.
+
+overrides: []
+
+# Example entries (uncomment and edit, then run `make fk_candidates`):
+#
+# overrides:
+#   - from_table:  "mysql_raw.mdcd_demo"
+#     from_column: "state_id"
+#     to_table:    "geo_ansi_state_rfrnc"
+#     to_column:   "state_id"
+#     confidence:  "HIGH"
+#     notes:       "Manual: digraph confirms FK to state ref table"
+#
+#   - from_table:  "mysql_raw.aplctn_amndmnt"
+#     from_column: "submtr_user_id"
+#     to_table:    "user_acct"
+#     to_column:   "user_id"
+#     confidence:  "MED"
+#     notes:       "Scanner picked submitter_account; SME says user_acct"

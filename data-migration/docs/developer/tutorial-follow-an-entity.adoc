@@ -1,0 +1,109 @@
+= Tutorial: follow a demonstration through the SQL
+
+The audience is an engineer new to the codebase. By the end you will
+have traced one entity -- a Medicaid demonstration -- from its legacy
+source row to its loaded DEMOS row and the parity check that guards it,
+opening one real `.sql` file per layer. This is the fastest way to
+learn how the `sql/` stages compose.
+
+Read xref:reference-sql-conventions.adoc[the SQL conventions] first so
+the front-matter block in each file reads as a contract: its `Inputs`
+and `Outputs` lines are the map you are about to walk.
+
+== The path
+
+[mermaid]
+....
+flowchart TB
+  A["mysql_raw.mdcd_demo<br/>(legacy source)"] --> B["10_stg/10_filter_demo.sql<br/>stg._valid_demo_ids"]
+  B --> C["05_id_maps/10_mdcd_demo.sql<br/>migration._id_map_mdcd_demo (table)"]
+  B --> D["10_stg/18_populate_id_map_mdcd_demo.sql<br/>mint one UUID per valid id"]
+  D --> E["10_stg/22_demonstration_resolved.sql<br/>stg.demonstration_resolved (view)"]
+  C --> E
+  E --> F["20_app/30_demonstration.sql<br/>demos_app.application + demonstration"]
+  F --> G["99_parity/10 + 11<br/>provenance + completeness checks"]
+....
+
+== Step 1 -- the source row
+
+Demonstrations live in `mysql_raw.mdcd_demo` (the verbatim MySQL load).
+Nothing is filtered yet; test rows, malformed project numbers, and
+non-PMDA records are all present.
+
+== Step 2 -- the row-level filter
+
+`sql/10_stg/10_filter_demo.sql` builds `stg._valid_demo_ids`, the
+allowlist of demonstration ids whose project number matches the PMDA
+format `11-W-NNNNN/R`, minus keep/drop overrides. Every downstream
+layer draws only from this view -- that is the *demonstration-ID
+invariant* (see xref:reference-id-maps.adoc[id maps]).
+
+== Step 3 -- the id map
+
+A legacy `int` PK becomes a DEMOS `uuid`. The map *table* is created in
+`sql/05_id_maps/10_mdcd_demo.sql`, but it is *populated* later, in
+`sql/10_stg/18_populate_id_map_mdcd_demo.sql`, because population must
+draw from the `10_stg` filter view that does not exist when `05` runs.
+The `ON CONFLICT DO NOTHING` insert is what makes the UUID stable
+across rebuilds.
+
+== Step 4 -- resolve into loader columns
+
+`sql/10_stg/22_demonstration_resolved.sql` defines the
+`stg.demonstration_resolved` view: it joins the source row to its id
+map UUID and projects the exact column set the app loader expects,
+deriving fields like `current_phase_by_date` from legacy milestones.
+Staging is where derivation happens; the app layer just inserts.
+
+== Step 5 -- load the target
+
+`sql/20_app/30_demonstration.sql` inserts the `demos_app.application`
+anchor and the `demos_app.demonstration` row (they share one UUID). Its
+`Invariants` line spells out the contract: it runs inside the
+deferred-constraint `build_app` transaction, is fail-closed (a demo
+loads only when its status code maps and its state resolves), and is
+idempotent via `NOT EXISTS` + `ON CONFLICT (id) DO NOTHING`.
+
+== Step 6 -- the parity guard
+
+Two checks in `sql/99_parity/` close the loop at Gate 6:
+
+* `10_demonstration_id_provenance.sql` -- every loaded
+  `demonstration.id` traces back to one of the two demonstration id
+  maps (nothing minted out of band).
+* `11_demonstration_completeness.sql` -- every PMDA-valid resolved
+  demonstration that was not deliberately held back is present in
+  `demos_app.demonstration`.
+
+A non-empty result on either is RED and blocks the cutover.
+
+== What you learned
+
+* Source -> filter -> id map -> resolve -> load -> parity is the
+  standard shape; most entities follow it.
+* Derivation belongs in `10_stg`; the `20_app` layer inserts.
+* The front-matter `Inputs`/`Outputs` lines are the authoritative
+  per-file map -- trust them, and keep them accurate when you edit.
+
+To add your own entity end-to-end, continue with
+xref:tutorial-add-a-new-transform.adoc[add a new transform].
+
+== Related
+
+* xref:reference-sql-conventions.adoc[SQL conventions]
+* xref:reference-pipeline-stages.adoc[Pipeline stages]
+* xref:reference-id-maps.adoc[id maps]
+* xref:../operator/reference-demonstration-flow.adoc[The demonstration migration flow] (the live, generated run trace)
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-sql-conventions.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:tutorial-add-a-new-transform.adoc[next >]
+|===
+endif::[]
+// docnav-end

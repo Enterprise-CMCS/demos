@@ -1,0 +1,5 @@
+legacy_int_cd,legacy_name,proposed_demos_text_id,confidence,sme_confirmed_value,notes
+1,Pending,,none,,"DEFERRED post-MVP: DEMOS has no renewals concept; do not migrate renewals yet (SME review). Earlier 'Renewal == Extension' framing is withdrawn pending the post-MVP renewal design"
+2,Approved,,none,,"DEFERRED post-MVP: see row 1"
+3,Withdrawn,,none,,"DEFERRED post-MVP: see row 1"
+4,Disapproved,,none,,"DEFERRED post-MVP: see row 1"

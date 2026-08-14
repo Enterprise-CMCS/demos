@@ -1,0 +1,156 @@
+= Explanation: FK strategy
+
+DEMOS has FKs; MySQL does not. The DEMOS app team owns the FK
+definitions in Prisma; we capture them at DDL apply time, drop them
+for the bulk build, then re-apply them as `NOT VALID` and `VALIDATE`
+them after the data is in place.
+
+== The order
+
+[mermaid]
+....
+flowchart TD
+  A[migrate ddl: apply Prisma SQL] --> B[Capture FKs to prisma_fks.json]
+  B --> C[Drop FKs in demos_app schema]
+  C --> D[Build stg + app + history]
+  D --> E[Re-add each FK NOT VALID]
+  E --> F[VALIDATE CONSTRAINT per FK]
+  F --> G{any unvalidated?}
+  G -- no --> H[constraints gate green]
+  G -- yes --> I[Write fk_violations.csv]
+  I --> J[die: halt cutover]
+....
+
+== Why this order
+
+. *Prisma owns the FK definitions.* The DEMOS app's Prisma schema is
+  the source of truth, so we keep its `FOREIGN KEY ... REFERENCES ...`
+  clauses verbatim (via `pg_get_constraintdef`) instead of hand-
+  authoring a parallel set in this repo.
+. *Drop before bulk insert.* Prisma emits FKs inline in
+  `CREATE TABLE`; we capture and drop them so the build does not
+  reject batches and so violations surface per-FK during VALIDATE
+  rather than batch-failing the apply.
+. *FKs as `NOT VALID`* let us add the constraint cheaply on re-apply
+  -- no full table scan during DDL. Future inserts are checked from
+  the moment the constraint exists.
+. *`VALIDATE CONSTRAINT`* runs the back-fill check after the data is
+  fully built. If it fails, we know exactly which row violated which
+  FK.
+. *Triggers and indexes go last.* Triggers attached during the build
+  would fire on every insert; indexes built during the build slow
+  down every insert and have to be rebuilt anyway.
+
+== Implementation
+
+`migration/phases/init_pg.py` (`run_ddl`):
+
+. `ensure_prisma_ddl(env)` (in `migration/phases/fetch_prisma.py`)
+  lists the Prisma migration directories in the DEMOS repo via the
+  GitHub Contents API, fetches each `migration.sql` from
+  `raw.githubusercontent.com`, concatenates them chronologically, and
+  hash-verifies the result against `reports/prisma_ddl.sha256`. On
+  cache hit (`state/prisma_ddl/<sha>.sql` exists with matching sha)
+  no network call is made.
+. `DROP SCHEMA demos_app CASCADE; CREATE SCHEMA demos_app;` so the (typically
+  non-idempotent) Prisma SQL applies cleanly.
+. Apply the cached Prisma SQL.
+. `_capture_fks` queries `pg_constraint` for `contype='f' AND
+  nspname='demos_app'` and writes the rows
+  (`schema`, `table`, `name`, `definition`) to
+  `state/prisma_fks.json`.
+. `_drop_fks` issues `ALTER TABLE ... DROP CONSTRAINT IF EXISTS ...`
+  for each captured FK.
+. `apply_dir(env, sql/01_ddl_supplements/)` adds the JSONB registry
+  (the `*_history` tables ship in the Prisma artifact, not here).
+
+`migration/phases/constraints.py` (`run_constraints`):
+
+. `_load_captured_fks` reads `state/prisma_fks.json`. Each FK's
+  `definition` is regex-checked to start with `FOREIGN KEY` before
+  it is spliced into the ALTER, so a malformed file cannot smuggle
+  arbitrary SQL.
+. `_readd_captured_fks` issues `ALTER TABLE ... ADD CONSTRAINT ...
+  <definition> NOT VALID;` for every captured FK, preserving the
+  original Prisma name and clause.
+. `apply_dir(env, sql/30_constraints/)` -- migration-owned constraint
+  SQL still applies (currently empty; the directory is kept for
+  future use).
+. `_list_invalid_fks` -- queries `pg_constraint` for `contype='f' AND
+  NOT convalidated AND nspname='demos_app'`.
+. For each invalid FK, runs `ALTER TABLE {tbl} VALIDATE CONSTRAINT
+  {con}` via `psycopg.sql.Composed` (identifier-quoted).
+. `apply_dir(env, sql/31_constraint_triggers/)`.
+. `apply_dir(env, sql/32_app_triggers/)`.
+. `apply_dir(env, sql/40_indexes/)`.
+. `apply_dir(env, sql/50_sequences/)`.
+. Re-lists still-invalid FKs and writes `state/fk_violations.csv`.
+. If the CSV is non-empty, `die()` -- the cutover halts.
+
+== Reconstructing the MySQL-side FK candidates
+
+The source MySQL schema declares no FKs, so `migrate fk-candidates`
+reconstructs them to drive parity and review. Its declarative layer is
+fed by the DEMOS `.prisma` *model* files (fetched + pinned by
+`migrate fetch-prisma-schema`; see
+xref:reference-prisma-ddl.adoc#_the_declarative_model_files_prisma[the
+model-file artifact]):
+
+. `migration/prisma_schema.py` parses each `@relation` into mapped
+  `(demos_table.demos_column -> demos_table.demos_column)` edges using
+  `@@map`/`@map`, including composite relations (one emitted row per
+  column-pair, tagged `composite i/N`).
+. Each edge is walked back through `reports/source_target_columns.csv`
+  to the MySQL columns it came from.
+. The `pg_constraint` capture (`state/prisma_fks.json`) is used as a
+  cross-check -- the `notes` record `pg_constraint: confirmed` or
+  `missing` -- and as the *only* source for Prisma implicit
+  many-to-many relations, which compile to hidden join tables with no
+  explicit `@relation` field.
+
+This declarative layer is preferred over back-translating
+`pg_constraint` alone because `.prisma` carries relation names,
+referential actions, and composite keys, and is readable without first
+applying any DDL. The `pg_constraint` capture above remains the source
+of truth for the FKs that `run_constraints` actually re-adds and
+validates.
+
+== Why all triggers go last
+
+DEMOS has both *constraint triggers* (deferrable, cross-row
+invariants) and *app triggers* (history-on-UPDATE, audit). Either
+firing during the build would either reject valid loaded rows or
+emit spurious history events for the bulk-loaded rows. Both are wrong.
+
+The `build_app` phase prepends `SET CONSTRAINTS ALL DEFERRED` to a
+single transaction so cross-table inserts within that transaction do
+not trip deferred constraints either.
+
+== When VALIDATE fails
+
+* Legitimately bad source data: open a parity warning; decide with
+  the SME whether to drop the row or stub a placeholder.
+* Stale id map: re-populate with `make id_maps`; rebuild.
+* Pending/approved disagreement: review
+  `reports/narrative/pending_approved_decisions.md`.
+* Missing crosswalk row: see
+  xref:howto-add-a-crosswalk.adoc[add a crosswalk].
+
+== Related
+
+* xref:../operator/howto-troubleshoot-fk-violations.adoc[Troubleshoot
+  FK violations]
+* xref:reference-pipeline-stages.adoc[Reference: pipeline stages]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:explanation-idempotency.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:explanation-history-backfill.adoc[next >]
+|===
+endif::[]
+// docnav-end

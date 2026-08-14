@@ -7,7 +7,7 @@ import { KeywordSearch } from "../KeywordSearch";
 import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
 import { TypesColumns } from "../columns/TypesColumns";
-import { Demonstration as ServerDemonstration } from "demos-server";
+import { Deliverable, Demonstration as ServerDemonstration, Tag } from "demos-server";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { useDialog } from "components/dialog/DialogContext";
 import { Notice } from "components/notice";
@@ -24,6 +24,9 @@ export type TypeTableRow = {
 
 export type Demonstration = Pick<ServerDemonstration, "id" | "status"> & {
   demonstrationTypes: DemonstrationDetailDemonstrationType[];
+  deliverables?: (Pick<Deliverable, "id"> & {
+    demonstrationTypes: Pick<Tag, "tagName">[];
+  })[];
 };
 
 export type TypesTableProps = {
@@ -57,8 +60,22 @@ export const TypesTable: React.FC<TypesTableProps> = ({
       }));
   }, [demonstration.demonstrationTypes]);
 
+  const linkedDemonstrationTypes = React.useMemo(() => {
+    return new Set(
+      demonstration.deliverables?.flatMap((deliverable) =>
+        deliverable.demonstrationTypes.map((t) => t.tagName)
+      ) || []
+    );
+  }, [demonstration.deliverables]);
+
+  const hasLinkedType = (selected: TypeTableRow[]) =>
+    selected.some((type) => linkedDemonstrationTypes.has(type.typeLabel));
+
   const canRemove = (selected: TypeTableRow[]) => {
     if (selected.length < 1) {
+      return false;
+    }
+    if (hasLinkedType(selected)) {
       return false;
     }
     if (
@@ -108,6 +125,8 @@ export const TypesTable: React.FC<TypesTableProps> = ({
                 selectedCount,
                 rule: { kind: "atLeast", count: 1 },
               });
+            } else if (hasLinkedType(selected)) {
+              removeTooltip = "Linked to a deliverable";
             } else if (
               demonstration.status === "Approved" &&
               selectedCount === demonstration.demonstrationTypes.length

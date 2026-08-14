@@ -1,0 +1,65 @@
+= Explanation: why Python over bash
+
+The orchestration started in bash and was ported to Python early in
+Week 1. The reasons are the same set that come up on every solo-DBA
+migration of this size.
+
+== The five reasons
+
+. *Solo-operator readability.* Coming back to a Typer subcommand in
+  Week 9 is faster to re-understand than a heredoc-laden bash
+  script. A six-month-old bash script is closer to write-only than
+  to maintainable.
+. *Type-checking + tests.* `ty check` and `pytest` catch bugs that
+  bash silently passes (typos in `$VAR`, wrong argv length, missing
+  `set -euo pipefail`). A 1-day port pays back in Weeks 6-9.
+. *Robust template rendering.* `jinja2.StrictUndefined` (used in
+  `lib.render_template`) handles arbitrary URLs that contain `|`,
+  `&`, `/`, refuses to silently ship a half-rendered file when a
+  marker is missing, and emits rendered files as `0600` so embedded
+  credentials are not world-readable. `sed` does not handle any of
+  this without extensive escaping.
+. *Proper CSV / JSON / YAML handling.* `csv.DictReader`, `pyyaml`,
+  and `jsonschema` are stdlib-or-near. The bash equivalents are
+  fragile (column-quoted-with-comma will break a `cut`-based
+  parser).
+. *One language end-to-end.* DuckDB source dumps + load-fidelity, FK validation loops,
+  JSONB schema checks, manual override YAML overlays -- all fit
+  naturally in Python. They would each be a separate impedance
+  mismatch in bash.
+
+== What we kept in bash
+
+`scripts/cutover.sh` is a thin shim that forwards every argument to
+`uv run migrate "$@"` (with `set -euo pipefail` and a `cd` to the repo
+root). Operator muscle memory wants `./scripts/cutover.sh delta`; the
+shim preserves that without re-introducing logic.
+
+== Trade-offs we accepted
+
+* *More dependencies.* `uv` + Python + `psycopg` + 8 libraries is
+  more than `bash` + `psql` + `pgloader`. Mitigated by
+  `uv sync --frozen` from a committed `uv.lock`.
+* *Slower cold start.* `uv run migrate <name>` takes ~200ms longer
+  than a bash script. Negligible against multi-minute SQL phases.
+* *Indirect SQL.* Operators read `psql_files(...)` instead of
+  `psql -f`. The trade is worth it; the wrapper handles redaction,
+  identifier safety, and transaction grouping uniformly.
+
+== Related
+
+* xref:reference-python-package.adoc[Python package internals]
+* xref:howto-add-a-phase.adoc[Add a phase]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-users-person-migration.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:explanation-idempotency.adoc[next >]
+|===
+endif::[]
+// docnav-end

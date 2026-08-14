@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import { tw } from "tags/tw";
+import { useSessionStorageJson } from "hooks";
 
 import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
@@ -10,6 +11,7 @@ import { useSetApplicationDate } from "components/application/date/dateQueries";
 import {
   FAILED_TO_SAVE_MESSAGE,
   getPhaseCompletedMessage,
+  MISSING_REQUIRED_SECTIONS_TOOLTIP,
   SAVE_FOR_LATER_MESSAGE,
 } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
@@ -106,8 +108,9 @@ export const SdgPreparationPhase = ({
   allPreviousPhasesDone: boolean;
   applicationStatus: ApplicationStatus;
 }) => {
-  const [sdgPreparationPhaseFormData, setSdgPreparationPhaseFormData] =
-    useState<SdgPreparationPhaseFormData>(getFormDataFromPhase(sdgPreparationPhase));
+  const [localFormData, setSdgPreparationPhaseFormData] =
+    useSessionStorageJson<SdgPreparationPhaseFormData>(`sdg-preparation-dates-${applicationId}`);
+  const sdgPreparationPhaseFormData = localFormData ?? getFormDataFromPhase(sdgPreparationPhase);
   const { setApplicationDate } = useSetApplicationDate();
   const { completePhase } = useCompletePhase();
   const { showSuccess, showError } = useToast();
@@ -291,6 +294,11 @@ export const SdgPreparationPhase = ({
                 size="large"
                 name="sdg-finish"
                 disabled={!allPreviousPhasesDone || !isFormComplete || isPhaseCompleted}
+                eagerTooltip={
+                  (!allPreviousPhasesDone || !isFormComplete) && !isPhaseCompleted
+                    ? MISSING_REQUIRED_SECTIONS_TOOLTIP
+                    : undefined
+                }
               >
                 Finish
               </Button>

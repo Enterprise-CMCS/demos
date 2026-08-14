@@ -1,0 +1,77 @@
+// Shared snippet: glossary. Include with `include::../shared/glossary.adoc[]`.
+
+[glossary]
+mysql_raw:: PostgreSQL schema holding a 1:1 mirror of the MySQL source after
+            pgloader. Every table gains a `_loaded_at timestamptz` column.
+stg:: Staging schema. Holds cleansed, remodeled intermediate rows produced
+      by `sql/10_stg/*` from `mysql_raw`.
+demos_app:: Final DEMOS schema. Built from `stg` by `sql/20_app/*` and friends.
+migration:: Housekeeping schema. Carries `_id_map_*` tables, the
+            `jsonb_schemas` registry plus its trigger function and
+            `revalidate_jsonb` helper, and other helper functions.
+            (`_delta_log` lives in `mysql_raw`, not here.)
+id map:: A `migration._id_map_<source_table>` table mapping each legacy
+         integer primary key to a new UUID. Every reconstructed FK looks
+         up new UUIDs through these maps.
+crosswalk:: A SME-authored CSV mapping legacy integer reference codes to
+            DEMOS text IDs (`legacy_int_cd`, `demos_text_id`, `notes`).
+            Loaded into `mysql_raw.crosswalk_<rfrnc_name>` at build time.
+pending/approved duality:: MySQL convention of holding draft (`mdcd_pendg_*`)
+                          and approved (`mdcd_*`) rows in parallel tables.
+                          DEMOS unifies them into a single `application` row
+                          keyed by `application_status`.
+program-detail twin:: The ~70 approved `mdcd_*_pgm_dtl` source tables
+                      plus their `mdcd_pendg_*_pgm_dtl` counterparts.
+                      All collapse into
+                      `demos_app.demonstration_type_tag_assignment` rows.
+gate:: A small file in `state/<phase>.ok` written by `mark_gate(phase)` on
+       clean exit. The next phase calls `require_gate(phase)` and refuses
+       to run until the prior gate is satisfied.
+phase:: One step of the orchestrated cutover (preflight, freeze, delta,
+        build, constraints, parity, flip, smoke, decom).
+        Implemented as a Python module under `migration/phases/`.
+parity:: A *pure-Postgres* set of checks comparing `mysql_raw` (the frozen
+         pgloaded source) and the new `demos_app` schema. Runs in P6 and produces a
+         markdown report with a single OVERALL STATUS line. (Not a DuckDB job;
+         the source and target are co-located in one PG cluster.)
+prod-schema guard:: A cross-instance check (DuckDB `postgres_scanner` dual-attach)
+         that diffs the live PROD `demos_app` (schema, Prisma-seeded rows, emptiness)
+         against a reference cluster with the pinned artifact applied. Runs before
+         the irreversible `run_ddl` DROP and again at preflight; HOLDs on any drift.
+JSONB schema registry:: `migration.jsonb_schemas` plus the trigger function
+                       `migration.tg_validate_jsonb_against_registered_schema()`
+                       that backs the budget-neutrality parity CONSTRAINT
+                       TRIGGER on `migration.bn_workbook_detail`
+                       (`sql/01_ddl_supplements/10_bn_workbook_detail.sql`),
+                       and the `migration.revalidate_jsonb(...)` helper used
+                       after the registry changes. CHECK constraints can only
+                       see the current row, so a trigger is used instead.
+history (DEMOS-owned):: The `demos_app.*_history` tables, the
+           `revision_type_enum`, and the `log_changes_*` capture triggers are
+           owned by DEMOS. This migration does not populate them: every
+           history table is left empty at cutover, and the DEMOS capture
+           triggers (installed after constraints via `refreshDbObjects.ts`)
+           fill it from cutover forward. See `reports/narrative/history_strategy.md`.
+source/target column map:: SME-curated column-level join between the
+                          MySQL PMDA schema model and the DEMOS schema model,
+                          authored as `reports/source_target_columns.csv`
+                          and rendered into both the SME and developer
+                          books by `docs/tools/source_target_columns_to_adoc.py`
+                          (the model files live in the sibling `mmd_sql_compare/`
+                          tree, resolved via the tool's `SPECS_ROOT` default).
+transform vocabulary:: The controlled set of `transform` values
+                      reserved for `reports/source_target_columns.csv`:
+                      `copy`, `cast`, `id_map`, `crosswalk:<rfrnc>`,
+                      `tag_pivot:<tag_name>`, `json_pack:<field>`,
+                      `json_extract:<path>`, `filter_typed:<predicate>`,
+                      `derive`, `pending_unify`, `comment_route`, `drop`.
+                      (Not every value is in use in the current CSV; the
+                      generator enforces the full reserved set.)
+tag_pivot:: Transform value indicating the source row pivots out of an
+            `mdcd_*_pgm_dtl` table into a row in
+            `demos_app.demonstration_type_tag_assignment` with the named
+            `tag_name`. Driven by `reports/pgm_dtl_tag_mapping.csv`.
+filter_typed:: Transform value indicating the source column splits
+              into a typed child table (e.g. `application_date` rows
+              where `date_type='effective_date'`); the predicate
+              follows the colon.
