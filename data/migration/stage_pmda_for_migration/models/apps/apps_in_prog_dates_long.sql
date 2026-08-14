@@ -119,7 +119,7 @@ CROSS JOIN
             (a.cleaned_cms_osora_clearance_end + TIME '23:59:59.999') AT TIME ZONE 'America/New_York'
         ),
         (
-            'Package Sent for Comms Clearance',
+            'Package Sent for COMMs Clearance',
             (a.package_sent_for_comms_clearance + TIME '00:00:00.000') AT TIME ZONE 'America/New_York',
             (a.cleaned_package_sent_for_comms_clearance + TIME '00:00:00.000') AT TIME ZONE 'America/New_York'
         ),

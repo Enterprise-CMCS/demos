@@ -656,7 +656,7 @@ models:
         data_type: text
         data_tests:
           - relationships:
-              name: assert_application_date_type_exists_in_demos_app_date_type
+              name: assert_application_date_type_exists_in_final_demos_app_date_type
               arguments:
                 to: source('demos_app', 'date_type')
                 field: id
