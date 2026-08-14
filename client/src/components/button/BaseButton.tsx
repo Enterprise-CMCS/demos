@@ -54,6 +54,7 @@ export interface ButtonProps {
   size?: ButtonSize;
   disabled?: boolean;
   isCircle?: boolean;
+  isHidden?: boolean;
   tooltip?: string;
   eagerTooltip?: string;
 }
@@ -69,9 +70,12 @@ export const BaseButton: React.FC<ButtonProps> = ({
   size = "standard",
   disabled = false,
   isCircle = false,
+  isHidden = false,
   tooltip,
   eagerTooltip,
 }) => {
+  if (isHidden) return null;
+
   const sizeClasses = getSizeClasses(isCircle, size);
   const circleClasses = getCircleClasses(isCircle);
   const uid = useId().replace(NON_ALPHANUMERIC, "");
