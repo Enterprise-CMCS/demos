@@ -75,6 +75,7 @@ export const BaseButton: React.FC<ButtonProps> = ({
   eagerTooltip,
 }) => {
   const uid = useId().replace(NON_ALPHANUMERIC, "");
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   if (isHidden) return null;
 
@@ -82,7 +83,6 @@ export const BaseButton: React.FC<ButtonProps> = ({
   const circleClasses = getCircleClasses(isCircle);
   const anchorName = `--btn-${uid}`;
   const tooltipId = `tooltip-${uid}`;
-  const buttonRef = useRef<HTMLButtonElement>(null);
 
   return (
     <>
