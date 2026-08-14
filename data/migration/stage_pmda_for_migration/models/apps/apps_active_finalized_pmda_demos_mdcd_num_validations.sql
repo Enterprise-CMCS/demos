@@ -144,19 +144,24 @@ cleaned_medicaid_nums AS (
 SELECT
     mdcd_demo_id,
     original_mdcd_demo_num,
-    -- Fixing the three that had primary CHIP IDs
-    -- Medicaid ID exists for one, but not the other two
     CASE
+        -- Primary ID was CHIP, looked up Medicaid ID online
         WHEN mdcd_demo_id = 2470 THEN '11-W-00381/3'
+
+        -- Primary ID was CHIP, could not find Medicaid ID online
         WHEN mdcd_demo_id IN (2481, 2648) THEN NULL
+
+        -- Otherwise, just use cleaned ID
         ELSE cleaned_mdcd_demo_num
     END AS cleaned_mdcd_demo_num,
     CASE
+        -- If manually fixed, mark format valid
         WHEN mdcd_demo_id IN (2470, 2481, 2648) THEN 'Valid'
         WHEN cleaned_mdcd_demo_num IS NOT NULL THEN 'Valid'
         ELSE 'Invalid'
     END AS cleaned_mdcd_demo_num_format_valid,
     CASE
+        -- If manually fixed, mark location as valid
         WHEN mdcd_demo_id IN (2470, 2481, 2648) THEN 'Valid'
         WHEN cleaned_mdcd_demo_num IS NULL THEN 'Invalid'
         WHEN mdcd_demo_num_initial_validation_status IN ('Valid Medicaid ID', 'Possibly Valid Medicaid ID') THEN 'Valid'
@@ -164,13 +169,31 @@ SELECT
     END AS cleaned_mdcd_demo_num_location_valid,
     original_mdcd_scndry_demo_num,
     CASE
-        WHEN mdcd_demo_id = 2265 THEN NULL --TennCare III fix for having TennCare II ID in secondary slot
+
+        -- Tagged as CHIP in PMDA with no code, found on Medicaid.gov
+        WHEN mdcd_demo_id = 2266 THEN '21-W-00074/9'
+        WHEN mdcd_demo_id = 2232 THEN '21-W-00068/2'
+
+        -- TennCare III had Medicaid ID for TennCare II in the secondary slot, nulling out
+        WHEN mdcd_demo_id = 2265 THEN NULL
+
+        -- These three had CHIP ID as primary ID so place it in the correct field
         WHEN mdcd_demo_id IN (2470, 2481, 2648) THEN cleaned_mdcd_demo_num
+
+        -- Otherwise, just use cleaned secondary ID
         ELSE cleaned_mdcd_scndry_demo_num
     END AS cleaned_mdcd_scndry_demo_num,
     CASE
-        WHEN mdcd_demo_id = 2265 THEN NULL
+        -- Manually fixed, mark format valid
+        WHEN mdcd_demo_id IN (2266, 2232) THEN 'Valid'
+
+        -- Manually set to missing, making format valid
+        WHEN mdcd_demo_id = 2265 THEN 'Valid'
+
+        -- Manually fixed, mark format valid
         WHEN mdcd_demo_id IN (2470, 2481, 2648) THEN 'Valid'
+
+        -- Otherwise, process normally
         WHEN cleaned_mdcd_scndry_demo_num IS NOT NULL THEN 'Valid'
         WHEN
             cleaned_mdcd_scndry_demo_num IS NULL AND mdcd_scndry_demo_num_initial_validation_status = 'Valid Missing'
@@ -178,11 +201,16 @@ SELECT
         ELSE 'Invalid'
     END AS cleaned_mdcd_scndry_demo_num_format_valid,
     CASE
-        -- Next two tagged as CHIP in PMDA but has no code, added based on Medicaid.gov
-        WHEN mdcd_demo_id = 2266 THEN '21-W-00074/9'
-        WHEN mdcd_demo_id = 2232 THEN '21-W-00068/2'
-        WHEN mdcd_demo_id = 2265 THEN NULL
+        -- Manually fixed, mark format valid
+        WHEN mdcd_demo_id IN (2266, 2232) THEN 'Valid'
+
+        -- Manually set to missing, making format valid
+        WHEN mdcd_demo_id = 2265 THEN 'Valid'
+
+        -- Manually fixed, mark format valid
         WHEN mdcd_demo_id IN (2470, 2481, 2648) THEN 'Valid'
+
+        -- Otherwise, process normally
         WHEN
             cleaned_mdcd_scndry_demo_num IS NULL AND mdcd_scndry_demo_num_initial_validation_status = 'Valid Missing'
             THEN 'Valid'

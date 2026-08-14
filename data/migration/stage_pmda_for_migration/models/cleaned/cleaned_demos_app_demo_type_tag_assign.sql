@@ -71,7 +71,7 @@ WITH unioned_types AS (
     FROM
         {{ ref('final_demos_app_demonstration') }}
     WHERE
-        _legacy_mdcd_demo_id IN (2564, 1620, 2441, 1457)
+        _legacy_mdcd_demo_id IN (2564, 1620, 2441, 1457, 2470, 2481)
 )
 
 SELECT
