@@ -38,6 +38,7 @@ import { validateReferenceDownloadRequest } from "./validateReferenceDownloadReq
 import { insertReferenceAgreementAcceptance } from "../referenceAgreementAcceptance/queries";
 import { getS3Adapter } from "../../adapters";
 import { dispatchTermsAndConditionsRequestedEmail } from "../email";
+import { POINT_AND_CLICK_AGREEMENT } from "./pointAndClickAgreement";
 
 describe("getReferenceDownloadUrl", () => {
   const testReferenceConfigurationId = "reference-configuration-1";
@@ -159,6 +160,40 @@ describe("getReferenceDownloadUrl", () => {
       referenceAgreementName: "Point and Click Agreement",
       referenceAgreementS3Path: testAgreementS3Path,
       acceptanceTimestamp,
+      triggeredByUserId: testUserId,
+    });
+  });
+
+  it("emails the static agreement when the database agreement is missing", async () => {
+    vi.mocked(validateReferenceDownloadRequest).mockResolvedValueOnce({
+      ...mockReferenceConfiguration,
+      referenceAgreement: null,
+    } as any);
+
+    await getReferenceDownloadUrl(
+      {},
+      {
+        id: testReferenceConfigurationId,
+        acceptedAgreementId: POINT_AND_CLICK_AGREEMENT.id,
+        emailAgreement: true,
+      },
+      testContext as GraphQLContext
+    );
+
+    expect(validateReferenceDownloadRequest).toHaveBeenCalledWith(
+      testReferenceConfigurationId,
+      mockTransaction,
+      undefined
+    );
+    expect(insertReferenceAgreementAcceptance).not.toHaveBeenCalled();
+    expect(dispatchTermsAndConditionsRequestedEmail).toHaveBeenCalledExactlyOnceWith({
+      referenceConfigurationId: testReferenceConfigurationId,
+      referenceId: testReferenceId,
+      referenceName: testReferenceName,
+      referenceAgreementId: POINT_AND_CLICK_AGREEMENT.id,
+      referenceAgreementName: "National Measure Stewards Terms and Conditions",
+      referenceAgreementS3Path: POINT_AND_CLICK_AGREEMENT.s3Path,
+      acceptanceTimestamp: expect.any(Date),
       triggeredByUserId: testUserId,
     });
   });

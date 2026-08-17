@@ -3,6 +3,7 @@ import { mockClient } from "aws-sdk-client-mock";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { buildReferenceTermsAttachment } from "./emailAttachments";
+import { POINT_AND_CLICK_AGREEMENT } from "./pointAndClickAgreement";
 
 const s3Mock = mockClient(S3Client);
 
@@ -36,6 +37,22 @@ describe("buildReferenceTermsAttachment", () => {
       Bucket: "clean-bucket",
       Key: "reference-agreements/agreement-1",
     });
+  });
+
+  it("loads the static point and click agreement", async () => {
+    await expect(
+      buildReferenceTermsAttachment({
+        termsAndConditions: {
+          fileName: "national-measure-stewards-terms-and-conditions.html",
+          s3Path: POINT_AND_CLICK_AGREEMENT.s3Path,
+        },
+      }),
+    ).resolves.toEqual({
+      filename: "national-measure-stewards-terms-and-conditions.html",
+      content: Buffer.from(POINT_AND_CLICK_AGREEMENT.html),
+      contentType: "text/html; charset=utf-8",
+    });
+    expect(s3Mock.commandCalls(GetObjectCommand)).toHaveLength(0);
   });
 
   it("reports a missing clean bucket", async () => {

@@ -5,6 +5,7 @@ import { prisma } from "../../prismaClient";
 import { buildRealtimeEmailEnvelope } from "../../services/emailQueue";
 import { enqueueTrackedRealtimeEmail } from "./emailNotification";
 import { dispatchTermsAndConditionsRequestedEmail } from "./referenceEmail";
+import { POINT_AND_CLICK_AGREEMENT } from "../reference/pointAndClickAgreement";
 
 vi.mock("../../log", () => ({
   log: {
@@ -135,6 +136,25 @@ describe("reference agreement email dispatch", () => {
         }),
       }),
       "Failed to dispatch reference agreement email",
+    );
+  });
+
+  it("uses the static agreement file name without querying S3", async () => {
+    await dispatchTermsAndConditionsRequestedEmail({
+      ...input,
+      referenceAgreementS3Path: POINT_AND_CLICK_AGREEMENT.s3Path,
+    });
+
+    expect(getDownloadFileName).not.toHaveBeenCalled();
+    expect(buildRealtimeEmailEnvelope).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: expect.objectContaining({
+          termsAndConditions: expect.objectContaining({
+            fileName: POINT_AND_CLICK_AGREEMENT.fileName,
+            s3Path: POINT_AND_CLICK_AGREEMENT.s3Path,
+          }),
+        }),
+      }),
     );
   });
 });

@@ -3,6 +3,7 @@ import { GraphQLContext } from "../../auth";
 import { prisma } from "../../prismaClient";
 import { dispatchTermsAndConditionsRequestedEmail } from "../email";
 import { insertReferenceAgreementAcceptance } from "../referenceAgreementAcceptance/queries";
+import { POINT_AND_CLICK_AGREEMENT } from "./pointAndClickAgreement";
 import { validateReferenceDownloadRequest } from "./validateReferenceDownloadRequest";
 
 export async function getReferenceDownloadUrl(
@@ -16,15 +17,20 @@ export async function getReferenceDownloadUrl(
     );
   }
 
+  const usesStaticAgreement =
+    args.acceptedAgreementId === POINT_AND_CLICK_AGREEMENT.id;
+
   const { requestedReferenceConfiguration, acceptanceTimestamp } =
     await prisma().$transaction(async (tx) => {
       const validatedReferenceConfiguration = await validateReferenceDownloadRequest(
         args.id,
         tx,
-        args.acceptedAgreementId
+        usesStaticAgreement ? undefined : args.acceptedAgreementId
       );
       let acceptanceTimestamp: Date | undefined;
-      if (args.acceptedAgreementId) {
+      if (usesStaticAgreement) {
+        acceptanceTimestamp = new Date();
+      } else if (args.acceptedAgreementId) {
         // If we enter this block, we know there is a referenceAgreement on the configuration
         const acceptance = await insertReferenceAgreementAcceptance(
           {
@@ -43,7 +49,13 @@ export async function getReferenceDownloadUrl(
     });
 
   if (args.emailAgreement && acceptanceTimestamp) {
-    const agreement = requestedReferenceConfiguration.referenceAgreement!;
+    const agreement = usesStaticAgreement
+      ? {
+          id: POINT_AND_CLICK_AGREEMENT.id,
+          name: POINT_AND_CLICK_AGREEMENT.name,
+          s3Path: POINT_AND_CLICK_AGREEMENT.s3Path,
+        }
+      : requestedReferenceConfiguration.referenceAgreement!;
     await dispatchTermsAndConditionsRequestedEmail({
       referenceConfigurationId: requestedReferenceConfiguration.id,
       referenceId: requestedReferenceConfiguration.reference.id,

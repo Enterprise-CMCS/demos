@@ -1,5 +1,5 @@
 import React from "react";
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DESCRIPTION_TEXT, GET_REFERENCES_QUERY, ReferencesTable } from "./ReferencesTable";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
@@ -110,50 +110,23 @@ describe("ReferencesTable", () => {
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "Open ref1 agreement" })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Download ref2" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Open ref2 agreement" })).toBeInTheDocument();
     });
   });
 
-  it("calls downloadReference when the download button is clicked for a reference without an agreement", async () => {
+  it("uses the static agreement when the database agreement is missing", async () => {
     renderWithProviders(getReferencesQueryMock);
 
-    await waitFor(() => {
-      screen.getByRole("button", { name: "Download ref2" }).click();
-      expect(downloadReference).toHaveBeenCalledWith({
-        id: "ref2",
-        acceptedAgreementId: null,
-      });
+    const downloadButton = await screen.findByRole("button", {
+      name: "Open ref2 agreement",
     });
-  });
+    downloadButton.click();
 
-  it("shows a spinner while a reference download is being prepared", async () => {
-    const user = userEvent.setup();
-    let finishDownload: (url: string) => void = () => {};
-    downloadReference.mockReturnValueOnce(
-      new Promise((resolve) => {
-        finishDownload = resolve;
+    expect(
+      await screen.findByRole("link", {
+        name: "National Measure Stewards Terms and Conditions",
       })
-    );
-    renderWithProviders(getReferencesQueryMock);
-
-    const downloadButton = await screen.findByRole("button", { name: "Download ref2" });
-    await user.click(downloadButton);
-
-    await waitFor(() => {
-      const loadingButton = screen.getByRole("button", { name: "Download ref2" });
-      expect(loadingButton).toBeDisabled();
-      expect(within(loadingButton).getByRole("img", { name: "Loading" })).toBeInTheDocument();
-    });
-
-    act(() => finishDownload("https://example.com/reference"));
-
-    await waitFor(() => {
-      const finishedButton = screen.getByRole("button", { name: "Download ref2" });
-      expect(finishedButton).toBeEnabled();
-      expect(
-        within(finishedButton).queryByRole("img", { name: "Loading" })
-      ).not.toBeInTheDocument();
-    });
+    ).toBeInTheDocument();
   });
 
   it("renders an agreement dialog when the download button is clicked for a reference with an agreement", async () => {
@@ -200,7 +173,7 @@ describe("ReferencesTable", () => {
     await user.type(searchInput, "Type C");
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Download ref2" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Open ref2 agreement" })).toBeInTheDocument();
       expect(screen.queryByRole("button", { name: "Open ref1 agreement" })).not.toBeInTheDocument();
     });
   });

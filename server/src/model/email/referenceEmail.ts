@@ -3,6 +3,7 @@ import { log } from "../../log";
 import { prisma } from "../../prismaClient";
 import { buildRealtimeEmailEnvelope } from "../../services/emailQueue";
 import { enqueueTrackedRealtimeEmail } from "./emailNotification";
+import { POINT_AND_CLICK_AGREEMENT } from "../reference/pointAndClickAgreement";
 
 type TermsAndConditionsRequestedEmailInput = {
   referenceConfigurationId: string;
@@ -33,10 +34,13 @@ export async function dispatchTermsAndConditionsRequestedEmail(
 
     const recipientName =
       `${user.person.firstName} ${user.person.lastName}`.trim();
-    const attachmentFileName = await getS3Adapter().getDownloadFileName(
-      input.referenceAgreementS3Path,
-      input.referenceAgreementName,
-    );
+    const attachmentFileName =
+      input.referenceAgreementS3Path === POINT_AND_CLICK_AGREEMENT.s3Path
+        ? POINT_AND_CLICK_AGREEMENT.fileName
+        : await getS3Adapter().getDownloadFileName(
+            input.referenceAgreementS3Path,
+            input.referenceAgreementName,
+          );
     const message = buildRealtimeEmailEnvelope({
       emailType: "Terms And Conditions Requested",
       entityType: "reference",

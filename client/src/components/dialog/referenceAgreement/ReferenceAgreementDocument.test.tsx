@@ -3,11 +3,13 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { ReferenceAgreementDocument } from "./ReferenceAgreementDocument";
 import { useDownloadReference } from "hooks/useDownloadReference";
 import { ReferenceAgreement } from "demos-server";
-describe("ReferenceAgreementDocument", () => {
-  vi.mock("hooks/useDownloadReference", () => ({
-    useDownloadReference: vi.fn(),
-  }));
+import { POINT_AND_CLICK_AGREEMENT } from "./pointAndClickAgreement";
 
+vi.mock("hooks/useDownloadReference", () => ({
+  useDownloadReference: vi.fn(),
+}));
+
+describe("ReferenceAgreementDocument", () => {
   const mockAgreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt"> = {
     id: "agreement-456",
     name: "Agreement abc",
@@ -34,5 +36,19 @@ describe("ReferenceAgreementDocument", () => {
     render(<ReferenceAgreementDocument agreement={mockAgreement} />);
     fireEvent.click(screen.getByRole("button"));
     expect(downloadReferenceAgreement).toHaveBeenCalledWith({ id: mockAgreement.id });
+  });
+
+  it("links to the static agreement by its explicit ID", () => {
+    render(<ReferenceAgreementDocument agreement={POINT_AND_CLICK_AGREEMENT} />);
+
+    expect(
+      screen.getByRole("link", {
+        name: "National Measure Stewards Terms and Conditions",
+      })
+    ).toHaveAttribute(
+      "href",
+      "/reference-agreements/national-measure-stewards-terms-and-conditions.html"
+    );
+    expect(downloadReferenceAgreement).not.toHaveBeenCalled();
   });
 });

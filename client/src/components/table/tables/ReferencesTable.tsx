@@ -6,6 +6,7 @@ import { Reference, ReferenceAgreement, Tag } from "demos-server";
 import { KeywordSearch } from "../KeywordSearch";
 import { PaginationControls } from "../PaginationControls";
 import { compareDesc } from "date-fns";
+import { POINT_AND_CLICK_AGREEMENT } from "components/dialog/referenceAgreement/pointAndClickAgreement";
 
 export const DESCRIPTION_TEXT =
   "Documents supporting monitoring and evaluation for Medicaid Section 1115 demonstrations are listed below.";
@@ -52,7 +53,12 @@ export const ReferencesTable: React.FC = () => {
         <Table
           keywordSearch={(table) => <KeywordSearch table={table} />}
           pagination={(table) => <PaginationControls table={table} />}
-          data={[...references].sort((a, b) => compareDesc(a.updatedAt, b.updatedAt))}
+          data={references
+            .map((reference) => ({
+              ...reference,
+              agreement: reference.agreement ?? POINT_AND_CLICK_AGREEMENT,
+            }))
+            .sort((a, b) => compareDesc(a.updatedAt, b.updatedAt))}
           columns={referencesColumns}
           descriptionText={DESCRIPTION_TEXT}
         />
