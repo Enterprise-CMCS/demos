@@ -19,9 +19,9 @@ import {
 } from "demos-server";
 import { useToast } from "components/toast";
 import { DELIVERABLE_SLOTS_CREATED_MESSAGE } from "util/messages";
-import { DELIVERABLES_PAGE_QUERY } from "components/table/tables/DeliverableTable";
 import { dueDateIsTodayOrFuture } from "./deliverableDueDateValidation";
 import { getCurrentUser } from "components/user/UserContext";
+import { DEMONSTRATION_DELIVERABLE_TAB } from "pages/DemonstrationDetail/deliverables/DeliverablesTab";
 
 export const CREATE_DELIVERABLES_MUTATION = gql`
   mutation CreateDeliverables($inputs: [CreateDeliverableInput!]!) {
@@ -33,7 +33,7 @@ export const CREATE_DELIVERABLES_MUTATION = gql`
 
 export const useCreateDeliverables = () => {
   const [createDeliverablesMutation, { loading }] = useMutation(CREATE_DELIVERABLES_MUTATION, {
-    refetchQueries: [{ query: DELIVERABLES_PAGE_QUERY }],
+    refetchQueries: [DEMONSTRATION_DELIVERABLE_TAB],
     awaitRefetchQueries: true,
   });
 

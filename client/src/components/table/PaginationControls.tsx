@@ -25,20 +25,32 @@ export function PaginationControls<T>({
   const { pagination } = getState();
   const { pageIndex, pageSize } = pagination;
 
+  const [selectedPageSize, setSelectedPageSize] = React.useState(pageSize);
+
   const totalRows = getFilteredRowModel().rows.length;
   const totalPages = getPageCount();
   const currentPage = pageIndex;
   const canPreviousPage = getCanPreviousPage();
   const canNextPage = getCanNextPage();
 
-  const handlePageSizeChange = (newSize: number) => {
-    if (newSize < 0) {
+  React.useEffect(() => {
+    if (selectedPageSize < 0) {
       // "All" option - set to total rows
       setPageSize(totalRows);
     } else {
-      setPageSize(newSize);
+      setPageSize(selectedPageSize);
     }
-  };
+  }, [selectedPageSize, totalRows]);
+
+  /*
+   * This effect ensures that if the user is on a page that no longer exists
+   * (e.g., after deleting a row), we reset to the last available page.
+   */
+  React.useEffect(() => {
+    if (totalPages > 0 && pageIndex >= totalPages) {
+      setPageIndex(totalPages - 1);
+    }
+  }, [pageIndex, totalPages, setPageIndex]);
 
   const goToFirstPage = () => setPageIndex(0);
   const goToLastPage = () => {
@@ -95,7 +107,7 @@ export function PaginationControls<T>({
             aria-labelledby="pagination-page-size"
             className="appearance-none border py-[12px] pl-[16px] pr-[44px] rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             defaultValue={perPageChoices[0]}
-            onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+            onChange={(e) => setSelectedPageSize(Number(e.target.value))}
           >
             {perPageChoices.map((size) => (
               <option key={size} value={size}>

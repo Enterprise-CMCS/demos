@@ -33,6 +33,11 @@ describe("AdminPage", () => {
     expect(screen.getByTestId("button-type-tag-management")).toBeInTheDocument();
   });
 
+  it("renders Login History tab", () => {
+    renderAdminPage();
+    expect(screen.getByTestId("button-login-history")).toBeInTheDocument();
+  });
+
   it("shows User Management content by default", () => {
     renderAdminPage();
     expect(screen.getByTestId(USER_MANAGEMENT_TEST_ID)).toBeInTheDocument();

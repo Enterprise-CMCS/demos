@@ -423,3 +423,38 @@ A collection of documents on demonstrations in PMDA come from a Program Monitori
 ## Application Documents
 
 Three document of type 'BN Workbook' were found in the application documents. Because of the parsing required by these types to populate the paired BN data table, these documents have been excluded from the migration, with a warning. 
+
+# References
+
+## File Structures
+
+As with uploads, it appears that some relevant information for specific reference files is embedded into the _path_ of the file. Profiling like before reveals the following file structure for the `reference/` prefix in the EFS extract bucket.
+
+- `reference`
+  - `mrt_evaluation_design_reference_only`
+    - A text string that appears to _usually_ correspond to a `mdcd_demo_type_cd` in PMDA, except for `EandC`, which does not.
+      - The number `1.00` (all of the prefixes are just `1.00`).
+  - `mrt_implementation_plan_reference_only`
+    - A text string that appears to _usually_ correspond to a `mdcd_demo_type_cd` in PMDA, except for `EandC`, which does not.
+  - `mrt_point_and_click_reference_only`
+    - A text string that appears to _usually_ correspond to a `mdcd_demo_type_cd` in PMDA, except for the strings `EandC`, `Base`, and `THCP`. `THCP` may be Traditional Health Care Practices?
+      - A number formatted like `1.00`, with the part after the decimal always being `.00`.
+  - `mrt_technical_specification_reference_only`
+    - A text string that appears to _usually_ correspond to a `mdcd_demo_type_cd` in PMDA, except for the strings `EandC`, `Base`, and `THCP`. `THCP` may be Traditional Health Care Practices?
+      - A number formatted like `1.00`, with the part after the decimal always being `.00`. Usually, this is the last part of the path, but not exclusively.
+        - For `SUD/1.00`, the string `1115 SUD Monitoring Metrics Supporting Information v1` is available
+        - For `SUD/2.00`, the string `1115 SUD Monitoring Metrics Supporting Information v2` is available
+        - For `SUD/3.00`, the string `1115 SUD Monitoring Metrics Supporting Information V3` is available (capitalization difference is present in source data)
+        - For `SMI/1.00`, the string `1115 SMI Monitoring Metrics Supporting Information v1` is available
+        - For `SMI/2.00`, the string `1115 SMI Monitoring Metrics Supporting Information v2` is available
+        - For any of `BE`, `CE`, `EandC`, `ENC`, `ESUP`, `HBI`, `LFLI`, `NELIG`, `NEMT`, `PAEX`, `PRCS`, `QHP`, `RETRO`, `TEX` / 2.00, the string `1115 EandC Monitoring Metrics Supporting Information V2` is available
+  - `mrt_templates_reference_only`
+    - One file called `placeholder.txt` is just at the root
+    - Otherwise, there is a text string that appears to _usually_ correspond to a `mdcd_demo_type_cd` in PMDA, except for the strings `EandC`, `Base`, and `Demo`.
+      - `Base` and `Demo` both have `1.00` here, but none of the others have anything after the text string.
+
+After evaluating the data in PMDA and the way the codebase worked, the decision was made to extrapolate which files needed to be moved by placing a logger in a locally-running copy of PMDA and then capturing the queries while each visible resource was collected. The resulting logs were analyzed and the seeds `extracted_reference_agreements_from_pmda` and `extracted_references_from_pmda` were generated.
+
+## Reference Owner
+
+There doesn't appear to be a concept of reference ownership in PMDA like in DEMOS. We have assigned migrated references to be owned by Elizabeth Hill.

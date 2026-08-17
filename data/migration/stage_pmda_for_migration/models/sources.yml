@@ -12325,6 +12325,8 @@ sources:
             data_type: timestamp with time zone
 
       - name: rfrnc_matl
+        config:
+          tags: ["source_in_use"]
         columns:
           - name: rfrnc_matl_id
             data_type: integer
