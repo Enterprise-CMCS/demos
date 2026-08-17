@@ -475,10 +475,7 @@ describe("ApplicationIntakePhase", () => {
     });
 
     it("disables State Application Submitted Date picker for readonly users", () => {
-      setup(
-        { applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT] },
-        readonlyMockUser
-      );
+      setup({ applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT] }, readonlyMockUser);
 
       const dateInput = screen.getByTestId(APPLICATION_SUBMITTED_DATEPICKER_NAME);
       expect(dateInput).toBeDisabled();
@@ -492,10 +489,7 @@ describe("ApplicationIntakePhase", () => {
     });
 
     it("enables State Application Submitted Date picker for non-readonly users", () => {
-      setup(
-        { applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT] },
-        cmsMockUser
-      );
+      setup({ applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT] }, cmsMockUser);
 
       const dateInput = screen.getByTestId(APPLICATION_SUBMITTED_DATEPICKER_NAME);
       expect(dateInput).not.toBeDisabled();
