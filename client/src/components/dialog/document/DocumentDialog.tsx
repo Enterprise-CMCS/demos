@@ -22,7 +22,7 @@ import { UploadButton } from "./UploadButton";
 import { BNPreValidationState, useBNWorkbookPreValidation } from "./useBNWorkbookPreValidation";
 import { DocumentChip } from "components/document/documentChip";
 import { BN_WORKBOOK_DOCUMENT_TYPE } from "demos-server-constants";
-import { buildValidationSchema, useValidation, type ValidationConfig } from "hooks/useValidation";
+import { useValidation, type ValidationConfig } from "hooks/useValidation";
 
 // BN Workbook uploads require the user to attest to the content before submitting.
 const ATTESTATION_DOCUMENT_TYPES: DocumentType[] = [BN_WORKBOOK_DOCUMENT_TYPE];
@@ -31,10 +31,7 @@ export const documentTypeRequiresAttestation = (documentType: DocumentType): boo
   ATTESTATION_DOCUMENT_TYPES.includes(documentType);
 
 export type DocumentUploadResult =
-  | "succeeded"
-  | "virus-scan-failed"
-  | "bn-validation-failed"
-  | "unknown-error";
+  "succeeded" | "virus-scan-failed" | "bn-validation-failed" | "unknown-error";
 export type DocumentDialogState = DocumentUploadResult | "idle" | "uploading";
 
 const STYLES = {
@@ -359,28 +356,20 @@ const setDefaultDocumentType = (
   };
 };
 
-export const documentValidationConfig: ValidationConfig<DocumentDialogFields> = {
-  file: [
-    {
-      check: ({ file }) => Boolean(file),
-      message: ERROR_MESSAGES.noFileSelected,
-    },
-  ],
-  name: [
-    {
-      check: ({ name }) => Boolean(name.trim()),
-      message: ERROR_MESSAGES.missingDocumentTitle,
-    },
-  ],
-  documentType: [
-    {
-      check: ({ documentType }) => Boolean(documentType),
-      message: ERROR_MESSAGES.missingDocumentType,
-    },
-  ],
-};
-
-const formValidation = buildValidationSchema(documentValidationConfig);
+export const documentValidationConfig = {
+  validateFileSelected: {
+    check: ({ file }) => Boolean(file),
+    message: ERROR_MESSAGES.noFileSelected,
+  },
+  validateDocumentTitleExists: {
+    check: ({ name }) => Boolean(name.trim()),
+    message: ERROR_MESSAGES.missingDocumentTitle,
+  },
+  validateDocumentTypeExists: {
+    check: ({ documentType }) => Boolean(documentType),
+    message: ERROR_MESSAGES.missingDocumentType,
+  },
+} satisfies ValidationConfig<DocumentDialogFields>;
 
 export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   onClose = () => {},
@@ -398,7 +387,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   const [activeDocument, setActiveDocument] = useState<DocumentDialogFields>(
     initialDocument || hydratedInitialDocument
   );
-  const { errors, isValid } = useValidation(activeDocument, formValidation);
+  const { errors, isValid } = useValidation(activeDocument, documentValidationConfig);
   const [documentDialogState, setDocumentDialogState] = useState<DocumentDialogState>("idle");
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
   const [formHasChanges, setFormHasChanges] = useState(false);
@@ -516,7 +505,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
           uploadStatus={uploadStatus}
           uploadProgress={uploadProgress}
           handleFileChange={handleFileChange}
-          validationMessage={errors.file}
+          validationMessage={errors.validateFileSelected}
         />
 
         <BNPreValidationNotice state={bnPreValidation} />
@@ -532,7 +521,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
             setActiveDocument((prev) => ({ ...prev, name: val }));
             setTitleManuallyEdited(true);
           }}
-          validationMessage={errors.name}
+          validationMessage={errors.validateDocumentTitleExists}
         />
 
         <DescriptionInput
@@ -546,7 +535,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
             setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }))
           }
           documentTypes={applicableDocumentTypes}
-          validationMessage={errors.documentType}
+          validationMessage={errors.validateDocumentTypeExists}
         />
       </BaseDialog>
 

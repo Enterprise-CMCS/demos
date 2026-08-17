@@ -1,53 +1,39 @@
-type ValidationMessage = string | undefined;
-type ValidationRule<TFormData> = (formData: TFormData) => ValidationMessage;
-export type ValidationRuleConfig<TFormData> = {
-  check: (formData: TFormData) => boolean;
+export type ValidationRuleConfig<TData> = {
+  check: (data: TData) => boolean;
   message: string;
 };
-export type ValidationConfig<TFormData> = {
-  [TField in keyof TFormData]?: ValidationRuleConfig<TFormData>[];
-};
-export type ValidationSchema<TFormData> = {
-  [TField in keyof TFormData]?: ValidationRule<TFormData>[];
-};
-type ValidationErrors<TFormData> = {
-  [TField in keyof TFormData]?: ValidationMessage;
+
+export type ValidationConfig<TData> = {
+  [ruleName: string]: {
+    check: (data: TData) => boolean;
+    message: string;
+  };
 };
 
-export const buildValidationSchema = <TFormData extends object>(
-  config: ValidationConfig<TFormData>
-): ValidationSchema<TFormData> => {
-  const schema: ValidationSchema<TFormData> = {};
+type ValidationErrors<TConfig> = {
+  [K in keyof TConfig]: string | undefined;
+};
 
-  for (const field of Object.keys(config) as (keyof TFormData)[]) {
-    const rules = config[field] ?? [];
-    schema[field] = rules.map(
-      (rule) => (formData) => (rule.check(formData) ? undefined : rule.message)
-    );
+type ValidationResult<TConfig> = {
+  errors: ValidationErrors<TConfig>;
+  isValid: boolean;
+};
+
+export const useValidation = <TData extends object, TConfig extends ValidationConfig<TData>>(
+  data: TData,
+  config: TConfig
+): ValidationResult<TConfig> => {
+  const errors = {} as ValidationErrors<TConfig>;
+
+  for (const ruleName of Object.keys(config) as (keyof TConfig)[]) {
+    const rule = config[ruleName];
+    if (!rule) continue;
+
+    const message = rule.check(data) ? undefined : rule.message;
+    errors[ruleName] = message;
   }
 
-  return schema;
-};
-
-export const useValidation = <TFormData extends object>(
-  formData: TFormData,
-  schema: ValidationSchema<TFormData>
-) => {
-  const errors: ValidationErrors<TFormData> = {};
-
-  for (const field of Object.keys(schema) as (keyof TFormData)[]) {
-    const rules = schema[field] ?? [];
-
-    for (const rule of rules) {
-      const message = rule(formData);
-      if (message) {
-        errors[field] = message;
-        break;
-      }
-    }
-  }
-
-  const isValid = Object.keys(errors).length === 0;
+  const isValid = Object.values(errors).every((msg) => msg === undefined);
 
   return {
     errors,

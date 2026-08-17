@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { buildValidationSchema, useValidation, ValidationSchema } from "./useValidation";
+import { useValidation, type ValidationConfig } from "./useValidation";
 
-type TestFormData = {
+type TestData = {
   title: string;
   startDate: string;
   endDate: string;
@@ -10,138 +10,131 @@ type TestFormData = {
 };
 
 describe("useValidation", () => {
-  it("builds a validation schema from a declarative config", () => {
-    const schema = buildValidationSchema<TestFormData>({
-      title: [
-        {
-          check: (formData) => Boolean(formData.title.trim()),
-          message: "Title is required.",
-        },
-      ],
-    });
-
-    expect(schema.title?.[0]({ title: "", startDate: "", endDate: "", tags: [] })).toBe(
-      "Title is required."
-    );
-    expect(
-      schema.title?.[0]({ title: "Valid", startDate: "", endDate: "", tags: [] })
-    ).toBeUndefined();
-  });
-
   it("returns no errors and isValid=true when all rules pass", () => {
-    const formData: TestFormData = {
+    const data: TestData = {
       title: "Demo title",
       startDate: "2026-01-01",
       endDate: "2026-02-01",
       tags: ["alpha"],
     };
 
-    const schema: ValidationSchema<TestFormData> = {
-      title: [(data) => (data.title.trim() ? undefined : "Title is required.")],
-      endDate: [
-        (data) =>
-          new Date(data.startDate) <= new Date(data.endDate)
-            ? undefined
-            : "End date must be on or after start date.",
-      ],
-      tags: [(data) => (data.tags.length > 0 ? undefined : "At least one tag is required.")],
+    const config: ValidationConfig<TestData> = {
+      validateTitleRequired: {
+        check: (data) => Boolean(data.title.trim()),
+        message: "Title is required.",
+      },
     };
 
-    const result = useValidation(formData, schema);
+    const result = useValidation(data, config);
 
     expect(result.errors).toEqual({});
     expect(result.isValid).toBe(true);
   });
 
-  it("returns field errors and isValid=false when rules fail", () => {
-    const formData: TestFormData = {
+  it("returns rule errors and isValid=false when rules fail", () => {
+    const data: TestData = {
       title: "",
       startDate: "2026-02-01",
       endDate: "2026-01-01",
       tags: [],
     };
 
-    const schema: ValidationSchema<TestFormData> = {
-      title: [(data) => (data.title.trim() ? undefined : "Title is required.")],
-      endDate: [
-        (data) =>
-          new Date(data.startDate) <= new Date(data.endDate)
-            ? undefined
-            : "End date must be on or after start date.",
-      ],
-      tags: [(data) => (data.tags.length > 0 ? undefined : "At least one tag is required.")],
+    const config: ValidationConfig<TestData> = {
+      validateTitleRequired: {
+        check: (data) => Boolean(data.title.trim()),
+        message: "Title is required.",
+      },
+      validateEndDateAfterStartDate: {
+        check: (data) => new Date(data.startDate) <= new Date(data.endDate),
+        message: "End date must be after start date.",
+      },
     };
 
-    const result = useValidation(formData, schema);
+    const result = useValidation(data, config);
 
-    expect(result.errors).toEqual({
-      title: "Title is required.",
-      endDate: "End date must be on or after start date.",
-      tags: "At least one tag is required.",
-    });
+    expect(result.errors.validateTitleRequired).toBe("Title is required.");
+    expect(result.errors.validateEndDateAfterStartDate).toBe("End date must be after start date.");
     expect(result.isValid).toBe(false);
   });
 
-  it("uses only the first failing rule for a field", () => {
-    const formData: TestFormData = {
-      title: "",
+  it("tracks multiple rules independently even if they validate the same data", () => {
+    const data: TestData = {
+      title: "ab",
       startDate: "2026-01-01",
       endDate: "2026-02-01",
       tags: [],
     };
 
-    const schema: ValidationSchema<TestFormData> = {
-      title: [
-        (data) => (data.title.trim() ? undefined : "Title is required."),
-        () => "Title must be at least 3 characters.",
-      ],
+    const config: ValidationConfig<TestData> = {
+      validateTitleMinLength: {
+        check: (data) => data.title.length >= 3,
+        message: "Title must be at least 3 characters.",
+      },
+      validateTitleMaxLength: {
+        check: (data) => data.title.length <= 100,
+        message: "Title cannot exceed 100 characters.",
+      },
     };
 
-    const result = useValidation(formData, schema);
+    const result = useValidation(data, config);
 
-    expect(result.errors).toEqual({ title: "Title is required." });
+    // Each rule is tracked separately by its name
+    expect(result.errors.validateTitleMinLength).toBe("Title must be at least 3 characters.");
+    expect(result.errors.validateTitleMaxLength).toBeUndefined();
     expect(result.isValid).toBe(false);
   });
 
-  it("supports validating a field based on other form fields", () => {
-    const formData: TestFormData = {
-      title: "Quarterly review",
+  it("supports cross-field validation", () => {
+    const data: TestData = {
+      title: "Quarterly Review",
       startDate: "2026-05-01",
       endDate: "2026-04-01",
-      tags: ["review"],
+      tags: ["important"],
     };
 
-    const schema: ValidationSchema<TestFormData> = {
-      endDate: [
-        (data) =>
-          !data.startDate || !data.endDate || new Date(data.startDate) <= new Date(data.endDate)
-            ? undefined
-            : "End date must be on or after start date.",
-      ],
+    const config: ValidationConfig<TestData> = {
+      validateEndDateAfterStartDate: {
+        check: (data) =>
+          !data.startDate || !data.endDate || new Date(data.startDate) <= new Date(data.endDate),
+        message: "End date must be on or after start date.",
+      },
+      validateQuarterlyReportsTagged: {
+        check: (data) =>
+          !data.title.toLowerCase().includes("quarterly") ||
+          data.tags.some((tag) => tag.toLowerCase() === "review"),
+        message: "Quarterly reports must be tagged with 'review'.",
+      },
     };
 
-    const result = useValidation(formData, schema);
+    const result = useValidation(data, config);
 
-    expect(result.errors).toEqual({
-      endDate: "End date must be on or after start date.",
-    });
+    expect(result.errors.validateEndDateAfterStartDate).toBe(
+      "End date must be on or after start date."
+    );
+    expect(result.errors.validateQuarterlyReportsTagged).toBe(
+      "Quarterly reports must be tagged with 'review'."
+    );
     expect(result.isValid).toBe(false);
   });
 
-  it("ignores fields without validation rules", () => {
-    const formData: TestFormData = {
+  it("only validates rules in the config", () => {
+    const data: TestData = {
       title: "Demo title",
       startDate: "",
       endDate: "",
       tags: [],
     };
 
-    const schema: ValidationSchema<TestFormData> = {
-      title: [(data) => (data.title.trim() ? undefined : "Title is required.")],
+    const config: ValidationConfig<TestData> = {
+      validateTitleRequired: {
+        check: (data) => Boolean(data.title.trim()),
+        message: "Title is required.",
+      },
     };
 
-    const result = useValidation(formData, schema);
+    const result = useValidation(data, config);
 
+    // Only validateTitleRequired is in the config, so no other errors
     expect(result.errors).toEqual({});
     expect(result.isValid).toBe(true);
   });

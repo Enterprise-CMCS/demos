@@ -7,7 +7,6 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { ToastProvider } from "components/toast/ToastContext";
 import { DocumentType } from "demos-server";
-import { buildValidationSchema } from "hooks/useValidation";
 import {
   checkFormHasChanges,
   documentValidationConfig,
@@ -78,40 +77,66 @@ describe("documentTypeRequiresAttestation", () => {
 });
 
 describe("document validation config", () => {
-  const schema = buildValidationSchema(documentValidationConfig);
+  it("requires a file to be selected", () => {
+    const data: DocumentDialogFields = {
+      id: "1",
+      name: "Valid Document Name",
+      description: "Description",
+      documentType: "General File" as DocumentType,
+      file: null,
+    };
 
-  it("returns an error when no file is selected", () => {
-    expect(schema.file?.[0]({ file: null } as DocumentDialogFields)).toBe(
+    expect(documentValidationConfig.validateFileSelected.check(data)).toBe(false);
+  });
+
+  it("requires document name to be non-blank", () => {
+    const data: DocumentDialogFields = {
+      id: "1",
+      name: "   ",
+      description: "Description",
+      documentType: "General File" as DocumentType,
+      file: new File(["content"], "test.pdf", { type: "application/pdf" }),
+    };
+
+    expect(documentValidationConfig.validateDocumentTitleExists.check(data)).toBe(false);
+  });
+
+  it("requires document type to be selected", () => {
+    const data: DocumentDialogFields = {
+      id: "1",
+      name: "Valid Document Name",
+      description: "Description",
+      documentType: "" as DocumentType,
+      file: new File(["content"], "test.pdf", { type: "application/pdf" }),
+    };
+
+    expect(documentValidationConfig.validateDocumentTypeExists.check(data)).toBe(false);
+  });
+
+  it("passes validation when all required fields are valid", () => {
+    const data: DocumentDialogFields = {
+      id: "1",
+      name: "Valid Document Name",
+      description: "Description",
+      documentType: "General File" as DocumentType,
+      file: new File(["content"], "test.pdf", { type: "application/pdf" }),
+    };
+
+    expect(documentValidationConfig.validateFileSelected.check(data)).toBe(true);
+    expect(documentValidationConfig.validateDocumentTitleExists.check(data)).toBe(true);
+    expect(documentValidationConfig.validateDocumentTypeExists.check(data)).toBe(true);
+  });
+
+  it("config includes appropriate error messages", () => {
+    expect(documentValidationConfig.validateFileSelected.message).toBe(
       ERROR_MESSAGES.noFileSelected
     );
-  });
-
-  it("returns undefined when a file is selected", () => {
-    const file = new File(["content"], "test.pdf", { type: "application/pdf" });
-
-    expect(schema.file?.[0]({ file } as DocumentDialogFields)).toBeUndefined();
-  });
-
-  it("returns an error when the document title is blank", () => {
-    expect(schema.name?.[0]({ name: "   " } as DocumentDialogFields)).toBe(
+    expect(documentValidationConfig.validateDocumentTitleExists.message).toBe(
       ERROR_MESSAGES.missingDocumentTitle
     );
-  });
-
-  it("returns undefined when the document title is populated", () => {
-    expect(schema.name?.[0]({ name: "Quarterly Report" } as DocumentDialogFields)).toBeUndefined();
-  });
-
-  it("returns an error when the document type is missing", () => {
-    expect(
-      schema.documentType?.[0]({ documentType: "" as DocumentType } as DocumentDialogFields)
-    ).toBe(ERROR_MESSAGES.missingDocumentType);
-  });
-
-  it("returns undefined when the document type is present", () => {
-    expect(
-      schema.documentType?.[0]({ documentType: "General File" } as DocumentDialogFields)
-    ).toBeUndefined();
+    expect(documentValidationConfig.validateDocumentTypeExists.message).toBe(
+      ERROR_MESSAGES.missingDocumentType
+    );
   });
 });
 
@@ -350,6 +375,7 @@ describe("DocumentDialog validation", () => {
     expect(screen.getByTestId("button-confirm-upload-document")).toBeDisabled();
   });
 });
+
 describe("DocumentDialog upload failure handling", () => {
   it("keeps the dialog usable when onSubmit throws", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
