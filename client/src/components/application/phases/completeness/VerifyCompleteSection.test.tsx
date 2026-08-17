@@ -17,6 +17,7 @@ import { ApplicationWorkflowDocument } from "components/application";
 import { TZDate } from "@date-fns/tz";
 import { EST_TIMEZONE } from "util/formatDate";
 import { PhaseStatus } from "demos-server";
+import { readonlyMockUser, cmsMockUser, MockUser } from "mock-data/userMocks";
 
 const showDeclareIncompleteDialog = vi.fn((callback) => {
   callback();
@@ -72,9 +73,9 @@ describe("VerifyCompleteSection", () => {
     setSelectedPhase: mockSetSelectedPhase,
   };
 
-  const setup = (props: Partial<typeof defaultProps> = {}) => {
+  const setup = (props: Partial<typeof defaultProps> = {}, currentUser?: MockUser) => {
     return render(
-      <TestProvider>
+      <TestProvider currentUser={currentUser}>
         <VerifyCompleteSection {...defaultProps} {...props} />
       </TestProvider>
     );
@@ -250,6 +251,36 @@ describe("VerifyCompleteSection", () => {
       expect(dateInput.value).toBe("2026-04-10");
       expect(screen.getByTestId(FEDERAL_COMMENT_START_DATEPICKER_NAME)).toHaveValue("2026-04-11");
       expect(screen.getByTestId(FEDERAL_COMMENT_END_DATEPICKER_NAME)).toHaveValue("2026-05-11");
+    });
+  });
+
+  describe("Readonly User Behavior", () => {
+    it("hides Declare Incomplete button for readonly users", () => {
+      setup({}, readonlyMockUser);
+      expect(
+        screen.queryByTestId(COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME)
+      ).not.toBeInTheDocument();
+    });
+
+    it("hides Finish button for readonly users", () => {
+      setup({}, readonlyMockUser);
+      expect(screen.queryByTestId(COMPLETENESS_FINISH_BUTTON_NAME)).not.toBeInTheDocument();
+    });
+
+    it("disables State Application Deemed Complete date picker for readonly users", () => {
+      setup({}, readonlyMockUser);
+      expect(screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME)).toBeDisabled();
+    });
+
+    it("shows Declare Incomplete and Finish buttons for non-readonly users", () => {
+      setup({}, cmsMockUser);
+      expect(screen.getByTestId(COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME)).toBeInTheDocument();
+      expect(screen.getByTestId(COMPLETENESS_FINISH_BUTTON_NAME)).toBeInTheDocument();
+    });
+
+    it("enables State Application Deemed Complete date picker for non-readonly users", () => {
+      setup({}, cmsMockUser);
+      expect(screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME)).not.toBeDisabled();
     });
   });
 });
