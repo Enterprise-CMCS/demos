@@ -287,6 +287,11 @@ export class ApiStack extends Stack {
       aws_ec2.Peer.securityGroupId(ssmSg.securityGroupId),
       aws_ec2.Port.HTTPS
     );
+    emailerLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to S3"
+    );
 
     const allowListParamName = "/demos/nonprod/email/allowlist";
 
@@ -316,6 +321,7 @@ export class ApiStack extends Stack {
       environment: {
         DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
         DB_SCHEMA: "demos_app",
+        CLEAN_BUCKET: cleanBucket.bucketName,
         EMAIL_HOST: "smtp.cloud.internal.cms.gov",
         EMAIL_PORT: "587",
         EMAIL_FROM: `"DEMOS${emailSuffix}" <DEMOS${emailSuffix}-no-reply@cms.hhs.gov>`,
@@ -337,6 +343,7 @@ export class ApiStack extends Stack {
     });
     alarmResources.registerLambda("emailer", emailerLambda.lambda);
     dbSecret.grantRead(emailerLambda.role);
+    cleanBucket.grantRead(emailerLambda.role);
 
     if (commonProps.stage != "prod") {
       const allowListParam = aws_ssm.StringParameter.fromStringParameterName(

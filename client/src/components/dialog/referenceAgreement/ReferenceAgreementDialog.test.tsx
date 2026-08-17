@@ -50,6 +50,10 @@ describe("ReferenceAgreementDialog", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "button-download-reference" })).toBeInTheDocument();
     expect(screen.getByTestId("checkbox-accept-terms")).toBeInTheDocument();
+    expect(screen.getByTestId("checkbox-email-agreement")).toBeInTheDocument();
+    expect(
+      screen.getByText("Receive an email with the Accepted 'Point and Click Agreement'")
+    ).toBeInTheDocument();
   });
 
   it("enables the download button only when the terms are accepted", () => {
@@ -105,6 +109,38 @@ describe("ReferenceAgreementDialog", () => {
     expect(downloadReference).toHaveBeenCalledWith({
       id: "reference-123",
       acceptedAgreementId: "agreement-456",
+      emailAgreement: false,
+    });
+  });
+
+  it("requests the agreement email only when the user opts in", () => {
+    const mockReference: Pick<Reference, "id"> & {
+      agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt">;
+    } = {
+      id: "reference-123",
+      agreement: {
+        id: "agreement-456",
+        name: "Agreement abc",
+        createdAt: new Date("2024-01-01"),
+      },
+    };
+
+    render(
+      <DialogProvider>
+        <ToastProvider>
+          <ReferenceAgreementDialog reference={mockReference} />
+        </ToastProvider>
+      </DialogProvider>
+    );
+
+    screen.getByTestId("checkbox-accept-terms").click();
+    screen.getByTestId("checkbox-email-agreement").click();
+    screen.getByRole("button", { name: "button-download-reference" }).click();
+
+    expect(downloadReference).toHaveBeenCalledWith({
+      id: "reference-123",
+      acceptedAgreementId: "agreement-456",
+      emailAgreement: true,
     });
   });
 

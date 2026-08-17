@@ -10,6 +10,7 @@ export {
   dispatchDeliverableSubmittedEmail,
 } from "./deliverableEmail";
 export { createTestEmail } from "./createTestEmail";
+export { dispatchTermsAndConditionsRequestedEmail } from "./referenceEmail";
 export { emailResolvers } from "./emailResolvers";
 export { emailSchema } from "./emailSchema";
 export type { CreateTestEmailInput } from "./emailSchema";

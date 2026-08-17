@@ -26,6 +26,7 @@ export type SelectManyReferenceConfigurationsResult = {
   referenceAgreement: {
     id: string;
     name: NonEmptyString;
+    s3Path: string;
     createdAt: Date;
     updatedAt: Date;
   } | null;
@@ -68,6 +69,7 @@ export const selectManyReferenceConfigurationsRequest = {
     select: {
       id: true,
       name: true,
+      s3Path: true,
       createdAt: true,
       updatedAt: true,
     },

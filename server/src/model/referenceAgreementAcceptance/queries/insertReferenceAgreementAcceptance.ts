@@ -1,3 +1,4 @@
+import type { ReferenceAgreementAcceptance } from "@prisma/client";
 import { prisma, PrismaTransactionClient } from "../../../prismaClient";
 
 export async function insertReferenceAgreementAcceptance(
@@ -7,9 +8,9 @@ export async function insertReferenceAgreementAcceptance(
     userId: string;
   },
   tx?: PrismaTransactionClient
-): Promise<void> {
+): Promise<ReferenceAgreementAcceptance> {
   const prismaClient = tx ?? prisma();
-  await prismaClient.referenceAgreementAcceptance.create({
+  return prismaClient.referenceAgreementAcceptance.create({
     data: { ...input },
   });
 }

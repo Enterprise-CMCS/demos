@@ -47,15 +47,18 @@ describe("insertReferenceAgreementAcceptance", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
+    regularMocks.referenceAgreementAcceptance.create.mockResolvedValue(testInput);
+    transactionMocks.referenceAgreementAcceptance.create.mockResolvedValue(testInput);
   });
 
   it("should insert using a new client if no transaction is given", async () => {
-    await insertReferenceAgreementAcceptance(testInput);
+    const result = await insertReferenceAgreementAcceptance(testInput);
     expect(prisma).toHaveBeenCalledOnce();
     expect(regularMocks.referenceAgreementAcceptance.create).toHaveBeenCalledExactlyOnceWith(
       expectedCall
     );
     expect(transactionMocks.referenceAgreementAcceptance.create).not.toHaveBeenCalled();
+    expect(result).toBe(testInput);
   });
 
   it("should insert using an existing client if provided", async () => {

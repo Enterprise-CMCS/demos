@@ -211,6 +211,7 @@ describe("Api Stack", () => {
         Variables: Match.objectLike({
           DATABASE_SECRET_ARN: "demos-unitTestHost-rds-demos_server", // pragma: allowlist secret
           DB_SCHEMA: "demos_app",
+          CLEAN_BUCKET: Match.anyValue(),
         }),
       },
     });

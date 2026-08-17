@@ -6,6 +6,7 @@ import * as ssm from "@aws-sdk/client-ssm";
 import { log } from "./log";
 import { Address, Options } from "nodemailer/lib/mailer";
 import { renderEmail } from "./emailTemplates/renderEmail";
+import { buildReferenceTermsAttachment } from "./emailAttachments";
 import {
   DeliveryStatus,
   updateEmailNotificationStatus,
@@ -38,9 +39,10 @@ const templateByEmailType: Record<string, string> = {
   "Extension Decision Made": "extension-decision-made",
   "Resubmission Requested": "resubmission-requested",
   "Public Comment Added": "public-comment-added",
+  "Terms And Conditions Requested": "reference-terms-and-conditions",
 };
 
-export interface EmailData extends Pick<Options, "html" | "cc" | "bcc"> {
+export interface EmailData extends Pick<Options, "html" | "cc" | "bcc" | "attachments"> {
   to: EmailerAddress;
   subject: string;
   text: string;
@@ -104,7 +106,10 @@ export const handler = async (event: SQSEvent) => {
   // Since the email data is being passed directly to nodemailer from SQS, this
   // will remove any potential nodemailer keys that we aren't explicitly
   // allowing
-  email = stripDisallowedFields(email)
+  email = stripDisallowedFields(
+    email,
+    realtimeEmail?.emailType === "Terms And Conditions Requested"
+  );
 
   let info;
   try {
@@ -215,7 +220,15 @@ export async function renderRealtimeEmailIfNeeded(email: unknown): Promise<unkno
     "rendering realtime email template"
   );
 
-  return renderEmail(template, email.payload);
+  const renderedEmail = await renderEmail(template, email.payload);
+  if (email.emailType !== "Terms And Conditions Requested") {
+    return renderedEmail;
+  }
+
+  return {
+    ...renderedEmail,
+    attachments: [await buildReferenceTermsAttachment(email.payload)],
+  };
 }
 
 export function isValidEmailData(email: any): email is EmailData {
@@ -369,11 +382,26 @@ function redactEmailAddress(address: string | Address): typeof address {
   return { ...address, address: redactedEmail } as Address;
 }
 
-export function stripDisallowedFields(data: EmailData): EmailData {
-  const {html,cc,bcc,to,subject,text, ...rest} = data
-  if (Object.keys(rest).length > 0) {
-    log.warn({strippedFields: rest}, "invalid fields passed to the emailer")
+export function stripDisallowedFields(
+  data: EmailData,
+  allowAttachments = false
+): EmailData {
+  const { html, cc, bcc, to, subject, text, attachments, ...rest } = data;
+  const strippedFields = {
+    ...rest,
+    ...(!allowAttachments && attachments ? { attachments } : {}),
+  };
+  if (Object.keys(strippedFields).length > 0) {
+    log.warn({ strippedFields }, "invalid fields passed to the emailer");
   }
 
-  return {html,cc,bcc,to,subject,text}
+  return {
+    html,
+    cc,
+    bcc,
+    to,
+    subject,
+    text,
+    ...(allowAttachments && attachments ? { attachments } : {}),
+  };
 }

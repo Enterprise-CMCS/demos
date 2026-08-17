@@ -21,8 +21,16 @@ const statusMocks = vi.hoisted(() => ({
   update: vi.fn(),
 }));
 
+const attachmentMocks = vi.hoisted(() => ({
+  build: vi.fn(),
+}));
+
 vi.mock("./emailNotificationStatus", () => ({
   updateEmailNotificationStatus: statusMocks.update,
+}));
+
+vi.mock("./emailAttachments", () => ({
+  buildReferenceTermsAttachment: attachmentMocks.build,
 }));
 
 const originalEnv = { ...process.env };
@@ -60,6 +68,28 @@ const realtimeDeliverableCreatedEnvelope = {
   },
 };
 
+const realtimeReferenceTermsEnvelope = {
+  emailNotificationId: "19da269b-5840-4999-a812-7af340a2b3a5",
+  emailType: "Terms And Conditions Requested",
+  entityType: "reference",
+  entityId: "reference-configuration-1",
+  payload: {
+    recipients: {
+      to: [{ name: "Dustin Horning", address: "dustin@example.com" }],
+    },
+    referenceMaterial: {
+      id: "reference-1",
+      name: "National Quality Measures.pdf",
+    },
+    termsAndConditions: {
+      id: "reference-agreement-1",
+      name: "Point and Click Agreement",
+      fileName: "Point and Click Agreement.pdf",
+      s3Path: "reference-agreements/agreement-1",
+    },
+  },
+};
+
 function sqsEvent(body: string): SQSEvent {
   return {
     Records: [
@@ -93,6 +123,11 @@ describe("emailer", () => {
     clearCache();
     vi.clearAllMocks();
     statusMocks.update.mockResolvedValue(undefined);
+    attachmentMocks.build.mockResolvedValue({
+      filename: "Point and Click Agreement.pdf",
+      content: Buffer.from("agreement"),
+      contentType: "application/pdf",
+    });
   });
 
   it("should properly handle a valid sqs event", async () => {
@@ -235,6 +270,38 @@ describe("emailer", () => {
     );
   });
 
+  it("should send requested reference terms with the resolved attachment", async () => {
+    process.env.DISABLE_EMAIL_ALLOWLIST = "true";
+    process.env.EMAIL_FROM = "demos@example.com";
+    const sendMailSpy = vi.fn(() => ({ messageId: "reference-email" }));
+    vi.spyOn(nodemailer, "createTransport").mockImplementation(
+      () => ({ sendMail: sendMailSpy } as unknown as Mail<SentMessageInfo, Options>)
+    );
+
+    await expect(
+      handler(sqsEvent(JSON.stringify(realtimeReferenceTermsEnvelope)))
+    ).resolves.toBe("success");
+
+    expect(sendMailSpy).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        from: "demos@example.com",
+        subject: "CMS DEMOS: National Measure Stewards Terms and Conditions",
+        attachments: [
+          {
+            filename: "Point and Click Agreement.pdf",
+            content: Buffer.from("agreement"),
+            contentType: "application/pdf",
+          },
+        ],
+      })
+    );
+    expect(statusMocks.update).toHaveBeenCalledExactlyOnceWith(
+      realtimeReferenceTermsEnvelope.emailNotificationId,
+      "Sent",
+      null
+    );
+  });
+
   it("should mark a tracked realtime email failed when SMTP rejects it", async () => {
     process.env.DISABLE_EMAIL_ALLOWLIST = "true";
     vi.spyOn(nodemailer, "createTransport").mockImplementation(
@@ -308,6 +375,24 @@ describe("emailer", () => {
         subject: "CMS DEMOS Deliverables: Multiple Deliverables Created",
         text: expect.stringContaining("View these deliverables"),
       })
+    );
+  });
+
+  it("should render and attach requested reference terms", async () => {
+    const email = await renderRealtimeEmailIfNeeded(realtimeReferenceTermsEnvelope);
+
+    expect(email).toEqual(
+      expect.objectContaining({
+        to: [{ name: "Dustin Horning", address: "dustin@example.com" }],
+        subject: "CMS DEMOS: National Measure Stewards Terms and Conditions",
+        text: expect.stringContaining("National Quality Measures.pdf"),
+        attachments: [
+          expect.objectContaining({ filename: "Point and Click Agreement.pdf" }),
+        ],
+      })
+    );
+    expect(attachmentMocks.build).toHaveBeenCalledExactlyOnceWith(
+      realtimeReferenceTermsEnvelope.payload
     );
   });
 
@@ -532,6 +617,14 @@ describe("emailer", () => {
     const output = stripDisallowedFields({ ...mockEmailData, invalid: "none" } as EmailData);
     expect(output).toEqual(mockEmailData);
     expect(warnSpy).toHaveBeenCalledOnce();
+  });
+
+  it("should allow attachments only for trusted realtime templates", () => {
+    const attachments = [{ filename: "agreement.pdf", content: "agreement" }];
+    const emailWithAttachment = { ...mockEmailData, attachments };
+
+    expect(stripDisallowedFields(emailWithAttachment)).toEqual(mockEmailData);
+    expect(stripDisallowedFields(emailWithAttachment, true)).toEqual(emailWithAttachment);
   });
 
   it("should leave legacy email payloads unchanged when realtime rendering is not needed", async () => {

@@ -65,7 +65,11 @@ export const referenceMocks: MockedResponse[] = [
   {
     request: {
       query: DOWNLOAD_REFERENCE_QUERY,
-      variables: { id: "ref1", acceptedAgreementId: "agreement1" },
+      variables: {
+        id: "ref1",
+        acceptedAgreementId: "agreement1",
+        emailAgreement: false,
+      },
     },
     result: {
       data: {
@@ -77,7 +81,7 @@ export const referenceMocks: MockedResponse[] = [
   {
     request: {
       query: DOWNLOAD_REFERENCE_QUERY,
-      variables: { id: "ref2" },
+      variables: { id: "ref2", acceptedAgreementId: null, emailAgreement: false },
     },
     result: {
       data: {
@@ -89,7 +93,11 @@ export const referenceMocks: MockedResponse[] = [
   {
     request: {
       query: DOWNLOAD_REFERENCE_QUERY,
-      variables: { id: "ref3", acceptedAgreementId: "agreement2" },
+      variables: {
+        id: "ref3",
+        acceptedAgreementId: "agreement2",
+        emailAgreement: false,
+      },
     },
     result: {
       data: {

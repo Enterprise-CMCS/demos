@@ -21,6 +21,10 @@ vi.mock("../referenceAgreementAcceptance/queries", () => ({
   insertReferenceAgreementAcceptance: vi.fn(),
 }));
 
+vi.mock("../email", () => ({
+  dispatchTermsAndConditionsRequestedEmail: vi.fn(),
+}));
+
 const mockS3Adapter = {
   getPresignedDownloadUrl: vi.fn(),
 };
@@ -33,6 +37,7 @@ import { prisma } from "../../prismaClient";
 import { validateReferenceDownloadRequest } from "./validateReferenceDownloadRequest";
 import { insertReferenceAgreementAcceptance } from "../referenceAgreementAcceptance/queries";
 import { getS3Adapter } from "../../adapters";
+import { dispatchTermsAndConditionsRequestedEmail } from "../email";
 
 describe("getReferenceDownloadUrl", () => {
   const testReferenceConfigurationId = "reference-configuration-1";
@@ -41,6 +46,8 @@ describe("getReferenceDownloadUrl", () => {
   const testUserId = "user-1";
   const testDownloadUrl = "https://example.com/download";
   const testS3Path = "some/s3/path";
+  const testAgreementS3Path = "some/agreement/path";
+  const acceptanceTimestamp = new Date("2026-08-14T15:00:00.000Z");
 
   const testContext: DeepPartial<GraphQLContext> = {
     user: { id: testUserId },
@@ -48,6 +55,7 @@ describe("getReferenceDownloadUrl", () => {
 
   const testReferenceName = "Sample Reference";
   const mockReferenceConfiguration = {
+    id: testReferenceConfigurationId,
     reference: {
       id: testReferenceId,
       name: testReferenceName,
@@ -55,6 +63,8 @@ describe("getReferenceDownloadUrl", () => {
     },
     referenceAgreement: {
       id: testReferenceAgreementId,
+      name: "Point and Click Agreement",
+      s3Path: testAgreementS3Path,
     },
   };
 
@@ -72,6 +82,13 @@ describe("getReferenceDownloadUrl", () => {
     vi.mocked(validateReferenceDownloadRequest).mockResolvedValue(
       mockReferenceConfiguration as any
     );
+    vi.mocked(insertReferenceAgreementAcceptance).mockResolvedValue({
+      referenceId: testReferenceId,
+      referenceAgreementId: testReferenceAgreementId,
+      userId: testUserId,
+      acceptanceTimestamp,
+    });
+    vi.mocked(dispatchTermsAndConditionsRequestedEmail).mockResolvedValue();
     mockS3Adapter.getPresignedDownloadUrl.mockResolvedValue(testDownloadUrl);
   });
 
@@ -121,6 +138,52 @@ describe("getReferenceDownloadUrl", () => {
       testContext as GraphQLContext
     );
     expect(insertReferenceAgreementAcceptance).not.toHaveBeenCalled();
+  });
+
+  it("emails the accepted agreement to the requesting user when opted in", async () => {
+    await getReferenceDownloadUrl(
+      {},
+      {
+        id: testReferenceConfigurationId,
+        acceptedAgreementId: testReferenceAgreementId,
+        emailAgreement: true,
+      },
+      testContext as GraphQLContext
+    );
+
+    expect(dispatchTermsAndConditionsRequestedEmail).toHaveBeenCalledExactlyOnceWith({
+      referenceConfigurationId: testReferenceConfigurationId,
+      referenceId: testReferenceId,
+      referenceName: testReferenceName,
+      referenceAgreementId: testReferenceAgreementId,
+      referenceAgreementName: "Point and Click Agreement",
+      referenceAgreementS3Path: testAgreementS3Path,
+      acceptanceTimestamp,
+      triggeredByUserId: testUserId,
+    });
+  });
+
+  it("does not email the agreement when the user does not opt in", async () => {
+    await getReferenceDownloadUrl(
+      {},
+      { id: testReferenceConfigurationId, acceptedAgreementId: testReferenceAgreementId },
+      testContext as GraphQLContext
+    );
+
+    expect(dispatchTermsAndConditionsRequestedEmail).not.toHaveBeenCalled();
+  });
+
+  it("rejects an email request without an accepted agreement", async () => {
+    await expect(
+      getReferenceDownloadUrl(
+        {},
+        { id: testReferenceConfigurationId, emailAgreement: true },
+        testContext as GraphQLContext
+      )
+    ).rejects.toThrow(
+      "Cannot email a reference agreement without accepting the agreement."
+    );
+    expect(mockPrismaClient.$transaction).not.toHaveBeenCalled();
   });
 
   it("returns a presigned download URL", async () => {

@@ -186,6 +186,39 @@ describe("renderEmail", () => {
     expect(payload.text).not.toContain("Free insulin is a good policy proposal");
   });
 
+  it("renders the reference terms and conditions email", async () => {
+    const payload = await renderEmail("reference-terms-and-conditions", {
+      recipients: {
+        to: [{ name: "Dustin Horning", address: "dustin@example.com" }],
+      },
+      referenceMaterial: {
+        name: "National Quality Measures.pdf",
+      },
+      termsAndConditions: {
+        name: "Point and Click Agreement.pdf",
+      },
+    });
+
+    expect(payload.to).toEqual([
+      { name: "Dustin Horning", address: "dustin@example.com" },
+    ]);
+    expect(payload.subject).toBe(
+      "CMS DEMOS: National Measure Stewards Terms and Conditions"
+    );
+    expect(payload.text).toContain("Hello,");
+    expect(payload.text).toContain(
+      "At your request, we are attaching the National Measure Stewards Terms and Conditions for National Quality Measures.pdf to which you have agreed."
+    );
+    expect(payload.text).toContain("Thank you,");
+    expect(payload.text).toContain("DEMOS Notifications");
+    expect(payload.text).toContain(
+      "Reference Material File Name: National Quality Measures.pdf"
+    );
+    expect(payload.text).toContain(
+      "Associated Terms and Conditions: Point and Click Agreement.pdf"
+    );
+  });
+
   it("reports missing extension-specific values", async () => {
     await expect(
       renderEmail("extension-requested", {

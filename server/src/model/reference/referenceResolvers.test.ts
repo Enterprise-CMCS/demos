@@ -45,6 +45,7 @@ describe("referenceResolvers", () => {
     referenceAgreement: {
       id: testReferenceAgreementId,
       name: "Agreement Name",
+      s3Path: "some/agreement/path",
       createdAt: new Date("2024-01-01"),
       updatedAt: new Date("2024-06-01"),
     },

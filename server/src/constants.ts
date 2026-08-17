@@ -159,7 +159,7 @@ export const EMAIL_NOTIFICATION_TYPES = [
   "Application Status Updated",
 ] as const;
 
-export const EMAIL_NOTIFICATION_ENTITY_TYPES = ["deliverable", "application"] as const;
+export const EMAIL_NOTIFICATION_ENTITY_TYPES = ["deliverable", "application", "reference"] as const;
 
 export const EMAIL_NOTIFICATION_TYPE_ENTITY_TYPES = [
   ["Deliverable Created", "deliverable"],
@@ -174,6 +174,7 @@ export const EMAIL_NOTIFICATION_TYPE_ENTITY_TYPES = [
   ["Resubmission Requested", "deliverable"],
   ["Public Comment Added", "deliverable"],
   ["Terms And Conditions Requested", "application"],
+  ["Terms And Conditions Requested", "reference"],
   ["Application Status Updated", "application"],
 ] as const;
 

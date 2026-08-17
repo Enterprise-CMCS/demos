@@ -9,10 +9,15 @@ export const DOWNLOAD_REFERENCE_QUERY: TypedDocumentNode<
   {
     id: string;
     acceptedAgreementId: string | null;
+    emailAgreement: boolean;
   }
 > = gql`
-  query DownloadReference($id: ID!, $acceptedAgreementId: ID) {
-    referenceDownloadUrl(id: $id, acceptedAgreementId: $acceptedAgreementId)
+  query DownloadReference($id: ID!, $acceptedAgreementId: ID, $emailAgreement: Boolean!) {
+    referenceDownloadUrl(
+      id: $id
+      acceptedAgreementId: $acceptedAgreementId
+      emailAgreement: $emailAgreement
+    )
   }
 `;
 
@@ -42,13 +47,15 @@ export const useDownloadReference = () => {
   const downloadReference = async ({
     id,
     acceptedAgreementId,
+    emailAgreement = false,
   }: {
     id: string;
     acceptedAgreementId: string | null;
+    emailAgreement?: boolean;
   }): Promise<string> => {
     try {
       const { data, error } = await fetchReferenceDownloadUrl({
-        variables: { id, acceptedAgreementId },
+        variables: { id, acceptedAgreementId, emailAgreement },
       });
       const presignedDownloadUrl = data?.referenceDownloadUrl;
 
