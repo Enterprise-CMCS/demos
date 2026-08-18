@@ -1,7 +1,27 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.25.0
+version: v1.25.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
+  SNYK-JS-NANOID-18506894:
+    - '*':
+        reason: No patch available
+        expires: 2026-08-17T00:00:00.000Z
+        created: 2026-08-03T13:23:12.851Z
+  SNYK-JS-NANOID-18506897:
+    - '*':
+        reason: No patch available
+        expires: 2026-08-17T00:00:00.000Z
+        created: 2026-08-03T13:23:17.427Z
+  SNYK-JS-FASTURI-18506908:
+    - '*':
+        reason: No patch available
+        expires: 2026-08-17T00:00:00.000Z
+        created: 2026-08-03T14:02:02.049Z
+  SNYK-JS-BRACEEXPANSION-18512280:
+    - '*':
+        reason: No direct upgrade or patch available.
+        expires: 2026-08-19T00:00:00.000Z
+        created: 2026-08-05T00:00:00.000Z
   SNYK-JS-BRACEEXPANSION-17706650:
     - '*':
         reason: No clean fix available in current ESLint React plugin stack
@@ -15,8 +35,8 @@ ignore:
   SNYK-JS-HONO-17900542:
     - '*':
         reason: No fix available yet in Prisma stack.
-        expires: 2026-07-15T23:59:59.999-04:00
-        created: 2026-07-09T00:00:00.000-04:00
+        expires: 2026-07-16T03:59:59.999Z
+        created: 2026-07-09T04:00:00.000Z
   SNYK-JS-FASTURI-18021349:
     - '*':
         reason: No clean fix available yet in current Prisma stack
@@ -34,9 +54,14 @@ ignore:
         created: 2026-07-28T13:18:19.786Z
   SNYK-JS-POSTCSS-18313038:
     - '*':
-          reason: No patch available
-          expires: 2026-08-29T00:00:00.000Z
-          created: 2026-07-29T13:02:53.851Z
+        reason: No patch available
+        expires: 2026-08-29T00:00:00.000Z
+        created: 2026-07-29T13:02:53.851Z
+  SNYK-JS-DEEPMERGETS-18912249:
+    - '*':
+        reason: No patch available
+        expires: 2026-09-01T00:00:00.000Z
+        created: 2026-08-18T15:08:43.204Z
 patch: {}
 exclude:
   global:

@@ -193,6 +193,96 @@ describe("AwsS3Adapter", () => {
         ResponseContentDisposition: 'attachment; filename="Deliverable Report.xlsx"',
       });
     });
+
+    it("falls back to the key when the name is entirely invalid characters", async () => {
+      mockSend.mockResolvedValueOnce({ ContentType: "application/pdf" });
+      const adapter = createAWSS3Adapter();
+      await adapter.getPresignedDownloadUrl("uuid-123", "///");
+
+      expect(GetObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: "uuid-123",
+        // No spaces/special chars, so content-disposition leaves it unquoted.
+        ResponseContentDisposition: "inline; filename=uuid-123.pdf",
+      });
+    });
+
+    it("forces a download and derives the extension when disposition is attachment", async () => {
+      mockSend.mockResolvedValueOnce({
+        ContentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const adapter = createAWSS3Adapter();
+      await adapter.getPresignedDownloadUrl("reports/on-demand/r1.xlsx", "Deliverable Report", {
+        disposition: "attachment",
+      });
+
+      expect(HeadObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: "reports/on-demand/r1.xlsx",
+      });
+      expect(GetObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: "reports/on-demand/r1.xlsx",
+        ResponseContentDisposition: 'attachment; filename="Deliverable Report.xlsx"',
+      });
+    });
+  });
+
+  describe("getDownloadFileName", () => {
+    it("returns the sanitized name with the extension from Content-Type", async () => {
+      mockSend.mockResolvedValueOnce({ ContentType: "application/pdf" });
+      const adapter = createAWSS3Adapter();
+
+      const result = await adapter.getDownloadFileName(testKey, "Quarterly Report");
+
+      expect(HeadObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: testKey,
+      });
+      expect(result).toBe("Quarterly Report.pdf");
+    });
+
+    it("replaces invalid characters with a space rather than dropping them", async () => {
+      mockSend.mockResolvedValueOnce({
+        ContentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      });
+      const adapter = createAWSS3Adapter();
+
+      const result = await adapter.getDownloadFileName(testKey, "Budget FY25/26");
+
+      expect(result).toBe("Budget FY25 26.docx");
+    });
+
+    it("collapses the whitespace left by a run of invalid characters", async () => {
+      mockSend.mockResolvedValueOnce({
+        ContentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      });
+      const adapter = createAWSS3Adapter();
+
+      const result = await adapter.getDownloadFileName(testKey, 'DEMOS-892 (3) \\ / : * ? " < > |');
+
+      // No underscores — the browser never sees a character it needs to replace.
+      expect(result).toBe("DEMOS-892 (3).docx");
+      expect(result).not.toContain("_");
+    });
+
+    it("falls back to the key when the name is entirely invalid characters", async () => {
+      mockSend.mockResolvedValueOnce({ ContentType: "application/pdf" });
+      const adapter = createAWSS3Adapter();
+
+      const result = await adapter.getDownloadFileName("uuid-123", "///");
+
+      expect(result).toBe("uuid-123.pdf");
+    });
+
+    it("omits the extension when the object has no usable Content-Type", async () => {
+      mockSend.mockResolvedValueOnce({});
+      const adapter = createAWSS3Adapter();
+
+      const result = await adapter.getDownloadFileName(testKey, "No Type Here");
+
+      expect(result).toBe("No Type Here");
+    });
   });
 
   describe("moveDocumentFromCleanToDeleted", () => {

@@ -6,6 +6,7 @@ model PrivateComment {
   content            String
   createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  isMigratedFromPmda Boolean  @default(false) @map("is_migrated_from_pmda")
 
   deliverable      Deliverable            @relation(fields: [deliverableId], references: [id])
   author           User                   @relation(fields: [authorUserId, authorPersonTypeId], references: [id, personTypeId])

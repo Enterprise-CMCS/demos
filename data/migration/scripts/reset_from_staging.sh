@@ -1,5 +1,5 @@
 #!/usr/bin/zsh
-# Reset staging and app
+# Reset staging and app and download the file list
 set -e
 
 # Start in the demos_data_tools and activate the venv
@@ -17,3 +17,7 @@ python manage_migration_schemas.py create staging
 cd /workspaces/demos/server
 npm run migrate:reset
 npm run dbrefresh
+
+# Overwrite the raw file from S3
+cd /workspaces/demos/data/migration/stage_pmda_for_migration/seeds
+aws s3 cp s3://demos-prod-pmda-efs-transfer/s3_file_list.csv raw_pmda_s3_file_list.csv

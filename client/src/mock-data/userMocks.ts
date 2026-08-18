@@ -20,6 +20,8 @@ const getPrettyFirstName = (personType: PersonType): string => {
       return "State";
     case "demos-cms-user":
       return "CMS";
+    case "demos-readonly":
+      return "Readonly";
     default:
       return "Unknown";
   }
@@ -37,6 +39,18 @@ export const developmentMockUser: MockUser = {
     email: "mock.user@email.com",
     states: mockStates,
   },
+};
+
+// Common test user variants for component testing
+export const readonlyMockUser: MockUser = {
+  ...developmentMockUser,
+  // Note this will change to `demos-restricted-cms-user` when this role is changed to that.
+  person: { ...developmentMockUser.person, personType: "demos-readonly" },
+};
+
+export const cmsMockUser: MockUser = {
+  ...developmentMockUser,
+  person: { ...developmentMockUser.person, personType: "demos-cms-user" },
 };
 
 export const mockUsers: MockUser[] = [

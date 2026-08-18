@@ -1,4 +1,4 @@
-"""Manage schemas used in migration. Currently for development use only inside the devcontainer."""
+"""Manage schemas used in migration."""
 
 import argparse
 import os
@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Literal
 
 from dotenv import load_dotenv
 
-from check_if_in_devcontainer import check_if_in_devcontainer
 from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME, create_duckdb_conn, attach_demos_to_conn
 from logger_utils import config_logger
 
@@ -52,7 +51,7 @@ def _create_schema(conn: "DuckConn", which: MigrationSchemaType) -> None:
 
     logger.info(f"Attempting to create schema {schema}")
     conn.execute(f"""
-        CREATE SCHEMA IF NOT EXISTS {DEMOS_DDB_ATTACH_NAME}.{schema};
+        CREATE SCHEMA {DEMOS_DDB_ATTACH_NAME}.{schema};
     """)
     logger.info(f"Created schema {schema} successfully")
 
@@ -79,7 +78,6 @@ def _drop_schema(conn: "DuckConn", which: MigrationSchemaType) -> None:
 
 def main(args: "Namespace") -> None:
     """Main program function."""
-    check_if_in_devcontainer()
     conn = attach_demos_to_conn(create_duckdb_conn())
     if args.action == "create":
         _create_schema(conn, args.schema)

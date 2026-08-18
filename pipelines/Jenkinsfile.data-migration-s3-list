@@ -1,0 +1,89 @@
+import java.math.RoundingMode
+
+pipeline {
+    agent {
+        kubernetes {
+            yaml '''
+apiVersion: v1
+kind: Pod
+metadata:
+  name: demos-jenkins-agent
+  labels:
+    jenkins: "agent"
+spec:
+  nodeSelector:
+    node-pool: "agent"
+  serviceAccountName: jenkins-role
+  containers:
+  - name: python
+    image: artifactory.cloud.cms.gov/docker/python:3.13-slim
+    command:
+    - sleep
+    args:
+    - infinity
+  - name: aws-cli
+    image: artifactory.cloud.cms.gov/docker/amazon/aws-cli:latest
+    command:
+    - sleep
+    - 99999
+    tty: true
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+        ephemeral-storage: "1Gi"
+      limits:
+        cpu: 400m
+        memory: 512Mi
+        ephemeral-storage: "5Gi"
+'''
+            defaultContainer 'python'
+            retries 2
+        }
+    }
+
+    options {
+      disableConcurrentBuilds(abortPrevious: true)
+      buildDiscarder(logRotator(
+        numToKeepStr: "5",
+        artifactNumToKeepStr: "5"
+      ))
+    }
+
+    parameters {
+      string(name: 'S3_BUCKET_NAME', defaultValue: '', description: 'The S3 bucket name to list files from')
+      choice(name: 'ENVIRONMENT', choices: ['nonprod', 'prod'], description: 'Select the environment for the S3 bucket')
+    }
+
+    stages {
+        stage('Generate list') {
+          steps {
+            script {
+
+              
+              if (params.ENVIRONMENT == 'prod') {
+                assumeRole(accountNumber: env.DEMOS_AWS_PROD_ACCOUNT_NUMBER)
+              } else {
+                assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
+              }
+
+              sh """
+                export S3_BUCKET_NAME=${params.S3_BUCKET_NAME}
+
+                python -m venv /app/venv
+                /app/venv/bin/pip install --upgrade pip
+                /app/venv/bin/pip install boto3
+                /app/venv/bin/python pipelines/s3-list/s3list.py
+              """
+            }
+          }
+        }
+      }
+
+
+  post {
+    always {
+      cleanWs(deleteDirs: true)
+    }
+  }
+}

@@ -14,6 +14,8 @@ export interface S3Adapter {
     fileName?: string,
     options?: GetPresignedDownloadUrlOptions
   ): Promise<string>;
+  /** The sanitized name (with extension) a download of this object should be saved as. */
+  getDownloadFileName(key: string, fileName: string): Promise<string>;
   moveDocumentFromCleanToDeleted(key: string): Promise<void>;
   uploadDocument(
     documentData: Prisma.DocumentPendingUploadCreateArgs["data"],

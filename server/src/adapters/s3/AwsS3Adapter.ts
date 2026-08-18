@@ -44,6 +44,20 @@ async function getExtensionForObject(
   return contentType ? extensionForContentType(contentType) || "" : "";
 }
 
+/** Builds the download file name: a sanitized name plus the extension derived from Content-Type. */
+async function buildDownloadFileName(
+  s3Client: S3Client,
+  bucket: string,
+  key: string,
+  fileName: string
+): Promise<string> {
+  const safeName = sanitizeDownloadFileName(fileName, key.split("/").pop() ?? key);
+
+  const extension = await getExtensionForObject(s3Client, bucket, key);
+  return extension ? `${safeName}.${extension}` : safeName;
+}
+
+/** Wraps the download file name in a Content-Disposition header value. */
 /** Builds a Content-Disposition with a sanitized name plus the extension derived from Content-Type. */
 async function buildContentDisposition(
   s3Client: S3Client,
@@ -97,6 +111,10 @@ export function createAWSS3Adapter(): S3Adapter {
       return await getSignedUrl(s3Client, getObjectCommand, {
         expiresIn: EXPIRATION_TIME_SECONDS,
       });
+    },
+
+    async getDownloadFileName(key: string, fileName: string): Promise<string> {
+      return await buildDownloadFileName(s3Client, cleanBucket, key, fileName);
     },
 
     async moveDocumentFromCleanToDeleted(key: string): Promise<void> {

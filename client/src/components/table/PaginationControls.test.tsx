@@ -32,12 +32,25 @@ const columns = [
 ];
 
 // Wrapper component to test PaginationControls with a real table instance
-const TestWrapper = ({ data, perPageChoices }: { data: TestData[]; perPageChoices?: number[] }) => {
+const TestWrapper = ({
+  data,
+  perPageChoices,
+}: {
+  data: TestData[];
+  perPageChoices?: number[];
+}) => {
+  const [tableData, setTableData] = React.useState(data);
+
+  React.useEffect(() => {
+    setTableData(data);
+  }, [data]);
+
   const table = useReactTable({
-    data,
+    data: tableData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    autoResetPageIndex: false,
   });
 
   return (
@@ -53,7 +66,18 @@ const TestWrapper = ({ data, perPageChoices }: { data: TestData[]; perPageChoice
           ))}
         </tbody>
       </table>
-      <PaginationControls table={table} perPageChoices={perPageChoices} />
+
+      <PaginationControls
+        table={table}
+        perPageChoices={perPageChoices}
+      />
+
+      <button
+        type="button"
+        onClick={() => setTableData(tableData.slice(0, 20))}
+      >
+        Remove Last Page
+      </button>
     </div>
   );
 };
@@ -310,6 +334,105 @@ describe("PaginationControls", () => {
       expect(options[0]).toHaveValue("5");
       expect(options[1]).toHaveValue("15");
       expect(options[2]).toHaveValue("25");
+    });
+  });
+
+  describe("Dynamic data updates", () => {
+    it("updates pagination when row count changes after page size selection", async () => {
+      const initialData = createTestData(50);
+      const { rerender } = render(<TestWrapper data={initialData} />);
+
+      // Initial state: 50 rows, default page size of 10
+      expect(screen.getByText("1 – 10 of 50")).toBeInTheDocument();
+      expect(screen.getAllByTestId("table-row")).toHaveLength(10);
+
+      // Change page size to 20
+      const select = screen.getByRole("combobox", { name: "Items per page:" });
+      await userEvent.selectOptions(select, "20");
+      expect(screen.getByText("1 – 20 of 50")).toBeInTheDocument();
+      expect(screen.getAllByTestId("table-row")).toHaveLength(20);
+
+      // Simulate adding new data (e.g., new items added to the list)
+      const updatedData = createTestData(75);
+      rerender(<TestWrapper data={updatedData} />);
+
+      // Verify pagination updates with new total while maintaining page size
+      expect(screen.getByText("1 – 20 of 75")).toBeInTheDocument();
+      expect(screen.getAllByTestId("table-row")).toHaveLength(20);
+
+      // Verify page size selection is still set to 20
+      expect(select).toHaveValue("20");
+    });
+
+    it("updates pagination when row count changes with 'All' page size selected", async () => {
+      const initialData = createTestData(30);
+      const { rerender } = render(<TestWrapper data={initialData} />);
+
+      expect(screen.getByText("1 – 10 of 30")).toBeInTheDocument();
+
+      expect(screen.getByRole("button", { name: "Go to page 2" })).toBeInTheDocument();
+
+      const select = screen.getByRole("combobox", { name: "Items per page:" });
+      await userEvent.selectOptions(select, "-1");
+      expect(screen.getByText("1 – 30 of 30")).toBeInTheDocument();
+      expect(screen.getAllByTestId("table-row")).toHaveLength(30);
+
+      const updatedData = createTestData(31);
+      rerender(<TestWrapper data={updatedData} />);
+
+      expect(screen.getByText("1 – 31 of 31")).toBeInTheDocument();
+      expect(screen.getAllByTestId("table-row")).toHaveLength(31);
+      expect(select).toHaveValue("-1");
+
+      expect(screen.queryByRole("button", { name: "Go to page 2" })).not.toBeInTheDocument();
+    });
+  });
+
+  describe("Table data updates", () => {
+    it("retains the current page when table data changes", async () => {
+      const initialData = createTestData(100);
+      const { rerender } = render(<TestWrapper data={initialData} />);
+
+      // Go to page 3
+      const nextButton = screen.getByRole("button", {
+        name: /Go to next page/i,
+      });
+
+      await userEvent.click(nextButton);
+      await userEvent.click(nextButton);
+
+      expect(screen.getByText("21 – 30 of 100")).toBeInTheDocument();
+
+      // Simulate the data being refreshed after a delete
+      const updatedData = initialData.filter((item) => item.id !== 1);
+
+      rerender(<TestWrapper data={updatedData} />);
+
+      // Should remain on page 3
+      expect(screen.getByText("21 – 30 of 99")).toBeInTheDocument();
+    });
+
+    it("moves to the previous page when the current last page is removed", async () => {
+      const data = createTestData(25);
+      render(<TestWrapper data={data} />);
+
+      // Navigate to page 3
+      const nextButton = screen.getByRole("button", {
+        name: /Go to next page/i,
+      });
+
+      await userEvent.click(nextButton);
+      await userEvent.click(nextButton);
+
+      expect(screen.getByText("21 – 25 of 25")).toBeInTheDocument();
+
+      // Remove the last page of data
+      await userEvent.click(screen.getByRole("button", {
+        name: "Remove Last Page",
+      }));
+
+      // Page 3 no longer exists, so pagination should move to page 2
+      expect(screen.getByText("11 – 20 of 20")).toBeInTheDocument();
     });
   });
 });
