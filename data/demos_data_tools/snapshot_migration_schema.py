@@ -52,7 +52,7 @@ def create_snapshot_schema(conn: "DuckConn") -> str:
     Returns:
         str: The schema that was created for snapshots.
     """
-    schema_name = f"{STAGING_SCHEMA}_{datetime.now(ZoneInfo('America/New_York')).strftime('%Y%m%d_%H%M%S_ET')}"
+    schema_name = f"{STAGING_SCHEMA}_{datetime.now(ZoneInfo('America/New_York')).strftime('%Y%m%d_%H%M%S_et')}"
     logger.info(f"Creating snapshot schema {schema_name}")
     query = f"""
         CREATE SCHEMA {DEMOS_DDB_ATTACH_NAME}.{schema_name};
