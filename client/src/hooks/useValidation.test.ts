@@ -27,7 +27,7 @@ describe("useValidation", () => {
 
     const result = useValidation(data, config);
 
-    expect(result.errors).toEqual({});
+    expect(result.validationErrors).toEqual({});
     expect(result.isValid).toBe(true);
   });
 
@@ -52,8 +52,10 @@ describe("useValidation", () => {
 
     const result = useValidation(data, config);
 
-    expect(result.errors.validateTitleRequired).toBe("Title is required.");
-    expect(result.errors.validateEndDateAfterStartDate).toBe("End date must be after start date.");
+    expect(result.validationErrors.validateTitleRequired).toBe("Title is required.");
+    expect(result.validationErrors.validateEndDateAfterStartDate).toBe(
+      "End date must be after start date."
+    );
     expect(result.isValid).toBe(false);
   });
 
@@ -79,8 +81,10 @@ describe("useValidation", () => {
     const result = useValidation(data, config);
 
     // Each rule is tracked separately by its name
-    expect(result.errors.validateTitleMinLength).toBe("Title must be at least 3 characters.");
-    expect(result.errors.validateTitleMaxLength).toBeUndefined();
+    expect(result.validationErrors.validateTitleMinLength).toBe(
+      "Title must be at least 3 characters."
+    );
+    expect(result.validationErrors.validateTitleMaxLength).toBeUndefined();
     expect(result.isValid).toBe(false);
   });
 
@@ -108,10 +112,10 @@ describe("useValidation", () => {
 
     const result = useValidation(data, config);
 
-    expect(result.errors.validateEndDateAfterStartDate).toBe(
+    expect(result.validationErrors.validateEndDateAfterStartDate).toBe(
       "End date must be on or after start date."
     );
-    expect(result.errors.validateQuarterlyReportsTagged).toBe(
+    expect(result.validationErrors.validateQuarterlyReportsTagged).toBe(
       "Quarterly reports must be tagged with 'review'."
     );
     expect(result.isValid).toBe(false);
@@ -135,7 +139,7 @@ describe("useValidation", () => {
     const result = useValidation(data, config);
 
     // Only validateTitleRequired is in the config, so no other errors
-    expect(result.errors).toEqual({});
+    expect(result.validationErrors).toEqual({});
     expect(result.isValid).toBe(true);
   });
 });

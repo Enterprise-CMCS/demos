@@ -7,7 +7,7 @@ import { BaseDialog } from "../BaseDialog";
 import { UploadButton } from "./UploadButton";
 import { useToast } from "components/toast";
 import { useDialog } from "../DialogContext";
-import { useValidation } from "hooks/useValidation";
+import { useValidation, type ValidationConfig } from "hooks/useValidation";
 
 type Document = Pick<ServerDocument, "id" | "name" | "description">;
 const UPDATE_SUCCESS_MESSAGE = "Your document has been updated.";
@@ -35,10 +35,10 @@ export const hasChanges = (initialDocument: Document, activeDocument: Document):
 
 const validationConfig = {
   validateDocumentTitleExists: {
-    check: (formData: Document) => Boolean(formData.name.trim()),
+    check: ({ name }) => Boolean(name.trim()),
     message: "Document Title is required.",
   },
-};
+} satisfies ValidationConfig<Document>;
 
 export const EditDocumentDialog: React.FC<{
   document: Document;
@@ -48,7 +48,7 @@ export const EditDocumentDialog: React.FC<{
   const [activeDocument, setActiveDocument] = React.useState<Document>(document);
   const { showSuccess, showError } = useToast();
 
-  const { isValid, errors } = useValidation(activeDocument, validationConfig);
+  const { isValid, validationErrors } = useValidation(activeDocument, validationConfig);
   const [updateDocument, { loading: saving }] = useMutation<{ updateDocument: Document }>(
     UPDATE_DOCUMENT_QUERY
   );
@@ -95,7 +95,7 @@ export const EditDocumentDialog: React.FC<{
           onChange={(val) => {
             setActiveDocument((prev) => ({ ...prev, name: val }));
           }}
-          validationMessage={errors.validateDocumentTitleExists}
+          validationMessage={validationErrors.validateDocumentTitleExists}
         />
 
         <DescriptionInput

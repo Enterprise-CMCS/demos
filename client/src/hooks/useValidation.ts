@@ -1,8 +1,3 @@
-export type ValidationRuleConfig<TData> = {
-  check: (data: TData) => boolean;
-  message: string;
-};
-
 export type ValidationConfig<TData> = {
   [ruleName: string]: {
     check: (data: TData) => boolean;
@@ -15,7 +10,7 @@ type ValidationErrors<TConfig> = {
 };
 
 type ValidationResult<TConfig> = {
-  errors: ValidationErrors<TConfig>;
+  validationErrors: ValidationErrors<TConfig>;
   isValid: boolean;
 };
 
@@ -23,20 +18,20 @@ export const useValidation = <TData extends object, TConfig extends ValidationCo
   data: TData,
   config: TConfig
 ): ValidationResult<TConfig> => {
-  const errors = {} as ValidationErrors<TConfig>;
+  const validationErrors = {} as ValidationErrors<TConfig>;
 
   for (const ruleName of Object.keys(config) as (keyof TConfig)[]) {
     const rule = config[ruleName];
     if (!rule) continue;
 
     const message = rule.check(data) ? undefined : rule.message;
-    errors[ruleName] = message;
+    validationErrors[ruleName] = message;
   }
 
-  const isValid = Object.values(errors).every((msg) => msg === undefined);
+  const isValid = Object.values(validationErrors).every((msg) => msg === undefined);
 
   return {
-    errors,
+    validationErrors,
     isValid,
   };
 };

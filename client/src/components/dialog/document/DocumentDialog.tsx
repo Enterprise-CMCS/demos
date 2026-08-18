@@ -387,7 +387,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   const [activeDocument, setActiveDocument] = useState<DocumentDialogFields>(
     initialDocument || hydratedInitialDocument
   );
-  const { errors, isValid } = useValidation(activeDocument, documentValidationConfig);
+  const { validationErrors, isValid } = useValidation(activeDocument, documentValidationConfig);
   const [documentDialogState, setDocumentDialogState] = useState<DocumentDialogState>("idle");
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
   const [formHasChanges, setFormHasChanges] = useState(false);
@@ -505,7 +505,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
           uploadStatus={uploadStatus}
           uploadProgress={uploadProgress}
           handleFileChange={handleFileChange}
-          validationMessage={errors.validateFileSelected}
+          validationMessage={validationErrors.validateFileSelected}
         />
 
         <BNPreValidationNotice state={bnPreValidation} />
@@ -521,7 +521,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
             setActiveDocument((prev) => ({ ...prev, name: val }));
             setTitleManuallyEdited(true);
           }}
-          validationMessage={errors.validateDocumentTitleExists}
+          validationMessage={validationErrors.validateDocumentTitleExists}
         />
 
         <DescriptionInput
@@ -535,7 +535,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
             setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }))
           }
           documentTypes={applicableDocumentTypes}
-          validationMessage={errors.validateDocumentTypeExists}
+          validationMessage={validationErrors.validateDocumentTypeExists}
         />
       </BaseDialog>
 
