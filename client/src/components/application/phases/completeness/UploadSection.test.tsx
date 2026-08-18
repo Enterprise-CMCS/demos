@@ -8,6 +8,7 @@ import { UploadSection } from "./UploadSection";
 import { ApplicationWorkflowDocument } from "components/application";
 import { TZDate } from "@date-fns/tz";
 import { EST_TIMEZONE } from "util/formatDate";
+import { readonlyMockUser, cmsMockUser } from "mock-data/userMocks";
 import {
   COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION,
   COMPLETENESS_UPLOAD_BUTTON_NAME,
@@ -105,5 +106,27 @@ describe("UploadSection", () => {
     );
     expect(screen.queryByText("Completeness Letter")).not.toBeInTheDocument();
     expect(screen.queryByText("Internal Form")).not.toBeInTheDocument();
+  });
+
+  describe("Readonly User Behavior", () => {
+    it("hides upload button for readonly users", () => {
+      render(
+        <TestProvider currentUser={readonlyMockUser}>
+          <UploadSection applicationId="app-123" completenessDocuments={[]} />
+        </TestProvider>
+      );
+
+      expect(screen.queryByTestId(COMPLETENESS_UPLOAD_BUTTON_NAME)).not.toBeInTheDocument();
+    });
+
+    it("shows upload button for non-readonly users", () => {
+      render(
+        <TestProvider currentUser={cmsMockUser}>
+          <UploadSection applicationId="app-123" completenessDocuments={[]} />
+        </TestProvider>
+      );
+
+      expect(screen.getByTestId(COMPLETENESS_UPLOAD_BUTTON_NAME)).toBeInTheDocument();
+    });
   });
 });

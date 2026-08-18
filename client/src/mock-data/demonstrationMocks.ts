@@ -23,6 +23,7 @@ import { MockExtension, mockExtensions } from "./extensionMocks";
 import { mockPeople, MockPerson } from "./personMocks";
 import { MockState, mockStates } from "./stateMocks";
 import { MOCK_PHASES } from "./workflowMocks";
+import { MOCK_TAGS } from "./TagMocks";
 import {
   MOCK_DEMONSTRATION_TYPE_ASSIGNMENTS,
   MockDemonstrationTypeAssignment,
@@ -121,6 +122,8 @@ export const demonstrationMocks: MockedResponse[] = [
         demonstration: {
           ...MOCK_DEMONSTRATION,
           phases: MOCK_PHASES,
+          tags: MOCK_TAGS,
+          suggestedApplicationTags: [],
         },
       },
     },
