@@ -4,6 +4,7 @@ import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { DocumentList } from "./DocumentList";
 import { ApplicationWorkflowDocument } from "components/application";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
 const STYLES = {
   title: tw`text-xl font-semibold mb-2`,
@@ -26,6 +27,9 @@ export const ApplicationUploadSection: React.FC<Props> = ({
   documents,
   onUploadClick,
 }) => {
+  const { currentUser } = getCurrentUser();
+  const isReadonlyUser = isReadonly(currentUser);
+
   return (
     <div aria-labelledby="upload-title">
       <h4 id="upload-title" className={STYLES.title}>
@@ -34,6 +38,7 @@ export const ApplicationUploadSection: React.FC<Props> = ({
       <p className={STYLES.helper}>{helperText}</p>
 
       <SecondaryButton
+        isHidden={isReadonlyUser}
         onClick={onUploadClick}
         size="small"
         name="button-open-upload-modal"

@@ -20,6 +20,7 @@ import { ApplicationHealthTypeTags } from "components/tags/ApplicationHealthType
 import type { Application, LocalDate, PhaseName, PhaseStatus, Tag, TagName } from "demos-server";
 import { SET_APPLICATION_TAGS_MUTATION } from "components/dialog/ApplyTagsDialog";
 import { ConfirmSuggestedSparklyTagDialog } from "components/dialog/ConfirmSuggestedSparklyTagDialog";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
 /** Business Rules for this Phase:
  * - **Application Intake Start Date** - Can start in one of two ways, whichever comes first:
@@ -129,6 +130,8 @@ const UploadSection = ({
   documents: ApplicationWorkflowDocument[];
 }) => {
   const { showApplicationIntakeDocumentUploadDialog } = useDialog();
+  const { currentUser } = getCurrentUser();
+  const isReadonlyUser = isReadonly(currentUser);
 
   return (
     <div aria-labelledby="state-application-upload-title">
@@ -143,6 +146,7 @@ const UploadSection = ({
       </p>
 
       <SecondaryButton
+        isHidden={isReadonlyUser}
         onClick={() => showApplicationIntakeDocumentUploadDialog(applicationId)}
         size="small"
         name={APPLICATION_INTAKE_UPLOAD_BUTTON_NAME}
@@ -197,6 +201,8 @@ const VerifyCompleteSection = ({
   onDateChange,
   isPhaseFinalized,
 }: VerifyCompleteSectionProps) => {
+  const { currentUser } = getCurrentUser();
+  const isReadonlyUser = isReadonly(currentUser);
   const completenessReviewDueDate = stateApplicationSubmittedDate
     ? getCompletenessReviewDueDate(stateApplicationSubmittedDate)
     : "";
@@ -222,7 +228,7 @@ const VerifyCompleteSection = ({
             onChange={onDateChange}
             isRequired
             aria-required="true"
-            isDisabled={isPhaseFinalized}
+            isDisabled={isPhaseFinalized || isReadonlyUser}
           />
           {!hasDocuments && stateApplicationSubmittedDate && (
             <div className="text-xs text-text-warn mt-1">
@@ -312,6 +318,8 @@ export const ApplicationIntakePhase = ({
   phaseStatus,
   completenessPhaseStatus,
 }: ApplicationIntakeProps) => {
+  const { currentUser } = getCurrentUser();
+  const isReadonlyUser = isReadonly(currentUser);
   const completenessIncomplete = completenessPhaseStatus === "Incomplete";
   const { showSuccess, showError } = useToast();
   const { completePhase } = useCompletePhase();
@@ -470,6 +478,7 @@ export const ApplicationIntakePhase = ({
       </section>
       <div className={STYLES.actions}>
         <Button
+          isHidden={isReadonlyUser}
           name={APPLICATION_INTAKE_FINISH_BUTTON_NAME}
           onClick={onFinishButtonClick}
           disabled={!isFinishButtonEnabled}
