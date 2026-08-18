@@ -24,6 +24,7 @@ import {
   GET_EXTENSION_WORKFLOW_QUERY,
   GET_WORKFLOW_DEMONSTRATION_QUERY,
 } from "components/application";
+import { getCurrentUser, isReadonly as isReadonlyUser } from "components/user/UserContext";
 
 const SET_APPLICATION_CLEARANCE_LEVEL = gql`
   mutation SetApplicationClearanceLevel($input: SetApplicationClearanceLevelInput!) {
@@ -105,6 +106,8 @@ export const ReviewPhase = ({
   onFinish: () => void;
   allPreviousPhasesDone: boolean;
 }) => {
+  const { currentUser } = getCurrentUser();
+  const userIsReadonly = isReadonlyUser(currentUser);
   const { showSuccess } = useToast();
   const { setApplicationDates } = useSetApplicationDates();
   const { setApplicationNotes } = useSetApplicationNotes();
@@ -220,7 +223,8 @@ export const ReviewPhase = ({
             setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
           }
           isComplete={reviewPhaseSectionsComplete["PO and OGD"]}
-          isReadonly={isReadonly}
+          isReadonly={isReadonly || userIsReadonly}
+          hideNotes={userIsReadonly}
         />
         <OgcAndOmbSection
           sectionFormData={reviewPhaseFormData}
@@ -228,30 +232,33 @@ export const ReviewPhase = ({
             setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
           }
           isComplete={reviewPhaseSectionsComplete["OGC and OMB"]}
-          isReadonly={isReadonly}
+          isReadonly={isReadonly || userIsReadonly}
+          hideNotes={userIsReadonly}
         />
-        <RadioGroup
-          name="clearance-level"
-          options={[
-            {
-              label: "COMMs Clearance Required",
-              value: "COMMs" satisfies ClearanceLevel,
-            },
-            {
-              label: "CMS (OSORA) Clearance Required",
-              value: "CMS (OSORA)" satisfies ClearanceLevel,
-            },
-          ]}
-          value={reviewPhaseFormData.clearanceLevel}
-          onChange={(value) =>
-            setReviewPhaseFormData({
-              ...reviewPhaseFormData,
-              clearanceLevel: value as ClearanceLevel,
-            })
-          }
-          isInline
-          isDisabled={isReadonly}
-        />
+        {!userIsReadonly && (
+          <RadioGroup
+            name="clearance-level"
+            options={[
+              {
+                label: "COMMs Clearance Required",
+                value: "COMMs" satisfies ClearanceLevel,
+              },
+              {
+                label: "CMS (OSORA) Clearance Required",
+                value: "CMS (OSORA)" satisfies ClearanceLevel,
+              },
+            ]}
+            value={reviewPhaseFormData.clearanceLevel}
+            onChange={(value) =>
+              setReviewPhaseFormData({
+                ...reviewPhaseFormData,
+                clearanceLevel: value as ClearanceLevel,
+              })
+            }
+            isInline
+            isDisabled={isReadonly}
+          />
+        )}
         {reviewPhaseFormData.clearanceLevel === "COMMs" && (
           <CommsClearanceSection
             sectionFormData={reviewPhaseFormData}
@@ -259,7 +266,8 @@ export const ReviewPhase = ({
               setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
             }
             isComplete={reviewPhaseSectionsComplete["COMMs Clearance"]}
-            isReadonly={isReadonly}
+            isReadonly={isReadonly || userIsReadonly}
+            hideNotes={userIsReadonly}
           />
         )}
         {reviewPhaseFormData.clearanceLevel === "CMS (OSORA)" && (
@@ -269,30 +277,31 @@ export const ReviewPhase = ({
               setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
             }
             isComplete={reviewPhaseSectionsComplete["CMS (OSORA) Clearance"]}
-            isReadonly={isReadonly}
+            isReadonly={isReadonly || userIsReadonly}
+            hideNotes={userIsReadonly}
           />
         )}
-        <div className="flex justify-end mt-2 gap-2">
-          <SecondaryButton
-            onClick={handleSaveForLater}
-            size="large"
-            name="review-save-for-later"
-            disabled={!hasFormChanges(lastSavedFormData, reviewPhaseFormData)}
-          >
-            Save For Later
-          </SecondaryButton>
-          <Button
-            onClick={handleFinish}
-            size="large"
-            name="review-finish"
-            disabled={!isFinishEnabled}
-            eagerTooltip={
-              !isFinishEnabled && !isReadonly ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined
-            }
-          >
-            Finish
-          </Button>
-        </div>
+        {!userIsReadonly && (
+          <div className="flex justify-end mt-2 gap-2">
+            <SecondaryButton
+              onClick={handleSaveForLater}
+              size="large"
+              name="review-save-for-later"
+              disabled={!hasFormChanges(lastSavedFormData, reviewPhaseFormData)}
+            >
+              Save For Later
+            </SecondaryButton>
+            <Button
+              onClick={handleFinish}
+              size="large"
+              name="review-finish"
+              disabled={!isFinishEnabled}
+              eagerTooltip={!isFinishEnabled ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined}
+            >
+              Finish
+            </Button>
+          </div>
+        )}
       </section>
     </div>
   );
