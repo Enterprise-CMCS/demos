@@ -32,12 +32,25 @@ const columns = [
 ];
 
 // Wrapper component to test PaginationControls with a real table instance
-const TestWrapper = ({ data, perPageChoices }: { data: TestData[]; perPageChoices?: number[] }) => {
+const TestWrapper = ({
+  data,
+  perPageChoices,
+}: {
+  data: TestData[];
+  perPageChoices?: number[];
+}) => {
+  const [tableData, setTableData] = React.useState(data);
+
+  React.useEffect(() => {
+    setTableData(data);
+  }, [data]);
+
   const table = useReactTable({
-    data,
+    data: tableData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    autoResetPageIndex: false,
   });
 
   return (
@@ -53,7 +66,18 @@ const TestWrapper = ({ data, perPageChoices }: { data: TestData[]; perPageChoice
           ))}
         </tbody>
       </table>
-      <PaginationControls table={table} perPageChoices={perPageChoices} />
+
+      <PaginationControls
+        table={table}
+        perPageChoices={perPageChoices}
+      />
+
+      <button
+        type="button"
+        onClick={() => setTableData(tableData.slice(0, 20))}
+      >
+        Remove Last Page
+      </button>
     </div>
   );
 };
@@ -361,6 +385,54 @@ describe("PaginationControls", () => {
       expect(select).toHaveValue("-1");
 
       expect(screen.queryByRole("button", { name: "Go to page 2" })).not.toBeInTheDocument();
+    });
+  });
+
+  describe("Table data updates", () => {
+    it("retains the current page when table data changes", async () => {
+      const initialData = createTestData(100);
+      const { rerender } = render(<TestWrapper data={initialData} />);
+
+      // Go to page 3
+      const nextButton = screen.getByRole("button", {
+        name: /Go to next page/i,
+      });
+
+      await userEvent.click(nextButton);
+      await userEvent.click(nextButton);
+
+      expect(screen.getByText("21 – 30 of 100")).toBeInTheDocument();
+
+      // Simulate the data being refreshed after a delete
+      const updatedData = initialData.filter((item) => item.id !== 1);
+
+      rerender(<TestWrapper data={updatedData} />);
+
+      // Should remain on page 3
+      expect(screen.getByText("21 – 30 of 99")).toBeInTheDocument();
+    });
+
+    it("moves to the previous page when the current last page is removed", async () => {
+      const data = createTestData(25);
+      render(<TestWrapper data={data} />);
+
+      // Navigate to page 3
+      const nextButton = screen.getByRole("button", {
+        name: /Go to next page/i,
+      });
+
+      await userEvent.click(nextButton);
+      await userEvent.click(nextButton);
+
+      expect(screen.getByText("21 – 25 of 25")).toBeInTheDocument();
+
+      // Remove the last page of data
+      await userEvent.click(screen.getByRole("button", {
+        name: "Remove Last Page",
+      }));
+
+      // Page 3 no longer exists, so pagination should move to page 2
+      expect(screen.getByText("11 – 20 of 20")).toBeInTheDocument();
     });
   });
 });

@@ -20,6 +20,7 @@ import {
   useSkipConceptPhase,
 } from "components/application/phase-status/phaseCompletionQueries";
 import { TZDate } from "@date-fns/tz/date";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -129,6 +130,7 @@ export const ConceptPhase = ({
   const { setApplicationDate } = useSetApplicationDate();
   const { completePhase } = useCompletePhase();
   const { skipConceptPhase } = useSkipConceptPhase();
+  const { currentUser } = getCurrentUser();
 
   // User can override the calculated date via the datepicker
   const [userSubmittedDateOverride, setUserSubmittedDateOverride] = useSessionStorage(
@@ -138,6 +140,7 @@ export const ConceptPhase = ({
   const [isSkipEnabled, setIsSkipEnabled] = useState<boolean>(true);
 
   const isPhaseFinalized = phaseStatus === "Completed" || phaseStatus === "Skipped";
+  const isReadonlyUser = isReadonly(currentUser);
 
   // Calculate the submitted date based on documents
   const calculatedSubmittedDate = calculatePresubmissionDate(
@@ -223,6 +226,7 @@ export const ConceptPhase = ({
       </p>
 
       <SecondaryButton
+        isHidden={isReadonlyUser}
         onClick={() => showConceptPreSubmissionDocumentUploadDialog(applicationId)}
         size="small"
         name={UPLOAD_BUTTON_NAME}
@@ -245,23 +249,22 @@ export const ConceptPhase = ({
       </p>
 
       <div className="space-y-4">
-        <div>
-          <DatePicker
-            name={DATE_PICKER_NAME}
-            label={"Concept Paper Submitted Date" satisfies DateType}
-            value={submittedDate}
-            onChange={(newDate) => {
-              setUserSubmittedDateOverride(newDate);
-            }}
-            isRequired={documents.length > 0}
-            getValidationMessage={getDateValidationMessage}
-            isDisabled={isPhaseFinalized}
-          />
-        </div>
+        <DatePicker
+          name={DATE_PICKER_NAME}
+          label={"Concept Paper Submitted Date" satisfies DateType}
+          value={submittedDate}
+          onChange={(newDate) => {
+            setUserSubmittedDateOverride(newDate);
+          }}
+          isRequired={documents.length > 0}
+          getValidationMessage={getDateValidationMessage}
+          isDisabled={isPhaseFinalized || isReadonlyUser}
+        />
       </div>
 
       <div className={STYLES.actions}>
         <SecondaryButton
+          isHidden={isReadonlyUser}
           name={SKIP_BUTTON_NAME}
           aria-label="Skip this section"
           onClick={onSkip}
@@ -271,6 +274,7 @@ export const ConceptPhase = ({
           <ChevronRightIcon />
         </SecondaryButton>
         <Button
+          isHidden={isReadonlyUser}
           name={FINISH_BUTTON_NAME}
           aria-label="Finish this section"
           onClick={onFinish}
