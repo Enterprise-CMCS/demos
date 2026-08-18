@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 
+import { TestProvider } from "test-utils/TestProvider";
 import {
   APPLY_TAGS_DIALOG_TITLE,
   ApplyTagsDialog,
@@ -41,12 +42,14 @@ describe("ApplyTagsDialog", () => {
   const setup = (selectedTags: Tag[] = []) => {
     const onClose = vi.fn();
     const result = render(
-      <ApplyTagsDialog
-        demonstrationId="demo-123"
-        onClose={onClose}
-        initiallySelectedTags={selectedTags}
-        allTags={tagOptions}
-      />
+      <TestProvider>
+        <ApplyTagsDialog
+          demonstrationId="demo-123"
+          onClose={onClose}
+          initiallySelectedTags={selectedTags}
+          allTags={tagOptions}
+        />
+      </TestProvider>
     );
     return { ...result, onClose };
   };
