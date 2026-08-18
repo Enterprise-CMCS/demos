@@ -3,6 +3,20 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { TagChip } from "./TagChip";
 import { Tag } from "demos-server";
+import { TestProvider } from "test-utils/TestProvider";
+import { readonlyMockUser } from "mock-data/userMocks";
+
+const renderTagChip = (
+  element: React.ReactElement,
+  currentUser = { person: { personType: "demos-admin" } }
+) =>
+  render(
+    <TestProvider
+      currentUser={currentUser as React.ComponentProps<typeof TestProvider>["currentUser"]}
+    >
+      {element}
+    </TestProvider>
+  );
 
 describe("TagChip", () => {
   const testTag: Tag = {
@@ -10,22 +24,28 @@ describe("TagChip", () => {
     approvalStatus: "Approved",
   };
   it("renders the tag text", () => {
-    render(<TagChip tag={testTag} onRemoveTag={() => {}} />);
+    renderTagChip(<TagChip tag={testTag} onRemoveTag={() => {}} />);
     expect(screen.getByText("TestTag")).toBeInTheDocument();
   });
 
   it("calls onRemoveTag when remove button is clicked", () => {
     const onRemoveTag = vi.fn();
-    render(<TagChip tag={testTag} onRemoveTag={onRemoveTag} />);
+    renderTagChip(<TagChip tag={testTag} onRemoveTag={onRemoveTag} />);
     const button = screen.getByTestId("remove-TestTag-button");
     fireEvent.click(button);
     expect(onRemoveTag).toHaveBeenCalledWith("TestTag");
+  });
+
+  it("hides the remove button for readonly users", () => {
+    renderTagChip(<TagChip tag={testTag} onRemoveTag={() => {}} />, readonlyMockUser);
+
+    expect(screen.queryByTestId("remove-TestTag-button")).not.toBeInTheDocument();
   });
 });
 
 describe("Approval status", () => {
   it("renders approved status with white background", () => {
-    render(
+    renderTagChip(
       <TagChip
         tag={{ tagName: "ApprovedTag", approvalStatus: "Approved" }}
         onRemoveTag={() => {}}
@@ -37,7 +57,7 @@ describe("Approval status", () => {
   });
 
   it("renders unapproved status with yellow background", () => {
-    render(
+    renderTagChip(
       <TagChip
         tag={{ tagName: "UnapprovedTag", approvalStatus: "Unapproved" }}
         onRemoveTag={() => {}}
@@ -50,7 +70,7 @@ describe("Approval status", () => {
   });
 
   it("renders suggestion variant with purple styling", () => {
-    render(
+    renderTagChip(
       <TagChip
         tag={{ tagName: "Health Equity", approvalStatus: "Approved" }}
         variant="suggestion"

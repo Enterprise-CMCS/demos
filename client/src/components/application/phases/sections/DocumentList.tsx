@@ -2,7 +2,6 @@ import React from "react";
 import { ApplicationWorkflowDocument } from "components/application";
 import { useDialog } from "components/dialog/DialogContext";
 import { DocumentChip } from "components/document/documentChip";
-import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
 export const DocumentList = ({
   documents,
@@ -12,8 +11,6 @@ export const DocumentList = ({
   emptyMessage?: string;
 }) => {
   const { showRemoveDocumentDialog } = useDialog();
-  const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonly(currentUser);
 
   return (
     <div className="mt-2 space-y-2">
@@ -26,7 +23,6 @@ export const DocumentList = ({
           document={doc}
           key={doc.id}
           onRemove={() => showRemoveDocumentDialog([doc.id])}
-          isReadonly={isReadonlyUser}
         />
       ))}
     </div>
