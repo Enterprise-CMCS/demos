@@ -17,6 +17,7 @@ import { ApplicationWorkflowDocument } from "components/application";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { EST_TIMEZONE } from "util/formatDate";
 import { addDays } from "date-fns";
+import { readonlyMockUser, cmsMockUser, MockUser } from "mock-data/userMocks";
 
 const FAKE_TODAY = new TZDate("2026-02-08", EST_TIMEZONE);
 
@@ -33,9 +34,9 @@ const DEFAULT_MOCK_DOCUMENT: ApplicationWorkflowDocument = {
 const DEFAULT_START_DATE = new TZDate("2025-01-01", EST_TIMEZONE);
 const DEFAULT_END_DATE = addDays(FAKE_TODAY, 3);
 
-const setup = (props = {}) =>
+const setup = (props = {}, currentUser?: MockUser) =>
   render(
-    <TestProvider>
+    <TestProvider currentUser={currentUser}>
       <DialogProvider>
         <FederalCommentPhase
           demonstrationId="demo-123"
@@ -126,6 +127,18 @@ describe("FederalCommentPhase", () => {
       expect(dialog.tagName).toBe("DIALOG");
 
       expect(dialog).toHaveTextContent("Add Federal Comment Document");
+    });
+  });
+
+  describe("Readonly User Behavior", () => {
+    it("hides upload button for readonly users", () => {
+      setup({}, readonlyMockUser);
+      expect(screen.queryByRole("button", { name: /upload/i })).not.toBeInTheDocument();
+    });
+
+    it("shows upload button for non-readonly users", () => {
+      setup({}, cmsMockUser);
+      expect(screen.getByRole("button", { name: /upload/i })).toBeInTheDocument();
     });
   });
 

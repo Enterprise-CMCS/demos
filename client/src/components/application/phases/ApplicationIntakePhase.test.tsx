@@ -26,6 +26,7 @@ import { MockedResponse } from "@apollo/client/testing";
 import { GET_APPLICATION_TAG_OPTIONS } from "components/tags/ApplicationHealthTypeTags";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { DocumentType } from "demos-server";
+import { readonlyMockUser, cmsMockUser, MockUser } from "mock-data/userMocks";
 
 vi.mock("@apollo/client", async () => {
   const actual = await vi.importActual("@apollo/client");
@@ -81,7 +82,7 @@ describe("ApplicationIntakePhase", () => {
     vi.clearAllMocks();
   });
 
-  const setup = (props: Partial<ApplicationIntakeProps> = {}) => {
+  const setup = (props: Partial<ApplicationIntakeProps> = {}, currentUser?: MockUser) => {
     const finalProps = { ...DEFAULT_APPLICATION_INTAKE_PROPS, ...props } as ApplicationIntakeProps;
 
     const applicationTagOptionsMock: MockedResponse = {
@@ -99,7 +100,7 @@ describe("ApplicationIntakePhase", () => {
     };
 
     render(
-      <TestProvider mocks={[applicationTagOptionsMock]}>
+      <TestProvider mocks={[applicationTagOptionsMock]} currentUser={currentUser}>
         <DialogProvider>
           <ApplicationIntakePhase {...finalProps} />
         </DialogProvider>
@@ -442,6 +443,56 @@ describe("ApplicationIntakePhase", () => {
         });
         expect(setSelectedPhase).toHaveBeenCalledWith("Completeness");
       });
+    });
+  });
+
+  describe("Readonly User Behavior", () => {
+    it("hides upload button for readonly users", () => {
+      setup({}, readonlyMockUser);
+
+      const uploadButton = screen.queryByTestId(APPLICATION_INTAKE_UPLOAD_BUTTON_NAME);
+      expect(uploadButton).not.toBeInTheDocument();
+    });
+
+    it("hides finish button for readonly users", () => {
+      setup(
+        {
+          applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+          initialStateApplicationSubmittedDate: "2020-10-10",
+        },
+        readonlyMockUser
+      );
+
+      const finishButton = screen.queryByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME);
+      expect(finishButton).not.toBeInTheDocument();
+    });
+
+    it("hides Apply Tags button for readonly users", () => {
+      setup({}, readonlyMockUser);
+
+      const applyTagsButton = screen.queryByRole("button", { name: "Apply Tags" });
+      expect(applyTagsButton).not.toBeInTheDocument();
+    });
+
+    it("disables State Application Submitted Date picker for readonly users", () => {
+      setup({ applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT] }, readonlyMockUser);
+
+      const dateInput = screen.getByTestId(APPLICATION_SUBMITTED_DATEPICKER_NAME);
+      expect(dateInput).toBeDisabled();
+    });
+
+    it("shows upload button for non-readonly users", () => {
+      setup({}, cmsMockUser);
+
+      const uploadButton = screen.getByTestId(APPLICATION_INTAKE_UPLOAD_BUTTON_NAME);
+      expect(uploadButton).toBeInTheDocument();
+    });
+
+    it("enables State Application Submitted Date picker for non-readonly users", () => {
+      setup({ applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT] }, cmsMockUser);
+
+      const dateInput = screen.getByTestId(APPLICATION_SUBMITTED_DATEPICKER_NAME);
+      expect(dateInput).not.toBeDisabled();
     });
   });
 

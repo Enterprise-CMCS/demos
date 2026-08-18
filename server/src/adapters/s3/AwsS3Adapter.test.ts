@@ -193,6 +193,39 @@ describe("AwsS3Adapter", () => {
         ResponseContentDisposition: 'attachment; filename="Deliverable Report.xlsx"',
       });
     });
+
+    it("falls back to the key when the name is entirely invalid characters", async () => {
+      mockSend.mockResolvedValueOnce({ ContentType: "application/pdf" });
+      const adapter = createAWSS3Adapter();
+      await adapter.getPresignedDownloadUrl("uuid-123", "///");
+
+      expect(GetObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: "uuid-123",
+        // No spaces/special chars, so content-disposition leaves it unquoted.
+        ResponseContentDisposition: "inline; filename=uuid-123.pdf",
+      });
+    });
+
+    it("forces a download and derives the extension when disposition is attachment", async () => {
+      mockSend.mockResolvedValueOnce({
+        ContentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const adapter = createAWSS3Adapter();
+      await adapter.getPresignedDownloadUrl("reports/on-demand/r1.xlsx", "Deliverable Report", {
+        disposition: "attachment",
+      });
+
+      expect(HeadObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: "reports/on-demand/r1.xlsx",
+      });
+      expect(GetObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: "reports/on-demand/r1.xlsx",
+        ResponseContentDisposition: 'attachment; filename="Deliverable Report.xlsx"',
+      });
+    });
   });
 
   describe("getDownloadFileName", () => {
