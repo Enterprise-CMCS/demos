@@ -32,7 +32,7 @@ export const RemoveDeliverableDialog: React.FC<{
   const { showSuccess, showError } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteDeliverable] = useMutation(DELETE_DELIVERABLE_MUTATION, {
-    refetchQueries: ["GetDeliverablesPage"],
+    refetchQueries: "active",
     awaitRefetchQueries: true,
   });
 

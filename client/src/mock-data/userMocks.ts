@@ -41,6 +41,18 @@ export const developmentMockUser: MockUser = {
   },
 };
 
+// Common test user variants for component testing
+export const readonlyMockUser: MockUser = {
+  ...developmentMockUser,
+  // Note this will change to `demos-restricted-cms-user` when this role is changed to that.
+  person: { ...developmentMockUser.person, personType: "demos-readonly" },
+};
+
+export const cmsMockUser: MockUser = {
+  ...developmentMockUser,
+  person: { ...developmentMockUser.person, personType: "demos-cms-user" },
+};
+
 export const mockUsers: MockUser[] = [
   { id: "1", username: "john.doe", person: mockPeople[0] },
   { id: "2", username: "jane.smith", person: mockPeople[1] },

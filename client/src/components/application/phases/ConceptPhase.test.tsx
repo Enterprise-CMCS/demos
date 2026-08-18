@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { TZDate } from "@date-fns/tz";
 import { TestProvider } from "test-utils/TestProvider";
+import { readonlyMockUser, cmsMockUser, MockUser } from "mock-data/userMocks";
 
 import {
   ConceptPhase,
@@ -72,11 +73,11 @@ const DEFAULT_PROPS: ConceptPhaseProps = {
 };
 
 describe("ConceptPhase", () => {
-  const setup = (props: Partial<ConceptPhaseProps> = {}) => {
+  const setup = (props: Partial<ConceptPhaseProps> = {}, currentUser?: MockUser) => {
     const renderComponent = (newProps: Partial<ConceptPhaseProps>) => {
       const finalProps = { ...DEFAULT_PROPS, ...newProps };
       return (
-        <TestProvider>
+        <TestProvider currentUser={currentUser}>
           <DialogProvider>
             <ConceptPhase {...finalProps} />
           </DialogProvider>
@@ -718,6 +719,50 @@ describe("ConceptPhase", () => {
       });
       const dateInput = screen.getByTestId(DATE_PICKER_NAME) as HTMLInputElement;
       expect(dateInput.value).toBe("2024-01-10");
+    });
+  });
+
+  describe("Readonly User Behavior", () => {
+    it("hides upload button for readonly users", () => {
+      setup({ documents: [] }, readonlyMockUser);
+
+      const uploadButton = screen.queryByTestId(UPLOAD_BUTTON_NAME);
+      expect(uploadButton).not.toBeInTheDocument();
+    });
+
+    it("hides finish button for readonly users", () => {
+      setup({ documents: [MOCK_DOCUMENT] }, readonlyMockUser);
+
+      const finishButton = screen.queryByTestId(FINISH_BUTTON_NAME);
+      expect(finishButton).not.toBeInTheDocument();
+    });
+
+    it("hides skip button for readonly users", () => {
+      setup({ documents: [] }, readonlyMockUser);
+
+      const skipButton = screen.queryByTestId(SKIP_BUTTON_NAME);
+      expect(skipButton).not.toBeInTheDocument();
+    });
+
+    it("disables date picker for readonly users", () => {
+      setup({ documents: [MOCK_DOCUMENT] }, readonlyMockUser);
+
+      const dateInput = screen.getByTestId(DATE_PICKER_NAME);
+      expect(dateInput).toBeDisabled();
+    });
+
+    it("shows upload button for non-readonly users", () => {
+      setup({ documents: [] }, cmsMockUser);
+
+      const uploadButton = screen.getByTestId(UPLOAD_BUTTON_NAME);
+      expect(uploadButton).toBeInTheDocument();
+    });
+
+    it("enables date picker for non-readonly users", () => {
+      setup({ documents: [MOCK_DOCUMENT], phaseStatus: "Started" }, cmsMockUser);
+
+      const dateInput = screen.getByTestId(DATE_PICKER_NAME);
+      expect(dateInput).not.toBeDisabled();
     });
   });
 });

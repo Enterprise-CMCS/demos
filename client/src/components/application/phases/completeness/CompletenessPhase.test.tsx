@@ -8,6 +8,9 @@ import {
   CompletenessPhaseProps,
   getApplicationCompletenessFromApplication,
   COMPLETENESS_PHASE_DESCRIPTION,
+  COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME,
+  COMPLETENESS_FINISH_BUTTON_NAME,
+  COMPLETENESS_UPLOAD_BUTTON_NAME,
   STATE_DEEMED_COMPLETE_DATEPICKER_NAME,
   FEDERAL_COMMENT_START_DATEPICKER_NAME,
   FEDERAL_COMMENT_END_DATEPICKER_NAME,
@@ -15,6 +18,7 @@ import {
 import { ApplicationWorkflowDocument, WorkflowApplication } from "components/application";
 import { TZDate } from "@date-fns/tz";
 import { EST_TIMEZONE } from "util/formatDate";
+import { readonlyMockUser, cmsMockUser, MockUser } from "mock-data/userMocks";
 
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
@@ -80,10 +84,10 @@ describe("CompletenessPhase", () => {
     setSelectedPhase: mockSetSelectedPhase,
   };
 
-  const setup = (props: Partial<CompletenessPhaseProps> = {}) => {
+  const setup = (props: Partial<CompletenessPhaseProps> = {}, currentUser?: MockUser) => {
     const finalProps = { ...defaultProps, ...props };
     render(
-      <TestProvider>
+      <TestProvider currentUser={currentUser}>
         <CompletenessPhase {...finalProps} />
       </TestProvider>
     );
@@ -103,6 +107,45 @@ describe("CompletenessPhase", () => {
       expect(screen.getByTestId(COMPLETENESS_PHASE_DESCRIPTION.testId)).toHaveTextContent(
         COMPLETENESS_PHASE_DESCRIPTION.text
       );
+    });
+  });
+
+  describe("Readonly User Behavior", () => {
+    it("hides upload button for readonly users", () => {
+      setup({}, readonlyMockUser);
+
+      const uploadButton = screen.queryByTestId(COMPLETENESS_UPLOAD_BUTTON_NAME);
+      expect(uploadButton).not.toBeInTheDocument();
+    });
+
+    it("hides Declare Incomplete and Finish buttons for readonly users", () => {
+      setup({}, readonlyMockUser);
+
+      expect(
+        screen.queryByTestId(COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME)
+      ).not.toBeInTheDocument();
+      expect(screen.queryByTestId(COMPLETENESS_FINISH_BUTTON_NAME)).not.toBeInTheDocument();
+    });
+
+    it("disables State Application Deemed Complete date picker for readonly users", () => {
+      setup({}, readonlyMockUser);
+
+      const dateInput = screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME);
+      expect(dateInput).toBeDisabled();
+    });
+
+    it("shows upload button for non-readonly users", () => {
+      setup({}, cmsMockUser);
+
+      const uploadButton = screen.getByTestId(COMPLETENESS_UPLOAD_BUTTON_NAME);
+      expect(uploadButton).toBeInTheDocument();
+    });
+
+    it("enables State Application Deemed Complete date picker for non-readonly users", () => {
+      setup({}, cmsMockUser);
+
+      const dateInput = screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME);
+      expect(dateInput).not.toBeDisabled();
     });
   });
 });

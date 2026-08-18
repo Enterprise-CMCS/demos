@@ -154,7 +154,11 @@ export const AutoCompleteMultiselect = ({
               filtered.map((opt, i) => {
                 const isActive = i === activeIndex;
                 return (
-                  <li key={opt.value} role="option" aria-selected={selected.includes(opt.value)}>
+                  <li
+                    key={`${opt.value}-${i}`}
+                    role="option"
+                    aria-selected={selected.includes(opt.value)}
+                  >
                     <label
                       className={`${ITEM_CLASSES} ${isActive ? ITEM_ACTIVE_CLASSES : ""} flex items-center cursor-pointer`}
                       style={{ cursor: isDisabled ? "not-allowed" : "pointer" }}
