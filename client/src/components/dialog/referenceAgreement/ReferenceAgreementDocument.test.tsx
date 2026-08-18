@@ -47,7 +47,7 @@ describe("ReferenceAgreementDocument", () => {
       })
     ).toHaveAttribute(
       "href",
-      "/reference-agreements/national-measure-stewards-terms-and-conditions.html"
+      "/reference-agreements/point-click-agreement.pdf"
     );
     expect(downloadReferenceAgreement).not.toHaveBeenCalled();
   });

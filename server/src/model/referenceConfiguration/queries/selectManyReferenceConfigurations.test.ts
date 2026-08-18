@@ -77,6 +77,7 @@ describe("selectManyReferenceConfigurations", () => {
         select: {
           id: true,
           name: true,
+          s3Path: true,
           createdAt: true,
           updatedAt: true,
         },

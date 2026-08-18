@@ -40,18 +40,19 @@ describe("buildReferenceTermsAttachment", () => {
   });
 
   it("loads the static point and click agreement", async () => {
-    await expect(
-      buildReferenceTermsAttachment({
-        termsAndConditions: {
-          fileName: "national-measure-stewards-terms-and-conditions.html",
-          s3Path: POINT_AND_CLICK_AGREEMENT.s3Path,
-        },
-      }),
-    ).resolves.toEqual({
-      filename: "national-measure-stewards-terms-and-conditions.html",
-      content: Buffer.from(POINT_AND_CLICK_AGREEMENT.html),
-      contentType: "text/html; charset=utf-8",
+    const attachment = await buildReferenceTermsAttachment({
+      termsAndConditions: {
+        fileName: POINT_AND_CLICK_AGREEMENT.fileName,
+        s3Path: POINT_AND_CLICK_AGREEMENT.s3Path,
+      },
     });
+
+    expect(attachment).toEqual({
+      filename: POINT_AND_CLICK_AGREEMENT.fileName,
+      content: expect.any(Buffer),
+      contentType: "application/pdf",
+    });
+    expect((attachment.content as Buffer).subarray(0, 5).toString()).toBe("%PDF-");
     expect(s3Mock.commandCalls(GetObjectCommand)).toHaveLength(0);
   });
 

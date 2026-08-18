@@ -1,4 +1,6 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import type { Options } from "nodemailer/lib/mailer";
 import { POINT_AND_CLICK_AGREEMENT } from "./pointAndClickAgreement";
 
@@ -21,7 +23,7 @@ export async function buildReferenceTermsAttachment(
   if (termsAndConditions.s3Path === POINT_AND_CLICK_AGREEMENT.s3Path) {
     return {
       filename: termsAndConditions.fileName,
-      content: Buffer.from(POINT_AND_CLICK_AGREEMENT.html),
+      content: await readFile(path.resolve(__dirname, POINT_AND_CLICK_AGREEMENT.fileName)),
       contentType: POINT_AND_CLICK_AGREEMENT.contentType,
     };
   }

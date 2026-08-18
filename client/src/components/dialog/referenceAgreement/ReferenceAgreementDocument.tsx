@@ -1,4 +1,4 @@
-import { FileIcon, PDFIcon } from "components/icons";
+import { PDFIcon } from "components/icons";
 import { ReferenceAgreement } from "demos-server";
 import { useDownloadReference } from "hooks/useDownloadReference";
 import React from "react";
@@ -25,7 +25,7 @@ export const ReferenceAgreementDocument: React.FC<{
         aria-label={POINT_AND_CLICK_AGREEMENT.name}
       >
         <div className="flex items-center gap-1">
-          <FileIcon className="h-2 w-2" />
+          <PDFIcon className="h-2 w-2 text-red-600" />
           <div className="font-medium">{POINT_AND_CLICK_AGREEMENT.name}</div>
         </div>
       </a>

@@ -331,7 +331,10 @@ export class ApiStack extends Stack {
       },
       commandHooks: {
         afterBundling(inputDir: string, outputDir: string): string[] {
-          return [`cp ${inputDir}/../../deployment/cert.pem ${outputDir}/cert.pem`];
+          return [
+            `cp ${inputDir}/../../deployment/cert.pem ${outputDir}/cert.pem`,
+            `cp ${inputDir}/point-click-agreement.pdf ${outputDir}/point-click-agreement.pdf`,
+          ];
         },
         beforeBundling() {
           return [];
