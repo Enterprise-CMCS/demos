@@ -3,19 +3,9 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { parseISO, format } from "date-fns";
-
 import { ReviewPhase, ReviewPhaseFormData } from "./ReviewPhase";
 import { TestProvider } from "test-utils/TestProvider";
 import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
-
-// Mock formatDateForServer so date output is predictable and uses date-fns (no toISOString slicing)
-vi.mock("util/formatDate", () => ({
-  formatDateForServer: (date: Date | string) => {
-    const d = typeof date === "string" ? parseISO(date) : date;
-    return format(d, "yyyy-MM-dd");
-  },
-}));
 
 // Mock the queries
 const mockSetApplicationDates = vi.fn();
@@ -100,10 +90,8 @@ const DEFAULT_REVIEW_NOTES: ReviewPhaseFormData["notes"] = {
 const buildInitialFormData = (
   overrides: Partial<ReviewPhaseFormData> = {}
 ): ReviewPhaseFormData => ({
-  dates:
-    overrides.dates ?? DEFAULT_REVIEW_DATES,
-  notes:
-    overrides.notes ?? DEFAULT_REVIEW_NOTES,
+  dates: overrides.dates ?? DEFAULT_REVIEW_DATES,
+  notes: overrides.notes ?? DEFAULT_REVIEW_NOTES,
   clearanceLevel: overrides.clearanceLevel ?? "COMMs",
 });
 
@@ -131,10 +119,6 @@ describe("ReviewPhase Component", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSetApplicationDates.mockClear();
-    mockSetApplicationNotes.mockClear();
-    mockSetApplicationClearanceLevel.mockClear();
-    mockCompletePhase.mockClear();
   });
 
   describe("Header and description", () => {
@@ -242,14 +226,7 @@ describe("ReviewPhase Component", () => {
       const dataWithoutClearance = buildInitialFormData({
         clearanceLevel: "COMMs",
         dates: {
-          "OGD Approval to Share with SMEs": "2025-01-01",
-          "Draft Approval Package to Prep": "2025-01-02",
-          "DDME Approval Received": "2025-01-03",
-          "State Concurrence": "2025-01-04",
-          "BN PMT Approval to Send to OMB": "2025-01-05",
-          "Draft Approval Package Shared": "2025-01-06",
-          "Receive OMB Concurrence": "2025-01-07",
-          "Receive OGC Legal Clearance": "2025-01-08",
+          ...DEFAULT_REVIEW_DATES,
           "Package Sent for COMMs Clearance": "",
           "COMMs Clearance Received": "",
         },
@@ -264,14 +241,7 @@ describe("ReviewPhase Component", () => {
       const dataWithoutOsora = buildInitialFormData({
         clearanceLevel: "CMS (OSORA)",
         dates: {
-          "OGD Approval to Share with SMEs": "2025-01-01",
-          "Draft Approval Package to Prep": "2025-01-02",
-          "DDME Approval Received": "2025-01-03",
-          "State Concurrence": "2025-01-04",
-          "BN PMT Approval to Send to OMB": "2025-01-05",
-          "Draft Approval Package Shared": "2025-01-06",
-          "Receive OMB Concurrence": "2025-01-07",
-          "Receive OGC Legal Clearance": "2025-01-08",
+          ...DEFAULT_REVIEW_DATES,
           "Submit Approval Package to OSORA": "",
           "OSORA R1 Comments Due": "",
           "OSORA R2 Comments Due": "",
@@ -288,14 +258,7 @@ describe("ReviewPhase Component", () => {
       const completeOsoraData = buildInitialFormData({
         clearanceLevel: "CMS (OSORA)",
         dates: {
-          "OGD Approval to Share with SMEs": "2025-01-01",
-          "Draft Approval Package to Prep": "2025-01-02",
-          "DDME Approval Received": "2025-01-03",
-          "State Concurrence": "2025-01-04",
-          "BN PMT Approval to Send to OMB": "2025-01-05",
-          "Draft Approval Package Shared": "2025-01-06",
-          "Receive OMB Concurrence": "2025-01-07",
-          "Receive OGC Legal Clearance": "2025-01-08",
+          ...DEFAULT_REVIEW_DATES,
           "Submit Approval Package to OSORA": "2025-01-09",
           "OSORA R1 Comments Due": "2025-01-10",
           "OSORA R2 Comments Due": "2025-01-11",
@@ -311,18 +274,7 @@ describe("ReviewPhase Component", () => {
     it("enables finish button when COMMs section is complete and COMMs is selected", () => {
       const completeCommsData = buildInitialFormData({
         clearanceLevel: "COMMs",
-        dates: {
-          "OGD Approval to Share with SMEs": "2025-01-01",
-          "Draft Approval Package to Prep": "2025-01-02",
-          "DDME Approval Received": "2025-01-03",
-          "State Concurrence": "2025-01-04",
-          "BN PMT Approval to Send to OMB": "2025-01-05",
-          "Draft Approval Package Shared": "2025-01-06",
-          "Receive OMB Concurrence": "2025-01-07",
-          "Receive OGC Legal Clearance": "2025-01-08",
-          "Package Sent for COMMs Clearance": "2025-01-09",
-          "COMMs Clearance Received": "2025-01-10",
-        },
+        dates: DEFAULT_REVIEW_DATES,
       });
       setup(completeCommsData);
 
@@ -486,16 +438,8 @@ describe("ReviewPhase Component", () => {
     it("calls setApplicationDates when saving date changes", async () => {
       const incompleteData = buildInitialFormData({
         dates: {
+          ...DEFAULT_REVIEW_DATES,
           "OGD Approval to Share with SMEs": "",
-          "Draft Approval Package to Prep": "2025-01-02",
-          "DDME Approval Received": "2025-01-03",
-          "State Concurrence": "2025-01-04",
-          "BN PMT Approval to Send to OMB": "2025-01-05",
-          "Draft Approval Package Shared": "2025-01-06",
-          "Receive OMB Concurrence": "2025-01-07",
-          "Receive OGC Legal Clearance": "2025-01-08",
-          "Package Sent for COMMs Clearance": "2025-01-09",
-          "COMMs Clearance Received": "2025-01-10",
         },
       });
       setup(incompleteData, "demo-123");
