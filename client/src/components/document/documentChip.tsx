@@ -33,7 +33,8 @@ export const DocumentChip: React.FC<{
     createdAt?: Date;
   };
   onRemove: () => void;
-}> = ({ document, onRemove }) => {
+  isReadonly?: boolean;
+}> = ({ document, onRemove, isReadonly = false }) => {
   const content = (
     <>
       <FileIcon className={STYLES.fileIcon} />
@@ -67,17 +68,19 @@ export const DocumentChip: React.FC<{
           <div className={STYLES.contentContainer}>{content}</div>
         )}
 
-        <button
-          className={STYLES.exitButton}
-          onClick={onRemove}
-          aria-label={`Delete ${document.name}`}
-          title={`Delete ${document.name}`}
-          type="button"
-        >
-          <div className={STYLES.exitIconContainer}>
-            <ExitIcon className={STYLES.exitIcon} />
-          </div>
-        </button>
+        {!isReadonly && (
+          <button
+            className={STYLES.exitButton}
+            onClick={onRemove}
+            aria-label={`Delete ${document.name}`}
+            title={`Delete ${document.name}`}
+            type="button"
+          >
+            <div className={STYLES.exitIconContainer}>
+              <ExitIcon className={STYLES.exitIcon} />
+            </div>
+          </button>
+        )}
       </div>
     </>
   );
