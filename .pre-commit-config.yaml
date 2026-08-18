@@ -17,7 +17,7 @@ repos:
     hooks:
     - id: detect-secrets
       args: ['--baseline', '.secrets.baseline']
-      exclude: '(data-migration/reports/prisma_ddl\.manifest\.json|data/migration/stage_pmda_for_migration/package-lock\.yml)'
+      exclude: '(data-migration/reports/prisma_ddl\.manifest\.json|data/migration/stage_pmda_for_migration/package-lock\.yml|data/migration/data_migration_rev_01/package-lock\.yml)'
 
   - repo: https://github.com/jsh9/pydoclint
     rev: 0.6.6
