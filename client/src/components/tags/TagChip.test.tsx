@@ -21,6 +21,12 @@ describe("TagChip", () => {
     fireEvent.click(button);
     expect(onRemoveTag).toHaveBeenCalledWith("TestTag");
   });
+
+  it("does not render the remove button when onRemoveTag is not passed", () => {
+    render(<TagChip tag={testTag} />);
+
+    expect(screen.queryByTestId("remove-TestTag-button")).not.toBeInTheDocument();
+  });
 });
 
 describe("Approval status", () => {

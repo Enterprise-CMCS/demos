@@ -107,12 +107,12 @@ export const DocumentChip = ({
             rel="noopener noreferrer"
           >
             {content}
-            <RemoveDocumentButton document={document} onRemove={onRemove} />
+            {onRemove && <RemoveDocumentButton document={document} onRemove={onRemove} />}
           </a>
         ) : (
           <span className={STYLES.contentContainer}>
             {content}
-            <RemoveDocumentButton document={document} onRemove={onRemove} />
+            {onRemove && <RemoveDocumentButton document={document} onRemove={onRemove} />}
           </span>
         )}
       </div>

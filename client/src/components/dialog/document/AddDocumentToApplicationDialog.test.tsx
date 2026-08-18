@@ -2,7 +2,6 @@ import "@testing-library/jest-dom";
 
 import React from "react";
 
-import { ToastProvider } from "components/toast/ToastContext";
 import { describe, expect, it, vi } from "vitest";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -12,6 +11,7 @@ import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 import { DOCUMENT_POLL_INTERVAL_MS, VIRUS_SCAN_MAX_ATTEMPTS } from "./useDocumentPassedVirusScan";
 import { tryUploadingFileToS3 } from "./tryUploadingFileToS3";
 import { TestProvider } from "test-utils/TestProvider";
+import { DialogProvider } from "components/dialog/DialogContext";
 
 let mockMutationFn = vi.fn();
 let mockLazyQueryFn = vi.fn();
@@ -49,11 +49,13 @@ describe("AddDocumentToApplicationDialog", () => {
     const onClose = vi.fn();
     render(
       <TestProvider>
-        <AddDocumentToApplicationDialog
-          onClose={onClose}
-          applicationId="test-application-id"
-          documentTypeSubset={["General File", "Application Completeness Letter"]}
-        />
+        <DialogProvider>
+          <AddDocumentToApplicationDialog
+            onClose={onClose}
+            applicationId="test-application-id"
+            documentTypeSubset={["General File", "Application Completeness Letter"]}
+          />
+        </DialogProvider>
       </TestProvider>
     );
     return { onClose };
@@ -189,14 +191,16 @@ describe("virus scan polling", () => {
     const onDocumentUploadSucceeded = vi.fn();
 
     render(
-      <ToastProvider>
-        <AddDocumentToApplicationDialog
-          onClose={vi.fn()}
-          applicationId="test-app-id"
-          onDocumentUploadSucceeded={onDocumentUploadSucceeded}
-          documentTypeSubset={["General File"]}
-        />
-      </ToastProvider>
+      <TestProvider>
+        <DialogProvider>
+          <AddDocumentToApplicationDialog
+            onClose={vi.fn()}
+            applicationId="test-app-id"
+            onDocumentUploadSucceeded={onDocumentUploadSucceeded}
+            documentTypeSubset={["General File"]}
+          />
+        </DialogProvider>
+      </TestProvider>
     );
 
     const file = new File(["content"], "test.pdf", { type: "application/pdf" });
@@ -247,14 +251,16 @@ describe("virus scan polling", () => {
     const onDocumentUploadSucceeded = vi.fn();
 
     render(
-      <ToastProvider>
-        <AddDocumentToApplicationDialog
-          onClose={vi.fn()}
-          applicationId="test-app-id"
-          onDocumentUploadSucceeded={onDocumentUploadSucceeded}
-          documentTypeSubset={["General File"]}
-        />
-      </ToastProvider>
+      <TestProvider>
+        <DialogProvider>
+          <AddDocumentToApplicationDialog
+            onClose={vi.fn()}
+            applicationId="test-app-id"
+            onDocumentUploadSucceeded={onDocumentUploadSucceeded}
+            documentTypeSubset={["General File"]}
+          />
+        </DialogProvider>
+      </TestProvider>
     );
 
     const file = new File(["content"], "test.pdf", { type: "application/pdf" });
@@ -297,13 +303,15 @@ describe("virus scan polling", () => {
     vi.mocked(globalThis.fetch).mockResolvedValue({ ok: true } as Response);
 
     render(
-      <ToastProvider>
-        <AddDocumentToApplicationDialog
-          onClose={vi.fn()}
-          applicationId="test-app-id"
-          documentTypeSubset={["General File"]}
-        />
-      </ToastProvider>
+      <TestProvider>
+        <DialogProvider>
+          <AddDocumentToApplicationDialog
+            onClose={vi.fn()}
+            applicationId="test-app-id"
+            documentTypeSubset={["General File"]}
+          />
+        </DialogProvider>
+      </TestProvider>
     );
 
     const file = new File(["content"], "test.pdf", { type: "application/pdf" });
@@ -347,15 +355,17 @@ describe("virus scan polling", () => {
     const refetchQueries = ["GetDocuments", "GetApplicationDocuments"];
 
     render(
-      <ToastProvider>
-        <AddDocumentToApplicationDialog
-          onClose={vi.fn()}
-          applicationId="test-app-id"
-          onDocumentUploadSucceeded={onDocumentUploadSucceeded}
-          documentTypeSubset={["General File"]}
-          refetchQueries={refetchQueries}
-        />
-      </ToastProvider>
+      <TestProvider>
+        <DialogProvider>
+          <AddDocumentToApplicationDialog
+            onClose={vi.fn()}
+            applicationId="test-app-id"
+            onDocumentUploadSucceeded={onDocumentUploadSucceeded}
+            documentTypeSubset={["General File"]}
+            refetchQueries={refetchQueries}
+          />
+        </DialogProvider>
+      </TestProvider>
     );
 
     const file = new File(["content"], "test.pdf", { type: "application/pdf" });
@@ -397,14 +407,16 @@ describe("virus scan polling", () => {
     const onDocumentUploadSucceeded = vi.fn();
 
     render(
-      <ToastProvider>
-        <AddDocumentToApplicationDialog
-          onClose={vi.fn()}
-          applicationId="test-app-id"
-          onDocumentUploadSucceeded={onDocumentUploadSucceeded}
-          documentTypeSubset={["General File"]}
-        />
-      </ToastProvider>
+      <TestProvider>
+        <DialogProvider>
+          <AddDocumentToApplicationDialog
+            onClose={vi.fn()}
+            applicationId="test-app-id"
+            onDocumentUploadSucceeded={onDocumentUploadSucceeded}
+            documentTypeSubset={["General File"]}
+          />
+        </DialogProvider>
+      </TestProvider>
     );
 
     const file = new File(["content"], "test.pdf", { type: "application/pdf" });

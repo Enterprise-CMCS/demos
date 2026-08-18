@@ -72,6 +72,15 @@ describe("DocumentChip", () => {
 
     expect(onRemove).toHaveBeenCalledOnce();
   });
+
+  it("does not render the delete button when onRemove is not passed", () => {
+    setup(baseDocument);
+
+    expect(
+      screen.queryByRole("button", { name: "Delete State Application.pdf" })
+    ).not.toBeInTheDocument();
+  });
+
   it("truncates long names in the UI while preserving the full name in the title", () => {
     const longName =
       "this-is-a-very-long-document-name-that-should-be-shortened-for-display-only.pdf";

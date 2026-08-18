@@ -67,11 +67,19 @@ export const ApplicationHealthTypeTags = ({
     );
   };
 
+  const handleRemoveTag = (tag: string) => {
+    if (isReadonlyUser) {
+      return null;
+    } else {
+      onRemoveTag(tag);
+    }
+  };
+
   return (
     <>
       <div className={STYLES.tagList}>
         {selectedTags.map((tag) => (
-          <TagChip key={tag.tagName} tag={tag} onRemoveTag={onRemoveTag} />
+          <TagChip key={tag.tagName} tag={tag} onRemoveTag={handleRemoveTag} />
         ))}
         <SecondaryButton
           isHidden={isReadonlyUser}
