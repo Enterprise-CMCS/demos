@@ -6,7 +6,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { DocumentChip } from "./documentChip";
+import { DocumentChip } from "./DocumentChip";
 import { TestProvider } from "test-utils/TestProvider";
 import { developmentMockUser, readonlyMockUser } from "mock-data/userMocks";
 

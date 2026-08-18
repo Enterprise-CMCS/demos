@@ -5,7 +5,6 @@ import userEvent from "@testing-library/user-event";
 import { DocumentList } from "./DocumentList";
 import { ApplicationWorkflowDocument } from "components/application";
 import { TestProvider } from "test-utils/TestProvider";
-import { readonlyMockUser } from "mock-data/userMocks";
 
 const mockShowRemoveDocumentDialog = vi.fn();
 
@@ -102,16 +101,6 @@ describe("DocumentList", () => {
 
     const deleteButtons = screen.getAllByRole("button", { name: /delete/i });
     expect(deleteButtons).toHaveLength(2);
-  });
-
-  it("hides delete buttons for readonly users", () => {
-    render(
-      <TestProvider currentUser={readonlyMockUser}>
-        <DocumentList documents={mockDocuments} />
-      </TestProvider>
-    );
-
-    expect(screen.queryAllByRole("button", { name: /delete/i })).toHaveLength(0);
   });
 
   it("calls showRemoveDocumentDialog when delete button is clicked", async () => {

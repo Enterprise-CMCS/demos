@@ -1,7 +1,7 @@
 import React from "react";
 import { ApplicationWorkflowDocument } from "components/application";
 import { useDialog } from "components/dialog/DialogContext";
-import { DocumentChip } from "components/document/documentChip";
+import { DocumentChip } from "components/document/DocumentChip";
 
 export const DocumentList = ({
   documents,
