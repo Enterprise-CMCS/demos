@@ -25,10 +25,7 @@ export const documentTypeRequiresAttestation = (documentType: DocumentType): boo
   ATTESTATION_DOCUMENT_TYPES.includes(documentType);
 
 export type DocumentUploadResult =
-  | "succeeded"
-  | "virus-scan-failed"
-  | "bn-validation-failed"
-  | "unknown-error";
+  "succeeded" | "virus-scan-failed" | "bn-validation-failed" | "unknown-error";
 export type DocumentDialogState = DocumentUploadResult | "idle" | "uploading";
 
 const STYLES = {
@@ -137,12 +134,11 @@ const ProgressBar: React.FC<{ progress: number; uploadStatus: UploadStatus }> = 
 
 const DropTarget: React.FC<{
   file: File | null;
-  onRemove: () => void;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   uploadStatus: UploadStatus;
   uploadProgress: number;
   handleFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-}> = ({ file, onRemove, fileInputRef, uploadStatus, uploadProgress, handleFileChange }) => {
+}> = ({ file, fileInputRef, uploadStatus, uploadProgress, handleFileChange }) => {
   const handleFiles = useCallback(
     (fileList: FileList) => {
       if (!fileList || fileList.length === 0) return;
@@ -194,7 +190,7 @@ const DropTarget: React.FC<{
 
       {file && (
         <div className="mt-sm">
-          <DocumentChip document={file} onRemove={onRemove} />
+          <DocumentChip document={file} />
           <ProgressBar progress={uploadProgress} uploadStatus={uploadStatus} />
           {uploadProgress > 0 && (
             <div className={STYLES.fileMetaRow}>
@@ -464,7 +460,6 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
       >
         <DropTarget
           file={file}
-          onRemove={() => setFile(null)}
           fileInputRef={fileInputRef}
           uploadStatus={uploadStatus}
           uploadProgress={uploadProgress}

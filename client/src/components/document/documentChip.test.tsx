@@ -4,19 +4,20 @@ import React from "react";
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { DocumentChip } from "./documentChip";
 
 describe("DocumentChip", () => {
   const baseDocument = {
+    id: "doc-1",
     name: "State Application.pdf",
     documentType: "State Application" as const,
     createdAt: new Date("2024-01-15T10:00:00Z"),
   };
 
   it("renders a preview link when the document has an id", () => {
-    render(<DocumentChip document={{ ...baseDocument, id: "doc-1" }} onRemove={vi.fn()} />);
+    render(<DocumentChip document={{ ...baseDocument, id: "doc-1" }} />);
 
     const link = screen.getByRole("link", { name: /state application\.pdf/i });
 
@@ -26,14 +27,14 @@ describe("DocumentChip", () => {
   });
 
   it("renders non-link content when the document has no id", () => {
-    render(<DocumentChip document={baseDocument} onRemove={vi.fn()} />);
+    render(<DocumentChip document={baseDocument} />);
 
     expect(screen.queryByRole("link", { name: /state application\.pdf/i })).not.toBeInTheDocument();
     expect(screen.getByText("State Application.pdf")).toBeInTheDocument();
   });
 
   it("renders metadata when createdAt and documentType are present", () => {
-    render(<DocumentChip document={baseDocument} onRemove={vi.fn()} />);
+    render(<DocumentChip document={baseDocument} />);
 
     expect(screen.getByText(/01\/15\/2024/)).toBeInTheDocument();
     expect(screen.getByText(/• State Application/)).toBeInTheDocument();
@@ -43,9 +44,10 @@ describe("DocumentChip", () => {
     render(
       <DocumentChip
         document={{
+          ...baseDocument,
+          id: "",
           name: "Pending Upload.pdf",
         }}
-        onRemove={vi.fn()}
       />
     );
 
@@ -63,7 +65,6 @@ describe("DocumentChip", () => {
 
     expect(onRemove).toHaveBeenCalledOnce();
   });
-
   it("truncates long names in the UI while preserving the full name in the title", () => {
     const longName =
       "this-is-a-very-long-document-name-that-should-be-shortened-for-display-only.pdf";
@@ -74,7 +75,6 @@ describe("DocumentChip", () => {
           ...baseDocument,
           name: longName,
         }}
-        onRemove={vi.fn()}
       />
     );
 

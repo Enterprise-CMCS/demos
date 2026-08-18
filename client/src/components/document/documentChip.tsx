@@ -3,6 +3,8 @@ import { ExitIcon, FileIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { formatDateForDisplay } from "util/formatDate";
 import { DocumentType } from "demos-server-constants";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
+import { useDialog } from "components/dialog/DialogContext";
 
 const abbreviateLongFilename = (str: string): string => {
   const maxFilenameDisplayLength = 60;
@@ -25,15 +27,58 @@ const STYLES = {
   exitIcon: tw`w-[16px] h-[16px]`,
 };
 
-export const DocumentChip: React.FC<{
-  document: {
-    id?: string;
-    name: string;
-    documentType?: DocumentType;
-    createdAt?: Date;
+type DocumentChipDocument = {
+  name: string;
+  id?: string;
+  documentType?: DocumentType;
+  createdAt?: Date;
+};
+
+const RemoveDocumentButton = ({
+  document,
+  onRemove,
+}: {
+  document: DocumentChipDocument;
+  onRemove?: () => void;
+}) => {
+  const { currentUser } = getCurrentUser();
+  const { showRemoveDocumentDialog } = useDialog();
+
+  const userIsReadonly = isReadonly(currentUser);
+  if (userIsReadonly) return null;
+
+  const handleRemove = () => {
+    if (onRemove) {
+      onRemove();
+    } else {
+      if (document.id) {
+        showRemoveDocumentDialog([document.id]);
+      }
+    }
   };
-  onRemove: () => void;
-}> = ({ document, onRemove }) => {
+
+  return (
+    <button
+      className={STYLES.exitButton}
+      onClick={handleRemove}
+      aria-label={`Delete ${document.name}`}
+      title={`Delete ${document.name}`}
+      type="button"
+    >
+      <div className={STYLES.exitIconContainer}>
+        <ExitIcon className={STYLES.exitIcon} />
+      </div>
+    </button>
+  );
+};
+
+export const DocumentChip = ({
+  document,
+  onRemove,
+}: {
+  document: DocumentChipDocument;
+  onRemove?: () => void;
+}) => {
   const content = (
     <>
       <FileIcon className={STYLES.fileIcon} />
@@ -54,30 +99,15 @@ export const DocumentChip: React.FC<{
   return (
     <>
       <div className={STYLES.chipContainer}>
-        {document.id ? (
-          <a
-            className={`${STYLES.contentContainer} ${STYLES.previewLink}`}
-            href={`/document/${document.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {content}
-          </a>
-        ) : (
-          <div className={STYLES.contentContainer}>{content}</div>
-        )}
-
-        <button
-          className={STYLES.exitButton}
-          onClick={onRemove}
-          aria-label={`Delete ${document.name}`}
-          title={`Delete ${document.name}`}
-          type="button"
+        <a
+          className={`${STYLES.contentContainer} ${STYLES.previewLink}`}
+          href={`/document/${document.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
         >
-          <div className={STYLES.exitIconContainer}>
-            <ExitIcon className={STYLES.exitIcon} />
-          </div>
-        </button>
+          {content}
+          <RemoveDocumentButton document={document} onRemove={onRemove} />
+        </a>
       </div>
     </>
   );
