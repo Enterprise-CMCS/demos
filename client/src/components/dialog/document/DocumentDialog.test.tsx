@@ -5,7 +5,7 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import { ToastProvider } from "components/toast/ToastContext";
+import { TestProvider } from "test-utils/TestProvider";
 import { DocumentType } from "demos-server";
 import {
   checkFormHasChanges,
@@ -83,13 +83,13 @@ const renderAddDialog = (
   onClose: () => void = vi.fn()
 ) =>
   render(
-    <ToastProvider>
+    <TestProvider>
       <DocumentDialog
         applicableDocumentTypes={[documentType]}
         onSubmit={onSubmit}
         onClose={onClose}
       />
-    </ToastProvider>
+    </TestProvider>
   );
 
 const selectFile = (fileName: string) => {
