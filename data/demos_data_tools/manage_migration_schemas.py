@@ -20,8 +20,9 @@ logger = config_logger(getLogger(__name__))
 load_dotenv()
 RAW_SCHEMA = os.environ["RAW_SCHEMA"]
 STAGING_SCHEMA = os.environ["STAGING_SCHEMA"]
+REV01_SCHEMA = os.environ["REV01_SCHEMA"]
 
-MigrationSchemaType = Literal["raw", "staging"]
+MigrationSchemaType = Literal["raw", "staging", "rev01"]
 
 
 def _parse_args() -> "Namespace":
@@ -32,7 +33,7 @@ def _parse_args() -> "Namespace":
     """
     parser = argparse.ArgumentParser(description="Manage migration schemas for development use")
     parser.add_argument("action", choices=["create", "drop"], help="Schema action to perform")
-    parser.add_argument("schema", choices=["raw", "staging"], help="Migration schema to manage")
+    parser.add_argument("schema", choices=["raw", "staging", "rev01"], help="Migration schema to manage")
     return parser.parse_args()
 
 
@@ -41,13 +42,15 @@ def _create_schema(conn: "DuckConn", which: MigrationSchemaType) -> None:
 
     Args:
         conn (DuckConn): A DuckDB connection with the DEMOS DB attached.
-        which (MigrationSchemaType): Which schema to create (one of "raw", "staging").
+        which (MigrationSchemaType): Which schema to create (one of "raw", "staging", "rev01").
     """
     match which:
         case "raw":
             schema = RAW_SCHEMA
         case "staging":
             schema = STAGING_SCHEMA
+        case "rev01":
+            schema = REV01_SCHEMA
 
     logger.info(f"Attempting to create schema {schema}")
     conn.execute(f"""
@@ -61,13 +64,15 @@ def _drop_schema(conn: "DuckConn", which: MigrationSchemaType) -> None:
 
     Args:
         conn (DuckConn): A DuckDB connection with the DEMOS DB attached.
-        which (MigrationSchemaType): Which schema to drop (one of "raw", "staging").
+        which (MigrationSchemaType): Which schema to drop (one of "raw", "staging", "rev01").
     """
     match which:
         case "raw":
             schema = RAW_SCHEMA
         case "staging":
             schema = STAGING_SCHEMA
+        case "rev01":
+            schema = REV01_SCHEMA
 
     logger.info(f"Attempting to drop schema {schema}")
     conn.execute(f"""

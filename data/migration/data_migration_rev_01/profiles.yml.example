@@ -1,4 +1,4 @@
-stage_pmda_for_migration:
+data_migration_rev_01:
   target: dev
   outputs:
     dev:
@@ -8,5 +8,5 @@ stage_pmda_for_migration:
       user: postgres
       password: postgres # pragma: allowlist secret
       dbname: demos
-      schema: legacy_pmda_staged
+      schema: legacy_pmda_migration_rev_01
       threads: 4
