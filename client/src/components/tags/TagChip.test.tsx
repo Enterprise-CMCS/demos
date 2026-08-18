@@ -4,19 +4,10 @@ import { describe, it, expect, vi } from "vitest";
 import { TagChip } from "./TagChip";
 import { Tag } from "demos-server";
 import { TestProvider } from "test-utils/TestProvider";
-import { readonlyMockUser } from "mock-data/userMocks";
+import { MockUser, readonlyMockUser, cmsMockUser } from "mock-data/userMocks";
 
-const renderTagChip = (
-  element: React.ReactElement,
-  currentUser = { person: { personType: "demos-admin" } }
-) =>
-  render(
-    <TestProvider
-      currentUser={currentUser as React.ComponentProps<typeof TestProvider>["currentUser"]}
-    >
-      {element}
-    </TestProvider>
-  );
+const renderTagChip = (element: React.ReactElement, currentUser: MockUser = cmsMockUser) =>
+  render(<TestProvider currentUser={currentUser}>{element}</TestProvider>);
 
 describe("TagChip", () => {
   const testTag: Tag = {
