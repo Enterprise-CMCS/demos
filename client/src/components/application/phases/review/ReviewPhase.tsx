@@ -235,30 +235,28 @@ export const ReviewPhase = ({
           isReadonly={isReadonly || userIsReadonly}
           hideNotes={userIsReadonly}
         />
-        {!userIsReadonly && (
-          <RadioGroup
-            name="clearance-level"
-            options={[
-              {
-                label: "COMMs Clearance Required",
-                value: "COMMs" satisfies ClearanceLevel,
-              },
-              {
-                label: "CMS (OSORA) Clearance Required",
-                value: "CMS (OSORA)" satisfies ClearanceLevel,
-              },
-            ]}
-            value={reviewPhaseFormData.clearanceLevel}
-            onChange={(value) =>
-              setReviewPhaseFormData({
-                ...reviewPhaseFormData,
-                clearanceLevel: value as ClearanceLevel,
-              })
-            }
-            isInline
-            isDisabled={isReadonly}
-          />
-        )}
+        <RadioGroup
+          name="clearance-level"
+          options={[
+            {
+              label: "COMMs Clearance Required",
+              value: "COMMs" satisfies ClearanceLevel,
+            },
+            {
+              label: "CMS (OSORA) Clearance Required",
+              value: "CMS (OSORA)" satisfies ClearanceLevel,
+            },
+          ]}
+          value={reviewPhaseFormData.clearanceLevel}
+          onChange={(value) =>
+            setReviewPhaseFormData({
+              ...reviewPhaseFormData,
+              clearanceLevel: value as ClearanceLevel,
+            })
+          }
+          isInline
+          isDisabled={isReadonly}
+        />
         {reviewPhaseFormData.clearanceLevel === "COMMs" && (
           <CommsClearanceSection
             sectionFormData={reviewPhaseFormData}
