@@ -11,6 +11,7 @@ import { AddDocumentToApplicationDialog } from "./AddDocumentToApplicationDialog
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 import { DOCUMENT_POLL_INTERVAL_MS, VIRUS_SCAN_MAX_ATTEMPTS } from "./useDocumentPassedVirusScan";
 import { tryUploadingFileToS3 } from "./tryUploadingFileToS3";
+import { TestProvider } from "test-utils/TestProvider";
 
 let mockMutationFn = vi.fn();
 let mockLazyQueryFn = vi.fn();
@@ -47,13 +48,13 @@ describe("AddDocumentToApplicationDialog", () => {
   const setup = () => {
     const onClose = vi.fn();
     render(
-      <ToastProvider>
+      <TestProvider>
         <AddDocumentToApplicationDialog
           onClose={onClose}
           applicationId="test-application-id"
           documentTypeSubset={["General File", "Application Completeness Letter"]}
         />
-      </ToastProvider>
+      </TestProvider>
     );
     return { onClose };
   };

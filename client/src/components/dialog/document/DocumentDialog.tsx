@@ -138,7 +138,8 @@ const DropTarget: React.FC<{
   uploadStatus: UploadStatus;
   uploadProgress: number;
   handleFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-}> = ({ file, fileInputRef, uploadStatus, uploadProgress, handleFileChange }) => {
+  setFile: (file: File | null) => void;
+}> = ({ file, fileInputRef, uploadStatus, uploadProgress, handleFileChange, setFile }) => {
   const handleFiles = useCallback(
     (fileList: FileList) => {
       if (!fileList || fileList.length === 0) return;
@@ -190,7 +191,7 @@ const DropTarget: React.FC<{
 
       {file && (
         <div className="mt-sm">
-          <DocumentChip document={file} />
+          <DocumentChip document={file} onRemove={() => setFile(null)} />
           <ProgressBar progress={uploadProgress} uploadStatus={uploadStatus} />
           {uploadProgress > 0 && (
             <div className={STYLES.fileMetaRow}>
@@ -464,6 +465,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
           uploadStatus={uploadStatus}
           uploadProgress={uploadProgress}
           handleFileChange={handleFileChange}
+          setFile={setFile}
         />
 
         <BNPreValidationNotice state={bnPreValidation} />

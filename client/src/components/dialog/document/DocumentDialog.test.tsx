@@ -5,7 +5,6 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import { ToastProvider } from "components/toast/ToastContext";
 import { DocumentType } from "demos-server";
 import {
   checkFormHasChanges,
@@ -14,6 +13,8 @@ import {
 } from "./DocumentDialog";
 import type { DocumentDialogFields, DocumentUploadResult } from "./DocumentDialog";
 import { BN_WORKBOOK_DOCUMENT_TYPE } from "demos-server-constants";
+import { TestProvider } from "test-utils/TestProvider";
+import { DialogProvider } from "../DialogContext";
 
 const parseBNFile = vi.fn();
 const rule = vi.fn();
@@ -83,13 +84,15 @@ const renderAddDialog = (
   onClose: () => void = vi.fn()
 ) =>
   render(
-    <ToastProvider>
-      <DocumentDialog
-        applicableDocumentTypes={[documentType]}
-        onSubmit={onSubmit}
-        onClose={onClose}
-      />
-    </ToastProvider>
+    <TestProvider>
+      <DialogProvider>
+        <DocumentDialog
+          applicableDocumentTypes={[documentType]}
+          onSubmit={onSubmit}
+          onClose={onClose}
+        />
+      </DialogProvider>
+    </TestProvider>
   );
 
 const selectFile = (fileName: string) => {

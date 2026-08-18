@@ -4,9 +4,11 @@ import React from "react";
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { TestProvider } from "test-utils/TestProvider";
 
 import { DocumentChip } from "./documentChip";
+import { DialogProvider } from "components/dialog/DialogContext";
 
 describe("DocumentChip", () => {
   const baseDocument = {
@@ -16,8 +18,17 @@ describe("DocumentChip", () => {
     createdAt: new Date("2024-01-15T10:00:00Z"),
   };
 
+  const setup = (document = baseDocument, onRemove?: () => void) =>
+    render(
+      <TestProvider>
+        <DialogProvider>
+          <DocumentChip document={document} onRemove={onRemove} />
+        </DialogProvider>
+      </TestProvider>
+    );
+
   it("renders a preview link when the document has an id", () => {
-    render(<DocumentChip document={{ ...baseDocument, id: "doc-1" }} />);
+    setup({ ...baseDocument, id: "doc-1" });
 
     const link = screen.getByRole("link", { name: /state application\.pdf/i });
 
@@ -27,29 +38,25 @@ describe("DocumentChip", () => {
   });
 
   it("renders non-link content when the document has no id", () => {
-    render(<DocumentChip document={baseDocument} />);
+    setup({ ...baseDocument, id: "" });
 
     expect(screen.queryByRole("link", { name: /state application\.pdf/i })).not.toBeInTheDocument();
     expect(screen.getByText("State Application.pdf")).toBeInTheDocument();
   });
 
   it("renders metadata when createdAt and documentType are present", () => {
-    render(<DocumentChip document={baseDocument} />);
+    setup(baseDocument);
 
     expect(screen.getByText(/01\/15\/2024/)).toBeInTheDocument();
     expect(screen.getByText(/• State Application/)).toBeInTheDocument();
   });
 
   it("omits metadata when createdAt or documentType is missing", () => {
-    render(
-      <DocumentChip
-        document={{
-          ...baseDocument,
-          id: "",
-          name: "Pending Upload.pdf",
-        }}
-      />
-    );
+    setup({
+      ...baseDocument,
+      id: "",
+      name: "Pending Upload.pdf",
+    });
 
     expect(screen.queryByText(/--\/--\/----/)).not.toBeInTheDocument();
     expect(screen.queryByText(/pending upload •/i)).not.toBeInTheDocument();
@@ -59,7 +66,7 @@ describe("DocumentChip", () => {
     const user = userEvent.setup();
     const onRemove = vi.fn();
 
-    render(<DocumentChip document={baseDocument} onRemove={onRemove} />);
+    setup(baseDocument, onRemove);
 
     await user.click(screen.getByRole("button", { name: "Delete State Application.pdf" }));
 
@@ -69,14 +76,10 @@ describe("DocumentChip", () => {
     const longName =
       "this-is-a-very-long-document-name-that-should-be-shortened-for-display-only.pdf";
 
-    render(
-      <DocumentChip
-        document={{
-          ...baseDocument,
-          name: longName,
-        }}
-      />
-    );
+    setup({
+      ...baseDocument,
+      name: longName,
+    });
 
     const titleElement = screen.getByTitle(longName);
 

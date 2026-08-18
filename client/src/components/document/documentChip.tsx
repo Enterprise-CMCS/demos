@@ -82,7 +82,7 @@ export const DocumentChip = ({
   const content = (
     <>
       <FileIcon className={STYLES.fileIcon} />
-      <div className={STYLES.titleContainer}>
+      <span className={STYLES.titleContainer}>
         <span className={STYLES.name} title={document.name}>
           {abbreviateLongFilename(document.name)}
         </span>
@@ -92,22 +92,29 @@ export const DocumentChip = ({
             {` • ${document.documentType}`}
           </span>
         )}
-      </div>
+      </span>
     </>
   );
 
   return (
     <>
       <div className={STYLES.chipContainer}>
-        <a
-          className={`${STYLES.contentContainer} ${STYLES.previewLink}`}
-          href={`/document/${document.id}`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {content}
-          <RemoveDocumentButton document={document} onRemove={onRemove} />
-        </a>
+        {document.id ? (
+          <a
+            className={`${STYLES.contentContainer} ${STYLES.previewLink}`}
+            href={`/document/${document.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {content}
+            <RemoveDocumentButton document={document} onRemove={onRemove} />
+          </a>
+        ) : (
+          <span className={STYLES.contentContainer}>
+            {content}
+            <RemoveDocumentButton document={document} onRemove={onRemove} />
+          </span>
+        )}
       </div>
     </>
   );
