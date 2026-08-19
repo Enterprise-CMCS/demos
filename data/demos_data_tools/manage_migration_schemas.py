@@ -3,7 +3,7 @@
 import argparse
 import os
 from logging import getLogger
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, get_args, assert_never
 
 from dotenv import load_dotenv
 
@@ -23,6 +23,7 @@ STAGING_SCHEMA = os.environ["STAGING_SCHEMA"]
 REV01_SCHEMA = os.environ["REV01_SCHEMA"]
 
 MigrationSchemaType = Literal["raw", "staging", "rev01"]
+MIGRATION_SCHEMAS = get_args(MigrationSchemaType)
 
 
 def _parse_args() -> "Namespace":
@@ -33,7 +34,7 @@ def _parse_args() -> "Namespace":
     """
     parser = argparse.ArgumentParser(description="Manage migration schemas for development use")
     parser.add_argument("action", choices=["create", "drop"], help="Schema action to perform")
-    parser.add_argument("schema", choices=["raw", "staging", "rev01"], help="Migration schema to manage")
+    parser.add_argument("schema", choices=MIGRATION_SCHEMAS, help="Migration schema to manage")
     return parser.parse_args()
 
 
@@ -42,7 +43,7 @@ def _create_schema(conn: "DuckConn", which: MigrationSchemaType) -> None:
 
     Args:
         conn (DuckConn): A DuckDB connection with the DEMOS DB attached.
-        which (MigrationSchemaType): Which schema to create (one of "raw", "staging", "rev01").
+        which (MigrationSchemaType): Which schema to create.
     """
     match which:
         case "raw":
@@ -51,6 +52,8 @@ def _create_schema(conn: "DuckConn", which: MigrationSchemaType) -> None:
             schema = STAGING_SCHEMA
         case "rev01":
             schema = REV01_SCHEMA
+        case _:
+            assert_never(which)
 
     logger.info(f"Attempting to create schema {schema}")
     conn.execute(f"""
@@ -64,7 +67,7 @@ def _drop_schema(conn: "DuckConn", which: MigrationSchemaType) -> None:
 
     Args:
         conn (DuckConn): A DuckDB connection with the DEMOS DB attached.
-        which (MigrationSchemaType): Which schema to drop (one of "raw", "staging", "rev01").
+        which (MigrationSchemaType): Which schema to drop.
     """
     match which:
         case "raw":
@@ -73,6 +76,8 @@ def _drop_schema(conn: "DuckConn", which: MigrationSchemaType) -> None:
             schema = STAGING_SCHEMA
         case "rev01":
             schema = REV01_SCHEMA
+        case _:
+            assert_never(which)
 
     logger.info(f"Attempting to drop schema {schema}")
     conn.execute(f"""
