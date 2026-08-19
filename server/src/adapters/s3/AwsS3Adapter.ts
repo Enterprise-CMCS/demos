@@ -58,6 +58,7 @@ async function buildDownloadFileName(
 }
 
 /** Wraps the download file name in a Content-Disposition header value. */
+/** Builds a Content-Disposition with a sanitized name plus the extension derived from Content-Type. */
 async function buildContentDisposition(
   s3Client: S3Client,
   bucket: string,
@@ -65,9 +66,12 @@ async function buildContentDisposition(
   fileName: string,
   options?: GetPresignedDownloadUrlOptions
 ): Promise<string> {
-  const downloadFileName = await buildDownloadFileName(s3Client, bucket, key, fileName);
+  const safeName = sanitizeDownloadFileName(fileName, key.split("/").pop() ?? key);
 
-  return createContentDisposition(downloadFileName, { type: options?.disposition ?? "inline" });
+  const extension = await getExtensionForObject(s3Client, bucket, key);
+  const finalName = extension ? `${safeName}.${extension}` : safeName;
+
+  return createContentDisposition(finalName, { type: options?.disposition ?? "inline" });
 }
 
 /**

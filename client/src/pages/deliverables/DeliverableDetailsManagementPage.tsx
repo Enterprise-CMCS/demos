@@ -144,7 +144,7 @@ export type DeliverableDetailsManagementDeliverable = Pick<
 > & {
   allowedDocumentTypes: DocumentType[];
   demonstration: Pick<Demonstration, "id" | "name" | "expirationDate"> & {
-    state: { id: string };
+    state: { id: string, name: string };
     demonstrationTypes: {
       demonstrationTypeName: string;
       approvalStatus: "Approved" | "Unapproved";

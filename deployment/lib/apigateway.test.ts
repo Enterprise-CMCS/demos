@@ -31,6 +31,9 @@ describe("ApiGateway", () => {
 
     template.hasResourceProperties("AWS::ApiGateway::RestApi", {
       Name: "demos-unittest-api",
+      // Required for the graphql lambda's gzipped responses to be decoded
+      // rather than delivered to the client as base64 text.
+      BinaryMediaTypes: ["*/*"],
     });
 
     template.hasResourceProperties("AWS::ApiGateway::Stage", {

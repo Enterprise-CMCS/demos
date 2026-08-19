@@ -70,3 +70,30 @@ seeds:
               arguments:
                 to: source('legacy_pmda_raw', 'pgm_mntrg_ctgry_type_rfrnc')
                 field: pgm_mntrg_ctgry_type_cd
+
+  - name: extracted_reference_agreements_from_pmda
+    columns:
+      - name: file_name
+        data_tests:
+          - unique:
+              name: assert_agreement_file_names_unique_in_seed
+      - name: file_path
+        data_tests:
+          - unique:
+              name: assert_agreement_file_paths_unique_in_seed
+
+  - name: extracted_references_from_pmda
+    columns:
+      - name: rfrnc_matl_id
+        data_tests:
+          - unique:
+              name: assert_reference_rfrnc_matl_ids_unique_in_seed
+          - relationships:
+              name: assert_all_extracted_refs_exist_in_rfrnc_matl
+              arguments:
+                to: source('legacy_pmda_raw', 'rfrnc_matl')
+                field: rfrnc_matl_id
+      - name: file_name
+        data_tests:
+          - unique:
+              name: assert_reference_file_names_unique_in_seed

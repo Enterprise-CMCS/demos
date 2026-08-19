@@ -54,6 +54,7 @@ export interface ButtonProps {
   size?: ButtonSize;
   disabled?: boolean;
   isCircle?: boolean;
+  isHidden?: boolean;
   tooltip?: string;
   eagerTooltip?: string;
 }
@@ -69,15 +70,19 @@ export const BaseButton: React.FC<ButtonProps> = ({
   size = "standard",
   disabled = false,
   isCircle = false,
+  isHidden = false,
   tooltip,
   eagerTooltip,
 }) => {
+  const uid = useId().replace(NON_ALPHANUMERIC, "");
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  if (isHidden) return null;
+
   const sizeClasses = getSizeClasses(isCircle, size);
   const circleClasses = getCircleClasses(isCircle);
-  const uid = useId().replace(NON_ALPHANUMERIC, "");
   const anchorName = `--btn-${uid}`;
   const tooltipId = `tooltip-${uid}`;
-  const buttonRef = useRef<HTMLButtonElement>(null);
 
   return (
     <>

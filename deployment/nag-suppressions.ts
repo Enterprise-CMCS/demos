@@ -173,9 +173,9 @@ export function applyDatabaseSuppressions(database: Stack, stage: string) {
           }
         ]
       : [{
-            id: "AwsSolutions-RDS3",
-            reason: "REMOVE THIS BEFORE PROD IS LIVE. Leaving non-multi-az until in use",
-          },]
+          id: "AwsSolutions-IAM4",
+          reason: "Default AWS role is used for enhanced monitoring"
+        }]
   );
   NagSuppressions.addResourceSuppressionsByPath(
     database,

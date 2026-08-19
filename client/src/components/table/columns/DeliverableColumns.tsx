@@ -202,7 +202,7 @@ export function DeliverableColumns({
 
   return [
     createSelectColumnDef(columnHelper),
-    columnHelper.accessor("demonstration.state.id", {
+    columnHelper.accessor("demonstration.state.name", {
       id: "stateId",
       header: "State/\u200BTerritory",
       cell: highlightCell,
@@ -215,8 +215,8 @@ export function DeliverableColumns({
           filterType: "select",
           options:
             STATES_AND_TERRITORIES.map((state) => ({
-              label: state.id,
-              value: state.id,
+              label: state.name,
+              value: state.name,
             })) ?? [],
         },
       },

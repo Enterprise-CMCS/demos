@@ -20,7 +20,11 @@ import { RequireRole } from "./RequireRole";
 import { PersonType } from "demos-server";
 import { ReferencesPage } from "pages/references/ReferencesPage";
 
-const DEMONSTRATION_ACCESS_ROLES: PersonType[] = ["demos-admin", "demos-cms-user", "demos-readonly"];
+const DEMONSTRATION_ACCESS_ROLES: PersonType[] = [
+  "demos-admin",
+  "demos-cms-user",
+  "demos-readonly",
+];
 
 const HomePage = () => {
   const { currentUser } = getCurrentUser();

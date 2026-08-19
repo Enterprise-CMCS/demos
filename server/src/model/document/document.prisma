@@ -14,7 +14,7 @@ model Document {
   deliverableSubmissionActionTypeId String?  @map("deliverable_submission_action_type_id")
   createdAt                         DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt                         DateTime @updatedAt @map("updated_at") @db.Timestamptz
-  isMigratedFromPmda Boolean @default(false) @map("is_migrated_from_pmda")
+  isMigratedFromPmda                Boolean  @default(false) @map("is_migrated_from_pmda")
 
   owner                           User                                  @relation(fields: [ownerUserId], references: [id])
   application                     Application                           @relation(fields: [applicationId], references: [id])

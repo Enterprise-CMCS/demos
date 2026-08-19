@@ -1,0 +1,78 @@
+_internal_reference_id,rfrnc_matl_id,file_name,file_path,_internal_reference_agreement_id,archived
+1,294,"Section 1115 THCP Monitoring Metrics Technical Specifications v2.0, released 2026.zip",reference/mrt_technical_specification_reference_only/THCP/2.00/,1,0
+2,293,"Section 1115 SUD Monitoring Metrics Technical Specifications v7.0, released 2026.zip",reference/mrt_technical_specification_reference_only/SUD/7.00/,2,0
+3,292,"Section 1115 SMI Monitoring Metrics Technical Specifications v6.0, released 2026.zip",reference/mrt_technical_specification_reference_only/SMI/6.00/,3,0
+4,291,"Section 1115 Family Planning Monitoring Metrics Technical Specifications v2.0, released 2026.zip",reference/mrt_technical_specification_reference_only/FP/2.00/,4,0
+5,289,Updates-1115-Manuals-May2026.pdf,reference/mrt_templates_reference_only/Base/1.00/,0,0
+6,290,"Section 1115 Base Monitoring Metrics Technical Specifications v2.0, released 2026.zip",reference/mrt_technical_specification_reference_only/Base/,5,0
+7,282,"Section 1115 Base Monitoring Metrics Technical Specifications v1.0, released 2025.zip",reference/mrt_technical_specification_reference_only/Base/1.00/,6,0
+8,283,"Section 1115 SMI Monitoring Metrics Technical Specifications v5.0, released 2025.zip",reference/mrt_technical_specification_reference_only/SMI/5.00/,7,0
+9,284,"Section 1115 SUD Monitoring Metrics Technical Specifications v6.0, released 2025.zip",reference/mrt_technical_specification_reference_only/SUD/6.00/,8,0
+10,287,"Section 1115 Family Planning Monitoring Metrics Technical Specifications v1.0, released 2025.zip",reference/mrt_technical_specification_reference_only/FP/1.00/,9,0
+11,288,"Section 1115 THCP Monitoring Metrics Technical Specifications v1.0, released 2025.zip",reference/mrt_technical_specification_reference_only/THCP/1.00/,10,0
+12,58,"Section 1115 SUD Monitoring Metrics Technical Specifications v5.0, released 2022.zip",reference/mrt_technical_specification_reference_only/SUD/5.00/,11,0
+13,189,"Section 1115 E C Monitoring Metrics Technical Specifications v4.0, released 2022.zip",reference/mrt_technical_specification_reference_only/TEX/4.00/,12,0
+14,66,"Section 1115 SMI SED Monitoring Metrics Technical Specifications v4.0, released 2022.zip",reference/mrt_technical_specification_reference_only/SMI/4.00/,13,0
+15,57,"Section 1115 SMI SED Monitoring Metrics Technical Specifications v3.0, released 2021.zip",reference/mrt_technical_specification_reference_only/SMI/3.00/,14,0
+16,56,"Section 1115 SUD Monitoring Metrics Technical Specifications v4.0, released 2021.zip",reference/mrt_technical_specification_reference_only/SUD/4.00/,15,0
+17,34,"Section 1115 SMI SED Monitoring Metrics Technical Specifications v2.0, released 2020.zip",reference/mrt_technical_specification_reference_only/SMI/2.00/,16,0
+18,32,"Section 1115 SUD Monitoring Metrics Technical Specifications v3.0, released 2020.zip",reference/mrt_technical_specification_reference_only/SUD/3.00/,17,0
+19,11,"Section 1115 SUD Monitoring Metrics Technical Specifications v2.0, released 2019.zip",reference/mrt_technical_specification_reference_only/SUD/2.00/,18,0
+20,12,"Section 1115 SUD Monitoring Metrics Technical Specifications v1.1, released 2019.zip",reference/mrt_technical_specification_reference_only/SUD/1.00/,19,0
+21,246,EandC_NEP_ImpPlanTemp.v3.docx,reference/mrt_implementation_plan_reference_only/NELIG/,0,0
+22,230,EandC_RW_ImpPlanTemp.v3.docx,reference/mrt_implementation_plan_reference_only/RETRO/,0,0
+23,212,EandC_CE_ImpPlanTemp.v2.docx,reference/mrt_implementation_plan_reference_only/CE/,0,0
+24,181,EandC_PR_ImpPlanTemp.v3.docx,reference/mrt_implementation_plan_reference_only/PRCS/,0,0
+25,171,Section 1115 E C Evaluation Design Guidance.zip,reference/mrt_evaluation_design_reference_only/PRCS/1.00/,0,0
+26,141,EandC_MonReportInstr.v3.pdf,reference/mrt_templates_reference_only/ENC/,0,0
+27,74,SMI_AnnualAvailAssessment_v3.xlsm,reference/mrt_templates_reference_only/SMI/,0,0
+28,73,SMI_InitialAvailAssessment_v3.xlsm,reference/mrt_templates_reference_only/SMI/,0,0
+29,30,Section 1115 SMI SED Evaluation Design Guidance.zip,reference/mrt_evaluation_design_reference_only/SMI/1.00/,0,0
+30,22,smi-impl-plan-template.pdf,reference/mrt_implementation_plan_reference_only/SMI/,0,0
+31,20,Section 1115 SUD Evaluation Design Guidance.zip,reference/mrt_evaluation_design_reference_only/SUD/1.00/,0,0
+32,13,sud-implementation-plan-template.pdf,reference/mrt_implementation_plan_reference_only/SUD/,0,0
+33,286,1115_MonReportInstr.v1.0.pdf,reference/mrt_templates_reference_only/Demo/1.00/,0,1
+34,285,1115_MonitoringReport.v1.0.xlsm,reference/mrt_templates_reference_only/Demo/1.00/,0,1
+35,124,"Section 1115 E C Monitoring Metrics Technical Specifications v3.0, released 2021.zip",reference/mrt_technical_specification_reference_only/ESUP/3.00/,20,1
+36,121,"Section 1115 E C Monitoring Metrics Technical Specifications v2.0, released 2020.zip",reference/mrt_technical_specification_reference_only/ESUP/2.00/,21,1
+37,170,"Section 1115 E C Monitoring Metrics Technical Specifications v1.0, released 2019.zip",reference/mrt_technical_specification_reference_only/PRCS/1.00/,22,1
+38,21,"Section 1115 SMI SED Monitoring Metrics Technical Specifications v1.0, released 2019.zip",reference/mrt_technical_specification_reference_only/SMI/1.00/,23,1
+39,214,EandC_CE_MonReportTemp.v2.docx,reference/mrt_templates_reference_only/CE/,0,1
+40,174,EandC_MonProtocolInstr.v3.pdf,reference/mrt_templates_reference_only/PRCS/,0,1
+41,176,EandC_AD_MonProtocolWB.v3.xlsx,reference/mrt_templates_reference_only/PRCS/,0,1
+42,180,EandC_ToolsUpdates.Sep2022.pdf,reference/mrt_templates_reference_only/PRCS/,0,1
+43,182,EandC_PR_MonProtocolWB.v3.xlsx,reference/mrt_templates_reference_only/PRCS/,0,1
+44,183,EandC_PR_MonReportTemp.v3.docx,reference/mrt_templates_reference_only/PRCS/,0,1
+45,184,EandC_PR_MonReportWB.v3.xlsx,reference/mrt_templates_reference_only/PRCS/,0,1
+46,213,EandC_CE_MonProtocolWB.v2.xlsx,reference/mrt_templates_reference_only/CE/,0,1
+47,143,EandC_AD_MonReportWB.v3.xlsx,reference/mrt_templates_reference_only/ENC/,0,1
+48,215,EandC_CE_MonReportWB.v2.xlsx,reference/mrt_templates_reference_only/CE/,0,1
+49,234,EandC_RW_MonProtocolWB.v3.xlsx,reference/mrt_templates_reference_only/RETRO/,0,1
+50,237,EandC_RW_MonReportTemp.v3.docx,reference/mrt_templates_reference_only/RETRO/,0,1
+51,239,EandC_RW_MonReportWB.v3.xlsx,reference/mrt_templates_reference_only/RETRO/,0,1
+52,252,EandC_NEP_MonReportTemp.v3.docx,reference/mrt_templates_reference_only/NELIG/,0,1
+53,263,EandC_HB_MonProtocolWB.v3.xlsx,reference/mrt_templates_reference_only/HBI/,0,1
+54,266,EandC_HB_MonReportTemp.v3.docx,reference/mrt_templates_reference_only/HBI/,0,1
+55,268,EandC_HB_MonReportWB.v3.xlsx,reference/mrt_templates_reference_only/HBI/,0,1
+56,60,SUD_MonProtocolTemp.v5.docx,reference/mrt_templates_reference_only/SUD/,0,1
+57,59,SUD_MonProtocolInstr.v5.pdf,reference/mrt_templates_reference_only/SUD/,0,1
+58,72,SMI_MonReportWB.v3.xlsx,reference/mrt_templates_reference_only/SMI/,0,1
+59,62,SUD_MonReportInstr.v5.pdf,reference/mrt_templates_reference_only/SUD/,0,1
+60,63,SUD_MonReportTemp.v5.docx,reference/mrt_templates_reference_only/SUD/,0,1
+61,64,SUD_MonReportWB.v7.xlsx,reference/mrt_templates_reference_only/SUD/,0,1
+62,65,SUD_MonToolsUpdates.Sep2022.pdf,reference/mrt_templates_reference_only/SUD/,0,1
+63,67,SMI_MonProtocolInstr.v3.pdf,reference/mrt_templates_reference_only/SMI/,0,1
+64,68,SMI_MonProtocolTemp.v3.docx,reference/mrt_templates_reference_only/SMI/,0,1
+65,69,SMI_MonProtocolWB.v3.xlsx,reference/mrt_templates_reference_only/SMI/,0,1
+66,70,SMI_MonReportInstr.v3.pdf,reference/mrt_templates_reference_only/SMI/,0,1
+67,71,SMI_MonReportTemp.v3.docx,reference/mrt_templates_reference_only/SMI/,0,1
+68,154,EandC_AD_MonReportTemp.v3.docx,reference/mrt_templates_reference_only/LFLI/,0,1
+69,75,SMI_MonToolsUpdates.Sep2022.pdf,reference/mrt_templates_reference_only/SMI/,0,1
+70,79,SUD_SMI_MonReportInstr.v1.pdf,reference/mrt_templates_reference_only/SMI/,0,1
+71,80,SUD_SMI_MonReportTemp.v1.docx,reference/mrt_templates_reference_only/SMI/,0,1
+72,81,SUD_SMI_MonReportWB.v1.xlsx,reference/mrt_templates_reference_only/SMI/,0,1
+73,103,SUD_SMI_MonProtocolInstr.v1.pdf,reference/mrt_templates_reference_only/SUD/,0,1
+74,104,SUD_SMI_MonProtocolReportTemp.v1.docx,reference/mrt_templates_reference_only/SUD/,0,1
+75,105,SUD_SMI_MonProtocolWB.v1.xlsx,reference/mrt_templates_reference_only/SUD/,0,1
+76,139,EandC_MonProtocolTemp.v3.docx,reference/mrt_templates_reference_only/ENC/,0,1
+77,61,SUD_MonProtocolWB.v7.xlsx,reference/mrt_templates_reference_only/SUD/,0,1

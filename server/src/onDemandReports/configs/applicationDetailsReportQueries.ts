@@ -154,7 +154,7 @@ app_notes AS (
 )
 
 SELECT
-    demo.state_id AS state,
+    demo_state.name AS state,
     app.application_type_id AS application_type,
     app.application_title,
     demo.medicaid_id AS demonstration_number,
@@ -228,6 +228,12 @@ INNER JOIN
     demos_app.demonstration AS demo
     ON
         app.parent_demonstration_id = demo.id
+
+-- Every demonstration has a state
+INNER JOIN
+    demos_app.state AS demo_state
+    ON
+        demo.state_id = demo_state.id
 
 -- This identifies when the parent demo has CHIP
 LEFT JOIN

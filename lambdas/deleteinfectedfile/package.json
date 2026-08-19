@@ -12,8 +12,8 @@
     "lint": "tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1095.0",
-    "@aws-sdk/client-secrets-manager": "^3.1095.0",
+    "@aws-sdk/client-s3": "^3.1106.0",
+    "@aws-sdk/client-secrets-manager": "^3.1106.0",
     "pg": "^8.22.0",
     "demos-shared-library": "file:../../shared_library"
   },

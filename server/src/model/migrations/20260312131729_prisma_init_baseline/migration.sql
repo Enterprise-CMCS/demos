@@ -68,6 +68,7 @@ CREATE TABLE "application_history" (
     "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "id" UUID NOT NULL,
     "application_type_id" TEXT NOT NULL,
+    "is_migrated_from_pmda" BOOLEAN NOT NULL,
 
     CONSTRAINT "application_history_pkey" PRIMARY KEY ("revision_id")
 );
@@ -94,6 +95,7 @@ CREATE TABLE "application_date_history" (
     "date_value" TIMESTAMPTZ NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
+    "is_migrated_from_pmda" BOOLEAN NOT NULL,
 
     CONSTRAINT "application_date_history_pkey" PRIMARY KEY ("revision_id")
 );
@@ -727,6 +729,7 @@ CREATE TABLE "document_history" (
     "deliverable_submission_action_type_id" TEXT,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
+    "is_migrated_from_pmda" BOOLEAN NOT NULL,
 
     CONSTRAINT "document_history_pkey" PRIMARY KEY ("revision_id")
 );
@@ -1052,6 +1055,7 @@ CREATE TABLE "private_comment" (
     "content" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
+    "is_migrated_from_pmda" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "private_comment_pkey" PRIMARY KEY ("id")
 );
@@ -1068,6 +1072,7 @@ CREATE TABLE "private_comment_history" (
     "content" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
+    "is_migrated_from_pmda" BOOLEAN NOT NULL,
 
     CONSTRAINT "private_comment_history_pkey" PRIMARY KEY ("revision_id")
 );
@@ -1080,6 +1085,7 @@ CREATE TABLE "public_comment" (
     "content" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
+    "is_migrated_from_pmda" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "public_comment_pkey" PRIMARY KEY ("id")
 );
@@ -1095,6 +1101,7 @@ CREATE TABLE "public_comment_history" (
     "content" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
+    "is_migrated_from_pmda" BOOLEAN NOT NULL,
 
     CONSTRAINT "public_comment_history_pkey" PRIMARY KEY ("revision_id")
 );
