@@ -167,8 +167,8 @@ export function DeliverableColumns({
       return detailColumns;
     }
 
-    // @ts-expect-error demos-readonly will be added later
-    if (viewMode === "demos-readonly") {
+    // TODO: Update demos-readonly when demos-restricted-cms-user is added
+    if (viewMode === "demos-readonly" as UserType) {
       // Returns everything except select column
       return [
         ...detailColumns.slice(0, 2),
@@ -223,8 +223,8 @@ export function DeliverableColumns({
     ];
   }
 
-  // @ts-expect-error demos-readonly will be added later
-  if (viewMode === "demos-readonly") {
+  // TODO: Update demos-readonly when demos-restricted-cms-user is added
+  if (viewMode === "demos-readonly" as UserType) {
     // Returns everything except select column
     return [
       columnHelper.accessor("demonstration.state.name", {
