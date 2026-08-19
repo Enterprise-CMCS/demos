@@ -173,6 +173,14 @@ models:
         data_type: uuid
       - name: application_type_id
         data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_application_type_id_in_final_application_table
+          - relationships:
+              name: assert_application_type_id_exists_in_demos_app_application_type
+              arguments:
+                to: source('demos_app', 'application_type')
+                field: id
       - name: _legacy_mdcd_demo_id
         data_type: integer
       - name: _legacy_mdcd_pendg_demo_id
@@ -185,6 +193,22 @@ models:
               arguments:
                 values:
                   - TRUE
+
+  - name: final_demos_app_application_combined_with_staged
+    columns:
+      - name: id
+        data_type: uuid
+        data_tests:
+          - unique:
+              name: assert_id_is_unique_in_final_application_table
+      - name: application_type_id
+        data_type: text
+      - name: _legacy_mdcd_demo_id
+        data_type: integer
+      - name: _legacy_mdcd_pendg_demo_id
+        data_type: integer
+      - name: is_migrated_from_pmda
+        data_type: boolean
 
   - name: final_demos_app_application_tag_assignment
     columns:
@@ -267,7 +291,7 @@ models:
           - relationships:
               name: assert_document_application_id_exists_in_application
               arguments:
-                to: ref('final_demos_app_application')
+                to: ref('final_demos_app_application_combined_with_staged')
                 field: id
       - name: phase_id
         data_type: text
@@ -285,7 +309,7 @@ models:
           - relationships:
               name: assert_document_deliverable_id_exists_in_deliverable
               arguments:
-                to: source('legacy_pmda_staged', 'final_demos_app_deliverable')
+                to: ref('final_demos_app_deliverable')
                 field: id
         # deliverable_type_id is null when documents are attached directly to the demonstration
       - name: deliverable_type_id
@@ -331,6 +355,175 @@ models:
               arguments:
                 values:
                   - TRUE
+  - name: final_demos_app_deliverable_action
+    columns:
+      - name: id
+        data_type: uuid
+      - name: action_timestamp
+        data_type: timestamptz
+      - name: deliverable_id
+        data_type: uuid
+      - name: action_type_id
+        data_type: text
+      - name: old_status_id
+        data_type: text
+      - name: new_status_id
+        data_type: text
+      - name: note
+        data_type: text
+      - name: active_extension_id
+        data_type: uuid
+      - name: due_date_change_allowed
+        data_type: boolean
+      - name: should_have_note
+        data_type: boolean
+      - name: should_have_user_id
+        data_type: boolean
+      - name: extension_id_optional
+        data_type: boolean
+      - name: old_due_date
+        data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_null_old_due_date_in_final_deliv_action
+      - name: new_due_date
+        data_tests:
+          - not_null:
+              name: assert_no_null_new_due_date_in_final_deliv_action
+        data_type: timestamptz
+      - name: user_id
+        data_type: uuid
+
+  - name: final_demos_app_deliverable_demonstration_type
+    columns:
+      - name: deliverable_id
+        data_type: uuid
+      - name: demonstration_id
+        data_type: uuid
+      - name: demonstration_type_tag_name_id
+        data_type: text
+
+  - name: final_demos_app_deliverable
+    columns:
+      - name: id
+        data_type: uuid
+        data_tests:
+          - not_null:
+              name: assert_no_missing_id_in_final_deliv_table
+      - name: deliverable_type_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_deliverable_types_in_final_table
+      - name: name
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_name_in_final_deliv_table
+      - name: demonstration_id
+        data_type: uuid
+        data_tests:
+          - not_null:
+              name: assert_no_missing_demonstration_ids_in_final_deliv_table
+      - name: demonstration_status_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_demo_status_in_final_deliv_table
+      - name: status_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_status_ids_in_final_deliv_table
+      - name: cms_owner_user_id
+        data_type: uuid
+        data_tests:
+          - not_null:
+              name: assert_no_missing_owner_ids_in_final_deliv_table
+      - name: cms_owner_person_type_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_owner_person_type_in_final_deliv_table
+      - name: due_date
+        data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_missing_due_date_in_final_deliv_table
+      - name: due_date_type_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_missing_due_date_type_in_final_deliv_table
+      - name: expected_to_be_submitted
+        data_type: boolean
+        data_tests:
+          - not_null:
+              name: assert_no_missing_expected_to_be_submitted_in_final_deliv_table
+      - name: created_at
+        data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_missing_created_at_in_final_deliv_table
+      - name: updated_at
+        data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_missing_updated_at_in_final_deliv_table
+      - name: _legacy_mdcd_demo_id
+        data_type: integer
+      - name: _legacy_mdcd_dlvrbl_id
+        data_type: integer
+      - name: _legacy_mdcd_dlvrbl_crnt_stus_cd
+        data_type: integer
+
+  - name: final_demos_app_private_comment
+    columns:
+      - name: id
+        data_type: uuid
+      - name: deliverable_id
+        data_type: uuid
+      - name: author_user_id
+        data_type: uuid
+      - name: author_person_type_id
+        data_type: text
+      - name: content
+        data_type: text
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+      - name: is_migrated_from_pmda
+        data_type: boolean
+      - name: _legacy_mdcd_dlvrbl_cmt_id
+        data_type: integer
+      - name: _legacy_mdcd_dlvrbl_id
+        data_type: integer
+      - name: _legacy_mdcd_dlvrbl_cmt_user_id
+        data_type: integer
+
+  - name: final_demos_app_public_comment
+    columns:
+      - name: id
+        data_type: uuid
+      - name: deliverable_id
+        data_type: uuid
+      - name: author_user_id
+        data_type: uuid
+      - name: content
+        data_type: text
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+      - name: is_migrated_from_pmda
+        data_type: boolean
+      - name: _legacy_mdcd_dlvrbl_cmt_id
+        data_type: integer
+      - name: _legacy_mdcd_dlvrbl_id
+        data_type: integer
+      - name: _legacy_mdcd_dlvrbl_cmt_user_id
+        data_type: integer
 
   # Application models
   - name: cleaned_demos_app_app_phases_in_prog_demos
@@ -436,3 +629,131 @@ models:
         data_tests:
           - unique:
               name: assert_no_duplicate_app_doc_rpstry_fil_ids_in_rpstry
+
+  - name: cleaned_demos_app_deliverable_docs
+    columns:
+      - name: deliverable_type_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_no_null_deliverable_type_ids_in_cleaned_deliverable_docs
+
+  - name: cleaned_demos_app_comments
+    columns:
+      - name: id
+        data_type: uuid
+      - name: deliverable_id
+        data_type: uuid
+      - name: author_user_id
+        data_type: uuid
+      - name: author_person_type_id
+        data_type: text
+      - name: content
+        data_type: text
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+      - name: is_migrated_from_pmda
+        data_type: boolean
+      - name: _legacy_mdcd_dlvrbl_cmt_id
+        data_type: integer
+      - name: _legacy_mdcd_dlvrbl_id
+        data_type: integer
+      - name: _legacy_mdcd_dlvrbl_cmt_user_id
+        data_type: integer
+      - name: _internal_demos_comment_type
+        data_type: text
+        data_tests:
+          - accepted_values:
+              name: assert_all_cleaned_comments_have_type
+              arguments:
+                values:
+                  - Private
+                  - Public
+          - not_null:
+              name: assert_no_null_comment_types_in_cleaned
+
+  # Deliverable Models
+  - name: deliverables_history_due_date_by_date_range
+    columns:
+      - name: dlvrbl_due_dt
+        data_tests:
+          - not_null:
+              name: assert_dlvrbl_due_dt_not_null_in_due_date_history_table
+              config:
+                severity: warn
+      - name: mdcd_dlvrbl_id
+        data_tests:
+          - not_null:
+              name: assert_mdcd_dlvrbl_id_not_null_in_due_date_history_table
+
+  - name: deliverables_active_pmda_deliverables
+    columns:
+      - name: mdcd_dlvrbl_id
+        data_tests:
+          - not_null:
+              name: assert_mdcd_dlvrbl_id_not_null_in_active_pmda_deliverables
+
+  - name: deliverables_crosswalked_pmda_deliverables
+    columns:
+      - name: deliverable_type_id
+        data_tests:
+          - not_null:
+              name: assert_no_missing_deliv_type_id_in_crosswalked_deliv
+      - name: status_id
+        data_tests:
+          - not_null:
+              name: assert_no_missing_deliv_status_id_in_crosswalked_deliv
+
+  - name: deliverables_pmda_dlvrbl_comment
+    columns:
+      - name: _legacy_mdcd_dlvrbl_cmt_id
+        data_type: integer
+        data_tests:
+          - unique:
+              name: assert_legacy_mdcd_dlvrbl_cmt_id_is_unique
+          - not_null:
+              name: assert_legacy_mdcd_dlvrbl_cmt_id_is_not_null
+      - name: _legacy_mdcd_dlvrbl_id
+        data_type: integer
+        data_tests:
+          - not_null:
+              name: assert_mdcd_dlvrbl_id_in_pmda_comment_table_not_null
+      - name: _legacy_mdcd_dlvrbl_cmt_user_id
+        data_type: integer
+        data_tests:
+          - not_null:
+              name: assert_user_id_in_pmda_comment_table_not_null
+      - name: content
+        data_type: text
+      - name: creatd_dt
+        data_type: timestamptz
+      - name: cmt_orgn_cd
+        data_type: text
+      - name: cmt_aftr_acptd_ind
+        data_type: integer
+      - name: deliverable_id
+        data_type: uuid
+      - name: author_user_id
+        data_type: uuid
+      - name: author_person_type_id
+        data_type: text
+
+  - name: docs_base_pmda_deliv_docs
+    columns:
+      - name: mdcd_dlvrbl_fil_doc_id
+        data_type: integer
+        data_tests:
+          - unique:
+              name: assert_no_duplicate_mdcd_dlvrbl_fil_doc_ids_in_base_tbl
+      - name: creatd_dt
+        data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_no_missing_creatd_dt_in_base_pmda_deliv_docs
+      - name: _internal_submission_id
+        data_type: integer
+        data_tests:
+          - not_null:
+              name: assert_no_null_computed_submission_ids_from_delivs

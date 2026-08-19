@@ -36,4 +36,4 @@ SELECT
 FROM
     {{ ref('cleaned_demos_app_deliverable_action_submission_events') }}
 
--- TODO: UPDATE WITH NEW DUE DATE REQUESTED SUBMISSION EVENT
+-- TODO: UPDATE WITH NEW DUE DATE CHANGE REQUESTED EVENT
