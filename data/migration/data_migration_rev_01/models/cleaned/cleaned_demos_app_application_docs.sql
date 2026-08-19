@@ -30,7 +30,7 @@ WITH no_s3_path AS (
         AND
         docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id NOT IN (
             SELECT e2._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id
-            FROM {{ ref('errors_app_docs_missing_pmda_file_record') }} AS e2
+            FROM {{ ref('errors_app_docs_missing_aplctn_doc_rpstry_fil') }} AS e2
         )
         AND
         docs._legacy_mdcd_demo_aplctn_doc_rpstry_dtl_id NOT IN (

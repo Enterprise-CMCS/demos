@@ -4,4 +4,4 @@
 
 SELECT *
 FROM
-    {{ ref('errors_app_docs_missing_pmda_file_record') }}
+    {{ ref('errors_app_docs_missing_aplctn_doc_rpstry_fil') }}
