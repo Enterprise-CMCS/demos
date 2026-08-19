@@ -8,6 +8,8 @@ import userEvent from "@testing-library/user-event";
 import { DemonstrationTabDemonstration } from "./DemonstrationTab";
 import { ContactsTab } from "./ContactsTab";
 import { ContactsTable } from "components/table/tables/ContactsTable";
+import { TestProvider } from "test-utils/TestProvider";
+import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 vi.mock("components/table/tables/ContactsTable", () => ({
   ContactsTable: vi.fn(() => <div data-testid="contacts-table">Contacts Table</div>),
@@ -101,11 +103,15 @@ const mockDemonstrationEmptyRoles: DemonstrationTabDemonstration = {
   roles: [],
 };
 
-describe("DemonstrationTab", () => {
+describe("ContactsTab", () => {
   describe("Main display", () => {
     beforeEach(() => {
       vi.clearAllMocks();
-      return render(<ContactsTab demonstration={mockDemonstration} />);
+      return render(
+        <TestProvider currentUser={cmsMockUser}>
+          <ContactsTab demonstration={mockDemonstration} />
+        </TestProvider>
+      );
     });
 
     it("displays ContactsTab with correct title", () => {
@@ -159,7 +165,11 @@ describe("DemonstrationTab", () => {
   describe("empty roles", () => {
     beforeEach(() => {
       vi.clearAllMocks();
-      return render(<ContactsTab demonstration={mockDemonstrationEmptyRoles} />);
+      return render(
+        <TestProvider currentUser={cmsMockUser}>
+          <ContactsTab demonstration={mockDemonstrationEmptyRoles} />
+        </TestProvider>
+      );
     });
     it("passes empty array to ManageContactsDialog when roles array is empty", async () => {
       const user = userEvent.setup();
@@ -172,6 +182,20 @@ describe("DemonstrationTab", () => {
         "NC",
         []
       );
+    });
+  });
+  describe("readonly user", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      return render(
+        <TestProvider currentUser={readonlyMockUser}>
+          <ContactsTab demonstration={mockDemonstration} />
+        </TestProvider>
+      );
+    });
+
+    it("disables Manage Contact(s) button for readonly user", async () => {
+      expect( screen.queryByRole("button", { name: "manage-contacts" }) ).not.toBeInTheDocument();
     });
   });
 });

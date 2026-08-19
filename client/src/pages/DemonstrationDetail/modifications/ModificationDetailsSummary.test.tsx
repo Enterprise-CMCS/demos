@@ -5,6 +5,7 @@ import { ModificationDetailsSummary } from "./ModificationDetailsSummary";
 import { ModificationItem } from "./ModificationTabs";
 import { TestProvider } from "test-utils/TestProvider";
 import { DEMONSTRATION_DETAIL_QUERY } from "../DemonstrationDetail";
+import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 const showUpdateAmendmentDialog = vi.fn();
 const showUpdateExtensionDialog = vi.fn();
@@ -15,6 +16,14 @@ vi.mock("components/dialog/DialogContext", () => ({
     showUpdateExtensionDialog,
   }),
 }));
+
+const renderModificationDetailsSummary = (modificationItem: ModificationItem, currentUser = cmsMockUser) => {
+  render(
+    <TestProvider currentUser={currentUser}>
+      <ModificationDetailsSummary modificationItem={modificationItem} />
+    </TestProvider>
+  );
+};
 
 describe("ModificationDetailsSummary", () => {
   beforeEach(() => {
@@ -36,12 +45,12 @@ describe("ModificationDetailsSummary", () => {
 
   describe("Component Rendering", () => {
     it("renders the summary details header", () => {
-      render(<ModificationDetailsSummary modificationItem={mockAmendment} />);
+      renderModificationDetailsSummary(mockAmendment);
       expect(screen.getByText("SUMMARY DETAILS")).toBeInTheDocument();
     });
 
     it("renders the modification name", () => {
-      render(<ModificationDetailsSummary modificationItem={mockAmendment} />);
+      renderModificationDetailsSummary(mockAmendment);
       expect(screen.getByText("Amendment Title")).toBeInTheDocument();
       expect(screen.getByText("Test Modification")).toBeInTheDocument();
     });
@@ -56,31 +65,31 @@ describe("ModificationDetailsSummary", () => {
         createdAt: new Date("2024-01-01"),
         medicaidId: "demo-2",
       };
-      render(<ModificationDetailsSummary modificationItem={mockExtension} />);
+      renderModificationDetailsSummary(mockExtension);
       expect(screen.getByText("Extension Title")).toBeInTheDocument();
       expect(screen.getByText("Test Extension")).toBeInTheDocument();
     });
 
     it("renders the effective date when present", () => {
-      render(<ModificationDetailsSummary modificationItem={mockAmendment} />);
+      renderModificationDetailsSummary(mockAmendment);
       expect(screen.getByText("Effective Date")).toBeInTheDocument();
       expect(screen.getByText("01/15/2024")).toBeInTheDocument();
     });
 
     it("renders the status", () => {
-      render(<ModificationDetailsSummary modificationItem={mockAmendment} />);
+      renderModificationDetailsSummary(mockAmendment);
       expect(screen.getByText("Status")).toBeInTheDocument();
       expect(screen.getByText("Pre-Submission")).toBeInTheDocument();
     });
 
     it("renders the description when present", () => {
-      render(<ModificationDetailsSummary modificationItem={mockAmendment} />);
+      renderModificationDetailsSummary(mockAmendment);
       expect(screen.getByText("Amendment Description")).toBeInTheDocument();
       expect(screen.getByText("This is a test modification description")).toBeInTheDocument();
     });
 
     it("renders the signature level when present", () => {
-      render(<ModificationDetailsSummary modificationItem={mockAmendment} />);
+      renderModificationDetailsSummary(mockAmendment);
       expect(screen.getByText("Signature Level")).toBeInTheDocument();
       expect(screen.getByText("OA")).toBeInTheDocument();
     });
@@ -92,7 +101,7 @@ describe("ModificationDetailsSummary", () => {
         ...mockAmendment,
         description: undefined,
       };
-      render(<ModificationDetailsSummary modificationItem={itemWithoutDescription} />);
+      renderModificationDetailsSummary(itemWithoutDescription);
       expect(screen.queryByText("Description")).not.toBeInTheDocument();
     });
 
@@ -101,7 +110,7 @@ describe("ModificationDetailsSummary", () => {
         ...mockAmendment,
         description: "",
       };
-      render(<ModificationDetailsSummary modificationItem={itemWithoutDescription} />);
+      renderModificationDetailsSummary(itemWithoutDescription);
       expect(screen.queryByText("Description")).not.toBeInTheDocument();
     });
 
@@ -110,14 +119,14 @@ describe("ModificationDetailsSummary", () => {
         ...mockAmendment,
         effectiveDate: undefined,
       };
-      render(<ModificationDetailsSummary modificationItem={itemWithoutEffectiveDate} />);
+      renderModificationDetailsSummary(itemWithoutEffectiveDate);
       expect(screen.getByText("--/--/----")).toBeInTheDocument();
     });
   });
 
   describe("Complete Data Scenarios", () => {
     it("renders correctly with all optional fields present", () => {
-      render(<ModificationDetailsSummary modificationItem={mockAmendment} />);
+      renderModificationDetailsSummary(mockAmendment);
       expect(screen.getByText("SUMMARY DETAILS")).toBeInTheDocument();
       expect(screen.getByText("Test Modification")).toBeInTheDocument();
       expect(screen.getByText("01/15/2024")).toBeInTheDocument();
@@ -136,7 +145,7 @@ describe("ModificationDetailsSummary", () => {
         documents: [],
         createdAt: new Date("2024-01-01"),
       };
-      render(<ModificationDetailsSummary modificationItem={extension} />);
+      renderModificationDetailsSummary(extension);
       expect(screen.getByText("SUMMARY DETAILS")).toBeInTheDocument();
       expect(screen.getByText("Minimal Modification")).toBeInTheDocument();
       expect(screen.getByText("--/--/----")).toBeInTheDocument();
@@ -146,11 +155,7 @@ describe("ModificationDetailsSummary", () => {
 
   describe("Edit Details Button", () => {
     const setup = (modificationItem: ModificationItem) => {
-      render(
-        <TestProvider>
-          <ModificationDetailsSummary modificationItem={modificationItem} />
-        </TestProvider>
-      );
+      renderModificationDetailsSummary(modificationItem);
     };
 
     it("renders the Edit Details button", () => {
@@ -193,6 +198,14 @@ describe("ModificationDetailsSummary", () => {
       ]);
       expect(showUpdateExtensionDialog).toHaveBeenCalledTimes(1);
       expect(showUpdateAmendmentDialog).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Readonly User Behavior", () => {
+    it("does not render the Edit Details button for readonly users", () => {
+      renderModificationDetailsSummary(mockAmendment, readonlyMockUser);
+      const editButton = screen.queryByRole("button", { name: /button-edit-details/i });
+      expect(editButton).not.toBeInTheDocument();
     });
   });
 });

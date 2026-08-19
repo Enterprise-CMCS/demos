@@ -4,6 +4,8 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { ExtensionsTab } from "./ExtensionsTab";
 import { ModificationTabs } from "./ModificationTabs";
 import { DemonstrationDetailModification } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { TestProvider } from "test-utils/TestProvider";
+import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 const showCreateExtensionDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
@@ -36,16 +38,19 @@ describe("ExtensionsTab", () => {
 
   const renderExtensionsTab = (
     extensions: DemonstrationDetailModification[] = [],
-    canCreateModifications = true
+    canCreateModifications = true,
+    currentUser = cmsMockUser
   ) => {
     return render(
-      <ExtensionsTab
-        demonstrationId="mock-demonstration-id"
-        medicaidId="mock-medicaid-id"
-        extensions={extensions}
-        selectedExtensionId="mock-extension-id"
-        canCreateModifications={canCreateModifications}
-      />
+      <TestProvider currentUser={currentUser}>
+        <ExtensionsTab
+          demonstrationId="mock-demonstration-id"
+          medicaidId="mock-medicaid-id"
+          extensions={extensions}
+          selectedExtensionId="mock-extension-id"
+          canCreateModifications={canCreateModifications}
+        />
+      </TestProvider>
     );
   };
 
@@ -135,5 +140,17 @@ describe("ExtensionsTab", () => {
     );
 
     expect(screen.getByTestId("modification-tabs")).toBeInTheDocument();
+  });
+
+  describe("Readonly User Behavior", () => {
+    it("does not render the create extension button for readonly users", () => {
+      renderExtensionsTab([], true, readonlyMockUser);
+      expect(screen.queryByRole("button", { name: /create extension/i })).not.toBeInTheDocument();
+    });
+
+    it("does not render the add extension button for readonly users", () => {
+      renderExtensionsTab(mockExtensions, true, readonlyMockUser);
+      expect(screen.queryByRole("button", { name: /add-new-extension/i })).not.toBeInTheDocument();
+    });
   });
 });

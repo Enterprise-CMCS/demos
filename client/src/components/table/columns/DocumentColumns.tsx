@@ -9,11 +9,10 @@ import { createSelectColumnDef } from "./selectColumn";
 import { createDateColumnDef } from "./dateColumn";
 import { DOCUMENT_TYPES } from "demos-server-constants";
 import { DocumentTableDocument } from "../tables/DocumentTable";
-export function DocumentColumns() {
+export function DocumentColumns(isReadonlyUser: boolean) {
   const columnHelper = createColumnHelper<DocumentTableDocument>();
 
-  return [
-    createSelectColumnDef(columnHelper),
+  const baseDocumentColumns = [
     columnHelper.accessor("name", {
       header: "Title",
       cell: highlightCell,
@@ -65,5 +64,14 @@ export function DocumentColumns() {
       },
       enableSorting: false,
     }),
+  ];
+
+  if (isReadonlyUser) {
+    return baseDocumentColumns;
+  }
+
+  return [
+    createSelectColumnDef(columnHelper),
+    ...baseDocumentColumns,
   ];
 }
