@@ -22,7 +22,9 @@ export type DocumentTableDocument = Pick<
 
 export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[] }) => {
   const { currentUser } = getCurrentUser();
-  const documentColumns = DocumentColumns();
+  const isReadonlyUser = isReadonly(currentUser);
+
+  const documentColumns = DocumentColumns(isReadonlyUser);
   const { showEditDocumentDialog, showRemoveDocumentDialog } = useDialog();
   const initialState = {
     sorting: [{ id: "createdAt", desc: true }],
@@ -41,7 +43,7 @@ export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[
           noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
           initialState={initialState}
           actionButtons={(table) => {
-            if (isReadonly(currentUser)) {
+            if (isReadonlyUser) {
               return null;
             }
             const selectedDocs = table.getSelectedRowModel().rows.map((row) => row.original);

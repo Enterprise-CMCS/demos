@@ -167,6 +167,29 @@ export function DeliverableColumns({
       return detailColumns;
     }
 
+    // @ts-expect-error demos-readonly will be added later
+    if (viewMode === "demos-readonly") {
+      // Returns everything except select column
+      return [
+        ...detailColumns.slice(0, 2),
+        columnHelper.accessor("cmsOwner.person.fullName", {
+          header: "CMS Owner",
+          cell: highlightCell,
+          filterFn: "arrIncludesSome",
+          meta: {
+            headerClassName: "w-min-[200px] w-max-[220px]",
+            headerContentClassName: "whitespace-normal break-words leading-snug",
+            cellClassName: "w-min-[200px] w-max-[220px] whitespace-normal break-words",
+            filterConfig: {
+              filterType: "select",
+              options: cmsOwnerOptions,
+            },
+          },
+        }),
+        ...detailColumns.slice(2),
+      ];
+    }
+
     return [
       createSelectColumnDef(columnHelper),
       ...detailColumns.slice(0, 2),
@@ -193,6 +216,53 @@ export function DeliverableColumns({
       demonstrationNameColumn,
       deliverableTypeColumn,
       deliverableNameColumn,
+      dueDateColumn,
+      submissionDateColumn,
+      statusColumn,
+      viewColumn,
+    ];
+  }
+
+  // @ts-expect-error demos-readonly will be added later
+  if (viewMode === "demos-readonly") {
+    // Returns everything except select column
+    return [
+      columnHelper.accessor("demonstration.state.name", {
+        id: "stateId",
+        header: "State/\u200BTerritory",
+        cell: highlightCell,
+        filterFn: "arrIncludesSome",
+        meta: {
+          filterLabel: "State/Territory",
+          headerClassName: "w-[120px] min-w-[120px]",
+          cellClassName: "break-words w-[100px]",
+          filterConfig: {
+            filterType: "select",
+            options:
+              STATES_AND_TERRITORIES.map((state) => ({
+                label: state.name,
+                value: state.name,
+              })) ?? [],
+          },
+        },
+      }),
+      demonstrationNameColumn,
+      deliverableTypeColumn,
+      deliverableNameColumn,
+      columnHelper.accessor("cmsOwner.person.fullName", {
+        header: "CMS Owner",
+        cell: highlightCell,
+        filterFn: "arrIncludesSome",
+        meta: {
+          headerClassName: "w-[120px]",
+          headerContentClassName: "whitespace-nowrap",
+          cellClassName: "w-[120px]",
+          filterConfig: {
+            filterType: "select",
+            options: cmsOwnerOptions,
+          },
+        },
+      }),
       dueDateColumn,
       submissionDateColumn,
       statusColumn,

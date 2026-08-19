@@ -41,7 +41,10 @@ export const TypesTable: React.FC<TypesTableProps> = ({
   inputDisabled = false,
   hideSearch = false,
 }) => {
-  const columns = TypesColumns();
+  const { currentUser } = getCurrentUser();
+  const isReadonlyUser = isReadonly(currentUser);
+
+  const columns = TypesColumns(isReadonlyUser);
   const { showRemoveDemonstrationTypesDialog, showEditDemonstrationTypeDialog } = useDialog();
 
   /*
@@ -102,8 +105,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
           emptyRowsMessage="You have no assigned Types at this time"
           noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
           actionButtons={(table) => {
-            const { currentUser } = getCurrentUser();
-            if (isReadonly(currentUser)) {
+            if (isReadonlyUser) {
               return null;
             }
             const selected = table.getSelectedRowModel().rows.map((r) => r.original);
