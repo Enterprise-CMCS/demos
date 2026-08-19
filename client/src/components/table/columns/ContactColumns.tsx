@@ -8,6 +8,8 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { CircleButton } from "../../button/CircleButton";
 import { DeleteIcon } from "../../icons";
 import { Select } from "../../input/select/Select";
+import { useRef } from "react";
+import { Tooltip } from "components/tooltip";
 
 export { CONTACT_TYPES } from "demos-server-constants";
 
@@ -90,22 +92,47 @@ export function ContactColumns({
       header: "Primary",
       size: 100,
       cell: (info) => {
+        const switchRef = useRef<HTMLDivElement>(null);
+
         const contact = info.row.original;
+        const isReadonlyUser = contact.idmRoles?.includes("demos-cms-user");
+
+        const anchorName = `--readonly-anchor-${contact.id}`;
+
         return (
           <div className="inline-flex items-center justify-center">
-            <Switch
-              checked={!!contact.isPrimary}
-              onChange={() => onPrimaryToggle(contact.id)}
-              onColor="#6B7280"
-              offColor="#E5E7EB"
-              checkedIcon={false}
-              uncheckedIcon={false}
-              height={18}
-              width={40}
-              handleDiameter={24}
-              boxShadow="0 2px 8px rgba(0, 0, 0, 0.6)"
-              activeBoxShadow="0 0 2px 3px #3bf"
-            />
+            <div
+              ref={switchRef}
+              className="inline-flex"
+              style={{
+                anchorName,
+              }}
+            >
+              <Switch
+                checked={!!contact.isPrimary}
+                onChange={() => onPrimaryToggle(contact.id)}
+                onColor="#6B7280"
+                offColor="#E5E7EB"
+                checkedIcon={false}
+                uncheckedIcon={false}
+                height={18}
+                width={40}
+                handleDiameter={24}
+                boxShadow="0 2px 8px rgba(0, 0, 0, 0.6)"
+                activeBoxShadow="0 0 2px 3px #3bf"
+                disabled={isReadonlyUser}
+              />
+            </div>
+
+            {isReadonlyUser && (
+              <Tooltip
+                id={`readonly-tooltip-${contact.id}`}
+                anchorName={anchorName}
+                anchorRef={switchRef}
+              >
+                Read-only users cannot be assigned as the primary contact
+              </Tooltip>
+            )}
           </div>
         );
       },
