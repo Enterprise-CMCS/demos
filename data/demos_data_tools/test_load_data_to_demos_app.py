@@ -3,22 +3,18 @@
 from textwrap import dedent
 from unittest.mock import call
 
-import pytest
-
 import load_data_to_demos_app
 from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME
-from load_data_to_demos_app import (
-    GeneratedInsertActionSql,
-    GeneratedTriggerActionSql,
-    TableInsertActionConfiguration,
-    TriggerActionConfiguration,
-)
 from load_data_to_demos_app_types import (
     ArbitraryActionConfiguration,
     DataLoadConfiguration,
     GeneratedArbitraryActionSql,
+    GeneratedInsertActionSql,
     GeneratedTransactionActionSql,
+    GeneratedTriggerActionSql,
+    TableInsertActionConfiguration,
     TransactionActionConfiguration,
+    TriggerActionConfiguration,
 )
 
 
