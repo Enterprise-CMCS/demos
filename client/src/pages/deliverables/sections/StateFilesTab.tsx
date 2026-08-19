@@ -18,6 +18,7 @@ export type StateFilesTabProps = {
   onAdd: () => void;
   onEdit: (file: DeliverableFileRow) => void;
   onDelete: (fileIds: string[]) => void;
+  canManage: boolean;
   isFinalized: boolean;
 };
 
@@ -26,9 +27,10 @@ export const StateFilesTab: React.FC<StateFilesTabProps> = ({
   onAdd,
   onEdit,
   onDelete,
+  canManage,
   isFinalized,
 }) => {
-  const columns = makeStateFileColumns();
+  const columns = makeStateFileColumns({ showSelect: canManage });
 
   return (
     <DeliverableFileTable
@@ -45,7 +47,7 @@ export const StateFilesTab: React.FC<StateFilesTabProps> = ({
       onAdd={onAdd}
       onEdit={onEdit}
       onDelete={onDelete}
-      showActions={true}
+      showActions={canManage}
       isFinalized={isFinalized}
     />
   );

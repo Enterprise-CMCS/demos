@@ -3,6 +3,7 @@ import { ExitIcon, FileIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { formatDateForDisplay } from "util/formatDate";
 import { DocumentType } from "demos-server-constants";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
 const abbreviateLongFilename = (str: string): string => {
   const maxFilenameDisplayLength = 60;
@@ -34,6 +35,8 @@ export const DocumentChip: React.FC<{
   };
   onRemove: () => void;
 }> = ({ document, onRemove }) => {
+  const { currentUser } = getCurrentUser();
+  const isReadonlyUser = isReadonly(currentUser);
   const content = (
     <>
       <FileIcon className={STYLES.fileIcon} />
@@ -67,17 +70,19 @@ export const DocumentChip: React.FC<{
           <div className={STYLES.contentContainer}>{content}</div>
         )}
 
-        <button
-          className={STYLES.exitButton}
-          onClick={onRemove}
-          aria-label={`Delete ${document.name}`}
-          title={`Delete ${document.name}`}
-          type="button"
-        >
-          <div className={STYLES.exitIconContainer}>
-            <ExitIcon className={STYLES.exitIcon} />
-          </div>
-        </button>
+        {!isReadonlyUser && (
+          <button
+            className={STYLES.exitButton}
+            onClick={onRemove}
+            aria-label={`Delete ${document.name}`}
+            title={`Delete ${document.name}`}
+            type="button"
+          >
+            <div className={STYLES.exitIconContainer}>
+              <ExitIcon className={STYLES.exitIcon} />
+            </div>
+          </button>
+        )}
       </div>
     </>
   );

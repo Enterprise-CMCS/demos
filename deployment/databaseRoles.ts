@@ -29,6 +29,11 @@ export const dev: Role[] = [
     memberships: ["demos_read", "demos_write", "demos_delete"],
     systemRole: false,
   },
+  {
+    name: "cpamulapati",
+    memberships: ["demos_read", "demos_write", "demos_delete"],
+    systemRole: false,
+  },
 ];
 
 export const test: Role[] = [
@@ -49,6 +54,11 @@ export const test: Role[] = [
   },
   {
     name: "pgurban",
+    memberships: ["demos_read", "demos_write", "demos_delete"],
+    systemRole: false,
+  },
+  {
+    name: "cpamulapati",
     memberships: ["demos_read", "demos_write", "demos_delete"],
     systemRole: false,
   },
@@ -75,6 +85,11 @@ export const impl: Role[] = [
     memberships: ["demos_read", "demos_write", "demos_delete"],
     systemRole: false,
   },
+  {
+    name: "cpamulapati",
+    memberships: ["demos_read", "demos_write", "demos_delete"],
+    systemRole: false,
+  },
 ];
 
 export const prod: Role[] = [
@@ -92,5 +107,30 @@ export const prod: Role[] = [
     name: "demos_delete_infected_file",
     memberships: ["demos_read", "demos_write", "demos_delete"],
     systemRole: true,
+  },
+  {
+    name: "pgurban",
+    memberships: ["demos_read"],
+    systemRole: false,
+  },
+  {
+    name: "cpamulapati",
+    memberships: ["demos_read"],
+    systemRole: false,
+  },
+  {
+    name: "trehman",
+    memberships: ["demos_read"],
+    systemRole: false,
+  },
+  {
+    name: "cparke",
+    memberships: ["demos_read"],
+    systemRole: false,
+  },
+  {
+    name: "zelkins",
+    memberships: ["demos_read"],
+    systemRole: false,
   },
 ];

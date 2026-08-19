@@ -28,6 +28,8 @@ WITH base_deliv_docs AS (
         {{ ref('final_demos_app_person') }} AS f_person
         ON
             deliv_doc.user_id = f_person._legacy_users_id
+            -- Only users can own documents, but legacy ID is on the person table
+            AND f_person.person_type_id IN ('demos-admin', 'demos-cms-user', 'demos-state-user')
     LEFT JOIN
         {{ ref('docs_pmda_s3_file_list') }} AS s3_files
         ON
