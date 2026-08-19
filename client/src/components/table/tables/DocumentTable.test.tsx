@@ -1,14 +1,12 @@
 import React from "react";
 
-import { ALL_MOCKS } from "mock-data/index";
-import { beforeEach, describe, expect, it } from "vitest";
-
-import { MockedProvider } from "@apollo/client/testing";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { DocumentTable } from "./DocumentTable";
 import { mockDocuments } from "mock-data/documentMocks";
+import { TestProvider } from "test-utils/TestProvider";
+import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 const showUploadDocumentDialog = vi.fn();
 const showEditDocumentDialog = vi.fn();
@@ -21,42 +19,15 @@ vi.mock("components/dialog/DialogContext", () => ({
   }),
 }));
 
-const { mockIsReadonly } = vi.hoisted(() => ({
-  mockIsReadonly: vi.fn().mockReturnValue(false),
-}));
-
-vi.mock("components/user/UserContext", () => ({
-  getCurrentUser: () => ({
-    currentUser: {
-      id: "user-1",
-      username: "test-user",
-      person: {
-        id: "person-1",
-        personType: "demos-user",
-        fullName: "Test User",
-        firstName: "Test",
-        lastName: "User",
-        email: "test@example.com",
-      },
-    },
-  }),
-  isReadonly: mockIsReadonly,
-}));
-
-const renderDocumentTable = () => {
+const renderDocumentTable = (currentUser = cmsMockUser) => {
   render(
-    <MockedProvider mocks={ALL_MOCKS}>
+    <TestProvider currentUser={currentUser}>
       <DocumentTable documents={mockDocuments} />
-    </MockedProvider>
+    </TestProvider>
   );
 };
 
 describe("DocumentTable", () => {
-  beforeEach(() => {
-    mockIsReadonly.mockReset();
-    mockIsReadonly.mockReturnValue(false);
-  });
-
   it("renders action buttons (edit/delete)", async () => {
     renderDocumentTable();
     await waitFor(() => {
@@ -67,13 +38,7 @@ describe("DocumentTable", () => {
   });
 
   it("hides action buttons and row selection for readonly users", async () => {
-    mockIsReadonly.mockReturnValue(true);
-
-    // Re-render because the component needs to evaluate isReadonly()
-    // with the readonly value set.
-    const { unmount } = render(
-      <DocumentTable documents={mockDocuments} />
-    );
+    renderDocumentTable(readonlyMockUser);
 
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
@@ -81,9 +46,7 @@ describe("DocumentTable", () => {
 
     expect(screen.queryByLabelText(/Edit Document/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Remove Document/i)).not.toBeInTheDocument();
-
-    unmount();
-    mockIsReadonly.mockReturnValue(false);
+    expect(screen.queryByTestId(/select-row-/i)).not.toBeInTheDocument();
   });
 
   it("disables Edit button when no or multiple documents are selected, enables for one", async () => {

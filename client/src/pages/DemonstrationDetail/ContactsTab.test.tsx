@@ -8,6 +8,8 @@ import userEvent from "@testing-library/user-event";
 import { DemonstrationTabDemonstration } from "./DemonstrationTab";
 import { ContactsTab } from "./ContactsTab";
 import { ContactsTable } from "components/table/tables/ContactsTable";
+import { TestProvider } from "test-utils/TestProvider";
+import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 vi.mock("components/table/tables/ContactsTable", () => ({
   ContactsTable: vi.fn(() => <div data-testid="contacts-table">Contacts Table</div>),
@@ -18,28 +20,6 @@ vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
     showManageContactsDialog,
   }),
-}));
-
-const { mockIsReadonly } = vi.hoisted(() => ({
-  mockIsReadonly: vi.fn().mockReturnValue(false),
-}));
-
-vi.mock("components/user/UserContext", () => ({
-  getCurrentUser: () => ({
-    currentUser: {
-      id: "user-1",
-      username: "test-user",
-      person: {
-        id: "person-1",
-        personType: "demos-user",
-        fullName: "Test User",
-        firstName: "Test",
-        lastName: "User",
-        email: "test@example.com",
-      },
-    },
-  }),
-  isReadonly: mockIsReadonly,
 }));
 
 const mockDemonstration: DemonstrationTabDemonstration = {
@@ -127,7 +107,11 @@ describe("ContactsTab", () => {
   describe("Main display", () => {
     beforeEach(() => {
       vi.clearAllMocks();
-      return render(<ContactsTab demonstration={mockDemonstration} />);
+      return render(
+        <TestProvider currentUser={cmsMockUser}>
+          <ContactsTab demonstration={mockDemonstration} />
+        </TestProvider>
+      );
     });
 
     it("displays ContactsTab with correct title", () => {
@@ -181,7 +165,11 @@ describe("ContactsTab", () => {
   describe("empty roles", () => {
     beforeEach(() => {
       vi.clearAllMocks();
-      return render(<ContactsTab demonstration={mockDemonstrationEmptyRoles} />);
+      return render(
+        <TestProvider currentUser={cmsMockUser}>
+          <ContactsTab demonstration={mockDemonstrationEmptyRoles} />
+        </TestProvider>
+      );
     });
     it("passes empty array to ManageContactsDialog when roles array is empty", async () => {
       const user = userEvent.setup();
@@ -198,10 +186,12 @@ describe("ContactsTab", () => {
   });
   describe("readonly user", () => {
     beforeEach(() => {
-      mockIsReadonly.mockReset();
-      mockIsReadonly.mockReturnValue(true);
       vi.clearAllMocks();
-      return render(<ContactsTab demonstration={mockDemonstration} />);
+      return render(
+        <TestProvider currentUser={readonlyMockUser}>
+          <ContactsTab demonstration={mockDemonstration} />
+        </TestProvider>
+      );
     });
 
     it("disables Manage Contact(s) button for readonly user", async () => {

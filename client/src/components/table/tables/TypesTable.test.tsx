@@ -6,6 +6,8 @@ import userEvent from "@testing-library/user-event";
 import { TypesTable } from "./TypesTable";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { ApplicationStatus } from "demos-server";
+import { TestProvider } from "test-utils/TestProvider";
+import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 const mockShowRemoveDemonstrationTypesDialog = vi.fn();
 const mockShowEditDemonstrationTypeDialog = vi.fn();
@@ -14,28 +16,6 @@ vi.mock("components/dialog/DialogContext", () => ({
     showRemoveDemonstrationTypesDialog: mockShowRemoveDemonstrationTypesDialog,
     showEditDemonstrationTypeDialog: mockShowEditDemonstrationTypeDialog,
   }),
-}));
-
-const { mockIsReadonly } = vi.hoisted(() => ({
-  mockIsReadonly: vi.fn().mockReturnValue(false),
-}));
-
-vi.mock("components/user/UserContext", () => ({
-  getCurrentUser: () => ({
-    currentUser: {
-      id: "user-1",
-      username: "test-user",
-      person: {
-        id: "person-1",
-        personType: "demos-user",
-        fullName: "Test User",
-        firstName: "Test",
-        lastName: "User",
-        email: "test@example.com",
-      },
-    },
-  }),
-  isReadonly: mockIsReadonly,
 }));
 
 const mockTypes: DemonstrationDetailDemonstrationType[] = [
@@ -65,13 +45,16 @@ const MOCK_DEMONSTRATION = {
 };
 
 const renderTypesTable = (
-  props: Partial<React.ComponentProps<typeof TypesTable>> = {}
+  props: Partial<React.ComponentProps<typeof TypesTable>> = {},
+  currentUser = cmsMockUser
 ) => {
   return render(
-    <TypesTable
-      demonstration={MOCK_DEMONSTRATION}
-      {...props}
-    />
+    <TestProvider currentUser={currentUser}>
+      <TypesTable
+        demonstration={MOCK_DEMONSTRATION}
+        {...props}
+      />
+    </TestProvider>
   );
 };
 
@@ -87,9 +70,6 @@ const MOCK_DEMONSTRATION_WITH_DELIVERABLE = {
 
 describe("TypesTable", () => {
   beforeEach(() => {
-    mockIsReadonly.mockReset();
-    mockIsReadonly.mockReturnValue(false);
-
     mockShowRemoveDemonstrationTypesDialog.mockClear();
     mockShowEditDemonstrationTypeDialog.mockClear();
   });
@@ -164,7 +144,11 @@ describe("TypesTable", () => {
   });
 
   it("does not render keyword search when hideSearch is true", () => {
-    render(<TypesTable demonstration={MOCK_DEMONSTRATION} hideSearch />);
+    render(
+      <TestProvider currentUser={cmsMockUser}>
+        <TypesTable demonstration={MOCK_DEMONSTRATION} hideSearch />
+      </TestProvider>
+    );
     expect(screen.queryByTestId("input-keyword-search")).not.toBeInTheDocument();
   });
 
@@ -223,7 +207,11 @@ describe("TypesTable", () => {
     });
 
     it("disables delete when a selected demonstration type is linked to a deliverable", async () => {
-      render(<TypesTable demonstration={MOCK_DEMONSTRATION_WITH_DELIVERABLE} />);
+      render(
+        <TestProvider currentUser={cmsMockUser}>
+          <TypesTable demonstration={MOCK_DEMONSTRATION_WITH_DELIVERABLE} />
+        </TestProvider>
+      );
 
       const user = userEvent.setup();
 
@@ -271,21 +259,15 @@ describe("TypesTable", () => {
     });
   });
 
-  it("hides action buttons for readonly users", async () => {
-    mockIsReadonly.mockReturnValue(true);
-
-    renderTypesTable();
+  it("hides action buttons and row select for readonly users", async () => {
+    renderTypesTable(undefined, readonlyMockUser);
 
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
 
-    expect(
-      screen.queryByLabelText(/Edit Type/i)
-    ).not.toBeInTheDocument();
-
-    expect(
-      screen.queryByLabelText(/Delete Type/i)
-    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Edit Type/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Delete Type/i)).not.toBeInTheDocument();
+    expect(screen.queryByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`)).not.toBeInTheDocument();
   });
 });

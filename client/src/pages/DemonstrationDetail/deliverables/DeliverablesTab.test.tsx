@@ -7,26 +7,13 @@ import { ADD_DELIVERABLE_SLOT_DIALOG_TITLE } from "components/dialog/deliverable
 import { ADD_DELIVERABLE_SLOT_BUTTON_NAME, DeliverablesTab } from "./DeliverablesTab";
 import { TestProvider } from "test-utils/TestProvider";
 import { deliverableMocks, MOCK_DELIVERABLE_TABLE_ROW } from "mock-data/deliverableMocks";
-import { PersonType } from "demos-server";
+import { readonlyMockUser } from "mock-data/userMocks";
 
 const MOCK_PARENT_DEMONSTRATION = {
   id: "demo-1",
   demonstrationTypes: [],
   effectiveDate: new Date("2026-01-01"),
   expirationDate: new Date("2026-12-31"),
-};
-
-const MOCK_READONLY_USER = {
-  id: "user-1",
-  username: "readonlyuser",
-  person: {
-    id: "person-1",
-    personType: "demos-readonly" as PersonType,
-    fullName: "Readonly User",
-    firstName: "Readonly",
-    lastName: "User",
-    email: "readonly@test.com",
-  },
 };
 
 describe("DeliverablesTab", () => {
@@ -106,7 +93,7 @@ describe("DeliverablesTab", () => {
   describe("Readonly User Behavior", () => {
     it("does not render the add deliverable slot button for readonly users", () => {
       render(
-        <TestProvider mocks={deliverableMocks} currentUser={MOCK_READONLY_USER}>
+        <TestProvider mocks={deliverableMocks} currentUser={readonlyMockUser}>
           <DialogProvider>
             <DeliverablesTab parentDemonstration={MOCK_PARENT_DEMONSTRATION} />
           </DialogProvider>

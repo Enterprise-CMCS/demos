@@ -1,9 +1,11 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { SummaryDetailsTab } from "./SummaryDetailsTab";
+import { TestProvider } from "test-utils/TestProvider";
+import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 const EDIT_BUTTON_TEST_ID = "button-edit-details";
 
@@ -37,41 +39,16 @@ vi.mock("components/dialog", () => ({
   ),
 }));
 
-
-const { mockIsReadonly } = vi.hoisted(() => ({
-  mockIsReadonly: vi.fn().mockReturnValue(false),
-}));
-
-vi.mock("components/user/UserContext", () => ({
-  getCurrentUser: () => ({
-    currentUser: {
-      id: "user-1",
-      username: "test-user",
-      person: {
-        id: "person-1",
-        personType: "demos-user",
-        fullName: "Test User",
-        firstName: "Test",
-        lastName: "User",
-        email: "test@example.com",
-      },
-    },
-  }),
-  isReadonly: mockIsReadonly,
-}));
-
-const renderSummaryDetailsTab = (demonstrationId: string) => {
-  render(<SummaryDetailsTab demonstrationId={demonstrationId} />);
+const renderSummaryDetailsTab = (demonstrationId: string, currentUser = cmsMockUser) => {
+  render(
+    <TestProvider currentUser={currentUser}>
+      <SummaryDetailsTab demonstrationId={demonstrationId} />
+    </TestProvider>
+  );
 };
 
 describe("SummaryDetailsTab", () => {
   const mockDemonstrationId = "test-demo-123";
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockIsReadonly.mockReset();
-    mockIsReadonly.mockReturnValue(false);
-  });
 
   describe("Component Rendering", () => {
     it("renders the page header with correct title", () => {
@@ -126,13 +103,8 @@ describe("SummaryDetailsTab", () => {
   });
 
   describe("Readonly User Behavior", () => {
-    beforeEach(() => {
-      mockIsReadonly.mockReturnValue(true);
-    });
-
     it("does not render the edit button for readonly users", () => {
-      mockIsReadonly.mockReturnValue(true);
-      renderSummaryDetailsTab(mockDemonstrationId);
+      renderSummaryDetailsTab(mockDemonstrationId, readonlyMockUser);
       expect(screen.queryByTestId(EDIT_BUTTON_TEST_ID)).not.toBeInTheDocument();
     });
   });
