@@ -9,7 +9,7 @@ import { DemonstrationTab, DemonstrationTabDemonstration } from "./Demonstration
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { deliverableMocks } from "mock-data/deliverableMocks";
-import { readonlyMockUser } from "mock-data/userMocks";
+import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 const mockDemonstration: DemonstrationTabDemonstration = {
   id: "demo-123",
@@ -64,7 +64,7 @@ const mockDemonstration: DemonstrationTabDemonstration = {
 
 const renderWithProvider = (component: React.ReactElement, useReadonlyUser = false) => {
   return render(
-    <TestProvider mocks={deliverableMocks} currentUser={useReadonlyUser ? readonlyMockUser : undefined}>
+    <TestProvider mocks={deliverableMocks} currentUser={useReadonlyUser ? readonlyMockUser : cmsMockUser}>
       <DialogProvider>{component}</DialogProvider>
     </TestProvider>
   );

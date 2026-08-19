@@ -23,5 +23,5 @@ export function getCurrentUser() {
 
 export function isReadonly(currentUser: CurrentUser): boolean {
   // Check if the user's personType indicates readonly status.
-  return currentUser.person.personType === "demos-readonly";
+  return currentUser.person.personType === "demos-cms-user";
 }
