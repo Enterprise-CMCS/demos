@@ -222,6 +222,24 @@ describe("CommentBox", () => {
     expect(screen.getByText("This is a private comment.")).toBeInTheDocument();
   });
 
+  describe("restricted CMS users", () => {
+    it("hides the comment textarea and Add Comment button", () => {
+      renderCommentBox("demos-readonly");
+
+      expect(screen.queryByTestId(COMMENT_BOX_TEXT_AREA_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(ADD_COMMENT_BUTTON_NAME)).not.toBeInTheDocument();
+    });
+
+    it("still renders the comment box and its history", () => {
+      mockUseQuery.mockReturnValue(makeQueryResult([STUB_PUBLIC_COMMENT]));
+      renderCommentBox("demos-readonly");
+
+      expect(screen.getByTestId(COMMENT_BOX_NAME)).toBeInTheDocument();
+      expect(screen.getByText("Comment History")).toBeInTheDocument();
+      expect(screen.getByText("This is a public comment.")).toBeInTheDocument();
+    });
+  });
+
   it("shows 'No comments yet.' when a tab has no comments", async () => {
     mockUseQuery.mockReturnValue(makeQueryResult([STUB_PUBLIC_COMMENT], []));
     renderCommentBox("demos-admin");

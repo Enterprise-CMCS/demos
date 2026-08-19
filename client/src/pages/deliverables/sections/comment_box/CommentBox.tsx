@@ -39,7 +39,7 @@ export const CommentBox = ({ deliverableId }: { deliverableId: string }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showError } = useToast();
 
-  const { isCmsOrAdminUser, visibleComments, addComment } = useComments(
+  const { isCmsOrAdminUser, canAddComments, visibleComments, addComment } = useComments(
     deliverableId,
     commentVisibility
   );
@@ -81,13 +81,15 @@ export const CommentBox = ({ deliverableId }: { deliverableId: string }) => {
     >
       <CommentBoxHeader onCollapse={() => setIsCollapsed(true)} />
       {isCmsOrAdminUser && <CommentBoxTabs setCommentVisibility={setCommentVisibility} />}
-      <CommentBoxTextArea
-        addComment={handleAddComment}
-        currentComment={currentComment}
-        setCurrentComment={setCurrentComment}
-        commentVisibility={commentVisibility}
-        isSubmitting={isSubmitting}
-      />
+      {canAddComments && (
+        <CommentBoxTextArea
+          addComment={handleAddComment}
+          currentComment={currentComment}
+          setCurrentComment={setCurrentComment}
+          commentVisibility={commentVisibility}
+          isSubmitting={isSubmitting}
+        />
+      )}
       <CommentBoxHistory comments={visibleComments} />
     </div>
   );
