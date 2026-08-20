@@ -145,7 +145,9 @@ export const handler = async (event: SQSEvent) =>
         applicationId,
       });
 
-      log.info("UiPath extraction completed successfully");
+      if (status.status === "Succeeded") {
+        log.info("UiPath extraction completed successfully");
+      }
       return status;
     } catch (error) {
       log.error({ error }, "UiPath lambda failed");
