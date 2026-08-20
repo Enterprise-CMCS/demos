@@ -9,6 +9,7 @@ import { BootstrapStack } from "./stacks/bootstrap";
 import { AwsSolutionsChecks } from "cdk-nag";
 import {
   applyApiSuppressions,
+  applyBackupSuppressions,
   applyCoreSuppressions,
   applyDatabaseSuppressions,
   applyDbRoleSuppressions,
@@ -19,6 +20,7 @@ import {
 import { FileUploadStack } from "./stacks/fileupload";
 import { DBRoleStack } from "./stacks/dbRoles";
 import { PMDATransfer } from "./stacks/pmdaTransfer";
+import { BackupStack } from "./stacks/backups";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function main(passedContext?: { [key: string]: any }) {
@@ -171,6 +173,20 @@ export async function main(passedContext?: { [key: string]: any }) {
   } else {
     applyUISuppressionsCloudfrontOnly(ui);
   }
+
+  // Applying only in DEV temporarily to test backup processes
+  if (stage == "dev") {
+    const backup = new BackupStack(app, `${project}-${stage}-backup`, {
+      ...config,
+      env: {
+        account: process.env.CDK_DEFAULT_ACCOUNT,
+        region: process.env.CDK_DEFAULT_REGION,
+      },
+      vpc: core.vpc
+    })
+    applyBackupSuppressions(backup, stage)
+  }
+
   applyFileUploadSuppressions(fileUpload, stage);
   Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
   return app;
