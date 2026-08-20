@@ -67,6 +67,7 @@ export async function main(passedContext?: { [key: string]: any }) {
   Tags.of(app).add("STAGE", stage);
   Tags.of(app).add("PROJECT", project);
 
+
   if (stage == "bootstrap") {
     new BootstrapStack(app, `${config.project}-${stage}`, {
       ...config,
@@ -99,7 +100,7 @@ export async function main(passedContext?: { [key: string]: any }) {
       secretsManagerVpceSg: core.secretsManagerVpceSg,
     });
     applyDatabaseSuppressions(database, stage);
-    database.addDependency(core);
+    database.addStackDependency(core);
   }
 
   if (app.node.tryGetContext("pmda") == "include") {
@@ -110,7 +111,7 @@ export async function main(passedContext?: { [key: string]: any }) {
         region: process.env.CDK_DEFAULT_REGION,
       },
     })
-    pmda.addDependency(core)
+    pmda.addStackDependency(core)
   }
 
   const fileUpload = new FileUploadStack(app, `${project}-${stage}-file-upload`, {
@@ -121,7 +122,7 @@ export async function main(passedContext?: { [key: string]: any }) {
     },
     vpc: core.vpc,
   });
-  fileUpload.addDependency(core);
+  fileUpload.addStackDependency(core);
 
   const api = new ApiStack(app, `${project}-${stage}-api`, {
     ...config,
@@ -131,8 +132,8 @@ export async function main(passedContext?: { [key: string]: any }) {
     },
     vpc: core.vpc,
   });
-  api.addDependency(core);
-  api.addDependency(fileUpload);
+  api.addStackDependency(core);
+  api.addStackDependency(fileUpload);
 
   const ui = new UiStack(app, `${project}-${stage}-ui`, {
     ...config,
@@ -145,8 +146,8 @@ export async function main(passedContext?: { [key: string]: any }) {
       clientId: core.cognitoClientIdParamName,
     },
   });
-  ui.addDependency(core);
-  ui.addDependency(api);
+  ui.addStackDependency(core);
+  ui.addStackDependency(api);
 
   if (!config.isEphemeral) {
     const dbRole = new DBRoleStack(app, `${project}-${stage}-db-role`, {
@@ -158,9 +159,9 @@ export async function main(passedContext?: { [key: string]: any }) {
       vpc: core.vpc,
     });
     applyDbRoleSuppressions(dbRole, stage);
-    dbRole.addDependency(core);
-    fileUpload.addDependency(dbRole);
-    api.addDependency(dbRole);
+    dbRole.addStackDependency(core);
+    fileUpload.addStackDependency(dbRole);
+    api.addStackDependency(dbRole);
   }
 
   applyCoreSuppressions(core, stage);
