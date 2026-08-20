@@ -10,6 +10,7 @@ import { DocumentType } from "demos-server";
 import { cmsMockUser, MockUser, readonlyMockUser } from "mock-data/userMocks";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { TestProvider } from "test-utils/TestProvider";
+import { ToastContainer } from "components/toast";
 
 const mockCompletePhase = vi.fn();
 vi.mock("components/application/phase-status/phaseCompletionQueries", () => ({
@@ -57,6 +58,7 @@ const setup = (
       <DialogProvider>
         <ApprovalPackagePhase {...defaultProps} {...props} />
       </DialogProvider>
+      <ToastContainer />
     </TestProvider>
   );
 
