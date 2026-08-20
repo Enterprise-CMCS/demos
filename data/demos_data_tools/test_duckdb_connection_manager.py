@@ -123,7 +123,7 @@ class TestDuckDbConnectionManager:
         """
         duckdb_connection_manager.create_duckdb_conn()
 
-        mock_duckdb_connect.assert_called_once_with(":memory:", config={"memory_limit": "8GB", "threads": 8})
+        mock_duckdb_connect.assert_called_once_with(":memory:", config={"memory_limit": "2GB", "threads": 2})
 
     def test_create_duckdb_conn_02(self, mock_duckdb_connect):
         """Test duckdb_connection_manager.py functions.
