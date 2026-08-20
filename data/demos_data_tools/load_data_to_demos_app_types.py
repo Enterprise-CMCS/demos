@@ -109,3 +109,4 @@ class AvailableDataLoadConfigurations:
     """A class with the currently available data load configurations."""
 
     base: DataLoadConfiguration
+    rev01: DataLoadConfiguration
