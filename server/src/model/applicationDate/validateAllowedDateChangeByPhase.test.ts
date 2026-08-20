@@ -299,12 +299,12 @@ describe("validateAllowedDateChangeByPhase", () => {
       );
     });
 
-    it("should allow the Expected Approval Date to change after SDG Preparation is completed", async () => {
+    it("should allow the Internal Expected Approval Date to change after SDG Preparation is completed", async () => {
       const input: SetApplicationDatesInput = {
         applicationId: testApplicationId,
         applicationDates: [
           {
-            dateType: "Expected Approval Date",
+            dateType: "Internal Expected Approval Date",
             dateValue: "2026-01-01" as LocalDate,
           },
         ],
@@ -313,19 +313,19 @@ describe("validateAllowedDateChangeByPhase", () => {
       vi.mocked(getPhaseDateTypesByIds).mockResolvedValue([
         {
           phaseId: "SDG Preparation",
-          dateTypeId: "Expected Approval Date",
+          dateTypeId: "Internal Expected Approval Date",
         },
       ]);
 
       await expect(validateAllowedDateChangeByPhase(mockTransaction, input)).resolves.not.toThrow();
     });
 
-    it("should not allow the Expected Approval Date to be deleted after SDG Preparation is completed", async () => {
+    it("should not allow the Internal Expected Approval Date to be deleted after SDG Preparation is completed", async () => {
       const input: SetApplicationDatesInput = {
         applicationId: testApplicationId,
         applicationDates: [
           {
-            dateType: "Expected Approval Date",
+            dateType: "Internal Expected Approval Date",
             dateValue: null,
           },
         ],
@@ -334,12 +334,35 @@ describe("validateAllowedDateChangeByPhase", () => {
       vi.mocked(getPhaseDateTypesByIds).mockResolvedValue([
         {
           phaseId: "SDG Preparation",
-          dateTypeId: "Expected Approval Date",
+          dateTypeId: "Internal Expected Approval Date",
         },
       ]);
 
       await expect(validateAllowedDateChangeByPhase(mockTransaction, input)).rejects.toThrow(
-        "You cannot delete the Expected Approval Date after the SDG Preparation phase is completed."
+        "You cannot delete the Internal Expected Approval Date after the SDG Preparation phase is completed."
+      );
+    });
+
+    it("should not allow the State Requested Approval Date to change after SDG Preparation is completed", async () => {
+      const input: SetApplicationDatesInput = {
+        applicationId: testApplicationId,
+        applicationDates: [
+          {
+            dateType: "State Requested Approval Date",
+            dateValue: "2026-01-01" as LocalDate,
+          },
+        ],
+      };
+      vi.mocked(getFinishedApplicationPhaseIds).mockResolvedValue(["SDG Preparation"]);
+      vi.mocked(getPhaseDateTypesByIds).mockResolvedValue([
+        {
+          phaseId: "SDG Preparation",
+          dateTypeId: "State Requested Approval Date",
+        },
+      ]);
+
+      await expect(validateAllowedDateChangeByPhase(mockTransaction, input)).rejects.toThrow(
+        "Cannot modify dates because they are associated with finished phases: State Requested Approval Date date on SDG Preparation phase."
       );
     });
   });

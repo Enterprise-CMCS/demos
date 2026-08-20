@@ -156,7 +156,7 @@ All timestamps are converted to `America/New_York` timezone during migration.
   - **Primary Derivation**: One day after Federal Comment Period End Date when available
   - **Fallback Derivation**: Application created date (`creatd_dt`) when primary derivation is not available but the phase has other dates
   - **Otherwise**: NULL
-- **Expected Approval Date**: Directly mapped from PMDA `phase_2_dsrd_aprvl_dt`
+- **Internal Expected Approval Date**: Directly mapped from PMDA `phase_2_dsrd_aprvl_dt`
 - **SME Initial Review Date**: Directly mapped from PMDA `phase_3_a_sme_strt_dt`
 - **FRT Initial Meeting Date**: Directly mapped from PMDA `phase_3_a_frvt_strt_dt`
 - **BNPMT Initial Meeting Date**: ❌ Excluded - No equivalent field in PMDA

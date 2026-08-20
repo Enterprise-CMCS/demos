@@ -74,7 +74,7 @@ CROSS JOIN
             (a.cleaned_sdg_preparation_start_date + TIME '00:00:00.000') AT TIME ZONE 'America/New_York'
         ),
         (
-            'Expected Approval Date',
+            'Internal Expected Approval Date',
             (a.expected_approval_date + TIME '00:00:00.000') AT TIME ZONE 'America/New_York',
             (a.cleaned_expected_approval_date + TIME '00:00:00.000') AT TIME ZONE 'America/New_York'
         ),

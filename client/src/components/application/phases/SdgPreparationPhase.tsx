@@ -36,7 +36,7 @@ function getFormDataFromPhase(sdgPreparationPhase: SimplePhase): SdgPreparationP
   };
 
   return {
-    expectedApprovalDate: getDateValue("Expected Approval Date"),
+    internalExpectedApprovalDate: getDateValue("Internal Expected Approval Date"),
     smeInitialReviewDate: getDateValue("SME Initial Review Date"),
     frtInitialMeetingDate: getDateValue("FRT Initial Meeting Date"),
     bnpmtInitialMeetingDate: getDateValue("BNPMT Initial Meeting Date"),
@@ -44,7 +44,7 @@ function getFormDataFromPhase(sdgPreparationPhase: SimplePhase): SdgPreparationP
 }
 
 interface SdgPreparationPhaseFormData {
-  expectedApprovalDate?: string;
+  internalExpectedApprovalDate?: string;
   smeInitialReviewDate?: string;
   frtInitialMeetingDate?: string;
   bnpmtInitialMeetingDate?: string;
@@ -55,7 +55,7 @@ export const hasChanges = (
   currentFormData: SdgPreparationPhaseFormData
 ) => {
   return (
-    initialFormData.expectedApprovalDate !== currentFormData.expectedApprovalDate ||
+    initialFormData.internalExpectedApprovalDate !== currentFormData.internalExpectedApprovalDate ||
     initialFormData.smeInitialReviewDate !== currentFormData.smeInitialReviewDate ||
     initialFormData.frtInitialMeetingDate !== currentFormData.frtInitialMeetingDate ||
     initialFormData.bnpmtInitialMeetingDate !== currentFormData.bnpmtInitialMeetingDate
@@ -119,17 +119,17 @@ export const SdgPreparationPhase = ({
   const isApproved = applicationStatus === "Approved";
 
   const isFormComplete =
-    sdgPreparationPhaseFormData.expectedApprovalDate &&
+    sdgPreparationPhaseFormData.internalExpectedApprovalDate &&
     sdgPreparationPhaseFormData.smeInitialReviewDate &&
     sdgPreparationPhaseFormData.frtInitialMeetingDate &&
     sdgPreparationPhaseFormData.bnpmtInitialMeetingDate;
 
   const handleSave = async () => {
-    if (sdgPreparationPhaseFormData.expectedApprovalDate) {
+    if (sdgPreparationPhaseFormData.internalExpectedApprovalDate) {
       await setApplicationDate({
         applicationId: applicationId,
-        dateType: "Expected Approval Date" satisfies DateType,
-        dateValue: sdgPreparationPhaseFormData.expectedApprovalDate as LocalDate,
+        dateType: "Internal Expected Approval Date" satisfies DateType,
+        dateValue: sdgPreparationPhaseFormData.internalExpectedApprovalDate as LocalDate,
       });
     }
 
@@ -209,13 +209,13 @@ export const SdgPreparationPhase = ({
             </div>
             <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
               <DatePicker
-                name="datepicker-expected-approval-date"
-                label={"Expected Approval Date" satisfies DateType}
-                value={sdgPreparationPhaseFormData.expectedApprovalDate}
+                name="datepicker-internal-expected-approval-date"
+                label={"Internal Expected Approval Date" satisfies DateType}
+                value={sdgPreparationPhaseFormData.internalExpectedApprovalDate}
                 onChange={(newDate) => {
                   setSdgPreparationPhaseFormData({
                     ...sdgPreparationPhaseFormData,
-                    expectedApprovalDate: newDate,
+                    internalExpectedApprovalDate: newDate,
                   });
                 }}
                 isRequired
