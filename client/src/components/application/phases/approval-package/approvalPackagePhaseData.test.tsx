@@ -14,6 +14,8 @@ import {
 } from "components/application";
 import { DocumentType } from "demos-server";
 import { ApprovalPackageTableRow } from "components/table/tables/ApprovalPackageTable";
+import { TestUserProvider } from "components/user/UserProvider";
+import { cmsMockUser } from "mock-data/userMocks";
 
 vi.mock("components/table/tables/ApprovalPackageTable", () => ({
   ApprovalPackageTable: ({ rows }: { rows: ApprovalPackageTableRow[] }) => (
@@ -80,6 +82,13 @@ const baseDemonstration: ApplicationWorkflowDemonstration = {
   demonstrationTypes: [],
   tags: [],
 };
+
+const renderApprovalPackagePhase = (application: ApplicationWorkflowDemonstration) =>
+  render(
+    <TestUserProvider currentUser={cmsMockUser}>
+      {getApprovalPackagePhaseFromApplication(application, mockSetSelectedPhase)}
+    </TestUserProvider>
+  );
 
 describe("REQUIRED_DOCUMENT_TYPES", () => {
   it("contains all 6 required document types", () => {
@@ -149,7 +158,7 @@ describe("getApprovalPackagePhaseFromApplication", () => {
   });
 
   it("renders the phase component when Approval Package phase exists", () => {
-    render(getApprovalPackagePhaseFromApplication(baseDemonstration, mockSetSelectedPhase)!);
+    renderApprovalPackagePhase(baseDemonstration);
 
     expect(screen.getByText("APPROVAL")).toBeInTheDocument();
     expect(screen.getByText("APPROVAL PACKAGE")).toBeInTheDocument();
@@ -169,7 +178,7 @@ describe("getApprovalPackagePhaseFromApplication", () => {
       ],
     };
 
-    render(getApprovalPackagePhaseFromApplication(application, mockSetSelectedPhase)!);
+    renderApprovalPackagePhase(application);
 
     const rows = screen.getAllByTestId("table-row");
     expect(rows).toHaveLength(6);
@@ -180,7 +189,7 @@ describe("getApprovalPackagePhaseFromApplication", () => {
     expect(text.some((t) => t?.includes("STCs"))).toBe(false); // excluded: wrong phase
   });
 
-  it("sets isReadonly when phase is Completed", () => {
+  it("sets isPhaseCompleted when phase is Completed", () => {
     const application = {
       ...baseDemonstration,
       phases: baseDemonstration.phases.map((p) =>
@@ -189,9 +198,9 @@ describe("getApprovalPackagePhaseFromApplication", () => {
       documents: REQUIRED_DOCUMENT_TYPES.map((type) => doc({ documentType: type })),
     };
 
-    render(getApprovalPackagePhaseFromApplication(application, mockSetSelectedPhase)!);
+    renderApprovalPackagePhase(application);
 
-    // When readonly, Finish should be disabled even with all docs
+    // When phase is completed, Finish should be disabled even with all docs
     expect(screen.getByRole("button", { name: /finish/i })).toBeDisabled();
   });
 
@@ -201,7 +210,7 @@ describe("getApprovalPackagePhaseFromApplication", () => {
       documents: REQUIRED_DOCUMENT_TYPES.map((type) => doc({ documentType: type })),
     };
 
-    render(getApprovalPackagePhaseFromApplication(application, mockSetSelectedPhase)!);
+    renderApprovalPackagePhase(application);
     expect(screen.getByRole("button", { name: /finish/i })).toBeEnabled();
   });
 
@@ -214,7 +223,7 @@ describe("getApprovalPackagePhaseFromApplication", () => {
       documents: REQUIRED_DOCUMENT_TYPES.map((type) => doc({ documentType: type })),
     };
 
-    render(getApprovalPackagePhaseFromApplication(application, mockSetSelectedPhase)!);
+    renderApprovalPackagePhase(application);
     expect(screen.getByRole("button", { name: /finish/i })).toBeDisabled();
   });
 
@@ -233,7 +242,7 @@ describe("getApprovalPackagePhaseFromApplication", () => {
       documents: REQUIRED_DOCUMENT_TYPES.map((type) => doc({ documentType: type })),
     };
 
-    render(getApprovalPackagePhaseFromApplication(application, mockSetSelectedPhase)!);
+    renderApprovalPackagePhase(application);
 
     // Concept being Started should not affect the result
     expect(screen.getByRole("button", { name: /finish/i })).toBeEnabled();
@@ -248,12 +257,12 @@ describe("getApprovalPackagePhaseFromApplication", () => {
       documents: REQUIRED_DOCUMENT_TYPES.map((type) => doc({ documentType: type })),
     };
 
-    render(getApprovalPackagePhaseFromApplication(application, mockSetSelectedPhase)!);
+    renderApprovalPackagePhase(application);
     expect(screen.getByRole("button", { name: /finish/i })).toBeEnabled();
   });
 
   it("handles missing documents gracefully with dash placeholders", () => {
-    render(getApprovalPackagePhaseFromApplication(baseDemonstration, mockSetSelectedPhase)!);
+    renderApprovalPackagePhase(baseDemonstration);
 
     const rows = screen.getAllByTestId("table-row");
     expect(rows).toHaveLength(6);
