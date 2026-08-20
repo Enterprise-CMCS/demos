@@ -29,7 +29,8 @@ vi.mock("./runDocumentUnderstanding", () => ({
 }));
 
 vi.mock("./parseDocumentFromId", async () => {
-  const actual = await vi.importActual<typeof import("./parseDocumentFromId")>("./parseDocumentFromId");
+  const actual =
+    await vi.importActual<typeof import("./parseDocumentFromId")>("./parseDocumentFromId");
   return {
     ...actual,
     parseDocumentFromId: (...args: unknown[]) => mocks.parseDocumentFromIdMock(...args),
@@ -165,7 +166,10 @@ describe("handler", () => {
 
     const result = await handlerRef(event);
 
-    expect(mocks.parseDocumentFromIdMock).toHaveBeenCalledExactlyOnceWith(SEEDED_DOCUMENT_ID, undefined);
+    expect(mocks.parseDocumentFromIdMock).toHaveBeenCalledExactlyOnceWith(
+      SEEDED_DOCUMENT_ID,
+      undefined
+    );
     expect(mocks.runDocumentUnderstandingMock).toHaveBeenCalledWith(
       tmpFile("document-3"),
       expect.objectContaining({
@@ -295,7 +299,7 @@ describe("handler", () => {
 
     expect(log.error).toHaveBeenCalledWith(
       { error: redactedError },
-      "UiPath lambda failed"
+      "UiPath lambda did not complete"
     );
     expect(JSON.stringify(vi.mocked(log.error).mock.calls)).not.toContain("token-123");
   });

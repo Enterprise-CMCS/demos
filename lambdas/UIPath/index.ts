@@ -114,7 +114,9 @@ export const handler = async (event: SQSEvent) =>
       }
       reqIdChild(firstRecord.messageId);
 
-      const { s3Key, documentId, applicationId } = await resolveS3InputFromMessage(firstRecord.body);
+      const { s3Key, documentId, applicationId } = await resolveS3InputFromMessage(
+        firstRecord.body
+      );
 
       const downloadedObject = await downloadFromS3(documentBucket, s3Key);
       const { localPath } = downloadedObject;
@@ -150,8 +152,7 @@ export const handler = async (event: SQSEvent) =>
       }
       return status;
     } catch (error) {
-      log.error({ error }, "UiPath lambda failed");
+      log.error({ error }, "UiPath lambda did not complete");
       throw error;
     }
-  }
-);
+  });
