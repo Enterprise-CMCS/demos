@@ -96,13 +96,13 @@ const getPhaseStateInitialization = () => {
 export const ReviewPhase = ({
   initialFormData,
   applicationId,
-  isReadonly,
+  isPhaseCompleted,
   onFinish,
   allPreviousPhasesDone,
 }: {
   initialFormData: ReviewPhaseFormData;
   applicationId: string;
-  isReadonly: boolean;
+  isPhaseCompleted: boolean;
   onFinish: () => void;
   allPreviousPhasesDone: boolean;
 }) => {
@@ -185,7 +185,7 @@ export const ReviewPhase = ({
       reviewPhaseSectionsComplete["CMS (OSORA) Clearance"]);
 
   const isFinishEnabled =
-    !isReadonly &&
+    !isPhaseCompleted &&
     allPreviousPhasesDone &&
     reviewPhaseSectionsComplete["PO and OGD"] &&
     reviewPhaseSectionsComplete["OGC and OMB"] &&
@@ -223,8 +223,7 @@ export const ReviewPhase = ({
             setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
           }
           isComplete={reviewPhaseSectionsComplete["PO and OGD"]}
-          isReadonly={isReadonly || userIsReadonly}
-          hideNotes={userIsReadonly}
+          isReadonly={isPhaseCompleted || userIsReadonly}
         />
         <OgcAndOmbSection
           sectionFormData={reviewPhaseFormData}
@@ -232,8 +231,7 @@ export const ReviewPhase = ({
             setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
           }
           isComplete={reviewPhaseSectionsComplete["OGC and OMB"]}
-          isReadonly={isReadonly || userIsReadonly}
-          hideNotes={userIsReadonly}
+          isReadonly={isPhaseCompleted || userIsReadonly}
         />
         <RadioGroup
           name="clearance-level"
@@ -255,7 +253,7 @@ export const ReviewPhase = ({
             })
           }
           isInline
-          isDisabled={isReadonly}
+          isDisabled={isPhaseCompleted}
         />
         {reviewPhaseFormData.clearanceLevel === "COMMs" && (
           <CommsClearanceSection
@@ -264,8 +262,7 @@ export const ReviewPhase = ({
               setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
             }
             isComplete={reviewPhaseSectionsComplete["COMMs Clearance"]}
-            isReadonly={isReadonly || userIsReadonly}
-            hideNotes={userIsReadonly}
+            isReadonly={isPhaseCompleted || userIsReadonly}
           />
         )}
         {reviewPhaseFormData.clearanceLevel === "CMS (OSORA)" && (
@@ -275,8 +272,7 @@ export const ReviewPhase = ({
               setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
             }
             isComplete={reviewPhaseSectionsComplete["CMS (OSORA) Clearance"]}
-            isReadonly={isReadonly || userIsReadonly}
-            hideNotes={userIsReadonly}
+            isReadonly={isPhaseCompleted || userIsReadonly}
           />
         )}
         {!userIsReadonly && (

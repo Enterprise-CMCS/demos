@@ -107,7 +107,7 @@ describe("ReviewPhase Component", () => {
     render(
       <TestProvider currentUser={currentUser}>
         <ReviewPhase
-          isReadonly={isReadonly}
+          isPhaseCompleted={isReadonly}
           initialFormData={initialFormData}
           applicationId={applicationId}
           onFinish={onFinish}
@@ -748,7 +748,7 @@ describe("ReviewPhase Component", () => {
   });
 
   describe("Readonly User", () => {
-    it("hides review controls and notes while allowing readonly users to view all dates", async () => {
+    it("hides review controls while allowing readonly users to view disabled dates and notes", async () => {
       const incompleteData = buildInitialFormData({ dates: {} });
       setup(incompleteData, "demo-readonly-user", false, vi.fn(), true, readonlyMockUser);
 
@@ -759,7 +759,7 @@ describe("ReviewPhase Component", () => {
       ]) {
         expect(screen.getByTestId(datePickerName)).toBeDisabled();
       }
-      expect(screen.queryByTestId("input-po-ogd-notes")).not.toBeInTheDocument();
+      expect(screen.getByTestId("input-po-ogd-notes")).toBeDisabled();
       const cmsRadio = screen.getByLabelText("CMS (OSORA) Clearance Required");
       expect(cmsRadio).toBeEnabled();
       await userEvent.click(cmsRadio);
