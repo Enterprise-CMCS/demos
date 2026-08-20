@@ -2,17 +2,21 @@
 
 import argparse
 import os
+from dataclasses import dataclass
 from logging import getLogger
-from typing import TYPE_CHECKING, Literal, get_args, assert_never
+from typing import TYPE_CHECKING, Literal, assert_never, cast, get_args
 
 from dotenv import load_dotenv
 
-from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME, create_duckdb_conn, attach_demos_to_conn
+from duckdb_connection_manager import (
+    DDB_CONFIG_ATTACH_NAMES,
+    DemosDbConfigurationName,
+    attach_demos_db_to_conn,
+    create_duckdb_conn,
+)
 from logger_utils import config_logger
 
 if TYPE_CHECKING:
-    from argparse import Namespace
-
     from duckdb import DuckDBPyConnection as DuckConn
 
 logger = config_logger(getLogger(__name__))
@@ -22,77 +26,102 @@ RAW_SCHEMA = os.environ["RAW_SCHEMA"]
 STAGING_SCHEMA = os.environ["STAGING_SCHEMA"]
 REV01_SCHEMA = os.environ["REV01_SCHEMA"]
 
-MigrationSchemaType = Literal["raw", "staging", "rev01"]
-MIGRATION_SCHEMAS = get_args(MigrationSchemaType)
+type MigrationSchemaName = Literal["raw", "staging", "rev01"]
+type MigrationSchemaAction = Literal["create", "drop"]
+MIGRATION_SCHEMAS = get_args(MigrationSchemaName)
+MIGRATION_SCHEMA_ACTIONS = get_args(MigrationSchemaAction)
+DEMOS_DB_CONFIGS = get_args(DemosDbConfigurationName)
 
 
-def _parse_args() -> "Namespace":
+@dataclass(frozen=True)
+class CommandLineArguments:
+    """The command line arguments passed into the program."""
+
+    db_config: DemosDbConfigurationName
+    schema_action: MigrationSchemaAction
+    schema_name: MigrationSchemaName
+
+
+def _parse_args() -> CommandLineArguments:
     """Create argument parser and parse incoming arguments.
 
     Returns:
-        Namespace: The parsed argument namespace.
+        CommandLineArguments: The parsed command line arguments.
     """
     parser = argparse.ArgumentParser(description="Manage migration schemas for development use")
-    parser.add_argument("action", choices=["create", "drop"], help="Schema action to perform")
-    parser.add_argument("schema", choices=MIGRATION_SCHEMAS, help="Migration schema to manage")
-    return parser.parse_args()
+    parser.add_argument("db_config", choices=DEMOS_DB_CONFIGS, help="The DEMOS DB config to use")
+    parser.add_argument("schema_action", choices=MIGRATION_SCHEMA_ACTIONS, help="Schema action to perform")
+    parser.add_argument("schema_name", choices=MIGRATION_SCHEMAS, help="Migration schema to manage")
+    parsed_args = parser.parse_args()
+
+    return CommandLineArguments(
+        db_config=cast(DemosDbConfigurationName, parsed_args.db_config),
+        schema_action=cast(MigrationSchemaAction, parsed_args.schema_action),
+        schema_name=cast(MigrationSchemaName, parsed_args.schema_name),
+    )
 
 
-def _create_schema(conn: "DuckConn", which: MigrationSchemaType) -> None:
+def _create_schema(conn: "DuckConn", db_config: DemosDbConfigurationName, schema: MigrationSchemaName) -> None:
     """Create one of the migration schemas.
 
     Args:
-        conn (DuckConn): A DuckDB connection with the DEMOS DB attached.
-        which (MigrationSchemaType): Which schema to create.
+        conn (DuckConn): A DuckDB connection with a DEMOS DB attached.
+        db_config (DemosDbConfigurationName): The DEMOS DB configuration to be used for the command.
+        schema (MigrationSchemaName): Which schema to create.
     """
-    match which:
+    match schema:
         case "raw":
-            schema = RAW_SCHEMA
+            schema_to_create = RAW_SCHEMA
         case "staging":
-            schema = STAGING_SCHEMA
+            schema_to_create = STAGING_SCHEMA
         case "rev01":
-            schema = REV01_SCHEMA
+            schema_to_create = REV01_SCHEMA
         case _:
-            assert_never(which)
+            assert_never(schema)
+    demos_ddb_attach_name = DDB_CONFIG_ATTACH_NAMES[db_config]
 
-    logger.info(f"Attempting to create schema {schema}")
+    logger.info(f"Attempting to create schema {schema_to_create}")
     conn.execute(f"""
-        CREATE SCHEMA {DEMOS_DDB_ATTACH_NAME}.{schema};
+        CREATE SCHEMA {demos_ddb_attach_name}.{schema_to_create};
     """)
-    logger.info(f"Created schema {schema} successfully")
+    logger.info(f"Created schema {schema_to_create} successfully")
 
 
-def _drop_schema(conn: "DuckConn", which: MigrationSchemaType) -> None:
+def _drop_schema(conn: "DuckConn", db_config: DemosDbConfigurationName, schema: MigrationSchemaName) -> None:
     """Drop one of the migration schemas.
 
     Args:
-        conn (DuckConn): A DuckDB connection with the DEMOS DB attached.
-        which (MigrationSchemaType): Which schema to drop.
+        conn (DuckConn): A DuckDB connection with a DEMOS DB attached.
+        db_config (DemosDbConfigurationName): The DEMOS DB configuration to be used for the command.
+        schema (MigrationSchemaName): Which schema to drop.
     """
-    match which:
+    match schema:
         case "raw":
-            schema = RAW_SCHEMA
+            schema_to_drop = RAW_SCHEMA
         case "staging":
-            schema = STAGING_SCHEMA
+            schema_to_drop = STAGING_SCHEMA
         case "rev01":
-            schema = REV01_SCHEMA
+            schema_to_drop = REV01_SCHEMA
         case _:
-            assert_never(which)
+            assert_never(schema)
+    demos_ddb_attach_name = DDB_CONFIG_ATTACH_NAMES[db_config]
 
-    logger.info(f"Attempting to drop schema {schema}")
+    logger.info(f"Attempting to drop schema {schema_to_drop}")
     conn.execute(f"""
-        DROP SCHEMA IF EXISTS {DEMOS_DDB_ATTACH_NAME}.{schema} CASCADE;
+        DROP SCHEMA IF EXISTS {demos_ddb_attach_name}.{schema_to_drop} CASCADE;
     """)
-    logger.info(f"Dropped schema {schema} successfully")
+    logger.info(f"Dropped schema {schema_to_drop} successfully")
 
 
-def main(args: "Namespace") -> None:
+def main(args: CommandLineArguments) -> None:
     """Main program function."""
-    conn = attach_demos_to_conn(create_duckdb_conn())
-    if args.action == "create":
-        _create_schema(conn, args.schema)
-    elif args.action == "drop":
-        _drop_schema(conn, args.schema)
+    conn = attach_demos_db_to_conn(create_duckdb_conn(), args.db_config)
+    if args.schema_action == "create":
+        _create_schema(conn, args.db_config, args.schema_name)
+    elif args.schema_action == "drop":
+        _drop_schema(conn, args.db_config, args.schema_name)
+    else:
+        assert_never(args.schema_action)
 
 
 if __name__ == "__main__":

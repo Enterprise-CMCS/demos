@@ -2,7 +2,7 @@
 
 import os
 from logging import getLogger
-from typing import TYPE_CHECKING, Literal, assert_never
+from typing import TYPE_CHECKING, Dict, Literal, assert_never
 
 import duckdb
 
@@ -14,17 +14,20 @@ if TYPE_CHECKING:
 
 logger = config_logger(getLogger(__name__))
 
-DEMOS_LOCALSTACK_DDB_ATTACH_NAME = "ddb_demos_localstack"
-DEMOS_AWS_DDB_ATTACH_NAME = "ddb_demos_aws"
 
-type ConfigurationType = Literal["DEMOS LocalStack", "DEMOS AWS"]
+type DemosDbConfigurationName = Literal["demos-localstack", "demos-aws"]
+type DemosDuckDbAttachName = Literal["ddb_demos_localstack", "ddb_demos_aws"]
+DDB_CONFIG_ATTACH_NAMES: Dict[DemosDbConfigurationName, DemosDuckDbAttachName] = {
+    "demos-localstack": "ddb_demos_localstack",
+    "demos-aws": "ddb_demos_aws",
+}
 
 
-def _load_db_config_from_env(requested_config: ConfigurationType) -> dict:
+def _load_db_config_from_env(requested_config: DemosDbConfigurationName) -> dict:
     """Load the requested DB configuration from the environment.
 
     Args:
-        requested_config (ConfigurationType): Which DB configuration to attempt to load.
+        requested_config (DemosDbConfigurationName): Which DB configuration to attempt to load.
 
     Returns:
         dict: A dictionary containing the requested database configuration.
@@ -36,7 +39,7 @@ def _load_db_config_from_env(requested_config: ConfigurationType) -> dict:
     logger.info(f"Attempting to load {requested_config} DB config from environment")
 
     try:
-        if requested_config == "DEMOS LocalStack":
+        if requested_config == "demos-localstack":
             config = {
                 "host": os.environ["DEMOS_LOCALSTACK_HOST"],
                 "port": os.environ["DEMOS_LOCALSTACK_PORT"],
@@ -45,7 +48,7 @@ def _load_db_config_from_env(requested_config: ConfigurationType) -> dict:
                 "db": os.environ["DEMOS_LOCALSTACK_DB"],
                 "sslmode": os.environ["DEMOS_LOCALSTACK_SSLMODE"],
             }
-        elif requested_config == "DEMOS AWS":
+        elif requested_config == "demos-aws":
             config = {
                 "host": os.environ["DEMOS_AWS_HOST"],
                 "port": os.environ["DEMOS_AWS_PORT"],
@@ -83,12 +86,12 @@ def create_duckdb_conn() -> "DuckConn":
     return conn
 
 
-def attach_demos_db_to_conn(conn: "DuckConn", config_type: ConfigurationType) -> "DuckConn":
+def attach_demos_db_to_conn(conn: "DuckConn", config_type: DemosDbConfigurationName) -> "DuckConn":
     """Attach a DEMOS database to a DuckDB connection.
 
     Args:
         conn (DuckConn): A DuckDB connection to which the DEMOS database should be attached.
-        config_type (ConfigurationType): Which DEMOS database to connect.
+        config_type (DemosDbConfigurationName): Which DEMOS database to connect.
 
     Returns:
         DuckConn: The DuckDB connection with the attached DEMOS database.
@@ -99,14 +102,7 @@ def attach_demos_db_to_conn(conn: "DuckConn", config_type: ConfigurationType) ->
     conn.load_extension("postgres")
     ddb_demos_config = _load_db_config_from_env(config_type)
     clean_demos_pwd = ddb_demos_config["pwd"].replace("'", "''")
-
-    match config_type:
-        case "DEMOS LocalStack":
-            demos_ddb_attach_name = DEMOS_LOCALSTACK_DDB_ATTACH_NAME
-        case "DEMOS AWS":
-            demos_ddb_attach_name = DEMOS_AWS_DDB_ATTACH_NAME
-        case _:
-            assert_never(config_type)
+    demos_ddb_attach_name = DDB_CONFIG_ATTACH_NAMES[config_type]
 
     try:
         conn.execute(f"""
@@ -120,7 +116,7 @@ def attach_demos_db_to_conn(conn: "DuckConn", config_type: ConfigurationType) ->
             );
         """)
         conn.execute(f"ATTACH 'sslmode={ddb_demos_config['sslmode']}' AS {demos_ddb_attach_name} (TYPE postgres);")
-        conn.execute("SET pg_null_byte_replacement=''")  # This is necessary to handle nulls from MySQL
+        conn.execute("SET pg_null_byte_replacement=''")  # This was previously necessary to handle NULLs from MySQL
     except Exception:
         err_msg = "An error occurred while attempting to attach the DEMOS database."
         logger.error(err_msg)
