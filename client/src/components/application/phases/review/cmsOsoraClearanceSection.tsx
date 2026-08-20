@@ -15,11 +15,13 @@ export const CmsOsoraClearanceSection = ({
   setSectionFormData,
   isComplete,
   isReadonly,
+  hideNotes = false,
 }: {
   sectionFormData: CmsOsoraClearanceSectionFormData;
   setSectionFormData: (data: CmsOsoraClearanceSectionFormData) => void;
   isComplete: boolean;
   isReadonly: boolean;
+  hideNotes?: boolean;
 }) => {
   return (
     <CompletableSection title="CMS (OSORA) Clearance" isComplete={isComplete}>
@@ -107,27 +109,29 @@ export const CmsOsoraClearanceSection = ({
             isDisabled={isReadonly}
           />
         </div>
-        <div className="col-span-2 flex flex-col">
-          <label className="text-sm font-bold text-text-font mb-1">Notes</label>
-          <textarea
-            name="input-cms-osora-notes"
-            data-testid="input-cms-osora-notes"
-            placeholder="Enter notes..."
-            value={sectionFormData.notes["CMS (OSORA) Clearance"] || ""}
-            onChange={(e) =>
-              setSectionFormData({
-                ...sectionFormData,
-                notes: {
-                  ...sectionFormData.notes,
-                  "CMS (OSORA) Clearance": e.target.value,
-                },
-              })
-            }
-            className="border rounded p-1 min-h-25 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
-            rows={1}
-            disabled={isReadonly}
-          />
-        </div>
+        {!hideNotes && (
+          <div className="col-span-2 flex flex-col">
+            <label className="text-sm font-bold text-text-font mb-1">Notes</label>
+            <textarea
+              name="input-cms-osora-notes"
+              data-testid="input-cms-osora-notes"
+              placeholder="Enter notes..."
+              value={sectionFormData.notes["CMS (OSORA) Clearance"] || ""}
+              onChange={(e) =>
+                setSectionFormData({
+                  ...sectionFormData,
+                  notes: {
+                    ...sectionFormData.notes,
+                    "CMS (OSORA) Clearance": e.target.value,
+                  },
+                })
+              }
+              className="border rounded p-1 min-h-25 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows={1}
+              disabled={isReadonly}
+            />
+          </div>
+        )}
       </div>
     </CompletableSection>
   );

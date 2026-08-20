@@ -279,7 +279,7 @@ export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({
       onClose={onClose}
       dialogHasChanges={hasChanges}
       actionButton={
-        <Button onClick={handleApply} name="button-confirm-apply-tags" aria-label="Apply tags">
+        <Button onClick={handleApply} name="button-confirm-apply-tags" aria-label="Apply tags" disabled={!hasChanges}>
           Apply Tag(s)
         </Button>
       }

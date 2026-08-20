@@ -1,5 +1,6 @@
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -13,6 +14,8 @@ import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import type { DeliverableTableRow } from "./DeliverableTable";
 import { MOCK_DELIVERABLE_TABLE_ROW } from "mock-data/deliverableMocks";
 import { formatDateForDisplay } from "util/formatDate";
+import { TestProvider } from "test-utils/TestProvider";
+import { UserType } from "demos-server";
 
 const showEditDeliverableDialog = vi.fn();
 const showRemoveDeliverableDialog = vi.fn();
@@ -28,13 +31,25 @@ const MOCK_DELIVERABLE_TABLE_ROWS = [
 const sortedDeliverables = sortDeliverablesByDefault(MOCK_DELIVERABLE_TABLE_ROWS);
 const sortedFirstPageIds = sortedDeliverables.slice(0, 10).map((deliverable) => deliverable.id);
 
+const renderComponent = (
+  currentUser = cmsMockUser,
+  props: React.ComponentProps<typeof DeliverableTable> = {
+    deliverables: MOCK_DELIVERABLE_TABLE_ROWS,
+    viewMode: "demos-cms-user",
+  }
+) => {
+  return render(
+    <TestProvider currentUser={currentUser}>
+      <DeliverableTable {...props} />
+    </TestProvider>
+  );
+};
+
 describe("DeliverableTable", () => {
   beforeEach(async () => {
     showEditDeliverableDialog.mockClear();
     showRemoveDeliverableDialog.mockClear();
-    render(
-      <DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-cms-user" />
-    );
+    renderComponent();
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
@@ -55,7 +70,7 @@ describe("DeliverableTable", () => {
   });
 
   it("shows empty state when no deliverables provided", async () => {
-    render(<DeliverableTable deliverables={[]} viewMode="demos-cms-user" />);
+    renderComponent(cmsMockUser, { deliverables: [], viewMode: "demos-cms-user" });
 
     await waitFor(() => {
       expect(
@@ -65,13 +80,11 @@ describe("DeliverableTable", () => {
   });
 
   it("supports custom empty state message", async () => {
-    render(
-      <DeliverableTable
-        deliverables={[]}
-        emptyRowsMessage="You have no assigned Deliverables at this time"
-        viewMode="demos-cms-user"
-      />
-    );
+    renderComponent(cmsMockUser, {
+      deliverables: [],
+      emptyRowsMessage: "You have no assigned Deliverables at this time",
+      viewMode: "demos-cms-user",
+    });
 
     await waitFor(() => {
       expect(
@@ -442,10 +455,7 @@ describe("DeliverableTable", () => {
 
 describe("DeliverableTable demos-state-user view mode", () => {
   it("renders the state-user column set and hides state/CMS owner", async () => {
-    render(
-      <DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-state-user" />
-    );
-
+    renderComponent(cmsMockUser, { deliverables: MOCK_DELIVERABLE_TABLE_ROWS, viewMode: "demos-state-user" });
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
@@ -463,18 +473,14 @@ describe("DeliverableTable demos-state-user view mode", () => {
   });
 
   it("hides row action buttons in state-user mode", () => {
-    render(
-      <DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-state-user" />
-    );
+    renderComponent(cmsMockUser, { deliverables: MOCK_DELIVERABLE_TABLE_ROWS, viewMode: "demos-state-user" });
 
     expect(screen.queryByLabelText(/Edit Deliverable/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Remove Deliverable/i)).not.toBeInTheDocument();
   });
 
   it("shows filter options aligned to visible state-user columns", async () => {
-    render(
-      <DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-state-user" />
-    );
+    renderComponent(cmsMockUser, { deliverables: MOCK_DELIVERABLE_TABLE_ROWS, viewMode: "demos-state-user" });
 
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
@@ -503,7 +509,7 @@ describe("DeliverableTable Remove action", () => {
   ];
 
   it("disables Remove when the only selected row is finalized", async () => {
-    render(<DeliverableTable deliverables={FINALIZED_ROWS} viewMode="demos-cms-user" />);
+    renderComponent(cmsMockUser, { deliverables: FINALIZED_ROWS, viewMode: "demos-cms-user" });
     const user = userEvent.setup();
 
     await user.click(screen.getByTestId("select-row-approved"));
@@ -514,7 +520,7 @@ describe("DeliverableTable Remove action", () => {
   });
 
   it("disables Remove when any of multiple selected rows is finalized", async () => {
-    render(<DeliverableTable deliverables={FINALIZED_ROWS} viewMode="demos-cms-user" />);
+    renderComponent(cmsMockUser, { deliverables: FINALIZED_ROWS, viewMode: "demos-cms-user" });
     const user = userEvent.setup();
 
     await user.click(screen.getByTestId("select-row-active"));
@@ -526,7 +532,7 @@ describe("DeliverableTable Remove action", () => {
   });
 
   it("enables Remove when the selected row is Upcoming", async () => {
-    render(<DeliverableTable deliverables={FINALIZED_ROWS} viewMode="demos-cms-user" />);
+    renderComponent(cmsMockUser, { deliverables: FINALIZED_ROWS, viewMode: "demos-cms-user" });
     const user = userEvent.setup();
 
     await user.click(screen.getByTestId("select-row-active"));
@@ -535,12 +541,10 @@ describe("DeliverableTable Remove action", () => {
   });
 
   it("enables Remove when the selected row is Past Due", async () => {
-    render(
-      <DeliverableTable
-        deliverables={[{ ...MOCK_DELIVERABLE_TABLE_ROW, id: "past-due", status: "Past Due" }]}
-        viewMode="demos-cms-user"
-      />
-    );
+    renderComponent(cmsMockUser, {
+      deliverables: [{ ...MOCK_DELIVERABLE_TABLE_ROW, id: "past-due", status: "Past Due" }],
+      viewMode: "demos-cms-user",
+    });
     const user = userEvent.setup();
 
     await user.click(screen.getByTestId("select-row-past-due"));
@@ -551,12 +555,10 @@ describe("DeliverableTable Remove action", () => {
   });
 
   it("disables Remove when a selected row has a non-deletable non-final status", async () => {
-    render(
-      <DeliverableTable
-        deliverables={[{ ...MOCK_DELIVERABLE_TABLE_ROW, id: "submitted", status: "Submitted" }]}
-        viewMode="demos-cms-user"
-      />
-    );
+    renderComponent(cmsMockUser, {
+      deliverables: [{ ...MOCK_DELIVERABLE_TABLE_ROW, id: "submitted", status: "Submitted" }],
+      viewMode: "demos-cms-user",
+    });
     const user = userEvent.setup();
 
     await user.click(screen.getByTestId("select-row-submitted"));
@@ -567,15 +569,13 @@ describe("DeliverableTable Remove action", () => {
   });
 
   it("enables Remove when selected rows are Upcoming and Past Due", async () => {
-    render(
-      <DeliverableTable
-        deliverables={[
-          { ...MOCK_DELIVERABLE_TABLE_ROW, id: "upcoming", status: "Upcoming" },
-          { ...MOCK_DELIVERABLE_TABLE_ROW, id: "past-due", status: "Past Due" },
-        ]}
-        viewMode="demos-cms-user"
-      />
-    );
+    renderComponent(cmsMockUser, {
+      deliverables: [
+        { ...MOCK_DELIVERABLE_TABLE_ROW, id: "upcoming", status: "Upcoming" },
+        { ...MOCK_DELIVERABLE_TABLE_ROW, id: "past-due", status: "Past Due" },
+      ],
+      viewMode: "demos-cms-user",
+    });
     const user = userEvent.setup();
 
     await user.click(screen.getByTestId("select-row-upcoming"));
@@ -587,15 +587,13 @@ describe("DeliverableTable Remove action", () => {
   });
 
   it("disables Remove when one of multiple selected rows has a non-deletable status", async () => {
-    render(
-      <DeliverableTable
-        deliverables={[
-          { ...MOCK_DELIVERABLE_TABLE_ROW, id: "upcoming", status: "Upcoming" },
-          { ...MOCK_DELIVERABLE_TABLE_ROW, id: "submitted", status: "Submitted" },
-        ]}
-        viewMode="demos-cms-user"
-      />
-    );
+    renderComponent(cmsMockUser, {
+      deliverables: [
+        { ...MOCK_DELIVERABLE_TABLE_ROW, id: "upcoming", status: "Upcoming" },
+        { ...MOCK_DELIVERABLE_TABLE_ROW, id: "submitted", status: "Submitted" },
+      ],
+      viewMode: "demos-cms-user",
+    });
     const user = userEvent.setup();
 
     await user.click(screen.getByTestId("select-row-upcoming"));
@@ -607,19 +605,17 @@ describe("DeliverableTable Remove action", () => {
   });
 
   it("disables Remove when a selected row has files", async () => {
-    render(
-      <DeliverableTable
-        deliverables={[
-          {
-            ...MOCK_DELIVERABLE_TABLE_ROW,
-            id: "has-file",
-            status: "Upcoming",
-            cmsDocuments: [{ id: "doc-1" }],
-          },
-        ]}
-        viewMode="demos-cms-user"
-      />
-    );
+    renderComponent(cmsMockUser, {
+      deliverables: [
+        {
+          ...MOCK_DELIVERABLE_TABLE_ROW,
+          id: "has-file",
+          status: "Upcoming",
+          cmsDocuments: [{ id: "doc-1" }],
+        },
+      ],
+      viewMode: "demos-cms-user",
+    });
     const user = userEvent.setup();
 
     await user.click(screen.getByTestId("select-row-has-file"));
@@ -630,19 +626,17 @@ describe("DeliverableTable Remove action", () => {
   });
 
   it("disables Remove when a selected row has comments", async () => {
-    render(
-      <DeliverableTable
-        deliverables={[
-          {
-            ...MOCK_DELIVERABLE_TABLE_ROW,
-            id: "has-comment",
-            status: "Past Due",
-            publicComments: [{ id: "comment-1" }],
-          },
-        ]}
-        viewMode="demos-cms-user"
-      />
-    );
+    renderComponent(cmsMockUser, {
+      deliverables: [
+        {
+          ...MOCK_DELIVERABLE_TABLE_ROW,
+          id: "has-comment",
+          status: "Past Due",
+          publicComments: [{ id: "comment-1" }],
+        },
+      ],
+      viewMode: "demos-cms-user",
+    });
     const user = userEvent.setup();
 
     await user.click(screen.getByTestId("select-row-has-comment"));
@@ -653,26 +647,24 @@ describe("DeliverableTable Remove action", () => {
   });
 
   it("disables Remove when one of multiple selected rows has files or comments", async () => {
-    render(
-      <DeliverableTable
-        deliverables={[
-          {
-            ...MOCK_DELIVERABLE_TABLE_ROW,
-            id: "delete-ready",
-            status: "Upcoming",
-            cmsDocuments: [],
-            publicComments: [],
-          },
-          {
-            ...MOCK_DELIVERABLE_TABLE_ROW,
-            id: "has-comment",
-            status: "Upcoming",
-            publicComments: [{ id: "comment-1" }],
-          },
-        ]}
-        viewMode="demos-cms-user"
-      />
-    );
+    renderComponent(cmsMockUser, {
+      deliverables: [
+        {
+          ...MOCK_DELIVERABLE_TABLE_ROW,
+          id: "delete-ready",
+          status: "Upcoming",
+          cmsDocuments: [],
+          publicComments: [],
+        },
+        {
+          ...MOCK_DELIVERABLE_TABLE_ROW,
+          id: "has-comment",
+          status: "Upcoming",
+          publicComments: [{ id: "comment-1" }],
+        },
+      ],
+      viewMode: "demos-cms-user",
+    });
     const user = userEvent.setup();
 
     await user.click(screen.getByTestId("select-row-delete-ready"));
@@ -684,26 +676,24 @@ describe("DeliverableTable Remove action", () => {
   });
 
   it("enables Remove after the selected row with files or comments is deselected", async () => {
-    render(
-      <DeliverableTable
-        deliverables={[
-          {
-            ...MOCK_DELIVERABLE_TABLE_ROW,
-            id: "delete-ready",
-            status: "Upcoming",
-            cmsDocuments: [],
-            publicComments: [],
-          },
-          {
-            ...MOCK_DELIVERABLE_TABLE_ROW,
-            id: "has-file",
-            status: "Upcoming",
-            cmsDocuments: [{ id: "doc-1" }],
-          },
-        ]}
-        viewMode="demos-cms-user"
-      />
-    );
+    renderComponent(cmsMockUser, {
+      deliverables: [
+        {
+          ...MOCK_DELIVERABLE_TABLE_ROW,
+          id: "delete-ready",
+          status: "Upcoming",
+          cmsDocuments: [],
+          publicComments: [],
+        },
+        {
+          ...MOCK_DELIVERABLE_TABLE_ROW,
+          id: "has-file",
+          status: "Upcoming",
+          cmsDocuments: [{ id: "doc-1" }],
+        },
+      ],
+      viewMode: "demos-cms-user",
+    });
     const user = userEvent.setup();
 
     await user.click(screen.getByTestId("select-row-delete-ready"));
@@ -719,25 +709,23 @@ describe("DeliverableTable Remove action", () => {
   });
 
   it("disables Remove when multiple selected rows all have files or comments", async () => {
-    render(
-      <DeliverableTable
-        deliverables={[
-          {
-            ...MOCK_DELIVERABLE_TABLE_ROW,
-            id: "has-file",
-            status: "Upcoming",
-            cmsDocuments: [{ id: "doc-1" }],
-          },
-          {
-            ...MOCK_DELIVERABLE_TABLE_ROW,
-            id: "has-comment",
-            status: "Upcoming",
-            publicComments: [{ id: "comment-1" }],
-          },
-        ]}
-        viewMode="demos-cms-user"
-      />
-    );
+    renderComponent(cmsMockUser, {
+      deliverables: [
+        {
+          ...MOCK_DELIVERABLE_TABLE_ROW,
+          id: "has-file",
+          status: "Upcoming",
+          cmsDocuments: [{ id: "doc-1" }],
+        },
+        {
+          ...MOCK_DELIVERABLE_TABLE_ROW,
+          id: "has-comment",
+          status: "Upcoming",
+          publicComments: [{ id: "comment-1" }],
+        },
+      ],
+      viewMode: "demos-cms-user",
+    });
     const user = userEvent.setup();
 
     await user.click(screen.getByTestId("select-row-has-file"));
@@ -751,28 +739,26 @@ describe("DeliverableTable Remove action", () => {
   it("renders the latest submission date in the Submission Date column", async () => {
     const latestSubmission = new Date("2024-02-01T00:00:00Z");
 
-    render(
-      <DeliverableTable
-        deliverables={[
-          {
-            ...MOCK_DELIVERABLE_TABLE_ROW,
-            deliverableActions: [
-              {
-                id: "1",
-                actionType: "Submitted Deliverable",
-                actionTimestamp: new Date("2024-01-01T00:00:00Z"),
-              },
-              {
-                id: "2",
-                actionType: "Submitted Deliverable",
-                actionTimestamp: latestSubmission,
-              },
-            ],
-          },
-        ]}
-        viewMode="demos-cms-user"
-      />
-    );
+    renderComponent(cmsMockUser, {
+      deliverables: [
+        {
+          ...MOCK_DELIVERABLE_TABLE_ROW,
+          deliverableActions: [
+            {
+              id: "1",
+              actionType: "Submitted Deliverable",
+              actionTimestamp: new Date("2024-01-01T00:00:00Z"),
+            },
+            {
+              id: "2",
+              actionType: "Submitted Deliverable",
+              actionTimestamp: latestSubmission,
+            },
+          ],
+        },
+      ],
+      viewMode: "demos-cms-user",
+    });
 
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
@@ -807,9 +793,10 @@ describe("DeliverableTable default sorting behavior", () => {
         .getAllByTestId(/^select-row-/)
         .map((checkbox) => checkbox.getAttribute("data-testid")?.replace("select-row-", ""));
 
-    const { rerender } = render(
-      <DeliverableTable deliverables={[submitted, pastDue, upcoming]} viewMode="demos-cms-user" />
-    );
+    const { rerender } = renderComponent(cmsMockUser, {
+      deliverables: [submitted, pastDue, upcoming],
+      viewMode: "demos-cms-user",
+    });
 
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
@@ -818,7 +805,9 @@ describe("DeliverableTable default sorting behavior", () => {
     expect(getRenderedRowIds()).toEqual(["past-due", "upcoming", "submitted"]);
 
     rerender(
-      <DeliverableTable deliverables={[upcoming, submitted, pastDue]} viewMode="demos-cms-user" />
+      <TestProvider currentUser={cmsMockUser}>
+        <DeliverableTable deliverables={[upcoming, submitted, pastDue]} viewMode="demos-cms-user" />
+      </TestProvider>
     );
 
     expect(getRenderedRowIds()).toEqual(["past-due", "upcoming", "submitted"]);
@@ -887,5 +876,19 @@ describe("getLatestSubmissionDate", () => {
         },
       ])
     ).toBe(formatDateForDisplay(new Date("2024-01-01T00:00:00Z")));
+  });
+});
+
+describe("Readonly view mode", () => {
+  it("renders the table in readonly mode when viewMode is 'demos-readonly'", async () => {
+    // TODO: Update demos-readonly to demos-cms-restricted-user
+    renderComponent(readonlyMockUser, { deliverables: MOCK_DELIVERABLE_TABLE_ROWS, viewMode: "demos-readonly" as UserType });
+
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByLabelText(/Edit Deliverable/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Remove Deliverable/i)).not.toBeInTheDocument();
   });
 });

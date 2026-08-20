@@ -123,7 +123,7 @@ describe("reviewPhaseData", () => {
       );
       expect(result.props.initialFormData.notes["PO and OGD"]).toBe("Test note");
       expect(result.props.initialFormData.clearanceLevel).toBe("CMS (OSORA)");
-      expect(result.props.isReadonly).toBe(false);
+      expect(result.props.isPhaseCompleted).toBe(false);
     });
 
     it("should pass through converted form data to ReviewPhase component", () => {
@@ -164,11 +164,11 @@ describe("reviewPhaseData", () => {
       expect(result.props.initialFormData.notes["OGC and OMB"]).toBe("OGC note content");
       expect(result.props.initialFormData.notes["COMMs Clearance"]).toBe("COMMs note content");
       expect(result.props.initialFormData.clearanceLevel).toBe("CMS (OSORA)");
-      expect(result.props.isReadonly).toBe(false);
+      expect(result.props.isPhaseCompleted).toBe(false);
       expect(result.props.onFinish).toBe(mockOnFinish);
     });
 
-    it("should pass isReadonly as true if the phase is completed", () => {
+    it("should pass isPhaseCompleted as true if the phase is completed", () => {
       const demonstration: WorkflowApplication = {
         id: "demo-789",
         clearanceLevel: "CMS (OSORA)",
@@ -197,7 +197,7 @@ describe("reviewPhaseData", () => {
 
       const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);
 
-      expect(result.props.isReadonly).toBe(true);
+      expect(result.props.isPhaseCompleted).toBe(true);
     });
 
     it("should forward allPreviousPhasesDone as true when all required phases are done", () => {
