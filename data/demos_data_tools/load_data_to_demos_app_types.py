@@ -1,7 +1,7 @@
 """Shared types and classes for the load_data_to_demos_app.py module."""
 
 from dataclasses import dataclass
-from typing import List, Literal, Tuple
+from typing import List, Literal, Tuple, Protocol
 
 
 @dataclass(frozen=True)
@@ -41,11 +41,25 @@ class TransactionActionConfiguration:
 
 
 @dataclass(frozen=True)
+class ArbitrarySqlGenerationContext:
+    """Values used in ArbitrarySqlGenerator objects."""
+
+    attach_name: str
+    app_schema: str
+
+
+class ArbitrarySqlGenerator(Protocol):
+    """Generator class for arbitrary SQL that allows insertion of the attach_name."""
+
+    def __call__(self, generation_context: ArbitrarySqlGenerationContext) -> str: ...  # noqa: D102
+
+
+@dataclass(frozen=True)
 class ArbitraryActionConfiguration:
     """A configuration for arbitrary SQL to execute."""
 
     action_name: str
-    sql_query: str
+    sql_generator: ArbitrarySqlGenerator
 
 
 @dataclass(frozen=True)

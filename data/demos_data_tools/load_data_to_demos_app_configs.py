@@ -4,9 +4,9 @@ import os
 
 from dotenv import load_dotenv
 
-from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME
 from load_data_to_demos_app_types import (
     ArbitraryActionConfiguration,
+    ArbitrarySqlGenerationContext,
     AvailableDataLoadConfigurations,
     DataLoadConfiguration,
     TableInsertActionConfiguration,
@@ -18,6 +18,28 @@ load_dotenv()
 APP_SCHEMA = os.environ["APP_SCHEMA"]
 STAGING_SCHEMA = os.environ["STAGING_SCHEMA"]
 REV01_SCHEMA = os.environ["REV01_SCHEMA"]
+
+
+def set_migration_mode_on(generation_context: ArbitrarySqlGenerationContext) -> str:  # noqa: D103
+    return f"CALL postgres_execute('{generation_context.attach_name}', 'SET LOCAL demos_app.migration_mode = ''on''')"
+
+
+def set_migration_mode_off(generation_context: ArbitrarySqlGenerationContext) -> str:  # noqa: D103
+    return f"CALL postgres_execute('{generation_context.attach_name}', 'SET LOCAL demos_app.migration_mode = ''off''')"
+
+
+def call_mark_deliverables_past_due(generation_context: ArbitrarySqlGenerationContext) -> str:  # noqa: D103
+    return (
+        f"CALL postgres_execute('{generation_context.attach_name}', "
+        f"'CALL {generation_context.app_schema}.mark_deliverables_as_past_due()')"
+    )
+
+
+def call_update_federal_comment_phase_status(generation_context: ArbitrarySqlGenerationContext) -> str:  # noqa: D103
+    return (
+        f"CALL postgres_execute('{generation_context.attach_name}', "
+        f"'CALL {generation_context.app_schema}.update_federal_comment_phase_status()')"
+    )
 
 
 AVAILABLE_DATA_LOAD_CONFIGURATIONS = AvailableDataLoadConfigurations(
@@ -58,10 +80,7 @@ AVAILABLE_DATA_LOAD_CONFIGURATIONS = AvailableDataLoadConfigurations(
                 ["person_id", "role_id", "person_type_id", "grant_level_id"],
             ),
             TransactionActionConfiguration("begin"),
-            ArbitraryActionConfiguration(
-                "Set migration_mode to 'on'",
-                f"CALL postgres_execute('{DEMOS_DDB_ATTACH_NAME}', 'SET LOCAL demos_app.migration_mode = ''on''')",
-            ),
+            ArbitraryActionConfiguration("Set migration_mode to 'on'", set_migration_mode_on),
             TableInsertActionConfiguration(
                 "final_demos_app_application",
                 "application",
@@ -142,10 +161,7 @@ AVAILABLE_DATA_LOAD_CONFIGURATIONS = AvailableDataLoadConfigurations(
                     "updated_at",
                 ],
             ),
-            ArbitraryActionConfiguration(
-                "Set migration_mode to 'off'",
-                f"CALL postgres_execute('{DEMOS_DDB_ATTACH_NAME}', 'SET LOCAL demos_app.migration_mode = ''off''')",
-            ),
+            ArbitraryActionConfiguration("Set migration_mode to 'off'", set_migration_mode_off),
             TransactionActionConfiguration("commit"),
             TableInsertActionConfiguration(
                 "final_demos_app_application_date",
@@ -343,15 +359,9 @@ AVAILABLE_DATA_LOAD_CONFIGURATIONS = AvailableDataLoadConfigurations(
             TriggerActionConfiguration("enable", "public_comment", "trim_input_text_fields"),
             TriggerActionConfiguration("enable", "reference", "trim_input_text_fields"),
             TriggerActionConfiguration("enable", "reference_agreement", "trim_input_text_fields"),
+            ArbitraryActionConfiguration("Run due date calculation", call_mark_deliverables_past_due),
             ArbitraryActionConfiguration(
-                "Run due date calculation",
-                f"CALL postgres_execute('{DEMOS_DDB_ATTACH_NAME}', "
-                f"'CALL {APP_SCHEMA}.mark_deliverables_as_past_due()')",
-            ),
-            ArbitraryActionConfiguration(
-                "Run phase status update for Federal Comment Period",
-                f"CALL postgres_execute('{DEMOS_DDB_ATTACH_NAME}', "
-                f"'CALL {APP_SCHEMA}.update_federal_comment_phase_status()')",
+                "Run phase status update for Federal Comment Period", call_update_federal_comment_phase_status
             ),
         ),
     )

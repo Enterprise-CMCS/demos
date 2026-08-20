@@ -8,7 +8,12 @@ from typing import TYPE_CHECKING, Set, Tuple, assert_never
 
 from dotenv import load_dotenv
 
-from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME, attach_demos_to_conn, create_duckdb_conn
+from duckdb_connection_manager import (
+    DEMOS_DDB_ATTACH_NAME,
+    DemosDbConfigurationName,
+    attach_demos_to_conn,
+    create_duckdb_conn,
+)
 from load_data_to_demos_app_configs import (
     AVAILABLE_DATA_LOAD_CONFIGURATIONS,
 )
@@ -137,7 +142,7 @@ def _generate_transaction_action_sql(transact_config: TransactionActionConfigura
 
 
 def _generate_arbitrary_action_sql(
-    arbitrary_action_config: ArbitraryActionConfiguration,
+    arbitrary_action_config: ArbitraryActionConfiguration, db_config: DemosDbConfigurationName
 ) -> GeneratedArbitraryActionSql:
     """Generate an arbitrary action statement from an ArbitraryActionConfiguration.
 
@@ -147,6 +152,7 @@ def _generate_arbitrary_action_sql(
     Returns:
         GeneratedArbitraryActionSql: The SQL query to be executed.
     """
+    arbitrary_action_config.sql_generator()
     return GeneratedArbitraryActionSql(arbitrary_action_config, arbitrary_action_config.sql_query)
 
 
