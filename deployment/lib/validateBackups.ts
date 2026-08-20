@@ -112,10 +112,10 @@ export function parseBucketName(arn: string): string {
 }
 
 export async function validateS3Event(event: RestoreJobCompletedEvent) {
-  const backupBucket = parseBucketName(event.detail.createdResourceArn)
+  const restoredBucket = parseBucketName(event.detail.createdResourceArn)
   const sourceBucket = parseBucketName(event.detail.sourceResourceArn)
 
-  const selectedObjects = await selectRandomObjects(backupBucket)
+  const selectedObjects = await selectRandomObjects(restoredBucket)
   
   if (!selectedObjects) {
     throw new Error("no objects were returned");
@@ -182,15 +182,21 @@ export async function getDatabaseURL(arn: string) {
   console.log("in getDatabaseURL")
   const s = await getDatabaseSecret();
   const endpoint = await getRDSEndpoint(arn)
-  return `postgresql://${s.username}:${s.password}@${endpoint.hostname}:${endpoint.port}/${s.dbname}`;
+  return {
+    host: endpoint.hostname,
+    port: endpoint.port,
+    user: s.username,
+    password: s.password,
+    database: s.dbname
+  }
 };
 
 export async function validateRDSEvent(event: RestoreJobCompletedEvent) {
   console.log("in validateRDSEvent")
 
-  const connectionString = await getDatabaseURL(event.detail.createdResourceArn)
+  const connectionDetails = await getDatabaseURL(event.detail.createdResourceArn)
   const pool = new Pool({
-    connectionString,
+    ...connectionDetails,
     ssl: {
       rejectUnauthorized: false,
     },

@@ -332,8 +332,14 @@ describe("Validate Backups", () => {
         DBInstances: [{ Endpoint: { Address: "database.example", Port: 5432 } }],
       });
 
-      await expect(getDatabaseURL("database-arn")).resolves.toBe(
-        "postgresql://dbuser:secret@database.example:5432/demos",  // pragma: allowlist secret
+      await expect(getDatabaseURL("database-arn")).resolves.toStrictEqual(
+        {
+          host: "database.example",
+          port: 5432,
+          user: "dbuser",
+          password: "secret", // pragma: allowlist secret
+          database: "demos"
+        }, 
       );
     });
   });
