@@ -168,7 +168,7 @@ export async function runDocumentUnderstanding(
       throw persistError; // Retry only because persistence failed.
     }
 
-    log.error({ error }, "UiPath extraction failed");
+    log.error({ error }, "UiPath extraction did not complete");
     return {
       status: "Failed",
       ...failure,

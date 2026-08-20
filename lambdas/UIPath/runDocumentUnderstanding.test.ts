@@ -48,7 +48,7 @@ const TEST_APPLICATION_ID = "app-1";
 
 function mockSuccessfulDbQueries(
   allowedTagSuggestionFieldIds: string[] = [],
-  tagNames: string[] = [],
+  tagNames: string[] = []
 ) {
   mocks.queryMock.mockImplementation((sql: string) => {
     if (sql.includes("from demos_app.tag")) {
@@ -226,7 +226,7 @@ describe("runDocumentUnderstanding", () => {
           message: "UiPath extraction did not succeed within the configured attempts.",
         }),
       },
-      "UiPath extraction failed"
+      "UiPath extraction did not complete"
     );
     expect(mocks.queryMock).toHaveBeenCalledTimes(2);
     expect(mocks.queryMock.mock.calls[0]?.[1]?.[6]).toBe("Pending");
@@ -306,7 +306,7 @@ describe("runDocumentUnderstanding", () => {
           message: "No existing UiPath result row found for request request-no-id.",
         }),
       },
-      "UiPath extraction failed"
+      "UiPath extraction did not complete"
     );
     expect(mocks.queryMock.mock.calls.map((call) => call[0])).toContain("ROLLBACK");
   });
@@ -316,7 +316,7 @@ describe("runDocumentUnderstanding", () => {
     mocks.extractDocMock.mockResolvedValue("result-url");
     mockSuccessfulDbQueries(
       ["demo_type"],
-      ["Substance Use Disorder (SUD)", "Basic Health Plan (BHP)"],
+      ["Substance Use Disorder (SUD)", "Basic Health Plan (BHP)"]
     );
     mocks.fetchExtractionResultMock.mockResolvedValue({
       status: "Succeeded",
@@ -387,7 +387,7 @@ describe("runDocumentUnderstanding", () => {
       JSON.stringify([{ Page: 1 }]),
     ]);
     expect(mocks.queryMock.mock.calls[9]?.[0]).toContain(
-      "insert into demos_app.application_tag_suggestion_extract",
+      "insert into demos_app.application_tag_suggestion_extract"
     );
     expect(mocks.queryMock.mock.calls[9]?.[1]).toEqual([
       sudInsertArgs?.[0],
@@ -443,15 +443,13 @@ describe("runDocumentUnderstanding", () => {
           message: expect.stringContaining("token_list must include numeric Page values"),
         }),
       },
-      "UiPath extraction failed"
+      "UiPath extraction did not complete"
     );
 
     expect(mocks.queryMock.mock.calls[5]?.[0]).toBe("COMMIT");
     expect(mocks.queryMock.mock.calls[8]?.[0]).toBe("ROLLBACK");
     expect(
-      mocks.queryMock.mock.calls.some(
-        (call) => Array.isArray(call[1]) && call[1][5] === "Failed"
-      )
+      mocks.queryMock.mock.calls.some((call) => Array.isArray(call[1]) && call[1][5] === "Failed")
     ).toBe(true);
   });
 
@@ -482,7 +480,7 @@ describe("runDocumentUnderstanding", () => {
           message: "UiPath extraction returned Failed status.",
         }),
       },
-      "UiPath extraction failed"
+      "UiPath extraction did not complete"
     );
 
     expect(mocks.queryMock).toHaveBeenCalledTimes(2);
@@ -530,7 +528,7 @@ describe("runDocumentUnderstanding", () => {
     });
     expect(mocks.logErrorMock).toHaveBeenCalledWith(
       { error: redactedError },
-      "UiPath extraction failed"
+      "UiPath extraction did not complete"
     );
 
     const failedResponse = JSON.parse(mocks.queryMock.mock.calls[1]?.[1]?.[2]);
@@ -573,9 +571,9 @@ describe("runDocumentUnderstanding", () => {
   });
 
   it("throws when document context is missing", async () => {
-    await expect(runDocumentUnderstanding("file.pdf", { documentId: TEST_DOCUMENT_ID })).rejects.toThrow(
-      "documentId and applicationId are required to persist UiPath results."
-    );
+    await expect(
+      runDocumentUnderstanding("file.pdf", { documentId: TEST_DOCUMENT_ID })
+    ).rejects.toThrow("documentId and applicationId are required to persist UiPath results.");
     expect(mocks.fetchExtractionResultMock).not.toHaveBeenCalled();
   });
 
