@@ -14,11 +14,13 @@ export const CommsClearanceSection = ({
   setSectionFormData,
   isComplete,
   isReadonly,
+  hideNotes = false,
 }: {
   sectionFormData: CommsClearanceSectionFormData;
   setSectionFormData: (data: CommsClearanceSectionFormData) => void;
   isComplete: boolean;
   isReadonly: boolean;
+  hideNotes?: boolean;
 }) => {
   return (
     <CompletableSection title="Comms Clearance" isComplete={isComplete}>
@@ -63,27 +65,29 @@ export const CommsClearanceSection = ({
             isDisabled={isReadonly}
           />
         </div>
-        <div className="col-span-2 flex flex-col">
-          <label className="text-sm font-bold text-text-font mb-1">Notes</label>
-          <textarea
-            name="input-comms-clearance-notes"
-            data-testid="input-comms-clearance-notes"
-            placeholder="Enter notes..."
-            value={sectionFormData.notes["COMMs Clearance"] || ""}
-            onChange={(e) =>
-              setSectionFormData({
-                ...sectionFormData,
-                notes: {
-                  ...sectionFormData.notes,
-                  "COMMs Clearance": e.target.value,
-                },
-              })
-            }
-            className="border rounded p-1 min-h-25 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
-            rows={1}
-            disabled={isReadonly}
-          />
-        </div>
+        {!hideNotes && (
+          <div className="col-span-2 flex flex-col">
+            <label className="text-sm font-bold text-text-font mb-1">Notes</label>
+            <textarea
+              name="input-comms-clearance-notes"
+              data-testid="input-comms-clearance-notes"
+              placeholder="Enter notes..."
+              value={sectionFormData.notes["COMMs Clearance"] || ""}
+              onChange={(e) =>
+                setSectionFormData({
+                  ...sectionFormData,
+                  notes: {
+                    ...sectionFormData.notes,
+                    "COMMs Clearance": e.target.value,
+                  },
+                })
+              }
+              className="border rounded p-1 min-h-25 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows={1}
+              disabled={isReadonly}
+            />
+          </div>
+        )}
       </div>
     </CompletableSection>
   );

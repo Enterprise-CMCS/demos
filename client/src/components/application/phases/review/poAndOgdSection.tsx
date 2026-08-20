@@ -13,11 +13,13 @@ export const PoAndOgdSection = ({
   setSectionFormData,
   isComplete,
   isReadonly,
+  hideNotes = false,
 }: {
   sectionFormData: PoAndOgdFormData;
   setSectionFormData: (data: PoAndOgdFormData) => void;
   isComplete: boolean;
   isReadonly: boolean;
+  hideNotes?: boolean;
 }) => {
   return (
     <CompletableSection title="PO & OGD" isComplete={isComplete}>
@@ -101,27 +103,29 @@ export const PoAndOgdSection = ({
           />
         </div>
 
-        <div className="col-span-2 flex flex-col">
-          <label className="text-sm font-bold text-text-font mb-1">Notes</label>
-          <textarea
-            name="input-po-ogd-notes"
-            data-testid="input-po-ogd-notes"
-            placeholder="Enter notes..."
-            value={sectionFormData.notes["PO and OGD"] || ""}
-            onChange={(e) =>
-              setSectionFormData({
-                ...sectionFormData,
-                notes: {
-                  ...sectionFormData.notes,
-                  "PO and OGD": e.target.value,
-                },
-              })
-            }
-            className="border rounded p-1 min-h-25 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
-            rows={1}
-            disabled={isReadonly}
-          />
-        </div>
+        {!hideNotes && (
+          <div className="col-span-2 flex flex-col">
+            <label className="text-sm font-bold text-text-font mb-1">Notes</label>
+            <textarea
+              name="input-po-ogd-notes"
+              data-testid="input-po-ogd-notes"
+              placeholder="Enter notes..."
+              value={sectionFormData.notes["PO and OGD"] || ""}
+              onChange={(e) =>
+                setSectionFormData({
+                  ...sectionFormData,
+                  notes: {
+                    ...sectionFormData.notes,
+                    "PO and OGD": e.target.value,
+                  },
+                })
+              }
+              className="border rounded p-1 min-h-25 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows={1}
+              disabled={isReadonly}
+            />
+          </div>
+        )}
       </div>
     </CompletableSection>
   );

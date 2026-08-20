@@ -15,6 +15,7 @@ import {
   SAVE_FOR_LATER_MESSAGE,
 } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 import { useCompletePhase } from "../phase-status/phaseCompletionQueries";
 
 const STYLES = {
@@ -114,9 +115,11 @@ export const SdgPreparationPhase = ({
   const { setApplicationDate } = useSetApplicationDate();
   const { completePhase } = useCompletePhase();
   const { showSuccess, showError } = useToast();
+  const { currentUser } = getCurrentUser();
 
   const isPhaseCompleted = sdgPreparationPhase.phaseStatus === "Completed";
   const isApproved = applicationStatus === "Approved";
+  const isReadonlyUser = isReadonly(currentUser);
 
   const isFormComplete =
     sdgPreparationPhaseFormData.expectedApprovalDate &&
@@ -219,7 +222,7 @@ export const SdgPreparationPhase = ({
                   });
                 }}
                 isRequired
-                isDisabled={isApproved}
+                isDisabled={isReadonlyUser || isApproved}
               />
             </div>
           </div>{" "}
@@ -244,7 +247,7 @@ export const SdgPreparationPhase = ({
                     smeInitialReviewDate: newDate,
                   });
                 }}
-                isDisabled={isPhaseCompleted}
+                isDisabled={isReadonlyUser || isPhaseCompleted}
               />
               <DatePicker
                 name="datepicker-frt-initial-meeting-date"
@@ -258,7 +261,7 @@ export const SdgPreparationPhase = ({
                     frtInitialMeetingDate: newDate,
                   });
                 }}
-                isDisabled={isPhaseCompleted}
+                isDisabled={isReadonlyUser || isPhaseCompleted}
               />
               <DatePicker
                 name="datepicker-bnpmt-initial-meeting-date"
@@ -271,12 +274,13 @@ export const SdgPreparationPhase = ({
                   });
                 }}
                 isRequired={true}
-                isDisabled={isPhaseCompleted}
+                isDisabled={isReadonlyUser || isPhaseCompleted}
               />
             </div>
 
             <div className={STYLES.actions}>
               <SecondaryButton
+                isHidden={isReadonlyUser}
                 disabled={
                   !hasChanges(
                     getFormDataFromPhase(sdgPreparationPhase),
@@ -290,6 +294,7 @@ export const SdgPreparationPhase = ({
                 Save For Later
               </SecondaryButton>
               <Button
+                isHidden={isReadonlyUser}
                 onClick={handleFinish}
                 size="large"
                 name="sdg-finish"
