@@ -1,5 +1,5 @@
 SELECT
-    'Amendment' AS application_type_id,
+    'Extension' AS application_type_id,
     fa.demonstration_id,
     fa.demonstration_status_id,
     fa.mdcd_demo_rnwl_name AS name, -- noqa: RF04

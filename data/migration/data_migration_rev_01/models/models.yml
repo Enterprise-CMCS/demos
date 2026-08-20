@@ -526,13 +526,13 @@ models:
         data_type: integer
 
   # Application models
-  - name: cleaned_demos_app_app_phases_in_prog_demos
+  - name: cleaned_demos_app_app_phases_in_prog_extensions
     columns:
       - name: application_id
         data_type: uuid
         data_tests:
           - not_null:
-              name: assert_id_not_null_in_cleaned_demos_app_app_phases_in_prog_demos
+              name: assert_id_not_null_in_cleaned_demos_app_app_phases_in_prog_extensions
 
       - name: phase_id
         data_type: text

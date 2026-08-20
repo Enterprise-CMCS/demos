@@ -1,11 +1,6 @@
 WITH applications AS (
     SELECT
         id,
-        mdcd_demo_aplctn_id AS _legacy_mdcd_demo_aplctn_id
-    FROM {{ source('legacy_pmda_staged', 'cleaned_demos_app_demonstration_in_prog_demos') }}
-    UNION ALL
-    SELECT
-        id,
         _legacy_mdcd_demo_aplctn_id
     FROM {{ ref('cleaned_demos_app_in_prog_extension') }}
 )

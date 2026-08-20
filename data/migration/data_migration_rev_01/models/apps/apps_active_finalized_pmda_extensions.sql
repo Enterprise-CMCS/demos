@@ -1,7 +1,7 @@
 SELECT
     demos.id AS demonstration_id,
     demos.status_id AS demonstration_status_id,
-    coalesce(extension.mdcd_demo_rnwl_name, 'Amendment on ' || demos.name) AS mdcd_demo_rnwl_name,
+    coalesce(extension.mdcd_demo_rnwl_name, 'Extension on ' || demos.name) AS mdcd_demo_rnwl_name,
     extension.rnwl_desc,
     coalesce(
         (extension.rnwl_prd_from_dt + TIME '00:00:00.000') AT TIME ZONE 'America/New_York',
