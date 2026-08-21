@@ -25,7 +25,7 @@
     "tsc:ci": "tsc --noEmit --skipLibCheck"
   },
   "devDependencies": {
-    "@aws-sdk/client-secrets-manager": "^3.1106.0",
+    "@aws-sdk/client-secrets-manager": "^3.1110.0",
     "@eslint/js": "^9.39.5",
     "@types/aws-lambda": "^8.10.162",
     "@types/node": "^24.13.3",
@@ -34,24 +34,24 @@
     "aws-cdk-local": "^3.0.4",
     "eslint": "^10.8.1",
     "ts-node": "^10.9.2",
-    "tsx": "^4.23.11",
+    "tsx": "^4.23.12",
     "typescript": "~5.9.3",
-    "typescript-eslint": "^8.66.0",
+    "typescript-eslint": "^8.67.0",
     "vitest": "^4.1.10",
     "vitest-sonar-reporter": "^3.0.0"
   },
   "dependencies": {
-    "@aws-sdk/client-cloudfront": "^3.1106.0",
-    "@aws-sdk/client-cognito-identity-provider": "^3.1106.0",
-    "@aws-sdk/client-ec2": "^3.1106.0",
-    "@aws-sdk/client-s3": "^3.1106.0",
-    "@aws-sdk/client-ssm": "^3.1106.0",
-    "aws-cdk": "^2.1135.1",
-    "aws-cdk-lib": "^2.263.0",
+    "@aws-sdk/client-cloudfront": "^3.1110.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.1110.0",
+    "@aws-sdk/client-ec2": "^3.1110.0",
+    "@aws-sdk/client-s3": "^3.1110.0",
+    "@aws-sdk/client-ssm": "^3.1110.0",
+    "aws-cdk": "^2.1136.0",
+    "aws-cdk-lib": "^2.265.0",
     "cdk-nag": "^2.38.2",
     "chalk": "^5.6.2",
     "constructs": "^10.8.1",
-    "pg": "^8.22.0"
+    "pg": "^8.23.0"
   },
   "allowScripts": {
     "esbuild@0.28.1": true
