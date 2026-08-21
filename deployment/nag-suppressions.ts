@@ -156,6 +156,16 @@ export function applyApiSuppressions(api: Stack, stage: string) {
       },
     ]
   );
+  NagSuppressions.addResourceSuppressionsByPath(
+    api,
+    `/demos-${stage}-api/emailer/emailerLambdaExecutionRole/DefaultPolicy/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role",
+      },
+    ]
+  );
 }
 
 export function applyDatabaseSuppressions(database: Stack, stage: string) {
