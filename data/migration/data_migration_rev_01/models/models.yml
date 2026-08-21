@@ -410,11 +410,18 @@ models:
         data_tests:
           - not_null:
               name: assert_no_missing_id_in_final_deliv_table
+          - unique:
+              name: assert_unique_id_in_final_deliv_table
       - name: deliverable_type_id
         data_type: text
         data_tests:
           - not_null:
               name: assert_no_missing_deliverable_types_in_final_table
+          - relationships:
+              name: assert_relationship_deliverable_type_in_final_deliv_table
+              arguments:
+                to: source('demos_app', 'deliverable_type')
+                field: id
       - name: name
         data_type: text
         data_tests:
@@ -425,26 +432,51 @@ models:
         data_tests:
           - not_null:
               name: assert_no_missing_demonstration_ids_in_final_deliv_table
+          - relationships:
+              name: assert_relationship_demonstration_in_final_deliv_table
+              arguments:
+                to: source('demos_app', 'demonstration')
+                field: id
       - name: demonstration_status_id
         data_type: text
         data_tests:
           - not_null:
               name: assert_no_missing_demo_status_in_final_deliv_table
+          - relationships:
+              name: assert_relationship_demonstration_status_in_final_deliv_table
+              arguments:
+                to: source('demos_app', 'application_status')
+                field: id
       - name: status_id
         data_type: text
         data_tests:
           - not_null:
               name: assert_no_missing_status_ids_in_final_deliv_table
+          - relationships:
+              name: assert_relationship_status_in_final_deliv_table
+              arguments:
+                to: source('demos_app', 'deliverable_status')
+                field: id
       - name: cms_owner_user_id
         data_type: uuid
         data_tests:
           - not_null:
               name: assert_no_missing_owner_ids_in_final_deliv_table
+          - relationships:
+              name: assert_relationship_owner_in_final_deliv_table
+              arguments:
+                to: source('demos_app', 'users')
+                field: id
       - name: cms_owner_person_type_id
         data_type: text
         data_tests:
           - not_null:
               name: assert_no_missing_owner_person_type_in_final_deliv_table
+          - relationships:
+              name: assert_relationship_owner_person_type_in_final_deliv_table
+              arguments:
+                to: source('demos_app', 'cms_user_person_type_limit')
+                field: id
       - name: due_date
         data_type: timestamptz
         data_tests:
@@ -455,6 +487,11 @@ models:
         data_tests:
           - not_null:
               name: assert_no_missing_due_date_type_in_final_deliv_table
+          - relationships:
+              name: assert_relationship_due_date_type_in_final_deliv_table
+              arguments:
+                to: source('demos_app', 'deliverable_due_date_type')
+                field: id
       - name: expected_to_be_submitted
         data_type: boolean
         data_tests:
@@ -582,33 +619,6 @@ models:
         data_type: integer
       - name: _legacy_mdcd_orgnl_dlvrbl_due_dt
         data_type: timestamptz
-
-  - name: final_demos_app_deliverable_active_extension
-    columns:
-      - name: deliverable_extension_id
-        data_type: uuid
-        data_tests:
-          - not_null:
-              name: assert_deliverable_extension_id_not_null_in_final_demos_app_deliverable_active_extension
-          - unique:
-              name: assert_deliverable_extension_id_unique_in_final_demos_app_deliverable_active_extension
-      - name: deliverable_id
-        data_type: uuid
-        data_tests:
-          - not_null:
-              name: assert_deliverable_id_not_null_in_final_demos_app_deliverable_active_extension
-          - unique:
-              name: assert_deliverable_id_unique_in_final_demos_app_deliverable_active_extension
-      - name: status_id
-        data_type: text
-        data_tests:
-          - not_null:
-              name: assert_status_id_not_null_in_final_demos_app_deliverable_active_extension
-          - relationships:
-              name: assert_status_id_exists_in_final_demos_app_deliverable_status
-              arguments:
-                to: source('demos_app', 'deliverable_active_extension_status_limit')
-                field: id
 
   # Application models
   - name: cleaned_demos_app_app_phases_in_prog_extensions

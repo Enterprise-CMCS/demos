@@ -31,7 +31,7 @@ SELECT
     CASE
         WHEN pmda_deliv.dlvrbl_due_dt < current_timestamp
             THEN 'Past Due'
-        ELSE 'In Progress'
+        ELSE 'Upcoming'
     END AS status_id,
 
     -- Get the raw value from trying to resolve the person ID
