@@ -525,6 +525,91 @@ models:
       - name: _legacy_mdcd_dlvrbl_cmt_user_id
         data_type: integer
 
+  - name: final_demos_app_deliverable_extension
+    columns:
+      - name: id
+        data_type: uuid
+        data_tests:
+          - not_null:
+              name: assert_id_not_null_in_final_demos_app_deliverable_extension
+          - unique:
+              name: assert_id_unique_in_final_demos_app_deliverable_extension
+      - name: deliverable_id
+        data_type: uuid
+        data_tests:
+          - not_null:
+              name: assert_deliverable_id_not_null_in_final_demos_app_deliverable_extension
+      - name: status_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_status_id_not_null_in_final_demos_app_deliverable_extension
+          - relationships:
+              name: assert_status_id_exists_in_final_demos_app_deliverable_status
+              arguments:
+                to: source('demos_app', 'deliverable_extension_status')
+                field: id
+      - name: reason_code_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_reason_code_id_not_null_in_final_demos_app_deliverable_extension
+          - relationships:
+              name: assert_reason_code_id_exists_in_final_demos_app_deliverable_reason_code
+              arguments:
+                to: source('demos_app', 'deliverable_extension_reason_code')
+                field: id
+      - name: original_date_requested
+        data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_original_date_requested_not_null_in_final_demos_app_deliverable_extension
+      - name: final_date_granted
+        data_type: timestamptz
+      - name: created_at
+        data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_created_at_not_null_in_final_demos_app_deliverable_extension
+      - name: updated_at
+        data_type: timestamptz
+        data_tests:
+          - not_null:
+              name: assert_updated_at_not_null_in_final_demos_app_deliverable_extension
+      - name: _legacy_mdcd_state_user_due_dt_chg_rsn_cd
+        data_type: varchar
+      - name: _legacy_mdcd_due_dt_chg_rqst_id
+        data_type: integer
+      - name: _legacy_mdcd_orgnl_dlvrbl_due_dt
+        data_type: timestamptz
+
+  - name: final_demos_app_deliverable_active_extension
+    columns:
+      - name: deliverable_extension_id
+        data_type: uuid
+        data_tests:
+          - not_null:
+              name: assert_deliverable_extension_id_not_null_in_final_demos_app_deliverable_active_extension
+          - unique:
+              name: assert_deliverable_extension_id_unique_in_final_demos_app_deliverable_active_extension
+      - name: deliverable_id
+        data_type: uuid
+        data_tests:
+          - not_null:
+              name: assert_deliverable_id_not_null_in_final_demos_app_deliverable_active_extension
+          - unique:
+              name: assert_deliverable_id_unique_in_final_demos_app_deliverable_active_extension
+      - name: status_id
+        data_type: text
+        data_tests:
+          - not_null:
+              name: assert_status_id_not_null_in_final_demos_app_deliverable_active_extension
+          - relationships:
+              name: assert_status_id_exists_in_final_demos_app_deliverable_status
+              arguments:
+                to: source('demos_app', 'deliverable_active_extension_status_limit')
+                field: id
+
   # Application models
   - name: cleaned_demos_app_app_phases_in_prog_extensions
     columns:
