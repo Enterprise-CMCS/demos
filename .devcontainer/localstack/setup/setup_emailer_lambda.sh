@@ -58,7 +58,7 @@ npx esbuild build/index.js \
   --sourcemap \
   --outfile=dist/index.cjs
 rm -f lambda.zip
-zip -jqr lambda.zip dist/index.cjs dist/index.cjs.map ../../deployment/cert.pem
+zip -jqr lambda.zip dist/index.cjs dist/index.cjs.map ../../deployment/cert.pem ../../client/public/reference-agreements/point-click-agreement.pdf
 
 cd - > /dev/null
 
