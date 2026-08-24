@@ -355,3 +355,22 @@ export function applyDbRoleSuppressions(dbRole: Stack, stage: string) {
   );
 
 }
+
+export function applyBackupSuppressions(backup: Stack, stage: string) {
+  NagSuppressions.addResourceSuppressionsByPath(backup, `/demos-${stage}-backup/backup-validation/backup-validationLambdaExecutionRole/Resource`, 
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role"
+      }
+    ]
+  )
+  NagSuppressions.addResourceSuppressionsByPath(backup, `/demos-${stage}-backup/backup-validation/backup-validationLambdaExecutionRole/DefaultPolicy/Resource`, 
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role"
+      }
+    ]
+  )
+}
