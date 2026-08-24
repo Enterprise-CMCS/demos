@@ -9,10 +9,10 @@ from typing import TYPE_CHECKING, Literal, assert_never, cast, get_args
 from dotenv import load_dotenv
 
 from duckdb_connection_manager import (
-    DDB_CONFIG_ATTACH_NAMES,
     DemosDbConfigurationName,
     attach_demos_db_to_conn,
     create_duckdb_conn,
+    get_attach_name_from_db_config_name,
 )
 from logger_utils import config_logger
 
@@ -28,9 +28,9 @@ REV01_SCHEMA = os.environ["REV01_SCHEMA"]
 
 type MigrationSchemaName = Literal["raw", "staging", "rev01"]
 type MigrationSchemaAction = Literal["create", "drop"]
-MIGRATION_SCHEMAS = get_args(MigrationSchemaName)
-MIGRATION_SCHEMA_ACTIONS = get_args(MigrationSchemaAction)
-DEMOS_DB_CONFIGS = get_args(DemosDbConfigurationName)
+MIGRATION_SCHEMAS = get_args(MigrationSchemaName.__value__)
+MIGRATION_SCHEMA_ACTIONS = get_args(MigrationSchemaAction.__value__)
+DEMOS_DB_CONFIGS = get_args(DemosDbConfigurationName.__value__)
 
 
 @dataclass(frozen=True)
@@ -48,7 +48,10 @@ def _parse_args() -> CommandLineArguments:
     Returns:
         CommandLineArguments: The parsed command line arguments.
     """
-    parser = argparse.ArgumentParser(description="Manage migration schemas for development use")
+    parser = argparse.ArgumentParser(
+        description="Manage migration schemas for development use",
+        formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=50),
+    )
     parser.add_argument("db_config", choices=DEMOS_DB_CONFIGS, help="The DEMOS DB config to use")
     parser.add_argument("schema_action", choices=MIGRATION_SCHEMA_ACTIONS, help="Schema action to perform")
     parser.add_argument("schema_name", choices=MIGRATION_SCHEMAS, help="Migration schema to manage")
@@ -78,7 +81,7 @@ def _create_schema(conn: "DuckConn", db_config: DemosDbConfigurationName, schema
             schema_to_create = REV01_SCHEMA
         case _:
             assert_never(schema)
-    demos_ddb_attach_name = DDB_CONFIG_ATTACH_NAMES[db_config]
+    demos_ddb_attach_name = get_attach_name_from_db_config_name(db_config)
 
     logger.info(f"Attempting to create schema {schema_to_create}")
     conn.execute(f"""
@@ -104,7 +107,7 @@ def _drop_schema(conn: "DuckConn", db_config: DemosDbConfigurationName, schema: 
             schema_to_drop = REV01_SCHEMA
         case _:
             assert_never(schema)
-    demos_ddb_attach_name = DDB_CONFIG_ATTACH_NAMES[db_config]
+    demos_ddb_attach_name = get_attach_name_from_db_config_name(db_config)
 
     logger.info(f"Attempting to drop schema {schema_to_drop}")
     conn.execute(f"""

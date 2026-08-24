@@ -1,7 +1,9 @@
 """Shared types and classes for the load_data_to_demos_app.py module."""
 
 from dataclasses import dataclass
-from typing import List, Literal, Tuple, Protocol
+from typing import Dict, List, Literal, Protocol, Tuple
+
+from duckdb_connection_manager import DemosDuckDbAttachName
 
 
 @dataclass(frozen=True)
@@ -9,7 +11,7 @@ class TableInsertActionConfiguration:
     """A configuration for a table insert data_load action."""
 
     source_table: str
-    destination_table: str
+    target_table: str
     column_list: List[str]
 
 
@@ -18,8 +20,9 @@ class TriggerActionConfiguration:
     """A configuration for a trigger data load action."""
 
     action_type: Literal["disable", "enable"]
-    target_table: str
-    target_trigger_name: str
+    trigger_schema: str
+    trigger_table: str
+    trigger_name: str
 
     def __post_init__(self) -> None:
         """Validate field contents after initialization.
@@ -27,7 +30,7 @@ class TriggerActionConfiguration:
         Raises:
             ValueError: If identifiers contain invalid characters.
         """
-        for field_name in ("target_table", "target_trigger_name"):
+        for field_name in ("trigger_schema", "trigger_table", "trigger_name"):
             value = getattr(self, field_name)
             if not value.isidentifier():
                 raise ValueError(f"{field_name} must be a bare SQL identifier: {value!r}")
@@ -42,9 +45,14 @@ class TransactionActionConfiguration:
 
 @dataclass(frozen=True)
 class ArbitrarySqlGenerationContext:
-    """Values used in ArbitrarySqlGenerator objects."""
+    """Values used in ArbitrarySqlGenerator objects.
 
-    attach_name: str
+    Args:
+        attach_name (DemosDuckDbAttachName): A valid attach name for a DuckDB attachment.
+        app_schema (str): The name of the application schema.
+    """
+
+    attach_name: DemosDuckDbAttachName
     app_schema: str
 
 
@@ -118,9 +126,5 @@ class DataLoadConfiguration:
     data_load_actions: DataLoadActionList
 
 
-@dataclass(frozen=True)
-class AvailableDataLoadConfigurations:
-    """A class with the currently available data load configurations."""
-
-    base: DataLoadConfiguration
-    rev01: DataLoadConfiguration
+type DataLoadConfigurationName = Literal["base", "rev01"]
+type AvailableDataLoadConfigurations = Dict[DataLoadConfigurationName, DataLoadConfiguration]

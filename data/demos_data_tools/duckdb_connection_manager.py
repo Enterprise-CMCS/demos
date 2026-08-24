@@ -17,10 +17,6 @@ logger = config_logger(getLogger(__name__))
 
 type DemosDbConfigurationName = Literal["demos-localstack", "demos-aws"]
 type DemosDuckDbAttachName = Literal["ddb_demos_localstack", "ddb_demos_aws"]
-DDB_CONFIG_ATTACH_NAMES: Dict[DemosDbConfigurationName, DemosDuckDbAttachName] = {
-    "demos-localstack": "ddb_demos_localstack",
-    "demos-aws": "ddb_demos_aws",
-}
 
 
 def _load_db_config_from_env(requested_config: DemosDbConfigurationName) -> dict:
@@ -86,6 +82,26 @@ def create_duckdb_conn() -> "DuckConn":
     return conn
 
 
+def get_attach_name_from_db_config_name(db_config: DemosDbConfigurationName) -> DemosDuckDbAttachName:
+    """Get the correct attach name back from a configuration name.
+
+    Args:
+        db_config (DemosDbConfigurationName): The configuration name to get the attach name for.
+
+    Returns:
+        DemosDuckDbAttachName: The attachment name.
+    """
+    attach_name: DemosDuckDbAttachName
+    match db_config:
+        case "demos-localstack":
+            attach_name = "ddb_demos_localstack"
+        case "demos-aws":
+            attach_name = "ddb_demos_aws"
+        case _:
+            assert_never(db_config)
+    return attach_name
+
+
 def attach_demos_db_to_conn(conn: "DuckConn", config_type: DemosDbConfigurationName) -> "DuckConn":
     """Attach a DEMOS database to a DuckDB connection.
 
@@ -102,7 +118,7 @@ def attach_demos_db_to_conn(conn: "DuckConn", config_type: DemosDbConfigurationN
     conn.load_extension("postgres")
     ddb_demos_config = _load_db_config_from_env(config_type)
     clean_demos_pwd = ddb_demos_config["pwd"].replace("'", "''")
-    demos_ddb_attach_name = DDB_CONFIG_ATTACH_NAMES[config_type]
+    demos_ddb_attach_name = get_attach_name_from_db_config_name(config_type)
 
     try:
         conn.execute(f"""

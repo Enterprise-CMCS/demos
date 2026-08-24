@@ -42,18 +42,20 @@ def call_update_federal_comment_phase_status(generation_context: ArbitrarySqlGen
     )
 
 
-AVAILABLE_DATA_LOAD_CONFIGURATIONS = AvailableDataLoadConfigurations(
-    base=DataLoadConfiguration(
+AVAILABLE_DATA_LOAD_CONFIGURATIONS: AvailableDataLoadConfigurations = {
+    "base": DataLoadConfiguration(
         STAGING_SCHEMA,
         APP_SCHEMA,
         (
-            TriggerActionConfiguration("disable", "application", "create_phases_and_dates_for_new_application"),
-            TriggerActionConfiguration("disable", "deliverable", "trim_input_text_fields"),
-            TriggerActionConfiguration("disable", "document", "trim_input_text_fields"),
-            TriggerActionConfiguration("disable", "private_comment", "trim_input_text_fields"),
-            TriggerActionConfiguration("disable", "public_comment", "trim_input_text_fields"),
-            TriggerActionConfiguration("disable", "reference", "trim_input_text_fields"),
-            TriggerActionConfiguration("disable", "reference_agreement", "trim_input_text_fields"),
+            TriggerActionConfiguration(
+                "disable", APP_SCHEMA, "application", "create_phases_and_dates_for_new_application"
+            ),
+            TriggerActionConfiguration("disable", APP_SCHEMA, "deliverable", "trim_input_text_fields"),
+            TriggerActionConfiguration("disable", APP_SCHEMA, "document", "trim_input_text_fields"),
+            TriggerActionConfiguration("disable", APP_SCHEMA, "private_comment", "trim_input_text_fields"),
+            TriggerActionConfiguration("disable", APP_SCHEMA, "public_comment", "trim_input_text_fields"),
+            TriggerActionConfiguration("disable", APP_SCHEMA, "reference", "trim_input_text_fields"),
+            TriggerActionConfiguration("disable", APP_SCHEMA, "reference_agreement", "trim_input_text_fields"),
             TableInsertActionConfiguration(
                 "final_demos_app_person",
                 "person",
@@ -352,25 +354,29 @@ AVAILABLE_DATA_LOAD_CONFIGURATIONS = AvailableDataLoadConfigurations(
                     "demonstration_type_tag_type_id",
                 ],
             ),
-            TriggerActionConfiguration("enable", "application", "create_phases_and_dates_for_new_application"),
-            TriggerActionConfiguration("enable", "deliverable", "trim_input_text_fields"),
-            TriggerActionConfiguration("enable", "document", "trim_input_text_fields"),
-            TriggerActionConfiguration("enable", "private_comment", "trim_input_text_fields"),
-            TriggerActionConfiguration("enable", "public_comment", "trim_input_text_fields"),
-            TriggerActionConfiguration("enable", "reference", "trim_input_text_fields"),
-            TriggerActionConfiguration("enable", "reference_agreement", "trim_input_text_fields"),
+            TriggerActionConfiguration(
+                "enable", APP_SCHEMA, "application", "create_phases_and_dates_for_new_application"
+            ),
+            TriggerActionConfiguration("enable", APP_SCHEMA, "deliverable", "trim_input_text_fields"),
+            TriggerActionConfiguration("enable", APP_SCHEMA, "document", "trim_input_text_fields"),
+            TriggerActionConfiguration("enable", APP_SCHEMA, "private_comment", "trim_input_text_fields"),
+            TriggerActionConfiguration("enable", APP_SCHEMA, "public_comment", "trim_input_text_fields"),
+            TriggerActionConfiguration("enable", APP_SCHEMA, "reference", "trim_input_text_fields"),
+            TriggerActionConfiguration("enable", APP_SCHEMA, "reference_agreement", "trim_input_text_fields"),
             ArbitraryActionConfiguration("Run due date calculation", call_mark_deliverables_past_due),
             ArbitraryActionConfiguration(
                 "Run phase status update for Federal Comment Period", call_update_federal_comment_phase_status
             ),
         ),
     ),
-    rev01=DataLoadConfiguration(
+    "rev01": DataLoadConfiguration(
         REV01_SCHEMA,
         APP_SCHEMA,
         (
-            TriggerActionConfiguration("disable", "application", "create_phases_and_dates_for_new_application"),
-            TriggerActionConfiguration("disable", "document", "trim_input_text_fields"),
+            TriggerActionConfiguration(
+                "disable", APP_SCHEMA, "application", "create_phases_and_dates_for_new_application"
+            ),
+            TriggerActionConfiguration("disable", APP_SCHEMA, "document", "trim_input_text_fields"),
             TransactionActionConfiguration("begin"),
             TableInsertActionConfiguration(
                 "final_demos_app_application",
@@ -448,13 +454,13 @@ AVAILABLE_DATA_LOAD_CONFIGURATIONS = AvailableDataLoadConfigurations(
                     "is_migrated_from_pmda",
                 ],
             ),
-            TriggerActionConfiguration("enable", "application", "create_phases_and_dates_for_new_application"),
-            TriggerActionConfiguration("enable", "document", "trim_input_text_fields"),
+            TriggerActionConfiguration(
+                "enable", APP_SCHEMA, "application", "create_phases_and_dates_for_new_application"
+            ),
+            TriggerActionConfiguration("enable", APP_SCHEMA, "document", "trim_input_text_fields"),
             ArbitraryActionConfiguration(
-                "Run phase status update for Federal Comment Period",
-                f"CALL postgres_execute('{DEMOS_DDB_ATTACH_NAME}', "
-                f"'CALL {APP_SCHEMA}.update_federal_comment_phase_status()')",
+                "Run phase status update for Federal Comment Period", call_update_federal_comment_phase_status
             ),
         ),
     ),
-)
+}
