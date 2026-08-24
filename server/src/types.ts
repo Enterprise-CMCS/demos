@@ -133,8 +133,6 @@ export type { DeliverableExtension } from "./model/deliverableExtension/delivera
 
 export type { DeliverableComment } from "./model/publicComment/publicCommentSchema";
 
-export type { CreateTestEmailInput } from "./model/email/emailSchema";
-
 export type { Reference, ReferenceAgreement } from "./model/reference/referenceSchema";
 
 // Alias is not enforced in TS but maintains alignment between GQL and TS

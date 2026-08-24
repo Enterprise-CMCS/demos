@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { prisma } from "../../prismaClient";
-import { enqueueRealtimeEmail, RealtimeEmailEnvelope } from "../../services/emailQueue";
+import { enqueueEmail, RealtimeEmailEnvelope } from "../../services/emailQueue";
 import { enqueueTrackedRealtimeEmail } from "./emailNotification";
 
 vi.mock("../../log", () => ({
@@ -14,7 +14,7 @@ vi.mock("../../prismaClient", () => ({
 }));
 
 vi.mock("../../services/emailQueue", () => ({
-  enqueueRealtimeEmail: vi.fn(),
+  enqueueEmail: vi.fn(),
 }));
 
 describe("enqueueTrackedRealtimeEmail", () => {
@@ -59,7 +59,7 @@ describe("enqueueTrackedRealtimeEmail", () => {
     create.mockResolvedValue({ id: "notification-1" });
     update.mockResolvedValue({ id: "notification-1" });
     updateMany.mockResolvedValue({ count: 1 });
-    vi.mocked(enqueueRealtimeEmail).mockResolvedValue("message-1");
+    vi.mocked(enqueueEmail).mockResolvedValue("message-1");
   });
 
   it("records recipients and marks a successfully queued notification", async () => {
@@ -88,7 +88,7 @@ describe("enqueueTrackedRealtimeEmail", () => {
         },
       },
     });
-    expect(enqueueRealtimeEmail).toHaveBeenCalledExactlyOnceWith({
+    expect(enqueueEmail).toHaveBeenCalledExactlyOnceWith({
       ...message,
       emailNotificationId: "notification-1",
     });
@@ -110,7 +110,7 @@ describe("enqueueTrackedRealtimeEmail", () => {
   });
 
   it("marks a notification failed when SQS rejects it", async () => {
-    vi.mocked(enqueueRealtimeEmail).mockRejectedValueOnce(
+    vi.mocked(enqueueEmail).mockRejectedValueOnce(
       new Error("queue unavailable")
     );
 

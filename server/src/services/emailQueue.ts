@@ -26,6 +26,14 @@ export type RealtimeEmailEnvelope = {
   payload: object;
 };
 
+export type DirectEmailMessage = {
+  to: string;
+  subject: string;
+  text: string;
+};
+
+export type EmailQueueMessage = RealtimeEmailEnvelope | DirectEmailMessage;
+
 const region = PRIMARY_AWS_REGION;
 const endpoint = process.env.AWS_ENDPOINT_URL;
 let cachedQueueUrl: string | null = null;
@@ -104,15 +112,20 @@ export function buildRealtimeEmailEnvelope(input: {
   };
 }
 
-export async function enqueueRealtimeEmail(message: RealtimeEmailEnvelope): Promise<string> {
+export async function enqueueEmail(message: EmailQueueMessage): Promise<string> {
   const queueUrl = await resolveEmailQueueUrl();
+  const messageContext =
+    "emailType" in message
+      ? {
+          emailType: message.emailType,
+          entityType: message.entityType,
+          entityId: message.entityId,
+          idempotencyKey: message.idempotencyKey,
+        }
+      : { subject: message.subject };
+
   log.info(
-    {
-      emailType: message.emailType,
-      entityType: message.entityType,
-      entityId: message.entityId,
-      idempotencyKey: message.idempotencyKey,
-    },
+    messageContext,
     "Sending message to emailer queue"
   );
 
@@ -124,16 +137,13 @@ export async function enqueueRealtimeEmail(message: RealtimeEmailEnvelope): Prom
   );
 
   if (!response.MessageId) {
-    throw new Error("Failed to enqueue realtime email message.");
+    throw new Error("Failed to enqueue email message.");
   }
 
   log.info(
     {
       messageId: response.MessageId,
-      emailType: message.emailType,
-      entityType: message.entityType,
-      entityId: message.entityId,
-      idempotencyKey: message.idempotencyKey,
+      ...messageContext,
     },
     "Email queued"
   );

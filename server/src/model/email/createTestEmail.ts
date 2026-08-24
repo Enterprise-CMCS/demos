@@ -1,53 +1,21 @@
-import { GraphQLContext } from "../../auth";
-import { prisma } from "../../prismaClient";
-import { buildRealtimeEmailEnvelope, enqueueRealtimeEmail } from "../../services/emailQueue";
-import { CreateTestEmailInput } from "./emailSchema";
+import { EmailAddressResolver } from "graphql-scalars";
+import { enqueueEmail } from "../../services/emailQueue";
 
-export async function createTestEmail(
-  input: CreateTestEmailInput,
-  context: GraphQLContext
-): Promise<string> {
-  const recipientUserIds = [...new Set(input.recipientUserIds)];
-  if (recipientUserIds.length === 0) {
-    throw new Error("Cannot test email without at least one recipient user.");
+const TEST_EMAIL_SUBJECT = "CMS DEMOS: Test Email";
+const TEST_EMAIL_TEXT =
+  "This is a test email confirming that the DEMOS email and SQS system is working.\n\nThank you,\nDEMOS Notifications";
+
+export async function createTestEmail(recipientEmail: string): Promise<string> {
+  const normalizedRecipientEmail = recipientEmail.trim();
+  try {
+    EmailAddressResolver.parseValue(normalizedRecipientEmail);
+  } catch {
+    throw new Error("A valid recipient email address is required to send a test email.");
   }
 
-  const recipientUsers = await prisma().user.findMany({
-    where: { id: { in: recipientUserIds } },
-    include: { person: true },
+  return enqueueEmail({
+    to: normalizedRecipientEmail,
+    subject: TEST_EMAIL_SUBJECT,
+    text: TEST_EMAIL_TEXT,
   });
-
-  const usersById = new Map(recipientUsers.map((user) => [user.id, user]));
-  const missingUserIds = recipientUserIds.filter((id) => !usersById.has(id));
-  if (missingUserIds.length > 0) {
-    throw new Error(`Cannot test email because recipient users were not found: ${missingUserIds.join(", ")}`);
-  }
-
-  const recipients = recipientUserIds.map((id) => {
-    const user = usersById.get(id)!;
-    const address = user.person.email.trim();
-    if (!address) {
-      throw new Error(`Cannot test email because recipient user ${id} has no email address.`);
-    }
-
-    return {
-      name: `${user.person.firstName} ${user.person.lastName}`.trim(),
-      address,
-    };
-  });
-
-  const message = buildRealtimeEmailEnvelope({
-    emailType: input.emailType,
-    entityType: input.entityType,
-    entityId: input.entityId,
-    triggeredById: context.user.id,
-    payload: {
-      ...input.payload,
-      recipients: {
-        to: recipients,
-      },
-    },
-  });
-
-  return enqueueRealtimeEmail(message);
 }

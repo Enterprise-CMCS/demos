@@ -134,7 +134,7 @@ describe("emailQueue", () => {
   it("enqueues message and returns message id", async () => {
     process.env.EMAILER_QUEUE_URL = "http://example.com/emailer-queue";
     sendMock.mockResolvedValue({ MessageId: "msg-1" });
-    const { enqueueRealtimeEmail, buildRealtimeEmailEnvelope } = await loadModule();
+    const { enqueueEmail, buildRealtimeEmailEnvelope } = await loadModule();
 
     const message = buildRealtimeEmailEnvelope({
       emailType: "Deliverable Submitted",
@@ -147,12 +147,28 @@ describe("emailQueue", () => {
       },
     });
 
-    const messageId = await enqueueRealtimeEmail(message);
+    const messageId = await enqueueEmail(message);
     expect(messageId).toBe("msg-1");
     expect(sendMock).toHaveBeenCalledTimes(1);
     const call = sendMock.mock.calls[0][0] as { input: { QueueUrl: string; MessageBody: string } };
     expect(call.input.QueueUrl).toBe("http://example.com/emailer-queue");
     expect(JSON.parse(call.input.MessageBody).emailType).toBe("Deliverable Submitted");
+  });
+
+  it("enqueues a direct email message unchanged", async () => {
+    process.env.EMAILER_QUEUE_URL = "http://example.com/emailer-queue";
+    sendMock.mockResolvedValue({ MessageId: "msg-2" });
+    const { enqueueEmail } = await loadModule();
+    const message = {
+      to: "user@example.com",
+      subject: "CMS DEMOS: Test Email",
+      text: "Test message",
+    };
+
+    await expect(enqueueEmail(message)).resolves.toBe("msg-2");
+
+    const call = sendMock.mock.calls[0][0] as { input: { MessageBody: string } };
+    expect(JSON.parse(call.input.MessageBody)).toEqual(message);
   });
 
   it("resolves queue url by queue name when URL is not configured", async () => {
@@ -161,7 +177,7 @@ describe("emailQueue", () => {
       .mockResolvedValueOnce({ QueueUrl: "http://example.com/emailer-queue" })
       .mockResolvedValueOnce({ MessageId: "msg-2" });
 
-    const { enqueueRealtimeEmail, buildRealtimeEmailEnvelope } = await loadModule();
+    const { enqueueEmail, buildRealtimeEmailEnvelope } = await loadModule();
 
     const message = buildRealtimeEmailEnvelope({
       emailType: "Deliverable Approved",
@@ -174,7 +190,7 @@ describe("emailQueue", () => {
       },
     });
 
-    await enqueueRealtimeEmail(message);
+    await enqueueEmail(message);
 
     expect(sendMock).toHaveBeenCalledTimes(2);
     expect(sendMock.mock.calls[0][0]).toMatchObject({

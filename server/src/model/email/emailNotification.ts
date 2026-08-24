@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { log } from "../../log";
 import { prisma } from "../../prismaClient";
 import {
-  enqueueRealtimeEmail,
+  enqueueEmail,
   RealtimeEmailEnvelope,
 } from "../../services/emailQueue";
 
@@ -38,7 +38,7 @@ export async function enqueueTrackedRealtimeEmail(
 
   let messageId: string;
   try {
-    messageId = await enqueueRealtimeEmail({
+    messageId = await enqueueEmail({
       ...message,
       emailNotificationId: notification.id,
     });
