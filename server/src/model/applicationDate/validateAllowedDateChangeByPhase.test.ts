@@ -257,6 +257,29 @@ describe("validateAllowedDateChangeByPhase", () => {
         "Cannot modify dates because they are associated with finished phases: State Concurrence date on Review phase, Concept Paper Submitted Date date on Concept phase, SME Initial Review Date date on SDG Preparation phase."
       );
     });
+
+    it("should not allow the State Requested Approval Date to change after SDG Preparation is completed", async () => {
+      const input: SetApplicationDatesInput = {
+        applicationId: testApplicationId,
+        applicationDates: [
+          {
+            dateType: "State Requested Approval Date",
+            dateValue: "2026-01-01" as LocalDate,
+          },
+        ],
+      };
+      vi.mocked(getFinishedApplicationPhaseIds).mockResolvedValue(["SDG Preparation"]);
+      vi.mocked(getPhaseDateTypesByIds).mockResolvedValue([
+        {
+          phaseId: "SDG Preparation",
+          dateTypeId: "State Requested Approval Date",
+        },
+      ]);
+
+      await expect(validateAllowedDateChangeByPhase(mockTransaction, input)).rejects.toThrow(
+        "Cannot modify dates because they are associated with finished phases: State Requested Approval Date date on SDG Preparation phase."
+      );
+    });
   });
 
   describe("edge cases", () => {
@@ -340,29 +363,6 @@ describe("validateAllowedDateChangeByPhase", () => {
 
       await expect(validateAllowedDateChangeByPhase(mockTransaction, input)).rejects.toThrow(
         "You cannot delete the Internal Expected Approval Date after the SDG Preparation phase is completed."
-      );
-    });
-
-    it("should not allow the State Requested Approval Date to change after SDG Preparation is completed", async () => {
-      const input: SetApplicationDatesInput = {
-        applicationId: testApplicationId,
-        applicationDates: [
-          {
-            dateType: "State Requested Approval Date",
-            dateValue: "2026-01-01" as LocalDate,
-          },
-        ],
-      };
-      vi.mocked(getFinishedApplicationPhaseIds).mockResolvedValue(["SDG Preparation"]);
-      vi.mocked(getPhaseDateTypesByIds).mockResolvedValue([
-        {
-          phaseId: "SDG Preparation",
-          dateTypeId: "State Requested Approval Date",
-        },
-      ]);
-
-      await expect(validateAllowedDateChangeByPhase(mockTransaction, input)).rejects.toThrow(
-        "Cannot modify dates because they are associated with finished phases: State Requested Approval Date date on SDG Preparation phase."
       );
     });
   });
