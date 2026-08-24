@@ -35,5 +35,3 @@ SELECT
     user_id
 FROM
     {{ ref('cleaned_demos_app_deliverable_action_submission_events') }}
-
--- TODO: UPDATE WITH NEW DUE DATE REQUESTED SUBMISSION EVENT
