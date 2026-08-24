@@ -9,8 +9,8 @@ from typing import TYPE_CHECKING, Literal, assert_never, cast, get_args
 from dotenv import load_dotenv
 
 from duckdb_connection_manager import (
-    DemosDbConfigurationName,
-    attach_demos_db_to_conn,
+    DatabaseConfigurationName,
+    attach_db_to_duckdb_conn,
     create_duckdb_conn,
     get_attach_name_from_db_config_name,
 )
@@ -28,16 +28,16 @@ REV01_SCHEMA = os.environ["REV01_SCHEMA"]
 
 type MigrationSchemaName = Literal["raw", "staging", "rev01"]
 type MigrationSchemaAction = Literal["create", "drop"]
-MIGRATION_SCHEMAS = get_args(MigrationSchemaName.__value__)
+MIGRATION_SCHEMA_NAMES = get_args(MigrationSchemaName.__value__)
 MIGRATION_SCHEMA_ACTIONS = get_args(MigrationSchemaAction.__value__)
-DEMOS_DB_CONFIGS = get_args(DemosDbConfigurationName.__value__)
+DB_CONFIG_NAMES = get_args(DatabaseConfigurationName.__value__)
 
 
 @dataclass(frozen=True)
 class CommandLineArguments:
     """The command line arguments passed into the program."""
 
-    db_config: DemosDbConfigurationName
+    db_config_name: DatabaseConfigurationName
     schema_action: MigrationSchemaAction
     schema_name: MigrationSchemaName
 
@@ -52,27 +52,29 @@ def _parse_args() -> CommandLineArguments:
         description="Manage migration schemas for development use",
         formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=50),
     )
-    parser.add_argument("db_config", choices=DEMOS_DB_CONFIGS, help="The DEMOS DB config to use")
-    parser.add_argument("schema_action", choices=MIGRATION_SCHEMA_ACTIONS, help="Schema action to perform")
-    parser.add_argument("schema_name", choices=MIGRATION_SCHEMAS, help="Migration schema to manage")
+    parser.add_argument("db_config_name", choices=DB_CONFIG_NAMES, help="The name of the DB config to use")
+    parser.add_argument("schema_action", choices=MIGRATION_SCHEMA_ACTIONS, help="The action to perform")
+    parser.add_argument("schema_name", choices=MIGRATION_SCHEMA_NAMES, help="The name of the schema to manage")
     parsed_args = parser.parse_args()
 
     return CommandLineArguments(
-        db_config=cast(DemosDbConfigurationName, parsed_args.db_config),
+        db_config_name=cast(DatabaseConfigurationName, parsed_args.db_config_name),
         schema_action=cast(MigrationSchemaAction, parsed_args.schema_action),
         schema_name=cast(MigrationSchemaName, parsed_args.schema_name),
     )
 
 
-def _create_schema(conn: "DuckConn", db_config: DemosDbConfigurationName, schema: MigrationSchemaName) -> None:
+def _create_schema(
+    conn: "DuckConn", db_config_name: DatabaseConfigurationName, schema_name: MigrationSchemaName
+) -> None:
     """Create one of the migration schemas.
 
     Args:
-        conn (DuckConn): A DuckDB connection with a DEMOS DB attached.
-        db_config (DemosDbConfigurationName): The DEMOS DB configuration to be used for the command.
-        schema (MigrationSchemaName): Which schema to create.
+        conn (DuckConn): A DuckDB connection with a DB attached.
+        db_config_name (DatabaseConfigurationName): The name of the DB config to use.
+        schema_name (MigrationSchemaName): The name of the schema to create.
     """
-    match schema:
+    match schema_name:
         case "raw":
             schema_to_create = RAW_SCHEMA
         case "staging":
@@ -80,8 +82,8 @@ def _create_schema(conn: "DuckConn", db_config: DemosDbConfigurationName, schema
         case "rev01":
             schema_to_create = REV01_SCHEMA
         case _:
-            assert_never(schema)
-    demos_ddb_attach_name = get_attach_name_from_db_config_name(db_config)
+            assert_never(schema_name)
+    demos_ddb_attach_name = get_attach_name_from_db_config_name(db_config_name)
 
     logger.info(f"Attempting to create schema {schema_to_create}")
     conn.execute(f"""
@@ -90,15 +92,15 @@ def _create_schema(conn: "DuckConn", db_config: DemosDbConfigurationName, schema
     logger.info(f"Created schema {schema_to_create} successfully")
 
 
-def _drop_schema(conn: "DuckConn", db_config: DemosDbConfigurationName, schema: MigrationSchemaName) -> None:
+def _drop_schema(conn: "DuckConn", db_config_name: DatabaseConfigurationName, schema_name: MigrationSchemaName) -> None:
     """Drop one of the migration schemas.
 
     Args:
-        conn (DuckConn): A DuckDB connection with a DEMOS DB attached.
-        db_config (DemosDbConfigurationName): The DEMOS DB configuration to be used for the command.
-        schema (MigrationSchemaName): Which schema to drop.
+        conn (DuckConn): A DuckDB connection with a DB attached.
+        db_config_name (DatabaseConfigurationName): The name of the DB config to use.
+        schema_name (MigrationSchemaName): The name of the schema to drop.
     """
-    match schema:
+    match schema_name:
         case "raw":
             schema_to_drop = RAW_SCHEMA
         case "staging":
@@ -106,8 +108,8 @@ def _drop_schema(conn: "DuckConn", db_config: DemosDbConfigurationName, schema: 
         case "rev01":
             schema_to_drop = REV01_SCHEMA
         case _:
-            assert_never(schema)
-    demos_ddb_attach_name = get_attach_name_from_db_config_name(db_config)
+            assert_never(schema_name)
+    demos_ddb_attach_name = get_attach_name_from_db_config_name(db_config_name)
 
     logger.info(f"Attempting to drop schema {schema_to_drop}")
     conn.execute(f"""
@@ -118,11 +120,11 @@ def _drop_schema(conn: "DuckConn", db_config: DemosDbConfigurationName, schema: 
 
 def main(args: CommandLineArguments) -> None:
     """Main program function."""
-    conn = attach_demos_db_to_conn(create_duckdb_conn(), args.db_config)
+    conn = attach_db_to_duckdb_conn(create_duckdb_conn(), args.db_config_name)
     if args.schema_action == "create":
-        _create_schema(conn, args.db_config, args.schema_name)
+        _create_schema(conn, args.db_config_name, args.schema_name)
     elif args.schema_action == "drop":
-        _drop_schema(conn, args.db_config, args.schema_name)
+        _drop_schema(conn, args.db_config_name, args.schema_name)
     else:
         assert_never(args.schema_action)
 

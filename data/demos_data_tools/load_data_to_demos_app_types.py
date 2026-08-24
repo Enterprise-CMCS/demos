@@ -1,9 +1,9 @@
 """Shared types and classes for the load_data_to_demos_app.py module."""
 
 from dataclasses import dataclass
-from typing import Dict, List, Literal, Protocol, Tuple
+from typing import List, Literal, Protocol, Tuple
 
-from duckdb_connection_manager import DemosDuckDbAttachName
+from duckdb_connection_manager import DuckDbAttachName
 
 
 @dataclass(frozen=True)
@@ -47,12 +47,12 @@ class TransactionActionConfiguration:
 class ArbitrarySqlGenerationContext:
     """Values used in ArbitrarySqlGenerator objects.
 
-    Args:
-        attach_name (DemosDuckDbAttachName): A valid attach name for a DuckDB attachment.
+    Attributes:
+        attach_name (DuckDbAttachName): A valid attach name for a DuckDB attachment.
         app_schema (str): The name of the application schema.
     """
 
-    attach_name: DemosDuckDbAttachName
+    attach_name: DuckDbAttachName
     app_schema: str
 
 
@@ -124,7 +124,3 @@ class DataLoadConfiguration:
     source_schema: str
     target_schema: str
     data_load_actions: DataLoadActionList
-
-
-type DataLoadConfigurationName = Literal["base", "rev01"]
-type AvailableDataLoadConfigurations = Dict[DataLoadConfigurationName, DataLoadConfiguration]
