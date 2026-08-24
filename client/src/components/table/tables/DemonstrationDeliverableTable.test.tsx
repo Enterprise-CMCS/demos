@@ -271,6 +271,31 @@ describe("DemonstrationDeliverableTable", () => {
     ]);
   });
 
+  it("hides controls for readonly users", () => {
+    render(
+      <DemonstrationDeliverableTable
+        viewMode="demos-cms-user"
+        isReadonlyUser={true}
+        deliverables={[
+          {
+            id: "row-2",
+            name: "Item",
+            dueDate: new Date("2026-01-01"),
+            status: "Upcoming",
+            ...baseDeliverable,
+          },
+        ]}
+      />
+    );
+
+    expect(
+      screen.queryByRole("columnheader", { name: /State\/Territory/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("columnheader", { name: /Demonstration Name/i })
+    ).not.toBeInTheDocument();
+  });
+
   it("reapplies default sort order when deliverables are reloaded", () => {
     const pastDue = {
       id: "past-due-2",

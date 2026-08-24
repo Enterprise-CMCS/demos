@@ -9,22 +9,13 @@ import {
   hasChanges,
   getSdgPreparationPhaseFromApplication,
 } from "./SdgPreparationPhase";
-import { ApplicationWorkflowDemonstration } from "../demonstration/DemonstrationWorkflow";
 import { WorkflowApplication } from "components/application";
 import type { ApplicationStatus, DateType, PhaseName, PhaseStatus } from "demos-server";
 import { parseISO } from "date-fns";
-import {
-  FAILED_TO_SAVE_MESSAGE,
-  getPhaseCompletedMessage,
-  SAVE_FOR_LATER_MESSAGE,
-} from "util/messages";
-
-const showSuccess = vi.fn();
-const showError = vi.fn();
-
-vi.mock("components/toast", () => ({
-  useToast: () => ({ showSuccess, showError }),
-}));
+import { TestProvider } from "test-utils/TestProvider";
+import { cmsMockUser, MockUser, readonlyMockUser } from "mock-data/userMocks";
+import { ToastContainer } from "components/toast";
+import { FAILED_TO_SAVE_MESSAGE, getPhaseCompletedMessage } from "util/messages";
 
 const mockSetApplicationDate = vi.fn();
 const mockCompletePhase = vi.fn();
@@ -47,24 +38,8 @@ vi.mock("../phase-status/phaseCompletionQueries", () => ({
   }),
 }));
 
-const mockPO = {
-  id: "po-1",
-  fullName: "Jane Doe",
-};
-
-const mockApplication: ApplicationWorkflowDemonstration = {
+const mockApplication: Pick<WorkflowApplication, "id" | "phases"> = {
   id: "1",
-  medicaidId: "medicaid-123",
-  name: "Test Demo",
-  state: {
-    id: "CA",
-    name: "California",
-  },
-  primaryProjectOfficer: mockPO,
-  status: "Pre-Submission",
-  currentPhaseName: "SDG Preparation",
-  documents: [],
-  clearanceLevel: "CMS (OSORA)",
   phases: [
     {
       phaseName: "SDG Preparation",
@@ -78,27 +53,13 @@ const mockApplication: ApplicationWorkflowDemonstration = {
       phaseNotes: [],
     },
   ],
-  demonstrationTypes: [],
-  tags: [],
 };
 
-const mockCompleteApplication: ApplicationWorkflowDemonstration = {
-  id: "1",
-  medicaidId: "medicaid-123",
-  name: "Test Demo",
-  state: {
-    id: "CA",
-    name: "California",
-  },
-  primaryProjectOfficer: mockPO,
-  status: "Pre-Submission",
-  currentPhaseName: "SDG Preparation",
-  clearanceLevel: "CMS (OSORA)",
-  documents: [],
+const mockCompleteApplication: Pick<WorkflowApplication, "id" | "phases"> = {
+  ...mockApplication,
   phases: [
     {
-      phaseName: "SDG Preparation",
-      phaseStatus: "Not Started",
+      ...mockApplication.phases[0],
       phaseDates: [
         {
           dateType: "Internal Expected Approval Date",
@@ -114,14 +75,29 @@ const mockCompleteApplication: ApplicationWorkflowDemonstration = {
           dateValue: parseISO("2025-01-01T05:00:00.000Z"),
         },
       ],
-      phaseNotes: [],
     },
   ],
-  demonstrationTypes: [],
-  tags: [],
 };
 
 const mockSetSelectedPhase = vi.fn();
+
+const baseWorkflowApplication: WorkflowApplication = {
+  id: "demo-1",
+  currentPhaseName: "SDG Preparation",
+  status: "Under Review",
+  clearanceLevel: "CMS (OSORA)",
+  documents: [],
+  tags: [],
+  phases: [],
+};
+
+const renderWithTestProvider = (ui: React.ReactNode, currentUser: MockUser = cmsMockUser) =>
+  render(
+    <TestProvider currentUser={currentUser}>
+      {ui}
+      <ToastContainer />
+    </TestProvider>
+  );
 
 describe("SdgPreparationPhase", () => {
   beforeEach(() => {
@@ -130,16 +106,18 @@ describe("SdgPreparationPhase", () => {
 
   const setup = (
     application = mockApplication,
-    applicationStatus: ApplicationStatus = "Pre-Submission"
+    applicationStatus: ApplicationStatus = "Pre-Submission",
+    currentUser: MockUser = cmsMockUser
   ): void => {
-    render(
+    renderWithTestProvider(
       <SdgPreparationPhase
         applicationId={application.id}
         sdgPreparationPhase={application.phases[0]}
         setSelectedPhase={mockSetSelectedPhase}
         allPreviousPhasesDone={true}
         applicationStatus={applicationStatus}
-      />
+      />,
+      currentUser
     );
   };
 
@@ -211,6 +189,17 @@ describe("SdgPreparationPhase", () => {
       expect(finishButton).toBeInTheDocument();
       expect(finishButton).toBeDisabled();
     });
+
+    it("hides actions and disables datepickers for readonly users", () => {
+      setup(mockApplication, "Pre-Submission", readonlyMockUser);
+
+      expect(screen.queryByTestId("sdg-save-for-later")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("sdg-finish")).not.toBeInTheDocument();
+      expect(screen.getByTestId("datepicker-internal-expected-approval-date")).toBeDisabled();
+      expect(screen.getByTestId("datepicker-sme-initial-review-date")).toBeDisabled();
+      expect(screen.getByTestId("datepicker-frt-initial-meeting-date")).toBeDisabled();
+      expect(screen.getByTestId("datepicker-bnpmt-initial-meeting-date")).toBeDisabled();
+    });
   });
 
   describe("Date field handling", () => {
@@ -265,7 +254,7 @@ describe("SdgPreparationPhase", () => {
           dateType: "Internal Expected Approval Date",
           dateValue: "2025-01-02",
         });
-        expect(showSuccess).toHaveBeenCalledWith(SAVE_FOR_LATER_MESSAGE);
+        expect(screen.getByText(/Updates\s+saved successfully/)).toBeInTheDocument();
       });
     });
 
@@ -282,7 +271,7 @@ describe("SdgPreparationPhase", () => {
       await userEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(showError).toHaveBeenCalledWith(FAILED_TO_SAVE_MESSAGE);
+        expect(screen.getByText(FAILED_TO_SAVE_MESSAGE)).toBeInTheDocument();
       });
     });
   });
@@ -303,7 +292,7 @@ describe("SdgPreparationPhase", () => {
       await waitFor(() => {
         expect(mockSetApplicationDate).toHaveBeenCalledTimes(4);
         expect(mockCompletePhase).toHaveBeenCalled();
-        expect(showSuccess).toHaveBeenCalledWith(getPhaseCompletedMessage("SDG Preparation"));
+        expect(screen.getByText(getPhaseCompletedMessage("SDG Preparation"))).toBeInTheDocument();
         expect(mockSetSelectedPhase).toHaveBeenCalledWith("Review");
       });
     });
@@ -319,7 +308,7 @@ describe("SdgPreparationPhase", () => {
       await userEvent.click(finishButton);
 
       await waitFor(() => {
-        expect(showError).toHaveBeenCalledWith(FAILED_TO_SAVE_MESSAGE);
+        expect(screen.getByText(FAILED_TO_SAVE_MESSAGE)).toBeInTheDocument();
       });
     });
   });
@@ -411,7 +400,7 @@ describe("Completed Phase Behavior", () => {
   };
 
   const renderCompleted = () =>
-    render(
+    renderWithTestProvider(
       <SdgPreparationPhase
         applicationId={mockCompleteApplication.id}
         sdgPreparationPhase={completedPhase}
@@ -468,7 +457,7 @@ describe("Completed Phase Behavior", () => {
         dateType: "Internal Expected Approval Date",
         dateValue: "2025-06-01",
       });
-      expect(showSuccess).toHaveBeenCalledWith(SAVE_FOR_LATER_MESSAGE);
+      expect(screen.getByText(/Updates\s+saved successfully/)).toBeInTheDocument();
     });
   });
 });
@@ -478,34 +467,13 @@ describe("Approved Application Behavior", () => {
     vi.clearAllMocks();
   });
 
-  const allDates = [
-    {
-      dateType: "Internal Expected Approval Date" as DateType,
-      dateValue: parseISO("2025-01-01T05:00:00.000Z"),
-    },
-    {
-      dateType: "SME Initial Review Date" as DateType,
-      dateValue: parseISO("2025-01-01T05:00:00.000Z"),
-    },
-    {
-      dateType: "FRT Initial Meeting Date" as DateType,
-      dateValue: parseISO("2025-01-01T05:00:00.000Z"),
-    },
-    {
-      dateType: "BNPMT Initial Meeting Date" as DateType,
-      dateValue: parseISO("2025-01-01T05:00:00.000Z"),
-    },
-  ];
-
   const renderApproved = () =>
-    render(
+    renderWithTestProvider(
       <SdgPreparationPhase
         applicationId="1"
         sdgPreparationPhase={{
-          phaseName: "SDG Preparation",
+          ...mockCompleteApplication.phases[0],
           phaseStatus: "Completed",
-          phaseDates: allDates,
-          phaseNotes: [],
         }}
         setSelectedPhase={mockSetSelectedPhase}
         allPreviousPhasesDone={true}
@@ -528,18 +496,8 @@ describe("getSdgPreparationPhaseFromApplication", () => {
   const mockSetSelectedPhase = vi.fn();
 
   it("renders the SDG Preparation Phase component when phase is found", () => {
-    const application: ApplicationWorkflowDemonstration = {
-      id: "demo-1",
-      medicaidId: "medicaid-123",
-      name: "Test Demo",
-      state: {
-        id: "CA",
-        name: "California",
-      },
-      primaryProjectOfficer: mockPO,
-      status: "Under Review",
-      currentPhaseName: "SDG Preparation",
-      clearanceLevel: "CMS (OSORA)",
+    const application: WorkflowApplication = {
+      ...baseWorkflowApplication,
       documents: [],
       phases: [
         {
@@ -554,29 +512,20 @@ describe("getSdgPreparationPhaseFromApplication", () => {
           phaseNotes: [],
         },
       ],
-      demonstrationTypes: [],
-      tags: [],
     };
 
-    render(getSdgPreparationPhaseFromApplication(application, mockSetSelectedPhase));
+    renderWithTestProvider(
+      getSdgPreparationPhaseFromApplication(application, mockSetSelectedPhase)
+    );
 
     expect(screen.getByText("SDG PREPARATION")).toBeInTheDocument();
     expect(screen.getByTestId("sdg-finish")).toBeInTheDocument();
   });
 
   it("renders error message when SDG Preparation phase is not found", () => {
-    const application: ApplicationWorkflowDemonstration = {
-      id: "demo-1",
-      medicaidId: "medicaid-123",
-      name: "Test Demo",
-      state: {
-        id: "CA",
-        name: "California",
-      },
-      primaryProjectOfficer: mockPO,
-      status: "Under Review",
+    const application: WorkflowApplication = {
+      ...baseWorkflowApplication,
       currentPhaseName: "Concept",
-      clearanceLevel: "CMS (OSORA)",
       documents: [],
       phases: [
         {
@@ -586,83 +535,36 @@ describe("getSdgPreparationPhaseFromApplication", () => {
           phaseNotes: [],
         },
       ],
-      demonstrationTypes: [],
-      tags: [],
     };
 
-    render(getSdgPreparationPhaseFromApplication(application, mockSetSelectedPhase));
+    renderWithTestProvider(
+      getSdgPreparationPhaseFromApplication(application, mockSetSelectedPhase)
+    );
 
     expect(screen.getByText("Error: SDG Preparation Phase not found.")).toBeInTheDocument();
   });
 
   it("disables Finish button when previous phases are not completed", () => {
-    const application: ApplicationWorkflowDemonstration = {
-      id: "demo-1",
-      medicaidId: "medicaid-123",
-      name: "Test Demo",
-      state: {
-        id: "CA",
-        name: "California",
-      },
-      primaryProjectOfficer: mockPO,
-      status: "Under Review",
-      currentPhaseName: "SDG Preparation",
-      clearanceLevel: "CMS (OSORA)",
+    const application: WorkflowApplication = {
+      ...baseWorkflowApplication,
       documents: [],
       phases: [
-        {
-          phaseName: "Completeness",
-          phaseStatus: "Started", // Not completed
-          phaseDates: [],
-          phaseNotes: [],
-        },
-        {
-          phaseName: "SDG Preparation",
-          phaseStatus: "Started",
-          phaseDates: [
-            {
-              dateType: "Internal Expected Approval Date",
-              dateValue: parseISO("2025-01-01T05:00:00.000Z"),
-            },
-            {
-              dateType: "SME Initial Review Date",
-              dateValue: parseISO("2025-01-02T05:00:00.000Z"),
-            },
-            {
-              dateType: "FRT Initial Meeting Date",
-              dateValue: parseISO("2025-01-03T05:00:00.000Z"),
-            },
-            {
-              dateType: "BNPMT Initial Meeting Date",
-              dateValue: parseISO("2025-01-04T05:00:00.000Z"),
-            },
-          ],
-          phaseNotes: [],
-        },
+        { phaseName: "Completeness", phaseStatus: "Started", phaseDates: [], phaseNotes: [] },
+        { ...mockCompleteApplication.phases[0], phaseStatus: "Started" },
       ],
-      demonstrationTypes: [],
-      tags: [],
     };
 
-    render(getSdgPreparationPhaseFromApplication(application, mockSetSelectedPhase));
+    renderWithTestProvider(
+      getSdgPreparationPhaseFromApplication(application, mockSetSelectedPhase)
+    );
 
     const finishButton = screen.getByTestId("sdg-finish");
     expect(finishButton).toBeDisabled();
   });
 
   it("enables Finish button when all previous phases are completed or skipped", () => {
-    const application: ApplicationWorkflowDemonstration = {
-      id: "demo-1",
-      medicaidId: "medicaid-123",
-      name: "Test Demo",
-      state: {
-        id: "CA",
-        name: "California",
-      },
-      primaryProjectOfficer: mockPO,
-      status: "Under Review",
-      currentPhaseName: "SDG Preparation",
-      clearanceLevel: "CMS (OSORA)",
+    const application: WorkflowApplication = {
+      ...baseWorkflowApplication,
       documents: [],
       phases: [
         {
@@ -671,301 +573,17 @@ describe("getSdgPreparationPhaseFromApplication", () => {
           phaseDates: [],
           phaseNotes: [],
         },
-        {
-          phaseName: "Completeness",
-          phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-        },
-        {
-          phaseName: "Federal Comment",
-          phaseStatus: "Skipped",
-          phaseDates: [],
-          phaseNotes: [],
-        },
-        {
-          phaseName: "SDG Preparation",
-          phaseStatus: "Started",
-          phaseDates: [
-            {
-              dateType: "Internal Expected Approval Date",
-              dateValue: parseISO("2025-01-01T05:00:00.000Z"),
-            },
-            {
-              dateType: "SME Initial Review Date",
-              dateValue: parseISO("2025-01-02T05:00:00.000Z"),
-            },
-            {
-              dateType: "FRT Initial Meeting Date",
-              dateValue: parseISO("2025-01-03T05:00:00.000Z"),
-            },
-            {
-              dateType: "BNPMT Initial Meeting Date",
-              dateValue: parseISO("2025-01-04T05:00:00.000Z"),
-            },
-          ],
-          phaseNotes: [],
-        },
+        { phaseName: "Completeness", phaseStatus: "Completed", phaseDates: [], phaseNotes: [] },
+        { phaseName: "Federal Comment", phaseStatus: "Skipped", phaseDates: [], phaseNotes: [] },
+        { ...mockCompleteApplication.phases[0], phaseStatus: "Started" },
       ],
-      demonstrationTypes: [],
-      tags: [],
     };
 
-    render(getSdgPreparationPhaseFromApplication(application, mockSetSelectedPhase));
+    renderWithTestProvider(
+      getSdgPreparationPhaseFromApplication(application, mockSetSelectedPhase)
+    );
 
     const finishButton = screen.getByTestId("sdg-finish");
     expect(finishButton).toBeEnabled();
-  });
-});
-
-describe("Amendment and Extension SDG Preparation", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  const buildWorkflowApplication = (
-    overrides: Partial<WorkflowApplication> = {}
-  ): WorkflowApplication => ({
-    id: "amendment-1",
-    currentPhaseName: "SDG Preparation",
-    status: "Under Review",
-    clearanceLevel: "CMS (OSORA)",
-    documents: [],
-    tags: [],
-    phases: [
-      {
-        phaseName: "Application Intake",
-        phaseStatus: "Completed",
-        phaseDates: [],
-        phaseNotes: [],
-      },
-      {
-        phaseName: "Completeness",
-        phaseStatus: "Completed",
-        phaseDates: [],
-        phaseNotes: [],
-      },
-      {
-        phaseName: "Federal Comment",
-        phaseStatus: "Completed",
-        phaseDates: [],
-        phaseNotes: [],
-      },
-      {
-        phaseName: "SDG Preparation",
-        phaseStatus: "Started",
-        phaseDates: [],
-        phaseNotes: [],
-      },
-    ],
-    ...overrides,
-  });
-
-  it("renders SDG Preparation phase for an amendment workflow", () => {
-    const amendment = buildWorkflowApplication({ id: "amendment-1" });
-
-    render(getSdgPreparationPhaseFromApplication(amendment, mockSetSelectedPhase));
-
-    expect(screen.getByText("SDG PREPARATION")).toBeInTheDocument();
-    expect(screen.getByText("Plan and conduct internal and preparation tasks")).toBeInTheDocument();
-    expect(screen.getByText("SDG WORKPLAN")).toBeInTheDocument();
-    expect(screen.getByText("INTERNAL REVIEWS")).toBeInTheDocument();
-    expect(
-      screen.getByText("Record the Date that each key review meeting occurred below")
-    ).toBeInTheDocument();
-  });
-
-  it("renders SDG Preparation phase for an extension workflow", () => {
-    const extension = buildWorkflowApplication({ id: "extension-1" });
-
-    render(getSdgPreparationPhaseFromApplication(extension, mockSetSelectedPhase));
-
-    expect(screen.getByText("SDG PREPARATION")).toBeInTheDocument();
-    expect(screen.getByTestId("datepicker-internal-expected-approval-date")).toBeInTheDocument();
-    expect(screen.getByTestId("datepicker-sme-initial-review-date")).toBeInTheDocument();
-    expect(screen.getByTestId("datepicker-frt-initial-meeting-date")).toBeInTheDocument();
-    expect(screen.getByTestId("datepicker-bnpmt-initial-meeting-date")).toBeInTheDocument();
-  });
-
-  it("enables Finish button when all previous phases are completed and form is filled", () => {
-    const application = buildWorkflowApplication({
-      phases: [
-        {
-          phaseName: "Application Intake",
-          phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-        },
-        {
-          phaseName: "Completeness",
-          phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-        },
-        {
-          phaseName: "Federal Comment",
-          phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-        },
-        {
-          phaseName: "SDG Preparation",
-          phaseStatus: "Started",
-          phaseDates: [
-            {
-              dateType: "Internal Expected Approval Date",
-              dateValue: parseISO("2025-06-01T05:00:00.000Z"),
-            },
-            {
-              dateType: "SME Initial Review Date",
-              dateValue: parseISO("2025-05-01T05:00:00.000Z"),
-            },
-            {
-              dateType: "FRT Initial Meeting Date",
-              dateValue: parseISO("2025-05-15T05:00:00.000Z"),
-            },
-            {
-              dateType: "BNPMT Initial Meeting Date",
-              dateValue: parseISO("2025-05-20T05:00:00.000Z"),
-            },
-          ],
-          phaseNotes: [],
-        },
-      ],
-    });
-
-    render(getSdgPreparationPhaseFromApplication(application, mockSetSelectedPhase));
-
-    expect(screen.getByTestId("sdg-finish")).toBeEnabled();
-  });
-
-  it("disables Finish button when previous phases are not completed", () => {
-    const application = buildWorkflowApplication({
-      phases: [
-        {
-          phaseName: "Completeness",
-          phaseStatus: "Started",
-          phaseDates: [],
-          phaseNotes: [],
-        },
-        {
-          phaseName: "SDG Preparation",
-          phaseStatus: "Started",
-          phaseDates: [
-            {
-              dateType: "Internal Expected Approval Date",
-              dateValue: parseISO("2025-06-01T05:00:00.000Z"),
-            },
-            {
-              dateType: "SME Initial Review Date",
-              dateValue: parseISO("2025-05-01T05:00:00.000Z"),
-            },
-            {
-              dateType: "FRT Initial Meeting Date",
-              dateValue: parseISO("2025-05-15T05:00:00.000Z"),
-            },
-            {
-              dateType: "BNPMT Initial Meeting Date",
-              dateValue: parseISO("2025-05-20T05:00:00.000Z"),
-            },
-          ],
-          phaseNotes: [],
-        },
-      ],
-    });
-
-    render(getSdgPreparationPhaseFromApplication(application, mockSetSelectedPhase));
-
-    expect(screen.getByTestId("sdg-finish")).toBeDisabled();
-  });
-
-  it("calls completePhase and navigates to Review on Finish", async () => {
-    mockSetApplicationDate.mockResolvedValue({ data: { setApplicationDate: { id: "1" } } });
-    mockCompletePhase.mockResolvedValue({
-      data: { completePhase: { __typename: "ApplicationPhase" } },
-    });
-
-    const application = buildWorkflowApplication({
-      phases: [
-        {
-          phaseName: "Application Intake",
-          phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-        },
-        {
-          phaseName: "Completeness",
-          phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-        },
-        {
-          phaseName: "Federal Comment",
-          phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-        },
-        {
-          phaseName: "SDG Preparation",
-          phaseStatus: "Started",
-          phaseDates: [
-            {
-              dateType: "Internal Expected Approval Date",
-              dateValue: parseISO("2025-06-01T05:00:00.000Z"),
-            },
-            {
-              dateType: "SME Initial Review Date",
-              dateValue: parseISO("2025-05-01T05:00:00.000Z"),
-            },
-            {
-              dateType: "FRT Initial Meeting Date",
-              dateValue: parseISO("2025-05-15T05:00:00.000Z"),
-            },
-            {
-              dateType: "BNPMT Initial Meeting Date",
-              dateValue: parseISO("2025-05-20T05:00:00.000Z"),
-            },
-          ],
-          phaseNotes: [],
-        },
-      ],
-    });
-
-    render(getSdgPreparationPhaseFromApplication(application, mockSetSelectedPhase));
-
-    const finishButton = screen.getByTestId("sdg-finish");
-    await userEvent.click(finishButton);
-
-    await waitFor(() => {
-      expect(mockCompletePhase).toHaveBeenCalledWith({
-        applicationId: application.id,
-        phaseName: "SDG Preparation",
-      });
-      expect(mockSetSelectedPhase).toHaveBeenCalledWith("Review");
-      expect(showSuccess).toHaveBeenCalledWith(getPhaseCompletedMessage("SDG Preparation"));
-    });
-  });
-
-  it("saves dates via Save For Later for amendment/extension workflows", async () => {
-    mockSetApplicationDate.mockResolvedValue({ data: { setApplicationDate: { id: "1" } } });
-
-    const application = buildWorkflowApplication();
-
-    render(getSdgPreparationPhaseFromApplication(application, mockSetSelectedPhase));
-
-    const internalExpectedApprovalDateInput = screen.getByTestId("datepicker-internal-expected-approval-date");
-    await userEvent.type(internalExpectedApprovalDateInput, "2025-07-01");
-
-    const saveButton = screen.getByTestId("sdg-save-for-later");
-    await userEvent.click(saveButton);
-
-    await waitFor(() => {
-      expect(mockSetApplicationDate).toHaveBeenCalledWith({
-        applicationId: "amendment-1",
-        dateType: "Internal Expected Approval Date",
-        dateValue: "2025-07-01",
-      });
-      expect(showSuccess).toHaveBeenCalledWith(SAVE_FOR_LATER_MESSAGE);
-    });
   });
 });

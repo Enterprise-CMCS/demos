@@ -12,6 +12,7 @@ import {
   Tags,
   aws_s3_notifications,
   aws_iam,
+  Validations,
 } from "aws-cdk-lib";
 
 import { Construct } from "constructs";
@@ -37,6 +38,11 @@ export class FileUploadStack extends Stack {
   constructor(scope: Construct, id: string, props: FileUploadStackProps) {
 
     super(scope, id, props);
+
+  Validations.of(this).acknowledge({
+    id: "CloudFormation-Validate::E3687",
+    reason: "False positive: FromPort and ToPort are supplied through an imported deploy-time value.'"
+  })
 
     const alarmResources = new alarms.CloudWatchAlarmRegistry();
 

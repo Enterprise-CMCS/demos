@@ -5,6 +5,7 @@ import { IconButton } from "components/button";
 import { EditIcon } from "components/icons";
 import { useDialog } from "components/dialog/DialogContext";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
 const Field = ({ label, value }: { label: string; value: string }) => {
   return (
@@ -51,6 +52,9 @@ export const ModificationDetailsSummary = ({
 }: {
   modificationItem: ModificationItem;
 }) => {
+  const { currentUser } = getCurrentUser();
+  const isReadonlyUser = isReadonly(currentUser);
+
   const { showUpdateAmendmentDialog, showUpdateExtensionDialog } = useDialog();
 
   const handleEditClick = () => {
@@ -67,14 +71,16 @@ export const ModificationDetailsSummary = ({
     <div>
       <div className="flex justify-between items-center pb-1 border-b border-border-rules">
         <h2 className="text-xl font-bold text-brand">SUMMARY DETAILS</h2>
-        <IconButton
-          icon={<EditIcon />}
-          name="button-edit-details"
-          size="small"
-          onClick={handleEditClick}
-        >
+        {!isReadonlyUser && (
+          <IconButton
+            icon={<EditIcon />}
+            name="button-edit-details"
+            size="small"
+            onClick={handleEditClick}
+          >
           Edit Details
-        </IconButton>
+          </IconButton>
+        )}
       </div>
       <ModificationDetailsFields modificationItem={modificationItem} />
     </div>
