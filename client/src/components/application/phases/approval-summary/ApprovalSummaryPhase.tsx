@@ -25,6 +25,7 @@ import { useCompletePhase } from "components/application/phase-status/phaseCompl
 import { useToast } from "components/toast";
 import { getPhaseCompletedMessage, MISSING_REQUIRED_SECTIONS_TOOLTIP } from "util/messages";
 import { useDialog } from "components/dialog/DialogContext";
+import { getCurrentUser, isReadonly as userIsReadonly } from "components/user/UserContext";
 
 export const UPDATE_DEMONSTRATION_MUTATION = gql`
   mutation UpdateDemonstration($id: ID!, $input: UpdateDemonstrationInput!) {
@@ -68,21 +69,6 @@ export const UPDATE_EXTENSION_MUTATION = gql`
     }
   }
 `;
-
-type ApprovalSummaryPhaseProps = {
-  applicationId: string;
-  demonstrationId: string;
-  medicaidId?: string;
-  initialFormData: ApplicationDetailsFormData;
-  initialTypes: DemonstrationDetailDemonstrationType[];
-  approvalSummaryPhase?: {
-    phaseStatus: string;
-    phaseDates: Array<{ dateType: string; dateValue: string | Date }>;
-  };
-  demonstrationTypeCompletionDate?: Date;
-  allPreviousPhasesDone: boolean;
-  demonstrationStatus: ApplicationStatus;
-};
 
 const getReadonlyFields = (data: ApplicationDetailsFormData) => ({
   name: !!data.name,
@@ -206,29 +192,15 @@ export const getApprovalSummaryPhaseFromApplication = (
     .filter((p) => p.phaseName !== "Concept" && p.phaseName !== "Approval Summary")
     .every((phase) => phase.phaseStatus === "Completed" || phase.phaseStatus === "Skipped");
 
-  const demonstrationId =
+  const demonstration =
     workflowApplicationType === "demonstration"
-      ? application.id
-      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
-        .id;
+      ? (application as ApplicationWorkflowDemonstration)
+      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration;
 
-  const demonstrationTypes =
-    workflowApplicationType === "demonstration"
-      ? (application as ApplicationWorkflowDemonstration).demonstrationTypes
-      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
-        .demonstrationTypes;
-
-  const demonstrationStatus =
-    workflowApplicationType === "demonstration"
-      ? (application as ApplicationWorkflowDemonstration).status
-      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
-        .status;
-
-  const medicaidId =
-    workflowApplicationType === "demonstration"
-      ? (application as ApplicationWorkflowDemonstration).medicaidId
-      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
-        .medicaidId;
+  const demonstrationId = demonstration.id;
+  const demonstrationTypes = demonstration.demonstrationTypes;
+  const demonstrationStatus = demonstration.status;
+  const medicaidId = demonstration.medicaidId;
 
   return (
     <ApprovalSummaryPhase
@@ -255,7 +227,20 @@ export const ApprovalSummaryPhase = ({
   demonstrationTypeCompletionDate,
   allPreviousPhasesDone,
   demonstrationStatus,
-}: ApprovalSummaryPhaseProps) => {
+}: {
+  applicationId: string;
+  demonstrationId: string;
+  medicaidId?: string;
+  initialFormData: ApplicationDetailsFormData;
+  initialTypes: DemonstrationDetailDemonstrationType[];
+  approvalSummaryPhase?: {
+    phaseStatus: string;
+    phaseDates: Array<{ dateType: string; dateValue: string | Date }>;
+  };
+  demonstrationTypeCompletionDate?: Date;
+  allPreviousPhasesDone: boolean;
+  demonstrationStatus: ApplicationStatus;
+}) => {
   const capitalizedType =
     initialFormData.applicationType.charAt(0).toUpperCase() +
     initialFormData.applicationType.slice(1);
@@ -264,6 +249,8 @@ export const ApprovalSummaryPhase = ({
 
   const { showConfirmApproveDialog } = useDialog();
   const { showSuccess, showError } = useToast();
+  const { currentUser } = getCurrentUser();
+  const isReadonlyUser = userIsReadonly(currentUser);
 
   // Find Application Details completion date from phase dates
   const applicationDetailsCompleteDate = approvalSummaryPhase?.phaseDates?.find(
@@ -522,7 +509,7 @@ export const ApprovalSummaryPhase = ({
           sectionFormData={approvalSummaryFormData}
           setSectionFormData={setApprovalSummaryFormData}
           isComplete={isApplicationDetailsComplete}
-          isReadonly={isDemonstrationApproved}
+          isDemonstrationApproved={isDemonstrationApproved}
           onMarkComplete={handleMarkComplete}
           onMarkIncomplete={handleMarkIncomplete}
           completionDate={applicationDetailsCompletionDate}
@@ -537,7 +524,7 @@ export const ApprovalSummaryPhase = ({
               ? formatDateForDisplay(demonstrationTypeCompletionDate)
               : undefined
           }
-          isReadonly={isDemonstrationApproved}
+          isDemonstrationApproved={isDemonstrationApproved}
           onMarkComplete={markDemonstrationTypesComplete}
         />
       </section>
@@ -549,6 +536,7 @@ export const ApprovalSummaryPhase = ({
         <Button
           name="button-approve-application"
           size="small"
+          isHidden={isReadonlyUser}
           disabled={!canApproveApplication}
           onClick={() =>
             showConfirmApproveDialog(handleApproveApplication, initialFormData.applicationType)

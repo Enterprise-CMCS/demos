@@ -60,7 +60,7 @@ describe("ApplicationDetailsSection", () => {
   const setup = (
     overrides?: Partial<ApplicationDetailsFormData>,
     isComplete = false,
-    isReadonly = false
+    isDemonstrationApproved = false
   ) => {
     render(
       <MockedProvider mocks={[]}>
@@ -68,7 +68,7 @@ describe("ApplicationDetailsSection", () => {
           sectionFormData={{ ...baseFormData, ...overrides }}
           setSectionFormData={mockSetSectionFormData}
           isComplete={isComplete}
-          isReadonly={isReadonly}
+          isDemonstrationApproved={isDemonstrationApproved}
           onMarkComplete={mockOnMarkComplete}
           onMarkIncomplete={vi.fn()}
         />

@@ -8,17 +8,10 @@ import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/
 import { AddNewIcon } from "components/icons";
 import { useDialog } from "components/dialog/DialogContext";
 import { Demonstration as ServerDemonstration } from "demos-server";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
 type Demonstration = Pick<ServerDemonstration, "id" | "status"> & {
   demonstrationTypes: DemonstrationDetailDemonstrationType[];
-};
-
-type DemonstrationTypesSectionProps = {
-  demonstration: Demonstration;
-  onMarkComplete: (complete: boolean) => void;
-  completionDate?: string;
-  isComplete?: boolean;
-  isReadonly?: boolean;
 };
 
 const toggleOnColor = "#6B7280";
@@ -29,9 +22,17 @@ export const DemonstrationTypesSection = ({
   onMarkComplete,
   completionDate,
   isComplete = false,
-  isReadonly = false,
-}: DemonstrationTypesSectionProps) => {
+  isDemonstrationApproved = false,
+}: {
+  demonstration: Demonstration;
+  onMarkComplete: (complete: boolean) => void;
+  completionDate?: string;
+  isComplete?: boolean;
+  isDemonstrationApproved?: boolean;
+}) => {
   const { showApplyDemonstrationTypesDialog } = useDialog();
+  const { currentUser } = getCurrentUser();
+  const userIsReadonly = isReadonly(currentUser);
   const applyTypes = () => {
     showApplyDemonstrationTypesDialog(demonstration.id);
   };
@@ -46,7 +47,8 @@ export const DemonstrationTypesSection = ({
           size="small"
           name="apply-types"
           onClick={applyTypes}
-          disabled={isComplete || isReadonly}
+          disabled={isComplete || isDemonstrationApproved}
+          isHidden={userIsReadonly}
         >
           Apply Type(s)
           <AddNewIcon />
@@ -55,32 +57,34 @@ export const DemonstrationTypesSection = ({
 
       <TypesTable
         demonstration={demonstration}
-        inputDisabled={isComplete || isReadonly}
+        inputDisabled={isComplete || isDemonstrationApproved}
         hideSearch={true}
       />
 
-      <div className="border-t-1 border-gray-dark mt-2">
-        <div className="flex justify-end mt-2 gap-2">
-          <span className="text-sm font-semibold text-text-font">
-            <span className="text-red-600">*</span> Mark Complete
-          </span>
-          <Switch
-            data-testid="mark-complete-switch"
-            checked={isComplete}
-            onChange={(checked) => onMarkComplete(checked)}
-            onColor={toggleOnColor}
-            offColor={toggleOffColor}
-            checkedIcon={false}
-            uncheckedIcon={false}
-            height={18}
-            width={40}
-            handleDiameter={24}
-            boxShadow="0 2px 8px rgba(0, 0, 0, 0.6)"
-            activeBoxShadow="0 0 2px 3px #3bf"
-            disabled={demonstration.demonstrationTypes.length === 0 || isReadonly}
-          />
+      {!userIsReadonly && (
+        <div className="border-t-1 border-gray-dark mt-2">
+          <div className="flex justify-end mt-2 gap-2">
+            <span className="text-sm font-semibold text-text-font">
+              <span className="text-red-600">*</span> Mark Complete
+            </span>
+            <Switch
+              data-testid="mark-complete-switch"
+              checked={isComplete}
+              onChange={(checked) => onMarkComplete(checked)}
+              onColor={toggleOnColor}
+              offColor={toggleOffColor}
+              checkedIcon={false}
+              uncheckedIcon={false}
+              height={18}
+              width={40}
+              handleDiameter={24}
+              boxShadow="0 2px 8px rgba(0, 0, 0, 0.6)"
+              activeBoxShadow="0 0 2px 3px #3bf"
+              disabled={demonstration.demonstrationTypes.length === 0 || isDemonstrationApproved}
+            />
+          </div>
         </div>
-      </div>
+      )}
     </CompletableSection>
   );
 };
