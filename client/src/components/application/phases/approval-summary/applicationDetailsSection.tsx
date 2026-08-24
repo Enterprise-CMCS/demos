@@ -9,6 +9,7 @@ import { SelectSignatureLevel } from "components/input/select/SelectSignatureLev
 import { DatePicker } from "components/input/date/DatePicker";
 import { tw } from "tags/tw";
 import { formatDateForDisplay } from "util/formatDate";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-sm tracking-wide h-[14px] flex items-center`;
 const VALUE_CLASSES = tw`text-text-font text-base leading-relaxed min-h-[40px] flex items-start mt-1`;
@@ -77,6 +78,9 @@ export const ApplicationDetailsSection = ({
   completionDate?: string;
   medicaidId?: string;
 }) => {
+  const { currentUser } = getCurrentUser();
+  const userIsReadonly = isReadonly(currentUser);
+
   const capitalizedType =
     sectionFormData.applicationType.charAt(0).toUpperCase() +
     sectionFormData.applicationType.slice(1);
@@ -146,7 +150,7 @@ export const ApplicationDetailsSection = ({
               isRequired
               placeholder="Enter title"
               value={sectionFormData.name}
-              isDisabled={isDemonstrationApproved}
+              isDisabled={isDemonstrationApproved || userIsReadonly}
               onChange={(e) => setSectionFormData({ ...sectionFormData, name: e.target.value })}
             />
           )}
@@ -167,7 +171,7 @@ export const ApplicationDetailsSection = ({
                 label="Project Officer"
                 isRequired={true}
                 value={sectionFormData.projectOfficerId}
-                isDisabled={isDemonstrationApproved}
+                isDisabled={isDemonstrationApproved || userIsReadonly}
                 onSelect={(projectOfficerId) =>
                   setSectionFormData({ ...sectionFormData, projectOfficerId })
                 }
@@ -194,7 +198,7 @@ export const ApplicationDetailsSection = ({
                 isRequired
                 placeholder="Enter status"
                 value={sectionFormData.status}
-                isDisabled={isDemonstrationApproved}
+                isDisabled={isDemonstrationApproved || userIsReadonly}
                 onChange={(e) => setSectionFormData({ ...sectionFormData, status: e.target.value })}
               />
             )}
@@ -223,7 +227,7 @@ export const ApplicationDetailsSection = ({
               onChange={(effectiveDate) =>
                 setSectionFormData({ ...sectionFormData, effectiveDate })
               }
-              isDisabled={isDemonstrationApproved}
+              isDisabled={isDemonstrationApproved || userIsReadonly}
             />
           )}
         </div>
@@ -260,7 +264,7 @@ export const ApplicationDetailsSection = ({
                 onChange={(expirationDate) =>
                   setSectionFormData({ ...sectionFormData, expirationDate })
                 }
-                isDisabled={isDemonstrationApproved}
+                isDisabled={isDemonstrationApproved || userIsReadonly}
               />
             )}
           </div>
@@ -278,7 +282,7 @@ export const ApplicationDetailsSection = ({
               label={`${capitalizedType} Description`}
               placeholder="Enter description"
               value={sectionFormData.description ?? ""}
-              isDisabled={isDemonstrationApproved}
+              isDisabled={isDemonstrationApproved || userIsReadonly}
               onChange={(value) => setSectionFormData({ ...sectionFormData, description: value })}
             />
           )}
@@ -299,7 +303,7 @@ export const ApplicationDetailsSection = ({
                 key={`sdg-${sectionFormData.sdgDivision || "empty"}`}
                 initialValue={sectionFormData.sdgDivision}
                 onSelect={(sdgDivision) => setSectionFormData({ ...sectionFormData, sdgDivision })}
-                isDisabled={isDemonstrationApproved}
+                isDisabled={isDemonstrationApproved || userIsReadonly}
                 isRequired
               />
             )}
@@ -327,7 +331,7 @@ export const ApplicationDetailsSection = ({
               onSelect={(signatureLevel) =>
                 setSectionFormData({ ...sectionFormData, signatureLevel })
               }
-              isDisabled={isDemonstrationApproved}
+              isDisabled={isDemonstrationApproved || userIsReadonly}
               isRequired
             />
           )}
@@ -356,41 +360,43 @@ export const ApplicationDetailsSection = ({
                   applicationApprovalDate: date as LocalDate,
                 })
               }
-              isDisabled={isDemonstrationApproved}
+              isDisabled={isDemonstrationApproved || userIsReadonly}
               isRequired
             />
           )}
         </div>
       </div>
 
-      <div className="border-t-1 border-gray-dark mt-4">
-        <div className="flex justify-end items-center mt-2 gap-2">
-          <span className="text-sm font-semibold text-text-font">
-            <span className="text-text-warn mr-xs">*</span> Mark Complete
-          </span>
-          <Switch
-            checked={isComplete}
-            onChange={() => {
-              if (isComplete) {
-                onMarkIncomplete();
-              } else {
-                onMarkComplete();
-              }
-            }}
-            disabled={isDemonstrationApproved || (!requiredFieldsFilled && !isComplete)}
-            onColor="#6B7280"
-            offColor="#E5E7EB"
-            checkedIcon={false}
-            uncheckedIcon={false}
-            height={18}
-            width={40}
-            handleDiameter={24}
-            boxShadow="0 2px 8px rgba(0, 0, 0, 0.6)"
-            activeBoxShadow="0 0 2px 3px #3bf"
-            aria-label="Mark Complete"
-          />
+      {!userIsReadonly && (
+        <div className="border-t-1 border-gray-dark mt-4">
+          <div className="flex justify-end items-center mt-2 gap-2">
+            <span className="text-sm font-semibold text-text-font">
+              <span className="text-text-warn mr-xs">*</span> Mark Complete
+            </span>
+            <Switch
+              checked={isComplete}
+              onChange={() => {
+                if (isComplete) {
+                  onMarkIncomplete();
+                } else {
+                  onMarkComplete();
+                }
+              }}
+              disabled={isDemonstrationApproved || (!requiredFieldsFilled && !isComplete)}
+              onColor="#6B7280"
+              offColor="#E5E7EB"
+              checkedIcon={false}
+              uncheckedIcon={false}
+              height={18}
+              width={40}
+              handleDiameter={24}
+              boxShadow="0 2px 8px rgba(0, 0, 0, 0.6)"
+              activeBoxShadow="0 0 2px 3px #3bf"
+              aria-label="Mark Complete"
+            />
+          </div>
         </div>
-      </div>
+      )}
     </CompletableSection>
   );
 };

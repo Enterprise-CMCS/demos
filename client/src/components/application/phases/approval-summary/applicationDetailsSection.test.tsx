@@ -3,39 +3,10 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MockedProvider } from "@apollo/client/testing";
 
 import { ApplicationDetailsSection, ApplicationDetailsFormData } from "./applicationDetailsSection";
 import { LocalDate } from "demos-server";
-
-type SelectUSAStatesProps = {
-  label: string;
-  value: string;
-  onSelect: (state: string) => void;
-};
-
-type SelectUsersProps = {
-  label: string;
-};
-
-vi.mock("components/input/select/SelectUSAStates", () => ({
-  SelectUSAStates: ({ label, value, onSelect }: SelectUSAStatesProps) => (
-    <div>
-      <label>{label}</label>
-      <button onClick={() => onSelect("NY")}>Select NY</button>
-      <span>{value}</span>
-    </div>
-  ),
-}));
-
-vi.mock("components/input/select/SelectUsers", () => ({
-  SelectUsers: ({ label }: SelectUsersProps) => (
-    <div>
-      <label>{label}</label>
-      <p>Loading...</p>
-    </div>
-  ),
-}));
+import { TestProvider } from "test-utils/TestProvider";
 
 describe("ApplicationDetailsSection", () => {
   const mockSetSectionFormData = vi.fn();
@@ -63,7 +34,7 @@ describe("ApplicationDetailsSection", () => {
     isDemonstrationApproved = false
   ) => {
     render(
-      <MockedProvider mocks={[]}>
+      <TestProvider mocks={[]}>
         <ApplicationDetailsSection
           sectionFormData={{ ...baseFormData, ...overrides }}
           setSectionFormData={mockSetSectionFormData}
@@ -72,7 +43,7 @@ describe("ApplicationDetailsSection", () => {
           onMarkComplete={mockOnMarkComplete}
           onMarkIncomplete={vi.fn()}
         />
-      </MockedProvider>
+      </TestProvider>
     );
   };
 
