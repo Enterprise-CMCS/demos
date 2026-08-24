@@ -50,7 +50,7 @@ const buildInitialFormData = (
   description: "Test description",
   sdgDivision: "Division of System Reform Demonstrations",
   signatureLevel: "OA",
-  readonlyFields: {},
+  staticFields: {},
   ...overrides,
 });
 
@@ -63,7 +63,7 @@ const buildAmendmentFormData = (
   description: "Test description",
   signatureLevel: "OA",
   status: "Active",
-  readonlyFields: {},
+  staticFields: {},
   ...overrides,
 });
 
@@ -76,7 +76,7 @@ const buildExtensionFormData = (
   description: "Test description",
   signatureLevel: "OA",
   status: "Active",
-  readonlyFields: {},
+  staticFields: {},
   ...overrides,
 });
 

@@ -9,6 +9,7 @@ import { SelectSignatureLevel } from "components/input/select/SelectSignatureLev
 import { DatePicker } from "components/input/date/DatePicker";
 import { tw } from "tags/tw";
 import { formatDateForDisplay } from "util/formatDate";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-sm tracking-wide h-[14px] flex items-center`;
 const VALUE_CLASSES = tw`text-text-font text-base leading-relaxed min-h-[40px] flex items-start mt-1`;
@@ -33,7 +34,7 @@ export type DemonstrationDetailsFormData = BaseFormData & {
   projectOfficerName: string;
   expirationDate?: string;
   sdgDivision?: SdgDivision;
-  readonlyFields: Partial<
+  staticFields: Partial<
     Record<
       | "stateId"
       | "name"
@@ -51,7 +52,7 @@ export type DemonstrationDetailsFormData = BaseFormData & {
 
 export type ModificationDetailsFormData = BaseFormData & {
   applicationType: "amendment" | "extension";
-  readonlyFields: Partial<
+  staticFields: Partial<
     Record<"name" | "effectiveDate" | "description" | "signatureLevel", boolean>
   >;
 };
@@ -62,7 +63,7 @@ export const ApplicationDetailsSection = ({
   sectionFormData,
   setSectionFormData,
   isComplete,
-  isReadonly,
+  isDemonstrationApproved,
   onMarkComplete,
   onMarkIncomplete,
   completionDate,
@@ -71,12 +72,15 @@ export const ApplicationDetailsSection = ({
   sectionFormData: ApplicationDetailsFormData;
   setSectionFormData: (data: ApplicationDetailsFormData) => void;
   isComplete: boolean;
-  isReadonly: boolean;
+  isDemonstrationApproved: boolean;
   onMarkComplete: () => void;
   onMarkIncomplete: () => void;
   completionDate?: string;
   medicaidId?: string;
 }) => {
+  const { currentUser } = getCurrentUser();
+  const userIsReadonly = isReadonly(currentUser);
+
   const capitalizedType =
     sectionFormData.applicationType.charAt(0).toUpperCase() +
     sectionFormData.applicationType.slice(1);
@@ -131,7 +135,7 @@ export const ApplicationDetailsSection = ({
           </div>
         )}
         <div className="flex flex-col col-span-3">
-          {sectionFormData.readonlyFields.name ? (
+          {sectionFormData.staticFields.name ? (
             <div>
               <div className={LABEL_CLASSES}>
                 <span className="text-text-warn mr-xs">*</span>
@@ -146,7 +150,7 @@ export const ApplicationDetailsSection = ({
               isRequired
               placeholder="Enter title"
               value={sectionFormData.name}
-              isDisabled={isReadonly}
+              isDisabled={isDemonstrationApproved || userIsReadonly}
               onChange={(e) => setSectionFormData({ ...sectionFormData, name: e.target.value })}
             />
           )}
@@ -154,7 +158,7 @@ export const ApplicationDetailsSection = ({
 
         {sectionFormData.applicationType === "demonstration" && (
           <div className="flex flex-col">
-            {sectionFormData.readonlyFields.projectOfficerId ? (
+            {sectionFormData.staticFields.projectOfficerId ? (
               <div>
                 <div className={LABEL_CLASSES}>
                   <span className="text-text-warn mr-xs">*</span>
@@ -167,7 +171,7 @@ export const ApplicationDetailsSection = ({
                 label="Project Officer"
                 isRequired={true}
                 value={sectionFormData.projectOfficerId}
-                isDisabled={isReadonly}
+                isDisabled={isDemonstrationApproved || userIsReadonly}
                 onSelect={(projectOfficerId) =>
                   setSectionFormData({ ...sectionFormData, projectOfficerId })
                 }
@@ -179,7 +183,7 @@ export const ApplicationDetailsSection = ({
 
         {sectionFormData.applicationType === "demonstration" && (
           <div className="flex flex-col">
-            {sectionFormData.readonlyFields.status ? (
+            {sectionFormData.staticFields.status ? (
               <div>
                 <div className={LABEL_CLASSES}>
                   <span className="text-text-warn mr-xs">*</span>
@@ -194,7 +198,7 @@ export const ApplicationDetailsSection = ({
                 isRequired
                 placeholder="Enter status"
                 value={sectionFormData.status}
-                isDisabled={isReadonly}
+                isDisabled={isDemonstrationApproved || userIsReadonly}
                 onChange={(e) => setSectionFormData({ ...sectionFormData, status: e.target.value })}
               />
             )}
@@ -202,7 +206,7 @@ export const ApplicationDetailsSection = ({
         )}
 
         <div className="flex flex-col">
-          {sectionFormData.readonlyFields.effectiveDate || isComplete ? (
+          {sectionFormData.staticFields.effectiveDate || isComplete ? (
             <div>
               <div className={LABEL_CLASSES}>
                 <span className="text-text-warn mr-xs">*</span>
@@ -223,7 +227,7 @@ export const ApplicationDetailsSection = ({
               onChange={(effectiveDate) =>
                 setSectionFormData({ ...sectionFormData, effectiveDate })
               }
-              isDisabled={isReadonly}
+              isDisabled={isDemonstrationApproved || userIsReadonly}
             />
           )}
         </div>
@@ -239,7 +243,7 @@ export const ApplicationDetailsSection = ({
 
         {sectionFormData.applicationType === "demonstration" && (
           <div className="flex flex-col">
-            {sectionFormData.readonlyFields.expirationDate || isComplete ? (
+            {sectionFormData.staticFields.expirationDate || isComplete ? (
               <div>
                 <div className={LABEL_CLASSES}>
                   <span className="text-text-warn mr-xs">*</span>
@@ -260,14 +264,14 @@ export const ApplicationDetailsSection = ({
                 onChange={(expirationDate) =>
                   setSectionFormData({ ...sectionFormData, expirationDate })
                 }
-                isDisabled={isReadonly}
+                isDisabled={isDemonstrationApproved || userIsReadonly}
               />
             )}
           </div>
         )}
 
         <div className="flex flex-col col-span-4">
-          {sectionFormData.readonlyFields.description || isComplete ? (
+          {sectionFormData.staticFields.description || isComplete ? (
             <div>
               <div className={LABEL_CLASSES}>{`${capitalizedType} Description`}</div>
               <div className={VALUE_CLASSES}>{sectionFormData.description || "-"}</div>
@@ -278,7 +282,7 @@ export const ApplicationDetailsSection = ({
               label={`${capitalizedType} Description`}
               placeholder="Enter description"
               value={sectionFormData.description ?? ""}
-              isDisabled={isReadonly}
+              isDisabled={isDemonstrationApproved || userIsReadonly}
               onChange={(value) => setSectionFormData({ ...sectionFormData, description: value })}
             />
           )}
@@ -286,7 +290,7 @@ export const ApplicationDetailsSection = ({
 
         {sectionFormData.applicationType === "demonstration" && (
           <div className="flex flex-col">
-            {sectionFormData.readonlyFields.sdgDivision || isComplete ? (
+            {sectionFormData.staticFields.sdgDivision || isComplete ? (
               <div>
                 <div className={LABEL_CLASSES}>
                   <span className="text-text-warn mr-xs">*</span>
@@ -299,7 +303,7 @@ export const ApplicationDetailsSection = ({
                 key={`sdg-${sectionFormData.sdgDivision || "empty"}`}
                 initialValue={sectionFormData.sdgDivision}
                 onSelect={(sdgDivision) => setSectionFormData({ ...sectionFormData, sdgDivision })}
-                isDisabled={isReadonly}
+                isDisabled={isDemonstrationApproved || userIsReadonly}
                 isRequired
               />
             )}
@@ -307,7 +311,7 @@ export const ApplicationDetailsSection = ({
         )}
 
         <div className="flex flex-col">
-          {sectionFormData.readonlyFields.signatureLevel || isComplete ? (
+          {sectionFormData.staticFields.signatureLevel || isComplete ? (
             <div>
               <div className={LABEL_CLASSES}>
                 <span className="text-text-warn mr-xs">*</span>
@@ -327,7 +331,7 @@ export const ApplicationDetailsSection = ({
               onSelect={(signatureLevel) =>
                 setSectionFormData({ ...sectionFormData, signatureLevel })
               }
-              isDisabled={isReadonly}
+              isDisabled={isDemonstrationApproved || userIsReadonly}
               isRequired
             />
           )}
@@ -356,41 +360,43 @@ export const ApplicationDetailsSection = ({
                   applicationApprovalDate: date as LocalDate,
                 })
               }
-              isDisabled={isReadonly}
+              isDisabled={isDemonstrationApproved || userIsReadonly}
               isRequired
             />
           )}
         </div>
       </div>
 
-      <div className="border-t-1 border-gray-dark mt-4">
-        <div className="flex justify-end items-center mt-2 gap-2">
-          <span className="text-sm font-semibold text-text-font">
-            <span className="text-text-warn mr-xs">*</span> Mark Complete
-          </span>
-          <Switch
-            checked={isComplete}
-            onChange={() => {
-              if (isComplete) {
-                onMarkIncomplete();
-              } else {
-                onMarkComplete();
-              }
-            }}
-            disabled={isReadonly || (!requiredFieldsFilled && !isComplete)}
-            onColor="#6B7280"
-            offColor="#E5E7EB"
-            checkedIcon={false}
-            uncheckedIcon={false}
-            height={18}
-            width={40}
-            handleDiameter={24}
-            boxShadow="0 2px 8px rgba(0, 0, 0, 0.6)"
-            activeBoxShadow="0 0 2px 3px #3bf"
-            aria-label="Mark Complete"
-          />
+      {!userIsReadonly && (
+        <div className="border-t-1 border-gray-dark mt-4">
+          <div className="flex justify-end items-center mt-2 gap-2">
+            <span className="text-sm font-semibold text-text-font">
+              <span className="text-text-warn mr-xs">*</span> Mark Complete
+            </span>
+            <Switch
+              checked={isComplete}
+              onChange={() => {
+                if (isComplete) {
+                  onMarkIncomplete();
+                } else {
+                  onMarkComplete();
+                }
+              }}
+              disabled={isDemonstrationApproved || (!requiredFieldsFilled && !isComplete)}
+              onColor="#6B7280"
+              offColor="#E5E7EB"
+              checkedIcon={false}
+              uncheckedIcon={false}
+              height={18}
+              width={40}
+              handleDiameter={24}
+              boxShadow="0 2px 8px rgba(0, 0, 0, 0.6)"
+              activeBoxShadow="0 0 2px 3px #3bf"
+              aria-label="Mark Complete"
+            />
+          </div>
         </div>
-      </div>
+      )}
     </CompletableSection>
   );
 };

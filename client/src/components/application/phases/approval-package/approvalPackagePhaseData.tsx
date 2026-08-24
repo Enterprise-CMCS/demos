@@ -51,7 +51,7 @@ export const getApprovalPackagePhaseFromApplication = (
       applicationId={application.id}
       documents={documents}
       allPreviousPhasesDone={allPreviousPhasesDone}
-      isReadonly={approvalPackagePhase.phaseStatus === "Completed"}
+      isPhaseCompleted={approvalPackagePhase.phaseStatus === "Completed"}
       onFinish={() => setSelectedPhase("Approval Summary")}
     />
   );
