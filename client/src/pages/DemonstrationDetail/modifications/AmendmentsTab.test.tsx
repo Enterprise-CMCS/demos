@@ -4,6 +4,8 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { AmendmentsTab } from "./AmendmentsTab";
 import { ModificationTabs } from "./ModificationTabs";
 import { DemonstrationDetailModification } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { TestProvider } from "test-utils/TestProvider";
+import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 const showCreateAmendmentDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
@@ -36,16 +38,19 @@ describe("AmendmentsTab", () => {
 
   const renderAmendmentsTab = (
     amendments: DemonstrationDetailModification[] = [],
-    canCreateModifications = true
+    canCreateModifications = true,
+    currentUser = cmsMockUser
   ) => {
     return render(
-      <AmendmentsTab
-        demonstrationId="mock-demonstration-id"
-        medicaidId="mock-medicaid-id"
-        amendments={amendments}
-        selectedAmendmentId="mock-amendment-id"
-        canCreateModifications={canCreateModifications}
-      />
+      <TestProvider currentUser={currentUser}>
+        <AmendmentsTab
+          demonstrationId="mock-demonstration-id"
+          medicaidId="mock-medicaid-id"
+          amendments={amendments}
+          selectedAmendmentId="mock-amendment-id"
+          canCreateModifications={canCreateModifications}
+        />
+      </TestProvider>
     );
   };
 
@@ -135,5 +140,17 @@ describe("AmendmentsTab", () => {
     );
 
     expect(screen.getByTestId("modification-tabs")).toBeInTheDocument();
+  });
+
+  describe("Readonly User Behavior", () => {
+    it("does not render the create amendment button for readonly users", () => {
+      renderAmendmentsTab([], true, readonlyMockUser);
+      expect(screen.queryByRole("button", { name: /create amendment/i })).not.toBeInTheDocument();
+    });
+
+    it("does not render the add amendment button for readonly users", () => {
+      renderAmendmentsTab(mockAmendments, true, readonlyMockUser);
+      expect(screen.queryByRole("button", { name: /add-new-amendment/i })).not.toBeInTheDocument();
+    });
   });
 });

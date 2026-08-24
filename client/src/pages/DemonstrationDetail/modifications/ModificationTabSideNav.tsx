@@ -15,6 +15,7 @@ import { DEMONSTRATION_DETAIL_QUERY } from "../DemonstrationDetail";
 import { useApolloClient } from "@apollo/client/react/hooks/useApolloClient";
 import { useDialog } from "components/dialog/DialogContext";
 import { NON_DELIVERABLE_DOCUMENT_TYPES } from "demos-server-constants";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
 const TABS = {
   APPLICATION: "application",
@@ -37,6 +38,7 @@ export const ModificationTabSideNav = ({
 }: {
   modificationItem: ModificationItem;
 }) => {
+  const { currentUser } = getCurrentUser();
   const { showUploadDocumentDialog } = useDialog();
   const client = useApolloClient();
   const refetchApplicationWorkflow = async () => {
@@ -58,20 +60,22 @@ export const ModificationTabSideNav = ({
         label={`Documents (${modificationItem.documents?.length ?? 0})`}
       >
         <TabHeader title="Documents">
-          <IconButton
-            icon={<AddNewIcon />}
-            name="add-new-document"
-            size="small"
-            onClick={() =>
-              showUploadDocumentDialog(
-                modificationItem.id,
-                refetchApplicationWorkflow,
-                NON_DELIVERABLE_DOCUMENT_TYPES
-              )
-            }
-          >
+          {!isReadonly(currentUser) && (
+            <IconButton
+              icon={<AddNewIcon />}
+              name="add-new-document"
+              size="small"
+              onClick={() =>
+                showUploadDocumentDialog(
+                  modificationItem.id,
+                  refetchApplicationWorkflow,
+                  NON_DELIVERABLE_DOCUMENT_TYPES
+                )
+              }
+            >
             Add Document
-          </IconButton>
+            </IconButton>
+          )}
         </TabHeader>
         <DocumentTable documents={modificationItem.documents} />
       </Tab>

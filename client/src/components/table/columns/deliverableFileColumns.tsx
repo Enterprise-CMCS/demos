@@ -71,9 +71,8 @@ const viewColumn = columnHelper.display({
   enableSorting: false,
 });
 
-export function makeStateFileColumns() {
-  return [
-    createSelectColumnDef(columnHelper),
+export function makeStateFileColumns({ showSelect = true }: { showSelect?: boolean } = {}) {
+  const baseColumns = [
     typeColumn,
     fileNameColumn,
     descriptionColumn,
@@ -82,6 +81,7 @@ export function makeStateFileColumns() {
     submittedDateColumn,
     viewColumn,
   ];
+  return showSelect ? [createSelectColumnDef(columnHelper), ...baseColumns] : baseColumns;
 }
 
 export function makeCmsFileColumns({ showSelect = true }: { showSelect?: boolean } = {}) {
