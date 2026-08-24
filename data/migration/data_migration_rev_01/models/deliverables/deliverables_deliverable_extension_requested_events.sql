@@ -14,7 +14,7 @@ SELECT
             THEN 'Past Due'
         ELSE 'Upcoming'
     END AS new_status_id,
-    deliverable_extension._legacy_cmt_txt AS note,
+    coalesce(deliverable_extension._legacy_cmt_txt, 'Extension requested.') AS note,
     NULL::UUID AS active_extension_id,
     FALSE AS due_date_change_allowed,
     TRUE AS should_have_note,
