@@ -7,6 +7,7 @@ import userEvent from "@testing-library/user-event";
 import { ApplicationDetailsSection, ApplicationDetailsFormData } from "./applicationDetailsSection";
 import { LocalDate } from "demos-server";
 import { TestProvider } from "test-utils/TestProvider";
+import { readonlyMockUser, MockUser } from "mock-data/userMocks";
 
 describe("ApplicationDetailsSection", () => {
   const mockSetSectionFormData = vi.fn();
@@ -31,10 +32,11 @@ describe("ApplicationDetailsSection", () => {
   const setup = (
     overrides?: Partial<ApplicationDetailsFormData>,
     isComplete = false,
-    isDemonstrationApproved = false
+    isDemonstrationApproved = false,
+    currentUser?: MockUser
   ) => {
     render(
-      <TestProvider mocks={[]}>
+      <TestProvider mocks={[]} currentUser={currentUser}>
         <ApplicationDetailsSection
           sectionFormData={{ ...baseFormData, ...overrides }}
           setSectionFormData={mockSetSectionFormData}
@@ -261,6 +263,34 @@ describe("ApplicationDetailsSection", () => {
       } as ApplicationDetailsFormData);
 
       expect(screen.getByLabelText(/application approval date/i)).toBeInTheDocument();
+    });
+  });
+
+  describe("Readonly User Behavior", () => {
+    it("disables all editable fields and hides mark complete for readonly users", () => {
+      setup(
+        {
+          applicationType: "demonstration",
+          stateId: "CA",
+          stateName: "California",
+          staticFields: {},
+        },
+        false,
+        false,
+        readonlyMockUser
+      );
+
+      // Check that all editable inputs are disabled
+      expect(screen.getByLabelText(/demonstration title/i)).toBeDisabled();
+      expect(screen.getByLabelText(/status/i)).toBeDisabled();
+      expect(screen.getByLabelText(/effective date/i)).toBeDisabled();
+      expect(screen.getByLabelText(/expiration date/i)).toBeDisabled();
+      expect(screen.getByLabelText(/demonstration description/i)).toBeDisabled();
+      expect(screen.getByLabelText(/signature level/i)).toBeDisabled();
+      expect(screen.getByLabelText(/application approval date/i)).toBeDisabled();
+
+      // Check that Mark Complete switch is hidden
+      expect(screen.queryByRole("switch", { name: /mark complete/i })).not.toBeInTheDocument();
     });
   });
 });
