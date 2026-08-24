@@ -9,7 +9,11 @@ SELECT
     deliverable_extension.updated_at,
     deliverable_extension._legacy_mdcd_state_user_due_dt_chg_rsn_cd,
     deliverable_extension._legacy_mdcd_due_dt_chg_rqst_id,
-    deliverable_extension._legacy_mdcd_orgnl_dlvrbl_due_dt
+    deliverable_extension._legacy_mdcd_orgnl_dlvrbl_due_dt,
+    deliverable_extension._legacy_cmt_txt,
+    deliverable_extension._legacy_rqst_user_id,
+    deliverable_extension._legacy_dtrmntn_dt,
+    deliverable_extension._deliverable_due_date
 FROM {{ ref('deliverables_due_date_change_request') }} AS deliverable_extension
 WHERE
     deliverable_extension._legacy_mdcd_due_dt_chg_rqst_id NOT IN (

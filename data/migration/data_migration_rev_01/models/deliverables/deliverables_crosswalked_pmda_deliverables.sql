@@ -27,7 +27,9 @@ SELECT
     cw1.deliverable_type_id,
     pmda_deliv.mdcd_dlvrbl_name AS name, -- noqa: RF04,
     f_demo.id AS demonstration_id,
-    'Approved' AS demonstration_status_id, -- Only approved demos may have deliverables,
+    'Approved' AS demonstration_status_id,
+    -- because we're targeting deliverables in the "pending due date request" status, 
+    -- they can be in either "Past Due" or "Upcoming"
     CASE
         WHEN pmda_deliv.dlvrbl_due_dt < current_timestamp
             THEN 'Past Due'

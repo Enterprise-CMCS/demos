@@ -618,6 +618,14 @@ models:
       - name: _legacy_mdcd_due_dt_chg_rqst_id
         data_type: integer
       - name: _legacy_mdcd_orgnl_dlvrbl_due_dt
+        data_type: date
+      - name: _legacy_cmt_txt
+        data_type: text
+      - name: _legacy_rqst_user_id
+        data_type: integer
+      - name: _legacy_dtrmntn_dt
+        data_type: timestamptz
+      - name: _deliverable_due_date
         data_type: timestamptz
 
   # Application models
