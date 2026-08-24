@@ -613,8 +613,6 @@ models:
         data_tests:
           - not_null:
               name: assert_updated_at_not_null_in_final_demos_app_deliverable_extension
-      - name: _legacy_mdcd_state_user_due_dt_chg_rsn_cd
-        data_type: varchar
       - name: _legacy_mdcd_due_dt_chg_rqst_id
         data_type: integer
       - name: _legacy_mdcd_orgnl_dlvrbl_due_dt
@@ -623,8 +621,6 @@ models:
         data_type: text
       - name: _legacy_rqst_user_id
         data_type: integer
-      - name: _legacy_dtrmntn_dt
-        data_type: timestamptz
       - name: _deliverable_due_date
         data_type: timestamptz
 
