@@ -2,13 +2,11 @@
 --
 -- The date_type foreign keys are ON UPDATE CASCADE, so application_date and
 -- phase_date_type rows follow this rename automatically. That cascade is a real
--- UPDATE on application_date, which would fire log_changes_application_date and
--- write a spurious "edited" revision for every application that has this date.
--- Suppress the trigger for the rename, then relabel the existing history rows so
--- they still join to date_type. Prisma runs this file in a transaction, so the
--- trigger is re-enabled even if a later statement fails.
-ALTER TABLE demos_app.application_date DISABLE TRIGGER log_changes_application_date;
-
+-- UPDATE on application_date, so it fires log_changes_application_date and records
+-- a revision per affected row. That is intentional: the _history tables are raw
+-- audit logs of insert/update/delete operations, and the rename is genuinely an
+-- update on the table. Pre-rename history rows keep the old date_type_id, which is
+-- readable on its own since these are natural keys.
 UPDATE
     demos_app.date_type
 SET
@@ -16,16 +14,6 @@ SET
 WHERE
     id = 'Expected Approval Date'
 ;
-
-UPDATE
-    demos_app.application_date_history
-SET
-    date_type_id = 'Internal Expected Approval Date'
-WHERE
-    date_type_id = 'Expected Approval Date'
-;
-
-ALTER TABLE demos_app.application_date ENABLE TRIGGER log_changes_application_date;
 
 INSERT INTO
     demos_app.date_type
