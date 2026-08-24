@@ -33,7 +33,7 @@ export type DemonstrationDetailsFormData = BaseFormData & {
   projectOfficerName: string;
   expirationDate?: string;
   sdgDivision?: SdgDivision;
-  readonlyFields: Partial<
+  staticFields: Partial<
     Record<
       | "stateId"
       | "name"
@@ -51,7 +51,7 @@ export type DemonstrationDetailsFormData = BaseFormData & {
 
 export type ModificationDetailsFormData = BaseFormData & {
   applicationType: "amendment" | "extension";
-  readonlyFields: Partial<
+  staticFields: Partial<
     Record<"name" | "effectiveDate" | "description" | "signatureLevel", boolean>
   >;
 };
@@ -131,7 +131,7 @@ export const ApplicationDetailsSection = ({
           </div>
         )}
         <div className="flex flex-col col-span-3">
-          {sectionFormData.readonlyFields.name ? (
+          {sectionFormData.staticFields.name ? (
             <div>
               <div className={LABEL_CLASSES}>
                 <span className="text-text-warn mr-xs">*</span>
@@ -154,7 +154,7 @@ export const ApplicationDetailsSection = ({
 
         {sectionFormData.applicationType === "demonstration" && (
           <div className="flex flex-col">
-            {sectionFormData.readonlyFields.projectOfficerId ? (
+            {sectionFormData.staticFields.projectOfficerId ? (
               <div>
                 <div className={LABEL_CLASSES}>
                   <span className="text-text-warn mr-xs">*</span>
@@ -179,7 +179,7 @@ export const ApplicationDetailsSection = ({
 
         {sectionFormData.applicationType === "demonstration" && (
           <div className="flex flex-col">
-            {sectionFormData.readonlyFields.status ? (
+            {sectionFormData.staticFields.status ? (
               <div>
                 <div className={LABEL_CLASSES}>
                   <span className="text-text-warn mr-xs">*</span>
@@ -202,7 +202,7 @@ export const ApplicationDetailsSection = ({
         )}
 
         <div className="flex flex-col">
-          {sectionFormData.readonlyFields.effectiveDate || isComplete ? (
+          {sectionFormData.staticFields.effectiveDate || isComplete ? (
             <div>
               <div className={LABEL_CLASSES}>
                 <span className="text-text-warn mr-xs">*</span>
@@ -239,7 +239,7 @@ export const ApplicationDetailsSection = ({
 
         {sectionFormData.applicationType === "demonstration" && (
           <div className="flex flex-col">
-            {sectionFormData.readonlyFields.expirationDate || isComplete ? (
+            {sectionFormData.staticFields.expirationDate || isComplete ? (
               <div>
                 <div className={LABEL_CLASSES}>
                   <span className="text-text-warn mr-xs">*</span>
@@ -267,7 +267,7 @@ export const ApplicationDetailsSection = ({
         )}
 
         <div className="flex flex-col col-span-4">
-          {sectionFormData.readonlyFields.description || isComplete ? (
+          {sectionFormData.staticFields.description || isComplete ? (
             <div>
               <div className={LABEL_CLASSES}>{`${capitalizedType} Description`}</div>
               <div className={VALUE_CLASSES}>{sectionFormData.description || "-"}</div>
@@ -286,7 +286,7 @@ export const ApplicationDetailsSection = ({
 
         {sectionFormData.applicationType === "demonstration" && (
           <div className="flex flex-col">
-            {sectionFormData.readonlyFields.sdgDivision || isComplete ? (
+            {sectionFormData.staticFields.sdgDivision || isComplete ? (
               <div>
                 <div className={LABEL_CLASSES}>
                   <span className="text-text-warn mr-xs">*</span>
@@ -307,7 +307,7 @@ export const ApplicationDetailsSection = ({
         )}
 
         <div className="flex flex-col">
-          {sectionFormData.readonlyFields.signatureLevel || isComplete ? (
+          {sectionFormData.staticFields.signatureLevel || isComplete ? (
             <div>
               <div className={LABEL_CLASSES}>
                 <span className="text-text-warn mr-xs">*</span>

@@ -54,7 +54,7 @@ describe("ApplicationDetailsSection", () => {
     description: undefined,
     sdgDivision: undefined,
     signatureLevel: undefined,
-    readonlyFields: {},
+    staticFields: {},
   };
 
   const setup = (
@@ -95,23 +95,23 @@ describe("ApplicationDetailsSection", () => {
     expect(screen.getByLabelText(/demonstration title/i)).toBeInTheDocument();
   });
 
-  it("renders editable input when field is not readonly", () => {
+  it("renders editable input when field is not static", () => {
     setup({
       name: "Demo",
-      readonlyFields: {},
+      staticFields: {},
     });
 
     const input = screen.getByLabelText(/demonstration title/i);
     expect(input).toBeEnabled();
   });
 
-  it("renders static value when field is marked readonly", () => {
+  it("renders static value when field is marked static", () => {
     setup({
-      name: "Readonly Demo",
-      readonlyFields: { name: true },
+      name: "Static Demo",
+      staticFields: { name: true },
     });
 
-    expect(screen.getByText("Readonly Demo")).toBeInTheDocument();
+    expect(screen.getByText("Static Demo")).toBeInTheDocument();
     expect(screen.queryByLabelText(/demonstration title/i)).not.toBeInTheDocument();
   });
 
@@ -187,7 +187,7 @@ describe("ApplicationDetailsSection", () => {
         name: "Amendment 1",
         effectiveDate: "2025-01-01",
         signatureLevel: "OA",
-        readonlyFields: {},
+        staticFields: {},
       } as ApplicationDetailsFormData);
 
       expect(screen.getByText(/confirm all amendment information/i)).toBeInTheDocument();
@@ -201,7 +201,7 @@ describe("ApplicationDetailsSection", () => {
         name: "Amendment 1",
         effectiveDate: "2025-01-01",
         signatureLevel: "OA",
-        readonlyFields: {},
+        staticFields: {},
       } as ApplicationDetailsFormData);
 
       expect(screen.queryByText(/state\/territory/i)).not.toBeInTheDocument();
@@ -217,7 +217,7 @@ describe("ApplicationDetailsSection", () => {
         name: "Amendment 1",
         effectiveDate: "2025-01-01",
         signatureLevel: "OA",
-        readonlyFields: {},
+        staticFields: {},
         applicationApprovalDate: "2025-06-01",
       } as ApplicationDetailsFormData);
 
@@ -230,7 +230,7 @@ describe("ApplicationDetailsSection", () => {
         applicationType: "amendment",
         name: "Amendment 1",
         // missing effectiveDate + signatureLevel
-        readonlyFields: {},
+        staticFields: {},
       } as ApplicationDetailsFormData);
 
       const toggle = screen.getByRole("switch", { name: /mark complete/i });
@@ -243,7 +243,7 @@ describe("ApplicationDetailsSection", () => {
         name: "Extension 1",
         effectiveDate: "2025-01-01",
         signatureLevel: "OA",
-        readonlyFields: {},
+        staticFields: {},
       } as ApplicationDetailsFormData);
 
       expect(screen.getByLabelText(/extension title/i)).toBeInTheDocument();
@@ -261,7 +261,7 @@ describe("ApplicationDetailsSection", () => {
         expirationDate: "2026-01-01",
         sdgDivision: "Division of System Reform Demonstrations",
         signatureLevel: "OA",
-        readonlyFields: {},
+        staticFields: {},
         applicationApprovalDate: "2025-06-01" as LocalDate,
       } as ApplicationDetailsFormData);
 
@@ -274,7 +274,7 @@ describe("ApplicationDetailsSection", () => {
         name: "Amendment 1",
         effectiveDate: "2025-01-01",
         signatureLevel: "OA",
-        readonlyFields: {},
+        staticFields: {},
         applicationApprovalDate: "2025-06-01",
       } as ApplicationDetailsFormData);
 
@@ -285,7 +285,7 @@ describe("ApplicationDetailsSection", () => {
         name: "Extension 1",
         effectiveDate: "2025-01-01",
         signatureLevel: "OA",
-        readonlyFields: {},
+        staticFields: {},
         applicationApprovalDate: "2025-06-01",
       } as ApplicationDetailsFormData);
 

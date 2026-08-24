@@ -115,7 +115,7 @@ export const getDemonstrationApprovalSummaryFormData = (
 
   return {
     ...formData,
-    readonlyFields: {
+    staticFields: {
       stateId: !!formData.stateId,
       name: !!formData.name,
       projectOfficerId: !!formData.projectOfficerId,
@@ -153,7 +153,7 @@ export const getModificationApprovalSummaryFormData = (
 
   return {
     ...formData,
-    readonlyFields: {
+    staticFields: {
       name: !!formData.name,
       effectiveDate: !!formData.effectiveDate,
       description: !!formData.description,
@@ -483,8 +483,8 @@ export const ApprovalSummaryPhase = ({
         ...previousFormData,
         status: "Approved",
         readonlyFields: Object.fromEntries(
-          Object.keys(previousFormData.readonlyFields).map((key) => [key, true])
-        ) as typeof previousFormData.readonlyFields,
+          Object.keys(previousFormData.staticFields).map((key) => [key, true])
+        ) as typeof previousFormData.staticFields,
       }));
 
       setApprovalSummaryCompletionDate(formatDateForDisplay(today));
