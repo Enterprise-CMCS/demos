@@ -70,7 +70,7 @@ export const UPDATE_EXTENSION_MUTATION = gql`
   }
 `;
 
-const getReadonlyFields = (data: ApplicationDetailsFormData) => ({
+const getStaticFields = (data: ApplicationDetailsFormData) => ({
   name: !!data.name,
   effectiveDate: !!data.effectiveDate,
   description: !!data.description,
@@ -441,7 +441,7 @@ export const ApprovalSummaryPhase = ({
 
       setApprovalSummaryFormData((previousFormData) => ({
         ...previousFormData,
-        readonlyFields: getReadonlyFields(previousFormData), // Recalculate readonly fields based on current form data when marking incomplete
+        staticFields: getStaticFields(previousFormData), // Recalculate readonly fields based on current form data when marking incomplete
       }));
 
       setApplicationDetailsUIState(false);
@@ -482,7 +482,7 @@ export const ApprovalSummaryPhase = ({
       setApprovalSummaryFormData((previousFormData) => ({
         ...previousFormData,
         status: "Approved",
-        readonlyFields: Object.fromEntries(
+        staticFields: Object.fromEntries(
           Object.keys(previousFormData.staticFields).map((key) => [key, true])
         ) as typeof previousFormData.staticFields,
       }));
