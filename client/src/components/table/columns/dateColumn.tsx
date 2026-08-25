@@ -27,6 +27,12 @@ export function createDateColumnDef<RowData, FieldName extends DeepKeys<RowData>
       const value = getValue() as string | undefined;
       return value ? formatDateForDisplay(value) : defaultValue;
     },
+    sortingFn: (rowA: Row<RowData>, rowB: Row<RowData>, columnId: string) => {
+      const firstDate = rowA.getValue(columnId) as string;
+      const secondDate = rowB.getValue(columnId) as string;
+
+      return new Date(firstDate).getTime() - new Date(secondDate).getTime();
+    },
     filterFn: (row: Row<RowData>, columnId: string, filterValue: DateFilterValue) => {
       const value = row.getValue(columnId) as string | undefined;
       if (!value) return false;
