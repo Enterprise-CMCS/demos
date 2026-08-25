@@ -34,6 +34,12 @@ export const dev: Role[] = [
     memberships: ["demos_read", "demos_write", "demos_delete"],
     systemRole: false,
   },
+  {
+    name: "demos_export",
+    memberships: ["demos_read"],
+    systemRole: true,
+  },
+
 ];
 
 export const test: Role[] = [
@@ -62,6 +68,11 @@ export const test: Role[] = [
     memberships: ["demos_read", "demos_write", "demos_delete"],
     systemRole: false,
   },
+  {
+    name: "demos_export",
+    memberships: ["demos_read"],
+    systemRole: true,
+  },
 ];
 
 export const impl: Role[] = [
@@ -89,6 +100,11 @@ export const impl: Role[] = [
     name: "cpamulapati",
     memberships: ["demos_read", "demos_write", "demos_delete"],
     systemRole: false,
+  },
+  {
+    name: "demos_export",
+    memberships: ["demos_read"],
+    systemRole: true,
   },
 ];
 
@@ -132,5 +148,10 @@ export const prod: Role[] = [
     name: "zelkins",
     memberships: ["demos_read"],
     systemRole: false,
+  },
+  {
+    name: "demos_export",
+    memberships: ["demos_read"],
+    systemRole: true,
   },
 ];
