@@ -1,3 +1,5 @@
+/* global console, fetch, setTimeout, URL */
+
 import { access, readFile } from "node:fs/promises";
 import { basename } from "node:path";
 import { isAbsolute, resolve } from "node:path";
@@ -14,13 +16,9 @@ async function wait(milliseconds) {
   await new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
-async function waitForProcessedDocument({
-  documentExists,
-  documentId,
-  documentType,
-}) {
+async function waitForProcessedDocument({ documentExists, documentId, documentType }) {
+  console.log("makin' files..");
   const startedAt = Date.now();
-  console.log("Processing upload for " + documentType);
   while (true) {
     if (await documentExists(documentId)) {
       return;
@@ -56,19 +54,39 @@ async function putPdfToPresignedUrl(uploadUrl, documentType, pdfBytes) {
   }
 }
 
-async function uploadPhaseDocument({
-  api,
-  applicationId,
-  phaseName,
-  documentType,
-  pdfBytes,
-}) {
+async function uploadPhaseDocument({ api, applicationId, phaseName, documentType, pdfBytes }) {
   const pendingUpload = await api.uploadDocumentToPhase({
     name: `${documentType} - ${basename(SEED_CONFIG.documentPath)}`,
     description: SEED_CONFIG.demoDescription,
     documentType,
     applicationId,
     phaseName,
+  });
+
+  await putPdfToPresignedUrl(pendingUpload.presignedUploadUrl, documentType, pdfBytes);
+
+  await waitForProcessedDocument({
+    documentExists: api.documentExists,
+    documentId: pendingUpload.id,
+    documentType,
+  });
+  return pendingUpload;
+}
+
+async function uploadDeliverableDocument({
+  api,
+  applicationId,
+  deliverableId,
+  documentType,
+  pdfBytes,
+  documentNumber,
+}) {
+  const pendingUpload = await api.uploadDocumentToDeliverableCMSFiles({
+    name: `${documentType} ${documentNumber} - ${basename(SEED_CONFIG.documentPath)}`,
+    description: SEED_CONFIG.demoDescription,
+    documentType,
+    applicationId,
+    deliverableId,
   });
 
   await putPdfToPresignedUrl(pendingUpload.presignedUploadUrl, documentType, pdfBytes);
@@ -99,6 +117,26 @@ export async function uploadPhaseDocuments({
   }
 }
 
+export async function uploadDeliverableDocuments({
+  api,
+  applicationId,
+  deliverableId,
+  documentType,
+  pdfBytes,
+  documentCount,
+}) {
+  for (let index = 0; index < documentCount; index += 1) {
+    await uploadDeliverableDocument({
+      api,
+      applicationId,
+      deliverableId,
+      documentType,
+      pdfBytes,
+      documentNumber: index + 1,
+    });
+  }
+}
+
 export async function readUploadPdf() {
   const documentPath = resolveDocumentPath(SEED_CONFIG.documentPath);
 
@@ -107,8 +145,6 @@ export async function readUploadPdf() {
     return await readFile(documentPath);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(
-      `Cannot read configured upload PDF at ${documentPath}: ${message}`
-    );
+    throw new Error(`Cannot read configured upload PDF at ${documentPath}: ${message}`);
   }
 }

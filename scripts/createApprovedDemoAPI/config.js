@@ -1,3 +1,5 @@
+/* global process */
+
 /**
 Suppresses: node:61989 - DeprecationWarning: client.query()
 */
@@ -14,6 +16,20 @@ process.emitWarning = (warning, ...args) => {
 
   return originalEmitWarning(warning, ...args);
 };
+
+function parseNonNegativeIntegerEnv(name, fallback) {
+  const rawValue = process.env[name];
+  if (rawValue === undefined || rawValue.trim() === "") {
+    return fallback;
+  }
+
+  const value = Number(rawValue);
+  if (!Number.isInteger(value) || value < 0) {
+    throw new Error(`${name} must be a non-negative integer; received ${rawValue}.`);
+  }
+
+  return value;
+}
 
 export const SEED_CONFIG = {
   fallbackDatabaseUrl: "postgresql://localhost:5432/demos?schema=demos_app",
@@ -32,6 +48,11 @@ export const SEED_CONFIG = {
   demoWindowYears: 5,
   processedUploadTimeoutMs: 30_000,
   processedUploadPollMs: 500,
+  deliverableCount: parseNonNegativeIntegerEnv("APPROVED_DEMO_DELIVERABLE_COUNT", 0),
+  documentsPerDeliverable: parseNonNegativeIntegerEnv(
+    "APPROVED_DEMO_DOCUMENTS_PER_DELIVERABLE",
+    0
+  ),
   projectOfficerUserId:
     process.env.APPROVED_DEMO_PROJECT_OFFICER_USER_ID ??
     "MAKE AN .env",
@@ -40,6 +61,8 @@ export const SEED_CONFIG = {
 export const EXPECTED_FINAL_STATUS_ID = "Approved";
 export const COMPLETED_PHASE_STATUS_ID = "Completed";
 export const PERSON_TYPE_ID = "demos-cms-user";
+export const GENERATED_DELIVERABLE_TYPE = "Demonstration-Specific Deliverable";
+export const GENERATED_DELIVERABLE_DOCUMENT_TYPE = "General File";
 export const APPROVAL_PACKAGE_PHASE_DOCUMENTS = [
   "Approval Letter",
   "Final Budget Neutrality Formulation Workbook",

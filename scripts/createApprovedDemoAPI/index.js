@@ -1,3 +1,5 @@
+/* global fetch, process, URL */
+
 import dotenv from "dotenv";
 import { Pool } from "pg";
 import { getLocalDatabaseUrl } from "../localDatabaseGuard.js";
@@ -231,6 +233,19 @@ function makeApprovedDemoApi() {
     completeFederalComment: (applicationId) =>
       db.completeFederalComment(applicationId),
 
+    createDeliverables: async (inputs) => {
+      const data = await gql(
+        `mutation CreateDeliverables($inputs: [CreateDeliverableInput!]!) {
+          createDeliverables(inputs: $inputs) {
+            id
+          }
+        }`,
+        { inputs }
+      );
+
+      return data.createDeliverables;
+    },
+
     uploadDocumentToPhase: async (input) => {
       const data = await gql(
         `mutation UploadDocumentToPhase($input: UploadDocumentToPhaseInput!) {
@@ -243,6 +258,20 @@ function makeApprovedDemoApi() {
       );
 
       return data.uploadDocumentToPhase;
+    },
+
+    uploadDocumentToDeliverableCMSFiles: async (input) => {
+      const data = await gql(
+        `mutation UploadDocumentToDeliverableCMSFiles($input: UploadDocumentToDeliverableInput!) {
+          uploadDocumentToDeliverableCMSFiles(input: $input) {
+            id
+            presignedUploadUrl
+          }
+        }`,
+        { input }
+      );
+
+      return data.uploadDocumentToDeliverableCMSFiles;
     },
 
     documentExists: async (documentId) => {
@@ -269,6 +298,9 @@ function makeApprovedDemoApi() {
               name
             }
             documents {
+              id
+            }
+            deliverables {
               id
             }
             demonstrationTypes {

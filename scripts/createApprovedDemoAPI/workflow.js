@@ -1,7 +1,11 @@
+/* global console */
+
 import { randomUUID } from "node:crypto";
 import {
   COMPLETED_PHASE_STATUS_ID,
   EXPECTED_FINAL_STATUS_ID,
+  GENERATED_DELIVERABLE_DOCUMENT_TYPE,
+  GENERATED_DELIVERABLE_TYPE,
   RANDOMIZED_HEALTH_FOCUS_TYPES,
   SEED_CONFIG,
 } from "./config.js";
@@ -10,7 +14,11 @@ import {
   buildDemonstrationWindow,
   selectApplicationDates,
 } from "./dates.js";
-import { readUploadPdf, uploadPhaseDocuments } from "./uploads.js";
+import {
+  readUploadPdf,
+  uploadDeliverableDocuments,
+  uploadPhaseDocuments,
+} from "./uploads.js";
 
 function getConfiguredProjectOfficer() {
   const id = SEED_CONFIG.projectOfficerUserId.trim();
@@ -49,6 +57,33 @@ async function completePhase(api, applicationId, phaseName) {
     applicationId,
     phaseName,
   });
+}
+
+function addDays(localDateString, days) {
+  const [year, month, day] = localDateString.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  date.setUTCDate(date.getUTCDate() + days);
+  return [
+    date.getUTCFullYear(),
+    String(date.getUTCMonth() + 1).padStart(2, "0"),
+    String(date.getUTCDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+function buildDeliverableInputs({
+  demonstrationId,
+  projectOfficerId,
+  demonstrationType,
+  effectiveDate,
+}) {
+  return Array.from({ length: SEED_CONFIG.deliverableCount }, (_, index) => ({
+    name: `Generated Deliverable ${index + 1}`,
+    deliverableType: GENERATED_DELIVERABLE_TYPE,
+    demonstrationId,
+    cmsOwnerUserId: projectOfficerId,
+    dueDate: addDays(effectiveDate, 120 + index),
+    demonstrationTypes: [demonstrationType],
+  }));
 }
 
 /**
@@ -240,6 +275,32 @@ export async function createApprovedDemo({
     await completePhase(api, demonstration.id, "Approval Summary");
   });
 
+  if (SEED_CONFIG.deliverableCount > 0) {
+    await step("Creating deliverables", async () => {
+      const deliverables = await api.createDeliverables(
+        buildDeliverableInputs({
+          demonstrationId: demonstration.id,
+          projectOfficerId: projectOfficer.id,
+          demonstrationType,
+          effectiveDate: demoWindow.effectiveDate,
+        })
+      );
+
+      if (SEED_CONFIG.documentsPerDeliverable > 0) {
+        for (const deliverable of deliverables) {
+          await uploadDeliverableDocuments({
+            api,
+            applicationId: demonstration.id,
+            deliverableId: deliverable.id,
+            documentType: GENERATED_DELIVERABLE_DOCUMENT_TYPE,
+            pdfBytes,
+            documentCount: SEED_CONFIG.documentsPerDeliverable,
+          });
+        }
+      }
+    });
+  }
+
   const finalDemonstration = await step("Loading final demonstration", () =>
     api.getDemonstration(demonstration.id)
   );
@@ -265,5 +326,6 @@ export async function createApprovedDemo({
       .join(", ")}`
   );
   console.log(`  uploadedDocuments: ${finalDemonstration.documents.length}`);
+  console.log(`  deliverables: ${finalDemonstration.deliverables.length}`);
   console.log(`  url: /demonstrations/${finalDemonstration.id}`);
 }
