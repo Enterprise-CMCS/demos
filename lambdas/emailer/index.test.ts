@@ -4,6 +4,7 @@ import {
   getAllowList,
   handler,
   isEmailerAddress,
+  renderRealtimeEmailIfNeeded,
   isValidEmailData,
   redactEmailAddresses,
   sendEmailIsAllowed,
@@ -16,20 +17,117 @@ import { SQSEvent } from "aws-lambda";
 import nodemailer, { SentMessageInfo } from "nodemailer";
 import Mail, { Options } from "nodemailer/lib/mailer";
 
+const statusMocks = vi.hoisted(() => ({
+  update: vi.fn(),
+}));
+
+const attachmentMocks = vi.hoisted(() => ({
+  build: vi.fn(),
+}));
+
+vi.mock("./emailNotificationStatus", () => ({
+  updateEmailNotificationStatus: statusMocks.update,
+}));
+
+vi.mock("./emailAttachments", () => ({
+  buildReferenceTermsAttachment: attachmentMocks.build,
+}));
+
+const originalEnv = { ...process.env };
+
 const mockEmailData = {
   to: "test@example.com",
   subject: "unit test subject",
   text: "unit test text",
 };
 
+const realtimeDeliverableCreatedEnvelope = {
+  emailNotificationId: "01c20d4d-c918-4c8e-89be-6b73178a66f2",
+  emailType: "Deliverable Created",
+  entityType: "deliverable",
+  entityId: "deliverable-1",
+  payload: {
+    recipients: {
+      to: ["not-allowed@email.com"],
+    },
+    demonstration: {
+      id: "demonstration-1",
+      name: "Medicaid Demonstration",
+      stateId: "MD",
+    },
+    deliverable: {
+      id: "deliverable-1",
+      name: "Quarterly Budget Report",
+      deliverableTypeId: "Close Out Report",
+      dueDate: "2026-06-01T12:00:00.000Z",
+      extensionDecision: "Approved",
+      previousDueDate: "2026-05-01T12:00:00.000Z",
+      requestedDueDate: "2026-07-01T12:00:00.000Z",
+      statusId: "Upcoming",
+    },
+  },
+};
+
+const realtimeReferenceTermsEnvelope = {
+  emailNotificationId: "19da269b-5840-4999-a812-7af340a2b3a5",
+  emailType: "Terms And Conditions Requested",
+  entityType: "reference",
+  entityId: "reference-configuration-1",
+  payload: {
+    recipients: {
+      to: [{ name: "Dustin Horning", address: "dustin@example.com" }],
+    },
+    referenceMaterial: {
+      id: "reference-1",
+      name: "National Quality Measures.pdf",
+    },
+    termsAndConditions: {
+      id: "reference-agreement-1",
+      name: "Point and Click Agreement",
+      fileName: "Point and Click Agreement.pdf",
+      s3Path: "reference-agreements/agreement-1",
+    },
+  },
+};
+
+function sqsEvent(body: string): SQSEvent {
+  return {
+    Records: [
+      {
+        messageId: "19dd0b57-b21e-4ac1-bd88-01bbb068cb78",
+        receiptHandle: "MessageReceiptHandle",
+        body,
+        attributes: {
+          ApproximateReceiveCount: "1",
+          SentTimestamp: "1523232000000",
+          SenderId: "123456789012",
+          ApproximateFirstReceiveTimestamp: "1523232000001",
+        },
+        messageAttributes: {},
+        md5OfBody: "{{{md5_of_body}}}",
+        eventSource: "aws:sqs",
+        eventSourceARN: "arn:aws:sqs:us-east-1:123456789012:MyQueue",
+        awsRegion: "us-east-1",
+      },
+    ],
+  };
+}
+
 const ssmMock = mockClient(SSMClient);
 vi.mock("nodemailer");
 
 describe("emailer", () => {
   beforeEach(() => {
+    process.env = { ...originalEnv };
     ssmMock.reset();
     clearCache();
     vi.clearAllMocks();
+    statusMocks.update.mockResolvedValue(undefined);
+    attachmentMocks.build.mockResolvedValue({
+      filename: "Point and Click Agreement.pdf",
+      content: Buffer.from("agreement"),
+      contentType: "application/pdf",
+    });
   });
 
   it("should properly handle a valid sqs event", async () => {
@@ -109,6 +207,251 @@ describe("emailer", () => {
     expect(out).toEqual("success");
     expect(sendMailSpy).not.toHaveBeenCalled();
     expect(infoSpy).toHaveBeenCalledWith(expect.any(Object), "log only: email not in allowlist");
+  });
+
+  it("should render a realtime deliverable-created envelope before allowlist processing", async () => {
+    ssmMock.on(GetParameterCommand).resolves({
+      Parameter: {
+        Value: "[]",
+      },
+    });
+    const sendMailSpy = vi.fn(() => ({ messageId: "unit-test" }));
+    vi.spyOn(nodemailer, "createTransport").mockImplementation(
+      () => ({ sendMail: sendMailSpy } as unknown as Mail<SentMessageInfo, Options>)
+    );
+    const infoSpy = vi.spyOn(log, "info");
+
+    const out = await handler(sqsEvent(JSON.stringify(realtimeDeliverableCreatedEnvelope)));
+
+    expect(out).toEqual("success");
+    expect(sendMailSpy).not.toHaveBeenCalled();
+    expect(infoSpy).toHaveBeenCalledWith(
+      {
+        emailType: "Deliverable Created",
+        template: "deliverable-created",
+        entityId: "deliverable-1",
+      },
+      "rendering realtime email template"
+    );
+    expect(infoSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        emailType: "Deliverable Created",
+        entityType: "deliverable",
+        entityId: "deliverable-1",
+        subject: "CMS DEMOS Deliverable: Deliverable Created",
+        recipients: expect.objectContaining({
+          to: ["no****@email.com"],
+        }),
+      }),
+      "log only: email not in allowlist"
+    );
+    expect(statusMocks.update).toHaveBeenCalledWith(
+      realtimeDeliverableCreatedEnvelope.emailNotificationId,
+      "Failed",
+      "Email blocked by recipient allowlist."
+    );
+  });
+
+  it("should mark a tracked realtime email sent after SMTP succeeds", async () => {
+    process.env.DISABLE_EMAIL_ALLOWLIST = "true";
+    const sendMailSpy = vi.fn(() => ({ messageId: "unit-test" }));
+    vi.spyOn(nodemailer, "createTransport").mockImplementation(
+      () => ({ sendMail: sendMailSpy } as unknown as Mail<SentMessageInfo, Options>)
+    );
+
+    await expect(
+      handler(sqsEvent(JSON.stringify(realtimeDeliverableCreatedEnvelope)))
+    ).resolves.toBe("success");
+
+    expect(statusMocks.update).toHaveBeenCalledExactlyOnceWith(
+      realtimeDeliverableCreatedEnvelope.emailNotificationId,
+      "Sent",
+      null
+    );
+  });
+
+  it("should send requested reference terms with the resolved attachment", async () => {
+    process.env.DISABLE_EMAIL_ALLOWLIST = "true";
+    process.env.EMAIL_FROM = "demos@example.com";
+    const sendMailSpy = vi.fn(() => ({ messageId: "reference-email" }));
+    vi.spyOn(nodemailer, "createTransport").mockImplementation(
+      () => ({ sendMail: sendMailSpy } as unknown as Mail<SentMessageInfo, Options>)
+    );
+
+    await expect(
+      handler(sqsEvent(JSON.stringify(realtimeReferenceTermsEnvelope)))
+    ).resolves.toBe("success");
+
+    expect(sendMailSpy).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        from: "demos@example.com",
+        subject: "CMS DEMOS: National Measure Stewards Terms and Conditions",
+        attachments: [
+          {
+            filename: "Point and Click Agreement.pdf",
+            content: Buffer.from("agreement"),
+            contentType: "application/pdf",
+          },
+        ],
+      })
+    );
+    expect(statusMocks.update).toHaveBeenCalledExactlyOnceWith(
+      realtimeReferenceTermsEnvelope.emailNotificationId,
+      "Sent",
+      null
+    );
+  });
+
+  it("should mark a tracked realtime email failed when SMTP rejects it", async () => {
+    process.env.DISABLE_EMAIL_ALLOWLIST = "true";
+    vi.spyOn(nodemailer, "createTransport").mockImplementation(
+      () => ({ sendMail: vi.fn().mockRejectedValue(new Error("SMTP unavailable")) }) as unknown as Mail<SentMessageInfo, Options>
+    );
+
+    await expect(
+      handler(sqsEvent(JSON.stringify(realtimeDeliverableCreatedEnvelope)))
+    ).rejects.toThrow("SMTP unavailable");
+
+    expect(statusMocks.update).toHaveBeenCalledExactlyOnceWith(
+      realtimeDeliverableCreatedEnvelope.emailNotificationId,
+      "Failed",
+      "SMTP unavailable"
+    );
+  });
+
+  it("should not resend an email when recording Sent fails", async () => {
+    process.env.DISABLE_EMAIL_ALLOWLIST = "true";
+    const errorSpy = vi.spyOn(log, "error");
+    statusMocks.update.mockRejectedValueOnce(new Error("database unavailable"));
+    const sendMailSpy = vi.fn(() => ({ messageId: "unit-test" }));
+    vi.spyOn(nodemailer, "createTransport").mockImplementation(
+      () => ({ sendMail: sendMailSpy } as unknown as Mail<SentMessageInfo, Options>)
+    );
+
+    await expect(
+      handler(sqsEvent(JSON.stringify(realtimeDeliverableCreatedEnvelope)))
+    ).resolves.toBe("success");
+    expect(sendMailSpy).toHaveBeenCalledOnce();
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "database unavailable", status: "Sent" }),
+      "unable to update email notification delivery status"
+    );
+  });
+
+  it("should select the deliverable-submitted template by email type", async () => {
+    const email = await renderRealtimeEmailIfNeeded({
+      ...realtimeDeliverableCreatedEnvelope,
+      emailType: "Deliverable Submitted",
+    });
+
+    expect(email).toEqual(
+      expect.objectContaining({
+        subject: "CMS DEMOS Deliverable: Deliverable Submitted",
+        text: expect.stringContaining("has been submitted for your Demonstration"),
+      })
+    );
+  });
+
+  it("should select the multiple-deliverables-created template", async () => {
+    const email = await renderRealtimeEmailIfNeeded({
+      ...realtimeDeliverableCreatedEnvelope,
+      emailType: "Multiple Deliverables Created",
+      payload: {
+        recipients: realtimeDeliverableCreatedEnvelope.payload.recipients,
+        demonstration: realtimeDeliverableCreatedEnvelope.payload.demonstration,
+        deliverables: [
+          realtimeDeliverableCreatedEnvelope.payload.deliverable,
+          {
+            ...realtimeDeliverableCreatedEnvelope.payload.deliverable,
+            id: "deliverable-2",
+            name: "DY1Q2 Quarterly Budget Report",
+          },
+        ],
+      },
+    });
+
+    expect(email).toEqual(
+      expect.objectContaining({
+        subject: "CMS DEMOS Deliverables: Multiple Deliverables Created",
+        text: expect.stringContaining("View these deliverables"),
+      })
+    );
+  });
+
+  it("should render and attach requested reference terms", async () => {
+    const email = await renderRealtimeEmailIfNeeded(realtimeReferenceTermsEnvelope);
+
+    expect(email).toEqual(
+      expect.objectContaining({
+        to: [{ name: "Dustin Horning", address: "dustin@example.com" }],
+        subject: "CMS DEMOS: National Measure Stewards Terms and Conditions",
+        text: expect.stringContaining("National Quality Measures.pdf"),
+        attachments: [
+          expect.objectContaining({ filename: "Point and Click Agreement.pdf" }),
+        ],
+      })
+    );
+    expect(attachmentMocks.build).toHaveBeenCalledExactlyOnceWith(
+      realtimeReferenceTermsEnvelope.payload
+    );
+  });
+
+  it.each([
+    [
+      "Deliverable Due Date Updated",
+      "CMS DEMOS Deliverable: Deliverable Due Date Updated",
+    ],
+    ["Deliverable Accepted", "CMS DEMOS Deliverable: Accepted"],
+    ["Deliverable Approved", "CMS DEMOS Deliverable: Approved"],
+    [
+      "Deliverable Received and Filed",
+      "CMS DEMOS Deliverable: Received and Filed",
+    ],
+    ["Extension Requested", "CMS DEMOS Deliverable: Extension Requested"],
+    ["Extension Decision Made", "CMS DEMOS Deliverable: Extension Decision Made"],
+    ["Resubmission Requested", "CMS DEMOS Deliverable: Resubmission Requested"],
+    ["Public Comment Added", "CMS DEMOS Deliverable: Public Comment Added"],
+  ])("should select the %s template by email type", async (emailType, subject) => {
+    const email = await renderRealtimeEmailIfNeeded({
+      ...realtimeDeliverableCreatedEnvelope,
+      emailType,
+    });
+
+    expect(email).toEqual(expect.objectContaining({ subject }));
+  });
+
+  it("should report unsupported realtime email types", async () => {
+    await expect(
+      handler(
+        sqsEvent(JSON.stringify({ ...realtimeDeliverableCreatedEnvelope, emailType: "Unknown Email" }))
+      )
+    ).rejects.toThrow("Unsupported realtime email type: Unknown Email");
+  });
+
+  it("should report missing realtime email template payload values", async () => {
+    await expect(
+      handler(
+        sqsEvent(
+          JSON.stringify({
+            ...realtimeDeliverableCreatedEnvelope,
+            payload: {
+              ...realtimeDeliverableCreatedEnvelope.payload,
+              deliverable: {
+                ...realtimeDeliverableCreatedEnvelope.payload.deliverable,
+                name: "",
+              },
+            },
+          })
+        )
+      )
+    ).rejects.toThrow(
+      "Missing value for deliverable.name while rendering deliverable-created.data"
+    );
+    expect(statusMocks.update).toHaveBeenCalledWith(
+      realtimeDeliverableCreatedEnvelope.emailNotificationId,
+      "Failed",
+      "Missing value for deliverable.name while rendering deliverable-created.data"
+    );
   });
 
   it("should cancel processing if event body is invalid", async () => {
@@ -210,6 +553,7 @@ describe("emailer", () => {
     expect(await sendEmailIsAllowed([{ name: "Unit Test", address: "email@example.com" }, "test@email.com"])).toEqual(
       true
     );
+    expect(await sendEmailIsAllowed("test@email.com", undefined, "unit@test.com")).toEqual(true);
   });
   it("should return false when an invalid address is included", async () => {
     ssmMock.on(GetParameterCommand).resolves({
@@ -222,6 +566,7 @@ describe("emailer", () => {
     expect(await sendEmailIsAllowed([{ name: "Unit Test", address: "bad@example.com" }, "test@email.com"])).toEqual(
       false
     );
+    expect(await sendEmailIsAllowed("test@email.com", undefined, "bad@email.com")).toEqual(false);
   });
 
   it("should successfully return a list of allowList email addresses", async () => {
@@ -239,11 +584,11 @@ describe("emailer", () => {
     expect(list2).toEqual(["email@example.com", "test@email.com", "unit@test.com"]);
     expect(ssmMock.calls()).toHaveLength(1);
   });
-  it("should throw proper error if value is not set", () => {
+  it("should throw proper error if value is not set", async () => {
     ssmMock.on(GetParameterCommand).resolves({
       Parameter: {},
     });
-    expect(() => getAllowList()).rejects.toThrow("unable to retrieve allowlist or value is empty");
+    await expect(getAllowList()).rejects.toThrow("unable to retrieve allowlist or value is empty");
   });
   it("should return empty array if value is invalid", async () => {
     ssmMock.on(GetParameterCommand).resolves({
@@ -272,5 +617,17 @@ describe("emailer", () => {
     const output = stripDisallowedFields({ ...mockEmailData, invalid: "none" } as EmailData);
     expect(output).toEqual(mockEmailData);
     expect(warnSpy).toHaveBeenCalledOnce();
+  });
+
+  it("should allow attachments only for trusted realtime templates", () => {
+    const attachments = [{ filename: "agreement.pdf", content: "agreement" }];
+    const emailWithAttachment = { ...mockEmailData, attachments };
+
+    expect(stripDisallowedFields(emailWithAttachment)).toEqual(mockEmailData);
+    expect(stripDisallowedFields(emailWithAttachment, true)).toEqual(emailWithAttachment);
+  });
+
+  it("should leave legacy email payloads unchanged when realtime rendering is not needed", async () => {
+    await expect(renderRealtimeEmailIfNeeded(mockEmailData)).resolves.toBe(mockEmailData);
   });
 });
