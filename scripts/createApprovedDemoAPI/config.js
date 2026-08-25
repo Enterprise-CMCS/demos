@@ -33,14 +33,12 @@ function parseNonNegativeIntegerEnv(name, fallback) {
 
 export const SEED_CONFIG = {
   fallbackDatabaseUrl: "postgresql://localhost:5432/demos?schema=demos_app",
-  graphqlEndpoint:
-    process.env.APPROVED_DEMO_GRAPHQL_ENDPOINT ?? "http://localhost:4000/graphql",
+  graphqlEndpoint: process.env.APPROVED_DEMO_GRAPHQL_ENDPOINT ?? "http://localhost:4000/graphql",
   graphqlIdToken: process.env.APPROVED_DEMO_ID_TOKEN,
   demoNameSuffix: "Generated Approved Demonstration",
   demoDescription: "Approved demonstration created by createApprovedDemoAPI.",
   sdgDivisionId:
-    process.env.APPROVED_DEMO_SDG_DIVISION ??
-    "Division of System Reform Demonstrations",
+    process.env.APPROVED_DEMO_SDG_DIVISION ?? "Division of System Reform Demonstrations",
   documentPath:
     process.env.APPROVED_DEMO_DOCUMENT_PATH ??
     "/workspaces/demos/junk_drawer/DEMOS DOCS/AAA_nothing_doc.pdf",
@@ -49,13 +47,8 @@ export const SEED_CONFIG = {
   processedUploadTimeoutMs: 30_000,
   processedUploadPollMs: 500,
   deliverableCount: parseNonNegativeIntegerEnv("APPROVED_DEMO_DELIVERABLE_COUNT", 0),
-  documentsPerDeliverable: parseNonNegativeIntegerEnv(
-    "APPROVED_DEMO_DOCUMENTS_PER_DELIVERABLE",
-    0
-  ),
-  projectOfficerUserId:
-    process.env.APPROVED_DEMO_PROJECT_OFFICER_USER_ID ??
-    "MAKE AN .env",
+  documentsPerDeliverable: parseNonNegativeIntegerEnv("APPROVED_DEMO_DOCUMENTS_PER_DELIVERABLE", 0),
+  projectOfficerUserId: process.env.APPROVED_DEMO_PROJECT_OFFICER_USER_ID ?? "MAKE AN .env",
 };
 
 export const EXPECTED_FINAL_STATUS_ID = "Approved";
@@ -86,7 +79,7 @@ export const APPLICATION_DATE_OFFSETS_FROM_EFFECTIVE_DATE = [
   ["State Application Deemed Complete", 61],
   ["Federal Comment Period Start Date", 60],
   ["Federal Comment Period End Date", 30],
-  ["Expected Approval Date", 80],
+  ["Internal Expected Approval Date", 80],
   ["SME Initial Review Date", 79],
   ["FRT Initial Meeting Date", 78],
   ["BNPMT Initial Meeting Date", 77],
