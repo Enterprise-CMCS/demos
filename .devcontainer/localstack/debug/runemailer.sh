@@ -35,35 +35,12 @@ QUEUE_URL=$($AWS_CMD sqs get-queue-url --queue-name $QUEUE_NAME --output text --
 $AWS_CMD sqs send-message \
     --queue-url "$QUEUE_URL" \
     --message-body '{
-      "emailType": "Deliverable Created",
-      "entityType": "deliverable",
-      "entityId": "local-deliverable-1",
-      "triggeredBy": {
-        "type": "realtime",
-        "id": "localstack-debug"
-      },
-      "triggeredAt": "2026-07-10T00:00:00.000Z",
-      "idempotencyKey": "Deliverable Created:deliverable:local-deliverable-1",
-      "payload": {
-        "recipients": {
-          "to": ["'"$EMAIL_RECIPIENT"'"]
-        },
-        "demonstration": {
-          "id": "local-demonstration-1",
-          "name": "LocalStack Demonstration",
-          "stateId": "MD"
-        },
-        "deliverable": {
-          "id": "local-deliverable-1",
-          "name": "LocalStack Deliverable",
-          "deliverableTypeId": "Close Out Report",
-          "dueDate": "2026-07-10T12:00:00.000Z",
-          "statusId": "Upcoming"
-        }
-      }
+      "to": "'"$EMAIL_RECIPIENT"'",
+      "subject": "CMS DEMOS: Test Email",
+      "text": "This is a test email confirming that the DEMOS email and SQS system is working.\n\nThank you,\nDEMOS Notifications"
     }' >/dev/null
 
-echo "✅ Sent deliverable-created realtime email message to $QUEUE_NAME"
+echo "✅ Sent test email message to $QUEUE_NAME"
 echo "   Recipient: $EMAIL_RECIPIENT"
 if [[ "$EMAIL_MODE" = "mailpit" ]]; then
     echo "   View captured email: http://localhost:8025"
