@@ -83,6 +83,8 @@ def create_duckdb_conn() -> "DuckConn":
 def get_attach_name_from_db_config_name(db_config_name: DatabaseConfigurationName) -> DuckDbAttachName:
     """Get the correct DuckDB attach name back from a DB config name.
 
+    Note: Using this approach enforces that all db_config_name values have mappings.
+
     Args:
         db_config_name (DatabaseConfigurationName): The name of the DB config to get the attach name for.
 

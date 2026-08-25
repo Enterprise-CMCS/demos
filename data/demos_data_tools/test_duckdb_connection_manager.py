@@ -10,6 +10,8 @@ import duckdb_connection_manager
 class TestDuckDbConnectionManager:
     """A class for the tests for the duckdb_connection_manager.py file."""
 
+    mock_attach_name = "my_ddb_attach_name"
+
     mock_demos_localstack_config = {
         "host": "testhost2",
         "port": "23456",
@@ -34,13 +36,20 @@ class TestDuckDbConnectionManager:
 
     @pytest.fixture
     def mock_load_credentials(self, mocker):
-        """Patch _load_db_config_from_env to prevent real env var loading."""
-        return mocker.patch("duckdb_connection_manager._load_db_config_from_env")
+        """Patch _load_db_params_from_env to prevent real env var loading."""
+        return mocker.patch("duckdb_connection_manager._load_db_params_from_env")
 
-    def test__load_db_config_from_env_01(self, mocker):
+    @pytest.fixture
+    def mock_attach_name_getter(self, mocker):
+        """Patch get_attach_name_from_db_config_name to return a constant value."""
+        mock_getter = mocker.patch("duckdb_connection_manager.get_attach_name_from_db_config_name")
+        mock_getter.return_value = self.mock_attach_name
+        return mock_getter
+
+    def test__load_db_params_from_env_01(self, mocker):
         """Test duckdb_connection_manager.py functions.
 
-        ::_load_db_config_from_env
+        ::_load_db_params_from_env
 
         ::It should build the demos-localstack config dict from environment variables.
         """
@@ -54,14 +63,14 @@ class TestDuckDbConnectionManager:
         }
         mocker.patch.dict("os.environ", env_vars)
 
-        result = duckdb_connection_manager._load_db_config_from_env("demos-localstack")
+        result = duckdb_connection_manager._load_db_params_from_env("demos-localstack")
 
         assert result == self.mock_demos_localstack_config
 
-    def test__load_db_config_from_env_02(self, mocker):
+    def test__load_db_params_from_env_02(self, mocker):
         """Test duckdb_connection_manager.py functions.
 
-        ::_load_db_config_from_env
+        ::_load_db_params_from_env
 
         ::It should build the demos-aws config dict from environment variables.
         """
@@ -75,31 +84,31 @@ class TestDuckDbConnectionManager:
         }
         mocker.patch.dict("os.environ", env_vars)
 
-        result = duckdb_connection_manager._load_db_config_from_env("demos-aws")
+        result = duckdb_connection_manager._load_db_params_from_env("demos-aws")
 
         assert result == self.mock_demos_aws_config
 
-    def test__load_db_config_from_env_03(self, mocker):
+    def test__load_db_params_from_env_03(self, mocker):
         """Test duckdb_connection_manager.py functions.
 
-        ::_load_db_config_from_env
+        ::_load_db_params_from_env
 
         ::It should raise a KeyError with a safe message when an env var is missing.
         """
         mocker.patch.dict("os.environ", {}, clear=True)
 
         with pytest.raises(KeyError) as except_info:
-            duckdb_connection_manager._load_db_config_from_env("demos-localstack")
+            duckdb_connection_manager._load_db_params_from_env("demos-localstack")
 
         assert (
             except_info.value.args[0]
             == "A KeyError occurred while loading the demos-localstack DB config from the environment."
         )
 
-    def test__load_db_config_from_env_04(self, mocker):
+    def test__load_db_params_from_env_04(self, mocker):
         """Test duckdb_connection_manager.py functions.
 
-        ::_load_db_config_from_env
+        ::_load_db_params_from_env
 
         ::It should handle other types of errors that are raised.
         """
@@ -110,22 +119,22 @@ class TestDuckDbConnectionManager:
         mocker.patch.object(duckdb_connection_manager.os, "environ", new=mock_env)
 
         with pytest.raises(RuntimeError) as except_info:
-            duckdb_connection_manager._load_db_config_from_env("demos-aws")
+            duckdb_connection_manager._load_db_params_from_env("demos-aws")
 
         assert (
             except_info.value.args[0] == "An unhandled exception occurred while loading "
             "the demos-aws DB config from the environment."
         )
 
-    def test__load_db_config_from_env_05(self):
+    def test__load_db_params_from_env_05(self):
         """Test duckdb_connection_manager.py functions.
 
-        ::_load_db_config_from_env
+        ::_load_db_params_from_env
 
         ::It should throw if given an invalid DB config.
         """
         with pytest.raises(RuntimeError) as except_info:
-            duckdb_connection_manager._load_db_config_from_env("Not A Database")  # type: ignore
+            duckdb_connection_manager._load_db_params_from_env("Not A Database")  # type: ignore
 
         assert (
             except_info.value.args[0] == "An unhandled exception occurred while loading "
@@ -155,17 +164,42 @@ class TestDuckDbConnectionManager:
         mock_conn = mock_duckdb_connect.return_value
         assert mock_conn.install_extension.call_args_list == [call("postgres")]
 
-    def test_attach_demos_db_to_conn_01(self, mock_load_credentials):
+    def test_get_attach_name_from_db_config_name_01(self):
         """Test duckdb_connection_manager.py functions.
 
-        ::attach_demos_db_to_conn
+        ::get_attach_name_from_db_config_name
+
+        ::It should return the correct attach name for each config name.
+        """
+        result1 = duckdb_connection_manager.get_attach_name_from_db_config_name("demos-localstack")
+        result2 = duckdb_connection_manager.get_attach_name_from_db_config_name("demos-aws")
+
+        assert result1 == "ddb_demos_localstack"
+        assert result2 == "ddb_demos_aws"
+
+    def test_get_attach_name_from_db_config_name_02(self):
+        """Test duckdb_connection_manager.py functions.
+
+        ::get_attach_name_from_db_config_name
+
+        ::It should throw when given an invalid DB config name.
+        """
+        with pytest.raises(AssertionError) as except_info:
+            duckdb_connection_manager.get_attach_name_from_db_config_name("not-a-db-config")  # type: ignore
+
+        assert except_info.value.args[0] == "Expected code to be unreachable, but got: 'not-a-db-config'"
+
+    def test_attach_db_to_duckdb_conn_01(self, mock_load_credentials):
+        """Test duckdb_connection_manager.py functions.
+
+        ::attach_db_to_duckdb_conn
 
         ::It should create a PostgreSQL secret and escape single quotes in the password.
         """
         mock_conn = MagicMock()
         mock_load_credentials.return_value = self.mock_demos_aws_config
 
-        duckdb_connection_manager.attach_demos_db_to_conn(mock_conn, "demos-aws")
+        duckdb_connection_manager.attach_db_to_duckdb_conn(mock_conn, "demos-aws")
 
         secret_sql = mock_conn.execute.call_args_list[0].args[0]
         assert "TYPE postgres" in secret_sql
@@ -175,27 +209,27 @@ class TestDuckDbConnectionManager:
         assert "USER 'fakeuser1'" in secret_sql
         assert "PASSWORD 'fake?$''!@<&>passwd1'" in secret_sql  # pragma: allowlist secret
 
-    def test_attach_demos_db_to_conn_02(self, mock_load_credentials):
+    def test_attach_db_to_duckdb_conn_02(self, mock_load_credentials, mock_attach_name_getter):
         """Test duckdb_connection_manager.py functions.
 
-        ::attach_demos_db_to_conn
+        ::attach_db_to_duckdb_conn
 
         ::It should connect to PostgreSQL using the config requested.
         """
         mock_conn = MagicMock()
         mock_load_credentials.return_value = self.mock_demos_localstack_config
 
-        duckdb_connection_manager.attach_demos_db_to_conn(mock_conn, "demos-localstack")
+        duckdb_connection_manager.attach_db_to_duckdb_conn(mock_conn, "demos-localstack")
 
-        attach_name = duckdb_connection_manager.DDB_CONFIG_ATTACH_NAMES["demos-localstack"]
+        mock_attach_name_getter.assert_called_once_with("demos-localstack")
         assert mock_conn.execute.call_args_list[1] == call(
-            f"ATTACH 'sslmode=disable' AS {attach_name} (TYPE postgres);"
+            f"ATTACH 'sslmode=disable' AS {self.mock_attach_name} (TYPE postgres);"
         )
 
-    def test_attach_demos_db_to_conn_03(self, mock_load_credentials):
+    def test_attach_db_to_duckdb_conn_03(self, mock_load_credentials):
         """Test duckdb_connection_manager.py functions.
 
-        ::attach_demos_db_to_conn
+        ::attach_db_to_duckdb_conn
 
         ::It should raise a RuntimeError with a safe message when the connection fails.
         """
@@ -204,21 +238,21 @@ class TestDuckDbConnectionManager:
         mock_conn.execute.side_effect = Exception(mock_exception_msg)
 
         with pytest.raises(RuntimeError) as except_info:
-            duckdb_connection_manager.attach_demos_db_to_conn(mock_conn, "demos-aws")
+            duckdb_connection_manager.attach_db_to_duckdb_conn(mock_conn, "demos-aws")
 
         assert except_info.value.args[0] == "An error occurred while attempting to attach the DEMOS database."
         assert except_info.value.args[0] != mock_exception_msg
 
-    def test_attach_demos_db_to_conn_04(self, mock_load_credentials):
+    def test_attach_db_to_duckdb_conn_04(self, mock_load_credentials):
         """Test duckdb_connection_manager.py functions.
 
-        ::attach_demos_db_to_conn
+        ::attach_db_to_duckdb_conn
 
         ::It should throw if given an invalid DB config.
         """
         mock_conn = MagicMock()
 
-        with pytest.raises(KeyError) as except_info:
-            duckdb_connection_manager.attach_demos_db_to_conn(mock_conn, "Not A Database")  # type: ignore
+        with pytest.raises(AssertionError) as except_info:
+            duckdb_connection_manager.attach_db_to_duckdb_conn(mock_conn, "Not A Database")  # type: ignore
 
-        assert except_info.value.args[0] == "Not A Database"
+        assert except_info.value.args[0] == "Expected code to be unreachable, but got: 'Not A Database'"
