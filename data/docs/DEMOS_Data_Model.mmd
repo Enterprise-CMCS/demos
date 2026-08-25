@@ -173,6 +173,14 @@ erDiagram
   users ||--|{ on_demand_report : "FK156"
   on_demand_report }|--|| on_demand_report_type : "FK157"
   on_demand_report }|--|| on_demand_report_status : "FK158"
+  email_notification }|--|| email_notification_type_entity_type : "FK161"
+  email_notification }|--|| deliverable_action : "FK162"
+  users ||--|{ email_notification : "FK163"
+  email_notification }|--|| email_notification_status : "FK164"
+  email_notification ||--|{ email_notification_recipient : "FK165"
+  email_notification_recipient }|--|| person : "FK166"
+  email_notification_type ||--|{ email_notification_type_entity_type : "FK167"
+  email_notification_entity_type ||--|{ email_notification_type_entity_type : "FK168"
   application_tag_suggestion }|..|| application : ""
 
   %% Static Constraints
@@ -229,6 +237,18 @@ erDiagram
   }
 
   document_type:::staticConstraint {
+    text id PK
+  }
+
+  email_notification_entity_type:::staticConstraint {
+    text id PK
+  }
+
+  email_notification_status:::staticConstraint {
+    text id PK
+  }
+
+  email_notification_type:::staticConstraint {
     text id PK
   }
 
@@ -676,6 +696,33 @@ erDiagram
     HAS_HISTORY true
   }
 
+  email_notification:::dataTable {
+    uuid id PK
+    text email_type_id FK "FK161: (email_type_id, entity_type) ∈ email_notification_type_entity_type.(email_type_id, entity_type_id)"
+    text entity_type FK "FK161: (email_type_id, entity_type) ∈ email_notification_type_entity_type.(email_type_id, entity_type_id)"
+    uuid entity_id
+    uuid source_action_id FK "FK162: source_action_id ∈ deliverable_action.id<br>NULLABLE"
+    uuid triggered_by_user_id FK "FK163: triggered_by_user_id ∈ users.id"
+    text status_id FK "FK164: status_id ∈ email_notification_status.id<br>Default: Pending"
+    text idempotency_key UK "UK: idempotency_key"
+    jsonb payload
+    text sqs_message_id "NULLABLE"
+    text last_error "NULLABLE"
+    timestamptz created_at
+    timestamptz updated_at
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
+  }
+
+  email_notification_recipient:::dataTable {
+    uuid id PK
+    uuid email_notification_id FK, UK "FK165: email_notification_id ∈ email_notification.id<br>UK: (email_notification_id, normalized_email)"
+    uuid person_id FK "FK166: person_id ∈ person.id<br>NULLABLE"
+    text email_address
+    text normalized_email UK "UK: (email_notification_id, normalized_email)"
+    timestamptz created_at
+  }
+
   extension:::dataTable {
     uuid id PK, FK, UK "FK009: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)"
     text application_type_id FK, UK "FK009: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)<br>FK016: application_type_id ∈ extension_application_type_limit.id"
@@ -899,6 +946,11 @@ erDiagram
   deliverable_type_document_type:::associativeTable {
     text deliverable_type_id PK, FK "FK091: deliverable_type_id ∈ deliverable_type.id"
     text document_type_id PK, FK "FK092: document_type_id ∈ document_type.id"
+  }
+
+  email_notification_type_entity_type:::associativeTable {
+    text email_type_id PK, FK "FK167: email_type_id ∈ email_notification_type.id"
+    text entity_type_id PK, FK "FK168: entity_type_id ∈ email_notification_entity_type.id"
   }
 
   demonstration_role_assignment:::associativeTable {
