@@ -248,9 +248,7 @@ export class ApiStack extends Stack {
     });
 
     rdsSg.addIngressRule(
-      aws_ec2.Peer.securityGroupId(
-        emailerLambdaSecurityGroup.securityGroup.securityGroupId
-      ),
+      aws_ec2.Peer.securityGroupId(emailerLambdaSecurityGroup.securityGroup.securityGroupId),
       aws_ec2.Port.tcp(rdsPort),
       "Allow ingress from Emailer Security Group",
       true
@@ -294,7 +292,11 @@ export class ApiStack extends Stack {
     );
 
     const allowListParamName = "/demos/nonprod/email/allowlist";
-
+    const emailerDbSecret = aws_secretsmanager.Secret.fromSecretNameV2(
+      this,
+      "rdsEmailerDatabaseSecret",
+      `demos-${commonProps.hostEnvironment}-rds-demos_emailer`
+    );
     // Emailer
     const emailSuffix = commonProps.stage == "prod" ? "" : `-${commonProps.stage}`;
     const emailerPath = path.join("..", "lambdas", "emailer");
@@ -303,7 +305,7 @@ export class ApiStack extends Stack {
       scope: commonProps.scope,
       entry: "../lambdas/emailer/index.ts",
       handler: "index.handler",
-      vpc: props.vpc,
+      vp∂c: props.vpc,
       externalModules: ["@aws-sdk"],
       nodeModules: [
         "@react-email/components",
@@ -319,7 +321,7 @@ export class ApiStack extends Stack {
       depsLockFilePath: path.join(emailerPath, "package-lock.json"),
       timeout: emailerTimeout,
       environment: {
-        DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
+        DATABASE_SECRET_ARN: emailerDbSecret.secretName, // pragma: allowlist secret
         DB_SCHEMA: "demos_app",
         CLEAN_BUCKET: cleanBucket.bucketName,
         EMAIL_HOST: "smtp.cloud.internal.cms.gov",
@@ -345,7 +347,7 @@ export class ApiStack extends Stack {
       },
     });
     alarmResources.registerLambda("emailer", emailerLambda.lambda);
-    dbSecret.grantRead(emailerLambda.role);
+    emailerDbSecret.grantRead(emailerLambda.role);
     cleanBucket.grantRead(emailerLambda.role);
 
     if (commonProps.stage != "prod") {
