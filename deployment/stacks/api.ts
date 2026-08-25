@@ -238,12 +238,36 @@ export class ApiStack extends Stack {
       visibilityTimeout: emailerTimeout,
     });
     alarmResources.registerQueue("emailer", emailQueue);
+    graphqlLambda.lambda.lambda.addEnvironment("EMAILER_QUEUE_URL", emailQueue.queueUrl);
+    emailQueue.grantSendMessages(graphqlLambda.lambda.role);
 
     const emailerLambdaSecurityGroup = securityGroup.create({
       ...commonProps,
       name: "emailerSecurityGroup",
       vpc: props.vpc,
     });
+
+    rdsSg.addIngressRule(
+      aws_ec2.Peer.securityGroupId(
+        emailerLambdaSecurityGroup.securityGroup.securityGroupId
+      ),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow ingress from Emailer Security Group",
+      true
+    );
+
+    emailerLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(rdsSecurityGroupId),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow egress to RDS",
+      true
+    );
+
+    emailerLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to secrets manager VPCE"
+    );
 
     const sharedServicesSG = aws_ec2.SecurityGroup.fromLookupByName(
       commonProps.scope,
@@ -263,6 +287,11 @@ export class ApiStack extends Stack {
       aws_ec2.Peer.securityGroupId(ssmSg.securityGroupId),
       aws_ec2.Port.HTTPS
     );
+    emailerLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to S3"
+    );
 
     const allowListParamName = "/demos/nonprod/email/allowlist";
 
@@ -276,12 +305,23 @@ export class ApiStack extends Stack {
       handler: "index.handler",
       vpc: props.vpc,
       externalModules: ["@aws-sdk"],
-      nodeModules: ["nodemailer"],
+      nodeModules: [
+        "@react-email/components",
+        "@react-email/render",
+        "nodemailer",
+        "pg",
+        "pino",
+        "react",
+        "react-dom",
+      ],
       securityGroup: [emailerLambdaSecurityGroup.securityGroup, sharedServicesSG],
       asCode: false,
       depsLockFilePath: path.join(emailerPath, "package-lock.json"),
       timeout: emailerTimeout,
       environment: {
+        DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
+        DB_SCHEMA: "demos_app",
+        CLEAN_BUCKET: cleanBucket.bucketName,
         EMAIL_HOST: "smtp.cloud.internal.cms.gov",
         EMAIL_PORT: "587",
         EMAIL_FROM: `"DEMOS${emailSuffix}" <DEMOS${emailSuffix}-no-reply@cms.hhs.gov>`,
@@ -291,7 +331,10 @@ export class ApiStack extends Stack {
       },
       commandHooks: {
         afterBundling(inputDir: string, outputDir: string): string[] {
-          return [`cp ${inputDir}/../../deployment/cert.pem ${outputDir}/cert.pem`];
+          return [
+            `cp ${inputDir}/../../deployment/cert.pem ${outputDir}/cert.pem`,
+            `cp ${inputDir}/point-click-agreement.pdf ${outputDir}/point-click-agreement.pdf`,
+          ];
         },
         beforeBundling() {
           return [];
@@ -302,6 +345,8 @@ export class ApiStack extends Stack {
       },
     });
     alarmResources.registerLambda("emailer", emailerLambda.lambda);
+    dbSecret.grantRead(emailerLambda.role);
+    cleanBucket.grantRead(emailerLambda.role);
 
     if (commonProps.stage != "prod") {
       const allowListParam = aws_ssm.StringParameter.fromStringParameterName(
