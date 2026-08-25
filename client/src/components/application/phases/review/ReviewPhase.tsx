@@ -290,7 +290,11 @@ export const ReviewPhase = ({
               size="large"
               name="review-finish"
               disabled={!isFinishEnabled}
-              eagerTooltip={!isFinishEnabled ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined}
+              eagerTooltip={
+                !isFinishEnabled && !isPhaseCompleted
+                  ? MISSING_REQUIRED_SECTIONS_TOOLTIP
+                  : undefined
+              }
             >
               Finish
             </Button>
