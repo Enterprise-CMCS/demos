@@ -42,7 +42,7 @@ type ApplicationDetailsReportColumn =
   | "federal_comment_period_end_date"
   | "federal_comment_internal_analysis_document_submitted_date"
   | "sdg_preparation_start_date"
-  | "expected_approval_date"
+  | "internal_expected_approval_date"
   | "sme_initial_review_date"
   | "frt_initial_meeting_date"
   | "bnpmt_initial_meeting_date"
@@ -107,7 +107,7 @@ const applicationDetailsReportSchema = z
     federal_comment_period_end_date: usDateStringOrDash,
     federal_comment_internal_analysis_document_submitted_date: usDateStringOrDash,
     sdg_preparation_start_date: usDateStringOrDash,
-    expected_approval_date: usDateStringOrDash,
+    internal_expected_approval_date: usDateStringOrDash,
     sme_initial_review_date: usDateStringOrDash,
     frt_initial_meeting_date: usDateStringOrDash,
     bnpmt_initial_meeting_date: usDateStringOrDash,
@@ -175,7 +175,7 @@ const applicationDetailsReportColumnHeaders = {
     columnName: "Federal Comment Internal Analysis Document Submitted Date",
   },
   sdg_preparation_start_date: { columnName: "SDG Preparation Start Date" },
-  expected_approval_date: { columnName: "Expected Approval Date" },
+  internal_expected_approval_date: { columnName: "Internal Expected Approval Date" },
   sme_initial_review_date: { columnName: "SME Initial Review Date" },
   frt_initial_meeting_date: { columnName: "FRT Initial Meeting Date" },
   bnpmt_initial_meeting_date: { columnName: "BNPMT Initial Meeting Date" },
