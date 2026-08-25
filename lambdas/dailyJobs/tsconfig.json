@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "types": ["node", "vitest/globals"],
+    "esModuleInterop": true,
+    "target": "es2023",
+    "moduleResolution": "bundler"
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["build", "coverage", "dist", "node_modules"]
+}

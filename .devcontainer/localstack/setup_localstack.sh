@@ -60,13 +60,17 @@ echo "8️⃣ Setting up emailer Lambda..."
 bash /workspaces/demos/.devcontainer/localstack/setup/setup_emailer_lambda.sh
 
 echo ""
+echo "9️⃣ Setting up daily-jobs Lambda..."
+bash /workspaces/demos/.devcontainer/localstack/setup/setup_daily_jobs_lambda.sh
+
+echo ""
 echo "✅ LocalStack setup complete!"
 echo ""
 echo "📋 Resources created:"
 echo "   - Secrets Manager: database credentials, UiPath credentials"
 echo "   - SQS Queues: fileupload-queue, fileprocess-queue, infected-file-expiration-queue, uipath-queue, budget-neutrality-queue, emailer-queue (+ DLQs)"
 echo "   - S3 Buckets: upload-bucket, clean-bucket, infected-bucket, deleted-bucket"
-echo "   - Lambda Functions: fileprocess, uipath, deleteinfectedfile, budgetneutrality, emailer"
+echo "   - Lambda Functions: fileprocess, uipath, deleteinfectedfile, budgetneutrality, emailer, daily-jobs"
 echo "   - EventBridge Rules: s3-upload-to-guardduty"
 echo ""
 echo "🧪 Test the setup:"
@@ -82,3 +86,6 @@ echo "   /workspaces/demos/.devcontainer/localstack/debug/delete-all-infected-fi
 echo ""
 echo "   # Send a local realtime emailer message"
 echo "   /workspaces/demos/.devcontainer/localstack/debug/runemailer.sh"
+echo ""
+echo "   # Run Daily Jobs for the current Eastern date"
+echo "   /workspaces/demos/scripts/run_daily_jobs.sh --local"

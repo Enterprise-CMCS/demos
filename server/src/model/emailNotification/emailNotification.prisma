@@ -4,7 +4,7 @@ model EmailNotification {
   entityType        String   @map("entity_type")
   entityId          String   @map("entity_id") @db.Uuid
   sourceActionId    String?  @map("source_action_id") @db.Uuid
-  triggeredByUserId String   @map("triggered_by_user_id") @db.Uuid
+  triggeredByUserId String?  @map("triggered_by_user_id") @db.Uuid
   statusId          String   @default("Pending") @map("status_id")
   idempotencyKey    String   @map("idempotency_key")
   payload           Json
@@ -15,7 +15,7 @@ model EmailNotification {
 
   emailTypeEntityType EmailNotificationTypeEntityType @relation(fields: [emailTypeId, entityType], references: [emailTypeId, entityTypeId])
   sourceAction        DeliverableAction?              @relation(fields: [sourceActionId], references: [id], onDelete: Restrict)
-  triggeredBy         User                            @relation(fields: [triggeredByUserId], references: [id], onDelete: Restrict)
+  triggeredBy         User?                           @relation(fields: [triggeredByUserId], references: [id], onDelete: Restrict)
   status              EmailNotificationStatus         @relation(fields: [statusId], references: [id])
   recipients          EmailNotificationRecipient[]
 

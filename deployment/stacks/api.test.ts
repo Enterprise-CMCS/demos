@@ -186,11 +186,11 @@ describe("Api Stack", () => {
     const template = Template.fromStack(apiStack);
     // const fs = require("fs");
     // fs.writeFileSync("template.json", JSON.stringify(template.toJSON(), null, 2));
-    template.resourceCountIs("AWS::EC2::SecurityGroup", 3);
-    template.resourceCountIs("AWS::Lambda::Function", 3);
+    template.resourceCountIs("AWS::EC2::SecurityGroup", 4);
+    template.resourceCountIs("AWS::Lambda::Function", 4);
     template.resourceCountIs("AWS::ApiGateway::RestApi", 1);
     template.resourceCountIs("AWS::ApiGateway::Authorizer", 1);
-    template.resourceCountIs("AWS::CloudWatch::Alarm", 10);
+    template.resourceCountIs("AWS::CloudWatch::Alarm", 13);
 
     template.hasOutput("ApiUrl", {
       Export: {
@@ -215,10 +215,38 @@ describe("Api Stack", () => {
         }),
       },
     });
+    template.hasResourceProperties("AWS::Lambda::Function", {
+      FunctionName: "demos-unittest-daily-jobs",
+      Timeout: 300,
+      Environment: {
+        Variables: Match.objectLike({
+          DATABASE_SECRET_ARN: "demos-unitTestHost-rds-demos_server", // pragma: allowlist secret
+          DB_SCHEMA: "demos_app",
+          EMAILER_QUEUE_URL: Match.anyValue(),
+        }),
+      },
+    });
+    template.hasResourceProperties("AWS::Scheduler::Schedule", {
+      Name: "demos-unittest-daily-jobs",
+      ScheduleExpression: "cron(0 8 * * ? *)",
+      ScheduleExpressionTimezone: "America/New_York",
+      FlexibleTimeWindow: { Mode: "OFF" },
+      Target: Match.objectLike({
+        Input: JSON.stringify({
+          source: "scheduler",
+          scheduledAt: "<aws.scheduler.scheduled-time>",
+        }),
+      }),
+    });
 
     expectLambdaErrorsAlarm(template, "demos-unittest-authorizer-lambda-errors", "authorizer");
     expectLambdaErrorsAlarm(template, "demos-unittest-graphql-lambda-errors", "graphql");
     expectLambdaErrorsAlarm(template, "demos-unittest-emailer-lambda-errors", "emailer");
+    expectLambdaErrorsAlarm(
+      template,
+      "demos-unittest-daily-jobs-lambda-errors",
+      "dailyjobs"
+    );
     expectLambdaDurationAlarm(
       template,
       "demos-unittest-authorizer-lambda-duration-near-timeout",
@@ -231,6 +259,12 @@ describe("Api Stack", () => {
       "emailer",
       48000
     );
+    expectLambdaDurationAlarm(
+      template,
+      "demos-unittest-daily-jobs-lambda-duration-near-timeout",
+      "dailyjobs",
+      240000
+    );
     expectLambdaThrottlesAlarm(
       template,
       "demos-unittest-authorizer-lambda-throttles",
@@ -238,6 +272,11 @@ describe("Api Stack", () => {
     );
     expectLambdaThrottlesAlarm(template, "demos-unittest-graphql-lambda-throttles", "graphql");
     expectLambdaThrottlesAlarm(template, "demos-unittest-emailer-lambda-throttles", "emailer");
+    expectLambdaThrottlesAlarm(
+      template,
+      "demos-unittest-daily-jobs-lambda-throttles",
+      "dailyjobs"
+    );
     template.resourcePropertiesCountIs(
       "AWS::CloudWatch::Alarm",
       {
@@ -296,7 +335,7 @@ describe("Api Stack", () => {
 
     const template = Template.fromStack(apiStack);
 
-    template.resourceCountIs("AWS::Lambda::Function", 3);
+    template.resourceCountIs("AWS::Lambda::Function", 4);
     template.resourceCountIs("AWS::CloudWatch::Alarm", 0);
   });
 

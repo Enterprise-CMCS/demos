@@ -117,6 +117,16 @@ export const deliverableEmailConfigById = {
       </Text>
     ),
   },
+  "deliverable-due-today": {
+    id: "deliverable-due-today",
+    action: "Due Today",
+    Message: ({ currentDueDate, deliverableType, link }) => (
+      <Text style={textStyle}>
+        A {deliverableType} deliverable is due today, {currentDueDate}.{" "}
+        <DeliverableLink href={link} />
+      </Text>
+    ),
+  },
   "deliverable-submitted": {
     id: "deliverable-submitted",
     action: "Deliverable Submitted",

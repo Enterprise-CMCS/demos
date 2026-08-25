@@ -41,6 +41,7 @@ stages {
             snykScan('lambdas/dbRoleManagement')
             snykScan('lambdas/fileprocess')
             snykScan('lambdas/emailer')
+            snykScan('lambdas/dailyJobs')
             snykScan('lambdas/deleteinfectedfile')
             snykScan('lambdas/UIPath')
             snykScan('lambdas/budgetNeutrality')
@@ -62,6 +63,7 @@ stages {
               [name: 'UI Path', dir: 'lambdas/UIPath'],
               [name: 'Delete Infected File', dir: 'lambdas/deleteinfectedfile'],
               [name: 'Emailer', dir: 'lambdas/emailer'],
+              [name: 'Daily Jobs', dir: 'lambdas/dailyJobs'],
               [name: 'Budget Neutrality', dir: 'lambdas/budgetNeutrality']
             ]
 

@@ -11,6 +11,7 @@ import {
   Duration,
   aws_ssm,
   aws_kms,
+  aws_scheduler,
   RemovalPolicy,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
@@ -370,6 +371,84 @@ export class ApiStack extends Stack {
       })
     );
 
+    const dailyJobsLambdaSecurityGroup = securityGroup.create({
+      ...commonProps,
+      name: "dailyJobsSecurityGroup",
+      vpc: props.vpc,
+    });
+
+    rdsSg.addIngressRule(
+      aws_ec2.Peer.securityGroupId(
+        dailyJobsLambdaSecurityGroup.securityGroup.securityGroupId
+      ),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow ingress from Daily Jobs Security Group",
+      true
+    );
+
+    dailyJobsLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(rdsSecurityGroupId),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow egress to RDS",
+      true
+    );
+    dailyJobsLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to secrets manager VPCE"
+    );
+    dailyJobsLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(sqsVpceSgId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to SQS"
+    );
+
+    const dailyJobsTimeout = Duration.minutes(5);
+    const dailyJobsPath = path.join("..", "lambdas", "dailyJobs");
+    const dailyJobsLambda = new lambda.Lambda(commonProps.scope, "daily-jobs", {
+      ...commonProps,
+      scope: commonProps.scope,
+      entry: "../lambdas/dailyJobs/index.ts",
+      handler: "index.handler",
+      vpc: props.vpc,
+      externalModules: ["@aws-sdk"],
+      nodeModules: ["pg", "pino"],
+      securityGroup: dailyJobsLambdaSecurityGroup.securityGroup,
+      asCode: false,
+      depsLockFilePath: path.join(dailyJobsPath, "package-lock.json"),
+      timeout: dailyJobsTimeout,
+      environment: {
+        DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
+        DB_SCHEMA: "demos_app",
+        EMAILER_QUEUE_URL: emailQueue.queueUrl,
+      },
+    });
+    alarmResources.registerLambda("dailyJobs", dailyJobsLambda.lambda);
+    dbSecret.grantRead(dailyJobsLambda.role);
+    emailQueue.grantSendMessages(dailyJobsLambda.role);
+
+    const dailyJobsScheduleRole = new aws_iam.Role(this, "DailyJobsScheduleRole", {
+      assumedBy: new aws_iam.ServicePrincipal("scheduler.amazonaws.com"),
+      permissionsBoundary: commonProps.iamPermissionsBoundary,
+      path: commonProps.iamPath,
+    });
+    dailyJobsLambda.lambda.grantInvoke(dailyJobsScheduleRole);
+
+    new aws_scheduler.CfnSchedule(this, "DailyJobsSchedule", {
+      name: `${commonProps.project}-${commonProps.stage}-daily-jobs`,
+      scheduleExpression: "cron(0 8 * * ? *)",
+      scheduleExpressionTimezone: "America/New_York",
+      flexibleTimeWindow: { mode: "OFF" },
+      target: {
+        arn: dailyJobsLambda.lambda.functionArn,
+        roleArn: dailyJobsScheduleRole.roleArn,
+        input: JSON.stringify({
+          source: "scheduler",
+          scheduledAt: "<aws.scheduler.scheduled-time>",
+        }),
+      },
+    });
+
     this.setupCloudWatchAlarms(props, alarmResources);
 
     // Outputs
@@ -516,6 +595,45 @@ export class ApiStack extends Stack {
       name: "emailer-lambda-throttles",
       description: "Emailer Lambda has one or more throttled invocations in a 5-minute period.",
       lambdaFunction: resources.lambda("emailer"),
+      period: lambdaAlarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaErrorsAlarm({
+      ...props,
+      scope: this,
+      id: "DailyJobsLambdaErrorsAlarm",
+      name: "daily-jobs-lambda-errors",
+      description: "Daily Jobs Lambda has one or more errors in a 5-minute period.",
+      lambdaFunction: resources.lambda("dailyJobs"),
+      period: lambdaAlarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaDurationAlarm({
+      ...props,
+      scope: this,
+      id: "DailyJobsLambdaDurationAlarm",
+      name: "daily-jobs-lambda-duration-near-timeout",
+      description: "Daily Jobs Lambda duration is above 80% of its configured timeout.",
+      lambdaFunction: resources.lambda("dailyJobs"),
+      period: lambdaAlarmPeriod,
+      threshold: Duration.minutes(4),
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaThrottlesAlarm({
+      ...props,
+      scope: this,
+      id: "DailyJobsLambdaThrottlesAlarm",
+      name: "daily-jobs-lambda-throttles",
+      description: "Daily Jobs Lambda has one or more throttled invocations in a 5-minute period.",
+      lambdaFunction: resources.lambda("dailyJobs"),
       period: lambdaAlarmPeriod,
       threshold: 0,
       evaluationPeriods: 1,

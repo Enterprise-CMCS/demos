@@ -117,6 +117,18 @@ describe("renderEmail", () => {
     expect(payload.text).toContain("http://localhost:3000/deliverables/deliverable-1");
   });
 
+  it("renders a deliverable-due-today email", async () => {
+    const payload = await renderEmail("deliverable-due-today", deliverableCreatedInput);
+
+    expect(payload.subject).toBe("CMS DEMOS Deliverable: Due Today");
+    expect(payload.text).toContain(
+      "A Close Out Report deliverable is due today, 2026-06-01."
+    );
+    expect(payload.text).toContain("Action: Due Today");
+    expect(payload.text).toContain("Current due date: 2026-06-01");
+    expect(payload.text).toContain("http://localhost:3000/deliverables/deliverable-1");
+  });
+
   it("reports a missing previous due date for a due date updated email", async () => {
     await expect(
       renderEmail("deliverable-due-date-updated", {
