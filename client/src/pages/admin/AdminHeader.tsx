@@ -1,6 +1,5 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { IconButton } from "components/button";
 import { ExitIcon, SettingsIcon } from "components/icons";
 
 export const AdminHeader: React.FC = () => {
@@ -12,14 +11,17 @@ export const AdminHeader: React.FC = () => {
         <div className="text-xl font-bold flex gap-0-5 items-baseline">
           <SettingsIcon />Admin
         </div>
-        <IconButton
-          icon={<ExitIcon />}
+        <button
+          className="flex gap-0-5 text-sm cursor-pointer"
           name="close-admin"
           data-testid="close-admin"
           onClick={() => navigate(-1)}
         >
-          Close Admin
-        </IconButton>
+          <span className="mt-[-2px]">Close Admin</span>
+          <span className="flex items-center">
+            <ExitIcon className="h-[12px]" />
+          </span>
+        </button>
       </div>
     </header>
   );

@@ -3,39 +3,11 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MockedProvider } from "@apollo/client/testing";
 
 import { ApplicationDetailsSection, ApplicationDetailsFormData } from "./applicationDetailsSection";
 import { LocalDate } from "demos-server";
-
-type SelectUSAStatesProps = {
-  label: string;
-  value: string;
-  onSelect: (state: string) => void;
-};
-
-type SelectUsersProps = {
-  label: string;
-};
-
-vi.mock("components/input/select/SelectUSAStates", () => ({
-  SelectUSAStates: ({ label, value, onSelect }: SelectUSAStatesProps) => (
-    <div>
-      <label>{label}</label>
-      <button onClick={() => onSelect("NY")}>Select NY</button>
-      <span>{value}</span>
-    </div>
-  ),
-}));
-
-vi.mock("components/input/select/SelectUsers", () => ({
-  SelectUsers: ({ label }: SelectUsersProps) => (
-    <div>
-      <label>{label}</label>
-      <p>Loading...</p>
-    </div>
-  ),
-}));
+import { TestProvider } from "test-utils/TestProvider";
+import { readonlyMockUser, MockUser } from "mock-data/userMocks";
 
 describe("ApplicationDetailsSection", () => {
   const mockSetSectionFormData = vi.fn();
@@ -54,25 +26,26 @@ describe("ApplicationDetailsSection", () => {
     description: undefined,
     sdgDivision: undefined,
     signatureLevel: undefined,
-    readonlyFields: {},
+    staticFields: {},
   };
 
   const setup = (
     overrides?: Partial<ApplicationDetailsFormData>,
     isComplete = false,
-    isReadonly = false
+    isDemonstrationApproved = false,
+    currentUser?: MockUser
   ) => {
     render(
-      <MockedProvider mocks={[]}>
+      <TestProvider mocks={[]} currentUser={currentUser}>
         <ApplicationDetailsSection
           sectionFormData={{ ...baseFormData, ...overrides }}
           setSectionFormData={mockSetSectionFormData}
           isComplete={isComplete}
-          isReadonly={isReadonly}
+          isDemonstrationApproved={isDemonstrationApproved}
           onMarkComplete={mockOnMarkComplete}
           onMarkIncomplete={vi.fn()}
         />
-      </MockedProvider>
+      </TestProvider>
     );
   };
 
@@ -95,23 +68,23 @@ describe("ApplicationDetailsSection", () => {
     expect(screen.getByLabelText(/demonstration title/i)).toBeInTheDocument();
   });
 
-  it("renders editable input when field is not readonly", () => {
+  it("renders editable input when field is not static", () => {
     setup({
       name: "Demo",
-      readonlyFields: {},
+      staticFields: {},
     });
 
     const input = screen.getByLabelText(/demonstration title/i);
     expect(input).toBeEnabled();
   });
 
-  it("renders static value when field is marked readonly", () => {
+  it("renders static value when field is marked static", () => {
     setup({
-      name: "Readonly Demo",
-      readonlyFields: { name: true },
+      name: "Static Demo",
+      staticFields: { name: true },
     });
 
-    expect(screen.getByText("Readonly Demo")).toBeInTheDocument();
+    expect(screen.getByText("Static Demo")).toBeInTheDocument();
     expect(screen.queryByLabelText(/demonstration title/i)).not.toBeInTheDocument();
   });
 
@@ -187,7 +160,7 @@ describe("ApplicationDetailsSection", () => {
         name: "Amendment 1",
         effectiveDate: "2025-01-01",
         signatureLevel: "OA",
-        readonlyFields: {},
+        staticFields: {},
       } as ApplicationDetailsFormData);
 
       expect(screen.getByText(/confirm all amendment information/i)).toBeInTheDocument();
@@ -201,7 +174,7 @@ describe("ApplicationDetailsSection", () => {
         name: "Amendment 1",
         effectiveDate: "2025-01-01",
         signatureLevel: "OA",
-        readonlyFields: {},
+        staticFields: {},
       } as ApplicationDetailsFormData);
 
       expect(screen.queryByText(/state\/territory/i)).not.toBeInTheDocument();
@@ -217,7 +190,7 @@ describe("ApplicationDetailsSection", () => {
         name: "Amendment 1",
         effectiveDate: "2025-01-01",
         signatureLevel: "OA",
-        readonlyFields: {},
+        staticFields: {},
         applicationApprovalDate: "2025-06-01",
       } as ApplicationDetailsFormData);
 
@@ -230,7 +203,7 @@ describe("ApplicationDetailsSection", () => {
         applicationType: "amendment",
         name: "Amendment 1",
         // missing effectiveDate + signatureLevel
-        readonlyFields: {},
+        staticFields: {},
       } as ApplicationDetailsFormData);
 
       const toggle = screen.getByRole("switch", { name: /mark complete/i });
@@ -243,7 +216,7 @@ describe("ApplicationDetailsSection", () => {
         name: "Extension 1",
         effectiveDate: "2025-01-01",
         signatureLevel: "OA",
-        readonlyFields: {},
+        staticFields: {},
       } as ApplicationDetailsFormData);
 
       expect(screen.getByLabelText(/extension title/i)).toBeInTheDocument();
@@ -261,7 +234,7 @@ describe("ApplicationDetailsSection", () => {
         expirationDate: "2026-01-01",
         sdgDivision: "Division of System Reform Demonstrations",
         signatureLevel: "OA",
-        readonlyFields: {},
+        staticFields: {},
         applicationApprovalDate: "2025-06-01" as LocalDate,
       } as ApplicationDetailsFormData);
 
@@ -274,7 +247,7 @@ describe("ApplicationDetailsSection", () => {
         name: "Amendment 1",
         effectiveDate: "2025-01-01",
         signatureLevel: "OA",
-        readonlyFields: {},
+        staticFields: {},
         applicationApprovalDate: "2025-06-01",
       } as ApplicationDetailsFormData);
 
@@ -285,11 +258,39 @@ describe("ApplicationDetailsSection", () => {
         name: "Extension 1",
         effectiveDate: "2025-01-01",
         signatureLevel: "OA",
-        readonlyFields: {},
+        staticFields: {},
         applicationApprovalDate: "2025-06-01",
       } as ApplicationDetailsFormData);
 
       expect(screen.getByLabelText(/application approval date/i)).toBeInTheDocument();
+    });
+  });
+
+  describe("Readonly User Behavior", () => {
+    it("disables all editable fields and hides mark complete for readonly users", () => {
+      setup(
+        {
+          applicationType: "demonstration",
+          stateId: "CA",
+          stateName: "California",
+          staticFields: {},
+        },
+        false,
+        false,
+        readonlyMockUser
+      );
+
+      // Check that all editable inputs are disabled
+      expect(screen.getByLabelText(/demonstration title/i)).toBeDisabled();
+      expect(screen.getByLabelText(/status/i)).toBeDisabled();
+      expect(screen.getByLabelText(/effective date/i)).toBeDisabled();
+      expect(screen.getByLabelText(/expiration date/i)).toBeDisabled();
+      expect(screen.getByLabelText(/demonstration description/i)).toBeDisabled();
+      expect(screen.getByLabelText(/signature level/i)).toBeDisabled();
+      expect(screen.getByLabelText(/application approval date/i)).toBeDisabled();
+
+      // Check that Mark Complete switch is hidden
+      expect(screen.queryByRole("switch", { name: /mark complete/i })).not.toBeInTheDocument();
     });
   });
 });
