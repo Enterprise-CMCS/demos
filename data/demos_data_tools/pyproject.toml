@@ -1,7 +1,9 @@
 [tool.coverage.run]
 omit = [
     "*/test_*.py",
-    "*/history_trigger_generator.py"
+    "*/history_trigger_generator.py",
+    "*/load_data_to_demos_app_configs.py",
+    "*/load_data_to_demos_app_types.py",
 ]
 
 [tool.pytest.ini_options]
@@ -14,6 +16,7 @@ line-length = 120
 indent-width = 4
 target-version = "py313"
 output-format = "concise"
+include = ["*.py"]
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "B", "D", "Q", "DOC"]
