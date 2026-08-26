@@ -13,8 +13,8 @@ ALTER TABLE "primary_demonstration_role_assignment" ADD COLUMN     "person_type_
 ALTER TABLE "primary_demonstration_role_assignment_history" ADD COLUMN     "person_type_id" TEXT;
 
 -- drop and recreate triggers with new column definition to capture migration updates in history
-DROP TRIGGER log_changes_primary_demonstration_role_assignment ON demos_app.primary_demonstration_role_assignment;
-DROP FUNCTION demos_app.log_changes_primary_demonstration_role_assignment();
+DROP TRIGGER IF EXISTS log_changes_primary_demonstration_role_assignment ON demos_app.primary_demonstration_role_assignment;
+DROP FUNCTION IF EXISTS demos_app.log_changes_primary_demonstration_role_assignment();
 
 CREATE FUNCTION demos_app.log_changes_primary_demonstration_role_assignment()
 RETURNS TRIGGER AS $$
