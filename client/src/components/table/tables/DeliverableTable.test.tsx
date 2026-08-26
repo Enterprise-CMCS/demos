@@ -455,7 +455,10 @@ describe("DeliverableTable", () => {
 
 describe("DeliverableTable demos-state-user view mode", () => {
   it("renders the state-user column set and hides state/CMS owner", async () => {
-    renderComponent(cmsMockUser, { deliverables: MOCK_DELIVERABLE_TABLE_ROWS, viewMode: "demos-state-user" });
+    renderComponent(cmsMockUser, {
+      deliverables: MOCK_DELIVERABLE_TABLE_ROWS,
+      viewMode: "demos-state-user",
+    });
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
@@ -473,14 +476,20 @@ describe("DeliverableTable demos-state-user view mode", () => {
   });
 
   it("hides row action buttons in state-user mode", () => {
-    renderComponent(cmsMockUser, { deliverables: MOCK_DELIVERABLE_TABLE_ROWS, viewMode: "demos-state-user" });
+    renderComponent(cmsMockUser, {
+      deliverables: MOCK_DELIVERABLE_TABLE_ROWS,
+      viewMode: "demos-state-user",
+    });
 
     expect(screen.queryByLabelText(/Edit Deliverable/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Remove Deliverable/i)).not.toBeInTheDocument();
   });
 
   it("shows filter options aligned to visible state-user columns", async () => {
-    renderComponent(cmsMockUser, { deliverables: MOCK_DELIVERABLE_TABLE_ROWS, viewMode: "demos-state-user" });
+    renderComponent(cmsMockUser, {
+      deliverables: MOCK_DELIVERABLE_TABLE_ROWS,
+      viewMode: "demos-state-user",
+    });
 
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
@@ -880,9 +889,11 @@ describe("getLatestSubmissionDate", () => {
 });
 
 describe("Readonly view mode", () => {
-  it("renders the table in readonly mode when viewMode is 'demos-readonly'", async () => {
-    // TODO: Update demos-readonly to demos-cms-restricted-user
-    renderComponent(readonlyMockUser, { deliverables: MOCK_DELIVERABLE_TABLE_ROWS, viewMode: "demos-readonly" as UserType });
+  it("renders the table in readonly mode when viewMode is 'demos-restricted-cms-user'", async () => {
+    renderComponent(readonlyMockUser, {
+      deliverables: MOCK_DELIVERABLE_TABLE_ROWS,
+      viewMode: "demos-restricted-cms-user" satisfies UserType,
+    });
 
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();

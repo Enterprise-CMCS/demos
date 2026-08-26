@@ -54,7 +54,7 @@ const EDIT_DELETE_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
 const DEMONSTRATION_DELIVERABLES_BACK_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
   "demos-admin",
   "demos-cms-user",
-  "demos-readonly",
+  "demos-restricted-cms-user",
 ]);
 
 export const GET_DELIVERABLE_DETAILS_QUERY_NAME = "GetDeliverableDetails";

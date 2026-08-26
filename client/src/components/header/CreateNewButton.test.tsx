@@ -73,7 +73,7 @@ describe("CreateNewButton", () => {
         ...mockUsers[0],
         person: {
           ...mockUsers[0].person,
-          personType: "demos-readonly",
+          personType: "demos-restricted-cms-user",
         },
       },
     });

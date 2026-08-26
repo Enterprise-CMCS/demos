@@ -15,5 +15,6 @@ model DemonstrationRoleAssignment {
   primaryDemonstrationRoleAssignment PrimaryDemonstrationRoleAssignment?
 
   @@id([personId, demonstrationId, roleId])
+  @@unique([personId, demonstrationId, roleId, personTypeId])
   @@map("demonstration_role_assignment")
 }

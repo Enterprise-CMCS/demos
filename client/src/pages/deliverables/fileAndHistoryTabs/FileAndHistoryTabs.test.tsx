@@ -252,7 +252,7 @@ describe("FileAndHistoryTabs", () => {
 
   describe("when the current user is a restricted CMS user", () => {
     it("hides every action button below the tabs", () => {
-      setup(undefined, "demos-readonly");
+      setup(undefined, "demos-restricted-cms-user");
 
       expect(screen.queryByTestId(FILE_AND_HISTORY_ACTIONS_NAME)).not.toBeInTheDocument();
       expect(screen.queryByTestId("button-actions-request-resubmission")).not.toBeInTheDocument();
@@ -261,7 +261,7 @@ describe("FileAndHistoryTabs", () => {
     });
 
     it("hides Add File(s) and the row-selection column on the State Files tab", () => {
-      setup(undefined, "demos-readonly");
+      setup(undefined, "demos-restricted-cms-user");
 
       expect(screen.queryByTestId(STATE_FILES_ADD_BUTTON_NAME)).not.toBeInTheDocument();
       expect(screen.queryByTestId(STATE_FILES_EDIT_BUTTON_NAME)).not.toBeInTheDocument();
@@ -273,7 +273,7 @@ describe("FileAndHistoryTabs", () => {
 
     it("hides Add File(s) and the row-selection column on the CMS Files tab", async () => {
       const user = userEvent.setup();
-      setup(undefined, "demos-readonly");
+      setup(undefined, "demos-restricted-cms-user");
 
       await user.click(screen.getByTestId("button-cms_files"));
 
@@ -287,7 +287,7 @@ describe("FileAndHistoryTabs", () => {
 
     it("still renders all three tabs and a View button per file", async () => {
       const user = userEvent.setup();
-      setup(undefined, "demos-readonly");
+      setup(undefined, "demos-restricted-cms-user");
 
       expect(screen.getByTestId("button-state_files")).toBeInTheDocument();
       expect(screen.getByTestId("button-cms_files")).toBeInTheDocument();
