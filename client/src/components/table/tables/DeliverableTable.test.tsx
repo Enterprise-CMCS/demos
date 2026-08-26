@@ -863,6 +863,34 @@ describe("DeliverableTable default sorting behavior", () => {
   });
 });
 
+describe("DeliverableTable status filtering", () => {
+  it("matches Upcoming separately from Upcoming - Extension Requested", async () => {
+    const user = userEvent.setup();
+    const deliverables: DeliverableTableRow[] = [
+      {
+        ...MOCK_DELIVERABLE_TABLE_ROW,
+        id: "upcoming",
+        name: "Upcoming Deliverable",
+      },
+      {
+        ...MOCK_DELIVERABLE_TABLE_ROW,
+        id: "upcoming-extension-requested",
+        name: "Upcoming Extension Requested Deliverable",
+        extensionRequests: [{ id: "extension-request", status: "Requested" }],
+      },
+    ];
+
+    renderComponent(cmsMockUser, { deliverables, viewMode: "demos-cms-user" });
+
+    await user.selectOptions(screen.getByTestId("filter-by-column"), "Status");
+    await user.click(screen.getByPlaceholderText("Select Status"));
+    await user.click(screen.getByLabelText("Upcoming", { selector: "input" }));
+
+    expect(screen.getByText("Upcoming Deliverable")).toBeInTheDocument();
+    expect(screen.queryByText("Upcoming Extension Requested Deliverable")).not.toBeInTheDocument();
+  });
+});
+
 describe("getLatestSubmissionDate", () => {
   it("returns undefined when there are no submission actions", () => {
     expect(
