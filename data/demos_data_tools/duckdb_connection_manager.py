@@ -2,7 +2,7 @@
 
 import os
 from logging import getLogger
-from typing import TYPE_CHECKING, Dict, Literal, assert_never
+from typing import TYPE_CHECKING, Literal, assert_never
 
 import duckdb
 
