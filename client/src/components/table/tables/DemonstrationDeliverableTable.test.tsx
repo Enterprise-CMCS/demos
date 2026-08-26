@@ -231,6 +231,40 @@ describe("DemonstrationDeliverableTable", () => {
     });
   });
 
+  it("excludes extension-requested deliverables from the Upcoming status filter", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <DemonstrationDeliverableTable
+        viewMode="demos-cms-user"
+        deliverables={[
+          {
+            id: "upcoming",
+            name: "Upcoming Deliverable",
+            dueDate: new Date("2026-11-07"),
+            status: "Upcoming",
+            ...baseDeliverable,
+          },
+          {
+            id: "upcoming-extension-requested",
+            name: "Upcoming Extension Requested Deliverable",
+            dueDate: new Date("2026-11-06"),
+            status: "Upcoming",
+            ...baseDeliverable,
+            extensionRequests: [{ id: "extension-request", status: "Requested" }],
+          },
+        ]}
+      />
+    );
+
+    await user.selectOptions(screen.getByTestId("filter-by-column"), "Status");
+    await user.click(screen.getByPlaceholderText("Select Status"));
+    await user.click(screen.getByLabelText("Upcoming", { selector: "input" }));
+
+    expect(screen.getByText("Upcoming Deliverable")).toBeInTheDocument();
+    expect(screen.queryByText("Upcoming Extension Requested Deliverable")).not.toBeInTheDocument();
+  });
+
   it("hides scoped and CMS-only controls for state users", () => {
     render(
       <DemonstrationDeliverableTable
