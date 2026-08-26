@@ -1,12 +1,10 @@
-SET search_path TO demos_app;
+INSERT INTO demos_app.person_type VALUES ('demos-restricted-cms-user');
 
-INSERT INTO person_type VALUES ('demos-restricted-cms-user');
+INSERT INTO demos_app.user_person_type_limit VALUES ('demos-restricted-cms-user');
 
-INSERT INTO user_person_type_limit VALUES ('demos-restricted-cms-user');
+INSERT INTO demos_app.role VALUES ('Restricted CMS User', 'System');
 
-INSERT INTO role VALUES ('Restricted CMS User', 'System');
-
-INSERT INTO role_person_type VALUES
+INSERT INTO demos_app.role_person_type VALUES
     -- system roles
     ('Restricted CMS User', 'demos-restricted-cms-user'),
 
@@ -17,7 +15,7 @@ INSERT INTO role_person_type VALUES
     ('Monitoring & Evaluation Technical Director', 'demos-restricted-cms-user')
 ;
 
-INSERT INTO role_permission VALUES
+INSERT INTO demos_app.role_permission VALUES
 	-- field-based permissions
     ('Restricted CMS User','System','Access CMS Field'),
     ('Restricted CMS User','System','Access CMS Query'),
