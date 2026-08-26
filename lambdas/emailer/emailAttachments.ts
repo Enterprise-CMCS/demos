@@ -1,8 +1,5 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import type { Options } from "nodemailer/lib/mailer";
-import { POINT_AND_CLICK_AGREEMENT } from "./pointAndClickAgreement";
 
 type EmailAttachment = NonNullable<Options["attachments"]>[number];
 
@@ -20,14 +17,6 @@ export async function buildReferenceTermsAttachment(
   payload: unknown,
 ): Promise<EmailAttachment> {
   const termsAndConditions = getTermsAndConditions(payload);
-  if (termsAndConditions.s3Path === POINT_AND_CLICK_AGREEMENT.s3Path) {
-    return {
-      filename: termsAndConditions.fileName,
-      content: await readFile(path.resolve(__dirname, POINT_AND_CLICK_AGREEMENT.fileName)),
-      contentType: POINT_AND_CLICK_AGREEMENT.contentType,
-    };
-  }
-
   const bucket = process.env.CLEAN_BUCKET?.trim();
   if (!bucket) {
     throw new Error(

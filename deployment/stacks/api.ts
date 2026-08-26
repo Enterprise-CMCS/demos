@@ -8,6 +8,7 @@ import {
   aws_secretsmanager,
   aws_apigateway,
   aws_s3,
+  aws_s3_deployment,
   Duration,
   aws_ssm,
   aws_kms,
@@ -161,6 +162,29 @@ export class ApiStack extends Stack {
 
     const cleanBucketName = Fn.importValue(`${props.stage}CleanBucketName`);
     const cleanBucket = aws_s3.Bucket.fromBucketName(this, "cleanBucket", cleanBucketName);
+    const emailerPath = path.join("..", "lambdas", "emailer");
+    const agreementDeploymentRole = new aws_iam.Role(
+      this,
+      "PointAndClickAgreementDeploymentRole",
+      {
+        assumedBy: new aws_iam.ServicePrincipal("lambda.amazonaws.com"),
+        path: commonProps.iamPath,
+        permissionsBoundary: commonProps.iamPermissionsBoundary,
+      }
+    );
+
+    new aws_s3_deployment.BucketDeployment(this, "DeployPointAndClickAgreement", {
+      sources: [
+        aws_s3_deployment.Source.asset(emailerPath, {
+          exclude: ["*", ".*", "!point-click-agreement.pdf"],
+        }),
+      ],
+      destinationBucket: cleanBucket,
+      destinationKeyPrefix: "references/agreements",
+      contentType: "application/pdf",
+      prune: false,
+      role: agreementDeploymentRole,
+    });
 
     const deletedBucketName = Fn.importValue(`${props.stage}DeletedBucketName`);
     const deletedBucket = aws_s3.Bucket.fromBucketName(this, "deletedBucket", deletedBucketName);
@@ -299,13 +323,12 @@ export class ApiStack extends Stack {
     );
     // Emailer
     const emailSuffix = commonProps.stage == "prod" ? "" : `-${commonProps.stage}`;
-    const emailerPath = path.join("..", "lambdas", "emailer");
     const emailerLambda = new lambda.Lambda(commonProps.scope, "emailer", {
       ...commonProps,
       scope: commonProps.scope,
       entry: "../lambdas/emailer/index.ts",
       handler: "index.handler",
-      vp∂c: props.vpc,
+      vpc: props.vpc,
       externalModules: ["@aws-sdk"],
       nodeModules: [
         "@react-email/components",
@@ -335,7 +358,6 @@ export class ApiStack extends Stack {
         afterBundling(inputDir: string, outputDir: string): string[] {
           return [
             `cp ${inputDir}/../../deployment/cert.pem ${outputDir}/cert.pem`,
-            `cp ${inputDir}/point-click-agreement.pdf ${outputDir}/point-click-agreement.pdf`,
           ];
         },
         beforeBundling() {

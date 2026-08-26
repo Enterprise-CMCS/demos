@@ -3,7 +3,6 @@ import { mockClient } from "aws-sdk-client-mock";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { buildReferenceTermsAttachment } from "./emailAttachments";
-import { POINT_AND_CLICK_AGREEMENT } from "./pointAndClickAgreement";
 
 const s3Mock = mockClient(S3Client);
 
@@ -39,21 +38,30 @@ describe("buildReferenceTermsAttachment", () => {
     });
   });
 
-  it("loads the static point and click agreement", async () => {
-    const attachment = await buildReferenceTermsAttachment({
-      termsAndConditions: {
-        fileName: POINT_AND_CLICK_AGREEMENT.fileName,
-        s3Path: POINT_AND_CLICK_AGREEMENT.s3Path,
-      },
+  it("loads the point and click agreement from the clean bucket", async () => {
+    s3Mock.on(GetObjectCommand).resolves({
+      Body: {
+        transformToByteArray: async () => new Uint8Array([1, 2, 3]),
+      } as any,
+      ContentType: "application/pdf",
     });
 
-    expect(attachment).toEqual({
-      filename: POINT_AND_CLICK_AGREEMENT.fileName,
-      content: expect.any(Buffer),
+    await expect(
+      buildReferenceTermsAttachment({
+        termsAndConditions: {
+          fileName: "point-click-agreement.pdf",
+          s3Path: "references/agreements/point-click-agreement.pdf",
+        },
+      }),
+    ).resolves.toEqual({
+      filename: "point-click-agreement.pdf",
+      content: Buffer.from([1, 2, 3]),
       contentType: "application/pdf",
     });
-    expect((attachment.content as Buffer).subarray(0, 5).toString()).toBe("%PDF-");
-    expect(s3Mock.commandCalls(GetObjectCommand)).toHaveLength(0);
+    expect(s3Mock.commandCalls(GetObjectCommand)[0].args[0].input).toEqual({
+      Bucket: "clean-bucket",
+      Key: "references/agreements/point-click-agreement.pdf",
+    });
   });
 
   it("reports a missing clean bucket", async () => {
