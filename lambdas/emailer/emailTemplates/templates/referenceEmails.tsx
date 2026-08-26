@@ -45,8 +45,7 @@ function ReferenceTermsEmail({
 
 export const referenceEmailTemplates: Record<string, EmailTemplateDefinition> =
   {
-    "reference-terms-and-conditions": {
-      id: "reference-terms-and-conditions",
+    "Terms And Conditions Requested": {
       subject: "CMS DEMOS: National Measure Stewards Terms and Conditions",
       Component: ReferenceTermsEmail,
       getProps(input: ReferenceTermsInput) {
@@ -54,12 +53,12 @@ export const referenceEmailTemplates: Record<string, EmailTemplateDefinition> =
           referenceMaterialName: getRequiredValue(
             input.referenceMaterial?.name,
             "referenceMaterial.name",
-            "reference-terms-and-conditions",
+            "Terms And Conditions Requested",
           ),
           termsAndConditionsName: getRequiredValue(
             input.termsAndConditions?.name,
             "termsAndConditions.name",
-            "reference-terms-and-conditions",
+            "Terms And Conditions Requested",
           ),
         };
       },
@@ -67,7 +66,7 @@ export const referenceEmailTemplates: Record<string, EmailTemplateDefinition> =
         return getRequiredValue(
           input.recipients,
           "recipients",
-          "reference-terms-and-conditions",
+          "Terms And Conditions Requested",
         );
       },
     },

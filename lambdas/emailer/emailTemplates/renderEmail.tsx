@@ -10,7 +10,7 @@ import type {
 } from "./types";
 
 export async function renderEmail(
-  templateId: string,
+  emailType: string,
   input: unknown,
   options: {
     now?: Date;
@@ -18,10 +18,10 @@ export async function renderEmail(
   } = {}
 ): Promise<RenderedEmailPayload> {
   const templateRegistry = options.templateRegistry ?? templates;
-  const template = templateRegistry[templateId];
+  const template = templateRegistry[emailType];
 
   if (!template) {
-    throw new Error(`Unknown email template: ${templateId}`);
+    throw new Error(`Unsupported email type: ${emailType}`);
   }
 
   const context = {

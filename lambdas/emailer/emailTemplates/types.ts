@@ -24,7 +24,6 @@ export type EmailRenderContext = {
 };
 
 export type EmailTemplateDefinition<Props extends object = any, Input = any> = {
-  id: string;
   subject: string | ((props: Props) => string);
   Component: ComponentType<Props>;
   getProps(input: Input, context: EmailRenderContext): Props;

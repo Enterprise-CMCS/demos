@@ -19,14 +19,13 @@ const multipleDeliverablesCreatedTemplate: EmailTemplateDefinition<
   MultipleDeliverablesEmailProps,
   MultipleDeliverablesEmailInput
 > = {
-  id: "multiple-deliverables-created",
   subject: "CMS DEMOS Deliverables: Multiple Deliverables Created",
   Component: MultipleDeliverablesEmail,
   getProps(input) {
     const deliverables = getRequiredValue(
       input.deliverables,
       "deliverables",
-      "multiple-deliverables-created"
+      "Multiple Deliverables Created"
     );
     if (deliverables.length < 2) {
       throw new Error(
@@ -38,19 +37,19 @@ const multipleDeliverablesCreatedTemplate: EmailTemplateDefinition<
     const deliverableType = getRequiredValue(
       firstDeliverable.deliverableTypeId,
       "deliverables[0].deliverableTypeId",
-      "multiple-deliverables-created"
+      "Multiple Deliverables Created"
     );
 
     return {
       demonstrationTitle: getRequiredValue(
         input.demonstration?.name,
         "demonstration.name",
-        "multiple-deliverables-created"
+        "Multiple Deliverables Created"
       ),
       state: getRequiredValue(
         input.demonstration?.stateId,
         "demonstration.stateId",
-        "multiple-deliverables-created"
+        "Multiple Deliverables Created"
       ),
       deliverableType,
       deliverableNames: deliverables
@@ -58,7 +57,7 @@ const multipleDeliverablesCreatedTemplate: EmailTemplateDefinition<
           getRequiredValue(
             deliverable.name,
             `deliverables[${index}].name`,
-            "multiple-deliverables-created"
+            "Multiple Deliverables Created"
           )
         )
         .join(", "),
@@ -71,14 +70,14 @@ const multipleDeliverablesCreatedTemplate: EmailTemplateDefinition<
         const id = getRequiredValue(
           deliverable.id,
           `deliverables[${index}].id`,
-          "multiple-deliverables-created"
+          "Multiple Deliverables Created"
         );
         return {
           dueDate: formatDate(
             getRequiredValue(
               deliverable.dueDate,
               `deliverables[${index}].dueDate`,
-              "multiple-deliverables-created"
+              "Multiple Deliverables Created"
             )
           ),
           link: `${demosAppUrl}/deliverables/${id}`,
@@ -90,14 +89,14 @@ const multipleDeliverablesCreatedTemplate: EmailTemplateDefinition<
     return getRequiredValue<EmailRecipientGroups>(
       input.recipients,
       "recipients",
-      "multiple-deliverables-created"
+      "Multiple Deliverables Created"
     );
   },
 };
 
-export const deliverableEmailConfigById = {
-  "deliverable-created": {
-    id: "deliverable-created",
+const deliverableEmailConfigs = [
+  {
+    emailType: "Deliverable Created",
     action: "Deliverable Created",
     Message: ({ currentDueDate, deliverableType, link }) => (
       <Text style={textStyle}>
@@ -106,8 +105,8 @@ export const deliverableEmailConfigById = {
       </Text>
     ),
   },
-  "deliverable-due-date-updated": {
-    id: "deliverable-due-date-updated",
+  {
+    emailType: "Deliverable Due Date Updated",
     action: "Deliverable Due Date Updated",
     includePreviousDueDate: true,
     Message: ({ currentDueDate, deliverableType, link }) => (
@@ -117,8 +116,8 @@ export const deliverableEmailConfigById = {
       </Text>
     ),
   },
-  "deliverable-submitted": {
-    id: "deliverable-submitted",
+  {
+    emailType: "Deliverable Submitted",
     action: "Deliverable Submitted",
     Message: ({ deliverableType, link }) => (
       <Text style={textStyle}>
@@ -126,8 +125,8 @@ export const deliverableEmailConfigById = {
       </Text>
     ),
   },
-  "deliverable-accepted": {
-    id: "deliverable-accepted",
+  {
+    emailType: "Deliverable Accepted",
     action: "Accepted",
     Message: ({ deliverableType, link }) => (
       <Text style={textStyle}>
@@ -135,8 +134,8 @@ export const deliverableEmailConfigById = {
       </Text>
     ),
   },
-  "deliverable-approved": {
-    id: "deliverable-approved",
+  {
+    emailType: "Deliverable Approved",
     action: "Approved",
     Message: ({ deliverableType, link }) => (
       <Text style={textStyle}>
@@ -144,8 +143,8 @@ export const deliverableEmailConfigById = {
       </Text>
     ),
   },
-  "deliverable-received-and-filed": {
-    id: "deliverable-received-and-filed",
+  {
+    emailType: "Deliverable Received and Filed",
     action: "Received and Filed",
     Message: ({ deliverableType, link }) => (
       <Text style={textStyle}>
@@ -154,8 +153,8 @@ export const deliverableEmailConfigById = {
       </Text>
     ),
   },
-  "extension-requested": {
-    id: "extension-requested",
+  {
+    emailType: "Extension Requested",
     action: "Extension Requested",
     includeRequestedDueDate: true,
     Message: ({ currentDueDate, deliverableType, link }) => (
@@ -165,8 +164,8 @@ export const deliverableEmailConfigById = {
       </Text>
     ),
   },
-  "extension-decision-made": {
-    id: "extension-decision-made",
+  {
+    emailType: "Extension Decision Made",
     action: "Extension Decision Made",
     includePreviousDueDate: true,
     requiresExtensionDecision: true,
@@ -177,8 +176,8 @@ export const deliverableEmailConfigById = {
       </Text>
     ),
   },
-  "resubmission-requested": {
-    id: "resubmission-requested",
+  {
+    emailType: "Resubmission Requested",
     action: "Resubmission Requested",
     includePreviousDueDate: true,
     Message: ({ currentDueDate, deliverableType, link }) => (
@@ -188,8 +187,8 @@ export const deliverableEmailConfigById = {
       </Text>
     ),
   },
-  "public-comment-added": {
-    id: "public-comment-added",
+  {
+    emailType: "Public Comment Added",
     action: "Public Comment Added",
     Message: ({ deliverableType, link }) => (
       <Text style={textStyle}>
@@ -198,14 +197,14 @@ export const deliverableEmailConfigById = {
       </Text>
     ),
   },
-} satisfies Record<string, DeliverableEmailConfig>;
+] satisfies DeliverableEmailConfig[];
 
-export const deliverableEmailTemplates = Object.fromEntries(
-  Object.values(deliverableEmailConfigById).map((config) => {
-    const template = createDeliverableEmailTemplate(config);
-    return [template.id, template];
-  })
-) as Record<string, EmailTemplateDefinition>;
-
-deliverableEmailTemplates[multipleDeliverablesCreatedTemplate.id] =
-  multipleDeliverablesCreatedTemplate;
+export const deliverableEmailTemplates = {
+  ...Object.fromEntries(
+    deliverableEmailConfigs.map((config) => [
+      config.emailType,
+      createDeliverableEmailTemplate(config),
+    ])
+  ),
+  "Multiple Deliverables Created": multipleDeliverablesCreatedTemplate,
+} satisfies Record<string, EmailTemplateDefinition>;

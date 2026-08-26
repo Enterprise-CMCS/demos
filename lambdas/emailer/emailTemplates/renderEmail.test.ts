@@ -29,8 +29,8 @@ function cleanHtml(html: string): string {
 }
 
 describe("renderEmail", () => {
-  it("renders a deliverable-created emailer payload", async () => {
-    const payload = await renderEmail("deliverable-created", deliverableCreatedInput);
+  it("renders a Deliverable Created emailer payload", async () => {
+    const payload = await renderEmail("Deliverable Created", deliverableCreatedInput);
 
     expect(payload.to).toEqual([]);
     expect(payload.bcc).toEqual(["cms.owner@example.com"]);
@@ -47,7 +47,7 @@ describe("renderEmail", () => {
   });
 
   it("renders one email for multiple created deliverables", async () => {
-    const payload = await renderEmail("multiple-deliverables-created", {
+    const payload = await renderEmail("Multiple Deliverables Created", {
       recipients: deliverableCreatedInput.recipients,
       demonstration: deliverableCreatedInput.demonstration,
       deliverables: [
@@ -81,7 +81,7 @@ describe("renderEmail", () => {
 
   it("requires multiple deliverables for the grouped template", async () => {
     await expect(
-      renderEmail("multiple-deliverables-created", {
+      renderEmail("Multiple Deliverables Created", {
         recipients: deliverableCreatedInput.recipients,
         demonstration: deliverableCreatedInput.demonstration,
         deliverables: [deliverableCreatedInput.deliverable],
@@ -91,8 +91,8 @@ describe("renderEmail", () => {
     );
   });
 
-  it("renders a deliverable-submitted email from the same shared parts", async () => {
-    const payload = await renderEmail("deliverable-submitted", deliverableCreatedInput);
+  it("renders a Deliverable Submitted email from the same shared parts", async () => {
+    const payload = await renderEmail("Deliverable Submitted", deliverableCreatedInput);
 
     expect(payload.subject).toBe("CMS DEMOS Deliverable: Deliverable Submitted");
     expect(payload.text).toContain("A Close Out Report deliverable has been submitted");
@@ -103,7 +103,7 @@ describe("renderEmail", () => {
 
   it("renders a deliverable due date updated email", async () => {
     const payload = await renderEmail(
-      "deliverable-due-date-updated",
+      "Deliverable Due Date Updated",
       deliverableCreatedInput
     );
 
@@ -119,7 +119,7 @@ describe("renderEmail", () => {
 
   it("reports a missing previous due date for a due date updated email", async () => {
     await expect(
-      renderEmail("deliverable-due-date-updated", {
+      renderEmail("Deliverable Due Date Updated", {
         ...deliverableCreatedInput,
         deliverable: {
           ...deliverableCreatedInput.deliverable,
@@ -127,16 +127,16 @@ describe("renderEmail", () => {
         },
       })
     ).rejects.toThrow(
-      "Missing value for deliverable.previousDueDate while rendering deliverable-due-date-updated.data"
+      "Missing value for deliverable.previousDueDate while rendering Deliverable Due Date Updated.data"
     );
   });
 
   it.each([
-    ["deliverable-accepted", "Accepted"],
-    ["deliverable-approved", "Approved"],
-    ["deliverable-received-and-filed", "Received and Filed"],
-  ])("renders the %s completion template", async (templateId, action) => {
-    const payload = await renderEmail(templateId, deliverableCreatedInput);
+    ["Deliverable Accepted", "Accepted"],
+    ["Deliverable Approved", "Approved"],
+    ["Deliverable Received and Filed", "Received and Filed"],
+  ])("renders the %s completion template", async (emailType, action) => {
+    const payload = await renderEmail(emailType, deliverableCreatedInput);
 
     expect(payload.subject).toBe(`CMS DEMOS Deliverable: ${action}`);
     expect(payload.text).toContain(
@@ -145,8 +145,8 @@ describe("renderEmail", () => {
     expect(payload.text).toContain(`Action: ${action}`);
   });
 
-  it("renders an extension-requested template", async () => {
-    const payload = await renderEmail("extension-requested", deliverableCreatedInput);
+  it("renders an Extension Requested template", async () => {
+    const payload = await renderEmail("Extension Requested", deliverableCreatedInput);
 
     expect(payload.subject).toBe("CMS DEMOS Deliverable: Extension Requested");
     expect(payload.text).toContain(
@@ -155,8 +155,8 @@ describe("renderEmail", () => {
     expect(payload.text).toContain("Requested due date: 2026-07-01");
   });
 
-  it("renders an extension-decision-made template", async () => {
-    const payload = await renderEmail("extension-decision-made", deliverableCreatedInput);
+  it("renders an Extension Decision Made template", async () => {
+    const payload = await renderEmail("Extension Decision Made", deliverableCreatedInput);
 
     expect(payload.subject).toBe("CMS DEMOS Deliverable: Extension Decision Made");
     expect(payload.text).toContain(
@@ -165,8 +165,8 @@ describe("renderEmail", () => {
     expect(payload.text).toContain("Previous due date: 2026-05-01");
   });
 
-  it("renders a resubmission-requested template", async () => {
-    const payload = await renderEmail("resubmission-requested", deliverableCreatedInput);
+  it("renders a Resubmission Requested template", async () => {
+    const payload = await renderEmail("Resubmission Requested", deliverableCreatedInput);
 
     expect(payload.subject).toBe("CMS DEMOS Deliverable: Resubmission Requested");
     expect(payload.text).toContain(
@@ -175,8 +175,8 @@ describe("renderEmail", () => {
     expect(payload.text).toContain("Previous due date: 2026-05-01");
   });
 
-  it("renders a public-comment-added template", async () => {
-    const payload = await renderEmail("public-comment-added", deliverableCreatedInput);
+  it("renders a Public Comment Added template", async () => {
+    const payload = await renderEmail("Public Comment Added", deliverableCreatedInput);
 
     expect(payload.subject).toBe("CMS DEMOS Deliverable: Public Comment Added");
     expect(payload.text).toContain(
@@ -187,7 +187,7 @@ describe("renderEmail", () => {
   });
 
   it("renders the reference terms and conditions email", async () => {
-    const payload = await renderEmail("reference-terms-and-conditions", {
+    const payload = await renderEmail("Terms And Conditions Requested", {
       recipients: {
         to: [{ name: "Dustin Horning", address: "dustin@example.com" }],
       },
@@ -221,7 +221,7 @@ describe("renderEmail", () => {
 
   it("reports missing extension-specific values", async () => {
     await expect(
-      renderEmail("extension-requested", {
+      renderEmail("Extension Requested", {
         ...deliverableCreatedInput,
         deliverable: {
           ...deliverableCreatedInput.deliverable,
@@ -229,11 +229,11 @@ describe("renderEmail", () => {
         },
       })
     ).rejects.toThrow(
-      "Missing value for deliverable.requestedDueDate while rendering extension-requested.data"
+      "Missing value for deliverable.requestedDueDate while rendering Extension Requested.data"
     );
 
     await expect(
-      renderEmail("extension-decision-made", {
+      renderEmail("Extension Decision Made", {
         ...deliverableCreatedInput,
         deliverable: {
           ...deliverableCreatedInput.deliverable,
@@ -241,28 +241,28 @@ describe("renderEmail", () => {
         },
       })
     ).rejects.toThrow(
-      "Missing value for deliverable.extensionDecision while rendering extension-decision-made.data"
+      "Missing value for deliverable.extensionDecision while rendering Extension Decision Made.data"
     );
   });
 
   it("reports unknown templates", async () => {
-    await expect(renderEmail("unknown-template", deliverableCreatedInput)).rejects.toThrow(
-      "Unknown email template: unknown-template"
+    await expect(renderEmail("Unknown Email", deliverableCreatedInput)).rejects.toThrow(
+      "Unsupported email type: Unknown Email"
     );
   });
 
   it("reports missing required payload values", async () => {
     await expect(
-      renderEmail("deliverable-created", {
+      renderEmail("Deliverable Created", {
         ...deliverableCreatedInput,
         recipients: undefined,
       })
-    ).rejects.toThrow("Missing value for recipients while rendering deliverable-created.data");
+    ).rejects.toThrow("Missing value for recipients while rendering Deliverable Created.data");
   });
 
   it("requires at least one recipient across all BCC-only recipient groups", async () => {
     await expect(
-      renderEmail("deliverable-created", {
+      renderEmail("Deliverable Created", {
         ...deliverableCreatedInput,
         recipients: {
           to: [],

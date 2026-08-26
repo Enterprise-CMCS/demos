@@ -52,7 +52,7 @@ export type DeliverableEmailProps = {
 
 export type DeliverableEmailConfig = {
   action: string;
-  id: string;
+  emailType: string;
   includePreviousDueDate?: boolean;
   includeRequestedDueDate?: boolean;
   Message: ComponentType<DeliverableEmailProps>;

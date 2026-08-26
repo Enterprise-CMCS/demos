@@ -1,6 +1,5 @@
 import {
   clearCache,
-  EmailData,
   getAllowList,
   handler,
   isEmailerAddress,
@@ -8,7 +7,6 @@ import {
   isValidEmailData,
   redactEmailAddresses,
   sendEmailIsAllowed,
-  stripDisallowedFields,
 } from ".";
 import { log } from "./log";
 import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
@@ -130,8 +128,15 @@ describe("emailer", () => {
     });
   });
 
-  it("should properly handle a valid sqs event", async () => {
-    const emailData = '{"to":"test@email.com","subject":"Unit Test","text":"this is the text body"}';
+  it("should pass only supported direct email fields to nodemailer", async () => {
+    process.env.EMAIL_FROM = "sender@email.com";
+    const emailData = JSON.stringify({
+      to: "test@email.com",
+      subject: "Unit Test",
+      text: "this is the text body",
+      from: "untrusted@email.com",
+      attachments: [{ filename: "untrusted.txt", content: "untrusted" }],
+    });
     const mockEvent: SQSEvent = {
       Records: [
         {
@@ -166,7 +171,12 @@ describe("emailer", () => {
     const out = await handler(mockEvent);
     expect(out).toEqual("success");
     expect(sendMailSpy).toHaveBeenCalledOnce();
-    expect(sendMailSpy).toHaveBeenCalledWith(JSON.parse(emailData));
+    expect(sendMailSpy).toHaveBeenCalledWith({
+      to: "test@email.com",
+      subject: "Unit Test",
+      text: "this is the text body",
+      from: "sender@email.com",
+    });
   });
 
   it("should properly handle a valid sqs event with email not in allowlist", async () => {
@@ -209,7 +219,7 @@ describe("emailer", () => {
     expect(infoSpy).toHaveBeenCalledWith(expect.any(Object), "log only: email not in allowlist");
   });
 
-  it("should render a realtime deliverable-created envelope before allowlist processing", async () => {
+  it("should render a realtime Deliverable Created envelope before allowlist processing", async () => {
     ssmMock.on(GetParameterCommand).resolves({
       Parameter: {
         Value: "[]",
@@ -228,7 +238,6 @@ describe("emailer", () => {
     expect(infoSpy).toHaveBeenCalledWith(
       {
         emailType: "Deliverable Created",
-        template: "deliverable-created",
         entityId: "deliverable-1",
       },
       "rendering realtime email template"
@@ -338,7 +347,7 @@ describe("emailer", () => {
     );
   });
 
-  it("should select the deliverable-submitted template by email type", async () => {
+  it("should select Deliverable Submitted by email type", async () => {
     const email = await renderRealtimeEmailIfNeeded({
       ...realtimeDeliverableCreatedEnvelope,
       emailType: "Deliverable Submitted",
@@ -352,7 +361,7 @@ describe("emailer", () => {
     );
   });
 
-  it("should select the multiple-deliverables-created template", async () => {
+  it("should select the Multiple Deliverables Created template", async () => {
     const email = await renderRealtimeEmailIfNeeded({
       ...realtimeDeliverableCreatedEnvelope,
       emailType: "Multiple Deliverables Created",
@@ -425,7 +434,7 @@ describe("emailer", () => {
       handler(
         sqsEvent(JSON.stringify({ ...realtimeDeliverableCreatedEnvelope, emailType: "Unknown Email" }))
       )
-    ).rejects.toThrow("Unsupported realtime email type: Unknown Email");
+    ).rejects.toThrow("Unsupported email type: Unknown Email");
   });
 
   it("should report missing realtime email template payload values", async () => {
@@ -445,12 +454,12 @@ describe("emailer", () => {
         )
       )
     ).rejects.toThrow(
-      "Missing value for deliverable.name while rendering deliverable-created.data"
+      "Missing value for deliverable.name while rendering Deliverable Created.data"
     );
     expect(statusMocks.update).toHaveBeenCalledWith(
       realtimeDeliverableCreatedEnvelope.emailNotificationId,
       "Failed",
-      "Missing value for deliverable.name while rendering deliverable-created.data"
+      "Missing value for deliverable.name while rendering Deliverable Created.data"
     );
   });
 
@@ -610,21 +619,6 @@ describe("emailer", () => {
       name: "Unit Test",
       address: "un****@example.com",
     });
-  });
-
-  it("should remove invalid fields", () => {
-    const warnSpy = vitest.spyOn(log, "warn");
-    const output = stripDisallowedFields({ ...mockEmailData, invalid: "none" } as EmailData);
-    expect(output).toEqual(mockEmailData);
-    expect(warnSpy).toHaveBeenCalledOnce();
-  });
-
-  it("should allow attachments only for trusted realtime templates", () => {
-    const attachments = [{ filename: "agreement.pdf", content: "agreement" }];
-    const emailWithAttachment = { ...mockEmailData, attachments };
-
-    expect(stripDisallowedFields(emailWithAttachment)).toEqual(mockEmailData);
-    expect(stripDisallowedFields(emailWithAttachment, true)).toEqual(emailWithAttachment);
   });
 
   it("should leave legacy email payloads unchanged when realtime rendering is not needed", async () => {

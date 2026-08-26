@@ -20,39 +20,42 @@ export function createDeliverableEmailTemplate(
   };
 
   return {
-    id: config.id,
     subject: `CMS DEMOS Deliverable: ${config.action}`,
     Component,
     getProps(input) {
       const deliverableId = getRequiredValue(
         input.deliverable?.id,
         "deliverable.id",
-        config.id
+        config.emailType
       );
 
       const props: DeliverableEmailProps = {
         demonstrationTitle: getRequiredValue(
           input.demonstration?.name,
           "demonstration.name",
-          config.id
+          config.emailType
         ),
         state: getRequiredValue(
           input.demonstration?.stateId,
           "demonstration.stateId",
-          config.id
+          config.emailType
         ),
         deliverableType: getRequiredValue(
           input.deliverable?.deliverableTypeId,
           "deliverable.deliverableTypeId",
-          config.id
+          config.emailType
         ),
         deliverableName: getRequiredValue(
           input.deliverable?.name,
           "deliverable.name",
-          config.id
+          config.emailType
         ),
         currentDueDate: formatDate(
-          getRequiredValue(input.deliverable?.dueDate, "deliverable.dueDate", config.id)
+          getRequiredValue(
+            input.deliverable?.dueDate,
+            "deliverable.dueDate",
+            config.emailType
+          )
         ),
         link: `${demosAppUrl}/deliverables/${deliverableId}`,
       };
@@ -62,7 +65,7 @@ export function createDeliverableEmailTemplate(
           getRequiredValue(
             input.deliverable?.previousDueDate,
             "deliverable.previousDueDate",
-            config.id
+            config.emailType
           )
         );
       }
@@ -72,7 +75,7 @@ export function createDeliverableEmailTemplate(
           getRequiredValue(
             input.deliverable?.requestedDueDate,
             "deliverable.requestedDueDate",
-            config.id
+            config.emailType
           )
         );
       }
@@ -81,14 +84,18 @@ export function createDeliverableEmailTemplate(
         props.extensionDecision = getRequiredValue(
           input.deliverable?.extensionDecision,
           "deliverable.extensionDecision",
-          config.id
+          config.emailType
         );
       }
 
       return props;
     },
     getRecipients(input) {
-      return getRequiredValue<EmailRecipientGroups>(input.recipients, "recipients", config.id);
+      return getRequiredValue<EmailRecipientGroups>(
+        input.recipients,
+        "recipients",
+        config.emailType
+      );
     },
   };
 }

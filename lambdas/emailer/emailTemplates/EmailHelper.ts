@@ -11,10 +11,10 @@ export function formatDate(value: string): string {
 export function getRequiredValue<T>(
   value: T | null | undefined,
   valueName: string,
-  templateId: string
+  emailType: string
 ): T {
   if (value === undefined || value === null || value === "") {
-    throw new Error(`Missing value for ${valueName} while rendering ${templateId}.data`);
+    throw new Error(`Missing value for ${valueName} while rendering ${emailType}.data`);
   }
 
   return value;
