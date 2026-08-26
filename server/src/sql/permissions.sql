@@ -27,8 +27,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create the legacy_pmda schemas if not exists
--- Helps to avoid permission issues later for lower environments where they don't exist
+-- Create the legacy_pmda and cron schemas if not exists
+-- Helps to avoid permission issues later for lower and ci/cd environments where they don't exist
 CREATE SCHEMA IF NOT EXISTS cron;
 CREATE SCHEMA IF NOT EXISTS legacy_pmda_raw;
 CREATE SCHEMA IF NOT EXISTS legacy_pmda_staged;
