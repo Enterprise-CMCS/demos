@@ -119,9 +119,9 @@ export function DeliverableColumns({
         filterType: "select",
         options: isDemonstrationDetail
           ? DELIVERABLE_STATUSES.filter((status) => status !== "Deleted").map((status) => ({
-              label: status,
-              value: status,
-            }))
+            label: status,
+            value: status,
+          }))
           : COMBINED_STATUS_OPTIONS,
       },
     },
