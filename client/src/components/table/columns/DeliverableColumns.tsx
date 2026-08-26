@@ -105,8 +105,12 @@ export function DeliverableColumns({
   const statusColumn = columnHelper.accessor("combinedStatus", {
     header: "Status",
     cell: highlightCell,
-    filterFn: (row, _columnId, filterValue: string[]) =>
-      filterValue.includes(row.original.combinedStatusFilter),
+    filterFn: (row, _columnId, filterValue: string[]) => {
+      if (filterValue.length === 0) {
+        return true;
+      }
+      return filterValue.includes(row.original.combinedStatusFilter);
+    },
     meta: {
       headerClassName: "w-min-[100px] w-max-[200px]",
       headerContentClassName: "whitespace-normal break-words leading-snug",
@@ -115,9 +119,9 @@ export function DeliverableColumns({
         filterType: "select",
         options: isDemonstrationDetail
           ? DELIVERABLE_STATUSES.filter((status) => status !== "Deleted").map((status) => ({
-            label: status,
-            value: status,
-          }))
+              label: status,
+              value: status,
+            }))
           : COMBINED_STATUS_OPTIONS,
       },
     },
