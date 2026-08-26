@@ -6,7 +6,6 @@ import * as ssm from "@aws-sdk/client-ssm";
 import { log } from "./log";
 import { Address, Options } from "nodemailer/lib/mailer";
 import { renderEmail } from "./emailTemplates/renderEmail";
-import { buildReferenceTermsAttachment } from "./emailAttachments";
 import {
   DeliveryStatus,
   updateEmailNotificationStatus,
@@ -98,7 +97,7 @@ export const handler = async (event: SQSEvent) => {
       ...(email.html !== undefined ? { html: email.html } : {}),
       ...(email.cc !== undefined ? { cc: email.cc } : {}),
       ...(email.bcc !== undefined ? { bcc: email.bcc } : {}),
-      ...(realtimeEmail?.emailType === "Terms And Conditions Requested"
+      ...(realtimeEmail && email.attachments !== undefined
         ? { attachments: email.attachments }
         : {}),
       from: process.env.EMAIL_FROM,
@@ -186,15 +185,7 @@ export async function renderRealtimeEmailIfNeeded(email: unknown): Promise<unkno
     "rendering realtime email template"
   );
 
-  const renderedEmail = await renderEmail(email.emailType, email.payload);
-  if (email.emailType !== "Terms And Conditions Requested") {
-    return renderedEmail;
-  }
-
-  return {
-    ...renderedEmail,
-    attachments: [await buildReferenceTermsAttachment(email.payload)],
-  };
+  return renderEmail(email.emailType, email.payload);
 }
 
 export function isValidEmailData(email: any): email is EmailData {

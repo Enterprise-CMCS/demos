@@ -3,7 +3,18 @@ import type { ReactNode } from "react";
 
 import { EmailLayout } from "../components/EmailLayout";
 import { detailStyle, textStyle } from "../components/styles";
-import type { DeliverableEmailProps } from "./types";
+
+export type DeliverableEmailProps = {
+  currentDueDate: string;
+  demonstrationTitle: string;
+  deliverableName: string;
+  deliverableType: string;
+  extensionDecision?: "Approved" | "Denied";
+  link: string;
+  previousDueDate?: string;
+  requestedDueDate?: string;
+  state: string;
+};
 
 type Props = DeliverableEmailProps & {
   action: string;

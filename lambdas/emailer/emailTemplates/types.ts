@@ -1,4 +1,5 @@
-import type { ComponentType } from "react";
+import type { ReactElement } from "react";
+import type { Options } from "nodemailer/lib/mailer";
 
 export type EmailRecipient =
   | string
@@ -17,15 +18,15 @@ export type RenderedEmailPayload = EmailRecipientGroups & {
   subject: string;
   text: string;
   html: string;
+  attachments?: NonNullable<Options["attachments"]>;
 };
 
-export type EmailRenderContext = {
-  now: Date;
+export type EmailTemplateResult = {
+  subject: string;
+  content: ReactElement;
+  attachments?: NonNullable<Options["attachments"]>;
 };
 
-export type EmailTemplateDefinition<Props extends object = any, Input = any> = {
-  subject: string | ((props: Props) => string);
-  Component: ComponentType<Props>;
-  getProps(input: Input, context: EmailRenderContext): Props;
-  getRecipients(input: Input): EmailRecipientGroups;
-};
+export type EmailTemplate = (
+  input: unknown,
+) => EmailTemplateResult | Promise<EmailTemplateResult>;

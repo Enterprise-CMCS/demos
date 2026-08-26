@@ -1,6 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { renderEmail } from "./renderEmail";
+
+const attachmentMocks = vi.hoisted(() => ({
+  build: vi.fn(),
+}));
+
+vi.mock("../emailAttachments", () => ({
+  buildReferenceTermsAttachment: attachmentMocks.build,
+}));
 
 const deliverableCreatedInput = {
   recipients: {
@@ -29,6 +37,15 @@ function cleanHtml(html: string): string {
 }
 
 describe("renderEmail", () => {
+  beforeEach(() => {
+    attachmentMocks.build.mockReset();
+    attachmentMocks.build.mockResolvedValue({
+      filename: "Point and Click Agreement.pdf",
+      content: Buffer.from("agreement"),
+      contentType: "application/pdf",
+    });
+  });
+
   it("renders a Deliverable Created emailer payload", async () => {
     const payload = await renderEmail("Deliverable Created", deliverableCreatedInput);
 
@@ -196,6 +213,8 @@ describe("renderEmail", () => {
       },
       termsAndConditions: {
         name: "Point and Click Agreement.pdf",
+        fileName: "Point and Click Agreement.pdf",
+        s3Path: "reference-agreements/agreement-1",
       },
     });
 
@@ -217,6 +236,10 @@ describe("renderEmail", () => {
     expect(payload.text).toContain(
       "Associated Terms and Conditions: Point and Click Agreement.pdf"
     );
+    expect(payload.attachments).toEqual([
+      expect.objectContaining({ filename: "Point and Click Agreement.pdf" }),
+    ]);
+    expect(attachmentMocks.build).toHaveBeenCalledOnce();
   });
 
   it("reports missing extension-specific values", async () => {

@@ -2,7 +2,16 @@ import { Link, Text } from "@react-email/components";
 
 import { EmailLayout } from "../components/EmailLayout";
 import { detailStyle, textStyle } from "../components/styles";
-import type { MultipleDeliverablesEmailProps } from "./types";
+export type MultipleDeliverablesEmailProps = {
+  demonstrationTitle: string;
+  deliverableNames: string;
+  deliverableType: string;
+  deliverables: Array<{
+    dueDate: string;
+    link: string;
+  }>;
+  state: string;
+};
 
 export function MultipleDeliverablesEmail({
   demonstrationTitle,

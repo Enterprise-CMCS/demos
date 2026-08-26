@@ -1,46 +1,85 @@
 import { render, toPlainText } from "@react-email/render";
-import type { ReactElement } from "react";
 
-import { templates } from "./templates";
+import {
+  renderDeliverableEmail,
+  renderMultipleDeliverablesEmail,
+} from "./templates/deliverableEmails";
+import { renderReferenceTermsEmail } from "./templates/referenceEmails";
 import type {
   EmailRecipient,
   EmailRecipientGroups,
-  EmailTemplateDefinition,
+  EmailTemplate,
   RenderedEmailPayload,
 } from "./types";
+
+const templates: Record<string, EmailTemplate> = {
+  "Deliverable Created": (input) =>
+    renderDeliverableEmail("Deliverable Created", input),
+  "Deliverable Due Date Updated": (input) =>
+    renderDeliverableEmail("Deliverable Due Date Updated", input),
+  "Deliverable Submitted": (input) =>
+    renderDeliverableEmail("Deliverable Submitted", input),
+  "Deliverable Accepted": (input) =>
+    renderDeliverableEmail("Deliverable Accepted", input),
+  "Deliverable Approved": (input) =>
+    renderDeliverableEmail("Deliverable Approved", input),
+  "Deliverable Received and Filed": (input) =>
+    renderDeliverableEmail("Deliverable Received and Filed", input),
+  "Extension Requested": (input) =>
+    renderDeliverableEmail("Extension Requested", input),
+  "Extension Decision Made": (input) =>
+    renderDeliverableEmail("Extension Decision Made", input),
+  "Resubmission Requested": (input) =>
+    renderDeliverableEmail("Resubmission Requested", input),
+  "Public Comment Added": (input) =>
+    renderDeliverableEmail("Public Comment Added", input),
+  "Multiple Deliverables Created": renderMultipleDeliverablesEmail,
+  "Terms And Conditions Requested": renderReferenceTermsEmail,
+};
 
 export async function renderEmail(
   emailType: string,
   input: unknown,
-  options: {
-    now?: Date;
-    templateRegistry?: Record<string, EmailTemplateDefinition<any, any>>;
-  } = {}
 ): Promise<RenderedEmailPayload> {
-  const templateRegistry = options.templateRegistry ?? templates;
-  const template = templateRegistry[emailType];
+  const template = templates[emailType];
 
   if (!template) {
     throw new Error(`Unsupported email type: ${emailType}`);
   }
 
-  const context = {
-    now: options.now ?? new Date(),
-  };
-  const props = template.getProps(input, context);
-  const Component = template.Component;
-  const element = <Component {...props} /> as ReactElement;
-  const html = await render(element);
+  const recipients = getRecipients(input, emailType);
+  const { content, ...email } = await template(input);
+  const html = await render(content);
 
   return {
-    ...normalizeRecipientGroups(template.getRecipients(input)),
-    subject: typeof template.subject === "function" ? template.subject(props) : template.subject,
+    ...recipients,
+    ...email,
     text: toPlainText(html),
     html,
   };
 }
 
-function normalizeRecipientGroups(recipients: EmailRecipientGroups): EmailRecipientGroups {
+function getRecipients(
+  input: unknown,
+  emailType: string,
+): EmailRecipientGroups {
+  const recipients =
+    input && typeof input === "object"
+      ? (input as { recipients?: EmailRecipientGroups }).recipients
+      : undefined;
+
+  if (!recipients) {
+    throw new Error(
+      `Missing value for recipients while rendering ${emailType}.data`,
+    );
+  }
+
+  return normalizeRecipientGroups(recipients);
+}
+
+function normalizeRecipientGroups(
+  recipients: EmailRecipientGroups,
+): EmailRecipientGroups {
   if (!recipients || typeof recipients !== "object") {
     throw new Error("Email template must include recipient groups.");
   }
@@ -48,7 +87,9 @@ function normalizeRecipientGroups(recipients: EmailRecipientGroups): EmailRecipi
   const normalizedRecipients = {
     to: normalizeRecipients(recipients.to, "to"),
     ...(recipients.cc ? { cc: normalizeRecipients(recipients.cc, "cc") } : {}),
-    ...(recipients.bcc ? { bcc: normalizeRecipients(recipients.bcc, "bcc") } : {}),
+    ...(recipients.bcc
+      ? { bcc: normalizeRecipients(recipients.bcc, "bcc") }
+      : {}),
   };
 
   const recipientCount =
@@ -64,7 +105,7 @@ function normalizeRecipientGroups(recipients: EmailRecipientGroups): EmailRecipi
 
 function normalizeRecipients(
   recipients: EmailRecipient[],
-  group: keyof EmailRecipientGroups
+  group: keyof EmailRecipientGroups,
 ): EmailRecipient[] {
   if (!Array.isArray(recipients)) {
     throw new Error(`Email template ${group} recipients must be an array.`);
