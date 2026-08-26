@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   connectMock: vi.fn(),
   releaseMock: vi.fn(),
   queryMock: vi.fn(),
+  logErrorMock: vi.fn(),
 }));
 
 vi.mock("./getToken", () => ({
@@ -36,7 +37,7 @@ vi.mock("./db", () => ({
 }));
 
 vi.mock("./log", () => ({
-  log: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
+  log: { info: vi.fn(), error: mocks.logErrorMock, warn: vi.fn() },
 }));
 
 import { runDocumentUnderstanding } from "./runDocumentUnderstanding";
@@ -47,7 +48,7 @@ const TEST_APPLICATION_ID = "app-1";
 
 function mockSuccessfulDbQueries(
   allowedTagSuggestionFieldIds: string[] = [],
-  tagNames: string[] = [],
+  tagNames: string[] = []
 ) {
   mocks.queryMock.mockImplementation((sql: string) => {
     if (sql.includes("from demos_app.tag")) {
@@ -198,7 +199,7 @@ describe("runDocumentUnderstanding", () => {
     ]);
   });
 
-  it("throws if maxAttempts is exceeded", async () => {
+  it("returns and logs failed status if maxAttempts is exceeded", async () => {
     mocks.uploadDocumentMock.mockResolvedValue("doc-1");
     mocks.extractDocMock.mockResolvedValue("result-url");
     mocks.queryMock.mockResolvedValue({ rows: [{ id: "result-1" }] });
@@ -211,9 +212,22 @@ describe("runDocumentUnderstanding", () => {
       applicationId: TEST_APPLICATION_ID,
     });
 
-    const expectation = expect(promise).rejects.toThrow("did not succeed");
     await vi.runAllTimersAsync();
-    await expectation;
+    const result = await promise;
+
+    expect(result).toMatchObject({
+      status: "Failed",
+      error: "UiPath extraction did not succeed within the configured attempts.",
+      lastPolledStatus: { status: "Pending" },
+    });
+    expect(mocks.logErrorMock).toHaveBeenCalledWith(
+      {
+        error: expect.objectContaining({
+          message: "UiPath extraction did not succeed within the configured attempts.",
+        }),
+      },
+      "UiPath extraction did not complete"
+    );
     expect(mocks.queryMock).toHaveBeenCalledTimes(2);
     expect(mocks.queryMock.mock.calls[0]?.[1]?.[6]).toBe("Pending");
     expect(mocks.queryMock.mock.calls[1]?.[0]).toContain("update demos_app.uipath_result");
@@ -261,7 +275,7 @@ describe("runDocumentUnderstanding", () => {
     ]);
   });
 
-  it("throws when result row id is not returned", async () => {
+  it("returns and logs failed status when result row id is not returned", async () => {
     mocks.uploadDocumentMock.mockResolvedValue("doc-1");
     mocks.extractDocMock.mockResolvedValue("result-url");
     mocks.queryMock
@@ -279,11 +293,21 @@ describe("runDocumentUnderstanding", () => {
       applicationId: TEST_APPLICATION_ID,
     });
 
-    const expectation = expect(promise).rejects.toThrow(
-      "No existing UiPath result row found for request request-no-id."
-    );
     await vi.runAllTimersAsync();
-    await expectation;
+    const result = await promise;
+
+    expect(result).toMatchObject({
+      status: "Failed",
+      error: "No existing UiPath result row found for request request-no-id.",
+    });
+    expect(mocks.logErrorMock).toHaveBeenCalledWith(
+      {
+        error: expect.objectContaining({
+          message: "No existing UiPath result row found for request request-no-id.",
+        }),
+      },
+      "UiPath extraction did not complete"
+    );
     expect(mocks.queryMock.mock.calls.map((call) => call[0])).toContain("ROLLBACK");
   });
 
@@ -292,7 +316,7 @@ describe("runDocumentUnderstanding", () => {
     mocks.extractDocMock.mockResolvedValue("result-url");
     mockSuccessfulDbQueries(
       ["demo_type"],
-      ["Substance Use Disorder (SUD)", "Basic Health Plan (BHP)"],
+      ["Substance Use Disorder (SUD)", "Basic Health Plan (BHP)"]
     );
     mocks.fetchExtractionResultMock.mockResolvedValue({
       status: "Succeeded",
@@ -363,7 +387,7 @@ describe("runDocumentUnderstanding", () => {
       JSON.stringify([{ Page: 1 }]),
     ]);
     expect(mocks.queryMock.mock.calls[9]?.[0]).toContain(
-      "insert into demos_app.application_tag_suggestion_extract",
+      "insert into demos_app.application_tag_suggestion_extract"
     );
     expect(mocks.queryMock.mock.calls[9]?.[1]).toEqual([
       sudInsertArgs?.[0],
@@ -383,7 +407,7 @@ describe("runDocumentUnderstanding", () => {
     ]);
   });
 
-  it("throws when a tag suggestion field has no token page after committing UiPath values", async () => {
+  it("returns and logs failed status when a tag suggestion has no token page", async () => {
     mocks.uploadDocumentMock.mockResolvedValue("doc-1");
     mocks.extractDocMock.mockResolvedValue("result-url");
     mockSuccessfulDbQueries(["demo_type"], ["Substance Use Disorder (SUD)"]);
@@ -406,22 +430,30 @@ describe("runDocumentUnderstanding", () => {
       applicationId: TEST_APPLICATION_ID,
     });
 
-    const expectation = expect(promise).rejects.toThrow(
-      "token_list must include numeric Page values"
-    );
     await vi.runAllTimersAsync();
-    await expectation;
+    const result = await promise;
+
+    expect(result).toMatchObject({
+      status: "Failed",
+      error: expect.stringContaining("token_list must include numeric Page values"),
+    });
+    expect(mocks.logErrorMock).toHaveBeenCalledWith(
+      {
+        error: expect.objectContaining({
+          message: expect.stringContaining("token_list must include numeric Page values"),
+        }),
+      },
+      "UiPath extraction did not complete"
+    );
 
     expect(mocks.queryMock.mock.calls[5]?.[0]).toBe("COMMIT");
     expect(mocks.queryMock.mock.calls[8]?.[0]).toBe("ROLLBACK");
     expect(
-      mocks.queryMock.mock.calls.some(
-        (call) => Array.isArray(call[1]) && call[1][5] === "Failed"
-      )
+      mocks.queryMock.mock.calls.some((call) => Array.isArray(call[1]) && call[1][5] === "Failed")
     ).toBe(true);
   });
 
-  it("marks result as failed when UiPath returns failed status", async () => {
+  it("returns and logs failed status when UiPath returns failed status", async () => {
     mocks.uploadDocumentMock.mockResolvedValue("doc-1");
     mocks.extractDocMock.mockResolvedValue("result-url");
     mocks.queryMock.mockResolvedValue({ rows: [{ id: "result-1" }] });
@@ -434,9 +466,22 @@ describe("runDocumentUnderstanding", () => {
       applicationId: TEST_APPLICATION_ID,
     });
 
-    const expectation = expect(promise).rejects.toThrow("UiPath extraction returned Failed status.");
     await vi.runAllTimersAsync();
-    await expectation;
+    const result = await promise;
+
+    expect(result).toMatchObject({
+      status: "Failed",
+      error: "UiPath extraction returned Failed status.",
+      lastPolledStatus: { status: "Failed" },
+    });
+    expect(mocks.logErrorMock).toHaveBeenCalledWith(
+      {
+        error: expect.objectContaining({
+          message: "UiPath extraction returned Failed status.",
+        }),
+      },
+      "UiPath extraction did not complete"
+    );
 
     expect(mocks.queryMock).toHaveBeenCalledTimes(2);
     expect(mocks.queryMock.mock.calls[0]?.[1]?.[6]).toBe("Pending");
@@ -444,7 +489,7 @@ describe("runDocumentUnderstanding", () => {
     expect(mocks.queryMock.mock.calls[1]?.[1]?.[5]).toBe("Failed");
   });
 
-  it("persists redacted UiPath HTTP failure details", async () => {
+  it("persists, returns, and logs redacted UiPath HTTP failure details", async () => {
     mocks.uploadDocumentMock.mockResolvedValue("doc-1");
     mocks.extractDocMock.mockResolvedValue("result-url");
     mocks.queryMock.mockResolvedValue({ rows: [{ id: "result-1" }] });
@@ -473,9 +518,18 @@ describe("runDocumentUnderstanding", () => {
       applicationId: TEST_APPLICATION_ID,
     });
 
-    const expectation = expect(promise).rejects.toBe(redactedError);
     await vi.runAllTimersAsync();
-    await expectation;
+    const result = await promise;
+
+    expect(result).toEqual({
+      status: "Failed",
+      error: "Request failed with status code 401",
+      errorDetails: redactedError,
+    });
+    expect(mocks.logErrorMock).toHaveBeenCalledWith(
+      { error: redactedError },
+      "UiPath extraction did not complete"
+    );
 
     const failedResponse = JSON.parse(mocks.queryMock.mock.calls[1]?.[1]?.[2]);
     expect(failedResponse).toEqual({
@@ -485,10 +539,41 @@ describe("runDocumentUnderstanding", () => {
     expect(JSON.stringify(failedResponse)).not.toContain("token-123");
   });
 
-  it("throws when document context is missing", async () => {
-    await expect(runDocumentUnderstanding("file.pdf", { documentId: TEST_DOCUMENT_ID })).rejects.toThrow(
-      "documentId and applicationId are required to persist UiPath results."
+  it("logs and throws when failed status cannot be persisted", async () => {
+    const persistError = new Error("Database unavailable");
+    mocks.uploadDocumentMock.mockResolvedValue("doc-1");
+    mocks.extractDocMock.mockResolvedValue("result-url");
+    mocks.queryMock
+      .mockResolvedValueOnce({ rows: [{ id: "result-1" }] })
+      .mockRejectedValueOnce(persistError);
+    mocks.fetchExtractionResultMock.mockResolvedValue({ status: "Failed" });
+
+    const promise = runDocumentUnderstanding("file.pdf", {
+      pollIntervalMs: 10,
+      requestId: "request-persist-failure",
+      documentId: TEST_DOCUMENT_ID,
+      applicationId: TEST_APPLICATION_ID,
+    });
+    const expectation = expect(promise).rejects.toBe(persistError);
+
+    await vi.runAllTimersAsync();
+    await expectation;
+
+    expect(mocks.logErrorMock).toHaveBeenCalledWith(
+      {
+        error: expect.objectContaining({
+          message: "UiPath extraction returned Failed status.",
+        }),
+        persistError,
+      },
+      "UiPath extraction failed and its status could not be persisted"
     );
+  });
+
+  it("throws when document context is missing", async () => {
+    await expect(
+      runDocumentUnderstanding("file.pdf", { documentId: TEST_DOCUMENT_ID })
+    ).rejects.toThrow("documentId and applicationId are required to persist UiPath results.");
     expect(mocks.fetchExtractionResultMock).not.toHaveBeenCalled();
   });
 

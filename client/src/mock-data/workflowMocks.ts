@@ -8,7 +8,7 @@ export const MOCK_PHASES = [
   { phaseName: "Completeness", phaseStatus: "Not Started", phaseDates: [] },
   { phaseName: "Federal Comment", phaseStatus: "Not Started", phaseDates: [] },
   { phaseName: "SDG Preparation", phaseStatus: "Not Started", phaseDates: [] },
-  { phaseName: "Review", phaseStatus: "Not Started", phaseDates: [] },
+  { phaseName: "Review", phaseStatus: "Not Started", phaseDates: [], phaseNotes: [] },
   { phaseName: "Approval Package", phaseStatus: "Not Started", phaseDates: [] },
   { phaseName: "Approval Summary", phaseStatus: "Not Started", phaseDates: [] },
 ] as const;

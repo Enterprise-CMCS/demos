@@ -14,12 +14,13 @@ import {
 } from "util/messages";
 import { formatDateForDisplay } from "util/formatDate";
 import { REQUIRED_DOCUMENT_TYPES } from "./approvalPackagePhaseData";
+import { getCurrentUser, isReadonly as userIsReadonly } from "components/user/UserContext";
 
 export interface ApprovalPackagePhaseProps {
   applicationId: string;
   documents: (ApplicationWorkflowDocument | undefined)[];
   allPreviousPhasesDone: boolean;
-  isReadonly: boolean;
+  isPhaseCompleted: boolean;
   onFinish: () => void;
 }
 
@@ -27,11 +28,13 @@ export const ApprovalPackagePhase = ({
   applicationId,
   documents,
   allPreviousPhasesDone,
-  isReadonly,
+  isPhaseCompleted,
   onFinish,
 }: ApprovalPackagePhaseProps) => {
   const { showSuccess, showError } = useToast();
   const { completePhase } = useCompletePhase();
+  const { currentUser } = getCurrentUser();
+  const isReadonlyUser = userIsReadonly(currentUser);
 
   const tableRows: ApprovalPackageTableRow[] = REQUIRED_DOCUMENT_TYPES.map((type) => {
     const doc = documents.find((doc) => doc?.documentType === type);
@@ -60,7 +63,7 @@ export const ApprovalPackagePhase = ({
   });
 
   const allDocumentsUploaded = tableRows.every((row) => row.document);
-  const finishEnabled = !isReadonly && allPreviousPhasesDone && allDocumentsUploaded;
+  const finishEnabled = !isPhaseCompleted && allPreviousPhasesDone && allDocumentsUploaded;
 
   const handleFinish = async () => {
     try {
@@ -85,16 +88,21 @@ export const ApprovalPackagePhase = ({
       <h4 className="text-[18px] font-bold tracking-wide mb-1">APPROVAL PACKAGE</h4>
       <p className="text-sm text-text-placeholder">Each file type is required prior to approval</p>
 
-      <ApprovalPackageTable demonstrationId={applicationId} rows={tableRows} />
+      <ApprovalPackageTable
+        demonstrationId={applicationId}
+        rows={tableRows}
+        isReadonlyUser={isReadonlyUser}
+      />
 
       <div className="mt-8 mb-8 flex justify-end gap-2">
         <Button
           name="button-finish-approval-package"
           size="small"
+          isHidden={isReadonlyUser}
           disabled={!finishEnabled}
           onClick={handleFinish}
           eagerTooltip={
-            !finishEnabled && !isReadonly ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined
+            !finishEnabled && !isPhaseCompleted ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined
           }
         >
           Finish

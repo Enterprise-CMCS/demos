@@ -59,6 +59,7 @@ import {
   ReviewExtensionDeliverableDialogDeliverable,
 } from "./deliverable/ReviewExtensionDeliverableDialog";
 import { ReferenceAgreementDialog } from "./referenceAgreement/ReferenceAgreementDialog";
+import { AssignStatesDialog, AssignStatesDialogPerson } from "./user/AssignStatesDialog";
 
 type EditDeliverableDialogSource = Pick<
   DeliverableTableRow,
@@ -367,6 +368,10 @@ export const useDialog = () => {
     );
   };
 
+  const showAssignStatesDialog = (person: AssignStatesDialogPerson) => {
+    context.showDialog(<AssignStatesDialog person={person} onClose={context.hideDialog} />);
+  };
+
   const showReferenceAgreementDialog = (
     reference: Pick<Reference, "id"> & {
       agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt">;
@@ -407,5 +412,6 @@ export const useDialog = () => {
     showCompleteReviewDeliverableDialog,
     showReviewExtensionDeliverableDialog,
     showReferenceAgreementDialog,
+    showAssignStatesDialog,
   };
 };

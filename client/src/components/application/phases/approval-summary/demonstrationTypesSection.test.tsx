@@ -8,6 +8,7 @@ import { DemonstrationTypesSection } from "./demonstrationTypesSection";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { TestProvider } from "test-utils/TestProvider";
 import { ApplicationStatus } from "demos-server";
+import { readonlyMockUser, MockUser } from "mock-data/userMocks";
 
 const showApplyDemonstrationTypesDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
@@ -45,7 +46,7 @@ const expandTypesSection = async () => {
 describe("DemonstrationTypesSection", () => {
   let onMarkComplete: (complete: boolean) => void;
 
-  const setup = (isComplete = false, types = mockTypes) => {
+  const setup = (isComplete = false, types = mockTypes, currentUser?: MockUser) => {
     onMarkComplete = vi.fn();
 
     const demonstration = {
@@ -55,7 +56,7 @@ describe("DemonstrationTypesSection", () => {
     };
 
     render(
-      <TestProvider>
+      <TestProvider currentUser={currentUser}>
         <DemonstrationTypesSection
           demonstration={demonstration}
           isComplete={isComplete}
@@ -135,5 +136,19 @@ describe("DemonstrationTypesSection", () => {
     const applyButton = within(section!).getByRole("button", { name: /apply-types/i });
     await user.click(applyButton);
     expect(showApplyDemonstrationTypesDialog).toHaveBeenCalledWith("demo-123");
+  });
+
+  describe("Readonly User Behavior", () => {
+    it("hides apply types button and mark complete switch for readonly users", () => {
+      setup(false, mockTypes, readonlyMockUser);
+
+      // Check that Apply Types button is hidden
+      const section = screen.getByText("Types").closest("section");
+      const applyButton = within(section!).queryByRole("button", { name: /apply-types/i });
+      expect(applyButton).not.toBeInTheDocument();
+
+      // Check that Mark Complete switch is hidden
+      expect(screen.queryByTestId("mark-complete-switch")).not.toBeInTheDocument();
+    });
   });
 });

@@ -24,6 +24,7 @@ import {
   GET_EXTENSION_WORKFLOW_QUERY,
   GET_WORKFLOW_DEMONSTRATION_QUERY,
 } from "components/application";
+import { getCurrentUser, isReadonly as isReadonlyUser } from "components/user/UserContext";
 
 const SET_APPLICATION_CLEARANCE_LEVEL = gql`
   mutation SetApplicationClearanceLevel($input: SetApplicationClearanceLevelInput!) {
@@ -95,16 +96,18 @@ const getPhaseStateInitialization = () => {
 export const ReviewPhase = ({
   initialFormData,
   applicationId,
-  isReadonly,
+  isPhaseCompleted,
   onFinish,
   allPreviousPhasesDone,
 }: {
   initialFormData: ReviewPhaseFormData;
   applicationId: string;
-  isReadonly: boolean;
+  isPhaseCompleted: boolean;
   onFinish: () => void;
   allPreviousPhasesDone: boolean;
 }) => {
+  const { currentUser } = getCurrentUser();
+  const userIsReadonly = isReadonlyUser(currentUser);
   const { showSuccess } = useToast();
   const { setApplicationDates } = useSetApplicationDates();
   const { setApplicationNotes } = useSetApplicationNotes();
@@ -182,7 +185,7 @@ export const ReviewPhase = ({
       reviewPhaseSectionsComplete["CMS (OSORA) Clearance"]);
 
   const isFinishEnabled =
-    !isReadonly &&
+    !isPhaseCompleted &&
     allPreviousPhasesDone &&
     reviewPhaseSectionsComplete["PO and OGD"] &&
     reviewPhaseSectionsComplete["OGC and OMB"] &&
@@ -220,7 +223,7 @@ export const ReviewPhase = ({
             setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
           }
           isComplete={reviewPhaseSectionsComplete["PO and OGD"]}
-          isReadonly={isReadonly}
+          isReadonly={isPhaseCompleted || userIsReadonly}
         />
         <OgcAndOmbSection
           sectionFormData={reviewPhaseFormData}
@@ -228,7 +231,7 @@ export const ReviewPhase = ({
             setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
           }
           isComplete={reviewPhaseSectionsComplete["OGC and OMB"]}
-          isReadonly={isReadonly}
+          isReadonly={isPhaseCompleted || userIsReadonly}
         />
         <RadioGroup
           name="clearance-level"
@@ -250,7 +253,7 @@ export const ReviewPhase = ({
             })
           }
           isInline
-          isDisabled={isReadonly}
+          isDisabled={isPhaseCompleted}
         />
         {reviewPhaseFormData.clearanceLevel === "COMMs" && (
           <CommsClearanceSection
@@ -259,7 +262,7 @@ export const ReviewPhase = ({
               setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
             }
             isComplete={reviewPhaseSectionsComplete["COMMs Clearance"]}
-            isReadonly={isReadonly}
+            isReadonly={isPhaseCompleted || userIsReadonly}
           />
         )}
         {reviewPhaseFormData.clearanceLevel === "CMS (OSORA)" && (
@@ -269,30 +272,34 @@ export const ReviewPhase = ({
               setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
             }
             isComplete={reviewPhaseSectionsComplete["CMS (OSORA) Clearance"]}
-            isReadonly={isReadonly}
+            isReadonly={isPhaseCompleted || userIsReadonly}
           />
         )}
-        <div className="flex justify-end mt-2 gap-2">
-          <SecondaryButton
-            onClick={handleSaveForLater}
-            size="large"
-            name="review-save-for-later"
-            disabled={!hasFormChanges(lastSavedFormData, reviewPhaseFormData)}
-          >
-            Save For Later
-          </SecondaryButton>
-          <Button
-            onClick={handleFinish}
-            size="large"
-            name="review-finish"
-            disabled={!isFinishEnabled}
-            eagerTooltip={
-              !isFinishEnabled && !isReadonly ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined
-            }
-          >
-            Finish
-          </Button>
-        </div>
+        {!userIsReadonly && (
+          <div className="flex justify-end mt-2 gap-2">
+            <SecondaryButton
+              onClick={handleSaveForLater}
+              size="large"
+              name="review-save-for-later"
+              disabled={!hasFormChanges(lastSavedFormData, reviewPhaseFormData)}
+            >
+              Save For Later
+            </SecondaryButton>
+            <Button
+              onClick={handleFinish}
+              size="large"
+              name="review-finish"
+              disabled={!isFinishEnabled}
+              eagerTooltip={
+                !isFinishEnabled && !isPhaseCompleted
+                  ? MISSING_REQUIRED_SECTIONS_TOOLTIP
+                  : undefined
+              }
+            >
+              Finish
+            </Button>
+          </div>
+        )}
       </section>
     </div>
   );

@@ -1,7 +1,7 @@
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { PersonType } from "demos-server";
 
-import { getCurrentUser } from "components/user/UserContext";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 import { CommentBoxComment, CommentVisibility } from "./Comment";
 
 type CommentQueryResult = {
@@ -87,6 +87,8 @@ export const useComments = (deliverableId: string, commentVisibility: CommentVis
 
   const userPersonType: PersonType = currentUser.person.personType;
   const isCmsOrAdminUser = userPersonType === "demos-cms-user" || userPersonType === "demos-admin";
+  // Restricted CMS users read comments but cannot author them.
+  const canAddComments = !isReadonly(currentUser);
 
   const { data: publicData, refetch: refetchPublic } = useQuery<{
     deliverable: { id: string; publicComments: CommentQueryResult[] };
@@ -126,5 +128,5 @@ export const useComments = (deliverableId: string, commentVisibility: CommentVis
     }
   };
 
-  return { isCmsOrAdminUser, visibleComments, addComment };
+  return { isCmsOrAdminUser, canAddComments, visibleComments, addComment };
 };

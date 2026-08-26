@@ -63,7 +63,7 @@ export const APPLICATION_DATE_OFFSETS_FROM_EFFECTIVE_DATE = [
   ["State Application Deemed Complete", 61],
   ["Federal Comment Period Start Date", 60],
   ["Federal Comment Period End Date", 30],
-  ["Expected Approval Date", 80],
+  ["Internal Expected Approval Date", 80],
   ["SME Initial Review Date", 79],
   ["FRT Initial Meeting Date", 78],
   ["BNPMT Initial Meeting Date", 77],

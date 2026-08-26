@@ -17,10 +17,10 @@ export async function validateAllowedDateChangeByPhase(
     input.applicationDates.map((applicationDate) => applicationDate.dateType)
   );
 
-  // Special case: Expected Approval Date is allowed to be edited after SDG Preparation completed
+  // Special case: Internal Expected Approval Date is allowed to be edited after SDG Preparation completed
   // It cannot be deleted after SDG Preparation is completed
   const disallowedContainsExpectedApprovalDate = disallowedDateInputs.some(
-    (phaseDateType) => phaseDateType.dateTypeId === "Expected Approval Date"
+    (phaseDateType) => phaseDateType.dateTypeId === "Internal Expected Approval Date"
   );
 
   // If we see it in disallowed, check if it is a deletion or an edit
@@ -28,16 +28,16 @@ export async function validateAllowedDateChangeByPhase(
   if (disallowedContainsExpectedApprovalDate) {
     const disallowedOperationIsDeletion = input.applicationDates.some(
       (applicationDate) =>
-        applicationDate.dateType === "Expected Approval Date" && applicationDate.dateValue === null
+        applicationDate.dateType === "Internal Expected Approval Date" && applicationDate.dateValue === null
     );
 
     if (disallowedOperationIsDeletion) {
       throw new Error(
-        "You cannot delete the Expected Approval Date after the SDG Preparation phase is completed."
+        "You cannot delete the Internal Expected Approval Date after the SDG Preparation phase is completed."
       );
     }
     disallowedDateInputs = disallowedDateInputs.filter(
-      (phaseDateType) => phaseDateType.dateTypeId !== "Expected Approval Date"
+      (phaseDateType) => phaseDateType.dateTypeId !== "Internal Expected Approval Date"
     );
   }
 

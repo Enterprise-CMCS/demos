@@ -49,7 +49,7 @@ export const getReviewPhaseComponentFromApplication = (
 
   return (
     <ReviewPhase
-      isReadonly={reviewPhase.phaseStatus === "Completed"}
+      isPhaseCompleted={reviewPhase.phaseStatus === "Completed"}
       initialFormData={reviewPhaseFormData}
       applicationId={application.id}
       onFinish={onFinish}

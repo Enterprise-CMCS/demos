@@ -15,6 +15,7 @@ import {
   SAVE_FOR_LATER_MESSAGE,
 } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 import { useCompletePhase } from "../phase-status/phaseCompletionQueries";
 
 const STYLES = {
@@ -36,7 +37,7 @@ function getFormDataFromPhase(sdgPreparationPhase: SimplePhase): SdgPreparationP
   };
 
   return {
-    expectedApprovalDate: getDateValue("Expected Approval Date"),
+    internalExpectedApprovalDate: getDateValue("Internal Expected Approval Date"),
     smeInitialReviewDate: getDateValue("SME Initial Review Date"),
     frtInitialMeetingDate: getDateValue("FRT Initial Meeting Date"),
     bnpmtInitialMeetingDate: getDateValue("BNPMT Initial Meeting Date"),
@@ -44,7 +45,7 @@ function getFormDataFromPhase(sdgPreparationPhase: SimplePhase): SdgPreparationP
 }
 
 interface SdgPreparationPhaseFormData {
-  expectedApprovalDate?: string;
+  internalExpectedApprovalDate?: string;
   smeInitialReviewDate?: string;
   frtInitialMeetingDate?: string;
   bnpmtInitialMeetingDate?: string;
@@ -55,7 +56,7 @@ export const hasChanges = (
   currentFormData: SdgPreparationPhaseFormData
 ) => {
   return (
-    initialFormData.expectedApprovalDate !== currentFormData.expectedApprovalDate ||
+    initialFormData.internalExpectedApprovalDate !== currentFormData.internalExpectedApprovalDate ||
     initialFormData.smeInitialReviewDate !== currentFormData.smeInitialReviewDate ||
     initialFormData.frtInitialMeetingDate !== currentFormData.frtInitialMeetingDate ||
     initialFormData.bnpmtInitialMeetingDate !== currentFormData.bnpmtInitialMeetingDate
@@ -114,22 +115,24 @@ export const SdgPreparationPhase = ({
   const { setApplicationDate } = useSetApplicationDate();
   const { completePhase } = useCompletePhase();
   const { showSuccess, showError } = useToast();
+  const { currentUser } = getCurrentUser();
 
   const isPhaseCompleted = sdgPreparationPhase.phaseStatus === "Completed";
   const isApproved = applicationStatus === "Approved";
+  const isReadonlyUser = isReadonly(currentUser);
 
   const isFormComplete =
-    sdgPreparationPhaseFormData.expectedApprovalDate &&
+    sdgPreparationPhaseFormData.internalExpectedApprovalDate &&
     sdgPreparationPhaseFormData.smeInitialReviewDate &&
     sdgPreparationPhaseFormData.frtInitialMeetingDate &&
     sdgPreparationPhaseFormData.bnpmtInitialMeetingDate;
 
   const handleSave = async () => {
-    if (sdgPreparationPhaseFormData.expectedApprovalDate) {
+    if (sdgPreparationPhaseFormData.internalExpectedApprovalDate) {
       await setApplicationDate({
         applicationId: applicationId,
-        dateType: "Expected Approval Date" satisfies DateType,
-        dateValue: sdgPreparationPhaseFormData.expectedApprovalDate as LocalDate,
+        dateType: "Internal Expected Approval Date" satisfies DateType,
+        dateValue: sdgPreparationPhaseFormData.internalExpectedApprovalDate as LocalDate,
       });
     }
 
@@ -209,17 +212,17 @@ export const SdgPreparationPhase = ({
             </div>
             <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
               <DatePicker
-                name="datepicker-expected-approval-date"
-                label={"Expected Approval Date" satisfies DateType}
-                value={sdgPreparationPhaseFormData.expectedApprovalDate}
+                name="datepicker-internal-expected-approval-date"
+                label={"Internal Expected Approval Date" satisfies DateType}
+                value={sdgPreparationPhaseFormData.internalExpectedApprovalDate}
                 onChange={(newDate) => {
                   setSdgPreparationPhaseFormData({
                     ...sdgPreparationPhaseFormData,
-                    expectedApprovalDate: newDate,
+                    internalExpectedApprovalDate: newDate,
                   });
                 }}
                 isRequired
-                isDisabled={isApproved}
+                isDisabled={isReadonlyUser || isApproved}
               />
             </div>
           </div>{" "}
@@ -244,7 +247,7 @@ export const SdgPreparationPhase = ({
                     smeInitialReviewDate: newDate,
                   });
                 }}
-                isDisabled={isPhaseCompleted}
+                isDisabled={isReadonlyUser || isPhaseCompleted}
               />
               <DatePicker
                 name="datepicker-frt-initial-meeting-date"
@@ -258,7 +261,7 @@ export const SdgPreparationPhase = ({
                     frtInitialMeetingDate: newDate,
                   });
                 }}
-                isDisabled={isPhaseCompleted}
+                isDisabled={isReadonlyUser || isPhaseCompleted}
               />
               <DatePicker
                 name="datepicker-bnpmt-initial-meeting-date"
@@ -271,12 +274,13 @@ export const SdgPreparationPhase = ({
                   });
                 }}
                 isRequired={true}
-                isDisabled={isPhaseCompleted}
+                isDisabled={isReadonlyUser || isPhaseCompleted}
               />
             </div>
 
             <div className={STYLES.actions}>
               <SecondaryButton
+                isHidden={isReadonlyUser}
                 disabled={
                   !hasChanges(
                     getFormDataFromPhase(sdgPreparationPhase),
@@ -290,6 +294,7 @@ export const SdgPreparationPhase = ({
                 Save For Later
               </SecondaryButton>
               <Button
+                isHidden={isReadonlyUser}
                 onClick={handleFinish}
                 size="large"
                 name="sdg-finish"

@@ -1186,7 +1186,11 @@ async function seedDatabase() {
         dateValue: new Date("2025-02-04T00:00:00.000-05:00"),
       },
       {
-        dateType: "Expected Approval Date",
+        dateType: "State Requested Approval Date",
+        dateValue: new Date("2025-02-05T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "Internal Expected Approval Date",
         dateValue: new Date("2025-02-05T00:00:00.000-05:00"),
       },
       {
