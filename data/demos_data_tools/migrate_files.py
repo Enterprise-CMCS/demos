@@ -5,33 +5,29 @@ import os
 import sys
 from dataclasses import dataclass, replace
 from logging import getLogger
-from typing import TYPE_CHECKING, List, cast, get_args
+from typing import TYPE_CHECKING, List
 
 import boto3
 from dotenv import load_dotenv
 
 from duckdb_connection_manager import (
-    DatabaseConfigurationName,
     attach_db_to_duckdb_conn,
     create_duckdb_conn,
     get_attach_name_from_db_config_name,
 )
-from load_data_to_demos_app import DataLoadConfigurationName
 from load_data_to_demos_app_configs import get_data_load_configuration
 from logger_utils import config_logger
+from types_constants import DB_CONFIG_NAMES, DL_CONFIG_NAMES, DatabaseConfigurationName, DataLoadConfigurationName
 
 if TYPE_CHECKING:
     from duckdb import DuckDBPyConnection as DuckConn
     from mypy_boto3_s3 import S3Client
 
+logger = config_logger(getLogger(__name__))
+
 load_dotenv()
 PMDA_S3_BUCKET = os.environ["PMDA_S3_BUCKET"]
 DEMOS_S3_BUCKET = os.environ["DEMOS_S3_BUCKET"]
-STAGING_SCHEMA = os.environ["STAGING_SCHEMA"]
-DB_CONFIG_NAMES = get_args(DatabaseConfigurationName.__value__)
-DL_CONFIG_NAMES = get_args(DataLoadConfigurationName.__value__)
-
-logger = config_logger(getLogger(__name__))
 
 
 @dataclass(frozen=True)
@@ -56,8 +52,8 @@ def _parse_args() -> CommandLineArguments:
     parser.add_argument("dl_config_name", choices=DL_CONFIG_NAMES, help="The name of the data load config to use")
     parsed_args = parser.parse_args()
     return CommandLineArguments(
-        db_config_name=cast(DatabaseConfigurationName, parsed_args.db_config_name),
-        dl_config_name=cast(DataLoadConfigurationName, parsed_args.dl_config_name),
+        db_config_name=parsed_args.db_config_name,
+        dl_config_name=parsed_args.dl_config_name,
     )
 
 

@@ -3,7 +3,7 @@ omit = [
     "*/test_*.py",
     "*/history_trigger_generator.py",
     "*/load_data_to_demos_app_configs.py",
-    "*/load_data_to_demos_app_types.py",
+    "*/types_constants.py",
 ]
 
 [tool.pytest.ini_options]

@@ -4,29 +4,22 @@ import argparse
 from dataclasses import dataclass
 from datetime import datetime
 from logging import getLogger
-from typing import TYPE_CHECKING, List, cast, get_args
+from typing import TYPE_CHECKING, List
 from zoneinfo import ZoneInfo
 
-from dotenv import load_dotenv
-
 from duckdb_connection_manager import (
-    DatabaseConfigurationName,
     attach_db_to_duckdb_conn,
     create_duckdb_conn,
     get_attach_name_from_db_config_name,
 )
-from load_data_to_demos_app_configs import DataLoadConfigurationName, get_data_load_configuration
+from load_data_to_demos_app_configs import get_data_load_configuration
 from logger_utils import config_logger
+from types_constants import DB_CONFIG_NAMES, DL_CONFIG_NAMES, DatabaseConfigurationName, DataLoadConfigurationName
 
 if TYPE_CHECKING:
     from duckdb import DuckDBPyConnection as DuckConn
 
-
 logger = config_logger(getLogger(__name__))
-
-load_dotenv()
-DL_CONFIG_NAMES = get_args(DataLoadConfigurationName.__value__)
-DB_CONFIG_NAMES = get_args(DatabaseConfigurationName.__value__)
 
 
 @dataclass(frozen=True)
@@ -51,8 +44,8 @@ def _parse_args() -> CommandLineArguments:
     parser.add_argument("dl_config_name", choices=DL_CONFIG_NAMES, help="The name of the data load config to use")
     parsed_args = parser.parse_args()
     return CommandLineArguments(
-        db_config_name=cast(DatabaseConfigurationName, parsed_args.db_config_name),
-        dl_config_name=cast(DataLoadConfigurationName, parsed_args.dl_config_name),
+        db_config_name=parsed_args.db_config_name,
+        dl_config_name=parsed_args.dl_config_name,
     )
 
 

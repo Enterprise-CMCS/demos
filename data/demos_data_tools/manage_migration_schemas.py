@@ -1,36 +1,28 @@
 """Manage schemas used in migration."""
 
 import argparse
-import os
 from dataclasses import dataclass
 from logging import getLogger
-from typing import TYPE_CHECKING, Literal, assert_never, cast, get_args
-
-from dotenv import load_dotenv
+from typing import TYPE_CHECKING, Literal, assert_never, get_args
 
 from duckdb_connection_manager import (
-    DatabaseConfigurationName,
     attach_db_to_duckdb_conn,
     create_duckdb_conn,
     get_attach_name_from_db_config_name,
 )
 from logger_utils import config_logger
+from types_constants import (
+    DB_CONFIG_NAMES,
+    MIGRATION_SCHEMA_ACTIONS,
+    DatabaseConfigurationName,
+    MigrationSchemaAction,
+    MigrationSchemaName,
+)
 
 if TYPE_CHECKING:
     from duckdb import DuckDBPyConnection as DuckConn
 
 logger = config_logger(getLogger(__name__))
-
-load_dotenv()
-RAW_SCHEMA = os.environ["RAW_SCHEMA"]
-STAGING_SCHEMA = os.environ["STAGING_SCHEMA"]
-REV01_SCHEMA = os.environ["REV01_SCHEMA"]
-
-type MigrationSchemaName = Literal["raw", "staging", "rev01"]
-type MigrationSchemaAction = Literal["create", "drop"]
-MIGRATION_SCHEMA_NAMES = get_args(MigrationSchemaName.__value__)
-MIGRATION_SCHEMA_ACTIONS = get_args(MigrationSchemaAction.__value__)
-DB_CONFIG_NAMES = get_args(DatabaseConfigurationName.__value__)
 
 
 @dataclass(frozen=True)
@@ -40,6 +32,31 @@ class CommandLineArguments:
     db_config_name: DatabaseConfigurationName
     schema_action: MigrationSchemaAction
     schema_name: MigrationSchemaName
+
+
+type MigrationSchemaShortName = Literal["raw", "staged", "rev01"]
+
+
+def _get_schema_name_from_short_name(schema_short_name: MigrationSchemaShortName) -> MigrationSchemaName:
+    """Map an input name argument to a full MigrationSchemaName.
+
+    Args:
+        schema_short_name (MigrationSchemaShortName): The short name of the schema.
+
+    Returns:
+        MigrationSchemaName: The name of the schema.
+    """
+    schema_full_name: MigrationSchemaName
+    match schema_short_name:
+        case "raw":
+            schema_full_name = "legacy_pmda_raw"
+        case "staged":
+            schema_full_name = "legacy_pmda_staged"
+        case "rev01":
+            schema_full_name = "legacy_pmda_migration_rev_01"
+        case _:
+            assert_never(schema_short_name)
+    return schema_full_name
 
 
 def _parse_args() -> CommandLineArguments:
@@ -54,13 +71,17 @@ def _parse_args() -> CommandLineArguments:
     )
     parser.add_argument("db_config_name", choices=DB_CONFIG_NAMES, help="The name of the DB config to use")
     parser.add_argument("schema_action", choices=MIGRATION_SCHEMA_ACTIONS, help="The action to perform")
-    parser.add_argument("schema_name", choices=MIGRATION_SCHEMA_NAMES, help="The name of the schema to manage")
+    parser.add_argument(
+        "schema_name",
+        choices=get_args(MigrationSchemaShortName.__value__),
+        help="The short name of the schema to manage",
+    )
     parsed_args = parser.parse_args()
 
     return CommandLineArguments(
-        db_config_name=cast(DatabaseConfigurationName, parsed_args.db_config_name),
-        schema_action=cast(MigrationSchemaAction, parsed_args.schema_action),
-        schema_name=cast(MigrationSchemaName, parsed_args.schema_name),
+        db_config_name=parsed_args.db_config_name,
+        schema_action=parsed_args.schema_action,
+        schema_name=_get_schema_name_from_short_name(parsed_args.schema_name),
     )
 
 
@@ -74,22 +95,13 @@ def _create_schema(
         db_config_name (DatabaseConfigurationName): The name of the DB config to use.
         schema_name (MigrationSchemaName): The name of the schema to create.
     """
-    match schema_name:
-        case "raw":
-            schema_to_create = RAW_SCHEMA
-        case "staging":
-            schema_to_create = STAGING_SCHEMA
-        case "rev01":
-            schema_to_create = REV01_SCHEMA
-        case _:
-            assert_never(schema_name)
     demos_ddb_attach_name = get_attach_name_from_db_config_name(db_config_name)
 
-    logger.info(f"Attempting to create schema {schema_to_create}")
+    logger.info(f"Attempting to create schema {schema_name}")
     conn.execute(f"""
-        CREATE SCHEMA {demos_ddb_attach_name}.{schema_to_create};
+        CREATE SCHEMA {demos_ddb_attach_name}.{schema_name};
     """)
-    logger.info(f"Created schema {schema_to_create} successfully")
+    logger.info(f"Created schema {schema_name} successfully")
 
 
 def _drop_schema(conn: "DuckConn", db_config_name: DatabaseConfigurationName, schema_name: MigrationSchemaName) -> None:
@@ -100,22 +112,13 @@ def _drop_schema(conn: "DuckConn", db_config_name: DatabaseConfigurationName, sc
         db_config_name (DatabaseConfigurationName): The name of the DB config to use.
         schema_name (MigrationSchemaName): The name of the schema to drop.
     """
-    match schema_name:
-        case "raw":
-            schema_to_drop = RAW_SCHEMA
-        case "staging":
-            schema_to_drop = STAGING_SCHEMA
-        case "rev01":
-            schema_to_drop = REV01_SCHEMA
-        case _:
-            assert_never(schema_name)
     demos_ddb_attach_name = get_attach_name_from_db_config_name(db_config_name)
 
-    logger.info(f"Attempting to drop schema {schema_to_drop}")
+    logger.info(f"Attempting to drop schema {schema_name}")
     conn.execute(f"""
-        DROP SCHEMA IF EXISTS {demos_ddb_attach_name}.{schema_to_drop} CASCADE;
+        DROP SCHEMA IF EXISTS {demos_ddb_attach_name}.{schema_name} CASCADE;
     """)
-    logger.info(f"Dropped schema {schema_to_drop} successfully")
+    logger.info(f"Dropped schema {schema_name} successfully")
 
 
 def main(args: CommandLineArguments) -> None:
