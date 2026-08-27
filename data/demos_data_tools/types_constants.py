@@ -11,6 +11,7 @@ type MigrationSchemaName = MigrationRawSchemaName | MigrationStagedSchemaName
 type DuckDbAttachName = Literal["ddb_demos_localstack", "ddb_demos_aws"]
 type DataLoadConfigurationName = Literal["base", "rev01"]
 type MigrationSchemaAction = Literal["create", "drop"]
+type DemosReadRole = Literal["demos_read"]
 
 DB_CONFIG_NAMES: Tuple[DatabaseConfigurationName, ...] = get_args(DatabaseConfigurationName.__value__)
 APP_SCHEMA_NAME: AppSchemaName = "demos_app"
@@ -20,6 +21,7 @@ MIGRATION_SCHEMA_NAMES: Tuple[MigrationSchemaName, ...] = (MIGRATION_RAW_SCHEMA_
 DUCKDB_ATTACH_NAMES: Tuple[DuckDbAttachName, ...] = get_args(DuckDbAttachName.__value__)
 DL_CONFIG_NAMES: Tuple[DataLoadConfigurationName, ...] = get_args(DataLoadConfigurationName.__value__)
 MIGRATION_SCHEMA_ACTIONS: Tuple[MigrationSchemaAction, ...] = get_args(MigrationSchemaAction.__value__)
+DEMOS_READ_ROLE: DemosReadRole = "demos_read"
 
 
 @dataclass(frozen=True)

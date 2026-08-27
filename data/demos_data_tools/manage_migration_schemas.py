@@ -13,6 +13,7 @@ from duckdb_connection_manager import (
 from logger_utils import config_logger
 from types_constants import (
     DB_CONFIG_NAMES,
+    DEMOS_READ_ROLE,
     MIGRATION_SCHEMA_ACTIONS,
     DatabaseConfigurationName,
     DuckDbAttachName,
@@ -86,6 +87,27 @@ def _parse_args() -> CommandLineArguments:
     )
 
 
+def _grant_permissions(conn: "DuckConn", attach_name: DuckDbAttachName, schema_name: MigrationSchemaName) -> None:
+    """Run appropriate grants on a schema.
+
+    We need to do this when creating a schema as otherwise the read-only configuration will be missing.
+
+    Args:
+        conn (DuckConn): A DuckDB connection with a DB attached.
+        attach_name (DuckDbAttachName): The DuckDB attach name to use.
+        schema_name (MigrationSchemaName): The name of the schema to which the standard grants should be applied.
+    """
+    logger.info(f"Attempting to run grants on schema {schema_name}")
+    grant_queries = [
+        f"GRANT USAGE ON SCHEMA {schema_name} TO {DEMOS_READ_ROLE};",
+        f"GRANT SELECT ON ALL TABLES IN SCHEMA {schema_name} TO {DEMOS_READ_ROLE};",
+        f"ALTER DEFAULT PRIVILEGES IN SCHEMA {schema_name} GRANT SELECT ON TABLES TO {DEMOS_READ_ROLE};",
+    ]
+    for query in grant_queries:
+        conn.execute("CALL postgres_execute(?, ?);", [attach_name, query])
+    logger.info(f"Granted read permissions on schema {schema_name} successfully")
+
+
 def _create_schema(conn: "DuckConn", attach_name: DuckDbAttachName, schema_name: MigrationSchemaName) -> None:
     """Create one of the migration schemas.
 
@@ -122,12 +144,13 @@ def main(args: CommandLineArguments) -> None:
     attach_name = get_attach_name_from_db_config_name(args.db_config_name)
     if args.schema_action == "create":
         _create_schema(conn, attach_name, args.schema_name)
+        _grant_permissions(conn, attach_name, args.schema_name)
     elif args.schema_action == "drop":
         _drop_schema(conn, attach_name, args.schema_name)
     else:
         assert_never(args.schema_action)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: nocover
     args = _parse_args()
     main(args)

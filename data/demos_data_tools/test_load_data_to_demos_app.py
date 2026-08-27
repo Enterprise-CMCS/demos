@@ -26,7 +26,7 @@ from types_constants import (
 )
 
 
-class TestLoadStagedDataToDemosApp:
+class TestLoadDataToDemosApp:
     """A class for the tests for the load_data_to_demos_app.py file."""
 
     mock_attach_name = cast(DuckDbAttachName, "my-duckdb-attach-name")

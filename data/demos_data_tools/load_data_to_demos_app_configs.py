@@ -15,11 +15,11 @@ from types_constants import (
 
 
 def set_migration_mode_on(generation_context: ArbitrarySqlGenerationContext) -> str:  # noqa: D103
-    return f"CALL postgres_execute('{generation_context.attach_name}', 'SET LOCAL demos_app.migration_mode = ''on''')"
+    return f"CALL postgres_execute('{generation_context.attach_name}', $$SET LOCAL demos_app.migration_mode = 'on'$$)"
 
 
 def set_migration_mode_off(generation_context: ArbitrarySqlGenerationContext) -> str:  # noqa: D103
-    return f"CALL postgres_execute('{generation_context.attach_name}', 'SET LOCAL demos_app.migration_mode = ''off''')"
+    return f"CALL postgres_execute('{generation_context.attach_name}', $$SET LOCAL demos_app.migration_mode = 'off'$$)"
 
 
 def call_mark_deliverables_past_due(generation_context: ArbitrarySqlGenerationContext) -> str:  # noqa: D103
