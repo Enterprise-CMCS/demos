@@ -14,6 +14,7 @@ from types_constants import (
     ArbitrarySqlGenerationContext,
     ArbitrarySqlGenerator,
     DataLoadConfiguration,
+    DuckDbAttachName,
     GeneratedArbitraryActionSql,
     GeneratedInsertActionSql,
     GeneratedTransactionActionSql,
@@ -28,7 +29,19 @@ from types_constants import (
 class TestLoadStagedDataToDemosApp:
     """A class for the tests for the load_data_to_demos_app.py file."""
 
-    mock_attach_name = "my-duckdb-attach-name"
+    mock_attach_name = cast(DuckDbAttachName, "my-duckdb-attach-name")
+
+    mock_data_load_config = DataLoadConfiguration(
+        cast(MigrationStagedSchemaName, "my-source-schema"),
+        cast(AppSchemaName, "my-app-schema"),
+        tuple(
+            [
+                TransactionActionConfiguration("begin"),
+                TableInsertActionConfiguration("table1", "table2", ["column1", "column2"]),
+                TransactionActionConfiguration("commit"),
+            ],
+        ),
+    )
 
     @pytest.fixture
     def mock_attach_name_getter(self, mocker):
@@ -37,7 +50,14 @@ class TestLoadStagedDataToDemosApp:
         mock_getter.return_value = self.mock_attach_name
         return mock_getter
 
-    def test__generate_table_insert_sql(self, mock_attach_name_getter):
+    @pytest.fixture
+    def mock_dl_config_getter(self, mocker):
+        """Patch get_data_load_configuration to return a constant value."""
+        mock_getter = mocker.patch("load_data_to_demos_app.get_data_load_configuration")
+        mock_getter.return_value = self.mock_data_load_config
+        return mock_getter
+
+    def test__generate_table_insert_sql(self):
         """Test load_data_to_demos_app.py functions.
 
         ::_generate_table_insert_sql
@@ -47,7 +67,7 @@ class TestLoadStagedDataToDemosApp:
         test_input = TableInsertActionConfiguration("source_tbl", "target_table", ["col1", "col2"])
 
         actual_query = load_data_to_demos_app._generate_table_insert_sql(
-            "from_here", "to_there", "demos-aws", test_input
+            "from_here", "to_there", self.mock_attach_name, test_input
         )
         expected_query = f"""
             INSERT INTO
@@ -58,10 +78,9 @@ class TestLoadStagedDataToDemosApp:
             FROM
                 {self.mock_attach_name}.from_here.source_tbl;
         """
-        mock_attach_name_getter.assert_called_once_with("demos-aws")
         assert dedent(actual_query.sql_query) == dedent(expected_query)
 
-    def test__generate_trigger_action_sql_01(self, mock_attach_name_getter):
+    def test__generate_trigger_action_sql_01(self):
         """Test load_data_to_demos_app.py functions.
 
         ::_generate_trigger_action_sql
@@ -70,7 +89,7 @@ class TestLoadStagedDataToDemosApp:
         """
         test_input = TriggerActionConfiguration("disable", "myschema", "mytable", "_my_cool_trigger")
 
-        actual_query = load_data_to_demos_app._generate_trigger_action_sql("demos-localstack", test_input)
+        actual_query = load_data_to_demos_app._generate_trigger_action_sql(self.mock_attach_name, test_input)
         expected_query = (
             f"CALL postgres_execute('{self.mock_attach_name}', "
             f"'ALTER TABLE myschema.mytable "
@@ -78,9 +97,8 @@ class TestLoadStagedDataToDemosApp:
         )
 
         assert dedent(actual_query.sql_query) == dedent(expected_query)
-        mock_attach_name_getter.assert_called_once_with("demos-localstack")
 
-    def test__generate_trigger_action_sql_02(self, mock_attach_name_getter):
+    def test__generate_trigger_action_sql_02(self):
         """Test load_data_to_demos_app.py functions.
 
         ::_generate_trigger_action_sql
@@ -89,7 +107,7 @@ class TestLoadStagedDataToDemosApp:
         """
         test_input = TriggerActionConfiguration("enable", "myschema", "mytable", "_my_cool_trigger")
 
-        actual_query = load_data_to_demos_app._generate_trigger_action_sql("demos-aws", test_input)
+        actual_query = load_data_to_demos_app._generate_trigger_action_sql(self.mock_attach_name, test_input)
         expected_query = (
             f"CALL postgres_execute('{self.mock_attach_name}', "
             f"'ALTER TABLE myschema.mytable "
@@ -97,7 +115,6 @@ class TestLoadStagedDataToDemosApp:
         )
 
         assert dedent(actual_query.sql_query) == dedent(expected_query)
-        mock_attach_name_getter.assert_called_once_with("demos-aws")
 
     def test__generate_transaction_action_sql_01(self):
         """Test load_data_to_demos_app.py functions.
@@ -127,7 +144,7 @@ class TestLoadStagedDataToDemosApp:
         expected_output = GeneratedTransactionActionSql(test_input, "COMMIT;")
         assert result == expected_output
 
-    def test__generate_arbitrary_action_sql(self, mocker, mock_attach_name_getter):
+    def test__generate_arbitrary_action_sql(self):
         """Test load_data_to_demos_app.py functions.
 
         ::_generate_arbitrary_action_sql
@@ -137,17 +154,14 @@ class TestLoadStagedDataToDemosApp:
         mock_arbitrary_generator = MagicMock(ArbitrarySqlGenerator)
         mock_arbitrary_generator.return_value = "SELECT * FROM file_table;"
 
-        # Note that here we override the fixture to give a valid value
-        # This avoids type complaints when creating the context below
-        mock_attach_name_getter.return_value = "ddb_demos_aws"
         test_input = ArbitraryActionConfiguration("some action name", mock_arbitrary_generator)
 
-        result = load_data_to_demos_app._generate_arbitrary_action_sql("demos-aws", test_input)
+        result = load_data_to_demos_app._generate_arbitrary_action_sql(self.mock_attach_name, test_input)
 
         expected_output = GeneratedArbitraryActionSql(test_input, "SELECT * FROM file_table;")
         assert result == expected_output
         mock_arbitrary_generator.assert_called_once_with(
-            ArbitrarySqlGenerationContext("ddb_demos_aws", APP_SCHEMA_NAME)
+            ArbitrarySqlGenerationContext(self.mock_attach_name, APP_SCHEMA_NAME)
         )
 
     def test__generate_data_load_sql(self, mocker, caplog):
@@ -184,22 +198,30 @@ class TestLoadStagedDataToDemosApp:
             "load_data_to_demos_app._generate_arbitrary_action_sql", return_value="just an arbitrary string"
         )
 
-        load_data_to_demos_app._generate_data_load_sql("demos-aws", test_input)
+        load_data_to_demos_app._generate_data_load_sql(self.mock_attach_name, test_input)
 
         assert mock_insert_generator.call_args_list == [
-            call(test_input.source_schema, test_input.target_schema, "demos-aws", test_input.data_load_actions[1]),
+            call(
+                test_input.source_schema,
+                test_input.target_schema,
+                self.mock_attach_name,
+                test_input.data_load_actions[1],
+            ),
         ]
         assert mock_trigger_generator.call_args_list == [
-            call("demos-aws", test_input.data_load_actions[2]),
-            call("demos-aws", test_input.data_load_actions[3]),
-            call("demos-aws", test_input.data_load_actions[4]),
-            call("demos-aws", TriggerActionConfiguration("enable", "myschema", "a_diff_source", "less_cool_trigger")),
+            call(self.mock_attach_name, test_input.data_load_actions[2]),
+            call(self.mock_attach_name, test_input.data_load_actions[3]),
+            call(self.mock_attach_name, test_input.data_load_actions[4]),
+            call(
+                self.mock_attach_name,
+                TriggerActionConfiguration("enable", "myschema", "a_diff_source", "less_cool_trigger"),
+            ),
         ]
         assert mock_transaction_generator.call_args_list == [
             call(test_input.data_load_actions[0]),
             call(test_input.data_load_actions[6]),
         ]
-        assert mock_arbitrary_generator.call_args_list == [call("demos-aws", test_input.data_load_actions[5])]
+        assert mock_arbitrary_generator.call_args_list == [call(self.mock_attach_name, test_input.data_load_actions[5])]
         assert caplog.messages[0] == "Note! Current configuration leaves some triggers disabled! Enabling them"
 
     def test__create_log_execution_message_for_sql_01(self):
@@ -263,3 +285,76 @@ class TestLoadStagedDataToDemosApp:
         expected_message = "Executing arbitrary SQL statement: the action"
 
         assert actual_message == expected_message
+
+    def test_main_01(self, mocker, mock_attach_name_getter, mock_dl_config_getter):
+        """Test load_data_to_demos_app.py functions.
+
+        ::main
+
+        ::It should invoke the expected functions when run.
+        """
+        mock_conn = MagicMock()
+        mock_generated_sql = [
+            GeneratedInsertActionSql(cast(TableInsertActionConfiguration, "config_one"), "one"),
+            GeneratedInsertActionSql(cast(TableInsertActionConfiguration, "config_two"), "two"),
+            GeneratedInsertActionSql(cast(TableInsertActionConfiguration, "config_three"), "three"),
+        ]
+        mock_sql_generator = mocker.patch(
+            "load_data_to_demos_app._generate_data_load_sql",
+            return_value=mock_generated_sql,
+        )
+        mock_conn_creator = mocker.patch(
+            "load_data_to_demos_app.create_duckdb_conn", return_value="This is a connection!"
+        )
+        mock_db_attacher = mocker.patch("load_data_to_demos_app.attach_db_to_duckdb_conn", return_value=mock_conn)
+        mock_log_creator = mocker.patch("load_data_to_demos_app._create_log_execution_message_for_sql")
+
+        test_input = load_data_to_demos_app.CommandLineArguments("demos-aws", "rev01", False)
+        load_data_to_demos_app.main(test_input)
+
+        mock_dl_config_getter.assert_called_once_with(test_input.dl_config_name)
+        mock_attach_name_getter.assert_called_once_with(test_input.db_config_name)
+        mock_sql_generator.assert_called_once_with(self.mock_attach_name, self.mock_data_load_config)
+        mock_conn_creator.assert_called_once_with()
+        mock_db_attacher.assert_called_once_with("This is a connection!", test_input.db_config_name)
+        assert mock_log_creator.call_args_list == [call(generated_sql) for generated_sql in mock_generated_sql]
+        assert mock_conn.execute.call_args_list == [
+            call(generated_sql.sql_query) for generated_sql in mock_generated_sql
+        ]
+
+    def test_main_21(self, mocker, mock_attach_name_getter, mock_dl_config_getter, caplog):
+        """Test load_data_to_demos_app.py functions.
+
+        ::main
+
+        ::It should not run SQL when in dry run mode.
+        """
+        mock_conn = MagicMock()
+        mock_generated_sql = [
+            GeneratedInsertActionSql(cast(TableInsertActionConfiguration, "config_one"), "one"),
+            GeneratedInsertActionSql(cast(TableInsertActionConfiguration, "config_two"), "two"),
+            GeneratedInsertActionSql(cast(TableInsertActionConfiguration, "config_three"), "three"),
+        ]
+        mock_sql_generator = mocker.patch(
+            "load_data_to_demos_app._generate_data_load_sql",
+            return_value=mock_generated_sql,
+        )
+        mock_conn_creator = mocker.patch(
+            "load_data_to_demos_app.create_duckdb_conn", return_value="This is a connection!"
+        )
+        mock_db_attacher = mocker.patch("load_data_to_demos_app.attach_db_to_duckdb_conn", return_value=mock_conn)
+        mock_log_creator = mocker.patch("load_data_to_demos_app._create_log_execution_message_for_sql")
+
+        test_input = load_data_to_demos_app.CommandLineArguments("demos-aws", "rev01", True)
+        load_data_to_demos_app.main(test_input)
+
+        mock_dl_config_getter.assert_called_once_with(test_input.dl_config_name)
+        mock_attach_name_getter.assert_called_once_with(test_input.db_config_name)
+        mock_sql_generator.assert_called_once_with(self.mock_attach_name, self.mock_data_load_config)
+        mock_conn_creator.assert_not_called()
+        mock_db_attacher.assert_not_called()
+        mock_log_creator.assert_not_called()
+        mock_conn.execute.assert_not_called()
+        assert "one" in caplog.messages
+        assert "two" in caplog.messages
+        assert "three" in caplog.messages

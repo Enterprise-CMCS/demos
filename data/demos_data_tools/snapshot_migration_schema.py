@@ -14,7 +14,14 @@ from duckdb_connection_manager import (
 )
 from load_data_to_demos_app_configs import get_data_load_configuration
 from logger_utils import config_logger
-from types_constants import DB_CONFIG_NAMES, DL_CONFIG_NAMES, DatabaseConfigurationName, DataLoadConfigurationName
+from types_constants import (
+    DB_CONFIG_NAMES,
+    DL_CONFIG_NAMES,
+    DataLoadConfiguration,
+    DatabaseConfigurationName,
+    DataLoadConfigurationName,
+    DuckDbAttachName,
+)
 
 if TYPE_CHECKING:
     from duckdb import DuckDBPyConnection as DuckConn
@@ -50,22 +57,20 @@ def _parse_args() -> CommandLineArguments:
 
 
 def _get_list_of_snapshot_tables(
-    db_config_name: DatabaseConfigurationName, dl_config_name: DataLoadConfigurationName, conn: "DuckConn"
+    attach_name: DuckDbAttachName, dl_config: DataLoadConfiguration, conn: "DuckConn"
 ) -> List[str]:
     """Get a list of tables to snapshot.
 
     The target_schema of the named DataLoadConfiguration is the one to be snapshotted.
 
     Args:
-        db_config_name (DatabaseConfigurationName): The name of the DB config to use.
-        dl_config_name (DataLoadConfigurationName): The name of the data load configuration to use.
+        attach_name (DuckDbAttachName): The DuckDB attach name to use.
+        dl_config (DataLoadConfiguration): The data load configuration to use.
         conn (DuckConn): The DuckDB connection with the proper DB attached.
 
     Returns:
         List[str]: A list of the tables to snapshot.
     """
-    attach_name = get_attach_name_from_db_config_name(db_config_name)
-    data_load_config = get_data_load_configuration(dl_config_name)
     query = f"""
         SELECT
             table_name
@@ -75,28 +80,22 @@ def _get_list_of_snapshot_tables(
             table_schema = $data_schema;
     """
     logger.info("Getting list of tables to snapshot")
-    result = conn.execute(query, {"data_schema": data_load_config.target_schema}).fetchall()
+    result = conn.execute(query, {"data_schema": dl_config.target_schema}).fetchall()
     return [row[0] for row in result]
 
 
-def _create_snapshot_schema(
-    db_config_name: DatabaseConfigurationName, dl_config_name: DataLoadConfigurationName, conn: "DuckConn"
-) -> str:
+def _create_snapshot_schema(attach_name: DuckDbAttachName, dl_config: DataLoadConfiguration, conn: "DuckConn") -> str:
     """Create a schema to place the snapshot tables in, using the current timestamp.
 
     Args:
-        db_config_name (DatabaseConfigurationName): The name of the DB config to use.
-        dl_config_name (DataLoadConfigurationName): The name of the data load configuration to use.
+        attach_name (DuckDbAttachName): The DuckDB attach name to use.
+        dl_config (DataLoadConfiguration): The data load configuration to use.
         conn (DuckConn): The DuckDB connection with the proper DB attached.
 
     Returns:
         str: The schema that was created for snapshots.
     """
-    attach_name = get_attach_name_from_db_config_name(db_config_name)
-    data_load_config = get_data_load_configuration(dl_config_name)
-    schema_name = (
-        f"{data_load_config.target_schema}_{datetime.now(ZoneInfo('America/New_York')).strftime('%Y%m%d_%H%M%S_et')}"
-    )
+    schema_name = f"{dl_config.target_schema}_{datetime.now(ZoneInfo('America/New_York')).strftime('%Y%m%d_%H%M%S_et')}"
     logger.info(f"Creating snapshot schema {schema_name}")
     query = f"""
         CREATE SCHEMA {attach_name}.{schema_name};
@@ -106,8 +105,8 @@ def _create_snapshot_schema(
 
 
 def _select_table_into_snapshot_schema(
-    db_config_name: DatabaseConfigurationName,
-    dl_config_name: DataLoadConfigurationName,
+    attach_name: DuckDbAttachName,
+    dl_config: DataLoadConfiguration,
     conn: "DuckConn",
     table_name: str,
     snapshot_schema: str,
@@ -115,17 +114,15 @@ def _select_table_into_snapshot_schema(
     """Select a table from the staging schema into the snapshot schema.
 
     Args:
-        db_config_name (DatabaseConfigurationName): The name of the DB config to use.
-        dl_config_name (DataLoadConfigurationName): The name of the data load configuration to use.
+        attach_name (DuckDbAttachName): The DuckDB attach name to use.
+        dl_config (DataLoadConfiguration): The data load configuration to use.
         conn (DuckConn): The DuckDB connection with the proper DB attached.
         table_name (str): The table to be snapshot into the snapshot schema.
         snapshot_schema (str): The snapshot schema where the table should be placed.
     """
-    attach_name = get_attach_name_from_db_config_name(db_config_name)
-    data_load_config = get_data_load_configuration(dl_config_name)
     query = f"""
         CREATE TABLE {attach_name}.{snapshot_schema}.{table_name} AS
-        SELECT * FROM {attach_name}.{data_load_config.target_schema}.{table_name};
+        SELECT * FROM {attach_name}.{dl_config.target_schema}.{table_name};
     """
     logger.info(f"Snapshotting table {table_name} into {snapshot_schema}")
     conn.execute(query)
@@ -134,10 +131,12 @@ def _select_table_into_snapshot_schema(
 def main(args: CommandLineArguments) -> None:
     """Main program function."""
     db_conn = attach_db_to_duckdb_conn(create_duckdb_conn(), args.db_config_name)
-    snapshot_schema = _create_snapshot_schema(args.db_config_name, args.dl_config_name, db_conn)
-    tables_to_snapshot = _get_list_of_snapshot_tables(args.db_config_name, args.dl_config_name, db_conn)
+    attach_name = get_attach_name_from_db_config_name(args.db_config_name)
+    dl_config = get_data_load_configuration(args.dl_config_name)
+    snapshot_schema = _create_snapshot_schema(attach_name, dl_config, db_conn)
+    tables_to_snapshot = _get_list_of_snapshot_tables(attach_name, dl_config, db_conn)
     for tbl in tables_to_snapshot:
-        _select_table_into_snapshot_schema(args.db_config_name, args.dl_config_name, db_conn, tbl, snapshot_schema)
+        _select_table_into_snapshot_schema(attach_name, dl_config, db_conn, tbl, snapshot_schema)
 
 
 if __name__ == "__main__":

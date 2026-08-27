@@ -15,6 +15,7 @@ from types_constants import (
     DB_CONFIG_NAMES,
     MIGRATION_SCHEMA_ACTIONS,
     DatabaseConfigurationName,
+    DuckDbAttachName,
     MigrationSchemaAction,
     MigrationSchemaName,
 )
@@ -85,38 +86,32 @@ def _parse_args() -> CommandLineArguments:
     )
 
 
-def _create_schema(
-    conn: "DuckConn", db_config_name: DatabaseConfigurationName, schema_name: MigrationSchemaName
-) -> None:
+def _create_schema(conn: "DuckConn", attach_name: DuckDbAttachName, schema_name: MigrationSchemaName) -> None:
     """Create one of the migration schemas.
 
     Args:
         conn (DuckConn): A DuckDB connection with a DB attached.
-        db_config_name (DatabaseConfigurationName): The name of the DB config to use.
+        attach_name (DuckDbAttachName): The DuckDB attach name to use.
         schema_name (MigrationSchemaName): The name of the schema to create.
     """
-    demos_ddb_attach_name = get_attach_name_from_db_config_name(db_config_name)
-
     logger.info(f"Attempting to create schema {schema_name}")
     conn.execute(f"""
-        CREATE SCHEMA {demos_ddb_attach_name}.{schema_name};
+        CREATE SCHEMA {attach_name}.{schema_name};
     """)
     logger.info(f"Created schema {schema_name} successfully")
 
 
-def _drop_schema(conn: "DuckConn", db_config_name: DatabaseConfigurationName, schema_name: MigrationSchemaName) -> None:
+def _drop_schema(conn: "DuckConn", attach_name: DuckDbAttachName, schema_name: MigrationSchemaName) -> None:
     """Drop one of the migration schemas.
 
     Args:
         conn (DuckConn): A DuckDB connection with a DB attached.
-        db_config_name (DatabaseConfigurationName): The name of the DB config to use.
+        attach_name (DuckDbAttachName): The DuckDB attach name to use.
         schema_name (MigrationSchemaName): The name of the schema to drop.
     """
-    demos_ddb_attach_name = get_attach_name_from_db_config_name(db_config_name)
-
     logger.info(f"Attempting to drop schema {schema_name}")
     conn.execute(f"""
-        DROP SCHEMA IF EXISTS {demos_ddb_attach_name}.{schema_name} CASCADE;
+        DROP SCHEMA IF EXISTS {attach_name}.{schema_name} CASCADE;
     """)
     logger.info(f"Dropped schema {schema_name} successfully")
 
@@ -124,10 +119,11 @@ def _drop_schema(conn: "DuckConn", db_config_name: DatabaseConfigurationName, sc
 def main(args: CommandLineArguments) -> None:
     """Main program function."""
     conn = attach_db_to_duckdb_conn(create_duckdb_conn(), args.db_config_name)
+    attach_name = get_attach_name_from_db_config_name(args.db_config_name)
     if args.schema_action == "create":
-        _create_schema(conn, args.db_config_name, args.schema_name)
+        _create_schema(conn, attach_name, args.schema_name)
     elif args.schema_action == "drop":
-        _drop_schema(conn, args.db_config_name, args.schema_name)
+        _drop_schema(conn, attach_name, args.schema_name)
     else:
         assert_never(args.schema_action)
 

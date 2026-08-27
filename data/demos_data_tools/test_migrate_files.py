@@ -9,13 +9,13 @@ from unittest.mock import call
 import pytest
 
 import migrate_files
-from types_constants import AppSchemaName, DataLoadConfiguration, MigrationStagedSchemaName
+from types_constants import AppSchemaName, DataLoadConfiguration, DuckDbAttachName, MigrationStagedSchemaName
 
 
 class TestMigrateFiles:
     """A class for the tests for the migrate_files.py file."""
 
-    mock_attach_name = "my-duckdb-attach-name"
+    mock_attach_name = cast(DuckDbAttachName, "my-duckdb-attach-name")
     mock_data_load_config = DataLoadConfiguration(
         cast(MigrationStagedSchemaName, "my-favorite-source"),
         cast(AppSchemaName, "my-favorite-destination"),
@@ -178,13 +178,11 @@ class TestMigrateFiles:
                 NOT file_has_been_moved;
         """
 
-        result = migrate_files._get_unmigrated_files("demos-localstack", "rev01", mock_conn)
+        result = migrate_files._get_unmigrated_files(self.mock_attach_name, self.mock_data_load_config, mock_conn)
 
         actual_query = mock_conn.execute.call_args[0][0]
         assert dedent(actual_query) == dedent(expected_query)
         assert result == self.mock_dataclass_result
-        mock_attach_name_getter.assert_called_once_with("demos-localstack")
-        mock_data_load_config_getter.assert_called_once_with("rev01")
 
     def test__mark_file_migrated_in_db_01(
         self, mock_env_prod, mock_conn, mock_attach_name_getter, mock_data_load_config_getter
@@ -210,15 +208,15 @@ class TestMigrateFiles:
             _local_file_has_been_moved=True,
         )
 
-        result = migrate_files._mark_file_migrated_in_db("demos-aws", "base", mock_conn, test_input)
+        result = migrate_files._mark_file_migrated_in_db(
+            self.mock_attach_name, self.mock_data_load_config, mock_conn, test_input
+        )
 
         actual_query = mock_conn.execute.call_args[0][0]
         actual_params = mock_conn.execute.call_args[0][1]
         assert dedent(actual_query) == dedent(expected_query)
         assert actual_params == {"final_file_id": test_input.final_file_id}
         assert result == expected_output
-        mock_attach_name_getter.assert_called_once_with("demos-aws")
-        mock_data_load_config_getter.assert_called_once_with("base")
 
     def test__mark_file_migrated_in_db_02(
         self, mock_env_prod, mock_conn, mock_attach_name_getter, mock_data_load_config_getter
@@ -231,7 +229,9 @@ class TestMigrateFiles:
         """
         test_input = self.mock_dataclass_result[0]
 
-        result = migrate_files._mark_file_migrated_in_db("demos-localstack", "base", mock_conn, test_input)
+        result = migrate_files._mark_file_migrated_in_db(
+            self.mock_attach_name, self.mock_data_load_config, mock_conn, test_input
+        )
 
         mock_conn.execute.assert_not_called()
         assert result == test_input
@@ -248,7 +248,9 @@ class TestMigrateFiles:
         test_input = replace(self.mock_dataclass_result[0], _local_file_has_been_moved=True)
         mock_conn.execute.side_effect = Exception("A bad thing has occurred!")
 
-        result = migrate_files._mark_file_migrated_in_db("demos-aws", "base", mock_conn, test_input)
+        result = migrate_files._mark_file_migrated_in_db(
+            self.mock_attach_name, self.mock_data_load_config, mock_conn, test_input
+        )
         assert mock_conn.execute.was_called()
         assert result == test_input
         assert "A bad thing has occurred!" in caplog.text
@@ -302,12 +304,25 @@ class TestMigrateFiles:
         mock_file_migrate_function = mocker.patch("migrate_files._migrate_file_in_s3", return_value=updated_test_input)
         mock_db_migrate_function = mocker.patch("migrate_files._mark_file_migrated_in_db")
 
-        migrate_files._migrate_file("demos-aws", "base", mock_conn, mock_boto3["s3_client"], test_input)
+        migrate_files._migrate_file(
+            self.mock_attach_name, self.mock_data_load_config, mock_conn, mock_boto3["s3_client"], test_input
+        )
 
         mock_file_migrate_function.assert_called_once_with(mock_boto3["s3_client"], test_input)
-        mock_db_migrate_function.assert_called_once_with("demos-aws", "base", mock_conn, updated_test_input)
+        mock_db_migrate_function.assert_called_once_with(
+            self.mock_attach_name, self.mock_data_load_config, mock_conn, updated_test_input
+        )
 
-    def test_main_01(self, mock_env_prod, mock_conn, mock_boto3, mocker, caplog):
+    def test_main_01(
+        self,
+        mock_env_prod,
+        mock_attach_name_getter,
+        mock_data_load_config_getter,
+        mock_conn,
+        mock_boto3,
+        mocker,
+        caplog,
+    ):
         """Test migrate_files.py functions.
 
         ::main
@@ -331,36 +346,36 @@ class TestMigrateFiles:
 
         mock_create_duckdb_conn.assert_called_once()
         mock_attach_db_to_duckdb_conn.assert_called_once_with(mock_conn, test_args.db_config_name)
+        mock_attach_name_getter.assert_called_once_with(test_args.db_config_name)
+        mock_data_load_config_getter.assert_called_once_with(test_args.dl_config_name)
         mock__get_s3_client.assert_called_once()
-        mock__get_unmigrated_files.assert_called_once_with(
-            test_args.db_config_name, test_args.dl_config_name, mock_conn
-        )
+        mock__get_unmigrated_files.assert_called_once_with(self.mock_attach_name, self.mock_data_load_config, mock_conn)
         assert mock_migrate_file.call_count == 4
         assert mock_migrate_file.call_args_list == [
             call(
-                test_args.db_config_name,
-                test_args.dl_config_name,
+                self.mock_attach_name,
+                self.mock_data_load_config,
                 mock_conn,
                 mock_boto3["s3_client"],
                 self.mock_dataclass_result[0],
             ),
             call(
-                test_args.db_config_name,
-                test_args.dl_config_name,
+                self.mock_attach_name,
+                self.mock_data_load_config,
                 mock_conn,
                 mock_boto3["s3_client"],
                 self.mock_dataclass_result[1],
             ),
             call(
-                test_args.db_config_name,
-                test_args.dl_config_name,
+                self.mock_attach_name,
+                self.mock_data_load_config,
                 mock_conn,
                 mock_boto3["s3_client"],
                 self.mock_dataclass_result[2],
             ),
             call(
-                test_args.db_config_name,
-                test_args.dl_config_name,
+                self.mock_attach_name,
+                self.mock_data_load_config,
                 mock_conn,
                 mock_boto3["s3_client"],
                 self.mock_dataclass_result[3],
@@ -368,7 +383,16 @@ class TestMigrateFiles:
         ]
         assert "Failed" not in caplog.text
 
-    def test_main_02(self, mock_env_prod, mock_conn, mock_boto3, mocker, caplog):
+    def test_main_02(
+        self,
+        mock_env_prod,
+        mock_attach_name_getter,
+        mock_data_load_config_getter,
+        mock_conn,
+        mock_boto3,
+        mocker,
+        caplog,
+    ):
         """Test migrate_files.py functions.
 
         ::main
@@ -400,36 +424,36 @@ class TestMigrateFiles:
         assert exit_info.value.code == 1
         mock_create_duckdb_conn.assert_called_once()
         mock_attach_db_to_duckdb_conn.assert_called_once_with(mock_conn, test_args.db_config_name)
+        mock_attach_name_getter.assert_called_once_with(test_args.db_config_name)
+        mock_data_load_config_getter.assert_called_once_with(test_args.dl_config_name)
         mock__get_s3_client.assert_called_once()
-        mock__get_unmigrated_files.assert_called_once_with(
-            test_args.db_config_name, test_args.dl_config_name, mock_conn
-        )
+        mock__get_unmigrated_files.assert_called_once_with(self.mock_attach_name, self.mock_data_load_config, mock_conn)
         assert mock_migrate_file.call_count == 4
         assert mock_migrate_file.call_args_list == [
             call(
-                test_args.db_config_name,
-                test_args.dl_config_name,
+                self.mock_attach_name,
+                self.mock_data_load_config,
                 mock_conn,
                 mock_boto3["s3_client"],
                 self.mock_dataclass_result[0],
             ),
             call(
-                test_args.db_config_name,
-                test_args.dl_config_name,
+                self.mock_attach_name,
+                self.mock_data_load_config,
                 mock_conn,
                 mock_boto3["s3_client"],
                 self.mock_dataclass_result[1],
             ),
             call(
-                test_args.db_config_name,
-                test_args.dl_config_name,
+                self.mock_attach_name,
+                self.mock_data_load_config,
                 mock_conn,
                 mock_boto3["s3_client"],
                 self.mock_dataclass_result[2],
             ),
             call(
-                test_args.db_config_name,
-                test_args.dl_config_name,
+                self.mock_attach_name,
+                self.mock_data_load_config,
                 mock_conn,
                 mock_boto3["s3_client"],
                 self.mock_dataclass_result[3],
