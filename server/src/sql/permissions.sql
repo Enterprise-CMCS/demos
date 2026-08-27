@@ -32,6 +32,7 @@ $$ LANGUAGE plpgsql;
 CREATE SCHEMA IF NOT EXISTS cron;
 CREATE SCHEMA IF NOT EXISTS legacy_pmda_raw;
 CREATE SCHEMA IF NOT EXISTS legacy_pmda_staged;
+CREATE SCHEMA IF NOT EXISTS legacy_pmda_migration_rev_01;
 
 -- Revoke all access by user / role
 -- PUBLIC revocations
@@ -40,6 +41,7 @@ SELECT revoke_all_on_schema('demos_app', 'PUBLIC');
 SELECT revoke_all_on_schema('cron', 'PUBLIC');
 SELECT revoke_all_on_schema('legacy_pmda_raw', 'PUBLIC');
 SELECT revoke_all_on_schema('legacy_pmda_staged', 'PUBLIC');
+SELECT revoke_all_on_schema('legacy_pmda_migration_rev_01', 'PUBLIC');
 
 -- demos_read revocations
 SELECT revoke_all_on_schema('public', 'demos_read');
@@ -47,6 +49,7 @@ SELECT revoke_all_on_schema('demos_app', 'demos_read');
 SELECT revoke_all_on_schema('cron', 'demos_read');
 SELECT revoke_all_on_schema('legacy_pmda_raw', 'demos_read');
 SELECT revoke_all_on_schema('legacy_pmda_staged', 'demos_read');
+SELECT revoke_all_on_schema('legacy_pmda_migration_rev_01', 'demos_read');
 
 -- demos_write revocations
 SELECT revoke_all_on_schema('public', 'demos_write');
@@ -54,6 +57,7 @@ SELECT revoke_all_on_schema('demos_app', 'demos_write');
 SELECT revoke_all_on_schema('cron', 'demos_write');
 SELECT revoke_all_on_schema('legacy_pmda_raw', 'demos_write');
 SELECT revoke_all_on_schema('legacy_pmda_staged', 'demos_write');
+SELECT revoke_all_on_schema('legacy_pmda_migration_rev_01', 'demos_write');
 
 -- demos_delete revocations
 SELECT revoke_all_on_schema('public', 'demos_delete');
@@ -61,6 +65,7 @@ SELECT revoke_all_on_schema('demos_app', 'demos_delete');
 SELECT revoke_all_on_schema('cron', 'demos_delete');
 SELECT revoke_all_on_schema('legacy_pmda_raw', 'demos_delete');
 SELECT revoke_all_on_schema('legacy_pmda_staged', 'demos_delete');
+SELECT revoke_all_on_schema('legacy_pmda_migration_rev_01', 'demos_delete');
 
 -- Next, do grants per user / role
 -- Usage on schemas (and one on sequences), specific table access, change default privs
@@ -74,16 +79,19 @@ GRANT USAGE ON SCHEMA demos_app TO demos_read;
 GRANT USAGE ON SCHEMA cron TO demos_read;
 GRANT USAGE ON SCHEMA legacy_pmda_raw TO demos_read;
 GRANT USAGE ON SCHEMA legacy_pmda_staged TO demos_read;
+GRANT USAGE ON SCHEMA legacy_pmda_migration_rev_01 TO demos_read;
 
 GRANT SELECT ON ALL TABLES IN SCHEMA demos_app TO demos_read;
 GRANT SELECT ON ALL TABLES IN SCHEMA cron TO demos_read;
 GRANT SELECT ON ALL TABLES IN SCHEMA legacy_pmda_raw TO demos_read;
 GRANT SELECT ON ALL TABLES IN SCHEMA legacy_pmda_staged TO demos_read;
+GRANT SELECT ON ALL TABLES IN SCHEMA legacy_pmda_migration_rev_01 TO demos_read;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA demos_app GRANT SELECT ON TABLES TO demos_read;
 ALTER DEFAULT PRIVILEGES IN SCHEMA cron GRANT SELECT ON TABLES TO demos_read;
 ALTER DEFAULT PRIVILEGES IN SCHEMA legacy_pmda_raw GRANT SELECT ON TABLES TO demos_read;
 ALTER DEFAULT PRIVILEGES IN SCHEMA legacy_pmda_staged GRANT SELECT ON TABLES TO demos_read;
+ALTER DEFAULT PRIVILEGES IN SCHEMA legacy_pmda_migration_rev_01 GRANT SELECT ON TABLES TO demos_read;
 
 -- demos_write grants
 GRANT USAGE ON SCHEMA demos_app TO demos_write;
