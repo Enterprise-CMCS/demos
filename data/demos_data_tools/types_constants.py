@@ -1,9 +1,25 @@
-"""Shared types and classes for the load_data_to_demos_app.py module."""
+"""Shared types, classes, and constants for the demos_data_tools module."""
 
 from dataclasses import dataclass
-from typing import List, Literal, Protocol, Tuple
+from typing import List, Literal, Protocol, Tuple, get_args
 
-from duckdb_connection_manager import DuckDbAttachName
+type DatabaseConfigurationName = Literal["demos-localstack", "demos-aws"]
+type AppSchemaName = Literal["demos_app"]
+type MigrationRawSchemaName = Literal["legacy_pmda_raw"]
+type MigrationStagedSchemaName = Literal["legacy_pmda_staged", "legacy_pmda_migration_rev_01"]
+type MigrationSchemaName = MigrationRawSchemaName | MigrationStagedSchemaName
+type DuckDbAttachName = Literal["ddb_demos_localstack", "ddb_demos_aws"]
+type DataLoadConfigurationName = Literal["base", "rev01"]
+type MigrationSchemaAction = Literal["create", "drop"]
+
+DB_CONFIG_NAMES: Tuple[DatabaseConfigurationName, ...] = get_args(DatabaseConfigurationName.__value__)
+APP_SCHEMA_NAME: AppSchemaName = "demos_app"
+MIGRATION_RAW_SCHEMA_NAME: MigrationRawSchemaName = "legacy_pmda_raw"
+MIGRATION_STAGED_SCHEMA_NAMES: Tuple[MigrationStagedSchemaName] = get_args(MigrationStagedSchemaName.__value__)
+MIGRATION_SCHEMA_NAMES: Tuple[MigrationSchemaName, ...] = (MIGRATION_RAW_SCHEMA_NAME, *MIGRATION_STAGED_SCHEMA_NAMES)
+DUCKDB_ATTACH_NAMES: Tuple[DuckDbAttachName, ...] = get_args(DuckDbAttachName.__value__)
+DL_CONFIG_NAMES: Tuple[DataLoadConfigurationName, ...] = get_args(DataLoadConfigurationName.__value__)
+MIGRATION_SCHEMA_ACTIONS: Tuple[MigrationSchemaAction, ...] = get_args(MigrationSchemaAction.__value__)
 
 
 @dataclass(frozen=True)
@@ -121,6 +137,6 @@ type DataLoadSql = List[GeneratedSqlStatement]
 class DataLoadConfiguration:
     """A class for a data load configuration."""
 
-    source_schema: str
-    target_schema: str
+    source_schema: MigrationStagedSchemaName
+    target_schema: AppSchemaName
     data_load_actions: DataLoadActionList

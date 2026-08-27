@@ -1,11 +1,15 @@
 """A module containing tests for the load_data_to_demos_app.py file."""
 
-import pytest
 from textwrap import dedent
+from typing import cast
 from unittest.mock import MagicMock, call
 
+import pytest
+
 import load_data_to_demos_app
-from load_data_to_demos_app_types import (
+from types_constants import (
+    APP_SCHEMA_NAME,
+    AppSchemaName,
     ArbitraryActionConfiguration,
     ArbitrarySqlGenerationContext,
     ArbitrarySqlGenerator,
@@ -14,6 +18,7 @@ from load_data_to_demos_app_types import (
     GeneratedInsertActionSql,
     GeneratedTransactionActionSql,
     GeneratedTriggerActionSql,
+    MigrationStagedSchemaName,
     TableInsertActionConfiguration,
     TransactionActionConfiguration,
     TriggerActionConfiguration,
@@ -129,8 +134,6 @@ class TestLoadStagedDataToDemosApp:
 
         ::It should create an object for an arbitrary action.
         """
-        mocked_env = {"APP_SCHEMA": "my_app_schema"}
-        mocker.patch.dict("os.environ", mocked_env)
         mock_arbitrary_generator = MagicMock(ArbitrarySqlGenerator)
         mock_arbitrary_generator.return_value = "SELECT * FROM file_table;"
 
@@ -144,7 +147,7 @@ class TestLoadStagedDataToDemosApp:
         expected_output = GeneratedArbitraryActionSql(test_input, "SELECT * FROM file_table;")
         assert result == expected_output
         mock_arbitrary_generator.assert_called_once_with(
-            ArbitrarySqlGenerationContext("ddb_demos_aws", mocked_env["APP_SCHEMA"])
+            ArbitrarySqlGenerationContext("ddb_demos_aws", APP_SCHEMA_NAME)
         )
 
     def test__generate_data_load_sql(self, mocker, caplog):
@@ -155,8 +158,8 @@ class TestLoadStagedDataToDemosApp:
         ::It should combine all requested queries and generate trigger enable statements if needed.
         """
         test_input = DataLoadConfiguration(
-            "from_this_place",
-            "to_that_place",
+            cast(MigrationStagedSchemaName, "from_this_place"),
+            cast(AppSchemaName, "to_that_place"),
             (
                 TransactionActionConfiguration("begin"),
                 TableInsertActionConfiguration("source_tbl", "target_table", ["col1", "col2"]),

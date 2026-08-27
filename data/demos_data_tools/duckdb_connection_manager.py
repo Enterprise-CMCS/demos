@@ -2,21 +2,20 @@
 
 import os
 from logging import getLogger
-from typing import TYPE_CHECKING, Literal, assert_never
+from typing import TYPE_CHECKING, assert_never
 
 import duckdb
+from dotenv import load_dotenv
 
 from logger_utils import config_logger
+from types_constants import DatabaseConfigurationName, DuckDbAttachName
 
 if TYPE_CHECKING:
     from duckdb import DuckDBPyConnection as DuckConn
 
-
 logger = config_logger(getLogger(__name__))
 
-
-type DatabaseConfigurationName = Literal["demos-localstack", "demos-aws"]
-type DuckDbAttachName = Literal["ddb_demos_localstack", "ddb_demos_aws"]
+load_dotenv()
 
 
 def _load_db_params_from_env(db_config_name: DatabaseConfigurationName) -> dict:

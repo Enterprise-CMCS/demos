@@ -1,24 +1,26 @@
 """Perform load actions based on a configuration from a data migration schema into demos_app."""
 
 import argparse
-import os
 from dataclasses import dataclass
 from logging import getLogger
-from typing import Set, Tuple, assert_never, cast, get_args
-
-from dotenv import load_dotenv
+from typing import Set, Tuple, assert_never
 
 from duckdb_connection_manager import (
-    DatabaseConfigurationName,
     attach_db_to_duckdb_conn,
     create_duckdb_conn,
     get_attach_name_from_db_config_name,
 )
-from load_data_to_demos_app_configs import DataLoadConfigurationName, get_data_load_configuration
-from load_data_to_demos_app_types import (
+from load_data_to_demos_app_configs import get_data_load_configuration
+from logger_utils import config_logger
+from types_constants import (
+    APP_SCHEMA_NAME,
+    DB_CONFIG_NAMES,
+    DL_CONFIG_NAMES,
     ArbitraryActionConfiguration,
     ArbitrarySqlGenerationContext,
+    DatabaseConfigurationName,
     DataLoadConfiguration,
+    DataLoadConfigurationName,
     DataLoadSql,
     GeneratedArbitraryActionSql,
     GeneratedInsertActionSql,
@@ -29,13 +31,8 @@ from load_data_to_demos_app_types import (
     TransactionActionConfiguration,
     TriggerActionConfiguration,
 )
-from logger_utils import config_logger
 
 logger = config_logger(getLogger(__name__))
-
-load_dotenv()
-DL_CONFIG_NAMES = get_args(DataLoadConfigurationName.__value__)
-DB_CONFIG_NAMES = get_args(DatabaseConfigurationName.__value__)
 
 
 @dataclass(frozen=True)
@@ -62,9 +59,9 @@ def _parse_args() -> CommandLineArguments:
     parser.add_argument("--dry-run", "-d", action="store_true", help="Print generated SQL to console but do not run")
     parsed_args = parser.parse_args()
     return CommandLineArguments(
-        db_config_name=cast(DatabaseConfigurationName, parsed_args.db_config_name),
-        dl_config_name=cast(DataLoadConfigurationName, parsed_args.dl_config_name),
-        dry_run=cast(bool, parsed_args.dry_run),
+        db_config_name=parsed_args.db_config_name,
+        dl_config_name=parsed_args.dl_config_name,
+        dry_run=parsed_args.dry_run,
     )
 
 
@@ -172,7 +169,7 @@ def _generate_arbitrary_action_sql(
         GeneratedArbitraryActionSql: The SQL query to be executed.
     """
     attach_name = get_attach_name_from_db_config_name(db_config_name)
-    app_schema = os.environ["APP_SCHEMA"]
+    app_schema = APP_SCHEMA_NAME
     sql_input = ArbitrarySqlGenerationContext(attach_name, app_schema)
     sql_query = arbitrary_action_config.sql_generator(sql_input)
     return GeneratedArbitraryActionSql(arbitrary_action_config, sql_query)

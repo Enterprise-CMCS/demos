@@ -4,9 +4,13 @@ import os
 import sys
 from logging import getLogger
 
+from dotenv import load_dotenv
+
 from logger_utils import config_logger
 
 logger = config_logger(getLogger(__name__))
+
+load_dotenv()
 
 
 def check_if_in_devcontainer() -> None:

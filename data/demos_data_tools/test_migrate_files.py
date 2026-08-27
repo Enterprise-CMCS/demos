@@ -3,19 +3,24 @@
 import os
 from dataclasses import replace
 from textwrap import dedent
+from typing import cast
 from unittest.mock import call
 
 import pytest
 
 import migrate_files
-from load_data_to_demos_app_types import DataLoadConfiguration
+from types_constants import AppSchemaName, DataLoadConfiguration, MigrationStagedSchemaName
 
 
 class TestMigrateFiles:
     """A class for the tests for the migrate_files.py file."""
 
     mock_attach_name = "my-duckdb-attach-name"
-    mock_data_load_config = DataLoadConfiguration("my-favorite-source", "my-favorite-destination", ())
+    mock_data_load_config = DataLoadConfiguration(
+        cast(MigrationStagedSchemaName, "my-favorite-source"),
+        cast(AppSchemaName, "my-favorite-destination"),
+        (),
+    )
 
     # Database return version
     mock_row_result = [
@@ -70,7 +75,6 @@ class TestMigrateFiles:
         mocked_values = {
             "PMDA_S3_BUCKET": "devcontainer-source-bucket",
             "DEMOS_S3_BUCKET": "devcontainer-destination-bucket",
-            "STAGING_SCHEMA": "devcontainer-staging-schema",
             "DEVCONTAINER": "true",
         }
         mocker.patch.dict(
@@ -80,7 +84,6 @@ class TestMigrateFiles:
         )
         mocker.patch.object(migrate_files, "PMDA_S3_BUCKET", mocked_values["PMDA_S3_BUCKET"])
         mocker.patch.object(migrate_files, "DEMOS_S3_BUCKET", mocked_values["DEMOS_S3_BUCKET"])
-        mocker.patch.object(migrate_files, "STAGING_SCHEMA", mocked_values["STAGING_SCHEMA"])
         return mocked_values
 
     @pytest.fixture
@@ -89,7 +92,6 @@ class TestMigrateFiles:
         mocked_values = {
             "PMDA_S3_BUCKET": "prod-source-bucket",
             "DEMOS_S3_BUCKET": "prod-destination-bucket",
-            "STAGING_SCHEMA": "prod-staging-schema",
         }
         mocker.patch.dict(
             os.environ,
@@ -98,7 +100,6 @@ class TestMigrateFiles:
         )
         mocker.patch.object(migrate_files, "PMDA_S3_BUCKET", mocked_values["PMDA_S3_BUCKET"])
         mocker.patch.object(migrate_files, "DEMOS_S3_BUCKET", mocked_values["DEMOS_S3_BUCKET"])
-        mocker.patch.object(migrate_files, "STAGING_SCHEMA", mocked_values["STAGING_SCHEMA"])
         return mocked_values
 
     @pytest.fixture
