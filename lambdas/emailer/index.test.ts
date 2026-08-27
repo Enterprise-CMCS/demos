@@ -44,6 +44,11 @@ const realtimeDeliverableCreatedEnvelope = {
   emailType: "Deliverable Created",
   entityType: "deliverable",
   entityId: "deliverable-1",
+  idempotencyKey: "Deliverable Created:deliverable-action:action-1",
+  triggeredBy: {
+    type: "realtime",
+    id: "user-1",
+  },
   payload: {
     recipients: {
       to: ["not-allowed@email.com"],
@@ -247,6 +252,11 @@ describe("emailer", () => {
         emailType: "Deliverable Created",
         entityType: "deliverable",
         entityId: "deliverable-1",
+        idempotencyKey: "Deliverable Created:deliverable-action:action-1",
+        triggeredBy: {
+          type: "realtime",
+          id: "user-1",
+        },
         subject: "CMS DEMOS Deliverable: Deliverable Created",
         recipients: expect.objectContaining({
           to: ["no****@email.com"],

@@ -7,25 +7,17 @@ import { log } from "./log";
 import { Address, Options } from "nodemailer/lib/mailer";
 import { renderEmail } from "./emails/renderEmail";
 import {
+  getEmailLogContext,
+  isRealtimeEmailEnvelope,
+  type RealtimeEmailEnvelope,
+} from "./emailLogContext";
+import {
   DeliveryStatus,
   updateEmailNotificationStatus,
 } from "./emailNotificationStatus";
 
 type EmailerAddress = string | Address;
 type EmailerAddressGroup = EmailerAddress | EmailerAddress[];
-
-type RealtimeEmailEnvelope = {
-  emailNotificationId?: string;
-  emailType: string;
-  entityType?: string;
-  entityId?: string;
-  idempotencyKey?: string;
-  triggeredBy?: {
-    type: string;
-    id: string;
-  };
-  payload: unknown;
-};
 
 export interface EmailData extends Pick<Options, "html" | "cc" | "bcc" | "attachments"> {
   to: EmailerAddressGroup;
@@ -58,16 +50,8 @@ export const handler = async (event: SQSEvent) => {
     return;
   }
 
-  const emailLogContext = isRealtimeEmailEnvelope(email)
-    ? {
-        emailType: email.emailType,
-        entityType: email.entityType,
-        entityId: email.entityId,
-        idempotencyKey: email.idempotencyKey,
-        triggeredBy: email.triggeredBy,
-      }
-      : {};
   const realtimeEmail = isRealtimeEmailEnvelope(email) ? email : undefined;
+  const emailLogContext = getEmailLogContext(realtimeEmail);
 
   try {
     email = await renderRealtimeEmailIfNeeded(email);
@@ -215,15 +199,6 @@ export function isValidEmailData(email: any): email is EmailData {
   }
 
   return true;
-}
-
-export function isRealtimeEmailEnvelope(email: unknown): email is RealtimeEmailEnvelope {
-  return (
-    typeof email === "object" &&
-    email !== null &&
-    typeof (email as RealtimeEmailEnvelope).emailType === "string" &&
-    "payload" in email
-  );
 }
 
 // Not real validation, just making sure its a valid format
