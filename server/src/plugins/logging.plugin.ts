@@ -38,10 +38,9 @@ export const loggingPlugin: ApolloServerPlugin = {
           ctx.log[level]({
             name: err.name,
             message: err.message,
-            prismaOriginalMessages: err.extensions.originalMessages,
+            prismaOriginalMessages: err.extensions?.originalMessages,
             gqlOperationName: operationName,
-            gqlQuery: requestContext.request.query,
-            code: err.extensions.code,
+            code: err.extensions?.code,
             type: "graphql.request.error",
           });
         }
