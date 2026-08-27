@@ -12,7 +12,8 @@ Server action
   -> Send JSON to the emailer SQS queue
   -> Emailer Lambda parses one SQS message
   -> Select a template by emailType
-  -> Validate the payload and arrange React Email content
+  -> Resolve any database-backed template data
+  -> Validate the input and arrange React Email content
   -> Render HTML and plain text
   -> Apply the non-production recipient allowlist
   -> Send through Nodemailer
@@ -25,6 +26,13 @@ For deliverable creation, the server calls
 after the deliverable transaction completes. The producer loads and deduplicates
 recipients, then sends a message through
 [`enqueueEmail`](../../server/src/services/emailQueue.ts).
+
+When a user accepts a reference agreement and asks for an emailed copy,
+[`getReferenceDownloadUrl`](../../server/src/model/reference/getReferenceDownloadUrl.ts)
+inserts the acceptance and calls
+[`notifyReferenceAgreementRequested`](../../server/src/model/email/notifyReferenceAgreementRequested.ts).
+That producer sends the reference-configuration ID and recipient only. It does
+not copy reference names, agreement names, or S3 paths into the queue message.
 
 Realtime messages have this shape:
 
@@ -45,13 +53,13 @@ Realtime messages have this shape:
       cc?: EmailRecipient[];
       bcc?: EmailRecipient[];
     };
-    // Template-specific data
+    // Template-specific event data when needed
   };
 }
 ```
 
-The envelope fields describe the event. Only `payload` is passed to the selected
-template.
+The envelope fields describe the event. `payload` contains recipients and any
+event data that cannot be resolved from the entity ID.
 
 ### 2. Transport the message
 
@@ -68,7 +76,7 @@ after five receives, SQS moves the message to the emailer dead-letter queue.
 `payload`, then calls:
 
 ```ts
-renderEmail(email.emailType, email.payload);
+renderEmail(email.emailType, email.payload, { entityId: email.entityId });
 ```
 
 Legacy messages that already contain `to`, `subject`, and `text` bypass template
@@ -107,7 +115,8 @@ emails/
 |   `-- DeliverableLink.tsx
 |-- templates/
 |   |-- DeliverableEmail.tsx
-|   `-- MultipleDeliverablesEmail.tsx
+|   |-- MultipleDeliverablesEmail.tsx
+|   `-- referenceEmails.tsx
 |-- helpers.ts
 |-- renderEmail.tsx
 `-- types.ts
@@ -129,6 +138,25 @@ deliverable details, action, and applicable due dates.
 `MultipleDeliverablesEmail.tsx` is a separate arrangement. It requires at least
 two deliverables, requires one shared deliverable type, and renders a link and
 due date for each deliverable.
+
+The registry also contains `referenceEmails.tsx`, which can add a terms and
+conditions attachment. For that template, [`referenceTerms.ts`](./referenceTerms.ts)
+uses `entityId` as the reference-configuration ID and runs this relationship:
+
+```text
+reference_configuration
+  -> reference
+  -> optional reference_agreement
+```
+
+The configuration identifies the clicked reference material and its optional
+agreement. If an agreement exists, the Lambda reads its `s3_path` from the
+database and retrieves that object from `CLEAN_BUCKET`. The queue message and
+Lambda package contain no copy of the reference document.
+
+On the references page, a configuration with an agreement opens the acceptance
+dialog. A configuration without an agreement bypasses the dialog and downloads
+the reference material directly.
 
 ## Application URLs
 
@@ -164,20 +192,22 @@ stdout is captured by CloudWatch; local terminal output is formatted with
 
 1. Add a renderer under `emails/templates` that returns `EmailTemplateResult`.
 2. Register the exact `emailType` string in `emails/renderEmail.tsx`.
-3. Add a server producer that supplies `payload.recipients` and the required
-   template data.
+3. Add a server producer that supplies `payload.recipients`, the entity ID, and
+   only event data that cannot be queried by the Lambda.
 4. Add focused rendering tests and producer tests.
 
-The server currently produces `Deliverable Created`. Other registered
-deliverable event types and `Multiple Deliverables Created` are renderable but
-still need server-side producers.
+The server currently produces `Deliverable Created` and
+`Terms And Conditions Requested`. Other registered deliverable event types and
+`Multiple Deliverables Created` are renderable but still need server-side
+producers.
 
 ## Local development
 
 The devcontainer starts Mailpit and exposes its UI at
 [http://localhost:8025](http://localhost:8025). LocalStack deploys the emailer
 Lambda, connects it to `emailer-queue`, and configures Mailpit as its default SMTP
-server.
+server. Seeded references and agreements are stored in PostgreSQL, and the
+seeder uploads their corresponding objects to `CLEAN_BUCKET`.
 
 From inside the devcontainer, enqueue the legacy test message with:
 

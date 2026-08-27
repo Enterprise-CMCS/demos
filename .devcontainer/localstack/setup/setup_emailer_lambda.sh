@@ -115,6 +115,7 @@ $AWS_CMD lambda create-function \
         DATABASE_SECRET_ARN=database-secret,
         DB_SCHEMA=demos_app,
         DB_SSL_MODE=disable,
+        CLEAN_BUCKET=clean-bucket,
         ALLOW_LIST_PARAM_NAME=$ALLOW_LIST_PARAM_NAME,
         DISABLE_EMAIL_ALLOWLIST=$DISABLE_EMAIL_ALLOWLIST,
         EMAIL_FROM=$EMAIL_FROM,

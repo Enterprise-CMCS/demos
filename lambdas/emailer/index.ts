@@ -16,7 +16,7 @@ import { DeliveryStatus, updateEmailNotificationStatus } from "./emailNotificati
 type EmailerAddress = string | Address;
 type EmailerAddressGroup = EmailerAddress | EmailerAddress[];
 
-export interface EmailData extends Pick<Options, "html" | "cc" | "bcc"> {
+export interface EmailData extends Pick<Options, "html" | "cc" | "bcc" | "attachments"> {
   to: EmailerAddressGroup;
   subject: string;
   text: string;
@@ -78,6 +78,9 @@ export const handler = async (event: SQSEvent) => {
       ...(email.html !== undefined ? { html: email.html } : {}),
       ...(email.cc !== undefined ? { cc: email.cc } : {}),
       ...(email.bcc !== undefined ? { bcc: email.bcc } : {}),
+      ...(realtimeEmail && email.attachments !== undefined
+        ? { attachments: email.attachments }
+        : {}),
       from: process.env.EMAIL_FROM,
     };
 
@@ -159,7 +162,9 @@ export async function renderRealTimeEmails(email: unknown): Promise<unknown> {
     "rendering realtime email template"
   );
 
-  return renderEmail(email.emailType, email.payload);
+  return renderEmail(email.emailType, email.payload, {
+    entityId: email.entityId,
+  });
 }
 
 export function isValidEmailData(email: any): email is EmailData {

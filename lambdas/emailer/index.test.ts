@@ -19,8 +19,16 @@ const statusMocks = vi.hoisted(() => ({
   update: vi.fn(),
 }));
 
+const referenceTermsMocks = vi.hoisted(() => ({
+  get: vi.fn(),
+}));
+
 vi.mock("./emailNotificationStatus", () => ({
   updateEmailNotificationStatus: statusMocks.update,
+}));
+
+vi.mock("./referenceTerms", () => ({
+  getReferenceTermsEmailData: referenceTermsMocks.get,
 }));
 
 const originalEnv = { ...process.env };
@@ -63,6 +71,18 @@ const realtimeDeliverableCreatedEnvelope = {
   },
 };
 
+const realtimeReferenceTermsEnvelope = {
+  emailNotificationId: "19da269b-5840-4999-a812-7af340a2b3a5",
+  emailType: "Terms And Conditions Requested",
+  entityType: "reference",
+  entityId: "6d8aa609-4968-4819-b673-fb0db01b2039",
+  payload: {
+    recipients: {
+      to: [{ name: "Dustin Horning", address: "dustin@example.com" }],
+    },
+  },
+};
+
 function sqsEvent(body: string): SQSEvent {
   return {
     Records: [
@@ -96,6 +116,15 @@ describe("emailer", () => {
     clearCache();
     vi.clearAllMocks();
     statusMocks.update.mockResolvedValue(undefined);
+    referenceTermsMocks.get.mockResolvedValue({
+      referenceMaterialName: "National Quality Measures.pdf",
+      referenceAgreementName: "Point and Click Agreement.pdf",
+      attachment: {
+        filename: "Point and Click Agreement.pdf",
+        content: Buffer.from("agreement"),
+        contentType: "application/pdf",
+      },
+    });
   });
 
   it("should pass only supported direct email fields to nodemailer", async () => {
@@ -332,6 +361,22 @@ describe("emailer", () => {
         subject: "CMS DEMOS Deliverables: Multiple Deliverables Created",
         text: expect.stringContaining("View these deliverables"),
       })
+    );
+  });
+
+  it("should render and attach requested reference terms", async () => {
+    const email = await renderRealTimeEmails(realtimeReferenceTermsEnvelope);
+
+    expect(email).toEqual(
+      expect.objectContaining({
+        to: [{ name: "Dustin Horning", address: "dustin@example.com" }],
+        subject: "CMS DEMOS: National Measure Stewards Terms and Conditions",
+        text: expect.stringContaining("National Quality Measures.pdf"),
+        attachments: [expect.objectContaining({ filename: "Point and Click Agreement.pdf" })],
+      })
+    );
+    expect(referenceTermsMocks.get).toHaveBeenCalledExactlyOnceWith(
+      realtimeReferenceTermsEnvelope.entityId,
     );
   });
 

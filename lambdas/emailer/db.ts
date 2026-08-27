@@ -62,7 +62,7 @@ export async function getDatabaseUrl(): Promise<string> {
 export async function getDbPool(): Promise<Pool> {
   poolPromise ??= (async () => {
     const connectionString = await getDatabaseUrl();
-    log.info("Connecting to database for email notification status updates");
+    log.info("Connecting to the emailer database");
     return new Pool({ connectionString, max: 2 });
   })();
 
