@@ -322,7 +322,7 @@ class TestLoadDataToDemosApp:
             call(generated_sql.sql_query) for generated_sql in mock_generated_sql
         ]
 
-    def test_main_21(self, mocker, mock_attach_name_getter, mock_dl_config_getter, caplog):
+    def test_main_02(self, mocker, mock_attach_name_getter, mock_dl_config_getter, caplog):
         """Test load_data_to_demos_app.py functions.
 
         ::main
