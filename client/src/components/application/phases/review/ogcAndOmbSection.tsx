@@ -86,7 +86,6 @@ export const OgcAndOmbSection = ({
             label="Receive OGC Legal Clearance"
             name="datepicker-receive-ogc-legal-clearance-date"
             value={sectionFormData.dates["Receive OGC Legal Clearance"]}
-            isRequired
             onChange={(val) =>
               setSectionFormData({
                 ...sectionFormData,

@@ -281,6 +281,20 @@ describe("ReviewPhase Component", () => {
       const finishButton = screen.getByTestId("review-finish");
       expect(finishButton).toBeEnabled();
     });
+
+    it("enables finish button when OGC Legal Clearance is blank if other OGC and OMB fields are complete", () => {
+      const completeOgcOmbWithoutClearance = buildInitialFormData({
+        clearanceLevel: "COMMs",
+        dates: {
+          ...DEFAULT_REVIEW_DATES,
+          "Receive OGC Legal Clearance": "",
+        },
+      });
+      setup(completeOgcOmbWithoutClearance);
+
+      const finishButton = screen.getByTestId("review-finish");
+      expect(finishButton).toBeEnabled();
+    });
   });
 
   describe("Buttons", () => {
