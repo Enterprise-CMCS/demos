@@ -49,24 +49,12 @@ const mockApplication: Pick<WorkflowApplication, "id" | "phases"> = {
           dateType: "Internal Expected Approval Date",
           dateValue: parseISO("2025-01-01T05:00:00.000Z"),
         },
-      ],
-      phaseNotes: [],
-    },
-  ],
-};
-
-const mockApplicationWithStateRequestedDate: Pick<WorkflowApplication, "id" | "phases"> = {
-  ...mockApplication,
-  phases: [
-    {
-      ...mockApplication.phases[0],
-      phaseDates: [
-        ...mockApplication.phases[0].phaseDates,
         {
           dateType: "State Requested Approval Date",
           dateValue: parseISO("2025-03-15T04:00:00.000Z"),
         },
       ],
+      phaseNotes: [],
     },
   ],
 };
@@ -251,17 +239,11 @@ describe("SdgPreparationPhase", () => {
     });
 
     it("prefills the State Requested Approval Date DatePicker with the correct date", () => {
-      setup(mockApplicationWithStateRequestedDate);
+      setup();
 
       expect(screen.getByTestId("datepicker-state-requested-approval-date")).toHaveValue(
         "2025-03-15"
       );
-    });
-
-    it("leaves the State Requested Approval Date DatePicker empty when the date is not set", () => {
-      setup();
-
-      expect(screen.getByTestId("datepicker-state-requested-approval-date")).toHaveValue("");
     });
 
     it("saves the State Requested Approval Date on Save For Later", async () => {
@@ -271,7 +253,8 @@ describe("SdgPreparationPhase", () => {
       const stateRequestedApprovalDateInput = screen.getByTestId(
         "datepicker-state-requested-approval-date"
       );
-      await userEvent.type(stateRequestedApprovalDateInput, "2025-03-15");
+      await userEvent.clear(stateRequestedApprovalDateInput);
+      await userEvent.type(stateRequestedApprovalDateInput, "2025-04-20");
 
       await userEvent.click(screen.getByTestId("sdg-save-for-later"));
 
@@ -279,7 +262,7 @@ describe("SdgPreparationPhase", () => {
         expect(mockSetApplicationDate).toHaveBeenCalledWith({
           applicationId: "1",
           dateType: "State Requested Approval Date",
-          dateValue: "2025-03-15",
+          dateValue: "2025-04-20",
         });
       });
     });
@@ -539,12 +522,17 @@ describe("Completed Phase Behavior", () => {
 
   it("disables SME, FRT, BNPMT, and State Requested date pickers when phase is Completed", () => {
     renderCompleted();
-    const stateRequestedDatePicker = screen.getByTestId("datepicker-state-requested-approval-date");
-    expect(stateRequestedDatePicker).toBeDisabled();
-    expect(stateRequestedDatePicker).toHaveValue("2025-03-15");
+    expect(screen.getByTestId("datepicker-state-requested-approval-date")).toBeDisabled();
     expect(screen.getByTestId("datepicker-sme-initial-review-date")).toBeDisabled();
     expect(screen.getByTestId("datepicker-frt-initial-meeting-date")).toBeDisabled();
     expect(screen.getByTestId("datepicker-bnpmt-initial-meeting-date")).toBeDisabled();
+  });
+
+  it("keeps the State Requested Approval Date populated while disabled", () => {
+    renderCompleted();
+    expect(screen.getByTestId("datepicker-state-requested-approval-date")).toHaveValue(
+      "2025-03-15"
+    );
   });
 
   it("enables Save For Later when Internal Expected Approval Date is changed after phase Completed", async () => {
