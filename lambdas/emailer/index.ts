@@ -5,7 +5,7 @@ import * as ssm from "@aws-sdk/client-ssm";
 
 import { log } from "./log";
 import { Address, Options } from "nodemailer/lib/mailer";
-import { renderEmail } from "./emailTemplates/renderEmail";
+import { renderEmail } from "./emails/renderEmail";
 import {
   DeliveryStatus,
   updateEmailNotificationStatus,

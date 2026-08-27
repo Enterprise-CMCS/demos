@@ -3,7 +3,7 @@ import { Text } from "@react-email/components";
 import { buildReferenceTermsAttachment } from "../../emailAttachments";
 import { EmailLayout } from "../components/EmailLayout";
 import { detailStyle, textStyle } from "../components/styles";
-import { getRequiredValue } from "../EmailHelper";
+import { getRequiredValue } from "../helpers";
 import type { EmailTemplateResult } from "../types";
 
 type ReferenceTermsInput = {

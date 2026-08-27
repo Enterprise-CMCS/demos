@@ -347,7 +347,7 @@ export class ApiStack extends Stack {
         DATABASE_SECRET_ARN: emailerDbSecret.secretName, // pragma: allowlist secret
         DB_SCHEMA: "demos_app",
         CLEAN_BUCKET: cleanBucket.bucketName,
-        DEMOS_ENVIRONMENT: commonProps.hostEnvironment,
+        STAGE: commonProps.hostEnvironment,
         EMAIL_HOST: "smtp.cloud.internal.cms.gov",
         EMAIL_PORT: "587",
         EMAIL_FROM: `"DEMOS${emailSuffix}" <DEMOS${emailSuffix}-no-reply@cms.hhs.gov>`,

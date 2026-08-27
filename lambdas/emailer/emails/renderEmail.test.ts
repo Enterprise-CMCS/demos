@@ -47,7 +47,10 @@ describe("renderEmail", () => {
   });
 
   it("renders a Deliverable Created emailer payload", async () => {
-    const payload = await renderEmail("Deliverable Created", deliverableCreatedInput);
+    const payload = await renderEmail(
+      "Deliverable Created",
+      deliverableCreatedInput,
+    );
 
     expect(payload.to).toEqual([]);
     expect(payload.bcc).toEqual(["cms.owner@example.com"]);

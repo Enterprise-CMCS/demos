@@ -1,9 +1,7 @@
 import { render, toPlainText } from "@react-email/render";
 
 import { renderDeliverableEmail } from "./templates/DeliverableEmail";
-import {
-  renderMultipleDeliverablesEmail,
-} from "./templates/MultipleDeliverablesEmail";
+import { renderMultipleDeliverablesEmail } from "./templates/MultipleDeliverablesEmail";
 import { renderReferenceTermsEmail } from "./templates/referenceEmails";
 import type {
   EmailRecipient,
@@ -12,6 +10,7 @@ import type {
   RenderedEmailPayload,
 } from "./types";
 
+// Template creation
 const templates: Record<string, EmailTemplate> = {
   "Deliverable Created": (input) =>
     renderDeliverableEmail("Deliverable Created", input),
