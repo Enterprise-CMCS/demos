@@ -69,7 +69,7 @@ class ArbitrarySqlGenerationContext:
     """
 
     attach_name: DuckDbAttachName
-    app_schema: str
+    app_schema: AppSchemaName
 
 
 class ArbitrarySqlGenerator(Protocol):
