@@ -58,7 +58,7 @@ describe("renderEmail", () => {
     expect(payload.text).toContain("Quarterly Budget Report");
     expect(payload.text).toContain("Close Out Report");
     expect(payload.text).toContain("2026-06-01");
-    expect(payload.text).toContain("http://localhost:3000/deliverables/deliverable-1");
+    expect(payload.text).toContain("https://localhost:3000/deliverables/deliverable-1");
     expect(cleanHtml(payload.html)).toContain("Quarterly Budget Report");
     expect(cleanHtml(payload.html)).toContain("Close Out Report");
   });
@@ -85,10 +85,10 @@ describe("renderEmail", () => {
       "You have been assigned new Close Out Report deliverables for your Demonstration."
     );
     expect(payload.text).toContain(
-      "http://localhost:3000/deliverables/deliverable-1 due on 2026-06-01"
+      "https://localhost:3000/deliverables/deliverable-1 due on 2026-06-01"
     );
     expect(payload.text).toContain(
-      "http://localhost:3000/deliverables/deliverable-2 due on 2026-09-01"
+      "https://localhost:3000/deliverables/deliverable-2 due on 2026-09-01"
     );
     expect(payload.text).toContain(
       "Deliverables: Quarterly Budget Report, DY1Q2 Quarterly Budget Report"
@@ -131,7 +131,7 @@ describe("renderEmail", () => {
     expect(payload.text).toContain("Action: Deliverable Due Date Updated");
     expect(payload.text).toContain("Previous due date: 2026-05-01");
     expect(payload.text).toContain("Current due date: 2026-06-01");
-    expect(payload.text).toContain("http://localhost:3000/deliverables/deliverable-1");
+    expect(payload.text).toContain("https://localhost:3000/deliverables/deliverable-1");
   });
 
   it("reports a missing previous due date for a due date updated email", async () => {

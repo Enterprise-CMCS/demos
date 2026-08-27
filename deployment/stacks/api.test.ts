@@ -212,6 +212,7 @@ describe("Api Stack", () => {
           DATABASE_SECRET_ARN: "demos-unitTestHost-rds-demos_emailer", // pragma: allowlist secret
           DB_SCHEMA: "demos_app",
           CLEAN_BUCKET: Match.anyValue(),
+          DEMOS_ENVIRONMENT: "unitTestHost",
         }),
       },
     });

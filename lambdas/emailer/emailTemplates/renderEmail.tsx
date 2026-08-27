@@ -1,9 +1,9 @@
 import { render, toPlainText } from "@react-email/render";
 
+import { renderDeliverableEmail } from "./templates/DeliverableEmail";
 import {
-  renderDeliverableEmail,
   renderMultipleDeliverablesEmail,
-} from "./templates/deliverableEmails";
+} from "./templates/MultipleDeliverablesEmail";
 import { renderReferenceTermsEmail } from "./templates/referenceEmails";
 import type {
   EmailRecipient,
