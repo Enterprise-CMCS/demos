@@ -8,7 +8,6 @@ import {
   aws_secretsmanager,
   aws_apigateway,
   aws_s3,
-  aws_s3_deployment,
   Duration,
   aws_ssm,
   aws_kms,
@@ -163,28 +162,6 @@ export class ApiStack extends Stack {
     const cleanBucketName = Fn.importValue(`${props.stage}CleanBucketName`);
     const cleanBucket = aws_s3.Bucket.fromBucketName(this, "cleanBucket", cleanBucketName);
     const emailerPath = path.join("..", "lambdas", "emailer");
-    const agreementDeploymentRole = new aws_iam.Role(
-      this,
-      "PointAndClickAgreementDeploymentRole",
-      {
-        assumedBy: new aws_iam.ServicePrincipal("lambda.amazonaws.com"),
-        path: commonProps.iamPath,
-        permissionsBoundary: commonProps.iamPermissionsBoundary,
-      }
-    );
-
-    new aws_s3_deployment.BucketDeployment(this, "DeployPointAndClickAgreement", {
-      sources: [
-        aws_s3_deployment.Source.asset(emailerPath, {
-          exclude: ["*", ".*", "!point-click-agreement.pdf"],
-        }),
-      ],
-      destinationBucket: cleanBucket,
-      destinationKeyPrefix: "references/agreements",
-      contentType: "application/pdf",
-      prune: false,
-      role: agreementDeploymentRole,
-    });
 
     const deletedBucketName = Fn.importValue(`${props.stage}DeletedBucketName`);
     const deletedBucket = aws_s3.Bucket.fromBucketName(this, "deletedBucket", deletedBucketName);
@@ -309,12 +286,6 @@ export class ApiStack extends Stack {
       aws_ec2.Peer.securityGroupId(ssmSg.securityGroupId),
       aws_ec2.Port.HTTPS
     );
-    emailerLambdaSecurityGroup.securityGroup.addEgressRule(
-      aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
-      aws_ec2.Port.HTTPS,
-      "Allow traffic to S3"
-    );
-
     const allowListParamName = "/demos/nonprod/email/allowlist";
     const emailerDbSecret = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
@@ -346,7 +317,6 @@ export class ApiStack extends Stack {
       environment: {
         DATABASE_SECRET_ARN: emailerDbSecret.secretName, // pragma: allowlist secret
         DB_SCHEMA: "demos_app",
-        CLEAN_BUCKET: cleanBucket.bucketName,
         STAGE: commonProps.hostEnvironment,
         EMAIL_HOST: "smtp.cloud.internal.cms.gov",
         EMAIL_PORT: "587",
@@ -371,7 +341,6 @@ export class ApiStack extends Stack {
     });
     alarmResources.registerLambda("emailer", emailerLambda.lambda);
     emailerDbSecret.grantRead(emailerLambda.role);
-    cleanBucket.grantRead(emailerLambda.role);
 
     if (commonProps.stage != "prod") {
       const allowListParam = aws_ssm.StringParameter.fromStringParameterName(

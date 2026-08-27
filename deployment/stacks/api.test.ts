@@ -187,7 +187,7 @@ describe("Api Stack", () => {
     // const fs = require("fs");
     // fs.writeFileSync("template.json", JSON.stringify(template.toJSON(), null, 2));
     template.resourceCountIs("AWS::EC2::SecurityGroup", 3);
-    template.resourceCountIs("AWS::Lambda::Function", 4);
+    template.resourceCountIs("AWS::Lambda::Function", 3);
     template.resourceCountIs("AWS::ApiGateway::RestApi", 1);
     template.resourceCountIs("AWS::ApiGateway::Authorizer", 1);
     template.resourceCountIs("AWS::CloudWatch::Alarm", 10);
@@ -211,19 +211,10 @@ describe("Api Stack", () => {
         Variables: Match.objectLike({
           DATABASE_SECRET_ARN: "demos-unitTestHost-rds-demos_emailer", // pragma: allowlist secret
           DB_SCHEMA: "demos_app",
-          CLEAN_BUCKET: Match.anyValue(),
           STAGE: "unitTestHost",
         }),
       },
     });
-    template.hasResourceProperties("Custom::CDKBucketDeployment", {
-      DestinationBucketName: {
-        "Fn::ImportValue": "unittestCleanBucketName",
-      },
-      DestinationBucketKeyPrefix: "references/agreements",
-      Prune: false,
-    });
-
     expectLambdaErrorsAlarm(
       template,
       "demos-unittest-authorizer-lambda-errors",
@@ -327,7 +318,7 @@ describe("Api Stack", () => {
 
     const template = Template.fromStack(apiStack);
 
-    template.resourceCountIs("AWS::Lambda::Function", 4);
+    template.resourceCountIs("AWS::Lambda::Function", 3);
     template.resourceCountIs("AWS::CloudWatch::Alarm", 0);
   });
 

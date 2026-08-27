@@ -2,7 +2,6 @@ import { render, toPlainText } from "@react-email/render";
 
 import { renderDeliverableEmail } from "./templates/DeliverableEmail";
 import { renderMultipleDeliverablesEmail } from "./templates/MultipleDeliverablesEmail";
-import { renderReferenceTermsEmail } from "./templates/referenceEmails";
 import type {
   EmailRecipient,
   EmailRecipientGroups,
@@ -33,7 +32,6 @@ const templates: Record<string, EmailTemplate> = {
   "Public Comment Added": (input) =>
     renderDeliverableEmail("Public Comment Added", input),
   "Multiple Deliverables Created": renderMultipleDeliverablesEmail,
-  "Terms And Conditions Requested": renderReferenceTermsEmail,
 };
 
 export async function renderEmail(

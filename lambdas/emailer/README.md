@@ -81,7 +81,6 @@ recipient validation, and final React Email rendering. Each template returns:
 {
   subject: string;
   content: ReactElement;
-  attachments?: Attachment[];
 }
 ```
 
@@ -108,8 +107,7 @@ emails/
 |   `-- DeliverableLink.tsx
 |-- templates/
 |   |-- DeliverableEmail.tsx
-|   |-- MultipleDeliverablesEmail.tsx
-|   `-- referenceEmails.tsx
+|   `-- MultipleDeliverablesEmail.tsx
 |-- helpers.ts
 |-- renderEmail.tsx
 `-- types.ts
@@ -131,9 +129,6 @@ deliverable details, action, and applicable due dates.
 `MultipleDeliverablesEmail.tsx` is a separate arrangement. It requires at least
 two deliverables, requires one shared deliverable type, and renders a link and
 due date for each deliverable.
-
-The registry also contains `referenceEmails.tsx`, which can add a terms and
-conditions attachment.
 
 ## Application URLs
 

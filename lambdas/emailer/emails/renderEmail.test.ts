@@ -1,14 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { renderEmail } from "./renderEmail";
-
-const attachmentMocks = vi.hoisted(() => ({
-  build: vi.fn(),
-}));
-
-vi.mock("../emailAttachments", () => ({
-  buildReferenceTermsAttachment: attachmentMocks.build,
-}));
 
 const deliverableCreatedInput = {
   recipients: {
@@ -37,15 +29,6 @@ function cleanHtml(html: string): string {
 }
 
 describe("renderEmail", () => {
-  beforeEach(() => {
-    attachmentMocks.build.mockReset();
-    attachmentMocks.build.mockResolvedValue({
-      filename: "Point and Click Agreement.pdf",
-      content: Buffer.from("agreement"),
-      contentType: "application/pdf",
-    });
-  });
-
   it("renders a Deliverable Created emailer payload", async () => {
     const payload = await renderEmail(
       "Deliverable Created",
@@ -204,45 +187,6 @@ describe("renderEmail", () => {
     );
     expect(payload.text).toContain("Action: Public Comment Added");
     expect(payload.text).not.toContain("Free insulin is a good policy proposal");
-  });
-
-  it("renders the reference terms and conditions email", async () => {
-    const payload = await renderEmail("Terms And Conditions Requested", {
-      recipients: {
-        to: [{ name: "Dustin Horning", address: "dustin@example.com" }],
-      },
-      referenceMaterial: {
-        name: "National Quality Measures.pdf",
-      },
-      termsAndConditions: {
-        name: "Point and Click Agreement.pdf",
-        fileName: "Point and Click Agreement.pdf",
-        s3Path: "reference-agreements/agreement-1",
-      },
-    });
-
-    expect(payload.to).toEqual([
-      { name: "Dustin Horning", address: "dustin@example.com" },
-    ]);
-    expect(payload.subject).toBe(
-      "CMS DEMOS: National Measure Stewards Terms and Conditions"
-    );
-    expect(payload.text).toContain("Hello,");
-    expect(payload.text).toContain(
-      "At your request, we are attaching the National Measure Stewards Terms and Conditions for National Quality Measures.pdf to which you have agreed."
-    );
-    expect(payload.text).toContain("Thank you,");
-    expect(payload.text).toContain("DEMOS Notifications");
-    expect(payload.text).toContain(
-      "Reference Material File Name: National Quality Measures.pdf"
-    );
-    expect(payload.text).toContain(
-      "Associated Terms and Conditions: Point and Click Agreement.pdf"
-    );
-    expect(payload.attachments).toEqual([
-      expect.objectContaining({ filename: "Point and Click Agreement.pdf" }),
-    ]);
-    expect(attachmentMocks.build).toHaveBeenCalledOnce();
   });
 
   it("reports missing extension-specific values", async () => {

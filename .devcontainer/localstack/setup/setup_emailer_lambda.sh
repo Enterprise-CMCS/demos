@@ -8,7 +8,6 @@ AWS_REGION="us-east-1"
 AWS_CMD="aws --endpoint-url=$LOCALSTACK_ENDPOINT --region $AWS_REGION"
 QUEUE_NAME="emailer-queue"
 LAMBDA_NAME="emailer"
-POINT_AND_CLICK_AGREEMENT_KEY="references/agreements/point-click-agreement.pdf"
 ALLOW_LIST_PARAM_NAME="/demos/nonprod/email/allowlist"
 EMAIL_MODE="${LOCAL_EMAIL_MODE:-mailpit}"
 
@@ -63,12 +62,6 @@ zip -jqr lambda.zip dist/index.cjs dist/index.cjs.map ../../deployment/cert.pem
 
 cd - > /dev/null
 
-$AWS_CMD s3api put-object \
-    --bucket clean-bucket \
-    --key "$POINT_AND_CLICK_AGREEMENT_KEY" \
-    --body /workspaces/demos/lambdas/emailer/point-click-agreement.pdf \
-    --content-type application/pdf >/dev/null
-
 # Mailpit captures every local recipient. Relay mode restricts delivery to LOCAL_EMAIL.
 $AWS_CMD ssm put-parameter \
     --name "$ALLOW_LIST_PARAM_NAME" \
@@ -122,7 +115,6 @@ $AWS_CMD lambda create-function \
         DATABASE_SECRET_ARN=database-secret,
         DB_SCHEMA=demos_app,
         DB_SSL_MODE=disable,
-        CLEAN_BUCKET=clean-bucket,
         ALLOW_LIST_PARAM_NAME=$ALLOW_LIST_PARAM_NAME,
         DISABLE_EMAIL_ALLOWLIST=$DISABLE_EMAIL_ALLOWLIST,
         EMAIL_FROM=$EMAIL_FROM,

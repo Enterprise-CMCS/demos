@@ -16,7 +16,7 @@ import { DeliveryStatus, updateEmailNotificationStatus } from "./emailNotificati
 type EmailerAddress = string | Address;
 type EmailerAddressGroup = EmailerAddress | EmailerAddress[];
 
-export interface EmailData extends Pick<Options, "html" | "cc" | "bcc" | "attachments"> {
+export interface EmailData extends Pick<Options, "html" | "cc" | "bcc"> {
   to: EmailerAddressGroup;
   subject: string;
   text: string;
@@ -78,9 +78,6 @@ export const handler = async (event: SQSEvent) => {
       ...(email.html !== undefined ? { html: email.html } : {}),
       ...(email.cc !== undefined ? { cc: email.cc } : {}),
       ...(email.bcc !== undefined ? { bcc: email.bcc } : {}),
-      ...(realtimeEmail && email.attachments !== undefined
-        ? { attachments: email.attachments }
-        : {}),
       from: process.env.EMAIL_FROM,
     };
 
