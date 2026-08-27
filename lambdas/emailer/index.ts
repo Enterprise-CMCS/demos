@@ -11,10 +11,7 @@ import {
   isRealtimeEmailEnvelope,
   type RealtimeEmailEnvelope,
 } from "./emailLogContext";
-import {
-  DeliveryStatus,
-  updateEmailNotificationStatus,
-} from "./emailNotificationStatus";
+import { DeliveryStatus, updateEmailNotificationStatus } from "./emailNotificationStatus";
 
 type EmailerAddress = string | Address;
 type EmailerAddressGroup = EmailerAddress | EmailerAddress[];
@@ -54,7 +51,7 @@ export const handler = async (event: SQSEvent) => {
   const emailLogContext = getEmailLogContext(realtimeEmail);
 
   try {
-    email = await renderRealtimeEmailIfNeeded(email);
+    email = await renderRealTimeEmails(email);
   } catch (err) {
     await recordDeliveryStatus(realtimeEmail, "Failed", getErrorMessage(err));
     log.error({ error: (err as Error).message }, "unable to render realtime email");
@@ -100,11 +97,7 @@ export const handler = async (event: SQSEvent) => {
         },
         "log only: email not in allowlist"
       );
-      await recordDeliveryStatus(
-        realtimeEmail,
-        "Failed",
-        "Email blocked by recipient allowlist."
-      );
+      await recordDeliveryStatus(realtimeEmail, "Failed", "Email blocked by recipient allowlist.");
       return "success";
     }
 
@@ -156,7 +149,7 @@ function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-export async function renderRealtimeEmailIfNeeded(email: unknown): Promise<unknown> {
+export async function renderRealTimeEmails(email: unknown): Promise<unknown> {
   if (!isRealtimeEmailEnvelope(email)) {
     return email;
   }
@@ -202,9 +195,7 @@ export function isValidEmailData(email: any): email is EmailData {
 }
 
 // Not real validation, just making sure its a valid format
-export function isEmailerAddress(
-  address?: EmailerAddressGroup
-): address is EmailerAddressGroup {
+export function isEmailerAddress(address?: EmailerAddressGroup): address is EmailerAddressGroup {
   if (!address) {
     return false;
   }
@@ -240,7 +231,7 @@ export async function sendEmailIsAllowed(
 }
 
 export function clearCache() {
-  allowList = undefined
+  allowList = undefined;
 }
 
 export async function getAllowList() {
@@ -275,9 +266,7 @@ export async function getAllowList() {
   }
 }
 
-export function redactEmailAddresses(
-  addresses: EmailerAddressGroup
-): typeof addresses {
+export function redactEmailAddresses(addresses: EmailerAddressGroup): typeof addresses {
   if (Array.isArray(addresses)) {
     return addresses.map((e) => redactEmailAddress(e));
   }
