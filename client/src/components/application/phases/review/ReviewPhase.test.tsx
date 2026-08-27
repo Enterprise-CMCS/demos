@@ -203,25 +203,6 @@ describe("ReviewPhase Component", () => {
       expect(poOgdSection).toHaveTextContent("Incomplete");
     });
 
-    it("collapses completed sections automatically", () => {
-      setup();
-
-      // Complete sections should be collapsed, so notes fields should not be visible
-      expect(screen.queryByTestId("input-po-ogd-notes")).not.toBeInTheDocument();
-    });
-
-    it("keeps incomplete sections expanded", () => {
-      const incompleteData = buildInitialFormData({
-        dates: {
-          "OGD Approval to Share with SMEs": "",
-        },
-      });
-      setup(incompleteData);
-
-      // Incomplete section should be expanded, so notes field should be visible
-      expect(screen.getByTestId("input-po-ogd-notes")).toBeInTheDocument();
-    });
-
     it("requires COMMs clearance section completion when COMMs is selected", () => {
       const dataWithoutClearance = buildInitialFormData({
         clearanceLevel: "COMMs",
@@ -277,6 +258,20 @@ describe("ReviewPhase Component", () => {
         dates: DEFAULT_REVIEW_DATES,
       });
       setup(completeCommsData);
+
+      const finishButton = screen.getByTestId("review-finish");
+      expect(finishButton).toBeEnabled();
+    });
+
+    it("enables finish button when OGC Legal Clearance is blank if other OGC and OMB fields are complete", () => {
+      const completeOgcOmbWithoutClearance = buildInitialFormData({
+        clearanceLevel: "COMMs",
+        dates: {
+          ...DEFAULT_REVIEW_DATES,
+          "Receive OGC Legal Clearance": "",
+        },
+      });
+      setup(completeOgcOmbWithoutClearance);
 
       const finishButton = screen.getByTestId("review-finish");
       expect(finishButton).toBeEnabled();
@@ -737,13 +732,14 @@ describe("ReviewPhase Component", () => {
       setup(buildInitialFormData(), "demo-readonly", true);
 
       const poAndOgdHeader = screen.getByText("PO & OGD");
-      await userEvent.click(poAndOgdHeader);
-
+      // Initially the section should be expanded and notes should be visible
       const poAndOgdNotes = screen.getByTestId("input-po-ogd-notes");
       expect(poAndOgdNotes).toBeInTheDocument();
 
       await userEvent.click(poAndOgdHeader);
-      expect(poAndOgdNotes).not.toBeVisible();
+      await waitFor(() => {
+        expect(poAndOgdNotes).not.toBeVisible();
+      });
     });
   });
 

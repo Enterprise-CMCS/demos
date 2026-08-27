@@ -61,12 +61,16 @@ export const PO_AND_OGD_DATE_TYPES = [
 ] as const satisfies ReviewPhaseDateTypes[];
 export const PO_AND_OGD_NOTE_TYPES = ["PO and OGD"] as const satisfies ReviewPhaseNoteTypes[];
 
-export const OGC_AND_OMB_DATE_TYPES = [
+const OGC_AND_OMB_REQUIRED_DATE_TYPES: ReviewPhaseDateTypes[] = [
   "BN PMT Approval to Send to OMB",
   "Draft Approval Package Shared",
   "Receive OMB Concurrence",
+];
+
+export const OGC_AND_OMB_DATE_TYPES: ReviewPhaseDateTypes[] = [
+  ...OGC_AND_OMB_REQUIRED_DATE_TYPES,
   "Receive OGC Legal Clearance",
-] as const satisfies ReviewPhaseDateTypes[];
+];
 export const OGC_AND_OMB_NOTE_TYPES = ["OGC and OMB"] as const satisfies ReviewPhaseNoteTypes[];
 
 export const COMMS_CLEARANCE_NOTE_TYPES = [
@@ -196,7 +200,7 @@ export const ReviewPhase = ({
       "PO and OGD": PO_AND_OGD_DATE_TYPES.every(
         (dateType) => !!reviewPhaseFormData.dates[dateType]
       ),
-      "OGC and OMB": OGC_AND_OMB_DATE_TYPES.every(
+      "OGC and OMB": OGC_AND_OMB_REQUIRED_DATE_TYPES.every(
         (dateType) => !!reviewPhaseFormData.dates[dateType]
       ),
       "COMMs Clearance": COMMS_CLEARANCE_DATE_TYPES.every(
