@@ -1,7 +1,17 @@
 import { render, toPlainText } from "@react-email/render";
 
-import { renderDeliverableEmail } from "./templates/DeliverableEmail";
-import { renderMultipleDeliverablesEmail } from "./templates/MultipleDeliverablesEmail";
+import { getRequiredObject } from "./helpers";
+import { renderDeliverableAcceptedEmail } from "./templates/DeliverableAcceptedEmail";
+import { renderDeliverableApprovedEmail } from "./templates/DeliverableApprovedEmail";
+import { renderDeliverableCreatedEmail } from "./templates/DeliverableCreatedEmail";
+import { renderDeliverableDueDateUpdatedEmail } from "./templates/DeliverableDueDateUpdatedEmail";
+import { renderDeliverableReceivedAndFiledEmail } from "./templates/DeliverableReceivedAndFiledEmail";
+import { renderDeliverableSubmittedEmail } from "./templates/DeliverableSubmittedEmail";
+import { renderExtensionDecisionMadeEmail } from "./templates/ExtensionDecisionMadeEmail";
+import { renderExtensionRequestedEmail } from "./templates/ExtensionRequestedEmail";
+import { renderMultipleDeliverablesCreatedEmail } from "./templates/MultipleDeliverablesCreatedEmail";
+import { renderPublicCommentAddedEmail } from "./templates/PublicCommentAddedEmail";
+import { renderResubmissionRequestedEmail } from "./templates/ResubmissionRequestedEmail";
 import type {
   EmailRecipient,
   EmailRecipientGroups,
@@ -11,27 +21,17 @@ import type {
 
 // Template creation
 const templates: Record<string, EmailTemplate> = {
-  "Deliverable Created": (input) =>
-    renderDeliverableEmail("Deliverable Created", input),
-  "Deliverable Due Date Updated": (input) =>
-    renderDeliverableEmail("Deliverable Due Date Updated", input),
-  "Deliverable Submitted": (input) =>
-    renderDeliverableEmail("Deliverable Submitted", input),
-  "Deliverable Accepted": (input) =>
-    renderDeliverableEmail("Deliverable Accepted", input),
-  "Deliverable Approved": (input) =>
-    renderDeliverableEmail("Deliverable Approved", input),
-  "Deliverable Received and Filed": (input) =>
-    renderDeliverableEmail("Deliverable Received and Filed", input),
-  "Extension Requested": (input) =>
-    renderDeliverableEmail("Extension Requested", input),
-  "Extension Decision Made": (input) =>
-    renderDeliverableEmail("Extension Decision Made", input),
-  "Resubmission Requested": (input) =>
-    renderDeliverableEmail("Resubmission Requested", input),
-  "Public Comment Added": (input) =>
-    renderDeliverableEmail("Public Comment Added", input),
-  "Multiple Deliverables Created": renderMultipleDeliverablesEmail,
+  "Deliverable Created": renderDeliverableCreatedEmail,
+  "Deliverable Due Date Updated": renderDeliverableDueDateUpdatedEmail,
+  "Deliverable Submitted": renderDeliverableSubmittedEmail,
+  "Deliverable Accepted": renderDeliverableAcceptedEmail,
+  "Deliverable Approved": renderDeliverableApprovedEmail,
+  "Deliverable Received and Filed": renderDeliverableReceivedAndFiledEmail,
+  "Extension Requested": renderExtensionRequestedEmail,
+  "Extension Decision Made": renderExtensionDecisionMadeEmail,
+  "Resubmission Requested": renderResubmissionRequestedEmail,
+  "Public Comment Added": renderPublicCommentAddedEmail,
+  "Multiple Deliverables Created": renderMultipleDeliverablesCreatedEmail,
 };
 
 export async function renderEmail(
@@ -60,31 +60,24 @@ function getRecipients(
   input: unknown,
   emailType: string,
 ): EmailRecipientGroups {
-  const recipients =
-    input && typeof input === "object"
-      ? (input as { recipients?: EmailRecipientGroups }).recipients
-      : undefined;
-
-  if (!recipients) {
-    throw new Error(
-      `Missing value for recipients while rendering ${emailType}.data`,
-    );
-  }
-
+  const payload = getRequiredObject(input, "payload", emailType);
+  const recipients = getRequiredObject(
+    payload.recipients,
+    "recipients",
+    emailType,
+  );
   return normalizeRecipientGroups(recipients);
 }
 
 function normalizeRecipientGroups(
-  recipients: EmailRecipientGroups,
+  recipients: Record<string, unknown>,
 ): EmailRecipientGroups {
-  if (!recipients || typeof recipients !== "object") {
-    throw new Error("Email template must include recipient groups.");
-  }
-
   const normalizedRecipients = {
     to: normalizeRecipients(recipients.to, "to"),
-    ...(recipients.cc ? { cc: normalizeRecipients(recipients.cc, "cc") } : {}),
-    ...(recipients.bcc
+    ...(recipients.cc !== undefined
+      ? { cc: normalizeRecipients(recipients.cc, "cc") }
+      : {}),
+    ...(recipients.bcc !== undefined
       ? { bcc: normalizeRecipients(recipients.bcc, "bcc") }
       : {}),
   };
@@ -101,7 +94,7 @@ function normalizeRecipientGroups(
 }
 
 function normalizeRecipients(
-  recipients: EmailRecipient[],
+  recipients: unknown,
   group: keyof EmailRecipientGroups,
 ): EmailRecipient[] {
   if (!Array.isArray(recipients)) {

@@ -101,34 +101,45 @@ If `emailNotificationId` is present, rendering and SMTP failures are recorded as
 ```text
 emails/
 |-- components/
+|   |-- DeliverableEmailLayout.tsx
+|   |-- DeliverableLink.tsx
 |   |-- EmailLayout.tsx
 |   `-- styles.ts
-|-- parts/
-|   `-- DeliverableLink.tsx
 |-- templates/
-|   |-- DeliverableEmail.tsx
-|   `-- MultipleDeliverablesEmail.tsx
+|   |-- DeliverableAcceptedEmail.tsx
+|   |-- DeliverableApprovedEmail.tsx
+|   |-- DeliverableCreatedEmail.tsx
+|   |-- DeliverableDueDateUpdatedEmail.tsx
+|   |-- DeliverableReceivedAndFiledEmail.tsx
+|   |-- DeliverableSubmittedEmail.tsx
+|   |-- ExtensionDecisionMadeEmail.tsx
+|   |-- ExtensionRequestedEmail.tsx
+|   |-- MultipleDeliverablesCreatedEmail.tsx
+|   |-- PublicCommentAddedEmail.tsx
+|   `-- ResubmissionRequestedEmail.tsx
 |-- helpers.ts
 |-- renderEmail.tsx
 `-- types.ts
 ```
 
-- `components` contains overall visual design and styling.
+- `components` contains overall visual design and typed layouts.
 - `parts` contains reusable fragments placed inside templates.
-- `templates` validates template-specific payloads and arranges complete emails.
+- Each file in `templates` validates the fields required by one email type and
+  arranges its complete email.
 - `helpers.ts` contains stage URL selection, date formatting, and required-value
   validation.
 - `renderEmail.tsx` selects templates and produces the final email payload.
 
 ### Deliverable templates
 
-`DeliverableEmail.tsx` handles the single-deliverable event variants. It selects
-the event-specific message and arranges it with the shared greeting, signature,
-deliverable details, action, and applicable due dates.
+`renderEmail.tsx` selects one concrete template. The selected template keeps
+its input as `unknown` until it has validated the objects and strings it uses.
+`DeliverableEmailLayout.tsx` only renders required, typed values and contains
+no email-type branches or payload validation.
 
-`MultipleDeliverablesEmail.tsx` is a separate arrangement. It requires at least
-two deliverables, requires one shared deliverable type, and renders a link and
-due date for each deliverable.
+`MultipleDeliverablesCreatedEmail.tsx` requires at least two deliverables,
+requires one shared deliverable type, and renders a link and due date for each
+deliverable.
 
 ## Application URLs
 
