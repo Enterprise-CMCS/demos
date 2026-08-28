@@ -1,2 +1,2 @@
 export { ApprovalPackagePhase } from "./ApprovalPackagePhase";
-export { getApprovalPackagePhaseFromApplication } from "./approvalPackagePhaseData";
+export { getApprovalPackagePhaseFromApplication } from "./ApprovalPackagePhaseData";

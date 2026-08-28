@@ -49,7 +49,7 @@ vi.mock("components/application/date/dateQueries", () => ({
 }));
 
 const mockCompletePhase = vi.fn();
-vi.mock("../phase-status/phaseCompletionQueries", () => ({
+vi.mock("components/application/phase-status/phaseCompletionQueries", () => ({
   useCompletePhase: () => ({
     completePhase: mockCompletePhase,
   }),

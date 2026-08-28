@@ -12,7 +12,7 @@ import { WorkflowApplication, ApplicationWorkflowDocument } from "components/app
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { useDialog } from "components/dialog/DialogContext";
-import { DocumentList } from "./sections";
+import { DocumentList } from "components/application/phases/sections";
 import { getPhaseCompletedMessage, MISSING_REQUIRED_SECTIONS_TOOLTIP } from "util/messages";
 import { useToast } from "components/toast";
 import { DatePicker } from "components/input/date/DatePicker";
