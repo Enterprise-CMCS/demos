@@ -46,7 +46,7 @@ def _parse_args() -> CommandLineArguments:
         CommandLineArguments: The parsed argument namespace.
     """
     parser = argparse.ArgumentParser(
-        description="Snapshot a target schema for a data load into a timestamped schema",
+        description="Snapshot a source schema for a data load into a timestamped schema",
         formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=50),
     )
     parser.add_argument("db_config_name", choices=DB_CONFIG_NAMES, help="The name of the DB config to use")
@@ -63,7 +63,7 @@ def _get_list_of_snapshot_tables(
 ) -> List[str]:
     """Get a list of tables to snapshot.
 
-    The target_schema of the named DataLoadConfiguration is the one to be snapshotted.
+    The source_schema of the named DataLoadConfiguration is the one to be snapshotted.
 
     Args:
         attach_name (DuckDbAttachName): The DuckDB attach name to use.
@@ -74,7 +74,7 @@ def _get_list_of_snapshot_tables(
         List[str]: A list of the tables to snapshot.
     """
     logger.info("Getting list of tables to snapshot")
-    result = get_table_list_for_schema(attach_name, dl_config.target_schema, conn)
+    result = get_table_list_for_schema(attach_name, dl_config.source_schema, conn)
     return result.table_list
 
 
@@ -91,7 +91,7 @@ def _create_snapshot_schema(
     Returns:
         SnapshotSchemaName: The schema that was created for snapshots.
     """
-    schema_name = f"{dl_config.target_schema}_{datetime.now(ZoneInfo('America/New_York')).strftime('%Y%m%d_%H%M%S_et')}"
+    schema_name = f"{dl_config.source_schema}_{datetime.now(ZoneInfo('America/New_York')).strftime('%Y%m%d_%H%M%S_et')}"
     logger.info(f"Creating snapshot schema {schema_name}")
     query = f"""
         CREATE SCHEMA {attach_name}.{schema_name};
@@ -120,7 +120,7 @@ def _select_table_into_snapshot_schema(
     select_table_from_source_to_target(
         source_attach_name=attach_name,
         target_attach_name=attach_name,
-        source_schema_name=dl_config.target_schema,
+        source_schema_name=dl_config.source_schema,
         target_schema_name=snapshot_schema,
         table_name=table_name,
         conn=conn,
