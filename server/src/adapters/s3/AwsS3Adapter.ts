@@ -14,7 +14,7 @@ import { GetPresignedDownloadUrlOptions, S3Adapter } from "../";
 import { sanitizeDownloadFileName } from "./sanitizeDownloadFileName";
 import { Prisma, DocumentPendingUpload as PrismaDocumentPendingUpload } from "@prisma/client";
 
-const EXPIRATION_TIME_SECONDS = 10;
+const EXPIRATION_TIME_SECONDS = 60;
 
 const createS3Client = () => {
   const endpoint = process.env.S3_ENDPOINT_LOCAL;

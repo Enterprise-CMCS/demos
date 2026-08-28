@@ -109,7 +109,7 @@ describe("AwsS3Adapter", () => {
         Key: testKey,
       });
       expect(getSignedUrl).toHaveBeenCalledExactlyOnceWith(mockS3Client, mockPutObjectCommand, {
-        expiresIn: 10,
+        expiresIn: 60,
       });
     });
   });
@@ -126,7 +126,7 @@ describe("AwsS3Adapter", () => {
       // No file name means no Content-Type lookup is needed.
       expect(HeadObjectCommand).not.toHaveBeenCalled();
       expect(getSignedUrl).toHaveBeenCalledExactlyOnceWith(mockS3Client, mockGetObjectCommand, {
-        expiresIn: 10,
+        expiresIn: 60,
       });
     });
 
