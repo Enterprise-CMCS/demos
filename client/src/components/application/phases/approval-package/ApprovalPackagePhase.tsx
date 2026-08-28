@@ -13,7 +13,7 @@ import {
   MISSING_REQUIRED_SECTIONS_TOOLTIP,
 } from "util/messages";
 import { formatDateForDisplay } from "util/formatDate";
-import { REQUIRED_DOCUMENT_TYPES } from "./approvalPackagePhaseData";
+import { REQUIRED_DOCUMENT_TYPES } from "./ApprovalPackagePhaseData";
 import { getCurrentUser, isReadonly as userIsReadonly } from "components/user/UserContext";
 
 export interface ApprovalPackagePhaseProps {

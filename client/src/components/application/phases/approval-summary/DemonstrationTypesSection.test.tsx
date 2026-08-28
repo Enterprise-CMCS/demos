@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { DemonstrationTypesSection } from "./demonstrationTypesSection";
+import { DemonstrationTypesSection } from "./DemonstrationTypesSection";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { TestProvider } from "test-utils/TestProvider";
 import { ApplicationStatus } from "demos-server";

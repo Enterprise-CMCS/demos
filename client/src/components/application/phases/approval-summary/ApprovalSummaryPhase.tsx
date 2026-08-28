@@ -16,8 +16,8 @@ import {
   WorkflowApplication,
   WorkflowApplicationType,
 } from "components/application";
-import { ApplicationDetailsSection, ApplicationDetailsFormData } from "./applicationDetailsSection";
-import { DemonstrationTypesSection } from "./demonstrationTypesSection";
+import { ApplicationDetailsSection, ApplicationDetailsFormData } from "./ApplicationDetailsSection";
+import { DemonstrationTypesSection } from "./DemonstrationTypesSection";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import { Button } from "components/button";
