@@ -36,7 +36,7 @@ const templates: Record<string, EmailTemplate> = {
 
 export async function renderEmail(
   emailType: string,
-  input: unknown,
+  rawPayload: unknown,
 ): Promise<RenderedEmailPayload> {
   const template = templates[emailType];
 
@@ -44,8 +44,8 @@ export async function renderEmail(
     throw new Error(`Unsupported email type: ${emailType}`);
   }
 
-  const recipients = getRecipients(input, emailType);
-  const { content, ...email } = await template(input);
+  const recipients = getRecipients(rawPayload, emailType);
+  const { content, ...email } = await template(rawPayload);
   const html = await render(content);
 
   return {
@@ -57,10 +57,10 @@ export async function renderEmail(
 }
 
 function getRecipients(
-  input: unknown,
+  rawPayload: unknown,
   emailType: string,
 ): EmailRecipientGroups {
-  const payload = getRequiredObject(input, "payload", emailType);
+  const payload = getRequiredObject(rawPayload, "payload", emailType);
   const recipients = getRequiredObject(
     payload.recipients,
     "recipients",

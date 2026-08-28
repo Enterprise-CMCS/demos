@@ -25,5 +25,5 @@ export type EmailTemplateResult = {
 };
 
 export type EmailTemplate = (
-  input: unknown,
+  rawPayload: unknown,
 ) => EmailTemplateResult | Promise<EmailTemplateResult>;

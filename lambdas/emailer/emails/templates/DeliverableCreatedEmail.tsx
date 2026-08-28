@@ -14,9 +14,9 @@ import type { EmailTemplateResult } from "../types";
 const emailType = "Deliverable Created";
 
 export function renderDeliverableCreatedEmail(
-  input: unknown,
+  rawPayload: unknown,
 ): EmailTemplateResult {
-  const payload = getRequiredObject(input, "payload", emailType);
+  const payload = getRequiredObject(rawPayload, "payload", emailType);
   const demonstration = getRequiredObject(
     payload.demonstration,
     "demonstration",

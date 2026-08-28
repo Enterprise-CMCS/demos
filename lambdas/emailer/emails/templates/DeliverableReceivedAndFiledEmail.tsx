@@ -15,9 +15,9 @@ const emailType = "Deliverable Received and Filed";
 const action = "Received and Filed";
 
 export function renderDeliverableReceivedAndFiledEmail(
-  input: unknown,
+  rawPayload: unknown,
 ): EmailTemplateResult {
-  const payload = getRequiredObject(input, "payload", emailType);
+  const payload = getRequiredObject(rawPayload, "payload", emailType);
   const demonstration = getRequiredObject(
     payload.demonstration,
     "demonstration",

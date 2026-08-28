@@ -15,9 +15,9 @@ const emailType = "Deliverable Approved";
 const action = "Approved";
 
 export function renderDeliverableApprovedEmail(
-  input: unknown,
+  rawPayload: unknown,
 ): EmailTemplateResult {
-  const payload = getRequiredObject(input, "payload", emailType);
+  const payload = getRequiredObject(rawPayload, "payload", emailType);
   const demonstration = getRequiredObject(
     payload.demonstration,
     "demonstration",
