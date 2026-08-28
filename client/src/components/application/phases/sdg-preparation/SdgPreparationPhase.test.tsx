@@ -29,7 +29,7 @@ vi.mock("components/application/date/dateQueries", () => ({
   }),
 }));
 
-vi.mock("../phase-status/phaseCompletionQueries", () => ({
+vi.mock("components/application/phase-status/phaseCompletionQueries", () => ({
   useCompletePhase: () => ({
     completePhase: mockCompletePhase,
     data: null,
@@ -280,7 +280,9 @@ describe("SdgPreparationPhase", () => {
       const saveButton = screen.getByTestId("sdg-save-for-later");
       expect(saveButton).toBeDisabled();
 
-      const internalExpectedApprovalDateInput = screen.getByTestId("datepicker-internal-expected-approval-date");
+      const internalExpectedApprovalDateInput = screen.getByTestId(
+        "datepicker-internal-expected-approval-date"
+      );
       await userEvent.clear(internalExpectedApprovalDateInput);
       await userEvent.type(internalExpectedApprovalDateInput, "2025-02-01");
 
@@ -291,7 +293,9 @@ describe("SdgPreparationPhase", () => {
       mockSetApplicationDate.mockResolvedValue({ data: { setApplicationDate: { id: "1" } } });
       setup();
 
-      const internalExpectedApprovalDateInput = screen.getByTestId("datepicker-internal-expected-approval-date");
+      const internalExpectedApprovalDateInput = screen.getByTestId(
+        "datepicker-internal-expected-approval-date"
+      );
       expect(internalExpectedApprovalDateInput).toBeInTheDocument();
 
       await userEvent.clear(internalExpectedApprovalDateInput!);
@@ -316,7 +320,9 @@ describe("SdgPreparationPhase", () => {
       mockSetApplicationDate.mockRejectedValue(new Error("Mutation failed"));
       setup();
 
-      const internalExpectedApprovalDateInput = screen.getByTestId("datepicker-internal-expected-approval-date");
+      const internalExpectedApprovalDateInput = screen.getByTestId(
+        "datepicker-internal-expected-approval-date"
+      );
       await userEvent.clear(internalExpectedApprovalDateInput!);
       await userEvent.type(internalExpectedApprovalDateInput!, "2025-01-02");
       expect(internalExpectedApprovalDateInput).toHaveValue("2025-01-02");

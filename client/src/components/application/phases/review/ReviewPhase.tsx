@@ -10,12 +10,12 @@ import {
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { useSetApplicationNotes } from "components/application/note/noteQueries";
 import { ClearanceLevel, ReviewPhaseDateTypes, ReviewPhaseNoteTypes } from "demos-server";
-import { PoAndOgdSection } from "./poAndOgdSection";
-import { OgcAndOmbSection } from "./ogcAndOmbSection";
-import { CommsClearanceSection } from "./commsClearanceSection";
-import { CmsOsoraClearanceSection } from "./cmsOsoraClearanceSection";
+import { PoAndOgdSection } from "./PoAndOgdSection";
+import { OgcAndOmbSection } from "./OgcAndOmbSection";
+import { CommsClearanceSection } from "./CommsClearanceSection";
+import { CmsOsoraClearanceSection } from "./CmsOsoraClearanceSection";
 import { RadioGroup } from "components/radioGroup";
-import { formatDataForSave, hasFormChanges } from "./reviewPhaseData";
+import { formatDataForSave, hasFormChanges } from "./ReviewPhaseData";
 import { gql, useMutation } from "@apollo/client";
 import { CMS_OSORA_CLEARANCE_DATE_TYPES, COMMS_CLEARANCE_DATE_TYPES } from "demos-server-constants";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";

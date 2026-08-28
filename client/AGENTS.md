@@ -14,7 +14,7 @@ This file provides instructions for AI agents to use when generating or editing 
 - Functions/variables: `camelCase`.
 - Components/classes/types/interfaces: `PascalCase`.
 - Prefer `const`; avoid `var`.
-- Prefer absolute imports using the tsconfig paths
+- Prefer absolute imports using tsconfig paths over relative paths
 
 ### Types
 

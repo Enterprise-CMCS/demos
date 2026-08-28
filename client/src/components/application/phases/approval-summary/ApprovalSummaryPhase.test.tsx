@@ -13,7 +13,7 @@ import {
 import {
   ApplicationDetailsFormData,
   ModificationDetailsFormData,
-} from "./applicationDetailsSection";
+} from "./ApplicationDetailsSection";
 import { TestProvider } from "test-utils/TestProvider";
 import { MockedResponse } from "@apollo/client/testing";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";

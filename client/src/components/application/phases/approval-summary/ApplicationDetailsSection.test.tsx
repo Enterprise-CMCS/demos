@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { ApplicationDetailsSection, ApplicationDetailsFormData } from "./applicationDetailsSection";
+import { ApplicationDetailsSection, ApplicationDetailsFormData } from "./ApplicationDetailsSection";
 import { LocalDate } from "demos-server";
 import { TestProvider } from "test-utils/TestProvider";
 import { readonlyMockUser, MockUser } from "mock-data/userMocks";
