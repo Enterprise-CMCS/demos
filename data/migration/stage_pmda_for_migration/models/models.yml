@@ -656,7 +656,7 @@ models:
         data_type: text
         data_tests:
           - relationships:
-              name: assert_application_date_type_exists_in_demos_app_date_type
+              name: assert_application_date_type_exists_in_final_demos_app_date_type
               arguments:
                 to: source('demos_app', 'date_type')
                 field: id
@@ -883,6 +883,77 @@ models:
         data_type: integer
       - name: _legacy_mdcd_dlvrbl_cmt_user_id
         data_type: integer
+
+  - name: final_demos_app_reference
+    columns:
+      - name: id
+        data_type: uuid
+      - name: name
+        data_type: text
+      - name: description
+        data_type: text
+      - name: s3_path
+        data_type: text
+      - name: owner_user_id
+        data_type: uuid
+      - name: owner_person_type_id
+        data_type: text
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+      - name: _internal_pmda_s3_file_id
+        data_type: bigint
+      - name: _internal_reference_id
+        data_type: integer
+      - name: _internal_reference_agreement_id
+        data_type: integer
+      - name: _legacy_archived_flag
+        data_type: integer
+
+  - name: final_demos_app_reference_agreement
+    columns:
+      - name: id
+        data_type: uuid
+      - name: name
+        data_type: text
+      - name: s3_path
+        data_type: text
+      - name: owner_user_id
+        data_type: uuid
+      - name: owner_person_type_id
+        data_type: text
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+      - name: _internal_reference_agreement_id
+        data_type: integer
+      - name: _internal_pmda_s3_file_id
+        data_type: bigint
+
+  - name: final_demos_app_reference_configuration
+    columns:
+      - name: id
+        data_type: uuid
+      - name: reference_id
+        data_type: uuid
+      - name: reference_agreement_id
+        data_type: uuid
+      - name: status_id
+        data_type: text
+
+  - name: final_demos_app_reference_demonstration_type
+    columns:
+      - name: reference_id
+        data_type: uuid
+        data_tests:
+          - not_null:
+              name: assert_reference_id_not_null_in_final_demo_type_mapping
+      - name: demonstration_type_tag_name_id
+        data_type: text
+      - name: demonstration_type_tag_type_id
+        data_type: text
 
   # Cleaned Models
   - name: cleaned_demos_app_demonstration_in_prog_demos
@@ -1236,11 +1307,11 @@ models:
   - name: system_file_move_tracker
     description: This table is used to track the file copy from legacy PMDA to DEMOs.
     columns:
-      - name: final_document_id
+      - name: final_file_id
         data_type: uuid
         data_tests:
           - unique:
-              name: assert_all_final_doc_ids_unique_in_file_move_tracker
+              name: assert_all_final_file_ids_unique_in_file_move_tracker
       - name: _internal_pmda_s3_file_id
         data_type: bigint
         data_tests:
@@ -1253,3 +1324,31 @@ models:
         data_tests:
           - not_null:
               name: assert_all_legacy_s3_paths_not_null_in_file_move_tracker
+
+  # References models
+  - name: references_pmda_refs
+    columns:
+      - name: pmda_s3_file_id
+        data_type: integer
+        data_tests:
+          - not_null:
+              name: assert_all_pmda_references_link_to_file_successfully
+      - name: archived
+        data_type: integer
+        data_tests:
+          - not_null:
+              name: assert_archive_flag_not_null_in_pmda_references
+          - accepted_values:
+              name: assert_archive_flag_takes_acceptable_values_in_pmda_refs
+              arguments:
+                values:
+                  - 0
+                  - 1
+
+  - name: references_pmda_ref_agreements
+    columns:
+      - name: pmda_s3_file_id
+        data_type: integer
+        data_tests:
+          - not_null:
+              name: assert_all_pmda_reference_agreements_link_to_file_successfully

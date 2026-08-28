@@ -74,7 +74,7 @@ dbt --quiet run-operation generate_source --args '{"schema_name": "demos_app", "
 This is a useful command to show which of the sources are in use (so you can make sure they are tagged as `source_in_use`, which makes it easier to filter the graph view.) That tag is added automatically to all seeds as well.
 
 ```sh
-dbt ls --select "resource_type:source,+resource_type:model" "resource_type:source,+resource_type:test" --output name
+dbt ls --resource-type source --select "resource_type:source,+resource_type:model" "resource_type:source,+resource_type:test" --output name
 ```
 
 This command lists the ones that are actually tagged, so you can compare to the above command.

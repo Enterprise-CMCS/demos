@@ -144,8 +144,8 @@ class TestMigrateFiles:
         mock_conn.execute.return_value.fetchall.return_value = self.mock_row_result
         expected_query = f"""
             SELECT
-                final_document_id::TEXT,
-                final_document_s3_path,
+                final_file_id::TEXT,
+                final_file_s3_path,
                 _internal_pmda_s3_file_id,
                 legacy_pmda_s3_path,
                 legacy_pmda_file_extension,
@@ -178,7 +178,7 @@ class TestMigrateFiles:
             SET
                 file_has_been_moved = TRUE
             WHERE
-                final_document_id = $final_document_id;
+                final_file_id = $final_file_id;
         """
         expected_output = replace(
             self.mock_dataclass_result[0],
@@ -191,7 +191,7 @@ class TestMigrateFiles:
         actual_query = mock_conn.execute.call_args[0][0]
         actual_params = mock_conn.execute.call_args[0][1]
         assert dedent(actual_query) == dedent(expected_query)
-        assert actual_params == {"final_document_id": test_input.final_document_id}
+        assert actual_params == {"final_file_id": test_input.final_file_id}
         assert result == expected_output
 
     def test__mark_file_migrated_in_db_02(self, mock_env_prod, mock_conn):
@@ -237,7 +237,7 @@ class TestMigrateFiles:
         mock_boto3["s3_client"].copy.assert_called_once_with(
             {"Bucket": mock_env_devcontainer["PMDA_S3_BUCKET"], "Key": test_input.legacy_pmda_s3_path},
             mock_env_devcontainer["DEMOS_S3_BUCKET"],
-            test_input.final_document_s3_path,
+            test_input.final_file_s3_path,
             ExtraArgs={
                 "MetadataDirective": "REPLACE",
                 "ContentType": test_input.file_mime_type,
