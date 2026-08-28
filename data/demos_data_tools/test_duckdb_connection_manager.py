@@ -227,7 +227,7 @@ class TestDuckDbConnectionManager:
 
         mock_attach_name_getter.assert_called_once_with("demos-localstack")
         assert mock_conn.execute.call_args_list[1] == call(
-            f"ATTACH 'sslmode=disable' AS {self.mock_attach_name} (TYPE postgres);"
+            f"ATTACH 'sslmode=disable' AS {self.mock_attach_name} (TYPE postgres, SECRET my_ddb_attach_name_secret);"
         )
 
     def test_attach_db_to_duckdb_conn_03(self, mock_load_credentials):

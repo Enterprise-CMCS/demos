@@ -20,10 +20,11 @@ from logger_utils import config_logger
 from types_constants import (
     DB_CONFIG_NAMES,
     DL_CONFIG_NAMES,
-    DataLoadConfiguration,
     DatabaseConfigurationName,
+    DataLoadConfiguration,
     DataLoadConfigurationName,
     DuckDbAttachName,
+    FileMigrationTrackerRecord,
 )
 
 if TYPE_CHECKING:
@@ -62,20 +63,6 @@ def _parse_args() -> CommandLineArguments:
         db_config_name=parsed_args.db_config_name,
         dl_config_name=parsed_args.dl_config_name,
     )
-
-
-@dataclass(frozen=True)
-class FileMigrationTrackerRecord:
-    """A file migration tracker record for a single file being migrated."""
-
-    final_file_id: str
-    final_file_s3_path: str
-    _internal_pmda_s3_file_id: int
-    legacy_pmda_s3_path: str
-    legacy_pmda_file_extension: str
-    file_mime_type: str
-    file_has_been_moved: bool
-    _local_file_has_been_moved: bool
 
 
 def _get_s3_client() -> "S3Client":

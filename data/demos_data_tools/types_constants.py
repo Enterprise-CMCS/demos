@@ -1,13 +1,16 @@
 """Shared types, classes, and constants for the demos_data_tools module."""
 
 from dataclasses import dataclass
-from typing import List, Literal, Protocol, Tuple, get_args
+from typing import List, Literal, NewType, Protocol, Tuple, get_args
 
 type DatabaseConfigurationName = Literal["demos-localstack", "demos-aws"]
 type AppSchemaName = Literal["demos_app"]
 type MigrationRawSchemaName = Literal["legacy_pmda_raw"]
 type MigrationStagedSchemaName = Literal["legacy_pmda_staged", "legacy_pmda_migration_rev_01"]
 type MigrationSchemaName = MigrationRawSchemaName | MigrationStagedSchemaName
+type MigrationSchemaShortName = Literal["raw", "staged", "rev01"]
+type SchemaName = MigrationSchemaName | AppSchemaName
+SnapshotSchemaName = NewType("SnapshotSchemaName", str)
 type DuckDbAttachName = Literal["ddb_demos_localstack", "ddb_demos_aws"]
 type DataLoadConfigurationName = Literal["base", "rev01"]
 type MigrationSchemaAction = Literal["create", "drop"]
@@ -18,6 +21,8 @@ APP_SCHEMA_NAME: AppSchemaName = "demos_app"
 MIGRATION_RAW_SCHEMA_NAME: MigrationRawSchemaName = "legacy_pmda_raw"
 MIGRATION_STAGED_SCHEMA_NAMES: Tuple[MigrationStagedSchemaName, ...] = get_args(MigrationStagedSchemaName.__value__)
 MIGRATION_SCHEMA_NAMES: Tuple[MigrationSchemaName, ...] = (MIGRATION_RAW_SCHEMA_NAME, *MIGRATION_STAGED_SCHEMA_NAMES)
+MIGRATION_SCHEMA_SHORT_NAMES: Tuple[MigrationSchemaShortName, ...] = get_args(MigrationSchemaShortName.__value__)
+SCHEMA_NAMES: Tuple[MigrationSchemaName | AppSchemaName, ...] = (APP_SCHEMA_NAME, *MIGRATION_SCHEMA_NAMES)
 DUCKDB_ATTACH_NAMES: Tuple[DuckDbAttachName, ...] = get_args(DuckDbAttachName.__value__)
 DL_CONFIG_NAMES: Tuple[DataLoadConfigurationName, ...] = get_args(DataLoadConfigurationName.__value__)
 MIGRATION_SCHEMA_ACTIONS: Tuple[MigrationSchemaAction, ...] = get_args(MigrationSchemaAction.__value__)
@@ -67,7 +72,7 @@ class ArbitrarySqlGenerationContext:
 
     Attributes:
         attach_name (DuckDbAttachName): A valid attach name for a DuckDB attachment.
-        app_schema (str): The name of the application schema.
+        app_schema (AppSchemaName): The name of the application schema.
     """
 
     attach_name: DuckDbAttachName
@@ -142,3 +147,25 @@ class DataLoadConfiguration:
     source_schema: MigrationStagedSchemaName
     target_schema: AppSchemaName
     data_load_actions: DataLoadActionList
+
+
+@dataclass(frozen=True)
+class FileMigrationTrackerRecord:
+    """A file migration tracker record for a single file being migrated."""
+
+    final_file_id: str
+    final_file_s3_path: str
+    _internal_pmda_s3_file_id: int
+    legacy_pmda_s3_path: str
+    legacy_pmda_file_extension: str
+    file_mime_type: str
+    file_has_been_moved: bool
+    _local_file_has_been_moved: bool
+
+
+@dataclass(frozen=True)
+class SchemaTableList:
+    """A list of tables from a schema."""
+
+    schema_name: SchemaName
+    table_list: List[str]

@@ -23,16 +23,16 @@ class TestManageMigrationSchemas:
     def test__get_schema_name_from_short_name(self):
         """Test manage_migration_schemas.py functions.
 
-        ::_get_schema_name_from_short_name
+        ::get_migration_schema_name_from_short_name
 
         ::It should correctly map the short name to the schema name.
         """
-        result1 = manage_migration_schemas._get_schema_name_from_short_name("raw")
-        result2 = manage_migration_schemas._get_schema_name_from_short_name("staged")
-        result3 = manage_migration_schemas._get_schema_name_from_short_name("rev01")
+        result1 = manage_migration_schemas.get_migration_schema_name_from_short_name("raw")
+        result2 = manage_migration_schemas.get_migration_schema_name_from_short_name("staged")
+        result3 = manage_migration_schemas.get_migration_schema_name_from_short_name("rev01")
 
         with pytest.raises(AssertionError) as except_info:
-            manage_migration_schemas._get_schema_name_from_short_name(
+            manage_migration_schemas.get_migration_schema_name_from_short_name(
                 cast(manage_migration_schemas.MigrationSchemaShortName, "not_a_name")
             )
 
@@ -55,7 +55,7 @@ class TestManageMigrationSchemas:
         mock_parser_instance = mocker.patch(
             "manage_migration_schemas.argparse.ArgumentParser", return_value=mock_parser
         )
-        mocker.patch("manage_migration_schemas._get_schema_name_from_short_name", return_value="A longer name")
+        mocker.patch("manage_migration_schemas.get_migration_schema_name_from_short_name", return_value="A longer name")
         mock_cmd_line_args = mocker.patch("manage_migration_schemas.CommandLineArguments")
 
         manage_migration_schemas._parse_args()
@@ -85,11 +85,11 @@ class TestManageMigrationSchemas:
     def test__grant_permissions(self, mock_conn):
         """Test manage_migration_schemas.py functions.
 
-        ::_grant_permissions
+        ::_grant_read_permissions
 
         ::It should generate and execute the permissions queries.
         """
-        manage_migration_schemas._grant_permissions(mock_conn, "ddb_demos_localstack", "legacy_pmda_raw")
+        manage_migration_schemas._grant_read_permissions(mock_conn, "ddb_demos_localstack", "legacy_pmda_raw")
         assert mock_conn.execute.call_args_list == [
             call(
                 "CALL postgres_execute(?, ?);",
@@ -149,7 +149,7 @@ class TestManageMigrationSchemas:
             "manage_migration_schemas.get_attach_name_from_db_config_name", return_value="not_a_real_attach_name"
         )
         mock_create_schema = mocker.patch("manage_migration_schemas._create_schema")
-        mock_grant_perms = mocker.patch("manage_migration_schemas._grant_permissions")
+        mock_grant_perms = mocker.patch("manage_migration_schemas._grant_read_permissions")
         mock_drop_schema = mocker.patch("manage_migration_schemas._drop_schema")
         test_args = manage_migration_schemas.CommandLineArguments("demos-localstack", "create", "legacy_pmda_staged")
 
@@ -177,7 +177,7 @@ class TestManageMigrationSchemas:
             "manage_migration_schemas.get_attach_name_from_db_config_name", return_value="not_a_real_attach_name"
         )
         mock_create_schema = mocker.patch("manage_migration_schemas._create_schema")
-        mock_grant_perms = mocker.patch("manage_migration_schemas._grant_permissions")
+        mock_grant_perms = mocker.patch("manage_migration_schemas._grant_read_permissions")
         mock_drop_schema = mocker.patch("manage_migration_schemas._drop_schema")
         test_args = manage_migration_schemas.CommandLineArguments("demos-localstack", "drop", "legacy_pmda_staged")
 
@@ -205,7 +205,7 @@ class TestManageMigrationSchemas:
             "manage_migration_schemas.get_attach_name_from_db_config_name", return_value="not_a_real_attach_name"
         )
         mock_create_schema = mocker.patch("manage_migration_schemas._create_schema")
-        mock_grant_perms = mocker.patch("manage_migration_schemas._grant_permissions")
+        mock_grant_perms = mocker.patch("manage_migration_schemas._grant_read_permissions")
         mock_drop_schema = mocker.patch("manage_migration_schemas._drop_schema")
         test_invalid_action = cast(MigrationSchemaAction, "not_an_action")
         test_args = manage_migration_schemas.CommandLineArguments(
