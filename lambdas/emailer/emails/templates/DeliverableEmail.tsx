@@ -2,7 +2,13 @@ import { Text } from "@react-email/components";
 
 import { EmailLayout } from "../components/EmailLayout";
 import { detailStyle, textStyle } from "../components/styles";
-import { formatDate, getDemosAppUrl, getRequiredValue } from "../helpers";
+import {
+  formatDate,
+  getDemosAppUrl,
+  getRequiredObject,
+  getRequiredString,
+  getRequiredValue,
+} from "../helpers";
 import { DeliverableLink } from "../parts/DeliverableLink";
 import type { EmailTemplateResult } from "../types";
 
@@ -17,24 +23,6 @@ type DeliverableEmailType =
   | "Extension Decision Made"
   | "Resubmission Requested"
   | "Public Comment Added";
-
-type DeliverableInput = {
-  id?: string;
-  name?: string;
-  deliverableTypeId?: string;
-  dueDate?: string;
-  extensionDecision?: "Approved" | "Denied";
-  previousDueDate?: string;
-  requestedDueDate?: string;
-};
-
-type DeliverablePayload = {
-  demonstration?: {
-    name?: string;
-    stateId?: string;
-  };
-  deliverable?: DeliverableInput;
-};
 
 type DeliverableEmailProps = {
   currentDueDate: string;
@@ -189,38 +177,46 @@ function getDeliverableProps(
   input: unknown,
   emailType: DeliverableEmailType,
 ): DeliverableEmailProps {
-  const payload =
-    input && typeof input === "object" ? (input as DeliverablePayload) : {};
-  const deliverable = payload.deliverable;
-  const deliverableId = getRequiredValue(
-    deliverable?.id,
+  const payload = getRequiredObject(input, "payload", emailType);
+  const demonstration = getRequiredObject(
+    payload.demonstration,
+    "demonstration",
+    emailType,
+  );
+  const deliverable = getRequiredObject(
+    payload.deliverable,
+    "deliverable",
+    emailType,
+  );
+  const deliverableId = getRequiredString(
+    deliverable.id,
     "deliverable.id",
     emailType,
   );
 
   const props: DeliverableEmailProps = {
-    demonstrationTitle: getRequiredValue(
-      payload.demonstration?.name,
+    demonstrationTitle: getRequiredString(
+      demonstration.name,
       "demonstration.name",
       emailType,
     ),
-    state: getRequiredValue(
-      payload.demonstration?.stateId,
+    state: getRequiredString(
+      demonstration.stateId,
       "demonstration.stateId",
       emailType,
     ),
-    deliverableType: getRequiredValue(
-      deliverable?.deliverableTypeId,
+    deliverableType: getRequiredString(
+      deliverable.deliverableTypeId,
       "deliverable.deliverableTypeId",
       emailType,
     ),
-    deliverableName: getRequiredValue(
-      deliverable?.name,
+    deliverableName: getRequiredString(
+      deliverable.name,
       "deliverable.name",
       emailType,
     ),
     currentDueDate: formatDate(
-      getRequiredValue(deliverable?.dueDate, "deliverable.dueDate", emailType),
+      getRequiredString(deliverable.dueDate, "deliverable.dueDate", emailType),
     ),
     link: `${getDemosAppUrl()}/deliverables/${deliverableId}`,
   };
@@ -231,8 +227,8 @@ function getDeliverableProps(
     emailType === "Resubmission Requested"
   ) {
     props.previousDueDate = formatDate(
-      getRequiredValue(
-        deliverable?.previousDueDate,
+      getRequiredString(
+        deliverable.previousDueDate,
         "deliverable.previousDueDate",
         emailType,
       ),
@@ -241,8 +237,8 @@ function getDeliverableProps(
 
   if (emailType === "Extension Requested") {
     props.requestedDueDate = formatDate(
-      getRequiredValue(
-        deliverable?.requestedDueDate,
+      getRequiredString(
+        deliverable.requestedDueDate,
         "deliverable.requestedDueDate",
         emailType,
       ),
@@ -250,11 +246,20 @@ function getDeliverableProps(
   }
 
   if (emailType === "Extension Decision Made") {
-    props.extensionDecision = getRequiredValue(
-      deliverable?.extensionDecision,
+    const extensionDecision = getRequiredString(
+      deliverable.extensionDecision,
       "deliverable.extensionDecision",
       emailType,
     );
+    if (
+      extensionDecision !== "Approved" &&
+      extensionDecision !== "Denied"
+    ) {
+      throw new Error(
+        `Invalid value for deliverable.extensionDecision while rendering ${emailType}.data: expected Approved or Denied.`,
+      );
+    }
+    props.extensionDecision = extensionDecision;
   }
 
   return props;

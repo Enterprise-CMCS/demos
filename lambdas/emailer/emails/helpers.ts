@@ -43,3 +43,39 @@ export function getRequiredValue<T>(
 
   return value;
 }
+
+export function getRequiredObject(
+  value: unknown,
+  valueName: string,
+  emailType: string,
+): Record<string, unknown> {
+  const requiredValue = getRequiredValue(value, valueName, emailType);
+
+  if (!isRecord(requiredValue)) {
+    throw new Error(
+      `Invalid value for ${valueName} while rendering ${emailType}.data: expected an object.`,
+    );
+  }
+
+  return requiredValue;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+export function getRequiredString(
+  value: unknown,
+  valueName: string,
+  emailType: string,
+): string {
+  const requiredValue = getRequiredValue(value, valueName, emailType);
+
+  if (typeof requiredValue !== "string") {
+    throw new Error(
+      `Invalid value for ${valueName} while rendering ${emailType}.data: expected a string.`,
+    );
+  }
+
+  return requiredValue;
+}

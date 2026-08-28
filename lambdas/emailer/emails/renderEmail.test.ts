@@ -230,6 +230,41 @@ describe("renderEmail", () => {
     ).rejects.toThrow("Missing value for recipients while rendering Deliverable Created.data");
   });
 
+  it("reports invalid deliverable payload shapes", async () => {
+    await expect(
+      renderEmail("Deliverable Created", {
+        ...deliverableCreatedInput,
+        demonstration: "not-an-object",
+      }),
+    ).rejects.toThrow(
+      "Invalid value for demonstration while rendering Deliverable Created.data: expected an object.",
+    );
+
+    await expect(
+      renderEmail("Deliverable Created", {
+        ...deliverableCreatedInput,
+        deliverable: {
+          ...deliverableCreatedInput.deliverable,
+          name: 42,
+        },
+      }),
+    ).rejects.toThrow(
+      "Invalid value for deliverable.name while rendering Deliverable Created.data: expected a string.",
+    );
+
+    await expect(
+      renderEmail("Extension Decision Made", {
+        ...deliverableCreatedInput,
+        deliverable: {
+          ...deliverableCreatedInput.deliverable,
+          extensionDecision: "Maybe",
+        },
+      }),
+    ).rejects.toThrow(
+      "Invalid value for deliverable.extensionDecision while rendering Extension Decision Made.data: expected Approved or Denied.",
+    );
+  });
+
   it("requires at least one recipient across all BCC-only recipient groups", async () => {
     await expect(
       renderEmail("Deliverable Created", {
