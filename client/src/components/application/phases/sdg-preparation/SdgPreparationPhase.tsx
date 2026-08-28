@@ -16,7 +16,7 @@ import {
 } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
 import { getCurrentUser, isReadonly } from "components/user/UserContext";
-import { useCompletePhase } from "../phase-status/phaseCompletionQueries";
+import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
