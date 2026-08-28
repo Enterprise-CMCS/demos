@@ -106,12 +106,21 @@ function normalizeRecipients(
       return recipient;
     }
 
-    if (
-      recipient &&
-      typeof recipient === "object" &&
-      typeof recipient.address === "string" &&
-      recipient.address.trim()
-    ) {
+    if (recipient && typeof recipient === "object") {
+      if (typeof recipient.name !== "string" || !recipient.name.trim()) {
+        throw new Error(
+          `Invalid ${group} email recipient at index ${index}: name is required.`,
+        );
+      }
+      if (
+        typeof recipient.address !== "string" ||
+        !recipient.address.trim()
+      ) {
+        throw new Error(
+          `Invalid ${group} email recipient at index ${index}: address is required.`,
+        );
+      }
+
       return recipient;
     }
 

@@ -234,7 +234,7 @@ describe("renderEmail", () => {
     ).rejects.toThrow("Unsupported email type: Unknown Email");
   });
 
-  it("reports missing recipient data", async () => {
+  it("reports invalid recipient data", async () => {
     await expect(
       renderEmail("Deliverable Created", {
         ...deliverableInput,
@@ -242,6 +242,17 @@ describe("renderEmail", () => {
       }),
     ).rejects.toThrow(
       "Missing value for recipients while rendering Deliverable Created.data",
+    );
+
+    await expect(
+      renderEmail("Deliverable Created", {
+        ...deliverableInput,
+        recipients: {
+          to: [{ address: "cms.owner@example.com" }],
+        },
+      }),
+    ).rejects.toThrow(
+      "Invalid to email recipient at index 0: name is required.",
     );
   });
 

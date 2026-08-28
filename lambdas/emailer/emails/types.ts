@@ -3,7 +3,7 @@ import type { ReactElement } from "react";
 export type EmailRecipient =
   | string
   | {
-      name?: string;
+      name: string;
       address: string;
     };
 
