@@ -153,14 +153,21 @@ function getMessage(
           <DeliverableLink href={link} />
         </Text>
       );
-    case "Extension Decision Made":
+    case "Extension Decision Made": {
+      const decision = getRequiredValue(
+        extensionDecision,
+        "deliverable.extensionDecision",
+        emailType,
+      );
+
       return (
         <Text style={textStyle}>
-          CMS has {extensionDecision} an extension request for your{" "}
+          CMS has {decision} an extension request for your{" "}
           {deliverableType} deliverable. The current due date is {currentDueDate}.{" "}
           <DeliverableLink href={link} />
         </Text>
       );
+    }
     case "Resubmission Requested":
       return (
         <Text style={textStyle}>
