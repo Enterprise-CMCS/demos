@@ -35,7 +35,6 @@ describe("emailer database connection", () => {
     process.env = { ...originalEnv };
     process.env.DATABASE_SECRET_ARN = "database-secret"; // pragma: allowlist secret
     process.env.DB_SSL_MODE = "disable";
-    delete process.env.DB_SCHEMA;
     __resetDbStateForTests();
     mocks.send.mockReset();
     mocks.poolConstructor.mockReset();
@@ -92,9 +91,7 @@ describe("emailer database connection", () => {
     });
   });
 
-  it("rejects unsafe schema names", () => {
-    process.env.DB_SCHEMA = "demos_app; DROP TABLE users";
-
-    expect(() => getDbSchema()).toThrow("Invalid DB_SCHEMA");
+  it("returns the emailer database schema", () => {
+    expect(getDbSchema()).toBe("demos_app");
   });
 });

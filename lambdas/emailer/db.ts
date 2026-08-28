@@ -3,6 +3,8 @@ import { Pool } from "pg";
 
 import { log } from "./log";
 
+const dbSchema = "demos_app";
+
 const secretsManagerClient = new SecretsManagerClient({
   region: process.env.AWS_REGION,
   endpoint: process.env.AWS_ENDPOINT_URL ?? undefined,
@@ -12,21 +14,14 @@ let poolPromise: Promise<Pool> | null = null;
 let databaseUrlCache = "";
 let cacheExpiration = 0;
 
+// Test helper to keep module-scoped cache isolated across unit tests.
 export function __resetDbStateForTests(): void {
   poolPromise = null;
   databaseUrlCache = "";
   cacheExpiration = 0;
 }
 
-export function getDbSchema(): string {
-  const schema = process.env.DB_SCHEMA ?? "demos_app";
-  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(schema)) {
-    throw new Error(`Invalid DB_SCHEMA: ${schema}`);
-  }
-  return schema;
-}
-
-export async function getDatabaseUrl(): Promise<string> {
+export async function getDatabaseUrl() {
   const now = Date.now();
   if (databaseUrlCache && cacheExpiration > now) {
     return databaseUrlCache;
@@ -37,26 +32,29 @@ export async function getDatabaseUrl(): Promise<string> {
     throw new Error("DATABASE_SECRET_ARN is required to fetch the database connection string.");
   }
 
-  const response = await secretsManagerClient.send(
-    new GetSecretValueCommand({ SecretId: databaseSecretArn })
-  );
+  const getDbSecretValueCommand = new GetSecretValueCommand({ SecretId: databaseSecretArn });
+  const response = await secretsManagerClient.send(getDbSecretValueCommand);
+
   if (!response.SecretString) {
     throw new Error(`The SecretString value is undefined for secret: ${databaseSecretArn}`);
   }
 
-  const credentials = JSON.parse(response.SecretString);
+  const dbCredentials = JSON.parse(response.SecretString);
   const sslMode = process.env.DB_SSL_MODE ?? "require";
-  const schema = getDbSchema();
-  const username = encodeURIComponent(credentials.username);
-  const password = encodeURIComponent(credentials.password);
+  const username = encodeURIComponent(dbCredentials.username);
+  const password = encodeURIComponent(dbCredentials.password);
 
   databaseUrlCache =
     `postgresql://${username}:${password}` +
-    `@${credentials.host}:${credentials.port}/${credentials.dbname}` +
-    `?schema=${schema}&sslmode=${sslMode}`;
+    `@${dbCredentials.host}:${dbCredentials.port}/${dbCredentials.dbname}` +
+    `?schema=${dbSchema}&sslmode=${sslMode}`;
   cacheExpiration = now + 60 * 60 * 1000;
 
   return databaseUrlCache;
+}
+
+export function getDbSchema() {
+  return dbSchema;
 }
 
 export async function getDbPool(): Promise<Pool> {
