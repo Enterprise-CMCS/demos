@@ -14,11 +14,11 @@ export function formatDate(value: string): string {
   });
 }
 
-export function getRequiredValue<T>(
-  value: T | null | undefined,
+export function getRequiredValue(
+  value: unknown,
   valueName: string,
   emailType: string,
-): T {
+): unknown {
   if (value === undefined || value === null || value === "") {
     throw new Error(
       `Missing value for ${valueName} while rendering ${emailType}.data`,
