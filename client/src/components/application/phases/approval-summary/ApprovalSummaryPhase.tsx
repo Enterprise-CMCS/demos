@@ -12,7 +12,7 @@ import {
 import {
   ApplicationWorkflowAmendment,
   ApplicationWorkflowDemonstration,
-  ApplicationWorkflowExtension,
+  ApplicationWorkflowRenewal,
   WorkflowApplication,
   WorkflowApplicationType,
 } from "components/application";
@@ -58,9 +58,9 @@ export const UPDATE_AMENDMENT_MUTATION = gql`
   }
 `;
 
-export const UPDATE_EXTENSION_MUTATION = gql`
-  mutation UpdateExtension($id: ID!, $input: UpdateExtensionInput!) {
-    updateExtension(id: $id, input: $input) {
+export const UPDATE_RENEWAL_MUTATION = gql`
+  mutation UpdateRenewal($id: ID!, $input: UpdateExtensionInput!) {
+    updateRenewal: updateExtension(id: $id, input: $input) {
       id
       name
       description
@@ -130,8 +130,8 @@ export const getDemonstrationApprovalSummaryFormData = (
 };
 
 export const getModificationApprovalSummaryFormData = (
-  modification: ApplicationWorkflowAmendment | ApplicationWorkflowExtension,
-  modificationType: "amendment" | "extension"
+  modification: ApplicationWorkflowAmendment | ApplicationWorkflowRenewal,
+  modificationType: "amendment" | "renewal"
 ): ApplicationDetailsFormData => {
   const applicationApprovalDate = modification.phases
     .find((p) => p.phaseName === "Approval Summary")
@@ -175,7 +175,7 @@ export const getApprovalSummaryPhaseFromApplication = (
     );
   } else {
     approvalSummaryFormData = getModificationApprovalSummaryFormData(
-      application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension,
+      application as ApplicationWorkflowAmendment | ApplicationWorkflowRenewal,
       workflowApplicationType
     );
   }
@@ -195,7 +195,7 @@ export const getApprovalSummaryPhaseFromApplication = (
   const demonstration =
     workflowApplicationType === "demonstration"
       ? (application as ApplicationWorkflowDemonstration)
-      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration;
+      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowRenewal).demonstration;
 
   const demonstrationId = demonstration.id;
   const demonstrationTypes = demonstration.demonstrationTypes;
@@ -289,7 +289,7 @@ export const ApprovalSummaryPhase = ({
 
   const [updateDemonstrationTrigger] = useMutation(UPDATE_DEMONSTRATION_MUTATION);
   const [updateAmendmentTrigger] = useMutation(UPDATE_AMENDMENT_MUTATION);
-  const [updateExtensionTrigger] = useMutation(UPDATE_EXTENSION_MUTATION);
+  const [updateRenewalTrigger] = useMutation(UPDATE_RENEWAL_MUTATION);
 
   const { setApplicationDate } = useSetApplicationDate();
 
@@ -377,7 +377,7 @@ export const ApprovalSummaryPhase = ({
         dateType: "Application Approval Date",
         dateValue: formData.applicationApprovalDate ?? null,
       });
-      return await updateExtensionTrigger({
+      return await updateRenewalTrigger({
         variables: {
           id: applicationId,
           input: updateInput,
@@ -451,7 +451,7 @@ export const ApprovalSummaryPhase = ({
   };
 
   const demonstrationForTypes = {
-    id: demonstrationId, // Use demonstrationId, which is the same for demonstrations, but for amendments/extensions it comes from the nested demonstration object
+    id: demonstrationId, // Use demonstrationId, which is the same for demonstrations, but for amendments/renewals it comes from the nested demonstration object
     status: demonstrationStatus, // Similarly, get status from the correct place based on application type
     demonstrationTypes: initialTypes,
   };

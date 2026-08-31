@@ -76,37 +76,37 @@ describe("sortDeliverablesByDefault", () => {
     expect(sorted.map((row) => row.id)).toEqual(["a", "b"]);
   });
 
-  it("prioritizes extension-requested rows by due date before sorting remaining rows by status", () => {
+  it("prioritizes renewal-requested rows by due date before sorting remaining rows by status", () => {
     const sorted = sortDeliverablesByDefault([
       {
         id: "upcoming",
         status: "Upcoming",
         dueDate: "2026-05-01",
-        extensionRequests: [],
+        renewalRequests: [],
       },
       {
         id: "requested-late",
         status: "Approved",
         dueDate: "2026-05-04",
-        extensionRequests: [{ status: "Requested" }],
+        renewalRequests: [{ status: "Requested" }],
       },
       {
         id: "past-due",
         status: "Past Due",
         dueDate: "2026-05-03",
-        extensionRequests: [],
+        renewalRequests: [],
       },
       {
         id: "requested-early",
         status: "Submitted",
         dueDate: "2026-05-02",
-        extensionRequests: [{ status: "Requested" }],
+        renewalRequests: [{ status: "Requested" }],
       },
       {
         id: "submitted",
         status: "Submitted",
         dueDate: "2026-05-05",
-        extensionRequests: [{ status: "Approved" }],
+        renewalRequests: [{ status: "Approved" }],
       },
     ]);
 

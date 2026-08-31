@@ -15,7 +15,7 @@ import { useLocation, useParams } from "react-router-dom";
 import { gql, useQuery } from "@apollo/client";
 import { AmendmentsTab } from "./modifications/AmendmentsTab";
 import { DemonstrationTab } from "./DemonstrationTab";
-import { ExtensionsTab } from "./modifications/ExtensionsTab";
+import { RenewalsTab } from "./modifications/RenewalsTab";
 import { Tab, Tabs } from "layout/Tabs";
 
 export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
@@ -75,7 +75,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
           }
         }
       }
-      extensions {
+      renewals: extensions {
         id
         name
         description
@@ -152,7 +152,7 @@ export type DemonstrationDetail = Pick<
 > & {
   state: Pick<State, "id">;
   amendments: DemonstrationDetailModification[];
-  extensions: DemonstrationDetailModification[];
+  renewals: DemonstrationDetailModification[];
   demonstrationTypes: Pick<
     DemonstrationTypeAssignment,
     | "demonstrationTypeName"
@@ -186,7 +186,7 @@ export const DemonstrationDetail: React.FC = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const amendmentParam = getQueryParamValue(queryParams, "amendment", "amendments");
-  const extensionParam = getQueryParamValue(queryParams, "extension", "extensions");
+  const renewalParam = getQueryParamValue(queryParams, "renewal", "renewals");
 
   const { data, loading, error } = useQuery<{ demonstration: DemonstrationDetail }>(
     DEMONSTRATION_DETAIL_QUERY,
@@ -206,14 +206,14 @@ export const DemonstrationDetail: React.FC = () => {
   }
 
   const amendmentCount = demonstration.amendments?.length ?? 0;
-  const extensionCount = demonstration.extensions?.length ?? 0;
+  const renewalCount = demonstration.renewals?.length ?? 0;
   const isApproved = demonstration.status === "Approved";
   return (
     <div>
       {
         <>
           <Tabs
-            defaultValue={amendmentParam ? "amendments" : extensionParam ? "extensions" : "details"}
+            defaultValue={amendmentParam ? "amendments" : renewalParam ? "renewals" : "details"}
           >
             <Tab label="Demonstration Details" value="details">
               <DemonstrationTab demonstration={demonstration} />
@@ -234,15 +234,15 @@ export const DemonstrationDetail: React.FC = () => {
             </Tab>
 
             <Tab
-              label={`Extensions (${extensionCount})`}
-              value="extensions"
-              shouldRender={isApproved || extensionCount > 0}
+              label={`Renewals (${renewalCount})`}
+              value="renewals"
+              shouldRender={isApproved || renewalCount > 0}
             >
-              <ExtensionsTab
+              <RenewalsTab
                 demonstrationId={demonstration.id}
                 medicaidId={demonstration.medicaidId}
-                extensions={demonstration.extensions}
-                selectedExtensionId={extensionParam || undefined}
+                renewals={demonstration.renewals}
+                selectedRenewalId={renewalParam || undefined}
                 canCreateModifications={isApproved}
               />
             </Tab>

@@ -15,11 +15,9 @@ export const CreateNewButton: React.FC<{ hasApprovedDemonstrations: boolean }> =
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { currentUser } = getCurrentUser();
-  const { showCreateDemonstrationDialog, showCreateAmendmentDialog, showCreateExtensionDialog } =
+  const { showCreateDemonstrationDialog, showCreateAmendmentDialog, showCreateRenewalDialog } =
     useDialog();
-  const modificationTooltip = hasApprovedDemonstrations
-    ? ""
-    : NO_APPROVED_DEMONSTRATIONS_TOOLTIP;
+  const modificationTooltip = hasApprovedDemonstrations ? "" : NO_APPROVED_DEMONSTRATIONS_TOOLTIP;
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -70,16 +68,16 @@ export const CreateNewButton: React.FC<{ hasApprovedDemonstrations: boolean }> =
             Amendment
           </button>
           <button
-            data-testid="button-create-new-extension"
+            data-testid="button-create-new-renewal"
             disabled={!hasApprovedDemonstrations}
             title={modificationTooltip}
             onClick={() => {
               setShowDropdown(false);
-              showCreateExtensionDialog();
+              showCreateRenewalDialog();
             }}
             className="w-full text-left px-1 py-[10px] hover:bg-gray-100 disabled:text-text-placeholder disabled:cursor-not-allowed disabled:hover:bg-white"
           >
-            Extension
+            Renewal
           </button>
         </div>
       )}

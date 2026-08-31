@@ -6,7 +6,7 @@ import { useDialog } from "../DialogContext";
 import { Button } from "components/button";
 
 export const BaseCreateModificationDialog: React.FC<{
-  modificationType: "Amendment" | "Extension";
+  modificationType: "Amendment" | "Renewal";
   useModification: () => {
     save: (input: ModificationFormData) => Promise<void>;
     saving: boolean;

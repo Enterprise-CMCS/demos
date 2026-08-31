@@ -91,15 +91,15 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
       id: "applications",
       header: "Applications",
       cell: ({ row }) => {
-        if (row.original.type === "amendment" || row.original.type === "extension") {
-          return <span>{row.original.type === "amendment" ? "Amendment" : "Extension"}</span>;
+        if (row.original.type === "amendment" || row.original.type === "renewal") {
+          return <span>{row.original.type === "amendment" ? "Amendment" : "Renewal"}</span>;
         }
         const amendmentsCount = row.original.amendments?.length ?? 0;
-        const extensionsCount = row.original.extensions?.length ?? 0;
+        const renewalsCount = row.original.renewals?.length ?? 0;
         return (
           <div>
             <div>Amendments ({amendmentsCount})</div>
-            <div>Extensions ({extensionsCount})</div>
+            <div>Renewals ({renewalsCount})</div>
           </div>
         );
       },
@@ -114,13 +114,13 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
       cell: ({ row }) => {
         let demoId = row.original.id; // link directly to demos
         let queryParam = "";
-        // If amendment or extension use the parent id and add the correct query param
+        // If amendment or renewal use the parent id and add the correct query param
         if (row.original.type === "amendment" && row.original.parentId) {
           demoId = row.original.parentId;
           queryParam = `amendments=${row.original.id}`;
-        } else if (row.original.type === "extension" && row.original.parentId) {
+        } else if (row.original.type === "renewal" && row.original.parentId) {
           demoId = row.original.parentId;
-          queryParam = `extensions=${row.original.id}`;
+          queryParam = `renewals=${row.original.id}`;
         }
         const href = queryParam
           ? `/demonstrations/${demoId}?${queryParam}`

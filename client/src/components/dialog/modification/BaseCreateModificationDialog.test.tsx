@@ -62,7 +62,7 @@ describe("BaseCreateModificationDialog", () => {
   });
 
   const renderDialog = (
-    modificationType: "Amendment" | "Extension" = "Amendment",
+    modificationType: "Amendment" | "Renewal" = "Amendment",
     demonstrationId?: string,
     mocks: MockedResponse[] = []
   ) => {
@@ -83,10 +83,10 @@ describe("BaseCreateModificationDialog", () => {
     expect(screen.getByRole("heading", { name: "Add Amendment" })).toBeInTheDocument();
   });
 
-  it("renders dialog with correct title for Extension", () => {
-    renderDialog("Extension");
+  it("renders dialog with correct title for Renewal", () => {
+    renderDialog("Renewal");
 
-    expect(screen.getByRole("heading", { name: "Add Extension" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Add Renewal" })).toBeInTheDocument();
   });
 
   it("renders form with modification type fields", () => {
@@ -147,13 +147,13 @@ describe("BaseCreateModificationDialog", () => {
     const user = userEvent.setup();
     mockSave.mockRejectedValue(new Error("Failed to save"));
 
-    renderDialog("Extension");
+    renderDialog("Renewal");
 
     await user.selectOptions(screen.getByTestId("select-demonstration"), "demo-1");
-    await user.type(screen.getByLabelText(/Extension Title/), "Test Extension");
+    await user.type(screen.getByLabelText(/Renewal Title/), "Test Renewal");
 
     const submitButton = screen.getByRole("button", {
-      name: /button-submit-create-extension-dialog/i,
+      name: /button-submit-create-renewal-dialog/i,
     });
     await waitFor(() => {
       expect(submitButton).not.toBeDisabled();
@@ -162,7 +162,7 @@ describe("BaseCreateModificationDialog", () => {
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(mockShowError).toHaveBeenCalledWith("Failed to create extension.");
+      expect(mockShowError).toHaveBeenCalledWith("Failed to create renewal.");
       expect(mockCloseDialog).toHaveBeenCalled();
     });
 

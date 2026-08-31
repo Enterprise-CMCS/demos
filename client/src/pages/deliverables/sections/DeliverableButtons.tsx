@@ -1,15 +1,15 @@
 import React from "react";
 import { PersonType } from "demos-server";
 import { SecondaryButton } from "components/button";
-import { canRequestExtension } from "components/dialog/deliverable";
+import { canRequestRenewal } from "components/dialog/deliverable";
 import { useDialog } from "components/dialog/DialogContext";
 import { getCurrentUser } from "components/user/UserContext";
 import { DeliverableDetailsManagementDeliverable } from "../DeliverableDetailsManagementPage";
 
 export const DELIVERABLE_BUTTONS_NAME = "deliverable-buttons";
-export const REQUEST_EXTENSION_BUTTON_NAME = "button-request-extension";
+export const REQUEST_RENEWAL_BUTTON_NAME = "button-request-renewal";
 
-const REQUEST_EXTENSION_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
+const REQUEST_RENEWAL_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
   "demos-admin",
   "demos-state-user",
 ]);
@@ -19,13 +19,13 @@ export const DeliverableButtons = ({
 }: {
   deliverable: DeliverableDetailsManagementDeliverable;
 }) => {
-  const { showRequestExtensionDeliverableDialog } = useDialog();
+  const { showRequestRenewalDeliverableDialog } = useDialog();
   const { currentUser } = getCurrentUser();
   const userPersonType = currentUser.person.personType;
-  const canSeeRequestExtension = REQUEST_EXTENSION_PERSON_TYPES.has(userPersonType);
+  const canSeeRequestRenewal = REQUEST_RENEWAL_PERSON_TYPES.has(userPersonType);
 
-  const handleRequestExtension = () => {
-    showRequestExtensionDeliverableDialog({
+  const handleRequestRenewal = () => {
+    showRequestRenewalDeliverableDialog({
       id: deliverable.id,
       dueDate: deliverable.dueDate,
     });
@@ -33,13 +33,13 @@ export const DeliverableButtons = ({
 
   return (
     <div className="flex gap-2" data-testid={DELIVERABLE_BUTTONS_NAME}>
-      {canSeeRequestExtension ? (
+      {canSeeRequestRenewal ? (
         <SecondaryButton
-          name={REQUEST_EXTENSION_BUTTON_NAME}
-          onClick={handleRequestExtension}
-          disabled={!canRequestExtension(deliverable.status, deliverable.extensionRequests)}
+          name={REQUEST_RENEWAL_BUTTON_NAME}
+          onClick={handleRequestRenewal}
+          disabled={!canRequestRenewal(deliverable.status, deliverable.renewalRequests)}
         >
-          Request Extension
+          Request Renewal
         </SecondaryButton>
       ) : null}
     </div>

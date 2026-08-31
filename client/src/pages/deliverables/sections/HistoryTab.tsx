@@ -1,5 +1,6 @@
 import React from "react";
 import { CellContext, createColumnHelper } from "@tanstack/react-table";
+import { DeliverableActionType } from "demos-server";
 
 import { highlightCell } from "components/table/KeywordSearch";
 import { PaginationControls } from "components/table/PaginationControls";
@@ -7,6 +8,18 @@ import { Table } from "components/table/Table";
 import { createDateColumnDef } from "components/table/columns/dateColumn";
 
 export const HISTORY_TAB_NAME = "history-tab";
+
+// The server still names these action types "Extension" (DEMOS-1922 renamed the client only).
+// Map them to the Renewals verbiage at the point of display.
+const RENEWAL_ACTION_TYPE_LABELS: Partial<Record<DeliverableActionType, string>> = {
+  "Requested Extension": "Requested Renewal",
+  "Approved Extension Request": "Approved Renewal Request",
+  "Denied Extension Request": "Denied Renewal Request",
+  "Withdrew Extension Request": "Withdrew Renewal Request",
+};
+
+export const formatDeliverableActionType = (actionType: DeliverableActionType): string =>
+  RENEWAL_ACTION_TYPE_LABELS[actionType] ?? actionType;
 
 export type DeliverableHistoryRow = {
   id: string;
@@ -18,7 +31,7 @@ export type DeliverableHistoryRow = {
 
 const INITIAL_TABLE_STATE = { sorting: [{ id: "date", desc: true }] };
 
-// Details may include embedded "\n" (e.g. extension request reasons); preserve those line breaks.
+// Details may include embedded "\n" (e.g. renewal request reasons); preserve those line breaks.
 function detailsCell(context: CellContext<DeliverableHistoryRow, string>) {
   return <div className="whitespace-pre-line">{highlightCell(context)}</div>;
 }

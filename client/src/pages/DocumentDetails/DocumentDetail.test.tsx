@@ -107,11 +107,11 @@ describe("ApplicationLink", () => {
     expect(link).toHaveAttribute("href", "/demonstrations/demo-456?amendment=amend-123");
   });
 
-  it("renders link for Extension with demonstration context", () => {
+  it("renders link for Renewal with demonstration context", () => {
     const application = {
       __typename: "Extension" as const,
       id: "ext-123",
-      name: "Extension X",
+      name: "Renewal X",
       demonstration: {
         id: "demo-789",
         name: "Main Demo",
@@ -122,8 +122,8 @@ describe("ApplicationLink", () => {
     render(<ApplicationLink application={application} />);
 
     const link = screen.getByRole("link");
-    expect(link).toHaveTextContent("Main Demo - Extension: Extension X");
-    expect(link).toHaveAttribute("href", "/demonstrations/demo-789?extension=ext-123");
+    expect(link).toHaveTextContent("Main Demo - Renewal: Renewal X");
+    expect(link).toHaveAttribute("href", "/demonstrations/demo-789?renewal=ext-123");
   });
 });
 

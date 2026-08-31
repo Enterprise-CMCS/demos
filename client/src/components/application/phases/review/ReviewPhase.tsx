@@ -21,7 +21,7 @@ import { CMS_OSORA_CLEARANCE_DATE_TYPES, COMMS_CLEARANCE_DATE_TYPES } from "demo
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 import {
   GET_AMENDMENT_WORKFLOW_QUERY,
-  GET_EXTENSION_WORKFLOW_QUERY,
+  GET_RENEWAL_WORKFLOW_QUERY,
   GET_WORKFLOW_DEMONSTRATION_QUERY,
 } from "components/application";
 import { getCurrentUser, isReadonly as isReadonlyUser } from "components/user/UserContext";
@@ -153,7 +153,7 @@ export const ReviewPhase = ({
       refetchQueries: [
         GET_WORKFLOW_DEMONSTRATION_QUERY,
         GET_AMENDMENT_WORKFLOW_QUERY,
-        GET_EXTENSION_WORKFLOW_QUERY,
+        GET_RENEWAL_WORKFLOW_QUERY,
       ],
     });
   };

@@ -5,11 +5,11 @@ export {
 export { EditDeliverableDialog, isDeliverableEditable } from "./EditDeliverableDialog";
 export { RemoveDeliverableDialog } from "./RemoveDeliverableDialog";
 export {
-  RequestExtensionDeliverableDialog,
-  canRequestExtension,
-  REQUEST_EXTENSION_DIALOG_TITLE,
-} from "./RequestExtensionDeliverableDialog";
+  RequestRenewalDeliverableDialog,
+  canRequestRenewal,
+  REQUEST_RENEWAL_DIALOG_TITLE,
+} from "./RequestRenewalDeliverableDialog";
 export {
-  ReviewExtensionDeliverableDialog,
-  REVIEW_EXTENSION_DIALOG_TITLE,
-} from "./ReviewExtensionDeliverableDialog";
+  ReviewRenewalDeliverableDialog,
+  REVIEW_RENEWAL_DIALOG_TITLE,
+} from "./ReviewRenewalDeliverableDialog";

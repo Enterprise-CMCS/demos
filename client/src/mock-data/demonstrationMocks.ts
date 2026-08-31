@@ -19,7 +19,7 @@ import {
   mockDemonstrationRoleAssignments,
 } from "./demonstrationRoleAssignmentMocks";
 import { MockDocument, mockDocuments } from "./documentMocks";
-import { MockExtension, mockExtensions } from "./extensionMocks";
+import { MockRenewal, mockRenewals } from "./renewalMocks";
 import { mockPeople, MockPerson } from "./personMocks";
 import { MockState, mockStates } from "./stateMocks";
 import { MOCK_PHASES } from "./workflowMocks";
@@ -47,7 +47,7 @@ export type MockDemonstration = Pick<
   status: ApplicationStatus;
   state: MockState;
   amendments: MockAmendment[];
-  extensions: MockExtension[];
+  renewals: MockRenewal[];
   demonstrationTypes: MockDemonstrationTypeAssignment[];
   documents: MockDocument[];
   roles: MockDemonstrationRoleAssignment[];
@@ -68,9 +68,7 @@ export const MOCK_DEMONSTRATION: MockDemonstration = {
   amendments: mockAmendments.filter((amendment) =>
     amendment.name.includes("Montana Medicaid Waiver")
   ),
-  extensions: mockExtensions.filter((extension) =>
-    extension.name.includes("Montana Medicaid Waiver")
-  ),
+  renewals: mockRenewals.filter((renewal) => renewal.name.includes("Montana Medicaid Waiver")),
   documents: mockDocuments,
   roles: [
     mockDemonstrationRoleAssignments[0],

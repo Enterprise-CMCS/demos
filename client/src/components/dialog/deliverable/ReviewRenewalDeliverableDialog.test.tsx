@@ -5,24 +5,24 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import {
   INITIAL_FORM_DATA,
-  REVIEW_EXTENSION_DETAILS_FIELD_NAME,
-  REVIEW_EXTENSION_DIALOG_TITLE,
-  REVIEW_EXTENSION_EXPIRED_NOTICE_NAME,
-  REVIEW_EXTENSION_NEW_DATE_FIELD_NAME,
-  REVIEW_EXTENSION_STATUS_FIELD_NAME,
-  REVIEW_EXTENSION_SUBMIT_BUTTON_NAME,
-  ReviewExtensionDeliverableDialog,
-  ReviewExtensionDeliverableDialogDeliverable,
+  REVIEW_RENEWAL_DETAILS_FIELD_NAME,
+  REVIEW_RENEWAL_DIALOG_TITLE,
+  REVIEW_RENEWAL_EXPIRED_NOTICE_NAME,
+  REVIEW_RENEWAL_NEW_DATE_FIELD_NAME,
+  REVIEW_RENEWAL_STATUS_FIELD_NAME,
+  REVIEW_RENEWAL_SUBMIT_BUTTON_NAME,
+  ReviewRenewalDeliverableDialog,
+  ReviewRenewalDeliverableDialogDeliverable,
   STATE_REQUESTED_DATE_EXPIRED_MESSAGE,
   formHasChanges,
   formIsValid,
   getNewDateValidationMessage,
   isStateRequestedDateExpired,
-} from "./ReviewExtensionDeliverableDialog";
+} from "./ReviewRenewalDeliverableDialog";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 import { TestProvider } from "test-utils/TestProvider";
 import { DELIVERABLE_DETAILS_QUERY } from "pages/deliverables/DeliverableDetailsManagementPage";
-import { DELIVERABLE_EXTENSION_REVIEW_SUBMITTED_MESSAGE } from "util/messages";
+import { DELIVERABLE_RENEWAL_REVIEW_SUBMITTED_MESSAGE } from "util/messages";
 
 const mockShowSuccess = vi.fn();
 const mockShowError = vi.fn();
@@ -42,8 +42,8 @@ vi.mock("@apollo/client", async () => {
     ...actual,
     useMutation: vi.fn((document: { definitions: { name?: { value: string } }[] }) => {
       const opName = document.definitions[0]?.name?.value ?? "";
-      if (opName === "ApproveDeliverableExtension") return [mockApproveMutation];
-      if (opName === "DenyDeliverableExtension") return [mockDenyMutation];
+      if (opName === "ApproveDeliverableRenewal") return [mockApproveMutation];
+      if (opName === "DenyDeliverableRenewal") return [mockDenyMutation];
       return [vi.fn()];
     }),
   };
@@ -53,11 +53,11 @@ const FUTURE_REQUESTED_DATE = new Date("2099-04-02");
 const PAST_REQUESTED_DATE = new Date("2020-01-02");
 
 const buildDeliverable = (
-  overrides?: Partial<ReviewExtensionDeliverableDialogDeliverable["extensionRequest"]>
-): ReviewExtensionDeliverableDialogDeliverable => ({
+  overrides?: Partial<ReviewRenewalDeliverableDialogDeliverable["renewalRequest"]>
+): ReviewRenewalDeliverableDialogDeliverable => ({
   id: "deliverable-1",
-  extensionRequest: {
-    id: "extension-1",
+  renewalRequest: {
+    id: "renewal-1",
     reasonCode: "Technical Difficulties",
     reasonDetails: "Our state is experiencing a delay in data collection.",
     initialDueDateAtRequest: new Date("2099-03-17"),
@@ -67,19 +67,19 @@ const buildDeliverable = (
 });
 
 const setup = (
-  overrides?: Partial<ReviewExtensionDeliverableDialogDeliverable["extensionRequest"]>
+  overrides?: Partial<ReviewRenewalDeliverableDialogDeliverable["renewalRequest"]>
 ) => {
   const onClose = vi.fn();
   const deliverable = buildDeliverable(overrides);
   render(
     <TestProvider>
-      <ReviewExtensionDeliverableDialog deliverable={deliverable} onClose={onClose} />
+      <ReviewRenewalDeliverableDialog deliverable={deliverable} onClose={onClose} />
     </TestProvider>
   );
   return { onClose, deliverable };
 };
 
-describe("ReviewExtensionDeliverableDialog", () => {
+describe("ReviewRenewalDeliverableDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockApproveMutation.mockResolvedValue({});
@@ -88,10 +88,10 @@ describe("ReviewExtensionDeliverableDialog", () => {
 
   it("renders the dialog title", () => {
     setup();
-    expect(screen.getByText(REVIEW_EXTENSION_DIALOG_TITLE)).toBeInTheDocument();
+    expect(screen.getByText(REVIEW_RENEWAL_DIALOG_TITLE)).toBeInTheDocument();
   });
 
-  it("renders the extension request details", () => {
+  it("renders the renewal request details", () => {
     setup();
     expect(screen.getByText("Technical Difficulties")).toBeInTheDocument();
     expect(
@@ -101,23 +101,23 @@ describe("ReviewExtensionDeliverableDialog", () => {
 
   it("renders Submit and Cancel buttons", () => {
     setup();
-    expect(screen.getByTestId(REVIEW_EXTENSION_SUBMIT_BUTTON_NAME)).toBeInTheDocument();
+    expect(screen.getByTestId(REVIEW_RENEWAL_SUBMIT_BUTTON_NAME)).toBeInTheDocument();
     expect(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME)).toBeInTheDocument();
   });
 
   it("disables Submit until a decision is selected", () => {
     setup();
-    expect(screen.getByTestId(REVIEW_EXTENSION_SUBMIT_BUTTON_NAME)).toBeDisabled();
+    expect(screen.getByTestId(REVIEW_RENEWAL_SUBMIT_BUTTON_NAME)).toBeDisabled();
   });
 
   it("does not show the expired notice when the requested date is in the future", () => {
     setup();
-    expect(screen.queryByTestId(REVIEW_EXTENSION_EXPIRED_NOTICE_NAME)).not.toBeInTheDocument();
+    expect(screen.queryByTestId(REVIEW_RENEWAL_EXPIRED_NOTICE_NAME)).not.toBeInTheDocument();
   });
 
   it("shows the expired notice when the requested date has passed", () => {
     setup({ originalDateRequested: PAST_REQUESTED_DATE });
-    expect(screen.getByTestId(REVIEW_EXTENSION_EXPIRED_NOTICE_NAME)).toHaveTextContent(
+    expect(screen.getByTestId(REVIEW_RENEWAL_EXPIRED_NOTICE_NAME)).toHaveTextContent(
       STATE_REQUESTED_DATE_EXPIRED_MESSAGE
     );
   });
@@ -125,34 +125,26 @@ describe("ReviewExtensionDeliverableDialog", () => {
   it("blocks submission when 'Approved' is selected but the requested date is expired", async () => {
     const user = userEvent.setup();
     setup({ originalDateRequested: PAST_REQUESTED_DATE });
-    await user.selectOptions(
-      screen.getByTestId(REVIEW_EXTENSION_STATUS_FIELD_NAME),
-      "Approved"
-    );
-    expect(screen.getByTestId(REVIEW_EXTENSION_SUBMIT_BUTTON_NAME)).toBeDisabled();
+    await user.selectOptions(screen.getByTestId(REVIEW_RENEWAL_STATUS_FIELD_NAME), "Approved");
+    expect(screen.getByTestId(REVIEW_RENEWAL_SUBMIT_BUTTON_NAME)).toBeDisabled();
   });
 
   it("submits an approval without a new date", async () => {
     const user = userEvent.setup();
     const { onClose } = setup();
-    await user.selectOptions(
-      screen.getByTestId(REVIEW_EXTENSION_STATUS_FIELD_NAME),
-      "Approved"
-    );
-    await user.click(screen.getByTestId(REVIEW_EXTENSION_SUBMIT_BUTTON_NAME));
+    await user.selectOptions(screen.getByTestId(REVIEW_RENEWAL_STATUS_FIELD_NAME), "Approved");
+    await user.click(screen.getByTestId(REVIEW_RENEWAL_SUBMIT_BUTTON_NAME));
 
     await waitFor(() => expect(mockApproveMutation).toHaveBeenCalledTimes(1));
     expect(mockApproveMutation).toHaveBeenCalledWith({
       variables: {
         deliverableId: "deliverable-1",
-        input: { deliverableExtensionId: "extension-1" },
+        input: { deliverableExtensionId: "renewal-1" },
       },
-      refetchQueries: [
-        { query: DELIVERABLE_DETAILS_QUERY, variables: { id: "deliverable-1" } },
-      ],
+      refetchQueries: [{ query: DELIVERABLE_DETAILS_QUERY, variables: { id: "deliverable-1" } }],
       awaitRefetchQueries: true,
     });
-    expect(mockShowSuccess).toHaveBeenCalledWith(DELIVERABLE_EXTENSION_REVIEW_SUBMITTED_MESSAGE);
+    expect(mockShowSuccess).toHaveBeenCalledWith(DELIVERABLE_RENEWAL_REVIEW_SUBMITTED_MESSAGE);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -160,34 +152,32 @@ describe("ReviewExtensionDeliverableDialog", () => {
     const user = userEvent.setup();
     setup();
     await user.selectOptions(
-      screen.getByTestId(REVIEW_EXTENSION_STATUS_FIELD_NAME),
+      screen.getByTestId(REVIEW_RENEWAL_STATUS_FIELD_NAME),
       "Approve With New Date"
     );
-    expect(screen.getByTestId(REVIEW_EXTENSION_SUBMIT_BUTTON_NAME)).toBeDisabled();
-    expect(screen.getByTestId(REVIEW_EXTENSION_NEW_DATE_FIELD_NAME)).toBeInTheDocument();
+    expect(screen.getByTestId(REVIEW_RENEWAL_SUBMIT_BUTTON_NAME)).toBeDisabled();
+    expect(screen.getByTestId(REVIEW_RENEWAL_NEW_DATE_FIELD_NAME)).toBeInTheDocument();
   });
 
   it("submits 'Approve With New Date' with a future date", async () => {
     const user = userEvent.setup();
     const { onClose } = setup();
     await user.selectOptions(
-      screen.getByTestId(REVIEW_EXTENSION_STATUS_FIELD_NAME),
+      screen.getByTestId(REVIEW_RENEWAL_STATUS_FIELD_NAME),
       "Approve With New Date"
     );
-    fireEvent.change(screen.getByTestId(REVIEW_EXTENSION_NEW_DATE_FIELD_NAME), {
+    fireEvent.change(screen.getByTestId(REVIEW_RENEWAL_NEW_DATE_FIELD_NAME), {
       target: { value: "2099-03-25" },
     });
-    await user.click(screen.getByTestId(REVIEW_EXTENSION_SUBMIT_BUTTON_NAME));
+    await user.click(screen.getByTestId(REVIEW_RENEWAL_SUBMIT_BUTTON_NAME));
 
     await waitFor(() => expect(mockApproveMutation).toHaveBeenCalledTimes(1));
     expect(mockApproveMutation).toHaveBeenCalledWith({
       variables: {
         deliverableId: "deliverable-1",
-        input: { deliverableExtensionId: "extension-1", newDueDate: "2099-03-25" },
+        input: { deliverableExtensionId: "renewal-1", newDueDate: "2099-03-25" },
       },
-      refetchQueries: [
-        { query: DELIVERABLE_DETAILS_QUERY, variables: { id: "deliverable-1" } },
-      ],
+      refetchQueries: [{ query: DELIVERABLE_DETAILS_QUERY, variables: { id: "deliverable-1" } }],
       awaitRefetchQueries: true,
     });
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -196,36 +186,25 @@ describe("ReviewExtensionDeliverableDialog", () => {
   it("requires denial details when 'Denied' is selected", async () => {
     const user = userEvent.setup();
     setup();
-    await user.selectOptions(
-      screen.getByTestId(REVIEW_EXTENSION_STATUS_FIELD_NAME),
-      "Denied"
-    );
-    expect(screen.getByTestId(REVIEW_EXTENSION_SUBMIT_BUTTON_NAME)).toBeDisabled();
-    expect(screen.getByTestId(REVIEW_EXTENSION_DETAILS_FIELD_NAME)).toBeRequired();
+    await user.selectOptions(screen.getByTestId(REVIEW_RENEWAL_STATUS_FIELD_NAME), "Denied");
+    expect(screen.getByTestId(REVIEW_RENEWAL_SUBMIT_BUTTON_NAME)).toBeDisabled();
+    expect(screen.getByTestId(REVIEW_RENEWAL_DETAILS_FIELD_NAME)).toBeRequired();
   });
 
   it("submits a denial with details", async () => {
     const user = userEvent.setup();
     const { onClose } = setup();
-    await user.selectOptions(
-      screen.getByTestId(REVIEW_EXTENSION_STATUS_FIELD_NAME),
-      "Denied"
-    );
-    await user.type(
-      screen.getByTestId(REVIEW_EXTENSION_DETAILS_FIELD_NAME),
-      "  Here is a reason.  "
-    );
-    await user.click(screen.getByTestId(REVIEW_EXTENSION_SUBMIT_BUTTON_NAME));
+    await user.selectOptions(screen.getByTestId(REVIEW_RENEWAL_STATUS_FIELD_NAME), "Denied");
+    await user.type(screen.getByTestId(REVIEW_RENEWAL_DETAILS_FIELD_NAME), "  Here is a reason.  ");
+    await user.click(screen.getByTestId(REVIEW_RENEWAL_SUBMIT_BUTTON_NAME));
 
     await waitFor(() => expect(mockDenyMutation).toHaveBeenCalledTimes(1));
     expect(mockDenyMutation).toHaveBeenCalledWith({
       variables: {
         deliverableId: "deliverable-1",
-        input: { deliverableExtensionId: "extension-1", details: "Here is a reason." },
+        input: { deliverableExtensionId: "renewal-1", details: "Here is a reason." },
       },
-      refetchQueries: [
-        { query: DELIVERABLE_DETAILS_QUERY, variables: { id: "deliverable-1" } },
-      ],
+      refetchQueries: [{ query: DELIVERABLE_DETAILS_QUERY, variables: { id: "deliverable-1" } }],
       awaitRefetchQueries: true,
     });
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -235,14 +214,11 @@ describe("ReviewExtensionDeliverableDialog", () => {
     const user = userEvent.setup();
     mockApproveMutation.mockRejectedValueOnce(new Error("boom"));
     const { onClose } = setup();
-    await user.selectOptions(
-      screen.getByTestId(REVIEW_EXTENSION_STATUS_FIELD_NAME),
-      "Approved"
-    );
-    await user.click(screen.getByTestId(REVIEW_EXTENSION_SUBMIT_BUTTON_NAME));
+    await user.selectOptions(screen.getByTestId(REVIEW_RENEWAL_STATUS_FIELD_NAME), "Approved");
+    await user.click(screen.getByTestId(REVIEW_RENEWAL_SUBMIT_BUTTON_NAME));
 
     await waitFor(() =>
-      expect(mockShowError).toHaveBeenCalledWith("Unable to submit extension review.")
+      expect(mockShowError).toHaveBeenCalledWith("Unable to submit renewal review.")
     );
     expect(onClose).not.toHaveBeenCalled();
   });
@@ -250,10 +226,7 @@ describe("ReviewExtensionDeliverableDialog", () => {
   it("prompts the cancellation confirmation when closing with unsaved changes", async () => {
     const user = userEvent.setup();
     const { onClose } = setup();
-    await user.selectOptions(
-      screen.getByTestId(REVIEW_EXTENSION_STATUS_FIELD_NAME),
-      "Denied"
-    );
+    await user.selectOptions(screen.getByTestId(REVIEW_RENEWAL_STATUS_FIELD_NAME), "Denied");
     await user.click(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME));
 
     expect(await screen.findByText("Are you sure?")).toBeInTheDocument();
@@ -312,20 +285,13 @@ describe("formIsValid / formHasChanges", () => {
   });
 
   it("formIsValid rejects 'Approved' when expired", () => {
-    expect(
-      formIsValid({ decision: "Approved", newDate: "", denialDetails: "" }, true)
-    ).toBe(false);
-    expect(
-      formIsValid({ decision: "Approved", newDate: "", denialDetails: "" }, false)
-    ).toBe(true);
+    expect(formIsValid({ decision: "Approved", newDate: "", denialDetails: "" }, true)).toBe(false);
+    expect(formIsValid({ decision: "Approved", newDate: "", denialDetails: "" }, false)).toBe(true);
   });
 
   it("formIsValid requires a valid future date for 'Approve With New Date'", () => {
     expect(
-      formIsValid(
-        { decision: "Approve With New Date", newDate: "", denialDetails: "" },
-        false
-      )
+      formIsValid({ decision: "Approve With New Date", newDate: "", denialDetails: "" }, false)
     ).toBe(false);
     expect(
       formIsValid(
@@ -342,11 +308,11 @@ describe("formIsValid / formHasChanges", () => {
   });
 
   it("formIsValid requires non-empty details for 'Denied'", () => {
-    expect(
-      formIsValid({ decision: "Denied", newDate: "", denialDetails: "   " }, false)
-    ).toBe(false);
-    expect(
-      formIsValid({ decision: "Denied", newDate: "", denialDetails: "reason" }, false)
-    ).toBe(true);
+    expect(formIsValid({ decision: "Denied", newDate: "", denialDetails: "   " }, false)).toBe(
+      false
+    );
+    expect(formIsValid({ decision: "Denied", newDate: "", denialDetails: "reason" }, false)).toBe(
+      true
+    );
   });
 });

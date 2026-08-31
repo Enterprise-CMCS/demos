@@ -1,6 +1,6 @@
 import React from "react";
 
-import type { Amendment, Demonstration, Extension, Person, State } from "demos-server";
+import type { Amendment, Demonstration, Extension as Renewal, Person, State } from "demos-server";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { render, screen, waitFor, within } from "@testing-library/react";
@@ -11,12 +11,12 @@ import { DemonstrationTable } from "./DemonstrationTable";
 type TestPerson = Pick<Person, "id" | "fullName">;
 type TestState = Pick<State, "id" | "name">;
 type TestAmendment = Pick<Amendment, "id" | "name" | "status">;
-type TestExtension = Pick<Extension, "id" | "name" | "status">;
+type TestRenewal = Pick<Renewal, "id" | "name" | "status">;
 type TestDemonstration = Pick<Demonstration, "id" | "name" | "status" | "medicaidId"> & {
   state: TestState;
   primaryProjectOfficer: TestPerson;
   amendments: TestAmendment[];
-  extensions: TestExtension[];
+  renewals: TestRenewal[];
 };
 
 type TestDemoConfig = {
@@ -26,7 +26,7 @@ type TestDemoConfig = {
   status: "Approved" | "Under Review" | "Denied";
   officer: number;
   amendmentCount: number;
-  extensionCount: number;
+  renewalCount: number;
 };
 
 const TEST_PEOPLE: TestPerson[] = [
@@ -43,7 +43,7 @@ const TEST_DEMO_CONFIGS: TestDemoConfig[] = [
     status: "Approved",
     officer: 0,
     amendmentCount: 3,
-    extensionCount: 3,
+    renewalCount: 3,
   },
   {
     id: "2",
@@ -52,7 +52,7 @@ const TEST_DEMO_CONFIGS: TestDemoConfig[] = [
     status: "Under Review",
     officer: 1,
     amendmentCount: 3,
-    extensionCount: 0,
+    renewalCount: 0,
   },
   {
     id: "3",
@@ -61,7 +61,7 @@ const TEST_DEMO_CONFIGS: TestDemoConfig[] = [
     status: "Denied",
     officer: 2,
     amendmentCount: 0,
-    extensionCount: 0,
+    renewalCount: 0,
   },
 ];
 
@@ -81,10 +81,10 @@ const buildDemonstrations = (configs: TestDemoConfig[]): TestDemonstration[] => 
     }));
   };
 
-  const createExtensions = (config: TestDemoConfig, startId: number): TestExtension[] => {
-    return Array.from({ length: config.extensionCount }, (_, i) => ({
+  const createRenewals = (config: TestDemoConfig, startId: number): TestRenewal[] => {
+    return Array.from({ length: config.renewalCount }, (_, i) => ({
       id: `${startId + i}`,
-      name: `Extension ${startId + i} - ${config.name}`,
+      name: `Renewal ${startId + i} - ${config.name}`,
       status: i === 0 ? "Under Review" : "Approved",
     }));
   };
@@ -97,12 +97,12 @@ const buildDemonstrations = (configs: TestDemoConfig[]): TestDemonstration[] => 
     return amendments;
   });
 
-  // Generate all extensions with global counter
-  let extensionId = 1;
-  const allExtensions: TestExtension[] = configs.flatMap((config) => {
-    const extensions = createExtensions(config, extensionId);
-    extensionId += config.extensionCount;
-    return extensions;
+  // Generate all renewals with global counter
+  let renewalId = 1;
+  const allRenewals: TestRenewal[] = configs.flatMap((config) => {
+    const renewals = createRenewals(config, renewalId);
+    renewalId += config.renewalCount;
+    return renewals;
   });
 
   // Build demonstrations with their relationships
@@ -117,7 +117,7 @@ const buildDemonstrations = (configs: TestDemoConfig[]): TestDemonstration[] => 
     },
     primaryProjectOfficer: TEST_PEOPLE[config.officer],
     amendments: allAmendments.filter((a) => a.name.includes(config.name)),
-    extensions: allExtensions.filter((e) => e.name.includes(config.name)),
+    renewals: allRenewals.filter((e) => e.name.includes(config.name)),
   }));
 };
 
@@ -395,18 +395,18 @@ describe("Demonstrations", () => {
       expect(screen.getByRole("columnheader", { name: "Applications" })).toBeInTheDocument();
     });
 
-    it("displays correct values for 'Applications' column for new demonstration, amendment, and extension", async () => {
+    it("displays correct values for 'Applications' column for new demonstration, amendment, and renewal", async () => {
       // For a new demonstration row
       const demo1Row = screen.getByText("Montana Medicaid Waiver").closest("tr");
       expect(demo1Row).toHaveTextContent(/Amendments \(3\)/);
-      expect(demo1Row).toHaveTextContent(/Extensions \(3\)/);
+      expect(demo1Row).toHaveTextContent(/Renewals \(3\)/);
     });
 
-    it("displays (0) for amendments and extensions if there are no associated records", () => {
-      // Find a demonstration with no amendments/extensions
+    it("displays (0) for amendments and renewals if there are no associated records", () => {
+      // Find a demonstration with no amendments/renewals
       const demo3Row = screen.getByText("Texas Reform Initiative").closest("tr");
       expect(demo3Row).toHaveTextContent(/Amendments \(0\)/);
-      expect(demo3Row).toHaveTextContent(/Extensions \(0\)/);
+      expect(demo3Row).toHaveTextContent(/Renewals \(0\)/);
     });
 
     it("disables sorting for the 'Applications' column", () => {
@@ -419,13 +419,13 @@ describe("Demonstrations", () => {
     });
   });
 
-  describe("Nested view and row expansion for amendments and extensions", () => {
+  describe("Nested view and row expansion for amendments and renewals", () => {
     beforeEach(async () => {
       renderDemonstrations();
       await waitForTableData();
     });
 
-    it("displays amendment and extension records in a nested view under their parent demonstration", async () => {
+    it("displays amendment and renewal records in a nested view under their parent demonstration", async () => {
       // Expand the demonstration row
       const demo1Row = screen.getByText("Montana Medicaid Waiver").closest("tr");
       const expandButton = within(demo1Row!).getByRole("button", {
@@ -433,12 +433,12 @@ describe("Demonstrations", () => {
       });
       await user.click(expandButton);
 
-      // Check for nested amendment and extension rows
+      // Check for nested amendment and renewal rows
       expect(screen.getByText("Amendment 1 - Montana Medicaid Waiver")).toBeInTheDocument();
-      expect(screen.getByText("Extension 1 - Montana Medicaid Waiver")).toBeInTheDocument();
+      expect(screen.getByText("Renewal 1 - Montana Medicaid Waiver")).toBeInTheDocument();
     });
 
-    it("shows an expand option only for demonstrations with amendments or extensions", () => {
+    it("shows an expand option only for demonstrations with amendments or renewals", () => {
       // Demonstration with children
       const demo1Row = screen.getByText("Montana Medicaid Waiver").closest("tr");
       expect(within(demo1Row!).getByRole("button", { name: /expand/i })).toBeInTheDocument();
@@ -451,10 +451,10 @@ describe("Demonstrations", () => {
     it("shows all demonstration rows collapsed by default", () => {
       // No child rows should be visible initially
       expect(screen.queryByText("Amendment")).not.toBeInTheDocument();
-      expect(screen.queryByText("Extension")).not.toBeInTheDocument();
+      expect(screen.queryByText("Renewal")).not.toBeInTheDocument();
     });
 
-    it("shows amendment/extension details with correct columns when expanded", async () => {
+    it("shows amendment/renewal details with correct columns when expanded", async () => {
       const demo1Row = screen.getByText("Montana Medicaid Waiver").closest("tr");
       const expandButton = within(demo1Row!).getByRole("button", {
         name: /expand/i,
@@ -463,12 +463,12 @@ describe("Demonstrations", () => {
 
       // Check for child row columns (adjust as needed)
       expect(screen.getByText("Amendment 1 - Montana Medicaid Waiver")).toBeInTheDocument();
-      expect(screen.getByText("Extension 1 - Montana Medicaid Waiver")).toBeInTheDocument();
+      expect(screen.getByText("Renewal 1 - Montana Medicaid Waiver")).toBeInTheDocument();
       expect(screen.getAllByRole("cell", { name: /John Doe/i }).length).toBeGreaterThan(0);
       expect(screen.getAllByRole("cell", { name: /Under Review/i }).length).toBeGreaterThan(0);
     });
 
-    it("pagination applies only to demonstration records, not to nested amendments/extensions", async () => {
+    it("pagination applies only to demonstration records, not to nested amendments/renewals", async () => {
       // Set items per page to 10
       const itemsPerPageSelect = screen.getByRole("combobox", {
         name: /items per page/i,
@@ -491,7 +491,7 @@ describe("Demonstrations", () => {
       expect(screen.getByText("Amendment 5 - Florida Health Innovation")).toBeInTheDocument();
     });
 
-    it("sorting applies only to demonstration records, not to nested amendments/extensions", async () => {
+    it("sorting applies only to demonstration records, not to nested amendments/renewals", async () => {
       // Click to sort by Title
       const titleHeader = screen.getByRole("columnheader", { name: "Title Sort" });
       await user.click(titleHeader);
@@ -525,7 +525,7 @@ describe("Demonstrations", () => {
       });
       if (expandButton) {
         await user.click(expandButton);
-        // Check for child rows by their content, e.g. "Amendment" or "Extension"
+        // Check for child rows by their content, e.g. "Amendment" or "Renewal"
         // Find which demonstration this is and check for the correct amendment
         if (firstDemoTitle === "Montana Medicaid Waiver") {
           expect(
@@ -551,7 +551,7 @@ describe("Demonstrations", () => {
         expect(screen.getByText("Florida Health Innovation")).toBeInTheDocument();
         // Only the matching amendment is visible
         expect(screen.getByText("Amendment 4 - Florida Health Innovation")).toBeInTheDocument();
-        // Other amendments/extensions for this demo are not visible
+        // Other amendments/renewals for this demo are not visible
         expect(screen.queryByText("Amendment 1 - Montana Medicaid Waiver")).not.toBeInTheDocument();
       });
     });

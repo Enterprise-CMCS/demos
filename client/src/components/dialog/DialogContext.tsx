@@ -11,7 +11,7 @@ import {
 } from "demos-server";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
-import { CreateExtensionDialog } from "./modification/CreateExtensionDialog";
+import { CreateRenewalDialog } from "./modification/CreateRenewalDialog";
 import { EditDemonstrationDialog } from "./demonstration";
 import { ExistingContactType, ManageContactsDialog } from "./ManageContactsDialog";
 import {
@@ -30,15 +30,15 @@ import { ApplyDemonstrationTypesDialog } from "./DemonstrationTypes/ApplyDemonst
 import { ApplyTagsDialog } from "./ApplyTagsDialog";
 import { RemoveDemonstrationTypesDialog } from "./DemonstrationTypes/RemoveDemonstrationTypesDialog";
 import { EditDemonstrationTypeDialog } from "./DemonstrationTypes/EditDemonstrationTypeDialog";
-import { UpdateExtensionDialog } from "./modification/EditExtensionDialog";
+import { UpdateRenewalDialog } from "./modification/EditRenewalDialog";
 import { UpdateAmendmentDialog } from "./modification/EditAmendmentDialog";
 import { ConfirmApproveDialog } from "./ConfirmApproveDialog";
 import { AddDeliverableSlotDialog, RemoveDeliverableDialog } from "./deliverable";
 import { EditDeliverableDialog } from "./deliverable/EditDeliverableDialog";
 import {
-  RequestExtensionDeliverableDialog,
-  RequestExtensionDeliverableDialogDeliverable,
-} from "./deliverable/RequestExtensionDeliverableDialog";
+  RequestRenewalDeliverableDialog,
+  RequestRenewalDeliverableDialogDeliverable,
+} from "./deliverable/RequestRenewalDeliverableDialog";
 import type {
   EditDeliverableDialogDeliverable,
   EditDeliverableInput,
@@ -55,9 +55,9 @@ import {
   CompleteReviewDeliverableDialogDeliverable,
 } from "./deliverable/CompleteReviewDeliverableDialog";
 import {
-  ReviewExtensionDeliverableDialog,
-  ReviewExtensionDeliverableDialogDeliverable,
-} from "./deliverable/ReviewExtensionDeliverableDialog";
+  ReviewRenewalDeliverableDialog,
+  ReviewRenewalDeliverableDialogDeliverable,
+} from "./deliverable/ReviewRenewalDeliverableDialog";
 import { ReferenceAgreementDialog } from "./referenceAgreement/ReferenceAgreementDialog";
 import { AssignStatesDialog, AssignStatesDialogPerson } from "./user/AssignStatesDialog";
 
@@ -112,13 +112,13 @@ export const useDialog = () => {
     context.showDialog(<CreateAmendmentDialog demonstrationId={demonstrationId} />);
   };
 
-  const showCreateExtensionDialog = (demonstrationId?: string) => {
-    context.showDialog(<CreateExtensionDialog demonstrationId={demonstrationId} />);
+  const showCreateRenewalDialog = (demonstrationId?: string) => {
+    context.showDialog(<CreateRenewalDialog demonstrationId={demonstrationId} />);
   };
 
-  const showUpdateExtensionDialog = (extensionId: string, refetchQueries: string[] = []) => {
+  const showUpdateRenewalDialog = (renewalId: string, refetchQueries: string[] = []) => {
     context.showDialog(
-      <UpdateExtensionDialog extensionId={extensionId} refetchQueries={refetchQueries} />
+      <UpdateRenewalDialog renewalId={renewalId} refetchQueries={refetchQueries} />
     );
   };
 
@@ -304,11 +304,11 @@ export const useDialog = () => {
     );
   };
 
-  const showRequestExtensionDeliverableDialog = (
-    deliverable: RequestExtensionDeliverableDialogDeliverable
+  const showRequestRenewalDeliverableDialog = (
+    deliverable: RequestRenewalDeliverableDialogDeliverable
   ) => {
     context.showDialog(
-      <RequestExtensionDeliverableDialog onClose={context.hideDialog} deliverable={deliverable} />
+      <RequestRenewalDeliverableDialog onClose={context.hideDialog} deliverable={deliverable} />
     );
   };
 
@@ -331,11 +331,11 @@ export const useDialog = () => {
     );
   };
 
-  const showReviewExtensionDeliverableDialog = (
-    deliverable: ReviewExtensionDeliverableDialogDeliverable
+  const showReviewRenewalDeliverableDialog = (
+    deliverable: ReviewRenewalDeliverableDialogDeliverable
   ) => {
     context.showDialog(
-      <ReviewExtensionDeliverableDialog onClose={context.hideDialog} deliverable={deliverable} />
+      <ReviewRenewalDeliverableDialog onClose={context.hideDialog} deliverable={deliverable} />
     );
   };
 
@@ -385,7 +385,7 @@ export const useDialog = () => {
     showCreateDemonstrationDialog,
     showEditDemonstrationDialog,
     showCreateAmendmentDialog,
-    showCreateExtensionDialog,
+    showCreateRenewalDialog,
     showManageContactsDialog,
     showUploadDocumentDialog,
     showEditDocumentDialog,
@@ -401,16 +401,16 @@ export const useDialog = () => {
     showApplyTagsDialog,
     showRemoveDemonstrationTypesDialog,
     showEditDemonstrationTypeDialog,
-    showUpdateExtensionDialog,
+    showUpdateRenewalDialog,
     showUpdateAmendmentDialog,
     showConfirmApproveDialog,
     showAddDeliverableSlotDialog,
     showRemoveDeliverableDialog,
     showEditDeliverableDialog,
-    showRequestExtensionDeliverableDialog,
+    showRequestRenewalDeliverableDialog,
     showRequestResubmissionDeliverableDialog,
     showCompleteReviewDeliverableDialog,
-    showReviewExtensionDeliverableDialog,
+    showReviewRenewalDeliverableDialog,
     showReferenceAgreementDialog,
     showAssignStatesDialog,
   };

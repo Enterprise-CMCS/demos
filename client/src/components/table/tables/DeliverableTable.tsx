@@ -45,7 +45,7 @@ export type DeliverableTableRow = Omit<
   };
   demonstrationTypes: Tag[];
   submissionDate?: string;
-  extensionRequests: Pick<Deliverable["extensionRequests"][number], "id" | "status">[];
+  renewalRequests: Pick<Deliverable["extensionRequests"][number], "id" | "status">[];
   deliverableActions: (Pick<Deliverable["deliverableActions"][number], "id" | "actionType"> & {
     actionTimestamp: Date;
   })[];
@@ -109,7 +109,7 @@ export const DELIVERABLES_PAGE_QUERY = gql`
         tagName
         approvalStatus
       }
-      extensionRequests {
+      renewalRequests: extensionRequests {
         id
         status
       }
@@ -168,7 +168,7 @@ export const STATE_USER_DELIVERABLES_PAGE_QUERY = gql`
                 }
               }
               dueDate
-              extensionRequests {
+              renewalRequests: extensionRequests {
                 id
                 status
               }
@@ -191,12 +191,9 @@ const NO_RESULTS_FOUND = "No deliverables match your search.";
 const FINAL_STATUSES = ["Accepted", "Approved", "Received and Filed"];
 
 export const formatDeliverableStatus = (
-  deliverable: Pick<
-  DeliverableTableRow,
-  "status" | "deliverableActions" | "extensionRequests"
-  >
+  deliverable: Pick<DeliverableTableRow, "status" | "deliverableActions" | "renewalRequests">
 ) => {
-  const { status, deliverableActions, extensionRequests } = deliverable;
+  const { status, deliverableActions, renewalRequests } = deliverable;
 
   // Final statuses always display as-is
   if (FINAL_STATUSES.includes(status)) {
@@ -207,9 +204,7 @@ export const formatDeliverableStatus = (
     (action) => action.actionType === "Requested Resubmission"
   ).length;
 
-  const hasOpenExtensionRequest = extensionRequests.some(
-    (request) => request.status === "Requested"
-  );
+  const hasOpenRenewalRequest = renewalRequests.some((request) => request.status === "Requested");
 
   let formattedStatus = status;
 
@@ -217,8 +212,8 @@ export const formatDeliverableStatus = (
     formattedStatus += ` (${resubmissionsRequested})`;
   }
 
-  if (hasOpenExtensionRequest) {
-    formattedStatus += " - Extension Requested";
+  if (hasOpenRenewalRequest) {
+    formattedStatus += " - Renewal Requested";
   }
 
   return formattedStatus;
@@ -235,36 +230,28 @@ export const getLatestSubmissionDate = (
     return undefined;
   }
 
-  submissions
-    .sort((a, b) => compareDesc(a.actionTimestamp, b.actionTimestamp));
+  submissions.sort((a, b) => compareDesc(a.actionTimestamp, b.actionTimestamp));
 
   return formatDateForDisplay(submissions[0].actionTimestamp);
 };
 
 /*
  * This generates a value that is used for filtering.
- * It's needed so the filter can match things like "Submitted (3) - Extension Requested"
+ * It's needed so the filter can match things like "Submitted (3) - Renewal Requested"
  * without needing to display the resubmission count in the filter options.
  */
 export const formatDeliverableFilterStatus = (
-  deliverable: Pick<
-    DeliverableTableRow,
-    "status" | "extensionRequests"
-  >
+  deliverable: Pick<DeliverableTableRow, "status" | "renewalRequests">
 ) => {
-  const { status, extensionRequests } = deliverable;
+  const { status, renewalRequests } = deliverable;
 
   if (FINAL_STATUSES.includes(status)) {
     return status;
   }
 
-  const hasOpenExtensionRequest = extensionRequests.some(
-    (request) => request.status === "Requested"
-  );
+  const hasOpenRenewalRequest = renewalRequests.some((request) => request.status === "Requested");
 
-  return hasOpenExtensionRequest
-    ? `${status} - Extension Requested`
-    : status;
+  return hasOpenRenewalRequest ? `${status} - Renewal Requested` : status;
 };
 
 export const DeliverableTable: React.FC<{
@@ -296,7 +283,8 @@ export const DeliverableTable: React.FC<{
     <DeliverableActionButtons table={table} />
   );
 
-  const actionButtons = isReadonlyUser || viewMode === "demos-state-user" ? undefined : renderActionButtons;
+  const actionButtons =
+    isReadonlyUser || viewMode === "demos-state-user" ? undefined : renderActionButtons;
 
   return (
     <div className="flex flex-col gap-[24px]" data-view-mode={viewMode}>

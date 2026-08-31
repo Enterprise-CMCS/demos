@@ -18,14 +18,14 @@ vi.mock("pages/DemonstrationDetail/modifications/AmendmentsTab.tsx", () => ({
   AmendmentsTab: vi.fn(() => <div data-testid="amendments-tab">Amendments Tab</div>),
 }));
 
-vi.mock("pages/DemonstrationDetail/modifications/ExtensionsTab.tsx", () => ({
-  ExtensionsTab: vi.fn(() => <div data-testid="extensions-tab">Extensions Tab</div>),
+vi.mock("pages/DemonstrationDetail/modifications/RenewalsTab.tsx", () => ({
+  RenewalsTab: vi.fn(() => <div data-testid="renewals-tab">Renewals Tab</div>),
 }));
 
 // Import mocked components to use in assertions
 import { DemonstrationTab } from "./DemonstrationTab";
 import { AmendmentsTab } from "./modifications/AmendmentsTab";
-import { ExtensionsTab } from "./modifications/ExtensionsTab";
+import { RenewalsTab } from "./modifications/RenewalsTab";
 
 const demonstrationWithModifications = {
   id: "1",
@@ -39,9 +39,9 @@ const demonstrationWithModifications = {
       id: "amendment-2",
     },
   ],
-  extensions: [
+  renewals: [
     {
-      id: "extension-1",
+      id: "renewal-1",
     },
   ],
   documents: [],
@@ -90,17 +90,17 @@ describe("DemonstrationDetail", () => {
     });
 
     expect(screen.getByRole("tab", { name: /Amendments \(2\)/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /Extensions \(1\)/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Renewals \(1\)/i })).toBeInTheDocument();
   });
 
-  it("renders empty amendment and extension tabs for approved demonstrations", async () => {
+  it("renders empty amendment and renewal tabs for approved demonstrations", async () => {
     renderWithRouter(
       "/demonstrations/1",
       buildDemonstrationDetailMock({
         ...demonstrationWithModifications,
         status: "Approved",
         amendments: [],
-        extensions: [],
+        renewals: [],
       })
     );
 
@@ -109,17 +109,17 @@ describe("DemonstrationDetail", () => {
     });
 
     expect(screen.getByRole("tab", { name: /Amendments \(0\)/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /Extensions \(0\)/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Renewals \(0\)/i })).toBeInTheDocument();
   });
 
-  it("hides empty amendment and extension tabs for demonstrations that are not approved", async () => {
+  it("hides empty amendment and renewal tabs for demonstrations that are not approved", async () => {
     renderWithRouter(
       "/demonstrations/1",
       buildDemonstrationDetailMock({
         ...demonstrationWithModifications,
         status: "Active",
         amendments: [],
-        extensions: [],
+        renewals: [],
       })
     );
 
@@ -128,7 +128,7 @@ describe("DemonstrationDetail", () => {
     });
 
     expect(screen.queryByRole("tab", { name: /Amendments/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("tab", { name: /Extensions/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: /Renewals/i })).not.toBeInTheDocument();
   });
 
   it("renders on demonstration details tab by default", async () => {
@@ -167,23 +167,23 @@ describe("DemonstrationDetail", () => {
     expect(screen.getByTestId("amendments-tab")).toBeInTheDocument();
   });
 
-  it("renders on extensions tab when query param is set", async () => {
-    renderWithRouter("/demonstrations/1?extensions=extension-1");
+  it("renders on renewals tab when query param is set", async () => {
+    renderWithRouter("/demonstrations/1?renewals=renewal-1");
 
     await waitFor(() => {
-      expect(screen.getByTestId("extensions-tab")).toBeInTheDocument();
+      expect(screen.getByTestId("renewals-tab")).toBeInTheDocument();
     });
 
-    expect(ExtensionsTab).toHaveBeenCalledWith(
+    expect(RenewalsTab).toHaveBeenCalledWith(
       expect.objectContaining({
         canCreateModifications: false,
         demonstrationId: "1",
-        selectedExtensionId: "extension-1",
+        selectedRenewalId: "renewal-1",
       }),
       undefined
     );
 
-    expect(screen.getByTestId("extensions-tab")).toBeInTheDocument();
+    expect(screen.getByTestId("renewals-tab")).toBeInTheDocument();
   });
 
   it("switches between tabs", async () => {
@@ -210,15 +210,15 @@ describe("DemonstrationDetail", () => {
       undefined
     );
 
-    // Click on Extensions tab
-    const extensionsTab = screen.getByRole("tab", { name: /Extensions \(1\)/i });
-    await user.click(extensionsTab);
+    // Click on Renewals tab
+    const renewalsTab = screen.getByRole("tab", { name: /Renewals \(1\)/i });
+    await user.click(renewalsTab);
 
     await waitFor(() => {
-      expect(screen.getByTestId("extensions-tab")).toBeInTheDocument();
+      expect(screen.getByTestId("renewals-tab")).toBeInTheDocument();
     });
 
-    expect(ExtensionsTab).toHaveBeenCalledWith(
+    expect(RenewalsTab).toHaveBeenCalledWith(
       expect.objectContaining({
         canCreateModifications: false,
         demonstrationId: "1",

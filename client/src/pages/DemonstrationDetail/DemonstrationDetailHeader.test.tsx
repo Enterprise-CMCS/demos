@@ -21,13 +21,13 @@ vi.mock("components/toast/ToastContext", () => ({
 const showCreateDemonstrationDialog = vi.fn();
 const showEditDemonstrationDialog = vi.fn();
 const showCreateAmendmentDialog = vi.fn();
-const showCreateExtensionDialog = vi.fn();
+const showCreateRenewalDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
     showCreateDemonstrationDialog,
     showEditDemonstrationDialog,
     showCreateAmendmentDialog,
-    showCreateExtensionDialog,
+    showCreateRenewalDialog,
   }),
 }));
 
@@ -254,14 +254,14 @@ describe("Demonstration Detail Header", () => {
     // Click the Add button to open the dropdown
     fireEvent.click(addButton);
 
-    // Verify Amendment and Extension options appear
+    // Verify Amendment and Renewal options appear
     await waitFor(() => {
       expect(screen.getByTestId("button-create-new-amendment")).toBeInTheDocument();
-      expect(screen.getByTestId("button-create-new-extension")).toBeInTheDocument();
+      expect(screen.getByTestId("button-create-new-renewal")).toBeInTheDocument();
     });
 
     expect(screen.getByText("Amendment")).toBeInTheDocument();
-    expect(screen.getByText("Extension")).toBeInTheDocument();
+    expect(screen.getByText("Renewal")).toBeInTheDocument();
   });
 
   it("does not render the demonstration action group for state users", async () => {
@@ -275,7 +275,7 @@ describe("Demonstration Detail Header", () => {
     expect(screen.queryByTestId("edit-button")).not.toBeInTheDocument();
     expect(screen.queryByTestId("create-new-button")).not.toBeInTheDocument();
     expect(screen.queryByTestId("button-create-new-amendment")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("button-create-new-extension")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("button-create-new-renewal")).not.toBeInTheDocument();
   });
 
   it("opens Add Amendment Modal when Amendment option is clicked", async () => {
@@ -305,7 +305,7 @@ describe("Demonstration Detail Header", () => {
     expect(showCreateAmendmentDialog).toHaveBeenCalledWith("1");
   });
 
-  it("opens Add Extension Modal when Extension option is clicked", async () => {
+  it("opens Add Renewal Modal when Renewal option is clicked", async () => {
     renderHeader();
     // Wait for component to load
     await waitFor(() => {
@@ -322,14 +322,14 @@ describe("Demonstration Detail Header", () => {
     const addButton = screen.getByTestId("Create New");
     fireEvent.click(addButton);
 
-    // Wait for dropdown to appear and click Extension
+    // Wait for dropdown to appear and click Renewal
     await waitFor(() => {
-      expect(screen.getByTestId("button-create-new-extension")).toBeInTheDocument();
+      expect(screen.getByTestId("button-create-new-renewal")).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByTestId("button-create-new-extension"));
+    fireEvent.click(screen.getByTestId("button-create-new-renewal"));
 
-    expect(showCreateExtensionDialog).toHaveBeenCalledWith("1");
+    expect(showCreateRenewalDialog).toHaveBeenCalledWith("1");
   });
 
   it("disables Create New for non-approved demonstrations", async () => {
@@ -351,9 +351,9 @@ describe("Demonstration Detail Header", () => {
     fireEvent.click(createNewButton);
 
     expect(screen.queryByTestId("button-create-new-amendment")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("button-create-new-extension")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("button-create-new-renewal")).not.toBeInTheDocument();
     expect(showCreateAmendmentDialog).not.toHaveBeenCalled();
-    expect(showCreateExtensionDialog).not.toHaveBeenCalled();
+    expect(showCreateRenewalDialog).not.toHaveBeenCalled();
   });
 
   it("renders both medicaidId and chipId when chipId exists", async () => {

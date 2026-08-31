@@ -6,63 +6,63 @@ import { DemonstrationDetailModification } from "pages/DemonstrationDetail/Demon
 import { ModificationTabs } from "./ModificationTabs";
 import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
-const EMPTY_EXTENSIONS_MESSAGE = "No extensions have been added yet";
+const EMPTY_RENEWALS_MESSAGE = "No renewals have been added yet";
 
-export const ExtensionsTab: React.FC<{
+export const RenewalsTab: React.FC<{
   demonstrationId: string;
   medicaidId: string;
-  extensions: DemonstrationDetailModification[];
-  selectedExtensionId?: string;
+  renewals: DemonstrationDetailModification[];
+  selectedRenewalId?: string;
   canCreateModifications: boolean;
-}> = ({ demonstrationId, medicaidId, extensions, selectedExtensionId, canCreateModifications }) => {
+}> = ({ demonstrationId, medicaidId, renewals, selectedRenewalId, canCreateModifications }) => {
   const { currentUser } = getCurrentUser();
   const isReadonlyUser = isReadonly(currentUser);
 
-  const { showCreateExtensionDialog } = useDialog();
+  const { showCreateRenewalDialog } = useDialog();
 
-  if (extensions.length === 0) {
+  if (renewals.length === 0) {
     return (
       <div className="flex min-h-90 flex-col items-center justify-center gap-4 p-2">
-        <p className="text-sm text-text-primary">{EMPTY_EXTENSIONS_MESSAGE}</p>
+        <p className="text-sm text-text-primary">{EMPTY_RENEWALS_MESSAGE}</p>
         {!isReadonlyUser && (
           <IconButton
-            aria-label="Create Extension"
+            aria-label="Create Renewal"
             icon={<AddNewIcon />}
-            name="create-new-extension"
+            name="create-new-renewal"
             size="small"
             disabled={!canCreateModifications}
-            onClick={() => showCreateExtensionDialog(demonstrationId)}
+            onClick={() => showCreateRenewalDialog(demonstrationId)}
           >
-          Create Extension
+            Create Renewal
           </IconButton>
         )}
       </div>
     );
   }
 
-  const extensionsWithType = extensions.map((extension) => ({
-    ...extension,
-    modificationType: "extension" as const,
+  const renewalsWithType = renewals.map((renewal) => ({
+    ...renewal,
+    modificationType: "renewal" as const,
     medicaidId: medicaidId,
   }));
 
   return (
     <div className="flex flex-col p-2 gap-2">
       <div className="flex justify-between items-center pb-1 border-b border-border-rules">
-        <h1 className="text-xl font-bold text-brand uppercase">Extensions</h1>
+        <h1 className="text-xl font-bold text-brand uppercase">Renewals</h1>
         {!isReadonlyUser && (
           <IconButton
             icon={<AddNewIcon />}
-            name="add-new-extension"
+            name="add-new-renewal"
             size="small"
             disabled={!canCreateModifications}
-            onClick={() => showCreateExtensionDialog(demonstrationId)}
+            onClick={() => showCreateRenewalDialog(demonstrationId)}
           >
-            Add Extension
+            Add Renewal
           </IconButton>
         )}
       </div>
-      <ModificationTabs items={extensionsWithType} selectedItemId={selectedExtensionId} />
+      <ModificationTabs items={renewalsWithType} selectedItemId={selectedRenewalId} />
     </div>
   );
 };
