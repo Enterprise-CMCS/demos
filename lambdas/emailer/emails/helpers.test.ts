@@ -1,40 +1,39 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getDemosAppUrl } from "./helpers";
-
-const expectedUrls = {
-  local: "https://localhost:3000",
-  dev: "https://dev.demos.internal.cms.gov",
-  test: "https://test.demos.internal.cms.gov",
-  impl: "https://impl.demos.internal.cms.gov",
-  prod: "https://demos.cms.gov",
-};
+import { formatDate, getDemosAppUrl } from "./helpers";
 
 describe("email helpers", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
   });
 
-  it.each(Object.entries(expectedUrls))(
-    "uses the %s DEMOS URL",
-    (environment, url) => {
-      vi.stubEnv("STAGE", environment);
+  it("uses the configured DEMOS application URL", () => {
+    vi.stubEnv("DEMOS_APP_URL", "https://feature.dev.demos.internal.cms.gov");
 
-      expect(getDemosAppUrl()).toBe(url);
-    },
-  );
+    expect(getDemosAppUrl()).toBe(
+      "https://feature.dev.demos.internal.cms.gov",
+    );
+  });
 
   it("defaults to the local DEMOS URL", () => {
-    vi.stubEnv("STAGE", undefined);
+    vi.stubEnv("DEMOS_APP_URL", undefined);
 
     expect(getDemosAppUrl()).toBe("https://localhost:3000");
   });
 
-  it("reports an unsupported environment", () => {
-    vi.stubEnv("STAGE", "staging");
+  it.each([
+    ["EDT", "2026-10-01T03:59:59.999Z", "2026-09-30"],
+    ["EST", "2027-01-01T04:59:59.999Z", "2026-12-31"],
+  ])(
+    "formats an end-of-day %s timestamp as an Eastern date",
+    (_, value, expected) => {
+      expect(formatDate(value)).toBe(expected);
+    },
+  );
 
-    expect(() => getDemosAppUrl()).toThrow(
-      "Unsupported email STAGE: staging",
+  it("reports an invalid email date", () => {
+    expect(() => formatDate("not-a-date")).toThrow(
+      "Invalid email date value: not-a-date",
     );
   });
 });

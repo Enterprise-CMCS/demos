@@ -1,23 +1,5 @@
-const supportedStages = ["local", "dev", "test", "impl", "prod"] as const;
-
-type Stage = (typeof supportedStages)[number];
-
 export function getDemosAppUrl(): string {
-  const stage = process.env.STAGE ?? "local";
-
-  if (!supportedStages.includes(stage as Stage)) {
-    throw new Error(`Unsupported email STAGE: ${stage}`);
-  }
-
-  if (stage === "local") {
-    return "https://localhost:3000";
-  }
-
-  if (stage === "prod") {
-    return "https://demos.cms.gov";
-  }
-
-  return `https://${stage}.demos.internal.cms.gov`;
+  return process.env.DEMOS_APP_URL ?? "https://localhost:3000";
 }
 
 export function formatDate(value: string): string {
@@ -27,7 +9,9 @@ export function formatDate(value: string): string {
     throw new Error(`Invalid email date value: ${value}`);
   }
 
-  return date.toISOString().slice(0, 10);
+  return date.toLocaleDateString("en-CA", {
+    timeZone: "America/New_York",
+  });
 }
 
 export function getRequiredValue<T>(

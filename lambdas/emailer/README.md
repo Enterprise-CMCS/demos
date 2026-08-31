@@ -123,10 +123,9 @@ emails/
 ```
 
 - `components` contains overall visual design and typed layouts.
-- `parts` contains reusable fragments placed inside templates.
 - Each file in `templates` validates the fields required by one email type and
   arranges its complete email.
-- `helpers.ts` contains stage URL selection, date formatting, and required-value
+- `helpers.ts` contains application URL selection, date formatting, and required-value
   validation.
 - `renderEmail.tsx` selects templates and produces the final email payload.
 
@@ -143,15 +142,11 @@ deliverable.
 
 ## Application URLs
 
-`getDemosAppUrl` in [`emails/helpers.ts`](./emails/helpers.ts) uses `STAGE`:
-
-| Stage | Base URL |
-| --- | --- |
-| unset or `local` | `https://localhost:3000` |
-| `dev`, `test`, or `impl` | `https://${stage}.demos.internal.cms.gov` |
-| `prod` | `https://demos.cms.gov` |
-
-An unsupported stage throws `Unsupported email STAGE: <stage>`.
+Deployment passes `DEMOS_APP_URL` to the Lambda from the canonical
+`cloudfrontHost` configuration. This supports standard and ephemeral
+environments without rebuilding hostnames in the emailer. LocalStack uses
+`https://localhost:3000`; `getDemosAppUrl` uses the same value when the variable
+is unset during local development.
 
 ## Logging
 
