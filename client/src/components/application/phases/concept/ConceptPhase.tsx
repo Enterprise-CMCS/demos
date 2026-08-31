@@ -8,7 +8,7 @@ import { ChevronRightIcon, ExportIcon } from "components/icons";
 
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { formatDateForServer } from "util/formatDate";
-import { DocumentList } from "./sections";
+import { DocumentList } from "components/application/phases/sections";
 import { useDialog } from "components/dialog/DialogContext";
 import { useToast } from "components/toast";
 import { getPhaseCompletedMessage, MISSING_REQUIRED_SECTIONS_TOOLTIP } from "util/messages";

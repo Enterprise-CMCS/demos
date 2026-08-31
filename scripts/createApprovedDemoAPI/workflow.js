@@ -220,7 +220,7 @@ export async function createApprovedDemo({
       api,
       demonstration.id,
       selectApplicationDates(applicationDates, [
-        "Expected Approval Date",
+        "Internal Expected Approval Date",
         "SME Initial Review Date",
         "FRT Initial Meeting Date",
         "BNPMT Initial Meeting Date",

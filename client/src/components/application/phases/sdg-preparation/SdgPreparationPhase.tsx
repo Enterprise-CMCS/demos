@@ -16,7 +16,7 @@ import {
 } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
 import { getCurrentUser, isReadonly } from "components/user/UserContext";
-import { useCompletePhase } from "../phase-status/phaseCompletionQueries";
+import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -37,7 +37,8 @@ function getFormDataFromPhase(sdgPreparationPhase: SimplePhase): SdgPreparationP
   };
 
   return {
-    expectedApprovalDate: getDateValue("Expected Approval Date"),
+    internalExpectedApprovalDate: getDateValue("Internal Expected Approval Date"),
+    stateRequestedApprovalDate: getDateValue("State Requested Approval Date"),
     smeInitialReviewDate: getDateValue("SME Initial Review Date"),
     frtInitialMeetingDate: getDateValue("FRT Initial Meeting Date"),
     bnpmtInitialMeetingDate: getDateValue("BNPMT Initial Meeting Date"),
@@ -45,7 +46,8 @@ function getFormDataFromPhase(sdgPreparationPhase: SimplePhase): SdgPreparationP
 }
 
 interface SdgPreparationPhaseFormData {
-  expectedApprovalDate?: string;
+  internalExpectedApprovalDate?: string;
+  stateRequestedApprovalDate?: string;
   smeInitialReviewDate?: string;
   frtInitialMeetingDate?: string;
   bnpmtInitialMeetingDate?: string;
@@ -56,7 +58,8 @@ export const hasChanges = (
   currentFormData: SdgPreparationPhaseFormData
 ) => {
   return (
-    initialFormData.expectedApprovalDate !== currentFormData.expectedApprovalDate ||
+    initialFormData.internalExpectedApprovalDate !== currentFormData.internalExpectedApprovalDate ||
+    initialFormData.stateRequestedApprovalDate !== currentFormData.stateRequestedApprovalDate ||
     initialFormData.smeInitialReviewDate !== currentFormData.smeInitialReviewDate ||
     initialFormData.frtInitialMeetingDate !== currentFormData.frtInitialMeetingDate ||
     initialFormData.bnpmtInitialMeetingDate !== currentFormData.bnpmtInitialMeetingDate
@@ -122,21 +125,29 @@ export const SdgPreparationPhase = ({
   const isReadonlyUser = isReadonly(currentUser);
 
   const isFormComplete =
-    sdgPreparationPhaseFormData.expectedApprovalDate &&
+    sdgPreparationPhaseFormData.internalExpectedApprovalDate &&
     sdgPreparationPhaseFormData.smeInitialReviewDate &&
     sdgPreparationPhaseFormData.frtInitialMeetingDate &&
     sdgPreparationPhaseFormData.bnpmtInitialMeetingDate;
 
   const handleSave = async () => {
-    if (sdgPreparationPhaseFormData.expectedApprovalDate) {
+    if (sdgPreparationPhaseFormData.internalExpectedApprovalDate) {
       await setApplicationDate({
         applicationId: applicationId,
-        dateType: "Expected Approval Date" satisfies DateType,
-        dateValue: sdgPreparationPhaseFormData.expectedApprovalDate as LocalDate,
+        dateType: "Internal Expected Approval Date" satisfies DateType,
+        dateValue: sdgPreparationPhaseFormData.internalExpectedApprovalDate as LocalDate,
       });
     }
 
     if (!isPhaseCompleted) {
+      if (sdgPreparationPhaseFormData.stateRequestedApprovalDate) {
+        await setApplicationDate({
+          applicationId: applicationId,
+          dateType: "State Requested Approval Date" satisfies DateType,
+          dateValue: sdgPreparationPhaseFormData.stateRequestedApprovalDate as LocalDate,
+        });
+      }
+
       if (sdgPreparationPhaseFormData.smeInitialReviewDate) {
         await setApplicationDate({
           applicationId: applicationId,
@@ -212,17 +223,29 @@ export const SdgPreparationPhase = ({
             </div>
             <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
               <DatePicker
-                name="datepicker-expected-approval-date"
-                label={"Expected Approval Date" satisfies DateType}
-                value={sdgPreparationPhaseFormData.expectedApprovalDate}
+                name="datepicker-internal-expected-approval-date"
+                label={"Internal Expected Approval Date" satisfies DateType}
+                value={sdgPreparationPhaseFormData.internalExpectedApprovalDate}
                 onChange={(newDate) => {
                   setSdgPreparationPhaseFormData({
                     ...sdgPreparationPhaseFormData,
-                    expectedApprovalDate: newDate,
+                    internalExpectedApprovalDate: newDate,
                   });
                 }}
                 isRequired
                 isDisabled={isReadonlyUser || isApproved}
+              />
+              <DatePicker
+                name="datepicker-state-requested-approval-date"
+                label={"State Requested Approval Date" satisfies DateType}
+                value={sdgPreparationPhaseFormData.stateRequestedApprovalDate}
+                onChange={(newDate) => {
+                  setSdgPreparationPhaseFormData({
+                    ...sdgPreparationPhaseFormData,
+                    stateRequestedApprovalDate: newDate,
+                  });
+                }}
+                isDisabled={isReadonlyUser || isPhaseCompleted}
               />
             </div>
           </div>{" "}

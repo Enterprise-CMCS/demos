@@ -5,11 +5,19 @@ import * as ssm from "@aws-sdk/client-ssm";
 
 import { log } from "./log";
 import { Address, Options } from "nodemailer/lib/mailer";
+import { renderEmail } from "./emails/renderEmail";
+import {
+  getEmailLogContext,
+  isRealtimeEmailEnvelope,
+  type RealtimeEmailEnvelope,
+} from "./emailLogContext";
+import { DeliveryStatus, updateEmailNotificationStatus } from "./emailNotificationStatus";
 
-type EmailerAddress = string | Address | Array<string | Address>;
+type EmailerAddress = string | Address;
+type EmailerAddressGroup = EmailerAddress | EmailerAddress[];
 
 export interface EmailData extends Pick<Options, "html" | "cc" | "bcc"> {
-  to: EmailerAddress;
+  to: EmailerAddressGroup;
   subject: string;
   text: string;
 }
@@ -39,38 +47,120 @@ export const handler = async (event: SQSEvent) => {
     return;
   }
 
-  if (!isValidEmailData(email)) {
-    return;
+  const realtimeEmail = isRealtimeEmailEnvelope(email) ? email : undefined;
+  const emailLogContext = getEmailLogContext(realtimeEmail);
+
+  try {
+    email = await renderRealTimeEmails(email);
+  } catch (err) {
+    await recordDeliveryStatus(realtimeEmail, "Failed", getErrorMessage(err));
+    log.error({ error: (err as Error).message }, "unable to render realtime email");
+    throw err;
   }
 
-  // Since the email data is being passed directly to nodemailer from SQS, this
-  // will remove any potential nodemailer keys that we aren't explicitly
-  // allowing
-  email = stripDisallowedFields(email)
+  if (!isValidEmailData(email)) {
+    if (realtimeEmail?.emailNotificationId) {
+      const error = new Error(
+        `Tracked realtime email did not render valid email data: ${realtimeEmail.emailNotificationId}`
+      );
+      await recordDeliveryStatus(realtimeEmail, "Failed", error.message);
+      throw error;
+    }
+    return;
+  }
 
   let info;
   try {
     const emailData = {
-      ...email,
+      to: email.to,
+      subject: email.subject,
+      text: email.text,
+      ...(email.html !== undefined ? { html: email.html } : {}),
+      ...(email.cc !== undefined ? { cc: email.cc } : {}),
+      ...(email.bcc !== undefined ? { bcc: email.bcc } : {}),
       from: process.env.EMAIL_FROM,
     };
 
-    if (process.env.DISABLE_EMAIL_ALLOWLIST == "true" || (await sendEmailIsAllowed(email.to))) {
-      info = await transporter.sendMail(emailData);
-    } else {
-      emailData.to = redactEmailAddresses(emailData.to);
-      log.info({ emailData }, "log only: email not in allowlist");
-      info = { messageId: "log-only" };
+    const emailIsAllowed =
+      process.env.DISABLE_EMAIL_ALLOWLIST == "true" ||
+      (await sendEmailIsAllowed(email.to, email.cc, email.bcc));
+
+    if (!emailIsAllowed) {
+      log.info(
+        {
+          ...emailLogContext,
+          subject: emailData.subject,
+          recipients: redactEmailRecipients(emailData),
+        },
+        "log only: email not in allowlist"
+      );
+      await recordDeliveryStatus(realtimeEmail, "Failed", "Email blocked by recipient allowlist.");
+      return "success";
     }
+
+    info = await transporter.sendMail(emailData);
   } catch (err) {
+    await recordDeliveryStatus(realtimeEmail, "Failed", getErrorMessage(err));
     log.error({ error: (err as Error).message }, "unable to send email:");
     throw err;
   }
 
-  log.info({ messageId: info.messageId, email: redactEmailAddresses(email.to) }, "message sent");
+  await recordDeliveryStatus(realtimeEmail, "Sent");
+
+  log.info(
+    {
+      ...emailLogContext,
+      messageId: info.messageId,
+      recipients: redactEmailRecipients(email),
+    },
+    "message sent"
+  );
 
   return "success";
 };
+
+async function recordDeliveryStatus(
+  email: RealtimeEmailEnvelope | undefined,
+  status: DeliveryStatus,
+  lastError: string | null = null
+): Promise<void> {
+  if (!email?.emailNotificationId) {
+    return;
+  }
+
+  try {
+    await updateEmailNotificationStatus(email.emailNotificationId, status, lastError);
+  } catch (error) {
+    log.error(
+      {
+        error: getErrorMessage(error),
+        emailNotificationId: email.emailNotificationId,
+        status,
+      },
+      "unable to update email notification delivery status"
+    );
+  }
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+export async function renderRealTimeEmails(email: unknown): Promise<unknown> {
+  if (!isRealtimeEmailEnvelope(email)) {
+    return email;
+  }
+
+  log.info(
+    {
+      emailType: email.emailType,
+      entityId: email.entityId,
+    },
+    "rendering realtime email template"
+  );
+
+  return renderEmail(email.emailType, email.payload);
+}
 
 export function isValidEmailData(email: any): email is EmailData {
   if (!isEmailerAddress(email.to)) {
@@ -88,11 +178,21 @@ export function isValidEmailData(email: any): email is EmailData {
     return false;
   }
 
+  if (email.cc !== undefined && !isEmailerAddress(email.cc)) {
+    log.info("an email must have a valid 'cc' property");
+    return false;
+  }
+
+  if (email.bcc !== undefined && !isEmailerAddress(email.bcc)) {
+    log.info("an email must have a valid 'bcc' property");
+    return false;
+  }
+
   return true;
 }
 
 // Not real validation, just making sure its a valid format
-export function isEmailerAddress(address?: EmailerAddress): address is EmailerAddress {
+export function isEmailerAddress(address?: EmailerAddressGroup): address is EmailerAddressGroup {
   if (!address) {
     return false;
   }
@@ -112,31 +212,23 @@ export function isEmailerAddress(address?: EmailerAddress): address is EmailerAd
   return false;
 }
 
-let allowList: string[];
+let allowList: string[] | undefined;
 
-export async function sendEmailIsAllowed(emails: EmailerAddress): Promise<boolean> {
-  const al = await getAllowList();
+export async function sendEmailIsAllowed(
+  ...recipientGroups: Array<EmailerAddressGroup | undefined>
+): Promise<boolean> {
+  const allowList = await getAllowList();
+  const recipients = recipientGroups.flatMap((group) =>
+    group === undefined ? [] : Array.isArray(group) ? group : [group]
+  );
 
-  const standardizedEmails = [];
-  if (Array.isArray(emails)) {
-    for (const e of emails) {
-      if (typeof e == "string") {
-        standardizedEmails.push(e);
-      } else {
-        standardizedEmails.push(e.address);
-      }
-    }
-  } else if (typeof emails == "string") {
-    standardizedEmails.push(emails);
-  } else {
-    standardizedEmails.push(emails.address);
-  }
-
-  return standardizedEmails.every((e) => al.includes(e));
+  return recipients.every((recipient) =>
+    allowList.includes(typeof recipient == "string" ? recipient : recipient.address)
+  );
 }
 
 export function clearCache() {
-  allowList = undefined
+  allowList = undefined;
 }
 
 export async function getAllowList() {
@@ -171,7 +263,7 @@ export async function getAllowList() {
   }
 }
 
-export function redactEmailAddresses(addresses: EmailerAddress): typeof addresses {
+export function redactEmailAddresses(addresses: EmailerAddressGroup): typeof addresses {
   if (Array.isArray(addresses)) {
     return addresses.map((e) => redactEmailAddress(e));
   }
@@ -179,7 +271,15 @@ export function redactEmailAddresses(addresses: EmailerAddress): typeof addresse
   return redactEmailAddress(addresses);
 }
 
-function redactEmailAddress(address: string | Address): typeof address {
+function redactEmailRecipients(email: Pick<EmailData, "to" | "cc" | "bcc">) {
+  return {
+    to: redactEmailAddresses(email.to),
+    cc: email.cc ? redactEmailAddresses(email.cc) : undefined,
+    bcc: email.bcc ? redactEmailAddresses(email.bcc) : undefined,
+  };
+}
+
+function redactEmailAddress(address: EmailerAddress): typeof address {
   const e = typeof address == "string" ? address : address.address;
 
   const [local, domain] = e.split("@");
@@ -194,13 +294,4 @@ function redactEmailAddress(address: string | Address): typeof address {
   }
 
   return { ...address, address: redactedEmail } as Address;
-}
-
-export function stripDisallowedFields(data: EmailData): EmailData {
-  const {html,cc,bcc,to,subject,text, ...rest} = data
-  if (Object.keys(rest).length > 0) {
-    log.warn({strippedFields: rest}, "invalid fields passed to the emailer")
-  }
-
-  return {html,cc,bcc,to,subject,text}
 }

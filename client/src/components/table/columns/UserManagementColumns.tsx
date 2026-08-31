@@ -2,6 +2,7 @@ import { createColumnHelper, SortingFn } from "@tanstack/react-table";
 import { Person, State, User, UserType } from "demos-server";
 import { formatDateForDisplay } from "util/formatDate";
 import { highlightCell } from "../KeywordSearch";
+import { createSelectColumnDef } from "./selectColumn";
 
 const ALL_STATES = "All States";
 
@@ -9,6 +10,7 @@ const IDM_USER_ROLE_LABELS: Record<UserType, string> = {
   "demos-admin": "Admin User",
   "demos-cms-user": "CMS User",
   "demos-state-user": "State User",
+  "demos-restricted-cms-user": "Restricted CMS User",
 };
 
 // Narrowed to UserType: user_person_type_limit rules out non-user-contact.
@@ -48,6 +50,7 @@ const sortByLastLoginDate: SortingFn<ManagedUser> = (rowA, rowB) => {
 const columnHelper = createColumnHelper<ManagedUser>();
 
 export const UserManagementColumns = () => [
+  createSelectColumnDef(columnHelper),
   columnHelper.accessor((user) => user.person.fullName, {
     id: "name",
     header: "Name",

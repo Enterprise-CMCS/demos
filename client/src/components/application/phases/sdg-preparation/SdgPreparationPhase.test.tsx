@@ -29,7 +29,7 @@ vi.mock("components/application/date/dateQueries", () => ({
   }),
 }));
 
-vi.mock("../phase-status/phaseCompletionQueries", () => ({
+vi.mock("components/application/phase-status/phaseCompletionQueries", () => ({
   useCompletePhase: () => ({
     completePhase: mockCompletePhase,
     data: null,
@@ -46,8 +46,12 @@ const mockApplication: Pick<WorkflowApplication, "id" | "phases"> = {
       phaseStatus: "Not Started",
       phaseDates: [
         {
-          dateType: "Expected Approval Date",
+          dateType: "Internal Expected Approval Date",
           dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+        },
+        {
+          dateType: "State Requested Approval Date",
+          dateValue: parseISO("2025-03-15T04:00:00.000Z"),
         },
       ],
       phaseNotes: [],
@@ -62,7 +66,7 @@ const mockCompleteApplication: Pick<WorkflowApplication, "id" | "phases"> = {
       ...mockApplication.phases[0],
       phaseDates: [
         {
-          dateType: "Expected Approval Date",
+          dateType: "Internal Expected Approval Date",
           dateValue: parseISO("2025-01-01T05:00:00.000Z"),
         },
         { dateType: "SME Initial Review Date", dateValue: parseISO("2025-01-01T05:00:00.000Z") },
@@ -144,14 +148,34 @@ describe("SdgPreparationPhase", () => {
       ).toBeInTheDocument();
     });
 
-    it("renders Expected Approval Date DatePicker", () => {
+    it("renders Internal Expected Approval Date DatePicker", () => {
       setup();
 
-      const datePicker = screen.getByTestId("datepicker-expected-approval-date");
+      const datePicker = screen.getByTestId("datepicker-internal-expected-approval-date");
       expect(datePicker).toBeInTheDocument();
 
-      expect(screen.getByText("Expected Approval Date")).toBeInTheDocument();
-      expect(screen.getByLabelText(/Expected Approval Date/)).toBeInTheDocument();
+      expect(screen.getByText("Internal Expected Approval Date")).toBeInTheDocument();
+      expect(screen.getByLabelText(/Internal Expected Approval Date/)).toBeInTheDocument();
+    });
+
+    it("renders State Requested Approval Date DatePicker below Internal Expected Approval Date", () => {
+      setup();
+
+      const internalDatePicker = screen.getByTestId("datepicker-internal-expected-approval-date");
+      const stateDatePicker = screen.getByTestId("datepicker-state-requested-approval-date");
+
+      expect(stateDatePicker).toHaveAccessibleName(/State Requested Approval Date/);
+      expect(
+        internalDatePicker.compareDocumentPosition(stateDatePicker) &
+          Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy();
+    });
+
+    it("renders State Requested Approval Date as an optional field", () => {
+      setup();
+
+      expect(screen.getByTestId("datepicker-state-requested-approval-date")).not.toBeRequired();
+      expect(screen.getByTestId("datepicker-internal-expected-approval-date")).toBeRequired();
     });
   });
 
@@ -195,7 +219,8 @@ describe("SdgPreparationPhase", () => {
 
       expect(screen.queryByTestId("sdg-save-for-later")).not.toBeInTheDocument();
       expect(screen.queryByTestId("sdg-finish")).not.toBeInTheDocument();
-      expect(screen.getByTestId("datepicker-expected-approval-date")).toBeDisabled();
+      expect(screen.getByTestId("datepicker-internal-expected-approval-date")).toBeDisabled();
+      expect(screen.getByTestId("datepicker-state-requested-approval-date")).toBeDisabled();
       expect(screen.getByTestId("datepicker-sme-initial-review-date")).toBeDisabled();
       expect(screen.getByTestId("datepicker-frt-initial-meeting-date")).toBeDisabled();
       expect(screen.getByTestId("datepicker-bnpmt-initial-meeting-date")).toBeDisabled();
@@ -203,14 +228,43 @@ describe("SdgPreparationPhase", () => {
   });
 
   describe("Date field handling", () => {
-    it("prefills the Expected Approval Date DatePicker with the correct date", () => {
+    it("prefills the Internal Expected Approval Date DatePicker with the correct date", () => {
       setup();
 
       const expectedDate = "2025-01-01";
-      const dateInput = screen.getByTestId("datepicker-expected-approval-date");
+      const dateInput = screen.getByTestId("datepicker-internal-expected-approval-date");
 
       expect(dateInput).toBeInTheDocument();
       expect(dateInput).toHaveValue(expectedDate);
+    });
+
+    it("prefills the State Requested Approval Date DatePicker with the correct date", () => {
+      setup();
+
+      expect(screen.getByTestId("datepicker-state-requested-approval-date")).toHaveValue(
+        "2025-03-15"
+      );
+    });
+
+    it("saves the State Requested Approval Date on Save For Later", async () => {
+      mockSetApplicationDate.mockResolvedValue({ data: { setApplicationDate: { id: "1" } } });
+      setup();
+
+      const stateRequestedApprovalDateInput = screen.getByTestId(
+        "datepicker-state-requested-approval-date"
+      );
+      await userEvent.clear(stateRequestedApprovalDateInput);
+      await userEvent.type(stateRequestedApprovalDateInput, "2025-04-20");
+
+      await userEvent.click(screen.getByTestId("sdg-save-for-later"));
+
+      await waitFor(() => {
+        expect(mockSetApplicationDate).toHaveBeenCalledWith({
+          applicationId: "1",
+          dateType: "State Requested Approval Date",
+          dateValue: "2025-04-20",
+        });
+      });
     });
 
     it("disables Save For Later button when there are no changes", () => {
@@ -226,9 +280,11 @@ describe("SdgPreparationPhase", () => {
       const saveButton = screen.getByTestId("sdg-save-for-later");
       expect(saveButton).toBeDisabled();
 
-      const expectedApprovalDateInput = screen.getByTestId("datepicker-expected-approval-date");
-      await userEvent.clear(expectedApprovalDateInput);
-      await userEvent.type(expectedApprovalDateInput, "2025-02-01");
+      const internalExpectedApprovalDateInput = screen.getByTestId(
+        "datepicker-internal-expected-approval-date"
+      );
+      await userEvent.clear(internalExpectedApprovalDateInput);
+      await userEvent.type(internalExpectedApprovalDateInput, "2025-02-01");
 
       expect(saveButton).toBeEnabled();
     });
@@ -237,13 +293,15 @@ describe("SdgPreparationPhase", () => {
       mockSetApplicationDate.mockResolvedValue({ data: { setApplicationDate: { id: "1" } } });
       setup();
 
-      const expectedApprovalDateInput = screen.getByTestId("datepicker-expected-approval-date");
-      expect(expectedApprovalDateInput).toBeInTheDocument();
+      const internalExpectedApprovalDateInput = screen.getByTestId(
+        "datepicker-internal-expected-approval-date"
+      );
+      expect(internalExpectedApprovalDateInput).toBeInTheDocument();
 
-      await userEvent.clear(expectedApprovalDateInput!);
-      await userEvent.type(expectedApprovalDateInput!, "2025-01-02");
+      await userEvent.clear(internalExpectedApprovalDateInput!);
+      await userEvent.type(internalExpectedApprovalDateInput!, "2025-01-02");
 
-      expect(expectedApprovalDateInput).toHaveValue("2025-01-02");
+      expect(internalExpectedApprovalDateInput).toHaveValue("2025-01-02");
 
       const saveButton = screen.getByTestId("sdg-save-for-later");
       await userEvent.click(saveButton);
@@ -251,7 +309,7 @@ describe("SdgPreparationPhase", () => {
       await waitFor(() => {
         expect(mockSetApplicationDate).toHaveBeenCalledWith({
           applicationId: "1",
-          dateType: "Expected Approval Date",
+          dateType: "Internal Expected Approval Date",
           dateValue: "2025-01-02",
         });
         expect(screen.getByText(/Updates\s+saved successfully/)).toBeInTheDocument();
@@ -262,10 +320,12 @@ describe("SdgPreparationPhase", () => {
       mockSetApplicationDate.mockRejectedValue(new Error("Mutation failed"));
       setup();
 
-      const expectedApprovalDateInput = screen.getByTestId("datepicker-expected-approval-date");
-      await userEvent.clear(expectedApprovalDateInput!);
-      await userEvent.type(expectedApprovalDateInput!, "2025-01-02");
-      expect(expectedApprovalDateInput).toHaveValue("2025-01-02");
+      const internalExpectedApprovalDateInput = screen.getByTestId(
+        "datepicker-internal-expected-approval-date"
+      );
+      await userEvent.clear(internalExpectedApprovalDateInput!);
+      await userEvent.type(internalExpectedApprovalDateInput!, "2025-01-02");
+      expect(internalExpectedApprovalDateInput).toHaveValue("2025-01-02");
 
       const saveButton = screen.getByTestId("sdg-save-for-later");
       await userEvent.click(saveButton);
@@ -297,6 +357,28 @@ describe("SdgPreparationPhase", () => {
       });
     });
 
+    it("enables Finish and skips the mutation when State Requested Approval Date is empty", async () => {
+      mockSetApplicationDate.mockResolvedValue({ data: { setApplicationDate: { id: "1" } } });
+      mockCompletePhase.mockResolvedValue({
+        data: { completePhase: { __typename: "ApplicationPhase" } },
+      });
+      setup(mockCompleteApplication);
+
+      expect(screen.getByTestId("datepicker-state-requested-approval-date")).toHaveValue("");
+
+      const finishButton = await screen.findByRole("button", { name: /finish/i });
+      expect(finishButton).toBeEnabled();
+
+      await userEvent.click(finishButton);
+
+      await waitFor(() => {
+        expect(mockCompletePhase).toHaveBeenCalled();
+      });
+      expect(mockSetApplicationDate).not.toHaveBeenCalledWith(
+        expect.objectContaining({ dateType: "State Requested Approval Date" })
+      );
+    });
+
     it("shows error toast when Finish fails", async () => {
       mockSetApplicationDate.mockResolvedValue({ data: { setApplicationDate: { id: "1" } } });
       mockCompletePhase.mockRejectedValue(new Error("Mutation failed"));
@@ -317,14 +399,16 @@ describe("SdgPreparationPhase", () => {
 describe("hasChanges", () => {
   it("returns false when all fields are identical", () => {
     const initialData = {
-      expectedApprovalDate: "2025-01-01",
+      internalExpectedApprovalDate: "2025-01-01",
+      stateRequestedApprovalDate: "2025-01-05",
       smeInitialReviewDate: "2025-01-02",
       frtInitialMeetingDate: "2025-01-03",
       bnpmtInitialMeetingDate: "2025-01-04",
     };
 
     const currentData = {
-      expectedApprovalDate: "2025-01-01",
+      internalExpectedApprovalDate: "2025-01-01",
+      stateRequestedApprovalDate: "2025-01-05",
       smeInitialReviewDate: "2025-01-02",
       frtInitialMeetingDate: "2025-01-03",
       bnpmtInitialMeetingDate: "2025-01-04",
@@ -335,14 +419,16 @@ describe("hasChanges", () => {
 
   it("returns true when any field changes", () => {
     const initialData = {
-      expectedApprovalDate: "2025-01-01",
+      internalExpectedApprovalDate: "2025-01-01",
+      stateRequestedApprovalDate: "2025-01-05",
       smeInitialReviewDate: "2025-01-02",
       frtInitialMeetingDate: "2025-01-03",
       bnpmtInitialMeetingDate: "2025-01-04",
     };
 
     const currentData = {
-      expectedApprovalDate: "2025-01-15",
+      internalExpectedApprovalDate: "2025-01-15",
+      stateRequestedApprovalDate: "2025-01-05",
       smeInitialReviewDate: "2025-01-02",
       frtInitialMeetingDate: "2025-01-03",
       bnpmtInitialMeetingDate: "2025-01-04",
@@ -351,16 +437,32 @@ describe("hasChanges", () => {
     expect(hasChanges(initialData, currentData)).toBe(true);
   });
 
+  it("returns true when only the State Requested Approval Date changes", () => {
+    const initialData = {
+      internalExpectedApprovalDate: "2025-01-01",
+      stateRequestedApprovalDate: undefined,
+      smeInitialReviewDate: "2025-01-02",
+      frtInitialMeetingDate: "2025-01-03",
+      bnpmtInitialMeetingDate: "2025-01-04",
+    };
+
+    const currentData = { ...initialData, stateRequestedApprovalDate: "2025-01-05" };
+
+    expect(hasChanges(initialData, currentData)).toBe(true);
+  });
+
   it("returns true when a field changes from undefined to a value", () => {
     const initialData = {
-      expectedApprovalDate: undefined,
+      internalExpectedApprovalDate: undefined,
+      stateRequestedApprovalDate: undefined,
       smeInitialReviewDate: undefined,
       frtInitialMeetingDate: undefined,
       bnpmtInitialMeetingDate: undefined,
     };
 
     const currentData = {
-      expectedApprovalDate: "2025-01-01",
+      internalExpectedApprovalDate: "2025-01-01",
+      stateRequestedApprovalDate: undefined,
       smeInitialReviewDate: undefined,
       frtInitialMeetingDate: undefined,
       bnpmtInitialMeetingDate: undefined,
@@ -380,7 +482,7 @@ describe("Completed Phase Behavior", () => {
     phaseStatus: "Completed" as PhaseStatus,
     phaseDates: [
       {
-        dateType: "Expected Approval Date" as DateType,
+        dateType: "Internal Expected Approval Date" as DateType,
         dateValue: parseISO("2025-01-01T05:00:00.000Z"),
       },
       {
@@ -394,6 +496,10 @@ describe("Completed Phase Behavior", () => {
       {
         dateType: "BNPMT Initial Meeting Date" as DateType,
         dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+      },
+      {
+        dateType: "State Requested Approval Date" as DateType,
+        dateValue: parseISO("2025-03-15T04:00:00.000Z"),
       },
     ],
     phaseNotes: [],
@@ -415,36 +521,44 @@ describe("Completed Phase Behavior", () => {
     expect(screen.getByTestId("sdg-finish")).toBeDisabled();
   });
 
-  it("keeps Expected Approval Date editable when phase is Completed", () => {
+  it("keeps Internal Expected Approval Date editable when phase is Completed", () => {
     renderCompleted();
-    expect(screen.getByTestId("datepicker-expected-approval-date")).not.toBeDisabled();
+    expect(screen.getByTestId("datepicker-internal-expected-approval-date")).not.toBeDisabled();
   });
 
-  it("disables SME, FRT, and BNPMT date pickers when phase is Completed", () => {
+  it("disables SME, FRT, BNPMT, and State Requested date pickers when phase is Completed", () => {
     renderCompleted();
+    expect(screen.getByTestId("datepicker-state-requested-approval-date")).toBeDisabled();
     expect(screen.getByTestId("datepicker-sme-initial-review-date")).toBeDisabled();
     expect(screen.getByTestId("datepicker-frt-initial-meeting-date")).toBeDisabled();
     expect(screen.getByTestId("datepicker-bnpmt-initial-meeting-date")).toBeDisabled();
   });
 
-  it("enables Save For Later when Expected Approval Date is changed after phase Completed", async () => {
+  it("keeps the State Requested Approval Date populated while disabled", () => {
+    renderCompleted();
+    expect(screen.getByTestId("datepicker-state-requested-approval-date")).toHaveValue(
+      "2025-03-15"
+    );
+  });
+
+  it("enables Save For Later when Internal Expected Approval Date is changed after phase Completed", async () => {
     renderCompleted();
 
     const saveButton = screen.getByTestId("sdg-save-for-later");
     expect(saveButton).toBeDisabled();
 
-    const dateInput = screen.getByTestId("datepicker-expected-approval-date");
+    const dateInput = screen.getByTestId("datepicker-internal-expected-approval-date");
     await userEvent.clear(dateInput);
     await userEvent.type(dateInput, "2025-06-01");
 
     expect(saveButton).toBeEnabled();
   });
 
-  it("only saves Expected Approval Date when phase is Completed", async () => {
+  it("only saves Internal Expected Approval Date when phase is Completed", async () => {
     mockSetApplicationDate.mockResolvedValue({ data: { setApplicationDate: { id: "1" } } });
     renderCompleted();
 
-    const dateInput = screen.getByTestId("datepicker-expected-approval-date");
+    const dateInput = screen.getByTestId("datepicker-internal-expected-approval-date");
     await userEvent.clear(dateInput);
     await userEvent.type(dateInput, "2025-06-01");
 
@@ -454,7 +568,7 @@ describe("Completed Phase Behavior", () => {
       expect(mockSetApplicationDate).toHaveBeenCalledTimes(1);
       expect(mockSetApplicationDate).toHaveBeenCalledWith({
         applicationId: "1",
-        dateType: "Expected Approval Date",
+        dateType: "Internal Expected Approval Date",
         dateValue: "2025-06-01",
       });
       expect(screen.getByText(/Updates\s+saved successfully/)).toBeInTheDocument();
@@ -481,9 +595,9 @@ describe("Approved Application Behavior", () => {
       />
     );
 
-  it("disables Expected Approval Date when application is Approved", () => {
+  it("disables Internal Expected Approval Date when application is Approved", () => {
     renderApproved();
-    expect(screen.getByTestId("datepicker-expected-approval-date")).toBeDisabled();
+    expect(screen.getByTestId("datepicker-internal-expected-approval-date")).toBeDisabled();
   });
 
   it("keeps Save For Later disabled when application is Approved (no editable fields)", () => {
@@ -505,7 +619,7 @@ describe("getSdgPreparationPhaseFromApplication", () => {
           phaseStatus: "Started",
           phaseDates: [
             {
-              dateType: "Expected Approval Date",
+              dateType: "Internal Expected Approval Date",
               dateValue: parseISO("2025-01-01T05:00:00.000Z"),
             },
           ],
