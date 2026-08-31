@@ -41,12 +41,12 @@ def main(args: CommandLineArguments):
     tables_to_copy = get_table_list_for_schema("ddb_demos_aws", args.schema_to_copy, db_conn)
     for table_to_copy in tables_to_copy.table_list:
         select_table_from_source_to_target(
-            "ddb_demos_aws",
-            "ddb_demos_localstack",
-            tables_to_copy.schema_name,
-            tables_to_copy.schema_name,
-            table_to_copy,
-            db_conn,
+            source_attach_name="ddb_demos_aws",
+            target_attach_name="ddb_demos_localstack",
+            source_schema_name=tables_to_copy.schema_name,
+            target_schema_name=tables_to_copy.schema_name,
+            table_name=table_to_copy,
+            conn=db_conn,
         )
 
 

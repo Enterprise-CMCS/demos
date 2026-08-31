@@ -73,7 +73,28 @@ class TestCopyMigrationSchemaToLocalstack:
         ]
         mock_table_getter.assert_called_once_with("ddb_demos_aws", "legacy_pmda_raw", mock_conn)
         assert mock_table_select.call_args_list == [
-            call("ddb_demos_aws", "ddb_demos_localstack", "legacy_pmda_raw", "legacy_pmda_raw", "table1", mock_conn),
-            call("ddb_demos_aws", "ddb_demos_localstack", "legacy_pmda_raw", "legacy_pmda_raw", "table2", mock_conn),
-            call("ddb_demos_aws", "ddb_demos_localstack", "legacy_pmda_raw", "legacy_pmda_raw", "table3", mock_conn),
+            call(
+                source_attach_name="ddb_demos_aws",
+                target_attach_name="ddb_demos_localstack",
+                source_schema_name="legacy_pmda_raw",
+                target_schema_name="legacy_pmda_raw",
+                table_name="table1",
+                conn=mock_conn,
+            ),
+            call(
+                source_attach_name="ddb_demos_aws",
+                target_attach_name="ddb_demos_localstack",
+                source_schema_name="legacy_pmda_raw",
+                target_schema_name="legacy_pmda_raw",
+                table_name="table2",
+                conn=mock_conn,
+            ),
+            call(
+                source_attach_name="ddb_demos_aws",
+                target_attach_name="ddb_demos_localstack",
+                source_schema_name="legacy_pmda_raw",
+                target_schema_name="legacy_pmda_raw",
+                table_name="table3",
+                conn=mock_conn,
+            ),
         ]
