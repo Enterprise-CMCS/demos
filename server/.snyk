@@ -62,6 +62,16 @@ ignore:
         reason: No patch available
         expires: 2026-09-01T00:00:00.000Z
         created: 2026-08-18T15:08:43.204Z
+  SNYK-JS-QS-19432017:
+    - '*':
+        reason: Patch in 7-day cooldown period
+        expires: 2026-09-14T00:00:00.000Z
+        created: 2026-08-31T15:18:45.475Z
+  SNYK-JS-QS-19432019:
+    - '*':
+        reason: Patch in 7-day cooldown period
+        expires: 2026-09-14T00:00:00.000Z
+        created: 2026-08-31T15:19:18.777Z
 patch: {}
 exclude:
   global:
