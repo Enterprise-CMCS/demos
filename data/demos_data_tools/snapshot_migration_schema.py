@@ -138,6 +138,6 @@ def main(args: CommandLineArguments) -> None:
         _select_table_into_snapshot_schema(attach_name, dl_config, db_conn, tbl, snapshot_schema)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: nocover
     args = _parse_args()
     main(args)
