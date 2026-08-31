@@ -57,17 +57,17 @@ class TestLoadDataToDemosApp:
         mock_getter.return_value = self.mock_data_load_config
         return mock_getter
 
-    def test__generate_table_insert_sql(self):
+    def test__generate_table_insert_sql_01(self):
         """Test load_data_to_demos_app.py functions.
 
-        ::_generate_table_insert_sql
+        ::generate_table_insert_sql
 
         ::It should generate an insert SQL statement from a configuration.
         """
         test_input = TableInsertActionConfiguration("source_tbl", "target_table", ["col1", "col2"])
 
-        actual_query = load_data_to_demos_app._generate_table_insert_sql(
-            "from_here", "to_there", self.mock_attach_name, test_input
+        actual_query = load_data_to_demos_app.generate_table_insert_sql(
+            "from_here", "to_there", self.mock_attach_name, self.mock_attach_name, test_input
         )
         expected_query = f"""
             INSERT INTO
@@ -79,6 +79,48 @@ class TestLoadDataToDemosApp:
                 {self.mock_attach_name}.from_here.source_tbl;
         """
         assert dedent(actual_query.sql_query) == dedent(expected_query)
+
+    def test__generate_table_insert_sql_02(self):
+        """Test load_data_to_demos_app.py functions.
+
+        ::generate_table_insert_sql
+
+        ::It should raise a ValueError if given the same source and target.
+        """
+        test_input = TableInsertActionConfiguration("identical_table", "identical_table", ["col1", "col2"])
+
+        with pytest.raises(ValueError) as except_info:
+            load_data_to_demos_app.generate_table_insert_sql(
+                "identical_schema", "identical_schema", self.mock_attach_name, self.mock_attach_name, test_input
+            )
+
+        assert (
+            except_info.value.args[0] == "Cannot insert my-duckdb-attach-name.identical_schema.identical_table into "
+            "my-duckdb-attach-name.identical_schema.identical_table; identical locations"
+        )
+
+    def test__generate_table_insert_sql_03(self):
+        """Test load_data_to_demos_app.py functions.
+
+        ::generate_table_insert_sql
+
+        ::It should raise a ValueError if given a cross-database insert where the target is not LocalStack.
+        """
+        test_input = TableInsertActionConfiguration("source_table", "target_table", ["col1", "col2"])
+
+        with pytest.raises(ValueError) as except_info:
+            load_data_to_demos_app.generate_table_insert_sql(
+                source_schema="schema_one",
+                target_schema="schema_two",
+                source_attach_name="ddb_demos_localstack",
+                target_attach_name="ddb_demos_aws",
+                insert_config=test_input,
+            )
+
+        assert (
+            except_info.value.args[0] == "Cannot insert across attached databases unless the target is Localstack; "
+            "target given was ddb_demos_aws"
+        )
 
     def test_generate_trigger_action_sql_01(self):
         """Test load_data_to_demos_app.py functions.
@@ -186,7 +228,7 @@ class TestLoadDataToDemosApp:
         )
 
         mock_insert_generator = mocker.patch(
-            "load_data_to_demos_app._generate_table_insert_sql", return_value="just an insert string"
+            "load_data_to_demos_app.generate_table_insert_sql", return_value="just an insert string"
         )
         mock_trigger_generator = mocker.patch(
             "load_data_to_demos_app.generate_trigger_action_sql", return_value="just a trigger string"
@@ -204,6 +246,7 @@ class TestLoadDataToDemosApp:
             call(
                 test_input.source_schema,
                 test_input.target_schema,
+                self.mock_attach_name,
                 self.mock_attach_name,
                 test_input.data_load_actions[1],
             ),
