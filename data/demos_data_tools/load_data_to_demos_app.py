@@ -264,6 +264,6 @@ def main(args: CommandLineArguments) -> None:
             conn.execute(query.sql_query)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: nocover
     args = _parse_args()
     main(args)

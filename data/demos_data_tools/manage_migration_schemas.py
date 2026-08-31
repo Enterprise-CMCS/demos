@@ -3,7 +3,7 @@
 import argparse
 from dataclasses import dataclass
 from logging import getLogger
-from typing import TYPE_CHECKING, Literal, assert_never, get_args
+from typing import TYPE_CHECKING, assert_never
 
 from duckdb_connection_manager import (
     attach_db_to_duckdb_conn,
@@ -15,10 +15,12 @@ from types_constants import (
     DB_CONFIG_NAMES,
     DEMOS_READ_ROLE,
     MIGRATION_SCHEMA_ACTIONS,
+    MIGRATION_SCHEMA_SHORT_NAMES,
     DatabaseConfigurationName,
     DuckDbAttachName,
     MigrationSchemaAction,
     MigrationSchemaName,
+    MigrationSchemaShortName,
 )
 
 if TYPE_CHECKING:
@@ -36,10 +38,7 @@ class CommandLineArguments:
     schema_name: MigrationSchemaName
 
 
-type MigrationSchemaShortName = Literal["raw", "staged", "rev01"]
-
-
-def _get_schema_name_from_short_name(schema_short_name: MigrationSchemaShortName) -> MigrationSchemaName:
+def get_migration_schema_name_from_short_name(schema_short_name: MigrationSchemaShortName) -> MigrationSchemaName:
     """Map an input name argument to a full MigrationSchemaName.
 
     Args:
@@ -75,7 +74,7 @@ def _parse_args() -> CommandLineArguments:
     parser.add_argument("schema_action", choices=MIGRATION_SCHEMA_ACTIONS, help="The action to perform")
     parser.add_argument(
         "schema_name",
-        choices=get_args(MigrationSchemaShortName.__value__),
+        choices=MIGRATION_SCHEMA_SHORT_NAMES,
         help="The short name of the schema to manage",
     )
     parsed_args = parser.parse_args()
@@ -83,11 +82,11 @@ def _parse_args() -> CommandLineArguments:
     return CommandLineArguments(
         db_config_name=parsed_args.db_config_name,
         schema_action=parsed_args.schema_action,
-        schema_name=_get_schema_name_from_short_name(parsed_args.schema_name),
+        schema_name=get_migration_schema_name_from_short_name(parsed_args.schema_name),
     )
 
 
-def _grant_permissions(conn: "DuckConn", attach_name: DuckDbAttachName, schema_name: MigrationSchemaName) -> None:
+def _grant_read_permissions(conn: "DuckConn", attach_name: DuckDbAttachName, schema_name: MigrationSchemaName) -> None:
     """Run appropriate grants on a schema.
 
     We need to do this when creating a schema as otherwise the read-only configuration will be missing.
@@ -144,7 +143,7 @@ def main(args: CommandLineArguments) -> None:
     attach_name = get_attach_name_from_db_config_name(args.db_config_name)
     if args.schema_action == "create":
         _create_schema(conn, attach_name, args.schema_name)
-        _grant_permissions(conn, attach_name, args.schema_name)
+        _grant_read_permissions(conn, attach_name, args.schema_name)
     elif args.schema_action == "drop":
         _drop_schema(conn, attach_name, args.schema_name)
     else:
