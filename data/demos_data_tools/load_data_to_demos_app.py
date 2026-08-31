@@ -97,7 +97,7 @@ def _generate_table_insert_sql(
     return GeneratedInsertActionSql(insert_config, query)
 
 
-def _generate_trigger_action_sql(
+def generate_trigger_action_sql(
     attach_name: DuckDbAttachName,
     trigger_config: TriggerActionConfiguration,
 ) -> GeneratedTriggerActionSql:
@@ -202,7 +202,7 @@ def _generate_data_load_sql(attach_name: DuckDbAttachName, data_load_config: Dat
                 )
             else:
                 assert_never(action_config.action_type)
-            result = _generate_trigger_action_sql(attach_name, action_config)
+            result = generate_trigger_action_sql(attach_name, action_config)
         elif isinstance(action_config, TransactionActionConfiguration):
             result = _generate_transaction_action_sql(action_config)
         elif isinstance(action_config, ArbitraryActionConfiguration):
@@ -213,7 +213,7 @@ def _generate_data_load_sql(attach_name: DuckDbAttachName, data_load_config: Dat
     if len(disabled_triggers) > 0:
         logger.warning("Note! Current configuration leaves some triggers disabled! Enabling them")
         for trigger in disabled_triggers:
-            result = _generate_trigger_action_sql(
+            result = generate_trigger_action_sql(
                 attach_name, TriggerActionConfiguration("enable", trigger[0], trigger[1], trigger[2])
             )
             generated_sql.append(result)

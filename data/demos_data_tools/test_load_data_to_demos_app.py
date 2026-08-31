@@ -80,16 +80,16 @@ class TestLoadDataToDemosApp:
         """
         assert dedent(actual_query.sql_query) == dedent(expected_query)
 
-    def test__generate_trigger_action_sql_01(self):
+    def test_generate_trigger_action_sql_01(self):
         """Test load_data_to_demos_app.py functions.
 
-        ::_generate_trigger_action_sql
+        ::generate_trigger_action_sql
 
         ::It should generate an disable trigger SQL statement from a configuration.
         """
         test_input = TriggerActionConfiguration("disable", "myschema", "mytable", "_my_cool_trigger")
 
-        actual_query = load_data_to_demos_app._generate_trigger_action_sql(self.mock_attach_name, test_input)
+        actual_query = load_data_to_demos_app.generate_trigger_action_sql(self.mock_attach_name, test_input)
         expected_query = (
             f"CALL postgres_execute('{self.mock_attach_name}', "
             f"'ALTER TABLE myschema.mytable "
@@ -98,16 +98,16 @@ class TestLoadDataToDemosApp:
 
         assert dedent(actual_query.sql_query) == dedent(expected_query)
 
-    def test__generate_trigger_action_sql_02(self):
+    def test_generate_trigger_action_sql_02(self):
         """Test load_data_to_demos_app.py functions.
 
-        ::_generate_trigger_action_sql
+        ::generate_trigger_action_sql
 
         ::It should generate an enable triggerSQL statement from a configuration.
         """
         test_input = TriggerActionConfiguration("enable", "myschema", "mytable", "_my_cool_trigger")
 
-        actual_query = load_data_to_demos_app._generate_trigger_action_sql(self.mock_attach_name, test_input)
+        actual_query = load_data_to_demos_app.generate_trigger_action_sql(self.mock_attach_name, test_input)
         expected_query = (
             f"CALL postgres_execute('{self.mock_attach_name}', "
             f"'ALTER TABLE myschema.mytable "
@@ -189,7 +189,7 @@ class TestLoadDataToDemosApp:
             "load_data_to_demos_app._generate_table_insert_sql", return_value="just an insert string"
         )
         mock_trigger_generator = mocker.patch(
-            "load_data_to_demos_app._generate_trigger_action_sql", return_value="just a trigger string"
+            "load_data_to_demos_app.generate_trigger_action_sql", return_value="just a trigger string"
         )
         mock_transaction_generator = mocker.patch(
             "load_data_to_demos_app._generate_transaction_action_sql", return_value="just a transaction string"
