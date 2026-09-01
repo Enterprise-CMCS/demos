@@ -6,7 +6,6 @@ on:
       - edited
       - reopened
       - ready_for_review
-      - review_requested
   workflow_dispatch:
   issue_comment:
     types: 
@@ -65,9 +64,10 @@ jobs:
           config.model_weak: "bedrock/us.amazon.nova-2-lite-v1:0"
           config.model: "bedrock/us.anthropic.claude-sonnet-4-6"
           config.fallback_models: '["bedrock/us.amazon.nova-pro-v1:0"]'
+          config.persistent_inline_comments: "true"
           github_action_config.auto_review: "true"
           github_action_config.auto_describe: "false"
           github_action_config.auto_improve: "true"
-          github_action_config.pr_actions: '["opened", "reopened", "ready_for_review", "review_requested"]'
+          github_action_config.pr_actions: '["opened", "reopened", "ready_for_review"]'
           config.custom_model_max_tokens: "128000"
           pr_code_suggestions.commitable_code_suggestions: "true"
