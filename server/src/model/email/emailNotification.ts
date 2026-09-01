@@ -60,17 +60,23 @@ export async function enqueueTrackedRealtimeEmail(
     throw error;
   }
 
-  await prisma().emailNotification.update({
-    where: { id: notification.id },
-    data: { sqsMessageId: messageId },
-  });
-  await prisma().emailNotification.updateMany({
+  const { count } = await prisma().emailNotification.updateMany({
     where: {
       id: notification.id,
       statusId: "Pending",
     },
-    data: { statusId: "Queued" },
+    data: {
+      sqsMessageId: messageId,
+      statusId: "Queued",
+    },
   });
+
+  if (count === 0) {
+    await prisma().emailNotification.update({
+      where: { id: notification.id },
+      data: { sqsMessageId: messageId },
+    });
+  }
 
   return messageId;
 }

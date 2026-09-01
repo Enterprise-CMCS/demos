@@ -94,16 +94,39 @@ describe("enqueueTrackedRealtimeEmail", () => {
       ...message,
       emailNotificationId: "notification-1",
     });
-    expect(update).toHaveBeenCalledExactlyOnceWith({
-      where: { id: "notification-1" },
-      data: { sqsMessageId: "message-1" },
-    });
     expect(updateMany).toHaveBeenCalledExactlyOnceWith({
       where: {
         id: "notification-1",
         statusId: "Pending",
       },
-      data: { statusId: "Queued" },
+      data: {
+        sqsMessageId: "message-1",
+        statusId: "Queued",
+      },
+    });
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it("records the message ID without overwriting a terminal status", async () => {
+    updateMany.mockResolvedValueOnce({ count: 0 });
+
+    await expect(
+      enqueueTrackedRealtimeEmail(message, sourceActionId, recipients),
+    ).resolves.toBe("message-1");
+
+    expect(updateMany).toHaveBeenCalledExactlyOnceWith({
+      where: {
+        id: "notification-1",
+        statusId: "Pending",
+      },
+      data: {
+        sqsMessageId: "message-1",
+        statusId: "Queued",
+      },
+    });
+    expect(update).toHaveBeenCalledExactlyOnceWith({
+      where: { id: "notification-1" },
+      data: { sqsMessageId: "message-1" },
     });
   });
 
