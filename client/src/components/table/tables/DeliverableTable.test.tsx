@@ -783,6 +783,44 @@ describe("DeliverableTable Remove action", () => {
 });
 
 describe("DeliverableTable default sorting behavior", () => {
+  it("sorts filtered deliverables chronologically by submission date", async () => {
+    const createDeliverable = (
+      id: string,
+      name: string,
+      submissionDate: string
+    ): DeliverableTableRow => ({
+      ...MOCK_DELIVERABLE_TABLE_ROW,
+      id,
+      name,
+      deliverableActions: [
+        {
+          id: `${id}-submission`,
+          actionType: "Submitted Deliverable",
+          actionTimestamp: new Date(submissionDate),
+        },
+      ],
+    });
+    const deliverables = [
+      createDeliverable("january-2025", "January 2025 Report", "2025-01-15T00:00:00Z"),
+      createDeliverable("december-2024", "December 2024 Report", "2024-12-31T00:00:00Z"),
+      createDeliverable("february-2025", "February 2025 Report", "2025-02-01T00:00:00Z"),
+      createDeliverable("excluded", "Excluded Summary", "2023-01-01T00:00:00Z"),
+    ];
+    const user = userEvent.setup();
+
+    render(<DeliverableTable deliverables={deliverables} viewMode="demos-cms-user" />);
+
+    await user.selectOptions(screen.getByTestId("filter-by-column"), "Deliverable Name");
+    await user.type(screen.getByPlaceholderText("Filter Deliverable Name"), "Report");
+    await user.click(screen.getByRole("columnheader", { name: /Submission Date/i }));
+
+    const renderedRowIds = screen
+      .getAllByTestId(/^select-row-/)
+      .map((checkbox) => checkbox.getAttribute("data-testid")?.replace("select-row-", ""));
+
+    expect(renderedRowIds).toEqual(["december-2024", "january-2025", "february-2025"]);
+  });
+
   it("reapplies default sort order when the table data is reloaded", async () => {
     const base = MOCK_DELIVERABLE_TABLE_ROWS[0] as DeliverableTableRow;
     const createDeliverable = (
@@ -822,6 +860,34 @@ describe("DeliverableTable default sorting behavior", () => {
     );
 
     expect(getRenderedRowIds()).toEqual(["past-due", "upcoming", "submitted"]);
+  });
+});
+
+describe("DeliverableTable status filtering", () => {
+  it("matches Upcoming separately from Upcoming - Extension Requested", async () => {
+    const user = userEvent.setup();
+    const deliverables: DeliverableTableRow[] = [
+      {
+        ...MOCK_DELIVERABLE_TABLE_ROW,
+        id: "upcoming",
+        name: "Upcoming Deliverable",
+      },
+      {
+        ...MOCK_DELIVERABLE_TABLE_ROW,
+        id: "upcoming-extension-requested",
+        name: "Upcoming Extension Requested Deliverable",
+        extensionRequests: [{ id: "extension-request", status: "Requested" }],
+      },
+    ];
+
+    render(<DeliverableTable deliverables={deliverables} viewMode="demos-cms-user" />);
+
+    await user.selectOptions(screen.getByTestId("filter-by-column"), "Status");
+    await user.click(screen.getByPlaceholderText("Select Status"));
+    await user.click(screen.getByLabelText("Upcoming", { selector: "input" }));
+
+    expect(screen.getByText("Upcoming Deliverable")).toBeInTheDocument();
+    expect(screen.queryByText("Upcoming Extension Requested Deliverable")).not.toBeInTheDocument();
   });
 });
 
