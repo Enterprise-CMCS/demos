@@ -1,5 +1,5 @@
 import React from "react";
-import { BaseDemonstrationHeader } from "pages/DemonstrationDetail/BaseDemonstrationHeader";
+import { DemonstrationHeader } from "pages/DemonstrationDetail/DemonstrationHeader";
 import { useParams } from "react-router-dom";
 
 export const DemonstrationDetailHeader = () => {
@@ -11,5 +11,5 @@ export const DemonstrationDetailHeader = () => {
     );
   }
 
-  return <BaseDemonstrationHeader demonstrationId={params.demonstrationId} />;
+  return <DemonstrationHeader demonstrationId={params.demonstrationId} />;
 };

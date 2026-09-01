@@ -1,9 +1,6 @@
 import React from "react";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import {
-  DEMONSTRATION_HEADER_DETAILS_QUERY,
-  BaseDemonstrationHeader,
-} from "./BaseDemonstrationHeader";
+import { DEMONSTRATION_HEADER_DETAILS_QUERY, DemonstrationHeader } from "./DemonstrationHeader";
 import { MockedProvider, MockedProviderProps } from "@apollo/client/testing";
 import { GraphQLError } from "graphql";
 import { MemoryRouter } from "react-router-dom";
@@ -132,7 +129,7 @@ const renderHeader = (
     <MemoryRouter>
       <MockedProvider mocks={mocks}>
         <TestUserProvider currentUser={currentUser}>
-          <BaseDemonstrationHeader demonstrationId="1" />
+          <DemonstrationHeader demonstrationId="1" />
         </TestUserProvider>
       </MockedProvider>
     </MemoryRouter>

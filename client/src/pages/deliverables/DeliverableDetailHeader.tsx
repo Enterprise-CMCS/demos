@@ -1,7 +1,7 @@
 import React from "react";
 import { gql, useQuery } from "@apollo/client";
 import { Loading } from "components/loading/Loading";
-import { BaseDemonstrationHeader } from "pages/DemonstrationDetail/BaseDemonstrationHeader";
+import { DemonstrationHeader } from "pages/DemonstrationDetail/DemonstrationHeader";
 import { useParams } from "react-router-dom";
 
 export const DELIVERABLE_DETAIL_HEADER_QUERY_NAME = "DeliverableDetailHeader";
@@ -52,5 +52,5 @@ const DeliverableDetailHeaderInner: React.FC<{ deliverableId: string }> = ({ del
     return <div>Error loading deliverable</div>;
   }
 
-  return <BaseDemonstrationHeader demonstrationId={deliverable.demonstration.id} />;
+  return <DemonstrationHeader demonstrationId={deliverable.demonstration.id} />;
 };

@@ -49,7 +49,7 @@ const HEADER_ACTION_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
   "demos-cms-user",
 ]);
 
-export const BaseDemonstrationHeader: React.FC<DemonstrationDetailHeaderProps> = ({
+export const DemonstrationHeader: React.FC<DemonstrationDetailHeaderProps> = ({
   demonstrationId,
 }) => {
   const [showButtons, setShowButtons] = useState(false);

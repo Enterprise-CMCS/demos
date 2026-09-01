@@ -49,7 +49,7 @@ export const DemosRouter: React.FC = () => {
           <BrowserRouter>
             <Routes>
               <Route path="document/:id" element={<DocumentDetailPage />} />
-              <Route element={<DemosLayoutProvider HeaderLower={DefaultHeaderLower} />}>
+              <Route element={<DemosLayoutProvider header={DefaultHeaderLower} />}>
                 <Route path="*" element={<div>404: Page Not Found</div>} />
                 <Route path="/" element={<HomePage />} />
                 <Route
@@ -78,10 +78,10 @@ export const DemosRouter: React.FC = () => {
                   </>
                 )}
               </Route>
-              <Route element={<DemosLayoutProvider HeaderLower={ReferencesHeader} />}>
+              <Route element={<DemosLayoutProvider header={ReferencesHeader} />}>
                 <Route path="references" element={<ReferencesPage />} />
               </Route>
-              <Route element={<DemosLayoutProvider HeaderLower={DemonstrationDetailHeader} />}>
+              <Route element={<DemosLayoutProvider header={DemonstrationDetailHeader} />}>
                 <Route
                   path="demonstrations/:demonstrationId"
                   element={
@@ -91,13 +91,13 @@ export const DemosRouter: React.FC = () => {
                   }
                 />
               </Route>
-              <Route element={<DemosLayoutProvider HeaderLower={DeliverableDetailHeader} />}>
+              <Route element={<DemosLayoutProvider header={DeliverableDetailHeader} />}>
                 <Route
                   path="deliverables/:deliverableId"
                   element={<DeliverableDetailsManagementPage />}
                 />
               </Route>
-              <Route element={<DemosLayoutProvider HeaderLower={AdminHeader} />}>
+              <Route element={<DemosLayoutProvider header={AdminHeader} />}>
                 <Route path="admin" element={<AdminPage />} />
               </Route>
             </Routes>

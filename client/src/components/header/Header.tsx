@@ -21,7 +21,7 @@ const HeaderUpper: React.FC = () => {
   );
 };
 
-export const Header = ({ HeaderLower }: { HeaderLower: React.FC }) => {
+export const Header = ({ headerLower: HeaderLower }: { headerLower: React.FC }) => {
   return (
     <header className={HEADER_STYLES}>
       <HeaderUpper />

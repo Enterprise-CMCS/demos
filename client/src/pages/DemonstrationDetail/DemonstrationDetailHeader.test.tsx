@@ -12,9 +12,9 @@ vi.mock("react-router-dom", async (importOriginal) => {
   };
 });
 
-vi.mock("pages/DemonstrationDetail/BaseDemonstrationHeader", () => ({
-  BaseDemonstrationHeader: ({ demonstrationId }: { demonstrationId: string }) => (
-    <div data-testid="mock-base-demonstration-header">Mock Header of demo: {demonstrationId}</div>
+vi.mock("pages/DemonstrationDetail/DemonstrationHeader", () => ({
+  DemonstrationHeader: ({ demonstrationId }: { demonstrationId: string }) => (
+    <div data-testid="mock-demonstration-header">Mock Header of demo: {demonstrationId}</div>
   ),
 }));
 
@@ -27,9 +27,9 @@ describe("DemonstrationDetailHeader", () => {
     vi.clearAllMocks();
   });
 
-  it("renders the BaseDemonstrationHeader with the demonstration id from params", async () => {
+  it("renders the DemonstrationHeader with the demonstration id from params", async () => {
     render(<DemonstrationDetailHeader />);
-    const header = await screen.findByTestId("mock-base-demonstration-header");
+    const header = await screen.findByTestId("mock-demonstration-header");
     expect(header).toBeInTheDocument();
     expect(header).toHaveTextContent("Mock Header of demo: test-demo-id");
   });

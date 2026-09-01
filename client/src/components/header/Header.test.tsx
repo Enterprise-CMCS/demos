@@ -30,12 +30,12 @@ const testHeaderLower = () => <h1>Mock Header Lower</h1>;
 
 describe("Header", () => {
   it("renders the logo", async () => {
-    renderWithProviders(<Header HeaderLower={testHeaderLower} />);
+    renderWithProviders(<Header headerLower={testHeaderLower} />);
     await waitFor(() => expect(screen.getByTestId("demos-logo")).toBeInTheDocument());
   });
 
   it("renders the QuickLinks", async () => {
-    renderWithProviders(<Header HeaderLower={testHeaderLower} />);
+    renderWithProviders(<Header headerLower={testHeaderLower} />);
     expect(await screen.findByTestId(QUICK_LINKS_TEST_ID)).toBeInTheDocument();
   });
 
@@ -52,7 +52,7 @@ describe("Header", () => {
   });
 
   it("renders the HeaderLower", async () => {
-    renderWithProviders(<Header HeaderLower={testHeaderLower} />);
+    renderWithProviders(<Header headerLower={testHeaderLower} />);
 
     expect(await screen.findByText("Mock Header Lower")).toBeInTheDocument();
   });

@@ -17,12 +17,12 @@ vi.mock("react-router-dom", async (importOriginal) => {
   };
 });
 
-vi.mock("pages/DemonstrationDetail/BaseDemonstrationHeader", async (importOriginal) => {
+vi.mock("pages/DemonstrationDetail/DemonstrationHeader", async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import("pages/DemonstrationDetail/BaseDemonstrationHeader")>();
+    await importOriginal<typeof import("pages/DemonstrationDetail/DemonstrationHeader")>();
   return {
     ...actual,
-    BaseDemonstrationHeader: ({ demonstrationId }: { demonstrationId: string }) => (
+    DemonstrationHeader: ({ demonstrationId }: { demonstrationId: string }) => (
       <div data-testid="demonstration-detail-header">{demonstrationId}</div>
     ),
   };
