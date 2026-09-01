@@ -3,59 +3,35 @@ import { useSessionStorage } from "hooks";
 import { compareDesc } from "date-fns";
 
 import { tw } from "tags/tw";
-import { Button, SecondaryButton } from "components/button";
-import { ChevronRightIcon, ExportIcon } from "components/icons";
 
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { formatDateForServer } from "util/formatDate";
-import { DocumentList } from "components/application/phases/sections";
-import { useDialog } from "components/dialog/DialogContext";
 import { useToast } from "components/toast";
-import { getPhaseCompletedMessage, MISSING_REQUIRED_SECTIONS_TOOLTIP } from "util/messages";
-import { DatePicker } from "components/input/date/DatePicker";
+import { getPhaseCompletedMessage } from "util/messages";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
-import type { DateType, LocalDate, PhaseName, PhaseStatus } from "demos-server";
+import type { LocalDate, PhaseName, PhaseStatus } from "demos-server";
 import {
   useCompletePhase,
   useSkipConceptPhase,
 } from "components/application/phase-status/phaseCompletionQueries";
 import { TZDate } from "@date-fns/tz/date";
 import { getCurrentUser, isReadonly } from "components/user/UserContext";
+import { ConceptPhaseUploadSection } from "./ConceptPhaseUploadSection";
+import { ConceptPhaseVerifyCompleteSection } from "./ConceptPhaseVerifyCompleteSection";
 
 const STYLES = {
   pane: tw`bg-white`,
   grid: tw`relative grid grid-cols-2 gap-10 py-1`,
   divider: tw`pointer-events-none absolute left-1/2 top-0 h-full border-l border-surface-placeholder`,
-  stepEyebrow: tw`text-xs font-semibold uppercase tracking-wide text-text-placeholder mb-2`,
-  title: tw`text-xl font-semibold mb-1 uppercase`,
   helper: tw`text-sm text-text-placeholder mb-2`,
-  list: tw`mt-4 space-y-3`,
-  fileRow: tw`bg-surface-secondary border border-border-fields px-3 py-2 flex items-center justify-between`,
-  fileMeta: tw`text-xs text-text-placeholder mt-0.5`,
-  actions: tw`mt-8 flex justify-end gap-3`,
 };
 
 const CONCEPT_PHASE_NAME: PhaseName = "Concept";
 const NEXT_PHASE_NAME: PhaseName = "Application Intake";
 
-export const UPLOAD_BUTTON_NAME = "button-open-upload-modal";
-export const FINISH_BUTTON_NAME = "button-finish-concept";
-export const SKIP_BUTTON_NAME = "button-skip-concept";
-export const DATE_PICKER_NAME = "datepicker-pre-submission-date";
-
 export const CONCEPT_PHASE_DESCRIPTION = {
   testId: "concept-phase-description",
   text: "Use the Concept Phase to track consultation and technical assistance to States before they submit a formal application. This phase can be skipped, especially if there is no concept paper to store.",
-};
-
-export const CONCEPT_PHASE_STEP_ONE_DESCRIPTION = {
-  testId: "concept-phase-step-one-description",
-  text: "Upload the Pre-Submission Concept Paper and any supplemental documents when they are available.",
-};
-
-export const CONCEPT_PHASE_STEP_TWO_DESCRIPTION = {
-  testId: "concept-phase-step-two-description",
-  text: "Check uploaded files. If needed, correct the Concept Paper submitted date before finishing the phase.",
 };
 
 export const getConceptPhaseComponentFromApplication = (
@@ -126,7 +102,6 @@ export const ConceptPhase = ({
   phaseStatus,
 }: ConceptPhaseProps) => {
   const { showSuccess } = useToast();
-  const { showConceptPreSubmissionDocumentUploadDialog } = useDialog();
   const { setApplicationDate } = useSetApplicationDate();
   const { completePhase } = useCompletePhase();
   const { skipConceptPhase } = useSkipConceptPhase();
@@ -216,79 +191,6 @@ export const ConceptPhase = ({
     setSelectedPhase(NEXT_PHASE_NAME);
   };
 
-  const UploadSection = () => (
-    <div aria-labelledby="state-application-upload-title">
-      <h4 id="state-application-upload-title" className={STYLES.title}>
-        Step 1 - Upload
-      </h4>
-      <p data-testid={CONCEPT_PHASE_STEP_ONE_DESCRIPTION.testId} className={STYLES.helper}>
-        {CONCEPT_PHASE_STEP_ONE_DESCRIPTION.text}
-      </p>
-
-      <SecondaryButton
-        isHidden={isReadonlyUser}
-        onClick={() => showConceptPreSubmissionDocumentUploadDialog(applicationId)}
-        size="small"
-        name={UPLOAD_BUTTON_NAME}
-      >
-        Upload
-        <ExportIcon />
-      </SecondaryButton>
-
-      <DocumentList documents={documents} />
-    </div>
-  );
-
-  const VerifyCompleteSection = () => (
-    <div aria-labelledby="concept-verify-title">
-      <h4 id="concept-verify-title" className={STYLES.title}>
-        Step 2 - Verify/Complete
-      </h4>
-      <p data-testid={CONCEPT_PHASE_STEP_TWO_DESCRIPTION.testId} className={STYLES.helper}>
-        {CONCEPT_PHASE_STEP_TWO_DESCRIPTION.text}
-      </p>
-
-      <div className="space-y-4">
-        <DatePicker
-          name={DATE_PICKER_NAME}
-          label={"Concept Paper Submitted Date" satisfies DateType}
-          value={submittedDate}
-          onChange={(newDate) => {
-            setUserSubmittedDateOverride(newDate);
-          }}
-          isRequired={documents.length > 0}
-          getValidationMessage={getDateValidationMessage}
-          isDisabled={isPhaseFinalized || isReadonlyUser}
-        />
-      </div>
-
-      <div className={STYLES.actions}>
-        <SecondaryButton
-          isHidden={isReadonlyUser}
-          name={SKIP_BUTTON_NAME}
-          aria-label="Skip this section"
-          onClick={onSkip}
-          disabled={!isSkipEnabled}
-        >
-          Skip
-          <ChevronRightIcon />
-        </SecondaryButton>
-        <Button
-          isHidden={isReadonlyUser}
-          name={FINISH_BUTTON_NAME}
-          aria-label="Finish this section"
-          onClick={onFinish}
-          disabled={!isFinishEnabled}
-          eagerTooltip={
-            !isFinishEnabled && !isPhaseFinalized ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined
-          }
-        >
-          Finish
-        </Button>
-      </div>
-    </div>
-  );
-
   return (
     <div className="p-1">
       <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">CONCEPT</h3>
@@ -299,8 +201,19 @@ export const ConceptPhase = ({
       <section className={STYLES.pane}>
         <div className={STYLES.grid}>
           <span aria-hidden className={STYLES.divider} />
-          <UploadSection />
-          <VerifyCompleteSection />
+          <ConceptPhaseUploadSection applicationId={applicationId} documents={documents} />
+          <ConceptPhaseVerifyCompleteSection
+            documents={documents}
+            submittedDate={submittedDate}
+            isPhaseFinalized={isPhaseFinalized}
+            isReadonlyUser={isReadonlyUser}
+            isFinishEnabled={isFinishEnabled}
+            isSkipEnabled={isSkipEnabled}
+            onSubmittedDateChange={setUserSubmittedDateOverride}
+            onFinish={onFinish}
+            onSkip={onSkip}
+            getDateValidationMessage={getDateValidationMessage}
+          />
         </div>
       </section>
     </div>

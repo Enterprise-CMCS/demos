@@ -12,14 +12,22 @@ import {
   ConceptPhaseProps,
   getConceptPhaseComponentFromApplication,
   calculatePresubmissionDate,
+  CONCEPT_PHASE_DESCRIPTION,
+} from "./ConceptPhase";
+
+import {
   UPLOAD_BUTTON_NAME,
+  CONCEPT_PHASE_STEP_ONE_DESCRIPTION_NAME,
+  CONCEPT_PHASE_STEP_ONE_DESCRIPTION_TEXT,
+} from "./ConceptPhaseUploadSection";
+
+import {
   FINISH_BUTTON_NAME,
   SKIP_BUTTON_NAME,
   DATE_PICKER_NAME,
-  CONCEPT_PHASE_DESCRIPTION,
-  CONCEPT_PHASE_STEP_ONE_DESCRIPTION,
-  CONCEPT_PHASE_STEP_TWO_DESCRIPTION,
-} from "./ConceptPhase";
+  CONCEPT_PHASE_STEP_TWO_DESCRIPTION_NAME,
+  CONCEPT_PHASE_STEP_TWO_DESCRIPTION_TEXT,
+} from "./ConceptPhaseVerifyCompleteSection";
 
 import {
   ApplicationWorkflowDemonstration,
@@ -114,8 +122,8 @@ describe("ConceptPhase", () => {
     it("renders Step 1 title and description", () => {
       setup();
       expect(screen.getByText(/Step 1 - Upload/i)).toBeInTheDocument();
-      expect(screen.getByTestId(CONCEPT_PHASE_STEP_ONE_DESCRIPTION.testId)).toHaveTextContent(
-        CONCEPT_PHASE_STEP_ONE_DESCRIPTION.text
+      expect(screen.getByTestId(CONCEPT_PHASE_STEP_ONE_DESCRIPTION_NAME)).toHaveTextContent(
+        CONCEPT_PHASE_STEP_ONE_DESCRIPTION_TEXT
       );
     });
 
@@ -146,8 +154,8 @@ describe("ConceptPhase", () => {
     it("renders Step 2 title and description", () => {
       setup();
       expect(screen.getByText("Step 2 - Verify/Complete")).toBeInTheDocument();
-      expect(screen.getByTestId(CONCEPT_PHASE_STEP_TWO_DESCRIPTION.testId)).toHaveTextContent(
-        CONCEPT_PHASE_STEP_TWO_DESCRIPTION.text
+      expect(screen.getByTestId(CONCEPT_PHASE_STEP_TWO_DESCRIPTION_NAME)).toHaveTextContent(
+        CONCEPT_PHASE_STEP_TWO_DESCRIPTION_TEXT
       );
     });
 
