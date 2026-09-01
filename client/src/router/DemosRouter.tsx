@@ -69,6 +69,14 @@ export const DemosRouter: React.FC = () => {
                     </RequireRole>
                   }
                 />
+                {isLocalDevelopment() && (
+                  <>
+                    <Route path="components" element={<ComponentLibrary />} />
+                    <Route path="icons" element={<IconLibrary />} />
+                    <Route path="auth" element={<AuthDebugComponent />} />
+                    <Route path="dialogs" element={<DialogSandbox />} />
+                  </>
+                )}
               </Route>
               <Route element={<DemosLayoutProvider HeaderLower={ReferencesHeader} />}>
                 <Route path="references" element={<ReferencesPage />} />
@@ -92,14 +100,6 @@ export const DemosRouter: React.FC = () => {
               <Route element={<DemosLayoutProvider HeaderLower={AdminHeader} />}>
                 <Route path="admin" element={<AdminPage />} />
               </Route>
-              {isLocalDevelopment() && (
-                <>
-                  <Route path="components" element={<ComponentLibrary />} />
-                  <Route path="icons" element={<IconLibrary />} />
-                  <Route path="auth" element={<AuthDebugComponent />} />
-                  <Route path="dialogs" element={<DialogSandbox />} />
-                </>
-              )}
             </Routes>
           </BrowserRouter>
         </UserProvider>

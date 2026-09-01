@@ -28,19 +28,29 @@ type DeliverableDetailHeaderQueryResponse = {
 export const DeliverableDetailHeader = () => {
   const params = useParams<{ deliverableId: string }>();
 
-  const { data, loading } = useQuery<DeliverableDetailHeaderQueryResponse>(
+  if (!params.deliverableId) {
+    throw new Error(
+      "DeliverableDetailHeader must be rendered within a route with :deliverableId param"
+    );
+  }
+
+  return <DeliverableDetailHeaderInner deliverableId={params.deliverableId} />;
+};
+
+const DeliverableDetailHeaderInner: React.FC<{ deliverableId: string }> = ({ deliverableId }) => {
+  const { data, loading, error } = useQuery<DeliverableDetailHeaderQueryResponse>(
     DELIVERABLE_DETAIL_HEADER_QUERY,
-    { variables: { deliverableId: params.deliverableId } }
+    { variables: { deliverableId } }
   );
 
   if (loading) {
     return <Loading />;
   }
 
-  const demonstrationId = data?.deliverable?.demonstration?.id;
-  if (!demonstrationId) {
-    return null;
+  const deliverable = data?.deliverable;
+  if (error || !deliverable) {
+    return <div>Error loading deliverable</div>;
   }
 
-  return <BaseDemonstrationHeader demonstrationId={demonstrationId} />;
+  return <BaseDemonstrationHeader demonstrationId={deliverable.demonstration.id} />;
 };
