@@ -161,6 +161,7 @@ export class ApiStack extends Stack {
 
     const cleanBucketName = Fn.importValue(`${props.stage}CleanBucketName`);
     const cleanBucket = aws_s3.Bucket.fromBucketName(this, "cleanBucket", cleanBucketName);
+    const emailerPath = path.join("..", "lambdas", "emailer");
 
     const deletedBucketName = Fn.importValue(`${props.stage}DeletedBucketName`);
     const deletedBucket = aws_s3.Bucket.fromBucketName(this, "deletedBucket", deletedBucketName);
@@ -238,12 +239,34 @@ export class ApiStack extends Stack {
       visibilityTimeout: emailerTimeout,
     });
     alarmResources.registerQueue("emailer", emailQueue);
+    graphqlLambda.lambda.lambda.addEnvironment("EMAILER_QUEUE_URL", emailQueue.queueUrl);
+    emailQueue.grantSendMessages(graphqlLambda.lambda.role);
 
     const emailerLambdaSecurityGroup = securityGroup.create({
       ...commonProps,
       name: "emailerSecurityGroup",
       vpc: props.vpc,
     });
+
+    rdsSg.addIngressRule(
+      aws_ec2.Peer.securityGroupId(emailerLambdaSecurityGroup.securityGroup.securityGroupId),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow ingress from Emailer Security Group",
+      true
+    );
+
+    emailerLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(rdsSecurityGroupId),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow egress to RDS",
+      true
+    );
+
+    emailerLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to secrets manager VPCE"
+    );
 
     const sharedServicesSG = aws_ec2.SecurityGroup.fromLookupByName(
       commonProps.scope,
@@ -263,12 +286,14 @@ export class ApiStack extends Stack {
       aws_ec2.Peer.securityGroupId(ssmSg.securityGroupId),
       aws_ec2.Port.HTTPS
     );
-
     const allowListParamName = "/demos/nonprod/email/allowlist";
-
+    const emailerDbSecret = aws_secretsmanager.Secret.fromSecretNameV2(
+      this,
+      "rdsEmailerDatabaseSecret",
+      `demos-${commonProps.hostEnvironment}-rds-demos_emailer`
+    );
     // Emailer
     const emailSuffix = commonProps.stage == "prod" ? "" : `-${commonProps.stage}`;
-    const emailerPath = path.join("..", "lambdas", "emailer");
     const emailerLambda = new lambda.Lambda(commonProps.scope, "emailer", {
       ...commonProps,
       scope: commonProps.scope,
@@ -276,12 +301,25 @@ export class ApiStack extends Stack {
       handler: "index.handler",
       vpc: props.vpc,
       externalModules: ["@aws-sdk"],
-      nodeModules: ["nodemailer"],
+      nodeModules: [
+        "@react-email/components",
+        "@react-email/render",
+        "nodemailer",
+        "pg",
+        "pino",
+        "react",
+        "react-dom",
+      ],
       securityGroup: [emailerLambdaSecurityGroup.securityGroup, sharedServicesSG],
       asCode: false,
       depsLockFilePath: path.join(emailerPath, "package-lock.json"),
       timeout: emailerTimeout,
       environment: {
+        DATABASE_SECRET_ARN: emailerDbSecret.secretName, // pragma: allowlist secret
+        DB_SCHEMA: "demos_app",
+        DEMOS_APP_URL: commonProps.isLocalstack
+          ? "https://localhost:3000"
+          : `https://${commonProps.cloudfrontHost}`,
         EMAIL_HOST: "smtp.cloud.internal.cms.gov",
         EMAIL_PORT: "587",
         EMAIL_FROM: `"DEMOS${emailSuffix}" <DEMOS${emailSuffix}-no-reply@cms.hhs.gov>`,
@@ -291,7 +329,9 @@ export class ApiStack extends Stack {
       },
       commandHooks: {
         afterBundling(inputDir: string, outputDir: string): string[] {
-          return [`cp ${inputDir}/../../deployment/cert.pem ${outputDir}/cert.pem`];
+          return [
+            `cp ${inputDir}/../../deployment/cert.pem ${outputDir}/cert.pem`,
+          ];
         },
         beforeBundling() {
           return [];
@@ -302,6 +342,7 @@ export class ApiStack extends Stack {
       },
     });
     alarmResources.registerLambda("emailer", emailerLambda.lambda);
+    emailerDbSecret.grantRead(emailerLambda.role);
 
     if (commonProps.stage != "prod") {
       const allowListParam = aws_ssm.StringParameter.fromStringParameterName(

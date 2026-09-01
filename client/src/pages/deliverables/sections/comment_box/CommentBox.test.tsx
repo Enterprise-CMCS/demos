@@ -224,7 +224,7 @@ describe("CommentBox", () => {
 
   describe("restricted CMS users", () => {
     it("hides the comment textarea and Add Comment button", () => {
-      renderCommentBox("demos-readonly");
+      renderCommentBox("demos-restricted-cms-user");
 
       expect(screen.queryByTestId(COMMENT_BOX_TEXT_AREA_NAME)).not.toBeInTheDocument();
       expect(screen.queryByTestId(ADD_COMMENT_BUTTON_NAME)).not.toBeInTheDocument();
@@ -232,7 +232,7 @@ describe("CommentBox", () => {
 
     it("still renders the comment box and its history", () => {
       mockUseQuery.mockReturnValue(makeQueryResult([STUB_PUBLIC_COMMENT]));
-      renderCommentBox("demos-readonly");
+      renderCommentBox("demos-restricted-cms-user");
 
       expect(screen.getByTestId(COMMENT_BOX_NAME)).toBeInTheDocument();
       expect(screen.getByText("Comment History")).toBeInTheDocument();

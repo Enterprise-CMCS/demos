@@ -18,7 +18,7 @@ const nonAdminUser: MockUser = {
 
 const readonlyUser: MockUser = {
   ...developmentMockUser,
-  person: { ...developmentMockUser.person, personType: "demos-readonly" },
+  person: { ...developmentMockUser.person, personType: "demos-restricted-cms-user" },
 };
 
 const setup = (

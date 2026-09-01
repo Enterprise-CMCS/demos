@@ -23,7 +23,7 @@ import { ReferencesPage } from "pages/references/ReferencesPage";
 const DEMONSTRATION_ACCESS_ROLES: PersonType[] = [
   "demos-admin",
   "demos-cms-user",
-  "demos-readonly",
+  "demos-restricted-cms-user",
 ];
 
 const HomePage = () => {

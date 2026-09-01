@@ -6,6 +6,7 @@ This file provides instructions for AI agents to use when generating or editing 
 
 - AI output should be reviewed, understood, and approved by the supervisor.
 - Keep verbiage in this file concise.
+- This file should be read only once a the beginning of a session for context.
 
 ## TypeScript
 
@@ -13,7 +14,7 @@ This file provides instructions for AI agents to use when generating or editing 
 - Functions/variables: `camelCase`.
 - Components/classes/types/interfaces: `PascalCase`.
 - Prefer `const`; avoid `var`.
-- Prefer absolute imports using the tsconfig paths
+- Prefer absolute imports using tsconfig paths over relative paths
 
 ### Types
 
@@ -37,9 +38,6 @@ This file provides instructions for AI agents to use when generating or editing 
 - Keep state close to where it is used; lift state only when needed.
 - Do not export props interfaces unless shared across files. Prefer inlining props.
 - Generally, prefer required props. Optional props are okay iff updating calls to an existing component would be a heavy lift.
-
-## CSS
-
 - Prefer using `gap` in a parent tag over `margin` in a child tag.
 
 ### Components
@@ -106,3 +104,20 @@ vi.mock("@apollo/client", async () => {
 - `src/router/`: app-level providers and routing
 - `src/layout/`: layout and navigation shells
 - `src/mock-data/`: Apollo `MockedResponse` fixtures
+
+## DEMOS Features
+
+This section contains guidance related to working on specific features in DEMOS
+
+### Application Workflow
+
+The application workflow is an important part of the overall DEMOS workflow, containing 8 phases that users collaboratively go through in order to approve an application (which is a demonstration, amendment, or extension). A mapping from phase numbers to names is below:
+
+1. Concept
+2. Application Intake
+3. Completeness
+4. Federal Comment
+5. SDG Preparation
+6. Review
+7. Approval Package
+8. Approval Summary

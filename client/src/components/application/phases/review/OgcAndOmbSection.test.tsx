@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { OgcAndOmbSection } from "./ogcAndOmbSection";
+import { OgcAndOmbSection } from "./OgcAndOmbSection";
 
 describe("OgcAndOmbSection", () => {
   const mockSetSectionFormData = vi.fn();

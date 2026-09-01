@@ -320,7 +320,7 @@ describe("DeliverableDetailsManagementPage", () => {
   });
 
   describe("restricted CMS users", () => {
-    const RESTRICTED_CMS_USER = "demos-readonly" as const;
+    const RESTRICTED_CMS_USER = "demos-restricted-cms-user" as const;
 
     it("renders the deliverable details", async () => {
       renderWithDeliverable(MOCK_DELIVERABLE_1, RESTRICTED_CMS_USER);

@@ -16,7 +16,7 @@ import {
 } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
 import { getCurrentUser, isReadonly } from "components/user/UserContext";
-import { useCompletePhase } from "../phase-status/phaseCompletionQueries";
+import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -38,6 +38,7 @@ function getFormDataFromPhase(sdgPreparationPhase: SimplePhase): SdgPreparationP
 
   return {
     internalExpectedApprovalDate: getDateValue("Internal Expected Approval Date"),
+    stateRequestedApprovalDate: getDateValue("State Requested Approval Date"),
     smeInitialReviewDate: getDateValue("SME Initial Review Date"),
     frtInitialMeetingDate: getDateValue("FRT Initial Meeting Date"),
     bnpmtInitialMeetingDate: getDateValue("BNPMT Initial Meeting Date"),
@@ -46,6 +47,7 @@ function getFormDataFromPhase(sdgPreparationPhase: SimplePhase): SdgPreparationP
 
 interface SdgPreparationPhaseFormData {
   internalExpectedApprovalDate?: string;
+  stateRequestedApprovalDate?: string;
   smeInitialReviewDate?: string;
   frtInitialMeetingDate?: string;
   bnpmtInitialMeetingDate?: string;
@@ -57,6 +59,7 @@ export const hasChanges = (
 ) => {
   return (
     initialFormData.internalExpectedApprovalDate !== currentFormData.internalExpectedApprovalDate ||
+    initialFormData.stateRequestedApprovalDate !== currentFormData.stateRequestedApprovalDate ||
     initialFormData.smeInitialReviewDate !== currentFormData.smeInitialReviewDate ||
     initialFormData.frtInitialMeetingDate !== currentFormData.frtInitialMeetingDate ||
     initialFormData.bnpmtInitialMeetingDate !== currentFormData.bnpmtInitialMeetingDate
@@ -137,6 +140,14 @@ export const SdgPreparationPhase = ({
     }
 
     if (!isPhaseCompleted) {
+      if (sdgPreparationPhaseFormData.stateRequestedApprovalDate) {
+        await setApplicationDate({
+          applicationId: applicationId,
+          dateType: "State Requested Approval Date" satisfies DateType,
+          dateValue: sdgPreparationPhaseFormData.stateRequestedApprovalDate as LocalDate,
+        });
+      }
+
       if (sdgPreparationPhaseFormData.smeInitialReviewDate) {
         await setApplicationDate({
           applicationId: applicationId,
@@ -223,6 +234,18 @@ export const SdgPreparationPhase = ({
                 }}
                 isRequired
                 isDisabled={isReadonlyUser || isApproved}
+              />
+              <DatePicker
+                name="datepicker-state-requested-approval-date"
+                label={"State Requested Approval Date" satisfies DateType}
+                value={sdgPreparationPhaseFormData.stateRequestedApprovalDate}
+                onChange={(newDate) => {
+                  setSdgPreparationPhaseFormData({
+                    ...sdgPreparationPhaseFormData,
+                    stateRequestedApprovalDate: newDate,
+                  });
+                }}
+                isDisabled={isReadonlyUser || isPhaseCompleted}
               />
             </div>
           </div>{" "}

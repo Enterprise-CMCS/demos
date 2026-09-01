@@ -13,6 +13,7 @@ const initialUserTypeRoles: Record<UserType, SystemRole> = {
   "demos-admin": "Admin User",
   "demos-cms-user": "CMS User",
   "demos-state-user": "State User",
+  "demos-restricted-cms-user": "Restricted CMS User",
 };
 
 export async function createNewUserFromClaims(

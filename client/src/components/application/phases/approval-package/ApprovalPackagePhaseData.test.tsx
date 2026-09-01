@@ -7,7 +7,7 @@ import {
   getApprovalPackagePhaseFromApplication,
   getDocumentsForPhase,
   REQUIRED_DOCUMENT_TYPES,
-} from "./approvalPackagePhaseData";
+} from "./ApprovalPackagePhaseData";
 import {
   ApplicationWorkflowDocument,
   ApplicationWorkflowDemonstration,
