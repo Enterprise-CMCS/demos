@@ -20,7 +20,7 @@ class TestManageMigrationSchemas:
         mock_conn = mocker.MagicMock()
         return mock_conn
 
-    def test__get_schema_name_from_short_name(self):
+    def test_get_migration_schema_name_from_short_name(self):
         """Test manage_migration_schemas.py functions.
 
         ::get_migration_schema_name_from_short_name

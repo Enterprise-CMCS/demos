@@ -14,7 +14,7 @@ class TestCopyMigrationSchemaToLocalstack:
     """A class for the tests for the copy_migration_schema_to_localstack.py file."""
 
     def test__parse_args(self, mocker):
-        """Test manage_migration_schemas.py functions.
+        """Test copy_migration_schema_to_localstack.py functions.
 
         ::_parse_args
 
@@ -44,11 +44,11 @@ class TestCopyMigrationSchemaToLocalstack:
         mock_cmd_line_args.assert_called_once_with(schema_to_copy="a_longer_schema_name")
 
     def test_main(self, mocker):
-        """Test duckdb_utilities.py functions.
+        """Test copy_migration_schema_to_localstack.py functions.
 
-        ::get_table_list_for_schema
+        ::main
 
-        ::It should query the table list from the database.
+        ::It should copy the migration schema from AWS to LocalStack.
         """
         mock_conn = "This is a connection!"
         mock_conn_creator = mocker.patch(
