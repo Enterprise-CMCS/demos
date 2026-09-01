@@ -29,7 +29,7 @@ import {
   MockDemonstrationTypeAssignment,
 } from "./DemonstrationTypeAssignmentMocks";
 import { ADD_DEMONSTRATION_TYPES_FORM_QUERY } from "components/dialog/DemonstrationTypes/AddDemonstrationTypesForm";
-import { DEMONSTRATION_HEADER_DETAILS_QUERY } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
+import { DEMONSTRATION_HEADER_DETAILS_QUERY } from "pages/DemonstrationDetail/BaseDemonstrationHeader";
 
 export type MockDemonstration = Pick<
   Demonstration,

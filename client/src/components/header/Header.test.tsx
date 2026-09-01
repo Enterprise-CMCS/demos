@@ -3,7 +3,6 @@ import { vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { TestProvider } from "test-utils/TestProvider";
-import { Route, Routes } from "react-router-dom";
 import { Header } from "./Header";
 import { PROFILE_BUTTON_TEST_ID, ProfileBlock, SIGNOUT_LINK_TEST_ID } from "./ProfileBlock";
 import { QUICK_LINKS_TEST_ID } from "./QuickLinks";
@@ -27,14 +26,16 @@ vi.mock("pages/deliverables/DeliverableDetailHeader", async (importOriginal) => 
   };
 });
 
+const testHeaderLower = () => <h1>Mock Header Lower</h1>;
+
 describe("Header", () => {
   it("renders the logo", async () => {
-    renderWithProviders(<Header />);
+    renderWithProviders(<Header HeaderLower={testHeaderLower} />);
     await waitFor(() => expect(screen.getByTestId("demos-logo")).toBeInTheDocument());
   });
 
   it("renders the QuickLinks", async () => {
-    renderWithProviders(<Header />);
+    renderWithProviders(<Header HeaderLower={testHeaderLower} />);
     expect(await screen.findByTestId(QUICK_LINKS_TEST_ID)).toBeInTheDocument();
   });
 
@@ -50,17 +51,10 @@ describe("Header", () => {
     expect(screen.queryByTestId(SIGNOUT_LINK_TEST_ID)).not.toBeInTheDocument();
   });
 
-  it("renders DeliverableDetailHeader for deliverable routes", async () => {
-    render(
-      <TestProvider routerEntries={["/deliverables/123"]}>
-        <DialogProvider>
-          <Routes>
-            <Route path="/deliverables/:deliverableId" element={<Header />} />
-          </Routes>
-        </DialogProvider>
-      </TestProvider>
-    );
-    expect(await screen.findByTestId("deliverable-detail-header")).toBeInTheDocument();
+  it("renders the HeaderLower", async () => {
+    renderWithProviders(<Header HeaderLower={testHeaderLower} />);
+
+    expect(await screen.findByText("Mock Header Lower")).toBeInTheDocument();
   });
 
   it("closes the ProfileBlock menu when clicking outside", async () => {

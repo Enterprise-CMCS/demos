@@ -1,7 +1,8 @@
 import React from "react";
 import { gql, useQuery } from "@apollo/client";
 import { Loading } from "components/loading/Loading";
-import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
+import { BaseDemonstrationHeader } from "pages/DemonstrationDetail/BaseDemonstrationHeader";
+import { useParams } from "react-router-dom";
 
 export const DELIVERABLE_DETAIL_HEADER_QUERY_NAME = "DeliverableDetailHeader";
 export const DELIVERABLE_DETAIL_HEADER_QUERY = gql`
@@ -22,10 +23,15 @@ type DeliverableDetailHeaderQueryResponse = {
       id: string;
     };
   };
-}
+};
 
-export const DeliverableDetailHeader = ({deliverableId}: {deliverableId: string}) => {
-  const { data, loading } = useQuery<DeliverableDetailHeaderQueryResponse>(DELIVERABLE_DETAIL_HEADER_QUERY, { variables: { deliverableId } });
+export const DeliverableDetailHeader = () => {
+  const params = useParams<{ deliverableId: string }>();
+
+  const { data, loading } = useQuery<DeliverableDetailHeaderQueryResponse>(
+    DELIVERABLE_DETAIL_HEADER_QUERY,
+    { variables: { deliverableId: params.deliverableId } }
+  );
 
   if (loading) {
     return <Loading />;
@@ -36,5 +42,5 @@ export const DeliverableDetailHeader = ({deliverableId}: {deliverableId: string}
     return null;
   }
 
-  return <DemonstrationDetailHeader demonstrationId={demonstrationId} />;
+  return <BaseDemonstrationHeader demonstrationId={demonstrationId} />;
 };

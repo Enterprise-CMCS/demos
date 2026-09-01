@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 
 import {
   DELIVERABLE_DETAIL_HEADER_QUERY,
@@ -7,27 +7,18 @@ import {
 } from "./DeliverableDetailHeader";
 import { TestProvider } from "test-utils/TestProvider";
 import { MockedResponse } from "@apollo/client/testing";
+import { Route, Routes } from "react-router-dom";
 
-vi.mock(
-  "pages/DemonstrationDetail/DemonstrationDetailHeader",
-  async (importOriginal) => {
-    const actual = await importOriginal<typeof import("pages/DemonstrationDetail/DemonstrationDetailHeader")>();
-    return {
-      ...actual,
-      DemonstrationDetailHeader: ({ demonstrationId }: { demonstrationId: string }) => (
-        <div data-testid="demonstration-detail-header">{demonstrationId}</div>
-      ),
-    };
-  }
-);
-
-function renderWithProviders(mocks: MockedResponse[]) {
-  return render(
-    <TestProvider mocks={mocks}>
-      <DeliverableDetailHeader deliverableId="1" />
-    </TestProvider>
-  );
-}
+vi.mock("pages/DemonstrationDetail/BaseDemonstrationHeader", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("pages/DemonstrationDetail/BaseDemonstrationHeader")>();
+  return {
+    ...actual,
+    BaseDemonstrationHeader: ({ demonstrationId }: { demonstrationId: string }) => (
+      <div data-testid="demonstration-detail-header">{demonstrationId}</div>
+    ),
+  };
+});
 
 const mockSuccess = {
   request: {
@@ -59,6 +50,16 @@ const mockNoDemonstration = {
   },
 };
 
+function renderWithProviders(mocks: MockedResponse[]) {
+  return render(
+    <TestProvider mocks={mocks} routerEntries={["/deliverables/1"]}>
+      <Routes>
+        <Route path="/deliverables/:deliverableId" element={<DeliverableDetailHeader />} />
+      </Routes>
+    </TestProvider>
+  );
+}
+
 describe("DeliverableDetailHeader", () => {
   it("shows a loading spinner while the query is in flight", () => {
     renderWithProviders([mockSuccess]);
@@ -67,7 +68,7 @@ describe("DeliverableDetailHeader", () => {
 
   it("renders the DemonstrationDetailHeader with the resolved demonstrationId", async () => {
     renderWithProviders([mockSuccess]);
-    const header = await screen.findByTestId("demonstration-detail-header");
+    const header = await waitFor(() => screen.findByTestId("demonstration-detail-header"));
     expect(header).toBeInTheDocument();
     expect(header).toHaveTextContent("7");
   });
