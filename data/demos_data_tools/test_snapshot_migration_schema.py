@@ -12,7 +12,7 @@ import snapshot_migration_schema
 from types_constants import DataLoadConfiguration, SchemaTableList, SnapshotSchemaName
 
 
-class TestManageMigrationSchemas:
+class TestSnapshotMigrationSchema:
     """A class for the tests for the snapshot_migration_schema.py file."""
 
     @pytest.fixture()

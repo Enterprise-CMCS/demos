@@ -28,6 +28,7 @@ from types_constants import (
     GeneratedSqlStatement,
     GeneratedTransactionActionSql,
     GeneratedTriggerActionSql,
+    SchemaName,
     TableInsertActionConfiguration,
     TransactionActionConfiguration,
     TriggerActionConfiguration,
@@ -67,8 +68,8 @@ def _parse_args() -> CommandLineArguments:
 
 
 def generate_table_insert_sql(
-    source_schema: str,
-    target_schema: str,
+    source_schema: SchemaName,
+    target_schema: SchemaName,
     source_attach_name: DuckDbAttachName,
     target_attach_name: DuckDbAttachName,
     insert_config: TableInsertActionConfiguration,
@@ -159,7 +160,7 @@ def generate_trigger_action_sql(
     return GeneratedTriggerActionSql(trigger_config, query)
 
 
-def _generate_transaction_action_sql(transact_config: TransactionActionConfiguration) -> GeneratedTransactionActionSql:
+def generate_transaction_action_sql(transact_config: TransactionActionConfiguration) -> GeneratedTransactionActionSql:
     """Generate an transaction action statement from a TriggerActionConfiguration.
 
     Args:
@@ -180,7 +181,7 @@ def _generate_transaction_action_sql(transact_config: TransactionActionConfigura
     return GeneratedTransactionActionSql(transact_config, query)
 
 
-def _generate_arbitrary_action_sql(
+def generate_arbitrary_action_sql(
     attach_name: DuckDbAttachName, arbitrary_action_config: ArbitraryActionConfiguration
 ) -> GeneratedArbitraryActionSql:
     """Generate an arbitrary action statement from an ArbitraryActionConfiguration.
@@ -229,9 +230,9 @@ def _generate_data_load_sql(attach_name: DuckDbAttachName, data_load_config: Dat
                 assert_never(action_config.action_type)
             result = generate_trigger_action_sql(attach_name, action_config)
         elif isinstance(action_config, TransactionActionConfiguration):
-            result = _generate_transaction_action_sql(action_config)
+            result = generate_transaction_action_sql(action_config)
         elif isinstance(action_config, ArbitraryActionConfiguration):
-            result = _generate_arbitrary_action_sql(attach_name, action_config)
+            result = generate_arbitrary_action_sql(attach_name, action_config)
         else:
             assert_never(action_config)
         generated_sql.append(result)
@@ -245,7 +246,7 @@ def _generate_data_load_sql(attach_name: DuckDbAttachName, data_load_config: Dat
     return generated_sql
 
 
-def _create_log_execution_message_for_sql(sql_executed: GeneratedSqlStatement) -> str:
+def create_log_execution_message_for_sql(sql_executed: GeneratedSqlStatement) -> str:
     """Create a log execution message for a SQL statement.
 
     Args:
@@ -285,7 +286,7 @@ def main(args: CommandLineArguments) -> None:
     else:
         conn = attach_db_to_duckdb_conn(create_duckdb_conn(), args.db_config_name)
         for query in generated_sql:
-            logger.info(_create_log_execution_message_for_sql(query))
+            logger.info(create_log_execution_message_for_sql(query))
             conn.execute(query.sql_query)
 
 

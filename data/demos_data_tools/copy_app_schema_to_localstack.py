@@ -1,26 +1,40 @@
 """Copy the demos_app schema from AWS to localstack for testing and development purposes."""
 
 from logging import getLogger
-from typing import TYPE_CHECKING, List, Literal
+from typing import List, Tuple
 
+from duckdb_connection_manager import attach_db_to_duckdb_conn, create_duckdb_conn
+from load_data_to_demos_app import (
+    create_log_execution_message_for_sql,
+    generate_arbitrary_action_sql,
+    generate_table_insert_sql,
+    generate_transaction_action_sql,
+    generate_trigger_action_sql,
+)
+from load_data_to_demos_app_configs import set_migration_mode_on
 from logger_utils import config_logger
 from types_constants import (
     AppSchemaName,
-    DataLoadActionList,
+    ArbitraryActionConfiguration,
+    ArbitrarySqlGenerationContext,
+    ArbitrarySqlGenerator,
+    DataLoadSql,
     DuckDbAttachName,
     TableInsertActionConfiguration,
+    TransactionActionConfiguration,
     TriggerActionConfiguration,
+    TriggerActionType,
 )
-
-if TYPE_CHECKING:
-    from duckdb import DuckDBPyConnection as DuckConn
-
-APP_SCHEMA_NAME: AppSchemaName = "demos_app"
-LOCALSTACK_ATTACH_NAME: DuckDbAttachName = "ddb_demos_localstack"
 
 logger = config_logger(getLogger(__name__))
 
-HISTORY_TABLES_TO_COPY: List[TableInsertActionConfiguration] = [
+REVISION_ID_SEQ_START = 1000000000
+MEDICAID_ID_SEQ_START = 30000
+CHIP_ID_SEQ_START = 30000
+APP_SCHEMA_NAME: AppSchemaName = "demos_app"
+LOCALSTACK_ATTACH_NAME: DuckDbAttachName = "ddb_demos_localstack"
+
+HISTORY_TABLES_TO_COPY: Tuple[TableInsertActionConfiguration, ...] = (
     TableInsertActionConfiguration(
         source_table="amendment_history",
         target_table="amendment_history",
@@ -621,9 +635,9 @@ HISTORY_TABLES_TO_COPY: List[TableInsertActionConfiguration] = [
             "updated_at",
         ],
     ),
-]
+)
 
-MAIN_TABLES_TO_COPY: List[TableInsertActionConfiguration] = [
+MAIN_TABLES_TO_COPY: Tuple[TableInsertActionConfiguration, ...] = (
     # People / Users / System Configs
     TableInsertActionConfiguration(
         source_table="person",
@@ -1026,27 +1040,6 @@ MAIN_TABLES_TO_COPY: List[TableInsertActionConfiguration] = [
     ),
     # Tag-related items
     TableInsertActionConfiguration(
-        source_table="tag_name",
-        target_table="tag_name",
-        column_list=[
-            "id",
-            "created_at",
-            "updated_at",
-        ],
-    ),
-    TableInsertActionConfiguration(
-        source_table="tag",
-        target_table="tag",
-        column_list=[
-            "tag_name_id",
-            "tag_type_id",
-            "source_id",
-            "status_id",
-            "created_at",
-            "updated_at",
-        ],
-    ),
-    TableInsertActionConfiguration(
         source_table="demonstration_type_tag_assignment",
         target_table="demonstration_type_tag_assignment",
         column_list=[
@@ -1169,7 +1162,80 @@ MAIN_TABLES_TO_COPY: List[TableInsertActionConfiguration] = [
             "report_generated_at",
         ],
     ),
-]
+)
+
+
+# Adding ArbitrarySqlGenerators to manually upsert the tag / tag_name tables
+# This will run before the main copies
+def _upsert_tag_name_sql(generation_context: ArbitrarySqlGenerationContext) -> str:  # pragma: nocover
+    """Arbitrary upsert SQL for tag_name table.
+
+    Args:
+        generation_context (ArbitrarySqlGenerationContext): Required context, not used in this query.
+
+    Returns:
+        str: The query.
+    """
+    upsert_query = """
+        INSERT INTO
+            ddb_demos_localstack.demos_app.tag_name
+            (id, created_at, updated_at)
+        SELECT
+            id, created_at, updated_at
+        FROM
+            ddb_demos_aws.demos_app.tag_name
+        ON CONFLICT (id) DO UPDATE SET
+            created_at = EXCLUDED.created_at,
+            updated_at = EXCLUDED.updated_at;
+    """
+    return upsert_query
+
+
+def _upsert_tag_sql(generation_context: ArbitrarySqlGenerationContext) -> str:  # pragma: nocover
+    """Arbitrary upsert SQL for tag table.
+
+    Args:
+        generation_context (ArbitrarySqlGenerationContext): Required context, not used in this query.
+
+    Returns:
+        str: The query.
+    """
+    upsert_query = """
+        INSERT INTO
+            ddb_demos_localstack.demos_app.tag
+            (tag_name_id, tag_type_id, source_id, status_id, created_at, updated_at)
+        SELECT
+            tag_name_id, tag_type_id, source_id, status_id, created_at, updated_at
+        FROM
+            ddb_demos_aws.demos_app.tag
+        ON CONFLICT (tag_name_id, tag_type_id) DO UPDATE SET
+            source_id = EXCLUDED.source_id,
+            status_id = EXCLUDED.status_id,
+            created_at = EXCLUDED.created_at,
+            updated_at = EXCLUDED.updated_at;
+    """
+    return upsert_query
+
+
+TAG_UPSERTS: Tuple[ArbitraryActionConfiguration, ...] = (
+    ArbitraryActionConfiguration(action_name="Upsert tag_name table", sql_generator=_upsert_tag_name_sql),
+    ArbitraryActionConfiguration(action_name="Upsert tag table", sql_generator=_upsert_tag_sql),
+)
+
+
+def _validate_history_table_name(history_tbl_name: str) -> None:
+    """Validate a history table name.
+
+    Args:
+        history_tbl_name (str): The history table name.
+
+    Raises:
+        ValueError: If an invalid name is passed in.
+    """
+    if history_tbl_name[-8:] != "_history":
+        err_msg = f"{history_tbl_name} is not a valid history table name; does not end in _history"
+        logger.error(err_msg)
+        raise ValueError(err_msg)
 
 
 def _get_table_name_from_history_table_name(history_tbl_name: str) -> str:
@@ -1180,72 +1246,254 @@ def _get_table_name_from_history_table_name(history_tbl_name: str) -> str:
 
     Returns:
         str: The table name associated with the history table.
-
-    Raises:
-        ValueError: If an invalid name is passed in.
     """
-    if history_tbl_name[-8:] != "_history":
-        err_msg = f"{history_tbl_name} is not a valid history table name; does not end in _history"
-        logger.error(err_msg)
-        raise ValueError(err_msg)
+    _validate_history_table_name(history_tbl_name)
     return history_tbl_name[:-8]
 
 
-def _make_history_trigger_action_configs(action: Literal["disable", "enable"]) -> List[TriggerActionConfiguration]:
+def _make_history_trigger_action_configs(action_type: TriggerActionType) -> Tuple[TriggerActionConfiguration, ...]:
     """Make a set of TriggerActionConfigurations to disable or enable the history triggers.
 
     Args:
-        action (Literal["disable", "enable"]): Whether to disable or enable the triggers.
+        action_type (TriggerActionType): Whether to disable or enable the triggers.
 
     Returns:
-        List[TriggerActionConfiguration]: The requested TriggerActionConfigurations.
+        Tuple[TriggerActionConfiguration, ...]: The requested TriggerActionConfigurations.
     """
-    result: List[TriggerActionConfiguration] = []
+    results: List[TriggerActionConfiguration] = []
     for history_tbl in HISTORY_TABLES_TO_COPY:
         main_tbl = _get_table_name_from_history_table_name(history_tbl.target_table)
-        result.append(TriggerActionConfiguration(action, APP_SCHEMA_NAME, main_tbl, f"log_changes_{main_tbl}"))
-    return result
+        results.append(TriggerActionConfiguration(action_type, APP_SCHEMA_NAME, main_tbl, f"log_changes_{main_tbl}"))
+    return tuple(results)
 
 
-def _make_other_trigger_action_configs(action: Literal["disable", "enable"]) -> List[TriggerActionConfiguration]:
+def _make_other_trigger_action_configs(action_type: TriggerActionType) -> Tuple[TriggerActionConfiguration, ...]:
     """Make a set of TriggerActionConfigurations to disable or enable other triggers.
 
     Args:
-        action (Literal["disable", "enable"]): Whether to disable or enable the triggers.
+        action_type (TriggerActionType): Whether to disable or enable the triggers.
 
     Returns:
-        List[TriggerActionConfiguration]: The requested TriggerActionConfigurations.
+        Tuple[TriggerActionConfiguration, ...]: The requested TriggerActionConfigurations.
     """
-    return [
+    return (
         TriggerActionConfiguration(
-            action, APP_SCHEMA_NAME, "application", "create_phases_and_dates_for_new_application"
+            action_type,
+            APP_SCHEMA_NAME,
+            "person",
+            "assign_cms_user_to_all_states",
         ),
-        TriggerActionConfiguration(action, APP_SCHEMA_NAME, "deliverable", "trim_input_text_fields"),
-        TriggerActionConfiguration(action, APP_SCHEMA_NAME, "document", "trim_input_text_fields"),
-        TriggerActionConfiguration(action, APP_SCHEMA_NAME, "private_comment", "trim_input_text_fields"),
-        TriggerActionConfiguration(action, APP_SCHEMA_NAME, "public_comment", "trim_input_text_fields"),
-        TriggerActionConfiguration(action, APP_SCHEMA_NAME, "reference", "trim_input_text_fields"),
-        TriggerActionConfiguration(action, APP_SCHEMA_NAME, "reference_agreement", "trim_input_text_fields"),
-    ]
+        TriggerActionConfiguration(
+            action_type,
+            APP_SCHEMA_NAME,
+            "application",
+            "create_phases_and_dates_for_new_application",
+        ),
+        TriggerActionConfiguration(
+            action_type,
+            APP_SCHEMA_NAME,
+            "deliverable_action",
+            "capture_active_extension_request_id_for_action",
+        ),
+        TriggerActionConfiguration(
+            action_type,
+            APP_SCHEMA_NAME,
+            "deliverable_action",
+            "update_documents_in_submission",
+        ),
+        TriggerActionConfiguration(
+            action_type,
+            APP_SCHEMA_NAME,
+            "deliverable_extension",
+            "create_or_update_active_record_for_request",
+        ),
+        TriggerActionConfiguration(action_type, APP_SCHEMA_NAME, "amendment", "trim_input_text_fields"),
+        TriggerActionConfiguration(action_type, APP_SCHEMA_NAME, "application_note", "trim_input_text_fields"),
+        TriggerActionConfiguration(action_type, APP_SCHEMA_NAME, "deliverable", "trim_input_text_fields"),
+        TriggerActionConfiguration(action_type, APP_SCHEMA_NAME, "deliverable_action", "trim_input_text_fields"),
+        TriggerActionConfiguration(action_type, APP_SCHEMA_NAME, "demonstration", "trim_input_text_fields"),
+        TriggerActionConfiguration(action_type, APP_SCHEMA_NAME, "document", "trim_input_text_fields"),
+        TriggerActionConfiguration(action_type, APP_SCHEMA_NAME, "document_infected", "trim_input_text_fields"),
+        TriggerActionConfiguration(action_type, APP_SCHEMA_NAME, "document_pending_upload", "trim_input_text_fields"),
+        TriggerActionConfiguration(action_type, APP_SCHEMA_NAME, "extension", "trim_input_text_fields"),
+        TriggerActionConfiguration(action_type, APP_SCHEMA_NAME, "private_comment", "trim_input_text_fields"),
+        TriggerActionConfiguration(action_type, APP_SCHEMA_NAME, "public_comment", "trim_input_text_fields"),
+        TriggerActionConfiguration(action_type, APP_SCHEMA_NAME, "reference", "trim_input_text_fields"),
+        TriggerActionConfiguration(action_type, APP_SCHEMA_NAME, "reference_agreement", "trim_input_text_fields"),
+    )
 
 
-def _make_full_config() -> DataLoadActionList:
-    """Make the full config for the app schema copy to localstack.
+# ArbitrarySqlGenerators used to set up local sequences to not conflict with production data
+def _create_history_revision_seq_resetter(history_tbl_name: str) -> ArbitrarySqlGenerator:
+    """Create an ArbitrarySqlGenerator to set a history table sequence to a specific start.
+
+    Args:
+        history_tbl_name (str): A history table name.
 
     Returns:
-        DataLoadActionList: The action list for the app schema copy.
+        ArbitrarySqlGenerator: An ArbitrarySqlGenerator for use in resetting the revision ID sequence.
     """
-    return tuple(
-        _make_history_trigger_action_configs("disable")
-        + _make_other_trigger_action_configs("disable")
-        + _make_history_trigger_action_configs("enable")
-        + _make_other_trigger_action_configs("enable")
+    _validate_history_table_name(history_tbl_name)
+
+    def reset_sequence_number(generation_context: ArbitrarySqlGenerationContext) -> str:
+        query = (
+            f"SELECT setval(pg_get_serial_sequence('demos_app.{history_tbl_name}', 'revision_id'),"
+            f" {REVISION_ID_SEQ_START});"
+        )
+        return f"CALL postgres_execute('{generation_context.attach_name}', $${query}$$);"
+
+    return reset_sequence_number
+
+
+def _reset_medicaid_id_sequence(generation_context: ArbitrarySqlGenerationContext) -> str:  # pragma: nocover
+    """Arbitrary reset SQL for the demos_app.medicaid_id_number_seq sequence.
+
+    Args:
+        generation_context (ArbitrarySqlGenerationContext): Generation context.
+
+    Returns:
+        str: The query.
+    """
+    query = f"SELECT setval(pg_get_serial_sequence('demos_app.demonstration', 'medicaid_id'), {MEDICAID_ID_SEQ_START});"
+    return f"CALL postgres_execute('{generation_context.attach_name}', $${query}$$);"
+
+
+def _reset_chip_id_sequence(generation_context: ArbitrarySqlGenerationContext) -> str:  # pragma: nocover
+    """Arbitrary reset SQL for the demos_app.chip_id_number_seq sequence.
+
+    Args:
+        generation_context (ArbitrarySqlGenerationContext): Generation context.
+
+    Returns:
+        str: The query.
+    """
+    query = f"SELECT setval(pg_get_serial_sequence('demos_app.demonstration', 'chip_id'), {CHIP_ID_SEQ_START});"
+    return f"CALL postgres_execute('{generation_context.attach_name}', $${query}$$);"
+
+
+SEQUENCE_RESETS: Tuple[ArbitraryActionConfiguration, ...] = (
+    ArbitraryActionConfiguration(
+        action_name="Reset medicaid_id sequence number",
+        sql_generator=_reset_medicaid_id_sequence,
+    ),
+    ArbitraryActionConfiguration(
+        action_name="Reset chip_id sequence number",
+        sql_generator=_reset_chip_id_sequence,
+    ),
+    *(
+        ArbitraryActionConfiguration(
+            action_name=f"Reset {config.target_table} revision_id sequence",
+            sql_generator=_create_history_revision_seq_resetter(
+                history_tbl_name=config.target_table,
+            ),
+        )
+        for config in HISTORY_TABLES_TO_COPY
+    ),
+)
+
+
+def _make_sql() -> DataLoadSql:
+    """Make the SQL for the app schema copy to localstack.
+
+    Returns:
+        DataLoadSql: The data load SQL to be run.
+    """
+    sql_to_run: DataLoadSql = []
+    # Disable triggers
+    sql_to_run.extend(
+        [
+            generate_trigger_action_sql(attach_name="ddb_demos_localstack", trigger_config=config)
+            for config in _make_history_trigger_action_configs(action_type="disable")
+        ]
     )
+    sql_to_run.extend(
+        [
+            generate_trigger_action_sql(attach_name="ddb_demos_localstack", trigger_config=config)
+            for config in _make_other_trigger_action_configs(action_type="disable")
+        ]
+    )
+
+    # Open a transaction to do data loading because of how our database works - there are deferred constraints
+    # Set the migration mode on inside the transaction; SET LOCAL is transaction scoped
+    sql_to_run.extend(
+        [generate_transaction_action_sql(transact_config=TransactionActionConfiguration(action_type="begin"))]
+    )
+    sql_to_run.extend(
+        [
+            generate_arbitrary_action_sql(
+                attach_name="ddb_demos_localstack",
+                arbitrary_action_config=ArbitraryActionConfiguration(
+                    action_name="Set migration_mode to 'on'",
+                    sql_generator=set_migration_mode_on,
+                ),
+            )
+        ]
+    )
+    sql_to_run.extend(
+        [
+            generate_arbitrary_action_sql(attach_name="ddb_demos_localstack", arbitrary_action_config=config)
+            for config in TAG_UPSERTS
+        ]
+    )
+    sql_to_run.extend(
+        [
+            generate_table_insert_sql(
+                source_schema="demos_app",
+                target_schema="demos_app",
+                source_attach_name="ddb_demos_aws",
+                target_attach_name="ddb_demos_localstack",
+                insert_config=config,
+            )
+            for config in MAIN_TABLES_TO_COPY
+        ]
+    )
+    sql_to_run.extend(
+        [
+            generate_table_insert_sql(
+                source_schema="demos_app",
+                target_schema="demos_app",
+                source_attach_name="ddb_demos_aws",
+                target_attach_name="ddb_demos_localstack",
+                insert_config=config,
+            )
+            for config in HISTORY_TABLES_TO_COPY
+        ]
+    )
+    sql_to_run.extend(
+        [generate_transaction_action_sql(transact_config=TransactionActionConfiguration(action_type="commit"))]
+    )
+
+    # Reset the sequences
+    sql_to_run.extend(
+        [
+            generate_arbitrary_action_sql(attach_name="ddb_demos_localstack", arbitrary_action_config=config)
+            for config in SEQUENCE_RESETS
+        ]
+    )
+
+    # Turn the triggers back on
+    sql_to_run.extend(
+        [
+            generate_trigger_action_sql(attach_name="ddb_demos_localstack", trigger_config=config)
+            for config in _make_history_trigger_action_configs(action_type="enable")
+        ]
+    )
+    sql_to_run.extend(
+        [
+            generate_trigger_action_sql(attach_name="ddb_demos_localstack", trigger_config=config)
+            for config in _make_other_trigger_action_configs(action_type="enable")
+        ]
+    )
+    return sql_to_run
 
 
 def main():
     """Main program function."""
-    logger.info("Hello, world!")
+    sql_to_run = _make_sql()
+    conn = attach_db_to_duckdb_conn(attach_db_to_duckdb_conn(create_duckdb_conn(), "demos-aws"), "demos-localstack")
+    for query in sql_to_run:
+        logger.info(create_log_execution_message_for_sql(query))
+        conn.execute(query.sql_query)
 
 
 if __name__ == "__main__":  # pragma: nocover

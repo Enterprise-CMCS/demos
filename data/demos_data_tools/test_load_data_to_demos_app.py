@@ -57,7 +57,7 @@ class TestLoadDataToDemosApp:
         mock_getter.return_value = self.mock_data_load_config
         return mock_getter
 
-    def test__generate_table_insert_sql_01(self):
+    def test_generate_table_insert_sql_01(self):
         """Test load_data_to_demos_app.py functions.
 
         ::generate_table_insert_sql
@@ -67,20 +67,20 @@ class TestLoadDataToDemosApp:
         test_input = TableInsertActionConfiguration("source_tbl", "target_table", ["col1", "col2"])
 
         actual_query = load_data_to_demos_app.generate_table_insert_sql(
-            "from_here", "to_there", self.mock_attach_name, self.mock_attach_name, test_input
+            "legacy_pmda_staged", "demos_app", self.mock_attach_name, self.mock_attach_name, test_input
         )
         expected_query = f"""
             INSERT INTO
-                {self.mock_attach_name}.to_there.target_table
+                {self.mock_attach_name}.demos_app.target_table
                 (col1, col2)
             SELECT
                 col1, col2
             FROM
-                {self.mock_attach_name}.from_here.source_tbl;
+                {self.mock_attach_name}.legacy_pmda_staged.source_tbl;
         """
         assert dedent(actual_query.sql_query) == dedent(expected_query)
 
-    def test__generate_table_insert_sql_02(self):
+    def test_generate_table_insert_sql_02(self):
         """Test load_data_to_demos_app.py functions.
 
         ::generate_table_insert_sql
@@ -91,15 +91,15 @@ class TestLoadDataToDemosApp:
 
         with pytest.raises(ValueError) as except_info:
             load_data_to_demos_app.generate_table_insert_sql(
-                "identical_schema", "identical_schema", self.mock_attach_name, self.mock_attach_name, test_input
+                "legacy_pmda_staged", "legacy_pmda_staged", self.mock_attach_name, self.mock_attach_name, test_input
             )
 
         assert (
-            except_info.value.args[0] == "Cannot insert my-duckdb-attach-name.identical_schema.identical_table into "
-            "my-duckdb-attach-name.identical_schema.identical_table; identical locations"
+            except_info.value.args[0] == "Cannot insert my-duckdb-attach-name.legacy_pmda_staged.identical_table into "
+            "my-duckdb-attach-name.legacy_pmda_staged.identical_table; identical locations"
         )
 
-    def test__generate_table_insert_sql_03(self):
+    def test_generate_table_insert_sql_03(self):
         """Test load_data_to_demos_app.py functions.
 
         ::generate_table_insert_sql
@@ -110,8 +110,8 @@ class TestLoadDataToDemosApp:
 
         with pytest.raises(ValueError) as except_info:
             load_data_to_demos_app.generate_table_insert_sql(
-                source_schema="schema_one",
-                target_schema="schema_two",
+                source_schema="demos_app",
+                target_schema="demos_app",
                 source_attach_name="ddb_demos_localstack",
                 target_attach_name="ddb_demos_aws",
                 insert_config=test_input,
@@ -158,38 +158,38 @@ class TestLoadDataToDemosApp:
 
         assert dedent(actual_query.sql_query) == dedent(expected_query)
 
-    def test__generate_transaction_action_sql_01(self):
+    def test_generate_transaction_action_sql_01(self):
         """Test load_data_to_demos_app.py functions.
 
-        ::_generate_transaction_action_sql
+        ::generate_transaction_action_sql
 
         ::It should generate SQL to begin a transaction.
         """
         test_input = TransactionActionConfiguration("begin")
 
-        result = load_data_to_demos_app._generate_transaction_action_sql(test_input)
+        result = load_data_to_demos_app.generate_transaction_action_sql(test_input)
 
         expected_output = GeneratedTransactionActionSql(test_input, "BEGIN;")
         assert result == expected_output
 
-    def test__generate_transaction_action_sql_02(self):
+    def test_generate_transaction_action_sql_02(self):
         """Test load_data_to_demos_app.py functions.
 
-        ::_generate_transaction_action_sql
+        ::generate_transaction_action_sql
 
         ::It should generate SQL to commit a transaction.
         """
         test_input = TransactionActionConfiguration("commit")
 
-        result = load_data_to_demos_app._generate_transaction_action_sql(test_input)
+        result = load_data_to_demos_app.generate_transaction_action_sql(test_input)
 
         expected_output = GeneratedTransactionActionSql(test_input, "COMMIT;")
         assert result == expected_output
 
-    def test__generate_arbitrary_action_sql(self):
+    def test_generate_arbitrary_action_sql(self):
         """Test load_data_to_demos_app.py functions.
 
-        ::_generate_arbitrary_action_sql
+        ::generate_arbitrary_action_sql
 
         ::It should create an object for an arbitrary action.
         """
@@ -198,7 +198,7 @@ class TestLoadDataToDemosApp:
 
         test_input = ArbitraryActionConfiguration("some action name", mock_arbitrary_generator)
 
-        result = load_data_to_demos_app._generate_arbitrary_action_sql(self.mock_attach_name, test_input)
+        result = load_data_to_demos_app.generate_arbitrary_action_sql(self.mock_attach_name, test_input)
 
         expected_output = GeneratedArbitraryActionSql(test_input, "SELECT * FROM file_table;")
         assert result == expected_output
@@ -234,10 +234,10 @@ class TestLoadDataToDemosApp:
             "load_data_to_demos_app.generate_trigger_action_sql", return_value="just a trigger string"
         )
         mock_transaction_generator = mocker.patch(
-            "load_data_to_demos_app._generate_transaction_action_sql", return_value="just a transaction string"
+            "load_data_to_demos_app.generate_transaction_action_sql", return_value="just a transaction string"
         )
         mock_arbitrary_generator = mocker.patch(
-            "load_data_to_demos_app._generate_arbitrary_action_sql", return_value="just an arbitrary string"
+            "load_data_to_demos_app.generate_arbitrary_action_sql", return_value="just an arbitrary string"
         )
 
         load_data_to_demos_app._generate_data_load_sql(self.mock_attach_name, test_input)
@@ -267,10 +267,10 @@ class TestLoadDataToDemosApp:
         assert mock_arbitrary_generator.call_args_list == [call(self.mock_attach_name, test_input.data_load_actions[5])]
         assert caplog.messages[0] == "Note! Current configuration leaves some triggers disabled! Enabling them"
 
-    def test__create_log_execution_message_for_sql_01(self):
+    def test_create_log_execution_message_for_sql_01(self):
         """Test load_data_to_demos_app.py functions.
 
-        ::_create_log_execution_message_for_sql
+        ::create_log_execution_message_for_sql
 
         ::It should generate a log message for an insert.
         """
@@ -278,15 +278,15 @@ class TestLoadDataToDemosApp:
             TableInsertActionConfiguration("source_tbl", "target_table", ["col1", "col2"]), "test_query!"
         )
 
-        actual_message = load_data_to_demos_app._create_log_execution_message_for_sql(test_input)
+        actual_message = load_data_to_demos_app.create_log_execution_message_for_sql(test_input)
         expected_message = "Executing insert statement from source_tbl to target_table"
 
         assert actual_message == expected_message
 
-    def test__create_log_execution_message_for_sql_02(self):
+    def test_create_log_execution_message_for_sql_02(self):
         """Test load_data_to_demos_app.py functions.
 
-        ::_create_log_execution_message_for_sql
+        ::create_log_execution_message_for_sql
 
         ::It should generate a log message for a trigger operation.
         """
@@ -294,29 +294,29 @@ class TestLoadDataToDemosApp:
             TriggerActionConfiguration("enable", "source_schema", "source_tbl", "some_cool_trigger"), "A query!"
         )
 
-        actual_message = load_data_to_demos_app._create_log_execution_message_for_sql(test_input)
+        actual_message = load_data_to_demos_app.create_log_execution_message_for_sql(test_input)
         expected_message = "Executing SQL to enable trigger source_schema.source_tbl.some_cool_trigger"
 
         assert actual_message == expected_message
 
-    def test__create_log_execution_message_for_sql_03(self):
+    def test_create_log_execution_message_for_sql_03(self):
         """Test load_data_to_demos_app.py functions.
 
-        ::_create_log_execution_message_for_sql
+        ::create_log_execution_message_for_sql
 
         ::It should generate a log message for a transaction operation.
         """
         test_input = GeneratedTransactionActionSql(TransactionActionConfiguration("begin"), "BEGIN!")
 
-        actual_message = load_data_to_demos_app._create_log_execution_message_for_sql(test_input)
+        actual_message = load_data_to_demos_app.create_log_execution_message_for_sql(test_input)
         expected_message = "Executing begin transaction statement"
 
         assert actual_message == expected_message
 
-    def test__create_log_execution_message_for_sql_04(self):
+    def test_create_log_execution_message_for_sql_04(self):
         """Test load_data_to_demos_app.py functions.
 
-        ::_create_log_execution_message_for_sql
+        ::create_log_execution_message_for_sql
 
         ::It should generate a log message for an arbitrary operation.
         """
@@ -324,7 +324,7 @@ class TestLoadDataToDemosApp:
             ArbitraryActionConfiguration("the action", MagicMock(ArbitrarySqlGenerator)), "SELECT * FROM your_files"
         )
 
-        actual_message = load_data_to_demos_app._create_log_execution_message_for_sql(test_input)
+        actual_message = load_data_to_demos_app.create_log_execution_message_for_sql(test_input)
         expected_message = "Executing arbitrary SQL statement: the action"
 
         assert actual_message == expected_message
@@ -350,7 +350,7 @@ class TestLoadDataToDemosApp:
             "load_data_to_demos_app.create_duckdb_conn", return_value="This is a connection!"
         )
         mock_db_attacher = mocker.patch("load_data_to_demos_app.attach_db_to_duckdb_conn", return_value=mock_conn)
-        mock_log_creator = mocker.patch("load_data_to_demos_app._create_log_execution_message_for_sql")
+        mock_log_creator = mocker.patch("load_data_to_demos_app.create_log_execution_message_for_sql")
 
         test_input = load_data_to_demos_app.CommandLineArguments("demos-aws", "rev01", False)
         load_data_to_demos_app.main(test_input)
@@ -386,7 +386,7 @@ class TestLoadDataToDemosApp:
             "load_data_to_demos_app.create_duckdb_conn", return_value="This is a connection!"
         )
         mock_db_attacher = mocker.patch("load_data_to_demos_app.attach_db_to_duckdb_conn", return_value=mock_conn)
-        mock_log_creator = mocker.patch("load_data_to_demos_app._create_log_execution_message_for_sql")
+        mock_log_creator = mocker.patch("load_data_to_demos_app.create_log_execution_message_for_sql")
 
         test_input = load_data_to_demos_app.CommandLineArguments("demos-aws", "rev01", True)
         load_data_to_demos_app.main(test_input)

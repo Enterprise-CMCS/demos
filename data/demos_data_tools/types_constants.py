@@ -15,6 +15,7 @@ type DuckDbAttachName = Literal["ddb_demos_localstack", "ddb_demos_aws"]
 type DataLoadConfigurationName = Literal["base", "rev01"]
 type MigrationSchemaAction = Literal["create", "drop"]
 type DemosReadRole = Literal["demos_read"]
+type TriggerActionType = Literal["disable", "enable"]
 
 DB_CONFIG_NAMES: Tuple[DatabaseConfigurationName, ...] = get_args(DatabaseConfigurationName.__value__)
 APP_SCHEMA_NAME: AppSchemaName = "demos_app"
@@ -37,18 +38,37 @@ class TableInsertActionConfiguration:
     target_table: str
     column_list: List[str]
 
+    def __post_init__(self) -> None:
+        """Validate field contents after initialization.
+
+        We use isidentifier() as a loose proxy for SQL identifiers; this works for our data.
+
+        Raises:
+            ValueError: If identifiers contain invalid characters.
+        """
+        for table_name_field in ("source_table", "target_table"):
+            value = getattr(self, table_name_field)
+            if not value.isidentifier():
+                raise ValueError(f"{table_name_field} must be a bare SQL identifier: {value!r}")
+
+        for column_name in self.column_list:
+            if not column_name.isidentifier():
+                raise ValueError(f"column_list entry must be a bare SQL identifier: {column_name!r}")
+
 
 @dataclass(frozen=True)
 class TriggerActionConfiguration:
     """A configuration for a trigger data load action."""
 
-    action_type: Literal["disable", "enable"]
+    action_type: TriggerActionType
     trigger_schema: str
     trigger_table: str
     trigger_name: str
 
     def __post_init__(self) -> None:
         """Validate field contents after initialization.
+
+        We use isidentifier() as a loose proxy for SQL identifiers; this works for our data.
 
         Raises:
             ValueError: If identifiers contain invalid characters.
