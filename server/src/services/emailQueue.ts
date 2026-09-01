@@ -9,8 +9,8 @@ import { log } from "../log";
 
 export type RealtimeEmailMessage = {
   emailNotificationId?: string;
-  emailType: "Deliverable Created" | "Terms And Conditions Requested";
-  entityType: "deliverable" | "reference";
+  emailType: "Deliverable Created";
+  entityType: "deliverable";
   entityId: string;
   triggeredBy: {
     type: "realtime";

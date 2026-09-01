@@ -97,7 +97,6 @@ VALUES
     ('Extension Decision Made'),
     ('Resubmission Requested'),
     ('Public Comment Added'),
-    ('Terms And Conditions Requested'),
     ('Application Status Updated');
 
 -- CreateTable
@@ -121,7 +120,6 @@ VALUES
     ('Extension Decision Made', 'deliverable'),
     ('Resubmission Requested', 'deliverable'),
     ('Public Comment Added', 'deliverable'),
-    ('Terms And Conditions Requested', 'application'),
     ('Application Status Updated', 'application');
 
 -- CreateIndex
