@@ -20,12 +20,12 @@ import {
   FILE_AND_HISTORY_ACTIONS_NAME,
   FILE_AND_HISTORY_TABS_NAME,
 } from "./fileAndHistoryTabs/FileAndHistoryTabs";
-import { REQUEST_RENEWAL_BUTTON_NAME } from "./sections/DeliverableButtons";
+import { REQUEST_EXTENSION_BUTTON_NAME } from "./sections/DeliverableButtons";
 import { STATE_FILES_ADD_BUTTON_NAME } from "./sections/StateFilesTab";
 import {
-  RENEWAL_REQUESTED_NOTICE_NAME,
-  REVIEW_RENEWAL_REQUEST_BUTTON_NAME,
-} from "./sections/RenewalRequestedNotice";
+  EXTENSION_REQUESTED_NOTICE_NAME,
+  REVIEW_EXTENSION_REQUEST_BUTTON_NAME,
+} from "./sections/ExtensionRequestedNotice";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { EDIT_DELIVERABLE_DIALOG_TITLE } from "components/dialog/deliverable/EditDeliverableDialog";
 import {
@@ -51,11 +51,11 @@ const buildSubmittedDeliverableMock = (overrides?: { submitterName?: string }) =
   ],
 });
 
-const buildPendingRenewalDeliverableMock = (): DeliverableDetailsManagementDeliverable => ({
+const buildPendingExtensionDeliverableMock = (): DeliverableDetailsManagementDeliverable => ({
   ...MOCK_DELIVERABLE_1,
-  renewalRequests: [
+  extensionRequests: [
     {
-      id: "renewal-1",
+      id: "extension-1",
       status: "Requested",
       reasonCode: "Technical Difficulties",
       reasonDetails: "Systems were down.",
@@ -303,18 +303,18 @@ describe("DeliverableDetailsManagementPage", () => {
     expect(screen.getByText(EDIT_DELIVERABLE_DIALOG_TITLE)).toBeInTheDocument();
   });
 
-  it("shows only the Request Renewal button for state users", async () => {
+  it("shows only the Request Extension button for state users", async () => {
     renderWithDeliverable(MOCK_DELIVERABLE_1, "demos-state-user");
 
-    expect(await screen.findByTestId(REQUEST_RENEWAL_BUTTON_NAME)).toBeInTheDocument();
+    expect(await screen.findByTestId(REQUEST_EXTENSION_BUTTON_NAME)).toBeInTheDocument();
     expect(screen.queryByTestId("edit-deliverable-button")).not.toBeInTheDocument();
     expect(screen.queryByTestId("delete-deliverable-button")).not.toBeInTheDocument();
   });
 
-  it("shows Request Renewal alongside Edit and Delete for admin users", async () => {
+  it("shows Request Extension alongside Edit and Delete for admin users", async () => {
     renderWithDeliverable(MOCK_DELIVERABLE_1, "demos-admin");
 
-    expect(await screen.findByTestId(REQUEST_RENEWAL_BUTTON_NAME)).toBeInTheDocument();
+    expect(await screen.findByTestId(REQUEST_EXTENSION_BUTTON_NAME)).toBeInTheDocument();
     expect(screen.getByTestId("edit-deliverable-button")).toBeInTheDocument();
     expect(screen.getByTestId("delete-deliverable-button")).toBeInTheDocument();
   });
@@ -340,11 +340,11 @@ describe("DeliverableDetailsManagementPage", () => {
       expect(screen.queryByTestId("toggle-deliverable-ellipsis-button")).not.toBeInTheDocument();
     });
 
-    it("hides Request Renewal, the file action buttons, and Add Comment", async () => {
+    it("hides Request Extension, the file action buttons, and Add Comment", async () => {
       renderWithDeliverable(MOCK_DELIVERABLE_1, RESTRICTED_CMS_USER);
 
       await screen.findByTestId(COMMENT_BOX_NAME);
-      expect(screen.queryByTestId(REQUEST_RENEWAL_BUTTON_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(REQUEST_EXTENSION_BUTTON_NAME)).not.toBeInTheDocument();
       expect(screen.queryByTestId(FILE_AND_HISTORY_ACTIONS_NAME)).not.toBeInTheDocument();
       expect(screen.queryByTestId(STATE_FILES_ADD_BUTTON_NAME)).not.toBeInTheDocument();
       expect(screen.queryByTestId(ADD_COMMENT_BUTTON_NAME)).not.toBeInTheDocument();
@@ -358,12 +358,12 @@ describe("DeliverableDetailsManagementPage", () => {
       expect(screen.queryByTestId(START_REVIEW_BUTTON_NAME)).not.toBeInTheDocument();
     });
 
-    it("hides the Review Request notice when a renewal is pending", async () => {
-      renderWithDeliverable(buildPendingRenewalDeliverableMock(), RESTRICTED_CMS_USER);
+    it("hides the Review Request notice when an extension is pending", async () => {
+      renderWithDeliverable(buildPendingExtensionDeliverableMock(), RESTRICTED_CMS_USER);
 
       await screen.findByTestId(COMMENT_BOX_NAME);
-      expect(screen.queryByTestId(RENEWAL_REQUESTED_NOTICE_NAME)).not.toBeInTheDocument();
-      expect(screen.queryByTestId(REVIEW_RENEWAL_REQUEST_BUTTON_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(EXTENSION_REQUESTED_NOTICE_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(REVIEW_EXTENSION_REQUEST_BUTTON_NAME)).not.toBeInTheDocument();
     });
 
     it("still exposes a View button for state and CMS files", async () => {

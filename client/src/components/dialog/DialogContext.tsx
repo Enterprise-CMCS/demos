@@ -36,9 +36,9 @@ import { ConfirmApproveDialog } from "./ConfirmApproveDialog";
 import { AddDeliverableSlotDialog, RemoveDeliverableDialog } from "./deliverable";
 import { EditDeliverableDialog } from "./deliverable/EditDeliverableDialog";
 import {
-  RequestRenewalDeliverableDialog,
-  RequestRenewalDeliverableDialogDeliverable,
-} from "./deliverable/RequestRenewalDeliverableDialog";
+  RequestExtensionDeliverableDialog,
+  RequestExtensionDeliverableDialogDeliverable,
+} from "./deliverable/RequestExtensionDeliverableDialog";
 import type {
   EditDeliverableDialogDeliverable,
   EditDeliverableInput,
@@ -55,9 +55,9 @@ import {
   CompleteReviewDeliverableDialogDeliverable,
 } from "./deliverable/CompleteReviewDeliverableDialog";
 import {
-  ReviewRenewalDeliverableDialog,
-  ReviewRenewalDeliverableDialogDeliverable,
-} from "./deliverable/ReviewRenewalDeliverableDialog";
+  ReviewExtensionDeliverableDialog,
+  ReviewExtensionDeliverableDialogDeliverable,
+} from "./deliverable/ReviewExtensionDeliverableDialog";
 import { ReferenceAgreementDialog } from "./referenceAgreement/ReferenceAgreementDialog";
 import { AssignStatesDialog, AssignStatesDialogPerson } from "./user/AssignStatesDialog";
 
@@ -304,11 +304,11 @@ export const useDialog = () => {
     );
   };
 
-  const showRequestRenewalDeliverableDialog = (
-    deliverable: RequestRenewalDeliverableDialogDeliverable
+  const showRequestExtensionDeliverableDialog = (
+    deliverable: RequestExtensionDeliverableDialogDeliverable
   ) => {
     context.showDialog(
-      <RequestRenewalDeliverableDialog onClose={context.hideDialog} deliverable={deliverable} />
+      <RequestExtensionDeliverableDialog onClose={context.hideDialog} deliverable={deliverable} />
     );
   };
 
@@ -331,11 +331,11 @@ export const useDialog = () => {
     );
   };
 
-  const showReviewRenewalDeliverableDialog = (
-    deliverable: ReviewRenewalDeliverableDialogDeliverable
+  const showReviewExtensionDeliverableDialog = (
+    deliverable: ReviewExtensionDeliverableDialogDeliverable
   ) => {
     context.showDialog(
-      <ReviewRenewalDeliverableDialog onClose={context.hideDialog} deliverable={deliverable} />
+      <ReviewExtensionDeliverableDialog onClose={context.hideDialog} deliverable={deliverable} />
     );
   };
 
@@ -407,10 +407,10 @@ export const useDialog = () => {
     showAddDeliverableSlotDialog,
     showRemoveDeliverableDialog,
     showEditDeliverableDialog,
-    showRequestRenewalDeliverableDialog,
+    showRequestExtensionDeliverableDialog,
     showRequestResubmissionDeliverableDialog,
     showCompleteReviewDeliverableDialog,
-    showReviewRenewalDeliverableDialog,
+    showReviewExtensionDeliverableDialog,
     showReferenceAgreementDialog,
     showAssignStatesDialog,
   };

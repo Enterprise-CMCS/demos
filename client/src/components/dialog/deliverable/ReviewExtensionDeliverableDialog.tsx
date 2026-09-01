@@ -12,17 +12,14 @@ import { useToast } from "components/toast";
 import { DeliverableExtensionReasonCode } from "demos-server";
 import { DELIVERABLE_DETAILS_QUERY } from "pages/deliverables/DeliverableDetailsManagementPage";
 import { formatDateForDisplay, formatDateForServer } from "util/formatDate";
-import { DELIVERABLE_RENEWAL_REVIEW_SUBMITTED_MESSAGE } from "util/messages";
+import { DELIVERABLE_EXTENSION_REVIEW_SUBMITTED_MESSAGE } from "util/messages";
 
-export const APPROVE_DELIVERABLE_RENEWAL_MUTATION = gql`
-  mutation ApproveDeliverableRenewal(
+export const APPROVE_DELIVERABLE_EXTENSION_MUTATION = gql`
+  mutation ApproveDeliverableExtension(
     $deliverableId: ID!
     $input: ApproveDeliverableExtensionInput!
   ) {
-    approveDeliverableRenewal: approveDeliverableExtension(
-      deliverableId: $deliverableId
-      input: $input
-    ) {
+    approveDeliverableExtension(deliverableId: $deliverableId, input: $input) {
       id
       status
       dueDate
@@ -30,9 +27,9 @@ export const APPROVE_DELIVERABLE_RENEWAL_MUTATION = gql`
   }
 `;
 
-export const DENY_DELIVERABLE_RENEWAL_MUTATION = gql`
-  mutation DenyDeliverableRenewal($deliverableId: ID!, $input: DenyDeliverableExtensionInput!) {
-    denyDeliverableRenewal: denyDeliverableExtension(deliverableId: $deliverableId, input: $input) {
+export const DENY_DELIVERABLE_EXTENSION_MUTATION = gql`
+  mutation DenyDeliverableExtension($deliverableId: ID!, $input: DenyDeliverableExtensionInput!) {
+    denyDeliverableExtension(deliverableId: $deliverableId, input: $input) {
       id
       status
       dueDate
@@ -40,20 +37,20 @@ export const DENY_DELIVERABLE_RENEWAL_MUTATION = gql`
   }
 `;
 
-export const REVIEW_RENEWAL_DIALOG_TITLE = "Review Renewal Request";
-export const REVIEW_RENEWAL_DIALOG_NAME = "review-renewal-dialog";
-export const REVIEW_RENEWAL_STATUS_FIELD_NAME = "review-renewal-status";
-export const REVIEW_RENEWAL_NEW_DATE_FIELD_NAME = "review-renewal-new-date";
-export const REVIEW_RENEWAL_DETAILS_FIELD_NAME = "review-renewal-details";
-export const REVIEW_RENEWAL_SUBMIT_BUTTON_NAME = "button-review-renewal-submit";
-export const REVIEW_RENEWAL_EXPIRED_NOTICE_NAME = "review-renewal-expired-notice";
+export const REVIEW_EXTENSION_DIALOG_TITLE = "Review Extension Request";
+export const REVIEW_EXTENSION_DIALOG_NAME = "review-extension-dialog";
+export const REVIEW_EXTENSION_STATUS_FIELD_NAME = "review-extension-status";
+export const REVIEW_EXTENSION_NEW_DATE_FIELD_NAME = "review-extension-new-date";
+export const REVIEW_EXTENSION_DETAILS_FIELD_NAME = "review-extension-details";
+export const REVIEW_EXTENSION_SUBMIT_BUTTON_NAME = "button-review-extension-submit";
+export const REVIEW_EXTENSION_EXPIRED_NOTICE_NAME = "review-extension-expired-notice";
 
 export const STATE_REQUESTED_DATE_EXPIRED_MESSAGE =
   "State Requested Date has expired and cannot be approved as is";
 
-export type ReviewRenewalDecision = "Approved" | "Approve With New Date" | "Denied";
+export type ReviewExtensionDecision = "Approved" | "Approve With New Date" | "Denied";
 
-export const REVIEW_RENEWAL_OPTIONS: Option[] = [
+export const REVIEW_EXTENSION_OPTIONS: Option[] = [
   { label: "Approved", value: "Approved" },
   { label: "Approve With New Date", value: "Approve With New Date" },
   { label: "Denied", value: "Denied" },
@@ -72,9 +69,9 @@ export const getNewDateValidationMessage = (newDate: string): string => {
   return "";
 };
 
-export interface ReviewRenewalDeliverableDialogDeliverable {
+export interface ReviewExtensionDeliverableDialogDeliverable {
   id: string;
-  renewalRequest: {
+  extensionRequest: {
     id: string;
     reasonCode: DeliverableExtensionReasonCode;
     reasonDetails: string;
@@ -83,23 +80,23 @@ export interface ReviewRenewalDeliverableDialogDeliverable {
   };
 }
 
-export interface ReviewRenewalFormData {
-  decision: ReviewRenewalDecision | "";
+export interface ReviewExtensionFormData {
+  decision: ReviewExtensionDecision | "";
   newDate: string;
   denialDetails: string;
 }
 
-export const INITIAL_FORM_DATA: ReviewRenewalFormData = {
+export const INITIAL_FORM_DATA: ReviewExtensionFormData = {
   decision: "",
   newDate: "",
   denialDetails: "",
 };
 
-export const formHasChanges = (form: ReviewRenewalFormData): boolean =>
+export const formHasChanges = (form: ReviewExtensionFormData): boolean =>
   form.decision !== "" || form.newDate.length > 0 || form.denialDetails.trim().length > 0;
 
 export const formIsValid = (
-  form: ReviewRenewalFormData,
+  form: ReviewExtensionFormData,
   stateRequestedDateExpired: boolean
 ): boolean => {
   if (form.decision === "") return false;
@@ -119,32 +116,32 @@ const Field: React.FC<{ label: string; value: string }> = ({ label, value }) => 
   </div>
 );
 
-export interface ReviewRenewalDeliverableDialogProps {
+export interface ReviewExtensionDeliverableDialogProps {
   onClose: () => void;
-  deliverable: ReviewRenewalDeliverableDialogDeliverable;
+  deliverable: ReviewExtensionDeliverableDialogDeliverable;
 }
 
-export const ReviewRenewalDeliverableDialog: React.FC<ReviewRenewalDeliverableDialogProps> = ({
+export const ReviewExtensionDeliverableDialog: React.FC<ReviewExtensionDeliverableDialogProps> = ({
   onClose,
   deliverable,
 }) => {
   const { showSuccess, showError } = useToast();
 
-  const [formData, setFormData] = useState<ReviewRenewalFormData>(INITIAL_FORM_DATA);
+  const [formData, setFormData] = useState<ReviewExtensionFormData>(INITIAL_FORM_DATA);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
 
-  const [approveRenewalTrigger] = useMutation(APPROVE_DELIVERABLE_RENEWAL_MUTATION);
-  const [denyRenewalTrigger] = useMutation(DENY_DELIVERABLE_RENEWAL_MUTATION);
+  const [approveExtensionTrigger] = useMutation(APPROVE_DELIVERABLE_EXTENSION_MUTATION);
+  const [denyExtensionTrigger] = useMutation(DENY_DELIVERABLE_EXTENSION_MUTATION);
 
-  const { renewalRequest } = deliverable;
-  const expired = isStateRequestedDateExpired(renewalRequest.originalDateRequested);
+  const { extensionRequest } = deliverable;
+  const expired = isStateRequestedDateExpired(extensionRequest.originalDateRequested);
   const newDateError = getNewDateValidationMessage(formData.newDate);
   const isValidForm = formIsValid(formData, expired);
   const hasChanges = formHasChanges(formData);
 
   const requestedDateDisplay = expired
-    ? `${formatDateForDisplay(renewalRequest.originalDateRequested)} (Expired)`
-    : formatDateForDisplay(renewalRequest.originalDateRequested);
+    ? `${formatDateForDisplay(extensionRequest.originalDateRequested)} (Expired)`
+    : formatDateForDisplay(extensionRequest.originalDateRequested);
 
   const handleSubmit = async () => {
     setAttemptedSubmit(true);
@@ -156,11 +153,11 @@ export const ReviewRenewalDeliverableDialog: React.FC<ReviewRenewalDeliverableDi
 
     try {
       if (formData.decision === "Denied") {
-        await denyRenewalTrigger({
+        await denyExtensionTrigger({
           variables: {
             deliverableId: deliverable.id,
             input: {
-              deliverableExtensionId: renewalRequest.id,
+              deliverableExtensionId: extensionRequest.id,
               details: formData.denialDetails.trim(),
             },
           },
@@ -169,35 +166,35 @@ export const ReviewRenewalDeliverableDialog: React.FC<ReviewRenewalDeliverableDi
         });
       } else {
         const input: { deliverableExtensionId: string; newDueDate?: string } = {
-          deliverableExtensionId: renewalRequest.id,
+          deliverableExtensionId: extensionRequest.id,
         };
         if (formData.decision === "Approve With New Date") {
           input.newDueDate = formatDateForServer(parseISO(formData.newDate));
         }
-        await approveRenewalTrigger({
+        await approveExtensionTrigger({
           variables: { deliverableId: deliverable.id, input },
           refetchQueries,
           awaitRefetchQueries: true,
         });
       }
 
-      showSuccess(DELIVERABLE_RENEWAL_REVIEW_SUBMITTED_MESSAGE);
+      showSuccess(DELIVERABLE_EXTENSION_REVIEW_SUBMITTED_MESSAGE);
       onClose();
     } catch (error) {
       console.error(error);
-      showError("Unable to submit renewal review.");
+      showError("Unable to submit extension review.");
     }
   };
 
   return (
     <BaseDialog
-      name={REVIEW_RENEWAL_DIALOG_NAME}
-      title={REVIEW_RENEWAL_DIALOG_TITLE}
+      name={REVIEW_EXTENSION_DIALOG_NAME}
+      title={REVIEW_EXTENSION_DIALOG_TITLE}
       onClose={onClose}
       dialogHasChanges={hasChanges}
       actionButton={
         <Button
-          name={REVIEW_RENEWAL_SUBMIT_BUTTON_NAME}
+          name={REVIEW_EXTENSION_SUBMIT_BUTTON_NAME}
           onClick={handleSubmit}
           disabled={!isValidForm}
         >
@@ -209,34 +206,34 @@ export const ReviewRenewalDeliverableDialog: React.FC<ReviewRenewalDeliverableDi
         <div className="bg-surface-secondary p-sm rounded grid grid-cols-2 gap-sm">
           <Field
             label="Initial Due Date"
-            value={formatDateForDisplay(renewalRequest.initialDueDateAtRequest)}
+            value={formatDateForDisplay(extensionRequest.initialDueDateAtRequest)}
           />
           <Field label="State Requested New Date" value={requestedDateDisplay} />
           <div className="col-span-2">
-            <Field label="Requested Reason" value={renewalRequest.reasonCode} />
+            <Field label="Requested Reason" value={extensionRequest.reasonCode} />
           </div>
           <div className="col-span-2">
-            <Field label="Requested Details" value={renewalRequest.reasonDetails} />
+            <Field label="Requested Details" value={extensionRequest.reasonDetails} />
           </div>
         </div>
 
         {expired && (
-          <div data-testid={REVIEW_RENEWAL_EXPIRED_NOTICE_NAME}>
+          <div data-testid={REVIEW_EXTENSION_EXPIRED_NOTICE_NAME}>
             <Notice title={STATE_REQUESTED_DATE_EXPIRED_MESSAGE} variant="error" />
           </div>
         )}
 
         <div className="grid grid-cols-2 gap-sm items-start">
           <Select
-            id={REVIEW_RENEWAL_STATUS_FIELD_NAME}
+            id={REVIEW_EXTENSION_STATUS_FIELD_NAME}
             label="Request Status"
             isRequired
-            options={REVIEW_RENEWAL_OPTIONS}
+            options={REVIEW_EXTENSION_OPTIONS}
             value={formData.decision}
             onSelect={(value) =>
               setFormData((prev) => ({
                 ...prev,
-                decision: value as ReviewRenewalDecision | "",
+                decision: value as ReviewExtensionDecision | "",
                 newDate: value === "Approve With New Date" ? prev.newDate : "",
                 denialDetails: value === "Denied" ? prev.denialDetails : "",
               }))
@@ -247,7 +244,7 @@ export const ReviewRenewalDeliverableDialog: React.FC<ReviewRenewalDeliverableDi
           />
           {formData.decision === "Approve With New Date" && (
             <DatePicker
-              name={REVIEW_RENEWAL_NEW_DATE_FIELD_NAME}
+              name={REVIEW_EXTENSION_NEW_DATE_FIELD_NAME}
               label="New Date"
               isRequired
               value={formData.newDate}
@@ -261,7 +258,7 @@ export const ReviewRenewalDeliverableDialog: React.FC<ReviewRenewalDeliverableDi
 
         {formData.decision === "Denied" && (
           <Textarea
-            name={REVIEW_RENEWAL_DETAILS_FIELD_NAME}
+            name={REVIEW_EXTENSION_DETAILS_FIELD_NAME}
             label="Details"
             isRequired
             value={formData.denialDetails}

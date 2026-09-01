@@ -15,7 +15,7 @@ type DeliverableInfoField = {
     | "Due Date"
     | "Submission Date"
     | "Status"
-    | "Renewal"
+    | "Extension"
     | "Resubmissions Requested"
     | "CMS Owner";
   value: string;
@@ -44,10 +44,10 @@ export const DeliverableInfoFields = ({
 
   const submissionDate = getLatestSubmissionDate(deliverable.deliverableActions);
 
-  const latestRenewal = [...deliverable.renewalRequests].sort((a, b) =>
+  const latestExtension = [...deliverable.extensionRequests].sort((a, b) =>
     compareDesc(a.createdAt, b.createdAt)
   )[0];
-  const renewalValue = latestRenewal?.status ?? "N/A";
+  const extensionValue = latestExtension?.status ?? "N/A";
 
   const baseFields: DeliverableInfoField[] = [
     { label: "Deliverable Type", value: deliverable.deliverableType },
@@ -56,7 +56,7 @@ export const DeliverableInfoFields = ({
     { label: "Status", value: deliverable.status },
   ];
   const additionalFields: DeliverableInfoField[] = [
-    { label: "Renewal", value: renewalValue },
+    { label: "Extension", value: extensionValue },
     { label: "Resubmissions Requested", value: resubmissionsRequested.toString() },
     { label: "CMS Owner", value: deliverable.cmsOwner.person.fullName },
   ];

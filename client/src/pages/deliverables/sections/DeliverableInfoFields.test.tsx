@@ -7,9 +7,7 @@ import { DeliverableInfoFields } from "./DeliverableInfoFields";
 describe("DeliverableInfoFields", () => {
   it("renders the deliverable type", () => {
     render(<DeliverableInfoFields deliverable={MOCK_DELIVERABLE_1} />);
-    expect(screen.getByTestId("deliverable-Deliverable Type")).toHaveTextContent(
-      MOCK_DELIVERABLE_1.deliverableType
-    );
+    expect(screen.getByTestId("deliverable-Deliverable Type")).toHaveTextContent(MOCK_DELIVERABLE_1.deliverableType);
   });
 
   it("renders the due date", () => {
@@ -28,17 +26,11 @@ describe("DeliverableInfoFields", () => {
   });
 
   it("computes and renders the number of resubmissions requested", () => {
-    render(
-      <DeliverableInfoFields
-        deliverable={MOCK_DELIVERABLE_1}
-        showAdditionalDetailsToggle
-        showAdditionalDetails
-      />
-    );
+    render(<DeliverableInfoFields deliverable={MOCK_DELIVERABLE_1} showAdditionalDetailsToggle showAdditionalDetails />);
     expect(screen.getByTestId("deliverable-Resubmissions Requested")).toHaveTextContent("1");
   });
 
-  it("renders Renewal as N/A when there are no renewals", () => {
+  it("renders Extension as N/A when there are no extensions", () => {
     render(
       <DeliverableInfoFields
         deliverable={MOCK_DELIVERABLE_1}
@@ -46,13 +38,13 @@ describe("DeliverableInfoFields", () => {
         showAdditionalDetails
       />
     );
-    expect(screen.getByTestId("deliverable-Renewal")).toHaveTextContent("N/A");
+    expect(screen.getByTestId("deliverable-Extension")).toHaveTextContent("N/A");
   });
 
-  it("renders Renewal status from the most recent renewal", () => {
+  it("renders Extension status from the most recent extension", () => {
     const deliverable = {
       ...MOCK_DELIVERABLE_1,
-      renewalRequests: [
+      extensionRequests: [
         {
           id: "ext-old",
           status: "Approved" as const,
@@ -80,6 +72,6 @@ describe("DeliverableInfoFields", () => {
         showAdditionalDetails
       />
     );
-    expect(screen.getByTestId("deliverable-Renewal")).toHaveTextContent("Requested");
+    expect(screen.getByTestId("deliverable-Extension")).toHaveTextContent("Requested");
   });
 });

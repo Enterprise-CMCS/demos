@@ -28,7 +28,7 @@ const baseDeliverable: Omit<DeliverableTableRow, "id" | "name" | "dueDate" | "st
     },
   },
   demonstrationTypes: [],
-  renewalRequests: [],
+  extensionRequests: [],
   deliverableActions: [],
 };
 
@@ -51,8 +51,8 @@ describe("DemonstrationDeliverableTable", () => {
             ...baseDeliverable,
           },
           {
-            id: "renewal-later",
-            name: "Renewal Later",
+            id: "extension-later",
+            name: "Extension Later",
             dueDate: new Date("2026-05-10"),
             status: "Upcoming",
             ...baseDeliverable,
@@ -65,8 +65,8 @@ describe("DemonstrationDeliverableTable", () => {
             ...baseDeliverable,
           },
           {
-            id: "renewal-earlier",
-            name: "Renewal Earlier",
+            id: "extension-earlier",
+            name: "Extension Earlier",
             dueDate: new Date("2026-04-20"),
             status: "Approved",
             ...baseDeliverable,
@@ -87,10 +87,10 @@ describe("DemonstrationDeliverableTable", () => {
 
     expect(orderedNames).toEqual([
       "Past Due Item",
-      "Renewal Later",
+      "Extension Later",
       "Upcoming Item",
       "Submitted Item",
-      "Renewal Earlier",
+      "Extension Earlier",
     ]);
   });
 

@@ -11,14 +11,14 @@ vi.mock("components/dialog/DialogContext", () => ({
 }));
 
 const mockDeliverable: Pick<Deliverable, "id" | "status"> & {
-  renewalRequests: Pick<DeliverableExtension, "status">[];
+  extensionRequests: Pick<DeliverableExtension, "status">[];
   stateDocuments: {
     deliverableSubmissionAction: object | null;
   }[];
 } = {
   id: "deliverable-1",
   status: "Under CMS Review",
-  renewalRequests: [],
+  extensionRequests: [],
   stateDocuments: [{ deliverableSubmissionAction: {} }],
 };
 
@@ -44,14 +44,14 @@ describe("CompleteReviewButton", () => {
     expect(button).toHaveAttribute("title", COMPLETE_REVIEW_BUTTON.ineligibleStatusTooltip);
   });
 
-  it("disables the button when there is an open renewal request", () => {
+  it("disables the button when there is an open extension request", () => {
     setup({
-      renewalRequests: [{ status: "Requested" }, { status: "Approved" }],
+      extensionRequests: [{ status: "Requested" }, { status: "Approved" }],
     });
 
     const button = screen.getByTestId(COMPLETE_REVIEW_BUTTON.name);
     expect(button).toBeDisabled();
-    expect(button).toHaveAttribute("title", COMPLETE_REVIEW_BUTTON.activeRenewalRequestTooltip);
+    expect(button).toHaveAttribute("title", COMPLETE_REVIEW_BUTTON.activeExtensionRequestTooltip);
   });
 
   it("disables the button when not all documents are submitted", () => {
@@ -64,7 +64,7 @@ describe("CompleteReviewButton", () => {
     expect(button).toHaveAttribute("title", COMPLETE_REVIEW_BUTTON.unsubmittedFilesTooltip);
   });
 
-  it("enables the button when deliverable is in eligible status, has no open renewal requests, and all documents are submitted", () => {
+  it("enables the button when deliverable is in eligible status, has no open extension requests, and all documents are submitted", () => {
     setup();
 
     const button = screen.getByTestId(COMPLETE_REVIEW_BUTTON.name);

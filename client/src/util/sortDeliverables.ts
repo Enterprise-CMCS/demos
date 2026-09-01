@@ -4,7 +4,7 @@ type SortableDeliverable = {
   id: string;
   status: string;
   dueDate: string | Date;
-  renewalRequests?: {
+  extensionRequests?: {
     status: string;
   }[];
 };
@@ -19,7 +19,9 @@ const STATUS_ORDER = [
   "Received and Filed",
 ] as const;
 
-const STATUS_RANK = new Map(DELIVERABLE_STATUSES.map((status, index) => [status, 100 + index]));
+const STATUS_RANK = new Map(
+  DELIVERABLE_STATUSES.map((status, index) => [status, 100 + index])
+);
 
 STATUS_ORDER.forEach((status, index) => {
   STATUS_RANK.set(status, index);
@@ -41,29 +43,29 @@ const compareDueDateAsc = (firstDate: string | Date, secondDate: string | Date) 
   return String(firstDate).localeCompare(String(secondDate));
 };
 
-const hasRequestedRenewal = (deliverable: SortableDeliverable): boolean =>
-  deliverable.renewalRequests?.some((request) => request.status === "Requested") ?? false;
+const hasRequestedExtension = (deliverable: SortableDeliverable): boolean =>
+  deliverable.extensionRequests?.some((request) => request.status === "Requested") ?? false;
 
 export const sortDeliverablesByDefault = <T extends SortableDeliverable>(
   deliverables: T[]
 ): T[] => {
   return [...deliverables].sort((firstDel, secondDel) => {
     const dueDateCompare = compareDueDateAsc(firstDel.dueDate, secondDel.dueDate);
-    const firstHasRequestedRenewal = hasRequestedRenewal(firstDel);
-    const secondHasRequestedRenewal = hasRequestedRenewal(secondDel);
+    const firstHasRequestedExtension = hasRequestedExtension(firstDel);
+    const secondHasRequestedExtension = hasRequestedExtension(secondDel);
 
-    if (firstHasRequestedRenewal !== secondHasRequestedRenewal) {
-      return firstHasRequestedRenewal ? -1 : 1;
+    if (firstHasRequestedExtension !== secondHasRequestedExtension) {
+      return firstHasRequestedExtension ? -1 : 1;
     }
 
-    if (firstHasRequestedRenewal && secondHasRequestedRenewal) {
+    if (firstHasRequestedExtension && secondHasRequestedExtension) {
       return dueDateCompare || firstDel.id.localeCompare(secondDel.id);
     }
 
     const aRank =
-      STATUS_RANK.get(firstDel.status as (typeof STATUS_ORDER)[number]) ?? Number.MAX_SAFE_INTEGER;
+      STATUS_RANK.get(firstDel.status as typeof STATUS_ORDER[number]) ?? Number.MAX_SAFE_INTEGER;
     const bRank =
-      STATUS_RANK.get(secondDel.status as (typeof STATUS_ORDER)[number]) ?? Number.MAX_SAFE_INTEGER;
+      STATUS_RANK.get(secondDel.status as typeof STATUS_ORDER[number]) ?? Number.MAX_SAFE_INTEGER;
 
     if (aRank !== bRank) {
       return aRank - bRank;

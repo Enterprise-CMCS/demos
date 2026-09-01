@@ -221,7 +221,7 @@ describe("DeliverableTable", () => {
       formatDeliverableStatus({
         status: "Accepted",
         deliverableActions: [],
-        renewalRequests: [],
+        extensionRequests: [],
       })
     ).toBe("Accepted");
 
@@ -229,7 +229,7 @@ describe("DeliverableTable", () => {
       formatDeliverableStatus({
         status: "Approved",
         deliverableActions: [],
-        renewalRequests: [
+        extensionRequests: [
           {
             id: "1",
             status: "Requested",
@@ -248,7 +248,7 @@ describe("DeliverableTable", () => {
             actionTimestamp: new Date("2024-01-01T00:00:00Z"),
           },
         ],
-        renewalRequests: [
+        extensionRequests: [
           {
             id: "1",
             status: "Requested",
@@ -258,29 +258,29 @@ describe("DeliverableTable", () => {
     ).toBe("Received and Filed");
   });
 
-  it("renders base status when there are no resubmissions or open renewal requests", () => {
+  it("renders base status when there are no resubmissions or open extension requests", () => {
     expect(
       formatDeliverableStatus({
         status: "Submitted",
         deliverableActions: [],
-        renewalRequests: [],
+        extensionRequests: [],
       })
     ).toBe("Submitted");
   });
 
-  it("renders renewal requested suffix when a renewal request is open", () => {
+  it("renders extension requested suffix when an extension request is open", () => {
     expect(
       formatDeliverableStatus({
         status: "Submitted",
         deliverableActions: [],
-        renewalRequests: [
+        extensionRequests: [
           {
             id: "1",
             status: "Requested",
           },
         ],
       })
-    ).toBe("Submitted - Renewal Requested");
+    ).toBe("Submitted - Extension Requested");
   });
 
   it("renders resubmission count when resubmissions have been requested", () => {
@@ -299,12 +299,12 @@ describe("DeliverableTable", () => {
             actionTimestamp: new Date("2024-01-02T00:00:00Z"),
           },
         ],
-        renewalRequests: [],
+        extensionRequests: [],
       })
     ).toBe("Submitted (2)");
   });
 
-  it("renders both resubmission count and renewal requested suffix", () => {
+  it("renders both resubmission count and extension requested suffix", () => {
     expect(
       formatDeliverableStatus({
         status: "Under CMS Review",
@@ -315,22 +315,22 @@ describe("DeliverableTable", () => {
             actionTimestamp: new Date("2024-01-01T00:00:00Z"),
           },
         ],
-        renewalRequests: [
+        extensionRequests: [
           {
             id: "1",
             status: "Requested",
           },
         ],
       })
-    ).toBe("Under CMS Review (1) - Renewal Requested");
+    ).toBe("Under CMS Review (1) - Extension Requested");
   });
 
-  it("ignores non-requested renewal request statuses", () => {
+  it("ignores non-requested extension request statuses", () => {
     expect(
       formatDeliverableStatus({
         status: "Submitted",
         deliverableActions: [],
-        renewalRequests: [
+        extensionRequests: [
           {
             id: "1",
             status: "Approved",
@@ -351,7 +351,7 @@ describe("DeliverableTable", () => {
             actionTimestamp: new Date("2024-01-01T00:00:00Z"),
           },
         ],
-        renewalRequests: [],
+        extensionRequests: [],
       })
     ).toBe("Submitted");
   });

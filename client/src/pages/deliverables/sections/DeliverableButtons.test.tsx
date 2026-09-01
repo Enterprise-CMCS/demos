@@ -4,7 +4,10 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DeliverableStatus } from "demos-server";
 
-import { DeliverableButtons, REQUEST_RENEWAL_BUTTON_NAME } from "./DeliverableButtons";
+import {
+  DeliverableButtons,
+  REQUEST_EXTENSION_BUTTON_NAME,
+} from "./DeliverableButtons";
 import { MOCK_DELIVERABLE_1 } from "mock-data/deliverableMocks";
 import { DeliverableDetailsManagementDeliverable } from "../DeliverableDetailsManagementPage";
 import { TestProvider } from "test-utils/TestProvider";
@@ -12,7 +15,7 @@ import { DialogProvider } from "components/dialog/DialogContext";
 import { CurrentUser } from "components/user/UserContext";
 import { developmentMockUser } from "mock-data/userMocks";
 
-const mockShowRequestRenewalDeliverableDialog = vi.fn();
+const mockShowRequestExtensionDeliverableDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", async () => {
   const actual = await vi.importActual<typeof import("components/dialog/DialogContext")>(
     "components/dialog/DialogContext"
@@ -21,7 +24,7 @@ vi.mock("components/dialog/DialogContext", async () => {
     ...actual,
     useDialog: () => ({
       ...actual.useDialog,
-      showRequestRenewalDeliverableDialog: mockShowRequestRenewalDeliverableDialog,
+      showRequestExtensionDeliverableDialog: mockShowRequestExtensionDeliverableDialog,
       closeDialog: vi.fn(),
     }),
   };
@@ -49,41 +52,47 @@ const renderButtons = (
   render(
     <TestProvider currentUser={buildCurrentUser(personType)}>
       <DialogProvider>
-        <DeliverableButtons deliverable={deliverable} />
+        <DeliverableButtons
+          deliverable={deliverable}
+        />
       </DialogProvider>
     </TestProvider>
   );
 
 describe("DeliverableButtons", () => {
   beforeEach(() => {
-    mockShowRequestRenewalDeliverableDialog.mockClear();
+    mockShowRequestExtensionDeliverableDialog.mockClear();
   });
 
-  it("renders the Request Renewal button for state users", () => {
+  it("renders the Request Extension button for state users", () => {
     renderButtons(buildDeliverable(), "demos-state-user");
-    expect(screen.getByTestId(REQUEST_RENEWAL_BUTTON_NAME)).toHaveTextContent("Request Renewal");
+    expect(screen.getByTestId(REQUEST_EXTENSION_BUTTON_NAME)).toHaveTextContent(
+      "Request Extension"
+    );
   });
 
-  it("renders the Request Renewal button for admin users", () => {
+  it("renders the Request Extension button for admin users", () => {
     renderButtons(buildDeliverable(), "demos-admin");
-    expect(screen.getByTestId(REQUEST_RENEWAL_BUTTON_NAME)).toHaveTextContent("Request Renewal");
+    expect(screen.getByTestId(REQUEST_EXTENSION_BUTTON_NAME)).toHaveTextContent(
+      "Request Extension"
+    );
   });
 
-  it("does not render the Request Renewal button for CMS users", () => {
+  it("does not render the Request Extension button for CMS users", () => {
     renderButtons(buildDeliverable(), "demos-cms-user");
-    expect(screen.queryByTestId(REQUEST_RENEWAL_BUTTON_NAME)).not.toBeInTheDocument();
+    expect(screen.queryByTestId(REQUEST_EXTENSION_BUTTON_NAME)).not.toBeInTheDocument();
   });
 
-  it("renders the Request Renewal button enabled for Upcoming deliverables", () => {
+  it("renders the Request Extension button enabled for Upcoming deliverables", () => {
     renderButtons(buildDeliverable({ status: "Upcoming" }));
-    const button = screen.getByTestId(REQUEST_RENEWAL_BUTTON_NAME);
-    expect(button).toHaveTextContent("Request Renewal");
+    const button = screen.getByTestId(REQUEST_EXTENSION_BUTTON_NAME);
+    expect(button).toHaveTextContent("Request Extension");
     expect(button).toBeEnabled();
   });
 
-  it("renders the Request Renewal button enabled for Past Due deliverables", () => {
+  it("renders the Request Extension button enabled for Past Due deliverables", () => {
     renderButtons(buildDeliverable({ status: "Past Due" }));
-    expect(screen.getByTestId(REQUEST_RENEWAL_BUTTON_NAME)).toBeEnabled();
+    expect(screen.getByTestId(REQUEST_EXTENSION_BUTTON_NAME)).toBeEnabled();
   });
 
   it.each<DeliverableStatus>([
@@ -92,18 +101,18 @@ describe("DeliverableButtons", () => {
     "Accepted",
     "Approved",
     "Received and Filed",
-  ])("disables the Request Renewal button when status is %s", (status) => {
+  ])("disables the Request Extension button when status is %s", (status) => {
     renderButtons(buildDeliverable({ status }));
-    const button = screen.getByTestId(REQUEST_RENEWAL_BUTTON_NAME);
+    const button = screen.getByTestId(REQUEST_EXTENSION_BUTTON_NAME);
     expect(button).toBeInTheDocument();
     expect(button).toBeDisabled();
   });
 
-  it("disables the Request Renewal button when a renewal is already Requested", () => {
+  it("disables the Request Extension button when an extension is already Requested", () => {
     renderButtons(
       buildDeliverable({
         status: "Upcoming",
-        renewalRequests: [
+        extensionRequests: [
           {
             id: "ext-1",
             status: "Requested",
@@ -116,27 +125,27 @@ describe("DeliverableButtons", () => {
         ],
       })
     );
-    expect(screen.getByTestId(REQUEST_RENEWAL_BUTTON_NAME)).toBeDisabled();
+    expect(screen.getByTestId(REQUEST_EXTENSION_BUTTON_NAME)).toBeDisabled();
   });
 
-  it("opens the Request Renewal dialog when clicked", async () => {
+  it("opens the Request Extension dialog when clicked", async () => {
     const user = userEvent.setup();
     renderButtons(buildDeliverable({ status: "Upcoming" }));
 
-    await user.click(screen.getByTestId(REQUEST_RENEWAL_BUTTON_NAME));
+    await user.click(screen.getByTestId(REQUEST_EXTENSION_BUTTON_NAME));
 
-    expect(mockShowRequestRenewalDeliverableDialog).toHaveBeenCalledWith({
+    expect(mockShowRequestExtensionDeliverableDialog).toHaveBeenCalledWith({
       id: MOCK_DELIVERABLE_1.id,
       dueDate: MOCK_DELIVERABLE_1.dueDate,
     });
   });
 
-  it("does not open the Request Renewal dialog when the button is disabled", async () => {
+  it("does not open the Request Extension dialog when the button is disabled", async () => {
     const user = userEvent.setup();
     renderButtons(buildDeliverable({ status: "Approved" }));
 
-    await user.click(screen.getByTestId(REQUEST_RENEWAL_BUTTON_NAME));
+    await user.click(screen.getByTestId(REQUEST_EXTENSION_BUTTON_NAME));
 
-    expect(mockShowRequestRenewalDeliverableDialog).not.toHaveBeenCalled();
+    expect(mockShowRequestExtensionDeliverableDialog).not.toHaveBeenCalled();
   });
 });

@@ -18,7 +18,7 @@ import { isDeliverableEditable } from "components/dialog/deliverable";
 import { useDialog } from "components/dialog/DialogContext";
 import { CommentBox } from "./sections/comment_box";
 import { DeliverableInfoFields } from "./sections/DeliverableInfoFields";
-import { RenewalRequestedNotice } from "./sections/RenewalRequestedNotice";
+import { ExtensionRequestedNotice } from "./sections/ExtensionRequestedNotice";
 import { FileAndHistoryTabs } from "./fileAndHistoryTabs/FileAndHistoryTabs";
 import { PendingReviewNotice } from "./sections/PendingReviewNotice";
 import { DeliverableButtons } from "./sections/DeliverableButtons";
@@ -39,12 +39,12 @@ const REVIEW_STARTER_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
   "demos-cms-user",
 ]);
 
-const RENEWAL_REVIEWER_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
+const EXTENSION_REVIEWER_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
   "demos-admin",
   "demos-cms-user",
 ]);
 
-// State users only get the Request Renewal action; edit/delete is hidden for them.
+// State users only get the Request Extension action; edit/delete is hidden for them.
 const EDIT_DELETE_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
   "demos-admin",
   "demos-cms-user",
@@ -127,7 +127,7 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
         userFullName
         details
       }
-      renewalRequests: extensionRequests {
+      extensionRequests {
         id
         status
         reasonCode
@@ -146,7 +146,7 @@ export type DeliverableDetailsManagementDeliverable = Pick<
 > & {
   allowedDocumentTypes: DocumentType[];
   demonstration: Pick<Demonstration, "id" | "name" | "expirationDate"> & {
-    state: { id: string; name: string };
+    state: { id: string, name: string };
     demonstrationTypes: {
       demonstrationTypeName: string;
       approvalStatus: "Approved" | "Unapproved";
@@ -160,7 +160,7 @@ export type DeliverableDetailsManagementDeliverable = Pick<
     DeliverableAction,
     "id" | "actionType" | "actionTimestamp" | "userFullName" | "details"
   >[];
-  renewalRequests: Pick<
+  extensionRequests: Pick<
     DeliverableExtension,
     | "id"
     | "status"
@@ -178,7 +178,7 @@ export const DeliverableDetailsManagementPage: React.FC<{
 }> = ({ deliverableId, onBack }) => {
   const { currentUser } = getCurrentUser();
   const { showSuccess, showError } = useToast();
-  const { showEditDeliverableDialog, showReviewRenewalDeliverableDialog } = useDialog();
+  const { showEditDeliverableDialog, showReviewExtensionDeliverableDialog } = useDialog();
   const navigate = useNavigate();
   const { deliverableId: routeDeliverableId } = useParams<{ deliverableId?: string }>();
   const resolvedDeliverableId = deliverableId ?? routeDeliverableId;
@@ -265,26 +265,26 @@ export const DeliverableDetailsManagementPage: React.FC<{
         (a, b) => new Date(b.actionTimestamp).getTime() - new Date(a.actionTimestamp).getTime()
       )[0]?.userFullName ?? "State User";
 
-  const pendingRenewalRequest =
-    data.deliverable.renewalRequests.find((e) => e.status === "Requested") ?? null;
+  const pendingExtensionRequest =
+    data.deliverable.extensionRequests.find((e) => e.status === "Requested") ?? null;
 
-  const requestRenewalActions = data.deliverable.deliverableActions.filter(
+  const requestExtensionActions = data.deliverable.deliverableActions.filter(
     (a) => a.actionType === "Requested Extension"
   );
-  const renewalRequesterName =
-    requestRenewalActions[requestRenewalActions.length - 1]?.userFullName ?? "State User";
+  const extensionRequesterName =
+    requestExtensionActions[requestExtensionActions.length - 1]?.userFullName ?? "State User";
 
-  const canReviewRenewal =
-    RENEWAL_REVIEWER_PERSON_TYPES.has(userPersonType) && pendingRenewalRequest !== null;
+  const canReviewExtension =
+    EXTENSION_REVIEWER_PERSON_TYPES.has(userPersonType) && pendingExtensionRequest !== null;
   const canEditDelete = EDIT_DELETE_PERSON_TYPES.has(userPersonType);
 
-  const handleReviewRenewalRequest = () => {
-    if (!pendingRenewalRequest) return;
+  const handleReviewExtensionRequest = () => {
+    if (!pendingExtensionRequest) return;
     const { id, reasonCode, reasonDetails, initialDueDateAtRequest, originalDateRequested } =
-      pendingRenewalRequest;
-    showReviewRenewalDeliverableDialog({
+      pendingExtensionRequest;
+    showReviewExtensionDeliverableDialog({
       id: data.deliverable.id,
-      renewalRequest: {
+      extensionRequest: {
         id,
         reasonCode,
         reasonDetails,
@@ -328,10 +328,10 @@ export const DeliverableDetailsManagementPage: React.FC<{
             isSubmitting={startReviewLoading}
           />
         ) : null}
-        {canReviewRenewal ? (
-          <RenewalRequestedNotice
-            requesterName={renewalRequesterName}
-            onReviewRequest={handleReviewRenewalRequest}
+        {canReviewExtension ? (
+          <ExtensionRequestedNotice
+            requesterName={extensionRequesterName}
+            onReviewRequest={handleReviewExtensionRequest}
           />
         ) : null}
         <div className="flex w-full gap-2 flex-1">

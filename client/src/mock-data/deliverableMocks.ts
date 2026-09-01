@@ -34,7 +34,7 @@ export const MOCK_DELIVERABLE_TABLE_ROW: DeliverableTableRow = {
   status: "Upcoming",
   demonstrationTypes: [],
   deliverableActions: [],
-  renewalRequests: [],
+  extensionRequests: [],
 };
 
 export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
@@ -105,7 +105,7 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
         "Old Due Date: 03/15/2026\nNew Due Date: 04/15/2026\nReason Details: Please resubmit with corrected figures.",
     },
   ],
-  renewalRequests: [],
+  extensionRequests: [],
 };
 
 export const deliverableMocks: MockedResponse[] = [

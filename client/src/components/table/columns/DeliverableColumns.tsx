@@ -24,13 +24,13 @@ type DeliverableColumnsProps = {
 
 const COMBINED_STATUS_OPTIONS = [
   "Upcoming",
-  "Upcoming - Renewal Requested",
+  "Upcoming - Extension Requested",
   "Submitted",
-  "Submitted - Renewal Requested",
+  "Submitted - Extension Requested",
   "Past Due",
-  "Past Due - Renewal Requested",
+  "Past Due - Extension Requested",
   "Under CMS Review",
-  "Under CMS Review - Renewal Requested",
+  "Under CMS Review - Extension Requested",
   "Approved",
   "Accepted",
   "Received and Filed",

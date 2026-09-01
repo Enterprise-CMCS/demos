@@ -45,7 +45,7 @@ export const DEMONSTRATION_DELIVERABLE_TAB = gql`
           tagName
           approvalStatus
         }
-        renewalRequests: extensionRequests {
+        extensionRequests {
           id
           status
         }
