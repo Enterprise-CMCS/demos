@@ -1310,6 +1310,89 @@ CREATE TRIGGER log_changes_document_pending_upload
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.document_pending_upload
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_document_pending_upload();
 
+CREATE FUNCTION demos_app.log_changes_email_notification()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.email_notification_history (
+            revision_type,
+            id,
+            email_type_id,
+            entity_type,
+            entity_id,
+            source_action_id,
+            triggered_by_user_id,
+            status_id,
+            idempotency_key,
+            payload,
+            sqs_message_id,
+            last_error,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.email_type_id,
+            NEW.entity_type,
+            NEW.entity_id,
+            NEW.source_action_id,
+            NEW.triggered_by_user_id,
+            NEW.status_id,
+            NEW.idempotency_key,
+            NEW.payload,
+            NEW.sqs_message_id,
+            NEW.last_error,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.email_notification_history (
+            revision_type,
+            id,
+            email_type_id,
+            entity_type,
+            entity_id,
+            source_action_id,
+            triggered_by_user_id,
+            status_id,
+            idempotency_key,
+            payload,
+            sqs_message_id,
+            last_error,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.email_type_id,
+            OLD.entity_type,
+            OLD.entity_id,
+            OLD.source_action_id,
+            OLD.triggered_by_user_id,
+            OLD.status_id,
+            OLD.idempotency_key,
+            OLD.payload,
+            OLD.sqs_message_id,
+            OLD.last_error,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER log_changes_email_notification
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.email_notification
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_email_notification();
+
 CREATE FUNCTION demos_app.log_changes_extension()
 RETURNS TRIGGER AS $$
 BEGIN

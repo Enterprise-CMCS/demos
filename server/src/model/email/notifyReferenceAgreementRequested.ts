@@ -1,6 +1,6 @@
 import { log } from "../../log";
 import { prisma } from "../../prismaClient";
-import { enqueueEmail } from "../../services/emailQueue";
+import { enqueueTrackedRealtimeEmail } from "./emailNotification";
 
 type NotifyReferenceAgreementRequestedInput = {
   referenceConfigurationId: string;
@@ -23,29 +23,33 @@ export async function notifyReferenceAgreementRequested(
       );
     }
 
-    const messageId = await enqueueEmail({
-      emailType: "Terms And Conditions Requested",
-      entityType: "reference",
-      entityId: input.referenceConfigurationId,
-      triggeredBy: {
-        type: "realtime",
-        id: input.triggeredByUserId,
-      },
-      triggeredAt: input.triggeredAt.toISOString(),
-      idempotencyKey:
-        "Terms And Conditions Requested:reference-agreement-acceptance:" +
-        `${input.referenceConfigurationId}:${input.triggeredByUserId}:${input.triggeredAt.toISOString()}`,
-      payload: {
-        recipients: {
-          to: [
-            {
-              name: `${user.person.firstName} ${user.person.lastName}`.trim(),
-              address,
-            },
-          ],
+    const messageId = await enqueueTrackedRealtimeEmail(
+      {
+        emailType: "Terms And Conditions Requested",
+        entityType: "reference",
+        entityId: input.referenceConfigurationId,
+        triggeredBy: {
+          type: "realtime",
+          id: input.triggeredByUserId,
+        },
+        triggeredAt: input.triggeredAt.toISOString(),
+        idempotencyKey:
+          "Terms And Conditions Requested:reference-agreement-acceptance:" +
+          `${input.referenceConfigurationId}:${input.triggeredByUserId}:${input.triggeredAt.toISOString()}`,
+        payload: {
+          recipients: {
+            to: [
+              {
+                name: `${user.person.firstName} ${user.person.lastName}`.trim(),
+                address,
+              },
+            ],
+          },
         },
       },
-    });
+      undefined,
+      [{ personId: user.person.id, emailAddress: address }],
+    );
 
     log.info(
       {

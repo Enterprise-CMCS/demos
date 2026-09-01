@@ -8,6 +8,7 @@ import { PRIMARY_AWS_REGION } from "../constants";
 import { log } from "../log";
 
 export type RealtimeEmailMessage = {
+  emailNotificationId?: string;
   emailType: "Deliverable Created" | "Terms And Conditions Requested";
   entityType: "deliverable" | "reference";
   entityId: string;

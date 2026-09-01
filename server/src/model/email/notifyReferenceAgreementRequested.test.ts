@@ -4,8 +4,8 @@ vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
-vi.mock("../../services/emailQueue", () => ({
-  enqueueEmail: vi.fn(),
+vi.mock("./emailNotification", () => ({
+  enqueueTrackedRealtimeEmail: vi.fn(),
 }));
 
 vi.mock("../../log", () => ({
@@ -17,7 +17,7 @@ vi.mock("../../log", () => ({
 
 import { log } from "../../log";
 import { prisma } from "../../prismaClient";
-import { enqueueEmail } from "../../services/emailQueue";
+import { enqueueTrackedRealtimeEmail } from "./emailNotification";
 import { notifyReferenceAgreementRequested } from "./notifyReferenceAgreementRequested";
 
 describe("notifyReferenceAgreementRequested", () => {
@@ -35,12 +35,13 @@ describe("notifyReferenceAgreementRequested", () => {
     } as any);
     findUniqueOrThrow.mockResolvedValue({
       person: {
+        id: "person-1",
         firstName: "Dustin",
         lastName: "Horning",
         email: " dustin@example.com ",
       },
     });
-    vi.mocked(enqueueEmail).mockResolvedValue("message-1");
+    vi.mocked(enqueueTrackedRealtimeEmail).mockResolvedValue("message-1");
   });
 
   it("queues identifiers and recipients without reference document data", async () => {
@@ -50,34 +51,38 @@ describe("notifyReferenceAgreementRequested", () => {
       where: { id: input.triggeredByUserId },
       include: { person: true },
     });
-    expect(enqueueEmail).toHaveBeenCalledExactlyOnceWith({
-      emailType: "Terms And Conditions Requested",
-      entityType: "reference",
-      entityId: input.referenceConfigurationId,
-      triggeredBy: {
-        type: "realtime",
-        id: input.triggeredByUserId,
-      },
-      triggeredAt: input.triggeredAt.toISOString(),
-      idempotencyKey:
-        "Terms And Conditions Requested:reference-agreement-acceptance:" +
-        `${input.referenceConfigurationId}:${input.triggeredByUserId}:${input.triggeredAt.toISOString()}`,
-      payload: {
-        recipients: {
-          to: [{ name: "Dustin Horning", address: "dustin@example.com" }],
+    expect(enqueueTrackedRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
+      {
+        emailType: "Terms And Conditions Requested",
+        entityType: "reference",
+        entityId: input.referenceConfigurationId,
+        triggeredBy: {
+          type: "realtime",
+          id: input.triggeredByUserId,
+        },
+        triggeredAt: input.triggeredAt.toISOString(),
+        idempotencyKey:
+          "Terms And Conditions Requested:reference-agreement-acceptance:" +
+          `${input.referenceConfigurationId}:${input.triggeredByUserId}:${input.triggeredAt.toISOString()}`,
+        payload: {
+          recipients: {
+            to: [{ name: "Dustin Horning", address: "dustin@example.com" }],
+          },
         },
       },
-    });
+      undefined,
+      [{ personId: "person-1", emailAddress: "dustin@example.com" }],
+    );
   });
 
   it("reports a missing registered email without queueing", async () => {
     findUniqueOrThrow.mockResolvedValue({
-      person: { firstName: "Dustin", lastName: "Horning", email: " " },
+      person: { id: "person-1", firstName: "Dustin", lastName: "Horning", email: " " },
     });
 
     await notifyReferenceAgreementRequested(input);
 
-    expect(enqueueEmail).not.toHaveBeenCalled();
+    expect(enqueueTrackedRealtimeEmail).not.toHaveBeenCalled();
     expect(log.error).toHaveBeenCalledWith(
       expect.objectContaining({
         error: expect.objectContaining({

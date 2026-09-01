@@ -1,7 +1,7 @@
 import { CMS_USER_DEMONSTRATION_ROLES } from "../../constants";
 import { log } from "../../log";
 import { prisma } from "../../prismaClient";
-import { enqueueEmail } from "../../services/emailQueue";
+import { enqueueTrackedRealtimeEmail } from "./emailNotification";
 
 type NotifyDeliverableCreatedInput = {
   deliverableId: string;
@@ -10,6 +10,7 @@ type NotifyDeliverableCreatedInput = {
 };
 
 type Recipient = {
+  personId: string;
   name: string;
   address: string;
 };
@@ -41,35 +42,42 @@ export async function notifyDeliverableCreated(
       ),
     ]);
 
-    const messageId = await enqueueEmail({
-      emailType: "Deliverable Created",
-      entityType: "deliverable",
-      entityId: deliverable.id,
-      triggeredBy: {
-        type: "realtime",
-        id: input.triggeredByUserId,
+    const messageId = await enqueueTrackedRealtimeEmail(
+      {
+        emailType: "Deliverable Created",
+        entityType: "deliverable",
+        entityId: deliverable.id,
+        triggeredBy: {
+          type: "realtime",
+          id: input.triggeredByUserId,
+        },
+        triggeredAt: new Date().toISOString(),
+        idempotencyKey: `Deliverable Created:deliverable-action:${input.sourceActionId}`,
+        payload: {
+          recipients: {
+            to: [],
+            bcc: recipients.map(({ name, address }) => ({ name, address })),
+          },
+          demonstration: {
+            id: deliverable.demonstration.id,
+            name: deliverable.demonstration.name,
+            stateId: deliverable.demonstration.stateId,
+          },
+          deliverable: {
+            id: deliverable.id,
+            name: deliverable.name,
+            deliverableTypeId: deliverable.deliverableTypeId,
+            dueDate: deliverable.dueDate.toISOString(),
+            statusId: deliverable.statusId,
+          },
+        },
       },
-      triggeredAt: new Date().toISOString(),
-      idempotencyKey: `Deliverable Created:deliverable-action:${input.sourceActionId}`,
-      payload: {
-        recipients: {
-          to: [],
-          bcc: recipients,
-        },
-        demonstration: {
-          id: deliverable.demonstration.id,
-          name: deliverable.demonstration.name,
-          stateId: deliverable.demonstration.stateId,
-        },
-        deliverable: {
-          id: deliverable.id,
-          name: deliverable.name,
-          deliverableTypeId: deliverable.deliverableTypeId,
-          dueDate: deliverable.dueDate.toISOString(),
-          statusId: deliverable.statusId,
-        },
-      },
-    });
+      input.sourceActionId,
+      recipients.map(({ personId, address }) => ({
+        personId,
+        emailAddress: address,
+      })),
+    );
 
     log.info(
       {
@@ -112,6 +120,7 @@ function deduplicateRecipients(
     const normalizedAddress = address.toLowerCase();
     if (!recipients.has(normalizedAddress)) {
       recipients.set(normalizedAddress, {
+        personId: person.id,
         name: `${person.firstName} ${person.lastName}`.trim(),
         address,
       });

@@ -261,7 +261,9 @@ async function seedDeliverables(actionUserId: string, actionUserPersonTypeId: Pe
         .slice(0, 10) as CreateDeliverableInput["dueDate"],
       demonstrationTypes: selectedDemonstrationTypes,
     };
-    createdDeliverables.push(await createDeliverable(createInput, context));
+    createdDeliverables.push(
+      await createDeliverable(createInput, context, { sendEmailNotifications: false })
+    );
   }
   return createdDeliverables;
 }
@@ -807,6 +809,8 @@ async function clearDatabase() {
     prisma().uiPathValue.deleteMany(),
     prisma().uiPathResult.deleteMany(),
     prisma().document.deleteMany(),
+    prisma().emailNotificationRecipient.deleteMany(),
+    prisma().emailNotification.deleteMany(),
     prisma().deliverableAction.deleteMany(),
     prisma().deliverableExtension.deleteMany(),
     prisma().deliverable.deleteMany(),

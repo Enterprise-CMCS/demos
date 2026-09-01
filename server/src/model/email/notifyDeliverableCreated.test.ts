@@ -4,8 +4,8 @@ vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
-vi.mock("../../services/emailQueue", () => ({
-  enqueueEmail: vi.fn(),
+vi.mock("./emailNotification", () => ({
+  enqueueTrackedRealtimeEmail: vi.fn(),
 }));
 
 vi.mock("../../log", () => ({
@@ -17,8 +17,8 @@ vi.mock("../../log", () => ({
 
 import { log } from "../../log";
 import { prisma } from "../../prismaClient";
-import { enqueueEmail } from "../../services/emailQueue";
 import { CMS_USER_DEMONSTRATION_ROLES } from "../../constants";
+import { enqueueTrackedRealtimeEmail } from "./emailNotification";
 import { notifyDeliverableCreated } from "./notifyDeliverableCreated";
 
 describe("notifyDeliverableCreated", () => {
@@ -73,7 +73,7 @@ describe("notifyDeliverableCreated", () => {
       deliverable: { findUniqueOrThrow },
     } as any);
     findUniqueOrThrow.mockResolvedValue(deliverable);
-    vi.mocked(enqueueEmail).mockResolvedValue("message-1");
+    vi.mocked(enqueueTrackedRealtimeEmail).mockResolvedValue("message-1");
   });
 
   it("queues one email with the deliverable and deduplicated recipients", async () => {
@@ -95,38 +95,45 @@ describe("notifyDeliverableCreated", () => {
         }),
       }),
     );
-    expect(enqueueEmail).toHaveBeenCalledExactlyOnceWith({
-      emailType: "Deliverable Created",
-      entityType: "deliverable",
-      entityId: deliverable.id,
-      triggeredBy: {
-        type: "realtime",
-        id: input.triggeredByUserId,
+    expect(enqueueTrackedRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
+      {
+        emailType: "Deliverable Created",
+        entityType: "deliverable",
+        entityId: deliverable.id,
+        triggeredBy: {
+          type: "realtime",
+          id: input.triggeredByUserId,
+        },
+        triggeredAt: expect.any(String),
+        idempotencyKey: "Deliverable Created:deliverable-action:action-1",
+        payload: {
+          recipients: {
+            to: [],
+            bcc: [
+              { name: "CMS Owner", address: "Owner@example.com" },
+              { name: "Project Officer", address: "officer@example.com" },
+            ],
+          },
+          demonstration: {
+            id: deliverable.demonstration.id,
+            name: deliverable.demonstration.name,
+            stateId: deliverable.demonstration.stateId,
+          },
+          deliverable: {
+            id: deliverable.id,
+            name: deliverable.name,
+            deliverableTypeId: deliverable.deliverableTypeId,
+            dueDate: deliverable.dueDate.toISOString(),
+            statusId: deliverable.statusId,
+          },
+        },
       },
-      triggeredAt: expect.any(String),
-      idempotencyKey: "Deliverable Created:deliverable-action:action-1",
-      payload: {
-        recipients: {
-          to: [],
-          bcc: [
-            { name: "CMS Owner", address: "Owner@example.com" },
-            { name: "Project Officer", address: "officer@example.com" },
-          ],
-        },
-        demonstration: {
-          id: deliverable.demonstration.id,
-          name: deliverable.demonstration.name,
-          stateId: deliverable.demonstration.stateId,
-        },
-        deliverable: {
-          id: deliverable.id,
-          name: deliverable.name,
-          deliverableTypeId: deliverable.deliverableTypeId,
-          dueDate: deliverable.dueDate.toISOString(),
-          statusId: deliverable.statusId,
-        },
-      },
-    });
+      input.sourceActionId,
+      [
+        { personId: "owner-1", emailAddress: "Owner@example.com" },
+        { personId: "project-officer", emailAddress: "officer@example.com" },
+      ],
+    );
     expect(log.info).toHaveBeenCalledWith(
       expect.objectContaining({
         messageId: "message-1",
@@ -153,7 +160,7 @@ describe("notifyDeliverableCreated", () => {
 
     await notifyDeliverableCreated(input);
 
-    expect(enqueueEmail).not.toHaveBeenCalled();
+    expect(enqueueTrackedRealtimeEmail).not.toHaveBeenCalled();
     expect(log.error).toHaveBeenCalledWith(
       expect.objectContaining({
         error: expect.objectContaining({

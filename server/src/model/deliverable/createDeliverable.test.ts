@@ -191,4 +191,12 @@ describe("createDeliverable", () => {
       triggeredByUserId: testContext.user!.id,
     });
   });
+
+  it("should not notify recipients when notifications are disabled", async () => {
+    await createDeliverable(testInput, testContext as GraphQLContext, {
+      sendEmailNotifications: false,
+    });
+
+    expect(notifyDeliverableCreated).not.toHaveBeenCalled();
+  });
 });

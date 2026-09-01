@@ -14,7 +14,8 @@ import { notifyDeliverableCreated } from "../email/notifyDeliverableCreated";
 
 export async function createDeliverable(
   input: CreateDeliverableInput,
-  context: GraphQLContext
+  context: GraphQLContext,
+  options: { sendEmailNotifications?: boolean } = {}
 ): Promise<PrismaDeliverable> {
   const currentUserId = context.user.id;
   validateUserPersonTypeAllowed(context, "createDeliverable", ["demos-admin", "demos-cms-user"]);
@@ -53,11 +54,13 @@ export async function createDeliverable(
     };
   });
 
-  await notifyDeliverableCreated({
-    deliverableId: createdDeliverable.id,
-    sourceActionId,
-    triggeredByUserId: currentUserId,
-  });
+  if (options.sendEmailNotifications !== false) {
+    await notifyDeliverableCreated({
+      deliverableId: createdDeliverable.id,
+      sourceActionId,
+      triggeredByUserId: currentUserId,
+    });
+  }
 
   return createdDeliverable;
 }
