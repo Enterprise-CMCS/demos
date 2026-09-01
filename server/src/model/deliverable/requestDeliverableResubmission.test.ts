@@ -28,6 +28,10 @@ vi.mock("../deliverableAction/queries", () => ({
   insertDeliverableAction: vi.fn(),
 }));
 
+vi.mock("../email", () => ({
+  dispatchResubmissionRequestedEmail: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient";
 import {
   editDeliverable,
@@ -38,6 +42,7 @@ import {
   validateUserPersonTypeAllowed,
 } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
+import { dispatchResubmissionRequestedEmail } from "../email";
 
 describe("requestDeliverableResubmission", () => {
   // Test inputs
@@ -71,6 +76,7 @@ describe("requestDeliverableResubmission", () => {
       easternTZDate: new TZDate(2026, 10, 13, 4, 59, 59, 999, "America/New_York"),
     },
   };
+  const mockActionId = "action-1";
 
   // Mock transaction
   const mockTransaction: any = "Test!";
@@ -84,6 +90,7 @@ describe("requestDeliverableResubmission", () => {
     vi.mocked(parseRequestDeliverableResubmissionInput).mockReturnValue(mockParsedInput);
     vi.mocked(selectDeliverableOrThrow).mockResolvedValue(mockUnrequestedDeliverable as PrismaDeliverable);
     vi.mocked(editDeliverable).mockResolvedValue(mockRequestedDeliverable as PrismaDeliverable);
+    vi.mocked(insertDeliverableAction).mockResolvedValue({ id: mockActionId } as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
@@ -195,5 +202,41 @@ describe("requestDeliverableResubmission", () => {
       },
       mockTransaction
     );
+  });
+
+  it("queues a resubmission-requested email after the transaction", async () => {
+    await requestDeliverableResubmission(
+      testDeliverableId,
+      testInput,
+      testContext as GraphQLContext
+    );
+
+    expect(dispatchResubmissionRequestedEmail).toHaveBeenCalledExactlyOnceWith({
+      deliverableId: testDeliverableId,
+      previousDueDate: mockUnrequestedDeliverable.dueDate,
+      sourceActionId: mockActionId,
+      triggeredByUserId: testContext.user!.id,
+    });
+  });
+
+  it("allows the seeder to suppress resubmission-requested emails", async () => {
+    await requestDeliverableResubmission(
+      testDeliverableId,
+      testInput,
+      testContext as GraphQLContext,
+      { sendEmailNotifications: false }
+    );
+
+    expect(dispatchResubmissionRequestedEmail).not.toHaveBeenCalled();
+  });
+
+  it("does not dispatch an email if the transaction fails", async () => {
+    mockPrismaClient.$transaction.mockRejectedValueOnce(new Error("transaction failed"));
+
+    await expect(
+      requestDeliverableResubmission(testDeliverableId, testInput, testContext as GraphQLContext)
+    ).rejects.toThrow("transaction failed");
+
+    expect(dispatchResubmissionRequestedEmail).not.toHaveBeenCalled();
   });
 });

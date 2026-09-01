@@ -10,11 +10,13 @@ import {
 import { prisma } from "../../prismaClient";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 import { insertDeliverableExtension } from "../deliverableExtension/queries";
+import { dispatchExtensionRequestedEmail } from "../email";
 
 export async function requestDeliverableExtension(
   deliverableId: string,
   input: RequestDeliverableExtensionInput,
-  context: GraphQLContext
+  context: GraphQLContext,
+  options: { sendEmailNotifications?: boolean } = {}
 ): Promise<PrismaDeliverable> {
   validateUserPersonTypeAllowed(context, "requestDeliverableExtension", [
     "demos-admin",
@@ -22,7 +24,7 @@ export async function requestDeliverableExtension(
   ]);
   const parsedInput = parseRequestDeliverableExtensionInput(input);
 
-  return await prisma().$transaction(async (tx) => {
+  const { deliverable, sourceActionId } = await prisma().$transaction(async (tx) => {
     const deliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
     await validateRequestDeliverableExtensionInput(deliverable, parsedInput, tx);
 
@@ -37,7 +39,7 @@ export async function requestDeliverableExtension(
     );
 
     // Casts below enforced by database
-    await insertDeliverableAction(
+    const action = await insertDeliverableAction(
       {
         deliverableId: deliverableId,
         actionType: "Requested Extension",
@@ -50,6 +52,20 @@ export async function requestDeliverableExtension(
       },
       tx
     );
-    return deliverable;
+    return {
+      deliverable,
+      sourceActionId: action.id,
+    };
   });
+
+  if (options.sendEmailNotifications !== false) {
+    await dispatchExtensionRequestedEmail({
+      deliverableId,
+      requestedDueDate: parsedInput.requestedDueDate.easternTZDate,
+      sourceActionId,
+      triggeredByUserId: context.user.id,
+    });
+  }
+
+  return deliverable;
 }

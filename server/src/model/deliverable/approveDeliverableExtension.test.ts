@@ -41,6 +41,10 @@ vi.mock("../../errors/checkOptionalNotNullFields", () => ({
   checkOptionalNotNullFields: vi.fn(),
 }));
 
+vi.mock("../email", () => ({
+  dispatchExtensionDecisionMadeEmail: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient";
 import {
   editDeliverable,
@@ -55,6 +59,7 @@ import {
   updateDeliverableExtension,
 } from "../deliverableExtension/queries";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
+import { dispatchExtensionDecisionMadeEmail } from "../email";
 
 describe("approveDeliverableExtension", () => {
   // Test inputs
@@ -99,6 +104,7 @@ describe("approveDeliverableExtension", () => {
   const mockPrismaClient = {
     $transaction: vi.fn(),
   };
+  const sourceActionId = "d59e9e89-b51d-4eaa-ab8e-4175c4d4dc6b";
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -111,6 +117,7 @@ describe("approveDeliverableExtension", () => {
     );
     vi.mocked(parseApproveDeliverableExtensionInput).mockReturnValue(mockParsedInput);
     vi.mocked(editDeliverable).mockResolvedValue(mockApprovedDeliverable as PrismaDeliverable);
+    vi.mocked(insertDeliverableAction).mockResolvedValue({ id: sourceActionId } as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
@@ -253,6 +260,39 @@ describe("approveDeliverableExtension", () => {
       },
       mockTransaction
     );
+  });
+
+  it("queues the extension decision email after approval", async () => {
+    await approveDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
+
+    expect(dispatchExtensionDecisionMadeEmail).toHaveBeenCalledExactlyOnceWith({
+      deliverableId: testDeliverableId,
+      extensionDecision: "Approved",
+      previousDueDate: mockUnapprovedDeliverable.dueDate,
+      sourceActionId,
+      triggeredByUserId: testContext.user!.id,
+    });
+  });
+
+  it("can skip the extension decision email", async () => {
+    await approveDeliverableExtension(
+      testDeliverableId,
+      testInput,
+      testContext as GraphQLContext,
+      { sendEmailNotifications: false }
+    );
+
+    expect(dispatchExtensionDecisionMadeEmail).not.toHaveBeenCalled();
+  });
+
+  it("does not dispatch an email if the transaction fails", async () => {
+    mockPrismaClient.$transaction.mockRejectedValueOnce(new Error("transaction failed"));
+
+    await expect(
+      approveDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext)
+    ).rejects.toThrow("transaction failed");
+
+    expect(dispatchExtensionDecisionMadeEmail).not.toHaveBeenCalled();
   });
 
   it("should invoke the updates to tables in the right order", async () => {

@@ -21,9 +21,14 @@ vi.mock("./queries", () => ({
   insertPrivateComment: vi.fn(),
 }));
 
+vi.mock("../email", () => ({
+  dispatchPublicCommentAddedEmail: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient";
 import { validateUserPermittedToMakePrivateComment } from ".";
 import { insertPrivateComment } from "./queries";
+import { dispatchPublicCommentAddedEmail } from "../email";
 
 describe("createPrivateComment", () => {
   // Test inputs
@@ -69,5 +74,6 @@ describe("createPrivateComment", () => {
       },
       mockTransaction
     );
+    expect(dispatchPublicCommentAddedEmail).not.toHaveBeenCalled();
   });
 });

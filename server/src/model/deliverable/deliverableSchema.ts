@@ -90,6 +90,8 @@ export const deliverableSchema = gql`
   type Mutation {
     createDeliverable(input: CreateDeliverableInput!): Deliverable!
       @auth(requires: ["Perform CMS Action"])
+    createDeliverables(inputs: [CreateDeliverableInput!]!): [Deliverable!]!
+      @auth(requires: ["Perform CMS Action"])
     updateDeliverable(id: ID!, input: UpdateDeliverableInput!): Deliverable!
       @auth(requires: ["Perform CMS Action"])
     submitDeliverable(id: ID!): Deliverable!

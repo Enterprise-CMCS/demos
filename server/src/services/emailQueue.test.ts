@@ -50,6 +50,29 @@ describe("emailQueue", () => {
     process.env = { ...originalEnv };
   });
 
+  it("builds a tracked realtime envelope", async () => {
+    const { buildRealtimeEmailEnvelope } = await import("./emailQueue");
+
+    const envelope = buildRealtimeEmailEnvelope({
+      emailType: "Deliverable Submitted",
+      entityType: "deliverable",
+      entityId: "deliverable-1",
+      triggeredById: "user-1",
+      idempotencyKey: "Deliverable Submitted:deliverable-action:action-1",
+      payload: { recipients: { to: [], bcc: [] } },
+    });
+
+    expect(envelope).toEqual({
+      emailType: "Deliverable Submitted",
+      entityType: "deliverable",
+      entityId: "deliverable-1",
+      triggeredBy: { type: "realtime", id: "user-1" },
+      triggeredAt: expect.any(String),
+      idempotencyKey: "Deliverable Submitted:deliverable-action:action-1",
+      payload: { recipients: { to: [], bcc: [] } },
+    });
+  });
+
   it("sends the email envelope to the configured queue", async () => {
     process.env.EMAILER_QUEUE_URL = "http://example.com/emailer-queue";
     send.mockResolvedValue({ MessageId: "message-1" });

@@ -33,6 +33,10 @@ vi.mock("../deliverableExtension/queries", () => ({
   updateDeliverableExtension: vi.fn(),
 }));
 
+vi.mock("../email", () => ({
+  dispatchExtensionDecisionMadeEmail: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient";
 import {
   selectDeliverableOrThrow,
@@ -44,6 +48,7 @@ import {
   selectDeliverableExtension,
   updateDeliverableExtension,
 } from "../deliverableExtension/queries";
+import { dispatchExtensionDecisionMadeEmail } from "../email";
 
 describe("denyDeliverableExtension", () => {
   // Test inputs
@@ -76,6 +81,7 @@ describe("denyDeliverableExtension", () => {
   const mockPrismaClient = {
     $transaction: vi.fn(),
   };
+  const sourceActionId = "d59e9e89-b51d-4eaa-ab8e-4175c4d4dc6b";
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -84,6 +90,7 @@ describe("denyDeliverableExtension", () => {
     vi.mocked(selectDeliverableExtension).mockResolvedValue(
       mockDeliverableExtension as PrismaDeliverableExtension
     );
+    vi.mocked(insertDeliverableAction).mockResolvedValue({ id: sourceActionId } as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
@@ -158,6 +165,39 @@ describe("denyDeliverableExtension", () => {
       },
       mockTransaction
     );
+  });
+
+  it("queues the extension decision email after denial", async () => {
+    await denyDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
+
+    expect(dispatchExtensionDecisionMadeEmail).toHaveBeenCalledExactlyOnceWith({
+      deliverableId: testDeliverableId,
+      extensionDecision: "Denied",
+      previousDueDate: mockDeliverable.dueDate,
+      sourceActionId,
+      triggeredByUserId: testContext.user!.id,
+    });
+  });
+
+  it("can skip the extension decision email", async () => {
+    await denyDeliverableExtension(
+      testDeliverableId,
+      testInput,
+      testContext as GraphQLContext,
+      { sendEmailNotifications: false }
+    );
+
+    expect(dispatchExtensionDecisionMadeEmail).not.toHaveBeenCalled();
+  });
+
+  it("does not dispatch an email if the transaction fails", async () => {
+    mockPrismaClient.$transaction.mockRejectedValueOnce(new Error("transaction failed"));
+
+    await expect(
+      denyDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext)
+    ).rejects.toThrow("transaction failed");
+
+    expect(dispatchExtensionDecisionMadeEmail).not.toHaveBeenCalled();
   });
 
   it("should invoke the updates to tables in the right order", async () => {

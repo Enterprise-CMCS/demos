@@ -15,6 +15,7 @@ import {
   approveDeliverableExtension,
   completeDeliverable,
   createDeliverable,
+  createDeliverables,
   deleteDeliverable,
   denyDeliverableExtension,
   requestDeliverableExtension,
@@ -110,6 +111,13 @@ export const deliverableResolvers = {
       context: GraphQLContext
     ): Promise<PrismaDeliverable> => {
       return await createDeliverable(args.input, context);
+    },
+    createDeliverables: async (
+      parent: unknown,
+      args: { inputs: CreateDeliverableInput[] },
+      context: GraphQLContext
+    ): Promise<PrismaDeliverable[]> => {
+      return await createDeliverables(args.inputs, context);
     },
     updateDeliverable: async (
       parent: unknown,

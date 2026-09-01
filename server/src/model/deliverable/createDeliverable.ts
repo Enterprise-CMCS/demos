@@ -10,7 +10,7 @@ import {
 import { prisma } from "../../prismaClient";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
-import { notifyDeliverableCreated } from "../email/notifyDeliverableCreated";
+import { dispatchDeliverableCreatedEmail } from "../email";
 
 export async function createDeliverable(
   input: CreateDeliverableInput,
@@ -19,8 +19,9 @@ export async function createDeliverable(
 ): Promise<PrismaDeliverable> {
   const currentUserId = context.user.id;
   validateUserPersonTypeAllowed(context, "createDeliverable", ["demos-admin", "demos-cms-user"]);
+
   const parsedInput = parseCreateDeliverableInput(input);
-  const { createdDeliverable, sourceActionId } = await prisma().$transaction(async (tx) => {
+  const { newDeliverable, sourceActionId } = await prisma().$transaction(async (tx) => {
     await validateCreateDeliverableInput(parsedInput, tx);
 
     const newDeliverable = await insertDeliverable(parsedInput, tx);
@@ -49,18 +50,18 @@ export async function createDeliverable(
     );
 
     return {
-      createdDeliverable: newDeliverable,
+      newDeliverable,
       sourceActionId: action.id,
     };
   });
 
   if (options.sendEmailNotifications !== false) {
-    await notifyDeliverableCreated({
-      deliverableId: createdDeliverable.id,
+    await dispatchDeliverableCreatedEmail({
+      deliverableId: newDeliverable.id,
       sourceActionId,
       triggeredByUserId: currentUserId,
     });
   }
 
-  return createdDeliverable;
+  return newDeliverable;
 }

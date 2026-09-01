@@ -4,12 +4,14 @@ import { DeliverableStatus } from "../../types";
 import { prisma } from "../../prismaClient";
 import { editDeliverable, selectDeliverableOrThrow, validateSubmitDeliverableInput } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
+import { dispatchDeliverableSubmittedEmail } from "../email";
 
 export async function submitDeliverable(
   deliverableId: string,
-  context: GraphQLContext
+  context: GraphQLContext,
+  options: { sendEmailNotifications?: boolean } = {}
 ): Promise<PrismaDeliverable> {
-  return await prisma().$transaction(async (tx) => {
+  const { submittedDeliverable, sourceActionId } = await prisma().$transaction(async (tx) => {
     const unsubmittedDeliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
     await validateSubmitDeliverableInput(unsubmittedDeliverable, tx);
 
@@ -20,7 +22,7 @@ export async function submitDeliverable(
     );
 
     // Casts below enforced by database
-    await insertDeliverableAction(
+    const action = await insertDeliverableAction(
       {
         deliverableId: deliverableId,
         actionType: "Submitted Deliverable",
@@ -33,6 +35,19 @@ export async function submitDeliverable(
       tx
     );
 
-    return submittedDeliverable;
+    return {
+      submittedDeliverable,
+      sourceActionId: action.id,
+    };
   });
+
+  if (options.sendEmailNotifications !== false) {
+    await dispatchDeliverableSubmittedEmail({
+      deliverableId: submittedDeliverable.id,
+      sourceActionId,
+      triggeredByUserId: context.user.id,
+    });
+  }
+
+  return submittedDeliverable;
 }

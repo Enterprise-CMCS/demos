@@ -25,6 +25,10 @@ vi.mock("../deliverableAction/queries", () => ({
   insertDeliverableAction: vi.fn(),
 }));
 
+vi.mock("../email", () => ({
+  dispatchDeliverableCompletedEmail: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient";
 import {
   editDeliverable,
@@ -33,6 +37,7 @@ import {
   validateUserPersonTypeAllowed,
 } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
+import { dispatchDeliverableCompletedEmail } from "../email";
 
 describe("completeDeliverable", () => {
   // Test inputs
@@ -55,6 +60,7 @@ describe("completeDeliverable", () => {
     statusId: "Approved",
     dueDate: new Date(2026, 9, 13, 4, 59, 59, 999),
   };
+  const mockActionId = "action-1";
 
   // Mock transaction
   const mockTransaction: any = "Test!";
@@ -69,6 +75,7 @@ describe("completeDeliverable", () => {
       mockIncompleteDeliverable as PrismaDeliverable
     );
     vi.mocked(editDeliverable).mockResolvedValue(mockCompleteDeliverable as PrismaDeliverable);
+    vi.mocked(insertDeliverableAction).mockResolvedValue({ id: mockActionId } as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
@@ -167,5 +174,44 @@ describe("completeDeliverable", () => {
       },
       mockTransaction
     );
+  });
+
+  it.each(["Accepted", "Approved", "Received and Filed"] as const)(
+    "queues the %s email after completion",
+    async (finalStatus) => {
+      await completeDeliverable(
+        testDeliverableId,
+        finalStatus,
+        testContext as GraphQLContext
+      );
+
+      expect(dispatchDeliverableCompletedEmail).toHaveBeenCalledExactlyOnceWith({
+        deliverableId: testDeliverableId,
+        finalStatus,
+        sourceActionId: mockActionId,
+        triggeredByUserId: testContext.user!.id,
+      });
+    }
+  );
+
+  it("allows the seeder to suppress completion emails", async () => {
+    await completeDeliverable(
+      testDeliverableId,
+      "Approved",
+      testContext as GraphQLContext,
+      { sendEmailNotifications: false }
+    );
+
+    expect(dispatchDeliverableCompletedEmail).not.toHaveBeenCalled();
+  });
+
+  it("does not dispatch an email if the transaction fails", async () => {
+    mockPrismaClient.$transaction.mockRejectedValueOnce(new Error("transaction failed"));
+
+    await expect(
+      completeDeliverable(testDeliverableId, "Approved", testContext as GraphQLContext)
+    ).rejects.toThrow("transaction failed");
+
+    expect(dispatchDeliverableCompletedEmail).not.toHaveBeenCalled();
   });
 });

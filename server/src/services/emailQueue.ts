@@ -7,10 +7,28 @@ import {
 import { PRIMARY_AWS_REGION } from "../constants";
 import { log } from "../log";
 
+export const REALTIME_EMAIL_TYPES = [
+  "Deliverable Created",
+  "Multiple Deliverables Created",
+  "Deliverable Submitted",
+  "Deliverable Accepted",
+  "Deliverable Approved",
+  "Deliverable Received and Filed",
+  "Deliverable Due Date Updated",
+  "Extension Requested",
+  "Extension Decision Made",
+  "Resubmission Requested",
+  "Public Comment Added",
+  "Terms And Conditions Requested",
+] as const;
+
+export type RealtimeEmailType = (typeof REALTIME_EMAIL_TYPES)[number];
+export type RealtimeEmailEntityType = "deliverable" | "reference";
+
 export type RealtimeEmailMessage = {
   emailNotificationId?: string;
-  emailType: "Deliverable Created" | "Terms And Conditions Requested";
-  entityType: "deliverable" | "reference";
+  emailType: RealtimeEmailType;
+  entityType: RealtimeEmailEntityType;
   entityId: string;
   triggeredBy: {
     type: "realtime";
@@ -20,6 +38,28 @@ export type RealtimeEmailMessage = {
   idempotencyKey: string;
   payload: object;
 };
+
+export function buildRealtimeEmailEnvelope(input: {
+  emailType: RealtimeEmailType;
+  entityType: RealtimeEmailEntityType;
+  entityId: string;
+  triggeredById: string;
+  idempotencyKey: string;
+  payload: object;
+}): RealtimeEmailMessage {
+  return {
+    emailType: input.emailType,
+    entityType: input.entityType,
+    entityId: input.entityId,
+    triggeredBy: {
+      type: "realtime",
+      id: input.triggeredById,
+    },
+    triggeredAt: new Date().toISOString(),
+    idempotencyKey: input.idempotencyKey,
+    payload: input.payload,
+  };
+}
 
 const sqsClient = new SQSClient(
   process.env.AWS_ENDPOINT_URL
