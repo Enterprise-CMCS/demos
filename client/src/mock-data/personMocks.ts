@@ -68,6 +68,14 @@ export const mockPeople: Person[] = [
     fullName: "Darth Smith",
     email: "darth.smith@email.com",
   },
+  {
+    ...mockPerson,
+    id: "5",
+    firstName: "Frank",
+    lastName: "Wilson",
+    fullName: "Frank Wilson",
+    email: "frank.wilson@email.com",
+  },
 ];
 
 export const personMocks: MockedResponse[] = [
