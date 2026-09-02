@@ -17,7 +17,8 @@ import { ApplicationWorkflowDocument } from "components/application";
 import { TZDate } from "@date-fns/tz";
 import { EST_TIMEZONE } from "util/formatDate";
 import { PhaseStatus } from "demos-server";
-import { readonlyMockUser, cmsMockUser, MockUser } from "mock-data/userMocks";
+import { readonlyMockUser, cmsMockUser } from "mock-data/userMocks";
+import { CurrentUser } from "components/user/UserContext";
 
 const showDeclareIncompleteDialog = vi.fn((callback) => {
   callback();
@@ -73,7 +74,7 @@ describe("VerifyCompleteSection", () => {
     setSelectedPhase: mockSetSelectedPhase,
   };
 
-  const setup = (props: Partial<typeof defaultProps> = {}, currentUser?: MockUser) => {
+  const setup = (props: Partial<typeof defaultProps> = {}, currentUser?: CurrentUser) => {
     return render(
       <TestProvider currentUser={currentUser}>
         <VerifyCompleteSection {...defaultProps} {...props} />

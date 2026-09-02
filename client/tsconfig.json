@@ -9,7 +9,7 @@
     "moduleResolution": "bundler",
     "esModuleInterop": true,
     "strict": true,
-    "types": ["vitest/globals"],
+    "types": ["vitest/globals", "node"],
     "paths": {
       "components": ["./src/components/index.ts"],
       "components/*": ["./src/components/*"],
@@ -33,5 +33,5 @@
     }
   },
   "exclude": ["node_modules"],
-  "include": ["src/**/*", "types"]
+  "include": ["src/**/*", "types", "vitest.setup.ts"]
 }
