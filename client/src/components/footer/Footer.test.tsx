@@ -1,5 +1,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
+import type { CurrentUser } from "components/user/UserContext";
 import {
   CONTACT_US_MAILTO,
   DEMOS_ADDRESS,
@@ -9,7 +10,7 @@ import {
 } from "./Footer";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TestProvider } from "test-utils/TestProvider";
-import { developmentMockUser, MockUser } from "mock-data/userMocks";
+import { developmentMockUser } from "mock-data/userMocks";
 
 vi.mock("config/env", async (importOriginal) => {
   const actual = await importOriginal<typeof import("config/env")>();
@@ -19,22 +20,22 @@ vi.mock("config/env", async (importOriginal) => {
   };
 });
 
-const cmsUser: MockUser = {
+const cmsUser: CurrentUser = {
   ...developmentMockUser,
   person: { ...developmentMockUser.person, personType: "demos-cms-user" },
 };
 
-const adminUser: MockUser = {
+const adminUser: CurrentUser = {
   ...developmentMockUser,
   person: { ...developmentMockUser.person, personType: "demos-admin" },
 };
 
-const stateUser: MockUser = {
+const stateUser: CurrentUser = {
   ...developmentMockUser,
   person: { ...developmentMockUser.person, personType: "demos-state-user" },
 };
 
-const renderWithProviders = (currentUser: MockUser = cmsUser) =>
+const renderWithProviders = (currentUser: CurrentUser = cmsUser) =>
   render(
     <TestProvider currentUser={currentUser} mocks={[]}>
       <Footer />
