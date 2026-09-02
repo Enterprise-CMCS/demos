@@ -5,38 +5,27 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { TZDate } from "@date-fns/tz";
 import { TestProvider } from "test-utils/TestProvider";
-import { readonlyMockUser, cmsMockUser } from "mock-data/userMocks";
-import type { User } from "demos-server";
+import { readonlyMockUser, cmsMockUser, MockUser } from "mock-data/userMocks";
 
 import {
   ConceptPhase,
   ConceptPhaseProps,
   getConceptPhaseComponentFromApplication,
   calculatePresubmissionDate,
-  CONCEPT_PHASE_DESCRIPTION_NAME,
-  CONCEPT_PHASE_DESCRIPTION_TEXT,
-} from "./ConceptPhase";
-
-import {
   UPLOAD_BUTTON_NAME,
-  CONCEPT_PHASE_STEP_ONE_DESCRIPTION_NAME,
-  CONCEPT_PHASE_STEP_ONE_DESCRIPTION_TEXT,
-} from "./ConceptPhaseUploadSection";
-
-import {
   FINISH_BUTTON_NAME,
   SKIP_BUTTON_NAME,
   DATE_PICKER_NAME,
-  CONCEPT_PHASE_STEP_TWO_DESCRIPTION_NAME,
-  CONCEPT_PHASE_STEP_TWO_DESCRIPTION_TEXT,
-} from "./ConceptPhaseVerifyCompleteSection";
+  CONCEPT_PHASE_DESCRIPTION,
+  CONCEPT_PHASE_STEP_ONE_DESCRIPTION,
+  CONCEPT_PHASE_STEP_TWO_DESCRIPTION,
+} from "./ConceptPhase";
 
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
 } from "components/application";
 import { DialogProvider } from "components/dialog/DialogContext";
-import { mockPerson } from "mock-data/personMocks";
 
 const mockCompletePhase = vi.fn();
 const mockSkipConceptPhase = vi.fn();
@@ -57,27 +46,34 @@ vi.mock("components/application/date/dateQueries", () => ({
   }),
 }));
 
+const mockPO = {
+  id: "po-1",
+  fullName: "Jane Doe",
+};
+
+const TEST_APPLICATION_ID = "test-app-id";
+
 const TIMEZONE_EST = "America/New_York";
 
-const DEFAULT_DOCUMENT: ApplicationWorkflowDocument = {
+const MOCK_DOCUMENT: ApplicationWorkflowDocument = {
   id: "1",
   name: "Pre-Submission Document 1",
   description: "Test pre-submission document",
   documentType: "Pre-Submission",
   phaseName: "Concept",
-  owner: { person: { fullName: mockPerson.fullName } },
+  owner: { person: { fullName: "John Doe" } },
   createdAt: new TZDate(2024, 0, 15, TIMEZONE_EST),
 };
 
 const DEFAULT_PROPS: ConceptPhaseProps = {
-  applicationId: "test-app-id",
-  documents: [DEFAULT_DOCUMENT],
+  applicationId: TEST_APPLICATION_ID,
+  documents: [MOCK_DOCUMENT],
   setSelectedPhase: () => {},
   phaseStatus: "Started",
 };
 
 describe("ConceptPhase", () => {
-  const setup = (props: Partial<ConceptPhaseProps> = {}, currentUser?: User) => {
+  const setup = (props: Partial<ConceptPhaseProps> = {}, currentUser?: MockUser) => {
     const renderComponent = (newProps: Partial<ConceptPhaseProps>) => {
       const finalProps = { ...DEFAULT_PROPS, ...newProps };
       return (
@@ -108,8 +104,8 @@ describe("ConceptPhase", () => {
 
     it("renders phase description", () => {
       setup();
-      expect(screen.getByTestId(CONCEPT_PHASE_DESCRIPTION_NAME)).toHaveTextContent(
-        CONCEPT_PHASE_DESCRIPTION_TEXT
+      expect(screen.getByTestId(CONCEPT_PHASE_DESCRIPTION.testId)).toHaveTextContent(
+        CONCEPT_PHASE_DESCRIPTION.text
       );
     });
   });
@@ -118,8 +114,8 @@ describe("ConceptPhase", () => {
     it("renders Step 1 title and description", () => {
       setup();
       expect(screen.getByText(/Step 1 - Upload/i)).toBeInTheDocument();
-      expect(screen.getByTestId(CONCEPT_PHASE_STEP_ONE_DESCRIPTION_NAME)).toHaveTextContent(
-        CONCEPT_PHASE_STEP_ONE_DESCRIPTION_TEXT
+      expect(screen.getByTestId(CONCEPT_PHASE_STEP_ONE_DESCRIPTION.testId)).toHaveTextContent(
+        CONCEPT_PHASE_STEP_ONE_DESCRIPTION.text
       );
     });
 
@@ -150,8 +146,8 @@ describe("ConceptPhase", () => {
     it("renders Step 2 title and description", () => {
       setup();
       expect(screen.getByText("Step 2 - Verify/Complete")).toBeInTheDocument();
-      expect(screen.getByTestId(CONCEPT_PHASE_STEP_TWO_DESCRIPTION_NAME)).toHaveTextContent(
-        CONCEPT_PHASE_STEP_TWO_DESCRIPTION_TEXT
+      expect(screen.getByTestId(CONCEPT_PHASE_STEP_TWO_DESCRIPTION.testId)).toHaveTextContent(
+        CONCEPT_PHASE_STEP_TWO_DESCRIPTION.text
       );
     });
 
@@ -178,10 +174,12 @@ describe("ConceptPhase", () => {
 
     it("Finish button remains disabled when a general document is uploaded even when date is filled", () => {
       const generalDocument: ApplicationWorkflowDocument = {
-        ...DEFAULT_DOCUMENT,
         id: "2",
         name: "General Document 1",
+        description: "Test general document",
         documentType: "General File",
+        phaseName: "Concept",
+        owner: { person: { fullName: "John Doe" } },
         createdAt: new TZDate(2024, 0, 20, TIMEZONE_EST),
       };
       setup({ documents: [generalDocument] });
@@ -210,7 +208,7 @@ describe("ConceptPhase", () => {
       setup({ documents: [] });
       const skipButton = screen.getByTestId(SKIP_BUTTON_NAME);
       await user.click(skipButton);
-      expect(mockSkipConceptPhase).toHaveBeenCalledWith(DEFAULT_PROPS.applicationId);
+      expect(mockSkipConceptPhase).toHaveBeenCalledWith(TEST_APPLICATION_ID);
     });
 
     it("calls completePhase mutation on click of finish button", async () => {
@@ -219,7 +217,7 @@ describe("ConceptPhase", () => {
       const finishButton = screen.getByTestId(FINISH_BUTTON_NAME);
       await user.click(finishButton);
       expect(mockCompletePhase).toHaveBeenCalledWith({
-        applicationId: DEFAULT_PROPS.applicationId,
+        applicationId: TEST_APPLICATION_ID,
         phaseName: "Concept",
       });
     });
@@ -270,10 +268,12 @@ describe("ConceptPhase", () => {
 
     it("does not populate date when a general document with createdAt is provided", () => {
       const generalDocument: ApplicationWorkflowDocument = {
-        ...DEFAULT_DOCUMENT,
         id: "2",
         name: "General Document 1",
+        description: "Test general document",
         documentType: "General File",
+        phaseName: "Concept",
+        owner: { person: { fullName: "John Doe" } },
         createdAt: new TZDate(2024, 0, 20, TIMEZONE_EST),
       };
       setup({ documents: [generalDocument] });
@@ -290,15 +290,20 @@ describe("ConceptPhase", () => {
 
     it("sets date to latest pre-submission document createdAt when multiple documents exist", () => {
       const olderDocument: ApplicationWorkflowDocument = {
-        ...DEFAULT_DOCUMENT,
         id: "older",
         name: "Older Pre-Submission",
+        description: "Older doc",
+        documentType: "Pre-Submission",
+        phaseName: "Concept",
+        owner: { person: { fullName: "John Doe" } },
         createdAt: new TZDate(2024, 0, 10, TIMEZONE_EST),
       };
       const newerDocument: ApplicationWorkflowDocument = {
-        ...DEFAULT_DOCUMENT,
         id: "newer",
         name: "Newer Pre-Submission",
+        description: "Newer doc",
+        documentType: "Pre-Submission",
+        phaseName: "Concept",
         owner: { person: { fullName: "Jane Doe" } },
         createdAt: new TZDate(2024, 0, 20, TIMEZONE_EST),
       };
@@ -315,8 +320,12 @@ describe("ConceptPhase", () => {
       const initialDate = "2024-01-15";
       const documents: ApplicationWorkflowDocument[] = [
         {
-          ...DEFAULT_DOCUMENT,
           id: "doc1",
+          name: "Pre-Submission",
+          description: "Test",
+          documentType: "Pre-Submission",
+          phaseName: "Concept",
+          owner: { person: { fullName: "John Doe" } },
           createdAt: new TZDate(2024, 0, 20, TIMEZONE_EST),
         },
       ];
@@ -333,11 +342,12 @@ describe("ConceptPhase", () => {
     it("returns empty string when no initial date and no pre-submission documents", () => {
       const otherDocuments: ApplicationWorkflowDocument[] = [
         {
-          ...DEFAULT_DOCUMENT,
           id: "doc1",
           name: "Other Document",
+          description: "Test",
           documentType: "State Application",
           phaseName: "Application Intake",
+          owner: { person: { fullName: "John Doe" } },
           createdAt: new TZDate(2024, 0, 20, TIMEZONE_EST),
         },
       ];
@@ -349,15 +359,20 @@ describe("ConceptPhase", () => {
     it("returns formatted date from latest pre-submission document createdAt", () => {
       const documents: ApplicationWorkflowDocument[] = [
         {
-          ...DEFAULT_DOCUMENT,
           id: "doc1",
           name: "Older Pre-Submission",
+          description: "Test",
+          documentType: "Pre-Submission",
+          phaseName: "Concept",
+          owner: { person: { fullName: "John Doe" } },
           createdAt: new TZDate(2024, 0, 10, TIMEZONE_EST),
         },
         {
-          ...DEFAULT_DOCUMENT,
           id: "doc2",
           name: "Newer Pre-Submission",
+          description: "Test",
+          documentType: "Pre-Submission",
+          phaseName: "Concept",
           owner: { person: { fullName: "Jane Doe" } },
           createdAt: new TZDate(2024, 0, 20, TIMEZONE_EST),
         },
@@ -370,8 +385,12 @@ describe("ConceptPhase", () => {
     it("returns formatted date in YYYY-MM-DD format", () => {
       const documents: ApplicationWorkflowDocument[] = [
         {
-          ...DEFAULT_DOCUMENT,
           id: "doc1",
+          name: "Pre-Submission",
+          description: "Test",
+          documentType: "Pre-Submission",
+          phaseName: "Concept",
+          owner: { person: { fullName: "John Doe" } },
           createdAt: new TZDate(2024, 2, 5, TIMEZONE_EST),
         },
       ];
@@ -383,14 +402,18 @@ describe("ConceptPhase", () => {
     it("filters out non-pre-submission documents when calculating date", () => {
       const documents: ApplicationWorkflowDocument[] = [
         {
-          ...DEFAULT_DOCUMENT,
           id: "doc1",
+          name: "Pre-Submission",
+          description: "Test",
+          documentType: "Pre-Submission",
+          phaseName: "Concept",
+          owner: { person: { fullName: "John Doe" } },
           createdAt: new TZDate(2024, 0, 10, TIMEZONE_EST),
         },
         {
-          ...DEFAULT_DOCUMENT,
           id: "doc2",
           name: "State Application",
+          description: "Test",
           documentType: "State Application",
           phaseName: "Application Intake",
           owner: { person: { fullName: "Jane Doe" } },
@@ -409,9 +432,12 @@ describe("ConceptPhase", () => {
       // Document with specific creation date
       const documentCreatedAt = new Date("2026-03-10T10:00:00");
       const newDocument: ApplicationWorkflowDocument = {
-        ...DEFAULT_DOCUMENT,
         id: "new-doc",
         name: "New Pre-Submission",
+        description: "Newly uploaded",
+        documentType: "Pre-Submission",
+        phaseName: "Concept",
+        owner: { person: { fullName: "John Doe" } },
         createdAt: documentCreatedAt,
       };
 
@@ -435,9 +461,12 @@ describe("ConceptPhase", () => {
 
       // Simulate document upload
       const newDocument: ApplicationWorkflowDocument = {
-        ...DEFAULT_DOCUMENT,
         id: "new-doc",
         name: "New Pre-Submission",
+        description: "Newly uploaded",
+        documentType: "Pre-Submission",
+        phaseName: "Concept",
+        owner: { person: { fullName: "John Doe" } },
         createdAt: new Date(),
       };
 
@@ -465,7 +494,7 @@ describe("ConceptPhase", () => {
 
       // With documents but initial date takes precedence
       setup({
-        documents: [DEFAULT_DOCUMENT],
+        documents: [MOCK_DOCUMENT],
         initialPresubmissionSubmittedDate: initialDate,
       });
 
@@ -475,7 +504,7 @@ describe("ConceptPhase", () => {
     });
 
     it("allows user to override calculated date via datepicker", async () => {
-      setup({ documents: [DEFAULT_DOCUMENT] });
+      setup({ documents: [MOCK_DOCUMENT] });
 
       const dateInput = screen.getByTestId(DATE_PICKER_NAME) as HTMLInputElement;
 
@@ -492,15 +521,20 @@ describe("ConceptPhase", () => {
 
     it("does not clear date when removing a document but other pre-submission documents remain", async () => {
       const doc1: ApplicationWorkflowDocument = {
-        ...DEFAULT_DOCUMENT,
         id: "doc1",
         name: "Pre-Submission 1",
+        description: "First doc",
+        documentType: "Pre-Submission",
+        phaseName: "Concept",
+        owner: { person: { fullName: "John Doe" } },
         createdAt: new TZDate(2024, 0, 10, TIMEZONE_EST),
       };
       const doc2: ApplicationWorkflowDocument = {
-        ...DEFAULT_DOCUMENT,
         id: "doc2",
         name: "Pre-Submission 2",
+        description: "Second doc",
+        documentType: "Pre-Submission",
+        phaseName: "Concept",
         owner: { person: { fullName: "Jane Doe" } },
         createdAt: new TZDate(2024, 0, 15, TIMEZONE_EST),
       };
@@ -532,14 +566,14 @@ describe("ConceptPhase", () => {
 
       expect(screen.getByText("No documents yet.")).toBeInTheDocument();
 
-      rerender({ documents: [DEFAULT_DOCUMENT] });
+      rerender({ documents: [MOCK_DOCUMENT] });
 
       expect(screen.queryByText("No documents yet.")).not.toBeInTheDocument();
       expect(screen.getByText("Pre-Submission Document 1")).toBeInTheDocument();
     });
 
     it("reflects document removal when props change (no refresh needed)", () => {
-      const { rerender } = setup({ documents: [DEFAULT_DOCUMENT] });
+      const { rerender } = setup({ documents: [MOCK_DOCUMENT] });
 
       expect(screen.getByText("Pre-Submission Document 1")).toBeInTheDocument();
 
@@ -552,7 +586,7 @@ describe("ConceptPhase", () => {
     it("updates Finish button state when documents are removed via props", async () => {
       // Start with documents and date - button should be enabled
       const { rerender } = setup({
-        documents: [DEFAULT_DOCUMENT],
+        documents: [MOCK_DOCUMENT],
         initialPresubmissionSubmittedDate: "2024-01-15",
       });
 
@@ -583,42 +617,46 @@ describe("ConceptPhase", () => {
           id: "CA",
           name: "California",
         },
-        primaryProjectOfficer: mockPerson,
+        primaryProjectOfficer: mockPO,
         status: "Pre-Submission",
         currentPhaseName: "Concept",
         clearanceLevel: "CMS (OSORA)",
         phases: [],
         documents: [
           {
-            ...DEFAULT_DOCUMENT,
             id: "d1",
             name: "Pre-Sub 1",
+            description: "desc",
+            documentType: "Pre-Submission",
+            phaseName: "Concept",
+            owner: { person: { fullName: "John Doe" } },
             createdAt: new TZDate(2024, 3, 1, TIMEZONE_EST),
           },
           {
-            ...DEFAULT_DOCUMENT,
             id: "d2",
             name: "General Doc",
             description: "i am included now",
             documentType: "General File",
+            phaseName: "Concept",
+            owner: { person: { fullName: "John Doe" } },
             createdAt: new TZDate(2024, 3, 2, TIMEZONE_EST),
           },
           {
-            ...DEFAULT_DOCUMENT,
             id: "d3",
             name: "FBNF Workbook",
             description: "ignore me",
             documentType: "Final Budget Neutrality Formulation Workbook",
             phaseName: "Approval Package",
+            owner: { person: { fullName: "John Doe" } },
             createdAt: new TZDate(2024, 3, 2, TIMEZONE_EST),
           },
           {
-            ...DEFAULT_DOCUMENT,
             id: "d3",
             name: "FBNF Workbook",
             description: "ignore me",
             documentType: "Final Budget Neutrality Formulation Workbook",
             phaseName: "Approval Package",
+            owner: { person: { fullName: "John Doe" } },
             createdAt: new TZDate(2024, 3, 2, TIMEZONE_EST),
           },
         ],
@@ -644,7 +682,7 @@ describe("ConceptPhase", () => {
           id: "NY",
           name: "New York",
         },
-        primaryProjectOfficer: mockPerson,
+        primaryProjectOfficer: mockPO,
         status: "Pre-Submission",
         currentPhaseName: "Concept",
         clearanceLevel: "CMS (OSORA)",
@@ -676,7 +714,7 @@ describe("ConceptPhase", () => {
 
     it("overrides createdAt date on document with Presubmission Document Submitted Date when both provided", () => {
       setup({
-        documents: [DEFAULT_DOCUMENT],
+        documents: [MOCK_DOCUMENT],
         initialPresubmissionSubmittedDate: "2024-01-10",
       });
       const dateInput = screen.getByTestId(DATE_PICKER_NAME) as HTMLInputElement;
@@ -693,7 +731,7 @@ describe("ConceptPhase", () => {
     });
 
     it("hides finish button for readonly users", () => {
-      setup({ documents: [DEFAULT_DOCUMENT] }, readonlyMockUser);
+      setup({ documents: [MOCK_DOCUMENT] }, readonlyMockUser);
 
       const finishButton = screen.queryByTestId(FINISH_BUTTON_NAME);
       expect(finishButton).not.toBeInTheDocument();
@@ -707,7 +745,7 @@ describe("ConceptPhase", () => {
     });
 
     it("disables date picker for readonly users", () => {
-      setup({ documents: [DEFAULT_DOCUMENT] }, readonlyMockUser);
+      setup({ documents: [MOCK_DOCUMENT] }, readonlyMockUser);
 
       const dateInput = screen.getByTestId(DATE_PICKER_NAME);
       expect(dateInput).toBeDisabled();
@@ -721,7 +759,7 @@ describe("ConceptPhase", () => {
     });
 
     it("enables date picker for non-readonly users", () => {
-      setup({ documents: [DEFAULT_DOCUMENT], phaseStatus: "Started" }, cmsMockUser);
+      setup({ documents: [MOCK_DOCUMENT], phaseStatus: "Started" }, cmsMockUser);
 
       const dateInput = screen.getByTestId(DATE_PICKER_NAME);
       expect(dateInput).not.toBeDisabled();
