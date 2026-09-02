@@ -24,8 +24,8 @@ This file provides instructions for AI agents to use when generating or editing 
 
 ### Functions
 
-- Prefer writing functions that take sentinel values over optional / undefined. For instance `""` or `[]` can be the "base case" and used as "falsey"
-- Prefer to fail-fast over delaying error handling. Use guard clauses as needed.
+- Prefer writing functions that take sentinel values over optional / undefined. Very commonly `""` or `[]` can be the "base case" and used as "falsey" instead of a type union with null or undefined.
+- Prefer to fail-fast over delaying error handling. Use guard clauses in functions with preconditions fot this.
 
 ## React
 
@@ -38,7 +38,9 @@ This file provides instructions for AI agents to use when generating or editing 
 - Keep state close to where it is used; lift state only when needed.
 - Do not export props interfaces unless shared across files. Prefer inlining props.
 - Generally, prefer required props. Optional props are okay iff updating calls to an existing component would be a heavy lift.
-- Prefer using `gap` in a parent tag over `margin` in a child tag.
+- Prefer spacing elements using `gap` rather than `margin`.
+- Prefer creating sub components that take props over sub-components in scope of the main component
+- In sub-components, do not pass a prop if the value can be fetched through a hook
 
 ### Components
 
