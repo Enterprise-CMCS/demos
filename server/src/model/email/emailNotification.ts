@@ -4,7 +4,7 @@ import { prisma } from "../../prismaClient";
 import { enqueueEmail, RealtimeEmailMessage } from "../../services/emailQueue";
 
 export type EmailNotificationRecipient = {
-  personId?: string;
+  personId: string;
   emailAddress: string;
 };
 

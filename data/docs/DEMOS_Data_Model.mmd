@@ -723,7 +723,7 @@ erDiagram
   email_notification_recipient:::dataTable {
     uuid id PK
     uuid email_notification_id FK, UK "FK167: email_notification_id ∈ email_notification.id<br>UK: (email_notification_id, normalized_email)"
-    uuid person_id FK "FK168: person_id ∈ person.id<br>NULLABLE"
+    uuid person_id FK "FK168: person_id ∈ person.id"
     text email_address
     text normalized_email UK "UK: (email_notification_id, normalized_email)"
     timestamptz created_at

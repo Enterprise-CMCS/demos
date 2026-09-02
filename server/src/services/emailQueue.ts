@@ -7,10 +7,35 @@ import {
 import { PRIMARY_AWS_REGION } from "../constants";
 import { log } from "../log";
 
-export type RealtimeEmailMessage = {
+type DeliverableRealtimeEmailType =
+  | "Deliverable Created"
+  | "Multiple Deliverables Created"
+  | "Deliverable Submitted"
+  | "Deliverable Accepted"
+  | "Deliverable Approved"
+  | "Deliverable Received and Filed"
+  | "Deliverable Due Date Updated"
+  | "Extension Requested"
+  | "Extension Decision Made"
+  | "Resubmission Requested"
+  | "Public Comment Added";
+
+type RealtimeEmailTarget =
+  | {
+      emailType: DeliverableRealtimeEmailType;
+      entityType: "deliverable";
+    }
+  | {
+      emailType: "Application Status Updated";
+      entityType: "application";
+    }
+  | {
+      emailType: "Terms And Conditions Requested";
+      entityType: "application" | "reference";
+    };
+
+export type RealtimeEmailMessage = RealtimeEmailTarget & {
   emailNotificationId?: string;
-  emailType: "Deliverable Created";
-  entityType: "deliverable";
   entityId: string;
   triggeredBy: {
     type: "realtime";
