@@ -5,33 +5,37 @@ import os
 import sys
 from dataclasses import dataclass, replace
 from logging import getLogger
-from typing import TYPE_CHECKING, List, cast, get_args
+from typing import TYPE_CHECKING, List
 
 import boto3
 from dotenv import load_dotenv
 
 from duckdb_connection_manager import (
-    DatabaseConfigurationName,
     attach_db_to_duckdb_conn,
     create_duckdb_conn,
     get_attach_name_from_db_config_name,
 )
-from load_data_to_demos_app import DataLoadConfigurationName
 from load_data_to_demos_app_configs import get_data_load_configuration
 from logger_utils import config_logger
+from types_constants import (
+    DB_CONFIG_NAMES,
+    DL_CONFIG_NAMES,
+    DatabaseConfigurationName,
+    DataLoadConfiguration,
+    DataLoadConfigurationName,
+    DuckDbAttachName,
+    FileMigrationTrackerRecord,
+)
 
 if TYPE_CHECKING:
     from duckdb import DuckDBPyConnection as DuckConn
     from mypy_boto3_s3 import S3Client
 
+logger = config_logger(getLogger(__name__))
+
 load_dotenv()
 PMDA_S3_BUCKET = os.environ["PMDA_S3_BUCKET"]
 DEMOS_S3_BUCKET = os.environ["DEMOS_S3_BUCKET"]
-STAGING_SCHEMA = os.environ["STAGING_SCHEMA"]
-DB_CONFIG_NAMES = get_args(DatabaseConfigurationName.__value__)
-DL_CONFIG_NAMES = get_args(DataLoadConfigurationName.__value__)
-
-logger = config_logger(getLogger(__name__))
 
 
 @dataclass(frozen=True)
@@ -56,23 +60,9 @@ def _parse_args() -> CommandLineArguments:
     parser.add_argument("dl_config_name", choices=DL_CONFIG_NAMES, help="The name of the data load config to use")
     parsed_args = parser.parse_args()
     return CommandLineArguments(
-        db_config_name=cast(DatabaseConfigurationName, parsed_args.db_config_name),
-        dl_config_name=cast(DataLoadConfigurationName, parsed_args.dl_config_name),
+        db_config_name=parsed_args.db_config_name,
+        dl_config_name=parsed_args.dl_config_name,
     )
-
-
-@dataclass(frozen=True)
-class FileMigrationTrackerRecord:
-    """A file migration tracker record for a single file being migrated."""
-
-    final_file_id: str
-    final_file_s3_path: str
-    _internal_pmda_s3_file_id: int
-    legacy_pmda_s3_path: str
-    legacy_pmda_file_extension: str
-    file_mime_type: str
-    file_has_been_moved: bool
-    _local_file_has_been_moved: bool
 
 
 def _get_s3_client() -> "S3Client":
@@ -93,22 +83,20 @@ def _get_s3_client() -> "S3Client":
 
 
 def _get_unmigrated_files(
-    db_config_name: DatabaseConfigurationName, dl_config_name: DataLoadConfigurationName, conn: "DuckConn"
+    attach_name: DuckDbAttachName, dl_config: DataLoadConfiguration, conn: "DuckConn"
 ) -> List[FileMigrationTrackerRecord]:
     """Get a list of unmigrated files from the target schema of a data load configuration.
 
     Args:
-        db_config_name (DatabaseConfigurationName): The name of the DB config to use.
-        dl_config_name (DataLoadConfigurationName): The name of the data load configuration to use.
+        attach_name (DuckDbAttachName): The DuckDB attach name to use.
+        dl_config (DataLoadConfiguration): The data load configuration to use.
         conn (DuckConn): The DuckDB connection with the proper DB attached.
 
     Returns:
         List[FileMigrationTrackerRecord]: A list of the unmigrated files.
     """
-    attach_name = get_attach_name_from_db_config_name(db_config_name)
-    data_load_config = get_data_load_configuration(dl_config_name)
     logger.info(
-        f"Getting list of unmigrated files from {attach_name}.{data_load_config.target_schema}.system_file_move_tracker"
+        f"Getting list of unmigrated files from {attach_name}.{dl_config.target_schema}.system_file_move_tracker"
     )
     query = f"""
         SELECT
@@ -121,7 +109,7 @@ def _get_unmigrated_files(
             file_has_been_moved,
             FALSE AS _local_file_has_been_moved
         FROM
-            {attach_name}.{data_load_config.target_schema}.system_file_move_tracker
+            {attach_name}.{dl_config.target_schema}.system_file_move_tracker
         WHERE
             NOT file_has_been_moved;
     """
@@ -131,8 +119,8 @@ def _get_unmigrated_files(
 
 
 def _mark_file_migrated_in_db(
-    db_config_name: DatabaseConfigurationName,
-    dl_config_name: DataLoadConfigurationName,
+    attach_name: DuckDbAttachName,
+    dl_config: DataLoadConfiguration,
     conn: "DuckConn",
     file_record: FileMigrationTrackerRecord,
 ) -> FileMigrationTrackerRecord:
@@ -141,19 +129,17 @@ def _mark_file_migrated_in_db(
     The table is assumed to be in the target_schema of the named DataLoadConfiguration.
 
     Args:
-        db_config_name (DatabaseConfigurationName): The name of the DB config to use.
-        dl_config_name (DataLoadConfigurationName): The name of the data load configuration to use.
+        attach_name (DuckDbAttachName): The DuckDB attach name to use.
+        dl_config (DataLoadConfiguration): The data load configuration to use.
         conn (DuckConn): The DuckDB connection with the proper DB attached.
         file_record (FileMigrationTrackerRecord): The migrated file to mark as migrated.
 
     Returns:
         FileMigrationTrackerRecord: The updated file record.
     """
-    attach_name = get_attach_name_from_db_config_name(db_config_name)
-    data_load_config = get_data_load_configuration(dl_config_name)
     query = f"""
         UPDATE
-            {attach_name}.{data_load_config.target_schema}.system_file_move_tracker
+            {attach_name}.{dl_config.target_schema}.system_file_move_tracker
         SET
             file_has_been_moved = TRUE
         WHERE
@@ -206,8 +192,8 @@ def _migrate_file_in_s3(s3_client: "S3Client", file_record: FileMigrationTracker
 
 
 def _migrate_file(
-    db_config_name: DatabaseConfigurationName,
-    dl_config_name: DataLoadConfigurationName,
+    attach_name: DuckDbAttachName,
+    dl_config: DataLoadConfiguration,
     conn: "DuckConn",
     s3_client: "S3Client",
     file_record: FileMigrationTrackerRecord,
@@ -215,8 +201,8 @@ def _migrate_file(
     """Perform all migration steps for a single record.
 
     Args:
-        db_config_name (DatabaseConfigurationName): The name of the DB config to use.
-        dl_config_name (DataLoadConfigurationName): The name of the data load configuration to use.
+        attach_name (DuckDbAttachName): The DuckDB attach name to use.
+        dl_config (DataLoadConfiguration): The data load configuration to use.
         conn (DuckConn): The DuckDB connection with the proper DB attached.
         s3_client (S3Client): The S3 client used to perform the migration.
         file_record (FileMigrationTrackerRecord): A file to migrate.
@@ -225,7 +211,7 @@ def _migrate_file(
         FileMigrationTrackerRecord: An updated record reflecting the migration.
     """
     updated_record = _mark_file_migrated_in_db(
-        db_config_name, dl_config_name, conn, _migrate_file_in_s3(s3_client, file_record)
+        attach_name, dl_config, conn, _migrate_file_in_s3(s3_client, file_record)
     )
     return updated_record
 
@@ -234,12 +220,12 @@ def main(args: CommandLineArguments) -> None:
     """Main program function."""
     db_conn = attach_db_to_duckdb_conn(create_duckdb_conn(), args.db_config_name)
     s3_client = _get_s3_client()
-    unmigrated_files = _get_unmigrated_files(args.db_config_name, args.dl_config_name, db_conn)
+    attach_name = get_attach_name_from_db_config_name(args.db_config_name)
+    dl_config = get_data_load_configuration(args.dl_config_name)
+    unmigrated_files = _get_unmigrated_files(attach_name, dl_config, db_conn)
     migration_result = []
     for i, file_record in enumerate(unmigrated_files):
-        migration_result.append(
-            _migrate_file(args.db_config_name, args.dl_config_name, db_conn, s3_client, file_record)
-        )
+        migration_result.append(_migrate_file(attach_name, dl_config, db_conn, s3_client, file_record))
         if ((i + 1) % 100) == 0:
             logger.info(f"Migrated {i + 1} files")
     successful_files = [
@@ -258,6 +244,6 @@ def main(args: CommandLineArguments) -> None:
         sys.exit(1)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: nocover
     args = _parse_args()
     main(args)

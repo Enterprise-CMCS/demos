@@ -1,41 +1,40 @@
 """Perform load actions based on a configuration from a data migration schema into demos_app."""
 
 import argparse
-import os
 from dataclasses import dataclass
 from logging import getLogger
-from typing import Set, Tuple, assert_never, cast, get_args
-
-from dotenv import load_dotenv
+from typing import Set, Tuple, assert_never
 
 from duckdb_connection_manager import (
-    DatabaseConfigurationName,
     attach_db_to_duckdb_conn,
     create_duckdb_conn,
     get_attach_name_from_db_config_name,
 )
-from load_data_to_demos_app_configs import DataLoadConfigurationName, get_data_load_configuration
-from load_data_to_demos_app_types import (
+from load_data_to_demos_app_configs import get_data_load_configuration
+from logger_utils import config_logger
+from types_constants import (
+    APP_SCHEMA_NAME,
+    DB_CONFIG_NAMES,
+    DL_CONFIG_NAMES,
     ArbitraryActionConfiguration,
     ArbitrarySqlGenerationContext,
+    DatabaseConfigurationName,
     DataLoadConfiguration,
+    DataLoadConfigurationName,
     DataLoadSql,
+    DuckDbAttachName,
     GeneratedArbitraryActionSql,
     GeneratedInsertActionSql,
     GeneratedSqlStatement,
     GeneratedTransactionActionSql,
     GeneratedTriggerActionSql,
+    SchemaName,
     TableInsertActionConfiguration,
     TransactionActionConfiguration,
     TriggerActionConfiguration,
 )
-from logger_utils import config_logger
 
 logger = config_logger(getLogger(__name__))
-
-load_dotenv()
-DL_CONFIG_NAMES = get_args(DataLoadConfigurationName.__value__)
-DB_CONFIG_NAMES = get_args(DatabaseConfigurationName.__value__)
 
 
 @dataclass(frozen=True)
@@ -62,16 +61,17 @@ def _parse_args() -> CommandLineArguments:
     parser.add_argument("--dry-run", "-d", action="store_true", help="Print generated SQL to console but do not run")
     parsed_args = parser.parse_args()
     return CommandLineArguments(
-        db_config_name=cast(DatabaseConfigurationName, parsed_args.db_config_name),
-        dl_config_name=cast(DataLoadConfigurationName, parsed_args.dl_config_name),
-        dry_run=cast(bool, parsed_args.dry_run),
+        db_config_name=parsed_args.db_config_name,
+        dl_config_name=parsed_args.dl_config_name,
+        dry_run=parsed_args.dry_run,
     )
 
 
-def _generate_table_insert_sql(
-    source_schema: str,
-    target_schema: str,
-    db_config_name: DatabaseConfigurationName,
+def generate_table_insert_sql(
+    source_schema: SchemaName,
+    target_schema: SchemaName,
+    source_attach_name: DuckDbAttachName,
+    target_attach_name: DuckDbAttachName,
     insert_config: TableInsertActionConfiguration,
 ) -> GeneratedInsertActionSql:
     """Generate an insert statement from a TableInsertActionConfiguration.
@@ -79,41 +79,63 @@ def _generate_table_insert_sql(
     Args:
         source_schema (str): The schema to load from.
         target_schema (str): The schema to load to.
-        db_config_name (DatabaseConfigurationName): The name of the DB config to use.
+        source_attach_name (DuckDbAttachName): The DuckDB attach name to use for the source.
+        target_attach_name (DuckDbAttachName): The DuckDB attach name to use for the target.
         insert_config (TableInsertActionConfiguration): The table configuration to be loaded.
 
     Returns:
         GeneratedInsertActionSql: The SQL query to be executed.
+
+    Raises:
+        ValueError:
+            If trying to insert between two identical locations.
+            If trying to insert between two attached databases where the target is not LocalStack.
     """
-    attach_name = get_attach_name_from_db_config_name(db_config_name)
     logger.info(f"Generating insert statement for {insert_config.source_table} to {insert_config.target_table}")
+
+    if (source_attach_name != target_attach_name) and (target_attach_name != "ddb_demos_localstack"):
+        err_msg = (
+            "Cannot insert across attached databases unless the target is Localstack; "
+            f"target given was {target_attach_name}"
+        )
+        logger.error(err_msg)
+        raise ValueError(err_msg)
+
+    fully_qualified_target = f"{target_attach_name}.{target_schema}.{insert_config.target_table}"
+    fully_qualified_source = f"{source_attach_name}.{source_schema}.{insert_config.source_table}"
+
+    if fully_qualified_target == fully_qualified_source:
+        err_msg = f"Cannot insert {fully_qualified_source} into {fully_qualified_target}; identical locations"
+        logger.error(err_msg)
+        raise ValueError(err_msg)
+
     formatted_col_list = ", ".join(insert_config.column_list)
+
     query = f"""
         INSERT INTO
-            {attach_name}.{target_schema}.{insert_config.target_table}
+            {fully_qualified_target}
             ({formatted_col_list})
         SELECT
             {formatted_col_list}
         FROM
-            {attach_name}.{source_schema}.{insert_config.source_table};
+            {fully_qualified_source};
     """
     return GeneratedInsertActionSql(insert_config, query)
 
 
-def _generate_trigger_action_sql(
-    db_config_name: DatabaseConfigurationName,
+def generate_trigger_action_sql(
+    attach_name: DuckDbAttachName,
     trigger_config: TriggerActionConfiguration,
 ) -> GeneratedTriggerActionSql:
     """Generate an trigger action statement from a TriggerActionConfiguration.
 
     Args:
-        db_config_name (DatabaseConfigurationName): The name of the DB config to use.
+        attach_name (DuckDbAttachName): The DuckDB attach name to use.
         trigger_config (TriggerActionConfiguration): The trigger configuration to generate.
 
     Returns:
         GeneratedTriggerActionSql: The SQL query to be executed.
     """
-    attach_name = get_attach_name_from_db_config_name(db_config_name)
     logger.info(
         f"Generating control statement to {trigger_config.action_type} trigger "
         f"{trigger_config.trigger_table}.{trigger_config.trigger_name}"
@@ -138,7 +160,7 @@ def _generate_trigger_action_sql(
     return GeneratedTriggerActionSql(trigger_config, query)
 
 
-def _generate_transaction_action_sql(transact_config: TransactionActionConfiguration) -> GeneratedTransactionActionSql:
+def generate_transaction_action_sql(transact_config: TransactionActionConfiguration) -> GeneratedTransactionActionSql:
     """Generate an transaction action statement from a TriggerActionConfiguration.
 
     Args:
@@ -159,32 +181,29 @@ def _generate_transaction_action_sql(transact_config: TransactionActionConfigura
     return GeneratedTransactionActionSql(transact_config, query)
 
 
-def _generate_arbitrary_action_sql(
-    db_config_name: DatabaseConfigurationName, arbitrary_action_config: ArbitraryActionConfiguration
+def generate_arbitrary_action_sql(
+    attach_name: DuckDbAttachName, arbitrary_action_config: ArbitraryActionConfiguration
 ) -> GeneratedArbitraryActionSql:
     """Generate an arbitrary action statement from an ArbitraryActionConfiguration.
 
     Args:
-        db_config_name (DatabaseConfigurationName): The name of the DB config to use.
+        attach_name (DuckDbAttachName): The DuckDB attach name to use.
         arbitrary_action_config (ArbitraryActionConfiguration): The arbitrary action configuration to generate.
 
     Returns:
         GeneratedArbitraryActionSql: The SQL query to be executed.
     """
-    attach_name = get_attach_name_from_db_config_name(db_config_name)
-    app_schema = os.environ["APP_SCHEMA"]
+    app_schema = APP_SCHEMA_NAME
     sql_input = ArbitrarySqlGenerationContext(attach_name, app_schema)
     sql_query = arbitrary_action_config.sql_generator(sql_input)
     return GeneratedArbitraryActionSql(arbitrary_action_config, sql_query)
 
 
-def _generate_data_load_sql(
-    db_config_name: DatabaseConfigurationName, data_load_config: DataLoadConfiguration
-) -> DataLoadSql:
+def _generate_data_load_sql(attach_name: DuckDbAttachName, data_load_config: DataLoadConfiguration) -> DataLoadSql:
     """Generate all the SQL for the data_load.
 
     Args:
-        db_config_name (DatabaseConfigurationName): The name of the DB config to use.
+        attach_name (DuckDbAttachName): The DuckDB attach name to use.
         data_load_config (DataLoadConfiguration): The data load configuration to use.
 
     Returns:
@@ -195,8 +214,8 @@ def _generate_data_load_sql(
     disabled_triggers: Set[Tuple[str, str, str]] = set()
     for action_config in data_load_config.data_load_actions:
         if isinstance(action_config, TableInsertActionConfiguration):
-            result = _generate_table_insert_sql(
-                data_load_config.source_schema, data_load_config.target_schema, db_config_name, action_config
+            result = generate_table_insert_sql(
+                data_load_config.source_schema, data_load_config.target_schema, attach_name, attach_name, action_config
             )
         elif isinstance(action_config, TriggerActionConfiguration):
             if action_config.action_type == "disable":
@@ -209,25 +228,25 @@ def _generate_data_load_sql(
                 )
             else:
                 assert_never(action_config.action_type)
-            result = _generate_trigger_action_sql(db_config_name, action_config)
+            result = generate_trigger_action_sql(attach_name, action_config)
         elif isinstance(action_config, TransactionActionConfiguration):
-            result = _generate_transaction_action_sql(action_config)
+            result = generate_transaction_action_sql(action_config)
         elif isinstance(action_config, ArbitraryActionConfiguration):
-            result = _generate_arbitrary_action_sql(db_config_name, action_config)
+            result = generate_arbitrary_action_sql(attach_name, action_config)
         else:
             assert_never(action_config)
         generated_sql.append(result)
     if len(disabled_triggers) > 0:
         logger.warning("Note! Current configuration leaves some triggers disabled! Enabling them")
         for trigger in disabled_triggers:
-            result = _generate_trigger_action_sql(
-                db_config_name, TriggerActionConfiguration("enable", trigger[0], trigger[1], trigger[2])
+            result = generate_trigger_action_sql(
+                attach_name, TriggerActionConfiguration("enable", trigger[0], trigger[1], trigger[2])
             )
             generated_sql.append(result)
     return generated_sql
 
 
-def _create_log_execution_message_for_sql(sql_executed: GeneratedSqlStatement) -> str:
+def create_log_execution_message_for_sql(sql_executed: GeneratedSqlStatement) -> str:
     """Create a log execution message for a SQL statement.
 
     Args:
@@ -259,17 +278,18 @@ def _create_log_execution_message_for_sql(sql_executed: GeneratedSqlStatement) -
 def main(args: CommandLineArguments) -> None:
     """Main program function."""
     data_load_config = get_data_load_configuration(args.dl_config_name)
-    generated_sql = _generate_data_load_sql(args.db_config_name, data_load_config)
+    attach_name = get_attach_name_from_db_config_name(args.db_config_name)
+    generated_sql = _generate_data_load_sql(attach_name, data_load_config)
     if args.dry_run:
         for query in generated_sql:
             logger.info(query.sql_query)
     else:
         conn = attach_db_to_duckdb_conn(create_duckdb_conn(), args.db_config_name)
         for query in generated_sql:
-            logger.info(_create_log_execution_message_for_sql(query))
+            logger.info(create_log_execution_message_for_sql(query))
             conn.execute(query.sql_query)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: nocover
     args = _parse_args()
     main(args)

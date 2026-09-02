@@ -2,21 +2,20 @@
 
 import os
 from logging import getLogger
-from typing import TYPE_CHECKING, Literal, assert_never
+from typing import TYPE_CHECKING, assert_never
 
 import duckdb
+from dotenv import load_dotenv
 
 from logger_utils import config_logger
+from types_constants import DatabaseConfigurationName, DuckDbAttachName
 
 if TYPE_CHECKING:
     from duckdb import DuckDBPyConnection as DuckConn
 
-
 logger = config_logger(getLogger(__name__))
 
-
-type DatabaseConfigurationName = Literal["demos-localstack", "demos-aws"]
-type DuckDbAttachName = Literal["ddb_demos_localstack", "ddb_demos_aws"]
+load_dotenv()
 
 
 def _load_db_params_from_env(db_config_name: DatabaseConfigurationName) -> dict:
@@ -119,10 +118,11 @@ def attach_db_to_duckdb_conn(conn: "DuckConn", db_config_name: DatabaseConfigura
     ddb_demos_config = _load_db_params_from_env(db_config_name)
     clean_demos_pwd = ddb_demos_config["pwd"].replace("'", "''")
     attach_name = get_attach_name_from_db_config_name(db_config_name)
+    secret_name = f"{attach_name}_secret"
 
     try:
-        conn.execute(f"""
-            CREATE SECRET (
+        query = f"""
+            CREATE SECRET {secret_name} (
                 TYPE postgres,
                 HOST '{ddb_demos_config["host"]}',
                 PORT {ddb_demos_config["port"]},
@@ -130,8 +130,11 @@ def attach_db_to_duckdb_conn(conn: "DuckConn", db_config_name: DatabaseConfigura
                 USER '{ddb_demos_config["user"]}',
                 PASSWORD '{clean_demos_pwd}'
             );
-        """)
-        conn.execute(f"ATTACH 'sslmode={ddb_demos_config['sslmode']}' AS {attach_name} (TYPE postgres);")
+        """
+        conn.execute(query)
+        conn.execute(
+            f"ATTACH 'sslmode={ddb_demos_config['sslmode']}' AS {attach_name} (TYPE postgres, SECRET {secret_name});"
+        )
         conn.execute("SET pg_null_byte_replacement=''")  # This was previously necessary to handle NULLs from MySQL
     except Exception:
         err_msg = "An error occurred while attempting to attach the DEMOS database."

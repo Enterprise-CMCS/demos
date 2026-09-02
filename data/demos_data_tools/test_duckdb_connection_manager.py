@@ -1,10 +1,12 @@
 """A module containing tests for the duckdb_connection_manager.py file."""
 
+from typing import cast
 from unittest.mock import MagicMock, call
 
 import pytest
 
 import duckdb_connection_manager
+from types_constants import DatabaseConfigurationName
 
 
 class TestDuckDbConnectionManager:
@@ -134,7 +136,7 @@ class TestDuckDbConnectionManager:
         ::It should throw if given an invalid DB config.
         """
         with pytest.raises(RuntimeError) as except_info:
-            duckdb_connection_manager._load_db_params_from_env("Not A Database")  # type: ignore
+            duckdb_connection_manager._load_db_params_from_env(cast(DatabaseConfigurationName, "Not A Database"))
 
         assert (
             except_info.value.args[0] == "An unhandled exception occurred while loading "
@@ -185,7 +187,9 @@ class TestDuckDbConnectionManager:
         ::It should throw when given an invalid DB config name.
         """
         with pytest.raises(AssertionError) as except_info:
-            duckdb_connection_manager.get_attach_name_from_db_config_name("not-a-db-config")  # type: ignore
+            duckdb_connection_manager.get_attach_name_from_db_config_name(
+                cast(DatabaseConfigurationName, "not-a-db-config")
+            )
 
         assert except_info.value.args[0] == "Expected code to be unreachable, but got: 'not-a-db-config'"
 
@@ -223,7 +227,7 @@ class TestDuckDbConnectionManager:
 
         mock_attach_name_getter.assert_called_once_with("demos-localstack")
         assert mock_conn.execute.call_args_list[1] == call(
-            f"ATTACH 'sslmode=disable' AS {self.mock_attach_name} (TYPE postgres);"
+            f"ATTACH 'sslmode=disable' AS {self.mock_attach_name} (TYPE postgres, SECRET my_ddb_attach_name_secret);"
         )
 
     def test_attach_db_to_duckdb_conn_03(self, mock_load_credentials):
@@ -253,6 +257,8 @@ class TestDuckDbConnectionManager:
         mock_conn = MagicMock()
 
         with pytest.raises(AssertionError) as except_info:
-            duckdb_connection_manager.attach_db_to_duckdb_conn(mock_conn, "Not A Database")  # type: ignore
+            duckdb_connection_manager.attach_db_to_duckdb_conn(
+                mock_conn, cast(DatabaseConfigurationName, "Not A Database")
+            )
 
         assert except_info.value.args[0] == "Expected code to be unreachable, but got: 'Not A Database'"

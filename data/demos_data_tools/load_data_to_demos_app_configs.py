@@ -1,31 +1,25 @@
 """Store different data load configurations for use in load_data_to_demos_app.py."""
 
-import os
-from typing import Literal, assert_never
+from typing import assert_never
 
-from dotenv import load_dotenv
-
-from load_data_to_demos_app_types import (
+from types_constants import (
+    APP_SCHEMA_NAME,
     ArbitraryActionConfiguration,
     ArbitrarySqlGenerationContext,
     DataLoadConfiguration,
+    DataLoadConfigurationName,
     TableInsertActionConfiguration,
     TransactionActionConfiguration,
     TriggerActionConfiguration,
 )
 
-load_dotenv()
-APP_SCHEMA = os.environ["APP_SCHEMA"]
-STAGING_SCHEMA = os.environ["STAGING_SCHEMA"]
-REV01_SCHEMA = os.environ["REV01_SCHEMA"]
-
 
 def set_migration_mode_on(generation_context: ArbitrarySqlGenerationContext) -> str:  # noqa: D103
-    return f"CALL postgres_execute('{generation_context.attach_name}', 'SET LOCAL demos_app.migration_mode = ''on''')"
+    return f"CALL postgres_execute('{generation_context.attach_name}', $$SET LOCAL demos_app.migration_mode = 'on'$$)"
 
 
 def set_migration_mode_off(generation_context: ArbitrarySqlGenerationContext) -> str:  # noqa: D103
-    return f"CALL postgres_execute('{generation_context.attach_name}', 'SET LOCAL demos_app.migration_mode = ''off''')"
+    return f"CALL postgres_execute('{generation_context.attach_name}', $$SET LOCAL demos_app.migration_mode = 'off'$$)"
 
 
 def call_mark_deliverables_past_due(generation_context: ArbitrarySqlGenerationContext) -> str:  # noqa: D103
@@ -40,9 +34,6 @@ def call_update_federal_comment_phase_status(generation_context: ArbitrarySqlGen
         f"CALL postgres_execute('{generation_context.attach_name}', "
         f"'CALL {generation_context.app_schema}.update_federal_comment_phase_status()')"
     )
-
-
-type DataLoadConfigurationName = Literal["base", "rev01"]
 
 
 def get_data_load_configuration(dl_config_name: DataLoadConfigurationName) -> DataLoadConfiguration:
@@ -60,18 +51,20 @@ def get_data_load_configuration(dl_config_name: DataLoadConfigurationName) -> Da
     match dl_config_name:
         case "base":
             data_load_config = DataLoadConfiguration(
-                STAGING_SCHEMA,
-                APP_SCHEMA,
+                "legacy_pmda_staged",
+                APP_SCHEMA_NAME,
                 (
                     TriggerActionConfiguration(
-                        "disable", APP_SCHEMA, "application", "create_phases_and_dates_for_new_application"
+                        "disable", APP_SCHEMA_NAME, "application", "create_phases_and_dates_for_new_application"
                     ),
-                    TriggerActionConfiguration("disable", APP_SCHEMA, "deliverable", "trim_input_text_fields"),
-                    TriggerActionConfiguration("disable", APP_SCHEMA, "document", "trim_input_text_fields"),
-                    TriggerActionConfiguration("disable", APP_SCHEMA, "private_comment", "trim_input_text_fields"),
-                    TriggerActionConfiguration("disable", APP_SCHEMA, "public_comment", "trim_input_text_fields"),
-                    TriggerActionConfiguration("disable", APP_SCHEMA, "reference", "trim_input_text_fields"),
-                    TriggerActionConfiguration("disable", APP_SCHEMA, "reference_agreement", "trim_input_text_fields"),
+                    TriggerActionConfiguration("disable", APP_SCHEMA_NAME, "deliverable", "trim_input_text_fields"),
+                    TriggerActionConfiguration("disable", APP_SCHEMA_NAME, "document", "trim_input_text_fields"),
+                    TriggerActionConfiguration("disable", APP_SCHEMA_NAME, "private_comment", "trim_input_text_fields"),
+                    TriggerActionConfiguration("disable", APP_SCHEMA_NAME, "public_comment", "trim_input_text_fields"),
+                    TriggerActionConfiguration("disable", APP_SCHEMA_NAME, "reference", "trim_input_text_fields"),
+                    TriggerActionConfiguration(
+                        "disable", APP_SCHEMA_NAME, "reference_agreement", "trim_input_text_fields"
+                    ),
                     TableInsertActionConfiguration(
                         "final_demos_app_person",
                         "person",
@@ -375,14 +368,16 @@ def get_data_load_configuration(dl_config_name: DataLoadConfigurationName) -> Da
                         ],
                     ),
                     TriggerActionConfiguration(
-                        "enable", APP_SCHEMA, "application", "create_phases_and_dates_for_new_application"
+                        "enable", APP_SCHEMA_NAME, "application", "create_phases_and_dates_for_new_application"
                     ),
-                    TriggerActionConfiguration("enable", APP_SCHEMA, "deliverable", "trim_input_text_fields"),
-                    TriggerActionConfiguration("enable", APP_SCHEMA, "document", "trim_input_text_fields"),
-                    TriggerActionConfiguration("enable", APP_SCHEMA, "private_comment", "trim_input_text_fields"),
-                    TriggerActionConfiguration("enable", APP_SCHEMA, "public_comment", "trim_input_text_fields"),
-                    TriggerActionConfiguration("enable", APP_SCHEMA, "reference", "trim_input_text_fields"),
-                    TriggerActionConfiguration("enable", APP_SCHEMA, "reference_agreement", "trim_input_text_fields"),
+                    TriggerActionConfiguration("enable", APP_SCHEMA_NAME, "deliverable", "trim_input_text_fields"),
+                    TriggerActionConfiguration("enable", APP_SCHEMA_NAME, "document", "trim_input_text_fields"),
+                    TriggerActionConfiguration("enable", APP_SCHEMA_NAME, "private_comment", "trim_input_text_fields"),
+                    TriggerActionConfiguration("enable", APP_SCHEMA_NAME, "public_comment", "trim_input_text_fields"),
+                    TriggerActionConfiguration("enable", APP_SCHEMA_NAME, "reference", "trim_input_text_fields"),
+                    TriggerActionConfiguration(
+                        "enable", APP_SCHEMA_NAME, "reference_agreement", "trim_input_text_fields"
+                    ),
                     ArbitraryActionConfiguration("Run due date calculation", call_mark_deliverables_past_due),
                     ArbitraryActionConfiguration(
                         "Run phase status update for Federal Comment Period",
@@ -392,13 +387,13 @@ def get_data_load_configuration(dl_config_name: DataLoadConfigurationName) -> Da
             )
         case "rev01":
             data_load_config = DataLoadConfiguration(
-                REV01_SCHEMA,
-                APP_SCHEMA,
+                "legacy_pmda_migration_rev_01",
+                APP_SCHEMA_NAME,
                 (
                     TriggerActionConfiguration(
-                        "disable", APP_SCHEMA, "application", "create_phases_and_dates_for_new_application"
+                        "disable", APP_SCHEMA_NAME, "application", "create_phases_and_dates_for_new_application"
                     ),
-                    TriggerActionConfiguration("disable", APP_SCHEMA, "document", "trim_input_text_fields"),
+                    TriggerActionConfiguration("disable", APP_SCHEMA_NAME, "document", "trim_input_text_fields"),
                     TransactionActionConfiguration("begin"),
                     TableInsertActionConfiguration(
                         "final_demos_app_application",
@@ -542,9 +537,9 @@ def get_data_load_configuration(dl_config_name: DataLoadConfigurationName) -> Da
                         ],
                     ),
                     TriggerActionConfiguration(
-                        "enable", APP_SCHEMA, "application", "create_phases_and_dates_for_new_application"
+                        "enable", APP_SCHEMA_NAME, "application", "create_phases_and_dates_for_new_application"
                     ),
-                    TriggerActionConfiguration("enable", APP_SCHEMA, "document", "trim_input_text_fields"),
+                    TriggerActionConfiguration("enable", APP_SCHEMA_NAME, "document", "trim_input_text_fields"),
                     ArbitraryActionConfiguration(
                         "Run phase status update for Federal Comment Period", call_update_federal_comment_phase_status
                     ),
