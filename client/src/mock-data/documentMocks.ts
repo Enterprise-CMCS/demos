@@ -1,6 +1,5 @@
-import { Document } from "demos-server";
+import { Demonstration, Document } from "demos-server";
 import { developmentMockUser } from "./userMocks";
-import { mockDemonstration } from "./demonstrationMocks";
 
 const mockDocument: Document = {
   id: "1",
@@ -15,7 +14,7 @@ const mockDocument: Document = {
   presignedDownloadUrl: "https://mock-s3-url.com/project-plan.pdf",
   downloadFileName: "project-plan.pdf",
   hasPendingUIPathResult: false,
-  application: mockDemonstration,
+  application: {} as Demonstration,
 };
 
 export const mockDocuments: Document[] = [

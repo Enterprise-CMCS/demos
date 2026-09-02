@@ -79,6 +79,7 @@ This file provides instructions for AI agents to use when generating or editing 
 - Mocks should not define a new type that is a subset of the server side type but rather aim to meet the mock needs fully (utilizing mock data from other models to fill in the gaps and providing empty values otherwise)
 - Where volume is needed in testing, mocks should not be created with random, plausible looking data but rather the same mock or small set of mocks should be repeated.
 - In most cases individual entities should be exported from mock data files rather than whole lists. If lists are needed they should be made out of individiaul entities, with few exceptions like `State`.
+- Sometimes circular dependencies will need to be avoided, when this is the case you can do `{} as ServerType` in order to not re-use an existing entity. The F/E can make decisions about the directionality of data that it fetches.
 
 ### General Testing
 
