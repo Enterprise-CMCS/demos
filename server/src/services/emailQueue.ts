@@ -19,16 +19,27 @@ export const REALTIME_EMAIL_TYPES = [
   "Extension Decision Made",
   "Resubmission Requested",
   "Public Comment Added",
-  "Terms And Conditions Requested",
 ] as const;
 
 export type RealtimeEmailType = (typeof REALTIME_EMAIL_TYPES)[number];
-export type RealtimeEmailEntityType = "deliverable" | "reference";
+export type RealtimeEmailEntityType = "deliverable";
 
-export type RealtimeEmailMessage = {
+type RealtimeEmailTarget =
+  | {
+      emailType: RealtimeEmailType;
+      entityType: RealtimeEmailEntityType;
+    }
+  | {
+      emailType: "Application Status Updated";
+      entityType: "application";
+    }
+  | {
+      emailType: "Terms And Conditions Requested";
+      entityType: "application" | "reference";
+    };
+
+export type RealtimeEmailMessage = RealtimeEmailTarget & {
   emailNotificationId?: string;
-  emailType: RealtimeEmailType;
-  entityType: RealtimeEmailEntityType;
   entityId: string;
   triggeredBy: {
     type: "realtime";

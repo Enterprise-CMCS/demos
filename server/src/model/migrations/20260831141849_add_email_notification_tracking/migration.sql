@@ -46,16 +46,11 @@ CREATE TABLE "email_notification_entity_type" (
     CONSTRAINT "email_notification_entity_type_pkey" PRIMARY KEY ("id")
 );
 
-INSERT INTO "email_notification_entity_type" ("id")
-VALUES
-    ('deliverable'),
-    ('application');
-
 -- CreateTable
 CREATE TABLE "email_notification_recipient" (
     "id" UUID NOT NULL,
     "email_notification_id" UUID NOT NULL,
-    "person_id" UUID,
+    "person_id" UUID NOT NULL,
     "email_address" TEXT NOT NULL,
     "normalized_email" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -70,35 +65,12 @@ CREATE TABLE "email_notification_status" (
     CONSTRAINT "email_notification_status_pkey" PRIMARY KEY ("id")
 );
 
-INSERT INTO "email_notification_status" ("id")
-VALUES
-    ('Pending'),
-    ('Queued'),
-    ('Sent'),
-    ('Failed');
-
 -- CreateTable
 CREATE TABLE "email_notification_type" (
     "id" TEXT NOT NULL,
 
     CONSTRAINT "email_notification_type_pkey" PRIMARY KEY ("id")
 );
-
-INSERT INTO "email_notification_type" ("id")
-VALUES
-    ('Deliverable Created'),
-    ('Multiple Deliverables Created'),
-    ('Deliverable Submitted'),
-    ('Deliverable Accepted'),
-    ('Deliverable Approved'),
-    ('Deliverable Received and Filed'),
-    ('Deliverable Due Date Updated'),
-    ('Extension Requested'),
-    ('Extension Decision Made'),
-    ('Resubmission Requested'),
-    ('Public Comment Added'),
-    ('Terms And Conditions Requested'),
-    ('Application Status Updated');
 
 -- CreateTable
 CREATE TABLE "email_notification_type_entity_type" (
@@ -107,22 +79,6 @@ CREATE TABLE "email_notification_type_entity_type" (
 
     CONSTRAINT "email_notification_type_entity_type_pkey" PRIMARY KEY ("email_type_id","entity_type_id")
 );
-
-INSERT INTO "email_notification_type_entity_type" ("email_type_id", "entity_type_id")
-VALUES
-    ('Deliverable Created', 'deliverable'),
-    ('Multiple Deliverables Created', 'deliverable'),
-    ('Deliverable Due Date Updated', 'deliverable'),
-    ('Deliverable Submitted', 'deliverable'),
-    ('Deliverable Accepted', 'deliverable'),
-    ('Deliverable Approved', 'deliverable'),
-    ('Deliverable Received and Filed', 'deliverable'),
-    ('Extension Requested', 'deliverable'),
-    ('Extension Decision Made', 'deliverable'),
-    ('Resubmission Requested', 'deliverable'),
-    ('Public Comment Added', 'deliverable'),
-    ('Terms And Conditions Requested', 'application'),
-    ('Application Status Updated', 'application');
 
 -- CreateIndex
 CREATE UNIQUE INDEX "email_notification_idempotency_key_key" ON "email_notification"("idempotency_key");
