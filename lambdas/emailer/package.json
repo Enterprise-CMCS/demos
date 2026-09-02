@@ -13,16 +13,26 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.1117.0",
+    "@react-email/components": "^1.0.12",
+    "@react-email/render": "^2.1.0",
+    "demos-shared-library": "file:../../shared_library",
     "nodemailer": "^9.0.5",
-    "demos-shared-library": "file:../../shared_library"
+    "pg": "^8.23.0",
+    "pino": "^10.3.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   },
   "devDependencies": {
-    "@aws-sdk/client-ssm": "^3.1106.0",
+    "@aws-sdk/client-ssm": "^3.1117.0",
     "@types/aws-lambda": "^8.10.162",
     "@types/nodemailer": "^7.0.12",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "@vitest/coverage-v8": "^4.1.11",
     "aws-sdk-client-mock": "^4.1.0",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   }
 }

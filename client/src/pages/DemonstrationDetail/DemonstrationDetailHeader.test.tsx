@@ -1,385 +1,46 @@
 import React from "react";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import {
-  DEMONSTRATION_HEADER_DETAILS_QUERY,
-  DemonstrationDetailHeader,
-} from "./DemonstrationDetailHeader";
-import { MockedProvider, MockedProviderProps } from "@apollo/client/testing";
-import { GraphQLError } from "graphql";
-import { MemoryRouter } from "react-router-dom";
-import { CurrentUser } from "components/user/UserContext";
-import { TestUserProvider } from "components/user/UserProvider";
-import { developmentMockUser } from "mock-data/userMocks";
+import { render, screen } from "@testing-library/react";
 
-vi.mock("components/toast/ToastContext", () => ({
-  useToast: () => ({
-    showToast: vi.fn(),
-    hideToast: vi.fn(),
-  }),
-}));
+import { DemonstrationDetailHeader } from "./DemonstrationDetailHeader";
+import { useParams } from "react-router-dom";
 
-const showCreateDemonstrationDialog = vi.fn();
-const showEditDemonstrationDialog = vi.fn();
-const showCreateAmendmentDialog = vi.fn();
-const showCreateRenewalDialog = vi.fn();
-vi.mock("components/dialog/DialogContext", () => ({
-  useDialog: () => ({
-    showCreateDemonstrationDialog,
-    showEditDemonstrationDialog,
-    showCreateAmendmentDialog,
-    showCreateRenewalDialog,
-  }),
-}));
-
-const testDemonstration = {
-  id: "1",
-  medicaidId: "11-W-99999/8",
-  chipId: "11-W-99998/8",
-  name: "Montana Medicaid Waiver",
-  status: "Approved",
-  effectiveDate: new Date("2025-01-01"),
-  expirationDate: new Date("2025-12-01"),
-  state: { id: "MT", name: "Montana" },
-  primaryProjectOfficer: { id: "po1", fullName: "John Doe" },
-};
-
-const testDemonstrationWithoutDates = {
-  ...testDemonstration,
-  effectiveDate: null,
-  expirationDate: null,
-};
-
-// Mock GraphQL responses
-const mockDemonstrationQuery = {
-  request: {
-    query: DEMONSTRATION_HEADER_DETAILS_QUERY,
-    variables: { id: "1" },
-  },
-  result: {
-    data: {
-      demonstration: testDemonstration,
-    },
-  },
-};
-
-const testDemonstrationWithoutChipId = {
-  ...testDemonstration,
-  chipId: null,
-};
-
-const mockDemonstrationQueryWithoutChipId = {
-  request: {
-    query: DEMONSTRATION_HEADER_DETAILS_QUERY,
-    variables: { id: "1" },
-  },
-  result: {
-    data: {
-      demonstration: testDemonstrationWithoutChipId,
-    },
-  },
-};
-
-const mockDemonstrationQueryWithoutDatesQuery = {
-  request: {
-    query: DEMONSTRATION_HEADER_DETAILS_QUERY,
-    variables: { id: "1" },
-  },
-  result: {
-    data: {
-      demonstration: testDemonstrationWithoutDates,
-    },
-  },
-};
-
-const testNonApprovedDemonstration = {
-  ...testDemonstration,
-  status: "Pre-Submission",
-};
-
-const mockNonApprovedDemonstrationQuery = {
-  request: {
-    query: DEMONSTRATION_HEADER_DETAILS_QUERY,
-    variables: { id: "1" },
-  },
-  result: {
-    data: {
-      demonstration: testNonApprovedDemonstration,
-    },
-  },
-};
-
-// Mock for GraphQL error
-const mockDemonstrationQueryError = {
-  request: {
-    query: DEMONSTRATION_HEADER_DETAILS_QUERY,
-    variables: { id: "1" },
-  },
-  error: new GraphQLError("Failed to fetch demonstration details"),
-};
-
-const buildCurrentUser = (
-  personType: CurrentUser["person"]["personType"] = "demos-cms-user"
-): CurrentUser => ({
-  ...developmentMockUser,
-  person: { ...developmentMockUser.person, personType },
+vi.mock("react-router-dom", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-router-dom")>();
+  return {
+    ...actual,
+    useParams: vi.fn(),
+  };
 });
 
-const renderHeader = (
-  mocks: MockedProviderProps["mocks"] = [mockDemonstrationQuery],
-  currentUser = buildCurrentUser()
-) =>
-  render(
-    <MemoryRouter>
-      <MockedProvider mocks={mocks}>
-        <TestUserProvider currentUser={currentUser}>
-          <DemonstrationDetailHeader demonstrationId="1" />
-        </TestUserProvider>
-      </MockedProvider>
-    </MemoryRouter>
-  );
+vi.mock("pages/DemonstrationDetail/DemonstrationHeader", () => ({
+  DemonstrationHeader: ({ demonstrationId }: { demonstrationId: string }) => (
+    <div data-testid="mock-demonstration-header">Mock Header of demo: {demonstrationId}</div>
+  ),
+}));
 
-describe("Demonstration Detail Header", () => {
+describe("DemonstrationDetailHeader", () => {
   beforeEach(() => {
+    vi.mocked(useParams).mockReturnValue({ demonstrationId: "test-demo-id" });
+  });
+
+  afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it("renders demonstration header info", async () => {
-    renderHeader();
-
-    await waitFor(() => {
-      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
-    });
-
-    // Check back button navigation
-    const backButton = screen.getByTestId("Back to demonstrations");
-    expect(backButton).toBeInTheDocument();
-
-    // Check breadcrumb navigation
-    expect(screen.getByRole("link", { name: /demonstration list/i })).toBeInTheDocument();
-
-    // Get the attributes list and verify its structure
-    const attributesList = screen.getByTestId("demonstration-attributes-list");
-    expect(attributesList).toBeInTheDocument();
-    expect(attributesList).toHaveAttribute("role", "list");
-
-    // Get all list items (excluding pipe separators)
-    const listItems = within(attributesList).getAllByRole("listitem");
-    const attributeItems = listItems.filter((item) => !item.textContent?.includes("|"));
-
-    // Expected attributes in order
-    const expectedAttributes = [
-      { label: "State/Territory", value: "Montana" },
-      { label: "Project Officer", value: "John Doe" },
-      { label: "Status", value: "Approved" },
-      { label: "Effective", value: "01/01/2025" },
-      { label: "Expiration", value: "12/01/2025" },
-    ];
-
-    // Verify we have the expected number of attribute items
-    expect(attributeItems).toHaveLength(expectedAttributes.length);
-
-    // Loop through and verify each attribute
-    expectedAttributes.forEach((expected, index) => {
-      const item = attributeItems[index];
-      expect(item).toHaveTextContent(expected.label);
-      expect(item).toHaveTextContent(expected.value);
-
-      // Verify the structure: should contain both label and value
-      expect(item.textContent).toMatch(new RegExp(`${expected.label}.*${expected.value}`));
-    });
+  it("renders the DemonstrationHeader with the demonstration id from params", async () => {
+    render(<DemonstrationDetailHeader />);
+    const header = await screen.findByTestId("mock-demonstration-header");
+    expect(header).toBeInTheDocument();
+    expect(header).toHaveTextContent("Mock Header of demo: test-demo-id");
   });
 
-  it("renders date placeholder as --/--/---- when dates are missing", async () => {
-    renderHeader([mockDemonstrationQueryWithoutDatesQuery]);
+  it("throws an error when demonstrationId param is missing", () => {
+    vi.mocked(useParams).mockReturnValue({});
 
-    await waitFor(() => {
-      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
-    });
-    expect(screen.getByTestId("demonstration-Effective")).toHaveTextContent("--/--/----");
-    expect(screen.getByTestId("demonstration-Expiration")).toHaveTextContent("--/--/----");
-  });
-
-  it("shows loading state while fetching demonstration data", async () => {
-    renderHeader();
-
-    // Should show loading state immediately
-    expect(screen.getByLabelText(/loading/i)).toBeInTheDocument();
-
-    // Should not show any demonstration-specific content while loading
-    expect(screen.queryByText("Montana Medicaid Waiver")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("demonstration-attributes-list")).not.toBeInTheDocument();
-
-    // Wait for loading to complete
-    await waitFor(() => {
-      expect(screen.queryByLabelText(/loading/i)).not.toBeInTheDocument();
-    });
-
-    // After loading, should show the demonstration data
-    expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
-  });
-
-  it("shows error state when GraphQL query fails", async () => {
-    renderHeader([mockDemonstrationQueryError]);
-
-    // Wait for error to appear
-    await waitFor(() => {
-      expect(screen.getByText(/Error Loading Demonstration/i)).toBeInTheDocument();
-    });
-
-    // Should not show demonstration-specific content
-    expect(screen.queryByText("Montana Medicaid Waiver")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("demonstration-attributes-list")).not.toBeInTheDocument();
-
-    // Should not show loading state
-    expect(screen.queryByLabelText(/loading/i)).not.toBeInTheDocument();
-  });
-
-  it("shows Add button and dropdown options", async () => {
-    renderHeader();
-    // Wait for component to load
-    await waitFor(() => {
-      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
-    });
-
-    const toggleButton = screen.getByTestId("Toggle more options");
-    expect(toggleButton).toBeInTheDocument();
-    fireEvent.click(toggleButton);
-
-    await waitFor(() => {
-      expect(screen.getByTestId("Create New")).toBeInTheDocument();
-    });
-
-    const addButton = screen.getByTestId("Create New");
-
-    // Click the Add button to open the dropdown
-    fireEvent.click(addButton);
-
-    // Verify Amendment and Renewal options appear
-    await waitFor(() => {
-      expect(screen.getByTestId("button-create-new-amendment")).toBeInTheDocument();
-      expect(screen.getByTestId("button-create-new-renewal")).toBeInTheDocument();
-    });
-
-    expect(screen.getByText("Amendment")).toBeInTheDocument();
-    expect(screen.getByText("Renewal")).toBeInTheDocument();
-  });
-
-  it("does not render the demonstration action group for state users", async () => {
-    renderHeader([mockDemonstrationQuery], buildCurrentUser("demos-state-user"));
-
-    await waitFor(() => {
-      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
-    });
-
-    expect(screen.queryByTestId("toggle-ellipsis-button")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("edit-button")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("create-new-button")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("button-create-new-amendment")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("button-create-new-renewal")).not.toBeInTheDocument();
-  });
-
-  it("opens Add Amendment Modal when Amendment option is clicked", async () => {
-    renderHeader();
-    // Wait for component to load
-    await waitFor(() => {
-      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
-    });
-
-    const toggleButton = screen.getByTestId("Toggle more options");
-    fireEvent.click(toggleButton);
-
-    await waitFor(() => {
-      expect(screen.getByTestId("Create New")).toBeInTheDocument();
-    });
-
-    const addButton = screen.getByTestId("Create New");
-    fireEvent.click(addButton);
-
-    // Wait for dropdown to appear and click Amendment
-    await waitFor(() => {
-      expect(screen.getByTestId("button-create-new-amendment")).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByTestId("button-create-new-amendment"));
-
-    expect(showCreateAmendmentDialog).toHaveBeenCalledWith("1");
-  });
-
-  it("opens Add Renewal Modal when Renewal option is clicked", async () => {
-    renderHeader();
-    // Wait for component to load
-    await waitFor(() => {
-      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
-    });
-
-    const toggleButton = screen.getByTestId("Toggle more options");
-    fireEvent.click(toggleButton);
-
-    await waitFor(() => {
-      expect(screen.getByTestId("Create New")).toBeInTheDocument();
-    });
-
-    const addButton = screen.getByTestId("Create New");
-    fireEvent.click(addButton);
-
-    // Wait for dropdown to appear and click Renewal
-    await waitFor(() => {
-      expect(screen.getByTestId("button-create-new-renewal")).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByTestId("button-create-new-renewal"));
-
-    expect(showCreateRenewalDialog).toHaveBeenCalledWith("1");
-  });
-
-  it("disables Create New for non-approved demonstrations", async () => {
-    renderHeader([mockNonApprovedDemonstrationQuery]);
-
-    await waitFor(() => {
-      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByTestId("Toggle more options"));
-
-    await waitFor(() => {
-      expect(screen.getByTestId("Create New")).toBeInTheDocument();
-    });
-
-    const createNewButton = screen.getByTestId("Create New");
-    expect(createNewButton).toBeDisabled();
-
-    fireEvent.click(createNewButton);
-
-    expect(screen.queryByTestId("button-create-new-amendment")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("button-create-new-renewal")).not.toBeInTheDocument();
-    expect(showCreateAmendmentDialog).not.toHaveBeenCalled();
-    expect(showCreateRenewalDialog).not.toHaveBeenCalled();
-  });
-
-  it("renders both medicaidId and chipId when chipId exists", async () => {
-    renderHeader();
-
-    await waitFor(() => {
-      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
-    });
-
-    const breadcrumb = screen.getByRole("link", { name: /demonstration list/i }).parentElement;
-
-    expect(breadcrumb).toHaveTextContent("11-W-99999/8");
-    expect(breadcrumb).toHaveTextContent("11-W-99998/8");
-    expect(breadcrumb).toHaveTextContent("|");
-  });
-
-  it("renders only medicaidId when chipId is missing", async () => {
-    renderHeader([mockDemonstrationQueryWithoutChipId]);
-
-    await waitFor(() => {
-      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
-    });
-
-    const breadcrumb = screen.getByRole("link", { name: /demonstration list/i }).parentElement;
-
-    expect(breadcrumb).toHaveTextContent("11-W-99999/8");
-    expect(breadcrumb).not.toHaveTextContent("11-W-99998/8");
+    expect(() => {
+      render(<DemonstrationDetailHeader />);
+    }).toThrow(
+      "DemonstrationDetailHeader must be rendered within a route with :demonstrationId param"
+    );
   });
 });
