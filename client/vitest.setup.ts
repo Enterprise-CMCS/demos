@@ -79,26 +79,6 @@ Object.defineProperty(HTMLDialogElement.prototype, "open", {
   },
 });
 
-// Mock Popover API (not fully supported in jsdom)
-// Used by Tooltip component for showing/hiding popovers
-Object.defineProperty(HTMLElement.prototype, "showPopover", {
-  configurable: true,
-  writable: true,
-  value: vi.fn(),
-});
-
-Object.defineProperty(HTMLElement.prototype, "hidePopover", {
-  configurable: true,
-  writable: true,
-  value: vi.fn(),
-});
-
-Object.defineProperty(HTMLElement.prototype, "togglePopover", {
-  configurable: true,
-  writable: true,
-  value: vi.fn(),
-});
-
 vi.mock("react-oidc-context", () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) =>
     React.createElement(React.Fragment, null, children),
