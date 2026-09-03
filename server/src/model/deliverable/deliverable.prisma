@@ -28,7 +28,6 @@ model Deliverable {
   deliverableDemonstrationTypes DeliverableDemonstrationType[]
   privateComments               PrivateComment[]
   publicComments                PublicComment[]
-  emailNotifications            EmailNotification[]
 
   @@id([id])
   @@unique([id, demonstrationId])

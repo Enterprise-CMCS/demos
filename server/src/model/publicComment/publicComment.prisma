@@ -12,6 +12,5 @@ model PublicComment {
   emailNotifications EmailNotification[]
 
   @@id([id])
-  @@unique([id, deliverableId])
   @@map("public_comment")
 }

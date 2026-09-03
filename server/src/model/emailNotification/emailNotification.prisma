@@ -2,7 +2,6 @@ model EmailNotification {
   id                   String   @default(uuid()) @db.Uuid
   emailTypeId          String   @map("email_type_id")
   entityType           String   @map("entity_type")
-  deliverableId        String?  @map("deliverable_id") @db.Uuid
   applicationId        String?  @map("application_id") @db.Uuid
   referenceId          String?  @map("reference_id") @db.Uuid
   referenceAgreementId String?  @map("reference_agreement_id") @db.Uuid
@@ -17,18 +16,18 @@ model EmailNotification {
   updatedAt            DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   emailTypeEntityType EmailNotificationTypeEntityType @relation(fields: [emailTypeId, entityType], references: [emailTypeId, entityTypeId])
-  deliverable         Deliverable?                    @relation(fields: [deliverableId], references: [id], onDelete: Restrict)
   application         Application?                    @relation(fields: [applicationId], references: [id], onDelete: Restrict)
   reference           Reference?                      @relation(fields: [referenceId], references: [id], onDelete: Restrict)
   referenceAgreement  ReferenceAgreement?             @relation(fields: [referenceAgreementId], references: [id], onDelete: Restrict)
-  deliverableAction   DeliverableAction?              @relation(fields: [deliverableActionId, deliverableId], references: [id, deliverableId], onDelete: Restrict)
-  publicComment       PublicComment?                  @relation(fields: [publicCommentId, deliverableId], references: [id, deliverableId], onDelete: Restrict)
+  deliverableAction   DeliverableAction?              @relation(fields: [deliverableActionId], references: [id], onDelete: Restrict)
+  publicComment       PublicComment?                  @relation(fields: [publicCommentId], references: [id], onDelete: Restrict)
   triggeredBy         User                            @relation(fields: [triggeredByUserId], references: [id], onDelete: Restrict)
   status              EmailNotificationStatus         @relation(fields: [statusId], references: [id])
   recipients          EmailNotificationRecipient[]
 
   @@id([id])
-  @@index([deliverableId, createdAt])
+  @@index([deliverableActionId, createdAt])
+  @@index([publicCommentId, createdAt])
   @@index([applicationId, createdAt])
   @@index([referenceId, createdAt])
   @@index([referenceAgreementId, createdAt])

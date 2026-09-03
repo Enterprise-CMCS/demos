@@ -150,18 +150,17 @@ erDiagram
   cms_user_person_type_limit ||--|{ private_comment : "FK108"
   users ||--|{ deliverable_action : "FK112"
   email_notification_type_entity_type ||--|{ email_notification : "FK163"
-  deliverable ||--|{ email_notification : "FK164"
-  application ||--|{ email_notification : "FK165"
-  reference ||--|{ email_notification : "FK166"
-  reference_agreement ||--|{ email_notification : "FK167"
-  deliverable_action ||--|{ email_notification : "FK168"
-  public_comment ||--|{ email_notification : "FK169"
-  users ||--|{ email_notification : "FK170"
-  email_notification_status ||--|{ email_notification : "FK171"
-  email_notification ||--|{ email_notification_recipient : "FK172"
-  person ||--|{ email_notification_recipient : "FK173"
-  email_notification_type ||--|{ email_notification_type_entity_type : "FK174"
-  email_notification_entity_type ||--|{ email_notification_type_entity_type : "FK175"
+  application ||--|{ email_notification : "FK164"
+  reference ||--|{ email_notification : "FK165"
+  reference_agreement ||--|{ email_notification : "FK166"
+  deliverable_action ||--|{ email_notification : "FK167"
+  public_comment ||--|{ email_notification : "FK168"
+  users ||--|{ email_notification : "FK169"
+  email_notification_status ||--|{ email_notification : "FK170"
+  email_notification ||--|{ email_notification_recipient : "FK171"
+  person ||--|{ email_notification_recipient : "FK172"
+  email_notification_type ||--|{ email_notification_type_entity_type : "FK173"
+  email_notification_entity_type ||--|{ email_notification_type_entity_type : "FK174"
   document ||--|| uipath_result : "FK129"
   uipath_result ||--|{ uipath_value : "FK130"
   uipath_result }|--|| uipath_result_status : "FK131"
@@ -533,9 +532,9 @@ erDiagram
   }
 
   deliverable_action:::dataTable {
-    uuid id PK, UK "UK: (id, action_type_id)<br>UK: (id, deliverable_id)"
+    uuid id PK, UK "UK: (id, action_type_id)"
     timestamptz action_timestamp
-    uuid deliverable_id FK, UK "FK109: deliverable_id ∈ deliverable.id<br>FK128: (active_extension_id, deliverable_id) ∈ deliverable_extension.(id, deliverable_id)<br>UK: (id, deliverable_id)"
+    uuid deliverable_id FK "FK109: deliverable_id ∈ deliverable.id<br>FK128: (active_extension_id, deliverable_id) ∈ deliverable_extension.(id, deliverable_id)"
     text action_type_id FK, UK "FK114: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)<br>FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)<br>UK: (id, action_type_id)<br>UK(Partial): (action_type_id, active_extension_id)"
     text old_status_id FK "FK114: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)"
     text new_status_id FK "FK114: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)"
@@ -711,14 +710,13 @@ erDiagram
     uuid id PK
     text email_type_id FK, UK "FK163: (email_type_id, entity_type) ∈ email_notification_type_entity_type.(email_type_id, entity_type_id)"
     text entity_type FK "FK163: (email_type_id, entity_type) ∈ email_notification_type_entity_type.(email_type_id, entity_type_id)"
-    uuid deliverable_id FK "FK164: deliverable_id ∈ deliverable.id<br>FK168: (deliverable_action_id, deliverable_id) ∈ deliverable_action.(id, deliverable_id)<br>FK169: (public_comment_id, deliverable_id) ∈ public_comment.(id, deliverable_id)<br>NULLABLE"
-    uuid application_id FK "FK165: application_id ∈ application.id<br>NULLABLE"
-    uuid reference_id FK "FK166: reference_id ∈ reference.id<br>NULLABLE"
-    uuid reference_agreement_id FK, UK "FK167: reference_agreement_id ∈ reference_agreement.id<br>UK: (email_type_id, reference_agreement_id) WHERE reference_agreement_id IS NOT NULL<br>NULLABLE"
-    uuid deliverable_action_id FK, UK "FK168: (deliverable_action_id, deliverable_id) ∈ deliverable_action.(id, deliverable_id)<br>UK: (email_type_id, deliverable_action_id) WHERE deliverable_action_id IS NOT NULL<br>NULLABLE"
-    uuid public_comment_id FK, UK "FK169: (public_comment_id, deliverable_id) ∈ public_comment.(id, deliverable_id)<br>UK: (email_type_id, public_comment_id) WHERE public_comment_id IS NOT NULL<br>NULLABLE"
-    uuid triggered_by_user_id FK "FK170: triggered_by_user_id ∈ users.id"
-    text status_id FK "FK171: status_id ∈ email_notification_status.id"
+    uuid application_id FK "FK164: application_id ∈ application.id<br>NULLABLE"
+    uuid reference_id FK "FK165: reference_id ∈ reference.id<br>NULLABLE"
+    uuid reference_agreement_id FK, UK "FK166: reference_agreement_id ∈ reference_agreement.id<br>UK: (email_type_id, reference_agreement_id) WHERE reference_agreement_id IS NOT NULL<br>NULLABLE"
+    uuid deliverable_action_id FK, UK "FK167: deliverable_action_id ∈ deliverable_action.id<br>UK: (email_type_id, deliverable_action_id) WHERE deliverable_action_id IS NOT NULL<br>NULLABLE"
+    uuid public_comment_id FK, UK "FK168: public_comment_id ∈ public_comment.id<br>UK: (email_type_id, public_comment_id) WHERE public_comment_id IS NOT NULL<br>NULLABLE"
+    uuid triggered_by_user_id FK "FK169: triggered_by_user_id ∈ users.id"
+    text status_id FK "FK170: status_id ∈ email_notification_status.id"
     jsonb payload
     text sqs_message_id "NULLABLE"
     text last_error "NULLABLE"
@@ -727,9 +725,8 @@ erDiagram
     PARTIAL_UNIQUE_INDEX email_notification_action_email_type_key "(email_type_id, deliverable_action_id) must be unique where deliverable_action_id is not null."
     PARTIAL_UNIQUE_INDEX email_notification_comment_email_type_key "(email_type_id, public_comment_id) must be unique where public_comment_id is not null."
     PARTIAL_UNIQUE_INDEX email_notification_agreement_email_type_key "(email_type_id, reference_agreement_id) must be unique where reference_agreement_id is not null."
-    CONSTRAINT_CHECK email_notification_exactly_one_entity "Exactly one typed entity ID must be populated."
-    CONSTRAINT_CHECK email_notification_entity_type_matches_id "entity_type must match the populated typed entity ID."
-    CONSTRAINT_CHECK email_notification_deliverable_source "Deliverable notifications require exactly one action or public comment; other entity types cannot have either."
+    CONSTRAINT_CHECK email_notification_exactly_one_entity "Exactly one entity linkage ID must be populated."
+    CONSTRAINT_CHECK email_notification_entity_type_matches_id "entity_type must match the populated entity linkage ID."
     CONSTRAINT_CHECK email_notification_public_comment_type "Public Comment Added requires public_comment_id, and only that email type may use it."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
@@ -737,8 +734,8 @@ erDiagram
 
   email_notification_recipient:::dataTable {
     uuid id PK
-    uuid email_notification_id FK, UK "FK172: email_notification_id ∈ email_notification.id<br>UK: (email_notification_id, email_address)"
-    uuid person_id FK "FK173: person_id ∈ person.id"
+    uuid email_notification_id FK, UK "FK171: email_notification_id ∈ email_notification.id<br>UK: (email_notification_id, email_address)"
+    uuid person_id FK "FK172: person_id ∈ person.id"
     text email_address UK "UK: (email_notification_id, email_address)"
     timestamptz created_at
     CONSTRAINT_CHECK email_notification_recipient_email_address_lowercase "email_address must be non-empty, trimmed, and lowercase."
@@ -808,8 +805,8 @@ erDiagram
   }
 
   public_comment:::dataTable {
-    uuid id PK, UK "UK: (id, deliverable_id)"
-    uuid deliverable_id FK, UK "FK105: deliverable_id ∈ deliverable.id<br>UK: (id, deliverable_id)"
+    uuid id PK
+    uuid deliverable_id FK "FK105: deliverable_id ∈ deliverable.id"
     uuid author_user_id FK "FK107: author_user_id ∈ users.id"
     text content
     timestamptz created_at
@@ -970,8 +967,8 @@ erDiagram
   }
 
   email_notification_type_entity_type:::associativeTable {
-    text email_type_id PK, FK "FK174: email_type_id ∈ email_notification_type.id"
-    text entity_type_id PK, FK "FK175: entity_type_id ∈ email_notification_entity_type.id"
+    text email_type_id PK, FK "FK173: email_type_id ∈ email_notification_type.id"
+    text entity_type_id PK, FK "FK174: entity_type_id ∈ email_notification_entity_type.id"
   }
 
   demonstration_role_assignment:::associativeTable {

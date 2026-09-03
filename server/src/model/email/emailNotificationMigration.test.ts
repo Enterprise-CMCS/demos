@@ -12,10 +12,10 @@ const migration = readFileSync(
 describe("email notification migration", () => {
   it("requires exactly one typed entity and keeps entity_type consistent", () => {
     expect(migration).toContain(
-      'CHECK (num_nonnulls("deliverable_id", "application_id", "reference_id", "reference_agreement_id") = 1)',
+      'CHECK (num_nonnulls("deliverable_action_id", "public_comment_id", "application_id", "reference_id", "reference_agreement_id") = 1)',
     );
     expect(migration).toContain(
-      `WHEN 'deliverable' THEN "deliverable_id" IS NOT NULL`,
+      `WHEN 'deliverable' THEN num_nonnulls("deliverable_action_id", "public_comment_id") = 1`,
     );
     expect(migration).toContain(
       `WHEN 'application' THEN "application_id" IS NOT NULL`,
@@ -29,7 +29,8 @@ describe("email notification migration", () => {
   });
 
   it.each([
-    ["deliverable_id", "deliverable"],
+    ["deliverable_action_id", "deliverable_action"],
+    ["public_comment_id", "public_comment"],
     ["application_id", "application"],
     ["reference_id", "reference"],
     ["reference_agreement_id", "reference_agreement"],
@@ -64,13 +65,15 @@ describe("email notification migration", () => {
     },
   );
 
-  it("binds deliverable provenance to the same deliverable", () => {
+  it("uses action and comment rows as the deliverable source", () => {
     expect(migration).toContain(
-      'FOREIGN KEY ("deliverable_action_id", "deliverable_id") REFERENCES "deliverable_action"("id", "deliverable_id")',
+      'FOREIGN KEY ("deliverable_action_id") REFERENCES "deliverable_action"("id")',
     );
     expect(migration).toContain(
-      'FOREIGN KEY ("public_comment_id", "deliverable_id") REFERENCES "public_comment"("id", "deliverable_id")',
+      'FOREIGN KEY ("public_comment_id") REFERENCES "public_comment"("id")',
     );
+    expect(migration).not.toContain('"deliverable_id"');
+    expect(migration).not.toContain("email_notification_deliverable_source");
     expect(migration).toContain(
       'CHECK (\n    ("email_type_id" = \'Public Comment Added\') = ("public_comment_id" IS NOT NULL)',
     );

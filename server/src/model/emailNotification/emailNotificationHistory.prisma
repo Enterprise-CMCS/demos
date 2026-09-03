@@ -5,7 +5,6 @@ model EmailNotificationHistory {
   id                   String       @db.Uuid
   emailTypeId          String       @map("email_type_id")
   entityType           String       @map("entity_type")
-  deliverableId        String?      @map("deliverable_id") @db.Uuid
   applicationId        String?      @map("application_id") @db.Uuid
   referenceId          String?      @map("reference_id") @db.Uuid
   referenceAgreementId String?      @map("reference_agreement_id") @db.Uuid
