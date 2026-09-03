@@ -29,7 +29,6 @@ const message = {
     id: "user-1",
   },
   triggeredAt: "2026-08-26T12:00:00.000Z",
-  idempotencyKey: "Deliverable Created:deliverable-action:action-1",
   payload: {
     recipients: {
       to: ["owner@example.com"],

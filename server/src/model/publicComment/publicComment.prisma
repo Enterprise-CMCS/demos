@@ -7,9 +7,11 @@ model PublicComment {
   updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz
   isMigratedFromPmda Boolean  @default(false) @map("is_migrated_from_pmda")
 
-  deliverable Deliverable @relation(fields: [deliverableId], references: [id])
-  author      User        @relation(fields: [authorUserId], references: [id])
+  deliverable        Deliverable         @relation(fields: [deliverableId], references: [id])
+  author             User                @relation(fields: [authorUserId], references: [id])
+  emailNotifications EmailNotification[]
 
   @@id([id])
+  @@unique([id, deliverableId])
   @@map("public_comment")
 }

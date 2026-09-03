@@ -5,13 +5,12 @@ model EmailNotificationRecipient {
   emailNotificationId String   @map("email_notification_id") @db.Uuid
   personId            String   @map("person_id") @db.Uuid
   emailAddress        String   @map("email_address")
-  normalizedEmail     String   @map("normalized_email")
   createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   emailNotification EmailNotification @relation(fields: [emailNotificationId], references: [id], onDelete: Restrict)
   person            Person            @relation(fields: [personId], references: [id], onDelete: Restrict)
 
   @@id([id])
-  @@unique([emailNotificationId, normalizedEmail])
+  @@unique([emailNotificationId, emailAddress])
   @@map("email_notification_recipient")
 }

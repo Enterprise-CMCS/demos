@@ -24,20 +24,6 @@ const deliverableInput = {
   },
 };
 
-const multipleDeliverablesInput = {
-  recipients: deliverableInput.recipients,
-  demonstration: deliverableInput.demonstration,
-  deliverables: [
-    deliverableInput.deliverable,
-    {
-      ...deliverableInput.deliverable,
-      id: "deliverable-2",
-      name: "DY1Q2 Quarterly Budget Report",
-      dueDate: "2026-09-01T12:00:00.000Z",
-    },
-  ],
-};
-
 const templateCases = [
   {
     emailType: "Deliverable Created",
@@ -129,22 +115,9 @@ const templateCases = [
       "Action: Public Comment Added",
     ],
   },
-  {
-    emailType: "Multiple Deliverables Created",
-    input: multipleDeliverablesInput,
-    subject: "CMS DEMOS Deliverables: Multiple Deliverables Created",
-    expectedText: [
-      "You have been assigned new Close Out Report deliverables",
-      "https://localhost:3000/deliverables/deliverable-1 due on 2026-06-01",
-      "https://localhost:3000/deliverables/deliverable-2 due on 2026-09-01",
-      "Deliverables: Quarterly Budget Report, DY1Q2 Quarterly Budget Report",
-    ],
-  },
 ];
 
-const singleDeliverableEmailTypes = templateCases
-  .map(({ emailType }) => emailType)
-  .filter((emailType) => emailType !== "Multiple Deliverables Created");
+const singleDeliverableEmailTypes = templateCases.map(({ emailType }) => emailType);
 
 function cleanHtml(html: string): string {
   return html.replaceAll("<!-- -->", "");
@@ -165,17 +138,6 @@ describe("renderEmail", () => {
         expect(payload.text).toContain(text);
       }
     }
-  });
-
-  it("requires multiple deliverables for the grouped template", async () => {
-    await expect(
-      renderEmail("Multiple Deliverables Created", {
-        ...multipleDeliverablesInput,
-        deliverables: [deliverableInput.deliverable],
-      }),
-    ).rejects.toThrow(
-      "Multiple Deliverables Created email requires at least two deliverables.",
-    );
   });
 
   it("reports missing template-specific values", async () => {

@@ -9,7 +9,6 @@ import { log } from "../log";
 
 type DeliverableRealtimeEmailType =
   | "Deliverable Created"
-  | "Multiple Deliverables Created"
   | "Deliverable Submitted"
   | "Deliverable Accepted"
   | "Deliverable Approved"
@@ -31,7 +30,7 @@ type RealtimeEmailTarget =
     }
   | {
       emailType: "Terms And Conditions Requested";
-      entityType: "application" | "reference";
+      entityType: "application" | "reference" | "reference_agreement";
     };
 
 export type RealtimeEmailMessage = RealtimeEmailTarget & {
@@ -42,7 +41,6 @@ export type RealtimeEmailMessage = RealtimeEmailTarget & {
     id: string;
   };
   triggeredAt: string;
-  idempotencyKey: string;
   payload: object;
 };
 

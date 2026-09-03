@@ -787,6 +787,9 @@ async function clearDatabase() {
   // However, if this does not happen, the history tables will contain the truncates
   return await prisma().$transaction([
     // Truncates must be done in proper order for relational reasons
+    prisma().emailNotificationRecipient.deleteMany(),
+    prisma().emailNotification.deleteMany(),
+
     // Reference section
     prisma().referenceAgreementAcceptance.deleteMany(),
     prisma().referenceDemonstrationType.deleteMany(),
@@ -809,8 +812,6 @@ async function clearDatabase() {
     prisma().uiPathValue.deleteMany(),
     prisma().uiPathResult.deleteMany(),
     prisma().document.deleteMany(),
-    prisma().emailNotificationRecipient.deleteMany(),
-    prisma().emailNotification.deleteMany(),
     prisma().deliverableAction.deleteMany(),
     prisma().deliverableExtension.deleteMany(),
     prisma().deliverable.deleteMany(),

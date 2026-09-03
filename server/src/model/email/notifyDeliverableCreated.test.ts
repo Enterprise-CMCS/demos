@@ -105,12 +105,11 @@ describe("notifyDeliverableCreated", () => {
           id: input.triggeredByUserId,
         },
         triggeredAt: expect.any(String),
-        idempotencyKey: "Deliverable Created:deliverable-action:action-1",
         payload: {
           recipients: {
             to: [],
             bcc: [
-              { name: "CMS Owner", address: "Owner@example.com" },
+              { name: "CMS Owner", address: "owner@example.com" },
               { name: "Project Officer", address: "officer@example.com" },
             ],
           },
@@ -128,9 +127,9 @@ describe("notifyDeliverableCreated", () => {
           },
         },
       },
-      input.sourceActionId,
+      { deliverableActionId: input.sourceActionId },
       [
-        { personId: "owner-1", emailAddress: "Owner@example.com" },
+        { personId: "owner-1", emailAddress: "owner@example.com" },
         { personId: "project-officer", emailAddress: "officer@example.com" },
       ],
     );

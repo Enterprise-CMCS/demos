@@ -32,8 +32,6 @@ describe("enqueueTrackedRealtimeEmail", () => {
       id: "57f92f14-7c5e-4c78-a774-5a54d7e9c2e7",
     },
     triggeredAt: "2026-07-30T12:00:00.000Z",
-    idempotencyKey:
-      "Deliverable Created:deliverable-action:2a527c98-8227-46cd-884d-a73e72817d9c",
     payload: {
       recipients: {
         to: [],
@@ -66,25 +64,24 @@ describe("enqueueTrackedRealtimeEmail", () => {
 
   it("records recipients and marks a successfully queued notification", async () => {
     await expect(
-      enqueueTrackedRealtimeEmail(message, sourceActionId, recipients),
+      enqueueTrackedRealtimeEmail(message, { deliverableActionId: sourceActionId }, recipients),
     ).resolves.toBe("message-1");
 
     expect(create).toHaveBeenCalledExactlyOnceWith({
       data: {
         emailTypeId: "Deliverable Created",
         entityType: "deliverable",
-        entityId: message.entityId,
-        sourceActionId,
+        deliverableId: message.entityId,
+        deliverableActionId: sourceActionId,
+        publicCommentId: undefined,
         triggeredByUserId: message.triggeredBy.id,
         statusId: "Pending",
-        idempotencyKey: message.idempotencyKey,
         payload: message.payload,
         recipients: {
           create: [
             {
               personId: recipients[0].personId,
-              emailAddress: "Owner@Example.com",
-              normalizedEmail: "owner@example.com",
+              emailAddress: "owner@example.com",
             },
           ],
         },
@@ -107,11 +104,58 @@ describe("enqueueTrackedRealtimeEmail", () => {
     expect(update).not.toHaveBeenCalled();
   });
 
+  it("records public comment provenance for each comment email", async () => {
+    const publicCommentMessage = {
+      ...message,
+      emailType: "Public Comment Added",
+    } satisfies RealtimeEmailMessage;
+
+    await enqueueTrackedRealtimeEmail(
+      publicCommentMessage,
+      { publicCommentId: "public-comment-1" },
+      recipients,
+    );
+
+    expect(create).toHaveBeenCalledExactlyOnceWith({
+      data: expect.objectContaining({
+        deliverableId: message.entityId,
+        deliverableActionId: undefined,
+        publicCommentId: "public-comment-1",
+      }),
+    });
+  });
+
+  it.each([
+    ["Application Status Updated", "application", "applicationId"],
+    ["Terms And Conditions Requested", "reference", "referenceId"],
+    [
+      "Terms And Conditions Requested",
+      "reference_agreement",
+      "referenceAgreementId",
+    ],
+  ] as const)("links %s through %s", async (emailType, entityType, foreignKey) => {
+    const entityMessage = {
+      ...message,
+      emailType,
+      entityType,
+    } as RealtimeEmailMessage;
+
+    await enqueueTrackedRealtimeEmail(entityMessage, undefined, recipients);
+
+    expect(create).toHaveBeenCalledExactlyOnceWith({
+      data: expect.objectContaining({
+        [foreignKey]: message.entityId,
+        deliverableActionId: undefined,
+        publicCommentId: undefined,
+      }),
+    });
+  });
+
   it("records the message ID without overwriting a terminal status", async () => {
     updateMany.mockResolvedValueOnce({ count: 0 });
 
     await expect(
-      enqueueTrackedRealtimeEmail(message, sourceActionId, recipients),
+      enqueueTrackedRealtimeEmail(message, { deliverableActionId: sourceActionId }, recipients),
     ).resolves.toBe("message-1");
 
     expect(updateMany).toHaveBeenCalledExactlyOnceWith({
@@ -134,7 +178,7 @@ describe("enqueueTrackedRealtimeEmail", () => {
     vi.mocked(enqueueEmail).mockRejectedValueOnce(new Error("queue unavailable"));
 
     await expect(
-      enqueueTrackedRealtimeEmail(message, sourceActionId, recipients),
+      enqueueTrackedRealtimeEmail(message, { deliverableActionId: sourceActionId }, recipients),
     ).rejects.toThrow("queue unavailable");
 
     expect(update).toHaveBeenCalledExactlyOnceWith({
@@ -152,7 +196,7 @@ describe("enqueueTrackedRealtimeEmail", () => {
     update.mockRejectedValueOnce(new Error("database unavailable"));
 
     await expect(
-      enqueueTrackedRealtimeEmail(message, sourceActionId, recipients),
+      enqueueTrackedRealtimeEmail(message, { deliverableActionId: sourceActionId }, recipients),
     ).rejects.toThrow("queue unavailable");
 
     expect(log.error).toHaveBeenCalledWith(

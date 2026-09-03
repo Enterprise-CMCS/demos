@@ -3,7 +3,6 @@ export type RealtimeEmailEnvelope = {
   emailType: string;
   entityType?: string;
   entityId?: string;
-  idempotencyKey?: string;
   triggeredBy?: {
     type: string;
     id: string;
@@ -33,7 +32,6 @@ export function getEmailLogContext(
     emailType: email.emailType,
     entityType: email.entityType,
     entityId: email.entityId,
-    idempotencyKey: email.idempotencyKey,
     triggeredBy: email.triggeredBy,
   };
 }

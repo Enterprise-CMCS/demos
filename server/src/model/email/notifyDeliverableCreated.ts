@@ -52,7 +52,6 @@ export async function notifyDeliverableCreated(
           id: input.triggeredByUserId,
         },
         triggeredAt: new Date().toISOString(),
-        idempotencyKey: `Deliverable Created:deliverable-action:${input.sourceActionId}`,
         payload: {
           recipients: {
             to: [],
@@ -72,7 +71,7 @@ export async function notifyDeliverableCreated(
           },
         },
       },
-      input.sourceActionId,
+      { deliverableActionId: input.sourceActionId },
       recipients.map(({ personId, address }) => ({
         personId,
         emailAddress: address,
@@ -110,16 +109,15 @@ function deduplicateRecipients(
   const recipients = new Map<string, Recipient>();
 
   for (const person of people) {
-    const address = person.email.trim();
+    const address = person.email.trim().toLowerCase();
     if (!address) {
       throw new Error(
         `Cannot queue Deliverable Created email: person ${person.id} has no email address.`,
       );
     }
 
-    const normalizedAddress = address.toLowerCase();
-    if (!recipients.has(normalizedAddress)) {
-      recipients.set(normalizedAddress, {
+    if (!recipients.has(address)) {
+      recipients.set(address, {
         personId: person.id,
         name: `${person.firstName} ${person.lastName}`.trim(),
         address,

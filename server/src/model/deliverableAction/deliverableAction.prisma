@@ -27,5 +27,6 @@ model DeliverableAction {
 
   @@id([id])
   @@unique([id, actionTypeId])
+  @@unique([id, deliverableId])
   @@map("deliverable_action")
 }

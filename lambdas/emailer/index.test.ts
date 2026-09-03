@@ -36,7 +36,6 @@ const realtimeDeliverableCreatedEnvelope = {
   emailType: "Deliverable Created",
   entityType: "deliverable",
   entityId: "deliverable-1",
-  idempotencyKey: "Deliverable Created:deliverable-action:action-1",
   triggeredBy: {
     type: "realtime",
     id: "user-1",
@@ -218,7 +217,6 @@ describe("emailer", () => {
         emailType: "Deliverable Created",
         entityType: "deliverable",
         entityId: "deliverable-1",
-        idempotencyKey: "Deliverable Created:deliverable-action:action-1",
         triggeredBy: {
           type: "realtime",
           id: "user-1",
@@ -305,32 +303,6 @@ describe("emailer", () => {
       expect.objectContaining({
         subject: "CMS DEMOS Deliverable: Deliverable Submitted",
         text: expect.stringContaining("has been submitted for your Demonstration"),
-      })
-    );
-  });
-
-  it("should select the Multiple Deliverables Created template", async () => {
-    const email = await renderRealTimeEmails({
-      ...realtimeDeliverableCreatedEnvelope,
-      emailType: "Multiple Deliverables Created",
-      payload: {
-        recipients: realtimeDeliverableCreatedEnvelope.payload.recipients,
-        demonstration: realtimeDeliverableCreatedEnvelope.payload.demonstration,
-        deliverables: [
-          realtimeDeliverableCreatedEnvelope.payload.deliverable,
-          {
-            ...realtimeDeliverableCreatedEnvelope.payload.deliverable,
-            id: "deliverable-2",
-            name: "DY1Q2 Quarterly Budget Report",
-          },
-        ],
-      },
-    });
-
-    expect(email).toEqual(
-      expect.objectContaining({
-        subject: "CMS DEMOS Deliverables: Multiple Deliverables Created",
-        text: expect.stringContaining("View these deliverables"),
       })
     );
   });

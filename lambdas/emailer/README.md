@@ -34,7 +34,6 @@ Realtime messages have this shape:
   emailType: string;
   entityType?: string;
   entityId?: string;
-  idempotencyKey?: string;
   triggeredBy?: {
     type: string;
     id: string;
@@ -156,7 +155,6 @@ builds reusable structured log metadata:
 - `emailType`
 - `entityType`
 - `entityId`
-- `idempotencyKey`
 - `triggeredBy`
 
 Creating the context does not emit a log. `index.ts` adds it to the
@@ -174,9 +172,7 @@ stdout is captured by CloudWatch; local terminal output is formatted with
    template data.
 4. Add focused rendering tests and producer tests.
 
-The server currently produces `Deliverable Created`. Other registered
-deliverable event types and `Multiple Deliverables Created` are renderable but
-still need server-side producers.
+The server produces the registered deliverable event types.
 
 ## Local development
 

@@ -8,26 +8,29 @@ export type EmailNotificationRecipient = {
   emailAddress: string;
 };
 
+export type EmailNotificationProvenance =
+  | { deliverableActionId: string; publicCommentId?: never }
+  | { deliverableActionId?: never; publicCommentId: string };
+
 export async function enqueueTrackedRealtimeEmail(
   message: RealtimeEmailMessage,
-  sourceActionId: string | undefined,
+  provenance: EmailNotificationProvenance | undefined,
   recipients: EmailNotificationRecipient[],
 ): Promise<string> {
   const notification = await prisma().emailNotification.create({
     data: {
       emailTypeId: message.emailType,
       entityType: message.entityType,
-      entityId: message.entityId,
-      sourceActionId,
+      ...getEntityForeignKey(message),
+      deliverableActionId: provenance?.deliverableActionId,
+      publicCommentId: provenance?.publicCommentId,
       triggeredByUserId: message.triggeredBy.id,
       statusId: "Pending",
-      idempotencyKey: message.idempotencyKey,
       payload: message.payload as Prisma.InputJsonValue,
       recipients: {
         create: recipients.map((recipient) => ({
           personId: recipient.personId,
-          emailAddress: recipient.emailAddress,
-          normalizedEmail: recipient.emailAddress.trim().toLowerCase(),
+          emailAddress: recipient.emailAddress.trim().toLowerCase(),
         })),
       },
     },
@@ -79,4 +82,17 @@ export async function enqueueTrackedRealtimeEmail(
   }
 
   return messageId;
+}
+
+function getEntityForeignKey(message: RealtimeEmailMessage) {
+  switch (message.entityType) {
+    case "deliverable":
+      return { deliverableId: message.entityId };
+    case "application":
+      return { applicationId: message.entityId };
+    case "reference":
+      return { referenceId: message.entityId };
+    case "reference_agreement":
+      return { referenceAgreementId: message.entityId };
+  }
 }

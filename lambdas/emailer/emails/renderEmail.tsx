@@ -9,7 +9,6 @@ import { renderDeliverableReceivedAndFiledEmail } from "./templates/DeliverableR
 import { renderDeliverableSubmittedEmail } from "./templates/DeliverableSubmittedEmail";
 import { renderExtensionDecisionMadeEmail } from "./templates/ExtensionDecisionMadeEmail";
 import { renderExtensionRequestedEmail } from "./templates/ExtensionRequestedEmail";
-import { renderMultipleDeliverablesCreatedEmail } from "./templates/MultipleDeliverablesCreatedEmail";
 import { renderPublicCommentAddedEmail } from "./templates/PublicCommentAddedEmail";
 import { renderResubmissionRequestedEmail } from "./templates/ResubmissionRequestedEmail";
 import type {
@@ -31,7 +30,6 @@ const templates: Record<string, EmailTemplate> = {
   "Extension Decision Made": renderExtensionDecisionMadeEmail,
   "Resubmission Requested": renderResubmissionRequestedEmail,
   "Public Comment Added": renderPublicCommentAddedEmail,
-  "Multiple Deliverables Created": renderMultipleDeliverablesCreatedEmail,
 };
 
 export async function renderEmail(
