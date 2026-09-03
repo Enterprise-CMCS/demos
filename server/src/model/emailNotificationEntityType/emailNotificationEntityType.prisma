@@ -1,0 +1,9 @@
+// Flags: STATIC_CONSTRAINT
+model EmailNotificationEntityType {
+  id String
+
+  emailTypes EmailNotificationTypeEntityType[]
+
+  @@id([id])
+  @@map("email_notification_entity_type")
+}

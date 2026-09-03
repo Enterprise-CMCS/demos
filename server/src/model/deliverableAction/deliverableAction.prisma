@@ -23,8 +23,10 @@ model DeliverableAction {
   actionType          DeliverableActionType          @relation(fields: [actionTypeId, dueDateChangeAllowed, shouldHaveNote, shouldHaveUserId, extensionIdOptional], references: [id, dueDateChangeAllowed, shouldHaveNote, shouldHaveUserId, extensionIdOptional])
   actionConfiguration DeliverableActionConfiguration @relation(fields: [actionTypeId, oldStatusId, newStatusId], references: [actionTypeId, oldStatusId, newStatusId])
   documents           Document[]
+  emailNotifications  EmailNotification[]
 
   @@id([id])
   @@unique([id, actionTypeId])
+  @@unique([id, deliverableId])
   @@map("deliverable_action")
 }
