@@ -118,6 +118,9 @@ vi.mock("pages/ReportsPage", () => ({
 vi.mock("pages/references/ReferencesPage", () => ({
   ReferencesPage: () => <div>ReferencesPage</div>,
 }));
+vi.mock("pages/admin/AdminPage", () => ({
+  AdminPage: () => <div>AdminPage</div>,
+}));
 
 describe("DemosRouter", () => {
   beforeEach(() => {
@@ -208,5 +211,20 @@ describe("DemosRouter", () => {
     window.history.pushState({}, "Components", "/components");
     render(<DemosRouter />);
     expect(screen.queryByText("ComponentLibrary")).not.toBeInTheDocument();
+  });
+
+  describe("admin", () => {
+    it("allows access to the admin page for admin users", async () => {
+      currentUserState.currentUser.person.personType = "demos-admin";
+      window.history.pushState({}, "Admin", "/admin");
+      render(<DemosRouter />);
+      await waitFor(() => expect(screen.getByText("AdminPage")).toBeInTheDocument());
+    });
+    it("blocks access to the admin page for non-admin users", async () => {
+      currentUserState.currentUser.person.personType = "demos-state-user";
+      window.history.pushState({}, "Admin", "/admin");
+      render(<DemosRouter />);
+      await waitFor(() => expect(screen.queryByText("AdminPage")).not.toBeInTheDocument());
+    });
   });
 });

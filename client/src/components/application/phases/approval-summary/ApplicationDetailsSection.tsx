@@ -51,7 +51,7 @@ export type DemonstrationDetailsFormData = BaseFormData & {
 };
 
 export type ModificationDetailsFormData = BaseFormData & {
-  applicationType: "amendment" | "extension";
+  applicationType: "amendment" | "renewal";
   staticFields: Partial<
     Record<"name" | "effectiveDate" | "description" | "signatureLevel", boolean>
   >;

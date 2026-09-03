@@ -120,7 +120,7 @@ This section contains guidance related to working on specific features in DEMOS
 
 ### Application Workflow
 
-The application workflow is an important part of the overall DEMOS workflow, containing 8 phases that users collaboratively go through in order to approve an application (which is a demonstration, amendment, or extension). A mapping from phase numbers to names is below:
+The application workflow is an important part of the overall DEMOS workflow, containing 8 phases that users collaboratively go through in order to approve an application (which is a demonstration, amendment, or renewal). A mapping from phase numbers to names is below:
 
 1. Concept
 2. Application Intake

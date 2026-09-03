@@ -5,7 +5,7 @@ import { AddNewIcon, DetailsIcon, ListIcon, OpenFolderIcon } from "components/ic
 import { ModificationDetailsSummary } from "./ModificationDetailsSummary";
 import {
   AmendmentWorkflow,
-  ExtensionWorkflow,
+  RenewalWorkflow,
   GET_WORKFLOW_DEMONSTRATION_QUERY,
 } from "components/application";
 import { DocumentTable } from "components/table/tables/DocumentTable";
@@ -26,8 +26,8 @@ const TABS = {
 const ModificationWorkflow = ({ modificationItem }: { modificationItem: ModificationItem }) => {
   if (modificationItem.modificationType === "amendment") {
     return <AmendmentWorkflow key={modificationItem.id} amendmentId={modificationItem.id} />;
-  } else if (modificationItem.modificationType === "extension") {
-    return <ExtensionWorkflow key={modificationItem.id} extensionId={modificationItem.id} />;
+  } else if (modificationItem.modificationType === "renewal") {
+    return <RenewalWorkflow key={modificationItem.id} renewalId={modificationItem.id} />;
   } else {
     return <div>Unsupported modification type! {modificationItem.modificationType}</div>;
   }
@@ -73,7 +73,7 @@ export const ModificationTabSideNav = ({
                 )
               }
             >
-            Add Document
+              Add Document
             </IconButton>
           )}
         </TabHeader>

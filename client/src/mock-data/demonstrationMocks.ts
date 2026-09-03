@@ -15,7 +15,7 @@ import { MockedResponse } from "@apollo/client/testing";
 
 import { MockAmendment, mockAmendments } from "./amendmentMocks";
 import { mockDocuments } from "./documentMocks";
-import { MockExtension, mockExtensions } from "./extensionMocks";
+import { MockRenewal, mockRenewals } from "./renewalMocks";
 import { mockPeople, mockPerson } from "./personMocks";
 import { mockStates } from "./stateMocks";
 import { MOCK_PHASES } from "./workflowMocks";
@@ -47,7 +47,7 @@ export type MockDemonstration = Pick<
   expirationDate: Date;
   status: ApplicationStatus;
   amendments: MockAmendment[];
-  extensions: MockExtension[];
+  renewals: MockRenewal[];
   demonstrationTypes: MockDemonstrationTypeAssignment[];
 };
 
@@ -65,9 +65,7 @@ export const MOCK_DEMONSTRATION: MockDemonstration = {
   amendments: mockAmendments.filter((amendment) =>
     amendment.name.includes("Montana Medicaid Waiver")
   ),
-  extensions: mockExtensions.filter((extension) =>
-    extension.name.includes("Montana Medicaid Waiver")
-  ),
+  renewals: mockRenewals.filter((renewal) => renewal.name.includes("Montana Medicaid Waiver")),
   documents: mockDocuments,
   roles: [primaryProjectOfficerRoleAssignment],
   currentPhaseName: "Concept",
