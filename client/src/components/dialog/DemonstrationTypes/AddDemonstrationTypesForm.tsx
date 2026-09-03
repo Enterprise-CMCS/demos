@@ -92,6 +92,12 @@ export const AddDemonstrationTypesForm = ({
     data.demonstration.demonstrationTypes.map((dt) => dt.demonstrationTypeName)
   );
 
+  const normalizedFilterValue = filterValue.trim().toLowerCase();
+
+  const isAlreadyAssigned = Array.from(alreadyAssigned).some(
+    (name) => name.trim().toLowerCase() === normalizedFilterValue
+  );
+
   const isAvailableType = (name: string) =>
     !alreadyAssigned.has(name) && !demonstrationTypeNames.includes(name);
 
@@ -156,6 +162,7 @@ export const AddDemonstrationTypesForm = ({
               )
             }
             onFilterChange={handleFilterChange}
+            isAlreadyAssigned={isAlreadyAssigned}
           />
         </div>
         <button

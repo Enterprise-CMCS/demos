@@ -306,4 +306,14 @@ describe("AddDemonstrationTypesForm", () => {
 
     expect(screen.getByTestId("button-create-type")).toBeDisabled();
   });
+
+  it("shows 'already assigned' message if the user types a demonstration type that is already assigned to the demonstration", async () => {
+    const user = userEvent.setup();
+    await renderWithProvider();
+
+    const input = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
+    await user.type(input, "Type A");
+
+    expect(screen.getByText("This type is already selected. Modify the dates to apply changes.")).toBeInTheDocument();
+  });
 });
