@@ -48,14 +48,21 @@ describe("email notification migration", () => {
   it.each([
     ["action", "deliverable_action_id"],
     ["comment", "public_comment_id"],
-    ["application", "application_id"],
-    ["reference", "reference_id"],
     ["agreement", "reference_agreement_id"],
   ])("uses factual columns for %s duplicate protection", (name, column) => {
     expect(migration).toContain(
       `CREATE UNIQUE INDEX "email_notification_${name}_email_type_key" ON "email_notification"("email_type_id", "${column}") WHERE "${column}" IS NOT NULL`,
     );
   });
+
+  it.each(["application", "reference"])(
+    "allows repeated notifications for the same %s",
+    (entity) => {
+      expect(migration).not.toContain(
+        `CREATE UNIQUE INDEX "email_notification_${entity}_email_type_key"`,
+      );
+    },
+  );
 
   it("binds deliverable provenance to the same deliverable", () => {
     expect(migration).toContain(

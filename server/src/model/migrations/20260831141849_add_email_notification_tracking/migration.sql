@@ -110,12 +110,6 @@ CREATE UNIQUE INDEX "email_notification_action_email_type_key" ON "email_notific
 CREATE UNIQUE INDEX "email_notification_comment_email_type_key" ON "email_notification"("email_type_id", "public_comment_id") WHERE "public_comment_id" IS NOT NULL;
 
 -- CreateIndex
-CREATE UNIQUE INDEX "email_notification_application_email_type_key" ON "email_notification"("email_type_id", "application_id") WHERE "application_id" IS NOT NULL;
-
--- CreateIndex
-CREATE UNIQUE INDEX "email_notification_reference_email_type_key" ON "email_notification"("email_type_id", "reference_id") WHERE "reference_id" IS NOT NULL;
-
--- CreateIndex
 CREATE UNIQUE INDEX "email_notification_agreement_email_type_key" ON "email_notification"("email_type_id", "reference_agreement_id") WHERE "reference_agreement_id" IS NOT NULL;
 
 -- CreateIndex
