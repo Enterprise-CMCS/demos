@@ -1,14 +1,14 @@
 import React from "react";
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { ExtensionWorkflow } from "./ExtensionWorkflow";
+import { RenewalWorkflow } from "./RenewalWorkflow";
 import { TestProvider } from "test-utils/TestProvider";
 
-describe("ExtensionWorkflow", () => {
+describe("RenewalWorkflow", () => {
   it("renders APPLICATION heading", async () => {
     render(
       <TestProvider>
-        <ExtensionWorkflow extensionId="1" />
+        <RenewalWorkflow renewalId="1" />
       </TestProvider>
     );
 

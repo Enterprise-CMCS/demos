@@ -1,5 +1,6 @@
 import "@testing-library/jest-dom";
 import React from "react";
+import type { CurrentUser } from "components/user/UserContext";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -7,7 +8,7 @@ import userEvent from "@testing-library/user-event";
 import { ApprovalPackagePhase, ApprovalPackagePhaseProps } from "./ApprovalPackagePhase";
 import { ApplicationWorkflowDocument } from "components/application";
 import { DocumentType } from "demos-server";
-import { cmsMockUser, MockUser, readonlyMockUser } from "mock-data/userMocks";
+import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { TestProvider } from "test-utils/TestProvider";
 import { ToastContainer } from "components/toast";
@@ -51,7 +52,7 @@ const defaultProps: ApprovalPackagePhaseProps = {
 
 const setup = (
   props: Partial<ApprovalPackagePhaseProps> = {},
-  currentUser: MockUser = cmsMockUser
+  currentUser: CurrentUser = cmsMockUser
 ) =>
   render(
     <TestProvider currentUser={currentUser}>

@@ -3,11 +3,12 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { CurrentUser } from "components/user/UserContext";
 
 import { ApplicationDetailsSection, ApplicationDetailsFormData } from "./ApplicationDetailsSection";
 import { LocalDate } from "demos-server";
 import { TestProvider } from "test-utils/TestProvider";
-import { readonlyMockUser, MockUser } from "mock-data/userMocks";
+import { readonlyMockUser } from "mock-data/userMocks";
 
 describe("ApplicationDetailsSection", () => {
   const mockSetSectionFormData = vi.fn();
@@ -33,7 +34,7 @@ describe("ApplicationDetailsSection", () => {
     overrides?: Partial<ApplicationDetailsFormData>,
     isComplete = false,
     isDemonstrationApproved = false,
-    currentUser?: MockUser
+    currentUser?: CurrentUser
   ) => {
     render(
       <TestProvider mocks={[]} currentUser={currentUser}>
@@ -153,7 +154,7 @@ describe("ApplicationDetailsSection", () => {
     expect(mockOnMarkComplete).toHaveBeenCalledOnce();
   });
 
-  describe("Amendment and Extension behavior", () => {
+  describe("Amendment and Renewal behavior", () => {
     it("shows 'amendment' text for amendment", () => {
       setup({
         applicationType: "amendment",
@@ -212,14 +213,14 @@ describe("ApplicationDetailsSection", () => {
 
     it("capitalizes application type in labels", () => {
       setup({
-        applicationType: "extension",
-        name: "Extension 1",
+        applicationType: "renewal",
+        name: "Renewal 1",
         effectiveDate: "2025-01-01",
         signatureLevel: "OA",
         staticFields: {},
       } as ApplicationDetailsFormData);
 
-      expect(screen.getByLabelText(/extension title/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/renewal title/i)).toBeInTheDocument();
     });
 
     it("renders application approval date field for demonstrations", () => {
@@ -241,7 +242,7 @@ describe("ApplicationDetailsSection", () => {
       expect(screen.getByLabelText(/application approval date/i)).toBeInTheDocument();
     });
 
-    it("renders application approval date field for both amendments and extensions", () => {
+    it("renders application approval date field for both amendments and renewals", () => {
       setup({
         applicationType: "amendment",
         name: "Amendment 1",
@@ -254,8 +255,8 @@ describe("ApplicationDetailsSection", () => {
       expect(screen.getByLabelText(/application approval date/i)).toBeInTheDocument();
 
       setup({
-        applicationType: "extension",
-        name: "Extension 1",
+        applicationType: "renewal",
+        name: "Renewal 1",
         effectiveDate: "2025-01-01",
         signatureLevel: "OA",
         staticFields: {},

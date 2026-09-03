@@ -1,11 +1,12 @@
 import "@testing-library/jest-dom";
 import React from "react";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import type { CurrentUser } from "components/user/UserContext";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { TZDate } from "@date-fns/tz";
 import { TestProvider } from "test-utils/TestProvider";
-import { readonlyMockUser, cmsMockUser, MockUser } from "mock-data/userMocks";
+import { readonlyMockUser, cmsMockUser } from "mock-data/userMocks";
 
 import {
   ConceptPhase,
@@ -73,7 +74,7 @@ const DEFAULT_PROPS: ConceptPhaseProps = {
 };
 
 describe("ConceptPhase", () => {
-  const setup = (props: Partial<ConceptPhaseProps> = {}, currentUser?: MockUser) => {
+  const setup = (props: Partial<ConceptPhaseProps> = {}, currentUser?: CurrentUser) => {
     const renderComponent = (newProps: Partial<ConceptPhaseProps>) => {
       const finalProps = { ...DEFAULT_PROPS, ...newProps };
       return (

@@ -11,6 +11,7 @@ exclude:
   global:
     - authorizer/node_modules
     - budgetNeutrality/node_modules
+    - dataConnectExport/node_modules
     - dbRoleManagement/node_modules
     - deleteinfectedfile/node_modules
     - emailer/node_modules

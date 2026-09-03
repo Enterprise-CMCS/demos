@@ -4,12 +4,12 @@ import { gql, TypedDocumentNode, useMutation, useQuery } from "@apollo/client";
 import { DateTimeOrLocalDate, UpdateExtensionInput } from "demos-server";
 import { BaseEditModificationDialog } from "./BaseEditModificationDialog";
 
-export const UPDATE_EXTENSION_MUTATION: TypedDocumentNode<
-  { updateExtension: Modification },
+export const UPDATE_RENEWAL_MUTATION: TypedDocumentNode<
+  { updateRenewal: Modification },
   { id: string; input: UpdateExtensionInput }
 > = gql`
-  mutation UpdateExtension($id: ID!, $input: UpdateExtensionInput!) {
-    updateExtension(id: $id, input: $input) {
+  mutation UpdateRenewal($id: ID!, $input: UpdateExtensionInput!) {
+    updateRenewal: updateExtension(id: $id, input: $input) {
       id
       name
       description
@@ -19,12 +19,12 @@ export const UPDATE_EXTENSION_MUTATION: TypedDocumentNode<
   }
 `;
 
-export const UPDATE_EXTENSION_DIALOG_QUERY: TypedDocumentNode<
-  { extension: Modification },
+export const UPDATE_RENEWAL_DIALOG_QUERY: TypedDocumentNode<
+  { renewal: Modification },
   { id: string }
 > = gql`
-  query UpdateExtensionDialog($id: ID!) {
-    extension(id: $id) {
+  query UpdateRenewalDialog($id: ID!) {
+    renewal: extension(id: $id) {
       id
       name
       description
@@ -38,18 +38,18 @@ export const UPDATE_EXTENSION_DIALOG_QUERY: TypedDocumentNode<
   }
 `;
 
-export const useUpdateExtension = (extensionId: string, refetchQueries: string[] = []) => {
-  const { data, error } = useQuery(UPDATE_EXTENSION_DIALOG_QUERY, {
-    variables: { id: extensionId },
+export const useUpdateRenewal = (renewalId: string, refetchQueries: string[] = []) => {
+  const { data, error } = useQuery(UPDATE_RENEWAL_DIALOG_QUERY, {
+    variables: { id: renewalId },
   });
-  const [updateExtension, { loading }] = useMutation(UPDATE_EXTENSION_MUTATION, {
+  const [updateRenewal, { loading }] = useMutation(UPDATE_RENEWAL_MUTATION, {
     refetchQueries,
   });
 
   const save = async (input: ModificationFormData) => {
-    await updateExtension({
+    await updateRenewal({
       variables: {
-        id: extensionId,
+        id: renewalId,
         input: {
           ...input,
           effectiveDate: input.effectiveDate as DateTimeOrLocalDate | null | undefined,
@@ -59,19 +59,19 @@ export const useUpdateExtension = (extensionId: string, refetchQueries: string[]
   };
 
   return {
-    modification: data?.extension,
+    modification: data?.renewal,
     error,
     save,
     saving: loading,
   };
 };
 
-export const UpdateExtensionDialog: React.FC<{
-  extensionId: string;
+export const UpdateRenewalDialog: React.FC<{
+  renewalId: string;
   refetchQueries: string[];
-}> = ({ extensionId, refetchQueries }) => (
+}> = ({ renewalId, refetchQueries }) => (
   <BaseEditModificationDialog
-    modificationType="Extension"
-    useModification={() => useUpdateExtension(extensionId, refetchQueries)}
+    modificationType="Renewal"
+    useModification={() => useUpdateRenewal(renewalId, refetchQueries)}
   />
 );

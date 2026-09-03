@@ -205,7 +205,7 @@ describe("AddDemonstrationTypesForm", () => {
 
     expect(screen.getByTestId("unapproved-warning-banner")).toBeInTheDocument();
     expect(screen.getByTestId("unapproved-warning-banner")).toHaveTextContent(
-      "Unapproved types are still searchable by others. Please verify it's correct before applying to prevent compounding errors."
+      "Consult with SDG leadership and check spelling before creating a new tag/type. New tag/types are labelled \"Unapproved\" but can still be seen and used by others."
     );
   });
 
@@ -284,5 +284,26 @@ describe("AddDemonstrationTypesForm", () => {
     await user.click(screen.getByTestId("button-add-demonstration-type"));
 
     expect(screen.queryByTestId("unapproved-warning-banner")).not.toBeInTheDocument();
+  });
+
+  it("allows creating a new type as long as there are no exact matches, even if there are partial matches", async () => {
+    const user = userEvent.setup();
+    await renderWithProvider();
+
+    const input = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
+    await user.type(input, "Type");
+    await user.click(screen.getByTestId("button-create-type"));
+
+    expect(screen.getByTestId("unapproved-warning-banner")).toBeInTheDocument();
+  });
+
+  it("disables Create Type button if an exact match exists", async () => {
+    const user = userEvent.setup();
+    await renderWithProvider();
+
+    const input = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
+    await user.type(input, "Type A");
+
+    expect(screen.getByTestId("button-create-type")).toBeDisabled();
   });
 });

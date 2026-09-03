@@ -24,8 +24,8 @@ This file provides instructions for AI agents to use when generating or editing 
 
 ### Functions
 
-- Prefer writing functions that take sentinel values over optional / undefined. For instance `""` or `[]` can be the "base case" and used as "falsey"
-- Prefer to fail-fast over delaying error handling. Use guard clauses as needed.
+- Prefer writing functions that take sentinel values over optional / undefined. Very commonly `""` or `[]` can be the "base case" and used as "falsey" instead of a type union with null or undefined.
+- Prefer to fail-fast over delaying error handling. Use guard clauses in functions with preconditions fot this.
 
 ## React
 
@@ -38,7 +38,9 @@ This file provides instructions for AI agents to use when generating or editing 
 - Keep state close to where it is used; lift state only when needed.
 - Do not export props interfaces unless shared across files. Prefer inlining props.
 - Generally, prefer required props. Optional props are okay iff updating calls to an existing component would be a heavy lift.
-- Prefer using `gap` in a parent tag over `margin` in a child tag.
+- Prefer spacing elements using `gap` rather than `margin`.
+- Prefer creating sub components that take props over sub-components in scope of the main component
+- In sub-components, do not pass a prop if the value can be fetched through a hook
 
 ### Components
 
@@ -67,10 +69,17 @@ This file provides instructions for AI agents to use when generating or editing 
 - Often times `name` attributes are propagated to `data-test-id`, try this approach first.
 - Prefer real behavior over heavy mocking; use `vi.mock(...)` only at clear boundaries.
 - Run tests with `npm run test:once ...`
-- Prefer to keep mock data in test files for clarity / isolation rather than in `/mock-data`.
 - Use <TestProvider> as needed to provide dependencies such as toasts, auth, routing, etc.
 - Prefer to not mock <DialogProvider>. Also <TestProvider> does not provide dialogs and they should be provided inside of <TestProvider> if needed.
 - Generally, avoid firing manual focus / blur events in tests
+
+### Mock Data
+
+- Mock data can be found in the `mock-data` directory. Tests should try to use mocks from these locations in order to keep clean test files for needed data.
+- Mocks should not define a new type that is a subset of the server side type but rather aim to meet the mock needs fully (utilizing mock data from other models to fill in the gaps and providing empty values otherwise)
+- Where volume is needed in testing, mocks should not be created with random, plausible looking data but rather the same mock or small set of mocks should be repeated.
+- In most cases individual entities should be exported from mock data files rather than whole lists. If lists are needed they should be made out of individiaul entities, with few exceptions like `State`.
+- Sometimes circular dependencies will need to be avoided, when this is the case you can do `{} as ServerType` in order to not re-use an existing entity. The F/E can make decisions about the directionality of data that it fetches.
 
 ### General Testing
 
@@ -111,7 +120,7 @@ This section contains guidance related to working on specific features in DEMOS
 
 ### Application Workflow
 
-The application workflow is an important part of the overall DEMOS workflow, containing 8 phases that users collaboratively go through in order to approve an application (which is a demonstration, amendment, or extension). A mapping from phase numbers to names is below:
+The application workflow is an important part of the overall DEMOS workflow, containing 8 phases that users collaboratively go through in order to approve an application (which is a demonstration, amendment, or renewal). A mapping from phase numbers to names is below:
 
 1. Concept
 2. Application Intake
@@ -121,3 +130,8 @@ The application workflow is an important part of the overall DEMOS workflow, con
 6. Review
 7. Approval Package
 8. Approval Summary
+
+## Future Refactors
+
+- usePhaseStatus hook: currently phase status needs to be plumbed through to a lot of different areas which can be obviated by providing phase status in a context wrapping the application workflow. This can also include `setCurrentPhase` which will allow us to navigate to a specific phase (for instance the next phase) without propagating this prop through a number of levels.
+- mockData Cleanup: Currently we have a lot of mock data that is breaking the rules of mocks, defining types which requires a separate surface area to maintain (MockUser, MockPerson, MockState, etc vs just User, Person, State). We should address this and remove these specialized types.
