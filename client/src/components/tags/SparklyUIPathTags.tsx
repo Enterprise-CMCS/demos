@@ -4,6 +4,7 @@ import { SparklyIcon } from "components/icons";
 import { Tag, TagName } from "demos-server";
 import { tw } from "tags/tw";
 import { TagChip } from "./TagChip";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
 const STYLES = {
   wrapper: tw`mt-6 border-t border-dashed border-border-rules pt-4`,
@@ -24,6 +25,9 @@ export const SparklyUIPathTags = ({
   onAcceptSuggestion,
   isApplyingSuggestion = false,
 }: SparklyUIPathTagsProps) => {
+  const { currentUser } = getCurrentUser();
+  const isReadonlyUser = isReadonly(currentUser);
+
   const selectedTagNames = new Set(selectedTags.map((tag) => tag.tagName));
   const visibleSuggestions = suggestedTags.filter((tagName) => !selectedTagNames.has(tagName));
 
@@ -41,7 +45,7 @@ export const SparklyUIPathTags = ({
             icon={<SparklyIcon label="Suggested by DEMOS AI" className="shrink-0" />}
             onClick={() => onAcceptSuggestion(tagName)}
             aria-label={`Apply suggested tag ${tagName}`}
-            disabled={isApplyingSuggestion}
+            disabled={isApplyingSuggestion || isReadonlyUser}
           />
         ))}
       </div>
