@@ -2,6 +2,7 @@ import "@testing-library/jest-dom";
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
+import type { CurrentUser } from "components/user/UserContext";
 import { TestProvider } from "test-utils/TestProvider";
 import {
   CompletenessPhase,
@@ -18,7 +19,7 @@ import {
 import { ApplicationWorkflowDocument, WorkflowApplication } from "components/application";
 import { TZDate } from "@date-fns/tz";
 import { EST_TIMEZONE } from "util/formatDate";
-import { readonlyMockUser, cmsMockUser, MockUser } from "mock-data/userMocks";
+import { readonlyMockUser, cmsMockUser } from "mock-data/userMocks";
 
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
@@ -84,7 +85,7 @@ describe("CompletenessPhase", () => {
     setSelectedPhase: mockSetSelectedPhase,
   };
 
-  const setup = (props: Partial<CompletenessPhaseProps> = {}, currentUser?: MockUser) => {
+  const setup = (props: Partial<CompletenessPhaseProps> = {}, currentUser?: CurrentUser) => {
     const finalProps = { ...defaultProps, ...props };
     render(
       <TestProvider currentUser={currentUser}>

@@ -3,11 +3,12 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { CurrentUser } from "components/user/UserContext";
 
 import { ApplicationDetailsSection, ApplicationDetailsFormData } from "./ApplicationDetailsSection";
 import { LocalDate } from "demos-server";
 import { TestProvider } from "test-utils/TestProvider";
-import { readonlyMockUser, MockUser } from "mock-data/userMocks";
+import { readonlyMockUser } from "mock-data/userMocks";
 
 describe("ApplicationDetailsSection", () => {
   const mockSetSectionFormData = vi.fn();
@@ -33,7 +34,7 @@ describe("ApplicationDetailsSection", () => {
     overrides?: Partial<ApplicationDetailsFormData>,
     isComplete = false,
     isDemonstrationApproved = false,
-    currentUser?: MockUser
+    currentUser?: CurrentUser
   ) => {
     render(
       <TestProvider mocks={[]} currentUser={currentUser}>

@@ -1,6 +1,6 @@
 import React from "react";
 import { TestProvider } from "test-utils/TestProvider";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { CurrentUser } from "components/user/UserContext";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -26,7 +26,7 @@ import { MockedResponse } from "@apollo/client/testing";
 import { GET_APPLICATION_TAG_OPTIONS } from "components/tags/ApplicationHealthTypeTags";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { DocumentType } from "demos-server";
-import { readonlyMockUser, cmsMockUser, MockUser } from "mock-data/userMocks";
+import { readonlyMockUser, cmsMockUser } from "mock-data/userMocks";
 
 vi.mock("@apollo/client", async () => {
   const actual = await vi.importActual("@apollo/client");
@@ -82,7 +82,7 @@ describe("ApplicationIntakePhase", () => {
     vi.clearAllMocks();
   });
 
-  const setup = (props: Partial<ApplicationIntakeProps> = {}, currentUser?: MockUser) => {
+  const setup = (props: Partial<ApplicationIntakeProps> = {}, currentUser?: CurrentUser) => {
     const finalProps = { ...DEFAULT_APPLICATION_INTAKE_PROPS, ...props } as ApplicationIntakeProps;
 
     const applicationTagOptionsMock: MockedResponse = {

@@ -14,14 +14,10 @@ import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
 import { MockedResponse } from "@apollo/client/testing";
 
 import { MockAmendment, mockAmendments } from "./amendmentMocks";
-import {
-  MockDemonstrationRoleAssignment,
-  mockDemonstrationRoleAssignments,
-} from "./demonstrationRoleAssignmentMocks";
-import { MockDocument, mockDocuments } from "./documentMocks";
+import { mockDocuments } from "./documentMocks";
 import { MockRenewal, mockRenewals } from "./renewalMocks";
-import { mockPeople, MockPerson } from "./personMocks";
-import { MockState, mockStates } from "./stateMocks";
+import { mockPeople, mockPerson } from "./personMocks";
+import { mockStates } from "./stateMocks";
 import { MOCK_PHASES } from "./workflowMocks";
 import { MOCK_TAGS } from "./TagMocks";
 import {
@@ -30,28 +26,29 @@ import {
 } from "./DemonstrationTypeAssignmentMocks";
 import { ADD_DEMONSTRATION_TYPES_FORM_QUERY } from "components/dialog/DemonstrationTypes/AddDemonstrationTypesForm";
 import { DEMONSTRATION_HEADER_DETAILS_QUERY } from "pages/DemonstrationDetail/DemonstrationHeader";
+import { primaryProjectOfficerRoleAssignment } from "./demonstrationRoleAssignmentMocks";
 
 export type MockDemonstration = Pick<
   Demonstration,
   | "id"
   | "name"
+  | "state"
+  | "documents"
   | "description"
   | "sdgDivision"
   | "signatureLevel"
   | "currentPhaseName"
   | "medicaidId"
   | "chipId"
+  | "primaryProjectOfficer"
+  | "roles"
 > & {
   effectiveDate: Date;
   expirationDate: Date;
   status: ApplicationStatus;
-  state: MockState;
   amendments: MockAmendment[];
   renewals: MockRenewal[];
   demonstrationTypes: MockDemonstrationTypeAssignment[];
-  documents: MockDocument[];
-  roles: MockDemonstrationRoleAssignment[];
-  primaryProjectOfficer: MockPerson;
 };
 
 export const MOCK_DEMONSTRATION_ID = "1";
@@ -70,16 +67,27 @@ export const MOCK_DEMONSTRATION: MockDemonstration = {
   ),
   renewals: mockRenewals.filter((renewal) => renewal.name.includes("Montana Medicaid Waiver")),
   documents: mockDocuments,
-  roles: [
-    mockDemonstrationRoleAssignments[0],
-    mockDemonstrationRoleAssignments[3],
-    mockDemonstrationRoleAssignments[4],
-  ],
+  roles: [primaryProjectOfficerRoleAssignment],
   currentPhaseName: "Concept",
-  primaryProjectOfficer: mockPeople[0],
+  primaryProjectOfficer: mockPerson,
   demonstrationTypes: MOCK_DEMONSTRATION_TYPE_ASSIGNMENTS,
   medicaidId: "11-W-99999/8",
   chipId: "11-W-99998/8",
+};
+
+export const mockDemonstration: Demonstration = {
+  ...MOCK_DEMONSTRATION,
+  demonstrationTypes: [],
+  phases: [],
+  clearanceLevel: "CMS (OSORA)",
+  tags: [],
+  suggestedApplicationTags: [],
+  deliverables: [],
+  amendments: [],
+  extensions: [],
+  roles: [],
+  createdAt: new Date(2025, 0, 1),
+  updatedAt: new Date(2025, 0, 1),
 };
 
 export const mockAddDemonstrationInput: CreateDemonstrationInput = {
