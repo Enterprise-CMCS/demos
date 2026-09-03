@@ -18,7 +18,7 @@ export const SELECT_DEMONSTRATION_TYPE_QUERY: TypedDocumentNode<
 export const SELECT_DEMONSTRATION_TYPE_TEST_ID = "select-demonstration-type";
 
 const NO_MATCH_MESSAGE =
-  "Entry not found. New tags remain unapproved until admin review. Ensure accuracy before adding.";
+  "This demonstration type does not exist yet. Check for spelling errors and alternate names.";
 
 export type SelectDemonstrationTypeProps = {
   value: TagName;
@@ -26,7 +26,7 @@ export type SelectDemonstrationTypeProps = {
   isRequired?: boolean;
   filter?: (tag: TagName) => boolean;
   allowCreateNew?: boolean;
-  onFilterChange?: (filterValue: string, hasMatches: boolean) => void;
+  onFilterChange?: (filterValue: string, hasExactMatch: boolean) => void;
   createdOptions?: Tag[];
 };
 export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => {
@@ -83,6 +83,16 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
     }
   };
 
+  const handleFilterChange = (filterValue: string) => {
+    const normalizedFilterValue = filterValue.trim().toLowerCase();
+
+    const hasExactMatch = uniqueOptions.some(
+      (option) => option.tagName.trim().toLowerCase() === normalizedFilterValue
+    );
+
+    onFilterChange?.(filterValue, hasExactMatch);
+  };
+
   return (
     <AutoCompleteSelect
       label="Demonstration Type"
@@ -92,7 +102,7 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
       placeholder={placeholderText}
       onSelect={handleSelect}
       noMatchMessage={allowCreateNew ? NO_MATCH_MESSAGE : undefined}
-      onFilterChange={onFilterChange}
+      onFilterChange={handleFilterChange}
       {...rest}
     />
   );
