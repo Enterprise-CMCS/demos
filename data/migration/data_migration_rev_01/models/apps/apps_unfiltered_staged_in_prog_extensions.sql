@@ -29,7 +29,8 @@ SELECT
     extension.phase_5_strt_dt,
     extension.phase_5_end_dt,
     extension.phase_6_strt_dt,
-    extension.phase_6_end_dt
+    extension.phase_6_end_dt,
+    extension._legacy_temp_extnsn_ind
 FROM
     {{ ref('apps_pending_extensions') }} AS extension -- noqa: RF04
 LEFT JOIN

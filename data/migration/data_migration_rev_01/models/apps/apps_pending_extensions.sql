@@ -28,7 +28,8 @@ SELECT
     extension_application.phase_5_strt_dt,
     extension_application.phase_5_end_dt,
     extension_application.phase_6_strt_dt,
-    extension_application.phase_6_end_dt
+    extension_application.phase_6_end_dt,
+    extension_application._legacy_temp_extnsn_ind
 FROM
     {{ ref('apps_extension_applications') }} AS extension_application
 LEFT JOIN {{ source('legacy_pmda_raw', 'mdcd_pendg_demo') }} AS pending_demo

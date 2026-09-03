@@ -114,6 +114,14 @@ models:
         data_tests:
           - unique:
               name: assert_legacy_mdcd_demo_aplctn_id_is_unique_in_final_extension_table
+      - name: _legacy_temp_extnsn_ind
+        data_type: integer
+        data_tests:
+          - accepted_values:
+              name: assert_legacy_temp_extnsn_ind_is_0_in_final_extension_table
+              arguments:
+                values:
+                  - 0
 
   - name: final_demos_app_application_date
     columns:
@@ -393,6 +401,12 @@ models:
         data_type: timestamptz
       - name: user_id
         data_type: uuid
+        data_tests:
+          - relationships:
+              name: assert_relationship_user_in_final_deliv_action
+              arguments:
+                to: source('demos_app', 'users')
+                field: id
 
   - name: final_demos_app_deliverable_demonstration_type
     columns:

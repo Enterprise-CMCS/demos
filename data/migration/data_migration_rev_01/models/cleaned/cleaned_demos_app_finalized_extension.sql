@@ -15,7 +15,8 @@ SELECT
     coalesce(creatd_dt, current_timestamp) AS updated_at,
     _legacy_mdcd_demo_rnwl_id,
     _legacy_mdcd_pendg_demo_id,
-    _legacy_mdcd_demo_aplctn_id
+    _legacy_mdcd_demo_aplctn_id,
+    _legacy_temp_extnsn_ind
 FROM
     {{ ref('apps_unfiltered_staged_finalized_pmda_extension') }}
 WHERE _legacy_mdcd_demo_rnwl_id NOT IN (
@@ -23,4 +24,7 @@ WHERE _legacy_mdcd_demo_rnwl_id NOT IN (
 )
 AND _legacy_mdcd_demo_rnwl_id NOT IN (
     SELECT e2._legacy_mdcd_demo_rnwl_id FROM {{ ref('errors_app_finalized_extension_invalid_signature_level') }} AS e2
+)
+AND _legacy_mdcd_demo_rnwl_id NOT IN (
+    SELECT e3._legacy_mdcd_demo_rnwl_id FROM {{ ref('errors_app_finalized_extension_that_are_temp') }} AS e3
 )

@@ -15,7 +15,8 @@ SELECT
     extension.updated_at,
     extension._legacy_mdcd_demo_rnwl_id,
     extension._legacy_mdcd_pendg_demo_id,
-    extension._legacy_mdcd_demo_aplctn_id
+    extension._legacy_mdcd_demo_aplctn_id,
+    extension._legacy_temp_extnsn_ind
 FROM
     {{ ref('cleaned_demos_app_in_prog_extension') }} AS extension -- noqa: RF04
 LEFT JOIN {{ ref('apps_in_prog_phase_completion') }} AS phase_completion
