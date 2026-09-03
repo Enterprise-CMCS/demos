@@ -3,7 +3,7 @@ import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
 import {
   Document as ServerDocument,
   Demonstration as ServerDemonstration,
-  Extension as ServerExtension,
+  Extension as ServerRenewal,
   Amendment as ServerAmendment,
   User as ServerUser,
   Person as ServerPerson,
@@ -22,7 +22,7 @@ type Amendment = Pick<ServerAmendment, "id" | "name"> & {
   demonstration: Demonstration;
   __typename: "Amendment";
 };
-type Extension = Pick<ServerExtension, "id" | "name"> & {
+type Renewal = Pick<ServerRenewal, "id" | "name"> & {
   demonstration: Demonstration;
   __typename: "Extension";
 };
@@ -30,7 +30,7 @@ type Document = Pick<
   ServerDocument,
   "id" | "name" | "createdAt" | "presignedDownloadUrl" | "downloadFileName"
 > & {
-  application: Demonstration | Amendment | Extension;
+  application: Demonstration | Amendment | Renewal;
   owner: User;
 };
 
@@ -78,7 +78,7 @@ export const DOCUMENT_DETAIL_QUERY: TypedDocumentNode<{ document: Document }, { 
 export const ApplicationLink = ({
   application,
 }: {
-  application: Demonstration | Amendment | Extension;
+  application: Demonstration | Amendment | Renewal;
 }) => {
   const linkStyles = tw`text-lg text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded`;
 
@@ -90,8 +90,8 @@ export const ApplicationLink = ({
       anchorHref = `/demonstrations/${application.demonstration.id}?amendment=${application.id}`;
       break;
     case "Extension":
-      anchorText = `${application.demonstration.name} - Extension: ${application.name}`;
-      anchorHref = `/demonstrations/${application.demonstration.id}?extension=${application.id}`;
+      anchorText = `${application.demonstration.name} - Renewal: ${application.name}`;
+      anchorHref = `/demonstrations/${application.demonstration.id}?renewal=${application.id}`;
       break;
     default:
       anchorText = application.name;

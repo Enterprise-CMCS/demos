@@ -25,7 +25,7 @@ const ModificationDetailsFields = ({
     ? formatDateForDisplay(getDateEst(modificationItem.effectiveDate))
     : "--/--/----";
 
-  const labelPrefix = modificationItem.modificationType === "amendment" ? "Amendment" : "Extension";
+  const labelPrefix = modificationItem.modificationType === "amendment" ? "Amendment" : "Renewal";
 
   return (
     <div className="flex flex-col p-1 gap-2">
@@ -55,13 +55,13 @@ export const ModificationDetailsSummary = ({
   const { currentUser } = getCurrentUser();
   const isReadonlyUser = isReadonly(currentUser);
 
-  const { showUpdateAmendmentDialog, showUpdateExtensionDialog } = useDialog();
+  const { showUpdateAmendmentDialog, showUpdateRenewalDialog } = useDialog();
 
   const handleEditClick = () => {
     if (modificationItem.modificationType === "amendment") {
       showUpdateAmendmentDialog(modificationItem.id, [DEMONSTRATION_DETAIL_QUERY]);
-    } else if (modificationItem.modificationType === "extension") {
-      showUpdateExtensionDialog(modificationItem.id, [DEMONSTRATION_DETAIL_QUERY]);
+    } else if (modificationItem.modificationType === "renewal") {
+      showUpdateRenewalDialog(modificationItem.id, [DEMONSTRATION_DETAIL_QUERY]);
     } else {
       console.error("Unknown modification type");
     }
@@ -78,7 +78,7 @@ export const ModificationDetailsSummary = ({
             size="small"
             onClick={handleEditClick}
           >
-          Edit Details
+            Edit Details
           </IconButton>
         )}
       </div>

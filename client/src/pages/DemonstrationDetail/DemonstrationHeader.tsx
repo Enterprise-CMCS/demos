@@ -58,7 +58,7 @@ export const DemonstrationHeader: React.FC<DemonstrationDetailHeaderProps> = ({
   const { currentUser } = getCurrentUser();
 
   // Ensure this component is rendered inside a DialogProvider in your app;
-  const { showEditDemonstrationDialog, showCreateAmendmentDialog, showCreateExtensionDialog } =
+  const { showEditDemonstrationDialog, showCreateAmendmentDialog, showCreateRenewalDialog } =
     useDialog();
 
   const { data, loading, error } = useQuery<{
@@ -222,14 +222,14 @@ export const DemonstrationHeader: React.FC<DemonstrationDetailHeaderProps> = ({
                     Amendment
                   </button>
                   <button
-                    data-testid="button-create-new-extension"
+                    data-testid="button-create-new-renewal"
                     onClick={() => {
                       setShowDropdown(false);
-                      showCreateExtensionDialog(demonstrationId);
+                      showCreateRenewalDialog(demonstrationId);
                     }}
                     className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
                   >
-                    Extension
+                    Renewal
                   </button>
                 </div>
               )}

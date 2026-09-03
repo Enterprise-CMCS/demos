@@ -40,7 +40,7 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
   } = props;
 
   const { loading, error, data } = useQuery(SELECT_DEMONSTRATION_TYPE_QUERY, {
-    // retreive demos types tags between demonstration/extension/amendment workflows.
+    // retreive demos types tags between demonstration/renewal/amendment workflows.
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
   });

@@ -1,6 +1,6 @@
 import { MockedResponse } from "@apollo/client/testing";
 import { GET_AMENDMENT_WORKFLOW_QUERY } from "components/application/amendment/AmendmentWorkflow";
-import { GET_EXTENSION_WORKFLOW_QUERY } from "components/application/extension/ExtensionWorkflow";
+import { GET_RENEWAL_WORKFLOW_QUERY } from "components/application/renewal/RenewalWorkflow";
 
 export const MOCK_PHASES = [
   { phaseName: "Concept", phaseStatus: "Not Started", phaseDates: [] },
@@ -48,14 +48,14 @@ export const workflowMocks: MockedResponse[] = [
   },
   {
     request: {
-      query: GET_EXTENSION_WORKFLOW_QUERY,
+      query: GET_RENEWAL_WORKFLOW_QUERY,
       variables: { id: "1" },
     },
     result: {
       data: {
-        extension: {
+        renewal: {
           id: "1",
-          name: "Test Extension",
+          name: "Test Renewal",
           description: "Test description",
           status: "Pre-Submission",
           currentPhaseName: "Initial Review",

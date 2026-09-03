@@ -8,16 +8,19 @@ import { DEMONSTRATION_DETAIL_QUERY } from "../DemonstrationDetail";
 import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 const showUpdateAmendmentDialog = vi.fn();
-const showUpdateExtensionDialog = vi.fn();
+const showUpdateRenewalDialog = vi.fn();
 
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
     showUpdateAmendmentDialog,
-    showUpdateExtensionDialog,
+    showUpdateRenewalDialog,
   }),
 }));
 
-const renderModificationDetailsSummary = (modificationItem: ModificationItem, currentUser = cmsMockUser) => {
+const renderModificationDetailsSummary = (
+  modificationItem: ModificationItem,
+  currentUser = cmsMockUser
+) => {
   render(
     <TestProvider currentUser={currentUser}>
       <ModificationDetailsSummary modificationItem={modificationItem} />
@@ -56,18 +59,18 @@ describe("ModificationDetailsSummary", () => {
     });
 
     it("renders the correct title label ", () => {
-      const mockExtension: ModificationItem = {
-        modificationType: "extension",
+      const mockRenewal: ModificationItem = {
+        modificationType: "renewal",
         id: "mod-456",
-        name: "Test Extension",
+        name: "Test Renewal",
         status: "Pre-Submission",
         documents: [],
         createdAt: new Date("2024-01-01"),
         medicaidId: "demo-2",
       };
-      renderModificationDetailsSummary(mockExtension);
-      expect(screen.getByText("Extension Title")).toBeInTheDocument();
-      expect(screen.getByText("Test Extension")).toBeInTheDocument();
+      renderModificationDetailsSummary(mockRenewal);
+      expect(screen.getByText("Renewal Title")).toBeInTheDocument();
+      expect(screen.getByText("Test Renewal")).toBeInTheDocument();
     });
 
     it("renders the effective date when present", () => {
@@ -136,8 +139,8 @@ describe("ModificationDetailsSummary", () => {
     });
 
     it("renders correctly with minimal required fields only", () => {
-      const extension: ModificationItem = {
-        modificationType: "extension",
+      const renewal: ModificationItem = {
+        modificationType: "renewal",
         id: "mod-minimal",
         medicaidId: "demo-2",
         name: "Minimal Modification",
@@ -145,7 +148,7 @@ describe("ModificationDetailsSummary", () => {
         documents: [],
         createdAt: new Date("2024-01-01"),
       };
-      renderModificationDetailsSummary(extension);
+      renderModificationDetailsSummary(renewal);
       expect(screen.getByText("SUMMARY DETAILS")).toBeInTheDocument();
       expect(screen.getByText("Minimal Modification")).toBeInTheDocument();
       expect(screen.getByText("--/--/----")).toBeInTheDocument();
@@ -175,28 +178,26 @@ describe("ModificationDetailsSummary", () => {
         DEMONSTRATION_DETAIL_QUERY,
       ]);
       expect(showUpdateAmendmentDialog).toHaveBeenCalledTimes(1);
-      expect(showUpdateExtensionDialog).not.toHaveBeenCalled();
+      expect(showUpdateRenewalDialog).not.toHaveBeenCalled();
     });
 
-    it("calls showUpdateExtensionDialog with correct ID when clicked for extension", () => {
-      const mockExtension: ModificationItem = {
-        modificationType: "extension",
+    it("calls showUpdateRenewalDialog with correct ID when clicked for renewal", () => {
+      const mockRenewal: ModificationItem = {
+        modificationType: "renewal",
         id: "ext-456",
         medicaidId: "demo-2",
-        name: "Test Extension",
+        name: "Test Renewal",
         status: "Pre-Submission",
         documents: [],
         createdAt: new Date("2024-01-01"),
       };
-      setup(mockExtension);
+      setup(mockRenewal);
       const editButton = screen.getByRole("button", { name: /button-edit-details/i });
 
       fireEvent.click(editButton);
 
-      expect(showUpdateExtensionDialog).toHaveBeenCalledWith("ext-456", [
-        DEMONSTRATION_DETAIL_QUERY,
-      ]);
-      expect(showUpdateExtensionDialog).toHaveBeenCalledTimes(1);
+      expect(showUpdateRenewalDialog).toHaveBeenCalledWith("ext-456", [DEMONSTRATION_DETAIL_QUERY]);
+      expect(showUpdateRenewalDialog).toHaveBeenCalledTimes(1);
       expect(showUpdateAmendmentDialog).not.toHaveBeenCalled();
     });
   });
