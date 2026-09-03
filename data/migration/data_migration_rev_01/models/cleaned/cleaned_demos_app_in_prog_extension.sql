@@ -32,8 +32,7 @@ SELECT
     phase_6_end_dt,
     NULL::INTEGER AS _legacy_mdcd_demo_rnwl_id,
     _legacy_mdcd_pendg_demo_id,
-    _legacy_mdcd_demo_aplctn_id,
-    _legacy_temp_extnsn_ind
+    _legacy_mdcd_demo_aplctn_id
 FROM
     {{ ref('apps_unfiltered_staged_in_prog_extensions') }}
 WHERE _legacy_mdcd_pendg_demo_id NOT IN (
@@ -44,10 +43,4 @@ AND _legacy_mdcd_pendg_demo_id NOT IN (
 )
 AND _legacy_mdcd_pendg_demo_id NOT IN (
     SELECT e3._legacy_mdcd_pendg_demo_id FROM {{ ref('errors_app_in_prog_extension_invalid_signature_level') }} AS e3
-)
-AND _legacy_mdcd_pendg_demo_id NOT IN (
-    SELECT e6._legacy_mdcd_pendg_demo_id FROM {{ ref('errors_extension_applications_with_no_temp_status') }} AS e6
-)
-AND _legacy_mdcd_pendg_demo_id NOT IN (
-    SELECT e5._legacy_mdcd_pendg_demo_id FROM {{ ref('errors_extension_applications_that_are_temp') }} AS e5
 )

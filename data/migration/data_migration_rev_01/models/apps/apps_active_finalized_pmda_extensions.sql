@@ -13,8 +13,7 @@ SELECT
     extension.creatd_dt,
     extension.mdcd_demo_rnwl_id AS _legacy_mdcd_demo_rnwl_id,
     extension.mdcd_pendg_demo_id AS _legacy_mdcd_pendg_demo_id,
-    app.mdcd_demo_aplctn_id AS _legacy_mdcd_demo_aplctn_id,
-    extension.temp_extnsn_ind AS _legacy_temp_extnsn_ind
+    app.mdcd_demo_aplctn_id AS _legacy_mdcd_demo_aplctn_id
 FROM
     {{ source('legacy_pmda_raw', 'mdcd_demo_rnwl') }} AS extension -- noqa: RF04
 LEFT JOIN

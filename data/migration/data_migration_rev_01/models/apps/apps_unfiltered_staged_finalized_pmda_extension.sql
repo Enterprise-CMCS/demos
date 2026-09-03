@@ -12,8 +12,7 @@ SELECT
     fa.creatd_dt,
     fa._legacy_mdcd_demo_rnwl_id,
     fa._legacy_mdcd_pendg_demo_id,
-    fa._legacy_mdcd_demo_aplctn_id,
-    fa._legacy_temp_extnsn_ind
+    fa._legacy_mdcd_demo_aplctn_id
 FROM
     {{ ref('apps_active_finalized_pmda_extensions') }} AS fa
 LEFT JOIN {{ source('legacy_pmda_staged','crosswalk_mdcd_demo_aplctn_sgntr_lvl_cd_to_signature_level_id') }} AS cw1

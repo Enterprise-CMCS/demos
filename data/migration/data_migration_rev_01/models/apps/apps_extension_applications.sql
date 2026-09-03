@@ -23,12 +23,8 @@ SELECT
     extension_application.phase_5_strt_dt,
     extension_application.phase_5_end_dt,
     extension_application.phase_6_strt_dt,
-    extension_application.phase_6_end_dt,
-    extension.temp_extnsn_ind AS _legacy_temp_extnsn_ind
+    extension_application.phase_6_end_dt
 FROM {{ source('legacy_pmda_raw', 'mdcd_demo_aplctn') }} AS extension_application
-LEFT JOIN {{ source('legacy_pmda_raw', 'mdcd_demo_rnwl') }} AS extension -- noqa: RF04
-    ON
-        extension_application.mdcd_pendg_demo_id = extension.mdcd_pendg_demo_id
 LEFT JOIN {{ source('legacy_pmda_staged', 'cleaned_demos_app_demonstration_finalized_demos') }} AS finalized_demo
     ON
         extension_application.mdcd_demo_id = finalized_demo._legacy_mdcd_demo_id
