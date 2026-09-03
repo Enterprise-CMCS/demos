@@ -98,7 +98,14 @@ export const DemosRouter: React.FC = () => {
                 />
               </Route>
               <Route element={<DemosLayoutProvider header={AdminHeader} />}>
-                <Route path="admin" element={<AdminPage />} />
+                <Route
+                  path="admin"
+                  element={
+                    <RequireRole allowedRoles={["demos-admin"]}>
+                      <AdminPage />
+                    </RequireRole>
+                  }
+                />
               </Route>
             </Routes>
           </BrowserRouter>
