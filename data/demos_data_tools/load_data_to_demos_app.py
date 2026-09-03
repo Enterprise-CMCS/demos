@@ -77,8 +77,8 @@ def generate_table_insert_sql(
     """Generate an insert statement from a TableInsertActionConfiguration.
 
     Args:
-        source_schema (str): The schema to load from.
-        target_schema (str): The schema to load to.
+        source_schema (SchemaName): The schema to load from.
+        target_schema (SchemaName): The schema to load to.
         source_attach_name (DuckDbAttachName): The DuckDB attach name to use for the source.
         target_attach_name (DuckDbAttachName): The DuckDB attach name to use for the target.
         insert_config (TableInsertActionConfiguration): The table configuration to be loaded.
