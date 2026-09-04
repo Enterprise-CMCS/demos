@@ -126,28 +126,14 @@ The database rejects a notification when:
 - `Public Comment Added` does not reference a public comment.
 - Any other email type references a public comment.
 - A linked entity, triggering user, recipient, type, or status FK is invalid.
-- A recipient address is empty, padded with whitespace, or not lowercase.
-- The same lowercase email address appears twice for one notification.
+- The same person appears twice for one notification.
 
-## Idempotency
+## Repeated notifications
 
-Idempotency uses factual columns rather than a composed string. Partial unique
-indexes prevent duplicate logical notifications:
-
-| Notification source | Unique columns                          |
-| ------------------- | --------------------------------------- |
-| Deliverable action  | `email_type_id, deliverable_action_id`  |
-| Public comment      | `email_type_id, public_comment_id`      |
-| Reference agreement | `email_type_id, reference_agreement_id` |
-
-For example, retrying `Deliverable Created` for the same deliverable action is
-rejected, while `Public Comment Added` for two different comment IDs is allowed.
-
-Applications and references intentionally have no notification-level unique
-constraint. Every valid event or user request can create another notification
-for the same entity and email type. The reference-agreement index currently
-permits one notification of a given type per agreement. Recurring or scheduled
-occurrences are intentionally outside this realtime-only model.
+There is no notification-level idempotency key or unique constraint. The same
+email type may be recorded more than once for any linked entity, action, or
+comment. If a future workflow requires deduplication, it can introduce a key
+based on that workflow's concrete event or occurrence.
 
 ## Recipients
 
@@ -157,14 +143,14 @@ selected for a notification. Each row contains:
 ```text
 email_notification_id
 person_id
-email_address
 created_at
 ```
 
-The address is stored lowercase and must be unique within the notification.
-`person_id` remains required so every recipient is traceable to a DEMOS person.
-The database permits a notification to have zero recipient rows; selecting and
-requiring recipients belongs to the producer workflow.
+`person_id` is required and must be unique within the notification, so every
+recipient is traceable to exactly one DEMOS person. The recipient's address is
+available from `person.email`; external recipients use a `non-user-contact`
+person record. The database permits a notification to have zero recipient rows;
+selecting and requiring recipients belongs to the producer workflow.
 
 ## Status and history
 
