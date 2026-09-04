@@ -154,7 +154,6 @@ erDiagram
   reference_configuration ||--|{ email_notification : "FK165"
   deliverable_action ||--|{ email_notification : "FK167"
   public_comment ||--|{ email_notification : "FK168"
-  users ||--|{ email_notification : "FK169"
   email_notification_status ||--|{ email_notification : "FK170"
   email_notification ||--|{ email_notification_recipient : "FK171"
   person ||--|{ email_notification_recipient : "FK172"
@@ -713,7 +712,6 @@ erDiagram
     uuid reference_configuration_id FK "FK165: reference_configuration_id ∈ reference_configuration.id<br>NULLABLE"
     uuid deliverable_action_id FK "FK167: deliverable_action_id ∈ deliverable_action.id<br>NULLABLE"
     uuid public_comment_id FK "FK168: public_comment_id ∈ public_comment.id<br>NULLABLE"
-    uuid triggered_by_user_id FK "FK169: triggered_by_user_id ∈ users.id"
     text status_id FK "FK170: status_id ∈ email_notification_status.id"
     jsonb payload
     text sqs_message_id "NULLABLE"

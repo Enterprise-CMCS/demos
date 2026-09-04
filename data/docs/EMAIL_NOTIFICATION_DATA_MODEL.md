@@ -24,7 +24,6 @@ email_notification
     |     application
     |     reference_configuration
     |
-    |-- triggered_by_user_id ---> users
     |-- status_id -------------> email_notification_status
     |-- recipient rows --------> email_notification_recipient ---> person
     `-- changes ---------------> email_notification_history
@@ -46,7 +45,6 @@ email_notification
   application_id                 nullable
   reference_configuration_id     nullable
 
-  triggered_by_user_id           required for realtime notifications
   status_id                      defaults to Pending
   payload                        JSONB snapshot
   sqs_message_id                 nullable
@@ -77,7 +75,6 @@ application_id:           NULL
 reference_configuration_id: NULL
 deliverable_action_id:    action-501
 public_comment_id:        NULL
-triggered_by_user_id:     user-201
 status_id:                Pending
 ```
 
@@ -92,7 +89,6 @@ email_type_id:            Public Comment Added
 entity_type:              deliverable
 deliverable_action_id:    NULL
 public_comment_id:        comment-601
-triggered_by_user_id:     user-202
 status_id:                Pending
 ```
 
@@ -110,7 +106,6 @@ application_id:           application-301
 reference_configuration_id: NULL
 deliverable_action_id:    NULL
 public_comment_id:        NULL
-triggered_by_user_id:     user-203
 status_id:                Pending
 ```
 
@@ -124,7 +119,6 @@ application_id:             NULL
 reference_configuration_id: configuration-401
 deliverable_action_id:      NULL
 public_comment_id:          NULL
-triggered_by_user_id:       user-204
 status_id:                  Pending
 ```
 
@@ -141,7 +135,7 @@ The database rejects a notification when:
 - The `(email_type_id, entity_type)` pair is not configured.
 - `Public Comment Added` does not reference a public comment.
 - Any other email type references a public comment.
-- A linked entity, triggering user, recipient, type, or status FK is invalid.
+- A linked entity, recipient, type, or status FK is invalid.
 - The same person appears twice for one notification.
 
 ## Repeated notifications
@@ -203,7 +197,7 @@ change rather than an unchecked application value.
 
 ## Current scope
 
-- Notifications are realtime and user-triggered.
-- `triggered_by_user_id` is therefore `NOT NULL`.
-- Scheduled, digest, and system-triggered provenance are not modeled here.
+- Notifications are realtime.
+- Trigger provenance is not modeled in this PR.
+- Point-and-click requester provenance will be addressed with that workflow.
 - The schema records delivery state but does not implement queue or SMTP logic.

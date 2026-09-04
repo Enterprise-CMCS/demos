@@ -7,7 +7,6 @@ CREATE TABLE "email_notification" (
     "reference_configuration_id" UUID,
     "deliverable_action_id" UUID,
     "public_comment_id" UUID,
-    "triggered_by_user_id" UUID NOT NULL,
     "status_id" TEXT NOT NULL DEFAULT 'Pending',
     "payload" JSONB NOT NULL,
     "sqs_message_id" TEXT,
@@ -30,7 +29,6 @@ CREATE TABLE "email_notification_history" (
     "reference_configuration_id" UUID,
     "deliverable_action_id" UUID,
     "public_comment_id" UUID,
-    "triggered_by_user_id" UUID NOT NULL,
     "status_id" TEXT NOT NULL,
     "payload" JSONB NOT NULL,
     "sqs_message_id" TEXT,
@@ -93,9 +91,6 @@ ALTER TABLE "email_notification" ADD CONSTRAINT "email_notification_deliverable_
 
 -- AddForeignKey
 ALTER TABLE "email_notification" ADD CONSTRAINT "email_notification_public_comment_id_fkey" FOREIGN KEY ("public_comment_id") REFERENCES "public_comment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "email_notification" ADD CONSTRAINT "email_notification_triggered_by_user_id_fkey" FOREIGN KEY ("triggered_by_user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "email_notification" ADD CONSTRAINT "email_notification_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "email_notification_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

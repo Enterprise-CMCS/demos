@@ -9,7 +9,6 @@ model EmailNotificationHistory {
   referenceConfigurationId String?      @map("reference_configuration_id") @db.Uuid
   deliverableActionId      String?      @map("deliverable_action_id") @db.Uuid
   publicCommentId          String?      @map("public_comment_id") @db.Uuid
-  triggeredByUserId        String       @map("triggered_by_user_id") @db.Uuid
   statusId                 String       @map("status_id")
   payload                  Json
   sqsMessageId             String?      @map("sqs_message_id")
