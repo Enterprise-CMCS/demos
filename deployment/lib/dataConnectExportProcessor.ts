@@ -9,17 +9,35 @@ import {
   aws_secretsmanager,
 } from "aws-cdk-lib";
 import { OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 
 import * as alarms from "./alarms";
 import * as demosLambda from "./lambda";
 import { DeploymentConfigProperties } from "../config";
 
-// Pinned so the binding the afterBundling hook installs cannot drift from the version the
-// lambda's own package-lock.json resolves.
-const DUCKDB_VERSION = "1.5.5-r.4";
-
 const EXPORT_TIMEOUT = Duration.minutes(15);
+
+// The lambda's own lockfile is the only place this version should live. The bundling hook
+// installs @duckdb/node-api separately from the lambda's dependency install, so a version
+// hardcoded here would drift from the one the lambda resolves and nothing would fail to build:
+// the asset would simply carry a binding that does not match its own wrapper. package.json is
+// not usable for this, because it holds a range rather than a resolved version.
+export function duckdbVersionFromLockFile(lockFilePath: string): string {
+  const lockFile = JSON.parse(readFileSync(lockFilePath, "utf8")) as {
+    packages?: Record<string, { version?: string }>;
+  };
+  const version = lockFile.packages?.["node_modules/@duckdb/node-api"]?.version;
+
+  if (!version) {
+    throw new Error(
+      `@duckdb/node-api is not resolved in ${lockFilePath}. The bundling hook needs an exact ` +
+        "version, so it must not fall back to a range or to whatever npm considers latest."
+    );
+  }
+
+  return version;
+}
 
 interface DataConnectExportProcessorProps extends DeploymentConfigProperties {
   exportBucket: s3.IBucket;
@@ -42,12 +60,14 @@ export class DataConnectExportProcessor extends Construct {
     );
 
     const exportDir = path.resolve(process.cwd(), "..", "lambdas", "dataConnectExport");
+    const exportLockFile = path.join(exportDir, "package-lock.json");
+    const duckdbVersion = duckdbVersionFromLockFile(exportLockFile);
 
     const exportLambda = new demosLambda.Lambda(this, "dataConnectExport", {
       ...props,
       scope: this,
       entry: path.join(exportDir, "index.ts"),
-      depsLockFilePath: path.join(exportDir, "package-lock.json"),
+      depsLockFilePath: exportLockFile,
       handler: "index.handler",
       timeout: EXPORT_TIMEOUT,
       asCode: false,
@@ -75,7 +95,7 @@ export class DataConnectExportProcessor extends Construct {
               `--prefix ${outputDir}`,
               "--os=linux --cpu=x64 --libc=glibc",
               "--no-save --ignore-scripts --min-release-age=0",
-              `@duckdb/node-api@${DUCKDB_VERSION}`,
+              `@duckdb/node-api@${duckdbVersion}`,
             ].join(" "),
           ];
         },

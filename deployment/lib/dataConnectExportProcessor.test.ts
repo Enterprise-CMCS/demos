@@ -1,8 +1,11 @@
 import { App, Stack, aws_s3 } from "aws-cdk-lib";
 import { Match, Template } from "aws-cdk-lib/assertions";
 import { BUNDLING_STACKS } from "aws-cdk-lib/cx-api";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 
-import { DataConnectExportProcessor } from "./dataConnectExportProcessor";
+import { DataConnectExportProcessor, duckdbVersionFromLockFile } from "./dataConnectExportProcessor";
 import { DeploymentConfigProperties } from "../config";
 
 const mockProps: DeploymentConfigProperties = {
@@ -158,5 +161,45 @@ describe("DataConnectExportProcessor construct", () => {
 
     template.resourceCountIs("AWS::Lambda::Function", 1);
     template.resourceCountIs("AWS::CloudWatch::Alarm", 0);
+  });
+});
+
+describe("duckdbVersionFromLockFile", () => {
+  const lambdaLockFile = path.resolve(
+    process.cwd(),
+    "..",
+    "lambdas",
+    "dataConnectExport",
+    "package-lock.json"
+  );
+
+  it("resolves the version the lambda itself will install", () => {
+    // Read independently here rather than asserting a literal, because a literal in this test
+    // would be the very second source of truth the resolver exists to remove.
+    const lockFile = JSON.parse(readFileSync(lambdaLockFile, "utf8")) as {
+      packages: Record<string, { version: string }>;
+    };
+
+    expect(duckdbVersionFromLockFile(lambdaLockFile)).toBe(
+      lockFile.packages["node_modules/@duckdb/node-api"].version
+    );
+  });
+
+  it("returns an exact version, never a range", () => {
+    // npm install @duckdb/node-api@^1.5.5 would resolve on the build agent rather than here,
+    // which is exactly the non-determinism the pin exists to prevent.
+    expect(duckdbVersionFromLockFile(lambdaLockFile)).toMatch(/^\d+\.\d+\.\d+/);
+  });
+
+  it("throws rather than letting npm pick a version when the lockfile has no entry", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "duckdb-lock-"));
+    const emptyLock = path.join(dir, "package-lock.json");
+    writeFileSync(emptyLock, JSON.stringify({ lockfileVersion: 3, packages: {} }));
+
+    expect(() => duckdbVersionFromLockFile(emptyLock)).toThrow(
+      /@duckdb\/node-api is not resolved in .*needs an exact version/s
+    );
+
+    rmSync(dir, { recursive: true, force: true });
   });
 });
