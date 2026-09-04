@@ -44,6 +44,7 @@ stages {
             snykScan('lambdas/deleteinfectedfile')
             snykScan('lambdas/UIPath')
             snykScan('lambdas/budgetNeutrality')
+            snykScan('lambdas/dataConnectExport')
           }
         }
       }
@@ -62,7 +63,8 @@ stages {
               [name: 'UI Path', dir: 'lambdas/UIPath'],
               [name: 'Delete Infected File', dir: 'lambdas/deleteinfectedfile'],
               [name: 'Emailer', dir: 'lambdas/emailer'],
-              [name: 'Budget Neutrality', dir: 'lambdas/budgetNeutrality']
+              [name: 'Budget Neutrality', dir: 'lambdas/budgetNeutrality'],
+              [name: 'Data Connect Export', dir: 'lambdas/dataConnectExport']
             ]
 
             def maxParallel = 3

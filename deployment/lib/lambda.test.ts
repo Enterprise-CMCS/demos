@@ -1,4 +1,4 @@
-import { App, aws_apigateway, aws_codedeploy, aws_ec2, Duration, Stack } from "aws-cdk-lib";
+import { App, aws_apigateway, aws_codedeploy, aws_ec2, Duration, Size, Stack } from "aws-cdk-lib";
 import { create } from "./lambda";
 import { Match, Template } from "aws-cdk-lib/assertions";
 import { Construct } from "constructs";
@@ -275,6 +275,50 @@ describe("lambda", () => {
           ],
         }),
       }),
+    });
+  });
+
+  test("should omit ephemeral storage and reserved concurrency when not requested", () => {
+    const app = new App(commonAppArgs);
+    const stack = new Stack(app, "TestStack", mockStackProps);
+
+    create(
+      {
+        ...mockCommonProps,
+        scope: stack,
+        handler: "mockLambda.handler",
+        entry: "lib/mockLambda.js",
+      },
+      "unit-test-lambda"
+    );
+
+    // Every other lambda relies on these being absent, so a default here would change
+    // eight functions at once.
+    const props = Template.fromStack(stack).findResources("AWS::Lambda::Function");
+    const [lambda] = Object.values(props);
+    expect(lambda.Properties.EphemeralStorage).toBeUndefined();
+    expect(lambda.Properties.ReservedConcurrentExecutions).toBeUndefined();
+  });
+
+  test("should set ephemeral storage and reserved concurrency when requested", () => {
+    const app = new App(commonAppArgs);
+    const stack = new Stack(app, "TestStack", mockStackProps);
+
+    create(
+      {
+        ...mockCommonProps,
+        scope: stack,
+        handler: "mockLambda.handler",
+        entry: "lib/mockLambda.js",
+        ephemeralStorageSize: Size.gibibytes(2),
+        reservedConcurrentExecutions: 1,
+      },
+      "unit-test-lambda"
+    );
+
+    Template.fromStack(stack).hasResourceProperties("AWS::Lambda::Function", {
+      EphemeralStorage: { Size: 2048 },
+      ReservedConcurrentExecutions: 1,
     });
   });
 

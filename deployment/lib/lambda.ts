@@ -1,7 +1,7 @@
 import { ICommandHooks, LogLevel, NodejsFunction, OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Construct } from "constructs";
 import { CommonProps } from "../types/props";
-import { Aws, Duration, aws_apigateway, aws_codedeploy, aws_ec2, aws_kms, aws_lambda } from "aws-cdk-lib";
+import { Aws, Duration, Size, aws_apigateway, aws_codedeploy, aws_ec2, aws_kms, aws_lambda } from "aws-cdk-lib";
 import { Role, PolicyDocument, PolicyStatement, Effect, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { DemosLogGroup } from "./logGroup";
@@ -14,6 +14,8 @@ interface LambdaProps extends CommonProps {
   handler: string;
   timeout?: Duration;
   memorySize?: number;
+  ephemeralStorageSize?: Size;
+  reservedConcurrentExecutions?: number;
   environment?: { [key: string]: string };
   path?: string;
   method?: string;
@@ -126,6 +128,10 @@ export class Lambda extends Construct {
       runtime: Runtime.NODEJS_24_X,
       timeout,
       memorySize,
+      // Left undefined unless supplied, so existing lambdas keep the CloudFormation
+      // defaults of 512 MiB of /tmp and unreserved concurrency.
+      ephemeralStorageSize: props.ephemeralStorageSize,
+      reservedConcurrentExecutions: props.reservedConcurrentExecutions,
       role,
       securityGroups,
       bundling: {
