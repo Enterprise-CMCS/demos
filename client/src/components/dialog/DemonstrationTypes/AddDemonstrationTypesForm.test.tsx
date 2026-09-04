@@ -7,7 +7,7 @@ import {
   AddDemonstrationTypesForm,
 } from "./AddDemonstrationTypesForm";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
-import { SELECT_DEMONSTRATION_TYPE_QUERY, SELECT_DEMONSTRATION_TYPE_TEST_ID } from "components/input/select/SelectDemonstrationType";
+import { ALREADY_ASSIGNED_MESSAGE, SELECT_DEMONSTRATION_TYPE_QUERY, SELECT_DEMONSTRATION_TYPE_TEST_ID } from "components/input/select/SelectDemonstrationType";
 import { Tag } from "demos-server";
 
 const mockSelectDemonstrationTypeQuery: MockedResponse<{
@@ -305,5 +305,15 @@ describe("AddDemonstrationTypesForm", () => {
     await user.type(input, "Type A");
 
     expect(screen.getByTestId("button-create-type")).toBeDisabled();
+  });
+
+  it("shows 'already assigned' message if the user types a demonstration type that is already assigned to the demonstration", async () => {
+    const user = userEvent.setup();
+    await renderWithProvider();
+
+    const input = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
+    await user.type(input, "Type A");
+
+    expect(screen.getByText(ALREADY_ASSIGNED_MESSAGE)).toBeInTheDocument();
   });
 });

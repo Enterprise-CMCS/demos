@@ -17,7 +17,10 @@ export const SELECT_DEMONSTRATION_TYPE_QUERY: TypedDocumentNode<
 
 export const SELECT_DEMONSTRATION_TYPE_TEST_ID = "select-demonstration-type";
 
-const NO_MATCH_MESSAGE =
+export const ALREADY_ASSIGNED_MESSAGE =
+  "This type is already selected. Modify the dates to apply changes.";
+
+export const NO_MATCH_MESSAGE =
   "This demonstration type does not exist yet. Check for spelling errors and alternate names.";
 
 export type SelectDemonstrationTypeProps = {
@@ -28,6 +31,7 @@ export type SelectDemonstrationTypeProps = {
   allowCreateNew?: boolean;
   onFilterChange?: (filterValue: string, hasExactMatch: boolean) => void;
   createdOptions?: Tag[];
+  isAlreadyAssigned?: boolean;
 };
 export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => {
   const {
@@ -44,6 +48,16 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
   });
+
+  const noMatchMessage = () => {
+    if (props.isAlreadyAssigned) {
+      return ALREADY_ASSIGNED_MESSAGE;
+    }
+    if (allowCreateNew) {
+      return NO_MATCH_MESSAGE;
+    }
+    return undefined;
+  };
 
   const fetchedOptions = data?.demonstrationTypeOptions || [];
   const allOptions = [...fetchedOptions, ...createdOptions];
@@ -101,7 +115,7 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
       isDisabled={demonstrationTypeOptions.length === 0 && !allowCreateNew}
       placeholder={placeholderText}
       onSelect={handleSelect}
-      noMatchMessage={allowCreateNew ? NO_MATCH_MESSAGE : undefined}
+      noMatchMessage={noMatchMessage()}
       onFilterChange={handleFilterChange}
       {...rest}
     />
