@@ -26,10 +26,5 @@ model EmailNotification {
   recipients          EmailNotificationRecipient[]
 
   @@id([id])
-  @@index([deliverableActionId, createdAt])
-  @@index([publicCommentId, createdAt])
-  @@index([applicationId, createdAt])
-  @@index([referenceId, createdAt])
-  @@index([referenceAgreementId, createdAt])
   @@map("email_notification")
 }

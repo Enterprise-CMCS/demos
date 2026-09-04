@@ -83,21 +83,6 @@ CREATE TABLE "email_notification_type_entity_type" (
 );
 
 -- CreateIndex
-CREATE INDEX "email_notification_deliverable_action_id_created_at_idx" ON "email_notification"("deliverable_action_id", "created_at");
-
--- CreateIndex
-CREATE INDEX "email_notification_public_comment_id_created_at_idx" ON "email_notification"("public_comment_id", "created_at");
-
--- CreateIndex
-CREATE INDEX "email_notification_application_id_created_at_idx" ON "email_notification"("application_id", "created_at");
-
--- CreateIndex
-CREATE INDEX "email_notification_reference_id_created_at_idx" ON "email_notification"("reference_id", "created_at");
-
--- CreateIndex
-CREATE INDEX "email_notification_reference_agreement_id_created_at_idx" ON "email_notification"("reference_agreement_id", "created_at");
-
--- CreateIndex
 CREATE UNIQUE INDEX "email_notification_action_email_type_key" ON "email_notification"("email_type_id", "deliverable_action_id") WHERE "deliverable_action_id" IS NOT NULL;
 
 -- CreateIndex
