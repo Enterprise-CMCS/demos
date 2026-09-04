@@ -3,12 +3,12 @@ import { gql, useMutation } from "@apollo/client";
 import { BaseCreateModificationDialog } from "./BaseCreateModificationDialog";
 import { ModificationFormData } from "./ModificationForm";
 
-export const CREATE_EXTENSION_MUTATION = gql`
-  mutation CreateExtension($input: CreateExtensionInput!) {
-    createExtension(input: $input) {
+export const CREATE_RENEWAL_MUTATION = gql`
+  mutation CreateRenewal($input: CreateExtensionInput!) {
+    createRenewal: createExtension(input: $input) {
       demonstration {
         id
-        extensions {
+        renewals: extensions {
           id
         }
       }
@@ -16,11 +16,11 @@ export const CREATE_EXTENSION_MUTATION = gql`
   }
 `;
 
-export const useCreateExtension = () => {
-  const [createExtension, { loading }] = useMutation(CREATE_EXTENSION_MUTATION);
+export const useCreateRenewal = () => {
+  const [createRenewal, { loading }] = useMutation(CREATE_RENEWAL_MUTATION);
 
   const save = async (input: ModificationFormData) => {
-    await createExtension({
+    await createRenewal({
       variables: {
         input: {
           demonstrationId: input.demonstrationId,
@@ -38,12 +38,12 @@ export const useCreateExtension = () => {
   };
 };
 
-export const CreateExtensionDialog: React.FC<{
+export const CreateRenewalDialog: React.FC<{
   demonstrationId?: string;
 }> = ({ demonstrationId }) => (
   <BaseCreateModificationDialog
-    modificationType="Extension"
-    useModification={useCreateExtension}
+    modificationType="Renewal"
+    useModification={useCreateRenewal}
     demonstrationId={demonstrationId}
   />
 );

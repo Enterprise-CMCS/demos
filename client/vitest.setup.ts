@@ -17,6 +17,16 @@ if (!("escape" in RegExp)) {
   (RegExp as unknown as Record<string, unknown>).escape = (s: string) =>
     s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+
+// Polyfill showPopover and hidePopover methods on HTMLElement, which are not implemented in jsdom
+if (!HTMLElement.prototype.showPopover) {
+  HTMLElement.prototype.showPopover = function () {};
+}
+
+if (!HTMLElement.prototype.hidePopover) {
+  HTMLElement.prototype.hidePopover = function () {};
+}
+
 import { configure } from "@testing-library/dom";
 
 import React from "react";

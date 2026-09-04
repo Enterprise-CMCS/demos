@@ -49,29 +49,39 @@ describe("ConfirmApproveDialog", () => {
     setup("demonstration");
 
     expect(
-      screen.getByText(/This will finalize the approval process and move the demonstration to the deliverables phase./i)
+      screen.getByText(
+        /This will finalize the approval process and move the demonstration to the deliverables phase./i
+      )
     ).toBeInTheDocument();
   });
 
   it("does not show finalize approval message for non-demonstration application type", () => {
-    setup("extension");
+    setup("renewal");
 
     expect(
-      screen.queryByText(/This will finalize the approval process and move the demonstration to the deliverables phase./i)
+      screen.queryByText(
+        /This will finalize the approval process and move the demonstration to the deliverables phase./i
+      )
     ).not.toBeInTheDocument();
   });
 
   it("should show the correct button text based on application type", () => {
     setup("amendment");
-    expect(screen.getByTestId("button-ca-dialog-approve")).toHaveTextContent("Submit Approved Amendment");
+    expect(screen.getByTestId("button-ca-dialog-approve")).toHaveTextContent(
+      "Submit Approved Amendment"
+    );
     cleanup();
 
-    setup("extension");
-    expect(screen.getByTestId("button-ca-dialog-approve")).toHaveTextContent("Submit Approved Extension");
+    setup("renewal");
+    expect(screen.getByTestId("button-ca-dialog-approve")).toHaveTextContent(
+      "Submit Approved Renewal"
+    );
     cleanup();
 
     setup("demonstration");
-    expect(screen.getByTestId("button-ca-dialog-approve")).toHaveTextContent("Submit Approved Demonstration");
+    expect(screen.getByTestId("button-ca-dialog-approve")).toHaveTextContent(
+      "Submit Approved Demonstration"
+    );
     cleanup();
   });
 });

@@ -324,4 +324,33 @@ describe("ApplyTagsDialog", () => {
 
     expect(screen.getByTestId("button-confirm-apply-tags")).toHaveTextContent("Apply Tag(s)");
   });
+
+  it("should allow creating a tag if partial matches exist but no exact match", async () => {
+    const user = userEvent.setup();
+    setup([]);
+
+    const searchInput = screen.getByPlaceholderText("Search");
+    await user.type(searchInput, "Med");
+
+    // There are partial matches (Medicaid, Medicare), but no exact match for "Med"
+    const createTagButton = screen.getByTestId("button-create-tag");
+    expect(createTagButton).not.toBeDisabled();
+
+    await user.click(createTagButton);
+
+    // New tag should appear in selected tags
+    expect(screen.getByText("Selected Tag(s) (1)")).toBeInTheDocument();
+  });
+
+  it("should not allow creating a tag if an exact match exists", async () => {
+    const user = userEvent.setup();
+    setup([]);
+
+    const searchInput = screen.getByPlaceholderText("Search");
+    await user.type(searchInput, "Medicaid");
+
+    // There is an exact match for "Medicaid", so the create button should be disabled
+    const createTagButton = screen.getByTestId("button-create-tag");
+    expect(createTagButton).toBeDisabled();
+  });
 });

@@ -15,10 +15,10 @@ import { tw } from "tags/tw";
 export const APPLY_TAGS_DIALOG_TITLE = "APPLY TAGS";
 
 export const NO_MATCH_MESSAGE =
-  "Entry not found. New tags remain unapproved until admin review. Ensure accuracy before adding.";
+  "This demonstration type does not exist yet. Check for spelling errors and alternate names.";
 
 export const UNAPPROVED_WARNING_MESSAGE =
-  "Unapproved tags are still searchable by others. Please verify it's correct before applying to prevent compounding errors.";
+  'Consult with SDG leadership and check spelling before creating a new tag/type. New tag/types are labelled "Unapproved" but can still be seen and used by others.';
 
 const STYLES = {
   tagLabel: tw`flex items-center gap-1 p-1 cursor-pointer hover:bg-gray-50 rounded border-b border-border-rules`,
@@ -148,8 +148,14 @@ const TagSelector = ({
     tag.tagName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+  const hasExactMatch =
+    normalizedSearchQuery.length > 0 &&
+    mergedTags.some(
+      (tag) => tag.tagName.trim().toLowerCase() === normalizedSearchQuery
+    );
   const hasMatches = filteredTags.length > 0 || searchQuery.trim().length === 0;
-  const canCreateTag = !hasMatches && searchQuery.trim().length > 0;
+  const canCreateTag = !hasExactMatch && normalizedSearchQuery.length > 0;
 
   const hasUnapprovedSelected = selectedTags.some((tag) => tag.approvalStatus === "Unapproved");
 

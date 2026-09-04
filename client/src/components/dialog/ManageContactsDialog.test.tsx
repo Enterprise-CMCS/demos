@@ -1390,4 +1390,35 @@ describe("ManageContactsDialog", () => {
       expect(rows[2]).toHaveTextContent("Zoe Smith");
     });
   });
+
+  describe("Readonly users", () => {
+    it("disables primary toggle for readonly CMS users", () => {
+      const propsWithReadonlyContact: ManageContactsDialogProps = {
+        ...defaultProps,
+        existingContacts: [
+          {
+            id: "role-1",
+            person: {
+              id: "person-3",
+              fullName: "Readonly User",
+              email: "readonly@example.com",
+              personType: "demos-restricted-cms-user",
+            },
+            role: "DDME Analyst",
+            isPrimary: false,
+          },
+        ],
+      };
+
+      renderWithProviders(propsWithReadonlyContact);
+
+      const readonlyRow = screen.getByText("Readonly User").closest("tr");
+      expect(readonlyRow).toBeInTheDocument();
+
+      const primaryToggle = within(readonlyRow!).getByRole("switch");
+
+      expect(primaryToggle).toBeDisabled();
+      expect(primaryToggle).toHaveAttribute("aria-checked", "false");
+    });
+  });
 });

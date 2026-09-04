@@ -2,5 +2,9 @@ export { BaseDialog } from "./BaseDialog";
 export { DeclareIncompleteDialog } from "./DeclareIncompleteDialog";
 export { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
 export { CreateDemonstrationDialog, EditDemonstrationDialog } from "./demonstration";
-export { CreateExtensionDialog } from "./modification/CreateExtensionDialog";
-export { AddDocumentToApplicationDialog, EditDocumentDialog, RemoveDocumentDialog } from "./document";
+export { CreateRenewalDialog } from "./modification/CreateRenewalDialog";
+export {
+  AddDocumentToApplicationDialog,
+  EditDocumentDialog,
+  RemoveDocumentDialog,
+} from "./document";

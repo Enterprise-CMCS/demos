@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import {
+  NO_MATCH_MESSAGE,
   SELECT_DEMONSTRATION_TYPE_QUERY,
   SELECT_DEMONSTRATION_TYPE_TEST_ID,
   SelectDemonstrationType,
@@ -226,7 +227,7 @@ describe("SelectDemonstrationTypes", () => {
       return result;
     };
 
-    it("shows 'Entry not found' message when no matches and allowCreateNew is true", async () => {
+    it("shows 'This demonstration type does not exist yet' message when no matches and allowCreateNew is true", async () => {
       await renderWithCreateNew();
 
       const input = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
@@ -234,7 +235,7 @@ describe("SelectDemonstrationTypes", () => {
 
       expect(
         screen.getByText(
-          "Entry not found. New tags remain unapproved until admin review. Ensure accuracy before adding."
+          NO_MATCH_MESSAGE
         )
       ).toBeInTheDocument();
     });

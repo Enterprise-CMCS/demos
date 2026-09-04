@@ -4,7 +4,7 @@ import { AddDocumentToPhaseDialog } from "components/dialog/document";
 import { DocumentType } from "demos-server";
 import {
   GET_AMENDMENT_WORKFLOW_QUERY,
-  GET_EXTENSION_WORKFLOW_QUERY,
+  GET_RENEWAL_WORKFLOW_QUERY,
   GET_WORKFLOW_DEMONSTRATION_QUERY,
 } from "components/application";
 
@@ -29,7 +29,7 @@ export const FederalCommentUploadDialog = ({
       titleOverride="Add Federal Comment Document"
       refetchQueries={[
         GET_AMENDMENT_WORKFLOW_QUERY,
-        GET_EXTENSION_WORKFLOW_QUERY,
+        GET_RENEWAL_WORKFLOW_QUERY,
         GET_WORKFLOW_DEMONSTRATION_QUERY,
       ]}
       phaseName="Federal Comment"

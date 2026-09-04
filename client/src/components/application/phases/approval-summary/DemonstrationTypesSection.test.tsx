@@ -8,7 +8,8 @@ import { DemonstrationTypesSection } from "./DemonstrationTypesSection";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { TestProvider } from "test-utils/TestProvider";
 import { ApplicationStatus } from "demos-server";
-import { readonlyMockUser, MockUser } from "mock-data/userMocks";
+import type { CurrentUser } from "components/user/UserContext";
+import { readonlyMockUser } from "mock-data/userMocks";
 
 const showApplyDemonstrationTypesDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
@@ -46,7 +47,7 @@ const expandTypesSection = async () => {
 describe("DemonstrationTypesSection", () => {
   let onMarkComplete: (complete: boolean) => void;
 
-  const setup = (isComplete = false, types = mockTypes, currentUser?: MockUser) => {
+  const setup = (isComplete = false, types = mockTypes, currentUser?: CurrentUser) => {
     onMarkComplete = vi.fn();
 
     const demonstration = {

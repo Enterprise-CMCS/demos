@@ -36,4 +36,4 @@ export type WorkflowApplication = {
   clearanceLevel: ClearanceLevel;
 };
 
-export type WorkflowApplicationType = "demonstration" | "amendment" | "extension";
+export type WorkflowApplicationType = "demonstration" | "amendment" | "renewal";

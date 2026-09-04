@@ -16,7 +16,7 @@ vi.mock("components/application", async (importOriginal) => {
   return {
     ...actual,
     AmendmentWorkflow: () => <div data-testid="amendment-workflow">Amendment Workflow</div>,
-    ExtensionWorkflow: () => <div data-testid="extension-workflow">Extension Workflow</div>,
+    RenewalWorkflow: () => <div data-testid="renewal-workflow">Renewal Workflow</div>,
   };
 });
 
@@ -101,17 +101,17 @@ describe("ModificationTabSideNav", () => {
       setup(amendmentModification);
 
       expect(screen.getByTestId("amendment-workflow")).toBeInTheDocument();
-      expect(screen.queryByTestId("extension-workflow")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("renewal-workflow")).not.toBeInTheDocument();
     });
 
-    it("renders ExtensionWorkflow when modification type is extension", () => {
-      const extensionModification: ModificationItem = {
+    it("renders RenewalWorkflow when modification type is renewal", () => {
+      const renewalModification: ModificationItem = {
         ...mockModificationItem,
-        modificationType: "extension",
+        modificationType: "renewal",
       };
-      setup(extensionModification);
+      setup(renewalModification);
 
-      expect(screen.getByTestId("extension-workflow")).toBeInTheDocument();
+      expect(screen.getByTestId("renewal-workflow")).toBeInTheDocument();
       expect(screen.queryByTestId("amendment-workflow")).not.toBeInTheDocument();
     });
   });

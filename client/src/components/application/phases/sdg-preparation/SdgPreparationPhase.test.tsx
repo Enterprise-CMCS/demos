@@ -13,7 +13,8 @@ import { WorkflowApplication } from "components/application";
 import type { ApplicationStatus, DateType, PhaseName, PhaseStatus } from "demos-server";
 import { parseISO } from "date-fns";
 import { TestProvider } from "test-utils/TestProvider";
-import { cmsMockUser, MockUser, readonlyMockUser } from "mock-data/userMocks";
+import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
+import type { CurrentUser } from "components/user/UserContext";
 import { ToastContainer } from "components/toast";
 import { FAILED_TO_SAVE_MESSAGE, getPhaseCompletedMessage } from "util/messages";
 
@@ -95,7 +96,7 @@ const baseWorkflowApplication: WorkflowApplication = {
   phases: [],
 };
 
-const renderWithTestProvider = (ui: React.ReactNode, currentUser: MockUser = cmsMockUser) =>
+const renderWithTestProvider = (ui: React.ReactNode, currentUser: CurrentUser = cmsMockUser) =>
   render(
     <TestProvider currentUser={currentUser}>
       {ui}
@@ -111,7 +112,7 @@ describe("SdgPreparationPhase", () => {
   const setup = (
     application = mockApplication,
     applicationStatus: ApplicationStatus = "Pre-Submission",
-    currentUser: MockUser = cmsMockUser
+    currentUser: CurrentUser = cmsMockUser
   ): void => {
     renderWithTestProvider(
       <SdgPreparationPhase
