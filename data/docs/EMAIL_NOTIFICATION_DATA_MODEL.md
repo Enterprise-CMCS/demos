@@ -81,11 +81,11 @@ status_id:                Pending
 `action-501` is the authoritative source of the deliverable relationship, so
 the notification does not duplicate `deliverable_id`.
 
-### Public comment email
+### Deliverable comment email
 
 ```text
 id:                       notification-002
-email_type_id:            Public Comment Added
+email_type_id:            Deliverable Comment
 entity_type:              deliverable
 deliverable_action_id:    NULL
 public_comment_id:        comment-601
@@ -189,7 +189,7 @@ change rather than an unchecked application value.
 
 | Entity type       | Allowed email types                                                                                                                                                                                                                              |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `deliverable`     | Deliverable Created, Deliverable Submitted, Deliverable Accepted, Deliverable Approved, Deliverable Received and Filed, Deliverable Due Date Updated, Extension Requested, Extension Decision Made, Resubmission Requested, Public Comment Added |
+| `deliverable`     | Deliverable Created, Deliverable Submitted, Deliverable Accepted, Deliverable Approved, Deliverable Received and Filed, Deliverable Due Date Updated, Extension Requested, Extension Decision Made, Resubmission Requested, Deliverable Comment |
 | `application`     | Application Status Updated, Terms And Conditions Requested                                                                                                                                                                                       |
 | `reference`       | Terms And Conditions Requested                                                                                                                                                                                                                   |
 

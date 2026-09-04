@@ -106,16 +106,3 @@ ALTER TABLE "email_notification_type_entity_type" ADD CONSTRAINT "email_notifica
 
 -- AddForeignKey
 ALTER TABLE "email_notification_type_entity_type" ADD CONSTRAINT "email_notification_type_entity_type_entity_type_id_fkey" FOREIGN KEY ("entity_type_id") REFERENCES "email_notification_entity_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddCheckConstraint
-ALTER TABLE "email_notification" ADD CONSTRAINT "email_notification_exactly_one_entity" CHECK (num_nonnulls("deliverable_action_id", "public_comment_id", "application_id", "reference_configuration_id") = 1);
-
--- AddCheckConstraint
-ALTER TABLE "email_notification" ADD CONSTRAINT "email_notification_entity_type_matches_id" CHECK (
-    CASE "entity_type"
-        WHEN 'deliverable' THEN num_nonnulls("deliverable_action_id", "public_comment_id") = 1
-        WHEN 'application' THEN "application_id" IS NOT NULL
-        WHEN 'reference' THEN "reference_configuration_id" IS NOT NULL
-        ELSE false
-    END
-);
