@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import {
+  NO_MATCH_MESSAGE,
   SELECT_DEMONSTRATION_TYPE_QUERY,
   SELECT_DEMONSTRATION_TYPE_TEST_ID,
   SelectDemonstrationType,
@@ -234,7 +235,7 @@ describe("SelectDemonstrationTypes", () => {
 
       expect(
         screen.getByText(
-          "This demonstration type does not exist yet. Check for spelling errors and alternate names."
+          NO_MATCH_MESSAGE
         )
       ).toBeInTheDocument();
     });

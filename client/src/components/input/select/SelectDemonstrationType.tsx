@@ -17,10 +17,10 @@ export const SELECT_DEMONSTRATION_TYPE_QUERY: TypedDocumentNode<
 
 export const SELECT_DEMONSTRATION_TYPE_TEST_ID = "select-demonstration-type";
 
-const ALREADY_ASSIGNED_MESSAGE =
+export const ALREADY_ASSIGNED_MESSAGE =
   "This type is already selected. Modify the dates to apply changes.";
 
-const NO_MATCH_MESSAGE =
+export const NO_MATCH_MESSAGE =
   "This demonstration type does not exist yet. Check for spelling errors and alternate names.";
 
 export type SelectDemonstrationTypeProps = {
@@ -49,7 +49,7 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
     nextFetchPolicy: "cache-first",
   });
 
-  const noMatchMessage = useMemo(() => {
+  const noMatchMessage = () => {
     if (props.isAlreadyAssigned) {
       return ALREADY_ASSIGNED_MESSAGE;
     }
@@ -57,7 +57,7 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
       return NO_MATCH_MESSAGE;
     }
     return undefined;
-  }, [props.isAlreadyAssigned, allowCreateNew]);
+  };
 
   const fetchedOptions = data?.demonstrationTypeOptions || [];
   const allOptions = [...fetchedOptions, ...createdOptions];
@@ -115,7 +115,7 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
       isDisabled={demonstrationTypeOptions.length === 0 && !allowCreateNew}
       placeholder={placeholderText}
       onSelect={handleSelect}
-      noMatchMessage={noMatchMessage}
+      noMatchMessage={noMatchMessage()}
       onFilterChange={handleFilterChange}
       {...rest}
     />

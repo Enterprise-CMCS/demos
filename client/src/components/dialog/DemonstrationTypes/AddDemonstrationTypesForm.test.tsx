@@ -7,7 +7,7 @@ import {
   AddDemonstrationTypesForm,
 } from "./AddDemonstrationTypesForm";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
-import { SELECT_DEMONSTRATION_TYPE_QUERY, SELECT_DEMONSTRATION_TYPE_TEST_ID } from "components/input/select/SelectDemonstrationType";
+import { ALREADY_ASSIGNED_MESSAGE, SELECT_DEMONSTRATION_TYPE_QUERY, SELECT_DEMONSTRATION_TYPE_TEST_ID } from "components/input/select/SelectDemonstrationType";
 import { Tag } from "demos-server";
 
 const mockSelectDemonstrationTypeQuery: MockedResponse<{
@@ -314,6 +314,6 @@ describe("AddDemonstrationTypesForm", () => {
     const input = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
     await user.type(input, "Type A");
 
-    expect(screen.getByText("This type is already selected. Modify the dates to apply changes.")).toBeInTheDocument();
+    expect(screen.getByText(ALREADY_ASSIGNED_MESSAGE)).toBeInTheDocument();
   });
 });
