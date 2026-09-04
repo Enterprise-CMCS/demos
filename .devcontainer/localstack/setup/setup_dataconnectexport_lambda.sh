@@ -37,6 +37,16 @@ npm ci --silent
 # deployment/lib/dataConnectExportProcessor.ts: the resolved version from the lockfile, never
 # the range in package.json.
 DUCKDB_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/@duckdb/node-api'].version")
+
+# The 7 day floor holds everywhere, but npm reads project config from the install target, so the
+# --prefix install below inherits nothing. Pass this lambda's own floor rather than restating the
+# number, and fail loudly if the .npmrc stops declaring one.
+MIN_RELEASE_AGE=$(sed -n 's/^[[:space:]]*min-release-age[[:space:]]*=[[:space:]]*\([0-9][0-9]*\).*/\1/p' .npmrc)
+if [ -z "$MIN_RELEASE_AGE" ]; then
+    echo "❌ min-release-age is not set in $LAMBDA_DIR/.npmrc, so the DuckDB install would have no floor."
+    exit 1
+fi
+
 echo "🦆 DuckDB $DUCKDB_VERSION, binding for linux/$NPM_CPU (glibc), function as $LAMBDA_ARCH"
 
 rm -rf "$BUILD_DIR" "$LAMBDA_DIR/lambda.zip"
@@ -55,11 +65,10 @@ npx esbuild index.ts \
     --source-root=$LAMBDA_DIR/ \
     --outfile=$BUILD_DIR/index.js
 
-# --min-release-age=0 overrides the 7 day floor in this lambda's .npmrc. --ignore-scripts is
-# safe because none of the three duckdb packages defines one.
+# --ignore-scripts is safe because none of the three duckdb packages defines one.
 npm install --prefix "$BUILD_DIR" \
     --os=linux --cpu=$NPM_CPU --libc=glibc \
-    --no-save --ignore-scripts --no-audit --no-fund --min-release-age=0 --silent \
+    --no-save --ignore-scripts --no-audit --no-fund --min-release-age=$MIN_RELEASE_AGE --silent \
     "@duckdb/node-api@$DUCKDB_VERSION"
 
 if [ ! -d "$BUILD_DIR/node_modules/@duckdb/node-bindings-linux-$NPM_CPU" ]; then

@@ -39,6 +39,47 @@ export function duckdbVersionFromLockFile(lockFilePath: string): string {
   return version;
 }
 
+// The 7 day floor in every .npmrc in this repo stops a freshly published version being pulled in,
+// and it is meant to hold everywhere. It does not reach this install on its own: npm reads project
+// config from the install target, and neither --prefix nor a cd into that target inherits the
+// lambda's .npmrc. Measured with `npm config get min-release-age`, both resolve null, and CDK does
+// not copy .npmrc into the staging directory. So it is passed explicitly, and read from the
+// lambda's own .npmrc rather than restated here, so the two cannot drift.
+//
+// Enforcing it cannot break a working build. The version comes from the lambda's lockfile, which
+// was written in a directory where the floor does apply, so anything locked has already cleared
+// seven days and only ages further. It can only fail if a version reached the lockfile by
+// bypassing the floor, which is precisely when the build should stop.
+export function minReleaseAgeFromNpmrc(npmrcPath: string): number {
+  const match = /^\s*min-release-age\s*=\s*(\d+)/m.exec(readFileSync(npmrcPath, "utf8"));
+
+  if (!match) {
+    throw new Error(
+      `min-release-age is not set in ${npmrcPath}. The bundling hook passes it explicitly, ` +
+        "because npm resolves project config from the install target, where there is no .npmrc."
+    );
+  }
+
+  return Number(match[1]);
+}
+
+// Exported so the flags can be asserted directly. None of them reaches the synthesized template,
+// because construct tests disable bundling, so nothing about this command is testable through the
+// construct.
+export function duckdbInstallCommand(
+  outputDir: string,
+  duckdbVersion: string,
+  minReleaseAge: number
+): string {
+  return [
+    "npm install",
+    `--prefix ${outputDir}`,
+    "--os=linux --cpu=x64 --libc=glibc",
+    `--no-save --ignore-scripts --min-release-age=${minReleaseAge}`,
+    `@duckdb/node-api@${duckdbVersion}`,
+  ].join(" ");
+}
+
 interface DataConnectExportProcessorProps extends DeploymentConfigProperties {
   exportBucket: s3.IBucket;
   vpc?: ec2.IVpc;
@@ -62,6 +103,7 @@ export class DataConnectExportProcessor extends Construct {
     const exportDir = path.resolve(process.cwd(), "..", "lambdas", "dataConnectExport");
     const exportLockFile = path.join(exportDir, "package-lock.json");
     const duckdbVersion = duckdbVersionFromLockFile(exportLockFile);
+    const minReleaseAge = minReleaseAgeFromNpmrc(path.join(exportDir, ".npmrc"));
 
     const exportLambda = new demosLambda.Lambda(this, "dataConnectExport", {
       ...props,
@@ -86,18 +128,9 @@ export class DataConnectExportProcessor extends Construct {
       // Same shape as the cert copy for emailer in stacks/api.ts.
       commandHooks: {
         // Runs after CDK has installed nodeModules, so this is the last word on which
-        // binding ends up in the asset. --min-release-age overrides the 7 day floor in
-        // deployment/.npmrc, which would otherwise refuse a recently published version.
+        // binding ends up in the asset.
         afterBundling(_inputDir: string, outputDir: string): string[] {
-          return [
-            [
-              "npm install",
-              `--prefix ${outputDir}`,
-              "--os=linux --cpu=x64 --libc=glibc",
-              "--no-save --ignore-scripts --min-release-age=0",
-              `@duckdb/node-api@${duckdbVersion}`,
-            ].join(" "),
-          ];
+          return [duckdbInstallCommand(outputDir, duckdbVersion, minReleaseAge)];
         },
         beforeBundling() {
           return [];

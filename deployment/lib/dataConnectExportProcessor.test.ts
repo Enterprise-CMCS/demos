@@ -5,7 +5,12 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { DataConnectExportProcessor, duckdbVersionFromLockFile } from "./dataConnectExportProcessor";
+import {
+  DataConnectExportProcessor,
+  duckdbInstallCommand,
+  duckdbVersionFromLockFile,
+  minReleaseAgeFromNpmrc,
+} from "./dataConnectExportProcessor";
 import { DeploymentConfigProperties } from "../config";
 
 const mockProps: DeploymentConfigProperties = {
@@ -204,6 +209,69 @@ describe("duckdbVersionFromLockFile", () => {
     expect(() => duckdbVersionFromLockFile(emptyLock)).toThrow(
       `@duckdb/node-api is not resolved in ${emptyLock}`
     );
+
+    rmSync(dir, { recursive: true, force: true });
+  });
+});
+
+describe("duckdbInstallCommand", () => {
+  it("installs into the asset directory rather than the lambda's own node_modules", () => {
+    // Without --prefix the install would land in whichever directory CDK runs the hook from,
+    // which is the lambda folder, so the binding would miss the asset and pollute the checkout.
+    expect(duckdbInstallCommand("/staging/asset", "1.2.3-r.4", 7)).toContain("--prefix /staging/asset");
+  });
+
+  it("forces the glibc linux binding instead of the build agent's own platform", () => {
+    // The build agent is node:24-alpine, so an unpinned install resolves the musl binding and
+    // the lambda fails at cold start on Amazon Linux.
+    expect(duckdbInstallCommand("/staging/asset", "1.2.3-r.4", 7)).toContain(
+      "--os=linux --cpu=x64 --libc=glibc"
+    );
+  });
+
+  it("pins the exact version it is given, leaving npm no choice", () => {
+    expect(duckdbInstallCommand("/staging/asset", "1.2.3-r.4", 7)).toContain(
+      "@duckdb/node-api@1.2.3-r.4"
+    );
+  });
+
+  it("carries the supply-chain floor it is given, rather than waiving it", () => {
+    // npm inherits no floor for an install aimed at a staging directory, so the only thing
+    // keeping the repo-wide 7 day rule in force here is this flag.
+    expect(duckdbInstallCommand("/staging/asset", "1.2.3-r.4", 7)).toContain(
+      "--min-release-age=7"
+    );
+  });
+});
+
+describe("minReleaseAgeFromNpmrc", () => {
+  const lambdaNpmrc = path.resolve(process.cwd(), "..", "lambdas", "dataConnectExport", ".npmrc");
+
+  it("resolves the floor the lambda itself declares", () => {
+    // Parsed differently from the implementation on purpose. Reusing its regex here would mean a
+    // bug in that regex agreed with itself, and a literal would be the second source of truth
+    // this function exists to remove.
+    const declared = readFileSync(lambdaNpmrc, "utf8")
+      .split("\n")
+      .filter((line) => line.startsWith("min-release-age"))
+      .map((line) => Number(line.split("=")[1].split("#")[0].trim()));
+
+    expect(minReleaseAgeFromNpmrc(lambdaNpmrc)).toBe(declared[0]);
+  });
+
+  it("reads past the trailing comment rather than choking on it", () => {
+    // The declaration is `min-release-age=7 # days`, so a naive split on = yields "7 # days",
+    // and Number() of that is NaN, which npm would silently accept as no floor at all.
+    expect(minReleaseAgeFromNpmrc(lambdaNpmrc)).not.toBeNaN();
+    expect(minReleaseAgeFromNpmrc(lambdaNpmrc)).toBeGreaterThan(0);
+  });
+
+  it("throws rather than installing with no floor when the declaration is gone", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "npmrc-floor-"));
+    const npmrc = path.join(dir, ".npmrc");
+    writeFileSync(npmrc, "registry=https://registry.npmjs.org/\n");
+
+    expect(() => minReleaseAgeFromNpmrc(npmrc)).toThrow(`min-release-age is not set in ${npmrc}`);
 
     rmSync(dir, { recursive: true, force: true });
   });
