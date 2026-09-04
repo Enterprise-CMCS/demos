@@ -68,10 +68,10 @@ function PrimaryToggleCell({
           handleDiameter={24}
           boxShadow="0 2px 8px rgba(0, 0, 0, 0.6)"
           activeBoxShadow="0 0 2px 3px #3bf"
-          disabled={isReadonlyUser}
+          disabled={isReadonlyUser && !contact.isPrimary}
         />
       </div>
-      {isReadonlyUser && (
+      {isReadonlyUser && !contact.isPrimary && (
         <Tooltip id={`readonly-tooltip-${contact.id}`} anchorName={anchorName} anchorRef={switchRef}>
           Restricted User Role
         </Tooltip>
