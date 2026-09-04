@@ -50,7 +50,10 @@ describe("DataConnectExportProcessor construct", () => {
         Variables: Match.objectLike({
           DATABASE_SECRET_ARN: "demos-dev-rds-demos_export", // pragma: allowlist secret
           DB_SSL_MODE: "verify-full",
-          EXPORT_BUCKET: Match.anyValue(),
+          // Match.anyValue() here accepted a hardcoded bucket name, so the reference is
+          // asserted instead. The lambda writing to the wrong bucket is the failure this
+          // variable exists to prevent.
+          EXPORT_BUCKET: { Ref: Match.stringLikeRegexp("MockExportBucket") },
         }),
       },
     });
