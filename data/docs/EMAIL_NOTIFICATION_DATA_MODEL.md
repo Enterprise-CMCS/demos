@@ -18,14 +18,12 @@ email_notification_type_entity_type ---> email_notification_entity_type
           | validates (email_type_id, entity_type)
           v
 email_notification
-    |-- exactly one owner:
-    |     deliverable
+    |-- exactly one entity link:
+    |     deliverable_action
+    |     public_comment
     |     application
     |     reference
     |     reference_agreement
-    |
-    |-- deliverable provenance:
-    |     exactly one deliverable_action or public_comment
     |
     |-- triggered_by_user_id ---> users
     |-- status_id -------------> email_notification_status
@@ -44,13 +42,11 @@ email_notification
   email_type_id
   entity_type
 
-  deliverable_id                 nullable
+  deliverable_action_id          nullable
+  public_comment_id              nullable
   application_id                 nullable
   reference_id                   nullable
   reference_agreement_id         nullable
-
-  deliverable_action_id          nullable
-  public_comment_id              nullable
 
   triggered_by_user_id           required for realtime notifications
   status_id                      defaults to Pending
@@ -61,9 +57,11 @@ email_notification
   updated_at
 ```
 
-Exactly one owner ID must be populated. `entity_type` must identify that same
-owner. The foreign keys use `ON DELETE RESTRICT`, so an owner or provenance row
-cannot be deleted while a current notification references it.
+Exactly one entity-link ID must be populated. `entity_type` must identify that
+same kind of entity. A deliverable notification links to either a deliverable
+action or a public comment; that source row provides its deliverable. The
+foreign keys use `ON DELETE RESTRICT`, so a linked row cannot be deleted while
+a current notification references it.
 
 ## Example records
 
@@ -75,7 +73,6 @@ IDs are shortened in these examples for readability.
 id:                       notification-001
 email_type_id:            Deliverable Created
 entity_type:              deliverable
-deliverable_id:           deliverable-101
 application_id:           NULL
 reference_id:             NULL
 reference_agreement_id:   NULL
@@ -85,8 +82,8 @@ triggered_by_user_id:     user-201
 status_id:                Pending
 ```
 
-The composite foreign key `(deliverable_action_id, deliverable_id)` guarantees
-that `action-501` belongs to `deliverable-101`.
+`action-501` is the authoritative source of the deliverable relationship, so
+the notification does not duplicate `deliverable_id`.
 
 ### Public comment email
 
@@ -94,7 +91,6 @@ that `action-501` belongs to `deliverable-101`.
 id:                       notification-002
 email_type_id:            Public Comment Added
 entity_type:              deliverable
-deliverable_id:           deliverable-101
 deliverable_action_id:    NULL
 public_comment_id:        comment-601
 triggered_by_user_id:     user-202
@@ -102,8 +98,8 @@ status_id:                Pending
 ```
 
 Each public comment has its own natural identifier, so two comments on the same
-deliverable can produce two notifications. The composite foreign key verifies
-that the comment belongs to the selected deliverable.
+deliverable can produce two notifications. The comment row is the authoritative
+source of the deliverable relationship.
 
 ### Application email
 
@@ -111,7 +107,6 @@ that the comment belongs to the selected deliverable.
 id:                       notification-003
 email_type_id:            Application Status Updated
 entity_type:              application
-deliverable_id:           NULL
 application_id:           application-301
 reference_id:             NULL
 reference_agreement_id:   NULL
@@ -121,22 +116,16 @@ triggered_by_user_id:     user-203
 status_id:                Pending
 ```
 
-Non-deliverable notifications cannot contain deliverable action or public
-comment provenance.
-
 ## Database enforcement
 
 The database rejects a notification when:
 
-- No owner ID is populated or more than one owner ID is populated.
-- `entity_type` does not match the populated owner ID.
+- No entity-link ID is populated or more than one is populated.
+- `entity_type` does not match the populated entity-link ID.
 - The `(email_type_id, entity_type)` pair is not configured.
-- A deliverable notification has neither or both provenance IDs.
-- A non-deliverable notification contains deliverable provenance.
 - `Public Comment Added` does not reference a public comment.
 - Any other email type references a public comment.
-- An owner, action, comment, triggering user, recipient, type, or status FK is
-  invalid.
+- A linked entity, triggering user, recipient, type, or status FK is invalid.
 - A recipient address is empty, padded with whitespace, or not lowercase.
 - The same lowercase email address appears twice for one notification.
 
