@@ -14,7 +14,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1106.0",
     "@aws-sdk/client-secrets-manager": "^3.1106.0",
-    "@dsnp/parquetjs": "^1.8.9",
+    "@duckdb/node-api": "^1.5.5-r.4",
     "demos-shared-library": "file:../../shared_library",
     "pg": "^8.22.0",
     "pg-cursor": "^2.22.0",

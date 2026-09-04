@@ -1,5 +1,3 @@
-import type { ParquetSchema } from "@dsnp/parquetjs";
-
 export interface ColumnMeta {
   columnName: string;
   dataType: string;
@@ -8,9 +6,13 @@ export interface ColumnMeta {
   numericScale: number | null;
 }
 
+export interface RelationColumn {
+  name: string;
+  duckdbType: string;
+}
+
 export interface RelationSchema {
-  parquetSchema: ParquetSchema;
-  columns: ColumnMeta[];
+  columns: RelationColumn[];
 }
 
 export interface WrittenFile {

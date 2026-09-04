@@ -4,6 +4,12 @@ import { log } from "../log";
 
 export const dbSchema = "demos_app";
 
+// The export reads every column as ::text, which makes Postgres output formatting part of the
+// data path. A server configured with a non-ISO DateStyle renders a date as 31.08.2026, which
+// DuckDB refuses to CAST, so the export would fail rather than inherit the setting silently.
+// Pinning these on the startup packet keeps the text form independent of server configuration.
+const sessionOptions = "-c DateStyle=ISO,MDY -c TimeZone=UTC";
+
 const secretsManagerClient = new SecretsManagerClient({
   region: process.env.AWS_REGION,
   endpoint: process.env.AWS_ENDPOINT_URL ?? undefined,
@@ -52,7 +58,7 @@ export async function getDbPool(): Promise<Pool> {
   poolPromise ??= (async () => {
     const connectionString = await getDatabaseUrl();
     log.info("Connecting to database for DataConnect data export");
-    return new Pool({ connectionString, max: 2 });
+    return new Pool({ connectionString, max: 2, options: sessionOptions });
   })();
 
   return poolPromise;

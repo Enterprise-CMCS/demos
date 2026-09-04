@@ -1,16 +1,14 @@
-import os from "node:os";
-import path from "node:path";
 import type { Context, ScheduledEvent } from "aws-lambda";
 
 import { EXPORT_DATASETS } from "./allowlist";
 import { getDbPool } from "./database/pool";
 import { als, log, reqIdChild, store } from "./log";
-import { buildParquetSchema } from "./parquet/typeMap";
+import { buildRelationSchema } from "./parquet/typeMap";
 import { writeRelationToFile } from "./parquet/writer";
 import { uploadParquet, uploadSuccessMarker } from "./services/s3";
 import type { WrittenFile } from "./types";
 import { partitionKey } from "./util/keys";
-import { cleanupTmp } from "./util/staging";
+import { cleanupTmp, stagingPath } from "./util/staging";
 
 export const handler = async (event: ScheduledEvent, context: Context) =>
   als.run(store, async () => {
@@ -23,9 +21,9 @@ export const handler = async (event: ScheduledEvent, context: Context) =>
 
       // Stage every relation to /tmp first. A failure here publishes nothing.
       for (const [relation, columns] of Object.entries(EXPORT_DATASETS)) {
-        const schema = await buildParquetSchema(pool, relation, columns);
-        const localPath = path.join(os.tmpdir(), `${relation}.parquet`);
-        const rowCount = await writeRelationToFile(pool, relation, columns, schema, localPath);
+        const schema = await buildRelationSchema(pool, relation, columns);
+        const localPath = stagingPath(relation);
+        const rowCount = await writeRelationToFile(pool, relation, schema, localPath);
         written.push({ relation, localPath, rowCount });
         log.info({ relation, rowCount }, "staged relation to local parquet");
       }

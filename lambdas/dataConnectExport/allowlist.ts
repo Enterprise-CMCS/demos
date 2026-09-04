@@ -9,6 +9,7 @@
 export const EXPORT_DATASETS = {
   demonstration: [
     "id",
+    "application_type_id",
     "name",
     "description",
     "effective_date",
@@ -18,6 +19,7 @@ export const EXPORT_DATASETS = {
     "state_id",
     "sdg_division_id",
     "signature_level_id",
+    "clearance_level_id",
     "current_phase_id",
     "created_at",
     "updated_at",
