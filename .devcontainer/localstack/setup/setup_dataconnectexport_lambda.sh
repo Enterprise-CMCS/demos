@@ -86,8 +86,15 @@ cd - > /dev/null
 # The export bucket lives here rather than in setup_s3.sh so this script can be re-run on its
 # own. It needs none of what setup_s3.sh does to the upload buckets: no CORS, since nothing in a
 # browser reads it, and no versioning.
-echo "🪣 Creating $EXPORT_BUCKET..."
-$AWS_CMD s3 mb "s3://$EXPORT_BUCKET" 2>/dev/null && echo "✅ Created $EXPORT_BUCKET" || echo "✅ $EXPORT_BUCKET already exists"
+#
+# head-bucket rather than relying on the exit code of mb: in us-east-1 creating a bucket you
+# already own returns success, so mb cannot tell you which of the two happened.
+if $AWS_CMD s3api head-bucket --bucket "$EXPORT_BUCKET" >/dev/null 2>&1; then
+    echo "🪣 $EXPORT_BUCKET already exists"
+else
+    $AWS_CMD s3 mb "s3://$EXPORT_BUCKET" >/dev/null
+    echo "🪣 Created $EXPORT_BUCKET"
+fi
 
 # Delete existing Lambda if exists
 $AWS_CMD lambda delete-function --function-name $LAMBDA_NAME 2>/dev/null || true
