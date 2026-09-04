@@ -194,21 +194,42 @@ models:
                 values:
                   - TRUE
 
-  - name: final_demos_app_application_combined_with_staged
+  - name: final_demos_app_application_combined_with_demos_app
     columns:
       - name: id
         data_type: uuid
         data_tests:
           - unique:
               name: assert_id_is_unique_in_final_application_table
-      - name: application_type_id
+
+  - name: final_demos_app_users_combined_with_demos_app
+    columns:
+      - name: id
+        data_type: uuid
+        data_tests:
+          - unique:
+              name: assert_id_is_unique_in_final_users_table
+
+  - name: final_demos_app_users
+    columns:
+      - name: id
+        data_type: uuid
+      - name: person_type_id
         data_type: text
-      - name: _legacy_mdcd_demo_id
-        data_type: integer
-      - name: _legacy_mdcd_pendg_demo_id
-        data_type: integer
+      - name: cognito_subject
+        data_type: uuid
+      - name: username
+        data_type: text
       - name: is_migrated_from_pmda
         data_type: boolean
+      - name: has_logged_in
+        data_type: boolean
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
+      - name: _legacy_users_id
+        data_type: integer
 
   - name: final_demos_app_application_tag_assignment
     columns:
@@ -271,7 +292,7 @@ models:
           - relationships:
               name: assert_document_owner_user_exists_in_user
               arguments:
-                to: source('legacy_pmda_staged', 'final_demos_app_users')
+                to: ref('final_demos_app_users_combined_with_demos_app')
                 field: id
       - name: document_type_id
         data_type: text
@@ -291,7 +312,7 @@ models:
           - relationships:
               name: assert_document_application_id_exists_in_application
               arguments:
-                to: ref('final_demos_app_application_combined_with_staged')
+                to: ref('final_demos_app_application_combined_with_demos_app')
                 field: id
       - name: phase_id
         data_type: text
@@ -393,6 +414,12 @@ models:
         data_type: timestamptz
       - name: user_id
         data_type: uuid
+        data_tests:
+          - relationships:
+              name: assert_relationship_user_in_final_deliv_action
+              arguments:
+                to: ref('final_demos_app_users_combined_with_demos_app')
+                field: id
 
   - name: final_demos_app_deliverable_demonstration_type
     columns:
@@ -465,8 +492,9 @@ models:
           - relationships:
               name: assert_relationship_owner_in_final_deliv_table
               arguments:
-                to: source('demos_app', 'users')
+                to: ref('final_demos_app_users_combined_with_demos_app')
                 field: id
+
       - name: cms_owner_person_type_id
         data_type: text
         data_tests:

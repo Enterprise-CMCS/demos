@@ -36,6 +36,14 @@ def call_update_federal_comment_phase_status(generation_context: ArbitrarySqlGen
     )
 
 
+def update_person_type_for_specific_person(generation_context: ArbitrarySqlGenerationContext) -> str:  # noqa: D103
+    return (
+        f"CALL postgres_execute('{generation_context.attach_name}', "
+        f"$$UPDATE {generation_context.app_schema}.person SET person_type_id = 'demos-state-user' "
+        f"WHERE id = '63f08f6a-4ed9-4401-94ff-c186463735a7'$$)"
+    )
+
+
 def get_data_load_configuration(dl_config_name: DataLoadConfigurationName) -> DataLoadConfiguration:
     """Retrieve a data load configuration by name.
 
@@ -448,6 +456,23 @@ def get_data_load_configuration(dl_config_name: DataLoadConfigurationName) -> Da
                         "final_demos_app_application_tag_assignment",
                         "application_tag_assignment",
                         ["application_id", "tag_name_id", "tag_type_id"],
+                    ),
+                    ArbitraryActionConfiguration(
+                        "Set specific person's type to be demos-state-user", update_person_type_for_specific_person
+                    ),
+                    TableInsertActionConfiguration(
+                        "final_demos_app_users",
+                        "users",
+                        [
+                            "id",
+                            "person_type_id",
+                            "cognito_subject",
+                            "username",
+                            "is_migrated_from_pmda",
+                            "has_logged_in",
+                            "created_at",
+                            "updated_at",
+                        ],
                     ),
                     TransactionActionConfiguration("begin"),
                     TableInsertActionConfiguration(
