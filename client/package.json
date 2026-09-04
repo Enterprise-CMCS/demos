@@ -13,11 +13,12 @@
     "@testing-library/jest-dom": "^6.10.0",
     "@testing-library/react": "^16.3.2",
     "@types/jest": "^29.5.14",
+    "@types/node": "^26.3.0",
     "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.4",
-    "@vitejs/plugin-react": "^6.0.5",
-    "@vitest/coverage-v8": "^4.1.10",
-    "eslint": "^10.8.1",
+    "@types/react-dom": "^19.2.5",
+    "@vitejs/plugin-react": "^6.1.0",
+    "@vitest/coverage-v8": "^4.1.11",
+    "eslint": "^10.9.1",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^16.5.0",
     "jsdom": "^26.1.0",
@@ -27,11 +28,11 @@
     "react-idle-timer": "^5.7.3",
     "tailwindcss": "^4.3.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.66.0",
-    "vite": "^8.2.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.68.0",
+    "vite": "^8.2.2",
     "vite-bundle-visualizer": "^1.2.1",
-    "vitest": "^4.1.10",
+    "vitest": "^4.1.11",
     "vitest-sonar-reporter": "^3.0.0"
   },
   "browserslist": {
@@ -61,7 +62,7 @@
     "dev:mocks:state": "VITE_MOCK_PERSON_TYPE=demos-state-user npm run dev:mocks",
     "dev:mocks:cms": "VITE_MOCK_PERSON_TYPE=demos-cms-user npm run dev:mocks",
     "dev:mocks:admin": "VITE_MOCK_PERSON_TYPE=demos-admin npm run dev:mocks",
-    "dev:mocks:readonly": "VITE_MOCK_PERSON_TYPE=demos-readonly npm run dev:mocks",
+    "dev:mocks:readonly": "VITE_MOCK_PERSON_TYPE=demos-restricted-cms-user npm run dev:mocks",
     "dev:mocks:unauth": "VITE_MOCK_PERSON_TYPE=unauth npm run dev:mocks",
     "format": "prettier --write src",
     "format:check": "prettier --check src",
@@ -73,12 +74,12 @@
     "test:once": "vitest --mode test --run --reporter=dot",
     "test:serial": "vitest --mode test --run --no-file-parallelism",
     "test:debug": "vitest --mode test --run --inspect-brk --no-file-parallelism",
-    "tsc": "tsc --noEmit --skipLibCheck",
-    "tsc:ci": "tsc --noEmit --skipLibCheck"
+    "tsc": "tsc",
+    "tsc:ci": "tsc"
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",
-    "@testing-library/user-event": "^14.6.3",
+    "@testing-library/user-event": "^14.6.6",
     "date-fns": "^4.4.0",
     "demos-shared-library": "file:../shared_library",
     "file-type": "^21.3.4",
@@ -88,6 +89,6 @@
   },
   "optionalDependencies": {
     "@emnapi/core": "^1.11.3",
-    "@rollup/rollup-linux-x64-musl": "^4.62.4"
+    "@rollup/rollup-linux-x64-musl": "^4.62.5"
   }
 }

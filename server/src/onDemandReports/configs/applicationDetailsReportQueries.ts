@@ -181,7 +181,8 @@ SELECT
     coalesce(doc_dates.federal_comment_internal_analysis_document_submitted_date, '-')
         AS federal_comment_internal_analysis_document_submitted_date,
     coalesce(app_date.sdg_preparation_start_date, '-') AS sdg_preparation_start_date,
-    coalesce(app_date.expected_approval_date, '-') AS expected_approval_date,
+    coalesce(app_date.internal_expected_approval_date, '-') AS internal_expected_approval_date,
+    coalesce(app_date.state_requested_approval_date, '-') AS state_requested_approval_date,
     coalesce(app_date.sme_initial_review_date, '-') AS sme_initial_review_date,
     coalesce(app_date.frt_initial_meeting_date, '-') AS frt_initial_meeting_date,
     coalesce(app_date.bnpmt_initial_meeting_date, '-') AS bnpmt_initial_meeting_date,

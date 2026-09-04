@@ -4,8 +4,8 @@ import { Outlet } from "react-router-dom";
 import { PrimaryLayout } from "layout/PrimaryLayout";
 import { shouldUseMocks } from "config/env";
 
-const ProvideLayout = () => (
-  <PrimaryLayout>
+const ProvideLayout = ({ header }: { header: React.FC }) => (
+  <PrimaryLayout header={header}>
     <Outlet />
   </PrimaryLayout>
 );

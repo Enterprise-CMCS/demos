@@ -10,20 +10,21 @@ import {
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { useSetApplicationNotes } from "components/application/note/noteQueries";
 import { ClearanceLevel, ReviewPhaseDateTypes, ReviewPhaseNoteTypes } from "demos-server";
-import { PoAndOgdSection } from "./poAndOgdSection";
-import { OgcAndOmbSection } from "./ogcAndOmbSection";
-import { CommsClearanceSection } from "./commsClearanceSection";
-import { CmsOsoraClearanceSection } from "./cmsOsoraClearanceSection";
+import { PoAndOgdSection } from "./PoAndOgdSection";
+import { OgcAndOmbSection } from "./OgcAndOmbSection";
+import { CommsClearanceSection } from "./CommsClearanceSection";
+import { CmsOsoraClearanceSection } from "./CmsOsoraClearanceSection";
 import { RadioGroup } from "components/radioGroup";
-import { formatDataForSave, hasFormChanges } from "./reviewPhaseData";
+import { formatDataForSave, hasFormChanges } from "./ReviewPhaseData";
 import { gql, useMutation } from "@apollo/client";
 import { CMS_OSORA_CLEARANCE_DATE_TYPES, COMMS_CLEARANCE_DATE_TYPES } from "demos-server-constants";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 import {
   GET_AMENDMENT_WORKFLOW_QUERY,
-  GET_EXTENSION_WORKFLOW_QUERY,
+  GET_RENEWAL_WORKFLOW_QUERY,
   GET_WORKFLOW_DEMONSTRATION_QUERY,
 } from "components/application";
+import { getCurrentUser, isReadonly as isReadonlyUser } from "components/user/UserContext";
 
 const SET_APPLICATION_CLEARANCE_LEVEL = gql`
   mutation SetApplicationClearanceLevel($input: SetApplicationClearanceLevelInput!) {
@@ -60,12 +61,16 @@ export const PO_AND_OGD_DATE_TYPES = [
 ] as const satisfies ReviewPhaseDateTypes[];
 export const PO_AND_OGD_NOTE_TYPES = ["PO and OGD"] as const satisfies ReviewPhaseNoteTypes[];
 
-export const OGC_AND_OMB_DATE_TYPES = [
+const OGC_AND_OMB_REQUIRED_DATE_TYPES: ReviewPhaseDateTypes[] = [
   "BN PMT Approval to Send to OMB",
   "Draft Approval Package Shared",
   "Receive OMB Concurrence",
+];
+
+export const OGC_AND_OMB_DATE_TYPES: ReviewPhaseDateTypes[] = [
+  ...OGC_AND_OMB_REQUIRED_DATE_TYPES,
   "Receive OGC Legal Clearance",
-] as const satisfies ReviewPhaseDateTypes[];
+];
 export const OGC_AND_OMB_NOTE_TYPES = ["OGC and OMB"] as const satisfies ReviewPhaseNoteTypes[];
 
 export const COMMS_CLEARANCE_NOTE_TYPES = [
@@ -95,16 +100,18 @@ const getPhaseStateInitialization = () => {
 export const ReviewPhase = ({
   initialFormData,
   applicationId,
-  isReadonly,
+  isPhaseCompleted,
   onFinish,
   allPreviousPhasesDone,
 }: {
   initialFormData: ReviewPhaseFormData;
   applicationId: string;
-  isReadonly: boolean;
+  isPhaseCompleted: boolean;
   onFinish: () => void;
   allPreviousPhasesDone: boolean;
 }) => {
+  const { currentUser } = getCurrentUser();
+  const userIsReadonly = isReadonlyUser(currentUser);
   const { showSuccess } = useToast();
   const { setApplicationDates } = useSetApplicationDates();
   const { setApplicationNotes } = useSetApplicationNotes();
@@ -146,7 +153,7 @@ export const ReviewPhase = ({
       refetchQueries: [
         GET_WORKFLOW_DEMONSTRATION_QUERY,
         GET_AMENDMENT_WORKFLOW_QUERY,
-        GET_EXTENSION_WORKFLOW_QUERY,
+        GET_RENEWAL_WORKFLOW_QUERY,
       ],
     });
   };
@@ -182,7 +189,7 @@ export const ReviewPhase = ({
       reviewPhaseSectionsComplete["CMS (OSORA) Clearance"]);
 
   const isFinishEnabled =
-    !isReadonly &&
+    !isPhaseCompleted &&
     allPreviousPhasesDone &&
     reviewPhaseSectionsComplete["PO and OGD"] &&
     reviewPhaseSectionsComplete["OGC and OMB"] &&
@@ -193,7 +200,7 @@ export const ReviewPhase = ({
       "PO and OGD": PO_AND_OGD_DATE_TYPES.every(
         (dateType) => !!reviewPhaseFormData.dates[dateType]
       ),
-      "OGC and OMB": OGC_AND_OMB_DATE_TYPES.every(
+      "OGC and OMB": OGC_AND_OMB_REQUIRED_DATE_TYPES.every(
         (dateType) => !!reviewPhaseFormData.dates[dateType]
       ),
       "COMMs Clearance": COMMS_CLEARANCE_DATE_TYPES.every(
@@ -220,7 +227,7 @@ export const ReviewPhase = ({
             setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
           }
           isComplete={reviewPhaseSectionsComplete["PO and OGD"]}
-          isReadonly={isReadonly}
+          isReadonly={isPhaseCompleted || userIsReadonly}
         />
         <OgcAndOmbSection
           sectionFormData={reviewPhaseFormData}
@@ -228,7 +235,7 @@ export const ReviewPhase = ({
             setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
           }
           isComplete={reviewPhaseSectionsComplete["OGC and OMB"]}
-          isReadonly={isReadonly}
+          isReadonly={isPhaseCompleted || userIsReadonly}
         />
         <RadioGroup
           name="clearance-level"
@@ -250,7 +257,7 @@ export const ReviewPhase = ({
             })
           }
           isInline
-          isDisabled={isReadonly}
+          isDisabled={isPhaseCompleted}
         />
         {reviewPhaseFormData.clearanceLevel === "COMMs" && (
           <CommsClearanceSection
@@ -259,7 +266,7 @@ export const ReviewPhase = ({
               setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
             }
             isComplete={reviewPhaseSectionsComplete["COMMs Clearance"]}
-            isReadonly={isReadonly}
+            isReadonly={isPhaseCompleted || userIsReadonly}
           />
         )}
         {reviewPhaseFormData.clearanceLevel === "CMS (OSORA)" && (
@@ -269,30 +276,34 @@ export const ReviewPhase = ({
               setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
             }
             isComplete={reviewPhaseSectionsComplete["CMS (OSORA) Clearance"]}
-            isReadonly={isReadonly}
+            isReadonly={isPhaseCompleted || userIsReadonly}
           />
         )}
-        <div className="flex justify-end mt-2 gap-2">
-          <SecondaryButton
-            onClick={handleSaveForLater}
-            size="large"
-            name="review-save-for-later"
-            disabled={!hasFormChanges(lastSavedFormData, reviewPhaseFormData)}
-          >
-            Save For Later
-          </SecondaryButton>
-          <Button
-            onClick={handleFinish}
-            size="large"
-            name="review-finish"
-            disabled={!isFinishEnabled}
-            eagerTooltip={
-              !isFinishEnabled && !isReadonly ? MISSING_REQUIRED_SECTIONS_TOOLTIP : undefined
-            }
-          >
-            Finish
-          </Button>
-        </div>
+        {!userIsReadonly && (
+          <div className="flex justify-end mt-2 gap-2">
+            <SecondaryButton
+              onClick={handleSaveForLater}
+              size="large"
+              name="review-save-for-later"
+              disabled={!hasFormChanges(lastSavedFormData, reviewPhaseFormData)}
+            >
+              Save For Later
+            </SecondaryButton>
+            <Button
+              onClick={handleFinish}
+              size="large"
+              name="review-finish"
+              disabled={!isFinishEnabled}
+              eagerTooltip={
+                !isFinishEnabled && !isPhaseCompleted
+                  ? MISSING_REQUIRED_SECTIONS_TOOLTIP
+                  : undefined
+              }
+            >
+              Finish
+            </Button>
+          </div>
+        )}
       </section>
     </div>
   );

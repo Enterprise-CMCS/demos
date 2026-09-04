@@ -3,22 +3,23 @@ import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import { ADMIN_LINK_NAME, QuickLinks } from "./QuickLinks";
 import { TestProvider } from "test-utils/TestProvider";
-import { developmentMockUser, MockUser } from "mock-data/userMocks";
+import { developmentMockUser } from "mock-data/userMocks";
 import { MemoryRouterProps } from "react-router-dom";
+import { CurrentUser } from "components/user/UserContext";
 
-const adminUser: MockUser = {
+const adminUser: CurrentUser = {
   ...developmentMockUser,
   person: { ...developmentMockUser.person, personType: "demos-admin" },
 };
 
-const nonAdminUser: MockUser = {
+const nonAdminUser: CurrentUser = {
   ...developmentMockUser,
   person: { ...developmentMockUser.person, personType: "demos-cms-user" },
 };
 
-const readonlyUser: MockUser = {
+const readonlyUser: CurrentUser = {
   ...developmentMockUser,
-  person: { ...developmentMockUser.person, personType: "demos-readonly" },
+  person: { ...developmentMockUser.person, personType: "demos-restricted-cms-user" },
 };
 
 const setup = (

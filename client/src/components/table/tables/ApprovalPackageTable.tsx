@@ -16,8 +16,9 @@ export interface ApprovalPackageTableRow {
 export const ApprovalPackageTable: React.FC<{
   demonstrationId: string;
   rows: ApprovalPackageTableRow[];
-}> = ({ demonstrationId, rows }) => {
-  const approvalPackageColumns = ApprovalPackageColumns(demonstrationId);
+  isReadonlyUser: boolean;
+}> = ({ demonstrationId, rows, isReadonlyUser }) => {
+  const approvalPackageColumns = ApprovalPackageColumns(demonstrationId, isReadonlyUser);
 
   return (
     <div className="flex flex-col gap-[24px]">

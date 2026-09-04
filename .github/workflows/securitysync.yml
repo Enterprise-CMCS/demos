@@ -34,7 +34,7 @@ jobs:
 
       - name: Sync Security Hub and Jira
         id: sync_step
-        uses: Enterprise-CMCS/mac-fc-security-hub-visibility@v2.2
+        uses: Enterprise-CMCS/mac-fc-security-hub-visibility@v2.2.3
         with:
           jira-token: ${{ secrets.DEMOS_JIRA_SERVICE_ACCOUNT_TOKEN }}
           jira-username: demos_git_service_account

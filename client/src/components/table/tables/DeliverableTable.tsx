@@ -12,6 +12,7 @@ import { getDeliverableFilterOptions } from "./deliverablesFilterOptions";
 import { DeliverableActionButtons } from "./DeliverableActionButtons";
 import { formatDateForDisplay } from "util/formatDate";
 import { compareDesc } from "date-fns";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
 export type DeliverableTableRow = Omit<
   Deliverable,
@@ -271,6 +272,9 @@ export const DeliverableTable: React.FC<{
   emptyRowsMessage?: string;
   viewMode: UserType;
 }> = ({ deliverables, emptyRowsMessage = EMPTY_ROWS_MESSAGE, viewMode }) => {
+  const { currentUser } = getCurrentUser();
+  const isReadonlyUser = isReadonly(currentUser);
+
   const { demonstrationNameOptions, cmsOwnerOptions } = getDeliverableFilterOptions(deliverables);
   const deliverableColumns = DeliverableColumns({
     viewMode,
@@ -292,7 +296,7 @@ export const DeliverableTable: React.FC<{
     <DeliverableActionButtons table={table} />
   );
 
-  const actionButtons = viewMode === "demos-state-user" ? undefined : renderActionButtons;
+  const actionButtons = isReadonlyUser || viewMode === "demos-state-user" ? undefined : renderActionButtons;
 
   return (
     <div className="flex flex-col gap-[24px]" data-view-mode={viewMode}>

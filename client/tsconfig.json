@@ -1,27 +1,37 @@
 {
   "compilerOptions": {
     "jsx": "react",
-    "outDir": "dist",
+    "noEmit": true,
+    "skipLibCheck": true,
     "lib": ["es2020", "DOM"],
     "target": "es2020",
     "module": "esnext",
     "moduleResolution": "bundler",
     "esModuleInterop": true,
-    "baseUrl": "src",
     "strict": true,
-    "types": ["vitest/globals"],
+    "types": ["vitest/globals", "node"],
     "paths": {
-      "components/*": ["components/*"],
-      "pages/*": ["pages/*"],
-      "hooks/*": ["hooks/*"],
-      "mock-data/*": ["mock-data/*"],
-      "queries/*": ["queries/*"],
-      "icons": ["components/icons/index.ts"],
-      "dates": ["components/application/dates/index.ts"],
-      "demos-server": ["../../server/src/types.ts"],
-      "demos-server-constants": ["../../server/src/constants.ts"]
+      "components": ["./src/components/index.ts"],
+      "components/*": ["./src/components/*"],
+      "pages/*": ["./src/pages/*"],
+      "hooks": ["./src/hooks/index.ts"],
+      "hooks/*": ["./src/hooks/*"],
+      "layout/*": ["./src/layout/*"],
+      "mock-data": ["./src/mock-data/index.ts"],
+      "mock-data/*": ["./src/mock-data/*"],
+      "queries/*": ["./src/queries/*"],
+      "icons": ["./src/components/icons/index.ts"],
+      "dates": ["./src/components/application/dates/index.ts"],
+      "tags/*": ["./src/tags/*"],
+      "test-utils/*": ["./src/test-utils/*"],
+      "util/*": ["./src/util/*"],
+      "config/*": ["./src/config/*"],
+      "fragments": ["./src/fragments/index.ts"],
+      "router/*": ["./src/router/*"],
+      "demos-server": ["../server/src/types.ts"],
+      "demos-server-constants": ["../server/src/constants.ts"]
     }
   },
   "exclude": ["node_modules"],
-  "include": ["src/**/*", "types"]
+  "include": ["src/**/*", "types", "vitest.setup.ts"]
 }

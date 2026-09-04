@@ -11,13 +11,21 @@ import {
 } from "./DeliverableDetailsManagementPage";
 import { MOCK_DELIVERABLE_1 } from "mock-data/deliverableMocks";
 import { TestProvider } from "test-utils/TestProvider";
-import { COMMENT_BOX_NAME } from "./sections/comment_box";
+import { ADD_COMMENT_BUTTON_NAME, COMMENT_BOX_NAME } from "./sections/comment_box";
 import {
   BACK_TO_DELIVERABLES_BUTTON_NAME,
   DELIVERABLE_INFO_FIELDS_NAME,
 } from "./sections/DeliverableInfoFields";
-import { FILE_AND_HISTORY_TABS_NAME } from "./fileAndHistoryTabs/FileAndHistoryTabs";
+import {
+  FILE_AND_HISTORY_ACTIONS_NAME,
+  FILE_AND_HISTORY_TABS_NAME,
+} from "./fileAndHistoryTabs/FileAndHistoryTabs";
 import { REQUEST_EXTENSION_BUTTON_NAME } from "./sections/DeliverableButtons";
+import { STATE_FILES_ADD_BUTTON_NAME } from "./sections/StateFilesTab";
+import {
+  EXTENSION_REQUESTED_NOTICE_NAME,
+  REVIEW_EXTENSION_REQUEST_BUTTON_NAME,
+} from "./sections/ExtensionRequestedNotice";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { EDIT_DELIVERABLE_DIALOG_TITLE } from "components/dialog/deliverable/EditDeliverableDialog";
 import {
@@ -39,6 +47,21 @@ const buildSubmittedDeliverableMock = (overrides?: { submitterName?: string }) =
       actionTimestamp: new Date("2026-04-01T10:00:00Z"),
       userFullName: overrides?.submitterName ?? "Jane State",
       details: "",
+    },
+  ],
+});
+
+const buildPendingExtensionDeliverableMock = (): DeliverableDetailsManagementDeliverable => ({
+  ...MOCK_DELIVERABLE_1,
+  extensionRequests: [
+    {
+      id: "extension-1",
+      status: "Requested",
+      reasonCode: "Technical Difficulties",
+      reasonDetails: "Systems were down.",
+      initialDueDateAtRequest: new Date("2024-08-15"),
+      originalDateRequested: new Date("2024-09-15"),
+      createdAt: new Date("2026-04-01T10:00:00Z"),
     },
   ],
 });
@@ -294,6 +317,78 @@ describe("DeliverableDetailsManagementPage", () => {
     expect(await screen.findByTestId(REQUEST_EXTENSION_BUTTON_NAME)).toBeInTheDocument();
     expect(screen.getByTestId("edit-deliverable-button")).toBeInTheDocument();
     expect(screen.getByTestId("delete-deliverable-button")).toBeInTheDocument();
+  });
+
+  describe("restricted CMS users", () => {
+    const RESTRICTED_CMS_USER = "demos-restricted-cms-user" as const;
+
+    it("renders the deliverable details", async () => {
+      renderWithDeliverable(MOCK_DELIVERABLE_1, RESTRICTED_CMS_USER);
+
+      expect(await screen.findByTestId(DELIVERABLE_INFO_FIELDS_NAME)).toBeInTheDocument();
+      expect(screen.getByText(MOCK_DELIVERABLE_1.name)).toBeInTheDocument();
+      expect(screen.getByTestId(FILE_AND_HISTORY_TABS_NAME)).toBeInTheDocument();
+      expect(screen.getByTestId(COMMENT_BOX_NAME)).toBeInTheDocument();
+    });
+
+    it("hides the header Edit and Delete buttons and their toggle", async () => {
+      renderWithDeliverable(MOCK_DELIVERABLE_1, RESTRICTED_CMS_USER);
+
+      await screen.findByTestId(COMMENT_BOX_NAME);
+      expect(screen.queryByTestId("edit-deliverable-button")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("delete-deliverable-button")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("toggle-deliverable-ellipsis-button")).not.toBeInTheDocument();
+    });
+
+    it("hides Request Extension, the file action buttons, and Add Comment", async () => {
+      renderWithDeliverable(MOCK_DELIVERABLE_1, RESTRICTED_CMS_USER);
+
+      await screen.findByTestId(COMMENT_BOX_NAME);
+      expect(screen.queryByTestId(REQUEST_EXTENSION_BUTTON_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(FILE_AND_HISTORY_ACTIONS_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(STATE_FILES_ADD_BUTTON_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(ADD_COMMENT_BUTTON_NAME)).not.toBeInTheDocument();
+    });
+
+    it("hides the Start Review notice when the deliverable is Submitted", async () => {
+      renderWithDeliverable(buildSubmittedDeliverableMock(), RESTRICTED_CMS_USER);
+
+      await screen.findByTestId(COMMENT_BOX_NAME);
+      expect(screen.queryByTestId(DELIVERABLE_REVIEW_NOTICE_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(START_REVIEW_BUTTON_NAME)).not.toBeInTheDocument();
+    });
+
+    it("hides the Review Request notice when an extension is pending", async () => {
+      renderWithDeliverable(buildPendingExtensionDeliverableMock(), RESTRICTED_CMS_USER);
+
+      await screen.findByTestId(COMMENT_BOX_NAME);
+      expect(screen.queryByTestId(EXTENSION_REQUESTED_NOTICE_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(REVIEW_EXTENSION_REQUEST_BUTTON_NAME)).not.toBeInTheDocument();
+    });
+
+    it("still exposes a View button for state and CMS files", async () => {
+      const user = userEvent.setup();
+      renderWithDeliverable(MOCK_DELIVERABLE_1, RESTRICTED_CMS_USER);
+
+      expect(
+        await screen.findByTestId(`view-file-${MOCK_DELIVERABLE_1.stateDocuments[0].id}`)
+      ).toBeInTheDocument();
+
+      await user.click(screen.getByTestId("button-cms_files"));
+
+      expect(
+        screen.getByTestId(`view-file-${MOCK_DELIVERABLE_1.cmsDocuments[0].id}`)
+      ).toBeInTheDocument();
+    });
+
+    it("navigates back to the demonstration deliverables list", async () => {
+      const user = userEvent.setup();
+      renderAtRoute("1", RESTRICTED_CMS_USER);
+
+      await user.click(await screen.findByTestId(BACK_TO_DELIVERABLES_BUTTON_NAME));
+
+      expect(screen.getByText("Demonstration deliverables list")).toBeInTheDocument();
+    });
   });
 
   it("shows not found state", async () => {

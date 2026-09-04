@@ -17,7 +17,13 @@ export const shouldHideSideNav = (pathname: string, personType?: PersonType) =>
     return pathStartsWithRoute && pathIsLongerThanRoute;
   });
 
-export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
+export const PrimaryLayout = ({
+  children,
+  header,
+}: {
+  children: React.ReactNode;
+  header: React.FC;
+}) => {
   const location = useLocation();
   const { currentUser } = getCurrentUser();
   const hideSideNav = shouldHideSideNav(location.pathname, currentUser.person.personType);
@@ -26,7 +32,7 @@ export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
     <ToastProvider>
       <DialogProvider>
         <div className="h-screen flex flex-col">
-          <Header />
+          <Header headerLower={header} />
           <div className="flex flex-1 overflow-hidden bg-gray-primary-layout min-h-0">
             {!hideSideNav && <SideNav />}
             <div className="relative flex-1 overflow-auto min-h-0 flex flex-col">

@@ -2,10 +2,12 @@ model PrimaryDemonstrationRoleAssignment {
   personId        String @map("person_id") @db.Uuid
   demonstrationId String @map("demonstration_id") @db.Uuid
   roleId          String @map("role_id")
+  personTypeId    String @map("person_type_id")
 
-  demonstrationRoleAssignment DemonstrationRoleAssignment @relation(fields: [personId, demonstrationId, roleId], references: [personId, demonstrationId, roleId])
+  demonstrationRoleAssignment                       DemonstrationRoleAssignment                       @relation(fields: [personId, demonstrationId, roleId, personTypeId], references: [personId, demonstrationId, roleId, personTypeId])
+  primaryDemonstrationRoleAssignmentPersonTypeLimit PrimaryDemonstrationRoleAssignmentPersonTypeLimit @relation(fields: [personTypeId], references: [id])
 
   @@id([demonstrationId, roleId])
-  @@unique([personId, demonstrationId, roleId]) // Not required by Postgres, but Prisma requires this notation
+  @@unique([personId, demonstrationId, roleId, personTypeId]) // Not required by Postgres, but Prisma requires this notation
   @@map("primary_demonstration_role_assignment")
 }

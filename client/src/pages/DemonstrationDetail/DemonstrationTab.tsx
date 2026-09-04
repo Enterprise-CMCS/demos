@@ -33,6 +33,7 @@ import { useApolloClient } from "@apollo/client/react/hooks/useApolloClient";
 import { TypesTable } from "components/table/tables/TypesTable";
 import { DeliverablesTab } from "./deliverables/DeliverablesTab";
 import { NON_DELIVERABLE_DOCUMENT_TYPES } from "demos-server-constants";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
   person: Pick<Person, "fullName" | "id" | "email" | "personType">;
@@ -78,6 +79,7 @@ const TAB = {
 export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonstration }> = ({
   demonstration,
 }) => {
+  const { currentUser } = getCurrentUser();
   const { showUploadDocumentDialog, showApplyDemonstrationTypesDialog } = useDialog();
   const client = useApolloClient();
 
@@ -124,14 +126,16 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           value={TAB.DEMONSTRATION_TYPES}
         >
           <TabHeader title="Types">
-            <IconButton
-              icon={<AddNewIcon />}
-              name="button-apply-demonstration-types"
-              size="small"
-              onClick={() => showApplyDemonstrationTypesDialog(demonstration.id)}
-            >
-              Apply Type(s)
-            </IconButton>
+            {!isReadonly(currentUser) && (
+              <IconButton
+                icon={<AddNewIcon />}
+                name="button-apply-demonstration-types"
+                size="small"
+                onClick={() => showApplyDemonstrationTypesDialog(demonstration.id)}
+              >
+                Apply Type(s)
+              </IconButton>
+            )}
           </TabHeader>
           <TypesTable demonstration={demonstration} />
         </Tab>
@@ -141,20 +145,22 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           value={TAB.DOCUMENTS}
         >
           <TabHeader title="Documents">
-            <IconButton
-              icon={<AddNewIcon />}
-              name="add-new-document"
-              size="small"
-              onClick={() =>
-                showUploadDocumentDialog(
-                  demonstration.id,
-                  refetchApplicationWorkflow,
-                  NON_DELIVERABLE_DOCUMENT_TYPES
-                )
-              }
-            >
-              Add Document
-            </IconButton>
+            {!isReadonly(currentUser) &&  (
+              <IconButton
+                icon={<AddNewIcon />}
+                name="add-new-document"
+                size="small"
+                onClick={() =>
+                  showUploadDocumentDialog(
+                    demonstration.id,
+                    refetchApplicationWorkflow,
+                    NON_DELIVERABLE_DOCUMENT_TYPES
+                  )
+                }
+              >
+                Add Document
+              </IconButton>
+            )}
           </TabHeader>
           <DocumentTable documents={demonstration.documents} />
         </Tab>

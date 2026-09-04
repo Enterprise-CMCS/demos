@@ -1,0 +1,339 @@
+import React from "react";
+import { tw } from "tags/tw";
+import { useSessionStorageJson } from "hooks";
+
+import { Button, SecondaryButton } from "components/button";
+import { useToast } from "components/toast";
+import { SimplePhase, WorkflowApplication } from "components/application";
+import { formatDateForServer } from "util/formatDate";
+import { ApplicationStatus, DateType, LocalDate, PhaseName } from "demos-server";
+import { useSetApplicationDate } from "components/application/date/dateQueries";
+import {
+  FAILED_TO_SAVE_MESSAGE,
+  getPhaseCompletedMessage,
+  MISSING_REQUIRED_SECTIONS_TOOLTIP,
+  SAVE_FOR_LATER_MESSAGE,
+} from "util/messages";
+import { DatePicker } from "components/input/date/DatePicker";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
+import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
+
+const STYLES = {
+  pane: tw`bg-white p-8`,
+  grid: tw`relative grid grid-cols-2 gap-10`,
+  divider: tw`pointer-events-none absolute left-1/2 top-0 h-full border-l border-border-subtle`,
+  title: tw`text-xl font-semibold mb-1`,
+  helper: tw`text-sm text-text-placeholder mb-1`,
+  header: tw`min-h-[88px]`,
+  actions: tw`flex justify-end mt-2 gap-2`,
+};
+
+function getFormDataFromPhase(sdgPreparationPhase: SimplePhase): SdgPreparationPhaseFormData {
+  const getDateValue = (dateType: DateType) => {
+    const dateValue = sdgPreparationPhase.phaseDates.find(
+      (d) => d.dateType === dateType
+    )?.dateValue;
+    return dateValue ? formatDateForServer(dateValue) : undefined;
+  };
+
+  return {
+    internalExpectedApprovalDate: getDateValue("Internal Expected Approval Date"),
+    stateRequestedApprovalDate: getDateValue("State Requested Approval Date"),
+    smeInitialReviewDate: getDateValue("SME Initial Review Date"),
+    frtInitialMeetingDate: getDateValue("FRT Initial Meeting Date"),
+    bnpmtInitialMeetingDate: getDateValue("BNPMT Initial Meeting Date"),
+  };
+}
+
+interface SdgPreparationPhaseFormData {
+  internalExpectedApprovalDate?: string;
+  stateRequestedApprovalDate?: string;
+  smeInitialReviewDate?: string;
+  frtInitialMeetingDate?: string;
+  bnpmtInitialMeetingDate?: string;
+}
+
+export const hasChanges = (
+  initialFormData: SdgPreparationPhaseFormData,
+  currentFormData: SdgPreparationPhaseFormData
+) => {
+  return (
+    initialFormData.internalExpectedApprovalDate !== currentFormData.internalExpectedApprovalDate ||
+    initialFormData.stateRequestedApprovalDate !== currentFormData.stateRequestedApprovalDate ||
+    initialFormData.smeInitialReviewDate !== currentFormData.smeInitialReviewDate ||
+    initialFormData.frtInitialMeetingDate !== currentFormData.frtInitialMeetingDate ||
+    initialFormData.bnpmtInitialMeetingDate !== currentFormData.bnpmtInitialMeetingDate
+  );
+};
+
+export const getSdgPreparationPhaseFromApplication = (
+  application: WorkflowApplication,
+  setSelectedPhase: (phase: PhaseName) => void
+) => {
+  const sdgPreparationPhase = application.phases.find(
+    (phase: SimplePhase) => phase.phaseName === "SDG Preparation"
+  );
+  if (!sdgPreparationPhase) return <div>Error: SDG Preparation Phase not found.</div>;
+
+  const allPreviousPhasesDone = application.phases
+    .filter(
+      (p: SimplePhase) =>
+        p.phaseName !== "Concept" &&
+        p.phaseName !== "Approval Package" &&
+        p.phaseName !== "Approval Summary" &&
+        p.phaseName !== "SDG Preparation" &&
+        p.phaseName !== "Review"
+    )
+    .every(
+      (phase: SimplePhase) => phase.phaseStatus === "Completed" || phase.phaseStatus === "Skipped"
+    );
+
+  return (
+    <SdgPreparationPhase
+      applicationId={application.id}
+      sdgPreparationPhase={sdgPreparationPhase}
+      setSelectedPhase={setSelectedPhase}
+      allPreviousPhasesDone={allPreviousPhasesDone}
+      applicationStatus={application.status}
+    />
+  );
+};
+
+export const SdgPreparationPhase = ({
+  applicationId,
+  sdgPreparationPhase,
+  setSelectedPhase,
+  allPreviousPhasesDone,
+  applicationStatus,
+}: {
+  applicationId: string;
+  sdgPreparationPhase: SimplePhase;
+  setSelectedPhase: (phase: PhaseName) => void;
+  allPreviousPhasesDone: boolean;
+  applicationStatus: ApplicationStatus;
+}) => {
+  const [localFormData, setSdgPreparationPhaseFormData] =
+    useSessionStorageJson<SdgPreparationPhaseFormData>(`sdg-preparation-dates-${applicationId}`);
+  const sdgPreparationPhaseFormData = localFormData ?? getFormDataFromPhase(sdgPreparationPhase);
+  const { setApplicationDate } = useSetApplicationDate();
+  const { completePhase } = useCompletePhase();
+  const { showSuccess, showError } = useToast();
+  const { currentUser } = getCurrentUser();
+
+  const isPhaseCompleted = sdgPreparationPhase.phaseStatus === "Completed";
+  const isApproved = applicationStatus === "Approved";
+  const isReadonlyUser = isReadonly(currentUser);
+
+  const isFormComplete =
+    sdgPreparationPhaseFormData.internalExpectedApprovalDate &&
+    sdgPreparationPhaseFormData.smeInitialReviewDate &&
+    sdgPreparationPhaseFormData.frtInitialMeetingDate &&
+    sdgPreparationPhaseFormData.bnpmtInitialMeetingDate;
+
+  const handleSave = async () => {
+    if (sdgPreparationPhaseFormData.internalExpectedApprovalDate) {
+      await setApplicationDate({
+        applicationId: applicationId,
+        dateType: "Internal Expected Approval Date" satisfies DateType,
+        dateValue: sdgPreparationPhaseFormData.internalExpectedApprovalDate as LocalDate,
+      });
+    }
+
+    if (!isPhaseCompleted) {
+      if (sdgPreparationPhaseFormData.stateRequestedApprovalDate) {
+        await setApplicationDate({
+          applicationId: applicationId,
+          dateType: "State Requested Approval Date" satisfies DateType,
+          dateValue: sdgPreparationPhaseFormData.stateRequestedApprovalDate as LocalDate,
+        });
+      }
+
+      if (sdgPreparationPhaseFormData.smeInitialReviewDate) {
+        await setApplicationDate({
+          applicationId: applicationId,
+          dateType: "SME Initial Review Date" satisfies DateType,
+          dateValue: sdgPreparationPhaseFormData.smeInitialReviewDate as LocalDate,
+        });
+      }
+
+      if (sdgPreparationPhaseFormData.frtInitialMeetingDate) {
+        await setApplicationDate({
+          applicationId: applicationId,
+          dateType: "FRT Initial Meeting Date" satisfies DateType,
+          dateValue: sdgPreparationPhaseFormData.frtInitialMeetingDate as LocalDate,
+        });
+      }
+
+      if (sdgPreparationPhaseFormData.bnpmtInitialMeetingDate) {
+        await setApplicationDate({
+          applicationId: applicationId,
+          dateType: "BNPMT Initial Meeting Date" satisfies DateType,
+          dateValue: sdgPreparationPhaseFormData.bnpmtInitialMeetingDate as LocalDate,
+        });
+      }
+    }
+  };
+
+  const handleSaveForLater = async () => {
+    try {
+      await handleSave();
+    } catch {
+      showError(FAILED_TO_SAVE_MESSAGE);
+      return;
+    }
+    showSuccess(SAVE_FOR_LATER_MESSAGE);
+  };
+
+  const handleFinish = async () => {
+    try {
+      await handleSave();
+      await completePhase({
+        applicationId: applicationId,
+        phaseName: "SDG Preparation",
+      });
+      setSelectedPhase("Review");
+    } catch {
+      showError(FAILED_TO_SAVE_MESSAGE);
+      return;
+    }
+
+    showSuccess(getPhaseCompletedMessage("SDG Preparation"));
+  };
+
+  return (
+    <div>
+      <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">SDG PREPARATION</h3>
+      <p className="text-sm text-text-placeholder mb-4">
+        Plan and conduct internal and preparation tasks
+      </p>
+
+      <section className={STYLES.pane}>
+        <div className={STYLES.grid}>
+          <span aria-hidden className={STYLES.divider} />
+          <div aria-labelledby="sdg-workplan-title">
+            <div className={STYLES.header}>
+              <h4 id="sdg-workplan-title" className={STYLES.title}>
+                SDG WORKPLAN
+              </h4>
+              <p className={STYLES.helper}>
+                Ensure the expected approval date is reasonable based on required reviews and the
+                complexity of the application. This date may be revised at a later time, if
+                necessary.
+              </p>
+            </div>
+            <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
+              <DatePicker
+                name="datepicker-internal-expected-approval-date"
+                label={"Internal Expected Approval Date" satisfies DateType}
+                value={sdgPreparationPhaseFormData.internalExpectedApprovalDate}
+                onChange={(newDate) => {
+                  setSdgPreparationPhaseFormData({
+                    ...sdgPreparationPhaseFormData,
+                    internalExpectedApprovalDate: newDate,
+                  });
+                }}
+                isRequired
+                isDisabled={isReadonlyUser || isApproved}
+              />
+              <DatePicker
+                name="datepicker-state-requested-approval-date"
+                label={"State Requested Approval Date" satisfies DateType}
+                value={sdgPreparationPhaseFormData.stateRequestedApprovalDate}
+                onChange={(newDate) => {
+                  setSdgPreparationPhaseFormData({
+                    ...sdgPreparationPhaseFormData,
+                    stateRequestedApprovalDate: newDate,
+                  });
+                }}
+                isDisabled={isReadonlyUser || isPhaseCompleted}
+              />
+            </div>
+          </div>{" "}
+          <div aria-labelledby="sdg-reviews-title">
+            <div className={STYLES.header}>
+              <h4 id="sdg-reviews-title" className={STYLES.title}>
+                INTERNAL REVIEWS
+              </h4>
+              <p className={STYLES.helper}>
+                Record the Date that each key review meeting occurred below
+              </p>
+            </div>
+            <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
+              <DatePicker
+                name="datepicker-sme-initial-review-date"
+                label={"SME Initial Review Date" satisfies DateType}
+                isRequired={true}
+                value={sdgPreparationPhaseFormData.smeInitialReviewDate}
+                onChange={(newDate) => {
+                  setSdgPreparationPhaseFormData({
+                    ...sdgPreparationPhaseFormData,
+                    smeInitialReviewDate: newDate,
+                  });
+                }}
+                isDisabled={isReadonlyUser || isPhaseCompleted}
+              />
+              <DatePicker
+                name="datepicker-frt-initial-meeting-date"
+                data-testid="datepicker-frt-initial-meeting-date"
+                isRequired={true}
+                label={"FRT Initial Meeting Date" satisfies DateType}
+                value={sdgPreparationPhaseFormData.frtInitialMeetingDate}
+                onChange={(newDate) => {
+                  setSdgPreparationPhaseFormData({
+                    ...sdgPreparationPhaseFormData,
+                    frtInitialMeetingDate: newDate,
+                  });
+                }}
+                isDisabled={isReadonlyUser || isPhaseCompleted}
+              />
+              <DatePicker
+                name="datepicker-bnpmt-initial-meeting-date"
+                label={"BNPMT Initial Meeting Date" satisfies DateType}
+                value={sdgPreparationPhaseFormData.bnpmtInitialMeetingDate}
+                onChange={(newDate) => {
+                  setSdgPreparationPhaseFormData({
+                    ...sdgPreparationPhaseFormData,
+                    bnpmtInitialMeetingDate: newDate,
+                  });
+                }}
+                isRequired={true}
+                isDisabled={isReadonlyUser || isPhaseCompleted}
+              />
+            </div>
+
+            <div className={STYLES.actions}>
+              <SecondaryButton
+                isHidden={isReadonlyUser}
+                disabled={
+                  !hasChanges(
+                    getFormDataFromPhase(sdgPreparationPhase),
+                    sdgPreparationPhaseFormData
+                  )
+                }
+                onClick={handleSaveForLater}
+                size="large"
+                name="sdg-save-for-later"
+              >
+                Save For Later
+              </SecondaryButton>
+              <Button
+                isHidden={isReadonlyUser}
+                onClick={handleFinish}
+                size="large"
+                name="sdg-finish"
+                disabled={!allPreviousPhasesDone || !isFormComplete || isPhaseCompleted}
+                eagerTooltip={
+                  (!allPreviousPhasesDone || !isFormComplete) && !isPhaseCompleted
+                    ? MISSING_REQUIRED_SECTIONS_TOOLTIP
+                    : undefined
+                }
+              >
+                Finish
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};

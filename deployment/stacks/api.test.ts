@@ -207,8 +207,14 @@ describe("Api Stack", () => {
     });
     template.hasResourceProperties("AWS::Lambda::Function", {
       FunctionName: "demos-unittest-emailer",
+      Environment: {
+        Variables: Match.objectLike({
+          DATABASE_SECRET_ARN: "demos-unitTestHost-rds-demos_emailer", // pragma: allowlist secret
+          DB_SCHEMA: "demos_app",
+          DEMOS_APP_URL: "https://unittest.demos.com",
+        }),
+      },
     });
-
     expectLambdaErrorsAlarm(
       template,
       "demos-unittest-authorizer-lambda-errors",

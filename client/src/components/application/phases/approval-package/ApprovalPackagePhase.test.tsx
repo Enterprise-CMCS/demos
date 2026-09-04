@@ -1,39 +1,22 @@
 import "@testing-library/jest-dom";
 import React from "react";
+import type { CurrentUser } from "components/user/UserContext";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { ApprovalPackagePhase } from "./ApprovalPackagePhase";
+import { ApprovalPackagePhase, ApprovalPackagePhaseProps } from "./ApprovalPackagePhase";
 import { ApplicationWorkflowDocument } from "components/application";
 import { DocumentType } from "demos-server";
-import { ApprovalPackageTableRow } from "components/table/tables/ApprovalPackageTable";
-
-vi.mock("components/table/tables/ApprovalPackageTable", () => ({
-  ApprovalPackageTable: ({ rows }: { rows: ApprovalPackageTableRow[] }) => (
-    <div data-testid="approval-package-table">
-      {rows.map((row) => (
-        <div key={row.documentType} data-testid="table-row">
-          {row.documentType} | {row.name}
-        </div>
-      ))}
-    </div>
-  ),
-}));
+import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { DialogProvider } from "components/dialog/DialogContext";
+import { TestProvider } from "test-utils/TestProvider";
+import { ToastContainer } from "components/toast";
 
 const mockCompletePhase = vi.fn();
 vi.mock("components/application/phase-status/phaseCompletionQueries", () => ({
   useCompletePhase: () => ({
     completePhase: mockCompletePhase,
-  }),
-}));
-
-const mockShowSuccess = vi.fn();
-const mockShowError = vi.fn();
-vi.mock("components/toast", () => ({
-  useToast: () => ({
-    showSuccess: mockShowSuccess,
-    showError: mockShowError,
   }),
 }));
 
@@ -59,21 +42,34 @@ const allRequiredDocs = [
 
 const mockOnFinish = vi.fn();
 
+const defaultProps: ApprovalPackagePhaseProps = {
+  applicationId: "demo-1",
+  documents: [],
+  allPreviousPhasesDone: true,
+  isPhaseCompleted: false,
+  onFinish: mockOnFinish,
+};
+
+const setup = (
+  props: Partial<ApprovalPackagePhaseProps> = {},
+  currentUser: CurrentUser = cmsMockUser
+) =>
+  render(
+    <TestProvider currentUser={currentUser}>
+      <DialogProvider>
+        <ApprovalPackagePhase {...defaultProps} {...props} />
+      </DialogProvider>
+      <ToastContainer />
+    </TestProvider>
+  );
+
 beforeEach(() => {
   vi.clearAllMocks();
 });
 
 describe("ApprovalPackagePhase", () => {
   it("renders the section headers and subtext", () => {
-    render(
-      <ApprovalPackagePhase
-        applicationId="demo-1"
-        documents={[]}
-        allPreviousPhasesDone={true}
-        isReadonly={false}
-        onFinish={mockOnFinish}
-      />
-    );
+    setup();
 
     expect(screen.getByText("APPROVAL")).toBeInTheDocument();
     expect(
@@ -84,28 +80,22 @@ describe("ApprovalPackagePhase", () => {
   });
 
   it("renders the table with all 6 required document types, even when no documents provided", () => {
-    render(
-      <ApprovalPackagePhase
-        applicationId="demo-1"
-        documents={[]}
-        allPreviousPhasesDone={true}
-        isReadonly={false}
-        onFinish={mockOnFinish}
-      />
-    );
+    setup();
 
-    const rows = screen.getAllByTestId("table-row");
-    expect(rows).toHaveLength(6);
+    const table = screen.getByRole("table");
+    expect(table).toBeInTheDocument();
 
-    const types = rows.map((r) => r.textContent?.split("|")[0].trim());
-    expect(types).toEqual([
-      "Final Budget Neutrality Formulation Workbook",
-      "Q&A",
-      "Special Terms & Conditions",
-      "Formal OMB Policy Concurrence Email",
-      "Approval Letter",
-      "Signed Decision Memo",
-    ]);
+    const rows = screen.getAllByRole("row");
+    // Subtract 1 for header row
+    expect(rows.length - 1).toEqual(6);
+
+    // Check for document types in the table
+    expect(screen.getByText("Final Budget Neutrality Formulation Workbook")).toBeInTheDocument();
+    expect(screen.getByText("Q&A")).toBeInTheDocument();
+    expect(screen.getByText("Special Terms & Conditions")).toBeInTheDocument();
+    expect(screen.getByText("Formal OMB Policy Concurrence Email")).toBeInTheDocument();
+    expect(screen.getByText("Approval Letter")).toBeInTheDocument();
+    expect(screen.getByText("Signed Decision Memo")).toBeInTheDocument();
   });
 
   it("populates row fields correctly when documents exist", () => {
@@ -117,50 +107,26 @@ describe("ApprovalPackagePhase", () => {
       owner: { person: { fullName: "Bob" } },
     });
 
-    render(
-      <ApprovalPackagePhase
-        applicationId="demo-1"
-        documents={[d1]}
-        allPreviousPhasesDone={true}
-        isReadonly={false}
-        onFinish={mockOnFinish}
-      />
-    );
+    setup({ documents: [d1] });
 
-    const rows = screen.getAllByTestId("table-row");
-    const qaRow = rows.find((r) => r.textContent?.includes("Q&A"));
-    expect(qaRow).toBeTruthy();
-    expect(qaRow!.textContent).toContain("Q&A Document");
+    expect(screen.getByText("Q&A")).toBeInTheDocument();
+    expect(screen.getByText("Q&A Document")).toBeInTheDocument();
+    expect(screen.getByText("Description of Q&A")).toBeInTheDocument();
+    expect(screen.getByText("Bob")).toBeInTheDocument();
   });
 
   it("sets missing fields to '-' when no document provided for a type", () => {
-    render(
-      <ApprovalPackagePhase
-        applicationId="demo-1"
-        documents={[]}
-        allPreviousPhasesDone={true}
-        isReadonly={false}
-        onFinish={mockOnFinish}
-      />
-    );
+    setup();
 
-    const rows = screen.getAllByTestId("table-row");
-    const workbookRow = rows.find((r) =>
-      r.textContent?.includes("Final Budget Neutrality Formulation Workbook")
-    );
-    expect(workbookRow!.textContent).toContain("-");
+    expect(screen.getByText("Final Budget Neutrality Formulation Workbook")).toBeInTheDocument();
+    // Table rows with no documents should show "-" for file name
+    const table = screen.getByRole("table");
+    const tableText = table.textContent || "";
+    expect(tableText).toContain("-");
   });
 
   it("disables Finish when previous phases are NOT done", () => {
-    render(
-      <ApprovalPackagePhase
-        applicationId="demo-1"
-        documents={allRequiredDocs}
-        allPreviousPhasesDone={false}
-        isReadonly={false}
-        onFinish={mockOnFinish}
-      />
-    );
+    setup({ documents: allRequiredDocs, allPreviousPhasesDone: false });
 
     expect(screen.getByRole("button", { name: /finish/i })).toBeDisabled();
   });
@@ -168,57 +134,31 @@ describe("ApprovalPackagePhase", () => {
   it("disables Finish when NOT all required documents are uploaded", () => {
     const partialDocs = [doc({ documentType: "Q&A" })];
 
-    render(
-      <ApprovalPackagePhase
-        applicationId="demo-1"
-        documents={partialDocs}
-        allPreviousPhasesDone={true}
-        isReadonly={false}
-        onFinish={mockOnFinish}
-      />
-    );
+    setup({ documents: partialDocs });
 
     expect(screen.getByRole("button", { name: /finish/i })).toBeDisabled();
   });
 
-  it("disables Finish when phase is readonly (completed)", () => {
-    render(
-      <ApprovalPackagePhase
-        applicationId="demo-1"
-        documents={allRequiredDocs}
-        allPreviousPhasesDone={true}
-        isReadonly={true}
-        onFinish={mockOnFinish}
-      />
-    );
+  it("disables Finish when phase is completed", () => {
+    setup({ documents: allRequiredDocs, isPhaseCompleted: true });
 
     expect(screen.getByRole("button", { name: /finish/i })).toBeDisabled();
+  });
+
+  it("hides Finish when user is readonly", () => {
+    setup({ documents: allRequiredDocs }, readonlyMockUser);
+
+    expect(screen.queryByRole("button", { name: /finish/i })).not.toBeInTheDocument();
   });
 
   it("enables Finish only when all previous phases done, all documents uploaded, and not readonly", () => {
-    render(
-      <ApprovalPackagePhase
-        applicationId="demo-1"
-        documents={allRequiredDocs}
-        allPreviousPhasesDone={true}
-        isReadonly={false}
-        onFinish={mockOnFinish}
-      />
-    );
+    setup({ documents: allRequiredDocs });
 
     expect(screen.getByRole("button", { name: /finish/i })).toBeEnabled();
   });
 
   it("disables Finish with empty documents list", () => {
-    render(
-      <ApprovalPackagePhase
-        applicationId="demo-1"
-        documents={[]}
-        allPreviousPhasesDone={true}
-        isReadonly={false}
-        onFinish={mockOnFinish}
-      />
-    );
+    setup();
 
     expect(screen.getByRole("button", { name: /finish/i })).toBeDisabled();
   });
@@ -227,15 +167,7 @@ describe("ApprovalPackagePhase", () => {
     const user = userEvent.setup();
     mockCompletePhase.mockResolvedValueOnce(undefined);
 
-    render(
-      <ApprovalPackagePhase
-        applicationId="demo-1"
-        documents={allRequiredDocs}
-        allPreviousPhasesDone={true}
-        isReadonly={false}
-        onFinish={mockOnFinish}
-      />
-    );
+    setup({ documents: allRequiredDocs });
 
     await user.click(screen.getByRole("button", { name: /finish/i }));
 
@@ -244,40 +176,24 @@ describe("ApprovalPackagePhase", () => {
       phaseName: "Approval Package",
     });
     expect(mockOnFinish).toHaveBeenCalled();
-    expect(mockShowSuccess).toHaveBeenCalled();
+    expect(screen.getByText("Approval Package has been completed")).toBeInTheDocument();
   });
 
   it("shows error toast when completePhase fails", async () => {
     const user = userEvent.setup();
     mockCompletePhase.mockRejectedValueOnce(new Error("Network error"));
 
-    render(
-      <ApprovalPackagePhase
-        applicationId="demo-1"
-        documents={allRequiredDocs}
-        allPreviousPhasesDone={true}
-        isReadonly={false}
-        onFinish={mockOnFinish}
-      />
-    );
+    setup({ documents: allRequiredDocs });
 
     await user.click(screen.getByRole("button", { name: /finish/i }));
 
-    expect(mockShowError).toHaveBeenCalled();
+    expect(screen.getByText("Failed to save updates.")).toBeInTheDocument();
     expect(mockOnFinish).not.toHaveBeenCalled();
   });
 
   it("renders the approval package table component", () => {
-    render(
-      <ApprovalPackagePhase
-        applicationId="demo-1"
-        documents={[]}
-        allPreviousPhasesDone={true}
-        isReadonly={false}
-        onFinish={mockOnFinish}
-      />
-    );
+    setup();
 
-    expect(screen.getByTestId("approval-package-table")).toBeInTheDocument();
+    expect(screen.getByRole("table")).toBeInTheDocument();
   });
 });

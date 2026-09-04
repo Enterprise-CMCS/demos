@@ -5,6 +5,7 @@ import { IconButton } from "components/button";
 import { EditIcon } from "components/icons";
 import { useDialog } from "components/dialog/DialogContext";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
 const Field = ({ label, value }: { label: string; value: string }) => {
   return (
@@ -24,7 +25,7 @@ const ModificationDetailsFields = ({
     ? formatDateForDisplay(getDateEst(modificationItem.effectiveDate))
     : "--/--/----";
 
-  const labelPrefix = modificationItem.modificationType === "amendment" ? "Amendment" : "Extension";
+  const labelPrefix = modificationItem.modificationType === "amendment" ? "Amendment" : "Renewal";
 
   return (
     <div className="flex flex-col p-1 gap-2">
@@ -51,13 +52,16 @@ export const ModificationDetailsSummary = ({
 }: {
   modificationItem: ModificationItem;
 }) => {
-  const { showUpdateAmendmentDialog, showUpdateExtensionDialog } = useDialog();
+  const { currentUser } = getCurrentUser();
+  const isReadonlyUser = isReadonly(currentUser);
+
+  const { showUpdateAmendmentDialog, showUpdateRenewalDialog } = useDialog();
 
   const handleEditClick = () => {
     if (modificationItem.modificationType === "amendment") {
       showUpdateAmendmentDialog(modificationItem.id, [DEMONSTRATION_DETAIL_QUERY]);
-    } else if (modificationItem.modificationType === "extension") {
-      showUpdateExtensionDialog(modificationItem.id, [DEMONSTRATION_DETAIL_QUERY]);
+    } else if (modificationItem.modificationType === "renewal") {
+      showUpdateRenewalDialog(modificationItem.id, [DEMONSTRATION_DETAIL_QUERY]);
     } else {
       console.error("Unknown modification type");
     }
@@ -67,14 +71,16 @@ export const ModificationDetailsSummary = ({
     <div>
       <div className="flex justify-between items-center pb-1 border-b border-border-rules">
         <h2 className="text-xl font-bold text-brand">SUMMARY DETAILS</h2>
-        <IconButton
-          icon={<EditIcon />}
-          name="button-edit-details"
-          size="small"
-          onClick={handleEditClick}
-        >
-          Edit Details
-        </IconButton>
+        {!isReadonlyUser && (
+          <IconButton
+            icon={<EditIcon />}
+            name="button-edit-details"
+            size="small"
+            onClick={handleEditClick}
+          >
+            Edit Details
+          </IconButton>
+        )}
       </div>
       <ModificationDetailsFields modificationItem={modificationItem} />
     </div>

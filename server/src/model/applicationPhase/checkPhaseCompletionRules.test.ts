@@ -216,7 +216,7 @@ describe("checkPhaseCompletionRules", () => {
         [
           testApplicationId,
           "SDG Preparation",
-          "Expected Approval Date",
+          "Internal Expected Approval Date",
           testApplicationDateMapReturn,
         ],
         [

@@ -136,12 +136,23 @@ export const STATE_USER_DEMONSTRATION_ROLES = ["State Point of Contact"] as cons
 export const PERSON_TYPES = [
   "demos-admin",
   "demos-cms-user",
+  "demos-restricted-cms-user",
   "demos-state-user",
   "non-user-contact",
-
 ] as const;
 
-export const USER_TYPES = ["demos-admin", "demos-cms-user", "demos-state-user"] as const;
+export const USER_TYPES = [
+  "demos-admin",
+  "demos-cms-user",
+  "demos-state-user",
+  "demos-restricted-cms-user",
+] as const;
+
+export const PRIMARY_DEMONSTRATION_ROLE_ASSIGNMENT_PERSON_TYPES = [
+  "demos-admin",
+  "demos-cms-user",
+  "demos-state-user",
+] as const;
 
 export const GRANT_LEVELS = ["System", "Demonstration"] as const;
 
@@ -268,7 +279,8 @@ export const DATE_TYPES = [
   "Federal Comment Period End Date",
   "Completeness Completion Date",
   "SDG Preparation Start Date",
-  "Expected Approval Date",
+  "State Requested Approval Date",
+  "Internal Expected Approval Date",
   "SME Initial Review Date",
   "FRT Initial Meeting Date",
   "BNPMT Initial Meeting Date",
@@ -306,7 +318,8 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "Federal Comment Period End Date": { expectedTimestamp: "End of Day" },
   "Completeness Completion Date": { expectedTimestamp: "Start of Day" },
   "SDG Preparation Start Date": { expectedTimestamp: "Start of Day" },
-  "Expected Approval Date": { expectedTimestamp: "Start of Day" },
+  "State Requested Approval Date": { expectedTimestamp: "Start of Day" },
+  "Internal Expected Approval Date": { expectedTimestamp: "Start of Day" },
   "SME Initial Review Date": { expectedTimestamp: "Start of Day" },
   "FRT Initial Meeting Date": { expectedTimestamp: "Start of Day" },
   "BNPMT Initial Meeting Date": { expectedTimestamp: "Start of Day" },
@@ -533,7 +546,12 @@ export const PERMISSIONS = [
   "Perform State Action",
 ] as const;
 
-export const SYSTEM_ROLES = ["Admin User", "CMS User", "State User"] as const;
+export const SYSTEM_ROLES = [
+  "Admin User",
+  "CMS User",
+  "Restricted CMS User",
+  "State User",
+] as const;
 
 export const REFERENCE_CONFIGURATION_STATUSES = ["Inactive", "Active"] as const;
 

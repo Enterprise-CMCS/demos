@@ -8,12 +8,12 @@ import {
   ApprovalSummaryPhase,
   UPDATE_AMENDMENT_MUTATION,
   UPDATE_DEMONSTRATION_MUTATION,
-  UPDATE_EXTENSION_MUTATION,
+  UPDATE_RENEWAL_MUTATION,
 } from "./ApprovalSummaryPhase";
 import {
   ApplicationDetailsFormData,
   ModificationDetailsFormData,
-} from "./applicationDetailsSection";
+} from "./ApplicationDetailsSection";
 import { TestProvider } from "test-utils/TestProvider";
 import { MockedResponse } from "@apollo/client/testing";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
@@ -50,7 +50,7 @@ const buildInitialFormData = (
   description: "Test description",
   sdgDivision: "Division of System Reform Demonstrations",
   signatureLevel: "OA",
-  readonlyFields: {},
+  staticFields: {},
   ...overrides,
 });
 
@@ -63,20 +63,20 @@ const buildAmendmentFormData = (
   description: "Test description",
   signatureLevel: "OA",
   status: "Active",
-  readonlyFields: {},
+  staticFields: {},
   ...overrides,
 });
 
-const buildExtensionFormData = (
+const buildRenewalFormData = (
   overrides?: Partial<ModificationDetailsFormData>
 ): ModificationDetailsFormData => ({
-  applicationType: "extension",
-  name: "Test Extension",
+  applicationType: "renewal",
+  name: "Test Renewal",
   effectiveDate: "2025-01-01",
   description: "Test description",
   signatureLevel: "OA",
   status: "Active",
-  readonlyFields: {},
+  staticFields: {},
   ...overrides,
 });
 
@@ -125,11 +125,11 @@ describe("ApprovalSummaryPhase", () => {
     },
   }));
 
-  const mockUpdateExtensionResult = vi.fn(() => ({
+  const mockUpdateRenewalResult = vi.fn(() => ({
     data: {
-      updateExtension: {
+      updateRenewal: {
         id: "demo-123",
-        name: "Test Extension",
+        name: "Test Renewal",
         description: "Test description",
         effectiveDate: "2025-01-01",
         signatureLevel: "OA",
@@ -172,20 +172,20 @@ describe("ApprovalSummaryPhase", () => {
     result: mockUpdateAmendmentResult,
   };
 
-  const mockUpdateExtension = {
+  const mockUpdateRenewal = {
     request: {
-      query: UPDATE_EXTENSION_MUTATION,
+      query: UPDATE_RENEWAL_MUTATION,
       variables: {
         id: "demo-123",
         input: {
-          name: "Test Extension",
+          name: "Test Renewal",
           description: "Test description",
           effectiveDate: "2025-01-01",
           signatureLevel: "OA",
         },
       },
     },
-    result: mockUpdateExtensionResult,
+    result: mockUpdateRenewalResult,
   };
 
   const setup = (
@@ -381,23 +381,23 @@ describe("ApprovalSummaryPhase", () => {
     });
   });
 
-  it("calls updateExtension for extension", async () => {
+  it("calls updateRenewal for renewal", async () => {
     setup(
-      buildExtensionFormData({
+      buildRenewalFormData({
         applicationApprovalDate:
           "2025-02-15" as ModificationDetailsFormData["applicationApprovalDate"],
       }),
-      [mockUpdateExtension]
+      [mockUpdateRenewal]
     );
 
     const toggle = screen.getByRole("switch", { name: /mark complete/i });
     await userEvent.click(toggle);
 
     await waitFor(() => {
-      expect(mockUpdateExtensionResult).toHaveBeenCalledWith({
+      expect(mockUpdateRenewalResult).toHaveBeenCalledWith({
         id: "demo-123",
         input: {
-          name: "Test Extension",
+          name: "Test Renewal",
           description: "Test description",
           effectiveDate: "2025-01-01",
           signatureLevel: "OA",
@@ -456,12 +456,12 @@ describe("ApprovalSummaryPhase", () => {
     expect(toggle).toBeInTheDocument();
   });
 
-  it("covers extension mark incomplete path", async () => {
+  it("covers renewal mark incomplete path", async () => {
     render(
       <TestProvider>
         <ApprovalSummaryPhase
           applicationId="demo-123"
-          initialFormData={buildExtensionFormData()}
+          initialFormData={buildRenewalFormData()}
           initialTypes={[]}
           approvalSummaryPhase={{
             phaseStatus: "Started",
