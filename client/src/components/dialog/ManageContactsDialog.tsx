@@ -160,6 +160,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   const optionsByRole = useMemo(
     () => ({
       "demos-cms-user": CMS_USER_DEMONSTRATION_ROLES.map((role) => ({ label: role, value: role })),
+      "demos-restricted-cms-user": CMS_USER_DEMONSTRATION_ROLES.map((role) => ({ label: role, value: role })),
       "demos-state-user": STATE_USER_DEMONSTRATION_ROLES.map((role) => ({
         label: role,
         value: role,
@@ -183,6 +184,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     const roles = idmRoles ?? [];
     let options;
     if (roles.includes("demos-cms-user")) options = optionsByRole["demos-cms-user"];
+    else if (roles.includes("demos-restricted-cms-user")) options = optionsByRole["demos-restricted-cms-user"];
     else if (roles.includes("demos-state-user")) options = optionsByRole["demos-state-user"];
     else if (roles.includes("demos-admin")) options = optionsByRole["demos-admin"];
     else options = optionsByRole.Default;

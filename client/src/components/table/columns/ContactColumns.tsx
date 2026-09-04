@@ -73,7 +73,7 @@ function PrimaryToggleCell({
       </div>
       {isReadonlyUser && (
         <Tooltip id={`readonly-tooltip-${contact.id}`} anchorName={anchorName} anchorRef={switchRef}>
-          Read-only users cannot be assigned as the primary contact
+          Restricted User Role
         </Tooltip>
       )}
     </div>
