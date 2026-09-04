@@ -55,7 +55,6 @@ CREATE TABLE "email_notification_recipient" (
     "id" UUID NOT NULL,
     "email_notification_id" UUID NOT NULL,
     "person_id" UUID NOT NULL,
-    "email_address" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "email_notification_recipient_pkey" PRIMARY KEY ("id")
@@ -108,7 +107,7 @@ CREATE UNIQUE INDEX "email_notification_comment_email_type_key" ON "email_notifi
 CREATE UNIQUE INDEX "email_notification_agreement_email_type_key" ON "email_notification"("email_type_id", "reference_agreement_id") WHERE "reference_agreement_id" IS NOT NULL;
 
 -- CreateIndex
-CREATE UNIQUE INDEX "email_notification_recipient_email_notification_id_email_add_key" ON "email_notification_recipient"("email_notification_id", "email_address");
+CREATE UNIQUE INDEX "email_notification_recipient_email_notification_id_person_id_key" ON "email_notification_recipient"("email_notification_id", "person_id");
 
 -- AddForeignKey
 ALTER TABLE "email_notification" ADD CONSTRAINT "email_notification_email_type_id_entity_type_fkey" FOREIGN KEY ("email_type_id", "entity_type") REFERENCES "email_notification_type_entity_type"("email_type_id", "entity_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -163,9 +162,4 @@ ALTER TABLE "email_notification" ADD CONSTRAINT "email_notification_entity_type_
 -- AddCheckConstraint
 ALTER TABLE "email_notification" ADD CONSTRAINT "email_notification_public_comment_type" CHECK (
     ("email_type_id" = 'Public Comment Added') = ("public_comment_id" IS NOT NULL)
-);
-
--- AddCheckConstraint
-ALTER TABLE "email_notification_recipient" ADD CONSTRAINT "email_notification_recipient_email_address_lowercase" CHECK (
-    "email_address" <> '' AND "email_address" = lower(trim("email_address"))
 );

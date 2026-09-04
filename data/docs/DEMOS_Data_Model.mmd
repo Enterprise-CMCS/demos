@@ -734,11 +734,9 @@ erDiagram
 
   email_notification_recipient:::dataTable {
     uuid id PK
-    uuid email_notification_id FK, UK "FK171: email_notification_id ∈ email_notification.id<br>UK: (email_notification_id, email_address)"
-    uuid person_id FK "FK172: person_id ∈ person.id"
-    text email_address UK "UK: (email_notification_id, email_address)"
+    uuid email_notification_id FK, UK "FK171: email_notification_id ∈ email_notification.id<br>UK: (email_notification_id, person_id)"
+    uuid person_id FK, UK "FK172: person_id ∈ person.id<br>UK: (email_notification_id, person_id)"
     timestamptz created_at
-    CONSTRAINT_CHECK email_notification_recipient_email_address_lowercase "email_address must be non-empty, trimmed, and lowercase."
   }
 
   extension:::dataTable {
