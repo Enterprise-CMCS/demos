@@ -10,7 +10,6 @@ model ReferenceAgreement {
   owner                   User                     @relation(fields: [ownerUserId, ownerPersonTypeId], references: [id, personTypeId])
   ownerPersonType         CmsUserPersonTypeLimit   @relation(fields: [ownerPersonTypeId], references: [id])
   referenceConfigurations ReferenceConfiguration[]
-  emailNotifications      EmailNotification[]
 
   @@id([id])
   @@map("reference_agreement")

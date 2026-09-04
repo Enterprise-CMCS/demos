@@ -13,7 +13,6 @@ model Reference {
   referenceConfigurations     ReferenceConfiguration[]
   referenceTagAssignments     ReferenceTagAssignment[]
   referenceDemonstrationTypes ReferenceDemonstrationType[]
-  emailNotifications          EmailNotification[]
 
   @@id([id])
   @@map("reference")

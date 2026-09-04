@@ -4,8 +4,7 @@ CREATE TABLE "email_notification" (
     "email_type_id" TEXT NOT NULL,
     "entity_type" TEXT NOT NULL,
     "application_id" UUID,
-    "reference_id" UUID,
-    "reference_agreement_id" UUID,
+    "reference_configuration_id" UUID,
     "deliverable_action_id" UUID,
     "public_comment_id" UUID,
     "triggered_by_user_id" UUID NOT NULL,
@@ -28,8 +27,7 @@ CREATE TABLE "email_notification_history" (
     "email_type_id" TEXT NOT NULL,
     "entity_type" TEXT NOT NULL,
     "application_id" UUID,
-    "reference_id" UUID,
-    "reference_agreement_id" UUID,
+    "reference_configuration_id" UUID,
     "deliverable_action_id" UUID,
     "public_comment_id" UUID,
     "triggered_by_user_id" UUID NOT NULL,
@@ -52,12 +50,11 @@ CREATE TABLE "email_notification_entity_type" (
 
 -- CreateTable
 CREATE TABLE "email_notification_recipient" (
-    "id" UUID NOT NULL,
     "email_notification_id" UUID NOT NULL,
     "person_id" UUID NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "email_notification_recipient_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "email_notification_recipient_pkey" PRIMARY KEY ("email_notification_id","person_id")
 );
 
 -- CreateTable
@@ -82,9 +79,6 @@ CREATE TABLE "email_notification_type_entity_type" (
     CONSTRAINT "email_notification_type_entity_type_pkey" PRIMARY KEY ("email_type_id","entity_type_id")
 );
 
--- CreateIndex
-CREATE UNIQUE INDEX "email_notification_recipient_email_notification_id_person_id_key" ON "email_notification_recipient"("email_notification_id", "person_id");
-
 -- AddForeignKey
 ALTER TABLE "email_notification" ADD CONSTRAINT "email_notification_email_type_id_entity_type_fkey" FOREIGN KEY ("email_type_id", "entity_type") REFERENCES "email_notification_type_entity_type"("email_type_id", "entity_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -92,10 +86,7 @@ ALTER TABLE "email_notification" ADD CONSTRAINT "email_notification_email_type_i
 ALTER TABLE "email_notification" ADD CONSTRAINT "email_notification_application_id_fkey" FOREIGN KEY ("application_id") REFERENCES "application"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "email_notification" ADD CONSTRAINT "email_notification_reference_id_fkey" FOREIGN KEY ("reference_id") REFERENCES "reference"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "email_notification" ADD CONSTRAINT "email_notification_reference_agreement_id_fkey" FOREIGN KEY ("reference_agreement_id") REFERENCES "reference_agreement"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "email_notification" ADD CONSTRAINT "email_notification_reference_configuration_id_fkey" FOREIGN KEY ("reference_configuration_id") REFERENCES "reference_configuration"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "email_notification" ADD CONSTRAINT "email_notification_deliverable_action_id_fkey" FOREIGN KEY ("deliverable_action_id") REFERENCES "deliverable_action"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -122,15 +113,14 @@ ALTER TABLE "email_notification_type_entity_type" ADD CONSTRAINT "email_notifica
 ALTER TABLE "email_notification_type_entity_type" ADD CONSTRAINT "email_notification_type_entity_type_entity_type_id_fkey" FOREIGN KEY ("entity_type_id") REFERENCES "email_notification_entity_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddCheckConstraint
-ALTER TABLE "email_notification" ADD CONSTRAINT "email_notification_exactly_one_entity" CHECK (num_nonnulls("deliverable_action_id", "public_comment_id", "application_id", "reference_id", "reference_agreement_id") = 1);
+ALTER TABLE "email_notification" ADD CONSTRAINT "email_notification_exactly_one_entity" CHECK (num_nonnulls("deliverable_action_id", "public_comment_id", "application_id", "reference_configuration_id") = 1);
 
 -- AddCheckConstraint
 ALTER TABLE "email_notification" ADD CONSTRAINT "email_notification_entity_type_matches_id" CHECK (
     CASE "entity_type"
         WHEN 'deliverable' THEN num_nonnulls("deliverable_action_id", "public_comment_id") = 1
         WHEN 'application' THEN "application_id" IS NOT NULL
-        WHEN 'reference' THEN "reference_id" IS NOT NULL
-        WHEN 'reference_agreement' THEN "reference_agreement_id" IS NOT NULL
+        WHEN 'reference' THEN "reference_configuration_id" IS NOT NULL
         ELSE false
     END
 );

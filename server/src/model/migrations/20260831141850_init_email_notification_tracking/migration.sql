@@ -2,8 +2,7 @@ INSERT INTO demos_app.email_notification_entity_type ("id")
 VALUES
     ('deliverable'),
     ('application'),
-    ('reference'),
-    ('reference_agreement');
+    ('reference');
 
 INSERT INTO demos_app.email_notification_status ("id")
 VALUES
@@ -41,5 +40,4 @@ VALUES
     ('Public Comment Added', 'deliverable'),
     ('Application Status Updated', 'application'),
     ('Terms And Conditions Requested', 'application'),
-    ('Terms And Conditions Requested', 'reference'),
-    ('Terms And Conditions Requested', 'reference_agreement');
+    ('Terms And Conditions Requested', 'reference');

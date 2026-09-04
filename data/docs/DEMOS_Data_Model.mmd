@@ -151,8 +151,7 @@ erDiagram
   users ||--|{ deliverable_action : "FK112"
   email_notification_type_entity_type ||--|{ email_notification : "FK163"
   application ||--|{ email_notification : "FK164"
-  reference ||--|{ email_notification : "FK165"
-  reference_agreement ||--|{ email_notification : "FK166"
+  reference_configuration ||--|{ email_notification : "FK165"
   deliverable_action ||--|{ email_notification : "FK167"
   public_comment ||--|{ email_notification : "FK168"
   users ||--|{ email_notification : "FK169"
@@ -711,8 +710,7 @@ erDiagram
     text email_type_id FK "FK163: (email_type_id, entity_type) ∈ email_notification_type_entity_type.(email_type_id, entity_type_id)"
     text entity_type FK "FK163: (email_type_id, entity_type) ∈ email_notification_type_entity_type.(email_type_id, entity_type_id)"
     uuid application_id FK "FK164: application_id ∈ application.id<br>NULLABLE"
-    uuid reference_id FK "FK165: reference_id ∈ reference.id<br>NULLABLE"
-    uuid reference_agreement_id FK "FK166: reference_agreement_id ∈ reference_agreement.id<br>NULLABLE"
+    uuid reference_configuration_id FK "FK165: reference_configuration_id ∈ reference_configuration.id<br>NULLABLE"
     uuid deliverable_action_id FK "FK167: deliverable_action_id ∈ deliverable_action.id<br>NULLABLE"
     uuid public_comment_id FK "FK168: public_comment_id ∈ public_comment.id<br>NULLABLE"
     uuid triggered_by_user_id FK "FK169: triggered_by_user_id ∈ users.id"
@@ -729,10 +727,9 @@ erDiagram
     HAS_HISTORY true
   }
 
-  email_notification_recipient:::dataTable {
-    uuid id PK
-    uuid email_notification_id FK, UK "FK171: email_notification_id ∈ email_notification.id<br>UK: (email_notification_id, person_id)"
-    uuid person_id FK, UK "FK172: person_id ∈ person.id<br>UK: (email_notification_id, person_id)"
+  email_notification_recipient:::associativeTable {
+    uuid email_notification_id PK, FK "FK171: email_notification_id ∈ email_notification.id"
+    uuid person_id PK, FK "FK172: person_id ∈ person.id"
     timestamptz created_at
   }
 

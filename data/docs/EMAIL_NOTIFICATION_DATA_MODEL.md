@@ -22,8 +22,7 @@ email_notification
     |     deliverable_action
     |     public_comment
     |     application
-    |     reference
-    |     reference_agreement
+    |     reference_configuration
     |
     |-- triggered_by_user_id ---> users
     |-- status_id -------------> email_notification_status
@@ -45,8 +44,7 @@ email_notification
   deliverable_action_id          nullable
   public_comment_id              nullable
   application_id                 nullable
-  reference_id                   nullable
-  reference_agreement_id         nullable
+  reference_configuration_id     nullable
 
   triggered_by_user_id           required for realtime notifications
   status_id                      defaults to Pending
@@ -60,8 +58,10 @@ email_notification
 Exactly one entity-link ID must be populated. `entity_type` must identify that
 same kind of entity. A deliverable notification links to either a deliverable
 action or a public comment; that source row provides its deliverable. The
-foreign keys use `ON DELETE RESTRICT`, so a linked row cannot be deleted while
-a current notification references it.
+reference download workflow links to the `reference_configuration` requested
+by the API. That configuration provides the reference and its optional
+agreement. The foreign keys use `ON DELETE RESTRICT`, so a linked row cannot be
+deleted while a current notification references it.
 
 ## Example records
 
@@ -74,8 +74,7 @@ id:                       notification-001
 email_type_id:            Deliverable Created
 entity_type:              deliverable
 application_id:           NULL
-reference_id:             NULL
-reference_agreement_id:   NULL
+reference_configuration_id: NULL
 deliverable_action_id:    action-501
 public_comment_id:        NULL
 triggered_by_user_id:     user-201
@@ -108,13 +107,30 @@ id:                       notification-003
 email_type_id:            Application Status Updated
 entity_type:              application
 application_id:           application-301
-reference_id:             NULL
-reference_agreement_id:   NULL
+reference_configuration_id: NULL
 deliverable_action_id:    NULL
 public_comment_id:        NULL
 triggered_by_user_id:     user-203
 status_id:                Pending
 ```
+
+### Reference download email
+
+```text
+id:                         notification-004
+email_type_id:              Terms And Conditions Requested
+entity_type:                reference
+application_id:             NULL
+reference_configuration_id: configuration-401
+deliverable_action_id:      NULL
+public_comment_id:          NULL
+triggered_by_user_id:       user-204
+status_id:                  Pending
+```
+
+`configuration-401` identifies the exact reference configuration requested by
+the API. Its `reference_id` is required, while its `reference_agreement_id` may
+be null.
 
 ## Database enforcement
 
@@ -146,11 +162,12 @@ person_id
 created_at
 ```
 
-`person_id` is required and must be unique within the notification, so every
-recipient is traceable to exactly one DEMOS person. The recipient's address is
-available from `person.email`; external recipients use a `non-user-contact`
-person record. The database permits a notification to have zero recipient rows;
-selecting and requiring recipients belongs to the producer workflow.
+Together, `email_notification_id` and `person_id` form the primary key, so the
+same person cannot appear twice for one notification. Every recipient is
+traceable to exactly one DEMOS person. The recipient's address is available
+from `person.email`; external recipients use a `non-user-contact` person record.
+The database permits a notification to have zero recipient rows; selecting and
+requiring recipients belongs to the producer workflow.
 
 ## Status and history
 
@@ -173,17 +190,16 @@ with the revision operation and modification timestamp.
 
 ## Static configuration
 
-Entity types are limited to `deliverable`, `application`, `reference`, and
-`reference_agreement`. The `email_notification_type_entity_type` table defines
-which email types are permitted for each entity type. Adding a new pairing is a
-database configuration change rather than an unchecked application value.
+Entity types are limited to `deliverable`, `application`, and `reference`. The
+`email_notification_type_entity_type` table defines which email types are
+permitted for each entity type. Adding a new pairing is a database configuration
+change rather than an unchecked application value.
 
-| Entity type           | Allowed email types                                                                                                                                                                                                                              |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `deliverable`         | Deliverable Created, Deliverable Submitted, Deliverable Accepted, Deliverable Approved, Deliverable Received and Filed, Deliverable Due Date Updated, Extension Requested, Extension Decision Made, Resubmission Requested, Public Comment Added |
-| `application`         | Application Status Updated, Terms And Conditions Requested                                                                                                                                                                                       |
-| `reference`           | Terms And Conditions Requested                                                                                                                                                                                                                   |
-| `reference_agreement` | Terms And Conditions Requested                                                                                                                                                                                                                   |
+| Entity type       | Allowed email types                                                                                                                                                                                                                              |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `deliverable`     | Deliverable Created, Deliverable Submitted, Deliverable Accepted, Deliverable Approved, Deliverable Received and Filed, Deliverable Due Date Updated, Extension Requested, Extension Decision Made, Resubmission Requested, Public Comment Added |
+| `application`     | Application Status Updated, Terms And Conditions Requested                                                                                                                                                                                       |
+| `reference`       | Terms And Conditions Requested                                                                                                                                                                                                                   |
 
 ## Current scope
 
