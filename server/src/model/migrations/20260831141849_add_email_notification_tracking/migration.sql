@@ -83,15 +83,6 @@ CREATE TABLE "email_notification_type_entity_type" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "email_notification_action_email_type_key" ON "email_notification"("email_type_id", "deliverable_action_id") WHERE "deliverable_action_id" IS NOT NULL;
-
--- CreateIndex
-CREATE UNIQUE INDEX "email_notification_comment_email_type_key" ON "email_notification"("email_type_id", "public_comment_id") WHERE "public_comment_id" IS NOT NULL;
-
--- CreateIndex
-CREATE UNIQUE INDEX "email_notification_agreement_email_type_key" ON "email_notification"("email_type_id", "reference_agreement_id") WHERE "reference_agreement_id" IS NOT NULL;
-
--- CreateIndex
 CREATE UNIQUE INDEX "email_notification_recipient_email_notification_id_person_id_key" ON "email_notification_recipient"("email_notification_id", "person_id");
 
 -- AddForeignKey

@@ -708,13 +708,13 @@ erDiagram
 
   email_notification:::dataTable {
     uuid id PK
-    text email_type_id FK, UK "FK163: (email_type_id, entity_type) ∈ email_notification_type_entity_type.(email_type_id, entity_type_id)"
+    text email_type_id FK "FK163: (email_type_id, entity_type) ∈ email_notification_type_entity_type.(email_type_id, entity_type_id)"
     text entity_type FK "FK163: (email_type_id, entity_type) ∈ email_notification_type_entity_type.(email_type_id, entity_type_id)"
     uuid application_id FK "FK164: application_id ∈ application.id<br>NULLABLE"
     uuid reference_id FK "FK165: reference_id ∈ reference.id<br>NULLABLE"
-    uuid reference_agreement_id FK, UK "FK166: reference_agreement_id ∈ reference_agreement.id<br>UK: (email_type_id, reference_agreement_id) WHERE reference_agreement_id IS NOT NULL<br>NULLABLE"
-    uuid deliverable_action_id FK, UK "FK167: deliverable_action_id ∈ deliverable_action.id<br>UK: (email_type_id, deliverable_action_id) WHERE deliverable_action_id IS NOT NULL<br>NULLABLE"
-    uuid public_comment_id FK, UK "FK168: public_comment_id ∈ public_comment.id<br>UK: (email_type_id, public_comment_id) WHERE public_comment_id IS NOT NULL<br>NULLABLE"
+    uuid reference_agreement_id FK "FK166: reference_agreement_id ∈ reference_agreement.id<br>NULLABLE"
+    uuid deliverable_action_id FK "FK167: deliverable_action_id ∈ deliverable_action.id<br>NULLABLE"
+    uuid public_comment_id FK "FK168: public_comment_id ∈ public_comment.id<br>NULLABLE"
     uuid triggered_by_user_id FK "FK169: triggered_by_user_id ∈ users.id"
     text status_id FK "FK170: status_id ∈ email_notification_status.id"
     jsonb payload
@@ -722,9 +722,6 @@ erDiagram
     text last_error "NULLABLE"
     timestamptz created_at
     timestamptz updated_at
-    PARTIAL_UNIQUE_INDEX email_notification_action_email_type_key "(email_type_id, deliverable_action_id) must be unique where deliverable_action_id is not null."
-    PARTIAL_UNIQUE_INDEX email_notification_comment_email_type_key "(email_type_id, public_comment_id) must be unique where public_comment_id is not null."
-    PARTIAL_UNIQUE_INDEX email_notification_agreement_email_type_key "(email_type_id, reference_agreement_id) must be unique where reference_agreement_id is not null."
     CONSTRAINT_CHECK email_notification_exactly_one_entity "Exactly one entity linkage ID must be populated."
     CONSTRAINT_CHECK email_notification_entity_type_matches_id "entity_type must match the populated entity linkage ID."
     CONSTRAINT_CHECK email_notification_public_comment_type "Public Comment Added requires public_comment_id, and only that email type may use it."
