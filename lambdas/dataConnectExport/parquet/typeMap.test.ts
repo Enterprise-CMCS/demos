@@ -9,10 +9,11 @@ import {
   textProjection,
 } from "./typeMap";
 
-const mocks = vi.hoisted(() => ({ fetchColumnMetadataMock: vi.fn() }));
+const mocks = vi.hoisted(() => ({ fetchColumnMetadataMock: vi.fn(), warnMock: vi.fn() }));
 
 // queries.ts reaches pool.ts, which builds a SecretsManagerClient at module scope.
 vi.mock("../database/queries", () => ({ fetchColumnMetadata: mocks.fetchColumnMetadataMock }));
+vi.mock("../log", () => ({ log: { warn: mocks.warnMock } }));
 
 const pool = {} as never;
 
@@ -104,16 +105,42 @@ describe("numeric, the only type with a decision in it", () => {
     );
   });
 
-  it("refuses a precision above 38 instead of silently truncating", async () => {
-    // No allowlisted column is numeric today, so this path is only ever reached by a
-    // future column, and it has to fail loudly when it is.
-    mocks.fetchColumnMetadataMock.mockResolvedValue([
-      meta({ columnName: "huge_amount", dataType: "numeric", numericPrecision: 39, numericScale: 2 }),
-    ]);
+  it("exports a precision above 38 as text rather than truncating it", async () => {
+    // One past the maximum, so the boundary is pinned from both sides: 38 is a DECIMAL in
+    // the test above, 39 is not.
+    expect(
+      await duckdbTypeOf(
+        meta({ columnName: "huge_amount", dataType: "numeric", numericPrecision: 39, numericScale: 2 })
+      )
+    ).toBe("VARCHAR");
+  });
 
-    await expect(buildRelationSchema(pool, "demonstration", ["huge_amount"])).rejects.toThrow(
-      "Column huge_amount has numeric precision 39, above DuckDB's DECIMAL maximum of 38."
+  it("warns when it degrades a column to text, since a silent downgrade is invisible", async () => {
+    await duckdbTypeOf(
+      meta({ columnName: "huge_amount", dataType: "numeric", numericPrecision: 39, numericScale: 2 })
     );
+
+    expect(mocks.warnMock).toHaveBeenCalledTimes(1);
+    expect(mocks.warnMock).toHaveBeenCalledWith(
+      { column: "huge_amount", precision: 39 },
+      expect.stringContaining("exporting the column as text")
+    );
+  });
+
+  it("does not abort the export for Prisma's default Decimal, which is numeric(65,30)", async () => {
+    // This is the reachable case, not a hypothetical one: `Decimal` with no @db attribute
+    // becomes DECIMAL(65,30). Throwing here would take every other relation down with it,
+    // because buildRelationSchema runs before any upload.
+    expect(
+      await duckdbTypeOf(meta({ dataType: "numeric", numericPrecision: 65, numericScale: 30 }))
+    ).toBe("VARCHAR");
+    expect(mocks.warnMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not warn when the precision fits", async () => {
+    await duckdbTypeOf(meta({ dataType: "numeric", numericPrecision: 38, numericScale: 4 }));
+
+    expect(mocks.warnMock).not.toHaveBeenCalled();
   });
 });
 

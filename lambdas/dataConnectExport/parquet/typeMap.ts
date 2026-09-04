@@ -1,6 +1,7 @@
 import type { Pool } from "pg";
 
 import { fetchColumnMetadata } from "../database/queries";
+import { log } from "../log";
 import type { ColumnMeta, RelationColumn, RelationSchema } from "../types";
 
 // DuckDB's DECIMAL maximum. Beyond this there is no lossless representation.
@@ -21,16 +22,23 @@ function duckdbTypeFor(column: ColumnMeta): string {
     case "double precision":
       return "DOUBLE";
     case "numeric": {
+      // Both text fallbacks below are deliberate. Postgres hands us digits as text and DuckDB
+      // performs every conversion, so VARCHAR preserves exactly what the database produced.
+      // DOUBLE would round it: it holds about 17 significant digits, after which differences
+      // stop landing on zero, and the cost would be paid by whatever tool reads the file and
+      // reconciles a total rather than here.
+      //
       // An unconstrained numeric reports no precision, so there is no DECIMAL to cast to.
-      // VARCHAR keeps the digits Postgres produced. DOUBLE would round them: it holds about
-      // 17 significant digits, and differences stop landing on zero, so the cost is borne by
-      // whatever tool reads the file and reconciles a total, not here.
       if (column.numericPrecision === null) return "VARCHAR";
+      // Above DuckDB's maximum there is no lossless DECIMAL either. Prisma maps a bare Decimal
+      // to numeric(65,30), so an ordinary schema change reaches this branch, and throwing would
+      // abort every relation before a single object was uploaded.
       if (column.numericPrecision > MAX_DECIMAL_PRECISION) {
-        throw new Error(
-          `Column ${column.columnName} has numeric precision ${column.numericPrecision}, ` +
-            `above DuckDB's DECIMAL maximum of ${MAX_DECIMAL_PRECISION}.`
+        log.warn(
+          { column: column.columnName, precision: column.numericPrecision },
+          "numeric precision exceeds DuckDB's DECIMAL maximum, exporting the column as text"
         );
+        return "VARCHAR";
       }
       return `DECIMAL(${column.numericPrecision},${column.numericScale ?? 0})`;
     }
