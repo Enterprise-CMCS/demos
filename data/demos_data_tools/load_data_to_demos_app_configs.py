@@ -36,6 +36,14 @@ def call_update_federal_comment_phase_status(generation_context: ArbitrarySqlGen
     )
 
 
+def update_person_type_for_specific_person(generation_context: ArbitrarySqlGenerationContext) -> str:  # noqa: D103
+    return (
+        f"CALL postgres_execute('{generation_context.attach_name}', "
+        f"$$UPDATE {generation_context.app_schema}.person SET person_type_id = 'demos-state-user' "
+        f"WHERE id = '63f08f6a-4ed9-4401-94ff-c186463735a7'$$)"
+    )
+
+
 def get_data_load_configuration(dl_config_name: DataLoadConfigurationName) -> DataLoadConfiguration:
     """Retrieve a data load configuration by name.
 
@@ -449,6 +457,88 @@ def get_data_load_configuration(dl_config_name: DataLoadConfigurationName) -> Da
                         "application_tag_assignment",
                         ["application_id", "tag_name_id", "tag_type_id"],
                     ),
+                    ArbitraryActionConfiguration(
+                        "Set specific person's type to be demos-state-user", update_person_type_for_specific_person
+                    ),
+                    TableInsertActionConfiguration(
+                        "final_demos_app_users",
+                        "users",
+                        [
+                            "id",
+                            "person_type_id",
+                            "cognito_subject",
+                            "username",
+                            "is_migrated_from_pmda",
+                            "has_logged_in",
+                            "created_at",
+                            "updated_at",
+                        ],
+                    ),
+                    TransactionActionConfiguration("begin"),
+                    TableInsertActionConfiguration(
+                        "final_demos_app_deliverable",
+                        "deliverable",
+                        [
+                            "id",
+                            "deliverable_type_id",
+                            "name",
+                            "demonstration_id",
+                            "demonstration_status_id",
+                            "status_id",
+                            "cms_owner_user_id",
+                            "cms_owner_person_type_id",
+                            "due_date",
+                            "due_date_type_id",
+                            "expected_to_be_submitted",
+                            "created_at",
+                            "updated_at",
+                        ],
+                    ),
+                    TableInsertActionConfiguration(
+                        "final_demos_app_deliverable_extension",
+                        "deliverable_extension",
+                        [
+                            "id",
+                            "deliverable_id",
+                            "status_id",
+                            "reason_code_id",
+                            "original_date_requested",
+                            "final_date_granted",
+                            "created_at",
+                            "updated_at",
+                        ],
+                    ),
+                    TableInsertActionConfiguration(
+                        "final_demos_app_deliverable_action",
+                        "deliverable_action",
+                        [
+                            "id",
+                            "action_timestamp",
+                            "deliverable_id",
+                            "action_type_id",
+                            "old_status_id",
+                            "new_status_id",
+                            "note",
+                            "active_extension_id",
+                            "due_date_change_allowed",
+                            "should_have_note",
+                            "should_have_user_id",
+                            "extension_id_optional",
+                            "old_due_date",
+                            "new_due_date",
+                            "user_id",
+                        ],
+                    ),
+                    TableInsertActionConfiguration(
+                        "final_demos_app_deliverable_demonstration_type",
+                        "deliverable_demonstration_type",
+                        [
+                            "deliverable_id",
+                            "demonstration_id",
+                            "demonstration_type_tag_name_id",
+                        ],
+                    ),
+                    TransactionActionConfiguration("commit"),
                     TableInsertActionConfiguration(
                         "final_demos_app_document",
                         "document",
