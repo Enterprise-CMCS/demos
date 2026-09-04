@@ -133,8 +133,6 @@ The database rejects a notification when:
 - No entity-link ID is populated or more than one is populated.
 - `entity_type` does not match the populated entity-link ID.
 - The `(email_type_id, entity_type)` pair is not configured.
-- `Public Comment Added` does not reference a public comment.
-- Any other email type references a public comment.
 - A linked entity, recipient, type, or status FK is invalid.
 - The same person appears twice for one notification.
 

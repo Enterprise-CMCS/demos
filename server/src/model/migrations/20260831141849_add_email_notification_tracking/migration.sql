@@ -119,8 +119,3 @@ ALTER TABLE "email_notification" ADD CONSTRAINT "email_notification_entity_type_
         ELSE false
     END
 );
-
--- AddCheckConstraint
-ALTER TABLE "email_notification" ADD CONSTRAINT "email_notification_public_comment_type" CHECK (
-    ("email_type_id" = 'Public Comment Added') = ("public_comment_id" IS NOT NULL)
-);

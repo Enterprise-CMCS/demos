@@ -720,7 +720,6 @@ erDiagram
     timestamptz updated_at
     CONSTRAINT_CHECK email_notification_exactly_one_entity "Exactly one entity linkage ID must be populated."
     CONSTRAINT_CHECK email_notification_entity_type_matches_id "entity_type must match the populated entity linkage ID."
-    CONSTRAINT_CHECK email_notification_public_comment_type "Public Comment Added requires public_comment_id, and only that email type may use it."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }
