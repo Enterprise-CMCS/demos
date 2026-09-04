@@ -6,16 +6,10 @@ vi.mock("@aws-sdk/client-sqs", () => ({
   SQSClient: vi.fn(function (this: { send: typeof send }) {
     this.send = send;
   }),
-  GetQueueUrlCommand: vi.fn(function (
-    this: { input: unknown },
-    input: unknown,
-  ) {
+  GetQueueUrlCommand: vi.fn(function (this: { input: unknown }, input: unknown) {
     this.input = input;
   }),
-  SendMessageCommand: vi.fn(function (
-    this: { input: unknown },
-    input: unknown,
-  ) {
+  SendMessageCommand: vi.fn(function (this: { input: unknown }, input: unknown) {
     this.input = input;
   }),
 }));
@@ -66,7 +60,7 @@ describe("emailQueue", () => {
           QueueUrl: "http://example.com/emailer-queue",
           MessageBody: JSON.stringify(message),
         },
-      }),
+      })
     );
   });
 
@@ -96,7 +90,7 @@ describe("emailQueue", () => {
     const { enqueueEmail } = await import("./emailQueue");
 
     await expect(enqueueEmail(message)).rejects.toThrow(
-      "Failed to enqueue email: SQS did not return a message ID.",
+      "Failed to enqueue email: SQS did not return a message ID."
     );
   });
 });

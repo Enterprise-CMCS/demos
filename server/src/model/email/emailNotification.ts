@@ -11,7 +11,7 @@ export type EmailNotificationRecipient = {
 export async function enqueueTrackedRealtimeEmail(
   message: RealtimeEmailMessage,
   source: { deliverableActionId: string },
-  recipients: EmailNotificationRecipient[],
+  recipients: EmailNotificationRecipient[]
 ): Promise<string> {
   const notification = await prisma().emailNotification.create({
     data: {
@@ -47,7 +47,7 @@ export async function enqueueTrackedRealtimeEmail(
           error: trackingError,
           emailNotificationId: notification.id,
         },
-        "Failed to record email notification queue failure",
+        "Failed to record email notification queue failure"
       );
     }
     throw error;

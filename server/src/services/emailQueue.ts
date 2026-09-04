@@ -1,8 +1,4 @@
-import {
-  GetQueueUrlCommand,
-  SendMessageCommand,
-  SQSClient,
-} from "@aws-sdk/client-sqs";
+import { GetQueueUrlCommand, SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
 
 import { PRIMARY_AWS_REGION } from "../constants";
 import { log } from "../log";
@@ -25,7 +21,7 @@ const sqsClient = new SQSClient(
         region: PRIMARY_AWS_REGION,
         endpoint: process.env.AWS_ENDPOINT_URL,
       }
-    : { region: PRIMARY_AWS_REGION },
+    : { region: PRIMARY_AWS_REGION }
 );
 
 let cachedQueueUrl: string | undefined;
@@ -44,7 +40,7 @@ async function getQueueUrl(): Promise<string> {
   const response = await sqsClient.send(
     new GetQueueUrlCommand({
       QueueName: queueName,
-    }),
+    })
   );
   if (!response.QueueUrl) {
     throw new Error(`Failed to resolve emailer queue URL: ${queueName}`);
@@ -54,20 +50,16 @@ async function getQueueUrl(): Promise<string> {
   return cachedQueueUrl;
 }
 
-export async function enqueueEmail(
-  message: RealtimeEmailMessage,
-): Promise<string> {
+export async function enqueueEmail(message: RealtimeEmailMessage): Promise<string> {
   const queueUrl = await getQueueUrl();
   const response = await sqsClient.send(
     new SendMessageCommand({
       QueueUrl: queueUrl,
       MessageBody: JSON.stringify(message),
-    }),
+    })
   );
   if (!response.MessageId) {
-    throw new Error(
-      "Failed to enqueue email: SQS did not return a message ID.",
-    );
+    throw new Error("Failed to enqueue email: SQS did not return a message ID.");
   }
 
   log.info(
@@ -76,7 +68,7 @@ export async function enqueueEmail(
       emailType: message.emailType,
       entityId: message.entityId,
     },
-    "Email queued",
+    "Email queued"
   );
   return response.MessageId;
 }

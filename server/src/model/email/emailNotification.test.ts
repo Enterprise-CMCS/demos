@@ -59,9 +59,9 @@ describe("enqueueTrackedRealtimeEmail", () => {
   });
 
   it("records recipients and marks a successfully queued notification", async () => {
-    await expect(
-      enqueueTrackedRealtimeEmail(message, source, recipients),
-    ).resolves.toBe("message-1");
+    await expect(enqueueTrackedRealtimeEmail(message, source, recipients)).resolves.toBe(
+      "message-1"
+    );
 
     expect(create).toHaveBeenCalledExactlyOnceWith({
       data: {
@@ -104,13 +104,11 @@ describe("enqueueTrackedRealtimeEmail", () => {
   });
 
   it("marks the notification failed when SQS rejects it", async () => {
-    vi.mocked(enqueueEmail).mockRejectedValueOnce(
-      new Error("queue unavailable"),
-    );
+    vi.mocked(enqueueEmail).mockRejectedValueOnce(new Error("queue unavailable"));
 
-    await expect(
-      enqueueTrackedRealtimeEmail(message, source, recipients),
-    ).rejects.toThrow("queue unavailable");
+    await expect(enqueueTrackedRealtimeEmail(message, source, recipients)).rejects.toThrow(
+      "queue unavailable"
+    );
 
     expect(update).toHaveBeenCalledExactlyOnceWith({
       where: { id: "notification-1" },
@@ -123,21 +121,19 @@ describe("enqueueTrackedRealtimeEmail", () => {
   });
 
   it("preserves the queue error when recording the failure also fails", async () => {
-    vi.mocked(enqueueEmail).mockRejectedValueOnce(
-      new Error("queue unavailable"),
-    );
+    vi.mocked(enqueueEmail).mockRejectedValueOnce(new Error("queue unavailable"));
     update.mockRejectedValueOnce(new Error("database unavailable"));
 
-    await expect(
-      enqueueTrackedRealtimeEmail(message, source, recipients),
-    ).rejects.toThrow("queue unavailable");
+    await expect(enqueueTrackedRealtimeEmail(message, source, recipients)).rejects.toThrow(
+      "queue unavailable"
+    );
 
     expect(log.error).toHaveBeenCalledWith(
       {
         error: expect.objectContaining({ message: "database unavailable" }),
         emailNotificationId: "notification-1",
       },
-      "Failed to record email notification queue failure",
+      "Failed to record email notification queue failure"
     );
   });
 });
