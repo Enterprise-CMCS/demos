@@ -36,6 +36,50 @@ type ContactColumnsProps = {
   onRemoveContact: (id: string) => void;
 };
 
+type PrimaryToggleCellProps = { contact: ContactRow; onPrimaryToggle: (id: string) => void; };
+function PrimaryToggleCell({
+  contact,
+  onPrimaryToggle,
+}: PrimaryToggleCellProps) {
+  const switchRef = useRef<HTMLDivElement>(null);
+  const isReadonlyUser = contact.idmRoles?.includes("demos-restricted-cms-user");
+
+  /*
+    * Anchor Name must be sanitized because it is being generated something like "xyz-Project Officer-0"
+    * Spaces are not valid in anchor names, so we replace them with hyphens.
+    * The regex replaces any character that is not a letter, number, underscore, or hyphen with a hyphen.
+  */
+  const anchorName = `--readonly-anchor-${contact.id.replace(
+    /[^a-zA-Z0-9_-]/g,
+    "-"
+  )}`;
+  return (
+    <div className="inline-flex items-center justify-center">
+      <div ref={switchRef} className="inline-flex" style={{ anchorName }}>
+        <Switch
+          checked={!!contact.isPrimary}
+          onChange={() => onPrimaryToggle(contact.id)}
+          onColor="#6B7280"
+          offColor="#E5E7EB"
+          checkedIcon={false}
+          uncheckedIcon={false}
+          height={18}
+          width={40}
+          handleDiameter={24}
+          boxShadow="0 2px 8px rgba(0, 0, 0, 0.6)"
+          activeBoxShadow="0 0 2px 3px #3bf"
+          disabled={isReadonlyUser}
+        />
+      </div>
+      {isReadonlyUser && (
+        <Tooltip id={`readonly-tooltip-${contact.id}`} anchorName={anchorName} anchorRef={switchRef}>
+          Read-only users cannot be assigned as the primary contact
+        </Tooltip>
+      )}
+    </div>
+  );
+};
+
 export function ContactColumns({
   getFilteredContactTypeOptions,
   onContactTypeChange,
@@ -91,51 +135,7 @@ export function ContactColumns({
     columnHelper.accessor("isPrimary", {
       header: "Primary",
       size: 100,
-      cell: (info) => {
-        const switchRef = useRef<HTMLDivElement>(null);
-
-        const contact = info.row.original;
-        const isReadonlyUser = contact.idmRoles?.includes("demos-cms-user");
-
-        const anchorName = `--readonly-anchor-${contact.id}`;
-
-        return (
-          <div className="inline-flex items-center justify-center">
-            <div
-              ref={switchRef}
-              className="inline-flex"
-              style={{
-                anchorName,
-              }}
-            >
-              <Switch
-                checked={!!contact.isPrimary}
-                onChange={() => onPrimaryToggle(contact.id)}
-                onColor="#6B7280"
-                offColor="#E5E7EB"
-                checkedIcon={false}
-                uncheckedIcon={false}
-                height={18}
-                width={40}
-                handleDiameter={24}
-                boxShadow="0 2px 8px rgba(0, 0, 0, 0.6)"
-                activeBoxShadow="0 0 2px 3px #3bf"
-                disabled={isReadonlyUser}
-              />
-            </div>
-
-            {isReadonlyUser && (
-              <Tooltip
-                id={`readonly-tooltip-${contact.id}`}
-                anchorName={anchorName}
-                anchorRef={switchRef}
-              >
-                Read-only users cannot be assigned as the primary contact
-              </Tooltip>
-            )}
-          </div>
-        );
-      },
+      cell: (info) => ( <PrimaryToggleCell contact={info.row.original} onPrimaryToggle={onPrimaryToggle} /> ),
     }),
     columnHelper.display({
       id: "actions",
