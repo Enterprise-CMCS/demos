@@ -1,0 +1,96 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const send = vi.fn();
+
+vi.mock("@aws-sdk/client-sqs", () => ({
+  SQSClient: vi.fn(function (this: { send: typeof send }) {
+    this.send = send;
+  }),
+  GetQueueUrlCommand: vi.fn(function (this: { input: unknown }, input: unknown) {
+    this.input = input;
+  }),
+  SendMessageCommand: vi.fn(function (this: { input: unknown }, input: unknown) {
+    this.input = input;
+  }),
+}));
+
+vi.mock("../log", () => ({
+  log: {
+    info: vi.fn(),
+  },
+}));
+
+const message = {
+  emailType: "Deliverable Created" as const,
+  entityType: "deliverable" as const,
+  entityId: "deliverable-1",
+  triggeredBy: {
+    type: "realtime" as const,
+    id: "user-1",
+  },
+  payload: {
+    recipients: {
+      to: ["owner@example.com"],
+    },
+  },
+};
+
+describe("emailQueue", () => {
+  const originalEnv = { ...process.env };
+
+  beforeEach(() => {
+    vi.resetModules();
+    send.mockReset();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  it("sends the email envelope to the configured queue", async () => {
+    process.env.EMAILER_QUEUE_URL = "http://example.com/emailer-queue";
+    send.mockResolvedValue({ MessageId: "message-1" });
+    const { enqueueEmail } = await import("./emailQueue");
+
+    await expect(enqueueEmail(message)).resolves.toBe("message-1");
+    expect(send).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        input: {
+          QueueUrl: "http://example.com/emailer-queue",
+          MessageBody: JSON.stringify(message),
+        },
+      })
+    );
+  });
+
+  it("resolves the named queue when no URL is configured", async () => {
+    delete process.env.EMAILER_QUEUE_URL;
+    process.env.EMAILER_QUEUE_NAME = "custom-emailer-queue";
+    send
+      .mockResolvedValueOnce({
+        QueueUrl: "http://example.com/resolved-emailer-queue",
+      })
+      .mockResolvedValueOnce({ MessageId: "message-1" });
+    const { enqueueEmail } = await import("./emailQueue");
+
+    await enqueueEmail(message);
+
+    expect(send.mock.calls[0][0]).toMatchObject({
+      input: { QueueName: "custom-emailer-queue" },
+    });
+    expect(send.mock.calls[1][0]).toMatchObject({
+      input: { QueueUrl: "http://example.com/resolved-emailer-queue" },
+    });
+  });
+
+  it("reports when SQS does not return a message ID", async () => {
+    process.env.EMAILER_QUEUE_URL = "http://example.com/emailer-queue";
+    send.mockResolvedValue({});
+    const { enqueueEmail } = await import("./emailQueue");
+
+    await expect(enqueueEmail(message)).rejects.toThrow(
+      "Failed to enqueue email: SQS did not return a message ID."
+    );
+  });
+});
