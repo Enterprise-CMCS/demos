@@ -196,8 +196,10 @@ describe("duckdbVersionFromLockFile", () => {
     const emptyLock = path.join(dir, "package-lock.json");
     writeFileSync(emptyLock, JSON.stringify({ lockfileVersion: 3, packages: {} }));
 
+    // Assert the path rather than wildcarding over it. Naming the offending lockfile is what
+    // makes this error actionable, and a wildcard there also matched when the path was absent.
     expect(() => duckdbVersionFromLockFile(emptyLock)).toThrow(
-      /@duckdb\/node-api is not resolved in .*needs an exact version/s
+      `@duckdb/node-api is not resolved in ${emptyLock}`
     );
 
     rmSync(dir, { recursive: true, force: true });
