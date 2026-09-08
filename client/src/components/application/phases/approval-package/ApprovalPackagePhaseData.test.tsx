@@ -61,7 +61,9 @@ const mockPO = {
 
 const mockSetSelectedPhase = vi.fn();
 
-const baseDemonstration: ApplicationWorkflowDemonstration = {
+const createDemonstration = (
+  overrides: Partial<ApplicationWorkflowDemonstration> = {}
+): ApplicationWorkflowDemonstration => ({
   id: "demo-1",
   medicaidId: "medicaid-123",
   name: "Test Demo",
@@ -81,7 +83,10 @@ const baseDemonstration: ApplicationWorkflowDemonstration = {
   ],
   demonstrationTypes: [],
   tags: [],
-};
+  ...overrides,
+});
+
+const baseDemonstration = createDemonstration();
 
 const renderApprovalPackagePhase = (application: ApplicationWorkflowDemonstration) =>
   render(

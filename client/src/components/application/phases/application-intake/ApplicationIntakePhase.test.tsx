@@ -25,7 +25,7 @@ import { formatDateForServer, getTodayEst, EST_TIMEZONE } from "util/formatDate"
 import { MockedResponse } from "@apollo/client/testing";
 import { GET_APPLICATION_TAG_OPTIONS } from "components/tags/ApplicationHealthTypeTags";
 import { DialogProvider } from "components/dialog/DialogContext";
-import { DocumentType } from "demos-server";
+import { DocumentType, Tag } from "demos-server";
 import { readonlyMockUser, cmsMockUser } from "mock-data/userMocks";
 
 vi.mock("@apollo/client", async () => {
@@ -55,6 +55,25 @@ vi.mock("components/application/phase-status/phaseCompletionQueries", () => ({
   }),
 }));
 
+const createDocument = (
+  overrides: Partial<ApplicationWorkflowDocument> = {}
+): ApplicationWorkflowDocument => ({
+  id: "1",
+  name: "State Application Document 1",
+  description: "Test state application document",
+  documentType: "State Application",
+  phaseName: "Application Intake",
+  owner: { person: { fullName: "John Doe" } },
+  createdAt: new TZDate("2024-01-12", EST_TIMEZONE),
+  ...overrides,
+});
+
+const createTag = (overrides: Partial<Tag> = {}) => ({
+  tagName: "Behavioral Health",
+  approvalStatus: "Approved" as const,
+  ...overrides,
+});
+
 describe("ApplicationIntakePhase", () => {
   const TEST_APP_ID = "test-app-id";
 
@@ -66,16 +85,6 @@ describe("ApplicationIntakePhase", () => {
     phaseStatus: "Started",
     completenessPhaseStatus: "Not Started",
     setSelectedPhase: vi.fn(),
-  };
-
-  const MOCK_STATE_APPLICATION_DOCUMENT: ApplicationWorkflowDocument = {
-    id: "1",
-    name: "State Application Document 1",
-    description: "Test state application document",
-    documentType: "State Application",
-    phaseName: "Application Intake",
-    owner: { person: { fullName: "John Doe" } },
-    createdAt: new TZDate("2024-01-12", EST_TIMEZONE),
   };
 
   beforeEach(() => {
@@ -156,14 +165,14 @@ describe("ApplicationIntakePhase", () => {
 
     it("displays Application Intake phase documents only", () => {
       setup({
-        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        applicationIntakeDocuments: [createDocument()],
       });
 
       expect(screen.getByText("State Application Document 1")).toBeInTheDocument();
     });
 
     it("renders delete button for each document", () => {
-      setup({ applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT] });
+      setup({ applicationIntakeDocuments: [createDocument()] });
 
       const deleteButton = screen.getByLabelText("Delete State Application Document 1");
       expect(deleteButton).toBeInTheDocument();
@@ -209,7 +218,7 @@ describe("ApplicationIntakePhase", () => {
 
     it("clears both date pickers when Completeness phase is Incomplete even if State Application documents exist", () => {
       setup({
-        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        applicationIntakeDocuments: [createDocument()],
         initialStateApplicationSubmittedDate: "",
         completenessPhaseStatus: "Incomplete",
       });
@@ -220,7 +229,7 @@ describe("ApplicationIntakePhase", () => {
 
     it("allows the user to enter a new date while Completeness phase is Incomplete", async () => {
       setup({
-        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        applicationIntakeDocuments: [createDocument()],
         initialStateApplicationSubmittedDate: "",
         completenessPhaseStatus: "Incomplete",
       });
@@ -247,12 +256,7 @@ describe("ApplicationIntakePhase", () => {
   describe("Step 3 - Apply Tags Section", () => {
     it("renders Step 3 title and description", async () => {
       setup({
-        tags: [
-          {
-            tagName: "Behavioral Health",
-            approvalStatus: "Approved",
-          },
-        ],
+        tags: [createTag()],
       });
 
       await waitFor(() => {
@@ -268,14 +272,8 @@ describe("ApplicationIntakePhase", () => {
     it("renders selected tags as removable chips", async () => {
       setup({
         tags: [
-          {
-            tagName: "Behavioral Health",
-            approvalStatus: "Approved",
-          },
-          {
-            tagName: "Substance Use",
-            approvalStatus: "Unapproved",
-          },
+          createTag(),
+          createTag({ tagName: "Substance Use", approvalStatus: "Unapproved" as const }),
         ],
       });
       await waitFor(() => {
@@ -289,14 +287,8 @@ describe("ApplicationIntakePhase", () => {
     it("calls SET_APPLICATION_TAGS_MUTATION with updated tags when a tag is removed", async () => {
       setup({
         tags: [
-          {
-            tagName: "Behavioral Health",
-            approvalStatus: "Approved",
-          },
-          {
-            tagName: "Substance Use",
-            approvalStatus: "Unapproved",
-          },
+          createTag(),
+          createTag({ tagName: "Substance Use", approvalStatus: "Unapproved" as const }),
         ],
       });
       await waitFor(() => {
@@ -412,7 +404,7 @@ describe("ApplicationIntakePhase", () => {
 
       it("is enabled when documents are uploaded & state application date is filled", () => {
         setup({
-          applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+          applicationIntakeDocuments: [createDocument()],
           initialStateApplicationSubmittedDate: "2020-10-10",
         });
         const finishButton = screen.getByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME);
@@ -429,7 +421,7 @@ describe("ApplicationIntakePhase", () => {
         const setSelectedPhase = vi.fn();
 
         setup({
-          applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+          applicationIntakeDocuments: [createDocument()],
           initialStateApplicationSubmittedDate: "2020-10-10",
           setSelectedPhase,
         });
@@ -457,7 +449,7 @@ describe("ApplicationIntakePhase", () => {
     it("hides finish button for readonly users", () => {
       setup(
         {
-          applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+          applicationIntakeDocuments: [createDocument()],
           initialStateApplicationSubmittedDate: "2020-10-10",
         },
         readonlyMockUser
@@ -475,7 +467,7 @@ describe("ApplicationIntakePhase", () => {
     });
 
     it("disables State Application Submitted Date picker for readonly users", () => {
-      setup({ applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT] }, readonlyMockUser);
+      setup({ applicationIntakeDocuments: [createDocument()] }, readonlyMockUser);
 
       const dateInput = screen.getByTestId(APPLICATION_SUBMITTED_DATEPICKER_NAME);
       expect(dateInput).toBeDisabled();
@@ -489,7 +481,7 @@ describe("ApplicationIntakePhase", () => {
     });
 
     it("enables State Application Submitted Date picker for non-readonly users", () => {
-      setup({ applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT] }, cmsMockUser);
+      setup({ applicationIntakeDocuments: [createDocument()] }, cmsMockUser);
 
       const dateInput = screen.getByTestId(APPLICATION_SUBMITTED_DATEPICKER_NAME);
       expect(dateInput).not.toBeDisabled();
@@ -657,7 +649,7 @@ describe("ApplicationIntakePhase", () => {
   describe("handleDateChange", () => {
     it("updates the state application submitted date when user changes date input", async () => {
       setup({
-        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        applicationIntakeDocuments: [createDocument()],
       });
 
       const submittedDateInput = screen.getByTestId(
@@ -671,7 +663,7 @@ describe("ApplicationIntakePhase", () => {
 
     it("updates completeness review due date when state application date changes", async () => {
       setup({
-        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        applicationIntakeDocuments: [createDocument()],
       });
 
       const submittedDateInput = screen.getByTestId(
@@ -694,7 +686,7 @@ describe("ApplicationIntakePhase", () => {
     it("finish button is enabled when both date and documents are provided via props", () => {
       // Test the effect logic by providing both requirements via initial props
       setup({
-        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        applicationIntakeDocuments: [createDocument()],
         initialStateApplicationSubmittedDate: "2024-03-15",
       });
 
@@ -720,7 +712,7 @@ describe("ApplicationIntakePhase", () => {
       const todayString = getTodayEst();
 
       setup({
-        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        applicationIntakeDocuments: [createDocument()],
         initialStateApplicationSubmittedDate: todayString,
       });
 
