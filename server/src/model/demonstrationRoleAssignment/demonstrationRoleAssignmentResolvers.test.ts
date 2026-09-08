@@ -66,7 +66,7 @@ describe("demonstrationRoleAssignmentResolvers", () => {
 
   const mockRoleAssignment: DemonstrationRoleAssignmentQueryResult = {
     personId: "person-1",
-    demonstrationId: "demonstration-1",
+    demonstrationId: "demo-1",
     roleId: "DDME Analyst",
     isPrimary: true,
   } as DemonstrationRoleAssignmentQueryResult;
@@ -103,7 +103,7 @@ describe("demonstrationRoleAssignmentResolvers", () => {
 
     const mockRoleAssignment2: DemonstrationRoleAssignmentQueryResult = {
       personId: "person-2",
-      demonstrationId: "demonstration-1",
+      demonstrationId: "demo-1",
       roleId: "Project Officer",
       isPrimary: false,
     } as DemonstrationRoleAssignmentQueryResult;
