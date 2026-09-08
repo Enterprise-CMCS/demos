@@ -58,7 +58,6 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
       "BN PMT Approval to Send to OMB",
       "Draft Approval Package Shared",
       "Receive OMB Concurrence",
-      "Receive OGC Legal Clearance",
     ],
     documentTypesMustExist: [],
     phasesMustBeComplete: [
