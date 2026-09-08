@@ -33,6 +33,7 @@ import { resolveManyDeliverables } from "../deliverable";
 import { GraphQLContext } from "../../auth";
 import { getDemonstration, getManyDemonstrations } from "./demonstrationData";
 import { CHIP_DEMONSTRATION_TYPE_TAG_NAME } from "../../constants";
+import { checkPersonCanBePrimary } from "../demonstrationRoleAssignment/checkPersonCanBePrimary";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -74,20 +75,23 @@ export async function __createDemonstration(
         select: { personTypeId: true },
       });
 
+      checkPersonCanBePrimary({ person }, tx);
+
       if (!person) {
         throw new Error(`Person with id ${input.projectOfficerUserId} not found.`);
       }
 
-      await tx.demonstrationRoleAssignment.create({
-        data: {
-          demonstrationId: application.id,
-          personId: input.projectOfficerUserId,
-          personTypeId: person.personTypeId,
-          roleId: roleProjectOfficer,
-          stateId: input.stateId,
-          grantLevelId: grantLevelDemonstration,
-        },
-      });
+      if (person.personTypeId)
+        await tx.demonstrationRoleAssignment.create({
+          data: {
+            demonstrationId: application.id,
+            personId: input.projectOfficerUserId,
+            personTypeId: person.personTypeId,
+            roleId: roleProjectOfficer,
+            stateId: input.stateId,
+            grantLevelId: grantLevelDemonstration,
+          },
+        });
 
       await tx.primaryDemonstrationRoleAssignment.create({
         data: {
