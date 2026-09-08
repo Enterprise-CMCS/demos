@@ -113,17 +113,153 @@ describe("demonstrationRoleAssignmentResolvers", () => {
   });
 
   describe("Mutation.setDemonstrationRole", () => {
-    it("validates the input using validateSetDemonstrationRoleInput", async () => {
-      const input: SetDemonstrationRoleInput = {
+    const testInput: SetDemonstrationRoleInput = {
+      demonstrationId: "demo-1",
+      personId: "person-1",
+      roleId: "DDME Analyst",
+      isPrimary: true,
+    };
+
+    it("validates the input using validateSetDemonstrationRoleInput within a transaction", async () => {
+      await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRole(null, {
+        input: testInput,
+      });
+
+      expect(validateSetDemonstrationRoleInput).toHaveBeenCalledExactlyOnceWith(
+        testInput,
+        mockPrismaTransaction
+      );
+    });
+
+    it("fetches the person using selectPersonOrThrow within a transaction", async () => {
+      await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRole(null, {
+        input: testInput,
+      });
+
+      expect(selectPersonOrThrow).toHaveBeenCalledExactlyOnceWith(
+        { id: testInput.personId },
+        mockPrismaTransaction
+      );
+    });
+
+    it("fetches the demonstration using selectDemonstrationOrThrow within a transaction", async () => {
+      await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRole(null, {
+        input: testInput,
+      });
+
+      expect(selectDemonstrationOrThrow).toHaveBeenCalledExactlyOnceWith(
+        { id: testInput.demonstrationId },
+        mockPrismaTransaction
+      );
+    });
+
+    it("upserts demonstrationRoleAssignment with correct data within a transaction", async () => {
+      await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRole(null, {
+        input: testInput,
+      });
+
+      expect(
+        mockPrismaTransaction.demonstrationRoleAssignment.upsert
+      ).toHaveBeenCalledExactlyOnceWith({
+        where: {
+          personId_demonstrationId_roleId: {
+            personId: mockPerson.id,
+            demonstrationId: mockDemonstration.id,
+            roleId: testInput.roleId,
+          },
+        },
+        update: {},
+        create: {
+          roleId: testInput.roleId,
+          demonstrationId: mockDemonstration.id,
+          stateId: mockDemonstration.stateId,
+          personId: mockPerson.id,
+          personTypeId: mockPerson.personTypeId,
+          grantLevelId: "Demonstration",
+        },
+      });
+    });
+
+    it("upserts primaryDemonstrationRoleAssignment when isPrimary is true", async () => {
+      await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRole(null, {
+        input: testInput,
+      });
+
+      expect(
+        mockPrismaTransaction.primaryDemonstrationRoleAssignment.upsert
+      ).toHaveBeenCalledExactlyOnceWith({
+        where: {
+          demonstrationId_roleId: {
+            demonstrationId: mockDemonstration.id,
+            roleId: testInput.roleId,
+          },
+        },
+        update: {
+          personId: mockPerson.id,
+        },
+        create: {
+          demonstrationId: mockDemonstration.id,
+          personId: mockPerson.id,
+          roleId: testInput.roleId,
+          personTypeId: mockPerson.personTypeId,
+        },
+      });
+    });
+
+    it("deletes primaryDemonstrationRoleAssignment when isPrimary is false", async () => {
+      const inputWithPrimaryFalse: SetDemonstrationRoleInput = {
+        ...testInput,
+        isPrimary: false,
+      };
+
+      await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRole(null, {
+        input: inputWithPrimaryFalse,
+      });
+
+      expect(
+        mockPrismaTransaction.primaryDemonstrationRoleAssignment.deleteMany
+      ).toHaveBeenCalledExactlyOnceWith({
+        where: {
+          demonstrationId: mockDemonstration.id,
+          roleId: testInput.roleId,
+          personId: mockPerson.id,
+        },
+      });
+    });
+
+    it("does not modify primaryDemonstrationRoleAssignment when isPrimary is undefined", async () => {
+      const inputWithoutPrimary: SetDemonstrationRoleInput = {
         demonstrationId: "demo-1",
         personId: "person-1",
         roleId: "DDME Analyst",
-        isPrimary: true,
       };
 
-      await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRole(null, { input });
+      await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRole(null, {
+        input: inputWithoutPrimary,
+      });
 
-      expect(validateSetDemonstrationRoleInput).toHaveBeenCalledWith(input, expect.any(Object));
+      expect(
+        mockPrismaTransaction.primaryDemonstrationRoleAssignment.upsert
+      ).not.toHaveBeenCalled();
+      expect(
+        mockPrismaTransaction.primaryDemonstrationRoleAssignment.deleteMany
+      ).not.toHaveBeenCalled();
+    });
+
+    it("fetches and returns the created/updated role assignment", async () => {
+      const result = await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRole(null, {
+        input: testInput,
+      });
+
+      expect(selectDemonstrationRoleAssignmentOrThrow).toHaveBeenCalledExactlyOnceWith(
+        {
+          personId: testInput.personId,
+          demonstrationId: testInput.demonstrationId,
+          roleId: testInput.roleId,
+        },
+        mockPrismaTransaction
+      );
+      expect(result).toBe(mockRoleAssignment);
     });
   });
 
