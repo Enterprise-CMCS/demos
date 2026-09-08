@@ -91,6 +91,7 @@ export async function setDemonstrationRole(
         },
         update: {
           personId: person.id,
+          personTypeId: person.personTypeId,
         },
         create: {
           demonstrationId: demonstration.id,
@@ -163,6 +164,7 @@ export async function setDemonstrationRoles(
           },
           update: {
             personId: person.id,
+            personTypeId: person.personTypeId,
           },
           create: {
             demonstrationId: demonstration.id,
