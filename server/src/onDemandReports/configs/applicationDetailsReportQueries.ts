@@ -155,7 +155,10 @@ app_notes AS (
 
 SELECT
     demo_state.name AS state,
-    app.application_type_id AS application_type,
+    CASE
+        WHEN app.application_type_id = 'Extension' THEN 'Renewal'
+        ELSE app.application_type_id
+    END AS application_type,
     app.application_title,
     demo.medicaid_id AS demonstration_number,
     CASE WHEN demo_type.demonstration_id IS NOT NULL THEN demo.chip_id ELSE '-' END AS chip_id,

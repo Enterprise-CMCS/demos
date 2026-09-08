@@ -1,7 +1,6 @@
 import { z } from "zod";
 import {
   APPLICATION_STATUS,
-  APPLICATION_TYPES,
   CLEARANCE_LEVELS,
   SDG_DIVISIONS,
   SIGNATURE_LEVEL,
@@ -83,7 +82,7 @@ type ApplicationDetailsReportColumn =
 const applicationDetailsReportSchema = z
   .object({
     state: z.enum(STATES_AND_TERRITORIES.map((state) => state.name)),
-    application_type: z.enum(APPLICATION_TYPES),
+    application_type: z.enum(["Demonstration", "Amendment", "Renewal"]),
     application_title: z.string(),
     demonstration_number: z.string(),
     chip_id: z.string(),
