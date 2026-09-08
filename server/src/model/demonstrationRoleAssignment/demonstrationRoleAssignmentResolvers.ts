@@ -108,11 +108,14 @@ export async function setDemonstrationRole(
         },
       });
     }
-    return selectDemonstrationRoleAssignmentOrThrow({
-      personId: input.personId,
-      demonstrationId: input.demonstrationId,
-      roleId: input.roleId,
-    });
+    return selectDemonstrationRoleAssignmentOrThrow(
+      {
+        personId: input.personId,
+        demonstrationId: input.demonstrationId,
+        roleId: input.roleId,
+      },
+      tx
+    );
   });
 }
 
