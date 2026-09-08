@@ -39,50 +39,60 @@ vi.mock("components/application/phase-status/phaseCompletionQueries", () => ({
   }),
 }));
 
-const mockApplication: Pick<WorkflowApplication, "id" | "phases"> = {
+const DEFAULT_PHASE_DATES = [
+  {
+    dateType: "Internal Expected Approval Date" as const,
+    dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+  },
+  {
+    dateType: "State Requested Approval Date" as const,
+    dateValue: parseISO("2025-03-15T04:00:00.000Z"),
+  },
+];
+
+const COMPLETE_PHASE_DATES = [
+  {
+    dateType: "Internal Expected Approval Date" as const,
+    dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+  },
+  { dateType: "SME Initial Review Date" as const, dateValue: parseISO("2025-01-01T05:00:00.000Z") },
+  {
+    dateType: "FRT Initial Meeting Date" as const,
+    dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+  },
+  {
+    dateType: "BNPMT Initial Meeting Date" as const,
+    dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+  },
+];
+
+const createApplication = (
+  overrides: Partial<Pick<WorkflowApplication, "id" | "phases">> = {}
+): Pick<WorkflowApplication, "id" | "phases"> => ({
   id: "1",
   phases: [
     {
-      phaseName: "SDG Preparation",
-      phaseStatus: "Not Started",
-      phaseDates: [
-        {
-          dateType: "Internal Expected Approval Date",
-          dateValue: parseISO("2025-01-01T05:00:00.000Z"),
-        },
-        {
-          dateType: "State Requested Approval Date",
-          dateValue: parseISO("2025-03-15T04:00:00.000Z"),
-        },
-      ],
+      phaseName: "SDG Preparation" as const,
+      phaseStatus: "Not Started" as const,
+      phaseDates: DEFAULT_PHASE_DATES,
       phaseNotes: [],
     },
   ],
-};
+  ...overrides,
+});
 
-const mockCompleteApplication: Pick<WorkflowApplication, "id" | "phases"> = {
-  ...mockApplication,
+const mockApplication = createApplication();
+
+const mockCompleteApplication = createApplication({
   phases: [
     {
-      ...mockApplication.phases[0],
-      phaseDates: [
-        {
-          dateType: "Internal Expected Approval Date",
-          dateValue: parseISO("2025-01-01T05:00:00.000Z"),
-        },
-        { dateType: "SME Initial Review Date", dateValue: parseISO("2025-01-01T05:00:00.000Z") },
-        {
-          dateType: "FRT Initial Meeting Date",
-          dateValue: parseISO("2025-01-01T05:00:00.000Z"),
-        },
-        {
-          dateType: "BNPMT Initial Meeting Date",
-          dateValue: parseISO("2025-01-01T05:00:00.000Z"),
-        },
-      ],
+      phaseName: "SDG Preparation" as const,
+      phaseStatus: "Not Started" as const,
+      phaseDates: COMPLETE_PHASE_DATES,
+      phaseNotes: [],
     },
   ],
-};
+});
 
 const mockSetSelectedPhase = vi.fn();
 

@@ -53,7 +53,9 @@ const makeApplication = (overrides: Partial<WorkflowApplication> = {}): Workflow
   ...overrides,
 });
 
-const mockCompletenessDoc: ApplicationWorkflowDocument = {
+const createDocument = (
+  overrides: Partial<ApplicationWorkflowDocument> = {}
+): ApplicationWorkflowDocument => ({
   id: "doc-1",
   name: "Completeness Letter",
   description: "Test letter",
@@ -61,17 +63,8 @@ const mockCompletenessDoc: ApplicationWorkflowDocument = {
   phaseName: "Completeness",
   owner: { person: { fullName: "Jane Doe" } },
   createdAt: new TZDate("2026-02-01", EST_TIMEZONE),
-};
-
-const mockInternalDoc: ApplicationWorkflowDocument = {
-  id: "doc-2",
-  name: "Internal Form",
-  description: "Internal form",
-  documentType: "Internal Completeness Review Form",
-  phaseName: "Completeness",
-  owner: { person: { fullName: "John Smith" } },
-  createdAt: new TZDate("2026-02-02", EST_TIMEZONE),
-};
+  ...overrides,
+});
 
 describe("CompletenessPhase", () => {
   const mockSetSelectedPhase = vi.fn();
@@ -205,7 +198,18 @@ describe("getApplicationCompletenessFromApplication", () => {
 
   it("filters documents to only those in the Completeness phase", () => {
     setup({
-      documents: [mockCompletenessDoc, { ...mockInternalDoc, phaseName: "Federal Comment" }],
+      documents: [
+        createDocument(),
+        createDocument({
+          id: "doc-2",
+          name: "Internal Form",
+          description: "Internal form",
+          documentType: "Internal Completeness Review Form",
+          owner: { person: { fullName: "John Smith" } },
+          createdAt: new TZDate("2026-02-02", EST_TIMEZONE),
+          phaseName: "Federal Comment",
+        }),
+      ],
     });
     expect(screen.getByText("Completeness Letter")).toBeInTheDocument();
     expect(screen.queryByText("Internal Form")).not.toBeInTheDocument();
@@ -227,7 +231,18 @@ describe("getApplicationCompletenessFromApplication", () => {
           phaseNotes: [],
         },
       ],
-      documents: [mockCompletenessDoc, mockInternalDoc],
+      documents: [
+        createDocument(),
+        createDocument({
+          id: "doc-2",
+          name: "Internal Form",
+          description: "Internal form",
+          documentType: "Internal Completeness Review Form",
+          phaseName: "Completeness",
+          owner: { person: { fullName: "John Smith" } },
+          createdAt: new TZDate("2026-02-02", EST_TIMEZONE),
+        }),
+      ],
     });
     expect(screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME)).toHaveValue("");
     expect(screen.getByTestId(FEDERAL_COMMENT_START_DATEPICKER_NAME)).toHaveValue("");
