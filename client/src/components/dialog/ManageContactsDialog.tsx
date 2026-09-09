@@ -424,7 +424,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     if (!hasValidPrimaries) {
       return ERROR_MESSAGES.TOO_MANY_PRIMARY;
     }
-    return false;
+    return null;
   }, [selectedContacts]);
 
   const hasChanges = useMemo(() => {
