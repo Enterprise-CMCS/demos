@@ -6,7 +6,7 @@ import { ErrorIcon, SearchIcon, WarningIcon } from "components/icons";
 import { Table } from "components/table/Table";
 import { useToast } from "components/toast";
 import { ConfirmationToast } from "components/toast/ConfirmationToast";
-import type { DemonstrationRoleAssignment, Person } from "demos-server";
+import type { DemonstrationRoleAssignment, Person, PersonType } from "demos-server";
 import {
   ADMIN_DEMONSTRATION_ROLES,
   CMS_USER_DEMONSTRATION_ROLES,
@@ -273,7 +273,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
 
           if (
             newType === "Project Officer" &&
-            !contact.idmRoles?.includes("demos-restricted-cms-user")
+            !contact.idmRoles?.includes("demos-restricted-cms-user" satisfies PersonType)
           ) {
             const existingPrimaryPOs = previousContacts.filter(
               (c) => c.contactType === "Project Officer" && c.isPrimary && c.id !== id
@@ -296,7 +296,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
           if (
             otherPOs.length > 0 &&
             contact.id === otherPOs[0].id &&
-            !contact.idmRoles?.includes("demos-restricted-cms-user")
+            !contact.idmRoles?.includes("demos-restricted-cms-user" satisfies PersonType)
           ) {
             return { ...contact, isPrimary: true };
           }
