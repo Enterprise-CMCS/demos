@@ -24,7 +24,7 @@ type DemonstrationOverviewReportColumn =
   | "signature_level"
   | "effective_date"
   | "expiration_date"
-  | "extension_in_progress"
+  | "renewal_in_progress"
   | "amendment_in_progress"
   | "approved_amendment_applications"
   | "primary_project_officer"
@@ -49,7 +49,7 @@ export const demonstrationOverviewReportSchema = z
     signature_level: z.enum([...SIGNATURE_LEVEL, "-"]),
     effective_date: usDateStringOrDash,
     expiration_date: usDateStringOrDash,
-    extension_in_progress: z.enum(["Yes", "No"]),
+    renewal_in_progress: z.enum(["Yes", "No"]),
     amendment_in_progress: z.enum(["Yes", "No"]),
     approved_amendment_applications: z.int(),
     primary_project_officer: z.string(),
@@ -75,7 +75,7 @@ export const demonstrationOverviewReportColumnHeaders = {
   signature_level: { columnName: "Signature Level" },
   effective_date: { columnName: "Demonstration Effective Date" },
   expiration_date: { columnName: "Demonstration Expiration Date" },
-  extension_in_progress: { columnName: "Extension in Progress" },
+  renewal_in_progress: { columnName: "Renewal in Progress" },
   amendment_in_progress: { columnName: "Amendment in Progress" },
   approved_amendment_applications: { columnName: "Approved Amendment Applications" },
   primary_project_officer: { columnName: "Primary Project Officer" },
