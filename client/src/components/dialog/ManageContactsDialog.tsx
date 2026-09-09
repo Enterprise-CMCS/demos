@@ -2,7 +2,7 @@ import React, { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState }
 
 import { Button } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
-import { SearchIcon, WarningIcon } from "components/icons";
+import { ErrorIcon, SearchIcon, WarningIcon } from "components/icons";
 import { Table } from "components/table/Table";
 import { useToast } from "components/toast";
 import { ConfirmationToast } from "components/toast/ConfirmationToast";
@@ -23,6 +23,13 @@ import { gql, useLazyQuery, useMutation } from "@apollo/client";
 import type { ContactRow, ContactType } from "../table/columns/ContactColumns";
 import { ContactColumns } from "../table/columns/ContactColumns";
 import { PaginationControls } from "../table/PaginationControls";
+
+export const ERROR_MESSAGES = {
+  NO_CONTACTS: "At least one contact is required.",
+  MISSING_CONTACT_TYPES: "All contacts must have a valid contact type.",
+  NOT_ONE_PRIMARY_PROJECT_OFFICER: "There must be exactly one primary project officer.",
+  TOO_MANY_PRIMARY: "For each contact type, there can only be up to one primary assignment.",
+};
 
 export const SEARCH_PEOPLE_QUERY = gql`
   query ManageContactsQuery {
@@ -160,7 +167,10 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   const optionsByRole = useMemo(
     () => ({
       "demos-cms-user": CMS_USER_DEMONSTRATION_ROLES.map((role) => ({ label: role, value: role })),
-      "demos-restricted-cms-user": CMS_USER_DEMONSTRATION_ROLES.map((role) => ({ label: role, value: role })),
+      "demos-restricted-cms-user": CMS_USER_DEMONSTRATION_ROLES.map((role) => ({
+        label: role,
+        value: role,
+      })),
       "demos-state-user": STATE_USER_DEMONSTRATION_ROLES.map((role) => ({
         label: role,
         value: role,
@@ -184,7 +194,8 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     const roles = idmRoles ?? [];
     let options;
     if (roles.includes("demos-cms-user")) options = optionsByRole["demos-cms-user"];
-    else if (roles.includes("demos-restricted-cms-user")) options = optionsByRole["demos-restricted-cms-user"];
+    else if (roles.includes("demos-restricted-cms-user"))
+      options = optionsByRole["demos-restricted-cms-user"];
     else if (roles.includes("demos-state-user")) options = optionsByRole["demos-state-user"];
     else if (roles.includes("demos-admin")) options = optionsByRole["demos-admin"];
     else options = optionsByRole.Default;
@@ -260,7 +271,10 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
         if (contact.id === id) {
           let newIsPrimary = false;
 
-          if (newType === "Project Officer") {
+          if (
+            newType === "Project Officer" &&
+            !contact.idmRoles?.includes("demos-restricted-cms-user")
+          ) {
             const existingPrimaryPOs = previousContacts.filter(
               (c) => c.contactType === "Project Officer" && c.isPrimary && c.id !== id
             );
@@ -279,7 +293,11 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
             (c) => c.contactType === "Project Officer" && c.id !== id
           );
 
-          if (otherPOs.length > 0 && contact.id === otherPOs[0].id) {
+          if (
+            otherPOs.length > 0 &&
+            contact.id === otherPOs[0].id &&
+            !contact.idmRoles?.includes("demos-restricted-cms-user")
+          ) {
             return { ...contact, isPrimary: true };
           }
         }
@@ -373,23 +391,20 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     setContactToDelete(null);
   };
 
-  const allValid = useMemo(() => {
+  const errorMessage = useMemo(() => {
     if (selectedContacts.length === 0) {
-      return false;
+      return ERROR_MESSAGES.NO_CONTACTS;
     }
 
     if (!selectedContacts.every((c) => !!c.contactType)) {
-      return false;
+      return ERROR_MESSAGES.MISSING_CONTACT_TYPES;
     }
 
-    const projectOfficers = selectedContacts.filter((c) => c.contactType === "Project Officer");
-    if (projectOfficers.length === 0) {
-      return false;
-    }
-
-    const primaryProjectOfficers = projectOfficers.filter((c) => c.isPrimary);
+    const primaryProjectOfficers = selectedContacts.filter(
+      (c) => c.contactType === "Project Officer" && c.isPrimary
+    );
     if (primaryProjectOfficers.length !== 1) {
-      return false;
+      return ERROR_MESSAGES.NOT_ONE_PRIMARY_PROJECT_OFFICER;
     }
 
     const allTypes = Array.from(
@@ -406,7 +421,10 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
       return primariesOfType.length <= 1;
     });
 
-    return hasValidPrimaries;
+    if (!hasValidPrimaries) {
+      return ERROR_MESSAGES.TOO_MANY_PRIMARY;
+    }
+    return false;
   }, [selectedContacts]);
 
   const hasChanges = useMemo(() => {
@@ -559,7 +577,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
             name="button-save"
             size="small"
             onClick={handleSubmit}
-            disabled={!allValid || !hasChanges || isSubmitting}
+            disabled={!!errorMessage || !hasChanges || isSubmitting}
           >
             {isSubmitting ? "Saving..." : "Save"}
           </Button>
@@ -680,6 +698,12 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
             <span className="text-sm font-medium">
               You have just reassigned a primary contact type.
             </span>
+          </div>
+        )}
+        {errorMessage && (
+          <div className="flex items-center gap-xs text-error">
+            <ErrorIcon className="h-4 w-4" />
+            <span className="text-sm font-medium">{errorMessage}</span>
           </div>
         )}
       </BaseDialog>
