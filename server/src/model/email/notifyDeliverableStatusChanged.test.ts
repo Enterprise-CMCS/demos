@@ -20,6 +20,7 @@ import { prisma } from "../../prismaClient";
 import { enqueueTrackedRealtimeEmail } from "./emailNotification";
 import {
   notifyDeliverableCompleted,
+  notifyDeliverableExtensionDecisionMade,
   notifyDeliverableResubmissionRequested,
   notifyDeliverableSubmitted,
 } from "./notifyDeliverableStatusChanged";
@@ -146,6 +147,38 @@ describe("deliverable status email notifications", () => {
       [{ personId: "state-poc-1" }]
     );
   });
+
+  it.each(["Approved", "Denied"] as const)(
+    "queues extension %s decisions for State Points of Contact",
+    async (extensionDecision) => {
+      const previousDueDate = new Date("2026-08-31T23:59:59.999Z");
+
+      await notifyDeliverableExtensionDecisionMade({
+        ...input,
+        extensionDecision,
+        previousDueDate,
+      });
+
+      expect(enqueueTrackedRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({
+          emailType: "Extension Decision Made",
+          payload: expect.objectContaining({
+            recipients: {
+              to: [],
+              bcc: [{ name: "State Contact", address: "state@example.com" }],
+            },
+            deliverable: expect.objectContaining({
+              dueDate: deliverable.dueDate.toISOString(),
+              extensionDecision,
+              previousDueDate: previousDueDate.toISOString(),
+            }),
+          }),
+        }),
+        { deliverableActionId: input.sourceActionId },
+        [{ personId: "state-poc-1" }]
+      );
+    }
+  );
 
   it("reports when a State Point of Contact cannot be found", async () => {
     findUniqueOrThrow.mockResolvedValue({

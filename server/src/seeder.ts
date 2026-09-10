@@ -368,7 +368,8 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
     {
       deliverableExtensionId: firstDeliverableExtension.id,
     },
-    context
+    context,
+    { sendEmailNotifications: false }
   );
   await submitDeliverable(deliverable.id, context, { sendEmailNotifications: false });
   await startDeliverableReview(deliverable.id, context);
@@ -405,7 +406,8 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
       deliverableExtensionId: secondDeliverableExtension.id,
       details: "Users have already submitted, no extension is required",
     },
-    context
+    context,
+    { sendEmailNotifications: false }
   );
   await completeDeliverable(deliverable.id, "Approved", context, {
     sendEmailNotifications: false,

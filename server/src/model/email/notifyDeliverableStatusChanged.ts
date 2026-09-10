@@ -43,6 +43,18 @@ export async function notifyDeliverableResubmissionRequested(
   });
 }
 
+export async function notifyDeliverableExtensionDecisionMade(
+  input: DeliverableEmailInput & {
+    extensionDecision: "Approved" | "Denied";
+    previousDueDate: Date;
+  }
+): Promise<void> {
+  return notifyDeliverableStatusChanged(input, "Extension Decision Made", "state", {
+    extensionDecision: input.extensionDecision,
+    previousDueDate: input.previousDueDate.toISOString(),
+  });
+}
+
 async function notifyDeliverableStatusChanged(
   input: DeliverableEmailInput,
   emailType: RealtimeEmailType,

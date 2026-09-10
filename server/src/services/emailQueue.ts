@@ -9,6 +9,7 @@ export type RealtimeEmailType =
   | "Deliverable Accepted"
   | "Deliverable Approved"
   | "Deliverable Received and Filed"
+  | "Extension Decision Made"
   | "Resubmission Requested";
 
 export type RealtimeEmailMessage = {

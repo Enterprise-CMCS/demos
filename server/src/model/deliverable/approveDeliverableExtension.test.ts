@@ -41,6 +41,10 @@ vi.mock("../../errors/checkOptionalNotNullFields", () => ({
   checkOptionalNotNullFields: vi.fn(),
 }));
 
+vi.mock("../email/notifyDeliverableStatusChanged", () => ({
+  notifyDeliverableExtensionDecisionMade: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient";
 import {
   editDeliverable,
@@ -55,6 +59,7 @@ import {
   updateDeliverableExtension,
 } from "../deliverableExtension/queries";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
+import { notifyDeliverableExtensionDecisionMade } from "../email/notifyDeliverableStatusChanged";
 
 describe("approveDeliverableExtension", () => {
   // Test inputs
@@ -93,6 +98,7 @@ describe("approveDeliverableExtension", () => {
       easternTZDate: new TZDate(2026, 9, 28, 23, 59, 59, 999, "America/New_York"),
     },
   };
+  const mockActionId = "046c6934-91e1-4dc0-b61d-18a1d13c35d4";
 
   // Mock transaction
   const mockTransaction: any = "Test!";
@@ -111,6 +117,7 @@ describe("approveDeliverableExtension", () => {
     );
     vi.mocked(parseApproveDeliverableExtensionInput).mockReturnValue(mockParsedInput);
     vi.mocked(editDeliverable).mockResolvedValue(mockApprovedDeliverable as PrismaDeliverable);
+    vi.mocked(insertDeliverableAction).mockResolvedValue({ id: mockActionId } as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
@@ -253,6 +260,29 @@ describe("approveDeliverableExtension", () => {
       },
       mockTransaction
     );
+  });
+
+  it("should notify State Points of Contact after approving the extension", async () => {
+    await approveDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
+
+    expect(notifyDeliverableExtensionDecisionMade).toHaveBeenCalledExactlyOnceWith({
+      deliverableId: testDeliverableId,
+      extensionDecision: "Approved",
+      previousDueDate: mockUnapprovedDeliverable.dueDate,
+      sourceActionId: mockActionId,
+      triggeredByUserId: testContext.user!.id,
+    });
+  });
+
+  it("should not notify State Points of Contact when notifications are disabled", async () => {
+    await approveDeliverableExtension(
+      testDeliverableId,
+      testInput,
+      testContext as GraphQLContext,
+      { sendEmailNotifications: false }
+    );
+
+    expect(notifyDeliverableExtensionDecisionMade).not.toHaveBeenCalled();
   });
 
   it("should invoke the updates to tables in the right order", async () => {

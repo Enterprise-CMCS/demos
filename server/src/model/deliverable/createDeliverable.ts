@@ -53,7 +53,7 @@ export async function createDeliverable(
       sourceActionId: action.id,
     };
   });
-
+  // EMAIL TIME!
   if (options.sendEmailNotifications !== false) {
     await notifyDeliverableCreated({
       deliverableId: createdDeliverable.id,
