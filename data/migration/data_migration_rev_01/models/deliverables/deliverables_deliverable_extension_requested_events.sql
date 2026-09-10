@@ -22,7 +22,8 @@ SELECT
     FALSE AS extension_id_optional,
     deliverable_extension._deliverable_due_date AS old_due_date,
     deliverable_extension._deliverable_due_date AS new_due_date,
-    users.id AS user_id
+    users.id AS _staged_user_id,
+    deliverable_extension._legacy_rqst_user_id
 FROM
     {{ ref('final_demos_app_deliverable_extension') }} AS deliverable_extension
 LEFT JOIN {{ source('legacy_pmda_staged', 'final_demos_app_person') }} AS users -- noqa: RF04 

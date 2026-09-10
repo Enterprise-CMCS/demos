@@ -53,4 +53,4 @@ SELECT
     new_due_date,
     user_id
 FROM
-    {{ ref('cleaned_demos_app_deliverable_action_extension_request_events') }}
+    {{ ref('cleaned_demos_app_deliverable_action_ext_req_events_fallback') }}
