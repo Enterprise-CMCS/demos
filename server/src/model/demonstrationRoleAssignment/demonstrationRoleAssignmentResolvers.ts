@@ -91,6 +91,7 @@ export async function setDemonstrationRole(
         },
         update: {
           personId: person.id,
+          personTypeId: person.personTypeId,
         },
         create: {
           demonstrationId: demonstration.id,
@@ -108,11 +109,14 @@ export async function setDemonstrationRole(
         },
       });
     }
-    return selectDemonstrationRoleAssignmentOrThrow({
-      personId: input.personId,
-      demonstrationId: input.demonstrationId,
-      roleId: input.roleId,
-    });
+    return selectDemonstrationRoleAssignmentOrThrow(
+      {
+        personId: input.personId,
+        demonstrationId: input.demonstrationId,
+        roleId: input.roleId,
+      },
+      tx
+    );
   });
 }
 
@@ -160,6 +164,7 @@ export async function setDemonstrationRoles(
           },
           update: {
             personId: person.id,
+            personTypeId: person.personTypeId,
           },
           create: {
             demonstrationId: demonstration.id,

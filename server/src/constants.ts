@@ -535,6 +535,7 @@ export const PERMISSIONS = [
   "Edit State Documents on Assigned Deliverables",
   "Delete All Documents",
   "Delete State Documents on Assigned Deliverables",
+  "Generate On-Demand Report",
 
   // Field Level Permissions
   "Access Admin Field",

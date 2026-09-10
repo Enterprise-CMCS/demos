@@ -64,7 +64,9 @@ export const DemosRouter: React.FC = () => {
                 <Route
                   path="reports"
                   element={
-                    <RequireRole allowedRoles={["demos-admin", "demos-cms-user"]}>
+                    <RequireRole
+                      allowedRoles={["demos-admin", "demos-cms-user", "demos-restricted-cms-user"]}
+                    >
                       <ReportsPage />
                     </RequireRole>
                   }

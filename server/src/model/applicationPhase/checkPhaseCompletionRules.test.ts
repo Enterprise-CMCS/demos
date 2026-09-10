@@ -292,7 +292,6 @@ describe("checkPhaseCompletionRules", () => {
           testApplicationDateMapReturn,
         ],
         [testApplicationId, "Review", "Receive OMB Concurrence", testApplicationDateMapReturn],
-        [testApplicationId, "Review", "Receive OGC Legal Clearance", testApplicationDateMapReturn],
         [
           testApplicationId,
           "Review",
@@ -356,7 +355,6 @@ describe("checkPhaseCompletionRules", () => {
           testApplicationDateMapReturn,
         ],
         [testApplicationId, "Review", "Receive OMB Concurrence", testApplicationDateMapReturn],
-        [testApplicationId, "Review", "Receive OGC Legal Clearance", testApplicationDateMapReturn],
         [
           testApplicationId,
           "Review",

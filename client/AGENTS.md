@@ -72,6 +72,7 @@ This file provides instructions for AI agents to use when generating or editing 
 - Use <TestProvider> as needed to provide dependencies such as toasts, auth, routing, etc.
 - Prefer to not mock <DialogProvider>. Also <TestProvider> does not provide dialogs and they should be provided inside of <TestProvider> if needed.
 - Generally, avoid firing manual focus / blur events in tests
+- Avoid redeclaring the same data across tests, try to create a "Base Case" entity and then use the spread operator or a factory function to create a more tightly-scoped entity for the system under test.
 
 ### Mock Data
 

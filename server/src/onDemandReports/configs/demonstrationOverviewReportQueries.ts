@@ -72,7 +72,7 @@ SELECT
     coalesce(demo.signature_level_id, '-') AS signature_level,
     coalesce(to_char(demo.effective_date AT TIME ZONE 'America/New_York', 'MM/DD/YYYY'), '-') AS effective_date,
     coalesce(to_char(demo.expiration_date AT TIME ZONE 'America/New_York', 'MM/DD/YYYY'), '-') AS expiration_date,
-    coalesce(active_extensions.extension_in_progress, 'No') AS extension_in_progress,
+    coalesce(active_extensions.extension_in_progress, 'No') AS renewal_in_progress,
     coalesce(active_approved_amendments.amendment_in_progress, 'No') AS amendment_in_progress,
     coalesce(active_approved_amendments.approved_amendment_applications::INT, 0) AS approved_amendment_applications,
     primary_project_officer.full_name AS primary_project_officer,
