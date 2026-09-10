@@ -7,6 +7,7 @@ SELECT
     deliverable_extension.final_date_granted,
     deliverable_extension.created_at,
     deliverable_extension.updated_at,
+    deliverable_extension._legacy_mdcd_dlvrbl_id,
     deliverable_extension._legacy_mdcd_due_dt_chg_rqst_id,
     deliverable_extension._legacy_mdcd_orgnl_dlvrbl_due_dt,
     deliverable_extension._legacy_cmt_txt,

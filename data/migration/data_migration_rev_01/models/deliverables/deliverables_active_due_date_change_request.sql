@@ -13,6 +13,7 @@ WITH active_change_request AS (
         change_request.orgnl_dlvrbl_due_dt AS _legacy_mdcd_orgnl_dlvrbl_due_dt,
         change_request.cmt_txt AS _legacy_cmt_txt,
         change_request.rqst_user_id AS _legacy_rqst_user_id,
+        deliverable._legacy_mdcd_dlvrbl_id,
         deliverable.due_date AS _deliverable_due_date
     FROM {{ source('legacy_pmda_raw', 'mdcd_due_dt_chg_rqst') }} AS change_request
     LEFT JOIN {{ ref('final_demos_app_deliverable') }} AS deliverable

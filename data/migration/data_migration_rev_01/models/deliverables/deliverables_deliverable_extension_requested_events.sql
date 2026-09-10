@@ -4,16 +4,19 @@ SELECT
     'Requested Extension' AS action_type_id,
     CASE
         WHEN
-            deliverable_extension.created_at > deliverable_extension._legacy_mdcd_orgnl_dlvrbl_due_dt
+            deliverable_extension.created_at > due_date_hist.dlvrbl_due_dt
             THEN 'Past Due'
         ELSE 'Upcoming'
     END AS old_status_id,
     CASE
         WHEN
-            deliverable_extension.created_at > deliverable_extension._legacy_mdcd_orgnl_dlvrbl_due_dt
+            deliverable_extension.created_at > due_date_hist.dlvrbl_due_dt
             THEN 'Past Due'
         ELSE 'Upcoming'
     END AS new_status_id,
+    due_date_hist.dlvrbl_due_dt AS due_date,
+    due_date_hist.from_time AS due_date_from_time,
+    due_date_hist.to_time AS due_date_to_time,
     coalesce(deliverable_extension._legacy_cmt_txt, 'Extension requested.') AS note,
     deliverable_extension.id AS active_extension_id,
     FALSE AS due_date_change_allowed,
@@ -29,3 +32,8 @@ FROM
 LEFT JOIN {{ source('legacy_pmda_staged', 'final_demos_app_person') }} AS users -- noqa: RF04 
     ON
         deliverable_extension._legacy_rqst_user_id = users._legacy_users_id
+LEFT JOIN
+    {{ ref('deliverables_history_due_date_by_date_range') }} AS due_date_hist
+    ON
+        deliverable_extension._legacy_mdcd_dlvrbl_id = due_date_hist.mdcd_dlvrbl_id
+        AND deliverable_extension.created_at BETWEEN due_date_hist.from_time AND due_date_hist.to_time
