@@ -194,7 +194,7 @@ models:
                 values:
                   - TRUE
 
-  - name: final_demos_app_application_combined_with_demos_app
+  - name: cleaned_demos_app_application_combined_with_demos_app
     columns:
       - name: id
         data_type: uuid
@@ -283,7 +283,7 @@ models:
           - relationships:
               name: assert_document_application_id_exists_in_application
               arguments:
-                to: ref('final_demos_app_application_combined_with_demos_app')
+                to: ref('cleaned_demos_app_application_combined_with_demos_app')
                 field: id
       - name: phase_id
         data_type: text
