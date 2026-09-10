@@ -111,7 +111,7 @@ export type {
   SetDemonstrationTypesInput,
 } from "./model/demonstrationTypeTagAssignment/demonstrationTypeTagAssignmentSchema.js";
 
-export type { Tag } from "./model/tag/tagSchema.js";
+export type { Tag, DemonstrationTypeUsageSummary } from "./model/tag";
 
 export type {
   ApproveDeliverableExtensionInput,
