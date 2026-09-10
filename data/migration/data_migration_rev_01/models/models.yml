@@ -773,6 +773,16 @@ models:
               name: assert_no_null_comment_types_in_cleaned
 
   # Deliverable Models
+  - name: deliverables_active_due_date_change_request
+    columns:
+      - name: _legacy_mdcd_due_dt_chg_rqst_id
+        data_type: integer
+        data_tests:
+          - not_null:
+              name: assert_no_null_legacy_mdcd_due_dt_chg_rqst_id_in_active_due_date_change_request
+          - unique:
+              name: assert_legacy_mdcd_due_dt_chg_rqst_id_is_unique
+
   - name: deliverables_history_due_date_by_date_range
     columns:
       - name: dlvrbl_due_dt
