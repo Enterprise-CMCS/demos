@@ -1,7 +1,7 @@
 import { prisma } from "../../../prismaClient";
-import { DemonstrationTypeUsageSummary, TagName, TagStatus } from "../../../types";
+import type { DemonstrationTypeUsageSummary, TagName, TagStatus } from "../../../types";
 
-type QueryResult = {
+export type QueryResult = {
   demonstration_type: TagName;
   status: TagStatus;
   count_tagged_apps_demonstrations: number;
@@ -87,10 +87,9 @@ export async function getDemonstrationTypeSummaryCounts(): Promise<
     WHERE
       tag.tag_type_id = 'Demonstration Type';`;
 
-  // Casts are enforced at the database level
-  const flattened_results: DemonstrationTypeUsageSummary[] = [];
+  const formatted_results: DemonstrationTypeUsageSummary[] = [];
   for (const result of results) {
-    flattened_results.push({
+    formatted_results.push({
       demonstrationTypeName: result.demonstration_type,
       approvalStatus: result.status,
       countOfTaggedApplications: {
@@ -102,5 +101,5 @@ export async function getDemonstrationTypeSummaryCounts(): Promise<
       countOfAssignedDeliverables: result.count_assigned_deliverables,
     });
   }
-  return flattened_results;
+  return formatted_results;
 }
