@@ -25,6 +25,7 @@ export const tagSchema = gql`
     demonstrationTypeOptions: [Tag!]!
     applicationTagOptions: [Tag!]!
     demonstrationTypeUsageSummary: [DemonstrationTypeUsageSummary!]!
+      @auth(requires: ["Access Admin Query"])
   }
 `;
 
