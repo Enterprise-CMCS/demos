@@ -575,6 +575,8 @@ models:
         data_tests:
           - not_null:
               name: assert_deliverable_id_not_null_in_final_demos_app_deliverable_extension
+          - unique:
+              name: assert_deliverable_id_unique_in_final_demos_app_deliverable_extension
       - name: status_id
         data_type: text
         data_tests:
