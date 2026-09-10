@@ -1,4 +1,5 @@
-import { getDemonstrationTypeSummaryCounts, getFormattedTagsByTagType, Tag } from ".";
+import type { Tag } from "../../types";
+import { getDemonstrationTypeSummaryCounts, getFormattedTagsByTagType } from ".";
 
 export const tagResolvers = {
   Query: {
