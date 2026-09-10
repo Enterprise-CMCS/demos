@@ -346,14 +346,15 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
       createdAt: new Date(),
     },
   });
-  await submitDeliverable(deliverable.id, context);
+  await submitDeliverable(deliverable.id, context, { sendEmailNotifications: false });
   await requestDeliverableResubmission(
     deliverable.id,
     {
       details: "This is a resubmission request",
       newDueDate: "2028-12-31" as DateTimeOrLocalDate,
     },
-    context
+    context,
+    { sendEmailNotifications: false }
   );
   const firstDeliverableExtension = await selectDeliverableExtension(
     {
@@ -369,7 +370,7 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
     },
     context
   );
-  await submitDeliverable(deliverable.id, context);
+  await submitDeliverable(deliverable.id, context, { sendEmailNotifications: false });
   await startDeliverableReview(deliverable.id, context);
   await requestDeliverableResubmission(
     deliverable.id,
@@ -377,7 +378,8 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
       details: "This is a secondary resubmission request",
       newDueDate: "2029-01-31" as DateTimeOrLocalDate,
     },
-    context
+    context,
+    { sendEmailNotifications: false }
   );
   await requestDeliverableExtension(
     deliverable.id,
@@ -395,7 +397,7 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
     },
     true
   );
-  await submitDeliverable(deliverable.id, context);
+  await submitDeliverable(deliverable.id, context, { sendEmailNotifications: false });
   await startDeliverableReview(deliverable.id, context);
   await denyDeliverableExtension(
     deliverable.id,
@@ -405,7 +407,9 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
     },
     context
   );
-  await completeDeliverable(deliverable.id, "Approved", context);
+  await completeDeliverable(deliverable.id, "Approved", context, {
+    sendEmailNotifications: false,
+  });
 }
 
 async function seedNotes() {

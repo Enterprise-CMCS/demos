@@ -3,9 +3,17 @@ import { GetQueueUrlCommand, SendMessageCommand, SQSClient } from "@aws-sdk/clie
 import { PRIMARY_AWS_REGION } from "../constants";
 import { log } from "../log";
 
+export type RealtimeEmailType =
+  | "Deliverable Created"
+  | "Deliverable Submitted"
+  | "Deliverable Accepted"
+  | "Deliverable Approved"
+  | "Deliverable Received and Filed"
+  | "Resubmission Requested";
+
 export type RealtimeEmailMessage = {
   emailNotificationId?: string;
-  emailType: "Deliverable Created";
+  emailType: RealtimeEmailType;
   entityType: "deliverable";
   entityId: string;
   triggeredBy: {

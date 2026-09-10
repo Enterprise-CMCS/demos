@@ -24,9 +24,14 @@ vi.mock("../deliverableAction/queries", () => ({
   insertDeliverableAction: vi.fn(),
 }));
 
+vi.mock("../email/notifyDeliverableStatusChanged", () => ({
+  notifyDeliverableSubmitted: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient";
 import { editDeliverable, selectDeliverableOrThrow, validateSubmitDeliverableInput } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
+import { notifyDeliverableSubmitted } from "../email/notifyDeliverableStatusChanged";
 
 describe("submitDeliverable", () => {
   // Test inputs
@@ -48,6 +53,7 @@ describe("submitDeliverable", () => {
     statusId: "Submitted",
     dueDate: new Date(2026, 9, 13, 4, 59, 59, 999),
   };
+  const mockActionId = "046c6934-91e1-4dc0-b61d-18a1d13c35d4";
 
   // Mock transaction
   const mockTransaction: any = "Test!";
@@ -62,6 +68,7 @@ describe("submitDeliverable", () => {
       mockUnsubmittedDeliverable as PrismaDeliverable
     );
     vi.mocked(editDeliverable).mockResolvedValue(mockSubmittedDeliverable as PrismaDeliverable);
+    vi.mocked(insertDeliverableAction).mockResolvedValue({ id: mockActionId } as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
@@ -104,5 +111,23 @@ describe("submitDeliverable", () => {
       },
       mockTransaction
     );
+  });
+
+  it("should notify the CMS owner after submitting the deliverable", async () => {
+    await submitDeliverable(testDeliverableId, testContext as GraphQLContext);
+
+    expect(notifyDeliverableSubmitted).toHaveBeenCalledExactlyOnceWith({
+      deliverableId: testDeliverableId,
+      sourceActionId: mockActionId,
+      triggeredByUserId: testContext.user!.id,
+    });
+  });
+
+  it("should not notify the CMS owner when notifications are disabled", async () => {
+    await submitDeliverable(testDeliverableId, testContext as GraphQLContext, {
+      sendEmailNotifications: false,
+    });
+
+    expect(notifyDeliverableSubmitted).not.toHaveBeenCalled();
   });
 });
