@@ -1,19 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-JIRA_URL="${JIRA_URL:-https://jiraent.cms.gov}"
-PROJECT_KEY="${PROJECT_KEY:-DEMOS}"
-CONFLUENCE_URL="${CONFLUENCE_URL:-https://confluenceent.cms.gov}"
-CONFLUENCE_PAGE_ID="${CONFLUENCE_PAGE_ID:-1485117668}"
-
-: "${JIRA_API_TOKEN:?Export JIRA_API_TOKEN before running this script}"
 : "${CONF_API_TOKEN:?Export CONF_API_TOKEN before running this script}"
-
-# Pass the PI as the first argument, or set PI in the environment.
-# Examples: ./jira.sh PI6
-#           PI=PI7 ./jira.sh
-PI="${1:-${PI:-PI6}}"
-PI_LABEL_PREFIX="${PI}_"
+: "${JIRA_URL:?Export JIRA_URL before running this script}"
+: "${CONFLUENCE_URL:?Export CONFLUENCE_URL before running this script}"
+: "${CONFLUENCE_PAGE_ID:?Export CONFLUENCE_PAGE_ID before running this script}"
 
 page_size=100
 
@@ -39,25 +30,181 @@ search_jira() {
   printf '%s\n' "$response"
 }
 
-# Collect all epics for the requested PI. Jira labels do not support native
-# prefix matching, so labels are filtered locally after each page is fetched.
-epics='[]'
+confluence_request() {
+  local method=$1
+  local url=$2
+  local payload=${3:-}
+  local response
+
+  if [[ -n "$payload" ]]; then
+    if ! response=$(
+      curl --fail-with-body --silent --show-error \
+        -H "Authorization: Bearer $CONF_API_TOKEN" \
+        -H 'Accept: application/json' \
+        -H 'Content-Type: application/json' \
+        --request "$method" \
+        --data "$payload" \
+        "$url"
+    ); then
+      printf 'Confluence returned:\n%s\n' "$response" >&2
+      return 1
+    fi
+  else
+    if ! response=$(
+      curl --fail-with-body --silent --show-error \
+        -H "Authorization: Bearer $CONF_API_TOKEN" \
+        -H 'Accept: application/json' \
+        --request "$method" \
+        "$url"
+    ); then
+      printf 'Confluence returned:\n%s\n' "$response" >&2
+      return 1
+    fi
+  fi
+
+  printf '%s\n' "$response"
+}
+
+page=$(confluence_request \
+  GET \
+  "$CONFLUENCE_URL/rest/api/content/$CONFLUENCE_PAGE_ID?expand=body.storage,version")
+
+page_title=$(jq -er '.title' <<<"$page")
+current_version=$(jq -er '.version.number' <<<"$page")
+current_body=$(jq -r '.body.storage.value // ""' <<<"$page")
+next_version=$((current_version + 1))
+
+extract_input=$(jq -n --arg body "$current_body" '{body: $body}')
+
+# The Epic column in Confluence is the source of truth for both membership and
+# row order. Only Jira issue keys from that column are returned here.
+epics=$(python3 -c '
+import html.entities
+import json
+import re
+import sys
+import xml.etree.ElementTree as ET
+
+body = json.load(sys.stdin)["body"]
+
+def replace_named_entity(match):
+    name = match.group(1)
+    if name in ("amp", "lt", "gt", "quot", "apos"):
+        return match.group(0)
+    codepoint = html.entities.name2codepoint.get(name)
+    return f"&#{codepoint};" if codepoint else match.group(0)
+
+body = re.sub(r"&([A-Za-z][A-Za-z0-9]+);", replace_named_entity, body)
+wrapped = (
+    "<root xmlns:ac=\"http://atlassian.com/content\" "
+    "xmlns:ri=\"http://atlassian.com/resource/identifier\">"
+    + body
+    + "</root>"
+)
+
+try:
+    root = ET.fromstring(wrapped)
+except ET.ParseError as error:
+    print(f"Unable to parse the existing Confluence table: {error}", file=sys.stderr)
+    sys.exit(1)
+
+def local_name(tag):
+    return tag.rsplit("}", 1)[-1]
+
+def direct_cells(row):
+    return [cell for cell in row if local_name(cell.tag) in ("th", "td")]
+
+def table_rows(table):
+    for child in table:
+        child_name = local_name(child.tag)
+        if child_name == "tr":
+            yield child
+        elif child_name in ("thead", "tbody", "tfoot"):
+            for row in child:
+                if local_name(row.tag) == "tr":
+                    yield row
+
+def cell_text(cell):
+    return " ".join("".join(cell.itertext()).split())
+
+epics = []
+seen = set()
+managed_table_count = 0
+for table in (element for element in root.iter() if local_name(element.tag) == "table"):
+    rows = list(table_rows(table))
+    if not rows:
+        continue
+    headers = [cell_text(cell).casefold() for cell in direct_cells(rows[0])]
+    identifying_headers = {"epic", "summary", "total tickets"}
+    if not identifying_headers.issubset(headers):
+        continue
+    automated_headers = {
+        "epic",
+        "summary",
+        "total tickets",
+        "unassigned tickets",
+        "dev complete",
+        "ready for test",
+        "in qa",
+        "complete",
+        "% complete",
+        "bugs",
+    }
+    missing_headers = automated_headers.difference(headers)
+    if missing_headers:
+        print(
+            "Managed epic table is missing automated columns: "
+            + ", ".join(sorted(missing_headers)),
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    managed_table_count += 1
+    epic_column = headers.index("epic")
+    for row in rows[1:]:
+        cells = direct_cells(row)
+        if epic_column >= len(cells):
+            continue
+        match = re.search(
+            r"\b[A-Z][A-Z0-9_]*-\d+\b",
+            cell_text(cells[epic_column]),
+            re.IGNORECASE,
+        )
+        if not match:
+            continue
+        key = match.group(0).upper()
+        if key not in seen:
+            seen.add(key)
+            epics.append({"key": key})
+
+if managed_table_count == 0:
+    print("No managed epic tables were found on the Confluence page", file=sys.stderr)
+elif not epics:
+    print("No epic keys were found in the Confluence Epic column", file=sys.stderr)
+
+json.dump(epics, sys.stdout)
+' <<<"$extract_input")
+
+# Fetch all epic summaries in one paginated search and validate that every key
+# supplied in Confluence is an Epic visible to the Jira token.
+epic_count=$(jq 'length' <<<"$epics")
+if ((epic_count > 0)); then
+: "${JIRA_API_TOKEN:?Export JIRA_API_TOKEN before running this script}"
+keys_csv=$(jq -r '[.[].key | "\"" + . + "\""] | join(", ")' <<<"$epics")
+epic_details='{}'
 start_at=0
 
 while :; do
   response=$(search_jira \
-    "project = \"$PROJECT_KEY\" AND issuetype = Epic ORDER BY key" \
-    'summary,labels' \
+    "key in ($keys_csv) AND issuetype = Epic" \
+    'summary' \
     "$start_at")
 
-  epics=$(jq \
-    --argjson collected "$epics" \
-    --arg prefix "$PI_LABEL_PREFIX" '
-      $collected + [
-        .issues[]
-        | select(any(.fields.labels[]?; startswith($prefix)))
-        | {key, summary: .fields.summary}
-      ]
+  epic_details=$(jq \
+    --argjson collected "$epic_details" '
+      reduce .issues[] as $issue (
+        $collected;
+        .[$issue.key] = $issue.fields.summary
+      )
     ' <<<"$response")
 
   returned=$(jq '.issues | length' <<<"$response")
@@ -67,6 +214,24 @@ while :; do
   start_at=$((start_at + returned))
   ((start_at >= total)) && break
 done
+
+missing_epics=$(jq -n \
+  --argjson epics "$epics" \
+  --argjson details "$epic_details" '
+    [$epics[].key | select($details[.] == null)]
+  ')
+
+if (( $(jq 'length' <<<"$missing_epics") > 0 )); then
+  printf 'These Confluence entries are not visible Jira epics: %s\n' \
+    "$(jq -r 'join(", ")' <<<"$missing_epics")" >&2
+  exit 1
+fi
+
+epics=$(jq \
+  --argjson details "$epic_details" '
+    [.[] | . + {summary: $details[.key]}]
+  ' <<<"$epics")
+fi
 
 # Query the tickets belonging to each epic and calculate completion. Jira's
 # "done" status category includes statuses such as Done, Resolved, and Complete.
@@ -173,78 +338,41 @@ while ((epic_index < epic_count)); do
   epic_index=$((epic_index + 1))
 done
 
-confluence_request() {
-  local method=$1
-  local url=$2
-  local payload=${3:-}
-  local response
-
-  if [[ -n "$payload" ]]; then
-    if ! response=$(
-      curl --fail-with-body --silent --show-error \
-        -H "Authorization: Bearer $CONF_API_TOKEN" \
-        -H 'Accept: application/json' \
-        -H 'Content-Type: application/json' \
-        --request "$method" \
-        --data "$payload" \
-        "$url"
-    ); then
-      printf 'Confluence returned:\n%s\n' "$response" >&2
-      return 1
-    fi
-  else
-    if ! response=$(
-      curl --fail-with-body --silent --show-error \
-        -H "Authorization: Bearer $CONF_API_TOKEN" \
-        -H 'Accept: application/json' \
-        --request "$method" \
-        "$url"
-    ); then
-      printf 'Confluence returned:\n%s\n' "$response" >&2
-      return 1
-    fi
-  fi
-
-  printf '%s\n' "$response"
-}
-
-page=$(confluence_request \
-  GET \
-  "$CONFLUENCE_URL/rest/api/content/$CONFLUENCE_PAGE_ID?expand=body.storage,version")
-
-page_title=$(jq -er '.title' <<<"$page")
-current_version=$(jq -er '.version.number' <<<"$page")
-current_body=$(jq -r '.body.storage.value // ""' <<<"$page")
-next_version=$((current_version + 1))
-
 merge_input=$(jq -n \
   --argjson report "$report" \
   --arg currentBody "$current_body" \
-  --arg pi "$PI" \
   --arg jiraUrl "$JIRA_URL" '
     {
       report: $report,
       currentBody: $currentBody,
-      pi: $pi,
       jiraUrl: $jiraUrl
     }
   ')
 
 table_body=$(python3 -c '
 import html
+import html.entities
 import json
 import re
 import sys
 import xml.etree.ElementTree as ET
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 data = json.load(sys.stdin)
 current_body = data["currentBody"]
-manual_headers = ["Release Target", "Status", "Risks", "Dependencies"]
-manual_values = {}
-existing_order = []
+managed_tables = []
+root = None
 
 ET.register_namespace("ac", "http://atlassian.com/content")
 ET.register_namespace("ri", "http://atlassian.com/resource/identifier")
+
+def replace_named_entity(match):
+    name = match.group(1)
+    if name in ("amp", "lt", "gt", "quot", "apos"):
+        return match.group(0)
+    codepoint = html.entities.name2codepoint.get(name)
+    return f"&#{codepoint};" if codepoint else match.group(0)
 
 def local_name(tag):
     return tag.rsplit("}", 1)[-1]
@@ -274,6 +402,11 @@ def inner_xml(cell):
     return "".join(parts)
 
 if current_body.strip():
+    current_body = re.sub(
+        r"&([A-Za-z][A-Za-z0-9]+);",
+        replace_named_entity,
+        current_body,
+    )
     wrapped = (
         "<root xmlns:ac=\"http://atlassian.com/content\" "
         "xmlns:ri=\"http://atlassian.com/resource/identifier\">"
@@ -292,99 +425,158 @@ if current_body.strip():
             continue
 
         headers = [cell_text(cell) for cell in direct_cells(rows[0])]
-        if "Epic" not in headers:
+        normalized_headers = [header.casefold() for header in headers]
+        identifying_headers = {"epic", "summary", "total tickets"}
+        if not identifying_headers.issubset(normalized_headers):
             continue
-
-        epic_column = headers.index("Epic")
-        manual_columns = {
-            header: headers.index(header)
-            for header in manual_headers
-            if header in headers
+        automated_headers = {
+            "epic",
+            "summary",
+            "total tickets",
+            "unassigned tickets",
+            "dev complete",
+            "ready for test",
+            "in qa",
+            "complete",
+            "% complete",
+            "bugs",
         }
-
-        for row in rows[1:]:
-            cells = direct_cells(row)
-            if epic_column >= len(cells):
-                continue
-            match = re.search(r"\b[A-Z][A-Z0-9_]*-\d+\b", cell_text(cells[epic_column]))
-            if not match:
-                continue
-            epic_key = match.group(0)
-            if epic_key not in existing_order:
-                existing_order.append(epic_key)
-            manual_values[epic_key] = {
-                header: inner_xml(cells[index]) if index < len(cells) else ""
-                for header, index in manual_columns.items()
+        missing_headers = automated_headers.difference(normalized_headers)
+        if missing_headers:
+            print(
+                "Managed epic table is missing automated columns: "
+                + ", ".join(sorted(missing_headers)),
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        managed_tables.append(
+            {
+                "rows": rows[1:],
+                "column_indexes": {
+                    header: normalized_headers.index(header)
+                    for header in automated_headers
+                },
             }
-        break
+        )
+else:
+    root = ET.fromstring(
+        "<root xmlns:ac=\"http://atlassian.com/content\" "
+        "xmlns:ri=\"http://atlassian.com/resource/identifier\" />"
+    )
 
-headers = [
-    "Epic",
-    "Summary",
-    "Release Target",
-    "Status",
-    "Total Tickets",
-    "Unassigned Tickets",
-    "Dev Complete",
-    "Ready for Test",
-    "In QA",
-    "Complete",
-    "% Complete",
-    "Bugs",
-    "Risks",
-    "Dependencies",
-]
-
-parts = [
-    "<p><strong>Program Increment:</strong> ",
-    html.escape(data["pi"]),
-    "</p><table><tbody><tr>",
-]
-parts.extend(f"<th>{html.escape(header)}</th>" for header in headers)
-parts.append("</tr>")
+if root is None:
+    print(
+        "Unable to parse the Confluence page",
+        file=sys.stderr,
+    )
+    sys.exit(1)
 
 report_by_key = {epic["key"]: epic for epic in data["report"]}
-ordered_report = [
-    report_by_key[key]
-    for key in existing_order
-    if key in report_by_key
-]
-ordered_keys = {epic["key"] for epic in ordered_report}
-ordered_report.extend(
-    epic for epic in data["report"] if epic["key"] not in ordered_keys
-)
+jira_url = data["jiraUrl"]
 
-for row_index, epic in enumerate(ordered_report):
-    key = epic["key"]
-    saved = manual_values.get(key, {})
-    jira_url = html.escape(data["jiraUrl"])
-    cell_values = [
-        f"<a href=\"{jira_url}/browse/{html.escape(key)}\">{html.escape(key)}</a>",
-        html.escape(epic["summary"]),
-        saved.get("Release Target", ""),
-        saved.get("Status", ""),
-        str(epic["totalTickets"]),
-        str(epic["unassignedTickets"]),
-        str(epic["devCompleteTickets"]),
-        str(epic["readyForTestTickets"]),
-        str(epic["ticketsInQa"]),
-        str(epic["complete"]),
-        str(epic["completionPercentage"]) + "%",
-        str(epic["bugs"]),
-        saved.get("Risks", ""),
-        saved.get("Dependencies", ""),
-    ]
-    cell_attributes = (
-        " class=\"highlight-#f4f5f7\" data-highlight-colour=\"#f4f5f7\""
-        if row_index % 2 == 1
-        else ""
+def clear_cell(cell):
+    cell.text = None
+    for child in list(cell):
+        cell.remove(child)
+
+def set_text(cell, value):
+    clear_cell(cell)
+    cell.text = str(value)
+
+def set_epic_link(cell, key):
+    clear_cell(cell)
+    link = ET.SubElement(
+        cell,
+        "a",
+        {"href": f"{jira_url}/browse/{key}"},
     )
-    parts.append("<tr>")
-    parts.extend(f"<td{cell_attributes}>{value}</td>" for value in cell_values)
-    parts.append("</tr>")
+    link.text = key
 
-parts.append("</tbody></table>")
-print("".join(parts))
+def apply_row_highlight(cell, highlighted):
+    classes = [
+        name
+        for name in cell.get("class", "").split()
+        if not name.startswith("highlight-")
+    ]
+    if highlighted:
+        classes.append("highlight-#f4f5f7")
+        cell.set("data-highlight-colour", "#f4f5f7")
+    else:
+        cell.attrib.pop("data-highlight-colour", None)
+
+    if classes:
+        cell.set("class", " ".join(classes))
+    else:
+        cell.attrib.pop("class", None)
+
+for managed_table in managed_tables:
+    indexes = managed_table["column_indexes"]
+    highest_automated_index = max(indexes.values())
+
+    for row_index, row in enumerate(managed_table["rows"]):
+        cells = direct_cells(row)
+        if len(cells) <= highest_automated_index:
+            print(
+                "A managed epic row has fewer cells than its header row",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+        highlighted = row_index % 2 == 1
+        for cell in cells:
+            apply_row_highlight(cell, highlighted)
+
+        match = re.search(
+            r"\b[A-Z][A-Z0-9_]*-\d+\b",
+            cell_text(cells[indexes["epic"]]),
+            re.IGNORECASE,
+        )
+        if not match:
+            continue
+
+        key = match.group(0).upper()
+        epic = report_by_key.get(key)
+        if epic is None:
+            print(f"No Jira results were found for epic {key}", file=sys.stderr)
+            sys.exit(1)
+
+        set_epic_link(cells[indexes["epic"]], key)
+        set_text(cells[indexes["summary"]], epic["summary"])
+        set_text(cells[indexes["total tickets"]], epic["totalTickets"])
+        set_text(cells[indexes["unassigned tickets"]], epic["unassignedTickets"])
+        set_text(cells[indexes["dev complete"]], epic["devCompleteTickets"])
+        set_text(cells[indexes["ready for test"]], epic["readyForTestTickets"])
+        set_text(cells[indexes["in qa"]], epic["ticketsInQa"])
+        set_text(cells[indexes["complete"]], epic["complete"])
+        set_text(
+            cells[indexes["% complete"]],
+            str(epic["completionPercentage"]) + "%",
+        )
+        set_text(cells[indexes["bugs"]], epic["bugs"])
+
+indicator_label = "Epic report automation last ran:"
+run_timestamp = datetime.now(ZoneInfo("America/New_York")).strftime(
+    "%Y-%m-%d %H:%M:%S %Z"
+)
+indicators = [
+    element
+    for element in root.iter()
+    if local_name(element.tag) == "p"
+    and cell_text(element).casefold().startswith(indicator_label.casefold())
+]
+
+if not indicators:
+    indicators = [ET.SubElement(root, "p")]
+
+for indicator in indicators:
+    indicator_tail = indicator.tail
+    clear_cell(indicator)
+    label = ET.SubElement(indicator, "strong")
+    label.text = indicator_label
+    label.tail = " " + run_timestamp
+    indicator.tail = indicator_tail
+
+print(inner_xml(root))
 ' <<<"$merge_input")
 
 payload=$(jq -n \
@@ -392,7 +584,7 @@ payload=$(jq -n \
   --arg title "$page_title" \
   --arg body "$table_body" \
   --argjson version "$next_version" \
-  --arg message "Refresh $PI epic completion table" '
+  --arg message "Refresh epic completion table" '
     {
       id: $id,
       type: "page",
