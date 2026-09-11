@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import { CMS_USER_DEMONSTRATION_ROLES } from "../../constants";
 import { log } from "../../log";
 import { prisma } from "../../prismaClient";
@@ -14,6 +16,8 @@ type Recipient = {
   name: string;
   address: string;
 };
+
+const emailSchema = z.email();
 
 export async function notifyDeliverableCreated(
   input: NotifyDeliverableCreatedInput,
@@ -110,9 +114,9 @@ function deduplicateRecipients(
 
   for (const person of people) {
     const address = person.email.trim().toLowerCase();
-    if (!address) {
+    if (!isAnEmail(address)) {
       throw new Error(
-        `Cannot queue Deliverable Created email: person ${person.id} has no email address.`,
+        `Cannot queue Deliverable Created email: person ${person.id} does not have a valid email address.`,
       );
     }
 
@@ -126,4 +130,8 @@ function deduplicateRecipients(
   }
 
   return Array.from(recipients.values());
+}
+
+function isAnEmail(address: string): boolean {
+  return emailSchema.safeParse(address).success;
 }

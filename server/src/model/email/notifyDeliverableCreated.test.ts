@@ -138,13 +138,13 @@ describe("notifyDeliverableCreated", () => {
     );
   });
 
-  it("reports a missing recipient email without queueing", async () => {
+  it("reports an invalid recipient email without queueing", async () => {
     findUniqueOrThrow.mockResolvedValue({
       ...deliverable,
       cmsOwner: {
         person: {
           ...deliverable.cmsOwner.person,
-          email: " ",
+          email: "not-an-email",
         },
       },
       demonstration: {
@@ -160,7 +160,7 @@ describe("notifyDeliverableCreated", () => {
       expect.objectContaining({
         error: expect.objectContaining({
           message:
-            "Cannot queue Deliverable Created email: person owner-1 has no email address.",
+            "Cannot queue Deliverable Created email: person owner-1 does not have a valid email address.",
         }),
       }),
       "Failed to queue deliverable email",
