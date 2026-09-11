@@ -96,7 +96,7 @@ def _get_unmigrated_files(
         List[FileMigrationTrackerRecord]: A list of the unmigrated files.
     """
     logger.info(
-        f"Getting list of unmigrated files from {attach_name}.{dl_config.target_schema}.system_file_move_tracker"
+        f"Getting list of unmigrated files from {attach_name}.{dl_config.source_schema}.system_file_move_tracker"
     )
     query = f"""
         SELECT
@@ -109,7 +109,7 @@ def _get_unmigrated_files(
             file_has_been_moved,
             FALSE AS _local_file_has_been_moved
         FROM
-            {attach_name}.{dl_config.target_schema}.system_file_move_tracker
+            {attach_name}.{dl_config.source_schema}.system_file_move_tracker
         WHERE
             NOT file_has_been_moved;
     """
