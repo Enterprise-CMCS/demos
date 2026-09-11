@@ -192,6 +192,7 @@ export class ApiStack extends Stack {
           DELETED_BUCKET: deletedBucket.bucketName,
           // None of the other queue use ENV. maybe another way.
           UIPATH_QUEUE_URL: uipathQueueUrl,
+          DISABLE_EMAIL_NOTIFICATIONS: process.env.DISABLE_EMAIL_NOTIFICATIONS ?? "false",
         },
       },
       "graphql"

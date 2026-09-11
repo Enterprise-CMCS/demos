@@ -237,7 +237,7 @@ describe("emailer", () => {
     );
   });
 
-  it("should mark a tracked realtime email sent after SMTP succeeds", async () => {
+  it("should mark a realtime email sent after SMTP succeeds", async () => {
     process.env.DISABLE_EMAIL_ALLOWLIST = "true";
     const sendMailSpy = vi.fn(() => ({ messageId: "unit-test" }));
     vi.spyOn(nodemailer, "createTransport").mockImplementation(
@@ -255,7 +255,7 @@ describe("emailer", () => {
     );
   });
 
-  it("should mark a tracked realtime email failed when SMTP rejects it", async () => {
+  it("should mark a realtime email failed when SMTP rejects it", async () => {
     process.env.DISABLE_EMAIL_ALLOWLIST = "true";
     vi.spyOn(nodemailer, "createTransport").mockImplementation(
       () =>

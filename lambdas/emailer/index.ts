@@ -59,9 +59,9 @@ export const handler = async (event: SQSEvent) => {
   }
 
   if (!isValidEmailData(email)) {
-    if (realtimeEmail?.emailNotificationId) {
+    if (realtimeEmail) {
       const error = new Error(
-        `Tracked realtime email did not render valid email data: ${realtimeEmail.emailNotificationId}`
+        `Realtime email did not render valid email data: ${realtimeEmail.emailNotificationId}`
       );
       await recordDeliveryStatus(realtimeEmail, "Failed", error.message);
       throw error;
@@ -124,7 +124,7 @@ async function recordDeliveryStatus(
   status: DeliveryStatus,
   lastError: string | null = null
 ): Promise<void> {
-  if (!email?.emailNotificationId) {
+  if (!email) {
     return;
   }
 
