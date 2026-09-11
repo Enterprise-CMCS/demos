@@ -14,6 +14,7 @@ interface LambdaProps extends CommonProps {
   handler: string;
   timeout?: Duration;
   memorySize?: number;
+  reservedConcurrentExecutions?: number;
   environment?: { [key: string]: string };
   path?: string;
   method?: string;
@@ -126,6 +127,7 @@ export class Lambda extends Construct {
       runtime: Runtime.NODEJS_24_X,
       timeout,
       memorySize,
+      reservedConcurrentExecutions: props.reservedConcurrentExecutions,
       role,
       securityGroups,
       bundling: {

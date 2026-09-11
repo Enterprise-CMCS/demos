@@ -278,6 +278,45 @@ describe("lambda", () => {
     });
   });
 
+  test("should omit reserved concurrency when not requested", () => {
+    const app = new App(commonAppArgs);
+    const stack = new Stack(app, "TestStack", mockStackProps);
+
+    create(
+      {
+        ...mockCommonProps,
+        scope: stack,
+        handler: "mockLambda.handler",
+        entry: "lib/mockLambda.js",
+      },
+      "unit-test-lambda"
+    );
+
+    const props = Template.fromStack(stack).findResources("AWS::Lambda::Function");
+    const [lambda] = Object.values(props);
+    expect(lambda.Properties.ReservedConcurrentExecutions).toBeUndefined();
+  });
+
+  test("should set reserved concurrency when requested", () => {
+    const app = new App(commonAppArgs);
+    const stack = new Stack(app, "TestStack", mockStackProps);
+
+    create(
+      {
+        ...mockCommonProps,
+        scope: stack,
+        handler: "mockLambda.handler",
+        entry: "lib/mockLambda.js",
+        reservedConcurrentExecutions: 1,
+      },
+      "unit-test-lambda"
+    );
+
+    Template.fromStack(stack).hasResourceProperties("AWS::Lambda::Function", {
+      ReservedConcurrentExecutions: 1,
+    });
+  });
+
   test("should create a lambda defined by directory rather than a single file", () => {
     const app = new App(commonAppArgs);
     const stack = new Stack(app, "TestStack", mockStackProps);
