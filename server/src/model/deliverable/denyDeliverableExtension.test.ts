@@ -33,6 +33,10 @@ vi.mock("../deliverableExtension/queries", () => ({
   updateDeliverableExtension: vi.fn(),
 }));
 
+vi.mock("../email/notifyDeliverableStatusChanged", () => ({
+  notifyDeliverableExtensionDecisionMade: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient";
 import {
   selectDeliverableOrThrow,
@@ -44,6 +48,7 @@ import {
   selectDeliverableExtension,
   updateDeliverableExtension,
 } from "../deliverableExtension/queries";
+import { notifyDeliverableExtensionDecisionMade } from "../email/notifyDeliverableStatusChanged";
 
 describe("denyDeliverableExtension", () => {
   // Test inputs
@@ -70,6 +75,7 @@ describe("denyDeliverableExtension", () => {
     id: testDeliverableExtensionId,
     statusId: "Requested" satisfies DeliverableExtensionStatus,
   };
+  const mockActionId = "046c6934-91e1-4dc0-b61d-18a1d13c35d4";
 
   // Mock transaction
   const mockTransaction: any = "Test!";
@@ -84,6 +90,7 @@ describe("denyDeliverableExtension", () => {
     vi.mocked(selectDeliverableExtension).mockResolvedValue(
       mockDeliverableExtension as PrismaDeliverableExtension
     );
+    vi.mocked(insertDeliverableAction).mockResolvedValue({ id: mockActionId } as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
@@ -158,6 +165,18 @@ describe("denyDeliverableExtension", () => {
       },
       mockTransaction
     );
+  });
+
+  it("should notify State Points of Contact after denying the extension", async () => {
+    await denyDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
+
+    expect(notifyDeliverableExtensionDecisionMade).toHaveBeenCalledExactlyOnceWith({
+      deliverableId: testDeliverableId,
+      extensionDecision: "Denied",
+      previousDueDate: mockDeliverable.dueDate,
+      sourceActionId: mockActionId,
+      triggeredByUserId: testContext.user!.id,
+    });
   });
 
   it("should invoke the updates to tables in the right order", async () => {

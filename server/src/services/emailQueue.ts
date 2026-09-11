@@ -4,8 +4,17 @@ import { PRIMARY_AWS_REGION } from "../constants";
 import { log } from "../log";
 import { prisma } from "../prismaClient";
 
+export type RealtimeEmailType =
+  | "Deliverable Created"
+  | "Deliverable Submitted"
+  | "Deliverable Accepted"
+  | "Deliverable Approved"
+  | "Deliverable Received and Filed"
+  | "Extension Decision Made"
+  | "Resubmission Requested";
+
 export type RealtimeEmailMessage = {
-  emailType: "Deliverable Created";
+  emailType: RealtimeEmailType;
   entityType: "deliverable";
   entityId: string;
   triggeredBy: {

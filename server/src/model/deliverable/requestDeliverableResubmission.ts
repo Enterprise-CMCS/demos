@@ -10,6 +10,7 @@ import {
 } from ".";
 import { prisma } from "../../prismaClient";
 import { insertDeliverableAction } from "../deliverableAction/queries";
+import { notifyDeliverableResubmissionRequested } from "../email/notifyDeliverableStatusChanged";
 
 export async function requestDeliverableResubmission(
   deliverableId: string,
@@ -22,34 +23,49 @@ export async function requestDeliverableResubmission(
   ]);
   const parsedInput = parseRequestDeliverableResubmissionInput(input);
 
-  return await prisma().$transaction(async (tx) => {
-    const unrequestedDeliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
-    validateRequestDeliverableResubmissionInput(unrequestedDeliverable, parsedInput);
+  const { requestedDeliverable, sourceActionId, previousDueDate } = await prisma().$transaction(
+    async (tx) => {
+      const unrequestedDeliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
+      validateRequestDeliverableResubmissionInput(unrequestedDeliverable, parsedInput);
 
-    const requestedDeliverable = await editDeliverable(
-      deliverableId,
-      {
-        statusId: "Upcoming",
-        dueDate: parsedInput.newDueDate.easternTZDate,
-      },
-      tx
-    );
+      const requestedDeliverable = await editDeliverable(
+        deliverableId,
+        {
+          statusId: "Upcoming",
+          dueDate: parsedInput.newDueDate.easternTZDate,
+        },
+        tx
+      );
 
-    // Casts below enforced by database
-    await insertDeliverableAction(
-      {
-        deliverableId: deliverableId,
-        actionType: "Requested Resubmission",
-        oldStatus: unrequestedDeliverable.statusId as DeliverableStatus,
-        newStatus: requestedDeliverable.statusId as DeliverableStatus,
-        note: input.details,
-        oldDueDate: unrequestedDeliverable.dueDate,
-        newDueDate: requestedDeliverable.dueDate,
-        userId: context.user.id,
-      },
-      tx
-    );
+      // Casts below enforced by database
+      const action = await insertDeliverableAction(
+        {
+          deliverableId: deliverableId,
+          actionType: "Requested Resubmission",
+          oldStatus: unrequestedDeliverable.statusId as DeliverableStatus,
+          newStatus: requestedDeliverable.statusId as DeliverableStatus,
+          note: input.details,
+          oldDueDate: unrequestedDeliverable.dueDate,
+          newDueDate: requestedDeliverable.dueDate,
+          userId: context.user.id,
+        },
+        tx
+      );
 
-    return requestedDeliverable;
+      return {
+        requestedDeliverable,
+        sourceActionId: action.id,
+        previousDueDate: unrequestedDeliverable.dueDate,
+      };
+    }
+  );
+
+  await notifyDeliverableResubmissionRequested({
+    deliverableId,
+    previousDueDate,
+    sourceActionId,
+    triggeredByUserId: context.user.id,
   });
+
+  return requestedDeliverable;
 }

@@ -25,6 +25,10 @@ vi.mock("../deliverableAction/queries", () => ({
   insertDeliverableAction: vi.fn(),
 }));
 
+vi.mock("../email/notifyDeliverableStatusChanged", () => ({
+  notifyDeliverableCompleted: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient";
 import {
   editDeliverable,
@@ -33,6 +37,7 @@ import {
   validateUserPersonTypeAllowed,
 } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
+import { notifyDeliverableCompleted } from "../email/notifyDeliverableStatusChanged";
 
 describe("completeDeliverable", () => {
   // Test inputs
@@ -55,6 +60,7 @@ describe("completeDeliverable", () => {
     statusId: "Approved",
     dueDate: new Date(2026, 9, 13, 4, 59, 59, 999),
   };
+  const mockActionId = "046c6934-91e1-4dc0-b61d-18a1d13c35d4";
 
   // Mock transaction
   const mockTransaction: any = "Test!";
@@ -69,6 +75,7 @@ describe("completeDeliverable", () => {
       mockIncompleteDeliverable as PrismaDeliverable
     );
     vi.mocked(editDeliverable).mockResolvedValue(mockCompleteDeliverable as PrismaDeliverable);
+    vi.mocked(insertDeliverableAction).mockResolvedValue({ id: mockActionId } as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
@@ -168,4 +175,23 @@ describe("completeDeliverable", () => {
       mockTransaction
     );
   });
+
+  it.each(["Accepted", "Approved", "Received and Filed"] as const)(
+    "should notify State Points of Contact when the deliverable is %s",
+    async (finalStatus) => {
+      await completeDeliverable(
+        testDeliverableId,
+        finalStatus,
+        testContext as GraphQLContext
+      );
+
+      expect(notifyDeliverableCompleted).toHaveBeenCalledExactlyOnceWith({
+        deliverableId: testDeliverableId,
+        finalStatus,
+        sourceActionId: mockActionId,
+        triggeredByUserId: testContext.user!.id,
+      });
+    }
+  );
+
 });

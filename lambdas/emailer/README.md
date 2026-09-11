@@ -26,6 +26,10 @@ after the deliverable transaction completes. The producer loads and deduplicates
 recipients, then sends a message through
 [`enqueueEmail`](../../server/src/services/emailQueue.ts).
 
+Submitted, completed, resubmission-requested, and extension-decision changes use
+[`notifyDeliverableStatusChanged`](../../server/src/model/email/notifyDeliverableStatusChanged.ts)
+after their transactions complete.
+
 Realtime messages have this shape:
 
 ```ts
@@ -180,9 +184,10 @@ stdout is captured by CloudWatch; local terminal output is formatted with
    template data.
 4. Add focused rendering tests and producer tests.
 
-The server currently produces `Deliverable Created`. Other registered
-deliverable event types and `Multiple Deliverables Created` are renderable but
-still need server-side producers.
+The server currently produces `Deliverable Created`, `Deliverable Submitted`,
+the three completed-status variants, `Resubmission Requested`, and
+`Extension Decision Made`. The remaining registered deliverable event types and
+`Multiple Deliverables Created` are renderable but still need server-side producers.
 
 ## Local development
 
