@@ -393,7 +393,10 @@ def get_data_load_configuration(dl_config_name: DataLoadConfigurationName) -> Da
                     TriggerActionConfiguration(
                         "disable", APP_SCHEMA_NAME, "application", "create_phases_and_dates_for_new_application"
                     ),
+                    TriggerActionConfiguration("disable", APP_SCHEMA_NAME, "deliverable", "trim_input_text_fields"),
                     TriggerActionConfiguration("disable", APP_SCHEMA_NAME, "document", "trim_input_text_fields"),
+                    TriggerActionConfiguration("disable", APP_SCHEMA_NAME, "private_comment", "trim_input_text_fields"),
+                    TriggerActionConfiguration("disable", APP_SCHEMA_NAME, "public_comment", "trim_input_text_fields"),
                     TransactionActionConfiguration("begin"),
                     TableInsertActionConfiguration(
                         "final_demos_app_application",
@@ -515,6 +518,33 @@ def get_data_load_configuration(dl_config_name: DataLoadConfigurationName) -> Da
                     ),
                     TransactionActionConfiguration("commit"),
                     TableInsertActionConfiguration(
+                        "final_demos_app_private_comment",
+                        "private_comment",
+                        [
+                            "id",
+                            "deliverable_id",
+                            "author_user_id",
+                            "author_person_type_id",
+                            "content",
+                            "created_at",
+                            "updated_at",
+                            "is_migrated_from_pmda",
+                        ],
+                    ),
+                    TableInsertActionConfiguration(
+                        "final_demos_app_public_comment",
+                        "public_comment",
+                        [
+                            "id",
+                            "deliverable_id",
+                            "author_user_id",
+                            "content",
+                            "created_at",
+                            "updated_at",
+                            "is_migrated_from_pmda",
+                        ],
+                    ),
+                    TableInsertActionConfiguration(
                         "final_demos_app_document",
                         "document",
                         [
@@ -539,9 +569,14 @@ def get_data_load_configuration(dl_config_name: DataLoadConfigurationName) -> Da
                     TriggerActionConfiguration(
                         "enable", APP_SCHEMA_NAME, "application", "create_phases_and_dates_for_new_application"
                     ),
+                    TriggerActionConfiguration("enable", APP_SCHEMA_NAME, "deliverable", "trim_input_text_fields"),
                     TriggerActionConfiguration("enable", APP_SCHEMA_NAME, "document", "trim_input_text_fields"),
+                    TriggerActionConfiguration("enable", APP_SCHEMA_NAME, "private_comment", "trim_input_text_fields"),
+                    TriggerActionConfiguration("enable", APP_SCHEMA_NAME, "public_comment", "trim_input_text_fields"),
+                    ArbitraryActionConfiguration("Run due date calculation", call_mark_deliverables_past_due),
                     ArbitraryActionConfiguration(
-                        "Run phase status update for Federal Comment Period", call_update_federal_comment_phase_status
+                        "Run phase status update for Federal Comment Period",
+                        call_update_federal_comment_phase_status,
                     ),
                 ),
             )
