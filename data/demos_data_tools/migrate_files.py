@@ -85,7 +85,7 @@ def _get_s3_client() -> "S3Client":
 def _get_unmigrated_files(
     attach_name: DuckDbAttachName, dl_config: DataLoadConfiguration, conn: "DuckConn"
 ) -> List[FileMigrationTrackerRecord]:
-    """Get a list of unmigrated files from the target schema of a data load configuration.
+    """Get a list of unmigrated files from the source schema of a data load configuration.
 
     Args:
         attach_name (DuckDbAttachName): The DuckDB attach name to use.
