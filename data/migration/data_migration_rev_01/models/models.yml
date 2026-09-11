@@ -887,6 +887,8 @@ models:
         data_tests:
           - unique:
               name: assert_all_final_file_ids_unique_in_file_move_tracker
+          - not_null:
+              name: assert_all_final_file_ids_not_null_in_file_move_tracker
       - name: _internal_pmda_s3_file_id
         data_type: bigint
         data_tests:
