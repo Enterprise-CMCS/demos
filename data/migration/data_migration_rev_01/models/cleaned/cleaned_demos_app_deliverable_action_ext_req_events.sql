@@ -21,3 +21,4 @@ FROM
 LEFT JOIN {{ source('demos_app', 'users') }} AS users -- noqa: RF04
     ON
         requested_events._staged_user_id = users.id
+        AND users.person_type_id <> 'demos-cms-user'

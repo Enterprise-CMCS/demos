@@ -196,7 +196,7 @@ class TestMigrateFiles:
         test_input = replace(self.mock_dataclass_result[0], _local_file_has_been_moved=True)
         expected_query = f"""
             UPDATE
-                {self.mock_attach_name}.{self.mock_data_load_config.target_schema}.system_file_move_tracker
+                {self.mock_attach_name}.{self.mock_data_load_config.source_schema}.system_file_move_tracker
             SET
                 file_has_been_moved = TRUE
             WHERE
