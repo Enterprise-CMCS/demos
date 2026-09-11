@@ -1,14 +1,15 @@
-import type { Pool } from "pg";
+import type { PoolClient } from "pg";
 
 import { dbSchema } from "./pool";
 import type { ColumnMeta } from "../types";
 
+// Use the snapshot client so metadata and row reads share one transaction.
 export async function fetchColumnMetadata(
-  pool: Pool,
+  client: PoolClient,
   relation: string,
   columns: readonly string[]
 ): Promise<ColumnMeta[]> {
-  const result = await pool.query(COLUMN_METADATA_QUERY, [dbSchema, relation, [...columns]]);
+  const result = await client.query(COLUMN_METADATA_QUERY, [dbSchema, relation, [...columns]]);
   return result.rows.map((r) => ({
     columnName: r.column_name,
     dataType: r.data_type,

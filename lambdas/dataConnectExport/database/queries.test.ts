@@ -1,4 +1,4 @@
-import type { Pool } from "pg";
+import type { PoolClient } from "pg";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { fetchColumnMetadata } from "./queries";
@@ -7,7 +7,8 @@ import { fetchColumnMetadata } from "./queries";
 vi.mock("./pool", () => ({ dbSchema: "demos_app" }));
 
 const queryMock = vi.fn();
-const pool = { query: queryMock } as unknown as Pool;
+// Use a client so metadata and row reads share the snapshot.
+const client = { query: queryMock } as unknown as PoolClient;
 
 const row = (overrides: Record<string, unknown> = {}) => ({
   column_name: "id",
@@ -25,30 +26,30 @@ describe("fetchColumnMetadata", () => {
   });
 
   it("reads from information_schema in one round trip, not one per column", async () => {
-    await fetchColumnMetadata(pool, "demonstration", ["id", "name", "created_at"]);
+    await fetchColumnMetadata(client, "demonstration", ["id", "name", "created_at"]);
     expect(queryMock).toHaveBeenCalledTimes(1);
   });
 
   it("binds the schema, the relation and the column list as parameters", async () => {
-    await fetchColumnMetadata(pool, "demonstration", ["id", "name"]);
+    await fetchColumnMetadata(client, "demonstration", ["id", "name"]);
     const [, params] = queryMock.mock.calls[0];
     expect(params).toEqual(["demos_app", "demonstration", ["id", "name"]]);
   });
 
   it("scopes the lookup to demos_app rather than trusting search_path", async () => {
-    await fetchColumnMetadata(pool, "state", ["id"]);
+    await fetchColumnMetadata(client, "state", ["id"]);
     expect(queryMock.mock.calls[0][1][0]).toBe("demos_app");
   });
 
   it("interpolates nothing, so the relation name cannot reach the SQL text", async () => {
-    await fetchColumnMetadata(pool, "demonstration", ["id"]);
+    await fetchColumnMetadata(client, "demonstration", ["id"]);
     const [sql] = queryMock.mock.calls[0];
     expect(sql).not.toContain("demonstration");
     expect(sql).not.toContain("demos_app");
   });
 
   it("casts every placeholder, including the array, which = ANY needs", async () => {
-    await fetchColumnMetadata(pool, "state", ["id"]);
+    await fetchColumnMetadata(client, "state", ["id"]);
     const [sql] = queryMock.mock.calls[0];
     expect(sql).toContain("$1::TEXT");
     expect(sql).toContain("$2::TEXT");
@@ -56,7 +57,7 @@ describe("fetchColumnMetadata", () => {
   });
 
   it("orders by ordinal_position, which is what fixes parquet column order", async () => {
-    await fetchColumnMetadata(pool, "state", ["id"]);
+    await fetchColumnMetadata(client, "state", ["id"]);
     expect(queryMock.mock.calls[0][0]).toContain("ordinal_position");
   });
 
@@ -64,7 +65,7 @@ describe("fetchColumnMetadata", () => {
     // EXPORT_DATASETS entries are readonly const tuples. Passing one straight through
     // would let a driver-side mutation reach the egress boundary constant.
     const columns = ["id", "name"] as const;
-    await fetchColumnMetadata(pool, "demonstration", columns);
+    await fetchColumnMetadata(client, "demonstration", columns);
     expect(queryMock.mock.calls[0][1][2]).not.toBe(columns);
     expect(queryMock.mock.calls[0][1][2]).toEqual(["id", "name"]);
   });
@@ -82,7 +83,7 @@ describe("fetchColumnMetadata", () => {
       ],
     });
 
-    expect(await fetchColumnMetadata(pool, "demonstration", ["amount"])).toEqual([
+    expect(await fetchColumnMetadata(client, "demonstration", ["amount"])).toEqual([
       {
         columnName: "amount",
         dataType: "numeric",
@@ -98,13 +99,13 @@ describe("fetchColumnMetadata", () => {
       rows: [row({ column_name: "a", is_nullable: "YES" }), row({ column_name: "b", is_nullable: "NO" })],
     });
 
-    const result = await fetchColumnMetadata(pool, "demonstration", ["a", "b"]);
+    const result = await fetchColumnMetadata(client, "demonstration", ["a", "b"]);
     expect(result.map((c) => c.isNullable)).toEqual([true, false]);
   });
 
   it("keeps null precision and scale as null for a non-numeric column", async () => {
     queryMock.mockResolvedValue({ rows: [row({ data_type: "text" })] });
-    const [column] = await fetchColumnMetadata(pool, "demonstration", ["id"]);
+    const [column] = await fetchColumnMetadata(client, "demonstration", ["id"]);
     expect(column.numericPrecision).toBeNull();
     expect(column.numericScale).toBeNull();
   });
@@ -114,7 +115,7 @@ describe("fetchColumnMetadata", () => {
       rows: [row({ column_name: "id" }), row({ column_name: "name" }), row({ column_name: "region" })],
     });
 
-    const result = await fetchColumnMetadata(pool, "state", ["region", "id", "name"]);
+    const result = await fetchColumnMetadata(client, "state", ["region", "id", "name"]);
     expect(result.map((c) => c.columnName)).toEqual(["id", "name", "region"]);
   });
 
@@ -122,12 +123,12 @@ describe("fetchColumnMetadata", () => {
     // buildRelationSchema is what turns this into an error, with a message naming the
     // missing columns. This function stays a plain read.
     queryMock.mockResolvedValue({ rows: [] });
-    await expect(fetchColumnMetadata(pool, "no_such_table", ["id"])).resolves.toEqual([]);
+    await expect(fetchColumnMetadata(client, "no_such_table", ["id"])).resolves.toEqual([]);
   });
 
   it("lets a driver error propagate", async () => {
     queryMock.mockRejectedValue(new Error("permission denied for schema demos_app"));
-    await expect(fetchColumnMetadata(pool, "demonstration", ["id"])).rejects.toThrow(
+    await expect(fetchColumnMetadata(client, "demonstration", ["id"])).rejects.toThrow(
       "permission denied for schema demos_app"
     );
   });

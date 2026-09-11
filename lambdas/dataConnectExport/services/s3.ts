@@ -35,7 +35,11 @@ export async function uploadParquet(localPath: string, key: string): Promise<voi
   );
 }
 
-export async function uploadSuccessMarker(runDate: Date, written: WrittenFile[]): Promise<void> {
+export async function uploadSuccessMarker(
+  runDate: Date,
+  written: WrittenFile[],
+  snapshotTime: Date
+): Promise<void> {
   await s3.send(
     new PutObjectCommand({
       Bucket: exportBucket(),
@@ -43,6 +47,8 @@ export async function uploadSuccessMarker(runDate: Date, written: WrittenFile[])
       Body: JSON.stringify(
         {
           runDate: runDate.toISOString(),
+          // Data timestamp for consumers; runDate is the Lambda start time.
+          snapshotTime: snapshotTime.toISOString(),
           relations: written.map(({ relation, rowCount }) => ({ relation, rowCount })),
         },
         null,

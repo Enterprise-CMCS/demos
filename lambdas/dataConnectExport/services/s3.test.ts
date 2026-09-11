@@ -15,6 +15,8 @@ const commandInput = () => vi.mocked(PutObjectCommand).mock.calls[0][0];
 
 const ORIGINAL_ENV = process.env;
 const RUN_DATE = new Date("2026-09-04T07:00:00Z");
+// Distinct times catch code that publishes runDate twice.
+const SNAPSHOT_TIME = new Date("2026-09-04T07:00:04.250Z");
 
 const WRITTEN: WrittenFile[] = [
   { relation: "balrogs", localPath: "/tmp/balrogs.parquet", rowCount: 412 },
@@ -45,7 +47,7 @@ describe("the export bucket", () => {
 
   it("is refused for the marker too, not just the data", async () => {
     delete process.env.EXPORT_BUCKET;
-    await expect(uploadSuccessMarker(RUN_DATE, WRITTEN)).rejects.toThrow(
+    await expect(uploadSuccessMarker(RUN_DATE, WRITTEN, SNAPSHOT_TIME)).rejects.toThrow(
       "EXPORT_BUCKET is required to publish the export."
     );
   });
@@ -112,7 +114,7 @@ describe("uploadSuccessMarker", () => {
   it("writes the marker at the run-level key", async () => {
     // util/keys is deliberately not mocked, so the published key format is asserted here
     // as well as in its own test.
-    await uploadSuccessMarker(RUN_DATE, WRITTEN);
+    await uploadSuccessMarker(RUN_DATE, WRITTEN, SNAPSHOT_TIME);
     expect(commandInput()).toMatchObject({
       Bucket: "demos-dev-dataconnect",
       Key: "_run/dt=2026-09-04/_SUCCESS",
@@ -121,9 +123,10 @@ describe("uploadSuccessMarker", () => {
   });
 
   it("records the run date and a row count per relation", async () => {
-    await uploadSuccessMarker(RUN_DATE, WRITTEN);
+    await uploadSuccessMarker(RUN_DATE, WRITTEN, SNAPSHOT_TIME);
     expect(JSON.parse(commandInput().Body as string)).toEqual({
       runDate: "2026-09-04T07:00:00.000Z",
+      snapshotTime: "2026-09-04T07:00:04.250Z",
       relations: [
         { relation: "balrogs", rowCount: 412 },
         { relation: "ainur", rowCount: 56 },
@@ -131,25 +134,34 @@ describe("uploadSuccessMarker", () => {
     });
   });
 
+  it("publishes the snapshot instant as well as the start of the run", async () => {
+    // Reconciliation needs the data timestamp, not the Lambda start time.
+    await uploadSuccessMarker(RUN_DATE, WRITTEN, SNAPSHOT_TIME);
+    const marker = JSON.parse(commandInput().Body as string);
+    expect(marker.snapshotTime).toBe(SNAPSHOT_TIME.toISOString());
+    expect(marker.snapshotTime).not.toBe(marker.runDate);
+  });
+
   it("keeps local staging paths out of the published manifest", async () => {
     // WrittenFile carries localPath. Publishing it would leak the lambda's /tmp layout
     // to every consumer of the bucket.
-    await uploadSuccessMarker(RUN_DATE, WRITTEN);
+    await uploadSuccessMarker(RUN_DATE, WRITTEN, SNAPSHOT_TIME);
     expect(commandInput().Body).not.toContain("/tmp");
     expect(commandInput().Body).not.toContain("localPath");
   });
 
   it("writes a marker with an empty relation list when nothing was exported", async () => {
-    await uploadSuccessMarker(RUN_DATE, []);
+    await uploadSuccessMarker(RUN_DATE, [], SNAPSHOT_TIME);
     expect(JSON.parse(commandInput().Body as string)).toEqual({
       runDate: "2026-09-04T07:00:00.000Z",
+      snapshotTime: "2026-09-04T07:00:04.250Z",
       relations: [],
     });
   });
 
   it("lets a failed put propagate, so a run without a marker is a failed run", async () => {
     send.mockRejectedValue(new Error("AccessDenied"));
-    await expect(uploadSuccessMarker(RUN_DATE, WRITTEN)).rejects.toThrow("AccessDenied");
+    await expect(uploadSuccessMarker(RUN_DATE, WRITTEN, SNAPSHOT_TIME)).rejects.toThrow("AccessDenied");
   });
 });
 

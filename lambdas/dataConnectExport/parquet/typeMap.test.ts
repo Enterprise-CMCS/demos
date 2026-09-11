@@ -15,7 +15,7 @@ const mocks = vi.hoisted(() => ({ fetchColumnMetadataMock: vi.fn(), warnMock: vi
 vi.mock("../database/queries", () => ({ fetchColumnMetadata: mocks.fetchColumnMetadataMock }));
 vi.mock("../log", () => ({ log: { warn: mocks.warnMock } }));
 
-const pool = {} as never;
+const client = {} as never;
 
 function meta(overrides: Partial<ColumnMeta> & Pick<ColumnMeta, "dataType">): ColumnMeta {
   return {
@@ -30,7 +30,7 @@ function meta(overrides: Partial<ColumnMeta> & Pick<ColumnMeta, "dataType">): Co
 // duckdbTypeFor is private, so it is exercised through buildRelationSchema.
 async function duckdbTypeOf(column: ColumnMeta): Promise<string> {
   mocks.fetchColumnMetadataMock.mockResolvedValue([column]);
-  const schema = await buildRelationSchema(pool, "demonstration", [column.columnName]);
+  const schema = await buildRelationSchema(client, "demonstration", [column.columnName]);
   return schema.columns[0].duckdbType;
 }
 
@@ -151,15 +151,15 @@ describe("buildRelationSchema", () => {
 
   it("asks for the allowlisted columns of the requested relation", async () => {
     mocks.fetchColumnMetadataMock.mockResolvedValue([meta({ columnName: "id", dataType: "uuid" })]);
-    await buildRelationSchema(pool, "state", ["id"]);
-    expect(mocks.fetchColumnMetadataMock).toHaveBeenCalledWith(pool, "state", ["id"]);
+    await buildRelationSchema(client, "state", ["id"]);
+    expect(mocks.fetchColumnMetadataMock).toHaveBeenCalledWith(client, "state", ["id"]);
   });
 
   it("names the columns it could not find, so a rename is diagnosable from the log", async () => {
     mocks.fetchColumnMetadataMock.mockResolvedValue([meta({ columnName: "id", dataType: "uuid" })]);
 
     await expect(
-      buildRelationSchema(pool, "demonstration", ["id", "renamed_away", "also_gone"])
+      buildRelationSchema(client, "demonstration", ["id", "renamed_away", "also_gone"])
     ).rejects.toThrow(
       "Relation demonstration is missing allowlisted columns: renamed_away, also_gone"
     );
@@ -167,7 +167,7 @@ describe("buildRelationSchema", () => {
 
   it("throws rather than exporting a narrower file than the allowlist promises", async () => {
     mocks.fetchColumnMetadataMock.mockResolvedValue([]);
-    await expect(buildRelationSchema(pool, "state", ["id"])).rejects.toThrow(
+    await expect(buildRelationSchema(client, "state", ["id"])).rejects.toThrow(
       "missing allowlisted columns: id"
     );
   });
@@ -180,7 +180,7 @@ describe("buildRelationSchema", () => {
       meta({ columnName: "name", dataType: "text" }),
     ]);
 
-    const schema = await buildRelationSchema(pool, "state", ["name", "id"]);
+    const schema = await buildRelationSchema(client, "state", ["name", "id"]);
     expect(schema.columns.map((c) => c.name)).toEqual(["id", "name"]);
   });
 });

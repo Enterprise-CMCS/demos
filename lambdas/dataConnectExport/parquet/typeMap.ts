@@ -1,4 +1,4 @@
-import type { Pool } from "pg";
+import type { PoolClient } from "pg";
 
 import { fetchColumnMetadata } from "../database/queries";
 import { log } from "../log";
@@ -64,11 +64,11 @@ export function quoteIdentifier(name: string): string {
 }
 
 export async function buildRelationSchema(
-  pool: Pool,
+  client: PoolClient,
   relation: string,
   columns: readonly string[]
 ): Promise<RelationSchema> {
-  const metadata = await fetchColumnMetadata(pool, relation, columns);
+  const metadata = await fetchColumnMetadata(client, relation, columns);
 
   if (metadata.length !== columns.length) {
     const found = new Set(metadata.map((m) => m.columnName));

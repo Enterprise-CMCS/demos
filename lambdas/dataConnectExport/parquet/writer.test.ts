@@ -2,7 +2,7 @@ import { DuckDBInstance } from "@duckdb/node-api";
 import { mkdtempSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import type { Pool } from "pg";
+import type { PoolClient } from "pg";
 import { afterAll, describe, expect, it, vi } from "vitest";
 
 import type { RelationSchema } from "../types";
@@ -68,13 +68,14 @@ const FULL_ROW: TextRow = {
 
 const NULL_ROW: TextRow = Object.fromEntries(SCHEMA.columns.map((c) => [c.name, null]));
 
-type PoolHarness = {
-  pool: Pool;
-  state: { sql: string; reads: number[]; closes: number; releases: number };
+type ClientHarness = {
+  client: PoolClient;
+  state: { sql: string; reads: number[]; closes: number };
 };
 
-function fakePool(rows: TextRow[], onRead?: () => void): PoolHarness {
-  const state = { sql: "", reads: [] as number[], closes: 0, releases: 0 };
+// Use a client to catch code that opens a connection outside withSnapshot.
+function fakeClient(rows: TextRow[], onRead?: () => void): ClientHarness {
+  const state = { sql: "", reads: [] as number[], closes: 0 };
   const remaining = [...rows];
 
   const client = {
@@ -93,12 +94,9 @@ function fakePool(rows: TextRow[], onRead?: () => void): PoolHarness {
         },
       };
     },
-    release: () => {
-      state.releases += 1;
-    },
   };
 
-  return { pool: { connect: async () => client } as unknown as Pool, state };
+  return { client: client as unknown as PoolClient, state };
 }
 
 async function reader() {
@@ -109,8 +107,8 @@ async function reader() {
 
 describe("writeRelationToFile", () => {
   it("projects every column as text from the schema-qualified relation", async () => {
-    const { pool, state } = fakePool([]);
-    await writeRelationToFile(pool, "demonstration", SCHEMA, outputPath());
+    const { client, state } = fakeClient([]);
+    await writeRelationToFile(client, "demonstration", SCHEMA, outputPath());
 
     expect(state.sql).toContain('FROM demos_app."demonstration"');
     expect(state.sql).toContain('"id"::text AS "id"');
@@ -122,9 +120,9 @@ describe("writeRelationToFile", () => {
   });
 
   it("writes the parquet encodings the DataConnect dashboard contract depends on", async () => {
-    const { pool } = fakePool([FULL_ROW]);
+    const { client } = fakeClient([FULL_ROW]);
     const out = outputPath();
-    await writeRelationToFile(pool, "demonstration", SCHEMA, out);
+    await writeRelationToFile(client, "demonstration", SCHEMA, out);
 
     const query = await reader();
     const rows = await query(
@@ -167,9 +165,9 @@ describe("writeRelationToFile", () => {
   });
 
   it("round trips values without going through a JavaScript number or date", async () => {
-    const { pool } = fakePool([FULL_ROW]);
+    const { client } = fakeClient([FULL_ROW]);
     const out = outputPath();
-    expect(await writeRelationToFile(pool, "demonstration", SCHEMA, out)).toBe(1);
+    expect(await writeRelationToFile(client, "demonstration", SCHEMA, out)).toBe(1);
 
     const query = await reader();
     // Decimals and bigints are compared as text. getRowObjectsJS turns DECIMAL(38,4)
@@ -204,9 +202,9 @@ describe("writeRelationToFile", () => {
   });
 
   it("keeps a fully null row null in every column", async () => {
-    const { pool } = fakePool([NULL_ROW]);
+    const { client } = fakeClient([NULL_ROW]);
     const out = outputPath();
-    expect(await writeRelationToFile(pool, "demonstration", SCHEMA, out)).toBe(1);
+    expect(await writeRelationToFile(client, "demonstration", SCHEMA, out)).toBe(1);
 
     const query = await reader();
     const [row] = await query(`SELECT * FROM read_parquet('${out}')`);
@@ -215,9 +213,9 @@ describe("writeRelationToFile", () => {
   });
 
   it("writes an empty but readable file when the relation has no rows", async () => {
-    const { pool, state } = fakePool([]);
+    const { client, state } = fakeClient([]);
     const out = outputPath();
-    expect(await writeRelationToFile(pool, "demonstration", SCHEMA, out)).toBe(0);
+    expect(await writeRelationToFile(client, "demonstration", SCHEMA, out)).toBe(0);
 
     const query = await reader();
     expect(await query(`SELECT count(*) AS n FROM read_parquet('${out}')`)).toEqual([{ n: 0n }]);
@@ -231,9 +229,9 @@ describe("writeRelationToFile", () => {
 
   it("reads in batches and writes every row across them", async () => {
     const rows = Array.from({ length: 1200 }, (_, i) => ({ ...NULL_ROW, id: String(i) }));
-    const { pool, state } = fakePool(rows);
+    const { client, state } = fakeClient(rows);
     const out = outputPath();
-    expect(await writeRelationToFile(pool, "demonstration", SCHEMA, out)).toBe(1200);
+    expect(await writeRelationToFile(client, "demonstration", SCHEMA, out)).toBe(1200);
 
     // 500, 500, 200, then the empty read that ends the loop.
     expect(state.reads).toEqual([500, 500, 500, 500]);
@@ -247,24 +245,23 @@ describe("writeRelationToFile", () => {
     ).toEqual([{ n: 1200n, distinct_ids: 1200n, max_id: "1199" }]);
   }, 30000);
 
-  it("closes the cursor and releases the client when the read fails", async () => {
-    const { pool, state } = fakePool([FULL_ROW], () => {
+  it("closes the cursor when the read fails", async () => {
+    const { client, state } = fakeClient([FULL_ROW], () => {
       throw new Error("connection terminated unexpectedly");
     });
 
     await expect(
-      writeRelationToFile(pool, "demonstration", SCHEMA, outputPath())
+      writeRelationToFile(client, "demonstration", SCHEMA, outputPath())
     ).rejects.toThrow("connection terminated unexpectedly");
 
     expect(state.closes).toBe(1);
-    expect(state.releases).toBe(1);
   });
 
-  it("closes the cursor and releases the client on success", async () => {
-    const { pool, state } = fakePool([FULL_ROW]);
-    await writeRelationToFile(pool, "demonstration", SCHEMA, outputPath());
+  it("closes the cursor on success", async () => {
+    // Close the portal before reading the next relation in this transaction.
+    const { client, state } = fakeClient([FULL_ROW]);
+    await writeRelationToFile(client, "demonstration", SCHEMA, outputPath());
 
     expect(state.closes).toBe(1);
-    expect(state.releases).toBe(1);
   });
 });
