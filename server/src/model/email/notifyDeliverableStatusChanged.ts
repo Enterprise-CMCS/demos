@@ -1,9 +1,11 @@
+import { z } from "zod";
+
 import { STATE_USER_DEMONSTRATION_ROLES } from "../../constants";
 import { log } from "../../log";
 import { prisma } from "../../prismaClient";
 import { RealtimeEmailType } from "../../services/emailQueue";
 import { FinalDeliverableStatus } from "../../types";
-import { enqueueTrackedRealtimeEmail } from "./emailNotification";
+import { enqueueAndTrackRealtimeEmail } from "./emailNotification";
 
 type DeliverableEmailInput = {
   deliverableId: string;
@@ -16,6 +18,8 @@ type Recipient = {
   name: string;
   address: string;
 };
+
+const emailSchema = z.email();
 
 export async function notifyDeliverableSubmitted(
   input: DeliverableEmailInput
@@ -95,7 +99,7 @@ async function notifyDeliverableStatusChanged(
       );
     }
 
-    const messageId = await enqueueTrackedRealtimeEmail(
+    const messageId = await enqueueAndTrackRealtimeEmail(
       {
         emailType,
         entityType: "deliverable",
@@ -127,6 +131,10 @@ async function notifyDeliverableStatusChanged(
       { deliverableActionId: input.sourceActionId },
       recipients.map(({ personId }) => ({ personId }))
     );
+
+    if (messageId === null) {
+      return;
+    }
 
     log.info(
       {
@@ -162,10 +170,10 @@ function deduplicateRecipients(
 
   for (const person of people) {
     const address = person.email.trim().toLowerCase();
-    if (!address) {
+    if (!isAnEmail(address)) {
       throw new Error(
         `Cannot queue ${emailType} email for deliverable ${deliverableId}: ` +
-          `person ${person.id} has no email address.`
+          `person ${person.id} does not have a valid email address.`
       );
     }
 
@@ -179,4 +187,8 @@ function deduplicateRecipients(
   }
 
   return Array.from(recipients.values());
+}
+
+function isAnEmail(address: string): boolean {
+  return emailSchema.safeParse(address).success;
 }

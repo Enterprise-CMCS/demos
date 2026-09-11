@@ -15,8 +15,7 @@ import { notifyDeliverableResubmissionRequested } from "../email/notifyDeliverab
 export async function requestDeliverableResubmission(
   deliverableId: string,
   input: RequestDeliverableResubmissionInput,
-  context: GraphQLContext,
-  options: { sendEmailNotifications?: boolean } = {}
+  context: GraphQLContext
 ): Promise<PrismaDeliverable> {
   validateUserPersonTypeAllowed(context, "requestDeliverableResubmission", [
     "demos-admin",
@@ -61,14 +60,12 @@ export async function requestDeliverableResubmission(
     }
   );
 
-  if (options.sendEmailNotifications !== false) {
-    await notifyDeliverableResubmissionRequested({
-      deliverableId,
-      previousDueDate,
-      sourceActionId,
-      triggeredByUserId: context.user.id,
-    });
-  }
+  await notifyDeliverableResubmissionRequested({
+    deliverableId,
+    previousDueDate,
+    sourceActionId,
+    triggeredByUserId: context.user.id,
+  });
 
   return requestedDeliverable;
 }

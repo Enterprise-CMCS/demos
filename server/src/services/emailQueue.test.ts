@@ -16,11 +16,20 @@ vi.mock("@aws-sdk/client-sqs", () => ({
 
 vi.mock("../log", () => ({
   log: {
+    error: vi.fn(),
     info: vi.fn(),
   },
 }));
 
+vi.mock("../prismaClient", () => ({
+  prisma: vi.fn(),
+}));
+
+import { log } from "../log";
+import { prisma } from "../prismaClient";
+
 const message = {
+  emailNotificationId: "notification-1",
   emailType: "Deliverable Created" as const,
   entityType: "deliverable" as const,
   entityId: "deliverable-1",
@@ -37,11 +46,19 @@ const message = {
 
 describe("emailQueue", () => {
   const originalEnv = { ...process.env };
+  const transaction = vi.fn();
+  const update = vi.fn();
 
   beforeEach(() => {
     vi.resetModules();
+    vi.clearAllMocks();
     send.mockReset();
     process.env = { ...originalEnv };
+    vi.mocked(prisma).mockReturnValue({ $transaction: transaction } as never);
+    transaction.mockImplementation((callback) =>
+      callback({ emailNotification: { update } })
+    );
+    update.mockResolvedValue({ id: "notification-1" });
   });
 
   afterEach(() => {
@@ -61,6 +78,63 @@ describe("emailQueue", () => {
           MessageBody: JSON.stringify(message),
         },
       })
+    );
+  });
+
+  it("marks a notification queued before sending it to SQS", async () => {
+    process.env.EMAILER_QUEUE_URL = "http://example.com/emailer-queue";
+    send.mockResolvedValue({ MessageId: "message-1" });
+    const { enqueueEmail } = await import("./emailQueue");
+
+    await expect(enqueueEmail(message)).resolves.toBe("message-1");
+
+    expect(update).toHaveBeenNthCalledWith(1, {
+      where: { id: "notification-1" },
+      data: { statusId: "Queued" },
+    });
+    expect(update).toHaveBeenNthCalledWith(2, {
+      where: { id: "notification-1" },
+      data: { sqsMessageId: "message-1" },
+    });
+    expect(update.mock.invocationCallOrder[0]).toBeLessThan(send.mock.invocationCallOrder[0]);
+  });
+
+  it("marks a notification failed when SQS rejects it", async () => {
+    process.env.EMAILER_QUEUE_URL = "http://example.com/emailer-queue";
+    send.mockRejectedValue(new Error("queue unavailable"));
+    const { enqueueEmail } = await import("./emailQueue");
+
+    await expect(enqueueEmail(message)).rejects.toThrow("queue unavailable");
+
+    expect(update).toHaveBeenNthCalledWith(1, {
+      where: { id: "notification-1" },
+      data: { statusId: "Queued" },
+    });
+    expect(update).toHaveBeenNthCalledWith(2, {
+      where: { id: "notification-1" },
+      data: {
+        statusId: "Failed",
+        lastError: "queue unavailable",
+      },
+    });
+  });
+
+  it("preserves the queue error when recording the failure also fails", async () => {
+    process.env.EMAILER_QUEUE_URL = "http://example.com/emailer-queue";
+    send.mockRejectedValue(new Error("queue unavailable"));
+    update
+      .mockResolvedValueOnce({ id: "notification-1" })
+      .mockRejectedValueOnce(new Error("database unavailable"));
+    const { enqueueEmail } = await import("./emailQueue");
+
+    await expect(enqueueEmail(message)).rejects.toThrow("queue unavailable");
+
+    expect(log.error).toHaveBeenCalledWith(
+      {
+        error: expect.objectContaining({ message: "database unavailable" }),
+        emailNotificationId: "notification-1",
+      },
+      "Failed to record email notification queue failure"
     );
   });
 

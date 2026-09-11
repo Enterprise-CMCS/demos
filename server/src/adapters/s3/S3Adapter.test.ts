@@ -42,41 +42,13 @@ describe("S3Adapter", () => {
       expect(adapter).toHaveProperty("type", "aws");
     });
 
-    it("should create AWS S3 adapter when LOCAL_SIMPLE_UPLOAD is 'false'", async () => {
-      process.env.LOCAL_SIMPLE_UPLOAD = "false";
-
-      const { getS3Adapter } = await import("../");
-      const adapter = getS3Adapter();
-
-      expect(createAWSS3Adapter).toHaveBeenCalledOnce();
-      expect(createLocalS3Adapter).not.toHaveBeenCalled();
-      expect(adapter).toHaveProperty("type", "aws");
-    });
-
-    it("should create AWS S3 adapter when LOCAL_SIMPLE_UPLOAD is empty string", async () => {
-      process.env.LOCAL_SIMPLE_UPLOAD = "";
-
-      const { getS3Adapter } = await import("../");
-      const adapter = getS3Adapter();
-
-      expect(createAWSS3Adapter).toHaveBeenCalledOnce();
-      expect(createLocalS3Adapter).not.toHaveBeenCalled();
-      expect(adapter).toHaveProperty("type", "aws");
-    });
-
-    it("should create AWS S3 adapter when LOCAL_SIMPLE_UPLOAD is 'True' (wrong case)", async () => {
-      process.env.LOCAL_SIMPLE_UPLOAD = "True";
-
-      const { getS3Adapter } = await import("../");
-      const adapter = getS3Adapter();
-
-      expect(createAWSS3Adapter).toHaveBeenCalledOnce();
-      expect(createLocalS3Adapter).not.toHaveBeenCalled();
-      expect(adapter).toHaveProperty("type", "aws");
-    });
-
-    it("should create AWS S3 adapter when LOCAL_SIMPLE_UPLOAD is '1'", async () => {
-      process.env.LOCAL_SIMPLE_UPLOAD = "1";
+    it.each([
+      { value: "false" },
+      { value: "" }, // empty string
+      { value: "True" }, // wrong case is not truthy
+      { value: "1" },
+    ])("should create AWS S3 adapter when LOCAL_SIMPLE_UPLOAD is '$value'", async ({ value }) => {
+      process.env.LOCAL_SIMPLE_UPLOAD = value;
 
       const { getS3Adapter } = await import("../");
       const adapter = getS3Adapter();

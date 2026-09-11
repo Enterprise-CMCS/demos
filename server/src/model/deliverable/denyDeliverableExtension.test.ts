@@ -179,17 +179,6 @@ describe("denyDeliverableExtension", () => {
     });
   });
 
-  it("should not notify State Points of Contact when notifications are disabled", async () => {
-    await denyDeliverableExtension(
-      testDeliverableId,
-      testInput,
-      testContext as GraphQLContext,
-      { sendEmailNotifications: false }
-    );
-
-    expect(notifyDeliverableExtensionDecisionMade).not.toHaveBeenCalled();
-  });
-
   it("should invoke the updates to tables in the right order", async () => {
     await denyDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
 

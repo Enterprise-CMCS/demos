@@ -123,11 +123,4 @@ describe("submitDeliverable", () => {
     });
   });
 
-  it("should not notify the CMS owner when notifications are disabled", async () => {
-    await submitDeliverable(testDeliverableId, testContext as GraphQLContext, {
-      sendEmailNotifications: false,
-    });
-
-    expect(notifyDeliverableSubmitted).not.toHaveBeenCalled();
-  });
 });

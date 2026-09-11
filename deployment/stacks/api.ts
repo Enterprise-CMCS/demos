@@ -192,6 +192,7 @@ export class ApiStack extends Stack {
           DELETED_BUCKET: deletedBucket.bucketName,
           // None of the other queue use ENV. maybe another way.
           UIPATH_QUEUE_URL: uipathQueueUrl,
+          DISABLE_EMAIL_NOTIFICATIONS: process.env.DISABLE_EMAIL_NOTIFICATIONS ?? "false",
         },
       },
       "graphql"
@@ -317,6 +318,7 @@ export class ApiStack extends Stack {
       environment: {
         DATABASE_SECRET_ARN: emailerDbSecret.secretName, // pragma: allowlist secret
         DB_SCHEMA: "demos_app",
+        DB_SSL_ROOT_CERT: "/var/runtime/ca-cert.pem",
         DEMOS_APP_URL: commonProps.isLocalstack
           ? "https://localhost:3000"
           : `https://${commonProps.cloudfrontHost}`,

@@ -194,14 +194,4 @@ describe("completeDeliverable", () => {
     }
   );
 
-  it("should not notify State Points of Contact when notifications are disabled", async () => {
-    await completeDeliverable(
-      testDeliverableId,
-      "Approved",
-      testContext as GraphQLContext,
-      { sendEmailNotifications: false }
-    );
-
-    expect(notifyDeliverableCompleted).not.toHaveBeenCalled();
-  });
 });

@@ -20,8 +20,7 @@ import { notifyDeliverableExtensionDecisionMade } from "../email/notifyDeliverab
 export async function approveDeliverableExtension(
   deliverableId: string,
   input: ApproveDeliverableExtensionInput,
-  context: GraphQLContext,
-  options: { sendEmailNotifications?: boolean } = {}
+  context: GraphQLContext
 ): Promise<PrismaDeliverable> {
   validateUserPersonTypeAllowed(context, "approveDeliverableExtension", [
     "demos-admin",
@@ -94,15 +93,13 @@ export async function approveDeliverableExtension(
   });
   const { approvedDeliverable, previousDueDate, sourceActionId } = result;
 
-  if (options.sendEmailNotifications !== false) {
-    await notifyDeliverableExtensionDecisionMade({
-      deliverableId,
-      extensionDecision: "Approved",
-      previousDueDate,
-      sourceActionId,
-      triggeredByUserId: context.user.id,
-    });
-  }
+  await notifyDeliverableExtensionDecisionMade({
+    deliverableId,
+    extensionDecision: "Approved",
+    previousDueDate,
+    sourceActionId,
+    triggeredByUserId: context.user.id,
+  });
 
   return approvedDeliverable;
 }

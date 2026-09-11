@@ -14,8 +14,7 @@ import { notifyDeliverableCompleted } from "../email/notifyDeliverableStatusChan
 export async function completeDeliverable(
   deliverableId: string,
   finalStatus: FinalDeliverableStatus,
-  context: GraphQLContext,
-  options: { sendEmailNotifications?: boolean } = {}
+  context: GraphQLContext
 ): Promise<PrismaDeliverable> {
   validateUserPersonTypeAllowed(context, "completeDeliverable", ["demos-admin", "demos-cms-user"]);
   const { completedDeliverable, sourceActionId } = await prisma().$transaction(async (tx) => {
@@ -54,14 +53,12 @@ export async function completeDeliverable(
     };
   });
 
-  if (options.sendEmailNotifications !== false) {
-    await notifyDeliverableCompleted({
-      deliverableId,
-      finalStatus,
-      sourceActionId,
-      triggeredByUserId: context.user.id,
-    });
-  }
+  await notifyDeliverableCompleted({
+    deliverableId,
+    finalStatus,
+    sourceActionId,
+    triggeredByUserId: context.user.id,
+  });
 
   return completedDeliverable;
 }

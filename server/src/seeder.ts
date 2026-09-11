@@ -90,14 +90,28 @@ async function seedTagsAndStatuses() {
         id: tagName,
       },
     });
-    await prisma().tag.create({
-      data: {
-        tagNameId: tagName,
-        tagTypeId: faker.helpers.arrayElement(TAG_TYPES),
-        sourceId: "User",
-        statusId: "Unapproved",
-      },
-    });
+    const tagTypeToMake = faker.helpers.arrayElement(TAG_TYPES);
+    if (["Application", "Demonstration Type"].includes(tagTypeToMake)) {
+      for (const tagType of ["Application", "Demonstration Type"]) {
+        await prisma().tag.create({
+          data: {
+            tagNameId: tagName,
+            tagTypeId: tagType,
+            sourceId: "User",
+            statusId: "Unapproved",
+          },
+        });
+      }
+    } else {
+      await prisma().tag.create({
+        data: {
+          tagNameId: tagName,
+          tagTypeId: tagTypeToMake,
+          sourceId: "User",
+          statusId: "Unapproved",
+        },
+      });
+    }
   }
 
   // assign random tags to applications
@@ -261,9 +275,7 @@ async function seedDeliverables(actionUserId: string, actionUserPersonTypeId: Pe
         .slice(0, 10) as CreateDeliverableInput["dueDate"],
       demonstrationTypes: selectedDemonstrationTypes,
     };
-    createdDeliverables.push(
-      await createDeliverable(createInput, context, { sendEmailNotifications: false })
-    );
+    createdDeliverables.push(await createDeliverable(createInput, context));
   }
   return createdDeliverables;
 }
@@ -346,15 +358,14 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
       createdAt: new Date(),
     },
   });
-  await submitDeliverable(deliverable.id, context, { sendEmailNotifications: false });
+  await submitDeliverable(deliverable.id, context);
   await requestDeliverableResubmission(
     deliverable.id,
     {
       details: "This is a resubmission request",
       newDueDate: "2028-12-31" as DateTimeOrLocalDate,
     },
-    context,
-    { sendEmailNotifications: false }
+    context
   );
   const firstDeliverableExtension = await selectDeliverableExtension(
     {
@@ -368,10 +379,9 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
     {
       deliverableExtensionId: firstDeliverableExtension.id,
     },
-    context,
-    { sendEmailNotifications: false }
+    context
   );
-  await submitDeliverable(deliverable.id, context, { sendEmailNotifications: false });
+  await submitDeliverable(deliverable.id, context);
   await startDeliverableReview(deliverable.id, context);
   await requestDeliverableResubmission(
     deliverable.id,
@@ -379,8 +389,7 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
       details: "This is a secondary resubmission request",
       newDueDate: "2029-01-31" as DateTimeOrLocalDate,
     },
-    context,
-    { sendEmailNotifications: false }
+    context
   );
   await requestDeliverableExtension(
     deliverable.id,
@@ -398,7 +407,7 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
     },
     true
   );
-  await submitDeliverable(deliverable.id, context, { sendEmailNotifications: false });
+  await submitDeliverable(deliverable.id, context);
   await startDeliverableReview(deliverable.id, context);
   await denyDeliverableExtension(
     deliverable.id,
@@ -406,12 +415,9 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
       deliverableExtensionId: secondDeliverableExtension.id,
       details: "Users have already submitted, no extension is required",
     },
-    context,
-    { sendEmailNotifications: false }
+    context
   );
-  await completeDeliverable(deliverable.id, "Approved", context, {
-    sendEmailNotifications: false,
-  });
+  await completeDeliverable(deliverable.id, "Approved", context);
 }
 
 async function seedNotes() {

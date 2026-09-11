@@ -5,7 +5,7 @@ vi.mock("../../prismaClient", () => ({
 }));
 
 vi.mock("./emailNotification", () => ({
-  enqueueTrackedRealtimeEmail: vi.fn(),
+  enqueueAndTrackRealtimeEmail: vi.fn(),
 }));
 
 vi.mock("../../log", () => ({
@@ -17,7 +17,7 @@ vi.mock("../../log", () => ({
 
 import { log } from "../../log";
 import { prisma } from "../../prismaClient";
-import { enqueueTrackedRealtimeEmail } from "./emailNotification";
+import { enqueueAndTrackRealtimeEmail } from "./emailNotification";
 import {
   notifyDeliverableCompleted,
   notifyDeliverableExtensionDecisionMade,
@@ -69,13 +69,13 @@ describe("deliverable status email notifications", () => {
       deliverable: { findUniqueOrThrow },
     } as never);
     findUniqueOrThrow.mockResolvedValue(deliverable);
-    vi.mocked(enqueueTrackedRealtimeEmail).mockResolvedValue("message-1");
+    vi.mocked(enqueueAndTrackRealtimeEmail).mockResolvedValue("message-1");
   });
 
   it("queues submitted emails for the CMS owner", async () => {
     await notifyDeliverableSubmitted(input);
 
-    expect(enqueueTrackedRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
+    expect(enqueueAndTrackRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({
         emailType: "Deliverable Submitted",
         entityType: "deliverable",
@@ -113,7 +113,7 @@ describe("deliverable status email notifications", () => {
   ] as const)("queues %s emails for State Points of Contact", async (finalStatus, emailType) => {
     await notifyDeliverableCompleted({ ...input, finalStatus });
 
-    expect(enqueueTrackedRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
+    expect(enqueueAndTrackRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({
         emailType,
         payload: expect.objectContaining({
@@ -133,7 +133,7 @@ describe("deliverable status email notifications", () => {
 
     await notifyDeliverableResubmissionRequested({ ...input, previousDueDate });
 
-    expect(enqueueTrackedRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
+    expect(enqueueAndTrackRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({
         emailType: "Resubmission Requested",
         payload: expect.objectContaining({
@@ -159,7 +159,7 @@ describe("deliverable status email notifications", () => {
         previousDueDate,
       });
 
-      expect(enqueueTrackedRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
+      expect(enqueueAndTrackRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
         expect.objectContaining({
           emailType: "Extension Decision Made",
           payload: expect.objectContaining({
@@ -191,7 +191,7 @@ describe("deliverable status email notifications", () => {
 
     await notifyDeliverableCompleted({ ...input, finalStatus: "Approved" });
 
-    expect(enqueueTrackedRealtimeEmail).not.toHaveBeenCalled();
+    expect(enqueueAndTrackRealtimeEmail).not.toHaveBeenCalled();
     expect(log.error).toHaveBeenCalledWith(
       {
         error: expect.objectContaining({
@@ -206,8 +206,41 @@ describe("deliverable status email notifications", () => {
     );
   });
 
+  it("reports an invalid recipient email without queueing", async () => {
+    findUniqueOrThrow.mockResolvedValue({
+      ...deliverable,
+      demonstration: {
+        ...deliverable.demonstration,
+        demonstrationRoleAssignments: [
+          {
+            person: {
+              ...deliverable.demonstration.demonstrationRoleAssignments[0].person,
+              email: "not-an-email",
+            },
+          },
+        ],
+      },
+    });
+
+    await notifyDeliverableCompleted({ ...input, finalStatus: "Approved" });
+
+    expect(enqueueAndTrackRealtimeEmail).not.toHaveBeenCalled();
+    expect(log.error).toHaveBeenCalledWith(
+      {
+        error: expect.objectContaining({
+          message:
+            "Cannot queue Deliverable Approved email for deliverable deliverable-1: " +
+            "person state-poc-1 does not have a valid email address.",
+        }),
+        deliverableId: input.deliverableId,
+        emailType: "Deliverable Approved",
+      },
+      "Failed to queue deliverable email"
+    );
+  });
+
   it("reports queue failures without failing the deliverable operation", async () => {
-    vi.mocked(enqueueTrackedRealtimeEmail).mockRejectedValue(new Error("queue unavailable"));
+    vi.mocked(enqueueAndTrackRealtimeEmail).mockRejectedValue(new Error("queue unavailable"));
 
     await expect(notifyDeliverableSubmitted(input)).resolves.toBeUndefined();
 

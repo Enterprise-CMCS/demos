@@ -17,8 +17,7 @@ import { notifyDeliverableExtensionDecisionMade } from "../email/notifyDeliverab
 export async function denyDeliverableExtension(
   deliverableId: string,
   input: DenyDeliverableExtensionInput,
-  context: GraphQLContext,
-  options: { sendEmailNotifications?: boolean } = {}
+  context: GraphQLContext
 ): Promise<PrismaDeliverable> {
   validateUserPersonTypeAllowed(context, "denyDeliverableExtension", [
     "demos-admin",
@@ -64,15 +63,13 @@ export async function denyDeliverableExtension(
     };
   });
 
-  if (options.sendEmailNotifications !== false) {
-    await notifyDeliverableExtensionDecisionMade({
-      deliverableId,
-      extensionDecision: "Denied",
-      previousDueDate: deliverable.dueDate,
-      sourceActionId,
-      triggeredByUserId: context.user.id,
-    });
-  }
+  await notifyDeliverableExtensionDecisionMade({
+    deliverableId,
+    extensionDecision: "Denied",
+    previousDueDate: deliverable.dueDate,
+    sourceActionId,
+    triggeredByUserId: context.user.id,
+  });
 
   return deliverable;
 }

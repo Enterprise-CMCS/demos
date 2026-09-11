@@ -219,14 +219,4 @@ describe("requestDeliverableResubmission", () => {
     });
   });
 
-  it("should not notify State Points of Contact when notifications are disabled", async () => {
-    await requestDeliverableResubmission(
-      testDeliverableId,
-      testInput,
-      testContext as GraphQLContext,
-      { sendEmailNotifications: false }
-    );
-
-    expect(notifyDeliverableResubmissionRequested).not.toHaveBeenCalled();
-  });
 });
