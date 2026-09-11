@@ -90,14 +90,28 @@ async function seedTagsAndStatuses() {
         id: tagName,
       },
     });
-    await prisma().tag.create({
-      data: {
-        tagNameId: tagName,
-        tagTypeId: faker.helpers.arrayElement(TAG_TYPES),
-        sourceId: "User",
-        statusId: "Unapproved",
-      },
-    });
+    const tagTypeToMake = faker.helpers.arrayElement(TAG_TYPES);
+    if (["Application", "Demonstration Type"].includes(tagTypeToMake)) {
+      for (const tagType of ["Application", "Demonstration Type"]) {
+        await prisma().tag.create({
+          data: {
+            tagNameId: tagName,
+            tagTypeId: tagType,
+            sourceId: "User",
+            statusId: "Unapproved",
+          },
+        });
+      }
+    } else {
+      await prisma().tag.create({
+        data: {
+          tagNameId: tagName,
+          tagTypeId: tagTypeToMake,
+          sourceId: "User",
+          statusId: "Unapproved",
+        },
+      });
+    }
   }
 
   // assign random tags to applications
