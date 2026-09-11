@@ -5,7 +5,12 @@ import { BaseDialog } from "components/dialog/BaseDialog";
 import { ErrorIcon } from "components/icons";
 import { TextInput } from "components/input";
 import { DocumentTypeInput } from "components/input/document/DocumentTypeInput";
-import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "components/input/Input";
+import {
+  getInputColors,
+  INPUT_BASE_CLASSES,
+  LABEL_CLASSES,
+  VALIDATION_MESSAGE_CLASSES,
+} from "components/input/Input";
 import { useToast } from "components/toast";
 import { Document, DocumentType } from "demos-server";
 import { useFileDrop } from "hooks/file/useFileDrop";
@@ -17,6 +22,7 @@ import { UploadButton } from "./UploadButton";
 import { BNPreValidationState, useBNWorkbookPreValidation } from "./useBNWorkbookPreValidation";
 import { DocumentChip } from "components/document/DocumentChip";
 import { BN_WORKBOOK_DOCUMENT_TYPE } from "demos-server-constants";
+import { useValidation, type ValidationConfig } from "hooks/useValidation";
 
 // BN Workbook uploads require the user to attest to the content before submitting.
 const ATTESTATION_DOCUMENT_TYPES: DocumentType[] = [BN_WORKBOOK_DOCUMENT_TYPE];
@@ -53,8 +59,10 @@ const ACCEPTED_EXTENSIONS = ALLOWED_FILE_EXTENSIONS.join(",");
 const MAX_FILE_SIZE_MB = 600;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
-const ERROR_MESSAGES = {
+export const ERROR_MESSAGES = {
   noFileSelected: "Please select a file to upload.",
+  missingDocumentTitle: "Document Title is required.",
+  missingDocumentType: "Document Type is required.",
   missingField: "A required field is missing.",
   failedUploadUnknownProblem: "Your document could not be added because of an unknown problem.",
   failedEditUnknownIssue: "Your changes could not be saved because of an unknown problem.",
@@ -65,10 +73,11 @@ const SUCCESS_MESSAGES = {
   fileDeleted: "Your document has been removed.",
 };
 
-export const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }> = ({
-  value,
-  onChange,
-}) => (
+export const TitleInput: React.FC<{
+  value: string;
+  onChange: (value: string) => void;
+  validationMessage?: string;
+}> = ({ value, onChange, validationMessage }) => (
   <TextInput
     name="title"
     label="Document Title"
@@ -76,6 +85,7 @@ export const TitleInput: React.FC<{ value: string; onChange: (value: string) => 
     isRequired
     onChange={(event) => onChange(event.target.value)}
     value={value}
+    getValidationMessage={() => validationMessage}
   />
 );
 
@@ -139,7 +149,17 @@ const DropTarget: React.FC<{
   uploadStatus: UploadStatus;
   uploadProgress: number;
   handleFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-}> = ({ file, onRemove, fileInputRef, uploadStatus, uploadProgress, handleFileChange }) => {
+  validationMessage?: string;
+}> = ({
+  file,
+  onRemove,
+  fileInputRef,
+  uploadStatus,
+  uploadProgress,
+  handleFileChange,
+  validationMessage,
+}) => {
+  const [touched, setTouched] = useState(false);
   const handleFiles = useCallback(
     (fileList: FileList) => {
       if (!fileList || fileList.length === 0) return;
@@ -167,7 +187,10 @@ const DropTarget: React.FC<{
           ref={fileInputRef}
           className="hidden"
           accept={ACCEPTED_EXTENSIONS}
-          onChange={handleFileChange}
+          onChange={(e) => {
+            handleFileChange(e);
+            setTouched(true);
+          }}
           data-testid="input-file"
         />
 
@@ -200,6 +223,9 @@ const DropTarget: React.FC<{
             </div>
           )}
         </div>
+      )}
+      {validationMessage && touched && (
+        <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>
       )}
     </div>
   );
@@ -330,6 +356,21 @@ const setDefaultDocumentType = (
   };
 };
 
+export const documentValidationConfig = {
+  validateFileSelected: {
+    check: ({ file }) => Boolean(file),
+    message: ERROR_MESSAGES.noFileSelected,
+  },
+  validateDocumentTitleExists: {
+    check: ({ name }) => Boolean(name.trim()),
+    message: ERROR_MESSAGES.missingDocumentTitle,
+  },
+  validateDocumentTypeExists: {
+    check: ({ documentType }) => Boolean(documentType),
+    message: ERROR_MESSAGES.missingDocumentType,
+  },
+} satisfies ValidationConfig<DocumentDialogFields>;
+
 export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   onClose = () => {},
   applicableDocumentTypes,
@@ -346,7 +387,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   const [activeDocument, setActiveDocument] = useState<DocumentDialogFields>(
     initialDocument || hydratedInitialDocument
   );
-
+  const { validationErrors, isValid } = useValidation(activeDocument, documentValidationConfig);
   const [documentDialogState, setDocumentDialogState] = useState<DocumentDialogState>("idle");
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
   const [formHasChanges, setFormHasChanges] = useState(false);
@@ -391,14 +432,12 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     setActiveDocument((prev) => ({ ...prev, file }));
   }, [file]);
 
-  const isMissing = !file || !activeDocument.documentType || !activeDocument.name.trim();
-
   const isBNPreValidationBlocking =
     !!file && (bnPreValidation.status === "validating" || bnPreValidation.status === "invalid");
 
   const onUploadClick = async () => {
     if (documentDialogState === "uploading") return;
-    if (isMissing) {
+    if (!isValid) {
       showError(ERROR_MESSAGES.missingField);
       return;
     }
@@ -451,7 +490,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
         actionButton={
           <UploadButton
             onClick={onUploadClick}
-            disabled={isMissing || !formHasChanges || isBNPreValidationBlocking}
+            disabled={!isValid || !formHasChanges || isBNPreValidationBlocking}
             isUploading={documentDialogState === "uploading"}
             label={buttonName}
             loadingLabel={"Uploading"}
@@ -466,6 +505,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
           uploadStatus={uploadStatus}
           uploadProgress={uploadProgress}
           handleFileChange={handleFileChange}
+          validationMessage={validationErrors.validateFileSelected}
         />
 
         <BNPreValidationNotice state={bnPreValidation} />
@@ -481,6 +521,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
             setActiveDocument((prev) => ({ ...prev, name: val }));
             setTitleManuallyEdited(true);
           }}
+          validationMessage={validationErrors.validateDocumentTitleExists}
         />
 
         <DescriptionInput
@@ -494,6 +535,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
             setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }))
           }
           documentTypes={applicableDocumentTypes}
+          validationMessage={validationErrors.validateDocumentTypeExists}
         />
       </BaseDialog>
 
