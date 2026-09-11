@@ -173,7 +173,7 @@ class TestMigrateFiles:
                 file_has_been_moved,
                 FALSE AS _local_file_has_been_moved
             FROM
-                {self.mock_attach_name}.{self.mock_data_load_config.target_schema}.system_file_move_tracker
+                {self.mock_attach_name}.{self.mock_data_load_config.source_schema}.system_file_move_tracker
             WHERE
                 NOT file_has_been_moved;
         """
