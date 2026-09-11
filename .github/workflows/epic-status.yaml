@@ -1,0 +1,39 @@
+name: Update Confluence Epic Tables
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 12 * * 1-5"
+  pull_request:
+  
+
+permissions:
+  contents: read
+
+concurrency:
+  group: confluence-epic-table
+  cancel-in-progress: false
+
+jobs:
+  update-confluence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Verify dependencies
+        run: |
+          command -v curl
+          command -v jq
+          command -v python3
+
+      - name: Update Confluence
+        env:
+          JIRA_API_TOKEN: ${{ secrets.DEMOS_JIRA_SERVICE_ACCOUNT_TOKEN }}
+          CONF_API_TOKEN: ${{ secrets.DEMOS_CONF_SERVICE_ACCOUNT_TOKEN }}
+          JIRA_URL: ${{ vars.JIRA_URL }}
+          CONFLUENCE_URL: ${{ vars.CONFLUENCE_URL }}
+          CONFLUENCE_PAGE_ID: ${{ vars.CONFLUENCE_PAGE_ID }}
+        run: ./pipelines/jira.sh
