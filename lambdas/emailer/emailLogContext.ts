@@ -1,5 +1,5 @@
 export type RealtimeEmailEnvelope = {
-  emailNotificationId?: string;
+  emailNotificationId: string;
   emailType: string;
   entityType?: string;
   entityId?: string;
@@ -17,6 +17,7 @@ export function isRealtimeEmailEnvelope(
   return (
     typeof email === "object" &&
     email !== null &&
+    typeof (email as RealtimeEmailEnvelope).emailNotificationId === "string" &&
     typeof (email as RealtimeEmailEnvelope).emailType === "string" &&
     "payload" in email
   );

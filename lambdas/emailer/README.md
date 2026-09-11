@@ -30,7 +30,7 @@ Realtime messages have this shape:
 
 ```ts
 {
-  emailNotificationId?: string;
+  emailNotificationId: string;
   emailType: string;
   entityType?: string;
   entityId?: string;
@@ -99,8 +99,8 @@ The Lambda validates the rendered email, checks every recipient against the
 non-production allowlist, and sends it with Nodemailer. Production disables the
 allowlist through deployment configuration.
 
-For tracked messages, the Lambda changes only notifications currently marked
-`Queued` to `Sent` or `Failed`.
+The Lambda changes only notifications currently marked `Queued` to `Sent` or
+`Failed`.
 
 ## Template structure
 

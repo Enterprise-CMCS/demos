@@ -29,6 +29,7 @@ import { log } from "../log";
 import { prisma } from "../prismaClient";
 
 const message = {
+  emailNotificationId: "notification-1",
   emailType: "Deliverable Created" as const,
   entityType: "deliverable" as const,
   entityId: "deliverable-1",
@@ -53,7 +54,6 @@ describe("emailQueue", () => {
     vi.clearAllMocks();
     send.mockReset();
     process.env = { ...originalEnv };
-    delete process.env.DISABLE_EMAIL_NOTIFICATIONS;
     vi.mocked(prisma).mockReturnValue({ $transaction: transaction } as never);
     transaction.mockImplementation((callback) =>
       callback({ emailNotification: { update } })
@@ -81,25 +81,12 @@ describe("emailQueue", () => {
     );
   });
 
-  it("does not contact SQS when email notifications are disabled", async () => {
-    process.env.DISABLE_EMAIL_NOTIFICATIONS = "true";
-    const { enqueueEmail } = await import("./emailQueue");
-
-    await expect(enqueueEmail(message)).resolves.toBeNull();
-    expect(send).not.toHaveBeenCalled();
-    expect(transaction).not.toHaveBeenCalled();
-  });
-
-  it("marks a tracked notification queued before sending it to SQS", async () => {
+  it("marks a notification queued before sending it to SQS", async () => {
     process.env.EMAILER_QUEUE_URL = "http://example.com/emailer-queue";
     send.mockResolvedValue({ MessageId: "message-1" });
     const { enqueueEmail } = await import("./emailQueue");
-    const trackedMessage = {
-      ...message,
-      emailNotificationId: "notification-1",
-    };
 
-    await expect(enqueueEmail(trackedMessage)).resolves.toBe("message-1");
+    await expect(enqueueEmail(message)).resolves.toBe("message-1");
 
     expect(update).toHaveBeenNthCalledWith(1, {
       where: { id: "notification-1" },
@@ -112,14 +99,12 @@ describe("emailQueue", () => {
     expect(update.mock.invocationCallOrder[0]).toBeLessThan(send.mock.invocationCallOrder[0]);
   });
 
-  it("marks a tracked notification failed when SQS rejects it", async () => {
+  it("marks a notification failed when SQS rejects it", async () => {
     process.env.EMAILER_QUEUE_URL = "http://example.com/emailer-queue";
     send.mockRejectedValue(new Error("queue unavailable"));
     const { enqueueEmail } = await import("./emailQueue");
 
-    await expect(
-      enqueueEmail({ ...message, emailNotificationId: "notification-1" })
-    ).rejects.toThrow("queue unavailable");
+    await expect(enqueueEmail(message)).rejects.toThrow("queue unavailable");
 
     expect(update).toHaveBeenNthCalledWith(1, {
       where: { id: "notification-1" },
@@ -142,9 +127,7 @@ describe("emailQueue", () => {
       .mockRejectedValueOnce(new Error("database unavailable"));
     const { enqueueEmail } = await import("./emailQueue");
 
-    await expect(
-      enqueueEmail({ ...message, emailNotificationId: "notification-1" })
-    ).rejects.toThrow("queue unavailable");
+    await expect(enqueueEmail(message)).rejects.toThrow("queue unavailable");
 
     expect(log.error).toHaveBeenCalledWith(
       {

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../../log", () => ({
   log: {
@@ -11,19 +11,15 @@ vi.mock("../../prismaClient", () => ({
 }));
 
 vi.mock("../../services/emailQueue", () => ({
-  emailNotificationsDisabled: vi.fn(),
   enqueueEmail: vi.fn(),
 }));
 
 import { prisma } from "../../prismaClient";
-import {
-  emailNotificationsDisabled,
-  enqueueEmail,
-  RealtimeEmailMessage,
-} from "../../services/emailQueue";
+import { enqueueEmail, RealtimeEmailMessage } from "../../services/emailQueue";
 import { enqueueAndTrackRealtimeEmail } from "./emailNotification";
 
 describe("enqueueAndTrackRealtimeEmail", () => {
+  const originalEnv = { ...process.env };
   const create = vi.fn();
   const message: RealtimeEmailMessage = {
     emailType: "Deliverable Created",
@@ -47,14 +43,18 @@ describe("enqueueAndTrackRealtimeEmail", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    process.env = { ...originalEnv, DISABLE_EMAIL_NOTIFICATIONS: "false" };
     vi.mocked(prisma).mockReturnValue({
       emailNotification: {
         create,
       },
     } as never);
     create.mockResolvedValue({ id: "notification-1" });
-    vi.mocked(emailNotificationsDisabled).mockReturnValue(false);
     vi.mocked(enqueueEmail).mockResolvedValue("message-1");
+  });
+
+  afterEach(() => {
+    process.env = { ...originalEnv };
   });
 
   it("creates a pending notification before enqueueing it", async () => {
@@ -81,7 +81,7 @@ describe("enqueueAndTrackRealtimeEmail", () => {
   });
 
   it("does not create a notification when email notifications are disabled", async () => {
-    vi.mocked(emailNotificationsDisabled).mockReturnValue(true);
+    process.env.DISABLE_EMAIL_NOTIFICATIONS = "true";
 
     await expect(enqueueAndTrackRealtimeEmail(message, source, recipients)).resolves.toBeNull();
 

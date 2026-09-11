@@ -2,11 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { log } from "../../log";
 import { prisma } from "../../prismaClient";
-import {
-  emailNotificationsDisabled,
-  enqueueEmail,
-  RealtimeEmailMessage,
-} from "../../services/emailQueue";
+import { enqueueEmail, RealtimeEmailMessage } from "../../services/emailQueue";
 
 export type EmailNotificationRecipient = {
   personId: string;
@@ -17,7 +13,7 @@ export async function enqueueAndTrackRealtimeEmail(
   source: { deliverableActionId: string },
   recipients: EmailNotificationRecipient[]
 ): Promise<string | null> {
-  if (emailNotificationsDisabled()) {
+  if (process.env.DISABLE_EMAIL_NOTIFICATIONS === "true") {
     log.info(
       {
         emailType: message.emailType,

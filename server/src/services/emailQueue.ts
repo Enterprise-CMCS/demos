@@ -5,7 +5,6 @@ import { log } from "../log";
 import { prisma } from "../prismaClient";
 
 export type RealtimeEmailMessage = {
-  emailNotificationId?: string;
   emailType: "Deliverable Created";
   entityType: "deliverable";
   entityId: string;
@@ -15,6 +14,14 @@ export type RealtimeEmailMessage = {
   };
   payload: object;
 };
+
+export type EmailQueueMessage = RealtimeEmailMessage & {
+  emailNotificationId: string;
+};
+
+type QueueTransactionResult =
+  | { status: "queued"; messageId: string }
+  | { status: "failed"; error: unknown };
 
 const sqsClient = new SQSClient(
   process.env.AWS_ENDPOINT_URL
@@ -51,79 +58,59 @@ async function getQueueUrl(): Promise<string> {
   return cachedQueueUrl;
 }
 
-export async function enqueueEmail(message: RealtimeEmailMessage): Promise<string | null> {
-  if (emailNotificationsDisabled()) {
-    log.info(
-      {
-        emailType: message.emailType,
-        entityId: message.entityId,
-      },
-      "Email notification skipped because notifications are disabled"
-    );
-    return null;
-  }
-
+export async function enqueueEmail(message: EmailQueueMessage): Promise<string> {
   const emailNotificationId = message.emailNotificationId;
-  if (!emailNotificationId) {
-    return sendEmailMessage(message);
-  }
-
-  let messageId: string | undefined;
-  let queueFailure: { error: unknown } | undefined;
-
-  try {
-    await prisma().$transaction(async (tx) => {
+  const result = await prisma().$transaction(
+    async (tx): Promise<QueueTransactionResult> => {
       await tx.emailNotification.update({
         where: { id: emailNotificationId },
         data: { statusId: "Queued" },
       });
 
-      let queuedMessageId: string;
+      let messageId: string;
       try {
-        queuedMessageId = await sendEmailMessage(message);
-      } catch (error) {
-        queueFailure = { error };
-        await tx.emailNotification.update({
-          where: { id: emailNotificationId },
-          data: {
-            statusId: "Failed",
-            lastError: error instanceof Error ? error.message : String(error),
-          },
-        });
-        return;
+        messageId = await sendEmailMessage(message);
+      } catch (queueError) {
+        try {
+          await tx.emailNotification.update({
+            where: { id: emailNotificationId },
+            data: {
+              statusId: "Failed",
+              lastError:
+                queueError instanceof Error ? queueError.message : String(queueError),
+            },
+          });
+        } catch (trackingError) {
+          log.error(
+            {
+              error: trackingError,
+              emailNotificationId,
+            },
+            "Failed to record email notification queue failure"
+          );
+          throw queueError;
+        }
+
+        return { status: "failed", error: queueError };
       }
 
-      messageId = queuedMessageId;
       await tx.emailNotification.update({
         where: { id: emailNotificationId },
-        data: { sqsMessageId: queuedMessageId },
+        data: { sqsMessageId: messageId },
       });
-    });
-  } catch (error) {
-    if (queueFailure) {
-      log.error(
-        {
-          error,
-          emailNotificationId,
-        },
-        "Failed to record email notification queue failure"
-      );
-      throw queueFailure.error;
+
+      return { status: "queued", messageId };
     }
-    throw error;
+  );
+
+  if (result.status === "failed") {
+    throw result.error;
   }
 
-  if (queueFailure) {
-    throw queueFailure.error;
-  }
-  if (!messageId) {
-    throw new Error("Email queue transaction completed without a message ID.");
-  }
-
-  return messageId;
+  return result.messageId;
 }
 
-async function sendEmailMessage(message: RealtimeEmailMessage): Promise<string> {
+async function sendEmailMessage(message: EmailQueueMessage): Promise<string> {
   const queueUrl = await getQueueUrl();
   const response = await sqsClient.send(
     new SendMessageCommand({
@@ -144,8 +131,4 @@ async function sendEmailMessage(message: RealtimeEmailMessage): Promise<string> 
     "Email queued"
   );
   return response.MessageId;
-}
-
-export function emailNotificationsDisabled(): boolean {
-  return process.env.DISABLE_EMAIL_NOTIFICATIONS === "true";
 }
