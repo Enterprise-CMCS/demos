@@ -40,7 +40,7 @@ export async function getDatabaseUrl() {
   }
 
   const dbCredentials = JSON.parse(response.SecretString);
-  const sslMode = process.env.DB_SSL_MODE ?? "verify-full";
+  const sslMode = process.env.DB_SSL_MODE ?? "require";
   const username = encodeURIComponent(dbCredentials.username);
   const password = encodeURIComponent(dbCredentials.password);
 
@@ -48,9 +48,6 @@ export async function getDatabaseUrl() {
     `postgresql://${username}:${password}` +
     `@${dbCredentials.host}:${dbCredentials.port}/${dbCredentials.dbname}` +
     `?schema=${dbSchema}&sslmode=${sslMode}`;
-  if (process.env.DB_SSL_ROOT_CERT) {
-    databaseUrlCache += `&sslrootcert=${encodeURIComponent(process.env.DB_SSL_ROOT_CERT)}`;
-  }
   cacheExpiration = now + 60 * 60 * 1000;
 
   return databaseUrlCache;
