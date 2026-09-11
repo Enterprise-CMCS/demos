@@ -40,7 +40,7 @@ export async function getDatabaseUrl() {
   }
 
   const dbCredentials = JSON.parse(response.SecretString);
-  const sslMode = process.env.DB_SSL_MODE ?? "require";
+  const sslMode = process.env.DB_SSL_MODE ?? "verify-full";
   const username = encodeURIComponent(dbCredentials.username);
   const password = encodeURIComponent(dbCredentials.password);
 
