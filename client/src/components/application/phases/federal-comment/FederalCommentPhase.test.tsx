@@ -22,7 +22,9 @@ import { readonlyMockUser, cmsMockUser } from "mock-data/userMocks";
 
 const FAKE_TODAY = new TZDate("2026-02-08", EST_TIMEZONE);
 
-const DEFAULT_MOCK_DOCUMENT: ApplicationWorkflowDocument = {
+const createDocument = (
+  overrides: Partial<ApplicationWorkflowDocument> = {}
+): ApplicationWorkflowDocument => ({
   id: "doc-1",
   name: "Test Document",
   description: "Some test doc",
@@ -30,7 +32,8 @@ const DEFAULT_MOCK_DOCUMENT: ApplicationWorkflowDocument = {
   phaseName: "Federal Comment",
   createdAt: new TZDate("2025-01-02", EST_TIMEZONE),
   owner: { person: { fullName: "Test User" } },
-};
+  ...overrides,
+});
 
 const DEFAULT_START_DATE = new TZDate("2025-01-01", EST_TIMEZONE);
 const DEFAULT_END_DATE = addDays(FAKE_TODAY, 3);
@@ -113,7 +116,7 @@ describe("FederalCommentPhase", () => {
     });
 
     it("renders document row when provided", () => {
-      setup({ documents: [DEFAULT_MOCK_DOCUMENT] });
+      setup({ documents: [createDocument()] });
       expect(screen.getByText("Test Document")).toBeInTheDocument();
     });
 

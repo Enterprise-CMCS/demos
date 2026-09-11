@@ -56,7 +56,9 @@ const TEST_APPLICATION_ID = "test-app-id";
 
 const TIMEZONE_EST = "America/New_York";
 
-const MOCK_DOCUMENT: ApplicationWorkflowDocument = {
+const createDocument = (
+  overrides: Partial<ApplicationWorkflowDocument> = {}
+): ApplicationWorkflowDocument => ({
   id: "1",
   name: "Pre-Submission Document 1",
   description: "Test pre-submission document",
@@ -64,7 +66,10 @@ const MOCK_DOCUMENT: ApplicationWorkflowDocument = {
   phaseName: "Concept",
   owner: { person: { fullName: "John Doe" } },
   createdAt: new TZDate(2024, 0, 15, TIMEZONE_EST),
-};
+  ...overrides,
+});
+
+const MOCK_DOCUMENT = createDocument();
 
 const DEFAULT_PROPS: ConceptPhaseProps = {
   applicationId: TEST_APPLICATION_ID,
@@ -174,15 +179,12 @@ describe("ConceptPhase", () => {
     });
 
     it("Finish button remains disabled when a general document is uploaded even when date is filled", () => {
-      const generalDocument: ApplicationWorkflowDocument = {
+      const generalDocument = createDocument({
         id: "2",
         name: "General Document 1",
-        description: "Test general document",
         documentType: "General File",
-        phaseName: "Concept",
-        owner: { person: { fullName: "John Doe" } },
         createdAt: new TZDate(2024, 0, 20, TIMEZONE_EST),
-      };
+      });
       setup({ documents: [generalDocument] });
 
       const dateInput = screen.getByTestId(DATE_PICKER_NAME);
@@ -268,15 +270,12 @@ describe("ConceptPhase", () => {
     });
 
     it("does not populate date when a general document with createdAt is provided", () => {
-      const generalDocument: ApplicationWorkflowDocument = {
+      const generalDocument = createDocument({
         id: "2",
         name: "General Document 1",
-        description: "Test general document",
         documentType: "General File",
-        phaseName: "Concept",
-        owner: { person: { fullName: "John Doe" } },
         createdAt: new TZDate(2024, 0, 20, TIMEZONE_EST),
-      };
+      });
       setup({ documents: [generalDocument] });
       const dateInput = screen.getByTestId(DATE_PICKER_NAME) as HTMLInputElement;
       expect(dateInput.value).toBe("");
@@ -290,24 +289,19 @@ describe("ConceptPhase", () => {
     });
 
     it("sets date to latest pre-submission document createdAt when multiple documents exist", () => {
-      const olderDocument: ApplicationWorkflowDocument = {
+      const olderDocument = createDocument({
         id: "older",
         name: "Older Pre-Submission",
         description: "Older doc",
-        documentType: "Pre-Submission",
-        phaseName: "Concept",
-        owner: { person: { fullName: "John Doe" } },
         createdAt: new TZDate(2024, 0, 10, TIMEZONE_EST),
-      };
-      const newerDocument: ApplicationWorkflowDocument = {
+      });
+      const newerDocument = createDocument({
         id: "newer",
         name: "Newer Pre-Submission",
         description: "Newer doc",
-        documentType: "Pre-Submission",
-        phaseName: "Concept",
         owner: { person: { fullName: "Jane Doe" } },
         createdAt: new TZDate(2024, 0, 20, TIMEZONE_EST),
-      };
+      });
 
       setup({ documents: [olderDocument, newerDocument] });
 
@@ -320,15 +314,12 @@ describe("ConceptPhase", () => {
     it("returns initial date if provided, regardless of documents", () => {
       const initialDate = "2024-01-15";
       const documents: ApplicationWorkflowDocument[] = [
-        {
+        createDocument({
           id: "doc1",
           name: "Pre-Submission",
           description: "Test",
-          documentType: "Pre-Submission",
-          phaseName: "Concept",
-          owner: { person: { fullName: "John Doe" } },
           createdAt: new TZDate(2024, 0, 20, TIMEZONE_EST),
-        },
+        }),
       ];
 
       const result = calculatePresubmissionDate(initialDate, documents);
@@ -342,15 +333,14 @@ describe("ConceptPhase", () => {
 
     it("returns empty string when no initial date and no pre-submission documents", () => {
       const otherDocuments: ApplicationWorkflowDocument[] = [
-        {
+        createDocument({
           id: "doc1",
           name: "Other Document",
           description: "Test",
           documentType: "State Application",
           phaseName: "Application Intake",
-          owner: { person: { fullName: "John Doe" } },
           createdAt: new TZDate(2024, 0, 20, TIMEZONE_EST),
-        },
+        }),
       ];
 
       const result = calculatePresubmissionDate("", otherDocuments);
@@ -359,24 +349,19 @@ describe("ConceptPhase", () => {
 
     it("returns formatted date from latest pre-submission document createdAt", () => {
       const documents: ApplicationWorkflowDocument[] = [
-        {
+        createDocument({
           id: "doc1",
           name: "Older Pre-Submission",
           description: "Test",
-          documentType: "Pre-Submission",
-          phaseName: "Concept",
-          owner: { person: { fullName: "John Doe" } },
           createdAt: new TZDate(2024, 0, 10, TIMEZONE_EST),
-        },
-        {
+        }),
+        createDocument({
           id: "doc2",
           name: "Newer Pre-Submission",
           description: "Test",
-          documentType: "Pre-Submission",
-          phaseName: "Concept",
           owner: { person: { fullName: "Jane Doe" } },
           createdAt: new TZDate(2024, 0, 20, TIMEZONE_EST),
-        },
+        }),
       ];
 
       const result = calculatePresubmissionDate("", documents);
@@ -385,15 +370,12 @@ describe("ConceptPhase", () => {
 
     it("returns formatted date in YYYY-MM-DD format", () => {
       const documents: ApplicationWorkflowDocument[] = [
-        {
+        createDocument({
           id: "doc1",
           name: "Pre-Submission",
           description: "Test",
-          documentType: "Pre-Submission",
-          phaseName: "Concept",
-          owner: { person: { fullName: "John Doe" } },
           createdAt: new TZDate(2024, 2, 5, TIMEZONE_EST),
-        },
+        }),
       ];
 
       const result = calculatePresubmissionDate("", documents);
@@ -402,16 +384,13 @@ describe("ConceptPhase", () => {
 
     it("filters out non-pre-submission documents when calculating date", () => {
       const documents: ApplicationWorkflowDocument[] = [
-        {
+        createDocument({
           id: "doc1",
           name: "Pre-Submission",
           description: "Test",
-          documentType: "Pre-Submission",
-          phaseName: "Concept",
-          owner: { person: { fullName: "John Doe" } },
           createdAt: new TZDate(2024, 0, 10, TIMEZONE_EST),
-        },
-        {
+        }),
+        createDocument({
           id: "doc2",
           name: "State Application",
           description: "Test",
@@ -419,7 +398,7 @@ describe("ConceptPhase", () => {
           phaseName: "Application Intake",
           owner: { person: { fullName: "Jane Doe" } },
           createdAt: new TZDate(2024, 1, 15, TIMEZONE_EST),
-        },
+        }),
       ];
 
       const result = calculatePresubmissionDate("", documents);
@@ -432,15 +411,12 @@ describe("ConceptPhase", () => {
     it("displays calculated date from document creation date when documents exist", () => {
       // Document with specific creation date
       const documentCreatedAt = new Date("2026-03-10T10:00:00");
-      const newDocument: ApplicationWorkflowDocument = {
+      const newDocument = createDocument({
         id: "new-doc",
         name: "New Pre-Submission",
         description: "Newly uploaded",
-        documentType: "Pre-Submission",
-        phaseName: "Concept",
-        owner: { person: { fullName: "John Doe" } },
         createdAt: documentCreatedAt,
-      };
+      });
 
       setup({ documents: [newDocument] });
 
@@ -461,15 +437,12 @@ describe("ConceptPhase", () => {
       expect(dateInput.value).toBe(existingDate);
 
       // Simulate document upload
-      const newDocument: ApplicationWorkflowDocument = {
+      const newDocument = createDocument({
         id: "new-doc",
         name: "New Pre-Submission",
         description: "Newly uploaded",
-        documentType: "Pre-Submission",
-        phaseName: "Concept",
-        owner: { person: { fullName: "John Doe" } },
         createdAt: new Date(),
-      };
+      });
 
       rerender({
         documents: [newDocument],

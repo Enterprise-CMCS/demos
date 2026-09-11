@@ -9,6 +9,15 @@ import { ReviewPhaseFormData } from "./ReviewPhase";
 import { SimplePhase, WorkflowApplication } from "components/application";
 import { PhaseName, PhaseStatus } from "demos-server";
 
+const createPhase = (phaseName: PhaseName, phaseStatus: PhaseStatus): SimplePhase => {
+  return {
+    phaseName,
+    phaseDates: [],
+    phaseNotes: [],
+    phaseStatus,
+  };
+};
+
 describe("reviewPhaseData", () => {
   const mockOnFinish = vi.fn();
 
@@ -67,22 +76,13 @@ describe("reviewPhaseData", () => {
   });
 
   describe("getReviewPhaseComponentFromApplication", () => {
-    const buildPhase = (phaseName: PhaseName, phaseStatus: PhaseStatus) => {
-      return {
-        phaseName,
-        phaseDates: [],
-        phaseNotes: [],
-        phaseStatus,
-      };
-    };
-
     it("should return error div when review phase is not found", () => {
       const demonstration: WorkflowApplication = {
         id: "demo-123",
         clearanceLevel: "CMS (OSORA)",
         status: "Under Review",
         currentPhaseName: "Concept",
-        phases: [buildPhase("Concept", "Started")],
+        phases: [createPhase("Concept", "Started")],
         documents: [],
         tags: [],
       };
@@ -207,14 +207,14 @@ describe("reviewPhaseData", () => {
         status: "Under Review",
         currentPhaseName: "Review",
         phases: [
-          buildPhase("Concept", "Started"),
-          buildPhase("Application Intake", "Completed"),
-          buildPhase("Completeness", "Completed"),
-          buildPhase("Federal Comment", "Completed"),
-          buildPhase("SDG Preparation", "Completed"),
-          buildPhase("Review", "Started"),
-          buildPhase("Approval Package", "Not Started"),
-          buildPhase("Approval Summary", "Not Started"),
+          createPhase("Concept", "Started"),
+          createPhase("Application Intake", "Completed"),
+          createPhase("Completeness", "Completed"),
+          createPhase("Federal Comment", "Completed"),
+          createPhase("SDG Preparation", "Completed"),
+          createPhase("Review", "Started"),
+          createPhase("Approval Package", "Not Started"),
+          createPhase("Approval Summary", "Not Started"),
         ],
         documents: [],
         tags: [],
@@ -231,14 +231,14 @@ describe("reviewPhaseData", () => {
         status: "Under Review",
         currentPhaseName: "Review",
         phases: [
-          buildPhase("Concept", "Started"),
-          buildPhase("Application Intake", "Completed"),
-          buildPhase("Completeness", "Started"), // Incomplete phase
-          buildPhase("Federal Comment", "Completed"),
-          buildPhase("SDG Preparation", "Completed"),
-          buildPhase("Review", "Started"),
-          buildPhase("Approval Package", "Not Started"),
-          buildPhase("Approval Summary", "Not Started"),
+          createPhase("Concept", "Started"),
+          createPhase("Application Intake", "Completed"),
+          createPhase("Completeness", "Started"), // Incomplete phase
+          createPhase("Federal Comment", "Completed"),
+          createPhase("SDG Preparation", "Completed"),
+          createPhase("Review", "Started"),
+          createPhase("Approval Package", "Not Started"),
+          createPhase("Approval Summary", "Not Started"),
         ],
         documents: [],
         tags: [],

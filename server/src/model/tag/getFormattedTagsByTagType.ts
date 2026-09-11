@@ -1,5 +1,5 @@
-import { TagStatus, TagType } from "../../types";
-import { getTagsByTagType, Tag } from ".";
+import { Tag, TagStatus, TagType } from "../../types";
+import { getTagsByTagType } from ".";
 
 export async function getFormattedTagsByTagType(tagTypeId: TagType): Promise<Tag[]> {
   const result = await getTagsByTagType(tagTypeId);
