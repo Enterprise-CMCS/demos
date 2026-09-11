@@ -12,12 +12,12 @@ export async function updateEmailNotificationStatus(
   const result = await pool.query(
     `UPDATE ${schema}.email_notification
      SET status_id = $2, last_error = $3, updated_at = CURRENT_TIMESTAMP
-     WHERE id = $1::UUID
+     WHERE id = $1::UUID AND status_id = 'Queued'
      RETURNING id`,
     [emailNotificationId, status, lastError]
   );
 
   if (result.rowCount !== 1) {
-    throw new Error(`Email notification not found: ${emailNotificationId}`);
+    throw new Error(`Email notification is not queued: ${emailNotificationId}`);
   }
 }

@@ -1,7 +1,7 @@
 import { CMS_USER_DEMONSTRATION_ROLES } from "../../constants";
 import { log } from "../../log";
 import { prisma } from "../../prismaClient";
-import { enqueueTrackedRealtimeEmail } from "./emailNotification";
+import { enqueueAndTrackRealtimeEmail } from "./emailNotification";
 
 type NotifyDeliverableCreatedInput = {
   deliverableId: string;
@@ -42,7 +42,7 @@ export async function notifyDeliverableCreated(
       ),
     ]);
 
-    const messageId = await enqueueTrackedRealtimeEmail(
+    const messageId = await enqueueAndTrackRealtimeEmail(
       {
         emailType: "Deliverable Created",
         entityType: "deliverable",
@@ -73,6 +73,10 @@ export async function notifyDeliverableCreated(
       { deliverableActionId: input.sourceActionId },
       recipients.map(({ personId }) => ({ personId })),
     );
+
+    if (messageId === null) {
+      return;
+    }
 
     log.info(
       {

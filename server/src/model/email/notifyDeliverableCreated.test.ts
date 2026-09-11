@@ -5,7 +5,7 @@ vi.mock("../../prismaClient", () => ({
 }));
 
 vi.mock("./emailNotification", () => ({
-  enqueueTrackedRealtimeEmail: vi.fn(),
+  enqueueAndTrackRealtimeEmail: vi.fn(),
 }));
 
 vi.mock("../../log", () => ({
@@ -18,7 +18,7 @@ vi.mock("../../log", () => ({
 import { CMS_USER_DEMONSTRATION_ROLES } from "../../constants";
 import { log } from "../../log";
 import { prisma } from "../../prismaClient";
-import { enqueueTrackedRealtimeEmail } from "./emailNotification";
+import { enqueueAndTrackRealtimeEmail } from "./emailNotification";
 import { notifyDeliverableCreated } from "./notifyDeliverableCreated";
 
 describe("notifyDeliverableCreated", () => {
@@ -73,7 +73,7 @@ describe("notifyDeliverableCreated", () => {
       deliverable: { findUniqueOrThrow },
     } as never);
     findUniqueOrThrow.mockResolvedValue(deliverable);
-    vi.mocked(enqueueTrackedRealtimeEmail).mockResolvedValue("message-1");
+    vi.mocked(enqueueAndTrackRealtimeEmail).mockResolvedValue("message-1");
   });
 
   it("queues one email with the deliverable and deduplicated recipients", async () => {
@@ -95,7 +95,7 @@ describe("notifyDeliverableCreated", () => {
         }),
       }),
     );
-    expect(enqueueTrackedRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
+    expect(enqueueAndTrackRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
       {
         emailType: "Deliverable Created",
         entityType: "deliverable",
@@ -155,13 +155,28 @@ describe("notifyDeliverableCreated", () => {
 
     await notifyDeliverableCreated(input);
 
-    expect(enqueueTrackedRealtimeEmail).not.toHaveBeenCalled();
+    expect(enqueueAndTrackRealtimeEmail).not.toHaveBeenCalled();
     expect(log.error).toHaveBeenCalledWith(
       expect.objectContaining({
         error: expect.objectContaining({
           message:
             "Cannot queue Deliverable Created email: person owner-1 has no email address.",
         }),
+      }),
+      "Failed to queue deliverable email",
+    );
+  });
+
+  it("reports a queue failure without failing deliverable creation", async () => {
+    const error = new Error("SQS unavailable");
+    vi.mocked(enqueueAndTrackRealtimeEmail).mockRejectedValue(error);
+
+    await expect(notifyDeliverableCreated(input)).resolves.toBeUndefined();
+
+    expect(log.error).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error,
+        deliverableId: deliverable.id,
       }),
       "Failed to queue deliverable email",
     );

@@ -8,8 +8,8 @@ through SMTP.
 
 ```text
 Server action
-  -> Build an email envelope and recipients
-  -> Send JSON to the emailer SQS queue
+  -> Build an email envelope and create a Pending notification
+  -> Mark it Queued, send JSON to SQS, and save the message ID in one DB transaction
   -> Emailer Lambda parses one SQS message
   -> Select a template by emailType
   -> Validate the payload and arrange React Email content
@@ -51,12 +51,18 @@ Realtime messages have this shape:
 ```
 
 The envelope fields describe the event. Only `payload` is passed to the selected
-template.
+template. A notification starts as `Pending`; `enqueueEmail` marks it `Queued`
+before publishing and saves the returned SQS message ID without another status
+transition.
 
 ### 2. Transport the message
 
 The server uses `EMAILER_QUEUE_URL` when CDK supplies it. Local execution can
 resolve `EMAILER_QUEUE_NAME`, which defaults to `emailer-queue`.
+
+Set `DISABLE_EMAIL_NOTIFICATIONS=true` to skip sending messages to SQS. The
+server seed script sets this automatically, and no notification record is
+created for seeded deliverables.
 
 [`deployment/stacks/api.ts`](../../deployment/stacks/api.ts) connects the queue
 to the emailer Lambda with a batch size of one. A failed invocation is retried;
@@ -93,8 +99,8 @@ The Lambda validates the rendered email, checks every recipient against the
 non-production allowlist, and sends it with Nodemailer. Production disables the
 allowlist through deployment configuration.
 
-If `emailNotificationId` is present, rendering and SMTP failures are recorded as
-`Failed`, and successful SMTP delivery is recorded as `Sent`.
+For tracked messages, the Lambda changes only notifications currently marked
+`Queued` to `Sent` or `Failed`.
 
 ## Template structure
 

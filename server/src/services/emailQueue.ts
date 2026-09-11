@@ -2,6 +2,7 @@ import { GetQueueUrlCommand, SendMessageCommand, SQSClient } from "@aws-sdk/clie
 
 import { PRIMARY_AWS_REGION } from "../constants";
 import { log } from "../log";
+import { prisma } from "../prismaClient";
 
 export type RealtimeEmailMessage = {
   emailNotificationId?: string;
@@ -50,7 +51,79 @@ async function getQueueUrl(): Promise<string> {
   return cachedQueueUrl;
 }
 
-export async function enqueueEmail(message: RealtimeEmailMessage): Promise<string> {
+export async function enqueueEmail(message: RealtimeEmailMessage): Promise<string | null> {
+  if (emailNotificationsDisabled()) {
+    log.info(
+      {
+        emailType: message.emailType,
+        entityId: message.entityId,
+      },
+      "Email notification skipped because notifications are disabled"
+    );
+    return null;
+  }
+
+  const emailNotificationId = message.emailNotificationId;
+  if (!emailNotificationId) {
+    return sendEmailMessage(message);
+  }
+
+  let messageId: string | undefined;
+  let queueFailure: { error: unknown } | undefined;
+
+  try {
+    await prisma().$transaction(async (tx) => {
+      await tx.emailNotification.update({
+        where: { id: emailNotificationId },
+        data: { statusId: "Queued" },
+      });
+
+      let queuedMessageId: string;
+      try {
+        queuedMessageId = await sendEmailMessage(message);
+      } catch (error) {
+        queueFailure = { error };
+        await tx.emailNotification.update({
+          where: { id: emailNotificationId },
+          data: {
+            statusId: "Failed",
+            lastError: error instanceof Error ? error.message : String(error),
+          },
+        });
+        return;
+      }
+
+      messageId = queuedMessageId;
+      await tx.emailNotification.update({
+        where: { id: emailNotificationId },
+        data: { sqsMessageId: queuedMessageId },
+      });
+    });
+  } catch (error) {
+    if (queueFailure) {
+      log.error(
+        {
+          error,
+          emailNotificationId,
+        },
+        "Failed to record email notification queue failure"
+      );
+      throw queueFailure.error;
+    }
+    throw error;
+  }
+
+  if (queueFailure) {
+    throw queueFailure.error;
+  }
+  if (!messageId) {
+    throw new Error("Email queue transaction completed without a message ID.");
+  }
+
+  return messageId;
+}
+
+async function sendEmailMessage(message: RealtimeEmailMessage): Promise<string> {
   const queueUrl = await getQueueUrl();
   const response = await sqsClient.send(
     new SendMessageCommand({
@@ -71,4 +144,8 @@ export async function enqueueEmail(message: RealtimeEmailMessage): Promise<strin
     "Email queued"
   );
   return response.MessageId;
+}
+
+export function emailNotificationsDisabled(): boolean {
+  return process.env.DISABLE_EMAIL_NOTIFICATIONS === "true";
 }

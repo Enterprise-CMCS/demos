@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../../log", () => ({
   log: {
-    error: vi.fn(),
+    info: vi.fn(),
   },
 }));
 
@@ -11,18 +11,20 @@ vi.mock("../../prismaClient", () => ({
 }));
 
 vi.mock("../../services/emailQueue", () => ({
+  emailNotificationsDisabled: vi.fn(),
   enqueueEmail: vi.fn(),
 }));
 
-import { log } from "../../log";
 import { prisma } from "../../prismaClient";
-import { enqueueEmail, RealtimeEmailMessage } from "../../services/emailQueue";
-import { enqueueTrackedRealtimeEmail } from "./emailNotification";
+import {
+  emailNotificationsDisabled,
+  enqueueEmail,
+  RealtimeEmailMessage,
+} from "../../services/emailQueue";
+import { enqueueAndTrackRealtimeEmail } from "./emailNotification";
 
-describe("enqueueTrackedRealtimeEmail", () => {
+describe("enqueueAndTrackRealtimeEmail", () => {
   const create = vi.fn();
-  const update = vi.fn();
-  const updateMany = vi.fn();
   const message: RealtimeEmailMessage = {
     emailType: "Deliverable Created",
     entityType: "deliverable",
@@ -48,18 +50,15 @@ describe("enqueueTrackedRealtimeEmail", () => {
     vi.mocked(prisma).mockReturnValue({
       emailNotification: {
         create,
-        update,
-        updateMany,
       },
     } as never);
     create.mockResolvedValue({ id: "notification-1" });
-    update.mockResolvedValue({ id: "notification-1" });
-    updateMany.mockResolvedValue({ count: 1 });
+    vi.mocked(emailNotificationsDisabled).mockReturnValue(false);
     vi.mocked(enqueueEmail).mockResolvedValue("message-1");
   });
 
-  it("records recipients and marks a successfully queued notification", async () => {
-    await expect(enqueueTrackedRealtimeEmail(message, source, recipients)).resolves.toBe(
+  it("creates a pending notification before enqueueing it", async () => {
+    await expect(enqueueAndTrackRealtimeEmail(message, source, recipients)).resolves.toBe(
       "message-1"
     );
 
@@ -79,61 +78,24 @@ describe("enqueueTrackedRealtimeEmail", () => {
       ...message,
       emailNotificationId: "notification-1",
     });
-    expect(updateMany).toHaveBeenCalledExactlyOnceWith({
-      where: {
-        id: "notification-1",
-        statusId: "Pending",
-      },
-      data: {
-        sqsMessageId: "message-1",
-        statusId: "Queued",
-      },
-    });
-    expect(update).not.toHaveBeenCalled();
   });
 
-  it("records the message ID without overwriting a terminal status", async () => {
-    updateMany.mockResolvedValueOnce({ count: 0 });
+  it("does not create a notification when email notifications are disabled", async () => {
+    vi.mocked(emailNotificationsDisabled).mockReturnValue(true);
 
-    await enqueueTrackedRealtimeEmail(message, source, recipients);
+    await expect(enqueueAndTrackRealtimeEmail(message, source, recipients)).resolves.toBeNull();
 
-    expect(update).toHaveBeenCalledExactlyOnceWith({
-      where: { id: "notification-1" },
-      data: { sqsMessageId: "message-1" },
-    });
+    expect(create).not.toHaveBeenCalled();
+    expect(enqueueEmail).not.toHaveBeenCalled();
   });
 
-  it("marks the notification failed when SQS rejects it", async () => {
+  it("reports a queue failure from enqueueEmail", async () => {
     vi.mocked(enqueueEmail).mockRejectedValueOnce(new Error("queue unavailable"));
 
-    await expect(enqueueTrackedRealtimeEmail(message, source, recipients)).rejects.toThrow(
+    await expect(enqueueAndTrackRealtimeEmail(message, source, recipients)).rejects.toThrow(
       "queue unavailable"
     );
 
-    expect(update).toHaveBeenCalledExactlyOnceWith({
-      where: { id: "notification-1" },
-      data: {
-        statusId: "Failed",
-        lastError: "queue unavailable",
-      },
-    });
-    expect(updateMany).not.toHaveBeenCalled();
-  });
-
-  it("preserves the queue error when recording the failure also fails", async () => {
-    vi.mocked(enqueueEmail).mockRejectedValueOnce(new Error("queue unavailable"));
-    update.mockRejectedValueOnce(new Error("database unavailable"));
-
-    await expect(enqueueTrackedRealtimeEmail(message, source, recipients)).rejects.toThrow(
-      "queue unavailable"
-    );
-
-    expect(log.error).toHaveBeenCalledWith(
-      {
-        error: expect.objectContaining({ message: "database unavailable" }),
-        emailNotificationId: "notification-1",
-      },
-      "Failed to record email notification queue failure"
-    );
+    expect(create).toHaveBeenCalledOnce();
   });
 });

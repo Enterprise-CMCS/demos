@@ -261,9 +261,7 @@ async function seedDeliverables(actionUserId: string, actionUserPersonTypeId: Pe
         .slice(0, 10) as CreateDeliverableInput["dueDate"],
       demonstrationTypes: selectedDemonstrationTypes,
     };
-    createdDeliverables.push(
-      await createDeliverable(createInput, context, { sendEmailNotifications: false })
-    );
+    createdDeliverables.push(await createDeliverable(createInput, context));
   }
   return createdDeliverables;
 }

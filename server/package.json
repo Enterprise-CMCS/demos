@@ -51,7 +51,7 @@
     "lint:fix": "eslint src/ --fix",
     "prisma:format": "prisma format",
     "seed:reset": "npm run migrate:reset && prisma generate && npm run dbrefresh && ALLOW_SEED=true npm run seed",
-    "seed": "tsx --inspect ./src/seeder.ts",
+    "seed": "DISABLE_EMAIL_NOTIFICATIONS=true tsx --inspect ./src/seeder.ts",
     "migrate:empty": "prisma migrate dev --create-only",
     "migrate:reset": "prisma migrate reset --force",
     "migrate:deploy": "prisma migrate deploy && npm run dbrefresh",
