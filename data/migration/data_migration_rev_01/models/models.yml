@@ -777,6 +777,14 @@ models:
               name: assert_no_null_comment_types_in_cleaned
 
   # Deliverable Models
+  - name: deliverables_deliverable_extension_requested_events
+    columns:
+      - name: active_extension_id
+        data_type: string
+        data_tests:
+          - unique:
+              name: assert_one_extension_request_creates_one_action
+
   - name: deliverables_active_due_date_change_request
     columns:
       - name: _legacy_mdcd_due_dt_chg_rqst_id

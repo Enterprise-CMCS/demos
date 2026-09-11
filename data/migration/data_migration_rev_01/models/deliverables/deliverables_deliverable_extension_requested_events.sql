@@ -15,8 +15,8 @@ SELECT
         ELSE 'Upcoming'
     END AS new_status_id,
     due_date_hist.dlvrbl_due_dt AS due_date,
-    due_date_hist.from_time AS due_date_from_time,
-    due_date_hist.to_time AS due_date_to_time,
+    due_date_hist.from_time AS _due_date_from_time,
+    due_date_hist.to_time AS _due_date_to_time,
     coalesce(deliverable_extension._legacy_cmt_txt, 'Extension requested.') AS note,
     deliverable_extension.id AS active_extension_id,
     FALSE AS due_date_change_allowed,
