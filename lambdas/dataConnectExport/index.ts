@@ -4,12 +4,12 @@ import { EXPORT_DATASETS } from "./allowlist";
 import { getDbPool } from "./database/pool";
 import { withSnapshot } from "./database/snapshot";
 import { als, log, reqIdChild, store } from "./log";
-import { buildRelationSchema } from "./parquet/typeMap";
+import { withDuckDBConnection } from "./parquet/duckdb";
 import { writeRelationToFile } from "./parquet/writer";
 import { uploadParquet, uploadSuccessMarker } from "./services/s3";
-import type { WrittenFile } from "./types";
+import type { ExportedRelation } from "./types";
 import { partitionKey } from "./util/keys";
-import { cleanupTmp, stagingPath } from "./util/staging";
+import { cleanupTmp, removeStagedFile, stagingPath } from "./util/staging";
 
 export const handler = async (event: ScheduledEvent, context: Context) =>
   als.run(store, async () => {
@@ -18,32 +18,40 @@ export const handler = async (event: ScheduledEvent, context: Context) =>
 
     try {
       const pool = await getDbPool();
-      const written: WrittenFile[] = [];
+      const exported: ExportedRelation[] = [];
 
-      // Stage every relation from one snapshot before uploading anything.
-      const snapshotTime = await withSnapshot(
-        pool,
-        Object.keys(EXPORT_DATASETS),
-        async (client, snapshot) => {
-          for (const [relation, columns] of Object.entries(EXPORT_DATASETS)) {
-            const schema = await buildRelationSchema(client, relation, columns);
-            const localPath = stagingPath(relation);
-            const rowCount = await writeRelationToFile(client, relation, schema, localPath);
-            written.push({ relation, localPath, rowCount });
-            log.info({ relation, rowCount }, "staged relation to local parquet");
+      await withDuckDBConnection(async (connection) => {
+        // Upload each relation from the same snapshot before moving to the next one. This
+        // bounds local storage to one CSV and one parquet file at a time.
+        const snapshotTime = await withSnapshot(
+          pool,
+          Object.keys(EXPORT_DATASETS),
+          async (client) => {
+            for (const [relation, schema] of Object.entries(EXPORT_DATASETS)) {
+              const localPath = stagingPath(relation);
+              try {
+                const rowCount = await writeRelationToFile(
+                  client,
+                  connection,
+                  relation,
+                  schema,
+                  localPath
+                );
+                await uploadParquet(localPath, partitionKey(relation, runDate));
+                exported.push({ relation, rowCount });
+                log.info({ relation, rowCount }, "exported relation to parquet");
+              } finally {
+                await removeStagedFile(localPath);
+              }
+            }
           }
-          return snapshot;
-        }
-      );
+        );
 
-      for (const file of written) {
-        await uploadParquet(file.localPath, partitionKey(file.relation, runDate));
-      }
+        // Written after commit so consumers can tell a complete partition from partial output.
+        await uploadSuccessMarker(runDate, exported, snapshotTime);
 
-      // Written last so consumers can tell a complete partition from a partial upload.
-      await uploadSuccessMarker(runDate, written, snapshotTime);
-
-      log.info({ relations: written.length, runDate, snapshotTime }, "data export completed.");
+        log.info({ relations: exported.length, runDate, snapshotTime }, "data export completed.");
+      });
     } catch (error) {
       log.error({ error: (error as Error).message }, "data export failed.");
       throw error;

@@ -7,10 +7,11 @@ const mocks = vi.hoisted(() => ({
   order: [] as string[],
   getDbPoolMock: vi.fn(),
   withSnapshotMock: vi.fn(),
-  buildRelationSchemaMock: vi.fn(),
+  withDuckDBConnectionMock: vi.fn(),
   writeRelationToFileMock: vi.fn(),
   uploadParquetMock: vi.fn(),
   uploadSuccessMarkerMock: vi.fn(),
+  removeStagedFileMock: vi.fn(),
   cleanupTmpMock: vi.fn(),
   reqIdChildMock: vi.fn(),
   logInfoMock: vi.fn(),
@@ -41,8 +42,8 @@ vi.mock("./database/snapshot", () => ({
   withSnapshot: (...args: unknown[]) => mocks.withSnapshotMock(...args),
 }));
 
-vi.mock("./parquet/typeMap", () => ({
-  buildRelationSchema: (...args: unknown[]) => mocks.buildRelationSchemaMock(...args),
+vi.mock("./parquet/duckdb", () => ({
+  withDuckDBConnection: (...args: unknown[]) => mocks.withDuckDBConnectionMock(...args),
 }));
 
 vi.mock("./parquet/writer", () => ({
@@ -58,6 +59,7 @@ vi.mock("./services/s3", () => ({
 // /var/folders path on macOS and /tmp in Lambda.
 vi.mock("./util/staging", () => ({
   stagingPath: (relation: string) => `/tmp/${relation}.parquet`,
+  removeStagedFile: (...args: unknown[]) => mocks.removeStagedFileMock(...args),
   cleanupTmp: (...args: unknown[]) => mocks.cleanupTmpMock(...args),
 }));
 
@@ -69,18 +71,20 @@ import { EXPORT_DATASETS } from "./allowlist";
 const RELATIONS = Object.keys(EXPORT_DATASETS);
 const LAST_RELATION = RELATIONS[RELATIONS.length - 1];
 const RUN_TIME = new Date("2026-09-04T07:00:00.000Z");
-// Distinct times catch code that substitutes runDate for snapshotTime.
+// Later than RUN_TIME, as it is on a real run once the snapshot has waited on its lock.
 const SNAPSHOT_TIME = new Date("2026-09-04T07:00:04.250Z");
 const ROW_COUNT = 7;
 
-// Distinct identities detect reads that escape the snapshot client.
+// Distinct identities catch reads outside the snapshot or conversions outside DuckDB.
 const POOL = { tag: "pool" } as unknown as Pool;
 const SNAPSHOT_CLIENT = { tag: "snapshot-client" };
+const DUCKDB_CONNECTION = { tag: "duckdb-connection" };
 
 const event = {} as ScheduledEvent;
 const context = { awsRequestId: "req-123" } as unknown as Context;
 
-const columnsFor = (relation: string) => EXPORT_DATASETS[relation as keyof typeof EXPORT_DATASETS];
+const schemaFor = (relation: string) =>
+  EXPORT_DATASETS[relation as keyof typeof EXPORT_DATASETS];
 
 describe("dataConnectExport handler", () => {
   beforeEach(() => {
@@ -90,10 +94,11 @@ describe("dataConnectExport handler", () => {
 
     mocks.getDbPoolMock.mockReset();
     mocks.withSnapshotMock.mockReset();
-    mocks.buildRelationSchemaMock.mockReset();
+    mocks.withDuckDBConnectionMock.mockReset();
     mocks.writeRelationToFileMock.mockReset();
     mocks.uploadParquetMock.mockReset();
     mocks.uploadSuccessMarkerMock.mockReset();
+    mocks.removeStagedFileMock.mockReset();
     mocks.cleanupTmpMock.mockReset();
     mocks.reqIdChildMock.mockReset();
     mocks.logInfoMock.mockReset();
@@ -105,19 +110,34 @@ describe("dataConnectExport handler", () => {
       async (
         _pool: unknown,
         relations: string[],
-        fn: (client: unknown, snapshot: Date) => Promise<unknown>
+        fn: (client: unknown) => Promise<unknown>
       ) => {
         mocks.order.push(`open:${relations.join(",")}`);
-        const result = await fn(SNAPSHOT_CLIENT, SNAPSHOT_TIME);
+        await fn(SNAPSHOT_CLIENT);
         mocks.order.push("commit");
-        return result;
+        return SNAPSHOT_TIME;
       }
     );
-    mocks.buildRelationSchemaMock.mockResolvedValue({ columns: [] });
-    mocks.writeRelationToFileMock.mockImplementation(async (_client: unknown, relation: string) => {
-      mocks.order.push(`stage:${relation}`);
-      return ROW_COUNT;
-    });
+    mocks.withDuckDBConnectionMock.mockImplementation(
+      async (fn: (connection: unknown) => Promise<unknown>) => {
+        mocks.order.push("duckdb:open");
+        try {
+          return await fn(DUCKDB_CONNECTION);
+        } finally {
+          mocks.order.push("duckdb:close");
+        }
+      }
+    );
+    mocks.writeRelationToFileMock.mockImplementation(
+      async (
+        _client: unknown,
+        _duckdb: unknown,
+        relation: string
+      ) => {
+        mocks.order.push(`convert:${relation}`);
+        return ROW_COUNT;
+      }
+    );
     mocks.uploadParquetMock.mockImplementation(async (_localPath: string, key: string) => {
       mocks.order.push(`upload:${key}`);
     });
@@ -127,22 +147,29 @@ describe("dataConnectExport handler", () => {
     mocks.cleanupTmpMock.mockImplementation(async () => {
       mocks.order.push("cleanup");
     });
+    mocks.removeStagedFileMock.mockImplementation(async (localPath: string) => {
+      mocks.order.push(`remove:${localPath}`);
+    });
   });
 
   afterEach(() => {
     vi.useRealTimers();
   });
 
-  it("stages every relation before uploading any, then writes the marker last", async () => {
+  it("converts, uploads and removes each relation before committing and marking the run", async () => {
     await handler(event, context);
 
-    // Commit before uploads so S3 latency does not hold the transaction open.
     expect(mocks.order).toEqual([
+      "duckdb:open",
       `open:${RELATIONS.join(",")}`,
-      ...RELATIONS.map((relation) => `stage:${relation}`),
+      ...RELATIONS.flatMap((relation) => [
+        `convert:${relation}`,
+        `upload:${relation}/dt=2026-09-04/part-000.parquet`,
+        `remove:/tmp/${relation}.parquet`,
+      ]),
       "commit",
-      ...RELATIONS.map((relation) => `upload:${relation}/dt=2026-09-04/part-000.parquet`),
       "marker",
+      "duckdb:close",
       "cleanup",
     ]);
   });
@@ -156,25 +183,24 @@ describe("dataConnectExport handler", () => {
     expect(relations).toEqual(RELATIONS);
   });
 
-  it("reads every relation on the snapshot client rather than the pool", async () => {
+  it("uses the snapshot client and the invocation's DuckDB connection for every relation", async () => {
     await handler(event, context);
 
-    for (const [client] of mocks.buildRelationSchemaMock.mock.calls) {
+    expect(mocks.withDuckDBConnectionMock).toHaveBeenCalledTimes(1);
+    for (const [client, duckdb] of mocks.writeRelationToFileMock.mock.calls) {
       expect(client).toBe(SNAPSHOT_CLIENT);
-    }
-    for (const [client] of mocks.writeRelationToFileMock.mock.calls) {
-      expect(client).toBe(SNAPSHOT_CLIENT);
+      expect(duckdb).toBe(DUCKDB_CONNECTION);
     }
   });
 
-  it("builds each relation schema from the allowlisted columns", async () => {
+  it("passes each static allowlisted schema directly to the writer", async () => {
     await handler(event, context);
 
-    expect(mocks.buildRelationSchemaMock).toHaveBeenCalledTimes(RELATIONS.length);
+    expect(mocks.writeRelationToFileMock).toHaveBeenCalledTimes(RELATIONS.length);
     RELATIONS.forEach((relation, index) => {
-      const [, calledRelation, calledColumns] = mocks.buildRelationSchemaMock.mock.calls[index];
+      const [, , calledRelation, calledSchema] = mocks.writeRelationToFileMock.mock.calls[index];
       expect(calledRelation).toBe(relation);
-      expect(calledColumns).toEqual(columnsFor(relation));
+      expect(calledSchema).toEqual(schemaFor(relation));
     });
   });
 
@@ -185,7 +211,6 @@ describe("dataConnectExport handler", () => {
       RUN_TIME,
       RELATIONS.map((relation) => ({
         relation,
-        localPath: `/tmp/${relation}.parquet`,
         rowCount: ROW_COUNT,
       })),
       SNAPSHOT_TIME
@@ -203,19 +228,22 @@ describe("dataConnectExport handler", () => {
     );
   });
 
-  it("publishes nothing when any relation fails to stage", async () => {
-    mocks.writeRelationToFileMock.mockImplementation(async (_client: unknown, relation: string) => {
-      if (relation === LAST_RELATION) {
-        throw new Error("duckdb copy failed");
+  it("omits the marker when a later conversion fails", async () => {
+    mocks.writeRelationToFileMock.mockImplementation(
+      async (_client: unknown, _duckdb: unknown, relation: string) => {
+        if (relation === LAST_RELATION) {
+          throw new Error("duckdb copy failed");
+        }
+        mocks.order.push(`convert:${relation}`);
+        return ROW_COUNT;
       }
-      mocks.order.push(`stage:${relation}`);
-      return ROW_COUNT;
-    });
+    );
 
     await expect(handler(event, context)).rejects.toThrow("duckdb copy failed");
 
-    expect(mocks.uploadParquetMock).not.toHaveBeenCalled();
+    expect(mocks.uploadParquetMock).toHaveBeenCalledTimes(RELATIONS.length - 1);
     expect(mocks.uploadSuccessMarkerMock).not.toHaveBeenCalled();
+    expect(mocks.removeStagedFileMock).toHaveBeenCalledTimes(RELATIONS.length);
     expect(mocks.logErrorMock).toHaveBeenCalledWith(
       { error: "duckdb copy failed" },
       "data export failed."
@@ -228,6 +256,9 @@ describe("dataConnectExport handler", () => {
     await expect(handler(event, context)).rejects.toThrow("s3 access denied");
 
     expect(mocks.uploadSuccessMarkerMock).not.toHaveBeenCalled();
+    expect(mocks.removeStagedFileMock).toHaveBeenCalledWith(
+      `/tmp/${RELATIONS[0]}.parquet`
+    );
   });
 
   it("always cleans up the staging directory", async () => {

@@ -1,42 +1,53 @@
 import { describe, expect, it } from "vitest";
 
 import { EXPORT_DATASETS } from "./allowlist";
+import type { RelationColumn } from "./types";
 
 const relations = Object.keys(EXPORT_DATASETS);
-const everyColumn = Object.values(EXPORT_DATASETS).flatMap((columns) => [...columns]);
+const everyColumn = Object.values(EXPORT_DATASETS).flatMap<RelationColumn>(
+  (schema) => schema.columns
+);
+const everyColumnName = everyColumn.map(({ name }) => name);
 
 describe("EXPORT_DATASETS", () => {
-  // Pinned in full and on purpose. Publishing a new column should fail this test, so the
-  // diff that widens the egress boundary also has to change a file named like a contract.
-  it("is exactly the reviewed set of relations and columns", () => {
+  it("pins the reviewed relations, columns, order and parquet types", () => {
     expect(EXPORT_DATASETS).toEqual({
-      demonstration: [
-        "id",
-        "application_type_id",
-        "name",
-        "description",
-        "effective_date",
-        "expiration_date",
-        "status_id",
-        "status_updated_at",
-        "state_id",
-        "sdg_division_id",
-        "signature_level_id",
-        "clearance_level_id",
-        "current_phase_id",
-        "created_at",
-        "updated_at",
-      ],
-      state: ["id", "name", "region"],
+      demonstration: {
+        columns: [
+          { name: "id", duckdbType: "UUID" },
+          { name: "application_type_id", duckdbType: "VARCHAR" },
+          { name: "name", duckdbType: "VARCHAR" },
+          { name: "description", duckdbType: "VARCHAR" },
+          { name: "effective_date", duckdbType: "TIMESTAMPTZ" },
+          { name: "expiration_date", duckdbType: "TIMESTAMPTZ" },
+          { name: "status_id", duckdbType: "VARCHAR" },
+          { name: "status_updated_at", duckdbType: "TIMESTAMPTZ" },
+          { name: "state_id", duckdbType: "VARCHAR" },
+          { name: "sdg_division_id", duckdbType: "VARCHAR" },
+          { name: "signature_level_id", duckdbType: "VARCHAR" },
+          { name: "clearance_level_id", duckdbType: "VARCHAR" },
+          { name: "current_phase_id", duckdbType: "VARCHAR" },
+          { name: "created_at", duckdbType: "TIMESTAMPTZ" },
+          { name: "updated_at", duckdbType: "TIMESTAMPTZ" },
+        ],
+      },
+      state: {
+        columns: [
+          { name: "id", duckdbType: "VARCHAR" },
+          { name: "name", duckdbType: "VARCHAR" },
+          { name: "region", duckdbType: "INTEGER" },
+        ],
+      },
     });
   });
 
   it("excludes any table.column DataConnect does not want to export", () => {
-    // If DataConnect wants CHIP ID and medicaid ID exported, 
-    // add to the allowlist and remove this test. 
+    // If DataConnect wants CHIP ID and Medicaid ID exported,
+    // add them to the allowlist and remove this test.
     // Treat this test as a table- and column-level denylist.
-    expect(EXPORT_DATASETS.demonstration).not.toContain("medicaid_id");
-    expect(EXPORT_DATASETS.demonstration).not.toContain("chip_id");
+    const demonstrationColumns = EXPORT_DATASETS.demonstration.columns.map(({ name }) => name);
+    expect(demonstrationColumns).not.toContain("medicaid_id");
+    expect(demonstrationColumns).not.toContain("chip_id");
   });
 
   it("names no relation that the demos_read grant exposes but the export must not publish", () => {
@@ -52,22 +63,19 @@ describe("EXPORT_DATASETS", () => {
     // A pattern check rather than a list, so a column added later is caught even though
     // this test was written before it existed. description is expected and allowed.
     const risky = /ssn|social|email|phone|dob|birth|address|password|secret|token|comment|note/i;
-    const flagged = everyColumn.filter((column) => risky.test(column));
+    const flagged = everyColumnName.filter((column) => risky.test(column));
     expect(flagged).toEqual([]);
   });
 
   it("lists every column at most once per relation", () => {
-    // A duplicate would produce two identically named parquet columns and an
-    // ambiguous read on the consumer side.
-    for (const [relation, columns] of Object.entries(EXPORT_DATASETS)) {
-      expect(new Set(columns).size, `${relation} has a duplicate column`).toBe(columns.length);
+    for (const [relation, schema] of Object.entries(EXPORT_DATASETS)) {
+      const names = schema.columns.map(({ name }) => name);
+      expect(new Set(names).size, `${relation} has a duplicate column`).toBe(names.length);
     }
   });
 
   it("uses snake_case identifiers that need no quoting to be correct", () => {
-    // Quoting is applied anyway, but a column with a quote or a space in it would mean
-    // the allowlist no longer matches what information_schema reports.
-    for (const column of everyColumn) {
+    for (const column of everyColumnName) {
       expect(column).toMatch(/^[a-z][a-z0-9_]*$/);
     }
     for (const relation of relations) {
@@ -76,10 +84,8 @@ describe("EXPORT_DATASETS", () => {
   });
 
   it("gives every relation at least one column", () => {
-    // An empty relation would produce a parquet file with no columns, which is not a valid
-    // parquet file and would fail the upload.
-    for (const [relation, columns] of Object.entries(EXPORT_DATASETS)) {
-      expect(columns.length, `${relation} has no columns`).toBeGreaterThan(0);
+    for (const [relation, schema] of Object.entries(EXPORT_DATASETS)) {
+      expect(schema.columns.length, `${relation} has no columns`).toBeGreaterThan(0);
     }
   });
 });

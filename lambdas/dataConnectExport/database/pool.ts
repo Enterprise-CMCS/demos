@@ -4,10 +4,11 @@ import { log } from "../log";
 
 export const dbSchema = "demos_app";
 
-// The export reads every column as ::text, which makes Postgres output formatting part of the
-// data path. A server configured with a non-ISO DateStyle renders a date as 31.08.2026, which
-// DuckDB refuses to CAST, so the export would fail rather than inherit the setting silently.
-// Pinning these on the startup packet keeps the text form independent of server configuration.
+// The export streams every column out with COPY ... TO STDOUT WITH (FORMAT csv), which makes
+// Postgres output formatting part of the data path. A server configured with a non-ISO DateStyle
+// renders a date as 31.08.2026, which DuckDB refuses to read as a DATE, so the export would fail
+// rather than inherit the setting silently. Pinning these on the startup packet keeps the text
+// form independent of server configuration.
 const sessionOptions = "-c DateStyle=ISO,MDY -c TimeZone=UTC";
 
 const secretsManagerClient = new SecretsManagerClient({

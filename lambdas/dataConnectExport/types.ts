@@ -1,22 +1,28 @@
-export interface ColumnMeta {
-  columnName: string;
-  dataType: string;
-  isNullable: boolean;
-  numericPrecision: number | null;
-  numericScale: number | null;
-}
+export type DuckDBType =
+  | "BIGINT"
+  | "BOOLEAN"
+  | "DATE"
+  | "DOUBLE"
+  | "FLOAT"
+  | "INTEGER"
+  | "JSON"
+  | "SMALLINT"
+  | "TIMESTAMP_MS"
+  | "TIMESTAMPTZ"
+  | "UUID"
+  | "VARCHAR"
+  | `DECIMAL(${number},${number})`;
 
 export interface RelationColumn {
   name: string;
-  duckdbType: string;
+  duckdbType: DuckDBType;
 }
 
 export interface RelationSchema {
-  columns: RelationColumn[];
+  columns: readonly RelationColumn[];
 }
 
-export interface WrittenFile {
+export interface ExportedRelation {
   relation: string;
-  localPath: string;
   rowCount: number;
 }

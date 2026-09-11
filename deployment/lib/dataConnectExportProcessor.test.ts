@@ -50,7 +50,7 @@ describe("DataConnectExportProcessor construct", () => {
       FunctionName: "demos-unittest-dataConnectExport",
       Handler: "index.handler",
       Timeout: 900,
-      MemorySize: 3008,
+      MemorySize: 1769,
       Environment: {
         Variables: Match.objectLike({
           DATABASE_SECRET_ARN: "demos-dev-rds-demos_export", // pragma: allowlist secret
@@ -64,13 +64,13 @@ describe("DataConnectExportProcessor construct", () => {
     });
   });
 
-  it("reserves concurrency and enlarges /tmp", () => {
-    // Both come from the props added to the shared construct. Staging paths are fixed per
-    // relation, and COPY buffers a whole relation, so neither is decorative.
+  it("reserves concurrency and uses the default temporary storage", () => {
     synth().hasResourceProperties("AWS::Lambda::Function", {
       ReservedConcurrentExecutions: 1,
-      EphemeralStorage: { Size: 2048 },
     });
+    const functions = synth().findResources("AWS::Lambda::Function");
+    const [lambda] = Object.values(functions);
+    expect(lambda.Properties.EphemeralStorage).toBeUndefined();
   });
 
   it("schedules the export at 07:00 UTC and enables the rule outside ephemeral stages", () => {
@@ -232,6 +232,12 @@ describe("duckdbInstallCommand", () => {
   it("pins the exact version it is given, leaving npm no choice", () => {
     expect(duckdbInstallCommand("/staging/asset", "1.2.3-r.4", 7)).toContain(
       "@duckdb/node-api@1.2.3-r.4"
+    );
+  });
+
+  it("skips audit and funding metadata during asset installation", () => {
+    expect(duckdbInstallCommand("/staging/asset", "1.2.3-r.4", 7)).toContain(
+      "--no-audit --no-fund"
     );
   });
 

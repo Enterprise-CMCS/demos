@@ -1,7 +1,6 @@
 import { Construct } from "constructs";
 import {
   Duration,
-  Size,
   aws_ec2 as ec2,
   aws_events,
   aws_events_targets,
@@ -75,7 +74,7 @@ export function duckdbInstallCommand(
     "npm install",
     `--prefix ${outputDir}`,
     "--os=linux --cpu=x64 --libc=glibc",
-    `--no-save --ignore-scripts --min-release-age=${minReleaseAge}`,
+    `--no-save --ignore-scripts --no-audit --no-fund --min-release-age=${minReleaseAge}`,
     `@duckdb/node-api@${duckdbVersion}`,
   ].join(" ");
 }
@@ -122,9 +121,9 @@ export class DataConnectExportProcessor extends Construct {
         "@aws-sdk/client-s3",
         "@duckdb/node-api",
       ],
-      // pg, pg-cursor and pino are CommonJS: esbuild's ESM output turns their internal
+      // pg, pg-copy-streams and pino are CommonJS: esbuild's ESM output turns their internal
       // require() into a shim that throws at cold start.
-      nodeModules: ["pg", "pg-cursor", "pino"],
+      nodeModules: ["pg", "pg-copy-streams", "pino"],
       // Same shape as the cert copy for emailer in stacks/api.ts.
       commandHooks: {
         // Runs after CDK has installed nodeModules, so this is the last word on which
@@ -140,10 +139,7 @@ export class DataConnectExportProcessor extends Construct {
         },
       },
       format: OutputFormat.ESM,
-      memorySize: 3008,
-      // COPY buffers a whole relation before writing, and every relation is staged to /tmp
-      // before anything uploads.
-      ephemeralStorageSize: Size.gibibytes(2),
+      memorySize: 1769,
       // Staging paths are fixed per relation, so two concurrent runs would overwrite each
       // other's files.
       reservedConcurrentExecutions: 1,

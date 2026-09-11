@@ -58,17 +58,16 @@ describe("withSnapshot", () => {
 
     const result = await withSnapshot(pool, RELATIONS, async (client) => {
       await client.query("SELECT 1 -- callback");
-      return "done";
     });
 
-    expect(result).toBe("done");
+    expect(result).toBe(SNAPSHOT_TIME);
     // Assert the full sequence: lock before callback reads, then commit.
     expect(state.sql).toEqual([BEGIN, LOCK, CLOCK, "SELECT 1 -- callback", "COMMIT"]);
   });
 
   it("asks for repeatable read, not the read committed default", async () => {
     const { pool, state } = fakePool();
-    await withSnapshot(pool, RELATIONS, async () => null);
+    await withSnapshot(pool, RELATIONS, async () => {});
 
     // READ COMMITTED takes a new snapshot per statement, and exports must be read-only.
     expect(state.sql[0]).toContain("REPEATABLE READ");
@@ -77,7 +76,7 @@ describe("withSnapshot", () => {
 
   it("locks every relation it was given, schema qualified and in order", async () => {
     const { pool, state } = fakePool();
-    await withSnapshot(pool, RELATIONS, async () => null);
+    await withSnapshot(pool, RELATIONS, async () => {});
 
     expect(state.sql[1]).toBe(LOCK);
   });
@@ -85,7 +84,7 @@ describe("withSnapshot", () => {
   it("takes the weakest lock that blocks a schema change", async () => {
     // ACCESS SHARE blocks schema rewrites without blocking ordinary writes.
     const { pool, state } = fakePool();
-    await withSnapshot(pool, RELATIONS, async () => null);
+    await withSnapshot(pool, RELATIONS, async () => {});
 
     expect(state.sql[1]).toContain("IN ACCESS SHARE MODE");
     expect(state.sql[1]).not.toContain("EXCLUSIVE");
@@ -93,27 +92,23 @@ describe("withSnapshot", () => {
 
   it("quotes a relation name the same way the reads will", async () => {
     const { pool, state } = fakePool();
-    await withSnapshot(pool, ['odd"name'], async () => null);
+    await withSnapshot(pool, ['odd"name'], async () => {});
 
     expect(state.sql[1]).toBe('LOCK TABLE demos_app."odd""name" IN ACCESS SHARE MODE');
   });
 
-  it("hands the callback the instant the snapshot was taken", async () => {
+  it("returns the instant the snapshot was taken", async () => {
     const { pool } = fakePool();
-    const seen: Date[] = [];
 
-    await withSnapshot(pool, RELATIONS, async (_client, snapshotTime) => {
-      seen.push(snapshotTime);
-      return null;
-    });
-
-    expect(seen).toEqual([SNAPSHOT_TIME]);
+    await expect(withSnapshot(pool, RELATIONS, async () => {})).resolves.toBe(
+      SNAPSHOT_TIME
+    );
   });
 
   it("reads the instant from clock_timestamp, not now()", async () => {
     // now() returns the BEGIN time, before any lock wait.
     const { pool, state } = fakePool();
-    await withSnapshot(pool, RELATIONS, async () => null);
+    await withSnapshot(pool, RELATIONS, async () => {});
 
     expect(state.sql[2]).toContain("clock_timestamp()");
     expect(state.sql[2]).not.toContain("now()");
@@ -168,7 +163,7 @@ describe("withSnapshot", () => {
 
   it("releases the connection after a successful run", async () => {
     const { pool, state } = fakePool();
-    await withSnapshot(pool, RELATIONS, async () => null);
+    await withSnapshot(pool, RELATIONS, async () => {});
 
     expect(state.releases).toBe(1);
   });
@@ -192,7 +187,7 @@ describe("withSnapshot", () => {
       error: new Error("terminating connection due to administrator command"),
     });
 
-    await expect(withSnapshot(pool, RELATIONS, async () => null)).rejects.toThrow(
+    await expect(withSnapshot(pool, RELATIONS, async () => {})).rejects.toThrow(
       "terminating connection due to administrator command"
     );
 
@@ -215,7 +210,7 @@ describe("withSnapshot", () => {
     // Reject an empty list before generating invalid LOCK TABLE SQL.
     const { pool, state } = fakePool();
 
-    await expect(withSnapshot(pool, [], async () => null)).rejects.toThrow(
+    await expect(withSnapshot(pool, [], async () => {})).rejects.toThrow(
       "withSnapshot requires at least one relation to lock."
     );
 

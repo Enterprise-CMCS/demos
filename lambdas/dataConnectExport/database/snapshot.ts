@@ -7,17 +7,17 @@ import { quoteIdentifier } from "../parquet/typeMap";
 /**
  * Run an export against one repeatable-read snapshot.
  *
- * Schema discovery and row reads once used separate pooled connections and could observe
- * different database states. This transaction keeps every exported relation consistent.
+ * Reading relations on separate pooled connections can observe different database states.
+ * This transaction keeps every exported relation consistent.
  *
  * Lock all relations before reading so a schema migration blocks before the snapshot is in
  * use. ACCESS SHARE permits ordinary writes, and PostgreSQL holds it until the transaction ends.
  */
-export async function withSnapshot<T>(
+export async function withSnapshot(
   pool: Pool,
   relations: readonly string[],
-  fn: (client: PoolClient, snapshotTime: Date) => Promise<T>
-): Promise<T> {
+  fn: (client: PoolClient) => Promise<void>
+): Promise<Date> {
   if (relations.length === 0) {
     throw new Error("withSnapshot requires at least one relation to lock.");
   }
@@ -38,10 +38,10 @@ export async function withSnapshot<T>(
       "SELECT clock_timestamp() AS snapshot_time"
     );
 
-    const result = await fn(client, rows[0].snapshot_time);
+    await fn(client);
 
     await client.query("COMMIT");
-    return result;
+    return rows[0].snapshot_time;
   } catch (error) {
     // Keep the original export error if ROLLBACK also fails.
     try {

@@ -2,7 +2,7 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
-import type { WrittenFile } from "../types";
+import type { ExportedRelation } from "../types";
 import { successKey } from "../util/keys";
 
 const awsClientConfig = {
@@ -37,7 +37,7 @@ export async function uploadParquet(localPath: string, key: string): Promise<voi
 
 export async function uploadSuccessMarker(
   runDate: Date,
-  written: WrittenFile[],
+  relations: ExportedRelation[],
   snapshotTime: Date
 ): Promise<void> {
   await s3.send(
@@ -47,9 +47,10 @@ export async function uploadSuccessMarker(
       Body: JSON.stringify(
         {
           runDate: runDate.toISOString(),
-          // Data timestamp for consumers; runDate is the Lambda start time.
+          // The instant the data is as of, which is what a consumer reconciling against the
+          // database needs. runDate is only when the lambda started.
           snapshotTime: snapshotTime.toISOString(),
-          relations: written.map(({ relation, rowCount }) => ({ relation, rowCount })),
+          relations,
         },
         null,
         2

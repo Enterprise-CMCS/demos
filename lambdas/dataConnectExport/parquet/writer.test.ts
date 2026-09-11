@@ -1,26 +1,52 @@
 import { DuckDBInstance } from "@duckdb/node-api";
-import { mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { Readable } from "node:stream";
 import type { PoolClient } from "pg";
-import { afterAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { log } from "../log";
 import type { RelationSchema } from "../types";
-import { writeRelationToFile } from "./writer";
+import { writeRelationToFile as writeWithConnection } from "./writer";
+
+// The real logger, silenced. Mocking the module instead would leave log.ts loaded by nothing.
+const warnSpy = vi.spyOn(log, "warn").mockImplementation(() => {});
+
+const mocks = vi.hoisted(() => ({ rmMock: vi.fn() }));
 
 // Importing writer pulls in database/pool, which builds a SecretsManagerClient at module
 // scope. Only the schema name is needed here.
 vi.mock("../database/pool", () => ({ dbSchema: "demos_app" }));
 
-type TextRow = Record<string, string | null>;
+// rm delegates to the real one, so the cleanup assertions look at the filesystem. A single
+// test overrides it to prove a cleanup failure cannot mask the result.
+vi.mock("node:fs/promises", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:fs/promises")>();
+  mocks.rmMock.mockImplementation(actual.rm);
+  return { ...actual, rm: mocks.rmMock };
+});
 
-// Written to a subdirectory rather than os.tmpdir() itself, so cleanupTmp's *.parquet
-// sweep cannot reach these files while a test is using them.
+// Written to a subdirectory rather than os.tmpdir() itself, so cleanupTmp's sweep cannot reach
+// these files while a test is using them. The staged CSV goes here too, which is what lets a
+// test check the writer removed it.
 const workDir = mkdtempSync(path.join(os.tmpdir(), "writer-test-"));
+vi.mock("../util/staging", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../util/staging")>();
+  return {
+    ...actual,
+    csvPath: (relation: string) => path.join(workDir, `${relation}.csv`),
+  };
+});
+
 let fileCounter = 0;
 
 afterAll(() => {
   rmSync(workDir, { recursive: true, force: true });
+});
+
+beforeEach(() => {
+  vi.clearAllMocks();
 });
 
 function outputPath(): string {
@@ -28,7 +54,7 @@ function outputPath(): string {
   return path.join(workDir, `relation-${fileCounter}.parquet`);
 }
 
-// Every duckdbType that typeMap can produce, so the encoding assertions cover the whole map.
+// Every supported DuckDB type, so the encoding assertions cover the whole contract.
 const SCHEMA: RelationSchema = {
   columns: [
     { name: "id", duckdbType: "BIGINT" },
@@ -48,51 +74,57 @@ const SCHEMA: RelationSchema = {
   ],
 };
 
-// Text exactly as Postgres renders it under DateStyle=ISO,MDY and TimeZone=UTC.
-const FULL_ROW: TextRow = {
-  id: "9007199254740993",
-  small: "-32768",
-  count: "42",
-  flag: "true",
-  amount: "-0.05",
-  wide: "-1234567890123456789012345678901234.5678",
-  rate: "0.5",
-  ratio: "0.1",
-  effective_date: "1969-07-20",
-  created_at: "2026-08-31 07:00:00.123",
-  updated_at: "2026-08-31 07:00:00+00",
-  uid: "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
-  payload: '{"a":1}',
-  'odd"name': 'has a " in it',
-};
+// One CSV row exactly as Postgres writes it under DateStyle=ISO,MDY and TimeZone=UTC: booleans
+// as t and f, no quoting unless a field needs it, an embedded quote doubled.
+const FULL_ROW = `${[
+  "9007199254740993",
+  "-32768",
+  "42",
+  "t",
+  "-0.05",
+  "-1234567890123456789012345678901234.5678",
+  "0.5",
+  "0.1",
+  "1969-07-20",
+  "2026-08-31 07:00:00.123",
+  "2026-08-31 07:00:00+00",
+  "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+  '"{""a"":1}"',
+  '"has a "" in it"',
+].join(",")}\n`;
 
-const NULL_ROW: TextRow = Object.fromEntries(SCHEMA.columns.map((c) => [c.name, null]));
+// Postgres writes a NULL as an empty unquoted field, so an all-null row is just separators.
+const NULL_ROW = `${",".repeat(SCHEMA.columns.length - 1)}\n`;
 
-type ClientHarness = {
+type Harness = {
   client: PoolClient;
-  state: { sql: string; reads: number[]; closes: number };
+  state: { sql: string };
 };
 
-// Use a client to catch code that opens a connection outside withSnapshot.
-function fakeClient(rows: TextRow[], onRead?: () => void): ClientHarness {
-  const state = { sql: "", reads: [] as number[], closes: 0 };
-  const remaining = [...rows];
+/**
+ * A client rather than a pool: connecting and releasing belong to withSnapshot, so a writer
+ * that took its own connection would read outside the export's snapshot.
+ *
+ * pg hands the Submittable back to the caller. writer.ts still builds the real one, so the
+ * generated SQL can be read off it, while the returned stream carries the fixture bytes and
+ * the COPY tag row count.
+ */
+function fakeClient(csv: string, rowCount: number, streamError?: Error): Harness {
+  const state = { sql: "" };
 
   const client = {
-    // pg returns the Submittable it was handed. The real Cursor is still constructed by
-    // writer.ts, so its generated SQL can be read off the argument.
-    query: (cursor: { text: string }) => {
-      state.sql = cursor.text;
-      return {
-        read: async (batchSize: number) => {
-          state.reads.push(batchSize);
-          onRead?.();
-          return remaining.splice(0, batchSize);
-        },
-        close: async () => {
-          state.closes += 1;
-        },
-      };
+    query: (submittable: { text: string }) => {
+      state.sql = submittable.text;
+
+      const stream = streamError
+        ? new Readable({
+            read() {
+              this.destroy(streamError);
+            },
+          })
+        : Readable.from([Buffer.from(csv, "utf8")]);
+
+      return Object.assign(stream, { rowCount });
     },
   };
 
@@ -105,22 +137,46 @@ async function reader() {
     (await (await connection.run(sql)).getRowObjectsJS()) as Record<string, unknown>[];
 }
 
+async function writeRelationToFile(
+  client: PoolClient,
+  relation: string,
+  schema: RelationSchema,
+  destinationPath: string
+): Promise<number> {
+  const instance = await DuckDBInstance.create(":memory:");
+  const connection = await instance.connect();
+
+  try {
+    return await writeWithConnection(client, connection, relation, schema, destinationPath);
+  } finally {
+    connection.closeSync();
+    instance.closeSync();
+  }
+}
+
 describe("writeRelationToFile", () => {
-  it("projects every column as text from the schema-qualified relation", async () => {
-    const { client, state } = fakeClient([]);
+  it("copies the allowlisted columns out of the schema-qualified relation as csv", async () => {
+    const { client, state } = fakeClient("", 0);
     await writeRelationToFile(client, "demonstration", SCHEMA, outputPath());
 
     expect(state.sql).toContain('FROM demos_app."demonstration"');
-    expect(state.sql).toContain('"id"::text AS "id"');
-    // An embedded quote has to survive into both sides of the projection.
-    expect(state.sql).toContain('"odd""name"::text AS "odd""name"');
-    for (const column of SCHEMA.columns) {
-      expect(state.sql).toContain(`::text AS "${column.name.replace(/"/g, '""')}"`);
-    }
+    expect(state.sql).toContain("TO STDOUT WITH (FORMAT csv)");
+    // An embedded quote has to survive into the column list.
+    expect(state.sql).toContain('"odd""name"');
+    // No cast. Postgres formats every value with the type's own output function, and a cast
+    // would rename the column in a file that has no header to correct it.
+    expect(state.sql).not.toContain("::text");
+  });
+
+  it("asks for no header, because the read_csv spec is positional", async () => {
+    const { client, state } = fakeClient("", 0);
+    await writeRelationToFile(client, "state", SCHEMA, outputPath());
+
+    expect(state.sql).not.toContain("HEADER");
   });
 
   it("writes the parquet encodings the DataConnect dashboard contract depends on", async () => {
-    const { client } = fakeClient([FULL_ROW]);
+    const { client } = fakeClient(FULL_ROW, 1);
     const out = outputPath();
     await writeRelationToFile(client, "demonstration", SCHEMA, out);
 
@@ -164,8 +220,35 @@ describe("writeRelationToFile", () => {
     expect(logical["updated_at"]).toContain("MICROS=MicroSeconds()");
   });
 
+  it("compresses the pages with snappy", async () => {
+    const { client } = fakeClient(FULL_ROW, 1);
+    const out = outputPath();
+    await writeRelationToFile(client, "demonstration", SCHEMA, out);
+
+    const query = await reader();
+    expect(await query(`SELECT DISTINCT compression FROM parquet_metadata('${out}')`)).toEqual([
+      { compression: "SNAPPY" },
+    ]);
+  });
+
+  it("reads a field larger than DuckDB's default line limit", async () => {
+    // The default max_line_size is 2 MB. A free-text column past that would fail the export
+    // outright rather than one row, so the ceiling is raised deliberately.
+    const schema: RelationSchema = {
+      columns: [{ name: "description", duckdbType: "VARCHAR" }],
+    };
+    const { client } = fakeClient(`"${"x".repeat(3 * 1024 * 1024)}"\n`, 1);
+    const out = outputPath();
+    expect(await writeRelationToFile(client, "demonstration", schema, out)).toBe(1);
+
+    const query = await reader();
+    expect(await query(`SELECT length(description) AS n FROM read_parquet('${out}')`)).toEqual([
+      { n: 3_145_728n },
+    ]);
+  });
+
   it("round trips values without going through a JavaScript number or date", async () => {
-    const { client } = fakeClient([FULL_ROW]);
+    const { client } = fakeClient(FULL_ROW, 1);
     const out = outputPath();
     expect(await writeRelationToFile(client, "demonstration", SCHEMA, out)).toBe(1);
 
@@ -201,8 +284,46 @@ describe("writeRelationToFile", () => {
     });
   });
 
+  it("keeps an empty string distinct from a null", async () => {
+    // The one setting this whole path turns on. Postgres writes "" for an empty string and
+    // nothing at all for a NULL, and DuckDB's default reads both as NULL, which silently
+    // merges them. This is the same defect a pandas based reader has.
+    const schema: RelationSchema = {
+      columns: [
+        { name: "empty", duckdbType: "VARCHAR" },
+        { name: "missing", duckdbType: "VARCHAR" },
+      ],
+    };
+    const { client } = fakeClient('"",\n', 1);
+    const out = outputPath();
+    await writeRelationToFile(client, "state", schema, out);
+
+    const query = await reader();
+    expect(await query(`SELECT * FROM read_parquet('${out}')`)).toEqual([
+      { empty: "", missing: null },
+    ]);
+  });
+
+  it("preserves a comma, a quote and a newline inside a field", async () => {
+    const schema: RelationSchema = {
+      columns: [
+        { name: "commas", duckdbType: "VARCHAR" },
+        { name: "quotes", duckdbType: "VARCHAR" },
+        { name: "lines", duckdbType: "VARCHAR" },
+      ],
+    };
+    const { client } = fakeClient('"a,b","say ""hi""","one\ntwo"\n', 1);
+    const out = outputPath();
+    expect(await writeRelationToFile(client, "state", schema, out)).toBe(1);
+
+    const query = await reader();
+    expect(await query(`SELECT * FROM read_parquet('${out}')`)).toEqual([
+      { commas: "a,b", quotes: 'say "hi"', lines: "one\ntwo" },
+    ]);
+  });
+
   it("keeps a fully null row null in every column", async () => {
-    const { client } = fakeClient([NULL_ROW]);
+    const { client } = fakeClient(NULL_ROW, 1);
     const out = outputPath();
     expect(await writeRelationToFile(client, "demonstration", SCHEMA, out)).toBe(1);
 
@@ -213,7 +334,9 @@ describe("writeRelationToFile", () => {
   });
 
   it("writes an empty but readable file when the relation has no rows", async () => {
-    const { client, state } = fakeClient([]);
+    // Postgres sends zero bytes, and DuckDB's dialect sniffer fails outright on an empty
+    // file. This passes only because the read declares auto_detect = false.
+    const { client } = fakeClient("", 0);
     const out = outputPath();
     expect(await writeRelationToFile(client, "demonstration", SCHEMA, out)).toBe(0);
 
@@ -224,17 +347,13 @@ describe("writeRelationToFile", () => {
       `SELECT name FROM parquet_schema('${out}') WHERE num_children IS NULL`
     );
     expect(columns.map((c) => c.name)).toEqual(SCHEMA.columns.map((c) => c.name));
-    expect(state.reads).toEqual([500]);
   });
 
-  it("reads in batches and writes every row across them", async () => {
-    const rows = Array.from({ length: 1200 }, (_, i) => ({ ...NULL_ROW, id: String(i) }));
-    const { client, state } = fakeClient(rows);
+  it("writes every row of a large relation", async () => {
+    const rows = Array.from({ length: 1200 }, (_, i) => NULL_ROW.replace(/^/, String(i))).join("");
+    const { client } = fakeClient(rows, 1200);
     const out = outputPath();
     expect(await writeRelationToFile(client, "demonstration", SCHEMA, out)).toBe(1200);
-
-    // 500, 500, 200, then the empty read that ends the loop.
-    expect(state.reads).toEqual([500, 500, 500, 500]);
 
     const query = await reader();
     expect(
@@ -245,23 +364,55 @@ describe("writeRelationToFile", () => {
     ).toEqual([{ n: 1200n, distinct_ids: 1200n, max_id: "1199" }]);
   }, 30000);
 
-  it("closes the cursor when the read fails", async () => {
-    const { client, state } = fakeClient([FULL_ROW], () => {
-      throw new Error("connection terminated unexpectedly");
-    });
+  it("refuses to report success when the file has fewer rows than Postgres sent", async () => {
+    // A CSV can parse cleanly and still be short. Comparing what DuckDB wrote against the
+    // COPY tag is the only check that catches it.
+    const { client } = fakeClient(FULL_ROW, 99);
 
     await expect(
       writeRelationToFile(client, "demonstration", SCHEMA, outputPath())
-    ).rejects.toThrow("connection terminated unexpectedly");
-
-    expect(state.closes).toBe(1);
+    ).rejects.toThrow("Relation demonstration wrote 1 rows but Postgres sent 99.");
   });
 
-  it("closes the cursor on success", async () => {
-    // Close the portal before reading the next relation in this transaction.
-    const { client, state } = fakeClient([FULL_ROW]);
+  it("removes the staged csv once the parquet exists", async () => {
+    const { client } = fakeClient(FULL_ROW, 1);
     await writeRelationToFile(client, "demonstration", SCHEMA, outputPath());
 
-    expect(state.closes).toBe(1);
+    // Peak /tmp is one csv, not one per relation, and temporary storage is finite.
+    expect(existsSync(path.join(workDir, "demonstration.csv"))).toBe(false);
+  });
+
+  it("removes the staged csv when the conversion fails", async () => {
+    const { client } = fakeClient(FULL_ROW, 99);
+
+    await expect(
+      writeRelationToFile(client, "demonstration", SCHEMA, outputPath())
+    ).rejects.toThrow();
+
+    expect(existsSync(path.join(workDir, "demonstration.csv"))).toBe(false);
+  });
+
+  it("reports the copy failure rather than a cleanup problem", async () => {
+    const { client } = fakeClient("", 0, new Error("connection terminated unexpectedly"));
+
+    await expect(
+      writeRelationToFile(client, "state", SCHEMA, outputPath())
+    ).rejects.toThrow("connection terminated unexpectedly");
+  });
+
+  it("warns rather than throwing when the staged csv cannot be removed", async () => {
+    // The removal runs in a finally block. Throwing there would replace the row count the
+    // caller is waiting on, or the error that aborted the run.
+    const { client } = fakeClient(FULL_ROW, 1);
+    mocks.rmMock.mockRejectedValueOnce(new Error("EBUSY: resource busy"));
+
+    expect(await writeRelationToFile(client, "demonstration", SCHEMA, outputPath())).toBe(1);
+    expect(warnSpy).toHaveBeenCalledWith(
+      {
+        path: path.join(workDir, "demonstration.csv"),
+        error: "EBUSY: resource busy",
+      },
+      "failed to remove staged export file"
+    );
   });
 });

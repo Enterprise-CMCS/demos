@@ -3,7 +3,7 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { WrittenFile } from "../types";
+import type { ExportedRelation } from "../types";
 import { uploadParquet, uploadSuccessMarker } from "./s3";
 
 vi.mock("@aws-sdk/client-s3");
@@ -15,12 +15,13 @@ const commandInput = () => vi.mocked(PutObjectCommand).mock.calls[0][0];
 
 const ORIGINAL_ENV = process.env;
 const RUN_DATE = new Date("2026-09-04T07:00:00Z");
-// Distinct times catch code that publishes runDate twice.
+// Deliberately later than RUN_DATE, the way a real run looks once the snapshot has waited
+// on a lock. Equal values would let a marker that published runDate twice pass.
 const SNAPSHOT_TIME = new Date("2026-09-04T07:00:04.250Z");
 
-const WRITTEN: WrittenFile[] = [
-  { relation: "balrogs", localPath: "/tmp/balrogs.parquet", rowCount: 412 },
-  { relation: "ainur", localPath: "/tmp/ainur.parquet", rowCount: 56 },
+const WRITTEN: ExportedRelation[] = [
+  { relation: "balrogs", rowCount: 412 },
+  { relation: "ainur", rowCount: 56 },
 ];
 
 beforeEach(() => {
@@ -135,19 +136,12 @@ describe("uploadSuccessMarker", () => {
   });
 
   it("publishes the snapshot instant as well as the start of the run", async () => {
-    // Reconciliation needs the data timestamp, not the Lambda start time.
+    // A consumer reconciling counts against the database needs the instant the rows were
+    // read, not the instant the lambda woke up. The two differ by the lock wait.
     await uploadSuccessMarker(RUN_DATE, WRITTEN, SNAPSHOT_TIME);
     const marker = JSON.parse(commandInput().Body as string);
     expect(marker.snapshotTime).toBe(SNAPSHOT_TIME.toISOString());
     expect(marker.snapshotTime).not.toBe(marker.runDate);
-  });
-
-  it("keeps local staging paths out of the published manifest", async () => {
-    // WrittenFile carries localPath. Publishing it would leak the lambda's /tmp layout
-    // to every consumer of the bucket.
-    await uploadSuccessMarker(RUN_DATE, WRITTEN, SNAPSHOT_TIME);
-    expect(commandInput().Body).not.toContain("/tmp");
-    expect(commandInput().Body).not.toContain("localPath");
   });
 
   it("writes a marker with an empty relation list when nothing was exported", async () => {

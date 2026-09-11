@@ -108,8 +108,8 @@ $AWS_CMD lambda create-function \
     --handler index.handler \
     --zip-file fileb://$LAMBDA_DIR/lambda.zip \
     --timeout 900 \
-    --memory-size 3008 \
-    --environment "Variables={AWS_REGION=$AWS_REGION,AWS_ENDPOINT_URL=$LOCALSTACK_ENDPOINT,DATABASE_SECRET_ARN=database-secret,DB_SCHEMA=demos_app,DB_SSL_MODE=disable,EXPORT_BUCKET=$EXPORT_BUCKET,NODE_OPTIONS=--enable-source-maps}" >/dev/null
+    --memory-size 1769 \
+    --environment "Variables={AWS_REGION=$AWS_REGION,AWS_ENDPOINT_URL=$LOCALSTACK_ENDPOINT,DATABASE_SECRET_ARN=database-secret,DB_SSL_MODE=disable,EXPORT_BUCKET=$EXPORT_BUCKET,NODE_OPTIONS=--enable-source-maps}" >/dev/null
 
 # Wait for Lambda to be active
 echo "⏳ Waiting for dataConnectExport Lambda to be active..."
