@@ -85,7 +85,7 @@ def _get_s3_client() -> "S3Client":
 def _get_unmigrated_files(
     attach_name: DuckDbAttachName, dl_config: DataLoadConfiguration, conn: "DuckConn"
 ) -> List[FileMigrationTrackerRecord]:
-    """Get a list of unmigrated files from the target schema of a data load configuration.
+    """Get a list of unmigrated files from the source schema of a data load configuration.
 
     Args:
         attach_name (DuckDbAttachName): The DuckDB attach name to use.
@@ -96,7 +96,7 @@ def _get_unmigrated_files(
         List[FileMigrationTrackerRecord]: A list of the unmigrated files.
     """
     logger.info(
-        f"Getting list of unmigrated files from {attach_name}.{dl_config.target_schema}.system_file_move_tracker"
+        f"Getting list of unmigrated files from {attach_name}.{dl_config.source_schema}.system_file_move_tracker"
     )
     query = f"""
         SELECT
@@ -109,7 +109,7 @@ def _get_unmigrated_files(
             file_has_been_moved,
             FALSE AS _local_file_has_been_moved
         FROM
-            {attach_name}.{dl_config.target_schema}.system_file_move_tracker
+            {attach_name}.{dl_config.source_schema}.system_file_move_tracker
         WHERE
             NOT file_has_been_moved;
     """
