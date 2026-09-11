@@ -126,7 +126,7 @@ def _mark_file_migrated_in_db(
 ) -> FileMigrationTrackerRecord:
     """Mark one file migrated in the database and return the updated record.
 
-    The table is assumed to be in the target_schema of the named DataLoadConfiguration.
+    The table is assumed to be in the source_schema of the named DataLoadConfiguration.
 
     Args:
         attach_name (DuckDbAttachName): The DuckDB attach name to use.
@@ -139,7 +139,7 @@ def _mark_file_migrated_in_db(
     """
     query = f"""
         UPDATE
-            {attach_name}.{dl_config.target_schema}.system_file_move_tracker
+            {attach_name}.{dl_config.source_schema}.system_file_move_tracker
         SET
             file_has_been_moved = TRUE
         WHERE
