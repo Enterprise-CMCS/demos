@@ -48,6 +48,9 @@ export async function getDatabaseUrl() {
     `postgresql://${username}:${password}` +
     `@${dbCredentials.host}:${dbCredentials.port}/${dbCredentials.dbname}` +
     `?schema=${dbSchema}&sslmode=${sslMode}`;
+  if (process.env.DB_SSL_ROOT_CERT) {
+    databaseUrlCache += `&sslrootcert=${encodeURIComponent(process.env.DB_SSL_ROOT_CERT)}`;
+  }
   cacheExpiration = now + 60 * 60 * 1000;
 
   return databaseUrlCache;

@@ -35,6 +35,7 @@ describe("emailer database connection", () => {
     process.env = { ...originalEnv };
     process.env.DATABASE_SECRET_ARN = "database-secret"; // pragma: allowlist secret
     process.env.DB_SSL_MODE = "disable";
+    delete process.env.DB_SSL_ROOT_CERT;
     __resetDbStateForTests();
     mocks.send.mockReset();
     mocks.poolConstructor.mockReset();
@@ -61,6 +62,15 @@ describe("emailer database connection", () => {
     expect(mocks.send).toHaveBeenCalledWith(
       expect.objectContaining({ input: { SecretId: "database-secret" } }) // pragma: allowlist secret
     );
+  });
+
+  it("includes the configured database CA bundle", async () => {
+    delete process.env.DB_SSL_MODE;
+    process.env.DB_SSL_ROOT_CERT = "/var/runtime/ca-cert.pem";
+
+    const url = new URL(await getDatabaseUrl());
+    expect(url.searchParams.get("sslmode")).toBe("verify-full");
+    expect(url.searchParams.get("sslrootcert")).toBe("/var/runtime/ca-cert.pem");
   });
 
   it("requires a database secret", async () => {
