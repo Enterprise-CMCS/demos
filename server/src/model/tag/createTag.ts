@@ -1,9 +1,14 @@
+import { prisma } from "../../prismaClient";
+import { createNewTagNameIfNotExists } from "../tagName";
+import { insertTag } from "./queries/insertTag";
+import { validateCreateTagInput } from "./validateCreateTagInput";
+
 export const createTag = (tagName: string) => {
-  
-  validateCreateTagInput(tagName);
+  return prisma().$transaction(async (tx) => {
+    validateCreateTagInput(tagName, tx);
 
-  // create tagname
-
-  // create demonstration type tag
-  // create application tag
+    createNewTagNameIfNotExists(tagName, tx);
+    insertTag(tagName, "Demonstration Type", tx);
+    insertTag(tagName, "Application", tx);
+  });
 };
