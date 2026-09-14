@@ -78,6 +78,18 @@ describe("getDatabaseUrl", () => {
     expect(url.searchParams.get("schema")).toBe("demos_app");
   });
 
+  it("encodes reserved characters in the database password", async () => {
+    const password = "generated#/?password"; // pragma: allowlist secret
+    send.mockResolvedValue({
+      SecretString: JSON.stringify({ ...CREDENTIALS, password }),
+    });
+
+    const url = new URL(await getDatabaseUrl());
+
+    expect(decodeURIComponent(url.password)).toBe(password); // pragma: allowlist secret
+    expect(url.hostname).toBe("unit.test.rds.host");
+  });
+
   it("requires SSL by default", async () => {
     expect(new URL(await getDatabaseUrl()).searchParams.get("sslmode")).toBe("require");
   });
