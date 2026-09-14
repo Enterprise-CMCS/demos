@@ -5,7 +5,7 @@ import { prisma } from "../../prismaClient";
 import { validateUserPermittedToMakePublicComment } from ".";
 import { insertPublicComment } from "./queries";
 
-import { notifyPublicCommentAdded } from "../email/notifyDeliverableStatusChanged";
+import { notifyPublicCommentAdded } from "../email/notifyDeliverableEvent";
 
 export async function createPublicComment(
   deliverableId: string,

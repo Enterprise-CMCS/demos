@@ -1,7 +1,7 @@
-vi.mock("../email/notifyDeliverableStatusChanged", () => ({
+vi.mock("../email/notifyDeliverableEvent", () => ({
   notifyDeliverableDueDateUpdated: vi.fn(),
 }));
-import { notifyDeliverableDueDateUpdated } from "../email/notifyDeliverableStatusChanged";
+import { notifyDeliverableDueDateUpdated } from "../email/notifyDeliverableEvent";
 // Vitest and other helpers
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";

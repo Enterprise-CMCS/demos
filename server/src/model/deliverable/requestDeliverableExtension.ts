@@ -11,7 +11,7 @@ import { prisma } from "../../prismaClient";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 import { insertDeliverableExtension } from "../deliverableExtension/queries";
 
-import { notifyDeliverableExtensionRequested } from "../email/notifyDeliverableStatusChanged";
+import { notifyDeliverableExtensionRequested } from "../email/notifyDeliverableEvent";
 
 export async function requestDeliverableExtension(
   deliverableId: string,

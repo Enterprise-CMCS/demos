@@ -1,7 +1,7 @@
-vi.mock("../email/notifyDeliverableStatusChanged", () => ({
+vi.mock("../email/notifyDeliverableEvent", () => ({
   notifyPublicCommentAdded: vi.fn(),
 }));
-import { notifyPublicCommentAdded } from "../email/notifyDeliverableStatusChanged";
+import { notifyPublicCommentAdded } from "../email/notifyDeliverableEvent";
 // Vitest and other helpers
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DeepPartial } from "../../testUtilities";

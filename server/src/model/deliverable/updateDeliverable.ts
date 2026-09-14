@@ -15,7 +15,7 @@ import { prisma } from "../../prismaClient";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { selectUserOrThrow } from "../user/queries";
 
-import { notifyDeliverableDueDateUpdated } from "../email/notifyDeliverableStatusChanged";
+import { notifyDeliverableDueDateUpdated } from "../email/notifyDeliverableEvent";
 
 export async function updateDeliverable(
   deliverableId: string,

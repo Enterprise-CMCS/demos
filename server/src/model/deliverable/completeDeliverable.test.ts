@@ -25,7 +25,7 @@ vi.mock("../deliverableAction/queries", () => ({
   insertDeliverableAction: vi.fn(),
 }));
 
-vi.mock("../email/notifyDeliverableStatusChanged", () => ({
+vi.mock("../email/notifyDeliverableEvent", () => ({
   notifyDeliverableCompleted: vi.fn(),
 }));
 
@@ -37,7 +37,7 @@ import {
   validateUserPersonTypeAllowed,
 } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
-import { notifyDeliverableCompleted } from "../email/notifyDeliverableStatusChanged";
+import { notifyDeliverableCompleted } from "../email/notifyDeliverableEvent";
 
 describe("completeDeliverable", () => {
   // Test inputs

@@ -15,7 +15,7 @@ import {
   updateDeliverableExtension,
 } from "../deliverableExtension/queries";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
-import { notifyDeliverableExtensionDecisionMade } from "../email/notifyDeliverableStatusChanged";
+import { notifyDeliverableExtensionDecisionMade } from "../email/notifyDeliverableEvent";
 
 export async function approveDeliverableExtension(
   deliverableId: string,

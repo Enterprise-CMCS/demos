@@ -9,7 +9,7 @@ import {
   selectDeliverableOrThrow,
 } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
-import { notifyDeliverableCompleted } from "../email/notifyDeliverableStatusChanged";
+import { notifyDeliverableCompleted } from "../email/notifyDeliverableEvent";
 
 export async function completeDeliverable(
   deliverableId: string,

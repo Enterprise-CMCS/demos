@@ -28,7 +28,7 @@ recipients, then sends a message through
 
 Submission, completion, manual due-date changes, extension requests and decisions,
 resubmission requests, and public comments use
-[`notifyDeliverableStatusChanged`](../../server/src/model/email/notifyDeliverableStatusChanged.ts)
+[`notifyDeliverableEvent`](../../server/src/model/email/notifyDeliverableEvent.ts)
 after their transactions complete.
 
 Realtime messages have this shape:

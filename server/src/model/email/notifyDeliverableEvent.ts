@@ -22,7 +22,7 @@ type Recipient = {
 const emailSchema = z.email();
 
 export async function notifyDeliverableSubmitted(input: DeliverableEmailInput): Promise<void> {
-  return notifyDeliverableStatusChanged(input, "Deliverable Submitted", "cms");
+  return notifyDeliverableEvent(input, "Deliverable Submitted", "cms");
 }
 
 export async function notifyDeliverableCompleted(
@@ -34,13 +34,13 @@ export async function notifyDeliverableCompleted(
     "Received and Filed": "Deliverable Received and Filed",
   };
 
-  return notifyDeliverableStatusChanged(input, emailTypeByStatus[input.finalStatus], "state");
+  return notifyDeliverableEvent(input, emailTypeByStatus[input.finalStatus], "state");
 }
 
 export async function notifyDeliverableResubmissionRequested(
   input: DeliverableEmailInput & { previousDueDate: Date }
 ): Promise<void> {
-  return notifyDeliverableStatusChanged(input, "Resubmission Requested", "state", {
+  return notifyDeliverableEvent(input, "Resubmission Requested", "state", {
     previousDueDate: input.previousDueDate.toISOString(),
   });
 }
@@ -51,7 +51,7 @@ export async function notifyDeliverableExtensionDecisionMade(
     previousDueDate: Date;
   }
 ): Promise<void> {
-  return notifyDeliverableStatusChanged(input, "Extension Decision Made", "state", {
+  return notifyDeliverableEvent(input, "Extension Decision Made", "state", {
     extensionDecision: input.extensionDecision,
     previousDueDate: input.previousDueDate.toISOString(),
   });
@@ -60,7 +60,7 @@ export async function notifyDeliverableExtensionDecisionMade(
 export async function notifyDeliverableDueDateUpdated(
   input: DeliverableEmailInput & { previousDueDate: Date }
 ): Promise<void> {
-  return notifyDeliverableStatusChanged(input, "Deliverable Due Date Updated", "state", {
+  return notifyDeliverableEvent(input, "Deliverable Due Date Updated", "state", {
     previousDueDate: input.previousDueDate.toISOString(),
   });
 }
@@ -68,7 +68,7 @@ export async function notifyDeliverableDueDateUpdated(
 export async function notifyDeliverableExtensionRequested(
   input: DeliverableEmailInput & { requestedDueDate: Date }
 ): Promise<void> {
-  return notifyDeliverableStatusChanged(input, "Extension Requested", "cms", {
+  return notifyDeliverableEvent(input, "Extension Requested", "cms", {
     requestedDueDate: input.requestedDueDate.toISOString(),
   });
 }
@@ -78,10 +78,10 @@ export async function notifyPublicCommentAdded(input: {
   publicCommentId: string;
   triggeredByUserId: string;
 }): Promise<void> {
-  return notifyDeliverableStatusChanged(input, "Deliverable Comment", "all");
+  return notifyDeliverableEvent(input, "Deliverable Comment", "all");
 }
 
-async function notifyDeliverableStatusChanged(
+async function notifyDeliverableEvent(
   input:
     | DeliverableEmailInput
     | {

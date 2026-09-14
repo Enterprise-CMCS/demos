@@ -26,9 +26,9 @@ import {
   notifyDeliverableExtensionDecisionMade,
   notifyDeliverableResubmissionRequested,
   notifyDeliverableSubmitted,
-} from "./notifyDeliverableStatusChanged";
+} from "./notifyDeliverableEvent";
 
-describe("deliverable status email notifications", () => {
+describe("deliverable event email notifications", () => {
   const findUniqueOrThrow = vi.fn();
   const input = {
     deliverableId: "deliverable-1",
