@@ -53,10 +53,28 @@ export async function cleanupTmp(): Promise<void> {
         STAGED_SUFFIXES.some((suffix) => entry.endsWith(suffix))
     );
 
-    await Promise.all(staged.map((entry) => rm(path.join(stagingDir, entry), { force: true })));
+    const results = await Promise.allSettled(
+      staged.map((entry) => rm(path.join(stagingDir, entry), { force: true }))
+    );
+    let removed = 0;
 
-    if (staged.length > 0) {
-      log.info({ removed: staged.length }, "removed staged export files from tmp");
+    results.forEach((result, index) => {
+      const filePath = path.join(stagingDir, staged[index]);
+      if (result.status === "fulfilled") {
+        removed += 1;
+      } else {
+        log.warn(
+          {
+            path: filePath,
+            error: result.reason instanceof Error ? result.reason.message : String(result.reason),
+          },
+          "failed to clean up staged export files"
+        );
+      }
+    });
+
+    if (removed > 0) {
+      log.info({ removed }, "removed staged export files from tmp");
     }
   } catch (error) {
     log.warn({ error: (error as Error).message }, "failed to clean up staged export files");

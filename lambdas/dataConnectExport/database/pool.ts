@@ -49,7 +49,8 @@ export async function getDatabaseUrl() {
   const sslMode =
     process.env.DB_SSL_MODE ?? (process.env.BYPASS_SSL ? "disable" : "require");
 
-  databaseUrlCache = `postgresql://${dbCredentials.username}:${dbCredentials.password}@${dbCredentials.host}:${dbCredentials.port}/${dbCredentials.dbname}?schema=${dbSchema}&sslmode=${sslMode}`;
+  const password = encodeURIComponent(dbCredentials.password);
+  databaseUrlCache = `postgresql://${dbCredentials.username}:${password}@${dbCredentials.host}:${dbCredentials.port}/${dbCredentials.dbname}?schema=${dbSchema}&sslmode=${sslMode}`;
   cacheExpiration = now + 60 * 60 * 1000;
 
   return databaseUrlCache;

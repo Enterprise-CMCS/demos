@@ -187,7 +187,7 @@ describe("cleanupTmp", () => {
 
     await expect(cleanupTmp()).resolves.toBeUndefined();
     expect(mocks.warnMock).toHaveBeenCalledWith(
-      { error: "EBUSY: resource busy" },
+      { path: stagingPath("state"), error: "EBUSY: resource busy" },
       "failed to clean up staged export files"
     );
   });
@@ -200,5 +200,44 @@ describe("cleanupTmp", () => {
 
     await cleanupTmp();
     expect(mocks.infoMock).not.toHaveBeenCalled();
+  });
+
+  it("logs a removal rejection that is not an Error object", async () => {
+    const failed = stagingPath("state");
+    vi.mocked(readdir).mockResolvedValue([path.basename(failed)] as never);
+    vi.mocked(rm).mockRejectedValue("resource busy");
+
+    await cleanupTmp();
+
+    expect(mocks.warnMock).toHaveBeenCalledWith(
+      { path: failed, error: "resource busy" },
+      "failed to clean up staged export files"
+    );
+  });
+
+  it("reports successful removals when another file fails", async () => {
+    const failed = stagingPath("demonstration");
+    const removed = stagingPath("state");
+    vi.mocked(readdir).mockResolvedValue([
+      path.basename(failed),
+      path.basename(removed),
+    ] as never);
+    vi.mocked(rm).mockImplementation(async (target) => {
+      if (target === failed) {
+        throw new Error("EBUSY: resource busy");
+      }
+    });
+
+    await cleanupTmp();
+
+    expect(vi.mocked(rm)).toHaveBeenCalledTimes(2);
+    expect(mocks.warnMock).toHaveBeenCalledWith(
+      { path: failed, error: "EBUSY: resource busy" },
+      "failed to clean up staged export files"
+    );
+    expect(mocks.infoMock).toHaveBeenCalledWith(
+      { removed: 1 },
+      "removed staged export files from tmp"
+    );
   });
 });
