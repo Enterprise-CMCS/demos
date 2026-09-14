@@ -1,3 +1,7 @@
+vi.mock("../email/notifyDeliverableStatusChanged", () => ({
+  notifyDeliverableExtensionRequested: vi.fn()
+}));
+import { notifyDeliverableExtensionRequested } from "../email/notifyDeliverableStatusChanged";
 // Vitest and other helpers
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DeepPartial } from "../../testUtilities";
@@ -12,22 +16,22 @@ import { requestDeliverableExtension } from "./requestDeliverableExtension";
 
 // Mock imports
 vi.mock("../../prismaClient", () => ({
-  prisma: vi.fn(),
+  prisma: vi.fn()
 }));
 
 vi.mock(".", () => ({
   selectDeliverableOrThrow: vi.fn(),
   parseRequestDeliverableExtensionInput: vi.fn(),
   validateRequestDeliverableExtensionInput: vi.fn(),
-  validateUserPersonTypeAllowed: vi.fn(),
+  validateUserPersonTypeAllowed: vi.fn()
 }));
 
 vi.mock("../deliverableAction/queries", () => ({
-  insertDeliverableAction: vi.fn(),
+  insertDeliverableAction: vi.fn()
 }));
 
 vi.mock("../deliverableExtension/queries", () => ({
-  insertDeliverableExtension: vi.fn(),
+  insertDeliverableExtension: vi.fn()
 }));
 
 import { prisma } from "../../prismaClient";
@@ -36,7 +40,7 @@ import {
   ParsedRequestDeliverableExtensionInput,
   parseRequestDeliverableExtensionInput,
   validateRequestDeliverableExtensionInput,
-  validateUserPersonTypeAllowed,
+  validateUserPersonTypeAllowed
 } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 import { insertDeliverableExtension } from "../deliverableExtension/queries";
@@ -48,38 +52,41 @@ describe("requestDeliverableExtension", () => {
   const testInput: RequestDeliverableExtensionInput = {
     reason: "COVID-19",
     details: "COVID-19 caused major delays in processing our requests.",
-    requestedDueDate: "2026-12-14" as DateTimeOrLocalDate,
+    requestedDueDate: "2026-12-14" as DateTimeOrLocalDate
   };
   const testContext: DeepPartial<GraphQLContext> = {
     user: {
       id: "0a3bd415-39a3-4f72-a067-418a5219216a",
-      personTypeId: "demos-admin",
-    },
+      personTypeId: "demos-admin"
+    }
   };
 
   // Mock results
   const mockDeliverable: Partial<PrismaDeliverable> = {
     id: testDeliverableId,
     statusId: "Past Due",
-    dueDate: new Date(2026, 9, 13, 4, 59, 59, 999),
+    dueDate: new Date(2026, 9, 13, 4, 59, 59, 999)
   };
   const mockParsedInput: ParsedRequestDeliverableExtensionInput = {
     reason: testInput.reason,
     details: testInput.details,
     requestedDueDate: {
       isEasternTZDate: true,
-      easternTZDate: new TZDate(2026, 9, 12, 23, 59, 59, 999, "America/New_York"),
-    },
+      easternTZDate: new TZDate(2026, 9, 12, 23, 59, 59, 999, "America/New_York")
+    }
   };
 
   // Mock transaction
   const mockTransaction: any = "Test!";
   const mockPrismaClient = {
-    $transaction: vi.fn(),
+    $transaction: vi.fn()
   };
 
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.mocked(insertDeliverableAction).mockResolvedValue({
+      id: "action-1"
+    } as any);
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(selectDeliverableOrThrow).mockResolvedValue(mockDeliverable as PrismaDeliverable);
     vi.mocked(parseRequestDeliverableExtensionInput).mockReturnValue(mockParsedInput);
@@ -153,7 +160,7 @@ describe("requestDeliverableExtension", () => {
       {
         deliverableId: testDeliverableId,
         reasonCode: mockParsedInput.reason,
-        requestedDate: mockParsedInput.requestedDueDate.easternTZDate,
+        requestedDate: mockParsedInput.requestedDueDate.easternTZDate
       },
       mockTransaction
     );
@@ -170,9 +177,19 @@ describe("requestDeliverableExtension", () => {
         note: mockParsedInput.details,
         oldDueDate: mockDeliverable.dueDate,
         newDueDate: mockDeliverable.dueDate,
-        userId: testContext.user!.id,
+        userId: testContext.user!.id
       },
       mockTransaction
+    );
+  });
+  it("notifies after requesting an extension", async () => {
+    await requestDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
+    expect(notifyDeliverableExtensionRequested).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        deliverableId: testDeliverableId,
+        sourceActionId: "action-1",
+        triggeredByUserId: testContext.user!.id
+      })
     );
   });
 });

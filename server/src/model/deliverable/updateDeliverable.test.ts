@@ -1,3 +1,7 @@
+vi.mock("../email/notifyDeliverableStatusChanged", () => ({
+  notifyDeliverableDueDateUpdated: vi.fn()
+}));
+import { notifyDeliverableDueDateUpdated } from "../email/notifyDeliverableStatusChanged";
 // Vitest and other helpers
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
@@ -14,7 +18,7 @@ import { updateDeliverable } from "./updateDeliverable";
 
 // Mock imports
 vi.mock("../../prismaClient", () => ({
-  prisma: vi.fn(),
+  prisma: vi.fn()
 }));
 
 vi.mock(".", () => ({
@@ -24,15 +28,15 @@ vi.mock(".", () => ({
   parseUpdateDeliverableInput: vi.fn(),
   updateDeliverableDemonstrationTypes: vi.fn(),
   validateUpdateDeliverableInput: vi.fn(),
-  validateUserPersonTypeAllowed: vi.fn(),
+  validateUserPersonTypeAllowed: vi.fn()
 }));
 
 vi.mock("../../errors/checkOptionalNotNullFields", () => ({
-  checkOptionalNotNullFields: vi.fn(),
+  checkOptionalNotNullFields: vi.fn()
 }));
 
 vi.mock("../user/queries", () => ({
-  selectUserOrThrow: vi.fn(),
+  selectUserOrThrow: vi.fn()
 }));
 
 import { prisma } from "../../prismaClient";
@@ -43,7 +47,7 @@ import {
   parseUpdateDeliverableInput,
   updateDeliverableDemonstrationTypes,
   validateUpdateDeliverableInput,
-  validateUserPersonTypeAllowed,
+  validateUserPersonTypeAllowed
 } from ".";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { selectUserOrThrow } from "../user/queries";
@@ -56,29 +60,29 @@ describe("updateDeliverable", () => {
   const testCmsOwnerPersonTypeId: PersonType = "demos-admin";
   const testContext: DeepPartial<GraphQLContext> = {
     user: {
-      id: "57f92f14-7c5e-4c78-a774-5a54d7e9c2e7",
-    },
+      id: "57f92f14-7c5e-4c78-a774-5a54d7e9c2e7"
+    }
   };
 
   // Basic test input and parsed result with only a name
   // Inputs will be changed when needed for tests
   const basicTestInput: UpdateDeliverableInput = {
-    name: testName,
+    name: testName
   };
   const mockBasicParseInputResult: ParsedUpdateDeliverableInput = {
-    name: testName,
+    name: testName
   };
 
   // Basic mocked user for selectUserOrThrow for when this is used
   const mockUser: Partial<PrismaUser> = {
     id: testCmsOwnerUserId,
-    personTypeId: testCmsOwnerPersonTypeId,
+    personTypeId: testCmsOwnerPersonTypeId
   };
 
   // Mock transaction
   const mockTransaction: any = "Test!";
   const mockPrismaClient = {
-    $transaction: vi.fn(),
+    $transaction: vi.fn()
   };
 
   beforeEach(() => {
@@ -147,11 +151,11 @@ describe("updateDeliverable", () => {
   it("should get the user record if a user ID is provided", async () => {
     const testInput: UpdateDeliverableInput = {
       ...basicTestInput,
-      cmsOwnerUserId: testCmsOwnerUserId,
+      cmsOwnerUserId: testCmsOwnerUserId
     };
     const mockParseInputResult: ParsedUpdateDeliverableInput = {
       ...mockBasicParseInputResult,
-      cmsOwnerUserId: testInput.cmsOwnerUserId,
+      cmsOwnerUserId: testInput.cmsOwnerUserId
     };
     vi.mocked(parseUpdateDeliverableInput).mockReturnValue(mockParseInputResult);
 
@@ -176,9 +180,9 @@ describe("updateDeliverable", () => {
         {
           cmsOwner: {
             cmsOwnerUserId: testCmsOwnerUserId,
-            cmsOwnerPersonTypeId: testCmsOwnerPersonTypeId,
-          },
-        },
+            cmsOwnerPersonTypeId: testCmsOwnerPersonTypeId
+          }
+        }
       ],
       [
         "name + cmsOwnerUserId",
@@ -187,10 +191,10 @@ describe("updateDeliverable", () => {
           name: testName,
           cmsOwner: {
             cmsOwnerUserId: testCmsOwnerUserId,
-            cmsOwnerPersonTypeId: testCmsOwnerPersonTypeId,
-          },
-        },
-      ],
+            cmsOwnerPersonTypeId: testCmsOwnerPersonTypeId
+          }
+        }
+      ]
     ];
   it.each(editDeliverableInputTests)(
     "includes only fields present in parsedInput (%s)",
@@ -215,10 +219,10 @@ describe("updateDeliverable", () => {
       dueDate: {
         newDueDate: {
           isEasternTZDate: true,
-          easternTZDate: new TZDate(2025, 0, 13, 10, 44, 8, 2, "America/New_York"),
+          easternTZDate: new TZDate(2025, 0, 13, 10, 44, 8, 2, "America/New_York")
         },
-        dateChangeNote: "A note is required",
-      },
+        dateChangeNote: "A note is required"
+      }
     };
     vi.mocked(parseUpdateDeliverableInput).mockReturnValue(mockParseInputResult);
 
@@ -243,5 +247,22 @@ describe("updateDeliverable", () => {
       testContext,
       mockTransaction
     );
+  });
+  it("does not notify when no due date action was created", async () => {
+    await updateDeliverable(testDeliverableId, {}, testContext as GraphQLContext);
+    expect(notifyDeliverableDueDateUpdated).not.toHaveBeenCalled();
+  });
+  it("notifies with the saved due date action after the transaction", async () => {
+    const dueDateChange = {
+      sourceActionId: "action-1",
+      previousDueDate: new Date("2026-09-01")
+    };
+    vi.mocked(manuallyUpdateDeliverableDueDate).mockResolvedValue(dueDateChange);
+    await updateDeliverable(testDeliverableId, basicTestInput, testContext as GraphQLContext);
+    expect(notifyDeliverableDueDateUpdated).toHaveBeenCalledExactlyOnceWith({
+      deliverableId: testDeliverableId,
+      ...dueDateChange,
+      triggeredByUserId: testContext.user!.id
+    });
   });
 });

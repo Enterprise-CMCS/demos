@@ -5,11 +5,13 @@ import {
   selectDeliverableOrThrow,
   parseRequestDeliverableExtensionInput,
   validateRequestDeliverableExtensionInput,
-  validateUserPersonTypeAllowed,
+  validateUserPersonTypeAllowed
 } from ".";
 import { prisma } from "../../prismaClient";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 import { insertDeliverableExtension } from "../deliverableExtension/queries";
+
+import { notifyDeliverableExtensionRequested } from "../email/notifyDeliverableStatusChanged";
 
 export async function requestDeliverableExtension(
   deliverableId: string,
@@ -18,11 +20,11 @@ export async function requestDeliverableExtension(
 ): Promise<PrismaDeliverable> {
   validateUserPersonTypeAllowed(context, "requestDeliverableExtension", [
     "demos-admin",
-    "demos-state-user",
+    "demos-state-user"
   ]);
   const parsedInput = parseRequestDeliverableExtensionInput(input);
 
-  return await prisma().$transaction(async (tx) => {
+  const { deliverable, sourceActionId } = await prisma().$transaction(async (tx) => {
     const deliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
     await validateRequestDeliverableExtensionInput(deliverable, parsedInput, tx);
 
@@ -31,13 +33,13 @@ export async function requestDeliverableExtension(
       {
         deliverableId: deliverableId,
         reasonCode: parsedInput.reason,
-        requestedDate: parsedInput.requestedDueDate.easternTZDate,
+        requestedDate: parsedInput.requestedDueDate.easternTZDate
       },
       tx
     );
 
     // Casts below enforced by database
-    await insertDeliverableAction(
+    const action = await insertDeliverableAction(
       {
         deliverableId: deliverableId,
         actionType: "Requested Extension",
@@ -46,10 +48,17 @@ export async function requestDeliverableExtension(
         note: input.details,
         oldDueDate: deliverable.dueDate,
         newDueDate: deliverable.dueDate,
-        userId: context.user.id,
+        userId: context.user.id
       },
       tx
     );
-    return deliverable;
+    return { deliverable, sourceActionId: action.id };
   });
+  await notifyDeliverableExtensionRequested({
+    deliverableId,
+    sourceActionId,
+    requestedDueDate: parsedInput.requestedDueDate.easternTZDate,
+    triggeredByUserId: context.user.id
+  });
+  return deliverable;
 }

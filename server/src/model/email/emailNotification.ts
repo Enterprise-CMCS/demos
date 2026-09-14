@@ -10,14 +10,14 @@ export type EmailNotificationRecipient = {
 
 export async function enqueueAndTrackRealtimeEmail(
   message: RealtimeEmailMessage,
-  source: { deliverableActionId: string },
+  source: { deliverableActionId: string } | { publicCommentId: string },
   recipients: EmailNotificationRecipient[]
 ): Promise<string | null> {
   if (process.env.DISABLE_EMAIL_NOTIFICATIONS === "true") {
     log.info(
       {
         emailType: message.emailType,
-        entityId: message.entityId,
+        entityId: message.entityId
       },
       "Email notification skipped because notifications are disabled"
     );
@@ -28,17 +28,17 @@ export async function enqueueAndTrackRealtimeEmail(
     data: {
       emailTypeId: message.emailType,
       entityType: message.entityType,
-      deliverableActionId: source.deliverableActionId,
+      ...source,
       statusId: "Pending",
       payload: message.payload as Prisma.InputJsonValue,
       recipients: {
-        create: recipients,
-      },
-    },
+        create: recipients
+      }
+    }
   });
 
   return enqueueEmail({
     ...message,
-    emailNotificationId: notification.id,
+    emailNotificationId: notification.id
   });
 }
