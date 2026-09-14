@@ -123,7 +123,10 @@ export class DataConnectExportProcessor extends Construct {
     this.setupCloudWatchAlarms(props, alarmResources);
 
     dbSecret.grantRead(exportLambda.lambda);
-    props.exportBucket.grantWrite(exportLambda.lambda);
+    // grantWrite would also hand over s3:DeleteObject*, which this lambda never calls. Published
+    // snapshots are what the DataConnect consumers read, so the exporter should not be able to
+    // remove them.
+    props.exportBucket.grantPut(exportLambda.lambda);
   }
 
   private setupCloudWatchAlarms(

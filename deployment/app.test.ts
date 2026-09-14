@@ -196,4 +196,28 @@ describe("app", () => {
 
     expect(backupStackExists).toBe(false);
   });
+
+  test("should synthesize with no unsuppressed cdk-nag findings", async () => {
+    process.env.EXPECTED_DEMOS_ACCOUNT = "123456";
+    process.env.CDK_DEFAULT_ACCOUNT = "123456";
+    process.env.CDK_DEFAULT_REGION = "us-east-1";
+
+    const app = await main({
+      stage: "dev",
+      db: "include",
+      [BUNDLING_STACKS]: [],
+    });
+    app!.synth();
+
+    // cdk-nag records a rule violation as an error annotation. Synthesizing here does not throw on
+    // one, but the CDK CLI treats it as a failure, so without this assertion a missing suppression
+    // only surfaces as a broken cdk synth.
+    const findings = app!.node.findAll().flatMap((construct) =>
+      construct.node.metadata
+        .filter((entry) => entry.type === "aws:cdk:error")
+        .map((entry) => `${construct.node.path}: ${entry.data}`),
+    );
+
+    expect(findings).toEqual([]);
+  });
 });

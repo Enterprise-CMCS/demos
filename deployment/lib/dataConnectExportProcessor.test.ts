@@ -103,7 +103,7 @@ describe("DataConnectExportProcessor construct", () => {
     });
   });
 
-  it("grants write to the export bucket but not read", () => {
+  it("grants put on the export bucket, but not read and not delete", () => {
     const template = synth();
     const policies = Object.values(template.findResources("AWS::IAM::Policy"));
 
@@ -116,6 +116,7 @@ describe("DataConnectExportProcessor construct", () => {
 
     expect(bucketActions).toContain("s3:PutObject");
     expect(bucketActions).not.toContain("s3:GetObject");
+    expect(bucketActions).not.toContain("s3:DeleteObject*");
   });
 
   it("grants read on the export database secret", () => {
