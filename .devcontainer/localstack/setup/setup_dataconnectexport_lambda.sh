@@ -33,9 +33,7 @@ cd "$LAMBDA_DIR"
 
 npm ci --silent
 
-# Same source of truth as the CDK bundling hook in
-# deployment/lib/dataConnectExportProcessor.ts: the resolved version from the lockfile, never
-# the range in package.json.
+# This staging directory has no lockfile, so pin the Lambda's resolved version.
 DUCKDB_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/@duckdb/node-api'].version")
 
 # The 7 day floor holds everywhere, but npm reads project config from the install target, so the

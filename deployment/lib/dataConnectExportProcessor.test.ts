@@ -1,16 +1,8 @@
-import { App, Stack, aws_s3 } from "aws-cdk-lib";
+import { App, Stack, aws_lambda, aws_s3 } from "aws-cdk-lib";
 import { Match, Template } from "aws-cdk-lib/assertions";
 import { BUNDLING_STACKS } from "aws-cdk-lib/cx-api";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import path from "node:path";
 
-import {
-  DataConnectExportProcessor,
-  duckdbInstallCommand,
-  duckdbVersionFromLockFile,
-  minReleaseAgeFromNpmrc,
-} from "./dataConnectExportProcessor";
+import { DataConnectExportProcessor, bundlingEnvironmentFor } from "./dataConnectExportProcessor";
 import { DeploymentConfigProperties } from "../config";
 
 const mockProps: DeploymentConfigProperties = {
@@ -61,6 +53,13 @@ describe("DataConnectExportProcessor construct", () => {
           EXPORT_BUCKET: { Ref: Match.stringLikeRegexp("MockExportBucket") },
         }),
       },
+    });
+  });
+
+  it("registers the architecture the DuckDB binding is installed for", () => {
+    // A mismatched function and binding architecture would fail at cold start.
+    synth().hasResourceProperties("AWS::Lambda::Function", {
+      Architectures: ["x86_64"],
     });
   });
 
@@ -172,113 +171,44 @@ describe("DataConnectExportProcessor construct", () => {
   });
 });
 
-describe("duckdbVersionFromLockFile", () => {
-  const lambdaLockFile = path.resolve(
-    process.cwd(),
-    "..",
-    "lambdas",
-    "dataConnectExport",
-    "package-lock.json"
-  );
+describe("bundlingEnvironmentFor", () => {
+  it("describes the Lambda runtime rather than the machine doing the build", () => {
+    // Override the Alpine build agent's musl platform for Amazon Linux.
+    expect(bundlingEnvironmentFor(aws_lambda.Architecture.X86_64)).toMatchObject({
+      npm_config_os: "linux",
+      npm_config_libc: "glibc",
+    });
+  });
 
-  it("resolves the version the lambda itself will install", () => {
-    // Read independently here rather than asserting a literal, because a literal in this test
-    // would be the very second source of truth the resolver exists to remove.
-    const lockFile = JSON.parse(readFileSync(lambdaLockFile, "utf8")) as {
-      packages: Record<string, { version: string }>;
-    };
+  it("derives the npm cpu value from the architecture, for both of the ones Lambda offers", () => {
+    // CDK and npm use different names for x86_64.
+    expect(bundlingEnvironmentFor(aws_lambda.Architecture.X86_64).npm_config_cpu).toBe("x64");
+    expect(bundlingEnvironmentFor(aws_lambda.Architecture.ARM_64).npm_config_cpu).toBe("arm64");
+  });
 
-    expect(duckdbVersionFromLockFile(lambdaLockFile)).toBe(
-      lockFile.packages["node_modules/@duckdb/node-api"].version
+  it("refuses an architecture it has no npm spelling for", () => {
+    // Falling back would install the build agent's binding.
+    expect(() => bundlingEnvironmentFor(aws_lambda.Architecture.custom("s390x"))).toThrow(
+      "No npm --cpu value is known for the s390x architecture"
     );
   });
 
-  it("returns an exact version, never a range", () => {
-    // npm install @duckdb/node-api@^1.5.5 would resolve on the build agent rather than here,
-    // which is exactly the non-determinism the pin exists to prevent.
-    expect(duckdbVersionFromLockFile(lambdaLockFile)).toMatch(/^\d+\.\d+\.\d+/);
-  });
-
-  it("throws rather than letting npm pick a version when the lockfile has no entry", () => {
-    const dir = mkdtempSync(path.join(tmpdir(), "duckdb-lock-"));
-    const emptyLock = path.join(dir, "package-lock.json");
-    writeFileSync(emptyLock, JSON.stringify({ lockfileVersion: 3, packages: {} }));
-
-    // Assert the path rather than wildcarding over it. Naming the offending lockfile is what
-    // makes this error actionable, and a wildcard there also matched when the path was absent.
-    expect(() => duckdbVersionFromLockFile(emptyLock)).toThrow(
-      `@duckdb/node-api is not resolved in ${emptyLock}`
-    );
-
-    rmSync(dir, { recursive: true, force: true });
-  });
-});
-
-describe("duckdbInstallCommand", () => {
-  it("installs into the asset directory rather than the lambda's own node_modules", () => {
-    // Without --prefix the install would land in whichever directory CDK runs the hook from,
-    // which is the lambda folder, so the binding would miss the asset and pollute the checkout.
-    expect(duckdbInstallCommand("/staging/asset", "1.2.3-r.4", 7)).toContain("--prefix /staging/asset");
-  });
-
-  it("forces the glibc linux binding instead of the build agent's own platform", () => {
-    // The build agent is node:24-alpine, so an unpinned install resolves the musl binding and
-    // the lambda fails at cold start on Amazon Linux.
-    expect(duckdbInstallCommand("/staging/asset", "1.2.3-r.4", 7)).toContain(
-      "--os=linux --cpu=x64 --libc=glibc"
+  it("suppresses install scripts", () => {
+    expect(bundlingEnvironmentFor(aws_lambda.Architecture.X86_64).npm_config_ignore_scripts).toBe(
+      "true"
     );
   });
 
-  it("pins the exact version it is given, leaving npm no choice", () => {
-    expect(duckdbInstallCommand("/staging/asset", "1.2.3-r.4", 7)).toContain(
-      "@duckdb/node-api@1.2.3-r.4"
-    );
+  it("names every key so npm actually reads it", () => {
+    // npm ignores configuration environment variables without this prefix.
+    for (const key of Object.keys(bundlingEnvironmentFor(aws_lambda.Architecture.X86_64))) {
+      expect(key).toMatch(/^npm_config_[a-z_]+$/);
+    }
   });
 
-  it("skips audit and funding metadata during asset installation", () => {
-    expect(duckdbInstallCommand("/staging/asset", "1.2.3-r.4", 7)).toContain(
-      "--no-audit --no-fund"
-    );
-  });
-
-  it("carries the supply-chain floor it is given, rather than waiving it", () => {
-    // npm inherits no floor for an install aimed at a staging directory, so the only thing
-    // keeping the repo-wide 7 day rule in force here is this flag.
-    expect(duckdbInstallCommand("/staging/asset", "1.2.3-r.4", 7)).toContain(
-      "--min-release-age=7"
-    );
-  });
-});
-
-describe("minReleaseAgeFromNpmrc", () => {
-  const lambdaNpmrc = path.resolve(process.cwd(), "..", "lambdas", "dataConnectExport", ".npmrc");
-
-  it("resolves the floor the lambda itself declares", () => {
-    // Parsed differently from the implementation on purpose. Reusing its regex here would mean a
-    // bug in that regex agreed with itself, and a literal would be the second source of truth
-    // this function exists to remove.
-    const declared = readFileSync(lambdaNpmrc, "utf8")
-      .split("\n")
-      .filter((line) => line.startsWith("min-release-age"))
-      .map((line) => Number(line.split("=")[1].split("#")[0].trim()));
-
-    expect(minReleaseAgeFromNpmrc(lambdaNpmrc)).toBe(declared[0]);
-  });
-
-  it("reads past the trailing comment rather than choking on it", () => {
-    // The declaration is `min-release-age=7 # days`, so a naive split on = yields "7 # days",
-    // and Number() of that is NaN, which npm would silently accept as no floor at all.
-    expect(minReleaseAgeFromNpmrc(lambdaNpmrc)).not.toBeNaN();
-    expect(minReleaseAgeFromNpmrc(lambdaNpmrc)).toBeGreaterThan(0);
-  });
-
-  it("throws rather than installing with no floor when the declaration is gone", () => {
-    const dir = mkdtempSync(path.join(tmpdir(), "npmrc-floor-"));
-    const npmrc = path.join(dir, ".npmrc");
-    writeFileSync(npmrc, "registry=https://registry.npmjs.org/\n");
-
-    expect(() => minReleaseAgeFromNpmrc(npmrc)).toThrow(`min-release-age is not set in ${npmrc}`);
-
-    rmSync(dir, { recursive: true, force: true });
+  it("passes only strings, because that is all an environment can carry", () => {
+    for (const value of Object.values(bundlingEnvironmentFor(aws_lambda.Architecture.X86_64))) {
+      expect(typeof value).toBe("string");
+    }
   });
 });

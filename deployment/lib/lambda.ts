@@ -32,6 +32,8 @@ interface LambdaProps extends CommonProps {
   commandHooks?: ICommandHooks;
   format?: OutputFormat;
   esbuildArgs?: Record<string, string | boolean>;
+  architecture?: aws_lambda.Architecture;
+  bundlingEnvironment?: { [key: string]: string };
 }
 
 type PackageExport = string | {
@@ -130,6 +132,7 @@ export class Lambda extends Construct {
       reservedConcurrentExecutions: props.reservedConcurrentExecutions,
       role,
       securityGroups,
+      architecture: props.architecture,
       bundling: {
         minify: true,
         sourceMap: true,
@@ -138,6 +141,7 @@ export class Lambda extends Construct {
         logLevel: LogLevel.ERROR,
         commandHooks: props.commandHooks,
         format: props.format,
+        environment: props.bundlingEnvironment,
         esbuildArgs: {
           ...sharedLibraryExportAliases(),
           ...props.esbuildArgs,

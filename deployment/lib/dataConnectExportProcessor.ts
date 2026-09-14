@@ -4,11 +4,11 @@ import {
   aws_ec2 as ec2,
   aws_events,
   aws_events_targets,
+  aws_lambda,
   aws_s3 as s3,
   aws_secretsmanager,
 } from "aws-cdk-lib";
 import { OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
-import { readFileSync } from "node:fs";
 import path from "node:path";
 
 import * as alarms from "./alarms";
@@ -17,66 +17,39 @@ import { DeploymentConfigProperties } from "../config";
 
 const EXPORT_TIMEOUT = Duration.minutes(15);
 
-// The lambda's own lockfile is the only place this version should live. The bundling hook
-// installs @duckdb/node-api separately from the lambda's dependency install, so a version
-// hardcoded here would drift from the one the lambda resolves and nothing would fail to build:
-// the asset would simply carry a binding that does not match its own wrapper. package.json is
-// not usable for this, because it holds a range rather than a resolved version.
-export function duckdbVersionFromLockFile(lockFilePath: string): string {
-  const lockFile = JSON.parse(readFileSync(lockFilePath, "utf8")) as {
-    packages?: Record<string, { version?: string }>;
+// Use one architecture for both Lambda registration and npm binding selection.
+const LAMBDA_ARCHITECTURE = aws_lambda.Architecture.X86_64;
+
+const NPM_CPU_BY_ARCHITECTURE: Record<string, string> = {
+  x86_64: "x64",
+  arm64: "arm64",
+};
+
+/**
+ * Targets CDK's dependency install at the Lambda platform.
+ *
+ * npm otherwise selects DuckDB's native binding for the Alpine build agent.
+ * Deriving the CPU from the Lambda architecture keeps the asset and runtime in
+ * sync. This dependency tree does not need install scripts.
+ */
+export function bundlingEnvironmentFor(architecture: aws_lambda.Architecture): {
+  [key: string]: string;
+} {
+  const cpu = NPM_CPU_BY_ARCHITECTURE[architecture.name];
+
+  if (!cpu) {
+    throw new Error(
+      `No npm --cpu value is known for the ${architecture.name} architecture. Without one the ` +
+        "asset would carry whichever DuckDB binding the build agent resolves for itself."
+    );
+  }
+
+  return {
+    npm_config_os: "linux",
+    npm_config_cpu: cpu,
+    npm_config_libc: "glibc",
+    npm_config_ignore_scripts: "true",
   };
-  const version = lockFile.packages?.["node_modules/@duckdb/node-api"]?.version;
-
-  if (!version) {
-    throw new Error(
-      `@duckdb/node-api is not resolved in ${lockFilePath}. The bundling hook needs an exact ` +
-        "version, so it must not fall back to a range or to whatever npm considers latest."
-    );
-  }
-
-  return version;
-}
-
-// The 7 day floor in every .npmrc in this repo stops a freshly published version being pulled in,
-// and it is meant to hold everywhere. It does not reach this install on its own: npm reads project
-// config from the install target, and neither --prefix nor a cd into that target inherits the
-// lambda's .npmrc. Measured with `npm config get min-release-age`, both resolve null, and CDK does
-// not copy .npmrc into the staging directory. So it is passed explicitly, and read from the
-// lambda's own .npmrc rather than restated here, so the two cannot drift.
-//
-// Enforcing it cannot break a working build. The version comes from the lambda's lockfile, which
-// was written in a directory where the floor does apply, so anything locked has already cleared
-// seven days and only ages further. It can only fail if a version reached the lockfile by
-// bypassing the floor, which is precisely when the build should stop.
-export function minReleaseAgeFromNpmrc(npmrcPath: string): number {
-  const match = /^\s*min-release-age\s*=\s*(\d+)/m.exec(readFileSync(npmrcPath, "utf8"));
-
-  if (!match) {
-    throw new Error(
-      `min-release-age is not set in ${npmrcPath}. The bundling hook passes it explicitly, ` +
-        "because npm resolves project config from the install target, where there is no .npmrc."
-    );
-  }
-
-  return Number(match[1]);
-}
-
-// Exported so the flags can be asserted directly. None of them reaches the synthesized template,
-// because construct tests disable bundling, so nothing about this command is testable through the
-// construct.
-export function duckdbInstallCommand(
-  outputDir: string,
-  duckdbVersion: string,
-  minReleaseAge: number
-): string {
-  return [
-    "npm install",
-    `--prefix ${outputDir}`,
-    "--os=linux --cpu=x64 --libc=glibc",
-    `--no-save --ignore-scripts --no-audit --no-fund --min-release-age=${minReleaseAge}`,
-    `@duckdb/node-api@${duckdbVersion}`,
-  ].join(" ");
 }
 
 interface DataConnectExportProcessorProps extends DeploymentConfigProperties {
@@ -101,8 +74,6 @@ export class DataConnectExportProcessor extends Construct {
 
     const exportDir = path.resolve(process.cwd(), "..", "lambdas", "dataConnectExport");
     const exportLockFile = path.join(exportDir, "package-lock.json");
-    const duckdbVersion = duckdbVersionFromLockFile(exportLockFile);
-    const minReleaseAge = minReleaseAgeFromNpmrc(path.join(exportDir, ".npmrc"));
 
     const exportLambda = new demosLambda.Lambda(this, "dataConnectExport", {
       ...props,
@@ -112,32 +83,14 @@ export class DataConnectExportProcessor extends Construct {
       handler: "index.handler",
       timeout: EXPORT_TIMEOUT,
       asCode: false,
-      // @duckdb/node-api is external and installed by the afterBundling hook rather than
-      // through nodeModules. CDK bundles locally, so npm runs on the musl build agent and
-      // would resolve the musl binding, which cannot load on Lambda's glibc runtime.
-      externalModules: [
-        "@aws-sdk",
-        "@aws-sdk/client-secrets-manager",
-        "@aws-sdk/client-s3",
-        "@duckdb/node-api",
-      ],
+      externalModules: ["@aws-sdk", "@aws-sdk/client-secrets-manager", "@aws-sdk/client-s3"],
       // pg, pg-copy-streams and pino are CommonJS: esbuild's ESM output turns their internal
-      // require() into a shim that throws at cold start.
-      nodeModules: ["pg", "pg-copy-streams", "pino"],
-      // Same shape as the cert copy for emailer in stacks/api.ts.
-      commandHooks: {
-        // Runs after CDK has installed nodeModules, so this is the last word on which
-        // binding ends up in the asset.
-        afterBundling(_inputDir: string, outputDir: string): string[] {
-          return [duckdbInstallCommand(outputDir, duckdbVersion, minReleaseAge)];
-        },
-        beforeBundling() {
-          return [];
-        },
-        beforeInstall() {
-          return [];
-        },
-      },
+      // require() into a shim that throws at cold start. DuckDB stays external because esbuild
+      // cannot bundle its native .node file. CDK installs it from the Lambda lockfile using the
+      // platform settings below.
+      nodeModules: ["pg", "pg-copy-streams", "pino", "@duckdb/node-api"],
+      architecture: LAMBDA_ARCHITECTURE,
+      bundlingEnvironment: bundlingEnvironmentFor(LAMBDA_ARCHITECTURE),
       format: OutputFormat.ESM,
       memorySize: 1769,
       // Staging paths are fixed per relation, so two concurrent runs would overwrite each
