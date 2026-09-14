@@ -17,7 +17,7 @@ export async function enqueueAndTrackRealtimeEmail(
     log.info(
       {
         emailType: message.emailType,
-        entityId: message.entityId
+        entityId: message.entityId,
       },
       "Email notification skipped because notifications are disabled"
     );
@@ -32,13 +32,13 @@ export async function enqueueAndTrackRealtimeEmail(
       statusId: "Pending",
       payload: message.payload as Prisma.InputJsonValue,
       recipients: {
-        create: recipients
-      }
-    }
+        create: recipients,
+      },
+    },
   });
 
   return enqueueEmail({
     ...message,
-    emailNotificationId: notification.id
+    emailNotificationId: notification.id,
   });
 }

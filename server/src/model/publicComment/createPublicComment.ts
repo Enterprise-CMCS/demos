@@ -18,7 +18,7 @@ export async function createPublicComment(
       {
         deliverableId: deliverableId,
         authorUserId: context.user.id,
-        content: comment
+        content: comment,
       },
       tx
     );
@@ -26,7 +26,7 @@ export async function createPublicComment(
   await notifyPublicCommentAdded({
     deliverableId,
     publicCommentId: publicComment.id,
-    triggeredByUserId: context.user.id
+    triggeredByUserId: context.user.id,
   });
   return publicComment;
 }

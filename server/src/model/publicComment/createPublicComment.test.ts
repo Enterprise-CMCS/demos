@@ -1,5 +1,5 @@
 vi.mock("../email/notifyDeliverableStatusChanged", () => ({
-  notifyPublicCommentAdded: vi.fn()
+  notifyPublicCommentAdded: vi.fn(),
 }));
 import { notifyPublicCommentAdded } from "../email/notifyDeliverableStatusChanged";
 // Vitest and other helpers
@@ -14,15 +14,15 @@ import { createPublicComment } from "./createPublicComment";
 
 // Mock imports
 vi.mock("../../prismaClient", () => ({
-  prisma: vi.fn()
+  prisma: vi.fn(),
 }));
 
 vi.mock(".", () => ({
-  validateUserPermittedToMakePublicComment: vi.fn()
+  validateUserPermittedToMakePublicComment: vi.fn(),
 }));
 
 vi.mock("./queries", () => ({
-  insertPublicComment: vi.fn()
+  insertPublicComment: vi.fn(),
 }));
 
 import { prisma } from "../../prismaClient";
@@ -36,20 +36,20 @@ describe("createPublicComment", () => {
   const testContext: DeepPartial<GraphQLContext> = {
     user: {
       id: "03728c69-1676-4cb5-8b31-c98b24cbda76",
-      personTypeId: "demos-cms-user"
-    }
+      personTypeId: "demos-cms-user",
+    },
   };
 
   // Mock transaction
   const mockTransaction: any = "Test!";
   const mockPrismaClient = {
-    $transaction: vi.fn()
+    $transaction: vi.fn(),
   };
 
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(insertPublicComment).mockResolvedValue({
-      id: "comment-1"
+      id: "comment-1",
     } as any);
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
@@ -75,7 +75,7 @@ describe("createPublicComment", () => {
       {
         deliverableId: testDeliverableId,
         authorUserId: testContext.user!.id,
-        content: testComment
+        content: testComment,
       },
       mockTransaction
     );
@@ -85,7 +85,7 @@ describe("createPublicComment", () => {
     expect(notifyPublicCommentAdded).toHaveBeenCalledExactlyOnceWith({
       deliverableId: testDeliverableId,
       publicCommentId: "comment-1",
-      triggeredByUserId: testContext.user!.id
+      triggeredByUserId: testContext.user!.id,
     });
   });
 });

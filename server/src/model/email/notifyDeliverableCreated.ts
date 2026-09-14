@@ -20,7 +20,7 @@ type Recipient = {
 const emailSchema = z.email();
 
 export async function notifyDeliverableCreated(
-  input: NotifyDeliverableCreatedInput,
+  input: NotifyDeliverableCreatedInput
 ): Promise<void> {
   try {
     const deliverable = await prisma().deliverable.findUniqueOrThrow({
@@ -41,7 +41,7 @@ export async function notifyDeliverableCreated(
     });
     const recipients = deduplicateRecipients([
       ...deliverable.demonstration.demonstrationRoleAssignments.map(
-        (assignment) => assignment.person,
+        (assignment) => assignment.person
       ),
     ]);
 
@@ -74,7 +74,7 @@ export async function notifyDeliverableCreated(
         },
       },
       { deliverableActionId: input.sourceActionId },
-      recipients.map(({ personId }) => ({ personId })),
+      recipients.map(({ personId }) => ({ personId }))
     );
 
     if (messageId === null) {
@@ -87,7 +87,7 @@ export async function notifyDeliverableCreated(
         deliverableId: deliverable.id,
         emailType: "Deliverable Created",
       },
-      "Deliverable email queued",
+      "Deliverable email queued"
     );
   } catch (error) {
     log.error(
@@ -96,7 +96,7 @@ export async function notifyDeliverableCreated(
         deliverableId: input.deliverableId,
         emailType: "Deliverable Created",
       },
-      "Failed to queue deliverable email",
+      "Failed to queue deliverable email"
     );
   }
 }
@@ -107,7 +107,7 @@ function deduplicateRecipients(
     firstName: string;
     lastName: string;
     email: string;
-  }>,
+  }>
 ): Recipient[] {
   const recipients = new Map<string, Recipient>();
 
@@ -115,7 +115,7 @@ function deduplicateRecipients(
     const address = person.email.trim().toLowerCase();
     if (!isAnEmail(address)) {
       throw new Error(
-        `Cannot queue Deliverable Created email: person ${person.id} does not have a valid email address.`,
+        `Cannot queue Deliverable Created email: person ${person.id} does not have a valid email address.`
       );
     }
 

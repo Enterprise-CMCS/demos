@@ -70,19 +70,13 @@ const templateCases = [
     emailType: "Deliverable Accepted",
     input: deliverableInput,
     subject: "CMS DEMOS Deliverable: Accepted",
-    expectedText: [
-      "CMS has Accepted a Close Out Report deliverable",
-      "Action: Accepted",
-    ],
+    expectedText: ["CMS has Accepted a Close Out Report deliverable", "Action: Accepted"],
   },
   {
     emailType: "Deliverable Approved",
     input: deliverableInput,
     subject: "CMS DEMOS Deliverable: Approved",
-    expectedText: [
-      "CMS has Approved a Close Out Report deliverable",
-      "Action: Approved",
-    ],
+    expectedText: ["CMS has Approved a Close Out Report deliverable", "Action: Approved"],
   },
   {
     emailType: "Deliverable Received and Filed",
@@ -173,10 +167,8 @@ describe("renderEmail", () => {
       renderEmail("Multiple Deliverables Created", {
         ...multipleDeliverablesInput,
         deliverables: [deliverableInput.deliverable],
-      }),
-    ).rejects.toThrow(
-      "Multiple Deliverables Created email requires at least two deliverables.",
-    );
+      })
+    ).rejects.toThrow("Multiple Deliverables Created email requires at least two deliverables.");
   });
 
   it("reports missing template-specific values", async () => {
@@ -187,9 +179,9 @@ describe("renderEmail", () => {
           ...deliverableInput.deliverable,
           previousDueDate: undefined,
         },
-      }),
+      })
     ).rejects.toThrow(
-      "Missing value for deliverable.previousDueDate while rendering Deliverable Due Date Updated.data",
+      "Missing value for deliverable.previousDueDate while rendering Deliverable Due Date Updated.data"
     );
 
     await expect(
@@ -199,9 +191,9 @@ describe("renderEmail", () => {
           ...deliverableInput.deliverable,
           requestedDueDate: undefined,
         },
-      }),
+      })
     ).rejects.toThrow(
-      "Missing value for deliverable.requestedDueDate while rendering Extension Requested.data",
+      "Missing value for deliverable.requestedDueDate while rendering Extension Requested.data"
     );
 
     await expect(
@@ -211,9 +203,9 @@ describe("renderEmail", () => {
           ...deliverableInput.deliverable,
           extensionDecision: undefined,
         },
-      }),
+      })
     ).rejects.toThrow(
-      "Missing value for deliverable.extensionDecision while rendering Extension Decision Made.data",
+      "Missing value for deliverable.extensionDecision while rendering Extension Decision Made.data"
     );
 
     await expect(
@@ -223,16 +215,16 @@ describe("renderEmail", () => {
           ...deliverableInput.deliverable,
           previousDueDate: undefined,
         },
-      }),
+      })
     ).rejects.toThrow(
-      "Missing value for deliverable.previousDueDate while rendering Resubmission Requested.data",
+      "Missing value for deliverable.previousDueDate while rendering Resubmission Requested.data"
     );
   });
 
   it("reports unknown templates", async () => {
-    await expect(
-      renderEmail("Unknown Email", deliverableInput),
-    ).rejects.toThrow("Unsupported email type: Unknown Email");
+    await expect(renderEmail("Unknown Email", deliverableInput)).rejects.toThrow(
+      "Unsupported email type: Unknown Email"
+    );
   });
 
   it("reports invalid recipient data", async () => {
@@ -240,10 +232,8 @@ describe("renderEmail", () => {
       renderEmail("Deliverable Created", {
         ...deliverableInput,
         recipients: undefined,
-      }),
-    ).rejects.toThrow(
-      "Missing value for recipients while rendering Deliverable Created.data",
-    );
+      })
+    ).rejects.toThrow("Missing value for recipients while rendering Deliverable Created.data");
 
     await expect(
       renderEmail("Deliverable Created", {
@@ -251,10 +241,8 @@ describe("renderEmail", () => {
         recipients: {
           to: [{ address: "cms.owner@example.com" }],
         },
-      }),
-    ).rejects.toThrow(
-      "Invalid to email recipient at index 0: name is required.",
-    );
+      })
+    ).rejects.toThrow("Invalid to email recipient at index 0: name is required.");
   });
 
   it("reports invalid deliverable payload shapes", async () => {
@@ -262,9 +250,9 @@ describe("renderEmail", () => {
       renderEmail("Deliverable Created", {
         ...deliverableInput,
         demonstration: "not-an-object",
-      }),
+      })
     ).rejects.toThrow(
-      "Invalid value for demonstration while rendering Deliverable Created.data: expected an object.",
+      "Invalid value for demonstration while rendering Deliverable Created.data: expected an object."
     );
 
     await expect(
@@ -274,9 +262,9 @@ describe("renderEmail", () => {
           ...deliverableInput.deliverable,
           name: 42,
         },
-      }),
+      })
     ).rejects.toThrow(
-      "Invalid value for deliverable.name while rendering Deliverable Created.data: expected a string.",
+      "Invalid value for deliverable.name while rendering Deliverable Created.data: expected a string."
     );
 
     await expect(
@@ -286,9 +274,9 @@ describe("renderEmail", () => {
           ...deliverableInput.deliverable,
           extensionDecision: "Maybe",
         },
-      }),
+      })
     ).rejects.toThrow(
-      "Invalid value for deliverable.extensionDecision while rendering Extension Decision Made.data: expected Approved or Denied.",
+      "Invalid value for deliverable.extensionDecision while rendering Extension Decision Made.data: expected Approved or Denied."
     );
   });
 
@@ -301,10 +289,8 @@ describe("renderEmail", () => {
             ...deliverableInput.deliverable,
             name: undefined,
           },
-        }),
-      ).rejects.toThrow(
-        `Missing value for deliverable.name while rendering ${emailType}.data`,
-      );
+        })
+      ).rejects.toThrow(`Missing value for deliverable.name while rendering ${emailType}.data`);
     }
   });
 
@@ -316,7 +302,7 @@ describe("renderEmail", () => {
           to: [],
           bcc: [],
         },
-      }),
+      })
     ).rejects.toThrow("Email template must include at least one recipient.");
   });
 });

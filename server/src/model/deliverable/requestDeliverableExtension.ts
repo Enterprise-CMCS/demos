@@ -5,7 +5,7 @@ import {
   selectDeliverableOrThrow,
   parseRequestDeliverableExtensionInput,
   validateRequestDeliverableExtensionInput,
-  validateUserPersonTypeAllowed
+  validateUserPersonTypeAllowed,
 } from ".";
 import { prisma } from "../../prismaClient";
 import { insertDeliverableAction } from "../deliverableAction/queries";
@@ -20,7 +20,7 @@ export async function requestDeliverableExtension(
 ): Promise<PrismaDeliverable> {
   validateUserPersonTypeAllowed(context, "requestDeliverableExtension", [
     "demos-admin",
-    "demos-state-user"
+    "demos-state-user",
   ]);
   const parsedInput = parseRequestDeliverableExtensionInput(input);
 
@@ -33,7 +33,7 @@ export async function requestDeliverableExtension(
       {
         deliverableId: deliverableId,
         reasonCode: parsedInput.reason,
-        requestedDate: parsedInput.requestedDueDate.easternTZDate
+        requestedDate: parsedInput.requestedDueDate.easternTZDate,
       },
       tx
     );
@@ -48,7 +48,7 @@ export async function requestDeliverableExtension(
         note: input.details,
         oldDueDate: deliverable.dueDate,
         newDueDate: deliverable.dueDate,
-        userId: context.user.id
+        userId: context.user.id,
       },
       tx
     );
@@ -58,7 +58,7 @@ export async function requestDeliverableExtension(
     deliverableId,
     sourceActionId,
     requestedDueDate: parsedInput.requestedDueDate.easternTZDate,
-    triggeredByUserId: context.user.id
+    triggeredByUserId: context.user.id,
   });
   return deliverable;
 }

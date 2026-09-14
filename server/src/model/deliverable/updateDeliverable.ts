@@ -9,7 +9,7 @@ import {
   parseUpdateDeliverableInput,
   updateDeliverableDemonstrationTypes,
   validateUpdateDeliverableInput,
-  validateUserPersonTypeAllowed
+  validateUserPersonTypeAllowed,
 } from ".";
 import { prisma } from "../../prismaClient";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
@@ -39,7 +39,7 @@ export async function updateDeliverable(
       const cmsOwner = await selectUserOrThrow({ id: parsedInput.cmsOwnerUserId }, tx);
       editInput.cmsOwner = {
         cmsOwnerUserId: cmsOwner.id,
-        cmsOwnerPersonTypeId: cmsOwner.personTypeId as PersonType
+        cmsOwnerPersonTypeId: cmsOwner.personTypeId as PersonType,
       };
     }
     if (Object.keys(editInput).length > 0) {
@@ -57,14 +57,14 @@ export async function updateDeliverable(
 
     return {
       deliverable: await selectDeliverableOrThrow({ id: deliverableId }, tx),
-      dueDateChange
+      dueDateChange,
     };
   });
   if (dueDateChange) {
     await notifyDeliverableDueDateUpdated({
       deliverableId,
       ...dueDateChange,
-      triggeredByUserId: context.user.id
+      triggeredByUserId: context.user.id,
     });
   }
   return deliverable;

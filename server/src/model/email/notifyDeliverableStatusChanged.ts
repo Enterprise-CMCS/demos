@@ -21,9 +21,7 @@ type Recipient = {
 
 const emailSchema = z.email();
 
-export async function notifyDeliverableSubmitted(
-  input: DeliverableEmailInput
-): Promise<void> {
+export async function notifyDeliverableSubmitted(input: DeliverableEmailInput): Promise<void> {
   return notifyDeliverableStatusChanged(input, "Deliverable Submitted", "cms");
 }
 
@@ -33,7 +31,7 @@ export async function notifyDeliverableCompleted(
   const emailTypeByStatus: Record<FinalDeliverableStatus, RealtimeEmailType> = {
     Accepted: "Deliverable Accepted",
     Approved: "Deliverable Approved",
-    "Received and Filed": "Deliverable Received and Filed"
+    "Received and Filed": "Deliverable Received and Filed",
   };
 
   return notifyDeliverableStatusChanged(input, emailTypeByStatus[input.finalStatus], "state");
@@ -43,7 +41,7 @@ export async function notifyDeliverableResubmissionRequested(
   input: DeliverableEmailInput & { previousDueDate: Date }
 ): Promise<void> {
   return notifyDeliverableStatusChanged(input, "Resubmission Requested", "state", {
-    previousDueDate: input.previousDueDate.toISOString()
+    previousDueDate: input.previousDueDate.toISOString(),
   });
 }
 
@@ -55,7 +53,7 @@ export async function notifyDeliverableExtensionDecisionMade(
 ): Promise<void> {
   return notifyDeliverableStatusChanged(input, "Extension Decision Made", "state", {
     extensionDecision: input.extensionDecision,
-    previousDueDate: input.previousDueDate.toISOString()
+    previousDueDate: input.previousDueDate.toISOString(),
   });
 }
 
@@ -63,7 +61,7 @@ export async function notifyDeliverableDueDateUpdated(
   input: DeliverableEmailInput & { previousDueDate: Date }
 ): Promise<void> {
   return notifyDeliverableStatusChanged(input, "Deliverable Due Date Updated", "state", {
-    previousDueDate: input.previousDueDate.toISOString()
+    previousDueDate: input.previousDueDate.toISOString(),
   });
 }
 
@@ -71,7 +69,7 @@ export async function notifyDeliverableExtensionRequested(
   input: DeliverableEmailInput & { requestedDueDate: Date }
 ): Promise<void> {
   return notifyDeliverableStatusChanged(input, "Extension Requested", "cms", {
-    requestedDueDate: input.requestedDueDate.toISOString()
+    requestedDueDate: input.requestedDueDate.toISOString(),
   });
 }
 
@@ -103,18 +101,24 @@ async function notifyDeliverableStatusChanged(
         demonstration: {
           include: {
             demonstrationRoleAssignments: {
-              ...(audience === "all" ? {} : {
-                where: {
-                  roleId: { in: Array.from(audience === "state"
-                    ? STATE_USER_DEMONSTRATION_ROLES
-                    : CMS_USER_DEMONSTRATION_ROLES) }
-                },
-              }),
-              include: { person: true }
-            }
-          }
-        }
-      }
+              ...(audience === "all"
+                ? {}
+                : {
+                    where: {
+                      roleId: {
+                        in: Array.from(
+                          audience === "state"
+                            ? STATE_USER_DEMONSTRATION_ROLES
+                            : CMS_USER_DEMONSTRATION_ROLES
+                        ),
+                      },
+                    },
+                  }),
+              include: { person: true },
+            },
+          },
+        },
+      },
     });
     if (
       emailType === "Deliverable Comment" &&
@@ -127,7 +131,7 @@ async function notifyDeliverableStatusChanged(
         ...(audience !== "state" ? [deliverable.cmsOwner.person] : []),
         ...deliverable.demonstration.demonstrationRoleAssignments.map(
           (assignment) => assignment.person
-        )
+        ),
       ],
       input.deliverableId,
       emailType
@@ -147,17 +151,17 @@ async function notifyDeliverableStatusChanged(
         entityId: deliverable.id,
         triggeredBy: {
           type: "realtime",
-          id: input.triggeredByUserId
+          id: input.triggeredByUserId,
         },
         payload: {
           recipients: {
             to: [],
-            bcc: recipients.map(({ name, address }) => ({ name, address }))
+            bcc: recipients.map(({ name, address }) => ({ name, address })),
           },
           demonstration: {
             id: deliverable.demonstration.id,
             name: deliverable.demonstration.name,
-            stateId: deliverable.demonstration.stateId
+            stateId: deliverable.demonstration.stateId,
           },
           deliverable: {
             id: deliverable.id,
@@ -165,9 +169,9 @@ async function notifyDeliverableStatusChanged(
             deliverableTypeId: deliverable.deliverableTypeId,
             dueDate: deliverable.dueDate.toISOString(),
             statusId: deliverable.statusId,
-            ...extraDeliverablePayload
-          }
-        }
+            ...extraDeliverablePayload,
+          },
+        },
       },
       "publicCommentId" in input
         ? { publicCommentId: input.publicCommentId }
@@ -183,7 +187,7 @@ async function notifyDeliverableStatusChanged(
       {
         messageId,
         deliverableId: deliverable.id,
-        emailType
+        emailType,
       },
       "Deliverable email queued"
     );
@@ -192,7 +196,7 @@ async function notifyDeliverableStatusChanged(
       {
         error,
         deliverableId: input.deliverableId,
-        emailType
+        emailType,
       },
       "Failed to queue deliverable email"
     );
@@ -224,7 +228,7 @@ function deduplicateRecipients(
       recipients.set(address, {
         personId: person.id,
         name: `${person.firstName} ${person.lastName}`.trim(),
-        address
+        address,
       });
     }
   }

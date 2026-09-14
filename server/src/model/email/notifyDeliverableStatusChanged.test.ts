@@ -1,18 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../../prismaClient", () => ({
-  prisma: vi.fn()
+  prisma: vi.fn(),
 }));
 
 vi.mock("./emailNotification", () => ({
-  enqueueAndTrackRealtimeEmail: vi.fn()
+  enqueueAndTrackRealtimeEmail: vi.fn(),
 }));
 
 vi.mock("../../log", () => ({
   log: {
     error: vi.fn(),
-    info: vi.fn()
-  }
+    info: vi.fn(),
+  },
 }));
 
 import { log } from "../../log";
@@ -25,7 +25,7 @@ import {
   notifyDeliverableCompleted,
   notifyDeliverableExtensionDecisionMade,
   notifyDeliverableResubmissionRequested,
-  notifyDeliverableSubmitted
+  notifyDeliverableSubmitted,
 } from "./notifyDeliverableStatusChanged";
 
 describe("deliverable status email notifications", () => {
@@ -33,7 +33,7 @@ describe("deliverable status email notifications", () => {
   const input = {
     deliverableId: "deliverable-1",
     sourceActionId: "action-1",
-    triggeredByUserId: "user-1"
+    triggeredByUserId: "user-1",
   };
   const deliverable = {
     id: input.deliverableId,
@@ -46,8 +46,8 @@ describe("deliverable status email notifications", () => {
         id: "cms-owner-1",
         firstName: "CMS",
         lastName: "Owner",
-        email: "owner@example.com"
-      }
+        email: "owner@example.com",
+      },
     },
     demonstration: {
       id: "demonstration-1",
@@ -59,25 +59,37 @@ describe("deliverable status email notifications", () => {
             id: "state-poc-1",
             firstName: "State",
             lastName: "Contact",
-            email: "state@example.com"
-          }
-        }
-      ]
-    }
+            email: "state@example.com",
+          },
+        },
+      ],
+    },
   };
 
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue({
-      deliverable: { findUniqueOrThrow }
+      deliverable: { findUniqueOrThrow },
     } as never);
     findUniqueOrThrow.mockImplementation(async (query) => ({
       ...deliverable,
       demonstration: {
         ...deliverable.demonstration,
-        demonstrationRoleAssignments: query.include.demonstration.include.demonstrationRoleAssignments.where?.roleId.in.includes("Project Officer")
-          ? [{ person: { id: "cms-contact-1", firstName: "CMS", lastName: "Contact", email: "cms@example.com" } }]
-          : deliverable.demonstration.demonstrationRoleAssignments,
+        demonstrationRoleAssignments:
+          query.include.demonstration.include.demonstrationRoleAssignments.where?.roleId.in.includes(
+            "Project Officer"
+          )
+            ? [
+                {
+                  person: {
+                    id: "cms-contact-1",
+                    firstName: "CMS",
+                    lastName: "Contact",
+                    email: "cms@example.com",
+                  },
+                },
+              ]
+            : deliverable.demonstration.demonstrationRoleAssignments,
       },
     }));
     vi.mocked(enqueueAndTrackRealtimeEmail).mockResolvedValue("message-1");
@@ -93,24 +105,27 @@ describe("deliverable status email notifications", () => {
         entityId: deliverable.id,
         triggeredBy: {
           type: "realtime",
-          id: input.triggeredByUserId
+          id: input.triggeredByUserId,
         },
         payload: expect.objectContaining({
           recipients: {
             to: [],
-            bcc: [{ name: "CMS Owner", address: "owner@example.com" }, { name: "CMS Contact", address: "cms@example.com" }]
+            bcc: [
+              { name: "CMS Owner", address: "owner@example.com" },
+              { name: "CMS Contact", address: "cms@example.com" },
+            ],
           },
           demonstration: {
             id: deliverable.demonstration.id,
             name: deliverable.demonstration.name,
-            stateId: deliverable.demonstration.stateId
+            stateId: deliverable.demonstration.stateId,
           },
           deliverable: expect.objectContaining({
             id: deliverable.id,
             dueDate: deliverable.dueDate.toISOString(),
-            statusId: deliverable.statusId
-          })
-        })
+            statusId: deliverable.statusId,
+          }),
+        }),
       }),
       { deliverableActionId: input.sourceActionId },
       [{ personId: deliverable.cmsOwner.person.id }, { personId: "cms-contact-1" }]
@@ -120,7 +135,7 @@ describe("deliverable status email notifications", () => {
   it.each([
     ["Accepted", "Deliverable Accepted"],
     ["Approved", "Deliverable Approved"],
-    ["Received and Filed", "Deliverable Received and Filed"]
+    ["Received and Filed", "Deliverable Received and Filed"],
   ] as const)("queues %s emails for State Points of Contact", async (finalStatus, emailType) => {
     await notifyDeliverableCompleted({ ...input, finalStatus });
 
@@ -130,9 +145,9 @@ describe("deliverable status email notifications", () => {
         payload: expect.objectContaining({
           recipients: {
             to: [],
-            bcc: [{ name: "State Contact", address: "state@example.com" }]
-          }
-        })
+            bcc: [{ name: "State Contact", address: "state@example.com" }],
+          },
+        }),
       }),
       { deliverableActionId: input.sourceActionId },
       [{ personId: "state-poc-1" }]
@@ -150,9 +165,9 @@ describe("deliverable status email notifications", () => {
         payload: expect.objectContaining({
           deliverable: expect.objectContaining({
             dueDate: deliverable.dueDate.toISOString(),
-            previousDueDate: previousDueDate.toISOString()
-          })
-        })
+            previousDueDate: previousDueDate.toISOString(),
+          }),
+        }),
       }),
       { deliverableActionId: input.sourceActionId },
       [{ personId: "state-poc-1" }]
@@ -167,7 +182,7 @@ describe("deliverable status email notifications", () => {
       await notifyDeliverableExtensionDecisionMade({
         ...input,
         extensionDecision,
-        previousDueDate
+        previousDueDate,
       });
 
       expect(enqueueAndTrackRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
@@ -176,14 +191,14 @@ describe("deliverable status email notifications", () => {
           payload: expect.objectContaining({
             recipients: {
               to: [],
-              bcc: [{ name: "State Contact", address: "state@example.com" }]
+              bcc: [{ name: "State Contact", address: "state@example.com" }],
             },
             deliverable: expect.objectContaining({
               dueDate: deliverable.dueDate.toISOString(),
               extensionDecision,
-              previousDueDate: previousDueDate.toISOString()
-            })
-          })
+              previousDueDate: previousDueDate.toISOString(),
+            }),
+          }),
         }),
         { deliverableActionId: input.sourceActionId },
         [{ personId: "state-poc-1" }]
@@ -196,8 +211,8 @@ describe("deliverable status email notifications", () => {
       ...deliverable,
       demonstration: {
         ...deliverable.demonstration,
-        demonstrationRoleAssignments: []
-      }
+        demonstrationRoleAssignments: [],
+      },
     });
 
     await notifyDeliverableCompleted({ ...input, finalStatus: "Approved" });
@@ -208,10 +223,10 @@ describe("deliverable status email notifications", () => {
         error: expect.objectContaining({
           message:
             "Cannot queue Deliverable Approved email for deliverable deliverable-1: " +
-            "no State Points of Contact were found on the demonstration."
+            "no State Points of Contact were found on the demonstration.",
         }),
         deliverableId: input.deliverableId,
-        emailType: "Deliverable Approved"
+        emailType: "Deliverable Approved",
       },
       "Failed to queue deliverable email"
     );
@@ -226,11 +241,11 @@ describe("deliverable status email notifications", () => {
           {
             person: {
               ...deliverable.demonstration.demonstrationRoleAssignments[0].person,
-              email: "not-an-email"
-            }
-          }
-        ]
-      }
+              email: "not-an-email",
+            },
+          },
+        ],
+      },
     });
 
     await notifyDeliverableCompleted({ ...input, finalStatus: "Approved" });
@@ -241,10 +256,10 @@ describe("deliverable status email notifications", () => {
         error: expect.objectContaining({
           message:
             "Cannot queue Deliverable Approved email for deliverable deliverable-1: " +
-            "person state-poc-1 does not have a valid email address."
+            "person state-poc-1 does not have a valid email address.",
         }),
         deliverableId: input.deliverableId,
-        emailType: "Deliverable Approved"
+        emailType: "Deliverable Approved",
       },
       "Failed to queue deliverable email"
     );
@@ -259,7 +274,7 @@ describe("deliverable status email notifications", () => {
       {
         error: expect.objectContaining({ message: "queue unavailable" }),
         deliverableId: input.deliverableId,
-        emailType: "Deliverable Submitted"
+        emailType: "Deliverable Submitted",
       },
       "Failed to queue deliverable email"
     );
@@ -270,14 +285,14 @@ describe("deliverable status email notifications", () => {
       "Deliverable Due Date Updated",
       notifyDeliverableDueDateUpdated,
       "previousDueDate",
-      ["state@example.com"]
+      ["state@example.com"],
     ],
     [
       "Extension Requested",
       notifyDeliverableExtensionRequested,
       "requestedDueDate",
-      ["owner@example.com", "cms@example.com"]
-    ]
+      ["owner@example.com", "cms@example.com"],
+    ],
   ] as const)(
     "queues %s with its event date and recipients",
     async (emailType, notify, dateKey, addresses) => {
@@ -288,13 +303,13 @@ describe("deliverable status email notifications", () => {
           emailType,
           payload: expect.objectContaining({
             deliverable: expect.objectContaining({
-              [dateKey]: date.toISOString()
+              [dateKey]: date.toISOString(),
             }),
             recipients: {
               to: [],
-              bcc: addresses.map((address) => expect.objectContaining({ address }))
-            }
-          })
+              bcc: addresses.map((address) => expect.objectContaining({ address })),
+            },
+          }),
         }),
         { deliverableActionId: input.sourceActionId },
         expect.any(Array)
@@ -308,7 +323,7 @@ describe("deliverable status email notifications", () => {
       await notifyPublicCommentAdded({
         deliverableId: input.deliverableId,
         triggeredByUserId: input.triggeredByUserId,
-        publicCommentId
+        publicCommentId,
       });
       expect(enqueueAndTrackRealtimeEmail).toHaveBeenLastCalledWith(
         expect.objectContaining({ emailType: "Deliverable Comment" }),
@@ -318,20 +333,54 @@ describe("deliverable status email notifications", () => {
     }
     expect(enqueueAndTrackRealtimeEmail).toHaveBeenCalledTimes(2);
   });
-  it.each(["Upcoming", "Submitted", "Under CMS Review", "Past Due"])("does not notify comments on %s deliverables", async (statusId) => {
-    findUniqueOrThrow.mockResolvedValue({ ...deliverable, statusId });
-    await notifyPublicCommentAdded({ deliverableId: input.deliverableId, publicCommentId: "comment-1", triggeredByUserId: input.triggeredByUserId });
-    expect(enqueueAndTrackRealtimeEmail).not.toHaveBeenCalled();
-  });
+  it.each(["Upcoming", "Submitted", "Under CMS Review", "Past Due"])(
+    "does not notify comments on %s deliverables",
+    async (statusId) => {
+      findUniqueOrThrow.mockResolvedValue({ ...deliverable, statusId });
+      await notifyPublicCommentAdded({
+        deliverableId: input.deliverableId,
+        publicCommentId: "comment-1",
+        triggeredByUserId: input.triggeredByUserId,
+      });
+      expect(enqueueAndTrackRealtimeEmail).not.toHaveBeenCalled();
+    }
+  );
 
-  it.each(["Accepted", "Approved", "Received and Filed"])("notifies all contacts for comments on %s deliverables", async (statusId) => {
-    findUniqueOrThrow.mockResolvedValue({ ...deliverable, statusId, demonstration: {
-      ...deliverable.demonstration,
-      demonstrationRoleAssignments: [...deliverable.demonstration.demonstrationRoleAssignments, { person: { id: "cms-contact-1", firstName: "CMS", lastName: "Contact", email: "cms@example.com" } }],
-    } });
-    await notifyPublicCommentAdded({ deliverableId: input.deliverableId, publicCommentId: "comment-1", triggeredByUserId: input.triggeredByUserId });
-    const query = findUniqueOrThrow.mock.calls[0][0];
-    expect(query.include.demonstration.include.demonstrationRoleAssignments).not.toHaveProperty("where");
-    expect(enqueueAndTrackRealtimeEmail).toHaveBeenCalledWith(expect.any(Object), { publicCommentId: "comment-1" }, [{ personId: "cms-owner-1" }, { personId: "state-poc-1" }, { personId: "cms-contact-1" }]);
-  });
+  it.each(["Accepted", "Approved", "Received and Filed"])(
+    "notifies all contacts for comments on %s deliverables",
+    async (statusId) => {
+      findUniqueOrThrow.mockResolvedValue({
+        ...deliverable,
+        statusId,
+        demonstration: {
+          ...deliverable.demonstration,
+          demonstrationRoleAssignments: [
+            ...deliverable.demonstration.demonstrationRoleAssignments,
+            {
+              person: {
+                id: "cms-contact-1",
+                firstName: "CMS",
+                lastName: "Contact",
+                email: "cms@example.com",
+              },
+            },
+          ],
+        },
+      });
+      await notifyPublicCommentAdded({
+        deliverableId: input.deliverableId,
+        publicCommentId: "comment-1",
+        triggeredByUserId: input.triggeredByUserId,
+      });
+      const query = findUniqueOrThrow.mock.calls[0][0];
+      expect(query.include.demonstration.include.demonstrationRoleAssignments).not.toHaveProperty(
+        "where"
+      );
+      expect(enqueueAndTrackRealtimeEmail).toHaveBeenCalledWith(
+        expect.any(Object),
+        { publicCommentId: "comment-1" },
+        [{ personId: "cms-owner-1" }, { personId: "state-poc-1" }, { personId: "cms-contact-1" }]
+      );
+    }
+  );
 });

@@ -3,7 +3,7 @@ import {
   checkDueDateInFuture,
   editDeliverable,
   selectDeliverableOrThrow,
-  ParsedUpdateDeliverableInput
+  ParsedUpdateDeliverableInput,
 } from ".";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { insertDeliverableAction } from "../deliverableAction/queries";
@@ -44,7 +44,7 @@ export async function manuallyUpdateDeliverableDueDate(
       deliverableId,
       {
         dueDate: input.dueDate.newDueDate.easternTZDate,
-        statusId: newStatus
+        statusId: newStatus,
       },
       tx
     );
@@ -58,13 +58,13 @@ export async function manuallyUpdateDeliverableDueDate(
         note: input.dueDate.dateChangeNote,
         oldDueDate: currentDeliverable.dueDate,
         newDueDate: input.dueDate.newDueDate.easternTZDate,
-        userId: context.user.id
+        userId: context.user.id,
       },
       tx
     );
     return {
       sourceActionId: action.id,
-      previousDueDate: currentDeliverable.dueDate
+      previousDueDate: currentDeliverable.dueDate,
     };
   }
 }

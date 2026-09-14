@@ -93,7 +93,7 @@ describe("notifyDeliverableCreated", () => {
             },
           },
         }),
-      }),
+      })
     );
     expect(enqueueAndTrackRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
       {
@@ -127,14 +127,14 @@ describe("notifyDeliverableCreated", () => {
         },
       },
       { deliverableActionId: input.sourceActionId },
-      [{ personId: "duplicate-owner" }, { personId: "project-officer" }],
+      [{ personId: "duplicate-owner" }, { personId: "project-officer" }]
     );
     expect(log.info).toHaveBeenCalledWith(
       expect.objectContaining({
         messageId: "message-1",
         deliverableId: deliverable.id,
       }),
-      "Deliverable email queued",
+      "Deliverable email queued"
     );
   });
 
@@ -149,7 +149,9 @@ describe("notifyDeliverableCreated", () => {
       },
       demonstration: {
         ...deliverable.demonstration,
-        demonstrationRoleAssignments: [{ person: { ...deliverable.cmsOwner.person, email: "not-an-email" } }],
+        demonstrationRoleAssignments: [
+          { person: { ...deliverable.cmsOwner.person, email: "not-an-email" } },
+        ],
       },
     });
 
@@ -163,7 +165,7 @@ describe("notifyDeliverableCreated", () => {
             "Cannot queue Deliverable Created email: person owner-1 does not have a valid email address.",
         }),
       }),
-      "Failed to queue deliverable email",
+      "Failed to queue deliverable email"
     );
   });
 
@@ -178,7 +180,7 @@ describe("notifyDeliverableCreated", () => {
         error,
         deliverableId: deliverable.id,
       }),
-      "Failed to queue deliverable email",
+      "Failed to queue deliverable email"
     );
   });
 });
