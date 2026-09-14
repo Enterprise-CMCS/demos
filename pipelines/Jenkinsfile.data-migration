@@ -74,20 +74,14 @@ spec:
 }
 
 environment {
-  PMDA_MYSQL_PWD = credentials('pmda-prod-mysql-db-restore-pw')
-  DEMOS_PGSQL_PWD = credentials('demos-prod-pgsql-db-pw')
+  DEMOS_AWS_PWD = credentials('demos-prod-pgsql-db-pw')
 }
 
 parameters {
-  booleanParam(name: 'RECREATE_RAW', defaultValue: false, description: 'Recreate the raw schema in the demos database. WARNING: This will delete all data in the raw schema.')
-  booleanParam(name: 'RECREATE_STAGING', defaultValue: false, description: 'Recreate the staging schema in the demos database. WARNING: This will delete all data in the staging schema.')
-  booleanParam(name: 'RESET_DEMOS_DATABASE', defaultValue: false, description: 'Recreate the DEMOS APP database. WARNING: THIS WILL DELETE ALL DATA IN THE DEMOS APP DATABASE.')
-  booleanParam(name: 'MYSQL_TO_POSTGRES', defaultValue: false, description: 'Migrate data from MySQL to Postgres')
-  booleanParam(name: 'COPY_S3_FILE', defaultValue: false, description: 'Copy file from S3 to DBT project')
   booleanParam(name: 'RUN_DBT', defaultValue: false, description: 'Run DBT transformations')
-  booleanParam(name: 'COPY_FILE_DATA', defaultValue: false, description: 'Copy data between S3 buckets')
-  booleanParam(name: 'LOAD_STAGED_DATA', defaultValue: false, description: 'Load staged data to DEMOS app')
-  booleanParam(name: 'TAKE_SNAPSHOT', defaultValue: false, description: 'Take a snapshot of the migration schema')
+  booleanParam(name: 'COPY_FILES_BETWEEN_BUCKETS', defaultValue: false, description: 'Copy files between buckets')
+  booleanParam(name: 'COPY_DATA_BETWEEN_SCHEMAS', defaultValue: false, description: 'Copy data between schemas')
+  booleanParam(name: 'TAKE_SNAPSHOT', defaultValue: false, description: 'Take a snapshot of the migration')
 }
 
 stages {
@@ -95,29 +89,17 @@ stages {
     steps {
       script {
         def description = 'I understand that this will run against the PROD database and potentially delete data.'
-        if (params.RECREATE_RAW_STAGING) {
-          description += '\n    - recreate the raw and staging schemas in the demos database'
-        }
-        if (params.RESET_DEMOS_DATABASE) {
-          description += '\n    - recreate the DEMOS APP database and delete all data in the database'
-        }
-        if (params.MYSQL_TO_POSTGRES) {
-          description += '\n    - migrate data from MySQL to Postgres'
-        }
-        if (params.COPY_S3_FILE) {
-          description += '\n    - copy file from S3 to DBT project'
-        }
         if (params.RUN_DBT) {
           description += '\n    - run DBT transformations'
         }
-        if (params.COPY_FILE_DATA) {
-          description += '\n    - copy data between PMDA and DEMOS S3 buckets'
+        if (params.COPY_FILES_BETWEEN_BUCKETS) {
+          description += '\n    - copy files between PMDA and DEMOS S3 buckets'
         }
-        if (params.LOAD_STAGED_DATA) {
-          description += '\n    - load staged data to the DEMOS app'
+        if (params.COPY_DATA_BETWEEN_SCHEMAS) {
+          description += '\n    - copy data between schemas'
         }
         if (params.TAKE_SNAPSHOT) {
-          description += '\n    - take a snapshot of the migration schema'
+          description += '\n    - take a snapshot of the migration'
         }
 
         def inputParams = [booleanParam(
@@ -173,108 +155,8 @@ conn.close()
       }
     }
   }
-  stage("Drop & Recreate RAW Schema") {
-    when {
-      expression {
-        return params.RECREATE_RAW
-      }
-    }
-    steps {
-      script {
-        dir("data/demos_data_tools") {
-          sh """
-          set -e
-          /app/venv/bin/python manage_migration_schemas.py drop raw
-          /app/venv/bin/python manage_migration_schemas.py create raw
-          """
-        }
-      }
-    }
-  }
-  stage("Drop & Recreate STAGING Schema") {
-    when {
-      expression {
-        return params.RECREATE_STAGING
-      }
-    }
-    steps {
-      script {
-        dir("data/demos_data_tools") {
-          sh """
-          set -e
-          /app/venv/bin/python manage_migration_schemas.py drop staging
-          /app/venv/bin/python manage_migration_schemas.py create staging
-          """
-        }
-      }
-    }
-  }
 
-  stage("Move data from MySQL to Postgres") {
-    when {
-      expression {
-        return params.MYSQL_TO_POSTGRES
-      }
-    }
-    steps {
-      script {
-        dir("data/demos_data_tools") {
-          sh """
-          set -e
-          /app/venv/bin/python pmda_exporter.py
-          """
-        }
-      }
-    }
-  }
-
-  stage("Reset DEMOS database") {
-    when {
-      expression {
-        return params.RESET_DEMOS_DATABASE
-      }
-    }
-    steps {
-      script {
-        dirCon("shared_library", "node") {
-          sh """
-          npm ci
-          """
-        }
-        dirCon("server", "node") {
-          sh """
-          npm ci
-          export DATABASE_URL="postgresql://\$DEMOS_PGSQL_USER:\$DEMOS_PGSQL_PWD@\$DEMOS_PGSQL_HOST:\$DEMOS_PGSQL_PORT/\$DEMOS_PGSQL_DB?schema=demos_app"
-          
-          npm run migrate:reset
-          npm run dbrefresh
-          """
-        }
-      }
-    }
-  }
-
-
-  stage("Copy manifest from S3 to DBT Project") {
-    when {
-      expression {
-        return params.COPY_S3_FILE
-      }
-    }
-    steps {
-      script {
-        dirCon("data/migration/stage_pmda_for_migration/seeds", "aws-cli") {
-          sh """
-          set -e
-          rm -f raw_pmda_s3_file_list.csv
-          aws s3 cp s3://${PMDA_S3_BUCKET}/s3_file_list.csv raw_pmda_s3_file_list.csv
-          """
-        }
-      }
-    }
-  }
-
-  stage("Run DBT") {
+  stage("Run the dbt project") {
     when {
       expression {
         return params.RUN_DBT
@@ -282,7 +164,7 @@ conn.close()
     }
     steps {
       script {
-        dir("data/migration/stage_pmda_for_migration") {
+        dir("data/migration/data_migration_rev_01") {
           sh """
           set -e
           mv profiles.yml.jenkins profiles.yml
@@ -294,10 +176,10 @@ conn.close()
     }
   }
 
-  stage("Move file data") {
+  stage("Copy files between buckets") {
     when {
       expression {
-        return params.COPY_FILE_DATA
+        return params.COPY_FILES_BETWEEN_BUCKETS
       }
     }
     steps {
@@ -305,17 +187,17 @@ conn.close()
         dir("data/demos_data_tools") {
           sh """
           set -e
-          /app/venv/bin/python migrate_files.py
+          /app/venv/bin/python migrate_files.py demos-aws rev01
           """
         }
       }
     }
   }
 
-  stage("Load staged data to DEMOS app") {
+  stage("Copy data between schemas") {
     when {
       expression {
-        return params.LOAD_STAGED_DATA
+        return params.COPY_DATA_BETWEEN_SCHEMAS
       }
     }
     steps {
@@ -323,14 +205,14 @@ conn.close()
         dir("data/demos_data_tools") {
           sh """
           set -e
-          /app/venv/bin/python load_staged_data_to_demos_app.py
+          /app/venv/bin/python load_data_to_demos_app.py demos-aws rev01
           """
         }
       }
     }
   }
 
-  stage("Snapshot") {
+  stage("Take a snapshot of the migration") {
     when {
       expression {
         return params.TAKE_SNAPSHOT
@@ -341,7 +223,7 @@ conn.close()
         dir("data/demos_data_tools") {
           sh """
           set -e
-          /app/venv/bin/python snapshot_migration_schema.py
+          /app/venv/bin/python snapshot_migration_schema.py demos-aws rev01
           """
         }
       }
