@@ -1,7 +1,6 @@
-import { Text } from "@react-email/components";
+import { Link, Text } from "@react-email/components";
 
 import { DeliverableEmailLayout } from "../components/DeliverableEmailLayout";
-import { DeliverableLink } from "../components/DeliverableLink";
 import { detailStyle, textStyle } from "../components/styles";
 import {
   formatDate,
@@ -11,7 +10,7 @@ import {
 } from "../helpers";
 import type { EmailTemplateResult } from "../types";
 
-const emailType = "Public Comment Added";
+const emailType = "Deliverable Comment";
 
 export function renderPublicCommentAddedEmail(
   rawPayload: unknown,
@@ -42,7 +41,7 @@ export function renderPublicCommentAddedEmail(
   )}`;
 
   return {
-    subject: "CMS DEMOS Deliverable: Public Comment Added",
+    subject: "CMS DEMOS Deliverable: New Comment",
     content: (
       <DeliverableEmailLayout
         action={emailType}
@@ -59,8 +58,9 @@ export function renderPublicCommentAddedEmail(
         deliverableType={deliverableType}
         message={
           <Text style={textStyle}>
-            A public comment has been added to a {deliverableType} deliverable.{" "}
-            <DeliverableLink href={link} />
+            A new comment has been added to a {deliverableType} deliverable.{" "}
+            View this deliverable and the full comment thread in the DEMOS system:{" "}
+            <Link href={link}>{link}</Link>.
           </Text>
         }
         state={getRequiredString(

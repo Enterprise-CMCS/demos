@@ -15,7 +15,7 @@ vi.mock("../../log", () => ({
   },
 }));
 
-import { CMS_USER_DEMONSTRATION_ROLES } from "../../constants";
+import { STATE_USER_DEMONSTRATION_ROLES } from "../../constants";
 import { log } from "../../log";
 import { prisma } from "../../prismaClient";
 import { enqueueAndTrackRealtimeEmail } from "./emailNotification";
@@ -86,7 +86,7 @@ describe("notifyDeliverableCreated", () => {
             include: {
               demonstrationRoleAssignments: {
                 where: {
-                  roleId: { in: Array.from(CMS_USER_DEMONSTRATION_ROLES) },
+                  roleId: { in: Array.from(STATE_USER_DEMONSTRATION_ROLES) },
                 },
                 include: { person: true },
               },
@@ -108,7 +108,7 @@ describe("notifyDeliverableCreated", () => {
           recipients: {
             to: [],
             bcc: [
-              { name: "CMS Owner", address: "owner@example.com" },
+              { name: "Duplicate Owner", address: "owner@example.com" },
               { name: "Project Officer", address: "officer@example.com" },
             ],
           },
@@ -127,7 +127,7 @@ describe("notifyDeliverableCreated", () => {
         },
       },
       { deliverableActionId: input.sourceActionId },
-      [{ personId: "owner-1" }, { personId: "project-officer" }],
+      [{ personId: "duplicate-owner" }, { personId: "project-officer" }],
     );
     expect(log.info).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -149,7 +149,7 @@ describe("notifyDeliverableCreated", () => {
       },
       demonstration: {
         ...deliverable.demonstration,
-        demonstrationRoleAssignments: [],
+        demonstrationRoleAssignments: [{ person: { ...deliverable.cmsOwner.person, email: "not-an-email" } }],
       },
     });
 

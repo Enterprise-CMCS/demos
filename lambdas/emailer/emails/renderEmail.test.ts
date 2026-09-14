@@ -121,12 +121,13 @@ const templateCases = [
     ],
   },
   {
-    emailType: "Public Comment Added",
+    emailType: "Deliverable Comment",
     input: deliverableInput,
-    subject: "CMS DEMOS Deliverable: Public Comment Added",
+    subject: "CMS DEMOS Deliverable: New Comment",
     expectedText: [
-      "A public comment has been added to a Close Out Report deliverable",
-      "Action: Public Comment Added",
+      "A new comment has been added to a Close Out Report deliverable",
+      "Action: Deliverable Comment",
+      "View this deliverable and the full comment thread in the DEMOS system:",
     ],
   },
   {

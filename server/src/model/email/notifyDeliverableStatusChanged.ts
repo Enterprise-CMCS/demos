@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { STATE_USER_DEMONSTRATION_ROLES } from "../../constants";
+import { CMS_USER_DEMONSTRATION_ROLES, STATE_USER_DEMONSTRATION_ROLES } from "../../constants";
 import { log } from "../../log";
 import { prisma } from "../../prismaClient";
 import { RealtimeEmailType } from "../../services/emailQueue";
@@ -24,7 +24,7 @@ const emailSchema = z.email();
 export async function notifyDeliverableSubmitted(
   input: DeliverableEmailInput
 ): Promise<void> {
-  return notifyDeliverableStatusChanged(input, "Deliverable Submitted", "cmsOwner");
+  return notifyDeliverableStatusChanged(input, "Deliverable Submitted", "cms");
 }
 
 export async function notifyDeliverableCompleted(
@@ -70,7 +70,7 @@ export async function notifyDeliverableDueDateUpdated(
 export async function notifyDeliverableExtensionRequested(
   input: DeliverableEmailInput & { requestedDueDate: Date }
 ): Promise<void> {
-  return notifyDeliverableStatusChanged(input, "Extension Requested", "cmsOwner", {
+  return notifyDeliverableStatusChanged(input, "Extension Requested", "cms", {
     requestedDueDate: input.requestedDueDate.toISOString()
   });
 }
@@ -80,7 +80,7 @@ export async function notifyPublicCommentAdded(input: {
   publicCommentId: string;
   triggeredByUserId: string;
 }): Promise<void> {
-  return notifyDeliverableStatusChanged(input, "Public Comment Added", "all");
+  return notifyDeliverableStatusChanged(input, "Deliverable Comment", "all");
 }
 
 async function notifyDeliverableStatusChanged(
@@ -92,7 +92,7 @@ async function notifyDeliverableStatusChanged(
         triggeredByUserId: string;
       },
   emailType: RealtimeEmailType,
-  audience: "cmsOwner" | "state" | "all",
+  audience: "cms" | "state" | "all",
   extraDeliverablePayload: Record<string, string> = {}
 ): Promise<void> {
   try {
@@ -103,23 +103,31 @@ async function notifyDeliverableStatusChanged(
         demonstration: {
           include: {
             demonstrationRoleAssignments: {
-              where: {
-                roleId: { in: Array.from(STATE_USER_DEMONSTRATION_ROLES) }
-              },
+              ...(audience === "all" ? {} : {
+                where: {
+                  roleId: { in: Array.from(audience === "state"
+                    ? STATE_USER_DEMONSTRATION_ROLES
+                    : CMS_USER_DEMONSTRATION_ROLES) }
+                },
+              }),
               include: { person: true }
             }
           }
         }
       }
     });
+    if (
+      emailType === "Deliverable Comment" &&
+      !["Accepted", "Approved", "Received and Filed"].includes(deliverable.statusId)
+    ) {
+      return;
+    }
     const recipients = deduplicateRecipients(
       [
         ...(audience !== "state" ? [deliverable.cmsOwner.person] : []),
-        ...(audience !== "cmsOwner"
-          ? deliverable.demonstration.demonstrationRoleAssignments.map(
-              (assignment) => assignment.person
-            )
-          : [])
+        ...deliverable.demonstration.demonstrationRoleAssignments.map(
+          (assignment) => assignment.person
+        )
       ],
       input.deliverableId,
       emailType

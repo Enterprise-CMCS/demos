@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { CMS_USER_DEMONSTRATION_ROLES } from "../../constants";
+import { STATE_USER_DEMONSTRATION_ROLES } from "../../constants";
 import { log } from "../../log";
 import { prisma } from "../../prismaClient";
 import { enqueueAndTrackRealtimeEmail } from "./emailNotification";
@@ -31,7 +31,7 @@ export async function notifyDeliverableCreated(
           include: {
             demonstrationRoleAssignments: {
               where: {
-                roleId: { in: Array.from(CMS_USER_DEMONSTRATION_ROLES) },
+                roleId: { in: Array.from(STATE_USER_DEMONSTRATION_ROLES) },
               },
               include: { person: true },
             },
@@ -40,7 +40,6 @@ export async function notifyDeliverableCreated(
       },
     });
     const recipients = deduplicateRecipients([
-      deliverable.cmsOwner.person,
       ...deliverable.demonstration.demonstrationRoleAssignments.map(
         (assignment) => assignment.person,
       ),

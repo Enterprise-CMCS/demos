@@ -7,7 +7,7 @@ import { prisma } from "../prismaClient";
 export type RealtimeEmailType =
   | "Deliverable Due Date Updated"
   | "Extension Requested"
-  | "Public Comment Added"
+  | "Deliverable Comment"
   | "Deliverable Created"
   | "Deliverable Submitted"
   | "Deliverable Accepted"

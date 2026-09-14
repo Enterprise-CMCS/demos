@@ -30,7 +30,7 @@ const templates: Record<string, EmailTemplate> = {
   "Extension Requested": renderExtensionRequestedEmail,
   "Extension Decision Made": renderExtensionDecisionMadeEmail,
   "Resubmission Requested": renderResubmissionRequestedEmail,
-  "Public Comment Added": renderPublicCommentAddedEmail,
+  "Deliverable Comment": renderPublicCommentAddedEmail,
   "Multiple Deliverables Created": renderMultipleDeliverablesCreatedEmail,
 };
 
