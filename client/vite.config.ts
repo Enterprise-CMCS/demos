@@ -5,7 +5,8 @@ import semver from "semver";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 
-const DEMOS_VERSION = "1.1.0";
+const DEMOS_VERSION = "1.0.0";
+const VALID_MODES: string[] = ["development", "production", "test"] as const;
 
 const getGitCommit = (): string => {
   try {
@@ -14,8 +15,6 @@ const getGitCommit = (): string => {
     return "unknown";
   }
 };
-
-const VALID_MODES: string[] = ["development", "production", "test"] as const;
 
 export const config = defineConfig(({ mode }) => {
   if (!VALID_MODES.includes(mode)) {
@@ -33,7 +32,7 @@ export const config = defineConfig(({ mode }) => {
       __DEMOS_VERSION__: JSON.stringify(DEMOS_VERSION),
       // This is used as a template to show how these flags should be used
       // You can use just a single predicate to remove it from production or both.
-      __FEATURE_SHOW_GIT_VERSION__: semver.gt(DEMOS_VERSION, "1.0.0") && mode === "development",
+      __FEATURE_SHOW_GIT_VERSION__: semver.gt(DEMOS_VERSION, "0.0.0") && mode === "development",
     },
     server: {
       port: 3000,

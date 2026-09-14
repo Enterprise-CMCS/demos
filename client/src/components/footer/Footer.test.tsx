@@ -126,23 +126,24 @@ describe("Footer Component", () => {
     });
   });
 
-  it("displays the git commit hash in local development", async () => {
+  it("displays the git commit hash when feature flag is enabled", () => {
+    vi.stubGlobal("__FEATURE_SHOW_GIT_VERSION__", true);
     vi.stubGlobal("__GIT_COMMIT__", "abc1234");
-    const { isLocalDevelopment } = await import("config/env");
-    vi.mocked(isLocalDevelopment).mockReturnValue(true);
+    vi.stubGlobal("__DEMOS_VERSION__", "1.0.0");
 
     renderWithProviders();
 
-    expect(screen.getByText(/commit: abc1234/i)).toBeInTheDocument();
+    expect(screen.getByText(/git commit: abc1234/i)).toBeInTheDocument();
+    expect(screen.getByText(/demos version: 1.0.0/i)).toBeInTheDocument();
   });
 
-  it("hides the git commit hash outside of local development", async () => {
+  it("hides the git commit hash when feature flag is disabled", () => {
+    vi.stubGlobal("__FEATURE_SHOW_GIT_VERSION__", false);
     vi.stubGlobal("__GIT_COMMIT__", "abc1234");
-    const { isLocalDevelopment } = await import("config/env");
-    vi.mocked(isLocalDevelopment).mockReturnValue(false);
+    vi.stubGlobal("__DEMOS_VERSION__", "1.0.0");
 
     renderWithProviders();
 
-    expect(screen.queryByText(/commit:/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/git commit:/i)).not.toBeInTheDocument();
   });
 });
