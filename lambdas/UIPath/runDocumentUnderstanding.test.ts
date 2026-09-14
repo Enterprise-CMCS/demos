@@ -449,7 +449,9 @@ describe("runDocumentUnderstanding", () => {
     expect(mocks.queryMock.mock.calls[5]?.[0]).toBe("COMMIT");
     expect(mocks.queryMock.mock.calls[8]?.[0]).toBe("ROLLBACK");
     expect(
-      mocks.queryMock.mock.calls.some((call) => Array.isArray(call[1]) && call[1][5] === "Failed")
+      mocks.queryMock.mock.calls.some(
+        (call) => Array.isArray(call[1]) && call[1][5] === "Failed"
+      )
     ).toBe(true);
   });
 

@@ -1,5 +1,5 @@
 import { CellContext, ColumnHelper, DeepKeys, DeepValue, Row } from "@tanstack/react-table";
-import { isAfter, isBefore, isSameDay } from "date-fns";
+import { compareAsc, isAfter, isBefore, isSameDay } from "date-fns";
 import { formatDateForDisplay } from "util/formatDate";
 
 type DateFilterValue = {
@@ -27,6 +27,8 @@ export function createDateColumnDef<RowData, FieldName extends DeepKeys<RowData>
       const value = getValue() as string | undefined;
       return value ? formatDateForDisplay(value) : defaultValue;
     },
+    sortingFn: (rowA: Row<RowData>, rowB: Row<RowData>, columnId: string) =>
+      compareAsc(rowA.getValue(columnId), rowB.getValue(columnId)),
     filterFn: (row: Row<RowData>, columnId: string, filterValue: DateFilterValue) => {
       const value = row.getValue(columnId) as string | undefined;
       if (!value) return false;
