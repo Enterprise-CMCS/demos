@@ -121,7 +121,10 @@ for i in {1..15}; do
         echo "✅ dataConnectExport Lambda function created"
         break
     elif [ "$STATUS" = "Failed" ]; then
-        echo "❌ dataConnectExport Lambda function failed to initialize in 30 seconds"
+        echo "❌ dataConnectExport Lambda function failed to initialize"
+        exit 1
+    elif [ "$i" -eq 15 ]; then
+        echo "❌ dataConnectExport Lambda function did not become active after 15 checks"
         exit 1
     fi
     sleep 2
