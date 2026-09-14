@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { STATE_USER_DEMONSTRATION_ROLES } from "../../constants";
+import { CMS_USER_DEMONSTRATION_ROLES, STATE_USER_DEMONSTRATION_ROLES } from "../../constants";
 import { log } from "../../log";
 import { prisma } from "../../prismaClient";
 import { RealtimeEmailType } from "../../services/emailQueue";
@@ -21,10 +21,8 @@ type Recipient = {
 
 const emailSchema = z.email();
 
-export async function notifyDeliverableSubmitted(
-  input: DeliverableEmailInput
-): Promise<void> {
-  return notifyDeliverableStatusChanged(input, "Deliverable Submitted", "cmsOwner");
+export async function notifyDeliverableSubmitted(input: DeliverableEmailInput): Promise<void> {
+  return notifyDeliverableEvent(input, "Deliverable Submitted", "cms");
 }
 
 export async function notifyDeliverableCompleted(
@@ -36,13 +34,13 @@ export async function notifyDeliverableCompleted(
     "Received and Filed": "Deliverable Received and Filed",
   };
 
-  return notifyDeliverableStatusChanged(input, emailTypeByStatus[input.finalStatus], "state");
+  return notifyDeliverableEvent(input, emailTypeByStatus[input.finalStatus], "state");
 }
 
 export async function notifyDeliverableResubmissionRequested(
   input: DeliverableEmailInput & { previousDueDate: Date }
 ): Promise<void> {
-  return notifyDeliverableStatusChanged(input, "Resubmission Requested", "state", {
+  return notifyDeliverableEvent(input, "Resubmission Requested", "state", {
     previousDueDate: input.previousDueDate.toISOString(),
   });
 }
@@ -53,16 +51,46 @@ export async function notifyDeliverableExtensionDecisionMade(
     previousDueDate: Date;
   }
 ): Promise<void> {
-  return notifyDeliverableStatusChanged(input, "Extension Decision Made", "state", {
+  return notifyDeliverableEvent(input, "Extension Decision Made", "state", {
     extensionDecision: input.extensionDecision,
     previousDueDate: input.previousDueDate.toISOString(),
   });
 }
 
-async function notifyDeliverableStatusChanged(
-  input: DeliverableEmailInput,
+export async function notifyDeliverableDueDateUpdated(
+  input: DeliverableEmailInput & { previousDueDate: Date }
+): Promise<void> {
+  return notifyDeliverableEvent(input, "Deliverable Due Date Updated", "state", {
+    previousDueDate: input.previousDueDate.toISOString(),
+  });
+}
+
+export async function notifyDeliverableExtensionRequested(
+  input: DeliverableEmailInput & { requestedDueDate: Date }
+): Promise<void> {
+  return notifyDeliverableEvent(input, "Extension Requested", "cms", {
+    requestedDueDate: input.requestedDueDate.toISOString(),
+  });
+}
+
+export async function notifyPublicCommentAdded(input: {
+  deliverableId: string;
+  publicCommentId: string;
+  triggeredByUserId: string;
+}): Promise<void> {
+  return notifyDeliverableEvent(input, "Deliverable Comment", "all");
+}
+
+async function notifyDeliverableEvent(
+  input:
+    | DeliverableEmailInput
+    | {
+        deliverableId: string;
+        publicCommentId: string;
+        triggeredByUserId: string;
+      },
   emailType: RealtimeEmailType,
-  audience: "cmsOwner" | "state",
+  audience: "cms" | "state" | "all",
   extraDeliverablePayload: Record<string, string> = {}
 ): Promise<void> {
   try {
@@ -73,21 +101,38 @@ async function notifyDeliverableStatusChanged(
         demonstration: {
           include: {
             demonstrationRoleAssignments: {
-              where: {
-                roleId: { in: Array.from(STATE_USER_DEMONSTRATION_ROLES) },
-              },
+              ...(audience === "all"
+                ? {}
+                : {
+                    where: {
+                      roleId: {
+                        in: Array.from(
+                          audience === "state"
+                            ? STATE_USER_DEMONSTRATION_ROLES
+                            : CMS_USER_DEMONSTRATION_ROLES
+                        ),
+                      },
+                    },
+                  }),
               include: { person: true },
             },
           },
         },
       },
     });
+    if (
+      emailType === "Deliverable Comment" &&
+      !["Accepted", "Approved", "Received and Filed"].includes(deliverable.statusId)
+    ) {
+      return;
+    }
     const recipients = deduplicateRecipients(
-      audience === "cmsOwner"
-        ? [deliverable.cmsOwner.person]
-        : deliverable.demonstration.demonstrationRoleAssignments.map(
-            (assignment) => assignment.person
-          ),
+      [
+        ...(audience !== "state" ? [deliverable.cmsOwner.person] : []),
+        ...deliverable.demonstration.demonstrationRoleAssignments.map(
+          (assignment) => assignment.person
+        ),
+      ],
       input.deliverableId,
       emailType
     );
@@ -128,7 +173,9 @@ async function notifyDeliverableStatusChanged(
           },
         },
       },
-      { deliverableActionId: input.sourceActionId },
+      "publicCommentId" in input
+        ? { publicCommentId: input.publicCommentId }
+        : { deliverableActionId: input.sourceActionId },
       recipients.map(({ personId }) => ({ personId }))
     );
 

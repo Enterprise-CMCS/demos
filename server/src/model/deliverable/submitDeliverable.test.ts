@@ -24,14 +24,14 @@ vi.mock("../deliverableAction/queries", () => ({
   insertDeliverableAction: vi.fn(),
 }));
 
-vi.mock("../email/notifyDeliverableStatusChanged", () => ({
+vi.mock("../email/notifyDeliverableEvent", () => ({
   notifyDeliverableSubmitted: vi.fn(),
 }));
 
 import { prisma } from "../../prismaClient";
 import { editDeliverable, selectDeliverableOrThrow, validateSubmitDeliverableInput } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
-import { notifyDeliverableSubmitted } from "../email/notifyDeliverableStatusChanged";
+import { notifyDeliverableSubmitted } from "../email/notifyDeliverableEvent";
 
 describe("submitDeliverable", () => {
   // Test inputs

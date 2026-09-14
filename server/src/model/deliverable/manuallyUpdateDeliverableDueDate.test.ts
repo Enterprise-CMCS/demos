@@ -51,6 +51,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.mocked(insertDeliverableAction).mockResolvedValue({ id: "action-1" } as any);
     vi.useFakeTimers();
     vi.setSystemTime(mockCurrentDate);
     vi.mocked(selectDeliverableOrThrow).mockResolvedValue(mockDeliverable as PrismaDeliverable);

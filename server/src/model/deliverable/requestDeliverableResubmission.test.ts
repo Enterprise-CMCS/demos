@@ -28,7 +28,7 @@ vi.mock("../deliverableAction/queries", () => ({
   insertDeliverableAction: vi.fn(),
 }));
 
-vi.mock("../email/notifyDeliverableStatusChanged", () => ({
+vi.mock("../email/notifyDeliverableEvent", () => ({
   notifyDeliverableResubmissionRequested: vi.fn(),
 }));
 
@@ -42,7 +42,7 @@ import {
   validateUserPersonTypeAllowed,
 } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
-import { notifyDeliverableResubmissionRequested } from "../email/notifyDeliverableStatusChanged";
+import { notifyDeliverableResubmissionRequested } from "../email/notifyDeliverableEvent";
 
 describe("requestDeliverableResubmission", () => {
   // Test inputs

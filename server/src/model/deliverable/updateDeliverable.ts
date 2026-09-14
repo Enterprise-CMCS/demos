@@ -15,6 +15,8 @@ import { prisma } from "../../prismaClient";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { selectUserOrThrow } from "../user/queries";
 
+import { notifyDeliverableDueDateUpdated } from "../email/notifyDeliverableEvent";
+
 export async function updateDeliverable(
   deliverableId: string,
   input: UpdateDeliverableInput,
@@ -24,7 +26,7 @@ export async function updateDeliverable(
   checkOptionalNotNullFields(["name", "cmsOwnerUserId", "dueDate", "demonstrationTypes"], input);
   const parsedInput = parseUpdateDeliverableInput(input);
 
-  return await prisma().$transaction(async (tx) => {
+  const { deliverable, dueDateChange } = await prisma().$transaction(async (tx) => {
     await validateUpdateDeliverableInput(deliverableId, parsedInput, tx);
 
     // Directly edit name and CMS owner
@@ -46,8 +48,24 @@ export async function updateDeliverable(
 
     // Update demonstration types and due date
     await updateDeliverableDemonstrationTypes(deliverableId, parsedInput, tx);
-    await manuallyUpdateDeliverableDueDate(deliverableId, parsedInput, context, tx);
+    const dueDateChange = await manuallyUpdateDeliverableDueDate(
+      deliverableId,
+      parsedInput,
+      context,
+      tx
+    );
 
-    return await selectDeliverableOrThrow({ id: deliverableId }, tx);
+    return {
+      deliverable: await selectDeliverableOrThrow({ id: deliverableId }, tx),
+      dueDateChange,
+    };
   });
+  if (dueDateChange) {
+    await notifyDeliverableDueDateUpdated({
+      deliverableId,
+      ...dueDateChange,
+      triggeredByUserId: context.user.id,
+    });
+  }
+  return deliverable;
 }

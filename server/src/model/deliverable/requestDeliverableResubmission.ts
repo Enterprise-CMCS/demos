@@ -10,7 +10,7 @@ import {
 } from ".";
 import { prisma } from "../../prismaClient";
 import { insertDeliverableAction } from "../deliverableAction/queries";
-import { notifyDeliverableResubmissionRequested } from "../email/notifyDeliverableStatusChanged";
+import { notifyDeliverableResubmissionRequested } from "../email/notifyDeliverableEvent";
 
 export async function requestDeliverableResubmission(
   deliverableId: string,

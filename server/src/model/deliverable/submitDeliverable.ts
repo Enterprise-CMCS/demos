@@ -4,7 +4,7 @@ import { DeliverableStatus } from "../../types";
 import { prisma } from "../../prismaClient";
 import { editDeliverable, selectDeliverableOrThrow, validateSubmitDeliverableInput } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
-import { notifyDeliverableSubmitted } from "../email/notifyDeliverableStatusChanged";
+import { notifyDeliverableSubmitted } from "../email/notifyDeliverableEvent";
 
 export async function submitDeliverable(
   deliverableId: string,
