@@ -55,6 +55,7 @@
     "analyze": "vite-bundle-visualizer --mode=build",
     "build": "npm run tsc && vite build",
     "build:ci": "vite build",
+    "build:ci:dev": "vite build --mode development",
     "coverage": "vitest --coverage",
     "coverage:ci": "vitest run --no-color --coverage",
     "depcheck": "depcheck",
