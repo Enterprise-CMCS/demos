@@ -1,3 +1,7 @@
+vi.mock("../email/notifyDeliverableEvent", () => ({
+  notifyPublicCommentAdded: vi.fn(),
+}));
+import { notifyPublicCommentAdded } from "../email/notifyDeliverableEvent";
 // Vitest and other helpers
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DeepPartial } from "../../testUtilities";
@@ -44,6 +48,9 @@ describe("createPublicComment", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.mocked(insertPublicComment).mockResolvedValue({
+      id: "comment-1",
+    } as any);
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
@@ -72,5 +79,13 @@ describe("createPublicComment", () => {
       },
       mockTransaction
     );
+  });
+  it("notifies after adding a comment", async () => {
+    await createPublicComment(testDeliverableId, testComment, testContext as GraphQLContext);
+    expect(notifyPublicCommentAdded).toHaveBeenCalledExactlyOnceWith({
+      deliverableId: testDeliverableId,
+      publicCommentId: "comment-1",
+      triggeredByUserId: testContext.user!.id,
+    });
   });
 });

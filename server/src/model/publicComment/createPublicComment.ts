@@ -5,12 +5,14 @@ import { prisma } from "../../prismaClient";
 import { validateUserPermittedToMakePublicComment } from ".";
 import { insertPublicComment } from "./queries";
 
+import { notifyPublicCommentAdded } from "../email/notifyDeliverableEvent";
+
 export async function createPublicComment(
   deliverableId: string,
   comment: NonEmptyString,
   context: GraphQLContext
 ): Promise<PrismaPublicComment> {
-  return await prisma().$transaction(async (tx) => {
+  const publicComment = await prisma().$transaction(async (tx) => {
     await validateUserPermittedToMakePublicComment(deliverableId, context, tx);
     return await insertPublicComment(
       {
@@ -21,4 +23,10 @@ export async function createPublicComment(
       tx
     );
   });
+  await notifyPublicCommentAdded({
+    deliverableId,
+    publicCommentId: publicComment.id,
+    triggeredByUserId: context.user.id,
+  });
+  return publicComment;
 }
