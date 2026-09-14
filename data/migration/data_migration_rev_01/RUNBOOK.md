@@ -40,8 +40,7 @@ This is the general flow of the migration process.
 2. Files are copied between S3 buckets based on tables in `legacy_pmda_migration_rev_01`.
 3. Data is copied from the final tables in `legacy_pmda_migration_rev_01` into `demos_app`.
 4. A snapshot of the contents of `legacy_pmda_migration_rev_01` is taken into a timestamped schema so a record of what was migrated is kept.
-5. A series of small post-migration fixes are manually executed in an interactive SQL session. Specifically, ...
-
+5. A post-migration fix will need to be manually executed in an interactive SQL session. Specifically, two deliverable extensions were requested by invalid users. One was requested by a user that is a `demos-cms-user` in DEMOS, while the other was requested by a user mapped to a `non-user-contact` in DEMOS. To facilitate the migration, both of these extension requests were assigned to Liz Hill for now. After the migration is completed, we will need to look in `legacy_pmda_migration_rev_01.errors_app_deliv_action_with_no_live_user_id` to find those two actions, identify which one of them belongs to a `_staged_user_id` that is a `non-user-contact`, and then change that record in `demos_app` to be pointed to the correct user in the DEMOS database.
 
 ## Specific Commands
 
