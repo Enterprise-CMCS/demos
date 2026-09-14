@@ -26,7 +26,8 @@ after the deliverable transaction completes. The producer loads and deduplicates
 recipients, then sends a message through
 [`enqueueEmail`](../../server/src/services/emailQueue.ts).
 
-Submitted, completed, resubmission-requested, and extension-decision changes use
+Submission, completion, manual due-date changes, extension requests and decisions,
+resubmission requests, and public comments use
 [`notifyDeliverableStatusChanged`](../../server/src/model/email/notifyDeliverableStatusChanged.ts)
 after their transactions complete.
 
@@ -184,10 +185,44 @@ stdout is captured by CloudWatch; local terminal output is formatted with
    template data.
 4. Add focused rendering tests and producer tests.
 
-The server currently produces `Deliverable Created`, `Deliverable Submitted`,
-the three completed-status variants, `Resubmission Requested`, and
-`Extension Decision Made`. The remaining registered deliverable event types and
-`Multiple Deliverables Created` are renderable but still need server-side producers.
+## Realtime deliverable emails
+
+All recipients below are BCC recipients, deduplicated by email address. State POCs
+are State Points of Contact assigned to the demonstration. CMS contacts are assigned
+Project Officers, DDME Analysts, Policy Technical Directors, and Monitoring &
+Evaluation Technical Directors.
+
+| Email type | Trigger | Recipients |
+| --- | --- | --- |
+| Deliverable Created | Deliverable creation | All State POCs |
+| Deliverable Submitted | Deliverable submission | CMS owner + all CMS contacts |
+| Deliverable Due Date Updated | Manual due-date change; unchanged dates do not notify | All State POCs |
+| Extension Requested | Extension request | CMS owner + all CMS contacts |
+| Extension Decision Made | Extension approved or denied | All State POCs |
+| Resubmission Requested | Resubmission request | All State POCs |
+| Deliverable Accepted | Completion with Accepted status | All State POCs |
+| Deliverable Approved | Completion with Approved status | All State POCs |
+| Deliverable Received and Filed | Completion with Received and Filed status | All State POCs |
+| Deliverable Comment | Public comment added to an Accepted, Approved, or Received and Filed deliverable | CMS owner + all demonstration contacts |
+
+Producers run after the corresponding transaction completes and use
+[`enqueueAndTrackRealtimeEmail`](../../server/src/model/email/emailNotification.ts)
+to create the notification and queue it. Deliverable actions populate
+`email_notification.deliverable_action_id`; comments populate `public_comment_id`
+instead, without creating a deliverable action. Each new action or comment has its
+own source record. Producer failures are logged without rolling back the saved action
+or comment.
+
+Extension approvals and resubmission requests send their dedicated emails, even when
+they change the due date; they do not also send `Deliverable Due Date Updated`.
+
+`Deliverable Comment` is the registered email type and database value. Its renderer
+remains `PublicCommentAddedEmail.tsx`, with subject
+`CMS DEMOS Deliverable: New Comment` and a link to view the deliverable and full
+comment thread. Comments on other statuses do not generate a notification.
+
+`Multiple Deliverables Created` has a registered template but no server producer yet.
+Scheduled deliverable reminders are not part of these realtime triggers.
 
 ## Local development
 
