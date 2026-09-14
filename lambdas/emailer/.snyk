@@ -2,4 +2,9 @@
 version: v1.25.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
+  SNYK-JS-NODEMAILER-19784395:
+    - '*':
+        reason: nodemailer major upgrade / patch not past 7 day cooldown
+        expires: 2026-09-21T00:00:00.000Z
+        created: 2026-09-14T19:09:06.764Z
 patch: {}
