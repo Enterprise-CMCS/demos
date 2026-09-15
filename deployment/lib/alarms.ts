@@ -2,7 +2,6 @@ import {
   Duration,
   aws_cloudfront,
   aws_cloudwatch,
-  aws_cloudwatch_actions,
   aws_lambda,
   aws_rds,
   aws_sqs,
@@ -132,10 +131,14 @@ function alarmActions(props: DemosAlarmBaseProps): IAlarmAction[] {
     `${props.project}-${props.stage}-notifier`
   );
 
+  const notifierAction : IAlarmAction = {
+    bind: () => ({
+      alarmActionArn: notifierLambda.functionArn
+    })
+  }
+
   return [
-    new aws_cloudwatch_actions.LambdaAction(notifierLambda, {
-      useUniquePermissionId: true,
-    }),
+    notifierAction,
     ...(props.alarmActions ?? []),
   ];
 }
