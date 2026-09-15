@@ -6,7 +6,7 @@ import { prisma } from "../../prismaClient";
 import { PrismaApplication } from "../application";
 import { enqueueAndTrackRealtimeEmail } from "./emailNotification";
 
-type ApplicationEmailType = "Application Status Updated" | "Application Deemed Complete";
+type ApplicationEmailType = "Application Status Updated";
 
 export async function notifyApplicationStatusUpdated(
   previousApplication: PrismaApplication,
@@ -18,24 +18,10 @@ export async function notifyApplicationStatusUpdated(
   }
 }
 
-export async function notifyApplicationDeemedComplete(
-  application: PrismaApplication,
-  deemedCompleteDate: Date,
-  triggeredByUserId: string
-): Promise<void> {
-  await notifyApplicationEvent(
-    application,
-    "Application Deemed Complete",
-    triggeredByUserId,
-    deemedCompleteDate
-  );
-}
-
 async function notifyApplicationEvent(
   application: PrismaApplication,
   emailType: ApplicationEmailType,
-  triggeredByUserId: string,
-  deemedCompleteDate?: Date
+  triggeredByUserId: string
 ): Promise<void> {
   try {
     const applicationType = application.applicationTypeId;
@@ -101,7 +87,6 @@ async function notifyApplicationEvent(
             applicationTypeId: applicationType,
             statusId: application.statusId,
             statusUpdatedAt: application.statusUpdatedAt.toISOString(),
-            ...(deemedCompleteDate ? { deemedCompleteDate: deemedCompleteDate.toISOString() } : {}),
           },
         },
       },

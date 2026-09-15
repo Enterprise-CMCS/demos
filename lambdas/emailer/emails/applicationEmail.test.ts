@@ -10,13 +10,12 @@ const basePayload = {
     applicationTypeId: "Demonstration",
     statusId: "Under Review",
     statusUpdatedAt: "2026-09-15T14:30:00.000Z",
-    deemedCompleteDate: "2026-09-15T04:00:00.000Z",
   },
 };
 
 describe("application emails", () => {
   for (const applicationTypeId of ["Demonstration", "Amendment", "Extension"]) {
-    it.each(["Application Status Updated", "Application Deemed Complete"])(
+    it.each(["Application Status Updated"])(
       `renders %s for ${applicationTypeId}`,
       async (emailType) => {
         const email = await renderEmail(emailType, {
@@ -26,9 +25,7 @@ describe("application emails", () => {
         expect(email.to).toEqual([]);
         expect(email.bcc).toEqual(basePayload.recipients.bcc);
         expect(email.subject).toBe(
-          emailType === "Application Deemed Complete"
-            ? "CMS DEMOS: Application Deemed Complete"
-            : "CMS DEMOS: Application Status Changed to Under Review"
+          "CMS DEMOS: Application Status Changed to Under Review"
         );
         expect(email.text).toContain(`Application Type: ${applicationTypeId}`);
         expect(email.text).toContain("Demonstration: Demo title");
@@ -44,22 +41,11 @@ describe("application emails", () => {
           );
         }
         expect(email.text).toContain(
-          emailType === "Application Deemed Complete"
-            ? "Date deemed complete: 2026-09-15"
-            : "10:30:00 AM EDT"
+          "10:30:00 AM EDT"
         );
       }
     );
   }
-
-  it("reports missing deemed-complete dates", async () => {
-    await expect(
-      renderEmail("Application Deemed Complete", {
-        ...basePayload,
-        application: { ...basePayload.application, deemedCompleteDate: undefined },
-      })
-    ).rejects.toThrow("Missing value for application.deemedCompleteDate");
-  });
 
   it("escapes application titles", async () => {
     const email = await renderEmail("Application Status Updated", {

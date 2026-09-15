@@ -80,7 +80,7 @@ describe("enqueueAndTrackRealtimeEmail", () => {
     });
   });
 
-  it.each(["Application Status Updated", "Application Deemed Complete"] as const)(
+  it.each(["Application Status Updated"] as const)(
     "tracks application_id with the application entity type for %s",
     async (emailType) => {
       const applicationMessage: RealtimeEmailMessage = {

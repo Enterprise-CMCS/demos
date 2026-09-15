@@ -1,6 +1,5 @@
 import {
   renderApplicationStatusUpdatedEmail,
-  renderApplicationDeemedCompleteEmail,
 } from "./templates/ApplicationEmail";
 import { render, toPlainText } from "@react-email/render";
 
@@ -26,7 +25,6 @@ import type {
 // Template creation
 const templates: Record<string, EmailTemplate> = {
   "Application Status Updated": renderApplicationStatusUpdatedEmail,
-  "Application Deemed Complete": renderApplicationDeemedCompleteEmail,
   "Deliverable Created": renderDeliverableCreatedEmail,
   "Deliverable Due Date Updated": renderDeliverableDueDateUpdatedEmail,
   "Deliverable Submitted": renderDeliverableSubmittedEmail,

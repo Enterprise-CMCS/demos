@@ -4,7 +4,6 @@ import { log } from "../../log";
 import { PrismaApplication } from "../application";
 import { enqueueAndTrackRealtimeEmail } from "./emailNotification";
 import {
-  notifyApplicationDeemedComplete,
   notifyApplicationStatusUpdated,
 } from "./notifyApplicationEvent";
 
@@ -103,21 +102,6 @@ describe("application notifications", () => {
     expect(enqueueAndTrackRealtimeEmail).not.toHaveBeenCalled();
   });
 
-  it("includes the deemed-complete date", async () => {
-    const date = new Date("2026-09-15T04:00:00Z");
-    await notifyApplicationDeemedComplete(application, date, "user-1");
-    expect(enqueueAndTrackRealtimeEmail).toHaveBeenCalledWith(
-      expect.objectContaining({
-        emailType: "Application Deemed Complete",
-        payload: expect.objectContaining({
-          application: expect.objectContaining({ deemedCompleteDate: date.toISOString() }),
-        }),
-      }),
-      { applicationId: "app-1" },
-      [{ personId: "person-1" }]
-    );
-  });
-
   it.each([{ assignments: [] }, { assignments: [{ person: { ...person, email: "invalid" } }] }])(
     "reports missing or invalid recipients",
     async ({ assignments }) => {
@@ -125,7 +109,7 @@ describe("application notifications", () => {
         ...demonstration,
         demonstrationRoleAssignments: assignments,
       });
-      await notifyApplicationDeemedComplete(application, new Date(), "user-1");
+      await notifyApplicationStatusUpdated({ ...application, statusId: "Pre-Submission" }, application, "user-1");
       expect(enqueueAndTrackRealtimeEmail).not.toHaveBeenCalled();
       expect(log.error).toHaveBeenCalledWith(
         expect.objectContaining({ error: expect.any(Error), applicationId: "app-1" }),
@@ -138,7 +122,7 @@ describe("application notifications", () => {
     const error = new Error("queue unavailable");
     vi.mocked(enqueueAndTrackRealtimeEmail).mockRejectedValue(error);
     await expect(
-      notifyApplicationDeemedComplete(application, new Date(), "user-1")
+      notifyApplicationStatusUpdated({ ...application, statusId: "Pre-Submission" }, application, "user-1")
     ).resolves.toBeUndefined();
     expect(log.error).toHaveBeenCalledWith(
       expect.objectContaining({ error }),
