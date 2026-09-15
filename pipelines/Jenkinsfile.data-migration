@@ -144,8 +144,7 @@ stages {
           sh """
           /app/venv/bin/python -c 'import duckdb_connection_manager as d
 conn = d.create_duckdb_conn()
-d.attach_pmda_to_conn(conn)
-d.attach_demos_to_conn(conn)
+d.attach_db_to_duckdb_conn(conn, "demos-aws")
 print(conn.sql("SHOW DATABASES").fetchall())
 conn.close()
 '
