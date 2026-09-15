@@ -239,3 +239,20 @@ From inside the devcontainer, enqueue the legacy test message with:
 
 The script prints the queue result, Mailpit URL, and the command for following
 the local Lambda logs.
+
+### Application notifications
+
+Application emails use the same tracked queue, renderer, BCC delivery, allowlist, and
+notification status updates as deliverable emails:
+
+- `Application Status Updated`: sent after completing a phase, skipping Concept, or
+  declaring Completeness incomplete, when the application's status actually changes.
+
+Status-change emails BCC CMS-role contacts and Admin contacts assigned to the parent demonstration.
+The payload includes the demonstration, application type, status, and event date;
+Amendment and Extension emails also include their application title and direct link.
+Tracking uses the affected application's ID in `application_id`, with `entity_type`
+set to `application` for all three application types. For a demonstration, this is
+the demonstration ID; for an amendment or extension, it is that application's own ID.
+The application type comes from the linked Application record and is included in
+the queued payload for rendering.

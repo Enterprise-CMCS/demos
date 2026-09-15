@@ -1,3 +1,7 @@
+import { getApplication } from "../application";
+vi.mock("../email/notifyApplicationEvent", () => ({
+  notifyApplicationStatusUpdated: vi.fn(),
+}));
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { completePhase } from "./completePhase.js";
 import { CompletePhaseInput } from "../../types.js";
@@ -71,6 +75,10 @@ describe("completePhase", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.mocked(getApplication).mockResolvedValue({
+      id: testApplicationId,
+      statusId: "Under Review",
+    } as Awaited<ReturnType<typeof getApplication>>);
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
     vi.mocked(getEasternNow).mockReturnValue(mockEasternValue);
@@ -109,7 +117,7 @@ describe("completePhase", () => {
         mockTransaction,
       ];
 
-      await completePhase(undefined, { input: testInput });
+      await completePhase(undefined, { input: testInput }, { user: { id: "user-1" } });
 
       expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
@@ -167,7 +175,7 @@ describe("completePhase", () => {
         mockTransaction,
       ];
 
-      await completePhase(undefined, { input: testInput });
+      await completePhase(undefined, { input: testInput }, { user: { id: "user-1" } });
 
       expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
@@ -214,7 +222,7 @@ describe("completePhase", () => {
         ],
       ];
 
-      await completePhase(undefined, { input: testInput });
+      await completePhase(undefined, { input: testInput }, { user: { id: "user-1" } });
 
       expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
@@ -240,7 +248,9 @@ describe("completePhase", () => {
         phaseName: "Federal Comment",
       };
 
-      await expect(completePhase(undefined, { input: testInput })).rejects.toThrowError(
+      await expect(
+        completePhase(undefined, { input: testInput }, { user: { id: "user-1" } })
+      ).rejects.toThrowError(
         "Operations against the Federal Comment phase are not permitted via API."
       );
 
@@ -284,7 +294,7 @@ describe("completePhase", () => {
         mockTransaction,
       ];
 
-      await completePhase(undefined, { input: testInput });
+      await completePhase(undefined, { input: testInput }, { user: { id: "user-1" } });
 
       expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
@@ -342,7 +352,7 @@ describe("completePhase", () => {
         mockTransaction,
       ];
 
-      await completePhase(undefined, { input: testInput });
+      await completePhase(undefined, { input: testInput }, { user: { id: "user-1" } });
 
       expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
@@ -400,7 +410,7 @@ describe("completePhase", () => {
         mockTransaction,
       ];
 
-      await completePhase(undefined, { input: testInput });
+      await completePhase(undefined, { input: testInput }, { user: { id: "user-1" } });
 
       expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
@@ -445,7 +455,7 @@ describe("completePhase", () => {
         mockTransaction,
       ];
 
-      await completePhase(undefined, { input: testInput });
+      await completePhase(undefined, { input: testInput }, { user: { id: "user-1" } });
 
       expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
@@ -471,9 +481,9 @@ describe("completePhase", () => {
         phaseName: "Concept",
       };
 
-      await expect(completePhase(undefined, { input: testInput })).rejects.toThrowError(
-        testHandlePrismaError
-      );
+      await expect(
+        completePhase(undefined, { input: testInput }, { user: { id: "user-1" } })
+      ).rejects.toThrowError(testHandlePrismaError);
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
     });
 
@@ -498,7 +508,7 @@ describe("completePhase", () => {
         ],
       ];
 
-      await completePhase(undefined, { input: testInput });
+      await completePhase(undefined, { input: testInput }, { user: { id: "user-1" } });
 
       expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,

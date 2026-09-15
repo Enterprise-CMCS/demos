@@ -80,6 +80,33 @@ describe("enqueueAndTrackRealtimeEmail", () => {
     });
   });
 
+  it("tracks application_id for Application Status Updated notifications", async () => {
+    const applicationMessage: RealtimeEmailMessage = {
+      ...message,
+      emailType: "Application Status Updated",
+      entityType: "application",
+    };
+    await enqueueAndTrackRealtimeEmail(
+      applicationMessage,
+      { applicationId: message.entityId },
+      recipients
+    );
+    expect(create).toHaveBeenCalledExactlyOnceWith({
+      data: {
+        emailTypeId: "Application Status Updated",
+        entityType: "application",
+        applicationId: message.entityId,
+        statusId: "Pending",
+        payload: message.payload,
+        recipients: { create: recipients },
+      },
+    });
+    expect(enqueueEmail).toHaveBeenCalledExactlyOnceWith({
+      ...applicationMessage,
+      emailNotificationId: "notification-1",
+    });
+  });
+
   it("does not create a notification when email notifications are disabled", async () => {
     process.env.DISABLE_EMAIL_NOTIFICATIONS = "true";
 

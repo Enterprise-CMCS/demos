@@ -1,3 +1,4 @@
+import { notifyApplicationStatusUpdated } from "../email/notifyApplicationEvent";
 import { ApplicationDateInput, DateType } from "../../types.js";
 import { prisma } from "../../prismaClient.js";
 import { getApplication, PrismaApplication } from "../application";
@@ -12,8 +13,11 @@ import { getApplicationDates, validateAndUpdateDates } from "../applicationDate"
 
 export async function declareCompletenessPhaseIncomplete(
   parent: unknown,
-  { applicationId }: { applicationId: string }
+  { applicationId }: { applicationId: string },
+  context: { user: { id: string } }
 ): Promise<PrismaApplication> {
+  const previousApplication = await getApplication(applicationId);
+
   try {
     await prisma().$transaction(async (tx) => {
       const existingApplicationDates = await getApplicationDates(applicationId, tx);
@@ -49,12 +53,17 @@ export async function declareCompletenessPhaseIncomplete(
       }
 
       await validateAndUpdateDates(
-        { applicationId: applicationId, applicationDates: applicationDatesToDelete },
+        {
+          applicationId: applicationId,
+          applicationDates: applicationDatesToDelete,
+        },
         tx
       );
     });
   } catch (error) {
     handlePrismaError(error);
   }
-  return await getApplication(applicationId);
+  const application = await getApplication(applicationId);
+  await notifyApplicationStatusUpdated(previousApplication, application, context.user.id);
+  return application;
 }

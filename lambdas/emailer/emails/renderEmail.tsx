@@ -1,3 +1,6 @@
+import {
+  renderApplicationStatusUpdatedEmail,
+} from "./templates/ApplicationEmail";
 import { render, toPlainText } from "@react-email/render";
 
 import { getRequiredObject } from "./helpers";
@@ -21,6 +24,7 @@ import type {
 
 // Template creation
 const templates: Record<string, EmailTemplate> = {
+  "Application Status Updated": renderApplicationStatusUpdatedEmail,
   "Deliverable Created": renderDeliverableCreatedEmail,
   "Deliverable Due Date Updated": renderDeliverableDueDateUpdatedEmail,
   "Deliverable Submitted": renderDeliverableSubmittedEmail,
