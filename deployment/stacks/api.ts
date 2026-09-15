@@ -305,6 +305,7 @@ export class ApiStack extends Stack {
       nodeModules: [
         "@react-email/components",
         "@react-email/render",
+        "mime-types",
         "nodemailer",
         "pg",
         "pino",
