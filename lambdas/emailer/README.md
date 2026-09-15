@@ -259,14 +259,15 @@ the queued payload for rendering.
 
 ### Accepted reference agreements
 
-`submitReferenceAgreement` records acceptance and, when explicitly opted in, queues
+`referenceDownloadUrl` retains its existing acceptance flow and, when
+`emailRequested` is true and an agreement was accepted, queues
 `Terms And Conditions Requested` with entity type `reference` and the accepted
 `referenceConfigurationId`. Its payload contains the registered recipient,
 `reference.name`, and `agreement: { id, name, s3Path }` captured at submission.
 The worker retrieves that agreement from `CLEAN_BUCKET` and attaches it to the
 email. Retrieval or SMTP failures record `Failed` and `lastError` and follow the
-existing SQS retry policy. Queuing failures return a warning status while keeping
-the reference download available.
+existing SQS retry policy. Queuing failures are logged while keeping the reference download available.
+The query continues to return a URL string.
 
 Deploy the emailer with clean-bucket read access before deploying the new API and
 frontend. For local testing, use `LOCAL_EMAIL_MODE=mailpit` with

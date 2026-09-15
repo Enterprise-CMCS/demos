@@ -6,10 +6,7 @@ import {
 import { NonEmptyString, ReferenceAgreement, Tag, TagName, TagStatus } from "../../types";
 import { getReferenceAgreementDownloadUrl, getReferenceDownloadUrl } from ".";
 
-import { submitReferenceAgreement } from "./submitReferenceAgreement";
-
 export const referenceResolvers = {
-  Mutation: { submitReferenceAgreement },
   Query: {
     references: async (
       parent: unknown,

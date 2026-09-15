@@ -4,8 +4,7 @@ import { useDialog } from "../DialogContext";
 import { Button } from "components/button";
 import { tw } from "tags/tw";
 import { Checkbox } from "components/input";
-import { useSubmitReferenceAgreement } from "hooks/useSubmitReferenceAgreement";
-import { useToast } from "components/toast";
+import { useDownloadReference } from "hooks/useDownloadReference";
 import { ReferenceAgreementDocument } from "./ReferenceAgreementDocument";
 import { Reference, ReferenceAgreement } from "demos-server";
 import { Spinner } from "components/loading/Spinner";
@@ -22,12 +21,11 @@ export const ReferenceAgreementDialog = ({
   };
 }) => {
   const { closeDialog } = useDialog();
-  const { showWarning } = useToast();
   const [emailRequested, setEmailRequested] = React.useState(false);
   const [termsAccepted, setTermsAccepted] = React.useState(false);
   const [isDownloading, setIsDownloading] = React.useState(false);
 
-  const submitReferenceAgreement = useSubmitReferenceAgreement();
+  const { downloadReference } = useDownloadReference();
 
   return (
     <BaseDialog
@@ -42,23 +40,14 @@ export const ReferenceAgreementDialog = ({
           onClick={async () => {
             setIsDownloading(true); // where spinner will engage.
             try {
-              const result = await submitReferenceAgreement({
+              await downloadReference({
                 id: reference.id,
                 acceptedAgreementId: reference.agreement.id,
                 emailRequested,
               });
               closeDialog();
-              if (result.emailRequestStatus === "FAILED") {
-                showWarning(
-                  "Your agreement was accepted, but we couldn't queue the terms and conditions email."
-                );
-              } else if (result.emailRequestStatus === "DISABLED") {
-                showWarning(
-                  "Your agreement was accepted, but email notifications are currently disabled."
-                );
-              }
             } catch {
-              // useSubmitReferenceAgreement reports submission errors to the user.
+              // useDownloadReference reports download errors to the user.
               setIsDownloading(false);
             }
           }}

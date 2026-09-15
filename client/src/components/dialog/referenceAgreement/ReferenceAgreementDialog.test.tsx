@@ -4,8 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { ReferenceAgreementDialog } from "./ReferenceAgreementDialog";
 import { DialogProvider } from "../DialogContext";
 import { useDownloadReference } from "hooks/useDownloadReference";
-import { useSubmitReferenceAgreement } from "hooks/useSubmitReferenceAgreement";
-import { ToastContainer } from "components/toast";
 import { ToastProvider } from "components/toast";
 import { Reference, ReferenceAgreement } from "demos-server";
 
@@ -13,19 +11,11 @@ vi.mock("hooks/useDownloadReference", () => ({
   useDownloadReference: vi.fn(),
 }));
 
-vi.mock("hooks/useSubmitReferenceAgreement", () => ({ useSubmitReferenceAgreement: vi.fn() }));
-
 describe("ReferenceAgreementDialog", () => {
   const downloadReference = vi.fn();
-  const submitReferenceAgreement = vi.fn();
   const downloadReferenceAgreement = vi.fn();
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useSubmitReferenceAgreement).mockReturnValue(submitReferenceAgreement);
-    submitReferenceAgreement.mockResolvedValue({
-      downloadUrl: "download",
-      emailRequestStatus: "NOT_REQUESTED",
-    });
     downloadReference.mockResolvedValue("https://example.com/reference");
     vi.mocked(useDownloadReference).mockReturnValue({
       downloadReference,
@@ -90,7 +80,7 @@ describe("ReferenceAgreementDialog", () => {
     expect(downloadButton).toBeEnabled();
   });
 
-  it("calls the submission mutation with correct parameters when download button is clicked", () => {
+  it("calls the download query with correct parameters when download button is clicked", () => {
     const mockReference: Pick<Reference, "id"> & {
       agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt">;
     } = {
@@ -113,7 +103,7 @@ describe("ReferenceAgreementDialog", () => {
     screen.getByTestId("checkbox-accept-terms").click();
     screen.getByRole("button", { name: "button-download-reference" }).click();
 
-    expect(submitReferenceAgreement).toHaveBeenCalledWith({
+    expect(downloadReference).toHaveBeenCalledWith({
       id: "reference-123",
       acceptedAgreementId: "agreement-456",
       emailRequested: false,
@@ -122,7 +112,7 @@ describe("ReferenceAgreementDialog", () => {
 
   it("shows a spinner while an accepted reference download is being prepared", async () => {
     const user = userEvent.setup();
-    submitReferenceAgreement.mockReturnValueOnce(new Promise(() => {}));
+    downloadReference.mockReturnValueOnce(new Promise(() => {}));
     const mockReference: Pick<Reference, "id"> & {
       agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt">;
     } = {
@@ -149,19 +139,8 @@ describe("ReferenceAgreementDialog", () => {
     expect(downloadButton).toBeDisabled();
     expect(within(downloadButton).getByRole("img", { name: "Loading" })).toBeInTheDocument();
   });
-  it.each([
-    ["QUEUED", null],
-    [
-      "FAILED",
-      "Your agreement was accepted, but we couldn't queue the terms and conditions email.",
-    ],
-    ["DISABLED", "Your agreement was accepted, but email notifications are currently disabled."],
-  ])("submits email opt-in and handles %s", async (status, warning) => {
+  it("passes the selected email checkbox with the accepted agreement", async () => {
     const user = userEvent.setup();
-    submitReferenceAgreement.mockResolvedValue({
-      downloadUrl: "download",
-      emailRequestStatus: status,
-    });
     render(
       <ToastProvider>
         <DialogProvider>
@@ -172,18 +151,16 @@ describe("ReferenceAgreementDialog", () => {
             }}
           />
         </DialogProvider>
-        <ToastContainer />
       </ToastProvider>
     );
     await user.click(screen.getByTestId("checkbox-email-agreement"));
     expect(screen.getByRole("button", { name: "button-download-reference" })).toBeDisabled();
     await user.click(screen.getByTestId("checkbox-accept-terms"));
     await user.click(screen.getByRole("button", { name: "button-download-reference" }));
-    expect(submitReferenceAgreement).toHaveBeenCalledWith({
+    expect(downloadReference).toHaveBeenCalledWith({
       id: "reference-123",
       acceptedAgreementId: "agreement-456",
       emailRequested: true,
     });
-    if (warning) expect(await screen.findByText(warning)).toBeInTheDocument();
   });
 });
