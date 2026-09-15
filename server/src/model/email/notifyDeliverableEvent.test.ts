@@ -101,7 +101,7 @@ describe("deliverable event email notifications", () => {
     expect(enqueueAndTrackRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({
         emailType: "Deliverable Submitted",
-        entityType: "deliverable",
+        entityType: "deliverable_action",
         entityId: deliverable.id,
         triggeredBy: {
           type: "realtime",

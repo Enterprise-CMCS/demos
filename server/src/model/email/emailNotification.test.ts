@@ -23,7 +23,7 @@ describe("enqueueAndTrackRealtimeEmail", () => {
   const create = vi.fn();
   const message: RealtimeEmailMessage = {
     emailType: "Deliverable Created",
-    entityType: "deliverable",
+    entityType: "deliverable_action",
     entityId: "7cd6cd0f-e3de-47a0-9faa-32343020c955",
     triggeredBy: {
       type: "realtime",
@@ -65,7 +65,7 @@ describe("enqueueAndTrackRealtimeEmail", () => {
     expect(create).toHaveBeenCalledExactlyOnceWith({
       data: {
         emailTypeId: "Deliverable Created",
-        entityType: "deliverable",
+        entityType: "deliverable_action",
         deliverableActionId: source.deliverableActionId,
         statusId: "Pending",
         payload: message.payload,
