@@ -22,6 +22,11 @@ ignore:
         reason: No direct upgrade or patch available.
         expires: 2026-08-19T00:00:00.000Z
         created: 2026-08-05T00:00:00.000Z
+  SNYK-JS-FAKERJSFAKER-18674671:
+    - '*':
+        reason: Hotfix.
+        expires: 2026-09-11T00:00:00.000Z
+        created: 2026-08-28T00:00:00.000Z
 patch: {}
 exclude:
   global:
