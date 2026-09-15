@@ -311,6 +311,28 @@ export function applyFileUploadSuppressions(fileUpload: Stack, stage: string) {
       },
     ]
   );
+
+  NagSuppressions.addResourceSuppressionsByPath(
+    fileUpload,
+    `/demos-${stage}-file-upload/DataConnectExportProcessor/dataConnectExport/dataConnectExportLambdaExecutionRole/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role. Some wildcards are unavoidable (VPC networking).",
+      },
+    ]
+  );
+
+  NagSuppressions.addResourceSuppressionsByPath(
+    fileUpload,
+    `/demos-${stage}-file-upload/DataConnectExportProcessor/dataConnectExport/dataConnectExportLambdaExecutionRole/DefaultPolicy/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions are scoped to the DataConnect bucket and the export database secret. Writing objects requires a wildcard object suffix, and s3:Abort* comes with the CDK grantPut helper.",
+      },
+    ]
+  );
 }
 
 export function applyDbRoleSuppressions(dbRole: Stack, stage: string) {

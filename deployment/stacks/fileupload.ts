@@ -29,6 +29,7 @@ import importNumberValue from "../util/importNumberValue";
 import { backupTags } from "../util/backup";
 import { UiPathProcessor } from "../lib/uipathProcessor";
 import { BudgetNeutralityProcessor } from "../lib/budgetNeutralityProcessor";
+import { DataConnectExportProcessor } from "../lib/dataConnectExportProcessor";
 
 interface FileUploadStackProps extends StackProps, DeploymentConfigProperties {
   vpc: IVpc;
@@ -380,6 +381,41 @@ export class FileUploadStack extends Stack {
       "Allow traffic to S3"
     );
 
+    const dataConnectExportLambdaSecurityGroup = securityGroup.create({
+      ...props,
+      name: "dataConnectExportSecurityGroup",
+      vpc: props.vpc,
+      scope: this,
+    });
+
+    rdsSg.addIngressRule(
+      aws_ec2.Peer.securityGroupId(
+        dataConnectExportLambdaSecurityGroup.securityGroup.securityGroupId
+      ),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow ingress from DataConnect Export Security Group",
+      true
+    );
+
+    dataConnectExportLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(rdsSecurityGroupId),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow egress to RDS",
+      true
+    );
+
+    dataConnectExportLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to secrets manager VPCE"
+    );
+
+    dataConnectExportLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to S3"
+    );
+
     const dbSecretFileProcess = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
       "rdsFileProcessDatabaseSecret",
@@ -492,6 +528,13 @@ export class FileUploadStack extends Stack {
       budgetNeutralityProcessor.queue.queueUrl
     );
     budgetNeutralityProcessor.queue.grantSendMessages(fileProcessLambda.lambda);
+
+    new DataConnectExportProcessor(this, "DataConnectExportProcessor", {
+      ...props,
+      exportBucket: dataConnectBucket,
+      vpc: props.vpc,
+      securityGroup: dataConnectExportLambdaSecurityGroup.securityGroup,
+    });
 
     this.setupCloudWatchAlarms(props, alarmResources);
 
