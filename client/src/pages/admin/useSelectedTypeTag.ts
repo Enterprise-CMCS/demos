@@ -8,15 +8,19 @@ export const useSelectedTypeTag = () => {
   const selectedTypeTag = searchParams.get(TYPE_TAG_SEARCH_PARAM) ?? "";
 
   // Passing "" clears the selection and returns to the Type/Tag list.
+  // Replacing the history entry keeps Close Admin's navigate(-1) one step from leaving Admin.
   const selectTypeTag = (tagName: string) => {
-    setSearchParams((params) => {
-      if (tagName) {
-        params.set(TYPE_TAG_SEARCH_PARAM, tagName);
-      } else {
-        params.delete(TYPE_TAG_SEARCH_PARAM);
-      }
-      return params;
-    });
+    setSearchParams(
+      (params) => {
+        if (tagName) {
+          params.set(TYPE_TAG_SEARCH_PARAM, tagName);
+        } else {
+          params.delete(TYPE_TAG_SEARCH_PARAM);
+        }
+        return params;
+      },
+      { replace: true }
+    );
   };
 
   return { selectedTypeTag, selectTypeTag };
