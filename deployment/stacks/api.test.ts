@@ -188,6 +188,7 @@ describe("Api Stack", () => {
     // fs.writeFileSync("template.json", JSON.stringify(template.toJSON(), null, 2));
     template.resourceCountIs("AWS::EC2::SecurityGroup", 3);
     template.resourceCountIs("AWS::Lambda::Function", 3);
+    template.resourceCountIs("AWS::Lambda::EventSourceMapping", 2);
     template.resourceCountIs("AWS::ApiGateway::RestApi", 1);
     template.resourceCountIs("AWS::ApiGateway::Authorizer", 1);
     template.resourceCountIs("AWS::CloudWatch::Alarm", 10);

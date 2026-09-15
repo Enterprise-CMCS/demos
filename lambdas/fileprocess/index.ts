@@ -1,3 +1,4 @@
+import { notifyFileScanFailed } from "./notifyFileScanFailed";
 import {
   Context,
   SQSEvent,
@@ -21,6 +22,8 @@ const AWS_REGION = process.env.AWS_REGION || "us-east-1";
 
 let databaseUrlCache = "";
 let cacheExpiration = 0;
+
+type DatabaseClient = Pick<Client, "query">;
 
 interface Results {
   processedRecords: number;
@@ -52,7 +55,7 @@ export async function getDatabaseUrl() {
   return databaseUrlCache;
 }
 
-export async function getApplicationId(client: typeof Client, fileKey: string) {
+export async function getApplicationId(client: DatabaseClient, fileKey: string) {
   const getApplicationIdQuery = `SELECT application_id FROM ${process.env.DB_SCHEMA || "demos_app"}.document_pending_upload WHERE id = $1;`;
 
   try {
@@ -108,7 +111,7 @@ export async function moveFile(
 }
 
 export async function processCleanDatabaseRecord(
-  client: typeof Client,
+  client: DatabaseClient,
   documentId: string,
   applicationId: string
 ) {
@@ -130,7 +133,7 @@ export async function processCleanDatabaseRecord(
 }
 
 export async function processInfectedDatabaseRecord(
-  client: typeof Client,
+  client: DatabaseClient,
   documentId: string,
   applicationId: string,
   scanResultDetails: GuardDutyScanResultNotificationEventDetail["scanResultDetails"]
@@ -212,7 +215,7 @@ export async function enqueueUiPath(documentId: string) {
 }
 
 export async function processGuardDutyResult(
-  client: typeof Client,
+  client: DatabaseClient,
   guardDutyEvent: GuardDutyScanResultNotificationEvent
 ): Promise<boolean> {
   const detailType = guardDutyEvent["detail-type"];
@@ -242,6 +245,16 @@ export async function processGuardDutyResult(
   }
 
   const documentId = s3Details.objectKey;
+  if (scanResultDetails.scanResultStatus !== GUARDDUTY_CLEAN_STATUS) {
+    const quarantined = await client.query(
+      `SELECT id FROM ${process.env.DB_SCHEMA || "demos_app"}.document_infected WHERE id = $1`,
+      [documentId]
+    );
+    if (quarantined.rows.length) {
+      await notifyFileScanFailed(client, guardDutyEvent);
+      return false;
+    }
+  }
   const applicationId = await getApplicationId(client, documentId);
 
   const scanResultStatus = scanResultDetails.scanResultStatus;
@@ -272,6 +285,7 @@ export async function processGuardDutyResult(
     }
   } else {
     await processInfectedDatabaseRecord(client, documentId, applicationId, scanResultDetails);
+    await notifyFileScanFailed(client, guardDutyEvent);
   }
 
   return isClean;

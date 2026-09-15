@@ -15,6 +15,7 @@ const mockCommonProps: DeploymentConfigProperties = {
   cloudfrontHost: "unittest.demos.com",
   srrConfigured: true,
   dataConnectRoleArn: "arn:aws:iam::1234567890:role/dataconnectrole",
+  securityOfficerEmail: "security.official@example.com",
 };
 const commongAppArgs = {
   context: {
@@ -184,6 +185,19 @@ describe("File Upload Stack", () => {
 
     template.resourceCountIs("AWS::S3::Bucket", 7)
     template.resourceCountIs("AWS::CloudWatch::Alarm", 16);
+
+    template.hasOutput("fileScanEmailQueueArn", {
+      Export: { Name: "unittestFileScanEmailQueueArn" },
+    });
+    template.hasResourceProperties("AWS::Lambda::Function", {
+      FunctionName: "demos-unittest-fileProcess",
+      Environment: {
+        Variables: Match.objectLike({
+          EMAILER_QUEUE_URL: Match.anyValue(),
+          SECURITY_OFFICER_EMAIL: "security.official@example.com",
+        }),
+      },
+    });
 
     expectLambdaErrorsAlarm(
       template,

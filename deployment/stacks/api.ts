@@ -169,6 +169,12 @@ export class ApiStack extends Stack {
     const uipathQueueUrl = Fn.importValue(`${props.stage}UiPathQueueUrl`);
     const uipathQueueArn = Fn.importValue(`${props.stage}UiPathQueueArn`);
     const uipathQueue = Queue.fromQueueArn(this, "uipathQueue", uipathQueueArn);
+    const fileScanEmailQueueArn = Fn.importValue(`${props.stage}FileScanEmailQueueArn`);
+    const fileScanEmailQueue = Queue.fromQueueArn(
+      this,
+      "fileScanEmailQueue",
+      fileScanEmailQueueArn
+    );
 
     const graphqlLambda = lambda.create(
       {
@@ -367,6 +373,12 @@ export class ApiStack extends Stack {
         batchSize: 1,
       })
     );
+    emailerLambda.lambda.addEventSource(
+      new SqsEventSource(fileScanEmailQueue, {
+        batchSize: 1,
+      })
+    );
+    fileUploadKms.grantDecrypt(emailerLambda.role);
 
     this.setupCloudWatchAlarms(props, alarmResources);
 

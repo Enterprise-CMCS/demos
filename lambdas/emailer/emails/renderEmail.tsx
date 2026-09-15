@@ -1,3 +1,4 @@
+import { renderFileUploadFailedEmail } from "./templates/FileUploadFailedEmail";
 import {
   renderApplicationStatusUpdatedEmail,
 } from "./templates/ApplicationEmail";
@@ -24,6 +25,7 @@ import type {
 
 // Template creation
 const templates: Record<string, EmailTemplate> = {
+  "File Upload Failed Virus Scan": renderFileUploadFailedEmail,
   "Application Status Updated": renderApplicationStatusUpdatedEmail,
   "Deliverable Created": renderDeliverableCreatedEmail,
   "Deliverable Due Date Updated": renderDeliverableDueDateUpdatedEmail,

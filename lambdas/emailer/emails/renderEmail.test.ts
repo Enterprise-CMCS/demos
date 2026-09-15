@@ -146,6 +146,44 @@ function cleanHtml(html: string): string {
 }
 
 describe("renderEmail", () => {
+  it("renders the file scan failure notification", async () => {
+    const payload = await renderEmail("File Upload Failed Virus Scan", {
+      recipients: {
+        to: [],
+        bcc: ["security.official@example.com", "admin@example.com"],
+      },
+      file: {
+        demonstrationName: "Medicaid Demonstration",
+        name: "infected.pdf",
+        url: "s3://upload-bucket/document-id",
+        detectedAt: "2026-09-15T12:34:56Z",
+        virusInformation: "Malware.Test",
+        severity: "Not provided by GuardDuty",
+        quarantineUrl: "https://s3.example.com/quarantine/document-id",
+        uploadedBy: "Upload User",
+      },
+    });
+
+    expect(payload.to).toEqual([]);
+    expect(payload.bcc).toEqual([
+      "security.official@example.com",
+      "admin@example.com",
+    ]);
+    expect(payload.subject).toBe("CMS DEMOS: File Upload Failed");
+    for (const text of [
+      "infected.pdf",
+      "s3://upload-bucket/document-id",
+      "2026-09-15T12:34:56Z",
+      "Malware.Test",
+      "Not provided by GuardDuty",
+      "https://s3.example.com/quarantine/document-id",
+      "Upload User",
+      "Source of File - User upload",
+    ]) {
+      expect(payload.text).toContain(text);
+    }
+  });
+
   it("renders every registered template", async () => {
     for (const { emailType, expectedText, input, subject } of templateCases) {
       const payload = await renderEmail(emailType, input);

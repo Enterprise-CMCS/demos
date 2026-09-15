@@ -36,13 +36,13 @@ interface FileUploadStackProps extends StackProps, DeploymentConfigProperties {
 
 export class FileUploadStack extends Stack {
   constructor(scope: Construct, id: string, props: FileUploadStackProps) {
-
     super(scope, id, props);
 
-  Validations.of(this).acknowledge({
-    id: "CloudFormation-Validate::E3687",
-    reason: "False positive: FromPort and ToPort are supplied through an imported deploy-time value.'"
-  })
+    Validations.of(this).acknowledge({
+      id: "CloudFormation-Validate::E3687",
+      reason:
+        "False positive: FromPort and ToPort are supplied through an imported deploy-time value.'",
+    });
 
     const alarmResources = new alarms.CloudWatchAlarmRegistry();
 
@@ -83,6 +83,18 @@ export class FileUploadStack extends Stack {
     });
     alarmResources.registerQueue("deleteInfectedFile", deleteInfectedFileQueue);
 
+    const fileScanEmailQueue = new Queue(this, "FileScanEmailQueue", {
+      removalPolicy: props.stage == "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
+      enforceSSL: true,
+      encryption: QueueEncryption.KMS,
+      encryptionMasterKey: kmsKey,
+      deadLetterQueue: {
+        maxReceiveCount: 5,
+        queue: deadLetterQueue,
+      },
+    });
+    alarmResources.registerQueue("fileScanEmail", fileScanEmailQueue);
+
     const accessLogs = new Bucket(this, "fileUploadAccessLogBucket", {
       encryption: aws_s3.BucketEncryption.S3_MANAGED,
       removalPolicy:
@@ -95,18 +107,25 @@ export class FileUploadStack extends Stack {
     const accessLogBucketCfn = accessLogs.node.defaultChild as aws_s3.CfnBucket;
     accessLogBucketCfn.cfnOptions.metadata = {
       checkov: {
-        skip: [{
-          id: "CKV_AWS_18",
-          reason: "the access log bucket itself does not need access logs"
-        },{
-          id: "CKV_AWS_21",
-          reason: "versioning on the access log bucket itself is intentionally disabled"
-        }]
-      }
-    }
+        skip: [
+          {
+            id: "CKV_AWS_18",
+            reason: "the access log bucket itself does not need access logs",
+          },
+          {
+            id: "CKV_AWS_21",
+            reason: "versioning on the access log bucket itself is intentionally disabled",
+          },
+        ],
+      },
+    };
 
-    const s3AccessLogBucketArn = Fn.importValue(`${props.stage}AccessLogBucketArn`)
-    const s3AccessLogBucket = Bucket.fromBucketArn(this, "coreAccessLogBucket", s3AccessLogBucketArn)
+    const s3AccessLogBucketArn = Fn.importValue(`${props.stage}AccessLogBucketArn`);
+    const s3AccessLogBucket = Bucket.fromBucketArn(
+      this,
+      "coreAccessLogBucket",
+      s3AccessLogBucketArn
+    );
 
     const uploadBucket = new Bucket(this, "FileUploadBucket", {
       versioned: false,
@@ -140,38 +159,38 @@ export class FileUploadStack extends Stack {
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
     });
 
-    dataConnectBucket.addToResourcePolicy(new aws_iam.PolicyStatement({
-      effect: aws_iam.Effect.ALLOW,
-      principals: [
-        new aws_iam.ArnPrincipal(props.dataConnectRoleArn)
-      ],
-      actions: [
-        "s3:GetBucketLocation",
-        "s3:GetObject",
-        "s3:GetObjectTagging",
-        "s3:ListBucket",
-        "s3:ListBucketMultipartUploads",
-        "s3:ListMultipartUploadParts"
-      ],
-      resources: [
-        dataConnectBucket.bucketArn,
-        dataConnectBucket.arnForObjects("*"),
-      ]
-    }))
+    dataConnectBucket.addToResourcePolicy(
+      new aws_iam.PolicyStatement({
+        effect: aws_iam.Effect.ALLOW,
+        principals: [new aws_iam.ArnPrincipal(props.dataConnectRoleArn)],
+        actions: [
+          "s3:GetBucketLocation",
+          "s3:GetObject",
+          "s3:GetObjectTagging",
+          "s3:ListBucket",
+          "s3:ListBucketMultipartUploads",
+          "s3:ListMultipartUploadParts",
+        ],
+        resources: [dataConnectBucket.bucketArn, dataConnectBucket.arnForObjects("*")],
+      })
+    );
 
-     if (!props.isEphemeral) {
+    if (!props.isEphemeral) {
       Tags.of(dataConnectBucket).add("AWS_Backup", backupTags.d15_w90);
     }
 
     const uploadBucketCfn = uploadBucket.node.defaultChild as aws_s3.CfnBucket;
     uploadBucketCfn.cfnOptions.metadata = {
       checkov: {
-        skip: [{
-          id: "CKV_AWS_21",
-          reason: "versioning on the upload bucket is intentionally disabled. Files are only here for a short time and moved to other buckets based on virus scan status where versioning is enabled"
-        }]
-      }
-    }
+        skip: [
+          {
+            id: "CKV_AWS_21",
+            reason:
+              "versioning on the upload bucket is intentionally disabled. Files are only here for a short time and moved to other buckets based on virus scan status where versioning is enabled",
+          },
+        ],
+      },
+    };
 
     new GuardDutyS3(this, "uploadBucketScan", {
       bucket: uploadBucket,
@@ -401,6 +420,8 @@ export class FileUploadStack extends Stack {
         UPLOAD_BUCKET: uploadBucket.bucketName,
         CLEAN_BUCKET: cleanBucket.bucketName,
         INFECTED_BUCKET: infectedBucket.bucketName,
+        EMAILER_QUEUE_URL: fileScanEmailQueue.queueUrl,
+        SECURITY_OFFICER_EMAIL: props.securityOfficerEmail ?? "",
         DATABASE_SECRET_ARN: dbSecretFileProcess.secretName, // pragma: allowlist secret
         NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
       },
@@ -419,6 +440,7 @@ export class FileUploadStack extends Stack {
     cleanBucket.grantWrite(fileProcessLambda.lambda);
     infectedBucket.grantWrite(fileProcessLambda.lambda);
     uploadQueue.grantConsumeMessages(fileProcessLambda.lambda);
+    fileScanEmailQueue.grantSendMessages(fileProcessLambda.lambda);
     dbSecretFileProcess.grantRead(fileProcessLambda.lambda);
 
     const dbSecretDeleteInfectedFile = aws_secretsmanager.Secret.fromSecretNameV2(
@@ -458,7 +480,8 @@ export class FileUploadStack extends Stack {
     // UiPath processor (queue + DLQ + lambda) within FileUpload stack
     const uiPathProcessor = new UiPathProcessor(this, "UiPathProcessor", {
       ...props,
-      removalPolicy: props.isDev || props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
+      removalPolicy:
+        props.isDev || props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
       kmsKey,
       deadLetterQueue,
       documentsBucket: uiPathDocumentsBucket,
@@ -467,10 +490,7 @@ export class FileUploadStack extends Stack {
       securityGroup: uiPathLambdaSecurityGroup.securityGroup,
     });
 
-    fileProcessLambda.lambda.addEnvironment(
-      "UIPATH_QUEUE_URL",
-      uiPathProcessor.queue.queueUrl
-    );
+    fileProcessLambda.lambda.addEnvironment("UIPATH_QUEUE_URL", uiPathProcessor.queue.queueUrl);
     uiPathProcessor.queue.grantSendMessages(fileProcessLambda.lambda);
 
     const budgetNeutralityProcessor = new BudgetNeutralityProcessor(
@@ -478,7 +498,8 @@ export class FileUploadStack extends Stack {
       "BudgetNeutralityProcessor",
       {
         ...props,
-        removalPolicy: props.isDev || props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
+        removalPolicy:
+          props.isDev || props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
         kmsKey,
         deadLetterQueue,
         readBuckets: [cleanBucket],
@@ -503,6 +524,11 @@ export class FileUploadStack extends Stack {
     new CfnOutput(this, "uploadBucketName", {
       exportName: `${props.stage}UploadBucketName`,
       value: uploadBucket.bucketName,
+    });
+
+    new CfnOutput(this, "fileScanEmailQueueArn", {
+      exportName: `${props.stage}FileScanEmailQueueArn`,
+      value: fileScanEmailQueue.queueArn,
     });
 
     new CfnOutput(this, "deletedBucketName", {
@@ -624,7 +650,8 @@ export class FileUploadStack extends Stack {
       scope: this,
       id: "FileProcessLambdaThrottlesAlarm",
       name: "file-process-lambda-throttles",
-      description: "File processing Lambda has one or more throttled invocations in a 5-minute period.",
+      description:
+        "File processing Lambda has one or more throttled invocations in a 5-minute period.",
       lambdaFunction: resources.lambda("fileProcess"),
       period: lambdaAlarmPeriod,
       threshold: 0,
@@ -663,7 +690,8 @@ export class FileUploadStack extends Stack {
       scope: this,
       id: "DeleteInfectedFileLambdaThrottlesAlarm",
       name: "delete-infected-file-lambda-throttles",
-      description: "Delete infected file Lambda has one or more throttled invocations in a 5-minute period.",
+      description:
+        "Delete infected file Lambda has one or more throttled invocations in a 5-minute period.",
       lambdaFunction: resources.lambda("deleteInfectedFile"),
       period: lambdaAlarmPeriod,
       threshold: 0,

@@ -10,6 +10,11 @@ const sqsMocks = vi.hoisted(() => ({
     this.input = input;
   }),
 }));
+const notificationMocks = vi.hoisted(() => ({
+  notifyFileScanFailed: vi.fn(),
+}));
+
+vi.mock("./notifyFileScanFailed", () => notificationMocks);
 
 vi.mock("@aws-sdk/client-sqs", () => {
   sqsMocks.SQSClientMock.mockImplementation(function() {
@@ -62,6 +67,7 @@ describe("file-process", () => {
     sqsMocks.sendMock.mockReset();
     sqsMocks.SQSClientMock.mockClear();
     sqsMocks.SendMessageCommandMock.mockClear();
+    notificationMocks.notifyFileScanFailed.mockReset();
 
     mockEventBase = {
       source: "aws.guardduty",
@@ -816,7 +822,11 @@ describe("file-process", () => {
         }),
       }));
 
-      mockQuery.mockResolvedValue({ rows: [{ application_id: "1" }] });
+      mockQuery
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [{ application_id: "1" }] })
+        .mockResolvedValueOnce({ rows: [] });
 
       await handler(
         {
@@ -846,20 +856,29 @@ describe("file-process", () => {
       expect(mockSend).toHaveBeenNthCalledWith(1, expect.any(CopyObjectCommand));
       expect(mockSend).toHaveBeenNthCalledWith(2, expect.any(DeleteObjectCommand));
 
-      expect(mockQuery).toHaveBeenCalledTimes(3);
+      expect(mockQuery).toHaveBeenCalledTimes(4);
       expect(mockQuery).toHaveBeenNthCalledWith(
         1,
         expect.stringContaining("SET search_path TO demos_app, public;")
       );
       expect(mockQuery).toHaveBeenNthCalledWith(
         2,
-        "SELECT application_id FROM demos_app.document_pending_upload WHERE id = $1;",
+        expect.stringContaining("SELECT id FROM demos_app.document_infected"),
         ["test-key"]
       );
       expect(mockQuery).toHaveBeenNthCalledWith(
         3,
+        "SELECT application_id FROM demos_app.document_pending_upload WHERE id = $1;",
+        ["test-key"]
+      );
+      expect(mockQuery).toHaveBeenNthCalledWith(
+        4,
         "CALL demos_app.move_document_from_pending_to_infected($1::UUID, $2::TEXT, $3::TEXT, $4::TEXT);",
         ["test-key", "1/test-key", "THREATS_FOUND", "Malware.Test"]
+      );
+      expect(notificationMocks.notifyFileScanFailed).toHaveBeenCalledWith(
+        expect.objectContaining({ query: expect.any(Function) }),
+        mockEventInfected
       );
       expect(mockEnd).toHaveBeenCalledTimes(1);
     });

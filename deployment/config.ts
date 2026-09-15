@@ -26,6 +26,7 @@ export interface DeploymentConfigProperties {
   dataConnectRoleArn: string;
   enableAlarms?: boolean;
   pmdaDataSyncArn?: string;
+  securityOfficerEmail?: string;
 }
 
 export const determineDeploymentConfig = async (
@@ -48,37 +49,42 @@ export const determineDeploymentConfig = async (
   };
 
   const isEphemeral = !["dev", "test", "impl", "prod"].includes(stage);
-  const hostEnvironment = isEphemeral ? hostEnv ?? "dev" : stage;
-  const hostUserPoolId = isEphemeral ? await getUserPoolIdByName(`${project}-${hostEnvironment}-user-pool`) : undefined;
+  const hostEnvironment = isEphemeral ? (hostEnv ?? "dev") : stage;
+  const hostUserPoolId = isEphemeral
+    ? await getUserPoolIdByName(`${project}-${hostEnvironment}-user-pool`)
+    : undefined;
 
-  const enableAlarms = isEphemeral ? alarms == "true" : true
+  const enableAlarms = isEphemeral ? alarms == "true" : true;
 
   const secretConfig =
-    stage == "bootstrap" ? {} : JSON.parse((await getSecret(`${project}-${hostEnvironment}/config`))!);
+    stage == "bootstrap"
+      ? {}
+      : JSON.parse((await getSecret(`${project}-${hostEnvironment}/config`))!);
 
   const zScalerIps = await getZScalerIps();
 
-  let cloudfrontHost = hostEnvironment == "prod" ? "demos.cms.gov" : `${hostEnvironment}.demos.internal.cms.gov`;
+  let cloudfrontHost =
+    hostEnvironment == "prod" ? "demos.cms.gov" : `${hostEnvironment}.demos.internal.cms.gov`;
 
   if (isEphemeral) {
     cloudfrontHost = `${stage}.${cloudfrontHost}`;
   }
 
-  const pubCertData = stage != "bootstrap" ? await getParameter("/demos/pub-cms-cert-1") : ""
+  const pubCertData = stage != "bootstrap" ? await getParameter("/demos/pub-cms-cert-1") : "";
   fs.writeFileSync("./cert.pem", `${pubCertData}`);
 
-  let srrConfigured = false
+  let srrConfigured = false;
   try {
-    const cloudfrontReady = stage != "bootstrap" ? await getParameter(`/demos/cloudfront/${stage}`) : ""
+    const cloudfrontReady =
+      stage != "bootstrap" ? await getParameter(`/demos/cloudfront/${stage}`) : "";
     if (cloudfrontReady.startsWith("SRR has been configured:") && stage != "bootstrap") {
-      srrConfigured = true
-    } else if (["dev", "test"].includes(stage) || await configuredDistributionExists(stage)) {
-        throw new Error("A configured distribution already exists. Running this will delete it");
+      srrConfigured = true;
+    } else if (["dev", "test"].includes(stage) || (await configuredDistributionExists(stage))) {
+      throw new Error("A configured distribution already exists. Running this will delete it");
     }
-    
   } catch (err) {
     if (stage != "bootstrap") {
-      throw err
+      throw err;
     }
   }
 
@@ -91,6 +97,6 @@ export const determineDeploymentConfig = async (
     hostUserPoolId,
     cloudfrontHost,
     srrConfigured,
-    enableAlarms
+    enableAlarms,
   };
 };
