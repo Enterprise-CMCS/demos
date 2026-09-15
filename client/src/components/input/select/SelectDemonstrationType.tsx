@@ -17,8 +17,11 @@ export const SELECT_DEMONSTRATION_TYPE_QUERY: TypedDocumentNode<
 
 export const SELECT_DEMONSTRATION_TYPE_TEST_ID = "select-demonstration-type";
 
-const NO_MATCH_MESSAGE =
-  "Entry not found. New tags remain unapproved until admin review. Ensure accuracy before adding.";
+export const ALREADY_ASSIGNED_MESSAGE =
+  "This type is already selected. Modify the dates to apply changes.";
+
+export const NO_MATCH_MESSAGE =
+  "This demonstration type does not exist yet. Check for spelling errors and alternate names.";
 
 export type SelectDemonstrationTypeProps = {
   value: TagName;
@@ -26,8 +29,9 @@ export type SelectDemonstrationTypeProps = {
   isRequired?: boolean;
   filter?: (tag: TagName) => boolean;
   allowCreateNew?: boolean;
-  onFilterChange?: (filterValue: string, hasMatches: boolean) => void;
+  onFilterChange?: (filterValue: string, hasExactMatch: boolean) => void;
   createdOptions?: Tag[];
+  isAlreadyAssigned?: boolean;
 };
 export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => {
   const {
@@ -40,10 +44,20 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
   } = props;
 
   const { loading, error, data } = useQuery(SELECT_DEMONSTRATION_TYPE_QUERY, {
-    // retreive demos types tags between demonstration/extension/amendment workflows.
+    // retreive demos types tags between demonstration/renewal/amendment workflows.
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
   });
+
+  const noMatchMessage = () => {
+    if (props.isAlreadyAssigned) {
+      return ALREADY_ASSIGNED_MESSAGE;
+    }
+    if (allowCreateNew) {
+      return NO_MATCH_MESSAGE;
+    }
+    return undefined;
+  };
 
   const fetchedOptions = data?.demonstrationTypeOptions || [];
   const allOptions = [...fetchedOptions, ...createdOptions];
@@ -83,6 +97,16 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
     }
   };
 
+  const handleFilterChange = (filterValue: string) => {
+    const normalizedFilterValue = filterValue.trim().toLowerCase();
+
+    const hasExactMatch = uniqueOptions.some(
+      (option) => option.tagName.trim().toLowerCase() === normalizedFilterValue
+    );
+
+    onFilterChange?.(filterValue, hasExactMatch);
+  };
+
   return (
     <AutoCompleteSelect
       label="Demonstration Type"
@@ -91,8 +115,8 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
       isDisabled={demonstrationTypeOptions.length === 0 && !allowCreateNew}
       placeholder={placeholderText}
       onSelect={handleSelect}
-      noMatchMessage={allowCreateNew ? NO_MATCH_MESSAGE : undefined}
-      onFilterChange={onFilterChange}
+      noMatchMessage={noMatchMessage()}
+      onFilterChange={handleFilterChange}
       {...rest}
     />
   );

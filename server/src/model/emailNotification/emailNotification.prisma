@@ -1,0 +1,26 @@
+model EmailNotification {
+  id                       String   @default(uuid()) @db.Uuid
+  emailTypeId              String   @map("email_type_id")
+  entityType               String   @map("entity_type")
+  applicationId            String?  @map("application_id") @db.Uuid
+  referenceConfigurationId String?  @map("reference_configuration_id") @db.Uuid
+  deliverableActionId      String?  @map("deliverable_action_id") @db.Uuid
+  publicCommentId          String?  @map("public_comment_id") @db.Uuid
+  statusId                 String   @default("Pending") @map("status_id")
+  payload                  Json
+  sqsMessageId             String?  @map("sqs_message_id")
+  lastError                String?  @map("last_error")
+  createdAt                DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  emailTypeEntityType    EmailNotificationTypeEntityType @relation(fields: [emailTypeId, entityType], references: [emailTypeId, entityTypeId])
+  application            Application?                    @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  referenceConfiguration ReferenceConfiguration?         @relation(fields: [referenceConfigurationId], references: [id], onDelete: Restrict)
+  deliverableAction      DeliverableAction?              @relation(fields: [deliverableActionId], references: [id], onDelete: Restrict)
+  publicComment          PublicComment?                  @relation(fields: [publicCommentId], references: [id], onDelete: Restrict)
+  status                 EmailNotificationStatus         @relation(fields: [statusId], references: [id])
+  recipients             EmailNotificationRecipient[]
+
+  @@id([id])
+  @@map("email_notification")
+}

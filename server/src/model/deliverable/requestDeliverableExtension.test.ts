@@ -1,3 +1,7 @@
+vi.mock("../email/notifyDeliverableEvent", () => ({
+  notifyDeliverableExtensionRequested: vi.fn(),
+}));
+import { notifyDeliverableExtensionRequested } from "../email/notifyDeliverableEvent";
 // Vitest and other helpers
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DeepPartial } from "../../testUtilities";
@@ -80,6 +84,9 @@ describe("requestDeliverableExtension", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.mocked(insertDeliverableAction).mockResolvedValue({
+      id: "action-1",
+    } as any);
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(selectDeliverableOrThrow).mockResolvedValue(mockDeliverable as PrismaDeliverable);
     vi.mocked(parseRequestDeliverableExtensionInput).mockReturnValue(mockParsedInput);
@@ -173,6 +180,16 @@ describe("requestDeliverableExtension", () => {
         userId: testContext.user!.id,
       },
       mockTransaction
+    );
+  });
+  it("notifies after requesting an extension", async () => {
+    await requestDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
+    expect(notifyDeliverableExtensionRequested).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        deliverableId: testDeliverableId,
+        sourceActionId: "action-1",
+        triggeredByUserId: testContext.user!.id,
+      })
     );
   });
 });

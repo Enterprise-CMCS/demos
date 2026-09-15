@@ -40,6 +40,9 @@ lambda:
 "lambda:budgetNeutrality":
 - changed-files:
   - any-glob-to-any-file: lambdas/budgetNeutrality/**
+"lambda:dataConnectExport":
+- changed-files:
+  - any-glob-to-any-file: lambdas/dataConnectExport/**
 "shared-library":
 - changed-files:
   - any-glob-to-any-file: shared_library/**

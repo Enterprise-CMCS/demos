@@ -2,7 +2,7 @@ import type { CompletePhaseInput } from "demos-server";
 import { gql, useMutation } from "@apollo/client";
 import {
   GET_AMENDMENT_WORKFLOW_QUERY,
-  GET_EXTENSION_WORKFLOW_QUERY,
+  GET_RENEWAL_WORKFLOW_QUERY,
   GET_WORKFLOW_DEMONSTRATION_QUERY,
 } from "components/application";
 
@@ -23,7 +23,7 @@ export const useCompletePhase = () => {
       refetchQueries: [
         GET_WORKFLOW_DEMONSTRATION_QUERY,
         GET_AMENDMENT_WORKFLOW_QUERY,
-        GET_EXTENSION_WORKFLOW_QUERY,
+        GET_RENEWAL_WORKFLOW_QUERY,
       ],
     });
   };
@@ -50,7 +50,7 @@ export const useDeclareCompletenessPhaseIncomplete = () => {
       refetchQueries: [
         GET_WORKFLOW_DEMONSTRATION_QUERY,
         GET_AMENDMENT_WORKFLOW_QUERY,
-        GET_EXTENSION_WORKFLOW_QUERY,
+        GET_RENEWAL_WORKFLOW_QUERY,
       ],
     });
   };
@@ -75,7 +75,7 @@ export const useSkipConceptPhase = () => {
       refetchQueries: [
         GET_WORKFLOW_DEMONSTRATION_QUERY,
         GET_AMENDMENT_WORKFLOW_QUERY,
-        GET_EXTENSION_WORKFLOW_QUERY,
+        GET_RENEWAL_WORKFLOW_QUERY,
       ],
     });
   };

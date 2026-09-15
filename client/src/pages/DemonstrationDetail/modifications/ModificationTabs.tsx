@@ -5,13 +5,14 @@ import { DemonstrationDetailModification } from "../DemonstrationDetail";
 
 const STYLES = {
   modificationContainer: "flex flex-col gap-2",
-  tabList: "flex flex-row gap-1 border-b border-border-rules",
-  tab: "cursor-pointer p-0.5 font-normal",
+  tabList:
+    "flex flex-row gap-1 border-b border-border-rules overflow-x-auto flex-nowrap scrollbar-thin",
+  tab: "cursor-pointer p-0.5 font-normal min-w-[240px] truncate",
   selectedTab: "border-b-4 font-semibold border-border-selected",
 };
 
 export type ModificationItem = DemonstrationDetailModification & {
-  modificationType: "amendment" | "extension";
+  modificationType: "amendment" | "renewal";
   medicaidId: string;
 };
 

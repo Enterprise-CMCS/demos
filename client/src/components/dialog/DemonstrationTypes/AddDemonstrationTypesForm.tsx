@@ -39,7 +39,7 @@ export const ADD_DEMONSTRATION_TYPES_FORM_QUERY: TypedDocumentNode<
 `;
 
 const UNAPPROVED_WARNING_MESSAGE =
-  "Unapproved types are still searchable by others. Please verify it's correct before applying to prevent compounding errors.";
+  'Consult with SDG leadership and check spelling before creating a new tag/type. New tag/types are labelled "Unapproved" but can still be seen and used by others.';
 
 function isValid(demonstrationType: DemonstrationType): boolean {
   return !!(
@@ -72,7 +72,7 @@ export const AddDemonstrationTypesForm = ({
     });
 
   const [filterValue, setFilterValue] = React.useState("");
-  const [hasMatches, setHasMatches] = React.useState(true);
+  const [hasExactMatch, setHasExactMatch] = React.useState(false);
   const [createdTypes, setCreatedTypes] = React.useState<Tag[]>([]);
 
   if (loading) return <div>Loading demonstration...</div>;
@@ -92,6 +92,12 @@ export const AddDemonstrationTypesForm = ({
     data.demonstration.demonstrationTypes.map((dt) => dt.demonstrationTypeName)
   );
 
+  const normalizedFilterValue = filterValue.trim().toLowerCase();
+
+  const isAlreadyAssigned = Array.from(alreadyAssigned).some(
+    (name) => name.trim().toLowerCase() === normalizedFilterValue
+  );
+
   const isAvailableType = (name: string) =>
     !alreadyAssigned.has(name) && !demonstrationTypeNames.includes(name);
 
@@ -108,15 +114,18 @@ export const AddDemonstrationTypesForm = ({
     return "Effective date must be on or before expiration date.";
   };
 
-  const handleFilterChange = (value: string, matches: boolean) => {
+  const handleFilterChange = (value: string, hasExactMatch: boolean) => {
     setFilterValue(value);
-    setHasMatches(matches);
+    setHasExactMatch(hasExactMatch);
   };
 
-  const canCreateType = !hasMatches && filterValue.trim().length > 0;
+  const canCreateType = !hasExactMatch && filterValue.trim().length > 0;
 
   const handleCreateType = () => {
     const newTypeName = filterValue.trim();
+
+    if (!newTypeName || hasExactMatch) return;
+
     const unapproved: TagStatus = "Unapproved";
     const newTag = { tagName: newTypeName, approvalStatus: unapproved };
     setCreatedTypes((prev) => [...prev, newTag]);
@@ -128,7 +137,7 @@ export const AddDemonstrationTypesForm = ({
       })
     );
     setFilterValue("");
-    setHasMatches(true);
+    setHasExactMatch(false);
   };
 
   const showUnapprovedWarning = demonstrationTypeFormData.approvalStatus === "Unapproved";
@@ -153,6 +162,7 @@ export const AddDemonstrationTypesForm = ({
               )
             }
             onFilterChange={handleFilterChange}
+            isAlreadyAssigned={isAlreadyAssigned}
           />
         </div>
         <button

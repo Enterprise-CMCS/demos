@@ -1,0 +1,295 @@
+"""Perform load actions based on a configuration from a data migration schema into demos_app."""
+
+import argparse
+from dataclasses import dataclass
+from logging import getLogger
+from typing import Set, Tuple, assert_never
+
+from duckdb_connection_manager import (
+    attach_db_to_duckdb_conn,
+    create_duckdb_conn,
+    get_attach_name_from_db_config_name,
+)
+from load_data_to_demos_app_configs import get_data_load_configuration
+from logger_utils import config_logger
+from types_constants import (
+    APP_SCHEMA_NAME,
+    DB_CONFIG_NAMES,
+    DL_CONFIG_NAMES,
+    ArbitraryActionConfiguration,
+    ArbitrarySqlGenerationContext,
+    DatabaseConfigurationName,
+    DataLoadConfiguration,
+    DataLoadConfigurationName,
+    DataLoadSql,
+    DuckDbAttachName,
+    GeneratedArbitraryActionSql,
+    GeneratedInsertActionSql,
+    GeneratedSqlStatement,
+    GeneratedTransactionActionSql,
+    GeneratedTriggerActionSql,
+    SchemaName,
+    TableInsertActionConfiguration,
+    TransactionActionConfiguration,
+    TriggerActionConfiguration,
+)
+
+logger = config_logger(getLogger(__name__))
+
+
+@dataclass(frozen=True)
+class CommandLineArguments:
+    """The command line arguments passed into the program."""
+
+    db_config_name: DatabaseConfigurationName
+    dl_config_name: DataLoadConfigurationName
+    dry_run: bool
+
+
+def _parse_args() -> CommandLineArguments:
+    """Create argument parser and parse incoming arguments.
+
+    Returns:
+        CommandLineArguments: The parsed argument namespace.
+    """
+    parser = argparse.ArgumentParser(
+        description="Run data loads as part of the migration process",
+        formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=50),
+    )
+    parser.add_argument("db_config_name", choices=DB_CONFIG_NAMES, help="The name of the DB config to use")
+    parser.add_argument("dl_config_name", choices=DL_CONFIG_NAMES, help="The name of the data load config to use")
+    parser.add_argument("--dry-run", "-d", action="store_true", help="Print generated SQL to console but do not run")
+    parsed_args = parser.parse_args()
+    return CommandLineArguments(
+        db_config_name=parsed_args.db_config_name,
+        dl_config_name=parsed_args.dl_config_name,
+        dry_run=parsed_args.dry_run,
+    )
+
+
+def generate_table_insert_sql(
+    source_schema: SchemaName,
+    target_schema: SchemaName,
+    source_attach_name: DuckDbAttachName,
+    target_attach_name: DuckDbAttachName,
+    insert_config: TableInsertActionConfiguration,
+) -> GeneratedInsertActionSql:
+    """Generate an insert statement from a TableInsertActionConfiguration.
+
+    Args:
+        source_schema (SchemaName): The schema to load from.
+        target_schema (SchemaName): The schema to load to.
+        source_attach_name (DuckDbAttachName): The DuckDB attach name to use for the source.
+        target_attach_name (DuckDbAttachName): The DuckDB attach name to use for the target.
+        insert_config (TableInsertActionConfiguration): The table configuration to be loaded.
+
+    Returns:
+        GeneratedInsertActionSql: The SQL query to be executed.
+
+    Raises:
+        ValueError:
+            If trying to insert between two identical locations.
+            If trying to insert between two attached databases where the target is not LocalStack.
+    """
+    logger.info(f"Generating insert statement for {insert_config.source_table} to {insert_config.target_table}")
+
+    if (source_attach_name != target_attach_name) and (target_attach_name != "ddb_demos_localstack"):
+        err_msg = (
+            "Cannot insert across attached databases unless the target is Localstack; "
+            f"target given was {target_attach_name}"
+        )
+        logger.error(err_msg)
+        raise ValueError(err_msg)
+
+    fully_qualified_target = f"{target_attach_name}.{target_schema}.{insert_config.target_table}"
+    fully_qualified_source = f"{source_attach_name}.{source_schema}.{insert_config.source_table}"
+
+    if fully_qualified_target == fully_qualified_source:
+        err_msg = f"Cannot insert {fully_qualified_source} into {fully_qualified_target}; identical locations"
+        logger.error(err_msg)
+        raise ValueError(err_msg)
+
+    formatted_col_list = ", ".join(insert_config.column_list)
+
+    query = f"""
+        INSERT INTO
+            {fully_qualified_target}
+            ({formatted_col_list})
+        SELECT
+            {formatted_col_list}
+        FROM
+            {fully_qualified_source};
+    """
+    return GeneratedInsertActionSql(insert_config, query)
+
+
+def generate_trigger_action_sql(
+    attach_name: DuckDbAttachName,
+    trigger_config: TriggerActionConfiguration,
+) -> GeneratedTriggerActionSql:
+    """Generate an trigger action statement from a TriggerActionConfiguration.
+
+    Args:
+        attach_name (DuckDbAttachName): The DuckDB attach name to use.
+        trigger_config (TriggerActionConfiguration): The trigger configuration to generate.
+
+    Returns:
+        GeneratedTriggerActionSql: The SQL query to be executed.
+    """
+    logger.info(
+        f"Generating control statement to {trigger_config.action_type} trigger "
+        f"{trigger_config.trigger_table}.{trigger_config.trigger_name}"
+    )
+
+    if trigger_config.action_type == "disable":
+        alter_statement = (
+            f"ALTER TABLE {trigger_config.trigger_schema}.{trigger_config.trigger_table} "
+            f"DISABLE TRIGGER {trigger_config.trigger_name};"
+        )
+    elif trigger_config.action_type == "enable":
+        alter_statement = (
+            f"ALTER TABLE {trigger_config.trigger_schema}.{trigger_config.trigger_table} "
+            f"ENABLE TRIGGER {trigger_config.trigger_name};"
+        )
+    else:
+        # This guards against the allowed values of a field expanding and causes it to be caught by type checking
+        assert_never(trigger_config.action_type)
+
+    # DuckDB has no concept of triggers, so we need to use the postgres_execute() function
+    query = f"CALL postgres_execute('{attach_name}', '{alter_statement}')"
+    return GeneratedTriggerActionSql(trigger_config, query)
+
+
+def generate_transaction_action_sql(transact_config: TransactionActionConfiguration) -> GeneratedTransactionActionSql:
+    """Generate an transaction action statement from a TriggerActionConfiguration.
+
+    Args:
+        transact_config (TransactionActionConfiguration): The transaction configuration to generate.
+
+    Returns:
+        GeneratedTransactionActionSql: The SQL query to be executed.
+    """
+    logger.info(f"Generating transaction statement of type {transact_config.action_type}.")
+
+    if transact_config.action_type == "begin":
+        query = "BEGIN;"
+    elif transact_config.action_type == "commit":
+        query = "COMMIT;"
+    else:
+        assert_never(transact_config.action_type)
+
+    return GeneratedTransactionActionSql(transact_config, query)
+
+
+def generate_arbitrary_action_sql(
+    attach_name: DuckDbAttachName, arbitrary_action_config: ArbitraryActionConfiguration
+) -> GeneratedArbitraryActionSql:
+    """Generate an arbitrary action statement from an ArbitraryActionConfiguration.
+
+    Args:
+        attach_name (DuckDbAttachName): The DuckDB attach name to use.
+        arbitrary_action_config (ArbitraryActionConfiguration): The arbitrary action configuration to generate.
+
+    Returns:
+        GeneratedArbitraryActionSql: The SQL query to be executed.
+    """
+    app_schema = APP_SCHEMA_NAME
+    sql_input = ArbitrarySqlGenerationContext(attach_name, app_schema)
+    sql_query = arbitrary_action_config.sql_generator(sql_input)
+    return GeneratedArbitraryActionSql(arbitrary_action_config, sql_query)
+
+
+def _generate_data_load_sql(attach_name: DuckDbAttachName, data_load_config: DataLoadConfiguration) -> DataLoadSql:
+    """Generate all the SQL for the data_load.
+
+    Args:
+        attach_name (DuckDbAttachName): The DuckDB attach name to use.
+        data_load_config (DataLoadConfiguration): The data load configuration to use.
+
+    Returns:
+        DataLoadSql: The SQL generated from the configuration.
+    """
+    generated_sql: DataLoadSql = []
+    result: GeneratedSqlStatement
+    disabled_triggers: Set[Tuple[str, str, str]] = set()
+    for action_config in data_load_config.data_load_actions:
+        if isinstance(action_config, TableInsertActionConfiguration):
+            result = generate_table_insert_sql(
+                data_load_config.source_schema, data_load_config.target_schema, attach_name, attach_name, action_config
+            )
+        elif isinstance(action_config, TriggerActionConfiguration):
+            if action_config.action_type == "disable":
+                disabled_triggers.add(
+                    (action_config.trigger_schema, action_config.trigger_table, action_config.trigger_name)
+                )
+            elif action_config.action_type == "enable":
+                disabled_triggers.remove(
+                    (action_config.trigger_schema, action_config.trigger_table, action_config.trigger_name)
+                )
+            else:
+                assert_never(action_config.action_type)
+            result = generate_trigger_action_sql(attach_name, action_config)
+        elif isinstance(action_config, TransactionActionConfiguration):
+            result = generate_transaction_action_sql(action_config)
+        elif isinstance(action_config, ArbitraryActionConfiguration):
+            result = generate_arbitrary_action_sql(attach_name, action_config)
+        else:
+            assert_never(action_config)
+        generated_sql.append(result)
+    if len(disabled_triggers) > 0:
+        logger.warning("Note! Current configuration leaves some triggers disabled! Enabling them")
+        for trigger in disabled_triggers:
+            result = generate_trigger_action_sql(
+                attach_name, TriggerActionConfiguration("enable", trigger[0], trigger[1], trigger[2])
+            )
+            generated_sql.append(result)
+    return generated_sql
+
+
+def create_log_execution_message_for_sql(sql_executed: GeneratedSqlStatement) -> str:
+    """Create a log execution message for a SQL statement.
+
+    Args:
+        sql_executed (GeneratedSqlStatement): The SQL being executed.
+
+    Returns:
+        str: The log message to be logged.
+    """
+    if isinstance(sql_executed, GeneratedInsertActionSql):
+        return (
+            f"Executing insert statement from {sql_executed.action_configuration.source_table} "
+            f"to {sql_executed.action_configuration.target_table}"
+        )
+    elif isinstance(sql_executed, GeneratedTriggerActionSql):
+        return (
+            f"Executing SQL to {sql_executed.action_configuration.action_type} trigger "
+            f"{sql_executed.action_configuration.trigger_schema}."
+            f"{sql_executed.action_configuration.trigger_table}."
+            f"{sql_executed.action_configuration.trigger_name}"
+        )
+    elif isinstance(sql_executed, GeneratedTransactionActionSql):
+        return f"Executing {sql_executed.action_configuration.action_type} transaction statement"
+    elif isinstance(sql_executed, GeneratedArbitraryActionSql):
+        return f"Executing arbitrary SQL statement: {sql_executed.action_configuration.action_name}"
+    else:
+        assert_never(sql_executed)
+
+
+def main(args: CommandLineArguments) -> None:
+    """Main program function."""
+    data_load_config = get_data_load_configuration(args.dl_config_name)
+    attach_name = get_attach_name_from_db_config_name(args.db_config_name)
+    generated_sql = _generate_data_load_sql(attach_name, data_load_config)
+    if args.dry_run:
+        for query in generated_sql:
+            logger.info(query.sql_query)
+    else:
+        conn = attach_db_to_duckdb_conn(create_duckdb_conn(), args.db_config_name)
+        for query in generated_sql:
+            logger.info(create_log_execution_message_for_sql(query))
+            conn.execute(query.sql_query)
+
+
+if __name__ == "__main__":  # pragma: nocover
+    args = _parse_args()
+    main(args)

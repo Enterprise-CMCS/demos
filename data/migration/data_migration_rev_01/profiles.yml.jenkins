@@ -1,0 +1,12 @@
+data_migration_rev_01:
+  target: prod
+  outputs:
+    prod:
+      type: postgres
+      host: "{{ env_var('DEMOS_AWS_HOST') }}"
+      port: "{{ env_var('DEMOS_AWS_PORT') | int }}"
+      user: "{{ env_var('DEMOS_AWS_USER') }}"
+      password: "{{ env_var('DEMOS_AWS_PWD') }}"
+      dbname: "{{ env_var('DEMOS_AWS_DB') }}"
+      schema: "{{ env_var('REV01_SCHEMA') }}"
+      threads: 2

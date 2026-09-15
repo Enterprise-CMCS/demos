@@ -1,5 +1,5 @@
 import React from "react";
-import { createColumnHelper } from "@tanstack/react-table";
+import { createColumnHelper, DisplayColumnDef } from "@tanstack/react-table";
 
 import { highlightCell } from "components/table/KeywordSearch";
 import { ApprovalPackageTableRow } from "components/table/tables/ApprovalPackageTable";
@@ -8,41 +8,22 @@ import { DeleteIcon, EditIcon, ExportIcon } from "components/icons";
 import { useDialog } from "components/dialog/DialogContext";
 import { DocumentType } from "demos-server";
 
-export function ApprovalPackageColumns(demonstrationId: string) {
+function getActionsColumn(
+  columnHelper: ReturnType<typeof createColumnHelper<ApprovalPackageTableRow>>,
+  demonstrationId: string,
+  isReadonlyUser: boolean
+): DisplayColumnDef<ApprovalPackageTableRow>[] {
+  if (isReadonlyUser) {
+    return [];
+  }
+
   const {
     showApprovalPackageDocumentUploadDialog,
     showEditDocumentDialog,
     showRemoveDocumentDialog,
   } = useDialog();
 
-  const columnHelper = createColumnHelper<ApprovalPackageTableRow>();
-
   return [
-    columnHelper.accessor("documentType", {
-      id: "type",
-      header: "Type",
-      cell: highlightCell,
-    }),
-    columnHelper.accessor("name", {
-      header: "File Name",
-      cell: highlightCell,
-      enableColumnFilter: false,
-    }),
-    columnHelper.accessor("description", {
-      header: "Description",
-      cell: highlightCell,
-      enableColumnFilter: false,
-    }),
-    columnHelper.accessor("uploadedBy", {
-      header: "Uploaded By",
-      cell: highlightCell,
-      enableColumnFilter: false,
-    }),
-    columnHelper.accessor("uploadedDate", {
-      header: "Uploaded Date",
-      cell: highlightCell,
-      enableColumnFilter: false,
-    }),
     columnHelper.display({
       id: "actions",
       header: () => <span className="sr-only">Actions</span>,
@@ -73,7 +54,7 @@ export function ApprovalPackageColumns(demonstrationId: string) {
                     showEditDocumentDialog({
                       id: doc.id,
                       name: doc.name,
-                      description: doc.description,
+                      description: doc.description || "",
                     })
                   }
                 >
@@ -94,5 +75,38 @@ export function ApprovalPackageColumns(demonstrationId: string) {
       enableSorting: false,
       enableColumnFilter: false,
     }),
+  ];
+}
+
+export function ApprovalPackageColumns(demonstrationId: string, isReadonlyUser: boolean) {
+  const columnHelper = createColumnHelper<ApprovalPackageTableRow>();
+
+  return [
+    columnHelper.accessor("documentType", {
+      id: "type",
+      header: "Type",
+      cell: highlightCell,
+    }),
+    columnHelper.accessor("name", {
+      header: "File Name",
+      cell: highlightCell,
+      enableColumnFilter: false,
+    }),
+    columnHelper.accessor("description", {
+      header: "Description",
+      cell: highlightCell,
+      enableColumnFilter: false,
+    }),
+    columnHelper.accessor("uploadedBy", {
+      header: "Uploaded By",
+      cell: highlightCell,
+      enableColumnFilter: false,
+    }),
+    columnHelper.accessor("uploadedDate", {
+      header: "Uploaded Date",
+      cell: highlightCell,
+      enableColumnFilter: false,
+    }),
+    ...getActionsColumn(columnHelper, demonstrationId, isReadonlyUser),
   ];
 }

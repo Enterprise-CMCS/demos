@@ -1,3 +1,7 @@
+import { getApplication } from "../application";
+vi.mock("../email/notifyApplicationEvent", () => ({
+  notifyApplicationStatusUpdated: vi.fn(),
+}));
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { declareCompletenessPhaseIncomplete } from "./declareCompletenessPhaseIncomplete.js";
 import { TZDate } from "@date-fns/tz";
@@ -137,6 +141,10 @@ describe("declareCompletenessPhaseIncomplete", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.mocked(getApplication).mockResolvedValue({
+      id: testApplicationId,
+      statusId: "Under Review",
+    } as Awaited<ReturnType<typeof getApplication>>);
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(getApplicationDates).mockResolvedValue(mockExistingDates);
     vi.mocked(getApplicationPhaseStatuses).mockResolvedValue(mockPhaseStatuses);
@@ -144,7 +152,11 @@ describe("declareCompletenessPhaseIncomplete", () => {
   });
 
   it("should make the Completeness phase Incomplete if all requirements are met", async () => {
-    await declareCompletenessPhaseIncomplete(undefined, { applicationId: testApplicationId });
+    await declareCompletenessPhaseIncomplete(
+      undefined,
+      { applicationId: testApplicationId },
+      { user: { id: "user-1" } }
+    );
 
     expect(getApplicationDates).toHaveBeenCalledExactlyOnceWith(testApplicationId, mockTransaction);
     expect(getApplicationPhaseStatuses).toHaveBeenCalledExactlyOnceWith(
@@ -202,7 +214,11 @@ describe("declareCompletenessPhaseIncomplete", () => {
       },
     ];
 
-    await declareCompletenessPhaseIncomplete(undefined, { applicationId: testApplicationId });
+    await declareCompletenessPhaseIncomplete(
+      undefined,
+      { applicationId: testApplicationId },
+      { user: { id: "user-1" } }
+    );
 
     expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
       {
@@ -220,7 +236,11 @@ describe("declareCompletenessPhaseIncomplete", () => {
     });
 
     await expect(
-      declareCompletenessPhaseIncomplete(undefined, { applicationId: testApplicationId })
+      declareCompletenessPhaseIncomplete(
+        undefined,
+        { applicationId: testApplicationId },
+        { user: { id: "user-1" } }
+      )
     ).rejects.toThrowError(testHandlePrismaError);
     expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
   });

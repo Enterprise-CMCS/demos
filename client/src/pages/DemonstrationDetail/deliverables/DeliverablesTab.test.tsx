@@ -7,6 +7,7 @@ import { ADD_DELIVERABLE_SLOT_DIALOG_TITLE } from "components/dialog/deliverable
 import { ADD_DELIVERABLE_SLOT_BUTTON_NAME, DeliverablesTab } from "./DeliverablesTab";
 import { TestProvider } from "test-utils/TestProvider";
 import { deliverableMocks, MOCK_DELIVERABLE_TABLE_ROW } from "mock-data/deliverableMocks";
+import { readonlyMockUser } from "mock-data/userMocks";
 
 const MOCK_PARENT_DEMONSTRATION = {
   id: "demo-1",
@@ -87,5 +88,19 @@ describe("DeliverablesTab", () => {
     expect(
       await screen.findByText("You have no assigned Deliverables at this time")
     ).toBeInTheDocument();
+  });
+
+  describe("Readonly User Behavior", () => {
+    it("does not render the add deliverable slot button for readonly users", () => {
+      render(
+        <TestProvider mocks={deliverableMocks} currentUser={readonlyMockUser}>
+          <DialogProvider>
+            <DeliverablesTab parentDemonstration={MOCK_PARENT_DEMONSTRATION} />
+          </DialogProvider>
+        </TestProvider>
+      );
+
+      expect(screen.queryByTestId(ADD_DELIVERABLE_SLOT_BUTTON_NAME)).not.toBeInTheDocument();
+    });
   });
 });

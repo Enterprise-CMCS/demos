@@ -3,7 +3,7 @@ import { DocumentType } from "demos-server";
 import { AddDocumentToPhaseDialog } from "components/dialog/document";
 import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/demonstration/DemonstrationWorkflow";
 import { GET_AMENDMENT_WORKFLOW_QUERY } from "components/application/amendment/AmendmentWorkflow";
-import { GET_EXTENSION_WORKFLOW_QUERY } from "components/application/extension/ExtensionWorkflow";
+import { GET_RENEWAL_WORKFLOW_QUERY } from "components/application/renewal/RenewalWorkflow";
 
 type Props = {
   applicationId: string;
@@ -26,7 +26,7 @@ export const ApprovalPackageUploadDialog: React.FC<Props> = ({
       refetchQueries={[
         GET_WORKFLOW_DEMONSTRATION_QUERY,
         GET_AMENDMENT_WORKFLOW_QUERY,
-        GET_EXTENSION_WORKFLOW_QUERY,
+        GET_RENEWAL_WORKFLOW_QUERY,
       ]}
     />
   );

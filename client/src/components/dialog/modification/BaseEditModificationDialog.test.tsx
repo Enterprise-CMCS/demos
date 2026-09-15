@@ -32,7 +32,7 @@ describe("BaseEditModificationDialog", () => {
   });
 
   const renderDialog = (
-    modificationType: "Amendment" | "Extension",
+    modificationType: "Amendment" | "Renewal",
     mockHookReturnValue: ReturnType<typeof mockUseModification>
   ) => {
     mockUseModification.mockReturnValue(mockHookReturnValue);
@@ -66,7 +66,7 @@ describe("BaseEditModificationDialog", () => {
   });
 
   it("shows loading state while fetching modification data", () => {
-    renderDialog("Extension", {
+    renderDialog("Renewal", {
       modification: undefined,
       error: undefined,
       save: vi.fn(),
@@ -100,11 +100,11 @@ describe("BaseEditModificationDialog", () => {
     expect(screen.getByLabelText(/Signature Level/)).toBeInTheDocument();
   });
 
-  it("renders form with Extension fields after data loads", async () => {
-    renderDialog("Extension", {
+  it("renders form with Renewal fields after data loads", async () => {
+    renderDialog("Renewal", {
       modification: {
         id: "modification-1",
-        name: "Test Extension",
+        name: "Test Renewal",
         description: "Test description",
         effectiveDate: "2024-01-15",
         signatureLevel: "OA",
@@ -116,10 +116,10 @@ describe("BaseEditModificationDialog", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByLabelText(/Extension Title/)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Renewal Title/)).toBeInTheDocument();
     });
 
-    expect(screen.getByLabelText(/Extension Description/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Renewal Description/)).toBeInTheDocument();
     expect(screen.getByLabelText(/Effective Date/)).toBeInTheDocument();
     expect(screen.getByLabelText(/Signature Level/)).toBeInTheDocument();
   });
@@ -188,7 +188,7 @@ describe("BaseEditModificationDialog", () => {
     const mockSave = vi.fn().mockResolvedValue({ data: { success: true } });
     const user = userEvent.setup();
 
-    renderDialog("Extension", {
+    renderDialog("Renewal", {
       modification: {
         id: "modification-1",
         name: "Original Name",
@@ -203,19 +203,19 @@ describe("BaseEditModificationDialog", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByLabelText(/Extension Title/)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Renewal Title/)).toBeInTheDocument();
     });
 
-    await user.clear(screen.getByLabelText(/Extension Title/));
-    await user.type(screen.getByLabelText(/Extension Title/), "Updated Name");
-    await user.clear(screen.getByLabelText(/Extension Description/));
-    await user.type(screen.getByLabelText(/Extension Description/), "Updated description");
+    await user.clear(screen.getByLabelText(/Renewal Title/));
+    await user.type(screen.getByLabelText(/Renewal Title/), "Updated Name");
+    await user.clear(screen.getByLabelText(/Renewal Description/));
+    await user.type(screen.getByLabelText(/Renewal Description/), "Updated description");
     await user.clear(screen.getByLabelText(/Effective Date/));
     await user.type(screen.getByLabelText(/Effective Date/), "2024-02-20");
     await user.selectOptions(screen.getByLabelText(/Signature Level/), "OCD");
 
     const submitButton = screen.getByRole("button", {
-      name: /button-submit-update-extension-dialog/i,
+      name: /button-submit-update-renewal-dialog/i,
     });
     await waitFor(() => {
       expect(submitButton).not.toBeDisabled();
@@ -234,7 +234,7 @@ describe("BaseEditModificationDialog", () => {
     });
 
     await waitFor(() => {
-      expect(mockShowSuccess).toHaveBeenCalledWith("Extension updated successfully.");
+      expect(mockShowSuccess).toHaveBeenCalledWith("Renewal updated successfully.");
     });
 
     expect(mockCloseDialog).toHaveBeenCalled();
@@ -286,7 +286,7 @@ describe("BaseEditModificationDialog", () => {
   it("closes dialog directly when cancel is clicked without form changes", async () => {
     const user = userEvent.setup();
 
-    renderDialog("Extension", {
+    renderDialog("Renewal", {
       modification: {
         id: "modification-1",
         name: "Original Name",
@@ -301,7 +301,7 @@ describe("BaseEditModificationDialog", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByLabelText(/Extension Title/)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Renewal Title/)).toBeInTheDocument();
     });
 
     const cancelButton = screen.getByRole("button", { name: /cancel/i });
@@ -350,7 +350,7 @@ describe("BaseEditModificationDialog", () => {
   it("closes dialog when close button (X) is clicked", async () => {
     const user = userEvent.setup();
 
-    renderDialog("Extension", {
+    renderDialog("Renewal", {
       modification: {
         id: "modification-1",
         name: "Original Name",
@@ -365,7 +365,7 @@ describe("BaseEditModificationDialog", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByLabelText(/Extension Title/)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Renewal Title/)).toBeInTheDocument();
     });
 
     const closeButton = screen.getByLabelText("Close dialog");

@@ -156,4 +156,68 @@ describe("app", () => {
       }),
     ).rejects.toThrow("A configured distribution already exists");
   });
+  
+  test("should create backup stack when stage is dev", async () => {
+    process.env.EXPECTED_DEMOS_ACCOUNT = "123456";
+    process.env.CDK_DEFAULT_ACCOUNT = "123456";
+    process.env.CDK_DEFAULT_REGION = "us-east-1";
+
+    const mockStageName = "dev";
+
+    const app = await main({
+      stage: mockStageName,
+      [BUNDLING_STACKS]: [],
+    });
+    const assembly = app!.synth();
+
+    expect(assembly.getStackByName(`demos-${mockStageName}-backup`)).toBeDefined();
+
+  });
+
+  test("should not create backup stack when stage is test", async () => {
+    process.env.EXPECTED_DEMOS_ACCOUNT = "123456";
+    process.env.CDK_DEFAULT_ACCOUNT = "123456";
+    process.env.CDK_DEFAULT_REGION = "us-east-1";
+
+    const mockStageName = "test";
+
+    const app = await main({
+      stage: mockStageName,
+      [BUNDLING_STACKS]: [],
+    });
+    const assembly = app!.synth();
+
+    let backupStackExists = true;
+    try {
+      assembly.getStackByName(`demos-${mockStageName}-backup`)
+    } catch {
+      backupStackExists = false;
+    }
+
+    expect(backupStackExists).toBe(false);
+  });
+
+  test("should synthesize with no unsuppressed cdk-nag findings", async () => {
+    process.env.EXPECTED_DEMOS_ACCOUNT = "123456";
+    process.env.CDK_DEFAULT_ACCOUNT = "123456";
+    process.env.CDK_DEFAULT_REGION = "us-east-1";
+
+    const app = await main({
+      stage: "dev",
+      db: "include",
+      [BUNDLING_STACKS]: [],
+    });
+    app!.synth();
+
+    // cdk-nag records a rule violation as an error annotation. Synthesizing here does not throw on
+    // one, but the CDK CLI treats it as a failure, so without this assertion a missing suppression
+    // only surfaces as a broken cdk synth.
+    const findings = app!.node.findAll().flatMap((construct) =>
+      construct.node.metadata
+        .filter((entry) => entry.type === "aws:cdk:error")
+        .map((entry) => `${construct.node.path}: ${entry.data}`),
+    );
+
+    expect(findings).toEqual([]);
+  });
 });

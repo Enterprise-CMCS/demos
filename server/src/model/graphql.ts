@@ -122,8 +122,8 @@ import { signatureLevelResolvers } from "./signatureLevel/signatureLevelResolver
 import { stateSchema } from "./state/stateSchema.js";
 import { stateResolvers } from "./state/stateResolvers.js";
 
-import { tagSchema } from "./tag/tagSchema.js";
-import { tagResolvers } from "./tag/tagResolvers.js";
+import { tagSchema } from "./tag/tagSchema";
+import { tagResolvers } from "./tag/tagResolvers";
 
 import { tagSourceSchema } from "./tagSource/tagSourceSchema.js";
 import { tagSourceResolvers } from "./tagSource/tagSourceResolvers.js";

@@ -9,13 +9,13 @@ import { CreateNewButton } from "./CreateNewButton";
 
 const showCreateDemonstrationDialog = vi.fn();
 const showCreateAmendmentDialog = vi.fn();
-const showCreateExtensionDialog = vi.fn();
+const showCreateRenewalDialog = vi.fn();
 
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
     showCreateDemonstrationDialog,
     showCreateAmendmentDialog,
-    showCreateExtensionDialog,
+    showCreateRenewalDialog,
   }),
 }));
 
@@ -73,7 +73,7 @@ describe("CreateNewButton", () => {
         ...mockUsers[0],
         person: {
           ...mockUsers[0].person,
-          personType: "demos-readonly",
+          personType: "demos-restricted-cms-user",
         },
       },
     });
@@ -109,7 +109,7 @@ describe("CreateNewButton", () => {
     expect(showCreateAmendmentDialog).toHaveBeenCalledWith();
   });
 
-  it("opens CreateExtensionDialog when extension is clicked", () => {
+  it("opens CreateRenewalDialog when renewal is clicked", () => {
     mockGetCurrentUser.mockReturnValue({
       currentUser: mockUsers[0],
     });
@@ -117,12 +117,12 @@ describe("CreateNewButton", () => {
     renderCreateNewButton();
 
     fireEvent.click(screen.getByText("Create New"));
-    fireEvent.click(screen.getByText("Extension"));
+    fireEvent.click(screen.getByText("Renewal"));
 
-    expect(showCreateExtensionDialog).toHaveBeenCalledWith();
+    expect(showCreateRenewalDialog).toHaveBeenCalledWith();
   });
 
-  it("disables amendment and extension creation when no approved demonstrations exist", () => {
+  it("disables amendment and renewal creation when no approved demonstrations exist", () => {
     mockGetCurrentUser.mockReturnValue({
       currentUser: mockUsers[0],
     });
@@ -131,18 +131,18 @@ describe("CreateNewButton", () => {
 
     fireEvent.click(screen.getByText("Create New"));
     const amendmentButton = screen.getByTestId("button-create-new-amendment");
-    const extensionButton = screen.getByTestId("button-create-new-extension");
+    const renewalButton = screen.getByTestId("button-create-new-renewal");
 
     expect(amendmentButton).toBeDisabled();
-    expect(extensionButton).toBeDisabled();
+    expect(renewalButton).toBeDisabled();
     expect(amendmentButton).toHaveAttribute("title", "No Approved Demonstrations Exist");
-    expect(extensionButton).toHaveAttribute("title", "No Approved Demonstrations Exist");
+    expect(renewalButton).toHaveAttribute("title", "No Approved Demonstrations Exist");
 
     fireEvent.click(amendmentButton);
-    fireEvent.click(extensionButton);
+    fireEvent.click(renewalButton);
 
     expect(showCreateAmendmentDialog).not.toHaveBeenCalled();
-    expect(showCreateExtensionDialog).not.toHaveBeenCalled();
+    expect(showCreateRenewalDialog).not.toHaveBeenCalled();
   });
 
   it("keeps demonstration creation enabled when no approved demonstrations exist", () => {

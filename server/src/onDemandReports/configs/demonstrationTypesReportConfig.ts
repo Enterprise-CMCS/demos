@@ -26,7 +26,7 @@ type DemonstrationTypesReportColumn =
 
 const demonstrationTypesReportSchema = z
   .object({
-    state_territory: z.enum(STATES_AND_TERRITORIES.map((state) => state.id)),
+    state_territory: z.enum(STATES_AND_TERRITORIES.map((state) => state.name)),
     demonstration_title: z.string(),
     demonstration_number: z.string(),
     chip_id: z.string(),

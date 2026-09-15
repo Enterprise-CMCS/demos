@@ -60,11 +60,11 @@ describe("ReferencesTable", () => {
   const renderWithProviders = (mocks: MockedResponse[]) => {
     return render(
       <MockedProvider mocks={mocks}>
-        <DialogProvider>
-          <ToastProvider>
+        <ToastProvider>
+          <DialogProvider>
             <ReferencesTable />
-          </ToastProvider>
-        </DialogProvider>
+          </DialogProvider>
+        </ToastProvider>
       </MockedProvider>
     );
   };

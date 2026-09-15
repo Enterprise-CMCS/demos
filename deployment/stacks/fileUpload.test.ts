@@ -183,7 +183,15 @@ describe("File Upload Stack", () => {
     });
 
     template.resourceCountIs("AWS::S3::Bucket", 7)
-    template.resourceCountIs("AWS::CloudWatch::Alarm", 16);
+    template.resourceCountIs("AWS::CloudWatch::Alarm", 19);
+
+    // Proves the DataConnect export construct is actually wired into this stack, rather
+    // than only synthesizing correctly in its own test.
+    template.hasResourceProperties("AWS::Events::Rule", {
+      Name: "demos-unittest-dataconnect-export",
+      ScheduleExpression: "cron(0 7 * * ? *)",
+      State: "ENABLED",
+    });
 
     expectLambdaErrorsAlarm(
       template,
@@ -205,6 +213,11 @@ describe("File Upload Stack", () => {
       "demos-unittest-budget-neutrality-lambda-errors",
       "budgetNeutrality"
     );
+    expectLambdaErrorsAlarm(
+      template,
+      "demos-unittest-data-connect-export-lambda-errors",
+      "dataConnectExport"
+    );
     expectLambdaDurationAlarm(
       template,
       "demos-unittest-file-process-lambda-duration-near-timeout",
@@ -222,6 +235,12 @@ describe("File Upload Stack", () => {
       "demos-unittest-budget-neutrality-lambda-duration-near-timeout",
       "budgetNeutrality",
       48000
+    );
+    expectLambdaDurationAlarm(
+      template,
+      "demos-unittest-data-connect-export-lambda-duration-near-timeout",
+      "dataConnectExport",
+      720000
     );
     expectLambdaThrottlesAlarm(
       template,
@@ -242,6 +261,11 @@ describe("File Upload Stack", () => {
       template,
       "demos-unittest-budget-neutrality-lambda-throttles",
       "budgetNeutrality"
+    );
+    expectLambdaThrottlesAlarm(
+      template,
+      "demos-unittest-data-connect-export-lambda-throttles",
+      "dataConnectExport"
     );
     template.resourcePropertiesCountIs(
       "AWS::CloudWatch::Alarm",

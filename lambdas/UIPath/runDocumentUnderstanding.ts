@@ -16,7 +16,7 @@ async function persistExtractionStatus(
   requestId: string,
   projectId: string,
   documentId: string,
-  applicationId: string,
+  applicationId: string
 ): Promise<void> {
   log.info("Extraction succeeded, processing results");
   const pool = await getDbPool();
@@ -29,7 +29,7 @@ async function persistExtractionStatus(
       requestId,
       projectId,
       documentId,
-      applicationId,
+      applicationId
     );
     await persistApplicationTagSuggestionExtracts(client, persistedExtraction.uiPathValues);
 
@@ -124,7 +124,7 @@ export async function runDocumentUnderstanding(
   const docId = await uploadDocument(token, inputFile, projectId, fileNameWithExtension);
   const resultUrl = await extractDoc(token, docId, projectId);
 
-  if (! token || ! projectId || ! docId || ! resultUrl) {
+  if (!token || !projectId || !docId || !resultUrl) {
     log.error("Missing required information to run document understanding");
     throw new Error("Failed to initiate document understanding due to missing information.");
   }
@@ -132,14 +132,9 @@ export async function runDocumentUnderstanding(
   let lastPolledStatus: ExtractionStatus | null = null;
 
   try {
-    await persistResultStatus(
-      requestId,
-      projectId,
-      documentId,
-      applicationId,
-      "Pending",
-      { status: "Pending" }
-    );
+    await persistResultStatus(requestId, projectId, documentId, applicationId, "Pending", {
+      status: "Pending",
+    });
 
     let attempt = 0;
     while (attempt < maxAttempts) {
@@ -162,19 +157,21 @@ export async function runDocumentUnderstanding(
 
     throw new Error("UiPath extraction did not succeed within the configured attempts.");
   } catch (error) {
+    const failure = buildFailureResponse(error, lastPolledStatus);
     try {
-      await persistResultStatus(
-        requestId,
-        projectId,
-        documentId,
-        applicationId,
-        "Failed",
-        buildFailureResponse(error, lastPolledStatus),
-      );
+      await persistResultStatus(requestId, projectId, documentId, applicationId, "Failed", failure);
     } catch (persistError) {
-      log.error({ error: persistError }, "Failed to Fail UiPath status");
+      log.error(
+        { error, persistError },
+        "UiPath extraction failed and its status could not be persisted"
+      );
+      throw persistError; // Retry only because persistence failed.
     }
 
-    throw error;
+    log.error({ error }, "UiPath extraction did not complete");
+    return {
+      status: "Failed",
+      ...failure,
+    };
   }
 }

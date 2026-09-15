@@ -13,6 +13,7 @@ model Person {
   systemRoleAssignments        SystemRoleAssignment[]
   demonstrationRoleAssignments DemonstrationRoleAssignment[]
   personStates                 PersonState[]
+  emailNotificationRecipients  EmailNotificationRecipient[]
 
   @@id([id])
   @@unique([id, personTypeId])

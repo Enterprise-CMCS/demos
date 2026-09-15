@@ -50,6 +50,7 @@ describe("ReferenceAgreementDialog", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "button-download-reference" })).toBeInTheDocument();
     expect(screen.getByTestId("checkbox-accept-terms")).toBeInTheDocument();
+    expect(screen.getByTestId("checkbox-email-agreement")).not.toBeChecked();
   });
 
   it("enables the download button only when the terms are accepted", () => {
@@ -79,7 +80,7 @@ describe("ReferenceAgreementDialog", () => {
     expect(downloadButton).toBeEnabled();
   });
 
-  it("calls the downloadReference function with correct parameters when download button is clicked", () => {
+  it("calls the download query with correct parameters when download button is clicked", () => {
     const mockReference: Pick<Reference, "id"> & {
       agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt">;
     } = {
@@ -105,6 +106,7 @@ describe("ReferenceAgreementDialog", () => {
     expect(downloadReference).toHaveBeenCalledWith({
       id: "reference-123",
       acceptedAgreementId: "agreement-456",
+      emailRequested: false,
     });
   });
 
@@ -136,5 +138,29 @@ describe("ReferenceAgreementDialog", () => {
 
     expect(downloadButton).toBeDisabled();
     expect(within(downloadButton).getByRole("img", { name: "Loading" })).toBeInTheDocument();
+  });
+  it("passes the selected email checkbox with the accepted agreement", async () => {
+    const user = userEvent.setup();
+    render(
+      <ToastProvider>
+        <DialogProvider>
+          <ReferenceAgreementDialog
+            reference={{
+              id: "reference-123",
+              agreement: { id: "agreement-456", name: "Terms", createdAt: new Date("2024-01-01") },
+            }}
+          />
+        </DialogProvider>
+      </ToastProvider>
+    );
+    await user.click(screen.getByTestId("checkbox-email-agreement"));
+    expect(screen.getByRole("button", { name: "button-download-reference" })).toBeDisabled();
+    await user.click(screen.getByTestId("checkbox-accept-terms"));
+    await user.click(screen.getByRole("button", { name: "button-download-reference" }));
+    expect(downloadReference).toHaveBeenCalledWith({
+      id: "reference-123",
+      acceptedAgreementId: "agreement-456",
+      emailRequested: true,
+    });
   });
 });

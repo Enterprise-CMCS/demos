@@ -7,11 +7,12 @@ import { KeywordSearch } from "../KeywordSearch";
 import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
 import { TypesColumns } from "../columns/TypesColumns";
-import { Demonstration as ServerDemonstration } from "demos-server";
+import { Deliverable, Demonstration as ServerDemonstration, Tag } from "demos-server";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { useDialog } from "components/dialog/DialogContext";
 import { Notice } from "components/notice";
 import { selectionTooltip } from "./actionTooltips";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
 export type TypeTableRow = {
   id: string;
@@ -24,6 +25,9 @@ export type TypeTableRow = {
 
 export type Demonstration = Pick<ServerDemonstration, "id" | "status"> & {
   demonstrationTypes: DemonstrationDetailDemonstrationType[];
+  deliverables?: (Pick<Deliverable, "id"> & {
+    demonstrationTypes: Pick<Tag, "tagName">[];
+  })[];
 };
 
 export type TypesTableProps = {
@@ -37,7 +41,10 @@ export const TypesTable: React.FC<TypesTableProps> = ({
   inputDisabled = false,
   hideSearch = false,
 }) => {
-  const columns = TypesColumns();
+  const { currentUser } = getCurrentUser();
+  const isReadonlyUser = isReadonly(currentUser);
+
+  const columns = TypesColumns(isReadonlyUser);
   const { showRemoveDemonstrationTypesDialog, showEditDemonstrationTypeDialog } = useDialog();
 
   /*
@@ -57,8 +64,22 @@ export const TypesTable: React.FC<TypesTableProps> = ({
       }));
   }, [demonstration.demonstrationTypes]);
 
+  const linkedDemonstrationTypes = React.useMemo(() => {
+    return new Set(
+      demonstration.deliverables?.flatMap((deliverable) =>
+        deliverable.demonstrationTypes.map((t) => t.tagName)
+      ) || []
+    );
+  }, [demonstration.deliverables]);
+
+  const hasLinkedType = (selected: TypeTableRow[]) =>
+    selected.some((type) => linkedDemonstrationTypes.has(type.typeLabel));
+
   const canRemove = (selected: TypeTableRow[]) => {
     if (selected.length < 1) {
+      return false;
+    }
+    if (hasLinkedType(selected)) {
       return false;
     }
     if (
@@ -84,6 +105,9 @@ export const TypesTable: React.FC<TypesTableProps> = ({
           emptyRowsMessage="You have no assigned Types at this time"
           noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
           actionButtons={(table) => {
+            if (isReadonlyUser) {
+              return null;
+            }
             const selected = table.getSelectedRowModel().rows.map((r) => r.original);
             const selectedCount = selected.length;
             const editDisabled = selectedCount !== 1;
@@ -108,6 +132,8 @@ export const TypesTable: React.FC<TypesTableProps> = ({
                 selectedCount,
                 rule: { kind: "atLeast", count: 1 },
               });
+            } else if (hasLinkedType(selected)) {
+              removeTooltip = "Linked to a deliverable";
             } else if (
               demonstration.status === "Approved" &&
               selectedCount === demonstration.demonstrationTypes.length

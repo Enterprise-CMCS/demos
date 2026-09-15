@@ -2,12 +2,16 @@ import "@testing-library/jest-dom";
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
+import type { CurrentUser } from "components/user/UserContext";
 import { TestProvider } from "test-utils/TestProvider";
 import {
   CompletenessPhase,
   CompletenessPhaseProps,
   getApplicationCompletenessFromApplication,
   COMPLETENESS_PHASE_DESCRIPTION,
+  COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME,
+  COMPLETENESS_FINISH_BUTTON_NAME,
+  COMPLETENESS_UPLOAD_BUTTON_NAME,
   STATE_DEEMED_COMPLETE_DATEPICKER_NAME,
   FEDERAL_COMMENT_START_DATEPICKER_NAME,
   FEDERAL_COMMENT_END_DATEPICKER_NAME,
@@ -15,6 +19,7 @@ import {
 import { ApplicationWorkflowDocument, WorkflowApplication } from "components/application";
 import { TZDate } from "@date-fns/tz";
 import { EST_TIMEZONE } from "util/formatDate";
+import { readonlyMockUser, cmsMockUser } from "mock-data/userMocks";
 
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
@@ -48,7 +53,9 @@ const makeApplication = (overrides: Partial<WorkflowApplication> = {}): Workflow
   ...overrides,
 });
 
-const mockCompletenessDoc: ApplicationWorkflowDocument = {
+const createDocument = (
+  overrides: Partial<ApplicationWorkflowDocument> = {}
+): ApplicationWorkflowDocument => ({
   id: "doc-1",
   name: "Completeness Letter",
   description: "Test letter",
@@ -56,17 +63,8 @@ const mockCompletenessDoc: ApplicationWorkflowDocument = {
   phaseName: "Completeness",
   owner: { person: { fullName: "Jane Doe" } },
   createdAt: new TZDate("2026-02-01", EST_TIMEZONE),
-};
-
-const mockInternalDoc: ApplicationWorkflowDocument = {
-  id: "doc-2",
-  name: "Internal Form",
-  description: "Internal form",
-  documentType: "Internal Completeness Review Form",
-  phaseName: "Completeness",
-  owner: { person: { fullName: "John Smith" } },
-  createdAt: new TZDate("2026-02-02", EST_TIMEZONE),
-};
+  ...overrides,
+});
 
 describe("CompletenessPhase", () => {
   const mockSetSelectedPhase = vi.fn();
@@ -80,10 +78,10 @@ describe("CompletenessPhase", () => {
     setSelectedPhase: mockSetSelectedPhase,
   };
 
-  const setup = (props: Partial<CompletenessPhaseProps> = {}) => {
+  const setup = (props: Partial<CompletenessPhaseProps> = {}, currentUser?: CurrentUser) => {
     const finalProps = { ...defaultProps, ...props };
     render(
-      <TestProvider>
+      <TestProvider currentUser={currentUser}>
         <CompletenessPhase {...finalProps} />
       </TestProvider>
     );
@@ -103,6 +101,45 @@ describe("CompletenessPhase", () => {
       expect(screen.getByTestId(COMPLETENESS_PHASE_DESCRIPTION.testId)).toHaveTextContent(
         COMPLETENESS_PHASE_DESCRIPTION.text
       );
+    });
+  });
+
+  describe("Readonly User Behavior", () => {
+    it("hides upload button for readonly users", () => {
+      setup({}, readonlyMockUser);
+
+      const uploadButton = screen.queryByTestId(COMPLETENESS_UPLOAD_BUTTON_NAME);
+      expect(uploadButton).not.toBeInTheDocument();
+    });
+
+    it("hides Declare Incomplete and Finish buttons for readonly users", () => {
+      setup({}, readonlyMockUser);
+
+      expect(
+        screen.queryByTestId(COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME)
+      ).not.toBeInTheDocument();
+      expect(screen.queryByTestId(COMPLETENESS_FINISH_BUTTON_NAME)).not.toBeInTheDocument();
+    });
+
+    it("disables State Application Deemed Complete date picker for readonly users", () => {
+      setup({}, readonlyMockUser);
+
+      const dateInput = screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME);
+      expect(dateInput).toBeDisabled();
+    });
+
+    it("shows upload button for non-readonly users", () => {
+      setup({}, cmsMockUser);
+
+      const uploadButton = screen.getByTestId(COMPLETENESS_UPLOAD_BUTTON_NAME);
+      expect(uploadButton).toBeInTheDocument();
+    });
+
+    it("enables State Application Deemed Complete date picker for non-readonly users", () => {
+      setup({}, cmsMockUser);
+
+      const dateInput = screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME);
+      expect(dateInput).not.toBeDisabled();
     });
   });
 });
@@ -161,7 +198,18 @@ describe("getApplicationCompletenessFromApplication", () => {
 
   it("filters documents to only those in the Completeness phase", () => {
     setup({
-      documents: [mockCompletenessDoc, { ...mockInternalDoc, phaseName: "Federal Comment" }],
+      documents: [
+        createDocument(),
+        createDocument({
+          id: "doc-2",
+          name: "Internal Form",
+          description: "Internal form",
+          documentType: "Internal Completeness Review Form",
+          owner: { person: { fullName: "John Smith" } },
+          createdAt: new TZDate("2026-02-02", EST_TIMEZONE),
+          phaseName: "Federal Comment",
+        }),
+      ],
     });
     expect(screen.getByText("Completeness Letter")).toBeInTheDocument();
     expect(screen.queryByText("Internal Form")).not.toBeInTheDocument();
@@ -183,7 +231,18 @@ describe("getApplicationCompletenessFromApplication", () => {
           phaseNotes: [],
         },
       ],
-      documents: [mockCompletenessDoc, mockInternalDoc],
+      documents: [
+        createDocument(),
+        createDocument({
+          id: "doc-2",
+          name: "Internal Form",
+          description: "Internal form",
+          documentType: "Internal Completeness Review Form",
+          phaseName: "Completeness",
+          owner: { person: { fullName: "John Smith" } },
+          createdAt: new TZDate("2026-02-02", EST_TIMEZONE),
+        }),
+      ],
     });
     expect(screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME)).toHaveValue("");
     expect(screen.getByTestId(FEDERAL_COMMENT_START_DATEPICKER_NAME)).toHaveValue("");

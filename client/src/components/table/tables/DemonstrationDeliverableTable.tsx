@@ -22,12 +22,14 @@ const DEFAULT_NO_SEARCH_RESULTS_MESSAGE = "No deliverables match your search";
 export const DemonstrationDeliverableTable: React.FC<{
   deliverables: DeliverableTableRow[];
   viewMode?: UserType;
+  isReadonlyUser?: boolean;
   emptyRowsMessage?: string;
   noResultsFoundMessage?: string;
   onViewDeliverable?: (deliverableId: string) => void;
 }> = ({
   deliverables,
   viewMode = "demos-cms-user",
+  isReadonlyUser = false,
   emptyRowsMessage = DEFAULT_EMPTY_ROWS_MESSAGE,
   noResultsFoundMessage = DEFAULT_NO_SEARCH_RESULTS_MESSAGE,
   onViewDeliverable,
@@ -45,7 +47,7 @@ export const DemonstrationDeliverableTable: React.FC<{
   const renderActionButtons: DemonstrationDeliverableActionButtons = (table) => (
     <DeliverableActionButtons table={table} />
   );
-  const actionButtons = viewMode === "demos-state-user" ? undefined : renderActionButtons;
+  const actionButtons = isReadonlyUser || viewMode === "demos-state-user" ? undefined : renderActionButtons;
 
   const formattedDeliverables = React.useMemo(
     () =>

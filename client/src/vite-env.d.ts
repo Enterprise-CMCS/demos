@@ -8,6 +8,11 @@ interface ViteTypeOptions {
 // Environment variables are strings or not set
 type EnvironmentVariable = string | undefined;
 
+// Feature flags and version constants injected at build time
+declare const __GIT_COMMIT__: string;
+declare const __DEMOS_VERSION__: string;
+declare const __FEATURE_SHOW_GIT_VERSION__: boolean;
+
 /**
 Some built-in constants are available in all cases:
 

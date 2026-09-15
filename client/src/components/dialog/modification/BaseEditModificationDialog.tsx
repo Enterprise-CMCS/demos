@@ -14,7 +14,7 @@ import { Button } from "components/button";
 import { ApolloError } from "@apollo/client";
 
 export const BaseEditModificationDialog: React.FC<{
-  modificationType: "Amendment" | "Extension";
+  modificationType: "Amendment" | "Renewal";
   useModification: () => {
     modification: Modification | undefined;
     error: ApolloError | undefined;

@@ -11,7 +11,7 @@ import {
 } from "demos-server";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
-import { CreateExtensionDialog } from "./modification/CreateExtensionDialog";
+import { CreateRenewalDialog } from "./modification/CreateRenewalDialog";
 import { EditDemonstrationDialog } from "./demonstration";
 import { ExistingContactType, ManageContactsDialog } from "./ManageContactsDialog";
 import {
@@ -30,7 +30,7 @@ import { ApplyDemonstrationTypesDialog } from "./DemonstrationTypes/ApplyDemonst
 import { ApplyTagsDialog } from "./ApplyTagsDialog";
 import { RemoveDemonstrationTypesDialog } from "./DemonstrationTypes/RemoveDemonstrationTypesDialog";
 import { EditDemonstrationTypeDialog } from "./DemonstrationTypes/EditDemonstrationTypeDialog";
-import { UpdateExtensionDialog } from "./modification/EditExtensionDialog";
+import { UpdateRenewalDialog } from "./modification/EditRenewalDialog";
 import { UpdateAmendmentDialog } from "./modification/EditAmendmentDialog";
 import { ConfirmApproveDialog } from "./ConfirmApproveDialog";
 import { AddDeliverableSlotDialog, RemoveDeliverableDialog } from "./deliverable";
@@ -59,6 +59,7 @@ import {
   ReviewExtensionDeliverableDialogDeliverable,
 } from "./deliverable/ReviewExtensionDeliverableDialog";
 import { ReferenceAgreementDialog } from "./referenceAgreement/ReferenceAgreementDialog";
+import { AssignStatesDialog, AssignStatesDialogPerson } from "./user/AssignStatesDialog";
 
 type EditDeliverableDialogSource = Pick<
   DeliverableTableRow,
@@ -111,13 +112,13 @@ export const useDialog = () => {
     context.showDialog(<CreateAmendmentDialog demonstrationId={demonstrationId} />);
   };
 
-  const showCreateExtensionDialog = (demonstrationId?: string) => {
-    context.showDialog(<CreateExtensionDialog demonstrationId={demonstrationId} />);
+  const showCreateRenewalDialog = (demonstrationId?: string) => {
+    context.showDialog(<CreateRenewalDialog demonstrationId={demonstrationId} />);
   };
 
-  const showUpdateExtensionDialog = (extensionId: string, refetchQueries: string[] = []) => {
+  const showUpdateRenewalDialog = (renewalId: string, refetchQueries: string[] = []) => {
     context.showDialog(
-      <UpdateExtensionDialog extensionId={extensionId} refetchQueries={refetchQueries} />
+      <UpdateRenewalDialog renewalId={renewalId} refetchQueries={refetchQueries} />
     );
   };
 
@@ -367,6 +368,10 @@ export const useDialog = () => {
     );
   };
 
+  const showAssignStatesDialog = (person: AssignStatesDialogPerson) => {
+    context.showDialog(<AssignStatesDialog person={person} onClose={context.hideDialog} />);
+  };
+
   const showReferenceAgreementDialog = (
     reference: Pick<Reference, "id"> & {
       agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt">;
@@ -380,7 +385,7 @@ export const useDialog = () => {
     showCreateDemonstrationDialog,
     showEditDemonstrationDialog,
     showCreateAmendmentDialog,
-    showCreateExtensionDialog,
+    showCreateRenewalDialog,
     showManageContactsDialog,
     showUploadDocumentDialog,
     showEditDocumentDialog,
@@ -396,7 +401,7 @@ export const useDialog = () => {
     showApplyTagsDialog,
     showRemoveDemonstrationTypesDialog,
     showEditDemonstrationTypeDialog,
-    showUpdateExtensionDialog,
+    showUpdateRenewalDialog,
     showUpdateAmendmentDialog,
     showConfirmApproveDialog,
     showAddDeliverableSlotDialog,
@@ -407,5 +412,6 @@ export const useDialog = () => {
     showCompleteReviewDeliverableDialog,
     showReviewExtensionDeliverableDialog,
     showReferenceAgreementDialog,
+    showAssignStatesDialog,
   };
 };

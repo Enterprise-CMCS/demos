@@ -1,5 +1,5 @@
 import React from "react";
-
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 import { IconButton } from "components/button";
 import { EditIcon } from "components/icons";
 import { TabHeader } from "components/table/TabHeader";
@@ -24,6 +24,7 @@ type Demonstration = Pick<ServerDemonstration, "id"> & {
 };
 
 export const ContactsTab: React.FC<{ demonstration: Demonstration }> = ({ demonstration }) => {
+  const { currentUser } = getCurrentUser();
   const { showManageContactsDialog } = useDialog();
 
   const rolesForDialog: ExistingContactType[] = (demonstration.roles || []).map((c) => ({
@@ -41,16 +42,18 @@ export const ContactsTab: React.FC<{ demonstration: Demonstration }> = ({ demons
   return (
     <>
       <TabHeader title="Contacts">
-        <IconButton
-          icon={<EditIcon />}
-          name="manage-contacts"
-          size="small"
-          onClick={() =>
-            showManageContactsDialog(demonstration.id, demonstration.state.id, rolesForDialog)
-          }
-        >
-          Manage Contact(s)
-        </IconButton>
+        {!isReadonly(currentUser) && (
+          <IconButton
+            icon={<EditIcon />}
+            name="manage-contacts"
+            size="small"
+            onClick={() =>
+              showManageContactsDialog(demonstration.id, demonstration.state.id, rolesForDialog)
+            }
+          >
+            Manage Contact(s)
+          </IconButton>
+        )}
       </TabHeader>
       <ContactsTable demonstrationId={demonstration.id} />
     </>

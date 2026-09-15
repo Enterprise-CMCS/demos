@@ -15,7 +15,7 @@ import { Button } from "components/button/Button";
 import { useDialog } from "components/dialog/DialogContext";
 import { isDeliverableEditable } from "components/dialog/deliverable";
 import { useToast } from "components/toast";
-import { getCurrentUser } from "components/user/UserContext";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 import { DeliverableStatus, PersonType } from "demos-server";
 import { CompleteReviewButton } from "./CompleteReviewButton";
 
@@ -104,6 +104,9 @@ export const FileAndHistoryTabs: React.FC<{
   const userPersonType = currentUser.person.personType;
   const isCmsStaffUser = CMS_STAFF_PERSON_TYPES.has(userPersonType);
   const canManageCmsFiles = isCmsStaffUser;
+  // Restricted CMS users may view and download files, but take no action on them.
+  const isReadonlyUser = isReadonly(currentUser);
+  const canManageStateFiles = !isReadonlyUser;
 
   const canSubmitWithoutUnsubmittedFiles =
     SUBMISSION_ALWAYS_ENABLED_STATUSES.has(deliverable.status);
@@ -180,6 +183,7 @@ export const FileAndHistoryTabs: React.FC<{
             onAdd={handleAddStateFile}
             onEdit={handleEditFile}
             onDelete={handleDeleteFiles}
+            canManage={canManageStateFiles}
             isFinalized={isFinalized}
           />
         </Tab>
@@ -197,28 +201,30 @@ export const FileAndHistoryTabs: React.FC<{
           <HistoryTab rows={historyRows} />
         </Tab>
       </HorizontalSectionTabs>
-      <div data-testid={FILE_AND_HISTORY_ACTIONS_NAME} className="flex justify-end mt-2 gap-2">
-        {isCmsStaffUser ? (
+      {isReadonlyUser ? null : (
+        <div data-testid={FILE_AND_HISTORY_ACTIONS_NAME} className="flex justify-end mt-2 gap-2">
+          {isCmsStaffUser ? (
+            <Button
+              onClick={handleRequestResubmission}
+              size="large"
+              name="button-actions-request-resubmission"
+              disabled={isResubmissionDisabled(deliverable.status)}
+            >
+              Request Re-submission
+            </Button>
+          ) : null}
           <Button
-            onClick={handleRequestResubmission}
+            disabled={isSubmitDisabled}
+            onClick={handleSubmitDeliverable}
             size="large"
-            name="button-actions-request-resubmission"
-            disabled={isResubmissionDisabled(deliverable.status)}
+            name={STATE_FILES_SUBMIT_BUTTON_NAME}
+            tooltip={submitTooltip}
           >
-            Request Re-submission
+            Submit Deliverable
           </Button>
-        ) : null}
-        <Button
-          disabled={isSubmitDisabled}
-          onClick={handleSubmitDeliverable}
-          size="large"
-          name={STATE_FILES_SUBMIT_BUTTON_NAME}
-          tooltip={submitTooltip}
-        >
-          Submit Deliverable
-        </Button>
-        {isCmsStaffUser && <CompleteReviewButton deliverable={deliverable} />}
-      </div>
+          {isCmsStaffUser && <CompleteReviewButton deliverable={deliverable} />}
+        </div>
+      )}
     </div>
   );
 };
