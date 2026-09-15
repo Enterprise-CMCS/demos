@@ -11,6 +11,8 @@ import { prisma } from "../../prismaClient";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 import { insertDeliverableExtension } from "../deliverableExtension/queries";
 
+import { notifyDeliverableExtensionRequested } from "../email/notifyDeliverableEvent";
+
 export async function requestDeliverableExtension(
   deliverableId: string,
   input: RequestDeliverableExtensionInput,
@@ -22,7 +24,7 @@ export async function requestDeliverableExtension(
   ]);
   const parsedInput = parseRequestDeliverableExtensionInput(input);
 
-  return await prisma().$transaction(async (tx) => {
+  const { deliverable, sourceActionId } = await prisma().$transaction(async (tx) => {
     const deliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
     await validateRequestDeliverableExtensionInput(deliverable, parsedInput, tx);
 
@@ -37,7 +39,7 @@ export async function requestDeliverableExtension(
     );
 
     // Casts below enforced by database
-    await insertDeliverableAction(
+    const action = await insertDeliverableAction(
       {
         deliverableId: deliverableId,
         actionType: "Requested Extension",
@@ -50,6 +52,13 @@ export async function requestDeliverableExtension(
       },
       tx
     );
-    return deliverable;
+    return { deliverable, sourceActionId: action.id };
   });
+  await notifyDeliverableExtensionRequested({
+    deliverableId,
+    sourceActionId,
+    requestedDueDate: parsedInput.requestedDueDate.easternTZDate,
+    triggeredByUserId: context.user.id,
+  });
+  return deliverable;
 }

@@ -343,7 +343,7 @@ describe("emailer", () => {
     ["Extension Requested", "CMS DEMOS Deliverable: Extension Requested"],
     ["Extension Decision Made", "CMS DEMOS Deliverable: Extension Decision Made"],
     ["Resubmission Requested", "CMS DEMOS Deliverable: Resubmission Requested"],
-    ["Public Comment Added", "CMS DEMOS Deliverable: Public Comment Added"],
+    ["Deliverable Comment", "CMS DEMOS Deliverable: New Comment"],
   ])("should select the %s template by email type", async (emailType, subject) => {
     const email = await renderRealTimeEmails({
       ...realtimeDeliverableCreatedEnvelope,
