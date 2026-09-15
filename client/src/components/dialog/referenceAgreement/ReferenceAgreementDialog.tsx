@@ -10,7 +10,7 @@ import { Reference, ReferenceAgreement } from "demos-server";
 import { Spinner } from "components/loading/Spinner";
 
 const STYLES = {
-  termsCheckbox: tw`flex items-center p-1 cursor-pointer`,
+  termsCheckbox: tw`flex items-center gap-[8px] p-1 cursor-pointer`,
 };
 
 export const ReferenceAgreementDialog = ({
@@ -21,6 +21,7 @@ export const ReferenceAgreementDialog = ({
   };
 }) => {
   const { closeDialog } = useDialog();
+  const [emailRequested, setEmailRequested] = React.useState(false);
   const [termsAccepted, setTermsAccepted] = React.useState(false);
   const [isDownloading, setIsDownloading] = React.useState(false);
 
@@ -42,6 +43,7 @@ export const ReferenceAgreementDialog = ({
               await downloadReference({
                 id: reference.id,
                 acceptedAgreementId: reference.agreement.id,
+                emailRequested,
               });
               closeDialog();
             } catch {
@@ -74,6 +76,16 @@ export const ReferenceAgreementDialog = ({
             onChange={() => setTermsAccepted((prev) => !prev)}
           />
           <span className="text-sm text-text-font">I accept the terms</span>
+        </label>
+        <label className={STYLES.termsCheckbox}>
+          <Checkbox
+            name="checkbox-email-agreement"
+            checked={emailRequested}
+            onChange={() => setEmailRequested((prev) => !prev)}
+          />
+          <span className="text-sm text-text-font">
+            Receive an email with the Accepted 'Point and Click Agreement'
+          </span>
         </label>
       </>
     </BaseDialog>

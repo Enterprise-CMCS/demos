@@ -62,12 +62,31 @@ describe("useDownloadReference", () => {
       ).resolves.toBe("https://example.com/reference.pdf?signature=abc123");
 
       expect(fetchReferenceDownloadUrl).toHaveBeenCalledExactlyOnceWith({
-        variables: { id: "reference-123", acceptedAgreementId: "agreement-456" },
+        variables: {
+          id: "reference-123",
+          acceptedAgreementId: "agreement-456",
+          emailRequested: false,
+        },
       });
       expect(triggerDownload).toHaveBeenCalledExactlyOnceWith(
         "https://example.com/reference.pdf?signature=abc123"
       );
       expect(mockShowError).not.toHaveBeenCalled();
+    });
+
+    it("passes email opt-in with the agreement and downloads the returned reference URL", async () => {
+      fetchReferenceDownloadUrl.mockResolvedValue({
+        data: { referenceDownloadUrl: "https://example.com/reference" },
+      });
+      const { result } = renderHook(() => useDownloadReference());
+      const variables = {
+        id: "reference-123",
+        acceptedAgreementId: "agreement-456",
+        emailRequested: true,
+      };
+      await result.current.downloadReference(variables);
+      expect(fetchReferenceDownloadUrl).toHaveBeenCalledWith({ variables });
+      expect(triggerDownload).toHaveBeenCalledWith("https://example.com/reference");
     });
 
     it("shows an error when the reference URL is missing", async () => {
