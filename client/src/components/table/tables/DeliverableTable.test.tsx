@@ -803,11 +803,7 @@ describe("DeliverableTable default sorting behavior", () => {
     ];
     const user = userEvent.setup();
 
-<<<<<<< HEAD
-    render(<DeliverableTable deliverables={deliverables} viewMode="demos-cms-user" />);
-=======
     renderComponent(cmsMockUser, { deliverables, viewMode: "demos-cms-user" });
->>>>>>> origin/main
 
     await user.selectOptions(screen.getByTestId("filter-by-column"), "Deliverable Name");
     await user.type(screen.getByPlaceholderText("Filter Deliverable Name"), "Report");
