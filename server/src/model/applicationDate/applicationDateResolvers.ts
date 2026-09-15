@@ -1,3 +1,4 @@
+import { notifyApplicationDeemedComplete } from "../email/notifyApplicationEvent";
 import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
 import { prisma } from "../../prismaClient";
 import { DateType, SetApplicationDateInput, SetApplicationDatesInput } from "../../types";
@@ -29,7 +30,8 @@ export function checkForDuplicateDateTypes(input: SetApplicationDatesInput): voi
 
 export function __setApplicationDate(
   parent: unknown,
-  { input }: { input: SetApplicationDateInput }
+  { input }: { input: SetApplicationDateInput },
+  context: { user: { id: string } }
 ): Promise<PrismaApplication> {
   const payload: SetApplicationDatesInput = {
     applicationId: input.applicationId,
@@ -40,19 +42,38 @@ export function __setApplicationDate(
       },
     ],
   };
-  return __setApplicationDates(undefined, { input: payload });
+  return __setApplicationDates(undefined, { input: payload }, context);
 }
 
 export async function __setApplicationDates(
   parent: unknown,
-  { input }: { input: SetApplicationDatesInput }
+  { input }: { input: SetApplicationDatesInput },
+  context: { user: { id: string } }
 ): Promise<PrismaApplication> {
   if (input.applicationDates.length === 0) {
     return await getApplication(input.applicationId);
   }
+  let deemedCompleteDate: Date | undefined;
   try {
     checkForDuplicateDateTypes(input);
     await prisma().$transaction(async (tx) => {
+      const deemedCompleteInput = input.applicationDates.find(
+        (date) => date.dateType === "State Application Deemed Complete" && date.dateValue !== null
+      );
+      if (deemedCompleteInput) {
+        const existingDate = await tx.applicationDate.findUnique({
+          where: {
+            applicationId_dateTypeId: {
+              applicationId: input.applicationId,
+              dateTypeId: "State Application Deemed Complete",
+            },
+          },
+        });
+        const date = new Date(deemedCompleteInput.dateValue!);
+        if (existingDate?.dateValue.getTime() !== date.getTime()) {
+          deemedCompleteDate = date;
+        }
+      }
       const easternNow = getEasternNow();
       const phaseStartDates = await startPhasesByDates(
         tx,
@@ -67,7 +88,11 @@ export async function __setApplicationDates(
   } catch (error) {
     handlePrismaError(error);
   }
-  return await getApplication(input.applicationId);
+  const application = await getApplication(input.applicationId);
+  if (deemedCompleteDate) {
+    await notifyApplicationDeemedComplete(application, deemedCompleteDate, context.user.id);
+  }
+  return application;
 }
 
 export const applicationDateResolvers = {

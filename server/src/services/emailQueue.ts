@@ -5,6 +5,8 @@ import { log } from "../log";
 import { prisma } from "../prismaClient";
 
 export type RealtimeEmailType =
+  | "Application Status Updated"
+  | "Application Deemed Complete"
   | "Deliverable Due Date Updated"
   | "Extension Requested"
   | "Deliverable Comment"
@@ -18,7 +20,7 @@ export type RealtimeEmailType =
 
 export type RealtimeEmailMessage = {
   emailType: RealtimeEmailType;
-  entityType: "deliverable";
+  entityType: "deliverable" | "application";
   entityId: string;
   triggeredBy: {
     type: "realtime";

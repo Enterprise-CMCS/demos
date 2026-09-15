@@ -1,3 +1,7 @@
+vi.mock("../email/notifyApplicationEvent", () => ({
+  notifyApplicationDeemedComplete: vi.fn(),
+}));
+import { notifyApplicationDeemedComplete } from "../email/notifyApplicationEvent";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   __setApplicationDates,
@@ -41,7 +45,7 @@ vi.mock("../../dateUtilities", () => ({
 }));
 
 describe("applicationDateResolvers", () => {
-  const mockTransaction: any = "Test";
+  const mockTransaction = { applicationDate: { findUnique: vi.fn() } };
   const mockPrismaClient = {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
   };
@@ -67,6 +71,77 @@ describe("applicationDateResolvers", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
     vi.mocked(getEasternNow).mockReturnValue(mockEasternNow as any);
     vi.mocked(startPhasesByDates).mockResolvedValue([]);
+  });
+
+  it.each([null, { dateValue: new Date("2026-09-14T04:00:00Z") }])(
+    "notifies after committing a new or changed deemed-complete date",
+    async (existingDate) => {
+      mockTransaction.applicationDate.findUnique.mockResolvedValue(existingDate);
+      const application = { id: testApplicationId } as Awaited<ReturnType<typeof getApplication>>;
+      vi.mocked(getApplication).mockResolvedValue(application);
+      const date = new Date("2026-09-15T04:00:00Z");
+      await __setApplicationDates(
+        undefined,
+        {
+          input: {
+            applicationId: testApplicationId,
+            applicationDates: [{ dateType: "State Application Deemed Complete", dateValue: date }],
+          },
+        },
+        { user: { id: "user-1" } }
+      );
+      expect(notifyApplicationDeemedComplete).toHaveBeenCalledExactlyOnceWith(
+        application,
+        date,
+        "user-1"
+      );
+      expect(
+        vi.mocked(notifyApplicationDeemedComplete).mock.invocationCallOrder[0]
+      ).toBeGreaterThan(vi.mocked(getApplication).mock.invocationCallOrder[0]);
+    }
+  );
+
+  it.each([new Date("2026-09-15T04:00:00Z"), null])(
+    "does not notify for an unchanged or removed date",
+    async (dateValue) => {
+      mockTransaction.applicationDate.findUnique.mockResolvedValue({
+        dateValue: new Date("2026-09-15T04:00:00Z"),
+      });
+      await __setApplicationDates(
+        undefined,
+        {
+          input: {
+            applicationId: testApplicationId,
+            applicationDates: [{ dateType: "State Application Deemed Complete", dateValue }],
+          },
+        },
+        { user: { id: "user-1" } }
+      );
+      expect(notifyApplicationDeemedComplete).not.toHaveBeenCalled();
+    }
+  );
+
+  it("does not notify when the date transaction fails", async () => {
+    mockTransaction.applicationDate.findUnique.mockResolvedValue(null);
+    vi.mocked(validateAndUpdateDates).mockRejectedValue(new Error("validation failed"));
+    await expect(
+      __setApplicationDates(
+        undefined,
+        {
+          input: {
+            applicationId: testApplicationId,
+            applicationDates: [
+              {
+                dateType: "State Application Deemed Complete",
+                dateValue: new Date("2026-09-15T04:00:00Z"),
+              },
+            ],
+          },
+        },
+        { user: { id: "user-1" } }
+      )
+    ).rejects.toThrow();
+    expect(notifyApplicationDeemedComplete).not.toHaveBeenCalled();
   });
 
   describe("ApplicationDate.dateType", () => {
@@ -100,22 +175,22 @@ describe("applicationDateResolvers", () => {
         applicationId: testApplicationId,
         applicationDates: [],
       };
-      await __setApplicationDates(undefined, { input: testInput });
+      await __setApplicationDates(undefined, { input: testInput }, { user: { id: "user-1" } });
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
       expect(prisma).not.toHaveBeenCalled();
     });
 
     it("should validate and update based on the input if it is present", async () => {
-      await __setApplicationDates(undefined, { input: testInput });
+      await __setApplicationDates(undefined, { input: testInput }, { user: { id: "user-1" } });
       expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(testInput, mockTransaction);
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
     });
 
     it("should handle an error appropriately if it occurs", async () => {
       mockPrismaClient.$transaction.mockRejectedValueOnce(testError);
-      await expect(__setApplicationDates(undefined, { input: testInput })).rejects.toThrowError(
-        testHandlePrismaError
-      );
+      await expect(
+        __setApplicationDates(undefined, { input: testInput }, { user: { id: "user-1" } })
+      ).rejects.toThrowError(testHandlePrismaError);
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
       expect(getApplication).not.toHaveBeenCalled();
     });
@@ -147,9 +222,9 @@ describe("applicationDateResolvers", () => {
         ],
       };
 
-      await expect(__setApplicationDates(undefined, { input: testInput })).rejects.toThrowError(
-        testHandlePrismaError
-      );
+      await expect(
+        __setApplicationDates(undefined, { input: testInput }, { user: { id: "user-1" } })
+      ).rejects.toThrowError(testHandlePrismaError);
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(
         new Error(
           "The input contained the same dateType more than once for " +
@@ -160,7 +235,7 @@ describe("applicationDateResolvers", () => {
     });
 
     it("should call startPhasesByDates with correct arguments", async () => {
-      await __setApplicationDates(undefined, { input: testInput });
+      await __setApplicationDates(undefined, { input: testInput }, { user: { id: "user-1" } });
 
       expect(getEasternNow).toHaveBeenCalledExactlyOnceWith();
       expect(startPhasesByDates).toHaveBeenCalledExactlyOnceWith(
@@ -180,7 +255,7 @@ describe("applicationDateResolvers", () => {
       ];
       vi.mocked(startPhasesByDates).mockResolvedValueOnce(phaseStartDates as any);
 
-      await __setApplicationDates(undefined, { input: testInput });
+      await __setApplicationDates(undefined, { input: testInput }, { user: { id: "user-1" } });
 
       expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
         expect.objectContaining({
@@ -213,7 +288,7 @@ describe("applicationDateResolvers", () => {
 
     describe("invokes __setApplicationDates with a single item", () => {
       it("should validate and update based on the input if it is present", async () => {
-        await __setApplicationDate(undefined, { input: testInput });
+        await __setApplicationDate(undefined, { input: testInput }, { user: { id: "user-1" } });
         expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
           transformedTestInput,
           mockTransaction

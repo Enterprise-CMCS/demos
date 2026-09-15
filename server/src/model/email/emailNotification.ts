@@ -10,7 +10,7 @@ export type EmailNotificationRecipient = {
 
 export async function enqueueAndTrackRealtimeEmail(
   message: RealtimeEmailMessage,
-  source: { deliverableActionId: string } | { publicCommentId: string },
+  source: { deliverableActionId: string } | { publicCommentId: string } | { applicationId: string },
   recipients: EmailNotificationRecipient[]
 ): Promise<string | null> {
   if (process.env.DISABLE_EMAIL_NOTIFICATIONS === "true") {

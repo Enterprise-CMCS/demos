@@ -1292,7 +1292,7 @@ async function seedDatabase() {
       },
     ],
   };
-  await __setApplicationDates(undefined, { input: dateInput });
+  await __setApplicationDates(undefined, { input: dateInput }, { user: { id: "seeder" } });
 
   // Having the SDG Preparation Start Date without the phase being started
   // causes errors handling the Federal Comment status; this fixes that
