@@ -15,7 +15,7 @@ import {
   applyDbRoleSuppressions,
   applyFileUploadSuppressions,
   applyUISuppressions,
-  applyUISuppressionsCloudfrontOnly
+  applyUISuppressionsCloudfrontOnly,
 } from "./nag-suppressions";
 import { FileUploadStack } from "./stacks/fileupload";
 import { DBRoleStack } from "./stacks/dbRoles";
@@ -55,8 +55,8 @@ export async function main(passedContext?: { [key: string]: any }) {
 
   const stage = app.node.getContext("stage");
   const hostEnv = app.node.tryGetContext("hostEnv");
-  const forceAlarms = app.node.tryGetContext("alarms")
-  const bootstrapProd = app.node.tryGetContext("bootstrap") == "prod"
+  const forceAlarms = app.node.tryGetContext("alarms");
+  const bootstrapProd = app.node.tryGetContext("bootstrap") == "prod";
   const config = await determineDeploymentConfig(stage, hostEnv, forceAlarms);
 
   const project = config.project;
@@ -68,7 +68,6 @@ export async function main(passedContext?: { [key: string]: any }) {
 
   Tags.of(app).add("STAGE", stage);
   Tags.of(app).add("PROJECT", project);
-
 
   if (stage == "bootstrap") {
     new BootstrapStack(app, `${config.project}-${stage}`, {
@@ -112,8 +111,19 @@ export async function main(passedContext?: { [key: string]: any }) {
         account: process.env.CDK_DEFAULT_ACCOUNT,
         region: process.env.CDK_DEFAULT_REGION,
       },
-    })
-    pmda.addStackDependency(core)
+    });
+    pmda.addStackDependency(core);
+  }
+
+  if (app.node.tryGetContext("pmda") == "include") {
+    const pmda = new PMDATransfer(app, `${project}-${stage}-pmda-transfer`, {
+      ...config,
+      env: {
+        account: process.env.CDK_DEFAULT_ACCOUNT,
+        region: process.env.CDK_DEFAULT_REGION,
+      },
+    });
+    pmda.addDependency(core);
   }
 
   const fileUpload = new FileUploadStack(app, `${project}-${stage}-file-upload`, {
@@ -182,9 +192,9 @@ export async function main(passedContext?: { [key: string]: any }) {
         account: process.env.CDK_DEFAULT_ACCOUNT,
         region: process.env.CDK_DEFAULT_REGION,
       },
-      vpc: core.vpc
-    })
-    applyBackupSuppressions(backup, stage)
+      vpc: core.vpc,
+    });
+    applyBackupSuppressions(backup, stage);
   }
 
   applyFileUploadSuppressions(fileUpload, stage);
