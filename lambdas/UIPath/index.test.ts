@@ -29,7 +29,8 @@ vi.mock("./runDocumentUnderstanding", () => ({
 }));
 
 vi.mock("./parseDocumentFromId", async () => {
-  const actual = await vi.importActual<typeof import("./parseDocumentFromId")>("./parseDocumentFromId");
+  const actual =
+    await vi.importActual<typeof import("./parseDocumentFromId")>("./parseDocumentFromId");
   return {
     ...actual,
     parseDocumentFromId: (...args: unknown[]) => mocks.parseDocumentFromIdMock(...args),
@@ -165,7 +166,10 @@ describe("handler", () => {
 
     const result = await handlerRef(event);
 
-    expect(mocks.parseDocumentFromIdMock).toHaveBeenCalledExactlyOnceWith(SEEDED_DOCUMENT_ID, undefined);
+    expect(mocks.parseDocumentFromIdMock).toHaveBeenCalledExactlyOnceWith(
+      SEEDED_DOCUMENT_ID,
+      undefined
+    );
     expect(mocks.runDocumentUnderstandingMock).toHaveBeenCalledWith(
       tmpFile("document-3"),
       expect.objectContaining({
@@ -295,8 +299,31 @@ describe("handler", () => {
 
     expect(log.error).toHaveBeenCalledWith(
       { error: redactedError },
-      "UiPath lambda failed"
+      "UiPath lambda did not complete"
     );
     expect(JSON.stringify(vi.mocked(log.error).mock.calls)).not.toContain("token-123");
+  });
+
+  it("acknowledges failed extraction results without logging success", async () => {
+    process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
+    process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
+    const failedResult = {
+      status: "Failed",
+      error: "UiPath extraction returned Failed status.",
+    };
+    mocks.runDocumentUnderstandingMock.mockResolvedValue(failedResult);
+    mocks.sendMock.mockResolvedValue({ Body: Readable.from(["test"]) });
+    mocks.fileTypeFromFileMock.mockResolvedValue({ ext: "pdf", mime: "application/pdf" });
+    mocks.parseDocumentFromIdMock.mockResolvedValue({
+      key: `app-1/${SEEDED_DOCUMENT_ID}`,
+      documentId: SEEDED_DOCUMENT_ID,
+      applicationId: "app-1",
+    });
+
+    const event = createEvent({ documentId: SEEDED_DOCUMENT_ID }, "id-failed-result");
+
+    await expect(handlerRef(event)).resolves.toEqual(failedResult);
+    expect(log.info).not.toHaveBeenCalledWith("UiPath extraction completed successfully");
+    expect(log.error).not.toHaveBeenCalled();
   });
 });

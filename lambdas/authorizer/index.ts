@@ -83,7 +83,12 @@ export const handler = async (event: APIGatewayTokenAuthorizerEvent, context: Co
       throw new Error("Unauthorized");
     }
 
-    const validRoles = ["demos-admin", "demos-cms-user", "demos-state-user"];
+    const validRoles = [
+      "demos-admin",
+      "demos-cms-user",
+      "demos-state-user",
+      "demos-restricted-cms-user",
+    ];
 
     if (!validRoles.some((role) => roles.includes(role))) {
       log.info(

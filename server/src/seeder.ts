@@ -90,14 +90,28 @@ async function seedTagsAndStatuses() {
         id: tagName,
       },
     });
-    await prisma().tag.create({
-      data: {
-        tagNameId: tagName,
-        tagTypeId: faker.helpers.arrayElement(TAG_TYPES),
-        sourceId: "User",
-        statusId: "Unapproved",
-      },
-    });
+    const tagTypeToMake = faker.helpers.arrayElement(TAG_TYPES);
+    if (["Application", "Demonstration Type"].includes(tagTypeToMake)) {
+      for (const tagType of ["Application", "Demonstration Type"]) {
+        await prisma().tag.create({
+          data: {
+            tagNameId: tagName,
+            tagTypeId: tagType,
+            sourceId: "User",
+            statusId: "Unapproved",
+          },
+        });
+      }
+    } else {
+      await prisma().tag.create({
+        data: {
+          tagNameId: tagName,
+          tagTypeId: tagTypeToMake,
+          sourceId: "User",
+          statusId: "Unapproved",
+        },
+      });
+    }
   }
 
   // assign random tags to applications
@@ -785,6 +799,9 @@ async function clearDatabase() {
   // However, if this does not happen, the history tables will contain the truncates
   return await prisma().$transaction([
     // Truncates must be done in proper order for relational reasons
+    prisma().emailNotificationRecipient.deleteMany(),
+    prisma().emailNotification.deleteMany(),
+
     // Reference section
     prisma().referenceAgreementAcceptance.deleteMany(),
     prisma().referenceDemonstrationType.deleteMany(),
@@ -1186,7 +1203,11 @@ async function seedDatabase() {
         dateValue: new Date("2025-02-04T00:00:00.000-05:00"),
       },
       {
-        dateType: "Expected Approval Date",
+        dateType: "State Requested Approval Date",
+        dateValue: new Date("2025-02-05T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "Internal Expected Approval Date",
         dateValue: new Date("2025-02-05T00:00:00.000-05:00"),
       },
       {

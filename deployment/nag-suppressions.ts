@@ -156,6 +156,17 @@ export function applyApiSuppressions(api: Stack, stage: string) {
       },
     ]
   );
+
+  NagSuppressions.addResourceSuppressionsByPath(
+    api,
+    `/demos-${stage}-api/emailer/emailerLambdaExecutionRole/DefaultPolicy/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role",
+      },
+    ]
+  );
 }
 
 export function applyDatabaseSuppressions(database: Stack, stage: string) {
@@ -300,6 +311,28 @@ export function applyFileUploadSuppressions(fileUpload: Stack, stage: string) {
       },
     ]
   );
+
+  NagSuppressions.addResourceSuppressionsByPath(
+    fileUpload,
+    `/demos-${stage}-file-upload/DataConnectExportProcessor/dataConnectExport/dataConnectExportLambdaExecutionRole/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role. Some wildcards are unavoidable (VPC networking).",
+      },
+    ]
+  );
+
+  NagSuppressions.addResourceSuppressionsByPath(
+    fileUpload,
+    `/demos-${stage}-file-upload/DataConnectExportProcessor/dataConnectExport/dataConnectExportLambdaExecutionRole/DefaultPolicy/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions are scoped to the DataConnect bucket and the export database secret. Writing objects requires a wildcard object suffix, and s3:Abort* comes with the CDK grantPut helper.",
+      },
+    ]
+  );
 }
 
 export function applyDbRoleSuppressions(dbRole: Stack, stage: string) {
@@ -344,4 +377,23 @@ export function applyDbRoleSuppressions(dbRole: Stack, stage: string) {
     ]
   );
 
+}
+
+export function applyBackupSuppressions(backup: Stack, stage: string) {
+  NagSuppressions.addResourceSuppressionsByPath(backup, `/demos-${stage}-backup/backup-validation/backup-validationLambdaExecutionRole/Resource`, 
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role"
+      }
+    ]
+  )
+  NagSuppressions.addResourceSuppressionsByPath(backup, `/demos-${stage}-backup/backup-validation/backup-validationLambdaExecutionRole/DefaultPolicy/Resource`, 
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role"
+      }
+    ]
+  )
 }

@@ -10,6 +10,7 @@ model ReferenceConfiguration {
   referenceAgreement            ReferenceAgreement?            @relation(fields: [referenceAgreementId], references: [id], onDelete: Restrict)
   status                        ReferenceConfigurationStatus   @relation(fields: [statusId], references: [id])
   referenceAgreementAcceptances ReferenceAgreementAcceptance[]
+  emailNotifications            EmailNotification[]
 
   @@id([id])
   @@unique([referenceId, referenceAgreementId]) // Unique index created with NULLS NOT DISTINCT in migration

@@ -9,16 +9,18 @@ import { BootstrapStack } from "./stacks/bootstrap";
 import { AwsSolutionsChecks } from "cdk-nag";
 import {
   applyApiSuppressions,
+  applyBackupSuppressions,
   applyCoreSuppressions,
   applyDatabaseSuppressions,
   applyDbRoleSuppressions,
   applyFileUploadSuppressions,
   applyUISuppressions,
-  applyUISuppressionsCloudfrontOnly
+  applyUISuppressionsCloudfrontOnly,
 } from "./nag-suppressions";
 import { FileUploadStack } from "./stacks/fileupload";
 import { DBRoleStack } from "./stacks/dbRoles";
 import { PMDATransfer } from "./stacks/pmdaTransfer";
+import { BackupStack } from "./stacks/backups";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function main(passedContext?: { [key: string]: any }) {
@@ -53,8 +55,8 @@ export async function main(passedContext?: { [key: string]: any }) {
 
   const stage = app.node.getContext("stage");
   const hostEnv = app.node.tryGetContext("hostEnv");
-  const forceAlarms = app.node.tryGetContext("alarms")
-  const bootstrapProd = app.node.tryGetContext("bootstrap") == "prod"
+  const forceAlarms = app.node.tryGetContext("alarms");
+  const bootstrapProd = app.node.tryGetContext("bootstrap") == "prod";
   const config = await determineDeploymentConfig(stage, hostEnv, forceAlarms);
 
   const project = config.project;
@@ -99,7 +101,7 @@ export async function main(passedContext?: { [key: string]: any }) {
       secretsManagerVpceSg: core.secretsManagerVpceSg,
     });
     applyDatabaseSuppressions(database, stage);
-    database.addDependency(core);
+    database.addStackDependency(core);
   }
 
   if (app.node.tryGetContext("pmda") == "include") {
@@ -109,8 +111,30 @@ export async function main(passedContext?: { [key: string]: any }) {
         account: process.env.CDK_DEFAULT_ACCOUNT,
         region: process.env.CDK_DEFAULT_REGION,
       },
-    })
-    pmda.addDependency(core)
+    });
+    pmda.addStackDependency(core);
+  }
+
+  if (app.node.tryGetContext("pmda") == "include") {
+    const pmda = new PMDATransfer(app, `${project}-${stage}-pmda-transfer`, {
+      ...config,
+      env: {
+        account: process.env.CDK_DEFAULT_ACCOUNT,
+        region: process.env.CDK_DEFAULT_REGION,
+      },
+    });
+    pmda.addDependency(core);
+  }
+
+  if (app.node.tryGetContext("pmda") == "include") {
+    const pmda = new PMDATransfer(app, `${project}-${stage}-pmda-transfer`, {
+      ...config,
+      env: {
+        account: process.env.CDK_DEFAULT_ACCOUNT,
+        region: process.env.CDK_DEFAULT_REGION,
+      },
+    });
+    pmda.addDependency(core);
   }
 
   const fileUpload = new FileUploadStack(app, `${project}-${stage}-file-upload`, {
@@ -121,7 +145,7 @@ export async function main(passedContext?: { [key: string]: any }) {
     },
     vpc: core.vpc,
   });
-  fileUpload.addDependency(core);
+  fileUpload.addStackDependency(core);
 
   const api = new ApiStack(app, `${project}-${stage}-api`, {
     ...config,
@@ -131,8 +155,8 @@ export async function main(passedContext?: { [key: string]: any }) {
     },
     vpc: core.vpc,
   });
-  api.addDependency(core);
-  api.addDependency(fileUpload);
+  api.addStackDependency(core);
+  api.addStackDependency(fileUpload);
 
   const ui = new UiStack(app, `${project}-${stage}-ui`, {
     ...config,
@@ -145,8 +169,8 @@ export async function main(passedContext?: { [key: string]: any }) {
       clientId: core.cognitoClientIdParamName,
     },
   });
-  ui.addDependency(core);
-  ui.addDependency(api);
+  ui.addStackDependency(core);
+  ui.addStackDependency(api);
 
   if (!config.isEphemeral) {
     const dbRole = new DBRoleStack(app, `${project}-${stage}-db-role`, {
@@ -158,9 +182,9 @@ export async function main(passedContext?: { [key: string]: any }) {
       vpc: core.vpc,
     });
     applyDbRoleSuppressions(dbRole, stage);
-    dbRole.addDependency(core);
-    fileUpload.addDependency(dbRole);
-    api.addDependency(dbRole);
+    dbRole.addStackDependency(core);
+    fileUpload.addStackDependency(dbRole);
+    api.addStackDependency(dbRole);
   }
 
   applyCoreSuppressions(core, stage);
@@ -170,6 +194,20 @@ export async function main(passedContext?: { [key: string]: any }) {
   } else {
     applyUISuppressionsCloudfrontOnly(ui);
   }
+
+  // Applying only in DEV temporarily to test backup processes
+  if (stage == "dev") {
+    const backup = new BackupStack(app, `${project}-${stage}-backup`, {
+      ...config,
+      env: {
+        account: process.env.CDK_DEFAULT_ACCOUNT,
+        region: process.env.CDK_DEFAULT_REGION,
+      },
+      vpc: core.vpc,
+    });
+    applyBackupSuppressions(backup, stage);
+  }
+
   applyFileUploadSuppressions(fileUpload, stage);
   Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
   return app;

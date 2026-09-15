@@ -8,7 +8,7 @@ import { ApplicationStatus, Person, State } from "demos-server";
 import {
   Demonstration,
   DemonstrationAmendment,
-  DemonstrationExtension,
+  DemonstrationRenewal,
 } from "pages/DemonstrationsPage";
 
 const DEFAULT_NO_SEARCH_RESULTS_MESSAGE =
@@ -24,17 +24,15 @@ export type DemonstrationTableRow =
       parentId: string;
       primaryProjectOfficer: Pick<Person, "fullName" | "id">;
     })
-  | (DemonstrationExtension & {
-      type: "extension";
+  | (DemonstrationRenewal & {
+      type: "renewal";
       state: Pick<State, "id">;
       status: ApplicationStatus;
       parentId: string;
       primaryProjectOfficer: Pick<Person, "fullName" | "id">;
     });
 
-const getSubRows = (
-  row: DemonstrationTableRow
-): DemonstrationTableRow[] | undefined => {
+const getSubRows = (row: DemonstrationTableRow): DemonstrationTableRow[] | undefined => {
   if (row.type !== "demonstration") return undefined;
   return [
     ...row.amendments.map(
@@ -47,11 +45,11 @@ const getSubRows = (
           primaryProjectOfficer: row.primaryProjectOfficer,
         }) as DemonstrationTableRow
     ),
-    ...row.extensions.map(
-      (extension) =>
+    ...row.renewals.map(
+      (renewal) =>
         ({
-          ...extension,
-          type: "extension",
+          ...renewal,
+          type: "renewal",
           state: row.state,
           parentId: row.id,
           primaryProjectOfficer: row.primaryProjectOfficer,

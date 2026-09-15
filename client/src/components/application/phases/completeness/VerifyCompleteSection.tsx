@@ -14,6 +14,7 @@ import {
 import { formatDateForServer, getDateEst } from "util/formatDate";
 import { addDays, parseISO } from "date-fns";
 import { ApplicationDateInput, LocalDate, PhaseName, PhaseStatus } from "demos-server";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 import {
   getPhaseCompletedMessage,
   MISSING_REQUIRED_SECTIONS_TOOLTIP,
@@ -79,6 +80,9 @@ export const VerifyCompleteSection = ({
 }) => {
   const completenessComplete = completenessPhaseStatus === "Completed";
   const completenessIncomplete = completenessPhaseStatus === "Incomplete";
+
+  const { currentUser } = getCurrentUser();
+  const isReadonlyUser = isReadonly(currentUser);
 
   const { showDeclareIncompleteDialog } = useDialog();
   const { showSuccess, showError } = useToast();
@@ -186,7 +190,7 @@ export const VerifyCompleteSection = ({
             label={"State Application Deemed Complete"}
             value={stateDeemedComplete}
             onChange={setUserSelectedStateDeemedCompleteDate}
-            isDisabled={completenessComplete}
+            isDisabled={completenessComplete || isReadonlyUser}
           />
         </div>
 
@@ -211,6 +215,7 @@ export const VerifyCompleteSection = ({
 
       <div className={"mt-8 flex justify-end gap-2"}>
         <SecondaryButton
+          isHidden={isReadonlyUser}
           name={COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME}
           size="small"
           onClick={handleDeclareIncomplete}
@@ -219,6 +224,7 @@ export const VerifyCompleteSection = ({
           Declare Incomplete
         </SecondaryButton>
         <Button
+          isHidden={isReadonlyUser}
           name={COMPLETENESS_FINISH_BUTTON_NAME}
           size="small"
           disabled={!finishIsEnabled()}

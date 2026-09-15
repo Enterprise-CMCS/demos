@@ -15,7 +15,7 @@ import { Notice } from "components/notice";
 import { AttestationDialog } from "components/dialog/AttestationDialog";
 import { UploadButton } from "./UploadButton";
 import { BNPreValidationState, useBNWorkbookPreValidation } from "./useBNWorkbookPreValidation";
-import { DocumentChip } from "components/document/documentChip";
+import { DocumentChip } from "components/document/DocumentChip";
 import { BN_WORKBOOK_DOCUMENT_TYPE } from "demos-server-constants";
 
 // BN Workbook uploads require the user to attest to the content before submitting.
@@ -25,10 +25,7 @@ export const documentTypeRequiresAttestation = (documentType: DocumentType): boo
   ATTESTATION_DOCUMENT_TYPES.includes(documentType);
 
 export type DocumentUploadResult =
-  | "succeeded"
-  | "virus-scan-failed"
-  | "bn-validation-failed"
-  | "unknown-error";
+  "succeeded" | "virus-scan-failed" | "bn-validation-failed" | "unknown-error";
 export type DocumentDialogState = DocumentUploadResult | "idle" | "uploading";
 
 const STYLES = {

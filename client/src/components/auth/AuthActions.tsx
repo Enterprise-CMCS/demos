@@ -1,5 +1,11 @@
 import { useAuth } from "react-oidc-context";
 
+function clearWebStorage() {
+  if (window.sessionStorage) {
+    window.sessionStorage.clear();
+  }
+}
+
 export function useAuthActions() {
   const auth = useAuth();
 
@@ -7,6 +13,8 @@ export function useAuthActions() {
 
   const signOut = async () => {
     try {
+      clearWebStorage();
+
       await auth.signoutRedirect({
         extraQueryParams: {
           // Cognito expects logout_uri, not post_logout_redirect_uri

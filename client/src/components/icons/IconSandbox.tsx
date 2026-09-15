@@ -102,6 +102,7 @@ const navigationIcons = [
   Icons.InboxIcon,
   Icons.NotifyFilledIcon,
   Icons.BulletsIcon,
+  Icons.LoginIcon,
   Icons.LogoutIcon,
   Icons.HintFilledIcon,
   Icons.ProfileIcon,

@@ -29,7 +29,7 @@ const baseData = {
       state: { id: "CA", name: "California" },
       primaryProjectOfficer: { id: "user-1", fullName: "User One" },
       amendments: [],
-      extensions: [],
+      renewals: [],
     },
     {
       id: "demo-2",
@@ -38,7 +38,7 @@ const baseData = {
       state: { id: "TX", name: "Texas" },
       primaryProjectOfficer: { id: "user-2", fullName: "User Two" },
       amendments: [],
-      extensions: [],
+      renewals: [],
     },
   ],
   people: [{ fullName: "User One" }],

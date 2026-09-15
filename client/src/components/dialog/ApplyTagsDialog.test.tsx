@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 
+import { TestProvider } from "test-utils/TestProvider";
 import {
   APPLY_TAGS_DIALOG_TITLE,
   ApplyTagsDialog,
@@ -41,12 +42,14 @@ describe("ApplyTagsDialog", () => {
   const setup = (selectedTags: Tag[] = []) => {
     const onClose = vi.fn();
     const result = render(
-      <ApplyTagsDialog
-        demonstrationId="demo-123"
-        onClose={onClose}
-        initiallySelectedTags={selectedTags}
-        allTags={tagOptions}
-      />
+      <TestProvider>
+        <ApplyTagsDialog
+          demonstrationId="demo-123"
+          onClose={onClose}
+          initiallySelectedTags={selectedTags}
+          allTags={tagOptions}
+        />
+      </TestProvider>
     );
     return { ...result, onClose };
   };
@@ -82,6 +85,28 @@ describe("ApplyTagsDialog", () => {
     expect(screen.getByText("No tags selected")).toBeInTheDocument();
   });
 
+  it("does not enable the apply button when no tags are selected", () => {
+    setup();
+
+    const applyButton = screen.getByTestId("button-confirm-apply-tags");
+    expect(applyButton).toBeInTheDocument();
+    expect(applyButton).toBeDisabled();
+  });
+
+  it("enables the apply button when at least one tag is selected", async () => {
+    const user = userEvent.setup();
+    setup();
+
+    const searchInput = screen.getByPlaceholderText("Search");
+    await user.type(searchInput, "Behavioral Health");
+
+    const checkbox = screen.getByTestId("checkbox-Behavioral Health");
+    await user.click(checkbox);
+
+    const applyButton = screen.getByTestId("button-confirm-apply-tags");
+    expect(applyButton).not.toBeDisabled();
+  });
+
   it("calls mutation and onClose when apply button is clicked", async () => {
     const user = userEvent.setup();
     const selectedTags: Tag[] = [
@@ -92,13 +117,19 @@ describe("ApplyTagsDialog", () => {
     ];
     const { onClose } = setup(selectedTags);
 
+    // Create a new table to enable the apply button, then unselect it
+    const searchInput = screen.getByPlaceholderText("Search");
+    await user.type(searchInput, "Healthy Food");
+    await user.click(screen.getByTestId("button-create-tag"));
+
     await user.click(screen.getByTestId("button-confirm-apply-tags"));
 
+    const expectedTags = [...selectedTags.map((tag) => tag.tagName), "Healthy Food"];
     expect(mockMutate).toHaveBeenCalledWith({
       variables: {
         input: {
           applicationId: "demo-123",
-          applicationTags: selectedTags.map((tag) => tag.tagName),
+          applicationTags: expectedTags,
         },
       },
     });
@@ -258,13 +289,19 @@ describe("ApplyTagsDialog", () => {
 
     expect(screen.getByText("Selected Tag(s) (0)")).toBeInTheDocument();
 
+    // Create second tag to enable button
+    await user.type(searchInput, "Very Healthy");
+    await user.click(screen.getByTestId("button-create-tag"));
+
+    expect(screen.getByText("Selected Tag(s) (1)")).toBeInTheDocument();
+
     await user.click(screen.getByTestId("button-confirm-apply-tags"));
 
     expect(mockMutate).toHaveBeenCalledWith({
       variables: {
         input: {
           applicationId: "demo-123",
-          applicationTags: [],
+          applicationTags: ["Very Healthy"], // Only the second tag should be included
         },
       },
     });
@@ -286,5 +323,34 @@ describe("ApplyTagsDialog", () => {
     setup();
 
     expect(screen.getByTestId("button-confirm-apply-tags")).toHaveTextContent("Apply Tag(s)");
+  });
+
+  it("should allow creating a tag if partial matches exist but no exact match", async () => {
+    const user = userEvent.setup();
+    setup([]);
+
+    const searchInput = screen.getByPlaceholderText("Search");
+    await user.type(searchInput, "Med");
+
+    // There are partial matches (Medicaid, Medicare), but no exact match for "Med"
+    const createTagButton = screen.getByTestId("button-create-tag");
+    expect(createTagButton).not.toBeDisabled();
+
+    await user.click(createTagButton);
+
+    // New tag should appear in selected tags
+    expect(screen.getByText("Selected Tag(s) (1)")).toBeInTheDocument();
+  });
+
+  it("should not allow creating a tag if an exact match exists", async () => {
+    const user = userEvent.setup();
+    setup([]);
+
+    const searchInput = screen.getByPlaceholderText("Search");
+    await user.type(searchInput, "Medicaid");
+
+    // There is an exact match for "Medicaid", so the create button should be disabled
+    const createTagButton = screen.getByTestId("button-create-tag");
+    expect(createTagButton).toBeDisabled();
   });
 });

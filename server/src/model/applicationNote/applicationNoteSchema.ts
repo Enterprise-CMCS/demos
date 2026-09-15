@@ -25,10 +25,10 @@ export const applicationNoteSchema = gql`
   }
 `;
 
-export type ApplicationNoteInput = {
+export interface ApplicationNoteInput {
   noteType: NoteType;
   content: string | null;
-};
+}
 
 export interface SetApplicationNotesInput {
   applicationId: string;

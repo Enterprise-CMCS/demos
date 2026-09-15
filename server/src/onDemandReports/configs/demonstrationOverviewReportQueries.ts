@@ -62,7 +62,7 @@ flattened_role_assignments AS (
 )
 
 SELECT
-    demo.state_id AS state_territory,
+    demo_state.name AS state_territory,
     demo.name AS demonstration_title,
     demo.medicaid_id AS demonstration_number,
     CASE WHEN demo_type.demonstration_id IS NOT NULL THEN demo.chip_id ELSE '-' END AS chip_id,
@@ -72,7 +72,7 @@ SELECT
     coalesce(demo.signature_level_id, '-') AS signature_level,
     coalesce(to_char(demo.effective_date AT TIME ZONE 'America/New_York', 'MM/DD/YYYY'), '-') AS effective_date,
     coalesce(to_char(demo.expiration_date AT TIME ZONE 'America/New_York', 'MM/DD/YYYY'), '-') AS expiration_date,
-    coalesce(active_extensions.extension_in_progress, 'No') AS extension_in_progress,
+    coalesce(active_extensions.extension_in_progress, 'No') AS renewal_in_progress,
     coalesce(active_approved_amendments.amendment_in_progress, 'No') AS amendment_in_progress,
     coalesce(active_approved_amendments.approved_amendment_applications::INT, 0) AS approved_amendment_applications,
     primary_project_officer.full_name AS primary_project_officer,
@@ -87,6 +87,12 @@ SELECT
         AS application_approval_date
 FROM
     demos_app.demonstration AS demo
+
+-- Every demonstration has a state
+INNER JOIN
+    demos_app.state AS demo_state
+    ON
+        demo.state_id = demo_state.id
 
 -- This identifies when the parent demo has CHIP
 LEFT JOIN

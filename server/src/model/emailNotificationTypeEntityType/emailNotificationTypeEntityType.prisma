@@ -1,0 +1,13 @@
+// Flags: NO_CREATED_TS, NO_UPDATED_TS, NO_HISTORY
+// Table stores which entity types are valid for each email notification type.
+model EmailNotificationTypeEntityType {
+  emailTypeId  String @map("email_type_id")
+  entityTypeId String @map("entity_type_id")
+
+  emailType          EmailNotificationType       @relation(fields: [emailTypeId], references: [id])
+  entityType         EmailNotificationEntityType @relation(fields: [entityTypeId], references: [id])
+  emailNotifications EmailNotification[]
+
+  @@id([emailTypeId, entityTypeId])
+  @@map("email_notification_type_entity_type")
+}

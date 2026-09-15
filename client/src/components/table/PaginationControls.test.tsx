@@ -33,11 +33,18 @@ const columns = [
 
 // Wrapper component to test PaginationControls with a real table instance
 const TestWrapper = ({ data, perPageChoices }: { data: TestData[]; perPageChoices?: number[] }) => {
+  const [tableData, setTableData] = React.useState(data);
+
+  React.useEffect(() => {
+    setTableData(data);
+  }, [data]);
+
   const table = useReactTable({
-    data,
+    data: tableData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    autoResetPageIndex: false,
   });
 
   return (
@@ -53,7 +60,12 @@ const TestWrapper = ({ data, perPageChoices }: { data: TestData[]; perPageChoice
           ))}
         </tbody>
       </table>
+
       <PaginationControls table={table} perPageChoices={perPageChoices} />
+
+      <button type="button" onClick={() => setTableData(tableData.slice(0, 20))}>
+        Remove Last Page
+      </button>
     </div>
   );
 };

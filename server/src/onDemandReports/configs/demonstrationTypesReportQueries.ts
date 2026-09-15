@@ -13,7 +13,7 @@ WITH primary_roles AS (
 )
 
 SELECT
-    demo.state_id AS state_territory,
+    demo_state.name AS state_territory,
     demo.name AS demonstration_title,
     demo.medicaid_id AS demonstration_number,
     coalesce(
@@ -44,6 +44,12 @@ INNER JOIN
     demos_app.demonstration AS demo
     ON
         demo_type.demonstration_id = demo.id
+
+-- Every demonstration has a state
+INNER JOIN
+    demos_app.state AS demo_state
+    ON
+        demo.state_id = demo_state.id
 
 -- Every demonstration has a primary project officer
 INNER JOIN

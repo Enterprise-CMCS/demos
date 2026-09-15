@@ -7,13 +7,13 @@ import { developmentMockUser } from "mock-data/userMocks";
 
 describe("UserContext", () => {
   describe("isReadonly", () => {
-    it("returns true when personType is 'demos-readonly'", () => {
+    it("returns true when personType is 'demos-restricted-cms-user'", () => {
       const readonlyUser: CurrentUser = {
         id: "user-1",
         username: "readonly-user",
         person: {
           id: "person-1",
-          personType: "demos-readonly",
+          personType: "demos-restricted-cms-user",
           fullName: "Readonly User",
           firstName: "Readonly",
           lastName: "User",
@@ -24,7 +24,7 @@ describe("UserContext", () => {
       expect(isReadonly(readonlyUser)).toBe(true);
     });
 
-    it("returns false when personType is not 'demos-readonly'", () => {
+    it("returns false when personType is not 'demos-restricted-cms-user'", () => {
       const adminUser: CurrentUser = {
         id: "user-2",
         username: "admin-user",

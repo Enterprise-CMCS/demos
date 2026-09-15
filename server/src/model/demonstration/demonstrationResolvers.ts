@@ -94,6 +94,7 @@ export async function __createDemonstration(
           demonstrationId: application.id,
           personId: input.projectOfficerUserId,
           roleId: roleProjectOfficer,
+          personTypeId: person.personTypeId,
         },
       });
 
@@ -166,6 +167,7 @@ export async function __updateDemonstration(
             demonstrationId: id,
             personId: input.projectOfficerUserId,
             roleId: roleProjectOfficer,
+            personTypeId: person.personTypeId,
           },
         });
       }

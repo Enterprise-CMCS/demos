@@ -4,6 +4,7 @@ import { SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { ApplicationWorkflowDocument } from "components/application";
 import { useDialog } from "components/dialog/DialogContext";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 import { DocumentList } from "../sections";
 import {
   COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION,
@@ -18,6 +19,8 @@ export const UploadSection = ({
   completenessDocuments: ApplicationWorkflowDocument[];
 }) => {
   const { showCompletenessDocumentUploadDialog } = useDialog();
+  const { currentUser } = getCurrentUser();
+  const isReadonlyUser = isReadonly(currentUser);
 
   return (
     <div aria-labelledby="completeness-upload-title">
@@ -31,6 +34,7 @@ export const UploadSection = ({
         {COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION.text}
       </p>
       <SecondaryButton
+        isHidden={isReadonlyUser}
         onClick={() => showCompletenessDocumentUploadDialog(applicationId)}
         size="small"
         name={COMPLETENESS_UPLOAD_BUTTON_NAME}

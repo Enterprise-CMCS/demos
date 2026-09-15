@@ -1,5 +1,3 @@
-declare const __GIT_COMMIT__: string;
-
 interface RegExpConstructor {
   escape(str: string): string;
 }

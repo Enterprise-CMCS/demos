@@ -81,8 +81,8 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    -- Check if the inserted person is a demos-cms-user or a demos-admin
-    IF NEW.person_type_id IN ('demos-admin', 'demos-cms-user') THEN
+    -- Check if the inserted person is a demos-cms-user, demos-restricted-cms-user, or a demos-admin
+    IF NEW.person_type_id IN ('demos-admin', 'demos-cms-user', 'demos-restricted-cms-user') THEN
         -- Insert a record into person_state for each state
         INSERT INTO demos_app.person_state (person_id, state_id)
         SELECT
@@ -895,6 +895,11 @@ EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
 BEFORE UPDATE ON demos_app.document_pending_upload
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.email_notification
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 

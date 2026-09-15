@@ -11,11 +11,13 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import userEvent from "@testing-library/user-event";
 
 import {
+  ERROR_MESSAGES,
   ManageContactsDialog,
   ManageContactsDialogProps,
   SEARCH_PEOPLE_QUERY,
   SET_DEMONSTRATION_ROLE_MUTATION,
 } from "./ManageContactsDialog";
+import { Role } from "demos-server";
 
 // Mock GraphQL queries/mutations - Multiple search terms
 const createSearchMock = () => ({
@@ -1204,6 +1206,156 @@ describe("ManageContactsDialog", () => {
         expect(saveButton).not.toBeDisabled();
       });
     });
+
+    describe("Error messaging", () => {
+      it("shows error if there are no contacts", () => {
+        const propsWithContacts: ManageContactsDialogProps = {
+          ...defaultProps,
+          existingContacts: [],
+        };
+
+        renderWithProviders(propsWithContacts);
+
+        expect(screen.queryByText(ERROR_MESSAGES.NO_CONTACTS)).toBeInTheDocument();
+      });
+
+      it("shows error if not all contacts have a valid contact type", () => {
+        const propsWithContacts: ManageContactsDialogProps = {
+          ...defaultProps,
+          existingContacts: [
+            {
+              id: "role-1",
+              person: {
+                id: "person-1",
+                fullName: "Person One",
+                email: "person-one@example.com",
+                personType: "demos-cms-user",
+              },
+              role: undefined as unknown as Role,
+              isPrimary: false,
+            },
+          ],
+        };
+
+        renderWithProviders(propsWithContacts);
+
+        expect(screen.queryByText(ERROR_MESSAGES.MISSING_CONTACT_TYPES)).toBeInTheDocument();
+      });
+      it("shows error if there is more than one primary project officer.", () => {
+        const propsWithContacts: ManageContactsDialogProps = {
+          ...defaultProps,
+          existingContacts: [
+            {
+              id: "role-1",
+              person: {
+                id: "person-1",
+                fullName: "Person One",
+                email: "person-one@example.com",
+                personType: "demos-cms-user",
+              },
+              role: "Project Officer",
+              isPrimary: true,
+            },
+            {
+              id: "role-2",
+              person: {
+                id: "person-2",
+                fullName: "Person Two",
+                email: "person-two@example.com",
+                personType: "demos-cms-user",
+              },
+              role: "Project Officer",
+              isPrimary: true,
+            },
+          ],
+        };
+
+        renderWithProviders(propsWithContacts);
+
+        expect(
+          screen.queryByText(ERROR_MESSAGES.NOT_ONE_PRIMARY_PROJECT_OFFICER)
+        ).toBeInTheDocument();
+      });
+      it("shows error if there is less than one primary project officer.", () => {
+        const propsWithContacts: ManageContactsDialogProps = {
+          ...defaultProps,
+          existingContacts: [
+            {
+              id: "role-1",
+              person: {
+                id: "person-1",
+                fullName: "Person One",
+                email: "person-one@example.com",
+                personType: "demos-cms-user",
+              },
+              role: "DDME Analyst",
+              isPrimary: true,
+            },
+            {
+              id: "role-2",
+              person: {
+                id: "person-2",
+                fullName: "Person Two",
+                email: "person-two@example.com",
+                personType: "demos-cms-user",
+              },
+              role: "DDME Analyst",
+              isPrimary: false,
+            },
+          ],
+        };
+
+        renderWithProviders(propsWithContacts);
+
+        expect(
+          screen.queryByText(ERROR_MESSAGES.NOT_ONE_PRIMARY_PROJECT_OFFICER)
+        ).toBeInTheDocument();
+      });
+      it("shows error if there is more than one primary for a given role.", () => {
+        const propsWithContacts: ManageContactsDialogProps = {
+          ...defaultProps,
+          existingContacts: [
+            {
+              id: "role-1",
+              person: {
+                id: "person-1",
+                fullName: "Person One",
+                email: "person-one@example.com",
+                personType: "demos-cms-user",
+              },
+              role: "Project Officer",
+              isPrimary: true,
+            },
+            {
+              id: "role-2",
+              person: {
+                id: "person-2",
+                fullName: "Person Two",
+                email: "person-two@example.com",
+                personType: "demos-cms-user",
+              },
+              role: "DDME Analyst",
+              isPrimary: true,
+            },
+            {
+              id: "role-3",
+              person: {
+                id: "person-3",
+                fullName: "Person Three",
+                email: "person-three@example.com",
+                personType: "demos-cms-user",
+              },
+              role: "DDME Analyst",
+              isPrimary: true,
+            },
+          ],
+        };
+
+        renderWithProviders(propsWithContacts);
+
+        expect(screen.queryByText(ERROR_MESSAGES.TOO_MANY_PRIMARY)).toBeInTheDocument();
+      });
+    });
   });
 
   describe("Contact Type Filtering", () => {
@@ -1388,6 +1540,37 @@ describe("ManageContactsDialog", () => {
       // Skip header row, check first data row shows Alice (alphabetical order)
       expect(rows[1]).toHaveTextContent("Alice Jones");
       expect(rows[2]).toHaveTextContent("Zoe Smith");
+    });
+  });
+
+  describe("Readonly users", () => {
+    it("disables primary toggle for readonly CMS users", () => {
+      const propsWithReadonlyContact: ManageContactsDialogProps = {
+        ...defaultProps,
+        existingContacts: [
+          {
+            id: "role-1",
+            person: {
+              id: "person-3",
+              fullName: "Readonly User",
+              email: "readonly@example.com",
+              personType: "demos-restricted-cms-user",
+            },
+            role: "DDME Analyst",
+            isPrimary: false,
+          },
+        ],
+      };
+
+      renderWithProviders(propsWithReadonlyContact);
+
+      const readonlyRow = screen.getByText("Readonly User").closest("tr");
+      expect(readonlyRow).toBeInTheDocument();
+
+      const primaryToggle = within(readonlyRow!).getByRole("switch");
+
+      expect(primaryToggle).toBeDisabled();
+      expect(primaryToggle).toHaveAttribute("aria-checked", "false");
     });
   });
 });

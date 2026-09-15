@@ -17,7 +17,7 @@ export const applicationSchema = gql`
 
 export type Application = Demonstration | Amendment | Extension;
 
-export type SetApplicationClearanceLevelInput = {
+export interface SetApplicationClearanceLevelInput {
   applicationId: string;
   clearanceLevel: ClearanceLevel;
-};
+}

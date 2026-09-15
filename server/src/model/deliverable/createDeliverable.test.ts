@@ -32,6 +32,10 @@ vi.mock("../deliverableAction/queries", () => ({
   insertDeliverableAction: vi.fn(),
 }));
 
+vi.mock("../email/notifyDeliverableCreated", () => ({
+  notifyDeliverableCreated: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient";
 import {
   parseCreateDeliverableInput,
@@ -41,6 +45,7 @@ import {
 } from ".";
 import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 import { insertDeliverableAction } from "../deliverableAction/queries";
+import { notifyDeliverableCreated } from "../email/notifyDeliverableCreated";
 
 describe("createDeliverable", () => {
   // Test inputs
@@ -72,6 +77,7 @@ describe("createDeliverable", () => {
   const mockNewDeliverable: Partial<PrismaDeliverable> = {
     id: "2563ded3-b5c5-4d89-9ee4-0a9bc072e89e",
   };
+  const mockActionId = "046c6934-91e1-4dc0-b61d-18a1d13c35d4";
 
   // Mock transaction
   const mockTransaction: any = "Test!";
@@ -84,6 +90,7 @@ describe("createDeliverable", () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(parseCreateDeliverableInput).mockReturnValue(mockParsedInput);
     vi.mocked(insertDeliverable).mockResolvedValue(mockNewDeliverable as PrismaDeliverable);
+    vi.mocked(insertDeliverableAction).mockResolvedValue({ id: mockActionId } as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
@@ -173,5 +180,15 @@ describe("createDeliverable", () => {
       },
       mockTransaction
     );
+  });
+
+  it("should notify recipients after creating the deliverable", async () => {
+    await createDeliverable(testInput, testContext as GraphQLContext);
+
+    expect(notifyDeliverableCreated).toHaveBeenCalledExactlyOnceWith({
+      deliverableId: mockNewDeliverable.id,
+      sourceActionId: mockActionId,
+      triggeredByUserId: testContext.user!.id,
+    });
   });
 });

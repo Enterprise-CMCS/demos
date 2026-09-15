@@ -58,17 +58,17 @@ vi.mock("./modification/CreateAmendmentDialog", () => ({
   ),
 }));
 
-vi.mock("./modification/CreateExtensionDialog", () => ({
-  CreateExtensionDialog: ({
+vi.mock("./modification/CreateRenewalDialog", () => ({
+  CreateRenewalDialog: ({
     demonstrationId,
     onClose,
   }: {
     demonstrationId?: string;
     onClose: () => void;
   }) => (
-    <div data-testid="extension-dialog">
-      Extension Dialog {demonstrationId} create
-      <button data-testid="close-extension-btn" onClick={onClose}>
+    <div data-testid="renewal-dialog">
+      Renewal Dialog {demonstrationId} create
+      <button data-testid="close-renewal-btn" onClick={onClose}>
         Close
       </button>
     </div>
@@ -92,17 +92,11 @@ vi.mock("./modification/EditAmendmentDialog", () => ({
   ),
 }));
 
-vi.mock("./modification/EditExtensionDialog", () => ({
-  UpdateExtensionDialog: ({
-    extensionId,
-    onClose,
-  }: {
-    extensionId?: string;
-    onClose: () => void;
-  }) => (
-    <div data-testid="edit-extension-dialog">
-      Edit Extension Dialog {extensionId}
-      <button data-testid="close-extension-btn" onClick={onClose}>
+vi.mock("./modification/EditRenewalDialog", () => ({
+  UpdateRenewalDialog: ({ renewalId, onClose }: { renewalId?: string; onClose: () => void }) => (
+    <div data-testid="edit-renewal-dialog">
+      Edit Renewal Dialog {renewalId}
+      <button data-testid="close-renewal-btn" onClick={onClose}>
         Close
       </button>
     </div>
@@ -385,9 +379,9 @@ const TestConsumer: React.FC = () => {
     showCreateDemonstrationDialog,
     showEditDemonstrationDialog,
     showCreateAmendmentDialog,
-    showCreateExtensionDialog,
+    showCreateRenewalDialog,
     showUpdateAmendmentDialog,
-    showUpdateExtensionDialog,
+    showUpdateRenewalDialog,
     showManageContactsDialog,
     showUploadDocumentDialog,
     showEditDocumentDialog,
@@ -420,14 +414,14 @@ const TestConsumer: React.FC = () => {
       <button data-testid="open-amendment-btn" onClick={() => showCreateAmendmentDialog("demo-id")}>
         Open Amendment Dialog
       </button>
-      <button data-testid="open-extension-btn" onClick={() => showCreateExtensionDialog("demo-id")}>
-        Open Extension Dialog
+      <button data-testid="open-renewal-btn" onClick={() => showCreateRenewalDialog("demo-id")}>
+        Open Renewal Dialog
       </button>
       <button
-        data-testid="open-edit-extension-btn"
-        onClick={() => showUpdateExtensionDialog("extension-id")}
+        data-testid="open-edit-renewal-btn"
+        onClick={() => showUpdateRenewalDialog("renewal-id")}
       >
-        Open Edit Extension Dialog
+        Open Edit Renewal Dialog
       </button>
       <button
         data-testid="open-edit-amendment-btn"
@@ -627,7 +621,7 @@ describe("DialogContext", () => {
     expect(screen.getByTestId("amendment-dialog")).toBeInTheDocument();
   });
 
-  it("shows ExtensionDialog via context", async () => {
+  it("shows RenewalDialog via context", async () => {
     render(
       <DialogProvider>
         <TestConsumer />
@@ -635,13 +629,13 @@ describe("DialogContext", () => {
     );
     const user = userEvent.setup();
 
-    expect(screen.queryByTestId("extension-dialog")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("renewal-dialog")).not.toBeInTheDocument();
 
-    await user.click(screen.getByTestId("open-extension-btn"));
-    expect(screen.getByTestId("extension-dialog")).toBeInTheDocument();
+    await user.click(screen.getByTestId("open-renewal-btn"));
+    expect(screen.getByTestId("renewal-dialog")).toBeInTheDocument();
   });
 
-  it("shows EditExtensionDialog via context", async () => {
+  it("shows EditRenewalDialog via context", async () => {
     render(
       <DialogProvider>
         <TestConsumer />
@@ -649,10 +643,10 @@ describe("DialogContext", () => {
     );
     const user = userEvent.setup();
 
-    expect(screen.queryByTestId("exit-extension-dialog")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("exit-renewal-dialog")).not.toBeInTheDocument();
 
-    await user.click(screen.getByTestId("open-edit-extension-btn"));
-    expect(screen.getByTestId("edit-extension-dialog")).toBeInTheDocument();
+    await user.click(screen.getByTestId("open-edit-renewal-btn"));
+    expect(screen.getByTestId("edit-renewal-dialog")).toBeInTheDocument();
   });
 
   it("shows EditAmendmentDialog via context", async () => {

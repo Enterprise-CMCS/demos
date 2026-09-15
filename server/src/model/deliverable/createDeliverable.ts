@@ -10,6 +10,7 @@ import {
 import { prisma } from "../../prismaClient";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
+import { notifyDeliverableCreated } from "../email/notifyDeliverableCreated";
 
 export async function createDeliverable(
   input: CreateDeliverableInput,
@@ -18,7 +19,7 @@ export async function createDeliverable(
   const currentUserId = context.user.id;
   validateUserPersonTypeAllowed(context, "createDeliverable", ["demos-admin", "demos-cms-user"]);
   const parsedInput = parseCreateDeliverableInput(input);
-  const createdDeliverable = await prisma().$transaction(async (tx) => {
+  const { createdDeliverable, sourceActionId } = await prisma().$transaction(async (tx) => {
     await validateCreateDeliverableInput(parsedInput, tx);
 
     const newDeliverable = await insertDeliverable(parsedInput, tx);
@@ -33,7 +34,7 @@ export async function createDeliverable(
       tx
     );
 
-    await insertDeliverableAction(
+    const action = await insertDeliverableAction(
       {
         deliverableId: newDeliverable.id,
         actionType: "Created Deliverable Slot",
@@ -46,7 +47,17 @@ export async function createDeliverable(
       tx
     );
 
-    return newDeliverable;
+    return {
+      createdDeliverable: newDeliverable,
+      sourceActionId: action.id,
+    };
   });
+
+  await notifyDeliverableCreated({
+    deliverableId: createdDeliverable.id,
+    sourceActionId,
+    triggeredByUserId: currentUserId,
+  });
+
   return createdDeliverable;
 }

@@ -231,6 +231,30 @@ describe("StateFilesTab", () => {
       );
     });
   });
+  describe("when the user cannot manage files", () => {
+    it("hides the Add File(s), Edit, and Delete buttons", () => {
+      renderTab({ canManage: false });
+
+      expect(screen.queryByTestId(STATE_FILES_ADD_BUTTON_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(STATE_FILES_EDIT_BUTTON_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(STATE_FILES_DELETE_BUTTON_NAME)).not.toBeInTheDocument();
+    });
+
+    it("hides the row-selection column", () => {
+      renderTab({ canManage: false });
+
+      expect(screen.queryByTestId("select-row-file-a")).not.toBeInTheDocument();
+    });
+
+    it("still renders the file rows and their View buttons", () => {
+      renderTab({ canManage: false });
+
+      expect(screen.getByText("Alpha.pdf")).toBeInTheDocument();
+      expect(screen.getByTestId("view-file-file-a")).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: /View/i })).toBeInTheDocument();
+    });
+  });
+
   describe("when file is part of a deliverable submission", () => {
     it("disables Delete for files that are part of a submission", async () => {
       const user = userEvent.setup();

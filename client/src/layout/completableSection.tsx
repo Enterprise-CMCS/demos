@@ -1,4 +1,4 @@
-import React, { useLayoutEffect } from "react";
+import React from "react";
 import { ChevronDownIcon, ChevronRightIcon } from "components/icons";
 import { CompletenessBadge } from "components/badge/CompletenessBadge";
 
@@ -15,12 +15,6 @@ export const CompletableSection = ({
 }) => {
   const [isExpanded, setIsExpanded] = React.useState<boolean>(() => !isComplete);
 
-  useLayoutEffect(() => {
-    if (isComplete) {
-      setIsExpanded(false);
-    }
-  }, [isComplete]);
-
   const sectionId = title.replace(/\s+/g, "-").toLowerCase();
   return (
     <section className="col-span-4 border-1 border-gray-dark rounded-md gap-1">
@@ -36,7 +30,10 @@ export const CompletableSection = ({
         </h4>
         <div className="flex items-center gap-2 mr-1">
           {completionDate && (
-            <span className="text-xs text-text-placeholder" data-testid="application-details-completion-date">
+            <span
+              className="text-xs text-text-placeholder"
+              data-testid="application-details-completion-date"
+            >
               Completed on {completionDate}
             </span>
           )}

@@ -7,6 +7,8 @@ import { ModificationItem } from "./ModificationTabs";
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { NON_DELIVERABLE_DOCUMENT_TYPES } from "demos-server-constants";
+import { CurrentUser } from "components/user/UserContext";
+import { readonlyMockUser } from "mock-data/userMocks";
 
 vi.mock("components/application", async (importOriginal) => {
   const actual = await importOriginal<typeof import("components/application")>();
@@ -14,7 +16,7 @@ vi.mock("components/application", async (importOriginal) => {
   return {
     ...actual,
     AmendmentWorkflow: () => <div data-testid="amendment-workflow">Amendment Workflow</div>,
-    ExtensionWorkflow: () => <div data-testid="extension-workflow">Extension Workflow</div>,
+    RenewalWorkflow: () => <div data-testid="renewal-workflow">Renewal Workflow</div>,
   };
 });
 
@@ -36,9 +38,9 @@ describe("ModificationTabSideNav", () => {
     { label: "Documents (0)", value: "documents" },
   ];
 
-  const setup = (modificationItem: ModificationItem) => {
+  const setup = (modificationItem: ModificationItem, currentUser?: CurrentUser) => {
     render(
-      <TestProvider>
+      <TestProvider currentUser={currentUser}>
         <DialogProvider>
           <ModificationTabSideNav modificationItem={modificationItem} />
         </DialogProvider>
@@ -99,17 +101,17 @@ describe("ModificationTabSideNav", () => {
       setup(amendmentModification);
 
       expect(screen.getByTestId("amendment-workflow")).toBeInTheDocument();
-      expect(screen.queryByTestId("extension-workflow")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("renewal-workflow")).not.toBeInTheDocument();
     });
 
-    it("renders ExtensionWorkflow when modification type is extension", () => {
-      const extensionModification: ModificationItem = {
+    it("renders RenewalWorkflow when modification type is renewal", () => {
+      const renewalModification: ModificationItem = {
         ...mockModificationItem,
-        modificationType: "extension",
+        modificationType: "renewal",
       };
-      setup(extensionModification);
+      setup(renewalModification);
 
-      expect(screen.getByTestId("extension-workflow")).toBeInTheDocument();
+      expect(screen.getByTestId("renewal-workflow")).toBeInTheDocument();
       expect(screen.queryByTestId("amendment-workflow")).not.toBeInTheDocument();
     });
   });
@@ -186,6 +188,14 @@ describe("ModificationTabSideNav", () => {
         expect(screen.getByText(docType)).toBeInTheDocument();
       }
       expect(screen.queryByText("Interim Evaluation Report")).not.toBeInTheDocument();
+    });
+
+    it("does not render Add Document button for readonly users", () => {
+      setup(mockModificationItem, readonlyMockUser);
+
+      fireEvent.click(screen.getByTestId("button-documents"));
+
+      expect(screen.queryByTestId("add-new-document")).not.toBeInTheDocument();
     });
   });
 });

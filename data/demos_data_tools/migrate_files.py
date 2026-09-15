@@ -42,8 +42,14 @@ DEMOS_S3_BUCKET = os.environ["DEMOS_S3_BUCKET"]
 class CommandLineArguments:
     """The command line arguments passed into the program."""
 
-    db_config_name: DatabaseConfigurationName
-    dl_config_name: DataLoadConfigurationName
+    final_file_id: str
+    final_file_s3_path: str
+    _internal_pmda_s3_file_id: int
+    legacy_pmda_s3_path: str
+    legacy_pmda_file_extension: str
+    file_mime_type: str
+    file_has_been_moved: bool
+    _local_file_has_been_moved: bool
 
 
 def _parse_args() -> CommandLineArguments:
@@ -152,7 +158,7 @@ def _mark_file_migrated_in_db(
         )
         return file_record
     try:
-        conn.execute(query, {"final_file_id": file_record.final_file_id})
+        connection.execute(query, {"final_file_id": file_record.final_file_id})
     except Exception as e:
         logger.error(
             f"Exception {e} encountered while attempting to mark {file_record.final_file_id} completed in database"
@@ -218,14 +224,12 @@ def _migrate_file(
 
 def main(args: CommandLineArguments) -> None:
     """Main program function."""
-    db_conn = attach_db_to_duckdb_conn(create_duckdb_conn(), args.db_config_name)
-    s3_client = _get_s3_client()
-    attach_name = get_attach_name_from_db_config_name(args.db_config_name)
-    dl_config = get_data_load_configuration(args.dl_config_name)
-    unmigrated_files = _get_unmigrated_files(attach_name, dl_config, db_conn)
+    db_connection = attach_demos_to_conn(create_duckdb_conn())
+    s3_client = get_s3_client()
+    unmigrated_files = get_unmigrated_files(db_connection)
     migration_result = []
     for i, file_record in enumerate(unmigrated_files):
-        migration_result.append(_migrate_file(attach_name, dl_config, db_conn, s3_client, file_record))
+        migration_result.append(migrate_file(db_connection, s3_client, file_record))
         if ((i + 1) % 100) == 0:
             logger.info(f"Migrated {i + 1} files")
     successful_files = [
