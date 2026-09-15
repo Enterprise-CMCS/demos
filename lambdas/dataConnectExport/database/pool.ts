@@ -1,5 +1,5 @@
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
-import { Pool } from "pg";
+import { Pool, type PoolConfig } from "pg";
 import { log } from "../log";
 
 export const dbSchema = "demos_app";
@@ -17,25 +17,25 @@ const secretsManagerClient = new SecretsManagerClient({
 });
 
 let poolPromise: Promise<Pool> | null = null;
-let databaseUrlCache = "";
+let databaseConfigCache: PoolConfig | null = null;
 let cacheExpiration = 0;
 
 // Test helper to keep module-scoped cache isolated across unit tests.
 export function __resetDbStateForTests(): void {
   poolPromise = null;
-  databaseUrlCache = "";
+  databaseConfigCache = null;
   cacheExpiration = 0;
 }
 
-export async function getDatabaseUrl() {
+export async function getDatabaseConfig(): Promise<PoolConfig> {
   const now = Date.now();
-  if (databaseUrlCache && cacheExpiration > now) {
-    return databaseUrlCache;
+  if (databaseConfigCache && cacheExpiration > now) {
+    return databaseConfigCache;
   }
 
   const databaseSecretArn = process.env.DATABASE_SECRET_ARN;
   if (!databaseSecretArn) {
-    throw new Error("DATABASE_SECRET_ARN is required to fetch the database connection string.");
+    throw new Error("DATABASE_SECRET_ARN is required to fetch the database configuration.");
   }
 
   const getDbSecretValueCommand = new GetSecretValueCommand({ SecretId: databaseSecretArn });
@@ -49,18 +49,34 @@ export async function getDatabaseUrl() {
   const sslMode =
     process.env.DB_SSL_MODE ?? (process.env.BYPASS_SSL ? "disable" : "require");
 
-  const password = encodeURIComponent(dbCredentials.password);
-  databaseUrlCache = `postgresql://${dbCredentials.username}:${password}@${dbCredentials.host}:${dbCredentials.port}/${dbCredentials.dbname}?schema=${dbSchema}&sslmode=${sslMode}`;
+  databaseConfigCache = {
+    user: dbCredentials.username,
+    host: dbCredentials.host,
+    port: dbCredentials.port,
+    database: dbCredentials.dbname,
+    ssl:
+      sslMode === "disable"
+        ? false
+        : sslMode === "no-verify"
+          ? { rejectUnauthorized: false }
+          : {},
+    max: 2,
+    options: sessionOptions,
+  };
+  Object.defineProperty(databaseConfigCache, "password", {
+    enumerable: false,
+    value: dbCredentials.password,
+  });
   cacheExpiration = now + 60 * 60 * 1000;
 
-  return databaseUrlCache;
+  return databaseConfigCache;
 }
 
 export async function getDbPool(): Promise<Pool> {
   poolPromise ??= (async () => {
-    const connectionString = await getDatabaseUrl();
+    const config = await getDatabaseConfig();
     log.info("Connecting to database for DataConnect data export");
-    return new Pool({ connectionString, max: 2, options: sessionOptions });
+    return new Pool(config);
   })();
 
   return poolPromise;
