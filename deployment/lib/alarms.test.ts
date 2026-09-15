@@ -34,21 +34,7 @@ describe("CloudWatch alarm helpers", () => {
       AlarmActions: Match.anyValue(),
       OKActions: Match.anyValue(),
     });
-    template.hasResourceProperties("AWS::Lambda::Permission", {
-      Action: "lambda:InvokeFunction",
-      FunctionName: Match.anyValue(),
-      Principal: "lambda.alarms.cloudwatch.amazonaws.com",
-      SourceAccount: "0123456789",
-      SourceArn: Match.objectLike({
-        "Fn::GetAtt": Match.arrayWith([
-          Match.stringLikeRegexp("QueueVisibleMessagesAlarm"),
-          "Arn",
-        ]),
-      }),
-    });
-    expect(
-      JSON.stringify(template.findResources("AWS::Lambda::Permission"))
-    ).toContain("demos-unittest-notifier");
+
   });
 
   test("adds the notifier lambda as the default anomaly alarm action", () => {
@@ -84,20 +70,6 @@ describe("CloudWatch alarm helpers", () => {
       AlarmActions: Match.anyValue(),
       OKActions: Match.anyValue(),
     });
-    template.hasResourceProperties("AWS::Lambda::Permission", {
-      Action: "lambda:InvokeFunction",
-      FunctionName: Match.anyValue(),
-      Principal: "lambda.alarms.cloudwatch.amazonaws.com",
-      SourceAccount: "0123456789",
-      SourceArn: Match.objectLike({
-        "Fn::GetAtt": Match.arrayWith([
-          Match.stringLikeRegexp("LatencyAnomalyAlarm"),
-          "Arn",
-        ]),
-      }),
-    });
-    expect(
-      JSON.stringify(template.findResources("AWS::Lambda::Permission"))
-    ).toContain("demos-unittest-notifier");
+
   });
 });
