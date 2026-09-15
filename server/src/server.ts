@@ -19,6 +19,7 @@ import { fieldAuthPlugin } from "./plugins/fieldAuthPlugin.js";
 import { compressResponseMiddleware } from "./plugins/compression.middleware.js";
 import { formatGraphQLErrorCode } from "./errors/errorCodes.js";
 import { createLoaders } from "./loaders";
+import { __DEMOS_VERSION__, __FEATURE_PRINT_VERSION__ } from "./flags.js";
 
 log.info({ type: "graphql.startup.loaded" });
 if (__FEATURE_PRINT_VERSION__) {

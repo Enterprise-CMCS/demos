@@ -39,8 +39,8 @@
   },
   "scripts": {
     "clean": "rm -rf dist; npm ci",
-    "build": "prisma generate && tsc && node scripts/build.mjs",
-    "build:ci": "prisma generate && tsc && node scripts/build.mjs",
+    "build": "prisma generate && tsc && esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify --external:@yaacovcr/transform",
+    "build:ci": "prisma generate && tsc && esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify --external:@yaacovcr/transform",
     "depcheck": "depcheck",
     "pretest": "prisma generate",
     "predev": "prisma generate",
