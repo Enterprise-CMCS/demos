@@ -322,6 +322,7 @@ export class ApiStack extends Stack {
         DEMOS_APP_URL: commonProps.isLocalstack
           ? "https://localhost:3000"
           : `https://${commonProps.cloudfrontHost}`,
+        CLEAN_BUCKET: cleanBucket.bucketName,
         EMAIL_HOST: "smtp.cloud.internal.cms.gov",
         EMAIL_PORT: "587",
         EMAIL_FROM: `"DEMOS${emailSuffix}" <DEMOS${emailSuffix}-no-reply@cms.hhs.gov>`,
@@ -345,6 +346,7 @@ export class ApiStack extends Stack {
     });
     alarmResources.registerLambda("emailer", emailerLambda.lambda);
     emailerDbSecret.grantRead(emailerLambda.role);
+    cleanBucket.grantRead(emailerLambda.role);
 
     if (commonProps.stage != "prod") {
       const allowListParam = aws_ssm.StringParameter.fromStringParameterName(

@@ -256,3 +256,19 @@ set to `application` for all three application types. For a demonstration, this 
 the demonstration ID; for an amendment or extension, it is that application's own ID.
 The application type comes from the linked Application record and is included in
 the queued payload for rendering.
+
+### Accepted reference agreements
+
+`submitReferenceAgreement` records acceptance and, when explicitly opted in, queues
+`Terms And Conditions Requested` with entity type `reference` and the accepted
+`referenceConfigurationId`. Its payload contains the registered recipient,
+`reference.name`, and `agreement: { id, name, s3Path }` captured at submission.
+The worker retrieves that agreement from `CLEAN_BUCKET` and attaches it to the
+email. Retrieval or SMTP failures record `Failed` and `lastError` and follow the
+existing SQS retry policy. Queuing failures return a warning status while keeping
+the reference download available.
+
+Deploy the emailer with clean-bucket read access before deploying the new API and
+frontend. For local testing, use `LOCAL_EMAIL_MODE=mailpit` with
+`.devcontainer/localstack/setup/setup_emailer_lambda.sh`; inspect captured mail at
+`http://localhost:8025`. No database migration is needed.

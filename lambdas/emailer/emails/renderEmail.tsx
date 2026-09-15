@@ -22,8 +22,11 @@ import type {
   RenderedEmailPayload,
 } from "./types";
 
+import { renderTermsAndConditionsRequestedEmail } from "./templates/TermsAndConditionsRequestedEmail";
+
 // Template creation
 const templates: Record<string, EmailTemplate> = {
+  "Terms And Conditions Requested": renderTermsAndConditionsRequestedEmail,
   "Application Status Updated": renderApplicationStatusUpdatedEmail,
   "Deliverable Created": renderDeliverableCreatedEmail,
   "Deliverable Due Date Updated": renderDeliverableDueDateUpdatedEmail,

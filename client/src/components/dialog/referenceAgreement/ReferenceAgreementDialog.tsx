@@ -4,13 +4,14 @@ import { useDialog } from "../DialogContext";
 import { Button } from "components/button";
 import { tw } from "tags/tw";
 import { Checkbox } from "components/input";
-import { useDownloadReference } from "hooks/useDownloadReference";
+import { useSubmitReferenceAgreement } from "hooks/useSubmitReferenceAgreement";
+import { useToast } from "components/toast";
 import { ReferenceAgreementDocument } from "./ReferenceAgreementDocument";
 import { Reference, ReferenceAgreement } from "demos-server";
 import { Spinner } from "components/loading/Spinner";
 
 const STYLES = {
-  termsCheckbox: tw`flex items-center p-1 cursor-pointer`,
+  termsCheckbox: tw`flex items-center gap-[8px] p-1 cursor-pointer`,
 };
 
 export const ReferenceAgreementDialog = ({
@@ -21,10 +22,12 @@ export const ReferenceAgreementDialog = ({
   };
 }) => {
   const { closeDialog } = useDialog();
+  const { showWarning } = useToast();
+  const [emailRequested, setEmailRequested] = React.useState(false);
   const [termsAccepted, setTermsAccepted] = React.useState(false);
   const [isDownloading, setIsDownloading] = React.useState(false);
 
-  const { downloadReference } = useDownloadReference();
+  const submitReferenceAgreement = useSubmitReferenceAgreement();
 
   return (
     <BaseDialog
@@ -39,13 +42,23 @@ export const ReferenceAgreementDialog = ({
           onClick={async () => {
             setIsDownloading(true); // where spinner will engage.
             try {
-              await downloadReference({
+              const result = await submitReferenceAgreement({
                 id: reference.id,
                 acceptedAgreementId: reference.agreement.id,
+                emailRequested,
               });
               closeDialog();
+              if (result.emailRequestStatus === "FAILED") {
+                showWarning(
+                  "Your agreement was accepted, but we couldn't queue the terms and conditions email."
+                );
+              } else if (result.emailRequestStatus === "DISABLED") {
+                showWarning(
+                  "Your agreement was accepted, but email notifications are currently disabled."
+                );
+              }
             } catch {
-              // useDownloadReference reports download errors to the user.
+              // useSubmitReferenceAgreement reports submission errors to the user.
               setIsDownloading(false);
             }
           }}
@@ -74,6 +87,16 @@ export const ReferenceAgreementDialog = ({
             onChange={() => setTermsAccepted((prev) => !prev)}
           />
           <span className="text-sm text-text-font">I accept the terms</span>
+        </label>
+        <label className={STYLES.termsCheckbox}>
+          <Checkbox
+            name="checkbox-email-agreement"
+            checked={emailRequested}
+            onChange={() => setEmailRequested((prev) => !prev)}
+          />
+          <span className="text-sm text-text-font">
+            Receive an email with the Accepted 'Point and Click Agreement'
+          </span>
         </label>
       </>
     </BaseDialog>

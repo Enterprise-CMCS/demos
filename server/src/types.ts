@@ -130,7 +130,12 @@ export type { DeliverableExtension } from "./model/deliverableExtension/delivera
 
 export type { DeliverableComment } from "./model/publicComment/publicCommentSchema";
 
-export type { Reference, ReferenceAgreement } from "./model/reference/referenceSchema";
+export type {
+  Reference,
+  ReferenceAgreement,
+  ReferenceAgreementEmailRequestStatus,
+  SubmitReferenceAgreementResult,
+} from "./model/reference/referenceSchema";
 
 // Alias is not enforced in TS but maintains alignment between GQL and TS
 export type NonEmptyString = string; // NOSONAR: typescript:S6564

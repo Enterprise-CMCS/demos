@@ -20,6 +20,26 @@ export const referenceSchema = gql`
     updatedAt: DateTime!
   }
 
+  enum ReferenceAgreementEmailRequestStatus {
+    NOT_REQUESTED
+    QUEUED
+    FAILED
+    DISABLED
+  }
+
+  type SubmitReferenceAgreementResult {
+    downloadUrl: String!
+    emailRequestStatus: ReferenceAgreementEmailRequestStatus!
+  }
+
+  type Mutation {
+    submitReferenceAgreement(
+      id: ID!
+      acceptedAgreementId: ID!
+      emailRequested: Boolean! = false
+    ): SubmitReferenceAgreementResult!
+  }
+
   type Query {
     references(withTag: TagName): [Reference!]!
     referenceDownloadUrl(id: ID!, acceptedAgreementId: ID): String!
@@ -43,4 +63,12 @@ export interface Reference {
   demonstrationTypes: Tag[];
   createdAt: Date;
   updatedAt: Date;
+}
+
+export type ReferenceAgreementEmailRequestStatus =
+  "NOT_REQUESTED" | "QUEUED" | "FAILED" | "DISABLED";
+
+export interface SubmitReferenceAgreementResult {
+  downloadUrl: string;
+  emailRequestStatus: ReferenceAgreementEmailRequestStatus;
 }
