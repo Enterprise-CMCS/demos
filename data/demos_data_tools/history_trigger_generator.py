@@ -4,6 +4,8 @@ import re
 from textwrap import dedent
 from typing import List
 
+from types_constants import AppSchemaName
+
 TBL_FOLDERS = [
     "amendment",
     "application",
@@ -43,7 +45,7 @@ TBL_FOLDERS = [
     "uiPathValue",
     "user",
 ]
-APP_SCHEMA = "demos_app"
+APP_SCHEMA: AppSchemaName = "demos_app"
 DROP_QUERY = """-- Drop existing history logging functions and triggers
 DO $$
 DECLARE

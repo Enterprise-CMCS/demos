@@ -1,0 +1,43 @@
+name: 'data_migration_rev_01'
+version: '1.0.0'
+profile: 'data_migration_rev_01'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  data_migration_rev_01:
+    +materialized: table
+    errors:
+      +docs:
+        node_color: "crimson"
+    cleaned:
+      +docs:
+        node_color: "teal"
+      final:
+        +docs:
+          node_color: "midnightblue"
+        +tags: ['final']
+        +contract:
+          enforced: true
+
+seeds:
+  data_migration_rev_01:
+    +tags: ['source_in_use']
+    +docs:
+      node_color: "darkviolet"
+
+data_tests:
+  +docs:
+    node_color: "darkred"
+
+flags:
+  partial_parse: false
