@@ -4,6 +4,7 @@ import { Tab, VerticalTabs } from "layout/Tabs";
 import { UserManagement } from "./UserManagement";
 import { TypeTagManagement } from "./TypeTagManagement";
 import { LoginHistory } from "./LoginHistory";
+import { useSelectedTypeTag } from "./useSelectedTypeTag";
 import { Card } from "components/card/Card";
 
 const TABS = {
@@ -13,9 +14,13 @@ const TABS = {
 };
 
 export const AdminPage: React.FC = () => {
+  const { selectedTypeTag } = useSelectedTypeTag();
+
   return (
     <Card title="Admin">
-      <VerticalTabs defaultValue={TABS.USER_MANAGEMENT}>
+      <VerticalTabs
+        defaultValue={selectedTypeTag ? TABS.TYPE_TAG_MANAGEMENT : TABS.USER_MANAGEMENT}
+      >
         <Tab value={TABS.USER_MANAGEMENT} label="User Management" icon={<ProfileIcon />}>
           <UserManagement />
         </Tab>
