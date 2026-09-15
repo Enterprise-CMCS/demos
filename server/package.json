@@ -34,12 +34,13 @@
     "pg": "^8.23.0",
     "pino": "^10.3.1",
     "sanitize-filename": "^1.6.4",
+    "semver": "^7.6.0",
     "zod": "^4.4.3"
   },
   "scripts": {
     "clean": "rm -rf dist; npm ci",
-    "build": "prisma generate && tsc && esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify --external:@yaacovcr/transform",
-    "build:ci": "prisma generate && tsc && esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify --external:@yaacovcr/transform",
+    "build": "prisma generate && tsc && node scripts/build.mjs",
+    "build:ci": "prisma generate && tsc && node scripts/build.mjs",
     "depcheck": "depcheck",
     "pretest": "prisma generate",
     "predev": "prisma generate",
@@ -72,6 +73,7 @@
     "@parcel/watcher": "^2.6.0",
     "@types/mime-types": "^3.0.1",
     "@types/node": "^22.20.1",
+    "@types/semver": "^7.8.0",
     "@vitest/coverage-v8": "^4.1.11",
     "@vitest/ui": "^4.1.11",
     "esbuild": "^0.28.2",

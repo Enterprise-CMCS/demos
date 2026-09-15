@@ -21,6 +21,9 @@ import { formatGraphQLErrorCode } from "./errors/errorCodes.js";
 import { createLoaders } from "./loaders";
 
 log.info({ type: "graphql.startup.loaded" });
+if (__FEATURE_PRINT_VERSION__) {
+  log.info(`Server Startup! Demos Version: ${__DEMOS_VERSION__}`);
+}
 
 export async function getDatabaseUrl(): Promise<string> {
   const secretArn = process.env.DATABASE_SECRET_ARN;

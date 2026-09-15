@@ -89,3 +89,7 @@ const { url } = await startStandaloneServer<GraphQLContext>(server, {
 });
 
 log.info(`🚀 Server listening 👂 at: ${url}`);
+if (__FEATURE_PRINT_VERSION__) {
+  log.info(`Demos version: ${__DEMOS_VERSION__}`);
+}
+
