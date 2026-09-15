@@ -7,7 +7,7 @@ import pytest
 import logger_utils
 
 
-class TestLogger:
+class TestLoggerUtils:
     """A class for the tests for the logger_utils.py file."""
 
     @pytest.fixture
