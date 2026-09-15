@@ -11,4 +11,4 @@ export const __DEMOS_VERSION__ = "1.0.0";
  * This is used as a sentinel to demonstrate how these flags should be used
  * and should not be removed.
  */
-export const __FEATURE_PRINT_VERSION__ = semver.gt(__DEMOS_VERSION__, "0.0.1");
+export const __FEATURE_PRINT_VERSION__ = semver.gte(__DEMOS_VERSION__, "0.0.1");
