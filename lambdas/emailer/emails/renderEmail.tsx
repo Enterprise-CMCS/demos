@@ -1,3 +1,6 @@
+import {
+  renderApplicationStatusUpdatedEmail,
+} from "./templates/ApplicationEmail";
 import { render, toPlainText } from "@react-email/render";
 
 import { getRequiredObject } from "./helpers";
@@ -21,6 +24,7 @@ import type {
 
 // Template creation
 const templates: Record<string, EmailTemplate> = {
+  "Application Status Updated": renderApplicationStatusUpdatedEmail,
   "Deliverable Created": renderDeliverableCreatedEmail,
   "Deliverable Due Date Updated": renderDeliverableDueDateUpdatedEmail,
   "Deliverable Submitted": renderDeliverableSubmittedEmail,
@@ -30,13 +34,13 @@ const templates: Record<string, EmailTemplate> = {
   "Extension Requested": renderExtensionRequestedEmail,
   "Extension Decision Made": renderExtensionDecisionMadeEmail,
   "Resubmission Requested": renderResubmissionRequestedEmail,
-  "Public Comment Added": renderPublicCommentAddedEmail,
+  "Deliverable Comment": renderPublicCommentAddedEmail,
   "Multiple Deliverables Created": renderMultipleDeliverablesCreatedEmail,
 };
 
 export async function renderEmail(
   emailType: string,
-  rawPayload: unknown,
+  rawPayload: unknown
 ): Promise<RenderedEmailPayload> {
   const template = templates[emailType];
 
@@ -56,30 +60,17 @@ export async function renderEmail(
   };
 }
 
-function getRecipients(
-  rawPayload: unknown,
-  emailType: string,
-): EmailRecipientGroups {
+function getRecipients(rawPayload: unknown, emailType: string): EmailRecipientGroups {
   const payload = getRequiredObject(rawPayload, "payload", emailType);
-  const recipients = getRequiredObject(
-    payload.recipients,
-    "recipients",
-    emailType,
-  );
+  const recipients = getRequiredObject(payload.recipients, "recipients", emailType);
   return normalizeRecipientGroups(recipients);
 }
 
-function normalizeRecipientGroups(
-  recipients: Record<string, unknown>,
-): EmailRecipientGroups {
+function normalizeRecipientGroups(recipients: Record<string, unknown>): EmailRecipientGroups {
   const normalizedRecipients = {
     to: normalizeRecipients(recipients.to, "to"),
-    ...(recipients.cc !== undefined
-      ? { cc: normalizeRecipients(recipients.cc, "cc") }
-      : {}),
-    ...(recipients.bcc !== undefined
-      ? { bcc: normalizeRecipients(recipients.bcc, "bcc") }
-      : {}),
+    ...(recipients.cc !== undefined ? { cc: normalizeRecipients(recipients.cc, "cc") } : {}),
+    ...(recipients.bcc !== undefined ? { bcc: normalizeRecipients(recipients.bcc, "bcc") } : {}),
   };
 
   const recipientCount =
@@ -95,7 +86,7 @@ function normalizeRecipientGroups(
 
 function normalizeRecipients(
   recipients: unknown,
-  group: keyof EmailRecipientGroups,
+  group: keyof EmailRecipientGroups
 ): EmailRecipient[] {
   if (!Array.isArray(recipients)) {
     throw new Error(`Email template ${group} recipients must be an array.`);
@@ -108,17 +99,10 @@ function normalizeRecipients(
 
     if (recipient && typeof recipient === "object") {
       if (typeof recipient.name !== "string" || !recipient.name.trim()) {
-        throw new Error(
-          `Invalid ${group} email recipient at index ${index}: name is required.`,
-        );
+        throw new Error(`Invalid ${group} email recipient at index ${index}: name is required.`);
       }
-      if (
-        typeof recipient.address !== "string" ||
-        !recipient.address.trim()
-      ) {
-        throw new Error(
-          `Invalid ${group} email recipient at index ${index}: address is required.`,
-        );
+      if (typeof recipient.address !== "string" || !recipient.address.trim()) {
+        throw new Error(`Invalid ${group} email recipient at index ${index}: address is required.`);
       }
 
       return recipient;

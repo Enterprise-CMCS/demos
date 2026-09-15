@@ -11,14 +11,15 @@
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.10.0",
-    "@testing-library/react": "^16.3.2",
+    "@testing-library/react": "^16.3.3",
     "@types/jest": "^29.5.14",
-    "@types/node": "^26.3.0",
+    "@types/node": "^26.5.0",
     "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.5",
-    "@vitejs/plugin-react": "^6.1.0",
+    "@types/react-dom": "^19.2.7",
+    "@types/semver": "^7.8.0",
+    "@vitejs/plugin-react": "^6.1.1",
     "@vitest/coverage-v8": "^4.1.11",
-    "eslint": "^10.9.1",
+    "eslint": "^10.10.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^16.5.0",
     "jsdom": "^26.1.0",
@@ -29,7 +30,7 @@
     "tailwindcss": "^4.3.3",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.68.0",
+    "typescript-eslint": "^8.70.0",
     "vite": "^8.2.2",
     "vite-bundle-visualizer": "^1.2.1",
     "vitest": "^4.1.11",
@@ -54,6 +55,7 @@
     "analyze": "vite-bundle-visualizer --mode=build",
     "build": "npm run tsc && vite build",
     "build:ci": "vite build",
+    "build:ci:dev": "vite build --mode development",
     "coverage": "vitest --coverage",
     "coverage:ci": "vitest run --no-color --coverage",
     "depcheck": "depcheck",
@@ -79,16 +81,17 @@
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",
-    "@testing-library/user-event": "^14.6.6",
+    "@testing-library/user-event": "^14.6.7",
     "date-fns": "^4.4.0",
     "demos-shared-library": "file:../shared_library",
     "file-type": "^21.3.4",
     "react-oidc-context": "^3.3.1",
-    "react-router-dom": "^7.18.2",
-    "react-switch": "^7.1.0"
+    "react-router-dom": "^7.18.3",
+    "react-switch": "^7.1.0",
+    "semver": "^7.8.5"
   },
   "optionalDependencies": {
     "@emnapi/core": "^1.11.3",
-    "@rollup/rollup-linux-x64-musl": "^4.62.5"
+    "@rollup/rollup-linux-x64-musl": "^4.63.1"
   }
 }

@@ -33,7 +33,7 @@ vi.mock("../deliverableExtension/queries", () => ({
   updateDeliverableExtension: vi.fn(),
 }));
 
-vi.mock("../email/notifyDeliverableStatusChanged", () => ({
+vi.mock("../email/notifyDeliverableEvent", () => ({
   notifyDeliverableExtensionDecisionMade: vi.fn(),
 }));
 
@@ -48,7 +48,7 @@ import {
   selectDeliverableExtension,
   updateDeliverableExtension,
 } from "../deliverableExtension/queries";
-import { notifyDeliverableExtensionDecisionMade } from "../email/notifyDeliverableStatusChanged";
+import { notifyDeliverableExtensionDecisionMade } from "../email/notifyDeliverableEvent";
 
 describe("denyDeliverableExtension", () => {
   // Test inputs

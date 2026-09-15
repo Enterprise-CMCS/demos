@@ -5,6 +5,10 @@ import { log } from "../log";
 import { prisma } from "../prismaClient";
 
 export type RealtimeEmailType =
+  | "Application Status Updated"
+  | "Deliverable Due Date Updated"
+  | "Extension Requested"
+  | "Deliverable Comment"
   | "Deliverable Created"
   | "Deliverable Submitted"
   | "Deliverable Accepted"
@@ -15,7 +19,7 @@ export type RealtimeEmailType =
 
 export type RealtimeEmailMessage = {
   emailType: RealtimeEmailType;
-  entityType: "deliverable";
+  entityType: "deliverable" | "application";
   entityId: string;
   triggeredBy: {
     type: "realtime";
@@ -29,8 +33,7 @@ export type EmailQueueMessage = RealtimeEmailMessage & {
 };
 
 type QueueTransactionResult =
-  | { status: "queued"; messageId: string }
-  | { status: "failed"; error: unknown };
+  { status: "queued"; messageId: string } | { status: "failed"; error: unknown };
 
 const sqsClient = new SQSClient(
   process.env.AWS_ENDPOINT_URL
@@ -69,48 +72,45 @@ async function getQueueUrl(): Promise<string> {
 
 export async function enqueueEmail(message: EmailQueueMessage): Promise<string> {
   const emailNotificationId = message.emailNotificationId;
-  const result = await prisma().$transaction(
-    async (tx): Promise<QueueTransactionResult> => {
-      await tx.emailNotification.update({
-        where: { id: emailNotificationId },
-        data: { statusId: "Queued" },
-      });
+  const result = await prisma().$transaction(async (tx): Promise<QueueTransactionResult> => {
+    await tx.emailNotification.update({
+      where: { id: emailNotificationId },
+      data: { statusId: "Queued" },
+    });
 
-      let messageId: string;
+    let messageId: string;
+    try {
+      messageId = await sendEmailMessage(message);
+    } catch (queueError) {
       try {
-        messageId = await sendEmailMessage(message);
-      } catch (queueError) {
-        try {
-          await tx.emailNotification.update({
-            where: { id: emailNotificationId },
-            data: {
-              statusId: "Failed",
-              lastError:
-                queueError instanceof Error ? queueError.message : String(queueError),
-            },
-          });
-        } catch (trackingError) {
-          log.error(
-            {
-              error: trackingError,
-              emailNotificationId,
-            },
-            "Failed to record email notification queue failure"
-          );
-          throw queueError;
-        }
-
-        return { status: "failed", error: queueError };
+        await tx.emailNotification.update({
+          where: { id: emailNotificationId },
+          data: {
+            statusId: "Failed",
+            lastError: queueError instanceof Error ? queueError.message : String(queueError),
+          },
+        });
+      } catch (trackingError) {
+        log.error(
+          {
+            error: trackingError,
+            emailNotificationId,
+          },
+          "Failed to record email notification queue failure"
+        );
+        throw queueError;
       }
 
-      await tx.emailNotification.update({
-        where: { id: emailNotificationId },
-        data: { sqsMessageId: messageId },
-      });
-
-      return { status: "queued", messageId };
+      return { status: "failed", error: queueError };
     }
-  );
+
+    await tx.emailNotification.update({
+      where: { id: emailNotificationId },
+      data: { sqsMessageId: messageId },
+    });
+
+    return { status: "queued", messageId };
+  });
 
   if (result.status === "failed") {
     throw result.error;

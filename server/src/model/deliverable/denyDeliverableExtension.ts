@@ -12,7 +12,7 @@ import {
   selectDeliverableExtension,
   updateDeliverableExtension,
 } from "../deliverableExtension/queries";
-import { notifyDeliverableExtensionDecisionMade } from "../email/notifyDeliverableStatusChanged";
+import { notifyDeliverableExtensionDecisionMade } from "../email/notifyDeliverableEvent";
 
 export async function denyDeliverableExtension(
   deliverableId: string,

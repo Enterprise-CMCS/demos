@@ -1,3 +1,4 @@
+import { notifyApplicationStatusUpdated } from "../email/notifyApplicationEvent";
 import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { getApplication, PrismaApplication } from "../application";
@@ -13,9 +14,12 @@ import { validateAndUpdateDates } from "../applicationDate";
 
 export async function skipConceptPhase(
   parent: unknown,
-  { applicationId }: { applicationId: string }
+  { applicationId }: { applicationId: string },
+  context: { user: { id: string } }
 ): Promise<PrismaApplication> {
   const easternNow = getEasternNow();
+
+  const previousApplication = await getApplication(applicationId);
 
   try {
     await prisma().$transaction(async (tx) => {
@@ -62,5 +66,7 @@ export async function skipConceptPhase(
   } catch (error) {
     handlePrismaError(error);
   }
-  return await getApplication(applicationId);
+  const application = await getApplication(applicationId);
+  await notifyApplicationStatusUpdated(previousApplication, application, context.user.id);
+  return application;
 }

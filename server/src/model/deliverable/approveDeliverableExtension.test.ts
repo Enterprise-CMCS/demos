@@ -41,7 +41,7 @@ vi.mock("../../errors/checkOptionalNotNullFields", () => ({
   checkOptionalNotNullFields: vi.fn(),
 }));
 
-vi.mock("../email/notifyDeliverableStatusChanged", () => ({
+vi.mock("../email/notifyDeliverableEvent", () => ({
   notifyDeliverableExtensionDecisionMade: vi.fn(),
 }));
 
@@ -59,7 +59,7 @@ import {
   updateDeliverableExtension,
 } from "../deliverableExtension/queries";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
-import { notifyDeliverableExtensionDecisionMade } from "../email/notifyDeliverableStatusChanged";
+import { notifyDeliverableExtensionDecisionMade } from "../email/notifyDeliverableEvent";
 
 describe("approveDeliverableExtension", () => {
   // Test inputs

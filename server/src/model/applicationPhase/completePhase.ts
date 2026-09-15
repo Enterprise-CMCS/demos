@@ -1,3 +1,4 @@
+import { notifyApplicationStatusUpdated } from "../email/notifyApplicationEvent";
 import { CompletePhaseInput } from "../../types.js";
 import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
@@ -9,7 +10,8 @@ import { validateAndUpdateDates } from "../applicationDate";
 
 export async function completePhase(
   parent: unknown,
-  { input }: { input: CompletePhaseInput }
+  { input }: { input: CompletePhaseInput },
+  context: { user: { id: string } }
 ): Promise<PrismaApplication> {
   const phaseActions = PHASE_ACTIONS[input.phaseName];
   const easternNow = getEasternNow();
@@ -17,6 +19,8 @@ export async function completePhase(
   if (phaseActions === "Not Permitted") {
     throw new Error(`Operations against the ${input.phaseName} phase are not permitted via API.`);
   }
+
+  const previousApplication = await getApplication(input.applicationId);
 
   try {
     await prisma().$transaction(async (tx) => {
@@ -70,5 +74,7 @@ export async function completePhase(
   } catch (error) {
     handlePrismaError(error);
   }
-  return await getApplication(input.applicationId);
+  const application = await getApplication(input.applicationId);
+  await notifyApplicationStatusUpdated(previousApplication, application, context.user.id);
+  return application;
 }
