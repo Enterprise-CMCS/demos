@@ -2,41 +2,33 @@ import type { SQSClient } from "@aws-sdk/client-sqs";
 import type { PoolClient } from "pg";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({
-  getDeliverableData: vi.fn(),
-  getRecipients: vi.fn(),
-  createEmailNotificationRecord: vi.fn(),
-  sendSqsNotification: vi.fn(),
-  logError: vi.fn(),
-  logInfo: vi.fn(),
-}));
-
 vi.mock("./getDeliverableData", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./getDeliverableData")>();
-  return { ...actual, getDeliverableData: mocks.getDeliverableData };
+  return { ...actual, getDeliverableData: vi.fn() };
 });
 
-vi.mock("./getRecipients", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./getRecipients")>();
-  return { ...actual, getRecipients: mocks.getRecipients };
-});
+vi.mock("./getRecipients", () => ({
+  getRecipients: vi.fn(),
+}));
 
-vi.mock("./createEmailNotificationRecord", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./createEmailNotificationRecord")>();
-  return { ...actual, createEmailNotificationRecord: mocks.createEmailNotificationRecord };
-});
+vi.mock("./createEmailNotificationRecord", () => ({
+  createEmailNotificationRecord: vi.fn(),
+}));
 
-vi.mock("./sendSqsNotification", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./sendSqsNotification")>();
-  return { ...actual, sendSqsNotification: mocks.sendSqsNotification };
-});
+vi.mock("./sendSqsNotification", () => ({
+  sendSqsNotification: vi.fn(),
+}));
 
 vi.mock("../../log", () => ({
-  log: { error: mocks.logError, info: mocks.logInfo },
+  log: { error: vi.fn(), info: vi.fn() },
 }));
 
 import { enqueueDeliverableDueDateNotification } from "./enqueueDeliverableDueDateNotification";
-import { REMINDER_STAGES } from "./getDeliverableData";
+import { getDeliverableData, REMINDER_STAGES } from "./getDeliverableData";
+import { getRecipients } from "./getRecipients";
+import { createEmailNotificationRecord } from "./createEmailNotificationRecord";
+import { sendSqsNotification } from "./sendSqsNotification";
+import { log } from "../../log";
 
 const client = {} as PoolClient;
 const sqsClient = {} as SQSClient;
@@ -75,7 +67,7 @@ const expectedPayload = {
 };
 
 function stubOneDeliverableOnFiveDaysPrior() {
-  mocks.getDeliverableData.mockImplementation(async (_client: PoolClient, reminderStage: string) =>
+  vi.mocked(getDeliverableData).mockImplementation(async (_client, reminderStage) =>
     reminderStage === "Five Days Prior" ? [deliverable] : []
   );
 }
@@ -83,17 +75,19 @@ function stubOneDeliverableOnFiveDaysPrior() {
 describe("enqueueDeliverableDueDateNotification", () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    mocks.getDeliverableData.mockResolvedValue([]);
-    mocks.getRecipients.mockResolvedValue([recipient]);
-    mocks.createEmailNotificationRecord.mockResolvedValue(undefined);
-    mocks.sendSqsNotification.mockResolvedValue(undefined);
+    vi.mocked(getDeliverableData).mockResolvedValue([]);
+    vi.mocked(getRecipients).mockResolvedValue([recipient]);
+    vi.mocked(createEmailNotificationRecord).mockResolvedValue(undefined as never);
+    vi.mocked(sendSqsNotification).mockResolvedValue(undefined);
   });
 
   it("runs the notification for every reminder stage", async () => {
     await enqueueDeliverableDueDateNotification(client, sqsClient);
 
-    expect(mocks.getDeliverableData.mock.calls.map(([, stage]) => stage)).toEqual(REMINDER_STAGES);
-    for (const call of mocks.getDeliverableData.mock.calls) {
+    expect(vi.mocked(getDeliverableData).mock.calls.map(([, stage]) => stage)).toEqual(
+      REMINDER_STAGES
+    );
+    for (const call of vi.mocked(getDeliverableData).mock.calls) {
       expect(call[0]).toBe(client);
     }
   });
@@ -103,16 +97,17 @@ describe("enqueueDeliverableDueDateNotification", () => {
 
     await enqueueDeliverableDueDateNotification(client, sqsClient);
 
-    expect(mocks.getRecipients).toHaveBeenCalledExactlyOnceWith(client, deliverable.id);
+    expect(getRecipients).toHaveBeenCalledExactlyOnceWith(client, deliverable.id);
 
-    expect(mocks.createEmailNotificationRecord).toHaveBeenCalledOnce();
-    const [recordClient, emailNotificationId, payloadArg, recipientsArg] =
-      mocks.createEmailNotificationRecord.mock.calls[0];
+    expect(createEmailNotificationRecord).toHaveBeenCalledOnce();
+    const [recordClient, emailNotificationId, payloadArg, recipientsArg] = vi.mocked(
+      createEmailNotificationRecord
+    ).mock.calls[0];
     expect(recordClient).toBe(client);
     expect(payloadArg).toEqual(expectedPayload);
     expect(recipientsArg).toEqual([recipient]);
 
-    expect(mocks.sendSqsNotification).toHaveBeenCalledExactlyOnceWith(
+    expect(sendSqsNotification).toHaveBeenCalledExactlyOnceWith(
       client,
       sqsClient,
       emailNotificationId,
@@ -126,7 +121,7 @@ describe("enqueueDeliverableDueDateNotification", () => {
       }
     );
 
-    expect(mocks.logInfo).toHaveBeenCalledExactlyOnceWith(
+    expect(log.info).toHaveBeenCalledExactlyOnceWith(
       { deliverableId: deliverable.id, emailNotificationId, reminderStage: "Five Days Prior" },
       "queued deliverable due date notification"
     );
@@ -134,13 +129,13 @@ describe("enqueueDeliverableDueDateNotification", () => {
 
   it("skips and logs when no recipients are found", async () => {
     stubOneDeliverableOnFiveDaysPrior();
-    mocks.getRecipients.mockResolvedValue([]);
+    vi.mocked(getRecipients).mockResolvedValue([]);
 
     await enqueueDeliverableDueDateNotification(client, sqsClient);
 
-    expect(mocks.createEmailNotificationRecord).not.toHaveBeenCalled();
-    expect(mocks.sendSqsNotification).not.toHaveBeenCalled();
-    expect(mocks.logError).toHaveBeenCalledExactlyOnceWith(
+    expect(createEmailNotificationRecord).not.toHaveBeenCalled();
+    expect(sendSqsNotification).not.toHaveBeenCalled();
+    expect(log.error).toHaveBeenCalledExactlyOnceWith(
       { deliverableId: deliverable.id, reminderStage: "Five Days Prior" },
       "no recipients found for deliverable due date notification."
     );
@@ -148,13 +143,13 @@ describe("enqueueDeliverableDueDateNotification", () => {
 
   it("logs and continues when querying recipients fails", async () => {
     stubOneDeliverableOnFiveDaysPrior();
-    mocks.getRecipients.mockRejectedValue(new Error("db down"));
+    vi.mocked(getRecipients).mockRejectedValue(new Error("db down"));
 
     await enqueueDeliverableDueDateNotification(client, sqsClient);
 
-    expect(mocks.createEmailNotificationRecord).not.toHaveBeenCalled();
-    expect(mocks.sendSqsNotification).not.toHaveBeenCalled();
-    expect(mocks.logError).toHaveBeenCalledExactlyOnceWith(
+    expect(createEmailNotificationRecord).not.toHaveBeenCalled();
+    expect(sendSqsNotification).not.toHaveBeenCalled();
+    expect(log.error).toHaveBeenCalledExactlyOnceWith(
       { deliverableId: deliverable.id, reminderStage: "Five Days Prior", error: "db down" },
       "failed to query recipients for deliverable due date notification"
     );
@@ -162,12 +157,12 @@ describe("enqueueDeliverableDueDateNotification", () => {
 
   it("logs and continues when creating the email notification record fails", async () => {
     stubOneDeliverableOnFiveDaysPrior();
-    mocks.createEmailNotificationRecord.mockRejectedValue(new Error("insert failed"));
+    vi.mocked(createEmailNotificationRecord).mockRejectedValue(new Error("insert failed"));
 
     await enqueueDeliverableDueDateNotification(client, sqsClient);
 
-    expect(mocks.sendSqsNotification).not.toHaveBeenCalled();
-    expect(mocks.logError).toHaveBeenCalledExactlyOnceWith(
+    expect(sendSqsNotification).not.toHaveBeenCalled();
+    expect(log.error).toHaveBeenCalledExactlyOnceWith(
       { deliverableId: deliverable.id, error: "insert failed" },
       "failed to create deliverable due date email notification"
     );
@@ -175,14 +170,14 @@ describe("enqueueDeliverableDueDateNotification", () => {
 
   it("logs when sending the sqs notification fails", async () => {
     stubOneDeliverableOnFiveDaysPrior();
-    mocks.sendSqsNotification.mockRejectedValue(new Error("sqs down"));
+    vi.mocked(sendSqsNotification).mockRejectedValue(new Error("sqs down"));
 
     await enqueueDeliverableDueDateNotification(client, sqsClient);
 
-    const [, emailNotificationId] = mocks.createEmailNotificationRecord.mock.calls[0];
+    const [, emailNotificationId] = vi.mocked(createEmailNotificationRecord).mock.calls[0];
 
-    expect(mocks.logInfo).not.toHaveBeenCalled();
-    expect(mocks.logError).toHaveBeenCalledExactlyOnceWith(
+    expect(log.info).not.toHaveBeenCalled();
+    expect(log.error).toHaveBeenCalledExactlyOnceWith(
       {
         deliverableId: deliverable.id,
         emailNotificationId,
