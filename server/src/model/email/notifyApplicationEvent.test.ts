@@ -27,6 +27,7 @@ const demonstration = {
   id: "demo-1",
   name: "Demo title",
   stateId: "MD",
+  state: { name: "Maryland" },
   demonstrationRoleAssignments: [
     { person },
     { person: { ...person, id: "person-2", email: "cms@example.com " } },
@@ -60,6 +61,7 @@ describe("application notifications", () => {
         expect.objectContaining({
           where: { id: applicationTypeId === "Demonstration" ? "app-1" : "demo-1" },
           include: {
+            state: true,
             demonstrationRoleAssignments: {
               where: {
                 OR: [
@@ -81,6 +83,7 @@ describe("application notifications", () => {
           entityId: "app-1",
           triggeredBy: { type: "realtime", id: "user-1" },
           payload: expect.objectContaining({
+            demonstration: { id: "demo-1", name: "Demo title", stateName: "Maryland" },
             application: expect.objectContaining({
               applicationTypeId,
               statusId: "Under Review",

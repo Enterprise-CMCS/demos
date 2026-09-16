@@ -32,6 +32,7 @@ async function notifyApplicationEvent(
         id: "demonstrationId" in application ? application.demonstrationId : application.id,
       },
       include: {
+        state: true,
         demonstrationRoleAssignments: {
           where: {
             OR: [
@@ -81,7 +82,7 @@ async function notifyApplicationEvent(
           demonstration: {
             id: demonstration.id,
             name: demonstration.name,
-            stateId: demonstration.stateId,
+            stateName: demonstration.state.name,
           },
           application: {
             id: application.id,
