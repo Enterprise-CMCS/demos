@@ -4,8 +4,6 @@ import { getDbPool } from "./db";
 import { SQSClient } from "@aws-sdk/client-sqs";
 import { enqueueDeliverableDueDateNotification } from "./notifications/deliverableDueDateNotification/enqueueDeliverableDueDateNotification";
 
-export const EMAILER_QUEUE_URL = "http://localstack:4566/000000000000/emailer-queue";
-
 const EMAIL_TYPES = [
   enqueueDeliverableDueDateNotification,
   // DEMONSTRATION_EXPIRATION_DATE: enqueueDemonstrationDueDateNotification(),

@@ -1,6 +1,5 @@
 import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
 import { PoolClient } from "pg";
-import { EMAILER_QUEUE_URL } from "../..";
 import { DB_SCHEMA } from "../../db";
 import { Payload } from "./createEmailNotificationRecord";
 
@@ -15,7 +14,7 @@ export type Envelope = {
 
 export const UPDATE_SQS_MESSAGE_ID_QUERY = `UPDATE ${DB_SCHEMA}.email_notification SET sqs_message_id = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $1`;
 
-export const UPDATE_EMAIL_NOTIFICATION_FAILED_QUERY = `UPDATE ${DB_SCHEMA}.email_notification SET status_id = 'Failed', last_error = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $1`;
+export const UPDATE_EMAIL_NOTIFICATION_FAILED_QUERY = `UPDATE ${DB_SCHEMA}.email_notification SET status_id = 'Failed', last_error = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $1`;
 
 export const sendSqsNotification = async (
   client: PoolClient,
@@ -27,7 +26,7 @@ export const sendSqsNotification = async (
   try {
     response = await sqsClient.send(
       new SendMessageCommand({
-        QueueUrl: EMAILER_QUEUE_URL,
+        QueueUrl: process.env.EMAILER_QUEUE_URL,
         MessageBody: JSON.stringify(envelope),
       })
     );

@@ -64,7 +64,7 @@ echo "9️⃣ Setting up dataConnectExport Lambda..."
 bash /workspaces/demos/.devcontainer/localstack/setup/setup_dataconnectexport_lambda.sh
 
 echo ""
-echo "9️⃣ Setting up emailScheduler Lambda..."
+echo "🔟 Setting up emailScheduler Lambda..."
 bash /workspaces/demos/.devcontainer/localstack/setup/setup_emailScheduler_lambda.sh
 
 echo ""

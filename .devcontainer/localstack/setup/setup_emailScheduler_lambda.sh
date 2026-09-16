@@ -43,6 +43,7 @@ $AWS_CMD lambda create-function \
         DATABASE_SECRET_ARN=database-secret,
         DB_SCHEMA=demos_app,
         DB_SSL_MODE=disable,
+        EMAILER_QUEUE_URL=$LOCALSTACK_ENDPOINT/000000000000/emailer-queue,
         NODE_OPTIONS=--enable-source-maps
     }" >/dev/null
 

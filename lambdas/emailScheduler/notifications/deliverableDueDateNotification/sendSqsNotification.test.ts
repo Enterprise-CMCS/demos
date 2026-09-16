@@ -1,9 +1,8 @@
 import { SendMessageCommand } from "@aws-sdk/client-sqs";
 import type { SQSClient } from "@aws-sdk/client-sqs";
 import type { PoolClient } from "pg";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { EMAILER_QUEUE_URL } from "../..";
 import type { Payload } from "./createEmailNotificationRecord";
 import {
   Envelope,
@@ -11,6 +10,8 @@ import {
   UPDATE_EMAIL_NOTIFICATION_FAILED_QUERY,
   UPDATE_SQS_MESSAGE_ID_QUERY,
 } from "./sendSqsNotification";
+
+const EMAILER_QUEUE_URL = "http://localstack:4566/000000000000/emailer-queue";
 
 const payload: Payload = {
   recipients: {
@@ -47,6 +48,11 @@ describe("sendSqsNotification", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.stubEnv("EMAILER_QUEUE_URL", EMAILER_QUEUE_URL);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("sends the envelope to the emailer queue and records the sqs message id", async () => {
