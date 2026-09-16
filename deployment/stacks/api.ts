@@ -12,6 +12,7 @@ import {
   aws_ssm,
   aws_kms,
   RemovalPolicy,
+  Validations,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -138,7 +139,6 @@ export class ApiStack extends Stack {
         environment: {
           JWKS_URI: `${cognitoAuthority}/.well-known/jwks.json`,
         },
-        externalModules: ["aws-sdk"],
         nodeModules: ["jsonwebtoken", "jwks-rsa"],
         depsLockFilePath: path.join(rel, "package-lock.json"),
         timeout: Duration.seconds(10),
@@ -357,6 +357,10 @@ export class ApiStack extends Stack {
       );
 
       allowListParam.grantRead(emailerLambda.role);
+      Validations.of(commonProps.scope).acknowledge({
+        id: "CloudFormation-Validate::W2001",
+        reason: "The param is imported and used to grant access to the emailer"
+      })
     }
 
     emailerLambda.lambda.addEventSource(
