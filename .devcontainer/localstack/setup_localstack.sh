@@ -64,14 +64,19 @@ echo "9️⃣ Setting up dataConnectExport Lambda..."
 bash /workspaces/demos/.devcontainer/localstack/setup/setup_dataconnectexport_lambda.sh
 
 echo ""
+echo "9️⃣ Setting up emailScheduler Lambda..."
+bash /workspaces/demos/.devcontainer/localstack/setup/setup_emailScheduler_lambda.sh
+
+echo ""
 echo "✅ LocalStack setup complete!"
 echo ""
 echo "📋 Resources created:"
 echo "   - Secrets Manager: database credentials, UiPath credentials"
 echo "   - SQS Queues: fileupload-queue, fileprocess-queue, infected-file-expiration-queue, uipath-queue, budget-neutrality-queue, emailer-queue (+ DLQs)"
 echo "   - S3 Buckets: upload-bucket, clean-bucket, infected-bucket, deleted-bucket, dataconnect-bucket"
-echo "   - Lambda Functions: fileprocess, uipath, deleteinfectedfile, budgetneutrality, emailer, dataconnectexport"
-echo "   - EventBridge Rules: s3-upload-to-guardduty"
+echo "   - Lambda Functions: fileprocess, uipath, deleteinfectedfile, budgetneutrality, emailer, dataconnectexport, emailScheduler"
+echo "   - EventBridge Rules: s3-upload-to-guardduty, emailScheduler-schedule"
+
 echo ""
 echo "🧪 Test the setup:"
 echo "   # Upload a file"

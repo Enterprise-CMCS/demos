@@ -7,6 +7,7 @@ import { getRequiredObject } from "./helpers";
 import { renderDeliverableAcceptedEmail } from "./templates/DeliverableAcceptedEmail";
 import { renderDeliverableApprovedEmail } from "./templates/DeliverableApprovedEmail";
 import { renderDeliverableCreatedEmail } from "./templates/DeliverableCreatedEmail";
+import { renderDeliverableDueDateReminderEmail } from "./templates/DeliverableDueDateReminderEmail";
 import { renderDeliverableDueDateUpdatedEmail } from "./templates/DeliverableDueDateUpdatedEmail";
 import { renderDeliverableReceivedAndFiledEmail } from "./templates/DeliverableReceivedAndFiledEmail";
 import { renderDeliverableSubmittedEmail } from "./templates/DeliverableSubmittedEmail";
@@ -29,6 +30,7 @@ const templates: Record<string, EmailTemplate> = {
   "Terms And Conditions Requested": renderTermsAndConditionsRequestedEmail,
   "Application Status Updated": renderApplicationStatusUpdatedEmail,
   "Deliverable Created": renderDeliverableCreatedEmail,
+  "Deliverable Due Date Reminder": renderDeliverableDueDateReminderEmail,
   "Deliverable Due Date Updated": renderDeliverableDueDateUpdatedEmail,
   "Deliverable Submitted": renderDeliverableSubmittedEmail,
   "Deliverable Accepted": renderDeliverableAcceptedEmail,
