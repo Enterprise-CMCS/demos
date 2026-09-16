@@ -126,6 +126,17 @@ export async function main(passedContext?: { [key: string]: any }) {
     pmda.addDependency(core);
   }
 
+  if (app.node.tryGetContext("pmda") == "include") {
+    const pmda = new PMDATransfer(app, `${project}-${stage}-pmda-transfer`, {
+      ...config,
+      env: {
+        account: process.env.CDK_DEFAULT_ACCOUNT,
+        region: process.env.CDK_DEFAULT_REGION,
+      },
+    });
+    pmda.addDependency(core);
+  }
+
   const fileUpload = new FileUploadStack(app, `${project}-${stage}-file-upload`, {
     ...config,
     env: {

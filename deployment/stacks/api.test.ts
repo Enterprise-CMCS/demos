@@ -213,6 +213,7 @@ describe("Api Stack", () => {
           DB_SCHEMA: "demos_app",
           DB_SSL_ROOT_CERT: "/var/runtime/ca-cert.pem",
           DEMOS_APP_URL: "https://unittest.demos.com",
+          CLEAN_BUCKET: { "Fn::ImportValue": "unittestCleanBucketName" },
         }),
       },
     });
