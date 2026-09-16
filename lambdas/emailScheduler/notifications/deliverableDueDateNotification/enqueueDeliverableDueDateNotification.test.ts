@@ -74,8 +74,6 @@ const expectedPayload = {
   reminderStage: "Five Days Prior",
 };
 
-// test setup only: rigs getDeliverableData so exactly one stage yields a deliverable,
-// keeping the "one deliverable" tests below from firing 4 times (once per stage)
 function stubOneDeliverableOnFiveDaysPrior() {
   mocks.getDeliverableData.mockImplementation(async (_client: PoolClient, reminderStage: string) =>
     reminderStage === "Five Days Prior" ? [deliverable] : []
