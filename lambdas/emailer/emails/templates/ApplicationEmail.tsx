@@ -16,7 +16,7 @@ function renderApplicationEmail(
   const application = getRequiredObject(payload.application, "application", emailType);
   const demoId = getRequiredString(demonstration.id, "demonstration.id", emailType);
   const demoName = getRequiredString(demonstration.name, "demonstration.name", emailType);
-  const state = getRequiredString(demonstration.stateId, "demonstration.stateId", emailType);
+  const state = getRequiredString(demonstration.stateName, "demonstration.stateName", emailType);
   const id = getRequiredString(application.id, "application.id", emailType);
   const applicationType = getRequiredString(
     application.applicationTypeId,

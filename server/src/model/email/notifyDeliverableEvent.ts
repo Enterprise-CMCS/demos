@@ -100,6 +100,7 @@ async function notifyDeliverableEvent(
         cmsOwner: { include: { person: true } },
         demonstration: {
           include: {
+            state: true,
             demonstrationRoleAssignments: {
               ...(audience === "all"
                 ? {}
@@ -161,7 +162,7 @@ async function notifyDeliverableEvent(
           demonstration: {
             id: deliverable.demonstration.id,
             name: deliverable.demonstration.name,
-            stateId: deliverable.demonstration.stateId,
+            stateName: deliverable.demonstration.state.name,
           },
           deliverable: {
             id: deliverable.id,

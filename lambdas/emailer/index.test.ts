@@ -48,7 +48,7 @@ const realtimeDeliverableCreatedEnvelope = {
     demonstration: {
       id: "demonstration-1",
       name: "Medicaid Demonstration",
-      stateId: "MD",
+      stateName: "Maryland",
     },
     deliverable: {
       id: "deliverable-1",
