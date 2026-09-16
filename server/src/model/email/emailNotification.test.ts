@@ -88,7 +88,7 @@ describe("enqueueAndTrackRealtimeEmail", () => {
     };
     await enqueueAndTrackRealtimeEmail(
       applicationMessage,
-      { applicationId: message.entityId },
+      { applicationId: message.entityId, applicationTypeId: "Extension" },
       recipients
     );
     expect(create).toHaveBeenCalledExactlyOnceWith({
@@ -99,6 +99,7 @@ describe("enqueueAndTrackRealtimeEmail", () => {
         statusId: "Pending",
         payload: message.payload,
         recipients: { create: recipients },
+        applicationTypeId: "Extension",
       },
     });
     expect(enqueueEmail).toHaveBeenCalledExactlyOnceWith({

@@ -5,6 +5,7 @@ import { log } from "../../log";
 import { prisma } from "../../prismaClient";
 import { PrismaApplication } from "../application";
 import { enqueueAndTrackRealtimeEmail } from "./emailNotification";
+import { ApplicationType } from "../../types";
 
 type ApplicationEmailType = "Application Status Updated";
 
@@ -24,7 +25,8 @@ async function notifyApplicationEvent(
   triggeredByUserId: string
 ): Promise<void> {
   try {
-    const applicationType = application.applicationTypeId;
+    // casting allowed due to db constraints
+    const applicationType: ApplicationType = application.applicationTypeId as ApplicationType;
     const demonstration = await prisma().demonstration.findUniqueOrThrow({
       where: {
         id: "demonstrationId" in application ? application.demonstrationId : application.id,
@@ -90,7 +92,7 @@ async function notifyApplicationEvent(
           },
         },
       },
-      { applicationId: application.id },
+      { applicationId: application.id, applicationTypeId: applicationType },
       contacts.map(({ personId }) => ({ personId }))
     );
   } catch (error) {
