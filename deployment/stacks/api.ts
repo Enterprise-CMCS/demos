@@ -269,6 +269,12 @@ export class ApiStack extends Stack {
       "Allow traffic to secrets manager VPCE"
     );
 
+    emailerLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to S3"
+    );
+
     const sharedServicesSG = aws_ec2.SecurityGroup.fromLookupByName(
       commonProps.scope,
       "cmsSharedServcices",
