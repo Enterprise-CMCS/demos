@@ -4,21 +4,10 @@ import type { UserManagerSettings } from "oidc-client-ts";
 import { WebStorageStateStore } from "oidc-client-ts";
 
 const onSigninCallback: AuthProviderProps["onSigninCallback"] = (user) => {
-  const state = user?.state as { returnUrl?: unknown } | undefined;
-  const returnUrl = state?.returnUrl;
-  const destination = window.location.pathname + window.location.hash;
-
-  if (returnUrl !== undefined) {
-    if (
-      typeof returnUrl !== "string" ||
-      new URL(returnUrl, window.location.origin).origin !== window.location.origin
-    ) {
-      throw new Error("Invalid login return URL: expected a URL within this application.");
-    }
-  }
+  const state = user?.state as { returnUrl?: string } | undefined;
 
   // Restore the destination before the authenticated router mounts, removing OIDC parameters.
-  window.history.replaceState({}, document.title, returnUrl ?? destination);
+  window.history.replaceState({}, document.title, state?.returnUrl ?? "/");
 };
 
 /** The exact OIDC settings we use (snake_case keys, matching oidc-client-ts). */

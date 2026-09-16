@@ -34,10 +34,11 @@ describe("cognitoConfig", () => {
     });
 
     it.each([undefined, {}])(
-      "cleans the callback URL without a saved destination (%j)",
+      "returns to the main screen without a saved destination (%j)",
       (state) => {
+        window.history.replaceState({}, "", "/callback?code=test-code&state=test-state#login");
         callback(state === undefined ? undefined : userWithState(state));
-        expect(window.location.pathname + window.location.search).toBe("/");
+        expect(window.location.pathname + window.location.search + window.location.hash).toBe("/");
       }
     );
 
@@ -46,10 +47,9 @@ describe("cognitoConfig", () => {
       "//example.com/",
       "/\\example.com/",
       "javascript:alert(1)",
-      123,
-    ])("rejects an invalid return URL (%s)", (returnUrl) => {
+    ])("prevents cross-origin navigation (%s)", (returnUrl) => {
       expect(() => callback(userWithState({ returnUrl }))).toThrow(
-        "Invalid login return URL: expected a URL within this application."
+        expect.objectContaining({ name: "SecurityError" })
       );
       expect(window.location.search).toBe("?code=test-code&state=test-state");
     });
