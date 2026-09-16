@@ -10,7 +10,7 @@ export const REMINDER_STAGES = [
 
 export type ReminderStage = (typeof REMINDER_STAGES)[number];
 
-const applicableDeliverablesQuery = `
+export const APPLICABLE_DELIVERABLES_QUERY = `
     SELECT
       deliverable.id,
       deliverable.deliverable_type_id,
@@ -60,6 +60,6 @@ export const getDeliverableData = async (
       throw new Error(`Unrecognized reminderStage: ${reminderStage}`);
   }
 
-  const result = await client.query(applicableDeliverablesQuery, [daysBeforeDueDate]);
+  const result = await client.query(APPLICABLE_DELIVERABLES_QUERY, [daysBeforeDueDate]);
   return result.rows;
 };

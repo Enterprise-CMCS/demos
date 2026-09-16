@@ -1,7 +1,7 @@
 import { PoolClient } from "pg";
 import { DB_SCHEMA } from "../../db";
 
-const emailRecipientsQuery = `
+export const EMAIL_RECIPIENTS_QUERY = `
       WITH recipient_ids AS (
         SELECT
           roles.person_id AS id
@@ -36,6 +36,6 @@ export const getRecipients = async (
   client: PoolClient,
   deliverableId: string
 ): Promise<Recipient[]> => {
-  const result = await client.query(emailRecipientsQuery, [deliverableId]);
+  const result = await client.query(EMAIL_RECIPIENTS_QUERY, [deliverableId]);
   return result.rows;
 };

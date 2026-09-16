@@ -22,10 +22,10 @@ export type Payload = {
   reminderStage: ReminderStage;
 };
 
-const insertEmailNotificationQuery = `INSERT INTO ${DB_SCHEMA}.email_notification (id, email_type_id, entity_type, deliverable_id, status_id, payload, updated_at)
+export const INSERT_EMAIL_NOTIFICATION_QUERY = `INSERT INTO ${DB_SCHEMA}.email_notification (id, email_type_id, entity_type, deliverable_id, status_id, payload, updated_at)
        VALUES ($1, $2, 'deliverable', $3, 'Queued', $4, CURRENT_TIMESTAMP)`;
 
-const insertRecipientQuery = `INSERT INTO ${DB_SCHEMA}.email_notification_recipient (email_notification_id, person_id)
+export const INSERT_RECIPIENT_QUERY = `INSERT INTO ${DB_SCHEMA}.email_notification_recipient (email_notification_id, person_id)
          VALUES ($1, $2)`;
 
 export const createEmailNotificationRecord = async (
@@ -36,14 +36,14 @@ export const createEmailNotificationRecord = async (
 ) => {
   try {
     await client.query("BEGIN");
-    await client.query(insertEmailNotificationQuery, [
+    await client.query(INSERT_EMAIL_NOTIFICATION_QUERY, [
       emailNotificationId,
       "Deliverable Due Date Reminder",
       payload.deliverable.id,
       JSON.stringify(payload),
     ]);
     for (const recipient of recipients) {
-      await client.query(insertRecipientQuery, [emailNotificationId, recipient.person_id]);
+      await client.query(INSERT_RECIPIENT_QUERY, [emailNotificationId, recipient.person_id]);
     }
     await client.query("COMMIT");
   } catch (error) {

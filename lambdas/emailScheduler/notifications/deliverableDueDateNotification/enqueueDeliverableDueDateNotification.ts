@@ -94,6 +94,10 @@ const sendDeliverableDueDateNotification = async (
 
     try {
       await sendSqsNotification(client, sqsClient, emailNotificationId, envelope);
+      log.info(
+        { deliverableId: deliverable.id, emailNotificationId, reminderStage },
+        "queued deliverable due date notification"
+      );
     } catch (error) {
       log.error(
         {
