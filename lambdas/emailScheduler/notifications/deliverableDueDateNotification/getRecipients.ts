@@ -5,8 +5,8 @@ export const EMAIL_RECIPIENTS_QUERY = `
       WITH recipient_ids AS (
         SELECT
           roles.person_id AS id
-        FROM ${DB_SCHEMA}.deliverable AS deliverable
-        JOIN ${DB_SCHEMA}.demonstration_role_assignment AS roles
+        FROM ${DB_SCHEMA}.demonstration_role_assignment AS roles
+        JOIN ${DB_SCHEMA}.deliverable AS deliverable
           ON roles.demonstration_id = deliverable.demonstration_id
         WHERE deliverable.id = $1
         UNION
