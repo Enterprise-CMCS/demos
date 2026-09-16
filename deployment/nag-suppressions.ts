@@ -77,6 +77,12 @@ export function applyApiSuppressions(api: Stack, stage: string) {
     {
       id: "AwsSolutions-APIG4",
       reason: "This is a healthcheck endpoint that does not return any actual information",
+    }
+  ]);
+  NagSuppressions.addResourceSuppressionsByPath(api, `demos-${stage}-api/ApiGatewayRestApi/DeploymentStage.${stage}/Resource`, [
+    {
+      id: "AwsSolutions-APIG3",
+      reason: "WAF is added in the UI stack so that values can be shared between the cloudfront and api waf",
     },
   ]);
 
