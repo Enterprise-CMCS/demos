@@ -13,6 +13,12 @@ ALTER TABLE demos_app.email_notification DROP CONSTRAINT "email_notification_ent
 DROP TRIGGER IF EXISTS log_changes_email_notification ON demos_app.email_notification;
 DROP FUNCTION IF EXISTS demos_app.log_changes_email_notification();
 
+/*
+ Because the history triggers are updated after the main migrations have run, we 
+ need to add the new trigger/function definitions at the top of this migration
+ to capture the data updates that occur here.  Afterward, it will be dropped and 
+ recreated as normal.
+ */
 CREATE FUNCTION demos_app.log_changes_email_notification()
 RETURNS TRIGGER AS $$
 BEGIN
