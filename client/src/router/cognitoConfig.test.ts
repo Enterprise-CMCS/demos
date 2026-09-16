@@ -1,15 +1,60 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  LOCAL_COGNITO_CONFIG,
-  getCognitoLogoutUrl,
-  getCognitoConfig,
-} from "./cognitoConfig";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { User } from "oidc-client-ts";
+import { LOCAL_COGNITO_CONFIG, getCognitoLogoutUrl, getCognitoConfig } from "./cognitoConfig";
 
 vi.mock("config/env", () => ({
   getAppMode: vi.fn(),
 }));
 
 describe("cognitoConfig", () => {
+  describe("onSigninCallback", () => {
+    const callback = LOCAL_COGNITO_CONFIG.onSigninCallback!;
+    const userWithState = (state: unknown) =>
+      new User({
+        access_token: "test-token",
+        token_type: "Bearer",
+        profile: { sub: "test-user", iss: "test", aud: "test", exp: 0, iat: 0 },
+        userState: state,
+      });
+
+    beforeEach(() => {
+      window.history.replaceState({}, "", "/?code=test-code&state=test-state");
+    });
+
+    afterEach(() => {
+      window.history.replaceState({}, "", "/");
+    });
+
+    it("restores the email destination including its query and fragment", () => {
+      const returnUrl = "/deliverables/deliverable-1?tab=documents#uploaded";
+      callback(userWithState({ returnUrl }));
+      expect(window.location.pathname + window.location.search + window.location.hash).toBe(
+        returnUrl
+      );
+    });
+
+    it.each([undefined, {}])(
+      "cleans the callback URL without a saved destination (%j)",
+      (state) => {
+        callback(state === undefined ? undefined : userWithState(state));
+        expect(window.location.pathname + window.location.search).toBe("/");
+      }
+    );
+
+    it.each([
+      "https://example.com/",
+      "//example.com/",
+      "/\\example.com/",
+      "javascript:alert(1)",
+      123,
+    ])("rejects an invalid return URL (%s)", (returnUrl) => {
+      expect(() => callback(userWithState({ returnUrl }))).toThrow(
+        "Invalid login return URL: expected a URL within this application."
+      );
+      expect(window.location.search).toBe("?code=test-code&state=test-state");
+    });
+  });
+
   describe("getCognitoLogoutUrl", () => {
     it("should generate the correct logout URL", () => {
       const expectedUrl =
@@ -59,9 +104,7 @@ describe("cognitoConfig", () => {
       const { getAppMode } = await import("config/env");
       vi.mocked(getAppMode).mockImplementation(mockGetAppMode);
 
-      expect(() => getCognitoConfig()).toThrow(
-        "Cognito configuration for staging is not defined."
-      );
+      expect(() => getCognitoConfig()).toThrow("Cognito configuration for staging is not defined.");
     });
   });
 });
