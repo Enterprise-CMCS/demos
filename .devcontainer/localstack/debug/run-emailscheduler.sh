@@ -6,7 +6,8 @@ AWS_REGION="${AWS_REGION:-us-east-1}"
 AWS_CMD="aws --endpoint-url=$LOCALSTACK_ENDPOINT --region $AWS_REGION"
 LAMBDA_NAME="emailScheduler"
 
-# Mirrors the event shape EventBridge sends when the emailScheduler-schedule rule fires.
+# Mirrors the event shape EventBridge would send on a schedule; no real rule is deployed,
+# this just triggers the Lambda manually in the shape it expects.
 $AWS_CMD lambda invoke \
     --function-name "$LAMBDA_NAME" \
     --payload '{

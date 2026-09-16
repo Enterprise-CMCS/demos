@@ -75,7 +75,7 @@ echo "   - Secrets Manager: database credentials, UiPath credentials"
 echo "   - SQS Queues: fileupload-queue, fileprocess-queue, infected-file-expiration-queue, uipath-queue, budget-neutrality-queue, emailer-queue (+ DLQs)"
 echo "   - S3 Buckets: upload-bucket, clean-bucket, infected-bucket, deleted-bucket, dataconnect-bucket"
 echo "   - Lambda Functions: fileprocess, uipath, deleteinfectedfile, budgetneutrality, emailer, dataconnectexport, emailScheduler"
-echo "   - EventBridge Rules: s3-upload-to-guardduty, emailScheduler-schedule"
+echo "   - EventBridge Rules: s3-upload-to-guardduty"
 
 echo ""
 echo "🧪 Test the setup:"
