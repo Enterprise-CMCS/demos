@@ -101,7 +101,7 @@ describe("deliverable event email notifications", () => {
     expect(enqueueAndTrackRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({
         emailType: "Deliverable Submitted",
-        entityType: "deliverable",
+        entityType: "deliverable_action",
         entityId: deliverable.id,
         triggeredBy: {
           type: "realtime",
@@ -326,7 +326,7 @@ describe("deliverable event email notifications", () => {
         publicCommentId,
       });
       expect(enqueueAndTrackRealtimeEmail).toHaveBeenLastCalledWith(
-        expect.objectContaining({ emailType: "Deliverable Comment" }),
+        expect.objectContaining({ emailType: "Deliverable Comment", entityType: "public_comment" }),
         { publicCommentId },
         [{ personId: "cms-owner-1" }, { personId: "state-poc-1" }]
       );

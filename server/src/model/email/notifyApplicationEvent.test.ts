@@ -3,9 +3,7 @@ import { prisma } from "../../prismaClient";
 import { log } from "../../log";
 import { PrismaApplication } from "../application";
 import { enqueueAndTrackRealtimeEmail } from "./emailNotification";
-import {
-  notifyApplicationStatusUpdated,
-} from "./notifyApplicationEvent";
+import { notifyApplicationStatusUpdated } from "./notifyApplicationEvent";
 
 vi.mock("../../prismaClient", () => ({ prisma: vi.fn() }));
 vi.mock("../../log", () => ({ log: { error: vi.fn() } }));
@@ -90,7 +88,7 @@ describe("application notifications", () => {
             recipients: { to: [], bcc: [{ name: "CMS Contact", address: "cms@example.com" }] },
           }),
         }),
-        { applicationId: "app-1" },
+        { applicationId: "app-1", applicationTypeId: applicationTypeId },
         [{ personId: "person-1" }]
       );
     }
@@ -109,7 +107,11 @@ describe("application notifications", () => {
         ...demonstration,
         demonstrationRoleAssignments: assignments,
       });
-      await notifyApplicationStatusUpdated({ ...application, statusId: "Pre-Submission" }, application, "user-1");
+      await notifyApplicationStatusUpdated(
+        { ...application, statusId: "Pre-Submission" },
+        application,
+        "user-1"
+      );
       expect(enqueueAndTrackRealtimeEmail).not.toHaveBeenCalled();
       expect(log.error).toHaveBeenCalledWith(
         expect.objectContaining({ error: expect.any(Error), applicationId: "app-1" }),
@@ -122,7 +124,11 @@ describe("application notifications", () => {
     const error = new Error("queue unavailable");
     vi.mocked(enqueueAndTrackRealtimeEmail).mockRejectedValue(error);
     await expect(
-      notifyApplicationStatusUpdated({ ...application, statusId: "Pre-Submission" }, application, "user-1")
+      notifyApplicationStatusUpdated(
+        { ...application, statusId: "Pre-Submission" },
+        application,
+        "user-1"
+      )
     ).resolves.toBeUndefined();
     expect(log.error).toHaveBeenCalledWith(
       expect.objectContaining({ error }),

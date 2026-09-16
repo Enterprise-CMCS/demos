@@ -31,7 +31,7 @@ import { prisma } from "../prismaClient";
 const message = {
   emailNotificationId: "notification-1",
   emailType: "Deliverable Created" as const,
-  entityType: "deliverable" as const,
+  entityType: "deliverable_action" as const,
   entityId: "deliverable-1",
   triggeredBy: {
     type: "realtime" as const,
@@ -55,9 +55,7 @@ describe("emailQueue", () => {
     send.mockReset();
     process.env = { ...originalEnv };
     vi.mocked(prisma).mockReturnValue({ $transaction: transaction } as never);
-    transaction.mockImplementation((callback) =>
-      callback({ emailNotification: { update } })
-    );
+    transaction.mockImplementation((callback) => callback({ emailNotification: { update } }));
     update.mockResolvedValue({ id: "notification-1" });
   });
 

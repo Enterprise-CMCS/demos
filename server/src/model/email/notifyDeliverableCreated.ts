@@ -48,7 +48,7 @@ export async function notifyDeliverableCreated(
     const messageId = await enqueueAndTrackRealtimeEmail(
       {
         emailType: "Deliverable Created",
-        entityType: "deliverable",
+        entityType: "deliverable_action",
         entityId: deliverable.id,
         triggeredBy: {
           type: "realtime",
