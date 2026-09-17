@@ -11,7 +11,9 @@ export interface ColumnOptions<RowData> {
 type RowDataTypes = string | number;
 
 // Generates a ID for a table column header by converting to lowercase and removing spaces
-const generateHeaderId = (header: string) => header.toLowerCase().replace(/\s+/g, "");
+function generateHeaderId(header: string) {
+  return header.toLowerCase().replace(/\s+/g, "");
+}
 
 // Merges provided options with defaults
 function getOptions<RowData>(options?: ColumnOptions<RowData>) {
