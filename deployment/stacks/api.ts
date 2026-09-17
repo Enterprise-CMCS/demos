@@ -446,6 +446,7 @@ export class ApiStack extends Stack {
     new scheduler.Schedule(commonProps.scope, "emailerSchedulerSchedule", {
       schedule: scheduler.ScheduleExpression.cron({
         hour: "8",
+        minute: "0",
         timeZone: TimeZone.AMERICA_NEW_YORK,
       }),
       target: new schedulerTargets.LambdaInvoke(emailScheduler.lambda)
