@@ -28,6 +28,7 @@ import { DemosLogGroup } from "../lib/logGroup";
 import { accessDeniedBodyName, createCloudfrontRules, createRegionalRules } from "../lib/waf";
 import { BucketAccessLogs } from "../lib/bucketAccessLogs";
 import { NagSuppressions } from "cdk-nag";
+import { addCheckovSkip } from "../util/addCheckovSkip";
 
 interface UIStackProps {
   cognitoParamNames: {
@@ -116,13 +117,10 @@ export class UiStack extends Stack {
       stage: commonProps.stage
     })
 
-    const uiBucketCfn = uiBucket.node.defaultChild as aws_s3.CfnBucket;
-    uiBucketCfn.addMetadata("checkov", {
-        skip: [{
-          id: "CKV_AWS_21",
-          reason: "versioning is unnecessary for the UI bucket since these files are only static UI files"
-        }]
-      })
+    addCheckovSkip(uiBucket, {
+      id: "CKV_AWS_21",
+      reason: "versioning is unnecessary for the UI bucket since these files are only static UI files"
+    })
 
     //
     // WAF

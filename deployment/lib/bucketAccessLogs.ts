@@ -2,6 +2,7 @@ import { aws_logs, Names } from "aws-cdk-lib";
 import { aws_s3 } from "aws-cdk-lib";
 import { NagSuppressions } from "cdk-nag";
 import { Construct } from "constructs";
+import { addCheckovSkip } from "../util/addCheckovSkip";
 
 interface BucketAccessLogsProps {
   bucket: aws_s3.Bucket
@@ -58,14 +59,9 @@ export class BucketAccessLogs extends Construct {
       }
     ])
 
-    const cfnBucket = bucket.node.defaultChild as aws_s3.CfnBucket
-    cfnBucket.addMetadata("checkov", {
-      skip: [
-        {
-          id: "CKV_AWS_18",
-          reason: "Server access logs are enabled to cloudwatch"
-        }
-      ]
+    addCheckovSkip(bucket, {
+      id: "CKV_AWS_18",
+      reason: "Server access logs are enabled to cloudwatch"
     })
     
   }

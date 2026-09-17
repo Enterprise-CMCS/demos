@@ -27,6 +27,7 @@ import * as alarms from "../lib/alarms";
 import * as ssm from "../lib/ssm-parameter";
 import { RetentionDays } from "aws-cdk-lib/aws-logs";
 import { backupTags } from "../util/backup";
+import { addCheckovSkip } from "../util/addCheckovSkip";
 
 interface DatabaseStackProps {
   vpc: aws_ec2.IVpc;
@@ -388,29 +389,23 @@ class SuppressCheckovLogRetentionPolicy implements IAspect {
         path.includes("/LogRetention") &&
         path.endsWith("/ServiceRole/DefaultPolicy/Resource")
       ) {
-        node.addMetadata("checkov", {
-          skip: [
-            {
+        addCheckovSkip(node, {
               id: "CKV_AWS_111",
-              comment:
+              reason:
                 "CDK-managed LogRetention custom resource role; only used to apply CloudWatch Logs retention. Not worth updating or managing",
-            },
-          ],
-        });
+            }
+        )
       }
     }
 
     if (node.cfnResourceType === "AWS::SecretsManager::Secret") {
       const path = node.node.path
       if (path.includes("demos-dev-rds/Secret/Resource")) {
-        node.addMetadata("checkov", {
-          skip: [
-            {
-              id: "CKV_AWS_149",
-              reason: "Sticking with AWS owned KMS key for now. Can revisit a CMK in the future"
-            }
-          ]
+        addCheckovSkip(node, {
+          id: "CKV_AWS_149",
+          reason: "Sticking with AWS owned KMS key for now. Can revisit a CMK in the future"
         })
+          
       }
     }
   }

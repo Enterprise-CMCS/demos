@@ -32,6 +32,7 @@ import { BudgetNeutralityProcessor } from "../lib/budgetNeutralityProcessor";
 import { DataConnectExportProcessor } from "../lib/dataConnectExportProcessor";
 import { BucketAccessLogs } from "../lib/bucketAccessLogs";
 import { NagSuppressions } from "cdk-nag";
+import { addCheckovSkip } from "../util/addCheckovSkip";
 
 interface FileUploadStackProps extends StackProps, DeploymentConfigProperties {
   vpc: IVpc;
@@ -175,12 +176,9 @@ export class FileUploadStack extends Stack {
       Tags.of(dataConnectBucket).add("AWS_Backup", backupTags.d15_w90);
     }
 
-    const uploadBucketCfn = uploadBucket.node.defaultChild as aws_s3.CfnBucket;
-    uploadBucketCfn.addMetadata("checkov", {
-        skip: [{
-          id: "CKV_AWS_21",
-          reason: "versioning on the upload bucket is intentionally disabled. Files are only here for a short time and moved to other buckets based on virus scan status where versioning is enabled"
-        }]
+    addCheckovSkip(uploadBucket, {
+      id: "CKV_AWS_21",
+      reason: "versioning on the upload bucket is intentionally disabled. Files are only here for a short time and moved to other buckets based on virus scan status where versioning is enabled"
     })
 
     new GuardDutyS3(this, "uploadBucketScan", {
