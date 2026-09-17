@@ -23,6 +23,7 @@ import type {
 
 import { renderTermsAndConditionsRequestedEmail } from "./templates/TermsAndConditionsRequestedEmail";
 import { renderDemonstrationExpirationReminderEmail } from "./templates/DemonstrationExpirationReminderEmail";
+import { renderApplicationExpectedApprovalDateReminderEmail } from "./templates/ApplicationExpectedApprovalDateReminderEmail";
 
 // Template creation
 const templates: Record<string, EmailTemplate> = {
@@ -31,6 +32,7 @@ const templates: Record<string, EmailTemplate> = {
   "Deliverable Created": renderDeliverableCreatedEmail,
   "Deliverable Due Date Reminder": renderDeliverableDueDateReminderEmail,
   "Demonstration Expiration Date Reminder": renderDemonstrationExpirationReminderEmail,
+  "Application Expected Approval Date Reminder": renderApplicationExpectedApprovalDateReminderEmail,
   "Deliverable Due Date Updated": renderDeliverableDueDateUpdatedEmail,
   "Deliverable Submitted": renderDeliverableSubmittedEmail,
   "Deliverable Accepted": renderDeliverableAcceptedEmail,
