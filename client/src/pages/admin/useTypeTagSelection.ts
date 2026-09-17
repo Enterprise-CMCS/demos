@@ -2,12 +2,16 @@ import { useSearchParams } from "react-router-dom";
 
 export const TYPE_TAG_SEARCH_PARAM = "typeTag";
 
-// Held in the URL so a browser refresh reopens the same associated records view.
-export const useSelectedTypeTag = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const selectedTypeTag = searchParams.get(TYPE_TAG_SEARCH_PARAM) ?? "";
+// The selection lives in the URL so a browser refresh reopens the same associated records view.
+export const getSelectedTypeTag = (searchParams: URLSearchParams): string =>
+  searchParams.get(TYPE_TAG_SEARCH_PARAM) ?? "";
 
-  // Passing "" clears the selection and returns to the Type/Tag list.
+export const isTypeTagSelected = (searchParams: URLSearchParams): boolean =>
+  getSelectedTypeTag(searchParams) !== "";
+
+export const useTypeTagSelection = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   // Replacing the history entry keeps Close Admin's navigate(-1) one step from leaving Admin.
   const selectTypeTag = (tagName: string) => {
     setSearchParams(
@@ -23,5 +27,9 @@ export const useSelectedTypeTag = () => {
     );
   };
 
-  return { selectedTypeTag, selectTypeTag };
+  return {
+    selectedTypeTag: getSelectedTypeTag(searchParams),
+    selectTypeTag,
+    clearSelectedTypeTag: () => selectTypeTag(""),
+  };
 };

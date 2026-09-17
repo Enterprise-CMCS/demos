@@ -8,7 +8,7 @@ import { CurrentUser } from "components/user/UserContext";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { USER_MANAGEMENT_TEST_ID } from "./UserManagement";
 import { TYPE_TAG_ASSOCIATED_RECORDS_TEST_ID } from "./TypeTagAssociatedRecords";
-import { TYPE_TAG_SEARCH_PARAM } from "./useSelectedTypeTag";
+import { TYPE_TAG_SEARCH_PARAM } from "./useTypeTagSelection";
 
 const ADMIN_USER: CurrentUser = {...developmentMockUser, person: { ...developmentMockUser.person, personType: "demos-admin" } };
 

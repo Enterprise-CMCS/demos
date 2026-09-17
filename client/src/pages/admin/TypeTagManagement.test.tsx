@@ -11,7 +11,7 @@ import {
   BACK_TO_TYPE_TAG_MANAGEMENT_BUTTON_NAME,
   TYPE_TAG_ASSOCIATED_RECORDS_TEST_ID,
 } from "./TypeTagAssociatedRecords";
-import { TYPE_TAG_SEARCH_PARAM } from "./useSelectedTypeTag";
+import { TYPE_TAG_SEARCH_PARAM } from "./useTypeTagSelection";
 
 const ASSOCIATED_TAG_NAME = MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION.tags[0].tagName;
 const PREVIOUS_PAGE_TEXT = "Demonstrations list";

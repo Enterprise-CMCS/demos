@@ -7,8 +7,8 @@ import type { Tag } from "demos-server";
 import { TestProvider } from "test-utils/TestProvider";
 import { MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION } from "mock-data/demonstrationMocks";
 import { MOCK_TAGS } from "mock-data/TagMocks";
-import { TYPE_TAG_SEARCH_PARAM } from "pages/admin/useSelectedTypeTag";
-import { ASSOCIATED_RECORD_TYPES } from "../columns/TypeTagAssociatedRecordsColumns";
+import { TYPE_TAG_SEARCH_PARAM } from "pages/admin/useTypeTagSelection";
+import { ASSOCIATED_RECORD_TYPES } from "components/table/columns/TypeTagAssociatedRecordsColumns";
 import {
   AssociatedRecordsDemonstration,
   buildAssociatedRecordRows,

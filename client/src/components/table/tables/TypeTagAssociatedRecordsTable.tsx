@@ -11,17 +11,17 @@ import type {
   Tag,
 } from "demos-server";
 import type { Option } from "components/input/select/Select";
-import { useSelectedTypeTag } from "pages/admin/useSelectedTypeTag";
-import { ColumnFilter } from "../ColumnFilter";
-import { KeywordSearch } from "../KeywordSearch";
-import { PaginationControls } from "../PaginationControls";
-import { Table } from "../Table";
+import { useTypeTagSelection } from "pages/admin/useTypeTagSelection";
+import { ColumnFilter } from "components/table/ColumnFilter";
+import { KeywordSearch } from "components/table/KeywordSearch";
+import { PaginationControls } from "components/table/PaginationControls";
+import { Table } from "components/table/Table";
 import {
   AssociatedRecordType,
   compareRecordTypes,
   TypeTagAssociatedRecordRow,
   TypeTagAssociatedRecordsColumns,
-} from "../columns/TypeTagAssociatedRecordsColumns";
+} from "components/table/columns/TypeTagAssociatedRecordsColumns";
 
 export const RECORD_COUNT_TEST_ID = "type-tag-record-count";
 
@@ -178,22 +178,11 @@ const getProjectOfficerOptions = (demonstrations: AssociatedRecordsDemonstration
     .map((fullName) => ({ label: fullName, value: fullName }));
 
 export const TypeTagAssociatedRecordsTable: React.FC = () => {
-  const { selectedTypeTag } = useSelectedTypeTag();
+  const { selectedTypeTag } = useTypeTagSelection();
   // Refetch on every visit so associations removed elsewhere drop off the list.
   const { data, loading, error } = useQuery<{ demonstrations: AssociatedRecordsDemonstration[] }>(
     TYPE_TAG_ASSOCIATED_RECORDS_QUERY,
     { fetchPolicy: "cache-and-network" }
-  );
-
-  const demonstrations = React.useMemo(() => data?.demonstrations ?? [], [data?.demonstrations]);
-  const rows = React.useMemo(
-    () =>
-      sortAssociatedRecordsByDefault(buildAssociatedRecordRows(demonstrations, selectedTypeTag)),
-    [demonstrations, selectedTypeTag]
-  );
-  const columns = React.useMemo(
-    () => TypeTagAssociatedRecordsColumns(getProjectOfficerOptions(demonstrations)),
-    [demonstrations]
   );
 
   if (loading && !data) {
@@ -203,6 +192,11 @@ export const TypeTagAssociatedRecordsTable: React.FC = () => {
   if (error || !data) {
     return <div>Error loading associated records.</div>;
   }
+
+  const rows = sortAssociatedRecordsByDefault(
+    buildAssociatedRecordRows(data.demonstrations, selectedTypeTag)
+  );
+  const columns = TypeTagAssociatedRecordsColumns(getProjectOfficerOptions(data.demonstrations));
 
   return (
     <Table<TypeTagAssociatedRecordRow>

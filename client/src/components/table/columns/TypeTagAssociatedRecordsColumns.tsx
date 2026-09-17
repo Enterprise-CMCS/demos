@@ -5,7 +5,7 @@ import { STATES_AND_TERRITORIES } from "demos-server-constants";
 import { TAG_STATUS_LABELS, TagStatusBadge } from "components/badge/TagStatusBadge";
 import { SecondaryButton } from "components/button";
 import type { Option } from "components/input/select/Select";
-import { highlightCell } from "../KeywordSearch";
+import { highlightCell } from "components/table/KeywordSearch";
 
 // Declared in the story's default sort order.
 export const ASSOCIATED_RECORD_TYPES = [

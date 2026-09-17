@@ -1,10 +1,10 @@
 import React from "react";
 import { gql, useQuery } from "@apollo/client";
-import { useSelectedTypeTag } from "pages/admin/useSelectedTypeTag";
-import { KeywordSearch } from "../KeywordSearch";
-import { PaginationControls } from "../PaginationControls";
-import { Table } from "../Table";
-import { TypeTagColumns, TypeTagRow } from "../columns/TypeTagColumns";
+import { useTypeTagSelection } from "pages/admin/useTypeTagSelection";
+import { KeywordSearch } from "components/table/KeywordSearch";
+import { PaginationControls } from "components/table/PaginationControls";
+import { Table } from "components/table/Table";
+import { TypeTagColumns, TypeTagRow } from "components/table/columns/TypeTagColumns";
 
 export const TYPE_TAG_MANAGEMENT_QUERY = gql`
   query GetTypeTagManagement {
@@ -27,14 +27,9 @@ const toSortedRows = (
     .sort((rowA, rowB) => rowA.demonstrationTypeName.localeCompare(rowB.demonstrationTypeName));
 
 export const TypeTagTable: React.FC = () => {
-  const { selectTypeTag } = useSelectedTypeTag();
+  const { selectTypeTag } = useTypeTagSelection();
   const { data, loading, error } = useQuery<TypeTagManagementQueryResult>(
     TYPE_TAG_MANAGEMENT_QUERY
-  );
-
-  const rows = React.useMemo(
-    () => toSortedRows(data?.demonstrationTypeUsageSummary ?? []),
-    [data?.demonstrationTypeUsageSummary]
   );
 
   if (loading) {
@@ -44,6 +39,8 @@ export const TypeTagTable: React.FC = () => {
   if (error || !data) {
     return <div>Error loading types/tags.</div>;
   }
+
+  const rows = toSortedRows(data.demonstrationTypeUsageSummary);
 
   return (
     <Table<TypeTagRow>

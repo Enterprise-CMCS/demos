@@ -1,10 +1,11 @@
 import React from "react";
+import { useSearchParams } from "react-router-dom";
 import { TypeTagTable } from "components/table/tables/TypeTagTable";
 import { TypeTagAssociatedRecords } from "./TypeTagAssociatedRecords";
-import { useSelectedTypeTag } from "./useSelectedTypeTag";
+import { isTypeTagSelected } from "./useTypeTagSelection";
 
 export const TypeTagManagement: React.FC = () => {
-  const { selectedTypeTag } = useSelectedTypeTag();
+  const [searchParams] = useSearchParams();
 
-  return selectedTypeTag ? <TypeTagAssociatedRecords /> : <TypeTagTable />;
+  return isTypeTagSelected(searchParams) ? <TypeTagAssociatedRecords /> : <TypeTagTable />;
 };
