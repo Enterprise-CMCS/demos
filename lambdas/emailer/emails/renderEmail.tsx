@@ -1,6 +1,4 @@
-import {
-  renderApplicationStatusUpdatedEmail,
-} from "./templates/ApplicationEmail";
+import { renderApplicationStatusUpdatedEmail } from "./templates/ApplicationEmail";
 import { render, toPlainText } from "@react-email/render";
 
 import { getRequiredObject } from "./helpers";
@@ -24,6 +22,7 @@ import type {
 } from "./types";
 
 import { renderTermsAndConditionsRequestedEmail } from "./templates/TermsAndConditionsRequestedEmail";
+import { renderDemonstrationExpirationReminderEmail } from "./templates/DemonstrationExpirationReminderEmail";
 
 // Template creation
 const templates: Record<string, EmailTemplate> = {
@@ -31,6 +30,7 @@ const templates: Record<string, EmailTemplate> = {
   "Application Status Updated": renderApplicationStatusUpdatedEmail,
   "Deliverable Created": renderDeliverableCreatedEmail,
   "Deliverable Due Date Reminder": renderDeliverableDueDateReminderEmail,
+  "Demonstration Expiration Date Reminder": renderDemonstrationExpirationReminderEmail,
   "Deliverable Due Date Updated": renderDeliverableDueDateUpdatedEmail,
   "Deliverable Submitted": renderDeliverableSubmittedEmail,
   "Deliverable Accepted": renderDeliverableAcceptedEmail,
