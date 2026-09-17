@@ -13,6 +13,7 @@ import {
   aws_kms,
   RemovalPolicy,
   Validations,
+  TimeZone
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -27,6 +28,8 @@ import importNumberValue from "../util/importNumberValue";
 import path from "node:path";
 import { Queue, QueueEncryption } from "aws-cdk-lib/aws-sqs";
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
+import * as scheduler from "aws-cdk-lib/aws-scheduler";
+import * as schedulerTargets from "aws-cdk-lib/aws-scheduler-targets";
 
 interface APIStackProps {
   vpc: IVpc;
@@ -380,6 +383,73 @@ export class ApiStack extends Stack {
         batchSize: 1,
       })
     );
+
+    const emailSchedulerLambdaSecurityGroup = securityGroup.create({
+      ...commonProps,
+      name: "emailSchedulerSecurityGroup",
+      vpc: props.vpc,
+    });
+
+    rdsSg.addIngressRule(
+      aws_ec2.Peer.securityGroupId(emailSchedulerLambdaSecurityGroup.securityGroup.securityGroupId),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow ingress from Emailer Security Group",
+      true
+    );
+
+    emailSchedulerLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(rdsSecurityGroupId),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow egress to RDS",
+      true
+    );
+
+    emailSchedulerLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to secrets manager VPCE"
+    );
+
+    emailSchedulerLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(sqsVpceSgId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to SQS"
+    );
+
+
+    const emailSchedulerPath = path.join("..", "lambdas", "emailScheduler");
+    const emailScheduler = new lambda.Lambda(commonProps.scope, "emailScheduler", {
+      ...commonProps, 
+      scope: commonProps.scope,
+      entry: path.join(emailSchedulerPath, "index.ts"),
+      handler: "index.handler",
+      asCode: false,
+      vpc: props.vpc,
+      timeout: Duration.seconds(30),
+      securityGroup: emailSchedulerLambdaSecurityGroup.securityGroup,
+      environment: {
+        DATABASE_SECRET_ARN: emailerDbSecret.secretName, // pragma: allowlist secret
+        EMAILER_QUEUE_URL: emailQueue.queueUrl,
+        NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
+      },
+      depsLockFilePath: path.join(emailSchedulerPath, "package-lock.json"),
+      externalModules: ["@aws-sdk"],
+      nodeModules: [
+        "pg",
+        "pino",
+      ],
+    })
+
+    emailerDbSecret.grantRead(emailScheduler.role);
+    emailQueue.grantSendMessages(emailScheduler.role)
+
+    new scheduler.Schedule(commonProps.scope, "emailerSchedulerSchedule", {
+      schedule: scheduler.ScheduleExpression.cron({
+        hour: "8",
+        timeZone: TimeZone.AMERICA_NEW_YORK,
+      }),
+      target: new schedulerTargets.LambdaInvoke(emailScheduler.lambda)
+    })
 
     this.setupCloudWatchAlarms(props, alarmResources);
 

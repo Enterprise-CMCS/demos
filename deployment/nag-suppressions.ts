@@ -173,6 +173,38 @@ export function applyApiSuppressions(api: Stack, stage: string) {
       },
     ]
   );
+  NagSuppressions.addResourceSuppressionsByPath(
+    api,
+    `/demos-${stage}-api/emailScheduler/emailSchedulerLambdaExecutionRole/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role",
+      },
+    ]
+  );
+
+  NagSuppressions.addResourceSuppressionsByPath(
+    api,
+    `/demos-${stage}-api/emailScheduler/emailSchedulerLambdaExecutionRole/DefaultPolicy/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role",
+      },
+    ]
+  );
+
+  NagSuppressions.addResourceSuppressionsByPath(
+    api,
+    `/demos-${stage}-api/SchedulerRoleForTarget-d57e7b/DefaultPolicy/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role",
+      },
+    ]
+  );
 }
 
 export function applyDatabaseSuppressions(database: Stack, stage: string) {
