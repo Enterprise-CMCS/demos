@@ -1,0 +1,70 @@
+import { PoolClient } from "pg";
+import { DB_SCHEMA } from "../../db";
+
+export const REMINDER_STAGES = [
+  "Five Days Prior",
+  "Due Today",
+  "Five Days After",
+  "Ten Days After",
+] as const;
+
+export type ReminderStage = (typeof REMINDER_STAGES)[number];
+
+export const APPLICABLE_DELIVERABLES_QUERY = `
+    WITH deliverable_days_until_due AS (
+      SELECT
+        deliverable.id,
+        deliverable.deliverable_type_id,
+        deliverable.name,
+        demonstration.name AS demonstration_name,
+        demonstration.state_id AS state_id,
+        deliverable.due_date AS due_date,
+        deliverable.status_id AS status_id,
+        (EXTRACT(EPOCH FROM deliverable.due_date) - EXTRACT(EPOCH FROM CURRENT_TIMESTAMP)) / 86400
+          AS days_until_due
+      FROM ${DB_SCHEMA}.deliverable AS deliverable
+      JOIN ${DB_SCHEMA}.demonstration AS demonstration
+        ON deliverable.demonstration_id = demonstration.id
+      WHERE deliverable.status_id IN ('Upcoming', 'Past Due')
+    )
+    SELECT id, deliverable_type_id, name, demonstration_name, state_id, due_date, status_id
+    FROM deliverable_days_until_due
+    WHERE days_until_due >= $1 AND days_until_due < $1 + 1;
+  `;
+
+type DeliverableDueDateNotification = {
+  id: string;
+  deliverable_type_id: string;
+  name: string;
+  demonstration_name: string;
+  state_id: string;
+  due_date: string;
+  status_id: string;
+};
+
+export const getDeliverableData = async (
+  client: PoolClient,
+  reminderStage: ReminderStage
+): Promise<DeliverableDueDateNotification[]> => {
+  let daysBeforeDueDate: number;
+
+  switch (reminderStage) {
+    case "Five Days Prior":
+      daysBeforeDueDate = 5;
+      break;
+    case "Due Today":
+      daysBeforeDueDate = 0;
+      break;
+    case "Five Days After":
+      daysBeforeDueDate = -5;
+      break;
+    case "Ten Days After":
+      daysBeforeDueDate = -10;
+      break;
+    default:
+      throw new Error(`Unrecognized reminderStage: ${reminderStage}`);
+  }
+
+  const result = await client.query(APPLICABLE_DELIVERABLES_QUERY, [daysBeforeDueDate]);
+  return result.rows;
+};

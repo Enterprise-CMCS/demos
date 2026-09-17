@@ -8,6 +8,12 @@ import { GraphQLContext } from "../../auth";
 // Functions under test
 import { getReferenceDownloadUrl } from "./getReferenceDownloadUrl";
 
+import { enqueueAndTrackRealtimeEmail } from "../email/emailNotification";
+import { log } from "../../log";
+
+vi.mock("../email/emailNotification", () => ({ enqueueAndTrackRealtimeEmail: vi.fn() }));
+vi.mock("../../log", () => ({ log: { error: vi.fn() } }));
+
 // Mock imports
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -48,6 +54,7 @@ describe("getReferenceDownloadUrl", () => {
 
   const testReferenceName = "Sample Reference";
   const mockReferenceConfiguration = {
+    id: testReferenceConfigurationId,
     reference: {
       id: testReferenceId,
       name: testReferenceName,
@@ -62,6 +69,8 @@ describe("getReferenceDownloadUrl", () => {
   const mockTransaction: any = "Test!";
   const mockPrismaClient = {
     $transaction: vi.fn(),
+    person: { findUniqueOrThrow: vi.fn() },
+    referenceAgreement: { findUniqueOrThrow: vi.fn() },
   };
 
   beforeEach(() => {
@@ -73,6 +82,16 @@ describe("getReferenceDownloadUrl", () => {
       mockReferenceConfiguration as any
     );
     mockS3Adapter.getPresignedDownloadUrl.mockResolvedValue(testDownloadUrl);
+    mockPrismaClient.person.findUniqueOrThrow.mockResolvedValue({
+      id: testUserId,
+      email: "registered@example.test",
+    });
+    mockPrismaClient.referenceAgreement.findUniqueOrThrow.mockResolvedValue({
+      id: testReferenceAgreementId,
+      name: "Terms.pdf",
+      s3Path: "agreement-key",
+    });
+    vi.mocked(enqueueAndTrackRealtimeEmail).mockResolvedValue("sqs-id");
   });
 
   it("creates a transaction whenever it is called", async () => {
@@ -136,5 +155,95 @@ describe("getReferenceDownloadUrl", () => {
       { disposition: "attachment" }
     );
     expect(result).toBe(testDownloadUrl);
+  });
+  it("queues the accepted agreement for the registered user after committing acceptance", async () => {
+    let committed = false;
+    mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      const result = await callback(mockTransaction);
+      committed = true;
+      return result;
+    });
+    vi.mocked(enqueueAndTrackRealtimeEmail).mockImplementation(async () => {
+      expect(committed).toBe(true);
+      return "sqs-id";
+    });
+    await expect(
+      getReferenceDownloadUrl(
+        {},
+        {
+          id: testReferenceConfigurationId,
+          acceptedAgreementId: testReferenceAgreementId,
+          emailRequested: true,
+        },
+        testContext as GraphQLContext
+      )
+    ).resolves.toBe(testDownloadUrl);
+    expect(mockPrismaClient.person.findUniqueOrThrow).toHaveBeenCalledWith({
+      where: { id: testUserId },
+    });
+    expect(mockPrismaClient.referenceAgreement.findUniqueOrThrow).toHaveBeenCalledWith({
+      where: { id: testReferenceAgreementId },
+    });
+    expect(enqueueAndTrackRealtimeEmail).toHaveBeenCalledWith(
+      {
+        emailType: "Terms And Conditions Requested",
+        entityType: "reference",
+        entityId: testReferenceConfigurationId,
+        triggeredBy: { type: "realtime", id: testUserId },
+        payload: {
+          recipients: { to: ["registered@example.test"] },
+          reference: { name: testReferenceName },
+          agreement: { id: testReferenceAgreementId, name: "Terms.pdf", s3Path: "agreement-key" },
+        },
+      },
+      { referenceConfigurationId: testReferenceConfigurationId },
+      [{ personId: testUserId }]
+    );
+  });
+
+  it.each([false, undefined])(
+    "does not request email when emailRequested is %s",
+    async (emailRequested) => {
+      await getReferenceDownloadUrl(
+        {},
+        {
+          id: testReferenceConfigurationId,
+          acceptedAgreementId: testReferenceAgreementId,
+          emailRequested,
+        },
+        testContext as GraphQLContext
+      );
+      expect(enqueueAndTrackRealtimeEmail).not.toHaveBeenCalled();
+      expect(mockPrismaClient.person.findUniqueOrThrow).not.toHaveBeenCalled();
+    }
+  );
+
+  it("does not request email without an accepted agreement", async () => {
+    await getReferenceDownloadUrl(
+      {},
+      { id: testReferenceConfigurationId, emailRequested: true },
+      testContext as GraphQLContext
+    );
+    expect(enqueueAndTrackRealtimeEmail).not.toHaveBeenCalled();
+  });
+
+  it("logs an email failure and still returns the reference URL", async () => {
+    const error = new Error("SQS unavailable");
+    vi.mocked(enqueueAndTrackRealtimeEmail).mockRejectedValue(error);
+    await expect(
+      getReferenceDownloadUrl(
+        {},
+        {
+          id: testReferenceConfigurationId,
+          acceptedAgreementId: testReferenceAgreementId,
+          emailRequested: true,
+        },
+        testContext as GraphQLContext
+      )
+    ).resolves.toBe(testDownloadUrl);
+    expect(log.error).toHaveBeenCalledWith(
+      { error, referenceConfigurationId: testReferenceConfigurationId, userId: testUserId },
+      "Unable to queue accepted reference agreement email"
+    );
   });
 });

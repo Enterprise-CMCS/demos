@@ -3,7 +3,7 @@ import { renderEmail } from "./renderEmail";
 
 const basePayload = {
   recipients: { to: [], bcc: [{ name: "CMS Contact", address: "cms@example.com" }] },
-  demonstration: { id: "demo-1", name: "Demo title", stateId: "MD" },
+  demonstration: { id: "demo-1", name: "Demo title", stateName: "Maryland" },
   application: {
     id: "app-1",
     name: "Application title",
@@ -29,7 +29,7 @@ describe("application emails", () => {
         );
         expect(email.text).toContain(`Application Type: ${applicationTypeId}`);
         expect(email.text).toContain("Demonstration: Demo title");
-        expect(email.text).toContain("State: MD");
+        expect(email.text).toContain("State: Maryland");
         expect(email.text).toContain("Status: Under Review");
         expect(email.html).toContain("/demonstrations/demo-1");
         if (applicationTypeId === "Demonstration") {

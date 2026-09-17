@@ -36,6 +36,7 @@ pipeline {
           npmUpdates(dir: 'lambdas/deleteinfectedfile')
           npmUpdates(dir: 'lambdas/UIPath')
           npmUpdates(dir: 'lambdas/budgetNeutrality')
+          npmUpdates(dir: 'lambdas/dataConnectExport')
         }
       }
     }

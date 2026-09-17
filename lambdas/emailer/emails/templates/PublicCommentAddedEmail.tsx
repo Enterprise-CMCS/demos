@@ -39,7 +39,7 @@ export function renderPublicCommentAddedEmail(rawPayload: unknown): EmailTemplat
             and the full comment thread in the DEMOS system: <Link href={link}>{link}</Link>.
           </Text>
         }
-        state={getRequiredString(demonstration.stateId, "demonstration.stateId", emailType)}
+        state={getRequiredString(demonstration.stateName, "demonstration.stateName", emailType)}
         dateDetails={<Text style={detailStyle}>Current due date: {currentDueDate}</Text>}
       />
     ),

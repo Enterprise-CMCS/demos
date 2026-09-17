@@ -12,6 +12,7 @@ import {
   aws_ssm,
   aws_kms,
   RemovalPolicy,
+  Validations,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -138,7 +139,6 @@ export class ApiStack extends Stack {
         environment: {
           JWKS_URI: `${cognitoAuthority}/.well-known/jwks.json`,
         },
-        externalModules: ["aws-sdk"],
         nodeModules: ["jsonwebtoken", "jwks-rsa"],
         depsLockFilePath: path.join(rel, "package-lock.json"),
         timeout: Duration.seconds(10),
@@ -269,6 +269,12 @@ export class ApiStack extends Stack {
       "Allow traffic to secrets manager VPCE"
     );
 
+    emailerLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to S3"
+    );
+
     const sharedServicesSG = aws_ec2.SecurityGroup.fromLookupByName(
       commonProps.scope,
       "cmsSharedServcices",
@@ -305,6 +311,7 @@ export class ApiStack extends Stack {
       nodeModules: [
         "@react-email/components",
         "@react-email/render",
+        "mime-types",
         "nodemailer",
         "pg",
         "pino",
@@ -322,6 +329,7 @@ export class ApiStack extends Stack {
         DEMOS_APP_URL: commonProps.isLocalstack
           ? "https://localhost:3000"
           : `https://${commonProps.cloudfrontHost}`,
+        CLEAN_BUCKET: cleanBucket.bucketName,
         EMAIL_HOST: "smtp.cloud.internal.cms.gov",
         EMAIL_PORT: "587",
         EMAIL_FROM: `"DEMOS${emailSuffix}" <DEMOS${emailSuffix}-no-reply@cms.hhs.gov>`,
@@ -345,6 +353,7 @@ export class ApiStack extends Stack {
     });
     alarmResources.registerLambda("emailer", emailerLambda.lambda);
     emailerDbSecret.grantRead(emailerLambda.role);
+    cleanBucket.grantRead(emailerLambda.role);
 
     if (commonProps.stage != "prod") {
       const allowListParam = aws_ssm.StringParameter.fromStringParameterName(
@@ -354,6 +363,10 @@ export class ApiStack extends Stack {
       );
 
       allowListParam.grantRead(emailerLambda.role);
+      Validations.of(commonProps.scope).acknowledge({
+        id: "CloudFormation-Validate::W2001",
+        reason: "The param is imported and used to grant access to the emailer"
+      })
     }
 
     emailerLambda.lambda.addEventSource(
