@@ -443,6 +443,10 @@ export class ApiStack extends Stack {
     emailerDbSecret.grantRead(emailScheduler.role);
     emailQueue.grantSendMessages(emailScheduler.role)
 
+    emailScheduler.lambda.configureAsyncInvoke({
+      retryAttempts: 1,
+    });
+
     new scheduler.Schedule(commonProps.scope, "emailerSchedulerSchedule", {
       scheduleName: `demos-${commonProps.stage}-emailer-schedule`,
       description: `Daily schedule for sending emails (${commonProps.stage})`,
@@ -451,9 +455,7 @@ export class ApiStack extends Stack {
         minute: "0",
         timeZone: TimeZone.AMERICA_NEW_YORK,
       }),
-      target: new schedulerTargets.LambdaInvoke(emailScheduler.lambda, {
-        retryAttempts: 1,
-      })
+      target: new schedulerTargets.LambdaInvoke(emailScheduler.lambda)
     })
 
     this.setupCloudWatchAlarms(props, alarmResources);
