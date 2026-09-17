@@ -10,7 +10,7 @@ const deliverableInput = {
   demonstration: {
     id: "demonstration-1",
     name: "Medicaid Demonstration",
-    stateId: "MD",
+    stateName: "Maryland",
   },
   deliverable: {
     id: "deliverable-1",
@@ -154,8 +154,9 @@ describe("renderEmail", () => {
       expect(payload.bcc).toEqual(["cms.owner@example.com"]);
       expect(payload.subject).toBe(subject);
       expect(payload.text).toContain("Medicaid Demonstration");
-      expect(payload.text).toContain("MD");
+      expect(payload.text).toContain("State: Maryland");
       expect(cleanHtml(payload.html)).toContain("Medicaid Demonstration");
+      expect(cleanHtml(payload.html)).toContain("Maryland");
       for (const text of expectedText) {
         expect(payload.text).toContain(text);
       }

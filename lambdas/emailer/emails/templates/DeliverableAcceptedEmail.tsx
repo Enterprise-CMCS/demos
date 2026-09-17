@@ -65,8 +65,8 @@ export function renderDeliverableAcceptedEmail(
           </Text>
         }
         state={getRequiredString(
-          demonstration.stateId,
-          "demonstration.stateId",
+          demonstration.stateName,
+          "demonstration.stateName",
           emailType,
         )}
         dateDetails={

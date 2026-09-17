@@ -46,6 +46,7 @@ describe("notifyDeliverableCreated", () => {
       id: "demonstration-1",
       name: "Medicaid Demonstration",
       stateId: "MD",
+      state: { name: "Maryland" },
       demonstrationRoleAssignments: [
         {
           person: {
@@ -84,6 +85,7 @@ describe("notifyDeliverableCreated", () => {
         include: expect.objectContaining({
           demonstration: {
             include: {
+              state: true,
               demonstrationRoleAssignments: {
                 where: {
                   roleId: { in: Array.from(STATE_USER_DEMONSTRATION_ROLES) },
@@ -115,7 +117,7 @@ describe("notifyDeliverableCreated", () => {
           demonstration: {
             id: deliverable.demonstration.id,
             name: deliverable.demonstration.name,
-            stateId: deliverable.demonstration.stateId,
+            stateName: deliverable.demonstration.state.name,
           },
           deliverable: {
             id: deliverable.id,
