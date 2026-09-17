@@ -1,9 +1,13 @@
 import type { PoolClient } from "pg";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { EMAIL_RECIPIENTS_QUERY_STATE_USER, getRecipients } from "./getRecipients";
+import {
+  EMAIL_RECIPIENTS_QUERY_NON_STATE_USER,
+  EMAIL_RECIPIENTS_QUERY_STATE_USER,
+  getRecipients,
+} from "./getRecipients";
 
-const deliverableId = "11111111-1111-1111-1111-111111111111";
+const demonstrationId = "11111111-1111-1111-1111-111111111111";
 
 const sampleRows = [
   {
@@ -23,16 +27,24 @@ describe("getRecipients", () => {
     query.mockResolvedValue({ rows: sampleRows });
   });
 
-  it("queries recipients for the given deliverable id", async () => {
-    await getRecipients(client, deliverableId, true);
+  it("queries state user recipients for the given demonstration id", async () => {
+    await getRecipients(client, demonstrationId, true);
 
     expect(query).toHaveBeenCalledExactlyOnceWith(EMAIL_RECIPIENTS_QUERY_STATE_USER, [
-      deliverableId,
+      demonstrationId,
+    ]);
+  });
+
+  it("queries non-state user recipients for the given demonstration id", async () => {
+    await getRecipients(client, demonstrationId, false);
+
+    expect(query).toHaveBeenCalledExactlyOnceWith(EMAIL_RECIPIENTS_QUERY_NON_STATE_USER, [
+      demonstrationId,
     ]);
   });
 
   it("returns the query result rows", async () => {
-    const result = await getRecipients(client, deliverableId, true);
+    const result = await getRecipients(client, demonstrationId, true);
 
     expect(result).toBe(sampleRows);
   });
