@@ -32,9 +32,11 @@ export function getColumnBuilder<RowData>() {
   ) => {
     const columnHelper = createColumnHelper<RowData>();
     const options = getOptions(optionOverrides);
+
     const cellRenderer = options.highlightSearchResults
       ? highlightCell
       : optionOverrides?.cell || ((info) => info.getValue());
+
     return columnHelper.accessor(accessor, {
       id: generateHeaderId(header),
       header,

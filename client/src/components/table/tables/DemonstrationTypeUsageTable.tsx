@@ -8,24 +8,26 @@ export type DemonstrationTypeUsageRow = DemonstrationTypeUsageSummary & {
   id: string;
 };
 
-const demonstrationTypeUsageColumns = () => {
-  const { createColumn, createDisplayColumn } = getColumnBuilder<DemonstrationTypeUsageRow>();
+const { createColumn, createDisplayColumn } = getColumnBuilder<DemonstrationTypeUsageRow>();
 
-  return [
-    createColumn((row) => row.demonstrationTypeName, "Type/Tag Name"),
-    createColumn((row) => row.approvalStatus, "Status", {
-      cell: (info) => (info.getValue() === "Approved" ? "Approved" : "Pending"),
-    }),
-    createColumn((row) => row.countOfTaggedApplications.demonstrations, "Demonstrations"),
-    createColumn((row) => row.countOfTaggedApplications.amendments, "Amendments"),
-    createColumn((row) => row.countOfTaggedApplications.renewals, "Extensions"),
-    createColumn((row) => row.countOfAssignedDemonstrations, "Demo Types"),
-    createColumn((row) => row.countOfAssignedDeliverables, "Deliverables"),
-    createDisplayColumn("Action", (cell) => (
-      <SecondaryButton name={`view-${cell.row.index}`}>View</SecondaryButton>
-    )),
-  ];
-};
+const demonstrationTypeUsageColumns = [
+  createColumn((row) => row.demonstrationTypeName, "Type/Tag Name"),
+  createColumn((row) => row.approvalStatus, "Status", {
+    highlightSearchResults: false,
+    cell: (info) => {
+      const status = info.getValue() as string;
+      return status === "Approved" ? "Approved" : "Pending";
+    },
+  }),
+  createColumn((row) => row.countOfTaggedApplications.demonstrations, "Demonstrations"),
+  createColumn((row) => row.countOfTaggedApplications.amendments, "Amendments"),
+  createColumn((row) => row.countOfTaggedApplications.renewals, "Renewals"),
+  createColumn((row) => row.countOfAssignedDemonstrations, "Demo Types"),
+  createColumn((row) => row.countOfAssignedDeliverables, "Deliverables"),
+  createDisplayColumn("Action", (cell) => (
+    <SecondaryButton name={`view-${cell.row.index}`}>View</SecondaryButton>
+  )),
+];
 
 export const DemonstrationTypeUsageTable: React.FC = () => {
   // TODO: Replace this with server data in integration ticket
@@ -37,7 +39,7 @@ export const DemonstrationTypeUsageTable: React.FC = () => {
   return (
     <Table<DemonstrationTypeUsageRow>
       data={rows}
-      columns={demonstrationTypeUsageColumns()}
+      columns={demonstrationTypeUsageColumns}
       keywordSearch={(table) => <KeywordSearch table={table} />}
       pagination={(table) => <PaginationControls table={table} />}
       emptyRowsMessage="No demonstration types available."
