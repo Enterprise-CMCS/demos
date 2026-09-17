@@ -65,7 +65,7 @@ type ApplicationExpectedApprovalDateNotification = {
   name: string;
   state_id: string;
   application_type_id: string;
-  parent_demonstration_name: string;
+  parent_demonstration_name: string | null;
   parent_demonstration_id: string | null;
   expected_approval_date: string;
 };

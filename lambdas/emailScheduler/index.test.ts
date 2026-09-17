@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   clientReleaseMock: vi.fn(),
   enqueueDeliverableDueDateNotificationMock: vi.fn(),
   enqueueDemonstrationExpirationDateNotificationMock: vi.fn(),
+  enqueueApplicationExpectedApprovalDateNotificationMock: vi.fn(),
   reqIdChildMock: vi.fn(),
   logInfoMock: vi.fn(),
   SQSClientMock: vi.fn(),
@@ -39,6 +40,14 @@ vi.mock(
   })
 );
 
+vi.mock(
+  "./notifications/applicationExpectedApprovalDateNotification/enqueueApplicationExpectedApprovalDateNotification",
+  () => ({
+    enqueueApplicationExpectedApprovalDateNotification: (...args: unknown[]) =>
+      mocks.enqueueApplicationExpectedApprovalDateNotificationMock(...args),
+  })
+);
+
 vi.mock("@aws-sdk/client-sqs", () => ({
   SQSClient: mocks.SQSClientMock,
 }));
@@ -58,6 +67,7 @@ describe("emailScheduler handler", () => {
     mocks.poolConnectMock.mockResolvedValue(CLIENT);
     mocks.enqueueDeliverableDueDateNotificationMock.mockResolvedValue(undefined);
     mocks.enqueueDemonstrationExpirationDateNotificationMock.mockResolvedValue(undefined);
+    mocks.enqueueApplicationExpectedApprovalDateNotificationMock.mockResolvedValue(undefined);
   });
 
   it("connects a single client, runs each email type with it, and releases it", async () => {
@@ -76,6 +86,9 @@ describe("emailScheduler handler", () => {
     );
     expect(
       mocks.enqueueDemonstrationExpirationDateNotificationMock
+    ).toHaveBeenCalledExactlyOnceWith(CLIENT, expect.any(Object));
+    expect(
+      mocks.enqueueApplicationExpectedApprovalDateNotificationMock
     ).toHaveBeenCalledExactlyOnceWith(CLIENT, expect.any(Object));
     expect(mocks.clientReleaseMock).toHaveBeenCalledOnce();
   });

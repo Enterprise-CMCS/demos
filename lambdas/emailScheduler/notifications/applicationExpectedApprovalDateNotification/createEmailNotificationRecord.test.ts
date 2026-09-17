@@ -63,8 +63,9 @@ describe("createEmailNotificationRecord", () => {
     expect(query).toHaveBeenNthCalledWith(1, "BEGIN");
     expect(query).toHaveBeenNthCalledWith(2, INSERT_EMAIL_NOTIFICATION_QUERY, [
       emailNotificationId,
-      "Application Due Date Reminder",
+      "Application Expected Approval Date Reminder",
       payload.application.id,
+      payload.application.applicationTypeId,
       JSON.stringify(payload),
     ]);
     expect(query).toHaveBeenNthCalledWith(3, INSERT_RECIPIENT_QUERY, [

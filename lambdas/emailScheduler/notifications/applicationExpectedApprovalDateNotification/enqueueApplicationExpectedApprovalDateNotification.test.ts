@@ -101,7 +101,7 @@ describe("enqueueApplicationExpectedApprovalDateNotification", () => {
       emailNotificationId,
       {
         emailNotificationId,
-        emailType: "Application Expected approval date Reminder",
+        emailType: "Application Expected Approval Date Reminder",
         entityType: "application",
         entityId: application.id,
         idempotencyKey: `application-due-date-reminder:${application.id}:${application.expected_approval_date}`,

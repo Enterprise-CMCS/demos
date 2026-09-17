@@ -28,6 +28,7 @@ export function renderApplicationExpectedApprovalDateReminderEmail(
     )
   );
   const isDemonstration = applicationTypeId === "Demonstration";
+  const applicationTypeLabel = applicationTypeId === "Extension" ? "Renewal" : applicationTypeId;
   const demonstrationTitle = isDemonstration
     ? getRequiredString(application.name, "application.name", emailType)
     : getRequiredString(
@@ -66,7 +67,7 @@ export function renderApplicationExpectedApprovalDateReminderEmail(
           Days Until Expected Approval: {DAYS_UNTIL_EXPECTED_APPROVAL}
         </Text>
         <Text style={detailStyle}>Expected approval date: {expectedApprovalDate}</Text>
-        <Text style={detailStyle}>Application Type: {applicationTypeId}</Text>
+        <Text style={detailStyle}>Application Type: {applicationTypeLabel}</Text>
         {!isDemonstration && (
           <Text style={detailStyle}>
             Application Title: {getRequiredString(application.name, "application.name", emailType)}

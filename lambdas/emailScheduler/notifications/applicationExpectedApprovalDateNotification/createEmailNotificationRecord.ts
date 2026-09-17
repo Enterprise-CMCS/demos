@@ -12,7 +12,7 @@ export type Payload = {
     name: string;
     stateId: string;
     applicationTypeId: string;
-    parentDemonstrationName: string;
+    parentDemonstrationName: string | null;
     parentDemonstrationId: string | null;
     expectedApprovalDate: string;
   };
