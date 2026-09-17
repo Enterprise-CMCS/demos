@@ -3,7 +3,7 @@ import { als, log, reqIdChild, store } from "./log";
 import { getDbPool } from "./db";
 import { SQSClient } from "@aws-sdk/client-sqs";
 import { enqueueDeliverableDueDateNotification } from "./notifications/deliverableDueDateNotification/enqueueDeliverableDueDateNotification";
-import { enqueueDemonstrationExpirationDateNotification } from "./notifications/demonstrationStateUserExpirationDateNotification/enqueueDemonstrationExpirationDateNotification";
+import { enqueueDemonstrationExpirationDateNotification } from "./notifications/demonstrationExpirationDateNotification/enqueueDemonstrationExpirationDateNotification";
 
 const EMAIL_TYPES = [
   enqueueDeliverableDueDateNotification,
