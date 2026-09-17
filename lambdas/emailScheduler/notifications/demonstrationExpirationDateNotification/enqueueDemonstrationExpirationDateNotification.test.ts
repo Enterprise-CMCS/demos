@@ -121,7 +121,7 @@ describe("enqueueDemonstrationExpirationDateNotification", () => {
         emailType: "Demonstration Expiration Date Reminder",
         entityType: "demonstration",
         entityId: demonstration.id,
-        idempotencyKey: `demonstration-due-date-reminder:${demonstration.id}:${demonstration.expiration_date}`,
+        idempotencyKey: `demonstration-expiration-date-reminder:${demonstration.id}:${demonstration.expiration_date}`,
         payload: expectedPayload,
       }
     );

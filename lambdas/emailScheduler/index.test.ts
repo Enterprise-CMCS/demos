@@ -32,7 +32,7 @@ vi.mock(
 );
 
 vi.mock(
-  "./notifications/demonstrationStateUserExpirationDateNotification/enqueueDemonstrationExpirationDateNotification",
+  "./notifications/demonstrationExpirationDateNotification/enqueueDemonstrationExpirationDateNotification",
   () => ({
     enqueueDemonstrationExpirationDateNotification: (...args: unknown[]) =>
       mocks.enqueueDemonstrationExpirationDateNotificationMock(...args),
