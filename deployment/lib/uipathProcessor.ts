@@ -52,7 +52,7 @@ export class UiPathProcessor extends Construct {
       visibilityTimeout: Duration.minutes(20),
       deadLetterQueue: {
         queue: this.deadLetterQueue,
-        maxReceiveCount: 5,
+        maxReceiveCount: 1,
       },
     });
     alarmResources.registerQueue("uipath", this.queue);

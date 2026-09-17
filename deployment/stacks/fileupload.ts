@@ -64,7 +64,7 @@ export class FileUploadStack extends Stack {
       removalPolicy: props.stage == "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
       enforceSSL: true,
       deadLetterQueue: {
-        maxReceiveCount: 5,
+        maxReceiveCount: 1,
         queue: deadLetterQueue,
       },
       encryption: QueueEncryption.KMS,
@@ -78,7 +78,7 @@ export class FileUploadStack extends Stack {
       encryption: QueueEncryption.KMS,
       encryptionMasterKey: kmsKey,
       deadLetterQueue: {
-        maxReceiveCount: 5,
+        maxReceiveCount: 1,
         queue: deadLetterQueue,
       },
     });
