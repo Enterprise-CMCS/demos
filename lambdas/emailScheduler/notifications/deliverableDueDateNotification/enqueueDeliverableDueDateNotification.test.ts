@@ -15,7 +15,7 @@ vi.mock("./createEmailNotificationRecord", () => ({
   createEmailNotificationRecord: vi.fn(),
 }));
 
-vi.mock("./sendSqsNotification", () => ({
+vi.mock("../sendSqsNotification", () => ({
   sendSqsNotification: vi.fn(),
 }));
 
@@ -27,7 +27,7 @@ import { enqueueDeliverableDueDateNotification } from "./enqueueDeliverableDueDa
 import { getDeliverableData, REMINDER_STAGES } from "./getDeliverableData";
 import { getRecipients } from "./getRecipients";
 import { createEmailNotificationRecord } from "./createEmailNotificationRecord";
-import { sendSqsNotification } from "./sendSqsNotification";
+import { sendSqsNotification } from "../sendSqsNotification";
 import { log } from "../../log";
 
 const client = {} as PoolClient;

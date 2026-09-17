@@ -5,7 +5,7 @@ import { log } from "../../log";
 import { getDeliverableData, ReminderStage, REMINDER_STAGES } from "./getDeliverableData";
 import { getRecipients, Recipient } from "./getRecipients";
 import { createEmailNotificationRecord, Payload } from "./createEmailNotificationRecord";
-import { sendSqsNotification, Envelope } from "./sendSqsNotification";
+import { sendSqsNotification, Envelope } from "../sendSqsNotification";
 
 export const enqueueDeliverableDueDateNotification = async (
   client: PoolClient,
@@ -83,7 +83,7 @@ const sendDeliverableDueDateNotification = async (
       continue;
     }
 
-    const envelope: Envelope = {
+    const envelope: Envelope<Payload> = {
       emailNotificationId,
       emailType: "Deliverable Due Date Reminder",
       entityType: "deliverable",

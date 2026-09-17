@@ -3,7 +3,6 @@ import type { SQSClient } from "@aws-sdk/client-sqs";
 import type { PoolClient } from "pg";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { Payload } from "./createEmailNotificationRecord";
 import {
   Envelope,
   sendSqsNotification,
@@ -13,29 +12,13 @@ import {
 
 const EMAILER_QUEUE_URL = "http://localstack:4566/000000000000/emailer-queue";
 
-const payload: Payload = {
-  recipients: {
-    to: [],
-    bcc: [{ name: "Jane Doe", address: "jane@example.com" }],
-  },
-  demonstration: { name: "Test Demonstration", stateId: "CA" },
-  deliverable: {
-    id: "11111111-1111-1111-1111-111111111111",
-    name: "Test Deliverable",
-    deliverableTypeId: "Quarterly Report",
-    dueDate: "2026-09-20T00:00:00.000Z",
-    statusId: "Upcoming",
-  },
-  reminderStage: "Five Days Prior",
-};
-
-const envelope: Envelope = {
+const envelope: Envelope<object> = {
   emailNotificationId: "44444444-4444-4444-4444-444444444444",
-  emailType: "Deliverable Due Date Reminder",
-  entityType: "deliverable",
-  entityId: payload.deliverable.id,
-  idempotencyKey: `deliverable-due-date-reminder:${payload.deliverable.id}:${payload.deliverable.dueDate}`,
-  payload,
+  emailType: "Test Email Type",
+  entityType: "test-entity",
+  entityId: "11111111-1111-1111-1111-111111111111",
+  idempotencyKey: "test-idempotency-key",
+  payload: {},
 };
 
 const emailNotificationId = envelope.emailNotificationId;
