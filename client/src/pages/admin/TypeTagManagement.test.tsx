@@ -15,8 +15,7 @@ import { TYPE_TAG_SEARCH_PARAM } from "./useTypeTagSelection";
 
 const ASSOCIATED_TAG_NAME = MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION.tags[0].tagName;
 const PREVIOUS_PAGE_TEXT = "Demonstrations list";
-const ASSOCIATED_RECORDS_ENTRY =
-  `/admin?${TYPE_TAG_SEARCH_PARAM}=${encodeURIComponent(ASSOCIATED_TAG_NAME)}`;
+const ASSOCIATED_RECORDS_ENTRY = `/admin?${TYPE_TAG_SEARCH_PARAM}=${encodeURIComponent(ASSOCIATED_TAG_NAME)}`;
 
 const setup = (routerEntry = "/admin") =>
   render(
