@@ -19,7 +19,7 @@ const payload: Payload = {
     name: "Test Application",
     applicationTypeId: "Extension",
     expectedApprovalDate: "2026-09-20T00:00:00.000Z",
-    stateId: "NJ",
+    stateName: "New Jersey",
     parentDemonstrationName: "Test Parent Demo",
     parentDemonstrationId: "44444444-4444-4444-4444-444444444444",
   },

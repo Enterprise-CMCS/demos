@@ -2,28 +2,29 @@ import { PoolClient } from "pg";
 import { DB_SCHEMA } from "../../db";
 
 export const EMAIL_RECIPIENTS_QUERY = `
-  WITH parent_demonstration AS (
-        (SELECT demonstration.id as application_id, demonstration.id AS demonstration_id
-         FROM ${DB_SCHEMA}.demonstration)
-        UNION ALL
-        (SELECT amendment.id as application_id, amendment.demonstration_id
-         FROM ${DB_SCHEMA}.amendment)
-        UNION ALL
-        (SELECT extension.id as application_id, extension.demonstration_id
-         FROM ${DB_SCHEMA}.extension)
+  WITH application_demonstration AS (
+        SELECT
+          application.id AS application_id,
+          COALESCE(demonstration.id, parent.id) AS demonstration_id
+        FROM ${DB_SCHEMA}.application
+        LEFT JOIN ${DB_SCHEMA}.demonstration ON demonstration.id = application.id
+        LEFT JOIN ${DB_SCHEMA}.amendment ON amendment.id = application.id
+        LEFT JOIN ${DB_SCHEMA}.extension ON extension.id = application.id
+        LEFT JOIN ${DB_SCHEMA}.demonstration AS parent
+          ON parent.id = COALESCE(amendment.demonstration_id, extension.demonstration_id)
       )
       SELECT DISTINCT
         person.id AS person_id,
         person.first_name,
         person.last_name,
         person.email
-      from parent_demonstration 
+      from application_demonstration 
       join ${DB_SCHEMA}.demonstration_role_assignment on 
-    	parent_demonstration.demonstration_id = demonstration_role_assignment.demonstration_id  
+    	application_demonstration.demonstration_id = demonstration_role_assignment.demonstration_id  
       join ${DB_SCHEMA}.person on 
 	    demonstration_role_assignment.person_id = person.id
 	    and person.person_type_id in ('demos-admin', 'demos-cms-user','demos-restricted-cms-user')
-	  where parent_demonstration.application_id = $1
+	  where application_demonstration.application_id = $1
       ;
     `;
 

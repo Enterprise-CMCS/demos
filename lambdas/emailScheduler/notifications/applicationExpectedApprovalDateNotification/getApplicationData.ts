@@ -3,67 +3,39 @@ import { DB_SCHEMA } from "../../db";
 
 export const APPLICABLE_APPLICATIONS_QUERY = `
         with all_applications as (
-          (select
-            demonstration.id,
-            demonstration.name,
-            demonstration.state_id,
-            demonstration.application_type_id,
-            null as parent_demonstration_name,
-            null as parent_demonstration_id
-          from
-            ${DB_SCHEMA}.demonstration
-          )
-          union all 
-          (select 
-            amendment.id,
-            amendment.name,
-            demonstration.state_id,
-            amendment.application_type_id,
-            demonstration.name as parent_demonstration_name,
-            demonstration.id as parent_demonstration_id
-          from ${DB_SCHEMA}.amendment 
-          join ${DB_SCHEMA}.demonstration on 
-            demonstration.id = amendment.demonstration_id
-          )
-          union all 
-          (select 
-            extension.id,
-            extension.name,
-            demonstration.state_id,
-            extension.application_type_id,
-            demonstration.name as parent_demonstration_name,
-            demonstration.id as parent_demonstration_id
-          from ${DB_SCHEMA}.extension 
-          join ${DB_SCHEMA}.demonstration on 
-          demonstration.id = extension.demonstration_id
-          )
-        ),
-
-        application_days_until_expected_approval_date as (
-          select 
-            id, 
-            name, 
-            state_id, 
-            application_type_id, 
-            parent_demonstration_name,
-            parent_demonstration_id,
-            date_value as expected_approval_date,
-            (EXTRACT(EPOCH FROM application_date.date_value) - EXTRACT(EPOCH FROM CURRENT_TIMESTAMP)) / 86400 AS days_until_expected_approval
-          from all_applications 
-          join ${DB_SCHEMA}.application_date on 
-            all_applications.id = application_date.application_id
+          select
+            application.id,
+            application.application_type_id,
+            coalesce(demonstration.name, amendment.name, extension.name) as name,
+            state.name as state_name,
+            parent.name as parent_demonstration_name,
+            parent.id as parent_demonstration_id,
+            application_date.date_value as expected_approval_date,
+            (EXTRACT(EPOCH FROM application_date.date_value) - EXTRACT(EPOCH FROM CURRENT_TIMESTAMP)) / 86400
+              AS days_until_expected_approval
+          from ${DB_SCHEMA}.application
+          left join ${DB_SCHEMA}.demonstration on demonstration.id = application.id
+          left join ${DB_SCHEMA}.amendment on amendment.id = application.id
+          left join ${DB_SCHEMA}.extension on extension.id = application.id
+          left join ${DB_SCHEMA}.demonstration as parent
+            on parent.id = coalesce(amendment.demonstration_id, extension.demonstration_id)
+          join ${DB_SCHEMA}.state
+            on state.id = coalesce(demonstration.state_id, parent.state_id)
+          join ${DB_SCHEMA}.application_date
+            on application_date.application_id = application.id
             and application_date.date_type_id = 'Internal Expected Approval Date'
         )
 
-        select * from application_days_until_expected_approval_date
-            WHERE days_until_expected_approval >= 7 AND days_until_expected_approval < 8;
+        select id, name, state_name, application_type_id, parent_demonstration_name, parent_demonstration_id, expected_approval_date
+        from all_applications
+            WHERE days_until_expected_approval >= 7 AND days_until_expected_approval < 8
         ;
   `;
 
 type ApplicationExpectedApprovalDateNotification = {
   id: string;
   name: string;
-  state_id: string;
+  state_name: string;
   application_type_id: string;
   parent_demonstration_name: string | null;
   parent_demonstration_id: string | null;

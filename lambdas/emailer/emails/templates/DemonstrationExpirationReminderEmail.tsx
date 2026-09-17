@@ -71,7 +71,7 @@ export function renderDemonstrationExpirationReminderEmail(
           Demonstration: {getRequiredString(demonstration.name, "demonstration.name", emailType)}
         </Text>
         <Text style={detailStyle}>
-          State: {getRequiredString(demonstration.stateId, "demonstration.stateId", emailType)}
+          State: {getRequiredString(demonstration.stateName, "demonstration.stateName", emailType)}
         </Text>
         <Text style={detailStyle}>Days Until Expiration: {dueWhen}</Text>
         <Text style={detailStyle}>Expiration Date: {currentExpirationDate}</Text>

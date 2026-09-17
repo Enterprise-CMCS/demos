@@ -14,13 +14,15 @@ export const APPLICABLE_DEMONSTRATIONS_QUERY = `
       SELECT
         demonstration.id,
         demonstration.name,
-        demonstration.state_id,
+        state.name AS state_name,
         demonstration.expiration_date,
         (EXTRACT(EPOCH FROM demonstration.expiration_date) - EXTRACT(EPOCH FROM CURRENT_TIMESTAMP)) / 86400
           AS days_until_due
       FROM ${DB_SCHEMA}.demonstration AS demonstration
+      JOIN ${DB_SCHEMA}.state AS state
+        ON state.id = demonstration.state_id
     )
-    SELECT id, name, state_id, expiration_date
+    SELECT id, name, state_name, expiration_date
     FROM demonstration_days_until_due
     WHERE days_until_due >= $1 AND days_until_due < $1 + 1;
   `;
@@ -28,7 +30,7 @@ export const APPLICABLE_DEMONSTRATIONS_QUERY = `
 export type DemonstrationExpirationDateNotification = {
   id: string;
   name: string;
-  state_id: string;
+  state_name: string;
   expiration_date: string;
 };
 

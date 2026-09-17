@@ -14,7 +14,7 @@ const payload: Payload = {
     to: [],
     bcc: [{ name: "Jane Doe", address: "jane@example.com" }],
   },
-  demonstration: { name: "Test Demonstration", stateId: "CA" },
+  demonstration: { name: "Test Demonstration", stateName: "California" },
   deliverable: {
     id: "11111111-1111-1111-1111-111111111111",
     name: "Test Deliverable",

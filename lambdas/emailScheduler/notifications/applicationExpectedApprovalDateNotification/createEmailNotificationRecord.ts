@@ -10,7 +10,7 @@ export type Payload = {
   application: {
     id: string;
     name: string;
-    stateId: string;
+    stateName: string;
     applicationTypeId: string;
     parentDemonstrationName: string | null;
     parentDemonstrationId: string | null;

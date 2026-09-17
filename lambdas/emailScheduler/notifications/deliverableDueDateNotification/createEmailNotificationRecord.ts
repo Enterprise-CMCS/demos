@@ -10,7 +10,7 @@ export type Payload = {
   };
   demonstration: {
     name: string;
-    stateId: string;
+    stateName: string;
   };
   deliverable: {
     id: string;
