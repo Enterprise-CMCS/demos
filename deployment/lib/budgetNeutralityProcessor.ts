@@ -51,7 +51,7 @@ export class BudgetNeutralityProcessor extends Construct {
       visibilityTimeout: Duration.minutes(5),
       deadLetterQueue: {
         queue: this.deadLetterQueue,
-        maxReceiveCount: 5,
+        maxReceiveCount: 1,
       },
     });
     alarmResources.registerQueue("budgetNeutrality", this.queue);

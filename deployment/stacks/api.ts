@@ -235,7 +235,7 @@ export class ApiStack extends Stack {
       removalPolicy: RemovalPolicy.DESTROY,
       enforceSSL: true,
       deadLetterQueue: {
-        maxReceiveCount: 5,
+        maxReceiveCount: 1,
         queue: deadLetterQueue,
       },
       encryption: QueueEncryption.KMS,
@@ -451,7 +451,9 @@ export class ApiStack extends Stack {
         minute: "0",
         timeZone: TimeZone.AMERICA_NEW_YORK,
       }),
-      target: new schedulerTargets.LambdaInvoke(emailScheduler.lambda)
+      target: new schedulerTargets.LambdaInvoke(emailScheduler.lambda, {
+        retryAttempts: 1,
+      })
     })
 
     this.setupCloudWatchAlarms(props, alarmResources);
