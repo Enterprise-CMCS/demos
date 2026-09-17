@@ -68,7 +68,7 @@ const sendDemonstrationExpirationDateNotification = async (
       demonstration: {
         id: demonstration.id,
         name: demonstration.name,
-        stateId: demonstration.state_id,
+        stateName: demonstration.state_name,
         expirationDate: demonstration.expiration_date,
       },
       reminderStage,

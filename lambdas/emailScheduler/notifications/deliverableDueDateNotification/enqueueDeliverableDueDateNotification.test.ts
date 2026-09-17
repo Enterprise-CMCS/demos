@@ -38,7 +38,7 @@ const deliverable = {
   deliverable_type_id: "Quarterly Report",
   name: "Test Deliverable",
   demonstration_name: "Test Demonstration",
-  state_id: "CA",
+  state_name: "California",
   due_date: "2026-09-20T00:00:00.000Z",
   status_id: "Upcoming",
 };
@@ -55,7 +55,7 @@ const expectedPayload = {
     to: [],
     bcc: [{ name: "Jane Doe", address: "jane@example.com" }],
   },
-  demonstration: { name: deliverable.demonstration_name, stateId: deliverable.state_id },
+  demonstration: { name: deliverable.demonstration_name, stateName: deliverable.state_name },
   deliverable: {
     id: deliverable.id,
     name: deliverable.name,

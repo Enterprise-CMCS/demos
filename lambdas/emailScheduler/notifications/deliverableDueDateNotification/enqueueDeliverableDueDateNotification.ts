@@ -57,7 +57,7 @@ const sendDeliverableDueDateNotification = async (
       },
       demonstration: {
         name: deliverable.demonstration_name,
-        stateId: deliverable.state_id,
+        stateName: deliverable.state_name,
       },
       deliverable: {
         id: deliverable.id,

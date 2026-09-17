@@ -51,7 +51,7 @@ export const enqueueApplicationExpectedApprovalDateNotification = async (
         expectedApprovalDate: application.expected_approval_date,
         parentDemonstrationName: application.parent_demonstration_name,
         parentDemonstrationId: application.parent_demonstration_id,
-        stateId: application.state_id,
+        stateName: application.state_name,
       },
     };
 

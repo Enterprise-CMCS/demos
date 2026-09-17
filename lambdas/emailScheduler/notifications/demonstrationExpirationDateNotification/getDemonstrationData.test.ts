@@ -11,7 +11,7 @@ const sampleRows = [
   {
     id: "11111111-1111-1111-1111-111111111111",
     name: "Test Deliverable",
-    state_id: "CA",
+    state_name: "California",
     expiration_date: "2026-09-20T00:00:00.000Z",
   },
 ];

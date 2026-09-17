@@ -11,7 +11,7 @@ export type Payload = {
   demonstration: {
     id: string;
     name: string;
-    stateId: string;
+    stateName: string;
     expirationDate: string;
   };
   reminderStage: ReminderStage;

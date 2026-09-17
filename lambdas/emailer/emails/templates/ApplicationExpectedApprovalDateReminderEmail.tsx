@@ -61,7 +61,7 @@ export function renderApplicationExpectedApprovalDateReminderEmail(
         <Text style={textStyle}>DEMOS Notifications</Text>
         <Text style={detailStyle}>Demonstration: {demonstrationTitle}</Text>
         <Text style={detailStyle}>
-          State: {getRequiredString(application.stateId, "application.stateId", emailType)}
+          State: {getRequiredString(application.stateName, "application.stateName", emailType)}
         </Text>
         <Text style={detailStyle}>
           Days Until Expected Approval: {DAYS_UNTIL_EXPECTED_APPROVAL}

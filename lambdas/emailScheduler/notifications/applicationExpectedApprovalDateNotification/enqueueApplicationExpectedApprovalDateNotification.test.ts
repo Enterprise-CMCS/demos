@@ -38,7 +38,7 @@ const application = {
   name: "Test Application",
   parent_demonstration_name: "Test Demonstration",
   parent_demonstration_id: "33333333-3333-3333-3333-333333333333",
-  state_id: "CA",
+  state_name: "California",
   expected_approval_date: "2026-09-20T00:00:00.000Z",
 };
 
@@ -61,7 +61,7 @@ const expectedPayload = {
     expectedApprovalDate: application.expected_approval_date,
     parentDemonstrationName: application.parent_demonstration_name,
     parentDemonstrationId: application.parent_demonstration_id,
-    stateId: application.state_id,
+    stateName: application.state_name,
   },
 };
 

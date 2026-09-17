@@ -40,7 +40,7 @@ const sqsClient = {} as SQSClient;
 const demonstration: DemonstrationExpirationDateNotification = {
   id: "11111111-1111-1111-1111-111111111111",
   name: "Test Demonstration",
-  state_id: "CA",
+  state_name: "California",
   expiration_date: "2026-09-20T00:00:00.000Z",
 };
 
@@ -59,7 +59,7 @@ const expectedPayload: Payload = {
   demonstration: {
     id: "11111111-1111-1111-1111-111111111111",
     name: "Test Demonstration",
-    stateId: "CA",
+    stateName: "California",
     expirationDate: "2026-09-20T00:00:00.000Z",
   },
   reminderStage: "Thirty Days Prior",
