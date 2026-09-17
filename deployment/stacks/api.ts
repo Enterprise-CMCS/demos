@@ -444,6 +444,8 @@ export class ApiStack extends Stack {
     emailQueue.grantSendMessages(emailScheduler.role)
 
     new scheduler.Schedule(commonProps.scope, "emailerSchedulerSchedule", {
+      scheduleName: `demos-${commonProps.stage}-emailer-schedule`,
+      description: `Daily schedule for sending emails (${commonProps.stage})`,
       schedule: scheduler.ScheduleExpression.cron({
         hour: "8",
         minute: "0",
