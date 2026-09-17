@@ -4,11 +4,12 @@ import { getDbPool } from "./db";
 import { SQSClient } from "@aws-sdk/client-sqs";
 import { enqueueDeliverableDueDateNotification } from "./notifications/deliverableDueDateNotification/enqueueDeliverableDueDateNotification";
 import { enqueueDemonstrationExpirationDateNotification } from "./notifications/demonstrationExpirationDateNotification/enqueueDemonstrationExpirationDateNotification";
+import { enqueueApplicationExpectedApprovalDateNotification } from "./notifications/applicationExpectedApprovalDateNotification/enqueueApplicationExpectedApprovalDateNotification";
 
 const EMAIL_TYPES = [
   enqueueDeliverableDueDateNotification,
   enqueueDemonstrationExpirationDateNotification,
-  // DEMONSTRATION_EXPECTED_APPROVAL_DATE: enqueueDemonstrationExpectedApprovalDateNotification(),
+  enqueueApplicationExpectedApprovalDateNotification,
 ];
 
 export const handler = async (event: SQSEvent, context: Context) =>
