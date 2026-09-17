@@ -1,3 +1,4 @@
+import { EmailValidationError } from "../../emailValidationError";
 import { Link, Text } from "@react-email/components";
 
 import { EmailLayout } from "../components/EmailLayout";
@@ -24,7 +25,7 @@ function renderApplicationEmail(
     emailType
   );
   if (!["Demonstration", "Amendment", "Extension"].includes(applicationType)) {
-    throw new Error(`Unsupported application type for email: ${applicationType}`);
+    throw new EmailValidationError(`Unsupported application type for email: ${applicationType}`);
   }
   const title =
     applicationType === "Demonstration"

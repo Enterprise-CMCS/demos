@@ -353,6 +353,37 @@ describe("emailer", () => {
     expect(email).toEqual(expect.objectContaining({ subject }));
   });
 
+  it("records missing recipients without retrying or sending", async () => {
+    const sendMail = vi.fn();
+    vi.spyOn(nodemailer, "createTransport").mockReturnValue(
+      { sendMail } as unknown as Mail<SentMessageInfo, Options>
+    );
+    await expect(
+      handler(sqsEvent(JSON.stringify({
+        ...realtimeDeliverableCreatedEnvelope,
+        payload: {
+          ...realtimeDeliverableCreatedEnvelope.payload,
+          recipients: { to: [], cc: [], bcc: [] },
+        },
+      })))
+    ).resolves.toBeUndefined();
+    expect(sendMail).not.toHaveBeenCalled();
+    expect(statusMocks.update).toHaveBeenCalledWith(
+      realtimeDeliverableCreatedEnvelope.emailNotificationId,
+      "Failed",
+      "Email template must include at least one recipient."
+    );
+  });
+
+  it.each([null, { to: [], subject: "Empty", text: "Empty" }])("does not retry invalid legacy email %j", async (email) => {
+    const sendMail = vi.fn();
+    vi.spyOn(nodemailer, "createTransport").mockReturnValue(
+      { sendMail } as unknown as Mail<SentMessageInfo, Options>
+    );
+    await expect(handler(sqsEvent(JSON.stringify(email)))).resolves.toBeUndefined();
+    expect(sendMail).not.toHaveBeenCalled();
+  });
+
   it("should report unsupported realtime email types", async () => {
     await expect(
       handler(
@@ -360,7 +391,12 @@ describe("emailer", () => {
           JSON.stringify({ ...realtimeDeliverableCreatedEnvelope, emailType: "Unknown Email" })
         )
       )
-    ).rejects.toThrow("Unsupported email type: Unknown Email");
+    ).resolves.toBeUndefined();
+    expect(statusMocks.update).toHaveBeenCalledWith(
+      realtimeDeliverableCreatedEnvelope.emailNotificationId,
+      "Failed",
+      "Unsupported email type: Unknown Email"
+    );
   });
 
   it("should report missing realtime email template payload values", async () => {
@@ -379,9 +415,7 @@ describe("emailer", () => {
           })
         )
       )
-    ).rejects.toThrow(
-      "Missing value for deliverable.name while rendering Deliverable Created.data"
-    );
+    ).resolves.toBeUndefined();
     expect(statusMocks.update).toHaveBeenCalledWith(
       realtimeDeliverableCreatedEnvelope.emailNotificationId,
       "Failed",

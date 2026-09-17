@@ -1,3 +1,4 @@
+import { EmailValidationError } from "../emailValidationError";
 import { renderApplicationStatusUpdatedEmail } from "./templates/ApplicationEmail";
 import { render, toPlainText } from "@react-email/render";
 
@@ -50,7 +51,7 @@ export async function renderEmail(
   const template = templates[emailType];
 
   if (!template) {
-    throw new Error(`Unsupported email type: ${emailType}`);
+    throw new EmailValidationError(`Unsupported email type: ${emailType}`);
   }
 
   const recipients = getRecipients(rawPayload, emailType);
@@ -83,7 +84,7 @@ function normalizeRecipientGroups(recipients: Record<string, unknown>): EmailRec
     (normalizedRecipients.cc?.length ?? 0) +
     (normalizedRecipients.bcc?.length ?? 0);
   if (recipientCount === 0) {
-    throw new Error("Email template must include at least one recipient.");
+    throw new EmailValidationError("Email template must include at least one recipient.");
   }
 
   return normalizedRecipients;
@@ -94,7 +95,7 @@ function normalizeRecipients(
   group: keyof EmailRecipientGroups
 ): EmailRecipient[] {
   if (!Array.isArray(recipients)) {
-    throw new Error(`Email template ${group} recipients must be an array.`);
+    throw new EmailValidationError(`Email template ${group} recipients must be an array.`);
   }
 
   return recipients.map((recipient, index) => {
@@ -104,15 +105,15 @@ function normalizeRecipients(
 
     if (recipient && typeof recipient === "object") {
       if (typeof recipient.name !== "string" || !recipient.name.trim()) {
-        throw new Error(`Invalid ${group} email recipient at index ${index}: name is required.`);
+        throw new EmailValidationError(`Invalid ${group} email recipient at index ${index}: name is required.`);
       }
       if (typeof recipient.address !== "string" || !recipient.address.trim()) {
-        throw new Error(`Invalid ${group} email recipient at index ${index}: address is required.`);
+        throw new EmailValidationError(`Invalid ${group} email recipient at index ${index}: address is required.`);
       }
 
       return recipient;
     }
 
-    throw new Error(`Invalid ${group} email recipient at index ${index}.`);
+    throw new EmailValidationError(`Invalid ${group} email recipient at index ${index}.`);
   });
 }

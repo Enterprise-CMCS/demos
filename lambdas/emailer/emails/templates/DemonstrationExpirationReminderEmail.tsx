@@ -1,3 +1,4 @@
+import { EmailValidationError } from "../../emailValidationError";
 import { Link, Text } from "@react-email/components";
 
 import { EmailLayout } from "../components/EmailLayout";
@@ -35,7 +36,7 @@ export function renderDemonstrationExpirationReminderEmail(
       dueWhen = "90";
       break;
     default:
-      throw new Error(
+      throw new EmailValidationError(
         `Unrecognized reminderStage while rendering ${emailType}.data: ${reminderStage}`
       );
   }

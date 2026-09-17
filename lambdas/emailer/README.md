@@ -104,8 +104,13 @@ The Lambda validates the rendered email, checks every recipient against the
 non-production allowlist, and sends it with Nodemailer. Production disables the
 allowlist through deployment configuration.
 
-The Lambda changes only notifications currently marked `Queued` to `Sent` or
-`Failed`.
+The Lambda changes notifications currently marked `Queued` or `Failed` to `Sent`
+or `Failed`, allowing successful retries to update the delivery status.
+
+Payload and template validation failures (`EmailValidationError`) are logged and
+recorded as `Failed` without retrying. Infrastructure, attachment retrieval, and
+SMTP failures are rethrown for SQS retry. Status update failures are logged without
+retrying delivery.
 
 ## Template structure
 

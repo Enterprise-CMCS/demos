@@ -24,7 +24,7 @@ describe("updateEmailNotificationStatus", () => {
     );
 
     expect(mocks.query).toHaveBeenCalledExactlyOnceWith(
-      expect.stringContaining("WHERE id = $1::UUID AND status_id = 'Queued'"),
+      expect.stringContaining("WHERE id = $1::UUID AND status_id IN ('Queued', 'Failed')"),
       ["01c20d4d-c918-4c8e-89be-6b73178a66f2", "Sent", null]
     );
   });
@@ -43,7 +43,7 @@ describe("updateEmailNotificationStatus", () => {
     ]);
   });
 
-  it("reports a notification that is not queued", async () => {
+  it("reports a notification that is not queued or failed", async () => {
     mocks.query.mockResolvedValue({ rowCount: 0 });
 
     await expect(
@@ -52,7 +52,7 @@ describe("updateEmailNotificationStatus", () => {
         "Sent"
       )
     ).rejects.toThrow(
-      "Email notification is not queued: 01c20d4d-c918-4c8e-89be-6b73178a66f2"
+      "Email notification is not queued or failed: 01c20d4d-c918-4c8e-89be-6b73178a66f2"
     );
   });
 });

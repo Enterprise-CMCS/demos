@@ -1,3 +1,4 @@
+import { EmailValidationError } from "../emailValidationError";
 export function getDemosAppUrl(): string {
   return process.env.DEMOS_APP_URL ?? "https://localhost:3000";
 }
@@ -6,7 +7,7 @@ export function formatDate(value: string): string {
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    throw new Error(`Invalid email date value: ${value}`);
+    throw new EmailValidationError(`Invalid email date value: ${value}`);
   }
 
   return date.toLocaleDateString("en-CA", {
@@ -20,7 +21,7 @@ export function getRequiredValue(
   emailType: string,
 ): unknown {
   if (value === undefined || value === null || value === "") {
-    throw new Error(
+    throw new EmailValidationError(
       `Missing value for ${valueName} while rendering ${emailType}.data`,
     );
   }
@@ -36,7 +37,7 @@ export function getRequiredObject(
   const requiredValue = getRequiredValue(value, valueName, emailType);
 
   if (!isRecord(requiredValue)) {
-    throw new Error(
+    throw new EmailValidationError(
       `Invalid value for ${valueName} while rendering ${emailType}.data: expected an object.`,
     );
   }
@@ -56,7 +57,7 @@ export function getRequiredString(
   const requiredValue = getRequiredValue(value, valueName, emailType);
 
   if (typeof requiredValue !== "string") {
-    throw new Error(
+    throw new EmailValidationError(
       `Invalid value for ${valueName} while rendering ${emailType}.data: expected a string.`,
     );
   }

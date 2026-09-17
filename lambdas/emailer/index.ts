@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { EmailValidationError } from "./emailValidationError";
 import { getAgreementAttachment } from "./agreementAttachment";
 import { SQSEvent } from "aws-lambda";
 
@@ -66,7 +67,8 @@ export const handler = async (event: SQSEvent) => {
     email = await renderRealTimeEmails(email);
   } catch (err) {
     await recordDeliveryStatus(realtimeEmail, "Failed", getErrorMessage(err));
-    log.error({ error: (err as Error).message }, "unable to render realtime email");
+    log.error({ ...emailLogContext, error: getErrorMessage(err) }, "unable to render realtime email");
+    if (err instanceof EmailValidationError) return;
     throw err;
   }
 
@@ -76,7 +78,7 @@ export const handler = async (event: SQSEvent) => {
         `Realtime email did not render valid email data: ${realtimeEmail.emailNotificationId}`
       );
       await recordDeliveryStatus(realtimeEmail, "Failed", error.message);
-      throw error;
+      log.error({ ...emailLogContext, error: error.message }, "invalid realtime email data");
     }
     return;
   }
@@ -176,6 +178,11 @@ export async function renderRealTimeEmails(email: unknown): Promise<unknown> {
 }
 
 export function isValidEmailData(email: any): email is EmailData {
+  if (!email || typeof email !== "object") {
+    log.info("an email must be an object");
+    return false;
+  }
+
   if (!isEmailerAddress(email.to)) {
     log.info("an email must have a valid 'to' property");
     return false;
@@ -198,6 +205,14 @@ export function isValidEmailData(email: any): email is EmailData {
 
   if (email.bcc !== undefined && !isEmailerAddress(email.bcc)) {
     log.info("an email must have a valid 'bcc' property");
+    return false;
+  }
+
+  const recipients = [email.to, email.cc, email.bcc].flatMap((group) =>
+    group === undefined ? [] : Array.isArray(group) ? group : [group]
+  );
+  if (recipients.length === 0) {
+    log.info("an email must include at least one recipient");
     return false;
   }
 

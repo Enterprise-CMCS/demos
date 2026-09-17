@@ -1,3 +1,4 @@
+import { EmailValidationError } from "../../emailValidationError";
 import { Text } from "@react-email/components";
 
 import { DeliverableEmailLayout } from "../components/DeliverableEmailLayout";
@@ -51,7 +52,7 @@ export function renderExtensionDecisionMadeEmail(
     extensionDecision !== "Approved" &&
     extensionDecision !== "Denied"
   ) {
-    throw new Error(
+    throw new EmailValidationError(
       `Invalid value for deliverable.extensionDecision while rendering ${emailType}.data: expected Approved or Denied.`,
     );
   }

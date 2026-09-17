@@ -1,3 +1,4 @@
+import { EmailValidationError } from "../../emailValidationError";
 import { Text } from "@react-email/components";
 
 import { EmailLayout } from "../components/EmailLayout";
@@ -38,7 +39,7 @@ export function renderDeliverableDueDateReminderEmail(rawPayload: unknown): Emai
       dueWhen = "10 days past due";
       break;
     default:
-      throw new Error(
+      throw new EmailValidationError(
         `Unrecognized reminderStage while rendering ${emailType}.data: ${reminderStage}`
       );
   }

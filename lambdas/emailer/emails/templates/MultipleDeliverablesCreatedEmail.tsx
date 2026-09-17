@@ -1,3 +1,4 @@
+import { EmailValidationError } from "../../emailValidationError";
 import { Link, Text } from "@react-email/components";
 
 import { EmailLayout } from "../components/EmailLayout";
@@ -24,10 +25,10 @@ export function renderMultipleDeliverablesCreatedEmail(
   const deliverables = payload.deliverables;
 
   if (!Array.isArray(deliverables)) {
-    throw new Error(`${emailType} email requires deliverables to be an array.`);
+    throw new EmailValidationError(`${emailType} email requires deliverables to be an array.`);
   }
   if (deliverables.length < 2) {
-    throw new Error(`${emailType} email requires at least two deliverables.`);
+    throw new EmailValidationError(`${emailType} email requires at least two deliverables.`);
   }
 
   const firstDeliverable = getRequiredObject(
@@ -52,7 +53,7 @@ export function renderMultipleDeliverablesCreatedEmail(
       emailType,
     );
     if (currentDeliverableType !== deliverableType) {
-      throw new Error(`${emailType} email requires one deliverable type.`);
+      throw new EmailValidationError(`${emailType} email requires one deliverable type.`);
     }
 
     const id = getRequiredString(
