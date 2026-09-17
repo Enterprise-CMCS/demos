@@ -1,14 +1,11 @@
 import { createColumnHelper, CellContext } from "@tanstack/react-table";
-import { highlightCell } from "../KeywordSearch";
+import { highlightCell } from "components/table";
 
 export interface ColumnOptions<RowData> {
   enableSorting?: boolean;
-  className?: string;
   cell?: (info: CellContext<RowData, unknown>) => React.ReactNode;
   highlightSearchResults?: boolean;
 }
-
-type RowDataTypes = string | number;
 
 // Generates a ID for a table column header by converting to lowercase and removing spaces
 function generateHeaderId(header: string) {
@@ -16,19 +13,18 @@ function generateHeaderId(header: string) {
 }
 
 // Merges provided options with defaults
-function getOptions<RowData>(options?: ColumnOptions<RowData>) {
+function getOptions<RowData>(optionOverrides?: ColumnOptions<RowData>) {
   return {
-    enableSorting: options?.enableSorting ?? false,
-    highlightSearchResults: options?.highlightSearchResults !== false,
-    cell: options?.cell,
-    className: options?.className,
+    enableSorting: optionOverrides?.enableSorting ?? false,
+    highlightSearchResults: optionOverrides?.highlightSearchResults !== false,
+    cell: optionOverrides?.cell,
   };
 }
 
 // Creates a function that generates table columns with sensible defaults
 export function getColumnBuilder<RowData>() {
   const createColumn = (
-    accessor: (row: RowData) => RowDataTypes,
+    accessor: (row: RowData) => string | number,
     header: string,
     optionOverrides?: ColumnOptions<RowData>
   ) => {
