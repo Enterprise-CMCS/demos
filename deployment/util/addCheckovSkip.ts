@@ -8,8 +8,11 @@ interface CheckovSkip {
 
 const isCheckovSkipArray = (T: unknown): T is CheckovSkip[] => {
   if (!Array.isArray(T)) {
+    if (typeof T !== "undefined") {
+      throw new Error("invalid")
+    }
     return false;
-  }
+  }  
 
   return T.every(entry => entry.id && entry.reason)
 }
@@ -25,11 +28,8 @@ export function addCheckovSkip(resource: Construct, ...skips: CheckovSkip[]) {
 
   let existingSkip: CheckovSkip[] = []
 
-  if (Array.isArray(checkovMetadata?.skip)) {
-    console.warn("checkov metadata exists but no skip array")
-    if (isCheckovSkipArray(checkovMetadata?.skip)) {
-      existingSkip = checkovMetadata?.skip
-    }
+  if (isCheckovSkipArray(checkovMetadata?.skip)) {
+    existingSkip = checkovMetadata?.skip
   }
 
   cfnResource.addMetadata("checkov", {
