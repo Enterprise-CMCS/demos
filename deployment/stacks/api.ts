@@ -393,7 +393,7 @@ export class ApiStack extends Stack {
     rdsSg.addIngressRule(
       aws_ec2.Peer.securityGroupId(emailSchedulerLambdaSecurityGroup.securityGroup.securityGroupId),
       aws_ec2.Port.tcp(rdsPort),
-      "Allow ingress from Emailer Security Group",
+      "Allow ingress from Email Scheduler Security Group",
       true
     );
 
