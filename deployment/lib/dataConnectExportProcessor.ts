@@ -118,7 +118,10 @@ export class DataConnectExportProcessor extends Construct {
       // enabled there would produce a nightly failure against a role that does not exist.
       enabled: !props.isEphemeral,
     });
-    this.schedule.addTarget(new aws_events_targets.LambdaFunction(exportLambda.lambda));
+    this.schedule.addTarget(new aws_events_targets.LambdaFunction(exportLambda.lambda, {
+        retryAttempts: 1,
+      })
+    );
 
     this.setupCloudWatchAlarms(props, alarmResources);
 
