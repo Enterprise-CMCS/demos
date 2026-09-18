@@ -9,6 +9,8 @@ import * as securityGroup from "../lib/security-group";
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import * as lambda from "../lib/lambda";
 import * as path from "node:path"
+import { DemosLogGroup } from "../lib/logGroup";
+import { BucketAccessLogs } from "../lib/bucketAccessLogs";
 
 export class CoreStack extends Stack {
   public readonly cognito_outputs: aws_cognito.UserPool | aws_cognito.IUserPool;
@@ -167,6 +169,11 @@ export class CoreStack extends Stack {
             }
           ]
         });
+
+    new DemosLogGroup(this, "S3AccessLogsLogGroup", {
+      overrideFullName: BucketAccessLogs.getS3AccessLogLogGroupName(props.stage),
+      isEphemeral: props.isEphemeral,
+    })
 
     const accessLogBucketCfn = accessLogs.node.defaultChild as aws_s3.CfnBucket;
     accessLogBucketCfn.cfnOptions.metadata = {
