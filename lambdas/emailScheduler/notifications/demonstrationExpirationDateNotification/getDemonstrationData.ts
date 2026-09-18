@@ -10,21 +10,22 @@ export const REMINDER_STAGES = [
 export type ReminderStage = (typeof REMINDER_STAGES)[number];
 
 export const APPLICABLE_DEMONSTRATIONS_QUERY = `
-    WITH demonstration_days_until_due AS (
+    WITH demonstration_days_until_expiration AS (
       SELECT
         demonstration.id,
         demonstration.name,
         state.name AS state_name,
         demonstration.expiration_date,
-        (EXTRACT(EPOCH FROM demonstration.expiration_date) - EXTRACT(EPOCH FROM CURRENT_TIMESTAMP)) / 86400
-          AS days_until_due
+        cast(demonstration.expiration_date AT TIME ZONE 'America/New_York' AS DATE) 
+          - cast(current_timestamp AT TIME ZONE 'America/New_York' AS DATE) 
+        as days_until_expiration
       FROM ${DB_SCHEMA}.demonstration AS demonstration
       JOIN ${DB_SCHEMA}.state AS state
         ON state.id = demonstration.state_id
     )
     SELECT id, name, state_name, expiration_date
-    FROM demonstration_days_until_due
-    WHERE days_until_due >= $1 AND days_until_due < $1 + 1;
+    FROM demonstration_days_until_expiration
+    WHERE days_until_expiration = $1;
   `;
 
 export type DemonstrationExpirationDateNotification = {

@@ -37,15 +37,21 @@ export function renderApplicationExpectedApprovalDateReminderEmail(
         emailType
       );
 
-  const link = `${getDemosAppUrl()}/demonstrations/${
-    isDemonstration
-      ? getRequiredString(application.id, "application.id", emailType)
-      : getRequiredString(
-          application.parentDemonstrationId,
-          "application.parentDemonstrationId",
-          emailType
-        )
-  }`;
+  const demonstrationId = isDemonstration
+    ? getRequiredString(application.id, "application.id", emailType)
+    : getRequiredString(
+        application.parentDemonstrationId,
+        "application.parentDemonstrationId",
+        emailType
+      );
+  const url = new URL(`/demonstrations/${encodeURIComponent(demonstrationId)}`, getDemosAppUrl());
+  if (!isDemonstration) {
+    url.searchParams.set(
+      applicationTypeId === "Amendment" ? "amendment" : "renewal",
+      getRequiredString(application.id, "application.id", emailType)
+    );
+  }
+  const link = url.toString();
 
   return {
     subject: "CMS DEMOS: Application Expected Approval Date Upcoming",
