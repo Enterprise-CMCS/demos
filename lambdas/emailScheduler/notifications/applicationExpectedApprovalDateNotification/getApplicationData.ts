@@ -11,8 +11,9 @@ export const APPLICABLE_APPLICATIONS_QUERY = `
             parent.name as parent_demonstration_name,
             parent.id as parent_demonstration_id,
             application_date.date_value as expected_approval_date,
-            (EXTRACT(EPOCH FROM application_date.date_value) - EXTRACT(EPOCH FROM CURRENT_TIMESTAMP)) / 86400
-              AS days_until_expected_approval
+            cast(application_date.date_value AT TIME ZONE 'America/New_York' AS DATE) 
+              - cast(current_timestamp AT TIME ZONE 'America/New_York' AS DATE) 
+            as days_until_expected_approval
           from ${DB_SCHEMA}.application
           left join ${DB_SCHEMA}.demonstration on demonstration.id = application.id
           left join ${DB_SCHEMA}.amendment on amendment.id = application.id
@@ -28,7 +29,7 @@ export const APPLICABLE_APPLICATIONS_QUERY = `
 
         select id, name, state_name, application_type_id, parent_demonstration_name, parent_demonstration_id, expected_approval_date
         from all_applications
-            WHERE days_until_expected_approval >= 7 AND days_until_expected_approval < 8
+            WHERE days_until_expected_approval = 7
         ;
   `;
 

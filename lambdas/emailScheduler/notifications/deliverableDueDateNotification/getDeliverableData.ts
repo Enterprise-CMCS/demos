@@ -20,8 +20,9 @@ export const APPLICABLE_DELIVERABLES_QUERY = `
         state.name AS state_name,
         deliverable.due_date AS due_date,
         deliverable.status_id AS status_id,
-        (EXTRACT(EPOCH FROM deliverable.due_date) - EXTRACT(EPOCH FROM CURRENT_TIMESTAMP)) / 86400
-          AS days_until_due
+        cast(deliverable.due_date AT TIME ZONE 'America/New_York' AS DATE) 
+          - cast(current_timestamp AT TIME ZONE 'America/New_York' AS DATE) 
+        as days_until_due
       FROM ${DB_SCHEMA}.deliverable AS deliverable
       JOIN ${DB_SCHEMA}.demonstration AS demonstration
         ON deliverable.demonstration_id = demonstration.id
@@ -31,7 +32,7 @@ export const APPLICABLE_DELIVERABLES_QUERY = `
     )
     SELECT id, deliverable_type_id, name, demonstration_name, state_name, due_date, status_id
     FROM deliverable_days_until_due
-    WHERE days_until_due >= $1 AND days_until_due < $1 + 1;
+    WHERE days_until_due = $1;
   `;
 
 type DeliverableDueDateNotification = {
