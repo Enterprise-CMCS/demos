@@ -186,8 +186,8 @@ describe("Api Stack", () => {
     const template = Template.fromStack(apiStack);
     // const fs = require("fs");
     // fs.writeFileSync("template.json", JSON.stringify(template.toJSON(), null, 2));
-    template.resourceCountIs("AWS::EC2::SecurityGroup", 3);
-    template.resourceCountIs("AWS::Lambda::Function", 3);
+    template.resourceCountIs("AWS::EC2::SecurityGroup", 4);
+    template.resourceCountIs("AWS::Lambda::Function", 4);
     template.resourceCountIs("AWS::ApiGateway::RestApi", 1);
     template.resourceCountIs("AWS::ApiGateway::Authorizer", 1);
     template.resourceCountIs("AWS::CloudWatch::Alarm", 10);
@@ -320,7 +320,7 @@ describe("Api Stack", () => {
 
     const template = Template.fromStack(apiStack);
 
-    template.resourceCountIs("AWS::Lambda::Function", 3);
+    template.resourceCountIs("AWS::Lambda::Function", 4);
     template.resourceCountIs("AWS::CloudWatch::Alarm", 0);
   });
 

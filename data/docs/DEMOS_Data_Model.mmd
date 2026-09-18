@@ -153,6 +153,7 @@ erDiagram
   application ||--|{ email_notification : "FK164"
   reference_configuration ||--|{ email_notification : "FK165"
   deliverable_action ||--|{ email_notification : "FK167"
+  deliverable ||--|{ email_notification : "FK166"
   public_comment ||--|{ email_notification : "FK168"
   email_notification_status ||--|{ email_notification : "FK170"
   email_notification ||--|{ email_notification_recipient : "FK171"
@@ -708,8 +709,10 @@ erDiagram
     uuid id PK
     text email_type_id FK "FK163: (email_type_id, entity_type) ∈ email_notification_type_entity_type.(email_type_id, entity_type_id)"
     text entity_type FK "FK163: (email_type_id, entity_type) ∈ email_notification_type_entity_type.(email_type_id, entity_type_id)"
-    uuid application_id FK "FK164: application_id ∈ application.id<br>NULLABLE"
+    uuid application_id FK "FK164: (application_id, application_type_id) ∈ application.(id, application_type_id)<br>NULLABLE"
+    text application_type_id FK "FK164: (application_id, application_type_id) ∈ application.(id, application_type_id)<br>NULLABLE"
     uuid reference_configuration_id FK "FK165: reference_configuration_id ∈ reference_configuration.id<br>NULLABLE"
+    uuid deliverable_id FK "FK166: deliverable_id ∈ deliverable.id<br>NULLABLE"
     uuid deliverable_action_id FK "FK167: deliverable_action_id ∈ deliverable_action.id<br>NULLABLE"
     uuid public_comment_id FK "FK168: public_comment_id ∈ public_comment.id<br>NULLABLE"
     text status_id FK "FK170: status_id ∈ email_notification_status.id"
@@ -720,6 +723,7 @@ erDiagram
     timestamptz updated_at
     CONSTRAINT_CHECK email_notification_exactly_one_entity "Exactly one entity linkage ID must be populated."
     CONSTRAINT_CHECK email_notification_entity_type_matches_id "entity_type must match the populated entity linkage ID."
+    CONSTRAINT_CHECK email_notification_application_id_requires_type "application_id and application_type_id must both be null or both be non null."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }

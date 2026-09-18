@@ -3,9 +3,7 @@ import { prisma } from "../../prismaClient";
 import { log } from "../../log";
 import { PrismaApplication } from "../application";
 import { enqueueAndTrackRealtimeEmail } from "./emailNotification";
-import {
-  notifyApplicationStatusUpdated,
-} from "./notifyApplicationEvent";
+import { notifyApplicationStatusUpdated } from "./notifyApplicationEvent";
 
 vi.mock("../../prismaClient", () => ({ prisma: vi.fn() }));
 vi.mock("../../log", () => ({ log: { error: vi.fn() } }));
@@ -29,6 +27,7 @@ const demonstration = {
   id: "demo-1",
   name: "Demo title",
   stateId: "MD",
+  state: { name: "Maryland" },
   demonstrationRoleAssignments: [
     { person },
     { person: { ...person, id: "person-2", email: "cms@example.com " } },
@@ -62,6 +61,7 @@ describe("application notifications", () => {
         expect.objectContaining({
           where: { id: applicationTypeId === "Demonstration" ? "app-1" : "demo-1" },
           include: {
+            state: true,
             demonstrationRoleAssignments: {
               where: {
                 OR: [
@@ -83,6 +83,7 @@ describe("application notifications", () => {
           entityId: "app-1",
           triggeredBy: { type: "realtime", id: "user-1" },
           payload: expect.objectContaining({
+            demonstration: { id: "demo-1", name: "Demo title", stateName: "Maryland" },
             application: expect.objectContaining({
               applicationTypeId,
               statusId: "Under Review",
@@ -90,7 +91,7 @@ describe("application notifications", () => {
             recipients: { to: [], bcc: [{ name: "CMS Contact", address: "cms@example.com" }] },
           }),
         }),
-        { applicationId: "app-1" },
+        { applicationId: "app-1", applicationTypeId: applicationTypeId },
         [{ personId: "person-1" }]
       );
     }
@@ -109,7 +110,11 @@ describe("application notifications", () => {
         ...demonstration,
         demonstrationRoleAssignments: assignments,
       });
-      await notifyApplicationStatusUpdated({ ...application, statusId: "Pre-Submission" }, application, "user-1");
+      await notifyApplicationStatusUpdated(
+        { ...application, statusId: "Pre-Submission" },
+        application,
+        "user-1"
+      );
       expect(enqueueAndTrackRealtimeEmail).not.toHaveBeenCalled();
       expect(log.error).toHaveBeenCalledWith(
         expect.objectContaining({ error: expect.any(Error), applicationId: "app-1" }),
@@ -122,7 +127,11 @@ describe("application notifications", () => {
     const error = new Error("queue unavailable");
     vi.mocked(enqueueAndTrackRealtimeEmail).mockRejectedValue(error);
     await expect(
-      notifyApplicationStatusUpdated({ ...application, statusId: "Pre-Submission" }, application, "user-1")
+      notifyApplicationStatusUpdated(
+        { ...application, statusId: "Pre-Submission" },
+        application,
+        "user-1"
+      )
     ).resolves.toBeUndefined();
     expect(log.error).toHaveBeenCalledWith(
       expect.objectContaining({ error }),

@@ -100,6 +100,7 @@ async function notifyDeliverableEvent(
         cmsOwner: { include: { person: true } },
         demonstration: {
           include: {
+            state: true,
             demonstrationRoleAssignments: {
               ...(audience === "all"
                 ? {}
@@ -147,7 +148,7 @@ async function notifyDeliverableEvent(
     const messageId = await enqueueAndTrackRealtimeEmail(
       {
         emailType,
-        entityType: "deliverable",
+        entityType: emailType === "Deliverable Comment" ? "public_comment" : "deliverable_action",
         entityId: deliverable.id,
         triggeredBy: {
           type: "realtime",
@@ -161,7 +162,7 @@ async function notifyDeliverableEvent(
           demonstration: {
             id: deliverable.demonstration.id,
             name: deliverable.demonstration.name,
-            stateId: deliverable.demonstration.stateId,
+            stateName: deliverable.demonstration.state.name,
           },
           deliverable: {
             id: deliverable.id,

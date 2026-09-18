@@ -48,6 +48,10 @@ export function create(props: CommonProps) {
     },
   });
 
+  const cfnApi = api.node.defaultChild as aws_apigateway.CfnRestApi;
+  cfnApi.addPropertyOverride("SecurityPolicy", "SecurityPolicy_TLS13_2025_EDGE")
+  cfnApi.addPropertyOverride("EndpointAccessMode", "STRICT");
+
   api.addGatewayResponse("Default4XXResponse", {
     type: aws_apigateway.ResponseType.DEFAULT_4XX,
     responseHeaders: {
@@ -65,9 +69,11 @@ export function create(props: CommonProps) {
   });
 
   const healthEndpoint = new MockIntegration({
+    contentHandling: aws_apigateway.ContentHandling.CONVERT_TO_TEXT,
     integrationResponses: [
       {
         statusCode: "200",
+        contentHandling: aws_apigateway.ContentHandling.CONVERT_TO_TEXT,
         responseTemplates: {
           "application/json": JSON.stringify({ message: "ok", hash: `${process.env.API_COMMIT_HASH || "unknown"}` }),
         },

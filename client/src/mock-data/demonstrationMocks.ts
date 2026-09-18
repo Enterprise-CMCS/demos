@@ -27,6 +27,11 @@ import {
 import { ADD_DEMONSTRATION_TYPES_FORM_QUERY } from "components/dialog/DemonstrationTypes/AddDemonstrationTypesForm";
 import { DEMONSTRATION_HEADER_DETAILS_QUERY } from "pages/DemonstrationDetail/DemonstrationHeader";
 import { primaryProjectOfficerRoleAssignment } from "./demonstrationRoleAssignmentMocks";
+import { MOCK_DELIVERABLE_1 } from "./deliverableMocks";
+import {
+  AssociatedRecordsDemonstration,
+  TYPE_TAG_ASSOCIATED_RECORDS_QUERY,
+} from "components/table/tables/TypeTagAssociatedRecordsTable";
 
 export type MockDemonstration = Pick<
   Demonstration,
@@ -90,6 +95,40 @@ export const mockDemonstration: Demonstration = {
   updatedAt: new Date(2025, 0, 1),
 };
 
+// Every record on this demonstration carries the same approved tag.
+const MOCK_ASSOCIATED_TAG = MOCK_TAGS[0];
+
+export const MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION: AssociatedRecordsDemonstration = {
+  id: MOCK_DEMONSTRATION.id,
+  name: MOCK_DEMONSTRATION.name,
+  state: MOCK_DEMONSTRATION.state,
+  primaryProjectOfficer: MOCK_DEMONSTRATION.primaryProjectOfficer,
+  tags: [MOCK_ASSOCIATED_TAG],
+  demonstrationTypes: [
+    {
+      demonstrationTypeName: MOCK_ASSOCIATED_TAG.tagName,
+      approvalStatus: MOCK_ASSOCIATED_TAG.approvalStatus,
+    },
+  ],
+  amendments: MOCK_DEMONSTRATION.amendments.map(({ id, name }) => ({
+    id,
+    name,
+    tags: [MOCK_ASSOCIATED_TAG],
+  })),
+  renewals: MOCK_DEMONSTRATION.renewals.map(({ id, name }) => ({
+    id,
+    name,
+    tags: [MOCK_ASSOCIATED_TAG],
+  })),
+  deliverables: [
+    {
+      id: MOCK_DELIVERABLE_1.id,
+      name: MOCK_DELIVERABLE_1.name,
+      demonstrationTypes: [MOCK_ASSOCIATED_TAG],
+    },
+  ],
+};
+
 export const mockAddDemonstrationInput: CreateDemonstrationInput = {
   name: "New Demonstration",
   description: "New Description",
@@ -114,6 +153,17 @@ export const demonstrationMocks: MockedResponse[] = [
       data: {
         demonstrations: [MOCK_DEMONSTRATION],
         people: mockPeople,
+      },
+    },
+    maxUsageCount: Number.POSITIVE_INFINITY,
+  },
+  {
+    request: {
+      query: TYPE_TAG_ASSOCIATED_RECORDS_QUERY,
+    },
+    result: {
+      data: {
+        demonstrations: [MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION],
       },
     },
     maxUsageCount: Number.POSITIVE_INFINITY,
