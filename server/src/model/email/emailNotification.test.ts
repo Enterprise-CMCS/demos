@@ -23,7 +23,7 @@ describe("enqueueAndTrackRealtimeEmail", () => {
   const create = vi.fn();
   const message: RealtimeEmailMessage = {
     emailType: "Deliverable Created",
-    entityType: "deliverable",
+    entityType: "deliverable_action",
     entityId: "7cd6cd0f-e3de-47a0-9faa-32343020c955",
     triggeredBy: {
       type: "realtime",
@@ -65,7 +65,7 @@ describe("enqueueAndTrackRealtimeEmail", () => {
     expect(create).toHaveBeenCalledExactlyOnceWith({
       data: {
         emailTypeId: "Deliverable Created",
-        entityType: "deliverable",
+        entityType: "deliverable_action",
         deliverableActionId: source.deliverableActionId,
         statusId: "Pending",
         payload: message.payload,
@@ -76,6 +76,34 @@ describe("enqueueAndTrackRealtimeEmail", () => {
     });
     expect(enqueueEmail).toHaveBeenCalledExactlyOnceWith({
       ...message,
+      emailNotificationId: "notification-1",
+    });
+  });
+
+  it("tracks application_id for Application Status Updated notifications", async () => {
+    const applicationMessage: RealtimeEmailMessage = {
+      ...message,
+      emailType: "Application Status Updated",
+      entityType: "application",
+    };
+    await enqueueAndTrackRealtimeEmail(
+      applicationMessage,
+      { applicationId: message.entityId, applicationTypeId: "Extension" },
+      recipients
+    );
+    expect(create).toHaveBeenCalledExactlyOnceWith({
+      data: {
+        emailTypeId: "Application Status Updated",
+        entityType: "application",
+        applicationId: message.entityId,
+        statusId: "Pending",
+        payload: message.payload,
+        recipients: { create: recipients },
+        applicationTypeId: "Extension",
+      },
+    });
+    expect(enqueueEmail).toHaveBeenCalledExactlyOnceWith({
+      ...applicationMessage,
       emailNotificationId: "notification-1",
     });
   });

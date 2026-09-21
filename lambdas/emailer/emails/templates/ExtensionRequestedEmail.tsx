@@ -72,8 +72,8 @@ export function renderExtensionRequestedEmail(
           </Text>
         }
         state={getRequiredString(
-          demonstration.stateId,
-          "demonstration.stateId",
+          demonstration.stateName,
+          "demonstration.stateName",
           emailType,
         )}
         dateDetails={

@@ -26,6 +26,11 @@ after the deliverable transaction completes. The producer loads and deduplicates
 recipients, then sends a message through
 [`enqueueEmail`](../../server/src/services/emailQueue.ts).
 
+Submission, completion, manual due-date changes, extension requests and decisions,
+resubmission requests, and public comments use
+[`notifyDeliverableEvent`](../../server/src/model/email/notifyDeliverableEvent.ts)
+after their transactions complete.
+
 Realtime messages have this shape:
 
 ```ts
@@ -180,9 +185,44 @@ stdout is captured by CloudWatch; local terminal output is formatted with
    template data.
 4. Add focused rendering tests and producer tests.
 
-The server currently produces `Deliverable Created`. Other registered
-deliverable event types and `Multiple Deliverables Created` are renderable but
-still need server-side producers.
+## Realtime deliverable emails
+
+All recipients below are BCC recipients, deduplicated by email address. State POCs
+are State Points of Contact assigned to the demonstration. CMS contacts are assigned
+Project Officers, DDME Analysts, Policy Technical Directors, and Monitoring &
+Evaluation Technical Directors.
+
+| Email type | Trigger | Recipients |
+| --- | --- | --- |
+| Deliverable Created | Deliverable creation | All State POCs |
+| Deliverable Submitted | Deliverable submission | CMS owner + all CMS contacts |
+| Deliverable Due Date Updated | Manual due-date change; unchanged dates do not notify | All State POCs |
+| Extension Requested | Extension request | CMS owner + all CMS contacts |
+| Extension Decision Made | Extension approved or denied | All State POCs |
+| Resubmission Requested | Resubmission request | All State POCs |
+| Deliverable Accepted | Completion with Accepted status | All State POCs |
+| Deliverable Approved | Completion with Approved status | All State POCs |
+| Deliverable Received and Filed | Completion with Received and Filed status | All State POCs |
+| Deliverable Comment | Public comment added to an Accepted, Approved, or Received and Filed deliverable | CMS owner + all demonstration contacts |
+
+Producers run after the corresponding transaction completes and use
+[`enqueueAndTrackRealtimeEmail`](../../server/src/model/email/emailNotification.ts)
+to create the notification and queue it. Deliverable actions populate
+`email_notification.deliverable_action_id`; comments populate `public_comment_id`
+instead, without creating a deliverable action. Each new action or comment has its
+own source record. Producer failures are logged without rolling back the saved action
+or comment.
+
+Extension approvals and resubmission requests send their dedicated emails, even when
+they change the due date; they do not also send `Deliverable Due Date Updated`.
+
+`Deliverable Comment` is the registered email type and database value. Its renderer
+remains `PublicCommentAddedEmail.tsx`, with subject
+`CMS DEMOS Deliverable: New Comment` and a link to view the deliverable and full
+comment thread. Comments on other statuses do not generate a notification.
+
+`Multiple Deliverables Created` has a registered template but no server producer yet.
+Scheduled deliverable reminders are not part of these realtime triggers.
 
 ## Local development
 
@@ -199,3 +239,37 @@ From inside the devcontainer, enqueue the legacy test message with:
 
 The script prints the queue result, Mailpit URL, and the command for following
 the local Lambda logs.
+
+### Application notifications
+
+Application emails use the same tracked queue, renderer, BCC delivery, allowlist, and
+notification status updates as deliverable emails:
+
+- `Application Status Updated`: sent after completing a phase, skipping Concept, or
+  declaring Completeness incomplete, when the application's status actually changes.
+
+Status-change emails BCC CMS-role contacts and Admin contacts assigned to the parent demonstration.
+The payload includes the demonstration, application type, status, and event date;
+Amendment and Extension emails also include their application title and direct link.
+Tracking uses the affected application's ID in `application_id`, with `entity_type`
+set to `application` for all three application types. For a demonstration, this is
+the demonstration ID; for an amendment or extension, it is that application's own ID.
+The application type comes from the linked Application record and is included in
+the queued payload for rendering.
+
+### Accepted reference agreements
+
+`referenceDownloadUrl` retains its existing acceptance flow and, when
+`emailRequested` is true and an agreement was accepted, queues
+`Terms And Conditions Requested` with entity type `reference` and the accepted
+`referenceConfigurationId`. Its payload contains the registered recipient,
+`reference.name`, and `agreement: { id, name, s3Path }` captured at submission.
+The worker retrieves that agreement from `CLEAN_BUCKET` and attaches it to the
+email. Retrieval or SMTP failures record `Failed` and `lastError` and follow the
+existing SQS retry policy. Queuing failures are logged while keeping the reference download available.
+The query continues to return a URL string.
+
+Deploy the emailer with clean-bucket read access before deploying the new API and
+frontend. For local testing, use `LOCAL_EMAIL_MODE=mailpit` with
+`.devcontainer/localstack/setup/setup_emailer_lambda.sh`; inspect captured mail at
+`http://localhost:8025`. No database migration is needed.

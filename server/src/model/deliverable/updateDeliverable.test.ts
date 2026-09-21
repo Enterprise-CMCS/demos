@@ -1,3 +1,7 @@
+vi.mock("../email/notifyDeliverableEvent", () => ({
+  notifyDeliverableDueDateUpdated: vi.fn(),
+}));
+import { notifyDeliverableDueDateUpdated } from "../email/notifyDeliverableEvent";
 // Vitest and other helpers
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
@@ -243,5 +247,22 @@ describe("updateDeliverable", () => {
       testContext,
       mockTransaction
     );
+  });
+  it("does not notify when no due date action was created", async () => {
+    await updateDeliverable(testDeliverableId, {}, testContext as GraphQLContext);
+    expect(notifyDeliverableDueDateUpdated).not.toHaveBeenCalled();
+  });
+  it("notifies with the saved due date action after the transaction", async () => {
+    const dueDateChange = {
+      sourceActionId: "action-1",
+      previousDueDate: new Date("2026-09-01"),
+    };
+    vi.mocked(manuallyUpdateDeliverableDueDate).mockResolvedValue(dueDateChange);
+    await updateDeliverable(testDeliverableId, basicTestInput, testContext as GraphQLContext);
+    expect(notifyDeliverableDueDateUpdated).toHaveBeenCalledExactlyOnceWith({
+      deliverableId: testDeliverableId,
+      ...dueDateChange,
+      triggeredByUserId: testContext.user!.id,
+    });
   });
 });

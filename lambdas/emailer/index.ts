@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { getAgreementAttachment } from "./agreementAttachment";
 import { SQSEvent } from "aws-lambda";
 
 import * as ssm from "@aws-sdk/client-ssm";
@@ -39,6 +40,7 @@ export const handler = async (event: SQSEvent) => {
     port: Number.parseInt(process.env.EMAIL_PORT ?? "587"),
   });
 
+  let attachments: Options["attachments"];
   let email;
   try {
     email = JSON.parse(record.body);
@@ -51,6 +53,16 @@ export const handler = async (event: SQSEvent) => {
   const emailLogContext = getEmailLogContext(realtimeEmail);
 
   try {
+    if (realtimeEmail?.emailType === "Terms And Conditions Requested") {
+      const attachment = await getAgreementAttachment(realtimeEmail.payload);
+      attachments = [attachment];
+      // Render the same filename that the recipient sees on the attachment.
+      const payload = realtimeEmail.payload as { agreement: Record<string, unknown> };
+      email = {
+        ...realtimeEmail,
+        payload: { ...payload, agreement: { ...payload.agreement, name: attachment.filename } },
+      };
+    }
     email = await renderRealTimeEmails(email);
   } catch (err) {
     await recordDeliveryStatus(realtimeEmail, "Failed", getErrorMessage(err));
@@ -78,6 +90,7 @@ export const handler = async (event: SQSEvent) => {
       ...(email.html !== undefined ? { html: email.html } : {}),
       ...(email.cc !== undefined ? { cc: email.cc } : {}),
       ...(email.bcc !== undefined ? { bcc: email.bcc } : {}),
+      ...(attachments ? { attachments } : {}),
       from: process.env.EMAIL_FROM,
     };
 
@@ -223,7 +236,7 @@ export async function sendEmailIsAllowed(
   );
 
   return recipients.every((recipient) =>
-    allowList.includes(typeof recipient == "string" ? recipient : recipient.address)
+    allowList.includes((typeof recipient == "string" ? recipient : recipient.address).toLowerCase())
   );
 }
 
@@ -255,7 +268,7 @@ export async function getAllowList() {
       return allowList;
     }
 
-    allowList = [...emails];
+    allowList = emails.map((email: string) => email.toLowerCase());
     return allowList;
   } catch (err) {
     log.error({ error: (err as Error).message }, "error requesting ssm parameter");

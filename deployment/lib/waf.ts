@@ -114,7 +114,7 @@ const createHeaderValueBlockRule = (
         byteMatchStatement: {
           fieldToMatch: {
             singleHeader: {
-              name: headerKey,
+              Name: headerKey,
             },
           },
           positionalConstraint: "EXACTLY",
@@ -158,7 +158,7 @@ const createCombinedBlockRule = (
               byteMatchStatement: {
                 fieldToMatch: {
                   singleHeader: {
-                    name: headerKey,
+                    Name: headerKey,
                   },
                 },
                 positionalConstraint: "EXACTLY",

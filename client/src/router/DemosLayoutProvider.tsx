@@ -13,7 +13,11 @@ const ProvideLayout = ({ header }: { header: React.FC }) => (
 const ProvideLayoutWithAuth = withAuthenticationRequired(ProvideLayout, {
   OnRedirecting: () => <></>,
   signinRedirectArgs: {
-    state: { returnUrl: window.location.pathname + window.location.search },
+    get state() {
+      return {
+        returnUrl: window.location.pathname + window.location.search + window.location.hash,
+      };
+    },
   },
 });
 

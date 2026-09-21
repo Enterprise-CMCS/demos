@@ -15,7 +15,7 @@ vi.mock("../../log", () => ({
   },
 }));
 
-import { CMS_USER_DEMONSTRATION_ROLES } from "../../constants";
+import { STATE_USER_DEMONSTRATION_ROLES } from "../../constants";
 import { log } from "../../log";
 import { prisma } from "../../prismaClient";
 import { enqueueAndTrackRealtimeEmail } from "./emailNotification";
@@ -46,6 +46,7 @@ describe("notifyDeliverableCreated", () => {
       id: "demonstration-1",
       name: "Medicaid Demonstration",
       stateId: "MD",
+      state: { name: "Maryland" },
       demonstrationRoleAssignments: [
         {
           person: {
@@ -84,21 +85,22 @@ describe("notifyDeliverableCreated", () => {
         include: expect.objectContaining({
           demonstration: {
             include: {
+              state: true,
               demonstrationRoleAssignments: {
                 where: {
-                  roleId: { in: Array.from(CMS_USER_DEMONSTRATION_ROLES) },
+                  roleId: { in: Array.from(STATE_USER_DEMONSTRATION_ROLES) },
                 },
                 include: { person: true },
               },
             },
           },
         }),
-      }),
+      })
     );
     expect(enqueueAndTrackRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
       {
         emailType: "Deliverable Created",
-        entityType: "deliverable",
+        entityType: "deliverable_action",
         entityId: deliverable.id,
         triggeredBy: {
           type: "realtime",
@@ -108,14 +110,14 @@ describe("notifyDeliverableCreated", () => {
           recipients: {
             to: [],
             bcc: [
-              { name: "CMS Owner", address: "owner@example.com" },
+              { name: "Duplicate Owner", address: "owner@example.com" },
               { name: "Project Officer", address: "officer@example.com" },
             ],
           },
           demonstration: {
             id: deliverable.demonstration.id,
             name: deliverable.demonstration.name,
-            stateId: deliverable.demonstration.stateId,
+            stateName: deliverable.demonstration.state.name,
           },
           deliverable: {
             id: deliverable.id,
@@ -127,14 +129,14 @@ describe("notifyDeliverableCreated", () => {
         },
       },
       { deliverableActionId: input.sourceActionId },
-      [{ personId: "owner-1" }, { personId: "project-officer" }],
+      [{ personId: "duplicate-owner" }, { personId: "project-officer" }]
     );
     expect(log.info).toHaveBeenCalledWith(
       expect.objectContaining({
         messageId: "message-1",
         deliverableId: deliverable.id,
       }),
-      "Deliverable email queued",
+      "Deliverable email queued"
     );
   });
 
@@ -149,7 +151,9 @@ describe("notifyDeliverableCreated", () => {
       },
       demonstration: {
         ...deliverable.demonstration,
-        demonstrationRoleAssignments: [],
+        demonstrationRoleAssignments: [
+          { person: { ...deliverable.cmsOwner.person, email: "not-an-email" } },
+        ],
       },
     });
 
@@ -163,7 +167,7 @@ describe("notifyDeliverableCreated", () => {
             "Cannot queue Deliverable Created email: person owner-1 does not have a valid email address.",
         }),
       }),
-      "Failed to queue deliverable email",
+      "Failed to queue deliverable email"
     );
   });
 
@@ -178,7 +182,7 @@ describe("notifyDeliverableCreated", () => {
         error,
         deliverableId: deliverable.id,
       }),
-      "Failed to queue deliverable email",
+      "Failed to queue deliverable email"
     );
   });
 });

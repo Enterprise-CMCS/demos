@@ -112,6 +112,7 @@ $AWS_CMD lambda create-function \
     --environment "Variables={
         AWS_REGION=$AWS_REGION,
         AWS_ENDPOINT_URL=$LOCALSTACK_ENDPOINT,
+        CLEAN_BUCKET=${CLEAN_BUCKET:-clean-bucket},
         DATABASE_SECRET_ARN=database-secret,
         DB_SCHEMA=demos_app,
         DB_SSL_MODE=disable,

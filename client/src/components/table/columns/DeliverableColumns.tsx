@@ -105,7 +105,12 @@ export function DeliverableColumns({
   const statusColumn = columnHelper.accessor("combinedStatus", {
     header: "Status",
     cell: highlightCell,
-    filterFn: "arrIncludesSome",
+    filterFn: (row, _columnId, filterValue: string[]) => {
+      if (filterValue.length === 0) {
+        return true;
+      }
+      return filterValue.includes(row.original.combinedStatusFilter);
+    },
     meta: {
       headerClassName: "w-min-[100px] w-max-[200px]",
       headerContentClassName: "whitespace-normal break-words leading-snug",

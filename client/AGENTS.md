@@ -107,6 +107,20 @@ vi.mock("@apollo/client", async () => {
 });
 ```
 
+## Building
+
+### Vite
+
+DEMOS uses vite to build its projects.
+
+- To build for production run `npm run build:ci` and for development run `npm run build:ci:dev`.
+
+#### Feature Flags
+
+- Feature flags can be added in the `define` block of `vite.config.ts`.
+- Ideally feature flags should be called `__FEATURE_{FEATURE_NAME}__` and may be statically declared or utilize a combination of version & mode to derive the value.
+- These flags should be used as `if(__FEATURE_{FEATURE_NAME}__) {...}` so that the code is either included in the production build or not.
+
 ## Key Folders
 
 - `src/components/`: shared UI components

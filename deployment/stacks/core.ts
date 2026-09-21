@@ -1,4 +1,4 @@
-import { CfnOutput, Stack, StackProps, aws_iam, aws_cognito, aws_ec2, RemovalPolicy, aws_s3, Duration, aws_kms, aws_ssm } from "aws-cdk-lib";
+import { CfnOutput, Stack, StackProps, aws_iam, aws_cognito, aws_ec2, RemovalPolicy, aws_s3, Duration, aws_kms, aws_ssm, ArnFormat } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
 import { DeploymentConfigProperties } from "../config";
@@ -198,6 +198,19 @@ export class CoreStack extends Stack {
       },
       "notifier"
     );
+
+    notifierLambda.lambda.lambda.addPermission("CloudWatchAlarmsInvoke", {
+      action: "lambda:InvokeFunction",
+      principal: new aws_iam.ServicePrincipal("lambda.alarms.cloudwatch.amazonaws.com"),
+      sourceAccount: this.account,
+      sourceArn: this.formatArn({
+        service: "cloudwatch",
+        resource: "alarm",
+        resourceName: `${props.project}-${props.stage}-*`,
+        arnFormat: ArnFormat.COLON_RESOURCE_NAME
+      })
+    })
+
 const webhookUrl = aws_ssm.StringParameter.fromSecureStringParameterAttributes(
   this,
   "webhookParam",

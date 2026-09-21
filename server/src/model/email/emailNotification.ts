@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { log } from "../../log";
 import { prisma } from "../../prismaClient";
 import { enqueueEmail, RealtimeEmailMessage } from "../../services/emailQueue";
+import type { ApplicationType } from "../../types";
 
 export type EmailNotificationRecipient = {
   personId: string;
@@ -10,7 +11,11 @@ export type EmailNotificationRecipient = {
 
 export async function enqueueAndTrackRealtimeEmail(
   message: RealtimeEmailMessage,
-  source: { deliverableActionId: string },
+  source:
+    | { referenceConfigurationId: string }
+    | { deliverableActionId: string }
+    | { publicCommentId: string }
+    | { applicationId: string; applicationTypeId: ApplicationType },
   recipients: EmailNotificationRecipient[]
 ): Promise<string | null> {
   if (process.env.DISABLE_EMAIL_NOTIFICATIONS === "true") {
@@ -28,7 +33,7 @@ export async function enqueueAndTrackRealtimeEmail(
     data: {
       emailTypeId: message.emailType,
       entityType: message.entityType,
-      deliverableActionId: source.deliverableActionId,
+      ...source,
       statusId: "Pending",
       payload: message.payload as Prisma.InputJsonValue,
       recipients: {

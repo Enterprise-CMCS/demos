@@ -48,7 +48,7 @@ const realtimeDeliverableCreatedEnvelope = {
     demonstration: {
       id: "demonstration-1",
       name: "Medicaid Demonstration",
-      stateId: "MD",
+      stateName: "Maryland",
     },
     deliverable: {
       id: "deliverable-1",
@@ -343,7 +343,7 @@ describe("emailer", () => {
     ["Extension Requested", "CMS DEMOS Deliverable: Extension Requested"],
     ["Extension Decision Made", "CMS DEMOS Deliverable: Extension Decision Made"],
     ["Resubmission Requested", "CMS DEMOS Deliverable: Resubmission Requested"],
-    ["Public Comment Added", "CMS DEMOS Deliverable: Public Comment Added"],
+    ["Deliverable Comment", "CMS DEMOS Deliverable: New Comment"],
   ])("should select the %s template by email type", async (emailType, subject) => {
     const email = await renderRealTimeEmails({
       ...realtimeDeliverableCreatedEnvelope,
@@ -497,6 +497,23 @@ describe("emailer", () => {
     ).toEqual(true);
     expect(await sendEmailIsAllowed("test@email.com", undefined, "unit@test.com")).toEqual(true);
   });
+  it("compares to, cc, and bcc addresses without regard to casing", async () => {
+    ssmMock.on(GetParameterCommand).resolves({
+      Parameter: {
+        Value: '["email@example.com","test@email.com","unit@test.com"]',
+      },
+    });
+
+    expect(
+      await sendEmailIsAllowed(
+        "Email@Example.com",
+        { name: "Unit Test", address: "Test@Email.com" },
+        ["Unit@Test.com"]
+      )
+    ).toEqual(true);
+    expect(await sendEmailIsAllowed("Email@Example.com", undefined, "Other@Test.com")).toEqual(false);
+  });
+
   it("should return false when an invalid address is included", async () => {
     ssmMock.on(GetParameterCommand).resolves({
       Parameter: {
@@ -519,7 +536,7 @@ describe("emailer", () => {
   it("should successfully return a list of allowList email addresses", async () => {
     ssmMock.on(GetParameterCommand).resolves({
       Parameter: {
-        Value: '["email@example.com","test@email.com","unit@test.com"]',
+        Value: '["Email@Example.com","TEST@email.com","unit@Test.com"]',
       },
     });
     const list = await getAllowList();
