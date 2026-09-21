@@ -1,12 +1,14 @@
-import type { Tag, TagName, TagStatus } from "../../types";
-import { getDemonstrationTypeSummaryCounts, getFormattedTagsByTagType, createTag } from ".";
+import type { TagName } from "../../types";
+import { renameTag } from "./renameTag";
 
-export const tagResolvers = {
+export const tagNameResolvers = {
   Mutation: {
     renameTag: async (
       parent: unknown,
       args: { oldName: string; newName: string }
-    ): Promise<TagName> => renameTag(args.oldName, args.newName)  
+    ): Promise<TagName> => {
+      const newTagName = await renameTag(args.oldName, args.newName);
+      return newTagName.id;
     },
   },
 };

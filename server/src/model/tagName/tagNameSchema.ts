@@ -6,6 +6,7 @@ export const tagNameSchema = gql`
 
   type Mutation {
     renameTag(oldName: TagName!, newName: TagName!): TagName!
+      @auth(requires: ["Perform Admin Action"])
   }
 `;
 

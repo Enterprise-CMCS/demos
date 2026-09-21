@@ -1,6 +1,6 @@
 import { Prisma, TagName as PrismaTagName } from "@prisma/client";
 import { PrismaTransactionClient } from "../../../prismaClient";
-export async function selectTagName(
+export async function updateTagName(
   where: Prisma.TagNameWhereUniqueInput,
   data: Prisma.TagNameUpdateInput,
   tx: PrismaTransactionClient
