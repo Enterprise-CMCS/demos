@@ -1,13 +1,13 @@
 import { PrismaTransactionClient } from "../../prismaClient";
-import { selectTag } from "./queries/selectTag";
+import { selectTags } from ".";
 
 export async function checkTagDoesntAlreadyExist(
   tagName: string,
   tx: PrismaTransactionClient
 ): Promise<string | undefined> {
-  const existingTagName = await selectTag(tagName, "Demonstration Type", tx);
+  const existingTagName = await selectTags(tagName, tx);
 
-  if (existingTagName) {
+  if (existingTagName.length > 0) {
     return `Cannot create new tag with name ${tagName} as it already exists.`;
   }
 }
