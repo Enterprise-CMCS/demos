@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 
-import { Button } from "components/button";
+import { Button, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
+import { ImproveSuggestionsDialog } from "components/dialog/ImproveSuggestionsDialog";
 import { SparklyIcon } from "components/icons";
 import { TagChip } from "components/tags/TagChip";
 import { TagName } from "demos-server";
@@ -14,11 +15,11 @@ const STYLES = {
   sourcePreview: tw`border-l-4 border-action bg-surface-secondary px-1 py-1 text-text-placeholder italic`,
   sourceMeta: tw`mt-1 text-right text-sm italic text-text-placeholder`,
   footer: tw`flex items-center justify-between`,
-  rightActions: tw`flex gap-3`,
+  rightActions: tw`flex gap-1`,
   removeButton: tw`font-semibold text-error hover:text-error-dark focus:outline-none focus:ring-2 focus:ring-error-lightest`,
 };
 
-type ConfirmSuggestedSparklyTagDialogProps = {
+type SuggestedSparklyTagDialogProps = {
   tagName: TagName;
   onClose: () => void;
   onConfirm: (tagName: TagName) => void;
@@ -26,13 +27,25 @@ type ConfirmSuggestedSparklyTagDialogProps = {
   isSubmitting?: boolean;
 };
 
-export const ConfirmSuggestedSparklyTagDialog = ({
+export const SuggestedSparklyTagDialog = ({
   tagName,
   onClose,
   onConfirm,
   onRemove,
   isSubmitting = false,
-}: ConfirmSuggestedSparklyTagDialogProps) => {
+}: SuggestedSparklyTagDialogProps) => {
+  const [view, setView] = useState<"confirm" | "improve">("confirm");
+
+  if (view === "improve") {
+    return (
+      <ImproveSuggestionsDialog
+        tagName={tagName}
+        onBack={() => setView("confirm")}
+        onClose={onClose}
+      />
+    );
+  }
+
   return (
     <BaseDialog
       name="confirm-suggested-sparkly-tag-dialog"
@@ -64,7 +77,13 @@ export const ConfirmSuggestedSparklyTagDialog = ({
             Remove
           </button>
           <div className={STYLES.rightActions}>
-            {/* Improve Suggestion button goes here */}
+            <SecondaryButton
+              name="button-improve-suggestions"
+              onClick={() => setView("improve")}
+              disabled={isSubmitting}
+            >
+              Improve Suggestions
+            </SecondaryButton>
             <Button
               name="button-confirm-suggested-tag"
               onClick={() => onConfirm(tagName)}
