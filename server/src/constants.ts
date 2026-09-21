@@ -139,6 +139,7 @@ export const PERSON_TYPES = [
   "demos-restricted-cms-user",
   "demos-state-user",
   "non-user-contact",
+  "demos-cms-reviewer-user",
 ] as const;
 
 export const USER_TYPES = [
@@ -146,6 +147,7 @@ export const USER_TYPES = [
   "demos-cms-user",
   "demos-state-user",
   "demos-restricted-cms-user",
+  "demos-cms-reviewer-user",
 ] as const;
 
 export const PRIMARY_DEMONSTRATION_ROLE_ASSIGNMENT_PERSON_TYPES = [
@@ -551,6 +553,7 @@ export const SYSTEM_ROLES = [
   "Admin User",
   "CMS User",
   "Restricted CMS User",
+  "CMS Reviewer User",
   "State User",
 ] as const;
 
