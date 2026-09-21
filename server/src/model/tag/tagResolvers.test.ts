@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // Mock imports
 import { getDemonstrationTypeSummaryCounts, getFormattedTagsByTagType, createTag } from ".";
 import { tagResolvers } from "./tagResolvers";
+import { Tag as PrismaTag } from "@prisma/client";
 
 vi.mock(".", () => ({
   getDemonstrationTypeSummaryCounts: vi.fn(),
@@ -38,13 +39,7 @@ describe("tagResolvers", () => {
 
   describe("Mutation.createTag", () => {
     it("should call createTag with the correct tagName", async () => {
-      await tagResolvers.Mutation.createTag(null, { tagName: "My New Tag!" });
-      expect(createTag).toHaveBeenCalledExactlyOnceWith("My New Tag!");
-    });
-
-    it("should return the created tag with correct mapped properties", async () => {
-      const mockPrismaTag = {
-        id: "tag-123",
+      const mockCreatedTag: Partial<PrismaTag> = {
         tagNameId: "My New Tag!",
         tagTypeId: "Demonstration Type",
         sourceId: "User",
@@ -52,9 +47,9 @@ describe("tagResolvers", () => {
         createdAt: new Date("2026-09-21"),
         updatedAt: new Date("2026-09-21"),
       };
-      (createTag as any).mockResolvedValue(mockPrismaTag);
-
+      vi.mocked(createTag).mockResolvedValue(mockCreatedTag as PrismaTag);
       const result = await tagResolvers.Mutation.createTag(null, { tagName: "My New Tag!" });
+      expect(createTag).toHaveBeenCalledExactlyOnceWith("My New Tag!");
 
       expect(result.tagName).toBe("My New Tag!");
       expect(result.approvalStatus).toBe("Unapproved");
