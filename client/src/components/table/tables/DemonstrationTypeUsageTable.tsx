@@ -30,7 +30,7 @@ export const DemonstrationTypeUsageTable = () => {
   const rows = MOCK_DEMONSTRATION_TYPE_USAGE.map((item, index) => ({
     ...item,
     id: `${item.demonstrationTypeName}-${index}`,
-  }));
+  })).sort((a, b) => a.demonstrationTypeName.localeCompare(b.demonstrationTypeName));
 
   return (
     <Table<DemonstrationTypeUsageRow>
