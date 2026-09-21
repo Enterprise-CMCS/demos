@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { DemonstrationTypeUsageSummary } from "demos-server";
 import { SecondaryButton } from "components/button";
 import { MOCK_DEMONSTRATION_TYPE_USAGE } from "mock-data/demonstrationTypeUsageMocks";
@@ -27,10 +27,14 @@ const demonstrationTypeUsageColumns = [
 
 export const DemonstrationTypeUsageTable = () => {
   // TODO: Replace this with server data in integration ticket
-  const rows = MOCK_DEMONSTRATION_TYPE_USAGE.map((item, index) => ({
-    ...item,
-    id: `${item.demonstrationTypeName}-${index}`,
-  })).sort((a, b) => a.demonstrationTypeName.localeCompare(b.demonstrationTypeName));
+  const rows = useMemo(
+    () =>
+      MOCK_DEMONSTRATION_TYPE_USAGE.map((item) => ({
+        ...item,
+        id: item.demonstrationTypeName,
+      })).sort((a, b) => a.demonstrationTypeName.localeCompare(b.demonstrationTypeName)),
+    []
+  );
 
   return (
     <Table<DemonstrationTypeUsageRow>
