@@ -1,4 +1,4 @@
-import type { Tag } from "../../types";
+import type { Tag, TagStatus } from "../../types";
 import { getDemonstrationTypeSummaryCounts, getFormattedTagsByTagType, createTag } from ".";
 
 export const tagResolvers = {
@@ -9,6 +9,13 @@ export const tagResolvers = {
   },
 
   Mutation: {
-    createTag: (parent: unknown, args: { tagName: string }) => createTag(args.tagName),
+    createTag: async (parent: unknown, args: { tagName: string }): Promise<Tag> => {
+      const demonstrationTypeTag = await createTag(args.tagName);
+      return {
+        tagName: demonstrationTypeTag.tagNameId,
+        // casting enforced by database constraints
+        approvalStatus: demonstrationTypeTag.statusId as TagStatus,
+      };
+    },
   },
 };

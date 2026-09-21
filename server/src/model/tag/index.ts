@@ -8,5 +8,4 @@ export { createTag } from "./createTag";
 export { createNewTagIfNotExists } from "./queries/createNewTagIfNotExists";
 export { getTagsByTagType } from "./queries/getTagsByTagType";
 export { getDemonstrationTypeSummaryCounts } from "./queries/getDemonstrationTypeSummaryCounts";
-
 export { insertTag } from "./queries/insertTag";

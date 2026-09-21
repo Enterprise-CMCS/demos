@@ -41,5 +41,23 @@ describe("tagResolvers", () => {
       await tagResolvers.Mutation.createTag(null, { tagName: "My New Tag!" });
       expect(createTag).toHaveBeenCalledExactlyOnceWith("My New Tag!");
     });
+
+    it("should return the created tag with correct mapped properties", async () => {
+      const mockPrismaTag = {
+        id: "tag-123",
+        tagNameId: "My New Tag!",
+        tagTypeId: "Demonstration Type",
+        sourceId: "User",
+        statusId: "Unapproved",
+        createdAt: new Date("2026-09-21"),
+        updatedAt: new Date("2026-09-21"),
+      };
+      (createTag as any).mockResolvedValue(mockPrismaTag);
+
+      const result = await tagResolvers.Mutation.createTag(null, { tagName: "My New Tag!" });
+
+      expect(result.tagName).toBe("My New Tag!");
+      expect(result.approvalStatus).toBe("Unapproved");
+    });
   });
 });

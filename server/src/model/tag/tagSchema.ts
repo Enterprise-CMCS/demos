@@ -27,6 +27,10 @@ export const tagSchema = gql`
     demonstrationTypeUsageSummary: [DemonstrationTypeUsageSummary!]!
       @auth(requires: ["Access Admin Query"])
   }
+
+  type Mutation {
+    createTag(tagName: TagName!): Tag! @auth(requires: ["Perform Admin Action"])
+  }
 `;
 
 export interface Tag {

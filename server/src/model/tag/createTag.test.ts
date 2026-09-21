@@ -60,4 +60,24 @@ describe("createTag", () => {
     await createTag("New Tag Value");
     expect(insertTag).toHaveBeenNthCalledWith(2, "New Tag Value", "Application", mockTransaction);
   });
+
+  it("should return the created demonstration type tag with all properties", async () => {
+    const mockCreatedTag = {
+      id: "tag-456",
+      tagNameId: "New Tag Value",
+      tagTypeId: "Demonstration Type",
+      sourceId: "User",
+      statusId: "Unapproved",
+      createdAt: new Date("2026-09-21"),
+      updatedAt: new Date("2026-09-21"),
+    };
+    vi.mocked(insertTag).mockResolvedValue(mockCreatedTag as any);
+
+    const result = await createTag("New Tag Value");
+
+    expect(result).toEqual(mockCreatedTag);
+    expect(result.tagNameId).toBe("New Tag Value");
+    expect(result.tagTypeId).toBe("Demonstration Type");
+    expect(result.statusId).toBe("Unapproved");
+  });
 });
