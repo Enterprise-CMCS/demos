@@ -3,6 +3,10 @@ import gql from "graphql-tag";
 // Note that tagNames are dynamic, so we cannot make this a static constant like we've used elsewhere
 export const tagNameSchema = gql`
   scalar TagName
+
+  type Mutation {
+    renameTag(oldName: TagName!, newName: TagName!): TagName!
+  }
 `;
 
 // This type alias exists to maintain consistency between GraphQL schema and TypeScript types.
