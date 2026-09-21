@@ -1,5 +1,5 @@
 import type { TagName } from "../../types";
-import { renameTag } from "./renameTag";
+import { renameTag } from ".";
 
 export const tagNameResolvers = {
   Mutation: {

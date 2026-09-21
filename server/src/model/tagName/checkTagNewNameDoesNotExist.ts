@@ -1,5 +1,5 @@
 import { PrismaTransactionClient } from "../../prismaClient";
-import { selectTagName } from "./queries/selectTagName";
+import { selectTagName } from ".";
 
 export async function checkTagNewNameDoesNotExist(
   tagName: string,

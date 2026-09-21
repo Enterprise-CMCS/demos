@@ -1,8 +1,6 @@
 import { cleanErrorsAndThrow } from "../../errors/cleanErrorsAndThrow";
 import { PrismaTransactionClient } from "../../prismaClient";
-import {} from ".";
-import { checkTagOldNameExists } from "./checkTagOldNameExists";
-import { checkTagNewNameDoesNotExist } from "./checkTagNewNameDoesNotExist";
+import { checkTagOldNameExists, checkTagNewNameDoesNotExist } from ".";
 
 export const validateRenameTagInput = async (
   oldName: string,

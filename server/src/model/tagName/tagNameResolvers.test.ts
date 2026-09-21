@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { tagNameResolvers } from "./tagNameResolvers";
-import { renameTag } from "./renameTag";
+import { renameTag } from ".";
 
-vi.mock("./renameTag", () => ({
+vi.mock(".", () => ({
   renameTag: vi.fn(),
 }));
 

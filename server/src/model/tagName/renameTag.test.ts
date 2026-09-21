@@ -1,18 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renameTag } from "./renameTag";
 import { prisma } from "../../prismaClient";
-import { validateRenameTagInput } from "./validateRenameTagInput";
-import { updateTagName } from "./queries/updateTagName";
+import { validateRenameTagInput, updateTagName } from ".";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
-vi.mock("./validateRenameTagInput", () => ({
+vi.mock(".", () => ({
   validateRenameTagInput: vi.fn(),
-}));
-
-vi.mock("./queries/updateTagName", () => ({
   updateTagName: vi.fn(),
 }));
 

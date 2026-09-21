@@ -1,14 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { validateRenameTagInput } from "./validateRenameTagInput";
-import { checkTagOldNameExists } from "./checkTagOldNameExists";
-import { checkTagNewNameDoesNotExist } from "./checkTagNewNameDoesNotExist";
+import { checkTagNewNameDoesNotExist, checkTagOldNameExists } from ".";
 import { cleanErrorsAndThrow } from "../../errors/cleanErrorsAndThrow";
 
-vi.mock("./checkTagOldNameExists", () => ({
+vi.mock(".", () => ({
   checkTagOldNameExists: vi.fn(),
-}));
-
-vi.mock("./checkTagNewNameDoesNotExist", () => ({
   checkTagNewNameDoesNotExist: vi.fn(),
 }));
 

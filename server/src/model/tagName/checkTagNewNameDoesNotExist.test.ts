@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { checkTagNewNameDoesNotExist } from "./checkTagNewNameDoesNotExist";
-import { selectTagName } from "./queries/selectTagName";
+import { selectTagName } from ".";
 
-vi.mock("./queries/selectTagName", () => ({
+vi.mock(".", () => ({
   selectTagName: vi.fn(),
 }));
 

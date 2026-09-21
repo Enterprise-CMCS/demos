@@ -1,7 +1,6 @@
 import { TagName } from "@prisma/client";
 import { prisma } from "../../prismaClient";
-import { updateTagName } from "./queries/updateTagName";
-import { validateRenameTagInput } from "./validateRenameTagInput";
+import { updateTagName, validateRenameTagInput } from ".";
 
 export const renameTag = (oldName: string, newName: string): Promise<TagName> => {
   return prisma().$transaction(async (tx) => {
