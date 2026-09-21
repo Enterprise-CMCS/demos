@@ -1,8 +1,11 @@
 import React from "react";
+import { createColumnHelper } from "@tanstack/react-table";
 import { DemonstrationTypeUsageSummary } from "demos-server";
 import { SecondaryButton } from "components/button";
 import { MOCK_DEMONSTRATION_TYPE_USAGE } from "mock-data/demonstrationTypeUsageMocks";
 import { Table, PaginationControls, KeywordSearch, getColumnBuilder } from "components/table";
+import { createSelectColumnDef } from "components/table/columns/selectColumn";
+import { TypeTagActionButtons } from "./TypeTagActionButtons";
 
 export type DemonstrationTypeUsageRow = DemonstrationTypeUsageSummary & {
   id: string;
@@ -11,6 +14,7 @@ export type DemonstrationTypeUsageRow = DemonstrationTypeUsageSummary & {
 const { createColumn, createDisplayColumn } = getColumnBuilder<DemonstrationTypeUsageRow>();
 
 const demonstrationTypeUsageColumns = [
+  createSelectColumnDef(createColumnHelper<DemonstrationTypeUsageRow>()),
   createColumn((row) => row.demonstrationTypeName, "Type/Tag Name"),
   createColumn((row) => row.approvalStatus, "Status", {
     highlightSearchResults: false,
@@ -42,6 +46,7 @@ export const DemonstrationTypeUsageTable: React.FC = () => {
       columns={demonstrationTypeUsageColumns}
       keywordSearch={(table) => <KeywordSearch table={table} />}
       pagination={(table) => <PaginationControls table={table} />}
+      actionButtons={(table) => <TypeTagActionButtons table={table} />}
       emptyRowsMessage="No demonstration types available."
       noResultsFoundMessage="No results match your search"
     />

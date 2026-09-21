@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect } from "vitest";
 import { Route, Routes } from "react-router-dom";
 import { TestProvider } from "test-utils/TestProvider";
+import { DialogProvider } from "components/dialog/DialogContext";
 import { MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION } from "mock-data/demonstrationMocks";
 import { AdminHeader } from "./AdminHeader";
 import { TypeTagManagement } from "./TypeTagManagement";
@@ -20,7 +21,9 @@ const ASSOCIATED_RECORDS_ENTRY = `/admin?${TYPE_TAG_SEARCH_PARAM}=${encodeURICom
 const setup = (routerEntry = "/admin") =>
   render(
     <TestProvider routerEntries={[routerEntry]}>
-      <TypeTagManagement />
+      <DialogProvider>
+        <TypeTagManagement />
+      </DialogProvider>
     </TestProvider>
   );
 
@@ -59,18 +62,20 @@ describe("TypeTagManagement", () => {
     const user = userEvent.setup();
     render(
       <TestProvider routerEntries={["/demonstrations", "/admin"]}>
-        <Routes>
-          <Route path="/demonstrations" element={<div>{PREVIOUS_PAGE_TEXT}</div>} />
-          <Route
-            path="/admin"
-            element={
-              <>
-                <AdminHeader />
-                <TypeTagManagement />
-              </>
-            }
-          />
-        </Routes>
+        <DialogProvider>
+          <Routes>
+            <Route path="/demonstrations" element={<div>{PREVIOUS_PAGE_TEXT}</div>} />
+            <Route
+              path="/admin"
+              element={
+                <>
+                  <AdminHeader />
+                  <TypeTagManagement />
+                </>
+              }
+            />
+          </Routes>
+        </DialogProvider>
       </TestProvider>
     );
 

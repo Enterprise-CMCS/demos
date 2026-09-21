@@ -60,6 +60,7 @@ import {
 } from "./deliverable/ReviewExtensionDeliverableDialog";
 import { ReferenceAgreementDialog } from "./referenceAgreement/ReferenceAgreementDialog";
 import { AssignStatesDialog, AssignStatesDialogPerson } from "./user/AssignStatesDialog";
+import { EditTypeTagDialog } from "./typeTag/EditTypeTagDialog";
 
 type EditDeliverableDialogSource = Pick<
   DeliverableTableRow,
@@ -372,6 +373,16 @@ export const useDialog = () => {
     context.showDialog(<AssignStatesDialog person={person} onClose={context.hideDialog} />);
   };
 
+  const showEditTypeTagDialog = (typeTagName: TagName, existingTypeTagNames: TagName[]) => {
+    context.showDialog(
+      <EditTypeTagDialog
+        typeTagName={typeTagName}
+        existingTypeTagNames={existingTypeTagNames}
+        onClose={context.hideDialog}
+      />
+    );
+  };
+
   const showReferenceAgreementDialog = (
     reference: Pick<Reference, "id"> & {
       agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt">;
@@ -413,5 +424,6 @@ export const useDialog = () => {
     showReviewExtensionDeliverableDialog,
     showReferenceAgreementDialog,
     showAssignStatesDialog,
+    showEditTypeTagDialog,
   };
 };
