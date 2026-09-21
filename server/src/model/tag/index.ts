@@ -9,3 +9,4 @@ export { createNewTagIfNotExists } from "./queries/createNewTagIfNotExists";
 export { getTagsByTagType } from "./queries/getTagsByTagType";
 export { getDemonstrationTypeSummaryCounts } from "./queries/getDemonstrationTypeSummaryCounts";
 export { insertTag } from "./queries/insertTag";
+export { selectTags } from "./queries/selectTags";
