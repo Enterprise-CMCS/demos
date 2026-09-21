@@ -29,6 +29,7 @@ export async function notifyDeliverableCreated(
         cmsOwner: { include: { person: true } },
         demonstration: {
           include: {
+            state: true,
             demonstrationRoleAssignments: {
               where: {
                 roleId: { in: Array.from(STATE_USER_DEMONSTRATION_ROLES) },
@@ -48,7 +49,7 @@ export async function notifyDeliverableCreated(
     const messageId = await enqueueAndTrackRealtimeEmail(
       {
         emailType: "Deliverable Created",
-        entityType: "deliverable",
+        entityType: "deliverable_action",
         entityId: deliverable.id,
         triggeredBy: {
           type: "realtime",
@@ -62,7 +63,7 @@ export async function notifyDeliverableCreated(
           demonstration: {
             id: deliverable.demonstration.id,
             name: deliverable.demonstration.name,
-            stateId: deliverable.demonstration.stateId,
+            stateName: deliverable.demonstration.state.name,
           },
           deliverable: {
             id: deliverable.id,

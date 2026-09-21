@@ -20,7 +20,7 @@ export type RealtimeEmailType =
 
 export type RealtimeEmailMessage = {
   emailType: RealtimeEmailType;
-  entityType: "deliverable" | "application" | "reference";
+  entityType: "public_comment" | "deliverable_action" | "application" | "reference";
   entityId: string;
   triggeredBy: {
     type: "realtime";

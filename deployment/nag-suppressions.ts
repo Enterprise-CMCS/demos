@@ -77,6 +77,12 @@ export function applyApiSuppressions(api: Stack, stage: string) {
     {
       id: "AwsSolutions-APIG4",
       reason: "This is a healthcheck endpoint that does not return any actual information",
+    }
+  ]);
+  NagSuppressions.addResourceSuppressionsByPath(api, `demos-${stage}-api/ApiGatewayRestApi/DeploymentStage.${stage}/Resource`, [
+    {
+      id: "AwsSolutions-APIG3",
+      reason: "WAF is added in the UI stack so that values can be shared between the cloudfront and api waf",
     },
   ]);
 
@@ -160,6 +166,38 @@ export function applyApiSuppressions(api: Stack, stage: string) {
   NagSuppressions.addResourceSuppressionsByPath(
     api,
     `/demos-${stage}-api/emailer/emailerLambdaExecutionRole/DefaultPolicy/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role",
+      },
+    ]
+  );
+  NagSuppressions.addResourceSuppressionsByPath(
+    api,
+    `/demos-${stage}-api/emailScheduler/emailSchedulerLambdaExecutionRole/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role",
+      },
+    ]
+  );
+
+  NagSuppressions.addResourceSuppressionsByPath(
+    api,
+    `/demos-${stage}-api/emailScheduler/emailSchedulerLambdaExecutionRole/DefaultPolicy/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role",
+      },
+    ]
+  );
+
+  NagSuppressions.addResourceSuppressionsByPath(
+    api,
+    `/demos-${stage}-api/SchedulerRoleForTarget-d57e7b/DefaultPolicy/Resource`,
     [
       {
         id: "AwsSolutions-IAM5",

@@ -1,12 +1,11 @@
-import {
-  renderApplicationStatusUpdatedEmail,
-} from "./templates/ApplicationEmail";
+import { renderApplicationStatusUpdatedEmail } from "./templates/ApplicationEmail";
 import { render, toPlainText } from "@react-email/render";
 
 import { getRequiredObject } from "./helpers";
 import { renderDeliverableAcceptedEmail } from "./templates/DeliverableAcceptedEmail";
 import { renderDeliverableApprovedEmail } from "./templates/DeliverableApprovedEmail";
 import { renderDeliverableCreatedEmail } from "./templates/DeliverableCreatedEmail";
+import { renderDeliverableDueDateReminderEmail } from "./templates/DeliverableDueDateReminderEmail";
 import { renderDeliverableDueDateUpdatedEmail } from "./templates/DeliverableDueDateUpdatedEmail";
 import { renderDeliverableReceivedAndFiledEmail } from "./templates/DeliverableReceivedAndFiledEmail";
 import { renderDeliverableSubmittedEmail } from "./templates/DeliverableSubmittedEmail";
@@ -23,12 +22,17 @@ import type {
 } from "./types";
 
 import { renderTermsAndConditionsRequestedEmail } from "./templates/TermsAndConditionsRequestedEmail";
+import { renderDemonstrationExpirationReminderEmail } from "./templates/DemonstrationExpirationReminderEmail";
+import { renderApplicationExpectedApprovalDateReminderEmail } from "./templates/ApplicationExpectedApprovalDateReminderEmail";
 
 // Template creation
 const templates: Record<string, EmailTemplate> = {
   "Terms And Conditions Requested": renderTermsAndConditionsRequestedEmail,
   "Application Status Updated": renderApplicationStatusUpdatedEmail,
   "Deliverable Created": renderDeliverableCreatedEmail,
+  "Deliverable Due Date Reminder": renderDeliverableDueDateReminderEmail,
+  "Demonstration Expiration Date Reminder": renderDemonstrationExpirationReminderEmail,
+  "Application Expected Approval Date Reminder": renderApplicationExpectedApprovalDateReminderEmail,
   "Deliverable Due Date Updated": renderDeliverableDueDateUpdatedEmail,
   "Deliverable Submitted": renderDeliverableSubmittedEmail,
   "Deliverable Accepted": renderDeliverableAcceptedEmail,

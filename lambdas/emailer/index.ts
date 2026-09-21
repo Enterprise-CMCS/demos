@@ -236,7 +236,7 @@ export async function sendEmailIsAllowed(
   );
 
   return recipients.every((recipient) =>
-    allowList.includes(typeof recipient == "string" ? recipient : recipient.address)
+    allowList.includes((typeof recipient == "string" ? recipient : recipient.address).toLowerCase())
   );
 }
 
@@ -268,7 +268,7 @@ export async function getAllowList() {
       return allowList;
     }
 
-    allowList = [...emails];
+    allowList = emails.map((email: string) => email.toLowerCase());
     return allowList;
   } catch (err) {
     log.error({ error: (err as Error).message }, "error requesting ssm parameter");

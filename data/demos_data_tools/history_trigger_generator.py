@@ -26,6 +26,7 @@ TBL_FOLDERS = [
     "document",
     "documentInfected",
     "documentPendingUpload",
+    "emailNotification",
     "extension",
     "person",
     "personState",
