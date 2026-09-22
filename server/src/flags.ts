@@ -1,7 +1,7 @@
 import semver from "semver";
 
 /**
- * Build-time feature flags and version constants.
+ * Feature flags and version constants.
  */
 
 export const __DEMOS_VERSION__ = "1.0.0";
