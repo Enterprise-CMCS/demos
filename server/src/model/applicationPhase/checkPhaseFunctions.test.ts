@@ -20,7 +20,7 @@ import { TZDate } from "@date-fns/tz";
 describe("checkPhaseFunctions", () => {
   const testApplicationId = "5a947103-3ad5-4237-96cd-3eaeb0c88541";
   const testPhaseName: PhaseName = "Completeness";
-  const testDateTypeToCheck: DateType = "Expected Approval Date";
+  const testDateTypeToCheck: DateType = "Internal Expected Approval Date";
   const testDocumentTypetoCheck: DocumentType = "BN Workbook";
   const testPhaseToCheckComplete: PhaseName = "Application Intake";
 

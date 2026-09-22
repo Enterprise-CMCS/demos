@@ -3,9 +3,11 @@ import type { AuthProviderProps } from "react-oidc-context";
 import type { UserManagerSettings } from "oidc-client-ts";
 import { WebStorageStateStore } from "oidc-client-ts";
 
-// Strip OIDC callback junk after login
-const onSigninCallback = () => {
-  window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+const onSigninCallback: AuthProviderProps["onSigninCallback"] = (user) => {
+  const state = user?.state as { returnUrl?: string } | undefined;
+
+  // Restore the destination before the authenticated router mounts, removing OIDC parameters.
+  window.history.replaceState({}, document.title, state?.returnUrl ?? "/");
 };
 
 /** The exact OIDC settings we use (snake_case keys, matching oidc-client-ts). */
@@ -13,7 +15,7 @@ type OidcSettingsSubset = Pick<
   UserManagerSettings,
   "authority" | "client_id" | "redirect_uri" | "scope" | "response_type" | "automaticSilentRenew"
 > & {
-  onSigninCallback: () => void;
+  onSigninCallback: AuthProviderProps["onSigninCallback"];
   automaticSilentRenew: boolean;
   onSilentRenewError?: (error: Error) => void;
   userStore?: WebStorageStateStore;

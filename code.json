@@ -23,7 +23,7 @@
   "disclaimerURL": "",
   "disclaimerText": "",
   "vcs": "git",
-  "laborHours": 21959,
+  "laborHours": 22390,
   "reuseFrequency": {
     "forks": 0,
     "clones": 0
@@ -64,8 +64,8 @@
   "partners": [],
   "date": {
     "created": "2025-05-08T12:52:27Z",
-    "lastModified": "2026-07-31T18:31:16Z",
-    "metadataLastUpdated": "2026-08-01T00:16:56.729Z"
+    "lastModified": "2026-08-31T17:52:07Z",
+    "metadataLastUpdated": "2026-09-01T00:01:51.314Z"
   },
   "tags": [
     "PMDA",

@@ -12,6 +12,8 @@ import {
   aws_ssm,
   aws_kms,
   RemovalPolicy,
+  Validations,
+  TimeZone
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -26,6 +28,8 @@ import importNumberValue from "../util/importNumberValue";
 import path from "node:path";
 import { Queue, QueueEncryption } from "aws-cdk-lib/aws-sqs";
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
+import * as scheduler from "aws-cdk-lib/aws-scheduler";
+import * as schedulerTargets from "aws-cdk-lib/aws-scheduler-targets";
 
 interface APIStackProps {
   vpc: IVpc;
@@ -138,7 +142,6 @@ export class ApiStack extends Stack {
         environment: {
           JWKS_URI: `${cognitoAuthority}/.well-known/jwks.json`,
         },
-        externalModules: ["aws-sdk"],
         nodeModules: ["jsonwebtoken", "jwks-rsa"],
         depsLockFilePath: path.join(rel, "package-lock.json"),
         timeout: Duration.seconds(10),
@@ -161,6 +164,7 @@ export class ApiStack extends Stack {
 
     const cleanBucketName = Fn.importValue(`${props.stage}CleanBucketName`);
     const cleanBucket = aws_s3.Bucket.fromBucketName(this, "cleanBucket", cleanBucketName);
+    const emailerPath = path.join("..", "lambdas", "emailer");
 
     const deletedBucketName = Fn.importValue(`${props.stage}DeletedBucketName`);
     const deletedBucket = aws_s3.Bucket.fromBucketName(this, "deletedBucket", deletedBucketName);
@@ -191,6 +195,7 @@ export class ApiStack extends Stack {
           DELETED_BUCKET: deletedBucket.bucketName,
           // None of the other queue use ENV. maybe another way.
           UIPATH_QUEUE_URL: uipathQueueUrl,
+          DISABLE_EMAIL_NOTIFICATIONS: process.env.DISABLE_EMAIL_NOTIFICATIONS ?? "false",
         },
       },
       "graphql"
@@ -230,7 +235,7 @@ export class ApiStack extends Stack {
       removalPolicy: RemovalPolicy.DESTROY,
       enforceSSL: true,
       deadLetterQueue: {
-        maxReceiveCount: 5,
+        maxReceiveCount: 1,
         queue: deadLetterQueue,
       },
       encryption: QueueEncryption.KMS,
@@ -238,12 +243,40 @@ export class ApiStack extends Stack {
       visibilityTimeout: emailerTimeout,
     });
     alarmResources.registerQueue("emailer", emailQueue);
+    graphqlLambda.lambda.lambda.addEnvironment("EMAILER_QUEUE_URL", emailQueue.queueUrl);
+    emailQueue.grantSendMessages(graphqlLambda.lambda.role);
 
     const emailerLambdaSecurityGroup = securityGroup.create({
       ...commonProps,
       name: "emailerSecurityGroup",
       vpc: props.vpc,
     });
+
+    rdsSg.addIngressRule(
+      aws_ec2.Peer.securityGroupId(emailerLambdaSecurityGroup.securityGroup.securityGroupId),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow ingress from Emailer Security Group",
+      true
+    );
+
+    emailerLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(rdsSecurityGroupId),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow egress to RDS",
+      true
+    );
+
+    emailerLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to secrets manager VPCE"
+    );
+
+    emailerLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to S3"
+    );
 
     const sharedServicesSG = aws_ec2.SecurityGroup.fromLookupByName(
       commonProps.scope,
@@ -263,12 +296,14 @@ export class ApiStack extends Stack {
       aws_ec2.Peer.securityGroupId(ssmSg.securityGroupId),
       aws_ec2.Port.HTTPS
     );
-
     const allowListParamName = "/demos/nonprod/email/allowlist";
-
+    const emailerDbSecret = aws_secretsmanager.Secret.fromSecretNameV2(
+      this,
+      "rdsEmailerDatabaseSecret",
+      `demos-${commonProps.hostEnvironment}-rds-demos_emailer`
+    );
     // Emailer
     const emailSuffix = commonProps.stage == "prod" ? "" : `-${commonProps.stage}`;
-    const emailerPath = path.join("..", "lambdas", "emailer");
     const emailerLambda = new lambda.Lambda(commonProps.scope, "emailer", {
       ...commonProps,
       scope: commonProps.scope,
@@ -276,12 +311,28 @@ export class ApiStack extends Stack {
       handler: "index.handler",
       vpc: props.vpc,
       externalModules: ["@aws-sdk"],
-      nodeModules: ["nodemailer"],
+      nodeModules: [
+        "@react-email/components",
+        "@react-email/render",
+        "mime-types",
+        "nodemailer",
+        "pg",
+        "pino",
+        "react",
+        "react-dom",
+      ],
       securityGroup: [emailerLambdaSecurityGroup.securityGroup, sharedServicesSG],
       asCode: false,
       depsLockFilePath: path.join(emailerPath, "package-lock.json"),
       timeout: emailerTimeout,
       environment: {
+        DATABASE_SECRET_ARN: emailerDbSecret.secretName, // pragma: allowlist secret
+        DB_SCHEMA: "demos_app",
+        DB_SSL_ROOT_CERT: "/var/runtime/ca-cert.pem",
+        DEMOS_APP_URL: commonProps.isLocalstack
+          ? "https://localhost:3000"
+          : `https://${commonProps.cloudfrontHost}`,
+        CLEAN_BUCKET: cleanBucket.bucketName,
         EMAIL_HOST: "smtp.cloud.internal.cms.gov",
         EMAIL_PORT: "587",
         EMAIL_FROM: `"DEMOS${emailSuffix}" <DEMOS${emailSuffix}-no-reply@cms.hhs.gov>`,
@@ -291,7 +342,9 @@ export class ApiStack extends Stack {
       },
       commandHooks: {
         afterBundling(inputDir: string, outputDir: string): string[] {
-          return [`cp ${inputDir}/../../deployment/cert.pem ${outputDir}/cert.pem`];
+          return [
+            `cp ${inputDir}/../../deployment/cert.pem ${outputDir}/cert.pem`,
+          ];
         },
         beforeBundling() {
           return [];
@@ -302,6 +355,8 @@ export class ApiStack extends Stack {
       },
     });
     alarmResources.registerLambda("emailer", emailerLambda.lambda);
+    emailerDbSecret.grantRead(emailerLambda.role);
+    cleanBucket.grantRead(emailerLambda.role);
 
     if (commonProps.stage != "prod") {
       const allowListParam = aws_ssm.StringParameter.fromStringParameterName(
@@ -311,6 +366,10 @@ export class ApiStack extends Stack {
       );
 
       allowListParam.grantRead(emailerLambda.role);
+      Validations.of(commonProps.scope).acknowledge({
+        id: "CloudFormation-Validate::W2001",
+        reason: "The param is imported and used to grant access to the emailer"
+      })
     }
 
     emailerLambda.lambda.addEventSource(
@@ -324,6 +383,80 @@ export class ApiStack extends Stack {
         batchSize: 1,
       })
     );
+
+    const emailSchedulerLambdaSecurityGroup = securityGroup.create({
+      ...commonProps,
+      name: "emailSchedulerSecurityGroup",
+      vpc: props.vpc,
+    });
+
+    rdsSg.addIngressRule(
+      aws_ec2.Peer.securityGroupId(emailSchedulerLambdaSecurityGroup.securityGroup.securityGroupId),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow ingress from Email Scheduler Security Group",
+      true
+    );
+
+    emailSchedulerLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(rdsSecurityGroupId),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow egress to RDS",
+      true
+    );
+
+    emailSchedulerLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to secrets manager VPCE"
+    );
+
+    emailSchedulerLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(sqsVpceSgId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to SQS"
+    );
+
+
+    const emailSchedulerPath = path.join("..", "lambdas", "emailScheduler");
+    const emailScheduler = new lambda.Lambda(commonProps.scope, "emailScheduler", {
+      ...commonProps, 
+      scope: commonProps.scope,
+      entry: path.join(emailSchedulerPath, "index.ts"),
+      handler: "index.handler",
+      asCode: false,
+      vpc: props.vpc,
+      timeout: Duration.seconds(30),
+      securityGroup: emailSchedulerLambdaSecurityGroup.securityGroup,
+      environment: {
+        DATABASE_SECRET_ARN: emailerDbSecret.secretName, // pragma: allowlist secret
+        EMAILER_QUEUE_URL: emailQueue.queueUrl,
+        NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
+      },
+      depsLockFilePath: path.join(emailSchedulerPath, "package-lock.json"),
+      externalModules: ["@aws-sdk"],
+      nodeModules: [
+        "pg",
+        "pino",
+      ],
+    })
+
+    emailerDbSecret.grantRead(emailScheduler.role);
+    emailQueue.grantSendMessages(emailScheduler.role)
+
+    emailScheduler.lambda.configureAsyncInvoke({
+      retryAttempts: 1,
+    });
+
+    new scheduler.Schedule(commonProps.scope, "emailerSchedulerSchedule", {
+      scheduleName: `demos-${commonProps.stage}-emailer-schedule`,
+      description: `Daily schedule for sending emails (${commonProps.stage})`,
+      schedule: scheduler.ScheduleExpression.cron({
+        hour: "8",
+        minute: "0",
+        timeZone: TimeZone.AMERICA_NEW_YORK,
+      }),
+      target: new schedulerTargets.LambdaInvoke(emailScheduler.lambda)
+    })
 
     this.setupCloudWatchAlarms(props, alarmResources);
 

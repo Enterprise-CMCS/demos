@@ -6,11 +6,10 @@ import { formatDateForDisplay } from "util/formatDate";
 import { createSelectColumnDef } from "./selectColumn";
 import { TypeTableRow } from "../tables/TypesTable";
 
-export function TypesColumns() {
+export function TypesColumns(isReadonlyUser: boolean) {
   const columnHelper = createColumnHelper<TypeTableRow>();
 
-  return [
-    createSelectColumnDef(columnHelper),
+  const baseTypesColumns = [
     columnHelper.accessor("typeLabel", {
       header: "Type",
       cell: (context) => {
@@ -61,5 +60,12 @@ export function TypesColumns() {
         },
       },
     }),
+  ];
+  if (isReadonlyUser) {
+    return baseTypesColumns;
+  }
+  return [
+    createSelectColumnDef(columnHelper),
+    ...baseTypesColumns,
   ];
 }

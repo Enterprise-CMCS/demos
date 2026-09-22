@@ -154,8 +154,11 @@ app_notes AS (
 )
 
 SELECT
-    demo.state_id AS state,
-    app.application_type_id AS application_type,
+    demo_state.name AS state,
+    CASE
+        WHEN app.application_type_id = 'Extension' THEN 'Renewal'
+        ELSE app.application_type_id
+    END AS application_type,
     app.application_title,
     demo.medicaid_id AS demonstration_number,
     CASE WHEN demo_type.demonstration_id IS NOT NULL THEN demo.chip_id ELSE '-' END AS chip_id,
@@ -181,7 +184,8 @@ SELECT
     coalesce(doc_dates.federal_comment_internal_analysis_document_submitted_date, '-')
         AS federal_comment_internal_analysis_document_submitted_date,
     coalesce(app_date.sdg_preparation_start_date, '-') AS sdg_preparation_start_date,
-    coalesce(app_date.expected_approval_date, '-') AS expected_approval_date,
+    coalesce(app_date.internal_expected_approval_date, '-') AS internal_expected_approval_date,
+    coalesce(app_date.state_requested_approval_date, '-') AS state_requested_approval_date,
     coalesce(app_date.sme_initial_review_date, '-') AS sme_initial_review_date,
     coalesce(app_date.frt_initial_meeting_date, '-') AS frt_initial_meeting_date,
     coalesce(app_date.bnpmt_initial_meeting_date, '-') AS bnpmt_initial_meeting_date,
@@ -228,6 +232,12 @@ INNER JOIN
     demos_app.demonstration AS demo
     ON
         app.parent_demonstration_id = demo.id
+
+-- Every demonstration has a state
+INNER JOIN
+    demos_app.state AS demo_state
+    ON
+        demo.state_id = demo_state.id
 
 -- This identifies when the parent demo has CHIP
 LEFT JOIN

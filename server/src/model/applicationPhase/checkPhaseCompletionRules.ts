@@ -41,7 +41,7 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
   "Federal Comment": "No Validation",
   "SDG Preparation": {
     datesMustExist: [
-      "Expected Approval Date",
+      "Internal Expected Approval Date",
       "SME Initial Review Date",
       "FRT Initial Meeting Date",
       "BNPMT Initial Meeting Date",
@@ -58,7 +58,6 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
       "BN PMT Approval to Send to OMB",
       "Draft Approval Package Shared",
       "Receive OMB Concurrence",
-      "Receive OGC Legal Clearance",
     ],
     documentTypesMustExist: [],
     phasesMustBeComplete: [

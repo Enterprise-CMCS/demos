@@ -1,7 +1,7 @@
 import { gql, useMutation } from "@apollo/client";
 import {
   GET_AMENDMENT_WORKFLOW_QUERY,
-  GET_EXTENSION_WORKFLOW_QUERY,
+  GET_RENEWAL_WORKFLOW_QUERY,
   GET_WORKFLOW_DEMONSTRATION_QUERY,
 } from "components/application";
 import { SetApplicationNotesInput } from "demos-server";
@@ -22,7 +22,7 @@ export const useSetApplicationNotes = () => {
       refetchQueries: [
         GET_WORKFLOW_DEMONSTRATION_QUERY,
         GET_AMENDMENT_WORKFLOW_QUERY,
-        GET_EXTENSION_WORKFLOW_QUERY,
+        GET_RENEWAL_WORKFLOW_QUERY,
       ],
     });
   };

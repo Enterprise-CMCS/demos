@@ -14,35 +14,46 @@ import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
 import { MockedResponse } from "@apollo/client/testing";
 
 import { MockAmendment, mockAmendments } from "./amendmentMocks";
-import {
-  MockDemonstrationRoleAssignment,
-  mockDemonstrationRoleAssignments,
-} from "./demonstrationRoleAssignmentMocks";
-import { MockDocument, mockDocuments } from "./documentMocks";
-import { MockExtension, mockExtensions } from "./extensionMocks";
-import { mockPeople, MockPerson } from "./personMocks";
-import { MockState, mockStates } from "./stateMocks";
+import { mockDocuments } from "./documentMocks";
+import { MockRenewal, mockRenewals } from "./renewalMocks";
+import { mockPeople, mockPerson } from "./personMocks";
+import { mockStates } from "./stateMocks";
+import { MOCK_PHASES } from "./workflowMocks";
+import { MOCK_TAGS } from "./TagMocks";
 import {
   MOCK_DEMONSTRATION_TYPE_ASSIGNMENTS,
   MockDemonstrationTypeAssignment,
 } from "./DemonstrationTypeAssignmentMocks";
 import { ADD_DEMONSTRATION_TYPES_FORM_QUERY } from "components/dialog/DemonstrationTypes/AddDemonstrationTypesForm";
-import { DEMONSTRATION_HEADER_DETAILS_QUERY } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
+import { DEMONSTRATION_HEADER_DETAILS_QUERY } from "pages/DemonstrationDetail/DemonstrationHeader";
+import { primaryProjectOfficerRoleAssignment } from "./demonstrationRoleAssignmentMocks";
+import { MOCK_DELIVERABLE_1 } from "./deliverableMocks";
+import {
+  AssociatedRecordsDemonstration,
+  TYPE_TAG_ASSOCIATED_RECORDS_QUERY,
+} from "components/table/tables/TypeTagAssociatedRecordsTable";
 
 export type MockDemonstration = Pick<
   Demonstration,
-  "id" | "name" | "description" | "sdgDivision" | "signatureLevel" | "currentPhaseName" | "medicaidId" | "chipId"
+  | "id"
+  | "name"
+  | "state"
+  | "documents"
+  | "description"
+  | "sdgDivision"
+  | "signatureLevel"
+  | "currentPhaseName"
+  | "medicaidId"
+  | "chipId"
+  | "primaryProjectOfficer"
+  | "roles"
 > & {
   effectiveDate: Date;
   expirationDate: Date;
   status: ApplicationStatus;
-  state: MockState;
   amendments: MockAmendment[];
-  extensions: MockExtension[];
+  renewals: MockRenewal[];
   demonstrationTypes: MockDemonstrationTypeAssignment[];
-  documents: MockDocument[];
-  roles: MockDemonstrationRoleAssignment[];
-  primaryProjectOfficer: MockPerson;
 };
 
 export const MOCK_DEMONSTRATION_ID = "1";
@@ -59,20 +70,63 @@ export const MOCK_DEMONSTRATION: MockDemonstration = {
   amendments: mockAmendments.filter((amendment) =>
     amendment.name.includes("Montana Medicaid Waiver")
   ),
-  extensions: mockExtensions.filter((extension) =>
-    extension.name.includes("Montana Medicaid Waiver")
-  ),
+  renewals: mockRenewals.filter((renewal) => renewal.name.includes("Montana Medicaid Waiver")),
   documents: mockDocuments,
-  roles: [
-    mockDemonstrationRoleAssignments[0],
-    mockDemonstrationRoleAssignments[3],
-    mockDemonstrationRoleAssignments[4],
-  ],
+  roles: [primaryProjectOfficerRoleAssignment],
   currentPhaseName: "Concept",
-  primaryProjectOfficer: mockPeople[0],
+  primaryProjectOfficer: mockPerson,
   demonstrationTypes: MOCK_DEMONSTRATION_TYPE_ASSIGNMENTS,
   medicaidId: "11-W-99999/8",
   chipId: "11-W-99998/8",
+};
+
+export const mockDemonstration: Demonstration = {
+  ...MOCK_DEMONSTRATION,
+  demonstrationTypes: [],
+  phases: [],
+  clearanceLevel: "CMS (OSORA)",
+  tags: [],
+  suggestedApplicationTags: [],
+  deliverables: [],
+  amendments: [],
+  extensions: [],
+  roles: [],
+  createdAt: new Date(2025, 0, 1),
+  updatedAt: new Date(2025, 0, 1),
+};
+
+// Every record on this demonstration carries the same approved tag.
+const MOCK_ASSOCIATED_TAG = MOCK_TAGS[0];
+
+export const MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION: AssociatedRecordsDemonstration = {
+  id: MOCK_DEMONSTRATION.id,
+  name: MOCK_DEMONSTRATION.name,
+  state: MOCK_DEMONSTRATION.state,
+  primaryProjectOfficer: MOCK_DEMONSTRATION.primaryProjectOfficer,
+  tags: [MOCK_ASSOCIATED_TAG],
+  demonstrationTypes: [
+    {
+      demonstrationTypeName: MOCK_ASSOCIATED_TAG.tagName,
+      approvalStatus: MOCK_ASSOCIATED_TAG.approvalStatus,
+    },
+  ],
+  amendments: MOCK_DEMONSTRATION.amendments.map(({ id, name }) => ({
+    id,
+    name,
+    tags: [MOCK_ASSOCIATED_TAG],
+  })),
+  renewals: MOCK_DEMONSTRATION.renewals.map(({ id, name }) => ({
+    id,
+    name,
+    tags: [MOCK_ASSOCIATED_TAG],
+  })),
+  deliverables: [
+    {
+      id: MOCK_DELIVERABLE_1.id,
+      name: MOCK_DELIVERABLE_1.name,
+      demonstrationTypes: [MOCK_ASSOCIATED_TAG],
+    },
+  ],
 };
 
 export const mockAddDemonstrationInput: CreateDemonstrationInput = {
@@ -105,12 +159,28 @@ export const demonstrationMocks: MockedResponse[] = [
   },
   {
     request: {
+      query: TYPE_TAG_ASSOCIATED_RECORDS_QUERY,
+    },
+    result: {
+      data: {
+        demonstrations: [MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION],
+      },
+    },
+    maxUsageCount: Number.POSITIVE_INFINITY,
+  },
+  {
+    request: {
       query: GET_WORKFLOW_DEMONSTRATION_QUERY,
       variables: { id: MOCK_DEMONSTRATION_ID },
     },
     result: {
       data: {
-        demonstration: { ...MOCK_DEMONSTRATION, phases: [] },
+        demonstration: {
+          ...MOCK_DEMONSTRATION,
+          phases: MOCK_PHASES,
+          tags: MOCK_TAGS,
+          suggestedApplicationTags: [],
+        },
       },
     },
     maxUsageCount: Number.POSITIVE_INFINITY,

@@ -62,7 +62,7 @@ describe("updateDocument", () => {
 
   it("throws error when document cannot be found", async () => {
     regularMocks.document.update.mockRejectedValueOnce("Prisma error :(");
-    expect(updateDocument(where, data)).rejects.toThrow("Prisma error :(");
+    await expect(updateDocument(where, data)).rejects.toThrow("Prisma error :(");
     expect(regularMocks.document.update).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });
 

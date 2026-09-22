@@ -30,7 +30,7 @@ export const DialogSandbox: React.FC = () => {
     showCreateDemonstrationDialog,
     showEditDemonstrationDialog,
     showCreateAmendmentDialog,
-    showCreateExtensionDialog,
+    showCreateRenewalDialog,
     showManageContactsDialog,
     showUploadDocumentDialog,
     showEditDocumentDialog,
@@ -43,7 +43,7 @@ export const DialogSandbox: React.FC = () => {
     showDeclareIncompleteDialog,
     showApplyDemonstrationTypesDialog,
     showApplyTagsDialog,
-    showUpdateExtensionDialog,
+    showUpdateRenewalDialog,
     showUpdateAmendmentDialog,
     showAddDeliverableSlotDialog,
     showConfirmApproveDialog,
@@ -80,7 +80,7 @@ export const DialogSandbox: React.FC = () => {
 
   const demonstrationId = "7d1cb7f6-bdbc-41d0-9fc4-0df36375b929";
   const amendmentId = "20a8d8a0-235b-4433-aea7-f1dc0ca30b08";
-  const extensionId = "75cae749-c286-4b90-ac54-3dfb92f25d08";
+  const renewalId = "75cae749-c286-4b90-ac54-3dfb92f25d08";
 
   return (
     <div className="flex flex-col gap-2 p-2">
@@ -103,20 +103,17 @@ export const DialogSandbox: React.FC = () => {
         >
           Create Amendment (demo)
         </Button>
-        <Button name="create-extension-no-demo" onClick={() => showCreateExtensionDialog()}>
-          Create Extension (no demo)
+        <Button name="create-renewal-no-demo" onClick={() => showCreateRenewalDialog()}>
+          Create Renewal (no demo)
         </Button>
-        <Button
-          name="create-extension-demo"
-          onClick={() => showCreateExtensionDialog(demonstrationId)}
-        >
-          Create Extension (demo)
+        <Button name="create-renewal-demo" onClick={() => showCreateRenewalDialog(demonstrationId)}>
+          Create Renewal (demo)
         </Button>
         <Button name="update-amendment" onClick={() => showUpdateAmendmentDialog(amendmentId)}>
           Update Amendment
         </Button>
-        <Button name="update-extension" onClick={() => showUpdateExtensionDialog(extensionId)}>
-          Update Extension
+        <Button name="update-renewal" onClick={() => showUpdateRenewalDialog(renewalId)}>
+          Update Renewal
         </Button>
       </div>
       <div className="flex flex-wrap gap-2">

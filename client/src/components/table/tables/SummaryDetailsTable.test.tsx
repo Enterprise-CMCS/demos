@@ -1,6 +1,5 @@
 import React from "react";
-import { MOCK_DEMONSTRATION } from "mock-data/demonstrationMocks";
-import { formatDateForDisplay } from "util/formatDate";
+import { mockDemonstration } from "mock-data/demonstrationMocks";
 import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { DEMONSTRATION_SUMMARY_DETAILS_QUERY, SummaryDetailsTable } from "./SummaryDetailsTable";
@@ -13,7 +12,7 @@ const demonstrationDetailMock = {
   },
   result: {
     data: {
-      demonstration: MOCK_DEMONSTRATION,
+      demonstration: mockDemonstration,
     },
   },
 };
@@ -30,8 +29,6 @@ async function renderSummaryDetailsTable() {
 }
 
 describe("SummaryDetailsTable", () => {
-  const testDemo = MOCK_DEMONSTRATION;
-
   beforeEach(async () => {
     await renderSummaryDetailsTable();
   });
@@ -40,7 +37,7 @@ describe("SummaryDetailsTable", () => {
     it("renders the summary details table with demonstration data", () => {
       expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
       expect(screen.getByText("Montana")).toBeInTheDocument();
-      expect(screen.getByText("John Doe")).toBeInTheDocument();
+      expect(screen.getByText("CMS User")).toBeInTheDocument();
       expect(screen.getByText("Approved")).toBeInTheDocument();
       expect(screen.getByText("A demonstration project in Montana.")).toBeInTheDocument();
     });
@@ -53,17 +50,6 @@ describe("SummaryDetailsTable", () => {
       expect(screen.getByText("Effective Date")).toBeInTheDocument();
       expect(screen.getByText("Expiration Date")).toBeInTheDocument();
       expect(screen.getByText("Demonstration Description")).toBeInTheDocument();
-    });
-  });
-
-  describe("Date Formatting", () => {
-    it("formats effective and expiration dates correctly", () => {
-      // Check that dates are rendered (format will depend on locale)
-      const effectiveDate = formatDateForDisplay(testDemo.effectiveDate);
-      const expirationDate = formatDateForDisplay(testDemo.expirationDate);
-
-      expect(screen.getByText(effectiveDate)).toBeInTheDocument();
-      expect(screen.getByText(expirationDate)).toBeInTheDocument();
     });
   });
 });

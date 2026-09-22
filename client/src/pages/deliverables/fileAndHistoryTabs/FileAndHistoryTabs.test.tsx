@@ -8,13 +8,20 @@ import { developmentMockUser } from "mock-data/userMocks";
 import type { CurrentUser } from "components/user/UserContext";
 import { TestProvider } from "test-utils/TestProvider";
 
-import { FileAndHistoryTabs } from "./FileAndHistoryTabs";
+import { FILE_AND_HISTORY_ACTIONS_NAME, FileAndHistoryTabs } from "./FileAndHistoryTabs";
 import {
   STATE_FILES_ADD_BUTTON_NAME,
+  STATE_FILES_DELETE_BUTTON_NAME,
+  STATE_FILES_EDIT_BUTTON_NAME,
   STATE_FILES_SUBMIT_BUTTON_NAME,
   STATE_FILES_TAB_NAME,
 } from "../sections/StateFilesTab";
-import { CMS_FILES_ADD_BUTTON_NAME, CMS_FILES_TAB_NAME } from "../sections/CmsFilesTab";
+import {
+  CMS_FILES_ADD_BUTTON_NAME,
+  CMS_FILES_DELETE_BUTTON_NAME,
+  CMS_FILES_EDIT_BUTTON_NAME,
+  CMS_FILES_TAB_NAME,
+} from "../sections/CmsFilesTab";
 import { HISTORY_TAB_NAME } from "../sections/HistoryTab";
 
 const mockShowRequestResubmissionDeliverableDialog = vi.fn();
@@ -240,6 +247,60 @@ describe("FileAndHistoryTabs", () => {
 
       expect(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME)).toBeInTheDocument();
       expect(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME)).not.toBeDisabled();
+    });
+  });
+
+  describe("when the current user is a restricted CMS user", () => {
+    it("hides every action button below the tabs", () => {
+      setup(undefined, "demos-restricted-cms-user");
+
+      expect(screen.queryByTestId(FILE_AND_HISTORY_ACTIONS_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId("button-actions-request-resubmission")).not.toBeInTheDocument();
+      expect(screen.queryByTestId(STATE_FILES_SUBMIT_BUTTON_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId("button-actions-complete-review")).not.toBeInTheDocument();
+    });
+
+    it("hides Add File(s) and the row-selection column on the State Files tab", () => {
+      setup(undefined, "demos-restricted-cms-user");
+
+      expect(screen.queryByTestId(STATE_FILES_ADD_BUTTON_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(STATE_FILES_EDIT_BUTTON_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(STATE_FILES_DELETE_BUTTON_NAME)).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId(`select-row-${MOCK_DELIVERABLE_1.stateDocuments[0].id}`)
+      ).not.toBeInTheDocument();
+    });
+
+    it("hides Add File(s) and the row-selection column on the CMS Files tab", async () => {
+      const user = userEvent.setup();
+      setup(undefined, "demos-restricted-cms-user");
+
+      await user.click(screen.getByTestId("button-cms_files"));
+
+      expect(screen.queryByTestId(CMS_FILES_ADD_BUTTON_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(CMS_FILES_EDIT_BUTTON_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(CMS_FILES_DELETE_BUTTON_NAME)).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId(`select-row-${MOCK_DELIVERABLE_1.cmsDocuments[0].id}`)
+      ).not.toBeInTheDocument();
+    });
+
+    it("still renders all three tabs and a View button per file", async () => {
+      const user = userEvent.setup();
+      setup(undefined, "demos-restricted-cms-user");
+
+      expect(screen.getByTestId("button-state_files")).toBeInTheDocument();
+      expect(screen.getByTestId("button-cms_files")).toBeInTheDocument();
+      expect(screen.getByTestId("button-history")).toBeInTheDocument();
+      expect(
+        screen.getByTestId(`view-file-${MOCK_DELIVERABLE_1.stateDocuments[0].id}`)
+      ).toBeInTheDocument();
+
+      await user.click(screen.getByTestId("button-cms_files"));
+
+      expect(
+        screen.getByTestId(`view-file-${MOCK_DELIVERABLE_1.cmsDocuments[0].id}`)
+      ).toBeInTheDocument();
     });
   });
 

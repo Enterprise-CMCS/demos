@@ -64,18 +64,18 @@ describe("ModificationForm", () => {
     expect(screen.getByText("Signature Level")).toBeInTheDocument();
   });
 
-  it("renders form with correct modification name for Extension", async () => {
+  it("renders form with correct modification name for Renewal", async () => {
     render(
       <ModificationForm
         mode="create"
         modificationFormData={mockModificationFormData}
         setModificationFormDataField={mockSetModificationFormDataField}
-        modificationType="Extension"
+        modificationType="Renewal"
       />
     );
 
-    expect(screen.getByText("Extension Title")).toBeInTheDocument();
-    expect(screen.getByText("Extension Description")).toBeInTheDocument();
+    expect(screen.getByText("Renewal Title")).toBeInTheDocument();
+    expect(screen.getByText("Renewal Description")).toBeInTheDocument();
     expect(screen.getByText("Signature Level")).toBeInTheDocument();
   });
 
@@ -120,13 +120,13 @@ describe("ModificationForm", () => {
         modificationFormData={populatedFormData}
         setModificationFormDataField={mockSetModificationFormDataField}
         showDemonstrationSelect={true}
-        modificationType="Extension"
+        modificationType="Renewal"
       />
     );
 
     expect(screen.getByTestId("select-demonstration")).toHaveValue("demo-1");
-    expect(screen.getByLabelText(/Extension Title/)).toHaveValue("Initial Name");
-    expect(screen.getByLabelText(/Extension Description/)).toHaveValue("Initial Description");
+    expect(screen.getByLabelText(/Renewal Title/)).toHaveValue("Initial Name");
+    expect(screen.getByLabelText(/Renewal Description/)).toHaveValue("Initial Description");
     expect(screen.getByLabelText(/Signature Level/)).toHaveValue("OA");
   });
 
@@ -233,7 +233,7 @@ describe("ModificationForm", () => {
           mode="edit"
           modificationFormData={populatedFormData}
           setModificationFormDataField={mockSetModificationFormDataField}
-          modificationType="Extension"
+          modificationType="Renewal"
         />
       );
 

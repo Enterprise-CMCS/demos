@@ -1,3 +1,7 @@
+import { getApplication } from "../application";
+vi.mock("../email/notifyApplicationEvent", () => ({
+  notifyApplicationStatusUpdated: vi.fn(),
+}));
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { skipConceptPhase } from "./skipConceptPhase.js";
 import { TZDate } from "@date-fns/tz";
@@ -76,6 +80,10 @@ describe("skipConceptPhase", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.mocked(getApplication).mockResolvedValue({
+      id: testApplicationId,
+      statusId: "Under Review",
+    } as Awaited<ReturnType<typeof getApplication>>);
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
     vi.mocked(getEasternNow).mockReturnValue(mockEasternValue);
@@ -110,7 +118,11 @@ describe("skipConceptPhase", () => {
       mockTransaction,
     ];
 
-    await skipConceptPhase(undefined, { applicationId: testApplicationId });
+    await skipConceptPhase(
+      undefined,
+      { applicationId: testApplicationId },
+      { user: { id: "user-1" } }
+    );
 
     expect(getApplicationPhaseStatus).toHaveBeenCalledExactlyOnceWith(
       testApplicationId,
@@ -145,7 +157,7 @@ describe("skipConceptPhase", () => {
     });
 
     await expect(
-      skipConceptPhase(undefined, { applicationId: testApplicationId })
+      skipConceptPhase(undefined, { applicationId: testApplicationId }, { user: { id: "user-1" } })
     ).rejects.toThrowError(testHandlePrismaError);
     expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
   });
@@ -167,7 +179,11 @@ describe("skipConceptPhase", () => {
       ],
     ];
 
-    await skipConceptPhase(undefined, { applicationId: testApplicationId });
+    await skipConceptPhase(
+      undefined,
+      { applicationId: testApplicationId },
+      { user: { id: "user-1" } }
+    );
 
     expect(getApplicationPhaseStatus).toHaveBeenCalledExactlyOnceWith(
       testApplicationId,

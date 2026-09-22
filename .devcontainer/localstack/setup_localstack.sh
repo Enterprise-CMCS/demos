@@ -56,14 +56,27 @@ echo "7️⃣ Setting up budgetNeutrality Lambda..."
 bash /workspaces/demos/.devcontainer/localstack/setup/setup_budgetneutrality_lambda.sh
 
 echo ""
+echo "8️⃣ Setting up emailer Lambda..."
+bash /workspaces/demos/.devcontainer/localstack/setup/setup_emailer_lambda.sh
+
+echo ""
+echo "9️⃣ Setting up dataConnectExport Lambda..."
+bash /workspaces/demos/.devcontainer/localstack/setup/setup_dataconnectexport_lambda.sh
+
+echo ""
+echo "🔟 Setting up emailScheduler Lambda..."
+bash /workspaces/demos/.devcontainer/localstack/setup/setup_emailScheduler_lambda.sh
+
+echo ""
 echo "✅ LocalStack setup complete!"
 echo ""
 echo "📋 Resources created:"
 echo "   - Secrets Manager: database credentials, UiPath credentials"
-echo "   - SQS Queues: fileupload-queue, fileprocess-queue, infected-file-expiration-queue, uipath-queue, budget-neutrality-queue (+ DLQs)"
-echo "   - S3 Buckets: upload-bucket, clean-bucket, infected-bucket, deleted-bucket"
-echo "   - Lambda Functions: fileprocess, uipath, deleteinfectedfile, budgetneutrality"
+echo "   - SQS Queues: fileupload-queue, fileprocess-queue, infected-file-expiration-queue, uipath-queue, budget-neutrality-queue, emailer-queue (+ DLQs)"
+echo "   - S3 Buckets: upload-bucket, clean-bucket, infected-bucket, deleted-bucket, dataconnect-bucket"
+echo "   - Lambda Functions: fileprocess, uipath, deleteinfectedfile, budgetneutrality, emailer, dataconnectexport, emailScheduler"
 echo "   - EventBridge Rules: s3-upload-to-guardduty"
+
 echo ""
 echo "🧪 Test the setup:"
 echo "   # Upload a file"
@@ -75,3 +88,11 @@ echo "   /workspaces/demos/.devcontainer/localstack/debug/delete-infected-file.s
 echo ""
 echo "   # Delete all infected files"
 echo "   /workspaces/demos/.devcontainer/localstack/debug/delete-all-infected-files.sh"
+echo ""
+echo "   # Send a local realtime emailer message"
+echo "   /workspaces/demos/.devcontainer/localstack/debug/runemailer.sh"
+echo ""
+echo "   # Run the DataConnect parquet export, which has no trigger of its own locally"
+echo "   aws --endpoint-url=http://localstack:4566 --region us-east-1 lambda invoke \\"
+echo "     --function-name dataconnectexport /tmp/dataconnectexport-out.json"
+echo "   aws --endpoint-url=http://localstack:4566 s3 ls s3://dataconnect-bucket/ --recursive"

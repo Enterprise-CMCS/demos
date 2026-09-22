@@ -16,7 +16,7 @@ const baseDeliverable: Omit<DeliverableTableRow, "id" | "name" | "dueDate" | "st
   demonstration: {
     id: "demo-1",
     name: "Demo 1",
-    state: { id: "NY" },
+    state: { id: "NY", name: "New York" },
     demonstrationTypes: [],
   },
   deliverableType: "Monitoring Protocol",
@@ -303,6 +303,31 @@ describe("DemonstrationDeliverableTable", () => {
       "Submission Date",
       "Status",
     ]);
+  });
+
+  it("hides controls for readonly users", () => {
+    render(
+      <DemonstrationDeliverableTable
+        viewMode="demos-cms-user"
+        isReadonlyUser={true}
+        deliverables={[
+          {
+            id: "row-2",
+            name: "Item",
+            dueDate: new Date("2026-01-01"),
+            status: "Upcoming",
+            ...baseDeliverable,
+          },
+        ]}
+      />
+    );
+
+    expect(
+      screen.queryByRole("columnheader", { name: /State\/Territory/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("columnheader", { name: /Demonstration Name/i })
+    ).not.toBeInTheDocument();
   });
 
   it("reapplies default sort order when deliverables are reloaded", () => {

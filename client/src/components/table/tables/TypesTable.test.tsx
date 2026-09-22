@@ -1,11 +1,13 @@
 import React from "react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { TypesTable } from "./TypesTable";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { ApplicationStatus } from "demos-server";
+import { TestProvider } from "test-utils/TestProvider";
+import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 const mockShowRemoveDemonstrationTypesDialog = vi.fn();
 const mockShowEditDemonstrationTypeDialog = vi.fn();
@@ -42,9 +44,38 @@ const MOCK_DEMONSTRATION = {
   demonstrationTypes: mockTypes,
 };
 
+const renderTypesTable = (
+  props: Partial<React.ComponentProps<typeof TypesTable>> = {},
+  currentUser = cmsMockUser
+) => {
+  return render(
+    <TestProvider currentUser={currentUser}>
+      <TypesTable
+        demonstration={MOCK_DEMONSTRATION}
+        {...props}
+      />
+    </TestProvider>
+  );
+};
+
+const MOCK_DEMONSTRATION_WITH_DELIVERABLE = {
+  ...MOCK_DEMONSTRATION,
+  deliverables: [
+    {
+      id: "deliverable-1",
+      demonstrationTypes: [{ tagName: "Environmental" }],
+    },
+  ],
+};
+
 describe("TypesTable", () => {
+  beforeEach(() => {
+    mockShowRemoveDemonstrationTypesDialog.mockClear();
+    mockShowEditDemonstrationTypeDialog.mockClear();
+  });
+
   it("renders required columns", async () => {
-    render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
+    renderTypesTable();
     await waitFor(() => screen.getByRole("table"));
 
     expect(screen.getByText("Type")).toBeInTheDocument();
@@ -54,25 +85,26 @@ describe("TypesTable", () => {
   });
 
   it("renders type rows", () => {
-    render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
+    renderTypesTable();
 
     expect(screen.getByText("Environmental")).toBeInTheDocument();
     expect(screen.getByText("Economic (Unapproved)")).toBeInTheDocument();
   });
 
   it("shows empty message when no types exist", () => {
-    const demonstrationWithNoTypes = {
-      id: "demo-456",
-      status: "Active" as ApplicationStatus,
-      demonstrationTypes: [],
-    };
-    render(<TypesTable demonstration={demonstrationWithNoTypes} />);
+    renderTypesTable({
+      demonstration: {
+        id: "demo-456",
+        status: "Active" as ApplicationStatus,
+        demonstrationTypes: [],
+      },
+    });
 
     expect(screen.getByText("You have no assigned Types at this time")).toBeInTheDocument();
   });
 
   it("supports keyword search filtering", async () => {
-    render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
+    renderTypesTable();
     const user = userEvent.setup();
     const searchInput = screen.getByLabelText(/input keyword search query/i);
 
@@ -85,13 +117,13 @@ describe("TypesTable", () => {
   });
 
   it("does not render keyword search when hideSearch is true", () => {
-    render(<TypesTable demonstration={MOCK_DEMONSTRATION} hideSearch />);
+    renderTypesTable({ hideSearch: true });
 
     expect(screen.queryByLabelText(/input keyword search query/i)).not.toBeInTheDocument();
   });
 
   it("defaults to sorting by createdAt ascending (oldest first)", () => {
-    render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
+    renderTypesTable();
     const rows = screen.getAllByRole("row").slice(1);
     const types = rows.map((row) => row.querySelectorAll("td")[1]?.textContent);
 
@@ -99,7 +131,7 @@ describe("TypesTable", () => {
   });
 
   it("allows sorting by Status column", async () => {
-    render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
+    renderTypesTable();
     const user = userEvent.setup();
     const statusHeader = screen.getByRole("columnheader", { name: /status/i });
 
@@ -112,12 +144,16 @@ describe("TypesTable", () => {
   });
 
   it("does not render keyword search when hideSearch is true", () => {
-    render(<TypesTable demonstration={MOCK_DEMONSTRATION} hideSearch />);
+    render(
+      <TestProvider currentUser={cmsMockUser}>
+        <TypesTable demonstration={MOCK_DEMONSTRATION} hideSearch />
+      </TestProvider>
+    );
     expect(screen.queryByTestId("input-keyword-search")).not.toBeInTheDocument();
   });
 
   it("disables action buttons when inputDisabled is true", () => {
-    render(<TypesTable demonstration={MOCK_DEMONSTRATION} inputDisabled />);
+    renderTypesTable({ inputDisabled: true });
 
     const editButton = screen.getByTestId("edit-type");
     const deleteButton = screen.getByTestId("delete-type");
@@ -128,7 +164,7 @@ describe("TypesTable", () => {
 
   describe("delete button", () => {
     it("calls showRemoveDemonstrationTypesDialog when delete button is clicked", async () => {
-      render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
+      renderTypesTable();
       const user = userEvent.setup();
       await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
       await user.click(screen.getByTestId(`select-row-${mockTypes[1].demonstrationTypeName}`));
@@ -147,7 +183,7 @@ describe("TypesTable", () => {
         ...MOCK_DEMONSTRATION,
         status: "Approved" as ApplicationStatus,
       };
-      render(<TypesTable demonstration={demonstration} />);
+      renderTypesTable({ demonstration });
       const user = userEvent.setup();
       await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
       await user.click(screen.getByTestId(`select-row-${mockTypes[1].demonstrationTypeName}`));
@@ -161,7 +197,7 @@ describe("TypesTable", () => {
         ...MOCK_DEMONSTRATION,
         status: "Under Review" as ApplicationStatus,
       };
-      render(<TypesTable demonstration={demonstration} />);
+      renderTypesTable({ demonstration });
       const user = userEvent.setup();
       await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
       await user.click(screen.getByTestId(`select-row-${mockTypes[1].demonstrationTypeName}`));
@@ -169,11 +205,27 @@ describe("TypesTable", () => {
       const deleteButton = screen.getByTestId("delete-type");
       expect(deleteButton).not.toBeDisabled();
     });
+
+    it("disables delete when a selected demonstration type is linked to a deliverable", async () => {
+      render(
+        <TestProvider currentUser={cmsMockUser}>
+          <TypesTable demonstration={MOCK_DEMONSTRATION_WITH_DELIVERABLE} />
+        </TestProvider>
+      );
+
+      const user = userEvent.setup();
+
+      await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
+
+      const deleteButton = screen.getByTestId("delete-type");
+
+      expect(deleteButton).toBeDisabled();
+    });
   });
 
   describe("edit button", () => {
     it("calls showEditDemonstrationTypeDialog when edit button is clicked", async () => {
-      render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
+      renderTypesTable();
       const user = userEvent.setup();
       await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
       const editButton = screen.getByTestId("edit-type");
@@ -194,7 +246,7 @@ describe("TypesTable", () => {
     });
 
     it("disables edit button when multiple types are selected", async () => {
-      render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
+      renderTypesTable();
       const user = userEvent.setup();
       const editButton = screen.getByTestId("edit-type");
       expect(editButton).toBeDisabled();
@@ -205,5 +257,17 @@ describe("TypesTable", () => {
       await user.click(screen.getByTestId(`select-row-${mockTypes[1].demonstrationTypeName}`));
       expect(editButton).toBeDisabled();
     });
+  });
+
+  it("hides action buttons and row select for readonly users", async () => {
+    renderTypesTable(undefined, readonlyMockUser);
+
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByLabelText(/Edit Type/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Delete Type/i)).not.toBeInTheDocument();
+    expect(screen.queryByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`)).not.toBeInTheDocument();
   });
 });

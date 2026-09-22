@@ -1,11 +1,21 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
-import { UserManagement } from "./UserManagement";
+import { TestProvider } from "test-utils/TestProvider";
+import { DialogProvider } from "components/dialog/DialogContext";
+import { UserManagement, USER_MANAGEMENT_TEST_ID } from "./UserManagement";
 
 describe("UserManagement", () => {
-  it("renders without crashing", () => {
-    render(<UserManagement />);
-    expect(screen.getByText("User Management")).toBeInTheDocument();
+  it("renders the user management table", async () => {
+    render(
+      <TestProvider>
+        <DialogProvider>
+          <UserManagement />
+        </DialogProvider>
+      </TestProvider>
+    );
+
+    expect(screen.getByTestId(USER_MANAGEMENT_TEST_ID)).toBeInTheDocument();
+    expect(await screen.findByRole("table")).toBeInTheDocument();
   });
 });

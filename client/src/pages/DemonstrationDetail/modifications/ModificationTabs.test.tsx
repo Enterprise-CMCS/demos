@@ -162,4 +162,23 @@ describe("ModificationTabs Component", () => {
     expect(tab1Button).toHaveAttribute("aria-selected", "false");
     expect(tab2Button).toHaveAttribute("aria-selected", "true");
   });
+
+  it("enables horizontal scrolling with many items", () => {
+    const manyItems = Array.from({ length: 20 }, (_, i) =>
+      createModificationItem({ id: `${i}`, name: `Item ${i}` })
+    );
+
+    const { container } = render(
+      <DialogProvider>
+        <TestProvider>
+          <ModificationTabs items={manyItems} />
+        </TestProvider>
+      </DialogProvider>
+    );
+
+    const tabList = container.querySelector(".overflow-x-auto");
+    expect(tabList).not.toBeNull();
+    expect(tabList).toHaveClass("overflow-x-auto");
+    expect(tabList).toHaveClass("flex-nowrap");
+  });
 });

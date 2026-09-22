@@ -76,7 +76,7 @@ export const ModificationForm: React.FC<{
   showDemonstrationSelect?: boolean;
   mode: "create" | "edit";
   isApproved?: boolean;
-  modificationType: "Amendment" | "Extension";
+  modificationType: "Amendment" | "Renewal";
   modificationFormData: ModificationFormData;
   setModificationFormDataField: (field: Partial<ModificationFormData>) => void;
 }> = ({

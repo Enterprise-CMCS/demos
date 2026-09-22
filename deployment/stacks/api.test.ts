@@ -186,8 +186,8 @@ describe("Api Stack", () => {
     const template = Template.fromStack(apiStack);
     // const fs = require("fs");
     // fs.writeFileSync("template.json", JSON.stringify(template.toJSON(), null, 2));
-    template.resourceCountIs("AWS::EC2::SecurityGroup", 3);
-    template.resourceCountIs("AWS::Lambda::Function", 3);
+    template.resourceCountIs("AWS::EC2::SecurityGroup", 4);
+    template.resourceCountIs("AWS::Lambda::Function", 4);
     template.resourceCountIs("AWS::ApiGateway::RestApi", 1);
     template.resourceCountIs("AWS::ApiGateway::Authorizer", 1);
     template.resourceCountIs("AWS::CloudWatch::Alarm", 10);
@@ -207,8 +207,16 @@ describe("Api Stack", () => {
     });
     template.hasResourceProperties("AWS::Lambda::Function", {
       FunctionName: "demos-unittest-emailer",
+      Environment: {
+        Variables: Match.objectLike({
+          DATABASE_SECRET_ARN: "demos-unitTestHost-rds-demos_emailer", // pragma: allowlist secret
+          DB_SCHEMA: "demos_app",
+          DB_SSL_ROOT_CERT: "/var/runtime/ca-cert.pem",
+          DEMOS_APP_URL: "https://unittest.demos.com",
+          CLEAN_BUCKET: { "Fn::ImportValue": "unittestCleanBucketName" },
+        }),
+      },
     });
-
     expectLambdaErrorsAlarm(
       template,
       "demos-unittest-authorizer-lambda-errors",
@@ -312,7 +320,7 @@ describe("Api Stack", () => {
 
     const template = Template.fromStack(apiStack);
 
-    template.resourceCountIs("AWS::Lambda::Function", 3);
+    template.resourceCountIs("AWS::Lambda::Function", 4);
     template.resourceCountIs("AWS::CloudWatch::Alarm", 0);
   });
 

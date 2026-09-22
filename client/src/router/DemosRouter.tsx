@@ -19,8 +19,17 @@ import { AdminPage } from "pages/admin/AdminPage";
 import { RequireRole } from "./RequireRole";
 import { PersonType } from "demos-server";
 import { ReferencesPage } from "pages/references/ReferencesPage";
+import { DefaultHeaderLower } from "components/header/DefaultHeaderLower";
+import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
+import { DeliverableDetailHeader } from "pages/deliverables/DeliverableDetailHeader";
+import { AdminHeader } from "pages/admin/AdminHeader";
+import { ReferencesHeader } from "pages/references/ReferencesHeader";
 
-const DEMONSTRATION_ACCESS_ROLES: PersonType[] = ["demos-admin", "demos-cms-user"];
+const DEMONSTRATION_ACCESS_ROLES: PersonType[] = [
+  "demos-admin",
+  "demos-cms-user",
+  "demos-restricted-cms-user",
+];
 
 const HomePage = () => {
   const { currentUser } = getCurrentUser();
@@ -40,7 +49,7 @@ export const DemosRouter: React.FC = () => {
           <BrowserRouter>
             <Routes>
               <Route path="document/:id" element={<DocumentDetailPage />} />
-              <Route element={<DemosLayoutProvider />}>
+              <Route element={<DemosLayoutProvider header={DefaultHeaderLower} />}>
                 <Route path="*" element={<div>404: Page Not Found</div>} />
                 <Route path="/" element={<HomePage />} />
                 <Route
@@ -51,30 +60,17 @@ export const DemosRouter: React.FC = () => {
                     </RequireRole>
                   }
                 />
-                <Route
-                  path="demonstrations/:id"
-                  element={
-                    <RequireRole allowedRoles={DEMONSTRATION_ACCESS_ROLES}>
-                      <DemonstrationDetail />
-                    </RequireRole>
-                  }
-                />
                 <Route path="deliverables" element={<DeliverablesPage />} />
-                <Route
-                  path="deliverables/:deliverableId"
-                  element={<DeliverableDetailsManagementPage />}
-                />
                 <Route
                   path="reports"
                   element={
-                    <RequireRole allowedRoles={["demos-admin", "demos-cms-user"]}>
+                    <RequireRole
+                      allowedRoles={["demos-admin", "demos-cms-user", "demos-restricted-cms-user"]}
+                    >
                       <ReportsPage />
                     </RequireRole>
                   }
                 />
-                <Route path="admin" element={<AdminPage />} />
-                <Route path="references" element={<ReferencesPage />} />
-
                 {isLocalDevelopment() && (
                   <>
                     <Route path="components" element={<ComponentLibrary />} />
@@ -83,6 +79,35 @@ export const DemosRouter: React.FC = () => {
                     <Route path="dialogs" element={<DialogSandbox />} />
                   </>
                 )}
+              </Route>
+              <Route element={<DemosLayoutProvider header={ReferencesHeader} />}>
+                <Route path="references" element={<ReferencesPage />} />
+              </Route>
+              <Route element={<DemosLayoutProvider header={DemonstrationDetailHeader} />}>
+                <Route
+                  path="demonstrations/:demonstrationId"
+                  element={
+                    <RequireRole allowedRoles={DEMONSTRATION_ACCESS_ROLES}>
+                      <DemonstrationDetail />
+                    </RequireRole>
+                  }
+                />
+              </Route>
+              <Route element={<DemosLayoutProvider header={DeliverableDetailHeader} />}>
+                <Route
+                  path="deliverables/:deliverableId"
+                  element={<DeliverableDetailsManagementPage />}
+                />
+              </Route>
+              <Route element={<DemosLayoutProvider header={AdminHeader} />}>
+                <Route
+                  path="admin"
+                  element={
+                    <RequireRole allowedRoles={["demos-admin"]}>
+                      <AdminPage />
+                    </RequireRole>
+                  }
+                />
               </Route>
             </Routes>
           </BrowserRouter>

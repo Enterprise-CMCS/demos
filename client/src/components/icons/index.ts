@@ -78,6 +78,7 @@ export * from "./Navigation/LoadIcon";
 export * from "./Navigation/LocationIcon";
 export * from "./Navigation/LockIcon";
 export * from "./Navigation/LogoutIcon";
+export * from "./Navigation/LoginIcon";
 export * from "./Navigation/MaximizeIcon";
 export * from "./Navigation/MenuIcon";
 export * from "./Navigation/MenuCollapseLeftIcon";

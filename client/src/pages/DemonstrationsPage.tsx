@@ -4,7 +4,7 @@ import { gql, useQuery } from "@apollo/client";
 import {
   Demonstration as ServerDemonstration,
   Amendment,
-  Extension,
+  Extension as Renewal,
   State,
   Person,
   User,
@@ -32,7 +32,7 @@ export const DEMONSTRATIONS_PAGE_QUERY = gql`
         name
         status
       }
-      extensions {
+      renewals: extensions {
         id
         name
         status
@@ -50,13 +50,13 @@ export const DEMONSTRATIONS_PAGE_QUERY = gql`
 `;
 
 export type DemonstrationAmendment = Pick<Amendment, "id" | "name" | "status">;
-export type DemonstrationExtension = Pick<Extension, "id" | "name" | "status">;
+export type DemonstrationRenewal = Pick<Renewal, "id" | "name" | "status">;
 
 export type Demonstration = Pick<ServerDemonstration, "id" | "name" | "status" | "medicaidId"> & {
   state: Pick<State, "id" | "name">;
   primaryProjectOfficer: Pick<Person, "id" | "fullName">;
   amendments: DemonstrationAmendment[];
-  extensions: DemonstrationExtension[];
+  renewals: DemonstrationRenewal[];
 };
 
 export type DemonstrationsPageQueryResult = {

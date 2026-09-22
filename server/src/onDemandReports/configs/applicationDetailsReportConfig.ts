@@ -1,7 +1,6 @@
 import { z } from "zod";
 import {
   APPLICATION_STATUS,
-  APPLICATION_TYPES,
   CLEARANCE_LEVELS,
   SDG_DIVISIONS,
   SIGNATURE_LEVEL,
@@ -42,7 +41,8 @@ type ApplicationDetailsReportColumn =
   | "federal_comment_period_end_date"
   | "federal_comment_internal_analysis_document_submitted_date"
   | "sdg_preparation_start_date"
-  | "expected_approval_date"
+  | "internal_expected_approval_date"
+  | "state_requested_approval_date"
   | "sme_initial_review_date"
   | "frt_initial_meeting_date"
   | "bnpmt_initial_meeting_date"
@@ -81,8 +81,8 @@ type ApplicationDetailsReportColumn =
 
 const applicationDetailsReportSchema = z
   .object({
-    state: z.enum(STATES_AND_TERRITORIES.map((state) => state.id)),
-    application_type: z.enum(APPLICATION_TYPES),
+    state: z.enum(STATES_AND_TERRITORIES.map((state) => state.name)),
+    application_type: z.enum(["Demonstration", "Amendment", "Renewal"]),
     application_title: z.string(),
     demonstration_number: z.string(),
     chip_id: z.string(),
@@ -107,7 +107,8 @@ const applicationDetailsReportSchema = z
     federal_comment_period_end_date: usDateStringOrDash,
     federal_comment_internal_analysis_document_submitted_date: usDateStringOrDash,
     sdg_preparation_start_date: usDateStringOrDash,
-    expected_approval_date: usDateStringOrDash,
+    internal_expected_approval_date: usDateStringOrDash,
+    state_requested_approval_date: usDateStringOrDash,
     sme_initial_review_date: usDateStringOrDash,
     frt_initial_meeting_date: usDateStringOrDash,
     bnpmt_initial_meeting_date: usDateStringOrDash,
@@ -175,7 +176,8 @@ const applicationDetailsReportColumnHeaders = {
     columnName: "Federal Comment Internal Analysis Document Submitted Date",
   },
   sdg_preparation_start_date: { columnName: "SDG Preparation Start Date" },
-  expected_approval_date: { columnName: "Expected Approval Date" },
+  internal_expected_approval_date: { columnName: "Internal Expected Approval Date" },
+  state_requested_approval_date: { columnName: "State Requested Approval Date" },
   sme_initial_review_date: { columnName: "SME Initial Review Date" },
   frt_initial_meeting_date: { columnName: "FRT Initial Meeting Date" },
   bnpmt_initial_meeting_date: { columnName: "BNPMT Initial Meeting Date" },

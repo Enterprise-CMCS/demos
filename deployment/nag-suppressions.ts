@@ -77,6 +77,12 @@ export function applyApiSuppressions(api: Stack, stage: string) {
     {
       id: "AwsSolutions-APIG4",
       reason: "This is a healthcheck endpoint that does not return any actual information",
+    }
+  ]);
+  NagSuppressions.addResourceSuppressionsByPath(api, `demos-${stage}-api/ApiGatewayRestApi/DeploymentStage.${stage}/Resource`, [
+    {
+      id: "AwsSolutions-APIG3",
+      reason: "WAF is added in the UI stack so that values can be shared between the cloudfront and api waf",
     },
   ]);
 
@@ -149,6 +155,49 @@ export function applyApiSuppressions(api: Stack, stage: string) {
   NagSuppressions.addResourceSuppressionsByPath(
     api,
     `/demos-${stage}-api/emailer/emailerLambdaExecutionRole/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role",
+      },
+    ]
+  );
+
+  NagSuppressions.addResourceSuppressionsByPath(
+    api,
+    `/demos-${stage}-api/emailer/emailerLambdaExecutionRole/DefaultPolicy/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role",
+      },
+    ]
+  );
+  NagSuppressions.addResourceSuppressionsByPath(
+    api,
+    `/demos-${stage}-api/emailScheduler/emailSchedulerLambdaExecutionRole/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role",
+      },
+    ]
+  );
+
+  NagSuppressions.addResourceSuppressionsByPath(
+    api,
+    `/demos-${stage}-api/emailScheduler/emailSchedulerLambdaExecutionRole/DefaultPolicy/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role",
+      },
+    ]
+  );
+
+  NagSuppressions.addResourceSuppressionsByPath(
+    api,
+    `/demos-${stage}-api/SchedulerRoleForTarget-d57e7b/DefaultPolicy/Resource`,
     [
       {
         id: "AwsSolutions-IAM5",
@@ -300,6 +349,28 @@ export function applyFileUploadSuppressions(fileUpload: Stack, stage: string) {
       },
     ]
   );
+
+  NagSuppressions.addResourceSuppressionsByPath(
+    fileUpload,
+    `/demos-${stage}-file-upload/DataConnectExportProcessor/dataConnectExport/dataConnectExportLambdaExecutionRole/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role. Some wildcards are unavoidable (VPC networking).",
+      },
+    ]
+  );
+
+  NagSuppressions.addResourceSuppressionsByPath(
+    fileUpload,
+    `/demos-${stage}-file-upload/DataConnectExportProcessor/dataConnectExport/dataConnectExportLambdaExecutionRole/DefaultPolicy/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions are scoped to the DataConnect bucket and the export database secret. Writing objects requires a wildcard object suffix, and s3:Abort* comes with the CDK grantPut helper.",
+      },
+    ]
+  );
 }
 
 export function applyDbRoleSuppressions(dbRole: Stack, stage: string) {
@@ -344,4 +415,23 @@ export function applyDbRoleSuppressions(dbRole: Stack, stage: string) {
     ]
   );
 
+}
+
+export function applyBackupSuppressions(backup: Stack, stage: string) {
+  NagSuppressions.addResourceSuppressionsByPath(backup, `/demos-${stage}-backup/backup-validation/backup-validationLambdaExecutionRole/Resource`, 
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role"
+      }
+    ]
+  )
+  NagSuppressions.addResourceSuppressionsByPath(backup, `/demos-${stage}-backup/backup-validation/backup-validationLambdaExecutionRole/DefaultPolicy/Resource`, 
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role"
+      }
+    ]
+  )
 }

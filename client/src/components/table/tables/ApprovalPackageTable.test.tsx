@@ -61,10 +61,14 @@ describe("ApprovalPackageTable", () => {
     },
   ];
 
-  const setup = () =>
+  const setup = (isReadonlyUser = false) =>
     render(
       <MockedProvider mocks={[]}>
-        <ApprovalPackageTable demonstrationId="demo-123" rows={rows} />
+        <ApprovalPackageTable
+          demonstrationId="demo-123"
+          rows={rows}
+          isReadonlyUser={isReadonlyUser}
+        />
       </MockedProvider>
     );
 
@@ -80,6 +84,18 @@ describe("ApprovalPackageTable", () => {
     await waitFor(() => {
       expect(screen.getByRole("button", { name: /Upload Approval Letter/i })).toBeInTheDocument();
     });
+  });
+
+  it("hides upload button for readonly users", async () => {
+    setup(true);
+
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+
+    expect(
+      screen.queryByRole("button", { name: /Upload Approval Letter/i })
+    ).not.toBeInTheDocument();
   });
 
   it("renders edit + delete buttons for rows with documents", async () => {

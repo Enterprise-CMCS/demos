@@ -7,6 +7,7 @@ import { TagChip } from "./TagChip";
 import { Tag, TagName } from "demos-server";
 import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
 import { SparklyUIPathTags } from "./SparklyUIPathTags";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
 const STYLES = {
   stepThree: tw`font-bold uppercase tracking-wide text-[#242424] mb-2`,
@@ -46,9 +47,11 @@ export const ApplicationHealthTypeTags = ({
   isApplyingSuggestedTag = false,
 }: ApplicationHealthTypeTagsProps) => {
   const { showApplyTagsDialog } = useDialog();
+  const { currentUser } = getCurrentUser();
+  const isReadonlyUser = isReadonly(currentUser);
 
   const { data, loading, error } = useQuery(GET_APPLICATION_TAG_OPTIONS, {
-    // retreive demos types tags between demonstration/extension/amendment workflows.
+    // retreive demos types tags between demonstration/renewal/amendment workflows.
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
   });
@@ -71,6 +74,7 @@ export const ApplicationHealthTypeTags = ({
           <TagChip key={tag.tagName} tag={tag} onRemoveTag={onRemoveTag} />
         ))}
         <SecondaryButton
+          isHidden={isReadonlyUser}
           size="small"
           name="button-apply-application-tags"
           onClick={handleApplyClick}

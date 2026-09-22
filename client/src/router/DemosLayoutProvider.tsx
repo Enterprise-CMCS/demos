@@ -4,8 +4,8 @@ import { Outlet } from "react-router-dom";
 import { PrimaryLayout } from "layout/PrimaryLayout";
 import { shouldUseMocks } from "config/env";
 
-const ProvideLayout = () => (
-  <PrimaryLayout>
+const ProvideLayout = ({ header }: { header: React.FC }) => (
+  <PrimaryLayout header={header}>
     <Outlet />
   </PrimaryLayout>
 );
@@ -13,7 +13,11 @@ const ProvideLayout = () => (
 const ProvideLayoutWithAuth = withAuthenticationRequired(ProvideLayout, {
   OnRedirecting: () => <></>,
   signinRedirectArgs: {
-    state: { returnUrl: window.location.pathname + window.location.search },
+    get state() {
+      return {
+        returnUrl: window.location.pathname + window.location.search + window.location.hash,
+      };
+    },
   },
 });
 

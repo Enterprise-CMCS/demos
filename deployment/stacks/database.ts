@@ -16,6 +16,7 @@ import {
   IAspect,
   CfnResource,
   Aspects,
+  Tags,
 } from "aws-cdk-lib";
 import { Construct, IConstruct } from "constructs";
 
@@ -25,6 +26,7 @@ import * as securityGroup from "../lib/security-group";
 import * as alarms from "../lib/alarms";
 import * as ssm from "../lib/ssm-parameter";
 import { RetentionDays } from "aws-cdk-lib/aws-logs";
+import { backupTags } from "../util/backup";
 
 interface DatabaseStackProps {
   vpc: aws_ec2.IVpc;
@@ -139,6 +141,14 @@ export class DatabaseStack extends Stack {
       }
     );
     alarmResources.registerDatabaseInstance("rds", dbInstance);
+
+    if (!props.isEphemeral && props.stage == "dev") {
+      // This is for temporary testing and should be removed in the future to save costs
+      Tags.of(dbInstance).add("AWS_Backup", backupTags.d90)
+    }
+    if (["impl", "prod"].includes(props.stage)) {
+      Tags.of(dbInstance).add("AWS_Backup", backupTags["4hr1_d7_w35_m90"])
+    }
 
     const cfnDbInstance = dbInstance.node.defaultChild as aws_rds.CfnDBInstance;
     cfnDbInstance.cfnOptions.metadata = {
