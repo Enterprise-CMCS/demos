@@ -5,7 +5,9 @@ import { useDialog } from "components/dialog/DialogContext";
 import { tw } from "tags/tw";
 import { TagChip } from "./TagChip";
 import { Tag, TagName } from "demos-server";
-import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
+import { useApplicationTagOptions } from "components/tags/useApplicationTagOptions";
+
+export { GET_APPLICATION_TAG_OPTIONS } from "components/tags/useApplicationTagOptions";
 import { SparklyUIPathTags } from "./SparklyUIPathTags";
 import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
@@ -14,20 +16,6 @@ const STYLES = {
   helper: tw`text-sm text-text-placeholder mb-1`,
   tagList: tw`flex flex-wrap items-center gap-1 mt-2`,
 };
-
-export const GET_APPLICATION_TAG_OPTIONS: TypedDocumentNode<
-  {
-    applicationTagOptions: Tag[];
-  },
-  Record<string, never>
-> = gql`
-  query GetApplicationTagOptions {
-    applicationTagOptions {
-      tagName
-      approvalStatus
-    }
-  }
-`;
 
 export interface ApplicationHealthTypeTagsProps {
   applicationId: string;
@@ -50,11 +38,7 @@ export const ApplicationHealthTypeTags = ({
   const { currentUser } = getCurrentUser();
   const isReadonlyUser = isReadonly(currentUser);
 
-  const { data, loading, error } = useQuery(GET_APPLICATION_TAG_OPTIONS, {
-    // retreive demos types tags between demonstration/renewal/amendment workflows.
-    fetchPolicy: "cache-and-network",
-    nextFetchPolicy: "cache-first",
-  });
+  const { data, loading, error } = useApplicationTagOptions();
 
   if (loading) return <div>Loading tags...</div>;
   if (error || !data) return <div>Error loading tags.</div>;

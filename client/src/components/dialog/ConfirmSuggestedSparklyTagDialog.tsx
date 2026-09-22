@@ -19,7 +19,7 @@ const STYLES = {
   removeButton: tw`font-semibold text-error hover:text-error-dark focus:outline-none focus:ring-2 focus:ring-error-lightest`,
 };
 
-type SuggestedSparklyTagDialogProps = {
+type ConfirmSuggestedSparklyTagDialogProps = {
   tagName: TagName;
   onClose: () => void;
   onConfirm: (tagName: TagName) => void;
@@ -27,13 +27,13 @@ type SuggestedSparklyTagDialogProps = {
   isSubmitting?: boolean;
 };
 
-export const SuggestedSparklyTagDialog = ({
+export const ConfirmSuggestedSparklyTagDialog = ({
   tagName,
   onClose,
   onConfirm,
   onRemove,
   isSubmitting = false,
-}: SuggestedSparklyTagDialogProps) => {
+}: ConfirmSuggestedSparklyTagDialogProps) => {
   const [view, setView] = useState<"confirm" | "improve">("confirm");
 
   if (view === "improve") {

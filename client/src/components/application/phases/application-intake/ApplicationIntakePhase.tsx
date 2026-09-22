@@ -19,7 +19,7 @@ import { DatePicker } from "components/input/date/DatePicker";
 import { ApplicationHealthTypeTags } from "components/tags/ApplicationHealthTypeTags";
 import type { Application, LocalDate, PhaseName, PhaseStatus, Tag, TagName } from "demos-server";
 import { SET_APPLICATION_TAGS_MUTATION } from "components/dialog/ApplyTagsDialog";
-import { SuggestedSparklyTagDialog } from "components/dialog/SuggestedSparklyTagDialog";
+import { ConfirmSuggestedSparklyTagDialog } from "components/dialog/ConfirmSuggestedSparklyTagDialog";
 import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
 /** Business Rules for this Phase:
@@ -493,7 +493,7 @@ export const ApplicationIntakePhase = ({
         </Button>
       </div>
       {selectedSuggestedTag && (
-        <SuggestedSparklyTagDialog
+        <ConfirmSuggestedSparklyTagDialog
           tagName={selectedSuggestedTag}
           onClose={() => setSelectedSuggestedTag(null)}
           onConfirm={handleAcceptSuggestedTag}
