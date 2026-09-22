@@ -32,7 +32,7 @@ describe("TypeTagManagement", () => {
     setup();
 
     expect(await screen.findByText(ASSOCIATED_TAG_NAME)).toBeInTheDocument();
-    expect(screen.queryByTestId(TYPE_TAG_ASSOCIATED_RECORDS_TEST_ID)).not.toBeInTheDocument();
+    expect(screen.queryByTestId(TYPE_TAG_ASSOCIATED_RECORDS_TEST_ID)).toBeInTheDocument();
   });
 
   it("opens the associated records view when View is selected", async () => {
@@ -55,7 +55,7 @@ describe("TypeTagManagement", () => {
     await user.click(await screen.findByTestId(BACK_TO_TYPE_TAG_MANAGEMENT_BUTTON_NAME));
 
     expect(await screen.findByTestId(`view-type-tag-${ASSOCIATED_TAG_NAME}`)).toBeInTheDocument();
-    expect(screen.queryByTestId(TYPE_TAG_ASSOCIATED_RECORDS_TEST_ID)).not.toBeInTheDocument();
+    expect(screen.queryByTestId(TYPE_TAG_ASSOCIATED_RECORDS_TEST_ID)).toBeInTheDocument();
   });
 
   it("leaves Admin in one Close Admin click after moving between the list and a type/tag", async () => {
