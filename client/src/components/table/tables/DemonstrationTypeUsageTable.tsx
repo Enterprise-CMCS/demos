@@ -1,28 +1,21 @@
-import React from "react";
-import { createColumnHelper } from "@tanstack/react-table";
+import React, { useMemo } from "react";
 import { DemonstrationTypeUsageSummary } from "demos-server";
 import { SecondaryButton } from "components/button";
 import { MOCK_DEMONSTRATION_TYPE_USAGE } from "mock-data/demonstrationTypeUsageMocks";
 import { Table, PaginationControls, KeywordSearch, getColumnBuilder } from "components/table";
-import { createSelectColumnDef } from "components/table/columns/selectColumn";
 import { TypeTagActionButtons } from "./TypeTagActionButtons";
 
 export type DemonstrationTypeUsageRow = DemonstrationTypeUsageSummary & {
   id: string;
 };
 
-const { createColumn, createDisplayColumn } = getColumnBuilder<DemonstrationTypeUsageRow>();
+const { createColumn, createDisplayColumn, createSelectColumn } =
+  getColumnBuilder<DemonstrationTypeUsageRow>();
 
 const demonstrationTypeUsageColumns = [
-  createSelectColumnDef(createColumnHelper<DemonstrationTypeUsageRow>()),
+  createSelectColumn(),
   createColumn((row) => row.demonstrationTypeName, "Type/Tag Name"),
-  createColumn((row) => row.approvalStatus, "Status", {
-    highlightSearchResults: false,
-    cell: (info) => {
-      const status = info.getValue() as string;
-      return status === "Approved" ? "Approved" : "Pending";
-    },
-  }),
+  createColumn((row) => (row.approvalStatus === "Approved" ? "Approved" : "Pending"), "Status"),
   createColumn((row) => row.countOfTaggedApplications.demonstrations, "Demonstrations"),
   createColumn((row) => row.countOfTaggedApplications.amendments, "Amendments"),
   createColumn((row) => row.countOfTaggedApplications.renewals, "Renewals"),
@@ -33,12 +26,16 @@ const demonstrationTypeUsageColumns = [
   )),
 ];
 
-export const DemonstrationTypeUsageTable: React.FC = () => {
+export const DemonstrationTypeUsageTable = () => {
   // TODO: Replace this with server data in integration ticket
-  const rows = MOCK_DEMONSTRATION_TYPE_USAGE.map((item, index) => ({
-    ...item,
-    id: `${item.demonstrationTypeName}-${index}`,
-  }));
+  const rows = useMemo(
+    () =>
+      MOCK_DEMONSTRATION_TYPE_USAGE.map((item) => ({
+        ...item,
+        id: item.demonstrationTypeName,
+      })).sort((a, b) => a.demonstrationTypeName.localeCompare(b.demonstrationTypeName)),
+    []
+  );
 
   return (
     <Table<DemonstrationTypeUsageRow>

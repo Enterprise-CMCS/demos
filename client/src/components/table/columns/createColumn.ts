@@ -1,5 +1,6 @@
 import { createColumnHelper, CellContext } from "@tanstack/react-table";
 import { highlightCell } from "components/table";
+import { createSelectColumnDef } from "./selectColumn";
 
 export interface ColumnOptions<RowData> {
   enableSorting?: boolean;
@@ -35,12 +36,14 @@ export function getColumnBuilder<RowData>() {
       ? highlightCell
       : optionOverrides?.cell || ((info) => info.getValue());
 
-    return columnHelper.accessor(accessor, {
+    const columnConfig = {
       id: generateHeaderId(header),
       header,
       cell: cellRenderer,
       enableSorting: options.enableSorting,
-    });
+    };
+
+    return columnHelper.accessor(accessor, columnConfig);
   };
 
   const createDisplayColumn = (
@@ -55,5 +58,10 @@ export function getColumnBuilder<RowData>() {
     });
   };
 
-  return { createColumn, createDisplayColumn };
+  const createSelectColumn = () => {
+    const columnHelper = createColumnHelper<RowData>();
+    return createSelectColumnDef(columnHelper);
+  };
+
+  return { createColumn, createDisplayColumn, createSelectColumn };
 }
