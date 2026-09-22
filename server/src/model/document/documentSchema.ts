@@ -60,7 +60,7 @@ export const documentSchema = gql`
       @auth(requires: ["Modify Deliverable CMS Documents"])
     deleteDeliverableStateDocuments(ids: [ID!]!): Int!
       @auth(requires: ["Modify Deliverable State Documents"])
-    triggerUiPath(documentId: ID!): String! @auth(requires: ["Perform CMS Action"])
+    triggerUiPath(documentId: ID!): String! @auth(requires: ["Modify Documents"])
   }
 
   type Query {
