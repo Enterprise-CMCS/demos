@@ -6,9 +6,15 @@ INSERT INTO demos_app.user_person_type_limit (id) VALUES ('demos-cms-reviewer-us
 
 INSERT INTO demos_app.role (id, grant_level_id) VALUES ('CMS Reviewer User', 'System');
 
+UPDATE demos_app.permission 
+SET id = 'Edit Documents on Assigned Deliverables'
+WHERE id = 'Edit State Documents on Assigned Deliverables';
+
+UPDATE demos_app.permission 
+SET id = 'Delete Documents on Assigned Deliverables'
+WHERE id = 'Delete State Documents on Assigned Deliverables';
+
 INSERT INTO demos_app.permission (id, grant_level_id) VALUES
-('Edit Documents on Assigned Deliverables', 'System'),
-('Delete Documents on Assigned Deliverables', 'System'),
 ('Modify Applications', 'System'),
 ('Modify Deliverables', 'System'),
 ('Create Public Comment', 'System'),
@@ -19,8 +25,6 @@ INSERT INTO demos_app.permission (id, grant_level_id) VALUES
 ('Modify Deliverable State Documents', 'System');
 
 INSERT INTO demos_app.role_permission (role_id, grant_level_id, permission_id) VALUES
-('Admin User', 'System', 'Edit Documents on Assigned Deliverables'),
-('Admin User', 'System', 'Delete Documents on Assigned Deliverables'),
 ('Admin User', 'System', 'Modify Applications'),
 ('Admin User', 'System', 'Modify Deliverables'),
 ('Admin User', 'System', 'Create Public Comment'),
@@ -30,8 +34,6 @@ INSERT INTO demos_app.role_permission (role_id, grant_level_id, permission_id) V
 ('Admin User', 'System', 'Modify Deliverable CMS Documents'),
 ('Admin User', 'System', 'Modify Deliverable State Documents'),
 
-('CMS User', 'System', 'Edit Documents on Assigned Deliverables'),
-('CMS User', 'System', 'Delete Documents on Assigned Deliverables'),
 ('CMS User', 'System', 'Modify Applications'),
 ('CMS User', 'System', 'Modify Deliverables'),
 ('CMS User', 'System', 'Create Public Comment'),
@@ -40,8 +42,6 @@ INSERT INTO demos_app.role_permission (role_id, grant_level_id, permission_id) V
 ('CMS User', 'System', 'Modify Deliverable CMS Documents'),
 ('CMS User', 'System', 'Modify Deliverable State Documents'),
 
-('State User', 'System', 'Edit Documents on Assigned Deliverables'),
-('State User', 'System', 'Delete Documents on Assigned Deliverables'),
 ('State User', 'System', 'Create Public Comment'),
 ('State User', 'System', 'Submit Deliverables'),
 ('State User', 'System', 'Request Deliverable Extensions'),
@@ -69,18 +69,3 @@ INSERT INTO demos_app.role_permission (role_id, grant_level_id, permission_id) V
 ('CMS Reviewer User', 'System', 'View DemonstrationRoleAssignments on Assigned Demonstrations'),
 ('CMS Reviewer User', 'System', 'View Documents on Assigned Deliverables'),
 ('CMS Reviewer User', 'System', 'Generate On-Demand Report');
-
-DELETE FROM demos_app.role_permission
-WHERE permission_id IN (
-  'Edit State Documents on Assigned Deliverables',
-  'Delete State Documents on Assigned Deliverables',
-  'Perform CMS Action',
-  'Perform State Action'
-);
-
-DELETE FROM demos_app.permission WHERE id IN (
-  'Edit State Documents on Assigned Deliverables',
-  'Delete State Documents on Assigned Deliverables',
-  'Perform CMS Action',
-  'Perform State Action'
-);
