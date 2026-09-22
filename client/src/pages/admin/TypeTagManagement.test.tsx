@@ -12,6 +12,7 @@ import {
   TYPE_TAG_ASSOCIATED_RECORDS_TEST_ID,
 } from "./TypeTagAssociatedRecords";
 import { TYPE_TAG_SEARCH_PARAM } from "./useTypeTagSelection";
+import { DialogProvider } from "components/dialog/DialogContext";
 
 const ASSOCIATED_TAG_NAME = MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION.tags[0].tagName;
 const PREVIOUS_PAGE_TEXT = "Demonstrations list";
@@ -20,7 +21,9 @@ const ASSOCIATED_RECORDS_ENTRY = `/admin?${TYPE_TAG_SEARCH_PARAM}=${encodeURICom
 const setup = (routerEntry = "/admin") =>
   render(
     <TestProvider routerEntries={[routerEntry]}>
-      <TypeTagManagement />
+      <DialogProvider>
+        <TypeTagManagement />
+      </DialogProvider>
     </TestProvider>
   );
 
@@ -59,18 +62,20 @@ describe("TypeTagManagement", () => {
     const user = userEvent.setup();
     render(
       <TestProvider routerEntries={["/demonstrations", "/admin"]}>
-        <Routes>
-          <Route path="/demonstrations" element={<div>{PREVIOUS_PAGE_TEXT}</div>} />
-          <Route
-            path="/admin"
-            element={
-              <>
-                <AdminHeader />
-                <TypeTagManagement />
-              </>
-            }
-          />
-        </Routes>
+        <DialogProvider>
+          <Routes>
+            <Route path="/demonstrations" element={<div>{PREVIOUS_PAGE_TEXT}</div>} />
+            <Route
+              path="/admin"
+              element={
+                <>
+                  <AdminHeader />
+                  <TypeTagManagement />
+                </>
+              }
+            />
+          </Routes>
+        </DialogProvider>
       </TestProvider>
     );
 
