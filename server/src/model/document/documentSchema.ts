@@ -49,9 +49,17 @@ export const documentSchema = gql`
 
   type Mutation {
     updateDocument(id: ID!, input: UpdateDocumentInput!): Document!
-      @auth(requires: ["Perform CMS Action", "Perform State Action"])
-    deleteDocuments(ids: [ID!]!): Int!
-      @auth(requires: ["Perform CMS Action", "Perform State Action"])
+      @auth(requires: ["Modify Documents"])
+    updateDeliverableCmsDocument(id: ID!, input: UpdateDocumentInput!): Document!
+      @auth(requires: ["Modify Deliverable CMS Documents"])
+    updateDeliverableStateDocument(id: ID!, input: UpdateDocumentInput!): Document!
+      @auth(requires: ["Modify Deliverable State Documents"])
+
+    deleteDocuments(ids: [ID!]!): Int! @auth(requires: ["Modify Documents"])
+    deleteDeliverableCmsDocuments(ids: [ID!]!): Int!
+      @auth(requires: ["Modify Deliverable CMS Documents"])
+    deleteDeliverableStateDocuments(ids: [ID!]!): Int!
+      @auth(requires: ["Modify Deliverable State Documents"])
     triggerUiPath(documentId: ID!): String! @auth(requires: ["Perform CMS Action"])
   }
 

@@ -534,9 +534,9 @@ export const PERMISSIONS = [
   "View All DemonstrationRoleAssignments",
   "View DemonstrationRoleAssignments on Assigned Demonstrations",
   "Edit All Documents",
-  "Edit State Documents on Assigned Deliverables",
+  "Edit Documents on Assigned Deliverables",
   "Delete All Documents",
-  "Delete State Documents on Assigned Deliverables",
+  "Delete Documents on Assigned Deliverables",
   "Generate On-Demand Report",
 
   // Field Level Permissions
@@ -547,6 +547,9 @@ export const PERMISSIONS = [
   "Perform Admin Action",
   "Perform CMS Action",
   "Perform State Action",
+  "Modify Documents",
+  "Modify Deliverable CMS Documents",
+  "Modify Deliverable State Documents",
 ] as const;
 
 export const SYSTEM_ROLES = [

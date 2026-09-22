@@ -49,15 +49,15 @@ export const documentPendingUploadSchema = gql`
 
   type Mutation {
     uploadDocumentToApplication(input: UploadDocumentToApplicationInput!): DocumentPendingUpload!
-      @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Modify Documents"])
     uploadDocumentToPhase(input: UploadDocumentToPhaseInput!): DocumentPendingUpload!
-      @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Modify Documents"])
     uploadDocumentToDeliverableCMSFiles(
       input: UploadDocumentToDeliverableInput!
-    ): DocumentPendingUpload! @auth(requires: ["Perform CMS Action"])
+    ): DocumentPendingUpload! @auth(requires: ["Modify Deliverable CMS Documents"])
     uploadDocumentToDeliverableStateFiles(
       input: UploadDocumentToDeliverableInput!
-    ): DocumentPendingUpload! @auth(requires: ["Perform CMS Action", "Perform State Action"])
+    ): DocumentPendingUpload! @auth(requires: ["Modify Deliverable State Documents"])
   }
 `;
 

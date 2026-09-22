@@ -98,15 +98,53 @@ export const documentResolvers = {
   },
 
   Mutation: {
-    updateDocument: async function updateDocument(
+    updateDocument: async (
       parent: unknown,
       { id, input }: { id: string; input: UpdateDocumentInput },
       context: GraphQLContext
-    ): Promise<PrismaDocument> {
+    ): Promise<PrismaDocument> => {
       checkOptionalNotNullFields(["name", "description"], input);
       try {
         return await editDocument(
           { id },
+          {
+            name: input.name,
+            description: input.description,
+          },
+          context.user
+        );
+      } catch (error) {
+        handlePrismaError(error);
+      }
+    },
+    updateDeliverableCmsDocument: async (
+      parent: unknown,
+      { id, input }: { id: string; input: UpdateDocumentInput },
+      context: GraphQLContext
+    ): Promise<PrismaDocument> => {
+      checkOptionalNotNullFields(["name", "description"], input);
+      try {
+        return await editDocument(
+          { id, deliverableId: { not: null }, deliverableIsCmsAttachedFile: true },
+          {
+            name: input.name,
+            description: input.description,
+          },
+          context.user
+        );
+      } catch (error) {
+        handlePrismaError(error);
+      }
+    },
+    updateDeliverableStateDocument: async (
+      parent: unknown,
+      { id, input }: { id: string; input: UpdateDocumentInput },
+      context: GraphQLContext
+    ): Promise<PrismaDocument> => {
+      checkOptionalNotNullFields(["name", "description"], input);
+      try {
+        return await editDocument(
+          { id, deliverableId: { not: null }, deliverableIsCmsAttachedFile: false },
           {
             name: input.name,
             description: input.description,
@@ -127,6 +165,50 @@ export const documentResolvers = {
           let count = 0;
           for (const documentId of ids) {
             await removeDocument({ id: documentId }, context.user, tx);
+            count++;
+          }
+          return count;
+        });
+      } catch (error) {
+        handlePrismaError(error);
+      }
+    },
+    deleteDeliverableCmsDocuments: async function deleteDeliverableCmsDocuments(
+      parent: unknown,
+      { ids }: { ids: string[] },
+      context: GraphQLContext
+    ): Promise<number> {
+      try {
+        return prisma().$transaction(async (tx) => {
+          let count = 0;
+          for (const documentId of ids) {
+            await removeDocument(
+              { id: documentId, deliverableId: { not: null }, deliverableIsCmsAttachedFile: true },
+              context.user,
+              tx
+            );
+            count++;
+          }
+          return count;
+        });
+      } catch (error) {
+        handlePrismaError(error);
+      }
+    },
+    deleteDeliverableStateDocuments: async function deleteDeliverableStateDocuments(
+      parent: unknown,
+      { ids }: { ids: string[] },
+      context: GraphQLContext
+    ): Promise<number> {
+      try {
+        return prisma().$transaction(async (tx) => {
+          let count = 0;
+          for (const documentId of ids) {
+            await removeDocument(
+              { id: documentId, deliverableId: { not: null }, deliverableIsCmsAttachedFile: false },
+              context.user,
+              tx
+            );
             count++;
           }
           return count;
