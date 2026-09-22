@@ -13,29 +13,31 @@ export const DELETE_DOCUMENTS_QUERY = gql`
   }
 `;
 
-export const RemoveDocumentDialog: React.FC<{
+export const DELETE_DELIVERABLE_CMS_DOCUMENTS_QUERY = gql`
+  mutation DeleteDeliverableCmsDocuments($ids: [ID!]!) {
+    deleteDeliverableCmsDocuments(ids: $ids)
+  }
+`;
+
+export const DELETE_DELIVERABLE_STATE_DOCUMENTS_QUERY = gql`
+  mutation DeleteDeliverableStateDocuments($ids: [ID!]!) {
+    deleteDeliverableStateDocuments(ids: $ids)
+  }
+`;
+
+// Presentational dialog shared by every document shape; knows nothing about which mutation is used.
+const RemoveDocumentDialogView: React.FC<{
   documentIds: string[];
   onClose: () => void;
-  refetchQueries?: DocumentNode[];
-}> = ({
-  documentIds,
-  onClose,
-  refetchQueries = [DEMONSTRATION_DETAIL_QUERY, GET_WORKFLOW_DEMONSTRATION_QUERY],
-}) => {
+  onConfirm: (documentIds: string[]) => Promise<unknown>;
+}> = ({ documentIds, onClose, onConfirm: onConfirmMutation }) => {
   const { showSuccess, showError } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const [deleteDocumentsTrigger] = useMutation<{
-    removedDocumentIds: string[];
-  }>(DELETE_DOCUMENTS_QUERY);
 
   const onConfirm = async (documentIdList: string[]) => {
     try {
       setIsDeleting(true);
-      await deleteDocumentsTrigger({
-        variables: { ids: documentIdList },
-        refetchQueries,
-      });
+      await onConfirmMutation(documentIdList);
 
       const isMultipleDocuments = documentIdList.length > 1;
       const removalMessage = `Your document${isMultipleDocuments ? "s" : ""} ${
@@ -78,5 +80,75 @@ export const RemoveDocumentDialog: React.FC<{
         </span>
       </div>
     </BaseDialog>
+  );
+};
+
+export const RemoveApplicationDocumentsDialog: React.FC<{
+  documentIds: string[];
+  onClose: () => void;
+  refetchQueries?: DocumentNode[];
+}> = ({
+  documentIds,
+  onClose,
+  refetchQueries = [DEMONSTRATION_DETAIL_QUERY, GET_WORKFLOW_DEMONSTRATION_QUERY],
+}) => {
+  const [deleteDocumentsTrigger] = useMutation<{
+    deleteDocuments: number;
+  }>(DELETE_DOCUMENTS_QUERY);
+
+  return (
+    <RemoveDocumentDialogView
+      documentIds={documentIds}
+      onClose={onClose}
+      onConfirm={(ids) => deleteDocumentsTrigger({ variables: { ids }, refetchQueries })}
+    />
+  );
+};
+
+export const RemoveDeliverableCmsDocumentsDialog: React.FC<{
+  documentIds: string[];
+  onClose: () => void;
+  refetchQueries?: DocumentNode[];
+}> = ({
+  documentIds,
+  onClose,
+  refetchQueries = [DEMONSTRATION_DETAIL_QUERY, GET_WORKFLOW_DEMONSTRATION_QUERY],
+}) => {
+  const [deleteDeliverableCmsDocumentsTrigger] = useMutation<{
+    deleteDeliverableCmsDocuments: number;
+  }>(DELETE_DELIVERABLE_CMS_DOCUMENTS_QUERY);
+
+  return (
+    <RemoveDocumentDialogView
+      documentIds={documentIds}
+      onClose={onClose}
+      onConfirm={(ids) =>
+        deleteDeliverableCmsDocumentsTrigger({ variables: { ids }, refetchQueries })
+      }
+    />
+  );
+};
+
+export const RemoveDeliverableStateDocumentsDialog: React.FC<{
+  documentIds: string[];
+  onClose: () => void;
+  refetchQueries?: DocumentNode[];
+}> = ({
+  documentIds,
+  onClose,
+  refetchQueries = [DEMONSTRATION_DETAIL_QUERY, GET_WORKFLOW_DEMONSTRATION_QUERY],
+}) => {
+  const [deleteDeliverableStateDocumentsTrigger] = useMutation<{
+    deleteDeliverableStateDocuments: number;
+  }>(DELETE_DELIVERABLE_STATE_DOCUMENTS_QUERY);
+
+  return (
+    <RemoveDocumentDialogView
+      documentIds={documentIds}
+      onClose={onClose}
+      onConfirm={(ids) =>
+        deleteDeliverableStateDocumentsTrigger({ variables: { ids }, refetchQueries })
+      }
+    />
   );
 };
