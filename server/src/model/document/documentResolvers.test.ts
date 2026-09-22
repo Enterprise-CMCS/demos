@@ -370,6 +370,144 @@ describe("documentResolvers", () => {
     });
   });
 
+  describe("Mutation.updateDeliverableCmsDocument", () => {
+    it("should update a CMS-attached deliverable document under a transaction", async () => {
+      const mockUpdateInput: UpdateDocumentInput = {
+        name: "Updated CMS Document",
+        description: "Updated description",
+      };
+      vi.mocked(editDocument).mockResolvedValue(mockDocument as PrismaDocument);
+
+      const updatedDocument = await documentResolvers.Mutation.updateDeliverableCmsDocument(
+        undefined,
+        {
+          id: testDocumentId,
+          input: mockUpdateInput,
+        },
+        mockContext
+      );
+
+      expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
+        ["name", "description"],
+        mockUpdateInput
+      );
+      expect(editDocument).toHaveBeenCalledExactlyOnceWith(
+        { id: testDocumentId, deliverableId: { not: null }, deliverableIsCmsAttachedFile: true },
+        {
+          name: "Updated CMS Document",
+          description: "Updated description",
+        },
+        mockContext.user
+      );
+      expect(updatedDocument).toEqual(mockDocument);
+    });
+  });
+
+  describe("Mutation.updateDeliverableStateDocument", () => {
+    it("should update a state-attached deliverable document under a transaction", async () => {
+      const mockUpdateInput: UpdateDocumentInput = {
+        name: "Updated State Document",
+        description: "Updated description",
+      };
+      vi.mocked(editDocument).mockResolvedValue(mockDocument as PrismaDocument);
+
+      const updatedDocument = await documentResolvers.Mutation.updateDeliverableStateDocument(
+        undefined,
+        {
+          id: testDocumentId,
+          input: mockUpdateInput,
+        },
+        mockContext
+      );
+
+      expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
+        ["name", "description"],
+        mockUpdateInput
+      );
+      expect(editDocument).toHaveBeenCalledExactlyOnceWith(
+        { id: testDocumentId, deliverableId: { not: null }, deliverableIsCmsAttachedFile: false },
+        {
+          name: "Updated State Document",
+          description: "Updated description",
+        },
+        mockContext.user
+      );
+      expect(updatedDocument).toEqual(mockDocument);
+    });
+  });
+
+  describe("Mutation.deleteDeliverableCmsDocuments", () => {
+    it("should delete multiple CMS-attached deliverable documents in a transaction and return count", async () => {
+      const documentIds = ["doc-1", "doc-2", "doc-3"];
+      vi.mocked(removeDocument).mockResolvedValue(mockDocument as PrismaDocument);
+
+      const result = await documentResolvers.Mutation.deleteDeliverableCmsDocuments(
+        undefined,
+        { ids: documentIds },
+        mockContext
+      );
+
+      expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
+      expect(removeDocument).toHaveBeenCalledTimes(documentIds.length);
+      for (const documentId of documentIds) {
+        expect(removeDocument).toHaveBeenCalledWith(
+          { id: documentId, deliverableId: { not: null }, deliverableIsCmsAttachedFile: true },
+          mockContext.user,
+          mockTransaction
+        );
+      }
+      expect(result).toBe(documentIds.length);
+    });
+
+    it("should return 0 if no document ids are provided", async () => {
+      const result = await documentResolvers.Mutation.deleteDeliverableCmsDocuments(
+        undefined,
+        { ids: [] },
+        mockContext
+      );
+
+      expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
+      expect(removeDocument).not.toHaveBeenCalled();
+      expect(result).toBe(0);
+    });
+  });
+
+  describe("Mutation.deleteDeliverableStateDocuments", () => {
+    it("should delete multiple state-attached deliverable documents in a transaction and return count", async () => {
+      const documentIds = ["doc-1", "doc-2", "doc-3"];
+      vi.mocked(removeDocument).mockResolvedValue(mockDocument as PrismaDocument);
+
+      const result = await documentResolvers.Mutation.deleteDeliverableStateDocuments(
+        undefined,
+        { ids: documentIds },
+        mockContext
+      );
+
+      expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
+      expect(removeDocument).toHaveBeenCalledTimes(documentIds.length);
+      for (const documentId of documentIds) {
+        expect(removeDocument).toHaveBeenCalledWith(
+          { id: documentId, deliverableId: { not: null }, deliverableIsCmsAttachedFile: false },
+          mockContext.user,
+          mockTransaction
+        );
+      }
+      expect(result).toBe(documentIds.length);
+    });
+
+    it("should return 0 if no document ids are provided", async () => {
+      const result = await documentResolvers.Mutation.deleteDeliverableStateDocuments(
+        undefined,
+        { ids: [] },
+        mockContext
+      );
+
+      expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
+      expect(removeDocument).not.toHaveBeenCalled();
+      expect(result).toBe(0);
+    });
+  });
+
   describe("document.application", () => {
     it("should defer to Application.getApplication", async () => {
       vi.mocked(getApplication).mockResolvedValue(mockApplication as any);
