@@ -117,19 +117,6 @@ export const documentResolvers = {
         handlePrismaError(error);
       }
     },
-    deleteDocument: async function deleteDocument(
-      parent: unknown,
-      { id }: { id: string },
-      context: GraphQLContext
-    ): Promise<PrismaDocument> {
-      try {
-        return prisma().$transaction(async (tx) => {
-          return removeDocument({ id }, context.user, tx);
-        });
-      } catch (error) {
-        handlePrismaError(error);
-      }
-    },
     deleteDocuments: async function deleteDocuments(
       parent: unknown,
       { ids }: { ids: string[] },
@@ -162,7 +149,9 @@ export const documentResolvers = {
     application: (parent: PrismaDocument): Promise<PrismaApplication> =>
       getApplication(parent.applicationId),
     deliverable: resolveDeliverable,
-    deliverableSubmissionAction: async (parent: PrismaDocument): Promise<DeliverableAction | null> => {
+    deliverableSubmissionAction: async (
+      parent: PrismaDocument
+    ): Promise<DeliverableAction | null> => {
       if (!parent.deliverableSubmissionActionId) {
         return null;
       }

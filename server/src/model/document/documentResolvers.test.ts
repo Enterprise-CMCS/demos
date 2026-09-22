@@ -334,17 +334,6 @@ describe("documentResolvers", () => {
     });
   });
 
-  describe("Mutation.deleteDocument", () => {
-    it("should delete the document under a transaction", () => {
-      documentResolvers.Mutation.deleteDocument(undefined, { id: testDocumentId }, mockContext);
-      expect(removeDocument).toHaveBeenCalledExactlyOnceWith(
-        { id: testDocumentId },
-        mockContext.user,
-        mockTransaction
-      );
-    });
-  });
-
   describe("Mutation.deleteDocuments", () => {
     it("should delete multiple documents in a transaction and return count", async () => {
       const documentIds = ["doc-1", "doc-2", "doc-3"];
@@ -473,7 +462,6 @@ describe("documentResolvers", () => {
   describe("resolver exports", () => {
     it("should export Mutation resolvers", () => {
       expect(documentResolvers.Mutation).toHaveProperty("updateDocument");
-      expect(documentResolvers.Mutation).toHaveProperty("deleteDocument");
       expect(documentResolvers.Mutation).toHaveProperty("deleteDocuments");
       expect(documentResolvers.Mutation).toHaveProperty("triggerUiPath");
     });
