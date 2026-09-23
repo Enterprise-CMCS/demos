@@ -2,9 +2,14 @@ INSERT INTO demos_app.person_type (id) VALUES ('demos-cms-reviewer-user');
 
 INSERT INTO demos_app.user_person_type_limit (id) VALUES ('demos-cms-reviewer-user');
 
-
-
 INSERT INTO demos_app.role (id, grant_level_id) VALUES ('CMS Reviewer User', 'System');
+
+INSERT INTO demos_app.role_person_type (role_id, person_type_id) VALUES 
+('CMS Reviewer User', 'demos-cms-reviewer-user'),
+('Project Officer', 'demos-cms-reviewer-user'),
+('DDME Analyst', 'demos-cms-reviewer-user'),
+('Policy Technical Director', 'demos-cms-reviewer-user'),
+('Monitoring & Evaluation Technical Director', 'demos-cms-reviewer-user');
 
 UPDATE demos_app.permission 
 SET id = 'Edit Documents on Assigned Deliverables'
