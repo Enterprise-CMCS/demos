@@ -17,7 +17,7 @@ describe("checkTagDoesntAlreadyExist", () => {
     vi.mocked(selectTags).mockResolvedValue([]);
 
     await checkTagDoesntAlreadyExist("My Tag", mockTransaction);
-    expect(selectTags).toHaveBeenCalledExactlyOnceWith("My Tag", mockTransaction);
+    expect(selectTags).toHaveBeenCalledExactlyOnceWith({ tagNameId: "My Tag" }, mockTransaction);
   });
 
   it("should return undefined when the tag does not exist", async () => {
