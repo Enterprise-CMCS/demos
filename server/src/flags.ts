@@ -4,7 +4,7 @@ import semver from "semver";
  * Feature flags and version constants.
  */
 
-export const __DEMOS_VERSION__ = "1.0.0";
+export const __DEMOS_VERSION__ = "1.1.0";
 
 /**
  * Print version info on server startup.
