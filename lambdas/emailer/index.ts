@@ -1,11 +1,10 @@
-import nodemailer from "nodemailer";
+import nodemailer, { Address, SendMailOptions } from "nodemailer";
 import { getAgreementAttachment } from "./agreementAttachment";
 import { SQSEvent } from "aws-lambda";
 
 import * as ssm from "@aws-sdk/client-ssm";
 
 import { log } from "./log";
-import { Address, Options } from "nodemailer/lib/mailer";
 import { renderEmail } from "./emails/renderEmail";
 import {
   getEmailLogContext,
@@ -13,12 +12,10 @@ import {
   type RealtimeEmailEnvelope,
 } from "./emailLogContext";
 import { DeliveryStatus, updateEmailNotificationStatus } from "./emailNotificationStatus";
+import { MimeNodeAddressInput } from "nodemailer/lib/mime-node";
 
-type EmailerAddress = string | Address;
-type EmailerAddressGroup = EmailerAddress | EmailerAddress[];
-
-export interface EmailData extends Pick<Options, "html" | "cc" | "bcc"> {
-  to: EmailerAddressGroup;
+export interface EmailData extends Pick<SendMailOptions, "html" | "cc" | "bcc"> {
+  to: MimeNodeAddressInput;
   subject: string;
   text: string;
 }
@@ -40,7 +37,7 @@ export const handler = async (event: SQSEvent) => {
     port: Number.parseInt(process.env.EMAIL_PORT ?? "587"),
   });
 
-  let attachments: Options["attachments"];
+  let attachments: SendMailOptions["attachments"];
   let email;
   try {
     email = JSON.parse(record.body);
@@ -205,7 +202,7 @@ export function isValidEmailData(email: any): email is EmailData {
 }
 
 // Not real validation, just making sure its a valid format
-export function isEmailerAddress(address?: EmailerAddressGroup): address is EmailerAddressGroup {
+export function isEmailerAddress(address?: MimeNodeAddressInput): address is MimeNodeAddressInput {
   if (!address) {
     return false;
   }
@@ -228,16 +225,33 @@ export function isEmailerAddress(address?: EmailerAddressGroup): address is Emai
 let allowList: string[] | undefined;
 
 export async function sendEmailIsAllowed(
-  ...recipientGroups: Array<EmailerAddressGroup | undefined>
+  ...recipientGroups: Array<MimeNodeAddressInput | undefined>
 ): Promise<boolean> {
   const allowList = await getAllowList();
   const recipients = recipientGroups.flatMap((group) =>
     group === undefined ? [] : Array.isArray(group) ? group : [group]
   );
 
-  return recipients.every((recipient) =>
-    allowList.includes((typeof recipient == "string" ? recipient : recipient.address).toLowerCase())
-  );
+  // return recipients.every((recipient) => {
+  //   return allowList.includes((typeof recipient == "string" ? recipient : recipient.address).toLowerCase())
+  // });
+
+  const isAllowed = (
+    recipient: MimeNodeAddressInput | undefined
+  ): boolean => {
+    if (recipient === undefined) {
+      return true
+    }
+
+    if (Array.isArray(recipient)) {
+      return recipient.every(isAllowed)
+    }
+
+    const address = typeof recipient == "string" ? recipient : recipient.address;
+    return allowList.includes(address.toLowerCase());
+  }
+
+  return recipientGroups.every(isAllowed)
 }
 
 export function clearCache() {
@@ -276,7 +290,7 @@ export async function getAllowList() {
   }
 }
 
-export function redactEmailAddresses(addresses: EmailerAddressGroup): typeof addresses {
+export function redactEmailAddresses(addresses: MimeNodeAddressInput): typeof addresses {
   if (Array.isArray(addresses)) {
     return addresses.map((e) => redactEmailAddress(e));
   }
@@ -292,19 +306,28 @@ function redactEmailRecipients(email: Pick<EmailData, "to" | "cc" | "bcc">) {
   };
 }
 
-function redactEmailAddress(address: EmailerAddress): typeof address {
+function redactEmailAddress(address: MimeNodeAddressInput): typeof address {
+
+  if (Array.isArray(address)) {
+    return address.map(a => redactEmailAddress(a))
+  }
+
   const e = typeof address == "string" ? address : address.address;
 
-  const [local, domain] = e.split("@");
-  if (!domain) return address;
-
-  const visible = local.slice(0, 2);
-
-  const redactedEmail = `${visible}****@${domain}`;
+  const redactedEmail = redactEmailAddressString(e);
 
   if (typeof address == "string") {
     return redactedEmail;
   }
 
   return { ...address, address: redactedEmail } as Address;
+}
+
+function redactEmailAddressString(address: string): string {
+  const [local, domain] = address.split("@");
+  if (!domain) return address;
+
+  const visible = local.slice(0, 2);
+
+  return `${visible}****@${domain}`;
 }

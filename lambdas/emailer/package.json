@@ -29,7 +29,7 @@
     "@aws-sdk/client-ssm": "^3.1127.0",
     "@types/aws-lambda": "^8.10.163",
     "@types/mime-types": "^3.0.1",
-    "@types/nodemailer": "^7.0.12",
+    "@types/nodemailer": "^8.0.2",
     "@types/pg": "^8.23.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
