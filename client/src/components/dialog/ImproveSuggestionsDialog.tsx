@@ -87,8 +87,8 @@ export const ImproveSuggestionsDialog = ({
       cancelButtonIsDisabled={saving}
       maxWidthClass="max-w-[850px]"
     >
-      <fieldset disabled={saving} className="contents">
-        <p className="text-lg text-text-placeholder">
+      <fieldset disabled={saving} className="flex flex-col gap-2 min-w-0">
+        <p className="text-sm text-text-placeholder">
           Search for an alternate tag suggestion for &apos;<strong>{tagName}</strong>&apos;:
         </p>
 
@@ -106,6 +106,7 @@ export const ImproveSuggestionsDialog = ({
             selectedTags={selectedTags}
             setSelectedTags={setSelectedTags}
             selectionMode="single"
+            variant="improve"
           />
         )}
 
@@ -118,7 +119,7 @@ export const ImproveSuggestionsDialog = ({
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between border-t border-border-rules pt-2">
           <SecondaryButton name="button-back-to-confirm-tags" onClick={onBack}>
             Back
           </SecondaryButton>

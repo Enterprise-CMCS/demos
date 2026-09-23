@@ -115,6 +115,7 @@ export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({
           selectedTags={selectedTags}
           setSelectedTags={setSelectedTags}
           selectionMode="multiple"
+          variant="apply"
         />
         <div className="flex flex-col gap-1">
           <label className="block text-md font-semibold text-text-font">
