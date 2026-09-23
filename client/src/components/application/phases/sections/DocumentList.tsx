@@ -10,7 +10,7 @@ export const DocumentList = ({
   documents: ApplicationWorkflowDocument[];
   emptyMessage?: string;
 }) => {
-  const { showRemoveDocumentDialog } = useDialog();
+  const { showRemoveApplicationDocumentsDialog } = useDialog();
 
   return (
     <div className="mt-2 space-y-2">
@@ -22,7 +22,7 @@ export const DocumentList = ({
         <DocumentChip
           document={doc}
           key={doc.id}
-          onRemove={() => showRemoveDocumentDialog([doc.id])}
+          onRemove={() => showRemoveApplicationDocumentsDialog([doc.id])}
         />
       ))}
     </div>

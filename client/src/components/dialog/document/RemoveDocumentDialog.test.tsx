@@ -1,84 +1,104 @@
 import "@testing-library/jest-dom";
 
 import React from "react";
-
-import { ToastProvider } from "components/toast/ToastContext";
 import { describe, expect, it, vi } from "vitest";
+import { render } from "@testing-library/react";
+import { useMutation } from "@apollo/client";
 
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-
-import { RemoveDocumentDialog } from "./RemoveDocumentDialog";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/demonstration/DemonstrationWorkflow";
-import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
+import {
+  RemoveApplicationDocumentsDialog,
+  RemoveDeliverableCmsDocumentsDialog,
+  RemoveDeliverableStateDocumentsDialog,
+  DELETE_DOCUMENTS_QUERY,
+  DELETE_DELIVERABLE_CMS_DOCUMENTS_QUERY,
+  DELETE_DELIVERABLE_STATE_DOCUMENTS_QUERY,
+} from "./RemoveDocumentDialog";
+import { RemoveDocumentDialogView } from "./RemoveDocumentDialogView";
 
-const mockQuery = vi.fn();
+vi.mock("./RemoveDocumentDialogView", () => ({
+  RemoveDocumentDialogView: vi.fn().mockReturnValue(null),
+}));
 
-beforeEach(() => {
-  vi.mock("@apollo/client", async () => {
-    const actual = await vi.importActual("@apollo/client");
-    return {
-      ...actual,
-      useMutation: () => [mockQuery],
-    };
-  });
+vi.mock("@apollo/client", async () => {
+  const actual = await vi.importActual("@apollo/client");
+  return {
+    ...actual,
+    useMutation: vi.fn(),
+  };
 });
 
+const documentIds = ["doc-1", "doc-2"];
+const onClose = vi.fn();
+const refetchQueries = [DEMONSTRATION_DETAIL_QUERY, GET_WORKFLOW_DEMONSTRATION_QUERY];
+
 afterEach(() => {
-  vi.resetModules();
   vi.clearAllMocks();
 });
 
-const CONFIRM_REMOVE_BUTTON_TEST_ID = "button-confirm-delete-document";
+describe("RemoveApplicationDocumentsDialog", () => {
+  it("uses the delete documents mutation, forwards its props, and confirms through it", () => {
+    const trigger = vi.fn();
+    vi.mocked(useMutation).mockReturnValueOnce([trigger] as never);
 
-describe("RemoveDocumentDialog", () => {
-  const setup = (ids: string[] = ["1"], onClose = vi.fn()) => {
-    render(
-      <ToastProvider>
-        <RemoveDocumentDialog documentIds={ids} onClose={onClose} />
-      </ToastProvider>
+    render(<RemoveApplicationDocumentsDialog documentIds={documentIds} onClose={onClose} />);
+
+    expect(useMutation).toHaveBeenCalledWith(DELETE_DOCUMENTS_QUERY);
+    expect(vi.mocked(RemoveDocumentDialogView).mock.calls[0][0]).toEqual(
+      expect.objectContaining({ documentIds, onClose, onConfirm: expect.any(Function) })
     );
-    return { onClose };
-  };
 
-  it("renders with single document", () => {
-    setup(["1"]);
-    expect(screen.getByText(/Remove Document/)).toBeInTheDocument();
-    expect(screen.getByText(/Are you sure you want to remove 1 document/)).toBeInTheDocument();
-    expect(screen.getByText(/This action cannot be undone/)).toBeInTheDocument();
-    expect(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID)).toBeInTheDocument();
-    expect(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME)).toBeInTheDocument();
-  });
+    const { onConfirm } = vi.mocked(RemoveDocumentDialogView).mock.calls[0][0];
+    onConfirm(documentIds);
 
-  it("renders with multiple documents", () => {
-    setup(["1", "2", "3"]);
-    expect(screen.getByText(/Are you sure you want to remove 3 documents/)).toBeInTheDocument();
-  });
-
-  it("calls onClose when Cancel is clicked", () => {
-    const { onClose } = setup(["1"]);
-    fireEvent.click(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME));
-    expect(onClose).toHaveBeenCalled();
-  });
-
-  it("shows warning and closes when Remove is clicked", async () => {
-    const { onClose } = setup(["1", "2"]);
-    await act(async () => {
-      fireEvent.click(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID));
-    });
-    await waitFor(() => {
-      expect(onClose).toHaveBeenCalled();
+    expect(trigger).toHaveBeenCalledWith({
+      variables: { ids: documentIds },
+      refetchQueries,
     });
   });
+});
 
-  it("calls deleteDocumentsTrigger when Remove is clicked", async () => {
-    setup(["test-document-id"]);
-    fireEvent.click(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID));
-    await waitFor(() => {
-      expect(mockQuery).toHaveBeenCalledWith({
-        variables: { ids: ["test-document-id"] },
-        refetchQueries: [DEMONSTRATION_DETAIL_QUERY, GET_WORKFLOW_DEMONSTRATION_QUERY],
-      });
+describe("RemoveDeliverableCmsDocumentsDialog", () => {
+  it("uses the delete deliverable CMS documents mutation, forwards its props, and confirms through it", () => {
+    const trigger = vi.fn();
+    vi.mocked(useMutation).mockReturnValueOnce([trigger] as never);
+
+    render(<RemoveDeliverableCmsDocumentsDialog documentIds={documentIds} onClose={onClose} />);
+
+    expect(useMutation).toHaveBeenCalledWith(DELETE_DELIVERABLE_CMS_DOCUMENTS_QUERY);
+    expect(vi.mocked(RemoveDocumentDialogView).mock.calls[0][0]).toEqual(
+      expect.objectContaining({ documentIds, onClose, onConfirm: expect.any(Function) })
+    );
+
+    const { onConfirm } = vi.mocked(RemoveDocumentDialogView).mock.calls[0][0];
+    onConfirm(documentIds);
+
+    expect(trigger).toHaveBeenCalledWith({
+      variables: { ids: documentIds },
+      refetchQueries,
+    });
+  });
+});
+
+describe("RemoveDeliverableStateDocumentsDialog", () => {
+  it("uses the delete deliverable state documents mutation, forwards its props, and confirms through it", () => {
+    const trigger = vi.fn();
+    vi.mocked(useMutation).mockReturnValueOnce([trigger] as never);
+
+    render(<RemoveDeliverableStateDocumentsDialog documentIds={documentIds} onClose={onClose} />);
+
+    expect(useMutation).toHaveBeenCalledWith(DELETE_DELIVERABLE_STATE_DOCUMENTS_QUERY);
+    expect(vi.mocked(RemoveDocumentDialogView).mock.calls[0][0]).toEqual(
+      expect.objectContaining({ documentIds, onClose, onConfirm: expect.any(Function) })
+    );
+
+    const { onConfirm } = vi.mocked(RemoveDocumentDialogView).mock.calls[0][0];
+    onConfirm(documentIds);
+
+    expect(trigger).toHaveBeenCalledWith({
+      variables: { ids: documentIds },
+      refetchQueries,
     });
   });
 });
