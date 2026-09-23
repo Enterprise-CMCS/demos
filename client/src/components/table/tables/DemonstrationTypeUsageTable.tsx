@@ -3,6 +3,7 @@ import { DemonstrationTypeUsageSummary } from "demos-server";
 import { SecondaryButton } from "components/button";
 import { MOCK_DEMONSTRATION_TYPE_USAGE } from "mock-data/demonstrationTypeUsageMocks";
 import { Table, PaginationControls, KeywordSearch, getColumnBuilder } from "components/table";
+import { TypeTagActionButtons } from "./TypeTagActionButtons";
 
 export type DemonstrationTypeUsageRow = DemonstrationTypeUsageSummary & {
   id: string;
@@ -56,6 +57,7 @@ export const DemonstrationTypeUsageTable = ({
       columns={columns}
       keywordSearch={(table) => <KeywordSearch table={table} />}
       pagination={(table) => <PaginationControls table={table} />}
+      actionButtons={(table) => <TypeTagActionButtons table={table} />}
       emptyRowsMessage="No demonstration types available."
       noResultsFoundMessage="No results match your search"
     />

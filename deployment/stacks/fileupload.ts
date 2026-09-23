@@ -30,6 +30,9 @@ import { backupTags } from "../util/backup";
 import { UiPathProcessor } from "../lib/uipathProcessor";
 import { BudgetNeutralityProcessor } from "../lib/budgetNeutralityProcessor";
 import { DataConnectExportProcessor } from "../lib/dataConnectExportProcessor";
+import { BucketAccessLogs } from "../lib/bucketAccessLogs";
+import { NagSuppressions } from "cdk-nag";
+import { addCheckovSkip } from "../util/addCheckovSkip";
 
 interface FileUploadStackProps extends StackProps, DeploymentConfigProperties {
   vpc: IVpc;
@@ -84,38 +87,38 @@ export class FileUploadStack extends Stack {
     });
     alarmResources.registerQueue("deleteInfectedFile", deleteInfectedFileQueue);
 
-    const accessLogs = new Bucket(this, "fileUploadAccessLogBucket", {
-      encryption: aws_s3.BucketEncryption.S3_MANAGED,
-      removalPolicy:
-        props.isDev || props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
-      blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
-      autoDeleteObjects: props.isDev || props.isEphemeral,
-      enforceSSL: true,
-    });
+    if (!props.isEphemeral) {
+      const accessLogs = new Bucket(this, "fileUploadAccessLogBucket", {
+        encryption: aws_s3.BucketEncryption.S3_MANAGED,
+        removalPolicy:
+          props.isDev || props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
+        blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
+        autoDeleteObjects: props.isDev || props.isEphemeral,
+        enforceSSL: true,
+      });
 
-    const accessLogBucketCfn = accessLogs.node.defaultChild as aws_s3.CfnBucket;
-    accessLogBucketCfn.cfnOptions.metadata = {
-      checkov: {
-        skip: [{
-          id: "CKV_AWS_18",
-          reason: "the access log bucket itself does not need access logs"
-        },{
-          id: "CKV_AWS_21",
-          reason: "versioning on the access log bucket itself is intentionally disabled"
-        }]
-      }
+      NagSuppressions.addResourceSuppressions(accessLogs, [{
+        id: "AwsSolutions-S1",
+        reason: "Access log buckets should not themselves have access logging"
+      }])
+
+      const accessLogBucketCfn = accessLogs.node.defaultChild as aws_s3.CfnBucket;
+      accessLogBucketCfn.addMetadata( "checkov", {
+          skip: [{
+            id: "CKV_AWS_18",
+            reason: "the access log bucket itself does not need access logs"
+          },{
+            id: "CKV_AWS_21",
+            reason: "versioning on the access log bucket itself is intentionally disabled"
+          }]
+        })
     }
-
-    const s3AccessLogBucketArn = Fn.importValue(`${props.stage}AccessLogBucketArn`)
-    const s3AccessLogBucket = Bucket.fromBucketArn(this, "coreAccessLogBucket", s3AccessLogBucketArn)
 
     const uploadBucket = new Bucket(this, "FileUploadBucket", {
       versioned: false,
       removalPolicy: props.stage == "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
       autoDeleteObjects: props.stage != "prod",
       publicReadAccess: false,
-      serverAccessLogsBucket: s3AccessLogBucket,
-      serverAccessLogsPrefix: "upload/",
       enforceSSL: true,
       eventBridgeEnabled: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
@@ -128,18 +131,27 @@ export class FileUploadStack extends Stack {
       ],
     });
 
+    new BucketAccessLogs(this, "FileUploadBucketAccessLogs", {
+      bucket: uploadBucket,
+      stage: props.stage
+    })
+
     const dataConnectBucket = new Bucket(this, "DataConnectBucket", {
       bucketName: `demos-${props.stage}-dataconnect`,
       versioned: true,
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       publicReadAccess: false,
-      serverAccessLogsBucket: s3AccessLogBucket,
-      serverAccessLogsPrefix: "dataconnect/",
       enforceSSL: true,
       eventBridgeEnabled: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
     });
+
+
+    new BucketAccessLogs(this, "DataConnectBucketAccessLogs", {
+      bucket: dataConnectBucket,
+      stage: props.stage
+    })
 
     dataConnectBucket.addToResourcePolicy(new aws_iam.PolicyStatement({
       effect: aws_iam.Effect.ALLOW,
@@ -164,15 +176,10 @@ export class FileUploadStack extends Stack {
       Tags.of(dataConnectBucket).add("AWS_Backup", backupTags.d15_w90);
     }
 
-    const uploadBucketCfn = uploadBucket.node.defaultChild as aws_s3.CfnBucket;
-    uploadBucketCfn.cfnOptions.metadata = {
-      checkov: {
-        skip: [{
-          id: "CKV_AWS_21",
-          reason: "versioning on the upload bucket is intentionally disabled. Files are only here for a short time and moved to other buckets based on virus scan status where versioning is enabled"
-        }]
-      }
-    }
+    addCheckovSkip(uploadBucket, {
+      id: "CKV_AWS_21",
+      reason: "versioning on the upload bucket is intentionally disabled. Files are only here for a short time and moved to other buckets based on virus scan status where versioning is enabled"
+    })
 
     new GuardDutyS3(this, "uploadBucketScan", {
       bucket: uploadBucket,
@@ -187,8 +194,6 @@ export class FileUploadStack extends Stack {
       removalPolicy: props.stage == "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
       autoDeleteObjects: props.stage != "prod",
       publicReadAccess: false,
-      serverAccessLogsBucket: s3AccessLogBucket,
-      serverAccessLogsPrefix: "clean/",
       enforceSSL: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
       cors: [
@@ -204,35 +209,44 @@ export class FileUploadStack extends Stack {
       Tags.of(cleanBucket).add("AWS_Backup", backupTags.d15_w90);
     }
 
+    new BucketAccessLogs(this, "CleanBucketAccessLogs", {
+      bucket: cleanBucket,
+      stage: props.stage
+    })
+
     const deletedBucket = new Bucket(this, "FileDeletedBucket", {
       versioned: true,
       removalPolicy: props.stage == "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
       autoDeleteObjects: props.stage != "prod",
       publicReadAccess: false,
-      serverAccessLogsBucket: s3AccessLogBucket,
-      serverAccessLogsPrefix: "deleted/",
       enforceSSL: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
     });
+
+    new BucketAccessLogs(this, "DeletedBucketAccessLogs", {
+      bucket: deletedBucket,
+      stage: props.stage
+    })
 
     const uiPathDocumentsBucket = new Bucket(this, "UiPathDocumentsBucket", {
       versioned: true,
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       publicReadAccess: false,
-      serverAccessLogsBucket: accessLogs,
-      serverAccessLogsPrefix: "uipath-documents",
       enforceSSL: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
     });
+
+    new BucketAccessLogs(this, "UiPathBucketAccessLogs", {
+      bucket: uiPathDocumentsBucket,
+      stage: props.stage
+    })
 
     const infectedBucket = new Bucket(this, "FileInfectedBucket", {
       versioned: true,
       removalPolicy: props.stage == "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
       autoDeleteObjects: props.stage != "prod",
       publicReadAccess: false,
-      serverAccessLogsBucket: accessLogs,
-      serverAccessLogsPrefix: "infected",
       enforceSSL: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
       lifecycleRules: [
@@ -249,6 +263,11 @@ export class FileUploadStack extends Stack {
         },
       ],
     });
+
+    new BucketAccessLogs(this, "FileInfectedBucketAccessLogs", {
+      bucket: infectedBucket,
+      stage: props.stage
+    })
 
     infectedBucket.addEventNotification(
       aws_s3.EventType.LIFECYCLE_EXPIRATION_DELETE_MARKER_CREATED,

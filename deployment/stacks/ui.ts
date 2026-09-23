@@ -26,6 +26,9 @@ import * as alarms from "../lib/alarms";
 import { HttpOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
 import { DemosLogGroup } from "../lib/logGroup";
 import { accessDeniedBodyName, createCloudfrontRules, createRegionalRules } from "../lib/waf";
+import { BucketAccessLogs } from "../lib/bucketAccessLogs";
+import { NagSuppressions } from "cdk-nag";
+import { addCheckovSkip } from "../util/addCheckovSkip";
 
 interface UIStackProps {
   cognitoParamNames: {
@@ -61,28 +64,37 @@ export class UiStack extends Stack {
     return 
     }
 
-    const serverAccessLogBucket = new aws_s3.Bucket(commonProps.scope, "CloudfrontLogBucket", {
-      encryption: aws_s3.BucketEncryption.S3_MANAGED,
-      publicReadAccess: false,
-      blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
-      objectOwnership: aws_s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,
-      removalPolicy: commonProps.isDev || commonProps.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
-      autoDeleteObjects: commonProps.isDev || commonProps.isEphemeral,
-      enforceSSL: true,
-      bucketName: `demos-${commonProps.stage}-ui-server-access`,
-    });
+    if (!commonProps.isEphemeral) {
+      // This bucket will eventually be removed, but since it contains logs,
+      // we'll remove it in a future cycle after existing logs have expired
+      //
+      // All new logs are going directly to cloudwatch
+      const serverAccessLogBucket = new aws_s3.Bucket(commonProps.scope, "CloudfrontLogBucket", {
+        encryption: aws_s3.BucketEncryption.S3_MANAGED,
+        publicReadAccess: false,
+        blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
+        objectOwnership: aws_s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,
+        removalPolicy: commonProps.isDev || commonProps.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
+        autoDeleteObjects: commonProps.isDev || commonProps.isEphemeral,
+        enforceSSL: true,
+        bucketName: `demos-${commonProps.stage}-ui-server-access`,
+      });
 
-    const accessLogBucketCfn = serverAccessLogBucket.node.defaultChild as aws_s3.CfnBucket;
-    accessLogBucketCfn.cfnOptions.metadata = {
-      checkov: {
-        skip: [{
-          id: "CKV_AWS_18",
-          reason: "the access log bucket itself does not need access logs"
-        },{
-          id: "CKV_AWS_21",
-          reason: "versioning on the access log bucket itself is intentionally disabled"
-        }]
-      }
+      NagSuppressions.addResourceSuppressions(serverAccessLogBucket, [{
+        id: "AwsSolutions-S1",
+        reason: "Access log buckets should not themselves have access logging"
+      }])
+
+      const accessLogBucketCfn = serverAccessLogBucket.node.defaultChild as aws_s3.CfnBucket;
+      accessLogBucketCfn.addMetadata( "checkov", {
+          skip: [{
+            id: "CKV_AWS_18",
+            reason: "the access log bucket itself does not need access logs"
+          },{
+            id: "CKV_AWS_21",
+            reason: "versioning on the access log bucket itself is intentionally disabled"
+          }]
+        })
     }
 
     const cmsCloudLogBucket = aws_s3.Bucket.fromBucketName(
@@ -91,35 +103,24 @@ export class UiStack extends Stack {
       `cms-cloud-${Aws.ACCOUNT_ID}-us-east-1`
     );
 
-    // Add bucket policy to allow CloudFront to write logs
-    serverAccessLogBucket.addToResourcePolicy(
-      new aws_iam.PolicyStatement({
-        effect: aws_iam.Effect.ALLOW,
-        principals: [new aws_iam.ServicePrincipal("cloudfront.amazonaws.com")],
-        actions: ["s3:PutObject"],
-        resources: [`${serverAccessLogBucket.bucketArn}/*`],
-      })
-    );
-
     // S3 Bucket for UI hosting
     const uiBucket = new aws_s3.Bucket(commonProps.scope, "uiBucket", {
       encryption: aws_s3.BucketEncryption.S3_MANAGED,
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
-      serverAccessLogsBucket: serverAccessLogBucket,
       enforceSSL: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
     });
 
-    const uiBucketCfn = uiBucket.node.defaultChild as aws_s3.CfnBucket;
-    uiBucketCfn.cfnOptions.metadata = {
-      checkov: {
-        skip: [{
-          id: "CKV_AWS_21",
-          reason: "versioning is unnecessary for the UI bucket since these files are only static UI files"
-        }]
-      }
-    }
+    new BucketAccessLogs(commonProps.scope, "uiBucketAccessLogs", {
+      bucket: uiBucket, 
+      stage: commonProps.stage
+    })
+
+    addCheckovSkip(uiBucket, {
+      id: "CKV_AWS_21",
+      reason: "versioning is unnecessary for the UI bucket since these files are only static UI files"
+    })
 
     //
     // WAF
