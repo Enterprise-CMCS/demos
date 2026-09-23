@@ -17,15 +17,5 @@ ignore:
         reason: No patch available
         expires: 2026-08-29T00:00:00.000Z
         created: 2026-07-29T13:02:53.851Z
-  SNYK-JS-NODEMAILER-19784395:
-    - '*':
-        reason: No patch available
-        expires: 2026-10-07T00:00:00.000Z
-        created: 2026-09-23T16:28:05.000Z
-  SNYK-JS-DEEPMERGE-19964053:
-    - '*':
-        reason: No patch available
-        expires: 2026-10-07T00:00:00.000Z
-        created: 2026-09-23T16:28:05.000Z
 
 patch: {}
