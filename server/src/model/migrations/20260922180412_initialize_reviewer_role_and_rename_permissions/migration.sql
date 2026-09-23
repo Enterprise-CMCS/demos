@@ -100,7 +100,4 @@ WHERE id IN (
   'Perform State Action'
 );
 
-DELETE FROM demos_app.permission WHERE id IN ('Perform CMS Action', 'Perform State Action');
-
-
 
