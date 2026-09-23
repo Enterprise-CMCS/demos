@@ -7,6 +7,7 @@ import {
   updateTags,
 } from ".";
 import { throwCustomGQLError } from "../../errors/errorCodes";
+import { __FEATURE_APPROVE_TAG_API__, throwNotReleasedError } from "../../flags";
 
 export const EDITABLE_TAG_TYPES: TagType[] = ["Demonstration Type", "Application"];
 
@@ -27,6 +28,9 @@ export const tagResolvers = {
       };
     },
     approveTag: async (parent: unknown, args: { tagName: TagName }): Promise<Tag> => {
+      if (!__FEATURE_APPROVE_TAG_API__) {
+        throwNotReleasedError("approveTag");
+      }
       // Find tags generally by tag name
       // Limited to only demo types and application for now; consistent with previous work
       const existingTags = await selectTags({
