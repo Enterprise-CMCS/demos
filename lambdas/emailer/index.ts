@@ -232,10 +232,6 @@ export async function sendEmailIsAllowed(
     group === undefined ? [] : Array.isArray(group) ? group : [group]
   );
 
-  // return recipients.every((recipient) => {
-  //   return allowList.includes((typeof recipient == "string" ? recipient : recipient.address).toLowerCase())
-  // });
-
   const isAllowed = (
     recipient: MimeNodeAddressInput | undefined
   ): boolean => {
