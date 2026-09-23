@@ -18,7 +18,6 @@ vi.mock(".", () => ({
   editDeliverable: vi.fn(),
   selectDeliverableOrThrow: vi.fn(),
   validateCompleteDeliverableInput: vi.fn(),
-  validateUserPersonTypeAllowed: vi.fn(),
 }));
 
 vi.mock("../deliverableAction/queries", () => ({
@@ -34,7 +33,6 @@ import {
   editDeliverable,
   selectDeliverableOrThrow,
   validateCompleteDeliverableInput,
-  validateUserPersonTypeAllowed,
 } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 import { notifyDeliverableCompleted } from "../email/notifyDeliverableEvent";

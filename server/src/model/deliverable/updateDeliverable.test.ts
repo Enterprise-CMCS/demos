@@ -28,7 +28,6 @@ vi.mock(".", () => ({
   parseUpdateDeliverableInput: vi.fn(),
   updateDeliverableDemonstrationTypes: vi.fn(),
   validateUpdateDeliverableInput: vi.fn(),
-  validateUserPersonTypeAllowed: vi.fn(),
 }));
 
 vi.mock("../../errors/checkOptionalNotNullFields", () => ({
@@ -47,7 +46,6 @@ import {
   parseUpdateDeliverableInput,
   updateDeliverableDemonstrationTypes,
   validateUpdateDeliverableInput,
-  validateUserPersonTypeAllowed,
 } from ".";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { selectUserOrThrow } from "../user/queries";

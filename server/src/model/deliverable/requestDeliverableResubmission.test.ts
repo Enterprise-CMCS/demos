@@ -21,7 +21,6 @@ vi.mock(".", () => ({
   selectDeliverableOrThrow: vi.fn(),
   parseRequestDeliverableResubmissionInput: vi.fn(),
   validateRequestDeliverableResubmissionInput: vi.fn(),
-  validateUserPersonTypeAllowed: vi.fn(),
 }));
 
 vi.mock("../deliverableAction/queries", () => ({
@@ -39,7 +38,6 @@ import {
   ParsedRequestDeliverableResubmissionInput,
   parseRequestDeliverableResubmissionInput,
   validateRequestDeliverableResubmissionInput,
-  validateUserPersonTypeAllowed,
 } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 import { notifyDeliverableResubmissionRequested } from "../email/notifyDeliverableEvent";

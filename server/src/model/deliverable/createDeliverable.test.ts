@@ -20,7 +20,6 @@ vi.mock("../../prismaClient", () => ({
 vi.mock(".", () => ({
   parseCreateDeliverableInput: vi.fn(),
   validateCreateDeliverableInput: vi.fn(),
-  validateUserPersonTypeAllowed: vi.fn(),
   insertDeliverable: vi.fn(),
 }));
 
@@ -40,7 +39,6 @@ import { prisma } from "../../prismaClient";
 import {
   parseCreateDeliverableInput,
   validateCreateDeliverableInput,
-  validateUserPersonTypeAllowed,
   insertDeliverable,
 } from ".";
 import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";

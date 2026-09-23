@@ -21,7 +21,6 @@ vi.mock("../../prismaClient", () => ({
 vi.mock(".", () => ({
   selectDeliverableOrThrow: vi.fn(),
   validateDenyDeliverableExtensionInput: vi.fn(),
-  validateUserPersonTypeAllowed: vi.fn(),
 }));
 
 vi.mock("../deliverableAction/queries", () => ({
@@ -41,7 +40,6 @@ import { prisma } from "../../prismaClient";
 import {
   selectDeliverableOrThrow,
   validateDenyDeliverableExtensionInput,
-  validateUserPersonTypeAllowed,
 } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 import {

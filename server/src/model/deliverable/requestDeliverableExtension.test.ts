@@ -23,7 +23,6 @@ vi.mock(".", () => ({
   selectDeliverableOrThrow: vi.fn(),
   parseRequestDeliverableExtensionInput: vi.fn(),
   validateRequestDeliverableExtensionInput: vi.fn(),
-  validateUserPersonTypeAllowed: vi.fn(),
 }));
 
 vi.mock("../deliverableAction/queries", () => ({
@@ -40,7 +39,6 @@ import {
   ParsedRequestDeliverableExtensionInput,
   parseRequestDeliverableExtensionInput,
   validateRequestDeliverableExtensionInput,
-  validateUserPersonTypeAllowed,
 } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 import { insertDeliverableExtension } from "../deliverableExtension/queries";
