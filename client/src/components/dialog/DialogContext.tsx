@@ -27,6 +27,7 @@ import { FederalCommentUploadDialog } from "./document/phases/FederalCommentUplo
 import { ApprovalPackageUploadDialog } from "./document/phases/ApprovalPackageUploadDialog";
 import { DeclareIncompleteDialog, DeclareIncompleteForm } from "./DeclareIncompleteDialog";
 import { ApplyDemonstrationTypesDialog } from "./DemonstrationTypes/ApplyDemonstrationTypesDialog";
+import { CreateDemonstrationTypesDialog } from "./DemonstrationTypes/CreateDemonstrationTypesDialog";
 import { ApplyTagsDialog } from "./ApplyTagsDialog";
 import { RemoveDemonstrationTypesDialog } from "./DemonstrationTypes/RemoveDemonstrationTypesDialog";
 import { EditDemonstrationTypeDialog } from "./DemonstrationTypes/EditDemonstrationTypeDialog";
@@ -242,6 +243,10 @@ export const useDialog = () => {
     context.showDialog(<ApplyDemonstrationTypesDialog demonstrationId={demonstrationId} />);
   };
 
+  const showCreateDemonstrationTypesDialog = () => {
+    context.showDialog(<CreateDemonstrationTypesDialog />);
+  };
+
   const showRemoveDemonstrationTypesDialog = (
     demonstrationId: string,
     demonstrationTypeNames: TagName[]
@@ -409,6 +414,7 @@ export const useDialog = () => {
     showApprovalPackageDocumentUploadDialog,
     showDeclareIncompleteDialog,
     showApplyDemonstrationTypesDialog,
+    showCreateDemonstrationTypesDialog,
     showApplyTagsDialog,
     showRemoveDemonstrationTypesDialog,
     showEditDemonstrationTypeDialog,

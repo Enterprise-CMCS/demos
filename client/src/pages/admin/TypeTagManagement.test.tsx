@@ -4,7 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect } from "vitest";
 import { Route, Routes } from "react-router-dom";
 import { TestProvider } from "test-utils/TestProvider";
-import { DialogProvider } from "components/dialog/DialogContext";
 import { MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION } from "mock-data/demonstrationMocks";
 import { AdminHeader } from "./AdminHeader";
 import { TypeTagManagement } from "./TypeTagManagement";
@@ -13,6 +12,7 @@ import {
   TYPE_TAG_ASSOCIATED_RECORDS_TEST_ID,
 } from "./TypeTagAssociatedRecords";
 import { TYPE_TAG_SEARCH_PARAM } from "./useTypeTagSelection";
+import { DialogProvider } from "components/dialog/DialogContext";
 
 const ASSOCIATED_TAG_NAME = MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION.tags[0].tagName;
 const PREVIOUS_PAGE_TEXT = "Demonstrations list";
