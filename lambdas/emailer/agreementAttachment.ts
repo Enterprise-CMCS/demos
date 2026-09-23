@@ -1,7 +1,8 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { extension as extensionForContentType } from "mime-types";
-import type { Attachment } from "nodemailer/lib/mailer";
+import { Attachment } from "nodemailer";
 import { getRequiredObject, getRequiredString } from "./emails/helpers";
+
 
 const EMAIL_TYPE = "Terms And Conditions Requested";
 

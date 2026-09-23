@@ -13,7 +13,7 @@ import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
 import { mockClient } from "aws-sdk-client-mock";
 import { SQSEvent } from "aws-lambda";
 import nodemailer, { SentMessageInfo } from "nodemailer";
-import Mail, { Options } from "nodemailer/lib/mailer";
+import Mail from "nodemailer/lib/mailer";
 
 const statusMocks = vi.hoisted(() => ({
   update: vi.fn(),
@@ -135,7 +135,7 @@ describe("emailer", () => {
     });
     const sendMailSpy = vi.fn(() => ({ messageId: "unit-test" }));
     vi.spyOn(nodemailer, "createTransport").mockImplementation(
-      () => ({ sendMail: sendMailSpy }) as unknown as Mail<SentMessageInfo, Options>
+      () => ({ sendMail: sendMailSpy }) as unknown as Mail<SentMessageInfo>
     );
 
     const out = await handler(mockEvent);
@@ -180,7 +180,7 @@ describe("emailer", () => {
     });
     const sendMailSpy = vi.fn(() => ({ messageId: "unit-test" }));
     vi.spyOn(nodemailer, "createTransport").mockImplementation(
-      () => ({ sendMail: sendMailSpy }) as unknown as Mail<SentMessageInfo, Options>
+      () => ({ sendMail: sendMailSpy }) as unknown as Mail<SentMessageInfo>
     );
     const infoSpy = vi.spyOn(log, "info");
 
@@ -198,7 +198,7 @@ describe("emailer", () => {
     });
     const sendMailSpy = vi.fn(() => ({ messageId: "unit-test" }));
     vi.spyOn(nodemailer, "createTransport").mockImplementation(
-      () => ({ sendMail: sendMailSpy }) as unknown as Mail<SentMessageInfo, Options>
+      () => ({ sendMail: sendMailSpy }) as unknown as Mail<SentMessageInfo>
     );
     const infoSpy = vi.spyOn(log, "info");
 
@@ -241,7 +241,7 @@ describe("emailer", () => {
     process.env.DISABLE_EMAIL_ALLOWLIST = "true";
     const sendMailSpy = vi.fn(() => ({ messageId: "unit-test" }));
     vi.spyOn(nodemailer, "createTransport").mockImplementation(
-      () => ({ sendMail: sendMailSpy }) as unknown as Mail<SentMessageInfo, Options>
+      () => ({ sendMail: sendMailSpy }) as unknown as Mail<SentMessageInfo>
     );
 
     await expect(
@@ -260,8 +260,7 @@ describe("emailer", () => {
     vi.spyOn(nodemailer, "createTransport").mockImplementation(
       () =>
         ({ sendMail: vi.fn().mockRejectedValue(new Error("SMTP unavailable")) }) as unknown as Mail<
-          SentMessageInfo,
-          Options
+          SentMessageInfo
         >
     );
 
@@ -282,7 +281,7 @@ describe("emailer", () => {
     statusMocks.update.mockRejectedValueOnce(new Error("database unavailable"));
     const sendMailSpy = vi.fn(() => ({ messageId: "unit-test" }));
     vi.spyOn(nodemailer, "createTransport").mockImplementation(
-      () => ({ sendMail: sendMailSpy }) as unknown as Mail<SentMessageInfo, Options>
+      () => ({ sendMail: sendMailSpy }) as unknown as Mail<SentMessageInfo>
     );
 
     await expect(
@@ -470,11 +469,13 @@ describe("emailer", () => {
     expect(
       isEmailerAddress([{ name: "Unit Test", address: "test@email.com" }, "test@email.com"])
     ).toEqual(true);
+    expect(
+      isEmailerAddress([{ name: "Unit Test", address: "test@email.com" }, "test@email.com", [{ name: "Unit Test", address: "test@email.com" }, "test@email.com"]])
+    ).toEqual(true);
 
     expect(isEmailerAddress()).toEqual(false);
     // @ts-expect-error
     expect(isEmailerAddress(1)).toEqual(false);
-    // @ts-expect-error
     expect(isEmailerAddress({ name: "Unit Test" })).toEqual(false);
     // @ts-expect-error
     expect(isEmailerAddress([{ name: "Unit Test", address: "test@email.com" }, 1])).toEqual(false);
@@ -577,6 +578,15 @@ describe("emailer", () => {
       name: "Unit Test",
       address: "un****@example.com",
     });
+    expect(redactEmailAddresses([{ name: "Unit Test", address: "unittest@example.com"}, "unittest@example.com", [{ name: "Unit Test", address: "unittest@example.com"}, "unittest@example.com"]])).toEqual(
+      [
+        { name: "Unit Test", address: "un****@example.com"}, 
+        "un****@example.com", 
+        [
+          { name: "Unit Test", address: "un****@example.com"}, 
+          "un****@example.com"
+        ]
+      ]);
   });
 
   it("should leave legacy email payloads unchanged when realtime rendering is not needed", async () => {
