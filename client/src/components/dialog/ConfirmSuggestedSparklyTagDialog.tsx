@@ -20,6 +20,7 @@ const STYLES = {
 };
 
 type ConfirmSuggestedSparklyTagDialogProps = {
+  applicationId: string;
   tagName: TagName;
   onClose: () => void;
   onConfirm: (tagName: TagName) => void;
@@ -28,6 +29,7 @@ type ConfirmSuggestedSparklyTagDialogProps = {
 };
 
 export const ConfirmSuggestedSparklyTagDialog = ({
+  applicationId,
   tagName,
   onClose,
   onConfirm,
@@ -39,6 +41,7 @@ export const ConfirmSuggestedSparklyTagDialog = ({
   if (view === "improve") {
     return (
       <ImproveSuggestionsDialog
+        applicationId={applicationId}
         tagName={tagName}
         onBack={() => setView("confirm")}
         onClose={onClose}
