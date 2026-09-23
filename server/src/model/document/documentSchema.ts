@@ -55,8 +55,7 @@ export const documentSchema = gql`
     updateDeliverableStateDocument(id: ID!, input: UpdateDocumentInput!): Document!
       @auth(requires: ["Modify Deliverable State Documents"])
 
-    deleteDocuments(ids: [ID!]!): Int!
-      @auth(requires: ["Modify Documents"])
+    deleteDocuments(ids: [ID!]!): Int! @auth(requires: ["Modify Documents"])
     deleteDeliverableCmsDocuments(ids: [ID!]!): Int!
       @auth(requires: ["Modify Deliverable CMS Documents"])
     deleteDeliverableStateDocuments(ids: [ID!]!): Int!

@@ -3,6 +3,7 @@ import { GraphQLContext } from "../../auth";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { prisma } from "../../prismaClient";
+import { log } from "../../log";
 import type {
   BudgetNeutralityValidationStatus,
   DeliverableAction,
@@ -224,8 +225,24 @@ export const documentResolvers = {
     owner: (parent: PrismaDocument): Promise<PrismaUser> =>
       selectUserOrThrow({ id: parent.ownerUserId }),
     documentType: (parent: PrismaDocument): DocumentType => parent.documentTypeId as DocumentType,
-    presignedDownloadUrl: (parent: PrismaDocument): Promise<string> =>
-      getS3Adapter().getPresignedDownloadUrl(parent.s3Path, parent.name),
+    presignedDownloadUrl: (
+      parent: PrismaDocument,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<string> => {
+      log.info(
+        {
+          userId: context.user.id,
+          documentId: parent.id,
+          documentName: parent.name,
+          applicationId: parent.applicationId,
+          s3Path: parent.s3Path,
+          type: "document.download.presigned",
+        },
+        "Presigned download URL generated for document"
+      );
+      return getS3Adapter().getPresignedDownloadUrl(parent.s3Path, parent.name);
+    },
     downloadFileName: (parent: PrismaDocument): Promise<string> =>
       getS3Adapter().getDownloadFileName(parent.s3Path, parent.name),
     application: (parent: PrismaDocument): Promise<PrismaApplication> =>

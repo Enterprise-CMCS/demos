@@ -4,12 +4,14 @@ version: v1.25.1
 ignore:
   SNYK-JS-NODEMAILER-19784395:
     - '*':
-        reason: Temporarily ignored while the patched Nodemailer release clears the seven-day npm release-age restriction.
+        reason: >-
+          Temporarily ignored while the patched Nodemailer release clears the
+          seven-day npm release-age restriction.
         expires: 2026-09-28T00:00:00.000Z
         created: 2026-09-14T00:00:00.000Z
   SNYK-JS-DEEPMERGE-19964053:
     - '*':
-        reason: No patch available
+        reason: no patch available
         expires: 2026-10-07T00:00:00.000Z
-        created: 2026-09-23T16:28:05.000Z
+        created: 2026-09-23T13:23:22.176Z
 patch: {}

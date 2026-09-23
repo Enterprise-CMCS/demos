@@ -30,6 +30,7 @@ export const tagSchema = gql`
 
   type Mutation {
     createTag(tagName: TagName!): Tag! @auth(requires: ["Perform Admin Action"])
+    approveTag(tagName: TagName!): Tag! @auth(requires: ["Perform Admin Action"])
   }
 `;
 
