@@ -9,8 +9,6 @@ import { BaseDialog } from "components/dialog/BaseDialog";
 import { TagChip } from "components/tags/TagChip";
 import { TagSelector } from "components/tags/TagSelector";
 
-export { NO_MATCH_MESSAGE, UNAPPROVED_WARNING_MESSAGE } from "components/tags/TagSelector";
-
 export const APPLY_TAGS_DIALOG_TITLE = "APPLY TAGS";
 
 export const SET_APPLICATION_TAGS_MUTATION: TypedDocumentNode<

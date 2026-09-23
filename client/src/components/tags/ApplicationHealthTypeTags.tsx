@@ -7,7 +7,6 @@ import { TagChip } from "./TagChip";
 import { Tag, TagName } from "demos-server";
 import { useApplicationTagOptions } from "components/tags/useApplicationTagOptions";
 
-export { GET_APPLICATION_TAG_OPTIONS } from "components/tags/useApplicationTagOptions";
 import { SparklyUIPathTags } from "./SparklyUIPathTags";
 import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
