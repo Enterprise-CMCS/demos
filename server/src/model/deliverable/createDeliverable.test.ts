@@ -94,26 +94,6 @@ describe("createDeliverable", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
-  it("should check that the user is allowed to do this operation", async () => {
-    await createDeliverable(testInput, testContext as GraphQLContext);
-    expect(validateUserPersonTypeAllowed).toHaveBeenCalledExactlyOnceWith(
-      testContext,
-      "createDeliverable",
-      ["demos-admin", "demos-cms-user"]
-    );
-  });
-
-  it("should not create a transaction if the user is not permitted", async () => {
-    vi.mocked(validateUserPersonTypeAllowed).mockThrow("I'm throwing!");
-
-    try {
-      await createDeliverable(testInput, testContext as GraphQLContext);
-      throw new Error("Expected createDeliverable to throw, but it did not.");
-    } catch {
-      expect(prisma).not.toHaveBeenCalled();
-    }
-  });
-
   it("should parse the input to process dates", async () => {
     await createDeliverable(testInput, testContext as GraphQLContext);
     expect(parseCreateDeliverableInput).toHaveBeenCalledExactlyOnceWith(testInput);

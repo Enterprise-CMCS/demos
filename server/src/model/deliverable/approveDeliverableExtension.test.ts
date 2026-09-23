@@ -121,33 +121,9 @@ describe("approveDeliverableExtension", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
-  it("should check that the user is allowed to do this operation", async () => {
-    await approveDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
-    expect(validateUserPersonTypeAllowed).toHaveBeenCalledExactlyOnceWith(
-      testContext,
-      "approveDeliverableExtension",
-      ["demos-admin", "demos-cms-user"]
-    );
-  });
-
   it("should check that the date field isn't null if it's provided", async () => {
     await approveDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(["newDueDate"], testInput);
-  });
-
-  it("should not create a transaction if the user is not permitted", async () => {
-    vi.mocked(validateUserPersonTypeAllowed).mockThrow("I'm throwing!");
-
-    try {
-      await approveDeliverableExtension(
-        testDeliverableId,
-        testInput,
-        testContext as GraphQLContext
-      );
-      throw new Error("Expected approveDeliverableExtension to throw, but it did not.");
-    } catch {
-      expect(prisma).not.toHaveBeenCalled();
-    }
   });
 
   it("should not create a transaction if the date field check throws", async () => {

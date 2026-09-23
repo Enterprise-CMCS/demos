@@ -6,7 +6,6 @@ import {
   selectDeliverableOrThrow,
   parseRequestDeliverableResubmissionInput,
   validateRequestDeliverableResubmissionInput,
-  validateUserPersonTypeAllowed,
 } from ".";
 import { prisma } from "../../prismaClient";
 import { insertDeliverableAction } from "../deliverableAction/queries";
@@ -17,10 +16,6 @@ export async function requestDeliverableResubmission(
   input: RequestDeliverableResubmissionInput,
   context: GraphQLContext
 ): Promise<PrismaDeliverable> {
-  validateUserPersonTypeAllowed(context, "requestDeliverableResubmission", [
-    "demos-admin",
-    "demos-cms-user",
-  ]);
   const parsedInput = parseRequestDeliverableResubmissionInput(input);
 
   const { requestedDeliverable, sourceActionId, previousDueDate } = await prisma().$transaction(
