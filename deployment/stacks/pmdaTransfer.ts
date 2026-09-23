@@ -5,6 +5,7 @@ import {
   RemovalPolicy,
   aws_s3,
   Fn,
+  Duration,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -68,6 +69,28 @@ export class PMDATransfer extends Stack {
             transferBucket.arnForObjects("*"),
           ]
         }))
+
+        transferBucket.addLifecycleRule({
+          id: "ArchivePolicy",
+          enabled: true,
+          transitions: [
+            {
+              storageClass: aws_s3.StorageClass.GLACIER,
+              transitionAfter: Duration.days(180)
+            },
+            {
+              storageClass: aws_s3.StorageClass.DEEP_ARCHIVE,
+              transitionAfter: Duration.days(548)
+            }
+          ]
+
+        })
+
+        transferBucket.addLifecycleRule({
+          id: "DeleteTenYears",
+          enabled: true,
+          expiration: Duration.days(3650),
+        })
 
   }
 }
