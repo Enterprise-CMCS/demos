@@ -11,12 +11,10 @@ import {
   BACK_TO_TYPE_TAG_MANAGEMENT_BUTTON_NAME,
   TYPE_TAG_ASSOCIATED_RECORDS_TEST_ID,
 } from "./TypeTagAssociatedRecords";
-import { TYPE_TAG_SEARCH_PARAM } from "./useTypeTagSelection";
 import { DialogProvider } from "components/dialog/DialogContext";
 
 const ASSOCIATED_TAG_NAME = MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION.tags[0].tagName;
 const PREVIOUS_PAGE_TEXT = "Demonstrations list";
-const ASSOCIATED_RECORDS_ENTRY = `/admin?${TYPE_TAG_SEARCH_PARAM}=${encodeURIComponent(ASSOCIATED_TAG_NAME)}`;
 
 const setup = (routerEntry = "/admin") =>
   render(
@@ -50,7 +48,7 @@ describe("TypeTagManagement", () => {
 
   it("returns to the type/tag list from the back link", async () => {
     const user = userEvent.setup();
-    setup(ASSOCIATED_RECORDS_ENTRY);
+    setup("/admin");
 
     await user.click(await screen.findByTestId(BACK_TO_TYPE_TAG_MANAGEMENT_BUTTON_NAME));
 
