@@ -9,6 +9,8 @@ export {
   EditDeliverableCmsDocumentDialog,
   EditDeliverableStateDocumentDialog,
 } from "./EditDocumentDialog";
+export { RemoveDocumentDialogView } from "./RemoveDocumentDialogView";
+export { EditDocumentDialogView } from "./EditDocumentDialogView";
 export { AddDocumentToApplicationDialog } from "./AddDocumentToApplicationDialog";
 export { AddDocumentToDeliverableDialog } from "./AddDocumentToDeliverableDialog";
 export { AddDocumentToPhaseDialog } from "./AddDocumentToPhaseDialog";
