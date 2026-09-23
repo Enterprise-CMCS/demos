@@ -88,7 +88,7 @@ export const ImproveSuggestionsDialog = ({
       maxWidthClass="max-w-[850px]"
     >
       <fieldset disabled={saving} className="flex flex-col gap-2 min-w-0">
-        <p className="text-sm text-text-placeholder">
+        <p className="text-md text-text-placeholder">
           Search for an alternate tag suggestion for &apos;<strong>{tagName}</strong>&apos;:
         </p>
 
