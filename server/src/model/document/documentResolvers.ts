@@ -155,11 +155,11 @@ export const documentResolvers = {
         handlePrismaError(error);
       }
     },
-    deleteDocuments: async function deleteDocuments(
+    deleteDocuments: (
       parent: unknown,
       { ids }: { ids: string[] },
       context: GraphQLContext
-    ): Promise<number> {
+    ): Promise<number> => {
       try {
         return prisma().$transaction(async (tx) => {
           let count = 0;
@@ -173,11 +173,11 @@ export const documentResolvers = {
         handlePrismaError(error);
       }
     },
-    deleteDeliverableCmsDocuments: async function deleteDeliverableCmsDocuments(
+    deleteDeliverableCmsDocuments: async (
       parent: unknown,
       { ids }: { ids: string[] },
       context: GraphQLContext
-    ): Promise<number> {
+    ): Promise<number> => {
       try {
         return prisma().$transaction(async (tx) => {
           let count = 0;
@@ -195,11 +195,11 @@ export const documentResolvers = {
         handlePrismaError(error);
       }
     },
-    deleteDeliverableStateDocuments: async function deleteDeliverableStateDocuments(
+    deleteDeliverableStateDocuments: async (
       parent: unknown,
       { ids }: { ids: string[] },
       context: GraphQLContext
-    ): Promise<number> {
+    ): Promise<number> => {
       try {
         return prisma().$transaction(async (tx) => {
           let count = 0;
