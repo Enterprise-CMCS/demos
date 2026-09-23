@@ -3,6 +3,7 @@ import { Document as PrismaDocument } from "@prisma/client";
 import { GraphQLContext } from "../../auth";
 import { UpdateDocumentInput, DocumentType, PhaseName } from "../../types";
 import { prisma } from "../../prismaClient";
+import { log } from "../../log";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { getS3Adapter } from "../../adapters";
 import { selectUserOrThrow } from "../user/queries";
@@ -21,6 +22,8 @@ import {
 } from "../deliverableAction/queries";
 
 // Mock dependencies
+vi.mock("../../log", () => ({ log: { info: vi.fn() } }));
+
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
@@ -172,16 +175,33 @@ describe("documentResolvers", () => {
     });
   });
   describe("Document.presignedDownloadUrl", () => {
-    it("delegates to s3adapter.getPresignedDownloadUrl", async () => {
-      const document = {
-        s3Path: "s3/path/to/document.pdf",
-        name: "My Document.pdf",
-      } as PrismaDocument;
+    const document = {
+      id: testDocumentId,
+      applicationId: testApplicationId,
+      s3Path: "s3/path/to/document.pdf",
+      name: "My Document.pdf",
+    } as PrismaDocument;
 
-      await documentResolvers.Document.presignedDownloadUrl(document);
+    it("delegates to s3adapter.getPresignedDownloadUrl", async () => {
+      await documentResolvers.Document.presignedDownloadUrl(document, undefined, mockContext);
       expect(mockS3Adapter.getPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(
         document.s3Path,
         document.name
+      );
+    });
+
+    it("logs the requesting user and document", async () => {
+      await documentResolvers.Document.presignedDownloadUrl(document, undefined, mockContext);
+      expect(log.info).toHaveBeenCalledExactlyOnceWith(
+        {
+          userId: testUserId,
+          documentId: document.id,
+          documentName: document.name,
+          applicationId: document.applicationId,
+          s3Path: document.s3Path,
+          type: "document.download.presigned",
+        },
+        "Presigned download URL generated for document"
       );
     });
   });
