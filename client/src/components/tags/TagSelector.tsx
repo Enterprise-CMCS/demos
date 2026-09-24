@@ -4,12 +4,7 @@ import { Checkbox } from "components/input";
 import { Input, INPUT_BASE_CLASSES, getInputColors } from "components/input/Input";
 import { WarningIcon, ErrorIcon, LabelIcon, SearchIcon } from "components/icons";
 import { tw } from "tags/tw";
-
-export const NO_MATCH_MESSAGE =
-  "This demonstration type does not exist yet. Check for spelling errors and alternate names.";
-
-export const UNAPPROVED_WARNING_MESSAGE =
-  'Consult with SDG leadership and check spelling before creating a new tag/type. New tag/types are labelled "Unapproved" but can still be seen and used by others.';
+import { NO_MATCH_MESSAGE, UNAPPROVED_WARNING_MESSAGE } from "util/messages";
 
 const STYLES = {
   applyTagLabel: tw`flex items-center gap-1 p-1 cursor-pointer hover:bg-gray-50 rounded border-b border-border-rules`,
