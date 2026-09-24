@@ -10,7 +10,7 @@ export async function up(environment: string) {
   }
   try {
     await getCoreOutputs(environment);
-    await Promise.all([buildServer(), buildClient(environment)]);
+    await Promise.all([buildServer(environment), buildClient(environment)]);
     await fullDeploy(environment);
   } catch (err) {
     console.error(`deployment failed: ${err}`);
