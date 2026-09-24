@@ -5,6 +5,7 @@ import React from "react";
 import { ToastProvider } from "components/toast/ToastContext";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 import { DocumentType } from "demos-server";
 
@@ -40,9 +41,7 @@ const renderDialog = (isCmsFile: boolean, documentTypeSubset?: DocumentType[]) =
         deliverableId="deliverable-1"
         applicationId="demo-1"
         isCmsFile={isCmsFile}
-        documentTypeSubset={
-          documentTypeSubset ?? (isCmsFile ? undefined : ["General File"])
-        }
+        documentTypeSubset={documentTypeSubset}
       />
     </ToastProvider>
   );
@@ -65,6 +64,38 @@ describe("AddDocumentToDeliverableDialog", () => {
     renderDialog(true);
 
     expect(screen.getByTestId("input-autocomplete-select")).toBeInTheDocument();
+  });
+
+  it("offers only General File and BN Workbook for Budget Neutrality State Files", async () => {
+    const user = userEvent.setup();
+    renderDialog(false, ["General File", "BN Workbook", "BN Template"]);
+
+    await user.click(screen.getByTestId("input-autocomplete-select"));
+
+    expect(screen.getByRole("button", { name: "General File" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "BN Workbook" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "BN Template" })).not.toBeInTheDocument();
+  });
+
+  it("preserves other deliverable document types for State Files", async () => {
+    const user = userEvent.setup();
+    renderDialog(false, ["General File", "Monitoring Report"]);
+
+    await user.click(screen.getByTestId("input-autocomplete-select"));
+
+    expect(screen.getByRole("button", { name: "General File" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Monitoring Report" })).toBeInTheDocument();
+  });
+
+  it("excludes BN Template from the default State Files document types", async () => {
+    const user = userEvent.setup();
+    renderDialog(false);
+
+    await user.click(screen.getByTestId("input-autocomplete-select"));
+
+    expect(screen.getByRole("button", { name: "General File" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "BN Workbook" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "BN Template" })).not.toBeInTheDocument();
   });
 
   it("offers both BN Template and General File for Budget Neutrality deliverables on the CMS files variant", () => {

@@ -1,5 +1,6 @@
 import React from "react";
 import { gql, useApolloClient, TypedDocumentNode } from "@apollo/client";
+import { DOCUMENT_TYPES } from "demos-server-constants";
 
 import {
   DocumentPendingUpload,
@@ -74,7 +75,7 @@ export const AddDocumentToDeliverableDialog: React.FC<AddDocumentToDeliverableDi
   const client = useApolloClient();
   const effectiveDocumentTypeSubset = isCmsFile
     ? getCmsFileDocumentTypeSubset(documentTypeSubset)
-    : documentTypeSubset;
+    : (documentTypeSubset ?? DOCUMENT_TYPES).filter((type) => type !== "BN Template");
   const { documentPassedVirusScan } = useDocumentPassedVirusScan();
   const { uploadDocument: uploadStateDocument } = useUploadDocument(
     UPLOAD_DOCUMENT_TO_DELIVERABLE_STATE_FILES_MUTATION
