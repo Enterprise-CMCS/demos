@@ -27,8 +27,5 @@ export default defineConfig({
   },
 });
 
-// Tests run in `dev` environment to avoid test failures because of feature flags
-process.env.CURRENT_ENV = "dev";
-
 // Set default timezone for tests to UTC to avoid timezone-related test failures
 process.env.TZ = "UTC";

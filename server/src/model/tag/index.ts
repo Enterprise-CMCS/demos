@@ -3,6 +3,7 @@ export { getFormattedTagsByTagType } from "./getFormattedTagsByTagType";
 export { checkTagDoesntAlreadyExist } from "./checkTagDoesntAlreadyExist";
 export { validateCreateTagInput } from "./validateCreateTagInput";
 export { createTag } from "./createTag";
+export { approveTag } from "./approveTag";
 
 // Queries
 export { createNewTagIfNotExists } from "./queries/createNewTagIfNotExists";
