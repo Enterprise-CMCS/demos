@@ -1,10 +1,11 @@
-import { getFeatureFlags, throwApiNotReleasedError } from "../../flags";
-import type { Tag, TagName, TagStatus, TagType } from "../../types";
 import { selectTags, updateTags } from ".";
 import { throwCustomGQLError } from "../../errors/errorCodes";
+import type { DemosVersion } from "../../flags";
+import { getFeatureFlags, throwApiNotReleasedError } from "../../flags";
+import type { Tag, TagName, TagStatus, TagType } from "../../types";
 export const EDITABLE_TAG_TYPES: TagType[] = ["Demonstration Type", "Application"];
 
-export async function approveTag(tagName: TagName, currentVersion: string): Promise<Tag> {
+export async function approveTag(tagName: TagName, currentVersion: DemosVersion): Promise<Tag> {
   // Throw if not currently released
   if (!getFeatureFlags(currentVersion).approveTagApi) {
     throwApiNotReleasedError("approveTag");

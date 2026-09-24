@@ -10,7 +10,7 @@ export function isDemosServerEnvironment(value: string): value is DemosServerEnv
   return DEMOS_SERVER_ENVIRONMENTS.includes(value as DemosServerEnvironment);
 }
 
-export const DEMOS_VERSIONS = ["1.0.0", "1.0.1", "1.0.2", "1.0.3", "1.1.0", "1.2.0"];
+export const DEMOS_VERSIONS = ["1.0.0", "1.0.1", "1.0.2", "1.0.3", "1.1.0", "1.2.0"] as const;
 export type DemosVersion = (typeof DEMOS_VERSIONS)[number];
 
 // Current version determination
