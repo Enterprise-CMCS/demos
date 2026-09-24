@@ -136,19 +136,59 @@ vi.mock("./document", () => ({
       </button>
     </div>
   ),
-  EditDocumentDialog: ({ document }: { document: { id: string } }) => (
-    <div data-testid="edit-document-dialog">Edit Document Dialog {document.id}</div>
+  EditApplicationDocumentDialog: ({ document }: { document: { id: string } }) => (
+    <div data-testid="edit-application-document-dialog">
+      Edit Application Document Dialog {document.id}
+    </div>
   ),
-  RemoveDocumentDialog: ({
+  EditDeliverableCmsDocumentDialog: ({ document }: { document: { id: string } }) => (
+    <div data-testid="edit-deliverable-cms-document-dialog">
+      Edit Deliverable CMS Document Dialog {document.id}
+    </div>
+  ),
+  EditDeliverableStateDocumentDialog: ({ document }: { document: { id: string } }) => (
+    <div data-testid="edit-deliverable-state-document-dialog">
+      Edit Deliverable State Document Dialog {document.id}
+    </div>
+  ),
+  RemoveApplicationDocumentsDialog: ({
     documentIds,
     onClose,
   }: {
     documentIds: string[];
     onClose: () => void;
   }) => (
-    <div data-testid="remove-document-dialog">
-      Remove Document Dialog {documentIds.join(",")}
-      <button data-testid="close-remove-document-btn" onClick={onClose}>
+    <div data-testid="remove-application-documents-dialog">
+      Remove Application Documents Dialog {documentIds.join(",")}
+      <button data-testid="close-remove-application-documents-btn" onClick={onClose}>
+        Close
+      </button>
+    </div>
+  ),
+  RemoveDeliverableCmsDocumentsDialog: ({
+    documentIds,
+    onClose,
+  }: {
+    documentIds: string[];
+    onClose: () => void;
+  }) => (
+    <div data-testid="remove-deliverable-cms-documents-dialog">
+      Remove Deliverable CMS Documents Dialog {documentIds.join(",")}
+      <button data-testid="close-remove-deliverable-cms-documents-btn" onClick={onClose}>
+        Close
+      </button>
+    </div>
+  ),
+  RemoveDeliverableStateDocumentsDialog: ({
+    documentIds,
+    onClose,
+  }: {
+    documentIds: string[];
+    onClose: () => void;
+  }) => (
+    <div data-testid="remove-deliverable-state-documents-dialog">
+      Remove Deliverable State Documents Dialog {documentIds.join(",")}
+      <button data-testid="close-remove-deliverable-state-documents-btn" onClick={onClose}>
         Close
       </button>
     </div>
@@ -384,8 +424,12 @@ const TestConsumer: React.FC = () => {
     showUpdateRenewalDialog,
     showManageContactsDialog,
     showUploadDocumentDialog,
-    showEditDocumentDialog,
-    showRemoveDocumentDialog,
+    showEditApplicationDocumentDialog,
+    showEditDeliverableCmsDocumentDialog,
+    showEditDeliverableStateDocumentDialog,
+    showRemoveApplicationDocumentsDialog,
+    showRemoveDeliverableCmsDocumentsDialog,
+    showRemoveDeliverableStateDocumentsDialog,
     showApplicationIntakeDocumentUploadDialog,
     showCompletenessDocumentUploadDialog,
     showConceptPreSubmissionDocumentUploadDialog,
@@ -439,16 +483,40 @@ const TestConsumer: React.FC = () => {
         Open Add Document Dialog
       </button>
       <button
-        data-testid="open-edit-document-btn"
-        onClick={() => showEditDocumentDialog(mockExistingDocument)}
+        data-testid="open-edit-application-document-btn"
+        onClick={() => showEditApplicationDocumentDialog(mockExistingDocument)}
       >
-        Open Edit Document Dialog
+        Open Edit Application Document Dialog
       </button>
       <button
-        data-testid="open-remove-document-btn"
-        onClick={() => showRemoveDocumentDialog(["doc-1", "doc-2"])}
+        data-testid="open-edit-deliverable-cms-document-btn"
+        onClick={() => showEditDeliverableCmsDocumentDialog(mockExistingDocument)}
       >
-        Open Remove Document Dialog
+        Open Edit Deliverable CMS Document Dialog
+      </button>
+      <button
+        data-testid="open-edit-deliverable-state-document-btn"
+        onClick={() => showEditDeliverableStateDocumentDialog(mockExistingDocument)}
+      >
+        Open Edit Deliverable State Document Dialog
+      </button>
+      <button
+        data-testid="open-remove-application-documents-btn"
+        onClick={() => showRemoveApplicationDocumentsDialog(["doc-1", "doc-2"])}
+      >
+        Open Remove Application Documents Dialog
+      </button>
+      <button
+        data-testid="open-remove-deliverable-cms-documents-btn"
+        onClick={() => showRemoveDeliverableCmsDocumentsDialog(["doc-1", "doc-2"])}
+      >
+        Open Remove Deliverable CMS Documents Dialog
+      </button>
+      <button
+        data-testid="open-remove-deliverable-state-documents-btn"
+        onClick={() => showRemoveDeliverableStateDocumentsDialog(["doc-1", "doc-2"])}
+      >
+        Open Remove Deliverable State Documents Dialog
       </button>
       <button
         data-testid="open-application-intake-upload-btn"
@@ -699,7 +767,7 @@ describe("DialogContext", () => {
     expect(screen.queryByTestId("add-document-dialog")).not.toBeInTheDocument();
   });
 
-  it("shows EditDocumentDialog via context", async () => {
+  it("shows EditApplicationDocumentDialog via context", async () => {
     render(
       <DialogProvider>
         <TestConsumer />
@@ -707,14 +775,14 @@ describe("DialogContext", () => {
     );
     const user = userEvent.setup();
 
-    expect(screen.queryByTestId("edit-document-dialog")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("edit-application-document-dialog")).not.toBeInTheDocument();
 
-    await user.click(screen.getByTestId("open-edit-document-btn"));
-    expect(screen.getByTestId("edit-document-dialog")).toBeInTheDocument();
-    expect(screen.getByText(/Edit Document Dialog doc-1/)).toBeInTheDocument();
+    await user.click(screen.getByTestId("open-edit-application-document-btn"));
+    expect(screen.getByTestId("edit-application-document-dialog")).toBeInTheDocument();
+    expect(screen.getByText(/Edit Application Document Dialog doc-1/)).toBeInTheDocument();
   });
 
-  it("shows and hides RemoveDocumentDialog via context", async () => {
+  it("shows EditDeliverableCmsDocumentDialog via context", async () => {
     render(
       <DialogProvider>
         <TestConsumer />
@@ -722,14 +790,88 @@ describe("DialogContext", () => {
     );
     const user = userEvent.setup();
 
-    expect(screen.queryByTestId("remove-document-dialog")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("edit-deliverable-cms-document-dialog")).not.toBeInTheDocument();
 
-    await user.click(screen.getByTestId("open-remove-document-btn"));
-    expect(screen.getByTestId("remove-document-dialog")).toBeInTheDocument();
-    expect(screen.getByText(/Remove Document Dialog doc-1,doc-2/)).toBeInTheDocument();
+    await user.click(screen.getByTestId("open-edit-deliverable-cms-document-btn"));
+    expect(screen.getByTestId("edit-deliverable-cms-document-dialog")).toBeInTheDocument();
+    expect(screen.getByText(/Edit Deliverable CMS Document Dialog doc-1/)).toBeInTheDocument();
+  });
 
-    await user.click(screen.getByTestId("close-remove-document-btn"));
-    expect(screen.queryByTestId("remove-document-dialog")).not.toBeInTheDocument();
+  it("shows EditDeliverableStateDocumentDialog via context", async () => {
+    render(
+      <DialogProvider>
+        <TestConsumer />
+      </DialogProvider>
+    );
+    const user = userEvent.setup();
+
+    expect(screen.queryByTestId("edit-deliverable-state-document-dialog")).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("open-edit-deliverable-state-document-btn"));
+    expect(screen.getByTestId("edit-deliverable-state-document-dialog")).toBeInTheDocument();
+    expect(screen.getByText(/Edit Deliverable State Document Dialog doc-1/)).toBeInTheDocument();
+  });
+
+  it("shows and hides RemoveApplicationDocumentsDialog via context", async () => {
+    render(
+      <DialogProvider>
+        <TestConsumer />
+      </DialogProvider>
+    );
+    const user = userEvent.setup();
+
+    expect(screen.queryByTestId("remove-application-documents-dialog")).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("open-remove-application-documents-btn"));
+    expect(screen.getByTestId("remove-application-documents-dialog")).toBeInTheDocument();
+    expect(screen.getByText(/Remove Application Documents Dialog doc-1,doc-2/)).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("close-remove-application-documents-btn"));
+    expect(screen.queryByTestId("remove-application-documents-dialog")).not.toBeInTheDocument();
+  });
+
+  it("shows and hides RemoveDeliverableCmsDocumentsDialog via context", async () => {
+    render(
+      <DialogProvider>
+        <TestConsumer />
+      </DialogProvider>
+    );
+    const user = userEvent.setup();
+
+    expect(screen.queryByTestId("remove-deliverable-cms-documents-dialog")).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("open-remove-deliverable-cms-documents-btn"));
+    expect(screen.getByTestId("remove-deliverable-cms-documents-dialog")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Remove Deliverable CMS Documents Dialog doc-1,doc-2/)
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("close-remove-deliverable-cms-documents-btn"));
+    expect(screen.queryByTestId("remove-deliverable-cms-documents-dialog")).not.toBeInTheDocument();
+  });
+
+  it("shows and hides RemoveDeliverableStateDocumentsDialog via context", async () => {
+    render(
+      <DialogProvider>
+        <TestConsumer />
+      </DialogProvider>
+    );
+    const user = userEvent.setup();
+
+    expect(
+      screen.queryByTestId("remove-deliverable-state-documents-dialog")
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("open-remove-deliverable-state-documents-btn"));
+    expect(screen.getByTestId("remove-deliverable-state-documents-dialog")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Remove Deliverable State Documents Dialog doc-1,doc-2/)
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("close-remove-deliverable-state-documents-btn"));
+    expect(
+      screen.queryByTestId("remove-deliverable-state-documents-dialog")
+    ).not.toBeInTheDocument();
   });
 
   it("shows and hides ApplicationIntakeUploadDialog via context", async () => {

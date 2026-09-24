@@ -19,8 +19,8 @@ function getActionsColumn(
 
   const {
     showApprovalPackageDocumentUploadDialog,
-    showEditDocumentDialog,
-    showRemoveDocumentDialog,
+    showEditApplicationDocumentDialog,
+    showRemoveApplicationDocumentsDialog,
   } = useDialog();
 
   return [
@@ -51,7 +51,7 @@ function getActionsColumn(
                   name={`edit-${doc.documentType}`}
                   aria-label={`Edit ${doc.documentType}`}
                   onClick={() =>
-                    showEditDocumentDialog({
+                    showEditApplicationDocumentDialog({
                       id: doc.id,
                       name: doc.name,
                       description: doc.description || "",
@@ -63,7 +63,7 @@ function getActionsColumn(
                 <TertiaryButton
                   name={`delete-${doc.documentType}`}
                   aria-label={`Delete ${doc.documentType}`}
-                  onClick={() => showRemoveDocumentDialog([doc.id])}
+                  onClick={() => showRemoveApplicationDocumentsDialog([doc.id])}
                 >
                   <DeleteIcon />
                 </TertiaryButton>
