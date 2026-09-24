@@ -1,5 +1,5 @@
-import type { DemosServerEnvironment } from ".";
-import { isDemosServerEnvironment } from ".";
+import type { DemosServerEnvironment } from "./demosEnvironments";
+import { isDemosServerEnvironment } from "./demosEnvironments";
 
 export function getCurrentEnvironment(): DemosServerEnvironment {
   const currentEnv = process.env.CURRENT_ENV;

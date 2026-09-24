@@ -1,5 +1,5 @@
 import semver from "semver";
-import type { DemosVersion } from ".";
+import type { DemosVersion } from "./demosVersions";
 
 export type DemosServerFeatureFlag = "printVersion" | "approveTagApi";
 export type DemosServerFeatureFlagSetting = Record<DemosServerFeatureFlag, boolean>;
