@@ -42,17 +42,15 @@ describe("cognitoConfig", () => {
       }
     );
 
-    it.each([
-      "https://example.com/",
-      "//example.com/",
-      "/\\example.com/",
-      "javascript:alert(1)",
-    ])("prevents cross-origin navigation (%s)", (returnUrl) => {
-      expect(() => callback(userWithState({ returnUrl }))).toThrow(
-        expect.objectContaining({ name: "SecurityError" })
-      );
-      expect(window.location.search).toBe("?code=test-code&state=test-state");
-    });
+    it.each(["https://example.com/", "//example.com/", "/\\example.com/", "javascript:alert(1)"])(
+      "prevents cross-origin navigation (%s)",
+      (returnUrl) => {
+        expect(() => callback(userWithState({ returnUrl }))).toThrow(
+          expect.objectContaining({ name: "SecurityError" })
+        );
+        expect(window.location.search).toBe("?code=test-code&state=test-state");
+      }
+    );
   });
 
   describe("getCognitoLogoutUrl", () => {

@@ -86,6 +86,13 @@ export const logoutRedirect = (): void => {
 };
 
 export const getCognitoConfig = (): CognitoConfig => {
+  const cognitoDomain = import.meta.env.VITE_COGNITO_DOMAIN;
+  // If VITE_COGNITO_DOMAIN is set this is a deployment build, use the production config
+  if (cognitoDomain) {
+    return PRODUCTION_COGNITO_CONFIG;
+  }
+
+  // Fall back to Vite mode (unit tests, local development)
   const appMode = getAppMode();
   switch (appMode) {
     case "development":
