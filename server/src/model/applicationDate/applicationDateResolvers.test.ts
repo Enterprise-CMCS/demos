@@ -8,7 +8,7 @@ import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
 import { DateType, SetApplicationDateInput, SetApplicationDatesInput } from "../../types";
 import { prisma } from "../../prismaClient";
 import { handlePrismaError } from "../../errors/handlePrismaError";
-import { getEasternNow } from "../../dateUtilities";
+import { formatDateToPlainDate, getEasternNow } from "../../dateUtilities";
 import { getApplication } from "../application";
 import { startPhasesByDates } from "../applicationPhase";
 import { validateAndUpdateDates } from ".";
@@ -38,6 +38,7 @@ vi.mock("../applicationPhase", () => ({
 
 vi.mock("../../dateUtilities", () => ({
   getEasternNow: vi.fn(),
+  formatDateToPlainDate: vi.fn(),
 }));
 
 describe("applicationDateResolvers", () => {
@@ -77,6 +78,17 @@ describe("applicationDateResolvers", () => {
 
       const result = applicationDateResolvers.ApplicationDate.dateType(applicationDate);
       expect(result).toBe(applicationDate.dateTypeId);
+    });
+  });
+
+  describe("ApplicationDate.plainDateValue", () => {
+    it("defers to formatDateToPlainDate", () => {
+      const applicationDate = {
+        dateValue: new Date("2026-09-24 08:58:17.847 -0400"),
+      } as PrismaApplicationDate;
+
+      applicationDateResolvers.ApplicationDate.plainDateValue(applicationDate);
+      expect(formatDateToPlainDate).toHaveBeenCalledWith(applicationDate.dateValue);
     });
   });
 

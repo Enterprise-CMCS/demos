@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { LocalDate } from "./types.js";
 import {
   EasternTZDate,
+  formatDateToPlainDate,
   formatEasternTZDateToMMDDYYYY,
   getDateTimeParts,
   getEasternNow,
@@ -158,6 +159,52 @@ describe("dateUtilities", () => {
     it("should format an EasternTZDate to a MM/DD/YYYY date", () => {
       const result = formatEasternTZDateToMMDDYYYY(TEST_DATES.sameDayUTCEastern.easternDate);
       expect(result).toBe("01/19/2025");
+    });
+  });
+
+  describe("formatDateToPlainDate", () => {
+    it("should format a UTC Date to its Eastern yyyy-MM-dd date", () => {
+      expect(formatDateToPlainDate(TEST_DATES.sameDayUTCEastern.utcDate!)).toBe("2025-01-19");
+    });
+
+    it("should use the Eastern day when it differs from the UTC day in EST", () => {
+      expect(formatDateToPlainDate(TEST_DATES.differentDayInEST.utcDate!)).toBe("2025-01-15");
+    });
+
+    it("should use the Eastern day when it differs from the UTC day in EDT", () => {
+      expect(formatDateToPlainDate(TEST_DATES.differentDayInEDT.utcDate!)).toBe("2025-07-15");
+    });
+
+    it("should format a start-of-day Eastern instant in EST", () => {
+      expect(formatDateToPlainDate(TEST_DATES.startOfDayInEST.utcDate!)).toBe("2025-01-15");
+    });
+
+    it("should format a start-of-day Eastern instant in EDT", () => {
+      expect(formatDateToPlainDate(TEST_DATES.startOfDayInEDT.utcDate!)).toBe("2025-07-15");
+    });
+
+    it("should format an end-of-day Eastern instant in EST", () => {
+      expect(formatDateToPlainDate(TEST_DATES.endOfDayInEST.utcDate!)).toBe("2025-02-02");
+    });
+
+    it("should format an end-of-day Eastern instant in EDT", () => {
+      expect(formatDateToPlainDate(TEST_DATES.endOfDayInEDT.utcDate!)).toBe("2025-09-02");
+    });
+
+    it("should resolve the start-of-day and end-of-day instants of the same Eastern day to the same string", () => {
+      const startOfJan15Eastern = new Date(2025, 0, 15, 5, 0, 0, 0);
+      const endOfJan15Eastern = new Date(2025, 0, 16, 4, 59, 59, 999);
+
+      expect(formatDateToPlainDate(startOfJan15Eastern)).toBe("2025-01-15");
+      expect(formatDateToPlainDate(endOfJan15Eastern)).toBe("2025-01-15");
+    });
+
+    it("should resolve the start-of-day and end-of-day instants that are 1 millisecond apart to different date strings", () => {
+      const endOfJan15Eastern = new Date(2025, 0, 16, 4, 59, 59, 999);
+      const startOfJan16Eastern = new Date(2025, 0, 16, 5, 0, 0, 0);
+
+      expect(formatDateToPlainDate(endOfJan15Eastern)).toBe("2025-01-15");
+      expect(formatDateToPlainDate(startOfJan16Eastern)).toBe("2025-01-16");
     });
   });
 
