@@ -7,7 +7,6 @@ import type { Tag } from "demos-server";
 import { TestProvider } from "test-utils/TestProvider";
 import { MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION } from "mock-data/demonstrationMocks";
 import { MOCK_TAGS } from "mock-data/TagMocks";
-import { TYPE_TAG_SEARCH_PARAM } from "pages/admin/useTypeTagSelection";
 import { ASSOCIATED_RECORD_TYPES } from "components/table/columns/TypeTagAssociatedRecordsColumns";
 import {
   AssociatedRecordsDemonstration,
@@ -45,13 +44,8 @@ const buildMocks = (demonstrations: AssociatedRecordsDemonstration[]): MockedRes
 
 const setup = (demonstrations: AssociatedRecordsDemonstration[] = [BASE_DEMONSTRATION]) =>
   render(
-    <TestProvider
-      mocks={buildMocks(demonstrations)}
-      routerEntries={[
-        `/admin?${TYPE_TAG_SEARCH_PARAM}=${encodeURIComponent(ASSOCIATED_TAG.tagName)}`,
-      ]}
-    >
-      <TypeTagAssociatedRecordsTable />
+    <TestProvider mocks={buildMocks(demonstrations)}>
+      <TypeTagAssociatedRecordsTable selectedTypeTag={ASSOCIATED_TAG.tagName} />
     </TestProvider>
   );
 
@@ -129,8 +123,9 @@ describe("sortAssociatedRecordsByDefault", () => {
       "Demonstration Type",
       "Deliverable",
     ]);
-    expect(rows.filter((row) => row.recordType === "Amendment").map((row) => row.relatedItemName))
-      .toEqual(["Amendment 2", "Amendment 10"]);
+    expect(
+      rows.filter((row) => row.recordType === "Amendment").map((row) => row.relatedItemName)
+    ).toEqual(["Amendment 2", "Amendment 10"]);
   });
 });
 

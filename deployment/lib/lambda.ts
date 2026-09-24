@@ -7,6 +7,7 @@ import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { DemosLogGroup } from "./logGroup";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { NagSuppressions } from "cdk-nag";
 
 interface LambdaProps extends CommonProps {
   additionalPolicies?: PolicyStatement[];
@@ -180,7 +181,19 @@ export class Lambda extends Construct {
         //   ? undefined
         //   : ["demosApi/read", "demosApi/write"],
       });
+
+      NagSuppressions.addResourceSuppressions(resource, [
+        {
+          id: "AwsSolutions-COG4",
+          reason: "Cognito is still being used for authorization, but done with a custom authorizer rather than the AWS default one"
+        },
+      ], true)
     }
+
+    NagSuppressions.addResourceSuppressions(this.lambda.role!, [{
+      id: "AwsSolutions-IAM5",
+      reason: "Permissions given are required for the lambda execution role"
+    }])
   }
 
   private onAws<T>(value: T) {

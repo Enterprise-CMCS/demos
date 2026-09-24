@@ -1,8 +1,8 @@
 // Functions
 export { getFormattedTagsByTagType } from "./getFormattedTagsByTagType";
-export { checkTagDoesntAlreadyExist } from "./checkTagDoesntAlreadyExist";
-export { validateCreateTagInput } from "./validateCreateTagInput";
-export { createTag } from "./createTag";
+export { checkTagsDontAlreadyExist } from "./checkTagsDontAlreadyExist";
+export { validateCreateTagsInput } from "./validateCreateTagsInput";
+export { createTags } from "./createTags";
 
 // Queries
 export { createNewTagIfNotExists } from "./queries/createNewTagIfNotExists";

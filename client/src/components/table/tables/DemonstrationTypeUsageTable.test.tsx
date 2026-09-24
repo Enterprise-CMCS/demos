@@ -26,7 +26,7 @@ const setup = () => {
   render(
     <TestProvider>
       <DialogProvider>
-        <DemonstrationTypeUsageTable />
+        <DemonstrationTypeUsageTable onSelectTypeTag={() => {}} />
       </DialogProvider>
     </TestProvider>
   );

@@ -14,6 +14,7 @@ import * as alarms from "./alarms";
 import path from "node:path";
 import { DeploymentConfigProperties } from "../config";
 import { OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
+import { NagSuppressions } from "cdk-nag";
 
 interface BudgetNeutralityProcessorProps extends DeploymentConfigProperties {
   removalPolicy?: RemovalPolicy;
@@ -117,6 +118,13 @@ export class BudgetNeutralityProcessor extends Construct {
       bucket.grantRead(budgetNeutralityLambda.lambda);
     }
     props.kmsKey.grantEncryptDecrypt(budgetNeutralityLambda.lambda);
+
+    NagSuppressions.addResourceSuppressions(budgetNeutralityLambda.role, [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions are scoped to specific KMS key and UiPath documents bucket; S3 object ARNs require wildcard suffix.",
+      },
+    ], true)
   }
 
   private setupCloudWatchAlarms(
