@@ -101,7 +101,7 @@ export const CUSTOM_ERROR_CODES: Record<
   },
   NOT_RELEASED_ERROR: {
     publicErrorCode: "GENERAL_ERROR",
-    logLevel: "info",
+    logLevel: "warn",
   },
 } as const;
 

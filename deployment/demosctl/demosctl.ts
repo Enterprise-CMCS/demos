@@ -22,7 +22,7 @@ export async function main(): Promise<number | null> {
     case "build:client":
       return await buildClient(environment, args[2] == "true");
     case "build:server":
-      return await buildServer();
+      return await buildServer(environment);
     case "deploy:core":
       return await getCoreOutputs(environment);
     case "deploy:all":
