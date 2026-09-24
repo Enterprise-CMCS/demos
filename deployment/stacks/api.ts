@@ -30,6 +30,7 @@ import { Queue, QueueEncryption } from "aws-cdk-lib/aws-sqs";
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import * as scheduler from "aws-cdk-lib/aws-scheduler";
 import * as schedulerTargets from "aws-cdk-lib/aws-scheduler-targets";
+import { NagSuppressions } from "cdk-nag";
 
 interface APIStackProps {
   vpc: IVpc;
@@ -210,6 +211,13 @@ export class ApiStack extends Stack {
     deletedBucket.grantPut(graphqlLambda.lambda.role);
     uipathQueue.grantSendMessages(graphqlLambda.lambda.role);
 
+    NagSuppressions.addResourceSuppressions(graphqlLambda.lambda.role, [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role"
+      }
+    ], true)
+
     const fileUploadKms = aws_kms.Key.fromLookup(this, "fileUploadKms", {
       aliasName: `alias/demos-${commonProps.stage}-file-upload-sqs`,
     });
@@ -372,6 +380,13 @@ export class ApiStack extends Stack {
       })
     }
 
+    NagSuppressions.addResourceSuppressions(emailerLambda.role, [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role"
+      }
+    ], true)
+
     emailerLambda.lambda.addEventSource(
       new SqsEventSource(emailQueue, {
         // Setting a batch size of 1 means each SQS message will be
@@ -443,6 +458,13 @@ export class ApiStack extends Stack {
     emailerDbSecret.grantRead(emailScheduler.role);
     emailQueue.grantSendMessages(emailScheduler.role)
 
+    NagSuppressions.addResourceSuppressions(emailScheduler.role, [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role"
+      }
+    ], true)
+
     emailScheduler.lambda.configureAsyncInvoke({
       retryAttempts: 1,
     });
@@ -460,6 +482,20 @@ export class ApiStack extends Stack {
 
     this.setupCloudWatchAlarms(props, alarmResources);
 
+    const generatedRole = this.node
+      .findAll()
+      .find(
+        (construct): construct is aws_iam.Role =>
+          construct instanceof aws_iam.Role &&
+          construct.node.id.startsWith("SchedulerRoleForTarget-")
+      );
+
+    NagSuppressions.addResourceSuppressions(generatedRole!, [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role"
+      }
+    ], true)
     // Outputs
 
     new CfnOutput(this, "ApiUrl", {

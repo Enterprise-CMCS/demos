@@ -3,6 +3,7 @@ import { CommonProps } from "../types/props";
 
 import { MockIntegration, Model, PassthroughBehavior } from "aws-cdk-lib/aws-apigateway";
 import { DemosLogGroup } from "./logGroup";
+import { NagSuppressions } from "cdk-nag";
 
 export function create(props: CommonProps) {
   const apiAccessLogGroup = new DemosLogGroup(props.scope, "ApiAccessLogs", {
@@ -47,6 +48,11 @@ export function create(props: CommonProps) {
       allowMethods: aws_apigateway.Cors.ALL_METHODS,
     },
   });
+
+  NagSuppressions.addResourceSuppressions(api.deploymentStage, [{
+    id: "AwsSolutions-APIG3",
+    reason: "WAF is added in the UI stack so that values can be shared between the cloudfront and api waf"
+  }])
 
   const cfnApi = api.node.defaultChild as aws_apigateway.CfnRestApi;
   cfnApi.addPropertyOverride("SecurityPolicy", "SecurityPolicy_TLS13_2025_EDGE")
@@ -108,6 +114,25 @@ export function create(props: CommonProps) {
       }]
     }
   }
+
+  NagSuppressions.addResourceSuppressions(healthResource, [
+    {
+      id: "AwsSolutions-APIG4",
+      reason: "This is a healthcheck endpoint that does not return any actual information",
+    },
+    {
+      id: "AwsSolutions-COG4",
+      reason: "No authorization is needed for the health endpoint",
+    },
+  ], true)
+
+  NagSuppressions.addResourceSuppressions(api, [
+    {
+      id: "AwsSolutions-APIG2",
+      reason:
+        "Request validation is done on the backend. Would be difficult to sensibly implement for a graphql endpoint",
+    },
+  ])
 
   return {
     api,

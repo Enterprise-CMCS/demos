@@ -11,6 +11,8 @@ import {
 import { CommonProps } from "../types/props";
 import path from "node:path";
 import { Construct } from "constructs";
+import { NagSuppressions } from "cdk-nag";
+import { addCheckovSkip } from "../util/addCheckovSkip";
 
 interface UIDeploymentProps extends CommonProps {
   uiBucket: aws_s3.Bucket;
@@ -49,26 +51,21 @@ export function create(props: UIDeploymentProps) {
     path: buildOutputPath,
   });
 
-  const cm = deploymentRole.node.tryFindChild("DefaultPolicy")?.node.defaultChild as aws_iam.CfnPolicy;
-  cm.cfnOptions.metadata = {
-    checkov: {
-      skip: [{
-        id: "CKV_AWS_111",
-        reason: "CDK allows invalidation on all by default without options for limiting: https://github.com/aws/aws-cdk/blob/main/packages/aws-cdk-lib/aws-s3-deployment/lib/bucket-deployment.ts#L422"
-      }]
+  NagSuppressions.addResourceSuppressions(
+    deployWebsite.node.scope!
+    , [
+    {
+      id: "AwsSolutions-L1",
+      reason: "We do not manage the bucket deployment lambda directly to be able to control its version"
     }
-  }
+  ], true)
 
   const crh = (deployWebsite.node.findChild("CustomResourceHandler") as aws_lambda.SingletonFunction);
   const crhLambda = (crh["lambdaFunction"] as Construct).node.defaultChild as aws_lambda.CfnFunction
-  crhLambda.cfnOptions.metadata = {
-    checkov: {
-      skip: [{
-        id: "CKV_AWS_173",
-        reason: "Controlled by CDK internally"
-      }]
-    }
-  }
+  addCheckovSkip(crhLambda,{
+    id: "CKV_AWS_173",
+    reason: "Controlled by CDK internally"
+  })
 
   const gitHashFile = new aws_s3_deployment.DeployTimeSubstitutedFile(props.scope, "gitHashFile", {
     source: path.join("assets", "version.json"),
@@ -102,4 +99,15 @@ export function create(props: UIDeploymentProps) {
     role: deploymentRole,
   });
   invalidateCloudfront.node.addDependency(gitHashFile);
+
+  NagSuppressions.addResourceSuppressions(deploymentRole, [
+    {
+      id: "AwsSolutions-IAM5",
+      reason: "CDK adds non-modifiable default policies that fail this rule. Required for the bucket deployment"
+    }
+  ], true)
+  addCheckovSkip(deploymentRole.node.tryFindChild("DefaultPolicy")!, {
+        id: "CKV_AWS_111",
+        reason: "CDK allows invalidation on all by default without options for limiting: https://github.com/aws/aws-cdk/blob/main/packages/aws-cdk-lib/aws-s3-deployment/lib/bucket-deployment.ts#L422"
+  })
 }

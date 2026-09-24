@@ -13,6 +13,7 @@ import {
   aws_s3_notifications,
   aws_iam,
   Validations,
+  CfnResource,
 } from "aws-cdk-lib";
 
 import { Construct } from "constructs";
@@ -476,6 +477,13 @@ export class FileUploadStack extends Stack {
     uploadQueue.grantConsumeMessages(fileProcessLambda.lambda);
     dbSecretFileProcess.grantRead(fileProcessLambda.lambda);
 
+    NagSuppressions.addResourceSuppressions(fileProcessLambda.role, [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions are scoped specifically to the file upload bucket"
+      }
+    ], true)
+
     const dbSecretDeleteInfectedFile = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
       "rdsDeleteInfectedFileDatabaseSecret",
@@ -556,6 +564,20 @@ export class FileUploadStack extends Stack {
     });
 
     this.setupCloudWatchAlarms(props, alarmResources);
+
+    const bucketNotificationsRole = this.node.findAll().find(
+    node =>
+      CfnResource.isCfnResource(node) &&
+      node.cfnResourceType === "AWS::IAM::Role" &&
+      node.node.path.includes("/BucketNotificationsHandler") &&
+      node.node.path.endsWith("/Role/Resource")
+    );
+
+    NagSuppressions.addResourceSuppressions(bucketNotificationsRole!, [{
+      id: "AwsSolutions-IAM4",
+      reason: "This is for a CDK managed lambda for updating policies: https://github.com/aws/aws-cdk/issues/9552#issuecomment-677512510",
+    }], true)
+
 
     new CfnOutput(this, "cleanBucketName", {
       exportName: `${props.stage}CleanBucketName`,

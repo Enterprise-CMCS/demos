@@ -8,6 +8,7 @@ import {
 } from "aws-cdk-lib/aws-cognito";
 import { Construct } from "constructs";
 import { cognitoHostedUiSettings, cognitoHostedUiAssets } from "./cognitoAssets";
+import { NagSuppressions } from "cdk-nag";
 
 interface CognitoProps extends CommonProps {
   userPoolDomainPrefix?: string;
@@ -90,6 +91,17 @@ export function create(props: CognitoProps): CognitoOutputs {
   cfnUserPool.adminCreateUserConfig = {
     allowAdminCreateUserOnly: true,
   };
+
+  NagSuppressions.addResourceSuppressions(userPool, [
+    {
+    id: "AwsSolutions-COG2",
+    reason: "MFA is not required at the user-pool level since IDM enforces it",
+    },
+    {
+    id: "AwsSolutions-COG8",
+    reason: "We are relying on IDM to provide the same benefits as the Plus tier and 100% of logins will come through IDM",
+    }
+  ])
 
   const domain = new aws_cognito.UserPoolDomain(props.scope, "UserPoolDomain", {
     userPool,
@@ -175,8 +187,6 @@ const getCognitoDomainPrefix = (project: string, stage: string): string => `${pr
 
 // ---- Internal helpers for CDK resources ----
 const allowNativeCognitoIdp = (props: CognitoProps): boolean => props.isDev || props.isEphemeral;
-
-
 
 const createUserPoolClientResource = (
   props: CognitoProps,
