@@ -14,6 +14,7 @@ import path from "node:path";
 import * as alarms from "./alarms";
 import * as demosLambda from "./lambda";
 import { DeploymentConfigProperties } from "../config";
+import { NagSuppressions } from "cdk-nag";
 
 const EXPORT_TIMEOUT = Duration.minutes(15);
 
@@ -132,6 +133,13 @@ export class DataConnectExportProcessor extends Construct {
     // snapshots are what the DataConnect consumers read, so the exporter should not be able to
     // remove them.
     props.exportBucket.grantPut(exportLambda.lambda);
+
+    NagSuppressions.addResourceSuppressions(exportLambda.role, [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions are scoped to specific KMS key and UiPath documents bucket; S3 object ARNs require wildcard suffix.",
+      },
+    ], true)
   }
 
   private setupCloudWatchAlarms(

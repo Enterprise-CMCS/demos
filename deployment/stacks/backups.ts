@@ -21,6 +21,7 @@ import * as path from "node:path";
 import importNumberValue from "../util/importNumberValue";
 import * as securityGroup from "../lib/security-group";
 import { IVpc } from "aws-cdk-lib/aws-ec2";
+import { NagSuppressions } from "cdk-nag";
 
 interface BackupStackProps extends StackProps, DeploymentConfigProperties {
   vpc: IVpc;
@@ -122,6 +123,13 @@ export class BackupStack extends Stack {
     );
 
     dbSecret.grantRead(validationLambda.lambda.role);
+
+    NagSuppressions.addResourceSuppressions(validationLambda.lambda.role, [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role"
+      }
+    ], true)
 
     const rdsSecurityGroupId = Fn.importValue(`${props.project}-${props.hostEnvironment}-rds-security-group-id`);
 

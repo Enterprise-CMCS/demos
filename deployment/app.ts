@@ -7,16 +7,6 @@ import { UiStack } from "./stacks/ui";
 import { DatabaseStack } from "./stacks/database";
 import { BootstrapStack } from "./stacks/bootstrap";
 import { AwsSolutionsChecks } from "cdk-nag";
-import {
-  applyApiSuppressions,
-  applyBackupSuppressions,
-  applyCoreSuppressions,
-  applyDatabaseSuppressions,
-  applyDbRoleSuppressions,
-  applyFileUploadSuppressions,
-  applyUISuppressions,
-  applyUISuppressionsCloudfrontOnly,
-} from "./nag-suppressions";
 import { FileUploadStack } from "./stacks/fileupload";
 import { DBRoleStack } from "./stacks/dbRoles";
 import { PMDATransfer } from "./stacks/pmdaTransfer";
@@ -100,7 +90,6 @@ export async function main(passedContext?: { [key: string]: any }) {
       cloudVpnSecurityGroup: core.cloudVpnSecurityGroup,
       secretsManagerVpceSg: core.secretsManagerVpceSg,
     });
-    applyDatabaseSuppressions(database, stage);
     database.addStackDependency(core);
   }
 
@@ -181,23 +170,14 @@ export async function main(passedContext?: { [key: string]: any }) {
       },
       vpc: core.vpc,
     });
-    applyDbRoleSuppressions(dbRole, stage);
     dbRole.addStackDependency(core);
     fileUpload.addStackDependency(dbRole);
     api.addStackDependency(dbRole);
   }
 
-  applyCoreSuppressions(core, stage);
-  applyApiSuppressions(api, stage);
-  if (config.srrConfigured) {
-    applyUISuppressions(ui, stage);
-  } else {
-    applyUISuppressionsCloudfrontOnly(ui);
-  }
-
   // Applying only in DEV temporarily to test backup processes
   if (stage == "dev") {
-    const backup = new BackupStack(app, `${project}-${stage}-backup`, {
+    new BackupStack(app, `${project}-${stage}-backup`, {
       ...config,
       env: {
         account: process.env.CDK_DEFAULT_ACCOUNT,
@@ -205,10 +185,8 @@ export async function main(passedContext?: { [key: string]: any }) {
       },
       vpc: core.vpc,
     });
-    applyBackupSuppressions(backup, stage);
   }
 
-  applyFileUploadSuppressions(fileUpload, stage);
   Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
   return app;
 }

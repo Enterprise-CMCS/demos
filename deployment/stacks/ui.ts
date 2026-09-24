@@ -55,12 +55,32 @@ export class UiStack extends Stack {
 
     if (!commonProps.srrConfigured) {
       // STOP execution here if the cloudfront distribution has not yet been updated
-      new aws_cloudfront.Distribution(commonProps.scope, "CloudFrontDistribution", {
+      const tempDistribution = new aws_cloudfront.Distribution(commonProps.scope, "CloudFrontDistribution", {
       priceClass: aws_cloudfront.PriceClass.PRICE_CLASS_ALL,
       defaultBehavior: {
         origin: new aws_cloudfront_origins.HttpOrigin("example.com")
       }
     });
+
+    NagSuppressions.addResourceSuppressions(tempDistribution, [
+      {
+      id: "AwsSolutions-CFR1",
+      reason: "CMS mandates that no configurations are made until SRR has been applied"
+      },
+      {
+      id: "AwsSolutions-CFR2",
+      reason: "CMS mandates that no configurations are made until SRR has been applied"
+      },
+      {
+      id: "AwsSolutions-CFR3",
+      reason: "CMS mandates that no configurations are made until SRR has been applied"
+      },
+      {
+      id: "AwsSolutions-CFR4",
+      reason: "CMS mandates that no configurations are made until SRR has been applied"
+      },
+    ])
+
     return 
     }
 

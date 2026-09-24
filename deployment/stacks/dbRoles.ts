@@ -21,6 +21,8 @@ import importNumberValue from "../util/importNumberValue";
 import { Provider } from "aws-cdk-lib/custom-resources";
 import * as databaseRoles from "../databaseRoles";
 import { CfnFunction } from "aws-cdk-lib/aws-lambda";
+import { NagSuppressions } from "cdk-nag";
+import { addCheckovSkip } from "../util/addCheckovSkip";
 
 interface DBRoleStackProps extends StackProps, DeploymentConfigProperties {
   vpc: IVpc;
@@ -87,7 +89,7 @@ export class DBRoleStack extends Stack {
       aws_ec2.Port.HTTPS
     );
 
-    const roleManagmentLambda = new lambda.Lambda(this, "dbRoleManagement", {
+    const roleManagementLambda = new lambda.Lambda(this, "dbRoleManagement", {
       ...props,
       scope: this,
       entry: "../lambdas/dbRoleManagement/index.ts",
@@ -106,7 +108,7 @@ export class DBRoleStack extends Stack {
       depsLockFilePath: "../lambdas/dbRoleManagement/package-lock.json",
     });
 
-    roleManagmentLambda.role.addToPolicy(
+    roleManagementLambda.role.addToPolicy(
       new aws_iam.PolicyStatement({
         actions: ["ssm:PutParameter", "ssm:DeleteParameter", "ssm:DeleteParameters"],
         resources: [
@@ -115,7 +117,7 @@ export class DBRoleStack extends Stack {
       })
     );
 
-    roleManagmentLambda.role.addToPolicy(
+    roleManagementLambda.role.addToPolicy(
       new aws_iam.PolicyStatement({
         actions: [
           "secretsmanager:CreateSecret",
@@ -128,7 +130,7 @@ export class DBRoleStack extends Stack {
       })
     );
 
-    roleManagmentLambda.role.addToPolicy(
+    roleManagementLambda.role.addToPolicy(
       new aws_iam.PolicyStatement({
         actions: ["lambda:InvokeFunction"],
         resources: [
@@ -142,23 +144,36 @@ export class DBRoleStack extends Stack {
       "rdsDatabaseSecret",
       `demos-${props.hostEnvironment}-rds-admin`
     );
-    dbSecret.grantRead(roleManagmentLambda.lambda);
+    dbSecret.grantRead(roleManagementLambda.lambda);
+    NagSuppressions.addResourceSuppressions(roleManagementLambda.role, [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "The flagged wildcard is scoped to the proper resources",
+      },
+    ], true)
 
     const crp = new Provider(this, "rolesCrp", {
-      onEventHandler: roleManagmentLambda.lambda,
+      onEventHandler: roleManagementLambda.lambda,
     });
     // This override is needed because the latest JS version is returned as node
     // 22 and the function is internal to CDK
     const il = crp.node.tryFindChild("framework-onEvent")?.node.defaultChild as CfnFunction
     il.runtime = aws_lambda.Runtime.NODEJS_24_X.name
-    il.cfnOptions.metadata = {
-    checkov: {
-      skip: [{
-        id: "CKV_AWS_173",
-        reason: "This function is managed by CDK"
-      }]
-    }
-  }
+    addCheckovSkip(il,{
+      id: "CKV_AWS_173",
+      reason: "This function is managed by CDK"
+    })
+
+    NagSuppressions.addResourceSuppressions(crp, [
+      {
+        id: "AwsSolutions-IAM4",
+        reason: "Permissions are validated and required"
+      },
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions are validated and required"
+      }
+    ], true)
 
     const cr = new CustomResource(this, "dbRoles", {
       serviceToken: crp.serviceToken,
