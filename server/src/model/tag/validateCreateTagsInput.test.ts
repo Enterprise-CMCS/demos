@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { checkTagDoesntAlreadyExist } from ".";
+import { checkTagsDontAlreadyExist } from ".";
 import { PrismaTransactionClient } from "../../prismaClient";
-import { validateCreateTagInput } from "./validateCreateTagInput";
+import { validateCreateTagsInput } from "./validateCreateTagsInput";
 import { cleanErrorsAndThrow } from "../../errors/cleanErrorsAndThrow";
 
 vi.mock(".", () => ({
-  checkTagDoesntAlreadyExist: vi.fn(),
+  checkTagsDontAlreadyExist: vi.fn(),
 }));
 
 vi.mock("../../errors/cleanErrorsAndThrow", () => ({
@@ -14,14 +14,14 @@ vi.mock("../../errors/cleanErrorsAndThrow", () => ({
 
 describe("validateCreateTagInput", () => {
   it("should pass validation results to cleanErrorsAndThrow", async () => {
-    vi.mocked(checkTagDoesntAlreadyExist).mockResolvedValue("mistakes were made");
+    vi.mocked(checkTagsDontAlreadyExist).mockResolvedValue("mistakes were made");
 
-    await validateCreateTagInput("test-tag", {} as PrismaTransactionClient);
+    await validateCreateTagsInput(["test-tag"], {} as PrismaTransactionClient);
 
     expect(cleanErrorsAndThrow).toHaveBeenCalledWith(
       ["mistakes were made"],
-      "createTag",
-      "CREATE_TAG_VALIDATION_FAILED"
+      "createTags",
+      "CREATE_TAGS_VALIDATION_FAILED"
     );
   });
 });
