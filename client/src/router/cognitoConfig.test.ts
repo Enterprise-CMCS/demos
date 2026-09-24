@@ -104,5 +104,29 @@ describe("cognitoConfig", () => {
 
       expect(() => getCognitoConfig()).toThrow("Cognito configuration for staging is not defined.");
     });
+
+    describe("deployment environment builds", () => {
+      it.each([
+        ["test", "https://demos-test-login-user-pool-client.auth.us-east-1.amazoncognito.com"],
+        ["impl", "https://demos-impl-login-user-pool-client.auth.us-east-1.amazoncognito.com"],
+        ["prod", "https://demos-prod-login-user-pool-client.auth.us-east-1.amazoncognito.com"],
+      ])(
+        "should use environment config when VITE_COGNITO_DOMAIN is set for %s deployment",
+        async (_, domain) => {
+          vi.stubEnv("VITE_COGNITO_DOMAIN", domain);
+          vi.stubEnv("VITE_COGNITO_AUTHORITY", "https://cognito-idp.us-east-1.amazonaws.com/test");
+          vi.stubEnv("VITE_COGNITO_CLIENT_ID", "test-client-id");
+
+          vi.resetModules();
+          const { getCognitoConfig: getCognitoConfigReloaded } = await import("./cognitoConfig");
+
+          const config = getCognitoConfigReloaded();
+          expect(config).not.toBe(LOCAL_COGNITO_CONFIG);
+          expect(config.domain).toBe(domain);
+
+          vi.unstubAllEnvs();
+        }
+      );
+    });
   });
 });

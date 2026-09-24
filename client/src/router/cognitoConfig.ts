@@ -85,10 +85,24 @@ export const logoutRedirect = (): void => {
   window.location.assign(getCognitoLogoutUrl(getCognitoConfig()));
 };
 
+/** Asserts that all required Cognito environment variables are set. */
+function assertFullCognitoEnv(): void {
+  if (!import.meta.env.VITE_COGNITO_AUTHORITY) {
+    throw new Error("Missing required environment variable: VITE_COGNITO_AUTHORITY");
+  }
+  if (!import.meta.env.VITE_COGNITO_DOMAIN) {
+    throw new Error("Missing required environment variable: VITE_COGNITO_DOMAIN");
+  }
+  if (!import.meta.env.VITE_COGNITO_CLIENT_ID) {
+    throw new Error("Missing required environment variable: VITE_COGNITO_CLIENT_ID");
+  }
+}
+
 export const getCognitoConfig = (): CognitoConfig => {
   const cognitoDomain = import.meta.env.VITE_COGNITO_DOMAIN;
   // If VITE_COGNITO_DOMAIN is set this is a deployment build, use the production config
   if (cognitoDomain) {
+    assertFullCognitoEnv();
     return ENVIRONMENT_COGNITO_CONFIG;
   }
 
