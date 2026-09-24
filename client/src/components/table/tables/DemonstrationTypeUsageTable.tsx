@@ -12,7 +12,7 @@ export type DemonstrationTypeUsageRow = DemonstrationTypeUsageSummary & {
 const { createColumn, createDisplayColumn, createSelectColumn } =
   getColumnBuilder<DemonstrationTypeUsageRow>();
 
-const demonstrationTypeUsageColumns = [
+const createDemonstrationTypeUsageColumns = (onSelectTypeTag: (tagName: string) => void) => [
   createSelectColumn(),
   createColumn((row) => row.demonstrationTypeName, "Type/Tag Name"),
   createColumn((row) => (row.approvalStatus === "Approved" ? "Approved" : "Pending"), "Status"),
@@ -22,11 +22,20 @@ const demonstrationTypeUsageColumns = [
   createColumn((row) => row.countOfAssignedDemonstrations, "Demo Types"),
   createColumn((row) => row.countOfAssignedDeliverables, "Deliverables"),
   createDisplayColumn("Action", (cell) => (
-    <SecondaryButton name={`view-${cell.row.index}`}>View</SecondaryButton>
+    <SecondaryButton
+      name={`view-${cell.row.index}`}
+      onClick={() => onSelectTypeTag(cell.row.original.demonstrationTypeName)}
+    >
+      View
+    </SecondaryButton>
   )),
 ];
 
-export const DemonstrationTypeUsageTable = () => {
+export const DemonstrationTypeUsageTable = ({
+  onSelectTypeTag,
+}: {
+  onSelectTypeTag: (tagName: string) => void;
+}) => {
   // TODO: Replace this with server data in integration ticket
   const rows = useMemo(
     () =>
@@ -37,10 +46,15 @@ export const DemonstrationTypeUsageTable = () => {
     []
   );
 
+  const columns = useMemo(
+    () => createDemonstrationTypeUsageColumns(onSelectTypeTag),
+    [onSelectTypeTag]
+  );
+
   return (
     <Table<DemonstrationTypeUsageRow>
       data={rows}
-      columns={demonstrationTypeUsageColumns}
+      columns={columns}
       keywordSearch={(table) => <KeywordSearch table={table} />}
       pagination={(table) => <PaginationControls table={table} />}
       actionButtons={(table) => <TypeTagActionButtons table={table} />}

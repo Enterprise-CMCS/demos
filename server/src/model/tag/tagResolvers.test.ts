@@ -11,14 +11,14 @@ import { tagResolvers } from "./tagResolvers";
 vi.mock(".", () => ({
   getDemonstrationTypeSummaryCounts: vi.fn(),
   getFormattedTagsByTagType: vi.fn(),
-  createTag: vi.fn(),
+  createTags: vi.fn(),
   approveTag: vi.fn(),
 }));
 
 import {
   getDemonstrationTypeSummaryCounts,
   getFormattedTagsByTagType,
-  createTag,
+  createTags,
   approveTag,
 } from ".";
 import { __DEMOS_VERSION__ } from "../../flags";
@@ -50,21 +50,23 @@ describe("tagResolvers", () => {
   });
 
   describe("Mutation.createTag", () => {
-    it("should call createTag with the correct tagName", async () => {
-      const mockCreatedTag: Partial<PrismaTag> = {
-        tagNameId: "My New Tag!",
-        tagTypeId: "Demonstration Type",
-        sourceId: "User",
-        statusId: "Unapproved",
-        createdAt: new Date("2026-09-21"),
-        updatedAt: new Date("2026-09-21"),
-      };
-      vi.mocked(createTag).mockResolvedValue(mockCreatedTag as PrismaTag);
-      const result = await tagResolvers.Mutation.createTag(null, { tagName: "My New Tag!" });
-      expect(createTag).toHaveBeenCalledExactlyOnceWith("My New Tag!");
+    it("should call createTags with the correct tagName", async () => {
+      const mockCreatedTags: Partial<PrismaTag>[] = [
+        {
+          tagNameId: "My New Tag!",
+          tagTypeId: "Demonstration Type",
+          sourceId: "User",
+          statusId: "Unapproved",
+          createdAt: new Date("2026-09-21"),
+          updatedAt: new Date("2026-09-21"),
+        },
+      ];
+      vi.mocked(createTags).mockResolvedValue(mockCreatedTags as PrismaTag[]);
+      const result = await tagResolvers.Mutation.createTags(null, { tagNames: ["My New Tag!"] });
+      expect(createTags).toHaveBeenCalledExactlyOnceWith(["My New Tag!"]);
 
-      expect(result.tagName).toBe("My New Tag!");
-      expect(result.approvalStatus).toBe("Unapproved");
+      expect(result[0].tagName).toBe("My New Tag!");
+      expect(result[0].approvalStatus).toBe("Unapproved");
     });
   });
 
