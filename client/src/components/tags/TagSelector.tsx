@@ -93,23 +93,23 @@ export const TagSelector = ({
   allTags,
   selectedTags,
   setSelectedTags,
-  selectionMode,
   variant,
 }: {
   allTags: Tag[];
   selectedTags: Tag[];
   setSelectedTags: (tags: Tag[]) => void;
-  selectionMode: "single" | "multiple";
   variant: "apply" | "improve";
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [createdTags, setCreatedTags] = useState<Tag[]>([]);
 
+  const isSingleSelect = variant === "improve";
+
   const handleToggleTag = (targetTag: Tag) => {
     if (selectedTags.map((tag) => tag.tagName).includes(targetTag.tagName)) {
       setSelectedTags(selectedTags.filter((tag) => tag.tagName !== targetTag.tagName));
     } else {
-      setSelectedTags(selectionMode === "single" ? [targetTag] : [...selectedTags, targetTag]);
+      setSelectedTags(isSingleSelect ? [targetTag] : [...selectedTags, targetTag]);
     }
   };
 
@@ -131,7 +131,7 @@ export const TagSelector = ({
     mergedTags.some((tag) => tag.tagName.trim().toLowerCase() === normalizedSearchQuery);
   const hasMatches = filteredTags.length > 0 || searchQuery.trim().length === 0;
   const canCreateTag =
-    normalizedSearchQuery.length > 0 && (selectionMode === "single" ? !hasMatches : !hasExactMatch);
+    normalizedSearchQuery.length > 0 && (isSingleSelect ? !hasMatches : !hasExactMatch);
 
   const hasUnapprovedSelected = selectedTags.some((tag) => tag.approvalStatus === "Unapproved");
 
@@ -139,7 +139,7 @@ export const TagSelector = ({
     const newTagName = searchQuery.trim();
     const newTag: Tag = { tagName: newTagName, approvalStatus: "Unapproved" };
     setCreatedTags((prev) => [newTag, ...prev]);
-    setSelectedTags(selectionMode === "single" ? [newTag] : [...selectedTags, newTag]);
+    setSelectedTags(isSingleSelect ? [newTag] : [...selectedTags, newTag]);
     setSearchQuery("");
   };
 

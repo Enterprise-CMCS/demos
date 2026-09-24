@@ -112,7 +112,6 @@ export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({
           allTags={allTags}
           selectedTags={selectedTags}
           setSelectedTags={setSelectedTags}
-          selectionMode="multiple"
           variant="apply"
         />
         <div className="flex flex-col gap-1">

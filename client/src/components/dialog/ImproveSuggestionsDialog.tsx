@@ -9,8 +9,10 @@ import { TagSelector } from "components/tags/TagSelector";
 import { useApplicationTagOptions } from "components/tags/useApplicationTagOptions";
 import { Application, Tag, TagName } from "demos-server";
 
+type ReplacedTagApplication = Pick<Application, "id" | "tags" | "suggestedApplicationTags">;
+
 export const REPLACE_APPLICATION_TAG_SUGGESTION_MUTATION: TypedDocumentNode<
-  { replaceApplicationTagSuggestion: Application },
+  { replaceApplicationTagSuggestion: ReplacedTagApplication },
   { applicationId: string; value: TagName; newValue: TagName }
 > = gql`
   mutation ReplaceApplicationTagSuggestion(
@@ -105,7 +107,6 @@ export const ImproveSuggestionsDialog = ({
             )}
             selectedTags={selectedTags}
             setSelectedTags={setSelectedTags}
-            selectionMode="single"
             variant="improve"
           />
         )}
