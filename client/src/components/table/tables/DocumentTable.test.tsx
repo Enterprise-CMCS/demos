@@ -9,13 +9,13 @@ import { TestProvider } from "test-utils/TestProvider";
 import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 const showUploadDocumentDialog = vi.fn();
-const showEditDocumentDialog = vi.fn();
-const showRemoveDocumentDialog = vi.fn();
+const showEditApplicationDocumentDialog = vi.fn();
+const showRemoveApplicationDocumentsDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
     showUploadDocumentDialog,
-    showEditDocumentDialog,
-    showRemoveDocumentDialog,
+    showEditApplicationDocumentDialog,
+    showRemoveApplicationDocumentsDialog,
   }),
 }));
 
@@ -76,7 +76,7 @@ describe("DocumentTable", () => {
     const editBtn = screen.getByLabelText(/Edit Document/i);
     await user.click(editBtn);
     // Modal should open, assuming it renders 'edit document' text
-    expect(showEditDocumentDialog).toHaveBeenCalled();
+    expect(showEditApplicationDocumentDialog).toHaveBeenCalled();
   });
 
   it("renders the filter dropdown initially", async () => {

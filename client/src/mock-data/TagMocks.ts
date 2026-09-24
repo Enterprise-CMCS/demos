@@ -1,6 +1,6 @@
 import { MockedResponse } from "@apollo/client/testing";
 import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationType";
-import { GET_APPLICATION_TAG_OPTIONS } from "components/tags/ApplicationHealthTypeTags";
+import { GET_APPLICATION_TAG_OPTIONS } from "components/tags/useApplicationTagOptions";
 import { TYPE_TAG_MANAGEMENT_QUERY } from "components/table/tables/TypeTagTable";
 import { Tag } from "demos-server";
 

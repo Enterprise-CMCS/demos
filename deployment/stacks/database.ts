@@ -17,6 +17,7 @@ import {
   CfnResource,
   Aspects,
   Tags,
+  AspectPriority,
 } from "aws-cdk-lib";
 import { Construct, IConstruct } from "constructs";
 
@@ -28,6 +29,7 @@ import * as ssm from "../lib/ssm-parameter";
 import { RetentionDays } from "aws-cdk-lib/aws-logs";
 import { backupTags } from "../util/backup";
 import { addCheckovSkip } from "../util/addCheckovSkip";
+import { NagSuppressions } from "cdk-nag";
 
 interface DatabaseStackProps {
   vpc: aws_ec2.IVpc;
@@ -151,10 +153,27 @@ export class DatabaseStack extends Stack {
       Tags.of(dbInstance).add("AWS_Backup", backupTags["4hr1_d7_w35_m90"])
     }
 
-    const cfnDbInstance = dbInstance.node.defaultChild as aws_rds.CfnDBInstance;
-    cfnDbInstance.cfnOptions.metadata = {
-      checkov: {
-        skip: [{
+    if (props.stage == "prod") {
+        NagSuppressions.addResourceSuppressions(dbInstance, [
+        {
+          id: "AwsSolutions-IAM4",
+          reason: "Default AWS role is used for enhanced monitoring",
+        }
+      ], true)
+    } else {
+      NagSuppressions.addResourceSuppressions(dbInstance, [
+        {
+          id: "AwsSolutions-RDS3",
+          reason: "Not using multiAZ database in non-prod environments",
+        },
+        {
+          id: "AwsSolutions-RDS10",
+          reason: "Not using deletion protection in non-prod environments",
+        }
+      ])
+    }
+
+    addCheckovSkip(dbInstance, {
           id: "CKV_AWS_161",
           reason: "Using username/password with auto-rotations for now"
         },
@@ -164,11 +183,12 @@ export class DatabaseStack extends Stack {
         },{
           id: "CKV_AWS_118",
           reason: "Enhanced monitoring is enabled in IMPL and PROD"
-        }]
-      }
-    };
+        })
 
-    Aspects.of(this).add(new SuppressCheckovLogRetentionPolicy());
+    Aspects.of(this).add(
+      new SuppressCheckovLogRetentionPolicy(), 
+      { priority: AspectPriority.MUTATING }
+    );
 
     this.setupCloudWatchAlarms(commonProps, alarmResources);
 
@@ -395,8 +415,27 @@ class SuppressCheckovLogRetentionPolicy implements IAspect {
                 "CDK-managed LogRetention custom resource role; only used to apply CloudWatch Logs retention. Not worth updating or managing",
             }
         )
+        NagSuppressions.addResourceSuppressions(node, [{
+          id: "AwsSolutions-IAM5",
+          reason: "CDK default policy that can't be modified",
+          appliesTo: ["Resource::*"]
+        }])
       }
     }
+
+    if (node.cfnResourceType === "AWS::IAM::Role") {
+      const path = node.node.path;
+      if (
+        path.includes("/LogRetention") &&
+        path.endsWith("/ServiceRole/Resource")
+      ) { 
+        NagSuppressions.addResourceSuppressions(node, [{
+          id: "AwsSolutions-IAM4",
+          reason: "The AWSLambdaBasicExecutionRole for the log retention function doesn't create a risk",
+        }], true)
+      }
+    }
+    
 
     if (node.cfnResourceType === "AWS::SecretsManager::Secret") {
       const path = node.node.path

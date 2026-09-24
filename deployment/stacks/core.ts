@@ -11,6 +11,8 @@ import * as lambda from "../lib/lambda";
 import * as path from "node:path"
 import { DemosLogGroup } from "../lib/logGroup";
 import { BucketAccessLogs } from "../lib/bucketAccessLogs";
+import { addCheckovSkip } from "../util/addCheckovSkip";
+import { NagSuppressions } from "cdk-nag";
 
 export class CoreStack extends Stack {
   public readonly cognito_outputs: aws_cognito.UserPool | aws_cognito.IUserPool;
@@ -175,18 +177,21 @@ export class CoreStack extends Stack {
       isEphemeral: props.isEphemeral,
     })
 
-    const accessLogBucketCfn = accessLogs.node.defaultChild as aws_s3.CfnBucket;
-    accessLogBucketCfn.cfnOptions.metadata = {
-      checkov: {
-        skip: [{
-          id: "CKV_AWS_18",
-          reason: "the access log bucket itself does not need access logs"
-        },{
-          id: "CKV_AWS_21",
-          reason: "versioning on the access log bucket itself is intentionally disabled"
-        }]
+    addCheckovSkip(accessLogs, 
+      {
+        id: "CKV_AWS_18",
+        reason: "the access log bucket itself does not need access logs"
+      },
+      {
+        id: "CKV_AWS_21",
+        reason: "versioning on the access log bucket itself is intentionally disabled"
       }
-    }
+    )
+
+    NagSuppressions.addResourceSuppressions(accessLogs, [{
+      id: "AwsSolutions-S1",
+      reason: "The access log bucket should not also have access logs"
+    }])
 
     new aws_kms.Key(this, "lambdaEnvEncryption", {
       enableKeyRotation: true,

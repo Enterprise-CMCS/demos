@@ -25,7 +25,7 @@ export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[
   const isReadonlyUser = isReadonly(currentUser);
 
   const documentColumns = DocumentColumns(isReadonlyUser);
-  const { showEditDocumentDialog, showRemoveDocumentDialog } = useDialog();
+  const { showEditApplicationDocumentDialog, showRemoveApplicationDocumentsDialog } = useDialog();
   const initialState = {
     sorting: [{ id: "createdAt", desc: true }],
   };
@@ -74,7 +74,7 @@ export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[
                   tooltip={editTooltip}
                   disabled={!editEnabled}
                   onClick={() =>
-                    showEditDocumentDialog({
+                    showEditApplicationDocumentDialog({
                       id: selectedDocs[0].id,
                       name: selectedDocs[0].name,
                       description: selectedDocs[0].description,
@@ -89,7 +89,9 @@ export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[
                   aria-label="Remove Document"
                   tooltip={deleteTooltip}
                   disabled={!deleteEnabled}
-                  onClick={() => showRemoveDocumentDialog(selectedDocs.map((doc) => doc.id))}
+                  onClick={() =>
+                    showRemoveApplicationDocumentsDialog(selectedDocs.map((doc) => doc.id))
+                  }
                 >
                   <DeleteIcon />
                 </CircleButton>

@@ -86,8 +86,10 @@ export const FileAndHistoryTabs: React.FC<{
   const {
     showRequestResubmissionDeliverableDialog,
     showAddDeliverableFileDialog,
-    showEditDocumentDialog,
-    showRemoveDocumentDialog,
+    showEditDeliverableCmsDocumentDialog,
+    showEditDeliverableStateDocumentDialog,
+    showRemoveDeliverableCmsDocumentsDialog,
+    showRemoveDeliverableStateDocumentsDialog,
   } = useDialog();
   const { currentUser } = getCurrentUser();
   const { showSuccess, showError } = useToast();
@@ -108,12 +110,11 @@ export const FileAndHistoryTabs: React.FC<{
   const isReadonlyUser = isReadonly(currentUser);
   const canManageStateFiles = !isReadonlyUser;
 
-  const canSubmitWithoutUnsubmittedFiles =
-    SUBMISSION_ALWAYS_ENABLED_STATUSES.has(deliverable.status);
-
-  const hasUnsubmittedFiles = stateFiles.some(
-    file => file.deliverableSubmissionAction == null
+  const canSubmitWithoutUnsubmittedFiles = SUBMISSION_ALWAYS_ENABLED_STATUSES.has(
+    deliverable.status
   );
+
+  const hasUnsubmittedFiles = stateFiles.some((file) => file.deliverableSubmissionAction == null);
 
   const handleRequestResubmission = () => {
     showRequestResubmissionDeliverableDialog({
@@ -142,12 +143,20 @@ export const FileAndHistoryTabs: React.FC<{
     });
   };
 
-  const handleEditFile = (file: DeliverableFileRow) => {
-    showEditDocumentDialog(fileRowToDialogFields(file), refetchAfterFileChange);
+  const handleEditStateFile = (file: DeliverableFileRow) => {
+    showEditDeliverableStateDocumentDialog(fileRowToDialogFields(file), refetchAfterFileChange);
   };
 
-  const handleDeleteFiles = (fileIds: string[]) => {
-    showRemoveDocumentDialog(fileIds, { refetchQueries: refetchAfterFileChange });
+  const handleEditCmsFile = (file: DeliverableFileRow) => {
+    showEditDeliverableCmsDocumentDialog(fileRowToDialogFields(file), refetchAfterFileChange);
+  };
+
+  const handleDeleteStateFiles = (fileIds: string[]) => {
+    showRemoveDeliverableStateDocumentsDialog(fileIds, { refetchQueries: refetchAfterFileChange });
+  };
+
+  const handleDeleteCmsFiles = (fileIds: string[]) => {
+    showRemoveDeliverableCmsDocumentsDialog(fileIds, { refetchQueries: refetchAfterFileChange });
   };
 
   const handleSubmitDeliverable = async () => {
@@ -165,14 +174,13 @@ export const FileAndHistoryTabs: React.FC<{
   };
 
   const isSubmitDisabled =
-    isFinalized
-    || stateFiles.length === 0
-    || submitLoading
-    || (!hasUnsubmittedFiles && !canSubmitWithoutUnsubmittedFiles);
+    isFinalized ||
+    stateFiles.length === 0 ||
+    submitLoading ||
+    (!hasUnsubmittedFiles && !canSubmitWithoutUnsubmittedFiles);
 
-  const submitTooltip = isSubmitDisabled && !hasUnsubmittedFiles && !isFinalized
-    ? "No Unsubmitted Files"
-    : undefined;
+  const submitTooltip =
+    isSubmitDisabled && !hasUnsubmittedFiles && !isFinalized ? "No Unsubmitted Files" : undefined;
 
   return (
     <div data-testid={FILE_AND_HISTORY_TABS_NAME}>
@@ -181,8 +189,8 @@ export const FileAndHistoryTabs: React.FC<{
           <StateFilesTab
             files={stateFiles}
             onAdd={handleAddStateFile}
-            onEdit={handleEditFile}
-            onDelete={handleDeleteFiles}
+            onEdit={handleEditStateFile}
+            onDelete={handleDeleteStateFiles}
             canManage={canManageStateFiles}
             isFinalized={isFinalized}
           />
@@ -193,8 +201,8 @@ export const FileAndHistoryTabs: React.FC<{
             canManage={canManageCmsFiles}
             isFinalized={isFinalized}
             onAdd={handleAddCmsFile}
-            onEdit={handleEditFile}
-            onDelete={handleDeleteFiles}
+            onEdit={handleEditCmsFile}
+            onDelete={handleDeleteCmsFiles}
           />
         </Tab>
         <Tab label="History" value={TABS.HISTORY}>

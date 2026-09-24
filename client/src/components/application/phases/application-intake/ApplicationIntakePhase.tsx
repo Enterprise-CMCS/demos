@@ -494,6 +494,7 @@ export const ApplicationIntakePhase = ({
       </div>
       {selectedSuggestedTag && (
         <ConfirmSuggestedSparklyTagDialog
+          applicationId={applicationId}
           tagName={selectedSuggestedTag}
           onClose={() => setSelectedSuggestedTag(null)}
           onConfirm={handleAcceptSuggestedTag}

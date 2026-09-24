@@ -4,7 +4,7 @@ import { formatDate } from "date-fns";
 import { highlightCell } from "../KeywordSearch";
 
 export type LoginHistoryUserRow = Pick<User, "id" | "lastLogin" | "username"> & {
-  person: Pick<Person, "id" | "fullName" | "email">
+  person: Pick<Person, "id" | "fullName" | "email">;
 };
 
 export const getLastLogin = (user: LoginHistoryUserRow): string =>

@@ -1,6 +1,7 @@
 import { aws_events, aws_events_targets, aws_guardduty, aws_iam, aws_s3, aws_sqs } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { Wait } from "./wait";
+import { NagSuppressions } from "cdk-nag";
 
 interface GuardDutyS3Props {
   bucket: aws_s3.IBucket;
@@ -74,6 +75,11 @@ export class GuardDutyS3 extends Construct {
         }),
       ],
     });
+
+    NagSuppressions.addResourceSuppressions(rolePolicy, [{
+      id: "AwsSolutions-IAM5",
+      reason: "Permissions are validated and required"
+    }])
 
     const guardDutyPassRole = new aws_iam.Role(this, "GuardDutyMalwareProtectionPassRole", {
       roleName: `GuardDutyMalwareProtectionPassRole-${props.stage}`,

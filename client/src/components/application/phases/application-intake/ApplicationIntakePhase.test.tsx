@@ -23,7 +23,7 @@ import { ApplicationWorkflowDocument, WorkflowApplication } from "components/app
 import { TZDate } from "@date-fns/tz";
 import { formatDateForServer, getTodayEst, EST_TIMEZONE } from "util/formatDate";
 import { MockedResponse } from "@apollo/client/testing";
-import { GET_APPLICATION_TAG_OPTIONS } from "components/tags/ApplicationHealthTypeTags";
+import { GET_APPLICATION_TAG_OPTIONS } from "components/tags/useApplicationTagOptions";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { DocumentType, Tag } from "demos-server";
 import { readonlyMockUser, cmsMockUser } from "mock-data/userMocks";
