@@ -9,31 +9,30 @@ interface CheckovSkip {
 const isCheckovSkipArray = (T: unknown): T is CheckovSkip[] => {
   if (!Array.isArray(T)) {
     if (typeof T !== "undefined") {
-      throw new Error("invalid")
+      throw new Error("invalid");
     }
     return false;
-  }  
+  }
 
-  return T.every(entry => entry.id && entry.reason)
-}
+  return T.every(entry => entry.id && entry.reason);
+};
 
 export function addCheckovSkip(resource: Construct, ...skips: CheckovSkip[]) {
 
-  
-  let cfnResource = resource as CfnResource
+  let cfnResource = resource as CfnResource;
   if (!(cfnResource instanceof CfnResource)) {
-    cfnResource = resource.node.defaultChild as CfnResource
+    cfnResource = resource.node.defaultChild as CfnResource;
   }
-  const checkovMetadata = cfnResource.getMetadata("checkov")
+  const checkovMetadata = cfnResource.getMetadata("checkov");
 
-  let existingSkip: CheckovSkip[] = []
+  let existingSkip: CheckovSkip[] = [];
 
   if (isCheckovSkipArray(checkovMetadata?.skip)) {
-    existingSkip = checkovMetadata?.skip
+    existingSkip = checkovMetadata?.skip;
   }
 
   cfnResource.addMetadata("checkov", {
-    skip: [...existingSkip, ...skips]
-  })
+    skip: [...existingSkip, ...skips],
+  });
 
 }

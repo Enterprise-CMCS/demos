@@ -29,7 +29,7 @@ const mockCommonProps: DeploymentConfigProperties = {
 function expectLambdaErrorsAlarm(
   template: Template,
   alarmName: string,
-  functionRefPattern: string
+  functionRefPattern: string,
 ) {
   template.hasResourceProperties("AWS::CloudWatch::Alarm", {
     AlarmName: alarmName,
@@ -57,7 +57,7 @@ function expectLambdaDurationAlarm(
   template: Template,
   alarmName: string,
   functionRefPattern: string,
-  thresholdMilliseconds: number
+  thresholdMilliseconds: number,
 ) {
   template.hasResourceProperties("AWS::CloudWatch::Alarm", {
     AlarmName: alarmName,
@@ -84,7 +84,7 @@ function expectLambdaDurationAlarm(
 function expectLambdaThrottlesAlarm(
   template: Template,
   alarmName: string,
-  functionRefPattern: string
+  functionRefPattern: string,
 ) {
   template.hasResourceProperties("AWS::CloudWatch::Alarm", {
     AlarmName: alarmName,
@@ -111,7 +111,7 @@ function expectLambdaThrottlesAlarm(
 function expectSqsOldestMessageAgeAlarm(
   template: Template,
   alarmName: string,
-  thresholdSeconds: number
+  thresholdSeconds: number,
 ) {
   template.hasResourceProperties("AWS::CloudWatch::Alarm", {
     AlarmName: alarmName,
@@ -220,60 +220,60 @@ describe("Api Stack", () => {
     expectLambdaErrorsAlarm(
       template,
       "demos-unittest-authorizer-lambda-errors",
-      "authorizer"
+      "authorizer",
     );
     expectLambdaErrorsAlarm(
       template,
       "demos-unittest-graphql-lambda-errors",
-      "graphql"
+      "graphql",
     );
     expectLambdaErrorsAlarm(
       template,
       "demos-unittest-emailer-lambda-errors",
-      "emailer"
+      "emailer",
     );
     expectLambdaDurationAlarm(
       template,
       "demos-unittest-authorizer-lambda-duration-near-timeout",
       "authorizer",
-      8000
+      8000,
     );
     expectLambdaDurationAlarm(
       template,
       "demos-unittest-emailer-lambda-duration-near-timeout",
       "emailer",
-      48000
+      48000,
     );
     expectLambdaThrottlesAlarm(
       template,
       "demos-unittest-authorizer-lambda-throttles",
-      "authorizer"
+      "authorizer",
     );
     expectLambdaThrottlesAlarm(
       template,
       "demos-unittest-graphql-lambda-throttles",
-      "graphql"
+      "graphql",
     );
     expectLambdaThrottlesAlarm(
       template,
       "demos-unittest-emailer-lambda-throttles",
-      "emailer"
+      "emailer",
     );
     template.resourcePropertiesCountIs(
       "AWS::CloudWatch::Alarm",
       {
         AlarmName: "demos-unittest-graphql-lambda-duration-near-timeout",
       },
-      0
+      0,
     );
     expectSqsOldestMessageAgeAlarm(
       template,
       "demos-unittest-emailer-queue-oldest-message-age-high",
-      900
+      900,
     );
     expectSqsVisibleMessagesAlarm(
       template,
-      "demos-unittest-emailer-dlq-visible-messages"
+      "demos-unittest-emailer-dlq-visible-messages",
     );
 
     template.hasResourceProperties("AWS::EC2::SecurityGroupEgress", {

@@ -22,7 +22,7 @@ export async function buildClient(environment: string, refreshOutputs: boolean =
       "--execute=false",
     ]);
 
-    if (cmd != 0) {
+    if (cmd !== 0) {
       console.error(`deploy-no-execute command failed with code ${cmd}`);
       return cmd;
     }

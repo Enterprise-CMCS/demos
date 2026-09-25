@@ -8,7 +8,7 @@ import * as ssm from "../lib/ssm-parameter";
 import * as securityGroup from "../lib/security-group";
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import * as lambda from "../lib/lambda";
-import * as path from "node:path"
+import * as path from "node:path";
 import { DemosLogGroup } from "../lib/logGroup";
 import { BucketAccessLogs } from "../lib/bucketAccessLogs";
 import { addCheckovSkip } from "../util/addCheckovSkip";
@@ -34,8 +34,8 @@ export class CoreStack extends Stack {
       scope: this,
       iamPermissionsBoundary:
         props.iamPermissionsBoundaryArn == null
-          ? undefined : aws_iam.ManagedPolicy.fromManagedPolicyArn(this, "iamPermissionsBoundary", props.iamPermissionsBoundaryArn)
-          
+          ? undefined : aws_iam.ManagedPolicy.fromManagedPolicyArn(this, "iamPermissionsBoundary", props.iamPermissionsBoundaryArn),
+
     };
 
     let cognito_outputs: cognito.CognitoOutputs;
@@ -46,7 +46,7 @@ export class CoreStack extends Stack {
       cognito_outputs = cognito.createUserPoolClient(
         commonProps,
         commonProps.hostUserPoolId,
-        commonProps.hostEnvironment
+        commonProps.hostEnvironment,
       );
       this.cognito_outputs = cognito_outputs.userPool;
     } else {
@@ -56,10 +56,10 @@ export class CoreStack extends Stack {
     const vpc = props.isLocalstack
       ? aws_ec2.Vpc.fromLookup(this, "lsVpc", { tags: { Name: `demos-local` } })
       : aws_ec2.Vpc.fromLookup(this, "vpc", {
-          tags: {
-            Name: `demos-east-${commonProps.isEphemeral ? commonProps.hostEnvironment : commonProps.stage}`,
-          },
-        });
+        tags: {
+          Name: `demos-east-${commonProps.isEphemeral ? commonProps.hostEnvironment : commonProps.stage}`,
+        },
+      });
 
     this.vpcId = vpc.vpcId;
     this.vpc = vpc;
@@ -94,14 +94,14 @@ export class CoreStack extends Stack {
         commonProps.scope,
         "hostEnvSecretsManagerSG",
         `${commonProps.project}-${commonProps.hostEnvironment}-${secretsManagerSecurityGroupName}`,
-        vpc
+        vpc,
       );
 
       sqsEndpointSg = aws_ec2.SecurityGroup.fromLookupByName(
         commonProps.scope,
         "hostEnvSqsSG",
         `${commonProps.project}-${commonProps.hostEnvironment}-${sqsSecurityGroupName}`,
-        vpc
+        vpc,
       );
     } else {
       secretsManagerEndpointSG = securityGroup.create({
@@ -121,7 +121,7 @@ export class CoreStack extends Stack {
       vpc.addGatewayEndpoint("s3GatewayEndpoint", {
         service: aws_ec2.GatewayVpcEndpointAwsService.S3,
       });
-      
+
       sqsEndpointSg = securityGroup.create({
         ...commonProps,
         vpc,
@@ -156,42 +156,42 @@ export class CoreStack extends Stack {
     this.secretsManagerVpceSg = secretsManagerEndpointSG;
 
     const accessLogs = new Bucket(this, "S3AccessLogBucket", {
-          encryption: aws_s3.BucketEncryption.S3_MANAGED,
-          removalPolicy:
+      encryption: aws_s3.BucketEncryption.S3_MANAGED,
+      removalPolicy:
             props.isDev || props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
-          blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
-          autoDeleteObjects: props.isDev || props.isEphemeral,
-          enforceSSL: true,
-          versioned: false,
-          bucketName: `${commonProps.project}-${commonProps.stage}-s3-access-logs`,
-          lifecycleRules: [
-            {
-              id: "ExpireOldFiles",
-              expiration: Duration.days(commonProps.isEphemeral ? 7 : 90)
-            }
-          ]
-        });
+      blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
+      autoDeleteObjects: props.isDev || props.isEphemeral,
+      enforceSSL: true,
+      versioned: false,
+      bucketName: `${commonProps.project}-${commonProps.stage}-s3-access-logs`,
+      lifecycleRules: [
+        {
+          id: "ExpireOldFiles",
+          expiration: Duration.days(commonProps.isEphemeral ? 7 : 90),
+        },
+      ],
+    });
 
     new DemosLogGroup(this, "S3AccessLogsLogGroup", {
       overrideFullName: BucketAccessLogs.getS3AccessLogLogGroupName(props.stage),
       isEphemeral: props.isEphemeral,
-    })
+    });
 
-    addCheckovSkip(accessLogs, 
+    addCheckovSkip(accessLogs,
       {
         id: "CKV_AWS_18",
-        reason: "the access log bucket itself does not need access logs"
+        reason: "the access log bucket itself does not need access logs",
       },
       {
         id: "CKV_AWS_21",
-        reason: "versioning on the access log bucket itself is intentionally disabled"
-      }
-    )
+        reason: "versioning on the access log bucket itself is intentionally disabled",
+      },
+    );
 
     NagSuppressions.addResourceSuppressions(accessLogs, [{
       id: "AwsSolutions-S1",
-      reason: "The access log bucket should not also have access logs"
-    }])
+      reason: "The access log bucket should not also have access logs",
+    }]);
 
     new aws_kms.Key(this, "lambdaEnvEncryption", {
       enableKeyRotation: true,
@@ -208,7 +208,7 @@ export class CoreStack extends Stack {
         asCode: false,
         timeout: Duration.seconds(10),
       },
-      "notifier"
+      "notifier",
     );
 
     notifierLambda.lambda.lambda.addPermission("CloudWatchAlarmsInvoke", {
@@ -219,19 +219,19 @@ export class CoreStack extends Stack {
         service: "cloudwatch",
         resource: "alarm",
         resourceName: `${props.project}-${props.stage}-*`,
-        arnFormat: ArnFormat.COLON_RESOURCE_NAME
-      })
-    })
+        arnFormat: ArnFormat.COLON_RESOURCE_NAME,
+      }),
+    });
 
-const webhookUrl = aws_ssm.StringParameter.fromSecureStringParameterAttributes(
-  this,
-  "webhookParam",
-  {
-    parameterName: "/demos/webhookUrl",
-  }
-);
+    const webhookUrl = aws_ssm.StringParameter.fromSecureStringParameterAttributes(
+      this,
+      "webhookParam",
+      {
+        parameterName: "/demos/webhookUrl",
+      },
+    );
 
-webhookUrl.grantRead(notifierLambda.lambda.role);
+    webhookUrl.grantRead(notifierLambda.lambda.role);
 
     new CfnOutput(commonProps.scope, "secretsManagerVpceSg", {
       value: secretsManagerEndpointSG.securityGroupId,
@@ -240,8 +240,8 @@ webhookUrl.grantRead(notifierLambda.lambda.role);
 
     new CfnOutput(commonProps.scope, "sqsVpceSg", {
       value: sqsEndpointSg.securityGroupId,
-      exportName: `${commonProps.stage}SqsVpceSg`
-    })
+      exportName: `${commonProps.stage}SqsVpceSg`,
+    });
 
     new CfnOutput(this, "cognitoAuthority", {
       value: cognito_outputs.authority,
@@ -267,7 +267,7 @@ webhookUrl.grantRead(notifierLambda.lambda.role);
       commonProps.scope,
       "vpnSecurityGroup",
       "cmscloud-vpn",
-      vpc
+      vpc,
     );
   }
 }

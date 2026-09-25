@@ -60,18 +60,18 @@ export class BudgetNeutralityProcessor extends Construct {
     const dbSecret = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
       "rdsBudgetNeutralityDatabaseSecret",
-      `demos-${props.hostEnvironment}-rds-demos_upload`
+      `demos-${props.hostEnvironment}-rds-demos_upload`,
     );
 
     const budgetNeutralityDir = path.resolve(
       process.cwd(),
       "..",
       "lambdas",
-      "budgetNeutrality"
+      "budgetNeutrality",
     );
     const budgetNeutralityLockFile = path.join(
       budgetNeutralityDir,
-      "package-lock.json"
+      "package-lock.json",
     );
 
     const cleanReadBucket = props.readBuckets?.[0];
@@ -102,12 +102,12 @@ export class BudgetNeutralityProcessor extends Construct {
           NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
           CLEAN_BUCKET: cleanReadBucket?.bucketName ?? "",
         },
-      }
+      },
     );
     alarmResources.registerLambda("budgetNeutrality", budgetNeutralityLambda.lambda);
 
     budgetNeutralityLambda.lambda.addEventSource(
-      new SqsEventSource(this.queue, { batchSize: 1 })
+      new SqsEventSource(this.queue, { batchSize: 1 }),
     );
 
     this.setupCloudWatchAlarms(props, alarmResources);
@@ -124,12 +124,12 @@ export class BudgetNeutralityProcessor extends Construct {
         id: "AwsSolutions-IAM5",
         reason: "Permissions are scoped to specific KMS key and UiPath documents bucket; S3 object ARNs require wildcard suffix.",
       },
-    ], true)
+    ], true);
   }
 
   private setupCloudWatchAlarms(
     props: DeploymentConfigProperties,
-    resources: alarms.CloudWatchAlarmRegistry
+    resources: alarms.CloudWatchAlarmRegistry,
   ) {
     if (props.isEphemeral && !props.enableAlarms) {
       return;
