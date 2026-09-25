@@ -16,7 +16,7 @@ export async function addCloudfrontRedirect(environment: string) {
     "--execute=false",
   ]);
 
-  if (cmd != 0) {
+  if (cmd !== 0) {
     console.error(`deploy-no-execute command failed with code ${cmd}`);
     return cmd;
   }
@@ -26,7 +26,7 @@ export async function addCloudfrontRedirect(environment: string) {
   await addCognitoRedirect(
     getOutputValue(outputData, `demos-${environment}-core`, "cognitoAuthority").split("/").pop()!,
     getOutputValue(outputData, `demos-${environment}-core`, "cognitoClientId"),
-    getOutputValue(outputData, `demos-${environment}-ui`, "CloudfrontURL")
+    getOutputValue(outputData, `demos-${environment}-ui`, "CloudfrontURL"),
   );
 
   console.log(`\n======\ncloudfront url added as a valid redirect\n======\n`);

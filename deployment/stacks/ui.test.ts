@@ -25,7 +25,7 @@ function expectWafBlockedRequestsAnomalyAlarm(
     rule: string;
     webAcl: string;
     region: string | ReturnType<typeof Match.anyValue>;
-  }
+  },
 ) {
   template.hasResourceProperties("AWS::CloudWatch::Alarm", {
     AlarmName: props.alarmName,
@@ -148,13 +148,13 @@ describe("UI Stack", () => {
     });
 
     const distributions = Object.values(template.toJSON().Resources).filter(
-      (r: any) => r.Type == "AWS::CloudFront::Distribution"
+      (r: any) => r.Type === "AWS::CloudFront::Distribution",
     );
     expect(distributions.length).toEqual(1);
     const dist = distributions[0] as any;
     const origins = dist.Properties.DistributionConfig.Origins;
     expect(origins.length).toEqual(2);
-    const apiOrigin = origins.filter((r: any) => r.OriginPath == "/unittest")[0];
+    const apiOrigin = origins.filter((r: any) => r.OriginPath === "/unittest")[0];
     const cacheBehaviors = dist.Properties.DistributionConfig.CacheBehaviors;
     expect(cacheBehaviors.length).toEqual(1);
     expect(cacheBehaviors[0].TargetOriginId).toEqual(apiOrigin.Id);
