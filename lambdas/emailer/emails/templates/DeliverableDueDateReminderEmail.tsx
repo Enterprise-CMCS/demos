@@ -1,7 +1,7 @@
 import { Text } from "@react-email/components";
 
 import { EmailLayout } from "../components/EmailLayout";
-import { DeliverableLink } from "../components/DeliverableLink";
+import { DeliverableLink } from "../components/deliverable/DeliverableLink";
 import { detailStyle, textStyle } from "../components/styles";
 import { formatDate, getDemosAppUrl, getRequiredObject, getRequiredString } from "../helpers";
 import type { EmailTemplateResult } from "../types";

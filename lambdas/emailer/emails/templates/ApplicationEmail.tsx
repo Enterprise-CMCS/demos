@@ -7,10 +7,7 @@ import type { EmailTemplate } from "../types";
 export const renderApplicationStatusUpdatedEmail: EmailTemplate = (payload) =>
   renderApplicationEmail(payload, "Application Status Updated");
 
-function renderApplicationEmail(
-  rawPayload: unknown,
-  emailType: "Application Status Updated"
-) {
+function renderApplicationEmail(rawPayload: unknown, emailType: "Application Status Updated") {
   const payload = getRequiredObject(rawPayload, "payload", emailType);
   const demonstration = getRequiredObject(payload.demonstration, "demonstration", emailType);
   const application = getRequiredObject(payload.application, "application", emailType);
@@ -31,7 +28,11 @@ function renderApplicationEmail(
       ? undefined
       : getRequiredString(application.name, "application.name", emailType);
   const status = getRequiredString(application.statusId, "application.statusId", emailType);
-  const rawDate = getRequiredString(application.statusUpdatedAt, "application.statusUpdatedAt", emailType);
+  const rawDate = getRequiredString(
+    application.statusUpdatedAt,
+    "application.statusUpdatedAt",
+    emailType
+  );
   const timestamp = new Date(rawDate).toLocaleString("en-US", {
     timeZone: "America/New_York",
     timeZoneName: "short",
