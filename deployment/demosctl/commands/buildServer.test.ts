@@ -11,13 +11,13 @@ describe("buildServer", () => {
   test("should properly set vite envs", async () => {
     const rs = runShell as Mock;
 
-    await buildServer();
+    await buildServer("prod");
     expect(rs).toHaveBeenCalledWith(
       "server-build",
-      "npm ci && npm run build:ci",
+      "npm ci && npm run build:ci -- --define:process.env.CURRENT_ENV='\"prod\"'",
       expect.objectContaining({
         cwd: "../server",
-      }),
+      })
     );
   });
 });
