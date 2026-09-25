@@ -14,7 +14,7 @@ describe("buildServer", () => {
     await buildServer("prod");
     expect(rs).toHaveBeenCalledWith(
       "server-build",
-      'npm ci && npm run build:ci -- --define:process.env.CURRENT_ENV="prod"',
+      "npm ci && npm run build:ci -- --define:process.env.CURRENT_ENV='\"prod\"'",
       expect.objectContaining({
         cwd: "../server",
       })
