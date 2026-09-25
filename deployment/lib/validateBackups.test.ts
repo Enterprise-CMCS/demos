@@ -338,8 +338,8 @@ describe("Validate Backups", () => {
           port: 5432,
           user: "dbuser",
           password: "secret", // pragma: allowlist secret
-          database: "demos"
-        }, 
+          database: "demos",
+        },
       );
     });
   });

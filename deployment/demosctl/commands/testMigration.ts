@@ -27,7 +27,7 @@ export async function testMigration(environment: string, dbname?: string) {
     return 1;
   }
 
-  if (dbname == "demos" || dbname == "postgres") {
+  if (dbname === "demos" || dbname === "postgres") {
     console.error("testMigration cannot be run against specified db");
     return 1;
   }
@@ -36,7 +36,7 @@ export async function testMigration(environment: string, dbname?: string) {
     console.error("invalid database name");
     return 1;
   }
-  const safeName = dbname
+  const safeName = dbname;
 
   console.log("test-migration:", environment);
   const caCert = await fetchCACert("https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem");
@@ -80,7 +80,7 @@ export async function testMigration(environment: string, dbname?: string) {
   } finally {
     await client.end();
   }
-  if (migrationStatus != 0) {
+  if (migrationStatus !== 0) {
     console.error("\n\n`prisma migration deploy` exited with a non-zero exit code");
     return migrationStatus;
   }

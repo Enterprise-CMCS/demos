@@ -51,7 +51,7 @@ describe("Cognito", () => {
         scope: stack,
       },
       "pool",
-      "dev"
+      "dev",
     );
 
     const template = Template.fromStack(stack);
@@ -119,7 +119,7 @@ describe("Cognito", () => {
         cloudfrontHost: "dev.example.com",
       },
       "pool-id-placeholder",
-      "dev"
+      "dev",
     );
 
     const template = Template.fromStack(stack);
@@ -146,7 +146,7 @@ describe("Cognito", () => {
         cloudfrontHost: "prod.example.com",
       },
       "pool-id-placeholder",
-      "prod"
+      "prod",
     );
 
     const template = Template.fromStack(stack);

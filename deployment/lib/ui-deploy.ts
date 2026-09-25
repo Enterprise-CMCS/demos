@@ -54,18 +54,18 @@ export function create(props: UIDeploymentProps) {
   NagSuppressions.addResourceSuppressions(
     deployWebsite.node.scope!
     , [
-    {
-      id: "AwsSolutions-L1",
-      reason: "We do not manage the bucket deployment lambda directly to be able to control its version"
-    }
-  ], true)
+      {
+        id: "AwsSolutions-L1",
+        reason: "We do not manage the bucket deployment lambda directly to be able to control its version",
+      },
+    ], true);
 
   const crh = (deployWebsite.node.findChild("CustomResourceHandler") as aws_lambda.SingletonFunction);
-  const crhLambda = (crh["lambdaFunction"] as Construct).node.defaultChild as aws_lambda.CfnFunction
-  addCheckovSkip(crhLambda,{
+  const crhLambda = (crh["lambdaFunction"] as Construct).node.defaultChild as aws_lambda.CfnFunction;
+  addCheckovSkip(crhLambda, {
     id: "CKV_AWS_173",
-    reason: "Controlled by CDK internally"
-  })
+    reason: "Controlled by CDK internally",
+  });
 
   const gitHashFile = new aws_s3_deployment.DeployTimeSubstitutedFile(props.scope, "gitHashFile", {
     source: path.join("assets", "version.json"),
@@ -76,7 +76,7 @@ export function create(props: UIDeploymentProps) {
     },
   });
 
-  gitHashFile.node.addDependency(deployWebsite)
+  gitHashFile.node.addDependency(deployWebsite);
 
   const invalidateCloudfront = new custom_resources.AwsCustomResource(props.scope, "InvalidateCloudfront", {
     onCreate: undefined,
@@ -103,11 +103,11 @@ export function create(props: UIDeploymentProps) {
   NagSuppressions.addResourceSuppressions(deploymentRole, [
     {
       id: "AwsSolutions-IAM5",
-      reason: "CDK adds non-modifiable default policies that fail this rule. Required for the bucket deployment"
-    }
-  ], true)
+      reason: "CDK adds non-modifiable default policies that fail this rule. Required for the bucket deployment",
+    },
+  ], true);
   addCheckovSkip(deploymentRole.node.tryFindChild("DefaultPolicy")!, {
-        id: "CKV_AWS_111",
-        reason: "CDK allows invalidation on all by default without options for limiting: https://github.com/aws/aws-cdk/blob/main/packages/aws-cdk-lib/aws-s3-deployment/lib/bucket-deployment.ts#L422"
-  })
+    id: "CKV_AWS_111",
+    reason: "CDK allows invalidation on all by default without options for limiting: https://github.com/aws/aws-cdk/blob/main/packages/aws-cdk-lib/aws-s3-deployment/lib/bucket-deployment.ts#L422",
+  });
 }

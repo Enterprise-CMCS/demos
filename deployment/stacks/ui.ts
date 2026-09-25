@@ -56,32 +56,32 @@ export class UiStack extends Stack {
     if (!commonProps.srrConfigured) {
       // STOP execution here if the cloudfront distribution has not yet been updated
       const tempDistribution = new aws_cloudfront.Distribution(commonProps.scope, "CloudFrontDistribution", {
-      priceClass: aws_cloudfront.PriceClass.PRICE_CLASS_ALL,
-      defaultBehavior: {
-        origin: new aws_cloudfront_origins.HttpOrigin("example.com")
-      }
-    });
+        priceClass: aws_cloudfront.PriceClass.PRICE_CLASS_ALL,
+        defaultBehavior: {
+          origin: new aws_cloudfront_origins.HttpOrigin("example.com"),
+        },
+      });
 
-    NagSuppressions.addResourceSuppressions(tempDistribution, [
-      {
-      id: "AwsSolutions-CFR1",
-      reason: "CMS mandates that no configurations are made until SRR has been applied"
-      },
-      {
-      id: "AwsSolutions-CFR2",
-      reason: "CMS mandates that no configurations are made until SRR has been applied"
-      },
-      {
-      id: "AwsSolutions-CFR3",
-      reason: "CMS mandates that no configurations are made until SRR has been applied"
-      },
-      {
-      id: "AwsSolutions-CFR4",
-      reason: "CMS mandates that no configurations are made until SRR has been applied"
-      },
-    ])
+      NagSuppressions.addResourceSuppressions(tempDistribution, [
+        {
+          id: "AwsSolutions-CFR1",
+          reason: "CMS mandates that no configurations are made until SRR has been applied",
+        },
+        {
+          id: "AwsSolutions-CFR2",
+          reason: "CMS mandates that no configurations are made until SRR has been applied",
+        },
+        {
+          id: "AwsSolutions-CFR3",
+          reason: "CMS mandates that no configurations are made until SRR has been applied",
+        },
+        {
+          id: "AwsSolutions-CFR4",
+          reason: "CMS mandates that no configurations are made until SRR has been applied",
+        },
+      ]);
 
-    return 
+      return;
     }
 
     if (!commonProps.isEphemeral) {
@@ -94,33 +94,33 @@ export class UiStack extends Stack {
         publicReadAccess: false,
         blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
         objectOwnership: aws_s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,
-        removalPolicy: commonProps.isDev || commonProps.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
-        autoDeleteObjects: commonProps.isDev || commonProps.isEphemeral,
+        removalPolicy: commonProps.isDev ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
+        autoDeleteObjects: commonProps.isDev,
         enforceSSL: true,
         bucketName: `demos-${commonProps.stage}-ui-server-access`,
       });
 
       NagSuppressions.addResourceSuppressions(serverAccessLogBucket, [{
         id: "AwsSolutions-S1",
-        reason: "Access log buckets should not themselves have access logging"
-      }])
+        reason: "Access log buckets should not themselves have access logging",
+      }]);
 
       const accessLogBucketCfn = serverAccessLogBucket.node.defaultChild as aws_s3.CfnBucket;
       accessLogBucketCfn.addMetadata( "checkov", {
-          skip: [{
-            id: "CKV_AWS_18",
-            reason: "the access log bucket itself does not need access logs"
-          },{
-            id: "CKV_AWS_21",
-            reason: "versioning on the access log bucket itself is intentionally disabled"
-          }]
-        })
+        skip: [{
+          id: "CKV_AWS_18",
+          reason: "the access log bucket itself does not need access logs",
+        }, {
+          id: "CKV_AWS_21",
+          reason: "versioning on the access log bucket itself is intentionally disabled",
+        }],
+      });
     }
 
     const cmsCloudLogBucket = aws_s3.Bucket.fromBucketName(
       commonProps.scope,
       "cmsCloudLogsBucket",
-      `cms-cloud-${Aws.ACCOUNT_ID}-us-east-1`
+      `cms-cloud-${Aws.ACCOUNT_ID}-us-east-1`,
     );
 
     // S3 Bucket for UI hosting
@@ -133,20 +133,18 @@ export class UiStack extends Stack {
     });
 
     new BucketAccessLogs(commonProps.scope, "uiBucketAccessLogs", {
-      bucket: uiBucket, 
-      stage: commonProps.stage
-    })
+      bucket: uiBucket,
+      stage: commonProps.stage,
+    });
 
     addCheckovSkip(uiBucket, {
       id: "CKV_AWS_21",
-      reason: "versioning is unnecessary for the UI bucket since these files are only static UI files"
-    })
+      reason: "versioning is unnecessary for the UI bucket since these files are only static UI files",
+    });
 
     //
     // WAF
     //
-
-    
 
     const customResponseBodies = {
       [accessDeniedBodyName]: {
@@ -162,12 +160,12 @@ export class UiStack extends Stack {
       stage: commonProps.stage,
     });
 
-    const cloudfrontRules = createCloudfrontRules(commonProps)   
-    const apiRules = createRegionalRules(commonProps) 
-    
+    const cloudfrontRules = createCloudfrontRules(commonProps);
+    const apiRules = createRegionalRules(commonProps);
+
     const webAcl = new aws_wafv2.CfnWebACL(commonProps.scope, "cloudfrontWafAcl", {
       scope: "CLOUDFRONT",
-      defaultAction: {allow: {}},
+      defaultAction: { allow: {} },
       visibilityConfig: {
         cloudWatchMetricsEnabled: true,
         metricName: "WebACL",
@@ -184,20 +182,20 @@ export class UiStack extends Stack {
       redactedFields: [
         {
           singleHeader: {
-            "Name": "Authorization"
-          }
+            "Name": "Authorization",
+          },
         },
         {
           singleHeader: {
             "Name": "cookie",
           },
         },
-      ]
+      ],
     });
 
     const apiAcl = new aws_wafv2.CfnWebACL(commonProps.scope, "apiWaf", {
       scope: "REGIONAL",
-      defaultAction: {allow: {}},
+      defaultAction: { allow: {} },
       name: `demos-${commonProps.stage}-api`,
       visibilityConfig: {
         cloudWatchMetricsEnabled: true,
@@ -222,15 +220,15 @@ export class UiStack extends Stack {
       redactedFields: [
         {
           singleHeader: {
-            "Name": "Authorization"
-          }
+            "Name": "Authorization",
+          },
         },
         {
           singleHeader: {
             "Name": "cookie",
           },
         },
-      ]
+      ],
     });
 
     const cognitoDomain = Fn.importValue(`${commonProps.stage}CognitoDomain`);
@@ -291,16 +289,16 @@ export class UiStack extends Stack {
             override: true,
           },
         },
-      }
+      },
     );
 
     const distribution = new aws_cloudfront.Distribution(commonProps.scope, "CloudFrontDistribution", {
       certificate: commonProps.cloudfrontCertificateArn
         ? aws_certificatemanager.Certificate.fromCertificateArn(
-            commonProps.scope,
-            "certArn",
-            commonProps.cloudfrontCertificateArn
-          )
+          commonProps.scope,
+          "certArn",
+          commonProps.cloudfrontCertificateArn,
+        )
         : undefined,
       domainNames: [commonProps.cloudfrontHost],
       geoRestriction: aws_cloudfront.GeoRestriction.allowlist("US"),
@@ -371,7 +369,7 @@ export class UiStack extends Stack {
             override: true,
           },
         },
-      }
+      },
     );
 
     distribution.addBehavior("/api/*", apiOrigin, {
@@ -402,7 +400,7 @@ export class UiStack extends Stack {
 
   private setupCloudWatchAlarms(
     props: DeploymentConfigProperties,
-    resources: alarms.CloudWatchAlarmRegistry
+    resources: alarms.CloudWatchAlarmRegistry,
   ) {
     if (props.isEphemeral && !props.enableAlarms) {
       return;

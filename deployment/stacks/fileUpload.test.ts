@@ -25,7 +25,7 @@ const commongAppArgs = {
 function expectLambdaErrorsAlarm(
   template: Template,
   alarmName: string,
-  functionRefPattern: string
+  functionRefPattern: string,
 ) {
   template.hasResourceProperties("AWS::CloudWatch::Alarm", {
     AlarmName: alarmName,
@@ -53,7 +53,7 @@ function expectLambdaDurationAlarm(
   template: Template,
   alarmName: string,
   functionRefPattern: string,
-  thresholdMilliseconds: number
+  thresholdMilliseconds: number,
 ) {
   template.hasResourceProperties("AWS::CloudWatch::Alarm", {
     AlarmName: alarmName,
@@ -80,7 +80,7 @@ function expectLambdaDurationAlarm(
 function expectLambdaThrottlesAlarm(
   template: Template,
   alarmName: string,
-  functionRefPattern: string
+  functionRefPattern: string,
 ) {
   template.hasResourceProperties("AWS::CloudWatch::Alarm", {
     AlarmName: alarmName,
@@ -107,7 +107,7 @@ function expectLambdaThrottlesAlarm(
 function expectSqsOldestMessageAgeAlarm(
   template: Template,
   alarmName: string,
-  thresholdSeconds: number
+  thresholdSeconds: number,
 ) {
   template.hasResourceProperties("AWS::CloudWatch::Alarm", {
     AlarmName: alarmName,
@@ -182,7 +182,7 @@ describe("File Upload Stack", () => {
       ]),
     });
 
-    template.resourceCountIs("AWS::S3::Bucket", 7)
+    template.resourceCountIs("AWS::S3::Bucket", 7);
     template.resourceCountIs("AWS::CloudWatch::Alarm", 19);
 
     // Proves the DataConnect export construct is actually wired into this stack, rather
@@ -196,107 +196,107 @@ describe("File Upload Stack", () => {
     expectLambdaErrorsAlarm(
       template,
       "demos-unittest-file-process-lambda-errors",
-      "fileProcess"
+      "fileProcess",
     );
     expectLambdaErrorsAlarm(
       template,
       "demos-unittest-delete-infected-file-lambda-errors",
-      "deleteInfectedFile"
+      "deleteInfectedFile",
     );
     expectLambdaErrorsAlarm(
       template,
       "demos-unittest-uipath-lambda-errors",
-      "uipath"
+      "uipath",
     );
     expectLambdaErrorsAlarm(
       template,
       "demos-unittest-budget-neutrality-lambda-errors",
-      "budgetNeutrality"
+      "budgetNeutrality",
     );
     expectLambdaErrorsAlarm(
       template,
       "demos-unittest-data-connect-export-lambda-errors",
-      "dataConnectExport"
+      "dataConnectExport",
     );
     expectLambdaDurationAlarm(
       template,
       "demos-unittest-file-process-lambda-duration-near-timeout",
       "fileProcess",
-      24000
+      24000,
     );
     expectLambdaDurationAlarm(
       template,
       "demos-unittest-delete-infected-file-lambda-duration-near-timeout",
       "deleteInfectedFile",
-      24000
+      24000,
     );
     expectLambdaDurationAlarm(
       template,
       "demos-unittest-budget-neutrality-lambda-duration-near-timeout",
       "budgetNeutrality",
-      48000
+      48000,
     );
     expectLambdaDurationAlarm(
       template,
       "demos-unittest-data-connect-export-lambda-duration-near-timeout",
       "dataConnectExport",
-      720000
+      720000,
     );
     expectLambdaThrottlesAlarm(
       template,
       "demos-unittest-file-process-lambda-throttles",
-      "fileProcess"
+      "fileProcess",
     );
     expectLambdaThrottlesAlarm(
       template,
       "demos-unittest-delete-infected-file-lambda-throttles",
-      "deleteInfectedFile"
+      "deleteInfectedFile",
     );
     expectLambdaThrottlesAlarm(
       template,
       "demos-unittest-uipath-lambda-throttles",
-      "uipath"
+      "uipath",
     );
     expectLambdaThrottlesAlarm(
       template,
       "demos-unittest-budget-neutrality-lambda-throttles",
-      "budgetNeutrality"
+      "budgetNeutrality",
     );
     expectLambdaThrottlesAlarm(
       template,
       "demos-unittest-data-connect-export-lambda-throttles",
-      "dataConnectExport"
+      "dataConnectExport",
     );
     template.resourcePropertiesCountIs(
       "AWS::CloudWatch::Alarm",
       {
         AlarmName: "demos-unittest-uipath-lambda-duration-near-timeout",
       },
-      0
+      0,
     );
     expectSqsOldestMessageAgeAlarm(
       template,
       "demos-unittest-file-upload-queue-oldest-message-age-high",
-      900
+      900,
     );
     expectSqsOldestMessageAgeAlarm(
       template,
       "demos-unittest-delete-infected-file-queue-oldest-message-age-high",
-      3600
+      3600,
     );
     expectSqsOldestMessageAgeAlarm(
       template,
       "demos-unittest-uipath-queue-oldest-message-age-high",
-      3600
+      3600,
     );
     expectSqsOldestMessageAgeAlarm(
       template,
       "demos-unittest-budget-neutrality-queue-oldest-message-age-high",
-      900
+      900,
     );
     expectSqsVisibleMessagesAlarm(
       template,
-      "demos-unittest-file-workflow-dlq-visible-messages"
+      "demos-unittest-file-workflow-dlq-visible-messages",
     );
 
   });

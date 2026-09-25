@@ -61,13 +61,13 @@ export class UiPathProcessor extends Construct {
     const clientSecret = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
       "UiPathClientSecret",
-      `demos-${props.hostEnvironment}/uipath`
+      `demos-${props.hostEnvironment}/uipath`,
     );
 
     const dbSecret = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
       "rdsDatabaseSecret",
-      `demos-${props.hostEnvironment}-rds-demos_upload`
+      `demos-${props.hostEnvironment}-rds-demos_upload`,
     );
 
     // Stable pathing relative to this file (not process.cwd)
@@ -120,12 +120,12 @@ export class UiPathProcessor extends Construct {
         id: "AwsSolutions-IAM5",
         reason: "Permissions are scoped to specific KMS key and UiPath documents bucket; S3 object ARNs require wildcard suffix.",
       },
-    ], true)
+    ], true);
   }
 
   private setupCloudWatchAlarms(
     props: DeploymentConfigProperties,
-    resources: alarms.CloudWatchAlarmRegistry
+    resources: alarms.CloudWatchAlarmRegistry,
   ) {
     if (props.isEphemeral && !props.enableAlarms) {
       return;
