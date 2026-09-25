@@ -106,12 +106,13 @@ export class DatabaseStack extends Stack {
     })
 
     const instanceSizeByStage: Partial<Record<string, aws_ec2.InstanceSize>> = {
+      dev: aws_ec2.InstanceSize.SMALL,
       test: aws_ec2.InstanceSize.SMALL,
       impl: aws_ec2.InstanceSize.LARGE,
       prod: aws_ec2.InstanceSize.LARGE,
     }
 
-    const instanceSize = instanceSizeByStage[props.stage] ?? aws_ec2.InstanceSize.MICRO
+    const instanceSize = instanceSizeByStage[props.stage] ?? aws_ec2.InstanceSize.MICRO // fallback for ephemeral envs
 
     const dbInstance = new aws_rds.DatabaseInstance(
       commonProps.scope,
