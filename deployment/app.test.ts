@@ -3,7 +3,6 @@ import { main } from "./app";
 
 import { getSecret } from "./util/getSecret";
 import { getParameter } from "./util/getParameter";
-// import { CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
 
 vi.mock(import("@aws-sdk/client-cognito-identity-provider"), async (importOriginal) => {
   const actual = await importOriginal();

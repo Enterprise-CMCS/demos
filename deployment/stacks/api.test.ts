@@ -167,13 +167,6 @@ describe("Api Stack", () => {
       privateSubnetIds: mockPrivateSubnets,
     });
 
-    // const mockSecurityGroupId = "sg-1234abcd";
-    // const mockSecurityGroup = aws_ec2.SecurityGroup.fromSecurityGroupId(
-    //   mockCoreStack,
-    //   "mockSecurityGroup",
-    //   mockSecurityGroupId
-    // );
-
     const apiStack = new ApiStack(app, "mockApi", {
       ...mockCommonProps,
       env: {
@@ -184,8 +177,7 @@ describe("Api Stack", () => {
     });
 
     const template = Template.fromStack(apiStack);
-    // const fs = require("fs");
-    // fs.writeFileSync("template.json", JSON.stringify(template.toJSON(), null, 2));
+
     template.resourceCountIs("AWS::EC2::SecurityGroup", 4);
     template.resourceCountIs("AWS::Lambda::Function", 4);
     template.resourceCountIs("AWS::ApiGateway::RestApi", 1);

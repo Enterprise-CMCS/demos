@@ -116,8 +116,6 @@ describe("UI Stack", () => {
     });
 
     const template = Template.fromStack(uiStack);
-    // const fs = require("fs");
-    // fs.writeFileSync("template-ui.json", JSON.stringify(template.toJSON(), null, 2));
 
     template.resourceCountIs("AWS::CloudFront::Distribution", 1);
     // The DeployTimeSubstitutedFile has the type Custom::CDKBucketDeployment in
