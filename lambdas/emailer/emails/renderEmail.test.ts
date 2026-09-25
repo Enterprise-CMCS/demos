@@ -120,7 +120,8 @@ const templateCases = [
     subject: "CMS DEMOS Deliverable: New Comment",
     expectedText: [
       "A new comment has been added to a Close Out Report deliverable",
-      "Action: Deliverable Comment",
+      "Demonstration: Medicaid Demonstration",
+      "Deliverable: Quarterly Budget Report",
       "View this deliverable and the full comment thread in the DEMOS system:",
     ],
   },
@@ -159,6 +160,12 @@ describe("renderEmail", () => {
       expect(cleanHtml(payload.html)).toContain("Maryland");
       for (const text of expectedText) {
         expect(payload.text).toContain(text);
+      }
+      if (emailType === "Deliverable Comment") {
+        for (const label of ["Deliverable type:", "Action:", "Current due date:"]) {
+          expect(payload.text).not.toContain(label);
+          expect(payload.html).not.toContain(label);
+        }
       }
     }
   });

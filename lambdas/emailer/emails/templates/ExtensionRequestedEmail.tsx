@@ -1,7 +1,7 @@
 import { Text } from "@react-email/components";
 
-import { DeliverableEmailLayout } from "../components/DeliverableEmailLayout";
-import { DeliverableLink } from "../components/DeliverableLink";
+import { EmailLayout as DeliverableEmailLayout } from "../components/deliverable/EmailLayout";
+import { DeliverableLink } from "../components/deliverable/DeliverableLink";
 import { detailStyle, textStyle } from "../components/styles";
 import {
   formatDate,

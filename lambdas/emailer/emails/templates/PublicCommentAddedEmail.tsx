@@ -1,8 +1,5 @@
-import { Link, Text } from "@react-email/components";
-
-import { DeliverableEmailLayout } from "../components/DeliverableEmailLayout";
-import { detailStyle, textStyle } from "../components/styles";
-import { formatDate, getDemosAppUrl, getRequiredObject, getRequiredString } from "../helpers";
+import { PublicComment } from "../components/deliverable/PublicComment";
+import { getDemosAppUrl, getRequiredObject, getRequiredString } from "../helpers";
 import type { EmailTemplateResult } from "../types";
 
 const emailType = "Deliverable Comment";
@@ -16,9 +13,6 @@ export function renderPublicCommentAddedEmail(rawPayload: unknown): EmailTemplat
     "deliverable.deliverableTypeId",
     emailType
   );
-  const currentDueDate = formatDate(
-    getRequiredString(deliverable.dueDate, "deliverable.dueDate", emailType)
-  );
   const link = `${getDemosAppUrl()}/deliverables/${getRequiredString(
     deliverable.id,
     "deliverable.id",
@@ -28,19 +22,12 @@ export function renderPublicCommentAddedEmail(rawPayload: unknown): EmailTemplat
   return {
     subject: "CMS DEMOS Deliverable: New Comment",
     content: (
-      <DeliverableEmailLayout
-        action={emailType}
+      <PublicComment
         demonstrationTitle={getRequiredString(demonstration.name, "demonstration.name", emailType)}
         deliverableName={getRequiredString(deliverable.name, "deliverable.name", emailType)}
         deliverableType={deliverableType}
-        message={
-          <Text style={textStyle}>
-            A new comment has been added to a {deliverableType} deliverable. View this deliverable
-            and the full comment thread in the DEMOS system: <Link href={link}>{link}</Link>.
-          </Text>
-        }
+        link={link}
         state={getRequiredString(demonstration.stateName, "demonstration.stateName", emailType)}
-        dateDetails={<Text style={detailStyle}>Current due date: {currentDueDate}</Text>}
       />
     ),
   };
