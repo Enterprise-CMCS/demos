@@ -19,6 +19,7 @@ export const CUSTOM_INTERNAL_ERROR_CODES = [
   "CLAIM_VALIDATION_ROLE_ERROR",
   "CLAIM_VALIDATION_AUTHTIME_ERROR",
   "TAG_DOES_NOT_EXIST_ERROR",
+  "TAG_CANNOT_BE_DELETED_ERROR",
 ] as const;
 
 export const CUSTOM_PUBLIC_ERROR_CODES = [
@@ -94,6 +95,10 @@ export const CUSTOM_ERROR_CODES: Record<
     logLevel: "error",
   },
   TAG_DOES_NOT_EXIST_ERROR: {
+    publicErrorCode: "TAG_ERROR",
+    logLevel: "error",
+  },
+  TAG_CANNOT_BE_DELETED_ERROR: {
     publicErrorCode: "TAG_ERROR",
     logLevel: "error",
   },

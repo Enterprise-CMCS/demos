@@ -1,7 +1,7 @@
 import { prisma } from "../../../prismaClient";
 import type { DemonstrationTypeUsageSummary, TagName, TagStatus } from "../../../types";
 
-export type QueryResult = {
+type QueryResult = {
   demonstration_type: TagName;
   status: TagStatus;
   count_tagged_apps_demonstrations: number;
