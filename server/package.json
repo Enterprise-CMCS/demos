@@ -1,5 +1,6 @@
 {
   "name": "demos-server",
+  "version": "1.1.0",
   "type": "module",
   "overrides": {
     "@aws-sdk/client-s3": {
