@@ -20,8 +20,8 @@ export function PublicComment({
     <EmailLayout>
       <Text style={textStyle}>Hello,</Text>
       <Text style={textStyle}>
-        A new comment has been added to a {deliverableType} deliverable. View this deliverable
-        and the full comment thread in the DEMOS system: <Link href={link}>{link}</Link>.
+        A new comment has been added to a {deliverableType} deliverable. View this deliverable and
+        the full comment thread in the DEMOS system: <Link href={link}>{link}</Link>.
       </Text>
       <Text style={textStyle}>Thank you,</Text>
       <Text style={textStyle}>DEMOS Notifications</Text>

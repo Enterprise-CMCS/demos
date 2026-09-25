@@ -3,43 +3,28 @@ import { Text } from "@react-email/components";
 import { EmailLayout as DeliverableEmailLayout } from "../components/deliverable/EmailLayout";
 import { DeliverableLink } from "../components/deliverable/DeliverableLink";
 import { detailStyle, textStyle } from "../components/styles";
-import {
-  formatDate,
-  getDemosAppUrl,
-  getRequiredObject,
-  getRequiredString,
-} from "../helpers";
+import { formatDate, getDemosAppUrl, getRequiredObject, getRequiredString } from "../helpers";
 import type { EmailTemplateResult } from "../types";
 
 const emailType = "Deliverable Approved";
 const action = "Approved";
 
-export function renderDeliverableApprovedEmail(
-  rawPayload: unknown,
-): EmailTemplateResult {
+export function renderDeliverableApprovedEmail(rawPayload: unknown): EmailTemplateResult {
   const payload = getRequiredObject(rawPayload, "payload", emailType);
-  const demonstration = getRequiredObject(
-    payload.demonstration,
-    "demonstration",
-    emailType,
-  );
-  const deliverable = getRequiredObject(
-    payload.deliverable,
-    "deliverable",
-    emailType,
-  );
+  const demonstration = getRequiredObject(payload.demonstration, "demonstration", emailType);
+  const deliverable = getRequiredObject(payload.deliverable, "deliverable", emailType);
   const deliverableType = getRequiredString(
     deliverable.deliverableTypeId,
     "deliverable.deliverableTypeId",
-    emailType,
+    emailType
   );
   const currentDueDate = formatDate(
-    getRequiredString(deliverable.dueDate, "deliverable.dueDate", emailType),
+    getRequiredString(deliverable.dueDate, "deliverable.dueDate", emailType)
   );
   const link = `${getDemosAppUrl()}/deliverables/${getRequiredString(
     deliverable.id,
     "deliverable.id",
-    emailType,
+    emailType
   )}`;
 
   return {
@@ -47,16 +32,8 @@ export function renderDeliverableApprovedEmail(
     content: (
       <DeliverableEmailLayout
         action={action}
-        demonstrationTitle={getRequiredString(
-          demonstration.name,
-          "demonstration.name",
-          emailType,
-        )}
-        deliverableName={getRequiredString(
-          deliverable.name,
-          "deliverable.name",
-          emailType,
-        )}
+        demonstrationTitle={getRequiredString(demonstration.name, "demonstration.name", emailType)}
+        deliverableName={getRequiredString(deliverable.name, "deliverable.name", emailType)}
         deliverableType={deliverableType}
         message={
           <Text style={textStyle}>
@@ -64,14 +41,8 @@ export function renderDeliverableApprovedEmail(
             <DeliverableLink href={link} includeNextSteps={false} />
           </Text>
         }
-        state={getRequiredString(
-          demonstration.stateName,
-          "demonstration.stateName",
-          emailType,
-        )}
-        dateDetails={
-          <Text style={detailStyle}>Current due date: {currentDueDate}</Text>
-        }
+        state={getRequiredString(demonstration.stateName, "demonstration.stateName", emailType)}
+        dateDetails={<Text style={detailStyle}>Current due date: {currentDueDate}</Text>}
       />
     ),
   };
