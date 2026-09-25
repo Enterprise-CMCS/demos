@@ -2,7 +2,10 @@ pipeline {
   agent {
     kubernetes {
       yaml kubeBlock(containerNames:['node', 'aws-cli', 'snyk', 'checkov'], opts: [
-        NODE_IMAGE: 'artifactory.cloud.cms.gov/docker/node:24-alpine'
+        NODE_CPU_REQUEST: '2000m',
+        NODE_CPU_LIMIT: '4000m'
+        NODE_MEMORY_REQUEST: '2Gi',
+        NODE_MEMORY_LIMIT: '4Gi'
     ])
     }
   }
