@@ -33,6 +33,7 @@ vi.mock("../../errors/errorCodes", () => ({
 import { selectTags, updateTags } from ".";
 import { throwApiNotReleasedError } from "../../flags/throwApiNotReleasedError";
 import { throwCustomGQLError } from "../../errors/errorCodes";
+import { SemVer } from "semver";
 
 describe("approveTag", () => {
   const testTagName = "My approved tag!";
@@ -68,7 +69,9 @@ describe("approveTag", () => {
   });
 
   it("should throw if the version number is lower than the release number", async () => {
-    await expect(approveTag(testTagName, "1.1.0")).rejects.toThrow(testApiNotReleasedError);
+    await expect(approveTag(testTagName, new SemVer("1.1.0"))).rejects.toThrow(
+      testApiNotReleasedError
+    );
 
     expect(throwApiNotReleasedError).toHaveBeenCalledExactlyOnceWith("approveTag");
     expect(selectTags).not.toHaveBeenCalled();
@@ -77,7 +80,7 @@ describe("approveTag", () => {
   });
 
   it("should call selectTags and updateTags with the right arguments", async () => {
-    const result = await approveTag(testTagName, "1.2.0");
+    const result = await approveTag(testTagName, new SemVer("1.2.0"));
 
     expect(result).toStrictEqual({ tagName: testTagName, approvalStatus: "Approved" });
     expect(throwApiNotReleasedError).not.toHaveBeenCalled();
@@ -105,7 +108,7 @@ describe("approveTag", () => {
     }));
     vi.mocked(selectTags).mockResolvedValue(mockApprovedTagResult as PrismaTag[]);
 
-    const result = await approveTag(testTagName, "1.2.0");
+    const result = await approveTag(testTagName, new SemVer("1.2.0"));
 
     expect(result).toStrictEqual({ tagName: testTagName, approvalStatus: "Approved" });
     expect(throwApiNotReleasedError).not.toHaveBeenCalled();
@@ -121,7 +124,7 @@ describe("approveTag", () => {
     const mockEmptyResult: Partial<PrismaTag>[] = [];
     vi.mocked(selectTags).mockResolvedValue(mockEmptyResult as PrismaTag[]);
 
-    await expect(approveTag(testTagName, "1.2.0")).rejects.toThrow(testCustomGQLError);
+    await expect(approveTag(testTagName, new SemVer("1.2.0"))).rejects.toThrow(testCustomGQLError);
 
     expect(throwApiNotReleasedError).not.toHaveBeenCalled();
     expect(selectTags).toHaveBeenCalledExactlyOnceWith({
