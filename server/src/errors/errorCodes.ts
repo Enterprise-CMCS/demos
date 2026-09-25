@@ -20,6 +20,7 @@ export const CUSTOM_INTERNAL_ERROR_CODES = [
   "CLAIM_VALIDATION_AUTHTIME_ERROR",
   "TAG_DOES_NOT_EXIST_ERROR",
   "TAG_CANNOT_BE_DELETED_ERROR",
+  "NOT_RELEASED_ERROR",
 ] as const;
 
 export const CUSTOM_PUBLIC_ERROR_CODES = [
@@ -28,6 +29,7 @@ export const CUSTOM_PUBLIC_ERROR_CODES = [
   "MIGRATION_ERROR",
   "AUTHENTICATION_ERROR",
   "TAG_ERROR",
+  "GENERAL_ERROR",
 ] as const;
 
 export const ERROR_LOG_LEVELS = ["debug", "info", "warn", "error"] as const;
@@ -102,6 +104,10 @@ export const CUSTOM_ERROR_CODES: Record<
     publicErrorCode: "TAG_ERROR",
     logLevel: "error",
   },
+  NOT_RELEASED_ERROR: {
+    publicErrorCode: "GENERAL_ERROR",
+    logLevel: "warn",
+  },
 } as const;
 
 const CUSTOM_PUBLIC_ERROR_MESSAGES: Record<CustomPublicErrorCode, string | undefined> = {
@@ -110,6 +116,7 @@ const CUSTOM_PUBLIC_ERROR_MESSAGES: Record<CustomPublicErrorCode, string | undef
   MIGRATION_ERROR: "An error occurred while trying to authenticate a migrated user.",
   AUTHENTICATION_ERROR: "An error occurred during user authentication.",
   TAG_ERROR: undefined,
+  GENERAL_ERROR: undefined,
 };
 
 export function getPublicErrorCodeFromInternal(
