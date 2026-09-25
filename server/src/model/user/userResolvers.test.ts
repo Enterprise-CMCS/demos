@@ -65,7 +65,7 @@ describe("userResolvers", () => {
   describe("Query.users", () => {
     it("delegates to `userData/queries.selectManyUsers`", async () => {
       await userResolvers.Query.users();
-      expect(selectManyUsers).toHaveBeenCalledExactlyOnceWith({});
+      expect(selectManyUsers).toHaveBeenCalledExactlyOnceWith({ hasLoggedIn: true });
     });
   });
 
