@@ -6,7 +6,6 @@ import {
   editDeliverable,
   selectDeliverableOrThrow,
   validateStartDeliverableReviewInput,
-  validateUserPersonTypeAllowed,
 } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 
@@ -14,10 +13,6 @@ export async function startDeliverableReview(
   deliverableId: string,
   context: GraphQLContext
 ): Promise<PrismaDeliverable> {
-  validateUserPersonTypeAllowed(context, "startDeliverableReview", [
-    "demos-admin",
-    "demos-cms-user",
-  ]);
   return await prisma().$transaction(async (tx) => {
     const unstartedDeliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
     validateStartDeliverableReviewInput(unstartedDeliverable);
