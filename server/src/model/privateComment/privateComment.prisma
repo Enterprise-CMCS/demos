@@ -8,9 +8,9 @@ model PrivateComment {
   updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz
   isMigratedFromPmda Boolean  @default(false) @map("is_migrated_from_pmda")
 
-  deliverable      Deliverable            @relation(fields: [deliverableId], references: [id])
-  author           User                   @relation(fields: [authorUserId, authorPersonTypeId], references: [id, personTypeId])
-  authorPersonType CmsUserPersonTypeLimit @relation(fields: [authorPersonTypeId], references: [id])
+  deliverable      Deliverable                     @relation(fields: [deliverableId], references: [id])
+  author           User                            @relation(fields: [authorUserId, authorPersonTypeId], references: [id, personTypeId])
+  authorPersonType DeliverableOwnerPersonTypeLimit @relation(fields: [authorPersonTypeId], references: [id])
 
   @@id([id])
   @@map("private_comment")

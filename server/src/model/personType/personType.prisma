@@ -5,6 +5,7 @@ model PersonType {
   rolePersonTypes                                   RolePersonType[]
   userPersonTypeLimit                               UserPersonTypeLimit[]
   cmsUserPersonTypeLimit                            CmsUserPersonTypeLimit[]
+  DeliverableOwnerPersonTypeLimit                   DeliverableOwnerPersonTypeLimit[]
   primaryDemonstrationRoleAssignmentPersonTypeLimit PrimaryDemonstrationRoleAssignmentPersonTypeLimit[]
 
   @@id([id])
