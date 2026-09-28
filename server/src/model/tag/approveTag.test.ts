@@ -1,9 +1,9 @@
 // Vitest and other helpers
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { EDITABLE_TAG_TYPES } from "./approveTag";
 
 // Types
 import type { Tag as PrismaTag } from "@prisma/client";
+import type { TagType } from "../../types";
 
 // Functions under test
 import { approveTag } from "./approveTag";
@@ -36,6 +36,7 @@ import { throwCustomGQLError } from "../../errors/errorCodes";
 import { SemVer } from "semver";
 
 describe("approveTag", () => {
+  const approvableTagTypes: TagType[] = ["Demonstration Type", "Application"];
   const testTagName = "My approved tag!";
   const mockInitialTagResult: Partial<PrismaTag>[] = [
     {
@@ -86,14 +87,14 @@ describe("approveTag", () => {
     expect(throwApiNotReleasedError).not.toHaveBeenCalled();
     expect(selectTags).toHaveBeenCalledExactlyOnceWith({
       tagNameId: testTagName,
-      tagTypeId: { in: EDITABLE_TAG_TYPES },
+      tagTypeId: { in: approvableTagTypes },
     });
     expect(throwCustomGQLError).not.toHaveBeenCalled();
     expect(updateTags).toHaveBeenCalledExactlyOnceWith(
       {
         tagNameId: testTagName,
         statusId: "Unapproved",
-        tagTypeId: { in: EDITABLE_TAG_TYPES },
+        tagTypeId: { in: approvableTagTypes },
       },
       {
         statusId: "Approved",
@@ -114,7 +115,7 @@ describe("approveTag", () => {
     expect(throwApiNotReleasedError).not.toHaveBeenCalled();
     expect(selectTags).toHaveBeenCalledExactlyOnceWith({
       tagNameId: testTagName,
-      tagTypeId: { in: EDITABLE_TAG_TYPES },
+      tagTypeId: { in: approvableTagTypes },
     });
     expect(throwCustomGQLError).not.toHaveBeenCalled();
     expect(updateTags).not.toHaveBeenCalled();
@@ -129,7 +130,7 @@ describe("approveTag", () => {
     expect(throwApiNotReleasedError).not.toHaveBeenCalled();
     expect(selectTags).toHaveBeenCalledExactlyOnceWith({
       tagNameId: testTagName,
-      tagTypeId: { in: EDITABLE_TAG_TYPES },
+      tagTypeId: { in: approvableTagTypes },
     });
     expect(throwCustomGQLError).toHaveBeenCalledExactlyOnceWith(
       `Attempted to approve tag ${testTagName} but this tag does not exist.`,

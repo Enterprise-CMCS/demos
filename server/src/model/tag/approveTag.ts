@@ -3,7 +3,6 @@ import { selectTags, updateTags } from ".";
 import { throwCustomGQLError } from "../../errors/errorCodes";
 import { getFeatureFlags, throwApiNotReleasedError } from "../../flags";
 import type { Tag, TagName, TagStatus, TagType } from "../../types";
-export const EDITABLE_TAG_TYPES: TagType[] = ["Demonstration Type", "Application"];
 
 export async function approveTag(tagName: TagName, currentVersion: SemVer): Promise<Tag> {
   // Throw if not currently released
@@ -11,11 +10,13 @@ export async function approveTag(tagName: TagName, currentVersion: SemVer): Prom
     throwApiNotReleasedError("approveTag");
   }
 
+  // Only demo type / application tags are approvable, consistent with previous work
+  const approvableTagTypes: TagType[] = ["Demonstration Type", "Application"];
+
   // Find tags generally by tag name
-  // Limited to only demo types and application for now; consistent with previous work
   const existingTags = await selectTags({
     tagNameId: tagName,
-    tagTypeId: { in: EDITABLE_TAG_TYPES },
+    tagTypeId: { in: approvableTagTypes },
   });
 
   // Throw an error if a tag doesn't exist at all
@@ -42,7 +43,7 @@ export async function approveTag(tagName: TagName, currentVersion: SemVer): Prom
     {
       tagNameId: tagName,
       statusId: "Unapproved" satisfies TagStatus,
-      tagTypeId: { in: EDITABLE_TAG_TYPES },
+      tagTypeId: { in: approvableTagTypes },
     },
     { statusId: "Approved" satisfies TagStatus }
   );
