@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Types
-import type { QueryResult } from "./getDemonstrationTypeSummaryCounts";
+import type { DemonstrationTypeSummaryQueryResult } from "./getDemonstrationTypeSummaryCounts";
 
 // Functions under test
 import { getDemonstrationTypeSummaryCounts } from "./getDemonstrationTypeSummaryCounts";
@@ -19,13 +19,14 @@ describe("getDemonstrationTypeSummaryCounts", () => {
     $queryRaw: vi.fn(),
   };
 
-  const mockResults: QueryResult[] = [
+  const mockResults: DemonstrationTypeSummaryQueryResult[] = [
     {
       demonstration_type: "Type 1",
       status: "Approved",
       count_tagged_apps_demonstrations: 13,
       count_tagged_apps_amendments: 22,
       count_tagged_apps_extensions: 19,
+      count_tagged_references: 12,
       count_assigned_demonstrations: 4,
       count_assigned_deliverables: 45,
     },
@@ -35,6 +36,7 @@ describe("getDemonstrationTypeSummaryCounts", () => {
       count_tagged_apps_demonstrations: 5,
       count_tagged_apps_amendments: 8,
       count_tagged_apps_extensions: 13,
+      count_tagged_references: 4,
       count_assigned_demonstrations: 5,
       count_assigned_deliverables: 15,
     },
@@ -54,6 +56,7 @@ describe("getDemonstrationTypeSummaryCounts", () => {
         demonstrationTypeName: "Type 1",
         approvalStatus: "Approved",
         countOfTaggedApplications: { demonstrations: 13, amendments: 22, renewals: 19 },
+        countOfTaggedReferences: 12,
         countOfAssignedDemonstrations: 4,
         countOfAssignedDeliverables: 45,
       },
@@ -61,6 +64,7 @@ describe("getDemonstrationTypeSummaryCounts", () => {
         demonstrationTypeName: "Type 2",
         approvalStatus: "Unapproved",
         countOfTaggedApplications: { demonstrations: 5, amendments: 8, renewals: 13 },
+        countOfTaggedReferences: 4,
         countOfAssignedDemonstrations: 5,
         countOfAssignedDeliverables: 15,
       },

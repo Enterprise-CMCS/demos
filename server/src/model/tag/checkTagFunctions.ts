@@ -9,6 +9,7 @@ export function checkDemonstrationTypeTagCanBeDeleted(
       (total, count) => total + count,
       0
     ) +
+    usageSummary.countOfTaggedReferences +
     usageSummary.countOfAssignedDemonstrations +
     usageSummary.countOfAssignedDeliverables;
   if (usageCount > 0) {

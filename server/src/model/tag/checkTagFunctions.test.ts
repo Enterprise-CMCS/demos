@@ -30,6 +30,7 @@ describe("checkTagFunctions", () => {
       amendments: 0,
       renewals: 4,
     },
+    countOfTaggedReferences: 3,
     countOfAssignedDemonstrations: 3,
     countOfAssignedDeliverables: 13,
   };
@@ -42,6 +43,7 @@ describe("checkTagFunctions", () => {
       amendments: 0,
       renewals: 0,
     },
+    countOfTaggedReferences: 0,
     countOfAssignedDemonstrations: 0,
     countOfAssignedDeliverables: 0,
   };
@@ -56,7 +58,7 @@ describe("checkTagFunctions", () => {
       testCustomGQLError
     );
     expect(throwCustomGQLError).toHaveBeenCalledExactlyOnceWith(
-      "Cannot delete In Use Demonstration Type; in use in 23 locations.",
+      "Cannot delete In Use Demonstration Type; in use in 26 locations.",
       "TAG_CANNOT_BE_DELETED_ERROR"
     );
   });

@@ -17,6 +17,7 @@ export const tagSchema = gql`
     demonstrationTypeName: TagName!
     approvalStatus: TagStatus!
     countOfTaggedApplications: DemonstrationTypeUsageTaggedApplicationCounts!
+    countOfTaggedReferences: Int!
     countOfAssignedDemonstrations: Int!
     countOfAssignedDeliverables: Int!
   }
@@ -50,6 +51,7 @@ export interface DemonstrationTypeUsageSummary {
   demonstrationTypeName: TagName;
   approvalStatus: TagStatus;
   countOfTaggedApplications: DemonstrationTypeUsageTaggedApplicationCounts;
+  countOfTaggedReferences: number;
   countOfAssignedDemonstrations: number;
   countOfAssignedDeliverables: number;
 }

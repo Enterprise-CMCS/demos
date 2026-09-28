@@ -8,6 +8,7 @@ export const MOCK_1115_WAIVER: DemonstrationTypeUsageSummary = {
     amendments: 3,
     renewals: 6,
   },
+  countOfTaggedReferences: 3,
   countOfAssignedDemonstrations: 12,
   countOfAssignedDeliverables: 7,
 };
