@@ -58,8 +58,15 @@ describe("checkTagFunctions", () => {
       testCustomGQLError
     );
     expect(throwCustomGQLError).toHaveBeenCalledExactlyOnceWith(
-      "Cannot delete In Use Demonstration Type; in use in 26 locations.",
-      "TAG_CANNOT_BE_DELETED_ERROR"
+      "Cannot delete In Use Demonstration Type. " +
+        "The demonstration type In Use Demonstration Type is used in the following places: " +
+        "3 demonstration applications, " +
+        "0 amendment applications, " +
+        "4 renewal applications, " +
+        "3 references, " +
+        "3 demonstrations, and " +
+        "13 deliverables.",
+      "TAG_IN_USE_CANNOT_BE_DELETED_ERROR"
     );
   });
 });
