@@ -162,6 +162,16 @@ describe("renderEmail", () => {
         expect(payload.text).toContain(text);
       }
       if (emailType === "Deliverable Comment") {
+        for (const content of [payload.text, cleanHtml(payload.html)]) {
+          for (const text of [
+            "A new comment has been added to a Close Out Report deliverable",
+            "Demonstration: Medicaid Demonstration",
+            "State: Maryland",
+            "Deliverable: Quarterly Budget Report",
+          ]) {
+            expect(content).toContain(text);
+          }
+        }
         for (const label of ["Deliverable type:", "Action:", "Current due date:"]) {
           expect(payload.text).not.toContain(label);
           expect(payload.html).not.toContain(label);
