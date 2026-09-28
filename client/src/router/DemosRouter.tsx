@@ -28,6 +28,7 @@ import { ReferencesHeader } from "pages/references/ReferencesHeader";
 const DEMONSTRATION_ACCESS_ROLES: PersonType[] = [
   "demos-admin",
   "demos-cms-user",
+  "demos-cms-reviewer-user",
   "demos-restricted-cms-user",
 ];
 
@@ -65,7 +66,12 @@ export const DemosRouter: React.FC = () => {
                   path="reports"
                   element={
                     <RequireRole
-                      allowedRoles={["demos-admin", "demos-cms-user", "demos-restricted-cms-user"]}
+                      allowedRoles={[
+                        "demos-admin",
+                        "demos-cms-user",
+                        "demos-cms-reviewer-user",
+                        "demos-restricted-cms-user",
+                      ]}
                     >
                       <ReportsPage />
                     </RequireRole>
