@@ -12,7 +12,7 @@ export async function getCoreOutputs(environment: string) {
     "core-outputs.json",
   ]);
 
-  if (coreOutputCmd != 0) {
+  if (coreOutputCmd !== 0) {
     console.error(`core output command failed with code ${coreOutputCmd}`);
     return coreOutputCmd;
   }

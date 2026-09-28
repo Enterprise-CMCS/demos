@@ -44,10 +44,10 @@ export class FileUploadStack extends Stack {
 
     super(scope, id, props);
 
-  Validations.of(this).acknowledge({
-    id: "CloudFormation-Validate::E3687",
-    reason: "False positive: FromPort and ToPort are supplied through an imported deploy-time value.'"
-  })
+    Validations.of(this).acknowledge({
+      id: "CloudFormation-Validate::E3687",
+      reason: "False positive: FromPort and ToPort are supplied through an imported deploy-time value.'",
+    });
 
     const alarmResources = new alarms.CloudWatchAlarmRegistry();
 
@@ -57,7 +57,7 @@ export class FileUploadStack extends Stack {
     });
 
     const deadLetterQueue = new Queue(this, "FileUploadDLQ", {
-      removalPolicy: props.stage == "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
+      removalPolicy: props.stage === "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
       enforceSSL: true,
       encryption: QueueEncryption.KMS,
       encryptionMasterKey: kmsKey,
@@ -65,7 +65,7 @@ export class FileUploadStack extends Stack {
     alarmResources.registerQueue("fileWorkflowDeadLetter", deadLetterQueue);
 
     const uploadQueue = new Queue(this, "FileUploadQueue", {
-      removalPolicy: props.stage == "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
+      removalPolicy: props.stage === "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
       enforceSSL: true,
       deadLetterQueue: {
         maxReceiveCount: 1,
@@ -77,7 +77,7 @@ export class FileUploadStack extends Stack {
     alarmResources.registerQueue("fileUpload", uploadQueue);
 
     const deleteInfectedFileQueue = new Queue(this, "DeleteInfectedFileQueue", {
-      removalPolicy: props.stage == "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
+      removalPolicy: props.stage === "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
       enforceSSL: true,
       encryption: QueueEncryption.KMS,
       encryptionMasterKey: kmsKey,
@@ -91,34 +91,33 @@ export class FileUploadStack extends Stack {
     if (!props.isEphemeral) {
       const accessLogs = new Bucket(this, "fileUploadAccessLogBucket", {
         encryption: aws_s3.BucketEncryption.S3_MANAGED,
-        removalPolicy:
-          props.isDev || props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
+        removalPolicy: props.isDev ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
         blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
-        autoDeleteObjects: props.isDev || props.isEphemeral,
+        autoDeleteObjects: props.isDev,
         enforceSSL: true,
       });
 
       NagSuppressions.addResourceSuppressions(accessLogs, [{
         id: "AwsSolutions-S1",
-        reason: "Access log buckets should not themselves have access logging"
-      }])
+        reason: "Access log buckets should not themselves have access logging",
+      }]);
 
       const accessLogBucketCfn = accessLogs.node.defaultChild as aws_s3.CfnBucket;
       accessLogBucketCfn.addMetadata( "checkov", {
-          skip: [{
-            id: "CKV_AWS_18",
-            reason: "the access log bucket itself does not need access logs"
-          },{
-            id: "CKV_AWS_21",
-            reason: "versioning on the access log bucket itself is intentionally disabled"
-          }]
-        })
+        skip: [{
+          id: "CKV_AWS_18",
+          reason: "the access log bucket itself does not need access logs",
+        }, {
+          id: "CKV_AWS_21",
+          reason: "versioning on the access log bucket itself is intentionally disabled",
+        }],
+      });
     }
 
     const uploadBucket = new Bucket(this, "FileUploadBucket", {
       versioned: false,
-      removalPolicy: props.stage == "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
-      autoDeleteObjects: props.stage != "prod",
+      removalPolicy: props.stage === "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
+      autoDeleteObjects: props.stage !== "prod",
       publicReadAccess: false,
       enforceSSL: true,
       eventBridgeEnabled: true,
@@ -134,8 +133,8 @@ export class FileUploadStack extends Stack {
 
     new BucketAccessLogs(this, "FileUploadBucketAccessLogs", {
       bucket: uploadBucket,
-      stage: props.stage
-    })
+      stage: props.stage,
+    });
 
     const dataConnectBucket = new Bucket(this, "DataConnectBucket", {
       bucketName: `demos-${props.stage}-dataconnect`,
@@ -148,16 +147,15 @@ export class FileUploadStack extends Stack {
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
     });
 
-
     new BucketAccessLogs(this, "DataConnectBucketAccessLogs", {
       bucket: dataConnectBucket,
-      stage: props.stage
-    })
+      stage: props.stage,
+    });
 
     dataConnectBucket.addToResourcePolicy(new aws_iam.PolicyStatement({
       effect: aws_iam.Effect.ALLOW,
       principals: [
-        new aws_iam.ArnPrincipal(props.dataConnectRoleArn)
+        new aws_iam.ArnPrincipal(props.dataConnectRoleArn),
       ],
       actions: [
         "s3:GetBucketLocation",
@@ -165,22 +163,22 @@ export class FileUploadStack extends Stack {
         "s3:GetObjectTagging",
         "s3:ListBucket",
         "s3:ListBucketMultipartUploads",
-        "s3:ListMultipartUploadParts"
+        "s3:ListMultipartUploadParts",
       ],
       resources: [
         dataConnectBucket.bucketArn,
         dataConnectBucket.arnForObjects("*"),
-      ]
-    }))
+      ],
+    }));
 
-     if (!props.isEphemeral) {
+    if (!props.isEphemeral) {
       Tags.of(dataConnectBucket).add("AWS_Backup", backupTags.d15_w90);
     }
 
     addCheckovSkip(uploadBucket, {
       id: "CKV_AWS_21",
-      reason: "versioning on the upload bucket is intentionally disabled. Files are only here for a short time and moved to other buckets based on virus scan status where versioning is enabled"
-    })
+      reason: "versioning on the upload bucket is intentionally disabled. Files are only here for a short time and moved to other buckets based on virus scan status where versioning is enabled",
+    });
 
     new GuardDutyS3(this, "uploadBucketScan", {
       bucket: uploadBucket,
@@ -192,8 +190,8 @@ export class FileUploadStack extends Stack {
 
     const cleanBucket = new Bucket(this, "FileCleanBucket", {
       versioned: true,
-      removalPolicy: props.stage == "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
-      autoDeleteObjects: props.stage != "prod",
+      removalPolicy: props.stage === "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
+      autoDeleteObjects: props.stage !== "prod",
       publicReadAccess: false,
       enforceSSL: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
@@ -212,13 +210,13 @@ export class FileUploadStack extends Stack {
 
     new BucketAccessLogs(this, "CleanBucketAccessLogs", {
       bucket: cleanBucket,
-      stage: props.stage
-    })
+      stage: props.stage,
+    });
 
     const deletedBucket = new Bucket(this, "FileDeletedBucket", {
       versioned: true,
-      removalPolicy: props.stage == "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
-      autoDeleteObjects: props.stage != "prod",
+      removalPolicy: props.stage === "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
+      autoDeleteObjects: props.stage !== "prod",
       publicReadAccess: false,
       enforceSSL: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
@@ -226,8 +224,8 @@ export class FileUploadStack extends Stack {
 
     new BucketAccessLogs(this, "DeletedBucketAccessLogs", {
       bucket: deletedBucket,
-      stage: props.stage
-    })
+      stage: props.stage,
+    });
 
     const uiPathDocumentsBucket = new Bucket(this, "UiPathDocumentsBucket", {
       versioned: true,
@@ -240,13 +238,13 @@ export class FileUploadStack extends Stack {
 
     new BucketAccessLogs(this, "UiPathBucketAccessLogs", {
       bucket: uiPathDocumentsBucket,
-      stage: props.stage
-    })
+      stage: props.stage,
+    });
 
     const infectedBucket = new Bucket(this, "FileInfectedBucket", {
       versioned: true,
-      removalPolicy: props.stage == "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
-      autoDeleteObjects: props.stage != "prod",
+      removalPolicy: props.stage === "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
+      autoDeleteObjects: props.stage !== "prod",
       publicReadAccess: false,
       enforceSSL: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
@@ -267,12 +265,12 @@ export class FileUploadStack extends Stack {
 
     new BucketAccessLogs(this, "FileInfectedBucketAccessLogs", {
       bucket: infectedBucket,
-      stage: props.stage
-    })
+      stage: props.stage,
+    });
 
     infectedBucket.addEventNotification(
       aws_s3.EventType.LIFECYCLE_EXPIRATION_DELETE_MARKER_CREATED,
-      new aws_s3_notifications.SqsDestination(deleteInfectedFileQueue)
+      new aws_s3_notifications.SqsDestination(deleteInfectedFileQueue),
     );
 
     const fileProcessLambdaSecurityGroup = securityGroup.create({
@@ -283,7 +281,7 @@ export class FileUploadStack extends Stack {
     });
 
     const rdsSecurityGroupId = Fn.importValue(
-      `${props.project}-${props.hostEnvironment}-rds-security-group-id`
+      `${props.project}-${props.hostEnvironment}-rds-security-group-id`,
     );
 
     const rdsPort = importNumberValue(`${props.project}-${props.hostEnvironment}-rds-port`);
@@ -292,14 +290,14 @@ export class FileUploadStack extends Stack {
 
     rdsSg.addIngressRule(
       aws_ec2.Peer.securityGroupId(fileProcessLambdaSecurityGroup.securityGroup.securityGroupId),
-      aws_ec2.Port.tcp(rdsPort)
+      aws_ec2.Port.tcp(rdsPort),
     );
 
     fileProcessLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(rdsSecurityGroupId),
       aws_ec2.Port.tcp(rdsPort),
       "Allow egress to RDS",
-      true
+      true,
     );
 
     const secretsManagerVpceSgId = Fn.importValue(`${props.stage}SecretsManagerVpceSg`);
@@ -307,7 +305,7 @@ export class FileUploadStack extends Stack {
     fileProcessLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
       aws_ec2.Port.HTTPS,
-      "Allow traffic to secrets manager VPCE"
+      "Allow traffic to secrets manager VPCE",
     );
 
     const sqsVpceSgId = Fn.importValue(`${props.stage}SqsVpceSg`);
@@ -315,7 +313,7 @@ export class FileUploadStack extends Stack {
     fileProcessLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(sqsVpceSgId),
       aws_ec2.Port.HTTPS,
-      "Allow traffic to SQS"
+      "Allow traffic to SQS",
     );
 
     const s3PrefixList = aws_ec2.PrefixList.fromLookup(this, "s3PrefixList", {
@@ -324,7 +322,7 @@ export class FileUploadStack extends Stack {
     fileProcessLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
       aws_ec2.Port.HTTPS,
-      "Allow traffic to S3"
+      "Allow traffic to S3",
     );
 
     const uiPathLambdaSecurityGroup = securityGroup.create({
@@ -338,32 +336,32 @@ export class FileUploadStack extends Stack {
       aws_ec2.Peer.securityGroupId(uiPathLambdaSecurityGroup.securityGroup.securityGroupId),
       aws_ec2.Port.tcp(rdsPort),
       "Allow ingress from UiPath Security Group",
-      true
+      true,
     );
 
     uiPathLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(rdsSecurityGroupId),
       aws_ec2.Port.tcp(rdsPort),
       "Allow egress to RDS",
-      true
+      true,
     );
 
     uiPathLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
       aws_ec2.Port.HTTPS,
-      "Allow traffic to secrets manager VPCE"
+      "Allow traffic to secrets manager VPCE",
     );
 
     uiPathLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
       aws_ec2.Port.HTTPS,
-      "Allow traffic to S3"
+      "Allow traffic to S3",
     );
 
     uiPathLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.anyIpv4(),
       aws_ec2.Port.HTTPS,
-      "Allow outbound HTTPS to UiPath"
+      "Allow outbound HTTPS to UiPath",
     );
 
     const budgetNeutralityLambdaSecurityGroup = securityGroup.create({
@@ -375,30 +373,30 @@ export class FileUploadStack extends Stack {
 
     rdsSg.addIngressRule(
       aws_ec2.Peer.securityGroupId(
-        budgetNeutralityLambdaSecurityGroup.securityGroup.securityGroupId
+        budgetNeutralityLambdaSecurityGroup.securityGroup.securityGroupId,
       ),
       aws_ec2.Port.tcp(rdsPort),
       "Allow ingress from Budget Neutrality Security Group",
-      true
+      true,
     );
 
     budgetNeutralityLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(rdsSecurityGroupId),
       aws_ec2.Port.tcp(rdsPort),
       "Allow egress to RDS",
-      true
+      true,
     );
 
     budgetNeutralityLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
       aws_ec2.Port.HTTPS,
-      "Allow traffic to secrets manager VPCE"
+      "Allow traffic to secrets manager VPCE",
     );
 
     budgetNeutralityLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
       aws_ec2.Port.HTTPS,
-      "Allow traffic to S3"
+      "Allow traffic to S3",
     );
 
     const dataConnectExportLambdaSecurityGroup = securityGroup.create({
@@ -410,36 +408,36 @@ export class FileUploadStack extends Stack {
 
     rdsSg.addIngressRule(
       aws_ec2.Peer.securityGroupId(
-        dataConnectExportLambdaSecurityGroup.securityGroup.securityGroupId
+        dataConnectExportLambdaSecurityGroup.securityGroup.securityGroupId,
       ),
       aws_ec2.Port.tcp(rdsPort),
       "Allow ingress from DataConnect Export Security Group",
-      true
+      true,
     );
 
     dataConnectExportLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(rdsSecurityGroupId),
       aws_ec2.Port.tcp(rdsPort),
       "Allow egress to RDS",
-      true
+      true,
     );
 
     dataConnectExportLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
       aws_ec2.Port.HTTPS,
-      "Allow traffic to secrets manager VPCE"
+      "Allow traffic to secrets manager VPCE",
     );
 
     dataConnectExportLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
       aws_ec2.Port.HTTPS,
-      "Allow traffic to S3"
+      "Allow traffic to S3",
     );
 
     const dbSecretFileProcess = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
       "rdsFileProcessDatabaseSecret",
-      `demos-${props.hostEnvironment}-rds-demos_upload`
+      `demos-${props.hostEnvironment}-rds-demos_upload`,
     );
 
     const fileProcessLambda = new lambda.Lambda(this, "fileProcess", {
@@ -467,7 +465,7 @@ export class FileUploadStack extends Stack {
     fileProcessLambda.lambda.addEventSource(
       new SqsEventSource(uploadQueue, {
         batchSize: 1,
-      })
+      }),
     );
 
     uploadBucket.grantRead(fileProcessLambda.lambda);
@@ -480,14 +478,14 @@ export class FileUploadStack extends Stack {
     NagSuppressions.addResourceSuppressions(fileProcessLambda.role, [
       {
         id: "AwsSolutions-IAM5",
-        reason: "Permissions are scoped specifically to the file upload bucket"
-      }
-    ], true)
+        reason: "Permissions are scoped specifically to the file upload bucket",
+      },
+    ], true);
 
     const dbSecretDeleteInfectedFile = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
       "rdsDeleteInfectedFileDatabaseSecret",
-      `demos-${props.hostEnvironment}-rds-demos_delete_infected_file`
+      `demos-${props.hostEnvironment}-rds-demos_delete_infected_file`,
     );
     const deleteInfectedFileLambda = new lambda.Lambda(this, "deleteInfectedFile", {
       ...props,
@@ -512,7 +510,7 @@ export class FileUploadStack extends Stack {
     deleteInfectedFileLambda.lambda.addEventSource(
       new SqsEventSource(deleteInfectedFileQueue, {
         batchSize: 1,
-      })
+      }),
     );
 
     dbSecretDeleteInfectedFile.grantRead(deleteInfectedFileLambda.lambda);
@@ -532,7 +530,7 @@ export class FileUploadStack extends Stack {
 
     fileProcessLambda.lambda.addEnvironment(
       "UIPATH_QUEUE_URL",
-      uiPathProcessor.queue.queueUrl
+      uiPathProcessor.queue.queueUrl,
     );
     uiPathProcessor.queue.grantSendMessages(fileProcessLambda.lambda);
 
@@ -547,12 +545,12 @@ export class FileUploadStack extends Stack {
         readBuckets: [cleanBucket],
         vpc: props.vpc,
         securityGroup: budgetNeutralityLambdaSecurityGroup.securityGroup,
-      }
+      },
     );
 
     fileProcessLambda.lambda.addEnvironment(
       "BUDGET_NEUTRALITY_QUEUE_URL",
-      budgetNeutralityProcessor.queue.queueUrl
+      budgetNeutralityProcessor.queue.queueUrl,
     );
     budgetNeutralityProcessor.queue.grantSendMessages(fileProcessLambda.lambda);
 
@@ -566,18 +564,17 @@ export class FileUploadStack extends Stack {
     this.setupCloudWatchAlarms(props, alarmResources);
 
     const bucketNotificationsRole = this.node.findAll().find(
-    node =>
-      CfnResource.isCfnResource(node) &&
+      node =>
+        CfnResource.isCfnResource(node) &&
       node.cfnResourceType === "AWS::IAM::Role" &&
       node.node.path.includes("/BucketNotificationsHandler") &&
-      node.node.path.endsWith("/Role/Resource")
+      node.node.path.endsWith("/Role/Resource"),
     );
 
     NagSuppressions.addResourceSuppressions(bucketNotificationsRole!, [{
       id: "AwsSolutions-IAM4",
       reason: "This is for a CDK managed lambda for updating policies: https://github.com/aws/aws-cdk/issues/9552#issuecomment-677512510",
-    }], true)
-
+    }], true);
 
     new CfnOutput(this, "cleanBucketName", {
       exportName: `${props.stage}CleanBucketName`,
@@ -627,7 +624,7 @@ export class FileUploadStack extends Stack {
 
   private setupCloudWatchAlarms(
     props: DeploymentConfigProperties,
-    resources: alarms.CloudWatchAlarmRegistry
+    resources: alarms.CloudWatchAlarmRegistry,
   ) {
     if (props.isEphemeral && !props.enableAlarms) {
       return;

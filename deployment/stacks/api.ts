@@ -13,7 +13,7 @@ import {
   aws_kms,
   RemovalPolicy,
   Validations,
-  TimeZone
+  TimeZone,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -40,7 +40,7 @@ export class ApiStack extends Stack {
   constructor(
     scope: Construct,
     id: string,
-    props: StackProps & DeploymentConfigProperties & APIStackProps
+    props: StackProps & DeploymentConfigProperties & APIStackProps,
   ) {
     super(scope, id, {
       ...props,
@@ -54,10 +54,10 @@ export class ApiStack extends Stack {
         props.iamPermissionsBoundaryArn == null
           ? undefined
           : aws_iam.ManagedPolicy.fromManagedPolicyArn(
-              this,
-              "iamPermissionsBoundary",
-              props.iamPermissionsBoundaryArn
-            ),
+            this,
+            "iamPermissionsBoundary",
+            props.iamPermissionsBoundaryArn,
+          ),
     };
     const alarmResources = new alarms.CloudWatchAlarmRegistry();
 
@@ -68,31 +68,31 @@ export class ApiStack extends Stack {
     });
 
     const rdsSecurityGroupId = Fn.importValue(
-      `${commonProps.project}-${commonProps.hostEnvironment}-rds-security-group-id`
+      `${commonProps.project}-${commonProps.hostEnvironment}-rds-security-group-id`,
     );
 
     const rdsPort = importNumberValue(
-      `${commonProps.project}-${commonProps.hostEnvironment}-rds-port`
+      `${commonProps.project}-${commonProps.hostEnvironment}-rds-port`,
     );
 
     const rdsSg = aws_ec2.SecurityGroup.fromSecurityGroupId(
       commonProps.scope,
       "rdsSg",
-      rdsSecurityGroupId
+      rdsSecurityGroupId,
     );
 
     rdsSg.addIngressRule(
       aws_ec2.Peer.securityGroupId(graphqlLambdaSecurityGroup.securityGroup.securityGroupId),
       aws_ec2.Port.tcp(rdsPort),
       "Allow ingress from GraphQL Security Group",
-      true
+      true,
     );
 
     graphqlLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(rdsSecurityGroupId),
       aws_ec2.Port.tcp(rdsPort),
       "Allow egress to RDS",
-      true
+      true,
     );
 
     const secretsManagerVpceSgId = Fn.importValue(`${commonProps.stage}SecretsManagerVpceSg`);
@@ -100,7 +100,7 @@ export class ApiStack extends Stack {
     graphqlLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
       aws_ec2.Port.HTTPS,
-      "Allow traffic to secrets manager VPCE"
+      "Allow traffic to secrets manager VPCE",
     );
 
     const s3PrefixList = aws_ec2.PrefixList.fromLookup(this, "s3PrefixList", {
@@ -112,13 +112,13 @@ export class ApiStack extends Stack {
     graphqlLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
       aws_ec2.Port.HTTPS,
-      "Allow traffic to S3"
+      "Allow traffic to S3",
     );
 
     graphqlLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(sqsVpceSgId),
       aws_ec2.Port.HTTPS,
-      "Allow traffic to SQS"
+      "Allow traffic to SQS",
     );
 
     const cognitoAuthority = Fn.importValue(`${commonProps.hostEnvironment}CognitoAuthority`);
@@ -129,7 +129,7 @@ export class ApiStack extends Stack {
     const dbSecret = aws_secretsmanager.Secret.fromSecretNameV2(
       commonProps.scope,
       "rdsDatabaseSecret",
-      `demos-${commonProps.hostEnvironment}-rds-demos_server`
+      `demos-${commonProps.hostEnvironment}-rds-demos_server`,
     );
 
     const authPath = path.join("..", "lambdas", "authorizer");
@@ -147,7 +147,7 @@ export class ApiStack extends Stack {
         depsLockFilePath: path.join(rel, "package-lock.json"),
         timeout: Duration.seconds(10),
       },
-      "authorizer"
+      "authorizer",
     );
     alarmResources.registerLambda("authorizer", authorizerLambda.lambda.lambda);
 
@@ -157,7 +157,7 @@ export class ApiStack extends Stack {
       {
         handler: authorizerLambda.lambda.lambda,
         authorizerName: "cognitoTokenAuth",
-      }
+      },
     );
 
     const uploadBucketName = Fn.importValue(`${props.stage}UploadBucketName`);
@@ -183,7 +183,7 @@ export class ApiStack extends Stack {
         path: "graphql",
         method: "POST",
         vpc: props.vpc,
-        securityGroup: props.isLocalstack ? undefined : graphqlLambdaSecurityGroup?.securityGroup,
+        securityGroup: props.isLocalstack ? undefined : graphqlLambdaSecurityGroup.securityGroup,
         authorizer: props.isLocalstack ? undefined : tokenAuthorizer,
         authorizationType: props.isLocalstack ? undefined : aws_apigateway.AuthorizationType.CUSTOM,
         asCode: true,
@@ -199,7 +199,7 @@ export class ApiStack extends Stack {
           DISABLE_EMAIL_NOTIFICATIONS: process.env.DISABLE_EMAIL_NOTIFICATIONS ?? "false",
         },
       },
-      "graphql"
+      "graphql",
     );
     alarmResources.registerLambda("graphql", graphqlLambda.lambda.lambda);
 
@@ -214,9 +214,9 @@ export class ApiStack extends Stack {
     NagSuppressions.addResourceSuppressions(graphqlLambda.lambda.role, [
       {
         id: "AwsSolutions-IAM5",
-        reason: "Permissions given are required for the lambda execution role"
-      }
-    ], true)
+        reason: "Permissions given are required for the lambda execution role",
+      },
+    ], true);
 
     const fileUploadKms = aws_kms.Key.fromLookup(this, "fileUploadKms", {
       aliasName: `alias/demos-${commonProps.stage}-file-upload-sqs`,
@@ -264,54 +264,54 @@ export class ApiStack extends Stack {
       aws_ec2.Peer.securityGroupId(emailerLambdaSecurityGroup.securityGroup.securityGroupId),
       aws_ec2.Port.tcp(rdsPort),
       "Allow ingress from Emailer Security Group",
-      true
+      true,
     );
 
     emailerLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(rdsSecurityGroupId),
       aws_ec2.Port.tcp(rdsPort),
       "Allow egress to RDS",
-      true
+      true,
     );
 
     emailerLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
       aws_ec2.Port.HTTPS,
-      "Allow traffic to secrets manager VPCE"
+      "Allow traffic to secrets manager VPCE",
     );
 
     emailerLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
       aws_ec2.Port.HTTPS,
-      "Allow traffic to S3"
+      "Allow traffic to S3",
     );
 
     const sharedServicesSG = aws_ec2.SecurityGroup.fromLookupByName(
       commonProps.scope,
       "cmsSharedServcices",
       "cmscloud-shared-services",
-      commonProps.vpc
+      commonProps.vpc,
     );
 
     const ssmSg = aws_ec2.SecurityGroup.fromLookupByName(
       this,
       "ssmSecurityGroup",
       `${props.project}-${props.hostEnvironment}-${props.project}-${props.hostEnvironment}-ssm-vpce`,
-      props.vpc
+      props.vpc,
     );
 
     emailerLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(ssmSg.securityGroupId),
-      aws_ec2.Port.HTTPS
+      aws_ec2.Port.HTTPS,
     );
     const allowListParamName = "/demos/nonprod/email/allowlist";
     const emailerDbSecret = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
       "rdsEmailerDatabaseSecret",
-      `demos-${commonProps.hostEnvironment}-rds-demos_emailer`
+      `demos-${commonProps.hostEnvironment}-rds-demos_emailer`,
     );
     // Emailer
-    const emailSuffix = commonProps.stage == "prod" ? "" : `-${commonProps.stage}`;
+    const emailSuffix = commonProps.stage === "prod" ? "" : `-${commonProps.stage}`;
     const emailerLambda = new lambda.Lambda(commonProps.scope, "emailer", {
       ...commonProps,
       scope: commonProps.scope,
@@ -345,8 +345,8 @@ export class ApiStack extends Stack {
         EMAIL_PORT: "587",
         EMAIL_FROM: `"DEMOS${emailSuffix}" <DEMOS${emailSuffix}-no-reply@cms.hhs.gov>`,
         NODE_EXTRA_CA_CERTS: "/var/task/cert.pem",
-        ALLOW_LIST_PARAM_NAME: commonProps.stage == "prod" ? "" : allowListParamName,
-        DISABLE_EMAIL_ALLOWLIST: commonProps.stage == "prod" ? "true" : "false",
+        ALLOW_LIST_PARAM_NAME: commonProps.stage === "prod" ? "" : allowListParamName,
+        DISABLE_EMAIL_ALLOWLIST: commonProps.stage === "prod" ? "true" : "false",
       },
       commandHooks: {
         afterBundling(inputDir: string, outputDir: string): string[] {
@@ -366,26 +366,26 @@ export class ApiStack extends Stack {
     emailerDbSecret.grantRead(emailerLambda.role);
     cleanBucket.grantRead(emailerLambda.role);
 
-    if (commonProps.stage != "prod") {
+    if (commonProps.stage !== "prod") {
       const allowListParam = aws_ssm.StringParameter.fromStringParameterName(
         commonProps.scope,
         "allowListParam",
-        allowListParamName
+        allowListParamName,
       );
 
       allowListParam.grantRead(emailerLambda.role);
       Validations.of(commonProps.scope).acknowledge({
         id: "CloudFormation-Validate::W2001",
-        reason: "The param is imported and used to grant access to the emailer"
-      })
+        reason: "The param is imported and used to grant access to the emailer",
+      });
     }
 
     NagSuppressions.addResourceSuppressions(emailerLambda.role, [
       {
         id: "AwsSolutions-IAM5",
-        reason: "Permissions given are required for the lambda execution role"
-      }
-    ], true)
+        reason: "Permissions given are required for the lambda execution role",
+      },
+    ], true);
 
     emailerLambda.lambda.addEventSource(
       new SqsEventSource(emailQueue, {
@@ -396,7 +396,7 @@ export class ApiStack extends Stack {
         // batch, which means that on a retry, emails that sent out fine the
         // first time would send again
         batchSize: 1,
-      })
+      }),
     );
 
     const emailSchedulerLambdaSecurityGroup = securityGroup.create({
@@ -409,32 +409,31 @@ export class ApiStack extends Stack {
       aws_ec2.Peer.securityGroupId(emailSchedulerLambdaSecurityGroup.securityGroup.securityGroupId),
       aws_ec2.Port.tcp(rdsPort),
       "Allow ingress from Email Scheduler Security Group",
-      true
+      true,
     );
 
     emailSchedulerLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(rdsSecurityGroupId),
       aws_ec2.Port.tcp(rdsPort),
       "Allow egress to RDS",
-      true
+      true,
     );
 
     emailSchedulerLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
       aws_ec2.Port.HTTPS,
-      "Allow traffic to secrets manager VPCE"
+      "Allow traffic to secrets manager VPCE",
     );
 
     emailSchedulerLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(sqsVpceSgId),
       aws_ec2.Port.HTTPS,
-      "Allow traffic to SQS"
+      "Allow traffic to SQS",
     );
-
 
     const emailSchedulerPath = path.join("..", "lambdas", "emailScheduler");
     const emailScheduler = new lambda.Lambda(commonProps.scope, "emailScheduler", {
-      ...commonProps, 
+      ...commonProps,
       scope: commonProps.scope,
       entry: path.join(emailSchedulerPath, "index.ts"),
       handler: "index.handler",
@@ -453,17 +452,17 @@ export class ApiStack extends Stack {
         "pg",
         "pino",
       ],
-    })
+    });
 
     emailerDbSecret.grantRead(emailScheduler.role);
-    emailQueue.grantSendMessages(emailScheduler.role)
+    emailQueue.grantSendMessages(emailScheduler.role);
 
     NagSuppressions.addResourceSuppressions(emailScheduler.role, [
       {
         id: "AwsSolutions-IAM5",
-        reason: "Permissions given are required for the lambda execution role"
-      }
-    ], true)
+        reason: "Permissions given are required for the lambda execution role",
+      },
+    ], true);
 
     emailScheduler.lambda.configureAsyncInvoke({
       retryAttempts: 1,
@@ -477,8 +476,8 @@ export class ApiStack extends Stack {
         minute: "0",
         timeZone: TimeZone.AMERICA_NEW_YORK,
       }),
-      target: new schedulerTargets.LambdaInvoke(emailScheduler.lambda)
-    })
+      target: new schedulerTargets.LambdaInvoke(emailScheduler.lambda),
+    });
 
     this.setupCloudWatchAlarms(props, alarmResources);
 
@@ -487,15 +486,15 @@ export class ApiStack extends Stack {
       .find(
         (construct): construct is aws_iam.Role =>
           construct instanceof aws_iam.Role &&
-          construct.node.id.startsWith("SchedulerRoleForTarget-")
+          construct.node.id.startsWith("SchedulerRoleForTarget-"),
       );
 
     NagSuppressions.addResourceSuppressions(generatedRole!, [
       {
         id: "AwsSolutions-IAM5",
-        reason: "Permissions given are required for the lambda execution role"
-      }
-    ], true)
+        reason: "Permissions given are required for the lambda execution role",
+      },
+    ], true);
     // Outputs
 
     new CfnOutput(this, "ApiUrl", {
@@ -506,7 +505,7 @@ export class ApiStack extends Stack {
 
   private setupCloudWatchAlarms(
     props: DeploymentConfigProperties,
-    resources: alarms.CloudWatchAlarmRegistry
+    resources: alarms.CloudWatchAlarmRegistry,
   ) {
     if (props.isEphemeral && !props.enableAlarms) {
       return;
