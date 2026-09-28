@@ -97,6 +97,8 @@ export const mockDemonstration: Demonstration = {
 
 // Every record on this demonstration carries the same approved tag.
 const MOCK_ASSOCIATED_TAG = MOCK_TAGS[0];
+const MOCK_ASSOCIATED_TAG_2 = MOCK_TAGS[1];
+const MOCK_ASSOCIATED_TAG_3 = MOCK_TAGS[2];
 
 export const MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION: AssociatedRecordsDemonstration = {
   id: MOCK_DEMONSTRATION.id,
@@ -127,6 +129,53 @@ export const MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION: AssociatedRecordsDe
       demonstrationTypes: [MOCK_ASSOCIATED_TAG],
     },
   ],
+};
+
+// Additional demonstrations with different tags for testing tag filtering
+export const MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION_2: AssociatedRecordsDemonstration = {
+  ...MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION,
+  id: "2",
+  name: "Texas Medicaid Demonstration",
+  tags: [MOCK_ASSOCIATED_TAG_2],
+  demonstrationTypes: [
+    {
+      demonstrationTypeName: MOCK_ASSOCIATED_TAG_2.tagName,
+      approvalStatus: MOCK_ASSOCIATED_TAG_2.approvalStatus,
+    },
+  ],
+  amendments: MOCK_DEMONSTRATION.amendments.map(({ id, name }) => ({
+    id: `${id}-2`,
+    name: `${name} - Amendment 2`,
+    tags: [MOCK_ASSOCIATED_TAG_2],
+  })),
+  renewals: [],
+  deliverables: [
+    {
+      id: `${MOCK_DELIVERABLE_1.id}-2`,
+      name: `${MOCK_DELIVERABLE_1.name} - Variant 2`,
+      demonstrationTypes: [MOCK_ASSOCIATED_TAG_2],
+    },
+  ],
+};
+
+export const MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION_3: AssociatedRecordsDemonstration = {
+  ...MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION,
+  id: "3",
+  name: "California Medicaid Waiver",
+  tags: [MOCK_ASSOCIATED_TAG_3],
+  demonstrationTypes: [
+    {
+      demonstrationTypeName: MOCK_ASSOCIATED_TAG_3.tagName,
+      approvalStatus: MOCK_ASSOCIATED_TAG_3.approvalStatus,
+    },
+  ],
+  amendments: [],
+  renewals: MOCK_DEMONSTRATION.renewals.map(({ id, name }) => ({
+    id: `${id}-3`,
+    name: `${name} - Renewal 3`,
+    tags: [MOCK_ASSOCIATED_TAG_3],
+  })),
+  deliverables: [],
 };
 
 export const mockAddDemonstrationInput: CreateDemonstrationInput = {
@@ -163,7 +212,11 @@ export const demonstrationMocks: MockedResponse[] = [
     },
     result: {
       data: {
-        demonstrations: [MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION],
+        demonstrations: [
+          MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION,
+          MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION_2,
+          MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION_3,
+        ],
       },
     },
     maxUsageCount: Number.POSITIVE_INFINITY,
