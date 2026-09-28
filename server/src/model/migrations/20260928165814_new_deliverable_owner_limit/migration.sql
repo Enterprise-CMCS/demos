@@ -1,3 +1,4 @@
+SET search_path TO demos_app;
 
 -- DropForeignKey
 ALTER TABLE "deliverable" DROP CONSTRAINT "deliverable_cms_owner_person_type_id_fkey";
