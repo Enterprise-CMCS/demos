@@ -50,10 +50,10 @@ export const extensionSchema = gql`
 
   type Mutation {
     createExtension(input: CreateExtensionInput!): Extension!
-      @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Modify Applications"])
     updateExtension(id: ID!, input: UpdateExtensionInput!): Extension!
-      @auth(requires: ["Perform CMS Action"])
-    deleteExtension(id: ID!): Extension! @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Modify Applications"])
+    deleteExtension(id: ID!): Extension! @auth(requires: ["Modify Applications"])
   }
 
   type Query {

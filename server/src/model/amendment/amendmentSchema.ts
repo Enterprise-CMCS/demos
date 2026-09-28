@@ -50,10 +50,10 @@ export const amendmentSchema = gql`
 
   type Mutation {
     createAmendment(input: CreateAmendmentInput!): Amendment!
-      @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Modify Applications"])
     updateAmendment(id: ID!, input: UpdateAmendmentInput!): Amendment!
-      @auth(requires: ["Perform CMS Action"])
-    deleteAmendment(id: ID!): Amendment! @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Modify Applications"])
+    deleteAmendment(id: ID!): Amendment! @auth(requires: ["Modify Applications"])
   }
 
   type Query {
