@@ -3,12 +3,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { EasternTZDate, parseJSDateToEasternTZDate } from "../../dateUtilities";
 
 // Types
-import {
-  DeliverableExtensionStatus,
-  DeliverableStatus,
-  PersonType,
-  TagName,
-} from "../../types";
+import { DeliverableExtensionStatus, DeliverableStatus, PersonType, TagName } from "../../types";
 import {
   Deliverable as PrismaDeliverable,
   DeliverableExtension as PrismaDeliverableExtension,
@@ -129,6 +124,15 @@ describe("checkDeliverableInputFunctions", () => {
       const testInput: Partial<PrismaUser> = {
         id: "abc123",
         personTypeId: "demos-cms-user" satisfies PersonType,
+      };
+      const result = checkOwnerPersonType(testInput as PrismaUser);
+      expect(result).toBeUndefined();
+    });
+
+    it("should return undefined if the owner user is a CMS Reviewer user", () => {
+      const testInput: Partial<PrismaUser> = {
+        id: "abc123",
+        personTypeId: "demos-cms-reviewer-user" satisfies PersonType,
       };
       const result = checkOwnerPersonType(testInput as PrismaUser);
       expect(result).toBeUndefined();
