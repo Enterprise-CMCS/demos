@@ -2,9 +2,9 @@
 model DeliverableOwnerPersonTypeLimit {
   id String
 
-  personType          PersonType           @relation(fields: [id], references: [id])
-  deliverables        Deliverable[]
-  privateComments     PrivateComment[]
+  personType      PersonType       @relation(fields: [id], references: [id])
+  deliverables    Deliverable[]
+  privateComments PrivateComment[]
 
   @@id([id])
   @@map("deliverable_owner_person_type_limit")
