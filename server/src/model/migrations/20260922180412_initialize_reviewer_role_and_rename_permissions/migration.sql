@@ -99,5 +99,3 @@ WHERE id IN (
   'Perform CMS Action',
   'Perform State Action'
 );
-
-
