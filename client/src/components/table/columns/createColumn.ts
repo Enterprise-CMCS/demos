@@ -1,11 +1,14 @@
 import { createColumnHelper, CellContext } from "@tanstack/react-table";
 import { highlightCell } from "components/table";
 import { createSelectColumnDef } from "./selectColumn";
+import type { ColumnMetaFilterConfig } from "components/table/ColumnFilter";
 
 export interface ColumnOptions<RowData> {
   enableSorting?: boolean;
+  enableColumnFilter?: boolean;
   cell?: (info: CellContext<RowData, unknown>) => React.ReactNode;
   highlightSearchResults?: boolean;
+  filterConfig?: ColumnMetaFilterConfig["filterConfig"];
 }
 
 // Generates a ID for a table column header by converting to lowercase and removing spaces
@@ -17,8 +20,10 @@ function generateHeaderId(header: string) {
 function getOptions<RowData>(optionOverrides?: ColumnOptions<RowData>) {
   return {
     enableSorting: optionOverrides?.enableSorting ?? false,
+    enableColumnFilter: optionOverrides?.enableColumnFilter ?? true,
     highlightSearchResults: optionOverrides?.highlightSearchResults !== false,
     cell: optionOverrides?.cell,
+    filterConfig: optionOverrides?.filterConfig,
   };
 }
 
@@ -41,6 +46,8 @@ export function getColumnBuilder<RowData>() {
       header,
       cell: cellRenderer,
       enableSorting: options.enableSorting,
+      enableColumnFilter: options.enableColumnFilter,
+      meta: options.filterConfig ? { filterConfig: options.filterConfig } : undefined,
     };
 
     return columnHelper.accessor(accessor, columnConfig);
