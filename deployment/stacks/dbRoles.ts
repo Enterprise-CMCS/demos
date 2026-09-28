@@ -35,7 +35,6 @@ export class DBRoleStack extends Stack {
       terminationProtection: false,
     });
 
-
     const dbRoleManagementSecurityGroup = securityGroup.create({
       ...props,
       name: "dbRoleManagementSG",
@@ -49,14 +48,14 @@ export class DBRoleStack extends Stack {
 
     rdsSg.addIngressRule(
       aws_ec2.Peer.securityGroupId(dbRoleManagementSecurityGroup.securityGroup.securityGroupId),
-      aws_ec2.Port.tcp(rdsPort)
+      aws_ec2.Port.tcp(rdsPort),
     );
 
     dbRoleManagementSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(rdsSecurityGroupId),
       aws_ec2.Port.tcp(rdsPort),
       "Allow egress to RDS",
-      true
+      true,
     );
 
     const secretsManagerVpceSgId = Fn.importValue(`${props.stage}SecretsManagerVpceSg`);
@@ -64,7 +63,7 @@ export class DBRoleStack extends Stack {
     dbRoleManagementSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
       aws_ec2.Port.HTTPS,
-      "Allow traffic to secrets manager VPCE"
+      "Allow traffic to secrets manager VPCE",
     );
 
     const s3PrefixList = aws_ec2.PrefixList.fromLookup(this, "s3PrefixList", {
@@ -74,19 +73,19 @@ export class DBRoleStack extends Stack {
     // Egress to S3 is required for responding to cloudformation with statuses
     dbRoleManagementSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
-      aws_ec2.Port.tcp(443)
+      aws_ec2.Port.tcp(443),
     );
 
     const ssmSg = aws_ec2.SecurityGroup.fromLookupByName(
       this,
       "ssmSecurityGroup",
       `${props.project}-${props.hostEnvironment}-${props.project}-${props.hostEnvironment}-ssm-vpce`,
-      props.vpc
+      props.vpc,
     );
 
     dbRoleManagementSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(ssmSg.securityGroupId),
-      aws_ec2.Port.HTTPS
+      aws_ec2.Port.HTTPS,
     );
 
     const roleManagementLambda = new lambda.Lambda(this, "dbRoleManagement", {
@@ -114,7 +113,7 @@ export class DBRoleStack extends Stack {
         resources: [
           `arn:aws:ssm:${this.region}:${this.account}:parameter/demos/${props.hostEnvironment}/db-temp-password/*`,
         ],
-      })
+      }),
     );
 
     roleManagementLambda.role.addToPolicy(
@@ -127,7 +126,7 @@ export class DBRoleStack extends Stack {
           "secretsmanager:RotateSecret",
         ],
         resources: [`arn:aws:secretsmanager:${this.region}:${this.account}:secret:demos-${props.hostEnvironment}*`],
-      })
+      }),
     );
 
     roleManagementLambda.role.addToPolicy(
@@ -136,13 +135,13 @@ export class DBRoleStack extends Stack {
         resources: [
           `arn:aws:lambda:${this.region}:${this.account}:function:demos-${props.hostEnvironment}-rds-rotation`,
         ],
-      })
+      }),
     );
 
     const dbSecret = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
       "rdsDatabaseSecret",
-      `demos-${props.hostEnvironment}-rds-admin`
+      `demos-${props.hostEnvironment}-rds-admin`,
     );
     dbSecret.grantRead(roleManagementLambda.lambda);
     NagSuppressions.addResourceSuppressions(roleManagementLambda.role, [
@@ -150,30 +149,30 @@ export class DBRoleStack extends Stack {
         id: "AwsSolutions-IAM5",
         reason: "The flagged wildcard is scoped to the proper resources",
       },
-    ], true)
+    ], true);
 
     const crp = new Provider(this, "rolesCrp", {
       onEventHandler: roleManagementLambda.lambda,
     });
     // This override is needed because the latest JS version is returned as node
     // 22 and the function is internal to CDK
-    const il = crp.node.tryFindChild("framework-onEvent")?.node.defaultChild as CfnFunction
-    il.runtime = aws_lambda.Runtime.NODEJS_24_X.name
-    addCheckovSkip(il,{
+    const il = crp.node.tryFindChild("framework-onEvent")?.node.defaultChild as CfnFunction;
+    il.runtime = aws_lambda.Runtime.NODEJS_24_X.name;
+    addCheckovSkip(il, {
       id: "CKV_AWS_173",
-      reason: "This function is managed by CDK"
-    })
+      reason: "This function is managed by CDK",
+    });
 
     NagSuppressions.addResourceSuppressions(crp, [
       {
         id: "AwsSolutions-IAM4",
-        reason: "Permissions are validated and required"
+        reason: "Permissions are validated and required",
       },
       {
         id: "AwsSolutions-IAM5",
-        reason: "Permissions are validated and required"
-      }
-    ], true)
+        reason: "Permissions are validated and required",
+      },
+    ], true);
 
     const cr = new CustomResource(this, "dbRoles", {
       serviceToken: crp.serviceToken,

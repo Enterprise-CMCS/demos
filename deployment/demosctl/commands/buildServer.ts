@@ -9,6 +9,6 @@ export async function buildServer(environment: string) {
     `npm ci && npm run build:ci -- --define:process.env.CURRENT_ENV='"${environment}"'`,
     {
       cwd: serverPath,
-    }
+    },
   );
 }

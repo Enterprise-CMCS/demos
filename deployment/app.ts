@@ -46,20 +46,20 @@ export async function main(passedContext?: { [key: string]: any }) {
   const stage = app.node.getContext("stage");
   const hostEnv = app.node.tryGetContext("hostEnv");
   const forceAlarms = app.node.tryGetContext("alarms");
-  const bootstrapProd = app.node.tryGetContext("bootstrap") == "prod";
+  const bootstrapProd = app.node.tryGetContext("bootstrap") === "prod";
   const config = await determineDeploymentConfig(stage, hostEnv, forceAlarms);
 
   const project = config.project;
 
   const expectedAccount = process.env.EXPECTED_DEMOS_ACCOUNT;
-  if (expectedAccount && process.env.CDK_DEFAULT_ACCOUNT != expectedAccount) {
+  if (expectedAccount && process.env.CDK_DEFAULT_ACCOUNT !== expectedAccount) {
     throw new Error("Wrong account!");
   }
 
   Tags.of(app).add("STAGE", stage);
   Tags.of(app).add("PROJECT", project);
 
-  if (stage == "bootstrap") {
+  if (stage === "bootstrap") {
     new BootstrapStack(app, `${config.project}-${stage}`, {
       ...config,
       env: {
@@ -79,7 +79,7 @@ export async function main(passedContext?: { [key: string]: any }) {
     },
   });
 
-  if (app.node.tryGetContext("db") == "include") {
+  if (app.node.tryGetContext("db") === "include") {
     const database = new DatabaseStack(app, `${project}-${stage}-database`, {
       ...config,
       env: {
@@ -93,29 +93,7 @@ export async function main(passedContext?: { [key: string]: any }) {
     database.addStackDependency(core);
   }
 
-  if (app.node.tryGetContext("pmda") == "include") {
-    const pmda = new PMDATransfer(app, `${project}-${stage}-pmda-transfer`, {
-      ...config,
-      env: {
-        account: process.env.CDK_DEFAULT_ACCOUNT,
-        region: process.env.CDK_DEFAULT_REGION,
-      },
-    });
-    pmda.addStackDependency(core);
-  }
-
-  if (app.node.tryGetContext("pmda") == "include") {
-    const pmda = new PMDATransfer(app, `${project}-${stage}-pmda-transfer`, {
-      ...config,
-      env: {
-        account: process.env.CDK_DEFAULT_ACCOUNT,
-        region: process.env.CDK_DEFAULT_REGION,
-      },
-    });
-    pmda.addDependency(core);
-  }
-
-  if (app.node.tryGetContext("pmda") == "include") {
+  if (app.node.tryGetContext("pmda") === "include") {
     const pmda = new PMDATransfer(app, `${project}-${stage}-pmda-transfer`, {
       ...config,
       env: {
@@ -176,7 +154,7 @@ export async function main(passedContext?: { [key: string]: any }) {
   }
 
   // Applying only in DEV temporarily to test backup processes
-  if (stage == "dev") {
+  if (stage === "dev") {
     new BackupStack(app, `${project}-${stage}-backup`, {
       ...config,
       env: {
