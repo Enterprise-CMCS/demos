@@ -1,8 +1,32 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.25.0
+version: v1.25.1
 patch: {}
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
-ignore: []
+ignore:
+  SNYK-CC-TF-69:
+    - "./bootstrap-template.yaml > [DocId: 0] > Resources[CdkBoostrapPermissionsBoundaryPolicy] > Properties > PolicyDocument":
+        reason: >-
+          This policy is recommended by AWS in their template:
+          https://github.com/aws/aws-cdk-cli/blob/main/packages/aws-cdk/lib/api/bootstrap/bootstrap-template.yaml\#L753
+        created: 2026-09-28T16:47:32.227Z
+  SNYK-CC-AWS-709:
+    - "./bootstrap-template.yaml > [DocId: 0] > Resources[FileAssetsBucketEncryptionKey] > Properties > KeyPolicy":
+        reason: >-
+          This policy is recommended by AWS in their template:
+          https://github.com/aws/aws-cdk-cli/blob/main/packages/aws-cdk/lib/api/bootstrap/bootstrap-template.yaml#L132
+        created: 2026-09-28T16:47:32.227Z
+  SNYK-CC-TF-14:
+    - "./bootstrap-template.yaml > [DocId: 0] > Resources > FileAssetsBucketEncryptionKey > Properties > EnableKeyRotation":
+        reason: >-
+          This policy is recommended by AWS in their template:
+          https://github.com/aws/aws-cdk-cli/blob/main/packages/aws-cdk/lib/api/bootstrap/bootstrap-template.yaml#L132
+        created: 2026-09-28T16:47:32.227Z
+  SNYK-CC-TF-45:
+    - "./bootstrap-template.yaml > [DocId: 0] > Resources > StagingBucket > Properties > LoggingConfiguration":
+        reason: >-
+          This policy is recommended by AWS in their template:
+          https://github.com/aws/aws-cdk-cli/blob/main/packages/aws-cdk/lib/api/bootstrap/bootstrap-template.yaml#L195
+        created: 2026-09-28T16:47:32.227Z
 exclude:
   global:
     - node_modules
