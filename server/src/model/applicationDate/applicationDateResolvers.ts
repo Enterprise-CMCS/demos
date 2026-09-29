@@ -77,7 +77,7 @@ export const applicationDateResolvers = {
   },
   ApplicationDate: {
     dateType: (parent: PrismaApplicationDate): DateType => parent.dateTypeId as DateType,
-    plainDateValue: (parent: PrismaApplicationDate): string =>
+    dateValuePlain: (parent: PrismaApplicationDate): string =>
       formatDateToPlainDate(parent.dateValue),
   },
 };
