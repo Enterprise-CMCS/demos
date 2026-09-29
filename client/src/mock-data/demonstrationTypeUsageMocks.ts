@@ -13,29 +13,8 @@ export const MOCK_1115_WAIVER: DemonstrationTypeUsageSummary = {
   countOfAssignedDeliverables: 7,
 };
 
-export const MOCK_MEDICAID_TRANSFORMATION: DemonstrationTypeUsageSummary = {
-  ...MOCK_1115_WAIVER,
-  demonstrationTypeName: "Medicaid Transformation",
-  approvalStatus: "Approved",
-};
-
-export const MOCK_DELIVERY_SYSTEM_REFORM: DemonstrationTypeUsageSummary = {
-  ...MOCK_1115_WAIVER,
-  demonstrationTypeName: "Delivery System Reform",
-  approvalStatus: "Unapproved",
-};
-
-export const MOCK_HEALTH_INNOVATION: DemonstrationTypeUsageSummary = {
-  ...MOCK_1115_WAIVER,
-  demonstrationTypeName: "Health Innovation Initiative",
-  approvalStatus: "Approved",
-};
-
 export const MOCK_DEMONSTRATION_TYPE_USAGE: DemonstrationTypeUsageSummary[] = [
   MOCK_1115_WAIVER,
-  MOCK_MEDICAID_TRANSFORMATION,
-  MOCK_DELIVERY_SYSTEM_REFORM,
-  MOCK_HEALTH_INNOVATION,
   {
     ...MOCK_1115_WAIVER,
     demonstrationTypeName: MOCK_TAGS[1].tagName,
