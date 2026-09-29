@@ -144,6 +144,7 @@ import {
   DateTimeTypeDefinition,
   JSONObjectDefinition,
   NonEmptyStringTypeDefinition,
+  LocalDateTypeDefinition,
 } from "graphql-scalars";
 import { customScalarResolvers } from "../customScalarResolvers.js";
 import { clearanceLevelSchema } from "./clearanceLevel/clearanceLeveSchema.js";
@@ -155,6 +156,7 @@ const scalarTypes = [
   JSONObjectDefinition,
   DateTimeTypeDefinition,
   NonEmptyStringTypeDefinition,
+  LocalDateTypeDefinition,
   "scalar DateTimeOrLocalDate",
 ];
 
