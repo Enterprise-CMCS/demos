@@ -226,5 +226,12 @@ describe("DemosRouter", () => {
       render(<DemosRouter />);
       await waitFor(() => expect(screen.queryByText("AdminPage")).not.toBeInTheDocument());
     });
+
+    it("blocks access to the admin page for CMS Reviewer users", async () => {
+      currentUserState.currentUser.person.personType = "demos-cms-reviewer-user";
+      window.history.pushState({}, "Admin", "/admin");
+      render(<DemosRouter />);
+      await waitFor(() => expect(screen.queryByText("AdminPage")).not.toBeInTheDocument());
+    });
   });
 });
