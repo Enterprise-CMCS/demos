@@ -50,11 +50,10 @@ export interface SetApplicationDatesInput {
   applicationDates: ApplicationDateInput[];
 }
 
-type LocalDate = string;
 export interface ApplicationDate {
   dateType: DateType;
   dateValue: Date;
-  dateValuePlain: LocalDate;
+  dateValuePlain: string;
   createdAt: Date;
   updatedAt: Date;
 }
