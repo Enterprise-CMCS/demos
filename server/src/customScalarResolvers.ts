@@ -102,6 +102,7 @@ const TagNameResolver = new GraphQLScalarType({
 export const customScalarResolvers = {
   DateTime: DateTimeResolver,
   DateTimeOrLocalDate: DateTimeOrLocalDateResolver,
+  LocalDate: LocalDateResolver,
   NonEmptyString: NonEmptyStringResolver,
   TagName: TagNameResolver,
 };
