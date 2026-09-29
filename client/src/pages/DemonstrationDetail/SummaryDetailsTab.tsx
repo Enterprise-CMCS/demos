@@ -13,7 +13,7 @@ export const SummaryDetailsTab: React.FC<{ demonstrationId: string }> = ({ demon
   return (
     <>
       <TabHeader title="Summary Details">
-        {!isReadonly(currentUser) && (
+        {!isReadonly(currentUser, "ApplicationWorkflow") && (
           <IconButton
             icon={<EditIcon />}
             name="button-edit-details"

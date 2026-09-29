@@ -42,7 +42,7 @@ export const ContactsTab: React.FC<{ demonstration: Demonstration }> = ({ demons
   return (
     <>
       <TabHeader title="Contacts">
-        {!isReadonly(currentUser) && (
+        {!isReadonly(currentUser, "ApplicationWorkflow") && (
           <IconButton
             icon={<EditIcon />}
             name="manage-contacts"

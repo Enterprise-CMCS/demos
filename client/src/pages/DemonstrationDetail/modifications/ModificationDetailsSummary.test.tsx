@@ -5,7 +5,7 @@ import { ModificationDetailsSummary } from "./ModificationDetailsSummary";
 import { ModificationItem } from "./ModificationTabs";
 import { TestProvider } from "test-utils/TestProvider";
 import { DEMONSTRATION_DETAIL_QUERY } from "../DemonstrationDetail";
-import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { cmsMockUser, cmsReviewerMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 const showUpdateAmendmentDialog = vi.fn();
 const showUpdateRenewalDialog = vi.fn();
@@ -205,6 +205,12 @@ describe("ModificationDetailsSummary", () => {
   describe("Readonly User Behavior", () => {
     it("does not render the Edit Details button for readonly users", () => {
       renderModificationDetailsSummary(mockAmendment, readonlyMockUser);
+      const editButton = screen.queryByRole("button", { name: /button-edit-details/i });
+      expect(editButton).not.toBeInTheDocument();
+    });
+
+    it("does not render the Edit Details button for CMS Reviewer users", () => {
+      renderModificationDetailsSummary(mockAmendment, cmsReviewerMockUser);
       const editButton = screen.queryByRole("button", { name: /button-edit-details/i });
       expect(editButton).not.toBeInTheDocument();
     });

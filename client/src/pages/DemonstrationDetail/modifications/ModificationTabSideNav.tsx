@@ -60,7 +60,7 @@ export const ModificationTabSideNav = ({
         label={`Documents (${modificationItem.documents?.length ?? 0})`}
       >
         <TabHeader title="Documents">
-          {!isReadonly(currentUser) && (
+          {!isReadonly(currentUser, "ApplicationWorkflow") && (
             <IconButton
               icon={<AddNewIcon />}
               name="add-new-document"
