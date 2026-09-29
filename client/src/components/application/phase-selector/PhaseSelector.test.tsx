@@ -340,7 +340,7 @@ describe("getDisplayedPhaseDate", () => {
   it("does not match 'Completeness Start Date' as a completion date", () => {
     const completionDateString = "2025-03-15";
     const completionDate = new Date(completionDateString);
-    const completenessStartDateString = "2025-03-15";
+    const completenessStartDateString = "2025-01-01";
     const completenessStartDate = new Date(completenessStartDateString);
 
     const demonstration: ApplicationWorkflowDemonstration = {
