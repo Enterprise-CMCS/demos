@@ -5,7 +5,7 @@ export const applicationDateSchema = gql`
   type ApplicationDate {
     dateType: DateType!
     dateValue: DateTime!
-    dateValuePlain: LocalDate!
+    plainDate: LocalDate!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -53,7 +53,7 @@ export interface SetApplicationDatesInput {
 export interface ApplicationDate {
   dateType: DateType;
   dateValue: Date;
-  dateValuePlain: string;
+  plainDate: string;
   createdAt: Date;
   updatedAt: Date;
 }

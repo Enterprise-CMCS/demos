@@ -81,13 +81,13 @@ describe("applicationDateResolvers", () => {
     });
   });
 
-  describe("ApplicationDate.dateValuePlain", () => {
+  describe("ApplicationDate.plainDate", () => {
     it("defers to formatDateToPlainDate", () => {
       const applicationDate = {
         dateValue: new Date("2026-09-24 08:58:17.847 -0400"),
       } as PrismaApplicationDate;
 
-      applicationDateResolvers.ApplicationDate.dateValuePlain(applicationDate);
+      applicationDateResolvers.ApplicationDate.plainDate(applicationDate);
       expect(formatDateToPlainDate).toHaveBeenCalledWith(applicationDate.dateValue);
     });
   });
