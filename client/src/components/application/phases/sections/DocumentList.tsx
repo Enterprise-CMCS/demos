@@ -23,6 +23,7 @@ export const DocumentList = ({
           document={doc}
           key={doc.id}
           onRemove={() => showRemoveApplicationDocumentsDialog([doc.id])}
+          applicationSection="ApplicationWorkflow"
         />
       ))}
     </div>

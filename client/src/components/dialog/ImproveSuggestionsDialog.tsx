@@ -115,7 +115,12 @@ export const ImproveSuggestionsDialog = ({
           <p className="text-md font-semibold">Selected Tag</p>
           <div className="flex flex-wrap gap-1 min-h-8">
             {selectedTags.map((tag) => (
-              <TagChip key={tag.tagName} tag={tag} onRemoveTag={() => setSelectedTags([])} />
+              <TagChip
+                key={tag.tagName}
+                tag={tag}
+                onRemoveTag={() => setSelectedTags([])}
+                applicationSection="ApplicationWorkflow"
+              />
             ))}
           </div>
         </div>
