@@ -32,16 +32,20 @@ describe("TypeTagManagement", () => {
   it("displays the type/tag list table with data", async () => {
     setup();
 
-    expect(screen.getByRole("table")).toBeInTheDocument();
+    expect(await screen.findByRole("table")).toBeInTheDocument();
     // Verify the first type/tag is visible in a row
-    expect(screen.getByRole("row", { name: new RegExp(FIRST_TYPE_TAG_NAME) })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("row", { name: new RegExp(FIRST_TYPE_TAG_NAME) })
+    ).toBeInTheDocument();
   });
 
   it("opens the associated records view when View button is clicked", async () => {
     const user = userEvent.setup();
     setup();
 
-    const firstTypeTagRow = screen.getByRole("row", { name: new RegExp(FIRST_TYPE_TAG_NAME) });
+    const firstTypeTagRow = await screen.findByRole("row", {
+      name: new RegExp(FIRST_TYPE_TAG_NAME),
+    });
     const viewButton = within(firstTypeTagRow).getByRole("button", { name: /View/i });
 
     await user.click(viewButton);
@@ -54,7 +58,9 @@ describe("TypeTagManagement", () => {
     const user = userEvent.setup();
     setup("/admin");
 
-    const firstTypeTagRow = screen.getByRole("row", { name: new RegExp(FIRST_TYPE_TAG_NAME) });
+    const firstTypeTagRow = await screen.findByRole("row", {
+      name: new RegExp(FIRST_TYPE_TAG_NAME),
+    });
     const viewButton = within(firstTypeTagRow).getByRole("button", { name: /View/i });
 
     await user.click(viewButton);
@@ -64,7 +70,7 @@ describe("TypeTagManagement", () => {
     await user.click(backButton);
 
     expect(screen.queryByTestId(RECORD_COUNT_TEST_ID)).not.toBeInTheDocument();
-    expect(screen.getByRole("table")).toBeInTheDocument();
+    expect(await screen.findByRole("table")).toBeInTheDocument();
   });
 
   it("leaves Admin in one Close Admin click after navigating between views", async () => {
@@ -88,7 +94,9 @@ describe("TypeTagManagement", () => {
       </TestProvider>
     );
 
-    const firstTypeTagRow = screen.getByRole("row", { name: new RegExp(FIRST_TYPE_TAG_NAME) });
+    const firstTypeTagRow = await screen.findByRole("row", {
+      name: new RegExp(FIRST_TYPE_TAG_NAME),
+    });
     const viewButton = within(firstTypeTagRow).getByRole("button", { name: /View/i });
 
     await user.click(viewButton);

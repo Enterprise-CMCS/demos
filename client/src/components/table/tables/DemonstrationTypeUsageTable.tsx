@@ -1,7 +1,7 @@
-import React, { useMemo } from "react";
+import React from "react";
+import { gql, useQuery } from "@apollo/client";
 import { DemonstrationTypeUsageSummary } from "demos-server";
 import { SecondaryButton } from "components/button";
-import { MOCK_DEMONSTRATION_TYPE_USAGE } from "mock-data/demonstrationTypeUsageMocks";
 import {
   Table,
   PaginationControls,
@@ -10,6 +10,23 @@ import {
   ColumnFilter,
 } from "components/table";
 import { TypeTagActionButtons } from "./TypeTagActionButtons";
+import { Loading } from "components/loading/Loading";
+
+export const GET_DEMONSTRATION_TYPE_USAGE_QUERY = gql`
+  query GetDemonstrationTypeUsage {
+    demonstrationTypeUsageSummary {
+      demonstrationTypeName
+      approvalStatus
+      countOfTaggedApplications {
+        demonstrations
+        amendments
+        renewals
+      }
+      countOfAssignedDemonstrations
+      countOfAssignedDeliverables
+    }
+  }
+`;
 
 export type DemonstrationTypeUsageRow = DemonstrationTypeUsageSummary & {
   id: string;
@@ -62,25 +79,25 @@ export const DemonstrationTypeUsageTable = ({
 }: {
   onSelectTypeTag: (tagName: string) => void;
 }) => {
-  // TODO: Replace this with server data in integration ticket
-  const rows = useMemo(
-    () =>
-      MOCK_DEMONSTRATION_TYPE_USAGE.map((item) => ({
-        ...item,
-        id: item.demonstrationTypeName,
-      })).sort((a, b) => a.demonstrationTypeName.localeCompare(b.demonstrationTypeName)),
-    []
-  );
+  const { data, loading, error } = useQuery<{
+    demonstrationTypeUsageSummary: DemonstrationTypeUsageSummary[];
+  }>(GET_DEMONSTRATION_TYPE_USAGE_QUERY);
 
-  const columns = useMemo(
-    () => createDemonstrationTypeUsageColumns(onSelectTypeTag),
-    [onSelectTypeTag]
-  );
+  if (loading) return <Loading />;
+
+  if (error) return <div>Error loading demonstration type usage: {error.message}</div>;
+
+  const rows = (data?.demonstrationTypeUsageSummary ?? [])
+    .map((item) => ({
+      ...item,
+      id: item.demonstrationTypeName,
+    }))
+    .sort((a, b) => a.demonstrationTypeName.localeCompare(b.demonstrationTypeName));
 
   return (
     <Table<DemonstrationTypeUsageRow>
       data={rows}
-      columns={columns}
+      columns={createDemonstrationTypeUsageColumns(onSelectTypeTag)}
       keywordSearch={(table) => <KeywordSearch table={table} />}
       columnFilter={(table) => <ColumnFilter table={table} />}
       pagination={(table) => <PaginationControls table={table} />}

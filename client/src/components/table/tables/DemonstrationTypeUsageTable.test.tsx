@@ -35,16 +35,17 @@ const setup = () => {
 
 const getEditButton = () => screen.getByTestId(EDIT_TYPE_TAG_BUTTON_NAME);
 
-const selectTypeTag = (user: ReturnType<typeof userEvent.setup>, typeTagName: string) =>
+const selectTypeTag = async (user: ReturnType<typeof userEvent.setup>, typeTagName: string) =>
   user.click(
-    within(screen.getByRole("row", { name: new RegExp(typeTagName) })).getByRole("checkbox")
+    within(await screen.findByRole("row", { name: new RegExp(typeTagName) })).getByRole("checkbox")
   );
 
 describe("DemonstrationTypeUsageTable", () => {
   describe("Edit action", () => {
-    it("is disabled with a selection prompt when no type/tag is selected", () => {
+    it("is disabled with a selection prompt when no type/tag is selected", async () => {
       setup();
 
+      await screen.findByRole("table");
       expect(getEditButton()).toBeDisabled();
       expect(getEditButton()).toHaveAttribute("title", EDIT_TYPE_TAG_DISABLED_TOOLTIP);
     });
@@ -52,6 +53,7 @@ describe("DemonstrationTypeUsageTable", () => {
     it("is enabled when exactly one type/tag is selected", async () => {
       const user = setup();
 
+      await screen.findByRole("table");
       await selectTypeTag(user, FIRST_TYPE_TAG_NAME);
 
       expect(getEditButton()).toBeEnabled();
@@ -61,6 +63,7 @@ describe("DemonstrationTypeUsageTable", () => {
     it("is disabled with a selection prompt when more than one type/tag is selected", async () => {
       const user = setup();
 
+      await screen.findByRole("table");
       await selectTypeTag(user, FIRST_TYPE_TAG_NAME);
       await selectTypeTag(user, SECOND_TYPE_TAG_NAME);
 
@@ -71,6 +74,7 @@ describe("DemonstrationTypeUsageTable", () => {
     it("opens the Edit Type/Tag dialog with the selected type/tag", async () => {
       const user = setup();
 
+      await screen.findByRole("table");
       await selectTypeTag(user, FIRST_TYPE_TAG_NAME);
       await user.click(getEditButton());
 
@@ -81,6 +85,7 @@ describe("DemonstrationTypeUsageTable", () => {
     it("checks the new display text against the other type/tags in the table", async () => {
       const user = setup();
 
+      await screen.findByRole("table");
       await selectTypeTag(user, FIRST_TYPE_TAG_NAME);
       await user.click(getEditButton());
       await user.clear(screen.getByTestId(TYPE_TAG_DISPLAY_TEXT_INPUT_NAME));
