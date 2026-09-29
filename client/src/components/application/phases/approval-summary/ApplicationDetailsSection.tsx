@@ -79,7 +79,7 @@ export const ApplicationDetailsSection = ({
   medicaidId?: string;
 }) => {
   const { currentUser } = getCurrentUser();
-  const userIsReadonly = isReadonly(currentUser);
+  const userIsReadonly = isReadonly(currentUser, "ApplicationWorkflow");
 
   const capitalizedType =
     sectionFormData.applicationType.charAt(0).toUpperCase() +

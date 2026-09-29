@@ -57,6 +57,91 @@ describe("UserContext", () => {
 
       expect(isReadonly(stateUser)).toBe(false);
     });
+
+    it("returns true when personType is 'demos-cms-reviewer-user' in ApplicationWorkflow section", () => {
+      const reviewerUser: CurrentUser = {
+        id: "user-4",
+        username: "reviewer-user",
+        person: {
+          id: "person-4",
+          personType: "demos-cms-reviewer-user",
+          fullName: "Reviewer User",
+          firstName: "Reviewer",
+          lastName: "User",
+          email: "reviewer@example.com",
+        },
+      };
+
+      expect(isReadonly(reviewerUser, "ApplicationWorkflow")).toBe(true);
+    });
+
+    it("returns true when personType is 'demos-restricted-cms-user' even in Homepage section", () => {
+      const readonlyUser: CurrentUser = {
+        id: "user-5",
+        username: "readonly-user",
+        person: {
+          id: "person-5",
+          personType: "demos-restricted-cms-user",
+          fullName: "Readonly User",
+          firstName: "Readonly",
+          lastName: "User",
+          email: "readonly@example.com",
+        },
+      };
+
+      expect(isReadonly(readonlyUser, "Homepage")).toBe(true);
+    });
+
+    it("returns false when personType is 'demos-cms-reviewer-user' in Homepage", () => {
+      const reviewerUser: CurrentUser = {
+        id: "user-6",
+        username: "reviewer-user",
+        person: {
+          id: "person-6",
+          personType: "demos-cms-reviewer-user",
+          fullName: "Reviewer User",
+          firstName: "Reviewer",
+          lastName: "User",
+          email: "reviewer@example.com",
+        },
+      };
+
+      expect(isReadonly(reviewerUser, "Homepage")).toBe(false);
+    });
+
+    it("returns false for other user types in ApplicationWorkflow section", () => {
+      const adminUser: CurrentUser = {
+        id: "user-7",
+        username: "admin-user",
+        person: {
+          id: "person-7",
+          personType: "demos-admin",
+          fullName: "Admin User",
+          firstName: "Admin",
+          lastName: "User",
+          email: "admin@example.com",
+        },
+      };
+
+      expect(isReadonly(adminUser, "Homepage")).toBe(false);
+    });
+
+    it("returns false when personType is 'demos-cms-reviewer-user' in Homepage section", () => {
+      const reviewerUser: CurrentUser = {
+        id: "user-8",
+        username: "reviewer-user",
+        person: {
+          id: "person-8",
+          personType: "demos-cms-reviewer-user",
+          fullName: "Reviewer User",
+          firstName: "Reviewer",
+          lastName: "User",
+          email: "reviewer@example.com",
+        },
+      };
+
+      expect(isReadonly(reviewerUser, "Homepage")).toBe(false);
+    });
   });
 
   describe("getCurrentUser", () => {

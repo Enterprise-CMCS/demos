@@ -131,7 +131,7 @@ const UploadSection = ({
 }) => {
   const { showApplicationIntakeDocumentUploadDialog } = useDialog();
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonly(currentUser);
+  const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
 
   return (
     <div aria-labelledby="state-application-upload-title">
@@ -202,7 +202,7 @@ const VerifyCompleteSection = ({
   isPhaseFinalized,
 }: VerifyCompleteSectionProps) => {
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonly(currentUser);
+  const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
   const completenessReviewDueDate = stateApplicationSubmittedDate
     ? getCompletenessReviewDueDate(stateApplicationSubmittedDate)
     : "";
@@ -319,7 +319,7 @@ export const ApplicationIntakePhase = ({
   completenessPhaseStatus,
 }: ApplicationIntakeProps) => {
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonly(currentUser);
+  const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
   const completenessIncomplete = completenessPhaseStatus === "Incomplete";
   const { showSuccess, showError } = useToast();
   const { completePhase } = useCompletePhase();

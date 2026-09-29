@@ -126,6 +126,7 @@ export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({
                 onRemoveTag={() =>
                   setSelectedTags(selectedTags.filter((t) => t.tagName !== tag.tagName))
                 }
+                applicationSection="ApplicationWorkflow"
               />
             ))}
             {selectedTags.length === 0 && (
