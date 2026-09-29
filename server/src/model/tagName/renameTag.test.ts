@@ -43,6 +43,20 @@ describe("renameTag", () => {
     );
   });
 
+  it("should trim leading and trailing whitespace from the new name but not old name", async () => {
+    await renameTag("  Old Name  ", "  New Name  ");
+    expect(validateRenameTagInput).toHaveBeenCalledExactlyOnceWith(
+      "  Old Name  ",
+      "New Name",
+      mockTransaction
+    );
+    expect(updateTagName).toHaveBeenCalledExactlyOnceWith(
+      { id: "  Old Name  " },
+      { id: "New Name" },
+      mockTransaction
+    );
+  });
+
   it("should return the updated tag name with correct properties", async () => {
     const mockUpdatedTag = { id: "New Tag Name" };
     vi.mocked(updateTagName).mockResolvedValue(mockUpdatedTag as any);
