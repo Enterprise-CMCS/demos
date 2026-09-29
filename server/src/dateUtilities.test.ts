@@ -167,6 +167,25 @@ describe("dateUtilities", () => {
       expect(formatDateToPlainDate(TEST_DATES.sameDayUTCEastern.utcDate!)).toBe("2025-01-19");
     });
 
+    it("should format the same plain date regardless of the runtime's local timezone", () => {
+      const originalTZ = process.env.TZ;
+      const instant = new Date(Date.UTC(2025, 0, 19, 15, 32, 14, 877));
+
+      try {
+        for (const runtimeTZ of [
+          "UTC",
+          "America/Los_Angeles",
+          "Asia/Tokyo",
+          "Pacific/Kiritimati",
+        ]) {
+          process.env.TZ = runtimeTZ;
+          expect(formatDateToPlainDate(instant)).toBe("2025-01-19");
+        }
+      } finally {
+        process.env.TZ = originalTZ;
+      }
+    });
+
     it("should use the Eastern day when it differs from the UTC day in EST", () => {
       expect(formatDateToPlainDate(TEST_DATES.differentDayInEST.utcDate!)).toBe("2025-01-15");
     });
