@@ -223,10 +223,10 @@ describe("DemosRouter", () => {
     it.each(["demos-state-user", "demos-cms-reviewer-user"] as const)(
       "blocks access to the admin page for %s",
       async (personType) => {
-      currentUserState.currentUser.person.personType = personType;
-      window.history.pushState({}, "Admin", "/admin");
-      render(<DemosRouter />);
-      await waitFor(() => expect(screen.queryByText("AdminPage")).not.toBeInTheDocument());
+        currentUserState.currentUser.person.personType = personType;
+        window.history.pushState({}, "Admin", "/admin");
+        render(<DemosRouter />);
+        await waitFor(() => expect(screen.queryByText("AdminPage")).not.toBeInTheDocument());
       }
     );
   });
