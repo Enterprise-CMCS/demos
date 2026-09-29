@@ -22,6 +22,11 @@ const readonlyUser: CurrentUser = {
   person: { ...developmentMockUser.person, personType: "demos-restricted-cms-user" },
 };
 
+const cmsReviewerUser: CurrentUser = {
+  ...developmentMockUser,
+  person: { ...developmentMockUser.person, personType: "demos-cms-reviewer-user" },
+};
+
 const setup = (
   currentUser = adminUser,
   routerEntries: MemoryRouterProps["initialEntries"] = ["/"]
@@ -47,6 +52,11 @@ describe("QuickLinks", () => {
 
     it("does not render the Admin link for a readonly user", () => {
       setup(readonlyUser);
+      expect(screen.queryByTestId(ADMIN_LINK_NAME)).not.toBeInTheDocument();
+    });
+
+    it("does not render the Admin link for a CMS Reviewer user", () => {
+      setup(cmsReviewerUser);
       expect(screen.queryByTestId(ADMIN_LINK_NAME)).not.toBeInTheDocument();
     });
 

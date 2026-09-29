@@ -62,7 +62,11 @@ export const FILE_DELETION_ALLOWED_STATUSES: ReadonlySet<DeliverableStatus> = ne
   "Past Due",
 ]);
 
-const CMS_STAFF_PERSON_TYPES: ReadonlySet<PersonType> = new Set(["demos-admin", "demos-cms-user"]);
+const CMS_STAFF_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
+  "demos-admin",
+  "demos-cms-user",
+  "demos-cms-reviewer-user",
+]);
 
 const TABS = {
   STATE_FILES: "state_files",
