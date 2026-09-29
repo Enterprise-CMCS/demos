@@ -12,7 +12,7 @@ import {
 import { TypeTagActionButtons } from "./TypeTagActionButtons";
 import { Loading } from "components/loading/Loading";
 
-const GET_DEMONSTRATION_TYPE_USAGE_QUERY = gql`
+export const GET_DEMONSTRATION_TYPE_USAGE_QUERY = gql`
   query GetDemonstrationTypeUsage {
     demonstrationTypeUsageSummary {
       demonstrationTypeName
@@ -27,8 +27,6 @@ const GET_DEMONSTRATION_TYPE_USAGE_QUERY = gql`
     }
   }
 `;
-
-export { GET_DEMONSTRATION_TYPE_USAGE_QUERY };
 
 export type DemonstrationTypeUsageRow = DemonstrationTypeUsageSummary & {
   id: string;
@@ -104,7 +102,7 @@ export const DemonstrationTypeUsageTable = ({
       columnFilter={(table) => <ColumnFilter table={table} />}
       pagination={(table) => <PaginationControls table={table} />}
       actionButtons={(table) => <TypeTagActionButtons table={table} />}
-      emptyRowsMessage={"No demonstration types available."}
+      emptyRowsMessage="No demonstration types available."
       noResultsFoundMessage="No results match your search"
     />
   );
