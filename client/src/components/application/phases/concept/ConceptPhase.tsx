@@ -140,7 +140,7 @@ export const ConceptPhase = ({
   const [isSkipEnabled, setIsSkipEnabled] = useState<boolean>(true);
 
   const isPhaseFinalized = phaseStatus === "Completed" || phaseStatus === "Skipped";
-  const isReadonlyUser = isReadonly(currentUser);
+  const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
 
   // Calculate the submitted date based on documents
   const calculatedSubmittedDate = calculatePresubmissionDate(

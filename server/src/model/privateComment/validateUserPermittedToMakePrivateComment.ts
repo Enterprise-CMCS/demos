@@ -8,6 +8,7 @@ export function validateUserPermittedToMakePrivateComment(
   const allowedPrivateCommenters: UserType[] = [
     "demos-admin",
     "demos-cms-user",
+    "demos-cms-reviewer-user",
   ] satisfies AllowedPrivateCommenters[];
   if (!allowedPrivateCommenters.includes(context.user.personTypeId)) {
     throw new Error(

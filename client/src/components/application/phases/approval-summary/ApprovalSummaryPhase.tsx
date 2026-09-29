@@ -250,7 +250,7 @@ export const ApprovalSummaryPhase = ({
   const { showConfirmApproveDialog } = useDialog();
   const { showSuccess, showError } = useToast();
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = userIsReadonly(currentUser);
+  const isReadonlyUser = userIsReadonly(currentUser, "ApplicationWorkflow");
 
   // Find Application Details completion date from phase dates
   const applicationDetailsCompleteDate = approvalSummaryPhase?.phaseDates?.find(

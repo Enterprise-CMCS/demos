@@ -130,8 +130,9 @@ erDiagram
   deliverable }|--|| approved_application_status_limit : "FK100"
   amendment }|--|| approved_application_status_limit : "FK159"
   extension }|--|| approved_application_status_limit : "FK160"
-  cms_user_person_type_limit ||--|{ deliverable : "FK101"
+  deliverable_owner_person_type_limit ||--|{ deliverable : "FK101"
   person_type ||--|| cms_user_person_type_limit : "FK102"
+  person_type ||--|| deliverable_owner_person_type_limit : "FK175"
   users ||--|{ deliverable : "FK103"
   deliverable ||--|{ deliverable_action : "FK109"
   deliverable_action }|--|| deliverable_extension : "FK128"
@@ -147,7 +148,7 @@ erDiagram
   deliverable ||--|{ public_comment : "FK105"
   users ||--|{ private_comment : "FK106"
   users ||--|{ public_comment : "FK107"
-  cms_user_person_type_limit ||--|{ private_comment : "FK108"
+  deliverable_owner_person_type_limit ||--|{ private_comment : "FK108"
   users ||--|{ deliverable_action : "FK112"
   email_notification_type_entity_type ||--|{ email_notification : "FK163"
   application ||--|{ email_notification : "FK164"
@@ -359,6 +360,10 @@ erDiagram
   deliverable_active_extension_status_limit:::typeLimiter {
     text id PK, FK "FK126: id ∈ deliverable_extension_status.id"
   }
+  
+  deliverable_owner_person_type_limit:::typeLimiter {
+    text id PK, FK "FK175: id ∈ person_type.id"
+  }
 
   deliverable_submission_action_type_limit:::typeLimiter {
     text id PK, FK "FK115: id ∈ deliverable_action_type.id"
@@ -517,7 +522,7 @@ erDiagram
     text demonstration_status_id FK "FK006: (demonstration_id, demonstration_status_id) ∈ demonstration.(id, status_id)<br>FK100: demonstration_status_id ∈ approved_application_status_limit.id"
     text status_id FK "FK089: status_id ∈ deliverable_status.id"
     uuid cms_owner_user_id FK "FK103: (cms_owner_user_id, cms_owner_person_type_id) ∈ users.(id, person_type_id)"
-    text cms_owner_person_type_id FK "FK103: (cms_owner_user_id, cms_owner_person_type_id) ∈ users.(id, person_type_id)<br>FK101: cms_owner_person_type_id ∈ cms_user_person_type_limit.id"
+    text cms_owner_person_type_id FK "FK103: (cms_owner_user_id, cms_owner_person_type_id) ∈ users.(id, person_type_id)<br>FK101: cms_owner_person_type_id ∈ deliverable_owner_person_type_limit.id"
     timestamptz due_date
     text due_date_type_id FK "FK090: due_date_type_id ∈ deliverable_due_date_type.id"
     bool expected_to_be_submitted
@@ -786,7 +791,7 @@ erDiagram
     uuid id PK
     uuid deliverable_id FK "FK104: deliverable_id ∈ deliverable.id"
     uuid author_user_id FK "FK106: (author_user_id, author_person_type_id) ∈ users.(id, person_type_id)"
-    text author_person_type_id FK "FK106: (author_user_id, author_person_type_id) ∈ users.(id, person_type_id)<br>FK108: author_person_type_id ∈ cms_user_person_type_limit.id"
+    text author_person_type_id FK "FK106: (author_user_id, author_person_type_id) ∈ users.(id, person_type_id)<br>FK108: author_person_type_id ∈ deliverable_owner_person_type_limit.id"
     text content
     timestamptz created_at
     timestamptz updated_at
