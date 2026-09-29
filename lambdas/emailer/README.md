@@ -112,8 +112,10 @@ The Lambda changes only notifications currently marked `Queued` to `Sent` or
 ```text
 emails/
 |-- components/
-|   |-- DeliverableEmailLayout.tsx
-|   |-- DeliverableLink.tsx
+|   |-- deliverable/
+|   |   |-- EmailLayout.tsx
+|   |   |-- DeliverableLink.tsx
+|   |   `-- PublicComment.tsx
 |   |-- EmailLayout.tsx
 |   `-- styles.ts
 |-- templates/
@@ -144,8 +146,9 @@ emails/
 
 `renderEmail.tsx` selects one concrete template. The selected template keeps
 its input as `unknown` until it has validated the objects and strings it uses.
-`DeliverableEmailLayout.tsx` only renders required, typed values and contains
-no email-type branches or payload validation.
+`components/deliverable/EmailLayout.tsx` renders required, typed values and contains
+no email-type branches or payload validation. `PublicComment.tsx` renders the
+comment email with only demonstration, state, and deliverable detail fields.
 
 `MultipleDeliverablesCreatedEmail.tsx` requires at least two deliverables,
 requires one shared deliverable type, and renders a link and due date for each

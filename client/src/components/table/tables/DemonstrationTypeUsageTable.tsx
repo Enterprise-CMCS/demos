@@ -2,7 +2,13 @@ import React, { useMemo } from "react";
 import { DemonstrationTypeUsageSummary } from "demos-server";
 import { SecondaryButton } from "components/button";
 import { MOCK_DEMONSTRATION_TYPE_USAGE } from "mock-data/demonstrationTypeUsageMocks";
-import { Table, PaginationControls, KeywordSearch, getColumnBuilder } from "components/table";
+import {
+  Table,
+  PaginationControls,
+  KeywordSearch,
+  getColumnBuilder,
+  ColumnFilter,
+} from "components/table";
 import { TypeTagActionButtons } from "./TypeTagActionButtons";
 
 export type DemonstrationTypeUsageRow = DemonstrationTypeUsageSummary & {
@@ -12,21 +18,50 @@ export type DemonstrationTypeUsageRow = DemonstrationTypeUsageSummary & {
 const { createColumn, createDisplayColumn, createSelectColumn } =
   getColumnBuilder<DemonstrationTypeUsageRow>();
 
-const demonstrationTypeUsageColumns = [
+const createDemonstrationTypeUsageColumns = (onSelectTypeTag: (tagName: string) => void) => [
   createSelectColumn(),
-  createColumn((row) => row.demonstrationTypeName, "Type/Tag Name"),
-  createColumn((row) => (row.approvalStatus === "Approved" ? "Approved" : "Pending"), "Status"),
-  createColumn((row) => row.countOfTaggedApplications.demonstrations, "Demonstrations"),
-  createColumn((row) => row.countOfTaggedApplications.amendments, "Amendments"),
-  createColumn((row) => row.countOfTaggedApplications.renewals, "Renewals"),
-  createColumn((row) => row.countOfAssignedDemonstrations, "Demo Types"),
-  createColumn((row) => row.countOfAssignedDeliverables, "Deliverables"),
+  createColumn((row) => row.demonstrationTypeName, "Type/Tag Name", {
+    enableColumnFilter: false,
+  }),
+  createColumn((row) => (row.approvalStatus === "Approved" ? "Approved" : "Pending"), "Status", {
+    filterConfig: {
+      filterType: "select",
+      options: [
+        { label: "Approved", value: "Approved" },
+        { label: "Pending", value: "Pending" },
+      ],
+    },
+  }),
+  createColumn((row) => row.countOfTaggedApplications.demonstrations, "Demonstrations", {
+    enableColumnFilter: false,
+  }),
+  createColumn((row) => row.countOfTaggedApplications.amendments, "Amendments", {
+    enableColumnFilter: false,
+  }),
+  createColumn((row) => row.countOfTaggedApplications.renewals, "Renewals", {
+    enableColumnFilter: false,
+  }),
+  createColumn((row) => row.countOfAssignedDemonstrations, "Demo Types", {
+    enableColumnFilter: false,
+  }),
+  createColumn((row) => row.countOfAssignedDeliverables, "Deliverables", {
+    enableColumnFilter: false,
+  }),
   createDisplayColumn("Action", (cell) => (
-    <SecondaryButton name={`view-${cell.row.index}`}>View</SecondaryButton>
+    <SecondaryButton
+      name={`view-${cell.row.index}`}
+      onClick={() => onSelectTypeTag(cell.row.original.demonstrationTypeName)}
+    >
+      View
+    </SecondaryButton>
   )),
 ];
 
-export const DemonstrationTypeUsageTable = () => {
+export const DemonstrationTypeUsageTable = ({
+  onSelectTypeTag,
+}: {
+  onSelectTypeTag: (tagName: string) => void;
+}) => {
   // TODO: Replace this with server data in integration ticket
   const rows = useMemo(
     () =>
@@ -37,11 +72,17 @@ export const DemonstrationTypeUsageTable = () => {
     []
   );
 
+  const columns = useMemo(
+    () => createDemonstrationTypeUsageColumns(onSelectTypeTag),
+    [onSelectTypeTag]
+  );
+
   return (
     <Table<DemonstrationTypeUsageRow>
       data={rows}
-      columns={demonstrationTypeUsageColumns}
+      columns={columns}
       keywordSearch={(table) => <KeywordSearch table={table} />}
+      columnFilter={(table) => <ColumnFilter table={table} />}
       pagination={(table) => <PaginationControls table={table} />}
       actionButtons={(table) => <TypeTagActionButtons table={table} />}
       emptyRowsMessage="No demonstration types available."

@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createTag } from "./createTag";
+import { createTags } from "./createTags";
 import { prisma } from "../../prismaClient";
-import { validateCreateTagInput, insertTag } from ".";
+import { validateCreateTagsInput, insertTag } from ".";
 import { createNewTagNameIfNotExists } from "../tagName";
 import { Tag as PrismaTag } from "@prisma/client";
 
 vi.mock(".", () => ({
-  validateCreateTagInput: vi.fn(),
+  validateCreateTagsInput: vi.fn(),
   insertTag: vi.fn(),
 }));
 
@@ -32,15 +32,15 @@ describe("createTag", () => {
   });
 
   it("should validate the tag create input in a transaction", async () => {
-    await createTag("New Tag Value");
-    expect(validateCreateTagInput).toHaveBeenCalledExactlyOnceWith(
-      "New Tag Value",
+    await createTags(["New Tag Value"]);
+    expect(validateCreateTagsInput).toHaveBeenCalledExactlyOnceWith(
+      ["New Tag Value"],
       mockTransaction
     );
   });
 
   it("should insert a new tagname, demonstration type tag, and application tag in a transaction", async () => {
-    await createTag("New Tag Value");
+    await createTags(["New Tag Value"]);
     expect(createNewTagNameIfNotExists).toHaveBeenCalledExactlyOnceWith(
       "New Tag Value",
       mockTransaction
@@ -54,14 +54,14 @@ describe("createTag", () => {
     );
   });
 
-  it("should return the created demonstration type tag with all properties", async () => {
+  it("should return the created demonstration type tags with all properties", async () => {
     const mockCreatedTag: Partial<PrismaTag> = {
       tagNameId: "New Tag Value",
     };
     vi.mocked(insertTag).mockResolvedValue(mockCreatedTag as PrismaTag);
 
-    const result = await createTag("New Tag Value");
+    const result = await createTags(["New Tag Value"]);
 
-    expect(result).toEqual(mockCreatedTag);
+    expect(result).toEqual([mockCreatedTag]);
   });
 });

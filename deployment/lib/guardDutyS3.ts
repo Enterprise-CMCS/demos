@@ -78,8 +78,8 @@ export class GuardDutyS3 extends Construct {
 
     NagSuppressions.addResourceSuppressions(rolePolicy, [{
       id: "AwsSolutions-IAM5",
-      reason: "Permissions are validated and required"
-    }])
+      reason: "Permissions are validated and required",
+    }]);
 
     const guardDutyPassRole = new aws_iam.Role(this, "GuardDutyMalwareProtectionPassRole", {
       roleName: `GuardDutyMalwareProtectionPassRole-${props.stage}`,

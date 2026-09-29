@@ -128,14 +128,14 @@ function alarmActions(props: DemosAlarmBaseProps): IAlarmAction[] {
   const notifierLambda = aws_lambda.Function.fromFunctionName(
     props.scope,
     `${props.id}NotifierAlarmActionFunction`,
-    `${props.project}-${props.stage}-notifier`
+    `${props.project}-${props.stage}-notifier`,
   );
 
   const notifierAction : IAlarmAction = {
     bind: () => ({
-      alarmActionArn: notifierLambda.functionArn
-    })
-  }
+      alarmActionArn: notifierLambda.functionArn,
+    }),
+  };
 
   return [
     notifierAction,
@@ -163,7 +163,7 @@ export function createMetricAlarm(props: DemosMetricAlarmProps): aws_cloudwatch.
 }
 
 export function createLambdaDurationAlarm(
-  props: DemosLambdaDurationAlarmProps
+  props: DemosLambdaDurationAlarmProps,
 ): aws_cloudwatch.Alarm {
   const { lambdaFunction, period, threshold, ...alarmProps } = props;
 
@@ -179,7 +179,7 @@ export function createLambdaDurationAlarm(
 }
 
 export function createLambdaErrorsAlarm(
-  props: DemosLambdaErrorsAlarmProps
+  props: DemosLambdaErrorsAlarmProps,
 ): aws_cloudwatch.Alarm {
   const { lambdaFunction, period, threshold, ...alarmProps } = props;
 
@@ -195,7 +195,7 @@ export function createLambdaErrorsAlarm(
 }
 
 export function createLambdaThrottlesAlarm(
-  props: DemosLambdaThrottlesAlarmProps
+  props: DemosLambdaThrottlesAlarmProps,
 ): aws_cloudwatch.Alarm {
   const { lambdaFunction, period, threshold, ...alarmProps } = props;
 
@@ -211,7 +211,7 @@ export function createLambdaThrottlesAlarm(
 }
 
 export function createSqsOldestMessageAgeAlarm(
-  props: DemosSqsOldestMessageAgeAlarmProps
+  props: DemosSqsOldestMessageAgeAlarmProps,
 ): aws_cloudwatch.Alarm {
   const { queue, period, threshold, ...alarmProps } = props;
 
@@ -227,7 +227,7 @@ export function createSqsOldestMessageAgeAlarm(
 }
 
 export function createSqsVisibleMessagesAlarm(
-  props: DemosSqsVisibleMessagesAlarmProps
+  props: DemosSqsVisibleMessagesAlarmProps,
 ): aws_cloudwatch.Alarm {
   const { queue, period, threshold, ...alarmProps } = props;
 
@@ -243,7 +243,7 @@ export function createSqsVisibleMessagesAlarm(
 }
 
 export function createAnomalyAlarm(
-  props: DemosAnomalyAlarmProps
+  props: DemosAnomalyAlarmProps,
 ): aws_cloudwatch.AnomalyDetectionAlarm {
   const alarm = new aws_cloudwatch.AnomalyDetectionAlarm(props.scope, props.id, {
     alarmName: alarmName(props),

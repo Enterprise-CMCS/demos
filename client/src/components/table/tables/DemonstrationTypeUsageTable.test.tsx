@@ -26,7 +26,7 @@ const setup = () => {
   render(
     <TestProvider>
       <DialogProvider>
-        <DemonstrationTypeUsageTable />
+        <DemonstrationTypeUsageTable onSelectTypeTag={() => {}} />
       </DialogProvider>
     </TestProvider>
   );
@@ -87,6 +87,21 @@ describe("DemonstrationTypeUsageTable", () => {
       await user.type(screen.getByTestId(TYPE_TAG_DISPLAY_TEXT_INPUT_NAME), SECOND_TYPE_TAG_NAME);
 
       expect(screen.getByText(DUPLICATE_TYPE_TAG_MESSAGE)).toBeInTheDocument();
+    });
+  });
+
+  describe("Column Filter", () => {
+    it("only shows Status as an available filter option", async () => {
+      setup();
+
+      await screen.findByRole("table");
+      const selectElement = screen.getByTestId("filter-by-column") as HTMLSelectElement;
+      const validOptions = Array.from(selectElement.querySelectorAll("option")).filter(
+        (opt) => opt.value !== ""
+      );
+
+      expect(validOptions).toHaveLength(1);
+      expect(validOptions[0]).toHaveTextContent("Status");
     });
   });
 });

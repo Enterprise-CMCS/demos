@@ -7,7 +7,6 @@ import type { Tag } from "demos-server";
 import { TestProvider } from "test-utils/TestProvider";
 import { MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION } from "mock-data/demonstrationMocks";
 import { MOCK_TAGS } from "mock-data/TagMocks";
-import { TYPE_TAG_SEARCH_PARAM } from "pages/admin/useTypeTagSelection";
 import { ASSOCIATED_RECORD_TYPES } from "components/table/columns/TypeTagAssociatedRecordsColumns";
 import {
   AssociatedRecordsDemonstration,
@@ -45,13 +44,8 @@ const buildMocks = (demonstrations: AssociatedRecordsDemonstration[]): MockedRes
 
 const setup = (demonstrations: AssociatedRecordsDemonstration[] = [BASE_DEMONSTRATION]) =>
   render(
-    <TestProvider
-      mocks={buildMocks(demonstrations)}
-      routerEntries={[
-        `/admin?${TYPE_TAG_SEARCH_PARAM}=${encodeURIComponent(ASSOCIATED_TAG.tagName)}`,
-      ]}
-    >
-      <TypeTagAssociatedRecordsTable />
+    <TestProvider mocks={buildMocks(demonstrations)}>
+      <TypeTagAssociatedRecordsTable selectedTypeTag={ASSOCIATED_TAG.tagName} />
     </TestProvider>
   );
 
@@ -129,8 +123,9 @@ describe("sortAssociatedRecordsByDefault", () => {
       "Demonstration Type",
       "Deliverable",
     ]);
-    expect(rows.filter((row) => row.recordType === "Amendment").map((row) => row.relatedItemName))
-      .toEqual(["Amendment 2", "Amendment 10"]);
+    expect(
+      rows.filter((row) => row.recordType === "Amendment").map((row) => row.relatedItemName)
+    ).toEqual(["Amendment 2", "Amendment 10"]);
   });
 });
 
@@ -232,5 +227,150 @@ describe("TypeTagAssociatedRecordsTable", () => {
     await screen.findByRole("table");
     expect(getBodyRows()).toHaveLength(10);
     expect(screen.getByText("1 – 10 of 12")).toBeInTheDocument();
+  });
+
+  it("displays approved types/tags as Approved", async () => {
+    setup([{ ...ONLY_DEMONSTRATION_RECORD, tags: [ASSOCIATED_TAG] }]);
+
+    await screen.findByRole("table");
+    expect(getColumnValues(4)).toEqual(["Approved"]);
+  });
+
+  it("filters by keyword search using test id", async () => {
+    const user = userEvent.setup();
+    setup([BASE_DEMONSTRATION]);
+
+    await screen.findByRole("table");
+    const searchInput = screen.getByTestId("input-keyword-search");
+
+    // Search by demonstration name
+    await user.type(searchInput, BASE_DEMONSTRATION.name);
+    await waitFor(() => {
+      const names = getColumnValues(2);
+      expect(names.some((name) => name?.includes(BASE_DEMONSTRATION.name))).toBe(true);
+    });
+  });
+
+  it("clears keyword search and shows all results again", async () => {
+    const user = userEvent.setup();
+    const allRecordCount = buildAssociatedRecordRows(
+      [BASE_DEMONSTRATION],
+      ASSOCIATED_TAG.tagName
+    ).length;
+    setup([BASE_DEMONSTRATION]);
+
+    await screen.findByRole("table");
+    const searchInput = screen.getByTestId("input-keyword-search");
+
+    await user.type(searchInput, "nonexistent");
+    await waitFor(() => {
+      expect(screen.getByText("No results match your search")).toBeInTheDocument();
+    });
+
+    await user.clear(searchInput);
+    await waitFor(() => {
+      expect(screen.getByTestId(RECORD_COUNT_TEST_ID)).toHaveTextContent(
+        `${allRecordCount} Records`
+      );
+    });
+  });
+
+  it("filters by project officer using column filter", async () => {
+    const user = userEvent.setup();
+    setup([BASE_DEMONSTRATION]);
+
+    await screen.findByRole("table");
+    const allCount = getBodyRows().length;
+
+    await user.selectOptions(screen.getByTestId("filter-by-column"), "Project Officer");
+    await user.click(await screen.findByTestId("filter-projectOfficerName"));
+    await user.click(
+      screen.getByRole("checkbox", { name: BASE_DEMONSTRATION.primaryProjectOfficer.fullName })
+    );
+
+    await waitFor(() => {
+      const officers = getColumnValues(5);
+      expect(officers).toEqual(
+        expect.arrayContaining([BASE_DEMONSTRATION.primaryProjectOfficer.fullName])
+      );
+    });
+    expect(getBodyRows().length).toBeLessThanOrEqual(allCount);
+  });
+
+  it("opens amendment record with correct URL", async () => {
+    const user = userEvent.setup();
+    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+    const amendment = BASE_DEMONSTRATION.amendments[0];
+    setup([BASE_DEMONSTRATION]);
+
+    await screen.findByRole("table");
+    await user.click(await screen.findByTestId(`open-record-Amendment-${amendment.id}`));
+
+    expect(openSpy).toHaveBeenCalledWith(
+      `/demonstrations/${BASE_DEMONSTRATION.id}?amendments=${amendment.id}`,
+      "_blank"
+    );
+  });
+
+  it("opens renewal record with correct URL", async () => {
+    const user = userEvent.setup();
+    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+    const renewal = BASE_DEMONSTRATION.renewals[0];
+    setup([BASE_DEMONSTRATION]);
+
+    await screen.findByRole("table");
+    await user.click(await screen.findByTestId(`open-record-Renewal-${renewal.id}`));
+
+    expect(openSpy).toHaveBeenCalledWith(
+      `/demonstrations/${BASE_DEMONSTRATION.id}?renewals=${renewal.id}`,
+      "_blank"
+    );
+  });
+
+  it("opens deliverable record with correct URL", async () => {
+    const user = userEvent.setup();
+    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+    const deliverable = BASE_DEMONSTRATION.deliverables[0];
+    setup([BASE_DEMONSTRATION]);
+
+    await screen.findByRole("table");
+    await user.click(await screen.findByTestId(`open-record-Deliverable-${deliverable.id}`));
+
+    expect(openSpy).toHaveBeenCalledWith(`/deliverables/${deliverable.id}`, "_blank");
+  });
+
+  it("displays records from multiple demonstrations", async () => {
+    const demonstrations: AssociatedRecordsDemonstration[] = [
+      ONLY_DEMONSTRATION_RECORD,
+      {
+        ...ONLY_DEMONSTRATION_RECORD,
+        id: "2",
+        name: "Second Demonstration",
+        state: { id: "CA", name: "California" },
+      },
+    ];
+    setup(demonstrations);
+
+    await screen.findByRole("table");
+    const names = getColumnValues(2);
+    expect(names).toContain("Montana Medicaid Waiver");
+    expect(names).toContain("Second Demonstration");
+  });
+
+  it("handles error state gracefully", async () => {
+    const errorMocks: MockedResponse[] = [
+      {
+        request: { query: TYPE_TAG_ASSOCIATED_RECORDS_QUERY },
+        error: new Error("Network error"),
+      },
+    ];
+
+    render(
+      <TestProvider mocks={errorMocks}>
+        <TypeTagAssociatedRecordsTable selectedTypeTag={ASSOCIATED_TAG.tagName} />
+      </TestProvider>
+    );
+
+    expect(await screen.findByText("Error loading associated records.")).toBeInTheDocument();
   });
 });
