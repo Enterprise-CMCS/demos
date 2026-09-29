@@ -40,9 +40,21 @@ describe("reviewPhaseData", () => {
       const reviewPhase: SimplePhase = {
         phaseName: "Review",
         phaseDates: [
-          { dateType: "OGD Approval to Share with SMEs", dateValue: new Date("2025-01-15") },
-          { dateType: "Draft Approval Package to Prep", dateValue: new Date("2025-02-20") },
-          { dateType: "DDME Approval Received", dateValue: new Date("2025-03-10") },
+          {
+            dateType: "OGD Approval to Share with SMEs",
+            dateValue: new Date("2025-01-15"),
+            plainDate: "2025-01-15",
+          },
+          {
+            dateType: "Draft Approval Package to Prep",
+            dateValue: new Date("2025-02-20"),
+            plainDate: "2025-02-20",
+          },
+          {
+            dateType: "DDME Approval Received",
+            dateValue: new Date("2025-03-10"),
+            plainDate: "2025-03-10",
+          },
         ],
         phaseNotes: [],
         phaseStatus: "Started",
@@ -103,7 +115,11 @@ describe("reviewPhaseData", () => {
           {
             phaseName: "Review",
             phaseDates: [
-              { dateType: "OGD Approval to Share with SMEs", dateValue: new Date("2025-01-10") },
+              {
+                dateType: "OGD Approval to Share with SMEs",
+                dateValue: new Date("2025-01-10"),
+                plainDate: "2025-01-10",
+              },
             ],
             phaseNotes: [{ noteType: "PO and OGD", content: "Test note" }],
             phaseStatus: "Started",
@@ -136,10 +152,15 @@ describe("reviewPhaseData", () => {
           {
             phaseName: "Review",
             phaseDates: [
-              { dateType: "Draft Approval Package Shared", dateValue: new Date("2025-06-15") },
+              {
+                dateType: "Draft Approval Package Shared",
+                dateValue: new Date("2025-06-15"),
+                plainDate: "2025-06-15",
+              },
               {
                 dateType: "Package Sent for COMMs Clearance",
                 dateValue: new Date("2025-07-20"),
+                plainDate: "2025-07-20",
               },
             ],
             phaseNotes: [
@@ -178,10 +199,15 @@ describe("reviewPhaseData", () => {
           {
             phaseName: "Review",
             phaseDates: [
-              { dateType: "Draft Approval Package Shared", dateValue: new Date("2025-06-15") },
+              {
+                dateType: "Draft Approval Package Shared",
+                dateValue: new Date("2025-06-15"),
+                plainDate: "2025-06-15",
+              },
               {
                 dateType: "Package Sent for COMMs Clearance",
                 dateValue: new Date("2025-07-20"),
+                plainDate: "2025-07-20",
               },
             ],
             phaseNotes: [
