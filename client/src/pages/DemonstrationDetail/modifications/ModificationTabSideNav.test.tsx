@@ -199,7 +199,6 @@ describe("ModificationTabSideNav", () => {
       fireEvent.click(screen.getByTestId("button-documents"));
 
       expect(screen.queryByTestId("add-new-document")).not.toBeInTheDocument();
-      }
-    );
+    });
   });
 });

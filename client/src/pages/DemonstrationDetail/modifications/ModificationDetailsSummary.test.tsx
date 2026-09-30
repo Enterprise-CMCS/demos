@@ -210,7 +210,6 @@ describe("ModificationDetailsSummary", () => {
       renderModificationDetailsSummary(mockAmendment, currentUser);
       const editButton = screen.queryByRole("button", { name: /button-edit-details/i });
       expect(editButton).not.toBeInTheDocument();
-      }
-    );
+    });
   });
 });
