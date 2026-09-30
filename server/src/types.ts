@@ -170,8 +170,8 @@ export type RestrictedCmsUserDemonstrationRole =
   (typeof RESTRICTED_CMS_USER_DEMONSTRATION_ROLES)[number];
 export type CmsReviewerUserDemonstrationRole =
   (typeof CMS_REVIEWER_USER_DEMONSTRATION_ROLES)[number];
-  export type ReviewPhaseDateTypes = (typeof REVIEW_PHASE_DATE_TYPES)[number];
-  export type StateUserDemonstrationRole = (typeof STATE_USER_DEMONSTRATION_ROLES)[number];
+export type ReviewPhaseDateTypes = (typeof REVIEW_PHASE_DATE_TYPES)[number];
+export type StateUserDemonstrationRole = (typeof STATE_USER_DEMONSTRATION_ROLES)[number];
 export type ReviewPhaseNoteTypes = (typeof REVIEW_PHASE_NOTE_TYPES)[number];
 export type ApplicationTagSuggestionStatus = (typeof APPLICATION_TAG_SUGGESTION_STATUSES)[number];
 export type UiPathResultStatus = (typeof UIPATH_RESULT_STATUSES)[number];
