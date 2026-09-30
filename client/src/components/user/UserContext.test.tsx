@@ -109,7 +109,7 @@ describe("UserContext", () => {
       expect(isReadonly(reviewerUser, "Homepage")).toBe(false);
     });
 
-    it("returns false when personType is 'demos-cms-reviewer-user' in DemonstrationDetail", () => {
+    it("returns true when personType is 'demos-cms-reviewer-user' in DemonstrationDetail", () => {
       const reviewerUser: CurrentUser = {
         id: "user-9",
         username: "reviewer-user",
@@ -123,7 +123,7 @@ describe("UserContext", () => {
         },
       };
 
-      expect(isReadonly(reviewerUser, "DemonstrationDetail")).toBe(false);
+      expect(isReadonly(reviewerUser, "DemonstrationDetail")).toBe(true);
     });
 
     it("returns false for other user types in ApplicationWorkflow section", () => {

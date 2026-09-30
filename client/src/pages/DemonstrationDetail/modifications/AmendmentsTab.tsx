@@ -16,7 +16,7 @@ export const AmendmentsTab: React.FC<{
   canCreateModifications: boolean;
 }> = ({ demonstrationId, medicaidId, amendments, selectedAmendmentId, canCreateModifications }) => {
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
+  const isReadonlyUser = isReadonly(currentUser, "DemonstrationDetail");
 
   const { showCreateAmendmentDialog } = useDialog();
 

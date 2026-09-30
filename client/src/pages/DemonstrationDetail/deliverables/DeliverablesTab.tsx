@@ -97,7 +97,7 @@ export const DeliverablesTab = ({
   return (
     <div className="flex flex-col">
       <TabHeader title="Deliverables">
-        {!isReadonly(currentUser) && (
+        {!isReadonly(currentUser, "DemonstrationDetail") && (
           <IconButton
             icon={<AddNewIcon />}
             name={ADD_DELIVERABLE_SLOT_BUTTON_NAME}
@@ -114,7 +114,7 @@ export const DeliverablesTab = ({
         <DemonstrationDeliverableTable
           deliverables={deliverables}
           viewMode={viewMode}
-          isReadonlyUser={isReadonly(currentUser)}
+          isReadonlyUser={isReadonly(currentUser, "DemonstrationDetail")}
           onViewDeliverable={(selectedDeliverableId) =>
             navigate(`/deliverables/${selectedDeliverableId}`)
           }

@@ -32,10 +32,10 @@ export function isReadonly(
     return true;
   }
 
-  // demos-cms-reviewer-user is readonly in ApplicationWorkflow, editable elsewhere
+  // demos-cms-reviewer-user is readonly in workflow and demonstration detail sections
   if (
     currentUser.person.personType === "demos-cms-reviewer-user" &&
-    applicationSection === "ApplicationWorkflow"
+    (applicationSection === "ApplicationWorkflow" || applicationSection === "DemonstrationDetail")
   ) {
     return true;
   }

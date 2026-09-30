@@ -16,7 +16,7 @@ export const RenewalsTab: React.FC<{
   canCreateModifications: boolean;
 }> = ({ demonstrationId, medicaidId, renewals, selectedRenewalId, canCreateModifications }) => {
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
+  const isReadonlyUser = isReadonly(currentUser, "DemonstrationDetail");
 
   const { showCreateRenewalDialog } = useDialog();
 
