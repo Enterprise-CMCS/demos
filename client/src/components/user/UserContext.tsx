@@ -22,7 +22,7 @@ export function getCurrentUser() {
 }
 
 // Sections of the app will calculate `isReadonly` different for specific user types.
-export type DemosApplicationSection = "ApplicationWorkflow" | "Homepage";
+export type DemosApplicationSection = "ApplicationWorkflow" | "DemonstrationDetail" | "Homepage";
 export function isReadonly(
   currentUser: CurrentUser,
   applicationSection?: DemosApplicationSection
@@ -32,10 +32,10 @@ export function isReadonly(
     return true;
   }
 
-  // demos-cms-reviewer-user is readonly in ApplicationWorkflow, editable elsewhere
+  // demos-cms-reviewer-user is readonly in workflow and demonstration detail sections
   if (
     currentUser.person.personType === "demos-cms-reviewer-user" &&
-    applicationSection === "ApplicationWorkflow"
+    (applicationSection === "ApplicationWorkflow" || applicationSection === "DemonstrationDetail")
   ) {
     return true;
   }

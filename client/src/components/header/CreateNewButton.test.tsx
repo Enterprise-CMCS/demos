@@ -51,53 +51,21 @@ describe("CreateNewButton", () => {
     expect(screen.queryByText("Demonstration")).not.toBeInTheDocument();
   });
 
-  it("does not show the menu for state users", () => {
-    mockGetCurrentUser.mockReturnValue({
-      currentUser: {
-        ...mockUsers[0],
-        person: {
-          ...mockUsers[0].person,
-          personType: "demos-state-user",
+  it.each(["demos-state-user", "demos-restricted-cms-user", "demos-cms-reviewer-user"] as const)(
+    "does not show the menu for %s",
+    (personType) => {
+      mockGetCurrentUser.mockReturnValue({
+        currentUser: {
+          ...mockUsers[0],
+          person: { ...mockUsers[0].person, personType },
         },
-      },
-    });
+      });
 
-    renderCreateNewButton();
+      renderCreateNewButton();
 
-    expect(screen.queryByText("Create New")).not.toBeInTheDocument();
-  });
-
-  it("does not show the menu for readonly users", () => {
-    mockGetCurrentUser.mockReturnValue({
-      currentUser: {
-        ...mockUsers[0],
-        person: {
-          ...mockUsers[0].person,
-          personType: "demos-restricted-cms-user",
-        },
-      },
-    });
-
-    renderCreateNewButton();
-
-    expect(screen.queryByText("Create New")).not.toBeInTheDocument();
-  });
-
-  it("does not show the menu for CMS Reviewer users", () => {
-    mockGetCurrentUser.mockReturnValue({
-      currentUser: {
-        ...mockUsers[0],
-        person: {
-          ...mockUsers[0].person,
-          personType: "demos-cms-reviewer-user",
-        },
-      },
-    });
-
-    renderCreateNewButton();
-
-    expect(screen.queryByText("Create New")).not.toBeInTheDocument();
-  });
+      expect(screen.queryByText("Create New")).not.toBeInTheDocument();
+    }
+  );
 
   it("opens CreateDemonstrationDialog when demonstration is clicked", () => {
     mockGetCurrentUser.mockReturnValue({
