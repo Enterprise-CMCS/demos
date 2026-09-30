@@ -12,14 +12,14 @@ vi.mock(".", () => ({
   getDemonstrationTypeSummaryCounts: vi.fn(),
   getFormattedTagsByTagType: vi.fn(),
   createTags: vi.fn(),
-  approveTag: vi.fn(),
+  approveTags: vi.fn(),
 }));
 
 import {
   getDemonstrationTypeSummaryCounts,
   getFormattedTagsByTagType,
   createTags,
-  approveTag,
+  approveTags,
 } from ".";
 import { __DEMOS_VERSION__ } from "../../flags";
 
@@ -70,11 +70,16 @@ describe("tagResolvers", () => {
     });
   });
 
-  describe("Mutation.approveTag", () => {
-    it("should call approveTag with the correct arguments", async () => {
-      await tagResolvers.Mutation.approveTag(null, { tagName: "my unapproved tag!" });
+  describe("Mutation.approveTags", () => {
+    it("should call approveTags with the correct arguments", async () => {
+      await tagResolvers.Mutation.approveTags(null, {
+        tagNames: ["my unapproved tag!", "my other tag"],
+      });
 
-      expect(approveTag).toHaveBeenCalledExactlyOnceWith("my unapproved tag!", __DEMOS_VERSION__);
+      expect(approveTags).toHaveBeenCalledExactlyOnceWith(
+        ["my unapproved tag!", "my other tag"],
+        __DEMOS_VERSION__
+      );
     });
   });
 });
