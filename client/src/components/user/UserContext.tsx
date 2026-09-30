@@ -22,7 +22,7 @@ export function getCurrentUser() {
 }
 
 // Sections of the app will calculate `isReadonly` different for specific user types.
-export type DemosApplicationSection = "ApplicationWorkflow" | "Homepage";
+export type DemosApplicationSection = "ApplicationWorkflow" | "DemonstrationDetail" | "Homepage";
 export function isReadonly(
   currentUser: CurrentUser,
   applicationSection?: DemosApplicationSection

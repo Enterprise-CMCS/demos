@@ -109,6 +109,23 @@ describe("UserContext", () => {
       expect(isReadonly(reviewerUser, "Homepage")).toBe(false);
     });
 
+    it("returns false when personType is 'demos-cms-reviewer-user' in DemonstrationDetail", () => {
+      const reviewerUser: CurrentUser = {
+        id: "user-9",
+        username: "reviewer-user",
+        person: {
+          id: "person-9",
+          personType: "demos-cms-reviewer-user",
+          fullName: "Reviewer User",
+          firstName: "Reviewer",
+          lastName: "User",
+          email: "reviewer@example.com",
+        },
+      };
+
+      expect(isReadonly(reviewerUser, "DemonstrationDetail")).toBe(false);
+    });
+
     it("returns false for other user types in ApplicationWorkflow section", () => {
       const adminUser: CurrentUser = {
         id: "user-7",

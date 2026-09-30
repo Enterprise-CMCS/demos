@@ -53,7 +53,7 @@ export const ModificationDetailsSummary = ({
   modificationItem: ModificationItem;
 }) => {
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
+  const isReadonlyUser = isReadonly(currentUser, "DemonstrationDetail");
 
   const { showUpdateAmendmentDialog, showUpdateRenewalDialog } = useDialog();
 
