@@ -35,7 +35,7 @@ const PHASE_DATE_STYLE_LOOKUP: Record<PhaseStatus, string> = {
 
 interface PhaseDateProps {
   phaseStatus: PhaseStatus;
-  date?: Date;
+  date?: string;
 }
 
 export const PhaseDate: React.FC<PhaseDateProps> = ({ phaseStatus, date }) => {

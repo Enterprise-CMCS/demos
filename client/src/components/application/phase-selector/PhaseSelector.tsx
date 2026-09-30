@@ -89,14 +89,14 @@ export const getDisplayedPhaseStatus = (
 export const getDisplayedPhaseDate = (
   application: WorkflowApplication,
   phaseName: PhaseName
-): Date | undefined => {
+): string | undefined => {
   const phase = application.phases.find((p) => p.phaseName === phaseName);
   if (!phase) return undefined;
 
   const relevantDateName = PHASE_DISPLAY_DATES[phaseName]?.[phase.phaseStatus];
   const relevantDate = phase.phaseDates.find((date) => date.dateType === relevantDateName);
 
-  return relevantDate?.dateValue ? new Date(relevantDate.dateValue) : undefined;
+  return relevantDate?.plainDate;
 };
 
 export const PhaseSelector = ({
