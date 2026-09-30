@@ -64,7 +64,10 @@ const mockDemonstration: DemonstrationTabDemonstration = {
 
 const renderWithProvider = (component: React.ReactElement, useReadonlyUser = false) => {
   return render(
-    <TestProvider mocks={deliverableMocks} currentUser={useReadonlyUser ? readonlyMockUser : cmsMockUser}>
+    <TestProvider
+      mocks={deliverableMocks}
+      currentUser={useReadonlyUser ? readonlyMockUser : cmsMockUser}
+    >
       <DialogProvider>{component}</DialogProvider>
     </TestProvider>
   );
@@ -209,32 +212,24 @@ describe("DemonstrationTab", () => {
   });
 
   describe("Readonly User Behaviors", () => {
-    it("does not show Upload Documents button for readonly users", () => {
+    it("does not show Upload Documents button for readonly users", async () => {
       const user = userEvent.setup();
 
-      renderWithProvider(
-        <DemonstrationTab demonstration={mockDemonstration} />,
-        true
-      );
+      renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />, true);
 
       const documentsTab = screen.getByRole("button", { name: "Documents (2)" });
-      user.click(documentsTab);
+      await user.click(documentsTab);
 
-      expect(
-        screen.queryByRole("button", { name: "add-new-document" })
-      ).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "add-new-document" })).not.toBeInTheDocument();
     });
 
-    it("does not show Apply Types button for readonly users", () => {
+    it("does not show Apply Types button for readonly users", async () => {
       const user = userEvent.setup();
 
-      renderWithProvider(
-        <DemonstrationTab demonstration={mockDemonstration} />,
-        true
-      );
+      renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />, true);
 
       const typesTab = screen.getByRole("button", { name: "Types (0)" });
-      user.click(typesTab);
+      await user.click(typesTab);
 
       expect(
         screen.queryByRole("button", { name: "button-apply-demonstration-types" })
