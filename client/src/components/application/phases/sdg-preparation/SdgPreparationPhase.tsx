@@ -5,7 +5,7 @@ import { useSessionStorageJson } from "hooks";
 import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
 import { SimplePhase, WorkflowApplication } from "components/application";
-import { formatDateForServer } from "util/formatDate";
+import { getDateEst } from "util/formatDate";
 import { ApplicationStatus, DateType, LocalDate, PhaseName } from "demos-server";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import {
@@ -33,7 +33,7 @@ function getFormDataFromPhase(sdgPreparationPhase: SimplePhase): SdgPreparationP
     const dateValue = sdgPreparationPhase.phaseDates.find(
       (d) => d.dateType === dateType
     )?.dateValue;
-    return dateValue ? formatDateForServer(dateValue) : undefined;
+    return dateValue ? getDateEst(dateValue) : undefined;
   };
 
   return {
