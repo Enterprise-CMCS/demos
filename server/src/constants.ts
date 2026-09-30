@@ -112,23 +112,31 @@ export const ROLES = [
   "DDME Analyst",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
+  "Viewer",
+  "Monitoring Lead",
+  "HCBS Analyst",
+  "Financial Lead",
 ] as const;
 
-export const CONTACT_TYPES = ["DDME Analyst", "Project Officer", "State Point of Contact"] as const;
-
-export const ADMIN_DEMONSTRATION_ROLES = [
-  "Project Officer",
-  "State Point of Contact",
-  "DDME Analyst",
-  "Policy Technical Director",
-  "Monitoring & Evaluation Technical Director",
-] as const;
+export const ADMIN_DEMONSTRATION_ROLES = ROLES;
 
 export const CMS_USER_DEMONSTRATION_ROLES = [
   "Project Officer",
   "DDME Analyst",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
+  "Viewer",
+  "Monitoring Lead",
+  "HCBS Analyst",
+  "Financial Lead",
+] as const;
+
+export const RESTRICTED_CMS_USER_DEMONSTRATION_ROLES = ["Viewer"] as const;
+
+export const CMS_REVIEWER_USER_DEMONSTRATION_ROLES = [
+  "Monitoring Lead",
+  "HCBS Analyst",
+  "Financial Lead",
 ] as const;
 
 export const STATE_USER_DEMONSTRATION_ROLES = ["State Point of Contact"] as const;

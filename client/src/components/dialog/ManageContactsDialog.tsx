@@ -6,10 +6,12 @@ import { ErrorIcon, SearchIcon, WarningIcon } from "components/icons";
 import { Table } from "components/table/Table";
 import { useToast } from "components/toast";
 import { ConfirmationToast } from "components/toast/ConfirmationToast";
-import type { DemonstrationRoleAssignment, Person, PersonType } from "demos-server";
+import type { DemonstrationRoleAssignment, Person } from "demos-server";
 import {
   ADMIN_DEMONSTRATION_ROLES,
+  CMS_REVIEWER_USER_DEMONSTRATION_ROLES,
   CMS_USER_DEMONSTRATION_ROLES,
+  RESTRICTED_CMS_USER_DEMONSTRATION_ROLES,
   STATE_USER_DEMONSTRATION_ROLES,
 } from "demos-server-constants";
 import { useDebounced } from "hooks/useDebounced";
@@ -167,7 +169,11 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   const optionsByRole = useMemo(
     () => ({
       "demos-cms-user": CMS_USER_DEMONSTRATION_ROLES.map((role) => ({ label: role, value: role })),
-      "demos-restricted-cms-user": CMS_USER_DEMONSTRATION_ROLES.map((role) => ({
+      "demos-restricted-cms-user": RESTRICTED_CMS_USER_DEMONSTRATION_ROLES.map((role) => ({
+        label: role,
+        value: role,
+      })),
+      "demos-cms-reviewer-user": CMS_REVIEWER_USER_DEMONSTRATION_ROLES.map((role) => ({
         label: role,
         value: role,
       })),
@@ -196,6 +202,8 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     if (roles.includes("demos-cms-user")) options = optionsByRole["demos-cms-user"];
     else if (roles.includes("demos-restricted-cms-user"))
       options = optionsByRole["demos-restricted-cms-user"];
+    else if (roles.includes("demos-cms-reviewer-user"))
+      options = optionsByRole["demos-cms-reviewer-user"];
     else if (roles.includes("demos-state-user")) options = optionsByRole["demos-state-user"];
     else if (roles.includes("demos-admin")) options = optionsByRole["demos-admin"];
     else options = optionsByRole.Default;
@@ -271,10 +279,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
         if (contact.id === id) {
           let newIsPrimary = false;
 
-          if (
-            newType === "Project Officer" &&
-            !contact.idmRoles?.includes("demos-restricted-cms-user" satisfies PersonType)
-          ) {
+          if (newType === "Project Officer") {
             const existingPrimaryPOs = previousContacts.filter(
               (c) => c.contactType === "Project Officer" && c.isPrimary && c.id !== id
             );
@@ -293,11 +298,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
             (c) => c.contactType === "Project Officer" && c.id !== id
           );
 
-          if (
-            otherPOs.length > 0 &&
-            contact.id === otherPOs[0].id &&
-            !contact.idmRoles?.includes("demos-restricted-cms-user" satisfies PersonType)
-          ) {
+          if (otherPOs.length > 0 && contact.id === otherPOs[0].id) {
             return { ...contact, isPrimary: true };
           }
         }
