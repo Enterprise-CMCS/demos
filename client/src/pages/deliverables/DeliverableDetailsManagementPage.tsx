@@ -7,7 +7,6 @@ import {
   DeliverableExtension,
   Demonstration,
   DocumentType,
-  PersonType,
   Tag,
 } from "demos-server";
 import { Loading } from "components/loading/Loading";
@@ -33,33 +32,6 @@ export const START_DELIVERABLE_REVIEW_MUTATION = gql`
     }
   }
 `;
-
-const REVIEW_STARTER_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
-  "demos-admin",
-  "demos-cms-user",
-  "demos-cms-reviewer-user",
-]);
-
-const EXTENSION_REVIEWER_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
-  "demos-admin",
-  "demos-cms-user",
-  "demos-cms-reviewer-user",
-]);
-
-// State users only get the Request Extension action; edit/delete is hidden for them.
-const EDIT_DELETE_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
-  "demos-admin",
-  "demos-cms-user",
-  "demos-cms-reviewer-user",
-]);
-
-// Restricted CMS users reach deliverables from the demonstration detail page, so Back returns there.
-const DEMONSTRATION_DELIVERABLES_BACK_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
-  "demos-admin",
-  "demos-cms-user",
-  "demos-cms-reviewer-user",
-  "demos-restricted-cms-user",
-]);
 
 export const GET_DELIVERABLE_DETAILS_QUERY_NAME = "GetDeliverableDetails";
 export const DELIVERABLE_DETAILS_QUERY = gql`
@@ -195,7 +167,6 @@ export const DeliverableDetailsManagementPage: React.FC<{
     variables: { id: resolvedDeliverableId ?? "" },
     skip: !resolvedDeliverableId,
   });
-  const userPersonType = currentUser.person.personType;
 
   const [startReviewTrigger, { loading: startReviewLoading }] = useMutation(
     START_DELIVERABLE_REVIEW_MUTATION
@@ -235,7 +206,7 @@ export const DeliverableDetailsManagementPage: React.FC<{
       return;
     }
 
-    if (DEMONSTRATION_DELIVERABLES_BACK_PERSON_TYPES.has(userPersonType)) {
+    if (currentUser.permissions.includes("Access CMS Query")) {
       const demonstrationId = data?.deliverable?.demonstration?.id;
       if (!demonstrationId) {
         throw new Error(
@@ -247,7 +218,7 @@ export const DeliverableDetailsManagementPage: React.FC<{
     }
 
     navigate("/");
-  }, [data?.deliverable?.demonstration?.id, navigate, onBack, userPersonType]);
+  }, [data?.deliverable?.demonstration?.id, navigate, onBack]);
 
   if (loading) {
     return <Loading />;
@@ -259,7 +230,8 @@ export const DeliverableDetailsManagementPage: React.FC<{
     return <div>Deliverable not found.</div>;
   }
   const canStartReview =
-    REVIEW_STARTER_PERSON_TYPES.has(userPersonType) && data.deliverable.status === "Submitted";
+    currentUser.permissions.includes("Modify Deliverables") &&
+    data.deliverable.status === "Submitted";
   const isFinalized = !isDeliverableEditable(data.deliverable.status);
 
   const submitterName =
@@ -279,8 +251,8 @@ export const DeliverableDetailsManagementPage: React.FC<{
     requestExtensionActions[requestExtensionActions.length - 1]?.userFullName ?? "State User";
 
   const canReviewExtension =
-    EXTENSION_REVIEWER_PERSON_TYPES.has(userPersonType) && pendingExtensionRequest !== null;
-  const canEditDelete = EDIT_DELETE_PERSON_TYPES.has(userPersonType);
+    currentUser.permissions.includes("Modify Deliverables") && pendingExtensionRequest !== null;
+  const canEditDelete = currentUser.permissions.includes("Modify Deliverables");
 
   const handleReviewExtensionRequest = () => {
     if (!pendingExtensionRequest) return;

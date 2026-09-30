@@ -9,7 +9,10 @@ import { createSelectColumnDef } from "./selectColumn";
 import { createDateColumnDef } from "./dateColumn";
 import { DOCUMENT_TYPES } from "demos-server-constants";
 import { DocumentTableDocument } from "../tables/DocumentTable";
-export function DocumentColumns(isReadonlyUser: boolean) {
+import { getCurrentUser } from "components/user/UserContext";
+export function DocumentColumns() {
+  const { currentUser } = getCurrentUser();
+
   const columnHelper = createColumnHelper<DocumentTableDocument>();
 
   const baseDocumentColumns = [
@@ -66,12 +69,9 @@ export function DocumentColumns(isReadonlyUser: boolean) {
     }),
   ];
 
-  if (isReadonlyUser) {
+  if (!currentUser.permissions.includes("Modify Documents")) {
     return baseDocumentColumns;
   }
 
-  return [
-    createSelectColumnDef(columnHelper),
-    ...baseDocumentColumns,
-  ];
+  return [createSelectColumnDef(columnHelper), ...baseDocumentColumns];
 }

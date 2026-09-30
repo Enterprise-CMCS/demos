@@ -1,6 +1,6 @@
 // DocumentTable.tsx
 import * as React from "react";
-import { getCurrentUser, isReadonly } from "components/user/UserContext";
+import { getCurrentUser } from "components/user/UserContext";
 
 import { CircleButton } from "components/button/CircleButton";
 import { DeleteIcon, EditIcon } from "components/icons";
@@ -22,9 +22,8 @@ export type DocumentTableDocument = Pick<
 
 export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[] }) => {
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonly(currentUser);
 
-  const documentColumns = DocumentColumns(isReadonlyUser);
+  const documentColumns = DocumentColumns();
   const { showEditApplicationDocumentDialog, showRemoveApplicationDocumentsDialog } = useDialog();
   const initialState = {
     sorting: [{ id: "createdAt", desc: true }],
@@ -43,7 +42,7 @@ export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[
           noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
           initialState={initialState}
           actionButtons={(table) => {
-            if (isReadonlyUser) {
+            if (!currentUser.permissions.includes("Modify Documents")) {
               return null;
             }
             const selectedDocs = table.getSelectedRowModel().rows.map((row) => row.original);

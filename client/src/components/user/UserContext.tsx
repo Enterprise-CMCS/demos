@@ -1,7 +1,7 @@
 import { createContext, useContext } from "react";
 import { Person, User } from "demos-server";
 
-export type CurrentUser = Pick<User, "id" | "username"> & {
+export type CurrentUser = Pick<User, "id" | "username" | "permissions"> & {
   person: Pick<Person, "id" | "personType" | "fullName" | "firstName" | "lastName" | "email">;
 };
 
