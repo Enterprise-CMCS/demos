@@ -190,20 +190,16 @@ describe("ModificationTabSideNav", () => {
       expect(screen.queryByText("Interim Evaluation Report")).not.toBeInTheDocument();
     });
 
-    it("does not render Add Document button for readonly users", () => {
-      setup(mockModificationItem, readonlyMockUser);
+    it.each([
+      ["readonly users", readonlyMockUser],
+      ["CMS Reviewer users", cmsReviewerMockUser],
+    ])("does not render Add Document button for %s", (_role, currentUser) => {
+      setup(mockModificationItem, currentUser);
 
       fireEvent.click(screen.getByTestId("button-documents"));
 
       expect(screen.queryByTestId("add-new-document")).not.toBeInTheDocument();
-    });
-
-    it("does not render Add Document button for CMS Reviewer users", () => {
-      setup(mockModificationItem, cmsReviewerMockUser);
-
-      fireEvent.click(screen.getByTestId("button-documents"));
-
-      expect(screen.queryByTestId("add-new-document")).not.toBeInTheDocument();
-    });
+      }
+    );
   });
 });

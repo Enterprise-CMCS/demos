@@ -203,16 +203,14 @@ describe("ModificationDetailsSummary", () => {
   });
 
   describe("Readonly User Behavior", () => {
-    it("does not render the Edit Details button for readonly users", () => {
-      renderModificationDetailsSummary(mockAmendment, readonlyMockUser);
+    it.each([
+      ["readonly users", readonlyMockUser],
+      ["CMS Reviewer users", cmsReviewerMockUser],
+    ])("does not render the Edit Details button for %s", (_role, currentUser) => {
+      renderModificationDetailsSummary(mockAmendment, currentUser);
       const editButton = screen.queryByRole("button", { name: /button-edit-details/i });
       expect(editButton).not.toBeInTheDocument();
-    });
-
-    it("does not render the Edit Details button for CMS Reviewer users", () => {
-      renderModificationDetailsSummary(mockAmendment, cmsReviewerMockUser);
-      const editButton = screen.queryByRole("button", { name: /button-edit-details/i });
-      expect(editButton).not.toBeInTheDocument();
-    });
+      }
+    );
   });
 });
