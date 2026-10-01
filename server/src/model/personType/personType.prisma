@@ -1,12 +1,11 @@
 model PersonType {
   id String
 
-  people                                            Person[]
-  rolePersonTypes                                   RolePersonType[]
-  userPersonTypeLimit                               UserPersonTypeLimit[]
-  cmsUserPersonTypeLimit                            CmsUserPersonTypeLimit[]
-  deliverableOwnerPersonTypeLimit                   DeliverableOwnerPersonTypeLimit[]
-  primaryDemonstrationRoleAssignmentPersonTypeLimit PrimaryDemonstrationRoleAssignmentPersonTypeLimit[]
+  people                          Person[]
+  rolePersonTypes                 RolePersonType[]
+  userPersonTypeLimit             UserPersonTypeLimit[]
+  cmsUserPersonTypeLimit          CmsUserPersonTypeLimit[]
+  deliverableOwnerPersonTypeLimit DeliverableOwnerPersonTypeLimit[]
 
   @@id([id])
   @@map("person_type")
