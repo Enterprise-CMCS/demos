@@ -153,90 +153,36 @@ describe("PhaseSelector", () => {
 
 describe("getDisplayedPhaseStatus", () => {
   it("returns the phase status when phase exists", () => {
-    const demonstration: ApplicationWorkflowDemonstration = {
-      id: "test-id",
-      name: "Test Demo",
-      state: {
-        id: "CA",
-        name: "California",
+    const demonstration: Parameters<typeof getDisplayedPhaseStatus>[0] = [
+      {
+        phaseName: "Concept",
+        phaseStatus: "Started",
       },
-      primaryProjectOfficer: mockPO,
-      status: "Under Review",
-      currentPhaseName: "Concept",
-      clearanceLevel: "CMS (OSORA)",
-      phases: [
-        {
-          phaseName: "Concept",
-          phaseStatus: "Started",
-          phaseDates: [],
-          phaseNotes: [],
-        },
-        {
-          phaseName: "Application Intake",
-          phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-        },
-      ],
-      documents: [],
-      demonstrationTypes: [],
-      tags: [],
-      medicaidId: "123456789",
-    };
+      {
+        phaseName: "Application Intake",
+        phaseStatus: "Completed",
+      },
+    ];
 
     expect(getDisplayedPhaseStatus(demonstration, "Concept")).toBe("Started");
     expect(getDisplayedPhaseStatus(demonstration, "Application Intake")).toBe("Completed");
   });
 
   it("returns 'Not Started' when phase does not exist", () => {
-    const demonstration: ApplicationWorkflowDemonstration = {
-      id: "test-id",
-      name: "Test Demo",
-      state: {
-        id: "CA",
-        name: "California",
+    const demonstration: Parameters<typeof getDisplayedPhaseStatus>[0] = [
+      {
+        phaseName: "Concept",
+        phaseStatus: "Started",
       },
-      primaryProjectOfficer: mockPO,
-      status: "Under Review",
-      currentPhaseName: "Concept",
-      clearanceLevel: "CMS (OSORA)",
-      phases: [
-        {
-          phaseName: "Concept",
-          phaseStatus: "Started",
-          phaseDates: [],
-          phaseNotes: [],
-        },
-      ],
-      documents: [],
-      demonstrationTypes: [],
-      tags: [],
-      medicaidId: "123456789",
-    };
+    ];
 
     expect(getDisplayedPhaseStatus(demonstration, "Completeness")).toBe("Not Started");
   });
 
   it("returns 'Not Started' when phases array is empty", () => {
-    const demonstration: ApplicationWorkflowDemonstration = {
-      id: "test-id",
-      name: "Test Demo",
-      state: {
-        id: "CA",
-        name: "California",
-      },
-      primaryProjectOfficer: mockPO,
-      status: "Under Review",
-      currentPhaseName: "Concept",
-      clearanceLevel: "CMS (OSORA)",
-      phases: [],
-      documents: [],
-      demonstrationTypes: [],
-      tags: [],
-      medicaidId: "123456789",
-    };
+    const phases: Parameters<typeof getDisplayedPhaseStatus>[0] = [];
 
-    expect(getDisplayedPhaseStatus(demonstration, "Concept")).toBe("Not Started");
+    expect(getDisplayedPhaseStatus(phases, "Concept")).toBe("Not Started");
   });
 });
 

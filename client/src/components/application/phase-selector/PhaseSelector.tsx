@@ -84,10 +84,10 @@ const PhaseGroups = () => {
 };
 
 export const getDisplayedPhaseStatus = (
-  application: WorkflowApplication,
+  phases: Pick<SimplePhase, "phaseName" | "phaseStatus">[],
   phaseName: PhaseName
 ): PhaseStatus => {
-  const phase = application.phases.find((p) => p.phaseName === phaseName);
+  const phase = phases.find((p) => p.phaseName === phaseName);
   return phase?.phaseStatus ?? "Not Started";
 };
 
@@ -148,7 +148,7 @@ export const PhaseSelector = ({
         <PhaseGroups />
         {PHASE_NAMES.map((phaseName, index) => {
           const displayDate = getDisplayedPhaseDate(application.phases, phaseName);
-          const phaseStatus = getDisplayedPhaseStatus(application, phaseName);
+          const phaseStatus = getDisplayedPhaseStatus(application.phases, phaseName);
 
           return (
             <PhaseBox
