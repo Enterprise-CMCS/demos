@@ -7,9 +7,9 @@ import {
 
 import { Client } from "pg";
 import { S3Client, CopyObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
-import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import { als, log, store, reqIdChild } from "./log";
+import { getDatabaseConfig } from "demos-shared-library/database";
 
 const GUARDDUTY_CLEAN_STATUS = "NO_THREATS_FOUND";
 const FINAL_BN_WORKSHEET_DOCUMENT_TYPE = "BN Workbook";
@@ -26,30 +26,6 @@ interface Results {
   processedRecords: number;
   cleanFiles: number;
   infectedFiles: number;
-}
-
-export async function getDatabaseUrl() {
-  const now = Date.now();
-  if (databaseUrlCache && cacheExpiration > now) {
-    return databaseUrlCache;
-  }
-
-  const secretArn = process.env.DATABASE_SECRET_ARN;
-  const secretsManager = new SecretsManagerClient({
-    region: AWS_REGION,
-    endpoint: process.env.AWS_ENDPOINT_URL,
-  });
-  const command = new GetSecretValueCommand({ SecretId: secretArn });
-  const response = await secretsManager.send(command);
-
-  if (!response.SecretString) {
-    throw new Error("The SecretString value is undefined!");
-  }
-  const secretData = JSON.parse(response.SecretString);
-  databaseUrlCache = `postgresql://${secretData.username}:${secretData.password}@${secretData.host}:${secretData.port}/${secretData.dbname}?schema=${process.env.DB_SCHEMA || "demos_app"}`;
-  cacheExpiration = now + 60 * 60 * 1000;
-
-  return databaseUrlCache;
 }
 
 export async function getApplicationId(client: typeof Client, fileKey: string) {
@@ -290,16 +266,8 @@ export const handler = async (event: SQSEvent, context: Context) =>
     };
 
     try {
-      const bypassSSL = process.env.BYPASS_SSL;
       const dbSchema = process.env.DB_SCHEMA || "demos_app";
-      client = new Client({
-        connectionString: await getDatabaseUrl(),
-        ssl: bypassSSL
-          ? false
-          : {
-              rejectUnauthorized: true,
-            },
-      });
+      client = new Client(await getDatabaseConfig(process.env.DATABASE_SECRET_ARN));
       await client.connect();
 
       const setSearchPathQuery = `SET search_path TO ${dbSchema}, public;`;
