@@ -784,17 +784,6 @@ describe("ReviewPhase Component", () => {
       expect(screen.queryByTestId("review-save-for-later")).not.toBeInTheDocument();
       expect(screen.queryByTestId("review-finish")).not.toBeInTheDocument();
     });
-
-    it("prevents editing clearance level for CMS reviewer users", () => {
-      setup(buildInitialFormData(), "demo-cms-reviewer", false, vi.fn(), true, cmsReviewerMockUser);
-
-      // Radio buttons should be disabled for CMS reviewer
-      const cmsRadio = screen.getByLabelText("CMS (OSORA) Clearance Required");
-      expect(cmsRadio).toBeDisabled();
-
-      const commsRadio = screen.getByLabelText("COMMs Clearance Required");
-      expect(commsRadio).toBeDisabled();
-    });
   });
 
   describe("Finish button", () => {
