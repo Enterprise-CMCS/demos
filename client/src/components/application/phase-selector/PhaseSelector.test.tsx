@@ -21,7 +21,6 @@ import {
   getSdgPreparationPhaseFromApplication,
   getApprovalSummaryPhaseFromApplication,
 } from "../phases";
-import { PhaseName, PhaseStatus } from "demos-server";
 
 const mockPO = {
   id: "po-1",
@@ -190,8 +189,8 @@ describe("getDisplayedPhaseDate", () => {
   it("returns undefined when phase does not exist", () => {
     const phases: Parameters<typeof getDisplayedPhaseDate>[0] = [
       {
-        phaseName: "Application Intake" satisfies PhaseName,
-        phaseStatus: "Completed" satisfies PhaseStatus,
+        phaseName: "Application Intake",
+        phaseStatus: "Completed",
         phaseDates: [
           {
             dateType: "Application Intake Start Date",
@@ -211,7 +210,7 @@ describe("getDisplayedPhaseDate", () => {
   it("returns undefined when phase has no dates", () => {
     const phases: Parameters<typeof getDisplayedPhaseDate>[0] = [
       {
-        phaseName: "Concept" satisfies PhaseName,
+        phaseName: "Concept",
         phaseStatus: "Started",
         phaseDates: [],
       },
@@ -225,7 +224,7 @@ describe("getDisplayedPhaseDate", () => {
 
     const phases: Parameters<typeof getDisplayedPhaseDate>[0] = [
       {
-        phaseName: "Application Intake" satisfies PhaseName,
+        phaseName: "Application Intake",
         phaseStatus: "Completed",
         phaseDates: [
           {
@@ -250,7 +249,7 @@ describe("getDisplayedPhaseDate", () => {
 
     const phases: Parameters<typeof getDisplayedPhaseDate>[0] = [
       {
-        phaseName: "Completeness" satisfies PhaseName,
+        phaseName: "Completeness",
         phaseStatus: "Completed",
         phaseDates: [
           {
@@ -275,7 +274,7 @@ describe("getDisplayedPhaseDate", () => {
 
     const phases: Parameters<typeof getDisplayedPhaseDate>[0] = [
       {
-        phaseName: "Concept" satisfies PhaseName,
+        phaseName: "Concept",
         phaseStatus: "Started",
         phaseDates: [
           {
@@ -300,8 +299,8 @@ describe("getDisplayedPhaseDate", () => {
 
     const phases: Parameters<typeof getDisplayedPhaseDate>[0] = [
       {
-        phaseName: "Federal Comment" satisfies PhaseName,
-        phaseStatus: "Started" satisfies PhaseStatus,
+        phaseName: "Federal Comment",
+        phaseStatus: "Started",
         phaseDates: [
           {
             dateType: "Federal Comment Period Start Date",
