@@ -126,7 +126,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           value={TAB.DEMONSTRATION_TYPES}
         >
           <TabHeader title="Types">
-            {!isReadonly(currentUser) && (
+            {!isReadonly(currentUser, "DemonstrationDetail") && (
               <IconButton
                 icon={<AddNewIcon />}
                 name="button-apply-demonstration-types"
@@ -145,7 +145,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           value={TAB.DOCUMENTS}
         >
           <TabHeader title="Documents">
-            {!isReadonly(currentUser) &&  (
+            {!isReadonly(currentUser, "DemonstrationDetail") && (
               <IconButton
                 icon={<AddNewIcon />}
                 name="add-new-document"

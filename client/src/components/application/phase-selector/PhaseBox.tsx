@@ -46,7 +46,7 @@ interface PhaseBoxProps {
   phaseName: PhaseName;
   phaseNumber: number;
   phaseStatus: PhaseStatus;
-  displayDate?: Date;
+  displayDate?: string;
   isSelectedPhase: boolean;
   showAISuggestions?: boolean;
   setPhaseAsSelected: () => void;

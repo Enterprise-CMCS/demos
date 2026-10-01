@@ -177,14 +177,17 @@ describe("getApplicationCompletenessFromApplication", () => {
             {
               dateType: "State Application Deemed Complete",
               dateValue: new TZDate("2026-03-01T05:00:00.000Z", EST_TIMEZONE),
+              plainDate: "2026-03-01",
             },
             {
               dateType: "Federal Comment Period Start Date",
               dateValue: new TZDate("2026-03-02T05:00:00.000Z", EST_TIMEZONE),
+              plainDate: "2026-03-02",
             },
             {
               dateType: "Federal Comment Period End Date",
               dateValue: new TZDate("2026-04-01T04:00:00.000Z", EST_TIMEZONE),
+              plainDate: "2026-04-01",
             },
           ],
           phaseNotes: [],

@@ -9,7 +9,7 @@ import { DemonstrationTab, DemonstrationTabDemonstration } from "./Demonstration
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { deliverableMocks } from "mock-data/deliverableMocks";
-import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { cmsMockUser, cmsReviewerMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 const mockDemonstration: DemonstrationTabDemonstration = {
   id: "demo-123",
@@ -64,7 +64,10 @@ const mockDemonstration: DemonstrationTabDemonstration = {
 
 const renderWithProvider = (component: React.ReactElement, useReadonlyUser = false) => {
   return render(
-    <TestProvider mocks={deliverableMocks} currentUser={useReadonlyUser ? readonlyMockUser : cmsMockUser}>
+    <TestProvider
+      mocks={deliverableMocks}
+      currentUser={useReadonlyUser ? readonlyMockUser : cmsMockUser}
+    >
       <DialogProvider>{component}</DialogProvider>
     </TestProvider>
   );
@@ -209,29 +212,43 @@ describe("DemonstrationTab", () => {
   });
 
   describe("Readonly User Behaviors", () => {
+    it("does not show Types, Documents, or Contacts actions for CMS Reviewer users", async () => {
+      const user = userEvent.setup();
+      render(
+        <TestProvider mocks={deliverableMocks} currentUser={cmsReviewerMockUser}>
+          <DialogProvider>
+            <DemonstrationTab demonstration={mockDemonstration} />
+          </DialogProvider>
+        </TestProvider>
+      );
+
+      await user.click(screen.getByRole("button", { name: "Types (0)" }));
+      expect(
+        screen.queryByRole("button", { name: "button-apply-demonstration-types" })
+      ).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: "Documents (2)" }));
+      expect(screen.queryByRole("button", { name: "add-new-document" })).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: "Contacts (2)" }));
+      expect(screen.queryByRole("button", { name: "manage-contacts" })).not.toBeInTheDocument();
+    });
+
     it("does not show Upload Documents button for readonly users", () => {
       const user = userEvent.setup();
 
-      renderWithProvider(
-        <DemonstrationTab demonstration={mockDemonstration} />,
-        true
-      );
+      renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />, true);
 
       const documentsTab = screen.getByRole("button", { name: "Documents (2)" });
       user.click(documentsTab);
 
-      expect(
-        screen.queryByRole("button", { name: "add-new-document" })
-      ).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "add-new-document" })).not.toBeInTheDocument();
     });
 
     it("does not show Apply Types button for readonly users", () => {
       const user = userEvent.setup();
 
-      renderWithProvider(
-        <DemonstrationTab demonstration={mockDemonstration} />,
-        true
-      );
+      renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />, true);
 
       const typesTab = screen.getByRole("button", { name: "Types (0)" });
       user.click(typesTab);

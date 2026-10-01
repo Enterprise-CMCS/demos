@@ -558,6 +558,7 @@ describe("ApplicationIntakePhase", () => {
               {
                 dateType: "State Application Submitted Date",
                 dateValue: new TZDate(2024, 9, 13, EST_TIMEZONE),
+                plainDate: "2024-10-13",
               },
             ],
             phaseNotes: [],

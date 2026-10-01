@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom";
 import React from "react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -43,10 +43,12 @@ const DEFAULT_PHASE_DATES = [
   {
     dateType: "Internal Expected Approval Date" as const,
     dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+    plainDate: "2025-01-01",
   },
   {
     dateType: "State Requested Approval Date" as const,
     dateValue: parseISO("2025-03-15T04:00:00.000Z"),
+    plainDate: "2025-03-15",
   },
 ];
 
@@ -54,15 +56,22 @@ const COMPLETE_PHASE_DATES = [
   {
     dateType: "Internal Expected Approval Date" as const,
     dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+    plainDate: "2025-01-01",
   },
-  { dateType: "SME Initial Review Date" as const, dateValue: parseISO("2025-01-01T05:00:00.000Z") },
+  {
+    dateType: "SME Initial Review Date" as const,
+    dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+    plainDate: "2025-01-01",
+  },
   {
     dateType: "FRT Initial Meeting Date" as const,
     dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+    plainDate: "2025-01-01",
   },
   {
     dateType: "BNPMT Initial Meeting Date" as const,
     dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+    plainDate: "2025-01-01",
   },
 ];
 
@@ -347,6 +356,60 @@ describe("SdgPreparationPhase", () => {
     });
   });
 
+  describe("Date field handling outside Eastern Time", () => {
+    // Stored dates are midnight ET (2025-01-01T05:00:00.000Z); a Central browser must not shift them.
+    beforeEach(() => {
+      vi.stubEnv("TZ", "America/Chicago");
+    });
+
+    afterEach(() => {
+      vi.unstubAllEnvs();
+    });
+
+    it("prefills the Internal Expected Approval Date without shifting it a day earlier", () => {
+      setup();
+
+      expect(screen.getByTestId("datepicker-internal-expected-approval-date")).toHaveValue(
+        "2025-01-01"
+      );
+    });
+
+    it("keeps Save For Later disabled when the stored date is re-entered", async () => {
+      setup();
+
+      const internalExpectedApprovalDateInput = screen.getByTestId(
+        "datepicker-internal-expected-approval-date"
+      );
+      await userEvent.clear(internalExpectedApprovalDateInput);
+      await userEvent.type(internalExpectedApprovalDateInput, "2025-01-01");
+
+      expect(screen.getByTestId("sdg-save-for-later")).toBeDisabled();
+    });
+
+    it("enables Save For Later and saves when the day before the stored date is entered", async () => {
+      mockSetApplicationDate.mockResolvedValue({ data: { setApplicationDate: { id: "1" } } });
+      setup();
+
+      const internalExpectedApprovalDateInput = screen.getByTestId(
+        "datepicker-internal-expected-approval-date"
+      );
+      await userEvent.clear(internalExpectedApprovalDateInput);
+      await userEvent.type(internalExpectedApprovalDateInput, "2024-12-31");
+
+      const saveButton = screen.getByTestId("sdg-save-for-later");
+      expect(saveButton).toBeEnabled();
+      await userEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(mockSetApplicationDate).toHaveBeenCalledWith({
+          applicationId: "1",
+          dateType: "Internal Expected Approval Date",
+          dateValue: "2024-12-31",
+        });
+      });
+    });
+  });
+
   describe("SdgPreparationPhase - Phase Status Mutation", () => {
     it("shows success toast when Finish succeess and calls setSelectedPhase", async () => {
       mockSetApplicationDate.mockResolvedValue({ data: { setApplicationDate: { id: "1" } } });
@@ -495,22 +558,27 @@ describe("Completed Phase Behavior", () => {
       {
         dateType: "Internal Expected Approval Date" as DateType,
         dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+        plainDate: "2025-01-01",
       },
       {
         dateType: "SME Initial Review Date" as DateType,
         dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+        plainDate: "2025-01-01",
       },
       {
         dateType: "FRT Initial Meeting Date" as DateType,
         dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+        plainDate: "2025-01-01",
       },
       {
         dateType: "BNPMT Initial Meeting Date" as DateType,
         dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+        plainDate: "2025-01-01",
       },
       {
         dateType: "State Requested Approval Date" as DateType,
         dateValue: parseISO("2025-03-15T04:00:00.000Z"),
+        plainDate: "2025-03-15",
       },
     ],
     phaseNotes: [],
@@ -632,6 +700,7 @@ describe("getSdgPreparationPhaseFromApplication", () => {
             {
               dateType: "Internal Expected Approval Date",
               dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+              plainDate: "2025-01-01",
             },
           ],
           phaseNotes: [],
