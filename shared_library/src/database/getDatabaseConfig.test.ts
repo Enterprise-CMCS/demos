@@ -119,6 +119,18 @@ describe("getDatabaseConfig", () => {
     expect(send).toHaveBeenCalledTimes(1);
   });
 
+  it("handles multiple secrets used in one lambda", async () => {
+    await getDatabaseConfig(mockSecretArn);
+    await getDatabaseConfig(mockSecretArn);
+    await getDatabaseConfig("arn:aws:secretsmanager:secret-number-two");
+    await getDatabaseConfig(mockSecretArn);
+    await getDatabaseConfig(mockSecretArn);
+    await getDatabaseConfig(mockSecretArn);
+    await getDatabaseConfig("arn:aws:secretsmanager:secret-number-two");
+    await getDatabaseConfig("arn:aws:secretsmanager:secret-number-two");
+    expect(send).toHaveBeenCalledTimes(2);
+  });
+
   it("refetches after 5 minutes, so a rotated password is picked up", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-09-04T07:00:00Z"));
@@ -131,6 +143,22 @@ describe("getDatabaseConfig", () => {
     vi.setSystemTime(new Date("2026-09-04T07:05:01Z"));
     await getDatabaseConfig(mockSecretArn);
     expect(send).toHaveBeenCalledTimes(2);
+  });
+
+   it("maintains separate caches for multiple secrets", async () => {
+    vi.useFakeTimers();
+
+    vi.setSystemTime(new Date("2026-09-04T07:00:00Z"));
+    await getDatabaseConfig(mockSecretArn);
+    
+    vi.setSystemTime(new Date("2026-09-04T07:02:00Z"));
+    await getDatabaseConfig("arn:aws:secretsmanager:secret-number-two");
+    
+    vi.setSystemTime(new Date("2026-09-04T07:06:00Z"));
+    await getDatabaseConfig(mockSecretArn);
+    await getDatabaseConfig("arn:aws:secretsmanager:secret-number-two");
+
+    expect(send).toHaveBeenCalledTimes(3);
   });
 
   it("serves a rotated password after the cache expires", async () => {

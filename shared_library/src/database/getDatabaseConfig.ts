@@ -2,8 +2,12 @@ import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-sec
 
 import type {PoolConfig} from 'pg'
 
-let cacheExpiration = 0;
-let databaseConfigCache: PoolConfig | null = null
+interface DBConfigCache {
+  cacheExpiration: number
+  config: PoolConfig
+}
+
+let databaseConfigCache: Map<string, DBConfigCache> = new Map()
 
 const secretsManagerClient = new SecretsManagerClient({
   region: process.env.AWS_REGION,
@@ -19,17 +23,18 @@ type ForbiddenOptions =
   | "database";
 
 export async function getDatabaseConfig(databaseSecretArn: string, additionalOptions: Omit<PoolConfig,ForbiddenOptions> = {}): Promise<PoolConfig> {
+  if (Object.keys(additionalOptions).includes("connectionString")) {
+    throw new Error("connectionString should not be set in additional options"); 
+  }
+  
   const now = Date.now();
-  if (databaseConfigCache && cacheExpiration > now) {
-    return databaseConfigCache;
+  const cachedConfig = databaseConfigCache.get(databaseSecretArn)
+  if (cachedConfig && cachedConfig.cacheExpiration > now) {
+    return cachedConfig?.config;
   }
 
   if (!databaseSecretArn || databaseSecretArn.trim() === "") {
     throw new Error("Database secret arn must be provided to retrieve credentials"); 
-  }
-
-  if (Object.keys(additionalOptions).includes("connectionString")) {
-    throw new Error("connectionString should not be set in additional options"); 
   }
 
   const getDbSecretValueCommand = new GetSecretValueCommand({ SecretId: databaseSecretArn });
@@ -45,7 +50,7 @@ export async function getDatabaseConfig(databaseSecretArn: string, additionalOpt
   const additionalSslOptions = additionalOptions.ssl && typeof additionalOptions.ssl === "object"
    ? additionalOptions.ssl : {};
 
-  databaseConfigCache = {
+  const config: PoolConfig = {
     ...additionalOptions,
     user: dbCredentials.username,
     host: dbCredentials.host,
@@ -62,12 +67,14 @@ export async function getDatabaseConfig(databaseSecretArn: string, additionalOpt
             },
   };
 
-  Object.defineProperty(databaseConfigCache, "password", {
+  Object.defineProperty(config, "password", {
     enumerable: false,
     value: dbCredentials.password,
   });
 
-  cacheExpiration = now + 5 * 60 * 1000;
+  const cacheExpiration = now + 5 * 60 * 1000;
 
-  return databaseConfigCache
+  databaseConfigCache.set(databaseSecretArn, {config, cacheExpiration})
+
+  return config
 }
