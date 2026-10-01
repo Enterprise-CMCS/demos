@@ -3,7 +3,7 @@ import type { Table as TanstackTable } from "@tanstack/react-table";
 
 import { CircleButton } from "components/button";
 import { useDialog } from "components/dialog/DialogContext";
-import { EditIcon, ResolveIcon } from "components/icons";
+import { ApproveIcon, EditIcon } from "components/icons";
 
 import type { DemonstrationTypeUsageRow } from "./DemonstrationTypeUsageTable";
 
@@ -50,7 +50,7 @@ export const TypeTagActionButtons = ({
         disabled={!approveEnabled}
         onClick={handleApprove}
       >
-        <ResolveIcon />
+        <ApproveIcon />
       </CircleButton>
       <CircleButton
         name={EDIT_TYPE_TAG_BUTTON_NAME}
