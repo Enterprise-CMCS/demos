@@ -745,10 +745,16 @@ describe("ReviewPhase Component", () => {
 
   describe("Restricted User Access (Phase 6 - Review)", () => {
     it.each([
-      { roleName: "demos-restricted-cms-user", user: readonlyMockUser, setupId: "demo-readonly-user" },
-      { roleName: "demos-cms-reviewer-user", user: cmsReviewerMockUser, setupId: "demo-cms-reviewer" },
-    ])("$roleName - renders review phase as readonly", ({ user, setupId }) => {
-      setup(buildInitialFormData(), setupId, false, vi.fn(), true, user);
+      {
+        personType: "demos-restricted-cms-user",
+        user: readonlyMockUser,
+      },
+      {
+        personType: "demos-cms-reviewer-user",
+        user: cmsReviewerMockUser,
+      },
+    ])("$personType - renders review phase as readonly", ({ user }) => {
+      setup(buildInitialFormData(), "demo-1", false, vi.fn(), true, user);
 
       for (const datePickerName of PO_AND_OGD_DATEPICKER_NAMES) {
         expect(screen.getByTestId(datePickerName)).toBeDisabled();
@@ -757,18 +763,27 @@ describe("ReviewPhase Component", () => {
     });
 
     it.each([
-      { roleName: "demos-restricted-cms-user", user: readonlyMockUser, setupId: "demo-readonly-user" },
-      { roleName: "demos-cms-reviewer-user", user: cmsReviewerMockUser, setupId: "demo-cms-reviewer" },
-    ])("$roleName - hides save and finish buttons", ({ user, setupId }) => {
-      setup(buildInitialFormData(), setupId, false, vi.fn(), true, user);
+      {
+        personType: "demos-restricted-cms-user",
+        user: readonlyMockUser,
+      },
+      {
+        personType: "demos-cms-reviewer-user",
+        user: cmsReviewerMockUser,
+      },
+    ])("$personType - hides save and finish buttons", ({ user }) => {
+      setup(buildInitialFormData(), "demo-1", false, vi.fn(), true, user);
 
       expect(screen.queryByTestId("review-save-for-later")).not.toBeInTheDocument();
       expect(screen.queryByTestId("review-finish")).not.toBeInTheDocument();
     });
 
-    it("demos-restricted-cms-user - displays all date pickers as disabled and hides controls", async () => {
+    it.each([
+      { personType: "demos-restricted-cms-user", user: readonlyMockUser },
+      { personType: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
+    ])("$personType - displays all date pickers as disabled and hides controls", async ({ user }) => {
       const incompleteData = buildInitialFormData({ dates: {} });
-      setup(incompleteData, "demo-readonly-user", false, vi.fn(), true, readonlyMockUser);
+      setup(incompleteData, "demo-1", false, vi.fn(), true, user);
 
       for (const datePickerName of [
         ...PO_AND_OGD_DATEPICKER_NAMES,

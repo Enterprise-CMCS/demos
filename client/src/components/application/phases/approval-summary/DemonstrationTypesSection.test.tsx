@@ -141,9 +141,9 @@ describe("DemonstrationTypesSection", () => {
 
   describe("Restricted User Behavior (Phase 8 - Approval Summary)", () => {
     it.each([
-      { roleName: "demos-restricted-cms-user", user: readonlyMockUser },
-      { roleName: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
-    ])("$roleName - hides apply types button", ({ user }) => {
+      { personType: "demos-restricted-cms-user", user: readonlyMockUser },
+      { personType: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
+    ])("$personType - hides apply types button", ({ user }) => {
       setup(false, mockTypes, user);
 
       // Check that Apply Types button is hidden
@@ -153,25 +153,31 @@ describe("DemonstrationTypesSection", () => {
     });
 
     it.each([
-      { roleName: "demos-restricted-cms-user", user: readonlyMockUser },
-      { roleName: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
-    ])("$roleName - hides mark complete switch", ({ user }) => {
+      { personType: "demos-restricted-cms-user", user: readonlyMockUser },
+      { personType: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
+    ])("$personType - hides mark complete switch", ({ user }) => {
       setup(false, mockTypes, user);
 
       // Check that Mark Complete switch is hidden
       expect(screen.queryByTestId("mark-complete-switch")).not.toBeInTheDocument();
     });
 
-    it("demos-cms-reviewer-user - displays types as readonly", () => {
-      setup(false, mockTypes, cmsReviewerMockUser);
+    it.each([
+      { personType: "demos-restricted-cms-user", user: readonlyMockUser },
+      { personType: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
+    ])("$personType - displays types as readonly", ({ user }) => {
+      setup(false, mockTypes, user);
 
       // Types should still be displayed but not editable
       expect(screen.getByText("Types")).toBeInTheDocument();
       expect(screen.getByText(mockTypes[0].demonstrationTypeName)).toBeInTheDocument();
     });
 
-    it("demos-cms-reviewer-user - hides select checkboxes", () => {
-      setup(false, mockTypes, cmsReviewerMockUser);
+    it.each([
+      { personType: "demos-restricted-cms-user", user: readonlyMockUser },
+      { personType: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
+    ])("$personType - hides select checkboxes", ({ user }) => {
+      setup(false, mockTypes, user);
 
       // Check that row select checkboxes are hidden
       expect(screen.queryByTestId("select-all")).not.toBeInTheDocument();

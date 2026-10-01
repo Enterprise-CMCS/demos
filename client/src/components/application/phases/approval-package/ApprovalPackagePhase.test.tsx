@@ -193,18 +193,18 @@ describe("ApprovalPackagePhase", () => {
 
   describe("Restricted User Access (Phase 7 - Approval Package)", () => {
     it.each([
-      { roleName: "demos-restricted-cms-user", user: readonlyMockUser },
-      { roleName: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
-    ])("$roleName - hides Finish button", ({ user }) => {
+      { personType: "demos-restricted-cms-user", user: readonlyMockUser },
+      { personType: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
+    ])("$personType - hides Finish button", ({ user }) => {
       setup({ documents: allRequiredDocs }, user);
 
       expect(screen.queryByRole("button", { name: /finish/i })).not.toBeInTheDocument();
     });
 
     it.each([
-      { roleName: "demos-restricted-cms-user", user: readonlyMockUser },
-      { roleName: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
-    ])("$roleName - displays document table in readonly mode", ({ user }) => {
+      { personType: "demos-restricted-cms-user", user: readonlyMockUser },
+      { personType: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
+    ])("$personType - displays document table in readonly mode", ({ user }) => {
       setup({ documents: allRequiredDocs }, user);
 
       expect(screen.getByRole("table")).toBeInTheDocument();
@@ -214,9 +214,9 @@ describe("ApprovalPackagePhase", () => {
     });
 
     it.each([
-      { roleName: "demos-restricted-cms-user", user: readonlyMockUser },
-      { roleName: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
-    ])("$roleName - has readonly access to approval package", ({ user }) => {
+      { personType: "demos-restricted-cms-user", user: readonlyMockUser },
+      { personType: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
+    ])("$personType - has readonly access to approval package", ({ user }) => {
       setup({ documents: [] }, user);
 
       // Finish button should be hidden/unavailable
