@@ -81,11 +81,11 @@ def call(Map params = [:]) {
   resources:
     requests:
       cpu: 1500m
-      memory: 2Gi
+      memory: 4Gi
       ephemeral-storage: "1Gi"
     limits:
       cpu: 3000m
-      memory: 4Gi
+      memory: 8Gi
       ephemeral-storage: "5Gi"
 """,
       'checkov': """

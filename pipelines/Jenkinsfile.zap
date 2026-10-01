@@ -1,3 +1,5 @@
+@Library('demos-lib@zap-fix') _
+
 pipeline {
   agent {
     kubernetes { 
