@@ -442,6 +442,7 @@ export class ApiStack extends Stack {
       timeout: Duration.seconds(30),
       securityGroup: emailSchedulerLambdaSecurityGroup.securityGroup,
       environment: {
+        DB_SSL_MODE: "verify-full",
         DATABASE_SECRET_ARN: emailerDbSecret.secretName, // pragma: allowlist secret
         EMAILER_QUEUE_URL: emailQueue.queueUrl,
         NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
