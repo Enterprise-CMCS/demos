@@ -743,8 +743,30 @@ describe("ReviewPhase Component", () => {
     });
   });
 
-  describe("Readonly User", () => {
-    it("hides review controls while allowing readonly users to view disabled dates and notes", async () => {
+  describe("Restricted User Access (Phase 6 - Review)", () => {
+    it.each([
+      { roleName: "Readonly User", user: readonlyMockUser, setupId: "demo-readonly-user" },
+      { roleName: "CMS Reviewer User", user: cmsReviewerMockUser, setupId: "demo-cms-reviewer" },
+    ])("$roleName - renders review phase as readonly", ({ user, setupId }) => {
+      setup(buildInitialFormData(), setupId, false, vi.fn(), true, user);
+
+      for (const datePickerName of PO_AND_OGD_DATEPICKER_NAMES) {
+        expect(screen.getByTestId(datePickerName)).toBeDisabled();
+      }
+      expect(screen.getByTestId("input-po-ogd-notes")).toBeDisabled();
+    });
+
+    it.each([
+      { roleName: "Readonly User", user: readonlyMockUser, setupId: "demo-readonly-user" },
+      { roleName: "CMS Reviewer User", user: cmsReviewerMockUser, setupId: "demo-cms-reviewer" },
+    ])("$roleName - hides save and finish buttons", ({ user, setupId }) => {
+      setup(buildInitialFormData(), setupId, false, vi.fn(), true, user);
+
+      expect(screen.queryByTestId("review-save-for-later")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("review-finish")).not.toBeInTheDocument();
+    });
+
+    it("Readonly User - displays all date pickers as disabled and hides controls", async () => {
       const incompleteData = buildInitialFormData({ dates: {} });
       setup(incompleteData, "demo-readonly-user", false, vi.fn(), true, readonlyMockUser);
 
@@ -763,24 +785,6 @@ describe("ReviewPhase Component", () => {
       for (const datePickerName of CMS_OSORA_CLEARANCE_DATEPICKER_NAMES) {
         expect(screen.getByTestId(datePickerName)).toBeDisabled();
       }
-      expect(screen.queryByTestId("review-save-for-later")).not.toBeInTheDocument();
-      expect(screen.queryByTestId("review-finish")).not.toBeInTheDocument();
-    });
-  });
-
-  describe("CMS Reviewer User (Phase 6 - Review)", () => {
-    it("renders review phase as readonly for CMS reviewer users", () => {
-      setup(buildInitialFormData(), "demo-cms-reviewer", false, vi.fn(), true, cmsReviewerMockUser);
-
-      for (const datePickerName of PO_AND_OGD_DATEPICKER_NAMES) {
-        expect(screen.getByTestId(datePickerName)).toBeDisabled();
-      }
-      expect(screen.getByTestId("input-po-ogd-notes")).toBeDisabled();
-    });
-
-    it("hides save and finish buttons for CMS reviewer users", () => {
-      setup(buildInitialFormData(), "demo-cms-reviewer", false, vi.fn(), true, cmsReviewerMockUser);
-
       expect(screen.queryByTestId("review-save-for-later")).not.toBeInTheDocument();
       expect(screen.queryByTestId("review-finish")).not.toBeInTheDocument();
     });

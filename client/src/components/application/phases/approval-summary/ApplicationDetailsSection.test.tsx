@@ -267,8 +267,11 @@ describe("ApplicationDetailsSection", () => {
     });
   });
 
-  describe("Readonly User Behavior", () => {
-    it("disables all editable fields and hides mark complete for readonly users", () => {
+  describe("Restricted User Behavior (Phase 8 - Approval Summary)", () => {
+    it.each([
+      { roleName: "Readonly User", user: readonlyMockUser },
+      { roleName: "CMS Reviewer User", user: cmsReviewerMockUser },
+    ])("$roleName - disables all editable fields", ({ user }) => {
       setup(
         {
           applicationType: "demonstration",
@@ -278,7 +281,7 @@ describe("ApplicationDetailsSection", () => {
         },
         false,
         false,
-        readonlyMockUser
+        user
       );
 
       // Check that all editable inputs are disabled
@@ -289,14 +292,12 @@ describe("ApplicationDetailsSection", () => {
       expect(screen.getByLabelText(/demonstration description/i)).toBeDisabled();
       expect(screen.getByLabelText(/signature level/i)).toBeDisabled();
       expect(screen.getByLabelText(/application approval date/i)).toBeDisabled();
-
-      // Check that Mark Complete switch is hidden
-      expect(screen.queryByRole("switch", { name: /mark complete/i })).not.toBeInTheDocument();
     });
-  });
 
-  describe("CMS Reviewer User (Phase 8 - Approval Summary)", () => {
-    it("disables all editable fields for CMS reviewer users", () => {
+    it.each([
+      { roleName: "Readonly User", user: readonlyMockUser },
+      { roleName: "CMS Reviewer User", user: cmsReviewerMockUser },
+    ])("$roleName - hides mark complete switch", ({ user }) => {
       setup(
         {
           applicationType: "demonstration",
@@ -306,30 +307,7 @@ describe("ApplicationDetailsSection", () => {
         },
         false,
         false,
-        cmsReviewerMockUser
-      );
-
-      // Check that all editable inputs are disabled for CMS reviewer
-      expect(screen.getByLabelText(/demonstration title/i)).toBeDisabled();
-      expect(screen.getByLabelText(/status/i)).toBeDisabled();
-      expect(screen.getByLabelText(/effective date/i)).toBeDisabled();
-      expect(screen.getByLabelText(/expiration date/i)).toBeDisabled();
-      expect(screen.getByLabelText(/demonstration description/i)).toBeDisabled();
-      expect(screen.getByLabelText(/signature level/i)).toBeDisabled();
-      expect(screen.getByLabelText(/application approval date/i)).toBeDisabled();
-    });
-
-    it("hides mark complete switch for CMS reviewer users", () => {
-      setup(
-        {
-          applicationType: "demonstration",
-          stateId: "CA",
-          stateName: "California",
-          staticFields: {},
-        },
-        false,
-        false,
-        cmsReviewerMockUser
+        user
       );
 
       // Check that Mark Complete switch is hidden

@@ -139,38 +139,30 @@ describe("DemonstrationTypesSection", () => {
     expect(showApplyDemonstrationTypesDialog).toHaveBeenCalledWith("demo-123");
   });
 
-  describe("Readonly User Behavior", () => {
-    it("hides apply types button and mark complete switch for readonly users", () => {
-      setup(false, mockTypes, readonlyMockUser);
+  describe("Restricted User Behavior (Phase 8 - Approval Summary)", () => {
+    it.each([
+      { roleName: "Readonly User", user: readonlyMockUser },
+      { roleName: "CMS Reviewer User", user: cmsReviewerMockUser },
+    ])("$roleName - hides apply types button", ({ user }) => {
+      setup(false, mockTypes, user);
 
       // Check that Apply Types button is hidden
       const section = screen.getByText("Types").closest("section");
       const applyButton = within(section!).queryByRole("button", { name: /apply-types/i });
       expect(applyButton).not.toBeInTheDocument();
-
-      // Check that Mark Complete switch is hidden
-      expect(screen.queryByTestId("mark-complete-switch")).not.toBeInTheDocument();
-    });
-  });
-
-  describe("CMS Reviewer User (Phase 8 - Approval Summary)", () => {
-    it("hides apply types button for CMS reviewer users", () => {
-      setup(false, mockTypes, cmsReviewerMockUser);
-
-      // Check that Apply Types button is hidden for CMS reviewer
-      const section = screen.getByText("Types").closest("section");
-      const applyButton = within(section!).queryByRole("button", { name: /apply-types/i });
-      expect(applyButton).not.toBeInTheDocument();
     });
 
-    it("hides mark complete switch for CMS reviewer users", () => {
-      setup(false, mockTypes, cmsReviewerMockUser);
+    it.each([
+      { roleName: "Readonly User", user: readonlyMockUser },
+      { roleName: "CMS Reviewer User", user: cmsReviewerMockUser },
+    ])("$roleName - hides mark complete switch", ({ user }) => {
+      setup(false, mockTypes, user);
 
       // Check that Mark Complete switch is hidden
       expect(screen.queryByTestId("mark-complete-switch")).not.toBeInTheDocument();
     });
 
-    it("displays types as readonly for CMS reviewer users", () => {
+    it("CMS Reviewer User - displays types as readonly", () => {
       setup(false, mockTypes, cmsReviewerMockUser);
 
       // Types should still be displayed but not editable
@@ -178,7 +170,7 @@ describe("DemonstrationTypesSection", () => {
       expect(screen.getByText(mockTypes[0].demonstrationTypeName)).toBeInTheDocument();
     });
 
-    it("hides select checkboxes for CMS reviewer users", () => {
+    it("CMS Reviewer User - hides select checkboxes", () => {
       setup(false, mockTypes, cmsReviewerMockUser);
 
       // Check that row select checkboxes are hidden

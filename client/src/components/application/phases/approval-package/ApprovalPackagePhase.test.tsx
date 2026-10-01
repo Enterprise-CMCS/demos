@@ -145,11 +145,7 @@ describe("ApprovalPackagePhase", () => {
     expect(screen.getByRole("button", { name: /finish/i })).toBeDisabled();
   });
 
-  it("hides Finish when user is readonly", () => {
-    setup({ documents: allRequiredDocs }, readonlyMockUser);
 
-    expect(screen.queryByRole("button", { name: /finish/i })).not.toBeInTheDocument();
-  });
 
   it("enables Finish only when all previous phases done, all documents uploaded, and not readonly", () => {
     setup({ documents: allRequiredDocs });
@@ -197,15 +193,21 @@ describe("ApprovalPackagePhase", () => {
     expect(screen.getByRole("table")).toBeInTheDocument();
   });
 
-  describe("CMS Reviewer User (Phase 7 - Approval Package)", () => {
-    it("hides Finish button for CMS reviewer users", () => {
-      setup({ documents: allRequiredDocs }, cmsReviewerMockUser);
+  describe("Restricted User Access (Phase 7 - Approval Package)", () => {
+    it.each([
+      { roleName: "Readonly User", user: readonlyMockUser },
+      { roleName: "CMS Reviewer User", user: cmsReviewerMockUser },
+    ])("$roleName - hides Finish button", ({ user }) => {
+      setup({ documents: allRequiredDocs }, user);
 
       expect(screen.queryByRole("button", { name: /finish/i })).not.toBeInTheDocument();
     });
 
-    it("displays document table but prevents upload actions for CMS reviewer users", () => {
-      setup({ documents: allRequiredDocs }, cmsReviewerMockUser);
+    it.each([
+      { roleName: "Readonly User", user: readonlyMockUser },
+      { roleName: "CMS Reviewer User", user: cmsReviewerMockUser },
+    ])("$roleName - displays document table in readonly mode", ({ user }) => {
+      setup({ documents: allRequiredDocs }, user);
 
       expect(screen.getByRole("table")).toBeInTheDocument();
       // Verify table rows are displayed
@@ -213,8 +215,11 @@ describe("ApprovalPackagePhase", () => {
       expect(rows.length - 1).toEqual(6); // 6 document types
     });
 
-    it("ensures CMS reviewer users have readonly access to approval package", () => {
-      setup({ documents: [] }, cmsReviewerMockUser);
+    it.each([
+      { roleName: "Readonly User", user: readonlyMockUser },
+      { roleName: "CMS Reviewer User", user: cmsReviewerMockUser },
+    ])("$roleName - has readonly access to approval package", ({ user }) => {
+      setup({ documents: [] }, user);
 
       // Finish button should be hidden/unavailable
       expect(screen.queryByRole("button", { name: /finish/i })).not.toBeInTheDocument();
