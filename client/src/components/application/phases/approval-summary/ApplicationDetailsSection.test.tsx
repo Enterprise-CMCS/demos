@@ -269,8 +269,8 @@ describe("ApplicationDetailsSection", () => {
 
   describe("Restricted User Behavior (Phase 8 - Approval Summary)", () => {
     it.each([
-      { roleName: "Readonly User", user: readonlyMockUser },
-      { roleName: "CMS Reviewer User", user: cmsReviewerMockUser },
+      { roleName: "demos-restricted-cms-user", user: readonlyMockUser },
+      { roleName: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
     ])("$roleName - disables all editable fields", ({ user }) => {
       setup(
         {
@@ -295,8 +295,8 @@ describe("ApplicationDetailsSection", () => {
     });
 
     it.each([
-      { roleName: "Readonly User", user: readonlyMockUser },
-      { roleName: "CMS Reviewer User", user: cmsReviewerMockUser },
+      { roleName: "demos-restricted-cms-user", user: readonlyMockUser },
+      { roleName: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
     ])("$roleName - hides mark complete switch", ({ user }) => {
       setup(
         {

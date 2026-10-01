@@ -745,8 +745,8 @@ describe("ReviewPhase Component", () => {
 
   describe("Restricted User Access (Phase 6 - Review)", () => {
     it.each([
-      { roleName: "Readonly User", user: readonlyMockUser, setupId: "demo-readonly-user" },
-      { roleName: "CMS Reviewer User", user: cmsReviewerMockUser, setupId: "demo-cms-reviewer" },
+      { roleName: "demos-restricted-cms-user", user: readonlyMockUser, setupId: "demo-readonly-user" },
+      { roleName: "demos-cms-reviewer-user", user: cmsReviewerMockUser, setupId: "demo-cms-reviewer" },
     ])("$roleName - renders review phase as readonly", ({ user, setupId }) => {
       setup(buildInitialFormData(), setupId, false, vi.fn(), true, user);
 
@@ -757,8 +757,8 @@ describe("ReviewPhase Component", () => {
     });
 
     it.each([
-      { roleName: "Readonly User", user: readonlyMockUser, setupId: "demo-readonly-user" },
-      { roleName: "CMS Reviewer User", user: cmsReviewerMockUser, setupId: "demo-cms-reviewer" },
+      { roleName: "demos-restricted-cms-user", user: readonlyMockUser, setupId: "demo-readonly-user" },
+      { roleName: "demos-cms-reviewer-user", user: cmsReviewerMockUser, setupId: "demo-cms-reviewer" },
     ])("$roleName - hides save and finish buttons", ({ user, setupId }) => {
       setup(buildInitialFormData(), setupId, false, vi.fn(), true, user);
 
@@ -766,7 +766,7 @@ describe("ReviewPhase Component", () => {
       expect(screen.queryByTestId("review-finish")).not.toBeInTheDocument();
     });
 
-    it("Readonly User - displays all date pickers as disabled and hides controls", async () => {
+    it("demos-restricted-cms-user - displays all date pickers as disabled and hides controls", async () => {
       const incompleteData = buildInitialFormData({ dates: {} });
       setup(incompleteData, "demo-readonly-user", false, vi.fn(), true, readonlyMockUser);
 

@@ -145,8 +145,6 @@ describe("ApprovalPackagePhase", () => {
     expect(screen.getByRole("button", { name: /finish/i })).toBeDisabled();
   });
 
-
-
   it("enables Finish only when all previous phases done, all documents uploaded, and not readonly", () => {
     setup({ documents: allRequiredDocs });
 
@@ -195,8 +193,8 @@ describe("ApprovalPackagePhase", () => {
 
   describe("Restricted User Access (Phase 7 - Approval Package)", () => {
     it.each([
-      { roleName: "Readonly User", user: readonlyMockUser },
-      { roleName: "CMS Reviewer User", user: cmsReviewerMockUser },
+      { roleName: "demos-restricted-cms-user", user: readonlyMockUser },
+      { roleName: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
     ])("$roleName - hides Finish button", ({ user }) => {
       setup({ documents: allRequiredDocs }, user);
 
@@ -204,8 +202,8 @@ describe("ApprovalPackagePhase", () => {
     });
 
     it.each([
-      { roleName: "Readonly User", user: readonlyMockUser },
-      { roleName: "CMS Reviewer User", user: cmsReviewerMockUser },
+      { roleName: "demos-restricted-cms-user", user: readonlyMockUser },
+      { roleName: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
     ])("$roleName - displays document table in readonly mode", ({ user }) => {
       setup({ documents: allRequiredDocs }, user);
 
@@ -216,8 +214,8 @@ describe("ApprovalPackagePhase", () => {
     });
 
     it.each([
-      { roleName: "Readonly User", user: readonlyMockUser },
-      { roleName: "CMS Reviewer User", user: cmsReviewerMockUser },
+      { roleName: "demos-restricted-cms-user", user: readonlyMockUser },
+      { roleName: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
     ])("$roleName - has readonly access to approval package", ({ user }) => {
       setup({ documents: [] }, user);
 

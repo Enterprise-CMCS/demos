@@ -141,8 +141,8 @@ describe("DemonstrationTypesSection", () => {
 
   describe("Restricted User Behavior (Phase 8 - Approval Summary)", () => {
     it.each([
-      { roleName: "Readonly User", user: readonlyMockUser },
-      { roleName: "CMS Reviewer User", user: cmsReviewerMockUser },
+      { roleName: "demos-restricted-cms-user", user: readonlyMockUser },
+      { roleName: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
     ])("$roleName - hides apply types button", ({ user }) => {
       setup(false, mockTypes, user);
 
@@ -153,8 +153,8 @@ describe("DemonstrationTypesSection", () => {
     });
 
     it.each([
-      { roleName: "Readonly User", user: readonlyMockUser },
-      { roleName: "CMS Reviewer User", user: cmsReviewerMockUser },
+      { roleName: "demos-restricted-cms-user", user: readonlyMockUser },
+      { roleName: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
     ])("$roleName - hides mark complete switch", ({ user }) => {
       setup(false, mockTypes, user);
 
@@ -162,7 +162,7 @@ describe("DemonstrationTypesSection", () => {
       expect(screen.queryByTestId("mark-complete-switch")).not.toBeInTheDocument();
     });
 
-    it("CMS Reviewer User - displays types as readonly", () => {
+    it("demos-cms-reviewer-user - displays types as readonly", () => {
       setup(false, mockTypes, cmsReviewerMockUser);
 
       // Types should still be displayed but not editable
@@ -170,13 +170,15 @@ describe("DemonstrationTypesSection", () => {
       expect(screen.getByText(mockTypes[0].demonstrationTypeName)).toBeInTheDocument();
     });
 
-    it("CMS Reviewer User - hides select checkboxes", () => {
+    it("demos-cms-reviewer-user - hides select checkboxes", () => {
       setup(false, mockTypes, cmsReviewerMockUser);
 
       // Check that row select checkboxes are hidden
       expect(screen.queryByTestId("select-all")).not.toBeInTheDocument();
       mockTypes.forEach((type) => {
-        expect(screen.queryByTestId(`select-row-${type.demonstrationTypeName}`)).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId(`select-row-${type.demonstrationTypeName}`)
+        ).not.toBeInTheDocument();
       });
     });
   });
