@@ -45,7 +45,7 @@ pipeline {
         sh """
         sed -i 's|{{REPLACE_HEADER_VALUE}}|${env.ZAP_HEADER_VALUE}|g' zap/demos-zap.yaml
         """
-        sh "mkdir -p zap-files"
+        sh "mkdir -p zap-files zap/output"
 
         container("zap") {
           withCredentials([usernamePassword(credentialsId: 'zap-credentials', usernameVariable: 'ZAP_EMAIL', passwordVariable: 'ZAP_PASSWORD')]) { // pragma: allowlist secret

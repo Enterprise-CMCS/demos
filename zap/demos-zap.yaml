@@ -118,6 +118,12 @@ jobs:
 #   parameters: 
 #     endpoint: https://${ZAP_HOSTNAME}/api/graphql
 #     maxQueryDepth: 2
+- type: export
+  parameters:
+    context: demos-dev
+    type: yaml
+    source: sitestree
+    fileName: output/ZAP-Sites-Tree.yaml
 - type: report
   parameters:
     template: modern
@@ -140,6 +146,7 @@ jobs:
   - instancecount
   - alertdetails
   - alertcount
+
   - params
   - chart
   - statistics
@@ -163,4 +170,3 @@ jobs:
   - instancecount
   - alertdetails
   - alertcount
-
