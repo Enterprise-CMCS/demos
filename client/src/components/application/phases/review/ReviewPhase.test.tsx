@@ -781,28 +781,31 @@ describe("ReviewPhase Component", () => {
     it.each([
       { personType: "demos-restricted-cms-user", user: readonlyMockUser },
       { personType: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
-    ])("$personType - displays all date pickers as disabled and hides controls", async ({ user }) => {
-      const incompleteData = buildInitialFormData({ dates: {} });
-      setup(incompleteData, "demo-1", false, vi.fn(), true, user);
+    ])(
+      "$personType - displays all date pickers as disabled and hides controls",
+      async ({ user }) => {
+        const incompleteData = buildInitialFormData({ dates: {} });
+        setup(incompleteData, "demo-1", false, vi.fn(), true, user);
 
-      for (const datePickerName of [
-        ...PO_AND_OGD_DATEPICKER_NAMES,
-        ...OGC_AND_OMB_DATEPICKER_NAMES,
-        ...COMMS_CLEARANCE_DATEPICKER_NAMES,
-      ]) {
-        expect(screen.getByTestId(datePickerName)).toBeDisabled();
-      }
-      expect(screen.getByTestId("input-po-ogd-notes")).toBeDisabled();
-      const cmsRadio = screen.getByLabelText("CMS (OSORA) Clearance Required");
-      expect(cmsRadio).toBeEnabled();
-      await userEvent.click(cmsRadio);
+        for (const datePickerName of [
+          ...PO_AND_OGD_DATEPICKER_NAMES,
+          ...OGC_AND_OMB_DATEPICKER_NAMES,
+          ...COMMS_CLEARANCE_DATEPICKER_NAMES,
+        ]) {
+          expect(screen.getByTestId(datePickerName)).toBeDisabled();
+        }
+        expect(screen.getByTestId("input-po-ogd-notes")).toBeDisabled();
+        const cmsRadio = screen.getByLabelText("CMS (OSORA) Clearance Required");
+        expect(cmsRadio).toBeEnabled();
+        await userEvent.click(cmsRadio);
 
-      for (const datePickerName of CMS_OSORA_CLEARANCE_DATEPICKER_NAMES) {
-        expect(screen.getByTestId(datePickerName)).toBeDisabled();
+        for (const datePickerName of CMS_OSORA_CLEARANCE_DATEPICKER_NAMES) {
+          expect(screen.getByTestId(datePickerName)).toBeDisabled();
+        }
+        expect(screen.queryByTestId("review-save-for-later")).not.toBeInTheDocument();
+        expect(screen.queryByTestId("review-finish")).not.toBeInTheDocument();
       }
-      expect(screen.queryByTestId("review-save-for-later")).not.toBeInTheDocument();
-      expect(screen.queryByTestId("review-finish")).not.toBeInTheDocument();
-    });
+    );
   });
 
   describe("Finish button", () => {
