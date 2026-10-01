@@ -51,13 +51,12 @@ describe("budgetNeutrality db", () => {
   it("creates pool once and reuses it", async () => {
     process.env.DATABASE_SECRET_ARN = "db-credentials-arn"; // pragma: allowlist secret
     mocks.getDatabaseConfigMock.mockResolvedValue({
-      SecretString: JSON.stringify({
-        user: "dbuser",
-        password: "dbpass", // pragma: allowlist secret
-        host: "db-host",
-        port: 5432,
-        database: "demo",
-      }),
+      user: "demos_export",
+      password: "not-a-real-password", // pragma: allowlist secret
+      host: "unit.test.rds.host",
+      port: 5432,
+      database: "utdb",
+      max: 2
     });
 
     const firstPool = await getDbPool();
