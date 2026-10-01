@@ -42,7 +42,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
   hideSearch = false,
 }) => {
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonly(currentUser);
+  const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
 
   const columns = TypesColumns(isReadonlyUser);
   const { showRemoveDemonstrationTypesDialog, showEditDemonstrationTypeDialog } = useDialog();

@@ -9,7 +9,7 @@ import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/
 import { TestProvider } from "test-utils/TestProvider";
 import { ApplicationStatus } from "demos-server";
 import type { CurrentUser } from "components/user/UserContext";
-import { readonlyMockUser } from "mock-data/userMocks";
+import { readonlyMockUser, cmsReviewerMockUser } from "mock-data/userMocks";
 
 const showApplyDemonstrationTypesDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
@@ -139,17 +139,53 @@ describe("DemonstrationTypesSection", () => {
     expect(showApplyDemonstrationTypesDialog).toHaveBeenCalledWith("demo-123");
   });
 
-  describe("Readonly User Behavior", () => {
-    it("hides apply types button and mark complete switch for readonly users", () => {
-      setup(false, mockTypes, readonlyMockUser);
+  describe("Readonly (Phase 8 - Approval Summary)", () => {
+    it.each([
+      { personType: "demos-restricted-cms-user", user: readonlyMockUser },
+      { personType: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
+    ])("$personType - hides apply types button", ({ user }) => {
+      setup(false, mockTypes, user);
 
       // Check that Apply Types button is hidden
       const section = screen.getByText("Types").closest("section");
       const applyButton = within(section!).queryByRole("button", { name: /apply-types/i });
       expect(applyButton).not.toBeInTheDocument();
+    });
+
+    it.each([
+      { personType: "demos-restricted-cms-user", user: readonlyMockUser },
+      { personType: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
+    ])("$personType - hides mark complete switch", ({ user }) => {
+      setup(false, mockTypes, user);
 
       // Check that Mark Complete switch is hidden
       expect(screen.queryByTestId("mark-complete-switch")).not.toBeInTheDocument();
+    });
+
+    it.each([
+      { personType: "demos-restricted-cms-user", user: readonlyMockUser },
+      { personType: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
+    ])("$personType - displays types as readonly", ({ user }) => {
+      setup(false, mockTypes, user);
+
+      // Types should still be displayed but not editable
+      expect(screen.getByText("Types")).toBeInTheDocument();
+      expect(screen.getByText(mockTypes[0].demonstrationTypeName)).toBeInTheDocument();
+    });
+
+    it.each([
+      { personType: "demos-restricted-cms-user", user: readonlyMockUser },
+      { personType: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
+    ])("$personType - hides select checkboxes", ({ user }) => {
+      setup(false, mockTypes, user);
+
+      // Check that row select checkboxes are hidden
+      expect(screen.queryByTestId("select-all")).not.toBeInTheDocument();
+      mockTypes.forEach((type) => {
+        expect(
+          screen.queryByTestId(`select-row-${type.demonstrationTypeName}`)
+        ).not.toBeInTheDocument();
+      });
     });
   });
 });

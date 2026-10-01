@@ -5,7 +5,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ReviewPhase, ReviewPhaseFormData } from "./ReviewPhase";
 import { TestProvider } from "test-utils/TestProvider";
-import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { cmsMockUser, readonlyMockUser, cmsReviewerMockUser } from "mock-data/userMocks";
 
 // Mock the queries
 const mockSetApplicationDates = vi.fn();
@@ -743,29 +743,69 @@ describe("ReviewPhase Component", () => {
     });
   });
 
-  describe("Readonly User", () => {
-    it("hides review controls while allowing readonly users to view disabled dates and notes", async () => {
-      const incompleteData = buildInitialFormData({ dates: {} });
-      setup(incompleteData, "demo-readonly-user", false, vi.fn(), true, readonlyMockUser);
+  describe("Readonly (Phase 6 - Review)", () => {
+    it.each([
+      {
+        personType: "demos-restricted-cms-user",
+        user: readonlyMockUser,
+      },
+      {
+        personType: "demos-cms-reviewer-user",
+        user: cmsReviewerMockUser,
+      },
+    ])("$personType - renders review phase as readonly", ({ user }) => {
+      setup(buildInitialFormData(), "demo-1", false, vi.fn(), true, user);
 
-      for (const datePickerName of [
-        ...PO_AND_OGD_DATEPICKER_NAMES,
-        ...OGC_AND_OMB_DATEPICKER_NAMES,
-        ...COMMS_CLEARANCE_DATEPICKER_NAMES,
-      ]) {
+      for (const datePickerName of PO_AND_OGD_DATEPICKER_NAMES) {
         expect(screen.getByTestId(datePickerName)).toBeDisabled();
       }
       expect(screen.getByTestId("input-po-ogd-notes")).toBeDisabled();
-      const cmsRadio = screen.getByLabelText("CMS (OSORA) Clearance Required");
-      expect(cmsRadio).toBeEnabled();
-      await userEvent.click(cmsRadio);
+    });
 
-      for (const datePickerName of CMS_OSORA_CLEARANCE_DATEPICKER_NAMES) {
-        expect(screen.getByTestId(datePickerName)).toBeDisabled();
-      }
+    it.each([
+      {
+        personType: "demos-restricted-cms-user",
+        user: readonlyMockUser,
+      },
+      {
+        personType: "demos-cms-reviewer-user",
+        user: cmsReviewerMockUser,
+      },
+    ])("$personType - hides save and finish buttons", ({ user }) => {
+      setup(buildInitialFormData(), "demo-1", false, vi.fn(), true, user);
+
       expect(screen.queryByTestId("review-save-for-later")).not.toBeInTheDocument();
       expect(screen.queryByTestId("review-finish")).not.toBeInTheDocument();
     });
+
+    it.each([
+      { personType: "demos-restricted-cms-user", user: readonlyMockUser },
+      { personType: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
+    ])(
+      "$personType - displays all date pickers as disabled and hides controls",
+      async ({ user }) => {
+        const incompleteData = buildInitialFormData({ dates: {} });
+        setup(incompleteData, "demo-1", false, vi.fn(), true, user);
+
+        for (const datePickerName of [
+          ...PO_AND_OGD_DATEPICKER_NAMES,
+          ...OGC_AND_OMB_DATEPICKER_NAMES,
+          ...COMMS_CLEARANCE_DATEPICKER_NAMES,
+        ]) {
+          expect(screen.getByTestId(datePickerName)).toBeDisabled();
+        }
+        expect(screen.getByTestId("input-po-ogd-notes")).toBeDisabled();
+        const cmsRadio = screen.getByLabelText("CMS (OSORA) Clearance Required");
+        expect(cmsRadio).toBeEnabled();
+        await userEvent.click(cmsRadio);
+
+        for (const datePickerName of CMS_OSORA_CLEARANCE_DATEPICKER_NAMES) {
+          expect(screen.getByTestId(datePickerName)).toBeDisabled();
+        }
+        expect(screen.queryByTestId("review-save-for-later")).not.toBeInTheDocument();
+        expect(screen.queryByTestId("review-finish")).not.toBeInTheDocument();
+      }
+    );
   });
 
   describe("Finish button", () => {
