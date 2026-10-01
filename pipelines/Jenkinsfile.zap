@@ -49,7 +49,38 @@ pipeline {
 
         container("zap") {
           withCredentials([usernamePassword(credentialsId: 'zap-credentials', usernameVariable: 'ZAP_EMAIL', passwordVariable: 'ZAP_PASSWORD')]) { // pragma: allowlist secret
-            sh "/zap/zap.sh -cmd -autorun \$(pwd)/zap/demos-zap.yaml -loglevel debug"
+            // ZAP's launcher only detects the legacy cgroup v1 memory layout.
+            // Read the pod limit directly so cgroup v2 nodes do not size the
+            // Java heap from the (much larger) Kubernetes node memory.
+            sh '''
+              if [ -r /sys/fs/cgroup/memory.max ]; then
+                zap_memory_limit_bytes=$(cat /sys/fs/cgroup/memory.max)
+              elif [ -r /sys/fs/cgroup/memory/memory.limit_in_bytes ]; then
+                zap_memory_limit_bytes=$(cat /sys/fs/cgroup/memory/memory.limit_in_bytes)
+              else
+                echo 'Unable to find the container memory limit in cgroup v1 or v2.' >&2
+                exit 1
+              fi
+
+              case "$zap_memory_limit_bytes" in
+                ''|max|*[!0-9]*)
+                  echo "The ZAP container has no usable memory limit: $zap_memory_limit_bytes" >&2
+                  exit 1
+                  ;;
+              esac
+
+              # Very large values are the cgroup v1 representation of "unlimited".
+              if [ "$zap_memory_limit_bytes" -ge 1099511627776 ]; then
+                echo "The ZAP container memory limit is effectively unlimited: $zap_memory_limit_bytes bytes" >&2
+                exit 1
+              fi
+
+              zap_memory_limit_mib=$((zap_memory_limit_bytes / 1024 / 1024))
+              zap_heap_mib=$((zap_memory_limit_mib * 75 / 100))
+              echo "ZAP container limit: ${zap_memory_limit_mib} MiB; JVM max heap: ${zap_heap_mib} MiB"
+
+              /zap/zap.sh "-Xmx${zap_heap_mib}m" -cmd -autorun "$(pwd)/zap/demos-zap.yaml" -loglevel debug
+            '''
           }
         }
 
