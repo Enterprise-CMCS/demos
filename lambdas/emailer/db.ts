@@ -6,14 +6,10 @@ import { getDatabaseConfig } from "demos-shared-library/database";
 const dbSchema = "demos_app";
 
 let poolPromise: Promise<Pool> | null = null;
-let databaseUrlCache = "";
-let cacheExpiration = 0;
 
 // Test helper to keep module-scoped cache isolated across unit tests.
 export function __resetDbStateForTests(): void {
   poolPromise = null;
-  databaseUrlCache = "";
-  cacheExpiration = 0;
 }
 
 export function getDbSchema() {
