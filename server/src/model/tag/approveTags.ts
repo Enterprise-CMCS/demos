@@ -1,6 +1,5 @@
 import { SemVer } from "semver";
-import { selectTags, updateTags } from ".";
-import { throwCustomGQLError } from "../../errors/errorCodes";
+import { selectTags, updateTags, checkTagNamesInExistingTags } from ".";
 import { getFeatureFlags, throwApiNotReleasedError } from "../../flags";
 import type { Tag, TagName, TagStatus, TagType } from "../../types";
 import { prisma } from "../../prismaClient";
@@ -27,16 +26,7 @@ export async function approveTags(tagNames: TagName[], currentVersion: SemVer): 
       tx
     );
 
-    // Slightly more complex now that we handle more than one tag at a time
-    const missingInputTagNames = inputTagNames.filter(
-      (tagName) => !existingTags.map((tag) => tag.tagNameId).includes(tagName)
-    );
-    if (missingInputTagNames.length > 0) {
-      throwCustomGQLError(
-        `Attempted to approve tags that do not exist: ${missingInputTagNames.join(", ")}.`,
-        "TAG_DOES_NOT_EXIST_ERROR"
-      );
-    }
+    checkTagNamesInExistingTags(tagNames, existingTags);
 
     // Identify which inputs are already approved or not approved
     // By this point, we know that all input tags exist in the query result, making this check safe

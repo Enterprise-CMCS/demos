@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // Types
 import type { Tag as PrismaTag } from "@prisma/client";
 import type { Tag, TagType } from "../../types";
+import { SemVer } from "semver";
 
 // Functions under test
 import { approveTags } from "./approveTags";
@@ -16,6 +17,7 @@ vi.mock("../../prismaClient", () => ({
 vi.mock(".", () => ({
   selectTags: vi.fn(),
   updateTags: vi.fn(),
+  checkTagNamesInExistingTags: vi.fn(),
 }));
 
 // Thrown by the mocked throwApiNotReleasedError
@@ -26,19 +28,9 @@ vi.mock("../../flags/throwApiNotReleasedError", () => ({
   }),
 }));
 
-// Thrown by the mocked throwCustomGQLError
-const testCustomGQLError = new Error("Test throwCustomGQLError!");
-vi.mock("../../errors/errorCodes", () => ({
-  throwCustomGQLError: vi.fn(() => {
-    throw testCustomGQLError;
-  }),
-}));
-
 import { prisma } from "../../prismaClient";
-import { selectTags, updateTags } from ".";
+import { selectTags, updateTags, checkTagNamesInExistingTags } from ".";
 import { throwApiNotReleasedError } from "../../flags/throwApiNotReleasedError";
-import { throwCustomGQLError } from "../../errors/errorCodes";
-import { SemVer } from "semver";
 
 describe("approveTags", () => {
   const approvableTagTypes: TagType[] = ["Demonstration Type", "Application"];
@@ -118,11 +110,11 @@ describe("approveTags", () => {
     expect(throwApiNotReleasedError).toHaveBeenCalledExactlyOnceWith("approveTags");
     expect(prisma).not.toHaveBeenCalled();
     expect(selectTags).not.toHaveBeenCalled();
-    expect(throwCustomGQLError).not.toHaveBeenCalled();
+    expect(checkTagNamesInExistingTags).not.toHaveBeenCalled();
     expect(updateTags).not.toHaveBeenCalled();
   });
 
-  it("should call selectTags and updateTags with the right arguments", async () => {
+  it("should query tags, check them, and update them with the right arguments", async () => {
     const expectedResult: Tag[] = [
       { tagName: testTagNames[0], approvalStatus: "Approved" },
       { tagName: testTagNames[1], approvalStatus: "Approved" },
@@ -142,7 +134,10 @@ describe("approveTags", () => {
       },
       mockTransaction
     );
-    expect(throwCustomGQLError).not.toHaveBeenCalled();
+    expect(checkTagNamesInExistingTags).toHaveBeenCalledExactlyOnceWith(
+      testTagNames,
+      mockInitialTagResult
+    );
     expect(updateTags).toHaveBeenCalledExactlyOnceWith(
       {
         tagNameId: { in: [testTagNames[1], testTagNames[2]] },
@@ -154,25 +149,5 @@ describe("approveTags", () => {
       },
       mockTransaction
     );
-  });
-
-  it("should throw an error if one or more of the input tags do not exist at all", async () => {
-    const testInput = [...testTagNames, "Not a tag", "also not a tag"];
-    await expect(approveTags(testInput, new SemVer("1.2.0"))).rejects.toThrow(testCustomGQLError);
-
-    expect(throwApiNotReleasedError).not.toHaveBeenCalled();
-    expect(prisma).toHaveBeenCalledOnce();
-    expect(selectTags).toHaveBeenCalledExactlyOnceWith(
-      {
-        tagNameId: { in: testInput },
-        tagTypeId: { in: approvableTagTypes },
-      },
-      mockTransaction
-    );
-    expect(throwCustomGQLError).toHaveBeenCalledExactlyOnceWith(
-      "Attempted to approve tags that do not exist: Not a tag, also not a tag.",
-      "TAG_DOES_NOT_EXIST_ERROR"
-    );
-    expect(updateTags).not.toHaveBeenCalled();
   });
 });

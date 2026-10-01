@@ -1,5 +1,9 @@
 // Functions
 export { approveTags } from "./approveTags";
+export {
+  checkDemonstrationTypeTagCanBeDeleted,
+  checkTagNamesInExistingTags,
+} from "./checkTagFunctions";
 export { checkTagsDontAlreadyExist } from "./checkTagsDontAlreadyExist";
 export { createTags } from "./createTags";
 export { getFormattedTagsByTagType } from "./getFormattedTagsByTagType";
