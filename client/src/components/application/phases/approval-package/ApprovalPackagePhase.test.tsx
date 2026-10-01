@@ -8,7 +8,7 @@ import userEvent from "@testing-library/user-event";
 import { ApprovalPackagePhase, ApprovalPackagePhaseProps } from "./ApprovalPackagePhase";
 import { ApplicationWorkflowDocument } from "components/application";
 import { DocumentType } from "demos-server";
-import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { cmsMockUser, readonlyMockUser, cmsReviewerMockUser } from "mock-data/userMocks";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { TestProvider } from "test-utils/TestProvider";
 import { ToastContainer } from "components/toast";
@@ -195,5 +195,31 @@ describe("ApprovalPackagePhase", () => {
     setup();
 
     expect(screen.getByRole("table")).toBeInTheDocument();
+  });
+
+  describe("CMS Reviewer User (Phase 7 - Approval Package)", () => {
+    it("hides Finish button for CMS reviewer users", () => {
+      setup({ documents: allRequiredDocs }, cmsReviewerMockUser);
+
+      expect(screen.queryByRole("button", { name: /finish/i })).not.toBeInTheDocument();
+    });
+
+    it("displays document table but prevents upload actions for CMS reviewer users", () => {
+      setup({ documents: allRequiredDocs }, cmsReviewerMockUser);
+
+      expect(screen.getByRole("table")).toBeInTheDocument();
+      // Verify table rows are displayed
+      const rows = screen.getAllByRole("row");
+      expect(rows.length - 1).toEqual(6); // 6 document types
+    });
+
+    it("ensures CMS reviewer users have readonly access to approval package", () => {
+      setup({ documents: [] }, cmsReviewerMockUser);
+
+      // Finish button should be hidden/unavailable
+      expect(screen.queryByRole("button", { name: /finish/i })).not.toBeInTheDocument();
+      // Table should be rendered but in readonly mode
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
   });
 });

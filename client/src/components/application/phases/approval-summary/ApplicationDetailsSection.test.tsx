@@ -8,7 +8,7 @@ import type { CurrentUser } from "components/user/UserContext";
 import { ApplicationDetailsSection, ApplicationDetailsFormData } from "./ApplicationDetailsSection";
 import { LocalDate } from "demos-server";
 import { TestProvider } from "test-utils/TestProvider";
-import { readonlyMockUser } from "mock-data/userMocks";
+import { readonlyMockUser, cmsReviewerMockUser } from "mock-data/userMocks";
 
 describe("ApplicationDetailsSection", () => {
   const mockSetSectionFormData = vi.fn();
@@ -289,6 +289,48 @@ describe("ApplicationDetailsSection", () => {
       expect(screen.getByLabelText(/demonstration description/i)).toBeDisabled();
       expect(screen.getByLabelText(/signature level/i)).toBeDisabled();
       expect(screen.getByLabelText(/application approval date/i)).toBeDisabled();
+
+      // Check that Mark Complete switch is hidden
+      expect(screen.queryByRole("switch", { name: /mark complete/i })).not.toBeInTheDocument();
+    });
+  });
+
+  describe("CMS Reviewer User (Phase 8 - Approval Summary)", () => {
+    it("disables all editable fields for CMS reviewer users", () => {
+      setup(
+        {
+          applicationType: "demonstration",
+          stateId: "CA",
+          stateName: "California",
+          staticFields: {},
+        },
+        false,
+        false,
+        cmsReviewerMockUser
+      );
+
+      // Check that all editable inputs are disabled for CMS reviewer
+      expect(screen.getByLabelText(/demonstration title/i)).toBeDisabled();
+      expect(screen.getByLabelText(/status/i)).toBeDisabled();
+      expect(screen.getByLabelText(/effective date/i)).toBeDisabled();
+      expect(screen.getByLabelText(/expiration date/i)).toBeDisabled();
+      expect(screen.getByLabelText(/demonstration description/i)).toBeDisabled();
+      expect(screen.getByLabelText(/signature level/i)).toBeDisabled();
+      expect(screen.getByLabelText(/application approval date/i)).toBeDisabled();
+    });
+
+    it("hides mark complete switch for CMS reviewer users", () => {
+      setup(
+        {
+          applicationType: "demonstration",
+          stateId: "CA",
+          stateName: "California",
+          staticFields: {},
+        },
+        false,
+        false,
+        cmsReviewerMockUser
+      );
 
       // Check that Mark Complete switch is hidden
       expect(screen.queryByRole("switch", { name: /mark complete/i })).not.toBeInTheDocument();

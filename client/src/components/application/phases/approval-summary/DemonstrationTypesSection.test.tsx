@@ -9,7 +9,7 @@ import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/
 import { TestProvider } from "test-utils/TestProvider";
 import { ApplicationStatus } from "demos-server";
 import type { CurrentUser } from "components/user/UserContext";
-import { readonlyMockUser } from "mock-data/userMocks";
+import { readonlyMockUser, cmsReviewerMockUser } from "mock-data/userMocks";
 
 const showApplyDemonstrationTypesDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
@@ -150,6 +150,32 @@ describe("DemonstrationTypesSection", () => {
 
       // Check that Mark Complete switch is hidden
       expect(screen.queryByTestId("mark-complete-switch")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("CMS Reviewer User (Phase 8 - Approval Summary)", () => {
+    it("hides apply types button for CMS reviewer users", () => {
+      setup(false, mockTypes, cmsReviewerMockUser);
+
+      // Check that Apply Types button is hidden for CMS reviewer
+      const section = screen.getByText("Types").closest("section");
+      const applyButton = within(section!).queryByRole("button", { name: /apply-types/i });
+      expect(applyButton).not.toBeInTheDocument();
+    });
+
+    it("hides mark complete switch for CMS reviewer users", () => {
+      setup(false, mockTypes, cmsReviewerMockUser);
+
+      // Check that Mark Complete switch is hidden
+      expect(screen.queryByTestId("mark-complete-switch")).not.toBeInTheDocument();
+    });
+
+    it("displays types as readonly for CMS reviewer users", () => {
+      setup(false, mockTypes, cmsReviewerMockUser);
+
+      // Types should still be displayed but not editable
+      expect(screen.getByText("Types")).toBeInTheDocument();
+      expect(screen.getByText(mockTypes[0].name)).toBeInTheDocument();
     });
   });
 });

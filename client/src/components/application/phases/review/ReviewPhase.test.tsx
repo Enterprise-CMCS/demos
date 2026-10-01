@@ -5,7 +5,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ReviewPhase, ReviewPhaseFormData } from "./ReviewPhase";
 import { TestProvider } from "test-utils/TestProvider";
-import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { cmsMockUser, readonlyMockUser, cmsReviewerMockUser } from "mock-data/userMocks";
 
 // Mock the queries
 const mockSetApplicationDates = vi.fn();
@@ -765,6 +765,35 @@ describe("ReviewPhase Component", () => {
       }
       expect(screen.queryByTestId("review-save-for-later")).not.toBeInTheDocument();
       expect(screen.queryByTestId("review-finish")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("CMS Reviewer User (Phase 6 - Review)", () => {
+    it("renders review phase as readonly for CMS reviewer users", () => {
+      setup(buildInitialFormData(), "demo-cms-reviewer", false, vi.fn(), true, cmsReviewerMockUser);
+
+      for (const datePickerName of PO_AND_OGD_DATEPICKER_NAMES) {
+        expect(screen.getByTestId(datePickerName)).toBeDisabled();
+      }
+      expect(screen.getByTestId("input-po-ogd-notes")).toBeDisabled();
+    });
+
+    it("hides save and finish buttons for CMS reviewer users", () => {
+      setup(buildInitialFormData(), "demo-cms-reviewer", false, vi.fn(), true, cmsReviewerMockUser);
+
+      expect(screen.queryByTestId("review-save-for-later")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("review-finish")).not.toBeInTheDocument();
+    });
+
+    it("prevents editing clearance level for CMS reviewer users", () => {
+      setup(buildInitialFormData(), "demo-cms-reviewer", false, vi.fn(), true, cmsReviewerMockUser);
+
+      // Radio buttons should be disabled for CMS reviewer
+      const cmsRadio = screen.getByLabelText("CMS (OSORA) Clearance Required");
+      expect(cmsRadio).toBeDisabled();
+      
+      const commsRadio = screen.getByLabelText("COMMs Clearance Required");
+      expect(commsRadio).toBeDisabled();
     });
   });
 
