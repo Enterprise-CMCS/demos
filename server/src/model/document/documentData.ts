@@ -31,9 +31,8 @@ const getEditPermissionFilters = (userId: string) =>
         },
       },
     },
-    "Edit State Documents on Assigned Deliverables": {
+    "Edit Documents on Assigned Deliverables": {
       deliverable: isAStatePointOfContactAssociatedWithDeliverable(userId),
-      deliverableIsCmsAttachedFile: false,
     },
   }) satisfies PermissionFilters<Prisma.DocumentWhereInput>;
 
@@ -46,9 +45,8 @@ const getDeletePermissionFilters = (userId: string) =>
         },
       },
     },
-    "Delete State Documents on Assigned Deliverables": {
+    "Delete Documents on Assigned Deliverables": {
       deliverable: isAStatePointOfContactAssociatedWithDeliverable(userId),
-      deliverableIsCmsAttachedFile: false,
     },
   }) satisfies PermissionFilters<Prisma.DocumentWhereInput>;
 

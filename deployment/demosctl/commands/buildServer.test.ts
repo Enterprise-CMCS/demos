@@ -17,7 +17,7 @@ describe("buildServer", () => {
       "npm ci && npm run build:ci -- --define:process.env.CURRENT_ENV='\"prod\"'",
       expect.objectContaining({
         cwd: "../server",
-      })
+      }),
     );
   });
 });

@@ -5,7 +5,7 @@ import { RenewalsTab } from "./RenewalsTab";
 import { ModificationTabs } from "./ModificationTabs";
 import { DemonstrationDetailModification } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { TestProvider } from "test-utils/TestProvider";
-import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { cmsMockUser, cmsReviewerMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 const showCreateRenewalDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
@@ -150,6 +150,14 @@ describe("RenewalsTab", () => {
 
     it("does not render the add renewal button for readonly users", () => {
       renderRenewalsTab(mockRenewals, true, readonlyMockUser);
+      expect(screen.queryByRole("button", { name: /add-new-renewal/i })).not.toBeInTheDocument();
+    });
+
+    it("does not render renewal creation actions for CMS Reviewer users", () => {
+      renderRenewalsTab([], true, cmsReviewerMockUser);
+      expect(screen.queryByRole("button", { name: /create renewal/i })).not.toBeInTheDocument();
+
+      renderRenewalsTab(mockRenewals, true, cmsReviewerMockUser);
       expect(screen.queryByRole("button", { name: /add-new-renewal/i })).not.toBeInTheDocument();
     });
   });

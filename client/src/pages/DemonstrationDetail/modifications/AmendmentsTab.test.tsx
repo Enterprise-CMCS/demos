@@ -5,7 +5,7 @@ import { AmendmentsTab } from "./AmendmentsTab";
 import { ModificationTabs } from "./ModificationTabs";
 import { DemonstrationDetailModification } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { TestProvider } from "test-utils/TestProvider";
-import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { cmsMockUser, cmsReviewerMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 const showCreateAmendmentDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
@@ -150,6 +150,14 @@ describe("AmendmentsTab", () => {
 
     it("does not render the add amendment button for readonly users", () => {
       renderAmendmentsTab(mockAmendments, true, readonlyMockUser);
+      expect(screen.queryByRole("button", { name: /add-new-amendment/i })).not.toBeInTheDocument();
+    });
+
+    it("does not render amendment creation actions for CMS Reviewer users", () => {
+      renderAmendmentsTab([], true, cmsReviewerMockUser);
+      expect(screen.queryByRole("button", { name: /create amendment/i })).not.toBeInTheDocument();
+
+      renderAmendmentsTab(mockAmendments, true, cmsReviewerMockUser);
       expect(screen.queryByRole("button", { name: /add-new-amendment/i })).not.toBeInTheDocument();
     });
   });

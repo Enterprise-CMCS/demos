@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { SummaryDetailsTab } from "./SummaryDetailsTab";
 import { TestProvider } from "test-utils/TestProvider";
-import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { cmsMockUser, cmsReviewerMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 const EDIT_BUTTON_TEST_ID = "button-edit-details";
 
@@ -103,8 +103,11 @@ describe("SummaryDetailsTab", () => {
   });
 
   describe("Readonly User Behavior", () => {
-    it("does not render the edit button for readonly users", () => {
-      renderSummaryDetailsTab(mockDemonstrationId, readonlyMockUser);
+    it.each([
+      ["readonly users", readonlyMockUser],
+      ["CMS Reviewer users", cmsReviewerMockUser],
+    ])("does not render the edit button for %s", (_role, currentUser) => {
+      renderSummaryDetailsTab(mockDemonstrationId, currentUser);
       expect(screen.queryByTestId(EDIT_BUTTON_TEST_ID)).not.toBeInTheDocument();
     });
   });

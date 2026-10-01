@@ -67,6 +67,7 @@ export const ConfirmSuggestedSparklyTagDialog = ({
             tag={{ tagName, approvalStatus: "Approved" }}
             variant="suggestion"
             icon={<SparklyIcon label="Suggested by DEMOS AI" className="shrink-0" />}
+            applicationSection="ApplicationWorkflow"
           />
         </div>
 

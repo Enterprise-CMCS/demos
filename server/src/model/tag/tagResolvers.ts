@@ -1,11 +1,11 @@
 import {
-  approveTag,
+  approveTags,
   createTags,
   getDemonstrationTypeSummaryCounts,
   getFormattedTagsByTagType,
 } from ".";
 import { __DEMOS_VERSION__ } from "../../flags";
-import type { Tag, TagStatus } from "../../types";
+import type { Tag, TagName, TagStatus } from "../../types";
 
 export const tagResolvers = {
   Query: {
@@ -23,8 +23,8 @@ export const tagResolvers = {
         approvalStatus: demonstrationTypeTag.statusId as TagStatus,
       }));
     },
-    approveTag: async (parent: unknown, args: { tagName: string }): Promise<Tag> => {
-      return approveTag(args.tagName, __DEMOS_VERSION__);
+    approveTags: async (parent: unknown, args: { tagNames: TagName[] }): Promise<Tag[]> => {
+      return await approveTags(args.tagNames, __DEMOS_VERSION__);
     },
   },
 };

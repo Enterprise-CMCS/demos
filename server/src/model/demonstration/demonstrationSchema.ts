@@ -68,10 +68,10 @@ export const demonstrationSchema = gql`
 
   type Mutation {
     createDemonstration(input: CreateDemonstrationInput!): Demonstration!
-      @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Modify Applications"])
     updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration!
-      @auth(requires: ["Perform CMS Action"])
-    deleteDemonstration(id: ID!): Demonstration! @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Modify Applications"])
+    deleteDemonstration(id: ID!): Demonstration! @auth(requires: ["Modify Applications"])
   }
 
   type Query {

@@ -49,7 +49,7 @@ export class DatabaseStack extends Stack {
       scope: this,
       iamPermissionsBoundary:
         props.iamPermissionsBoundaryArn == null
-          ? undefined: aws_iam.ManagedPolicy.fromManagedPolicyArn(this, "iamPermissionsBoundary", props.iamPermissionsBoundaryArn),
+          ? undefined : aws_iam.ManagedPolicy.fromManagedPolicyArn(this, "iamPermissionsBoundary", props.iamPermissionsBoundaryArn),
     };
     const alarmResources = new alarms.CloudWatchAlarmRegistry();
 
@@ -62,14 +62,14 @@ export class DatabaseStack extends Stack {
       commonProps.scope,
       "vpnSecurityGroup",
       "cmscloud-shared-services",
-      props.vpc
+      props.vpc,
     );
 
     const cmsSecuritySg = aws_ec2.SecurityGroup.fromLookupByName(
       commonProps.scope,
       "cmsSecurityToolsSG",
       "cmscloud-security-tools",
-      props.vpc
+      props.vpc,
     );
 
     new CfnOutput(commonProps.scope, "dbSecurityGroupID", {
@@ -84,8 +84,8 @@ export class DatabaseStack extends Stack {
     });
 
     const engine = aws_rds.DatabaseInstanceEngine.postgres({
-          version: aws_rds.PostgresEngineVersion.VER_17_8,
-        })
+      version: aws_rds.PostgresEngineVersion.VER_17_8,
+    });
 
     const parameterGroup = new aws_rds.ParameterGroup(commonProps.scope, "rdsParameterGroup", {
       name: `demos-${commonProps.stage}-postgres-17`,
@@ -102,17 +102,17 @@ export class DatabaseStack extends Stack {
         log_error_verbosity: "verbose",
         log_rotation_size: "1000000",
         "rds.force_ssl": "1",
-      }
-    })
+      },
+    });
 
     const instanceSizeByStage: Partial<Record<string, aws_ec2.InstanceSize>> = {
       dev: aws_ec2.InstanceSize.SMALL,
       test: aws_ec2.InstanceSize.SMALL,
       impl: aws_ec2.InstanceSize.LARGE,
       prod: aws_ec2.InstanceSize.LARGE,
-    }
+    };
 
-    const instanceSize = instanceSizeByStage[props.stage] ?? aws_ec2.InstanceSize.MICRO // fallback for ephemeral envs
+    const instanceSize = instanceSizeByStage[props.stage] ?? aws_ec2.InstanceSize.MICRO; // fallback for ephemeral envs
 
     const dbInstance = new aws_rds.DatabaseInstance(
       commonProps.scope,
@@ -122,7 +122,7 @@ export class DatabaseStack extends Stack {
         instanceType: aws_ec2.InstanceType.of(aws_ec2.InstanceClass.BURSTABLE4_GRAVITON, instanceSize),
         vpc: commonProps.vpc,
         vpcSubnets: { subnets: props.vpc.privateSubnets },
-        multiAz: commonProps.stage == "prod",
+        multiAz: commonProps.stage === "prod",
         allocatedStorage: 20,
         databaseName: "demos",
         storageType: aws_rds.StorageType.GP3,
@@ -135,32 +135,32 @@ export class DatabaseStack extends Stack {
         removalPolicy: ["prod", "impl"].includes(commonProps.stage) ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
         deleteAutomatedBackups: true,
         instanceIdentifier: `${commonProps.project}-${commonProps.stage}-rds`,
-        backupRetention: commonProps.stage == "prod" ? Duration.days(30) : Duration.days(7),
+        backupRetention: commonProps.stage === "prod" ? Duration.days(30) : Duration.days(7),
         cloudwatchLogsExports: ["postgresql", "upgrade"],
         cloudwatchLogsRetention: RetentionDays.THREE_MONTHS,
         storageEncryptionKey: rdsKMSKey,
         port: 15432,
-        parameterGroup: parameterGroup,
-        monitoringInterval:  ["prod", "impl"].includes(commonProps.stage) ?  Duration.seconds(60) : undefined
-      }
+        parameterGroup,
+        monitoringInterval: ["prod", "impl"].includes(commonProps.stage) ?  Duration.seconds(60) : undefined,
+      },
     );
     alarmResources.registerDatabaseInstance("rds", dbInstance);
 
-    if (!props.isEphemeral && props.stage == "dev") {
+    if (!props.isEphemeral && props.stage === "dev") {
       // This is for temporary testing and should be removed in the future to save costs
-      Tags.of(dbInstance).add("AWS_Backup", backupTags.d90)
+      Tags.of(dbInstance).add("AWS_Backup", backupTags.d90);
     }
     if (["impl", "prod"].includes(props.stage)) {
-      Tags.of(dbInstance).add("AWS_Backup", backupTags["4hr1_d7_w35_m90"])
+      Tags.of(dbInstance).add("AWS_Backup", backupTags["4hr1_d7_w35_m90"]);
     }
 
-    if (props.stage == "prod") {
-        NagSuppressions.addResourceSuppressions(dbInstance, [
+    if (props.stage === "prod") {
+      NagSuppressions.addResourceSuppressions(dbInstance, [
         {
           id: "AwsSolutions-IAM4",
           reason: "Default AWS role is used for enhanced monitoring",
-        }
-      ], true)
+        },
+      ], true);
     } else {
       NagSuppressions.addResourceSuppressions(dbInstance, [
         {
@@ -170,25 +170,25 @@ export class DatabaseStack extends Stack {
         {
           id: "AwsSolutions-RDS10",
           reason: "Not using deletion protection in non-prod environments",
-        }
-      ])
+        },
+      ]);
     }
 
     addCheckovSkip(dbInstance, {
-          id: "CKV_AWS_161",
-          reason: "Using username/password with auto-rotations for now"
-        },
-        {
-          id: "CKV_AWS_157",
-          reason: "To save costs, lower environments will not use multi-az"
-        },{
-          id: "CKV_AWS_118",
-          reason: "Enhanced monitoring is enabled in IMPL and PROD"
-        })
+      id: "CKV_AWS_161",
+      reason: "Using username/password with auto-rotations for now",
+    },
+    {
+      id: "CKV_AWS_157",
+      reason: "To save costs, lower environments will not use multi-az",
+    }, {
+      id: "CKV_AWS_118",
+      reason: "Enhanced monitoring is enabled in IMPL and PROD",
+    });
 
     Aspects.of(this).add(
-      new SuppressCheckovLogRetentionPolicy(), 
-      { priority: AspectPriority.MUTATING }
+      new SuppressCheckovLogRetentionPolicy(),
+      { priority: AspectPriority.MUTATING },
     );
 
     this.setupCloudWatchAlarms(commonProps, alarmResources);
@@ -196,7 +196,7 @@ export class DatabaseStack extends Stack {
     const cmsCloudLogFunc = aws_lambda.Function.fromFunctionName(
       commonProps.scope,
       "CMSCloudLoggingLambda",
-      "cms-cloud-logging-cloudwatch-to-splunk"
+      "cms-cloud-logging-cloudwatch-to-splunk",
     );
     for (const lg in dbInstance.cloudwatchLogGroups) {
       // dbInstance.cloudwatchLogGroups[lg].addSubscriptionFilter cannot be used
@@ -220,7 +220,7 @@ export class DatabaseStack extends Stack {
       aws_ec2.Peer.securityGroupId(rdsSecurityGroup.securityGroup.securityGroupId),
       aws_ec2.Port.tcp(dbInstance.instanceEndpoint.port),
       "Allow egress to RDS",
-      true
+      true,
     );
 
     const secretsManagerVpceSgId = Fn.importValue(`${commonProps.stage}SecretsManagerVpceSg`);
@@ -228,14 +228,14 @@ export class DatabaseStack extends Stack {
     rdsPWRotationSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
       aws_ec2.Port.HTTPS,
-      "Allow traffic to secrets manager VPCE"
+      "Allow traffic to secrets manager VPCE",
     );
 
     rdsSecurityGroup.securityGroup.addIngressRule(
       aws_ec2.Peer.securityGroupId(rdsPWRotationSecurityGroup.securityGroup.securityGroupId),
       aws_ec2.Port.tcp(dbInstance.instanceEndpoint.port),
       "Allow ingress from PW rotation lambda",
-      true
+      true,
     );
 
     dbInstance.secret?.addRotationSchedule("rdsRotationSchedule", {
@@ -274,7 +274,7 @@ export class DatabaseStack extends Stack {
 
   private setupCloudWatchAlarms(
     props: DeploymentConfigProperties,
-    resources: alarms.CloudWatchAlarmRegistry
+    resources: alarms.CloudWatchAlarmRegistry,
   ) {
     if (props.isEphemeral && !props.enableAlarms) {
       return;
@@ -411,16 +411,16 @@ class SuppressCheckovLogRetentionPolicy implements IAspect {
         path.endsWith("/ServiceRole/DefaultPolicy/Resource")
       ) {
         addCheckovSkip(node, {
-              id: "CKV_AWS_111",
-              reason:
+          id: "CKV_AWS_111",
+          reason:
                 "CDK-managed LogRetention custom resource role; only used to apply CloudWatch Logs retention. Not worth updating or managing",
-            }
-        )
+        },
+        );
         NagSuppressions.addResourceSuppressions(node, [{
           id: "AwsSolutions-IAM5",
           reason: "CDK default policy that can't be modified",
-          appliesTo: ["Resource::*"]
-        }])
+          appliesTo: ["Resource::*"],
+        }]);
       }
     }
 
@@ -429,23 +429,22 @@ class SuppressCheckovLogRetentionPolicy implements IAspect {
       if (
         path.includes("/LogRetention") &&
         path.endsWith("/ServiceRole/Resource")
-      ) { 
+      ) {
         NagSuppressions.addResourceSuppressions(node, [{
           id: "AwsSolutions-IAM4",
           reason: "The AWSLambdaBasicExecutionRole for the log retention function doesn't create a risk",
-        }], true)
+        }], true);
       }
     }
-    
 
     if (node.cfnResourceType === "AWS::SecretsManager::Secret") {
-      const path = node.node.path
+      const path = node.node.path;
       if (path.includes("demos-dev-rds/Secret/Resource")) {
         addCheckovSkip(node, {
           id: "CKV_AWS_149",
-          reason: "Sticking with AWS owned KMS key for now. Can revisit a CMK in the future"
-        })
-          
+          reason: "Sticking with AWS owned KMS key for now. Can revisit a CMK in the future",
+        });
+
       }
     }
   }

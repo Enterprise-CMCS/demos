@@ -35,7 +35,7 @@ export const ApplicationHealthTypeTags = ({
 }: ApplicationHealthTypeTagsProps) => {
   const { showApplyTagsDialog } = useDialog();
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonly(currentUser);
+  const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
 
   const { data, loading, error } = useApplicationTagOptions();
 
@@ -54,7 +54,12 @@ export const ApplicationHealthTypeTags = ({
     <>
       <div className={STYLES.tagList}>
         {selectedTags.map((tag) => (
-          <TagChip key={tag.tagName} tag={tag} onRemoveTag={onRemoveTag} />
+          <TagChip
+            key={tag.tagName}
+            tag={tag}
+            onRemoveTag={onRemoveTag}
+            applicationSection="ApplicationWorkflow"
+          />
         ))}
         <SecondaryButton
           isHidden={isReadonlyUser}
@@ -71,6 +76,7 @@ export const ApplicationHealthTypeTags = ({
           suggestedTags={suggestedTags}
           onAcceptSuggestion={onAcceptSuggestedTag}
           isApplyingSuggestion={isApplyingSuggestedTag}
+          applicationSection="ApplicationWorkflow"
         />
       )}
     </>
