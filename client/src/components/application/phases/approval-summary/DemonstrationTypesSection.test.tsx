@@ -139,7 +139,7 @@ describe("DemonstrationTypesSection", () => {
     expect(showApplyDemonstrationTypesDialog).toHaveBeenCalledWith("demo-123");
   });
 
-  describe("Restricted User Behavior (Phase 8 - Approval Summary)", () => {
+  describe("Readonly (Phase 8 - Approval Summary)", () => {
     it.each([
       { personType: "demos-restricted-cms-user", user: readonlyMockUser },
       { personType: "demos-cms-reviewer-user", user: cmsReviewerMockUser },

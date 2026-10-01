@@ -191,7 +191,7 @@ describe("ApprovalPackagePhase", () => {
     expect(screen.getByRole("table")).toBeInTheDocument();
   });
 
-  describe("Restricted User Access (Phase 7 - Approval Package)", () => {
+  describe("Readonly (Phase 7 - Approval Package)", () => {
     it.each([
       { personType: "demos-restricted-cms-user", user: readonlyMockUser },
       { personType: "demos-cms-reviewer-user", user: cmsReviewerMockUser },

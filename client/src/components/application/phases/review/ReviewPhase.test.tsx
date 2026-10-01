@@ -743,7 +743,7 @@ describe("ReviewPhase Component", () => {
     });
   });
 
-  describe("Restricted User Access (Phase 6 - Review)", () => {
+  describe("Readonly (Phase 6 - Review)", () => {
     it.each([
       {
         personType: "demos-restricted-cms-user",
