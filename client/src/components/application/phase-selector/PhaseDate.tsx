@@ -33,12 +33,13 @@ const PHASE_DATE_STYLE_LOOKUP: Record<PhaseStatus, string> = {
   Incomplete: PAST_DUE_TEXT_CLASS,
 };
 
-interface PhaseDateProps {
+export const PhaseDate = ({
+  phaseStatus,
+  dateString,
+}: {
   phaseStatus: PhaseStatus;
-  date?: string;
-}
-
-export const PhaseDate: React.FC<PhaseDateProps> = ({ phaseStatus, date }) => {
+  dateString?: string;
+}) => {
   const label = PHASE_LABEL_LOOKUP[phaseStatus];
   const labelClass = PHASE_TEXT_COLOR_LOOKUP[phaseStatus];
   const dateClass = PHASE_DATE_STYLE_LOOKUP[phaseStatus];
@@ -46,7 +47,9 @@ export const PhaseDate: React.FC<PhaseDateProps> = ({ phaseStatus, date }) => {
   return (
     <div className={BASE_STYLES}>
       <span className={labelClass}>{label}</span>
-      <span className={dateClass}>{date ? formatDateForDisplay(date) : "--/--/----"}</span>
+      <span className={dateClass}>
+        {dateString ? formatDateForDisplay(dateString) : "--/--/----"}
+      </span>
     </div>
   );
 };

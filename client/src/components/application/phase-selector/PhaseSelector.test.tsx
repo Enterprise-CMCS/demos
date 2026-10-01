@@ -21,6 +21,7 @@ import {
   getSdgPreparationPhaseFromApplication,
   getApprovalSummaryPhaseFromApplication,
 } from "../phases";
+import { PhaseName, PhaseStatus } from "demos-server";
 
 const mockPO = {
   id: "po-1",
@@ -241,225 +242,130 @@ describe("getDisplayedPhaseStatus", () => {
 
 describe("getDisplayedPhaseDate", () => {
   it("returns undefined when phase does not exist", () => {
-    const demonstration: ApplicationWorkflowDemonstration = {
-      id: "test-id",
-      name: "Test Demo",
-      state: {
-        id: "CA",
-        name: "California",
+    const phases: Parameters<typeof getDisplayedPhaseDate>[0] = [
+      {
+        phaseName: "Application Intake" satisfies PhaseName,
+        phaseStatus: "Completed" satisfies PhaseStatus,
+        phaseDates: [
+          {
+            dateType: "Application Intake Start Date",
+            plainDate: "1996-12-14",
+          },
+          {
+            dateType: "State Application Submitted Date",
+            plainDate: "1996-12-14",
+          },
+        ],
       },
-      primaryProjectOfficer: mockPO,
-      status: "Under Review",
-      currentPhaseName: "Concept",
-      clearanceLevel: "CMS (OSORA)",
-      phases: [],
-      documents: [],
-      demonstrationTypes: [],
-      tags: [],
-      medicaidId: "123456789",
-    };
+    ];
 
-    expect(getDisplayedPhaseDate(demonstration, "Concept")).toBeUndefined();
+    expect(getDisplayedPhaseDate(phases, "Concept")).toBeUndefined();
   });
 
   it("returns undefined when phase has no dates", () => {
-    const demonstration: ApplicationWorkflowDemonstration = {
-      id: "test-id",
-      name: "Test Demo",
-      state: {
-        id: "CA",
-        name: "California",
+    const phases: Parameters<typeof getDisplayedPhaseDate>[0] = [
+      {
+        phaseName: "Concept" satisfies PhaseName,
+        phaseStatus: "Started",
+        phaseDates: [],
       },
-      primaryProjectOfficer: mockPO,
-      status: "Under Review",
-      currentPhaseName: "Concept",
-      clearanceLevel: "CMS (OSORA)",
-      phases: [
-        {
-          phaseName: "Concept",
-          phaseStatus: "Started",
-          phaseDates: [],
-          phaseNotes: [],
-        },
-      ],
-      documents: [],
-      demonstrationTypes: [],
-      tags: [],
-      medicaidId: "123456789",
-    };
-
-    expect(getDisplayedPhaseDate(demonstration, "Concept")).toBeUndefined();
+    ];
+    expect(getDisplayedPhaseDate(phases, "Concept")).toBeUndefined();
   });
 
   it("returns undefined when phase has no relevant dates based on status and phase name", () => {
     const submittedDateString = "2025-02-20";
-    const submittedDate = new Date(submittedDateString);
     const startDateString = "2025-01-10";
-    const startDate = new Date(startDateString);
 
-    const demonstration: ApplicationWorkflowDemonstration = {
-      id: "test-id",
-      name: "Test Demo",
-      state: {
-        id: "CA",
-        name: "California",
+    const phases: Parameters<typeof getDisplayedPhaseDate>[0] = [
+      {
+        phaseName: "Application Intake" satisfies PhaseName,
+        phaseStatus: "Completed",
+        phaseDates: [
+          {
+            dateType: "Application Intake Start Date",
+            plainDate: startDateString,
+          },
+          {
+            dateType: "State Application Submitted Date",
+            plainDate: submittedDateString,
+          },
+        ],
       },
-      primaryProjectOfficer: mockPO,
-      status: "Under Review",
-      currentPhaseName: "Application Intake",
-      clearanceLevel: "CMS (OSORA)",
-      phases: [
-        {
-          phaseName: "Application Intake",
-          phaseStatus: "Completed",
-          phaseDates: [
-            {
-              dateType: "Application Intake Start Date",
-              dateValue: startDate,
-              plainDate: startDateString,
-            },
-            {
-              dateType: "State Application Submitted Date",
-              dateValue: submittedDate,
-              plainDate: submittedDateString,
-            },
-          ],
-          phaseNotes: [],
-        },
-      ],
-      documents: [],
-      demonstrationTypes: [],
-      tags: [],
-      medicaidId: "123456789",
-    };
+    ];
 
-    const result = getDisplayedPhaseDate(demonstration, "Application Intake");
+    const result = getDisplayedPhaseDate(phases, "Application Intake");
     expect(result).toEqual(undefined);
   });
 
   it("does not match 'Completeness Start Date' as a completion date", () => {
     const completionDateString = "2025-03-15";
-    const completionDate = new Date(completionDateString);
     const completenessStartDateString = "2025-01-01";
-    const completenessStartDate = new Date(completenessStartDateString);
 
-    const demonstration: ApplicationWorkflowDemonstration = {
-      id: "test-id",
-      name: "Test Demo",
-      state: { id: "CA", name: "California" },
-      primaryProjectOfficer: mockPO,
-      status: "Under Review",
-      currentPhaseName: "Completeness",
-      clearanceLevel: "CMS (OSORA)",
-      phases: [
-        {
-          phaseName: "Completeness",
-          phaseStatus: "Completed",
-          phaseDates: [
-            {
-              dateType: "Completeness Start Date",
-              dateValue: completenessStartDate,
-              plainDate: completenessStartDateString,
-            },
-            {
-              dateType: "Completeness Completion Date",
-              dateValue: completionDate,
-              plainDate: completionDateString,
-            },
-          ],
-          phaseNotes: [],
-        },
-      ],
-      documents: [],
-      demonstrationTypes: [],
-      tags: [],
-      medicaidId: "123456789",
-    };
+    const phases: Parameters<typeof getDisplayedPhaseDate>[0] = [
+      {
+        phaseName: "Completeness" satisfies PhaseName,
+        phaseStatus: "Completed",
+        phaseDates: [
+          {
+            dateType: "Completeness Start Date",
+            plainDate: completenessStartDateString,
+          },
+          {
+            dateType: "Completeness Completion Date",
+            plainDate: completionDateString,
+          },
+        ],
+      },
+    ];
 
-    const result = getDisplayedPhaseDate(demonstration, "Completeness");
+    const result = getDisplayedPhaseDate(phases, "Completeness");
     expect(result).toEqual(completionDateString);
   });
 
   it("uses start date when phase is Started even if completion date exists", () => {
     const startDateString = "2025-01-01";
-    const startDate = new Date(startDateString);
     const completionDateString = "2025-03-15";
-    const completionDate = new Date(completionDateString);
 
-    const demonstration: ApplicationWorkflowDemonstration = {
-      id: "test-id",
-      name: "Test Demo",
-      state: { id: "CA", name: "California" },
-      primaryProjectOfficer: mockPO,
-      status: "Under Review",
-      currentPhaseName: "Concept",
-      clearanceLevel: "CMS (OSORA)",
-      phases: [
-        {
-          phaseName: "Concept",
-          phaseStatus: "Started",
-          phaseDates: [
-            {
-              dateType: "Concept Start Date",
-              dateValue: startDate,
-              plainDate: startDateString,
-            },
-            {
-              dateType: "Concept Completion Date",
-              dateValue: completionDate,
-              plainDate: completionDateString,
-            },
-          ],
-          phaseNotes: [],
-        },
-      ],
-      documents: [],
-      demonstrationTypes: [],
-      tags: [],
-      medicaidId: "123456789",
-    };
+    const phases: Parameters<typeof getDisplayedPhaseDate>[0] = [
+      {
+        phaseName: "Concept" satisfies PhaseName,
+        phaseStatus: "Started",
+        phaseDates: [
+          {
+            dateType: "Concept Start Date",
+            plainDate: startDateString,
+          },
+          {
+            dateType: "Concept Completion Date",
+            plainDate: completionDateString,
+          },
+        ],
+      },
+    ];
 
-    const result = getDisplayedPhaseDate(demonstration, "Concept");
+    const result = getDisplayedPhaseDate(phases, "Concept");
 
     expect(result).toEqual(startDateString);
   });
 
   it("selects start date based on phase status", () => {
     const startDateString = "2025-01-10";
-    const startDate = new Date(startDateString);
 
-    const demonstration: ApplicationWorkflowDemonstration = {
-      id: "test-id",
-      name: "Test Demo",
-      state: {
-        id: "CA",
-        name: "California",
+    const phases: Parameters<typeof getDisplayedPhaseDate>[0] = [
+      {
+        phaseName: "Federal Comment" satisfies PhaseName,
+        phaseStatus: "Started" satisfies PhaseStatus,
+        phaseDates: [
+          {
+            dateType: "Federal Comment Period Start Date",
+            plainDate: startDateString,
+          },
+        ],
       },
-      primaryProjectOfficer: mockPO,
-      status: "Under Review",
-      currentPhaseName: "Federal Comment",
-      clearanceLevel: "CMS (OSORA)",
-      phases: [
-        {
-          phaseName: "Federal Comment",
-          phaseStatus: "Started",
-          phaseDates: [
-            {
-              dateType: "Federal Comment Period Start Date",
-              dateValue: startDate,
-              plainDate: startDateString,
-            },
-          ],
-          phaseNotes: [],
-        },
-      ],
-      documents: [],
-      demonstrationTypes: [],
-      tags: [],
-      medicaidId: "123456789",
-    };
+    ];
 
-    const result = getDisplayedPhaseDate(demonstration, "Federal Comment");
+    const result = getDisplayedPhaseDate(phases, "Federal Comment");
     expect(result).toEqual(startDateString);
   });
 });
