@@ -791,7 +791,7 @@ describe("ReviewPhase Component", () => {
       // Radio buttons should be disabled for CMS reviewer
       const cmsRadio = screen.getByLabelText("CMS (OSORA) Clearance Required");
       expect(cmsRadio).toBeDisabled();
-      
+
       const commsRadio = screen.getByLabelText("COMMs Clearance Required");
       expect(commsRadio).toBeDisabled();
     });

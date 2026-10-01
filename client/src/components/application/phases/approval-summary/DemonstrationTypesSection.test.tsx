@@ -175,7 +175,17 @@ describe("DemonstrationTypesSection", () => {
 
       // Types should still be displayed but not editable
       expect(screen.getByText("Types")).toBeInTheDocument();
-      expect(screen.getByText(mockTypes[0].name)).toBeInTheDocument();
+      expect(screen.getByText(mockTypes[0].demonstrationTypeName)).toBeInTheDocument();
+    });
+
+    it("hides select checkboxes for CMS reviewer users", () => {
+      setup(false, mockTypes, cmsReviewerMockUser);
+
+      // Check that row select checkboxes are hidden
+      expect(screen.queryByTestId("select-all")).not.toBeInTheDocument();
+      mockTypes.forEach((type) => {
+        expect(screen.queryByTestId(`select-row-${type.demonstrationTypeName}`)).not.toBeInTheDocument();
+      });
     });
   });
 });
