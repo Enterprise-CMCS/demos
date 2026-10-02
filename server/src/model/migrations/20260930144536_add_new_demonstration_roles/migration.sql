@@ -29,84 +29,78 @@ VALUES
 ON CONFLICT (role_id, person_type_id) DO NOTHING
 ;
 
--- at the time of writing this, there are no demos-restricted-cms-users assigned to demonstrations. But, if one does exist
--- we need to update its role assignment to the new 'Viewer' role. Because the same user can be applied multiple times to
--- the same role, we will need to account for this.  To simplify, we will default all to be non-primary
+-- at the time of writing this, there are no demos-restricted-cms-users nor demos-cms-reviewer-users assigned to 
+-- demonstrations. But, if one does exist we need to update its role assignment to an applicable demonstration role. 
 
--- remove primary assignments for demos-restricted-cms-user and demos-cms-reviewer-user
-with role_assignment as (
-  select 
-    person_id, 
-    role_id, 
-    demonstration_id
-  from demos_app.demonstration_role_assignment
-  where 
-    person_type_id = 'demos-restricted-cms-user'
-    OR person_type_id = 'demos-cms-reviewer-user'
-)
-delete from demos_app.primary_demonstration_role_assignment
-using role_assignment
-where primary_demonstration_role_assignment.person_id = role_assignment.person_id
-  and primary_demonstration_role_assignment.role_id = role_assignment.role_id
-  and primary_demonstration_role_assignment.demonstration_id = role_assignment.demonstration_id
+-- stage the existing role assignments for demos-restricted-cms-users and demos-cms-reviewer-users. Defaulting these to 
+-- not be primary
+CREATE TEMPORARY TABLE viewers AS
+SELECT DISTINCT
+    person_id,
+    demonstration_id,
+    state_id,
+    person_type_id
+FROM
+    demos_app.demonstration_role_assignment
+WHERE
+    person_type_id IN ('demos-restricted-cms-user', 'demos-cms-reviewer-user')
 ;
 
--- compress existing assignments for each person-demonstration pair belonging to 'demos-restricted-cms-user's into one 
--- 'Viewer' assignment
-INSERT INTO demos_app.demonstration_role_assignment (
-  person_id,
-  demonstration_id,
-  role_id,
-  state_id,
-  person_type_id,
-  grant_level_id
-)
-  SELECT DISTINCT 
-    person_id, 
-    demonstration_id, 
-    'Viewer', 
-    state_id, 
-    person_type_id, 
-    grant_level_id
-  FROM demos_app.demonstration_role_assignment
-  WHERE person_type_id = 'demos-restricted-cms-user'
-;
+-- clear existing assignments for these users
+DELETE FROM demos_app.primary_demonstration_role_assignment
+USING
+    viewers
+WHERE
+    primary_demonstration_role_assignment.person_id = viewers.person_id
+    AND primary_demonstration_role_assignment.demonstration_id = viewers.demonstration_id;
 
--- remove all other role assignments for 'demos-restricted-cms-user's
 DELETE FROM demos_app.demonstration_role_assignment
-where person_type_id = 'demos-restricted-cms-user' and role_id <> 'Viewer'
-;
+USING
+    viewers
+WHERE
+    demonstration_role_assignment.person_id = viewers.person_id
+    AND demonstration_role_assignment.demonstration_id = viewers.demonstration_id;
 
-
--- similarly, we do the same with the demos-cms-reviewer-user. Importantly, this default may not be factually correct, 
--- because the reviewer user can have one of three options. However, the changes have not yet been released so the loss 
--- is confined to testing data. This is simply a failsafe if such data exists on the test environments. 
-
--- compress existing assignments for each person-demonstration pair belonging to 'demos-cms-reviewer-user's into one 
--- 'Monitoring Lead' assignment
+-- repopulate role assignments for the staged users
 INSERT INTO demos_app.demonstration_role_assignment (
-  person_id,
-  demonstration_id,
-  role_id,
-  state_id,
-  person_type_id,
-  grant_level_id
-)
-  SELECT DISTINCT 
-    person_id, 
-    demonstration_id, 
-    'Monitoring Lead', 
-    state_id, 
-    person_type_id, 
+    person_id,
+    demonstration_id,
+    role_id,
+    state_id,
+    person_type_id,
     grant_level_id
-  FROM demos_app.demonstration_role_assignment
-  WHERE person_type_id = 'demos-cms-reviewer-user'
-;
+)
+SELECT
+    person_id,
+    demonstration_id,
+    'Viewer' AS role_id,
+    state_id,
+    person_type_id,
+    'Demonstration' AS grant_level_id
+FROM
+    viewers
+WHERE
+    person_type_id = 'demos-restricted-cms-user';
 
--- remove all other role assignments for 'demos-cms-reviewer-user's
-DELETE FROM demos_app.demonstration_role_assignment
-where person_type_id = 'demos-cms-reviewer-user' and role_id <> 'Monitoring Lead'
-;
+INSERT INTO demos_app.demonstration_role_assignment (
+    person_id,
+    demonstration_id,
+    role_id,
+    state_id,
+    person_type_id,
+    grant_level_id
+)
+SELECT
+    person_id,
+    demonstration_id,
+    'Monitoring Lead' AS role_id, -- defaulting to 'Monitoring Lead' for 'demos-cms-reviewer-users'
+    state_id,
+    person_type_id,
+    'Demonstration' AS grant_level_id
+FROM
+    viewers
+WHERE
+    person_type_id = 'demos-cms-reviewer-user';
 
 -- remove the ability for the new roles to be assigned to anything but their newly added demonstration roles
 DELETE FROM demos_app.role_person_type 
