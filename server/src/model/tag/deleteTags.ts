@@ -70,7 +70,7 @@ export async function deleteTags(tagNames: TagName[], currentVersion: SemVer): P
       tx
     );
 
-    // Return count of rows deleted
+    // Return length of the input; gives the logical count of "Demo Types" deleted
     return inputTagNames.length;
   });
 }

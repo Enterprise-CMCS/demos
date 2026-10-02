@@ -1,4 +1,5 @@
-import { prisma, PrismaTransactionClient } from "../../../prismaClient";
+import type { PrismaTransactionClient } from "../../../prismaClient";
+import { prisma } from "../../../prismaClient";
 import type { DemonstrationTypeUsageSummary, TagName, TagStatus } from "../../../types";
 
 export type DemonstrationTypeSummaryQueryResult = {
@@ -103,7 +104,7 @@ export async function getDemonstrationTypeSummaryCounts(
       ON
         tag.tag_name_id = deliv_demo_types_used.demonstration_type
     WHERE
-      tag.tag_type_id IN('Demonstration Type', 'Application')
+      tag.tag_type_id IN ('Demonstration Type', 'Application')
     ORDER BY
       tag.tag_name_id, (tag.tag_type_id = 'Demonstration Type') DESC;`;
 
