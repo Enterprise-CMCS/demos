@@ -41,9 +41,9 @@ export function checkDemonstrationTypeTagsCanBeDeleted(
 
 export function checkTagNamesInExistingTags(tagNames: TagName[], existingTags: PrismaTag[]): void {
   const tagNamesToCheck = [...new Set(tagNames)];
-  const existingTagNames = [...new Set(existingTags.map((tag) => tag.tagNameId))];
+  const existingTagNames = new Set(existingTags.map((tag) => tag.tagNameId));
   const missingTagNames = tagNamesToCheck.filter(
-    (inputTagName) => !existingTagNames.includes(inputTagName)
+    (inputTagName) => !existingTagNames.has(inputTagName)
   );
 
   if (missingTagNames.length > 0) {

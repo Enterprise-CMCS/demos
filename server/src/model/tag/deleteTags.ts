@@ -39,7 +39,7 @@ export async function deleteTags(tagNames: TagName[], currentVersion: SemVer): P
 
     // We now know that every input tag name is present in the list of tags with deletable types
     // Now, we check the usage to verify none of the input tags are in use
-    const usageSummaries = await getDemonstrationTypeSummaryCounts();
+    const usageSummaries = await getDemonstrationTypeSummaryCounts(tx);
     checkDemonstrationTypeTagsCanBeDeleted(
       usageSummaries.filter((summary) => inputTagNames.includes(summary.demonstrationTypeName))
     );

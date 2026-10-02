@@ -19,6 +19,10 @@ describe("getDemonstrationTypeSummaryCounts", () => {
     $queryRaw: vi.fn(),
   };
 
+  const testTransaction = {
+    $queryRaw: vi.fn(),
+  };
+
   const mockResults: DemonstrationTypeSummaryQueryResult[] = [
     {
       demonstration_type: "Type 1",
@@ -45,12 +49,15 @@ describe("getDemonstrationTypeSummaryCounts", () => {
   beforeEach(() => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(mockPrismaClient.$queryRaw).mockResolvedValue(mockResults);
+    vi.mocked(testTransaction.$queryRaw).mockResolvedValue(mockResults);
   });
 
   it("should get data from the database and properly format it", async () => {
     const result = await getDemonstrationTypeSummaryCounts();
 
+    expect(prisma).toHaveBeenCalledOnce();
     expect(mockPrismaClient.$queryRaw).toHaveBeenCalledOnce();
+    expect(testTransaction.$queryRaw).not.toHaveBeenCalled();
     expect(result).toEqual([
       {
         demonstrationTypeName: "Type 1",
@@ -69,5 +76,13 @@ describe("getDemonstrationTypeSummaryCounts", () => {
         countOfAssignedDeliverables: 15,
       },
     ]);
+  });
+
+  it("should use a transaction when one is provided", async () => {
+    await getDemonstrationTypeSummaryCounts(testTransaction as any);
+
+    expect(prisma).not.toHaveBeenCalled();
+    expect(mockPrismaClient.$queryRaw).not.toHaveBeenCalled();
+    expect(testTransaction.$queryRaw).toHaveBeenCalledOnce();
   });
 });

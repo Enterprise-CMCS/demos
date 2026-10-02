@@ -1,4 +1,4 @@
-import { prisma } from "../../../prismaClient";
+import { prisma, PrismaTransactionClient } from "../../../prismaClient";
 import type { DemonstrationTypeUsageSummary, TagName, TagStatus } from "../../../types";
 
 export type DemonstrationTypeSummaryQueryResult = {
@@ -12,10 +12,11 @@ export type DemonstrationTypeSummaryQueryResult = {
   count_assigned_deliverables: number;
 };
 
-export async function getDemonstrationTypeSummaryCounts(): Promise<
-  DemonstrationTypeUsageSummary[]
-> {
-  const results = await prisma().$queryRaw<DemonstrationTypeSummaryQueryResult[]>`
+export async function getDemonstrationTypeSummaryCounts(
+  tx?: PrismaTransactionClient
+): Promise<DemonstrationTypeUsageSummary[]> {
+  const prismaClient = tx ?? prisma();
+  const results = await prismaClient.$queryRaw<DemonstrationTypeSummaryQueryResult[]>`
     WITH demo_types_used AS (
       SELECT
         tag_name_id AS demonstration_type,
@@ -63,12 +64,12 @@ export async function getDemonstrationTypeSummaryCounts(): Promise<
         demonstration_type_tag_name_id AS demonstration_type,
         count(*)::INT AS count_tagged_refs
       FROM
-        demos_app.reference_demonstration_type AS rdt
+        demos_app.reference_demonstration_type
       GROUP BY
         demonstration_type_tag_name_id
     )
 
-    SELECT
+    SELECT DISTINCT ON (tag.tag_name_id)
       tag.tag_name_id AS demonstration_type,
       tag.status_id AS status,
       coalesce(app_tags_used.count_tagged_apps_demonstrations, 0)
@@ -102,7 +103,9 @@ export async function getDemonstrationTypeSummaryCounts(): Promise<
       ON
         tag.tag_name_id = deliv_demo_types_used.demonstration_type
     WHERE
-      tag.tag_type_id = 'Demonstration Type';`;
+      tag.tag_type_id IN('Demonstration Type', 'Application')
+    ORDER BY
+      tag.tag_name_id, (tag.tag_type_id = 'Demonstration Type') DESC;`;
 
   const formatted_results: DemonstrationTypeUsageSummary[] = [];
   for (const result of results) {

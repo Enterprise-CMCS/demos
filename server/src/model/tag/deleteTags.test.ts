@@ -161,7 +161,7 @@ describe("deleteTags", () => {
       new SemVer("1.2.0")
     );
 
-    expect(getDemonstrationTypeSummaryCounts).toHaveBeenCalledOnce();
+    expect(getDemonstrationTypeSummaryCounts).toHaveBeenCalledExactlyOnceWith(mockTransaction);
     expect(checkDemonstrationTypeTagsCanBeDeleted).toHaveBeenCalledExactlyOnceWith(
       mockSummaryCountResult.slice(0, 3)
     );
