@@ -19,7 +19,7 @@ function generateHeaderId(header: string) {
 // Merges provided options with defaults
 function getOptions<RowData>(optionOverrides?: ColumnOptions<RowData>) {
   return {
-    enableSorting: optionOverrides?.enableSorting ?? false,
+    enableSorting: optionOverrides?.enableSorting ?? true,
     enableColumnFilter: optionOverrides?.enableColumnFilter ?? true,
     highlightSearchResults: optionOverrides?.highlightSearchResults !== false,
     cell: optionOverrides?.cell,

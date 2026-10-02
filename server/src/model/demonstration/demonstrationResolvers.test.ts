@@ -594,7 +594,6 @@ describe("demonstrationResolvers", () => {
             demonstrationId: testValues.demonstrationId,
             personId: testValues.userId,
             roleId: testValues.projectOfficerRole,
-            personTypeId: testValues.personTypeId,
           },
         },
       ];
@@ -831,7 +830,6 @@ describe("demonstrationResolvers", () => {
             demonstrationId: testValues.demonstrationId,
             personId: testValues.userId,
             roleId: testValues.projectOfficerRole,
-            personTypeId: testValues.personTypeId,
           },
         },
       ];
