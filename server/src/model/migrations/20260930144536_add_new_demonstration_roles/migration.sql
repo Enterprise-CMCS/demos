@@ -5,7 +5,7 @@ VALUES
   ('Monitoring Lead', 'Demonstration'),
   ('HCBS Analyst', 'Demonstration'),
   ('Financial Lead', 'Demonstration')
-ON CONFLICT (id) DO NOTHING
+ON CONFLICT (id) DO NOTHING -- normally discouraged, but previous failed migration run requires this be idempotent
 ;
 
 -- allow new user roles (and cms user and admin) to be assigned to the new demonstration roles
@@ -26,7 +26,7 @@ VALUES
   ('Financial Lead', 'demos-cms-reviewer-user'),
   ('Financial Lead', 'demos-admin'),
   ('Financial Lead', 'demos-cms-user')
-ON CONFLICT (role_id, person_type_id) DO NOTHING
+ON CONFLICT (role_id, person_type_id) DO NOTHING -- normally discouraged, but previous failed migration run requires this be idempotent
 ;
 
 -- at the time of writing this, there are no demos-restricted-cms-users nor demos-cms-reviewer-users assigned to 
@@ -101,6 +101,8 @@ FROM
     viewers
 WHERE
     person_type_id = 'demos-cms-reviewer-user';
+
+DROP TABLE viewers;
 
 -- remove the ability for the new roles to be assigned to anything but their newly added demonstration roles
 DELETE FROM demos_app.role_person_type 
