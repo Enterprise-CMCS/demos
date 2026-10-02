@@ -19,9 +19,6 @@ const PROCESS_PENDING_DOCUMENT_CLEAN = "move_document_from_pending_to_clean";
 const PROCESS_PENDING_DOCUMENT_INFECTED = "move_document_from_pending_to_infected";
 const AWS_REGION = process.env.AWS_REGION || "us-east-1";
 
-let databaseUrlCache = "";
-let cacheExpiration = 0;
-
 interface Results {
   processedRecords: number;
   cleanFiles: number;
