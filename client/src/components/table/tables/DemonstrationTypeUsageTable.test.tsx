@@ -12,6 +12,9 @@ import {
 import { MOCK_DEMONSTRATION_TYPE_USAGE } from "mock-data/demonstrationTypeUsageMocks";
 import { DemonstrationTypeUsageTable } from "./DemonstrationTypeUsageTable";
 import {
+  APPROVE_TYPE_TAG_BUTTON_NAME,
+  APPROVE_TYPE_TAG_DISABLED_TOOLTIP,
+  APPROVE_TYPE_TAG_ENABLED_TOOLTIP,
   EDIT_TYPE_TAG_BUTTON_NAME,
   EDIT_TYPE_TAG_DISABLED_TOOLTIP,
   EDIT_TYPE_TAG_ENABLED_TOOLTIP,
@@ -34,6 +37,7 @@ const setup = () => {
 };
 
 const getEditButton = () => screen.getByTestId(EDIT_TYPE_TAG_BUTTON_NAME);
+const getApproveButton = () => screen.getByTestId(APPROVE_TYPE_TAG_BUTTON_NAME);
 
 const selectTypeTag = async (user: ReturnType<typeof userEvent.setup>, typeTagName: string) =>
   user.click(
@@ -92,6 +96,66 @@ describe("DemonstrationTypeUsageTable", () => {
       await user.type(screen.getByTestId(TYPE_TAG_DISPLAY_TEXT_INPUT_NAME), SECOND_TYPE_TAG_NAME);
 
       expect(screen.getByText(DUPLICATE_TYPE_TAG_MESSAGE)).toBeInTheDocument();
+    });
+  });
+
+  describe("Approve action", () => {
+    it("is disabled with a selection prompt when no type/tag is selected", async () => {
+      setup();
+
+      await screen.findByRole("table");
+      const approveButton = getApproveButton();
+      expect(approveButton).toBeDisabled();
+      expect(approveButton).toHaveAttribute("title", APPROVE_TYPE_TAG_DISABLED_TOOLTIP);
+    });
+
+    it("is disabled with a selection prompt when only approved type/tags are selected", async () => {
+      const user = setup();
+
+      await screen.findByRole("table");
+      // FIRST_TYPE_TAG_NAME is approved
+      await selectTypeTag(user, FIRST_TYPE_TAG_NAME);
+      const approveButton = getApproveButton();
+      expect(approveButton).toBeDisabled();
+      expect(approveButton).toHaveAttribute("title", APPROVE_TYPE_TAG_DISABLED_TOOLTIP);
+    });
+
+    it("is enabled when at least one unapproved type/tag is selected", async () => {
+      const user = setup();
+
+      await screen.findByRole("table");
+      // SECOND_TYPE_TAG_NAME is unapproved
+      await selectTypeTag(user, SECOND_TYPE_TAG_NAME);
+      const approveButton = getApproveButton();
+      expect(approveButton).toBeEnabled();
+      expect(approveButton).toHaveAttribute("title", APPROVE_TYPE_TAG_ENABLED_TOOLTIP);
+    });
+
+    it("is enabled when both approved and unapproved type/tags are selected", async () => {
+      const user = setup();
+
+      await screen.findByRole("table");
+      // FIRST_TYPE_TAG_NAME is approved, SECOND_TYPE_TAG_NAME is unapproved
+      await selectTypeTag(user, FIRST_TYPE_TAG_NAME);
+      await selectTypeTag(user, SECOND_TYPE_TAG_NAME);
+      const approveButton = getApproveButton();
+      expect(approveButton).toBeEnabled();
+      expect(approveButton).toHaveAttribute("title", APPROVE_TYPE_TAG_ENABLED_TOOLTIP);
+    });
+
+    it("opens the Approve Type/Tag dialog with the selected unapproved type/tags", async () => {
+      const user = setup();
+
+      await screen.findByRole("table");
+      // FIRST_TYPE_TAG_NAME is approved, SECOND_TYPE_TAG_NAME is unapproved
+      await selectTypeTag(user, FIRST_TYPE_TAG_NAME);
+      await selectTypeTag(user, SECOND_TYPE_TAG_NAME);
+      await user.click(getApproveButton());
+
+      expect(
+        screen.getByRole("heading", { name: "Approve Type/Tag(s)" })
+      ).toBeInTheDocument();
+      expect(screen.getByText(`${SECOND_TYPE_TAG_NAME}`)).toBeInTheDocument();
     });
   });
 

@@ -8,7 +8,7 @@ import type { CurrentUser } from "components/user/UserContext";
 import { ApplicationDetailsSection, ApplicationDetailsFormData } from "./ApplicationDetailsSection";
 import { LocalDate } from "demos-server";
 import { TestProvider } from "test-utils/TestProvider";
-import { readonlyMockUser } from "mock-data/userMocks";
+import { readonlyMockUser, cmsReviewerMockUser } from "mock-data/userMocks";
 
 describe("ApplicationDetailsSection", () => {
   const mockSetSectionFormData = vi.fn();
@@ -267,8 +267,11 @@ describe("ApplicationDetailsSection", () => {
     });
   });
 
-  describe("Readonly User Behavior", () => {
-    it("disables all editable fields and hides mark complete for readonly users", () => {
+  describe("Readonly (Phase 8 - Approval Summary)", () => {
+    it.each([
+      { personType: "demos-restricted-cms-user", user: readonlyMockUser },
+      { personType: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
+    ])("$personType - disables all editable fields", ({ user }) => {
       setup(
         {
           applicationType: "demonstration",
@@ -278,7 +281,7 @@ describe("ApplicationDetailsSection", () => {
         },
         false,
         false,
-        readonlyMockUser
+        user
       );
 
       // Check that all editable inputs are disabled
@@ -289,6 +292,23 @@ describe("ApplicationDetailsSection", () => {
       expect(screen.getByLabelText(/demonstration description/i)).toBeDisabled();
       expect(screen.getByLabelText(/signature level/i)).toBeDisabled();
       expect(screen.getByLabelText(/application approval date/i)).toBeDisabled();
+    });
+
+    it.each([
+      { personType: "demos-restricted-cms-user", user: readonlyMockUser },
+      { personType: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
+    ])("$personType - hides mark complete switch", ({ user }) => {
+      setup(
+        {
+          applicationType: "demonstration",
+          stateId: "CA",
+          stateName: "California",
+          staticFields: {},
+        },
+        false,
+        false,
+        user
+      );
 
       // Check that Mark Complete switch is hidden
       expect(screen.queryByRole("switch", { name: /mark complete/i })).not.toBeInTheDocument();
