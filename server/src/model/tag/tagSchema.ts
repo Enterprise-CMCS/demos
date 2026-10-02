@@ -32,7 +32,7 @@ export const tagSchema = gql`
   type Mutation {
     createTags(tagNames: [TagName!]!): [Tag!]! @auth(requires: ["Perform Admin Action"])
     approveTags(tagNames: [TagName!]!): [Tag!]! @auth(requires: ["Perform Admin Action"])
-    deleteTag(tagName: TagName!): Tag! @auth(requires: ["Perform Admin Action"])
+    deleteTags(tagNames: [TagName!]!): Int! @auth(requires: ["Perform Admin Action"])
   }
 `;
 
