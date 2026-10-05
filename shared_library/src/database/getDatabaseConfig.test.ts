@@ -31,7 +31,6 @@ describe("getDatabaseConfig", () => {
   });
 
   it("requires the secret ARN", async () => {
-    // @ts-expect-error
     await expect(getDatabaseConfig()).rejects.toThrow(
       "Database secret arn must be provided to retrieve credentials"
     );

@@ -22,19 +22,19 @@ type ForbiddenOptions =
   | "port"
   | "database";
 
-export async function getDatabaseConfig(databaseSecretArn: string, additionalOptions: Omit<PoolConfig,ForbiddenOptions> = {}): Promise<PoolConfig> {
+export async function getDatabaseConfig(databaseSecretArn?: string, additionalOptions: Omit<PoolConfig,ForbiddenOptions> = {}): Promise<PoolConfig> {
   if (Object.keys(additionalOptions).includes("connectionString")) {
     throw new Error("connectionString should not be set in additional options"); 
-  }
-  
-  const now = Date.now();
-  const cachedConfig = databaseConfigCache.get(databaseSecretArn)
-  if (cachedConfig && cachedConfig.cacheExpiration > now) {
-    return cachedConfig?.config;
   }
 
   if (!databaseSecretArn || databaseSecretArn.trim() === "") {
     throw new Error("Database secret arn must be provided to retrieve credentials"); 
+  }
+
+  const now = Date.now();
+  const cachedConfig = databaseConfigCache.get(databaseSecretArn)
+  if (cachedConfig && cachedConfig.cacheExpiration > now) {
+    return cachedConfig?.config;
   }
 
   const getDbSecretValueCommand = new GetSecretValueCommand({ SecretId: databaseSecretArn });
