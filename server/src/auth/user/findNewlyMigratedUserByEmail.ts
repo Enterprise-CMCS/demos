@@ -13,7 +13,11 @@ export async function findNewlyMigratedUserByEmail(
   tx: PrismaTransactionClient
 ): Promise<FindMigratedUserResult> {
   const users = await selectManyUsers(
-    { person: { email: email }, isMigratedFromPmda: true, hasLoggedIn: false },
+    {
+      person: { email: { equals: email, mode: "insensitive" } },
+      isMigratedFromPmda: true,
+      hasLoggedIn: false,
+    },
     tx
   );
 

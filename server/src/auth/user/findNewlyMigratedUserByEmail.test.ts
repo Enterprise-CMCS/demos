@@ -33,7 +33,11 @@ describe("findNewlyMigratedUserByEmail", () => {
     await findNewlyMigratedUserByEmail(testEmail, testTransaction);
 
     expect(selectManyUsers).toHaveBeenCalledExactlyOnceWith(
-      { person: { email: testEmail }, isMigratedFromPmda: true, hasLoggedIn: false },
+      {
+        person: { email: { equals: testEmail, mode: "insensitive" } },
+        isMigratedFromPmda: true,
+        hasLoggedIn: false,
+      },
       testTransaction
     );
   });
