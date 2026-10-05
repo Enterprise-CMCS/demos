@@ -1,39 +1,18 @@
 import React from "react";
-
 import { beforeEach, describe, expect, it } from "vitest";
-
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Table } from "./Table";
-import { TestType, testTableData } from "./Table.test";
-import { highlightCell, KeywordSearch, TEST_IDS } from "./KeywordSearch";
-import { createColumnHelper } from "@tanstack/react-table";
-
-const columnHelper = createColumnHelper<TestType>();
-
-export const testColumns = [
-  columnHelper.accessor("name", {
-    header: "Name",
-    cell: highlightCell,
-    enableGlobalFilter: false,
-  }),
-  columnHelper.accessor("description", {
-    header: "Description",
-    cell: highlightCell,
-  }),
-  columnHelper.accessor("option.name", {
-    header: "Option",
-    cell: highlightCell,
-  }),
-  columnHelper.accessor("date", {
-    id: "date",
-    header: "Date",
-    enableGlobalFilter: false,
-  }),
-];
+import { TestTableType, testTableData, testColumns } from "./Table.test";
+import {
+  highlightCell,
+  KEYWORD_SEARCH_INPUT_NAME,
+  KEYWORD_SEARCH_CLEAR_BUTTON_NAME,
+  KeywordSearch,
+} from "./KeywordSearch";
 
 const TestTable = () => (
-  <Table<TestType>
+  <Table<TestTableType>
     keywordSearch={(table) => <KeywordSearch table={table} />}
     columns={testColumns}
     data={testTableData}
@@ -41,7 +20,25 @@ const TestTable = () => (
   />
 );
 
-describe.sequential("KeywordSearch Component", () => {
+/**
+ * Assert that all provided text items are visible in the document
+ */
+function expectVisible(items: string[]) {
+  items.forEach((item) => {
+    expect(screen.getByText(item)).toBeInTheDocument();
+  });
+}
+
+/**
+ * Assert that all provided text items are hidden (not in the document)
+ */
+function expectHidden(items: string[]) {
+  items.forEach((item) => {
+    expect(screen.queryByText(item)).not.toBeInTheDocument();
+  });
+}
+
+describe("KeywordSearch Component", () => {
   let unmount: () => void;
 
   beforeEach(() => {
@@ -50,7 +47,7 @@ describe.sequential("KeywordSearch Component", () => {
 
   describe("Initial Render", () => {
     it("renders the keyword search input with correct label", () => {
-      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
+      const keywordSearchInput = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
 
       expect(keywordSearchInput).toBeInTheDocument();
       expect(keywordSearchInput).toHaveValue("");
@@ -58,7 +55,7 @@ describe.sequential("KeywordSearch Component", () => {
     });
 
     it("renders with search icon and no clear icon initially", () => {
-      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
+      const keywordSearchInput = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
       const searchContainer = keywordSearchInput.closest("div");
 
       // Search icon should be present
@@ -66,22 +63,17 @@ describe.sequential("KeywordSearch Component", () => {
       expect(searchIcon).toBeInTheDocument();
 
       // Clear button should not be present initially
-      const clearButton = screen.queryByTestId(TEST_IDS.clearButton);
+      const clearButton = screen.queryByTestId(KEYWORD_SEARCH_CLEAR_BUTTON_NAME);
       expect(clearButton).not.toBeInTheDocument();
     });
 
     it("displays all table rows initially", () => {
-      // All 5 items should be visible
-      expect(screen.getByText("Item One")).toBeInTheDocument();
-      expect(screen.getByText("Item Two")).toBeInTheDocument();
-      expect(screen.getByText("Item Three")).toBeInTheDocument();
-      expect(screen.getByText("Item Four")).toBeInTheDocument();
-      expect(screen.getByText("Item Five")).toBeInTheDocument();
+      expectVisible(["Item One", "Item Two", "Item Three", "Item Four", "Item Five"]);
     });
 
     it("does not retain the search value after remounting", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
+      const keywordSearchInput = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
 
       await user.type(keywordSearchInput, "unique");
       expect(keywordSearchInput).toHaveValue("unique");
@@ -89,32 +81,32 @@ describe.sequential("KeywordSearch Component", () => {
       unmount();
       render(<TestTable />);
 
-      expect(screen.getByTestId(TEST_IDS.input)).toHaveValue("");
+      expect(screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME)).toHaveValue("");
     });
   });
 
   describe("Input Interaction", () => {
     it("shows clear icon when text is typed", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
+      const keywordSearchInput = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
 
       await user.type(keywordSearchInput, "unique");
 
       // Clear button should now be visible
-      const clearButton = screen.getByTestId(TEST_IDS.clearButton);
+      const clearButton = screen.getByTestId(KEYWORD_SEARCH_CLEAR_BUTTON_NAME);
       expect(clearButton).toBeInTheDocument();
       expect(keywordSearchInput).toHaveValue("unique");
     });
 
     it("clears input and removes clear icon when clear button is clicked", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
+      const keywordSearchInput = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
 
       // Type in search input
       await user.type(keywordSearchInput, "unique");
 
       // Verify clear button appears
-      const clearButton = screen.getByTestId(TEST_IDS.clearButton);
+      const clearButton = screen.getByTestId(KEYWORD_SEARCH_CLEAR_BUTTON_NAME);
       expect(clearButton).toBeInTheDocument();
 
       // Click clear button
@@ -122,12 +114,12 @@ describe.sequential("KeywordSearch Component", () => {
 
       // Input should be cleared and clear button should disappear
       expect(keywordSearchInput).toHaveValue("");
-      expect(screen.queryByLabelText(/clear search/i)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(KEYWORD_SEARCH_CLEAR_BUTTON_NAME)).not.toBeInTheDocument();
     });
 
     it("restores all rows when search is cleared", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
+      const keywordSearchInput = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
 
       // Search for something specific
       await user.type(keywordSearchInput, "unique");
@@ -139,16 +131,12 @@ describe.sequential("KeywordSearch Component", () => {
       });
 
       // Clear search
-      const clearButton = screen.getByTestId(TEST_IDS.clearButton);
+      const clearButton = screen.getByTestId(KEYWORD_SEARCH_CLEAR_BUTTON_NAME);
       await user.click(clearButton);
 
       // All items should be visible again
       await waitFor(() => {
-        expect(screen.getByText("Item One")).toBeInTheDocument();
-        expect(screen.getByText("Item Two")).toBeInTheDocument();
-        expect(screen.getByText("Item Three")).toBeInTheDocument();
-        expect(screen.getByText("Item Four")).toBeInTheDocument();
-        expect(screen.getByText("Item Five")).toBeInTheDocument();
+        expectVisible(["Item One", "Item Two", "Item Three", "Item Four", "Item Five"]);
       });
     });
   });
@@ -156,20 +144,14 @@ describe.sequential("KeywordSearch Component", () => {
   describe("Search Filtering", () => {
     it("filters table content based on single keyword in description", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
+      const keywordSearchInput = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
 
       await user.type(keywordSearchInput, "unique");
 
       await waitFor(
         () => {
-          // Should show Item One (has "unique" in description)
-          expect(screen.getByText("Item One")).toBeInTheDocument();
-
-          // Should not show other items
-          expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
+          expectVisible(["Item One"]);
+          expectHidden(["Item Two", "Item Three", "Item Four", "Item Five"]);
         },
         { timeout: 500 }
       );
@@ -177,20 +159,14 @@ describe.sequential("KeywordSearch Component", () => {
 
     it("filters table content based on option values", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
+      const keywordSearchInput = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
 
       await user.type(keywordSearchInput, "Beta");
 
       await waitFor(
         () => {
-          // Should show Item Two (has "Option Beta")
-          expect(screen.getByText("Item Two")).toBeInTheDocument();
-
-          // Should not show other items
-          expect(screen.queryByText("Item One")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
+          expectVisible(["Item Two"]);
+          expectHidden(["Item One", "Item Three", "Item Four", "Item Five"]);
         },
         { timeout: 500 }
       );
@@ -198,20 +174,14 @@ describe.sequential("KeywordSearch Component", () => {
 
     it("filters based on multiple keywords", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
+      const keywordSearchInput = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
 
       await user.type(keywordSearchInput, "fourth Alpha");
 
       await waitFor(
         () => {
-          // Should show Item Four (has "fourth" in description and "Alpha" in description)
-          expect(screen.getByText("Item Four")).toBeInTheDocument();
-
-          // Should not show other items
-          expect(screen.queryByText("Item One")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
+          expectVisible(["Item Four"]);
+          expectHidden(["Item One", "Item Two", "Item Three", "Item Five"]);
         },
         { timeout: 500 }
       );
@@ -219,20 +189,14 @@ describe.sequential("KeywordSearch Component", () => {
 
     it("shows multiple results when keyword matches multiple rows", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
+      const keywordSearchInput = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
 
       await user.type(keywordSearchInput, "Alpha");
 
       await waitFor(
         () => {
-          // Should show Item One, Item Four, and Item Five (all have "Alpha")
-          expect(screen.getByText("Item One")).toBeInTheDocument();
-          expect(screen.getByText("Item Four")).toBeInTheDocument();
-          expect(screen.getByText("Item Five")).toBeInTheDocument();
-
-          // Should not show Item Two and Item Three
-          expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
+          expectVisible(["Item One", "Item Four", "Item Five"]);
+          expectHidden(["Item Two", "Item Three"]);
         },
         { timeout: 500 }
       );
@@ -240,14 +204,14 @@ describe.sequential("KeywordSearch Component", () => {
 
     it("is case insensitive", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
+      const keywordSearchInput = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
 
       await user.type(keywordSearchInput, "UNIQUE");
 
       await waitFor(
         () => {
-          expect(screen.getByText("Item One")).toBeInTheDocument();
-          expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+          expectVisible(["Item One"]);
+          expectHidden(["Item Two"]);
         },
         { timeout: 500 }
       );
@@ -255,20 +219,14 @@ describe.sequential("KeywordSearch Component", () => {
 
     it("handles partial word matches", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
+      const keywordSearchInput = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
 
       await user.type(keywordSearchInput, "spec");
 
       await waitFor(
         () => {
-          // Should show Item Three (has "special" in description)
-          expect(screen.getByText("Item Three")).toBeInTheDocument();
-
-          // Should not show other items
-          expect(screen.queryByText("Item One")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
+          expectVisible(["Item Three"]);
+          expectHidden(["Item One", "Item Two", "Item Four", "Item Five"]);
         },
         { timeout: 500 }
       );
@@ -289,7 +247,7 @@ describe.sequential("KeywordSearch Component", () => {
 
     it("highlights matching text in search results", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
+      const keywordSearchInput = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
 
       await user.type(keywordSearchInput, "unique");
 
@@ -305,7 +263,7 @@ describe.sequential("KeywordSearch Component", () => {
 
     it("highlights multiple instances of the same keyword", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
+      const keywordSearchInput = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
 
       await user.type(keywordSearchInput, "item");
 
@@ -325,7 +283,7 @@ describe.sequential("KeywordSearch Component", () => {
 
     it("highlights multiple different keywords", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
+      const keywordSearchInput = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
 
       await user.type(keywordSearchInput, "fourth Alpha");
 
@@ -348,7 +306,7 @@ describe.sequential("KeywordSearch Component", () => {
   describe("No Results State", () => {
     it("shows no results message when search yields no matches", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
+      const keywordSearchInput = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
 
       await user.type(keywordSearchInput, "nonexistent");
 
@@ -359,11 +317,7 @@ describe.sequential("KeywordSearch Component", () => {
           ).toBeInTheDocument();
 
           // No table rows should be visible
-          expect(screen.queryByText("Item One")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
+          expectHidden(["Item One", "Item Two", "Item Three", "Item Four", "Item Five"]);
         },
         { timeout: 500 }
       );
@@ -371,7 +325,7 @@ describe.sequential("KeywordSearch Component", () => {
 
     it("returns to showing results when valid search is entered after no results", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
+      const keywordSearchInput = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
 
       // First search with no results
       await user.type(keywordSearchInput, "nonexistent");
@@ -388,7 +342,7 @@ describe.sequential("KeywordSearch Component", () => {
 
       await waitFor(
         () => {
-          expect(screen.getByText("Item One")).toBeInTheDocument();
+          expectVisible(["Item One"]);
           expect(
             screen.queryByText("No results were returned. Adjust your search and filter criteria.")
           ).not.toBeInTheDocument();
@@ -401,7 +355,7 @@ describe.sequential("KeywordSearch Component", () => {
   describe("Debouncing", () => {
     it("debounces search input to avoid excessive filtering", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
+      const keywordSearchInput = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
 
       // Type quickly without waiting
       await user.type(keywordSearchInput, "u");
@@ -412,14 +366,13 @@ describe.sequential("KeywordSearch Component", () => {
       await user.type(keywordSearchInput, "e");
 
       // Should still show all items initially (debounce hasn't fired)
-      expect(screen.getByText("Item One")).toBeInTheDocument();
-      expect(screen.getByText("Item Two")).toBeInTheDocument();
+      expectVisible(["Item One", "Item Two"]);
 
       // Wait for debounce to complete
       await waitFor(
         () => {
-          expect(screen.getByText("Item One")).toBeInTheDocument();
-          expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+          expectVisible(["Item One"]);
+          expectHidden(["Item Two"]);
         },
         { timeout: 500 }
       );
