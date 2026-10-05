@@ -17,7 +17,8 @@ import { selectManyUsers } from "../../model/user/queries";
 describe("findNewlyMigratedUserByEmail", () => {
   // Test inputs
   const testTransaction = "test-transaction" as any;
-  const testEmail = "ada.lovelace@example.com";
+  const testNormalEmail = "ada.lovelace@example.com";
+  const testWildcardEmail = "john\\Smith_User%3@example.com";
 
   // Mock return values
   const mockUser: Partial<PrismaUser> = { id: "f6c2a0d1-7b3e-4a52-9c8f-1d4e5b6a7c89" };
@@ -30,11 +31,26 @@ describe("findNewlyMigratedUserByEmail", () => {
   it("should query for newly migrated, never-logged-in users by email", async () => {
     vi.mocked(selectManyUsers).mockResolvedValue([mockUser as PrismaUser]);
 
-    await findNewlyMigratedUserByEmail(testEmail, testTransaction);
+    await findNewlyMigratedUserByEmail(testNormalEmail, testTransaction);
 
     expect(selectManyUsers).toHaveBeenCalledExactlyOnceWith(
       {
-        person: { email: { equals: testEmail, mode: "insensitive" } },
+        person: { email: { equals: testNormalEmail, mode: "insensitive" } },
+        isMigratedFromPmda: true,
+        hasLoggedIn: false,
+      },
+      testTransaction
+    );
+  });
+
+  it("should properly escape wildcards in emails before passing them to Prisma", async () => {
+    vi.mocked(selectManyUsers).mockResolvedValue([mockUser as PrismaUser]);
+
+    await findNewlyMigratedUserByEmail(testWildcardEmail, testTransaction);
+
+    expect(selectManyUsers).toHaveBeenCalledExactlyOnceWith(
+      {
+        person: { email: { equals: "john\\\\Smith\\_User\\%3@example.com", mode: "insensitive" } },
         isMigratedFromPmda: true,
         hasLoggedIn: false,
       },
@@ -45,7 +61,7 @@ describe("findNewlyMigratedUserByEmail", () => {
   it("should report No Match when no users are found", async () => {
     vi.mocked(selectManyUsers).mockResolvedValue([]);
 
-    const result = await findNewlyMigratedUserByEmail(testEmail, testTransaction);
+    const result = await findNewlyMigratedUserByEmail(testNormalEmail, testTransaction);
 
     expect(result).toEqual({ users: [], resultType: "No Match" });
   });
@@ -53,7 +69,7 @@ describe("findNewlyMigratedUserByEmail", () => {
   it("should report Exactly One Match when a single user is found", async () => {
     vi.mocked(selectManyUsers).mockResolvedValue([mockUser as PrismaUser]);
 
-    const result = await findNewlyMigratedUserByEmail(testEmail, testTransaction);
+    const result = await findNewlyMigratedUserByEmail(testNormalEmail, testTransaction);
 
     expect(result).toEqual({ users: [mockUser], resultType: "Exactly One Match" });
   });
@@ -64,7 +80,7 @@ describe("findNewlyMigratedUserByEmail", () => {
       mockOtherUser as PrismaUser,
     ]);
 
-    const result = await findNewlyMigratedUserByEmail(testEmail, testTransaction);
+    const result = await findNewlyMigratedUserByEmail(testNormalEmail, testTransaction);
 
     expect(result).toEqual({
       users: [mockUser, mockOtherUser],
