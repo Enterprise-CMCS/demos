@@ -43,17 +43,6 @@ const mocks = [
 
 const setup = () => {
   const user = userEvent.setup();
-  console.log(
-    MOCK_DEMONSTRATION_TYPE_USAGE.map((x) => ({
-      name: x.demonstrationTypeName,
-      total:
-        x.countOfTaggedApplications.demonstrations +
-        x.countOfTaggedApplications.amendments +
-        x.countOfTaggedApplications.renewals +
-        x.countOfAssignedDemonstrations +
-        x.countOfAssignedDeliverables,
-    }))
-  );
   render(
     <TestProvider mocks={mocks}>
       <DialogProvider>
