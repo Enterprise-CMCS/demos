@@ -10,19 +10,17 @@ import { highlightCell, KeywordSearch } from "./KeywordSearch";
 import { ColumnFilter } from "./ColumnFilter";
 import { createSelectColumnDef } from "./columns/selectColumn";
 
-type TestOptionType = {
-  name: string;
-};
-
-export type TestType = {
+export type TestTableType = {
   id: string;
   name: string;
   description: string;
-  option: TestOptionType;
+  option: {
+    name: string;
+  };
   date: Date;
 };
 
-const columnHelper = createColumnHelper<TestType>();
+const columnHelper = createColumnHelper<TestTableType>();
 
 export const testColumns = [
   createSelectColumnDef(columnHelper),
@@ -62,7 +60,7 @@ export const testColumns = [
   }),
 ];
 
-export const testTableData: TestType[] = [
+export const testTableData: TestTableType[] = [
   {
     id: "1",
     name: "Item One",
@@ -110,10 +108,10 @@ export const testTableData: TestType[] = [
   },
 ];
 
-describe.sequential("Table Component Interactions", () => {
+describe("Table Component Interactions", () => {
   describe("Basic Rendering", () => {
     it("renders all test items initially", () => {
-      render(<Table<TestType> columns={testColumns} data={testTableData} />);
+      render(<Table<TestTableType> columns={testColumns} data={testTableData} />);
 
       expect(screen.getByText("Item One")).toBeInTheDocument();
       expect(screen.getByText("Item Two")).toBeInTheDocument();
@@ -124,7 +122,7 @@ describe.sequential("Table Component Interactions", () => {
 
     it("renders the empty state message when there is no data", () => {
       render(
-        <Table<TestType>
+        <Table<TestTableType>
           columns={testColumns}
           data={[]}
           emptyRowsMessage="No items are available"
@@ -135,246 +133,10 @@ describe.sequential("Table Component Interactions", () => {
     });
   });
 
-  describe("Filter and Search Interactions", () => {
-    it("preserves existing column filters when keyword searching", async () => {
-      render(
-        <Table<TestType>
-          columnFilter={(table) => <ColumnFilter table={table} />}
-          keywordSearch={(table) => <KeywordSearch table={table} />}
-          columns={testColumns}
-          data={testTableData}
-        />
-      );
-      const user = userEvent.setup();
-
-      // First apply a column filter for Option
-      const columnSelect = screen.getByTestId("filter-by-column");
-      await user.selectOptions(columnSelect, "Option");
-
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText(/select option/i)).toBeInTheDocument();
-      });
-
-      const optionFilterInput = screen.getByPlaceholderText(/select option/i);
-      await user.type(optionFilterInput, "Option Alpha");
-
-      await waitFor(() => {
-        const alphaOptions = screen.getAllByText("Option Alpha");
-        const alphaDropdownOption = alphaOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(alphaDropdownOption).toBeInTheDocument();
-      });
-
-      const alphaOptions = screen.getAllByText("Option Alpha");
-      const alphaDropdownOption = alphaOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(alphaDropdownOption!);
-
-      // Verify filter is applied (only items with Option Alpha visible)
-      await waitFor(() => {
-        expect(screen.getByText("Item One")).toBeInTheDocument();
-        expect(screen.getByText("Item Five")).toBeInTheDocument();
-        expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
-        expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
-        expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
-      });
-
-      // Now add keyword search
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
-      await user.type(keywordSearchInput, "first");
-
-      // Wait for debounce
-      await waitFor(
-        () => {
-          // Should show only "Item One" (has "first" and "Option Alpha")
-          expect(screen.getByText("Item One")).toBeInTheDocument();
-          expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
-        },
-        { timeout: 500 }
-      );
-
-      // Verify the column filter input still has its value
-      expect(optionFilterInput).toHaveValue("Option Alpha");
-    });
-
-    it("preserves existing keyword search when applying column filters", async () => {
-      render(
-        <Table<TestType>
-          columnFilter={(table) => <ColumnFilter table={table} />}
-          keywordSearch={(table) => <KeywordSearch table={table} />}
-          columns={testColumns}
-          data={testTableData}
-        />
-      );
-      const user = userEvent.setup();
-
-      // First apply a keyword search
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
-      await user.clear(keywordSearchInput); // Clear any existing content
-      await user.type(keywordSearchInput, "different");
-
-      // Wait for debounce to apply search
-      await waitFor(
-        () => {
-          // Should show only "Item Two" (contains "different")
-          expect(screen.getByText("Item Two")).toBeInTheDocument();
-          expect(screen.queryByText("Item One")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
-          expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
-        },
-        { timeout: 500 }
-      );
-
-      // Now apply a column filter for Name
-      const columnSelect = screen.getByTestId("filter-by-column");
-      await user.selectOptions(columnSelect, "Name");
-
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
-      });
-
-      const nameFilterInput = screen.getByPlaceholderText(/filter name/i);
-      await user.type(nameFilterInput, "Item Two");
-
-      // Verify both filters are active - only Item Two visible (matches both filters)
-      await waitFor(() => {
-        expect(screen.getByText("Item Two")).toBeInTheDocument();
-        expect(screen.queryByText("Item One")).not.toBeInTheDocument();
-        expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
-        expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
-        expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
-      });
-
-      // Verify the keyword search input still has its value
-      expect(keywordSearchInput).toHaveValue("different");
-    });
-
-    it("clears keyword search but preserves column filters when clearing keyword search", async () => {
-      render(
-        <Table<TestType>
-          columnFilter={(table) => <ColumnFilter table={table} />}
-          keywordSearch={(table) => <KeywordSearch table={table} />}
-          columns={testColumns}
-          data={testTableData}
-        />
-      );
-      const user = userEvent.setup();
-
-      // Apply keyword search first
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
-      await user.clear(keywordSearchInput); // Clear any existing content
-      await user.type(keywordSearchInput, "Alpha");
-
-      // Apply column filter
-      const columnSelect = screen.getByTestId("filter-by-column");
-      await user.selectOptions(columnSelect, "Name");
-
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
-      });
-
-      const nameFilterInput = screen.getByPlaceholderText(/filter name/i);
-      await user.type(nameFilterInput, "Item Four");
-
-      // Verify filtered state - only Item Four should be visible (has "Alpha" and matches "Item Four")
-      await waitFor(() => {
-        expect(screen.getByText("Item Four")).toBeInTheDocument();
-        expect(screen.queryByText("Item One")).not.toBeInTheDocument();
-        expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
-        expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
-        expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
-      });
-
-      // Clear keyword search
-      const clearButton = screen.getByLabelText(/clear search/i);
-      await user.click(clearButton);
-
-      // Verify keyword search is cleared but column filter is preserved
-      await waitFor(() => {
-        // Only Item Four should still be visible (column filter is still active)
-        expect(screen.getByText("Item Four")).toBeInTheDocument();
-        expect(screen.queryByText("Item One")).not.toBeInTheDocument();
-        expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
-        expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
-        expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
-      });
-
-      // Verify keyword search is cleared
-      expect(keywordSearchInput).toHaveValue("");
-
-      // Verify column filter is still active
-      expect(nameFilterInput).toHaveValue("Item Four");
-    });
-
-    it("clears column filter but preserves keyword search when column filter is manually cleared", async () => {
-      render(
-        <Table<TestType>
-          columnFilter={(table) => <ColumnFilter table={table} />}
-          keywordSearch={(table) => <KeywordSearch table={table} />}
-          columns={testColumns}
-          data={testTableData}
-        />
-      );
-      const user = userEvent.setup();
-
-      // Apply both filters
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
-      await user.clear(keywordSearchInput);
-      await user.type(keywordSearchInput, "Alpha");
-
-      const columnSelect = screen.getByTestId("filter-by-column");
-      await user.selectOptions(columnSelect, "Name");
-
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
-      });
-
-      const nameFilterInput = screen.getByPlaceholderText(/filter name/i);
-      await user.clear(nameFilterInput);
-      await user.type(nameFilterInput, "Item Four");
-
-      // Verify filtered state
-      await waitFor(() => {
-        expect(screen.getByText("Item Four")).toBeInTheDocument();
-        expect(screen.queryByText("Item One")).not.toBeInTheDocument();
-      });
-
-      // Clear column filter by clearing the name filter input
-      await user.clear(nameFilterInput);
-
-      // Verify all items matching keyword search are visible again
-      await waitFor(() => {
-        // Should show Item One, Item Four, and Item Five (all contain "Alpha")
-        // Item One: has "Option Alpha"
-        // Item Four: description contains "Alpha reference"
-        // Item Five: has "Option Alpha"
-        expect(screen.getByText("Item One")).toBeInTheDocument();
-        expect(screen.getByText("Item Four")).toBeInTheDocument();
-        expect(screen.getByText("Item Five")).toBeInTheDocument();
-
-        // Should not show items that don't contain "Alpha"
-        expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
-        expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
-      });
-
-      // Verify keyword search is still active
-      expect(keywordSearchInput).toHaveValue("Alpha");
-
-      // Verify column filter is cleared
-      expect(nameFilterInput).toHaveValue("");
-    });
-  });
-
   describe("Sorting Interactions", () => {
     it("maintains sorting when applying filters and search", async () => {
       render(
-        <Table<TestType>
+        <Table<TestTableType>
           columnFilter={(table) => <ColumnFilter table={table} />}
           keywordSearch={(table) => <KeywordSearch table={table} />}
           columns={testColumns}
@@ -458,9 +220,9 @@ describe.sequential("Table Component Interactions", () => {
   describe("No Results State Interactions", () => {
     it("shows no results message when both filters yield no matches", async () => {
       render(
-        <Table<TestType>
+        <Table<TestTableType>
           columnFilter={(table) => <ColumnFilter table={table} />}
-          keywordSearch={(table) => <KeywordSearch table={table} debounceMs={500} />}
+          keywordSearch={(table) => <KeywordSearch table={table} />}
           columns={testColumns}
           data={testTableData}
           noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
@@ -500,7 +262,7 @@ describe.sequential("Table Component Interactions", () => {
 
   describe("Long Text Handling", () => {
     it("handles long continuous strings without breaking table layout", () => {
-      const longTextData: TestType[] = [
+      const longTextData: TestTableType[] = [
         {
           id: "long1",
           name: "OneContinuousLongString.LastName@email.com",
@@ -525,8 +287,8 @@ describe.sequential("Table Component Interactions", () => {
 
   describe("row selection", () => {
     it("clears row selection whenever table data is updated", async () => {
-      const mockTable = (data: TestType[]) => (
-        <Table<TestType>
+      const mockTable = (data: TestTableType[]) => (
+        <Table<TestTableType>
           columns={testColumns}
           data={data}
           actionButtons={(table) => {

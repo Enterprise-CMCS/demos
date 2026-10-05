@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Table } from "./Table";
-import { TestType, testTableData, testColumns } from "./Table.test";
+import { TestTableType, testTableData, testColumns } from "./Table.test";
 import {
   highlightCell,
   KEYWORD_SEARCH_INPUT_NAME,
@@ -12,7 +12,7 @@ import {
 } from "./KeywordSearch";
 
 const TestTable = () => (
-  <Table<TestType>
+  <Table<TestTableType>
     keywordSearch={(table) => <KeywordSearch table={table} />}
     columns={testColumns}
     data={testTableData}
