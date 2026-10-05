@@ -13,6 +13,7 @@ vi.mock(".", () => ({
   getFormattedTagsByTagType: vi.fn(),
   createTags: vi.fn(),
   approveTags: vi.fn(),
+  deleteTags: vi.fn(),
 }));
 
 import {
@@ -20,6 +21,7 @@ import {
   getFormattedTagsByTagType,
   createTags,
   approveTags,
+  deleteTags,
 } from ".";
 import { __DEMOS_VERSION__ } from "../../flags";
 
@@ -77,6 +79,19 @@ describe("tagResolvers", () => {
       });
 
       expect(approveTags).toHaveBeenCalledExactlyOnceWith(
+        ["my unapproved tag!", "my other tag"],
+        __DEMOS_VERSION__
+      );
+    });
+  });
+
+  describe("Mutation.deleteTags", () => {
+    it("should call deleteTags with the correct arguments", async () => {
+      await tagResolvers.Mutation.deleteTags(null, {
+        tagNames: ["my unapproved tag!", "my other tag"],
+      });
+
+      expect(deleteTags).toHaveBeenCalledExactlyOnceWith(
         ["my unapproved tag!", "my other tag"],
         __DEMOS_VERSION__
       );

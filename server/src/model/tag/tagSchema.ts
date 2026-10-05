@@ -17,6 +17,7 @@ export const tagSchema = gql`
     demonstrationTypeName: TagName!
     approvalStatus: TagStatus!
     countOfTaggedApplications: DemonstrationTypeUsageTaggedApplicationCounts!
+    countOfTaggedReferences: Int!
     countOfAssignedDemonstrations: Int!
     countOfAssignedDeliverables: Int!
   }
@@ -31,6 +32,7 @@ export const tagSchema = gql`
   type Mutation {
     createTags(tagNames: [TagName!]!): [Tag!]! @auth(requires: ["Perform Admin Action"])
     approveTags(tagNames: [TagName!]!): [Tag!]! @auth(requires: ["Perform Admin Action"])
+    deleteTags(tagNames: [TagName!]!): Int! @auth(requires: ["Perform Admin Action"])
   }
 `;
 
@@ -49,6 +51,7 @@ export interface DemonstrationTypeUsageSummary {
   demonstrationTypeName: TagName;
   approvalStatus: TagStatus;
   countOfTaggedApplications: DemonstrationTypeUsageTaggedApplicationCounts;
+  countOfTaggedReferences: number;
   countOfAssignedDemonstrations: number;
   countOfAssignedDeliverables: number;
 }
