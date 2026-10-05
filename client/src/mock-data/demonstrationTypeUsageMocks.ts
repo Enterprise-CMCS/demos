@@ -19,6 +19,13 @@ export const MOCK_DEMONSTRATION_TYPE_USAGE: DemonstrationTypeUsageSummary[] = [
     ...MOCK_1115_WAIVER,
     demonstrationTypeName: MOCK_TAGS[1].tagName,
     approvalStatus: MOCK_TAGS[1].approvalStatus,
+    countOfTaggedApplications: {
+      demonstrations: 0,
+      amendments: 0,
+      renewals: 0,
+    },
+    countOfAssignedDemonstrations: 0,
+    countOfAssignedDeliverables: 0,
   },
   {
     ...MOCK_1115_WAIVER,

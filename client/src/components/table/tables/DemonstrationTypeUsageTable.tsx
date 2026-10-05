@@ -30,6 +30,7 @@ export const GET_DEMONSTRATION_TYPE_USAGE_QUERY = gql`
 
 export type DemonstrationTypeUsageRow = DemonstrationTypeUsageSummary & {
   id: string;
+  totalUsage: number;
 };
 
 const { createColumn, createDisplayColumn, createSelectColumn } =
@@ -91,6 +92,12 @@ export const DemonstrationTypeUsageTable = ({
     .map((item) => ({
       ...item,
       id: item.demonstrationTypeName,
+      totalUsage:
+        item.countOfTaggedApplications.demonstrations +
+        item.countOfTaggedApplications.amendments +
+        item.countOfTaggedApplications.renewals +
+        item.countOfAssignedDemonstrations +
+        item.countOfAssignedDeliverables,
     }))
     .sort((a, b) => a.demonstrationTypeName.localeCompare(b.demonstrationTypeName));
 

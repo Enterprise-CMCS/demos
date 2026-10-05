@@ -67,6 +67,7 @@ import { ReferenceAgreementDialog } from "./referenceAgreement/ReferenceAgreemen
 import { AssignStatesDialog, AssignStatesDialogPerson } from "./user/AssignStatesDialog";
 import { EditTypeTagDialog } from "./typeTag/EditTypeTagDialog";
 import { ApproveTypeTagDialog } from "./typeTag/ApproveTypeTagDialog";
+import { DeleteTypeTagDialog } from "./typeTag/DeleteTypeTagDialog";
 
 type EditDeliverableDialogSource = Pick<
   DeliverableTableRow,
@@ -445,6 +446,12 @@ export const useDialog = () => {
     );
   };
 
+  const showDeleteTypeTagDialog = (typeTagNames: TagName[]) => {
+    context.showDialog(
+      <DeleteTypeTagDialog typeTagNames={typeTagNames} onClose={context.hideDialog} />
+    );
+  };
+
   const showReferenceAgreementDialog = (
     reference: Pick<Reference, "id"> & {
       agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt">;
@@ -493,5 +500,6 @@ export const useDialog = () => {
     showAssignStatesDialog,
     showEditTypeTagDialog,
     showApproveTypeTagDialog,
+    showDeleteTypeTagDialog,
   };
 };
