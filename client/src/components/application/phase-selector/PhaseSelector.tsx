@@ -1,8 +1,13 @@
 import React, { useState } from "react";
 
-import type { DateType, PhaseName, PhaseStatus as ServerPhaseStatus } from "demos-server";
+import type {
+  ApplicationDate,
+  DateType,
+  PhaseName,
+  PhaseStatus as ServerPhaseStatus,
+} from "demos-server";
 
-import { WorkflowApplication, WorkflowApplicationType } from "components/application";
+import { SimplePhase, WorkflowApplication, WorkflowApplicationType } from "components/application";
 import {
   getApplicationCompletenessFromApplication,
   getConceptPhaseComponentFromApplication,
@@ -79,18 +84,20 @@ const PhaseGroups = () => {
 };
 
 export const getDisplayedPhaseStatus = (
-  application: WorkflowApplication,
+  phases: Pick<SimplePhase, "phaseName" | "phaseStatus">[],
   phaseName: PhaseName
 ): PhaseStatus => {
-  const phase = application.phases.find((p) => p.phaseName === phaseName);
+  const phase = phases.find((p) => p.phaseName === phaseName);
   return phase?.phaseStatus ?? "Not Started";
 };
 
 export const getDisplayedPhaseDate = (
-  application: WorkflowApplication,
+  phases: (Pick<SimplePhase, "phaseName" | "phaseStatus"> & {
+    phaseDates: Pick<ApplicationDate, "dateType" | "plainDate">[];
+  })[],
   phaseName: PhaseName
 ): string | undefined => {
-  const phase = application.phases.find((p) => p.phaseName === phaseName);
+  const phase = phases.find((p) => p.phaseName === phaseName);
   if (!phase) return undefined;
 
   const relevantDateName = PHASE_DISPLAY_DATES[phaseName]?.[phase.phaseStatus];
@@ -140,8 +147,8 @@ export const PhaseSelector = ({
       <div className="grid grid-cols-8 gap-md mb-2" data-testid={PHASE_SELECTOR_CONTAINER_TEST_ID}>
         <PhaseGroups />
         {PHASE_NAMES.map((phaseName, index) => {
-          const displayDate = getDisplayedPhaseDate(application, phaseName);
-          const phaseStatus = getDisplayedPhaseStatus(application, phaseName);
+          const displayDate = getDisplayedPhaseDate(application.phases, phaseName);
+          const phaseStatus = getDisplayedPhaseStatus(application.phases, phaseName);
 
           return (
             <PhaseBox

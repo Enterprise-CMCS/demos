@@ -5,13 +5,13 @@ import { render, screen } from "@testing-library/react";
 
 describe("PhaseDate", () => {
   it("renders date for Started", () => {
-    render(<PhaseDate phaseStatus="Started" date="2024-01-02" />);
+    render(<PhaseDate phaseStatus="Started" dateString="2024-01-02" />);
     expect(screen.getByText("Started")).toBeInTheDocument();
     expect(screen.getByText("01/02/2024")).toBeInTheDocument();
   });
 
   it("renders past due messaging when flagged", () => {
-    render(<PhaseDate phaseStatus="past-due" date="2024-01-02" />);
+    render(<PhaseDate phaseStatus="past-due" dateString="2024-01-02" />);
     expect(screen.getByText("Past Due")).toBeInTheDocument();
     expect(screen.getByText("01/02/2024")).toBeInTheDocument();
   });
