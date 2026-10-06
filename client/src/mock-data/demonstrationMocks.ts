@@ -47,9 +47,11 @@ export type MockDemonstration = Pick<
   | "chipId"
   | "primaryProjectOfficer"
   | "roles"
+  | "effectiveDate"
+  | "effectivePlainDate"
+  | "expirationDate"
+  | "expirationPlainDate"
 > & {
-  effectiveDate: Date;
-  expirationDate: Date;
   status: ApplicationStatus;
   amendments: MockAmendment[];
   renewals: MockRenewal[];
@@ -63,7 +65,9 @@ export const MOCK_DEMONSTRATION: MockDemonstration = {
   description: "A demonstration project in Montana.",
   status: "Approved" as ApplicationStatus,
   effectiveDate: new Date(2025, 1, 1),
+  effectivePlainDate: "2025-01-01",
   expirationDate: new Date(2025, 2, 1),
+  expirationPlainDate: "2025-02-01",
   state: mockStates.find((state) => state.id === "MT")!,
   sdgDivision: "Division of System Reform Demonstrations",
   signatureLevel: "OA",
@@ -265,7 +269,9 @@ export const demonstrationMocks: MockedResponse[] = [
           name: "Test Demonstration 1",
           description: "A test demonstration.",
           effectiveDate: "2025-01-01T00:00:00.000Z",
+          effectivePlainDate: "2025-01-01",
           expirationDate: "2025-12-01T00:00:00.000Z",
+          expirationPlainDate: "2025-12-01",
           state: {
             id: "AL",
             name: "Alabama",
@@ -296,7 +302,9 @@ export const demonstrationMocks: MockedResponse[] = [
           name: "Test Demonstration 123",
           description: "A test demonstration.",
           effectiveDate: "2025-01-01T00:00:00.000Z",
+          effectivePlainDate: "2025-01-01",
           expirationDate: "2025-12-01T00:00:00.000Z",
+          expirationPlainDate: "2025-12-01",
           state: {
             id: "AL",
             name: "Alabama",

@@ -14,8 +14,8 @@ export type Demonstration = Pick<
   | "description"
   | "sdgDivision"
   | "signatureLevel"
-  | "effectiveDate"
-  | "expirationDate"
+  | "effectivePlainDate"
+  | "expirationPlainDate"
   | "status"
   | "medicaidId"
   | "chipId"
@@ -32,8 +32,8 @@ export const DEMONSTRATION_SUMMARY_DETAILS_QUERY = gql`
       description
       sdgDivision
       signatureLevel
-      effectiveDate
-      expirationDate
+      effectivePlainDate
+      expirationPlainDate
       status
       medicaidId
       chipId
@@ -84,62 +84,124 @@ export const SummaryDetailsTable: React.FC<{ demonstrationId: string }> = ({ dem
 
   return (
     <div className="grid grid-cols-4 gap-y-2 gap-x-8">
-      <div className={`col-span-2 ${FIELD_CONTAINER_CLASSES}`}>
-        <div className={LABEL_CLASSES}>State/Territory</div>
+      <div
+        className={`col-span-2 ${FIELD_CONTAINER_CLASSES}`}
+        role="group"
+        aria-labelledby="summary-field-state"
+      >
+        <div id="summary-field-state" className={LABEL_CLASSES}>
+          State/Territory
+        </div>
         <div className={VALUE_CLASSES}>{demonstration.state.name}</div>
       </div>
 
-      <div className={`col-span-2 ${FIELD_CONTAINER_CLASSES}`}>
-        <div className={LABEL_CLASSES}>Demonstration Title</div>
+      <div
+        className={`col-span-2 ${FIELD_CONTAINER_CLASSES}`}
+        role="group"
+        aria-labelledby="summary-field-title"
+      >
+        <div id="summary-field-title" className={LABEL_CLASSES}>
+          Demonstration Title
+        </div>
         <div className={VALUE_CLASSES}>{displayData.name}</div>
       </div>
 
-      <div className={FIELD_CONTAINER_CLASSES}>
-        <div className={LABEL_CLASSES}>Demonstration ID</div>
+      <div
+        className={FIELD_CONTAINER_CLASSES}
+        role="group"
+        aria-labelledby="summary-field-medicaid-id"
+      >
+        <div id="summary-field-medicaid-id" className={LABEL_CLASSES}>
+          Demonstration ID
+        </div>
         <div className={VALUE_CLASSES}>{demonstration.medicaidId}</div>
       </div>
 
-      <div className={FIELD_CONTAINER_CLASSES}>
-        <div className={LABEL_CLASSES}>CHIP ID</div>
+      <div className={FIELD_CONTAINER_CLASSES} role="group" aria-labelledby="summary-field-chip-id">
+        <div id="summary-field-chip-id" className={LABEL_CLASSES}>
+          CHIP ID
+        </div>
         <div className={VALUE_CLASSES}>{displayData.chipId}</div>
       </div>
 
-      <div className={FIELD_CONTAINER_CLASSES}>
-        <div className={LABEL_CLASSES}>Project Officer</div>
+      <div
+        className={FIELD_CONTAINER_CLASSES}
+        role="group"
+        aria-labelledby="summary-field-project-officer"
+      >
+        <div id="summary-field-project-officer" className={LABEL_CLASSES}>
+          Project Officer
+        </div>
         <div className={VALUE_CLASSES}>{displayData.primaryProjectOfficerName}</div>
       </div>
 
-      <div className={FIELD_CONTAINER_CLASSES}>
-        <div className={LABEL_CLASSES}>Status</div>
+      <div className={FIELD_CONTAINER_CLASSES} role="group" aria-labelledby="summary-field-status">
+        <div id="summary-field-status" className={LABEL_CLASSES}>
+          Status
+        </div>
         <div className={VALUE_CLASSES}>{displayData.status}</div>
       </div>
 
-      <div className={FIELD_CONTAINER_CLASSES}>
-        <div className={LABEL_CLASSES}>Effective Date</div>
+      <div
+        className={FIELD_CONTAINER_CLASSES}
+        role="group"
+        aria-labelledby="summary-field-effective-date"
+      >
+        <div id="summary-field-effective-date" className={LABEL_CLASSES}>
+          Effective Date
+        </div>
         <div className={VALUE_CLASSES}>
-          {demonstration.effectiveDate ? formatDateForDisplay(demonstration.effectiveDate) : "-"}
+          {demonstration.effectivePlainDate
+            ? formatDateForDisplay(demonstration.effectivePlainDate)
+            : "-"}
         </div>
       </div>
 
-      <div className={FIELD_CONTAINER_CLASSES}>
-        <div className={LABEL_CLASSES}>Expiration Date</div>
+      <div
+        className={FIELD_CONTAINER_CLASSES}
+        role="group"
+        aria-labelledby="summary-field-expiration-date"
+      >
+        <div id="summary-field-expiration-date" className={LABEL_CLASSES}>
+          Expiration Date
+        </div>
         <div className={VALUE_CLASSES}>
-          {demonstration.expirationDate ? formatDateForDisplay(demonstration.expirationDate) : "-"}
+          {demonstration.expirationPlainDate
+            ? formatDateForDisplay(demonstration.expirationPlainDate)
+            : "-"}
         </div>
       </div>
 
-      <div className={`col-span-4 ${FIELD_CONTAINER_CLASSES}`}>
-        <div className={LABEL_CLASSES}>Demonstration Description</div>
+      <div
+        className={`col-span-4 ${FIELD_CONTAINER_CLASSES}`}
+        role="group"
+        aria-labelledby="summary-field-description"
+      >
+        <div id="summary-field-description" className={LABEL_CLASSES}>
+          Demonstration Description
+        </div>
         <div className={VALUE_CLASSES}>{displayData.description}</div>
       </div>
 
-      <div className={`col-span-2 ${FIELD_CONTAINER_CLASSES}`}>
-        <div className={LABEL_CLASSES}>SDG Division</div>
+      <div
+        className={`col-span-2 ${FIELD_CONTAINER_CLASSES}`}
+        role="group"
+        aria-labelledby="summary-field-sdg-division"
+      >
+        <div id="summary-field-sdg-division" className={LABEL_CLASSES}>
+          SDG Division
+        </div>
         <div className={VALUE_CLASSES}>{displayData.sdgDivision}</div>
       </div>
 
-      <div className={`col-span-2 ${FIELD_CONTAINER_CLASSES}`}>
-        <div className={LABEL_CLASSES}>Signature Level</div>
+      <div
+        className={`col-span-2 ${FIELD_CONTAINER_CLASSES}`}
+        role="group"
+        aria-labelledby="summary-field-signature-level"
+      >
+        <div id="summary-field-signature-level" className={LABEL_CLASSES}>
+          Signature Level
+        </div>
         <div className={VALUE_CLASSES}>{displayData.signatureLevel}</div>
       </div>
     </div>
