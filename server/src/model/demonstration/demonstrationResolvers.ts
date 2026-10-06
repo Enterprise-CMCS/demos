@@ -33,6 +33,7 @@ import { resolveManyDeliverables } from "../deliverable";
 import { GraphQLContext } from "../../auth";
 import { getDemonstration, getManyDemonstrations } from "./demonstrationData";
 import { CHIP_DEMONSTRATION_TYPE_TAG_NAME } from "../../constants";
+import { formatDateToPlainDate } from "../../dateUtilities";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -260,6 +261,10 @@ export const demonstrationResolvers = {
       parent.signatureLevelId as SignatureLevel,
     currentPhaseName: (parent: PrismaDemonstration): PhaseName =>
       parent.currentPhaseId as PhaseName,
+    effectivePlainDate: (parent: PrismaDemonstration): string | null =>
+      parent.effectiveDate ? formatDateToPlainDate(parent.effectiveDate) : null,
+    expirationPlainDate: (parent: PrismaDemonstration): string | null =>
+      parent.expirationDate ? formatDateToPlainDate(parent.expirationDate) : null,
     roles: (
       parent: PrismaDemonstration,
       args: unknown,

@@ -43,7 +43,11 @@ import {
   getApplication,
   // None of these are tested but need to be exported to avoid mocking issues
 } from "../application";
-import { parseDateTimeOrLocalDateToEasternTZDate, EasternTZDate } from "../../dateUtilities";
+import {
+  parseDateTimeOrLocalDateToEasternTZDate,
+  EasternTZDate,
+  formatDateToPlainDate,
+} from "../../dateUtilities";
 import { getDemonstration, getManyDemonstrations } from "./demonstrationData";
 import { ContextUser, GraphQLContext } from "../../auth";
 import { Loaders } from "../../loaders";
@@ -83,6 +87,7 @@ vi.mock("../applicationDate/checkInputDateFunctions", () => ({
 
 vi.mock("../../dateUtilities", () => ({
   parseDateTimeOrLocalDateToEasternTZDate: vi.fn(),
+  formatDateToPlainDate: vi.fn(),
 }));
 
 vi.mock("./determineDemonstrationTypeStatus", () => ({
@@ -279,6 +284,32 @@ describe("demonstrationResolvers", () => {
         "demonstrationId"
       );
       expect(result).toBe(phases);
+    });
+  });
+
+  describe("Demonstration.effectivePlainDate", () => {
+    it("defers to formatDateToPlainDate", () => {
+      const demonstration = {
+        effectiveDate: new Date("2026-09-24 08:58:17.847 -0400"),
+      } as Partial<PrismaDemonstration>;
+
+      demonstrationResolvers.Demonstration.effectivePlainDate(
+        demonstration as PrismaDemonstration
+      );
+      expect(formatDateToPlainDate).toHaveBeenCalledWith(demonstration.effectiveDate);
+    });
+  });
+
+  describe("Demonstration.expirationPlainDate", () => {
+    it("defers to formatDateToPlainDate", () => {
+      const demonstration = {
+        expirationDate: new Date("2026-09-24 08:58:17.847 -0400"),
+      } as Partial<PrismaDemonstration>;
+
+      demonstrationResolvers.Demonstration.expirationPlainDate(
+        demonstration as PrismaDemonstration
+      );
+      expect(formatDateToPlainDate).toHaveBeenCalledWith(demonstration.expirationDate);
     });
   });
 

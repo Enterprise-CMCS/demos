@@ -23,7 +23,11 @@ import {
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
 } from "../applicationDate/checkInputDateFunctions";
-import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities";
+import {
+  EasternTZDate,
+  formatDateToPlainDate,
+  parseDateTimeOrLocalDateToEasternTZDate,
+} from "../../dateUtilities";
 import { ContextUser, GraphQLContext } from "../../auth";
 import { getDemonstration } from "../demonstration";
 import { getAmendment } from "./amendmentData";
@@ -90,6 +94,7 @@ vi.mock("../applicationDate/checkInputDateFunctions", () => ({
 
 vi.mock("../../dateUtilities", () => ({
   parseDateTimeOrLocalDateToEasternTZDate: vi.fn(),
+  formatDateToPlainDate: vi.fn(),
 }));
 
 describe("amendmentResolvers", () => {
@@ -154,6 +159,17 @@ describe("amendmentResolvers", () => {
         mockContext as GraphQLContext
       );
       expect(getDemonstration).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
+    });
+  });
+
+  describe("Amendment.plainEffectiveDate", () => {
+    it("defers to formatDateToPlainDate", () => {
+      const amendment = {
+        effectiveDate: new Date("2026-09-24 08:58:17.847 -0400"),
+      } as Partial<PrismaAmendment>;
+
+      amendmentResolvers.Amendment.effectivePlainDate(amendment as PrismaAmendment);
+      expect(formatDateToPlainDate).toHaveBeenCalledWith(amendment.effectiveDate);
     });
   });
 

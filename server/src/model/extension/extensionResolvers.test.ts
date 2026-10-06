@@ -26,7 +26,11 @@ import {
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
 } from "../applicationDate/checkInputDateFunctions";
-import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities";
+import {
+  EasternTZDate,
+  formatDateToPlainDate,
+  parseDateTimeOrLocalDateToEasternTZDate,
+} from "../../dateUtilities";
 import { ContextUser, GraphQLContext } from "../../auth";
 import { getDemonstration } from "../demonstration";
 import { getExtension } from "./extensionData";
@@ -89,6 +93,7 @@ vi.mock("../applicationDate/checkInputDateFunctions", () => ({
 
 vi.mock("../../dateUtilities", () => ({
   parseDateTimeOrLocalDateToEasternTZDate: vi.fn(),
+  formatDateToPlainDate: vi.fn(),
 }));
 
 vi.mock(".", () => ({
@@ -159,6 +164,17 @@ describe("extensionResolvers", () => {
       expect(selectManyApplicationPhases).toHaveBeenCalledExactlyOnceWith({
         applicationId: "extensionId",
       });
+    });
+  });
+
+  describe("Extension.plainEffectiveDate", () => {
+    it("defers to formatDateToPlainDate", () => {
+      const extension = {
+        effectiveDate: new Date("2026-09-24 08:58:17.847 -0400"),
+      } as Partial<PrismaExtension>;
+
+      extensionResolvers.Extension.effectivePlainDate(extension as PrismaExtension);
+      expect(formatDateToPlainDate).toHaveBeenCalledWith(extension.effectiveDate);
     });
   });
 

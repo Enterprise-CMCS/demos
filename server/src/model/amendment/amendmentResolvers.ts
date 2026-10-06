@@ -28,6 +28,7 @@ import { selectManyApplicationTagAssignments } from "../applicationTagAssignment
 import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
 import { createAmendment } from ".";
+import { formatDateToPlainDate } from "../../dateUtilities";
 
 export async function __updateAmendment(
   parent: unknown,
@@ -96,6 +97,8 @@ export const amendmentResolvers = {
       context: GraphQLContext
     ): Promise<PrismaDocument[]> => getManyDocuments({ applicationId: parent.id }, context.user),
     currentPhaseName: (parent: PrismaAmendment): PhaseName => parent.currentPhaseId as PhaseName,
+    effectivePlainDate: (parent: PrismaAmendment): string | null =>
+      parent.effectiveDate ? formatDateToPlainDate(parent.effectiveDate) : null,
     status: (parent: PrismaAmendment): ApplicationStatus => parent.statusId as ApplicationStatus,
     phases: (parent: PrismaAmendment): Promise<PrismaApplicationPhase[]> =>
       selectManyApplicationPhases({ applicationId: parent.id }),
