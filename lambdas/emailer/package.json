@@ -4,8 +4,7 @@
   "overrides": {
     "@aws-sdk/client-ssm": {
       "fast-xml-parser": "^5.3.6"
-    },
-    "html-to-text": "^10.0.1"
+    }    
   },
   "scripts": {
     "test": "vitest run --coverage",
