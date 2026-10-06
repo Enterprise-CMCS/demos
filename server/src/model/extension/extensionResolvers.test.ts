@@ -176,6 +176,14 @@ describe("extensionResolvers", () => {
       extensionResolvers.Extension.effectivePlainDate(extension as PrismaExtension);
       expect(formatDateToPlainDate).toHaveBeenCalledWith(extension.effectiveDate);
     });
+
+    it("returns null when effectiveDate is null", () => {
+      const extension = {
+        effectiveDate: null,
+      } as Partial<PrismaExtension>;
+      const result = extensionResolvers.Extension.effectivePlainDate(extension as PrismaExtension);
+      expect(result).toBeNull();
+    });
   });
 
   describe("Extension.tags", () => {

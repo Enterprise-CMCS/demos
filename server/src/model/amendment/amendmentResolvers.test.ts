@@ -171,6 +171,14 @@ describe("amendmentResolvers", () => {
       amendmentResolvers.Amendment.effectivePlainDate(amendment as PrismaAmendment);
       expect(formatDateToPlainDate).toHaveBeenCalledWith(amendment.effectiveDate);
     });
+
+    it("returns null when effectiveDate is null", () => {
+      const amendment = {
+        effectiveDate: null,
+      } as Partial<PrismaAmendment>;
+      const result = amendmentResolvers.Amendment.effectivePlainDate(amendment as PrismaAmendment);
+      expect(result).toBeNull();
+    });
   });
 
   describe("Amendment.phases", () => {

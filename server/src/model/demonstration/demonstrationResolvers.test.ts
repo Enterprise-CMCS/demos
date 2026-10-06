@@ -296,6 +296,16 @@ describe("demonstrationResolvers", () => {
       demonstrationResolvers.Demonstration.effectivePlainDate(demonstration as PrismaDemonstration);
       expect(formatDateToPlainDate).toHaveBeenCalledWith(demonstration.effectiveDate);
     });
+
+    it("returns null when effectiveDate is null", () => {
+      const demonstration = {
+        effectiveDate: null,
+      } as Partial<PrismaDemonstration>;
+      const result = demonstrationResolvers.Demonstration.effectivePlainDate(
+        demonstration as PrismaDemonstration
+      );
+      expect(result).toBeNull();
+    });
   });
 
   describe("Demonstration.expirationPlainDate", () => {
@@ -308,6 +318,16 @@ describe("demonstrationResolvers", () => {
         demonstration as PrismaDemonstration
       );
       expect(formatDateToPlainDate).toHaveBeenCalledWith(demonstration.expirationDate);
+    });
+
+    it("returns null when expirationDate is null", () => {
+      const demonstration = {
+        expirationDate: null,
+      } as Partial<PrismaDemonstration>;
+      const result = demonstrationResolvers.Demonstration.expirationPlainDate(
+        demonstration as PrismaDemonstration
+      );
+      expect(result).toBeNull();
     });
   });
 
