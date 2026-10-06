@@ -54,18 +54,12 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
     <div className="flex justify-between items-center">
       <span className="text-[20px] font-bold uppercase text-brand">{title}</span>
       {showActions && (
-        <SecondaryButton
-          name={addButtonName}
-          onClick={onAdd}
-          disabled={isFinalized}
-          tooltip={
-            isFinalized
-              ? "Files cannot be added to a Finalized deliverable."
-              : enabledDisabledTooltip({
-                  enabledText: "Add File",
-                  disabled: isFinalized,
-                })
-          }
+        <SecondaryButton name={addButtonName} onClick={onAdd} disabled={isFinalized} tooltip={ isFinalized
+          ? "Files cannot be added to a Finalized deliverable."
+          : enabledDisabledTooltip({
+            enabledText: "Add File",
+            disabled: isFinalized,
+          })}
         >
           Add File(s)
         </SecondaryButton>
@@ -83,52 +77,50 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
       actionButtons={
         showActions
           ? (table) => {
-              const selectedRows = table.getSelectedRowModel().rows.map((row) => row.original);
-              const selectedCount = selectedRows.length;
+            const selectedRows = table.getSelectedRowModel().rows.map((row) => row.original);
+            const selectedCount = selectedRows.length;
 
-              const hasSubmittedFile = selectedRows.some((row) => row.deliverableSubmissionAction);
+            const hasSubmittedFile = selectedRows.some(
+              (row) => row.deliverableSubmissionAction
+            );
 
-              return (
-                <div className="flex gap-1 ml-4">
-                  <CircleButton
-                    name={editButtonName}
-                    aria-label={editAriaLabel}
-                    tooltip={
-                      isFinalized
-                        ? "Documents on Finalized deliverables cannot be edited."
-                        : selectionTooltip({
-                            action: "Edit",
-                            nounSingular: "File",
-                            selectedCount,
-                            rule: { kind: "exactly", count: 1 },
-                          })
-                    }
-                    disabled={isFinalized || selectedCount !== 1}
-                    onClick={() => onEdit?.(selectedRows[0])}
-                  >
-                    <EditIcon />
-                  </CircleButton>
-                  <CircleButton
-                    name={deleteButtonName}
-                    aria-label={deleteAriaLabel}
-                    tooltip={
-                      hasSubmittedFile
-                        ? "Selection contains files that have been submitted. Cannot delete submitted files."
-                        : selectionTooltip({
-                            action: "Delete",
-                            nounSingular: "File",
-                            selectedCount,
-                            rule: { kind: "atLeast", count: 1 },
-                          })
-                    }
-                    disabled={hasSubmittedFile || selectedCount < 1}
-                    onClick={() => onDelete?.(selectedRows.map((row) => row.id))}
-                  >
-                    <DeleteIcon />
-                  </CircleButton>
-                </div>
-              );
-            }
+            return (
+              <div className="flex gap-1 ml-4">
+                <CircleButton
+                  name={editButtonName}
+                  aria-label={editAriaLabel}
+                  tooltip={ isFinalized
+                    ? "Documents on Finalized deliverables cannot be edited."
+                    : selectionTooltip({
+                      action: "Edit",
+                      nounSingular: "File",
+                      selectedCount,
+                      rule: { kind: "exactly", count: 1 },
+                    })}
+                  disabled={isFinalized || selectedCount !== 1}
+                  onClick={() => onEdit?.(selectedRows[0])}
+                >
+                  <EditIcon />
+                </CircleButton>
+                <CircleButton
+                  name={deleteButtonName}
+                  aria-label={deleteAriaLabel}
+                  tooltip={hasSubmittedFile
+                    ? "Selection contains files that have been submitted. Cannot delete submitted files."
+                    : selectionTooltip({
+                      action: "Delete",
+                      nounSingular: "File",
+                      selectedCount,
+                      rule: { kind: "atLeast", count: 1 },
+                    })}
+                  disabled={hasSubmittedFile || selectedCount < 1}
+                  onClick={() => onDelete?.(selectedRows.map((row) => row.id))}
+                >
+                  <DeleteIcon />
+                </CircleButton>
+              </div>
+            );
+          }
           : undefined
       }
     />
