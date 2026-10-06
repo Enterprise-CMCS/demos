@@ -334,6 +334,8 @@ export const demonstrationResolvers = {
               assignment.expirationDate
             ),
             approvalStatus: tag.statusId as TagStatus,
+            effectivePlainDate: formatDateToPlainDate(assignment.effectiveDate),
+            expirationPlainDate: formatDateToPlainDate(assignment.expirationDate),
           };
         }
       ),

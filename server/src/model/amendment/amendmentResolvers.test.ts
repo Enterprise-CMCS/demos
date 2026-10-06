@@ -165,7 +165,7 @@ describe("amendmentResolvers", () => {
   describe("Amendment.plainEffectiveDate", () => {
     it("defers to formatDateToPlainDate", () => {
       const amendment = {
-        effectiveDate: new Date("2026-09-24 08:58:17.847 -0400"),
+        effectiveDate: new Date("2026-09-24 00:00:00.000 -0400"),
       } as Partial<PrismaAmendment>;
 
       amendmentResolvers.Amendment.effectivePlainDate(amendment as PrismaAmendment);

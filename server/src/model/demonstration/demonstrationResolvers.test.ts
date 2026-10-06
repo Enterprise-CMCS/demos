@@ -290,12 +290,10 @@ describe("demonstrationResolvers", () => {
   describe("Demonstration.effectivePlainDate", () => {
     it("defers to formatDateToPlainDate", () => {
       const demonstration = {
-        effectiveDate: new Date("2026-09-24 08:58:17.847 -0400"),
+        effectiveDate: new Date("2026-09-24 00:00:00.000 -0400"),
       } as Partial<PrismaDemonstration>;
 
-      demonstrationResolvers.Demonstration.effectivePlainDate(
-        demonstration as PrismaDemonstration
-      );
+      demonstrationResolvers.Demonstration.effectivePlainDate(demonstration as PrismaDemonstration);
       expect(formatDateToPlainDate).toHaveBeenCalledWith(demonstration.effectiveDate);
     });
   });
@@ -303,7 +301,7 @@ describe("demonstrationResolvers", () => {
   describe("Demonstration.expirationPlainDate", () => {
     it("defers to formatDateToPlainDate", () => {
       const demonstration = {
-        expirationDate: new Date("2026-09-24 08:58:17.847 -0400"),
+        expirationDate: new Date("2026-09-24 23:59:59.999 -0400"),
       } as Partial<PrismaDemonstration>;
 
       demonstrationResolvers.Demonstration.expirationPlainDate(
@@ -382,31 +380,68 @@ describe("demonstrationResolvers", () => {
           tag: {
             statusId: "Approved",
           },
+          effectiveDate: new Date("2026-09-24 00:00:00:000 -0400"),
+          expirationDate: new Date("2027-09-24 23:59:59.000 -0400"),
         },
         {
           tagNameId: "Tag2",
           tag: {
             statusId: "Unapproved",
           },
+          effectiveDate: new Date("2026-09-25 00:00:00.000 -0400"),
+          expirationDate: new Date("2027-09-25 23:59:59.999 -0400"),
         },
       ] as DemonstrationTypeTagAssignmentQueryResult[]);
+
+      vi.mocked(formatDateToPlainDate)
+        .mockReturnValueOnce("2026-09-24")
+        .mockReturnValueOnce("2027-09-24")
+        .mockReturnValueOnce("2026-09-25")
+        .mockReturnValueOnce("2027-09-25");
 
       const result = await demonstrationResolvers.Demonstration.demonstrationTypes(
         { id: "abc123" } as PrismaDemonstration,
         undefined,
         mockContext
       );
+
       expect(
         mockLoaders.demonstrationTypeAssignmentsByDemonstrationId.load
       ).toHaveBeenCalledExactlyOnceWith("abc123");
+
+      expect(formatDateToPlainDate).toHaveBeenNthCalledWith(
+        1,
+        new Date("2026-09-24 00:00:00:000 -0400")
+      );
+      expect(formatDateToPlainDate).toHaveBeenNthCalledWith(
+        2,
+        new Date("2027-09-24 23:59:59.000 -0400")
+      );
+      expect(formatDateToPlainDate).toHaveBeenNthCalledWith(
+        3,
+        new Date("2026-09-25 00:00:00.000 -0400")
+      );
+      expect(formatDateToPlainDate).toHaveBeenNthCalledWith(
+        4,
+        new Date("2027-09-25 23:59:59.999 -0400")
+      );
+
       expect(result).toEqual([
         {
           demonstrationTypeName: "Tag1",
           approvalStatus: "Approved",
+          effectiveDate: new Date("2026-09-24 00:00:00:000 -0400"),
+          effectivePlainDate: "2026-09-24",
+          expirationDate: new Date("2027-09-24 23:59:59.000 -0400"),
+          expirationPlainDate: "2027-09-24",
         },
         {
           demonstrationTypeName: "Tag2",
           approvalStatus: "Unapproved",
+          effectiveDate: new Date("2026-09-25 00:00:00.000 -0400"),
+          effectivePlainDate: "2026-09-25",
+          expirationDate: new Date("2027-09-25 23:59:59.999 -0400"),
+          expirationPlainDate: "2027-09-25",
         },
       ]);
     });

@@ -170,7 +170,7 @@ describe("extensionResolvers", () => {
   describe("Extension.plainEffectiveDate", () => {
     it("defers to formatDateToPlainDate", () => {
       const extension = {
-        effectiveDate: new Date("2026-09-24 08:58:17.847 -0400"),
+        effectiveDate: new Date("2026-09-24 00:00:00.000 -0400"),
       } as Partial<PrismaExtension>;
 
       extensionResolvers.Extension.effectivePlainDate(extension as PrismaExtension);
