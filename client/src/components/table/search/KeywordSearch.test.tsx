@@ -2,8 +2,8 @@ import React from "react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { Table } from "./Table";
-import { TestTableType, testTableData, testColumns } from "./Table.test";
+import { Table } from "components/table";
+import { TestTableType, testTableData, testColumns } from "components/table/Table.test";
 import {
   highlightCell,
   KEYWORD_SEARCH_INPUT_NAME,

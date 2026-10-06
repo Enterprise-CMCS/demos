@@ -3,7 +3,7 @@ import { Table } from "../Table";
 import { ReferencesColumns } from "../columns/ReferencesColumns";
 import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
 import { Reference, ReferenceAgreement, Tag } from "demos-server";
-import { KeywordSearch } from "../KeywordSearch";
+import { KeywordSearch } from "components/table/search";
 import { PaginationControls } from "../PaginationControls";
 import { compareDesc } from "date-fns";
 

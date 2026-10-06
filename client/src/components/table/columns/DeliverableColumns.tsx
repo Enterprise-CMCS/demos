@@ -11,7 +11,7 @@ import type { UserType } from "demos-server";
 import type { Option } from "components/input/select/Select";
 
 import { SecondaryButton } from "../../button/SecondaryButton";
-import { highlightCell } from "../KeywordSearch";
+import { highlightCell } from "components/table/search";
 import type { FormattedDeliverableTableRow } from "../tables/DeliverableTable";
 
 type DeliverableColumnsProps = {
@@ -119,9 +119,9 @@ export function DeliverableColumns({
         filterType: "select",
         options: isDemonstrationDetail
           ? DELIVERABLE_STATUSES.filter((status) => status !== "Deleted").map((status) => ({
-            label: status,
-            value: status,
-          }))
+              label: status,
+              value: status,
+            }))
           : COMBINED_STATUS_OPTIONS,
       },
     },
@@ -172,7 +172,7 @@ export function DeliverableColumns({
       return detailColumns;
     }
 
-    if (viewMode === "demos-restricted-cms-user" satisfies UserType) {
+    if (viewMode === ("demos-restricted-cms-user" satisfies UserType)) {
       // Returns everything except select column
       return [
         ...detailColumns.slice(0, 2),
@@ -227,7 +227,7 @@ export function DeliverableColumns({
     ];
   }
 
-  if (viewMode === "demos-restricted-cms-user" satisfies UserType) {
+  if (viewMode === ("demos-restricted-cms-user" satisfies UserType)) {
     // Returns everything except select column
     return [
       columnHelper.accessor("demonstration.state.name", {
