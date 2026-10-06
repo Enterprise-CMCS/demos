@@ -167,7 +167,7 @@ describe("extensionResolvers", () => {
     });
   });
 
-  describe("Extension.plainEffectiveDate", () => {
+  describe("Extension.effectivePlainDate", () => {
     it("defers to formatDateToPlainDate", () => {
       const extension = {
         effectiveDate: new Date("2026-09-24 00:00:00.000 -0400"),

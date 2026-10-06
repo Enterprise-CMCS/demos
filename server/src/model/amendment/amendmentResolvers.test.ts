@@ -162,7 +162,7 @@ describe("amendmentResolvers", () => {
     });
   });
 
-  describe("Amendment.plainEffectiveDate", () => {
+  describe("Amendment.effectivePlainDate", () => {
     it("defers to formatDateToPlainDate", () => {
       const amendment = {
         effectiveDate: new Date("2026-09-24 00:00:00.000 -0400"),

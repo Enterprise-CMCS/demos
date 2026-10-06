@@ -400,7 +400,7 @@ describe("demonstrationResolvers", () => {
           tag: {
             statusId: "Approved",
           },
-          effectiveDate: new Date("2026-09-24 00:00:00:000 -0400"),
+          effectiveDate: new Date("2026-09-24 00:00:00.000 -0400"),
           expirationDate: new Date("2027-09-24 23:59:59.000 -0400"),
         },
         {
@@ -431,7 +431,7 @@ describe("demonstrationResolvers", () => {
 
       expect(formatDateToPlainDate).toHaveBeenNthCalledWith(
         1,
-        new Date("2026-09-24 00:00:00:000 -0400")
+        new Date("2026-09-24 00:00:00.000 -0400")
       );
       expect(formatDateToPlainDate).toHaveBeenNthCalledWith(
         2,
@@ -450,7 +450,7 @@ describe("demonstrationResolvers", () => {
         {
           demonstrationTypeName: "Tag1",
           approvalStatus: "Approved",
-          effectiveDate: new Date("2026-09-24 00:00:00:000 -0400"),
+          effectiveDate: new Date("2026-09-24 00:00:00.000 -0400"),
           effectivePlainDate: "2026-09-24",
           expirationDate: new Date("2027-09-24 23:59:59.000 -0400"),
           expirationPlainDate: "2027-09-24",
