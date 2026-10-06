@@ -12,7 +12,7 @@ import type {
 } from "demos-server";
 import type { Option } from "components/input/select/Select";
 import { ColumnFilter } from "components/table/ColumnFilter";
-import { KeywordSearch } from "components/table/KeywordSearch";
+import { KeywordSearch } from "components/table/search";
 import { PaginationControls } from "components/table/PaginationControls";
 import { Table } from "components/table/Table";
 import {

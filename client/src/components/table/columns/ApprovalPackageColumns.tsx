@@ -1,7 +1,7 @@
 import React from "react";
 import { createColumnHelper, DisplayColumnDef } from "@tanstack/react-table";
 
-import { highlightCell } from "components/table/KeywordSearch";
+import { highlightCell } from "components/table/search";
 import { ApprovalPackageTableRow } from "components/table/tables/ApprovalPackageTable";
 import { SecondaryButton, TertiaryButton } from "components/button";
 import { DeleteIcon, EditIcon, ExportIcon } from "components/icons";
