@@ -3,7 +3,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 import type { DemonstrationTypeUsageSummary } from "demos-server";
 import { TAG_STATUS_LABELS, TagStatusBadge } from "components/badge/TagStatusBadge";
 import { SecondaryButton } from "components/button";
-import { highlightCell } from "components/table/KeywordSearch";
+import { highlightCell } from "components/table/search";
 
 export type TypeTagRow = Pick<
   DemonstrationTypeUsageSummary,

@@ -6,7 +6,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Table } from "./Table";
-import { highlightCell, KeywordSearch } from "./KeywordSearch";
+import { highlightCell, KeywordSearch } from "components/table/search";
 import { ColumnFilter } from "./ColumnFilter";
 import { createSelectColumnDef } from "./columns/selectColumn";
 

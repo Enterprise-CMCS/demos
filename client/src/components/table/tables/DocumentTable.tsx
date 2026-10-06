@@ -6,7 +6,7 @@ import { CircleButton } from "components/button/CircleButton";
 import { DeleteIcon, EditIcon } from "components/icons";
 import { ColumnFilter } from "../ColumnFilter";
 import { DocumentColumns } from "../columns/DocumentColumns";
-import { KeywordSearch } from "../KeywordSearch";
+import { KeywordSearch } from "components/table/search";
 import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
 import { Document, Person } from "demos-server";

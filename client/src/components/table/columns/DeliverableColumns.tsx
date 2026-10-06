@@ -11,7 +11,7 @@ import type { UserType } from "demos-server";
 import type { Option } from "components/input/select/Select";
 
 import { SecondaryButton } from "../../button/SecondaryButton";
-import { highlightCell } from "../KeywordSearch";
+import { highlightCell } from "components/table/search";
 import type { FormattedDeliverableTableRow } from "../tables/DeliverableTable";
 
 type DeliverableColumnsProps = {
