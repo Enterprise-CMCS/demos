@@ -5,7 +5,7 @@ import { SQSEvent } from "aws-lambda";
 import * as ssm from "@aws-sdk/client-ssm";
 
 import { log } from "./log";
-import { Address, Options } from "nodemailer/lib/mailer";
+import { Options } from "nodemailer/lib/mailer";
 import { renderEmail } from "./emails/renderEmail";
 import {
   getEmailLogContext,
@@ -14,11 +14,13 @@ import {
 } from "./emailLogContext";
 import { DeliveryStatus, updateEmailNotificationStatus } from "./emailNotificationStatus";
 
-type EmailerAddress = string | Address;
+type EmailerAddress = string | { name?: string; address: string };
 type EmailerAddressGroup = EmailerAddress | EmailerAddress[];
 
-export interface EmailData extends Pick<Options, "html" | "cc" | "bcc"> {
+export interface EmailData extends Pick<Options, "html"> {
   to: EmailerAddressGroup;
+  cc?: EmailerAddressGroup;
+  bcc?: EmailerAddressGroup;
   subject: string;
   text: string;
 }
@@ -306,5 +308,5 @@ function redactEmailAddress(address: EmailerAddress): typeof address {
     return redactedEmail;
   }
 
-  return { ...address, address: redactedEmail } as Address;
+  return { ...address, address: redactedEmail };
 }
