@@ -21,6 +21,15 @@ export interface EmailData extends Pick<SendMailOptions, "html" | "cc" | "bcc"> 
 }
 
 export const handler = async (event: SQSEvent) => {
+  try {
+    return await processEvent(event);
+  } catch (error) {
+    log.error({ error: getErrorMessage(error) }, "unable to process email message");
+    return "success";
+  }
+};
+
+async function processEvent(event: SQSEvent) {
   if (event.Records.length == 0) {
     log.warn("empty sqs message received");
     return;
@@ -63,8 +72,11 @@ export const handler = async (event: SQSEvent) => {
     email = await renderRealTimeEmails(email);
   } catch (err) {
     await recordDeliveryStatus(realtimeEmail, "Failed", getErrorMessage(err));
-    log.error({ error: (err as Error).message }, "unable to render realtime email");
-    throw err;
+    log.error(
+      { ...emailLogContext, error: getErrorMessage(err) },
+      "unable to render realtime email"
+    );
+    return "success";
   }
 
   if (!isValidEmailData(email)) {
@@ -73,7 +85,8 @@ export const handler = async (event: SQSEvent) => {
         `Realtime email did not render valid email data: ${realtimeEmail.emailNotificationId}`
       );
       await recordDeliveryStatus(realtimeEmail, "Failed", error.message);
-      throw error;
+      log.error({ ...emailLogContext, error: error.message }, "invalid rendered realtime email");
+      return "success";
     }
     return;
   }
@@ -111,8 +124,8 @@ export const handler = async (event: SQSEvent) => {
     info = await transporter.sendMail(emailData);
   } catch (err) {
     await recordDeliveryStatus(realtimeEmail, "Failed", getErrorMessage(err));
-    log.error({ error: (err as Error).message }, "unable to send email:");
-    throw err;
+    log.error({ ...emailLogContext, error: getErrorMessage(err) }, "unable to send email");
+    return "success";
   }
 
   await recordDeliveryStatus(realtimeEmail, "Sent");
@@ -127,7 +140,7 @@ export const handler = async (event: SQSEvent) => {
   );
 
   return "success";
-};
+}
 
 async function recordDeliveryStatus(
   email: RealtimeEmailEnvelope | undefined,
@@ -232,22 +245,20 @@ export async function sendEmailIsAllowed(
     group === undefined ? [] : Array.isArray(group) ? group : [group]
   );
 
-  const isAllowed = (
-    recipient: MimeNodeAddressInput | undefined
-  ): boolean => {
+  const isAllowed = (recipient: MimeNodeAddressInput | undefined): boolean => {
     if (recipient === undefined) {
-      return true
+      return true;
     }
 
     if (Array.isArray(recipient)) {
-      return recipient.every(isAllowed)
+      return recipient.every(isAllowed);
     }
 
     const address = typeof recipient == "string" ? recipient : recipient.address;
     return allowList.includes(address.toLowerCase());
-  }
+  };
 
-  return recipientGroups.every(isAllowed)
+  return recipientGroups.every(isAllowed);
 }
 
 export function clearCache() {
@@ -303,9 +314,8 @@ function redactEmailRecipients(email: Pick<EmailData, "to" | "cc" | "bcc">) {
 }
 
 function redactEmailAddress(address: MimeNodeAddressInput): typeof address {
-
   if (Array.isArray(address)) {
-    return address.map(a => redactEmailAddress(a))
+    return address.map((a) => redactEmailAddress(a));
   }
 
   const e = typeof address == "string" ? address : address.address;

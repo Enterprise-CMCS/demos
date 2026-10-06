@@ -69,7 +69,7 @@ it("sends the snapshotted agreement and records Sent", async () => {
 
 it("records attachment failure and never sends an incomplete email", async () => {
   vi.mocked(getAgreementAttachment).mockRejectedValue(new Error("NoSuchKey"));
-  await expect(handler(event)).rejects.toThrow("NoSuchKey");
+  await expect(handler(event)).resolves.toBe("success");
   expect(sendMail).not.toHaveBeenCalled();
   expect(updateEmailNotificationStatus).toHaveBeenCalledWith(
     "notification-id",
@@ -78,9 +78,9 @@ it("records attachment failure and never sends an incomplete email", async () =>
   );
 });
 
-it("records SMTP failure for retry", async () => {
+it("records SMTP failure without retrying", async () => {
   sendMail.mockRejectedValue(new Error("SMTP unavailable"));
-  await expect(handler(event)).rejects.toThrow("SMTP unavailable");
+  await expect(handler(event)).resolves.toBe("success");
   expect(updateEmailNotificationStatus).toHaveBeenCalledWith(
     "notification-id",
     "Failed",
