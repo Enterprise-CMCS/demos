@@ -4,7 +4,7 @@ import { CircleButton } from "components/button/CircleButton";
 import { SecondaryButton } from "components/button";
 import { DeleteIcon, EditIcon } from "components/icons";
 import { ColumnFilter } from "components/table/ColumnFilter";
-import { KeywordSearch } from "components/table/KeywordSearch";
+import { KeywordSearch } from "components/table/search";
 import { PaginationControls } from "components/table/PaginationControls";
 import { Table, TableProps } from "components/table/Table";
 import { enabledDisabledTooltip, selectionTooltip } from "components/table/tables/actionTooltips";

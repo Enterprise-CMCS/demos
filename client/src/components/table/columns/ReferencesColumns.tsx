@@ -1,7 +1,7 @@
 import React from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 
-import { highlightCell } from "components/table/KeywordSearch";
+import { highlightCell } from "components/table/search";
 import { SecondaryButton } from "components/button";
 import { useDialog } from "components/dialog/DialogContext";
 import { Reference, ReferenceAgreement, Tag } from "demos-server";

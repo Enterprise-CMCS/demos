@@ -1,7 +1,7 @@
 import React from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 
-import { highlightCell } from "../KeywordSearch";
+import { highlightCell } from "components/table/search";
 import { formatDateForDisplay } from "util/formatDate";
 import { createSelectColumnDef } from "./selectColumn";
 import { TypeTableRow } from "../tables/TypesTable";
@@ -64,8 +64,5 @@ export function TypesColumns(isReadonlyUser: boolean) {
   if (isReadonlyUser) {
     return baseTypesColumns;
   }
-  return [
-    createSelectColumnDef(columnHelper),
-    ...baseTypesColumns,
-  ];
+  return [createSelectColumnDef(columnHelper), ...baseTypesColumns];
 }

@@ -4,7 +4,7 @@ import * as React from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 
 import { SecondaryButton } from "../../button/SecondaryButton";
-import { highlightCell } from "../KeywordSearch";
+import { highlightCell } from "components/table/search";
 import { createSelectColumnDef } from "./selectColumn";
 import { createDateColumnDef } from "./dateColumn";
 import { DOCUMENT_TYPES } from "demos-server-constants";
@@ -70,8 +70,5 @@ export function DocumentColumns(isReadonlyUser: boolean) {
     return baseDocumentColumns;
   }
 
-  return [
-    createSelectColumnDef(columnHelper),
-    ...baseDocumentColumns,
-  ];
+  return [createSelectColumnDef(columnHelper), ...baseDocumentColumns];
 }

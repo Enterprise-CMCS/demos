@@ -1,7 +1,7 @@
 import React from "react";
 import { Table } from "../Table";
 import { DemonstrationColumns } from "../columns/DemonstrationColumns";
-import { KeywordSearch } from "../KeywordSearch";
+import { KeywordSearch } from "components/table/search";
 import { ColumnFilter } from "../ColumnFilter";
 import { PaginationControls } from "../PaginationControls";
 import { ApplicationStatus, Person, State } from "demos-server";
