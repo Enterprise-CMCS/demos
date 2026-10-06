@@ -91,7 +91,7 @@ def _create_snapshot_schema(
     Returns:
         SnapshotSchemaName: The schema that was created for snapshots.
     """
-    schema_name = f"{STAGING_SCHEMA}_{datetime.now(ZoneInfo('America/New_York')).strftime('%Y%m%d_%H%M%S_et')}"
+    schema_name = f"{dl_config.source_schema}_{datetime.now(ZoneInfo('America/New_York')).strftime('%Y%m%d_%H%M%S_et')}"
     logger.info(f"Creating snapshot schema {schema_name}")
     query = f"""
         CREATE SCHEMA {attach_name}.{schema_name};

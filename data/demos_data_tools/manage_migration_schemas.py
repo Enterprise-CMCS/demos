@@ -5,9 +5,11 @@ from dataclasses import dataclass
 from logging import getLogger
 from typing import TYPE_CHECKING, assert_never
 
-from dotenv import load_dotenv
-
-from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME, create_duckdb_conn, attach_demos_to_conn
+from duckdb_connection_manager import (
+    attach_db_to_duckdb_conn,
+    create_duckdb_conn,
+    get_attach_name_from_db_config_name,
+)
 from logger_utils import config_logger
 from types_constants import (
     DB_CONFIG_NAMES,
@@ -128,13 +130,7 @@ def _drop_schema(conn: "DuckConn", attach_name: DuckDbAttachName, schema_name: M
         attach_name (DuckDbAttachName): The DuckDB attach name to use.
         schema_name (MigrationSchemaName): The name of the schema to drop.
     """
-    match which:
-        case "raw":
-            schema = RAW_SCHEMA
-        case "staging":
-            schema = STAGING_SCHEMA
-
-    logger.info(f"Attempting to drop schema {schema}")
+    logger.info(f"Attempting to drop schema {schema_name}")
     conn.execute(f"""
         DROP SCHEMA IF EXISTS {attach_name}.{schema_name} CASCADE;
     """)

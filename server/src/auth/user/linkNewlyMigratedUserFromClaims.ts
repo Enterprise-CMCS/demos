@@ -44,7 +44,7 @@ export async function linkNewlyMigratedUserFromClaims(
   // We take this opportunity to ensure that Cognito and DB are aligned
   await updatePerson(
     { id: migratedUser.id },
-    { firstName: claims.givenName, lastName: claims.familyName },
+    { firstName: claims.givenName, lastName: claims.familyName, email: claims.email },
     tx
   );
   await updateUser(

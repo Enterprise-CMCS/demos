@@ -2,6 +2,18 @@
 version: v1.25.0
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
+  SNYK-JS-URIJS-19963963:
+    - "*":
+        reason: "No fixed version is available; this transitive development dependency is also present on main."
+        expires: "2026-12-31T00:00:00.000Z"
+  SNYK-JS-BRACEEXPANSION-20244952:
+    - "*":
+        reason: "Awaiting an upstream minor dependency update; main still resolves brace-expansion@5.0.9."
+        expires: "2026-12-31T00:00:00.000Z"
+  SNYK-JS-BRACEEXPANSION-20244948:
+    - "*":
+        reason: "Awaiting an upstream minor dependency update; main still resolves brace-expansion@5.0.9."
+        expires: "2026-12-31T00:00:00.000Z"
 patch: {}
 exclude:
   global:
