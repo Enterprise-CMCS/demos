@@ -71,7 +71,7 @@ export const handler = async (event: SQSEvent) => {
     const message = "Realtime email has no recipients.";
     await recordDeliveryStatus(realtimeEmail, "Failed", message);
     log.warn(emailLogContext, "email has no recipients");
-    return "success";
+    return;
   }
 
   if (!isValidEmailData(email)) {
@@ -81,7 +81,7 @@ export const handler = async (event: SQSEvent) => {
       );
       await recordDeliveryStatus(realtimeEmail, "Failed", error.message);
       log.error({ ...emailLogContext, error: error.message }, "invalid rendered realtime email");
-      return "success";
+      return;
     }
     return;
   }
@@ -113,7 +113,7 @@ export const handler = async (event: SQSEvent) => {
         "log only: email not in allowlist"
       );
       await recordDeliveryStatus(realtimeEmail, "Failed", "Email blocked by recipient allowlist.");
-      return "success";
+      return;
     }
 
     info = await transporter.sendMail(emailData);
