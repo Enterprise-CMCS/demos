@@ -630,6 +630,7 @@ describe("emailer", () => {
       "un****@example.com",
       [{ name: "Unit Test", address: "un****@example.com" }, "un****@example.com"],
     ]);
+    expect(redactEmailAddresses({ name: "Unit Test" })).toEqual({ name: "Unit Test" });
   });
 
   it("should leave legacy email payloads unchanged when realtime rendering is not needed", async () => {

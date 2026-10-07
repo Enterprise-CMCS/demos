@@ -171,7 +171,8 @@ function hasNoEmailRecipients(email: unknown): boolean {
 
   const { to, cc, bcc } = email as Partial<EmailData>;
   return [to, cc, bcc].every(
-    (recipients) => recipients === undefined || (Array.isArray(recipients) && recipients.length === 0)
+    (recipients) =>
+      recipients === undefined || (Array.isArray(recipients) && recipients.length === 0)
   );
 }
 
@@ -261,7 +262,7 @@ export async function sendEmailIsAllowed(
     }
 
     const address = typeof recipient == "string" ? recipient : recipient.address;
-    return allowList.includes(address.toLowerCase());
+    return address !== undefined && allowList.includes(address.toLowerCase());
   };
 
   return recipientGroups.every(isAllowed);
@@ -324,14 +325,15 @@ function redactEmailAddress(address: MimeNodeAddressInput): typeof address {
     return address.map((a) => redactEmailAddress(a));
   }
 
-  const e = typeof address == "string" ? address : address.address;
-
-  const redactedEmail = redactEmailAddressString(e);
-
-  if (typeof address == "string") {
-    return redactedEmail;
+  if (typeof address != "string" && address.address === undefined) {
+    return address;
   }
 
+  if (typeof address == "string") {
+    return redactEmailAddressString(address);
+  }
+
+  const redactedEmail = redactEmailAddressString(address.address);
   return { ...address, address: redactedEmail } as Address;
 }
 
