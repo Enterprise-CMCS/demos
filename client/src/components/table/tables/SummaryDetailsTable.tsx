@@ -53,7 +53,6 @@ const FIELD_CONTAINER_CLASSES = tw`min-h-[62px] flex flex-col`;
 const LABEL_CLASSES = tw`text-text-font font-bold text-sm tracking-wide h-[14px] flex items-center`;
 const VALUE_CLASSES = tw`text-text-font text-base leading-relaxed min-h-[40px] flex items-start mt-1`;
 
-// Single source of truth for each field's label id, shared between the label's id and its group's aria-labelledby.
 export const FIELD_IDS = {
   state: "summary-field-state",
   title: "summary-field-title",
