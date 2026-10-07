@@ -21,6 +21,7 @@ export const extensionSchema = gql`
     name: NonEmptyString!
     description: String
     effectiveDate: DateTime
+    effectivePlainDate: LocalDate
     status: ApplicationStatus!
     currentPhaseName: PhaseName! @auth(requires: ["Access CMS Field"])
     phases: [ApplicationPhase!]! @auth(requires: ["Access CMS Field"])
@@ -67,6 +68,7 @@ export interface Extension {
   name: NonEmptyString;
   description?: string;
   effectiveDate?: Date;
+  effectivePlainDate?: string;
   status: ApplicationStatus;
   currentPhaseName: PhaseName;
   phases: ApplicationPhase[];
