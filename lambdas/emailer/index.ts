@@ -5,7 +5,7 @@ import { SQSEvent } from "aws-lambda";
 import * as ssm from "@aws-sdk/client-ssm";
 
 import { log } from "./log";
-import { EmptyEmailRecipientsError, renderEmail } from "./emails/renderEmail";
+import { renderEmail } from "./emails/renderEmail";
 import {
   getEmailLogContext,
   isRealtimeEmailEnvelope,
@@ -63,12 +63,15 @@ export const handler = async (event: SQSEvent) => {
     email = await renderRealTimeEmails(email);
   } catch (err) {
     await recordDeliveryStatus(realtimeEmail, "Failed", getErrorMessage(err));
-    if (err instanceof EmptyEmailRecipientsError) {
-      log.error({ ...emailLogContext, error: err.message }, "realtime email has no recipients");
-      return "success";
-    }
     log.error({ error: (err as Error).message }, "unable to render realtime email");
     throw err;
+  }
+
+  if (hasNoEmailRecipients(email)) {
+    const message = "Realtime email has no recipients.";
+    await recordDeliveryStatus(realtimeEmail, "Failed", message);
+    log.warn(emailLogContext, "email has no recipients");
+    return "success";
   }
 
   if (!isValidEmailData(email)) {
@@ -159,6 +162,17 @@ async function recordDeliveryStatus(
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function hasNoEmailRecipients(email: unknown): boolean {
+  if (!email || typeof email !== "object") {
+    return false;
+  }
+
+  const { to, cc, bcc } = email as Partial<EmailData>;
+  return [to, cc, bcc].every(
+    (recipients) => recipients === undefined || (Array.isArray(recipients) && recipients.length === 0)
+  );
 }
 
 export async function renderRealTimeEmails(email: unknown): Promise<unknown> {

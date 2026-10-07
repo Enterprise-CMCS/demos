@@ -25,12 +25,6 @@ import { renderTermsAndConditionsRequestedEmail } from "./templates/TermsAndCond
 import { renderDemonstrationExpirationReminderEmail } from "./templates/DemonstrationExpirationReminderEmail";
 import { renderApplicationExpectedApprovalDateReminderEmail } from "./templates/ApplicationExpectedApprovalDateReminderEmail";
 
-export class EmptyEmailRecipientsError extends Error {
-  constructor() {
-    super("Email template must include at least one recipient.");
-  }
-}
-
 // Template creation
 const templates: Record<string, EmailTemplate> = {
   "Terms And Conditions Requested": renderTermsAndConditionsRequestedEmail,
@@ -85,15 +79,6 @@ function normalizeRecipientGroups(recipients: Record<string, unknown>): EmailRec
     ...(recipients.cc !== undefined ? { cc: normalizeRecipients(recipients.cc, "cc") } : {}),
     ...(recipients.bcc !== undefined ? { bcc: normalizeRecipients(recipients.bcc, "bcc") } : {}),
   };
-
-  const recipientCount =
-    normalizedRecipients.to.length +
-    (normalizedRecipients.cc?.length ?? 0) +
-    (normalizedRecipients.bcc?.length ?? 0);
-
-  if (recipientCount === 0) {
-    throw new EmptyEmailRecipientsError();
-  }
 
   return normalizedRecipients;
 }

@@ -255,8 +255,9 @@ describe("emailer", () => {
     );
   });
 
-  it("should mark an empty realtime recipient list failed without sending or retrying", async () => {
+  it("should warn and skip an empty realtime recipient list without retrying", async () => {
     process.env.DISABLE_EMAIL_ALLOWLIST = "true";
+    const warnSpy = vi.spyOn(log, "warn");
     const sendMailSpy = vi.fn(() => ({ messageId: "unit-test" }));
     vi.spyOn(nodemailer, "createTransport").mockImplementation(
       () => ({ sendMail: sendMailSpy }) as unknown as Mail<SentMessageInfo>
@@ -280,7 +281,11 @@ describe("emailer", () => {
     expect(statusMocks.update).toHaveBeenCalledExactlyOnceWith(
       realtimeDeliverableCreatedEnvelope.emailNotificationId,
       "Failed",
-      "Email template must include at least one recipient."
+      "Realtime email has no recipients."
+    );
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ emailType: "Deliverable Created" }),
+      "email has no recipients"
     );
   });
 
