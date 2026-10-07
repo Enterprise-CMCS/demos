@@ -3,7 +3,6 @@ import { selectTags } from ".";
 import { throwCustomGQLError } from "../../errors/errorCodes";
 import { getFeatureFlags, throwApiNotReleasedError } from "../../flags";
 import type { Tag, TagName, TagStatus, TagType } from "../../types";
-import type { Tag as PrismaTag } from "@prisma/client";
 
 // Note: name of this function is a little weird intentionally
 // Makes it clear that while this is basically returning a Tag, it has additional logic in it
@@ -30,15 +29,11 @@ export async function getDataToResolveDemonstrationTypeApplicationTagDetails(
 
   // Because it is possible for the demo type and app to have different statuses
   // Pick demo type preferentially; this is also what we did in the summary report
-  const demonstrationTypeTag = selectedTags.filter((tag) => tag.tagTypeId === "Demonstration Type");
-  const applicationTag = selectedTags.filter((tag) => tag.tagTypeId === "Application");
+  const demonstrationTypeTag = selectedTags.find((tag) => tag.tagTypeId === "Demonstration Type");
 
-  let selectedTag: PrismaTag;
-  if (demonstrationTypeTag.length > 0) {
-    selectedTag = demonstrationTypeTag[0];
-  } else {
-    selectedTag = applicationTag[0];
-  }
+  // Prefer the demo type tag; fall back to the application tag
+  // Database enforces unique key on tag name, tag type, making this safe
+  const selectedTag = demonstrationTypeTag ?? selectedTags[0];
 
   // Casts below enforced by database
   return {
