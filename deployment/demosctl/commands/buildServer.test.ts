@@ -20,4 +20,12 @@ describe("buildServer", () => {
       }),
     );
   });
+
+  test("should properly set vite envs", async () => {
+    await expect(buildServer("unittest")).resolves.not.toThrow();
+    await expect(buildServer("dev")).resolves.not.toThrow();
+    await expect(buildServer("prod")).resolves.not.toThrow();
+    await expect(buildServer("bad code here;")).rejects.toThrow("invalid environment name");
+    await expect(buildServer("invalid-env")).rejects.toThrow("invalid environment name");
+  });
 });

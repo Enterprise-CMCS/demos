@@ -80,14 +80,6 @@ function normalizeRecipientGroups(recipients: Record<string, unknown>): EmailRec
     ...(recipients.bcc !== undefined ? { bcc: normalizeRecipients(recipients.bcc, "bcc") } : {}),
   };
 
-  const recipientCount =
-    normalizedRecipients.to.length +
-    (normalizedRecipients.cc?.length ?? 0) +
-    (normalizedRecipients.bcc?.length ?? 0);
-  if (recipientCount === 0) {
-    throw new Error("Email template must include at least one recipient.");
-  }
-
   return normalizedRecipients;
 }
 

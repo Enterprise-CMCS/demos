@@ -34,7 +34,9 @@ export const UPDATE_DEMONSTRATION_MUTATION = gql`
       name
       description
       effectiveDate
+      effectivePlainDate
       expirationDate
+      expirationPlainDate
       sdgDivision
       state {
         id
