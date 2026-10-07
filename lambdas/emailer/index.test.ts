@@ -139,7 +139,7 @@ describe("emailer", () => {
     );
 
     const out = await handler(mockEvent);
-  expect(out).toEqual("success");
+    expect(out).toEqual("success");
     expect(sendMailSpy).toHaveBeenCalledOnce();
     expect(sendMailSpy).toHaveBeenCalledWith({
       to: "test@email.com",
@@ -185,7 +185,7 @@ describe("emailer", () => {
     const infoSpy = vi.spyOn(log, "info");
 
     const out = await handler(mockEvent);
-  expect(out).toBeUndefined();
+    expect(out).toBeUndefined();
     expect(sendMailSpy).not.toHaveBeenCalled();
     expect(infoSpy).toHaveBeenCalledWith(expect.any(Object), "log only: email not in allowlist");
   });
