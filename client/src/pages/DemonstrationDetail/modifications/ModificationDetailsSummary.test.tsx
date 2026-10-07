@@ -1,7 +1,7 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { ModificationDetailsSummary } from "./ModificationDetailsSummary";
+import { FIELD_IDS, ModificationDetailsSummary } from "./ModificationDetailsSummary";
 import { ModificationItem } from "./ModificationTabs";
 import { TestProvider } from "test-utils/TestProvider";
 import { DEMONSTRATION_DETAIL_QUERY } from "../DemonstrationDetail";
@@ -54,8 +54,9 @@ describe("ModificationDetailsSummary", () => {
 
     it("renders the modification name", () => {
       renderModificationDetailsSummary(mockAmendment);
-      expect(screen.getByText("Amendment Title")).toBeInTheDocument();
-      expect(screen.getByText("Test Modification")).toBeInTheDocument();
+      const field = screen.getByRole("group", { name: "Amendment Title" });
+      expect(field).toHaveAttribute("aria-labelledby", FIELD_IDS.title);
+      expect(within(field).getByText("Test Modification")).toBeInTheDocument();
     });
 
     it("renders the correct title label ", () => {
@@ -69,32 +70,39 @@ describe("ModificationDetailsSummary", () => {
         medicaidId: "demo-2",
       };
       renderModificationDetailsSummary(mockRenewal);
-      expect(screen.getByText("Renewal Title")).toBeInTheDocument();
-      expect(screen.getByText("Test Renewal")).toBeInTheDocument();
+      const field = screen.getByRole("group", { name: "Renewal Title" });
+      expect(field).toHaveAttribute("aria-labelledby", FIELD_IDS.title);
+      expect(within(field).getByText("Test Renewal")).toBeInTheDocument();
     });
 
     it("renders the effective date when present", () => {
       renderModificationDetailsSummary(mockAmendment);
-      expect(screen.getByText("Effective Date")).toBeInTheDocument();
-      expect(screen.getByText("01/15/2024")).toBeInTheDocument();
+      const field = screen.getByRole("group", { name: "Effective Date" });
+      expect(field).toHaveAttribute("aria-labelledby", FIELD_IDS.effectiveDate);
+      expect(within(field).getByText("01/15/2024")).toBeInTheDocument();
     });
 
     it("renders the status", () => {
       renderModificationDetailsSummary(mockAmendment);
-      expect(screen.getByText("Status")).toBeInTheDocument();
-      expect(screen.getByText("Pre-Submission")).toBeInTheDocument();
+      const field = screen.getByRole("group", { name: "Status" });
+      expect(field).toHaveAttribute("aria-labelledby", FIELD_IDS.status);
+      expect(within(field).getByText("Pre-Submission")).toBeInTheDocument();
     });
 
     it("renders the description when present", () => {
       renderModificationDetailsSummary(mockAmendment);
-      expect(screen.getByText("Amendment Description")).toBeInTheDocument();
-      expect(screen.getByText("This is a test modification description")).toBeInTheDocument();
+      const field = screen.getByRole("group", { name: "Amendment Description" });
+      expect(field).toHaveAttribute("aria-labelledby", FIELD_IDS.description);
+      expect(
+        within(field).getByText("This is a test modification description")
+      ).toBeInTheDocument();
     });
 
     it("renders the signature level when present", () => {
       renderModificationDetailsSummary(mockAmendment);
-      expect(screen.getByText("Signature Level")).toBeInTheDocument();
-      expect(screen.getByText("OA")).toBeInTheDocument();
+      const field = screen.getByRole("group", { name: "Signature Level" });
+      expect(field).toHaveAttribute("aria-labelledby", FIELD_IDS.signatureLevel);
+      expect(within(field).getByText("OA")).toBeInTheDocument();
     });
   });
 
@@ -105,7 +113,8 @@ describe("ModificationDetailsSummary", () => {
         description: undefined,
       };
       renderModificationDetailsSummary(itemWithoutDescription);
-      expect(screen.queryByText("Description")).not.toBeInTheDocument();
+      const field = screen.getByRole("group", { name: "Amendment Description" });
+      expect(within(field).getByText("-")).toBeInTheDocument();
     });
 
     it("does not render description section when description is empty string", () => {
@@ -114,7 +123,8 @@ describe("ModificationDetailsSummary", () => {
         description: "",
       };
       renderModificationDetailsSummary(itemWithoutDescription);
-      expect(screen.queryByText("Description")).not.toBeInTheDocument();
+      const field = screen.getByRole("group", { name: "Amendment Description" });
+      expect(within(field).getByText("-")).toBeInTheDocument();
     });
 
     it("displays placeholder when effective date is not provided", () => {
@@ -123,7 +133,8 @@ describe("ModificationDetailsSummary", () => {
         effectivePlainDate: undefined,
       };
       renderModificationDetailsSummary(itemWithoutEffectiveDate);
-      expect(screen.getByText("--/--/----")).toBeInTheDocument();
+      const field = screen.getByRole("group", { name: "Effective Date" });
+      expect(within(field).getByText("--/--/----")).toBeInTheDocument();
     });
   });
 
