@@ -71,6 +71,21 @@ describe("QuickLinks", () => {
       const adminLink = screen.getByTestId(ADMIN_LINK_NAME);
       expect(adminLink.className).not.toContain("border-b");
     });
+
+    it("renders personType for a non-admin user", () => {
+      setup(nonAdminUser);
+      expect(screen.getByText("demos-cms-user")).toBeInTheDocument();
+    });
+
+    it("renders personType for a restritcted CMS user", () => {
+      setup(readonlyUser);
+      expect(screen.getByText("demos-restricted-cms-user")).toBeInTheDocument();
+    });
+
+    it("renders personType for a CMS Reviewer user", () => {
+      setup(cmsReviewerUser);
+      expect(screen.getByText("demos-cms-reviewer-user")).toBeInTheDocument();
+    });
   });
 
   describe("References Link", () => {
