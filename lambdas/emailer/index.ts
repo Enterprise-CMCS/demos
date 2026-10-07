@@ -67,13 +67,21 @@ export const handler = async (event: SQSEvent) => {
     throw err;
   }
 
+  if (hasNoEmailRecipients(email)) {
+    const message = "Realtime email has no recipients.";
+    await recordDeliveryStatus(realtimeEmail, "Failed", message);
+    log.warn(emailLogContext, "email has no recipients");
+    return;
+  }
+
   if (!isValidEmailData(email)) {
     if (realtimeEmail) {
       const error = new Error(
         `Realtime email did not render valid email data: ${realtimeEmail.emailNotificationId}`
       );
       await recordDeliveryStatus(realtimeEmail, "Failed", error.message);
-      throw error;
+      log.error({ ...emailLogContext, error: error.message }, "invalid rendered realtime email");
+      return;
     }
     return;
   }
@@ -105,7 +113,7 @@ export const handler = async (event: SQSEvent) => {
         "log only: email not in allowlist"
       );
       await recordDeliveryStatus(realtimeEmail, "Failed", "Email blocked by recipient allowlist.");
-      return "success";
+      return;
     }
 
     info = await transporter.sendMail(emailData);
@@ -154,6 +162,18 @@ async function recordDeliveryStatus(
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function hasNoEmailRecipients(email: unknown): boolean {
+  if (!email || typeof email !== "object") {
+    return false;
+  }
+
+  const { to, cc, bcc } = email as Partial<EmailData>;
+  return [to, cc, bcc].every(
+    (recipients) =>
+      recipients === undefined || (Array.isArray(recipients) && recipients.length === 0)
+  );
 }
 
 export async function renderRealTimeEmails(email: unknown): Promise<unknown> {
@@ -215,7 +235,7 @@ export function isEmailerAddress(address?: MimeNodeAddressInput): address is Mim
     return true;
   }
 
-  if (Array.isArray(address) && address.every((v) => isEmailerAddress(v))) {
+  if (Array.isArray(address) && address.length > 0 && address.every((v) => isEmailerAddress(v))) {
     return true;
   }
 
@@ -232,22 +252,20 @@ export async function sendEmailIsAllowed(
     group === undefined ? [] : Array.isArray(group) ? group : [group]
   );
 
-  const isAllowed = (
-    recipient: MimeNodeAddressInput | undefined
-  ): boolean => {
+  const isAllowed = (recipient: MimeNodeAddressInput | undefined): boolean => {
     if (recipient === undefined) {
-      return true
+      return true;
     }
 
     if (Array.isArray(recipient)) {
-      return recipient.every(isAllowed)
+      return recipient.every(isAllowed);
     }
 
     const address = typeof recipient == "string" ? recipient : recipient.address;
-    return allowList.includes(address.toLowerCase());
-  }
+    return address !== undefined && allowList.includes(address.toLowerCase());
+  };
 
-  return recipientGroups.every(isAllowed)
+  return recipientGroups.every(isAllowed);
 }
 
 export function clearCache() {
@@ -303,19 +321,19 @@ function redactEmailRecipients(email: Pick<EmailData, "to" | "cc" | "bcc">) {
 }
 
 function redactEmailAddress(address: MimeNodeAddressInput): typeof address {
-
   if (Array.isArray(address)) {
-    return address.map(a => redactEmailAddress(a))
+    return address.map((a) => redactEmailAddress(a));
   }
 
-  const e = typeof address == "string" ? address : address.address;
-
-  const redactedEmail = redactEmailAddressString(e);
+  if (typeof address != "string" && address.address === undefined) {
+    return address;
+  }
 
   if (typeof address == "string") {
-    return redactedEmail;
+    return redactEmailAddressString(address);
   }
 
+  const redactedEmail = redactEmailAddressString(address.address);
   return { ...address, address: redactedEmail } as Address;
 }
 
