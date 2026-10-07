@@ -40,7 +40,7 @@ describe("ModificationDetailsSummary", () => {
     description: "This is a test modification description",
     status: "Pre-Submission",
     createdAt: new Date("2024-01-01"),
-    effectiveDate: new Date("2024-01-15T05:00:00.000Z"),
+    effectivePlainDate: "2024-01-15",
     signatureLevel: "OA",
     documents: [],
     medicaidId: "demo-1",
@@ -120,7 +120,7 @@ describe("ModificationDetailsSummary", () => {
     it("displays placeholder when effective date is not provided", () => {
       const itemWithoutEffectiveDate: ModificationItem = {
         ...mockAmendment,
-        effectiveDate: undefined,
+        effectivePlainDate: undefined,
       };
       renderModificationDetailsSummary(itemWithoutEffectiveDate);
       expect(screen.getByText("--/--/----")).toBeInTheDocument();
