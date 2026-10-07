@@ -5,7 +5,7 @@ import { SQSEvent } from "aws-lambda";
 import * as ssm from "@aws-sdk/client-ssm";
 
 import { log } from "./log";
-import { renderEmail } from "./emails/renderEmail";
+import { EmptyEmailRecipientsError, renderEmail } from "./emails/renderEmail";
 import {
   getEmailLogContext,
   isRealtimeEmailEnvelope,
@@ -63,6 +63,10 @@ export const handler = async (event: SQSEvent) => {
     email = await renderRealTimeEmails(email);
   } catch (err) {
     await recordDeliveryStatus(realtimeEmail, "Failed", getErrorMessage(err));
+    if (err instanceof EmptyEmailRecipientsError) {
+      log.error({ ...emailLogContext, error: err.message }, "realtime email has no recipients");
+      return "success";
+    }
     log.error({ error: (err as Error).message }, "unable to render realtime email");
     throw err;
   }
@@ -73,7 +77,8 @@ export const handler = async (event: SQSEvent) => {
         `Realtime email did not render valid email data: ${realtimeEmail.emailNotificationId}`
       );
       await recordDeliveryStatus(realtimeEmail, "Failed", error.message);
-      throw error;
+      log.error({ ...emailLogContext, error: error.message }, "invalid rendered realtime email");
+      return "success";
     }
     return;
   }
@@ -215,7 +220,7 @@ export function isEmailerAddress(address?: MimeNodeAddressInput): address is Mim
     return true;
   }
 
-  if (Array.isArray(address) && address.every((v) => isEmailerAddress(v))) {
+  if (Array.isArray(address) && address.length > 0 && address.every((v) => isEmailerAddress(v))) {
     return true;
   }
 
@@ -232,22 +237,20 @@ export async function sendEmailIsAllowed(
     group === undefined ? [] : Array.isArray(group) ? group : [group]
   );
 
-  const isAllowed = (
-    recipient: MimeNodeAddressInput | undefined
-  ): boolean => {
+  const isAllowed = (recipient: MimeNodeAddressInput | undefined): boolean => {
     if (recipient === undefined) {
-      return true
+      return true;
     }
 
     if (Array.isArray(recipient)) {
-      return recipient.every(isAllowed)
+      return recipient.every(isAllowed);
     }
 
     const address = typeof recipient == "string" ? recipient : recipient.address;
     return allowList.includes(address.toLowerCase());
-  }
+  };
 
-  return recipientGroups.every(isAllowed)
+  return recipientGroups.every(isAllowed);
 }
 
 export function clearCache() {
@@ -303,9 +306,8 @@ function redactEmailRecipients(email: Pick<EmailData, "to" | "cc" | "bcc">) {
 }
 
 function redactEmailAddress(address: MimeNodeAddressInput): typeof address {
-
   if (Array.isArray(address)) {
-    return address.map(a => redactEmailAddress(a))
+    return address.map((a) => redactEmailAddress(a));
   }
 
   const e = typeof address == "string" ? address : address.address;

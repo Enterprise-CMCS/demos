@@ -255,13 +255,42 @@ describe("emailer", () => {
     );
   });
 
+  it("should mark an empty realtime recipient list failed without sending or retrying", async () => {
+    process.env.DISABLE_EMAIL_ALLOWLIST = "true";
+    const sendMailSpy = vi.fn(() => ({ messageId: "unit-test" }));
+    vi.spyOn(nodemailer, "createTransport").mockImplementation(
+      () => ({ sendMail: sendMailSpy }) as unknown as Mail<SentMessageInfo>
+    );
+
+    await expect(
+      handler(
+        sqsEvent(
+          JSON.stringify({
+            ...realtimeDeliverableCreatedEnvelope,
+            payload: {
+              ...realtimeDeliverableCreatedEnvelope.payload,
+              recipients: { to: [] },
+            },
+          })
+        )
+      )
+    ).resolves.toBe("success");
+
+    expect(sendMailSpy).not.toHaveBeenCalled();
+    expect(statusMocks.update).toHaveBeenCalledExactlyOnceWith(
+      realtimeDeliverableCreatedEnvelope.emailNotificationId,
+      "Failed",
+      "Email template must include at least one recipient."
+    );
+  });
+
   it("should mark a realtime email failed when SMTP rejects it", async () => {
     process.env.DISABLE_EMAIL_ALLOWLIST = "true";
     vi.spyOn(nodemailer, "createTransport").mockImplementation(
       () =>
-        ({ sendMail: vi.fn().mockRejectedValue(new Error("SMTP unavailable")) }) as unknown as Mail<
-          SentMessageInfo
-        >
+        ({
+          sendMail: vi.fn().mockRejectedValue(new Error("SMTP unavailable")),
+        }) as unknown as Mail<SentMessageInfo>
     );
 
     await expect(
@@ -470,10 +499,15 @@ describe("emailer", () => {
       isEmailerAddress([{ name: "Unit Test", address: "test@email.com" }, "test@email.com"])
     ).toEqual(true);
     expect(
-      isEmailerAddress([{ name: "Unit Test", address: "test@email.com" }, "test@email.com", [{ name: "Unit Test", address: "test@email.com" }, "test@email.com"]])
+      isEmailerAddress([
+        { name: "Unit Test", address: "test@email.com" },
+        "test@email.com",
+        [{ name: "Unit Test", address: "test@email.com" }, "test@email.com"],
+      ])
     ).toEqual(true);
 
     expect(isEmailerAddress()).toEqual(false);
+    expect(isEmailerAddress([])).toEqual(false);
     // @ts-expect-error
     expect(isEmailerAddress(1)).toEqual(false);
     expect(isEmailerAddress({ name: "Unit Test" })).toEqual(false);
@@ -512,7 +546,9 @@ describe("emailer", () => {
         ["Unit@Test.com"]
       )
     ).toEqual(true);
-    expect(await sendEmailIsAllowed("Email@Example.com", undefined, "Other@Test.com")).toEqual(false);
+    expect(await sendEmailIsAllowed("Email@Example.com", undefined, "Other@Test.com")).toEqual(
+      false
+    );
   });
 
   it("should return false when an invalid address is included", async () => {
@@ -578,15 +614,17 @@ describe("emailer", () => {
       name: "Unit Test",
       address: "un****@example.com",
     });
-    expect(redactEmailAddresses([{ name: "Unit Test", address: "unittest@example.com"}, "unittest@example.com", [{ name: "Unit Test", address: "unittest@example.com"}, "unittest@example.com"]])).toEqual(
-      [
-        { name: "Unit Test", address: "un****@example.com"}, 
-        "un****@example.com", 
-        [
-          { name: "Unit Test", address: "un****@example.com"}, 
-          "un****@example.com"
-        ]
-      ]);
+    expect(
+      redactEmailAddresses([
+        { name: "Unit Test", address: "unittest@example.com" },
+        "unittest@example.com",
+        [{ name: "Unit Test", address: "unittest@example.com" }, "unittest@example.com"],
+      ])
+    ).toEqual([
+      { name: "Unit Test", address: "un****@example.com" },
+      "un****@example.com",
+      [{ name: "Unit Test", address: "un****@example.com" }, "un****@example.com"],
+    ]);
   });
 
   it("should leave legacy email payloads unchanged when realtime rendering is not needed", async () => {
