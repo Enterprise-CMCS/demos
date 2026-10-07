@@ -65,7 +65,9 @@ export const GET_DEMONSTRATION_BY_ID_QUERY: TypedDocumentNode<
 
 export const UPDATE_DEMONSTRATION_MUTATION: TypedDocumentNode<
   {
-    demonstration: Demonstration & {
+    updateDemonstration: Demonstration & {
+      effectivePlainDate: string;
+      expirationPlainDate: string;
       roles: (Pick<ServerDemonstrationRoleAssignment, "isPrimary" | "role"> & {
         person: Pick<ServerPerson, "id">;
       })[];
@@ -85,7 +87,9 @@ export const UPDATE_DEMONSTRATION_MUTATION: TypedDocumentNode<
       sdgDivision
       signatureLevel
       effectiveDate
+      effectivePlainDate
       expirationDate
+      expirationPlainDate
       state {
         id
       }
