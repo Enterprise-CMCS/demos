@@ -31,6 +31,14 @@
     "./log": {
       "types": "./dist/src/log/index.d.ts",
       "import": "./dist/src/log/index.js"
+    },
+    "./featureFlags": {
+      "types": "./dist/src/featureFlags/index.d.ts",
+      "import": "./dist/src/featureFlags/index.js"
+    },
+    "./featureFlags/cdk": {
+      "types": "./dist/src/featureFlags/cdk.d.ts",
+      "import": "./dist/src/featureFlags/cdk.js"
     }
   },
   "files": [
@@ -45,12 +53,15 @@
   },
   "devDependencies": {
     "@types/node": "^25.9.8",
+    "@types/semver": "^7.8.0",
+    "@vitest/coverage-v8": "^4.1.11",
     "pino-pretty": "^13.1.3",
     "typescript": "^5.9.3",
     "vitest": "^4.1.11"
   },
   "dependencies": {
     "pino": "^10.3.1",
-    "read-excel-file": "^9.3.10"
+    "read-excel-file": "^9.3.10",
+    "semver": "^7.8.5"
   }
 }
