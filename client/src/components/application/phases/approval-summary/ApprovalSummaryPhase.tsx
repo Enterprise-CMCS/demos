@@ -55,6 +55,7 @@ export const UPDATE_AMENDMENT_MUTATION = gql`
       name
       description
       effectiveDate
+      effectivePlainDate
       signatureLevel
     }
   }
@@ -67,6 +68,7 @@ export const UPDATE_RENEWAL_MUTATION = gql`
       name
       description
       effectiveDate
+      effectivePlainDate
       signatureLevel
     }
   }
