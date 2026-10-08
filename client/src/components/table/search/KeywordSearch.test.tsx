@@ -386,13 +386,11 @@ describe("KeywordSearch Component", () => {
       state: string;
     };
 
-    // Test data with minimal overlapping letters to avoid false matches
-    // Each state's abbreviation does not appear as a substring in any state name
     const stateTestData: StateTableType[] = [
-      { id: "1", state: "Maine" },
-      { id: "2", state: "Oklahoma" },
-      { id: "3", state: "Nevada" },
-      { id: "4", state: "Utah" },
+      { id: "1", state: "Texas" },
+      { id: "2", state: "Hawaii" },
+      { id: "3", state: "Pennsylvania" },
+      { id: "4", state: "New Mexico" },
     ];
 
     const buildStateTable = () => {
@@ -418,36 +416,43 @@ describe("KeywordSearch Component", () => {
       render(buildStateTable());
       const input = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
       await user.type(input, searchTerm);
-      await waitFor(() => {
-        expectedVisible.forEach((text) => {
-          expect(screen.getByText((content) => content.includes(text))).toBeInTheDocument();
-        });
-        expectedHidden.forEach((text) => {
-          expect(screen.queryByText((content) => content.includes(text))).not.toBeInTheDocument();
-        });
+
+      // Wait for filtering to apply
+      await waitFor(
+        () => {
+          expectedVisible.forEach((item) => {
+            expect(screen.getByText(item)).toBeVisible();
+          });
+        },
+        { timeout: 1000 }
+      );
+
+      // Verify hidden items are not present
+      expectedHidden.forEach((item) => {
+        expect(screen.queryByText(item)).not.toBeVisible();
       });
     };
 
-    it("filters by state abbreviation (ME matches Maine)", async () => {
-      await searchAndAssert("ME", ["Maine"], ["Oklahoma", "Nevada", "Utah"]);
+    it("filters by state abbreviation (TX matches Texas)", async () => {
+      await searchAndAssert("TX", ["Texas"], ["Hawaii", "Pennsylvania", "New Mexico"]);
     });
 
     it("filters by full state name", async () => {
-      await searchAndAssert("Maine", ["Maine"], ["Oklahoma"]);
+      await searchAndAssert("Texas", ["Texas"], ["Hawaii"]);
     });
 
     it("filters case-insensitively", async () => {
-      await searchAndAssert("me", ["Maine"], ["Oklahoma"]);
+      await searchAndAssert("tx", ["Texas"], ["Hawaii"]);
     });
 
-    it("filters multi-word states by abbreviation (OK matches Oklahoma)", async () => {
-      await searchAndAssert("OK", ["Oklahoma"], ["Maine"]);
+    it("filters multi-word states by abbreviation (NM matches New Mexico)", async () => {
+      await searchAndAssert("NM", ["New Mexico"], ["Texas"]);
     });
 
     it("highlights abbreviation in state name", () => {
       const highlighted = highlightCell({
-        cell: { getValue: () => "Maine" },
-        table: { getState: () => ({ globalFilter: ["ME"] }) },
+        cell: { getValue: () => "Texas" },
+        table: { getState: () => ({ globalFilter: ["TX"] }) },
       } as never);
 
       const { container } = render(<>{highlighted}</>);
@@ -456,7 +461,7 @@ describe("KeywordSearch Component", () => {
     });
 
     it("handles multiple state searches", async () => {
-      await searchAndAssert("ME OK", ["Maine", "Oklahoma"], ["Utah"]);
+      await searchAndAssert("TX HI", ["Texas", "Hawaii"], ["New Mexico"]);
     });
 
     it("restores all results when search is cleared", async () => {
@@ -465,20 +470,24 @@ describe("KeywordSearch Component", () => {
       render(buildStateTable());
       const input = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
 
-      await user.type(input, "ME");
-      await waitFor(() => expect(screen.getByText("Maine")).toBeInTheDocument());
+      await user.type(input, "TX");
+      await waitFor(() => expect(screen.getByText("Texas")).toBeInTheDocument());
 
       await user.click(screen.getByTestId(KEYWORD_SEARCH_CLEAR_BUTTON_NAME));
       await waitFor(() => {
-        expect(screen.getByText("Maine")).toBeInTheDocument();
-        expect(screen.getByText("Oklahoma")).toBeInTheDocument();
-        expect(screen.getByText("Nevada")).toBeInTheDocument();
-        expect(screen.getByText("Utah")).toBeInTheDocument();
+        expect(screen.getByText("Texas")).toBeInTheDocument();
+        expect(screen.getByText("Hawaii")).toBeInTheDocument();
+        expect(screen.getByText("Pennsylvania")).toBeInTheDocument();
+        expect(screen.getByText("New Mexico")).toBeInTheDocument();
       });
     });
 
-    it("finds states by abbreviation (NV matches Nevada)", async () => {
-      await searchAndAssert("NV", ["Nevada"], ["Maine"]);
+    it("finds states by abbreviation (PA matches Pennsylvania)", async () => {
+      await searchAndAssert("PA", ["Pennsylvania"], ["Texas"]);
+    });
+
+    it("finds states by abbreviation (HI matches Hawaii)", async () => {
+      await searchAndAssert("HI", ["Hawaii"], ["Texas"]);
     });
   });
 });
