@@ -36,7 +36,6 @@ export const DeleteTypeTagDialog = ({
   const { showSuccess, showError } = useToast();
 
   const handleDelete = async () => {
-    onClose();
     try {
       await deleteTags({
         variables: {
@@ -44,8 +43,10 @@ export const DeleteTypeTagDialog = ({
         },
         refetchQueries: [GET_DEMONSTRATION_TYPE_USAGE_QUERY],
       });
+      onClose();
       showSuccess("Successfully deleted type/tag(s)");
     } catch {
+      onClose();
       showError("Failed to delete type/tag(s)");
     }
   };
