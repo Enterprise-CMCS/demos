@@ -1,5 +1,5 @@
 import React from "react";
-import { gql, useMutation } from "@apollo/client";
+import { gql, TypedDocumentNode, useMutation } from "@apollo/client";
 
 import { TagName } from "demos-server";
 
@@ -14,7 +14,10 @@ export const APPROVAL_WARNING_TEXT = "Approval is permanent. Approved tags canno
 export const APPROVE_TYPE_TAG_DIALOG_NAME = "approve-type-tag-dialog";
 export const APPROVE_TYPE_TAG_BUTTON_NAME = "button-approve-type-tag";
 
-export const APPROVE_TYPE_TAGS_MUTATION = gql`
+export const APPROVE_TYPE_TAGS_MUTATION: TypedDocumentNode<
+  { approveTags: { tagName: TagName; approvalStatus: string }[] },
+  { tagNames: TagName[] }
+> = gql`
   mutation approveTags($tagNames: [TagName!]!) {
     approveTags(tagNames: $tagNames) {
       tagName
@@ -35,14 +38,15 @@ export const ApproveTypeTagDialog = ({
   const { showSuccess, showError } = useToast();
 
   const handleApprove = async () => {
-    onClose();
     try {
       await approveTags({
         variables: { tagNames: typeTagNames },
         refetchQueries: [GET_DEMONSTRATION_TYPE_USAGE_QUERY],
       });
+      onClose();
       showSuccess("Successfully approved type/tag(s)");
     } catch {
+      onClose();
       showError("Failed to approve type/tag(s)");
     }
   };

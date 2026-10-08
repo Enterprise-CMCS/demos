@@ -9,6 +9,7 @@ import {
   ApproveTypeTagDialog,
 } from "./ApproveTypeTagDialog";
 import { GET_DEMONSTRATION_TYPE_USAGE_QUERY } from "components/table/tables/DemonstrationTypeUsageTable";
+import { TestProvider } from "test-utils/TestProvider";
 
 const FIRST_TYPE_TAG_NAME = "1115 Waiver";
 const SECOND_TYPE_TAG_NAME = "Type B";
@@ -23,22 +24,17 @@ vi.mock("@apollo/client", async () => {
   };
 });
 
-vi.mock("components/toast", () => ({
-  useToast: () => ({
-    showSuccess: vi.fn(),
-    showError: vi.fn(),
-  }),
-}));
-
 const setup = (typeTagNames = [FIRST_TYPE_TAG_NAME]) => {
   const user = userEvent.setup();
   const onClose = vi.fn();
 
   render(
-    <ApproveTypeTagDialog
-      typeTagNames={typeTagNames}
-      onClose={onClose}
-    />
+    <TestProvider>
+      <ApproveTypeTagDialog
+        typeTagNames={typeTagNames}
+        onClose={onClose}
+      />
+    </TestProvider>
   );
 
   return { user, onClose };
