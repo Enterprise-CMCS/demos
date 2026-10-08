@@ -4,7 +4,7 @@
   "overrides": {
     "@aws-sdk/client-ssm": {
       "fast-xml-parser": "^5.3.6"
-    }
+    }    
   },
   "scripts": {
     "test": "vitest run --coverage",
@@ -19,7 +19,7 @@
     "@react-email/render": "^2.1.0",
     "demos-shared-library": "file:../../shared_library",
     "mime-types": "^3.0.2",
-    "nodemailer": "^9.1.1",
+    "nodemailer": "^10.0.12",
     "pg": "^8.23.0",
     "pino": "^10.3.1",
     "react": "^19.2.8",
@@ -37,5 +37,8 @@
     "aws-sdk-client-mock": "^4.1.0",
     "typescript": "^5.9.3",
     "vitest": "^4.1.11"
+  },
+  "allowScripts": {
+    "file:../../../shared_library": true
   }
 }
