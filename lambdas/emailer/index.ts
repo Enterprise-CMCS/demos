@@ -193,7 +193,7 @@ export async function renderRealTimeEmails(email: unknown): Promise<unknown> {
 }
 
 export function isValidEmailData(email: any): email is EmailData {
-  if (!isEmailerAddress(email.to)) {
+  if (!isEmailerAddress(email.to) && !isEmptyRecipientList(email.to)) {
     log.info("an email must have a valid 'to' property");
     return false;
   }
@@ -208,17 +208,21 @@ export function isValidEmailData(email: any): email is EmailData {
     return false;
   }
 
-  if (email.cc !== undefined && !isEmailerAddress(email.cc)) {
+  if (email.cc !== undefined && !isEmailerAddress(email.cc) && !isEmptyRecipientList(email.cc)) {
     log.info("an email must have a valid 'cc' property");
     return false;
   }
 
-  if (email.bcc !== undefined && !isEmailerAddress(email.bcc)) {
+  if (email.bcc !== undefined && !isEmailerAddress(email.bcc) && !isEmptyRecipientList(email.bcc)) {
     log.info("an email must have a valid 'bcc' property");
     return false;
   }
 
   return true;
+}
+
+function isEmptyRecipientList(address: unknown): address is [] {
+  return Array.isArray(address) && address.length === 0;
 }
 
 // Not real validation, just making sure its a valid format
@@ -325,12 +329,12 @@ function redactEmailAddress(address: MimeNodeAddressInput): typeof address {
     return address.map((a) => redactEmailAddress(a));
   }
 
-  if (typeof address != "string" && address.address === undefined) {
-    return address;
-  }
-
   if (typeof address == "string") {
     return redactEmailAddressString(address);
+  }
+
+  if (address.address === undefined) {
+    return address;
   }
 
   const redactedEmail = redactEmailAddressString(address.address);
@@ -338,6 +342,9 @@ function redactEmailAddress(address: MimeNodeAddressInput): typeof address {
 }
 
 function redactEmailAddressString(address: string): string {
+  if (address === undefined) {
+    return address;
+  }
   const [local, domain] = address.split("@");
   if (!domain) return address;
 

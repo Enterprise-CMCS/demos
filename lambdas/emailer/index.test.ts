@@ -490,6 +490,9 @@ describe("emailer", () => {
   it("should verify the required fields exist", () => {
     const infoSpy = vitest.spyOn(log, "info");
     expect(isValidEmailData(mockEmailData)).toEqual(true);
+    expect(
+      isValidEmailData({ ...mockEmailData, to: [], bcc: ["bcc-recipient@example.com"] })
+    ).toEqual(true);
     expect(isValidEmailData({ ...mockEmailData, to: undefined })).toEqual(false);
     expect(infoSpy).toHaveBeenLastCalledWith(expect.stringContaining("'to' property"));
     expect(isValidEmailData({ ...mockEmailData, subject: undefined })).toEqual(false);
