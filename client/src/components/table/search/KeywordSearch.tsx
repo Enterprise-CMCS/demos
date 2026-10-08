@@ -3,6 +3,7 @@ import { ExitIcon, SearchIcon } from "components/icons";
 import { INPUT_BASE_CLASSES, LABEL_CLASSES } from "components/input/Input";
 import { useDebounced } from "hooks/useDebounced";
 import { CellContext, Row, Table } from "@tanstack/react-table";
+import { expandAbbreviation } from "./abbreviation";
 
 export const KEYWORD_SEARCH_INPUT_NAME = "input-keyword-search";
 export const KEYWORD_SEARCH_CLEAR_BUTTON_NAME = "button-clear-search";
@@ -19,10 +20,16 @@ export const arrIncludesAllInsensitive = <T,>(
   }
 
   return !filterValue.some((search: string) => {
-    const searchLower = search.toLowerCase();
     const rowValue = row.getValue(columnId);
 
-    return !(rowValue != null && rowValue.toString().toLowerCase().includes(searchLower));
+    if (rowValue == null) {
+      return true;
+    }
+
+    const rowValueLower = rowValue.toString().toLowerCase();
+    const expandedSearchTerms = expandAbbreviation(search);
+
+    return !expandedSearchTerms.some((term) => rowValueLower.includes(term.toLowerCase()));
   });
 };
 
@@ -46,7 +53,10 @@ export function highlightCell<TData>({
 
   if (!validKeywords.length) return text;
 
-  const pattern = `(${validKeywords.map((keyword) => RegExp.escape(keyword)).join("|")})`;
+  // Expand each keyword to include abbreviations and their full names
+  const expandedKeywords = validKeywords.flatMap((keyword) => expandAbbreviation(keyword));
+
+  const pattern = `(${expandedKeywords.map((keyword) => RegExp.escape(keyword)).join("|")})`;
   const regex = new RegExp(pattern, "gi");
 
   // Splitting by a regex with capturing groups includes the matches at odd indices
