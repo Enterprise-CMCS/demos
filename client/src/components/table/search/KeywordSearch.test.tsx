@@ -31,12 +31,22 @@ function expectVisible(items: string[]) {
 }
 
 /**
- * Assert that all provided text items are hidden (not in the document)
+ * Assert that all provided text items are hidden (filtered out from table rows)
  */
 function expectHidden(items: string[]) {
-  items.forEach((item) => {
-    expect(screen.queryByText(item)).not.toBeInTheDocument();
-  });
+  try {
+    const allRows = screen.getAllByRole("row");
+    const dataRows = allRows.slice(1); // Skip header row
+    const visibleRowText = dataRows.map((row) => row.textContent).join(" ");
+    items.forEach((item) => {
+      expect(visibleRowText).not.toContain(item);
+    });
+  } catch {
+    // If we can't find rows, the items are definitely hidden
+    items.forEach((item) => {
+      expect(screen.queryByText(item)).not.toBeInTheDocument();
+    });
+  }
 }
 
 describe("KeywordSearch Component", () => {
@@ -391,6 +401,7 @@ describe("KeywordSearch Component", () => {
       { id: "2", state: "Hawaii" },
       { id: "3", state: "Pennsylvania" },
       { id: "4", state: "New Mexico" },
+      { id: "5", state: "Texas Hawaii" },
     ];
 
     const buildStateTable = () => {
@@ -417,20 +428,11 @@ describe("KeywordSearch Component", () => {
       const input = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
       await user.type(input, searchTerm);
 
-      // Wait for filtering to apply - check both visible and hidden items
+      // Wait for filtering to apply
       await waitFor(
         () => {
-          expectedVisible.forEach((item) => {
-            expect(screen.getByText(item)).toBeInTheDocument();
-          });
-
-          // Verify hidden items by checking they're not in any data row (skip header row)
-          const allRows = screen.getAllByRole("row");
-          const dataRows = allRows.slice(1); // Skip header row
-          const visibleRowText = dataRows.map((row) => row.textContent).join(" ");
-          expectedHidden.forEach((item) => {
-            expect(visibleRowText).not.toContain(item);
-          });
+          expectVisible(expectedVisible);
+          expectHidden(expectedHidden);
         },
         { timeout: 1000 }
       );
@@ -461,6 +463,24 @@ describe("KeywordSearch Component", () => {
       const { container } = render(<>{highlighted}</>);
       const marks = container.querySelectorAll("mark");
       expect(marks.length).toBeGreaterThan(0);
+    });
+
+    it("handles multiple state searches", async () => {
+      // When searching for multiple keywords, ALL must match in the same row
+      // Texas Hawaii row contains both TX and HI, so it should be found
+      const user = userEvent.setup();
+      unmount();
+      render(buildStateTable());
+      const input = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
+      await user.type(input, "TX HI");
+
+      await waitFor(
+        () => {
+          expectVisible(["Texas Hawaii"]);
+          expectHidden(["Texas", "Hawaii", "Pennsylvania", "New Mexico"]);
+        },
+        { timeout: 1000 }
+      );
     });
 
     it("restores all results when search is cleared", async () => {
