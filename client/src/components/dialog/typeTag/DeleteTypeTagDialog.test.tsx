@@ -8,10 +8,27 @@ import {
   DELETE_TYPE_TAG_WARNING_TEXT,
   DeleteTypeTagDialog,
 } from "./DeleteTypeTagDialog";
+import { GET_DEMONSTRATION_TYPE_USAGE_QUERY } from "components/table";
 
 const FIRST_TYPE_TAG_NAME = "1115 Waiver";
 const SECOND_TYPE_TAG_NAME = "Type B";
 const THIRD_TYPE_TAG_NAME = "Type C";
+
+const mockMutate = vi.fn(() => Promise.resolve({ data: {} }));
+vi.mock("@apollo/client", async () => {
+  const actual = await vi.importActual("@apollo/client");
+  return {
+    ...actual,
+    useMutation: vi.fn(() => [mockMutate]),
+  };
+});
+
+vi.mock("components/toast", () => ({
+  useToast: () => ({
+    showSuccess: vi.fn(),
+    showError: vi.fn(),
+  }),
+}));
 
 const setup = (typeTagNames = [FIRST_TYPE_TAG_NAME]) => {
   const user = userEvent.setup();
@@ -73,5 +90,18 @@ describe("DeleteTypeTagDialog", () => {
     await user.click(getDeleteButton());
 
     expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it("calls the delete mutation with the correct type/tag names when delete is clicked", async () => {
+    const { user } = setup([FIRST_TYPE_TAG_NAME, SECOND_TYPE_TAG_NAME]);
+
+    await user.click(getDeleteButton());
+
+    expect(mockMutate).toHaveBeenCalledWith({
+      variables: {
+        tagNames: [FIRST_TYPE_TAG_NAME, SECOND_TYPE_TAG_NAME],
+      },
+      refetchQueries: [GET_DEMONSTRATION_TYPE_USAGE_QUERY],
+    });
   });
 });
