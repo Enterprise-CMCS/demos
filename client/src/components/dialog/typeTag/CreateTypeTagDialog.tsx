@@ -37,7 +37,6 @@ export const CreateTypeTagDialog = () => {
   >([]);
 
   const handleSave = async () => {
-    closeDialog();
     try {
       await createTags({
         variables: {
@@ -45,8 +44,10 @@ export const CreateTypeTagDialog = () => {
         },
         refetchQueries: [GET_DEMONSTRATION_TYPE_USAGE_QUERY],
       });
+      closeDialog();
       showSuccess("Successfully created type/tag(s)");
     } catch {
+      closeDialog();
       showError("Failed to create type/tag(s)");
     }
   };

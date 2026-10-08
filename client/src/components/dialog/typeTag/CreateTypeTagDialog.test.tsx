@@ -2,12 +2,13 @@ import React from "react";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { MockedProvider, MockedResponse } from "@apollo/client/testing";
+import { MockedResponse } from "@apollo/client/testing";
 
 import { CreateTypeTagDialog } from "./CreateTypeTagDialog";
 import { CREATE_DEMONSTRATION_TYPES_FORM_QUERY } from "./createTypeTag/CreateTypeTagForm";
 import { GET_DEMONSTRATION_TYPE_USAGE_QUERY } from "components/table/tables/DemonstrationTypeUsageTable";
 import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationType";
+import { TestProvider } from "test-utils/TestProvider";
 
 const mockCloseDialog = vi.fn();
 vi.mock("../DialogContext", () => ({
@@ -24,13 +25,6 @@ vi.mock("@apollo/client", async () => {
     useMutation: vi.fn(() => [mockMutate, { loading: false, error: null }]),
   };
 });
-
-vi.mock("components/toast", () => ({
-  useToast: () => ({
-    showSuccess: vi.fn(),
-    showError: vi.fn(),
-  }),
-}));
 
 describe("CreateDemonstrationTypesDialog", () => {
   const mocks: MockedResponse[] = [
@@ -68,9 +62,9 @@ describe("CreateDemonstrationTypesDialog", () => {
 
   const renderDialog = async () => {
     render(
-      <MockedProvider mocks={mocks}>
+      <TestProvider mocks={mocks}>
         <CreateTypeTagDialog />
-      </MockedProvider>
+      </TestProvider>
     );
 
     await waitFor(() => {
