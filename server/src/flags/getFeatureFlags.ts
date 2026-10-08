@@ -1,6 +1,6 @@
 import semver, { SemVer } from "semver";
 
-export type DemosServerFeatureFlag = "printVersion" | "approveTagsApi";
+export type DemosServerFeatureFlag = "printVersion" | "approveTagsApi" | "deleteTagsApi";
 export type DemosServerFeatureFlagSetting = Record<DemosServerFeatureFlag, boolean>;
 
 // This function exists to enable easier dependency injections
@@ -9,5 +9,6 @@ export function getFeatureFlags(currentVersion: SemVer): DemosServerFeatureFlagS
   return {
     printVersion: semver.gte(currentVersion, "0.0.1"),
     approveTagsApi: semver.gte(currentVersion, "1.2.0"),
+    deleteTagsApi: semver.gte(currentVersion, "1.2.0"),
   };
 }

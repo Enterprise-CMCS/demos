@@ -3,7 +3,7 @@ import * as React from "react";
 import { compareAsc } from "date-fns";
 import { CircleButton } from "components/button/CircleButton";
 import { DeleteIcon, EditIcon } from "components/icons";
-import { KeywordSearch } from "../KeywordSearch";
+import { KeywordSearch } from "components/table/search";
 import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
 import { TypesColumns } from "../columns/TypesColumns";

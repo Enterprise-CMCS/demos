@@ -46,6 +46,17 @@ export async function notifyDeliverableCreated(
       ),
     ]);
 
+    if (recipients.length === 0) {
+      log.error(
+        {
+          deliverableId: input.deliverableId,
+          emailType: "Deliverable Created",
+        },
+        "Cannot queue Deliverable Created email: no State Points of Contact were found on the demonstration."
+      );
+      return;
+    }
+
     const messageId = await enqueueAndTrackRealtimeEmail(
       {
         emailType: "Deliverable Created",

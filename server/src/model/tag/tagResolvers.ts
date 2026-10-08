@@ -1,6 +1,7 @@
 import {
   approveTags,
   createTags,
+  deleteTags,
   getDemonstrationTypeSummaryCounts,
   getFormattedTagsByTagType,
 } from ".";
@@ -25,6 +26,9 @@ export const tagResolvers = {
     },
     approveTags: async (parent: unknown, args: { tagNames: TagName[] }): Promise<Tag[]> => {
       return await approveTags(args.tagNames, __DEMOS_VERSION__);
+    },
+    deleteTags: async (parent: unknown, args: { tagNames: TagName[] }): Promise<number> => {
+      return await deleteTags(args.tagNames, __DEMOS_VERSION__);
     },
   },
 };

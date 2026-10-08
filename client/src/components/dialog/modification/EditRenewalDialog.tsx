@@ -5,7 +5,7 @@ import { DateTimeOrLocalDate, UpdateExtensionInput } from "demos-server";
 import { BaseEditModificationDialog } from "./BaseEditModificationDialog";
 
 export const UPDATE_RENEWAL_MUTATION: TypedDocumentNode<
-  { updateRenewal: Modification },
+  { updateRenewal: Modification & { effectivePlainDate: string | null } },
   { id: string; input: UpdateExtensionInput }
 > = gql`
   mutation UpdateRenewal($id: ID!, $input: UpdateExtensionInput!) {
@@ -14,6 +14,7 @@ export const UPDATE_RENEWAL_MUTATION: TypedDocumentNode<
       name
       description
       effectiveDate
+      effectivePlainDate
       signatureLevel
     }
   }

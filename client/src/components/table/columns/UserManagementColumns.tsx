@@ -1,7 +1,7 @@
 import { createColumnHelper, SortingFn } from "@tanstack/react-table";
 import { Person, State, User, UserType } from "demos-server";
 import { formatDateForDisplay } from "util/formatDate";
-import { highlightCell } from "../KeywordSearch";
+import { highlightCell } from "components/table/search";
 import { createSelectColumnDef } from "./selectColumn";
 
 const ALL_STATES = "All States";

@@ -3,7 +3,7 @@ import type { UserType } from "demos-server";
 
 import type { DeliverableTableRow, FormattedDeliverableTableRow } from "./DeliverableTable";
 import { Table, type TableProps } from "components/table/Table";
-import { KeywordSearch } from "components/table/KeywordSearch";
+import { KeywordSearch } from "components/table/search";
 import { ColumnFilter } from "components/table/ColumnFilter";
 import { PaginationControls } from "components/table/PaginationControls";
 import {
@@ -47,7 +47,8 @@ export const DemonstrationDeliverableTable: React.FC<{
   const renderActionButtons: DemonstrationDeliverableActionButtons = (table) => (
     <DeliverableActionButtons table={table} />
   );
-  const actionButtons = isReadonlyUser || viewMode === "demos-state-user" ? undefined : renderActionButtons;
+  const actionButtons =
+    isReadonlyUser || viewMode === "demos-state-user" ? undefined : renderActionButtons;
 
   const formattedDeliverables = React.useMemo(
     () =>

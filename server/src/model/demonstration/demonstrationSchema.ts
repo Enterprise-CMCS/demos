@@ -26,7 +26,9 @@ export const demonstrationSchema = gql`
     name: NonEmptyString!
     description: String
     effectiveDate: DateTime
+    effectivePlainDate: LocalDate
     expirationDate: DateTime
+    expirationPlainDate: LocalDate
     sdgDivision: SdgDivision
     signatureLevel: SignatureLevel
     status: ApplicationStatus!
@@ -85,7 +87,9 @@ export interface Demonstration {
   name: NonEmptyString;
   description?: string;
   effectiveDate?: Date;
+  effectivePlainDate?: string;
   expirationDate?: Date;
+  expirationPlainDate?: string;
   sdgDivision?: SdgDivision;
   signatureLevel?: SignatureLevel;
   status: ApplicationStatus;
