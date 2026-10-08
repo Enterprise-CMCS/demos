@@ -276,32 +276,6 @@ describe("CreateDemonstrationTypesDialog", () => {
     ).toBeEnabled();
   });
 
-  it("does not close or perform a mutation when Save is clicked", async () => {
-    const user = userEvent.setup();
-
-    await renderDialog();
-
-    const input = screen.getByPlaceholderText("Type to search...");
-
-    await user.type(input, "Brand New Type");
-
-    await user.click(screen.getByRole("button", { name: "button-create-demonstration-type" }));
-
-    await user.click(
-      screen.getByRole("button", { name: "button-add-demonstration-type" })
-    );
-
-    const saveButton = screen.getByRole("button", { name: "button-save-demonstration-types" });
-
-    expect(saveButton).toBeEnabled();
-
-    await user.click(saveButton);
-
-    expect(
-      screen.getByText("Brand New Type (Unapproved)")
-    ).toBeInTheDocument();
-  });
-
   it("performs createTags mutation with correct input when Save is clicked", async () => {
     const user = userEvent.setup();
 
