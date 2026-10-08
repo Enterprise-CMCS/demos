@@ -31,7 +31,7 @@ import { FederalCommentUploadDialog } from "./document/phases/FederalCommentUplo
 import { ApprovalPackageUploadDialog } from "./document/phases/ApprovalPackageUploadDialog";
 import { DeclareIncompleteDialog, DeclareIncompleteForm } from "./DeclareIncompleteDialog";
 import { ApplyDemonstrationTypesDialog } from "./DemonstrationTypes/ApplyDemonstrationTypesDialog";
-import { CreateDemonstrationTypesDialog } from "./typeTag/CreateTypeTagDialog";
+import { CreateTypeTagDialog } from "./typeTag/CreateTypeTagDialog";
 import { ApplyTagsDialog } from "./ApplyTagsDialog";
 import { RemoveDemonstrationTypesDialog } from "./DemonstrationTypes/RemoveDemonstrationTypesDialog";
 import { EditDemonstrationTypeDialog } from "./DemonstrationTypes/EditDemonstrationTypeDialog";
@@ -295,8 +295,8 @@ export const useDialog = () => {
     context.showDialog(<ApplyDemonstrationTypesDialog demonstrationId={demonstrationId} />);
   };
 
-  const showCreateDemonstrationTypesDialog = () => {
-    context.showDialog(<CreateDemonstrationTypesDialog />);
+  const showCreateTypeTagDialog = () => {
+    context.showDialog(<CreateTypeTagDialog />);
   };
 
   const showRemoveDemonstrationTypesDialog = (
@@ -482,7 +482,7 @@ export const useDialog = () => {
     showApprovalPackageDocumentUploadDialog,
     showDeclareIncompleteDialog,
     showApplyDemonstrationTypesDialog,
-    showCreateDemonstrationTypesDialog,
+    showCreateTypeTagDialog,
     showApplyTagsDialog,
     showRemoveDemonstrationTypesDialog,
     showEditDemonstrationTypeDialog,

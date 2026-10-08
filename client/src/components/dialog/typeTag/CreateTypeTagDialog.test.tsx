@@ -4,16 +4,31 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 
+import { CreateTypeTagDialog } from "./CreateTypeTagDialog";
+import { CREATE_DEMONSTRATION_TYPES_FORM_QUERY } from "./createTypeTag/CreateTypeTagForm";
+import { GET_DEMONSTRATION_TYPE_USAGE_QUERY } from "components/table/tables/DemonstrationTypeUsageTable";
 import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationType";
-import { CreateDemonstrationTypesDialog } from "./CreateTypeTagDialog";
-import {
-  CREATE_DEMONSTRATION_TYPES_FORM_QUERY,
-} from "./createTypeTag/CreateTypeTagForm";
 
 const mockCloseDialog = vi.fn();
 vi.mock("../DialogContext", () => ({
   useDialog: () => ({
     closeDialog: mockCloseDialog,
+  }),
+}));
+
+const mockMutate = vi.fn(() => Promise.resolve({ data: {} }));
+vi.mock("@apollo/client", async () => {
+  const actual = await vi.importActual("@apollo/client");
+  return {
+    ...actual,
+    useMutation: vi.fn(() => [mockMutate, { loading: false, error: null }]),
+  };
+});
+
+vi.mock("components/toast", () => ({
+  useToast: () => ({
+    showSuccess: vi.fn(),
+    showError: vi.fn(),
   }),
 }));
 
@@ -54,7 +69,7 @@ describe("CreateDemonstrationTypesDialog", () => {
   const renderDialog = async () => {
     render(
       <MockedProvider mocks={mocks}>
-        <CreateDemonstrationTypesDialog />
+        <CreateTypeTagDialog />
       </MockedProvider>
     );
 
@@ -285,5 +300,30 @@ describe("CreateDemonstrationTypesDialog", () => {
     expect(
       screen.getByText("Brand New Type (Unapproved)")
     ).toBeInTheDocument();
+  });
+
+  it("performs createTags mutation with correct input when Save is clicked", async () => {
+    const user = userEvent.setup();
+
+    await renderDialog();
+
+    const input = screen.getByPlaceholderText("Type to search...");
+    await user.type(input, "Brand New Type");
+    await user.click(screen.getByRole("button", { name: "button-create-demonstration-type" }));
+    await user.click(
+      screen.getByRole("button", { name: "button-add-demonstration-type" })
+    );
+    const saveButton = screen.getByRole("button", { name: "button-save-demonstration-types" });
+    expect(saveButton).toBeEnabled();
+    await user.click(saveButton);
+
+    expect(mockMutate).toHaveBeenCalledWith({
+      variables: {
+        tagNames: [
+          "Brand New Type",
+        ],
+      },
+      refetchQueries: [ GET_DEMONSTRATION_TYPE_USAGE_QUERY ],
+    });
   });
 });
