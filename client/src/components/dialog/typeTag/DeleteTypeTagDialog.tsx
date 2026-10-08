@@ -2,7 +2,7 @@ import React from "react";
 
 import { TagName } from "demos-server";
 
-import { Button } from "components/button";
+import { ErrorButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { AlertIcon } from "components/icons";
 
@@ -32,9 +32,9 @@ export const DeleteTypeTagDialog = ({
       maxWidthClass="max-w-[500px]"
       onClose={onClose}
       actionButton={
-        <Button name={DELETE_TYPE_TAG_BUTTON_NAME} onClick={handleDelete}>
+        <ErrorButton name={DELETE_TYPE_TAG_BUTTON_NAME} onClick={handleDelete}>
           Delete
-        </Button>
+        </ErrorButton>
       }
     >
       <div className="flex flex-col gap-1 items-start text-left">
