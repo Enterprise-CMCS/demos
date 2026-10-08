@@ -5,10 +5,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 
 import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationType";
-import { CreateDemonstrationTypesDialog } from "./CreateDemonstrationTypesDialog";
+import { CreateDemonstrationTypesDialog } from "./CreateTypeTagDialog";
 import {
   CREATE_DEMONSTRATION_TYPES_FORM_QUERY,
-} from "./CreateDemonstrationTypesForm";
+} from "./createTypeTag/CreateTypeTagForm";
 
 const mockCloseDialog = vi.fn();
 vi.mock("../DialogContext", () => ({

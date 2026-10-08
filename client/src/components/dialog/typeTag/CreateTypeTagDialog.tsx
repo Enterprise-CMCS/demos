@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { BaseDialog } from "../BaseDialog";
 import { useDialog } from "../DialogContext";
-import { CreateDemonstrationTypesList } from "./CreateDemonstrationTypesList";
-import { CreateDemonstrationTypesForm } from "./CreateDemonstrationTypesForm";
+import { CreateDemonstrationTypesList } from "./createTypeTag/CreateTypeTagList";
+import { CreateDemonstrationTypesForm } from "./createTypeTag/CreateTypeTagForm";
 import { Button } from "components/button";
 import { TagName, TagStatus } from "demos-server";
 

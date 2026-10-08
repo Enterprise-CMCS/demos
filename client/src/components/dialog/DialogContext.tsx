@@ -31,7 +31,7 @@ import { FederalCommentUploadDialog } from "./document/phases/FederalCommentUplo
 import { ApprovalPackageUploadDialog } from "./document/phases/ApprovalPackageUploadDialog";
 import { DeclareIncompleteDialog, DeclareIncompleteForm } from "./DeclareIncompleteDialog";
 import { ApplyDemonstrationTypesDialog } from "./DemonstrationTypes/ApplyDemonstrationTypesDialog";
-import { CreateDemonstrationTypesDialog } from "./DemonstrationTypes/CreateDemonstrationTypesDialog";
+import { CreateDemonstrationTypesDialog } from "./typeTag/CreateTypeTagDialog";
 import { ApplyTagsDialog } from "./ApplyTagsDialog";
 import { RemoveDemonstrationTypesDialog } from "./DemonstrationTypes/RemoveDemonstrationTypesDialog";
 import { EditDemonstrationTypeDialog } from "./DemonstrationTypes/EditDemonstrationTypeDialog";
