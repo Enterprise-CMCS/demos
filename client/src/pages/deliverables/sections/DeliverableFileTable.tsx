@@ -30,6 +30,7 @@ export type DeliverableFileTableProps = {
   footer?: React.ReactNode;
   showActions: boolean;
   isFinalized: boolean;
+  isFileDeletionDisabled?: boolean;
 };
 
 export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
@@ -49,6 +50,7 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
   footer,
   showActions,
   isFinalized,
+  isFileDeletionDisabled = false,
 }) => (
   <div data-testid={testId} className="flex flex-col gap-1">
     <div className="flex justify-between items-center">
@@ -95,7 +97,7 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
                   aria-label={editAriaLabel}
                   tooltip={
                     isFinalized
-                      ? "Documents on Finalized deliverables cannot be edited."
+                      ? "Cannot Edit Finalized Deliverables"
                       : selectionTooltip({
                         action: "Edit",
                         nounSingular: "File",
@@ -113,7 +115,7 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
                   aria-label={deleteAriaLabel}
                   tooltip={
                     isFinalized
-                      ? "Documents on Finalized deliverables cannot be deleted."
+                      ? "Cannot Delete Finalized Deliverables"
                       : hasSubmittedFile
                         ? "Selection contains files that have been submitted. Cannot delete submitted files."
                         : selectionTooltip({
@@ -123,7 +125,7 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
                           rule: { kind: "atLeast", count: 1 },
                         })
                   }
-                  disabled={isFinalized || hasSubmittedFile || selectedCount < 1}
+                  disabled={isFileDeletionDisabled || hasSubmittedFile || selectedCount < 1}
                   onClick={() => onDelete?.(selectedRows.map((row) => row.id))}
                 >
                   <DeleteIcon />

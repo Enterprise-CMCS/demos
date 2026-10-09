@@ -18,6 +18,7 @@ export type CmsFilesTabProps = {
   onDelete: (fileIds: string[]) => void;
   canManage: boolean;
   isFinalized: boolean;
+  isFileDeletionDisabled?: boolean;
 };
 
 export const CmsFilesTab: React.FC<CmsFilesTabProps> = ({
@@ -27,6 +28,7 @@ export const CmsFilesTab: React.FC<CmsFilesTabProps> = ({
   onDelete,
   canManage,
   isFinalized,
+  isFileDeletionDisabled = false,
 }) => {
   const columns = makeCmsFileColumns({ showSelect: canManage });
 
@@ -47,6 +49,7 @@ export const CmsFilesTab: React.FC<CmsFilesTabProps> = ({
       onDelete={onDelete}
       showActions={canManage}
       isFinalized={isFinalized}
+      isFileDeletionDisabled={isFileDeletionDisabled}
     />
   );
 };
