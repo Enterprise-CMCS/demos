@@ -2,13 +2,13 @@ import React from "react";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { MockedProvider, MockedResponse } from "@apollo/client/testing";
+import { MockedResponse } from "@apollo/client/testing";
 
+import { CreateTypeTagDialog } from "./CreateTypeTagDialog";
+import { CREATE_DEMONSTRATION_TYPES_FORM_QUERY } from "./createTypeTag/CreateTypeTagForm";
+import { GET_DEMONSTRATION_TYPE_USAGE_QUERY } from "components/table/tables/DemonstrationTypeUsageTable";
 import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationType";
-import { CreateDemonstrationTypesDialog } from "./CreateDemonstrationTypesDialog";
-import {
-  CREATE_DEMONSTRATION_TYPES_FORM_QUERY,
-} from "./CreateDemonstrationTypesForm";
+import { TestProvider } from "test-utils/TestProvider";
 
 const mockCloseDialog = vi.fn();
 vi.mock("../DialogContext", () => ({
@@ -16,6 +16,15 @@ vi.mock("../DialogContext", () => ({
     closeDialog: mockCloseDialog,
   }),
 }));
+
+const mockMutate = vi.fn(() => Promise.resolve({ data: {} }));
+vi.mock("@apollo/client", async () => {
+  const actual = await vi.importActual("@apollo/client");
+  return {
+    ...actual,
+    useMutation: vi.fn(() => [mockMutate, { loading: false, error: null }]),
+  };
+});
 
 describe("CreateDemonstrationTypesDialog", () => {
   const mocks: MockedResponse[] = [
@@ -53,9 +62,9 @@ describe("CreateDemonstrationTypesDialog", () => {
 
   const renderDialog = async () => {
     render(
-      <MockedProvider mocks={mocks}>
-        <CreateDemonstrationTypesDialog />
-      </MockedProvider>
+      <TestProvider mocks={mocks}>
+        <CreateTypeTagDialog />
+      </TestProvider>
     );
 
     await waitFor(() => {
@@ -261,29 +270,28 @@ describe("CreateDemonstrationTypesDialog", () => {
     ).toBeEnabled();
   });
 
-  it("does not close or perform a mutation when Save is clicked", async () => {
+  it("performs createTags mutation with correct input when Save is clicked", async () => {
     const user = userEvent.setup();
 
     await renderDialog();
 
     const input = screen.getByPlaceholderText("Type to search...");
-
     await user.type(input, "Brand New Type");
-
     await user.click(screen.getByRole("button", { name: "button-create-demonstration-type" }));
-
     await user.click(
       screen.getByRole("button", { name: "button-add-demonstration-type" })
     );
-
     const saveButton = screen.getByRole("button", { name: "button-save-demonstration-types" });
-
     expect(saveButton).toBeEnabled();
-
     await user.click(saveButton);
 
-    expect(
-      screen.getByText("Brand New Type (Unapproved)")
-    ).toBeInTheDocument();
+    expect(mockMutate).toHaveBeenCalledWith({
+      variables: {
+        tagNames: [
+          "Brand New Type",
+        ],
+      },
+      refetchQueries: [ GET_DEMONSTRATION_TYPE_USAGE_QUERY ],
+    });
   });
 });

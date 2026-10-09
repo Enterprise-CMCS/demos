@@ -7,6 +7,7 @@ export {
 export { checkTagsDontAlreadyExist } from "./checkTagsDontAlreadyExist";
 export { createTags } from "./createTags";
 export { deleteTags } from "./deleteTags";
+export { getDataToResolveDemonstrationTypeApplicationTagDetails } from "./getDataToResolveDemonstrationTypeApplicationTagDetails";
 export { getFormattedTagsByTagType } from "./getFormattedTagsByTagType";
 export { validateCreateTagsInput } from "./validateCreateTagsInput";
 

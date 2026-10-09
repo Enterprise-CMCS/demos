@@ -6,7 +6,7 @@ import userEvent from "@testing-library/user-event";
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { CreateDemonstrationTypesList } from "./CreateDemonstrationTypesList";
+import { CreateDemonstrationTypesList } from "./CreateTypeTagList";
 
 describe("CreateDemonstrationTypesList", () => {
   const mockRemoveDemonstrationType = vi.fn();

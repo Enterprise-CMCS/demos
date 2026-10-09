@@ -18,7 +18,9 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
       status
       currentPhaseName
       effectiveDate
+      effectivePlainDate
       expirationDate
+      expirationPlainDate
       sdgDivision
       signatureLevel
       clearanceLevel
@@ -63,7 +65,9 @@ export type ApplicationWorkflowDemonstration = WorkflowApplication &
     | "status"
     | "name"
     | "effectiveDate"
+    | "effectivePlainDate"
     | "expirationDate"
+    | "expirationPlainDate"
     | "sdgDivision"
     | "signatureLevel"
     | "description"
