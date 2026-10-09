@@ -34,16 +34,16 @@ const testDemonstration = {
   chipId: "11-W-99998/8",
   name: "Montana Medicaid Waiver",
   status: "Approved",
-  effectiveDate: new Date("2025-01-01"),
-  expirationDate: new Date("2025-12-01"),
+  effectivePlainDate: "2025-01-01",
+  expirationPlainDate: "2025-12-01",
   state: { id: "MT", name: "Montana" },
   primaryProjectOfficer: { id: "po1", fullName: "John Doe" },
 };
 
 const testDemonstrationWithoutDates = {
   ...testDemonstration,
-  effectiveDate: null,
-  expirationDate: null,
+  effectivePlainDate: null,
+  expirationPlainDate: null,
 };
 
 // Mock GraphQL responses

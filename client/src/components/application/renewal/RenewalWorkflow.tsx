@@ -20,6 +20,7 @@ export const GET_RENEWAL_WORKFLOW_QUERY = gql`
       description
       signatureLevel
       effectiveDate
+      effectivePlainDate
       currentPhaseName
       clearanceLevel
       status
@@ -54,7 +55,10 @@ export const GET_RENEWAL_WORKFLOW_QUERY = gql`
 `;
 
 export type ApplicationWorkflowRenewal = WorkflowApplication &
-  Pick<Renewal, "name" | "description" | "effectiveDate" | "signatureLevel" | "status"> & {
+  Pick<
+    Renewal,
+    "name" | "description" | "effectiveDate" | "effectivePlainDate" | "signatureLevel" | "status"
+  > & {
     demonstration: Pick<Demonstration, "id" | "status" | "medicaidId"> & {
       demonstrationTypes: Pick<
         DemonstrationTypeAssignment,
