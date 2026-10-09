@@ -34,7 +34,9 @@ export const UPDATE_DEMONSTRATION_MUTATION = gql`
       name
       description
       effectiveDate
+      effectivePlainDate
       expirationDate
+      expirationPlainDate
       sdgDivision
       state {
         id
@@ -53,6 +55,7 @@ export const UPDATE_AMENDMENT_MUTATION = gql`
       name
       description
       effectiveDate
+      effectivePlainDate
       signatureLevel
     }
   }
@@ -65,6 +68,7 @@ export const UPDATE_RENEWAL_MUTATION = gql`
       name
       description
       effectiveDate
+      effectivePlainDate
       signatureLevel
     }
   }
@@ -99,11 +103,11 @@ export const getDemonstrationApprovalSummaryFormData = (
     projectOfficerId: demonstration.primaryProjectOfficer?.id ?? "",
     projectOfficerName: demonstration.primaryProjectOfficer?.fullName ?? "",
     status: demonstration.status,
-    effectiveDate: demonstration.effectiveDate
-      ? formatDateForDisplay(demonstration.effectiveDate)
+    effectiveDate: demonstration.effectivePlainDate
+      ? formatDateForDisplay(demonstration.effectivePlainDate)
       : undefined,
-    expirationDate: demonstration.expirationDate
-      ? formatDateForDisplay(demonstration.expirationDate)
+    expirationDate: demonstration.expirationPlainDate
+      ? formatDateForDisplay(demonstration.expirationPlainDate)
       : undefined,
     description: demonstration.description,
     sdgDivision: demonstration.sdgDivision,
@@ -250,7 +254,7 @@ export const ApprovalSummaryPhase = ({
   const { showConfirmApproveDialog } = useDialog();
   const { showSuccess, showError } = useToast();
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = userIsReadonly(currentUser);
+  const isReadonlyUser = userIsReadonly(currentUser, "ApplicationWorkflow");
 
   // Find Application Details completion date from phase dates
   const applicationDetailsCompleteDate = approvalSummaryPhase?.phaseDates?.find(

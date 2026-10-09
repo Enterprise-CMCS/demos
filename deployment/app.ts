@@ -7,16 +7,6 @@ import { UiStack } from "./stacks/ui";
 import { DatabaseStack } from "./stacks/database";
 import { BootstrapStack } from "./stacks/bootstrap";
 import { AwsSolutionsChecks } from "cdk-nag";
-import {
-  applyApiSuppressions,
-  applyBackupSuppressions,
-  applyCoreSuppressions,
-  applyDatabaseSuppressions,
-  applyDbRoleSuppressions,
-  applyFileUploadSuppressions,
-  applyUISuppressions,
-  applyUISuppressionsCloudfrontOnly,
-} from "./nag-suppressions";
 import { FileUploadStack } from "./stacks/fileupload";
 import { DBRoleStack } from "./stacks/dbRoles";
 import { PMDATransfer } from "./stacks/pmdaTransfer";
@@ -56,20 +46,20 @@ export async function main(passedContext?: { [key: string]: any }) {
   const stage = app.node.getContext("stage");
   const hostEnv = app.node.tryGetContext("hostEnv");
   const forceAlarms = app.node.tryGetContext("alarms");
-  const bootstrapProd = app.node.tryGetContext("bootstrap") == "prod";
+  const bootstrapProd = app.node.tryGetContext("bootstrap") === "prod";
   const config = await determineDeploymentConfig(stage, hostEnv, forceAlarms);
 
   const project = config.project;
 
   const expectedAccount = process.env.EXPECTED_DEMOS_ACCOUNT;
-  if (expectedAccount && process.env.CDK_DEFAULT_ACCOUNT != expectedAccount) {
+  if (expectedAccount && process.env.CDK_DEFAULT_ACCOUNT !== expectedAccount) {
     throw new Error("Wrong account!");
   }
 
   Tags.of(app).add("STAGE", stage);
   Tags.of(app).add("PROJECT", project);
 
-  if (stage == "bootstrap") {
+  if (stage === "bootstrap") {
     new BootstrapStack(app, `${config.project}-${stage}`, {
       ...config,
       env: {
@@ -89,7 +79,7 @@ export async function main(passedContext?: { [key: string]: any }) {
     },
   });
 
-  if (app.node.tryGetContext("db") == "include") {
+  if (app.node.tryGetContext("db") === "include") {
     const database = new DatabaseStack(app, `${project}-${stage}-database`, {
       ...config,
       env: {
@@ -100,33 +90,10 @@ export async function main(passedContext?: { [key: string]: any }) {
       cloudVpnSecurityGroup: core.cloudVpnSecurityGroup,
       secretsManagerVpceSg: core.secretsManagerVpceSg,
     });
-    applyDatabaseSuppressions(database, stage);
     database.addStackDependency(core);
   }
 
-  if (app.node.tryGetContext("pmda") == "include") {
-    const pmda = new PMDATransfer(app, `${project}-${stage}-pmda-transfer`, {
-      ...config,
-      env: {
-        account: process.env.CDK_DEFAULT_ACCOUNT,
-        region: process.env.CDK_DEFAULT_REGION,
-      },
-    });
-    pmda.addStackDependency(core);
-  }
-
-  if (app.node.tryGetContext("pmda") == "include") {
-    const pmda = new PMDATransfer(app, `${project}-${stage}-pmda-transfer`, {
-      ...config,
-      env: {
-        account: process.env.CDK_DEFAULT_ACCOUNT,
-        region: process.env.CDK_DEFAULT_REGION,
-      },
-    });
-    pmda.addDependency(core);
-  }
-
-  if (app.node.tryGetContext("pmda") == "include") {
+  if (app.node.tryGetContext("pmda") === "include") {
     const pmda = new PMDATransfer(app, `${project}-${stage}-pmda-transfer`, {
       ...config,
       env: {
@@ -181,23 +148,14 @@ export async function main(passedContext?: { [key: string]: any }) {
       },
       vpc: core.vpc,
     });
-    applyDbRoleSuppressions(dbRole, stage);
     dbRole.addStackDependency(core);
     fileUpload.addStackDependency(dbRole);
     api.addStackDependency(dbRole);
   }
 
-  applyCoreSuppressions(core, stage);
-  applyApiSuppressions(api, stage);
-  if (config.srrConfigured) {
-    applyUISuppressions(ui, stage);
-  } else {
-    applyUISuppressionsCloudfrontOnly(ui);
-  }
-
   // Applying only in DEV temporarily to test backup processes
-  if (stage == "dev") {
-    const backup = new BackupStack(app, `${project}-${stage}-backup`, {
+  if (stage === "dev") {
+    new BackupStack(app, `${project}-${stage}-backup`, {
       ...config,
       env: {
         account: process.env.CDK_DEFAULT_ACCOUNT,
@@ -205,10 +163,8 @@ export async function main(passedContext?: { [key: string]: any }) {
       },
       vpc: core.vpc,
     });
-    applyBackupSuppressions(backup, stage);
   }
 
-  applyFileUploadSuppressions(fileUpload, stage);
   Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
   return app;
 }

@@ -33,6 +33,7 @@ import { resolveManyDeliverables } from "../deliverable";
 import { GraphQLContext } from "../../auth";
 import { getDemonstration, getManyDemonstrations } from "./demonstrationData";
 import { CHIP_DEMONSTRATION_TYPE_TAG_NAME } from "../../constants";
+import { formatDateToPlainDate } from "../../dateUtilities";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -94,7 +95,6 @@ export async function __createDemonstration(
           demonstrationId: application.id,
           personId: input.projectOfficerUserId,
           roleId: roleProjectOfficer,
-          personTypeId: person.personTypeId,
         },
       });
 
@@ -167,7 +167,6 @@ export async function __updateDemonstration(
             demonstrationId: id,
             personId: input.projectOfficerUserId,
             roleId: roleProjectOfficer,
-            personTypeId: person.personTypeId,
           },
         });
       }
@@ -262,6 +261,10 @@ export const demonstrationResolvers = {
       parent.signatureLevelId as SignatureLevel,
     currentPhaseName: (parent: PrismaDemonstration): PhaseName =>
       parent.currentPhaseId as PhaseName,
+    effectivePlainDate: (parent: PrismaDemonstration): string | null =>
+      parent.effectiveDate ? formatDateToPlainDate(parent.effectiveDate) : null,
+    expirationPlainDate: (parent: PrismaDemonstration): string | null =>
+      parent.expirationDate ? formatDateToPlainDate(parent.expirationDate) : null,
     roles: (
       parent: PrismaDemonstration,
       args: unknown,
@@ -331,6 +334,8 @@ export const demonstrationResolvers = {
               assignment.expirationDate
             ),
             approvalStatus: tag.statusId as TagStatus,
+            effectivePlainDate: formatDateToPlainDate(assignment.effectiveDate),
+            expirationPlainDate: formatDateToPlainDate(assignment.expirationDate),
           };
         }
       ),

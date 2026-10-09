@@ -1,10 +1,14 @@
 import { createColumnHelper, CellContext } from "@tanstack/react-table";
 import { highlightCell } from "components/table";
+import { createSelectColumnDef } from "./selectColumn";
+import type { ColumnMetaFilterConfig } from "components/table/ColumnFilter";
 
 export interface ColumnOptions<RowData> {
   enableSorting?: boolean;
+  enableColumnFilter?: boolean;
   cell?: (info: CellContext<RowData, unknown>) => React.ReactNode;
   highlightSearchResults?: boolean;
+  filterConfig?: ColumnMetaFilterConfig["filterConfig"];
 }
 
 // Generates a ID for a table column header by converting to lowercase and removing spaces
@@ -15,9 +19,11 @@ function generateHeaderId(header: string) {
 // Merges provided options with defaults
 function getOptions<RowData>(optionOverrides?: ColumnOptions<RowData>) {
   return {
-    enableSorting: optionOverrides?.enableSorting ?? false,
+    enableSorting: optionOverrides?.enableSorting ?? true,
+    enableColumnFilter: optionOverrides?.enableColumnFilter ?? true,
     highlightSearchResults: optionOverrides?.highlightSearchResults !== false,
     cell: optionOverrides?.cell,
+    filterConfig: optionOverrides?.filterConfig,
   };
 }
 
@@ -35,12 +41,16 @@ export function getColumnBuilder<RowData>() {
       ? highlightCell
       : optionOverrides?.cell || ((info) => info.getValue());
 
-    return columnHelper.accessor(accessor, {
+    const columnConfig = {
       id: generateHeaderId(header),
       header,
       cell: cellRenderer,
       enableSorting: options.enableSorting,
-    });
+      enableColumnFilter: options.enableColumnFilter,
+      meta: options.filterConfig ? { filterConfig: options.filterConfig } : undefined,
+    };
+
+    return columnHelper.accessor(accessor, columnConfig);
   };
 
   const createDisplayColumn = (
@@ -55,5 +65,10 @@ export function getColumnBuilder<RowData>() {
     });
   };
 
-  return { createColumn, createDisplayColumn };
+  const createSelectColumn = () => {
+    const columnHelper = createColumnHelper<RowData>();
+    return createSelectColumnDef(columnHelper);
+  };
+
+  return { createColumn, createDisplayColumn, createSelectColumn };
 }

@@ -7,6 +7,7 @@ import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { DemosLogGroup } from "./logGroup";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { NagSuppressions } from "cdk-nag";
 
 interface LambdaProps extends CommonProps {
   additionalPolicies?: PolicyStatement[];
@@ -75,7 +76,7 @@ export class Lambda extends Construct {
 
     let securityGroups: aws_ec2.ISecurityGroup[] | undefined;
     if (props.vpc && props.securityGroup) {
-      securityGroups = Array.isArray(props.securityGroup) ? props.securityGroup : [props.securityGroup]
+      securityGroups = Array.isArray(props.securityGroup) ? props.securityGroup : [props.securityGroup];
     }
 
     const role = new Role(this, `${id}LambdaExecutionRole`, {
@@ -103,9 +104,9 @@ export class Lambda extends Construct {
               conditions: {
                 ArnNotEquals: {
                   "lambda:SourceFunctionArn": [
-                      `arn:aws:lambda:${Aws.REGION}:${Aws.ACCOUNT_ID}:function:*`
-                  ]
-                }
+                    `arn:aws:lambda:${Aws.REGION}:${Aws.ACCOUNT_ID}:function:*`,
+                  ],
+                },
               },
               resources: ["*"],
             }),
@@ -117,8 +118,8 @@ export class Lambda extends Construct {
     this.role = role;
 
     const key = aws_kms.Key.fromLookup(this, "lambdaKmsKey", {
-      aliasName: `alias/demos-${props.stage}-lambda-env`
-    })
+      aliasName: `alias/demos-${props.stage}-lambda-env`,
+    });
 
     this.lambda = new NodejsFunction(this, id, {
       functionName: `${props.project}-${props.stage}-${id}`,
@@ -180,7 +181,19 @@ export class Lambda extends Construct {
         //   ? undefined
         //   : ["demosApi/read", "demosApi/write"],
       });
+
+      NagSuppressions.addResourceSuppressions(resource, [
+        {
+          id: "AwsSolutions-COG4",
+          reason: "Cognito is still being used for authorization, but done with a custom authorizer rather than the AWS default one",
+        },
+      ], true);
     }
+
+    NagSuppressions.addResourceSuppressions(this.lambda.role!, [{
+      id: "AwsSolutions-IAM5",
+      reason: "Permissions given are required for the lambda execution role",
+    }]);
   }
 
   private onAws<T>(value: T) {
@@ -211,6 +224,6 @@ function sharedLibraryExportAliases(): Record<string, string> {
         : `${packageJson.name}/${exportPath.replace(/^\.\//, "")}`;
 
       return [[`--alias:${aliasPath}`, path.resolve(packageRoot, importPath)]];
-    })
+    }),
   );
 }

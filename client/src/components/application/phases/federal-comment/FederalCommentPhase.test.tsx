@@ -16,11 +16,10 @@ import { TZDate } from "@date-fns/tz";
 import { ApplicationWorkflowDocument } from "components/application";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { EST_TIMEZONE } from "util/formatDate";
-import { addDays } from "date-fns";
 import type { CurrentUser } from "components/user/UserContext";
 import { readonlyMockUser, cmsMockUser } from "mock-data/userMocks";
 
-const FAKE_TODAY = new TZDate("2026-02-08", EST_TIMEZONE);
+const FAKE_TODAY = "2026-02-08";
 
 const createDocument = (
   overrides: Partial<ApplicationWorkflowDocument> = {}
@@ -35,8 +34,8 @@ const createDocument = (
   ...overrides,
 });
 
-const DEFAULT_START_DATE = new TZDate("2025-01-01", EST_TIMEZONE);
-const DEFAULT_END_DATE = addDays(FAKE_TODAY, 3);
+const DEFAULT_START_DATE = "2025-01-01";
+const DEFAULT_END_DATE = "2026-02-11";
 
 const setup = (props = {}, currentUser?: CurrentUser) =>
   render(

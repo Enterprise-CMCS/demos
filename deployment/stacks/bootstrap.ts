@@ -20,7 +20,7 @@ export class BootstrapStack extends Stack {
       scope: this,
       iamPermissionsBoundary:
         props.iamPermissionsBoundaryArn == null
-          ? undefined : 
+          ? undefined :
           aws_iam.ManagedPolicy.fromManagedPolicyArn(this, "iamPermissionsBoundary", props.iamPermissionsBoundaryArn),
     };
 
@@ -28,7 +28,7 @@ export class BootstrapStack extends Stack {
       assumedBy: new aws_iam.ServicePrincipal("apigateway.amazonaws.com"),
       managedPolicies: [
         aws_iam.ManagedPolicy.fromAwsManagedPolicyName(
-          "service-role/AmazonAPIGatewayPushToCloudWatchLogs" // pragma: allowlist secret
+          "service-role/AmazonAPIGatewayPushToCloudWatchLogs", // pragma: allowlist secret
         ),
       ],
       permissionsBoundary: commonProps.iamPermissionsBoundary,
@@ -79,113 +79,113 @@ export class BootstrapStack extends Stack {
     const cbcJenkinsRole = aws_iam.Role.fromRoleName(commonProps.scope, "cbcJenkinsRole", "jenkins-role");
 
     const policyStatements = [
-        new aws_iam.PolicyStatement({
-          actions: ["secretsmanager:GetSecretValue"],
-          resources: [
-            // Trailing * in these arns are required because a random string is added at the end when created
-            `arn:aws:secretsmanager:us-east-1:${process.env.CDK_DEFAULT_ACCOUNT}:secret:demos-*/config*`,
-            `arn:aws:secretsmanager:us-east-1:${process.env.CDK_DEFAULT_ACCOUNT}:secret:demos-*-rds-admin*`,
-          ],
-        }),
-        new aws_iam.PolicyStatement({
-          actions: ["ec2:DescribeManagedPrefixLists", "ec2:GetManagedPrefixListEntries"],
-          resources: ["*"],
-        }),
-        new aws_iam.PolicyStatement({
-          actions: ["sts:AssumeRole"],
-          resources: ["*"],
-          conditions: {
-            "ForAnyValue:StringEquals": {
-              "iam:ResourceTag/aws-cdk:bootstrap-role": ["deploy", "lookup", "file-publishing", "image-publishing"],
-            },
+      new aws_iam.PolicyStatement({
+        actions: ["secretsmanager:GetSecretValue"],
+        resources: [
+          // Trailing * in these arns are required because a random string is added at the end when created
+          `arn:aws:secretsmanager:us-east-1:${process.env.CDK_DEFAULT_ACCOUNT}:secret:demos-*/config*`,
+          `arn:aws:secretsmanager:us-east-1:${process.env.CDK_DEFAULT_ACCOUNT}:secret:demos-*-rds-admin*`,
+        ],
+      }),
+      new aws_iam.PolicyStatement({
+        actions: ["ec2:DescribeManagedPrefixLists", "ec2:GetManagedPrefixListEntries"],
+        resources: ["*"],
+      }),
+      new aws_iam.PolicyStatement({
+        actions: ["sts:AssumeRole"],
+        resources: ["*"],
+        conditions: {
+          "ForAnyValue:StringEquals": {
+            "iam:ResourceTag/aws-cdk:bootstrap-role": ["deploy", "lookup", "file-publishing", "image-publishing"],
           },
-        }),
-        new aws_iam.PolicyStatement({
-          actions: [
-            "cognito-idp:ListUserPools",
-            "cognito-idp:DescribeUserPoolClient",
-            "cognito-idp:UpdateUserPoolClient",
-          ],
-          resources: ["*"],
-        }),
-        new aws_iam.PolicyStatement({
-          actions: ["logs:DescribeLogGroups", "logs:PutRetentionPolicy"],
-          resources: ["*"],
-        }),
-        new aws_iam.PolicyStatement({
-          actions: ["ssm:GetParameter"],
-          resources: [
-            `arn:aws:ssm:us-east-1:${process.env.CDK_DEFAULT_ACCOUNT}:parameter/demos/pub-cms-cert-1`,
-            `arn:aws:ssm:us-east-1:${process.env.CDK_DEFAULT_ACCOUNT}:parameter/demos/cloudfront/*`
-          ],
-        }),
-        new aws_iam.PolicyStatement({
-          actions: ["cloudfront:ListDistributions"],
-          resources: ["*"],
-        }),
-        new aws_iam.PolicyStatement({
-          actions: ["s3:ListAllMyBuckets"],
-          resources: ["*"],
-        }),
-        new aws_iam.PolicyStatement({
-          actions: [
-            "cloudformation:DescribeChangeSet",
-            "cloudformation:DeleteChangeSet"
-          ],
-          resources: ["*"]
-        })
-      ]
+        },
+      }),
+      new aws_iam.PolicyStatement({
+        actions: [
+          "cognito-idp:ListUserPools",
+          "cognito-idp:DescribeUserPoolClient",
+          "cognito-idp:UpdateUserPoolClient",
+        ],
+        resources: ["*"],
+      }),
+      new aws_iam.PolicyStatement({
+        actions: ["logs:DescribeLogGroups", "logs:PutRetentionPolicy"],
+        resources: ["*"],
+      }),
+      new aws_iam.PolicyStatement({
+        actions: ["ssm:GetParameter"],
+        resources: [
+          `arn:aws:ssm:us-east-1:${process.env.CDK_DEFAULT_ACCOUNT}:parameter/demos/pub-cms-cert-1`,
+          `arn:aws:ssm:us-east-1:${process.env.CDK_DEFAULT_ACCOUNT}:parameter/demos/cloudfront/*`,
+        ],
+      }),
+      new aws_iam.PolicyStatement({
+        actions: ["cloudfront:ListDistributions"],
+        resources: ["*"],
+      }),
+      new aws_iam.PolicyStatement({
+        actions: ["s3:ListAllMyBuckets"],
+        resources: ["*"],
+      }),
+      new aws_iam.PolicyStatement({
+        actions: [
+          "cloudformation:DescribeChangeSet",
+          "cloudformation:DeleteChangeSet",
+        ],
+        resources: ["*"],
+      }),
+    ];
 
     if (!props.bootstrapProd) {
       policyStatements.push(new aws_iam.PolicyStatement({
-          actions: ["s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:ListBucket", "s3:DeleteObjectVersion", "s3:ListBucketVersions"],
-          resources: [
-            "arn:aws:s3:::demos-dev-file-upload-*",
-            "arn:aws:s3:::demos-dev-file-upload-*/*",
-            "arn:aws:s3:::demos-test-file-upload-*",
-            "arn:aws:s3:::demos-test-file-upload-*/*",
-            "arn:aws:s3:::demos-impl-file-upload-*",
-            "arn:aws:s3:::demos-impl-file-upload-*/*"
-          ],
-        }))
+        actions: ["s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:ListBucket", "s3:DeleteObjectVersion", "s3:ListBucketVersions"],
+        resources: [
+          "arn:aws:s3:::demos-dev-file-upload-*",
+          "arn:aws:s3:::demos-dev-file-upload-*/*",
+          "arn:aws:s3:::demos-test-file-upload-*",
+          "arn:aws:s3:::demos-test-file-upload-*/*",
+          "arn:aws:s3:::demos-impl-file-upload-*",
+          "arn:aws:s3:::demos-impl-file-upload-*/*",
+        ],
+      }));
 
       policyStatements.push(new aws_iam.PolicyStatement({
         actions: ["bedrock:InvokeModel"],
-        resources: ["*"]
-      }))
+        resources: ["*"],
+      }));
     } else {
       policyStatements.push(new aws_iam.PolicyStatement({
-          actions: ["s3:GetObject", "s3:ListBucket", "s3:ListBucketVersions", "s3:HeadObject"],
-          resources: [
-            "arn:aws:s3:::demos-prod-file-upload-*",
-            "arn:aws:s3:::demos-prod-file-upload-*/*",
-            "arn:aws:s3:::demos-prod-pmda-efs-transfer",
-            "arn:aws:s3:::demos-prod-pmda-efs-transfer/*",
-          ],
-        }))
+        actions: ["s3:GetObject", "s3:ListBucket", "s3:ListBucketVersions", "s3:HeadObject"],
+        resources: [
+          "arn:aws:s3:::demos-prod-file-upload-*",
+          "arn:aws:s3:::demos-prod-file-upload-*/*",
+          "arn:aws:s3:::demos-prod-pmda-efs-transfer",
+          "arn:aws:s3:::demos-prod-pmda-efs-transfer/*",
+        ],
+      }));
       policyStatements.push(new aws_iam.PolicyStatement({
-          actions: ["s3:PutObject", "s3:PutObjectTagging"],
-          resources: [
-            "arn:aws:s3:::demos-prod-file-upload-*",
-            "arn:aws:s3:::demos-prod-file-upload-*/*"
-          ],
-        }))
+        actions: ["s3:PutObject", "s3:PutObjectTagging"],
+        resources: [
+          "arn:aws:s3:::demos-prod-file-upload-*",
+          "arn:aws:s3:::demos-prod-file-upload-*/*",
+        ],
+      }));
     }
 
-    const targetEnv = props.bootstrapProd ? "prod" : "impl"
+    const targetEnv = props.bootstrapProd ? "prod" : "impl";
     policyStatements.push(new aws_iam.PolicyStatement({
-      actions: ["s3:ListBucket","s3:ListBucketVersions"],
-      resources: [`arn:aws:s3:::demos-${targetEnv}-pmda-efs-transfer`, `arn:aws:s3:::demos-${targetEnv}-pmda-efs-transfer/*`]
-    }))
+      actions: ["s3:ListBucket", "s3:ListBucketVersions"],
+      resources: [`arn:aws:s3:::demos-${targetEnv}-pmda-efs-transfer`, `arn:aws:s3:::demos-${targetEnv}-pmda-efs-transfer/*`],
+    }));
     policyStatements.push(new aws_iam.PolicyStatement({
       actions: ["s3:PutObject"],
-      resources: [`arn:aws:s3:::demos-${targetEnv}-pmda-efs-transfer/s3_file_list.csv`]
-    }))
+      resources: [`arn:aws:s3:::demos-${targetEnv}-pmda-efs-transfer/s3_file_list.csv`],
+    }));
 
     policyStatements.push(new aws_iam.PolicyStatement({
       actions: ["budgets:ViewBudget"],
-      resources: ["*"]
-    }))
+      resources: ["*"],
+    }));
 
     const policy = new aws_iam.Policy(commonProps.scope, "actionsPolicy", {
       statements: policyStatements,
@@ -197,7 +197,7 @@ export class BootstrapStack extends Stack {
 
     // Private Hosted Zones
     if (props.bootstrapProd) {
-      createPHZ(commonProps.scope, "prod")
+      createPHZ(commonProps.scope, "prod");
     } else {
       createPHZ(commonProps.scope, "dev");
       createPHZ(commonProps.scope, "test");
@@ -261,8 +261,8 @@ export class BootstrapStack extends Stack {
       policyName: `${commonProps.project}-log-redaction`,
       policyType: "DATA_PROTECTION_POLICY",
       scope: "ALL",
-      policyDocument: JSON.stringify(redactionPolicyDoc)
-    })
+      policyDocument: JSON.stringify(redactionPolicyDoc),
+    });
   }
 }
 

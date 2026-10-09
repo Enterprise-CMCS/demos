@@ -6,11 +6,11 @@ import { DocumentList } from "./DocumentList";
 import { ApplicationWorkflowDocument } from "components/application";
 import { TestProvider } from "test-utils/TestProvider";
 
-const mockShowRemoveDocumentDialog = vi.fn();
+const mockShowRemoveApplicationDocumentsDialog = vi.fn();
 
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
-    showRemoveDocumentDialog: mockShowRemoveDocumentDialog,
+    showRemoveApplicationDocumentsDialog: mockShowRemoveApplicationDocumentsDialog,
   }),
 }));
 
@@ -103,7 +103,7 @@ describe("DocumentList", () => {
     expect(deleteButtons).toHaveLength(2);
   });
 
-  it("calls showRemoveDocumentDialog when delete button is clicked", async () => {
+  it("calls showRemoveApplicationDocumentsDialog when delete button is clicked", async () => {
     const user = userEvent.setup();
     render(
       <TestProvider>
@@ -114,7 +114,7 @@ describe("DocumentList", () => {
     const deleteButton = screen.getByRole("button", { name: "Delete Test Document 1" });
     await user.click(deleteButton);
 
-    expect(mockShowRemoveDocumentDialog).toHaveBeenCalledWith(["doc-1"]);
+    expect(mockShowRemoveApplicationDocumentsDialog).toHaveBeenCalledWith(["doc-1"]);
   });
 
   it("renders the document icon", () => {

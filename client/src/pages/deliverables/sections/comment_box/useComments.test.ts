@@ -95,6 +95,12 @@ describe("useComments", () => {
       expect(result.current.isCmsOrAdminUser).toBe(true);
     });
 
+    it("returns true for CMS Reviewer users", () => {
+      setCurrentUserPersonType("demos-cms-reviewer-user");
+      const { result } = renderHook(() => useComments(TEST_DELIVERABLE_ID, "public"));
+      expect(result.current.isCmsOrAdminUser).toBe(true);
+    });
+
     it("returns false for state users", () => {
       setCurrentUserPersonType("demos-state-user");
       const { result } = renderHook(() => useComments(TEST_DELIVERABLE_ID, "public"));
@@ -151,6 +157,13 @@ describe("useComments", () => {
 
     it("does not skip the private query for CMS users", () => {
       setCurrentUserPersonType("demos-cms-user");
+      renderHook(() => useComments(TEST_DELIVERABLE_ID, "public"));
+      const [, options] = mockUseQuery.mock.calls.find(([q]) => q === GET_PRIVATE_COMMENTS_QUERY)!;
+      expect(options.skip).toBe(false);
+    });
+
+    it("does not skip the private query for CMS Reviewer users", () => {
+      setCurrentUserPersonType("demos-cms-reviewer-user");
       renderHook(() => useComments(TEST_DELIVERABLE_ID, "public"));
       const [, options] = mockUseQuery.mock.calls.find(([q]) => q === GET_PRIVATE_COMMENTS_QUERY)!;
       expect(options.skip).toBe(false);

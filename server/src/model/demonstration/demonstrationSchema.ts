@@ -26,7 +26,9 @@ export const demonstrationSchema = gql`
     name: NonEmptyString!
     description: String
     effectiveDate: DateTime
+    effectivePlainDate: LocalDate
     expirationDate: DateTime
+    expirationPlainDate: LocalDate
     sdgDivision: SdgDivision
     signatureLevel: SignatureLevel
     status: ApplicationStatus!
@@ -68,10 +70,10 @@ export const demonstrationSchema = gql`
 
   type Mutation {
     createDemonstration(input: CreateDemonstrationInput!): Demonstration!
-      @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Modify Applications"])
     updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration!
-      @auth(requires: ["Perform CMS Action"])
-    deleteDemonstration(id: ID!): Demonstration! @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Modify Applications"])
+    deleteDemonstration(id: ID!): Demonstration! @auth(requires: ["Modify Applications"])
   }
 
   type Query {
@@ -85,7 +87,9 @@ export interface Demonstration {
   name: NonEmptyString;
   description?: string;
   effectiveDate?: Date;
+  effectivePlainDate?: string;
   expirationDate?: Date;
+  expirationPlainDate?: string;
   sdgDivision?: SdgDivision;
   signatureLevel?: SignatureLevel;
   status: ApplicationStatus;

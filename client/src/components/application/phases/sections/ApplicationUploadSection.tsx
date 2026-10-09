@@ -28,7 +28,7 @@ export const ApplicationUploadSection: React.FC<Props> = ({
   onUploadClick,
 }) => {
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonly(currentUser);
+  const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
 
   return (
     <div aria-labelledby="upload-title">

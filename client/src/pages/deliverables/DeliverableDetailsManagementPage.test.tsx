@@ -157,7 +157,7 @@ describe("DeliverableDetailsManagementPage", () => {
     await waitFor(() => expect(screen.getByTestId(COMMENT_BOX_NAME)).toBeInTheDocument());
   });
 
-  it.each(["demos-cms-user", "demos-admin"] as const)(
+  it.each(["demos-cms-user", "demos-cms-reviewer-user", "demos-admin"] as const)(
     "navigates %s users back to the demonstration deliverables list",
     async (personType) => {
       const user = userEvent.setup();
@@ -239,6 +239,21 @@ describe("DeliverableDetailsManagementPage", () => {
 
     expect(await screen.findByTestId(DELIVERABLE_REVIEW_NOTICE_NAME)).toBeInTheDocument();
   });
+
+  it.each(["demos-cms-user", "demos-cms-reviewer-user"] as const)(
+    "renders CMS deliverable controls for %s",
+    async (personType) => {
+      const deliverable = buildSubmittedDeliverableMock();
+      renderWithDeliverable(deliverable, personType);
+
+      expect(await screen.findByTestId(DELIVERABLE_REVIEW_NOTICE_NAME)).toBeInTheDocument();
+      expect(screen.getByTestId("edit-deliverable-button")).toBeInTheDocument();
+      expect(screen.getByTestId("delete-deliverable-button")).toBeInTheDocument();
+      expect(screen.getByTestId(FILE_AND_HISTORY_ACTIONS_NAME)).toBeInTheDocument();
+      expect(screen.getByTestId(ADD_COMMENT_BUTTON_NAME)).toBeInTheDocument();
+      expect(screen.queryByTestId(REQUEST_EXTENSION_BUTTON_NAME)).not.toBeInTheDocument();
+    }
+  );
 
   it("does not render the pending review notice for state users", async () => {
     const deliverable = buildSubmittedDeliverableMock();

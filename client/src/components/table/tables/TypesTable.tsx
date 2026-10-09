@@ -3,7 +3,7 @@ import * as React from "react";
 import { compareAsc } from "date-fns";
 import { CircleButton } from "components/button/CircleButton";
 import { DeleteIcon, EditIcon } from "components/icons";
-import { KeywordSearch } from "../KeywordSearch";
+import { KeywordSearch } from "components/table/search";
 import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
 import { TypesColumns } from "../columns/TypesColumns";
@@ -42,7 +42,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
   hideSearch = false,
 }) => {
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonly(currentUser);
+  const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
 
   const columns = TypesColumns(isReadonlyUser);
   const { showRemoveDemonstrationTypesDialog, showEditDemonstrationTypeDialog } = useDialog();

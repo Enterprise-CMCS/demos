@@ -28,6 +28,7 @@ import { selectManyApplicationPhases } from "../applicationPhase/queries";
 import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
 import { createExtension } from ".";
+import { formatDateToPlainDate } from "../../dateUtilities";
 
 export async function __updateExtension(
   parent: unknown,
@@ -96,6 +97,8 @@ export const extensionResolvers = {
       context: GraphQLContext
     ): Promise<PrismaDocument[]> => getManyDocuments({ applicationId: parent.id }, context.user),
     currentPhaseName: (parent: PrismaExtension): PhaseName => parent.currentPhaseId as PhaseName,
+    effectivePlainDate: (parent: PrismaExtension): string | null =>
+      parent.effectiveDate ? formatDateToPlainDate(parent.effectiveDate) : null,
     status: (parent: PrismaExtension): ApplicationStatus => parent.statusId as ApplicationStatus,
     phases: (parent: PrismaExtension): Promise<PrismaApplicationPhase[]> =>
       selectManyApplicationPhases({ applicationId: parent.id }),

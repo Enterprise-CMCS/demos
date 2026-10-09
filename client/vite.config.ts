@@ -5,7 +5,7 @@ import semver from "semver";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 
-const DEMOS_VERSION = "1.0.0";
+const DEMOS_VERSION = "1.1.0";
 const VALID_MODES: string[] = ["development", "production", "test"] as const;
 
 const getGitCommit = (): string => {

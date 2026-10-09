@@ -34,7 +34,7 @@ export const ApprovalPackagePhase = ({
   const { showSuccess, showError } = useToast();
   const { completePhase } = useCompletePhase();
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = userIsReadonly(currentUser);
+  const isReadonlyUser = userIsReadonly(currentUser, "ApplicationWorkflow");
 
   const tableRows: ApprovalPackageTableRow[] = REQUIRED_DOCUMENT_TYPES.map((type) => {
     const doc = documents.find((doc) => doc?.documentType === type);

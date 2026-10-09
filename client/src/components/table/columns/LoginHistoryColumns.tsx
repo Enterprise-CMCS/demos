@@ -1,10 +1,10 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import { Person, User } from "demos-server";
 import { formatDate } from "date-fns";
-import { highlightCell } from "../KeywordSearch";
+import { highlightCell } from "components/table/search";
 
 export type LoginHistoryUserRow = Pick<User, "id" | "lastLogin" | "username"> & {
-  person: Pick<Person, "id" | "fullName" | "email">
+  person: Pick<Person, "id" | "fullName" | "email">;
 };
 
 export const getLastLogin = (user: LoginHistoryUserRow): string =>

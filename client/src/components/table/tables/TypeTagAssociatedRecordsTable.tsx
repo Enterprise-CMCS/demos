@@ -11,9 +11,8 @@ import type {
   Tag,
 } from "demos-server";
 import type { Option } from "components/input/select/Select";
-import { useTypeTagSelection } from "pages/admin/useTypeTagSelection";
 import { ColumnFilter } from "components/table/ColumnFilter";
-import { KeywordSearch } from "components/table/KeywordSearch";
+import { KeywordSearch } from "components/table/search";
 import { PaginationControls } from "components/table/PaginationControls";
 import { Table } from "components/table/Table";
 import {
@@ -177,8 +176,9 @@ const getProjectOfficerOptions = (demonstrations: AssociatedRecordsDemonstration
     .sort((a, b) => a.localeCompare(b))
     .map((fullName) => ({ label: fullName, value: fullName }));
 
-export const TypeTagAssociatedRecordsTable: React.FC = () => {
-  const { selectedTypeTag } = useTypeTagSelection();
+export const TypeTagAssociatedRecordsTable: React.FC<{ selectedTypeTag: string }> = ({
+  selectedTypeTag,
+}) => {
   // Refetch on every visit so associations removed elsewhere drop off the list.
   const { data, loading, error } = useQuery<{ demonstrations: AssociatedRecordsDemonstration[] }>(
     TYPE_TAG_ASSOCIATED_RECORDS_QUERY,

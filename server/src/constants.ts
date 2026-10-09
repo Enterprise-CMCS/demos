@@ -112,23 +112,31 @@ export const ROLES = [
   "DDME Analyst",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
+  "Viewer",
+  "Monitoring Lead",
+  "HCBS Analyst",
+  "Financial Lead",
 ] as const;
 
-export const CONTACT_TYPES = ["DDME Analyst", "Project Officer", "State Point of Contact"] as const;
-
-export const ADMIN_DEMONSTRATION_ROLES = [
-  "Project Officer",
-  "State Point of Contact",
-  "DDME Analyst",
-  "Policy Technical Director",
-  "Monitoring & Evaluation Technical Director",
-] as const;
+export const ADMIN_DEMONSTRATION_ROLES = ROLES;
 
 export const CMS_USER_DEMONSTRATION_ROLES = [
   "Project Officer",
   "DDME Analyst",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
+  "Viewer",
+  "Monitoring Lead",
+  "HCBS Analyst",
+  "Financial Lead",
+] as const;
+
+export const RESTRICTED_CMS_USER_DEMONSTRATION_ROLES = ["Viewer"] as const;
+
+export const CMS_REVIEWER_USER_DEMONSTRATION_ROLES = [
+  "Monitoring Lead",
+  "HCBS Analyst",
+  "Financial Lead",
 ] as const;
 
 export const STATE_USER_DEMONSTRATION_ROLES = ["State Point of Contact"] as const;
@@ -136,6 +144,7 @@ export const STATE_USER_DEMONSTRATION_ROLES = ["State Point of Contact"] as cons
 export const PERSON_TYPES = [
   "demos-admin",
   "demos-cms-user",
+  "demos-cms-reviewer-user",
   "demos-restricted-cms-user",
   "demos-state-user",
   "non-user-contact",
@@ -144,14 +153,9 @@ export const PERSON_TYPES = [
 export const USER_TYPES = [
   "demos-admin",
   "demos-cms-user",
+  "demos-cms-reviewer-user",
   "demos-state-user",
   "demos-restricted-cms-user",
-] as const;
-
-export const PRIMARY_DEMONSTRATION_ROLE_ASSIGNMENT_PERSON_TYPES = [
-  "demos-admin",
-  "demos-cms-user",
-  "demos-state-user",
 ] as const;
 
 export const GRANT_LEVELS = ["System", "Demonstration"] as const;
@@ -532,9 +536,9 @@ export const PERMISSIONS = [
   "View All DemonstrationRoleAssignments",
   "View DemonstrationRoleAssignments on Assigned Demonstrations",
   "Edit All Documents",
-  "Edit State Documents on Assigned Deliverables",
+  "Edit Documents on Assigned Deliverables",
   "Delete All Documents",
-  "Delete State Documents on Assigned Deliverables",
+  "Delete Documents on Assigned Deliverables",
   "Generate On-Demand Report",
 
   // Field Level Permissions
@@ -543,13 +547,20 @@ export const PERMISSIONS = [
   "Access CMS Field",
   "Access CMS Query",
   "Perform Admin Action",
-  "Perform CMS Action",
-  "Perform State Action",
+  "Modify Applications",
+  "Modify Deliverables",
+  "Create Public Comment",
+  "Submit Deliverables",
+  "Request Deliverable Extensions",
+  "Modify Documents",
+  "Modify Deliverable CMS Documents",
+  "Modify Deliverable State Documents",
 ] as const;
 
 export const SYSTEM_ROLES = [
   "Admin User",
   "CMS User",
+  "CMS Reviewer User",
   "Restricted CMS User",
   "State User",
 ] as const;

@@ -17,8 +17,12 @@ import { ExistingContactType, ManageContactsDialog } from "./ManageContactsDialo
 import {
   AddDocumentToApplicationDialog,
   AddDocumentToDeliverableDialog,
-  EditDocumentDialog,
-  RemoveDocumentDialog,
+  EditApplicationDocumentDialog,
+  EditDeliverableCmsDocumentDialog,
+  EditDeliverableStateDocumentDialog,
+  RemoveApplicationDocumentsDialog,
+  RemoveDeliverableCmsDocumentsDialog,
+  RemoveDeliverableStateDocumentsDialog,
 } from "./document";
 import { ApplicationIntakeUploadDialog } from "./document/phases/ApplicationIntakeUploadDialog";
 import { CompletenessDocumentUploadDialog } from "./document/phases/CompletenessDocumentUploadDialog";
@@ -27,6 +31,7 @@ import { FederalCommentUploadDialog } from "./document/phases/FederalCommentUplo
 import { ApprovalPackageUploadDialog } from "./document/phases/ApprovalPackageUploadDialog";
 import { DeclareIncompleteDialog, DeclareIncompleteForm } from "./DeclareIncompleteDialog";
 import { ApplyDemonstrationTypesDialog } from "./DemonstrationTypes/ApplyDemonstrationTypesDialog";
+import { CreateTypeTagDialog } from "./typeTag/CreateTypeTagDialog";
 import { ApplyTagsDialog } from "./ApplyTagsDialog";
 import { RemoveDemonstrationTypesDialog } from "./DemonstrationTypes/RemoveDemonstrationTypesDialog";
 import { EditDemonstrationTypeDialog } from "./DemonstrationTypes/EditDemonstrationTypeDialog";
@@ -60,6 +65,9 @@ import {
 } from "./deliverable/ReviewExtensionDeliverableDialog";
 import { ReferenceAgreementDialog } from "./referenceAgreement/ReferenceAgreementDialog";
 import { AssignStatesDialog, AssignStatesDialogPerson } from "./user/AssignStatesDialog";
+import { EditTypeTagDialog } from "./typeTag/EditTypeTagDialog";
+import { ApproveTypeTagDialog } from "./typeTag/ApproveTypeTagDialog";
+import { DeleteTypeTagDialog } from "./typeTag/DeleteTypeTagDialog";
 
 type EditDeliverableDialogSource = Pick<
   DeliverableTableRow,
@@ -158,19 +166,65 @@ export const useDialog = () => {
     );
   };
 
-  const showEditDocumentDialog = (
+  const showEditApplicationDocumentDialog = (
     document: Pick<ServerDocument, "id" | "name" | "description">,
     refetchQueries?: DocumentNode[]
   ) => {
-    context.showDialog(<EditDocumentDialog document={document} refetchQueries={refetchQueries} />);
+    context.showDialog(
+      <EditApplicationDocumentDialog document={document} refetchQueries={refetchQueries} />
+    );
   };
 
-  const showRemoveDocumentDialog = (
+  const showEditDeliverableCmsDocumentDialog = (
+    document: Pick<ServerDocument, "id" | "name" | "description">,
+    refetchQueries?: DocumentNode[]
+  ) => {
+    context.showDialog(
+      <EditDeliverableCmsDocumentDialog document={document} refetchQueries={refetchQueries} />
+    );
+  };
+
+  const showEditDeliverableStateDocumentDialog = (
+    document: Pick<ServerDocument, "id" | "name" | "description">,
+    refetchQueries?: DocumentNode[]
+  ) => {
+    context.showDialog(
+      <EditDeliverableStateDocumentDialog document={document} refetchQueries={refetchQueries} />
+    );
+  };
+
+  const showRemoveApplicationDocumentsDialog = (
     documentIds: string[],
     options: { refetchQueries?: DocumentNode[] } = {}
   ) => {
     context.showDialog(
-      <RemoveDocumentDialog
+      <RemoveApplicationDocumentsDialog
+        documentIds={documentIds}
+        onClose={context.hideDialog}
+        refetchQueries={options.refetchQueries}
+      />
+    );
+  };
+
+  const showRemoveDeliverableCmsDocumentsDialog = (
+    documentIds: string[],
+    options: { refetchQueries?: DocumentNode[] } = {}
+  ) => {
+    context.showDialog(
+      <RemoveDeliverableCmsDocumentsDialog
+        documentIds={documentIds}
+        onClose={context.hideDialog}
+        refetchQueries={options.refetchQueries}
+      />
+    );
+  };
+
+  const showRemoveDeliverableStateDocumentsDialog = (
+    documentIds: string[],
+    options: { refetchQueries?: DocumentNode[] } = {}
+  ) => {
+    context.showDialog(
+      <RemoveDeliverableStateDocumentsDialog
         documentIds={documentIds}
         onClose={context.hideDialog}
         refetchQueries={options.refetchQueries}
@@ -239,6 +293,10 @@ export const useDialog = () => {
 
   const showApplyDemonstrationTypesDialog = (demonstrationId: string) => {
     context.showDialog(<ApplyDemonstrationTypesDialog demonstrationId={demonstrationId} />);
+  };
+
+  const showCreateTypeTagDialog = () => {
+    context.showDialog(<CreateTypeTagDialog />);
   };
 
   const showRemoveDemonstrationTypesDialog = (
@@ -372,6 +430,28 @@ export const useDialog = () => {
     context.showDialog(<AssignStatesDialog person={person} onClose={context.hideDialog} />);
   };
 
+  const showEditTypeTagDialog = (typeTagName: TagName, existingTypeTagNames: TagName[]) => {
+    context.showDialog(
+      <EditTypeTagDialog
+        typeTagName={typeTagName}
+        existingTypeTagNames={existingTypeTagNames}
+        onClose={context.hideDialog}
+      />
+    );
+  };
+
+  const showApproveTypeTagDialog = (typeTagNames: TagName[]) => {
+    context.showDialog(
+      <ApproveTypeTagDialog typeTagNames={typeTagNames} onClose={context.hideDialog} />
+    );
+  };
+
+  const showDeleteTypeTagDialog = (typeTagNames: TagName[]) => {
+    context.showDialog(
+      <DeleteTypeTagDialog typeTagNames={typeTagNames} onClose={context.hideDialog} />
+    );
+  };
+
   const showReferenceAgreementDialog = (
     reference: Pick<Reference, "id"> & {
       agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt">;
@@ -388,8 +468,12 @@ export const useDialog = () => {
     showCreateRenewalDialog,
     showManageContactsDialog,
     showUploadDocumentDialog,
-    showEditDocumentDialog,
-    showRemoveDocumentDialog,
+    showEditApplicationDocumentDialog,
+    showEditDeliverableCmsDocumentDialog,
+    showEditDeliverableStateDocumentDialog,
+    showRemoveApplicationDocumentsDialog,
+    showRemoveDeliverableCmsDocumentsDialog,
+    showRemoveDeliverableStateDocumentsDialog,
     showAddDeliverableFileDialog,
     showApplicationIntakeDocumentUploadDialog,
     showCompletenessDocumentUploadDialog,
@@ -398,6 +482,7 @@ export const useDialog = () => {
     showApprovalPackageDocumentUploadDialog,
     showDeclareIncompleteDialog,
     showApplyDemonstrationTypesDialog,
+    showCreateTypeTagDialog,
     showApplyTagsDialog,
     showRemoveDemonstrationTypesDialog,
     showEditDemonstrationTypeDialog,
@@ -413,5 +498,8 @@ export const useDialog = () => {
     showReviewExtensionDeliverableDialog,
     showReferenceAgreementDialog,
     showAssignStatesDialog,
+    showEditTypeTagDialog,
+    showApproveTypeTagDialog,
+    showDeleteTypeTagDialog,
   };
 };

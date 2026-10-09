@@ -11,6 +11,12 @@ const sqsMocks = vi.hoisted(() => ({
   }),
 }));
 
+vi.mock("demos-shared-library/database", () => {
+  return { 
+    getDatabaseConfig: vi.fn(() => ({})),
+   };
+});
+
 vi.mock("@aws-sdk/client-sqs", () => {
   sqsMocks.SQSClientMock.mockImplementation(function() {
     return {
