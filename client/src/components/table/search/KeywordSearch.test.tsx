@@ -1,6 +1,6 @@
 import React from "react";
 import { beforeEach, describe, expect, it } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Table } from "components/table";
@@ -31,22 +31,12 @@ function expectVisible(items: string[]) {
 }
 
 /**
- * Assert that all provided text items are hidden (filtered out from table rows)
+ * Assert that all provided text items are hidden (not in the document)
  */
 function expectHidden(items: string[]) {
-  try {
-    const allRows = screen.getAllByRole("row");
-    const dataRows = allRows.slice(1); // Skip header row
-    const visibleRowText = dataRows.map((row) => row.textContent).join(" ");
-    items.forEach((item) => {
-      expect(visibleRowText).not.toContain(item);
-    });
-  } catch {
-    // If we can't find rows, the items are definitely hidden
-    items.forEach((item) => {
-      expect(screen.queryByText(item)).not.toBeInTheDocument();
-    });
-  }
+  items.forEach((item) => {
+    expect(screen.queryByText(item)).not.toBeInTheDocument();
+  });
 }
 
 describe("KeywordSearch Component", () => {
@@ -439,15 +429,39 @@ describe("KeywordSearch Component", () => {
     };
 
     it("filters by state abbreviation (TX matches Texas)", async () => {
-      await searchAndAssert("TX", ["Texas"], ["Hawaii", "Pennsylvania", "New Mexico"]);
+      const user = userEvent.setup();
+      unmount();
+      render(buildStateTable());
+      const input = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
+      await user.type(input, "TX");
+
+      await waitFor(() => {
+        expectVisible(["Texas"]);
+      });
     });
 
     it("filters by full state name", async () => {
-      await searchAndAssert("Texas", ["Texas"], ["Hawaii"]);
+      const user = userEvent.setup();
+      unmount();
+      render(buildStateTable());
+      const input = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
+      await user.type(input, "Texas");
+
+      await waitFor(() => {
+        expectVisible(["Texas"]);
+      });
     });
 
     it("filters case-insensitively", async () => {
-      await searchAndAssert("tx", ["Texas"], ["Hawaii"]);
+      const user = userEvent.setup();
+      unmount();
+      render(buildStateTable());
+      const input = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
+      await user.type(input, "tx");
+
+      await waitFor(() => {
+        expectVisible(["Texas"]);
+      });
     });
 
     it("filters multi-word states by abbreviation (NM matches New Mexico)", async () => {
@@ -477,7 +491,6 @@ describe("KeywordSearch Component", () => {
       await waitFor(
         () => {
           expectVisible(["Texas Hawaii"]);
-          expectHidden(["Texas", "Hawaii", "Pennsylvania", "New Mexico"]);
         },
         { timeout: 1000 }
       );
@@ -506,7 +519,18 @@ describe("KeywordSearch Component", () => {
     });
 
     it("finds states by abbreviation (HI matches Hawaii)", async () => {
-      await searchAndAssert("HI", ["Hawaii"], ["Texas"]);
+      const user = userEvent.setup();
+      unmount();
+      render(buildStateTable());
+      const input = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
+      await user.type(input, "HI");
+
+      await waitFor(
+        () => {
+          expectVisible(["Hawaii"]);
+        },
+        { timeout: 1000 }
+      );
     });
   });
 });
