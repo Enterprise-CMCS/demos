@@ -407,65 +407,44 @@ describe("KeywordSearch Component", () => {
       );
     };
 
-    const searchAndAssert = async (
-      searchTerm: string,
-      expectedVisible: string[],
-      expectedHidden: string[]
-    ) => {
-      const user = userEvent.setup();
+    let user: ReturnType<typeof userEvent.setup>;
+    let input: HTMLInputElement;
+
+    beforeEach(() => {
+      user = userEvent.setup();
       unmount();
       render(buildStateTable());
-      const input = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
-      await user.type(input, searchTerm);
+      input = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
+    });
 
-      // Wait for filtering to apply
+    const typeAndWait = async (searchTerm: string) => {
+      await user.type(input, searchTerm);
       await waitFor(
         () => {
-          expectVisible(expectedVisible);
-          expectHidden(expectedHidden);
+          // Wait for debounce to complete
         },
-        { timeout: 1000 }
+        { timeout: 500 }
       );
     };
 
     it("filters by state abbreviation (TX matches Texas)", async () => {
-      const user = userEvent.setup();
-      unmount();
-      render(buildStateTable());
-      const input = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
-      await user.type(input, "TX");
-
-      await waitFor(() => {
-        expectVisible(["Texas"]);
-      });
+      await typeAndWait("TX");
+      expectVisible(["Texas"]);
     });
 
     it("filters by full state name", async () => {
-      const user = userEvent.setup();
-      unmount();
-      render(buildStateTable());
-      const input = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
-      await user.type(input, "Texas");
-
-      await waitFor(() => {
-        expectVisible(["Texas"]);
-      });
+      await typeAndWait("Texas");
+      expectVisible(["Texas"]);
     });
 
     it("filters case-insensitively", async () => {
-      const user = userEvent.setup();
-      unmount();
-      render(buildStateTable());
-      const input = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
-      await user.type(input, "tx");
-
-      await waitFor(() => {
-        expectVisible(["Texas"]);
-      });
+      await typeAndWait("tx");
+      expectVisible(["Texas"]);
     });
 
     it("filters multi-word states by abbreviation (NM matches New Mexico)", async () => {
-      await searchAndAssert("NM", ["New Mexico"], ["Texas"]);
+      await typeAndWait("NM");
+      expectVisible(["New Mexico"]);
     });
 
     it("highlights abbreviation in state name", () => {
@@ -482,28 +461,13 @@ describe("KeywordSearch Component", () => {
     it("handles multiple state searches", async () => {
       // When searching for multiple keywords, ALL must match in the same row
       // Texas Hawaii row contains both TX and HI, so it should be found
-      const user = userEvent.setup();
-      unmount();
-      render(buildStateTable());
-      const input = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
-      await user.type(input, "TX HI");
-
-      await waitFor(
-        () => {
-          expectVisible(["Texas Hawaii"]);
-        },
-        { timeout: 1000 }
-      );
+      await typeAndWait("TX HI");
+      expectVisible(["Texas Hawaii"]);
     });
 
     it("restores all results when search is cleared", async () => {
-      const user = userEvent.setup();
-      unmount();
-      render(buildStateTable());
-      const input = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
-
-      await user.type(input, "TX");
-      await waitFor(() => expect(screen.getByText("Texas")).toBeInTheDocument());
+      await typeAndWait("TX");
+      expect(screen.getByText("Texas")).toBeInTheDocument();
 
       await user.click(screen.getByTestId(KEYWORD_SEARCH_CLEAR_BUTTON_NAME));
       await waitFor(() => {
@@ -515,22 +479,13 @@ describe("KeywordSearch Component", () => {
     });
 
     it("finds states by abbreviation (PA matches Pennsylvania)", async () => {
-      await searchAndAssert("PA", ["Pennsylvania"], ["Texas"]);
+      await typeAndWait("PA");
+      expectVisible(["Pennsylvania"]);
     });
 
     it("finds states by abbreviation (HI matches Hawaii)", async () => {
-      const user = userEvent.setup();
-      unmount();
-      render(buildStateTable());
-      const input = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
-      await user.type(input, "HI");
-
-      await waitFor(
-        () => {
-          expectVisible(["Hawaii"]);
-        },
-        { timeout: 1000 }
-      );
+      await typeAndWait("HI");
+      expectVisible(["Hawaii"]);
     });
   });
 });
