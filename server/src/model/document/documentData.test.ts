@@ -378,7 +378,7 @@ describe("documentData", () => {
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
-      expect(validateDocumentCanBeDeleted).toHaveBeenCalledExactlyOnceWith(document);
+      expect(validateDocumentCanBeDeleted).toHaveBeenCalledExactlyOnceWith(document.id);
       expect(handleDeleteDocument).toHaveBeenCalledExactlyOnceWith(where, mockTransaction);
       expect(result).toStrictEqual(document);
     });

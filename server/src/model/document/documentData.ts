@@ -158,7 +158,7 @@ export async function removeDocument(
     );
 
     if (authorizedDocument) {
-      validateDocumentCanBeDeleted(authorizedDocument);
+      await validateDocumentCanBeDeleted(authorizedDocument.id);
       return await handleDeleteDocument(where, tx);
     }
   }
