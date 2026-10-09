@@ -199,10 +199,7 @@ describe("CmsFilesTab", () => {
       await user.click(screen.getByTestId("select-row-cms-a"));
 
       expect(editButton).toBeDisabled();
-      expect(editButton).toHaveAttribute(
-        "title",
-        "Documents on Finalized deliverables cannot be edited."
-      );
+      expect(editButton).toHaveAttribute("title", "Cannot Edit Finalized Deliverables");
     });
   });
 
