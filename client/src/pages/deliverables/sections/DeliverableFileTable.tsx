@@ -36,6 +36,16 @@ const getFileActionTooltip = (
   });
 };
 
+const addFileTooltip = (isFinalized: boolean) => {
+  if (isFinalized) {
+    return "Files cannot be added to a Finalized deliverable.";
+  }
+  return enabledDisabledTooltip({
+    enabledText: "Add File",
+    disabled: isFinalized,
+  });
+};
+
 export type DeliverableFileTableProps = {
   "data-testid": string;
   title: string;
@@ -74,76 +84,65 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
   showActions,
   isFinalized,
   isFileDeletionDisabled = false,
-}) => (
-  <div data-testid={testId} className="flex flex-col gap-1">
-    <div className="flex justify-between items-center">
-      <span className="text-[20px] font-bold uppercase text-brand">{title}</span>
-      {showActions && (
-        <SecondaryButton
-          name={addButtonName}
-          onClick={onAdd}
-          disabled={isFinalized}
-          tooltip={
-            isFinalized
-              ? "Files cannot be added to a Finalized deliverable."
-              : enabledDisabledTooltip({
-                enabledText: "Add File",
-                disabled: isFinalized,
-              })
-          }
+}) => {
+  const renderFileActions: NonNullable<TableProps<DeliverableFileRow>["actionButtons"]> = (
+    table
+  ) => {
+    const selectedRows = table.getSelectedRowModel().rows.map((row) => row.original);
+    const selectedCount = selectedRows.length;
+    const hasSubmittedFile = selectedRows.some((row) => row.deliverableSubmissionAction);
+
+    return (
+      <div className="flex gap-1 ml-4">
+        <CircleButton
+          name={editButtonName}
+          aria-label={editAriaLabel}
+          tooltip={getFileActionTooltip("Edit", isFinalized, selectedCount, hasSubmittedFile)}
+          disabled={isFinalized || selectedCount !== 1}
+          onClick={() => onEdit?.(selectedRows[0])}
         >
-          Add File(s)
-        </SecondaryButton>
-      )}
+          <EditIcon />
+        </CircleButton>
+        <CircleButton
+          name={deleteButtonName}
+          aria-label={deleteAriaLabel}
+          tooltip={getFileActionTooltip("Delete", isFinalized, selectedCount, hasSubmittedFile)}
+          disabled={isFileDeletionDisabled || hasSubmittedFile || selectedCount < 1}
+          onClick={() => onDelete?.(selectedRows.map((row) => row.id))}
+        >
+          <DeleteIcon />
+        </CircleButton>
+      </div>
+    );
+  };
+
+  return (
+    <div data-testid={testId} className="flex flex-col gap-1">
+      <div className="flex justify-between items-center">
+        <span className="text-[20px] font-bold uppercase text-brand">{title}</span>
+        {showActions && (
+          <SecondaryButton
+            name={addButtonName}
+            onClick={onAdd}
+            disabled={isFinalized}
+            tooltip={addFileTooltip(isFinalized)}
+          >
+            Add File(s)
+          </SecondaryButton>
+        )}
+      </div>
+      <Table<DeliverableFileRow>
+        data={files}
+        columns={columns}
+        keywordSearch={(table) => <KeywordSearch table={table} />}
+        columnFilter={(table) => <ColumnFilter table={table} />}
+        pagination={(table) => <PaginationControls table={table} />}
+        initialState={INITIAL_TABLE_STATE}
+        emptyRowsMessage={emptyMessage}
+        noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
+        actionButtons={showActions ? renderFileActions : undefined}
+      />
+      {footer}
     </div>
-    <Table<DeliverableFileRow>
-      data={files}
-      columns={columns}
-      keywordSearch={(table) => <KeywordSearch table={table} />}
-      columnFilter={(table) => <ColumnFilter table={table} />}
-      pagination={(table) => <PaginationControls table={table} />}
-      initialState={INITIAL_TABLE_STATE}
-      emptyRowsMessage={emptyMessage}
-      noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
-      actionButtons={
-        showActions
-          ? (table) => {
-            const selectedRows = table.getSelectedRowModel().rows.map((row) => row.original);
-            const selectedCount = selectedRows.length;
-
-            const hasSubmittedFile = selectedRows.some((row) => row.deliverableSubmissionAction);
-
-            return (
-              <div className="flex gap-1 ml-4">
-                <CircleButton
-                  name={editButtonName}
-                  aria-label={editAriaLabel}
-                  tooltip={getFileActionTooltip("Edit", isFinalized, selectedCount)}
-                  disabled={isFinalized || selectedCount !== 1}
-                  onClick={() => onEdit?.(selectedRows[0])}
-                >
-                  <EditIcon />
-                </CircleButton>
-                <CircleButton
-                  name={deleteButtonName}
-                  aria-label={deleteAriaLabel}
-                  tooltip={getFileActionTooltip(
-                    "Delete",
-                    isFinalized,
-                    selectedCount,
-                    hasSubmittedFile
-                  )}
-                  disabled={isFileDeletionDisabled || hasSubmittedFile || selectedCount < 1}
-                  onClick={() => onDelete?.(selectedRows.map((row) => row.id))}
-                >
-                  <DeleteIcon />
-                </CircleButton>
-              </div>
-            );
-          }
-          : undefined
-      }
-    />
-    {footer}
-  </div>
-);
+  );
+};
