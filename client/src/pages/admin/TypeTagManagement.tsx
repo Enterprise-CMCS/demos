@@ -11,14 +11,14 @@ export const DEMONSTRATION_TYPE_TAG_MANAGEMENT_NAME = "type-tag-management-pane"
 export const BACK_TO_TYPE_TAG_MANAGEMENT_BUTTON_NAME = "button-back-to-type-tag-management";
 
 const CreateNewButton = () => {
-  const { showCreateDemonstrationTypesDialog } = useDialog();
+  const { showCreateTypeTagDialog } = useDialog();
 
   return (
     <IconButton
       icon={<AddNewIcon />}
-      name="button-create-demonstration-types"
+      name="button-create-type-tag"
       size="small"
-      onClick={() => showCreateDemonstrationTypesDialog()}
+      onClick={() => showCreateTypeTagDialog()}
     >
       Create New
     </IconButton>

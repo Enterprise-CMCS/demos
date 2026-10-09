@@ -103,11 +103,11 @@ export const getDemonstrationApprovalSummaryFormData = (
     projectOfficerId: demonstration.primaryProjectOfficer?.id ?? "",
     projectOfficerName: demonstration.primaryProjectOfficer?.fullName ?? "",
     status: demonstration.status,
-    effectiveDate: demonstration.effectiveDate
-      ? formatDateForDisplay(demonstration.effectiveDate)
+    effectiveDate: demonstration.effectivePlainDate
+      ? formatDateForDisplay(demonstration.effectivePlainDate)
       : undefined,
-    expirationDate: demonstration.expirationDate
-      ? formatDateForDisplay(demonstration.expirationDate)
+    expirationDate: demonstration.expirationPlainDate
+      ? formatDateForDisplay(demonstration.expirationPlainDate)
       : undefined,
     description: demonstration.description,
     sdgDivision: demonstration.sdgDivision,

@@ -17,6 +17,7 @@ export const GET_AMENDMENT_WORKFLOW_QUERY = gql`
       description
       signatureLevel
       effectiveDate
+      effectivePlainDate
       currentPhaseName
       clearanceLevel
       status
@@ -51,7 +52,10 @@ export const GET_AMENDMENT_WORKFLOW_QUERY = gql`
 `;
 
 export type ApplicationWorkflowAmendment = WorkflowApplication &
-  Pick<Amendment, "name" | "description" | "effectiveDate" | "signatureLevel" | "status"> & {
+  Pick<
+    Amendment,
+    "name" | "description" | "effectiveDate" | "effectivePlainDate" | "signatureLevel" | "status"
+  > & {
     demonstration: Pick<Demonstration, "id" | "status" | "medicaidId"> & {
       demonstrationTypes: Pick<
         DemonstrationTypeAssignment,
