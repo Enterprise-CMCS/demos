@@ -11,7 +11,30 @@ import { enabledDisabledTooltip, selectionTooltip } from "components/table/table
 
 import type { DeliverableFileRow } from "./DeliverableFileTypes";
 
-const INITIAL_TABLE_STATE = { sorting: [{ id: "createdAt", desc: true }] };
+const INITIAL_TABLE_STATE = {
+  sorting: [{ id: "createdAt", desc: true }],
+};
+const getFileActionTooltip = (
+  action: "Edit" | "Delete",
+  isFinalized: boolean,
+  selectedCount: number,
+  hasSubmittedFile = false
+) => {
+  if (isFinalized) {
+    return `Cannot ${action} Finalized Deliverables`;
+  }
+
+  if (action === "Delete" && hasSubmittedFile) {
+    return "Selection contains files that have been submitted. Cannot delete submitted files.";
+  }
+
+  return selectionTooltip({
+    action,
+    nounSingular: "File",
+    selectedCount,
+    rule: action === "Edit" ? { kind: "exactly", count: 1 } : { kind: "atLeast", count: 1 },
+  });
+};
 
 export type DeliverableFileTableProps = {
   "data-testid": string;
@@ -95,16 +118,7 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
                 <CircleButton
                   name={editButtonName}
                   aria-label={editAriaLabel}
-                  tooltip={
-                    isFinalized
-                      ? "Cannot Edit Finalized Deliverables"
-                      : selectionTooltip({
-                        action: "Edit",
-                        nounSingular: "File",
-                        selectedCount,
-                        rule: { kind: "exactly", count: 1 },
-                      })
-                  }
+                  tooltip={getFileActionTooltip("Edit", isFinalized, selectedCount)}
                   disabled={isFinalized || selectedCount !== 1}
                   onClick={() => onEdit?.(selectedRows[0])}
                 >
@@ -113,18 +127,12 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
                 <CircleButton
                   name={deleteButtonName}
                   aria-label={deleteAriaLabel}
-                  tooltip={
-                    isFinalized
-                      ? "Cannot Delete Finalized Deliverables"
-                      : hasSubmittedFile
-                        ? "Selection contains files that have been submitted. Cannot delete submitted files."
-                        : selectionTooltip({
-                          action: "Delete",
-                          nounSingular: "File",
-                          selectedCount,
-                          rule: { kind: "atLeast", count: 1 },
-                        })
-                  }
+                  tooltip={getFileActionTooltip(
+                    "Delete",
+                    isFinalized,
+                    selectedCount,
+                    hasSubmittedFile
+                  )}
                   disabled={isFileDeletionDisabled || hasSubmittedFile || selectedCount < 1}
                   onClick={() => onDelete?.(selectedRows.map((row) => row.id))}
                 >
