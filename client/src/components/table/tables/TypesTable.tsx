@@ -59,8 +59,6 @@ export const TypesTable: React.FC<TypesTableProps> = ({
         typeLabel: type.demonstrationTypeName,
         status: type.status,
         approvalStatus: type.approvalStatus,
-        effectiveDate: new Date(type.effectivePlainDate),
-        expirationDate: new Date(type.expirationPlainDate),
         effectivePlainDate: type.effectivePlainDate,
         expirationPlainDate: type.expirationPlainDate,
       }));
