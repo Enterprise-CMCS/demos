@@ -51,7 +51,7 @@ export type DemonstrationDetailDemonstrationType = Pick<
 
 export type DemonstrationTabDemonstration = Pick<
   Demonstration,
-  "id" | "name" | "status" | "effectiveDate" | "expirationDate"
+  "id" | "name" | "status" | "effectivePlainDate" | "expirationPlainDate"
 > & {
   demonstrationTypes: DemonstrationDetailDemonstrationType[];
   documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
@@ -109,8 +109,8 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
             parentDemonstration={{
               demonstrationTypes: demonstrationTypeTags,
               id: demonstration.id,
-              effectiveDate: demonstration.effectiveDate,
-              expirationDate: demonstration.expirationDate,
+              effectivePlainDate: demonstration.effectivePlainDate,
+              expirationPlainDate: demonstration.expirationPlainDate,
             }}
           />
         </Tab>

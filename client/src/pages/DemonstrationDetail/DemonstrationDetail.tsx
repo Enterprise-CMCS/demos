@@ -47,8 +47,8 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       name
       status
       currentPhaseName
-      effectiveDate
-      expirationDate
+      effectivePlainDate
+      expirationPlainDate
       medicaidId
       state {
         id
@@ -147,7 +147,6 @@ export type DemonstrationDetailModification = Pick<
   | "description"
   | "status"
   | "createdAt"
-  | "effectiveDate"
   | "effectivePlainDate"
   | "signatureLevel"
 > & {
@@ -157,7 +156,13 @@ export type DemonstrationDetailModification = Pick<
 };
 export type DemonstrationDetail = Pick<
   Demonstration,
-  "id" | "name" | "status" | "currentPhaseName" | "effectiveDate" | "expirationDate" | "medicaidId"
+  | "id"
+  | "name"
+  | "status"
+  | "currentPhaseName"
+  | "effectivePlainDate"
+  | "expirationPlainDate"
+  | "medicaidId"
 > & {
   state: Pick<State, "id">;
   amendments: DemonstrationDetailModification[];
