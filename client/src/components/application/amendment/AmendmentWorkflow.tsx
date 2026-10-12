@@ -28,9 +28,9 @@ export const GET_AMENDMENT_WORKFLOW_QUERY = gql`
         demonstrationTypes {
           demonstrationTypeName
           status
-          effectiveDate
           approvalStatus
-          expirationDate
+          effectivePlainDate
+          expirationPlainDate
           createdAt
         }
       }
@@ -61,8 +61,8 @@ export type ApplicationWorkflowAmendment = WorkflowApplication &
         DemonstrationTypeAssignment,
         | "demonstrationTypeName"
         | "status"
-        | "effectiveDate"
-        | "expirationDate"
+        | "effectivePlainDate"
+        | "expirationPlainDate"
         | "createdAt"
         | "approvalStatus"
       >[];

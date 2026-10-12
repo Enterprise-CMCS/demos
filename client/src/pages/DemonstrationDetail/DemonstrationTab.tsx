@@ -43,8 +43,8 @@ export type DemonstrationDetailDemonstrationType = Pick<
   DemonstrationTypeAssignment,
   | "demonstrationTypeName"
   | "status"
-  | "effectiveDate"
-  | "expirationDate"
+  | "effectivePlainDate"
+  | "expirationPlainDate"
   | "createdAt"
   | "approvalStatus"
 >;

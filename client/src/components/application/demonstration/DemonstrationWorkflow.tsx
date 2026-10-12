@@ -40,9 +40,9 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
       demonstrationTypes {
         demonstrationTypeName
         status
-        effectiveDate
         approvalStatus
-        expirationDate
+        effectivePlainDate
+        expirationPlainDate
         createdAt
       }
       documents {
@@ -78,8 +78,8 @@ export type ApplicationWorkflowDemonstration = WorkflowApplication &
       DemonstrationTypeAssignment,
       | "demonstrationTypeName"
       | "status"
-      | "effectiveDate"
-      | "expirationDate"
+      | "effectivePlainDate"
+      | "expirationPlainDate"
       | "createdAt"
       | "approvalStatus"
     >[];
