@@ -17,9 +17,7 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
       description
       status
       currentPhaseName
-      effectiveDate
       effectivePlainDate
-      expirationDate
       expirationPlainDate
       sdgDivision
       signatureLevel
@@ -64,9 +62,7 @@ export type ApplicationWorkflowDemonstration = WorkflowApplication &
     | "medicaidId"
     | "status"
     | "name"
-    | "effectiveDate"
     | "effectivePlainDate"
-    | "expirationDate"
     | "expirationPlainDate"
     | "sdgDivision"
     | "signatureLevel"

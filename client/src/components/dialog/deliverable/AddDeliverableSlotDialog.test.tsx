@@ -53,8 +53,8 @@ const MOCK_DEMONSTRATION_TYPE_TAGS: Tag[] = [
 const DEFAULT_DEMONSTRATION: AddDeliverableSlotDemonstration = {
   demonstrationTypes: MOCK_DEMONSTRATION_TYPE_TAGS,
   id: TEST_DEMO_ID,
-  effectiveDate: new Date("2024-01-01"),
-  expirationDate: new Date("2026-12-31"),
+  effectivePlainDate: "2024-01-01",
+  expirationPlainDate: "2026-12-31",
 };
 
 describe("AddDeliverableSlotDialog", () => {
@@ -173,7 +173,7 @@ describe("AddDeliverableSlotDialog", () => {
 
   it("enables save when a valid Quarterly form is completed in a different order and disables when a date becomes past", async () => {
     const user = userEvent.setup();
-    setup({ expirationDate: new Date("2099-12-31") });
+    setup({ expirationPlainDate: "2099-12-31" });
 
     await waitFor(() => expect(screen.getByTestId("select-users")).toBeInTheDocument());
 
@@ -213,7 +213,7 @@ describe("AddDeliverableSlotDialog", () => {
 
   it("shows success toast and calls onClose when save is clicked with a valid Single schedule form", async () => {
     const user = userEvent.setup();
-    const { onClose } = setup({ expirationDate: new Date("2099-12-31") });
+    const { onClose } = setup({ expirationPlainDate: "2099-12-31" });
 
     await waitFor(() => expect(screen.getByTestId("select-users")).toBeInTheDocument());
 
@@ -244,7 +244,7 @@ describe("AddDeliverableSlotDialog", () => {
 
   it("disables save when a valid Single due date is changed to a past date", async () => {
     const user = userEvent.setup();
-    setup({ expirationDate: new Date("2099-12-31") });
+    setup({ expirationPlainDate: "2099-12-31" });
 
     await waitFor(() => expect(screen.getByTestId("select-users")).toBeInTheDocument());
 

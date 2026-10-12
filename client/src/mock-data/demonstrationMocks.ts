@@ -47,9 +47,7 @@ export type MockDemonstration = Pick<
   | "chipId"
   | "primaryProjectOfficer"
   | "roles"
-  | "effectiveDate"
   | "effectivePlainDate"
-  | "expirationDate"
   | "expirationPlainDate"
 > & {
   status: ApplicationStatus;
@@ -64,9 +62,7 @@ export const MOCK_DEMONSTRATION: MockDemonstration = {
   name: "Montana Medicaid Waiver",
   description: "A demonstration project in Montana.",
   status: "Approved" as ApplicationStatus,
-  effectiveDate: new Date(2025, 0, 1),
   effectivePlainDate: "2025-01-01",
-  expirationDate: new Date(2025, 1, 1),
   expirationPlainDate: "2025-02-01",
   state: mockStates.find((state) => state.id === "MT")!,
   sdgDivision: "Division of System Reform Demonstrations",

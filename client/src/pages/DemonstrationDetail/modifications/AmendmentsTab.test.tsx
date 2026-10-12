@@ -25,7 +25,7 @@ const mockAmendments = [
     description: "Description",
     status: "Pre-Submission",
     createdAt: new Date("2024-01-01T00:00:00Z"),
-    effectiveDate: new Date("2024-02-01T00:00:00Z"),
+    effectivePlainDate: "2024-02-01",
     signatureLevel: "OCD",
     documents: [],
   },

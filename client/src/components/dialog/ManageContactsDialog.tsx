@@ -25,6 +25,7 @@ import { gql, useLazyQuery, useMutation } from "@apollo/client";
 import type { ContactRow, ContactType } from "../table/columns/ContactColumns";
 import { ContactColumns } from "../table/columns/ContactColumns";
 import { PaginationControls } from "../table/PaginationControls";
+import { DEMONSTRATION_HEADER_DETAILS_QUERY } from "pages/DemonstrationDetail/DemonstrationHeader";
 
 export const ERROR_MESSAGES = {
   NO_CONTACTS: "At least one contact is required.",
@@ -60,25 +61,6 @@ const UNSET_DEMONSTRATION_ROLES_MUTATION = gql`
   mutation UnsetDemonstrationRoles($input: [UnsetDemonstrationRoleInput!]!) {
     unsetDemonstrationRoles(input: $input) {
       role
-    }
-  }
-`;
-
-const DEMONSTRATION_HEADER_DETAILS_QUERY = gql`
-  query DemonstrationHeaderDetails($demonstrationId: ID!) {
-    demonstration(id: $demonstrationId) {
-      id
-      name
-      expirationDate
-      effectiveDate
-      status
-      state {
-        id
-      }
-      primaryProjectOfficer {
-        id
-        fullName
-      }
     }
   }
 `;

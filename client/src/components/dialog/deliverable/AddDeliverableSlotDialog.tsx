@@ -129,7 +129,7 @@ const formHasChanges = (
 
 export type AddDeliverableSlotDemonstration = Pick<
   Demonstration,
-  "effectiveDate" | "expirationDate" | "id"
+  "effectivePlainDate" | "expirationPlainDate" | "id"
 > & {
   demonstrationTypes: Tag[];
 };
@@ -209,8 +209,8 @@ export const AddDeliverableSlotDialog = ({
         </div>
         {formData.scheduleType === "Quarterly" && (
           <QuarterlyDeliverableSchedule
-            demonstrationEffectiveDate={demonstration.effectiveDate}
-            demonstrationExpirationDate={demonstration.expirationDate}
+            demonstrationEffectiveDate={demonstration.effectivePlainDate}
+            demonstrationExpirationDate={demonstration.expirationPlainDate}
             onSelectYear={(demonstrationYear) => setDemonstrationYear(demonstrationYear)}
             quarterlyDueDates={formData.quarterlyDueDates}
             onSelectQuarterDate={(quarterIndex, dueDate) =>
