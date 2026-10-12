@@ -1,8 +1,12 @@
 import { FINAL_DELIVERABLE_STATUSES, FinalDeliverableStatus } from "../../constants";
-import { prisma } from "../../prismaClient";
+import { prisma, PrismaTransactionClient } from "../../prismaClient";
 
-export async function validateDocumentCanBeDeleted(documentId: string) {
-  const document = await prisma().document.findUniqueOrThrow({
+export async function validateDocumentCanBeDeleted(
+  documentId: string,
+  tx?: PrismaTransactionClient
+) {
+  const prismaClient = tx ?? prisma();
+  const document = await prismaClient.document.findUniqueOrThrow({
     where: { id: documentId },
     include: {
       deliverable: true,
