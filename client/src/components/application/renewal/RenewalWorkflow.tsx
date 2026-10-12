@@ -31,8 +31,8 @@ export const GET_RENEWAL_WORKFLOW_QUERY = gql`
         demonstrationTypes {
           demonstrationTypeName
           status
-          effectiveDate
           approvalStatus
+          effectivePlainDate
           expirationPlainDate
           createdAt
         }
