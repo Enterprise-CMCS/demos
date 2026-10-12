@@ -84,15 +84,15 @@ const mockTypes = [
   {
     demonstrationTypeName: "Environmental",
     status: "Active",
-    effectiveDate: new Date("2023-01-01"),
-    expirationDate: new Date("2024-01-01"),
+    effectivePlainDate: "2023-01-01",
+    expirationPlainDate: "2024-01-01",
     createdAt: new Date("2022-12-01"),
   } as DemonstrationDetailDemonstrationType,
   {
     demonstrationTypeName: "Economic",
     status: "Pending",
-    effectiveDate: new Date("2024-01-01"),
-    expirationDate: new Date("2025-01-01"),
+    effectivePlainDate: "2024-01-01",
+    expirationPlainDate: "2025-01-01",
     createdAt: new Date("2023-06-01"),
   } as DemonstrationDetailDemonstrationType,
 ];

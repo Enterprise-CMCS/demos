@@ -33,7 +33,7 @@ export const GET_RENEWAL_WORKFLOW_QUERY = gql`
           status
           effectiveDate
           approvalStatus
-          expirationDate
+          expirationPlainDate
           createdAt
         }
       }
@@ -64,8 +64,8 @@ export type ApplicationWorkflowRenewal = WorkflowApplication &
         DemonstrationTypeAssignment,
         | "demonstrationTypeName"
         | "status"
-        | "effectiveDate"
-        | "expirationDate"
+        | "effectivePlainDate"
+        | "expirationPlainDate"
         | "createdAt"
         | "approvalStatus"
       >[];

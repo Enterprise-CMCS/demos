@@ -19,8 +19,8 @@ export type TypeTableRow = {
   typeLabel: string;
   status: DemonstrationDetailDemonstrationType["status"];
   approvalStatus: DemonstrationDetailDemonstrationType["approvalStatus"];
-  effectiveDate: Date;
-  expirationDate: Date;
+  effectivePlainDate: string;
+  expirationPlainDate: string;
 };
 
 export type Demonstration = Pick<ServerDemonstration, "id" | "status"> & {
@@ -59,8 +59,10 @@ export const TypesTable: React.FC<TypesTableProps> = ({
         typeLabel: type.demonstrationTypeName,
         status: type.status,
         approvalStatus: type.approvalStatus,
-        effectiveDate: new Date(type.effectiveDate),
-        expirationDate: new Date(type.expirationDate),
+        effectiveDate: new Date(type.effectivePlainDate),
+        expirationDate: new Date(type.expirationPlainDate),
+        effectivePlainDate: type.effectivePlainDate,
+        expirationPlainDate: type.expirationPlainDate,
       }));
   }, [demonstration.demonstrationTypes]);
 
@@ -156,8 +158,8 @@ export const TypesTable: React.FC<TypesTableProps> = ({
                       demonstrationTypeName: selected[0].typeLabel,
                       status: selected[0].status,
                       approvalStatus: selected[0].approvalStatus,
-                      effectiveDate: selected[0].effectiveDate,
-                      expirationDate: selected[0].expirationDate,
+                      effectivePlainDate: selected[0].effectivePlainDate,
+                      expirationPlainDate: selected[0].expirationPlainDate,
                     })
                   }
                 >

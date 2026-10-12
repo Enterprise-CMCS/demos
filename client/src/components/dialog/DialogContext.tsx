@@ -315,7 +315,11 @@ export const useDialog = () => {
     demonstrationId: string,
     demonstrationType: Pick<
       DemonstrationTypeAssignment,
-      "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "approvalStatus"
+      | "demonstrationTypeName"
+      | "status"
+      | "effectivePlainDate"
+      | "expirationPlainDate"
+      | "approvalStatus"
     >
   ) => {
     context.showDialog(

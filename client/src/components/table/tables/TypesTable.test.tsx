@@ -23,16 +23,16 @@ const mockTypes: DemonstrationDetailDemonstrationType[] = [
     demonstrationTypeName: "Environmental",
     status: "Active",
     approvalStatus: "Approved",
-    effectiveDate: new Date("2023-01-01"),
-    expirationDate: new Date("2024-01-01"),
+    effectivePlainDate: "2023-01-01",
+    expirationPlainDate: "2024-01-01",
     createdAt: new Date("2022-12-01"),
   },
   {
     demonstrationTypeName: "Economic",
     status: "Pending",
     approvalStatus: "Unapproved",
-    effectiveDate: new Date("2024-01-01"),
-    expirationDate: new Date("2025-01-01"),
+    effectivePlainDate: "2024-01-01",
+    expirationPlainDate: "2025-01-01",
     createdAt: new Date("2023-06-01"),
   },
 ];
@@ -50,10 +50,7 @@ const renderTypesTable = (
 ) => {
   return render(
     <TestProvider currentUser={currentUser}>
-      <TypesTable
-        demonstration={MOCK_DEMONSTRATION}
-        {...props}
-      />
+      <TypesTable demonstration={MOCK_DEMONSTRATION} {...props} />
     </TestProvider>
   );
 };
@@ -234,8 +231,8 @@ describe("TypesTable", () => {
       const expectedDemonstrationType = {
         demonstrationTypeName: mockTypes[0].demonstrationTypeName,
         status: mockTypes[0].status,
-        effectiveDate: mockTypes[0].effectiveDate,
-        expirationDate: mockTypes[0].expirationDate,
+        effectivePlainDate: mockTypes[0].effectivePlainDate,
+        expirationPlainDate: mockTypes[0].expirationPlainDate,
         approvalStatus: mockTypes[0].approvalStatus,
       };
 
@@ -268,6 +265,8 @@ describe("TypesTable", () => {
 
     expect(screen.queryByLabelText(/Edit Type/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Delete Type/i)).not.toBeInTheDocument();
-    expect(screen.queryByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`)).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`)
+    ).not.toBeInTheDocument();
   });
 });
