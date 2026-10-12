@@ -14,6 +14,8 @@ import {
   SAVE_TYPE_TAG_BUTTON_NAME,
   TYPE_TAG_DISPLAY_TEXT_INPUT_NAME,
 } from "./EditTypeTagDialog";
+import { TestProvider } from "test-utils/TestProvider";
+import { GET_DEMONSTRATION_TYPE_USAGE_QUERY } from "components/table/tables/DemonstrationTypeUsageTable";
 
 const TYPE_TAG_NAME = MOCK_1115_WAIVER.demonstrationTypeName;
 const EXISTING_TYPE_TAG_NAMES = MOCK_DEMONSTRATION_TYPE_USAGE.map(
@@ -22,15 +24,26 @@ const EXISTING_TYPE_TAG_NAMES = MOCK_DEMONSTRATION_TYPE_USAGE.map(
 const OTHER_TYPE_TAG_NAME = EXISTING_TYPE_TAG_NAMES[1];
 const UNIQUE_TYPE_TAG_NAME = "Substance Use Disorder (SUD)";
 
+const mockMutate = vi.fn(() => Promise.resolve({ data: {} }));
+vi.mock("@apollo/client", async () => {
+  const actual = await vi.importActual("@apollo/client");
+  return {
+    ...actual,
+    useMutation: vi.fn(() => [mockMutate, { loading: false, error: null }]),
+  };
+});
+
 const setup = () => {
   const user = userEvent.setup();
   const onClose = vi.fn();
   render(
-    <EditTypeTagDialog
-      typeTagName={TYPE_TAG_NAME}
-      existingTypeTagNames={EXISTING_TYPE_TAG_NAMES}
-      onClose={onClose}
-    />
+    <TestProvider>
+      <EditTypeTagDialog
+        typeTagName={TYPE_TAG_NAME}
+        existingTypeTagNames={EXISTING_TYPE_TAG_NAMES}
+        onClose={onClose}
+      />
+    </TestProvider>
   );
   return { user, onClose };
 };
@@ -123,5 +136,20 @@ describe("EditTypeTagDialog", () => {
     await user.click(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME));
 
     expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it("calls the renameTag mutator with the correct value when Save Changes is clicked", async () => {
+    const { user } = setup();
+
+    await replaceDisplayText(user, UNIQUE_TYPE_TAG_NAME);
+    await user.click(getSaveButton());
+
+    expect(mockMutate).toHaveBeenCalledWith({
+      variables: {
+        oldName: TYPE_TAG_NAME,
+        newName: UNIQUE_TYPE_TAG_NAME,
+      },
+      refetchQueries: [GET_DEMONSTRATION_TYPE_USAGE_QUERY],
+    });
   });
 });

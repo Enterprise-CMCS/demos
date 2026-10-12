@@ -4,7 +4,7 @@ import { SelectDemonstrationType } from "components/input/select/SelectDemonstra
 import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
 import { TagName, Tag, TagStatus } from "demos-server";
 import { WarningIcon, LabelIcon } from "components/icons";
-import { NewDemonstrationType } from "./CreateDemonstrationTypesDialog";
+import { NewDemonstrationType } from "../CreateTypeTagDialog";
 
 export const CREATE_DEMONSTRATION_TYPES_FORM_QUERY: TypedDocumentNode<{
   demonstrationTypeOptions: { tagName: TagName }[];

@@ -1,7 +1,7 @@
 import React from "react";
 import { DeleteIcon } from "components/icons";
 import { TagName } from "demos-server";
-import { NewDemonstrationType } from "./CreateDemonstrationTypesDialog";
+import { NewDemonstrationType } from "../CreateTypeTagDialog";
 
 export const CreateDemonstrationTypesList = ({
   demonstrationTypes,

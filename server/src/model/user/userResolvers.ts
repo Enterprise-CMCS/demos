@@ -13,7 +13,7 @@ import { selectLastLoginForUser } from "../userSession/queries";
 
 export const userResolvers = {
   Query: {
-    users: (): Promise<PrismaUser[]> => selectManyUsers({}),
+    users: (): Promise<PrismaUser[]> => selectManyUsers({ hasLoggedIn: true }),
     currentUser: (parent: unknown, args: unknown, context: GraphQLContext): Promise<PrismaUser> =>
       selectUserOrThrow({ id: context.user.id }),
   },

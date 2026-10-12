@@ -8,20 +8,33 @@ import {
   APPROVE_TYPE_TAG_DIALOG_TITLE,
   ApproveTypeTagDialog,
 } from "./ApproveTypeTagDialog";
+import { GET_DEMONSTRATION_TYPE_USAGE_QUERY } from "components/table/tables/DemonstrationTypeUsageTable";
+import { TestProvider } from "test-utils/TestProvider";
 
 const FIRST_TYPE_TAG_NAME = "1115 Waiver";
 const SECOND_TYPE_TAG_NAME = "Type B";
 const THIRD_TYPE_TAG_NAME = "Type C";
+
+const mockMutate = vi.fn(() => Promise.resolve({ data: {} }));
+vi.mock("@apollo/client", async () => {
+  const actual = await vi.importActual("@apollo/client");
+  return {
+    ...actual,
+    useMutation: vi.fn(() => [mockMutate]),
+  };
+});
 
 const setup = (typeTagNames = [FIRST_TYPE_TAG_NAME]) => {
   const user = userEvent.setup();
   const onClose = vi.fn();
 
   render(
-    <ApproveTypeTagDialog
-      typeTagNames={typeTagNames}
-      onClose={onClose}
-    />
+    <TestProvider>
+      <ApproveTypeTagDialog
+        typeTagNames={typeTagNames}
+        onClose={onClose}
+      />
+    </TestProvider>
   );
 
   return { user, onClose };
@@ -67,11 +80,15 @@ describe("ApproveTypeTagDialog", () => {
     expect(getApproveButton()).toBeEnabled();
   });
 
-  it("closes when Approve is selected", async () => {
+  it("calls the approveTags mutator with the correct value when Approve is clicked", async () => {
     const { user, onClose } = setup();
 
     await user.click(getApproveButton());
 
     expect(onClose).toHaveBeenCalledOnce();
+    expect(mockMutate).toHaveBeenCalledWith({
+      variables: { tagNames: [FIRST_TYPE_TAG_NAME] },
+      refetchQueries: [GET_DEMONSTRATION_TYPE_USAGE_QUERY],
+    });
   });
 });

@@ -8,12 +8,22 @@ export type FindMigratedUserResult = {
   resultType: FindMigratedUserResultType;
 };
 
+// Using mode insensitive in Prisma generates ILIKE SQL and does NOT escape wildcards
+// This is a helper function to do so
+function escapeSqlLikeWildcards(value: string): string {
+  return value.replace(/[\\%_]/g, (ch) => `\\${ch}`);
+}
+
 export async function findNewlyMigratedUserByEmail(
   email: string,
   tx: PrismaTransactionClient
 ): Promise<FindMigratedUserResult> {
   const users = await selectManyUsers(
-    { person: { email: email }, isMigratedFromPmda: true, hasLoggedIn: false },
+    {
+      person: { email: { equals: escapeSqlLikeWildcards(email), mode: "insensitive" } },
+      isMigratedFromPmda: true,
+      hasLoggedIn: false,
+    },
     tx
   );
 
