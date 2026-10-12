@@ -14,7 +14,7 @@ export async function validateDocumentCanBeDeleted(documentId: string) {
     FINAL_DELIVERABLE_STATUSES.includes(document.deliverable.statusId as FinalDeliverableStatus)
   ) {
     throw new Error(
-      `Document with ID ${documentId} cannot be updated because its deliverable is in a finalized status of ${document.deliverable.statusId}.`
+      `Document with ID ${document.id} cannot be updated because its deliverable is in a finalized status of ${document.deliverable.statusId}.`
     );
   }
 
