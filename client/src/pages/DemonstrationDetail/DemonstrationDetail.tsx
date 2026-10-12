@@ -103,8 +103,8 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         demonstrationTypeName
         status
         approvalStatus
-        effectiveDate
-        expirationDate
+        effectivePlainDate
+        expirationPlainDate
         createdAt
       }
       documents {
@@ -166,8 +166,8 @@ export type DemonstrationDetail = Pick<
     DemonstrationTypeAssignment,
     | "demonstrationTypeName"
     | "status"
-    | "effectiveDate"
-    | "expirationDate"
+    | "effectivePlainDate"
+    | "expirationPlainDate"
     | "createdAt"
     | "approvalStatus"
   >[];

@@ -149,7 +149,7 @@ describe("linkNewlyMigratedUserFromClaims", () => {
 
     expect(updatePerson).toHaveBeenCalledExactlyOnceWith(
       { id: mockMigratedUser.id },
-      { firstName: testClaims.givenName, lastName: testClaims.familyName },
+      { firstName: testClaims.givenName, lastName: testClaims.familyName, email: testClaims.email },
       testTransaction
     );
     expect(updateUser).toHaveBeenCalledExactlyOnceWith(

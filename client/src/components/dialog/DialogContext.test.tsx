@@ -341,8 +341,10 @@ vi.mock("./DemonstrationTypes/EditDemonstrationTypeDialog", () => ({
       <ul>
         <li>Demonstration Type Name: {initialDemonstrationType.demonstrationTypeName}</li>
         <li>Status: {initialDemonstrationType.status}</li>;
-        <li>Effective Date: {formatDateForServer(initialDemonstrationType.effectiveDate)}</li>
-        <li>Expiration Date: {formatDateForServer(initialDemonstrationType.expirationDate)}</li>
+        <li>Effective Date: {formatDateForServer(initialDemonstrationType.effectivePlainDate)}</li>
+        <li>
+          Expiration Date: {formatDateForServer(initialDemonstrationType.expirationPlainDate)}
+        </li>
       </ul>
     </div>
   ),
@@ -567,8 +569,8 @@ const TestConsumer: React.FC = () => {
             demonstrationTypeName: "Type1",
             status: "Active",
             approvalStatus: "Approved",
-            effectiveDate: new Date("2024-01-01"),
-            expirationDate: new Date("2025-01-01"),
+            effectivePlainDate: "2024-01-01",
+            expirationPlainDate: "2025-01-01",
           })
         }
       >
