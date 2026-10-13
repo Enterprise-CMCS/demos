@@ -1,3 +1,11 @@
+/**
+Utility for CSV export.
+My brain tells me to find a library, however. With as annoying as SNYK is, this is not a lot of code.
+I figured CSV, probably okay to hand roll. but excel might be a library.
+
+Thoght i'd just make both a then we can decide.
+*/
+
 type CsvValue = boolean | number | string | null | undefined;
 
 const escapeCsvValue = (value: CsvValue) => {
