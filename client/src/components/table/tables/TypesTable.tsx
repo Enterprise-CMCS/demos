@@ -2,7 +2,8 @@ import * as React from "react";
 
 import { compareAsc } from "date-fns";
 import { CircleButton } from "components/button/CircleButton";
-import { DeleteIcon, EditIcon } from "components/icons";
+import { DeleteIcon, EditIcon, ExportIcon } from "components/icons";
+import { downloadCsv } from "components/table/exportCsv";
 import { KeywordSearch } from "components/table/search";
 import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
@@ -34,6 +35,19 @@ export type TypesTableProps = {
   demonstration: Demonstration;
   inputDisabled?: boolean;
   hideSearch?: boolean;
+};
+
+const exportTypesCsv = (types: TypeTableRow[]) => {
+  downloadCsv("demonstration-types.csv", [
+    ["Type", "Status", "Approval Status", "Effective Date", "Expiration Date"],
+    ...types.map((type) => [
+      type.typeLabel,
+      type.status,
+      type.approvalStatus,
+      type.effectivePlainDate,
+      type.expirationPlainDate,
+    ]),
+  ]);
 };
 
 export const TypesTable: React.FC<TypesTableProps> = ({
@@ -145,6 +159,17 @@ export const TypesTable: React.FC<TypesTableProps> = ({
 
             return (
               <div className="flex gap-1 ml-4">
+                <CircleButton
+                  name="export-type"
+                  aria-label="Export Types"
+                  tooltip={"Export"}
+                  disabled={false}
+                  onClick={() =>
+                    exportTypesCsv(table.getRowModel().rows.map((row) => row.original))
+                  }
+                >
+                  <ExportIcon />
+                </CircleButton>
                 <CircleButton
                   name="edit-type"
                   aria-label="Edit Type"
