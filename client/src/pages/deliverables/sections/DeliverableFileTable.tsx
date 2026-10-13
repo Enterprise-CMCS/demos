@@ -14,6 +14,12 @@ import type { DeliverableFileRow } from "./DeliverableFileTypes";
 const INITIAL_TABLE_STATE = {
   sorting: [{ id: "createdAt", desc: true }],
 };
+// Action strings for display
+const FILE_ACTION_PAST_TENSE = {
+  Edit: "edited",
+  Delete: "deleted",
+} as const;
+
 const getFileActionTooltip = (
   action: "Edit" | "Delete",
   isFinalized: boolean,
@@ -21,7 +27,7 @@ const getFileActionTooltip = (
   hasSubmittedFile = false
 ) => {
   if (isFinalized) {
-    return `Cannot ${action} Finalized Deliverables`;
+    return `Documents on Finalized Deliverables cannot be ${FILE_ACTION_PAST_TENSE[action]}.`;
   }
 
   if (action === "Delete" && hasSubmittedFile) {

@@ -225,7 +225,10 @@ describe("StateFilesTab", () => {
       await user.click(screen.getByTestId("select-row-file-a"));
 
       expect(editButton).toBeDisabled();
-      expect(editButton).toHaveAttribute("title", "Cannot Edit Finalized Deliverables");
+      expect(editButton).toHaveAttribute(
+        "title",
+        "Documents on Finalized Deliverables cannot be edited."
+      );
     });
   });
   describe("when the user cannot manage files", () => {
