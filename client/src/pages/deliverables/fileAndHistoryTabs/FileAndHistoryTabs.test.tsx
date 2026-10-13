@@ -395,6 +395,24 @@ describe("FileAndHistoryTabs", () => {
 
       expect(screen.getByTestId(CMS_FILES_ADD_BUTTON_NAME)).toBeDisabled();
     });
+    // SUBMITTED STATUS may change nto 100% sure
+    it.each(["Accepted", "Approved", "Received and Filed"] as const)(
+      "disables CMS file deletion for status %s",
+      async (status) => {
+        const user = userEvent.setup();
+        const unsubmittedCmsFile = {
+          ...MOCK_DELIVERABLE_1.cmsDocuments[0],
+          id: "cms-file-unsubmitted",
+          deliverableSubmissionAction: null,
+        };
+        setup({ status, cmsDocuments: [unsubmittedCmsFile] });
+
+        await user.click(screen.getByTestId("button-cms_files"));
+        await user.click(screen.getByTestId(`select-row-${unsubmittedCmsFile.id}`));
+
+        expect(screen.getByTestId(CMS_FILES_DELETE_BUTTON_NAME)).toBeDisabled();
+      }
+    );
 
     it("keeps the State Files Add button enabled when status is Submitted", () => {
       setup({ status: "Submitted" });

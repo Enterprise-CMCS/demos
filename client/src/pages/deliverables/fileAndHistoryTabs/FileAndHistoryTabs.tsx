@@ -57,11 +57,6 @@ export const RESUBMISSION_DISABLED_STATUSES: ReadonlySet<DeliverableStatus> = ne
 export const isResubmissionDisabled = (status: DeliverableStatus): boolean =>
   RESUBMISSION_DISABLED_STATUSES.has(status);
 
-export const FILE_DELETION_ALLOWED_STATUSES: ReadonlySet<DeliverableStatus> = new Set([
-  "Upcoming",
-  "Past Due",
-]);
-
 const CMS_STAFF_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
   "demos-admin",
   "demos-cms-user",
