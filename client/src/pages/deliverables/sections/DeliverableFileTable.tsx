@@ -11,7 +11,47 @@ import { enabledDisabledTooltip, selectionTooltip } from "components/table/table
 
 import type { DeliverableFileRow } from "./DeliverableFileTypes";
 
-const INITIAL_TABLE_STATE = { sorting: [{ id: "createdAt", desc: true }] };
+const INITIAL_TABLE_STATE = {
+  sorting: [{ id: "createdAt", desc: true }],
+};
+
+// Action strings for display
+const FILE_ACTION_PAST_TENSE = {
+  Edit: "edited",
+  Delete: "deleted",
+} as const;
+
+const getFileActionTooltip = (
+  action: "Edit" | "Delete",
+  isFinalized: boolean,
+  selectedCount: number,
+  hasSubmittedFile = false
+) => {
+  if (isFinalized) {
+    return `Documents on finalized deliverables cannot be ${FILE_ACTION_PAST_TENSE[action]}.`;
+  }
+
+  if (action === "Delete" && hasSubmittedFile) {
+    return "Submitted documents cannot be deleted.";
+  }
+
+  return selectionTooltip({
+    action,
+    nounSingular: "File",
+    selectedCount,
+    rule: action === "Edit" ? { kind: "exactly", count: 1 } : { kind: "atLeast", count: 1 },
+  });
+};
+
+const addFileTooltip = (isFinalized: boolean) => {
+  if (isFinalized) {
+    return "Documents cannot be added to finalized deliverables.";
+  }
+  return enabledDisabledTooltip({
+    enabledText: "Add File",
+    disabled: isFinalized,
+  });
+};
 
 export type DeliverableFileTableProps = {
   "data-testid": string;
@@ -49,81 +89,65 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
   footer,
   showActions,
   isFinalized,
-}) => (
-  <div data-testid={testId} className="flex flex-col gap-1">
-    <div className="flex justify-between items-center">
-      <span className="text-[20px] font-bold uppercase text-brand">{title}</span>
-      {showActions && (
-        <SecondaryButton name={addButtonName} onClick={onAdd} disabled={isFinalized} tooltip={ isFinalized
-          ? "Files cannot be added to a Finalized deliverable."
-          : enabledDisabledTooltip({
-            enabledText: "Add File",
-            disabled: isFinalized,
-          })}
+}) => {
+  const renderFileActions: NonNullable<TableProps<DeliverableFileRow>["actionButtons"]> = (
+    table
+  ) => {
+    const selectedRows = table.getSelectedRowModel().rows.map((row) => row.original);
+    const selectedCount = selectedRows.length;
+    const hasSubmittedFile = selectedRows.some((row) => row.deliverableSubmissionAction);
+
+    return (
+      <div className="flex gap-1 ml-4">
+        <CircleButton
+          name={editButtonName}
+          aria-label={editAriaLabel}
+          tooltip={getFileActionTooltip("Edit", isFinalized, selectedCount, hasSubmittedFile)}
+          disabled={isFinalized || selectedCount !== 1}
+          onClick={() => onEdit?.(selectedRows[0])}
         >
-          Add File(s)
-        </SecondaryButton>
-      )}
+          <EditIcon />
+        </CircleButton>
+        <CircleButton
+          name={deleteButtonName}
+          aria-label={deleteAriaLabel}
+          tooltip={getFileActionTooltip("Delete", isFinalized, selectedCount, hasSubmittedFile)}
+          disabled={isFinalized || hasSubmittedFile || selectedCount < 1}
+          onClick={() => onDelete?.(selectedRows.map((row) => row.id))}
+        >
+          <DeleteIcon />
+        </CircleButton>
+      </div>
+    );
+  };
+
+  return (
+    <div data-testid={testId} className="flex flex-col gap-1">
+      <div className="flex justify-between items-center">
+        <span className="text-[20px] font-bold uppercase text-brand">{title}</span>
+        {showActions && (
+          <SecondaryButton
+            name={addButtonName}
+            onClick={onAdd}
+            disabled={isFinalized}
+            tooltip={addFileTooltip(isFinalized)}
+          >
+            Add File(s)
+          </SecondaryButton>
+        )}
+      </div>
+      <Table<DeliverableFileRow>
+        data={files}
+        columns={columns}
+        keywordSearch={(table) => <KeywordSearch table={table} />}
+        columnFilter={(table) => <ColumnFilter table={table} />}
+        pagination={(table) => <PaginationControls table={table} />}
+        initialState={INITIAL_TABLE_STATE}
+        emptyRowsMessage={emptyMessage}
+        noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
+        actionButtons={showActions ? renderFileActions : undefined}
+      />
+      {footer}
     </div>
-    <Table<DeliverableFileRow>
-      data={files}
-      columns={columns}
-      keywordSearch={(table) => <KeywordSearch table={table} />}
-      columnFilter={(table) => <ColumnFilter table={table} />}
-      pagination={(table) => <PaginationControls table={table} />}
-      initialState={INITIAL_TABLE_STATE}
-      emptyRowsMessage={emptyMessage}
-      noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
-      actionButtons={
-        showActions
-          ? (table) => {
-            const selectedRows = table.getSelectedRowModel().rows.map((row) => row.original);
-            const selectedCount = selectedRows.length;
-
-            const hasSubmittedFile = selectedRows.some(
-              (row) => row.deliverableSubmissionAction
-            );
-
-            return (
-              <div className="flex gap-1 ml-4">
-                <CircleButton
-                  name={editButtonName}
-                  aria-label={editAriaLabel}
-                  tooltip={ isFinalized
-                    ? "Documents on Finalized deliverables cannot be edited."
-                    : selectionTooltip({
-                      action: "Edit",
-                      nounSingular: "File",
-                      selectedCount,
-                      rule: { kind: "exactly", count: 1 },
-                    })}
-                  disabled={isFinalized || selectedCount !== 1}
-                  onClick={() => onEdit?.(selectedRows[0])}
-                >
-                  <EditIcon />
-                </CircleButton>
-                <CircleButton
-                  name={deleteButtonName}
-                  aria-label={deleteAriaLabel}
-                  tooltip={hasSubmittedFile
-                    ? "Selection contains files that have been submitted. Cannot delete submitted files."
-                    : selectionTooltip({
-                      action: "Delete",
-                      nounSingular: "File",
-                      selectedCount,
-                      rule: { kind: "atLeast", count: 1 },
-                    })}
-                  disabled={hasSubmittedFile || selectedCount < 1}
-                  onClick={() => onDelete?.(selectedRows.map((row) => row.id))}
-                >
-                  <DeleteIcon />
-                </CircleButton>
-              </div>
-            );
-          }
-          : undefined
-      }
-    />
-    {footer}
-  </div>
-);
+  );
+};
