@@ -14,6 +14,7 @@ import type { DeliverableFileRow } from "./DeliverableFileTypes";
 const INITIAL_TABLE_STATE = {
   sorting: [{ id: "createdAt", desc: true }],
 };
+
 // Action strings for display
 const FILE_ACTION_PAST_TENSE = {
   Edit: "edited",
@@ -27,11 +28,11 @@ const getFileActionTooltip = (
   hasSubmittedFile = false
 ) => {
   if (isFinalized) {
-    return `Documents on Finalized Deliverables cannot be ${FILE_ACTION_PAST_TENSE[action]}.`;
+    return `Documents on finalized deliverables cannot be ${FILE_ACTION_PAST_TENSE[action]}.`;
   }
 
   if (action === "Delete" && hasSubmittedFile) {
-    return "Selection contains files that have been submitted. Cannot delete submitted files.";
+    return "Submitted documents cannot be deleted.";
   }
 
   return selectionTooltip({
@@ -44,7 +45,7 @@ const getFileActionTooltip = (
 
 const addFileTooltip = (isFinalized: boolean) => {
   if (isFinalized) {
-    return "Files cannot be added to a Finalized deliverable.";
+    return "Documents cannot be added to finalized deliverables.";
   }
   return enabledDisabledTooltip({
     enabledText: "Add File",
