@@ -396,7 +396,7 @@ describe("FileAndHistoryTabs", () => {
       expect(screen.getByTestId(CMS_FILES_ADD_BUTTON_NAME)).toBeDisabled();
     });
     // SUBMITTED STATUS may change nto 100% sure
-    it.each(["Submitted", "Accepted", "Approved", "Received and Filed"] as const)(
+    it.each(["Accepted", "Approved", "Received and Filed"] as const)(
       "disables CMS file deletion for status %s",
       async (status) => {
         const user = userEvent.setup();

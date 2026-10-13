@@ -57,13 +57,6 @@ export const RESUBMISSION_DISABLED_STATUSES: ReadonlySet<DeliverableStatus> = ne
 export const isResubmissionDisabled = (status: DeliverableStatus): boolean =>
   RESUBMISSION_DISABLED_STATUSES.has(status);
 
-export const DISABLE_FILE_DELETION_STATUSES: ReadonlySet<DeliverableStatus> = new Set([
-  "Submitted",
-  "Accepted",
-  "Approved",
-  "Received and Filed",
-]);
-
 const CMS_STAFF_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
   "demos-admin",
   "demos-cms-user",
@@ -107,7 +100,6 @@ export const FileAndHistoryTabs: React.FC<{
   const cmsFiles = deliverable.cmsDocuments;
   const historyRows: DeliverableHistoryRow[] = deliverable.deliverableActions.map(toHistoryRow);
   const isFinalized = !isDeliverableEditable(deliverable.status);
-  const isFileDeletionDisabled = DISABLE_FILE_DELETION_STATUSES.has(deliverable.status);
   const refetchAfterFileChange = [DELIVERABLE_DETAILS_QUERY];
 
   const userPersonType = currentUser.person.personType;
@@ -207,7 +199,6 @@ export const FileAndHistoryTabs: React.FC<{
             files={cmsFiles}
             canManage={canManageCmsFiles}
             isFinalized={isFinalized}
-            isFileDeletionDisabled={isFileDeletionDisabled}
             onAdd={handleAddCmsFile}
             onEdit={handleEditCmsFile}
             onDelete={handleDeleteCmsFiles}

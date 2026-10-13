@@ -63,7 +63,6 @@ export type DeliverableFileTableProps = {
   footer?: React.ReactNode;
   showActions: boolean;
   isFinalized: boolean;
-  isFileDeletionDisabled?: boolean;
 };
 
 export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
@@ -83,7 +82,6 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
   footer,
   showActions,
   isFinalized,
-  isFileDeletionDisabled = false,
 }) => {
   const renderFileActions: NonNullable<TableProps<DeliverableFileRow>["actionButtons"]> = (
     table
@@ -107,7 +105,7 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
           name={deleteButtonName}
           aria-label={deleteAriaLabel}
           tooltip={getFileActionTooltip("Delete", isFinalized, selectedCount, hasSubmittedFile)}
-          disabled={isFileDeletionDisabled || hasSubmittedFile || selectedCount < 1}
+          disabled={isFinalized || hasSubmittedFile || selectedCount < 1}
           onClick={() => onDelete?.(selectedRows.map((row) => row.id))}
         >
           <DeleteIcon />
