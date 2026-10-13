@@ -33,14 +33,14 @@ describe("validateDocumentCanBeDeleted", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as never);
+  });
+
+  it("should get document from the database directly if no transaction is given", async () => {
     regularMocks.document.findUniqueOrThrow.mockResolvedValue({
       id: mockDocumentId,
       deliverable: null,
       deliverableSubmissionActionId: null,
     });
-  });
-
-  it("should get document from the database directly if no transaction is given", async () => {
     await validateDocumentCanBeDeleted(mockDocumentId);
     expect(regularMocks.document.findUniqueOrThrow).toHaveBeenCalledExactlyOnceWith({
       where: { id: mockDocumentId },
