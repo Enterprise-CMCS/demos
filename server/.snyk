@@ -72,6 +72,11 @@ ignore:
         reason: Patch in 7-day cooldown period
         expires: 2026-09-14T00:00:00.000Z
         created: 2026-08-31T15:19:18.777Z
+  SNYK-JS-ZOD-20510278:
+    - '*':
+        reason: Patch in 7-day cooldown period (min-release-age), zod@4.6.6
+        expires: 2026-10-20T00:00:00.000Z
+        created: 2026-10-13T00:00:00.000Z
 patch: {}
 exclude:
   global:
