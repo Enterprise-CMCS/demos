@@ -89,6 +89,7 @@ export const handler = async (event: APIGatewayTokenAuthorizerEvent, context: Co
       "demos-state-user",
       "demos-restricted-cms-user",
       "demos-cms-reviewer-user",
+      "demos-oact-user",
     ];
 
     if (!validRoles.some((role) => roles.includes(role))) {
