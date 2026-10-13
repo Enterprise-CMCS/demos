@@ -2,6 +2,7 @@ import React from "react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { createColumnHelper } from "@tanstack/react-table";
 import { Table } from "components/table";
 import { TestTableType, testTableData, testColumns } from "components/table/Table.test";
 import {
@@ -376,6 +377,115 @@ describe("KeywordSearch Component", () => {
         },
         { timeout: 500 }
       );
+    });
+  });
+
+  describe("State Abbreviation Expansion", () => {
+    type StateTableType = {
+      id: string;
+      state: string;
+    };
+
+    const stateTestData: StateTableType[] = [
+      { id: "1", state: "Texas" },
+      { id: "2", state: "Hawaii" },
+      { id: "3", state: "Pennsylvania" },
+      { id: "4", state: "New Mexico" },
+      { id: "5", state: "Texas Hawaii" },
+    ];
+
+    const buildStateTable = () => {
+      const columnHelper = createColumnHelper<StateTableType>();
+      const columns = [columnHelper.accessor("state", { header: "State", cell: highlightCell })];
+      return (
+        <Table<StateTableType>
+          keywordSearch={(table) => <KeywordSearch table={table} />}
+          columns={columns}
+          data={stateTestData}
+          noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
+        />
+      );
+    };
+
+    let user: ReturnType<typeof userEvent.setup>;
+    let input: HTMLInputElement;
+
+    beforeEach(() => {
+      user = userEvent.setup();
+      unmount();
+      render(buildStateTable());
+      input = screen.getByTestId(KEYWORD_SEARCH_INPUT_NAME);
+    });
+
+    const typeAndWait = async (searchTerm: string) => {
+      await user.type(input, searchTerm);
+      await waitFor(
+        () => {
+          // Wait for debounce to complete
+        },
+        { timeout: 500 }
+      );
+    };
+
+    it("filters by state abbreviation (TX matches Texas)", async () => {
+      await typeAndWait("TX");
+      expectVisible(["Texas"]);
+    });
+
+    it("filters by full state name", async () => {
+      await typeAndWait("Texas");
+      expectVisible(["Texas"]);
+    });
+
+    it("filters case-insensitively", async () => {
+      await typeAndWait("tx");
+      expectVisible(["Texas"]);
+    });
+
+    it("filters multi-word states by abbreviation (NM matches New Mexico)", async () => {
+      await typeAndWait("NM");
+      expectVisible(["New Mexico"]);
+    });
+
+    it("highlights abbreviation in state name", () => {
+      const highlighted = highlightCell({
+        cell: { getValue: () => "Texas" },
+        table: { getState: () => ({ globalFilter: ["TX"] }) },
+      } as never);
+
+      const { container } = render(<>{highlighted}</>);
+      const marks = container.querySelectorAll("mark");
+      expect(marks.length).toBeGreaterThan(0);
+    });
+
+    it("handles multiple state searches", async () => {
+      // When searching for multiple keywords, ALL must match in the same row
+      // Texas Hawaii row contains both TX and HI, so it should be found
+      await typeAndWait("TX HI");
+      expectVisible(["Texas Hawaii"]);
+    });
+
+    it("restores all results when search is cleared", async () => {
+      await typeAndWait("TX");
+      expect(screen.getByText("Texas")).toBeInTheDocument();
+
+      await user.click(screen.getByTestId(KEYWORD_SEARCH_CLEAR_BUTTON_NAME));
+      await waitFor(() => {
+        expect(screen.getByText("Texas")).toBeInTheDocument();
+        expect(screen.getByText("Hawaii")).toBeInTheDocument();
+        expect(screen.getByText("Pennsylvania")).toBeInTheDocument();
+        expect(screen.getByText("New Mexico")).toBeInTheDocument();
+      });
+    });
+
+    it("finds states by abbreviation (PA matches Pennsylvania)", async () => {
+      await typeAndWait("PA");
+      expectVisible(["Pennsylvania"]);
+    });
+
+    it("finds states by abbreviation (HI matches Hawaii)", async () => {
+      await typeAndWait("HI");
+      expectVisible(["Hawaii"]);
     });
   });
 });

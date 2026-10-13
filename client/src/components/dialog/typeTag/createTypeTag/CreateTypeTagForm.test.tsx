@@ -9,7 +9,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   CREATE_DEMONSTRATION_TYPES_FORM_QUERY,
   CreateDemonstrationTypesForm,
-} from "./CreateDemonstrationTypesForm";
+} from "./CreateTypeTagForm";
 
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 

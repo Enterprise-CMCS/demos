@@ -11,7 +11,7 @@ import {
 } from "demos-server";
 import { gql, TypedDocumentNode, useMutation } from "@apollo/client";
 import { DatePicker } from "components/input/date/DatePicker";
-import { formatDateForServer, getTodayEst } from "util/formatDate";
+import { getTodayEst } from "util/formatDate";
 
 type Demonstration = Pick<ServerDemonstration, "id"> & {
   demonstrationTypes: DemonstrationType[];
@@ -19,7 +19,11 @@ type Demonstration = Pick<ServerDemonstration, "id"> & {
 
 export type DemonstrationType = Pick<
   DemonstrationTypeAssignment,
-  "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "approvalStatus"
+  | "demonstrationTypeName"
+  | "status"
+  | "effectivePlainDate"
+  | "expirationPlainDate"
+  | "approvalStatus"
 >;
 
 type DemonstrationTypeFormData = Pick<
@@ -92,8 +96,8 @@ export const EditDemonstrationTypeDialog = ({
   const initialDemonstrationTypeFormData = React.useMemo(
     () => ({
       ...initialDemonstrationType,
-      effectiveDate: formatDateForServer(initialDemonstrationType.effectiveDate),
-      expirationDate: formatDateForServer(initialDemonstrationType.expirationDate),
+      effectiveDate: initialDemonstrationType.effectivePlainDate as LocalDate,
+      expirationDate: initialDemonstrationType.expirationPlainDate as LocalDate,
     }),
     [initialDemonstrationType]
   );

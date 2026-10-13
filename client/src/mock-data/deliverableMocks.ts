@@ -45,7 +45,7 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
   demonstration: {
     id: "1",
     name: "Demonstration 1",
-    expirationDate: new Date("2026-12-31"),
+    expirationPlainDate: "2026-12-31",
     state: {
       id: "CA",
       name: "California",

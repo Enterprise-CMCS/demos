@@ -29,7 +29,7 @@ export const UPDATE_RENEWAL_DIALOG_QUERY: TypedDocumentNode<
       id
       name
       description
-      effectiveDate
+      effectivePlainDate
       signatureLevel
       status
       demonstration {

@@ -36,24 +36,18 @@ export function TypesColumns(isReadonlyUser: boolean) {
         },
       },
     }),
-    columnHelper.accessor("effectiveDate", {
+    columnHelper.accessor("effectivePlainDate", {
       header: "Effective Date",
-      cell: ({ getValue }) => {
-        const dateValue = getValue();
-        return dateValue ? formatDateForDisplay(dateValue) : "—";
-      },
+      cell: ({ getValue }) => formatDateForDisplay(getValue()),
       meta: {
         filterConfig: {
           filterType: "date",
         },
       },
     }),
-    columnHelper.accessor("expirationDate", {
+    columnHelper.accessor("expirationPlainDate", {
       header: "Expiration Date",
-      cell: ({ getValue }) => {
-        const dateValue = getValue();
-        return dateValue ? formatDateForDisplay(dateValue) : "—";
-      },
+      cell: ({ getValue }) => formatDateForDisplay(getValue()),
       meta: {
         filterConfig: {
           filterType: "date",

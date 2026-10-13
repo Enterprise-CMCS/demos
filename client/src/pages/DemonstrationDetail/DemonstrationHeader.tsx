@@ -15,8 +15,8 @@ export const DEMONSTRATION_HEADER_DETAILS_QUERY = gql`
     demonstration(id: $id) {
       id
       name
-      expirationDate
-      effectiveDate
+      expirationPlainDate
+      effectivePlainDate
       status
       medicaidId
       chipId
@@ -34,7 +34,7 @@ export const DEMONSTRATION_HEADER_DETAILS_QUERY = gql`
 
 export type DemonstrationHeaderDetails = Pick<
   Demonstration,
-  "id" | "name" | "expirationDate" | "effectiveDate" | "status" | "medicaidId" | "chipId"
+  "id" | "name" | "expirationPlainDate" | "effectivePlainDate" | "status" | "medicaidId" | "chipId"
 > & {
   state: Pick<State, "id" | "name">;
   primaryProjectOfficer: Pick<Person, "id" | "fullName">;
@@ -97,14 +97,14 @@ export const DemonstrationHeader: React.FC<DemonstrationDetailHeaderProps> = ({
     { label: "Status", value: demonstration.status },
     {
       label: "Effective",
-      value: demonstration.effectiveDate
-        ? formatDateForDisplay(demonstration.effectiveDate)
+      value: demonstration.effectivePlainDate
+        ? formatDateForDisplay(demonstration.effectivePlainDate)
         : "--/--/----",
     },
     {
       label: "Expiration",
-      value: demonstration.expirationDate
-        ? formatDateForDisplay(demonstration.expirationDate)
+      value: demonstration.expirationPlainDate
+        ? formatDateForDisplay(demonstration.expirationPlainDate)
         : "--/--/----",
     },
   ];
