@@ -1,4 +1,7 @@
 import * as React from "react";
+import writeXlsxFile from "write-excel-file/browser";
+import { BaseButton } from "components/button/BaseButton";
+import { useToast } from "components/toast";
 
 import { compareAsc } from "date-fns";
 import { CircleButton } from "components/button/CircleButton";
@@ -37,18 +40,16 @@ export type TypesTableProps = {
   hideSearch?: boolean;
 };
 
-const exportTypesCsv = (types: TypeTableRow[]) => {
-  downloadCsv("demonstration-types.csv", [
-    ["Type", "Status", "Approval Status", "Effective Date", "Expiration Date"],
-    ...types.map((type) => [
-      type.typeLabel,
-      type.status,
-      type.approvalStatus,
-      type.effectivePlainDate,
-      type.expirationPlainDate,
-    ]),
-  ]);
-};
+const getExportRows = (types: TypeTableRow[]) => [
+  ["Type", "Status", "Approval Status", "Effective Date", "Expiration Date"],
+  ...types.map((type) => [
+    type.typeLabel,
+    type.status,
+    type.approvalStatus,
+    type.effectivePlainDate,
+    type.expirationPlainDate,
+  ]),
+];
 
 export const TypesTable: React.FC<TypesTableProps> = ({
   demonstration,
@@ -56,6 +57,8 @@ export const TypesTable: React.FC<TypesTableProps> = ({
   hideSearch = false,
 }) => {
   const { currentUser } = getCurrentUser();
+  const { showError } = useToast();
+  const [exportingExcel, setExportingExcel] = React.useState(false);
   const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
 
   const columns = TypesColumns(isReadonlyUser);
@@ -77,6 +80,18 @@ export const TypesTable: React.FC<TypesTableProps> = ({
         expirationPlainDate: type.expirationPlainDate,
       }));
   }, [demonstration.demonstrationTypes]);
+
+  const exportTypesExcel = async (types: TypeTableRow[]) => {
+    setExportingExcel(true);
+    try {
+      await writeXlsxFile(getExportRows(types)).toFile("demonstration-types.xlsx");
+    } catch (error) {
+      console.error("Failed to export demonstration types to Excel:", error);
+      showError("Failed to export demonstration types to Excel. Please try again.");
+    } finally {
+      setExportingExcel(false);
+    }
+  };
 
   const linkedDemonstrationTypes = React.useMemo(() => {
     return new Set(
@@ -159,17 +174,34 @@ export const TypesTable: React.FC<TypesTableProps> = ({
 
             return (
               <div className="flex gap-1 ml-4">
-                <CircleButton
+                <BaseButton
                   name="export-type"
-                  aria-label="Export Types"
-                  tooltip={"Export"}
-                  disabled={false}
+                  aria-label="Export Types as CSV"
+                  tooltip="Export CSV"
+                  isCircle
+                  className="bg-action text-white hover:bg-brand focus:ring-2 focus:ring-action-focus"
                   onClick={() =>
-                    exportTypesCsv(table.getRowModel().rows.map((row) => row.original))
+                    downloadCsv(
+                      "demonstration-types.csv",
+                      getExportRows(table.getRowModel().rows.map((row) => row.original))
+                    )
                   }
                 >
                   <ExportIcon />
-                </CircleButton>
+                </BaseButton>
+                <BaseButton
+                  name="export-type-excel"
+                  aria-label="Export Types as Excel"
+                  tooltip="Export Excel"
+                  isCircle
+                  className="bg-error text-white hover:bg-error-dark focus:ring-2 focus:ring-error-lightest"
+                  disabled={exportingExcel}
+                  onClick={() =>
+                    exportTypesExcel(table.getRowModel().rows.map((row) => row.original))
+                  }
+                >
+                  <ExportIcon />
+                </BaseButton>
                 <CircleButton
                   name="edit-type"
                   aria-label="Edit Type"
