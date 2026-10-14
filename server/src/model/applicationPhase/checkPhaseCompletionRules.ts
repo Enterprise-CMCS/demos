@@ -1,4 +1,5 @@
 import { ClearanceLevel, PhaseName } from "../../types.js";
+import { TZDate } from "@date-fns/tz";
 import { ParsedApplicationDateInput, makeApplicationDateMapFromList } from "../applicationDate";
 import {
   ApplicationPhaseDocumentTypeRecord,
@@ -14,6 +15,8 @@ import {
   CMS_OSORA_CLEARANCE_DATE_TYPES,
   COMMS_CLEARANCE_DATE_TYPES,
 } from "../../constants.js";
+
+const START_OF_2027_EASTERN = new TZDate(2027, 0, 1, 0, 0, 0, 0, "America/New_York");
 
 const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
   Concept: {
@@ -110,11 +113,28 @@ export function checkPhaseCompletionRules(
   }
 
   let datesToCheck = validationChecks.datesMustExist;
+  let documentTypesToCheck = validationChecks.documentTypesMustExist;
   if (phaseToValidate === "Review") {
     if (applicationClearanceLevel === "CMS (OSORA)") {
-      datesToCheck = [...validationChecks.datesMustExist, ...CMS_OSORA_CLEARANCE_DATE_TYPES];
+      datesToCheck = [...datesToCheck, ...CMS_OSORA_CLEARANCE_DATE_TYPES];
     } else if (applicationClearanceLevel === "COMMs") {
-      datesToCheck = [...validationChecks.datesMustExist, ...COMMS_CLEARANCE_DATE_TYPES];
+      datesToCheck = [...datesToCheck, ...COMMS_CLEARANCE_DATE_TYPES];
+    }
+  }
+
+  const applicationApprovalDate = applicationDates.find(
+    (date) => date.dateType === "Application Approval Date"
+  );
+
+  if (
+    !applicationApprovalDate ||
+    applicationApprovalDate.dateValue.easternTZDate.valueOf() >= START_OF_2027_EASTERN.valueOf()
+  ) {
+    if (phaseToValidate === "Review") {
+      datesToCheck = [...datesToCheck, "OACT Certification Date"];
+    }
+    if (phaseToValidate === "Approval Package") {
+      documentTypesToCheck = [...documentTypesToCheck, "OACT Certification Memo"];
     }
   }
 
@@ -125,7 +145,6 @@ export function checkPhaseCompletionRules(
   );
 
   const applicationDateMap = makeApplicationDateMapFromList(applicationDates);
-  const documentTypesToCheck = validationChecks.documentTypesMustExist;
   const phasesToCheckComplete = validationChecks.phasesMustBeComplete;
 
   if (datesToCheck.length !== 0) {
