@@ -133,7 +133,7 @@ describe("findOrCreateContextUserFromClaims", () => {
     expect(result).toBe(mockNewUser);
   });
 
-  it("after 1.2.0, it should attempt to return an existing user by Cognito subject, and skip further steps if successful", async () => {
+  it("from 1.2.0, it should attempt to return an existing user by Cognito subject, and skip further steps if successful", async () => {
     vi.mocked(findUserByClaims).mockResolvedValue(mockExistingUser);
 
     const result = await findOrCreateContextUserFromClaims(
@@ -153,7 +153,7 @@ describe("findOrCreateContextUserFromClaims", () => {
     expect(result).toBe(mockExistingUser);
   });
 
-  it("after 1.2.0, it should not attempt to link to a migrated user if matching by Cognito subject fails, and should continue to create a new user", async () => {
+  it("from 1.2.0, it should not attempt to link to a migrated user if matching by Cognito subject fails, and should continue to create a new user", async () => {
     vi.mocked(findUserByClaims).mockResolvedValue(null);
     vi.mocked(createNewUserFromClaims).mockResolvedValue(mockNewUser);
 

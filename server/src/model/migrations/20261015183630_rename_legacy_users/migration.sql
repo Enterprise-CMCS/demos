@@ -8,4 +8,4 @@ WHERE
     p.id = u.id
     AND u.is_migrated_from_pmda
     AND NOT u.has_logged_in
-    AND NOT p.last_name LIKE '% (Legacy)';
+    AND p.last_name NOT LIKE '% (Legacy)';
