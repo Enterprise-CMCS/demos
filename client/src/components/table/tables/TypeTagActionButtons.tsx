@@ -1,9 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
+import { useLazyQuery } from "@apollo/client";
+import { useToast } from "components/toast";
+import { exportTypeTagRecords } from "util/exportTypeTagRecords";
+import {
+  TYPE_TAG_ASSOCIATED_RECORDS_QUERY,
+  AssociatedRecordsDemonstration,
+  buildAssociatedRecordRows,
+  sortAssociatedRecordsByDefault,
+} from "./TypeTagAssociatedRecordsTable";
 import type { Table as TanstackTable } from "@tanstack/react-table";
 
 import { CircleButton } from "components/button";
 import { useDialog } from "components/dialog/DialogContext";
-import { ApproveIcon, DeleteIcon, EditIcon } from "components/icons";
+import { ApproveIcon, DeleteIcon, EditIcon, ExportIcon } from "components/icons";
 
 import type { DemonstrationTypeUsageRow } from "./DemonstrationTypeUsageTable";
 
@@ -25,22 +34,48 @@ export const TypeTagActionButtons = ({
 }: {
   table: TanstackTable<DemonstrationTypeUsageRow>;
 }) => {
-  const {
-    showEditTypeTagDialog,
-    showApproveTypeTagDialog,
-    showDeleteTypeTagDialog,
-  } = useDialog();
+  const { showEditTypeTagDialog, showApproveTypeTagDialog, showDeleteTypeTagDialog } = useDialog();
+  const { showError } = useToast();
+  const [exporting, setExporting] = useState(false);
+  const [loadRecords] = useLazyQuery<{
+    demonstrations: AssociatedRecordsDemonstration[];
+  }>(TYPE_TAG_ASSOCIATED_RECORDS_QUERY, { fetchPolicy: "network-only" });
   const selectedRows = table.getSelectedRowModel().rows;
-  const selectedUnapprovedRows = selectedRows.filter((row) => row.original.approvalStatus !== "Approved");
+  const selectedUnapprovedRows = selectedRows.filter(
+    (row) => row.original.approvalStatus !== "Approved"
+  );
   const selectedRowsWithUsage = selectedRows.filter((row) => row.original.totalUsage > 0);
 
   const editEnabled = selectedRows.length === 1;
   const approveEnabled = selectedUnapprovedRows.length > 0;
   const deleteEnabled = selectedRows.length > 0 && selectedRowsWithUsage.length === 0;
 
-  const deleteDisabledTooltip = selectedRowsWithUsage.length > 0
-    ? DELETE_TYPE_TAG_DISABLED_HASUSAGE_TOOLTIP
-    : DELETE_TYPE_TAG_DISABLED_NOSELECTED_TOOLTIP;
+  const deleteDisabledTooltip =
+    selectedRowsWithUsage.length > 0
+      ? DELETE_TYPE_TAG_DISABLED_HASUSAGE_TOOLTIP
+      : DELETE_TYPE_TAG_DISABLED_NOSELECTED_TOOLTIP;
+
+  const handleExport = async () => {
+    const tagNames = table
+      .getSortedRowModel()
+      .rows.map((row) => row.original.demonstrationTypeName);
+    setExporting(true);
+    try {
+      const { data, error } = await loadRecords();
+      if (error) throw error;
+      if (!data) throw new Error("No associated record data was returned.");
+      await exportTypeTagRecords(
+        tagNames.flatMap((tagName) =>
+          sortAssociatedRecordsByDefault(buildAssociatedRecordRows(data.demonstrations, tagName))
+        )
+      );
+    } catch (error) {
+      console.error("Unable to export associated records", error);
+      showError("Unable to export associated records. Please try again.");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleEdit = () => {
     if (!editEnabled) return;
@@ -53,7 +88,9 @@ export const TypeTagActionButtons = ({
   };
   const handleApprove = () => {
     if (!approveEnabled) return;
-    showApproveTypeTagDialog(selectedUnapprovedRows.map((row) => row.original.demonstrationTypeName));
+    showApproveTypeTagDialog(
+      selectedUnapprovedRows.map((row) => row.original.demonstrationTypeName)
+    );
   };
   const handleDelete = () => {
     if (!deleteEnabled) return;
@@ -62,6 +99,15 @@ export const TypeTagActionButtons = ({
 
   return (
     <div className="flex gap-1 ml-4">
+      <CircleButton
+        name="export-type-tags"
+        aria-label="Export Type/Tags"
+        tooltip="Export Excel"
+        disabled={exporting}
+        onClick={handleExport}
+      >
+        <ExportIcon />
+      </CircleButton>
       <CircleButton
         name={DELETE_TYPE_TAG_BUTTON_NAME}
         aria-label="Delete Type/Tag"
@@ -74,7 +120,9 @@ export const TypeTagActionButtons = ({
       <CircleButton
         name={APPROVE_TYPE_TAG_BUTTON_NAME}
         aria-label="Approve Type/Tag"
-        tooltip={approveEnabled ? APPROVE_TYPE_TAG_ENABLED_TOOLTIP : APPROVE_TYPE_TAG_DISABLED_TOOLTIP}
+        tooltip={
+          approveEnabled ? APPROVE_TYPE_TAG_ENABLED_TOOLTIP : APPROVE_TYPE_TAG_DISABLED_TOOLTIP
+        }
         disabled={!approveEnabled}
         onClick={handleApprove}
       >

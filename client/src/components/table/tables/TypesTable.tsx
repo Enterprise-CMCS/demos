@@ -1,6 +1,6 @@
 import * as React from "react";
-import { downloadExcel, type ExcelColumn } from "components/table/exportExcel";
 import { useToast } from "components/toast";
+import { useLazyQuery } from "@apollo/client";
 
 import { compareAsc } from "date-fns";
 import { CircleButton } from "components/button/CircleButton";
@@ -15,6 +15,13 @@ import { useDialog } from "components/dialog/DialogContext";
 import { Notice } from "components/notice";
 import { selectionTooltip } from "./actionTooltips";
 import { getCurrentUser, isReadonly } from "components/user/UserContext";
+import { exportTypeTagRecords } from "util/exportTypeTagRecords";
+import {
+  AssociatedRecordsDemonstration,
+  buildAssociatedRecordRows,
+  sortAssociatedRecordsByDefault,
+  TYPE_TAG_ASSOCIATED_RECORDS_QUERY,
+} from "./TypeTagAssociatedRecordsTable";
 
 export type TypeTableRow = {
   id: string;
@@ -38,14 +45,6 @@ export type TypesTableProps = {
   hideSearch?: boolean;
 };
 
-const EXPORT_COLUMNS: ExcelColumn<TypeTableRow>[] = [
-  { header: "Type", value: (row) => row.typeLabel },
-  { header: "Status", value: (row) => row.status },
-  { header: "Approval Status", value: (row) => row.approvalStatus },
-  { header: "Effective Date", value: (row) => row.effectivePlainDate },
-  { header: "Expiration Date", value: (row) => row.expirationPlainDate },
-];
-
 export const TypesTable: React.FC<TypesTableProps> = ({
   demonstration,
   inputDisabled = false,
@@ -54,6 +53,10 @@ export const TypesTable: React.FC<TypesTableProps> = ({
   const { currentUser } = getCurrentUser();
   const { showError } = useToast();
   const [exportingExcel, setExportingExcel] = React.useState(false);
+  const [loadRecords] = useLazyQuery<{ demonstrations: AssociatedRecordsDemonstration[] }>(
+    TYPE_TAG_ASSOCIATED_RECORDS_QUERY,
+    { fetchPolicy: "network-only" }
+  );
   const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
 
   const columns = TypesColumns(isReadonlyUser);
@@ -76,18 +79,20 @@ export const TypesTable: React.FC<TypesTableProps> = ({
       }));
   }, [demonstration.demonstrationTypes]);
 
-  const exportTypesExcel = async (types: TypeTableRow[]) => {
+  const exportTypesExcel = async (typeNames: string[]) => {
     setExportingExcel(true);
     try {
-      await downloadExcel({
-        filename: "demonstration-types.xlsx",
-        sheetName: "Demonstration Types",
-        rows: types,
-        columns: EXPORT_COLUMNS,
-      });
+      const { data, error } = await loadRecords();
+      if (error) throw error;
+      if (!data) throw new Error("No associated record data was returned.");
+      await exportTypeTagRecords(
+        typeNames.flatMap((typeName) =>
+          sortAssociatedRecordsByDefault(buildAssociatedRecordRows(data.demonstrations, typeName))
+        )
+      );
     } catch (error) {
-      console.error("Failed to export demonstration types to Excel:", error);
-      showError("Failed to export demonstration types to Excel. Please try again.");
+      console.error("Unable to export associated records", error);
+      showError("Unable to export associated records. Please try again.");
     } finally {
       setExportingExcel(false);
     }
@@ -180,7 +185,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
                   tooltip={exportingExcel ? "Exporting Excel…" : "Export Excel"}
                   disabled={exportingExcel}
                   onClick={() =>
-                    exportTypesExcel(table.getRowModel().rows.map((row) => row.original))
+                    exportTypesExcel(table.getRowModel().rows.map((row) => row.original.typeLabel))
                   }
                 >
                   <ExportIcon />

@@ -1,3 +1,4 @@
+import { GraphQLError } from "graphql";
 import React from "react";
 import { Route, Routes } from "react-router-dom";
 import { render, screen, waitFor } from "@testing-library/react";
@@ -406,10 +407,12 @@ describe("DeliverableDetailsManagementPage", () => {
     });
   });
 
-  it("shows not found state", async () => {
+  it.each([false, true])("shows not found state (API error: %s)", async (apiError) => {
     const notFoundMock = {
       request: { query: DELIVERABLE_DETAILS_QUERY, variables: { id: "1" } },
-      result: { data: { deliverable: null } },
+      result: apiError
+        ? { errors: [new GraphQLError("Record not found", { extensions: { code: "NOT_FOUND" } })] }
+        : { data: { deliverable: null } },
     };
 
     render(
@@ -425,7 +428,7 @@ describe("DeliverableDetailsManagementPage", () => {
       </TestProvider>
     );
 
-    await waitFor(() => expect(screen.getByText(/deliverable not found/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/404: Page Not Found/i)).toBeInTheDocument());
   });
 
   it("shows error state", async () => {

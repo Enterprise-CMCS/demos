@@ -1,7 +1,7 @@
 import React from "react";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
 import {
@@ -10,7 +10,10 @@ import {
   TYPE_TAG_DISPLAY_TEXT_INPUT_NAME,
 } from "components/dialog/typeTag/EditTypeTagDialog";
 import { MOCK_DEMONSTRATION_TYPE_USAGE } from "mock-data/demonstrationTypeUsageMocks";
-import { DemonstrationTypeUsageTable, GET_DEMONSTRATION_TYPE_USAGE_QUERY } from "./DemonstrationTypeUsageTable";
+import {
+  DemonstrationTypeUsageTable,
+  GET_DEMONSTRATION_TYPE_USAGE_QUERY,
+} from "./DemonstrationTypeUsageTable";
 import {
   APPROVE_TYPE_TAG_BUTTON_NAME,
   APPROVE_TYPE_TAG_DISABLED_TOOLTIP,
@@ -21,14 +24,26 @@ import {
 } from "./TypeTagActionButtons";
 import { ALL_MOCKS } from "mock-data";
 
+import { exportTypeTagRecords } from "util/exportTypeTagRecords";
+import {
+  TYPE_TAG_ASSOCIATED_RECORDS_QUERY,
+  buildAssociatedRecordRows,
+  sortAssociatedRecordsByDefault,
+} from "./TypeTagAssociatedRecordsTable";
+import { MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION } from "mock-data/demonstrationMocks";
+
+vi.mock("util/exportTypeTagRecords", () => ({ exportTypeTagRecords: vi.fn() }));
+
 const [FIRST_TYPE_TAG_NAME, SECOND_TYPE_TAG_NAME] = MOCK_DEMONSTRATION_TYPE_USAGE.map(
   (usage) => usage.demonstrationTypeName
 );
 
 const mocks = [
-  ...ALL_MOCKS.filter(
-    (mock) => mock.request.query !== GET_DEMONSTRATION_TYPE_USAGE_QUERY
-  ),
+  {
+    request: { query: TYPE_TAG_ASSOCIATED_RECORDS_QUERY },
+    result: { data: { demonstrations: [MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION] } },
+  },
+  ...ALL_MOCKS.filter((mock) => mock.request.query !== GET_DEMONSTRATION_TYPE_USAGE_QUERY),
   {
     request: {
       query: GET_DEMONSTRATION_TYPE_USAGE_QUERY,
@@ -62,6 +77,53 @@ const selectTypeTag = async (user: ReturnType<typeof userEvent.setup>, typeTagNa
   );
 
 describe("DemonstrationTypeUsageTable", () => {
+  it.each([false, true])(
+    "exports all table type/tags regardless of selection (selected: %s)",
+    async (selectRow) => {
+      vi.mocked(exportTypeTagRecords).mockClear();
+      const user = setup();
+      const exportButton = await screen.findByTestId("export-type-tags");
+      expect(exportButton).toBeEnabled();
+      if (selectRow) await selectTypeTag(user, SECOND_TYPE_TAG_NAME);
+      await user.click(exportButton);
+      await vi.waitFor(() =>
+        expect(exportTypeTagRecords).toHaveBeenCalledWith(
+          [...MOCK_DEMONSTRATION_TYPE_USAGE]
+            .sort((a, b) => a.demonstrationTypeName.localeCompare(b.demonstrationTypeName))
+            .flatMap(({ demonstrationTypeName }) =>
+              sortAssociatedRecordsByDefault(
+                buildAssociatedRecordRows(
+                  [MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION],
+                  demonstrationTypeName
+                )
+              )
+            )
+        )
+      );
+    }
+  );
+
+  it("exports only type/tags matching the table search, ignoring selected rows", async () => {
+    vi.mocked(exportTypeTagRecords).mockClear();
+    const user = setup();
+    await selectTypeTag(user, FIRST_TYPE_TAG_NAME);
+    await user.type(screen.getByLabelText(/input keyword search query/i), SECOND_TYPE_TAG_NAME);
+    await waitFor(() =>
+      expect(screen.queryByRole("row", { name: new RegExp(FIRST_TYPE_TAG_NAME) })).not.toBeInTheDocument()
+    );
+    await user.click(screen.getByTestId("export-type-tags"));
+    await vi.waitFor(() =>
+      expect(exportTypeTagRecords).toHaveBeenCalledWith(
+        sortAssociatedRecordsByDefault(
+          buildAssociatedRecordRows(
+            [MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION],
+            SECOND_TYPE_TAG_NAME
+          )
+        )
+      )
+    );
+  });
+
   describe("Edit action", () => {
     it("is disabled with a selection prompt when no type/tag is selected", async () => {
       setup();
@@ -169,9 +231,7 @@ describe("DemonstrationTypeUsageTable", () => {
       await selectTypeTag(user, SECOND_TYPE_TAG_NAME);
       await user.click(getApproveButton());
 
-      expect(
-        screen.getByRole("heading", { name: "Approve Type/Tag(s)" })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Approve Type/Tag(s)" })).toBeInTheDocument();
       expect(screen.getByText(`${SECOND_TYPE_TAG_NAME}`)).toBeInTheDocument();
     });
   });
