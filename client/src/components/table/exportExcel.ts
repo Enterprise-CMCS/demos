@@ -22,8 +22,8 @@ export const downloadExcel = async <T>({
     columns.map((column) => column.header),
     ...rows.map((row) => columns.map((column) => column.value(row))),
   ]);
-
-  Row.setFont(worksheet, 1, { bold: true, size: 12 });
+  // Set the header to bold and size 12
+  Row.setFont(worksheet, 1, { bold: true, size: 14 });
   Worksheet.autoFitColumns(worksheet);
 
   const buffer = await Workbook.toBuffer(workbook);
