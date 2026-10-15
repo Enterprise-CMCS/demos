@@ -1,7 +1,10 @@
 import React from "react";
 import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+
+import { downloadExcel } from "components/table/exportExcel";
+import { ToastContainer } from "components/toast/ToastContainer";
 
 import { TypesTable } from "./TypesTable";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
@@ -17,6 +20,11 @@ vi.mock("components/dialog/DialogContext", () => ({
     showEditDemonstrationTypeDialog: mockShowEditDemonstrationTypeDialog,
   }),
 }));
+
+vi.mock("components/table/exportExcel", () => ({
+  downloadExcel: vi.fn(),
+}));
+const mockDownloadExcel = vi.mocked(downloadExcel);
 
 const mockTypes: DemonstrationDetailDemonstrationType[] = [
   {
@@ -51,6 +59,7 @@ const renderTypesTable = (
   return render(
     <TestProvider currentUser={currentUser}>
       <TypesTable demonstration={MOCK_DEMONSTRATION} {...props} />
+      <ToastContainer />
     </TestProvider>
   );
 };
@@ -67,8 +76,66 @@ const MOCK_DEMONSTRATION_WITH_DELIVERABLE = {
 
 describe("TypesTable", () => {
   beforeEach(() => {
+    mockDownloadExcel.mockReset().mockResolvedValue(undefined);
     mockShowRemoveDemonstrationTypesDialog.mockClear();
     mockShowEditDemonstrationTypeDialog.mockClear();
+  });
+
+  it("exports the filtered rows to an Excel workbook", async () => {
+    renderTypesTable();
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText(/input keyword search query/i), "Economic");
+    await waitFor(() => expect(screen.queryByText("Environmental")).not.toBeInTheDocument());
+    await user.click(screen.getByTestId("export-type-excel"));
+
+    expect(screen.queryByRole("button", { name: /CSV/i })).not.toBeInTheDocument();
+    expect(mockDownloadExcel).toHaveBeenCalledOnce();
+    const { filename, sheetName, rows, columns } = mockDownloadExcel.mock.calls[0][0];
+    expect(filename).toBe("demonstration-types.xlsx");
+    expect(sheetName).toBe("Demonstration Types");
+    expect(columns.map((column) => column.header)).toEqual([
+      "Type",
+      "Status",
+      "Approval Status",
+      "Effective Date",
+      "Expiration Date",
+    ]);
+    expect(rows.map((row) => columns.map((column) => column.value(row)))).toEqual([
+      ["Economic", "Pending", "Unapproved", "2024-01-01", "2025-01-01"],
+    ]);
+    await waitFor(() => expect(screen.getByTestId("export-type-excel")).toBeEnabled());
+  });
+
+  it("disables export while pending and reports failures before allowing a retry", async () => {
+    let rejectDownload!: (error: Error) => void;
+    mockDownloadExcel.mockReturnValueOnce(
+      new Promise<void>((_resolve, reject) => {
+        rejectDownload = reject;
+      })
+    );
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      renderTypesTable();
+      const user = userEvent.setup();
+      const button = screen.getByTestId("export-type-excel");
+      await user.click(button);
+      expect(button).toBeDisabled();
+
+      const error = new Error("Workbook download failed");
+      await act(async () => rejectDownload(error));
+      expect(button).toBeEnabled();
+      expect(
+        screen.getByText("Failed to export demonstration types to Excel. Please try again.")
+      ).toBeInTheDocument();
+      expect(consoleError).toHaveBeenCalledWith(
+        "Failed to export demonstration types to Excel:",
+        error
+      );
+      await user.click(button);
+      expect(mockDownloadExcel).toHaveBeenCalledTimes(2);
+    } finally {
+      consoleError.mockRestore();
+    }
   });
 
   it("renders required columns", async () => {

@@ -1,68 +1,36 @@
-# CSV and Excel Export Spike
+# Table Export Decision: Excel
 
-## Spike Scope
+## Decision
 
-The Types table provides both CSV and native Excel (`.xlsx`) exports for comparison. CSV uses a shared helper without an export dependency; Excel uses the client dependency `write-excel-file@^4.1.1`. A broader table-export standard remains a follow-up decision.
+The CSV/Excel comparison is complete. The Types table uses `documonster/excel` for native `.xlsx` downloads. The CSV button and custom CSV serialization helper have been removed.
 
-## Types Table Implementation
+The client already declares `documonster@^0.20.1`. The shared library uses `read-excel-file` for BN imports; it does not provide workbook writing. The backend's `@cj-tech-master/excelts` dependency is deprecated, so it is not being added to the client for consistency.
 
-The buttons live in `client/src/components/table/tables/TypesTable.tsx`:
+## Implementation
 
-| Button | Tooltip | Download |
-| --- | --- | --- |
-| Blue | Export CSV | `demonstration-types.csv` |
-| Red | Export Excel | `demonstration-types.xlsx` |
+`client/src/components/table/tables/TypesTable.tsx` renders one standard `CircleButton` with the accessible label "Export Types as Excel" and tooltip "Export Excel". The spike's filled blue and red styles are removed.
 
-Both use `getExportRows` to produce the same columns: Type, Status, Approval Status, Effective Date, and Expiration Date. Dates retain their source strings rather than the table's display formatting. Both buttons have format-specific accessible labels and are hidden with the other table actions for read-only users.
+The export includes Type, Status, Approval Status, Effective Date, and Expiration Date. Dates retain their source strings. It uses `table.getRowModel().rows`, preserving sorting and filtering and exporting only the active page, rather than selected rows or all pages. Read-only users retain the existing behavior of having no table action buttons.
 
-## CSV Implementation
-
-The shared helper lives at `client/src/components/table/exportCsv.ts`.
-
-`downloadCsv(filename, rows)` accepts a filename and an array of rows. Individual tables map their own domain data to header and value rows; the helper owns CSV serialization and triggering the browser download.
-
-The helper:
-
-- Quotes all values and doubles embedded quotes, so commas, quotes, and new lines remain valid CSV data.
-- Converts `null` and `undefined` values to empty fields.
-- Prefixes values starting with `=`, `+`, `-`, or `@` with an apostrophe to mitigate CSV formula injection when a spreadsheet opens the export.
-- Uses `Blob`, `URL.createObjectURL`, and a temporary anchor element, so no download library is required.
-
-## TanStack Table Integration
-
-TanStack Table is headless and does not provide an official CSV or Excel export plugin. It does expose the row models needed to decide what to export.
-
-| Requirement | Row model |
-| --- | --- |
-| Rows currently visible after sorting, filters, and pagination | `table.getRowModel().rows` |
-| All matching rows after sorting and filtering, across every page | `table.getPrePaginationRowModel().rows` |
-| Only selected rows | `table.getSelectedRowModel().rows` |
-
-The Types table currently exports `table.getRowModel().rows`, which matches the rows displayed on the active page.
-
-## Excel Implementation
-
-The Types table imports `writeXlsxFile` from `write-excel-file/browser` and creates a single worksheet from the shared export rows:
+The `client/src/components/table/exportExcel.ts` helper uses `Workbook.create`, `Workbook.addWorksheet`, and `Worksheet.addRows` to create one "Demonstration Types" worksheet. It makes the header row bold with `Row.setFont` and fits column widths to the headers and data using `Worksheet.autoFitColumns`, then serializes the workbook with `Workbook.toBuffer` and downloads the XLSX Blob through a temporary anchor, then removes the anchor and revokes the object URL. The table calls:
 
 ```ts
-await writeXlsxFile(getExportRows(types)).toFile("demonstration-types.xlsx");
+await downloadExcel({
+  filename: "demonstration-types.xlsx",
+  sheetName: "Demonstration Types",
+  rows: types,
+  columns: EXPORT_COLUMNS,
+});
 ```
 
-The spike exports plain tabular values without custom formatting, formulas, or multiple sheets. The Excel button is disabled while its download is being generated; CSV remains available. If Excel generation or download fails, the handler logs the underlying error and shows: "Failed to export demonstration types to Excel. Please try again." The button is re-enabled in `finally`.
+The button is disabled while the export is pending, with tooltip "Exporting Excel…". Failures log the underlying error and display "Failed to export demonstration types to Excel. Please try again." The button is re-enabled in `finally` so the user can retry.
 
-### Dependency Choice
+Each table supplies its own row type and `ExcelColumn<T>[]` definitions, pairing each header with a typed value accessor. The generic helper builds header and data rows, while the caller owns the filename, worksheet name, loading state, and error messages. Accessor results use Documonster's `CellValue` type.
 
-The shared library already uses `read-excel-file` to parse uploaded BN workbooks in `shared_library/src/BN/index.ts`. Excel writing uses the separate `write-excel-file` client dependency; the existing reader does not generate the export.
+## Formula Handling
 
-`exceljs` and SheetJS `xlsx` were considered as alternatives but are not used by this spike. Maintenance, security, licensing, required features, and browser bundle-size impact remain review criteria before adopting the Excel approach more broadly.
+Exported strings are written as text cells, including values beginning with `=`. The integration does not create formula cells, hyperlinks, or macros. Keep user-provided values as strings rather than formula or hyperlink objects.
 
-## Validation and Follow-up
+## Validation
 
-Client lint and TypeScript checks passed, and all 16 existing `TypesTable` tests passed in the devcontainer. The host test runner could not start because its Rolldown native binding was missing. These existing tests do not verify downloaded CSV or workbook contents.
-
-Before applying exports broadly:
-
-- Add CSV coverage for quoting, formula-prefix handling, and download filenames.
-- Verify Excel workbook contents, filename, in-progress state, and error reporting.
-- Verify both formats respect filtering, sorting, and active-page pagination, and confirm whether exporting only the active page is the desired behavior.
-- Complete browser download checks and compare the dependency and bundle-size tradeoffs before choosing a shared export approach.
+The Types table tests cover filtered export data and filename, absence of a CSV button, pending download state, error reporting, and retry behavior. Component tests mock the download helper. A separate helper test generates and reads a real XLSX workbook, checking values, formula-like strings, the download filename, and object URL cleanup. These tests do not run the Excel application.

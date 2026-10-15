@@ -1,12 +1,10 @@
 import * as React from "react";
-import writeXlsxFile from "write-excel-file/browser";
-import { BaseButton } from "components/button/BaseButton";
+import { downloadExcel, type ExcelColumn } from "components/table/exportExcel";
 import { useToast } from "components/toast";
 
 import { compareAsc } from "date-fns";
 import { CircleButton } from "components/button/CircleButton";
 import { DeleteIcon, EditIcon, ExportIcon } from "components/icons";
-import { downloadCsv } from "components/table/exportCsv";
 import { KeywordSearch } from "components/table/search";
 import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
@@ -40,15 +38,12 @@ export type TypesTableProps = {
   hideSearch?: boolean;
 };
 
-const getExportRows = (types: TypeTableRow[]) => [
-  ["Type", "Status", "Approval Status", "Effective Date", "Expiration Date"],
-  ...types.map((type) => [
-    type.typeLabel,
-    type.status,
-    type.approvalStatus,
-    type.effectivePlainDate,
-    type.expirationPlainDate,
-  ]),
+const EXPORT_COLUMNS: ExcelColumn<TypeTableRow>[] = [
+  { header: "Type", value: (row) => row.typeLabel },
+  { header: "Status", value: (row) => row.status },
+  { header: "Approval Status", value: (row) => row.approvalStatus },
+  { header: "Effective Date", value: (row) => row.effectivePlainDate },
+  { header: "Expiration Date", value: (row) => row.expirationPlainDate },
 ];
 
 export const TypesTable: React.FC<TypesTableProps> = ({
@@ -84,7 +79,12 @@ export const TypesTable: React.FC<TypesTableProps> = ({
   const exportTypesExcel = async (types: TypeTableRow[]) => {
     setExportingExcel(true);
     try {
-      await writeXlsxFile(getExportRows(types)).toFile("demonstration-types.xlsx");
+      await downloadExcel({
+        filename: "demonstration-types.xlsx",
+        sheetName: "Demonstration Types",
+        rows: types,
+        columns: EXPORT_COLUMNS,
+      });
     } catch (error) {
       console.error("Failed to export demonstration types to Excel:", error);
       showError("Failed to export demonstration types to Excel. Please try again.");
@@ -174,34 +174,17 @@ export const TypesTable: React.FC<TypesTableProps> = ({
 
             return (
               <div className="flex gap-1 ml-4">
-                <BaseButton
-                  name="export-type"
-                  aria-label="Export Types as CSV"
-                  tooltip="Export CSV"
-                  isCircle
-                  className="bg-action text-white hover:bg-brand focus:ring-2 focus:ring-action-focus"
-                  onClick={() =>
-                    downloadCsv(
-                      "demonstration-types.csv",
-                      getExportRows(table.getRowModel().rows.map((row) => row.original))
-                    )
-                  }
-                >
-                  <ExportIcon />
-                </BaseButton>
-                <BaseButton
+                <CircleButton
                   name="export-type-excel"
                   aria-label="Export Types as Excel"
-                  tooltip="Export Excel"
-                  isCircle
-                  className="bg-error text-white hover:bg-error-dark focus:ring-2 focus:ring-error-lightest"
+                  tooltip={exportingExcel ? "Exporting Excel…" : "Export Excel"}
                   disabled={exportingExcel}
                   onClick={() =>
                     exportTypesExcel(table.getRowModel().rows.map((row) => row.original))
                   }
                 >
                   <ExportIcon />
-                </BaseButton>
+                </CircleButton>
                 <CircleButton
                   name="edit-type"
                   aria-label="Edit Type"
