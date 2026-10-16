@@ -252,14 +252,11 @@ export const DeliverableDetailsManagementPage: React.FC<{
   if (loading) {
     return <Loading />;
   }
-  if (error?.graphQLErrors.some((error) => error.extensions?.code === "NOT_FOUND")) {
-    return <div>404: Page Not Found</div>;
-  }
   if (error) {
     return <div>Error loading deliverable: {error.message}</div>;
   }
   if (!resolvedDeliverableId || !data?.deliverable) {
-    return <div>404: Page Not Found</div>;
+    return <div>Deliverable not found.</div>;
   }
   const canStartReview =
     REVIEW_STARTER_PERSON_TYPES.has(userPersonType) && data.deliverable.status === "Submitted";

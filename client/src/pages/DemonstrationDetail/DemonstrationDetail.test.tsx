@@ -82,11 +82,6 @@ describe("DemonstrationDetail", () => {
     );
   };
 
-  it.each(["amendments", "renewals"])("shows 404 for a stale %s link", async (recordType) => {
-    renderWithRouter(`/demonstrations/1?${recordType}=deleted-record`);
-    expect(await screen.findByText("404: Page Not Found")).toBeInTheDocument();
-  });
-
   it("renders tabs with counts", async () => {
     renderWithRouter();
 

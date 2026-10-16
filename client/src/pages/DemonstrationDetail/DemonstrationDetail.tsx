@@ -215,19 +215,8 @@ export const DemonstrationDetail: React.FC = () => {
     return <div>Loading demonstration...</div>;
   }
 
-  if (error?.graphQLErrors.some((error) => error.extensions?.code === "NOT_FOUND")) {
-    return <div>404: Page Not Found</div>;
-  }
-  if (error) {
+  if (error || !demonstration) {
     return <div>Failed to load demonstration.</div>;
-  }
-
-  if (
-    !demonstration ||
-    (amendmentParam && !demonstration.amendments.some((item) => item.id === amendmentParam)) ||
-    (renewalParam && !demonstration.renewals.some((item) => item.id === renewalParam))
-  ) {
-    return <div>404: Page Not Found</div>;
   }
 
   const amendmentCount = demonstration.amendments?.length ?? 0;
