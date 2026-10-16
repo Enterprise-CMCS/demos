@@ -64,11 +64,14 @@ export const TypeTagActionButtons = ({
       const { data, error } = await loadRecords();
       if (error) throw error;
       if (!data) throw new Error("No associated record data was returned.");
-      await exportTypeTagRecords(
-        tagNames.flatMap((tagName) =>
-          sortAssociatedRecordsByDefault(buildAssociatedRecordRows(data.demonstrations, tagName))
-        )
+      const rows = tagNames.flatMap((tagName) =>
+        sortAssociatedRecordsByDefault(buildAssociatedRecordRows(data.demonstrations, tagName))
       );
+      if (rows.length === 0) {
+        showError("No associated records are available to export.");
+        return;
+      }
+      await exportTypeTagRecords(rows);
     } catch (error) {
       console.error("Unable to export associated records", error);
       showError("Unable to export associated records. Please try again.");

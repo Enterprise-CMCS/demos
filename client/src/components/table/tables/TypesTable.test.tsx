@@ -116,6 +116,18 @@ describe("TypesTable", () => {
     await waitFor(() => expect(screen.getByTestId("export-type-excel")).toBeEnabled());
   });
 
+  it("does not download an empty associated-record export", async () => {
+    renderTypesTable();
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("export-type-excel"));
+
+    await waitFor(() =>
+      expect(screen.getByText("No associated records are available to export.")).toBeInTheDocument()
+    );
+    expect(exportTypeTagRecords).not.toHaveBeenCalled();
+  });
+
   it("disables export while pending and reports failures before allowing a retry", async () => {
     let rejectExport!: (error: Error) => void;
     vi.mocked(exportTypeTagRecords).mockReturnValueOnce(

@@ -56,10 +56,18 @@ const mocks = [
   },
 ];
 
-const setup = () => {
+const emptyExportMocks = [
+  {
+    request: { query: TYPE_TAG_ASSOCIATED_RECORDS_QUERY },
+    result: { data: { demonstrations: [] } },
+  },
+  ...mocks.filter((mock) => mock.request.query !== TYPE_TAG_ASSOCIATED_RECORDS_QUERY),
+];
+
+const setup = (queryMocks = mocks) => {
   const user = userEvent.setup();
   render(
-    <TestProvider mocks={mocks}>
+    <TestProvider mocks={queryMocks}>
       <DialogProvider>
         <DemonstrationTypeUsageTable onSelectTypeTag={() => {}} />
       </DialogProvider>
@@ -109,7 +117,9 @@ describe("DemonstrationTypeUsageTable", () => {
     await selectTypeTag(user, FIRST_TYPE_TAG_NAME);
     await user.type(screen.getByLabelText(/input keyword search query/i), SECOND_TYPE_TAG_NAME);
     await waitFor(() =>
-      expect(screen.queryByRole("row", { name: new RegExp(FIRST_TYPE_TAG_NAME) })).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole("row", { name: new RegExp(FIRST_TYPE_TAG_NAME) })
+      ).not.toBeInTheDocument()
     );
     await user.click(screen.getByTestId("export-type-tags"));
     await vi.waitFor(() =>
@@ -122,6 +132,15 @@ describe("DemonstrationTypeUsageTable", () => {
         )
       )
     );
+  });
+
+  it("does not download an empty associated-record export", async () => {
+    vi.mocked(exportTypeTagRecords).mockClear();
+    const user = setup(emptyExportMocks);
+
+    await user.click(await screen.findByTestId("export-type-tags"));
+
+    await waitFor(() => expect(exportTypeTagRecords).not.toHaveBeenCalled());
   });
 
   describe("Edit action", () => {
