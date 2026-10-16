@@ -17,6 +17,7 @@ type TestDemonstration = Pick<Demonstration, "id" | "name" | "status" | "medicai
   primaryProjectOfficer: TestPerson;
   amendments: TestAmendment[];
   renewals: TestRenewal[];
+  roles: Demonstration["roles"];
 };
 
 type TestDemoConfig = {
@@ -118,6 +119,7 @@ const buildDemonstrations = (configs: TestDemoConfig[]): TestDemonstration[] => 
     primaryProjectOfficer: TEST_PEOPLE[config.officer],
     amendments: allAmendments.filter((a) => a.name.includes(config.name)),
     renewals: allRenewals.filter((e) => e.name.includes(config.name)),
+    roles: [],
   }));
 };
 
