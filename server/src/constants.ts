@@ -116,6 +116,7 @@ export const ROLES = [
   "Monitoring Lead",
   "HCBS Analyst",
   "Financial Lead",
+  "OACT Lead",
 ] as const;
 
 export const ADMIN_DEMONSTRATION_ROLES = ROLES;
@@ -129,6 +130,7 @@ export const CMS_USER_DEMONSTRATION_ROLES = [
   "Monitoring Lead",
   "HCBS Analyst",
   "Financial Lead",
+  "OACT Lead",
 ] as const;
 
 export const RESTRICTED_CMS_USER_DEMONSTRATION_ROLES = ["Viewer"] as const;
@@ -141,11 +143,14 @@ export const CMS_REVIEWER_USER_DEMONSTRATION_ROLES = [
 
 export const STATE_USER_DEMONSTRATION_ROLES = ["State Point of Contact"] as const;
 
+export const OACT_USER_DEMONSTRATION_ROLES = ["OACT Lead"] as const;
+
 export const PERSON_TYPES = [
   "demos-admin",
   "demos-cms-user",
   "demos-cms-reviewer-user",
   "demos-restricted-cms-user",
+  "demos-oact-user",
   "demos-state-user",
   "non-user-contact",
 ] as const;
@@ -156,6 +161,7 @@ export const USER_TYPES = [
   "demos-cms-reviewer-user",
   "demos-state-user",
   "demos-restricted-cms-user",
+  "demos-oact-user",
 ] as const;
 
 export const GRANT_LEVELS = ["System", "Demonstration"] as const;
@@ -562,6 +568,7 @@ export const SYSTEM_ROLES = [
   "CMS User",
   "CMS Reviewer User",
   "Restricted CMS User",
+  "OACT User",
   "State User",
 ] as const;
 
