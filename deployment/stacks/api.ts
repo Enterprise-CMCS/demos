@@ -126,6 +126,21 @@ export class ApiStack extends Stack {
       ...commonProps,
     });
 
+    apigateway_outputs.api.addGatewayResponse("AccessDeniedResponse", {
+      type: aws_apigateway.ResponseType.ACCESS_DENIED,
+      statusCode: "403",
+      responseHeaders: {
+        "Access-Control-Allow-Origin": `'https://${props.cloudfrontHost}'`,
+        "Access-Control-Allow-Headers": "'*'",
+      },
+      templates: {
+        "application/json": JSON.stringify({
+          code: "$context.authorizer.errorCode",
+          message: "$context.authorizer.errorMessage",
+        }),
+      },
+    });
+
     const dbSecret = aws_secretsmanager.Secret.fromSecretNameV2(
       commonProps.scope,
       "rdsDatabaseSecret",
