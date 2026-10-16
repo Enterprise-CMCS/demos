@@ -4,8 +4,7 @@ import { pipeline } from "node:stream/promises";
 import type { PoolClient } from "pg";
 import { to as copyTo } from "pg-copy-streams";
 
-import { dbSchema } from "../database/pool";
-import type { RelationSchema } from "../types";
+import type { ExportViewDefinition } from "../types";
 import { csvPath, removeStagedFile } from "../util/staging";
 import { copyColumnList, csvColumnSpec, quoteIdentifier, quoteLiteral } from "./typeMap";
 
@@ -44,25 +43,28 @@ export async function writeRelationToFile(
   client: PoolClient,
   connection: DuckDBConnection,
   relation: string,
-  relationSchema: RelationSchema,
+  definition: ExportViewDefinition,
   destinationPath: string
 ): Promise<number> {
   const csvFile = csvPath(relation);
 
   try {
-    // Column and relation names come from a code constant, never from input, so quoting
-    // them is sufficient.
+    // Both SQL and the ordered output projection come only from reviewed code. The ORDER BY sits
+    // on the outer SELECT because an ORDER BY inside a subquery is not guaranteed to survive.
+    const orderBy = definition.orderBy.length > 0
+      ? ` ORDER BY ${definition.orderBy.map(quoteIdentifier).join(", ")}`
+      : "";
     const copy = client.query(
       copyTo(
-        `COPY (SELECT ${copyColumnList(relationSchema)} ` +
-          `FROM ${dbSchema}.${quoteIdentifier(relation)}) TO STDOUT WITH (FORMAT csv)`
+        `COPY (SELECT ${copyColumnList(definition.schema)} ` +
+          `FROM (${definition.query}) AS export_view${orderBy}) TO STDOUT WITH (FORMAT csv)`
       )
     );
     await pipeline(copy, createWriteStream(csvFile));
 
     const result = await connection.run(
       `COPY (SELECT * FROM read_csv(${quoteLiteral(csvFile)}, ` +
-        `columns = ${csvColumnSpec(relationSchema)}, ${CSV_READ_OPTIONS})) ` +
+        `columns = ${csvColumnSpec(definition.schema)}, ${CSV_READ_OPTIONS})) ` +
         `TO ${quoteLiteral(destinationPath)} (FORMAT parquet, COMPRESSION snappy)`
     );
 
