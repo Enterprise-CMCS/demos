@@ -32,8 +32,6 @@ export async function buildClient(environment: string, refreshOutputs: boolean =
 
   const buildCmd = LOWER_ENVIRONMENTS.has(environment) ? "npm run build:ci:dev" : "npm run build:ci";
 
-  console.log("the build command:", buildCmd);
-
   return await runShell("client-build", `npm ci && ${buildCmd}`, {
     cwd: clientPath,
     env: {
