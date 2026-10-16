@@ -85,6 +85,7 @@
     "@testing-library/user-event": "^14.6.7",
     "date-fns": "^4.4.0",
     "demos-shared-library": "file:../shared_library",
+    "documonster": "^0.20.1",
     "file-type": "^21.3.4",
     "react-oidc-context": "^3.3.1",
     "react-router-dom": "^7.18.4",

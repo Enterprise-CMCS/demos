@@ -1,13 +1,22 @@
 import React from "react";
-import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+
+import { ToastContainer } from "components/toast/ToastContainer";
 
 import { TypesTable } from "./TypesTable";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { ApplicationStatus } from "demos-server";
 import { TestProvider } from "test-utils/TestProvider";
 import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { exportTypeTagRecords } from "util/exportTypeTagRecords";
+import {
+  buildAssociatedRecordRows,
+  sortAssociatedRecordsByDefault,
+  TYPE_TAG_ASSOCIATED_RECORDS_QUERY,
+} from "./TypeTagAssociatedRecordsTable";
+import { MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION } from "mock-data/demonstrationMocks";
 
 const mockShowRemoveDemonstrationTypesDialog = vi.fn();
 const mockShowEditDemonstrationTypeDialog = vi.fn();
@@ -17,6 +26,8 @@ vi.mock("components/dialog/DialogContext", () => ({
     showEditDemonstrationTypeDialog: mockShowEditDemonstrationTypeDialog,
   }),
 }));
+
+vi.mock("util/exportTypeTagRecords", () => ({ exportTypeTagRecords: vi.fn() }));
 
 const mockTypes: DemonstrationDetailDemonstrationType[] = [
   {
@@ -43,14 +54,23 @@ const MOCK_DEMONSTRATION = {
   status: "Active" as ApplicationStatus,
   demonstrationTypes: mockTypes,
 };
+const ASSOCIATED_TYPE_NAME =
+  MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION.demonstrationTypes[0].demonstrationTypeName;
 
 const renderTypesTable = (
   props: Partial<React.ComponentProps<typeof TypesTable>> = {},
   currentUser = cmsMockUser
 ) => {
   return render(
-    <TestProvider currentUser={currentUser}>
+    <TestProvider
+      currentUser={currentUser}
+      mocks={Array.from({ length: 2 }, () => ({
+        request: { query: TYPE_TAG_ASSOCIATED_RECORDS_QUERY },
+        result: { data: { demonstrations: [MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION] } },
+      }))}
+    >
       <TypesTable demonstration={MOCK_DEMONSTRATION} {...props} />
+      <ToastContainer />
     </TestProvider>
   );
 };
@@ -67,8 +87,74 @@ const MOCK_DEMONSTRATION_WITH_DELIVERABLE = {
 
 describe("TypesTable", () => {
   beforeEach(() => {
+    vi.mocked(exportTypeTagRecords).mockReset().mockResolvedValue(undefined);
     mockShowRemoveDemonstrationTypesDialog.mockClear();
     mockShowEditDemonstrationTypeDialog.mockClear();
+  });
+
+  it("exports associated records for the filtered types", async () => {
+    renderTypesTable({
+      demonstration: {
+        ...MOCK_DEMONSTRATION,
+        demonstrationTypes: [{ ...mockTypes[1], demonstrationTypeName: ASSOCIATED_TYPE_NAME }],
+      },
+    });
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText(/input keyword search query/i), ASSOCIATED_TYPE_NAME);
+    await user.click(screen.getByTestId("export-type-excel"));
+
+    await waitFor(() =>
+      expect(exportTypeTagRecords).toHaveBeenCalledWith(
+        sortAssociatedRecordsByDefault(
+          buildAssociatedRecordRows(
+            [MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION],
+            ASSOCIATED_TYPE_NAME
+          )
+        )
+      )
+    );
+    await waitFor(() => expect(screen.getByTestId("export-type-excel")).toBeEnabled());
+  });
+
+  it("does not download an empty associated-record export", async () => {
+    renderTypesTable();
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("export-type-excel"));
+
+    await waitFor(() =>
+      expect(screen.getByText("No associated records are available to export.")).toBeInTheDocument()
+    );
+    expect(exportTypeTagRecords).not.toHaveBeenCalled();
+  });
+
+  it("disables export while pending and reports failures before allowing a retry", async () => {
+    let rejectExport!: (error: Error) => void;
+    vi.mocked(exportTypeTagRecords).mockReturnValueOnce(
+      new Promise<void>((_resolve, reject) => {
+        rejectExport = reject;
+      })
+    );
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      renderTypesTable();
+      const user = userEvent.setup();
+      const button = screen.getByTestId("export-type-excel");
+      await user.click(button);
+      expect(button).toBeDisabled();
+
+      const error = new Error("Export failed");
+      await act(async () => rejectExport(error));
+      expect(button).toBeEnabled();
+      expect(
+        screen.getByText("Unable to export associated records. Please try again.")
+      ).toBeInTheDocument();
+      expect(consoleError).toHaveBeenCalledWith("Unable to export associated records", error);
+      await user.click(button);
+      expect(exportTypeTagRecords).toHaveBeenCalledTimes(2);
+    } finally {
+      consoleError.mockRestore();
+    }
   });
 
   it("renders required columns", async () => {
