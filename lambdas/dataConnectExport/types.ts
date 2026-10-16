@@ -22,6 +22,15 @@ export interface RelationSchema {
   columns: readonly RelationColumn[];
 }
 
+export interface ExportViewDefinition {
+  query: string;
+  /** Output columns the exported rows are sorted by, applied to the outer COPY query. */
+  orderBy: readonly string[];
+  baseTables: string[];
+  schema: RelationSchema;
+  collectionSchemas?: Readonly<Record<string, RelationSchema>>;
+}
+
 export interface ExportedRelation {
   relation: string;
   rowCount: number;
