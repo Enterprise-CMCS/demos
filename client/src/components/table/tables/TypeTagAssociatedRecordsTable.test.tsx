@@ -17,6 +17,10 @@ import {
   TypeTagAssociatedRecordsTable,
 } from "./TypeTagAssociatedRecordsTable";
 
+import { exportTypeTagRecords } from "util/exportTypeTagRecords";
+
+vi.mock("util/exportTypeTagRecords", () => ({ exportTypeTagRecords: vi.fn() }));
+
 const BASE_DEMONSTRATION = MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION;
 const ASSOCIATED_TAG = BASE_DEMONSTRATION.tags[0];
 const UNRELATED_TAG = MOCK_TAGS.find((tag) => tag.tagName !== ASSOCIATED_TAG.tagName)!;
@@ -35,12 +39,11 @@ const ONLY_DEMONSTRATION_RECORD: AssociatedRecordsDemonstration = {
   tags: [ASSOCIATED_TAG],
 };
 
-const buildMocks = (demonstrations: AssociatedRecordsDemonstration[]): MockedResponse[] => [
-  {
+const buildMocks = (demonstrations: AssociatedRecordsDemonstration[]): MockedResponse[] =>
+  Array.from({ length: 2 }, () => ({
     request: { query: TYPE_TAG_ASSOCIATED_RECORDS_QUERY },
     result: { data: { demonstrations } },
-  },
-];
+  }));
 
 const setup = (demonstrations: AssociatedRecordsDemonstration[] = [BASE_DEMONSTRATION]) =>
   render(
@@ -183,6 +186,24 @@ describe("TypeTagAssociatedRecordsTable", () => {
     // "Demonstration Type" rows must not match the "Demonstration" filter value.
     await waitFor(() => expect(getColumnValues(1)).toEqual(["Demonstration"]));
     expect(screen.getByTestId(RECORD_COUNT_TEST_ID)).toHaveTextContent(/^1 Record$/);
+  });
+
+  it("exports all selected type/tag records despite the Record Type filter", async () => {
+    const user = userEvent.setup();
+    vi.mocked(exportTypeTagRecords).mockClear();
+    setup();
+    await screen.findByRole("table");
+    await user.selectOptions(screen.getByTestId("filter-by-column"), "Record Type");
+    await user.click(await screen.findByTestId("filter-recordType"));
+    await user.click(screen.getByRole("checkbox", { name: "Demonstration" }));
+    await user.click(screen.getByTestId("export-type-tag-records"));
+    await waitFor(() =>
+      expect(exportTypeTagRecords).toHaveBeenCalledWith(
+        sortAssociatedRecordsByDefault(
+          buildAssociatedRecordRows([BASE_DEMONSTRATION], ASSOCIATED_TAG.tagName)
+        )
+      )
+    );
   });
 
   it("opens the related record in a new browser tab", async () => {
