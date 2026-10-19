@@ -22,7 +22,7 @@ type Recipient = {
 const emailSchema = z.email();
 
 export async function notifyDeliverableSubmitted(input: DeliverableEmailInput): Promise<void> {
-  return notifyDeliverableEvent(input, "Deliverable Submitted", "cms");
+  return notifyDeliverableEvent(input, "Deliverable Submitted", "cms-owner-and-contacts");
 }
 
 export async function notifyDeliverableCompleted(
@@ -72,7 +72,7 @@ export async function notifyDeliverableDueDateUpdated(
 export async function notifyDeliverableExtensionRequested(
   input: DeliverableEmailInput & { requestedDueDate: Date }
 ): Promise<void> {
-  return notifyDeliverableEvent(input, "Extension Requested", "cms", {
+  return notifyDeliverableEvent(input, "Extension Requested", "cms-owner-and-contacts", {
     requestedDueDate: input.requestedDueDate.toISOString(),
   });
 }
@@ -94,7 +94,7 @@ async function notifyDeliverableEvent(
         triggeredByUserId: string;
       },
   emailType: RealtimeEmailType,
-  audience: "cms" | "state" | "all" | "demonstration-contacts",
+  audience: "cms-owner-and-contacts" | "state" | "all" | "demonstration-contacts",
   extraDeliverablePayload: Record<string, string> = {}
 ): Promise<void> {
   try {
@@ -133,7 +133,9 @@ async function notifyDeliverableEvent(
     }
     const recipients = deduplicateRecipients(
       [
-        ...(audience === "cms" || audience === "all" ? [deliverable.cmsOwner.person] : []),
+        ...(audience === "cms-owner-and-contacts" || audience === "all"
+          ? [deliverable.cmsOwner.person]
+          : []),
         ...deliverable.demonstration.demonstrationRoleAssignments.map(
           (assignment) => assignment.person
         ),
