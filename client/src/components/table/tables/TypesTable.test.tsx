@@ -137,10 +137,16 @@ describe("TypesTable", () => {
     );
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     try {
-      renderTypesTable();
+      renderTypesTable({
+        demonstration: {
+          ...MOCK_DEMONSTRATION,
+          demonstrationTypes: [{ ...mockTypes[0], demonstrationTypeName: ASSOCIATED_TYPE_NAME }],
+        },
+      });
       const user = userEvent.setup();
       const button = screen.getByTestId("export-type-excel");
       await user.click(button);
+      await waitFor(() => expect(exportTypeTagRecords).toHaveBeenCalledOnce());
       expect(button).toBeDisabled();
 
       const error = new Error("Export failed");
@@ -151,7 +157,7 @@ describe("TypesTable", () => {
       ).toBeInTheDocument();
       expect(consoleError).toHaveBeenCalledWith("Unable to export associated records", error);
       await user.click(button);
-      expect(exportTypeTagRecords).toHaveBeenCalledTimes(2);
+      await waitFor(() => expect(exportTypeTagRecords).toHaveBeenCalledTimes(2));
     } finally {
       consoleError.mockRestore();
     }

@@ -114,11 +114,11 @@ describe("DemonstrationTypeUsageTable", () => {
   it("exports only type/tags matching the table search, ignoring selected rows", async () => {
     vi.mocked(exportTypeTagRecords).mockClear();
     const user = setup();
-    await selectTypeTag(user, FIRST_TYPE_TAG_NAME);
-    await user.type(screen.getByLabelText(/input keyword search query/i), SECOND_TYPE_TAG_NAME);
+    await selectTypeTag(user, SECOND_TYPE_TAG_NAME);
+    await user.type(screen.getByLabelText(/input keyword search query/i), FIRST_TYPE_TAG_NAME);
     await waitFor(() =>
       expect(
-        screen.queryByRole("row", { name: new RegExp(FIRST_TYPE_TAG_NAME) })
+        screen.queryByRole("row", { name: new RegExp(SECOND_TYPE_TAG_NAME) })
       ).not.toBeInTheDocument()
     );
     await user.click(screen.getByTestId("export-type-tags"));
@@ -127,7 +127,7 @@ describe("DemonstrationTypeUsageTable", () => {
         sortAssociatedRecordsByDefault(
           buildAssociatedRecordRows(
             [MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION],
-            SECOND_TYPE_TAG_NAME
+            FIRST_TYPE_TAG_NAME
           )
         )
       )
