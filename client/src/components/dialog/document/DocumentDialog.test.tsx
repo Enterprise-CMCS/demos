@@ -260,3 +260,23 @@ describe("DocumentDialog upload failure handling", () => {
     consoleError.mockRestore();
   });
 });
+
+describe("DocumentDialog title validation", () => {
+  it("shows a required error when the empty title field is blurred", () => {
+    const onSubmit = vi.fn(() =>
+      Promise.resolve<DocumentUploadResult>("succeeded")
+    );
+
+    renderAddDialog("General File", onSubmit);
+
+    const titleInput = screen.getByRole("textbox", {
+      name: /document title/i,
+    });
+
+    fireEvent.blur(titleInput);
+
+    expect(
+      screen.getByText("Document Title is required.")
+    ).toBeInTheDocument();
+  });
+});

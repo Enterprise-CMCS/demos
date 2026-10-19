@@ -17,6 +17,8 @@ import { UploadButton } from "./UploadButton";
 import { BNPreValidationState, useBNWorkbookPreValidation } from "./useBNWorkbookPreValidation";
 import { DocumentChip } from "components/document/DocumentChip";
 import { BN_WORKBOOK_DOCUMENT_TYPE } from "demos-server-constants";
+import { required } from "hooks/form/validators/required";
+import { useFormValidation } from "hooks/form/useFormValidation";
 
 // BN Workbook uploads require the user to attest to the content before submitting.
 const ATTESTATION_DOCUMENT_TYPES: DocumentType[] = [BN_WORKBOOK_DOCUMENT_TYPE];
@@ -65,9 +67,16 @@ const SUCCESS_MESSAGES = {
   fileDeleted: "Your document has been removed.",
 };
 
-export const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }> = ({
+export const TitleInput: React.FC<{
+  value: string;
+  onChange: (value: string) => void;
+  onBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
+  getValidationMessage: (value: string) => string | undefined;
+}> = ({
   value,
   onChange,
+  onBlur,
+  getValidationMessage,
 }) => (
   <TextInput
     name="title"
@@ -75,6 +84,8 @@ export const TitleInput: React.FC<{ value: string; onChange: (value: string) => 
     placeholder="Enter document title"
     isRequired
     onChange={(event) => onChange(event.target.value)}
+    onBlur={onBlur}
+    getValidationMessage={getValidationMessage}
     value={value}
   />
 );
@@ -309,6 +320,10 @@ export const checkFormHasChanges = (
   );
 };
 
+const documentValidators = {
+  name: required("Document Title"),
+};
+
 export type DocumentDialogProps = {
   onClose?: () => void;
   applicableDocumentTypes?: DocumentType[];
@@ -351,6 +366,10 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
   const [formHasChanges, setFormHasChanges] = useState(false);
   const [isAttestationOpen, setIsAttestationOpen] = useState(false);
+  const validation = useFormValidation(
+    activeDocument,
+    documentValidators
+  );
 
   useEffect(() => {
     setFormHasChanges(
@@ -481,6 +500,8 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
             setActiveDocument((prev) => ({ ...prev, name: val }));
             setTitleManuallyEdited(true);
           }}
+          onBlur={() => validation.markTouched("name")}
+          getValidationMessage={() => validation.getError("name")}
         />
 
         <DescriptionInput
