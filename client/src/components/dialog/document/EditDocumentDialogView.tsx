@@ -1,10 +1,11 @@
 import React from "react";
 import { Document as ServerDocument, UpdateDocumentInput } from "demos-server";
-import { DescriptionInput, TitleInput } from "./DocumentDialog";
+import { DescriptionInput, documentValidators, TitleInput } from "./DocumentDialog";
 import { BaseDialog } from "../BaseDialog";
 import { UploadButton } from "./UploadButton";
 import { useToast } from "components/toast";
 import { useDialog } from "../DialogContext";
+import { useFormValidation } from "hooks/form/useFormValidation";
 
 export type Document = Pick<ServerDocument, "id" | "name" | "description">;
 const UPDATE_SUCCESS_MESSAGE = "Your document has been updated.";
@@ -27,6 +28,10 @@ export const EditDocumentDialogView: React.FC<{
   const { closeDialog } = useDialog();
   const [activeDocument, setActiveDocument] = React.useState<Document>(document);
   const { showSuccess, showError } = useToast();
+  const validation = useFormValidation(
+    activeDocument,
+    documentValidators
+  );
 
   const handleUpdate = async () => {
     try {
@@ -63,6 +68,8 @@ export const EditDocumentDialogView: React.FC<{
         onChange={(val) => {
           setActiveDocument((prev) => ({ ...prev, name: val }));
         }}
+        onBlur={() => validation.markTouched("name")}
+        getValidationMessage={() => validation.getError("name")}
       />
 
       <DescriptionInput

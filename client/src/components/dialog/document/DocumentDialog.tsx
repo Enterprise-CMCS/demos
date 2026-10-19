@@ -320,7 +320,7 @@ export const checkFormHasChanges = (
   );
 };
 
-const documentValidators = {
+export const documentValidators = {
   name: required("Document Title"),
 };
 
