@@ -1,7 +1,11 @@
 import semver, { SemVer } from "semver";
 
 export type DemosServerFeatureFlag =
-  "printVersion" | "approveTagsApi" | "deleteTagsApi" | "tagDetailsApi";
+  | "printVersion"
+  | "approveTagsApi"
+  | "deleteTagsApi"
+  | "tagDetailsApi"
+  | "disableMigratedUserAssociation";
 export type DemosServerFeatureFlagSetting = Record<DemosServerFeatureFlag, boolean>;
 
 // This function exists to enable easier dependency injections
@@ -12,5 +16,6 @@ export function getFeatureFlags(currentVersion: SemVer): DemosServerFeatureFlagS
     approveTagsApi: semver.gte(currentVersion, "1.2.0"),
     deleteTagsApi: semver.gte(currentVersion, "1.2.0"),
     tagDetailsApi: semver.gte(currentVersion, "1.2.0"),
+    disableMigratedUserAssociation: semver.gte(currentVersion, "1.2.0"),
   };
 }

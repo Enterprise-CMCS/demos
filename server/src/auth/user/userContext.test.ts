@@ -1,5 +1,6 @@
 // Vitest and other helpers
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { SemVer } from "semver";
 
 // Types
 import type { AuthorizationClaims } from "..";
@@ -65,10 +66,13 @@ describe("findOrCreateContextUserFromClaims", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(testTransaction));
   });
 
-  it("should attempt to return an existing user by Cognito subject, and skip further steps if successful", async () => {
+  it("prior to 1.2.0, it should attempt to return an existing user by Cognito subject, and skip further steps if successful", async () => {
     vi.mocked(findUserByClaims).mockResolvedValue(mockExistingUser);
 
-    const result = await findOrCreateContextUserFromClaims(testClaims as AuthorizationClaims);
+    const result = await findOrCreateContextUserFromClaims(
+      testClaims as AuthorizationClaims,
+      new SemVer("1.1.0")
+    );
 
     expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
     expect(findUserByClaims).toHaveBeenCalledExactlyOnceWith(testClaims, testTransaction);
@@ -82,11 +86,14 @@ describe("findOrCreateContextUserFromClaims", () => {
     expect(result).toBe(mockExistingUser);
   });
 
-  it("should attempt to link to a migrated user if matching by Cognito subject fails, and skip further steps if successful", async () => {
+  it("prior to 1.2.0, it should attempt to link to a migrated user if matching by Cognito subject fails, and skip further steps if successful", async () => {
     vi.mocked(findUserByClaims).mockResolvedValue(null);
     vi.mocked(linkNewlyMigratedUserFromClaims).mockResolvedValue(mockLinkedUser);
 
-    const result = await findOrCreateContextUserFromClaims(testClaims as AuthorizationClaims);
+    const result = await findOrCreateContextUserFromClaims(
+      testClaims as AuthorizationClaims,
+      new SemVer("1.1.0")
+    );
 
     expect(findUserByClaims).toHaveBeenCalledExactlyOnceWith(testClaims, testTransaction);
     expect(linkNewlyMigratedUserFromClaims).toHaveBeenCalledExactlyOnceWith(
@@ -102,18 +109,61 @@ describe("findOrCreateContextUserFromClaims", () => {
     expect(result).toBe(mockLinkedUser);
   });
 
-  it("should create a new user when Cognito subject lookup and migrated user linking fails", async () => {
+  it("prior to 1.2.0, it should create a new user when Cognito subject lookup and migrated user linking fails", async () => {
     vi.mocked(findUserByClaims).mockResolvedValue(null);
     vi.mocked(linkNewlyMigratedUserFromClaims).mockResolvedValue(null);
     vi.mocked(createNewUserFromClaims).mockResolvedValue(mockNewUser);
 
-    const result = await findOrCreateContextUserFromClaims(testClaims as AuthorizationClaims);
+    const result = await findOrCreateContextUserFromClaims(
+      testClaims as AuthorizationClaims,
+      new SemVer("1.1.0")
+    );
 
     expect(findUserByClaims).toHaveBeenCalledExactlyOnceWith(testClaims, testTransaction);
     expect(linkNewlyMigratedUserFromClaims).toHaveBeenCalledExactlyOnceWith(
       testClaims,
       testTransaction
     );
+    expect(createNewUserFromClaims).toHaveBeenCalledExactlyOnceWith(testClaims, testTransaction);
+    expect(upsertUserSession).toHaveBeenCalledExactlyOnceWith(
+      mockNewUser.id,
+      testClaims.authTime,
+      testTransaction
+    );
+    expect(result).toBe(mockNewUser);
+  });
+
+  it("from 1.2.0, it should attempt to return an existing user by Cognito subject, and skip further steps if successful", async () => {
+    vi.mocked(findUserByClaims).mockResolvedValue(mockExistingUser);
+
+    const result = await findOrCreateContextUserFromClaims(
+      testClaims as AuthorizationClaims,
+      new SemVer("1.2.0")
+    );
+
+    expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
+    expect(findUserByClaims).toHaveBeenCalledExactlyOnceWith(testClaims, testTransaction);
+    expect(linkNewlyMigratedUserFromClaims).not.toHaveBeenCalled();
+    expect(createNewUserFromClaims).not.toHaveBeenCalled();
+    expect(upsertUserSession).toHaveBeenCalledExactlyOnceWith(
+      mockExistingUser.id,
+      testClaims.authTime,
+      testTransaction
+    );
+    expect(result).toBe(mockExistingUser);
+  });
+
+  it("from 1.2.0, it should not attempt to link to a migrated user if matching by Cognito subject fails, and should continue to create a new user", async () => {
+    vi.mocked(findUserByClaims).mockResolvedValue(null);
+    vi.mocked(createNewUserFromClaims).mockResolvedValue(mockNewUser);
+
+    const result = await findOrCreateContextUserFromClaims(
+      testClaims as AuthorizationClaims,
+      new SemVer("1.2.0")
+    );
+
+    expect(findUserByClaims).toHaveBeenCalledExactlyOnceWith(testClaims, testTransaction);
+    expect(linkNewlyMigratedUserFromClaims).not.toHaveBeenCalled();
     expect(createNewUserFromClaims).toHaveBeenCalledExactlyOnceWith(testClaims, testTransaction);
     expect(upsertUserSession).toHaveBeenCalledExactlyOnceWith(
       mockNewUser.id,
