@@ -34,7 +34,11 @@ export async function notifyDeliverableCompleted(
     "Received and Filed": "Deliverable Received and Filed",
   };
 
-  return notifyDeliverableEvent(input, emailTypeByStatus[input.finalStatus], "state");
+  return notifyDeliverableEvent(
+    input,
+    emailTypeByStatus[input.finalStatus],
+    "demonstration-contacts"
+  );
 }
 
 export async function notifyDeliverableResubmissionRequested(
@@ -90,7 +94,7 @@ async function notifyDeliverableEvent(
         triggeredByUserId: string;
       },
   emailType: RealtimeEmailType,
-  audience: "cms" | "state" | "all",
+  audience: "cms" | "state" | "all" | "demonstration-contacts",
   extraDeliverablePayload: Record<string, string> = {}
 ): Promise<void> {
   try {
@@ -102,7 +106,7 @@ async function notifyDeliverableEvent(
           include: {
             state: true,
             demonstrationRoleAssignments: {
-              ...(audience === "all"
+              ...(audience === "all" || audience === "demonstration-contacts"
                 ? {}
                 : {
                     where: {
@@ -129,7 +133,7 @@ async function notifyDeliverableEvent(
     }
     const recipients = deduplicateRecipients(
       [
-        ...(audience !== "state" ? [deliverable.cmsOwner.person] : []),
+        ...(audience === "cms" || audience === "all" ? [deliverable.cmsOwner.person] : []),
         ...deliverable.demonstration.demonstrationRoleAssignments.map(
           (assignment) => assignment.person
         ),

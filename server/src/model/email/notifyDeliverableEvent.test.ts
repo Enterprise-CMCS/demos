@@ -63,6 +63,14 @@ describe("deliverable event email notifications", () => {
             email: "state@example.com",
           },
         },
+        {
+          person: {
+            id: "demonstration-contact-1",
+            firstName: "Demonstration",
+            lastName: "Contact",
+            email: "demonstration@example.com",
+          },
+        },
       ],
     },
   };
@@ -72,27 +80,32 @@ describe("deliverable event email notifications", () => {
     vi.mocked(prisma).mockReturnValue({
       deliverable: { findUniqueOrThrow },
     } as never);
-    findUniqueOrThrow.mockImplementation(async (query) => ({
-      ...deliverable,
-      demonstration: {
-        ...deliverable.demonstration,
-        demonstrationRoleAssignments:
-          query.include.demonstration.include.demonstrationRoleAssignments.where?.roleId.in.includes(
-            "Project Officer"
-          )
-            ? [
-                {
-                  person: {
-                    id: "cms-contact-1",
-                    firstName: "CMS",
-                    lastName: "Contact",
-                    email: "cms@example.com",
-                  },
-                },
-              ]
-            : deliverable.demonstration.demonstrationRoleAssignments,
-      },
-    }));
+    findUniqueOrThrow.mockImplementation(async (query) => {
+      const roleIds =
+        query.include.demonstration.include.demonstrationRoleAssignments.where?.roleId.in;
+      const assignments = roleIds?.includes("Project Officer")
+        ? [
+            {
+              person: {
+                id: "cms-contact-1",
+                firstName: "CMS",
+                lastName: "Contact",
+                email: "cms@example.com",
+              },
+            },
+          ]
+        : roleIds?.includes("State Point of Contact")
+          ? [deliverable.demonstration.demonstrationRoleAssignments[0]]
+          : deliverable.demonstration.demonstrationRoleAssignments;
+
+      return {
+        ...deliverable,
+        demonstration: {
+          ...deliverable.demonstration,
+          demonstrationRoleAssignments: assignments,
+        },
+      };
+    });
     vi.mocked(enqueueAndTrackRealtimeEmail).mockResolvedValue("message-1");
   });
 
@@ -137,7 +150,7 @@ describe("deliverable event email notifications", () => {
     ["Accepted", "Deliverable Accepted"],
     ["Approved", "Deliverable Approved"],
     ["Received and Filed", "Deliverable Received and Filed"],
-  ] as const)("queues %s emails for State Points of Contact", async (finalStatus, emailType) => {
+  ] as const)("queues %s emails for demonstration contacts", async (finalStatus, emailType) => {
     await notifyDeliverableCompleted({ ...input, finalStatus });
 
     expect(enqueueAndTrackRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
@@ -146,7 +159,10 @@ describe("deliverable event email notifications", () => {
         payload: expect.objectContaining({
           recipients: {
             to: [],
-            bcc: [{ name: "State Contact", address: "state@example.com" }],
+            bcc: [
+              { name: "State Contact", address: "state@example.com" },
+              { name: "Demonstration Contact", address: "demonstration@example.com" },
+            ],
           },
         }),
       }),
