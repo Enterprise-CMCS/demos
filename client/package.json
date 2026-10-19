@@ -1,7 +1,7 @@
 {
   "name": "demos-client",
   "description": "The client application for Demonstration Evaluation & Management Oversight System (DEMOS).",
-  "version": "0.1.0",
+  "version": "1.2.0",
   "type": "module",
   "devDependencies": {
     "@apollo/client": "^3.14.1",
