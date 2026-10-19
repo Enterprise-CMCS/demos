@@ -25,8 +25,8 @@ function isAuthorizerErrorResult(value: unknown): value is AuthorizerErrorResult
   return true;
 }
 
-export function getApolloErrorMessage(error?: ApolloError): string | undefined {
-  if (!error) return;
+export function getApolloErrorMessage(error?: ApolloError): string {
+  if (!error) return "";
 
   const networkError = error.networkError;
 
