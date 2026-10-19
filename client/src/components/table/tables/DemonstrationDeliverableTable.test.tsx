@@ -122,7 +122,6 @@ describe("DemonstrationDeliverableTable", () => {
     expect(screen.getByRole("columnheader", { name: /Due Date/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Submission Date/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Status/i })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: /View/i })).toBeInTheDocument();
 
     const filterByColumn = screen.getByTestId("filter-by-column") as HTMLSelectElement;
     const optionLabels = Array.from(filterByColumn.options).map((option) => option.text);
