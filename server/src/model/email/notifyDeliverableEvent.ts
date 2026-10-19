@@ -22,7 +22,7 @@ type Recipient = {
 const emailSchema = z.email();
 
 export async function notifyDeliverableSubmitted(input: DeliverableEmailInput): Promise<void> {
-  return notifyDeliverableEvent(input, "Deliverable Submitted", "cms-owner-and-contacts");
+  return notifyDeliverableEvent(input, "Deliverable Submitted", "cms-owner-and-cms-contacts");
 }
 
 export async function notifyDeliverableCompleted(
@@ -44,7 +44,7 @@ export async function notifyDeliverableCompleted(
 export async function notifyDeliverableResubmissionRequested(
   input: DeliverableEmailInput & { previousDueDate: Date }
 ): Promise<void> {
-  return notifyDeliverableEvent(input, "Resubmission Requested", "state", {
+  return notifyDeliverableEvent(input, "Resubmission Requested", "state-contacts", {
     previousDueDate: input.previousDueDate.toISOString(),
   });
 }
@@ -55,7 +55,7 @@ export async function notifyDeliverableExtensionDecisionMade(
     previousDueDate: Date;
   }
 ): Promise<void> {
-  return notifyDeliverableEvent(input, "Extension Decision Made", "state", {
+  return notifyDeliverableEvent(input, "Extension Decision Made", "state-contacts", {
     extensionDecision: input.extensionDecision,
     previousDueDate: input.previousDueDate.toISOString(),
   });
@@ -64,7 +64,7 @@ export async function notifyDeliverableExtensionDecisionMade(
 export async function notifyDeliverableDueDateUpdated(
   input: DeliverableEmailInput & { previousDueDate: Date }
 ): Promise<void> {
-  return notifyDeliverableEvent(input, "Deliverable Due Date Updated", "state", {
+  return notifyDeliverableEvent(input, "Deliverable Due Date Updated", "state-contacts", {
     previousDueDate: input.previousDueDate.toISOString(),
   });
 }
@@ -72,7 +72,7 @@ export async function notifyDeliverableDueDateUpdated(
 export async function notifyDeliverableExtensionRequested(
   input: DeliverableEmailInput & { requestedDueDate: Date }
 ): Promise<void> {
-  return notifyDeliverableEvent(input, "Extension Requested", "cms-owner-and-contacts", {
+  return notifyDeliverableEvent(input, "Extension Requested", "cms-owner-and-cms-contacts", {
     requestedDueDate: input.requestedDueDate.toISOString(),
   });
 }
@@ -82,7 +82,7 @@ export async function notifyPublicCommentAdded(input: {
   publicCommentId: string;
   triggeredByUserId: string;
 }): Promise<void> {
-  return notifyDeliverableEvent(input, "Deliverable Comment", "all");
+  return notifyDeliverableEvent(input, "Deliverable Comment", "cms-owner-and-demonstration-contacts");
 }
 
 async function notifyDeliverableEvent(
@@ -94,7 +94,11 @@ async function notifyDeliverableEvent(
         triggeredByUserId: string;
       },
   emailType: RealtimeEmailType,
-  audience: "cms-owner-and-contacts" | "state" | "all" | "demonstration-contacts",
+  audience:
+    | "cms-owner-and-cms-contacts"
+    | "state-contacts"
+    | "demonstration-contacts"
+    | "cms-owner-and-demonstration-contacts",
   extraDeliverablePayload: Record<string, string> = {}
 ): Promise<void> {
   try {
@@ -106,13 +110,14 @@ async function notifyDeliverableEvent(
           include: {
             state: true,
             demonstrationRoleAssignments: {
-              ...(audience === "all" || audience === "demonstration-contacts"
+              ...(audience === "cms-owner-and-demonstration-contacts" ||
+              audience === "demonstration-contacts"
                 ? {}
                 : {
                     where: {
                       roleId: {
                         in: Array.from(
-                          audience === "state"
+                          audience === "state-contacts"
                             ? STATE_USER_DEMONSTRATION_ROLES
                             : CMS_USER_DEMONSTRATION_ROLES
                         ),
@@ -133,7 +138,8 @@ async function notifyDeliverableEvent(
     }
     const recipients = deduplicateRecipients(
       [
-        ...(audience === "cms-owner-and-contacts" || audience === "all"
+        ...(audience === "cms-owner-and-cms-contacts" ||
+        audience === "cms-owner-and-demonstration-contacts"
           ? [deliverable.cmsOwner.person]
           : []),
         ...deliverable.demonstration.demonstrationRoleAssignments.map(
