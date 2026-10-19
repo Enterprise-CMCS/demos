@@ -5,8 +5,8 @@ export const versionNumbers = {
   local: new SemVer("1.2.0"),
   dev: new SemVer("1.2.2"),
   test: new SemVer("1.2.0"),
-  impl: new SemVer("1.1.0"),
-  prod: new SemVer("1.1.0"),
+  impl: new SemVer("1.2.0"),
+  prod: new SemVer("1.2.0"),
 } as const;
 
 /** A configured persistent environment. */
