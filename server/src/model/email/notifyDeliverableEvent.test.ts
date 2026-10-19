@@ -167,7 +167,7 @@ describe("deliverable event email notifications", () => {
         }),
       }),
       { deliverableActionId: input.sourceActionId },
-      [{ personId: "state-poc-1" }]
+      [{ personId: "state-poc-1" }, { personId: "demonstration-contact-1" }]
     );
   });
 
@@ -240,7 +240,7 @@ describe("deliverable event email notifications", () => {
         error: expect.objectContaining({
           message:
             "Cannot queue Deliverable Approved email for deliverable deliverable-1: " +
-            "no State Points of Contact were found on the demonstration.",
+            "no demonstration contacts were found.",
         }),
         deliverableId: input.deliverableId,
         emailType: "Deliverable Approved",
@@ -334,7 +334,7 @@ describe("deliverable event email notifications", () => {
     }
   );
 
-  it("tracks each public comment separately and notifies CMS and state", async () => {
+  it("tracks each public comment separately and notifies CMS and all demonstration contacts", async () => {
     findUniqueOrThrow.mockResolvedValue({ ...deliverable, statusId: "Accepted" });
     for (const publicCommentId of ["comment-1", "comment-2"]) {
       await notifyPublicCommentAdded({
@@ -345,7 +345,11 @@ describe("deliverable event email notifications", () => {
       expect(enqueueAndTrackRealtimeEmail).toHaveBeenLastCalledWith(
         expect.objectContaining({ emailType: "Deliverable Comment", entityType: "public_comment" }),
         { publicCommentId },
-        [{ personId: "cms-owner-1" }, { personId: "state-poc-1" }]
+        [
+          { personId: "cms-owner-1" },
+          { personId: "state-poc-1" },
+          { personId: "demonstration-contact-1" },
+        ]
       );
     }
     expect(enqueueAndTrackRealtimeEmail).toHaveBeenCalledTimes(2);
@@ -396,7 +400,12 @@ describe("deliverable event email notifications", () => {
       expect(enqueueAndTrackRealtimeEmail).toHaveBeenCalledWith(
         expect.any(Object),
         { publicCommentId: "comment-1" },
-        [{ personId: "cms-owner-1" }, { personId: "state-poc-1" }, { personId: "cms-contact-1" }]
+        [
+          { personId: "cms-owner-1" },
+          { personId: "state-poc-1" },
+          { personId: "demonstration-contact-1" },
+          { personId: "cms-contact-1" },
+        ]
       );
     }
   );

@@ -145,7 +145,7 @@ async function notifyDeliverableEvent(
     if (recipients.length === 0) {
       throw new Error(
         `Cannot queue ${emailType} email for deliverable ${input.deliverableId}: ` +
-          "no State Points of Contact were found on the demonstration."
+          "no demonstration contacts were found."
       );
     }
 
