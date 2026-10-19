@@ -128,7 +128,6 @@ export function DeliverableColumns({
   });
   const viewColumn = columnHelper.display({
     id: "view",
-    header: () => <span className="sr-only">View</span>,
     cell: ({ row }) => {
       const deliverableId = row.original.id;
       const handleClick = () => {
