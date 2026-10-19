@@ -16,6 +16,7 @@ export const TextInput = (props: Omit<InputProps, "type">) => {
       placeholder={props.placeholder}
       value={props.value}
       onChange={props.onChange}
+      onBlur={props.onBlur}
       getValidationMessage={props.getValidationMessage}
     />
   );

@@ -26,6 +26,7 @@ export const EditDocumentDialogView: React.FC<{
 }> = ({ document, saving, onSubmit }) => {
   const { closeDialog } = useDialog();
   const [activeDocument, setActiveDocument] = React.useState<Document>(document);
+  const [titleTouched, setTitleTouched] = React.useState(false);
   const { showSuccess, showError } = useToast();
 
   const handleUpdate = async () => {
@@ -63,6 +64,12 @@ export const EditDocumentDialogView: React.FC<{
         onChange={(val) => {
           setActiveDocument((prev) => ({ ...prev, name: val }));
         }}
+        onBlur={() => setTitleTouched(true)}
+        getValidationMessage={(value) =>
+          titleTouched && !value.trim()
+            ? "Document Title is required."
+            : undefined
+        }
       />
 
       <DescriptionInput
