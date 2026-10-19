@@ -12,6 +12,7 @@ describe("vite.config defines", () => {
       "__GIT_COMMIT__",
       "__DEMOS_VERSION__",
       "__FEATURE_SHOW_GIT_VERSION__",
+      "__FEATURE_OACT_USER__",
     ].sort();
 
     expect(defineKeys).toEqual(declaredInTypes);
