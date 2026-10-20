@@ -1,6 +1,7 @@
 import React from "react";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { selectFilterByColumn } from "test-utils/columnFilter";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MockedResponse } from "@apollo/client/testing";
 import type { Tag } from "demos-server";
@@ -179,7 +180,7 @@ describe("TypeTagAssociatedRecordsTable", () => {
     await screen.findByRole("table");
     expect(screen.getByTestId(RECORD_COUNT_TEST_ID)).toHaveTextContent(`${allRecordCount} Records`);
 
-    await user.selectOptions(screen.getByTestId("filter-by-column"), "Record Type");
+    await selectFilterByColumn(user, "Record Type");
     await user.click(await screen.findByTestId("filter-recordType"));
     await user.click(screen.getByRole("checkbox", { name: "Demonstration" }));
 
@@ -193,7 +194,7 @@ describe("TypeTagAssociatedRecordsTable", () => {
     vi.mocked(exportTypeTagRecords).mockClear();
     setup();
     await screen.findByRole("table");
-    await user.selectOptions(screen.getByTestId("filter-by-column"), "Record Type");
+    await selectFilterByColumn(user, "Record Type");
     await user.click(await screen.findByTestId("filter-recordType"));
     await user.click(screen.getByRole("checkbox", { name: "Demonstration" }));
     await user.click(screen.getByTestId("export-type-tag-records"));
@@ -303,7 +304,7 @@ describe("TypeTagAssociatedRecordsTable", () => {
     await screen.findByRole("table");
     const allCount = getBodyRows().length;
 
-    await user.selectOptions(screen.getByTestId("filter-by-column"), "Project Officer");
+    await selectFilterByColumn(user, "Project Officer");
     await user.click(await screen.findByTestId("filter-projectOfficerName"));
     await user.click(
       screen.getByRole("checkbox", { name: BASE_DEMONSTRATION.primaryProjectOfficer.fullName })
