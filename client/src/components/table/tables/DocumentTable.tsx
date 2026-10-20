@@ -71,36 +71,34 @@ export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[
 
             return (
               <div className="flex gap-1 ml-4">
-                {hasEditAndDeleteDocumentPermission && (
-                  <>
-                    <CircleButton
-                      name="edit-document"
-                      aria-label="Edit Document"
-                      tooltip={editTooltip}
-                      disabled={!editEnabled}
-                      onClick={() =>
-                        showEditApplicationDocumentDialog({
-                          id: selectedDocs[0].id,
-                          name: selectedDocs[0].name,
-                          description: selectedDocs[0].description,
-                        })
-                      }
-                    >
-                      <EditIcon />
-                    </CircleButton>
-                    <CircleButton
-                      name="remove-document"
-                      aria-label="Remove Document"
-                      tooltip={deleteTooltip}
-                      disabled={!deleteEnabled}
-                      onClick={() =>
-                        showRemoveApplicationDocumentsDialog(selectedDocs.map((doc) => doc.id))
-                      }
-                    >
-                      <DeleteIcon />
-                    </CircleButton>
-                  </>
-                )}
+                <CircleButton
+                  name="edit-document"
+                  aria-label="Edit Document"
+                  tooltip={editTooltip}
+                  disabled={!editEnabled}
+                  isHidden={!hasEditAndDeleteDocumentPermission}
+                  onClick={() =>
+                    showEditApplicationDocumentDialog({
+                      id: selectedDocs[0].id,
+                      name: selectedDocs[0].name,
+                      description: selectedDocs[0].description,
+                    })
+                  }
+                >
+                  <EditIcon />
+                </CircleButton>
+                <CircleButton
+                  name="remove-document"
+                  aria-label="Remove Document"
+                  tooltip={deleteTooltip}
+                  disabled={!deleteEnabled}
+                  isHidden={!hasEditAndDeleteDocumentPermission}
+                  onClick={() =>
+                    showRemoveApplicationDocumentsDialog(selectedDocs.map((doc) => doc.id))
+                  }
+                >
+                  <DeleteIcon />
+                </CircleButton>
               </div>
             );
           }}

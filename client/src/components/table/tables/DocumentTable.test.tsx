@@ -50,15 +50,15 @@ describe("DocumentTable", () => {
     expect(screen.queryByTestId(/select-row-/i)).not.toBeInTheDocument();
   });
 
-  it("hides edit and delete buttons for cms-reviewer users", async () => {
+  it("does not render edit and delete buttons for cms-reviewer users", async () => {
     renderDocumentTable(cmsReviewerMockUser);
 
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
 
-    expect(screen.queryByLabelText(/Edit Document/i)).not.toBeInTheDocument();
-    expect(screen.queryByLabelText(/Remove Document/i)).not.toBeInTheDocument();
+    expect(screen.queryByTestId("edit-document")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("remove-document")).not.toBeInTheDocument();
   });
 
   it("disables Edit button when no or multiple documents are selected, enables for one", async () => {
