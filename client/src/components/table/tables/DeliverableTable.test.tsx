@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { cmsMockUser, cmsReviewerMockUser, readonlyMockUser } from "mock-data/userMocks";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { getFilterByColumnLabels, selectFilterByColumn } from "test-utils/columnFilter";
 
 import {
   DeliverableTable,
@@ -373,29 +372,32 @@ describe("DeliverableTable", () => {
 
   it("uses multiselect filter inputs for configured categorical fields", async () => {
     const user = userEvent.setup();
-    await selectFilterByColumn(user, "Demonstration Name");
+    const columnSelect = screen.getByTestId("filter-by-column");
+
+    await user.selectOptions(columnSelect, "Demonstration Name");
     await waitFor(() => {
       expect(screen.getByPlaceholderText("Select Demonstration Name")).toBeInTheDocument();
     });
 
-    await selectFilterByColumn(user, "Deliverable Type");
+    await user.selectOptions(columnSelect, "Deliverable Type");
     await waitFor(() => {
       expect(screen.getByPlaceholderText("Select Deliverable Type")).toBeInTheDocument();
     });
 
-    await selectFilterByColumn(user, "CMS Owner");
+    await user.selectOptions(columnSelect, "CMS Owner");
     await waitFor(() => {
       expect(screen.getByPlaceholderText("Select CMS Owner")).toBeInTheDocument();
     });
 
-    await selectFilterByColumn(user, "Status");
+    await user.selectOptions(columnSelect, "Status");
     await waitFor(() => {
       expect(screen.getByPlaceholderText("Select Status")).toBeInTheDocument();
     });
   });
 
-  it("shows filter options aligned to visible CMS-user columns", async () => {
-    const optionLabels = await getFilterByColumnLabels(userEvent.setup());
+  it("shows filter options aligned to visible CMS-user columns", () => {
+    const filterByColumn = screen.getByTestId("filter-by-column") as HTMLSelectElement;
+    const optionLabels = Array.from(filterByColumn.options).map((option) => option.text);
 
     expect(optionLabels).toEqual([
       "Select a Column...",
@@ -434,7 +436,8 @@ describe("DeliverableTable", () => {
       expect(sortedOrderBeforeFiltering).toHaveLength(2);
     });
 
-    await selectFilterByColumn(user, "Deliverable Name");
+    const filterByColumn = screen.getByTestId("filter-by-column");
+    await user.selectOptions(filterByColumn, "Deliverable Name");
 
     await waitFor(() => {
       expect(screen.getByPlaceholderText(/Filter Deliverable Name/i)).toBeInTheDocument();
@@ -502,7 +505,8 @@ describe("DeliverableTable demos-state-user view mode", () => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
 
-    const optionLabels = await getFilterByColumnLabels(userEvent.setup());
+    const filterByColumn = screen.getByTestId("filter-by-column") as HTMLSelectElement;
+    const optionLabels = Array.from(filterByColumn.options).map((option) => option.text);
 
     expect(optionLabels).toEqual([
       "Select a Column...",
@@ -811,7 +815,7 @@ describe("DeliverableTable default sorting behavior", () => {
 
     renderComponent(cmsMockUser, { deliverables, viewMode: "demos-cms-user" });
 
-    await selectFilterByColumn(user, "Deliverable Name");
+    await user.selectOptions(screen.getByTestId("filter-by-column"), "Deliverable Name");
     await user.type(screen.getByPlaceholderText("Filter Deliverable Name"), "Report");
     await user.click(screen.getByRole("columnheader", { name: /Submission Date/i }));
 
@@ -886,7 +890,7 @@ describe("DeliverableTable status filtering", () => {
 
     renderComponent(cmsMockUser, { deliverables, viewMode: "demos-cms-user" });
 
-    await selectFilterByColumn(user, "Status");
+    await user.selectOptions(screen.getByTestId("filter-by-column"), "Status");
     await user.click(screen.getByPlaceholderText("Select Status"));
     await user.click(screen.getByLabelText("Upcoming", { selector: "input" }));
 

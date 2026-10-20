@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { selectFilterByColumn } from "test-utils/columnFilter";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Table } from "./Table";
 import { highlightCell, KeywordSearch } from "components/table/search";
@@ -176,7 +175,8 @@ describe("Table Component Interactions", () => {
       );
 
       // Apply column filter and verify sorting is maintained
-      await selectFilterByColumn(user, "Option");
+      const columnSelect = screen.getByTestId("filter-by-column");
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/select option/i)).toBeInTheDocument();
@@ -235,7 +235,8 @@ describe("Table Component Interactions", () => {
       await user.type(keywordSearchInput, "nonexistent");
 
       // Apply column filter
-      await selectFilterByColumn(user, "Name");
+      const columnSelect = screen.getByTestId("filter-by-column");
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();

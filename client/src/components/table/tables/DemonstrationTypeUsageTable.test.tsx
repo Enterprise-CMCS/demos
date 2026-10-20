@@ -1,7 +1,6 @@
 import React from "react";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { getFilterByColumnLabels } from "test-utils/columnFilter";
 import { describe, expect, it, vi } from "vitest";
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
@@ -303,12 +302,16 @@ describe("DemonstrationTypeUsageTable", () => {
 
   describe("Column Filter", () => {
     it("only shows Status as an available filter option", async () => {
-      const user = setup();
+      setup();
 
       await screen.findByRole("table");
-      const optionLabels = await getFilterByColumnLabels(user);
+      const selectElement = screen.getByTestId("filter-by-column") as HTMLSelectElement;
+      const validOptions = Array.from(selectElement.querySelectorAll("option")).filter(
+        (opt) => opt.value !== ""
+      );
 
-      expect(optionLabels).toEqual(["Select a Column...", "Status"]);
+      expect(validOptions).toHaveLength(1);
+      expect(validOptions[0]).toHaveTextContent("Status");
     });
   });
 });
