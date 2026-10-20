@@ -4,29 +4,34 @@ patch: {}
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
   SNYK-CC-TF-69:
-    - "./bootstrap-template.yaml > [DocId: 0] > Resources[CdkBoostrapPermissionsBoundaryPolicy] > Properties > PolicyDocument":
+    - './bootstrap-template.yaml > [DocId: 0] > Resources[CdkBoostrapPermissionsBoundaryPolicy] > Properties > PolicyDocument':
         reason: >-
           This policy is recommended by AWS in their template:
           https://github.com/aws/aws-cdk-cli/blob/main/packages/aws-cdk/lib/api/bootstrap/bootstrap-template.yaml\#L753
         created: 2026-09-28T16:47:32.227Z
   SNYK-CC-AWS-709:
-    - "./bootstrap-template.yaml > [DocId: 0] > Resources[FileAssetsBucketEncryptionKey] > Properties > KeyPolicy":
+    - './bootstrap-template.yaml > [DocId: 0] > Resources[FileAssetsBucketEncryptionKey] > Properties > KeyPolicy':
         reason: >-
           This policy is recommended by AWS in their template:
           https://github.com/aws/aws-cdk-cli/blob/main/packages/aws-cdk/lib/api/bootstrap/bootstrap-template.yaml#L132
         created: 2026-09-28T16:47:32.227Z
   SNYK-CC-TF-14:
-    - "./bootstrap-template.yaml > [DocId: 0] > Resources > FileAssetsBucketEncryptionKey > Properties > EnableKeyRotation":
+    - './bootstrap-template.yaml > [DocId: 0] > Resources > FileAssetsBucketEncryptionKey > Properties > EnableKeyRotation':
         reason: >-
           This policy is recommended by AWS in their template:
           https://github.com/aws/aws-cdk-cli/blob/main/packages/aws-cdk/lib/api/bootstrap/bootstrap-template.yaml#L132
         created: 2026-09-28T16:47:32.227Z
   SNYK-CC-TF-45:
-    - "./bootstrap-template.yaml > [DocId: 0] > Resources > StagingBucket > Properties > LoggingConfiguration":
+    - './bootstrap-template.yaml > [DocId: 0] > Resources > StagingBucket > Properties > LoggingConfiguration':
         reason: >-
           This policy is recommended by AWS in their template:
           https://github.com/aws/aws-cdk-cli/blob/main/packages/aws-cdk/lib/api/bootstrap/bootstrap-template.yaml#L195
         created: 2026-09-28T16:47:32.227Z
+  SNYK-JS-PICOMATCH-21248802:
+    - '*':
+        reason: Waiting for patch for vitest v4
+        expires: 2026-11-03T00:00:00.000Z
+        created: 2026-10-20T13:48:12.368Z
 exclude:
   global:
     - node_modules
