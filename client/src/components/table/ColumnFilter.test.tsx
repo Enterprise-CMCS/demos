@@ -2,9 +2,8 @@ import React from "react";
 
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { openFilterByColumn, selectFilterByColumn } from "test-utils/columnFilter";
 import { Table } from "./Table";
 import { testTableData, TestTableType } from "./Table.test";
 import { createColumnHelper } from "@tanstack/react-table";
@@ -105,37 +104,12 @@ describe("ColumnFilter Component", () => {
   });
 
   describe("Filter Selection", () => {
-    it("opens the column options in a listbox rendered below the Filter By input", async () => {
-      const user = userEvent.setup();
-      const filterByInput = screen.getByTestId("filter-by-column");
-
-      expect(filterByInput.tagName).toBe("INPUT");
-      const listbox = await openFilterByColumn(user);
-
-      expect(filterByInput).toHaveAttribute("aria-expanded", "true");
-      expect(filterByInput).toHaveAttribute("aria-controls", listbox.id);
-      expect(filterByInput.parentElement).toContainElement(listbox);
-      expect(
-        within(listbox)
-          .getAllByRole("option")
-          .map((option) => option.textContent)
-      ).toEqual(["Select a Column...", "Name", "Option", "Date"]);
-    });
-
-    it("hides the filter input when the column selection is cleared", async () => {
-      const user = userEvent.setup();
-
-      await selectFilterByColumn(user, "Name");
-      expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
-
-      await selectFilterByColumn(user, "Select a Column...");
-      expect(screen.queryByPlaceholderText(/filter name/i)).not.toBeInTheDocument();
-    });
-
     it("shows filter input when a column is selected", async () => {
       const user = userEvent.setup();
+      const columnSelect = screen.getByTestId("filter-by-column");
+
       // Type to filter the options and then click on the option
-      await selectFilterByColumn(user, "Name");
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -144,22 +118,24 @@ describe("ColumnFilter Component", () => {
 
     it("changes filter input type based on column selection", async () => {
       const user = userEvent.setup();
+      const columnSelect = screen.getByTestId("filter-by-column");
+
       // Test text filter (Name column)
-      await selectFilterByColumn(user, "Name");
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
       });
 
       // Test select filter (Option column)
-      await selectFilterByColumn(user, "Option");
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/Select Option/i)).toBeInTheDocument();
       });
 
       // Test date filter (Date column)
-      await selectFilterByColumn(user, "Date");
+      await user.selectOptions(columnSelect, "Date");
 
       // Expect two date filter pickers (start and end)
       await waitFor(() => {
@@ -170,8 +146,10 @@ describe("ColumnFilter Component", () => {
 
     it("clears filter value when changing columns", async () => {
       const user = userEvent.setup();
+      const columnSelect = screen.getByTestId("filter-by-column");
+
       // Select name column and enter a filter
-      await selectFilterByColumn(user, "Name");
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -181,7 +159,7 @@ describe("ColumnFilter Component", () => {
       await user.type(nameFilterInput, "Item One");
 
       // Change to option column
-      await selectFilterByColumn(user, "Option");
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         const optionFilterInput = screen.getByPlaceholderText(/Select Option/i);
@@ -193,7 +171,9 @@ describe("ColumnFilter Component", () => {
   describe("Text Filtering", () => {
     it("filters rows correctly by name column", async () => {
       const user = userEvent.setup();
-      await selectFilterByColumn(user, "Name");
+      const columnSelect = screen.getByTestId("filter-by-column");
+
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -216,7 +196,9 @@ describe("ColumnFilter Component", () => {
 
     it("is case insensitive", async () => {
       const user = userEvent.setup();
-      await selectFilterByColumn(user, "Name");
+      const columnSelect = screen.getByTestId("filter-by-column");
+
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -233,7 +215,9 @@ describe("ColumnFilter Component", () => {
 
     it("handles partial matches", async () => {
       const user = userEvent.setup();
-      await selectFilterByColumn(user, "Name");
+      const columnSelect = screen.getByTestId("filter-by-column");
+
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -256,7 +240,9 @@ describe("ColumnFilter Component", () => {
   describe("Select Filter Type", () => {
     it("renders AutoCompleteSelect when column has select filter type", async () => {
       const user = userEvent.setup();
-      await selectFilterByColumn(user, "Option");
+      const columnSelect = screen.getByTestId("filter-by-column");
+
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/Select Option/i)).toBeInTheDocument();
@@ -265,7 +251,9 @@ describe("ColumnFilter Component", () => {
 
     it("filters correctly using select filter", async () => {
       const user = userEvent.setup();
-      await selectFilterByColumn(user, "Option");
+      const columnSelect = screen.getByTestId("filter-by-column");
+
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/Select Option/i)).toBeInTheDocument();
@@ -301,7 +289,9 @@ describe("ColumnFilter Component", () => {
     });
     it("filters table rows by multiple selected options in multiselect filter", async () => {
       const user = userEvent.setup();
-      await selectFilterByColumn(user, "Option");
+      const columnSelect = screen.getByTestId("filter-by-column");
+
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/Select Option/i)).toBeInTheDocument();
@@ -345,7 +335,9 @@ describe("ColumnFilter Component", () => {
 
     it("allows clearing selections in a multiselect filter", async () => {
       const user = userEvent.setup();
-      await selectFilterByColumn(user, "Option");
+      const columnSelect = screen.getByTestId("filter-by-column");
+
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/Select Option/i)).toBeInTheDocument();
@@ -391,7 +383,9 @@ describe("ColumnFilter Component", () => {
 
     it("restores all rows when all multiselect options are deselected", async () => {
       const user = userEvent.setup();
-      await selectFilterByColumn(user, "Option");
+      const columnSelect = screen.getByTestId("filter-by-column");
+
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/Select Option/i)).toBeInTheDocument();
@@ -444,7 +438,9 @@ describe("ColumnFilter Component", () => {
   describe("Date Filter Type", () => {
     it("renders DatePicker when column has date filter type", async () => {
       const user = userEvent.setup();
-      await selectFilterByColumn(user, "Date");
+      const columnSelect = screen.getByTestId("filter-by-column");
+
+      await user.selectOptions(columnSelect, "Date");
 
       await waitFor(() => {
         expect(document.body.querySelector('input[name="date-filter-start"]')).toBeInTheDocument();
@@ -454,8 +450,10 @@ describe("ColumnFilter Component", () => {
 
     it("filters rows by date range", async () => {
       const user = userEvent.setup();
+      const columnSelect = screen.getByTestId("filter-by-column");
+
       // Select the Date column
-      await selectFilterByColumn(user, "Date");
+      await user.selectOptions(columnSelect, "Date");
 
       const startInput = document.body.querySelector('input[name="date-filter-start"]');
       const endInput = document.body.querySelector('input[name="date-filter-end"]');
@@ -478,7 +476,9 @@ describe("ColumnFilter Component", () => {
 
     it("shows no results for unmatched MM/dd/yyyy date", async () => {
       const user = userEvent.setup();
-      await selectFilterByColumn(user, "Date");
+      const columnSelect = screen.getByTestId("filter-by-column");
+
+      await user.selectOptions(columnSelect, "Date");
 
       const startInput = document.body.querySelector('input[name="date-filter-start"]');
       const endInput = document.body.querySelector('input[name="date-filter-end"]');
@@ -495,7 +495,9 @@ describe("ColumnFilter Component", () => {
 
     it("clears date range inputs when switching away from and back to date filter", async () => {
       const user = userEvent.setup();
-      await selectFilterByColumn(user, "Date");
+      const columnSelect = screen.getByTestId("filter-by-column");
+
+      await user.selectOptions(columnSelect, "Date");
 
       const startInput = document.body.querySelector('input[name="date-filter-start"]');
       const endInput = document.body.querySelector('input[name="date-filter-end"]');
@@ -503,12 +505,12 @@ describe("ColumnFilter Component", () => {
       fireEvent.change(startInput!, { target: { value: "2023-02-01" } });
       fireEvent.change(endInput!, { target: { value: "2023-04-01" } });
 
-      await selectFilterByColumn(user, "Name");
+      await user.selectOptions(columnSelect, "Name");
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
       });
 
-      await selectFilterByColumn(user, "Date");
+      await user.selectOptions(columnSelect, "Date");
 
       await waitFor(() => {
         const resetStartInput = document.body.querySelector('input[name="date-filter-start"]');
@@ -522,7 +524,9 @@ describe("ColumnFilter Component", () => {
   describe("No Results State", () => {
     it("shows no results message when filter yields no matches", async () => {
       const user = userEvent.setup();
-      await selectFilterByColumn(user, "Name");
+      const columnSelect = screen.getByTestId("filter-by-column");
+
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -547,7 +551,9 @@ describe("ColumnFilter Component", () => {
 
     it("returns to showing results when valid filter is applied after no results", async () => {
       const user = userEvent.setup();
-      await selectFilterByColumn(user, "Name");
+      const columnSelect = screen.getByTestId("filter-by-column");
+
+      await user.selectOptions(columnSelect, ["Name"]);
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();

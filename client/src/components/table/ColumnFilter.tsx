@@ -2,13 +2,9 @@ import React from "react";
 import { Table } from "@tanstack/react-table";
 import { TextInput } from "components/input";
 import { AutoCompleteMultiselect } from "components/input/select/AutoCompleteMultiselect";
-import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
-import { Option } from "components/input/select/Select";
+import { Option, Select } from "components/input/select/Select";
 import { parseISO, format, isValid } from "date-fns";
 import { DatePicker } from "components/input/date/DatePicker";
-
-const FILTER_BY_COLUMN_ID = "filter-by-column";
-const NO_COLUMN_OPTION: Option = { label: "Select a Column...", value: "" };
 
 export interface ColumnMetaFilterConfig {
   filterConfig?:
@@ -37,7 +33,7 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
 
   const availableColumns = table.getAllColumns().filter((column) => column.getCanFilter());
 
-  const filterableColumnOptions: Option[] = availableColumns.map((col) => {
+  const columnOptions: Option[] = availableColumns.map((col) => {
     const columnDef = col.columnDef;
     const displayLabel = typeof columnDef.header === "string" ? columnDef.header : col.id;
 
@@ -46,7 +42,6 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
       value: col.id,
     };
   });
-  const columnOptions = [NO_COLUMN_OPTION, ...filterableColumnOptions];
 
   // Whenever the selected column changes, reset the filterValue and clear filters
   React.useEffect(() => {
@@ -154,14 +149,13 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
   return (
     <div className="grid grid-cols-1 items-end gap-[24px] sm:grid-cols-2">
       <div className="col-span-1">
-        <AutoCompleteSelect
+        <Select
           label="Filter By"
           options={columnOptions}
-          placeholder={NO_COLUMN_OPTION.label}
+          placeholder="Select a Column..."
           value={selectedColumn}
           onSelect={(val) => setSelectedColumn(val)}
-          id={FILTER_BY_COLUMN_ID}
-          dataTestId={FILTER_BY_COLUMN_ID}
+          id="filter-by-column"
         />
       </div>
 
