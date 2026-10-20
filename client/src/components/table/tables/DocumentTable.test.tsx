@@ -2,6 +2,7 @@ import React from "react";
 
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { selectFilterByColumn } from "test-utils/columnFilter";
 
 import { DocumentTable } from "./DocumentTable";
 import { mockDocuments } from "mock-data/documentMocks";
@@ -106,7 +107,7 @@ describe("DocumentTable", () => {
     });
 
     // Select the createdAt filter column
-    await user.selectOptions(screen.getByTestId("filter-by-column"), ["createdAt"]);
+    await selectFilterByColumn(user, "Date Uploaded");
 
     const startInput = document.body.querySelector('input[name="date-filter-start"]');
     const endInput = document.body.querySelector('input[name="date-filter-end"]');
@@ -130,7 +131,7 @@ describe("DocumentTable", () => {
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
-    await user.selectOptions(screen.getByTestId("filter-by-column"), ["type"]);
+    await selectFilterByColumn(user, "Document Type");
 
     const input = screen.getByPlaceholderText("Select Document Type");
     await user.type(input, "Q&A");
