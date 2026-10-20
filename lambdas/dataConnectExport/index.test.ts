@@ -73,7 +73,7 @@ import { EXPORT_VIEWS } from "./views";
 // views.ts and util/keys.ts are deliberately not mocked. The real views drive the loop and
 // the real partitionKey produces the asserted keys, so a change to either shows up here.
 const RELATIONS = Object.keys(EXPORT_VIEWS);
-const LOCKED_TABLES = [...new Set(EXPORT_VIEWS.demonstration_reporting.baseTables)].sort();
+const LOCKED_TABLES = snapshotTables(EXPORT_VIEWS);
 const RUN_TIME = new Date("2026-09-04T07:00:00.000Z");
 // Later than RUN_TIME, as it is on a real run once the snapshot has waited on its lock.
 const SNAPSHOT_TIME = new Date("2026-09-04T07:00:04.250Z");
