@@ -19,11 +19,12 @@ export type DocumentTableDocument = Pick<
 > & {
   owner: { person: Pick<Person, "fullName"> };
 };
+// scoped to this page so far. but if we add more then easily portable.
+const DOCUMENT_EDIT_DELETE_RESTRICTED_PERSON_TYPES = ["demos-cms-reviewer-user"];
 
 export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[] }) => {
   const { currentUser } = getCurrentUser();
   const isReadonlyUser = isReadonly(currentUser);
-
   const documentColumns = DocumentColumns(isReadonlyUser);
   const { showEditApplicationDocumentDialog, showRemoveApplicationDocumentsDialog } = useDialog();
   const initialState = {
@@ -48,7 +49,9 @@ export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[
             }
             const selectedDocs = table.getSelectedRowModel().rows.map((row) => row.original);
             const selectedCount = selectedDocs.length;
-
+            // Set this up for future permissions
+            const hasEditAndDeleteDocumentPermission =
+              !DOCUMENT_EDIT_DELETE_RESTRICTED_PERSON_TYPES.includes(currentUser.person.personType);
             const editEnabled = selectedCount === 1;
             const deleteEnabled = selectedCount >= 1;
 
@@ -68,33 +71,36 @@ export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[
 
             return (
               <div className="flex gap-1 ml-4">
-                <CircleButton
-                  name="edit-document"
-                  aria-label="Edit Document"
-                  tooltip={editTooltip}
-                  disabled={!editEnabled}
-                  onClick={() =>
-                    showEditApplicationDocumentDialog({
-                      id: selectedDocs[0].id,
-                      name: selectedDocs[0].name,
-                      description: selectedDocs[0].description,
-                    })
-                  }
-                >
-                  <EditIcon />
-                </CircleButton>
-
-                <CircleButton
-                  name="remove-document"
-                  aria-label="Remove Document"
-                  tooltip={deleteTooltip}
-                  disabled={!deleteEnabled}
-                  onClick={() =>
-                    showRemoveApplicationDocumentsDialog(selectedDocs.map((doc) => doc.id))
-                  }
-                >
-                  <DeleteIcon />
-                </CircleButton>
+                {hasEditAndDeleteDocumentPermission && (
+                  <>
+                    <CircleButton
+                      name="edit-document"
+                      aria-label="Edit Document"
+                      tooltip={editTooltip}
+                      disabled={!editEnabled}
+                      onClick={() =>
+                        showEditApplicationDocumentDialog({
+                          id: selectedDocs[0].id,
+                          name: selectedDocs[0].name,
+                          description: selectedDocs[0].description,
+                        })
+                      }
+                    >
+                      <EditIcon />
+                    </CircleButton>
+                    <CircleButton
+                      name="remove-document"
+                      aria-label="Remove Document"
+                      tooltip={deleteTooltip}
+                      disabled={!deleteEnabled}
+                      onClick={() =>
+                        showRemoveApplicationDocumentsDialog(selectedDocs.map((doc) => doc.id))
+                      }
+                    >
+                      <DeleteIcon />
+                    </CircleButton>
+                  </>
+                )}
               </div>
             );
           }}
