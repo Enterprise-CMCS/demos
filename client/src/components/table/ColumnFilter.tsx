@@ -46,7 +46,6 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
       value: col.id,
     };
   });
-  // Keep a "no column" choice first so users can clear the column selection
   const columnOptions = [NO_COLUMN_OPTION, ...filterableColumnOptions];
 
   // Whenever the selected column changes, reset the filterValue and clear filters
@@ -155,8 +154,6 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
   return (
     <div className="grid grid-cols-1 items-end gap-[24px] sm:grid-cols-2">
       <div className="col-span-1">
-        {/* Custom listbox (not a native <select>) so options open below the control instead of
-            over it, which native macOS menus do */}
         <AutoCompleteSelect
           label="Filter By"
           options={columnOptions}
