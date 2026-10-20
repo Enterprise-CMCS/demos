@@ -19,7 +19,7 @@ import { copyColumnList, csvColumnSpec, quoteIdentifier, quoteLiteral } from "./
  * so without this a relation with no rows aborts the export instead of producing an empty file.
  *
  * max_line_size defaults to 2 MB and a single free-text column can exceed that. The buffer is
- * not preallocated, so raising the ceiling costs nothing until a row needs it.
+ * not pre-allocated, so raising the ceiling costs nothing until a row needs it.
  */
 const CSV_READ_OPTIONS = [
   "header = false",

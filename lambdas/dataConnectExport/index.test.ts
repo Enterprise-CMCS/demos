@@ -21,7 +21,7 @@ const mocks = vi.hoisted(() => ({
 
 type LogModule = typeof import("./log");
 
-// als.run must be neutralised or the handler body never runs under vitest. Only the members the
+// als.run must be neutralized or the handler body never runs under vitest. Only the members the
 // handler calls are stubbed, so the casts stand in for the rest of AsyncLocalStorage and pino.
 vi.mock(import("./log"), () => ({
   als: {

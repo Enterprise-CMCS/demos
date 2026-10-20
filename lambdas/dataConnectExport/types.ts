@@ -23,6 +23,7 @@ export interface RelationSchema {
 }
 
 export interface ExportViewDefinition {
+  /** Query is a reviewed SQL constant. Never build this from runtime input. */
   query: string;
   /** Output columns the exported rows are sorted by, applied to the outer COPY query. */
   orderBy: readonly string[];
