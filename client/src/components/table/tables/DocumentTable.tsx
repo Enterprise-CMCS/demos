@@ -22,7 +22,7 @@ export type DocumentTableDocument = Pick<
 
 export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[] }) => {
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonly(currentUser);
+  const isReadonlyUser = isReadonly(currentUser, "DemonstrationDetail");
 
   const documentColumns = DocumentColumns(isReadonlyUser);
   const { showEditApplicationDocumentDialog, showRemoveApplicationDocumentsDialog } = useDialog();
@@ -73,6 +73,7 @@ export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[
                   aria-label="Edit Document"
                   tooltip={editTooltip}
                   disabled={!editEnabled}
+                  isHidden={isReadonlyUser}
                   onClick={() =>
                     showEditApplicationDocumentDialog({
                       id: selectedDocs[0].id,
@@ -89,6 +90,7 @@ export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[
                   aria-label="Remove Document"
                   tooltip={deleteTooltip}
                   disabled={!deleteEnabled}
+                  isHidden={isReadonlyUser}
                   onClick={() =>
                     showRemoveApplicationDocumentsDialog(selectedDocs.map((doc) => doc.id))
                   }
