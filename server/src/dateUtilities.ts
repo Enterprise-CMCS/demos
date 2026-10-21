@@ -1,7 +1,7 @@
-import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "./constants.js";
-import { DateTimeOrLocalDate, DateType, ExpectedTimestamp } from "./types.js";
 import { TZDate } from "@date-fns/tz";
-import { format } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
+import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "./constants";
+import { DateTimeOrLocalDate, DateType, ExpectedTimestamp, LocalDate } from "./types";
 
 export type DateTimeParts = {
   hours: number;
@@ -9,6 +9,10 @@ export type DateTimeParts = {
   seconds: number;
   milliseconds: number;
 };
+
+export function isLocalDate(inputDate: string): inputDate is LocalDate {
+  return /^\d{4}-\d{2}-\d{2}$/.test(inputDate) && isValid(parseISO(inputDate));
+}
 
 export function getDateTimeParts(dateValue: Date): DateTimeParts {
   return {
