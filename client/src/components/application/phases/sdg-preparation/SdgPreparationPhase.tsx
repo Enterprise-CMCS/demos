@@ -122,7 +122,7 @@ export const SdgPreparationPhase = ({
 
   const isPhaseCompleted = sdgPreparationPhase.phaseStatus === "Completed";
   const isApproved = applicationStatus === "Approved";
-  const isReadonlyUser = isReadonly(currentUser);
+  const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
 
   const isFormComplete =
     sdgPreparationPhaseFormData.internalExpectedApprovalDate &&

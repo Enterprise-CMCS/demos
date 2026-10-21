@@ -1,4 +1,5 @@
 export * from "./Action/AddNewIcon";
+export * from "./Action/ApproveIcon";
 export * from "./Action/CompareIcon";
 export * from "./Action/DeleteIcon";
 export * from "./Action/EllipsisIcon";

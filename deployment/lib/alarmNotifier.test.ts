@@ -41,7 +41,7 @@ describe("alarmNotifier", () => {
       vi.fn(async () => ({
         status: 200,
         text: async () => "ok",
-      }))
+      })),
     );
   });
 
@@ -64,7 +64,7 @@ describe("alarmNotifier", () => {
           Name: "/demos/webhookUrl",
           WithDecryption: true,
         },
-      })
+      }),
     );
     expect(fetch).toHaveBeenCalledWith(
       "https://hooks.slack.test/alarm",
@@ -80,7 +80,7 @@ describe("alarmNotifier", () => {
           reason: "Threshold Crossed",
           previousState: "OK",
         }),
-      })
+      }),
     );
     expect(response).toEqual({
       statusCode: 200,

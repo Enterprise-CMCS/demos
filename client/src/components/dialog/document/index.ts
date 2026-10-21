@@ -1,6 +1,16 @@
 export { type DocumentDialogFields } from "./DocumentDialog";
-export { RemoveDocumentDialog } from "./RemoveDocumentDialog";
-export { EditDocumentDialog } from "./EditDocumentDialog";
+export {
+  RemoveApplicationDocumentsDialog,
+  RemoveDeliverableCmsDocumentsDialog,
+  RemoveDeliverableStateDocumentsDialog,
+} from "./RemoveDocumentDialog";
+export {
+  EditApplicationDocumentDialog,
+  EditDeliverableCmsDocumentDialog,
+  EditDeliverableStateDocumentDialog,
+} from "./EditDocumentDialog";
+export { RemoveDocumentDialogView } from "./RemoveDocumentDialogView";
+export { EditDocumentDialogView } from "./EditDocumentDialogView";
 export { AddDocumentToApplicationDialog } from "./AddDocumentToApplicationDialog";
 export { AddDocumentToDeliverableDialog } from "./AddDocumentToDeliverableDialog";
 export { AddDocumentToPhaseDialog } from "./AddDocumentToPhaseDialog";

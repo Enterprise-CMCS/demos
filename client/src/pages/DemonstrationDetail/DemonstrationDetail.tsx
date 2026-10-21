@@ -47,8 +47,8 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       name
       status
       currentPhaseName
-      effectiveDate
-      expirationDate
+      effectivePlainDate
+      expirationPlainDate
       medicaidId
       state {
         id
@@ -60,6 +60,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         status
         createdAt
         effectiveDate
+        effectivePlainDate
         signatureLevel
         documents {
           id
@@ -82,6 +83,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         status
         createdAt
         effectiveDate
+        effectivePlainDate
         signatureLevel
         documents {
           id
@@ -101,8 +103,8 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         demonstrationTypeName
         status
         approvalStatus
-        effectiveDate
-        expirationDate
+        effectivePlainDate
+        expirationPlainDate
         createdAt
       }
       documents {
@@ -140,7 +142,13 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
 
 export type DemonstrationDetailModification = Pick<
   Amendment,
-  "id" | "name" | "description" | "status" | "createdAt" | "effectiveDate" | "signatureLevel"
+  | "id"
+  | "name"
+  | "description"
+  | "status"
+  | "createdAt"
+  | "effectivePlainDate"
+  | "signatureLevel"
 > & {
   documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
     owner: { person: Pick<Person, "fullName"> };
@@ -148,7 +156,13 @@ export type DemonstrationDetailModification = Pick<
 };
 export type DemonstrationDetail = Pick<
   Demonstration,
-  "id" | "name" | "status" | "currentPhaseName" | "effectiveDate" | "expirationDate" | "medicaidId"
+  | "id"
+  | "name"
+  | "status"
+  | "currentPhaseName"
+  | "effectivePlainDate"
+  | "expirationPlainDate"
+  | "medicaidId"
 > & {
   state: Pick<State, "id">;
   amendments: DemonstrationDetailModification[];
@@ -157,8 +171,8 @@ export type DemonstrationDetail = Pick<
     DemonstrationTypeAssignment,
     | "demonstrationTypeName"
     | "status"
-    | "effectiveDate"
-    | "expirationDate"
+    | "effectivePlainDate"
+    | "expirationPlainDate"
     | "createdAt"
     | "approvalStatus"
   >[];

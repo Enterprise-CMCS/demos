@@ -10,7 +10,7 @@ export async function down(environment: string) {
   const confirmed = await confirm(
     `You are about to destroy the entire '${environment}' environment.\n\nAre you sure you want to continue?\n\nType 'yes' to confirm: `,
     ["yes"],
-    true
+    true,
   );
   if (!confirmed) {
     console.log("Only 'yes' (case-sensitive) is accepted as a confirmation. Cancelling...");

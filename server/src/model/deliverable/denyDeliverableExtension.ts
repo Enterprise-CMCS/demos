@@ -4,7 +4,6 @@ import { GraphQLContext } from "../../auth";
 import {
   selectDeliverableOrThrow,
   validateDenyDeliverableExtensionInput,
-  validateUserPersonTypeAllowed,
 } from ".";
 import { prisma } from "../../prismaClient";
 import { insertDeliverableAction } from "../deliverableAction/queries";
@@ -19,11 +18,6 @@ export async function denyDeliverableExtension(
   input: DenyDeliverableExtensionInput,
   context: GraphQLContext
 ): Promise<PrismaDeliverable> {
-  validateUserPersonTypeAllowed(context, "denyDeliverableExtension", [
-    "demos-admin",
-    "demos-cms-user",
-  ]);
-
   const { deliverable, sourceActionId } = await prisma().$transaction(async (tx) => {
     const deliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
     const deliverableExtension = await selectDeliverableExtension(

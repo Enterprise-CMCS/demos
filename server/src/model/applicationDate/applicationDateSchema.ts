@@ -5,6 +5,7 @@ export const applicationDateSchema = gql`
   type ApplicationDate {
     dateType: DateType!
     dateValue: DateTime!
+    plainDate: LocalDate!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -27,9 +28,9 @@ export const applicationDateSchema = gql`
 
   type Mutation {
     setApplicationDate(input: SetApplicationDateInput): Application!
-      @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Modify Applications"])
     setApplicationDates(input: SetApplicationDatesInput): Application!
-      @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Modify Applications"])
   }
 `;
 
@@ -52,6 +53,7 @@ export interface SetApplicationDatesInput {
 export interface ApplicationDate {
   dateType: DateType;
   dateValue: Date;
+  plainDate: string;
   createdAt: Date;
   updatedAt: Date;
 }

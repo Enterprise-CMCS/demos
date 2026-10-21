@@ -1,6 +1,7 @@
 import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "./constants.js";
 import { DateTimeOrLocalDate, DateType, ExpectedTimestamp } from "./types.js";
 import { TZDate } from "@date-fns/tz";
+import { format } from "date-fns";
 
 export type DateTimeParts = {
   hours: number;
@@ -103,4 +104,8 @@ export function getEasternNow(): EasternNow {
 
 export function getDayBoundaryLabel(dateType: DateType): ExpectedTimestamp {
   return DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[dateType].expectedTimestamp;
+}
+
+export function formatDateToPlainDate(date: Date): string {
+  return format(new TZDate(date, "America/New_York"), "yyyy-MM-dd");
 }

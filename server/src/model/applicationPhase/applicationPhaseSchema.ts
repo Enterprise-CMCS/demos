@@ -18,10 +18,10 @@ export const applicationPhaseSchema = gql`
   }
 
   type Mutation {
-    completePhase(input: CompletePhaseInput!): Application! @auth(requires: ["Perform CMS Action"])
-    skipConceptPhase(applicationId: ID!): Application! @auth(requires: ["Perform CMS Action"])
+    completePhase(input: CompletePhaseInput!): Application! @auth(requires: ["Modify Applications"])
+    skipConceptPhase(applicationId: ID!): Application! @auth(requires: ["Modify Applications"])
     declareCompletenessPhaseIncomplete(applicationId: ID!): Application!
-      @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Modify Applications"])
   }
 `;
 

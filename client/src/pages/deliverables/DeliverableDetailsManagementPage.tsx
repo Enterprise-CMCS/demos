@@ -37,23 +37,27 @@ export const START_DELIVERABLE_REVIEW_MUTATION = gql`
 const REVIEW_STARTER_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
   "demos-admin",
   "demos-cms-user",
+  "demos-cms-reviewer-user",
 ]);
 
 const EXTENSION_REVIEWER_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
   "demos-admin",
   "demos-cms-user",
+  "demos-cms-reviewer-user",
 ]);
 
 // State users only get the Request Extension action; edit/delete is hidden for them.
 const EDIT_DELETE_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
   "demos-admin",
   "demos-cms-user",
+  "demos-cms-reviewer-user",
 ]);
 
 // Restricted CMS users reach deliverables from the demonstration detail page, so Back returns there.
 const DEMONSTRATION_DELIVERABLES_BACK_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
   "demos-admin",
   "demos-cms-user",
+  "demos-cms-reviewer-user",
   "demos-restricted-cms-user",
 ]);
 
@@ -145,8 +149,8 @@ export type DeliverableDetailsManagementDeliverable = Pick<
   "id" | "deliverableType" | "dueDate" | "status" | "name"
 > & {
   allowedDocumentTypes: DocumentType[];
-  demonstration: Pick<Demonstration, "id" | "name" | "expirationDate"> & {
-    state: { id: string, name: string };
+  demonstration: Pick<Demonstration, "id" | "name" | "expirationPlainDate"> & {
+    state: { id: string; name: string };
     demonstrationTypes: {
       demonstrationTypeName: string;
       approvalStatus: "Approved" | "Unapproved";

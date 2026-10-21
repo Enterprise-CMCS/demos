@@ -312,15 +312,15 @@ describe("renderEmail", () => {
     }
   });
 
-  it("requires at least one recipient", async () => {
-    await expect(
-      renderEmail("Deliverable Created", {
-        ...deliverableInput,
-        recipients: {
-          to: [],
-          bcc: [],
-        },
-      })
-    ).rejects.toThrow("Email template must include at least one recipient.");
+  it("preserves an empty recipient list for the handler to skip", async () => {
+    const email = await renderEmail("Deliverable Created", {
+      ...deliverableInput,
+      recipients: {
+        to: [],
+        bcc: [],
+      },
+    });
+
+    expect(email).toEqual(expect.objectContaining({ to: [], bcc: [] }));
   });
 });

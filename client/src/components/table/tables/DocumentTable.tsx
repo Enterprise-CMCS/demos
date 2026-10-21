@@ -6,7 +6,7 @@ import { CircleButton } from "components/button/CircleButton";
 import { DeleteIcon, EditIcon } from "components/icons";
 import { ColumnFilter } from "../ColumnFilter";
 import { DocumentColumns } from "../columns/DocumentColumns";
-import { KeywordSearch } from "../KeywordSearch";
+import { KeywordSearch } from "components/table/search";
 import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
 import { Document, Person } from "demos-server";
@@ -23,9 +23,9 @@ export type DocumentTableDocument = Pick<
 export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[] }) => {
   const { currentUser } = getCurrentUser();
   const isReadonlyUser = isReadonly(currentUser);
-
+  const hideEditDeleteButtons = isReadonly(currentUser, "DemonstrationDetail");
   const documentColumns = DocumentColumns(isReadonlyUser);
-  const { showEditDocumentDialog, showRemoveDocumentDialog } = useDialog();
+  const { showEditApplicationDocumentDialog, showRemoveApplicationDocumentsDialog } = useDialog();
   const initialState = {
     sorting: [{ id: "createdAt", desc: true }],
   };
@@ -48,7 +48,6 @@ export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[
             }
             const selectedDocs = table.getSelectedRowModel().rows.map((row) => row.original);
             const selectedCount = selectedDocs.length;
-
             const editEnabled = selectedCount === 1;
             const deleteEnabled = selectedCount >= 1;
 
@@ -73,8 +72,9 @@ export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[
                   aria-label="Edit Document"
                   tooltip={editTooltip}
                   disabled={!editEnabled}
+                  isHidden={hideEditDeleteButtons}
                   onClick={() =>
-                    showEditDocumentDialog({
+                    showEditApplicationDocumentDialog({
                       id: selectedDocs[0].id,
                       name: selectedDocs[0].name,
                       description: selectedDocs[0].description,
@@ -83,13 +83,15 @@ export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[
                 >
                   <EditIcon />
                 </CircleButton>
-
                 <CircleButton
                   name="remove-document"
                   aria-label="Remove Document"
                   tooltip={deleteTooltip}
                   disabled={!deleteEnabled}
-                  onClick={() => showRemoveDocumentDialog(selectedDocs.map((doc) => doc.id))}
+                  isHidden={hideEditDeleteButtons}
+                  onClick={() =>
+                    showRemoveApplicationDocumentsDialog(selectedDocs.map((doc) => doc.id))
+                  }
                 >
                   <DeleteIcon />
                 </CircleButton>

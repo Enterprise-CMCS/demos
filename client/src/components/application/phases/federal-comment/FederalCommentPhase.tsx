@@ -55,14 +55,14 @@ export const getFederalCommentPhaseFromApplication = (application: WorkflowAppli
     <FederalCommentPhase
       demonstrationId={application.id}
       phaseComplete={phaseComplete}
-      phaseStartDate={phaseStartDate?.dateValue}
-      phaseEndDate={phaseEndDate?.dateValue}
+      phaseStartDate={phaseStartDate?.plainDate}
+      phaseEndDate={phaseEndDate?.plainDate}
       documents={initialDocuments}
     />
   );
 };
 
-const FederalCommentNotice: React.FC<{ phaseEndDate?: Date; phaseComplete: boolean }> = ({
+const FederalCommentNotice: React.FC<{ phaseEndDate?: string; phaseComplete: boolean }> = ({
   phaseEndDate,
   phaseComplete,
 }) => {
@@ -108,8 +108,8 @@ const FederalCommentNotice: React.FC<{ phaseEndDate?: Date; phaseComplete: boole
 
 interface FederalCommentPhaseProps {
   demonstrationId: string;
-  phaseStartDate?: Date;
-  phaseEndDate?: Date;
+  phaseStartDate?: string;
+  phaseEndDate?: string;
   phaseComplete: boolean;
   documents: ApplicationWorkflowDocument[];
 }

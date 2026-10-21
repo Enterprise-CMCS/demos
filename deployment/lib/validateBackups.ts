@@ -37,138 +37,138 @@ export async function selectRandomObjects(bucket: string) {
 
   const selected = [];
   try {
-  const pages = paginateListObjectsV2(
-    {
-      client: s3,
-    },
-    {
-      Bucket: bucket
-    }
-  )
+    const pages = paginateListObjectsV2(
+      {
+        client: s3,
+      },
+      {
+        Bucket: bucket,
+      },
+    );
 
-  for await (const page of pages) {
-    if (!page.Contents) {
-      console.log("no page contents")
-      return
-    }
-
-    const numObjects = page.Contents.length
-
-    if (numObjects == 0) {
-      console.log("no objects in response, returning")
-      return
-    }
-
-    let validCandidate = false
-    let guard = 0
-    while (!validCandidate && guard < 100) {
-      guard++
-      const randObj = randomInt(numObjects)
-      const candidate = page.Contents[randObj]
-
-      if (!candidate.Key || candidate.Key.endsWith("/")) {
-        continue;
+    for await (const page of pages) {
+      if (!page.Contents) {
+        console.log("no page contents");
+        return;
       }
-      selected.push(candidate)
-      validCandidate = true
-    }
 
-    if (selected.length >= 5) {
-      return selected
-    }
+      const numObjects = page.Contents.length;
 
-  }
+      if (numObjects === 0) {
+        console.log("no objects in response, returning");
+        return;
+      }
+
+      let validCandidate = false;
+      let guard = 0;
+      while (!validCandidate && guard < 100) {
+        guard++;
+        const randObj = randomInt(numObjects);
+        const candidate = page.Contents[randObj];
+
+        if (!candidate.Key || candidate.Key.endsWith("/")) {
+          continue;
+        }
+        selected.push(candidate);
+        validCandidate = true;
+      }
+
+      if (selected.length >= 5) {
+        return selected;
+      }
+
+    }
   } catch (err) {
-    console.log(err)
-  } 
+    console.log(err);
+  }
 
-  return selected
+  return selected;
 }
 
 export async function validateSelectedObjects(bucket: string, objectList: _Object[]) {
-  const errors = []
+  const errors = [];
   try {
     for (const obj of objectList) {
       const hoc = new HeadObjectCommand({
         Bucket: bucket,
-        Key: obj.Key
-      })
+        Key: obj.Key,
+      });
 
-      const resp = await s3.send(hoc)
-      if (resp.ETag != obj.ETag) {
-        errors.push({resp, obj})
+      const resp = await s3.send(hoc);
+      if (resp.ETag !== obj.ETag) {
+        errors.push({ resp, obj });
       }
     }
-  } catch(err) {
-    console.log(err)
-    errors.push(err)
+  } catch (err) {
+    console.log(err);
+    errors.push(err);
   }
-  return errors
+  return errors;
 }
 
 export function parseBucketName(arn: string): string {
-  const splitArn = arn.split(":")
-  return splitArn[splitArn.length-1]
+  const splitArn = arn.split(":");
+  return splitArn[splitArn.length - 1];
 }
 
 export async function validateS3Event(event: RestoreJobCompletedEvent) {
-  const restoredBucket = parseBucketName(event.detail.createdResourceArn)
-  const sourceBucket = parseBucketName(event.detail.sourceResourceArn)
+  const restoredBucket = parseBucketName(event.detail.createdResourceArn);
+  const sourceBucket = parseBucketName(event.detail.sourceResourceArn);
 
-  const selectedObjects = await selectRandomObjects(restoredBucket)
-  
+  const selectedObjects = await selectRandomObjects(restoredBucket);
+
   if (!selectedObjects) {
     throw new Error("no objects were returned");
-    
+
   }
 
-  const errors = await validateSelectedObjects(sourceBucket, selectedObjects)
+  const errors = await validateSelectedObjects(sourceBucket, selectedObjects);
   if (errors.length > 0) {
-    console.log("There were errors...", errors)
+    console.log("There were errors...", errors);
   } else {
-    console.log("There were no errors. Everything looks good")
+    console.log("There were no errors. Everything looks good");
   }
 
   const backupClient = new Backup();
   const response = await backupClient.putRestoreValidationResult({
     RestoreJobId: event.detail.restoreJobId,
-    ValidationStatus: errors.length == 0 ? RestoreValidationStatus.SUCCESSFUL : RestoreValidationStatus.FAILED,
-    ValidationStatusMessage: "All tested files matched in restore and source bucket"
-  })
+    ValidationStatus: errors.length === 0 ? RestoreValidationStatus.SUCCESSFUL : RestoreValidationStatus.FAILED,
+    ValidationStatusMessage: "All tested files matched in restore and source bucket",
+  });
 
   console.log("PutRestoreValidationResult: ", response);
 
   return {
     statusCode: 200,
     body: JSON.stringify({
-      message: "complete"
-    })
-  }
+      message: "complete",
+    }),
+  };
 }
 
 export async function getRDSEndpoint(dbArn: string) {
-  console.log("getting rds endpoint")
-  const client = new RDSClient()
+  console.log("getting rds endpoint");
+  const client = new RDSClient();
 
   const response = await client.send(new DescribeDBInstancesCommand({
-    DBInstanceIdentifier: dbArn
-  }))
+    DBInstanceIdentifier: dbArn,
+  }));
 
-  const endpoint = response.DBInstances?.[0]?.Endpoint
+  const endpoint = response.DBInstances?.[0]?.Endpoint;
 
   if (!endpoint?.Address) {
-    throw new Error("rds endpoint not found")
+    throw new Error("rds endpoint not found");
   }
 
   return {
     hostname: endpoint.Address,
-    port: endpoint.Port
-  }
+    port: endpoint.Port,
+  };
 }
 
 let databaseSecret = "";
 export async function getDatabaseSecret() {
-  console.log("getting db secret")
+  console.log("getting db secret");
   if (databaseSecret) return JSON.parse(databaseSecret);
   const secretsManager = new SecretsManagerClient();
   const secretArn = process.env.DATABASE_SECRET_ARN;
@@ -179,31 +179,31 @@ export async function getDatabaseSecret() {
 };
 
 export async function getDatabaseURL(arn: string) {
-  console.log("in getDatabaseURL")
+  console.log("in getDatabaseURL");
   const s = await getDatabaseSecret();
-  const endpoint = await getRDSEndpoint(arn)
+  const endpoint = await getRDSEndpoint(arn);
   return {
     host: endpoint.hostname,
     port: endpoint.port,
     user: s.username,
     password: s.password,
-    database: s.dbname
-  }
+    database: s.dbname,
+  };
 };
 
 export async function validateRDSEvent(event: RestoreJobCompletedEvent) {
-  console.log("in validateRDSEvent")
+  console.log("in validateRDSEvent");
 
-  const connectionDetails = await getDatabaseURL(event.detail.createdResourceArn)
+  const connectionDetails = await getDatabaseURL(event.detail.createdResourceArn);
   const pool = new Pool({
     ...connectionDetails,
     ssl: {
       rejectUnauthorized: false,
     },
-    options: "-c search_path=demos_app"
+    options: "-c search_path=demos_app",
   });
 
-  const {rows} = await pool.query(`
+  const { rows } = await pool.query(`
     SELECT
       (SELECT COUNT(*) FROM amendment) as amendment,  
       (SELECT COUNT(*) FROM application) as application,  
@@ -215,63 +215,62 @@ export async function validateRDSEvent(event: RestoreJobCompletedEvent) {
       (SELECT COUNT(*) FROM state) as state 
   `);
 
-  await pool.end()
+  await pool.end();
 
   const emptyTables = Object.entries(rows[0])
-  .filter(([,count]) => Number(count) <= 0)
-  .map(([tableName]) => tableName)
-
+    .filter(([, count]) => Number(count) <= 0)
+    .map(([tableName]) => tableName);
 
   let success = true;
   if (emptyTables.length > 0) {
-    success = false
-    console.error(`Empty tables: ${emptyTables.join(",")}`)
+    success = false;
+    console.error(`Empty tables: ${emptyTables.join(",")}`);
   }
 
-  console.log(rows[0])
+  console.log(rows[0]);
 
   const backupClient = new Backup();
   const response = await backupClient.putRestoreValidationResult({
     RestoreJobId: event.detail.restoreJobId,
     ValidationStatus: success ? RestoreValidationStatus.SUCCESSFUL : RestoreValidationStatus.FAILED,
-    ValidationStatusMessage: "RDS backup connects successfully and contains data in expected tables"
-  })
+    ValidationStatusMessage: "RDS backup connects successfully and contains data in expected tables",
+  });
 
   console.log("PutRestoreValidationResult: ", response);
 
   return {
     statusCode: 200,
     body: JSON.stringify({
-      message: "complete"
-    })
-  }
+      message: "complete",
+    }),
+  };
 }
 
 export const handler = async (event: RestoreJobCompletedEvent) => {
   console.log("Source Event", event);
 
-  if (event.detail.status != RestoreJobStatus.COMPLETED) {
-    console.log("validation only runs on completed restore jobs")
+  if (event.detail.status !== RestoreJobStatus.COMPLETED) {
+    console.log("validation only runs on completed restore jobs");
     return {
       statusCode: 200,
       body: JSON.stringify({
-        message: "validation only runs on completed restore jobs"
-      })
-    }
+        message: "validation only runs on completed restore jobs",
+      }),
+    };
   }
-  switch(event.detail.resourceType) {
+  switch (event.detail.resourceType) {
     case "S3":
-      console.log("validating S3")
-      return validateS3Event(event)
-      case "RDS":
-      console.log("validating RDS")
-      return validateRDSEvent(event)
+      console.log("validating S3");
+      return validateS3Event(event);
+    case "RDS":
+      console.log("validating RDS");
+      return validateRDSEvent(event);
     default:
       return {
-      statusCode: 400,
-      body: JSON.stringify({
-        message: `the resource type ${event.detail.resourceType} is not currently supported`
-      })
-    }
+        statusCode: 400,
+        body: JSON.stringify({
+          message: `the resource type ${event.detail.resourceType} is not currently supported`,
+        }),
+      };
   }
-}
+};

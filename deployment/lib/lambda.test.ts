@@ -15,17 +15,17 @@ const mockCommonProps = {
 };
 
 const mockStackProps = {
-      env: {
-        region: "us-east-1",
-        account: "0123456789",
-      },
-    }
+  env: {
+    region: "us-east-1",
+    account: "0123456789",
+  },
+};
 
 const commonAppArgs = {
-      context: {
-        [BUNDLING_STACKS]: []
-      }
-    }
+  context: {
+    [BUNDLING_STACKS]: [],
+  },
+};
 describe("lambda", () => {
   test("should create a basic lambda function and role", () => {
     const app = new App(commonAppArgs);
@@ -40,7 +40,7 @@ describe("lambda", () => {
         timeout: Duration.minutes(10),
         memorySize: 1000,
       },
-      "unit-test-lambda"
+      "unit-test-lambda",
     );
 
     const template = Template.fromStack(stack);
@@ -107,7 +107,7 @@ describe("lambda", () => {
         entry: "lib/mockLambda.js",
         vpc: mockVpc,
       },
-      "unit-test-lambda"
+      "unit-test-lambda",
     );
 
     const template = Template.fromStack(stack);
@@ -135,7 +135,7 @@ describe("lambda", () => {
     const mockSecurityGroup = aws_ec2.SecurityGroup.fromSecurityGroupId(
       stack,
       "mockSecurityGroup",
-      mockSecurityGroupId
+      mockSecurityGroupId,
     );
 
     create(
@@ -147,7 +147,7 @@ describe("lambda", () => {
         vpc: mockVpc,
         securityGroup: mockSecurityGroup,
       },
-      "unit-test-lambda"
+      "unit-test-lambda",
     );
 
     const template = Template.fromStack(stack);
@@ -173,7 +173,7 @@ describe("lambda", () => {
         useAlias: true,
         deploymentConfig: aws_codedeploy.LambdaDeploymentConfig.CANARY_10PERCENT_5MINUTES,
       },
-      "unit-test-lambda"
+      "unit-test-lambda",
     );
 
     const template = Template.fromStack(stack);
@@ -223,7 +223,7 @@ describe("lambda", () => {
         authorizationType: aws_apigateway.AuthorizationType.CUSTOM,
         authorizer: mockAuth,
       },
-      "unit-test-lambda"
+      "unit-test-lambda",
     );
 
     const template = Template.fromStack(stack);
@@ -259,7 +259,7 @@ describe("lambda", () => {
         useAlias: true,
         isLocalstack: true,
       },
-      "unit-test-lambda"
+      "unit-test-lambda",
     );
 
     const template = Template.fromStack(stack);
@@ -289,7 +289,7 @@ describe("lambda", () => {
         handler: "mockLambda.handler",
         entry: "lib/mockLambda.js",
       },
-      "unit-test-lambda"
+      "unit-test-lambda",
     );
 
     const props = Template.fromStack(stack).findResources("AWS::Lambda::Function");
@@ -309,7 +309,7 @@ describe("lambda", () => {
         entry: "lib/mockLambda.js",
         reservedConcurrentExecutions: 1,
       },
-      "unit-test-lambda"
+      "unit-test-lambda",
     );
 
     Template.fromStack(stack).hasResourceProperties("AWS::Lambda::Function", {
@@ -329,7 +329,7 @@ describe("lambda", () => {
         entry: "lib/",
         asCode: true,
       },
-      "unit-test-lambda"
+      "unit-test-lambda",
     );
 
     const template = Template.fromStack(stack);

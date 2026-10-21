@@ -21,6 +21,7 @@ export const amendmentSchema = gql`
     name: NonEmptyString!
     description: String
     effectiveDate: DateTime
+    effectivePlainDate: LocalDate
     status: ApplicationStatus!
     currentPhaseName: PhaseName! @auth(requires: ["Access CMS Field"])
     phases: [ApplicationPhase!]! @auth(requires: ["Access CMS Field"])
@@ -50,10 +51,10 @@ export const amendmentSchema = gql`
 
   type Mutation {
     createAmendment(input: CreateAmendmentInput!): Amendment!
-      @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Modify Applications"])
     updateAmendment(id: ID!, input: UpdateAmendmentInput!): Amendment!
-      @auth(requires: ["Perform CMS Action"])
-    deleteAmendment(id: ID!): Amendment! @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Modify Applications"])
+    deleteAmendment(id: ID!): Amendment! @auth(requires: ["Modify Applications"])
   }
 
   type Query {
@@ -67,6 +68,7 @@ export interface Amendment {
   name: NonEmptyString;
   description?: string;
   effectiveDate?: Date;
+  effectivePlainDate?: string;
   status: ApplicationStatus;
   currentPhaseName: PhaseName;
   phases: ApplicationPhase[];

@@ -1,24 +1,27 @@
+import type { PrismaTransactionClient } from "../../../prismaClient";
 import { prisma } from "../../../prismaClient";
 import type { DemonstrationTypeUsageSummary, TagName, TagStatus } from "../../../types";
 
-export type QueryResult = {
+export type DemonstrationTypeSummaryQueryResult = {
   demonstration_type: TagName;
   status: TagStatus;
   count_tagged_apps_demonstrations: number;
   count_tagged_apps_amendments: number;
   count_tagged_apps_extensions: number;
+  count_tagged_references: number;
   count_assigned_demonstrations: number;
   count_assigned_deliverables: number;
 };
 
-export async function getDemonstrationTypeSummaryCounts(): Promise<
-  DemonstrationTypeUsageSummary[]
-> {
-  const results = await prisma().$queryRaw<QueryResult[]>`
+export async function getDemonstrationTypeSummaryCounts(
+  tx?: PrismaTransactionClient
+): Promise<DemonstrationTypeUsageSummary[]> {
+  const prismaClient = tx ?? prisma();
+  const results = await prismaClient.$queryRaw<DemonstrationTypeSummaryQueryResult[]>`
     WITH demo_types_used AS (
       SELECT
         tag_name_id AS demonstration_type,
-        count(*)::int AS count_assigned_demonstrations
+        count(*)::INT AS count_assigned_demonstrations
       FROM
         demos_app.demonstration_type_tag_assignment
       GROUP BY
@@ -30,13 +33,13 @@ export async function getDemonstrationTypeSummaryCounts(): Promise<
         ata.tag_name_id AS demonstration_type,
         sum(
           CASE WHEN application_type_id = 'Demonstration' THEN 1 ELSE 0 END
-        )::int AS count_tagged_apps_demonstrations,
+        )::INT AS count_tagged_apps_demonstrations,
         sum(
           CASE WHEN application_type_id = 'Amendment' THEN 1 ELSE 0 END
-        )::int AS count_tagged_apps_amendments,
+        )::INT AS count_tagged_apps_amendments,
         sum(
           CASE WHEN application_type_id = 'Extension' THEN 1 ELSE 0 END
-        )::int AS count_tagged_apps_extensions
+        )::INT AS count_tagged_apps_extensions
       FROM
         demos_app.application_tag_assignment AS ata
       INNER JOIN
@@ -50,14 +53,24 @@ export async function getDemonstrationTypeSummaryCounts(): Promise<
     deliv_demo_types_used AS (
       SELECT
         demonstration_type_tag_name_id AS demonstration_type,
-        count(*)::int AS count_assigned_deliverables
+        count(*)::INT AS count_assigned_deliverables
       FROM
         demos_app.deliverable_demonstration_type
       GROUP BY
         demonstration_type_tag_name_id
+    ),
+
+    ref_tags_used AS (
+      SELECT
+        demonstration_type_tag_name_id AS demonstration_type,
+        count(*)::INT AS count_tagged_refs
+      FROM
+        demos_app.reference_demonstration_type
+      GROUP BY
+        demonstration_type_tag_name_id
     )
 
-    SELECT
+    SELECT DISTINCT ON (tag.tag_name_id)
       tag.tag_name_id AS demonstration_type,
       tag.status_id AS status,
       coalesce(app_tags_used.count_tagged_apps_demonstrations, 0)
@@ -66,6 +79,8 @@ export async function getDemonstrationTypeSummaryCounts(): Promise<
         AS count_tagged_apps_amendments,
       coalesce(app_tags_used.count_tagged_apps_extensions, 0)
         AS count_tagged_apps_extensions,
+      coalesce(ref_tags_used.count_tagged_refs, 0)
+        AS count_tagged_references,
       coalesce(demo_types_used.count_assigned_demonstrations, 0)
         AS count_assigned_demonstrations,
       coalesce(deliv_demo_types_used.count_assigned_deliverables, 0)
@@ -77,6 +92,10 @@ export async function getDemonstrationTypeSummaryCounts(): Promise<
       ON
         tag.tag_name_id = app_tags_used.demonstration_type
     LEFT JOIN
+      ref_tags_used
+      ON
+        tag.tag_name_id = ref_tags_used.demonstration_type
+    LEFT JOIN
       demo_types_used
       ON
         tag.tag_name_id = demo_types_used.demonstration_type
@@ -85,7 +104,9 @@ export async function getDemonstrationTypeSummaryCounts(): Promise<
       ON
         tag.tag_name_id = deliv_demo_types_used.demonstration_type
     WHERE
-      tag.tag_type_id = 'Demonstration Type';`;
+      tag.tag_type_id IN ('Demonstration Type', 'Application')
+    ORDER BY
+      tag.tag_name_id, (tag.tag_type_id = 'Demonstration Type') DESC;`;
 
   const formatted_results: DemonstrationTypeUsageSummary[] = [];
   for (const result of results) {
@@ -97,6 +118,7 @@ export async function getDemonstrationTypeSummaryCounts(): Promise<
         amendments: result.count_tagged_apps_amendments,
         renewals: result.count_tagged_apps_extensions,
       },
+      countOfTaggedReferences: result.count_tagged_references,
       countOfAssignedDemonstrations: result.count_assigned_demonstrations,
       countOfAssignedDeliverables: result.count_assigned_deliverables,
     });

@@ -8,6 +8,5 @@ export * from "./DocumentTable";
 export * from "./LoginHistoryTable";
 export * from "./ReferencesTable";
 export * from "./ReportsTable";
-export * from "./TypeTagTable";
 export * from "./SummaryDetailsTable";
 export * from "./UserManagementTable";

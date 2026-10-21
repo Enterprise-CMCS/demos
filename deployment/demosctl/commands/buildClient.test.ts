@@ -98,4 +98,31 @@ describe("buildClient", () => {
 
     expect(exitCode).toBe(1);
   });
+
+  test.each([["dev"], ["test"]])("should use build:ci:dev command for %s environment", async (environment) => {
+    const ro = readOutputs as Mock;
+    ro.mockReturnValue({});
+
+    const gov = getOutputValue as Mock;
+    gov.mockImplementation((_, __, name) => {
+      return name;
+    });
+
+    const rs = runShell as Mock;
+
+    await buildClient(environment);
+
+    expect(rs).toHaveBeenCalledWith(
+      "client-build",
+      "npm ci && npm run build:ci:dev",
+      expect.objectContaining({
+        env: expect.objectContaining({
+          VITE_COGNITO_AUTHORITY: "cognitoAuthority",
+          VITE_COGNITO_DOMAIN: "cognitoDomain",
+          VITE_COGNITO_CLIENT_ID: "cognitoClientId",
+          VITE_API_URL_PREFIX: "/api/graphql",
+        }),
+      }),
+    );
+  });
 });

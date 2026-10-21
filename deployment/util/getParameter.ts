@@ -13,5 +13,5 @@ export async function getParameter(paramName: string) {
   if (!data.Parameter?.Value) {
     throw new Error(`parameter data missing: ${paramName}`);
   }
-  return data.Parameter?.Value
+  return data.Parameter.Value;
 }

@@ -18,7 +18,6 @@ vi.mock(".", () => ({
   editDeliverable: vi.fn(),
   selectDeliverableOrThrow: vi.fn(),
   validateDeleteDeliverableInput: vi.fn(),
-  validateUserPersonTypeAllowed: vi.fn(),
 }));
 
 vi.mock("../deliverableAction/queries", () => ({
@@ -30,7 +29,6 @@ import {
   editDeliverable,
   selectDeliverableOrThrow,
   validateDeleteDeliverableInput,
-  validateUserPersonTypeAllowed,
 } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 
@@ -62,26 +60,6 @@ describe("deleteDeliverable", () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(selectDeliverableOrThrow).mockResolvedValue(mockDeliverable as PrismaDeliverable);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
-  });
-
-  it("should check that the user is allowed to do this operation", async () => {
-    await deleteDeliverable(testDeliverableId, testContext as GraphQLContext);
-    expect(validateUserPersonTypeAllowed).toHaveBeenCalledExactlyOnceWith(
-      testContext,
-      "deleteDeliverable",
-      ["demos-admin", "demos-cms-user"]
-    );
-  });
-
-  it("should not create a transaction if the user is not permitted", async () => {
-    vi.mocked(validateUserPersonTypeAllowed).mockThrow("I'm throwing!");
-
-    try {
-      await deleteDeliverable(testDeliverableId, testContext as GraphQLContext);
-      throw new Error("Expected deleteDeliverable to throw, but it did not.");
-    } catch {
-      expect(prisma).not.toHaveBeenCalled();
-    }
   });
 
   it("should get the deliverable before making changes", async () => {

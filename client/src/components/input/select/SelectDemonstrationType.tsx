@@ -32,6 +32,8 @@ export type SelectDemonstrationTypeProps = {
   onFilterChange?: (filterValue: string, hasExactMatch: boolean) => void;
   createdOptions?: Tag[];
   isAlreadyAssigned?: boolean;
+  placeholderText?: string;
+  noMatchMessage?: string;
 };
 export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => {
   const {
@@ -40,6 +42,8 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
     allowCreateNew = false,
     onFilterChange,
     createdOptions = [],
+    placeholderText,
+    noMatchMessage,
     ...rest
   } = props;
 
@@ -49,14 +53,16 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
     nextFetchPolicy: "cache-first",
   });
 
-  const noMatchMessage = () => {
+  const computedNoMatchMessage = () => {
+    if (noMatchMessage) {
+      return noMatchMessage;
+    }
     if (props.isAlreadyAssigned) {
       return ALREADY_ASSIGNED_MESSAGE;
     }
     if (allowCreateNew) {
       return NO_MATCH_MESSAGE;
     }
-    return undefined;
   };
 
   const fetchedOptions = data?.demonstrationTypeOptions || [];
@@ -79,12 +85,13 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
       value: typeOption.tagName,
     }));
 
-  const placeholderText = useMemo(() => {
+  const computedPlaceholderText = useMemo(() => {
     if (loading) return "Loading...";
+    if (placeholderText) return placeholderText;
     return demonstrationTypeOptions.length || allowCreateNew
       ? "Select an option"
       : "No types available";
-  }, [loading, demonstrationTypeOptions.length, allowCreateNew]);
+  }, [loading, placeholderText, demonstrationTypeOptions.length, allowCreateNew]);
 
   if (error) {
     return <p className="text-red-500">Error loading demonstration type options.</p>;
@@ -113,9 +120,9 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
       dataTestId="select-demonstration-type"
       options={demonstrationTypeOptions}
       isDisabled={demonstrationTypeOptions.length === 0 && !allowCreateNew}
-      placeholder={placeholderText}
+      placeholder={computedPlaceholderText}
       onSelect={handleSelect}
-      noMatchMessage={noMatchMessage()}
+      noMatchMessage={computedNoMatchMessage()}
       onFilterChange={handleFilterChange}
       {...rest}
     />

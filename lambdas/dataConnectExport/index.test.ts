@@ -19,57 +19,61 @@ const mocks = vi.hoisted(() => ({
   logErrorMock: vi.fn(),
 }));
 
-// als.run must be neutralised or the handler body never runs under vitest.
-vi.mock("./log", () => ({
+type LogModule = typeof import("./log");
+
+// als.run must be neutralized or the handler body never runs under vitest. Only the members the
+// handler calls are stubbed, so the casts stand in for the rest of AsyncLocalStorage and pino.
+vi.mock(import("./log"), () => ({
   als: {
     run: (_store: unknown, fn: () => unknown) => fn(),
-  },
-  store: new Map<string, string>(),
+  } as unknown as LogModule["als"],
+  store: new Map(),
   reqIdChild: (...args: unknown[]) => mocks.reqIdChildMock(...args),
   log: {
     info: (...args: unknown[]) => mocks.logInfoMock(...args),
     warn: (...args: unknown[]) => mocks.logWarnMock(...args),
     error: (...args: unknown[]) => mocks.logErrorMock(...args),
-  },
+  } as unknown as LogModule["log"],
 }));
 
-vi.mock("./database/pool", () => ({
+vi.mock(import("./database/pool"), () => ({
   getDbPool: (...args: unknown[]) => mocks.getDbPoolMock(...args),
-  dbSchema: "demos_app",
+  dbSchema: "demos_app" as const,
 }));
 
-vi.mock("./database/snapshot", () => ({
+vi.mock(import("./database/snapshot"), () => ({
   withSnapshot: (...args: unknown[]) => mocks.withSnapshotMock(...args),
 }));
 
-vi.mock("./parquet/duckdb", () => ({
+vi.mock(import("./parquet/duckdb"), () => ({
   withDuckDBConnection: (...args: unknown[]) => mocks.withDuckDBConnectionMock(...args),
 }));
 
-vi.mock("./parquet/writer", () => ({
+vi.mock(import("./parquet/writer"), () => ({
   writeRelationToFile: (...args: unknown[]) => mocks.writeRelationToFileMock(...args),
 }));
 
-vi.mock("./services/s3", () => ({
+vi.mock(import("./services/s3"), () => ({
   uploadParquet: (...args: unknown[]) => mocks.uploadParquetMock(...args),
   uploadSuccessMarker: (...args: unknown[]) => mocks.uploadSuccessMarkerMock(...args),
 }));
 
 // stagingPath is stubbed so expected paths do not depend on os.tmpdir(), which is a private
 // /var/folders path on macOS and /tmp in Lambda.
-vi.mock("./util/staging", () => ({
+vi.mock(import("./util/staging"), () => ({
   stagingPath: (relation: string) => `/tmp/${relation}.parquet`,
   removeStagedFile: (...args: unknown[]) => mocks.removeStagedFileMock(...args),
   cleanupTmp: (...args: unknown[]) => mocks.cleanupTmpMock(...args),
 }));
 
-import { handler } from "./index";
-import { EXPORT_DATASETS } from "./allowlist";
+import { handler, snapshotTables } from "./index";
+import type { ExportViewDefinition } from "./types";
+import { EXPORT_VIEWS } from "./views";
 
-// allowlist.ts and util/keys.ts are deliberately not mocked. The real allowlist drives the
-// loop and the real partitionKey produces the asserted keys, so a change to either shows up here.
-const RELATIONS = Object.keys(EXPORT_DATASETS);
-const LAST_RELATION = RELATIONS[RELATIONS.length - 1];
+// views.ts and util/keys.ts are deliberately not mocked. The real views drive the loop and
+// the real partitionKey produces the asserted keys, so a change to either shows up here.
+const RELATIONS = Object.keys(EXPORT_VIEWS);
+const LOCKED_TABLES = snapshotTables(EXPORT_VIEWS);
 const RUN_TIME = new Date("2026-09-04T07:00:00.000Z");
 // Later than RUN_TIME, as it is on a real run once the snapshot has waited on its lock.
 const SNAPSHOT_TIME = new Date("2026-09-04T07:00:04.250Z");
@@ -83,8 +87,24 @@ const DUCKDB_CONNECTION = { tag: "duckdb-connection" };
 const event = {} as ScheduledEvent;
 const context = { awsRequestId: "req-123" } as unknown as Context;
 
-const schemaFor = (relation: string) =>
-  EXPORT_DATASETS[relation as keyof typeof EXPORT_DATASETS];
+const definitionFor = (relation: string) =>
+  EXPORT_VIEWS[relation as keyof typeof EXPORT_VIEWS];
+
+const viewReading = (baseTables: string[]): ExportViewDefinition => ({
+  query: "SELECT 1 AS id",
+  orderBy: ["id"],
+  baseTables,
+  schema: { columns: [{ name: "id", duckdbType: "INTEGER" }] },
+});
+
+describe("snapshotTables", () => {
+  it("locks the sorted, deduplicated union of physical source tables, never view names", () => {
+    expect(snapshotTables({
+      second_view: viewReading(["state", "demonstration", "person"]),
+      first_view: viewReading(["person", "amendment", "state"]),
+    })).toEqual(["amendment", "demonstration", "person", "state"]);
+  });
+});
 
 describe("dataConnectExport handler", () => {
   beforeEach(() => {
@@ -161,7 +181,7 @@ describe("dataConnectExport handler", () => {
 
     expect(mocks.order).toEqual([
       "duckdb:open",
-      `open:${RELATIONS.join(",")}`,
+      `open:${LOCKED_TABLES.join(",")}`,
       ...RELATIONS.flatMap((relation) => [
         `convert:${relation}`,
         `upload:${relation}/dt=2026-09-04/part-000.parquet`,
@@ -174,13 +194,14 @@ describe("dataConnectExport handler", () => {
     ]);
   });
 
-  it("opens one snapshot over every allowlisted relation", async () => {
+  it("opens one snapshot locking every physical table the views read", async () => {
     await handler(event, context);
 
     expect(mocks.withSnapshotMock).toHaveBeenCalledTimes(1);
-    const [pool, relations] = mocks.withSnapshotMock.mock.calls[0];
+    const [pool, tables] = mocks.withSnapshotMock.mock.calls[0];
     expect(pool).toBe(POOL);
-    expect(relations).toEqual(RELATIONS);
+    expect(tables).toEqual(LOCKED_TABLES);
+    expect(tables).not.toContain("demonstration_reporting");
   });
 
   it("uses the snapshot client and the invocation's DuckDB connection for every relation", async () => {
@@ -193,14 +214,15 @@ describe("dataConnectExport handler", () => {
     }
   });
 
-  it("passes each static allowlisted schema directly to the writer", async () => {
+  it("passes each reviewed view definition directly to the writer", async () => {
     await handler(event, context);
 
     expect(mocks.writeRelationToFileMock).toHaveBeenCalledTimes(RELATIONS.length);
     RELATIONS.forEach((relation, index) => {
-      const [, , calledRelation, calledSchema] = mocks.writeRelationToFileMock.mock.calls[index];
+      const [, , calledRelation, calledDefinition, calledPath] = mocks.writeRelationToFileMock.mock.calls[index];
       expect(calledRelation).toBe(relation);
-      expect(calledSchema).toEqual(schemaFor(relation));
+      expect(calledDefinition).toBe(definitionFor(relation));
+      expect(calledPath).toBe(`/tmp/${relation}.parquet`);
     });
   });
 
@@ -228,28 +250,6 @@ describe("dataConnectExport handler", () => {
     );
   });
 
-  it("omits the marker when a later conversion fails", async () => {
-    mocks.writeRelationToFileMock.mockImplementation(
-      async (_client: unknown, _duckdb: unknown, relation: string) => {
-        if (relation === LAST_RELATION) {
-          throw new Error("duckdb copy failed");
-        }
-        mocks.order.push(`convert:${relation}`);
-        return ROW_COUNT;
-      }
-    );
-
-    await expect(handler(event, context)).rejects.toThrow("duckdb copy failed");
-
-    expect(mocks.uploadParquetMock).toHaveBeenCalledTimes(RELATIONS.length - 1);
-    expect(mocks.uploadSuccessMarkerMock).not.toHaveBeenCalled();
-    expect(mocks.removeStagedFileMock).toHaveBeenCalledTimes(RELATIONS.length);
-    expect(mocks.logErrorMock).toHaveBeenCalledWith(
-      { error: "duckdb copy failed" },
-      "data export failed."
-    );
-  });
-
   it("does not mark the run successful when an upload fails", async () => {
     mocks.uploadParquetMock.mockRejectedValueOnce(new Error("s3 access denied"));
 
@@ -258,6 +258,35 @@ describe("dataConnectExport handler", () => {
     expect(mocks.uploadSuccessMarkerMock).not.toHaveBeenCalled();
     expect(mocks.removeStagedFileMock).toHaveBeenCalledWith(
       `/tmp/${RELATIONS[0]}.parquet`
+    );
+  });
+
+  it("does not mark the run successful when the snapshot commit fails", async () => {
+    mocks.withSnapshotMock.mockImplementationOnce(
+      async (_pool: unknown, _tables: string[], fn: (client: unknown) => Promise<unknown>) => {
+        await fn(SNAPSHOT_CLIENT);
+        throw new Error("commit failed");
+      }
+    );
+
+    await expect(handler(event, context)).rejects.toThrow("commit failed");
+
+    expect(mocks.uploadParquetMock).toHaveBeenCalledTimes(RELATIONS.length);
+    expect(mocks.uploadSuccessMarkerMock).not.toHaveBeenCalled();
+    expect(mocks.cleanupTmpMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not upload or mark the run when the view query fails", async () => {
+    mocks.writeRelationToFileMock.mockRejectedValueOnce(new Error("permission denied for table person"));
+
+    await expect(handler(event, context)).rejects.toThrow("permission denied for table person");
+
+    expect(mocks.uploadParquetMock).not.toHaveBeenCalled();
+    expect(mocks.uploadSuccessMarkerMock).not.toHaveBeenCalled();
+    expect(mocks.removeStagedFileMock).toHaveBeenCalledWith(`/tmp/${RELATIONS[0]}.parquet`);
+    expect(mocks.logErrorMock).toHaveBeenCalledWith(
+      { error: "permission denied for table person" },
+      "data export failed."
     );
   });
 

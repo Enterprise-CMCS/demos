@@ -153,7 +153,7 @@ describe("BaseEditModificationDialog", () => {
         id: "modification-1",
         name: "Original Name",
         description: "Original description",
-        effectiveDate: "2024-01-15",
+        effectivePlainDate: "2024-01-15",
         signatureLevel: "OA",
         demonstration: { id: "demo-1" },
       },

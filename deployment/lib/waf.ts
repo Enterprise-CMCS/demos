@@ -99,7 +99,7 @@ const baseWafRules: WafRuleNoPriority[] = [
 const createHeaderValueBlockRule = (
   name: string,
   headerValue?: string,
-  headerKey: string = "x-allow-through"
+  headerKey: string = "x-allow-through",
 ): WafRuleNoPriority => ({
   name,
   action: { block: {} },
@@ -137,69 +137,69 @@ const createCombinedBlockRule = (
   name: string,
   ipSet: aws_wafv2.CfnIPSet,
   headerValue?: string,
-  headerKey: string = "x-allow-through"
-): WafRuleNoPriority => { 
+  headerKey: string = "x-allow-through",
+): WafRuleNoPriority => {
 
   const statements: aws_wafv2.CfnWebACL.StatementProperty[] = [{
-          notStatement: {
-            statement: {
-              ipSetReferenceStatement: {
-                arn: ipSet.attrArn,
+    notStatement: {
+      statement: {
+        ipSetReferenceStatement: {
+          arn: ipSet.attrArn,
+        },
+      },
+    },
+  },
+  ];
+
+  if (headerValue) {
+    statements.push({
+      notStatement: {
+        statement: {
+          byteMatchStatement: {
+            fieldToMatch: {
+              singleHeader: {
+                Name: headerKey,
               },
             },
+            positionalConstraint: "EXACTLY",
+            searchString: headerValue,
+            textTransformations: [
+              {
+                priority: 0,
+                type: "NONE",
+              },
+            ],
           },
         },
-        ]
-
-  if (headerValue) { 
-    statements.push({
-          notStatement: {
-            statement: {
-              byteMatchStatement: {
-                fieldToMatch: {
-                  singleHeader: {
-                    Name: headerKey,
-                  },
-                },
-                positionalConstraint: "EXACTLY",
-                searchString: headerValue,
-                textTransformations: [
-                  {
-                    priority: 0,
-                    type: "NONE",
-                  },
-                ],
-              },
-            },
-          },
-        })
+      },
+    });
   }
   let statement: aws_wafv2.CfnWebACL.StatementProperty;
   if (statements.length > 1) {
     statement = {
       andStatement: {
-        statements
-      }
-    }
+        statements,
+      },
+    };
   } else {
-    statement = statements[0]
+    statement = statements[0];
   }
 
   return {
-  name,
-  action: { block: {
-    customResponse: {
-      responseCode: 403,
-      customResponseBodyKey: accessDeniedBodyName
-    }
-  } },
-  visibilityConfig: {
-    cloudWatchMetricsEnabled: true,
-    metricName: name,
-    sampledRequestsEnabled: true,
-  },
-  statement,
-}
+    name,
+    action: { block: {
+      customResponse: {
+        responseCode: 403,
+        customResponseBodyKey: accessDeniedBodyName,
+      },
+    } },
+    visibilityConfig: {
+      cloudWatchMetricsEnabled: true,
+      metricName: name,
+      sampledRequestsEnabled: true,
+    },
+    statement,
+  };
 };
 
 const addPriorities = (rules: WafRuleNoPriority[]): aws_wafv2.CfnWebACL.RuleProperty[] => {
@@ -207,7 +207,7 @@ const addPriorities = (rules: WafRuleNoPriority[]): aws_wafv2.CfnWebACL.RuleProp
 };
 
 export const createCloudfrontRules = (
-  commonProps: CommonProps & DeploymentConfigProperties
+  commonProps: CommonProps & DeploymentConfigProperties,
 ): aws_wafv2.CfnWebACL.RuleProperty[] => {
   const ipSet = new aws_wafv2.CfnIPSet(commonProps.scope, "cloudfrontWaf", {
     name: `${commonProps.stage}AllowVPNIps`,
@@ -217,19 +217,19 @@ export const createCloudfrontRules = (
   });
 
   const rules = [
-    ...baseWafRules
+    ...baseWafRules,
   ];
 
   // Add a WAF rule that only allows access from ZScaler
-   if (commonProps.stage != "prod") {
-    rules.unshift(createCombinedBlockRule("ZScalerOrCloudbees", ipSet, commonProps.zapHeaderValue),);
+  if (commonProps.stage !== "prod") {
+    rules.unshift(createCombinedBlockRule("ZScalerOrCloudbees", ipSet, commonProps.zapHeaderValue));
   }
 
   return addPriorities(rules);
 };
 
 export const createRegionalRules = (
-  commonProps: CommonProps & DeploymentConfigProperties
+  commonProps: CommonProps & DeploymentConfigProperties,
 ): aws_wafv2.CfnWebACL.RuleProperty[] => {
   const rules = [
     createHeaderValueBlockRule("DenyWithoutCloudfrontHeader", commonProps.cloudfrontWafHeaderValue),

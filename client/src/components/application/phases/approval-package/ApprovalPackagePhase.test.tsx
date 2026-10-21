@@ -8,7 +8,7 @@ import userEvent from "@testing-library/user-event";
 import { ApprovalPackagePhase, ApprovalPackagePhaseProps } from "./ApprovalPackagePhase";
 import { ApplicationWorkflowDocument } from "components/application";
 import { DocumentType } from "demos-server";
-import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { cmsMockUser, readonlyMockUser, cmsReviewerMockUser } from "mock-data/userMocks";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { TestProvider } from "test-utils/TestProvider";
 import { ToastContainer } from "components/toast";
@@ -145,12 +145,6 @@ describe("ApprovalPackagePhase", () => {
     expect(screen.getByRole("button", { name: /finish/i })).toBeDisabled();
   });
 
-  it("hides Finish when user is readonly", () => {
-    setup({ documents: allRequiredDocs }, readonlyMockUser);
-
-    expect(screen.queryByRole("button", { name: /finish/i })).not.toBeInTheDocument();
-  });
-
   it("enables Finish only when all previous phases done, all documents uploaded, and not readonly", () => {
     setup({ documents: allRequiredDocs });
 
@@ -195,5 +189,40 @@ describe("ApprovalPackagePhase", () => {
     setup();
 
     expect(screen.getByRole("table")).toBeInTheDocument();
+  });
+
+  describe("Readonly (Phase 7 - Approval Package)", () => {
+    it.each([
+      { personType: "demos-restricted-cms-user", user: readonlyMockUser },
+      { personType: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
+    ])("$personType - hides Finish button", ({ user }) => {
+      setup({ documents: allRequiredDocs }, user);
+
+      expect(screen.queryByRole("button", { name: /finish/i })).not.toBeInTheDocument();
+    });
+
+    it.each([
+      { personType: "demos-restricted-cms-user", user: readonlyMockUser },
+      { personType: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
+    ])("$personType - displays document table in readonly mode", ({ user }) => {
+      setup({ documents: allRequiredDocs }, user);
+
+      expect(screen.getByRole("table")).toBeInTheDocument();
+      // Verify table rows are displayed
+      const rows = screen.getAllByRole("row");
+      expect(rows.length - 1).toEqual(6); // 6 document types
+    });
+
+    it.each([
+      { personType: "demos-restricted-cms-user", user: readonlyMockUser },
+      { personType: "demos-cms-reviewer-user", user: cmsReviewerMockUser },
+    ])("$personType - has readonly access to approval package", ({ user }) => {
+      setup({ documents: [] }, user);
+
+      // Finish button should be hidden/unavailable
+      expect(screen.queryByRole("button", { name: /finish/i })).not.toBeInTheDocument();
+      // Table should be rendered but in readonly mode
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
   });
 });

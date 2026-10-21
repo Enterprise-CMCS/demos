@@ -20,7 +20,7 @@ export const MODIFICATION_SIGNATURE_LEVELS: SignatureLevel[] = ["OA", "OCD"];
 export type BaseFormData = {
   name: string;
   description?: string;
-  effectiveDate?: string;
+  effectiveDate: string;
   signatureLevel?: SignatureLevel;
   status: string;
   applicationApprovalDate?: LocalDate;
@@ -32,7 +32,7 @@ export type DemonstrationDetailsFormData = BaseFormData & {
   stateName: string;
   projectOfficerId: string;
   projectOfficerName: string;
-  expirationDate?: string;
+  expirationDate: string;
   sdgDivision?: SdgDivision;
   staticFields: Partial<
     Record<
@@ -79,7 +79,7 @@ export const ApplicationDetailsSection = ({
   medicaidId?: string;
 }) => {
   const { currentUser } = getCurrentUser();
-  const userIsReadonly = isReadonly(currentUser);
+  const userIsReadonly = isReadonly(currentUser, "ApplicationWorkflow");
 
   const capitalizedType =
     sectionFormData.applicationType.charAt(0).toUpperCase() +

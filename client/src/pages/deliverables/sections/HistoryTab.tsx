@@ -1,7 +1,7 @@
 import React from "react";
 import { CellContext, createColumnHelper } from "@tanstack/react-table";
 
-import { highlightCell } from "components/table/KeywordSearch";
+import { highlightCell } from "components/table/search";
 import { PaginationControls } from "components/table/PaginationControls";
 import { Table } from "components/table/Table";
 import { createDateColumnDef } from "components/table/columns/dateColumn";

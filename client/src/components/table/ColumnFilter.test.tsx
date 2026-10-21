@@ -5,13 +5,13 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Table } from "./Table";
-import { testTableData, TestType } from "./Table.test";
+import { testTableData, TestTableType } from "./Table.test";
 import { createColumnHelper } from "@tanstack/react-table";
 import { ColumnFilter } from "./ColumnFilter";
 import { isAfter, isBefore, isSameDay } from "date-fns";
 import { formatDateForDisplay } from "util/formatDate";
 
-const columnHelper = createColumnHelper<TestType>();
+const columnHelper = createColumnHelper<TestTableType>();
 
 export const testColumns = [
   columnHelper.accessor("name", {
@@ -71,7 +71,7 @@ export const testColumns = [
 describe("ColumnFilter Component", () => {
   beforeEach(() => {
     render(
-      <Table<TestType>
+      <Table<TestTableType>
         columns={testColumns}
         data={testTableData}
         columnFilter={(table) => <ColumnFilter table={table} />}

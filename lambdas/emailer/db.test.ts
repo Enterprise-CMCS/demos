@@ -1,18 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  send: vi.fn(),
+  getDatabaseConfigMock: vi.fn(),
   poolConstructor: vi.fn(),
 }));
 
-vi.mock("@aws-sdk/client-secrets-manager", () => ({
-  SecretsManagerClient: class {
-    send = mocks.send;
-  },
-  GetSecretValueCommand: class {
-    constructor(public input: unknown) {}
-  },
-}));
+vi.mock("demos-shared-library/database", () => {
+  return { 
+    getDatabaseConfig: mocks.getDatabaseConfigMock,
+   };
+});
 
 vi.mock("pg", () => ({
   Pool: class {
@@ -26,7 +23,7 @@ vi.mock("./log", () => ({
   log: { info: vi.fn() },
 }));
 
-import { __resetDbStateForTests, getDatabaseUrl, getDbPool, getDbSchema } from "./db";
+import { __resetDbStateForTests, getDbPool, getDbSchema } from "./db";
 
 const originalEnv = { ...process.env };
 
@@ -37,67 +34,35 @@ describe("emailer database connection", () => {
     process.env.DB_SSL_MODE = "disable";
     delete process.env.DB_SSL_ROOT_CERT;
     __resetDbStateForTests();
-    mocks.send.mockReset();
+    mocks.getDatabaseConfigMock.mockReset();
     mocks.poolConstructor.mockReset();
-    mocks.send.mockResolvedValue({
-      SecretString: JSON.stringify({
-        username: "db-user",
-        password: "db-password", // pragma: allowlist secret
-        host: "db",
-        port: 5432,
-        dbname: "demos",
-      }),
+    mocks.getDatabaseConfigMock.mockResolvedValue({
+      user: "demos_export",
+      password: "not-a-real-password", // pragma: allowlist secret
+      host: "unit.test.rds.host",
+      port: 5432,
+      database: "utdb",
+      max: 2
     });
   });
 
   afterEach(() => {
     process.env = { ...originalEnv };
   });
-  const DB_CONNECTION_URL =
-    "postgresql://db-user:db-password@db:5432/demos?schema=demos_app&sslmode=disable"; // pragma: allowlist secret
-
-  it("builds the database URL from the configured secret", async () => {
-    await expect(getDatabaseUrl()).resolves.toBe(DB_CONNECTION_URL);
-    expect(mocks.send).toHaveBeenCalledOnce();
-    expect(mocks.send).toHaveBeenCalledWith(
-      expect.objectContaining({ input: { SecretId: "database-secret" } }) // pragma: allowlist secret
-    );
-  });
-
-  it("uses the configured CA bundle with full certificate verification", async () => {
-    delete process.env.DB_SSL_MODE;
-    process.env.DB_SSL_ROOT_CERT = "/var/runtime/ca-cert.pem";
-
-    const url = new URL(await getDatabaseUrl());
-    expect(url.searchParams.get("sslmode")).toBe("verify-full");
-    expect(url.searchParams.get("sslrootcert")).toBe("/var/runtime/ca-cert.pem");
-  });
-
-  it("requires a database secret", async () => {
-    delete process.env.DATABASE_SECRET_ARN;
-
-    await expect(getDatabaseUrl()).rejects.toThrow(
-      "DATABASE_SECRET_ARN is required to fetch the database connection string."
-    );
-  });
-
-  it("reports a secret without a SecretString", async () => {
-    mocks.send.mockResolvedValue({});
-
-    await expect(getDatabaseUrl()).rejects.toThrow(
-      "The SecretString value is undefined for secret: database-secret"
-    );
-  });
-
+  
   it("creates one pool and reuses it", async () => {
     const firstPool = await getDbPool();
     const secondPool = await getDbPool();
 
     expect(firstPool).toBe(secondPool);
-    expect(mocks.send).toHaveBeenCalledOnce();
+    expect(mocks.getDatabaseConfigMock).toHaveBeenCalledOnce();
     expect(mocks.poolConstructor).toHaveBeenCalledExactlyOnceWith({
-      connectionString: DB_CONNECTION_URL,
-      max: 2,
+      user: "demos_export",
+      password: "not-a-real-password", // pragma: allowlist secret
+      host: "unit.test.rds.host",
+      port: 5432,
+      database: "utdb",
+      max: 2
     });
   });
 

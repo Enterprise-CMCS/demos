@@ -22,7 +22,9 @@ export const demonstrationTypeTagAssignmentSchema = gql`
   type DemonstrationTypeAssignment {
     demonstrationTypeName: TagName!
     effectiveDate: DateTime!
+    effectivePlainDate: LocalDate!
     expirationDate: DateTime!
+    expirationPlainDate: LocalDate!
     status: DemonstrationTypeStatus!
     approvalStatus: TagStatus!
     createdAt: DateTime!
@@ -31,7 +33,7 @@ export const demonstrationTypeTagAssignmentSchema = gql`
 
   type Mutation {
     setDemonstrationTypes(input: SetDemonstrationTypesInput!): Demonstration!
-      @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Modify Applications"])
   }
 `;
 
@@ -53,7 +55,9 @@ export interface SetDemonstrationTypesInput {
 export interface DemonstrationTypeAssignment {
   demonstrationTypeName: TagName;
   effectiveDate: Date;
+  effectivePlainDate: string;
   expirationDate: Date;
+  expirationPlainDate: string;
   status: DemonstrationTypeStatus;
   approvalStatus: TagStatus;
   createdAt: Date;

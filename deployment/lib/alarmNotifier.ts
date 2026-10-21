@@ -1,5 +1,5 @@
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
-import {CloudWatchAlarmEvent} from "aws-lambda"
+import { CloudWatchAlarmEvent } from "aws-lambda";
 
 const ssm = new SSMClient({});
 
@@ -17,7 +17,7 @@ async function getParameter(name: string) {
 export const handler = async (event: CloudWatchAlarmEvent) => {
   const webhookUrl = await getParameter(`/demos/webhookUrl`);
 
-  if (!webhookUrl || webhookUrl.trim() == "") {
+  if (!webhookUrl || webhookUrl.trim() === "") {
     throw new Error("webhook url is missing");
   }
 
@@ -41,7 +41,7 @@ export const handler = async (event: CloudWatchAlarmEvent) => {
   const body = await gr.text();
   const response = {
     statusCode: gr.status,
-    body: body,
+    body,
   };
   return response;
 };

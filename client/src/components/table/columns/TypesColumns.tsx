@@ -1,7 +1,7 @@
 import React from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 
-import { highlightCell } from "../KeywordSearch";
+import { highlightCell } from "components/table/search";
 import { formatDateForDisplay } from "util/formatDate";
 import { createSelectColumnDef } from "./selectColumn";
 import { TypeTableRow } from "../tables/TypesTable";
@@ -36,24 +36,18 @@ export function TypesColumns(isReadonlyUser: boolean) {
         },
       },
     }),
-    columnHelper.accessor("effectiveDate", {
+    columnHelper.accessor("effectivePlainDate", {
       header: "Effective Date",
-      cell: ({ getValue }) => {
-        const dateValue = getValue();
-        return dateValue ? formatDateForDisplay(dateValue) : "—";
-      },
+      cell: ({ getValue }) => formatDateForDisplay(getValue()),
       meta: {
         filterConfig: {
           filterType: "date",
         },
       },
     }),
-    columnHelper.accessor("expirationDate", {
+    columnHelper.accessor("expirationPlainDate", {
       header: "Expiration Date",
-      cell: ({ getValue }) => {
-        const dateValue = getValue();
-        return dateValue ? formatDateForDisplay(dateValue) : "—";
-      },
+      cell: ({ getValue }) => formatDateForDisplay(getValue()),
       meta: {
         filterConfig: {
           filterType: "date",
@@ -64,8 +58,5 @@ export function TypesColumns(isReadonlyUser: boolean) {
   if (isReadonlyUser) {
     return baseTypesColumns;
   }
-  return [
-    createSelectColumnDef(columnHelper),
-    ...baseTypesColumns,
-  ];
+  return [createSelectColumnDef(columnHelper), ...baseTypesColumns];
 }

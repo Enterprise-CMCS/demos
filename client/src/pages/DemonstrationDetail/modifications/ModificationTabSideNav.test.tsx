@@ -8,7 +8,7 @@ import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { NON_DELIVERABLE_DOCUMENT_TYPES } from "demos-server-constants";
 import { CurrentUser } from "components/user/UserContext";
-import { readonlyMockUser } from "mock-data/userMocks";
+import { cmsReviewerMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 vi.mock("components/application", async (importOriginal) => {
   const actual = await importOriginal<typeof import("components/application")>();
@@ -190,8 +190,11 @@ describe("ModificationTabSideNav", () => {
       expect(screen.queryByText("Interim Evaluation Report")).not.toBeInTheDocument();
     });
 
-    it("does not render Add Document button for readonly users", () => {
-      setup(mockModificationItem, readonlyMockUser);
+    it.each([
+      ["readonly users", readonlyMockUser],
+      ["CMS Reviewer users", cmsReviewerMockUser],
+    ])("does not render Add Document button for %s", (_role, currentUser) => {
+      setup(mockModificationItem, currentUser);
 
       fireEvent.click(screen.getByTestId("button-documents"));
 

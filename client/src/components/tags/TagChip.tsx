@@ -2,7 +2,7 @@ import { ExitIcon } from "components/icons";
 import { Tag } from "demos-server";
 import React from "react";
 import { tw } from "tags/tw";
-import { getCurrentUser, isReadonly } from "components/user/UserContext";
+import { getCurrentUser, isReadonly, DemosApplicationSection } from "components/user/UserContext";
 
 const STYLES = {
   baseTagChip: tw`inline-flex items-center gap-1 rounded-full px-1 py-[6px] text-sm text-black`,
@@ -23,6 +23,7 @@ export const TagChip = ({
   onClick,
   "aria-label": ariaLabel,
   disabled = false,
+  applicationSection,
 }: {
   tag: Tag;
   onRemoveTag?: (tagName: string) => void;
@@ -31,9 +32,10 @@ export const TagChip = ({
   onClick?: () => void;
   "aria-label"?: string;
   disabled?: boolean;
+  applicationSection?: DemosApplicationSection;
 }) => {
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonly(currentUser);
+  const isReadonlyUser = isReadonly(currentUser, applicationSection);
   const tagName = tag.tagName;
   const isApproved = tag.approvalStatus === "Approved";
   const chipClasses =

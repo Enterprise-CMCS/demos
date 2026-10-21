@@ -17,7 +17,7 @@ export function create(props: CreateSSMParameterProps) {
       stringValue: props.value,
       description: props.description,
       tier: aws_ssm.ParameterTier.STANDARD,
-    }
+    },
   );
 
   return {
@@ -33,6 +33,6 @@ export function get(props: GetSSMParameterProps) {
   return aws_ssm.StringParameter.fromStringParameterName(
     props.scope,
     `${props.name.split("/").join("")}`,
-    props.name
+    props.name,
   );
 }

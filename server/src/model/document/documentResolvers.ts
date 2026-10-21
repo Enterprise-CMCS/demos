@@ -3,6 +3,7 @@ import { GraphQLContext } from "../../auth";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { prisma } from "../../prismaClient";
+import { log } from "../../log";
 import type {
   BudgetNeutralityValidationStatus,
   DeliverableAction,
@@ -98,11 +99,11 @@ export const documentResolvers = {
   },
 
   Mutation: {
-    updateDocument: async function updateDocument(
+    updateDocument: async (
       parent: unknown,
       { id, input }: { id: string; input: UpdateDocumentInput },
       context: GraphQLContext
-    ): Promise<PrismaDocument> {
+    ): Promise<PrismaDocument> => {
       checkOptionalNotNullFields(["name", "description"], input);
       try {
         return await editDocument(
@@ -117,29 +118,98 @@ export const documentResolvers = {
         handlePrismaError(error);
       }
     },
-    deleteDocument: async function deleteDocument(
+    updateDeliverableCmsDocument: async (
       parent: unknown,
-      { id }: { id: string },
+      { id, input }: { id: string; input: UpdateDocumentInput },
       context: GraphQLContext
-    ): Promise<PrismaDocument> {
+    ): Promise<PrismaDocument> => {
+      checkOptionalNotNullFields(["name", "description"], input);
       try {
-        return prisma().$transaction(async (tx) => {
-          return removeDocument({ id }, context.user, tx);
-        });
+        return await editDocument(
+          { id, deliverableId: { not: null }, deliverableIsCmsAttachedFile: true },
+          {
+            name: input.name,
+            description: input.description,
+          },
+          context.user
+        );
       } catch (error) {
         handlePrismaError(error);
       }
     },
-    deleteDocuments: async function deleteDocuments(
+    updateDeliverableStateDocument: async (
+      parent: unknown,
+      { id, input }: { id: string; input: UpdateDocumentInput },
+      context: GraphQLContext
+    ): Promise<PrismaDocument> => {
+      checkOptionalNotNullFields(["name", "description"], input);
+      try {
+        return await editDocument(
+          { id, deliverableId: { not: null }, deliverableIsCmsAttachedFile: false },
+          {
+            name: input.name,
+            description: input.description,
+          },
+          context.user
+        );
+      } catch (error) {
+        handlePrismaError(error);
+      }
+    },
+    deleteDocuments: (
       parent: unknown,
       { ids }: { ids: string[] },
       context: GraphQLContext
-    ): Promise<number> {
+    ): Promise<number> => {
       try {
         return prisma().$transaction(async (tx) => {
           let count = 0;
           for (const documentId of ids) {
             await removeDocument({ id: documentId }, context.user, tx);
+            count++;
+          }
+          return count;
+        });
+      } catch (error) {
+        handlePrismaError(error);
+      }
+    },
+    deleteDeliverableCmsDocuments: async (
+      parent: unknown,
+      { ids }: { ids: string[] },
+      context: GraphQLContext
+    ): Promise<number> => {
+      try {
+        return prisma().$transaction(async (tx) => {
+          let count = 0;
+          for (const documentId of ids) {
+            await removeDocument(
+              { id: documentId, deliverableId: { not: null }, deliverableIsCmsAttachedFile: true },
+              context.user,
+              tx
+            );
+            count++;
+          }
+          return count;
+        });
+      } catch (error) {
+        handlePrismaError(error);
+      }
+    },
+    deleteDeliverableStateDocuments: async (
+      parent: unknown,
+      { ids }: { ids: string[] },
+      context: GraphQLContext
+    ): Promise<number> => {
+      try {
+        return prisma().$transaction(async (tx) => {
+          let count = 0;
+          for (const documentId of ids) {
+            await removeDocument(
+              { id: documentId, deliverableId: { not: null }, deliverableIsCmsAttachedFile: false },
+              context.user,
+              tx
+            );
             count++;
           }
           return count;
@@ -155,14 +225,32 @@ export const documentResolvers = {
     owner: (parent: PrismaDocument): Promise<PrismaUser> =>
       selectUserOrThrow({ id: parent.ownerUserId }),
     documentType: (parent: PrismaDocument): DocumentType => parent.documentTypeId as DocumentType,
-    presignedDownloadUrl: (parent: PrismaDocument): Promise<string> =>
-      getS3Adapter().getPresignedDownloadUrl(parent.s3Path, parent.name),
+    presignedDownloadUrl: (
+      parent: PrismaDocument,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<string> => {
+      log.info(
+        {
+          userId: context.user.id,
+          documentId: parent.id,
+          documentName: parent.name,
+          applicationId: parent.applicationId,
+          s3Path: parent.s3Path,
+          type: "document.download.presigned",
+        },
+        "Presigned download URL generated for document"
+      );
+      return getS3Adapter().getPresignedDownloadUrl(parent.s3Path, parent.name);
+    },
     downloadFileName: (parent: PrismaDocument): Promise<string> =>
       getS3Adapter().getDownloadFileName(parent.s3Path, parent.name),
     application: (parent: PrismaDocument): Promise<PrismaApplication> =>
       getApplication(parent.applicationId),
     deliverable: resolveDeliverable,
-    deliverableSubmissionAction: async (parent: PrismaDocument): Promise<DeliverableAction | null> => {
+    deliverableSubmissionAction: async (
+      parent: PrismaDocument
+    ): Promise<DeliverableAction | null> => {
       if (!parent.deliverableSubmissionActionId) {
         return null;
       }

@@ -21,7 +21,7 @@ import { fieldAuthPlugin } from "./plugins/fieldAuthPlugin.js";
 import { compressStandaloneResponse } from "./plugins/compression.middleware.js";
 import { formatGraphQLErrorCode } from "./errors/errorCodes.js";
 import { createLoaders } from "./loaders";
-import { __DEMOS_VERSION__, __FEATURE_PRINT_VERSION__ } from "./flags.js";
+import { __DEMOS_VERSION__, getFeatureFlags } from "./flags";
 
 log.debug("Starting server...");
 
@@ -90,7 +90,6 @@ const { url } = await startStandaloneServer<GraphQLContext>(server, {
 });
 
 log.info(`🚀 Server listening 👂 at: ${url}`);
-if (__FEATURE_PRINT_VERSION__) {
+if (getFeatureFlags(__DEMOS_VERSION__).printVersion) {
   log.info(`Demos version: ${__DEMOS_VERSION__}`);
 }
-

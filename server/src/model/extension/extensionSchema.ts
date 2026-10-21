@@ -21,6 +21,7 @@ export const extensionSchema = gql`
     name: NonEmptyString!
     description: String
     effectiveDate: DateTime
+    effectivePlainDate: LocalDate
     status: ApplicationStatus!
     currentPhaseName: PhaseName! @auth(requires: ["Access CMS Field"])
     phases: [ApplicationPhase!]! @auth(requires: ["Access CMS Field"])
@@ -50,10 +51,10 @@ export const extensionSchema = gql`
 
   type Mutation {
     createExtension(input: CreateExtensionInput!): Extension!
-      @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Modify Applications"])
     updateExtension(id: ID!, input: UpdateExtensionInput!): Extension!
-      @auth(requires: ["Perform CMS Action"])
-    deleteExtension(id: ID!): Extension! @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Modify Applications"])
+    deleteExtension(id: ID!): Extension! @auth(requires: ["Modify Applications"])
   }
 
   type Query {
@@ -67,6 +68,7 @@ export interface Extension {
   name: NonEmptyString;
   description?: string;
   effectiveDate?: Date;
+  effectivePlainDate?: string;
   status: ApplicationStatus;
   currentPhaseName: PhaseName;
   phases: ApplicationPhase[];

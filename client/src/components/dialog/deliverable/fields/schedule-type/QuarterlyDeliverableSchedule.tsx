@@ -6,8 +6,8 @@ import { Select } from "components/input/select/Select";
 import { getTodayEst } from "util/formatDate";
 
 export function getOptionsForYearSelect(
-  demonstrationEffectiveDate?: Date,
-  demonstrationExpirationDate?: Date
+  demonstrationEffectiveDate?: string,
+  demonstrationExpirationDate?: string
 ) {
   const dateMissing = !demonstrationEffectiveDate || !demonstrationExpirationDate;
   const numYears = dateMissing
@@ -30,8 +30,8 @@ export function QuarterlyDeliverableSchedule({
   quarterlyDueDates,
   onSelectQuarterDate,
 }: {
-  demonstrationEffectiveDate?: Date;
-  demonstrationExpirationDate?: Date;
+  demonstrationEffectiveDate?: string;
+  demonstrationExpirationDate?: string;
   onSelectYear: (year: number) => void;
   quarterlyDueDates?: string[];
   onSelectQuarterDate?: (quarterIndex: number, dueDate: string) => void;

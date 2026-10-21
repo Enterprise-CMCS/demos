@@ -21,7 +21,6 @@ vi.mock("../../prismaClient", () => ({
 vi.mock(".", () => ({
   selectDeliverableOrThrow: vi.fn(),
   validateDenyDeliverableExtensionInput: vi.fn(),
-  validateUserPersonTypeAllowed: vi.fn(),
 }));
 
 vi.mock("../deliverableAction/queries", () => ({
@@ -41,7 +40,6 @@ import { prisma } from "../../prismaClient";
 import {
   selectDeliverableOrThrow,
   validateDenyDeliverableExtensionInput,
-  validateUserPersonTypeAllowed,
 } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 import {
@@ -92,26 +90,6 @@ describe("denyDeliverableExtension", () => {
     );
     vi.mocked(insertDeliverableAction).mockResolvedValue({ id: mockActionId } as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
-  });
-
-  it("should check that the user is allowed to do this operation", async () => {
-    await denyDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
-    expect(validateUserPersonTypeAllowed).toHaveBeenCalledExactlyOnceWith(
-      testContext,
-      "denyDeliverableExtension",
-      ["demos-admin", "demos-cms-user"]
-    );
-  });
-
-  it("should not create a transaction if the user is not permitted", async () => {
-    vi.mocked(validateUserPersonTypeAllowed).mockThrow("I'm throwing!");
-
-    try {
-      await denyDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
-      throw new Error("Expected denyDeliverableExtension to throw, but it did not.");
-    } catch {
-      expect(prisma).not.toHaveBeenCalled();
-    }
   });
 
   it("should get the deliverable before making changes", async () => {

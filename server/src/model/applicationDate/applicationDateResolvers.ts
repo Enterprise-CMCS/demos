@@ -3,7 +3,7 @@ import { prisma } from "../../prismaClient";
 import { DateType, SetApplicationDateInput, SetApplicationDatesInput } from "../../types";
 import { getApplication, PrismaApplication } from "../application";
 import { handlePrismaError } from "../../errors/handlePrismaError";
-import { getEasternNow } from "../../dateUtilities";
+import { formatDateToPlainDate, getEasternNow } from "../../dateUtilities";
 import { startPhasesByDates } from "../applicationPhase";
 import { validateAndUpdateDates } from ".";
 
@@ -77,5 +77,6 @@ export const applicationDateResolvers = {
   },
   ApplicationDate: {
     dateType: (parent: PrismaApplicationDate): DateType => parent.dateTypeId as DateType,
+    plainDate: (parent: PrismaApplicationDate): string => formatDateToPlainDate(parent.dateValue),
   },
 };

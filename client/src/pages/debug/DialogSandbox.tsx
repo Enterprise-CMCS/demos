@@ -33,8 +33,8 @@ export const DialogSandbox: React.FC = () => {
     showCreateRenewalDialog,
     showManageContactsDialog,
     showUploadDocumentDialog,
-    showEditDocumentDialog,
-    showRemoveDocumentDialog,
+    showEditApplicationDocumentDialog,
+    showRemoveApplicationDocumentsDialog,
     showApplicationIntakeDocumentUploadDialog,
     showCompletenessDocumentUploadDialog,
     showConceptPreSubmissionDocumentUploadDialog,
@@ -125,7 +125,7 @@ export const DialogSandbox: React.FC = () => {
         <Button
           name="edit-document"
           onClick={() =>
-            showEditDocumentDialog({
+            showEditApplicationDocumentDialog({
               id: ID,
               name: "foo",
               description: "",
@@ -134,7 +134,7 @@ export const DialogSandbox: React.FC = () => {
         >
           Edit Document
         </Button>
-        <Button name="remove-document" onClick={() => showRemoveDocumentDialog([ID])}>
+        <Button name="remove-document" onClick={() => showRemoveApplicationDocumentsDialog([ID])}>
           Remove Document
         </Button>
         {demoId ? (

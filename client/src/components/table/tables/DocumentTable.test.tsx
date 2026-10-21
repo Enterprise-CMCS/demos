@@ -6,16 +6,16 @@ import userEvent from "@testing-library/user-event";
 import { DocumentTable } from "./DocumentTable";
 import { mockDocuments } from "mock-data/documentMocks";
 import { TestProvider } from "test-utils/TestProvider";
-import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { cmsMockUser, cmsReviewerMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 const showUploadDocumentDialog = vi.fn();
-const showEditDocumentDialog = vi.fn();
-const showRemoveDocumentDialog = vi.fn();
+const showEditApplicationDocumentDialog = vi.fn();
+const showRemoveApplicationDocumentsDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
     showUploadDocumentDialog,
-    showEditDocumentDialog,
-    showRemoveDocumentDialog,
+    showEditApplicationDocumentDialog,
+    showRemoveApplicationDocumentsDialog,
   }),
 }));
 
@@ -49,6 +49,17 @@ describe("DocumentTable", () => {
     expect(screen.queryByTestId(/select-row-/i)).not.toBeInTheDocument();
   });
 
+  it("does not render edit and delete buttons for cms-reviewer users", async () => {
+    renderDocumentTable(cmsReviewerMockUser);
+
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByTestId("edit-document")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("remove-document")).not.toBeInTheDocument();
+  });
+
   it("disables Edit button when no or multiple documents are selected, enables for one", async () => {
     renderDocumentTable();
     const user = userEvent.setup();
@@ -76,7 +87,7 @@ describe("DocumentTable", () => {
     const editBtn = screen.getByLabelText(/Edit Document/i);
     await user.click(editBtn);
     // Modal should open, assuming it renders 'edit document' text
-    expect(showEditDocumentDialog).toHaveBeenCalled();
+    expect(showEditApplicationDocumentDialog).toHaveBeenCalled();
   });
 
   it("renders the filter dropdown initially", async () => {

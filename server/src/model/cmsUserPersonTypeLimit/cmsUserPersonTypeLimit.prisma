@@ -3,8 +3,6 @@ model CmsUserPersonTypeLimit {
   id String
 
   personType          PersonType           @relation(fields: [id], references: [id])
-  deliverables        Deliverable[]
-  privateComments     PrivateComment[]
   references          Reference[]
   referenceAgreements ReferenceAgreement[]
 

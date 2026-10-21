@@ -22,9 +22,9 @@ vi.mock("./commands/down");
 vi.mock("./commands/runMigration");
 vi.mock("./commands/testMigration");
 
-const expectFunc = (command: string, func: Function, stage: string, additional: any[] = [], empty: boolean = false) => {
+const expectFunc = async (command: string, func: Function, stage: string, additional: any[] = [], empty: boolean = false) => {
   process.argv = ["", "", command, stage, ...additional];
-  main();
+  await main();
   if (empty) {
     expect(func).toHaveBeenCalled();
   } else {
@@ -36,15 +36,15 @@ describe("demosctl root", () => {
   test("should run the proper commands", async () => {
     const mockStageName = "unit-test";
 
-    expectFunc("build:client", buildClient, mockStageName, [false]);
-    expectFunc("build:server", buildServer, mockStageName, [], true);
-    expectFunc("deploy:core", getCoreOutputs, mockStageName);
-    expectFunc("deploy:all", fullDeploy, mockStageName);
-    expectFunc("deploy:add-cloudfront-redirect", addCloudfrontRedirect, mockStageName);
-    expectFunc("up", up, mockStageName);
-    expectFunc("down", down, mockStageName);
-    expectFunc("migrate", runMigration, mockStageName, ["something"]);
-    expectFunc("test-migration", testMigration, mockStageName, ["something"]);
+    await expectFunc("build:client", buildClient, mockStageName, [false]);
+    await expectFunc("build:server", buildServer, mockStageName, [], true);
+    await expectFunc("deploy:core", getCoreOutputs, mockStageName);
+    await expectFunc("deploy:all", fullDeploy, mockStageName);
+    await expectFunc("deploy:add-cloudfront-redirect", addCloudfrontRedirect, mockStageName);
+    await expectFunc("up", up, mockStageName);
+    await expectFunc("down", down, mockStageName);
+    await expectFunc("migrate", runMigration, mockStageName, ["something"]);
+    await expectFunc("test-migration", testMigration, mockStageName, ["something"]);
 
     expect(buildClient).toHaveBeenCalledTimes(1);
     expect(buildServer).toHaveBeenCalledTimes(1);
@@ -62,7 +62,7 @@ describe("demosctl root", () => {
     vi.spyOn(process, "exit").mockImplementation(() => "exit");
 
     process.argv = ["", "", "build:client"];
-    main();
+    await main();
 
     expect(process.exit).toHaveBeenCalled();
   });

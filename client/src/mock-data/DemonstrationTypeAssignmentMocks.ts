@@ -5,24 +5,24 @@ import { DemonstrationTypeAssignment, SetDemonstrationTypesInput } from "demos-s
 
 export type MockDemonstrationTypeAssignment = Pick<
   DemonstrationTypeAssignment,
-  "demonstrationTypeName" | "effectiveDate" | "expirationDate"
+  "demonstrationTypeName" | "effectivePlainDate" | "expirationPlainDate"
 >;
 
 export const MOCK_DEMONSTRATION_TYPE_ASSIGNMENTS: MockDemonstrationTypeAssignment[] = [
   {
     demonstrationTypeName: "Aggregate Cap",
-    effectiveDate: new Date("2025-01-01"),
-    expirationDate: new Date("2025-12-31"),
+    effectivePlainDate: "2025-01-01",
+    expirationPlainDate: "2025-12-31",
   },
   {
     demonstrationTypeName: "Annual Limits",
-    effectiveDate: new Date("2025-02-01"),
-    expirationDate: new Date("2025-11-30"),
+    effectivePlainDate: "2025-02-01",
+    expirationPlainDate: "2025-11-30",
   },
   {
     demonstrationTypeName: "Basic Health Plan (BHP)",
-    effectiveDate: new Date("2025-03-01"),
-    expirationDate: new Date("2025-10-31"),
+    effectivePlainDate: "2025-03-01",
+    expirationPlainDate: "2025-10-31",
   },
 ];
 

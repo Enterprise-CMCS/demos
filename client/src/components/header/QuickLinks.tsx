@@ -17,11 +17,11 @@ const STYLES = {
 export const QuickLinks: React.FC = () => {
   const { pathname } = useLocation();
   const { currentUser } = getCurrentUser();
-  const isAdmin = currentUser?.person.personType === "demos-admin";
+  const isAdmin = currentUser.person.personType === "demos-admin";
 
   return (
     <div className={STYLES.container} data-testid={QUICK_LINKS_TEST_ID}>
-      {isAdmin && (
+      {isAdmin ? (
         <Link
           to="/admin"
           className={`${STYLES.link} ${pathname === "/admin" ? STYLES.selectedLink : ""}`}
@@ -30,6 +30,10 @@ export const QuickLinks: React.FC = () => {
           <SettingsIcon className={STYLES.icon} />
           <span>Admin</span>
         </Link>
+      ) : (
+        <div className={STYLES.link}>
+          <span>{currentUser.person.personType}</span>
+        </div>
       )}
       <Link
         to="/references"

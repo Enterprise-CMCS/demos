@@ -5,6 +5,13 @@ export const EXPIRATION_DATE_ERROR_MESSAGE = "Expiration Date cannot be before E
 export const getRequiredFieldWhenApprovedMessage = (fieldName: string) =>
   `${fieldName} is required when the application is approved.`;
 
+// Tag Messages
+export const NO_MATCH_MESSAGE =
+  "This demonstration type does not exist yet. Check for spelling errors and alternate names.";
+
+export const UNAPPROVED_WARNING_MESSAGE =
+  'Consult with SDG leadership and check spelling before creating a new tag/type. New tag/types are labelled "Unapproved" but can still be seen and used by others.';
+
 // Document Messages
 export const DOCUMENT_UPLOADED_MESSAGE = "Your document has been added.";
 export const DOCUMENT_FAILED_UPLOAD_MESSAGE =

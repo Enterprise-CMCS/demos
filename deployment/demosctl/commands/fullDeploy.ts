@@ -15,7 +15,7 @@ export async function fullDeploy(environment: string) {
     "--outputs-file=all-outputs.json",
   ]);
 
-  if (completeDeployCmd != 0) {
+  if (completeDeployCmd !== 0) {
     console.error(`complete deploy command failed with code ${completeDeployCmd}`);
     return completeDeployCmd;
   }
@@ -25,7 +25,7 @@ export async function fullDeploy(environment: string) {
   await addCognitoRedirect(
     getOutputValue(outputData, `demos-${environment}-core`, "cognitoAuthority").split("/").pop()!,
     getOutputValue(outputData, `demos-${environment}-core`, "cognitoClientId"),
-    getOutputValue(outputData, `demos-${environment}-ui`, "CloudfrontURL")
+    getOutputValue(outputData, `demos-${environment}-ui`, "CloudfrontURL"),
   );
 
   console.log(`\n======\ncomplete deploy command succeeded\n======\n`);

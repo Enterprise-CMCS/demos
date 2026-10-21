@@ -3,10 +3,8 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import {
-  ApplicationHealthTypeTags,
-  GET_APPLICATION_TAG_OPTIONS,
-} from "./ApplicationHealthTypeTags";
+import { ApplicationHealthTypeTags } from "./ApplicationHealthTypeTags";
+import { GET_APPLICATION_TAG_OPTIONS } from "components/tags/useApplicationTagOptions";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { MockedResponse } from "@apollo/client/testing";
 import { TestProvider } from "test-utils/TestProvider";

@@ -65,9 +65,16 @@ const SUCCESS_MESSAGES = {
   fileDeleted: "Your document has been removed.",
 };
 
-export const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }> = ({
+export const TitleInput: React.FC<{
+  value: string;
+  onChange: (value: string) => void;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
+  getValidationMessage?: (value: string) => string | undefined;
+}> = ({
   value,
   onChange,
+  onBlur,
+  getValidationMessage,
 }) => (
   <TextInput
     name="title"
@@ -75,6 +82,8 @@ export const TitleInput: React.FC<{ value: string; onChange: (value: string) => 
     placeholder="Enter document title"
     isRequired
     onChange={(event) => onChange(event.target.value)}
+    onBlur={onBlur}
+    getValidationMessage={getValidationMessage}
     value={value}
   />
 );
@@ -349,6 +358,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
 
   const [documentDialogState, setDocumentDialogState] = useState<DocumentDialogState>("idle");
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
+  const [titleTouched, setTitleTouched] = useState(false);
   const [formHasChanges, setFormHasChanges] = useState(false);
   const [isAttestationOpen, setIsAttestationOpen] = useState(false);
 
@@ -481,6 +491,12 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
             setActiveDocument((prev) => ({ ...prev, name: val }));
             setTitleManuallyEdited(true);
           }}
+          onBlur={() => setTitleTouched(true)}
+          getValidationMessage={(value) =>
+            titleTouched && !value.trim()
+              ? "Document Title is required."
+              : undefined
+          }
         />
 
         <DescriptionInput

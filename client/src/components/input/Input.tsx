@@ -31,6 +31,7 @@ export interface InputProps {
   defaultValue?: string;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   getValidationMessage?: (value: string) => string | undefined;
 }
 
@@ -43,6 +44,7 @@ export const Input: React.FC<InputProps> = ({
   placeholder,
   value,
   onChange,
+  onBlur,
   defaultValue,
   getValidationMessage,
 }) => {
@@ -75,6 +77,7 @@ export const Input: React.FC<InputProps> = ({
         disabled={isDisabled ?? false}
         value={currentValue}
         onChange={handleChange}
+        onBlur={onBlur}
       />
       {validationMessage && <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>}
     </div>

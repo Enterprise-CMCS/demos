@@ -21,7 +21,6 @@ vi.mock(".", () => ({
   selectDeliverableOrThrow: vi.fn(),
   parseRequestDeliverableResubmissionInput: vi.fn(),
   validateRequestDeliverableResubmissionInput: vi.fn(),
-  validateUserPersonTypeAllowed: vi.fn(),
 }));
 
 vi.mock("../deliverableAction/queries", () => ({
@@ -39,7 +38,6 @@ import {
   ParsedRequestDeliverableResubmissionInput,
   parseRequestDeliverableResubmissionInput,
   validateRequestDeliverableResubmissionInput,
-  validateUserPersonTypeAllowed,
 } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 import { notifyDeliverableResubmissionRequested } from "../email/notifyDeliverableEvent";
@@ -92,34 +90,6 @@ describe("requestDeliverableResubmission", () => {
     vi.mocked(editDeliverable).mockResolvedValue(mockRequestedDeliverable as PrismaDeliverable);
     vi.mocked(insertDeliverableAction).mockResolvedValue({ id: mockActionId } as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
-  });
-
-  it("should check that the user is allowed to do this operation", async () => {
-    await requestDeliverableResubmission(
-      testDeliverableId,
-      testInput,
-      testContext as GraphQLContext
-    );
-    expect(validateUserPersonTypeAllowed).toHaveBeenCalledExactlyOnceWith(
-      testContext,
-      "requestDeliverableResubmission",
-      ["demos-admin", "demos-cms-user"]
-    );
-  });
-
-  it("should not create a transaction if the user is not permitted", async () => {
-    vi.mocked(validateUserPersonTypeAllowed).mockThrow("I'm throwing!");
-
-    try {
-      await requestDeliverableResubmission(
-        testDeliverableId,
-        testInput,
-        testContext as GraphQLContext
-      );
-      throw new Error("Expected requestDeliverableResubmission to throw, but it did not.");
-    } catch {
-      expect(prisma).not.toHaveBeenCalled();
-    }
   });
 
   it("should parse the input received", async () => {

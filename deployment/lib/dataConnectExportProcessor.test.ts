@@ -110,7 +110,7 @@ describe("DataConnectExportProcessor construct", () => {
     const bucketActions = policies
       .flatMap((policy) => policy.Properties.PolicyDocument.Statement as { Action: unknown }[])
       .flatMap((statement) =>
-        Array.isArray(statement.Action) ? statement.Action : [statement.Action]
+        Array.isArray(statement.Action) ? statement.Action : [statement.Action],
       )
       .filter((action): action is string => typeof action === "string" && action.startsWith("s3:"));
 
@@ -126,11 +126,11 @@ describe("DataConnectExportProcessor construct", () => {
     const secretActions = policies
       .flatMap((policy) => policy.Properties.PolicyDocument.Statement as { Action: unknown }[])
       .flatMap((statement) =>
-        Array.isArray(statement.Action) ? statement.Action : [statement.Action]
+        Array.isArray(statement.Action) ? statement.Action : [statement.Action],
       )
       .filter(
         (action): action is string =>
-          typeof action === "string" && action.startsWith("secretsmanager:")
+          typeof action === "string" && action.startsWith("secretsmanager:"),
       );
 
     expect(secretActions).toContain("secretsmanager:GetSecretValue");
@@ -190,13 +190,13 @@ describe("bundlingEnvironmentFor", () => {
   it("refuses an architecture it has no npm spelling for", () => {
     // Falling back would install the build agent's binding.
     expect(() => bundlingEnvironmentFor(aws_lambda.Architecture.custom("s390x"))).toThrow(
-      "No npm --cpu value is known for the s390x architecture"
+      "No npm --cpu value is known for the s390x architecture",
     );
   });
 
   it("suppresses install scripts", () => {
     expect(bundlingEnvironmentFor(aws_lambda.Architecture.X86_64).npm_config_ignore_scripts).toBe(
-      "true"
+      "true",
     );
   });
 

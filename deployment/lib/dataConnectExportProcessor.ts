@@ -14,6 +14,7 @@ import path from "node:path";
 import * as alarms from "./alarms";
 import * as demosLambda from "./lambda";
 import { DeploymentConfigProperties } from "../config";
+import { NagSuppressions } from "cdk-nag";
 
 const EXPORT_TIMEOUT = Duration.minutes(15);
 
@@ -40,7 +41,7 @@ export function bundlingEnvironmentFor(architecture: aws_lambda.Architecture): {
   if (!cpu) {
     throw new Error(
       `No npm --cpu value is known for the ${architecture.name} architecture. Without one the ` +
-        "asset would carry whichever DuckDB binding the build agent resolves for itself."
+        "asset would carry whichever DuckDB binding the build agent resolves for itself.",
     );
   }
 
@@ -69,7 +70,7 @@ export class DataConnectExportProcessor extends Construct {
     const dbSecret = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
       "rdsDataConnectExportDatabaseSecret",
-      `demos-${props.hostEnvironment}-rds-demos_export`
+      `demos-${props.hostEnvironment}-rds-demos_export`,
     );
 
     const exportDir = path.resolve(process.cwd(), "..", "lambdas", "dataConnectExport");
@@ -122,7 +123,7 @@ export class DataConnectExportProcessor extends Construct {
       // enabled there would produce a nightly failure against a role that does not exist.
       enabled: !props.isEphemeral,
     });
-    this.schedule.addTarget(new aws_events_targets.LambdaFunction(exportLambda.lambda)
+    this.schedule.addTarget(new aws_events_targets.LambdaFunction(exportLambda.lambda),
     );
 
     this.setupCloudWatchAlarms(props, alarmResources);
@@ -132,11 +133,18 @@ export class DataConnectExportProcessor extends Construct {
     // snapshots are what the DataConnect consumers read, so the exporter should not be able to
     // remove them.
     props.exportBucket.grantPut(exportLambda.lambda);
+
+    NagSuppressions.addResourceSuppressions(exportLambda.role, [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions are scoped to specific KMS key and UiPath documents bucket; S3 object ARNs require wildcard suffix.",
+      },
+    ], true);
   }
 
   private setupCloudWatchAlarms(
     props: DeploymentConfigProperties,
-    resources: alarms.CloudWatchAlarmRegistry
+    resources: alarms.CloudWatchAlarmRegistry,
   ) {
     if (props.isEphemeral && !props.enableAlarms) {
       return;

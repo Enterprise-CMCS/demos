@@ -21,7 +21,24 @@ export function getCurrentUser() {
   return ctx;
 }
 
-export function isReadonly(currentUser: CurrentUser): boolean {
-  // Check if the user's personType indicates readonly status.
-  return currentUser.person.personType === "demos-restricted-cms-user";
+// Sections of the app will calculate `isReadonly` different for specific user types.
+export type DemosApplicationSection = "ApplicationWorkflow" | "DemonstrationDetail" | "Homepage";
+export function isReadonly(
+  currentUser: CurrentUser,
+  applicationSection?: DemosApplicationSection
+): boolean {
+  // demos-restricted-cms-user is always readonly
+  if (currentUser.person.personType === "demos-restricted-cms-user") {
+    return true;
+  }
+
+  // demos-cms-reviewer-user is readonly in workflow and demonstration detail sections
+  if (
+    currentUser.person.personType === "demos-cms-reviewer-user" &&
+    (applicationSection === "ApplicationWorkflow" || applicationSection === "DemonstrationDetail")
+  ) {
+    return true;
+  }
+
+  return false;
 }

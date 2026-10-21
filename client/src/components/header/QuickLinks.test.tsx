@@ -22,6 +22,11 @@ const readonlyUser: CurrentUser = {
   person: { ...developmentMockUser.person, personType: "demos-restricted-cms-user" },
 };
 
+const cmsReviewerUser: CurrentUser = {
+  ...developmentMockUser,
+  person: { ...developmentMockUser.person, personType: "demos-cms-reviewer-user" },
+};
+
 const setup = (
   currentUser = adminUser,
   routerEntries: MemoryRouterProps["initialEntries"] = ["/"]
@@ -50,6 +55,11 @@ describe("QuickLinks", () => {
       expect(screen.queryByTestId(ADMIN_LINK_NAME)).not.toBeInTheDocument();
     });
 
+    it("does not render the Admin link for a CMS Reviewer user", () => {
+      setup(cmsReviewerUser);
+      expect(screen.queryByTestId(ADMIN_LINK_NAME)).not.toBeInTheDocument();
+    });
+
     it("underlines Admin link when on /admin route", () => {
       setup(adminUser, ["/admin"]);
       const adminLink = screen.getByTestId(ADMIN_LINK_NAME);
@@ -60,6 +70,21 @@ describe("QuickLinks", () => {
       setup(adminUser, ["/"]);
       const adminLink = screen.getByTestId(ADMIN_LINK_NAME);
       expect(adminLink.className).not.toContain("border-b");
+    });
+
+    it("renders personType for a non-admin user", () => {
+      setup(nonAdminUser);
+      expect(screen.getByText("demos-cms-user")).toBeInTheDocument();
+    });
+
+    it("renders personType for a restritcted CMS user", () => {
+      setup(readonlyUser);
+      expect(screen.getByText("demos-restricted-cms-user")).toBeInTheDocument();
+    });
+
+    it("renders personType for a CMS Reviewer user", () => {
+      setup(cmsReviewerUser);
+      expect(screen.getByText("demos-cms-reviewer-user")).toBeInTheDocument();
     });
   });
 

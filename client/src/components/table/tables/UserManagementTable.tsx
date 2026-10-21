@@ -3,7 +3,7 @@ import { gql, useQuery } from "@apollo/client";
 import { CircleButton } from "components/button/CircleButton";
 import { useDialog } from "components/dialog/DialogContext";
 import { EditIcon } from "components/icons";
-import { KeywordSearch } from "../KeywordSearch";
+import { KeywordSearch } from "components/table/search";
 import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
 import { isUnassigned, ManagedUser, UserManagementColumns } from "../columns/UserManagementColumns";
@@ -39,8 +39,7 @@ const sortUnassignedFirstThenByName = (users: ManagedUser[]): ManagedUser[] =>
   });
 
 // Only State users hold explicit assignments; CMS and Admin users implicitly get every State.
-const isStateUser = (user: ManagedUser): boolean =>
-  user.person.personType === "demos-state-user";
+const isStateUser = (user: ManagedUser): boolean => user.person.personType === "demos-state-user";
 
 export const UserManagementTable: React.FC = () => {
   const { showAssignStatesDialog } = useDialog();

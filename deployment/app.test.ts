@@ -3,7 +3,6 @@ import { main } from "./app";
 
 import { getSecret } from "./util/getSecret";
 import { getParameter } from "./util/getParameter";
-// import { CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
 
 vi.mock(import("@aws-sdk/client-cognito-identity-provider"), async (importOriginal) => {
   const actual = await importOriginal();
@@ -149,14 +148,14 @@ describe("app", () => {
       return "Pending";
     });
 
-    expect(
+    await expect(
       main({
         stage: mockStageName,
         [BUNDLING_STACKS]: [],
       }),
     ).rejects.toThrow("A configured distribution already exists");
   });
-  
+
   test("should create backup stack when stage is dev", async () => {
     process.env.EXPECTED_DEMOS_ACCOUNT = "123456";
     process.env.CDK_DEFAULT_ACCOUNT = "123456";
@@ -189,7 +188,7 @@ describe("app", () => {
 
     let backupStackExists = true;
     try {
-      assembly.getStackByName(`demos-${mockStageName}-backup`)
+      assembly.getStackByName(`demos-${mockStageName}-backup`);
     } catch {
       backupStackExists = false;
     }

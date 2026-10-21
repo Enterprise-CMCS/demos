@@ -55,7 +55,11 @@ export async function checkDeliverableHasNoUnsubmittedStateDocuments(
 }
 
 export function checkOwnerPersonType(ownerUser: PrismaUser): string | undefined {
-  const permittedOwnerPersonTypes: readonly PersonType[] = ["demos-admin", "demos-cms-user"];
+  const permittedOwnerPersonTypes: readonly PersonType[] = [
+    "demos-admin",
+    "demos-cms-user",
+    "demos-cms-reviewer-user",
+  ];
   // Cast enforced by DB constraints
   if (!permittedOwnerPersonTypes.includes(ownerUser.personTypeId as PersonType)) {
     return `User ${ownerUser.id} is not a CMS user; cannot own deliverable.`;
