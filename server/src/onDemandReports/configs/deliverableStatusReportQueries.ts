@@ -190,7 +190,7 @@ SELECT
     to_char(demo.effective_date AT TIME ZONE 'America/New_York', 'MM/DD/YYYY') AS effective_date,
     to_char(demo.expiration_date AT TIME ZONE 'America/New_York', 'MM/DD/YYYY') AS expiration_date,
     primary_project_officer.full_name AS primary_project_officer,
-    coalesce(primary_ddme_analyst.full_name, '-') AS ddme_analyst,
+    coalesce(primary_monitoring_and_evaluation_analyst.full_name, '-') AS monitoring_and_evaluation_analyst,
     deliv.deliverable_type_id AS deliverable_type,
     deliv.name AS deliverable_name,
     coalesce(demo_types.demonstration_types, '-') AS demonstration_types,
@@ -242,12 +242,12 @@ INNER JOIN
         deliv.demonstration_id = primary_project_officer.demonstration_id
         AND primary_project_officer.role_id = 'Project Officer'
 
--- Primary DDME Analyst is not guaranteed to exist
+-- Primary Monitoring & Evaluation Analyst is not guaranteed to exist
 LEFT JOIN
-    primary_roles AS primary_ddme_analyst
+    primary_roles AS primary_monitoring_and_evaluation_analyst
     ON
-        deliv.demonstration_id = primary_ddme_analyst.demonstration_id
-        AND primary_ddme_analyst.role_id = 'DDME Analyst'
+        deliv.demonstration_id = primary_monitoring_and_evaluation_analyst.demonstration_id
+        AND primary_monitoring_and_evaluation_analyst.role_id = 'Monitoring & Evaluation Analyst'
 
 -- Deliverables are not guaranteed to have demonstration types associated
 LEFT JOIN
