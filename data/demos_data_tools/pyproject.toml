@@ -1,3 +1,9 @@
+[project]
+name = "demos-data-tools"
+version = "0.0.0"
+# data_dictionary_to_xlsx.py uses datetime.UTC, added in Python 3.11.
+requires-python = ">=3.11"
+
 [tool.coverage.run]
 omit = [
     "*/test_*.py",
