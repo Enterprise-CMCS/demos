@@ -27,7 +27,7 @@ export async function withSnapshot(
   try {
     await client.query("BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY");
 
-    // Quote lock targets exactly as the later reads do.
+    // Lock targets are the physical tables from each view's baseTables, schema-qualified and quoted.
     const targets = relations
       .map((relation) => `${dbSchema}.${quoteIdentifier(relation)}`)
       .join(", ");
