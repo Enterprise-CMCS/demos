@@ -81,8 +81,10 @@ export const demonstrationOverviewReportColumnHeaders = {
   primary_project_officer: { columnName: "Primary Project Officer" },
   project_officers: { columnName: "Project Officers" },
   primary_policy_tech_director: { columnName: "Primary Policy Technical Director" },
-  primary_monitoring_and_evaluation_analyst: { columnName: "Primary Monitoring & Evaluation Analyst" },
-  monitoring_and_evaluation_analysts: { columnName: "Monitoring & Evaluation Analyst" },
+  primary_monitoring_and_evaluation_analyst: {
+    columnName: "Primary Monitoring & Evaluation Analyst",
+  },
+  monitoring_and_evaluation_analysts: { columnName: "Monitoring & Evaluation Analysts" },
   primary_state_poc: { columnName: "Primary State POC" },
   state_pocs: { columnName: "State POCs" },
   primary_monitoring_evaluation_tech_director: {
