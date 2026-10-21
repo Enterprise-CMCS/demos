@@ -205,7 +205,7 @@ describe("SdgPreparationPhase", () => {
 
       expect(screen.getByText("INTERNAL REVIEWS")).toBeInTheDocument();
       expect(
-        screen.getByText("Record the occurrence of the key review meetings")
+        screen.getByText("Record the Date that each key review meeting occurred below.")
       ).toBeInTheDocument();
     });
 
