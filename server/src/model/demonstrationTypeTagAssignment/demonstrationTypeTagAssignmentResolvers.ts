@@ -4,6 +4,7 @@ import { SetDemonstrationTypesInput } from "../../types";
 
 import {
   checkForDuplicateDemonstrationTypes,
+  checkForDeliverableUsedDemonstrationTypes,
   createAndUpsertDemonstrationTypeAssignments,
   deleteDemonstrationTypeAssignments,
   parseSetDemonstrationTypesInput,
@@ -24,6 +25,7 @@ export async function setDemonstrationTypes(
     checkForDuplicateDemonstrationTypes(input);
     const parsedInput = parseSetDemonstrationTypesInput(input);
     await prisma().$transaction(async (tx) => {
+      await checkForDeliverableUsedDemonstrationTypes(parsedInput, tx);
       await createAndUpsertDemonstrationTypeAssignments(parsedInput, tx);
       await deleteDemonstrationTypeAssignments(parsedInput, tx);
     });
