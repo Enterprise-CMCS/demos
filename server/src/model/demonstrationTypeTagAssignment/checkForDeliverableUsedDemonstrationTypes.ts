@@ -18,7 +18,7 @@ export async function checkForDeliverableUsedDemonstrationTypes(
     },
     tx
   );
-  console.log("Linked types:", linkedTypes);
+
   if (linkedTypes.length > 0) {
     const linkedTypeNames = [
       ...new Set(linkedTypes.map((linkedType) => linkedType.demonstrationTypeTagNameId)),
