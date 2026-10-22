@@ -255,7 +255,7 @@ export const SdgPreparationPhase = ({
                 INTERNAL REVIEWS
               </h4>
               <p className={STYLES.helper}>
-                Record the Date that each key review meeting occurred below
+                Record the Date that each key review meeting occurred below.
               </p>
             </div>
             <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
