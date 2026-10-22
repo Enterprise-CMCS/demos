@@ -32,4 +32,14 @@ ignore:
         reason: Waiting for patch for vitest v4
         expires: 2026-11-03T00:00:00.000Z
         created: 2026-10-20T13:49:27.018Z
+  SNYK-JS-VITESTMOCKER-21347793:
+    - '*':
+        reason: Fix is available, but cannot be installed until 7-day waiting period expires.
+        expires: 2026-10-29T00:00:00.000Z
+        created: 2026-10-22T14:33:00.000Z
+  SNYK-JS-VITE-21282024:
+    - '*':
+        reason: No patch available.
+        expires: 2026-10-29T00:00:00.000Z
+        created: 2026-10-22T14:33:00.000Z
 patch: {}
