@@ -4,19 +4,9 @@ import { EasternTZDate } from "../../dateUtilities.js";
 import { ParsedApplicationDateInput, ParsedSetApplicationDatesInput } from ".";
 import { validateAndUpdateDates } from "./validateAndUpdateDates.js";
 import { TZDate } from "@date-fns/tz";
+import { __DEMOS_VERSION__ } from "../../flags/currentDemosVersion.js";
 
 // Mock imports
-import {
-  deleteApplicationDates,
-  getApplicationDates,
-  mergeApplicationDates,
-  parseSetApplicationDatesInput,
-  upsertApplicationDates,
-  validateInputDates,
-  validateAllowedDateChangeByPhase,
-  validateAllowedDateChangeForApplication,
-} from ".";
-
 vi.mock(".", () => ({
   deleteApplicationDates: vi.fn(),
   getApplicationDates: vi.fn(),
@@ -27,6 +17,17 @@ vi.mock(".", () => ({
   validateAllowedDateChangeByPhase: vi.fn(),
   validateAllowedDateChangeForApplication: vi.fn(),
 }));
+
+import {
+  deleteApplicationDates,
+  getApplicationDates,
+  mergeApplicationDates,
+  parseSetApplicationDatesInput,
+  upsertApplicationDates,
+  validateInputDates,
+  validateAllowedDateChangeByPhase,
+  validateAllowedDateChangeForApplication,
+} from ".";
 
 describe("validateAndUpdateDates", () => {
   const testPrismaTransaction: any = "Test";
@@ -119,7 +120,7 @@ describe("validateAndUpdateDates", () => {
       testParsedResult.applicationDatesToUpsert,
       testParsedResult.applicationDatesToDelete
     );
-    expect(validateInputDates).toHaveBeenCalledExactlyOnceWith(testMergedDates);
+    expect(validateInputDates).toHaveBeenCalledExactlyOnceWith(testMergedDates, __DEMOS_VERSION__);
     expect(upsertApplicationDates).toHaveBeenCalledExactlyOnceWith(
       testParsedResult,
       testPrismaTransaction

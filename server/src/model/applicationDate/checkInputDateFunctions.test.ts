@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { DateType } from "../../types.js";
+import { DateType } from "../../types";
 import {
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
@@ -7,9 +7,11 @@ import {
   checkInputDateGreaterThanOrEqual,
   checkInputDateMeetsOffset,
   getDateValueFromApplicationDateMap,
-} from "./checkInputDateFunctions.js";
+  checkInputDateNotWeekend,
+  checkInputDateNotHoliday,
+} from "./checkInputDateFunctions";
 import { DateOffset, ApplicationDateMap } from ".";
-import { EasternTZDate } from "../../dateUtilities.js";
+import { EasternTZDate } from "../../dateUtilities";
 import { TZDate } from "@date-fns/tz";
 
 const OFFSET_TEST_CASES = [
@@ -537,7 +539,7 @@ describe("checkInputDateFunctions", () => {
       ]);
       expect(() =>
         getDateValueFromApplicationDateMap(testTargetDateType, testApplicationDateMap)
-      ).toThrowError(
+      ).toThrow(
         `The date ${testTargetDateType} was requested as part of a validation, but is undefined. ` +
           `It must either be in the database, or part of the set of dates being changed.`
       );
@@ -566,7 +568,7 @@ describe("checkInputDateFunctions", () => {
         `which has value ${testDateValue.easternTZDate.toISOString()}.`;
       expect(() =>
         checkInputDateGreaterThan(testApplicationDateMap, testInputDateType, testTargetDateType)
-      ).toThrowError(expectedError);
+      ).toThrow(expectedError);
     });
 
     it("should throw when the date is equal to the target", async () => {
@@ -580,7 +582,7 @@ describe("checkInputDateFunctions", () => {
         `which has value ${testDateValue.easternTZDate.toISOString()}.`;
       expect(() =>
         checkInputDateGreaterThan(testApplicationDateMap, testInputDateType, testTargetDateType)
-      ).toThrowError(expectedError);
+      ).toThrow(expectedError);
     });
   });
 
@@ -614,7 +616,7 @@ describe("checkInputDateFunctions", () => {
           testInputDateType,
           testTargetDateType
         )
-      ).toThrowError(expectedError);
+      ).toThrow(expectedError);
     });
 
     it("should not throw when the date is equal to the target", async () => {
@@ -662,7 +664,7 @@ describe("checkInputDateFunctions", () => {
           testTargetDateType,
           testValues.offset
         )
-      ).toThrowError(expectedError);
+      ).toThrow(expectedError);
     });
 
     it("should throw when the input does not numerically match the target minus the offset", () => {
@@ -690,7 +692,7 @@ describe("checkInputDateFunctions", () => {
           testTargetDateType,
           testValues.offset
         )
-      ).toThrowError(expectedError);
+      ).toThrow(expectedError);
     });
 
     it("should throw when the input does not have the right expected timestamp", () => {
@@ -719,7 +721,85 @@ describe("checkInputDateFunctions", () => {
           testTargetDateType,
           testValues.offset
         )
-      ).toThrowError(expectedError);
+      ).toThrow(expectedError);
+    });
+  });
+
+  describe("checkInputDateNotWeekend", () => {
+    it("should not throw if the day is not a weekend day", () => {
+      const testDate: EasternTZDate = {
+        easternTZDate: new TZDate("2026-10-22T00:00:00.000-04:00", "America/New_York"),
+        isEasternTZDate: true,
+      };
+      const testApplicationDateMap: ApplicationDateMap = new Map([
+        ["Application Demonstration Types Marked Complete Date", testDate],
+      ]);
+
+      expect(() =>
+        checkInputDateNotWeekend(
+          testApplicationDateMap,
+          "Application Demonstration Types Marked Complete Date"
+        )
+      ).not.toThrow();
+    });
+
+    it("should throw if the day is a weekend day", () => {
+      const testDate: EasternTZDate = {
+        easternTZDate: new TZDate("2026-10-24T23:59:59.999-04:00", "America/New_York"),
+        isEasternTZDate: true,
+      };
+      const testApplicationDateMap: ApplicationDateMap = new Map([
+        ["Application Demonstration Types Marked Complete Date", testDate],
+      ]);
+      const expectedError =
+        "The input Application Demonstration Types Marked Complete Date must not be a Saturday or Sunday. " +
+        `The value provided was ${testDate.easternTZDate.toISOString()}.`;
+
+      expect(() =>
+        checkInputDateNotWeekend(
+          testApplicationDateMap,
+          "Application Demonstration Types Marked Complete Date"
+        )
+      ).toThrow(expectedError);
+    });
+  });
+
+  describe("checkInputDateNotHoliday", () => {
+    it("should not throw if the day is not a holiday", () => {
+      const testDate: EasternTZDate = {
+        easternTZDate: new TZDate("2026-09-08T00:00:00.000-04:00", "America/New_York"),
+        isEasternTZDate: true,
+      };
+      const testApplicationDateMap: ApplicationDateMap = new Map([
+        ["Application Demonstration Types Marked Complete Date", testDate],
+      ]);
+
+      expect(() =>
+        checkInputDateNotHoliday(
+          testApplicationDateMap,
+          "Application Demonstration Types Marked Complete Date"
+        )
+      ).not.toThrow();
+    });
+
+    it("should throw if the day is a holiday", () => {
+      const testDate: EasternTZDate = {
+        easternTZDate: new TZDate("2026-09-07T23:59:59.999-04:00", "America/New_York"),
+        isEasternTZDate: true,
+      };
+      const testApplicationDateMap: ApplicationDateMap = new Map([
+        ["Application Demonstration Types Marked Complete Date", testDate],
+      ]);
+      const expectedError =
+        "The input Application Demonstration Types Marked Complete Date must not be a federal holiday. " +
+        `The value provided was ${testDate.easternTZDate.toISOString()}.`;
+
+      expect(() =>
+        checkInputDateNotHoliday(
+          testApplicationDateMap,
+          "Application Demonstration Types Marked Complete Date"
+        )
+      ).toThrow(expectedError);
     });
   });
 });

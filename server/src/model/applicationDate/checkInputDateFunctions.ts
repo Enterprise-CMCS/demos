@@ -1,8 +1,9 @@
-import { DateType, ExpectedTimestamp } from "../../types.js";
+import { DateType, ExpectedTimestamp } from "../../types";
 import { DateOffset, ApplicationDateMap } from ".";
-import { addDays } from "date-fns";
+import { addDays, format } from "date-fns";
 import { GraphQLError } from "graphql";
-import { EasternTZDate, getDateTimeParts } from "../../dateUtilities.js";
+import { EasternTZDate, getDateTimeParts } from "../../dateUtilities";
+import { FEDERAL_HOLIDAYS } from "../../constants";
 
 export function isDateExpectedTimestamp(
   dateValue: EasternTZDate,
@@ -157,6 +158,37 @@ export function checkInputDateMeetsOffset(
     throw new Error(
       `The input ${inputDateType} must be equal to ${targetDateTypeToOffset} ${offsetString} days ` +
         `and should have a timestamp that is ${targetDateOffset.expectedTimestamp.toLowerCase()}. ` +
+        `The value provided was ${inputDateValue.easternTZDate.toISOString()}.`
+    );
+  }
+}
+
+export function checkInputDateNotWeekend(
+  applicationDateMap: ApplicationDateMap,
+  inputDateType: DateType
+): void {
+  const inputDateValue = getDateValueFromApplicationDateMap(inputDateType, applicationDateMap);
+  const isWeekendDay = [0, 6].includes(inputDateValue.easternTZDate.getDay());
+
+  if (isWeekendDay) {
+    throw new Error(
+      `The input ${inputDateType} must not be a Saturday or Sunday. ` +
+        `The value provided was ${inputDateValue.easternTZDate.toISOString()}.`
+    );
+  }
+}
+
+export function checkInputDateNotHoliday(
+  applicationDateMap: ApplicationDateMap,
+  inputDateType: DateType
+): void {
+  const inputDateValue = getDateValueFromApplicationDateMap(inputDateType, applicationDateMap);
+  const localDate = format(inputDateValue.easternTZDate, "yyyy-MM-dd");
+  const isHoliday = FEDERAL_HOLIDAYS.includes(localDate);
+
+  if (isHoliday) {
+    throw new Error(
+      `The input ${inputDateType} must not be a federal holiday. ` +
         `The value provided was ${inputDateValue.easternTZDate.toISOString()}.`
     );
   }
