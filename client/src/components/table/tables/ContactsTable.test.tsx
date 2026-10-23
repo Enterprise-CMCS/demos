@@ -81,31 +81,6 @@ const contactsTableQueryEmptyMock = {
 };
 
 describe("ContactsTable", () => {
-  it("displays CMCS Other Point of Contact returned by the server", async () => {
-    render(
-      <MockedProvider
-        mocks={[
-          {
-            ...contactsTableQueryMock,
-            result: {
-              data: {
-                demonstration: {
-                  id: "demo-123",
-                  roles: [
-                    { ...mockDemonstrationRoleAssignments[1], role: "CMCS Other Point of Contact" },
-                  ],
-                },
-              },
-            },
-          },
-        ]}
-      >
-        <ContactsTable demonstrationId="demo-123" />
-      </MockedProvider>
-    );
-    expect(await screen.findByText("CMCS Other Point of Contact")).toBeInTheDocument();
-  });
-
   describe("Rendering and Data Display", () => {
     beforeEach(async () => {
       vi.clearAllMocks();

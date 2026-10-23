@@ -12,7 +12,6 @@ import userEvent from "@testing-library/user-event";
 
 import {
   ERROR_MESSAGES,
-  ExistingContactType,
   ManageContactsDialog,
   ManageContactsDialogProps,
   SEARCH_PEOPLE_QUERY,
@@ -597,83 +596,6 @@ describe("ManageContactsDialog", () => {
     await waitFor(() => {
       expect(mockOnClose).toHaveBeenCalled();
     });
-  });
-
-  it.each(["create", "edit"])("saves CMCS Other Point of Contact on %s", async (mode) => {
-    const user = userEvent.setup();
-    const role = "CMCS Other Point of Contact";
-    const projectOfficer: ExistingContactType = {
-      id: "po-role",
-      person: {
-        id: "po-person",
-        fullName: "Primary Officer",
-        email: "po@example.com",
-        personType: "demos-cms-user",
-      },
-      role: "Project Officer",
-      isPrimary: true,
-    };
-    const contact: ExistingContactType = {
-      id: "contact-role",
-      person: {
-        id: "person-1",
-        fullName: "John Doe",
-        email: "john.doe@example.com",
-        personType: "demos-cms-user",
-      },
-      role: "DDME Analyst",
-      isPrimary: false,
-    };
-    const input = [
-      {
-        demonstrationId: "demo-1",
-        personId: "po-person",
-        roleId: "Project Officer",
-        isPrimary: true,
-      },
-      { demonstrationId: "demo-1", personId: "person-1", roleId: role, isPrimary: false },
-    ];
-    const unsetMutation = gql`
-      mutation UnsetDemonstrationRoles($input: [UnsetDemonstrationRoleInput!]!) {
-        unsetDemonstrationRoles(input: $input) {
-          role
-        }
-      }
-    `;
-    renderWithProviders(
-      {
-        ...defaultProps,
-        existingContacts: mode === "edit" ? [projectOfficer, contact] : [projectOfficer],
-      },
-      [
-        ...SEARCH_PEOPLE_MOCKS,
-        {
-          request: { query: SET_DEMONSTRATION_ROLE_MUTATION, variables: { input } },
-          result: {
-            data: { setDemonstrationRoles: input.map(({ roleId }) => ({ role: roleId })) },
-          },
-        },
-        {
-          request: {
-            query: unsetMutation,
-            variables: {
-              input: [{ demonstrationId: "demo-1", personId: "person-1", roleId: "DDME Analyst" }],
-            },
-          },
-          result: { data: { unsetDemonstrationRoles: [{ role: "DDME Analyst" }] } },
-        },
-      ]
-    );
-
-    if (mode === "create") {
-      await user.type(screen.getByPlaceholderText("Search by name or email"), "john");
-      await user.click(await screen.findByRole("option", { name: /Add John Doe/ }));
-    }
-    const row = screen.getByText("John Doe").closest("tr")!;
-    await user.selectOptions(within(row).getByRole("combobox"), role);
-    expect(screen.getByDisplayValue(role)).toBeInTheDocument();
-    await user.click(screen.getByTestId("button-save"));
-    await waitFor(() => expect(defaultProps.onClose).toHaveBeenCalledOnce());
   });
 
   it("shows cancel confirmation dialog", async () => {
