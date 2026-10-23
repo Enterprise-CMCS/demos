@@ -14,23 +14,32 @@ pipeline {
 
   options {
     disableConcurrentBuilds()
-    buildDiscarder(retentionPolicy("tag-deploy"))
+    buildDiscarder(retentionPolicy(env.JOB_NAME, [usePathSuffix: true]))
     skipDefaultCheckout(true)
   }
 
   
 
   parameters {
-    choice(name: 'ENVIRONMENT', choices: ['impl','prod'], description: 'Select the environment') // Add prod and impl before merge
     string(name: 'RELEASE_TAG', trim: true, description: 'Release tag to deploy')
   }
 
   environment {
     NO_COLOR = 1
-    STAGE = "${params.ENVIRONMENT}"
   }
 
   stages {
+    stage('Initialize') {
+      steps {
+        script {
+          def jobBaseName = env.JOB_NAME.tokenize("/").last()
+          echo "Target Environment: ${jobBaseName}"
+          env.STAGE = jobBaseName
+          currentBuild.displayName = "#${env.BUILD_NUMBER} - ${params.RELEASE_TAG}"
+        }
+      }
+    }
+
     stage('Checkout release tag') {
       steps {
         script {
@@ -111,10 +120,10 @@ pipeline {
           
           while (true) {
             approval = input(
-              message: "Deploy ${params.RELEASE_TAG} to ${params.ENVIRONMENT}?",
+              message: "Deploy ${params.RELEASE_TAG} to ${env.STAGE}?",
               ok: "Approve",
               cancel: "Reject",
-              submitter: params.ENVIRONMENT == 'prod' ? 'prod-approvers' : 'non-prod-approvers',
+              submitter: env.STAGE == 'prod' ? 'prod-approvers' : 'non-prod-approvers',
               submitterParameter: 'APPROVED_BY',
               parameters: [
                 string(
@@ -124,7 +133,7 @@ pipeline {
                 ),
                 string(
                   name: 'CONFIRM_ENVIRONMENT',
-                  description: "Type ${params.ENVIRONMENT} to confirm the target environment",
+                  description: "Type ${env.STAGE} to confirm the target environment",
                   trim: true
                 ),
                 string(
@@ -146,18 +155,18 @@ pipeline {
               errors << "Invalid Jira ticket: ${approval.JIRA_TICKET}"
             }
 
-            if (params.ENVIRONMENT == 'prod' && approval.JIRA_TICKET == '') {
+            if (env.STAGE == 'prod' && approval.JIRA_TICKET == '') {
               errors << "Jira ticket is required for PROD deployments"
             } else if (approval.JIRA_TICKET == '') {
-              echo "No jira ticket provided or required for ${params.ENVIRONMENT} deployment"
+              echo "No jira ticket provided or required for ${env.STAGE} deployment"
             }
 
             if (approval.CONFIRM_TAG != params.RELEASE_TAG) {
               errors << "Tag confirmation did not match. Expected: ${params.RELEASE_TAG}, got: ${approval.CONFIRM_TAG}"
             }
 
-            if (approval.CONFIRM_ENVIRONMENT != params.ENVIRONMENT) {
-              errors << "Environment confirmation did not match. Expected: ${params.ENVIRONMENT}, got: ${approval.CONFIRM_ENVIRONMENT}"
+            if (approval.CONFIRM_ENVIRONMENT != env.STAGE) {
+              errors << "Environment confirmation did not match. Expected: ${env.STAGE}, got: ${approval.CONFIRM_ENVIRONMENT}"
             }
 
             if (!approval.I_REVIEWED_CHANGE_SET) {
@@ -175,7 +184,7 @@ pipeline {
           def jiraBody = """h3. Deployment Pipeline Approved
 
 *Approved by:* [~${approval.APPROVED_BY.toUpperCase()}]
-*Environment:* ${params.ENVIRONMENT}
+*Environment:* ${env.STAGE}
 *Release Tag:* ${params.RELEASE_TAG}
 *Commit Hash:* ${env.RELEASE_COMMIT}
 *Jenkins build:* ${env.BUILD_URL ?: env.JOB_NAME}
@@ -195,12 +204,12 @@ pipeline {
 
 
           
-          if (params.ENVIRONMENT in ['dev', 'test', 'impl', 'prod']) {
+          if (env.STAGE in ['dev', 'test', 'impl', 'prod']) {
 
             def slackMessage = """Deployment Pipeline Approved
 -------
 *Approved by:* [~${approval.APPROVED_BY.toUpperCase()}]
-*Environment:* ${params.ENVIRONMENT}
+*Environment:* ${env.STAGE}
 *Release Tag:* ${params.RELEASE_TAG}
 *Commit Hash:* ${env.RELEASE_COMMIT}
 *Jenkins build:* ${env.BUILD_URL ?: env.JOB_NAME}
@@ -220,7 +229,7 @@ Deployment will begin in 1 minute
     stage("Run Migrations") {
       when {
         expression {
-          params.ENVIRONMENT in ['dev', 'test', 'impl', 'prod']
+          env.STAGE in ['dev', 'test', 'impl', 'prod']
         }
       }
       steps {
@@ -262,7 +271,7 @@ Deployment will begin in 1 minute
           if (env.JIRA_TICKET) {
             try {
               echo "Updating Jira ticket ${env.JIRA_TICKET} with deployment completion information"
-              jiraComment(env.JIRA_TICKET, "Deployment of release tag ${params.RELEASE_TAG} to ${params.ENVIRONMENT} completed successfully.\n\nJenkins build: ${env.BUILD_URL ?: env.JOB_NAME}")
+              jiraComment(env.JIRA_TICKET, "Deployment of release tag ${params.RELEASE_TAG} to ${env.STAGE} completed successfully.\n\nJenkins build: ${env.BUILD_URL ?: env.JOB_NAME}")
             } catch (err) {
               echo err.getMessage()
               echo "continuing..."
@@ -277,7 +286,7 @@ Deployment will begin in 1 minute
     stage('Setting new Snyk Monitor') {
       when {
         expression {
-          params.ENVIRONMENT == 'prod'
+          env.STAGE == 'prod'
         }
       }
       steps {
