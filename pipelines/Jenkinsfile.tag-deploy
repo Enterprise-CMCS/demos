@@ -21,7 +21,7 @@ pipeline {
   
 
   parameters {
-    choice(name: 'ENVIRONMENT', choices: ['dev', 'test', 'jesse'], description: 'Select the environment') // Add prod and impl before merge
+    choice(name: 'ENVIRONMENT', choices: ['impl','prod'], description: 'Select the environment') // Add prod and impl before merge
     string(name: 'RELEASE_TAG', trim: true, description: 'Release tag to deploy')
   }
 
@@ -227,9 +227,9 @@ Deployment will begin in 1 minute
         script {
           dirCon('deployment', 'node') {
             echo "running migrations for ${env.STAGE}"
-            // sh """
-            // npx tsx demosctl/index migrate ${env.STAGE}
-            // """
+            sh """
+            npx tsx demosctl/index migrate ${env.STAGE}
+            """
           }
         }
       }
@@ -243,16 +243,14 @@ Deployment will begin in 1 minute
     }
 
     stage('Deploy') {
-      // npx tsx demosctl/index deploy:all ${env.STAGE}
       steps {
         script {
           dirCon('deployment','node') {
-            echo "skip"
-            // sh """
-            // export UI_COMMIT_HASH=${env.RELEASE_COMMIT}
-            // export API_COMMIT_HASH=${env.RELEASE_COMMIT}
-            // npx cdk diff --context stage=${env.STAGE}
-            // """
+            sh """
+            export UI_COMMIT_HASH=${env.RELEASE_COMMIT}
+            export API_COMMIT_HASH=${env.RELEASE_COMMIT}
+            npx tsx demosctl/index deploy:all ${env.STAGE}
+            """
           }
         }
       }
@@ -277,11 +275,11 @@ Deployment will begin in 1 minute
     }
 
     stage('Setting new Snyk Monitor') {
-      // when {
-      //   expression {
-      //     params.ENVIRONMENT == 'prod'
-      //   }
-      // }
+      when {
+        expression {
+          params.ENVIRONMENT == 'prod'
+        }
+      }
       steps {
         script {
           container("snyk") {
@@ -308,20 +306,12 @@ Deployment will begin in 1 minute
   }
 
   post {
-    // success {
-    //   script {
-    //     if (advisoryFailures) {
-    //       def advisoryText = advisoryFailures.findAll { it }.collect { "- ${it}" }.join("\n")
-    //       slackSend(color: "warning", message: "${env.STAGE.toUpperCase()} Deployment completed with check failures\n\nAdvisory failures:\n${advisoryText}\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: <${env.GIT_URL.replaceFirst(/\.git$/, '')}/commit/${env.GIT_COMMIT}|${env.GIT_COMMIT}>")
-
-    //     } else {
-    //       slackSend(color: "good", message: "${env.STAGE.toUpperCase()} Deployment succeeded!\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: <${env.GIT_URL.replaceFirst(/\.git$/, '')}/commit/${env.GIT_COMMIT}|${env.GIT_COMMIT}>")
-    //     }
-    //   }
-    // }
-    // failure {
-    //   slackSend(color: "danger", message: "${env.STAGE.toUpperCase()} Deployment failed:\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: ${env.GIT_COMMIT}")
-    // }
+    success {
+      slackSend(color: "good", message: "${env.STAGE.toUpperCase()} Deployment succeeded!\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: <${env.GIT_URL.replaceFirst(/\.git$/, '')}/commit/${env.GIT_COMMIT}|${env.GIT_COMMIT}>")
+    }
+    failure {
+      slackSend(color: "danger", message: "${env.STAGE.toUpperCase()} Deployment Pipeline failed:\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: ${env.GIT_COMMIT}")
+    }
     always {
       cleanWs(deleteDirs: true)
     }
