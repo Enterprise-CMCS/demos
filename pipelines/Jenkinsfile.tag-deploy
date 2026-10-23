@@ -1,9 +1,14 @@
-def advisoryFailures = []
+@Library('demos-lib@tag-deploy') _
 
 pipeline {
   agent {
     kubernetes {
-      yaml kubeBlock(containerNames:["node", "aws-cli", "snyk"])
+      yaml kubeBlock(containerNames:["node", "aws-cli", "snyk"], opts: [
+        NODE_CPU_REQUEST: '2000m',
+        NODE_CPU_LIMIT: '4000m',
+        NODE_MEMORY_REQUEST: '3Gi',
+        NODE_MEMORY_LIMIT: '5Gi'
+      ])
     }
   }
 
@@ -48,41 +53,39 @@ pipeline {
     stage('Builds') {
       steps {
         script {
-          echo "skip"
-          // assumeRole(accountEnv: env.STAGE)
-          // dirCon('deployment', 'node') {
-          //   sh """
-          //   mkdir ../shared_library/dist
-          //   mkdir ../client/dist
-          //   mkdir ../server/build
+          assumeRole(accountEnv: env.STAGE)
+          dirCon('deployment', 'node') {
+            sh """
+            mkdir ../shared_library/dist
+            mkdir ../client/dist
+            mkdir ../server/build
 
-          //   # These are needed for the built-in CDK bundling
-          //   apk add bash
-          //   npm i -g esbuild
-          //   npm i -g tsx
+            # These are needed for the built-in CDK bundling
+            apk add bash
+            npm i -g esbuild
+            npm i -g tsx
 
-          //   # Ensure shared_library is installed and built before building client and server
-          //   cd ../shared_library
-          //   npm ci
-          //   npm run build
-          //   cd ../deployment
+            # Ensure shared_library is installed and built before building client and server
+            cd ../shared_library
+            npm ci
+            npm run build
+            cd ../deployment
 
-          //   npm ci
-          //   npx tsx demosctl/index deploy:core ${env.STAGE}
-          //   """
-          // }
-          // parallel(
-          //   'Build Client': {
-          //     dirCon('deployment','node') {
-          //       sh "npx tsx demosctl/index build:client ${env.STAGE}"                                          
-          //     }
-          //   }, 
-          //   'Build Server': {
-          //     dirCon('deployment', 'node') {
-          //       sh "npx tsx demosctl/index build:server ${env.STAGE}"
-          //     }
-          //   }
-          // )
+            npm ci
+            """
+          }
+          parallel(
+            'Build Client': {
+              dirCon('deployment','node') {
+                sh "npx tsx demosctl/index build:client ${env.STAGE} true"                                          
+              }
+            }, 
+            'Build Server': {
+              dirCon('deployment', 'node') {
+                sh "npx tsx demosctl/index build:server ${env.STAGE}"
+              }
+            }
+          )
         }
       }
     }
@@ -91,12 +94,11 @@ pipeline {
       steps {
         script {
           dirCon('deployment','node') {
-            echo "skip"
-            // sh """
-            // export UI_COMMIT_HASH=${env.RELEASE_COMMIT}
-            // export API_COMMIT_HASH=${env.RELEASE_COMMIT}
-            // npx cdk diff --context stage=${env.STAGE}
-            // """
+            sh """
+            export UI_COMMIT_HASH=${env.RELEASE_COMMIT}
+            export API_COMMIT_HASH=${env.RELEASE_COMMIT}
+            npx cdk diff --context stage=${env.STAGE}
+            """
           }
         }
       }
@@ -112,7 +114,7 @@ pipeline {
               message: "Deploy ${params.RELEASE_TAG} to ${params.ENVIRONMENT}?",
               ok: "Approve",
               cancel: "Reject",
-              submitter: 'demos-prod-approvers',//params.ENVIRONMENT == 'prod' ? 'prod-approvers' : 'non-prod-approvers',
+              submitter: params.ENVIRONMENT == 'prod' ? 'prod-approvers' : 'non-prod-approvers',
               submitterParameter: 'APPROVED_BY',
               parameters: [
                 string(
@@ -191,6 +193,24 @@ pipeline {
             echo jiraBody
           }
 
+
+          
+          if (params.ENVIRONMENT in ['dev', 'test', 'impl', 'prod']) {
+
+            def slackMessage = """Deployment Pipeline Approved
+-------
+*Approved by:* [~${approval.APPROVED_BY.toUpperCase()}]
+*Environment:* ${params.ENVIRONMENT}
+*Release Tag:* ${params.RELEASE_TAG}
+*Commit Hash:* ${env.RELEASE_COMMIT}
+*Jenkins build:* ${env.BUILD_URL ?: env.JOB_NAME}
+
+Deployment will begin in 1 minute
+"""
+
+            slackSend(color: "warning", message: slackMessage)
+            sleep(time: 1, unit: "MINUTES")
+          }
         }
       }
     }
@@ -216,8 +236,7 @@ pipeline {
       post {
         failure {
           script {            
-            // notifyMigrationError(env.STAGE)
-            echo "There was a migration error"
+            slackSend(color: "danger", message: "There was an issue with running migrations for ${env.STAGE}")
           }
         }
       }
@@ -247,7 +266,8 @@ pipeline {
               echo "Updating Jira ticket ${env.JIRA_TICKET} with deployment completion information"
               jiraComment(env.JIRA_TICKET, "Deployment of release tag ${params.RELEASE_TAG} to ${params.ENVIRONMENT} completed successfully.\n\nJenkins build: ${env.BUILD_URL ?: env.JOB_NAME}")
             } catch (err) {
-              error err.getMessage()
+              echo err.getMessage()
+              echo "continuing..."
             }
           } else {
             echo "No Jira ticket provided, skipping recording of deployed release"
@@ -257,11 +277,11 @@ pipeline {
     }
 
     stage('Setting new Snyk Monitor') {
-      when {
-        expression {
-          params.ENVIRONMENT == 'prod'
-        }
-      }
+      // when {
+      //   expression {
+      //     params.ENVIRONMENT == 'prod'
+      //   }
+      // }
       steps {
         script {
           container("snyk") {
@@ -269,17 +289,17 @@ pipeline {
               string(credentialsId: 'demos-snyk-sa', variable: 'SNYK_TOKEN'),
               string(credentialsId: 'demos-snyk-org-id', variable: 'SNYK_CFG_ORG')
             ]) {
-              // TODO: add all projects that run in PROD
-              dir('server') {
-                sh """
-                  snyk monitor --project-name=prod-server --target-reference=${params.RELEASE_TAG} --remote-repo-url=https://github.com/Enterprise-CMCS/demos
-                """
-              }
-              dir('client') {
-                sh """
-                  snyk monitor --project-name=prod-client --target-reference=${params.RELEASE_TAG} --remote-repo-url=https://github.com/Enterprise-CMCS/demos
-                """
-              }
+              snykMonitor.setRef(params.RELEASE_TAG)
+              snykMonitor('server')
+              snykMonitor('client')
+              snykMonitor('authorizer', parentDir: 'lambdas')
+              snykMonitor('budgetNeutrality', parentDir: 'lambdas')
+              snykMonitor('dataConnectExport', parentDir: 'lambdas')
+              snykMonitor('deleteinfectedfile', parentDir: 'lambdas')
+              snykMonitor('emailer', parentDir: 'lambdas')
+              snykMonitor('emailScheduler', parentDir: 'lambdas')
+              snykMonitor('fileprocess', parentDir: 'lambdas')
+              snykMonitor('UIPath', parentDir: 'lambdas')
             }
           }
         }
