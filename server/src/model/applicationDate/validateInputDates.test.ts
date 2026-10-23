@@ -99,7 +99,7 @@ describe("validateInputDates", () => {
         });
       }
     });
-    it("should, from 1.3.0,include flexible offset checks, weekend and holiday checks, and less than checks", () => {
+    it("should, from 1.3.0, include flexible offset checks, weekend and holiday checks, and less than checks", () => {
       const result = makeValidations(new SemVer("1.3.0"));
       expect(result["Completeness Review Due Date"]["allowedToBeWeekend"]).toBe(false);
       expect(result["Completeness Review Due Date"]["allowedToBeHoliday"]).toBe(false);

@@ -19,7 +19,7 @@ const eslintConfig = tseslint.config(
       "eol-last": ["error", "always"], // Newline at the end of files
       "no-restricted-exports": ["error", { restrictDefaultExports: { direct: true } }], // Disallow default exports
       "validate-graphql-typescript-match/validate-graphql-typescript-match": "error",
-      "@typescript-eslint/no-unusued-vars": ["error", { varsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-unused-vars": ["error", { varsIgnorePattern: "^_" }],
     },
   },
   {

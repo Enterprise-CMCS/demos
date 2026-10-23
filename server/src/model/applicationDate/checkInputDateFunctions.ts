@@ -1,8 +1,9 @@
-import { DateType, ExpectedTimestamp } from "../../types";
-import { DateOffset, ApplicationDateMap } from ".";
+import type { DateType, ExpectedTimestamp } from "../../types";
+import type { DateOffset, ApplicationDateMap } from ".";
 import { addDays, format } from "date-fns";
 import { GraphQLError } from "graphql";
-import { EasternTZDate, getDateTimeParts } from "../../dateUtilities";
+import type { EasternTZDate } from "../../dateUtilities";
+import { getDateTimeParts } from "../../dateUtilities";
 import { FEDERAL_HOLIDAYS } from "../../constants";
 
 export function isDateExpectedTimestamp(
@@ -148,9 +149,9 @@ export function checkInputDateMeetsOffset(
 
   let offsetString: string;
   if (targetDateOffset.days < 0) {
-    offsetString = `- ${targetDateOffset.days}`;
+    offsetString = `${targetDateOffset.days}`;
   } else {
-    offsetString = `+ ${targetDateOffset.days}`;
+    offsetString = `+${targetDateOffset.days}`;
   }
 
   if (!doDatesMatch) {
@@ -243,7 +244,7 @@ export function checkInputDateMeetsFlexibleOffset(
     throw new Error(
       `A flexible offset check was attempted between input ${inputDateType} ` +
         `and ${targetDateTypeToOffset}, but the provided input date ` +
-        `of ${inputDateValue.easternTZDate.toISOString} ` +
+        `of ${inputDateValue.easternTZDate.toISOString()} ` +
         "falls on a holiday or weekend."
     );
   }
@@ -291,7 +292,7 @@ export function checkInputDateMeetsFlexibleOffset(
       checkInputDateIsEndOfDay(inputDateType, inputDateValue);
     }
   } else {
-    const offsetString = `+ ${targetDateOffset.days}`;
+    const offsetString = `+${targetDateOffset.days}`;
     throw new Error(
       `The input ${inputDateType} must be equal to ${targetDateTypeToOffset} ${offsetString} days, ` +
         "accounting for weekends and holidays, and it should have a timestamp " +

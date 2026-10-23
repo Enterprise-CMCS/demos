@@ -559,7 +559,7 @@ describe("checkInputDateFunctions", () => {
       ).not.toThrow();
     });
 
-    it("should throw when the date is less than the target", async () => {
+    it("should throw when the date is less than the target", () => {
       const testApplicationDateMap: ApplicationDateMap = new Map([
         [testInputDateType, testBeforeDateValue],
         [testTargetDateType, testDateValue],
@@ -573,7 +573,7 @@ describe("checkInputDateFunctions", () => {
       ).toThrow(expectedError);
     });
 
-    it("should throw when the date is equal to the target", async () => {
+    it("should throw when the date is equal to the target", () => {
       const testApplicationDateMap: ApplicationDateMap = new Map([
         [testInputDateType, testDateValue],
         [testTargetDateType, testDateValue],
@@ -603,7 +603,7 @@ describe("checkInputDateFunctions", () => {
       ).not.toThrow();
     });
 
-    it("should throw when the date is less than the target", async () => {
+    it("should throw when the date is less than the target", () => {
       const testApplicationDateMap: ApplicationDateMap = new Map([
         [testInputDateType, testBeforeDateValue],
         [testTargetDateType, testDateValue],
@@ -621,7 +621,7 @@ describe("checkInputDateFunctions", () => {
       ).toThrow(expectedError);
     });
 
-    it("should not throw when the date is equal to the target", async () => {
+    it("should not throw when the date is equal to the target", () => {
       const testApplicationDateMap: ApplicationDateMap = new Map([
         [testInputDateType, testDateValue],
         [testTargetDateType, testDateValue],
@@ -655,7 +655,7 @@ describe("checkInputDateFunctions", () => {
         [testTargetDateType, testValues.before],
       ]);
       const expectedError =
-        `The input ${testInputDateType} must be equal to ${testTargetDateType} + ${testValues.offset.days} days ` +
+        `The input ${testInputDateType} must be equal to ${testTargetDateType} +${testValues.offset.days} days ` +
         "and should have a timestamp that is start of day. " +
         `The value provided was ${testValues.after.easternTZDate.toISOString()}.`;
 
@@ -683,7 +683,7 @@ describe("checkInputDateFunctions", () => {
         [testTargetDateType, testValues.before],
       ]);
       const expectedError =
-        `The input ${testInputDateType} must be equal to ${testTargetDateType} - ${testValues.offset.days} days ` +
+        `The input ${testInputDateType} must be equal to ${testTargetDateType} ${testValues.offset.days} days ` +
         "and should have a timestamp that is start of day. " +
         `The value provided was ${testValues.after.easternTZDate.toISOString()}.`;
 
@@ -816,7 +816,7 @@ describe("checkInputDateFunctions", () => {
       ).not.toThrow();
     });
 
-    it("should throw when the date is greater than the target", async () => {
+    it("should throw when the date is greater than the target", () => {
       const testApplicationDateMap: ApplicationDateMap = new Map([
         [testInputDateType, testAfterDateValue],
         [testTargetDateType, testDateValue],
@@ -830,7 +830,7 @@ describe("checkInputDateFunctions", () => {
       ).toThrow(expectedError);
     });
 
-    it("should throw when the date is equal to the target", async () => {
+    it("should throw when the date is equal to the target", () => {
       const testApplicationDateMap: ApplicationDateMap = new Map([
         [testInputDateType, testDateValue],
         [testTargetDateType, testDateValue],
@@ -922,7 +922,43 @@ describe("checkInputDateFunctions", () => {
         [testTargetDateType, testValues.before],
       ]);
       const expectedError =
-        `The input ${testInputDateType} must be equal to ${testTargetDateType} + ${testValues.offset.days} days, ` +
+        `The input ${testInputDateType} must be equal to ${testTargetDateType} +${testValues.offset.days} days, ` +
+        "accounting for weekends and holidays, and it should have a timestamp that is end of day. " +
+        `The value provided was ${testValues.after.easternTZDate.toISOString()}.`;
+
+      expect(() =>
+        checkInputDateMeetsFlexibleOffset(
+          testApplicationDateMap,
+          testInputDateType,
+          testTargetDateType,
+          testValues.offset
+        )
+      ).toThrow(expectedError);
+    });
+
+    it("should correctly handle when the walkback yields a different result than the payload", () => {
+      const testValues: TestOffsetValues = {
+        offset: {
+          days: 5, // Jan 3, 2027, a Sunday
+          expectedTimestamp: "End of Day",
+        },
+        before: {
+          easternTZDate: new TZDate("2026-12-29T00:00:00.000-05:00", "America/New_York"),
+          isEasternTZDate: true,
+        },
+        after: {
+          easternTZDate: new TZDate("2026-12-30T23:59:59.999-05:00", "America/New_York"),
+          isEasternTZDate: true,
+        },
+      };
+      const testInputDateType: DateType = "Completeness Review Due Date";
+      const testTargetDateType: DateType = "State Application Submitted Date";
+      const testApplicationDateMap: ApplicationDateMap = new Map([
+        [testInputDateType, testValues.after],
+        [testTargetDateType, testValues.before],
+      ]);
+      const expectedError =
+        `The input ${testInputDateType} must be equal to ${testTargetDateType} +${testValues.offset.days} days, ` +
         "accounting for weekends and holidays, and it should have a timestamp that is end of day. " +
         `The value provided was ${testValues.after.easternTZDate.toISOString()}.`;
 
@@ -960,7 +996,7 @@ describe("checkInputDateFunctions", () => {
       const expectedError =
         `A flexible offset check was attempted between input ${testInputDateType} ` +
         `and ${testTargetDateType}, but the provided input date ` +
-        `of ${testValues.after.easternTZDate.toISOString} ` +
+        `of ${testValues.after.easternTZDate.toISOString()} ` +
         "falls on a holiday or weekend.";
 
       expect(() =>
