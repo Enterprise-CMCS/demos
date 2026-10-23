@@ -1,16 +1,20 @@
 import { DateType } from "../../types";
 import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants";
 import {
-  ParsedApplicationDateInput,
-  checkInputDateIsStartOfDay,
-  checkInputDateIsEndOfDay,
   checkInputDateGreaterThan,
   checkInputDateGreaterThanOrEqual,
+  checkInputDateIsEndOfDay,
+  checkInputDateIsStartOfDay,
+  checkInputDateLessThan,
+  checkInputDateMeetsFlexibleOffset,
   checkInputDateMeetsOffset,
   checkInputDateNotHoliday,
   checkInputDateNotWeekend,
+} from ".";
+import type {
   ApplicationDateMap,
   DateTypeValidationChecksRecord,
+  ParsedApplicationDateInput,
 } from ".";
 import { EasternTZDate } from "../../dateUtilities";
 import { getFeatureFlags } from "../../flags";
@@ -26,7 +30,9 @@ export function makeEmptyValidations(): DateTypeValidationChecksRecord {
       allowedToBeHoliday: true,
       greaterThanChecks: [],
       greaterThanOrEqualChecks: [],
+      lessThanChecks: [],
       offsetChecks: [],
+      flexibleOffsetChecks: [],
     };
   }
   return result;
@@ -85,8 +91,24 @@ export function makeValidations(currentVersion: SemVer): DateTypeValidationCheck
 
   // New version takes into account weekends and holidays
   if (getFeatureFlags(currentVersion).handleHolidaysWeekendsForDates) {
+    // The Completeness Review Due Date must not be a holiday or a weekend
     validationChecks["Completeness Review Due Date"]["allowedToBeWeekend"] = false;
     validationChecks["Completeness Review Due Date"]["allowedToBeHoliday"] = false;
+
+    // It must be 15 days, flexibly, after the State Application Submitted Date
+    validationChecks["Completeness Review Due Date"]["flexibleOffsetChecks"].push({
+      dateTypeToCheck: "State Application Submitted Date",
+      dateOffset: {
+        days: 15,
+        expectedTimestamp: "End of Day",
+      },
+    });
+
+    // This less-than check ensures that if State Application Submitted Date is present
+    // We will check something on Completeness Review Due Date, meaning it must be present
+    validationChecks["State Application Submitted Date"]["lessThanChecks"].push({
+      dateTypeToCheck: "Completeness Review Due Date",
+    });
   }
 
   // Federal comment period starts 1 day after application deemed complete
@@ -145,41 +167,6 @@ function runExpectedTimestampCheck(
   }
 }
 
-function runGreaterThanChecks(
-  datesToValidateMap: ApplicationDateMap,
-  dateType: DateType,
-  checks: DateTypeValidationChecksRecord[DateType]["greaterThanChecks"]
-): void {
-  for (const check of checks) {
-    checkInputDateGreaterThan(datesToValidateMap, dateType, check.dateTypeToCheck);
-  }
-}
-
-function runGreaterThanOrEqualChecks(
-  datesToValidateMap: ApplicationDateMap,
-  dateType: DateType,
-  checks: DateTypeValidationChecksRecord[DateType]["greaterThanOrEqualChecks"]
-): void {
-  for (const check of checks) {
-    checkInputDateGreaterThanOrEqual(datesToValidateMap, dateType, check.dateTypeToCheck);
-  }
-}
-
-function runOffsetChecks(
-  datesToValidateMap: ApplicationDateMap,
-  dateType: DateType,
-  checks: DateTypeValidationChecksRecord[DateType]["offsetChecks"]
-): void {
-  for (const check of checks) {
-    checkInputDateMeetsOffset(
-      datesToValidateMap,
-      dateType,
-      check.dateTypeToCheck,
-      check.dateOffset
-    );
-  }
-}
-
 function runWeekendChecks(
   datesToValidateMap: ApplicationDateMap,
   dateType: DateType,
@@ -200,6 +187,66 @@ function runHolidayChecks(
   }
 }
 
+function runGreaterThanChecks(
+  datesToValidateMap: ApplicationDateMap,
+  dateType: DateType,
+  checks: DateTypeValidationChecksRecord[DateType]["greaterThanChecks"]
+): void {
+  for (const check of checks) {
+    checkInputDateGreaterThan(datesToValidateMap, dateType, check.dateTypeToCheck);
+  }
+}
+
+function runGreaterThanOrEqualChecks(
+  datesToValidateMap: ApplicationDateMap,
+  dateType: DateType,
+  checks: DateTypeValidationChecksRecord[DateType]["greaterThanOrEqualChecks"]
+): void {
+  for (const check of checks) {
+    checkInputDateGreaterThanOrEqual(datesToValidateMap, dateType, check.dateTypeToCheck);
+  }
+}
+
+function runLessThanChecks(
+  datesToValidateMap: ApplicationDateMap,
+  dateType: DateType,
+  checks: DateTypeValidationChecksRecord[DateType]["lessThanChecks"]
+): void {
+  for (const check of checks) {
+    checkInputDateLessThan(datesToValidateMap, dateType, check.dateTypeToCheck);
+  }
+}
+
+function runOffsetChecks(
+  datesToValidateMap: ApplicationDateMap,
+  dateType: DateType,
+  checks: DateTypeValidationChecksRecord[DateType]["offsetChecks"]
+): void {
+  for (const check of checks) {
+    checkInputDateMeetsOffset(
+      datesToValidateMap,
+      dateType,
+      check.dateTypeToCheck,
+      check.dateOffset
+    );
+  }
+}
+
+function runFlexibleOffsetChecks(
+  datesToValidateMap: ApplicationDateMap,
+  dateType: DateType,
+  checks: DateTypeValidationChecksRecord[DateType]["flexibleOffsetChecks"]
+): void {
+  for (const check of checks) {
+    checkInputDateMeetsFlexibleOffset(
+      datesToValidateMap,
+      dateType,
+      check.dateTypeToCheck,
+      check.dateOffset
+    );
+  }
+}
+
 export function validateInputDates(
   datesToValidate: ParsedApplicationDateInput[],
   currentVersion: SemVer
@@ -209,10 +256,12 @@ export function validateInputDates(
   for (const [dateType, dateValue] of datesToValidateMap.entries()) {
     const checks = validationChecks[dateType];
     runExpectedTimestampCheck(dateType, dateValue, checks.expectedTimestamp);
-    runGreaterThanChecks(datesToValidateMap, dateType, checks.greaterThanChecks);
-    runGreaterThanOrEqualChecks(datesToValidateMap, dateType, checks.greaterThanOrEqualChecks);
-    runOffsetChecks(datesToValidateMap, dateType, checks.offsetChecks);
     runWeekendChecks(datesToValidateMap, dateType, checks.allowedToBeWeekend);
     runHolidayChecks(datesToValidateMap, dateType, checks.allowedToBeHoliday);
+    runGreaterThanChecks(datesToValidateMap, dateType, checks.greaterThanChecks);
+    runGreaterThanOrEqualChecks(datesToValidateMap, dateType, checks.greaterThanOrEqualChecks);
+    runLessThanChecks(datesToValidateMap, dateType, checks.lessThanChecks);
+    runOffsetChecks(datesToValidateMap, dateType, checks.offsetChecks);
+    runFlexibleOffsetChecks(datesToValidateMap, dateType, checks.flexibleOffsetChecks);
   }
 }
