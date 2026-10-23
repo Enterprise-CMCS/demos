@@ -1018,5 +1018,37 @@ describe("checkInputDateFunctions", () => {
         )
       ).toThrow(expectedError);
     });
+
+    it("should not throw if given a range that does not need adjusting", () => {
+      const testValues: TestOffsetValues = {
+        offset: {
+          days: 6, // Jan 5, 2027
+          expectedTimestamp: "End of Day",
+        },
+        before: {
+          easternTZDate: new TZDate("2026-12-30T00:00:00.000-05:00", "America/New_York"),
+          isEasternTZDate: true,
+        },
+        after: {
+          easternTZDate: new TZDate("2027-01-05T23:59:59.999-05:00", "America/New_York"),
+          isEasternTZDate: true,
+        },
+      };
+      const testInputDateType: DateType = "Completeness Review Due Date";
+      const testTargetDateType: DateType = "State Application Submitted Date";
+      const testApplicationDateMap: ApplicationDateMap = new Map([
+        [testInputDateType, testValues.after],
+        [testTargetDateType, testValues.before],
+      ]);
+
+      expect(() =>
+        checkInputDateMeetsFlexibleOffset(
+          testApplicationDateMap,
+          testInputDateType,
+          testTargetDateType,
+          testValues.offset
+        )
+      ).not.toThrow();
+    });
   });
 });
