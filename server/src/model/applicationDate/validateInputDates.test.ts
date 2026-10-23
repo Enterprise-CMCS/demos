@@ -6,7 +6,7 @@ import {
   validateInputDates,
 } from "./validateInputDates";
 import { DateType } from "../../types";
-import { ParsedApplicationDateInput } from ".";
+import type { ParsedApplicationDateInput } from ".";
 import { EasternTZDate } from "../../dateUtilities";
 import { DATE_TYPES, DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants";
 import { TZDate } from "@date-fns/tz";
@@ -15,20 +15,24 @@ import type { DateOffset, ApplicationDateMap } from ".";
 
 // Mock imports
 vi.mock(".", () => ({
-  checkInputDateIsStartOfDay: vi.fn(),
-  checkInputDateIsEndOfDay: vi.fn(),
   checkInputDateGreaterThan: vi.fn(),
   checkInputDateGreaterThanOrEqual: vi.fn(),
+  checkInputDateIsEndOfDay: vi.fn(),
+  checkInputDateIsStartOfDay: vi.fn(),
+  checkInputDateLessThan: vi.fn(),
+  checkInputDateMeetsFlexibleOffset: vi.fn(),
   checkInputDateMeetsOffset: vi.fn(),
   checkInputDateNotHoliday: vi.fn(),
   checkInputDateNotWeekend: vi.fn(),
 }));
 
 import {
-  checkInputDateIsStartOfDay,
-  checkInputDateIsEndOfDay,
   checkInputDateGreaterThan,
   checkInputDateGreaterThanOrEqual,
+  checkInputDateIsEndOfDay,
+  checkInputDateIsStartOfDay,
+  checkInputDateLessThan,
+  checkInputDateMeetsFlexibleOffset,
   checkInputDateMeetsOffset,
   checkInputDateNotHoliday,
   checkInputDateNotWeekend,
@@ -74,7 +78,7 @@ describe("validateInputDates", () => {
   });
 
   describe("makeValidations", () => {
-    it("should, before 1.3.0, include the 15-day offset for Completness Review Due Date in the validations ", () => {
+    it("should, before 1.3.0, include the 15-day offset for Completness Review Due Date in the validations", () => {
       const result = makeValidations(new SemVer("1.2.0"));
       expect(result["Completeness Review Due Date"]["offsetChecks"].length).toBeGreaterThan(0);
       expect(result["State Application Submitted Date"]["offsetChecks"].length).toBeGreaterThan(0);
@@ -83,6 +87,24 @@ describe("validateInputDates", () => {
       const result = makeValidations(new SemVer("1.3.0"));
       expect(result["Completeness Review Due Date"]["offsetChecks"].length).toBe(0);
       expect(result["State Application Submitted Date"]["offsetChecks"].length).toBe(0);
+    });
+    it("should, before 1.3.0, not include flexible offset checks, weekend and holiday checks, or less than checks", () => {
+      const result = makeValidations(new SemVer("1.2.0"));
+      for (const [dateType, checks] of Object.entries(result)) {
+        expect(checks, dateType).toMatchObject({
+          allowedToBeWeekend: true,
+          allowedToBeHoliday: true,
+          flexibleOffsetChecks: [],
+          lessThanChecks: [],
+        });
+      }
+    });
+    it("should, from 1.3.0, include flexible offset checks, weekend and holiday checks, and less than checks", () => {
+      const result = makeValidations(new SemVer("1.3.0"));
+      expect(result["Completeness Review Due Date"]["allowedToBeWeekend"]).toBe(false);
+      expect(result["Completeness Review Due Date"]["allowedToBeHoliday"]).toBe(false);
+      expect(result["Completeness Review Due Date"]["flexibleOffsetChecks"]).toHaveLength(1);
+      expect(result["State Application Submitted Date"]["lessThanChecks"]).toHaveLength(1);
     });
   });
 
@@ -335,6 +357,38 @@ describe("validateInputDates", () => {
       expect(checkInputDateNotHoliday).toHaveBeenCalledExactlyOnceWith(
         testApplicationDateMap,
         "Completeness Review Due Date"
+      );
+    });
+
+    it("before 1.3.0, it should not run any less than checks", () => {
+      validateInputDates(testInput, new SemVer("1.2.0"));
+      expect(checkInputDateLessThan).not.toHaveBeenCalled();
+    });
+
+    it("from 1.3.0, it should run less than checks", () => {
+      validateInputDates(testInput, new SemVer("1.3.0"));
+      expect(checkInputDateLessThan).toHaveBeenCalledExactlyOnceWith(
+        testApplicationDateMap,
+        "State Application Submitted Date",
+        "Completeness Review Due Date"
+      );
+    });
+
+    it("before 1.3.0, it should not run any flexible offset checks", () => {
+      validateInputDates(testInput, new SemVer("1.2.0"));
+      expect(checkInputDateMeetsFlexibleOffset).not.toHaveBeenCalled();
+    });
+
+    it("from 1.3.0, it should run flexible offset checks", () => {
+      validateInputDates(testInput, new SemVer("1.3.0"));
+      expect(checkInputDateMeetsFlexibleOffset).toHaveBeenCalledExactlyOnceWith(
+        testApplicationDateMap,
+        "Completeness Review Due Date",
+        "State Application Submitted Date",
+        {
+          days: 15,
+          expectedTimestamp: "End of Day",
+        }
       );
     });
   });
