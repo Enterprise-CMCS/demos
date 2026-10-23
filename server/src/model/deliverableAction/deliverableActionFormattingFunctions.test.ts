@@ -3,7 +3,12 @@ import { describe, it, expect } from "vitest";
 import { DeepPartial } from "../../testUtilities";
 
 // Types
-import { DeliverableActionType, DeliverableExtensionReasonCode, PersonType } from "../../types";
+import {
+  DeliverableActionType,
+  DeliverableExtensionReasonCode,
+  DeliverableStatus,
+  PersonType,
+} from "../../types";
 
 // Functions under test
 import { formatFullUserName, formatDetailsMessage } from "./deliverableActionFormattingFunctions";
@@ -180,6 +185,36 @@ describe("deliverableActionFormattingFunctions", () => {
         "Old Due Date: 11/12/2026\n" +
           "New Due Date: 01/11/2027\n" +
           "Reason Details: Changed per request of PO"
+      );
+    });
+
+    it("should return the proper message for a terminating status override", () => {
+      const testInput: DeepPartial<SelectDeliverableActionRowResult> = {
+        deliverableId: testDeliverableId,
+        actionTypeId: "Terminating Status Override" satisfies DeliverableActionType,
+        oldStatusId: "Accepted" satisfies DeliverableStatus,
+        newStatusId: "Received and Filed" satisfies DeliverableStatus,
+        note: "Meant to pick Received and Filed.",
+      };
+
+      const result = formatDetailsMessage(testInput as SelectDeliverableActionRowResult);
+      expect(result).toBe(
+        'Overrode terminating status from "Accepted" to "Received and Filed": Meant to pick Received and Filed.'
+      );
+    });
+
+    it("should return the proper message for a finalization reversion", () => {
+      const testInput: DeepPartial<SelectDeliverableActionRowResult> = {
+        deliverableId: testDeliverableId,
+        actionTypeId: "Reverted Finalization" satisfies DeliverableActionType,
+        oldStatusId: "Received and Filed" satisfies DeliverableStatus,
+        newStatusId: "Under CMS Review" satisfies DeliverableStatus,
+        note: "Accidentally clicked the wrong button.",
+      };
+
+      const result = formatDetailsMessage(testInput as SelectDeliverableActionRowResult);
+      expect(result).toBe(
+        'Reverted finalization from "Received and Filed" to "Under CMS Review": Accidentally clicked the wrong button.'
       );
     });
 

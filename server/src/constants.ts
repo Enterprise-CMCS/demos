@@ -25,6 +25,8 @@ export const DELIVERABLE_ACTION_TYPES = [
   "Received and Filed Deliverable",
   "Deleted Deliverable",
   "Migrated Deliverable From PMDA",
+  "Terminating Status Override",
+  "Reverted Finalization",
 ] as const;
 
 export const DELIVERABLE_TYPES = [
