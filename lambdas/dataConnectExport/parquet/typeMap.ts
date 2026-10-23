@@ -4,7 +4,10 @@ export function quoteIdentifier(name: string): string {
   return `"${name.replace(/"/g, '""')}"`;
 }
 
-/** A DuckDB single-quoted string literal, for the type spec and the file paths. */
+/**
+ * A single-quoted SQL string literal, for the DuckDB type spec and file paths and for the fixed
+ * report labels in the Postgres query (valid there with standard_conforming_strings, the default).
+ */
 export function quoteLiteral(value: string): string {
   return `'${value.replace(/'/g, "''")}'`;
 }

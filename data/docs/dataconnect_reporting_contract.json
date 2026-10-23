@@ -1,0 +1,1260 @@
+{
+  "formatVersion": 2,
+  "datasets": [
+    {
+      "name": "demonstration_reporting",
+      "description": "Demonstration overview with independently aggregated application, deliverable, and demonstration-type report rows. Report formatting is preserved, including '-' sentinels and null parent dates in deliverables; names, notes, and public/private comments are unredacted and may contain PII or sensitive internal information. Non-nullability relies on the source schema's required values and primary-role/date/tag/pending-extension uniqueness constraints. Timestamp ties for latest actions, reviewers, workbooks, and comment order retain the reports' unspecified tie behavior.",
+      "rowGrain": "One row per demonstration returned by the Demonstration Overview Report's required state and primary Project Officer joins.",
+      "keyColumns": [
+        "demonstration_id"
+      ],
+      "columns": [
+        {
+          "name": "demonstration_id",
+          "duckdbType": "UUID",
+          "description": "Stable UUID of the demonstration, used as the parent dataset key.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "format": "UUID",
+          "notes": "Added from demonstration.id without transformation; parent rows are sorted by this source identifier."
+        },
+        {
+          "name": "state_territory",
+          "duckdbType": "VARCHAR",
+          "description": "Name of the demonstration's state or territory.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "notes": "From the required state join; no transformation."
+        },
+        {
+          "name": "demonstration_title",
+          "duckdbType": "VARCHAR",
+          "description": "Title of the demonstration.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "notes": "From demonstration.name; no transformation."
+        },
+        {
+          "name": "demonstration_number",
+          "duckdbType": "VARCHAR",
+          "description": "Medicaid demonstration identifier assigned to the demonstration.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "notes": "From demonstration.medicaid_id; no transformation."
+        },
+        {
+          "name": "chip_id",
+          "duckdbType": "VARCHAR",
+          "description": "CHIP identifier when the demonstration has the Children's Health Insurance Program (CHIP) tag.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "notes": "Uses demonstration.chip_id only for the exact CHIP tag; otherwise '-'. It is not a UUID."
+        },
+        {
+          "name": "status",
+          "duckdbType": "VARCHAR",
+          "description": "Current demonstration application status.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "notes": "From demonstration.status_id; no transformation."
+        },
+        {
+          "name": "status_update_date",
+          "duckdbType": "VARCHAR",
+          "description": "Date the demonstration status was last updated.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "format": "MM/DD/YYYY (America/New_York)",
+          "notes": "Required status_updated_at timestamp converted to America/New_York and formatted as MM/DD/YYYY; no fallback."
+        },
+        {
+          "name": "sdg_division",
+          "duckdbType": "VARCHAR",
+          "description": "SDG division assigned to the demonstration.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "notes": "From demonstration.sdg_division_id; missing values become '-'."
+        },
+        {
+          "name": "signature_level",
+          "duckdbType": "VARCHAR",
+          "description": "Signature authority level for the demonstration.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "notes": "From demonstration.signature_level_id; missing values become '-'."
+        },
+        {
+          "name": "effective_date",
+          "duckdbType": "VARCHAR",
+          "description": "Effective date of the demonstration.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "format": "MM/DD/YYYY (America/New_York)",
+          "notes": "Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+        },
+        {
+          "name": "expiration_date",
+          "duckdbType": "VARCHAR",
+          "description": "Expiration date of the demonstration.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "format": "MM/DD/YYYY (America/New_York)",
+          "notes": "Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+        },
+        {
+          "name": "renewal_in_progress",
+          "duckdbType": "VARCHAR",
+          "description": "Whether any extension (reported as a renewal) is currently in progress.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "format": "Yes/No",
+          "notes": "'Yes' for any extension in Pre-Submission, Under Review, or On-hold; otherwise 'No'."
+        },
+        {
+          "name": "amendment_in_progress",
+          "duckdbType": "VARCHAR",
+          "description": "Whether any amendment is currently in progress.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "format": "Yes/No",
+          "notes": "'Yes' for any amendment in Pre-Submission, Under Review, or On-hold; otherwise 'No'."
+        },
+        {
+          "name": "approved_amendment_applications",
+          "duckdbType": "INTEGER",
+          "description": "Number of amendment applications with status Approved for the demonstration.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "notes": "Sum of matching amendments cast to INTEGER; no amendments gives 0. This is not a count of all applications."
+        },
+        {
+          "name": "primary_project_officer",
+          "duckdbType": "VARCHAR",
+          "description": "Full name of the demonstration's primary Project Officer.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "notes": "Person first_name concatenated with a space and last_name; contains personally identifiable information (PII). Required primary-role inner join; a demonstration without this assignment is excluded, not filled with '-'."
+        },
+        {
+          "name": "project_officers",
+          "duckdbType": "VARCHAR",
+          "description": "Full names of non-primary Project Officers assigned to the demonstration.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "notes": "Person first_name concatenated with a space and last_name; contains personally identifiable information (PII). Primary assignments excluded; names sorted by full name and joined with ', '; no assignments gives '-'."
+        },
+        {
+          "name": "primary_policy_tech_director",
+          "duckdbType": "VARCHAR",
+          "description": "Full name of the demonstration's primary Policy Technical Director.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "notes": "Person first_name concatenated with a space and last_name; contains personally identifiable information (PII). Missing assignment gives '-'."
+        },
+        {
+          "name": "primary_ddme_analyst",
+          "duckdbType": "VARCHAR",
+          "description": "Full name of the demonstration's primary DDME Analyst.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "notes": "Person first_name concatenated with a space and last_name; contains personally identifiable information (PII). Missing assignment gives '-'."
+        },
+        {
+          "name": "ddme_analysts",
+          "duckdbType": "VARCHAR",
+          "description": "Full names of non-primary DDME Analysts assigned to the demonstration.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "notes": "Person first_name concatenated with a space and last_name; contains personally identifiable information (PII). Primary assignments excluded; names sorted by full name and joined with ', '; no assignments gives '-'."
+        },
+        {
+          "name": "primary_state_poc",
+          "duckdbType": "VARCHAR",
+          "description": "Full name of the demonstration's primary State Point of Contact.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "notes": "Person first_name concatenated with a space and last_name; contains personally identifiable information (PII). Missing assignment gives '-'."
+        },
+        {
+          "name": "state_pocs",
+          "duckdbType": "VARCHAR",
+          "description": "Full names of non-primary State Points of Contact assigned to the demonstration.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "notes": "Person first_name concatenated with a space and last_name; contains personally identifiable information (PII). Primary assignments excluded; names sorted by full name and joined with ', '; no assignments gives '-'."
+        },
+        {
+          "name": "primary_monitoring_evaluation_tech_director",
+          "duckdbType": "VARCHAR",
+          "description": "Full name of the demonstration's primary Monitoring & Evaluation Technical Director.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "notes": "Person first_name concatenated with a space and last_name; contains personally identifiable information (PII). Missing assignment gives '-'."
+        },
+        {
+          "name": "application_approval_date",
+          "duckdbType": "VARCHAR",
+          "description": "Application Approval Date recorded for the demonstration itself, not a child amendment or renewal.",
+          "nullable": false,
+          "sourceReport": "Demonstration Overview Report",
+          "format": "MM/DD/YYYY (America/New_York)",
+          "notes": "From the unique application/date-type pair for 'Application Approval Date'. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+        },
+        {
+          "name": "applications",
+          "duckdbType": "JSON",
+          "description": "Application Details Report rows belonging to this demonstration, including the demonstration itself as an application, amendments, and extensions reported as Renewals.",
+          "nullable": false,
+          "sourceReport": "Application Details Report",
+          "format": "JSON array",
+          "notes": "Independently aggregated per parent demonstration, ordered by application.id; source ordering IDs are not exported. No matching applications gives []. Primary officer and parent state joins retain the report's filtering semantics. Dates are display strings, missing optional values use '-', and names/clearance notes may contain PII.",
+          "items": {
+            "rowGrain": "One row per application returned by the Application Details Report for the parent demonstration. Only applications whose parent demonstration has a primary Project Officer are included.",
+            "columns": [
+              {
+                "name": "state",
+                "duckdbType": "VARCHAR",
+                "description": "Name of the parent demonstration's state or territory.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "notes": "From the required parent state join; no transformation."
+              },
+              {
+                "name": "application_type",
+                "duckdbType": "VARCHAR",
+                "description": "Type of application: Demonstration, Amendment, or Renewal.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "notes": "Extension is mapped to Renewal; Demonstration and Amendment retain their source names."
+              },
+              {
+                "name": "application_title",
+                "duckdbType": "VARCHAR",
+                "description": "Title of this demonstration, amendment, or renewal application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "notes": "Chosen from demonstration.name, amendment.name, or extension.name according to application_type_id; no fallback."
+              },
+              {
+                "name": "demonstration_number",
+                "duckdbType": "VARCHAR",
+                "description": "Medicaid identifier of the parent demonstration, including for child applications.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "notes": "From the parent demonstration.medicaid_id; no transformation."
+              },
+              {
+                "name": "chip_id",
+                "duckdbType": "VARCHAR",
+                "description": "CHIP identifier of the parent demonstration when it has the Children's Health Insurance Program (CHIP) tag.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "notes": "Uses parent demonstration.chip_id only for the exact CHIP tag; otherwise '-'. It is not a UUID."
+              },
+              {
+                "name": "primary_project_officer",
+                "duckdbType": "VARCHAR",
+                "description": "Full name of the parent demonstration's primary Project Officer.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "notes": "Person first_name concatenated with a space and last_name; contains personally identifiable information (PII). Required primary-role inner join; applications without a parent primary officer are excluded."
+              },
+              {
+                "name": "status",
+                "duckdbType": "VARCHAR",
+                "description": "Current status of this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "notes": "Chosen from the demonstration, amendment, or extension status_id according to application_type_id; no fallback."
+              },
+              {
+                "name": "sdg_division",
+                "duckdbType": "VARCHAR",
+                "description": "SDG division assigned to the parent demonstration.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "notes": "From the parent demonstration.sdg_division_id; missing values become '-'."
+              },
+              {
+                "name": "signature_level",
+                "duckdbType": "VARCHAR",
+                "description": "Signature authority level for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "notes": "Chosen from the demonstration, amendment, or extension signature_level_id; missing values become '-'."
+              },
+              {
+                "name": "effective_date",
+                "duckdbType": "VARCHAR",
+                "description": "Effective date of this demonstration, amendment, or renewal application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "expiration_date",
+                "duckdbType": "VARCHAR",
+                "description": "Expiration date of the parent demonstration, shared by its child applications.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "concept_start_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date the application's Concept phase started.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Concept Start Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "concept_paper_submitted_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date the state's concept paper was submitted for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Concept Paper Submitted Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "concept_skipped_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date the application's Concept phase was recorded as skipped.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Concept Skipped Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "concept_completion_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date the application's Concept phase completed.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Concept Completion Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "application_intake_start_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date the application's Application Intake phase started.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Application Intake Start Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "state_application_submitted_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date the state submitted this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'State Application Submitted Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "completeness_review_due_date",
+                "duckdbType": "VARCHAR",
+                "description": "Due date of this application's completeness review.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Completeness Review Due Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "application_intake_completion_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date the application's Application Intake phase completed.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Application Intake Completion Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "completeness_start_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date the application's Completeness phase started.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Completeness Start Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "state_application_deemed_complete",
+                "duckdbType": "VARCHAR",
+                "description": "Date the state's application was deemed complete.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'State Application Deemed Complete', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "completeness_completion_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date the application's Completeness phase completed.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Completeness Completion Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "federal_comment_period_start_date",
+                "duckdbType": "VARCHAR",
+                "description": "Start date of the federal public comment period for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Federal Comment Period Start Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "federal_comment_period_end_date",
+                "duckdbType": "VARCHAR",
+                "description": "End date of the federal public comment period for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Federal Comment Period End Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "federal_comment_internal_analysis_document_submitted_date",
+                "duckdbType": "VARCHAR",
+                "description": "Most recent upload date of a Federal Comment Internal Analysis Document for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum document.created_at for document_type_id 'Federal Comment Internal Analysis Document', grouped by application; not document content or a business date. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "sdg_preparation_start_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date the application's SDG Preparation phase started.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'SDG Preparation Start Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "internal_expected_approval_date",
+                "duckdbType": "VARCHAR",
+                "description": "Internally expected approval date for this application, not its actual approval date.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Internal Expected Approval Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "state_requested_approval_date",
+                "duckdbType": "VARCHAR",
+                "description": "Approval date requested by the state for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'State Requested Approval Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "sme_initial_review_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date of the initial SME review of this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'SME Initial Review Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "frt_initial_meeting_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date of the initial FRT meeting for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'FRT Initial Meeting Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "bnpmt_initial_meeting_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date of the initial BNPMT meeting for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'BNPMT Initial Meeting Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "sdg_preparation_completion_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date the application's SDG Preparation phase completed.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'SDG Preparation Completion Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "review_start_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date the application's Review phase started.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Review Start Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "ogd_approval_to_share_with_smes",
+                "duckdbType": "VARCHAR",
+                "description": "Date OGD approved sharing this application with SMEs.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'OGD Approval to Share with SMEs', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "draft_approval_package_to_prep",
+                "duckdbType": "VARCHAR",
+                "description": "Date the application's draft approval package was sent for preparation.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Draft Approval Package to Prep', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "ddme_approval_received",
+                "duckdbType": "VARCHAR",
+                "description": "Date DDME approval was received for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'DDME Approval Received', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "state_concurrence",
+                "duckdbType": "VARCHAR",
+                "description": "Date state concurrence was recorded for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'State Concurrence', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "bn_pmt_approval_to_send_to_omb",
+                "duckdbType": "VARCHAR",
+                "description": "Date BN PMT approved sending this application's package to OMB.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'BN PMT Approval to Send to OMB', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "draft_approval_package_shared",
+                "duckdbType": "VARCHAR",
+                "description": "Date this application's draft approval package was shared.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Draft Approval Package Shared', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "receive_omb_concurrence",
+                "duckdbType": "VARCHAR",
+                "description": "Date OMB concurrence was received for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Receive OMB Concurrence', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "receive_ogc_legal_clearance",
+                "duckdbType": "VARCHAR",
+                "description": "Date OGC legal clearance was received for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Receive OGC Legal Clearance', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "clearance_level_comms_or_osora",
+                "duckdbType": "VARCHAR",
+                "description": "Clearance level selected for this application (COMMs or CMS (OSORA)).",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "notes": "Chosen from the demonstration, amendment, or extension clearance_level_id; required source value, no fallback."
+              },
+              {
+                "name": "package_sent_for_comms_clearance",
+                "duckdbType": "VARCHAR",
+                "description": "Date this application's package was sent for COMMs clearance.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Package Sent for COMMs Clearance', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "comms_clearance_received",
+                "duckdbType": "VARCHAR",
+                "description": "Date COMMs clearance was received for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'COMMs Clearance Received', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "comms_clearance_notes",
+                "duckdbType": "VARCHAR",
+                "description": "Free-text COMMs clearance notes for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "notes": "MAX(content) for note_type_id 'COMMs Clearance', not the latest note by timestamp; missing/all-null notes become '-'. Text is unredacted and may contain PII or sensitive internal information."
+              },
+              {
+                "name": "submit_approval_package_to_osora",
+                "duckdbType": "VARCHAR",
+                "description": "Date this application's approval package was submitted to OSORA.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Submit Approval Package to OSORA', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "osora_r1_comments_due",
+                "duckdbType": "VARCHAR",
+                "description": "Due date for OSORA round-one comments on this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'OSORA R1 Comments Due', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "osora_r2_comments_due",
+                "duckdbType": "VARCHAR",
+                "description": "Due date for OSORA round-two comments on this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'OSORA R2 Comments Due', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "cms_osora_clearance_end",
+                "duckdbType": "VARCHAR",
+                "description": "End date of CMS (OSORA) clearance for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'CMS (OSORA) Clearance End', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "osora_clearance_notes",
+                "duckdbType": "VARCHAR",
+                "description": "Free-text CMS (OSORA) clearance notes for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "notes": "MAX(content) for note_type_id 'CMS (OSORA) Clearance', not the latest note by timestamp; missing/all-null notes become '-'. Text is unredacted and may contain PII or sensitive internal information."
+              },
+              {
+                "name": "review_completion_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date the application's Review phase completed.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Review Completion Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "approval_package_start_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date the application's Approval Package phase started.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Approval Package Start Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "final_bn_formulation_workbook_uploaded_date",
+                "duckdbType": "VARCHAR",
+                "description": "Most recent upload date of a Final Budget Neutrality Formulation Workbook for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum document.created_at for document_type_id 'Final Budget Neutrality Formulation Workbook', grouped by application; not document content or a business date. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "q_and_a_file_uploaded_date",
+                "duckdbType": "VARCHAR",
+                "description": "Most recent upload date of a Q&A document for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum document.created_at for document_type_id 'Q&A', grouped by application; not document content or a business date. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "special_terms_and_conditions_file_uploaded_date",
+                "duckdbType": "VARCHAR",
+                "description": "Most recent upload date of a Special Terms & Conditions document for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum document.created_at for document_type_id 'Special Terms & Conditions', grouped by application; not document content or a business date. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "formal_omb_policy_concurrent_email_uploaded_date",
+                "duckdbType": "VARCHAR",
+                "description": "Most recent upload date of a Formal OMB Policy Concurrence Email for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum document.created_at for document_type_id 'Formal OMB Policy Concurrence Email', grouped by application; not document content or a business date. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "approval_letter_uploaded_date",
+                "duckdbType": "VARCHAR",
+                "description": "Most recent upload date of an Approval Letter for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum document.created_at for document_type_id 'Approval Letter', grouped by application; not document content or a business date. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "signed_decision_memo_uploaded_date",
+                "duckdbType": "VARCHAR",
+                "description": "Most recent upload date of a Signed Decision Memo for this application.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum document.created_at for document_type_id 'Signed Decision Memo', grouped by application; not document content or a business date. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "approval_package_completion_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date the application's Approval Package phase completed.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Approval Package Completion Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "approval_summary_start_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date the application's Approval Summary phase started.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Approval Summary Start Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "application_details_marked_complete_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date this application's details were marked complete.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Application Details Marked Complete Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "application_demonstration_types_marked_complete_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date this application's demonstration types were marked complete.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Application Demonstration Types Marked Complete Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "approval_summary_completion_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date the application's Approval Summary phase completed.",
+                "nullable": false,
+                "sourceReport": "Application Details Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum application_date.date_value for date_type_id 'Approval Summary Completion Date', grouped by application. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              }
+            ]
+          }
+        },
+        {
+          "name": "deliverables",
+          "duckdbType": "JSON",
+          "description": "Deliverable Status Report rows belonging to this demonstration, with action statistics, pending requests, reviewer, validated budget-neutrality data, and public/private comments.",
+          "nullable": false,
+          "sourceReport": "Deliverable Status Report",
+          "format": "JSON array",
+          "notes": "Independently aggregated per demonstration, ordered by deliverable.id; source ordering IDs are not exported. No matching report rows gives []. Deleted deliverables and those without action statistics, a CMS owner, parent state, or primary officer are excluded as in the report. Parent effective/expiration dates may be JSON null; other missing optional values use '-'. Public/private comment aggregates are each limited to 32000 characters, but notes are not. Names and free text may contain PII or sensitive internal information.",
+          "items": {
+            "rowGrain": "One row per non-deleted deliverable returned by the Deliverable Status Report for the parent demonstration, assuming the source's unique pending-extension rules. Only deliverables whose parent demonstration has a primary Project Officer, that have a matched CMS owner, and that have at least one deliverable action are included.",
+            "columns": [
+              {
+                "name": "state",
+                "duckdbType": "VARCHAR",
+                "description": "Name of the deliverable's parent state or territory.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "notes": "From the required demonstration/state join; no transformation."
+              },
+              {
+                "name": "demonstration_title",
+                "duckdbType": "VARCHAR",
+                "description": "Title of the deliverable's parent demonstration.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "notes": "From demonstration.name; no transformation."
+              },
+              {
+                "name": "demonstration_number",
+                "duckdbType": "VARCHAR",
+                "description": "Medicaid identifier of the deliverable's parent demonstration.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "notes": "From demonstration.medicaid_id; no transformation."
+              },
+              {
+                "name": "effective_date",
+                "duckdbType": "VARCHAR",
+                "description": "Effective date of the deliverable's parent demonstration.",
+                "nullable": true,
+                "sourceReport": "Deliverable Status Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Timestamp converted to America/New_York and formatted as MM/DD/YYYY; unlike the overview, missing values remain JSON null, not '-'."
+              },
+              {
+                "name": "expiration_date",
+                "duckdbType": "VARCHAR",
+                "description": "Expiration date of the deliverable's parent demonstration.",
+                "nullable": true,
+                "sourceReport": "Deliverable Status Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Timestamp converted to America/New_York and formatted as MM/DD/YYYY; unlike the overview, missing values remain JSON null, not '-'."
+              },
+              {
+                "name": "primary_project_officer",
+                "duckdbType": "VARCHAR",
+                "description": "Full name of the parent demonstration's primary Project Officer.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "notes": "Person first_name concatenated with a space and last_name; contains personally identifiable information (PII). Required primary-role inner join excludes unmatched deliverables."
+              },
+              {
+                "name": "ddme_analyst",
+                "duckdbType": "VARCHAR",
+                "description": "Full name of the parent demonstration's primary DDME Analyst, not all assigned analysts.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "notes": "Person first_name concatenated with a space and last_name; contains personally identifiable information (PII). Missing primary assignment gives '-'."
+              },
+              {
+                "name": "deliverable_type",
+                "duckdbType": "VARCHAR",
+                "description": "Report category assigned to the deliverable.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "notes": "From deliverable.deliverable_type_id; no transformation."
+              },
+              {
+                "name": "deliverable_name",
+                "duckdbType": "VARCHAR",
+                "description": "Name of the deliverable.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "notes": "From deliverable.name; no transformation. Free-text names may contain PII."
+              },
+              {
+                "name": "demonstration_types",
+                "duckdbType": "VARCHAR",
+                "description": "Demonstration-type tags associated with this deliverable, not every tag of the parent.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "notes": "deliverable_demonstration_type.demonstration_type_tag_name_id sorted by tag name and joined with ', '; no associated tags gives '-'."
+              },
+              {
+                "name": "cms_owner",
+                "duckdbType": "VARCHAR",
+                "description": "Full name of the CMS owner assigned to this deliverable.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "notes": "Person first_name concatenated with a space and last_name; contains personally identifiable information (PII). Required person inner join on cms_owner_user_id excludes unmatched deliverables."
+              },
+              {
+                "name": "due_date",
+                "duckdbType": "VARCHAR",
+                "description": "Current due date of the deliverable.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Required source timestamp converted to America/New_York and formatted as MM/DD/YYYY; no fallback."
+              },
+              {
+                "name": "submission_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date of the most recent Submitted Deliverable action.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum action_timestamp among Submitted Deliverable actions, including resubmissions. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "extension_request_pending",
+                "duckdbType": "VARCHAR",
+                "description": "Whether this deliverable has a Requested extension linked to a Requested Extension action.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "format": "Yes/No",
+                "notes": "'Yes' only for deliverable_extension.status_id 'Requested' joined via action.active_extension_id; granted/denied requests are not pending. Otherwise 'No'."
+              },
+              {
+                "name": "extension_date_requested",
+                "duckdbType": "VARCHAR",
+                "description": "Original date requested for the currently pending extension.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "From the pending extension's original_date_requested, not its action timestamp or granted date. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "reason_for_extension",
+                "duckdbType": "VARCHAR",
+                "description": "Reason code for the currently pending extension.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "notes": "From the Requested extension's reason_code_id; no pending extension gives '-'."
+              },
+              {
+                "name": "extension_request_comments",
+                "duckdbType": "VARCHAR",
+                "description": "Note on the Requested Extension action linked to the currently pending extension.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "notes": "From deliverable_action.note for the active Requested extension; missing/null gives '-'. Unredacted free text may contain PII or sensitive internal information; no 32000-character limit is applied to this field."
+              },
+              {
+                "name": "total_extensions_requested",
+                "duckdbType": "INTEGER",
+                "description": "Total number of Requested Extension actions for this deliverable.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "notes": "Sum across all actions cast to INTEGER, including requests no longer pending; no matching actions gives 0. Required action-statistics join excludes deliverables with no actions."
+              },
+              {
+                "name": "resubmission_due_date",
+                "duckdbType": "VARCHAR",
+                "description": "New due date from the most recent currently outstanding Requested Resubmission action.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Latest Requested Resubmission by action_timestamp is joined only when its timestamp is strictly after the latest Submitted Deliverable action. No prior submission, or a later/equal submission, gives '-'. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "resubmission_request_comments",
+                "duckdbType": "VARCHAR",
+                "description": "Note from the most recent currently outstanding Requested Resubmission action.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "notes": "Latest request note is shown only when the request is strictly after the latest submission; no prior submission, resolved request, or null note gives '-'. Unredacted text may contain PII or sensitive internal information; no 32000-character limit is applied to this field."
+              },
+              {
+                "name": "total_resubmissions_requested",
+                "duckdbType": "INTEGER",
+                "description": "Total number of Requested Resubmission actions for this deliverable.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "notes": "Sum across all actions cast to INTEGER, including resolved requests; no matching actions gives 0. Required action-statistics join excludes deliverables with no actions."
+              },
+              {
+                "name": "deliverable_status",
+                "duckdbType": "VARCHAR",
+                "description": "Current status of this deliverable.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "notes": "From deliverable.status_id; deliverables with status Deleted are excluded from the report collection."
+              },
+              {
+                "name": "last_deliverable_action",
+                "duckdbType": "VARCHAR",
+                "description": "Type of the most recent action recorded for this deliverable.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "notes": "FIRST_VALUE(action_type_id) ordered by action_timestamp descending across all action types; timestamp ties retain the report's unspecified tie behavior."
+              },
+              {
+                "name": "last_deliverable_action_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date of the most recent action recorded for this deliverable.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum action_timestamp across all action types; required action-statistics join ensures a timestamp. Required source timestamp converted to America/New_York and formatted as MM/DD/YYYY; no fallback."
+              },
+              {
+                "name": "updated_post_acceptance",
+                "duckdbType": "VARCHAR",
+                "description": "Whether a public comment was added after the latest finalization of a currently finalized deliverable.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "format": "Yes/No",
+                "notes": "'Yes' only for current Accepted, Approved, or Received and Filed status when MAX(public_comment.created_at) is strictly after the most recent Accepted Deliverable, Approved Deliverable, or Received and Filed Deliverable action. Otherwise 'No'; private comments do not count."
+              },
+              {
+                "name": "deliverable_reviewer",
+                "duckdbType": "VARCHAR",
+                "description": "Full name of the person who most recently started reviewing this deliverable.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "notes": "Person first_name concatenated with a space and last_name; contains personally identifiable information (PII). Latest Started Review action that joins a person by user_id, ordered by action_timestamp descending; missing matched reviewer gives '-'. Timestamp ties retain report behavior."
+              },
+              {
+                "name": "deliverable_review_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date of the latest Started Review action with a matched reviewer.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Maximum Started Review action_timestamp among actions whose user_id joins person, not completion of review. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "budget_neutrality_variance",
+                "duckdbType": "VARCHAR",
+                "description": "Net variance total from the most recently submitted, successfully validated budget-neutrality workbook.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "format": "Numeric text or '-'",
+                "notes": "FIRST_VALUE(net_variance_total) ordered by linked submission action_timestamp descending; workbook.validation_status_id must be Succeeded and document.deliverable_submission_action_id must join an action. Not selected by document creation time. Numeric value cast to TEXT; absent/null gives '-'; timestamp ties retain report behavior."
+              },
+              {
+                "name": "actuals",
+                "duckdbType": "VARCHAR",
+                "description": "Actuals value from the most recently submitted, successfully validated budget-neutrality workbook.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "notes": "Selected from the same latest successful submitted workbook as the variance, not the latest non-null actuals or an unsubmitted/failed workbook. Source string is unchanged; absent/null gives '-'."
+              },
+              {
+                "name": "public_comments",
+                "duckdbType": "VARCHAR",
+                "description": "Aggregated public comments on this deliverable, including author names and dates.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "format": "Author:MM/DD/YYYY:content, CRLF-separated, at most 32000 characters",
+                "notes": "Author full name, New York MM/DD/YYYY date, and content joined with ':'; comments sorted by created_at ascending and separated by CRLF. The entire aggregate is truncated to 32000 characters (not bytes) with LEFT, including author/date prefixes; no comments gives '-'. Unredacted text and author names may contain PII and sensitive internal information; commas, quotes, newlines, and Unicode are preserved inside JSON strings."
+              },
+              {
+                "name": "private_comments",
+                "duckdbType": "VARCHAR",
+                "description": "Aggregated private internal comments on this deliverable, including author names and dates.",
+                "nullable": false,
+                "sourceReport": "Deliverable Status Report",
+                "format": "Author:MM/DD/YYYY:content, CRLF-separated, at most 32000 characters",
+                "notes": "Author full name, New York MM/DD/YYYY date, and content joined with ':'; comments sorted by created_at ascending and separated by CRLF. The entire aggregate is truncated to 32000 characters (not bytes) with LEFT, including author/date prefixes; no comments gives '-'. Unredacted text and author names may contain PII and sensitive internal information; commas, quotes, newlines, and Unicode are preserved inside JSON strings."
+              }
+            ]
+          }
+        },
+        {
+          "name": "demonstration_types",
+          "duckdbType": "JSON",
+          "description": "Demonstration Types Report rows belonging to this demonstration, including assignment-specific dates and parent context.",
+          "nullable": false,
+          "sourceReport": "Demonstration Types Report",
+          "format": "JSON array",
+          "notes": "Independently aggregated per demonstration, ordered by the source assignment key (demonstration_id, tag_name_id); the parent UUID and ordering key are not extra child fields. No matching assignments gives []. Required parent state and primary officer joins retain report filtering; dates are display strings and optional parent dates/POC use '-'. CHIP is calculated across all assignments of each parent before JSON aggregation; names contain PII.",
+          "items": {
+            "rowGrain": "One row per demonstration_type_tag_assignment key (demonstration_id, tag_name_id) returned by the Demonstration Types Report. Only assignments whose parent demonstration has a primary Project Officer are included.",
+            "columns": [
+              {
+                "name": "state_territory",
+                "duckdbType": "VARCHAR",
+                "description": "Name of the assigned type's parent state or territory.",
+                "nullable": false,
+                "sourceReport": "Demonstration Types Report",
+                "notes": "From the required demonstration/state join; no transformation."
+              },
+              {
+                "name": "demonstration_title",
+                "duckdbType": "VARCHAR",
+                "description": "Title of the assigned type's parent demonstration.",
+                "nullable": false,
+                "sourceReport": "Demonstration Types Report",
+                "notes": "From demonstration.name; no transformation."
+              },
+              {
+                "name": "demonstration_number",
+                "duckdbType": "VARCHAR",
+                "description": "Medicaid identifier of the assigned type's parent demonstration.",
+                "nullable": false,
+                "sourceReport": "Demonstration Types Report",
+                "notes": "From demonstration.medicaid_id; no transformation."
+              },
+              {
+                "name": "chip_id",
+                "duckdbType": "VARCHAR",
+                "description": "CHIP identifier of the parent demonstration when any of its assignments has the exact CHIP tag.",
+                "nullable": false,
+                "sourceReport": "Demonstration Types Report",
+                "notes": "Window MAX across all assignments of the parent; the same CHIP identifier is present on every type row, including non-CHIP tags. No CHIP assignment/null identifier gives '-'; not a UUID."
+              },
+              {
+                "name": "status",
+                "duckdbType": "VARCHAR",
+                "description": "Current status of the assigned type's parent demonstration.",
+                "nullable": false,
+                "sourceReport": "Demonstration Types Report",
+                "notes": "From demonstration.status_id, not a separate type status; no transformation."
+              },
+              {
+                "name": "status_update_date",
+                "duckdbType": "VARCHAR",
+                "description": "Date the parent demonstration's status was last updated.",
+                "nullable": false,
+                "sourceReport": "Demonstration Types Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Required source timestamp converted to America/New_York and formatted as MM/DD/YYYY; no fallback."
+              },
+              {
+                "name": "demonstration_effective_date",
+                "duckdbType": "VARCHAR",
+                "description": "Effective date of the parent demonstration, not the individual type assignment.",
+                "nullable": false,
+                "sourceReport": "Demonstration Types Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "demonstration_expiration_date",
+                "duckdbType": "VARCHAR",
+                "description": "Expiration date of the parent demonstration, not the individual type assignment.",
+                "nullable": false,
+                "sourceReport": "Demonstration Types Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "primary_project_officer",
+                "duckdbType": "VARCHAR",
+                "description": "Full name of the parent demonstration's primary Project Officer.",
+                "nullable": false,
+                "sourceReport": "Demonstration Types Report",
+                "notes": "Person first_name concatenated with a space and last_name; contains personally identifiable information (PII). Required primary-role inner join excludes unmatched type assignments."
+              },
+              {
+                "name": "primary_state_poc",
+                "duckdbType": "VARCHAR",
+                "description": "Full name of the parent demonstration's primary State Point of Contact.",
+                "nullable": false,
+                "sourceReport": "Demonstration Types Report",
+                "notes": "Person first_name concatenated with a space and last_name; contains personally identifiable information (PII). Missing primary assignment gives '-'."
+              },
+              {
+                "name": "application_approval_date",
+                "duckdbType": "VARCHAR",
+                "description": "Application Approval Date for the parent demonstration itself, not a child amendment or renewal.",
+                "nullable": false,
+                "sourceReport": "Demonstration Types Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "From application_date for the unique demonstration/application pair with date_type_id 'Application Approval Date'. Timestamp converted to America/New_York before formatting as MM/DD/YYYY; missing values become '-'."
+              },
+              {
+                "name": "demonstration_type",
+                "duckdbType": "VARCHAR",
+                "description": "Name of this demonstration-type tag assignment.",
+                "nullable": false,
+                "sourceReport": "Demonstration Types Report",
+                "notes": "From demonstration_type_tag_assignment.tag_name_id; no transformation or concatenation."
+              },
+              {
+                "name": "demonstration_type_effective_date",
+                "duckdbType": "VARCHAR",
+                "description": "Effective date specific to this demonstration-type assignment.",
+                "nullable": false,
+                "sourceReport": "Demonstration Types Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Required source timestamp converted to America/New_York and formatted as MM/DD/YYYY; no fallback."
+              },
+              {
+                "name": "demonstration_type_expiration_date",
+                "duckdbType": "VARCHAR",
+                "description": "Expiration date specific to this demonstration-type assignment.",
+                "nullable": false,
+                "sourceReport": "Demonstration Types Report",
+                "format": "MM/DD/YYYY (America/New_York)",
+                "notes": "Required source timestamp converted to America/New_York and formatted as MM/DD/YYYY; no fallback."
+              }
+            ]
+          }
+        }
+      ],
+      "sourceTables": [
+        {
+          "name": "amendment",
+          "purpose": "An Amendment application linked to an approved demonstration, with its own status, phase, and approval metadata."
+        },
+        {
+          "name": "application",
+          "purpose": "Shared identity and application type for demonstrations, amendments, and extensions, linking their dates, notes, phases, and documents."
+        },
+        {
+          "name": "application_date",
+          "purpose": "Dated milestones attached to an application, keyed by date_type_id."
+        },
+        {
+          "name": "application_note",
+          "purpose": "Free-text notes attached to an application, keyed by note_type_id."
+        },
+        {
+          "name": "budget_neutrality_workbook",
+          "purpose": "Validation status, validation data, and extracted reporting values for a budget-neutrality workbook document."
+        },
+        {
+          "name": "deliverable",
+          "purpose": "A demonstration's deliverable slot, tracking its type, CMS owner, due date, submission expectation, and review status."
+        },
+        {
+          "name": "deliverable_action",
+          "purpose": "Timestamped deliverable workflow actions recording old and new statuses and due dates, with optional user, note, and extension context."
+        },
+        {
+          "name": "deliverable_demonstration_type",
+          "purpose": "Associative table tying a deliverable to a demonstration-type tag."
+        },
+        {
+          "name": "deliverable_extension",
+          "purpose": "Deliverable due-date extension requests, recording reason, status, requested date, and any final date granted."
+        },
+        {
+          "name": "demonstration",
+          "purpose": "A state's Demonstration application, with lifecycle status, phase, effective period, identifiers, and SDG, signature, and clearance metadata."
+        },
+        {
+          "name": "demonstration_role_assignment",
+          "purpose": "Person's role scoped to a single demonstration."
+        },
+        {
+          "name": "demonstration_type_tag_assignment",
+          "purpose": "Assigns a demonstration-type tag to a demonstration for an effective and expiration date window."
+        },
+        {
+          "name": "document",
+          "purpose": "Metadata and S3 location for an application document, optionally linked to a phase or deliverable and a deliverable submission action."
+        },
+        {
+          "name": "extension",
+          "purpose": "An Extension application linked to an approved demonstration, with its own status, phase, and approval metadata."
+        },
+        {
+          "name": "person",
+          "purpose": "Person identity and contact details, linked to person type, an optional user account, and role and state assignments."
+        },
+        {
+          "name": "primary_demonstration_role_assignment",
+          "purpose": "Identifies the primary assignee for a role on a demonstration, referencing an existing demonstration role assignment."
+        },
+        {
+          "name": "private_comment",
+          "purpose": "User-authored deliverable comments exposed through the CMS-protected privateComments field, storing author person type and comment text."
+        },
+        {
+          "name": "public_comment",
+          "purpose": "User-authored deliverable comments exposed through the publicComments field, storing authorship and comment text."
+        },
+        {
+          "name": "state",
+          "purpose": "State and territory codes, names, and CMS regions used by demonstrations and person-state assignments."
+        }
+      ]
+    }
+  ]
+}

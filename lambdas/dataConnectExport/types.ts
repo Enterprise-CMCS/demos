@@ -32,6 +32,32 @@ export interface ExportViewDefinition {
   collectionSchemas?: Readonly<Record<string, RelationSchema>>;
 }
 
+export interface FieldDocumentation {
+  description: string;
+  nullable: boolean;
+  sourceReport?: string;
+  format?: string;
+  notes?: string;
+  items?: {
+    rowGrain: string;
+    fields: Readonly<Record<string, FieldDocumentation>>;
+  };
+}
+
+export interface DataContractMetadata {
+  description: string;
+  rowGrain: string;
+  keyColumns: readonly string[];
+  fields: Readonly<Record<string, FieldDocumentation>>;
+}
+
+export type DictionaryColumn = RelationColumn & Omit<FieldDocumentation, "items"> & {
+  items?: {
+    rowGrain: string;
+    columns: readonly DictionaryColumn[];
+  };
+};
+
 export interface ExportedRelation {
   relation: string;
   rowCount: number;
