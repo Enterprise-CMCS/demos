@@ -326,7 +326,7 @@ describe("validateInputDates", () => {
       expect(checkInputDateNotHoliday).not.toHaveBeenCalled();
     });
 
-    it("from 1.3.0, it should not run checks for weekends and holidays on one date", () => {
+    it("from 1.3.0, it should run checks for weekends and holidays on one date", () => {
       validateInputDates(testInput, new SemVer("1.3.0"));
       expect(checkInputDateNotWeekend).toHaveBeenCalledExactlyOnceWith(
         testApplicationDateMap,
