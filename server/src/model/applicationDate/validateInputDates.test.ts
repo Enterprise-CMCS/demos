@@ -103,8 +103,8 @@ describe("validateInputDates", () => {
       const result = makeValidations(new SemVer("1.3.0"));
       expect(result["Completeness Review Due Date"]["allowedToBeWeekend"]).toBe(false);
       expect(result["Completeness Review Due Date"]["allowedToBeHoliday"]).toBe(false);
-      expect(result["Completeness Review Due Date"]["flexibleOffsetChecks"].length).toBe(1);
-      expect(result["State Application Submitted Date"]["lessThanChecks"].length).toBe(1);
+      expect(result["Completeness Review Due Date"]["flexibleOffsetChecks"]).toHaveLength(1);
+      expect(result["State Application Submitted Date"]["lessThanChecks"]).toHaveLength(1);
     });
   });
 
