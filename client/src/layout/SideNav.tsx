@@ -12,19 +12,26 @@ import {
   StackIcon,
 } from "components/icons";
 import { Link, useLocation } from "react-router-dom";
+import { DemosApplicationSection, getCurrentUser, isHidden } from "components/user/UserContext";
 
 type SVGIconElement = React.ReactElement<React.SVGProps<SVGSVGElement>>;
 interface NavLink {
   label: string;
   href: string;
   icon: SVGIconElement;
+  applicationSection?: DemosApplicationSection;
 }
 
 const SIDE_NAV_STYLES = "h-full bg-white transition-all duration-300 flex flex-col z-10";
 
 const navLinks: NavLink[] = [
   { label: "Demonstrations", href: "/demonstrations", icon: <CompareIcon /> },
-  { label: "Deliverables", href: "/deliverables", icon: <FileIcon /> },
+  {
+    label: "Deliverables",
+    href: "/deliverables",
+    icon: <FileIcon />,
+    applicationSection: "DeliverableManagement",
+  },
   { label: "Reports", href: "/reports", icon: <FolderIcon /> },
 ];
 
@@ -161,7 +168,12 @@ const CollapseToggleButton = ({
 };
 
 export const SideNav = () => {
+  const { currentUser } = getCurrentUser();
   const [isCollapsed, setIsCollapsed] = React.useState(false);
+
+  const visibleNavLinks = navLinks.filter(
+    (link) => !link.applicationSection || !isHidden(currentUser, link.applicationSection)
+  );
 
   const getNavWidthStyles = () => {
     return isCollapsed ? "w-[48px]" : "w-[180px]";
@@ -179,7 +191,7 @@ export const SideNav = () => {
   return (
     <nav className={`${SIDE_NAV_STYLES} ${getNavWidthStyles()}`}>
       <CollapseToggleButton isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-      <NavLinks isCollapsed={isCollapsed} navLinks={navLinks} />
+      <NavLinks isCollapsed={isCollapsed} navLinks={visibleNavLinks} />
       <DebugLinks />
     </nav>
   );
