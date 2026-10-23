@@ -243,9 +243,9 @@ describe("ManageContactsDialog", () => {
     const selectElement = screen.getByDisplayValue("Project Officer");
 
     // Change the select value directly
-    await user.selectOptions(selectElement, "DDME Analyst");
+    await user.selectOptions(selectElement, "Monitoring & Evaluation Analyst");
 
-    expect(screen.getByDisplayValue("DDME Analyst")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Monitoring & Evaluation Analyst")).toBeInTheDocument();
   });
 
   it("toggles primary status", async () => {
@@ -356,14 +356,14 @@ describe("ManageContactsDialog", () => {
             {
               demonstrationId: "demo-1",
               personId: "person-1",
-              roleId: "DDME Analyst",
+              roleId: "Monitoring & Evaluation Analyst",
             },
           ],
         },
       },
       result: {
         data: {
-          unsetDemonstrationRoles: [{ role: "DDME Analyst" }],
+          unsetDemonstrationRoles: [{ role: "Monitoring & Evaluation Analyst" }],
         },
       },
     };
@@ -379,7 +379,7 @@ describe("ManageContactsDialog", () => {
             email: "john.doe@example.com",
             personType: "demos-cms-user",
           },
-          role: "DDME Analyst", // Use non-primary-required role
+          role: "Monitoring & Evaluation Analyst", // Use non-primary-required role
           isPrimary: false,
         },
       ],
@@ -634,7 +634,7 @@ describe("ManageContactsDialog", () => {
     const select = screen.getByDisplayValue("Project Officer");
     fireEvent.click(select);
 
-    expect(screen.getByText("DDME Analyst")).toBeInTheDocument();
+    expect(screen.getByText("Monitoring & Evaluation Analyst")).toBeInTheDocument();
     expect(screen.getByText("Project Officer")).toBeInTheDocument();
     expect(screen.queryByText("State Point of Contact")).not.toBeInTheDocument();
   });
@@ -663,7 +663,7 @@ describe("ManageContactsDialog", () => {
     fireEvent.click(select);
 
     expect(screen.getByText("State Point of Contact")).toBeInTheDocument();
-    expect(screen.queryByText("DDME Analyst")).not.toBeInTheDocument();
+    expect(screen.queryByText("Monitoring & Evaluation Analyst")).not.toBeInTheDocument();
     expect(screen.queryByText("Project Officer")).not.toBeInTheDocument();
   });
 
@@ -780,14 +780,14 @@ describe("ManageContactsDialog", () => {
             {
               demonstrationId: "demo-1",
               personId: "person-1",
-              roleId: "DDME Analyst",
+              roleId: "Monitoring & Evaluation Analyst",
             },
           ],
         },
       },
       result: {
         data: {
-          unsetDemonstrationRoles: [{ role: "DDME Analyst" }],
+          unsetDemonstrationRoles: [{ role: "Monitoring & Evaluation Analyst" }],
         },
       },
     };
@@ -805,7 +805,7 @@ describe("ManageContactsDialog", () => {
               email: "john.doe@example.com",
               personType: "demos-cms-user",
             },
-            role: "DDME Analyst",
+            role: "Monitoring & Evaluation Analyst",
             isPrimary: false, // Make it deletable
           },
         ],
@@ -842,7 +842,7 @@ describe("ManageContactsDialog", () => {
               email: "john.doe@example.com",
               personType: "demos-cms-user",
             },
-            role: "DDME Analyst",
+            role: "Monitoring & Evaluation Analyst",
             isPrimary: false, // Make it non-primary so it can be deleted
           },
         ],
@@ -877,7 +877,7 @@ describe("ManageContactsDialog", () => {
               email: "john.doe@example.com",
               personType: "demos-cms-user",
             },
-            role: "DDME Analyst", // Change to non-Project Officer role so it can be deleted
+            role: "Monitoring & Evaluation Analyst", // Change to non-Project Officer role so it can be deleted
             isPrimary: false, // Make it deletable
           },
         ],
@@ -1128,7 +1128,7 @@ describe("ManageContactsDialog", () => {
               email: "john.doe@example.com",
               personType: "demos-cms-user",
             },
-            role: "DDME Analyst",
+            role: "Monitoring & Evaluation Analyst",
             isPrimary: true,
           },
         ],
@@ -1187,7 +1187,7 @@ describe("ManageContactsDialog", () => {
               email: "alice.williams@example.com",
               personType: "demos-cms-user",
             },
-            role: "DDME Analyst",
+            role: "Monitoring & Evaluation Analyst",
             isPrimary: false,
           },
         ],
@@ -1196,8 +1196,8 @@ describe("ManageContactsDialog", () => {
 
       renderWithProviders(propsWithContacts, mocks);
 
-      // Change Alice from DDME Analyst to Policy Technical Director (a valid change that doesn't violate Project Officer rule)
-      const aliceSelect = screen.getByDisplayValue("DDME Analyst");
+      // Change Alice from Monitoring & Evaluation Analyst to Policy Technical Director (a valid change that doesn't violate Project Officer rule)
+      const aliceSelect = screen.getByDisplayValue("Monitoring & Evaluation Analyst");
       fireEvent.change(aliceSelect, { target: { value: "Policy Technical Director" } });
 
       // Save button should be enabled after making a valid change
@@ -1288,7 +1288,7 @@ describe("ManageContactsDialog", () => {
                 email: "person-one@example.com",
                 personType: "demos-cms-user",
               },
-              role: "DDME Analyst",
+              role: "Monitoring & Evaluation Analyst",
               isPrimary: true,
             },
             {
@@ -1299,7 +1299,7 @@ describe("ManageContactsDialog", () => {
                 email: "person-two@example.com",
                 personType: "demos-cms-user",
               },
-              role: "DDME Analyst",
+              role: "Monitoring & Evaluation Analyst",
               isPrimary: false,
             },
           ],
@@ -1334,7 +1334,7 @@ describe("ManageContactsDialog", () => {
                 email: "person-two@example.com",
                 personType: "demos-cms-user",
               },
-              role: "DDME Analyst",
+              role: "Monitoring & Evaluation Analyst",
               isPrimary: true,
             },
             {
@@ -1345,7 +1345,7 @@ describe("ManageContactsDialog", () => {
                 email: "person-three@example.com",
                 personType: "demos-cms-user",
               },
-              role: "DDME Analyst",
+              role: "Monitoring & Evaluation Analyst",
               isPrimary: true,
             },
           ],
@@ -1511,7 +1511,7 @@ describe("ManageContactsDialog", () => {
               email: "zoe@example.com",
               personType: "demos-cms-user",
             },
-            role: "DDME Analyst",
+            role: "Monitoring & Evaluation Analyst",
             isPrimary: true,
           },
           {

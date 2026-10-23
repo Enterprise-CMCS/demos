@@ -109,7 +109,7 @@ export const CHIP_DEMONSTRATION_TYPE_TAG_NAME =
 export const ROLES = [
   "Project Officer",
   "State Point of Contact",
-  "DDME Analyst",
+  "Monitoring & Evaluation Analyst",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
   "Viewer",
@@ -123,7 +123,7 @@ export const ADMIN_DEMONSTRATION_ROLES = ROLES;
 
 export const CMS_USER_DEMONSTRATION_ROLES = [
   "Project Officer",
-  "DDME Analyst",
+  "Monitoring & Evaluation Analyst",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
   "Viewer",
