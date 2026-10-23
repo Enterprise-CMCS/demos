@@ -846,10 +846,32 @@ describe("checkInputDateFunctions", () => {
   });
 
   describe("checkInputDateMeetsFlexibleOffset", () => {
-    it("should not throw when the offset is adjusted for holidays or weekends", () => {
+    const passingCases: {
+      name: string;
+      offsetDays: number;
+      after: string;
+    }[] = [
+      {
+        name: "should not throw when the offset is adjusted for holidays or weekends",
+        offsetDays: 2, // Falls on Jan 1, 2027, a federal holiday
+        after: "2026-12-31T23:59:59.999-05:00",
+      },
+      {
+        name: "should adjust the offset for multiple days if needed",
+        offsetDays: 4, // Falls on Jan 3, 2027, a Sunday
+        after: "2026-12-31T23:59:59.999-05:00",
+      },
+      {
+        name: "should not throw if given a range that does not need adjusting",
+        offsetDays: 6, // Falls on Jan 5, 2027, a Tuesday
+        after: "2027-01-05T23:59:59.999-05:00",
+      },
+    ];
+
+    it.each(passingCases)("$name", ({ offsetDays, after }) => {
       const testValues: TestOffsetValues = {
         offset: {
-          days: 2, // Falls on Jan 1, 2027, a federal holiday
+          days: offsetDays,
           expectedTimestamp: "End of Day",
         },
         before: {
@@ -857,39 +879,7 @@ describe("checkInputDateFunctions", () => {
           isEasternTZDate: true,
         },
         after: {
-          easternTZDate: new TZDate("2026-12-31T23:59:59.999-05:00", "America/New_York"),
-          isEasternTZDate: true,
-        },
-      };
-      const testInputDateType: DateType = "Completeness Review Due Date";
-      const testTargetDateType: DateType = "State Application Submitted Date";
-      const testApplicationDateMap: ApplicationDateMap = new Map([
-        [testInputDateType, testValues.after],
-        [testTargetDateType, testValues.before],
-      ]);
-
-      expect(() =>
-        checkInputDateMeetsFlexibleOffset(
-          testApplicationDateMap,
-          testInputDateType,
-          testTargetDateType,
-          testValues.offset
-        )
-      ).not.toThrow();
-    });
-
-    it("should adjust the offset for multiple days if needed", () => {
-      const testValues: TestOffsetValues = {
-        offset: {
-          days: 4, // Falls on Jan 3, 2027, a Sunday
-          expectedTimestamp: "End of Day",
-        },
-        before: {
-          easternTZDate: new TZDate("2026-12-30T00:00:00.000-05:00", "America/New_York"),
-          isEasternTZDate: true,
-        },
-        after: {
-          easternTZDate: new TZDate("2026-12-31T23:59:59.999-05:00", "America/New_York"),
+          easternTZDate: new TZDate(after, "America/New_York"),
           isEasternTZDate: true,
         },
       };
@@ -994,7 +984,7 @@ describe("checkInputDateFunctions", () => {
           isEasternTZDate: true,
         },
         after: {
-          easternTZDate: new TZDate("2027-01-01T23:59:59.999-05:00", "America/New_York"),
+          easternTZDate: new TZDate("2026-12-31T23:59:59.999-05:00", "America/New_York"),
           isEasternTZDate: true,
         },
       };
@@ -1019,18 +1009,18 @@ describe("checkInputDateFunctions", () => {
       ).toThrow(expectedError);
     });
 
-    it("should not throw if given a range that does not need adjusting", () => {
+    it("should throw if the expected timestamp does not match", () => {
       const testValues: TestOffsetValues = {
         offset: {
-          days: 6, // Jan 5, 2027
-          expectedTimestamp: "End of Day",
+          days: 2,
+          expectedTimestamp: "Start of Day",
         },
         before: {
           easternTZDate: new TZDate("2026-12-30T00:00:00.000-05:00", "America/New_York"),
           isEasternTZDate: true,
         },
         after: {
-          easternTZDate: new TZDate("2027-01-05T23:59:59.999-05:00", "America/New_York"),
+          easternTZDate: new TZDate("2026-12-31T23:59:59.999-05:00", "America/New_York"),
           isEasternTZDate: true,
         },
       };
@@ -1040,6 +1030,9 @@ describe("checkInputDateFunctions", () => {
         [testInputDateType, testValues.after],
         [testTargetDateType, testValues.before],
       ]);
+      const expectedError =
+        `The input ${testInputDateType} must be a start of day date (midnight in Eastern time), but it is ` +
+        `${testValues.after.easternTZDate.toISOString()}.`;
 
       expect(() =>
         checkInputDateMeetsFlexibleOffset(
@@ -1048,7 +1041,7 @@ describe("checkInputDateFunctions", () => {
           testTargetDateType,
           testValues.offset
         )
-      ).not.toThrow();
+      ).toThrow(expectedError);
     });
   });
 });

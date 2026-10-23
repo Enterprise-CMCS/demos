@@ -42,7 +42,7 @@ export function checkInputDateIsStartOfDay(
   if (!isStartOfDay) {
     throw new GraphQLError(
       `The input ${dateType} must be a start of day date ` +
-        `(midnight in Eastern time), but it is ${dateValue.easternTZDate.toISOString()}`,
+        `(midnight in Eastern time), but it is ${dateValue.easternTZDate.toISOString()}.`,
       {
         extensions: {
           code: "INVALID_START_OF_DAY_INPUT_DATETIME",
