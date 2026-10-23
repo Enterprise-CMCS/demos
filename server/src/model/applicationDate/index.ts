@@ -7,6 +7,8 @@ export {
   checkInputDateGreaterThan,
   checkInputDateGreaterThanOrEqual,
   checkInputDateMeetsOffset,
+  checkInputDateNotHoliday,
+  checkInputDateNotWeekend,
 } from "./checkInputDateFunctions.js";
 export { mergeApplicationDates } from "./mergeApplicationDates.js";
 export { parseAndValidateEffectiveAndExpirationDates } from "./parseAndValidateEffectiveAndExpirationDates.js";

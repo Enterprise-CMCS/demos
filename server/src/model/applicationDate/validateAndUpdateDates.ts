@@ -11,6 +11,7 @@ import {
   validateAllowedDateChangeByPhase,
   validateAllowedDateChangeForApplication,
 } from ".";
+import { __DEMOS_VERSION__ } from "../../flags/currentDemosVersion.js";
 
 export async function validateAndUpdateDates(
   setApplicationDateInput: SetApplicationDatesInput,
@@ -28,7 +29,7 @@ export async function validateAndUpdateDates(
     parsedSetApplicationDatesInput.applicationDatesToUpsert,
     parsedSetApplicationDatesInput.applicationDatesToDelete
   );
-  validateInputDates(updatedApplicationDates);
+  validateInputDates(updatedApplicationDates, __DEMOS_VERSION__);
   await upsertApplicationDates(parsedSetApplicationDatesInput, tx);
   await deleteApplicationDates(parsedSetApplicationDatesInput, tx);
 }
