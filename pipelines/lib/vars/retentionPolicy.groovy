@@ -8,6 +8,10 @@ def call(String branchName, Map config = [:]) {
     additionalLongRetentionBranches: []
   ]
 
+  if (config.usePathSuffix) {
+    branchName = branchName.tokenize("/").last()
+  }
+
   config = defaults + config
   config.longRetentionBranches.addAll(config.additionalLongRetentionBranches)
 
