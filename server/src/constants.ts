@@ -1,3 +1,5 @@
+import { TZDate } from "@date-fns/tz";
+
 export const CLEARANCE_LEVELS = ["COMMs", "CMS (OSORA)"] as const;
 
 export const APPLICATION_STATUS = [
@@ -271,6 +273,7 @@ export const REVIEW_PHASE_DATE_TYPES = [
   "Draft Approval Package Shared",
   "Receive OMB Concurrence",
   "Receive OGC Legal Clearance",
+  "OACT Certification Date",
   ...CMS_OSORA_CLEARANCE_DATE_TYPES,
   ...COMMS_CLEARANCE_DATE_TYPES,
 ] as const;
@@ -306,7 +309,6 @@ export const DATE_TYPES = [
   "Approval Summary Start Date",
   "Approval Summary Completion Date",
   "Application Approval Date",
-  "OACT Certification Date",
 ] as const;
 export type DateType = (typeof DATE_TYPES)[number];
 
@@ -648,3 +650,5 @@ export const FEDERAL_HOLIDAYS = [
   "2030-11-28",
   "2030-12-25",
 ];
+
+export const START_OF_2027_EASTERN = new TZDate(2027, 0, 1, 0, 0, 0, 0, "America/New_York");
