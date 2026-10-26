@@ -138,6 +138,8 @@ export const AutoCompleteMultiselect = ({
           required={isRequired && selected.length === 0}
           disabled={isDisabled}
           className={INPUT_CLASSES}
+          data-form-type="other"
+          autoComplete="off"
         />
         <div className="pointer-events-none absolute inset-y-0 inset-e-0 pr-1 flex items-center">
           <ChevronDownIcon className={ICON_CLASSES} />
