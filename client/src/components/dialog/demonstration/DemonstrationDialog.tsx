@@ -18,6 +18,8 @@ import { Spinner } from "components/loading/Spinner";
 
 export const DEMONSTRATION_DIALOG_DESCRIPTION_NAME = "textarea-demonstration-description";
 export const SUBMIT_BUTTON_NAME = "button-submit-demonstration-dialog";
+export const EDIT_DEMONSTRATION_DIALOG_TEST_ID = "dialog-edit-demonstration";
+export const CREATE_DEMONSTRATION_DIALOG_TEST_ID = "dialog-create-demonstration";
 export const DEFAULT_DEMONSTRATION_SIGNATURE_LEVEL = "OA" as SignatureLevel;
 
 export type DemonstrationDialogMode = "create" | "edit";
@@ -178,6 +180,9 @@ export const DemonstrationDialog: React.FC<{
 
   return (
     <BaseDialog
+      name={
+        mode === "edit" ? EDIT_DEMONSTRATION_DIALOG_TEST_ID : CREATE_DEMONSTRATION_DIALOG_TEST_ID
+      }
       title={mode === "edit" ? "Edit Demonstration" : "New Demonstration"}
       onClose={onClose}
       maxWidthClass="max-w-[920px]"

@@ -57,6 +57,7 @@ export const DemonstrationTypesSection = ({
 
       <TypesTable
         demonstration={demonstration}
+        applicationSection="ApplicationWorkflow"
         inputDisabled={isComplete || isDemonstrationApproved}
         hideSearch={true}
       />

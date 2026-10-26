@@ -137,7 +137,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
               </IconButton>
             )}
           </TabHeader>
-          <TypesTable demonstration={demonstration} />
+          <TypesTable demonstration={demonstration} applicationSection="DemonstrationDetail" />
         </Tab>
         <Tab
           icon={<OpenFolderIcon />}
