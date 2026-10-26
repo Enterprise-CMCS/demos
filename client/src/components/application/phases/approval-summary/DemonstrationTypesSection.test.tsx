@@ -77,7 +77,7 @@ describe("DemonstrationTypesSection", () => {
     expect(screen.getByText("Types")).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Add or Update Demonstration Types with Effective and Expiration Dates below"
+        "Add or Update Demonstration Types with Effective and Expiration Dates below."
       )
     ).toBeInTheDocument();
   });
