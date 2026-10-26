@@ -76,3 +76,8 @@ jobs:
           config.extended_thinking_budget_tokens: "8192"
           config.extended_thinking_max_output_tokens: "12288"
           config.repo_context_files: '["AGENTS.md", "client/AGENTS.md", "server/AGENTS.md", "deployment/AGENTS.md", "data-migration/AGENTS.md"]'
+          pr_reviewer.extra_instructions: |
+            Report only concrete correctness, security, compatibility, or test-coverage
+            problems introduced by this PR. Do not suggest cosmetic refactors, comments,
+            documentation, naming changes, or speculative defensive checks. Before raising
+            a finding, verify that it follows from the supplied diff and repository context.
