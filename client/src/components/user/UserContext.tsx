@@ -22,12 +22,17 @@ export function getCurrentUser() {
 }
 
 // Sections of the app will calculate `isReadonly` different for specific user types.
-export type DemosApplicationSection = "ApplicationWorkflow" | "DemonstrationDetail" | "Homepage";
+export type DemosApplicationSection =
+  "ApplicationWorkflow" | "DemonstrationDetail" | "Homepage" | "DeliverableManagement";
+
+/**
+ * Determines if a section of the application should be readonly for the current user.
+ */
 export function isReadonly(
   currentUser: CurrentUser,
   applicationSection?: DemosApplicationSection
 ): boolean {
-  // demos-restricted-cms-user is always readonly
+  // demos-restricted-cms-user is readonly across the entire application
   if (currentUser.person.personType === "demos-restricted-cms-user") {
     return true;
   }
@@ -40,10 +45,28 @@ export function isReadonly(
     return true;
   }
 
-  // demos-oact-user is readonly in demonstration detail section
+  // demos-oact-user is readonly in the homepage & demonstration detail sections
   if (
     currentUser.person.personType === "demos-oact-user" &&
-    applicationSection === "DemonstrationDetail"
+    (applicationSection === "Homepage" || applicationSection === "DemonstrationDetail")
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Determines if a section of the application should be hidden for the current user.
+ */
+export function isHidden(
+  currentUser: CurrentUser,
+  applicationSection: DemosApplicationSection
+): boolean {
+  // demos-oact-user cannot access deliverables
+  if (
+    currentUser.person.personType === "demos-oact-user" &&
+    applicationSection === "DeliverableManagement"
   ) {
     return true;
   }

@@ -31,6 +31,7 @@ const DEMONSTRATION_ACCESS_ROLES: PersonType[] = [
   "demos-cms-user",
   "demos-cms-reviewer-user",
   "demos-restricted-cms-user",
+  "demos-oact-user",
 ];
 
 const HomePage = () => {
