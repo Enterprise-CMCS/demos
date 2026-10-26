@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
-import { formatDateForDisplay, formatDateForServer, getTodayEst } from "util/formatDate";
+import { formatDateForDisplay, getTodayEst } from "util/formatDate";
 import {
   ApplicationStatus,
   DateType,
@@ -93,7 +93,7 @@ export const getDemonstrationApprovalSummaryFormData = (
 ): ApplicationDetailsFormData => {
   const applicationApprovalDate = demonstration.phases
     .find((p) => p.phaseName === "Approval Summary")
-    ?.phaseDates.find((d) => d.dateType === "Application Approval Date")?.dateValue;
+    ?.phaseDates.find((d) => d.dateType === "Application Approval Date")?.plainDate;
 
   const formData = {
     applicationType: "demonstration" as const,
@@ -108,9 +108,7 @@ export const getDemonstrationApprovalSummaryFormData = (
     description: demonstration.description,
     sdgDivision: demonstration.sdgDivision,
     signatureLevel: demonstration.signatureLevel,
-    applicationApprovalDate: applicationApprovalDate
-      ? (formatDateForServer(applicationApprovalDate) as LocalDate)
-      : undefined,
+    applicationApprovalDate: (applicationApprovalDate as LocalDate) ?? undefined,
   };
 
   return {
@@ -135,7 +133,7 @@ export const getModificationApprovalSummaryFormData = (
 ): ApplicationDetailsFormData => {
   const applicationApprovalDate = modification.phases
     .find((p) => p.phaseName === "Approval Summary")
-    ?.phaseDates.find((d) => d.dateType === "Application Approval Date")?.dateValue;
+    ?.phaseDates.find((d) => d.dateType === "Application Approval Date")?.plainDate;
 
   const formData = {
     applicationType: modificationType,
@@ -144,9 +142,7 @@ export const getModificationApprovalSummaryFormData = (
     description: modification.description,
     signatureLevel: modification.signatureLevel,
     status: modification.status,
-    applicationApprovalDate: applicationApprovalDate
-      ? (formatDateForServer(applicationApprovalDate) as LocalDate)
-      : undefined,
+    applicationApprovalDate: (applicationApprovalDate as LocalDate) ?? undefined,
   };
 
   return {
@@ -184,7 +180,7 @@ export const getApprovalSummaryPhaseFromApplication = (
   );
   const demonstrationTypeCompletionDate = approvalSummaryPhase?.phaseDates.find(
     (d) => d.dateType === "Application Demonstration Types Marked Complete Date"
-  )?.dateValue;
+  )?.plainDate;
 
   const allPreviousPhasesDone = application.phases
     .filter((p) => p.phaseName !== "Concept" && p.phaseName !== "Approval Summary")
@@ -233,9 +229,9 @@ export const ApprovalSummaryPhase = ({
   initialTypes: DemonstrationDetailDemonstrationType[];
   approvalSummaryPhase?: {
     phaseStatus: string;
-    phaseDates: Array<{ dateType: string; dateValue: string | Date }>;
+    phaseDates: Array<{ dateType: string; plainDate: string }>;
   };
-  demonstrationTypeCompletionDate?: Date;
+  demonstrationTypeCompletionDate?: string;
   allPreviousPhasesDone: boolean;
   demonstrationStatus: ApplicationStatus;
 }) => {
@@ -253,7 +249,7 @@ export const ApprovalSummaryPhase = ({
   // Find Application Details completion date from phase dates
   const applicationDetailsCompleteDate = approvalSummaryPhase?.phaseDates?.find(
     (date) => date.dateType === "Application Details Marked Complete Date"
-  )?.dateValue;
+  )?.plainDate;
 
   // Initialize completion status from backend date data
   const [isApplicationDetailsComplete, setIsApplicationDetailsComplete] = useState(
@@ -266,24 +262,16 @@ export const ApprovalSummaryPhase = ({
   // Initialize completion date from backend if available
   const [applicationDetailsCompletionDate, setApplicationDetailsCompletionDate] = useState<
     string | undefined
-  >(
-    applicationDetailsCompleteDate
-      ? formatDateForDisplay(applicationDetailsCompleteDate)
-      : undefined
-  );
+  >(applicationDetailsCompleteDate);
 
   // Find Approval Summary phase completion date (if backend has stored it)
-  const approvalSummaryCompletionDateValue = approvalSummaryPhase?.phaseDates?.find(
+  const approvalSummaryCompletionPlainDate = approvalSummaryPhase?.phaseDates?.find(
     (date) => date.dateType === "Approval Summary Completion Date"
-  )?.dateValue;
+  )?.plainDate;
 
   const [approvalSummaryCompletionDate, setApprovalSummaryCompletionDate] = useState<
     string | undefined
-  >(
-    approvalSummaryCompletionDateValue
-      ? formatDateForDisplay(approvalSummaryCompletionDateValue)
-      : undefined
-  );
+  >(approvalSummaryCompletionPlainDate);
 
   const [updateDemonstrationTrigger] = useMutation(UPDATE_DEMONSTRATION_MUTATION);
   const [updateAmendmentTrigger] = useMutation(UPDATE_AMENDMENT_MUTATION);

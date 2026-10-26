@@ -433,7 +433,7 @@ describe("ApprovalSummaryPhase", () => {
             phaseDates: [
               {
                 dateType: "Application Details Marked Complete Date",
-                dateValue: new Date("2025-01-01"),
+                plainDate: "2025-01-01",
               },
             ],
           }}
@@ -468,7 +468,7 @@ describe("ApprovalSummaryPhase", () => {
             phaseDates: [
               {
                 dateType: "Application Details Marked Complete Date",
-                dateValue: new Date("2025-01-01"),
+                plainDate: "2025-01-01",
               },
             ],
           }}

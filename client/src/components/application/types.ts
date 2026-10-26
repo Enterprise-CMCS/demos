@@ -21,7 +21,7 @@ export type ApplicationWorkflowDocument = Pick<
 export type SimplePhase = {
   phaseName: PhaseName;
   phaseStatus: PhaseStatus;
-  phaseDates: Pick<ApplicationDate, "dateType" | "dateValue" | "plainDate">[];
+  phaseDates: Pick<ApplicationDate, "dateType" | "plainDate">[];
   phaseNotes: Pick<ApplicationNote, "noteType" | "content">[];
 };
 

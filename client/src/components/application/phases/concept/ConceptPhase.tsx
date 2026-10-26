@@ -74,15 +74,13 @@ export const getConceptPhaseComponentFromApplication = (
 
   const presubmissionSubmittedDate = conceptPhase.phaseDates.find(
     (date) => date.dateType === "Concept Paper Submitted Date"
-  )?.dateValue;
+  )?.plainDate;
 
   return (
     <ConceptPhase
       applicationId={application.id}
       documents={conceptPhaseDocuments}
-      initialPresubmissionSubmittedDate={
-        presubmissionSubmittedDate ? formatDateForServer(presubmissionSubmittedDate) : undefined
-      }
+      initialPresubmissionSubmittedDate={presubmissionSubmittedDate}
       setSelectedPhase={setSelectedPhase}
       phaseStatus={conceptPhase.phaseStatus}
     />
