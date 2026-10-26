@@ -49,8 +49,8 @@ const overviewFields: readonly ReportField[] = [
   overviewField("primary_project_officer", "primary_project_officer.full_name"),
   overviewField("project_officers", "coalesce(project_officers.people_assigned, '-')"),
   overviewField("primary_policy_tech_director", "coalesce(primary_policy_tech_director.full_name, '-')"),
-  overviewField("primary_ddme_analyst", "coalesce(primary_ddme_analyst.full_name, '-')"),
-  overviewField("ddme_analysts", "coalesce(ddme_analysts.people_assigned, '-')"),
+  overviewField("primary_monitoring_and_evaluation_analyst", "coalesce(primary_monitoring_and_evaluation_analyst.full_name, '-')"),
+  overviewField("monitoring_and_evaluation_analysts", "coalesce(monitoring_and_evaluation_analysts.people_assigned, '-')"),
   overviewField("primary_state_poc", "coalesce(primary_state_poc.full_name, '-')"),
   overviewField("state_pocs", "coalesce(state_pocs.people_assigned, '-')"),
   overviewField("primary_monitoring_evaluation_tech_director", "coalesce(primary_monitoring_evaluation_tech_director.full_name, '-')"),
@@ -138,7 +138,7 @@ const deliverableFields: readonly ReportField[] = [
   deliverableField("effective_date", "to_char(demo.effective_date AT TIME ZONE 'America/New_York', 'MM/DD/YYYY')"),
   deliverableField("expiration_date", "to_char(demo.expiration_date AT TIME ZONE 'America/New_York', 'MM/DD/YYYY')"),
   deliverableField("primary_project_officer", "primary_project_officer.full_name"),
-  deliverableField("ddme_analyst", "coalesce(primary_ddme_analyst.full_name, '-')"),
+  deliverableField("monitoring_and_evaluation_analyst", "coalesce(primary_monitoring_and_evaluation_analyst.full_name, '-')"),
   deliverableField("deliverable_type", "deliv.deliverable_type_id"),
   deliverableField("deliverable_name", "deliv.name"),
   deliverableField("demonstration_types", "coalesce(demo_types.demonstration_types, '-')"),
@@ -246,11 +246,11 @@ ${projection(overviewFields)}
     LEFT JOIN role_assignments AS primary_policy_tech_director
         ON demo.id = primary_policy_tech_director.demonstration_id
         AND primary_policy_tech_director.role_id = 'Policy Technical Director' AND primary_policy_tech_director.is_primary
-    LEFT JOIN role_assignments AS primary_ddme_analyst
-        ON demo.id = primary_ddme_analyst.demonstration_id
-        AND primary_ddme_analyst.role_id = 'DDME Analyst' AND primary_ddme_analyst.is_primary
-    LEFT JOIN flattened_role_assignments AS ddme_analysts
-        ON demo.id = ddme_analysts.demonstration_id AND ddme_analysts.role_id = 'DDME Analyst'
+    LEFT JOIN role_assignments AS primary_monitoring_and_evaluation_analyst
+        ON demo.id = primary_monitoring_and_evaluation_analyst.demonstration_id
+        AND primary_monitoring_and_evaluation_analyst.role_id = 'Monitoring & Evaluation Analyst' AND primary_monitoring_and_evaluation_analyst.is_primary
+    LEFT JOIN flattened_role_assignments AS monitoring_and_evaluation_analysts
+        ON demo.id = monitoring_and_evaluation_analysts.demonstration_id AND monitoring_and_evaluation_analysts.role_id = 'Monitoring & Evaluation Analyst'
     LEFT JOIN role_assignments AS primary_state_poc
         ON demo.id = primary_state_poc.demonstration_id
         AND primary_state_poc.role_id = 'State Point of Contact' AND primary_state_poc.is_primary
@@ -429,9 +429,9 @@ deliverable_details AS (
     INNER JOIN primary_roles AS primary_project_officer
         ON deliv.demonstration_id = primary_project_officer.demonstration_id
         AND primary_project_officer.role_id = 'Project Officer'
-    LEFT JOIN primary_roles AS primary_ddme_analyst
-        ON deliv.demonstration_id = primary_ddme_analyst.demonstration_id
-        AND primary_ddme_analyst.role_id = 'DDME Analyst'
+    LEFT JOIN primary_roles AS primary_monitoring_and_evaluation_analyst
+        ON deliv.demonstration_id = primary_monitoring_and_evaluation_analyst.demonstration_id
+        AND primary_monitoring_and_evaluation_analyst.role_id = 'Monitoring & Evaluation Analyst'
     LEFT JOIN flat_demonstration_types AS demo_types ON deliv.id = demo_types.deliverable_id
     INNER JOIN demos_app.person AS cms_owner ON deliv.cms_owner_user_id = cms_owner.id
     INNER JOIN action_statistics AS act_stats ON deliv.id = act_stats.deliverable_id

@@ -110,7 +110,7 @@ export const ROLES = [
   "Project Officer",
   "CMCS Other Point of Contact",
   "State Point of Contact",
-  "DDME Analyst",
+  "Monitoring & Evaluation Analyst",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
   "Viewer",
@@ -124,8 +124,8 @@ export const ADMIN_DEMONSTRATION_ROLES = ROLES;
 
 export const CMS_USER_DEMONSTRATION_ROLES = [
   "Project Officer",
+  "Monitoring & Evaluation Analyst",
   "CMCS Other Point of Contact",
-  "DDME Analyst",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
   "Viewer",
