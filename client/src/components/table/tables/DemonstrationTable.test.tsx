@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { selectFilterByColumn } from "test-utils/columnFilter";
 
 import { DemonstrationTable } from "./DemonstrationTable";
 
@@ -151,8 +152,7 @@ const applyProjectOfficerFilter = async (
   officerName: string
 ) => {
   // Select Project Officer filter from column dropdown
-  const columnSelect = screen.getByTestId("filter-by-column");
-  await user.selectOptions(columnSelect, ["Project Officer"]);
+  await selectFilterByColumn(user, "Project Officer");
 
   // Wait for the project officer filter input to appear
   await waitFor(() => {
@@ -179,8 +179,7 @@ const applyProjectOfficerFilter = async (
 
 const applyStateFilter = async (user: ReturnType<typeof userEvent.setup>, stateName: string) => {
   // Select state filter from column dropdown
-  const columnSelect = screen.getByTestId("filter-by-column");
-  await user.selectOptions(columnSelect, ["stateId"]);
+  await selectFilterByColumn(user, "State/\u200BTerritory");
 
   // Wait for the state filter input to appear
   await waitFor(() => {
@@ -349,8 +348,7 @@ describe("Demonstrations", () => {
       await clearSearchInput(user);
 
       // Open the column filter dropdown and select "State/Territory"
-      const columnSelect = screen.getByTestId("filter-by-column");
-      await user.selectOptions(columnSelect, ["stateId"]);
+      await selectFilterByColumn(user, "State/\u200BTerritory");
 
       // Wait for the state filter input to appear
       await waitFor(() => {
