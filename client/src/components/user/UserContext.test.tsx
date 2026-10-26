@@ -126,6 +126,41 @@ describe("UserContext", () => {
       expect(isReadonly(reviewerUser, "DemonstrationDetail")).toBe(true);
     });
 
+    it("returns true when personType is 'demos-oact-user' in DemonstrationDetail", () => {
+      const oactUser: CurrentUser = {
+        id: "user-oact",
+        username: "oact-user",
+        person: {
+          id: "person-oact",
+          personType: "demos-oact-user",
+          fullName: "OACT User",
+          firstName: "OACT",
+          lastName: "User",
+          email: "oact@example.com",
+        },
+      };
+
+      expect(isReadonly(oactUser, "DemonstrationDetail")).toBe(true);
+    });
+
+    it("returns false when personType is 'demos-oact-user' in other sections", () => {
+      const oactUser: CurrentUser = {
+        id: "user-oact",
+        username: "oact-user",
+        person: {
+          id: "person-oact",
+          personType: "demos-oact-user",
+          fullName: "OACT User",
+          firstName: "OACT",
+          lastName: "User",
+          email: "oact@example.com",
+        },
+      };
+
+      expect(isReadonly(oactUser, "ApplicationWorkflow")).toBe(false);
+      expect(isReadonly(oactUser, "Homepage")).toBe(false);
+    });
+
     it("returns false for other user types in ApplicationWorkflow section", () => {
       const adminUser: CurrentUser = {
         id: "user-7",

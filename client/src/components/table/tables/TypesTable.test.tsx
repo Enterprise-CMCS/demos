@@ -69,7 +69,7 @@ const renderTypesTable = (
         result: { data: { demonstrations: [MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION] } },
       }))}
     >
-      <TypesTable demonstration={MOCK_DEMONSTRATION} {...props} />
+      <TypesTable demonstration={MOCK_DEMONSTRATION} applicationSection="ApplicationWorkflow" {...props} />
       <ToastContainer />
     </TestProvider>
   );
@@ -235,7 +235,11 @@ describe("TypesTable", () => {
   it("does not render keyword search when hideSearch is true", () => {
     render(
       <TestProvider currentUser={cmsMockUser}>
-        <TypesTable demonstration={MOCK_DEMONSTRATION} hideSearch />
+        <TypesTable
+          demonstration={MOCK_DEMONSTRATION}
+          applicationSection="ApplicationWorkflow"
+          hideSearch
+        />
       </TestProvider>
     );
     expect(screen.queryByTestId("input-keyword-search")).not.toBeInTheDocument();
@@ -298,7 +302,10 @@ describe("TypesTable", () => {
     it("disables delete when a selected demonstration type is linked to a deliverable", async () => {
       render(
         <TestProvider currentUser={cmsMockUser}>
-          <TypesTable demonstration={MOCK_DEMONSTRATION_WITH_DELIVERABLE} />
+          <TypesTable
+            demonstration={MOCK_DEMONSTRATION_WITH_DELIVERABLE}
+            applicationSection="ApplicationWorkflow"
+          />
         </TestProvider>
       );
 
