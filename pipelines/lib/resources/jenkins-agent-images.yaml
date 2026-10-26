@@ -1,0 +1,90 @@
+# This pod template is used to support pod template creation though the podSpec
+# library function
+#
+# The containers listed here are not automatically included in the final pod
+# spec, they are used to configure presets and a final pod spec is created based
+# on selections made in the pipelines. This file is only formatted as a valid
+# pod spec so that dependabot can manage version updates
+apiVersion: v1
+kind: Pod
+metadata:
+  name: demos-jenkins-agent
+  labels:
+    jenkins: "agent"
+spec:
+  nodeSelector:
+    node-pool: "agent"
+  restartPolicy: Never
+  serviceAccountName: jenkins-role
+  containers:
+    - name: node
+      image: node:24.22.0-alpine
+      command: 
+        - cat
+      tty: true
+      resources:
+        requests:
+          cpu: 750m
+          memory: 1Gi
+          ephemeral-storage: 2Gi
+        limits:
+          cpu: 1500m
+          memory: 2Gi
+          ephemeral-storage: 10Gi
+    - name: aws-cli
+      image: amazon/aws-cli:2.38.4
+      command:
+        - sleep
+        - '99999'
+      tty: true
+      resources:
+        requests:
+          cpu: 200m
+          memory: 256Mi
+          ephemeral-storage: "1Gi"
+        limits:
+          cpu: 400m
+          memory: 512Mi
+          ephemeral-storage: "5Gi"
+    - name: snyk
+      image: snyk/snyk:alpine # snyk doesn't publish versions
+      command:
+      - cat
+      tty: true
+      resources:
+        requests:
+          cpu: 500m
+          memory: 1Gi
+          ephemeral-storage: "1Gi"
+        limits:
+          cpu: 2000m
+          memory: 2Gi
+          ephemeral-storage: "5Gi"
+    - name: zap
+      image: zaproxy/zap-stable:20260807
+      command:
+      - cat
+      tty: true
+      resources:
+        requests:
+          cpu: 1500m
+          memory: 2Gi
+          ephemeral-storage: "1Gi"
+        limits:
+          cpu: 3000m
+          memory: 4Gi
+          ephemeral-storage: "5Gi"
+    - name: checkov
+      image: bridgecrew/checkov:3.3.29
+      command:
+      - cat
+      tty: true
+      resources:
+        requests:
+          cpu: 500m
+          memory: 256Mi
+          ephemeral-storage: "1Gi"
+        limits:
+          cpu: 2000m
+          memory: 2Gi
+          ephemeral-storage: "5Gi"
