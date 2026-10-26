@@ -210,6 +210,7 @@ export const DOCUMENT_TYPES = [
   "State Application",
   "Summative Evaluation Report",
   "Transition Plan",
+  "OACT Certification Memo",
 ] as const;
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 
@@ -305,6 +306,7 @@ export const DATE_TYPES = [
   "Approval Summary Start Date",
   "Approval Summary Completion Date",
   "Application Approval Date",
+  "OACT Certification Date",
 ] as const;
 export type DateType = (typeof DATE_TYPES)[number];
 
@@ -357,6 +359,7 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "Approval Summary Start Date": { expectedTimestamp: "Start of Day" },
   "Approval Summary Completion Date": { expectedTimestamp: "Start of Day" },
   "Application Approval Date": { expectedTimestamp: "Start of Day" },
+  "OACT Certification Date": { expectedTimestamp: "Start of Day" },
 } as const;
 
 export const STATES_AND_TERRITORIES = [
