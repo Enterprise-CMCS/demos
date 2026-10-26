@@ -39,6 +39,7 @@ type DeliverableStatusReportColumn =
   | "deliverable_status"
   | "last_deliverable_action"
   | "last_deliverable_action_date"
+  | "finalization_date"
   | "updated_post_acceptance"
   | "deliverable_reviewer"
   | "deliverable_review_date"
@@ -73,6 +74,7 @@ const deliverableStatusReportSchema = z
     deliverable_status: z.enum(DELIVERABLE_STATUSES),
     last_deliverable_action: z.enum(DELIVERABLE_ACTION_TYPES),
     last_deliverable_action_date: usDateString,
+    finalization_date: usDateStringOrDash,
     updated_post_acceptance: z.enum(["Yes", "No"]),
     deliverable_reviewer: z.string(),
     deliverable_review_date: usDateStringOrDash,
@@ -108,6 +110,7 @@ const deliverableStatusReportColumnHeaders = {
   deliverable_status: { columnName: "Deliverable Status" },
   last_deliverable_action: { columnName: "Last Deliverable Action" },
   last_deliverable_action_date: { columnName: "Last Deliverable Action Date" },
+  finalization_date: { columnName: "Finalization Date" },
   updated_post_acceptance: { columnName: "Updated Post Acceptance" },
   deliverable_reviewer: { columnName: "Deliverable Reviewer" },
   deliverable_review_date: { columnName: "Deliverable Review Date" },
