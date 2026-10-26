@@ -15,8 +15,6 @@ export interface Option {
   value: string;
 }
 
-// Finds the next option whose label starts with the typed character, wrapping around
-// like a native <select> does
 const findIndexByFirstChar = (options: Option[], char: string, startIndex: number) => {
   char = char.toLowerCase();
   for (let offset = 1; offset <= options.length; offset++) {
@@ -55,7 +53,6 @@ export const Select = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const activeOptionRef = useRef<HTMLLIElement>(null);
 
-  // The placeholder stays the first option so users can clear their choice
   const allOptions: Option[] = [{ label: placeholder, value: "" }, ...options];
   const selectedIndex = allOptions.findIndex((opt) => opt.value === (value ?? ""));
   const selectedOption = allOptions[Math.max(selectedIndex, 0)];

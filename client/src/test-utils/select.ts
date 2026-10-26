@@ -3,7 +3,6 @@ import { UserEvent } from "@testing-library/user-event";
 
 type ClickUser = Pick<UserEvent, "click">;
 
-// Finds a select by the label of its chosen option, like getByDisplayValue does for a native <select>
 export const querySelectByDisplayValue = (label: string) =>
   screen.queryAllByRole("combobox").find((select) => select.textContent === label) ?? null;
 
@@ -15,8 +14,6 @@ export const getSelectByDisplayValue = (label: string) => {
   return select;
 };
 
-// The shared <Select> renders a custom listbox instead of a native <select>, so tests open it
-// and click an option rather than calling user.selectOptions
 export const openSelect = async (user: ClickUser, select: HTMLElement) => {
   if (select.getAttribute("aria-expanded") !== "true") {
     await user.click(select);
@@ -29,7 +26,6 @@ export const openSelect = async (user: ClickUser, select: HTMLElement) => {
   return listbox;
 };
 
-// Matches an option by its visible label or its value, like user.selectOptions does
 export const selectOption = async (
   user: ClickUser,
   select: HTMLElement,
