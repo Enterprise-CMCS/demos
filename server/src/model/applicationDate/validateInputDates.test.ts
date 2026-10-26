@@ -264,6 +264,7 @@ describe("validateInputDates", () => {
 
     describe("before 1.3.0", () => {
       const currentVersion = "1.2.0";
+
       it("should run checkInputDateMeetsOffset on dates with that check", () => {
         const offsetCheckTypes: [DateType, DateType, DateOffset][] = [
           [
@@ -367,6 +368,7 @@ describe("validateInputDates", () => {
 
     describe("from 1.3.0", () => {
       const currentVersion = "1.3.0";
+
       it("should run checkInputDateMeetsOffset on dates with that check", () => {
         validateInputDates(testInput, new SemVer(currentVersion));
         expect(checkInputDateMeetsOffset).not.toHaveBeenCalled();

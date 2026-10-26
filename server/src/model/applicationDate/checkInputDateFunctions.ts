@@ -266,7 +266,7 @@ export function checkInputDateMeetsFlexibleOffset(
     // The most we should ever need to correct is three steps:
     //   Monday Federal Holiday, Sunday, Saturday
     //   Sunday, Saturday, Friday Federal Holiday
-    for (const _i of [0, 1, 2]) {
+    for (let i = 0; i < 3; i++) {
       // Break as soon as offset lands on a day that is not a weekend or holiday
       if (!isHoliday(correctedOffsetDateValue) && !isWeekend(correctedOffsetDateValue)) {
         break;
