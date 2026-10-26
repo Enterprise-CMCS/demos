@@ -178,6 +178,7 @@ export const DemonstrationDialog: React.FC<{
 
   return (
     <BaseDialog
+      name={mode === "edit" ? "dialog-edit-demonstration" : "dialog-create-demonstration"}
       title={mode === "edit" ? "Edit Demonstration" : "New Demonstration"}
       onClose={onClose}
       maxWidthClass="max-w-[920px]"

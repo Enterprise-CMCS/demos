@@ -97,7 +97,7 @@ export const SummaryDetailsTable: React.FC<{ demonstrationId: string }> = ({ dem
   const displayData = prepareDisplayData(demonstration);
 
   return (
-    <div className="grid grid-cols-4 gap-y-2 gap-x-8">
+    <div className="grid grid-cols-4 gap-y-2 gap-x-8" data-testid="summary-details-table">
       <div
         className={`col-span-2 ${FIELD_CONTAINER_CLASSES}`}
         role="group"

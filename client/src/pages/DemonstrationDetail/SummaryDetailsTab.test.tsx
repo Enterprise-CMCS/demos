@@ -1,10 +1,12 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { SummaryDetailsTab } from "./SummaryDetailsTab";
+import { DialogProvider } from "components/dialog/DialogContext";
 import { TestProvider } from "test-utils/TestProvider";
+import { MOCK_DEMONSTRATION_ID } from "mock-data/demonstrationMocks";
 import {
   cmsMockUser,
   cmsReviewerMockUser,
@@ -13,55 +15,21 @@ import {
 } from "mock-data/userMocks";
 
 const EDIT_BUTTON_TEST_ID = "button-edit-details";
-
-const showEditDemonstrationDialog = vi.fn();
-vi.mock("components/dialog/DialogContext", () => ({
-  useDialog: () => ({
-    showEditDemonstrationDialog,
-  }),
-}));
-
-vi.mock("components/table/tables/SummaryDetailsTable", async () => {
-  const actual = await vi.importActual<
-    typeof import("components/table/tables/SummaryDetailsTable")
-  >("components/table/tables/SummaryDetailsTable");
-  return {
-    ...actual,
-    SummaryDetailsTable: ({ demonstrationId }: { demonstrationId: string }) => (
-      <div data-testid="summary-details-table">
-        Summary Details Table for demo: {demonstrationId}
-      </div>
-    ),
-  };
-});
-
-vi.mock("components/dialog", () => ({
-  EditDemonstrationDialog: ({
-    demonstrationId,
-    onClose,
-  }: {
-    demonstrationId: string;
-    onClose: () => void;
-  }) => (
-    <div data-testid="edit-demonstration-dialog">
-      Edit Dialog for demo: {demonstrationId}
-      <button onClick={onClose} data-testid="close-dialog">
-        Close
-      </button>
-    </div>
-  ),
-}));
+const EDIT_DEMONSTRATION_DIALOG_TEST_ID = "dialog-edit-demonstration";
+const SUMMARY_DETAILS_TABLE_TEST_ID = "summary-details-table";
 
 const renderSummaryDetailsTab = (demonstrationId: string, currentUser = cmsMockUser) => {
   render(
     <TestProvider currentUser={currentUser}>
-      <SummaryDetailsTab demonstrationId={demonstrationId} />
+      <DialogProvider>
+        <SummaryDetailsTab demonstrationId={demonstrationId} />
+      </DialogProvider>
     </TestProvider>
   );
 };
 
 describe("SummaryDetailsTab", () => {
-  const mockDemonstrationId = "test-demo-123";
+  const mockDemonstrationId = MOCK_DEMONSTRATION_ID;
 
   describe("Component Rendering", () => {
     it("renders the page header with correct title", () => {
@@ -77,27 +45,23 @@ describe("SummaryDetailsTab", () => {
       expect(editButton).toHaveTextContent("Edit Details");
     });
 
-    it("renders the SummaryDetailsTable with correct demonstrationId", () => {
+    it("renders the SummaryDetailsTable", async () => {
       renderSummaryDetailsTab(mockDemonstrationId);
-      expect(screen.getByTestId("summary-details-table")).toBeInTheDocument();
-      expect(
-        screen.getByText(`Summary Details Table for demo: ${mockDemonstrationId}`)
-      ).toBeInTheDocument();
+      expect(await screen.findByTestId(SUMMARY_DETAILS_TABLE_TEST_ID)).toBeInTheDocument();
     });
 
     it("does not render the edit dialog initially", () => {
       renderSummaryDetailsTab(mockDemonstrationId);
-      expect(screen.queryByTestId("edit-demonstration-dialog")).not.toBeInTheDocument();
+      expect(screen.queryByTestId(EDIT_DEMONSTRATION_DIALOG_TEST_ID)).not.toBeInTheDocument();
     });
   });
 
   describe("Edit Functionality", () => {
-    it("opens modal when edit button is clicked", async () => {
+    it("opens the edit dialog when edit button is clicked", async () => {
       renderSummaryDetailsTab(mockDemonstrationId);
       const user = userEvent.setup();
-      const editButton = screen.getByTestId(EDIT_BUTTON_TEST_ID);
-      await user.click(editButton);
-      expect(showEditDemonstrationDialog).toHaveBeenCalledWith(mockDemonstrationId);
+      await user.click(screen.getByTestId(EDIT_BUTTON_TEST_ID));
+      expect(await screen.findByTestId(EDIT_DEMONSTRATION_DIALOG_TEST_ID)).toBeInTheDocument();
     });
   });
 
