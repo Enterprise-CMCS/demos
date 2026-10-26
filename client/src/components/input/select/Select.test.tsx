@@ -1,8 +1,9 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { Select, Option } from "./Select";
+import { getSelectOptionLabels, selectOption } from "test-utils/select";
 
 const options: Option[] = [
   { label: "Alpha", value: "alpha" },
@@ -11,7 +12,8 @@ const options: Option[] = [
 ];
 
 describe("Select", () => {
-  it("renders label and options", () => {
+  it("renders label and options", async () => {
+    const user = userEvent.setup();
     render(
       <Select
         options={options}
@@ -21,11 +23,36 @@ describe("Select", () => {
         id="test-select"
       />
     );
-    expect(screen.getByLabelText("Test Label")).toBeInTheDocument();
-    expect(screen.getByText("Choose one")).toBeInTheDocument();
-    options.forEach((opt) => {
-      expect(screen.getByText(opt.label)).toBeInTheDocument();
-    });
+    const select = screen.getByLabelText("Test Label");
+    expect(select).toHaveTextContent("Choose one");
+    expect(await getSelectOptionLabels(user, select)).toEqual([
+      "Choose one",
+      "Alpha",
+      "Beta",
+      "Gamma",
+    ]);
+  });
+
+  it("keeps the option list closed until the select is clicked", async () => {
+    const user = userEvent.setup();
+    render(<Select options={options} onSelect={() => {}} id="test-select" />);
+    const select = screen.getByRole("combobox");
+    expect(select).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+
+    await user.click(select);
+    expect(select).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("listbox")).toBeInTheDocument();
+  });
+
+  it("renders the option list below the select instead of over it", async () => {
+    const user = userEvent.setup();
+    render(<Select options={options} onSelect={() => {}} id="test-select" />);
+    const select = screen.getByRole("combobox");
+    await user.click(select);
+    const listbox = screen.getByRole("listbox");
+    expect(select.compareDocumentPosition(listbox) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(listbox).toHaveClass("absolute", "w-full", "mt-0.5");
   });
 
   it("calls onSelect when an option is chosen", async () => {
@@ -39,54 +66,95 @@ describe("Select", () => {
         id="test-select"
       />
     );
-    await user.selectOptions(screen.getByRole("combobox"), "beta");
+    await selectOption(user, screen.getByRole("combobox"), "Beta");
     expect(handleSelect).toHaveBeenCalledWith("beta");
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
   });
 
-  it("shows the selected value", () => {
-    render(
-      <Select
-        options={options}
-        value="gamma"
-        onSelect={() => {}}
-        id="test-select"
-      />
+  it("keeps the option test ids", async () => {
+    const user = userEvent.setup();
+    render(<Select options={options} onSelect={() => {}} id="test-select" />);
+    await user.click(screen.getByTestId("test-select"));
+    expect(screen.getByTestId("test-select-option-empty")).toBeInTheDocument();
+    expect(screen.getByTestId("test-select-option-beta")).toHaveTextContent("Beta");
+  });
+
+  it("shows the selected value", async () => {
+    const user = userEvent.setup();
+    render(<Select options={options} value="gamma" onSelect={() => {}} id="test-select" />);
+    const select = screen.getByRole("combobox");
+    expect(select).toHaveTextContent("Gamma");
+
+    await user.click(select);
+    expect(within(screen.getByRole("listbox")).getByRole("option", { selected: true })).toHaveTextContent(
+      "Gamma"
     );
-    const select = screen.getByRole("combobox") as HTMLSelectElement;
-    expect(select.value).toBe("gamma");
   });
 
   it("allows clearing selection by choosing the placeholder", async () => {
     const user = userEvent.setup();
-    let selected = "alpha";
+    const handleSelect = vi.fn();
     render(
       <Select
         options={options}
-        value={selected}
-        onSelect={(val) => {
-          selected = val;
-        }}
+        value="alpha"
+        onSelect={handleSelect}
         placeholder="Choose one"
         id="test-select"
       />
     );
-    await user.selectOptions(screen.getByRole("combobox"), "");
-    // Simulate controlled value update
-    render(
-      <Select
-        options={options}
-        value={selected}
-        onSelect={() => {}}
-        placeholder="Choose one"
-        id="test-select"
-      />
-    );
-    // Use getAllByRole and check the last select rendered
-    const selects = screen.getAllByRole("combobox") as HTMLSelectElement[];
-    expect(selects[selects.length - 1].value).toBe("");
+    await selectOption(user, screen.getByRole("combobox"), "Choose one");
+    expect(handleSelect).toHaveBeenCalledWith("");
   });
 
-  it("disables the select when isDisabled is true", () => {
+  it("supports choosing an option with the keyboard", async () => {
+    const user = userEvent.setup();
+    const handleSelect = vi.fn();
+    render(<Select options={options} onSelect={handleSelect} id="test-select" />);
+    screen.getByRole("combobox").focus();
+
+    await user.keyboard("{ArrowDown}");
+    expect(screen.getByRole("listbox")).toBeInTheDocument();
+    await user.keyboard("{ArrowDown}{ArrowDown}{Enter}");
+    expect(handleSelect).toHaveBeenCalledWith("beta");
+  });
+
+  it("jumps to an option by its first letter", async () => {
+    const user = userEvent.setup();
+    const handleSelect = vi.fn();
+    render(<Select options={options} onSelect={handleSelect} id="test-select" />);
+    screen.getByRole("combobox").focus();
+
+    await user.keyboard("g{Enter}");
+    expect(handleSelect).toHaveBeenCalledWith("gamma");
+  });
+
+  it("closes the option list on Escape without selecting", async () => {
+    const user = userEvent.setup();
+    const handleSelect = vi.fn();
+    render(<Select options={options} onSelect={handleSelect} id="test-select" />);
+    await user.click(screen.getByRole("combobox"));
+
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    expect(handleSelect).not.toHaveBeenCalled();
+  });
+
+  it("closes the option list when focus leaves the select", async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <Select options={options} onSelect={() => {}} id="test-select" />
+        <button type="button">Elsewhere</button>
+      </>
+    );
+    await user.click(screen.getByRole("combobox"));
+    await user.click(screen.getByRole("button", { name: "Elsewhere" }));
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+  });
+
+  it("disables the select when isDisabled is true", async () => {
+    const user = userEvent.setup();
     render(
       <Select
         options={options}
@@ -95,7 +163,10 @@ describe("Select", () => {
         id="test-select"
       />
     );
-    expect(screen.getByRole("combobox")).toBeDisabled();
+    const select = screen.getByRole("combobox");
+    expect(select).toBeDisabled();
+    await user.click(select);
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
   });
 
   it("requires the select when isRequired is true", () => {
