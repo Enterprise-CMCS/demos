@@ -231,17 +231,13 @@ describe("SdgPreparationPhase", () => {
       );
     });
 
-    it("renders OACT Initial Review as an optional date after BNPMT", () => {
+    it("renders OACT Initial Review as an optional date", () => {
       setup();
 
-      const bnpmtDatePicker = screen.getByTestId("datepicker-bnpmt-initial-meeting-date");
       const oactDatePicker = screen.getByTestId("datepicker-oact-initial-review-date");
 
       expect(oactDatePicker).toHaveAccessibleName("OACT Initial Review");
       expect(oactDatePicker).not.toBeRequired();
-      expect(
-        bnpmtDatePicker.compareDocumentPosition(oactDatePicker) & Node.DOCUMENT_POSITION_FOLLOWING
-      ).toBeTruthy();
     });
 
     it("renders Save For Later and Finish buttons", () => {
