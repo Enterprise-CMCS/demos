@@ -1,7 +1,8 @@
 import jsEslint from "@eslint/js";
 import tseslint from "typescript-eslint";
+import { defineConfig } from "eslint/config";
 
-export default tseslint.config(
+export default defineConfig(
   {
     ignores: ["cdk.out/**/*", "config.template.js"],
   },
@@ -59,6 +60,12 @@ export default tseslint.config(
       "@typescript-eslint/no-misused-promises": "error",
       "@typescript-eslint/await-thenable": "error",
       "@typescript-eslint/no-unnecessary-condition": "warn",
+    },
+  },
+  {
+    files: ["lib/cloudfrontFunctions/**/*.js"],
+    rules: {
+      "@typescript-eslint/no-unused-vars": "off",
     },
   },
 );

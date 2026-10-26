@@ -29,7 +29,7 @@ export const loggingPlugin: ApolloServerPlugin = {
     const operationName = requestContext.request.operationName;
     const ctx = (requestContext.contextValue ?? {}) as ExtendedGraphQLContext;
 
-    ctx.log.debug({ operationName, type: "graphql.request.start" });
+    ctx.log.info({ operationName, type: "graphql.request.start" });
 
     return {
       async didEncounterErrors(rc) {
@@ -49,7 +49,7 @@ export const loggingPlugin: ApolloServerPlugin = {
         const end = process.hrtime.bigint();
         const durationMs = Number(end - start) / 1_000_000;
         const errorsCount = rc.errors?.length ?? 0;
-        ctx.log.debug({ operationName, errorsCount, durationMs, type: "graphql.request.end" });
+        ctx.log.info({ operationName, errorsCount, durationMs, type: "graphql.request.end" });
       },
     };
   },

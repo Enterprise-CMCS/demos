@@ -217,7 +217,7 @@ export const ReviewPhase = ({
       <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">REVIEW</h3>
       <p className="text-sm text-text-placeholder mb-1">
         Gather input and address comments from the HHS - (OGC) Office of General Counsel and the
-        White House - (OMB) Office of Management and Budget
+        White House - (OMB) Office of Management and Budget.
       </p>
 
       <section className="bg-white pt-2 flex flex-col gap-2">

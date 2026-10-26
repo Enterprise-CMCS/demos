@@ -74,9 +74,34 @@ ignore:
         created: 2026-08-31T15:19:18.777Z
   SNYK-JS-ZOD-20510278:
     - '*':
-        reason: Patch in 7-day cooldown period (min-release-age), zod@4.6.6
+        reason: 'Patch in 7-day cooldown period (min-release-age), zod@4.6.6'
         expires: 2026-10-20T00:00:00.000Z
         created: 2026-10-13T00:00:00.000Z
+  SNYK-JS-PICOMATCH-21248802:
+    - '*':
+        reason: Waiting for patch for vitest v4
+        expires: 2026-11-03T00:00:00.000Z
+        created: 2026-10-20T13:48:03.307Z
+  SNYK-JS-VITESTMOCKER-21347793:
+    - '*':
+        reason: Fix is available, but cannot be installed until 7-day waiting period expires.
+        expires: 2026-10-29T00:00:00.000Z
+        created: 2026-10-22T14:33:00.000Z
+  SNYK-JS-VITE-21282024:
+    - '*':
+        reason: No patch available.
+        expires: 2026-10-29T00:00:00.000Z
+        created: 2026-10-22T14:33:00.000Z
+  SNYK-JS-URIJS-19963963:
+    - '*':
+        reason: No patch available.
+        expires: 2026-10-29T00:00:00.000Z
+        created: 2026-10-22T14:33:00.000Z
+  SNYK-JS-QS-20943482:
+    - '*':
+        reason: No patch available.
+        expires: 2026-10-29T00:00:00.000Z
+        created: 2026-10-22T14:33:00.000Z
 patch: {}
 exclude:
   global:

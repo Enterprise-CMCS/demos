@@ -29,6 +29,7 @@ import { accessDeniedBodyName, createCloudfrontRules, createRegionalRules } from
 import { BucketAccessLogs } from "../lib/bucketAccessLogs";
 import { NagSuppressions } from "cdk-nag";
 import { addCheckovSkip } from "../util/addCheckovSkip";
+import path from "node:path";
 
 interface UIStackProps {
   cognitoParamNames: {
@@ -292,6 +293,19 @@ export class UiStack extends Stack {
       },
     );
 
+    const spaFunctionPathRel = path.join("lib", "cloudfrontFunctions", "spaRewrite.js");
+    const spaFunctionPath = path.resolve(spaFunctionPathRel);
+    const spaRewriteFunction = new aws_cloudfront.Function(
+      commonProps.scope,
+      "SpaRewriteFunction",
+      {
+        runtime: aws_cloudfront.FunctionRuntime.JS_2_0,
+        code: aws_cloudfront.FunctionCode.fromFile({
+          filePath: spaFunctionPath,
+        }),
+      },
+    );
+
     const distribution = new aws_cloudfront.Distribution(commonProps.scope, "CloudFrontDistribution", {
       certificate: commonProps.cloudfrontCertificateArn
         ? aws_certificatemanager.Certificate.fromCertificateArn(
@@ -309,19 +323,18 @@ export class UiStack extends Stack {
         cachePolicy: aws_cloudfront.CachePolicy.CACHING_OPTIMIZED,
         compress: true,
         responseHeadersPolicy: securityHeadersPolicy,
+        functionAssociations: [
+          {
+            function: spaRewriteFunction,
+            eventType: aws_cloudfront.FunctionEventType.VIEWER_REQUEST,
+          },
+        ],
       },
       defaultRootObject: "index.html",
       enableLogging: true,
       logBucket: cmsCloudLogBucket,
       logFilePrefix: `AWSLogs/${Aws.ACCOUNT_ID}/Cloudfront/demos-${commonProps.stage}/`,
       httpVersion: aws_cloudfront.HttpVersion.HTTP2,
-      errorResponses: [
-        {
-          httpStatus: 403,
-          responseHttpStatus: 200,
-          responsePagePath: "/index.html",
-        },
-      ],
       webAclId: webAcl.attrArn,
       enableIpv6: !["dev", "test", "impl"].includes(commonProps.hostEnvironment),
       comment: `Env Name: ${commonProps.stage}`,

@@ -1,5 +1,5 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.25.0
+version: v1.25.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
   SNYK-JS-MINIMATCH-15309438:
@@ -27,4 +27,19 @@ ignore:
         reason: No patch available
         expires: 2026-08-29T00:00:00.000Z
         created: 2026-07-29T13:02:53.851Z
+  SNYK-JS-PICOMATCH-21248802:
+    - '*':
+        reason: Waiting for patch for vitest v4
+        expires: 2026-11-03T00:00:00.000Z
+        created: 2026-10-20T13:49:27.018Z
+  SNYK-JS-VITESTMOCKER-21347793:
+    - '*':
+        reason: Fix is available, but cannot be installed until 7-day waiting period expires.
+        expires: 2026-10-29T00:00:00.000Z
+        created: 2026-10-22T14:33:00.000Z
+  SNYK-JS-VITE-21282024:
+    - '*':
+        reason: No patch available.
+        expires: 2026-10-29T00:00:00.000Z
+        created: 2026-10-22T14:33:00.000Z
 patch: {}

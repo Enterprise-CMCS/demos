@@ -86,7 +86,7 @@ export const ApprovalPackagePhase = ({
       </p>
 
       <h4 className="text-[18px] font-bold tracking-wide mb-1">APPROVAL PACKAGE</h4>
-      <p className="text-sm text-text-placeholder">Each file type is required prior to approval</p>
+      <p className="text-sm text-text-placeholder">Each file type is required prior to approval.</p>
 
       <ApprovalPackageTable
         demonstrationId={applicationId}

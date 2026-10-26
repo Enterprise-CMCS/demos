@@ -32,6 +32,7 @@ import {
   AssociatedRecordsDemonstration,
   TYPE_TAG_ASSOCIATED_RECORDS_QUERY,
 } from "components/table/tables/TypeTagAssociatedRecordsTable";
+import { DEMONSTRATION_SUMMARY_DETAILS_QUERY } from "components/table/tables/SummaryDetailsTable";
 
 export type MockDemonstration = Pick<
   Demonstration,
@@ -191,6 +192,7 @@ const MOCK_DEMONSTRATION_BY_ID_QUERIES = [
   ADD_DEMONSTRATION_TYPES_FORM_QUERY,
   DEMONSTRATION_DETAIL_QUERY,
   DEMONSTRATION_HEADER_DETAILS_QUERY,
+  DEMONSTRATION_SUMMARY_DETAILS_QUERY,
 ];
 
 export const demonstrationMocks: MockedResponse[] = [

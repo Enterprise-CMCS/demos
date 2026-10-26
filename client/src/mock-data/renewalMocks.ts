@@ -13,18 +13,4 @@ export const mockRenewals = [
     status: "Under Review",
     createdAt: new Date(2024, 5, 1),
   },
-  {
-    id: "2",
-    name: "Renewal 2 - Montana Medicaid Waiver",
-    effectivePlainDate: "2025-02-01",
-    status: "Approved",
-    createdAt: new Date(2024, 5, 3),
-  },
-  {
-    id: "3",
-    name: "Renewal 3 - Montana Medicaid Waiver",
-    effectivePlainDate: undefined,
-    status: "Approved",
-    createdAt: new Date(2024, 5, 2),
-  },
 ] as const satisfies MockRenewal[];

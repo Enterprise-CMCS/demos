@@ -7,7 +7,7 @@ import type { PoolClient } from "pg";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { log } from "../log";
-import type { RelationSchema } from "../types";
+import type { ExportViewDefinition, RelationSchema } from "../types";
 import { writeRelationToFile as writeWithConnection } from "./writer";
 
 // The real logger, silenced. Mocking the module instead would leave log.ts loaded by nothing.
@@ -15,14 +15,10 @@ const warnSpy = vi.spyOn(log, "warn").mockImplementation(() => {});
 
 const mocks = vi.hoisted(() => ({ rmMock: vi.fn() }));
 
-// Importing writer pulls in database/pool, which builds a SecretsManagerClient at module
-// scope. Only the schema name is needed here.
-vi.mock("../database/pool", () => ({ dbSchema: "demos_app" }));
-
 // rm delegates to the real one, so the cleanup assertions look at the filesystem. A single
 // test overrides it to prove a cleanup failure cannot mask the result.
-vi.mock("node:fs/promises", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("node:fs/promises")>();
+vi.mock(import("node:fs/promises"), async (importOriginal) => {
+  const actual = await importOriginal();
   mocks.rmMock.mockImplementation(actual.rm);
   return { ...actual, rm: mocks.rmMock };
 });
@@ -31,8 +27,8 @@ vi.mock("node:fs/promises", async (importOriginal) => {
 // these files while a test is using them. The staged CSV goes here too, which is what lets a
 // test check the writer removed it.
 const workDir = mkdtempSync(path.join(os.tmpdir(), "writer-test-"));
-vi.mock("../util/staging", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../util/staging")>();
+vi.mock(import("../util/staging"), async (importOriginal) => {
+  const actual = await importOriginal();
   return {
     ...actual,
     csvPath: (relation: string) => path.join(workDir, `${relation}.csv`),
@@ -141,13 +137,20 @@ async function writeRelationToFile(
   client: PoolClient,
   relation: string,
   schema: RelationSchema,
-  destinationPath: string
+  destinationPath: string,
+  orderBy: readonly string[] = []
 ): Promise<number> {
   const instance = await DuckDBInstance.create(":memory:");
   const connection = await instance.connect();
 
   try {
-    return await writeWithConnection(client, connection, relation, schema, destinationPath);
+    const definition: ExportViewDefinition = {
+      query: "WITH reviewed AS (SELECT 1 AS id) SELECT * FROM reviewed",
+      orderBy,
+      baseTables: [],
+      schema,
+    };
+    return await writeWithConnection(client, connection, relation, definition, destinationPath);
   } finally {
     connection.closeSync();
     instance.closeSync();
@@ -155,17 +158,34 @@ async function writeRelationToFile(
 }
 
 describe("writeRelationToFile", () => {
-  it("copies the allowlisted columns out of the schema-qualified relation as csv", async () => {
+  it("projects declared columns in order from the reviewed query as csv", async () => {
     const { client, state } = fakeClient("", 0);
     await writeRelationToFile(client, "demonstration", SCHEMA, outputPath());
 
-    expect(state.sql).toContain('FROM demos_app."demonstration"');
+    expect(state.sql).toContain('SELECT "id", "small", "count", "flag"');
+    expect(state.sql).toContain("FROM (WITH reviewed AS (SELECT 1 AS id) SELECT * FROM reviewed) AS export_view");
+    expect(state.sql).not.toContain('FROM demos_app."demonstration"');
     expect(state.sql).toContain("TO STDOUT WITH (FORMAT csv)");
     // An embedded quote has to survive into the column list.
     expect(state.sql).toContain('"odd""name"');
     // No cast. Postgres formats every value with the type's own output function, and a cast
     // would rename the column in a file that has no header to correct it.
     expect(state.sql).not.toContain("::text");
+  });
+
+  it("orders rows in the outer COPY query, where the order is guaranteed to hold", async () => {
+    const { client, state } = fakeClient("", 0);
+    await writeRelationToFile(client, "demonstration", SCHEMA, outputPath(), ["id", 'odd"name']);
+
+    expect(state.sql).toContain('AS export_view ORDER BY "id", "odd""name") TO STDOUT');
+  });
+
+  it("leaves the outer COPY query unordered when the view declares no order", async () => {
+    const { client, state } = fakeClient("", 0);
+    await writeRelationToFile(client, "demonstration", SCHEMA, outputPath());
+
+    expect(state.sql).toContain("AS export_view) TO STDOUT");
+    expect(state.sql).not.toContain("ORDER BY");
   });
 
   it("asks for no header, because the read_csv spec is positional", async () => {
@@ -302,6 +322,18 @@ describe("writeRelationToFile", () => {
     expect(await query(`SELECT * FROM read_parquet('${out}')`)).toEqual([
       { empty: "", missing: null },
     ]);
+  });
+
+  it("round trips JSON arrays including empty arrays and escaped report text", async () => {
+    const schema: RelationSchema = { columns: [{ name: "applications", duckdbType: "JSON" }] };
+    const array = JSON.stringify([{ name: 'CMS, "review"\n雪', notes: null }, { name: "Renewal" }]);
+    const csv = `"${array.replace(/"/g, '""')}"\n[]\n`;
+    const { client } = fakeClient(csv, 2);
+    const out = outputPath();
+    expect(await writeRelationToFile(client, "reporting", schema, out)).toBe(2);
+    const query = await reader();
+    const rows = await query(`SELECT applications::VARCHAR AS applications FROM read_parquet('${out}')`);
+    expect(rows.map((row) => JSON.parse(row.applications as string))).toEqual([JSON.parse(array), []]);
   });
 
   it("preserves a comma, a quote and a newline inside a field", async () => {

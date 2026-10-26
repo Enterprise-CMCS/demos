@@ -1,7 +1,7 @@
 {
   "name": "demos-client",
   "description": "The client application for Demonstration Evaluation & Management Oversight System (DEMOS).",
-  "version": "0.1.0",
+  "version": "1.2.0",
   "type": "module",
   "devDependencies": {
     "@apollo/client": "^3.14.1",
@@ -13,13 +13,13 @@
     "@testing-library/jest-dom": "^6.10.0",
     "@testing-library/react": "^16.3.3",
     "@types/jest": "^30.0.0",
-    "@types/node": "^26.6.2",
+    "@types/node": "^26.6.4",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@types/semver": "^7.8.0",
-    "@vitejs/plugin-react": "^6.1.1",
+    "@vitejs/plugin-react": "^6.1.2",
     "@vitest/coverage-v8": "^4.1.11",
-    "eslint": "^10.11.0",
+    "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^16.5.0",
     "jsdom": "^26.1.0",
@@ -30,8 +30,8 @@
     "tailwindcss": "^4.3.3",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.70.1",
-    "vite": "^8.3.1",
+    "typescript-eslint": "^8.71.1",
+    "vite": "^8.3.4",
     "vite-bundle-visualizer": "^1.2.1",
     "vitest": "^4.1.11",
     "vitest-sonar-reporter": "^3.0.0"
@@ -66,6 +66,7 @@
     "dev:mocks:admin": "VITE_MOCK_PERSON_TYPE=demos-admin npm run dev:mocks",
     "dev:mocks:reviewer": "VITE_MOCK_PERSON_TYPE=demos-cms-reviewer-user npm run dev:mocks",
     "dev:mocks:restricted": "VITE_MOCK_PERSON_TYPE=demos-restricted-cms-user npm run dev:mocks",
+    "dev:mocks:oact": "VITE_MOCK_PERSON_TYPE=demos-oact-user npm run dev:mocks",
     "dev:mocks:unauth": "VITE_MOCK_PERSON_TYPE=unauth npm run dev:mocks",
     "format": "prettier --write src",
     "format:check": "prettier --check src",
@@ -85,6 +86,7 @@
     "@testing-library/user-event": "^14.6.7",
     "date-fns": "^4.4.0",
     "demos-shared-library": "file:../shared_library",
+    "documonster": "^0.20.1",
     "file-type": "^21.3.4",
     "react-oidc-context": "^3.3.1",
     "react-router-dom": "^7.18.4",
@@ -93,6 +95,6 @@
   },
   "optionalDependencies": {
     "@emnapi/core": "^1.11.3",
-    "@rollup/rollup-linux-x64-musl": "^4.63.5"
+    "@rollup/rollup-linux-x64-musl": "^4.64.2"
   }
 }
