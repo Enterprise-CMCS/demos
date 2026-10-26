@@ -69,7 +69,11 @@ const renderTypesTable = (
         result: { data: { demonstrations: [MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION] } },
       }))}
     >
-      <TypesTable demonstration={MOCK_DEMONSTRATION} applicationSection="ApplicationWorkflow" {...props} />
+      <TypesTable
+        demonstration={MOCK_DEMONSTRATION}
+        applicationSection="ApplicationWorkflow"
+        {...props}
+      />
       <ToastContainer />
     </TestProvider>
   );

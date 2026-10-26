@@ -16,11 +16,19 @@ vi.mock("components/dialog/DialogContext", () => ({
   }),
 }));
 
-vi.mock("components/table/tables/SummaryDetailsTable", () => ({
-  SummaryDetailsTable: ({ demonstrationId }: { demonstrationId: string }) => (
-    <div data-testid="summary-details-table">Summary Details Table for demo: {demonstrationId}</div>
-  ),
-}));
+vi.mock("components/table/tables/SummaryDetailsTable", async () => {
+  const actual = await vi.importActual<
+    typeof import("components/table/tables/SummaryDetailsTable")
+  >("components/table/tables/SummaryDetailsTable");
+  return {
+    ...actual,
+    SummaryDetailsTable: ({ demonstrationId }: { demonstrationId: string }) => (
+      <div data-testid="summary-details-table">
+        Summary Details Table for demo: {demonstrationId}
+      </div>
+    ),
+  };
+});
 
 vi.mock("components/dialog", () => ({
   EditDemonstrationDialog: ({
