@@ -14,6 +14,7 @@ import { PoAndOgdSection } from "./PoAndOgdSection";
 import { OgcAndOmbSection } from "./OgcAndOmbSection";
 import { CommsClearanceSection } from "./CommsClearanceSection";
 import { CmsOsoraClearanceSection } from "./CmsOsoraClearanceSection";
+import { OactCertificationSection } from "./OactCertificationSection";
 import { RadioGroup } from "components/radioGroup";
 import { formatDataForSave, hasFormChanges } from "./ReviewPhaseData";
 import { gql, useMutation } from "@apollo/client";
@@ -51,6 +52,7 @@ export const REVIEW_SECTIONS = [
   "OGC and OMB",
   "COMMs Clearance",
   "CMS (OSORA) Clearance",
+  "OACT Certification",
 ] as const;
 
 export const PO_AND_OGD_DATE_TYPES = [
@@ -103,12 +105,14 @@ export const ReviewPhase = ({
   isPhaseCompleted,
   onFinish,
   allPreviousPhasesDone,
+  isOactCertificationRequired,
 }: {
   initialFormData: ReviewPhaseFormData;
   applicationId: string;
   isPhaseCompleted: boolean;
   onFinish: () => void;
   allPreviousPhasesDone: boolean;
+  isOactCertificationRequired: boolean;
 }) => {
   const { currentUser } = getCurrentUser();
   const userIsReadonly = isReadonlyUser(currentUser, "ApplicationWorkflow");
@@ -193,7 +197,8 @@ export const ReviewPhase = ({
     allPreviousPhasesDone &&
     reviewPhaseSectionsComplete["PO and OGD"] &&
     reviewPhaseSectionsComplete["OGC and OMB"] &&
-    clearanceSectionComplete;
+    clearanceSectionComplete &&
+    reviewPhaseSectionsComplete["OACT Certification"];
 
   useEffect(() => {
     setReviewPhaseSectionsComplete({
@@ -209,8 +214,10 @@ export const ReviewPhase = ({
       "CMS (OSORA) Clearance": CMS_OSORA_CLEARANCE_DATE_TYPES.every(
         (dateType) => !!reviewPhaseFormData.dates[dateType]
       ),
+      "OACT Certification":
+        !isOactCertificationRequired || !!reviewPhaseFormData.dates["OACT Certification Date"],
     });
-  }, [reviewPhaseFormData]);
+  }, [reviewPhaseFormData, isOactCertificationRequired]);
 
   return (
     <div>
@@ -279,6 +286,15 @@ export const ReviewPhase = ({
             isReadonly={isPhaseCompleted || userIsReadonly}
           />
         )}
+        <OactCertificationSection
+          sectionFormData={reviewPhaseFormData}
+          setSectionFormData={(formData) =>
+            setReviewPhaseFormData({ ...reviewPhaseFormData, ...formData })
+          }
+          isComplete={reviewPhaseSectionsComplete["OACT Certification"]}
+          isRequired={isOactCertificationRequired}
+          isReadonly={isPhaseCompleted || userIsReadonly}
+        />
         {!userIsReadonly && (
           <div className="flex justify-end mt-2 gap-2">
             <SecondaryButton

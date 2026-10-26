@@ -102,7 +102,8 @@ describe("ReviewPhase Component", () => {
     isReadonly = false,
     onFinish = vi.fn(),
     allPreviousPhasesDone = true,
-    currentUser = cmsMockUser
+    currentUser = cmsMockUser,
+    isOactCertificationRequired = false
   ) => {
     render(
       <TestProvider currentUser={currentUser}>
@@ -112,6 +113,7 @@ describe("ReviewPhase Component", () => {
           applicationId={applicationId}
           onFinish={onFinish}
           allPreviousPhasesDone={allPreviousPhasesDone}
+          isOactCertificationRequired={isOactCertificationRequired}
         />
       </TestProvider>
     );
@@ -846,6 +848,96 @@ describe("ReviewPhase Component", () => {
         expect(mockCompletePhase).toHaveBeenCalled();
         expect(mockOnFinish).toHaveBeenCalledOnce();
       });
+    });
+  });
+
+  describe("OACT Certification", () => {
+    const OACT_DATEPICKER_NAME = "datepicker-oact-certification-date";
+
+    const setupOact = (
+      isOactCertificationRequired: boolean,
+      initialFormData = buildInitialFormData(),
+      isPhaseCompleted = false
+    ) =>
+      setup(
+        initialFormData,
+        "demo-oact",
+        isPhaseCompleted,
+        vi.fn(),
+        true,
+        cmsMockUser,
+        isOactCertificationRequired
+      );
+
+    it("renders the OACT Certification section with its instructions", () => {
+      setupOact(true);
+
+      expect(screen.getByText("OACT Certification")).toBeInTheDocument();
+      expect(
+        screen.getByText("Record OACT Certification for applications approved 1/1/2027 or later.")
+      ).toBeInTheDocument();
+      expect(screen.getByTestId(OACT_DATEPICKER_NAME)).toBeInTheDocument();
+    });
+
+    it("requires the date and disables Finish when OACT is required and the date is empty", () => {
+      setupOact(true);
+
+      expect(screen.getByTestId(OACT_DATEPICKER_NAME)).toBeRequired();
+      expect(screen.getByText("OACT Certification").closest("section")).toHaveTextContent(
+        "Incomplete"
+      );
+      expect(screen.getByTestId("review-finish")).toBeDisabled();
+    });
+
+    it("enables Finish when OACT is required and the date is filled", () => {
+      setupOact(
+        true,
+        buildInitialFormData({
+          dates: { ...DEFAULT_REVIEW_DATES, "OACT Certification Date": "2027-01-05" },
+        })
+      );
+
+      expect(screen.getByTestId(OACT_DATEPICKER_NAME)).toHaveValue("2027-01-05");
+      expect(screen.getByTestId("review-finish")).toBeEnabled();
+    });
+
+    it("enables Finish when OACT is required and the date is entered", async () => {
+      setupOact(true);
+
+      await userEvent.type(screen.getByTestId(OACT_DATEPICKER_NAME), "2027-01-05");
+
+      await waitFor(() => {
+        expect(screen.getByTestId("review-finish")).toBeEnabled();
+      });
+    });
+
+    it("keeps the date optional and Finish enabled when OACT is not required", () => {
+      setupOact(false);
+
+      expect(screen.getByTestId(OACT_DATEPICKER_NAME)).not.toBeRequired();
+      expect(screen.getByTestId("review-finish")).toBeEnabled();
+    });
+
+    it("saves the OACT Certification Date with the other review dates", async () => {
+      setupOact(true);
+
+      await userEvent.type(screen.getByTestId(OACT_DATEPICKER_NAME), "2027-01-05");
+      await userEvent.click(screen.getByTestId("review-save-for-later"));
+
+      await waitFor(() => {
+        expect(mockSetApplicationDates).toHaveBeenCalledWith({
+          applicationId: "demo-oact",
+          applicationDates: expect.arrayContaining([
+            { dateType: "OACT Certification Date", dateValue: "2027-01-05" },
+          ]),
+        });
+      });
+    });
+
+    it("disables the date when the phase is completed", () => {
+      setupOact(true, buildInitialFormData(), true);
+
+      expect(screen.getByTestId(OACT_DATEPICKER_NAME)).toBeDisabled();
     });
   });
 });
