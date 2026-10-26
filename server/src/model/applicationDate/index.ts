@@ -1,30 +1,34 @@
 // Functions
 export {
-  isDateExpectedTimestamp,
-  checkInputDateIsStartOfDay,
-  checkInputDateIsEndOfDay,
-  getDateValueFromApplicationDateMap,
   checkInputDateGreaterThan,
   checkInputDateGreaterThanOrEqual,
+  checkInputDateIsEndOfDay,
+  checkInputDateIsStartOfDay,
+  checkInputDateLessThan,
+  checkInputDateMeetsFlexibleOffset,
   checkInputDateMeetsOffset,
-} from "./checkInputDateFunctions.js";
-export { mergeApplicationDates } from "./mergeApplicationDates.js";
-export { parseAndValidateEffectiveAndExpirationDates } from "./parseAndValidateEffectiveAndExpirationDates.js";
-export { parseSetApplicationDatesInput } from "./parseSetApplicationDatesInput.js";
-export { validateAndUpdateDates } from "./validateAndUpdateDates.js";
+  checkInputDateNotHoliday,
+  checkInputDateNotWeekend,
+  getDateValueFromApplicationDateMap,
+  isDateExpectedTimestamp,
+} from "./checkInputDateFunctions";
+export { mergeApplicationDates } from "./mergeApplicationDates";
+export { parseAndValidateEffectiveAndExpirationDates } from "./parseAndValidateEffectiveAndExpirationDates";
+export { parseSetApplicationDatesInput } from "./parseSetApplicationDatesInput";
+export { validateAndUpdateDates } from "./validateAndUpdateDates";
 export {
   makeEmptyValidations,
   makeApplicationDateMapFromList,
   validateInputDates,
-} from "./validateInputDates.js";
-export { createPhaseStartDate } from "./createPhaseStartDate.js";
+} from "./validateInputDates";
+export { createPhaseStartDate } from "./createPhaseStartDate";
 export { validateAllowedDateChangeForApplication } from "./validateAllowedDateChangeForApplication";
 export { validateAllowedDateChangeByPhase } from "./validateAllowedDateChangeByPhase";
 
 // Queries
-export { deleteApplicationDates } from "./queries/deleteApplicationDates.js";
-export { getApplicationDates } from "./queries/getApplicationDates.js";
-export { upsertApplicationDates } from "./queries/upsertApplicationDates.js";
+export { deleteApplicationDates } from "./queries/deleteApplicationDates";
+export { getApplicationDates } from "./queries/getApplicationDates";
+export { upsertApplicationDates } from "./queries/upsertApplicationDates";
 
 // Types
 export type {
@@ -34,4 +38,4 @@ export type {
   ValidationChecks,
   DateTypeValidationChecksRecord,
   ApplicationDateMap,
-} from "./applicationDateTypes.js";
+} from "./applicationDateTypes";

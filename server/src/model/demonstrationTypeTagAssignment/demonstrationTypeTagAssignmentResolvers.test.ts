@@ -141,7 +141,7 @@ describe("demonstrationTypeTagAssignmentResolvers", () => {
       expect(checkForDuplicateDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(testInput);
       expect(parseSetDemonstrationTypesInput).toHaveBeenCalledExactlyOnceWith(testInput);
       expect(prisma).toHaveBeenCalled();
-      expect(vi.mocked(prisma).mock.calls.length).toBe(1);
+      expect(vi.mocked(prisma).mock.calls).toHaveLength(1);
       expect(checkForDeliverableUsedDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
         mockParsedOutput,
         mockTransaction

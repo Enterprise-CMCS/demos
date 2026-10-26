@@ -1,16 +1,24 @@
-import { DateType } from "../../types.js";
-import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
+import { DateType } from "../../types";
+import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants";
 import {
-  ParsedApplicationDateInput,
-  checkInputDateIsStartOfDay,
-  checkInputDateIsEndOfDay,
   checkInputDateGreaterThan,
   checkInputDateGreaterThanOrEqual,
+  checkInputDateIsEndOfDay,
+  checkInputDateIsStartOfDay,
+  checkInputDateLessThan,
+  checkInputDateMeetsFlexibleOffset,
   checkInputDateMeetsOffset,
+  checkInputDateNotHoliday,
+  checkInputDateNotWeekend,
+} from ".";
+import type {
   ApplicationDateMap,
   DateTypeValidationChecksRecord,
+  ParsedApplicationDateInput,
 } from ".";
 import { EasternTZDate } from "../../dateUtilities";
+import { getFeatureFlags } from "../../flags";
+import type { SemVer } from "semver";
 
 export function makeEmptyValidations(): DateTypeValidationChecksRecord {
   const result = {} as DateTypeValidationChecksRecord;
@@ -18,12 +26,126 @@ export function makeEmptyValidations(): DateTypeValidationChecksRecord {
   for (dateType in DATE_TYPES_WITH_EXPECTED_TIMESTAMPS) {
     result[dateType] = {
       expectedTimestamp: DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[dateType]["expectedTimestamp"],
+      allowedToBeWeekend: true,
+      allowedToBeHoliday: true,
       greaterThanChecks: [],
       greaterThanOrEqualChecks: [],
+      lessThanChecks: [],
       offsetChecks: [],
+      flexibleOffsetChecks: [],
     };
   }
   return result;
+}
+
+export function makeValidations(currentVersion: SemVer): DateTypeValidationChecksRecord {
+  const validationChecks = makeEmptyValidations();
+
+  // Phase completion dates must follow start dates
+  validationChecks["Concept Completion Date"]["greaterThanOrEqualChecks"].push({
+    dateTypeToCheck: "Concept Start Date",
+  });
+  validationChecks["Concept Skipped Date"]["greaterThanOrEqualChecks"].push({
+    dateTypeToCheck: "Concept Start Date",
+  });
+  validationChecks["Application Intake Completion Date"]["greaterThanOrEqualChecks"].push({
+    dateTypeToCheck: "Application Intake Start Date",
+  });
+  validationChecks["Completeness Completion Date"]["greaterThanOrEqualChecks"].push({
+    dateTypeToCheck: "Completeness Start Date",
+  });
+  validationChecks["SDG Preparation Completion Date"]["greaterThanOrEqualChecks"].push({
+    dateTypeToCheck: "SDG Preparation Start Date",
+  });
+  validationChecks["Approval Package Completion Date"]["greaterThanOrEqualChecks"].push({
+    dateTypeToCheck: "Approval Package Start Date",
+  });
+  validationChecks["Review Completion Date"]["greaterThanOrEqualChecks"].push({
+    dateTypeToCheck: "Review Start Date",
+  });
+
+  // State application must be deemed complete after it is submitted
+  validationChecks["State Application Deemed Complete"]["greaterThanOrEqualChecks"].push({
+    dateTypeToCheck: "State Application Submitted Date",
+  });
+
+  // Completeness review is 15 days after state application submission
+  // Old version just uses exactly 15 days
+  if (!getFeatureFlags(currentVersion).handleHolidaysWeekendsForDates) {
+    validationChecks["Completeness Review Due Date"]["offsetChecks"].push({
+      dateTypeToCheck: "State Application Submitted Date",
+      dateOffset: {
+        days: 15,
+        expectedTimestamp: "End of Day",
+      },
+    });
+
+    validationChecks["State Application Submitted Date"]["offsetChecks"].push({
+      dateTypeToCheck: "Completeness Review Due Date",
+      dateOffset: {
+        days: -15,
+        expectedTimestamp: "Start of Day",
+      },
+    });
+  }
+
+  // New version takes into account weekends and holidays
+  if (getFeatureFlags(currentVersion).handleHolidaysWeekendsForDates) {
+    // The Completeness Review Due Date must not be a holiday or a weekend
+    validationChecks["Completeness Review Due Date"]["allowedToBeWeekend"] = false;
+    validationChecks["Completeness Review Due Date"]["allowedToBeHoliday"] = false;
+
+    // It must be 15 days, flexibly, after the State Application Submitted Date
+    validationChecks["Completeness Review Due Date"]["flexibleOffsetChecks"].push({
+      dateTypeToCheck: "State Application Submitted Date",
+      dateOffset: {
+        days: 15,
+        expectedTimestamp: "End of Day",
+      },
+    });
+
+    // This less-than check ensures that if State Application Submitted Date is present
+    // We will check something on Completeness Review Due Date, meaning it must be present
+    validationChecks["State Application Submitted Date"]["lessThanChecks"].push({
+      dateTypeToCheck: "Completeness Review Due Date",
+    });
+  }
+
+  // Federal comment period starts 1 day after application deemed complete
+  validationChecks["Federal Comment Period Start Date"]["offsetChecks"].push({
+    dateTypeToCheck: "State Application Deemed Complete",
+    dateOffset: {
+      days: 1,
+      expectedTimestamp: "Start of Day",
+    },
+  });
+
+  validationChecks["State Application Deemed Complete"]["offsetChecks"].push({
+    dateTypeToCheck: "Federal Comment Period Start Date",
+    dateOffset: {
+      days: -1,
+      expectedTimestamp: "Start of Day",
+    },
+  });
+
+  // Federal comment period is 30 days long
+  validationChecks["Federal Comment Period End Date"]["offsetChecks"].push({
+    dateTypeToCheck: "Federal Comment Period Start Date",
+    dateOffset: {
+      days: 30,
+      expectedTimestamp: "End of Day",
+    },
+  });
+
+  validationChecks["Federal Comment Period Start Date"]["offsetChecks"].push({
+    dateTypeToCheck: "Federal Comment Period End Date",
+    dateOffset: {
+      days: -30,
+      expectedTimestamp: "Start of Day",
+    },
+  });
+
+  return validationChecks;
 }
 
 export function makeApplicationDateMapFromList(
@@ -31,86 +153,6 @@ export function makeApplicationDateMapFromList(
 ): ApplicationDateMap {
   return new Map(inputDates.map((inputDate) => [inputDate.dateType, inputDate.dateValue]));
 }
-
-const VALIDATION_CHECKS = makeEmptyValidations();
-// Phase completion dates must follow start dates
-VALIDATION_CHECKS["Concept Completion Date"]["greaterThanOrEqualChecks"].push({
-  dateTypeToCheck: "Concept Start Date",
-});
-VALIDATION_CHECKS["Concept Skipped Date"]["greaterThanOrEqualChecks"].push({
-  dateTypeToCheck: "Concept Start Date",
-});
-VALIDATION_CHECKS["Application Intake Completion Date"]["greaterThanOrEqualChecks"].push({
-  dateTypeToCheck: "Application Intake Start Date",
-});
-VALIDATION_CHECKS["Completeness Completion Date"]["greaterThanOrEqualChecks"].push({
-  dateTypeToCheck: "Completeness Start Date",
-});
-VALIDATION_CHECKS["SDG Preparation Completion Date"]["greaterThanOrEqualChecks"].push({
-  dateTypeToCheck: "SDG Preparation Start Date",
-});
-VALIDATION_CHECKS["Approval Package Completion Date"]["greaterThanOrEqualChecks"].push({
-  dateTypeToCheck: "Approval Package Start Date",
-});
-VALIDATION_CHECKS["Review Completion Date"]["greaterThanOrEqualChecks"].push({
-  dateTypeToCheck: "Review Start Date",
-});
-
-// State application must be deemed complete after it is submitted
-VALIDATION_CHECKS["State Application Deemed Complete"]["greaterThanOrEqualChecks"].push({
-  dateTypeToCheck: "State Application Submitted Date",
-});
-
-// Completeness review is 15 days after state application submission
-VALIDATION_CHECKS["Completeness Review Due Date"]["offsetChecks"].push({
-  dateTypeToCheck: "State Application Submitted Date",
-  dateOffset: {
-    days: 15,
-    expectedTimestamp: "End of Day",
-  },
-});
-
-VALIDATION_CHECKS["State Application Submitted Date"]["offsetChecks"].push({
-  dateTypeToCheck: "Completeness Review Due Date",
-  dateOffset: {
-    days: -15,
-    expectedTimestamp: "Start of Day",
-  },
-});
-
-// Federal comment period starts 1 day after application deemed complete
-VALIDATION_CHECKS["Federal Comment Period Start Date"]["offsetChecks"].push({
-  dateTypeToCheck: "State Application Deemed Complete",
-  dateOffset: {
-    days: 1,
-    expectedTimestamp: "Start of Day",
-  },
-});
-
-VALIDATION_CHECKS["State Application Deemed Complete"]["offsetChecks"].push({
-  dateTypeToCheck: "Federal Comment Period Start Date",
-  dateOffset: {
-    days: -1,
-    expectedTimestamp: "Start of Day",
-  },
-});
-
-// Federal comment period is 30 days long
-VALIDATION_CHECKS["Federal Comment Period End Date"]["offsetChecks"].push({
-  dateTypeToCheck: "Federal Comment Period Start Date",
-  dateOffset: {
-    days: 30,
-    expectedTimestamp: "End of Day",
-  },
-});
-
-VALIDATION_CHECKS["Federal Comment Period Start Date"]["offsetChecks"].push({
-  dateTypeToCheck: "Federal Comment Period End Date",
-  dateOffset: {
-    days: -30,
-    expectedTimestamp: "Start of Day",
-  },
-});
 
 function runExpectedTimestampCheck(
   dateType: DateType,
@@ -122,6 +164,26 @@ function runExpectedTimestampCheck(
   }
   if (check === "End of Day") {
     checkInputDateIsEndOfDay(dateType, dateValue);
+  }
+}
+
+function runWeekendChecks(
+  datesToValidateMap: ApplicationDateMap,
+  dateType: DateType,
+  allowedToBeWeekend: DateTypeValidationChecksRecord[DateType]["allowedToBeWeekend"]
+): void {
+  if (!allowedToBeWeekend) {
+    checkInputDateNotWeekend(datesToValidateMap, dateType);
+  }
+}
+
+function runHolidayChecks(
+  datesToValidateMap: ApplicationDateMap,
+  dateType: DateType,
+  allowedToBeHoliday: DateTypeValidationChecksRecord[DateType]["allowedToBeHoliday"]
+): void {
+  if (!allowedToBeHoliday) {
+    checkInputDateNotHoliday(datesToValidateMap, dateType);
   }
 }
 
@@ -145,6 +207,16 @@ function runGreaterThanOrEqualChecks(
   }
 }
 
+function runLessThanChecks(
+  datesToValidateMap: ApplicationDateMap,
+  dateType: DateType,
+  checks: DateTypeValidationChecksRecord[DateType]["lessThanChecks"]
+): void {
+  for (const check of checks) {
+    checkInputDateLessThan(datesToValidateMap, dateType, check.dateTypeToCheck);
+  }
+}
+
 function runOffsetChecks(
   datesToValidateMap: ApplicationDateMap,
   dateType: DateType,
@@ -160,13 +232,36 @@ function runOffsetChecks(
   }
 }
 
-export function validateInputDates(datesToValidate: ParsedApplicationDateInput[]): void {
+function runFlexibleOffsetChecks(
+  datesToValidateMap: ApplicationDateMap,
+  dateType: DateType,
+  checks: DateTypeValidationChecksRecord[DateType]["flexibleOffsetChecks"]
+): void {
+  for (const check of checks) {
+    checkInputDateMeetsFlexibleOffset(
+      datesToValidateMap,
+      dateType,
+      check.dateTypeToCheck,
+      check.dateOffset
+    );
+  }
+}
+
+export function validateInputDates(
+  datesToValidate: ParsedApplicationDateInput[],
+  currentVersion: SemVer
+): void {
   const datesToValidateMap = makeApplicationDateMapFromList(datesToValidate);
+  const validationChecks = makeValidations(currentVersion);
   for (const [dateType, dateValue] of datesToValidateMap.entries()) {
-    const checks = VALIDATION_CHECKS[dateType];
+    const checks = validationChecks[dateType];
     runExpectedTimestampCheck(dateType, dateValue, checks.expectedTimestamp);
+    runWeekendChecks(datesToValidateMap, dateType, checks.allowedToBeWeekend);
+    runHolidayChecks(datesToValidateMap, dateType, checks.allowedToBeHoliday);
     runGreaterThanChecks(datesToValidateMap, dateType, checks.greaterThanChecks);
     runGreaterThanOrEqualChecks(datesToValidateMap, dateType, checks.greaterThanOrEqualChecks);
+    runLessThanChecks(datesToValidateMap, dateType, checks.lessThanChecks);
     runOffsetChecks(datesToValidateMap, dateType, checks.offsetChecks);
+    runFlexibleOffsetChecks(datesToValidateMap, dateType, checks.flexibleOffsetChecks);
   }
 }
