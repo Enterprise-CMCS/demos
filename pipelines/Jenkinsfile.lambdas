@@ -112,6 +112,16 @@ post {
   always {
     script {
       handleError.setFailureDescription()
+      def jenkinsUid = container('jnlp') {
+        sh(script: 'id -u', returnStdout: true).trim()
+      }
+      def jenkinsGid = container('jnlp') {
+        sh(script: 'id -g', returnStdout: true).trim()
+      }
+
+      container('node') {
+        sh "chown -R ${jenkinsUid}:${jenkinsGid} \"${env.WORKSPACE}\""
+      }
     }
     // Kubernetes agents can disappear before deferred wipeout runs.
     cleanWs(deleteDirs: true, disableDeferredWipeout: true)
