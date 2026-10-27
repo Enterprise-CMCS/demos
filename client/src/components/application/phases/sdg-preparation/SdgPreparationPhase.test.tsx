@@ -68,7 +68,6 @@ const COMPLETE_PHASE_DATES = [
   },
   {
     dateType: "OACT Initial Review Date" as const,
-    dateValue: parseISO("2025-01-01T05:00:00.000Z"),
     plainDate: "2025-01-01",
   },
 ];
@@ -649,7 +648,6 @@ describe("Completed Phase Behavior", () => {
       },
       {
         dateType: "OACT Initial Review Date" as DateType,
-        dateValue: parseISO("2025-01-01T05:00:00.000Z"),
         plainDate: "2025-01-01",
       },
       {
