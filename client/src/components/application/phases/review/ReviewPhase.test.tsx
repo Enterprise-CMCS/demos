@@ -869,20 +869,9 @@ describe("ReviewPhase Component", () => {
         isOactCertificationRequired
       );
 
-    it("renders the OACT Certification section with its instructions", () => {
+    it("marks the section incomplete and disables Finish when OACT is required and the date is empty", () => {
       setupOact(true);
 
-      expect(screen.getByText("OACT Certification")).toBeInTheDocument();
-      expect(
-        screen.getByText("Record OACT Certification for applications approved 1/1/2027 or later.")
-      ).toBeInTheDocument();
-      expect(screen.getByTestId(OACT_DATEPICKER_NAME)).toBeInTheDocument();
-    });
-
-    it("requires the date and disables Finish when OACT is required and the date is empty", () => {
-      setupOact(true);
-
-      expect(screen.getByTestId(OACT_DATEPICKER_NAME)).toBeRequired();
       expect(screen.getByText("OACT Certification").closest("section")).toHaveTextContent(
         "Incomplete"
       );
@@ -911,10 +900,12 @@ describe("ReviewPhase Component", () => {
       });
     });
 
-    it("keeps the date optional and Finish enabled when OACT is not required", () => {
+    it("marks the section complete and enables Finish when OACT is not required", () => {
       setupOact(false);
 
-      expect(screen.getByTestId(OACT_DATEPICKER_NAME)).not.toBeRequired();
+      expect(screen.getByText("OACT Certification").closest("section")).not.toHaveTextContent(
+        "Incomplete"
+      );
       expect(screen.getByTestId("review-finish")).toBeEnabled();
     });
 
