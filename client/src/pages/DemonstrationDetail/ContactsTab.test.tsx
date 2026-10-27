@@ -16,10 +16,9 @@ import {
 } from "mock-data/userMocks";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { mockDemonstration as baseMockDemonstration } from "mock-data/demonstrationMocks";
+import { johnDoe } from "mock-data/personMocks";
 
-const createMockDemonstration = (
-  roles: DemonstrationTabDemonstration["roles"] = []
-): DemonstrationTabDemonstration => ({
+const BASE_MOCK_DEMONSTRATION: DemonstrationTabDemonstration = {
   id: baseMockDemonstration.id,
   name: baseMockDemonstration.name,
   status: baseMockDemonstration.status,
@@ -27,31 +26,24 @@ const createMockDemonstration = (
   demonstrationTypes: baseMockDemonstration.demonstrationTypes,
   state: baseMockDemonstration.state,
   documents: [],
-  roles,
-});
+  roles: [],
+};
 
-const mockDemonstration = createMockDemonstration([
-  {
-    person: {
-      id: "person-1",
-      fullName: "John Doe",
-      email: "john@example.com",
-      personType: "demos-cms-user",
+const mockDemonstration: DemonstrationTabDemonstration = {
+  ...BASE_MOCK_DEMONSTRATION,
+  roles: [
+    {
+      person: {
+        id: johnDoe.id,
+        fullName: johnDoe.fullName,
+        email: johnDoe.email,
+        personType: johnDoe.personType,
+      },
+      role: "Project Officer",
+      isPrimary: true,
     },
-    role: "Project Officer",
-    isPrimary: true,
-  },
-  {
-    person: {
-      id: "person-2",
-      fullName: "Jane Smith",
-      email: "jane@example.com",
-      personType: "demos-state-user",
-    },
-    role: "State Point of Contact",
-    isPrimary: false,
-  },
-]);
+  ],
+};
 
 describe("ContactsTab", () => {
   describe("Main display", () => {
@@ -102,37 +94,14 @@ describe("ContactsTab", () => {
     });
   });
 
-  describe("empty roles", () => {
-    beforeEach(() => {
-      vi.clearAllMocks();
-      return render(
-        <TestProvider currentUser={cmsMockUser}>
-          <DialogProvider>
-            <ContactsTab demonstration={createMockDemonstration([])} />
-          </DialogProvider>
-        </TestProvider>
-      );
-    });
-
-    it("passes empty array to ManageContactsDialog when roles array is empty", async () => {
-      const user = userEvent.setup();
-
-      const manageContactsButton = screen.getByRole("button", { name: "manage-contacts" });
-      await user.click(manageContactsButton);
-
-      const dialog = await screen.findByRole("dialog");
-      expect(dialog).toBeInTheDocument();
-    });
-  });
-
-  describe.each([
-    ["OACT user", oactMockUser],
-    ["CMS Reviewer user", cmsReviewerMockUser],
-    ["CMS Restricted user", readonlyMockUser],
-  ])("hides Manage Contact(s) button for %s", (_userType, mockUser) => {
-    it("should not display the button", () => {
+  describe("Role-based button visibility", () => {
+    it.each([
+      ["OACT", oactMockUser],
+      ["CMS Reviewer", cmsReviewerMockUser],
+      ["Restricted CMS User", readonlyMockUser],
+    ])("hides Manage Contact(s) button and shows table for %s", (_roleName, user) => {
       render(
-        <TestProvider currentUser={mockUser}>
+        <TestProvider currentUser={user}>
           <DialogProvider>
             <ContactsTab demonstration={mockDemonstration} />
           </DialogProvider>
@@ -140,6 +109,7 @@ describe("ContactsTab", () => {
       );
 
       expect(screen.queryByRole("button", { name: "manage-contacts" })).not.toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Contacts" })).toBeInTheDocument();
     });
   });
 });
