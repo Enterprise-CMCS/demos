@@ -212,6 +212,7 @@ export class ApiStack extends Stack {
           // None of the other queue use ENV. maybe another way.
           UIPATH_QUEUE_URL: uipathQueueUrl,
           DISABLE_EMAIL_NOTIFICATIONS: process.env.DISABLE_EMAIL_NOTIFICATIONS ?? "false",
+          NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
         },
       },
       "graphql",

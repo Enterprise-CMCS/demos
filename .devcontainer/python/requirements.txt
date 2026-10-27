@@ -30,7 +30,7 @@ botocore-stubs==1.43.67
     # via boto3-stubs
 build==1.6.0
     # via pip-tools
-certifi==2026.7.22
+certifi==2026.10.18
     # via requests
 chardet==7.6.0
     # via
@@ -150,7 +150,7 @@ mypy-extensions==1.1.0
     # via mypy
 networkx==3.6.1
     # via dbt-core
-opentelemetry-api==1.44.0
+opentelemetry-api==1.45.1
     # via dbt-common
 orderly-set==5.5.0
     # via deepdiff

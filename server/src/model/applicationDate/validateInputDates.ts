@@ -111,39 +111,57 @@ export function makeValidations(currentVersion: SemVer): DateTypeValidationCheck
     });
   }
 
-  // Federal comment period starts 1 day after application deemed complete
-  validationChecks["Federal Comment Period Start Date"]["offsetChecks"].push({
-    dateTypeToCheck: "State Application Deemed Complete",
-    dateOffset: {
-      days: 1,
-      expectedTimestamp: "Start of Day",
-    },
-  });
+  // Previously enforced that comment period starts 1 day after application deemed complete
+  // and lasts for 30 days. This is now flexible from 1.3.0 onward.
+  if (!getFeatureFlags(currentVersion).makeFederalCommentPeriodMoreFlexible) {
+    validationChecks["Federal Comment Period Start Date"]["offsetChecks"].push({
+      dateTypeToCheck: "State Application Deemed Complete",
+      dateOffset: {
+        days: 1,
+        expectedTimestamp: "Start of Day",
+      },
+    });
 
-  validationChecks["State Application Deemed Complete"]["offsetChecks"].push({
-    dateTypeToCheck: "Federal Comment Period Start Date",
-    dateOffset: {
-      days: -1,
-      expectedTimestamp: "Start of Day",
-    },
-  });
+    validationChecks["State Application Deemed Complete"]["offsetChecks"].push({
+      dateTypeToCheck: "Federal Comment Period Start Date",
+      dateOffset: {
+        days: -1,
+        expectedTimestamp: "Start of Day",
+      },
+    });
 
-  // Federal comment period is 30 days long
-  validationChecks["Federal Comment Period End Date"]["offsetChecks"].push({
-    dateTypeToCheck: "Federal Comment Period Start Date",
-    dateOffset: {
-      days: 30,
-      expectedTimestamp: "End of Day",
-    },
-  });
+    validationChecks["Federal Comment Period End Date"]["offsetChecks"].push({
+      dateTypeToCheck: "Federal Comment Period Start Date",
+      dateOffset: {
+        days: 30,
+        expectedTimestamp: "End of Day",
+      },
+    });
 
-  validationChecks["Federal Comment Period Start Date"]["offsetChecks"].push({
-    dateTypeToCheck: "Federal Comment Period End Date",
-    dateOffset: {
-      days: -30,
-      expectedTimestamp: "Start of Day",
-    },
-  });
+    validationChecks["Federal Comment Period Start Date"]["offsetChecks"].push({
+      dateTypeToCheck: "Federal Comment Period End Date",
+      dateOffset: {
+        days: -30,
+        expectedTimestamp: "Start of Day",
+      },
+    });
+  }
+
+  // From 1.3.0 we just enforce simple ordering checks
+  if (getFeatureFlags(currentVersion).makeFederalCommentPeriodMoreFlexible) {
+    validationChecks["State Application Deemed Complete"]["lessThanChecks"].push({
+      dateTypeToCheck: "Federal Comment Period Start Date",
+    });
+    validationChecks["Federal Comment Period Start Date"]["greaterThanChecks"].push({
+      dateTypeToCheck: "State Application Deemed Complete",
+    });
+    validationChecks["Federal Comment Period Start Date"]["lessThanChecks"].push({
+      dateTypeToCheck: "Federal Comment Period End Date",
+    });
+    validationChecks["Federal Comment Period End Date"]["greaterThanChecks"].push({
+      dateTypeToCheck: "Federal Comment Period Start Date",
+    });
+  }
 
   return validationChecks;
 }

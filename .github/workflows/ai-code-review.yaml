@@ -56,7 +56,7 @@ jobs:
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
       - name: Run AI Code Review
-        uses: the-pr-agent/pr-agent@8e4d32e5497defd43c023a404f73560c62728961
+        uses: the-pr-agent/pr-agent@981344be2755e303df501e18e3f60b848a188a80
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           AWS_USE_IMDS: "true"
@@ -70,4 +70,24 @@ jobs:
           github_action_config.auto_improve: "true"
           github_action_config.pr_actions: '["opened", "reopened", "ready_for_review"]'
           config.custom_model_max_tokens: "128000"
+          config.enable_claude_extended_thinking: "true"
+          config.extended_thinking_budget_tokens: "8192"
+          config.extended_thinking_max_output_tokens: "12288"
+          config.repo_context_files: '["AGENTS.md", "client/AGENTS.md", "server/AGENTS.md", "deployment/AGENTS.md", "data-migration/AGENTS.md", "lambdas/AGENTS.md"]'
+          pr_reviewer.extra_instructions: |
+            Report only concrete correctness, security, compatibility, or test-coverage
+            problems introduced by this PR. Do not suggest cosmetic refactors, comments,
+            documentation, naming changes, or speculative defensive checks. Before raising
+            a finding, verify that it follows from the supplied diff and repository context.
+          pr_reviewer.num_max_findings: '5'
+          pr_reviewer.enable_large_pr_chunking: 'true'
+          pr_reviewer.require_merge_recommendation: 'true'
+          pr_code_suggestions.extra_instructions: |
+            Report only concrete correctness, security, compatibility, or test-coverage
+            problems introduced by this PR. Every suggestion must identify a specific
+            failure scenario supported by the diff and repository context. Do not suggest
+            cosmetic refactors, comments, documentation, naming changes, speculative
+            defensive checks, or merely ask whether intentional behavior is intentional.
+            If there is insufficient evidence that the code is wrong, omit the suggestion.
           pr_code_suggestions.commitable_code_suggestions: "true"
+          pr_code_suggestions.suggestions_score_threshold: "7"
