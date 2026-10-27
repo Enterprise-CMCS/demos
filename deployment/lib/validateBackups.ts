@@ -198,7 +198,7 @@ export async function validateRDSEvent(event: RestoreJobCompletedEvent) {
   const pool = new Pool({
     ...connectionDetails,
     ssl: {
-      rejectUnauthorized: false,
+      rejectUnauthorized: true,
     },
     options: "-c search_path=demos_app",
   });

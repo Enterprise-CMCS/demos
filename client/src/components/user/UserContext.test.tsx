@@ -5,19 +5,27 @@ import { getCurrentUser, isReadonly, CurrentUser } from "./UserContext";
 import { TestProvider } from "test-utils/TestProvider";
 import { developmentMockUser } from "mock-data/userMocks";
 
+const BASE_CURRENT_USER: CurrentUser = {
+  id: "user-1",
+  username: "base-user",
+  person: {
+    id: "person-1",
+    personType: "demos-cms-user",
+    fullName: "Base User",
+    firstName: "Base",
+    lastName: "User",
+    email: "base@example.com",
+  },
+};
+
 describe("UserContext", () => {
   describe("isReadonly", () => {
     it("returns true when personType is 'demos-restricted-cms-user'", () => {
       const readonlyUser: CurrentUser = {
-        id: "user-1",
-        username: "readonly-user",
+        ...BASE_CURRENT_USER,
         person: {
-          id: "person-1",
+          ...BASE_CURRENT_USER.person,
           personType: "demos-restricted-cms-user",
-          fullName: "Readonly User",
-          firstName: "Readonly",
-          lastName: "User",
-          email: "readonly@example.com",
         },
       };
 
@@ -26,15 +34,10 @@ describe("UserContext", () => {
 
     it("returns false when personType is not 'demos-restricted-cms-user'", () => {
       const adminUser: CurrentUser = {
-        id: "user-2",
-        username: "admin-user",
+        ...BASE_CURRENT_USER,
         person: {
-          id: "person-2",
+          ...BASE_CURRENT_USER.person,
           personType: "demos-admin",
-          fullName: "Admin User",
-          firstName: "Admin",
-          lastName: "User",
-          email: "admin@example.com",
         },
       };
 
@@ -43,15 +46,10 @@ describe("UserContext", () => {
 
     it("returns false when personType is 'demos-state'", () => {
       const stateUser: CurrentUser = {
-        id: "user-3",
-        username: "state-user",
+        ...BASE_CURRENT_USER,
         person: {
-          id: "person-3",
+          ...BASE_CURRENT_USER.person,
           personType: "demos-state-user",
-          fullName: "State User",
-          firstName: "State",
-          lastName: "User",
-          email: "state@example.com",
         },
       };
 
@@ -60,15 +58,10 @@ describe("UserContext", () => {
 
     it("returns true when personType is 'demos-cms-reviewer-user' in ApplicationWorkflow section", () => {
       const reviewerUser: CurrentUser = {
-        id: "user-4",
-        username: "reviewer-user",
+        ...BASE_CURRENT_USER,
         person: {
-          id: "person-4",
+          ...BASE_CURRENT_USER.person,
           personType: "demos-cms-reviewer-user",
-          fullName: "Reviewer User",
-          firstName: "Reviewer",
-          lastName: "User",
-          email: "reviewer@example.com",
         },
       };
 
@@ -77,15 +70,10 @@ describe("UserContext", () => {
 
     it("returns true when personType is 'demos-restricted-cms-user' even in Homepage section", () => {
       const readonlyUser: CurrentUser = {
-        id: "user-5",
-        username: "readonly-user",
+        ...BASE_CURRENT_USER,
         person: {
-          id: "person-5",
+          ...BASE_CURRENT_USER.person,
           personType: "demos-restricted-cms-user",
-          fullName: "Readonly User",
-          firstName: "Readonly",
-          lastName: "User",
-          email: "readonly@example.com",
         },
       };
 
@@ -94,15 +82,10 @@ describe("UserContext", () => {
 
     it("returns false when personType is 'demos-cms-reviewer-user' in Homepage", () => {
       const reviewerUser: CurrentUser = {
-        id: "user-6",
-        username: "reviewer-user",
+        ...BASE_CURRENT_USER,
         person: {
-          id: "person-6",
+          ...BASE_CURRENT_USER.person,
           personType: "demos-cms-reviewer-user",
-          fullName: "Reviewer User",
-          firstName: "Reviewer",
-          lastName: "User",
-          email: "reviewer@example.com",
         },
       };
 
@@ -111,32 +94,58 @@ describe("UserContext", () => {
 
     it("returns true when personType is 'demos-cms-reviewer-user' in DemonstrationDetail", () => {
       const reviewerUser: CurrentUser = {
-        id: "user-9",
-        username: "reviewer-user",
+        ...BASE_CURRENT_USER,
         person: {
-          id: "person-9",
+          ...BASE_CURRENT_USER.person,
           personType: "demos-cms-reviewer-user",
-          fullName: "Reviewer User",
-          firstName: "Reviewer",
-          lastName: "User",
-          email: "reviewer@example.com",
         },
       };
 
       expect(isReadonly(reviewerUser, "DemonstrationDetail")).toBe(true);
     });
 
+    it("returns true when personType is 'demos-oact-user' in DemonstrationDetail", () => {
+      const oactUser: CurrentUser = {
+        ...BASE_CURRENT_USER,
+        person: {
+          ...BASE_CURRENT_USER.person,
+          personType: "demos-oact-user",
+        },
+      };
+
+      expect(isReadonly(oactUser, "DemonstrationDetail")).toBe(true);
+    });
+
+    it("returns true when personType is 'demos-oact-user' in Homepage", () => {
+      const oactUser: CurrentUser = {
+        ...BASE_CURRENT_USER,
+        person: {
+          ...BASE_CURRENT_USER.person,
+          personType: "demos-oact-user",
+        },
+      };
+
+      expect(isReadonly(oactUser, "Homepage")).toBe(true);
+    });
+
+    it("returns false when personType is 'demos-oact-user' in ApplicationWorkflow", () => {
+      const oactUser: CurrentUser = {
+        ...BASE_CURRENT_USER,
+        person: {
+          ...BASE_CURRENT_USER.person,
+          personType: "demos-oact-user",
+        },
+      };
+
+      expect(isReadonly(oactUser, "ApplicationWorkflow")).toBe(false);
+    });
+
     it("returns false for other user types in ApplicationWorkflow section", () => {
       const adminUser: CurrentUser = {
-        id: "user-7",
-        username: "admin-user",
+        ...BASE_CURRENT_USER,
         person: {
-          id: "person-7",
+          ...BASE_CURRENT_USER.person,
           personType: "demos-admin",
-          fullName: "Admin User",
-          firstName: "Admin",
-          lastName: "User",
-          email: "admin@example.com",
         },
       };
 
@@ -145,15 +154,10 @@ describe("UserContext", () => {
 
     it("returns false when personType is 'demos-cms-reviewer-user' in Homepage section", () => {
       const reviewerUser: CurrentUser = {
-        id: "user-8",
-        username: "reviewer-user",
+        ...BASE_CURRENT_USER,
         person: {
-          id: "person-8",
+          ...BASE_CURRENT_USER.person,
           personType: "demos-cms-reviewer-user",
-          fullName: "Reviewer User",
-          firstName: "Reviewer",
-          lastName: "User",
-          email: "reviewer@example.com",
         },
       };
 

@@ -66,7 +66,7 @@ describe("application notifications", () => {
               where: {
                 OR: [
                   {
-                    roleId: { in: expect.arrayContaining(["Project Officer", "DDME Analyst"]) },
+                    roleId: { in: expect.arrayContaining(["Project Officer", "Monitoring & Evaluation Analyst"]) },
                   },
                   { personTypeId: "demos-admin" },
                 ],

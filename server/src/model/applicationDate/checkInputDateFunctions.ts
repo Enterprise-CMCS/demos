@@ -1,8 +1,9 @@
-import { DateType, ExpectedTimestamp } from "../../types";
-import { DateOffset, ApplicationDateMap } from ".";
+import type { DateType, ExpectedTimestamp } from "../../types";
+import type { DateOffset, ApplicationDateMap } from ".";
 import { addDays, format } from "date-fns";
 import { GraphQLError } from "graphql";
-import { EasternTZDate, getDateTimeParts } from "../../dateUtilities";
+import type { EasternTZDate } from "../../dateUtilities";
+import { getDateTimeParts } from "../../dateUtilities";
 import { FEDERAL_HOLIDAYS } from "../../constants";
 
 export function isDateExpectedTimestamp(
@@ -42,7 +43,7 @@ export function checkInputDateIsStartOfDay(
   if (!isStartOfDay) {
     throw new GraphQLError(
       `The input ${dateType} must be a start of day date ` +
-        `(midnight in Eastern time), but it is ${dateValue.easternTZDate.toISOString()}`,
+        `(midnight in Eastern time), but it is ${dateValue.easternTZDate.toISOString()}.`,
       {
         extensions: {
           code: "INVALID_START_OF_DAY_INPUT_DATETIME",
@@ -136,10 +137,9 @@ export function checkInputDateMeetsOffset(
     easternTZDate: addDays(targetDateValueToOffset.easternTZDate, targetDateOffset.days),
   };
 
-  const doYMDMatch =
-    offsetDateValue.easternTZDate.getFullYear() === inputDateValue.easternTZDate.getFullYear() &&
-    offsetDateValue.easternTZDate.getMonth() === inputDateValue.easternTZDate.getMonth() &&
-    offsetDateValue.easternTZDate.getDate() === inputDateValue.easternTZDate.getDate();
+  const doDatesMatch =
+    format(offsetDateValue.easternTZDate, "yyyy-MM-dd") ===
+    format(inputDateValue.easternTZDate, "yyyy-MM-dd");
 
   if (targetDateOffset.expectedTimestamp === "Start of Day") {
     checkInputDateIsStartOfDay(inputDateType, inputDateValue);
@@ -154,7 +154,7 @@ export function checkInputDateMeetsOffset(
     offsetString = `+${targetDateOffset.days}`;
   }
 
-  if (!doYMDMatch) {
+  if (!doDatesMatch) {
     throw new Error(
       `The input ${inputDateType} must be equal to ${targetDateTypeToOffset} ${offsetString} days ` +
         `and should have a timestamp that is ${targetDateOffset.expectedTimestamp.toLowerCase()}. ` +
@@ -163,14 +163,18 @@ export function checkInputDateMeetsOffset(
   }
 }
 
+export function isWeekend(dateToCheck: EasternTZDate): boolean {
+  return [0, 6].includes(dateToCheck.easternTZDate.getDay());
+}
+
 export function checkInputDateNotWeekend(
   applicationDateMap: ApplicationDateMap,
   inputDateType: DateType
 ): void {
   const inputDateValue = getDateValueFromApplicationDateMap(inputDateType, applicationDateMap);
-  const isWeekendDay = [0, 6].includes(inputDateValue.easternTZDate.getDay());
+  const inputDateIsWeekendDay = isWeekend(inputDateValue);
 
-  if (isWeekendDay) {
+  if (inputDateIsWeekendDay) {
     throw new Error(
       `The input ${inputDateType} must not be a Saturday or Sunday. ` +
         `The value provided was ${inputDateValue.easternTZDate.toISOString()}.`
@@ -178,17 +182,121 @@ export function checkInputDateNotWeekend(
   }
 }
 
+export function isHoliday(dateToCheck: EasternTZDate): boolean {
+  const localDate = format(dateToCheck.easternTZDate, "yyyy-MM-dd");
+  return FEDERAL_HOLIDAYS.includes(localDate);
+}
+
 export function checkInputDateNotHoliday(
   applicationDateMap: ApplicationDateMap,
   inputDateType: DateType
 ): void {
   const inputDateValue = getDateValueFromApplicationDateMap(inputDateType, applicationDateMap);
-  const localDate = format(inputDateValue.easternTZDate, "yyyy-MM-dd");
-  const isHoliday = FEDERAL_HOLIDAYS.includes(localDate);
+  const inputDateIsHoliday = isHoliday(inputDateValue);
 
-  if (isHoliday) {
+  if (inputDateIsHoliday) {
     throw new Error(
       `The input ${inputDateType} must not be a federal holiday. ` +
+        `The value provided was ${inputDateValue.easternTZDate.toISOString()}.`
+    );
+  }
+}
+
+export function checkInputDateLessThan(
+  applicationDateMap: ApplicationDateMap,
+  inputDateType: DateType,
+  targetDateType: DateType
+): void {
+  const inputDateValue = getDateValueFromApplicationDateMap(inputDateType, applicationDateMap);
+  const targetDateValue = getDateValueFromApplicationDateMap(targetDateType, applicationDateMap);
+  const inputIsLessThanTarget =
+    inputDateValue.easternTZDate.valueOf() < targetDateValue.easternTZDate.valueOf();
+  if (!inputIsLessThanTarget) {
+    throw new Error(
+      `The input ${inputDateType} has value ${inputDateValue.easternTZDate.toISOString()}, ` +
+        `but it must be less than ${targetDateType}, ` +
+        `which has value ${targetDateValue.easternTZDate.toISOString()}.`
+    );
+  }
+}
+
+// A flexible offset means the date is moved back in cases where it falls on a weekend or holiday
+// As a result, this only works on positive offsets, which is why there is a new error check here
+export function checkInputDateMeetsFlexibleOffset(
+  applicationDateMap: ApplicationDateMap,
+  inputDateType: DateType,
+  targetDateTypeToOffset: DateType,
+  targetDateOffset: DateOffset
+): void {
+  if (targetDateOffset.days < 1) {
+    throw new Error(
+      `A flexible offset check was attempted between input ${inputDateType} ` +
+        `and ${targetDateTypeToOffset}, but the provided offset value of ` +
+        `${targetDateOffset.days} was less than one.`
+    );
+  }
+
+  // Start by getting the raw offset without any modifications
+  // Throw if it is a weekend or holiday; the whole point of the flexible checker is to not pick those
+  // Then, see if the days match
+  const inputDateValue = getDateValueFromApplicationDateMap(inputDateType, applicationDateMap);
+  if (isHoliday(inputDateValue) || isWeekend(inputDateValue)) {
+    throw new Error(
+      `A flexible offset check was attempted between input ${inputDateType} ` +
+        `and ${targetDateTypeToOffset}, but the provided input date ` +
+        `of ${inputDateValue.easternTZDate.toISOString()} ` +
+        "falls on a holiday or weekend."
+    );
+  }
+  const targetDateValueToOffset = getDateValueFromApplicationDateMap(
+    targetDateTypeToOffset,
+    applicationDateMap
+  );
+  const rawOffsetDateValue: EasternTZDate = {
+    isEasternTZDate: true,
+    easternTZDate: addDays(targetDateValueToOffset.easternTZDate, targetDateOffset.days),
+  };
+  const rawOffsetMatchesInput =
+    format(rawOffsetDateValue.easternTZDate, "yyyy-MM-dd") ===
+    format(inputDateValue.easternTZDate, "yyyy-MM-dd");
+
+  // If the days don't match to start, we begin walking backward
+  let correctedOffsetDateValue = rawOffsetDateValue;
+  if (!rawOffsetMatchesInput) {
+    // The most we should ever need to correct is three steps:
+    //   Monday Federal Holiday, Sunday, Saturday
+    //   Sunday, Saturday, Friday Federal Holiday
+    for (let i = 0; i < 3; i++) {
+      // Break as soon as offset lands on a day that is not a weekend or holiday
+      if (!isHoliday(correctedOffsetDateValue) && !isWeekend(correctedOffsetDateValue)) {
+        break;
+      }
+      correctedOffsetDateValue = {
+        easternTZDate: addDays(correctedOffsetDateValue.easternTZDate, -1),
+        isEasternTZDate: true,
+      };
+    }
+  }
+
+  // Once correction is done, see if that matches the input
+  const correctedOffsetMatchesInput =
+    format(correctedOffsetDateValue.easternTZDate, "yyyy-MM-dd") ===
+    format(inputDateValue.easternTZDate, "yyyy-MM-dd");
+
+  // If either the raw or the corrected matched, check the timestamps like before
+  // Otherwise, throw an error
+  if (rawOffsetMatchesInput || correctedOffsetMatchesInput) {
+    if (targetDateOffset.expectedTimestamp === "Start of Day") {
+      checkInputDateIsStartOfDay(inputDateType, inputDateValue);
+    } else if (targetDateOffset.expectedTimestamp === "End of Day") {
+      checkInputDateIsEndOfDay(inputDateType, inputDateValue);
+    }
+  } else {
+    const offsetString = `+${targetDateOffset.days}`;
+    throw new Error(
+      `The input ${inputDateType} must be equal to ${targetDateTypeToOffset} ${offsetString} days, ` +
+        "accounting for weekends and holidays, and it should have a timestamp " +
+        `that is ${targetDateOffset.expectedTimestamp.toLowerCase()}. ` +
         `The value provided was ${inputDateValue.easternTZDate.toISOString()}.`
     );
   }

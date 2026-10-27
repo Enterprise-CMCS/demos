@@ -6,7 +6,7 @@ import {
   validateInputDates,
 } from "./validateInputDates";
 import { DateType } from "../../types";
-import { ParsedApplicationDateInput } from ".";
+import type { ParsedApplicationDateInput } from ".";
 import { EasternTZDate } from "../../dateUtilities";
 import { DATE_TYPES, DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants";
 import { TZDate } from "@date-fns/tz";
@@ -15,20 +15,24 @@ import type { DateOffset, ApplicationDateMap } from ".";
 
 // Mock imports
 vi.mock(".", () => ({
-  checkInputDateIsStartOfDay: vi.fn(),
-  checkInputDateIsEndOfDay: vi.fn(),
   checkInputDateGreaterThan: vi.fn(),
   checkInputDateGreaterThanOrEqual: vi.fn(),
+  checkInputDateIsEndOfDay: vi.fn(),
+  checkInputDateIsStartOfDay: vi.fn(),
+  checkInputDateLessThan: vi.fn(),
+  checkInputDateMeetsFlexibleOffset: vi.fn(),
   checkInputDateMeetsOffset: vi.fn(),
   checkInputDateNotHoliday: vi.fn(),
   checkInputDateNotWeekend: vi.fn(),
 }));
 
 import {
-  checkInputDateIsStartOfDay,
-  checkInputDateIsEndOfDay,
   checkInputDateGreaterThan,
   checkInputDateGreaterThanOrEqual,
+  checkInputDateIsEndOfDay,
+  checkInputDateIsStartOfDay,
+  checkInputDateLessThan,
+  checkInputDateMeetsFlexibleOffset,
   checkInputDateMeetsOffset,
   checkInputDateNotHoliday,
   checkInputDateNotWeekend,
@@ -74,15 +78,63 @@ describe("validateInputDates", () => {
   });
 
   describe("makeValidations", () => {
-    it("should, before 1.3.0, include the 15-day offset for Completness Review Due Date in the validations ", () => {
-      const result = makeValidations(new SemVer("1.2.0"));
-      expect(result["Completeness Review Due Date"]["offsetChecks"].length).toBeGreaterThan(0);
-      expect(result["State Application Submitted Date"]["offsetChecks"].length).toBeGreaterThan(0);
+    describe("before 1.3.0", () => {
+      const versionNumber = "1.2.0";
+      it("should include the 15-day offset for Completeness Review Due Date in the validations", () => {
+        const result = makeValidations(new SemVer(versionNumber));
+        expect(result["Completeness Review Due Date"]["offsetChecks"].length).toBeGreaterThan(0);
+        expect(result["State Application Submitted Date"]["offsetChecks"].length).toBeGreaterThan(
+          0
+        );
+      });
+
+      it("should include the 1 day and 30 day offsets for the federal comment period", () => {
+        const result = makeValidations(new SemVer(versionNumber));
+        expect(result["State Application Deemed Complete"]["offsetChecks"]).toHaveLength(1);
+        expect(result["Federal Comment Period Start Date"]["offsetChecks"]).toHaveLength(2);
+        expect(result["Federal Comment Period End Date"]["offsetChecks"]).toHaveLength(1);
+      });
+
+      it("should not include flexible offset checks, weekend and holiday checks, or less than checks", () => {
+        const result = makeValidations(new SemVer(versionNumber));
+        for (const [dateType, checks] of Object.entries(result)) {
+          expect(checks, dateType).toMatchObject({
+            allowedToBeWeekend: true,
+            allowedToBeHoliday: true,
+            flexibleOffsetChecks: [],
+            lessThanChecks: [],
+          });
+        }
+      });
     });
-    it("should, from 1.3.0, not include the 15-day offset for Completness Review Due Date in the validations ", () => {
-      const result = makeValidations(new SemVer("1.3.0"));
-      expect(result["Completeness Review Due Date"]["offsetChecks"].length).toBe(0);
-      expect(result["State Application Submitted Date"]["offsetChecks"].length).toBe(0);
+
+    describe("from 1.3.0", () => {
+      const versionNumber = "1.3.0";
+      it("should not include the 15-day offset for Completeness Review Due Date in the validations", () => {
+        const result = makeValidations(new SemVer(versionNumber));
+        expect(result["Completeness Review Due Date"]["offsetChecks"]).toHaveLength(0);
+        expect(result["State Application Submitted Date"]["offsetChecks"]).toHaveLength(0);
+      });
+      it("should not include the 1 day and 30 day offsets for the federal comment period", () => {
+        const result = makeValidations(new SemVer(versionNumber));
+        expect(result["State Application Deemed Complete"]["offsetChecks"]).toHaveLength(0);
+        expect(result["Federal Comment Period Start Date"]["offsetChecks"]).toHaveLength(0);
+        expect(result["Federal Comment Period End Date"]["offsetChecks"]).toHaveLength(0);
+      });
+      it("should include flexible offset checks, weekend and holiday checks, and less than checks", () => {
+        const result = makeValidations(new SemVer(versionNumber));
+        expect(result["Completeness Review Due Date"]["allowedToBeWeekend"]).toBe(false);
+        expect(result["Completeness Review Due Date"]["allowedToBeHoliday"]).toBe(false);
+        expect(result["Completeness Review Due Date"]["flexibleOffsetChecks"]).toHaveLength(1);
+        expect(result["State Application Submitted Date"]["lessThanChecks"]).toHaveLength(1);
+      });
+      it("should include ordering checks for federal comment period", () => {
+        const result = makeValidations(new SemVer(versionNumber));
+        expect(result["State Application Deemed Complete"]["lessThanChecks"]).toHaveLength(1);
+        expect(result["Federal Comment Period Start Date"]["lessThanChecks"]).toHaveLength(1);
+        expect(result["Federal Comment Period Start Date"]["greaterThanChecks"]).toHaveLength(1);
+        expect(result["Federal Comment Period End Date"]["greaterThanChecks"]).toHaveLength(1);
+      });
     });
   });
 
@@ -127,6 +179,7 @@ describe("validateInputDates", () => {
         "SME Initial Review Date",
         "FRT Initial Meeting Date",
         "BNPMT Initial Meeting Date",
+        "OACT Initial Review Date",
         "SDG Preparation Completion Date",
         "Review Start Date",
         "Review Completion Date",
@@ -148,6 +201,7 @@ describe("validateInputDates", () => {
         "Approval Summary Start Date",
         "Approval Summary Completion Date",
         "Application Approval Date",
+        "OACT Certification Date",
       ];
       const expectedCalls = startOfDayDateTypes.map((dateType) => [dateType, testDateValue]);
 
@@ -210,132 +264,184 @@ describe("validateInputDates", () => {
       );
     });
 
-    it("before 1.3.0, should run checkInputDateMeetsOffset on dates with that check", () => {
-      const offsetCheckTypes: [DateType, DateType, DateOffset][] = [
-        [
+    describe("before 1.3.0", () => {
+      const versionNumber = "1.2.0";
+
+      it("should run checkInputDateMeetsOffset on dates with that check", () => {
+        const offsetCheckTypes: [DateType, DateType, DateOffset][] = [
+          [
+            "Completeness Review Due Date",
+            "State Application Submitted Date",
+            {
+              days: 15,
+              expectedTimestamp: "End of Day",
+            },
+          ],
+          [
+            "State Application Submitted Date",
+            "Completeness Review Due Date",
+            {
+              days: -15,
+              expectedTimestamp: "Start of Day",
+            },
+          ],
+          [
+            "Federal Comment Period Start Date",
+            "State Application Deemed Complete",
+            {
+              days: 1,
+              expectedTimestamp: "Start of Day",
+            },
+          ],
+          [
+            "State Application Deemed Complete",
+            "Federal Comment Period Start Date",
+            {
+              days: -1,
+              expectedTimestamp: "Start of Day",
+            },
+          ],
+          [
+            "Federal Comment Period End Date",
+            "Federal Comment Period Start Date",
+            {
+              days: 30,
+              expectedTimestamp: "End of Day",
+            },
+          ],
+          [
+            "Federal Comment Period Start Date",
+            "Federal Comment Period End Date",
+            {
+              days: -30,
+              expectedTimestamp: "Start of Day",
+            },
+          ],
+        ];
+        const expectedCalls = offsetCheckTypes.map((dateType) => [
+          testApplicationDateMap,
+          dateType[0],
+          dateType[1],
+          dateType[2],
+        ]);
+
+        validateInputDates(testInput, new SemVer(versionNumber));
+        expect(checkInputDateMeetsOffset).toHaveBeenCalledTimes(offsetCheckTypes.length);
+        expect(vi.mocked(checkInputDateMeetsOffset).mock.calls.sort()).toEqual(
+          expectedCalls.sort()
+        );
+      });
+
+      it("should not run any checks for weekends or holidays", () => {
+        validateInputDates(testInput, new SemVer(versionNumber));
+        expect(checkInputDateNotWeekend).not.toHaveBeenCalled();
+        expect(checkInputDateNotHoliday).not.toHaveBeenCalled();
+      });
+
+      it("should not run any less than checks", () => {
+        validateInputDates(testInput, new SemVer(versionNumber));
+        expect(checkInputDateLessThan).not.toHaveBeenCalled();
+      });
+
+      it("should not run the greater than checks added later", () => {
+        const expectedNonCalls = [
+          [
+            testApplicationDateMap,
+            "Federal Comment Period Start Date",
+            "State Application Deemed Complete",
+          ],
+          [
+            testApplicationDateMap,
+            "Federal Comment Period End Date",
+            "Federal Comment Period Start Date",
+          ],
+        ];
+
+        validateInputDates(testInput, new SemVer(versionNumber));
+        expect(checkInputDateGreaterThan).not.toHaveBeenCalledWith(...expectedNonCalls[0]);
+        expect(checkInputDateGreaterThan).not.toHaveBeenCalledWith(...expectedNonCalls[1]);
+      });
+
+      it("should not run any flexible offset checks", () => {
+        validateInputDates(testInput, new SemVer(versionNumber));
+        expect(checkInputDateMeetsFlexibleOffset).not.toHaveBeenCalled();
+      });
+    });
+
+    describe("from 1.3.0", () => {
+      const versionNumber = "1.3.0";
+
+      it("should run checkInputDateMeetsOffset on dates with that check (now none)", () => {
+        validateInputDates(testInput, new SemVer(versionNumber));
+        expect(checkInputDateMeetsOffset).not.toHaveBeenCalled();
+      });
+
+      it("should run checks for weekends and holidays on one date", () => {
+        validateInputDates(testInput, new SemVer(versionNumber));
+        expect(checkInputDateNotWeekend).toHaveBeenCalledExactlyOnceWith(
+          testApplicationDateMap,
+          "Completeness Review Due Date"
+        );
+        expect(checkInputDateNotHoliday).toHaveBeenCalledExactlyOnceWith(
+          testApplicationDateMap,
+          "Completeness Review Due Date"
+        );
+      });
+
+      it("should run less than checks added", () => {
+        const expectedCalls = [
+          [
+            testApplicationDateMap,
+            "State Application Submitted Date",
+            "Completeness Review Due Date",
+          ],
+          [
+            testApplicationDateMap,
+            "State Application Deemed Complete",
+            "Federal Comment Period Start Date",
+          ],
+          [
+            testApplicationDateMap,
+            "Federal Comment Period Start Date",
+            "Federal Comment Period End Date",
+          ],
+        ];
+
+        validateInputDates(testInput, new SemVer(versionNumber));
+        expect(vi.mocked(checkInputDateLessThan).mock.calls.sort()).toEqual(expectedCalls.sort());
+      });
+
+      it("should run greater than checks added", () => {
+        const expectedCalls = [
+          [
+            testApplicationDateMap,
+            "Federal Comment Period Start Date",
+            "State Application Deemed Complete",
+          ],
+          [
+            testApplicationDateMap,
+            "Federal Comment Period End Date",
+            "Federal Comment Period Start Date",
+          ],
+        ];
+
+        validateInputDates(testInput, new SemVer(versionNumber));
+        expect(checkInputDateGreaterThan).toHaveBeenCalledWith(...expectedCalls[0]);
+        expect(checkInputDateGreaterThan).toHaveBeenCalledWith(...expectedCalls[1]);
+      });
+
+      it("should run flexible offset checks", () => {
+        validateInputDates(testInput, new SemVer(versionNumber));
+        expect(checkInputDateMeetsFlexibleOffset).toHaveBeenCalledExactlyOnceWith(
+          testApplicationDateMap,
           "Completeness Review Due Date",
           "State Application Submitted Date",
           {
             days: 15,
             expectedTimestamp: "End of Day",
-          },
-        ],
-        [
-          "State Application Submitted Date",
-          "Completeness Review Due Date",
-          {
-            days: -15,
-            expectedTimestamp: "Start of Day",
-          },
-        ],
-        [
-          "Federal Comment Period Start Date",
-          "State Application Deemed Complete",
-          {
-            days: 1,
-            expectedTimestamp: "Start of Day",
-          },
-        ],
-        [
-          "State Application Deemed Complete",
-          "Federal Comment Period Start Date",
-          {
-            days: -1,
-            expectedTimestamp: "Start of Day",
-          },
-        ],
-        [
-          "Federal Comment Period End Date",
-          "Federal Comment Period Start Date",
-          {
-            days: 30,
-            expectedTimestamp: "End of Day",
-          },
-        ],
-        [
-          "Federal Comment Period Start Date",
-          "Federal Comment Period End Date",
-          {
-            days: -30,
-            expectedTimestamp: "Start of Day",
-          },
-        ],
-      ];
-      const expectedCalls = offsetCheckTypes.map((dateType) => [
-        testApplicationDateMap,
-        dateType[0],
-        dateType[1],
-        dateType[2],
-      ]);
-
-      validateInputDates(testInput, new SemVer("1.2.0"));
-      expect(checkInputDateMeetsOffset).toHaveBeenCalledTimes(offsetCheckTypes.length);
-      expect(vi.mocked(checkInputDateMeetsOffset).mock.calls.sort()).toEqual(expectedCalls.sort());
-    });
-
-    it("from 1.3.0, should run checkInputDateMeetsOffset on dates with that check", () => {
-      const offsetCheckTypes: [DateType, DateType, DateOffset][] = [
-        [
-          "Federal Comment Period Start Date",
-          "State Application Deemed Complete",
-          {
-            days: 1,
-            expectedTimestamp: "Start of Day",
-          },
-        ],
-        [
-          "State Application Deemed Complete",
-          "Federal Comment Period Start Date",
-          {
-            days: -1,
-            expectedTimestamp: "Start of Day",
-          },
-        ],
-        [
-          "Federal Comment Period End Date",
-          "Federal Comment Period Start Date",
-          {
-            days: 30,
-            expectedTimestamp: "End of Day",
-          },
-        ],
-        [
-          "Federal Comment Period Start Date",
-          "Federal Comment Period End Date",
-          {
-            days: -30,
-            expectedTimestamp: "Start of Day",
-          },
-        ],
-      ];
-      const expectedCalls = offsetCheckTypes.map((dateType) => [
-        testApplicationDateMap,
-        dateType[0],
-        dateType[1],
-        dateType[2],
-      ]);
-
-      validateInputDates(testInput, new SemVer("1.3.0"));
-      expect(checkInputDateMeetsOffset).toHaveBeenCalledTimes(offsetCheckTypes.length);
-      expect(vi.mocked(checkInputDateMeetsOffset).mock.calls.sort()).toEqual(expectedCalls.sort());
-    });
-
-    it("before 1.3.0, it should not run any checks for weekends or holidays", () => {
-      validateInputDates(testInput, new SemVer("1.2.0"));
-      expect(checkInputDateNotWeekend).not.toHaveBeenCalled();
-      expect(checkInputDateNotHoliday).not.toHaveBeenCalled();
-    });
-
-    it("from 1.3.0, it should run checks for weekends and holidays on one date", () => {
-      validateInputDates(testInput, new SemVer("1.3.0"));
-      expect(checkInputDateNotWeekend).toHaveBeenCalledExactlyOnceWith(
-        testApplicationDateMap,
-        "Completeness Review Due Date"
-      );
-      expect(checkInputDateNotHoliday).toHaveBeenCalledExactlyOnceWith(
-        testApplicationDateMap,
-        "Completeness Review Due Date"
-      );
+          }
+        );
+      });
     });
   });
 });

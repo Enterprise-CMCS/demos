@@ -108,8 +108,9 @@ export const CHIP_DEMONSTRATION_TYPE_TAG_NAME =
 
 export const ROLES = [
   "Project Officer",
+  "CMCS Other Point of Contact",
   "State Point of Contact",
-  "DDME Analyst",
+  "Monitoring & Evaluation Analyst",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
   "Viewer",
@@ -123,7 +124,8 @@ export const ADMIN_DEMONSTRATION_ROLES = ROLES;
 
 export const CMS_USER_DEMONSTRATION_ROLES = [
   "Project Officer",
-  "DDME Analyst",
+  "Monitoring & Evaluation Analyst",
+  "CMCS Other Point of Contact",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
   "Viewer",
@@ -210,6 +212,7 @@ export const DOCUMENT_TYPES = [
   "State Application",
   "Summative Evaluation Report",
   "Transition Plan",
+  "OACT Certification Memo",
 ] as const;
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 
@@ -270,6 +273,7 @@ export const REVIEW_PHASE_DATE_TYPES = [
   "Draft Approval Package Shared",
   "Receive OMB Concurrence",
   "Receive OGC Legal Clearance",
+  "OACT Certification Date",
   ...CMS_OSORA_CLEARANCE_DATE_TYPES,
   ...COMMS_CLEARANCE_DATE_TYPES,
 ] as const;
@@ -294,6 +298,7 @@ export const DATE_TYPES = [
   "SME Initial Review Date",
   "FRT Initial Meeting Date",
   "BNPMT Initial Meeting Date",
+  "OACT Initial Review Date",
   "SDG Preparation Completion Date",
   "Review Start Date",
   "Review Completion Date",
@@ -333,6 +338,7 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "SME Initial Review Date": { expectedTimestamp: "Start of Day" },
   "FRT Initial Meeting Date": { expectedTimestamp: "Start of Day" },
   "BNPMT Initial Meeting Date": { expectedTimestamp: "Start of Day" },
+  "OACT Initial Review Date": { expectedTimestamp: "Start of Day" },
   "SDG Preparation Completion Date": { expectedTimestamp: "Start of Day" },
   "Review Start Date": { expectedTimestamp: "Start of Day" },
   "Review Completion Date": { expectedTimestamp: "Start of Day" },
@@ -357,6 +363,7 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "Approval Summary Start Date": { expectedTimestamp: "Start of Day" },
   "Approval Summary Completion Date": { expectedTimestamp: "Start of Day" },
   "Application Approval Date": { expectedTimestamp: "Start of Day" },
+  "OACT Certification Date": { expectedTimestamp: "Start of Day" },
 } as const;
 
 export const STATES_AND_TERRITORIES = [
