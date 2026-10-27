@@ -1,5 +1,3 @@
-import { TZDate } from "@date-fns/tz";
-
 export const CLEARANCE_LEVELS = ["COMMs", "CMS (OSORA)"] as const;
 
 export const APPLICATION_STATUS = [
@@ -654,5 +652,3 @@ export const FEDERAL_HOLIDAYS = [
   "2030-11-28",
   "2030-12-25",
 ];
-
-export const START_OF_2027_EASTERN = new TZDate(2027, 0, 1, 0, 0, 0, 0, "America/New_York");

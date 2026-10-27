@@ -13,7 +13,6 @@ import {
   APPROVAL_PACKAGE_PHASE_DOCUMENTS,
   CMS_OSORA_CLEARANCE_DATE_TYPES,
   COMMS_CLEARANCE_DATE_TYPES,
-  START_OF_2027_EASTERN,
 } from "../../constants.js";
 import { TZDate } from "@date-fns/tz";
 
