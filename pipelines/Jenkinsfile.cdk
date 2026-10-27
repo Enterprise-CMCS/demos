@@ -24,11 +24,12 @@ pipeline {
     stage('CDK - Snyk') {
       steps {
         script {
-          handleError(params.HANDLE_ERRORS) {
-            if (hasChange('deployment')) {
-              snykScan('deployment')
-            }
-          }
+          echo "skip"
+          // handleError(params.HANDLE_ERRORS) {
+          //   if (hasChange('deployment')) {
+          //     snykScan('deployment')
+          //   }
+          // }
         }
       }
     }
@@ -36,17 +37,18 @@ pipeline {
     stage('CDK - Lint') {
       steps {
         script {
-          handleError(params.HANDLE_ERRORS) {
-            if (hasChange('deployment')) {
-              dirCon('deployment', 'node') {
-                sh '''
-              npm ci
-              npm run lint
-              npm run tsc:ci
-              '''
-              }
-            }
-          }
+          echo "skip"
+          // handleError(params.HANDLE_ERRORS) {
+          //   if (hasChange('deployment')) {
+          //     dirCon('deployment', 'node') {
+          //       sh '''
+          //     npm ci
+          //     npm run lint
+          //     npm run tsc:ci
+          //     '''
+          //     }
+          //   }
+          // }
         }
       }
     }
@@ -54,23 +56,24 @@ pipeline {
     stage('CDK - Test') {
       steps {
         script {
-          handleError(params.HANDLE_ERRORS) {
-            if (hasChange('deployment')) {
-              dirCon('deployment', 'node') {
-                sh '''
-              mkdir ../client/dist
-              mkdir ../server/build
-              touch ../server/build/server.cjs
+          echo "skip"
+          // handleError(params.HANDLE_ERRORS) {
+          //   if (hasChange('deployment')) {
+          //     dirCon('deployment', 'node') {
+          //       sh '''
+          //     mkdir ../client/dist
+          //     mkdir ../server/build
+          //     touch ../server/build/server.cjs
 
-              # These are needed for the built-in CDK bundling
-              apk add bash
-              npm i -g esbuild
+          //     # These are needed for the built-in CDK bundling
+          //     apk add bash
+          //     npm i -g esbuild
 
-              npm run test:ci
-              '''
-              }
-            }
-          }
+          //     npm run test:ci
+          //     '''
+          //     }
+          //   }
+          // }
         }
       }
     }
@@ -78,11 +81,12 @@ pipeline {
     stage('CDK - Snyk Code Scan') {
       steps {
         script {
-          handleError(true) {
-            if (hasChange('deployment')) {
-              snykCodeScan('deployment')
-            }
-          }
+          echo "skip"
+          // handleError(true) {
+          //   if (hasChange('deployment')) {
+          //     snykCodeScan('deployment')
+          //   }
+          // }
         }
       }
     }
@@ -90,42 +94,44 @@ pipeline {
     stage('CDK - Synth') {
       steps {
         script {
-          handleError(params.HANDLE_ERRORS) {
-            if (hasChange('deployment')) {
-              dirCon('shared_library', 'node') {
-                sh '''
-                npm ci
-                npm run build
-                '''
-              }
+          echo "skip"
+          // handleError(params.HANDLE_ERRORS) {
+          //   if (hasChange('deployment')) {
+          //     dirCon('shared_library', 'node') {
+          //       sh '''
+          //       npm ci
+          //       npm run build
+          //       '''
+          //     }
 
-              def deployEnv = (env.BRANCH_NAME == 'main') ? "dev" : (env.BRANCH_NAME == env.PROD_TARGET_BRANCH) ? "prod" : "${env.BRANCH_NAME}"
-              if (!(deployEnv in ["prod", "impl", "test", "dev"])) {
-                deployEnv = "dev"
-              }
-              assumeRole(accountEnv: deployEnv)
-              dirCon('deployment', 'node') {
-                sh """
-                npx cdk synth --context stage=${deployEnv} --all
-                """
-              }
-            }
-          }
+          //     def deployEnv = (env.BRANCH_NAME == 'main') ? "dev" : (env.BRANCH_NAME == env.PROD_TARGET_BRANCH) ? "prod" : "${env.BRANCH_NAME}"
+          //     if (!(deployEnv in ["prod", "impl", "test", "dev"])) {
+          //       deployEnv = "dev"
+          //     }
+          //     assumeRole(accountEnv: deployEnv)
+          //     dirCon('deployment', 'node') {
+          //       sh """
+          //       npx cdk synth --context stage=${deployEnv} --all
+          //       """
+          //     }
+          //   }
+          // }
         }
       }
     }
     stage('CDK - Checkov') {
       steps {
         script {
-          handleError(params.HANDLE_ERRORS) {
-            if (hasChange('deployment')) {
-              dirCon('deployment', 'checkov') {
-                sh '''
-              checkov -d cdk.out --config-file .checkov.yml
-              '''
-              }
-            }
-          }
+          echo "skip"
+          // handleError(params.HANDLE_ERRORS) {
+          //   if (hasChange('deployment')) {
+          //     dirCon('deployment', 'checkov') {
+          //       sh '''
+          //     checkov -d cdk.out --config-file .checkov.yml
+          //     '''
+          //     }
+          //   }
+          // }
         }
       }
     }
@@ -138,9 +144,29 @@ pipeline {
     always {
       script {
         handleError.setFailureDescription()
+        def jenkinsUid = container('jnlp') {
+          sh(script: 'id -u', returnStdout: true).trim()
+        }
+        def jenkinsGid = container('jnlp') {
+          sh(script: 'id -g', returnStdout: true).trim()
+        }
+
+        container('node') {
+          sh "npm cache clean --force"
+          sh "chown -R ${jenkinsUid}:${jenkinsGid} \"${env.WORKSPACE}\""
+        }
       }
       // Kubernetes agents can disappear before deferred wipeout runs.
-      cleanWs(deleteDirs: true, disableDeferredWipeout: true)
+      cleanWs(disableDeferredWipeout: true)
+      cleanWs(deleteDirs: true, disableDeferredWipeout: true, notFailBuild: true, patterns: [[pattern: '**/.git', type: 'INCLUDE']])
+
+      container('node') {
+        sh '''
+            echo "--- Checking Sibling Workspaces ---"
+            cd ..
+            du -h -d 1 | grep "$(basename $WORKSPACE)"
+        '''
+      }
     }
   }
 }

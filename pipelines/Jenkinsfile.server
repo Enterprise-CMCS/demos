@@ -144,7 +144,7 @@ post {
       handleError.setFailureDescription()
     }
     // Kubernetes agents can disappear before deferred wipeout runs.
-    cleanWs(deleteDirs: true, disableDeferredWipeout: true)
+    // cleanWs(deleteDirs: true, disableDeferredWipeout: true)
   }
 }
 }
