@@ -6,11 +6,11 @@ import { ConfirmCancellationDialog } from "./ConfirmCancellationDialog";
 
 export const DIALOG_CANCEL_BUTTON_NAME = "button-dialog-cancel";
 
-const DIALOG = tw`bg-surface-white text-text-font w-full rounded shadow-md p-md relative flex flex-col space-y-sm overflow-visible backdrop:bg-black/40`;
+const DIALOG = tw`bg-surface-white text-text-font w-full max-h-[calc(100dvh-2rem)] rounded shadow-md p-md relative flex flex-col space-y-sm overflow-hidden backdrop:bg-black/40`;
 const CLOSE_BUTTON = tw`absolute top-xs right-sm text-[22px] text-text-placeholder hover:text-text-font cursor-pointer`;
 const CLOSE_BUTTON_DISABLED = tw`absolute top-xs right-sm text-[22px] text-text-placeholder/50 cursor-not-allowed`;
-const TITLE = tw`text-[18px] font-bold mb-xs`;
-const HR = tw`border-border-rules my-sm`;
+const TITLE = tw`text-[18px] font-bold mb-xs shrink-0`;
+const HR = tw`border-border-rules my-sm shrink-0`;
 
 export const BaseDialog = ({
   name,
@@ -98,13 +98,12 @@ export const BaseDialog = ({
             <hr className={HR} aria-hidden="true" />
           </>
         )}
-
-        {children}
+        <div className="min-h-0 overflow-y-auto space-y-sm">{children}</div>
 
         {actionButton && (
           <>
             <hr className={HR} aria-hidden="true" />
-            <div className="flex justify-end gap-[24px]">
+            <div className="flex shrink-0 flex-wrap justify-end gap-[24px]">
               <SecondaryButton
                 name={DIALOG_CANCEL_BUTTON_NAME}
                 onClick={onCloseClicked}
