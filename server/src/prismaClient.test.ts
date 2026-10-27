@@ -187,7 +187,7 @@ describe("prismaClient", () => {
     expect(prismaPgCtorMock).toHaveBeenCalledWith(
       {
         connectionString: process.env.DATABASE_URL,
-        ssl: { rejectUnauthorized: false },
+        ssl: { rejectUnauthorized: true },
       },
       { schema: "demos_app" }
     );
@@ -202,7 +202,7 @@ describe("prismaClient", () => {
     expect(prismaPgCtorMock).toHaveBeenCalledWith(
       {
         connectionString: "not-a-url",
-        ssl: { rejectUnauthorized: false },
+        ssl: { rejectUnauthorized: true },
       },
       { schema: undefined }
     );
