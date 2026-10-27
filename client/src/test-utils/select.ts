@@ -1,7 +1,7 @@
 import { screen, within } from "@testing-library/react";
 import { UserEvent } from "@testing-library/user-event";
 
-type ClickUser = Pick<UserEvent, "click">;
+type SelectUser = Pick<UserEvent, "click" | "selectOptions">;
 
 export const querySelectByDisplayValue = (label: string) =>
   screen.queryAllByRole("combobox").find((select) => select.textContent === label) ?? null;
@@ -14,7 +14,7 @@ export const getSelectByDisplayValue = (label: string) => {
   return select;
 };
 
-export const openSelect = async (user: ClickUser, select: HTMLElement) => {
+export const openSelect = async (user: SelectUser, select: HTMLElement) => {
   if (select.getAttribute("aria-expanded") !== "true") {
     await user.click(select);
   }
@@ -26,26 +26,12 @@ export const openSelect = async (user: ClickUser, select: HTMLElement) => {
   return listbox;
 };
 
-export const selectOption = async (
-  user: ClickUser,
-  select: HTMLElement,
-  labelOrValue: string
-) => {
+export const selectOption = async (user: SelectUser, select: HTMLElement, labelOrValue: string) => {
   const listbox = await openSelect(user, select);
-  const optionButton = within(listbox)
-    .getAllByRole("button")
-    .find(
-      (button) =>
-        button.textContent === labelOrValue ||
-        button.dataset.testid === `${select.id}-option-${labelOrValue}`
-    );
-  if (!optionButton) {
-    throw new Error(`No option "${labelOrValue}" found for select "${select.id}"`);
-  }
-  await user.click(optionButton);
+  await user.selectOptions(listbox, labelOrValue);
 };
 
-export const getSelectOptionLabels = async (user: ClickUser, select: HTMLElement) => {
+export const getSelectOptionLabels = async (user: SelectUser, select: HTMLElement) => {
   const listbox = await openSelect(user, select);
   return within(listbox)
     .getAllByRole("option")

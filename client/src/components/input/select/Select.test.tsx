@@ -180,4 +180,58 @@ describe("Select", () => {
     );
     expect(screen.getByRole("combobox")).toBeRequired();
   });
+
+  it("points aria-activedescendant at the highlighted option", async () => {
+    const user = userEvent.setup();
+    render(<Select options={options} onSelect={() => {}} id="test-select" />);
+    const select = screen.getByRole("combobox");
+    expect(select).not.toHaveAttribute("aria-activedescendant");
+
+    select.focus();
+    await user.keyboard("{ArrowDown}{ArrowDown}");
+    const activeOptionId = select.getAttribute("aria-activedescendant");
+    expect(document.getElementById(activeOptionId!)).toHaveTextContent("Alpha");
+
+    await user.keyboard("{End}");
+    expect(document.getElementById(select.getAttribute("aria-activedescendant")!)).toHaveTextContent(
+      "Gamma"
+    );
+  });
+
+  it("labels the option list with the select's label", async () => {
+    const user = userEvent.setup();
+    render(<Select options={options} label="Test Label" onSelect={() => {}} id="test-select" />);
+    await user.click(screen.getByRole("combobox"));
+    expect(screen.getByRole("listbox")).toHaveAccessibleName("Test Label");
+  });
+
+  it("links the validation message to the select", () => {
+    render(
+      <Select
+        options={options}
+        validationMessage="Selection is required"
+        onSelect={() => {}}
+        id="test-select"
+      />
+    );
+    const select = screen.getByRole("combobox");
+    expect(select).toHaveAttribute("aria-invalid", "true");
+    expect(select).toHaveAccessibleDescription("Selection is required");
+  });
+
+  it("generates unique ids when no id is passed", async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <Select options={options} label="First" onSelect={() => {}} />
+        <Select options={options} label="Second" onSelect={() => {}} />
+      </>
+    );
+    const [first, second] = screen.getAllByRole("combobox");
+    expect(first.id).not.toEqual(second.id);
+    expect(screen.getByLabelText("First")).toBe(first);
+
+    await user.click(first);
+    expect(screen.getByRole("listbox")).toHaveAttribute("id", first.getAttribute("aria-controls"));
+  });
 });
