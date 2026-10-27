@@ -15,6 +15,9 @@ import {
   COMMS_CLEARANCE_DATE_TYPES,
   START_OF_2027_EASTERN,
 } from "../../constants.js";
+import { TZDate } from "@date-fns/tz";
+
+export const START_OF_2027_EASTERN = new TZDate(2027, 0, 1, 0, 0, 0, 0, "America/New_York");
 
 const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
   Concept: {
