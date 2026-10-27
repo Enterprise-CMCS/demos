@@ -14,20 +14,6 @@ export const mockAmendments = [
     createdAt: new Date(2024, 4, 30),
   },
   {
-    id: "2",
-    name: "Amendment 2 - Montana Medicaid Waiver",
-    effectivePlainDate: "2025-02-01",
-    status: "Approved",
-    createdAt: new Date(2024, 5, 15),
-  },
-  {
-    id: "3",
-    name: "Amendment 3 - Montana Medicaid Waiver",
-    effectivePlainDate: "2025-03-01",
-    status: "Approved",
-    createdAt: new Date(2024, 5, 20),
-  },
-  {
     id: "4",
     name: "Amendment 4 - Florida Health Innovation",
     effectivePlainDate: "2025-04-01",

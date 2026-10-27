@@ -49,6 +49,8 @@ export const DEMONSTRATION_SUMMARY_DETAILS_QUERY = gql`
   }
 `;
 
+export const SUMMARY_DETAILS_TABLE_TEST_ID = "summary-details-table";
+
 const FIELD_CONTAINER_CLASSES = tw`min-h-[62px] flex flex-col`;
 const LABEL_CLASSES = tw`text-text-font font-bold text-sm tracking-wide h-[14px] flex items-center`;
 const VALUE_CLASSES = tw`text-text-font text-base leading-relaxed min-h-[40px] flex items-start mt-1`;
@@ -97,7 +99,7 @@ export const SummaryDetailsTable: React.FC<{ demonstrationId: string }> = ({ dem
   const displayData = prepareDisplayData(demonstration);
 
   return (
-    <div className="grid grid-cols-4 gap-y-2 gap-x-8">
+    <div className="grid grid-cols-4 gap-y-2 gap-x-8" data-testid={SUMMARY_DETAILS_TABLE_TEST_ID}>
       <div
         className={`col-span-2 ${FIELD_CONTAINER_CLASSES}`}
         role="group"
