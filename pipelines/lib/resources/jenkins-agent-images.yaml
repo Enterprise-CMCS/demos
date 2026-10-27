@@ -17,6 +17,20 @@ spec:
   restartPolicy: Never
   serviceAccountName: jenkins-role
   containers:
+    - name: default
+      image: alpine
+      command: 
+        - cat
+      tty: true
+      resources:
+        requests:
+          cpu: 250m
+          memory: 500Mi
+          ephemeral-storage: 2Gi
+        limits:
+          cpu: 500m
+          memory: 1Gi
+          ephemeral-storage: 10Gi
     - name: node
       image: node:24.22.0-alpine
       command: 
