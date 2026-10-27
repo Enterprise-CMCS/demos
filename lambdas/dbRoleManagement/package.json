@@ -15,15 +15,15 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@aws-sdk/client-lambda": "^3.1147.0",
-    "@aws-sdk/client-secrets-manager": "^3.1147.0",
-    "@aws-sdk/client-ssm": "^3.1147.0",
+    "@aws-sdk/client-lambda": "^3.1153.0",
+    "@aws-sdk/client-secrets-manager": "^3.1153.0",
+    "@aws-sdk/client-ssm": "^3.1153.0",
     "@types/aws-lambda": "^8.10.164",
-    "@types/node": "^24.19.1",
+    "@types/node": "^24.19.2",
     "@types/pg": "^8.23.1",
-    "@vitest/coverage-v8": "^4.1.11",
+    "@vitest/coverage-v8": "^4.1.12",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.12"
   },
   "dependencies": {
     "pg": "^8.23.1",

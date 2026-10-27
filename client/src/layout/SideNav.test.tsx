@@ -1,17 +1,35 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
 import { describe, it, expect } from "vitest";
 import { SideNav } from "./SideNav";
+import { TestProvider } from "test-utils/TestProvider";
+import { developmentMockUser } from "mock-data/userMocks";
+import type { CurrentUser } from "components/user/UserContext";
 
-const renderSideNav = () => {
-  return render(<SideNav />, { wrapper: MemoryRouter });
+const oactUser: CurrentUser = {
+  ...developmentMockUser,
+  person: { ...developmentMockUser.person, personType: "demos-oact-user" },
+};
+
+const renderSideNav = (currentUser?: CurrentUser) => {
+  return render(
+    <TestProvider currentUser={currentUser}>
+      <SideNav />
+    </TestProvider>
+  );
 };
 
 describe("SideNav", () => {
   it("renders all nav links", () => {
     renderSideNav();
     expect(screen.getByText("Demonstrations")).toBeInTheDocument();
+    expect(screen.getByText("Deliverables")).toBeInTheDocument();
+  });
+
+  it("hides the Deliverables link for demos-oact-user", () => {
+    renderSideNav(oactUser);
+    expect(screen.getByText("Demonstrations")).toBeInTheDocument();
+    expect(screen.queryByText("Deliverables")).not.toBeInTheDocument();
   });
 
   it("toggles collapse when menu button is clicked", () => {
