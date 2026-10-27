@@ -35,8 +35,9 @@ const createExtendedClient = () => {
   const adapter = new PrismaPg(
     {
       connectionString,
-      // deepcode ignore TLSCertVerificationDisabled: DB connection is restricted to the private VPC; CA pinning tracked separately
-      ssl: { rejectUnauthorized: false },
+      // Do not set to false. For local development, use `sslmode=disable` (or
+      // no-verify) in the DATABASE_URL which will take priority
+      ssl: { rejectUnauthorized: true },
     },
     {
       schema,
