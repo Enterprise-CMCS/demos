@@ -5,7 +5,8 @@ def call(String branchName, Map config = [:]) {
     longDaysKeep: '60',
     shortDaysKeep: '7',
     longRetentionBranches: ['main', 'test', 'impl', 'prod'],
-    additionalLongRetentionBranches: []
+    additionalLongRetentionBranches: [],
+    keepArtifacts: true
   ]
 
   config = defaults + config
@@ -25,9 +26,9 @@ def call(String branchName, Map config = [:]) {
 
   return logRotator(
     numToKeepStr: isLongRetentionBranch ? config.longNumKeep : config.shortNumKeep,
-    artifactNumToKeepStr: isLongRetentionBranch ? config.longNumKeep : config.shortNumKeep,
+    artifactNumToKeepStr: config.keepArtifacts ? (isLongRetentionBranch ? config.longNumKeep : config.shortNumKeep) : '0',
     daysToKeepStr: isLongRetentionBranch ? config.longDaysKeep : config.shortDaysKeep,
-    artifactDaysToKeepStr: isLongRetentionBranch ? config.longDaysKeep : config.shortDaysKeep,
+    artifactDaysToKeepStr: config.keepArtifacts ? (isLongRetentionBranch ? config.longDaysKeep : config.shortDaysKeep) : '0',
     removeLastBuild: !isLongRetentionBranch
   )
 }

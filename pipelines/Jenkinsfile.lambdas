@@ -11,7 +11,8 @@ pipeline {
 
 options {
   disableConcurrentBuilds(abortPrevious: true)
-  buildDiscarder(retentionPolicy(env.BRANCH_NAME))
+  buildDiscarder(retentionPolicy(env.BRANCH_NAME, [keepArtifacts: false]))
+  durabilityHint('PERFORMANCE_OPTIMIZED')
 }
 
 parameters {
@@ -112,7 +113,8 @@ post {
     script {
       handleError.setFailureDescription()
     }
-    cleanWs(deleteDirs: true)
+    // Kubernetes agents can disappear before deferred wipeout runs.
+    cleanWs(deleteDirs: true, disableDeferredWipeout: true)
   }
 }
 }
