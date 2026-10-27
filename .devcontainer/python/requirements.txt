@@ -20,7 +20,7 @@ babel==2.18.0
     # via agate
 boto3==1.43.47
     # via -r requirements.in
-boto3-stubs==1.43.47
+boto3-stubs[essential]==1.43.47
     # via -r requirements.in
 botocore==1.43.85
     # via
@@ -30,7 +30,7 @@ botocore-stubs==1.43.67
     # via boto3-stubs
 build==1.6.0
     # via pip-tools
-certifi==2026.7.22
+certifi==2026.10.18
     # via requests
 chardet==7.6.0
     # via
@@ -51,7 +51,7 @@ colorama==0.4.6
     #   pytest-mocha
     #   radon
     #   sqlfluff
-coverage==7.16.0
+coverage[toml]==7.16.0
     # via pytest-cov
 daff==1.4.2
     # via dbt-core
@@ -121,7 +121,7 @@ mando==0.7.1
     # via radon
 markupsafe==3.0.3
     # via jinja2
-mashumaro==3.14
+mashumaro[msgpack]==3.14
     # via
     #   dbt-adapters
     #   dbt-common
@@ -150,7 +150,7 @@ mypy-extensions==1.1.0
     # via mypy
 networkx==3.6.1
     # via dbt-core
-opentelemetry-api==1.44.0
+opentelemetry-api==1.45.1
     # via dbt-common
 orderly-set==5.5.0
     # via deepdiff
@@ -168,8 +168,6 @@ pathspec==0.12.1
     #   dbt-core
     #   mypy
     #   sqlfluff
-pip==26.2.1
-    # via pip-tools
 pip-tools==7.6.1
     # via -r requirements.in
 platformdirs==4.11.7
@@ -259,8 +257,6 @@ ruff==0.11.13
     # via -r requirements.in
 s3transfer==0.19.2
     # via boto3
-setuptools==84.0.0
-    # via pip-tools
 six==1.17.0
     # via
     #   mando

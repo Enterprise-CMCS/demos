@@ -192,7 +192,7 @@ stdout is captured by CloudWatch; local terminal output is formatted with
 
 All recipients below are BCC recipients, deduplicated by email address. State POCs
 are State Points of Contact assigned to the demonstration. CMS contacts are assigned
-Project Officers, DDME Analysts, Policy Technical Directors, and Monitoring &
+Project Officers, Monitoring & Evaluation Analysts, Policy Technical Directors, and Monitoring &
 Evaluation Technical Directors.
 
 | Email type | Trigger | Recipients |

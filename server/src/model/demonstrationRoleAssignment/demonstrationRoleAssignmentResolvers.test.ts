@@ -66,7 +66,7 @@ describe("demonstrationRoleAssignmentResolvers", () => {
   const mockRoleAssignment: DemonstrationRoleAssignmentQueryResult = {
     personId: "person-1",
     demonstrationId: "demo-1",
-    roleId: "DDME Analyst",
+    roleId: "Monitoring & Evaluation Analyst",
     isPrimary: true,
   } as DemonstrationRoleAssignmentQueryResult;
 
@@ -84,7 +84,7 @@ describe("demonstrationRoleAssignmentResolvers", () => {
       {
         demonstrationId: "demo-1",
         personId: "person-1",
-        roleId: "DDME Analyst",
+        roleId: "Monitoring & Evaluation Analyst",
         isPrimary: true,
       },
       {
@@ -269,7 +269,7 @@ describe("demonstrationRoleAssignmentResolvers", () => {
     const testInput: SetDemonstrationRoleInput = {
       demonstrationId: "demo-1",
       personId: "person-1",
-      roleId: "DDME Analyst",
+      roleId: "Monitoring & Evaluation Analyst",
       isPrimary: true,
     };
 
@@ -372,7 +372,7 @@ describe("demonstrationRoleAssignmentResolvers", () => {
       const inputWithoutPrimary: SetDemonstrationRoleInput = {
         demonstrationId: "demo-1",
         personId: "person-1",
-        roleId: "DDME Analyst",
+        roleId: "Monitoring & Evaluation Analyst",
       };
 
       await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRole(null, {
