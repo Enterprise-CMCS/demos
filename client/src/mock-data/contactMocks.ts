@@ -1,6 +1,6 @@
 import { MockedResponse } from "@apollo/client/testing";
 import { CONTACTS_TABLE_QUERY } from "components/table/tables/ContactsTable";
-import { mockPeople } from "./personMocks";
+import { MOCK_DEMONSTRATION_ROLES } from "./demonstrationRoleAssignmentMocks";
 
 export const contactMocks: MockedResponse[] = [
   {
@@ -11,26 +11,11 @@ export const contactMocks: MockedResponse[] = [
     result: {
       data: {
         demonstration: {
-          roles: [
-            {
-              isPrimary: true,
-              role: "Project Officer",
-              person: {
-                id: mockPeople[0].id,
-                fullName: mockPeople[0].fullName,
-                email: mockPeople[0].email,
-              },
-            },
-            {
-              isPrimary: false,
-              role: "State Point of Contact",
-              person: {
-                id: mockPeople[1].id,
-                fullName: mockPeople[1].fullName,
-                email: mockPeople[1].email,
-              },
-            },
-          ],
+          roles: MOCK_DEMONSTRATION_ROLES.map(({ role, isPrimary, person }) => ({
+            role,
+            isPrimary,
+            person: { id: person.id, fullName: person.fullName, email: person.email },
+          })),
         },
       },
     },
