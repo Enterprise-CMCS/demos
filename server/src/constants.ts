@@ -108,8 +108,9 @@ export const CHIP_DEMONSTRATION_TYPE_TAG_NAME =
 
 export const ROLES = [
   "Project Officer",
+  "CMCS Other Point of Contact",
   "State Point of Contact",
-  "DDME Analyst",
+  "Monitoring & Evaluation Analyst",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
   "Viewer",
@@ -123,7 +124,8 @@ export const ADMIN_DEMONSTRATION_ROLES = ROLES;
 
 export const CMS_USER_DEMONSTRATION_ROLES = [
   "Project Officer",
-  "DDME Analyst",
+  "Monitoring & Evaluation Analyst",
+  "CMCS Other Point of Contact",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
   "Viewer",
@@ -294,6 +296,7 @@ export const DATE_TYPES = [
   "SME Initial Review Date",
   "FRT Initial Meeting Date",
   "BNPMT Initial Meeting Date",
+  "OACT Initial Review Date",
   "SDG Preparation Completion Date",
   "Review Start Date",
   "Review Completion Date",
@@ -333,6 +336,7 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "SME Initial Review Date": { expectedTimestamp: "Start of Day" },
   "FRT Initial Meeting Date": { expectedTimestamp: "Start of Day" },
   "BNPMT Initial Meeting Date": { expectedTimestamp: "Start of Day" },
+  "OACT Initial Review Date": { expectedTimestamp: "Start of Day" },
   "SDG Preparation Completion Date": { expectedTimestamp: "Start of Day" },
   "Review Start Date": { expectedTimestamp: "Start of Day" },
   "Review Completion Date": { expectedTimestamp: "Start of Day" },
