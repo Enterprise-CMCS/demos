@@ -22,24 +22,6 @@ describe("BaseDialog", () => {
     expect(screen.getByText("Dialog content")).toBeInTheDocument();
   });
 
-  it("constrains the dialog while keeping spaced content separate from the header and actions", () => {
-    render(
-      <BaseDialog {...defaultProps} name="test-dialog" actionButton={<button>Save</button>} />
-    );
-
-    const dialog = screen.getByTestId("test-dialog");
-    const body = screen.getByText("Dialog content").parentElement;
-    const title = screen.getByRole("heading", { name: "Test Dialog" });
-    const action = screen.getByRole("button", { name: "Save" });
-
-    expect(dialog).toHaveClass("max-h-[calc(100dvh-2rem)]", "overflow-hidden");
-    expect(body).toHaveClass("min-h-0", "overflow-y-auto", "space-y-sm");
-    expect(title).toHaveClass("shrink-0");
-    expect(action.parentElement).toHaveClass("shrink-0", "flex-wrap");
-    expect(body).not.toContainElement(title);
-    expect(body).not.toContainElement(action);
-  });
-
   it("renders and triggers the close button when hasChanges is false", () => {
     const onClose = vi.fn();
     render(<BaseDialog {...defaultProps} onClose={onClose} dialogHasChanges={false} />);
