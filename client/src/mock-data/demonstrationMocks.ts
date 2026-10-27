@@ -26,7 +26,7 @@ import {
 } from "./DemonstrationTypeAssignmentMocks";
 import { ADD_DEMONSTRATION_TYPES_FORM_QUERY } from "components/dialog/DemonstrationTypes/AddDemonstrationTypesForm";
 import { DEMONSTRATION_HEADER_DETAILS_QUERY } from "pages/DemonstrationDetail/DemonstrationHeader";
-import { primaryProjectOfficerRoleAssignment } from "./demonstrationRoleAssignmentMocks";
+import { MOCK_DEMONSTRATION_ROLES } from "./demonstrationRoleAssignmentMocks";
 import { MOCK_DELIVERABLE_1 } from "./deliverableMocks";
 import {
   AssociatedRecordsDemonstration,
@@ -73,7 +73,7 @@ export const MOCK_DEMONSTRATION: MockDemonstration = {
   ),
   renewals: mockRenewals.filter((renewal) => renewal.name.includes("Montana Medicaid Waiver")),
   documents: mockDocuments,
-  roles: [primaryProjectOfficerRoleAssignment],
+  roles: MOCK_DEMONSTRATION_ROLES,
   currentPhaseName: "Concept",
   primaryProjectOfficer: mockPerson,
   demonstrationTypes: MOCK_DEMONSTRATION_TYPE_ASSIGNMENTS,

@@ -58,6 +58,7 @@ describe("DocumentTable", () => {
 
     expect(screen.queryByTestId("edit-document")).not.toBeInTheDocument();
     expect(screen.queryByTestId("remove-document")).not.toBeInTheDocument();
+    expect(screen.queryByTestId(/select-row-/i)).not.toBeInTheDocument();
   });
 
   it("disables Edit button when no or multiple documents are selected, enables for one", async () => {

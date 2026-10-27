@@ -33,7 +33,7 @@ import { useApolloClient } from "@apollo/client/react/hooks/useApolloClient";
 import { TypesTable } from "components/table/tables/TypesTable";
 import { DeliverablesTab } from "./deliverables/DeliverablesTab";
 import { NON_DELIVERABLE_DOCUMENT_TYPES } from "demos-server-constants";
-import { getCurrentUser, isReadonly } from "components/user/UserContext";
+import { getCurrentUser, isHidden, isReadonly } from "components/user/UserContext";
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
   person: Pick<Person, "fullName" | "id" | "email" | "personType">;
@@ -103,7 +103,9 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           icon={<FileIcon />}
           label="Deliverables"
           value={TAB.DELIVERABLES}
-          shouldRender={isDemonstrationApproved}
+          shouldRender={
+            isDemonstrationApproved && !isHidden(currentUser, "DeliverableManagement")
+          }
         >
           <DeliverablesTab
             parentDemonstration={{

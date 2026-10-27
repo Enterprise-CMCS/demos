@@ -7,3 +7,7 @@ export const primaryProjectOfficerRoleAssignment: DemonstrationRoleAssignment = 
   person: mockPerson,
   demonstration: {} as Demonstration,
 };
+
+export const MOCK_DEMONSTRATION_ROLES: DemonstrationRoleAssignment[] = [
+  primaryProjectOfficerRoleAssignment,
+];
