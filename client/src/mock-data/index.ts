@@ -6,6 +6,7 @@ import { referenceMocks } from "./referenceMocks";
 import { tagMocks } from "./TagMocks";
 import { userMocks } from "./userMocks";
 import { workflowMocks } from "./workflowMocks";
+import { contactMocks } from "./contactMocks";
 
 export const ALL_MOCKS = [
   ...userMocks,
@@ -15,5 +16,6 @@ export const ALL_MOCKS = [
   ...demonstrationTypeAssignmentMocks,
   ...workflowMocks,
   ...deliverableMocks,
+  ...contactMocks,
   ...referenceMocks,
 ];

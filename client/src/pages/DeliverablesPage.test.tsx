@@ -7,7 +7,7 @@ import {
   STATE_USER_DELIVERABLES_PAGE_QUERY,
 } from "components/table/tables/DeliverableTable";
 import { DeliverablesPage } from "./DeliverablesPage";
-import { MOCK_DELIVERABLE_TABLE_ROW } from "mock-data/deliverableMocks";
+import { MOCK_DELIVERABLE_1 } from "mock-data/deliverableMocks";
 import { mockUsers } from "mock-data/userMocks";
 import { TestProvider } from "test-utils/TestProvider";
 
@@ -19,23 +19,23 @@ const CURRENT_USER_ID = "current-user-id";
 
 const MOCK_DELIVERABLE_TABLE_ROWS = [
   {
-    ...MOCK_DELIVERABLE_TABLE_ROW,
+    ...MOCK_DELIVERABLE_1,
     cmsOwner: {
-      ...MOCK_DELIVERABLE_TABLE_ROW.cmsOwner,
+      ...MOCK_DELIVERABLE_1.cmsOwner,
       id: CURRENT_USER_ID,
     },
   },
   {
-    ...MOCK_DELIVERABLE_TABLE_ROW,
+    ...MOCK_DELIVERABLE_1,
     id: "2",
     name: "Budget Neutrality Worksheet",
     cmsOwner: {
-      ...MOCK_DELIVERABLE_TABLE_ROW.cmsOwner,
+      ...MOCK_DELIVERABLE_1.cmsOwner,
       id: CURRENT_USER_ID,
     },
   },
   {
-    ...MOCK_DELIVERABLE_TABLE_ROW,
+    ...MOCK_DELIVERABLE_1,
     id: "3",
     name: "Quarterly Report For NYC Demonstration",
     cmsOwner: {
@@ -89,7 +89,7 @@ const STATE_USER_DELIVERABLES_TABLE_MOCKS: MockedResponse[] = [
                   id: "unassigned-demonstration",
                   deliverables: [
                     {
-                      ...MOCK_DELIVERABLE_TABLE_ROW,
+                      ...MOCK_DELIVERABLE_1,
                       id: "not-state-assigned",
                       name: "Unassigned Demonstration Deliverable",
                     },
@@ -229,7 +229,7 @@ describe("DeliverablesPage tab persistence", () => {
 
     fireEvent.click(screen.getByTestId("button-deliverables"));
 
-    expect(screen.getByText("Budget Neutrality Report")).toBeInTheDocument();
+    expect(screen.getByText(MOCK_DELIVERABLE_1.name)).toBeInTheDocument();
     expect(screen.getByText("Budget Neutrality Worksheet")).toBeInTheDocument();
     expect(screen.getByText("Quarterly Report For NYC Demonstration")).toBeInTheDocument();
   });
@@ -252,13 +252,13 @@ describe("DeliverablesPage tab persistence", () => {
 
       expect(screen.getByTestId("button-my-deliverables")).toBeInTheDocument();
       expect(screen.getByTestId("button-deliverables")).toBeInTheDocument();
-      expect(screen.getByText("Budget Neutrality Report")).toBeInTheDocument();
+      expect(screen.getByText(MOCK_DELIVERABLE_1.name)).toBeInTheDocument();
       expect(screen.getByText("Budget Neutrality Worksheet")).toBeInTheDocument();
       expect(screen.queryByText("Quarterly Report For NYC Demonstration")).not.toBeInTheDocument();
 
       fireEvent.click(screen.getByTestId("button-deliverables"));
 
-      expect(screen.getByText("Budget Neutrality Report")).toBeInTheDocument();
+      expect(screen.getByText(MOCK_DELIVERABLE_1.name)).toBeInTheDocument();
       expect(screen.getByText("Budget Neutrality Worksheet")).toBeInTheDocument();
       expect(screen.getByText("Quarterly Report For NYC Demonstration")).toBeInTheDocument();
     }
@@ -289,7 +289,7 @@ describe("DeliverablesPage tab persistence", () => {
 
     expect(screen.queryByTestId("button-deliverables")).not.toBeInTheDocument();
     expect(screen.queryByTestId("button-my-deliverables")).not.toBeInTheDocument();
-    expect(screen.getByText("Budget Neutrality Report")).toBeInTheDocument();
+    expect(screen.getByText(MOCK_DELIVERABLE_1.name)).toBeInTheDocument();
     expect(screen.getByText("Budget Neutrality Worksheet")).toBeInTheDocument();
     expect(screen.getByText("Quarterly Report For NYC Demonstration")).toBeInTheDocument();
     expect(screen.queryByText("Unassigned Demonstration Deliverable")).not.toBeInTheDocument();
@@ -298,7 +298,7 @@ describe("DeliverablesPage tab persistence", () => {
   it("dedupes state-user deliverables across State Point of Contact demonstrations", async () => {
     await renderStateDeliverablesPage();
 
-    expect(screen.getAllByText("Budget Neutrality Report")).toHaveLength(1);
+    expect(screen.getAllByText(MOCK_DELIVERABLE_1.name)).toHaveLength(1);
   });
 
   it("shows state-user empty message when there are no deliverables", async () => {
