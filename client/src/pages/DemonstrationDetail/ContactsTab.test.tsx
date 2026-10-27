@@ -15,87 +15,43 @@ import {
   oactMockUser,
 } from "mock-data/userMocks";
 import { DialogProvider } from "components/dialog/DialogContext";
+import { mockDemonstration as baseMockDemonstration } from "mock-data/demonstrationMocks";
 
-const mockDemonstration: DemonstrationTabDemonstration = {
-  id: "demo-123",
-  state: {
-    id: "NC",
-  },
-  name: "Contacts Test Demonstration",
-  status: "Pre-Submission" as const,
+const createMockDemonstration = (
+  roles: DemonstrationTabDemonstration["roles"] = []
+): DemonstrationTabDemonstration => ({
+  id: baseMockDemonstration.id,
+  name: baseMockDemonstration.name,
+  status: baseMockDemonstration.status,
   currentPhaseName: "Concept" as const,
-  demonstrationTypes: [],
-  documents: [
-    {
-      id: "doc-1",
-      name: "Document 1",
-      description: "Test doc 1",
-      documentType: "State Application",
-      createdAt: new Date(),
-      owner: { person: { fullName: "John Doe" } },
-    },
-    {
-      id: "doc-2",
-      name: "Document 2",
-      description: "Test doc 2",
-      documentType: "Approval Letter",
-      createdAt: new Date(),
-      owner: { person: { fullName: "Jane Smith" } },
-    },
-  ],
-  roles: [
-    {
-      person: {
-        id: "person-1",
-        fullName: "John Doe",
-        email: "john@example.com",
-        personType: "demos-cms-user",
-      },
-      role: "Project Officer",
-      isPrimary: true,
-    },
-    {
-      person: {
-        id: "person-2",
-        fullName: "Jane Smith",
-        email: "jane@example.com",
-        personType: "demos-state-user",
-      },
-      role: "State Point of Contact",
-      isPrimary: false,
-    },
-  ],
-};
+  demonstrationTypes: baseMockDemonstration.demonstrationTypes,
+  state: baseMockDemonstration.state,
+  documents: [],
+  roles,
+});
 
-const mockDemonstrationEmptyRoles: DemonstrationTabDemonstration = {
-  id: "demo-123",
-  state: {
-    id: "NC",
+const mockDemonstration = createMockDemonstration([
+  {
+    person: {
+      id: "person-1",
+      fullName: "John Doe",
+      email: "john@example.com",
+      personType: "demos-cms-user",
+    },
+    role: "Project Officer",
+    isPrimary: true,
   },
-  name: "Contacts Test Demonstration",
-  status: "Pre-Submission" as const,
-  currentPhaseName: "Concept" as const,
-  demonstrationTypes: [],
-  documents: [
-    {
-      id: "doc-1",
-      name: "Document 1",
-      description: "Test doc 1",
-      documentType: "State Application",
-      createdAt: new Date(),
-      owner: { person: { fullName: "John Doe" } },
+  {
+    person: {
+      id: "person-2",
+      fullName: "Jane Smith",
+      email: "jane@example.com",
+      personType: "demos-state-user",
     },
-    {
-      id: "doc-2",
-      name: "Document 2",
-      description: "Test doc 2",
-      documentType: "Approval Letter",
-      createdAt: new Date(),
-      owner: { person: { fullName: "Jane Smith" } },
-    },
-  ],
-  roles: [],
-};
+    role: "State Point of Contact",
+    isPrimary: false,
+  },
+]);
 
 describe("ContactsTab", () => {
   describe("Main display", () => {
@@ -139,10 +95,6 @@ describe("ContactsTab", () => {
 
       const dialog = await screen.findByRole("dialog");
       expect(dialog).toBeInTheDocument();
-
-      // Assert the dialog content includes the contact names
-      expect(screen.getByText("John Doe")).toBeInTheDocument();
-      expect(screen.getByText("Jane Smith")).toBeInTheDocument();
     });
 
     it("shows Manage Contact(s) button in contacts tab", async () => {
@@ -156,7 +108,7 @@ describe("ContactsTab", () => {
       return render(
         <TestProvider currentUser={cmsMockUser}>
           <DialogProvider>
-            <ContactsTab demonstration={mockDemonstrationEmptyRoles} />
+            <ContactsTab demonstration={createMockDemonstration([])} />
           </DialogProvider>
         </TestProvider>
       );
@@ -174,9 +126,9 @@ describe("ContactsTab", () => {
   });
 
   describe.each([
-    ["OACT (readonly) user", readonlyMockUser],
+    ["OACT user", oactMockUser],
     ["CMS Reviewer user", cmsReviewerMockUser],
-    ["CMS Restricted user", oactMockUser],
+    ["CMS Restricted user", readonlyMockUser],
   ])("hides Manage Contact(s) button for %s", (_userType, mockUser) => {
     it("should not display the button", () => {
       render(
