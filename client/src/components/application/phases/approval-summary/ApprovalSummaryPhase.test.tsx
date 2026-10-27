@@ -247,12 +247,50 @@ describe("ApprovalSummaryPhase", () => {
   });
 
   it("shows completion date in MM/DD/YYYY format when manually marked complete", async () => {
-    // This test verifies the date format functionality
-    setup();
+    setup(
+      buildInitialFormData({
+        applicationApprovalDate:
+          "2025-02-15" as ApplicationDetailsFormData["applicationApprovalDate"],
+      }),
+      [mockUpdateDemonstration]
+    );
 
-    // Since the toggle might not work due to form validation,
-    // we test the format by checking if the date format utility is correctly imported
-    expect(screen.getByText("APPROVAL SUMMARY")).toBeInTheDocument();
+    const toggle = screen.getByRole("switch", { name: /mark complete/i });
+    await userEvent.click(toggle);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("application-details-completion-date")).toHaveTextContent(
+        /^Completed on \d{2}\/\d{2}\/\d{4}$/
+      );
+    });
+  });
+
+  it("shows completion date in MM/DD/YYYY format when already complete on load", () => {
+    render(
+      <TestProvider>
+        <ApprovalSummaryPhase
+          applicationId="demo-123"
+          demonstrationId="demo-123"
+          demonstrationStatus="Under Review"
+          initialFormData={buildInitialFormData({
+            applicationApprovalDate:
+              "2025-02-15" as ApplicationDetailsFormData["applicationApprovalDate"],
+          })}
+          initialTypes={[]}
+          approvalSummaryPhase={{
+            phaseStatus: "Started",
+            phaseDates: [
+              { dateType: "Application Details Marked Complete Date", plainDate: "2025-01-01" },
+            ],
+          }}
+          allPreviousPhasesDone={true}
+        />
+      </TestProvider>
+    );
+
+    expect(screen.getByTestId("application-details-completion-date")).toHaveTextContent(
+      "Completed on 01/01/2025"
+    );
   });
 
   it("renders Demonstration Types section", () => {

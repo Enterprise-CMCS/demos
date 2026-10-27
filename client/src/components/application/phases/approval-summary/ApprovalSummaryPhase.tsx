@@ -375,7 +375,7 @@ export const ApprovalSummaryPhase = ({
 
   const setApplicationDetailsUIState = (complete: boolean) => {
     setIsApplicationDetailsComplete(complete);
-    setApplicationDetailsCompletionDate(complete ? formatDateForDisplay(getTodayEst()) : undefined);
+    setApplicationDetailsCompletionDate(complete ? getTodayEst() : undefined);
   };
 
   const handleMarkComplete = async () => {
@@ -456,7 +456,7 @@ export const ApprovalSummaryPhase = ({
         ) as typeof previousFormData.staticFields,
       }));
 
-      setApprovalSummaryCompletionDate(formatDateForDisplay(today));
+      setApprovalSummaryCompletionDate(today);
 
       showSuccess(getPhaseCompletedMessage("Approval Summary"));
     } catch (error) {
@@ -481,7 +481,11 @@ export const ApprovalSummaryPhase = ({
           isDemonstrationApproved={isDemonstrationApproved}
           onMarkComplete={handleMarkComplete}
           onMarkIncomplete={handleMarkIncomplete}
-          completionDate={applicationDetailsCompletionDate}
+          completionDate={
+            applicationDetailsCompletionDate
+              ? formatDateForDisplay(applicationDetailsCompletionDate)
+              : undefined
+          }
           medicaidId={medicaidId}
         />
 
@@ -500,7 +504,8 @@ export const ApprovalSummaryPhase = ({
 
       <div className="mt-8 mb-4 flex items-center justify-between">
         <div className="text-sm text-text-placeholder">
-          {approvalSummaryCompletionDate && `Completed ${approvalSummaryCompletionDate}`}
+          {approvalSummaryCompletionDate &&
+            `Completed ${formatDateForDisplay(approvalSummaryCompletionDate)}`}
         </div>
         <Button
           name="button-approve-application"
