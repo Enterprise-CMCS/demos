@@ -106,6 +106,9 @@ export function formatDetailsMessage(input: SelectDeliverableActionRowResult): s
     case "Terminating Status Override":
       return `Overrode terminating status from "${input.oldStatusId!}" to "${input.newStatusId!}": ${input.note!}`;
 
+    case "Reverted Finalization":
+      return `Reverted finalization from "${input.oldStatusId!}" to "${input.newStatusId!}": ${input.note!}`;
+
     default:
       return "";
   }

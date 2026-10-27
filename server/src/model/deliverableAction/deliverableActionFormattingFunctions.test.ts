@@ -203,6 +203,21 @@ describe("deliverableActionFormattingFunctions", () => {
       );
     });
 
+    it("should return the proper message for a finalization reversion", () => {
+      const testInput: DeepPartial<SelectDeliverableActionRowResult> = {
+        deliverableId: testDeliverableId,
+        actionTypeId: "Reverted Finalization" satisfies DeliverableActionType,
+        oldStatusId: "Received and Filed" satisfies DeliverableStatus,
+        newStatusId: "Under CMS Review" satisfies DeliverableStatus,
+        note: "Accidentally clicked the wrong button.",
+      };
+
+      const result = formatDetailsMessage(testInput as SelectDeliverableActionRowResult);
+      expect(result).toBe(
+        'Reverted finalization from "Received and Filed" to "Under CMS Review": Accidentally clicked the wrong button.'
+      );
+    });
+
     it("should return nothing if none of the special cases are encountered", () => {
       const testInput: DeepPartial<SelectDeliverableActionRowResult> = {
         deliverableId: testDeliverableId,
