@@ -109,6 +109,9 @@ export const fieldAuthPlugin = {
           throw new GraphQLError(`Authorization failed with ${violations.length} violation(s)`, {
             extensions: {
               code: "FORBIDDEN",
+              http: {
+                status: 403,
+              },
               violations: violations.map((message) => ({
                 message,
               })),

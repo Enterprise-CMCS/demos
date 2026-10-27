@@ -16,6 +16,8 @@ const getPrettyFirstName = (personType: PersonType): string => {
       return "CMS Reviewer";
     case "demos-restricted-cms-user":
       return "Restricted CMS";
+    case "demos-oact-user":
+      return "OACT";
     default:
       return "Unknown";
   }

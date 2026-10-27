@@ -21,7 +21,7 @@ type DeliverableStatusReportColumn =
   | "effective_date"
   | "expiration_date"
   | "primary_project_officer"
-  | "ddme_analyst"
+  | "monitoring_and_evaluation_analyst"
   | "deliverable_type"
   | "deliverable_name"
   | "demonstration_types"
@@ -56,7 +56,7 @@ const deliverableStatusReportSchema = z
     effective_date: usDateString,
     expiration_date: usDateString,
     primary_project_officer: z.string(),
-    ddme_analyst: z.string(),
+    monitoring_and_evaluation_analyst: z.string(),
     deliverable_type: z.enum(DELIVERABLE_TYPES),
     deliverable_name: z.string(),
     demonstration_types: z.string(),
@@ -92,7 +92,7 @@ const deliverableStatusReportColumnHeaders = {
   effective_date: { columnName: "Effective Date" },
   expiration_date: { columnName: "Expiration Date" },
   primary_project_officer: { columnName: "Primary Project Officer" },
-  ddme_analyst: { columnName: "DDME Analyst" },
+  monitoring_and_evaluation_analyst: { columnName: "Monitoring & Evaluation Analyst" },
   deliverable_type: { columnName: "Deliverable Type" },
   deliverable_name: { columnName: "Deliverable Name" },
   demonstration_types: { columnName: "Demonstration Type" },

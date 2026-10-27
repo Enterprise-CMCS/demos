@@ -19,9 +19,13 @@ export type DateOffset = {
 
 export type ValidationChecks = {
   expectedTimestamp: ExpectedTimestamp;
+  allowedToBeWeekend: boolean;
+  allowedToBeHoliday: boolean;
   greaterThanChecks: { dateTypeToCheck: DateType }[];
   greaterThanOrEqualChecks: { dateTypeToCheck: DateType }[];
+  lessThanChecks: { dateTypeToCheck: DateType }[];
   offsetChecks: { dateTypeToCheck: DateType; dateOffset: DateOffset }[];
+  flexibleOffsetChecks: { dateTypeToCheck: DateType; dateOffset: DateOffset }[];
 };
 
 export type DateTypeValidationChecksRecord = Record<DateType, ValidationChecks>;
