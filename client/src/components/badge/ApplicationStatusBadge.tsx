@@ -25,60 +25,31 @@ const SIZE_CLASSES: Record<DemonstrationStatusBadgeSize, { container: string; ic
   },
 };
 
+const STATUS_ICONS = {
+  "Pre-Submission": { Icon: PreSubmissionIcon, color: "text-text-placeholder" },
+  "Under Review": { Icon: ReviewIcon, color: "text-border-alert" },
+  Approved: { Icon: SuccessInvertedIcon, color: "text-border-success" },
+  Denied: { Icon: EmptyIcon, color: "text-error" },
+  Withdrawn: { Icon: WithdrawnIcon, color: "text-text-placeholder" },
+  "On-hold": { Icon: OnHoldIcon, color: "text-text-placeholder" },
+} satisfies Record<ApplicationStatus, { Icon: typeof PreSubmissionIcon; color: string }>;
+
 export const ApplicationStatusBadge = ({
   applicationStatus,
   size = "default",
+  children,
 }: {
   applicationStatus: ApplicationStatus;
   size?: DemonstrationStatusBadgeSize;
+  children?: React.ReactNode;
 }) => {
   const sizeClasses = SIZE_CLASSES[size];
-  let statusNode;
-  switch (applicationStatus) {
-    case "Pre-Submission":
-      statusNode = (
-        <>
-          <PreSubmissionIcon className={`text-text-placeholder ${sizeClasses.icon}`} />
-          Pre-Submission
-        </>
-      );
-      break;
-    case "Under Review":
-      statusNode = (
-        <>
-          <ReviewIcon className={`text-border-alert ${sizeClasses.icon}`} /> Under Review
-        </>
-      );
-      break;
-    case "Approved":
-      statusNode = (
-        <>
-          <SuccessInvertedIcon className={`text-border-success ${sizeClasses.icon}`} /> Approved
-        </>
-      );
-      break;
-    case "Denied":
-      statusNode = (
-        <>
-          <EmptyIcon className={`text-error ${sizeClasses.icon}`} /> Denied
-        </>
-      );
-      break;
-    case "Withdrawn":
-      statusNode = (
-        <>
-          <WithdrawnIcon className={`text-text-placeholder ${sizeClasses.icon}`} /> Withdrawn
-        </>
-      );
-      break;
-    case "On-hold":
-      statusNode = (
-        <>
-          <OnHoldIcon className={`text-text-placeholder ${sizeClasses.icon}`} /> On-hold
-        </>
-      );
-      break;
-  }
+  const { Icon, color } = STATUS_ICONS[applicationStatus];
 
-  return <div className={`${BASE_STYLES} ${sizeClasses.container}`}>{statusNode}</div>;
+  return (
+    <div className={`${BASE_STYLES} ${sizeClasses.container}`}>
+      <Icon className={`${color} ${sizeClasses.icon}`} />
+      <span>{children ?? applicationStatus}</span>
+    </div>
+  );
 };

@@ -7,7 +7,6 @@ import { DemonstrationTableRow } from "../tables/DemonstrationTable";
 import { Person } from "demos-server";
 import { APPLICATION_STATUS, STATES_AND_TERRITORIES } from "demos-server-constants";
 import { ApplicationStatusBadge } from "components/badge/ApplicationStatusBadge";
-import type { ApplicationStatus } from "demos-server";
 
 // TODO: currently this is acting like a hook, but its not intended to be used generically like one. Perhaps
 // reformat to be more like a utility function.
@@ -68,10 +67,9 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
       id: "status",
       header: "Status",
       cell: (info) => (
-        <ApplicationStatusBadge
-          applicationStatus={info.getValue<ApplicationStatus>()}
-          size="small"
-        />
+        <ApplicationStatusBadge applicationStatus={info.getValue()} size="small">
+          {highlightCell(info)}
+        </ApplicationStatusBadge>
       ),
       filterFn: "arrIncludesSome",
       meta: {

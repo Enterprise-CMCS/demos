@@ -4,6 +4,17 @@ import { ApplicationStatusBadge } from "./ApplicationStatusBadge";
 import { render, screen } from "@testing-library/react";
 
 describe("DemonstrationStatusBadge", () => {
+  it("renders highlighted status text without duplicating the label", () => {
+    const { container } = render(
+      <ApplicationStatusBadge applicationStatus="Pre-Submission" size="small">
+        Pre-Sub<mark>mi</mark>ssion
+      </ApplicationStatusBadge>
+    );
+
+    expect(container.textContent).toBe("Pre-Submission");
+    expect(screen.getByText("mi").tagName).toBe("MARK");
+    expect(container.querySelector("svg")).toBeInTheDocument();
+  });
   it("shows Under Review for DEMONSTRATION_UNDER_REVIEW", () => {
     render(<ApplicationStatusBadge applicationStatus="Under Review" />);
     expect(screen.getByText("Under Review")).toBeInTheDocument();
