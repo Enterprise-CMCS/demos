@@ -13,7 +13,9 @@ import {
   COMPLETENESS_REVIEW_DATEPICKER_NAME,
   calculateStateApplicationSubmittedDate,
   getCompletenessReviewDueDate,
+  isCompletenessReviewDueDateAdjusted,
   getApplicationIntakeComponentFromApplication,
+  COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_MESSAGE,
   APPLICATION_INTAKE_PHASE_DESCRIPTION,
   APPLICATION_INTAKE_PHASE_STEP_ONE_DESCRIPTION,
   APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION,
@@ -249,6 +251,73 @@ describe("ApplicationIntakePhase", () => {
           COMPLETENESS_REVIEW_DATEPICKER_NAME
         ) as HTMLInputElement;
         expect(dueDateInput.value).toBe("2024-04-25");
+      });
+    });
+
+    it("does not show the adjusted message when weekend/holiday handling is off", () => {
+      setup({ initialStateApplicationSubmittedDate: "2026-05-08" });
+
+      expect(
+        screen.queryByTestId(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_MESSAGE.testId)
+      ).not.toBeInTheDocument();
+    });
+
+    describe("with weekend/holiday handling", () => {
+      beforeEach(() => {
+        vi.stubGlobal("__FEATURE_HANDLE_HOLIDAYS_WEEKENDS_FOR_DATES__", true);
+      });
+
+      afterEach(() => {
+        vi.unstubAllGlobals();
+      });
+
+      it("renders the updated Step 2 description", () => {
+        setup();
+        expect(
+          screen.getByTestId(APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.testId)
+        ).toHaveTextContent(APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.adjustedDueDateText);
+      });
+
+      it("shows the adjusted message when the due date was moved", () => {
+        setup({ initialStateApplicationSubmittedDate: "2026-05-08" }); // +15 is Saturday
+
+        expect(screen.getByTestId(COMPLETENESS_REVIEW_DATEPICKER_NAME)).toHaveValue("2026-05-22");
+        expect(
+          screen.getByTestId(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_MESSAGE.testId)
+        ).toHaveTextContent(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_MESSAGE.text);
+      });
+
+      it("does not show the adjusted message when the due date was not moved", () => {
+        setup({ initialStateApplicationSubmittedDate: "2026-05-07" }); // +15 is Friday
+
+        expect(screen.getByTestId(COMPLETENESS_REVIEW_DATEPICKER_NAME)).toHaveValue("2026-05-22");
+        expect(
+          screen.queryByTestId(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_MESSAGE.testId)
+        ).not.toBeInTheDocument();
+      });
+
+      it("does not show the calendar-days help text", () => {
+        setup();
+        expect(
+          screen.queryByText(/Automatically calculated as 15 calendar days/)
+        ).not.toBeInTheDocument();
+      });
+
+      it("sends the adjusted due date to the server on Finish", async () => {
+        setup({
+          applicationIntakeDocuments: [createDocument()],
+          initialStateApplicationSubmittedDate: "2026-05-08",
+        });
+
+        await userEvent.click(screen.getByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME));
+
+        expect(mockSetApplicationDates).toHaveBeenCalledWith({
+          applicationId: TEST_APP_ID,
+          applicationDates: [
+            { dateType: "State Application Submitted Date", dateValue: "2026-05-08" },
+            { dateType: "Completeness Review Due Date", dateValue: "2026-05-22" },
+          ],
+        });
       });
     });
   });
@@ -540,6 +609,41 @@ describe("ApplicationIntakePhase", () => {
       const result = getCompletenessReviewDueDate(submittedDate);
 
       expect(formatDateForServer(result)).toBe("2025-10-28");
+    });
+
+    it("does not move a weekend due date when weekend/holiday handling is off", () => {
+      expect(getCompletenessReviewDueDate("2026-05-08")).toBe("2026-05-23");
+      expect(isCompletenessReviewDueDateAdjusted("2026-05-08")).toBe(false);
+    });
+
+    describe("with weekend/holiday handling", () => {
+      beforeEach(() => {
+        vi.stubGlobal("__FEATURE_HANDLE_HOLIDAYS_WEEKENDS_FOR_DATES__", true);
+      });
+
+      afterEach(() => {
+        vi.unstubAllGlobals();
+      });
+
+      it.each([
+        ["business day", "2026-05-07", "2026-05-22", false],
+        ["Saturday", "2026-05-08", "2026-05-22", true],
+        ["Sunday", "2026-05-09", "2026-05-22", true],
+        ["Monday holiday (Memorial Day)", "2026-05-10", "2026-05-22", true],
+        ["Friday holiday (Juneteenth)", "2026-06-04", "2026-06-18", true],
+        ["midweek holiday (Veterans Day)", "2026-10-27", "2026-11-10", true],
+      ])(
+        "moves a due date on a %s back to the previous business day",
+        (_label, submittedDate, expectedDueDate, expectedIsAdjusted) => {
+          expect(getCompletenessReviewDueDate(submittedDate)).toBe(expectedDueDate);
+          expect(isCompletenessReviewDueDateAdjusted(submittedDate)).toBe(expectedIsAdjusted);
+        }
+      );
+
+      it("returns empty values when there is no submitted date", () => {
+        expect(getCompletenessReviewDueDate("")).toBe("");
+        expect(isCompletenessReviewDueDateAdjusted("")).toBe(false);
+      });
     });
   });
 

@@ -34,6 +34,9 @@ export const config = defineConfig(({ mode }) => {
       // You can use just a single predicate to remove it from production or both.
       __FEATURE_SHOW_GIT_VERSION__: semver.gte(DEMOS_VERSION, "1.0.0") && mode === "development",
       __FEATURE_OACT_USER__: semver.gte(DEMOS_VERSION, "1.3.0") || mode === "development",
+      // Version-only: must match the server's handleHolidaysWeekendsForDates flag, which rejects
+      // shifted dates before 1.3.0 (deployed dev/test also build with mode === "development")
+      __FEATURE_HANDLE_HOLIDAYS_WEEKENDS_FOR_DATES__: semver.gte(DEMOS_VERSION, "1.3.0"),
     },
     server: {
       port: 3000,
