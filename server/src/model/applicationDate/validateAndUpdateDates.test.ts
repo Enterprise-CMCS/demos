@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { LocalDate, SetApplicationDatesInput } from "../../types.js";
 import { EasternTZDate } from "../../dateUtilities.js";
 import { ParsedApplicationDateInput, ParsedSetApplicationDatesInput } from ".";
@@ -96,6 +96,10 @@ describe("validateAndUpdateDates", () => {
       dateValue: testDateTimeValue4,
     },
   ];
+
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
 
   describe("before 1.3.0", () => {
     const currentVersion = new SemVer("1.2.0");
