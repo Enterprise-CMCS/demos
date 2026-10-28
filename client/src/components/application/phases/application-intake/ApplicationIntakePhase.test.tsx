@@ -83,6 +83,7 @@ describe("ApplicationIntakePhase", () => {
     applicationId: TEST_APP_ID,
     applicationIntakeDocuments: [],
     initialStateApplicationSubmittedDate: "",
+    savedCompletenessReviewDueDate: "",
     tags: [],
     phaseStatus: "Started",
     completenessPhaseStatus: "Not Started",
@@ -294,6 +295,32 @@ describe("ApplicationIntakePhase", () => {
         expect(
           screen.queryByTestId(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_MESSAGE.testId)
         ).not.toBeInTheDocument();
+      });
+
+      it("shows the saved due date for a finished intake saved before the rule", () => {
+        setup({
+          initialStateApplicationSubmittedDate: "2026-05-08",
+          savedCompletenessReviewDueDate: "2026-05-23",
+          phaseStatus: "Completed",
+        });
+
+        expect(screen.getByTestId(COMPLETENESS_REVIEW_DATEPICKER_NAME)).toHaveValue("2026-05-23");
+        expect(
+          screen.queryByTestId(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_MESSAGE.testId)
+        ).not.toBeInTheDocument();
+      });
+
+      it("shows the adjusted message for a finished intake whose saved due date was moved", () => {
+        setup({
+          initialStateApplicationSubmittedDate: "2026-05-08",
+          savedCompletenessReviewDueDate: "2026-05-22",
+          phaseStatus: "Completed",
+        });
+
+        expect(screen.getByTestId(COMPLETENESS_REVIEW_DATEPICKER_NAME)).toHaveValue("2026-05-22");
+        expect(
+          screen.getByTestId(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_MESSAGE.testId)
+        ).toBeInTheDocument();
       });
 
       it("does not show the calendar-days help text", () => {
@@ -613,7 +640,7 @@ describe("ApplicationIntakePhase", () => {
 
     it("does not move a weekend due date when weekend/holiday handling is off", () => {
       expect(getCompletenessReviewDueDate("2026-05-08")).toBe("2026-05-23");
-      expect(isCompletenessReviewDueDateAdjusted("2026-05-08")).toBe(false);
+      expect(isCompletenessReviewDueDateAdjusted("2026-05-08", "2026-05-23")).toBe(false);
     });
 
     describe("with weekend/holiday handling", () => {
@@ -636,13 +663,15 @@ describe("ApplicationIntakePhase", () => {
         "moves a due date on a %s back to the previous business day",
         (_label, submittedDate, expectedDueDate, expectedIsAdjusted) => {
           expect(getCompletenessReviewDueDate(submittedDate)).toBe(expectedDueDate);
-          expect(isCompletenessReviewDueDateAdjusted(submittedDate)).toBe(expectedIsAdjusted);
+          expect(isCompletenessReviewDueDateAdjusted(submittedDate, expectedDueDate)).toBe(
+            expectedIsAdjusted
+          );
         }
       );
 
       it("returns empty values when there is no submitted date", () => {
         expect(getCompletenessReviewDueDate("")).toBe("");
-        expect(isCompletenessReviewDueDateAdjusted("")).toBe(false);
+        expect(isCompletenessReviewDueDateAdjusted("", "")).toBe(false);
       });
     });
   });

@@ -190,15 +190,13 @@ export const getCompletenessReviewDueDate = (stateApplicationSubmittedDate: stri
 };
 
 export const isCompletenessReviewDueDateAdjusted = (
-  stateApplicationSubmittedDate: string
+  stateApplicationSubmittedDate: string,
+  completenessReviewDueDate: string
 ): boolean => {
-  if (!stateApplicationSubmittedDate) return false;
+  if (!stateApplicationSubmittedDate || !completenessReviewDueDate) return false;
 
   const unadjustedDueDate = getUnadjustedCompletenessReviewDueDate(stateApplicationSubmittedDate);
-  return (
-    getCompletenessReviewDueDate(stateApplicationSubmittedDate) !==
-    formatDateForServer(unadjustedDueDate)
-  );
+  return completenessReviewDueDate !== formatDateForServer(unadjustedDueDate);
 };
 
 export const calculateStateApplicationSubmittedDate = (
@@ -223,6 +221,7 @@ export const calculateStateApplicationSubmittedDate = (
 
 interface VerifyCompleteSectionProps {
   stateApplicationSubmittedDate: string;
+  completenessReviewDueDate: string;
   hasDocuments: boolean;
   onDateChange: (newDate: string) => void;
   isPhaseFinalized: boolean;
@@ -230,15 +229,13 @@ interface VerifyCompleteSectionProps {
 
 const VerifyCompleteSection = ({
   stateApplicationSubmittedDate,
+  completenessReviewDueDate,
   hasDocuments,
   onDateChange,
   isPhaseFinalized,
 }: VerifyCompleteSectionProps) => {
   const { currentUser } = getCurrentUser();
   const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
-  const completenessReviewDueDate = stateApplicationSubmittedDate
-    ? getCompletenessReviewDueDate(stateApplicationSubmittedDate)
-    : "";
 
   return (
     <div aria-labelledby="state-application-verify-title">
@@ -280,7 +277,10 @@ const VerifyCompleteSection = ({
             isDisabled={true}
           />
           {__FEATURE_HANDLE_HOLIDAYS_WEEKENDS_FOR_DATES__ ? (
-            isCompletenessReviewDueDateAdjusted(stateApplicationSubmittedDate) && (
+            isCompletenessReviewDueDateAdjusted(
+              stateApplicationSubmittedDate,
+              completenessReviewDueDate
+            ) && (
               <div
                 className="text-xs text-text-placeholder mt-1"
                 data-testid={COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_MESSAGE.testId}
@@ -321,6 +321,10 @@ export const getApplicationIntakeComponentFromApplication = (
     (date) => date.dateType === "State Application Submitted Date"
   )?.plainDate ?? "";
 
+  const savedCompletenessReviewDueDate = completenessPhase.phaseDates.find(
+    (date) => date.dateType === "Completeness Review Due Date"
+  )?.plainDate ?? "";
+
   const applicationIntakeDocuments = application.documents.filter(
     (doc) => doc.phaseName === THIS_PHASE_NAME
   );
@@ -330,6 +334,7 @@ export const getApplicationIntakeComponentFromApplication = (
       applicationId={application.id}
       applicationIntakeDocuments={applicationIntakeDocuments}
       initialStateApplicationSubmittedDate={estStateApplicationSubmittedDate}
+      savedCompletenessReviewDueDate={savedCompletenessReviewDueDate}
       tags={application.tags}
       suggestedTags={application.suggestedApplicationTags}
       setSelectedPhase={setSelectedPhase}
@@ -342,6 +347,7 @@ export interface ApplicationIntakeProps {
   applicationId: string;
   applicationIntakeDocuments: ApplicationWorkflowDocument[];
   initialStateApplicationSubmittedDate: string;
+  savedCompletenessReviewDueDate: string;
   tags: Tag[];
   suggestedTags?: TagName[];
   setSelectedPhase: (phase: PhaseName) => void;
@@ -353,6 +359,7 @@ export const ApplicationIntakePhase = ({
   applicationId,
   applicationIntakeDocuments,
   initialStateApplicationSubmittedDate,
+  savedCompletenessReviewDueDate,
   tags,
   suggestedTags = [],
   setSelectedPhase,
@@ -393,9 +400,13 @@ export const ApplicationIntakePhase = ({
   const stateApplicationSubmittedDate =
     submittedDateOverride ||
     (completenessIncomplete ? "" : calculatedStateApplicationSubmittedDate);
-  const completenessReviewDueDate = getCompletenessReviewDueDate(stateApplicationSubmittedDate);
-
   const isPhaseFinalized = phaseStatus === "Completed";
+  // A finished intake shows the saved due date; it may predate the weekend/holiday rule
+  const completenessReviewDueDate =
+    isPhaseFinalized && savedCompletenessReviewDueDate
+      ? savedCompletenessReviewDueDate
+      : getCompletenessReviewDueDate(stateApplicationSubmittedDate);
+
   const hasDocuments = applicationIntakeDocuments.length > 0;
   const isFinishButtonEnabled =
     hasDocuments && Boolean(stateApplicationSubmittedDate) && !isPhaseFinalized;
@@ -492,6 +503,7 @@ export const ApplicationIntakePhase = ({
           <UploadSection applicationId={applicationId} documents={applicationIntakeDocuments} />
           <VerifyCompleteSection
             stateApplicationSubmittedDate={stateApplicationSubmittedDate}
+            completenessReviewDueDate={completenessReviewDueDate}
             hasDocuments={hasDocuments}
             onDateChange={setSubmittedDateOverride}
             isPhaseFinalized={isPhaseFinalized}
