@@ -292,7 +292,6 @@ describe("reviewPhaseData", () => {
             phaseDates: [
               {
                 dateType: "Application Approval Date",
-                dateValue: new Date("2026-12-31T05:00:00.000Z"),
                 plainDate: "2026-12-31",
               },
             ],
