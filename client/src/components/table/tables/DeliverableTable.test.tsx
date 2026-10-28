@@ -12,7 +12,7 @@ import {
 import { DELIVERABLE_CANT_DELETE_HAS_FILES } from "./DeliverableActionButtons";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import type { DeliverableTableRow } from "./DeliverableTable";
-import { MOCK_DELIVERABLE_TABLE_ROW } from "mock-data/deliverableMocks";
+import { MOCK_DELIVERABLE_1 } from "mock-data/deliverableMocks";
 import { formatDateForDisplay } from "util/formatDate";
 import { TestProvider } from "test-utils/TestProvider";
 import { UserType } from "demos-server";
@@ -23,9 +23,16 @@ vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({ showEditDeliverableDialog, showRemoveDeliverableDialog }),
 }));
 
+const BASE_DELIVERABLE_ROW = {
+  ...MOCK_DELIVERABLE_1,
+  stateDocuments: [],
+  cmsDocuments: [],
+  deliverableActions: [],
+};
+
 const MOCK_DELIVERABLE_TABLE_ROWS = [
-  MOCK_DELIVERABLE_TABLE_ROW,
-  { ...MOCK_DELIVERABLE_TABLE_ROW, id: "2", name: "Another Deliverable" },
+  BASE_DELIVERABLE_ROW,
+  { ...BASE_DELIVERABLE_ROW, id: "2", name: "Another Deliverable" },
 ];
 
 const sortedDeliverables = sortDeliverablesByDefault(MOCK_DELIVERABLE_TABLE_ROWS);
@@ -422,8 +429,8 @@ describe("DeliverableTable", () => {
           if (within(row).queryByText("Another Deliverable")) {
             return ["Another Deliverable"];
           }
-          if (within(row).queryByText("Budget Neutrality Report")) {
-            return ["Budget Neutrality Report"];
+          if (within(row).queryByText(MOCK_DELIVERABLE_1.name)) {
+            return [MOCK_DELIVERABLE_1.name];
           }
           return [];
         });
@@ -448,7 +455,7 @@ describe("DeliverableTable", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Another Deliverable")).toBeInTheDocument();
-      expect(screen.queryByText("Budget Neutrality Report")).not.toBeInTheDocument();
+      expect(screen.queryByText(MOCK_DELIVERABLE_1.name)).not.toBeInTheDocument();
     });
 
     await user.clear(nameFilter);
@@ -522,9 +529,9 @@ describe("DeliverableTable demos-state-user view mode", () => {
 
 describe("DeliverableTable Remove action", () => {
   const FINALIZED_ROWS: DeliverableTableRow[] = [
-    { ...MOCK_DELIVERABLE_TABLE_ROW, id: "active", status: "Upcoming" },
-    { ...MOCK_DELIVERABLE_TABLE_ROW, id: "approved", status: "Approved" },
-    { ...MOCK_DELIVERABLE_TABLE_ROW, id: "accepted", status: "Accepted" },
+    { ...BASE_DELIVERABLE_ROW, id: "active", status: "Upcoming" },
+    { ...BASE_DELIVERABLE_ROW, id: "approved", status: "Approved" },
+    { ...BASE_DELIVERABLE_ROW, id: "accepted", status: "Accepted" },
   ];
 
   it("disables Remove when the only selected row is finalized", async () => {
@@ -561,7 +568,7 @@ describe("DeliverableTable Remove action", () => {
 
   it("enables Remove when the selected row is Past Due", async () => {
     renderComponent(cmsMockUser, {
-      deliverables: [{ ...MOCK_DELIVERABLE_TABLE_ROW, id: "past-due", status: "Past Due" }],
+      deliverables: [{ ...BASE_DELIVERABLE_ROW, id: "past-due", status: "Past Due" }],
       viewMode: "demos-cms-user",
     });
     const user = userEvent.setup();
@@ -575,7 +582,7 @@ describe("DeliverableTable Remove action", () => {
 
   it("disables Remove when a selected row has a non-deletable non-final status", async () => {
     renderComponent(cmsMockUser, {
-      deliverables: [{ ...MOCK_DELIVERABLE_TABLE_ROW, id: "submitted", status: "Submitted" }],
+      deliverables: [{ ...BASE_DELIVERABLE_ROW, id: "submitted", status: "Submitted" }],
       viewMode: "demos-cms-user",
     });
     const user = userEvent.setup();
@@ -590,8 +597,8 @@ describe("DeliverableTable Remove action", () => {
   it("enables Remove when selected rows are Upcoming and Past Due", async () => {
     renderComponent(cmsMockUser, {
       deliverables: [
-        { ...MOCK_DELIVERABLE_TABLE_ROW, id: "upcoming", status: "Upcoming" },
-        { ...MOCK_DELIVERABLE_TABLE_ROW, id: "past-due", status: "Past Due" },
+        { ...BASE_DELIVERABLE_ROW, id: "upcoming", status: "Upcoming" },
+        { ...BASE_DELIVERABLE_ROW, id: "past-due", status: "Past Due" },
       ],
       viewMode: "demos-cms-user",
     });
@@ -608,8 +615,8 @@ describe("DeliverableTable Remove action", () => {
   it("disables Remove when one of multiple selected rows has a non-deletable status", async () => {
     renderComponent(cmsMockUser, {
       deliverables: [
-        { ...MOCK_DELIVERABLE_TABLE_ROW, id: "upcoming", status: "Upcoming" },
-        { ...MOCK_DELIVERABLE_TABLE_ROW, id: "submitted", status: "Submitted" },
+        { ...BASE_DELIVERABLE_ROW, id: "upcoming", status: "Upcoming" },
+        { ...BASE_DELIVERABLE_ROW, id: "submitted", status: "Submitted" },
       ],
       viewMode: "demos-cms-user",
     });
@@ -627,7 +634,7 @@ describe("DeliverableTable Remove action", () => {
     renderComponent(cmsMockUser, {
       deliverables: [
         {
-          ...MOCK_DELIVERABLE_TABLE_ROW,
+          ...BASE_DELIVERABLE_ROW,
           id: "has-file",
           status: "Upcoming",
           cmsDocuments: [{ id: "doc-1" }],
@@ -648,7 +655,7 @@ describe("DeliverableTable Remove action", () => {
     renderComponent(cmsMockUser, {
       deliverables: [
         {
-          ...MOCK_DELIVERABLE_TABLE_ROW,
+          ...BASE_DELIVERABLE_ROW,
           id: "has-comment",
           status: "Past Due",
           publicComments: [{ id: "comment-1" }],
@@ -669,14 +676,14 @@ describe("DeliverableTable Remove action", () => {
     renderComponent(cmsMockUser, {
       deliverables: [
         {
-          ...MOCK_DELIVERABLE_TABLE_ROW,
+          ...BASE_DELIVERABLE_ROW,
           id: "delete-ready",
           status: "Upcoming",
           cmsDocuments: [],
           publicComments: [],
         },
         {
-          ...MOCK_DELIVERABLE_TABLE_ROW,
+          ...BASE_DELIVERABLE_ROW,
           id: "has-comment",
           status: "Upcoming",
           publicComments: [{ id: "comment-1" }],
@@ -698,14 +705,14 @@ describe("DeliverableTable Remove action", () => {
     renderComponent(cmsMockUser, {
       deliverables: [
         {
-          ...MOCK_DELIVERABLE_TABLE_ROW,
+          ...BASE_DELIVERABLE_ROW,
           id: "delete-ready",
           status: "Upcoming",
           cmsDocuments: [],
           publicComments: [],
         },
         {
-          ...MOCK_DELIVERABLE_TABLE_ROW,
+          ...BASE_DELIVERABLE_ROW,
           id: "has-file",
           status: "Upcoming",
           cmsDocuments: [{ id: "doc-1" }],
@@ -731,13 +738,13 @@ describe("DeliverableTable Remove action", () => {
     renderComponent(cmsMockUser, {
       deliverables: [
         {
-          ...MOCK_DELIVERABLE_TABLE_ROW,
+          ...BASE_DELIVERABLE_ROW,
           id: "has-file",
           status: "Upcoming",
           cmsDocuments: [{ id: "doc-1" }],
         },
         {
-          ...MOCK_DELIVERABLE_TABLE_ROW,
+          ...BASE_DELIVERABLE_ROW,
           id: "has-comment",
           status: "Upcoming",
           publicComments: [{ id: "comment-1" }],
@@ -761,7 +768,7 @@ describe("DeliverableTable Remove action", () => {
     renderComponent(cmsMockUser, {
       deliverables: [
         {
-          ...MOCK_DELIVERABLE_TABLE_ROW,
+          ...BASE_DELIVERABLE_ROW,
           deliverableActions: [
             {
               id: "1",
@@ -794,7 +801,7 @@ describe("DeliverableTable default sorting behavior", () => {
       name: string,
       submissionDate: string
     ): DeliverableTableRow => ({
-      ...MOCK_DELIVERABLE_TABLE_ROW,
+      ...BASE_DELIVERABLE_ROW,
       id,
       name,
       deliverableActions: [
@@ -876,12 +883,12 @@ describe("DeliverableTable status filtering", () => {
     const user = userEvent.setup();
     const deliverables: DeliverableTableRow[] = [
       {
-        ...MOCK_DELIVERABLE_TABLE_ROW,
+        ...BASE_DELIVERABLE_ROW,
         id: "upcoming",
         name: "Upcoming Deliverable",
       },
       {
-        ...MOCK_DELIVERABLE_TABLE_ROW,
+        ...BASE_DELIVERABLE_ROW,
         id: "upcoming-extension-requested",
         name: "Upcoming Extension Requested Deliverable",
         extensionRequests: [{ id: "extension-request", status: "Requested" }],

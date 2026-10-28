@@ -3,6 +3,7 @@ import React from "react";
 import { ReviewPhase, ReviewPhaseFormData } from "./ReviewPhase";
 import { REVIEW_PHASE_DATE_TYPES, REVIEW_PHASE_NOTE_TYPES } from "demos-server-constants";
 import { ApplicationDateInput, ApplicationNoteInput, LocalDate } from "demos-server";
+import { isOactCertificationRequired } from "components/application/phases/oactCertification";
 
 export function getPhaseData(
   reviewPhase: SimplePhase
@@ -53,6 +54,7 @@ export const getReviewPhaseComponentFromApplication = (
       applicationId={application.id}
       onFinish={onFinish}
       allPreviousPhasesDone={allPreviousPhasesDone}
+      isOactCertificationRequired={isOactCertificationRequired(application)}
     />
   );
 };

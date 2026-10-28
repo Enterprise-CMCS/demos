@@ -265,6 +265,43 @@ describe("reviewPhaseData", () => {
       const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);
       expect(result.props.allPreviousPhasesDone).toBe(false);
     });
+
+    describe("isOactCertificationRequired", () => {
+      const createApplication = (approvalSummaryPhase: SimplePhase): WorkflowApplication => ({
+        id: "demo-oact",
+        clearanceLevel: "COMMs",
+        status: "Under Review",
+        currentPhaseName: "Review",
+        phases: [createPhase("Review", "Started"), approvalSummaryPhase],
+        documents: [],
+        tags: [],
+      });
+
+      it("should forward true when the Application Approval Date is missing", () => {
+        const result = getReviewPhaseComponentFromApplication(
+          createApplication(createPhase("Approval Summary", "Not Started")),
+          mockOnFinish
+        );
+        expect(result.props.isOactCertificationRequired).toBe(true);
+      });
+
+      it("should forward false when the Application Approval Date is before 2027", () => {
+        const result = getReviewPhaseComponentFromApplication(
+          createApplication({
+            ...createPhase("Approval Summary", "Not Started"),
+            phaseDates: [
+              {
+                dateType: "Application Approval Date",
+                dateValue: new Date("2026-12-31T05:00:00.000Z"),
+                plainDate: "2026-12-31",
+              },
+            ],
+          }),
+          mockOnFinish
+        );
+        expect(result.props.isOactCertificationRequired).toBe(false);
+      });
+    });
   });
 
   describe("formatDataForSave", () => {
