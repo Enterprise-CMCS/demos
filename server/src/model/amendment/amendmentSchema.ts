@@ -20,7 +20,6 @@ export const amendmentSchema = gql`
     demonstration: Demonstration!
     name: NonEmptyString!
     description: String
-    effectiveDate: DateTime
     effectivePlainDate: LocalDate
     status: ApplicationStatus!
     currentPhaseName: PhaseName! @auth(requires: ["Access CMS Field"])
@@ -67,7 +66,6 @@ export interface Amendment {
   demonstration: Demonstration;
   name: NonEmptyString;
   description?: string;
-  effectiveDate?: Date;
   effectivePlainDate?: string;
   status: ApplicationStatus;
   currentPhaseName: PhaseName;
