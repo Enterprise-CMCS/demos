@@ -227,7 +227,8 @@ describe("declareCompletenessPhaseIncomplete", () => {
         applicationDates: expectedDateChanges,
       },
       mockTransaction,
-      __DEMOS_VERSION__
+      __DEMOS_VERSION__,
+      { allowChangingExistingFederalCommentDates: true }
     );
     expect(handlePrismaError).not.toHaveBeenCalled();
   });

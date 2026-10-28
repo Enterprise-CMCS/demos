@@ -98,8 +98,8 @@ describe("validateAndUpdateDates", () => {
   ];
 
   describe("before 1.3.0", () => {
+    const currentVersion = new SemVer("1.2.0");
     it("should parse, validate, and upsert the input dates, but not validate changes to the federal comment period dates", async () => {
-      const currentVersion = new SemVer("1.2.0");
       vi.mocked(parseSetApplicationDatesInput).mockReturnValueOnce(testParsedResult);
       vi.mocked(getApplicationDates).mockResolvedValueOnce(testExistingDates);
       vi.mocked(mergeApplicationDates).mockReturnValueOnce(testMergedDates);
@@ -138,8 +138,8 @@ describe("validateAndUpdateDates", () => {
   });
 
   describe("from 1.3.0", () => {
+    const currentVersion = new SemVer("1.3.0");
     it("should parse, validate, and upsert the input dates, while validating changes to the federal comment period dates", async () => {
-      const currentVersion = new SemVer("1.3.0");
       vi.mocked(parseSetApplicationDatesInput).mockReturnValueOnce(testParsedResult);
       vi.mocked(getApplicationDates).mockResolvedValueOnce(testExistingDates);
       vi.mocked(mergeApplicationDates).mockReturnValueOnce(testMergedDates);
@@ -177,6 +177,18 @@ describe("validateAndUpdateDates", () => {
         testParsedResult,
         testPrismaTransaction
       );
+    });
+
+    it("should bypass federal comment period change validation if given the right option", async () => {
+      vi.mocked(parseSetApplicationDatesInput).mockReturnValueOnce(testParsedResult);
+      vi.mocked(getApplicationDates).mockResolvedValueOnce(testExistingDates);
+      vi.mocked(mergeApplicationDates).mockReturnValueOnce(testMergedDates);
+
+      await validateAndUpdateDates(testInput, testPrismaTransaction, currentVersion, {
+        allowChangingExistingFederalCommentDates: true,
+      });
+
+      expect(validateAllowedToChangeFederalCommentPeriodDates).not.toHaveBeenCalled();
     });
   });
 });

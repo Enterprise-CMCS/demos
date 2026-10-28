@@ -1,5 +1,6 @@
 // Vitest and other helpers
 import { describe, it, expect } from "vitest";
+import { TZDate } from "@date-fns/tz";
 
 // Types
 import type { ParsedApplicationDateInput, ParsedSetApplicationDatesInput } from ".";
@@ -7,9 +8,9 @@ import type { EasternTZDate } from "../../dateUtilities";
 
 // Functions under test
 import { validateAllowedToChangeFederalCommentPeriodDates } from "./validateAllowedToChangeFederalCommentPeriodDates";
-import { TZDate } from "@date-fns/tz";
 
 // Mock imports
+// None
 
 describe("validateAllowedToChangeFederalCommentPeriodDates", () => {
   const testDateValue: EasternTZDate = {
@@ -18,7 +19,7 @@ describe("validateAllowedToChangeFederalCommentPeriodDates", () => {
   };
   const testApplicationId = "test-app-1";
 
-  const passingCases: {
+  const allowedCases: {
     name: string;
     existingDates: ParsedApplicationDateInput[];
     inputDates: ParsedSetApplicationDatesInput;
@@ -89,7 +90,7 @@ describe("validateAllowedToChangeFederalCommentPeriodDates", () => {
     },
   ];
 
-  for (const { name, existingDates, inputDates } of passingCases) {
+  for (const { name, existingDates, inputDates } of allowedCases) {
     it(name, () => {
       expect(() =>
         validateAllowedToChangeFederalCommentPeriodDates(existingDates, inputDates)
@@ -97,7 +98,7 @@ describe("validateAllowedToChangeFederalCommentPeriodDates", () => {
     });
   }
 
-  const failingCases: {
+  const rejectedCases: {
     name: string;
     existingDates: ParsedApplicationDateInput[];
     inputDates: ParsedSetApplicationDatesInput;
@@ -173,7 +174,7 @@ describe("validateAllowedToChangeFederalCommentPeriodDates", () => {
     "The Federal Comment Period Start Date and Federal Comment Period End Date " +
     "cannot be modified once set.";
 
-  for (const { name, existingDates, inputDates } of failingCases) {
+  for (const { name, existingDates, inputDates } of rejectedCases) {
     it(name, () => {
       expect(() =>
         validateAllowedToChangeFederalCommentPeriodDates(existingDates, inputDates)

@@ -59,7 +59,8 @@ export async function declareCompletenessPhaseIncomplete(
           applicationDates: applicationDatesToDelete,
         },
         tx,
-        __DEMOS_VERSION__
+        __DEMOS_VERSION__,
+        { allowChangingExistingFederalCommentDates: true }
       );
     });
   } catch (error) {

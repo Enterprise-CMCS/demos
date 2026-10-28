@@ -6,20 +6,20 @@ export function validateAllowedToChangeFederalCommentPeriodDates(
 ): void {
   const existingContainsStartDate = existingApplicationDates
     .map((applicationDate) => applicationDate.dateType)
-    .some((applicationDate) => applicationDate === "Federal Comment Period Start Date");
+    .includes("Federal Comment Period Start Date");
   const existingContainsEndDate = existingApplicationDates
     .map((applicationDate) => applicationDate.dateType)
-    .some((applicationDate) => applicationDate === "Federal Comment Period End Date");
+    .includes("Federal Comment Period End Date");
 
   const inputContainsStartDate =
     inputApplicationDates.applicationDatesToUpsert
       .map((applicationDate) => applicationDate.dateType)
-      .some((applicationDate) => applicationDate === "Federal Comment Period Start Date") ||
+      .includes("Federal Comment Period Start Date") ||
     inputApplicationDates.applicationDatesToDelete.includes("Federal Comment Period Start Date");
   const inputContainsEndDate =
     inputApplicationDates.applicationDatesToUpsert
       .map((applicationDate) => applicationDate.dateType)
-      .some((applicationDate) => applicationDate === "Federal Comment Period End Date") ||
+      .includes("Federal Comment Period End Date") ||
     inputApplicationDates.applicationDatesToDelete.includes("Federal Comment Period End Date");
 
   if (
