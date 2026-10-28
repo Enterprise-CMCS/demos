@@ -66,13 +66,21 @@ export function renderMultipleDeliverablesCreatedEmail(rawPayload: unknown): Ema
         ))}
         <Text style={textStyle}>Thank you,</Text>
         <Text style={textStyle}>DEMOS Notifications</Text>
-        <Text style={detailStyle}>Demonstration: {demonstrationTitle}</Text>
-        <Text style={detailStyle}>State: {state}</Text>
-        <Text style={detailStyle}>Deliverable type: {deliverableType}</Text>
         <Text style={detailStyle}>
-          Deliverables: {validatedDeliverables.map(({ name }) => name).join(", ")}
+          <strong>Demonstration:</strong> {demonstrationTitle}
         </Text>
-        <Text style={detailStyle}>Action: {emailType}</Text>
+        <Text style={detailStyle}>
+          <strong>State:</strong> {state}
+        </Text>
+        <Text style={detailStyle}>
+          <strong>Deliverable type:</strong> {deliverableType}
+        </Text>
+        <Text style={detailStyle}>
+          <strong>Deliverables:</strong> {validatedDeliverables.map(({ name }) => name).join(", ")}
+        </Text>
+        <Text style={detailStyle}>
+          <strong>Action:</strong> {emailType}
+        </Text>
       </EmailLayout>
     ),
   };

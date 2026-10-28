@@ -46,8 +46,12 @@ export function renderDeliverableDueDateUpdatedEmail(rawPayload: unknown): Email
         state={getRequiredString(demonstration.stateName, "demonstration.stateName", emailType)}
         dateDetails={
           <>
-            <Text style={detailStyle}>Previous due date: {previousDueDate}</Text>
-            <Text style={detailStyle}>Current due date: {currentDueDate}</Text>
+            <Text style={detailStyle}>
+              <strong>Previous due date:</strong> {previousDueDate}
+            </Text>
+            <Text style={detailStyle}>
+              <strong>Current due date:</strong> {currentDueDate}
+            </Text>
           </>
         }
       />
