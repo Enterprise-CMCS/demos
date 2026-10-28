@@ -868,37 +868,39 @@ describe("checkInputDateFunctions", () => {
       },
     ];
 
-    it.each(passingCases)("$name", ({ offsetDays, after }) => {
-      const testValues: TestOffsetValues = {
-        offset: {
-          days: offsetDays,
-          expectedTimestamp: "End of Day",
-        },
-        before: {
-          easternTZDate: new TZDate("2026-12-30T00:00:00.000-05:00", "America/New_York"),
-          isEasternTZDate: true,
-        },
-        after: {
-          easternTZDate: new TZDate(after, "America/New_York"),
-          isEasternTZDate: true,
-        },
-      };
-      const testInputDateType: DateType = "Completeness Review Due Date";
-      const testTargetDateType: DateType = "State Application Submitted Date";
-      const testApplicationDateMap: ApplicationDateMap = new Map([
-        [testInputDateType, testValues.after],
-        [testTargetDateType, testValues.before],
-      ]);
+    for (const { name, offsetDays, after } of passingCases) {
+      it(name, () => {
+        const testValues: TestOffsetValues = {
+          offset: {
+            days: offsetDays,
+            expectedTimestamp: "End of Day",
+          },
+          before: {
+            easternTZDate: new TZDate("2026-12-30T00:00:00.000-05:00", "America/New_York"),
+            isEasternTZDate: true,
+          },
+          after: {
+            easternTZDate: new TZDate(after, "America/New_York"),
+            isEasternTZDate: true,
+          },
+        };
+        const testInputDateType: DateType = "Completeness Review Due Date";
+        const testTargetDateType: DateType = "State Application Submitted Date";
+        const testApplicationDateMap: ApplicationDateMap = new Map([
+          [testInputDateType, testValues.after],
+          [testTargetDateType, testValues.before],
+        ]);
 
-      expect(() =>
-        checkInputDateMeetsFlexibleOffset(
-          testApplicationDateMap,
-          testInputDateType,
-          testTargetDateType,
-          testValues.offset
-        )
-      ).not.toThrow();
-    });
+        expect(() =>
+          checkInputDateMeetsFlexibleOffset(
+            testApplicationDateMap,
+            testInputDateType,
+            testTargetDateType,
+            testValues.offset
+          )
+        ).not.toThrow();
+      });
+    }
 
     it("should throw if the provided dates don't match the offset, accounting for holidays and weekends", () => {
       const testValues: TestOffsetValues = {

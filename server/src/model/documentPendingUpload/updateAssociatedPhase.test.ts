@@ -1,27 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TZDate } from "@date-fns/tz";
 import { updateAssociatedPhase } from "./updateAssociatedPhase";
-import { EasternNow } from "../../dateUtilities";
-
-const mockTransaction = {} as any;
-const testApplicationId = "application-123";
-const testPhaseName = "Concept";
-
-const mockNow = new Date(2026, 3, 27, 10, 4, 19, 232);
-const mockEasternNow: EasternNow = {
-  "End of Day": {
-    easternTZDate: new TZDate(mockNow),
-    isEasternTZDate: true,
-  },
-  "Start of Day": {
-    easternTZDate: new TZDate(mockNow),
-    isEasternTZDate: true,
-  },
-  "Current Time": {
-    easternTZDate: new TZDate(mockNow),
-    isEasternTZDate: true,
-  },
-};
+import type { EasternNow } from "../../dateUtilities";
+import { ApplicationDateInput } from "../../types";
+import { __DEMOS_VERSION__ } from "../../flags";
 
 vi.mock("../applicationPhase", () => ({
   startPhase: vi.fn(),
@@ -40,14 +22,37 @@ import { validateAndUpdateDates } from "../applicationDate";
 import { getEasternNow } from "../../dateUtilities";
 
 describe("updateAssociatedPhase", () => {
+  const mockTransaction = {} as any;
+  const testApplicationId = "application-123";
+  const testPhaseName = "Concept";
+  const mockEasternNow: EasternNow = {
+    "End of Day": {
+      easternTZDate: new TZDate("2026-04-27T23:59:59.999-04:00", "America/New_York"),
+      isEasternTZDate: true,
+    },
+    "Start of Day": {
+      easternTZDate: new TZDate("2026-04-27T00:00:00.000-04:00", "America/New_York"),
+      isEasternTZDate: true,
+    },
+    "Current Time": {
+      easternTZDate: new TZDate("2026-04-27T10:04:19.232-04:00", "America/New_York"),
+      isEasternTZDate: true,
+    },
+  };
+  const mockPhaseStartDate: ApplicationDateInput = {
+    dateType: "Concept Completion Date",
+    dateValue: new Date("2026-04-27"),
+  };
+
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
+    vi.mocked(startPhase).mockResolvedValue(mockPhaseStartDate);
   });
 
   it("should call startPhase with correct parameters", async () => {
-    vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
     await updateAssociatedPhase(mockTransaction, testApplicationId, testPhaseName);
+
     expect(startPhase).toHaveBeenCalledExactlyOnceWith(
       mockTransaction,
       testApplicationId,
@@ -57,16 +62,23 @@ describe("updateAssociatedPhase", () => {
   });
 
   it("should not call validateAndUpdateDates when phase start date is null", async () => {
+    vi.mocked(startPhase).mockResolvedValue(null);
+
     await updateAssociatedPhase(mockTransaction, testApplicationId, testPhaseName);
 
-    vi.mocked(startPhase).mockResolvedValueOnce(null);
-
-    expect(startPhase).toHaveBeenCalledExactlyOnceWith(
-      mockTransaction,
-      testApplicationId,
-      testPhaseName,
-      mockEasternNow
-    );
     expect(validateAndUpdateDates).not.toHaveBeenCalled();
+  });
+
+  it("should call validateAndUpdateDates when phase start date is not null", async () => {
+    await updateAssociatedPhase(mockTransaction, testApplicationId, testPhaseName);
+
+    expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
+      {
+        applicationId: testApplicationId,
+        applicationDates: [mockPhaseStartDate],
+      },
+      mockTransaction,
+      __DEMOS_VERSION__
+    );
   });
 });
