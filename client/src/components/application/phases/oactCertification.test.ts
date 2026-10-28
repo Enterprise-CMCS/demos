@@ -13,7 +13,6 @@ const createApplication = (phases: SimplePhase[]): WorkflowApplication => ({
 });
 
 const createApprovalSummaryPhase = (approvalDate?: {
-  dateValue: Date;
   plainDate: string;
 }): SimplePhase => ({
   phaseName: "Approval Summary",
@@ -36,7 +35,6 @@ describe("isOactCertificationRequired", () => {
   it("is not required when the Application Approval Date is 12/31/2026", () => {
     const application = createApplication([
       createApprovalSummaryPhase({
-        dateValue: new Date("2026-12-31T05:00:00.000Z"),
         plainDate: "2026-12-31",
       }),
     ]);
@@ -47,7 +45,6 @@ describe("isOactCertificationRequired", () => {
   it("is required when the Application Approval Date is 1/1/2027", () => {
     const application = createApplication([
       createApprovalSummaryPhase({
-        dateValue: new Date("2027-01-01T05:00:00.000Z"),
         plainDate: "2027-01-01",
       }),
     ]);

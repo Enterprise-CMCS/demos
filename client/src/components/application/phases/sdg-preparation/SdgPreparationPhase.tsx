@@ -11,7 +11,6 @@ import {
 } from "components/application";
 import { ApplicationUploadSection } from "components/application/phases/sections";
 import { useDialog } from "components/dialog/DialogContext";
-import { getDateEst } from "util/formatDate";
 import { ApplicationStatus, DateType, LocalDate, PhaseName } from "demos-server";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import {
@@ -36,10 +35,7 @@ const STYLES = {
 
 function getFormDataFromPhase(sdgPreparationPhase: SimplePhase): SdgPreparationPhaseFormData {
   const getDateValue = (dateType: DateType) => {
-    const dateValue = sdgPreparationPhase.phaseDates.find(
-      (d) => d.dateType === dateType
-    )?.dateValue;
-    return dateValue ? getDateEst(dateValue) : undefined;
+    return sdgPreparationPhase.phaseDates.find((d) => d.dateType === dateType)?.plainDate;
   };
 
   return {

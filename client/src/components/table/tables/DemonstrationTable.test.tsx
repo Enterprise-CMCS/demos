@@ -216,6 +216,27 @@ describe("Demonstrations", () => {
     user = userEvent.setup();
   });
 
+  it("filters by state and not status", async () => {
+    const demonstrations = buildDemonstrations(TEST_DEMO_CONFIGS);
+    demonstrations[0].status = "Pre-Submission";
+    demonstrations[0].amendments[0].status = "Pre-Submission";
+    demonstrations[0].renewals[0].status = "Pre-Submission";
+    demonstrations[1].state = { id: "MI", name: "Michigan" };
+    demonstrations[1].primaryProjectOfficer = TEST_PEOPLE[0];
+    demonstrations[2].primaryProjectOfficer = TEST_PEOPLE[0];
+
+    render(
+      <DemonstrationTable projectOfficerOptions={TEST_PEOPLE} demonstrations={demonstrations} />
+    );
+    await searchForText(user, "MI");
+
+    await waitFor(() => {
+      expect(screen.queryByText("Montana Medicaid Waiver")).not.toBeInTheDocument();
+      expect(screen.queryByText("Texas Reform Initiative")).not.toBeInTheDocument();
+      expect(screen.getByText("Florida Health Innovation")).toBeInTheDocument();
+    });
+  });
+
   describe("Empty states", () => {
     it("passes correct empty message when provided", async () => {
       render(

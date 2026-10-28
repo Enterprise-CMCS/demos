@@ -1,7 +1,6 @@
 import React from "react";
 
 import { tw } from "tags/tw";
-import { getDateEst } from "util/formatDate";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { DateType, PhaseName, PhaseStatus } from "demos-server";
 import { CompletenessNotice } from "./CompletenessNotice";
@@ -53,10 +52,10 @@ export const getApplicationCompletenessFromApplication = (
   }
 
   const findDate = (dateType: DateType): string => {
-    const dateValue = completenessPhase.phaseDates.find(
+    const plainDate = completenessPhase.phaseDates.find(
       (date) => date.dateType === dateType
-    )?.dateValue;
-    return dateValue ? getDateEst(dateValue) : "";
+    )?.plainDate;
+    return plainDate ?? "";
   };
 
   const completenessDocuments = application.documents.filter(
