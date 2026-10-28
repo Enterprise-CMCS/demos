@@ -11,7 +11,6 @@ import {
 } from "./SdgPreparationPhase";
 import { WorkflowApplication } from "components/application";
 import type { ApplicationStatus, DateType, PhaseName, PhaseStatus } from "demos-server";
-import { parseISO } from "date-fns";
 import { TestProvider } from "test-utils/TestProvider";
 import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
 import type { CurrentUser } from "components/user/UserContext";
@@ -42,12 +41,10 @@ vi.mock("components/application/phase-status/phaseCompletionQueries", () => ({
 const DEFAULT_PHASE_DATES = [
   {
     dateType: "Internal Expected Approval Date" as const,
-    dateValue: parseISO("2025-01-01T05:00:00.000Z"),
     plainDate: "2025-01-01",
   },
   {
     dateType: "State Requested Approval Date" as const,
-    dateValue: parseISO("2025-03-15T04:00:00.000Z"),
     plainDate: "2025-03-15",
   },
 ];
@@ -55,27 +52,22 @@ const DEFAULT_PHASE_DATES = [
 const COMPLETE_PHASE_DATES = [
   {
     dateType: "Internal Expected Approval Date" as const,
-    dateValue: parseISO("2025-01-01T05:00:00.000Z"),
     plainDate: "2025-01-01",
   },
   {
     dateType: "SME Initial Review Date" as const,
-    dateValue: parseISO("2025-01-01T05:00:00.000Z"),
     plainDate: "2025-01-01",
   },
   {
     dateType: "FRT Initial Meeting Date" as const,
-    dateValue: parseISO("2025-01-01T05:00:00.000Z"),
     plainDate: "2025-01-01",
   },
   {
     dateType: "BNPMT Initial Meeting Date" as const,
-    dateValue: parseISO("2025-01-01T05:00:00.000Z"),
     plainDate: "2025-01-01",
   },
   {
     dateType: "OACT Initial Review Date" as const,
-    dateValue: parseISO("2025-01-01T05:00:00.000Z"),
     plainDate: "2025-01-01",
   },
 ];
@@ -640,32 +632,26 @@ describe("Completed Phase Behavior", () => {
     phaseDates: [
       {
         dateType: "Internal Expected Approval Date" as DateType,
-        dateValue: parseISO("2025-01-01T05:00:00.000Z"),
         plainDate: "2025-01-01",
       },
       {
         dateType: "SME Initial Review Date" as DateType,
-        dateValue: parseISO("2025-01-01T05:00:00.000Z"),
         plainDate: "2025-01-01",
       },
       {
         dateType: "FRT Initial Meeting Date" as DateType,
-        dateValue: parseISO("2025-01-01T05:00:00.000Z"),
         plainDate: "2025-01-01",
       },
       {
         dateType: "BNPMT Initial Meeting Date" as DateType,
-        dateValue: parseISO("2025-01-01T05:00:00.000Z"),
         plainDate: "2025-01-01",
       },
       {
         dateType: "OACT Initial Review Date" as DateType,
-        dateValue: parseISO("2025-01-01T05:00:00.000Z"),
         plainDate: "2025-01-01",
       },
       {
         dateType: "State Requested Approval Date" as DateType,
-        dateValue: parseISO("2025-03-15T04:00:00.000Z"),
         plainDate: "2025-03-15",
       },
     ],
@@ -789,7 +775,6 @@ describe("getSdgPreparationPhaseFromApplication", () => {
           phaseDates: [
             {
               dateType: "Internal Expected Approval Date",
-              dateValue: parseISO("2025-01-01T05:00:00.000Z"),
               plainDate: "2025-01-01",
             },
           ],
