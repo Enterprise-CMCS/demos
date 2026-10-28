@@ -214,11 +214,17 @@ SELECT
         AS last_deliverable_action_date,
     coalesce(
         to_char(
-            (CASE
-                WHEN deliv.status_id IN ('Accepted', 'Approved', 'Received and Filed')
-                    THEN act_stats.most_recent_finalization_timestamp
-                END) AT TIME ZONE 'America/New_York', 'MM/DD/YYYY'
-            ), '-') AS finalization_date,
+            (
+                CASE
+                    WHEN
+                        deliv.status_id IN ('Accepted', 'Approved', 'Received and Filed')
+                        THEN act_stats.most_recent_finalization_timestamp
+                END
+            ) AT TIME ZONE 'America/New_York',
+            'MM/DD/YYYY'
+        ),
+        '-'
+    ) AS finalization_date,
     coalesce(most_recent_public_comment.updated_post_acceptance, 'No') AS updated_post_acceptance,
     coalesce(most_recent_review_start.full_name, '-') AS deliverable_reviewer,
     coalesce(to_char(most_recent_review_start.action_timestamp AT TIME ZONE 'America/New_York', 'MM/DD/YYYY'), '-')
