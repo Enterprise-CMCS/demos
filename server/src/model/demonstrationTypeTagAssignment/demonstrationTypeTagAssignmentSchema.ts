@@ -1,12 +1,12 @@
-import { DateTimeOrLocalDate, DemonstrationTypeStatus, TagName, TagStatus } from "../../types";
+import { DemonstrationTypeStatus, TagName, TagStatus } from "../../types";
 import { gql } from "graphql-tag";
 
 export const demonstrationTypeTagAssignmentSchema = gql`
   scalar DemonstrationTypeStatus
 
   input DemonstrationTypeDatesInput {
-    effectiveDate: DateTimeOrLocalDate!
-    expirationDate: DateTimeOrLocalDate!
+    effectivePlainDate: LocalDate!
+    expirationPlainDate: LocalDate!
   }
 
   input DemonstrationTypeInput {
@@ -36,8 +36,8 @@ export const demonstrationTypeTagAssignmentSchema = gql`
 `;
 
 export interface DemonstrationTypeDatesInput {
-  effectiveDate: DateTimeOrLocalDate;
-  expirationDate: DateTimeOrLocalDate;
+  effectivePlainDate: string;
+  expirationPlainDate: string;
 }
 
 export interface DemonstrationTypeInput {

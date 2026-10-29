@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
-import { formatDateForDisplay, getTodayEst } from "util/formatDate";
+import { assertIsLocalDate, formatDateForDisplay, getTodayEst } from "util/formatDate";
 import {
   ApplicationStatus,
   DateType,
@@ -54,7 +54,6 @@ export const UPDATE_AMENDMENT_MUTATION = gql`
       id
       name
       description
-      effectiveDate
       effectivePlainDate
       signatureLevel
     }
@@ -67,7 +66,6 @@ export const UPDATE_RENEWAL_MUTATION = gql`
       id
       name
       description
-      effectiveDate
       effectivePlainDate
       signatureLevel
     }
@@ -303,8 +301,8 @@ export const ApprovalSummaryPhase = ({
       const updateInput: UpdateDemonstrationInput = {
         name: formData.name,
         description: formData.description,
-        effectiveDate: formData.effectiveDate as LocalDate,
-        expirationDate: formData.expirationDate as LocalDate,
+        effectivePlainDate: assertIsLocalDate(formData.effectiveDate),
+        expirationPlainDate: assertIsLocalDate(formData.expirationDate),
         sdgDivision: formData.sdgDivision,
         projectOfficerUserId: formData.projectOfficerId,
       };
@@ -325,7 +323,7 @@ export const ApprovalSummaryPhase = ({
     const updateInput: UpdateAmendmentInput | UpdateExtensionInput = {
       name: formData.name,
       description: formData.description,
-      effectiveDate: formData.effectiveDate as LocalDate,
+      effectivePlainDate: assertIsLocalDate(formData.effectiveDate),
       signatureLevel: formData.signatureLevel,
     };
     if (formData.applicationType === "amendment") {

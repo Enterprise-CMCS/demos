@@ -10,7 +10,6 @@ import {
   Modification,
 } from "./ModificationForm";
 import userEvent from "@testing-library/user-event";
-import { LocalDate } from "demos-server";
 
 vi.mock("components/input/select/SelectDemonstration", () => ({
   SelectDemonstration: ({
@@ -225,7 +224,7 @@ describe("ModificationForm", () => {
         name: "Initial Name",
         description: "Initial Description",
         signatureLevel: "OA",
-        effectiveDate: "2024-01-15" as LocalDate,
+        effectiveDate: "2024-01-15",
       };
 
       render(
@@ -326,7 +325,7 @@ describe("ModificationForm", () => {
           name: "Test",
           description: "Description",
           signatureLevel: "OA",
-          effectiveDate: "2024-02-01" as LocalDate,
+          effectiveDate: "2024-02-01",
         };
         const original: Partial<Modification> = {
           name: "Test",
@@ -391,7 +390,7 @@ describe("ModificationForm", () => {
           name: "Test",
           description: "Description",
           signatureLevel: "OA",
-          effectiveDate: "2024-02-01" as LocalDate,
+          effectiveDate: "2024-02-01",
         };
         const original: Partial<Modification> = {
           demonstration: { id: "demo-1" },

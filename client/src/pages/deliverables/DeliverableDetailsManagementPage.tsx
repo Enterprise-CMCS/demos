@@ -74,7 +74,7 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
       demonstration {
         id
         name
-        expirationDate
+        expirationPlainDate
         state {
           id
         }

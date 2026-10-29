@@ -29,7 +29,7 @@ import {
 import {
   EasternTZDate,
   formatDateToPlainDate,
-  parseDateTimeOrLocalDateToEasternTZDate,
+  parseLocalDateToEasternTZDate,
 } from "../../dateUtilities";
 import { ContextUser, GraphQLContext } from "../../auth";
 import { getDemonstration } from "../demonstration";
@@ -92,7 +92,7 @@ vi.mock("../applicationDate/checkInputDateFunctions", () => ({
 }));
 
 vi.mock("../../dateUtilities", () => ({
-  parseDateTimeOrLocalDateToEasternTZDate: vi.fn(),
+  parseLocalDateToEasternTZDate: vi.fn(),
   formatDateToPlainDate: vi.fn(),
 }));
 
@@ -336,7 +336,7 @@ describe("extensionResolvers", () => {
       isEasternTZDate: true,
       easternTZDate: new TZDate(2025, 1, 1, 0, 0, 0, 0, "America/New_York"),
     };
-    const testDate: Date = new Date(2025, 1, 1, 5, 0, 0, 0);
+    const testPlainDate = "2025-01-01";
 
     it("should call update on the extension", async () => {
       const expectedCall = {
@@ -361,7 +361,7 @@ describe("extensionResolvers", () => {
     it("should not parse or check input dates if they don't exist", async () => {
       await __updateExtension(undefined, testInput);
 
-      expect(parseDateTimeOrLocalDateToEasternTZDate).not.toHaveBeenCalled();
+      expect(parseLocalDateToEasternTZDate).not.toHaveBeenCalled();
       expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();
       expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
     });
@@ -371,7 +371,7 @@ describe("extensionResolvers", () => {
         id: testExtensionId,
         input: {
           name: testExtensionDescription,
-          effectiveDate: null,
+          effectivePlainDate: null,
         },
       };
       const expectedCall = {
@@ -390,7 +390,7 @@ describe("extensionResolvers", () => {
         testInput.input
       );
       expect(regularMocks.extension.update).toHaveBeenCalledExactlyOnceWith(expectedCall);
-      expect(parseDateTimeOrLocalDateToEasternTZDate).not.toHaveBeenCalled();
+      expect(parseLocalDateToEasternTZDate).not.toHaveBeenCalled();
       expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();
       expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
       expect(handlePrismaError).not.toHaveBeenCalled();
@@ -400,15 +400,15 @@ describe("extensionResolvers", () => {
       const testInput: { id: string; input: UpdateExtensionInput } = {
         id: testExtensionId,
         input: {
-          effectiveDate: testDate,
+          effectivePlainDate: testPlainDate,
         },
       };
-      vi.mocked(parseDateTimeOrLocalDateToEasternTZDate).mockReturnValueOnce(testEasternTZDate);
+      vi.mocked(parseLocalDateToEasternTZDate).mockReturnValueOnce(testEasternTZDate);
 
       await __updateExtension(undefined, testInput);
 
-      expect(parseDateTimeOrLocalDateToEasternTZDate).toHaveBeenCalledExactlyOnceWith(
-        testEasternTZDate.easternTZDate,
+      expect(parseLocalDateToEasternTZDate).toHaveBeenCalledExactlyOnceWith(
+        testPlainDate,
         "Start of Day"
       );
       expect(checkInputDateIsStartOfDay).toHaveBeenCalledExactlyOnceWith(

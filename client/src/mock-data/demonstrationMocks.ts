@@ -266,9 +266,7 @@ export const demonstrationMocks: MockedResponse[] = [
           id: MOCK_DEMONSTRATION_ID,
           name: "Test Demonstration 1",
           description: "A test demonstration.",
-          effectiveDate: "2025-01-01T00:00:00.000Z",
           effectivePlainDate: "2025-01-01",
-          expirationDate: "2025-12-01T00:00:00.000Z",
           expirationPlainDate: "2025-12-01",
           state: {
             id: "AL",
@@ -299,9 +297,7 @@ export const demonstrationMocks: MockedResponse[] = [
           id: MOCK_DEMONSTRATION_ID,
           name: "Test Demonstration 123",
           description: "A test demonstration.",
-          effectiveDate: "2025-01-01T00:00:00.000Z",
           effectivePlainDate: "2025-01-01",
-          expirationDate: "2025-12-01T00:00:00.000Z",
           expirationPlainDate: "2025-12-01",
           state: {
             id: "AL",

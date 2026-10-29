@@ -7,7 +7,6 @@ import {
   Demonstration,
   Document,
   NonEmptyString,
-  DateTimeOrLocalDate,
   ClearanceLevel,
   Tag,
   TagName,
@@ -44,7 +43,7 @@ export const extensionSchema = gql`
     demonstrationId: ID
     name: NonEmptyString
     description: String
-    effectiveDate: DateTimeOrLocalDate
+    effectivePlainDate: LocalDate
     signatureLevel: ExtensionSignatureLevel
   }
 
@@ -90,6 +89,6 @@ export interface UpdateExtensionInput {
   demonstrationId?: string;
   name?: NonEmptyString;
   description?: string | null;
-  effectiveDate?: DateTimeOrLocalDate | null;
+  effectivePlainDate?: string | null;
   signatureLevel?: ExtensionSignatureLevel | null;
 }

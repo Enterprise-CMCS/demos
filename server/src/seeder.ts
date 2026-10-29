@@ -50,6 +50,7 @@ import { Deliverable, Prisma, Deliverable as PrismaDeliverable } from "@prisma/c
 import { selectDeliverableExtension } from "./model/deliverableExtension/queries";
 import { createAmendment } from "./model/amendment";
 import { createExtension } from "./model/extension";
+import { formatDateToPlainDate } from "./dateUtilities";
 
 const DOCUMENTS_PER_APPLICATION = 15;
 const UIPATH_SEED_DOCUMENT_ID = "00000000-0000-0000-0000-000000000000";
@@ -871,7 +872,7 @@ async function seedAmendments() {
   for (const amendment of amendments!) {
     const randomDates = randomDateRange();
     const updatePayload: UpdateAmendmentInput = {
-      effectiveDate: randomDates["start"],
+      effectivePlainDate: formatDateToPlainDate(randomDates["start"]),
     };
     const updateInput = {
       id: amendment.id,
@@ -904,7 +905,7 @@ async function seedExtensions() {
   for (const extension of extensions!) {
     const randomDates = randomDateRange();
     const updatePayload: UpdateExtensionInput = {
-      effectiveDate: randomDates["start"],
+      effectivePlainDate: formatDateToPlainDate(randomDates["start"]),
     };
     const updateInput = {
       id: extension.id,
@@ -1127,8 +1128,8 @@ async function seedDatabase() {
   for (const demonstration of demonstrations) {
     const randomDates = randomDateRange();
     const updatePayload: UpdateDemonstrationInput = {
-      effectiveDate: randomDates["start"],
-      expirationDate: randomDates["end"],
+      effectivePlainDate: formatDateToPlainDate(randomDates["start"]),
+      expirationPlainDate: formatDateToPlainDate(randomDates["end"]),
     };
 
     const updateInput = {

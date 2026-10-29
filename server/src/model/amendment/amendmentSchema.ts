@@ -7,7 +7,6 @@ import {
   Demonstration,
   Document,
   NonEmptyString,
-  DateTimeOrLocalDate,
   ClearanceLevel,
   Tag,
   TagName,
@@ -44,7 +43,7 @@ export const amendmentSchema = gql`
     demonstrationId: ID
     name: NonEmptyString
     description: String
-    effectiveDate: DateTimeOrLocalDate
+    effectivePlainDate: LocalDate
     signatureLevel: AmendmentSignatureLevel
   }
 
@@ -90,6 +89,6 @@ export interface UpdateAmendmentInput {
   demonstrationId?: string;
   name?: NonEmptyString;
   description?: string | null;
-  effectiveDate?: DateTimeOrLocalDate | null;
+  effectivePlainDate?: string | null;
   signatureLevel?: AmendmentSignatureLevel | null;
 }

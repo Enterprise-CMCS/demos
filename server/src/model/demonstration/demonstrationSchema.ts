@@ -4,7 +4,6 @@ import {
   ApplicationPhase,
   ApplicationStatus,
   ClearanceLevel,
-  DateTimeOrLocalDate,
   Deliverable,
   DemonstrationRoleAssignment,
   DemonstrationTypeAssignment,
@@ -60,8 +59,8 @@ export const demonstrationSchema = gql`
   input UpdateDemonstrationInput {
     name: NonEmptyString
     description: String
-    effectiveDate: DateTimeOrLocalDate
-    expirationDate: DateTimeOrLocalDate
+    effectivePlainDate: LocalDate
+    expirationPlainDate: LocalDate
     sdgDivision: SdgDivision
     projectOfficerUserId: String
   }
@@ -119,8 +118,8 @@ export interface CreateDemonstrationInput {
 export interface UpdateDemonstrationInput {
   name?: NonEmptyString;
   description?: string;
-  effectiveDate?: DateTimeOrLocalDate | null;
-  expirationDate?: DateTimeOrLocalDate | null;
+  effectivePlainDate?: string | null;
+  expirationPlainDate?: string | null;
   sdgDivision?: SdgDivision | null;
   projectOfficerUserId?: string;
 }

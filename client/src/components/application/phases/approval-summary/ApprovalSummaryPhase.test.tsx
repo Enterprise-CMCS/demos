@@ -146,8 +146,8 @@ describe("ApprovalSummaryPhase", () => {
         input: {
           name: "Test Demonstration",
           description: "Test description",
-          effectiveDate: "2025-01-01",
-          expirationDate: "2026-01-01",
+          effectivePlainDate: "2025-01-01",
+          expirationPlainDate: "2026-01-01",
           sdgDivision: "Division of System Reform Demonstrations",
           projectOfficerUserId: "user-123",
         },
@@ -164,7 +164,7 @@ describe("ApprovalSummaryPhase", () => {
         input: {
           name: "Test Amendment",
           description: "Test description",
-          effectiveDate: "2025-01-01",
+          effectivePlainDate: "2025-01-01",
           signatureLevel: "OA",
         },
       },
@@ -180,7 +180,7 @@ describe("ApprovalSummaryPhase", () => {
         input: {
           name: "Test Renewal",
           description: "Test description",
-          effectiveDate: "2025-01-01",
+          effectivePlainDate: "2025-01-01",
           signatureLevel: "OA",
         },
       },
@@ -385,8 +385,8 @@ describe("ApprovalSummaryPhase", () => {
         input: {
           name: "Test Demonstration",
           description: "Test description",
-          effectiveDate: "2025-01-01",
-          expirationDate: "2026-01-01",
+          effectivePlainDate: "2025-01-01",
+          expirationPlainDate: "2026-01-01",
           sdgDivision: "Division of System Reform Demonstrations",
           projectOfficerUserId: "user-123",
         },
@@ -412,7 +412,7 @@ describe("ApprovalSummaryPhase", () => {
         input: {
           name: "Test Amendment",
           description: "Test description",
-          effectiveDate: "2025-01-01",
+          effectivePlainDate: "2025-01-01",
           signatureLevel: "OA",
         },
       });
@@ -437,7 +437,7 @@ describe("ApprovalSummaryPhase", () => {
         input: {
           name: "Test Renewal",
           description: "Test description",
-          effectiveDate: "2025-01-01",
+          effectivePlainDate: "2025-01-01",
           signatureLevel: "OA",
         },
       });
