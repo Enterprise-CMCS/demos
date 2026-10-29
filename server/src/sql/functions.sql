@@ -653,7 +653,7 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.update_application_status_on_phase_update();
 
 -- update_federal_comment_phase_status
-CREATE PROCEDURE demos_app.update_federal_comment_phase_status()
+CREATE PROCEDURE demos_app.update_federal_comment_phase_status(p_application_id UUID DEFAULT NULL)
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -668,7 +668,8 @@ BEGIN
             FROM
                 demos_app.application_date
             WHERE
-                date_type_id IN ('Federal Comment Period Start Date', 'Federal Comment Period End Date')
+                date_type_id IN ('Federal Comment Period Start Date', 'Federal Comment Period End Date') AND
+                (p_application_id IS NULL OR application_id = p_application_id)
             GROUP BY
                 application_id
         ),
