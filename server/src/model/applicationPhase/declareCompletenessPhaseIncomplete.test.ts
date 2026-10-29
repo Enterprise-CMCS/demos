@@ -3,12 +3,13 @@ vi.mock("../email/notifyApplicationEvent", () => ({
   notifyApplicationStatusUpdated: vi.fn(),
 }));
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { declareCompletenessPhaseIncomplete } from "./declareCompletenessPhaseIncomplete.js";
+import { declareCompletenessPhaseIncomplete } from "./declareCompletenessPhaseIncomplete";
 import { TZDate } from "@date-fns/tz";
+import { __DEMOS_VERSION__ } from "../../flags";
 
 // Mock imports
-import { prisma } from "../../prismaClient.js";
-import { handlePrismaError } from "../../errors/handlePrismaError.js";
+import { prisma } from "../../prismaClient";
+import { handlePrismaError } from "../../errors/handlePrismaError";
 import {
   getApplicationDates,
   ParsedApplicationDateInput,
@@ -21,14 +22,14 @@ import {
   getApplicationPhaseStatuses,
   updatePhaseStatus,
 } from ".";
-import { ApplicationDateInput } from "../../types.js";
+import { ApplicationDateInput } from "../../types";
 
-vi.mock("../../prismaClient.js", () => ({
+vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
 const testHandlePrismaError = new Error("Test handlePrismaError!");
-vi.mock("../../errors/handlePrismaError.js", () => ({
+vi.mock("../../errors/handlePrismaError", () => ({
   handlePrismaError: vi.fn(() => {
     throw testHandlePrismaError;
   }),
@@ -225,7 +226,9 @@ describe("declareCompletenessPhaseIncomplete", () => {
         applicationId: testApplicationId,
         applicationDates: expectedDateChanges,
       },
-      mockTransaction
+      mockTransaction,
+      __DEMOS_VERSION__,
+      { allowChangingExistingFederalCommentDates: true }
     );
     expect(handlePrismaError).not.toHaveBeenCalled();
   });
@@ -241,7 +244,7 @@ describe("declareCompletenessPhaseIncomplete", () => {
         { applicationId: testApplicationId },
         { user: { id: "user-1" } }
       )
-    ).rejects.toThrowError(testHandlePrismaError);
+    ).rejects.toThrow(testHandlePrismaError);
     expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
   });
 });

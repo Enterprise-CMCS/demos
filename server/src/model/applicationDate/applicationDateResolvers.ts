@@ -6,6 +6,7 @@ import { handlePrismaError } from "../../errors/handlePrismaError";
 import { formatDateToPlainDate, getEasternNow } from "../../dateUtilities";
 import { startPhasesByDates } from "../applicationPhase";
 import { validateAndUpdateDates } from ".";
+import { __DEMOS_VERSION__ } from "../../flags";
 
 export function checkForDuplicateDateTypes(input: SetApplicationDatesInput): void {
   const inputDateTypes = input.applicationDates.map((applicationDate) => applicationDate.dateType);
@@ -62,7 +63,7 @@ export async function __setApplicationDates(
       );
 
       input.applicationDates.push(...phaseStartDates);
-      await validateAndUpdateDates(input, tx);
+      await validateAndUpdateDates(input, tx, __DEMOS_VERSION__);
     });
   } catch (error) {
     handlePrismaError(error);

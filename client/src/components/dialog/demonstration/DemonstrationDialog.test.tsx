@@ -152,7 +152,7 @@ describe("DemonstrationDialog", () => {
     render(getDemonstrationDialog("edit", true));
     const sdgSelect = screen.getByTestId(SDG_DIVISION_SELECT_TEST_ID);
     expect(sdgSelect).toBeInTheDocument();
-    expect(sdgSelect).toHaveAttribute("required");
+    expect(sdgSelect).toBeRequired();
   });
 
   it("shows error when expiration date is before effective date", async () => {

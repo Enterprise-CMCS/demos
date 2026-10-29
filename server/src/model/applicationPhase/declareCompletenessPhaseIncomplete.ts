@@ -10,6 +10,7 @@ import {
   updatePhaseStatus,
 } from ".";
 import { getApplicationDates, validateAndUpdateDates } from "../applicationDate";
+import { __DEMOS_VERSION__ } from "../../flags";
 
 export async function declareCompletenessPhaseIncomplete(
   parent: unknown,
@@ -57,7 +58,9 @@ export async function declareCompletenessPhaseIncomplete(
           applicationId: applicationId,
           applicationDates: applicationDatesToDelete,
         },
-        tx
+        tx,
+        __DEMOS_VERSION__,
+        { allowChangingExistingFederalCommentDates: true }
       );
     });
   } catch (error) {
