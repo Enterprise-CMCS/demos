@@ -7,6 +7,7 @@ import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getEasternNow } from "../../dateUtilities.js";
 import { setPhaseToStarted, updatePhaseStatus, validatePhaseCompletion, PHASE_ACTIONS } from ".";
 import { validateAndUpdateDates } from "../applicationDate";
+import { __DEMOS_VERSION__ } from "../../flags";
 
 export async function completePhase(
   parent: unknown,
@@ -39,7 +40,8 @@ export async function completePhase(
             },
           ],
         },
-        tx
+        tx,
+        __DEMOS_VERSION__
       );
       await updatePhaseStatus(input.applicationId, input.phaseName, "Completed", tx);
 
@@ -66,7 +68,8 @@ export async function completePhase(
                 },
               ],
             },
-            tx
+            tx,
+            __DEMOS_VERSION__
           );
         }
       }

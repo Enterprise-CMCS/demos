@@ -68,13 +68,19 @@ export function renderDemonstrationExpirationReminderEmail(
         <Text style={textStyle}>Thank you,</Text>
         <Text style={textStyle}>DEMOS Notifications</Text>
         <Text style={detailStyle}>
-          Demonstration: {getRequiredString(demonstration.name, "demonstration.name", emailType)}
+          <strong>Demonstration:</strong>{" "}
+          {getRequiredString(demonstration.name, "demonstration.name", emailType)}
         </Text>
         <Text style={detailStyle}>
-          State: {getRequiredString(demonstration.stateName, "demonstration.stateName", emailType)}
+          <strong>State:</strong>{" "}
+          {getRequiredString(demonstration.stateName, "demonstration.stateName", emailType)}
         </Text>
-        <Text style={detailStyle}>Days Until Expiration: {dueWhen}</Text>
-        <Text style={detailStyle}>Expiration Date: {currentExpirationDate}</Text>
+        <Text style={detailStyle}>
+          <strong>Days Until Expiration:</strong> {dueWhen}
+        </Text>
+        <Text style={detailStyle}>
+          <strong>Expiration Date:</strong> {currentExpirationDate}
+        </Text>
       </EmailLayout>
     ),
   };

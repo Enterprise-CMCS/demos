@@ -5,6 +5,7 @@ vi.mock("../email/notifyApplicationEvent", () => ({
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { skipConceptPhase } from "./skipConceptPhase.js";
 import { TZDate } from "@date-fns/tz";
+import { __DEMOS_VERSION__ } from "../../flags";
 
 // Mock imports
 import { prisma } from "../../prismaClient.js";
@@ -103,6 +104,7 @@ describe("skipConceptPhase", () => {
         ],
       },
       mockTransaction,
+      __DEMOS_VERSION__,
     ];
 
     const validateStartDateCall = [
@@ -116,6 +118,7 @@ describe("skipConceptPhase", () => {
         ],
       },
       mockTransaction,
+      __DEMOS_VERSION__,
     ];
 
     await skipConceptPhase(
@@ -176,6 +179,7 @@ describe("skipConceptPhase", () => {
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ],
     ];
 

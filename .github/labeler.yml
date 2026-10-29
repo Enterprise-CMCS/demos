@@ -34,6 +34,9 @@ lambda:
 "lambda:emailer":
 - changed-files:
   - any-glob-to-any-file: lambdas/emailer/**
+"lambda:emailScheduler":
+- changed-files:
+  - any-glob-to-any-file: lambdas/emailScheduler/**
 "lambda:deleteinfectedfile":
 - changed-files:
   - any-glob-to-any-file: lambdas/deleteinfectedfile/**

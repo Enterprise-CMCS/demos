@@ -4,6 +4,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DeclareIncompleteDialog } from "./DeclareIncompleteDialog";
 import { DIALOG_CANCEL_BUTTON_NAME } from "./BaseDialog";
+import { selectOption } from "test-utils/select";
 
 const mockOnClose = vi.fn();
 const mockOnConfirm = vi.fn();
@@ -38,7 +39,7 @@ describe("DeclareIncompleteDialog", () => {
   it("enables confirm button when a reason is selected", async () => {
     setup();
     const reasonSelect = screen.getByLabelText(/Reason/i);
-    await userEvent.selectOptions(reasonSelect, "missing-documentation");
+    await selectOption(userEvent, reasonSelect, "missing-documentation");
     const confirmBtn = screen.getByRole("button", { name: /declare-incomplete-confirm/i });
     expect(confirmBtn).not.toBeDisabled();
   });
@@ -46,7 +47,7 @@ describe("DeclareIncompleteDialog", () => {
   it("shows 'Other' textbox when 'Other' reason is selected", async () => {
     setup();
     const reasonSelect = screen.getByLabelText(/Reason/i);
-    await userEvent.selectOptions(reasonSelect, "other");
+    await selectOption(userEvent, reasonSelect, "other");
     expect(screen.getByLabelText(/Other/i)).toBeInTheDocument();
     const confirmBtn = screen.getByRole("button", { name: /declare-incomplete-confirm/i });
     expect(confirmBtn).toBeDisabled();
@@ -57,7 +58,7 @@ describe("DeclareIncompleteDialog", () => {
   it("calls onConfirm and onClose with correct values when valid reason is selected", async () => {
     setup();
     const reasonSelect = screen.getByLabelText(/Reason/i);
-    await userEvent.selectOptions(reasonSelect, "pending-clarification");
+    await selectOption(userEvent, reasonSelect, "pending-clarification");
     const confirmBtn = screen.getByRole("button", { name: /declare-incomplete-confirm/i });
     await userEvent.click(confirmBtn);
     expect(mockOnConfirm).toHaveBeenCalledWith({
@@ -70,7 +71,7 @@ describe("DeclareIncompleteDialog", () => {
   it("calls onConfirm and onClose with correct values when 'Other' is selected and explanation is provided", async () => {
     setup();
     const reasonSelect = screen.getByLabelText(/Reason/i);
-    await userEvent.selectOptions(reasonSelect, "other");
+    await selectOption(userEvent, reasonSelect, "other");
     await userEvent.type(screen.getByLabelText(/Other/i), "Extra info");
     const confirmBtn = screen.getByRole("button", { name: /declare-incomplete-confirm/i });
     await userEvent.click(confirmBtn);

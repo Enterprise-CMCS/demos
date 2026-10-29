@@ -11,6 +11,7 @@ import {
   updatePhaseStatus,
 } from ".";
 import { validateAndUpdateDates } from "../applicationDate";
+import { __DEMOS_VERSION__ } from "../../flags";
 
 export async function skipConceptPhase(
   parent: unknown,
@@ -39,7 +40,8 @@ export async function skipConceptPhase(
             },
           ],
         },
-        tx
+        tx,
+        __DEMOS_VERSION__
       );
       await updatePhaseStatus(applicationId, "Concept", "Skipped", tx);
 
@@ -59,7 +61,8 @@ export async function skipConceptPhase(
               },
             ],
           },
-          tx
+          tx,
+          __DEMOS_VERSION__
         );
       }
     });

@@ -4,6 +4,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ApolloError } from "@apollo/client";
 import { BaseEditModificationDialog } from "./BaseEditModificationDialog";
+import { selectOption } from "test-utils/select";
 
 // Mock dependencies
 const mockShowSuccess = vi.fn();
@@ -144,7 +145,7 @@ describe("BaseEditModificationDialog", () => {
       expect(screen.getByLabelText(/Signature Level/)).toBeInTheDocument();
     });
 
-    expect(screen.getByLabelText(/Signature Level/)).toHaveAttribute("required");
+    expect(screen.getByLabelText(/Signature Level/)).toBeRequired();
   });
 
   it("populates form with initial modification data", async () => {
@@ -168,7 +169,9 @@ describe("BaseEditModificationDialog", () => {
 
     expect(screen.getByLabelText(/Amendment Description/)).toHaveValue("Original description");
     expect(screen.getByLabelText(/Effective Date/)).toHaveValue("2024-01-15");
-    expect(screen.getByLabelText(/Signature Level/)).toHaveValue("OA");
+    expect(screen.getByLabelText(/Signature Level/)).toHaveTextContent(
+      "OA - Office of the Administrator"
+    );
   });
 
   it("shows error message when query fails", async () => {
@@ -212,7 +215,7 @@ describe("BaseEditModificationDialog", () => {
     await user.type(screen.getByLabelText(/Renewal Description/), "Updated description");
     await user.clear(screen.getByLabelText(/Effective Date/));
     await user.type(screen.getByLabelText(/Effective Date/), "2024-02-20");
-    await user.selectOptions(screen.getByLabelText(/Signature Level/), "OCD");
+    await selectOption(user, screen.getByLabelText(/Signature Level/), "OCD");
 
     const submitButton = screen.getByRole("button", {
       name: /button-submit-update-renewal-dialog/i,

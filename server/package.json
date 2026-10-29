@@ -26,7 +26,7 @@
     "date-fns": "^4.4.0",
     "demos-shared-library": "file:../shared_library",
     "dotenv": "^17.4.2",
-    "graphql-scalars": "^1.26.0",
+    "graphql-scalars": "^2.0.1",
     "graphql-tools": "^9.0.39",
     "jsonwebtoken": "^9.0.3",
     "jwks-rsa": "^3.2.2",
