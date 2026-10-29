@@ -64,7 +64,10 @@ export async function validateAndUpdateDates(
         "Federal Comment Period End Date"
       );
     if (inputHasFederalCommentDates) {
-      callFederalCommentPhaseUpdateProcedure(parsedSetApplicationDatesInput.applicationId, tx);
+      await callFederalCommentPhaseUpdateProcedure(
+        parsedSetApplicationDatesInput.applicationId,
+        tx
+      );
     }
   }
 }
