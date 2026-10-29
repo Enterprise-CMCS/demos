@@ -8,6 +8,7 @@ import {
   QuarterlyDeliverableSchedule,
 } from "./QuarterlyDeliverableSchedule";
 import { formatDateForDisplay, getTodayEst } from "util/formatDate";
+import { getSelectOptionLabels, selectOption } from "test-utils/select";
 
 describe("QuarterlyDeliverableSchedule", () => {
   it("renders 4 quarter datepickers", () => {
@@ -27,7 +28,7 @@ describe("QuarterlyDeliverableSchedule", () => {
       />
     );
 
-    await user.selectOptions(screen.getByRole("combobox"), "Year 2");
+    await selectOption(user, screen.getByRole("combobox"), "Year 2");
 
     expect(onSelectYear).toHaveBeenCalledWith(2);
   });
@@ -95,7 +96,7 @@ describe("QuarterlyDeliverableSchedule", () => {
     expect(onSelectQuarterDate).toHaveBeenCalledWith(2, "1900-01-01");
   });
 
-  it("shows correct year options in the year select", () => {
+  it("shows correct year options in the year select", async () => {
     render(
       <QuarterlyDeliverableSchedule
         onSelectYear={vi.fn()}
@@ -104,15 +105,9 @@ describe("QuarterlyDeliverableSchedule", () => {
       />
     );
 
-    const yearSelect = screen.getByRole("combobox") as HTMLSelectElement;
-    const options = Array.from(yearSelect.options).map(({ label, value }) => ({ label, value }));
+    const optionLabels = await getSelectOptionLabels(userEvent.setup(), screen.getByRole("combobox"));
 
-    expect(options).toEqual([
-      { label: "Select", value: "" },
-      { label: "Year 1", value: "1" },
-      { label: "Year 2", value: "2" },
-      { label: "Year 3", value: "3" },
-    ]);
+    expect(optionLabels).toEqual(["Select", "Year 1", "Year 2", "Year 3"]);
   });
 });
 

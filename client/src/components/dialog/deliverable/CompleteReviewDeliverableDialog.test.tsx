@@ -19,6 +19,7 @@ import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "../DialogContext";
 import { DELIVERABLE_DETAILS_QUERY } from "pages/deliverables/DeliverableDetailsManagementPage";
 import { DELIVERABLE_REVIEW_COMPLETED_MESSAGE } from "util/messages";
+import { openSelect, selectOption } from "test-utils/select";
 
 const mockShowSuccess = vi.fn();
 const mockShowError = vi.fn();
@@ -77,8 +78,9 @@ describe("CompleteReviewDeliverableDialog", () => {
     expect(screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME)).toBeRequired();
   });
 
-  it("renders all three final status options", () => {
+  it("renders all three final status options", async () => {
     setup();
+    await openSelect(userEvent.setup(), screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME));
     expect(
       screen.getByTestId(`${COMPLETE_REVIEW_STATUS_FIELD_NAME}-option-Accepted`)
     ).toBeInTheDocument();
@@ -103,7 +105,7 @@ describe("CompleteReviewDeliverableDialog", () => {
 
     expect(submit).toBeDisabled();
 
-    await user.selectOptions(screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME), "Approved");
+    await selectOption(user, screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME), "Approved");
 
     await waitFor(() => expect(submit).not.toBeDisabled());
   });
@@ -112,7 +114,7 @@ describe("CompleteReviewDeliverableDialog", () => {
     const user = userEvent.setup();
     const { onClose } = setup();
 
-    await user.selectOptions(screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME), "Accepted");
+    await selectOption(user, screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME), "Accepted");
 
     await user.click(screen.getByTestId(COMPLETE_REVIEW_SUBMIT_BUTTON_NAME));
 
@@ -137,7 +139,7 @@ describe("CompleteReviewDeliverableDialog", () => {
 
     const { onClose } = setup();
 
-    await user.selectOptions(screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME), "Approved");
+    await selectOption(user, screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME), "Approved");
     await user.click(screen.getByTestId(COMPLETE_REVIEW_SUBMIT_BUTTON_NAME));
 
     await waitFor(() =>
@@ -151,7 +153,8 @@ describe("CompleteReviewDeliverableDialog", () => {
     const user = userEvent.setup();
     const { onClose } = setup();
 
-    await user.selectOptions(
+    await selectOption(
+      user,
       screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME),
       "Received and Filed"
     );

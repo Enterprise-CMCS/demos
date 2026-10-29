@@ -11,6 +11,7 @@ import {
 } from "./ModificationForm";
 import userEvent from "@testing-library/user-event";
 import { LocalDate } from "demos-server";
+import { selectOption } from "test-utils/select";
 
 vi.mock("components/input/select/SelectDemonstration", () => ({
   SelectDemonstration: ({
@@ -127,7 +128,9 @@ describe("ModificationForm", () => {
     expect(screen.getByTestId("select-demonstration")).toHaveValue("demo-1");
     expect(screen.getByLabelText(/Renewal Title/)).toHaveValue("Initial Name");
     expect(screen.getByLabelText(/Renewal Description/)).toHaveValue("Initial Description");
-    expect(screen.getByLabelText(/Signature Level/)).toHaveValue("OA");
+    expect(screen.getByLabelText(/Signature Level/)).toHaveTextContent(
+      "OA - Office of the Administrator"
+    );
   });
 
   it("calls setModificationFormDataField when fields change", async () => {
@@ -168,7 +171,7 @@ describe("ModificationForm", () => {
     );
 
     mockSetModificationFormDataField.mockClear();
-    await user.selectOptions(screen.getByLabelText(/Signature Level/), "OCD");
+    await selectOption(user, screen.getByLabelText(/Signature Level/), "OCD");
     expect(mockSetModificationFormDataField).toHaveBeenCalledWith(
       expect.objectContaining({ signatureLevel: "OCD" })
     );

@@ -4,6 +4,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 import { BaseCreateModificationDialog } from "./BaseCreateModificationDialog";
+import { selectOption } from "test-utils/select";
 
 const mockShowSuccess = vi.fn();
 const mockShowError = vi.fn();
@@ -118,7 +119,7 @@ describe("BaseCreateModificationDialog", () => {
     await user.selectOptions(screen.getByTestId("select-demonstration"), "demo-1");
     await user.type(screen.getByLabelText(/Amendment Title/), "Test Amendment");
     await user.type(screen.getByLabelText(/Amendment Description/), "Test description");
-    await user.selectOptions(screen.getByTestId("signature-level-select"), "OCD");
+    await selectOption(user, screen.getByTestId("signature-level-select"), "OCD");
 
     const submitButton = screen.getByRole("button", {
       name: /button-submit-create-amendment-dialog/i,
