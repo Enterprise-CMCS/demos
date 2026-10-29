@@ -20,6 +20,32 @@ dialog[open] {
   flex-direction: column;
 }
 
+/* A transform would contain fixed dropdowns and clip them with the dialog body. */
+dialog.viewport-dialog {
+  inset: 0;
+  margin: auto;
+  height: fit-content;
+  transform: none;
+}
+
+/* Keep each menu anchored to its own input, outside the body's scroll area. */
+.viewport-dialog :has(> [role="combobox"]) {
+  anchor-scope: --dialog-select;
+}
+
+.viewport-dialog [role="combobox"] {
+  anchor-name: --dialog-select;
+}
+
+.viewport-dialog [role="combobox"] ~ [role="listbox"] {
+  position: fixed;
+  position-anchor: --dialog-select;
+  top: anchor(bottom);
+  left: anchor(left);
+  width: anchor-size(width);
+  position-try-fallbacks: flip-block;
+}
+
 .p-half {
   padding: 0.5rem;
 }
