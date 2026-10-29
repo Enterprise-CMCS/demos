@@ -76,7 +76,7 @@ describe("ApprovalPackagePhase", () => {
       screen.getByText("List of all required documents/reviews needed for approval.")
     ).toBeInTheDocument();
     expect(screen.getByText("APPROVAL PACKAGE")).toBeInTheDocument();
-    expect(screen.getByText("Each file type is required prior to approval")).toBeInTheDocument();
+    expect(screen.getByText("Each file type is required prior to approval.")).toBeInTheDocument();
   });
 
   it("renders the table with all 6 required document types, even when no documents provided", () => {

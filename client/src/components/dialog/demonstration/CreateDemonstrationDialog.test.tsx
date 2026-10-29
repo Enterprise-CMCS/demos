@@ -149,7 +149,7 @@ describe("CreateDemonstrationDialog", () => {
     const signatureLevelSelect = screen.getByLabelText(/Signature Level/i);
     expect(signatureLevelSelect).toBeInTheDocument();
     expect(signatureLevelSelect).toBeDisabled();
-    expect(signatureLevelSelect).toHaveValue(DEFAULT_DEMONSTRATION_SIGNATURE_LEVEL);
+    expect(signatureLevelSelect).toHaveTextContent(DEFAULT_DEMONSTRATION_SIGNATURE_LEVEL);
   });
 
   it("calls onSubmit with correct data when form is submitted", async () => {

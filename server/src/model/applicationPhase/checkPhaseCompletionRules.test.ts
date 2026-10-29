@@ -9,8 +9,9 @@ import {
   checkPriorPhaseCompleteForCompletion,
   checkPhaseStartedBeforeCompletion,
 } from ".";
-import { makeApplicationDateMapFromList } from "../applicationDate";
+import { makeApplicationDateMapFromList, ParsedApplicationDateInput } from "../applicationDate";
 import { ClearanceLevel } from "../../types.js";
+import { TZDate } from "@date-fns/tz";
 vi.mock(".", () => ({
   checkApplicationDateExistsForCompletion: vi.fn(),
   checkDocumentTypeExistsForCompletion: vi.fn(),
@@ -24,8 +25,8 @@ vi.mock("../applicationDate", () => ({
 
 describe("checkPhaseCompletionRules", () => {
   const testApplicationId = "78927fea-36fb-4be6-b4e5-fa355b489d35";
-  const testApplicationDates: any = "Test Dates";
-  const testApplicationDocumentTypes: any = "Test Document Types";
+  const testApplicationDates: any = ["Test Date"];
+  const testApplicationDocumentTypes: any = ["Test Document Type"];
   const testApplicationPhases: ApplicationPhaseStatusRecord = {
     Concept: "Started",
     "Application Intake": "Started",
@@ -301,6 +302,7 @@ describe("checkPhaseCompletionRules", () => {
         [testApplicationId, "Review", "OSORA R1 Comments Due", testApplicationDateMapReturn],
         [testApplicationId, "Review", "OSORA R2 Comments Due", testApplicationDateMapReturn],
         [testApplicationId, "Review", "CMS (OSORA) Clearance End", testApplicationDateMapReturn],
+        [testApplicationId, "Review", "OACT Certification Date", testApplicationDateMapReturn],
       ]);
       expect(checkDocumentTypeExistsForCompletion).not.toBeCalled();
       expect(vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls).toEqual([
@@ -362,6 +364,152 @@ describe("checkPhaseCompletionRules", () => {
           testApplicationDateMapReturn,
         ],
         [testApplicationId, "Review", "COMMs Clearance Received", testApplicationDateMapReturn],
+        [testApplicationId, "Review", "OACT Certification Date", testApplicationDateMapReturn],
+      ]);
+      expect(checkDocumentTypeExistsForCompletion).not.toBeCalled();
+      expect(vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls).toEqual([
+        [testApplicationId, "Review", "Application Intake", testApplicationPhases],
+        [testApplicationId, "Review", "Completeness", testApplicationPhases],
+        [testApplicationId, "Review", "Federal Comment", testApplicationPhases],
+        [testApplicationId, "Review", "SDG Preparation", testApplicationPhases],
+      ]);
+    });
+
+    it("should run expected checks for the Review phase when the application approval exists before 2027", () => {
+      const applicationApprovalDate = {
+        dateType: "Application Approval Date",
+        dateValue: {
+          easternTZDate: new TZDate(2026, 11, 31, 23, 59, 59, 999, "America/New_York"),
+          isEasternTZDate: true,
+        },
+      } satisfies ParsedApplicationDateInput;
+
+      checkPhaseCompletionRules(
+        testApplicationId,
+        "Review",
+        [applicationApprovalDate],
+        testApplicationDocumentTypes,
+        testApplicationPhases,
+        testApplicationClearanceLevel
+      );
+      expect(makeApplicationDateMapFromList).toHaveBeenCalledExactlyOnceWith([
+        applicationApprovalDate,
+      ]);
+      expect(checkPhaseStartedBeforeCompletion).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Review",
+        "Started"
+      );
+      expect(vi.mocked(checkApplicationDateExistsForCompletion).mock.calls).toEqual([
+        [
+          testApplicationId,
+          "Review",
+          "OGD Approval to Share with SMEs",
+          testApplicationDateMapReturn,
+        ],
+        [
+          testApplicationId,
+          "Review",
+          "Draft Approval Package to Prep",
+          testApplicationDateMapReturn,
+        ],
+        [testApplicationId, "Review", "DDME Approval Received", testApplicationDateMapReturn],
+        [testApplicationId, "Review", "State Concurrence", testApplicationDateMapReturn],
+        [
+          testApplicationId,
+          "Review",
+          "BN PMT Approval to Send to OMB",
+          testApplicationDateMapReturn,
+        ],
+        [
+          testApplicationId,
+          "Review",
+          "Draft Approval Package Shared",
+          testApplicationDateMapReturn,
+        ],
+        [testApplicationId, "Review", "Receive OMB Concurrence", testApplicationDateMapReturn],
+        [
+          testApplicationId,
+          "Review",
+          "Submit Approval Package to OSORA",
+          testApplicationDateMapReturn,
+        ],
+        [testApplicationId, "Review", "OSORA R1 Comments Due", testApplicationDateMapReturn],
+        [testApplicationId, "Review", "OSORA R2 Comments Due", testApplicationDateMapReturn],
+        [testApplicationId, "Review", "CMS (OSORA) Clearance End", testApplicationDateMapReturn],
+      ]);
+      expect(checkDocumentTypeExistsForCompletion).not.toBeCalled();
+      expect(vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls).toEqual([
+        [testApplicationId, "Review", "Application Intake", testApplicationPhases],
+        [testApplicationId, "Review", "Completeness", testApplicationPhases],
+        [testApplicationId, "Review", "Federal Comment", testApplicationPhases],
+        [testApplicationId, "Review", "SDG Preparation", testApplicationPhases],
+      ]);
+    });
+
+    it("should run expected checks for the Review phase when the application approval exists beyond start of 2027", () => {
+      const applicationApprovalDate = {
+        dateType: "Application Approval Date",
+        dateValue: {
+          easternTZDate: new TZDate(2027, 0, 1, 0, 0, 0, 0, "America/New_York"),
+          isEasternTZDate: true,
+        },
+      } satisfies ParsedApplicationDateInput;
+
+      checkPhaseCompletionRules(
+        testApplicationId,
+        "Review",
+        [applicationApprovalDate],
+        testApplicationDocumentTypes,
+        testApplicationPhases,
+        testApplicationClearanceLevel
+      );
+      expect(makeApplicationDateMapFromList).toHaveBeenCalledExactlyOnceWith([
+        applicationApprovalDate,
+      ]);
+      expect(checkPhaseStartedBeforeCompletion).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Review",
+        "Started"
+      );
+      expect(vi.mocked(checkApplicationDateExistsForCompletion).mock.calls).toEqual([
+        [
+          testApplicationId,
+          "Review",
+          "OGD Approval to Share with SMEs",
+          testApplicationDateMapReturn,
+        ],
+        [
+          testApplicationId,
+          "Review",
+          "Draft Approval Package to Prep",
+          testApplicationDateMapReturn,
+        ],
+        [testApplicationId, "Review", "DDME Approval Received", testApplicationDateMapReturn],
+        [testApplicationId, "Review", "State Concurrence", testApplicationDateMapReturn],
+        [
+          testApplicationId,
+          "Review",
+          "BN PMT Approval to Send to OMB",
+          testApplicationDateMapReturn,
+        ],
+        [
+          testApplicationId,
+          "Review",
+          "Draft Approval Package Shared",
+          testApplicationDateMapReturn,
+        ],
+        [testApplicationId, "Review", "Receive OMB Concurrence", testApplicationDateMapReturn],
+        [
+          testApplicationId,
+          "Review",
+          "Submit Approval Package to OSORA",
+          testApplicationDateMapReturn,
+        ],
+        [testApplicationId, "Review", "OSORA R1 Comments Due", testApplicationDateMapReturn],
+        [testApplicationId, "Review", "OSORA R2 Comments Due", testApplicationDateMapReturn],
+        [testApplicationId, "Review", "CMS (OSORA) Clearance End", testApplicationDateMapReturn],
+        [testApplicationId, "Review", "OACT Certification Date", testApplicationDateMapReturn],
       ]);
       expect(checkDocumentTypeExistsForCompletion).not.toBeCalled();
       expect(vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls).toEqual([
@@ -416,6 +564,144 @@ describe("checkPhaseCompletionRules", () => {
           testApplicationId,
           "Approval Package",
           "Signed Decision Memo",
+          testApplicationDocumentTypes,
+        ],
+        [
+          testApplicationId,
+          "Approval Package",
+          "OACT Certification Memo",
+          testApplicationDocumentTypes,
+        ],
+      ]);
+      expect(vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls).toEqual([
+        [testApplicationId, "Approval Package", "Application Intake", testApplicationPhases],
+        [testApplicationId, "Approval Package", "Completeness", testApplicationPhases],
+        [testApplicationId, "Approval Package", "Federal Comment", testApplicationPhases],
+        [testApplicationId, "Approval Package", "SDG Preparation", testApplicationPhases],
+        [testApplicationId, "Approval Package", "Review", testApplicationPhases],
+      ]);
+    });
+
+    it("should run expected checks for the Approval Package phase when the application approval exists before 2027", () => {
+      const applicationApprovalDate = {
+        dateType: "Application Approval Date",
+        dateValue: {
+          easternTZDate: new TZDate(2026, 11, 31, 23, 59, 59, 999, "America/New_York"),
+          isEasternTZDate: true,
+        },
+      } satisfies ParsedApplicationDateInput;
+
+      checkPhaseCompletionRules(
+        testApplicationId,
+        "Approval Package",
+        [applicationApprovalDate],
+        testApplicationDocumentTypes,
+        testApplicationPhases,
+        testApplicationClearanceLevel
+      );
+      expect(makeApplicationDateMapFromList).toHaveBeenCalledExactlyOnceWith([
+        applicationApprovalDate,
+      ]);
+      expect(checkPhaseStartedBeforeCompletion).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Approval Package",
+        "Started"
+      );
+      expect(checkApplicationDateExistsForCompletion).not.toBeCalled();
+      expect(vi.mocked(checkDocumentTypeExistsForCompletion).mock.calls).toEqual([
+        [testApplicationId, "Approval Package", "Approval Letter", testApplicationDocumentTypes],
+        [
+          testApplicationId,
+          "Approval Package",
+          "Final Budget Neutrality Formulation Workbook",
+          testApplicationDocumentTypes,
+        ],
+        [
+          testApplicationId,
+          "Approval Package",
+          "Formal OMB Policy Concurrence Email",
+          testApplicationDocumentTypes,
+        ],
+        [
+          testApplicationId,
+          "Approval Package",
+          "Special Terms & Conditions",
+          testApplicationDocumentTypes,
+        ],
+        [testApplicationId, "Approval Package", "Q&A", testApplicationDocumentTypes],
+        [
+          testApplicationId,
+          "Approval Package",
+          "Signed Decision Memo",
+          testApplicationDocumentTypes,
+        ],
+      ]);
+      expect(vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls).toEqual([
+        [testApplicationId, "Approval Package", "Application Intake", testApplicationPhases],
+        [testApplicationId, "Approval Package", "Completeness", testApplicationPhases],
+        [testApplicationId, "Approval Package", "Federal Comment", testApplicationPhases],
+        [testApplicationId, "Approval Package", "SDG Preparation", testApplicationPhases],
+        [testApplicationId, "Approval Package", "Review", testApplicationPhases],
+      ]);
+    });
+
+    it("should run expected checks for the Approval Package phase when the application approval exists beyond start of 2027", () => {
+      const applicationApprovalDate = {
+        dateType: "Application Approval Date",
+        dateValue: {
+          easternTZDate: new TZDate(2027, 0, 1, 0, 0, 0, 0, "America/New_York"),
+          isEasternTZDate: true,
+        },
+      } satisfies ParsedApplicationDateInput;
+
+      checkPhaseCompletionRules(
+        testApplicationId,
+        "Approval Package",
+        [applicationApprovalDate],
+        testApplicationDocumentTypes,
+        testApplicationPhases,
+        testApplicationClearanceLevel
+      );
+      expect(makeApplicationDateMapFromList).toHaveBeenCalledExactlyOnceWith([
+        applicationApprovalDate,
+      ]);
+      expect(checkPhaseStartedBeforeCompletion).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Approval Package",
+        "Started"
+      );
+      expect(checkApplicationDateExistsForCompletion).not.toBeCalled();
+      expect(vi.mocked(checkDocumentTypeExistsForCompletion).mock.calls).toEqual([
+        [testApplicationId, "Approval Package", "Approval Letter", testApplicationDocumentTypes],
+        [
+          testApplicationId,
+          "Approval Package",
+          "Final Budget Neutrality Formulation Workbook",
+          testApplicationDocumentTypes,
+        ],
+        [
+          testApplicationId,
+          "Approval Package",
+          "Formal OMB Policy Concurrence Email",
+          testApplicationDocumentTypes,
+        ],
+        [
+          testApplicationId,
+          "Approval Package",
+          "Special Terms & Conditions",
+          testApplicationDocumentTypes,
+        ],
+        [testApplicationId, "Approval Package", "Q&A", testApplicationDocumentTypes],
+        [
+          testApplicationId,
+          "Approval Package",
+          "Signed Decision Memo",
+          testApplicationDocumentTypes,
+        ],
+        [
+          testApplicationId,
+          "Approval Package",
+          "OACT Certification Memo",
           testApplicationDocumentTypes,
         ],
       ]);

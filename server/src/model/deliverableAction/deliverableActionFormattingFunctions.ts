@@ -64,7 +64,9 @@ function makeResubmissionRequestedOrDateChangedMessage(
   return `Old Due Date: ${formattedOldDue}\nNew Due Date: ${formattedNewDue}\nReason Details: ${reason}`;
 }
 
-export function formatDeliverableAction(input: SelectDeliverableActionRowResult): DeliverableAction {
+export function formatDeliverableAction(
+  input: SelectDeliverableActionRowResult
+): DeliverableAction {
   return {
     id: input.id,
     actionTimestamp: input.actionTimestamp,
@@ -101,6 +103,11 @@ export function formatDetailsMessage(input: SelectDeliverableActionRowResult): s
         parseJSDateToEasternTZDate(input.newDueDate),
         input.note!
       );
+    case "Terminating Status Override":
+      return `Overrode terminating status from "${input.oldStatusId!}" to "${input.newStatusId!}": ${input.note!}`;
+
+    case "Reverted Finalization":
+      return `Reverted finalization from "${input.oldStatusId!}" to "${input.newStatusId!}": ${input.note!}`;
 
     default:
       return "";

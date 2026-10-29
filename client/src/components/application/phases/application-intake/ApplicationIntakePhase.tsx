@@ -7,7 +7,7 @@ import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { addDays, compareDesc, parseISO } from "date-fns";
 import { tw } from "tags/tw";
-import { formatDateForServer, getDateEst } from "util/formatDate";
+import { formatDateForServer } from "util/formatDate";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
@@ -271,14 +271,9 @@ export const getApplicationIntakeComponentFromApplication = (
     throw new Error("Application is missing expected phase: Completeness");
   }
 
-  const stateApplicationSubmittedDate = applicationIntakePhase.phaseDates.find(
+  const estStateApplicationSubmittedDate = applicationIntakePhase.phaseDates.find(
     (date) => date.dateType === "State Application Submitted Date"
-  )?.dateValue;
-
-  // This date value comes back in UTC, we want to display it in EST
-  const estStateApplicationSubmittedDate = stateApplicationSubmittedDate
-    ? getDateEst(stateApplicationSubmittedDate)
-    : "";
+  )?.plainDate ?? "";
 
   const applicationIntakeDocuments = application.documents.filter(
     (doc) => doc.phaseName === THIS_PHASE_NAME

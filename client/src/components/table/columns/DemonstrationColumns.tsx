@@ -67,6 +67,7 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
     columnHelper.accessor("status", {
       id: "status",
       header: "Status",
+      enableGlobalFilter: false,
       cell: (info) => (
         <ApplicationStatusBadge
           applicationStatus={info.getValue<ApplicationStatus>()}

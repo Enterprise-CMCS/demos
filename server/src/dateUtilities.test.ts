@@ -10,6 +10,7 @@ import {
   getStartOfDayEastern,
   parseDateTimeOrLocalDateToEasternTZDate,
   parseJSDateToEasternTZDate,
+  isLocalDate,
 } from "./dateUtilities.js";
 import { TZDate } from "@date-fns/tz";
 
@@ -117,6 +118,19 @@ const TEST_DATES: TestDatesRecord = {
 describe("dateUtilities", () => {
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  describe("isLocalDate", () => {
+    const validLocalDates = ["2024-02-29", "2024-12-31"];
+    const invalidLocalDates = ["2023-02-29", "2024-13-01", "not even a date", "2024-1-10", ""];
+
+    it.each(validLocalDates)('should identify "%s" as a valid LocalDate', (testDate) => {
+      expect(isLocalDate(testDate)).toBe(true);
+    });
+
+    it.each(invalidLocalDates)('should identify "%s" as an invalid LocalDate', (testDate) => {
+      expect(isLocalDate(testDate)).toBe(false);
+    });
   });
 
   describe("getDateTimeParts", () => {

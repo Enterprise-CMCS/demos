@@ -30,8 +30,8 @@ type DemonstrationOverviewReportColumn =
   | "primary_project_officer"
   | "project_officers"
   | "primary_policy_tech_director"
-  | "primary_ddme_analyst"
-  | "ddme_analysts"
+  | "primary_monitoring_and_evaluation_analyst"
+  | "monitoring_and_evaluation_analysts"
   | "primary_state_poc"
   | "state_pocs"
   | "primary_monitoring_evaluation_tech_director"
@@ -55,8 +55,8 @@ export const demonstrationOverviewReportSchema = z
     primary_project_officer: z.string(),
     project_officers: z.string(),
     primary_policy_tech_director: z.string(),
-    primary_ddme_analyst: z.string(),
-    ddme_analysts: z.string(),
+    primary_monitoring_and_evaluation_analyst: z.string(),
+    monitoring_and_evaluation_analysts: z.string(),
     primary_state_poc: z.string(),
     state_pocs: z.string(),
     primary_monitoring_evaluation_tech_director: z.string(),
@@ -81,8 +81,10 @@ export const demonstrationOverviewReportColumnHeaders = {
   primary_project_officer: { columnName: "Primary Project Officer" },
   project_officers: { columnName: "Project Officers" },
   primary_policy_tech_director: { columnName: "Primary Policy Technical Director" },
-  primary_ddme_analyst: { columnName: "Primary DDME Analyst" },
-  ddme_analysts: { columnName: "DDME Analysts" },
+  primary_monitoring_and_evaluation_analyst: {
+    columnName: "Primary Monitoring & Evaluation Analyst",
+  },
+  monitoring_and_evaluation_analysts: { columnName: "Monitoring & Evaluation Analysts" },
   primary_state_poc: { columnName: "Primary State POC" },
   state_pocs: { columnName: "State POCs" },
   primary_monitoring_evaluation_tech_director: {

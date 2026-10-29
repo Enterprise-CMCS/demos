@@ -667,7 +667,6 @@ describe("ConceptPhase", () => {
             phaseDates: [
               {
                 dateType: "Concept Paper Submitted Date",
-                dateValue: new Date("2024-03-15"),
                 plainDate: "2024-03-15",
               },
             ],

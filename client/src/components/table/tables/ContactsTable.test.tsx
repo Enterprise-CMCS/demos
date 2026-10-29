@@ -25,7 +25,7 @@ const mockDemonstrationRoleAssignments = [
     },
   },
   {
-    role: "DDME Analyst",
+    role: "Monitoring & Evaluation Analyst",
     isPrimary: false,
     person: {
       id: "2",

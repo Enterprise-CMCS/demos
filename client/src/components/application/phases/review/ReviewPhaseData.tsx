@@ -1,9 +1,9 @@
 import { WorkflowApplication, SimplePhase } from "components/application";
 import React from "react";
 import { ReviewPhase, ReviewPhaseFormData } from "./ReviewPhase";
-import { format } from "date-fns";
 import { REVIEW_PHASE_DATE_TYPES, REVIEW_PHASE_NOTE_TYPES } from "demos-server-constants";
 import { ApplicationDateInput, ApplicationNoteInput, LocalDate } from "demos-server";
+import { isOactCertificationRequired } from "components/application/phases/oactCertification";
 
 export function getPhaseData(
   reviewPhase: SimplePhase
@@ -13,7 +13,7 @@ export function getPhaseData(
   for (const dateType of REVIEW_PHASE_DATE_TYPES) {
     const date = reviewPhase.phaseDates.find((d) => d.dateType === dateType);
     if (date) {
-      formData.dates[dateType] = format(new Date(date.dateValue), "yyyy-MM-dd");
+      formData.dates[dateType] = date.plainDate;
     }
   }
 
@@ -54,6 +54,7 @@ export const getReviewPhaseComponentFromApplication = (
       applicationId={application.id}
       onFinish={onFinish}
       allPreviousPhasesDone={allPreviousPhasesDone}
+      isOactCertificationRequired={isOactCertificationRequired(application)}
     />
   );
 };

@@ -6,11 +6,11 @@ import { DialogProvider } from "components/dialog/DialogContext";
 import { ADD_DELIVERABLE_SLOT_DIALOG_TITLE } from "components/dialog/deliverable";
 import { ADD_DELIVERABLE_SLOT_BUTTON_NAME, DeliverablesTab } from "./DeliverablesTab";
 import { TestProvider } from "test-utils/TestProvider";
-import { deliverableMocks, MOCK_DELIVERABLE_TABLE_ROW } from "mock-data/deliverableMocks";
+import { deliverableMocks, MOCK_DELIVERABLE_1 } from "mock-data/deliverableMocks";
 import { cmsReviewerMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 const MOCK_PARENT_DEMONSTRATION = {
-  id: "demo-1",
+  id: "1",
   demonstrationTypes: [],
   effectiveDate: new Date("2026-01-01"),
   expirationDate: new Date("2026-12-31"),
@@ -63,7 +63,7 @@ describe("DeliverablesTab", () => {
       </TestProvider>
     );
 
-    const selectedRow = await screen.findByTestId(`select-row-${MOCK_DELIVERABLE_TABLE_ROW.id}`);
+    const selectedRow = await screen.findByTestId(`select-row-${MOCK_DELIVERABLE_1.id}`);
 
     await user.click(selectedRow);
     expect(selectedRow).toBeChecked();
@@ -71,7 +71,7 @@ describe("DeliverablesTab", () => {
     await user.click(screen.getByTestId(ADD_DELIVERABLE_SLOT_BUTTON_NAME));
 
     expect(screen.getByRole("dialog")).toHaveTextContent(ADD_DELIVERABLE_SLOT_DIALOG_TITLE);
-    expect(screen.getByTestId(`select-row-${MOCK_DELIVERABLE_TABLE_ROW.id}`)).toBeChecked();
+    expect(screen.getByTestId(`select-row-${MOCK_DELIVERABLE_1.id}`)).toBeChecked();
   });
 
   it("shows empty state when no demonstration deliverables are available", async () => {

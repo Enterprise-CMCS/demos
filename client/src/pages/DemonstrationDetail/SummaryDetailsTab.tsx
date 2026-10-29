@@ -7,6 +7,8 @@ import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable
 import { useDialog } from "components/dialog/DialogContext";
 import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
+export const EDIT_BUTTON_TEST_ID = "button-edit-details";
+
 export const SummaryDetailsTab: React.FC<{ demonstrationId: string }> = ({ demonstrationId }) => {
   const { currentUser } = getCurrentUser();
   const { showEditDemonstrationDialog } = useDialog();
@@ -16,7 +18,7 @@ export const SummaryDetailsTab: React.FC<{ demonstrationId: string }> = ({ demon
         {!isReadonly(currentUser, "DemonstrationDetail") && (
           <IconButton
             icon={<EditIcon />}
-            name="button-edit-details"
+            name={EDIT_BUTTON_TEST_ID}
             size="small"
             onClick={() => showEditDemonstrationDialog(demonstrationId)}
           >

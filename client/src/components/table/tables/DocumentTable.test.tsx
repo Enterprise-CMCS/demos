@@ -6,7 +6,8 @@ import userEvent from "@testing-library/user-event";
 import { DocumentTable } from "./DocumentTable";
 import { mockDocuments } from "mock-data/documentMocks";
 import { TestProvider } from "test-utils/TestProvider";
-import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { cmsMockUser, cmsReviewerMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { selectOption } from "test-utils/select";
 
 const showUploadDocumentDialog = vi.fn();
 const showEditApplicationDocumentDialog = vi.fn();
@@ -46,6 +47,18 @@ describe("DocumentTable", () => {
 
     expect(screen.queryByLabelText(/Edit Document/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Remove Document/i)).not.toBeInTheDocument();
+    expect(screen.queryByTestId(/select-row-/i)).not.toBeInTheDocument();
+  });
+
+  it("does not render edit and delete buttons for cms-reviewer users", async () => {
+    renderDocumentTable(cmsReviewerMockUser);
+
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByTestId("edit-document")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("remove-document")).not.toBeInTheDocument();
     expect(screen.queryByTestId(/select-row-/i)).not.toBeInTheDocument();
   });
 
@@ -106,7 +119,7 @@ describe("DocumentTable", () => {
     });
 
     // Select the createdAt filter column
-    await user.selectOptions(screen.getByTestId("filter-by-column"), ["createdAt"]);
+    await selectOption(user, screen.getByTestId("filter-by-column"), "createdAt");
 
     const startInput = document.body.querySelector('input[name="date-filter-start"]');
     const endInput = document.body.querySelector('input[name="date-filter-end"]');
@@ -130,7 +143,7 @@ describe("DocumentTable", () => {
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
-    await user.selectOptions(screen.getByTestId("filter-by-column"), ["type"]);
+    await selectOption(user, screen.getByTestId("filter-by-column"), "type");
 
     const input = screen.getByPlaceholderText("Select Document Type");
     await user.type(input, "Q&A");

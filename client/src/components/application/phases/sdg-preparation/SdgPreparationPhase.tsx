@@ -5,7 +5,6 @@ import { useSessionStorageJson } from "hooks";
 import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
 import { SimplePhase, WorkflowApplication } from "components/application";
-import { getDateEst } from "util/formatDate";
 import { ApplicationStatus, DateType, LocalDate, PhaseName } from "demos-server";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import {
@@ -30,10 +29,7 @@ const STYLES = {
 
 function getFormDataFromPhase(sdgPreparationPhase: SimplePhase): SdgPreparationPhaseFormData {
   const getDateValue = (dateType: DateType) => {
-    const dateValue = sdgPreparationPhase.phaseDates.find(
-      (d) => d.dateType === dateType
-    )?.dateValue;
-    return dateValue ? getDateEst(dateValue) : undefined;
+    return sdgPreparationPhase.phaseDates.find((d) => d.dateType === dateType)?.plainDate;
   };
 
   return {
@@ -42,6 +38,7 @@ function getFormDataFromPhase(sdgPreparationPhase: SimplePhase): SdgPreparationP
     smeInitialReviewDate: getDateValue("SME Initial Review Date"),
     frtInitialMeetingDate: getDateValue("FRT Initial Meeting Date"),
     bnpmtInitialMeetingDate: getDateValue("BNPMT Initial Meeting Date"),
+    oactInitialReviewDate: getDateValue("OACT Initial Review Date"),
   };
 }
 
@@ -51,6 +48,7 @@ interface SdgPreparationPhaseFormData {
   smeInitialReviewDate?: string;
   frtInitialMeetingDate?: string;
   bnpmtInitialMeetingDate?: string;
+  oactInitialReviewDate?: string;
 }
 
 export const hasChanges = (
@@ -62,7 +60,8 @@ export const hasChanges = (
     initialFormData.stateRequestedApprovalDate !== currentFormData.stateRequestedApprovalDate ||
     initialFormData.smeInitialReviewDate !== currentFormData.smeInitialReviewDate ||
     initialFormData.frtInitialMeetingDate !== currentFormData.frtInitialMeetingDate ||
-    initialFormData.bnpmtInitialMeetingDate !== currentFormData.bnpmtInitialMeetingDate
+    initialFormData.bnpmtInitialMeetingDate !== currentFormData.bnpmtInitialMeetingDate ||
+    initialFormData.oactInitialReviewDate !== currentFormData.oactInitialReviewDate
   );
 };
 
@@ -171,6 +170,14 @@ export const SdgPreparationPhase = ({
           dateValue: sdgPreparationPhaseFormData.bnpmtInitialMeetingDate as LocalDate,
         });
       }
+
+      if (sdgPreparationPhaseFormData.oactInitialReviewDate) {
+        await setApplicationDate({
+          applicationId: applicationId,
+          dateType: "OACT Initial Review Date" satisfies DateType,
+          dateValue: sdgPreparationPhaseFormData.oactInitialReviewDate as LocalDate,
+        });
+      }
     }
   };
 
@@ -255,7 +262,7 @@ export const SdgPreparationPhase = ({
                 INTERNAL REVIEWS
               </h4>
               <p className={STYLES.helper}>
-                Record the Date that each key review meeting occurred below
+                Record the Date that each key review meeting occurred below.
               </p>
             </div>
             <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
@@ -297,6 +304,18 @@ export const SdgPreparationPhase = ({
                   });
                 }}
                 isRequired={true}
+                isDisabled={isReadonlyUser || isPhaseCompleted}
+              />
+              <DatePicker
+                name="datepicker-oact-initial-review-date"
+                label="OACT Initial Review"
+                value={sdgPreparationPhaseFormData.oactInitialReviewDate}
+                onChange={(newDate) => {
+                  setSdgPreparationPhaseFormData({
+                    ...sdgPreparationPhaseFormData,
+                    oactInitialReviewDate: newDate,
+                  });
+                }}
                 isDisabled={isReadonlyUser || isPhaseCompleted}
               />
             </div>

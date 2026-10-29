@@ -10,6 +10,7 @@ import { handlePrismaError } from "../../errors/handlePrismaError";
 import { getApplication } from "../application";
 import {
   checkForDuplicateDemonstrationTypes,
+  checkForDeliverableUsedDemonstrationTypes,
   createAndUpsertDemonstrationTypeAssignments,
   deleteDemonstrationTypeAssignments,
   parseSetDemonstrationTypesInput,
@@ -32,6 +33,7 @@ vi.mock("../application", () => ({
 
 vi.mock(".", () => ({
   checkForDuplicateDemonstrationTypes: vi.fn(),
+  checkForDeliverableUsedDemonstrationTypes: vi.fn(),
   createAndUpsertDemonstrationTypeAssignments: vi.fn(),
   deleteDemonstrationTypeAssignments: vi.fn(),
   parseSetDemonstrationTypesInput: vi.fn(),
@@ -123,6 +125,7 @@ describe("demonstrationTypeTagAssignmentResolvers", () => {
         applicationTypeId: "Demonstration",
       });
       expect(checkForDuplicateDemonstrationTypes).not.toHaveBeenCalled();
+      expect(checkForDeliverableUsedDemonstrationTypes).not.toHaveBeenCalled();
       expect(parseSetDemonstrationTypesInput).not.toHaveBeenCalled();
       expect(prisma).not.toHaveBeenCalled();
       expect(createAndUpsertDemonstrationTypeAssignments).not.toHaveBeenCalled();
@@ -138,7 +141,14 @@ describe("demonstrationTypeTagAssignmentResolvers", () => {
       expect(checkForDuplicateDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(testInput);
       expect(parseSetDemonstrationTypesInput).toHaveBeenCalledExactlyOnceWith(testInput);
       expect(prisma).toHaveBeenCalled();
-      expect(vi.mocked(prisma).mock.calls.length).toBe(1);
+      expect(vi.mocked(prisma).mock.calls).toHaveLength(1);
+      expect(checkForDeliverableUsedDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
+        mockParsedOutput,
+        mockTransaction
+      );
+      expect(checkForDeliverableUsedDemonstrationTypes).toHaveBeenCalledBefore(
+        vi.mocked(createAndUpsertDemonstrationTypeAssignments)
+      );
       expect(createAndUpsertDemonstrationTypeAssignments).toHaveBeenCalledExactlyOnceWith(
         mockParsedOutput,
         mockTransaction
@@ -148,6 +158,26 @@ describe("demonstrationTypeTagAssignmentResolvers", () => {
         mockTransaction
       );
       expect(handlePrismaError).not.toHaveBeenCalled();
+    });
+
+    it("should reject linked removals before making any changes", async () => {
+      const testError = new Error(
+        "Cannot remove demonstration types associated with a deliverable."
+      );
+      vi.mocked(checkForDeliverableUsedDemonstrationTypes).mockRejectedValueOnce(testError);
+
+      await expect(setDemonstrationTypes(undefined, { input: testInput })).rejects.toThrowError(
+        testHandlePrismaError
+      );
+
+      expect(checkForDeliverableUsedDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
+        mockParsedOutput,
+        mockTransaction
+      );
+      expect(createAndUpsertDemonstrationTypeAssignments).not.toHaveBeenCalled();
+      expect(deleteDemonstrationTypeAssignments).not.toHaveBeenCalled();
+      expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
+      expect(getApplication).not.toHaveBeenCalled();
     });
 
     it("should handle an error appropriately if it occurs", async () => {

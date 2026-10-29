@@ -16,6 +16,8 @@ const getPrettyFirstName = (personType: PersonType): string => {
       return "CMS Reviewer";
     case "demos-restricted-cms-user":
       return "Restricted CMS";
+    case "demos-oact-user":
+      return "OACT";
     default:
       return "Unknown";
   }
@@ -34,16 +36,18 @@ export const mockPerson: Person = {
   updatedAt: new Date(),
 };
 
+export const johnDoe = {
+  ...mockPerson,
+  id: "1",
+  firstName: "John",
+  lastName: "Doe",
+  fullName: "John Doe",
+  email: "john.doe@email.com",
+  states: [mockStates[0]],
+};
+
 export const mockPeople: Person[] = [
-  {
-    ...mockPerson,
-    id: "1",
-    firstName: "John",
-    lastName: "Doe",
-    fullName: "John Doe",
-    email: "john.doe@email.com",
-    states: [mockStates[0]],
-  },
+  johnDoe,
   {
     ...mockPerson,
     id: "2",

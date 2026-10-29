@@ -11,7 +11,6 @@ import {
 } from "./SdgPreparationPhase";
 import { WorkflowApplication } from "components/application";
 import type { ApplicationStatus, DateType, PhaseName, PhaseStatus } from "demos-server";
-import { parseISO } from "date-fns";
 import { TestProvider } from "test-utils/TestProvider";
 import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
 import type { CurrentUser } from "components/user/UserContext";
@@ -42,12 +41,10 @@ vi.mock("components/application/phase-status/phaseCompletionQueries", () => ({
 const DEFAULT_PHASE_DATES = [
   {
     dateType: "Internal Expected Approval Date" as const,
-    dateValue: parseISO("2025-01-01T05:00:00.000Z"),
     plainDate: "2025-01-01",
   },
   {
     dateType: "State Requested Approval Date" as const,
-    dateValue: parseISO("2025-03-15T04:00:00.000Z"),
     plainDate: "2025-03-15",
   },
 ];
@@ -55,22 +52,22 @@ const DEFAULT_PHASE_DATES = [
 const COMPLETE_PHASE_DATES = [
   {
     dateType: "Internal Expected Approval Date" as const,
-    dateValue: parseISO("2025-01-01T05:00:00.000Z"),
     plainDate: "2025-01-01",
   },
   {
     dateType: "SME Initial Review Date" as const,
-    dateValue: parseISO("2025-01-01T05:00:00.000Z"),
     plainDate: "2025-01-01",
   },
   {
     dateType: "FRT Initial Meeting Date" as const,
-    dateValue: parseISO("2025-01-01T05:00:00.000Z"),
     plainDate: "2025-01-01",
   },
   {
     dateType: "BNPMT Initial Meeting Date" as const,
-    dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+    plainDate: "2025-01-01",
+  },
+  {
+    dateType: "OACT Initial Review Date" as const,
     plainDate: "2025-01-01",
   },
 ];
@@ -205,11 +202,11 @@ describe("SdgPreparationPhase", () => {
 
       expect(screen.getByText("INTERNAL REVIEWS")).toBeInTheDocument();
       expect(
-        screen.getByText("Record the Date that each key review meeting occurred below")
+        screen.getByText("Record the Date that each key review meeting occurred below.")
       ).toBeInTheDocument();
     });
 
-    it("renders all three DatePickers", () => {
+    it("renders all four DatePickers", () => {
       setup();
 
       expect(screen.getByTestId("datepicker-sme-initial-review-date")).toHaveAccessibleName(
@@ -221,6 +218,18 @@ describe("SdgPreparationPhase", () => {
       expect(screen.getByTestId("datepicker-bnpmt-initial-meeting-date")).toHaveAccessibleName(
         /BNPMT Initial Meeting Date/
       );
+      expect(screen.getByTestId("datepicker-oact-initial-review-date")).toHaveAccessibleName(
+        /OACT Initial Review/
+      );
+    });
+
+    it("renders OACT Initial Review as an optional date", () => {
+      setup();
+
+      const oactDatePicker = screen.getByTestId("datepicker-oact-initial-review-date");
+
+      expect(oactDatePicker).toHaveAccessibleName("OACT Initial Review");
+      expect(oactDatePicker).not.toBeRequired();
     });
 
     it("renders Save For Later and Finish buttons", () => {
@@ -244,10 +253,36 @@ describe("SdgPreparationPhase", () => {
       expect(screen.getByTestId("datepicker-sme-initial-review-date")).toBeDisabled();
       expect(screen.getByTestId("datepicker-frt-initial-meeting-date")).toBeDisabled();
       expect(screen.getByTestId("datepicker-bnpmt-initial-meeting-date")).toBeDisabled();
+      expect(screen.getByTestId("datepicker-oact-initial-review-date")).toBeDisabled();
     });
   });
 
   describe("Date field handling", () => {
+    it("prefills the OACT Initial Review DatePicker with the stored date", () => {
+      setup(mockCompleteApplication);
+
+      expect(screen.getByTestId("datepicker-oact-initial-review-date")).toHaveValue("2025-01-01");
+      expect(screen.getByTestId("sdg-save-for-later")).toBeDisabled();
+    });
+
+    it("saves OACT Initial Review when it is the only changed date", async () => {
+      mockSetApplicationDate.mockResolvedValue({ data: { setApplicationDate: { id: "1" } } });
+      setup();
+
+      await userEvent.type(screen.getByTestId("datepicker-oact-initial-review-date"), "2025-04-20");
+
+      expect(screen.getByTestId("sdg-save-for-later")).toBeEnabled();
+      await userEvent.click(screen.getByTestId("sdg-save-for-later"));
+
+      await waitFor(() => {
+        expect(mockSetApplicationDate).toHaveBeenCalledWith({
+          applicationId: "1",
+          dateType: "OACT Initial Review Date",
+          dateValue: "2025-04-20",
+        });
+      });
+    });
+
     it("prefills the Internal Expected Approval Date DatePicker with the correct date", () => {
       setup();
 
@@ -411,6 +446,41 @@ describe("SdgPreparationPhase", () => {
   });
 
   describe("SdgPreparationPhase - Phase Status Mutation", () => {
+    it("finishes without saving an OACT date when OACT Initial Review is empty", async () => {
+      mockSetApplicationDate.mockResolvedValue({ data: { setApplicationDate: { id: "1" } } });
+      mockCompletePhase.mockResolvedValue({
+        data: { completePhase: { __typename: "ApplicationPhase" } },
+      });
+      setup(
+        createApplication({
+          phases: [
+            {
+              ...mockCompleteApplication.phases[0],
+              phaseDates: COMPLETE_PHASE_DATES.filter(
+                (date) => date.dateType !== "OACT Initial Review Date"
+              ),
+            },
+          ],
+        })
+      );
+
+      expect(screen.getByTestId("datepicker-oact-initial-review-date")).toHaveValue("");
+      expect(screen.getByTestId("sdg-finish")).toBeEnabled();
+
+      await userEvent.click(screen.getByTestId("sdg-finish"));
+
+      await waitFor(() => {
+        expect(mockCompletePhase).toHaveBeenCalledWith({
+          applicationId: "1",
+          phaseName: "SDG Preparation",
+        });
+        expect(mockSetSelectedPhase).toHaveBeenCalledWith("Review");
+      });
+      expect(mockSetApplicationDate).not.toHaveBeenCalledWith(
+        expect.objectContaining({ dateType: "OACT Initial Review Date" })
+      );
+    });
+
     it("shows success toast when Finish succeess and calls setSelectedPhase", async () => {
       mockSetApplicationDate.mockResolvedValue({ data: { setApplicationDate: { id: "1" } } });
       mockCompletePhase.mockResolvedValue({
@@ -424,7 +494,12 @@ describe("SdgPreparationPhase", () => {
       await userEvent.click(finishButton);
 
       await waitFor(() => {
-        expect(mockSetApplicationDate).toHaveBeenCalledTimes(4);
+        expect(mockSetApplicationDate).toHaveBeenCalledTimes(5);
+        expect(mockSetApplicationDate).toHaveBeenCalledWith({
+          applicationId: "1",
+          dateType: "OACT Initial Review Date",
+          dateValue: "2025-01-01",
+        });
         expect(mockCompletePhase).toHaveBeenCalled();
         expect(screen.getByText(getPhaseCompletedMessage("SDG Preparation"))).toBeInTheDocument();
         expect(mockSetSelectedPhase).toHaveBeenCalledWith("Review");
@@ -557,27 +632,26 @@ describe("Completed Phase Behavior", () => {
     phaseDates: [
       {
         dateType: "Internal Expected Approval Date" as DateType,
-        dateValue: parseISO("2025-01-01T05:00:00.000Z"),
         plainDate: "2025-01-01",
       },
       {
         dateType: "SME Initial Review Date" as DateType,
-        dateValue: parseISO("2025-01-01T05:00:00.000Z"),
         plainDate: "2025-01-01",
       },
       {
         dateType: "FRT Initial Meeting Date" as DateType,
-        dateValue: parseISO("2025-01-01T05:00:00.000Z"),
         plainDate: "2025-01-01",
       },
       {
         dateType: "BNPMT Initial Meeting Date" as DateType,
-        dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+        plainDate: "2025-01-01",
+      },
+      {
+        dateType: "OACT Initial Review Date" as DateType,
         plainDate: "2025-01-01",
       },
       {
         dateType: "State Requested Approval Date" as DateType,
-        dateValue: parseISO("2025-03-15T04:00:00.000Z"),
         plainDate: "2025-03-15",
       },
     ],
@@ -605,12 +679,14 @@ describe("Completed Phase Behavior", () => {
     expect(screen.getByTestId("datepicker-internal-expected-approval-date")).not.toBeDisabled();
   });
 
-  it("disables SME, FRT, BNPMT, and State Requested date pickers when phase is Completed", () => {
+  it("disables SME, FRT, BNPMT, OACT, and State Requested date pickers when phase is Completed", () => {
     renderCompleted();
     expect(screen.getByTestId("datepicker-state-requested-approval-date")).toBeDisabled();
     expect(screen.getByTestId("datepicker-sme-initial-review-date")).toBeDisabled();
     expect(screen.getByTestId("datepicker-frt-initial-meeting-date")).toBeDisabled();
     expect(screen.getByTestId("datepicker-bnpmt-initial-meeting-date")).toBeDisabled();
+    expect(screen.getByTestId("datepicker-oact-initial-review-date")).toBeDisabled();
+    expect(screen.getByTestId("datepicker-oact-initial-review-date")).toHaveValue("2025-01-01");
   });
 
   it("keeps the State Requested Approval Date populated while disabled", () => {
@@ -699,7 +775,6 @@ describe("getSdgPreparationPhaseFromApplication", () => {
           phaseDates: [
             {
               dateType: "Internal Expected Approval Date",
-              dateValue: parseISO("2025-01-01T05:00:00.000Z"),
               plainDate: "2025-01-01",
             },
           ],

@@ -32,6 +32,7 @@ pipeline {
           npmUpdates(dir: 'lambdas/authorizer')
           npmUpdates(dir: 'lambdas/dbRoleManagement')
           npmUpdates(dir: 'lambdas/emailer')
+          npmUpdates(dir: 'lambdas/emailScheduler')
           npmUpdates(dir: 'lambdas/fileprocess')
           npmUpdates(dir: 'lambdas/deleteinfectedfile')
           npmUpdates(dir: 'lambdas/UIPath')

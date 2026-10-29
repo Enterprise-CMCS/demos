@@ -5,7 +5,9 @@ export type DemosServerFeatureFlag =
   | "approveTagsApi"
   | "deleteTagsApi"
   | "tagDetailsApi"
-  | "disableMigratedUserAssociation";
+  | "disableMigratedUserAssociation"
+  | "handleHolidaysWeekendsForDates"
+  | "makeFederalCommentPeriodMoreFlexible";
 export type DemosServerFeatureFlagSetting = Record<DemosServerFeatureFlag, boolean>;
 
 // This function exists to enable easier dependency injections
@@ -17,5 +19,7 @@ export function getFeatureFlags(currentVersion: SemVer): DemosServerFeatureFlagS
     deleteTagsApi: semver.gte(currentVersion, "1.2.0"),
     tagDetailsApi: semver.gte(currentVersion, "1.2.0"),
     disableMigratedUserAssociation: semver.gte(currentVersion, "1.2.0"),
+    handleHolidaysWeekendsForDates: semver.gte(currentVersion, "1.3.0"),
+    makeFederalCommentPeriodMoreFlexible: semver.gte(currentVersion, "1.3.0"),
   };
 }

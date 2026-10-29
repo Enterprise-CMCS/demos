@@ -63,6 +63,14 @@ describe("deliverable event email notifications", () => {
             email: "state@example.com",
           },
         },
+        {
+          person: {
+            id: "demonstration-contact-1",
+            firstName: "Demonstration",
+            lastName: "Contact",
+            email: "demonstration@example.com",
+          },
+        },
       ],
     },
   };
@@ -72,27 +80,32 @@ describe("deliverable event email notifications", () => {
     vi.mocked(prisma).mockReturnValue({
       deliverable: { findUniqueOrThrow },
     } as never);
-    findUniqueOrThrow.mockImplementation(async (query) => ({
-      ...deliverable,
-      demonstration: {
-        ...deliverable.demonstration,
-        demonstrationRoleAssignments:
-          query.include.demonstration.include.demonstrationRoleAssignments.where?.roleId.in.includes(
-            "Project Officer"
-          )
-            ? [
-                {
-                  person: {
-                    id: "cms-contact-1",
-                    firstName: "CMS",
-                    lastName: "Contact",
-                    email: "cms@example.com",
-                  },
-                },
-              ]
-            : deliverable.demonstration.demonstrationRoleAssignments,
-      },
-    }));
+    findUniqueOrThrow.mockImplementation(async (query) => {
+      const roleIds =
+        query.include.demonstration.include.demonstrationRoleAssignments.where?.roleId.in;
+      const assignments = roleIds?.includes("Project Officer")
+        ? [
+            {
+              person: {
+                id: "cms-contact-1",
+                firstName: "CMS",
+                lastName: "Contact",
+                email: "cms@example.com",
+              },
+            },
+          ]
+        : roleIds?.includes("State Point of Contact")
+          ? [deliverable.demonstration.demonstrationRoleAssignments[0]]
+          : deliverable.demonstration.demonstrationRoleAssignments;
+
+      return {
+        ...deliverable,
+        demonstration: {
+          ...deliverable.demonstration,
+          demonstrationRoleAssignments: assignments,
+        },
+      };
+    });
     vi.mocked(enqueueAndTrackRealtimeEmail).mockResolvedValue("message-1");
   });
 
@@ -137,7 +150,7 @@ describe("deliverable event email notifications", () => {
     ["Accepted", "Deliverable Accepted"],
     ["Approved", "Deliverable Approved"],
     ["Received and Filed", "Deliverable Received and Filed"],
-  ] as const)("queues %s emails for State Points of Contact", async (finalStatus, emailType) => {
+  ] as const)("queues %s emails for demonstration contacts", async (finalStatus, emailType) => {
     await notifyDeliverableCompleted({ ...input, finalStatus });
 
     expect(enqueueAndTrackRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
@@ -146,12 +159,15 @@ describe("deliverable event email notifications", () => {
         payload: expect.objectContaining({
           recipients: {
             to: [],
-            bcc: [{ name: "State Contact", address: "state@example.com" }],
+            bcc: [
+              { name: "State Contact", address: "state@example.com" },
+              { name: "Demonstration Contact", address: "demonstration@example.com" },
+            ],
           },
         }),
       }),
       { deliverableActionId: input.sourceActionId },
-      [{ personId: "state-poc-1" }]
+      [{ personId: "state-poc-1" }, { personId: "demonstration-contact-1" }]
     );
   });
 
@@ -224,7 +240,7 @@ describe("deliverable event email notifications", () => {
         error: expect.objectContaining({
           message:
             "Cannot queue Deliverable Approved email for deliverable deliverable-1: " +
-            "no State Points of Contact were found on the demonstration.",
+            "no demonstration contacts were found.",
         }),
         deliverableId: input.deliverableId,
         emailType: "Deliverable Approved",
@@ -318,7 +334,7 @@ describe("deliverable event email notifications", () => {
     }
   );
 
-  it("tracks each public comment separately and notifies CMS and state", async () => {
+  it("tracks each public comment separately and notifies CMS and all demonstration contacts", async () => {
     findUniqueOrThrow.mockResolvedValue({ ...deliverable, statusId: "Accepted" });
     for (const publicCommentId of ["comment-1", "comment-2"]) {
       await notifyPublicCommentAdded({
@@ -329,7 +345,11 @@ describe("deliverable event email notifications", () => {
       expect(enqueueAndTrackRealtimeEmail).toHaveBeenLastCalledWith(
         expect.objectContaining({ emailType: "Deliverable Comment", entityType: "public_comment" }),
         { publicCommentId },
-        [{ personId: "cms-owner-1" }, { personId: "state-poc-1" }]
+        [
+          { personId: "cms-owner-1" },
+          { personId: "state-poc-1" },
+          { personId: "demonstration-contact-1" },
+        ]
       );
     }
     expect(enqueueAndTrackRealtimeEmail).toHaveBeenCalledTimes(2);
@@ -380,7 +400,12 @@ describe("deliverable event email notifications", () => {
       expect(enqueueAndTrackRealtimeEmail).toHaveBeenCalledWith(
         expect.any(Object),
         { publicCommentId: "comment-1" },
-        [{ personId: "cms-owner-1" }, { personId: "state-poc-1" }, { personId: "cms-contact-1" }]
+        [
+          { personId: "cms-owner-1" },
+          { personId: "state-poc-1" },
+          { personId: "demonstration-contact-1" },
+          { personId: "cms-contact-1" },
+        ]
       );
     }
   );

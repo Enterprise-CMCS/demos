@@ -21,7 +21,7 @@ type DeliverableStatusReportColumn =
   | "effective_date"
   | "expiration_date"
   | "primary_project_officer"
-  | "ddme_analyst"
+  | "monitoring_and_evaluation_analyst"
   | "deliverable_type"
   | "deliverable_name"
   | "demonstration_types"
@@ -39,6 +39,7 @@ type DeliverableStatusReportColumn =
   | "deliverable_status"
   | "last_deliverable_action"
   | "last_deliverable_action_date"
+  | "finalization_date"
   | "updated_post_acceptance"
   | "deliverable_reviewer"
   | "deliverable_review_date"
@@ -55,7 +56,7 @@ const deliverableStatusReportSchema = z
     effective_date: usDateString,
     expiration_date: usDateString,
     primary_project_officer: z.string(),
-    ddme_analyst: z.string(),
+    monitoring_and_evaluation_analyst: z.string(),
     deliverable_type: z.enum(DELIVERABLE_TYPES),
     deliverable_name: z.string(),
     demonstration_types: z.string(),
@@ -73,6 +74,7 @@ const deliverableStatusReportSchema = z
     deliverable_status: z.enum(DELIVERABLE_STATUSES),
     last_deliverable_action: z.enum(DELIVERABLE_ACTION_TYPES),
     last_deliverable_action_date: usDateString,
+    finalization_date: usDateStringOrDash,
     updated_post_acceptance: z.enum(["Yes", "No"]),
     deliverable_reviewer: z.string(),
     deliverable_review_date: usDateStringOrDash,
@@ -90,7 +92,7 @@ const deliverableStatusReportColumnHeaders = {
   effective_date: { columnName: "Effective Date" },
   expiration_date: { columnName: "Expiration Date" },
   primary_project_officer: { columnName: "Primary Project Officer" },
-  ddme_analyst: { columnName: "DDME Analyst" },
+  monitoring_and_evaluation_analyst: { columnName: "Monitoring & Evaluation Analyst" },
   deliverable_type: { columnName: "Deliverable Type" },
   deliverable_name: { columnName: "Deliverable Name" },
   demonstration_types: { columnName: "Demonstration Type" },
@@ -108,6 +110,7 @@ const deliverableStatusReportColumnHeaders = {
   deliverable_status: { columnName: "Deliverable Status" },
   last_deliverable_action: { columnName: "Last Deliverable Action" },
   last_deliverable_action_date: { columnName: "Last Deliverable Action Date" },
+  finalization_date: { columnName: "Finalization Date" },
   updated_post_acceptance: { columnName: "Updated Post Acceptance" },
   deliverable_reviewer: { columnName: "Deliverable Reviewer" },
   deliverable_review_date: { columnName: "Deliverable Review Date" },

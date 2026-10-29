@@ -25,6 +25,8 @@ export const DELIVERABLE_ACTION_TYPES = [
   "Received and Filed Deliverable",
   "Deleted Deliverable",
   "Migrated Deliverable From PMDA",
+  "Terminating Status Override",
+  "Reverted Finalization",
 ] as const;
 
 export const DELIVERABLE_TYPES = [
@@ -108,8 +110,9 @@ export const CHIP_DEMONSTRATION_TYPE_TAG_NAME =
 
 export const ROLES = [
   "Project Officer",
+  "CMCS Other Point of Contact",
   "State Point of Contact",
-  "DDME Analyst",
+  "Monitoring & Evaluation Analyst",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
   "Viewer",
@@ -123,7 +126,8 @@ export const ADMIN_DEMONSTRATION_ROLES = ROLES;
 
 export const CMS_USER_DEMONSTRATION_ROLES = [
   "Project Officer",
-  "DDME Analyst",
+  "Monitoring & Evaluation Analyst",
+  "CMCS Other Point of Contact",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
   "Viewer",
@@ -210,6 +214,7 @@ export const DOCUMENT_TYPES = [
   "State Application",
   "Summative Evaluation Report",
   "Transition Plan",
+  "OACT Certification Memo",
 ] as const;
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 
@@ -270,6 +275,7 @@ export const REVIEW_PHASE_DATE_TYPES = [
   "Draft Approval Package Shared",
   "Receive OMB Concurrence",
   "Receive OGC Legal Clearance",
+  "OACT Certification Date",
   ...CMS_OSORA_CLEARANCE_DATE_TYPES,
   ...COMMS_CLEARANCE_DATE_TYPES,
 ] as const;
@@ -294,6 +300,7 @@ export const DATE_TYPES = [
   "SME Initial Review Date",
   "FRT Initial Meeting Date",
   "BNPMT Initial Meeting Date",
+  "OACT Initial Review Date",
   "SDG Preparation Completion Date",
   "Review Start Date",
   "Review Completion Date",
@@ -333,6 +340,7 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "SME Initial Review Date": { expectedTimestamp: "Start of Day" },
   "FRT Initial Meeting Date": { expectedTimestamp: "Start of Day" },
   "BNPMT Initial Meeting Date": { expectedTimestamp: "Start of Day" },
+  "OACT Initial Review Date": { expectedTimestamp: "Start of Day" },
   "SDG Preparation Completion Date": { expectedTimestamp: "Start of Day" },
   "Review Start Date": { expectedTimestamp: "Start of Day" },
   "Review Completion Date": { expectedTimestamp: "Start of Day" },
@@ -357,6 +365,7 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "Approval Summary Start Date": { expectedTimestamp: "Start of Day" },
   "Approval Summary Completion Date": { expectedTimestamp: "Start of Day" },
   "Application Approval Date": { expectedTimestamp: "Start of Day" },
+  "OACT Certification Date": { expectedTimestamp: "Start of Day" },
 } as const;
 
 export const STATES_AND_TERRITORIES = [
@@ -582,3 +591,66 @@ export const ON_DEMAND_REPORT_TYPES = [
   "Demonstration Types Report",
 ] as const;
 export const ON_DEMAND_REPORT_STATUSES = ["Available"] as const;
+
+export const FEDERAL_HOLIDAYS = [
+  // 2026
+  "2026-01-01",
+  "2026-01-19",
+  "2026-02-16",
+  "2026-05-25",
+  "2026-06-19",
+  "2026-07-03",
+  "2026-09-07",
+  "2026-10-12",
+  "2026-11-11",
+  "2026-11-26",
+  "2026-12-25",
+  // 2027
+  "2027-01-01",
+  "2027-01-18",
+  "2027-02-15",
+  "2027-05-31",
+  "2027-06-18",
+  "2027-07-05",
+  "2027-09-06",
+  "2027-10-11",
+  "2027-11-11",
+  "2027-11-25",
+  "2027-12-24",
+  // 2028
+  "2027-12-31",
+  "2028-01-17",
+  "2028-02-21",
+  "2028-05-29",
+  "2028-06-19",
+  "2028-07-04",
+  "2028-09-04",
+  "2028-10-09",
+  "2028-11-10",
+  "2028-11-23",
+  "2028-12-25",
+  // 2029
+  "2029-01-01",
+  "2029-01-15",
+  "2029-02-19",
+  "2029-05-28",
+  "2029-06-19",
+  "2029-07-04",
+  "2029-09-03",
+  "2029-10-08",
+  "2029-11-12",
+  "2029-11-22",
+  "2029-12-25",
+  // 2030
+  "2030-01-01",
+  "2030-01-21",
+  "2030-02-18",
+  "2030-05-27",
+  "2030-06-19",
+  "2030-07-04",
+  "2030-09-02",
+  "2030-10-14",
+  "2030-11-11",
+  "2030-11-28",
+  "2030-12-25",
+];

@@ -6,7 +6,6 @@ export const WORKFLOW_PHASE_FIELDS = gql`
     phaseStatus
     phaseDates {
       dateType
-      dateValue
       plainDate
     }
     phaseNotes {

@@ -9,7 +9,12 @@ import { DemonstrationTab, DemonstrationTabDemonstration } from "./Demonstration
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { deliverableMocks } from "mock-data/deliverableMocks";
-import { cmsMockUser, cmsReviewerMockUser, readonlyMockUser } from "mock-data/userMocks";
+import {
+  cmsMockUser,
+  cmsReviewerMockUser,
+  oactMockUser,
+  readonlyMockUser,
+} from "mock-data/userMocks";
 
 const mockDemonstration: DemonstrationTabDemonstration = {
   id: "demo-123",
@@ -208,6 +213,25 @@ describe("DemonstrationTab", () => {
 
       // Deliverables tab should be selected by default
       expect(screen.getByTestId("button-deliverables")).toHaveAttribute("aria-selected", "true");
+    });
+
+    it("does not render Deliverables tab for OACT users when status is 'Approved'", () => {
+      const demonstrationApproved: DemonstrationTabDemonstration = {
+        ...mockDemonstration,
+        status: "Approved",
+      };
+
+      render(
+        <TestProvider mocks={deliverableMocks} currentUser={oactMockUser}>
+          <DialogProvider>
+            <DemonstrationTab demonstration={demonstrationApproved} />
+          </DialogProvider>
+        </TestProvider>
+      );
+
+      expect(screen.queryByRole("button", { name: "Deliverables" })).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Applications" })).toBeInTheDocument();
+      expect(screen.getByTestId("button-application")).toHaveAttribute("aria-selected", "true");
     });
   });
 

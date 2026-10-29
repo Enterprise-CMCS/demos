@@ -35,7 +35,9 @@ const createExtendedClient = () => {
   const adapter = new PrismaPg(
     {
       connectionString,
-      ssl: { rejectUnauthorized: false },
+      // Do not set to false. For local development, use `sslmode=disable` (or
+      // no-verify) in the DATABASE_URL which will take priority
+      ssl: { rejectUnauthorized: true },
     },
     {
       schema,

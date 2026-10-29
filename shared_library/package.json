@@ -59,13 +59,13 @@
     "@types/node": "^25.9.9",
     "@types/pg": "^8.23.1",
     "@types/semver": "^7.8.0",
-    "@vitest/coverage-v8": "^4.1.11",
+    "@vitest/coverage-v8": "^4.1.12",
     "pino-pretty": "^13.2.0",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.12"
   },
   "dependencies": {
-    "@aws-sdk/client-secrets-manager": "^3.1147.0",
+    "@aws-sdk/client-secrets-manager": "^3.1153.0",
     "pino": "^10.4.0",
     "read-excel-file": "^9.3.12",
     "semver": "^7.8.5"

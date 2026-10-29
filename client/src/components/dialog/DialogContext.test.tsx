@@ -398,7 +398,7 @@ const mockRoles: ExistingContactType[] = [
   },
   {
     id: "person-2",
-    role: "DDME Analyst",
+    role: "Monitoring & Evaluation Analyst",
     isPrimary: false,
     person: {
       id: "person-2",

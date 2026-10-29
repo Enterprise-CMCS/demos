@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 
 import { DemonstrationDeliverableTable } from "./DemonstrationDeliverableTable";
 import type { DeliverableTableRow } from "./DeliverableTable";
+import { getSelectOptionLabels, selectOption } from "test-utils/select";
 
 const showEditDeliverableDialog = vi.fn();
 const showRemoveDeliverableDialog = vi.fn();
@@ -94,7 +95,7 @@ describe("DemonstrationDeliverableTable", () => {
     ]);
   });
 
-  it("shows demo detail columns for non-state users", () => {
+  it("shows demo detail columns for non-state users", async () => {
     render(
       <DemonstrationDeliverableTable
         viewMode="demos-cms-user"
@@ -123,8 +124,10 @@ describe("DemonstrationDeliverableTable", () => {
     expect(screen.getByRole("columnheader", { name: /Submission Date/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Status/i })).toBeInTheDocument();
 
-    const filterByColumn = screen.getByTestId("filter-by-column") as HTMLSelectElement;
-    const optionLabels = Array.from(filterByColumn.options).map((option) => option.text);
+    const optionLabels = await getSelectOptionLabels(
+      userEvent.setup(),
+      screen.getByTestId("filter-by-column")
+    );
 
     expect(optionLabels).toEqual([
       "Select a Column...",
@@ -214,17 +217,17 @@ describe("DemonstrationDeliverableTable", () => {
 
     const columnSelect = screen.getByTestId("filter-by-column");
 
-    await user.selectOptions(columnSelect, "Deliverable Type");
+    await selectOption(user, columnSelect, "Deliverable Type");
     await waitFor(() => {
       expect(screen.getByPlaceholderText("Select Deliverable Type")).toBeInTheDocument();
     });
 
-    await user.selectOptions(columnSelect, "CMS Owner");
+    await selectOption(user, columnSelect, "CMS Owner");
     await waitFor(() => {
       expect(screen.getByPlaceholderText("Select CMS Owner")).toBeInTheDocument();
     });
 
-    await user.selectOptions(columnSelect, "Status");
+    await selectOption(user, columnSelect, "Status");
     await waitFor(() => {
       expect(screen.getByPlaceholderText("Select Status")).toBeInTheDocument();
     });
@@ -256,7 +259,7 @@ describe("DemonstrationDeliverableTable", () => {
       />
     );
 
-    await user.selectOptions(screen.getByTestId("filter-by-column"), "Status");
+    await selectOption(user, screen.getByTestId("filter-by-column"), "Status");
     await user.click(screen.getByPlaceholderText("Select Status"));
     await user.click(screen.getByLabelText("Upcoming", { selector: "input" }));
 
@@ -264,7 +267,7 @@ describe("DemonstrationDeliverableTable", () => {
     expect(screen.queryByText("Upcoming Extension Requested Deliverable")).not.toBeInTheDocument();
   });
 
-  it("hides scoped and CMS-only controls for state users", () => {
+  it("hides scoped and CMS-only controls for state users", async () => {
     render(
       <DemonstrationDeliverableTable
         viewMode="demos-state-user"
@@ -291,8 +294,10 @@ describe("DemonstrationDeliverableTable", () => {
     expect(screen.queryByLabelText(/Edit Deliverable/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Remove Deliverable/i)).not.toBeInTheDocument();
 
-    const filterByColumn = screen.getByTestId("filter-by-column") as HTMLSelectElement;
-    const optionLabels = Array.from(filterByColumn.options).map((option) => option.text);
+    const optionLabels = await getSelectOptionLabels(
+      userEvent.setup(),
+      screen.getByTestId("filter-by-column")
+    );
 
     expect(optionLabels).toEqual([
       "Select a Column...",

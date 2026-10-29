@@ -14,7 +14,7 @@ import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/
 import { useDialog } from "components/dialog/DialogContext";
 import { Notice } from "components/notice";
 import { selectionTooltip } from "./actionTooltips";
-import { getCurrentUser, isReadonly } from "components/user/UserContext";
+import { DemosApplicationSection, getCurrentUser, isReadonly } from "components/user/UserContext";
 import { exportTypeTagRecords } from "util/exportTypeTagRecords";
 import {
   AssociatedRecordsDemonstration,
@@ -39,16 +39,16 @@ export type Demonstration = Pick<ServerDemonstration, "id" | "status"> & {
   })[];
 };
 
-export type TypesTableProps = {
-  demonstration: Demonstration;
-  inputDisabled?: boolean;
-  hideSearch?: boolean;
-};
-
-export const TypesTable: React.FC<TypesTableProps> = ({
+export const TypesTable = ({
   demonstration,
+  applicationSection,
   inputDisabled = false,
   hideSearch = false,
+}: {
+  demonstration: Demonstration;
+  applicationSection: DemosApplicationSection;
+  inputDisabled?: boolean;
+  hideSearch?: boolean;
 }) => {
   const { currentUser } = getCurrentUser();
   const { showError } = useToast();
@@ -57,7 +57,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
     TYPE_TAG_ASSOCIATED_RECORDS_QUERY,
     { fetchPolicy: "network-only" }
   );
-  const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
+  const isReadonlyUser = isReadonly(currentUser, applicationSection);
 
   const columns = TypesColumns(isReadonlyUser);
   const { showRemoveDemonstrationTypesDialog, showEditDemonstrationTypeDialog } = useDialog();

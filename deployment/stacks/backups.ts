@@ -93,6 +93,7 @@ export class BackupStack extends Stack {
         securityGroup: backupValidationSecurityGroup.securityGroup,
         environment: {
           DATABASE_SECRET_ARN: dbSecret.secretName,
+          NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
         },
       },
       "backup-validation",

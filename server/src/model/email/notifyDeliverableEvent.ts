@@ -22,7 +22,7 @@ type Recipient = {
 const emailSchema = z.email();
 
 export async function notifyDeliverableSubmitted(input: DeliverableEmailInput): Promise<void> {
-  return notifyDeliverableEvent(input, "Deliverable Submitted", "cms");
+  return notifyDeliverableEvent(input, "Deliverable Submitted", "cms-owner-and-cms-contacts");
 }
 
 export async function notifyDeliverableCompleted(
@@ -34,13 +34,17 @@ export async function notifyDeliverableCompleted(
     "Received and Filed": "Deliverable Received and Filed",
   };
 
-  return notifyDeliverableEvent(input, emailTypeByStatus[input.finalStatus], "state");
+  return notifyDeliverableEvent(
+    input,
+    emailTypeByStatus[input.finalStatus],
+    "demonstration-contacts"
+  );
 }
 
 export async function notifyDeliverableResubmissionRequested(
   input: DeliverableEmailInput & { previousDueDate: Date }
 ): Promise<void> {
-  return notifyDeliverableEvent(input, "Resubmission Requested", "state", {
+  return notifyDeliverableEvent(input, "Resubmission Requested", "state-contacts", {
     previousDueDate: input.previousDueDate.toISOString(),
   });
 }
@@ -51,7 +55,7 @@ export async function notifyDeliverableExtensionDecisionMade(
     previousDueDate: Date;
   }
 ): Promise<void> {
-  return notifyDeliverableEvent(input, "Extension Decision Made", "state", {
+  return notifyDeliverableEvent(input, "Extension Decision Made", "state-contacts", {
     extensionDecision: input.extensionDecision,
     previousDueDate: input.previousDueDate.toISOString(),
   });
@@ -60,7 +64,7 @@ export async function notifyDeliverableExtensionDecisionMade(
 export async function notifyDeliverableDueDateUpdated(
   input: DeliverableEmailInput & { previousDueDate: Date }
 ): Promise<void> {
-  return notifyDeliverableEvent(input, "Deliverable Due Date Updated", "state", {
+  return notifyDeliverableEvent(input, "Deliverable Due Date Updated", "state-contacts", {
     previousDueDate: input.previousDueDate.toISOString(),
   });
 }
@@ -68,7 +72,7 @@ export async function notifyDeliverableDueDateUpdated(
 export async function notifyDeliverableExtensionRequested(
   input: DeliverableEmailInput & { requestedDueDate: Date }
 ): Promise<void> {
-  return notifyDeliverableEvent(input, "Extension Requested", "cms", {
+  return notifyDeliverableEvent(input, "Extension Requested", "cms-owner-and-cms-contacts", {
     requestedDueDate: input.requestedDueDate.toISOString(),
   });
 }
@@ -78,7 +82,7 @@ export async function notifyPublicCommentAdded(input: {
   publicCommentId: string;
   triggeredByUserId: string;
 }): Promise<void> {
-  return notifyDeliverableEvent(input, "Deliverable Comment", "all");
+  return notifyDeliverableEvent(input, "Deliverable Comment", "cms-owner-and-demonstration-contacts");
 }
 
 async function notifyDeliverableEvent(
@@ -90,7 +94,11 @@ async function notifyDeliverableEvent(
         triggeredByUserId: string;
       },
   emailType: RealtimeEmailType,
-  audience: "cms" | "state" | "all",
+  audience:
+    | "cms-owner-and-cms-contacts"
+    | "state-contacts"
+    | "demonstration-contacts"
+    | "cms-owner-and-demonstration-contacts",
   extraDeliverablePayload: Record<string, string> = {}
 ): Promise<void> {
   try {
@@ -102,13 +110,14 @@ async function notifyDeliverableEvent(
           include: {
             state: true,
             demonstrationRoleAssignments: {
-              ...(audience === "all"
+              ...(audience === "cms-owner-and-demonstration-contacts" ||
+              audience === "demonstration-contacts"
                 ? {}
                 : {
                     where: {
                       roleId: {
                         in: Array.from(
-                          audience === "state"
+                          audience === "state-contacts"
                             ? STATE_USER_DEMONSTRATION_ROLES
                             : CMS_USER_DEMONSTRATION_ROLES
                         ),
@@ -129,7 +138,10 @@ async function notifyDeliverableEvent(
     }
     const recipients = deduplicateRecipients(
       [
-        ...(audience !== "state" ? [deliverable.cmsOwner.person] : []),
+        ...(audience === "cms-owner-and-cms-contacts" ||
+        audience === "cms-owner-and-demonstration-contacts"
+          ? [deliverable.cmsOwner.person]
+          : []),
         ...deliverable.demonstration.demonstrationRoleAssignments.map(
           (assignment) => assignment.person
         ),
@@ -141,7 +153,7 @@ async function notifyDeliverableEvent(
     if (recipients.length === 0) {
       throw new Error(
         `Cannot queue ${emailType} email for deliverable ${input.deliverableId}: ` +
-          "no State Points of Contact were found on the demonstration."
+          "no demonstration contacts were found."
       );
     }
 

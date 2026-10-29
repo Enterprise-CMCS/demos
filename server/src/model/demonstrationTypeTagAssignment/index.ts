@@ -1,5 +1,6 @@
 // Functions
 export { checkForDuplicateDemonstrationTypes } from "./checkForDuplicateDemonstrationTypes";
+export { checkForDeliverableUsedDemonstrationTypes } from "./checkForDeliverableUsedDemonstrationTypes";
 export { createAndUpsertDemonstrationTypeAssignments } from "./createAndUpsertDemonstrationTypeAssignments";
 export { parseSetDemonstrationTypesInput } from "./parseSetDemonstrationTypesInput";
 

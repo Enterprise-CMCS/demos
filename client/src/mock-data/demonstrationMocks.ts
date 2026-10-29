@@ -26,12 +26,13 @@ import {
 } from "./DemonstrationTypeAssignmentMocks";
 import { ADD_DEMONSTRATION_TYPES_FORM_QUERY } from "components/dialog/DemonstrationTypes/AddDemonstrationTypesForm";
 import { DEMONSTRATION_HEADER_DETAILS_QUERY } from "pages/DemonstrationDetail/DemonstrationHeader";
-import { primaryProjectOfficerRoleAssignment } from "./demonstrationRoleAssignmentMocks";
+import { MOCK_DEMONSTRATION_ROLES } from "./demonstrationRoleAssignmentMocks";
 import { MOCK_DELIVERABLE_1 } from "./deliverableMocks";
 import {
   AssociatedRecordsDemonstration,
   TYPE_TAG_ASSOCIATED_RECORDS_QUERY,
 } from "components/table/tables/TypeTagAssociatedRecordsTable";
+import { DEMONSTRATION_SUMMARY_DETAILS_QUERY } from "components/table/tables/SummaryDetailsTable";
 
 export type MockDemonstration = Pick<
   Demonstration,
@@ -72,7 +73,7 @@ export const MOCK_DEMONSTRATION: MockDemonstration = {
   ),
   renewals: mockRenewals.filter((renewal) => renewal.name.includes("Montana Medicaid Waiver")),
   documents: mockDocuments,
-  roles: [primaryProjectOfficerRoleAssignment],
+  roles: MOCK_DEMONSTRATION_ROLES,
   currentPhaseName: "Concept",
   primaryProjectOfficer: mockPerson,
   demonstrationTypes: MOCK_DEMONSTRATION_TYPE_ASSIGNMENTS,
@@ -191,6 +192,7 @@ const MOCK_DEMONSTRATION_BY_ID_QUERIES = [
   ADD_DEMONSTRATION_TYPES_FORM_QUERY,
   DEMONSTRATION_DETAIL_QUERY,
   DEMONSTRATION_HEADER_DETAILS_QUERY,
+  DEMONSTRATION_SUMMARY_DETAILS_QUERY,
 ];
 
 export const demonstrationMocks: MockedResponse[] = [

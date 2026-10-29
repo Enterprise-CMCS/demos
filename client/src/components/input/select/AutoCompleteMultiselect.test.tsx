@@ -47,6 +47,14 @@ describe("AutoCompleteMultiselect", () => {
     expect(screen.getByPlaceholderText("Disabled")).toBeDisabled();
   });
 
+  it("disables browser autocomplete so saved values don't overlay the listbox", () => {
+    render(<AutoCompleteMultiselect options={options} onSelect={onSelect} />);
+    expect(screen.getByTestId(AUTOCOMPLETE_MULTISELECT_TEST_ID)).toHaveAttribute(
+      "autocomplete",
+      "off"
+    );
+  });
+
   it("opens dropdown on input focus", async () => {
     render(<AutoCompleteMultiselect options={options} onSelect={onSelect} />);
     const input = screen.getByTestId(AUTOCOMPLETE_MULTISELECT_TEST_ID);

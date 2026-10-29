@@ -78,8 +78,8 @@ SELECT
     primary_project_officer.full_name AS primary_project_officer,
     coalesce(project_officers.people_assigned, '-') AS project_officers,
     coalesce(primary_policy_tech_director.full_name, '-') AS primary_policy_tech_director,
-    coalesce(primary_ddme_analyst.full_name, '-') AS primary_ddme_analyst,
-    coalesce(ddme_analysts.people_assigned, '-') AS ddme_analysts,
+    coalesce(primary_monitoring_and_evaluation_analyst.full_name, '-') AS primary_monitoring_and_evaluation_analyst,
+    coalesce(monitoring_and_evaluation_analysts.people_assigned, '-') AS monitoring_and_evaluation_analysts,
     coalesce(primary_state_poc.full_name, '-') AS primary_state_poc,
     coalesce(state_pocs.people_assigned, '-') AS state_pocs,
     coalesce(primary_monitoring_evaluation_tech_director.full_name, '-') AS primary_monitoring_evaluation_tech_director,
@@ -136,21 +136,21 @@ LEFT JOIN
         AND primary_policy_tech_director.role_id = 'Policy Technical Director'
         AND primary_policy_tech_director.is_primary
 
--- Not all demonstrations have a primary DDME Analyst
+-- Not all demonstrations have a primary Monitoring & Evaluation Analyst
 -- However, only ever one primary at a time
 LEFT JOIN
-    role_assignments AS primary_ddme_analyst
+    role_assignments AS primary_monitoring_and_evaluation_analyst
     ON
-        demo.id = primary_ddme_analyst.demonstration_id
-        AND primary_ddme_analyst.role_id = 'DDME Analyst'
-        AND primary_ddme_analyst.is_primary
+        demo.id = primary_monitoring_and_evaluation_analyst.demonstration_id
+        AND primary_monitoring_and_evaluation_analyst.role_id = 'Monitoring & Evaluation Analyst'
+        AND primary_monitoring_and_evaluation_analyst.is_primary
 
--- Not all demonstrations have additional DDME analysts
+-- Not all demonstrations have additional Monitoring & Evaluation analysts
 LEFT JOIN
-    flattened_role_assignments AS ddme_analysts
+    flattened_role_assignments AS monitoring_and_evaluation_analysts
     ON
-        demo.id = ddme_analysts.demonstration_id
-        AND ddme_analysts.role_id = 'DDME Analyst'
+        demo.id = monitoring_and_evaluation_analysts.demonstration_id
+        AND monitoring_and_evaluation_analysts.role_id = 'Monitoring & Evaluation Analyst'
 
 -- Not all demonstrations have a state point of contact
 -- However, only ever one primary at a time

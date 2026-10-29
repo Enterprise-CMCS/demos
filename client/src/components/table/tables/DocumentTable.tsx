@@ -22,8 +22,7 @@ export type DocumentTableDocument = Pick<
 
 export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[] }) => {
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonly(currentUser);
-
+  const isReadonlyUser = isReadonly(currentUser, "DemonstrationDetail");
   const documentColumns = DocumentColumns(isReadonlyUser);
   const { showEditApplicationDocumentDialog, showRemoveApplicationDocumentsDialog } = useDialog();
   const initialState = {
@@ -48,7 +47,6 @@ export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[
             }
             const selectedDocs = table.getSelectedRowModel().rows.map((row) => row.original);
             const selectedCount = selectedDocs.length;
-
             const editEnabled = selectedCount === 1;
             const deleteEnabled = selectedCount >= 1;
 
@@ -83,7 +81,6 @@ export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[
                 >
                   <EditIcon />
                 </CircleButton>
-
                 <CircleButton
                   name="remove-document"
                   aria-label="Remove Document"
