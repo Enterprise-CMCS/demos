@@ -24,6 +24,7 @@ export {
 export { createPhaseStartDate } from "./createPhaseStartDate";
 export { validateAllowedDateChangeForApplication } from "./validateAllowedDateChangeForApplication";
 export { validateAllowedDateChangeByPhase } from "./validateAllowedDateChangeByPhase";
+export { validateAllowedToChangeFederalCommentPeriodDates } from "./validateAllowedToChangeFederalCommentPeriodDates";
 
 // Queries
 export { deleteApplicationDates } from "./queries/deleteApplicationDates";

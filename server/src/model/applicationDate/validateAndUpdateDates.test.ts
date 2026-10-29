@@ -1,10 +1,10 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { LocalDate, SetApplicationDatesInput } from "../../types.js";
 import { EasternTZDate } from "../../dateUtilities.js";
 import { ParsedApplicationDateInput, ParsedSetApplicationDatesInput } from ".";
 import { validateAndUpdateDates } from "./validateAndUpdateDates.js";
 import { TZDate } from "@date-fns/tz";
-import { __DEMOS_VERSION__ } from "../../flags/currentDemosVersion.js";
+import { SemVer } from "semver";
 
 // Mock imports
 vi.mock(".", () => ({
@@ -16,6 +16,7 @@ vi.mock(".", () => ({
   validateInputDates: vi.fn(),
   validateAllowedDateChangeByPhase: vi.fn(),
   validateAllowedDateChangeForApplication: vi.fn(),
+  validateAllowedToChangeFederalCommentPeriodDates: vi.fn(),
 }));
 
 import {
@@ -27,6 +28,7 @@ import {
   validateInputDates,
   validateAllowedDateChangeByPhase,
   validateAllowedDateChangeForApplication,
+  validateAllowedToChangeFederalCommentPeriodDates,
 } from ".";
 
 describe("validateAndUpdateDates", () => {
@@ -95,39 +97,102 @@ describe("validateAndUpdateDates", () => {
     },
   ];
 
-  it("should parse, validate, and upsert the input dates", async () => {
-    vi.mocked(parseSetApplicationDatesInput).mockReturnValueOnce(testParsedResult);
-    vi.mocked(getApplicationDates).mockResolvedValueOnce(testExistingDates);
-    vi.mocked(mergeApplicationDates).mockReturnValueOnce(testMergedDates);
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
 
-    await validateAndUpdateDates(testInput, testPrismaTransaction);
+  describe("before 1.3.0", () => {
+    const currentVersion = new SemVer("1.2.0");
+    it("should parse, validate, and upsert the input dates, but not validate changes to the federal comment period dates", async () => {
+      vi.mocked(parseSetApplicationDatesInput).mockReturnValueOnce(testParsedResult);
+      vi.mocked(getApplicationDates).mockResolvedValueOnce(testExistingDates);
+      vi.mocked(mergeApplicationDates).mockReturnValueOnce(testMergedDates);
 
-    expect(validateAllowedDateChangeForApplication).toHaveBeenCalledExactlyOnceWith(
-      testPrismaTransaction,
-      testInput
-    );
-    expect(validateAllowedDateChangeByPhase).toHaveBeenCalledExactlyOnceWith(
-      testPrismaTransaction,
-      testInput
-    );
-    expect(parseSetApplicationDatesInput).toHaveBeenCalledExactlyOnceWith(testInput);
-    expect(getApplicationDates).toHaveBeenCalledExactlyOnceWith(
-      testApplicationId,
-      testPrismaTransaction
-    );
-    expect(mergeApplicationDates).toHaveBeenCalledExactlyOnceWith(
-      testExistingDates,
-      testParsedResult.applicationDatesToUpsert,
-      testParsedResult.applicationDatesToDelete
-    );
-    expect(validateInputDates).toHaveBeenCalledExactlyOnceWith(testMergedDates, __DEMOS_VERSION__);
-    expect(upsertApplicationDates).toHaveBeenCalledExactlyOnceWith(
-      testParsedResult,
-      testPrismaTransaction
-    );
-    expect(deleteApplicationDates).toHaveBeenCalledExactlyOnceWith(
-      testParsedResult,
-      testPrismaTransaction
-    );
+      await validateAndUpdateDates(testInput, testPrismaTransaction, currentVersion);
+
+      expect(validateAllowedDateChangeForApplication).toHaveBeenCalledExactlyOnceWith(
+        testPrismaTransaction,
+        testInput
+      );
+      expect(validateAllowedDateChangeByPhase).toHaveBeenCalledExactlyOnceWith(
+        testPrismaTransaction,
+        testInput
+      );
+      expect(parseSetApplicationDatesInput).toHaveBeenCalledExactlyOnceWith(testInput);
+      expect(getApplicationDates).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        testPrismaTransaction
+      );
+      expect(validateAllowedToChangeFederalCommentPeriodDates).not.toHaveBeenCalled();
+      expect(mergeApplicationDates).toHaveBeenCalledExactlyOnceWith(
+        testExistingDates,
+        testParsedResult.applicationDatesToUpsert,
+        testParsedResult.applicationDatesToDelete
+      );
+      expect(validateInputDates).toHaveBeenCalledExactlyOnceWith(testMergedDates, currentVersion);
+      expect(upsertApplicationDates).toHaveBeenCalledExactlyOnceWith(
+        testParsedResult,
+        testPrismaTransaction
+      );
+      expect(deleteApplicationDates).toHaveBeenCalledExactlyOnceWith(
+        testParsedResult,
+        testPrismaTransaction
+      );
+    });
+  });
+
+  describe("from 1.3.0", () => {
+    const currentVersion = new SemVer("1.3.0");
+    it("should parse, validate, and upsert the input dates, while validating changes to the federal comment period dates", async () => {
+      vi.mocked(parseSetApplicationDatesInput).mockReturnValueOnce(testParsedResult);
+      vi.mocked(getApplicationDates).mockResolvedValueOnce(testExistingDates);
+      vi.mocked(mergeApplicationDates).mockReturnValueOnce(testMergedDates);
+
+      await validateAndUpdateDates(testInput, testPrismaTransaction, currentVersion);
+
+      expect(validateAllowedDateChangeForApplication).toHaveBeenCalledExactlyOnceWith(
+        testPrismaTransaction,
+        testInput
+      );
+      expect(validateAllowedDateChangeByPhase).toHaveBeenCalledExactlyOnceWith(
+        testPrismaTransaction,
+        testInput
+      );
+      expect(parseSetApplicationDatesInput).toHaveBeenCalledExactlyOnceWith(testInput);
+      expect(getApplicationDates).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        testPrismaTransaction
+      );
+      expect(validateAllowedToChangeFederalCommentPeriodDates).toHaveBeenCalledExactlyOnceWith(
+        testExistingDates,
+        testParsedResult
+      );
+      expect(mergeApplicationDates).toHaveBeenCalledExactlyOnceWith(
+        testExistingDates,
+        testParsedResult.applicationDatesToUpsert,
+        testParsedResult.applicationDatesToDelete
+      );
+      expect(validateInputDates).toHaveBeenCalledExactlyOnceWith(testMergedDates, currentVersion);
+      expect(upsertApplicationDates).toHaveBeenCalledExactlyOnceWith(
+        testParsedResult,
+        testPrismaTransaction
+      );
+      expect(deleteApplicationDates).toHaveBeenCalledExactlyOnceWith(
+        testParsedResult,
+        testPrismaTransaction
+      );
+    });
+
+    it("should bypass federal comment period change validation if given the right option", async () => {
+      vi.mocked(parseSetApplicationDatesInput).mockReturnValueOnce(testParsedResult);
+      vi.mocked(getApplicationDates).mockResolvedValueOnce(testExistingDates);
+      vi.mocked(mergeApplicationDates).mockReturnValueOnce(testMergedDates);
+
+      await validateAndUpdateDates(testInput, testPrismaTransaction, currentVersion, {
+        allowChangingExistingFederalCommentDates: true,
+      });
+
+      expect(validateAllowedToChangeFederalCommentPeriodDates).not.toHaveBeenCalled();
+    });
   });
 });

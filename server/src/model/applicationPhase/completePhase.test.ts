@@ -1,25 +1,17 @@
-import { getApplication } from "../application";
-vi.mock("../email/notifyApplicationEvent", () => ({
-  notifyApplicationStatusUpdated: vi.fn(),
-}));
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { completePhase } from "./completePhase.js";
-import { CompletePhaseInput } from "../../types.js";
+import { completePhase } from "./completePhase";
+import type { CompletePhaseInput } from "../../types";
+import type { EasternNow } from "../../dateUtilities";
+import { TZDate } from "@date-fns/tz";
+import { __DEMOS_VERSION__ } from "../../flags";
 
 // Mock imports
-import { prisma } from "../../prismaClient.js";
-import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import { validateAndUpdateDates } from "../applicationDate";
-import { validatePhaseCompletion, updatePhaseStatus, setPhaseToStarted } from ".";
-import { EasternNow, getEasternNow } from "../../dateUtilities.js";
-import { TZDate } from "@date-fns/tz";
-
-vi.mock("../../prismaClient.js", () => ({
+vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
 const testHandlePrismaError = new Error("Test handlePrismaError!");
-vi.mock("../../errors/handlePrismaError.js", () => ({
+vi.mock("../../errors/handlePrismaError", () => ({
   handlePrismaError: vi.fn(() => {
     throw testHandlePrismaError;
   }),
@@ -44,9 +36,20 @@ vi.mock(".", async () => {
   };
 });
 
-vi.mock("../../dateUtilities.js", () => ({
+vi.mock("../../dateUtilities", () => ({
   getEasternNow: vi.fn(),
 }));
+
+vi.mock("../email/notifyApplicationEvent", () => ({
+  notifyApplicationStatusUpdated: vi.fn(),
+}));
+
+import { prisma } from "../../prismaClient";
+import { handlePrismaError } from "../../errors/handlePrismaError";
+import { getApplication } from "../application";
+import { validateAndUpdateDates } from "../applicationDate";
+import { validatePhaseCompletion, updatePhaseStatus, setPhaseToStarted } from ".";
+import { getEasternNow } from "../../dateUtilities";
 
 describe("completePhase", () => {
   const mockTransaction: any = vi.fn();
@@ -102,6 +105,7 @@ describe("completePhase", () => {
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       const validateStartDateCall = [
@@ -115,6 +119,7 @@ describe("completePhase", () => {
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       await completePhase(undefined, { input: testInput }, { user: { id: "user-1" } });
@@ -160,6 +165,7 @@ describe("completePhase", () => {
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       const validateStartDateCall = [
@@ -173,6 +179,7 @@ describe("completePhase", () => {
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       await completePhase(undefined, { input: testInput }, { user: { id: "user-1" } });
@@ -219,6 +226,7 @@ describe("completePhase", () => {
             ],
           },
           mockTransaction,
+          __DEMOS_VERSION__,
         ],
       ];
 
@@ -235,7 +243,7 @@ describe("completePhase", () => {
         "Completed",
         mockTransaction
       );
-      expect(setPhaseToStarted).not.toBeCalled();
+      expect(setPhaseToStarted).not.toHaveBeenCalled();
       expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(validateCompleteDateCall);
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
@@ -250,13 +258,11 @@ describe("completePhase", () => {
 
       await expect(
         completePhase(undefined, { input: testInput }, { user: { id: "user-1" } })
-      ).rejects.toThrowError(
-        "Operations against the Federal Comment phase are not permitted via API."
-      );
+      ).rejects.toThrow("Operations against the Federal Comment phase are not permitted via API.");
 
       expect(validatePhaseCompletion).not.toHaveBeenCalled();
       expect(updatePhaseStatus).not.toHaveBeenCalled();
-      expect(setPhaseToStarted).not.toBeCalled();
+      expect(setPhaseToStarted).not.toHaveBeenCalled();
       expect(validateAndUpdateDates).not.toHaveBeenCalled();
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
@@ -279,6 +285,7 @@ describe("completePhase", () => {
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       const validateStartDateCall = [
@@ -292,6 +299,7 @@ describe("completePhase", () => {
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       await completePhase(undefined, { input: testInput }, { user: { id: "user-1" } });
@@ -337,6 +345,7 @@ describe("completePhase", () => {
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       const validateStartDateCall = [
@@ -350,6 +359,7 @@ describe("completePhase", () => {
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       await completePhase(undefined, { input: testInput }, { user: { id: "user-1" } });
@@ -395,6 +405,7 @@ describe("completePhase", () => {
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       const validateStartDateCall = [
@@ -408,6 +419,7 @@ describe("completePhase", () => {
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       await completePhase(undefined, { input: testInput }, { user: { id: "user-1" } });
@@ -453,6 +465,7 @@ describe("completePhase", () => {
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       await completePhase(undefined, { input: testInput }, { user: { id: "user-1" } });
@@ -483,7 +496,7 @@ describe("completePhase", () => {
 
       await expect(
         completePhase(undefined, { input: testInput }, { user: { id: "user-1" } })
-      ).rejects.toThrowError(testHandlePrismaError);
+      ).rejects.toThrow(testHandlePrismaError);
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
     });
 
@@ -505,6 +518,7 @@ describe("completePhase", () => {
             ],
           },
           mockTransaction,
+          __DEMOS_VERSION__,
         ],
       ];
 

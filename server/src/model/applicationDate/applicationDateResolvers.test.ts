@@ -4,15 +4,11 @@ import {
   __setApplicationDate,
   applicationDateResolvers,
 } from "./applicationDateResolvers";
-import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
-import { DateType, SetApplicationDateInput, SetApplicationDatesInput } from "../../types";
-import { prisma } from "../../prismaClient";
-import { handlePrismaError } from "../../errors/handlePrismaError";
-import { formatDateToPlainDate, getEasternNow } from "../../dateUtilities";
-import { getApplication } from "../application";
-import { startPhasesByDates } from "../applicationPhase";
-import { validateAndUpdateDates } from ".";
+import type { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
+import type { DateType, SetApplicationDateInput, SetApplicationDatesInput } from "../../types";
+import { __DEMOS_VERSION__ } from "../../flags";
 
+// Mock imports
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
@@ -28,7 +24,7 @@ vi.mock("../application", () => ({
   getApplication: vi.fn(),
 }));
 
-vi.mock("./validateAndUpdateDates", () => ({
+vi.mock(".", () => ({
   validateAndUpdateDates: vi.fn(),
 }));
 
@@ -40,6 +36,13 @@ vi.mock("../../dateUtilities", () => ({
   getEasternNow: vi.fn(),
   formatDateToPlainDate: vi.fn(),
 }));
+
+import { prisma } from "../../prismaClient";
+import { handlePrismaError } from "../../errors/handlePrismaError";
+import { getApplication } from "../application";
+import { validateAndUpdateDates } from ".";
+import { startPhasesByDates } from "../applicationPhase";
+import { formatDateToPlainDate, getEasternNow } from "../../dateUtilities";
 
 describe("applicationDateResolvers", () => {
   const mockTransaction: any = "Test";
@@ -119,7 +122,11 @@ describe("applicationDateResolvers", () => {
 
     it("should validate and update based on the input if it is present", async () => {
       await __setApplicationDates(undefined, { input: testInput });
-      expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(testInput, mockTransaction);
+      expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
+        testInput,
+        mockTransaction,
+        __DEMOS_VERSION__
+      );
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
     });
 
@@ -202,7 +209,8 @@ describe("applicationDateResolvers", () => {
             ...phaseStartDates,
           ]),
         }),
-        mockTransaction
+        mockTransaction,
+        __DEMOS_VERSION__
       );
     });
   });
@@ -228,7 +236,8 @@ describe("applicationDateResolvers", () => {
         await __setApplicationDate(undefined, { input: testInput });
         expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
           transformedTestInput,
-          mockTransaction
+          mockTransaction,
+          __DEMOS_VERSION__
         );
         expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
       });
