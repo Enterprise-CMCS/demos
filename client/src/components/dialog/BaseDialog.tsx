@@ -6,11 +6,11 @@ import { ConfirmCancellationDialog } from "./ConfirmCancellationDialog";
 
 export const DIALOG_CANCEL_BUTTON_NAME = "button-dialog-cancel";
 
-const DIALOG = tw`bg-surface-white text-text-font w-full max-h-[calc(100dvh-2rem)] rounded shadow-md p-md relative flex flex-col space-y-sm overflow-hidden backdrop:bg-black/40`;
+const DIALOG = tw`bg-surface-white text-text-font w-full rounded shadow-md p-md relative flex flex-col space-y-sm backdrop:bg-black/40`;
 const CLOSE_BUTTON = tw`absolute top-xs right-sm text-[22px] text-text-placeholder hover:text-text-font cursor-pointer`;
 const CLOSE_BUTTON_DISABLED = tw`absolute top-xs right-sm text-[22px] text-text-placeholder/50 cursor-not-allowed`;
-const TITLE = tw`text-[18px] font-bold mb-xs shrink-0`;
-const HR = tw`border-border-rules my-sm shrink-0`;
+const TITLE = tw`text-[18px] font-bold mb-xs`;
+const HR = tw`border-border-rules my-sm`;
 
 export const BaseDialog = ({
   name,
@@ -22,6 +22,7 @@ export const BaseDialog = ({
   maxWidthClass = "max-w-[720px]",
   hideHeader = false,
   cancelButtonIsDisabled = false,
+  scrollContent = false,
 }: {
   name?: string;
   title: string;
@@ -32,6 +33,7 @@ export const BaseDialog = ({
   maxWidthClass?: string;
   hideHeader?: boolean;
   cancelButtonIsDisabled?: boolean;
+  scrollContent?: boolean;
 }) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [isCancellationConfirmationOpen, setIsCancellationConfirmationOpen] = useState(false);
@@ -78,7 +80,7 @@ export const BaseDialog = ({
     <>
       <dialog
         ref={dialogRef}
-        className={`${DIALOG} ${maxWidthClass}`}
+        className={`${DIALOG} ${maxWidthClass} ${scrollContent ? "max-h-[calc(100dvh-2rem)] overflow-hidden" : "overflow-visible"}`}
         onClose={handleDialogClose}
         data-testid={name}
       >
@@ -94,16 +96,20 @@ export const BaseDialog = ({
             >
               ×
             </button>
-            <h2 className={TITLE}>{title}</h2>
-            <hr className={HR} aria-hidden="true" />
+            <h2 className={`${TITLE} ${scrollContent ? "shrink-0" : ""}`}>{title}</h2>
+            <hr className={`${HR} ${scrollContent ? "shrink-0" : ""}`} aria-hidden="true" />
           </>
         )}
-        <div className="min-h-0 overflow-y-auto space-y-sm">{children}</div>
+        {scrollContent ? (
+          <div className="min-h-0 overflow-y-auto space-y-sm">{children}</div>
+        ) : (
+          children
+        )}
 
         {actionButton && (
           <>
-            <hr className={HR} aria-hidden="true" />
-            <div className="flex shrink-0 flex-wrap justify-end gap-[24px]">
+            <hr className={`${HR} ${scrollContent ? "shrink-0" : ""}`} aria-hidden="true" />
+            <div className={`flex justify-end gap-[24px] ${scrollContent ? "shrink-0 flex-wrap" : ""}`}>
               <SecondaryButton
                 name={DIALOG_CANCEL_BUTTON_NAME}
                 onClick={onCloseClicked}

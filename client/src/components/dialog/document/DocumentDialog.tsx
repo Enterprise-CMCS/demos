@@ -455,6 +455,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   return (
     <>
       <BaseDialog
+        scrollContent
         title={dialogTitle}
         onClose={onClose}
         dialogHasChanges={formHasChanges}
