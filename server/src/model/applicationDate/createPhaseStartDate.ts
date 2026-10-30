@@ -1,11 +1,10 @@
 import { PHASE_START_END_DATES } from "../../constants";
-import { EasternNow, getDayBoundaryLabel } from "../../dateUtilities";
 import { PhaseName } from "../../types";
 import { ApplicationDateInput } from "./applicationDateSchema";
 
 export function createPhaseStartDate(
   phaseId: PhaseName,
-  easternNow: EasternNow
+  easternToday: string
 ): ApplicationDateInput | null {
   const phaseStartDateType = PHASE_START_END_DATES[phaseId].startDate;
   if (!phaseStartDateType) {
@@ -13,6 +12,6 @@ export function createPhaseStartDate(
   }
   return {
     dateType: phaseStartDateType,
-    dateValue: easternNow[getDayBoundaryLabel(phaseStartDateType)].easternTZDate,
+    plainDate: easternToday,
   };
 }

@@ -33,7 +33,6 @@ vi.mock("../applicationPhase", () => ({
 }));
 
 vi.mock("../../dateUtilities", () => ({
-  getEasternNow: vi.fn(),
   formatDateToPlainDate: vi.fn(),
 }));
 
@@ -42,7 +41,7 @@ import { handlePrismaError } from "../../errors/handlePrismaError";
 import { getApplication } from "../application";
 import { validateAndUpdateDates } from ".";
 import { startPhasesByDates } from "../applicationPhase";
-import { formatDateToPlainDate, getEasternNow } from "../../dateUtilities";
+import { formatDateToPlainDate } from "../../dateUtilities";
 
 describe("applicationDateResolvers", () => {
   const mockTransaction: any = "Test";
@@ -50,26 +49,17 @@ describe("applicationDateResolvers", () => {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
   };
 
-  const testDateValue = new Date("2025-01-01T00:00:00.000Z");
+  const testPlainDate = "2025-01-01";
   const testApplicationId = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
   const testError = new Error("Database connection failed");
 
-  const mockEasternNow = {
-    "Start of Day": {
-      easternTZDate: new Date("2025-01-01T05:00:00.000Z"),
-      easternTZString: "2025-01-01T00:00:00-05:00",
-    },
-    "End of Day": {
-      easternTZDate: new Date("2025-01-02T04:59:59.999Z"),
-      easternTZString: "2025-01-01T23:59:59.999-05:00",
-    },
-  };
+  const mockEasternToday = "2025-01-01";
 
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
-    vi.mocked(getEasternNow).mockReturnValue(mockEasternNow as any);
+    vi.mocked(formatDateToPlainDate).mockReturnValue(mockEasternToday);
     vi.mocked(startPhasesByDates).mockResolvedValue([]);
   });
 
@@ -101,11 +91,11 @@ describe("applicationDateResolvers", () => {
       applicationDates: [
         {
           dateType: "Concept Start Date",
-          dateValue: testDateValue,
+          plainDate: testPlainDate,
         },
         {
           dateType: "Federal Comment Period End Date",
-          dateValue: testDateValue,
+          plainDate: testPlainDate,
         },
       ],
     };
@@ -145,23 +135,23 @@ describe("applicationDateResolvers", () => {
         applicationDates: [
           {
             dateType: "Concept Start Date",
-            dateValue: testDateValue,
+            plainDate: testPlainDate,
           },
           {
             dateType: "Concept Start Date",
-            dateValue: testDateValue,
+            plainDate: testPlainDate,
           },
           {
             dateType: "Concept Completion Date",
-            dateValue: testDateValue,
+            plainDate: testPlainDate,
           },
           {
             dateType: "Concept Completion Date",
-            dateValue: null,
+            plainDate: null,
           },
           {
             dateType: "Federal Comment Period End Date",
-            dateValue: testDateValue,
+            plainDate: testPlainDate,
           },
         ],
       };
@@ -181,12 +171,12 @@ describe("applicationDateResolvers", () => {
     it("should call startPhasesByDates with correct arguments", async () => {
       await __setApplicationDates(undefined, { input: testInput });
 
-      expect(getEasternNow).toHaveBeenCalledExactlyOnceWith();
+      expect(formatDateToPlainDate).toHaveBeenCalledOnce();
       expect(startPhasesByDates).toHaveBeenCalledExactlyOnceWith(
         mockTransaction,
         testApplicationId,
         testInput.applicationDates,
-        mockEasternNow
+        mockEasternToday
       );
     });
 
@@ -219,14 +209,14 @@ describe("applicationDateResolvers", () => {
     const testInput: SetApplicationDateInput = {
       applicationId: testApplicationId,
       dateType: "BNPMT Initial Meeting Date",
-      dateValue: testDateValue,
+      plainDate: testPlainDate,
     };
     const transformedTestInput: SetApplicationDatesInput = {
       applicationId: testApplicationId,
       applicationDates: [
         {
           dateType: "BNPMT Initial Meeting Date",
-          dateValue: testDateValue,
+          plainDate: testPlainDate,
         },
       ],
     };

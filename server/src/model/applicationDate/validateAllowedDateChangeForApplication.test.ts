@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { SetApplicationDatesInput, LocalDate } from "../../types";
+import { SetApplicationDatesInput } from "../../types";
 import { validateAllowedDateChangeForApplication } from "./validateAllowedDateChangeForApplication";
 
 // Mock imports
@@ -27,7 +27,7 @@ describe("validateAllowedDateChangeForApplication", () => {
       applicationDates: [
         {
           dateType: "State Concurrence",
-          dateValue: "2026-01-01" as LocalDate,
+          plainDate: "2026-01-01",
         },
       ],
     };
@@ -53,7 +53,7 @@ describe("validateAllowedDateChangeForApplication", () => {
       applicationDates: [
         {
           dateType: "State Concurrence",
-          dateValue: "2026-01-01" as LocalDate,
+          plainDate: "2026-01-01",
         },
       ],
     };

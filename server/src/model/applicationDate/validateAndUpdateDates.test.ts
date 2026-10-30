@@ -37,7 +37,7 @@ import {
 
 describe("validateAndUpdateDates", () => {
   const testPrismaTransaction: any = "Test";
-  const testDateTimeValue1 = new Date("2025-01-01T00:00:00.000-05:00");
+  const testDateTimeValue1 = "2025-01-01";
   const testDateTimeValue2: EasternTZDate = {
     isEasternTZDate: true,
     easternTZDate: new TZDate("2025-01-01T00:00:00.000-05:00", "America/New_York"),
@@ -58,11 +58,11 @@ describe("validateAndUpdateDates", () => {
     applicationDates: [
       {
         dateType: "Federal Comment Period Start Date",
-        dateValue: testDateTimeValue1,
+        plainDate: testDateTimeValue1,
       },
       {
         dateType: "Federal Comment Period End Date",
-        dateValue: testLocalDateValue3,
+        plainDate: testLocalDateValue3,
       },
     ],
   };
