@@ -1,9 +1,9 @@
 import { PrismaTransactionClient } from "../../prismaClient";
 import { ApplicationDateInput } from "../../types";
-import { EasternNow } from "../../dateUtilities";
 import { createPhaseStartDate } from "../applicationDate";
 import { getOrderedPhaseDateTypes } from "../phaseDateType";
 import { setPhaseToStarted } from ".";
+import { EasternNow } from "../../dateUtilities";
 
 export async function startPhasesByDates(
   tx: PrismaTransactionClient,
@@ -19,7 +19,7 @@ export async function startPhasesByDates(
   const startDatesToAdd: ApplicationDateInput[] = [];
   for (const date of applicationDates) {
     // null date values indicate removal of a date, thus should not start a phase
-    if (date.dateValue === null) {
+    if (date.plainDate === null) {
       continue;
     }
 

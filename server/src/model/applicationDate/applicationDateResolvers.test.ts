@@ -50,7 +50,7 @@ describe("applicationDateResolvers", () => {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
   };
 
-  const testDateValue = new Date("2025-01-01T00:00:00.000Z");
+  const testPlainDate = "2025-01-01";
   const testApplicationId = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
   const testError = new Error("Database connection failed");
 
@@ -101,11 +101,11 @@ describe("applicationDateResolvers", () => {
       applicationDates: [
         {
           dateType: "Concept Start Date",
-          dateValue: testDateValue,
+          plainDate: testPlainDate,
         },
         {
           dateType: "Federal Comment Period End Date",
-          dateValue: testDateValue,
+          plainDate: testPlainDate,
         },
       ],
     };
@@ -145,23 +145,23 @@ describe("applicationDateResolvers", () => {
         applicationDates: [
           {
             dateType: "Concept Start Date",
-            dateValue: testDateValue,
+            plainDate: testPlainDate,
           },
           {
             dateType: "Concept Start Date",
-            dateValue: testDateValue,
+            plainDate: testPlainDate,
           },
           {
             dateType: "Concept Completion Date",
-            dateValue: testDateValue,
+            plainDate: testPlainDate,
           },
           {
             dateType: "Concept Completion Date",
-            dateValue: null,
+            plainDate: null,
           },
           {
             dateType: "Federal Comment Period End Date",
-            dateValue: testDateValue,
+            plainDate: testPlainDate,
           },
         ],
       };
@@ -219,14 +219,14 @@ describe("applicationDateResolvers", () => {
     const testInput: SetApplicationDateInput = {
       applicationId: testApplicationId,
       dateType: "BNPMT Initial Meeting Date",
-      dateValue: testDateValue,
+      plainDate: testPlainDate,
     };
     const transformedTestInput: SetApplicationDatesInput = {
       applicationId: testApplicationId,
       applicationDates: [
         {
           dateType: "BNPMT Initial Meeting Date",
-          dateValue: testDateValue,
+          plainDate: testPlainDate,
         },
       ],
     };
