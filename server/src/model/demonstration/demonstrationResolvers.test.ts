@@ -197,7 +197,7 @@ describe("demonstrationResolvers", () => {
     newApplicationPhaseId: "Concept",
     projectOfficerRole: "Project Officer",
     demonstrationGrantLevelId: "Demonstration",
-    plainDate: "2025, 1, 1",
+    plainDate: "2025-01-01",
     easternTZDate: {
       isEasternTZDate: true,
       easternTZDate: new TZDate(2025, 1, 1, 0, 0, 0, 0, "America/New_York"),
