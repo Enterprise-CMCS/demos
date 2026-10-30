@@ -183,35 +183,35 @@ describe("declareCompletenessPhaseIncomplete", () => {
     const expectedDateChanges: ApplicationDateInput[] = [
       {
         dateType: "Completeness Start Date",
-        dateValue: null,
+        plainDate: null,
       },
       {
         dateType: "Completeness Completion Date",
-        dateValue: null,
+        plainDate: null,
       },
       {
         dateType: "State Application Submitted Date",
-        dateValue: null,
+        plainDate: null,
       },
       {
         dateType: "Completeness Review Due Date",
-        dateValue: null,
+        plainDate: null,
       },
       {
         dateType: "Application Intake Completion Date",
-        dateValue: null,
+        plainDate: null,
       },
       {
         dateType: "State Application Deemed Complete",
-        dateValue: null,
+        plainDate: null,
       },
       {
         dateType: "Federal Comment Period Start Date",
-        dateValue: null,
+        plainDate: null,
       },
       {
         dateType: "Federal Comment Period End Date",
-        dateValue: null,
+        plainDate: null,
       },
     ];
 

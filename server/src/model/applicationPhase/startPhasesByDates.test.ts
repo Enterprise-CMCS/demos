@@ -1,7 +1,5 @@
-import { TZDate } from "@date-fns/tz";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { DateType, LocalDate, ApplicationDateInput } from "../../types";
-import { EasternNow } from "../../dateUtilities";
+import { DateType, ApplicationDateInput } from "../../types";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { getOrderedPhaseDateTypes, OrderedPhaseDateTypes } from "../phaseDateType";
 import { createPhaseStartDate } from "../applicationDate";
@@ -23,20 +21,7 @@ describe("startPhasesByDates", () => {
   const mockTransaction = {} as PrismaTransactionClient;
   const testApplicationId = "app-123-456";
 
-  const mockEasternNow: EasternNow = {
-    "Start of Day": {
-      easternTZDate: new TZDate("2025-01-01T00:00:00.000-05:00", "America/New_York"),
-      isEasternTZDate: true,
-    },
-    "End of Day": {
-      easternTZDate: new TZDate("2025-01-01T23:59:59.999-05:00", "America/New_York"),
-      isEasternTZDate: true,
-    },
-    "Current Time": {
-      easternTZDate: new TZDate("2025-01-15T11:29:14.978-05:00", "America/New_York"),
-      isEasternTZDate: true,
-    },
-  };
+  const mockEasternToday = "2025-01-01";
 
   const mockOrderedPhaseDateTypes: OrderedPhaseDateTypes = [
     {
@@ -74,7 +59,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternToday
       );
 
       expect(result).toEqual([]);
@@ -87,7 +72,7 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Application Intake Start Date",
-          dateValue: new Date("2025-01-01T00:00:00.000Z"),
+          plainDate: "2025-01-01",
         },
       ];
       vi.mocked(setPhaseToStarted).mockResolvedValue(false);
@@ -96,7 +81,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternToday
       );
 
       expect(getOrderedPhaseDateTypes).toHaveBeenCalledExactlyOnceWith(mockTransaction);
@@ -108,12 +93,12 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Unknown Date Type" as DateType,
-          dateValue: new Date("2025-01-01T00:00:00.000Z"),
+          plainDate: "2025-01-01",
         },
       ];
 
       await expect(
-        startPhasesByDates(mockTransaction, testApplicationId, applicationDates, mockEasternNow)
+        startPhasesByDates(mockTransaction, testApplicationId, applicationDates, mockEasternToday)
       ).rejects.toThrow("No phase found for date type Unknown Date Type");
 
       expect(setPhaseToStarted).not.toHaveBeenCalled();
@@ -123,11 +108,11 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Application Intake Start Date",
-          dateValue: "2025-01-01" as LocalDate,
+          plainDate: "2025-01-01",
         },
         {
           dateType: "State Application Deemed Complete",
-          dateValue: "2025-01-15" as LocalDate,
+          plainDate: "2025-01-15",
         },
       ];
       vi.mocked(setPhaseToStarted).mockResolvedValue(false);
@@ -136,7 +121,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternToday
       );
 
       expect(setPhaseToStarted).toHaveBeenCalledWith(
@@ -157,7 +142,7 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Application Intake Start Date",
-          dateValue: new Date("2025-01-01T00:00:00.000Z"),
+          plainDate: "2025-01-01",
         },
       ];
       vi.mocked(setPhaseToStarted).mockResolvedValue(false);
@@ -166,7 +151,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternToday
       );
 
       expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
@@ -180,11 +165,11 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Application Intake Start Date",
-          dateValue: new Date("2025-01-01T00:00:00.000Z"),
+          plainDate: "2025-01-01",
         },
         {
           dateType: "State Application Deemed Complete",
-          dateValue: new Date("2025-01-15T00:00:00.000Z"),
+          plainDate: "2025-01-15",
         },
       ];
       vi.mocked(setPhaseToStarted).mockResolvedValue(false);
@@ -193,7 +178,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternToday
       );
 
       expect(setPhaseToStarted).toHaveBeenCalledTimes(2);
@@ -215,7 +200,7 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Application Intake Start Date",
-          dateValue: new Date("2025-01-01T00:00:00.000Z"),
+          plainDate: "2025-01-01",
         },
       ];
       vi.mocked(setPhaseToStarted).mockResolvedValue(false);
@@ -224,7 +209,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternToday
       );
 
       expect(createPhaseStartDate).not.toHaveBeenCalled();
@@ -235,12 +220,12 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Completeness Review Due Date",
-          dateValue: new Date("2025-01-15T00:00:00.000Z"),
+          plainDate: "2025-01-15",
         },
       ];
       const mockStartDate: ApplicationDateInput = {
         dateType: "Application Intake Start Date",
-        dateValue: new Date("2025-01-01T00:00:00.000Z"),
+        plainDate: "2025-01-01",
       };
       vi.mocked(setPhaseToStarted).mockResolvedValue(true);
       vi.mocked(createPhaseStartDate).mockReturnValue(mockStartDate);
@@ -249,12 +234,12 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternToday
       );
 
       expect(createPhaseStartDate).toHaveBeenCalledExactlyOnceWith(
         "Application Intake",
-        mockEasternNow
+        mockEasternToday
       );
       expect(result).toEqual([mockStartDate]);
     });
@@ -263,7 +248,7 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Completeness Review Due Date",
-          dateValue: new Date("2025-01-15T00:00:00.000Z"),
+          plainDate: "2025-01-15",
         },
       ];
       vi.mocked(setPhaseToStarted).mockResolvedValue(true);
@@ -273,7 +258,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternToday
       );
 
       expect(result).toEqual([]);
@@ -285,12 +270,12 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Application Intake Start Date",
-          dateValue: new Date("2025-01-01T00:00:00.000Z"),
+          plainDate: "2025-01-01",
         },
       ];
       const mockStartDate: ApplicationDateInput = {
         dateType: "Application Intake Start Date",
-        dateValue: new Date("2025-01-01T05:00:00.000Z"),
+        plainDate: "2025-01-01",
       };
       vi.mocked(setPhaseToStarted).mockResolvedValue(true);
       vi.mocked(createPhaseStartDate).mockReturnValue(mockStartDate);
@@ -299,7 +284,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternToday
       );
 
       expect(result).toEqual([]);
@@ -311,16 +296,16 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "State Application Submitted Date",
-          dateValue: new Date("2025-01-15T00:00:00.000Z"),
+          plainDate: "2025-01-15",
         },
         {
           dateType: "Completeness Review Due Date",
-          dateValue: new Date("2025-02-01T00:00:00.000Z"),
+          plainDate: "2025-02-01",
         },
       ];
       const mockStartDate: ApplicationDateInput = {
         dateType: "Application Intake Start Date",
-        dateValue: new Date("2025-01-01T00:00:00.000Z"),
+        plainDate: "2025-01-01",
       };
       vi.mocked(setPhaseToStarted)
         .mockResolvedValueOnce(true) // Application Intake started
@@ -331,7 +316,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternToday
       );
 
       expect(result).toEqual([mockStartDate]);
@@ -362,20 +347,20 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Application Intake Start Date",
-          dateValue: new Date("2025-01-01T00:00:00.000Z"),
+          plainDate: "2025-01-01",
         },
         {
           dateType: "Completeness Review Due Date",
-          dateValue: new Date("2025-02-01T00:00:00.000Z"),
+          plainDate: "2025-02-01",
         },
       ];
       const mockIntakeStartDate: ApplicationDateInput = {
         dateType: "Application Intake Start Date",
-        dateValue: new Date("2025-01-01T05:00:00.000Z"),
+        plainDate: "2025-01-01",
       };
       const mockCompletenessStartDate: ApplicationDateInput = {
         dateType: "Completeness Review Due Date",
-        dateValue: new Date("2025-01-16T00:00:00.000Z"),
+        plainDate: "2025-01-16",
       };
       vi.mocked(setPhaseToStarted).mockResolvedValue(true);
       vi.mocked(createPhaseStartDate)
@@ -386,7 +371,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternToday
       );
 
       // Both are duplicates, so neither should be returned
@@ -399,7 +384,7 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Completeness Review Due Date",
-          dateValue: new Date("2025-01-01T00:00:00.000Z"),
+          plainDate: "2025-01-01",
         },
       ];
       vi.mocked(setPhaseToStarted).mockResolvedValue(false);
@@ -408,7 +393,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternToday
       );
 
       // Should use the first match (find returns first match)
@@ -425,12 +410,12 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Completeness Review Due Date",
-          dateValue: new Date("2025-01-15T00:00:00.000Z"),
+          plainDate: "2025-01-15",
         },
       ];
       const mockStartDate: ApplicationDateInput = {
         dateType: "Application Intake Start Date",
-        dateValue: new Date("2025-01-01T00:00:00.000Z"),
+        plainDate: "2025-01-01",
       };
       vi.mocked(setPhaseToStarted).mockResolvedValue(true);
       vi.mocked(createPhaseStartDate).mockReturnValue(mockStartDate);
@@ -439,15 +424,15 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternToday
       );
 
       expect(Array.isArray(result)).toBe(true);
       result.forEach((date) => {
         expect(date).toHaveProperty("dateType");
-        expect(date).toHaveProperty("dateValue");
+        expect(date).toHaveProperty("plainDate");
         expect(typeof date.dateType).toBe("string");
-        expect(date.dateValue).toBeInstanceOf(Date);
+        expect(typeof date.plainDate).toBe("string");
       });
     });
   });
@@ -457,11 +442,11 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Application Intake Start Date",
-          dateValue: null,
+          plainDate: null,
         },
         {
           dateType: "State Application Submitted Date",
-          dateValue: new Date("2025-01-15T00:00:00.000Z"),
+          plainDate: "2025-01-15",
         },
       ];
       vi.mocked(setPhaseToStarted).mockResolvedValue(false);
@@ -470,7 +455,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternToday
       );
 
       // startPhase should only be called once for the non-null date
@@ -487,11 +472,11 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Application Intake Start Date",
-          dateValue: null,
+          plainDate: null,
         },
         {
           dateType: "State Application Deemed Complete",
-          dateValue: null,
+          plainDate: null,
         },
       ];
 
@@ -499,7 +484,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternToday
       );
 
       expect(setPhaseToStarted).not.toHaveBeenCalled();
@@ -511,20 +496,20 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Application Intake Start Date",
-          dateValue: null,
+          plainDate: null,
         },
         {
           dateType: "State Application Submitted Date",
-          dateValue: new Date("2025-01-15T00:00:00.000Z"),
+          plainDate: "2025-01-15",
         },
         {
           dateType: "State Application Deemed Complete",
-          dateValue: null,
+          plainDate: null,
         },
       ];
       const mockStartDate: ApplicationDateInput = {
         dateType: "Application Intake Start Date",
-        dateValue: new Date("2025-01-01T00:00:00.000Z"),
+        plainDate: "2025-01-01",
       };
       vi.mocked(setPhaseToStarted).mockResolvedValue(true);
       vi.mocked(createPhaseStartDate).mockReturnValue(mockStartDate);
@@ -533,7 +518,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternToday
       );
 
       // Only one call for the non-null date
@@ -544,7 +529,7 @@ describe("startPhasesByDates", () => {
       );
       expect(createPhaseStartDate).toHaveBeenCalledExactlyOnceWith(
         "Application Intake",
-        mockEasternNow
+        mockEasternToday
       );
       expect(result).toEqual([mockStartDate]);
     });

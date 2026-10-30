@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { TZDate } from "@date-fns/tz";
 import { ApplicationDateInput, PhaseName } from "../../types";
-import { EasternNow } from "../../dateUtilities";
 import { startPhase } from "./startPhase";
 
 // Mock imports
@@ -20,24 +18,11 @@ describe("startPhaseByDocument", () => {
   const mockTransaction = "mockTransaction" as any;
   const testApplicationId = "app-123-456";
   const mockPhaseName: PhaseName = "Concept";
-  const mockEasternNow: EasternNow = {
-    "End of Day": {
-      easternTZDate: new TZDate("2025-01-15T23:59:59.999-05:00", "America/New_York"),
-      isEasternTZDate: true,
-    },
-    "Start of Day": {
-      easternTZDate: new TZDate("2025-01-15T00:00:00.000-05:00", "America/New_York"),
-      isEasternTZDate: true,
-    },
-    "Current Time": {
-      easternTZDate: new TZDate("2025-01-15T11:29:14.978-05:00", "America/New_York"),
-      isEasternTZDate: true,
-    },
-  };
+  const mockEasternToday = "2025-01-15";
 
   const mockPhaseStartDate: ApplicationDateInput = {
     dateType: "Application Intake Completion Date",
-    dateValue: new TZDate("2025-01-20"),
+    plainDate: "2025-01-20",
   };
 
   beforeEach(() => {
@@ -52,7 +37,7 @@ describe("startPhaseByDocument", () => {
       mockTransaction,
       testApplicationId,
       mockPhaseName,
-      mockEasternNow
+      mockEasternToday
     );
 
     expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
@@ -60,7 +45,7 @@ describe("startPhaseByDocument", () => {
       "Concept",
       mockTransaction
     );
-    expect(createPhaseStartDate).toHaveBeenCalledExactlyOnceWith("Concept", mockEasternNow);
+    expect(createPhaseStartDate).toHaveBeenCalledExactlyOnceWith("Concept", mockEasternToday);
     expect(result).toEqual(mockPhaseStartDate);
   });
 
@@ -71,7 +56,7 @@ describe("startPhaseByDocument", () => {
       mockTransaction,
       testApplicationId,
       mockPhaseName,
-      mockEasternNow
+      mockEasternToday
     );
 
     expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
@@ -91,7 +76,7 @@ describe("startPhaseByDocument", () => {
       mockTransaction,
       testApplicationId,
       mockPhaseName,
-      mockEasternNow
+      mockEasternToday
     );
 
     expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
@@ -99,7 +84,7 @@ describe("startPhaseByDocument", () => {
       "Concept",
       mockTransaction
     );
-    expect(createPhaseStartDate).toHaveBeenCalledExactlyOnceWith("Concept", mockEasternNow);
+    expect(createPhaseStartDate).toHaveBeenCalledExactlyOnceWith("Concept", mockEasternToday);
     expect(result).toBeNull();
   });
 });
