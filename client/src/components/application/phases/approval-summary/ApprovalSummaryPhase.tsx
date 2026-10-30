@@ -285,13 +285,13 @@ export const ApprovalSummaryPhase = ({
       await setApplicationDate({
         applicationId: applicationId,
         dateType: "Application Demonstration Types Marked Complete Date" satisfies DateType,
-        plainDate: assertIsLocalDate(getTodayEst()),
+        dateValue: getTodayEst(),
       });
     } else {
       await setApplicationDate({
         applicationId: applicationId,
         dateType: "Application Demonstration Types Marked Complete Date" satisfies DateType,
-        plainDate: null,
+        dateValue: null,
       });
     }
   };
@@ -310,9 +310,7 @@ export const ApprovalSummaryPhase = ({
       await setApplicationDate({
         applicationId: applicationId,
         dateType: "Application Approval Date",
-        plainDate: formData.applicationApprovalDate
-          ? assertIsLocalDate(formData.applicationApprovalDate)
-          : null,
+        dateValue: formData.applicationApprovalDate ?? null,
       });
 
       return await updateDemonstrationTrigger({
@@ -332,9 +330,7 @@ export const ApprovalSummaryPhase = ({
       await setApplicationDate({
         applicationId: applicationId,
         dateType: "Application Approval Date",
-        plainDate: formData.applicationApprovalDate
-          ? assertIsLocalDate(formData.applicationApprovalDate)
-          : null,
+        dateValue: formData.applicationApprovalDate ?? null,
       });
       return await updateAmendmentTrigger({
         variables: {
@@ -346,9 +342,7 @@ export const ApprovalSummaryPhase = ({
       await setApplicationDate({
         applicationId: applicationId,
         dateType: "Application Approval Date",
-        plainDate: formData.applicationApprovalDate
-          ? assertIsLocalDate(formData.applicationApprovalDate)
-          : null,
+        dateValue: formData.applicationApprovalDate ?? null,
       });
       return await updateRenewalTrigger({
         variables: {
@@ -396,7 +390,7 @@ export const ApprovalSummaryPhase = ({
       await setApplicationDate({
         applicationId: applicationId,
         dateType: "Application Details Marked Complete Date",
-        plainDate: assertIsLocalDate(getTodayEst()),
+        dateValue: getTodayEst(),
       });
     } catch (error) {
       console.error("Failed to save application details:", error);
@@ -409,7 +403,7 @@ export const ApprovalSummaryPhase = ({
       await setApplicationDate({
         applicationId: applicationId,
         dateType: "Application Details Marked Complete Date",
-        plainDate: null,
+        dateValue: null,
       });
 
       setApprovalSummaryFormData((previousFormData) => ({

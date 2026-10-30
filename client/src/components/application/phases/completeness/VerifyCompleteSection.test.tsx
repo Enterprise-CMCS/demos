@@ -161,9 +161,9 @@ describe("VerifyCompleteSection", () => {
       expect(mockSetApplicationDates).toHaveBeenCalledWith({
         applicationId: "app-123",
         applicationDates: [
-          { dateType: "State Application Deemed Complete", plainDate: "2026-03-05" },
-          { dateType: "Federal Comment Period Start Date", plainDate: "2026-03-06" },
-          { dateType: "Federal Comment Period End Date", plainDate: "2026-04-05" },
+          { dateType: "State Application Deemed Complete", dateValue: "2026-03-05" },
+          { dateType: "Federal Comment Period Start Date", dateValue: "2026-03-06" },
+          { dateType: "Federal Comment Period End Date", dateValue: "2026-04-05" },
         ],
       });
     });

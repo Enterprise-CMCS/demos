@@ -333,15 +333,15 @@ describe("reviewPhaseData", () => {
       expect(result.dates).toHaveLength(3);
       expect(result.dates).toContainEqual({
         dateType: "OGD Approval to Share with SMEs",
-        plainDate: "2025-01-15",
+        dateValue: "2025-01-15",
       });
       expect(result.dates).toContainEqual({
         dateType: "Draft Approval Package to Prep",
-        plainDate: "2025-02-20",
+        dateValue: "2025-02-20",
       });
       expect(result.dates).toContainEqual({
         dateType: "DDME Approval Received",
-        plainDate: "2025-03-10",
+        dateValue: "2025-03-10",
       });
     });
 
@@ -388,7 +388,7 @@ describe("reviewPhaseData", () => {
       expect(result.dates).toHaveLength(1);
       expect(result.dates[0]).toEqual({
         dateType: "OGD Approval to Share with SMEs",
-        plainDate: "2025-01-15",
+        dateValue: "2025-01-15",
       });
     });
 

@@ -7,7 +7,7 @@ import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { addDays, compareDesc, parseISO } from "date-fns";
 import { tw } from "tags/tw";
-import { assertIsLocalDate, formatDateForServer } from "util/formatDate";
+import { formatDateForServer } from "util/formatDate";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
@@ -17,7 +17,7 @@ import { getPhaseCompletedMessage, MISSING_REQUIRED_SECTIONS_TOOLTIP } from "uti
 import { useToast } from "components/toast";
 import { DatePicker } from "components/input/date/DatePicker";
 import { ApplicationHealthTypeTags } from "components/tags/ApplicationHealthTypeTags";
-import type { Application, PhaseName, PhaseStatus, Tag, TagName } from "demos-server";
+import type { Application, LocalDate, PhaseName, PhaseStatus, Tag, TagName } from "demos-server";
 import { SET_APPLICATION_TAGS_MUTATION } from "components/dialog/ApplyTagsDialog";
 import { ConfirmSuggestedSparklyTagDialog } from "components/dialog/ConfirmSuggestedSparklyTagDialog";
 import { getCurrentUser, isReadonly } from "components/user/UserContext";
@@ -271,10 +271,9 @@ export const getApplicationIntakeComponentFromApplication = (
     throw new Error("Application is missing expected phase: Completeness");
   }
 
-  const estStateApplicationSubmittedDate =
-    applicationIntakePhase.phaseDates.find(
-      (date) => date.dateType === "State Application Submitted Date"
-    )?.plainDate ?? "";
+  const estStateApplicationSubmittedDate = applicationIntakePhase.phaseDates.find(
+    (date) => date.dateType === "State Application Submitted Date"
+  )?.plainDate ?? "";
 
   const applicationIntakeDocuments = application.documents.filter(
     (doc) => doc.phaseName === THIS_PHASE_NAME
@@ -361,11 +360,11 @@ export const ApplicationIntakePhase = ({
       applicationDates: [
         {
           dateType: "State Application Submitted Date",
-          plainDate: assertIsLocalDate(stateApplicationSubmittedDate),
+          dateValue: stateApplicationSubmittedDate as LocalDate,
         },
         {
           dateType: "Completeness Review Due Date",
-          plainDate: assertIsLocalDate(completenessReviewDueDate),
+          dateValue: completenessReviewDueDate as LocalDate,
         },
       ],
     });

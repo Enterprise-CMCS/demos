@@ -356,7 +356,7 @@ describe("ApprovalSummaryPhase", () => {
       expect.objectContaining({
         applicationId: "demo-123",
         dateType: "Application Demonstration Types Marked Complete Date",
-        plainDate: expect.any(String),
+        dateValue: expect.any(String),
       })
     );
   });
