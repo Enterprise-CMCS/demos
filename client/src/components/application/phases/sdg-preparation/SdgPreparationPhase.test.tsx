@@ -282,7 +282,7 @@ describe("SdgPreparationPhase", () => {
         expect(mockSetApplicationDate).toHaveBeenCalledWith({
           applicationId: "1",
           dateType: "OACT Initial Review Date",
-          dateValue: "2025-04-20",
+          plainDate: "2025-04-20",
         });
       });
     });
@@ -321,7 +321,7 @@ describe("SdgPreparationPhase", () => {
         expect(mockSetApplicationDate).toHaveBeenCalledWith({
           applicationId: "1",
           dateType: "State Requested Approval Date",
-          dateValue: "2025-04-20",
+          plainDate: "2025-04-20",
         });
       });
     });
@@ -369,7 +369,7 @@ describe("SdgPreparationPhase", () => {
         expect(mockSetApplicationDate).toHaveBeenCalledWith({
           applicationId: "1",
           dateType: "Internal Expected Approval Date",
-          dateValue: "2025-01-02",
+          plainDate: "2025-01-02",
         });
         expect(screen.getByText(/Updates\s+saved successfully/)).toBeInTheDocument();
       });
@@ -443,7 +443,7 @@ describe("SdgPreparationPhase", () => {
         expect(mockSetApplicationDate).toHaveBeenCalledWith({
           applicationId: "1",
           dateType: "Internal Expected Approval Date",
-          dateValue: "2024-12-31",
+          plainDate: "2024-12-31",
         });
       });
     });
@@ -502,7 +502,7 @@ describe("SdgPreparationPhase", () => {
         expect(mockSetApplicationDate).toHaveBeenCalledWith({
           applicationId: "1",
           dateType: "OACT Initial Review Date",
-          dateValue: "2025-01-01",
+          plainDate: "2025-01-01",
         });
         expect(mockCompletePhase).toHaveBeenCalled();
         expect(screen.getByText(getPhaseCompletedMessage("SDG Preparation"))).toBeInTheDocument();
@@ -729,7 +729,7 @@ describe("Completed Phase Behavior", () => {
       expect(mockSetApplicationDate).toHaveBeenCalledWith({
         applicationId: "1",
         dateType: "Internal Expected Approval Date",
-        dateValue: "2025-06-01",
+        plainDate: "2025-06-01",
       });
       expect(screen.getByText(/Updates\s+saved successfully/)).toBeInTheDocument();
     });

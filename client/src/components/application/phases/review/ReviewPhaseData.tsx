@@ -2,8 +2,9 @@ import { WorkflowApplication, SimplePhase } from "components/application";
 import React from "react";
 import { ReviewPhase, ReviewPhaseFormData } from "./ReviewPhase";
 import { REVIEW_PHASE_DATE_TYPES, REVIEW_PHASE_NOTE_TYPES } from "demos-server-constants";
-import { ApplicationDateInput, ApplicationNoteInput, LocalDate } from "demos-server";
+import { ApplicationDateInput, ApplicationNoteInput } from "demos-server";
 import { isOactCertificationRequired } from "components/application/phases/oactCertification";
+import { assertIsLocalDate } from "util/formatDate";
 
 export function getPhaseData(
   reviewPhase: SimplePhase
@@ -66,7 +67,7 @@ export const formatDataForSave = (reviewPhaseFormData: ReviewPhaseFormData) => {
     if (dateValue) {
       dates.push({
         dateType: dateType,
-        dateValue: dateValue as LocalDate,
+        plainDate: assertIsLocalDate(dateValue),
       });
     }
   }

@@ -453,11 +453,11 @@ describe("ReviewPhase Component", () => {
           applicationDates: expect.arrayContaining([
             {
               dateType: "OGD Approval to Share with SMEs",
-              dateValue: "2025-12-25",
+              plainDate: "2025-12-25",
             },
             {
               dateType: "Draft Approval Package to Prep",
-              dateValue: "2025-01-02",
+              plainDate: "2025-01-02",
             },
           ]),
         });
@@ -822,9 +822,9 @@ describe("ReviewPhase Component", () => {
         expect(mockSetApplicationDates).toHaveBeenCalledWith({
           applicationId: "demo-123",
           applicationDates: expect.arrayContaining([
-            { dateType: "OGD Approval to Share with SMEs", dateValue: "2025-01-01" },
-            { dateType: "Package Sent for COMMs Clearance", dateValue: "2025-01-09" },
-            { dateType: "COMMs Clearance Received", dateValue: "2025-01-10" },
+            { dateType: "OGD Approval to Share with SMEs", plainDate: "2025-01-01" },
+            { dateType: "Package Sent for COMMs Clearance", plainDate: "2025-01-09" },
+            { dateType: "COMMs Clearance Received", plainDate: "2025-01-10" },
           ]),
         });
         expect(mockSetApplicationNotes).toHaveBeenCalledWith({
@@ -919,7 +919,7 @@ describe("ReviewPhase Component", () => {
         expect(mockSetApplicationDates).toHaveBeenCalledWith({
           applicationId: "demo-oact",
           applicationDates: expect.arrayContaining([
-            { dateType: "OACT Certification Date", dateValue: "2027-01-05" },
+            { dateType: "OACT Certification Date", plainDate: "2027-01-05" },
           ]),
         });
       });
