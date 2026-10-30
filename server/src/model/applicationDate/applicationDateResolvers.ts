@@ -3,7 +3,7 @@ import { prisma } from "../../prismaClient";
 import { DateType, SetApplicationDateInput, SetApplicationDatesInput } from "../../types";
 import { getApplication, PrismaApplication } from "../application";
 import { handlePrismaError } from "../../errors/handlePrismaError";
-import { formatDateToPlainDate } from "../../dateUtilities";
+import { formatDateToPlainDate, getEasternNow } from "../../dateUtilities";
 import { startPhasesByDates } from "../applicationPhase";
 import { validateAndUpdateDates } from ".";
 import { __DEMOS_VERSION__ } from "../../flags";
@@ -54,12 +54,12 @@ export async function __setApplicationDates(
   try {
     checkForDuplicateDateTypes(input);
     await prisma().$transaction(async (tx) => {
-      const easternToday = formatDateToPlainDate(new Date());
+      const easternNow = getEasternNow();
       const phaseStartDates = await startPhasesByDates(
         tx,
         input.applicationId,
         input.applicationDates,
-        easternToday
+        easternNow
       );
 
       input.applicationDates.push(...phaseStartDates);

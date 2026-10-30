@@ -1,5 +1,7 @@
+import { TZDate } from "@date-fns/tz";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DateType, ApplicationDateInput } from "../../types";
+import { EasternNow } from "../../dateUtilities";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { getOrderedPhaseDateTypes, OrderedPhaseDateTypes } from "../phaseDateType";
 import { createPhaseStartDate } from "../applicationDate";
@@ -21,7 +23,20 @@ describe("startPhasesByDates", () => {
   const mockTransaction = {} as PrismaTransactionClient;
   const testApplicationId = "app-123-456";
 
-  const mockEasternToday = "2025-01-01";
+  const mockEasternNow: EasternNow = {
+    "Start of Day": {
+      easternTZDate: new TZDate("2025-01-01T00:00:00.000-05:00", "America/New_York"),
+      isEasternTZDate: true,
+    },
+    "End of Day": {
+      easternTZDate: new TZDate("2025-01-01T23:59:59.999-05:00", "America/New_York"),
+      isEasternTZDate: true,
+    },
+    "Current Time": {
+      easternTZDate: new TZDate("2025-01-15T11:29:14.978-05:00", "America/New_York"),
+      isEasternTZDate: true,
+    },
+  };
 
   const mockOrderedPhaseDateTypes: OrderedPhaseDateTypes = [
     {
@@ -59,7 +74,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternToday
+        mockEasternNow
       );
 
       expect(result).toEqual([]);
@@ -81,7 +96,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternToday
+        mockEasternNow
       );
 
       expect(getOrderedPhaseDateTypes).toHaveBeenCalledExactlyOnceWith(mockTransaction);
@@ -98,7 +113,7 @@ describe("startPhasesByDates", () => {
       ];
 
       await expect(
-        startPhasesByDates(mockTransaction, testApplicationId, applicationDates, mockEasternToday)
+        startPhasesByDates(mockTransaction, testApplicationId, applicationDates, mockEasternNow)
       ).rejects.toThrow("No phase found for date type Unknown Date Type");
 
       expect(setPhaseToStarted).not.toHaveBeenCalled();
@@ -121,7 +136,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternToday
+        mockEasternNow
       );
 
       expect(setPhaseToStarted).toHaveBeenCalledWith(
@@ -151,7 +166,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternToday
+        mockEasternNow
       );
 
       expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
@@ -178,7 +193,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternToday
+        mockEasternNow
       );
 
       expect(setPhaseToStarted).toHaveBeenCalledTimes(2);
@@ -209,7 +224,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternToday
+        mockEasternNow
       );
 
       expect(createPhaseStartDate).not.toHaveBeenCalled();
@@ -234,12 +249,12 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternToday
+        mockEasternNow
       );
 
       expect(createPhaseStartDate).toHaveBeenCalledExactlyOnceWith(
         "Application Intake",
-        mockEasternToday
+        mockEasternNow
       );
       expect(result).toEqual([mockStartDate]);
     });
@@ -258,7 +273,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternToday
+        mockEasternNow
       );
 
       expect(result).toEqual([]);
@@ -284,7 +299,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternToday
+        mockEasternNow
       );
 
       expect(result).toEqual([]);
@@ -316,7 +331,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternToday
+        mockEasternNow
       );
 
       expect(result).toEqual([mockStartDate]);
@@ -371,7 +386,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternToday
+        mockEasternNow
       );
 
       // Both are duplicates, so neither should be returned
@@ -393,7 +408,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternToday
+        mockEasternNow
       );
 
       // Should use the first match (find returns first match)
@@ -424,7 +439,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternToday
+        mockEasternNow
       );
 
       expect(Array.isArray(result)).toBe(true);
@@ -455,7 +470,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternToday
+        mockEasternNow
       );
 
       // startPhase should only be called once for the non-null date
@@ -484,7 +499,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternToday
+        mockEasternNow
       );
 
       expect(setPhaseToStarted).not.toHaveBeenCalled();
@@ -518,7 +533,7 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternToday
+        mockEasternNow
       );
 
       // Only one call for the non-null date
@@ -529,7 +544,7 @@ describe("startPhasesByDates", () => {
       );
       expect(createPhaseStartDate).toHaveBeenCalledExactlyOnceWith(
         "Application Intake",
-        mockEasternToday
+        mockEasternNow
       );
       expect(result).toEqual([mockStartDate]);
     });

@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { completePhase } from "./completePhase";
 import type { CompletePhaseInput } from "../../types";
+import type { EasternNow } from "../../dateUtilities";
+import { TZDate } from "@date-fns/tz";
 import { __DEMOS_VERSION__ } from "../../flags";
 
 // Mock imports
@@ -34,9 +36,13 @@ vi.mock(".", async () => {
   };
 });
 
-vi.mock("../../dateUtilities", () => ({
-  formatDateToPlainDate: vi.fn(),
-}));
+vi.mock("../../dateUtilities.js", async () => {
+  const actual = await vi.importActual("../../dateUtilities.js");
+  return {
+    ...actual,
+    getEasternNow: vi.fn(),
+  };
+});
 
 vi.mock("../email/notifyApplicationEvent", () => ({
   notifyApplicationStatusUpdated: vi.fn(),
@@ -47,7 +53,7 @@ import { handlePrismaError } from "../../errors/handlePrismaError";
 import { getApplication } from "../application";
 import { validateAndUpdateDates } from "../applicationDate";
 import { validatePhaseCompletion, updatePhaseStatus, setPhaseToStarted } from ".";
-import { formatDateToPlainDate } from "../../dateUtilities";
+import { getEasternNow } from "../../dateUtilities";
 
 describe("completePhase", () => {
   const mockTransaction: any = vi.fn();
@@ -56,7 +62,24 @@ describe("completePhase", () => {
   };
   const testApplicationId: string = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
   const testError = new Error("Database connection failed");
-  const mockEasternToday = "2025-01-13";
+  const mockEasternPlainDate = "2025-01-13";
+  const mockEasternStartOfDayDate = new Date("2025-01-13T00:00:00.000-05:00");
+  const mockEasternCurrentTime = new Date("2025-01-13T07:19:23.199-05:00");
+  const mockEasternEndOfDayDate = new Date("2025-01-13T23:59:59.999-05:00");
+  const mockEasternValue: EasternNow = {
+    "Start of Day": {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(mockEasternStartOfDayDate, "America/New_York"),
+    },
+    "End of Day": {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(mockEasternEndOfDayDate, "America/New_York"),
+    },
+    "Current Time": {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(mockEasternCurrentTime, "America/New_York"),
+    },
+  };
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -66,7 +89,7 @@ describe("completePhase", () => {
     } as Awaited<ReturnType<typeof getApplication>>);
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
-    vi.mocked(formatDateToPlainDate).mockReturnValue(mockEasternToday);
+    vi.mocked(getEasternNow).mockReturnValue(mockEasternValue);
     vi.mocked(setPhaseToStarted).mockResolvedValue(true);
   });
 
@@ -82,7 +105,7 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "Concept Completion Date",
-              plainDate: mockEasternToday,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
@@ -96,7 +119,7 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "Application Intake Start Date",
-              plainDate: mockEasternToday,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
@@ -142,7 +165,7 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "Application Intake Completion Date",
-              plainDate: mockEasternToday,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
@@ -156,7 +179,7 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "Completeness Start Date",
-              plainDate: mockEasternToday,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
@@ -203,7 +226,7 @@ describe("completePhase", () => {
             applicationDates: [
               {
                 dateType: "Completeness Completion Date",
-                plainDate: mockEasternToday,
+                plainDate: mockEasternPlainDate,
               },
             ],
           },
@@ -262,7 +285,7 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "SDG Preparation Completion Date",
-              plainDate: mockEasternToday,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
@@ -276,7 +299,7 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "Review Start Date",
-              plainDate: mockEasternToday,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
@@ -322,7 +345,7 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "Review Completion Date",
-              plainDate: mockEasternToday,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
@@ -336,7 +359,7 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "Approval Package Start Date",
-              plainDate: mockEasternToday,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
@@ -382,7 +405,7 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "Approval Package Completion Date",
-              plainDate: mockEasternToday,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
@@ -396,7 +419,7 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "Approval Summary Start Date",
-              plainDate: mockEasternToday,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
@@ -442,7 +465,7 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "Approval Summary Completion Date",
-              plainDate: mockEasternToday,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
@@ -495,7 +518,7 @@ describe("completePhase", () => {
             applicationDates: [
               {
                 dateType: "Concept Completion Date",
-                plainDate: mockEasternToday,
+                plainDate: mockEasternPlainDate,
               },
             ],
           },

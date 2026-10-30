@@ -4,6 +4,7 @@ vi.mock("../email/notifyApplicationEvent", () => ({
 }));
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { skipConceptPhase } from "./skipConceptPhase.js";
+import { TZDate } from "@date-fns/tz";
 import { __DEMOS_VERSION__ } from "../../flags";
 
 // Mock imports
@@ -16,7 +17,7 @@ import {
   setPhaseToStarted,
   updatePhaseStatus,
 } from ".";
-import { formatDateToPlainDate } from "../../dateUtilities.js";
+import { EasternNow, getEasternNow } from "../../dateUtilities.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -49,9 +50,13 @@ vi.mock(".", async () => {
   };
 });
 
-vi.mock("../../dateUtilities.js", () => ({
-  formatDateToPlainDate: vi.fn(),
-}));
+vi.mock("../../dateUtilities.js", async () => {
+  const actual = await vi.importActual("../../dateUtilities.js");
+  return {
+    ...actual,
+    getEasternNow: vi.fn(),
+  };
+});
 
 describe("skipConceptPhase", () => {
   const mockTransaction: any = vi.fn();
@@ -60,7 +65,24 @@ describe("skipConceptPhase", () => {
   };
   const testApplicationId: string = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
   const testError = new Error("Database connection failed");
-  const mockEasternToday = "2025-01-13";
+  const mockEasternPlainDate = "2025-01-13";
+  const mockEasternStartOfDayDate = new Date("2025-01-13T00:00:00.000-05:00");
+  const mockEasternCurrentTime = new Date("2025-01-13T07:19:23.199-05:00");
+  const mockEasternEndOfDayDate = new Date("2025-01-13T23:59:59.999-05:00");
+  const mockEasternValue: EasternNow = {
+    "Start of Day": {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(mockEasternStartOfDayDate, "America/New_York"),
+    },
+    "End of Day": {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(mockEasternEndOfDayDate, "America/New_York"),
+    },
+    "Current Time": {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(mockEasternCurrentTime, "America/New_York"),
+    },
+  };
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -70,7 +92,7 @@ describe("skipConceptPhase", () => {
     } as Awaited<ReturnType<typeof getApplication>>);
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
-    vi.mocked(formatDateToPlainDate).mockReturnValue(mockEasternToday);
+    vi.mocked(getEasternNow).mockReturnValue(mockEasternValue);
     vi.mocked(setPhaseToStarted).mockResolvedValue(true);
     vi.mocked(getApplicationPhaseStatus).mockResolvedValue("Started");
   });
@@ -82,7 +104,7 @@ describe("skipConceptPhase", () => {
         applicationDates: [
           {
             dateType: "Concept Skipped Date",
-            plainDate: mockEasternToday,
+            plainDate: mockEasternPlainDate,
           },
         ],
       },
@@ -96,7 +118,7 @@ describe("skipConceptPhase", () => {
         applicationDates: [
           {
             dateType: "Application Intake Start Date",
-            plainDate: mockEasternToday,
+            plainDate: mockEasternPlainDate,
           },
         ],
       },
@@ -157,7 +179,7 @@ describe("skipConceptPhase", () => {
           applicationDates: [
             {
               dateType: "Concept Skipped Date",
-              plainDate: mockEasternToday,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },

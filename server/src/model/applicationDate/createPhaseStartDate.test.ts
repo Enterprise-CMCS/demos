@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createPhaseStartDate } from "./createPhaseStartDate.js";
+import { EasternNow } from "../../dateUtilities.js";
 import { PhaseName } from "../../types.js";
 import { PHASE_START_END_DATES } from "../../constants.js";
 
@@ -12,9 +13,24 @@ vi.mock("../../dateUtilities.js", async (importOriginal) => {
 });
 
 import { getDayBoundaryLabel } from "../../dateUtilities.js";
+import { TZDate } from "@date-fns/tz";
 
 describe("createPhaseStartDate", () => {
-  const mockEasternToday = "2025-01-01";
+  const mockEasternPlainDate = "2025-01-01";
+  const mockEasternNow: EasternNow = {
+    "Start of Day": {
+      easternTZDate: new TZDate("2025-01-01T05:00:00.000Z"),
+      isEasternTZDate: true,
+    },
+    "End of Day": {
+      easternTZDate: new TZDate("2025-01-02T04:59:59.999Z"),
+      isEasternTZDate: true,
+    },
+    "Current Time": {
+      easternTZDate: new TZDate("2025-01-01T11:14:32.141Z"),
+      isEasternTZDate: true,
+    },
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -25,11 +41,10 @@ describe("createPhaseStartDate", () => {
       const phaseId: PhaseName = "Concept";
       vi.mocked(getDayBoundaryLabel).mockReturnValue("Start of Day");
 
-      const result = createPhaseStartDate(phaseId, mockEasternToday);
-
+      const result = createPhaseStartDate(phaseId, mockEasternNow);
       expect(result).toEqual({
         dateType: PHASE_START_END_DATES[phaseId].startDate,
-        plainDate: mockEasternToday,
+        plainDate: mockEasternPlainDate,
       });
     });
 
@@ -37,11 +52,10 @@ describe("createPhaseStartDate", () => {
       const phaseId: PhaseName = "Application Intake";
       vi.mocked(getDayBoundaryLabel).mockReturnValue("End of Day");
 
-      const result = createPhaseStartDate(phaseId, mockEasternToday);
-
+      const result = createPhaseStartDate(phaseId, mockEasternNow);
       expect(result).toEqual({
         dateType: PHASE_START_END_DATES[phaseId].startDate,
-        plainDate: mockEasternToday,
+        plainDate: mockEasternPlainDate,
       });
     });
   });
