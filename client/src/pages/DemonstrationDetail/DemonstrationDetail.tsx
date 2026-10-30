@@ -59,7 +59,6 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         description
         status
         createdAt
-        effectiveDate
         effectivePlainDate
         signatureLevel
         documents {
@@ -82,7 +81,6 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         description
         status
         createdAt
-        effectiveDate
         effectivePlainDate
         signatureLevel
         documents {

@@ -1,12 +1,11 @@
 import { TZDate } from "@date-fns/tz";
 import { checkInputDateIsStartOfDay, checkInputDateIsEndOfDay } from "./checkInputDateFunctions.js";
-import { parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities.js";
-import { DateTimeOrLocalDate } from "../../types.js";
+import { parseLocalDateToEasternTZDate } from "../../dateUtilities.js";
 
 // Types for the specific case when we know both inputs are present
 type GuaranteedDateInput = {
-  effectiveDate: DateTimeOrLocalDate;
-  expirationDate: DateTimeOrLocalDate;
+  effectivePlainDate: string;
+  expirationPlainDate: string;
 };
 
 type GuaranteedDateOutput = {
@@ -15,8 +14,8 @@ type GuaranteedDateOutput = {
 };
 
 type DateInput = {
-  effectiveDate?: DateTimeOrLocalDate | null;
-  expirationDate?: DateTimeOrLocalDate | null;
+  effectivePlainDate?: string | null;
+  expirationPlainDate?: string | null;
 };
 
 type DateOutput = {
@@ -37,19 +36,19 @@ export function parseAndValidateEffectiveAndExpirationDates(
   let effectiveDate: TZDate | null | undefined;
   let expirationDate: TZDate | null | undefined;
 
-  if (input.effectiveDate) {
-    const parsed = parseDateTimeOrLocalDateToEasternTZDate(input.effectiveDate, "Start of Day");
+  if (input.effectivePlainDate) {
+    const parsed = parseLocalDateToEasternTZDate(input.effectivePlainDate, "Start of Day");
     checkInputDateIsStartOfDay("effectiveDate", parsed);
     effectiveDate = parsed.easternTZDate;
-  } else if (input.effectiveDate === null) {
+  } else if (input.effectivePlainDate === null) {
     effectiveDate = null;
   }
 
-  if (input.expirationDate) {
-    const parsed = parseDateTimeOrLocalDateToEasternTZDate(input.expirationDate, "End of Day");
+  if (input.expirationPlainDate) {
+    const parsed = parseLocalDateToEasternTZDate(input.expirationPlainDate, "End of Day");
     checkInputDateIsEndOfDay("expirationDate", parsed);
     expirationDate = parsed.easternTZDate;
-  } else if (input.expirationDate === null) {
+  } else if (input.expirationPlainDate === null) {
     expirationDate = null;
   }
 

@@ -7,7 +7,6 @@ import {
   Demonstration,
   Document,
   NonEmptyString,
-  DateTimeOrLocalDate,
   ClearanceLevel,
   Tag,
   TagName,
@@ -20,7 +19,6 @@ export const amendmentSchema = gql`
     demonstration: Demonstration!
     name: NonEmptyString!
     description: String
-    effectiveDate: DateTime
     effectivePlainDate: LocalDate
     status: ApplicationStatus!
     currentPhaseName: PhaseName! @auth(requires: ["Access CMS Field"])
@@ -45,7 +43,7 @@ export const amendmentSchema = gql`
     demonstrationId: ID
     name: NonEmptyString
     description: String
-    effectiveDate: DateTimeOrLocalDate
+    effectivePlainDate: LocalDate
     signatureLevel: AmendmentSignatureLevel
   }
 
@@ -67,7 +65,6 @@ export interface Amendment {
   demonstration: Demonstration;
   name: NonEmptyString;
   description?: string;
-  effectiveDate?: Date;
   effectivePlainDate?: string;
   status: ApplicationStatus;
   currentPhaseName: PhaseName;
@@ -92,6 +89,6 @@ export interface UpdateAmendmentInput {
   demonstrationId?: string;
   name?: NonEmptyString;
   description?: string | null;
-  effectiveDate?: DateTimeOrLocalDate | null;
+  effectivePlainDate?: string | null;
   signatureLevel?: AmendmentSignatureLevel | null;
 }

@@ -1,7 +1,13 @@
 import { UTCDate } from "@date-fns/utc";
 import { TZDate } from "@date-fns/tz";
 
-import { formatDateForDisplay, formatDateForServer, getTodayEst, getDateEst } from "./formatDate";
+import {
+  formatDateForDisplay,
+  formatDateForServer,
+  getTodayEst,
+  getDateEst,
+  assertIsLocalDate,
+} from "./formatDate";
 
 const TEST_DATE_ISO = "2023-04-15T13:45:30.000Z";
 const LEAP_YEAR_DATE_ISO = "2024-02-29T23:59:59.000Z";
@@ -80,6 +86,22 @@ describe("formatDate utilities", () => {
       // 2024-03-15T02:00:00Z is 10pm EST the prior day (UTC-4 during EDT, so 2024-03-14T22:00)
       const date = new Date("2024-03-15T02:00:00.000Z");
       expect(getDateEst(date)).toBe("2024-03-14");
+    });
+  });
+
+  describe("assertIsLocalDate", () => {
+    it("returns the input when it matches yyyy-MM-dd", () => {
+      expect(assertIsLocalDate("2024-03-15")).toBe("2024-03-15");
+    });
+
+    it("throws when the input is not in yyyy-MM-dd format", () => {
+      expect(() => assertIsLocalDate("03/15/2024")).toThrow(
+        'Expected a LocalDate string (yyyy-MM-dd), received: "03/15/2024"'
+      );
+    });
+
+    it("throws when the input is an empty string", () => {
+      expect(() => assertIsLocalDate("")).toThrow();
     });
   });
 });
