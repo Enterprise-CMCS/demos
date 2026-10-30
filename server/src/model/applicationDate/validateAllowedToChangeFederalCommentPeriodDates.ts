@@ -1,4 +1,19 @@
 import type { ParsedApplicationDateInput, ParsedSetApplicationDatesInput } from ".";
+import type { DateType } from "../../types";
+
+export function parsedInputHasFederalCommentDate(
+  inputApplicationDates: ParsedSetApplicationDatesInput,
+  whichDate: Extract<
+    DateType,
+    "Federal Comment Period Start Date" | "Federal Comment Period End Date"
+  >
+): boolean {
+  return (
+    inputApplicationDates.applicationDatesToUpsert
+      .map((applicationDate) => applicationDate.dateType)
+      .includes(whichDate) || inputApplicationDates.applicationDatesToDelete.includes(whichDate)
+  );
+}
 
 export function validateAllowedToChangeFederalCommentPeriodDates(
   existingApplicationDates: ParsedApplicationDateInput[],
@@ -11,16 +26,14 @@ export function validateAllowedToChangeFederalCommentPeriodDates(
     .map((applicationDate) => applicationDate.dateType)
     .includes("Federal Comment Period End Date");
 
-  const inputContainsStartDate =
-    inputApplicationDates.applicationDatesToUpsert
-      .map((applicationDate) => applicationDate.dateType)
-      .includes("Federal Comment Period Start Date") ||
-    inputApplicationDates.applicationDatesToDelete.includes("Federal Comment Period Start Date");
-  const inputContainsEndDate =
-    inputApplicationDates.applicationDatesToUpsert
-      .map((applicationDate) => applicationDate.dateType)
-      .includes("Federal Comment Period End Date") ||
-    inputApplicationDates.applicationDatesToDelete.includes("Federal Comment Period End Date");
+  const inputContainsStartDate = parsedInputHasFederalCommentDate(
+    inputApplicationDates,
+    "Federal Comment Period Start Date"
+  );
+  const inputContainsEndDate = parsedInputHasFederalCommentDate(
+    inputApplicationDates,
+    "Federal Comment Period End Date"
+  );
 
   if (
     (existingContainsStartDate && inputContainsStartDate) ||

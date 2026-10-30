@@ -130,7 +130,6 @@ describe("validateInputDates", () => {
       });
       it("should include ordering checks for federal comment period", () => {
         const result = makeValidations(new SemVer(versionNumber));
-        expect(result["State Application Deemed Complete"]["lessThanChecks"]).toHaveLength(1);
         expect(result["Federal Comment Period Start Date"]["lessThanChecks"]).toHaveLength(1);
         expect(result["Federal Comment Period Start Date"]["greaterThanChecks"]).toHaveLength(1);
         expect(result["Federal Comment Period End Date"]["greaterThanChecks"]).toHaveLength(1);
@@ -394,11 +393,6 @@ describe("validateInputDates", () => {
             testApplicationDateMap,
             "State Application Submitted Date",
             "Completeness Review Due Date",
-          ],
-          [
-            testApplicationDateMap,
-            "State Application Deemed Complete",
-            "Federal Comment Period Start Date",
           ],
           [
             testApplicationDateMap,

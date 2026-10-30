@@ -11,6 +11,8 @@ import {
   validateAllowedDateChangeByPhase,
   validateAllowedDateChangeForApplication,
   validateAllowedToChangeFederalCommentPeriodDates,
+  callFederalCommentPhaseUpdateProcedure,
+  parsedInputHasFederalCommentDate,
 } from ".";
 import { SemVer } from "semver";
 import { getFeatureFlags } from "../../flags";
@@ -51,4 +53,21 @@ export async function validateAndUpdateDates(
   validateInputDates(updatedApplicationDates, currentVersion);
   await upsertApplicationDates(parsedSetApplicationDatesInput, tx);
   await deleteApplicationDates(parsedSetApplicationDatesInput, tx);
+  if (getFeatureFlags(currentVersion).updateFederalCommentStatusAfterDateSet) {
+    const inputHasFederalCommentDates =
+      parsedInputHasFederalCommentDate(
+        parsedSetApplicationDatesInput,
+        "Federal Comment Period Start Date"
+      ) ||
+      parsedInputHasFederalCommentDate(
+        parsedSetApplicationDatesInput,
+        "Federal Comment Period End Date"
+      );
+    if (inputHasFederalCommentDates) {
+      await callFederalCommentPhaseUpdateProcedure(
+        parsedSetApplicationDatesInput.applicationId,
+        tx
+      );
+    }
+  }
 }

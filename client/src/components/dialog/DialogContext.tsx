@@ -28,6 +28,7 @@ import { ApplicationIntakeUploadDialog } from "./document/phases/ApplicationInta
 import { CompletenessDocumentUploadDialog } from "./document/phases/CompletenessDocumentUploadDialog";
 import { ConceptPreSubmissionUploadDialog } from "./document/phases/ConceptPreSubmissionUploadDialog";
 import { FederalCommentUploadDialog } from "./document/phases/FederalCommentUploadDialog";
+import { SdgPreparationUploadDialog } from "./document/phases/SdgPreparationUploadDialog";
 import { ApprovalPackageUploadDialog } from "./document/phases/ApprovalPackageUploadDialog";
 import { DeclareIncompleteDialog, DeclareIncompleteForm } from "./DeclareIncompleteDialog";
 import { ApplyDemonstrationTypesDialog } from "./DemonstrationTypes/ApplyDemonstrationTypesDialog";
@@ -272,6 +273,12 @@ export const useDialog = () => {
     );
   };
 
+  const showSdgPreparationDocumentUploadDialog = (applicationId: string) => {
+    context.showDialog(
+      <SdgPreparationUploadDialog onClose={context.hideDialog} applicationId={applicationId} />
+    );
+  };
+
   const showDeclareIncompleteDialog = (onConfirm: (form: DeclareIncompleteForm) => void) => {
     context.showDialog(
       <DeclareIncompleteDialog onConfirm={onConfirm} onClose={context.hideDialog} />
@@ -483,6 +490,7 @@ export const useDialog = () => {
     showCompletenessDocumentUploadDialog,
     showConceptPreSubmissionDocumentUploadDialog,
     showFederalCommentDocumentUploadDialog,
+    showSdgPreparationDocumentUploadDialog,
     showApprovalPackageDocumentUploadDialog,
     showDeclareIncompleteDialog,
     showApplyDemonstrationTypesDialog,

@@ -149,9 +149,6 @@ export function makeValidations(currentVersion: SemVer): DateTypeValidationCheck
 
   // From 1.3.0 we just enforce simple ordering checks
   if (getFeatureFlags(currentVersion).makeFederalCommentPeriodMoreFlexible) {
-    validationChecks["State Application Deemed Complete"]["lessThanChecks"].push({
-      dateTypeToCheck: "Federal Comment Period Start Date",
-    });
     validationChecks["Federal Comment Period Start Date"]["greaterThanChecks"].push({
       dateTypeToCheck: "State Application Deemed Complete",
     });

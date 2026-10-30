@@ -4,7 +4,13 @@ import { useSessionStorageJson } from "hooks";
 
 import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
-import { SimplePhase, WorkflowApplication } from "components/application";
+import {
+  ApplicationWorkflowDocument,
+  SimplePhase,
+  WorkflowApplication,
+} from "components/application";
+import { ApplicationUploadSection } from "components/application/phases/sections";
+import { useDialog } from "components/dialog/DialogContext";
 import { ApplicationStatus, DateType, LocalDate, PhaseName } from "demos-server";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import {
@@ -74,6 +80,10 @@ export const getSdgPreparationPhaseFromApplication = (
   );
   if (!sdgPreparationPhase) return <div>Error: SDG Preparation Phase not found.</div>;
 
+  const sdgPreparationDocuments = application.documents.filter(
+    (doc) => doc.phaseName === "SDG Preparation"
+  );
+
   const allPreviousPhasesDone = application.phases
     .filter(
       (p: SimplePhase) =>
@@ -94,6 +104,7 @@ export const getSdgPreparationPhaseFromApplication = (
       setSelectedPhase={setSelectedPhase}
       allPreviousPhasesDone={allPreviousPhasesDone}
       applicationStatus={application.status}
+      documents={sdgPreparationDocuments}
     />
   );
 };
@@ -104,13 +115,16 @@ export const SdgPreparationPhase = ({
   setSelectedPhase,
   allPreviousPhasesDone,
   applicationStatus,
+  documents,
 }: {
   applicationId: string;
   sdgPreparationPhase: SimplePhase;
   setSelectedPhase: (phase: PhaseName) => void;
   allPreviousPhasesDone: boolean;
   applicationStatus: ApplicationStatus;
+  documents: ApplicationWorkflowDocument[];
 }) => {
+  const { showSdgPreparationDocumentUploadDialog } = useDialog();
   const [localFormData, setSdgPreparationPhaseFormData] =
     useSessionStorageJson<SdgPreparationPhaseFormData>(`sdg-preparation-dates-${applicationId}`);
   const sdgPreparationPhaseFormData = localFormData ?? getFormDataFromPhase(sdgPreparationPhase);
@@ -253,6 +267,12 @@ export const SdgPreparationPhase = ({
                   });
                 }}
                 isDisabled={isReadonlyUser || isPhaseCompleted}
+              />
+              <ApplicationUploadSection
+                title="DRAFT DOCUMENTS"
+                helperText="Upload SME Summaries, Briefing Overviews, the draft BN Formulation Workbook, and other working files."
+                documents={documents}
+                onUploadClick={() => showSdgPreparationDocumentUploadDialog(applicationId)}
               />
             </div>
           </div>{" "}
