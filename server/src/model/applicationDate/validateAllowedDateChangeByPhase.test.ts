@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { validateAllowedDateChangeByPhase } from "./validateAllowedDateChangeByPhase";
-import { SetApplicationDatesInput } from "../../types";
+import { LocalDate, SetApplicationDatesInput } from "../../types";
 import { getFinishedApplicationPhaseIds } from "../applicationPhase";
 import { getPhaseDateTypesByIds } from "../phaseDateType";
 
@@ -27,7 +27,7 @@ describe("validateAllowedDateChangeByPhase", () => {
         applicationDates: [
           {
             dateType: "State Concurrence",
-            plainDate: "2026-01-01",
+            dateValue: "2026-01-01" as LocalDate,
           },
         ],
       };
@@ -54,15 +54,15 @@ describe("validateAllowedDateChangeByPhase", () => {
         applicationDates: [
           {
             dateType: "State Concurrence",
-            plainDate: "2026-01-01",
+            dateValue: "2026-01-01" as LocalDate,
           },
           {
             dateType: "Concept Paper Submitted Date",
-            plainDate: "2026-01-02",
+            dateValue: "2026-01-02" as LocalDate,
           },
           {
             dateType: "SME Initial Review Date",
-            plainDate: "2026-01-03",
+            dateValue: "2026-01-03" as LocalDate,
           },
         ],
       };
@@ -111,7 +111,7 @@ describe("validateAllowedDateChangeByPhase", () => {
         applicationDates: [
           {
             dateType: "State Concurrence",
-            plainDate: "2026-01-01",
+            dateValue: "2026-01-01" as LocalDate,
           },
         ],
       };
@@ -136,7 +136,7 @@ describe("validateAllowedDateChangeByPhase", () => {
         applicationDates: [
           {
             dateType: "State Concurrence",
-            plainDate: "2026-01-01",
+            dateValue: "2026-01-01" as LocalDate,
           },
         ],
       };
@@ -160,11 +160,11 @@ describe("validateAllowedDateChangeByPhase", () => {
         applicationDates: [
           {
             dateType: "State Concurrence",
-            plainDate: "2026-01-01",
+            dateValue: "2026-01-01" as LocalDate,
           },
           {
             dateType: "Concept Paper Submitted Date",
-            plainDate: "2026-01-02",
+            dateValue: "2026-01-02" as LocalDate,
           },
         ],
       };
@@ -192,7 +192,7 @@ describe("validateAllowedDateChangeByPhase", () => {
         applicationDates: [
           {
             dateType: "State Concurrence",
-            plainDate: "2026-01-01",
+            dateValue: "2026-01-01" as LocalDate,
           },
         ],
       };
@@ -220,15 +220,15 @@ describe("validateAllowedDateChangeByPhase", () => {
         applicationDates: [
           {
             dateType: "State Concurrence",
-            plainDate: "2026-01-01",
+            dateValue: "2026-01-01" as LocalDate,
           },
           {
             dateType: "Concept Paper Submitted Date",
-            plainDate: "2026-01-02",
+            dateValue: "2026-01-02" as LocalDate,
           },
           {
             dateType: "SME Initial Review Date",
-            plainDate: "2026-01-03",
+            dateValue: "2026-01-03" as LocalDate,
           },
         ],
       };
@@ -264,7 +264,7 @@ describe("validateAllowedDateChangeByPhase", () => {
         applicationDates: [
           {
             dateType: "State Requested Approval Date",
-            plainDate: "2026-01-01",
+            dateValue: "2026-01-01" as LocalDate,
           },
         ],
       };
@@ -289,7 +289,7 @@ describe("validateAllowedDateChangeByPhase", () => {
         applicationDates: [
           {
             dateType: "State Concurrence",
-            plainDate: "2026-01-01",
+            dateValue: "2026-01-01" as LocalDate,
           },
         ],
       };
@@ -308,7 +308,7 @@ describe("validateAllowedDateChangeByPhase", () => {
         applicationDates: [
           {
             dateType: "State Concurrence",
-            plainDate: "2026-01-01",
+            dateValue: "2026-01-01" as LocalDate,
           },
         ],
       };
@@ -328,7 +328,7 @@ describe("validateAllowedDateChangeByPhase", () => {
         applicationDates: [
           {
             dateType: "Internal Expected Approval Date",
-            plainDate: "2026-01-01",
+            dateValue: "2026-01-01" as LocalDate,
           },
         ],
       };
@@ -349,7 +349,7 @@ describe("validateAllowedDateChangeByPhase", () => {
         applicationDates: [
           {
             dateType: "Internal Expected Approval Date",
-            plainDate: null,
+            dateValue: null,
           },
         ],
       };

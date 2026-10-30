@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { TZDate } from "@date-fns/tz";
 import { updateAssociatedPhase } from "./updateAssociatedPhase";
+import type { EasternNow } from "../../dateUtilities";
 import { ApplicationDateInput } from "../../types";
 import { __DEMOS_VERSION__ } from "../../flags";
 
@@ -12,26 +14,39 @@ vi.mock("../applicationDate", () => ({
 }));
 
 vi.mock("../../dateUtilities", () => ({
-  formatDateToPlainDate: vi.fn(),
+  getEasternNow: vi.fn(),
 }));
 
 import { startPhase } from "../applicationPhase";
 import { validateAndUpdateDates } from "../applicationDate";
-import { formatDateToPlainDate } from "../../dateUtilities";
+import { getEasternNow } from "../../dateUtilities";
 
 describe("updateAssociatedPhase", () => {
   const mockTransaction = {} as any;
   const testApplicationId = "application-123";
   const testPhaseName = "Concept";
-  const mockEasternToday = "2026-04-27";
+  const mockEasternNow: EasternNow = {
+    "End of Day": {
+      easternTZDate: new TZDate("2026-04-27T23:59:59.999-04:00", "America/New_York"),
+      isEasternTZDate: true,
+    },
+    "Start of Day": {
+      easternTZDate: new TZDate("2026-04-27T00:00:00.000-04:00", "America/New_York"),
+      isEasternTZDate: true,
+    },
+    "Current Time": {
+      easternTZDate: new TZDate("2026-04-27T10:04:19.232-04:00", "America/New_York"),
+      isEasternTZDate: true,
+    },
+  };
   const mockPhaseStartDate: ApplicationDateInput = {
     dateType: "Concept Completion Date",
-    plainDate: "2026-04-27",
+    dateValue: new Date("2026-04-27"),
   };
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.mocked(formatDateToPlainDate).mockReturnValue(mockEasternToday);
+    vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
     vi.mocked(startPhase).mockResolvedValue(mockPhaseStartDate);
   });
 
@@ -42,7 +57,7 @@ describe("updateAssociatedPhase", () => {
       mockTransaction,
       testApplicationId,
       testPhaseName,
-      mockEasternToday
+      mockEasternNow
     );
   });
 

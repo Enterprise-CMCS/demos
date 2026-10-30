@@ -1,9 +1,10 @@
 import { notifyApplicationStatusUpdated } from "../email/notifyApplicationEvent";
 import { CompletePhaseInput } from "../../types.js";
+import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { getApplication, PrismaApplication } from "../application";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import { formatDateToPlainDate } from "../../dateUtilities.js";
+import { getEasternNow } from "../../dateUtilities.js";
 import { setPhaseToStarted, updatePhaseStatus, validatePhaseCompletion, PHASE_ACTIONS } from ".";
 import { validateAndUpdateDates } from "../applicationDate";
 import { __DEMOS_VERSION__ } from "../../flags";
@@ -14,7 +15,7 @@ export async function completePhase(
   context: { user: { id: string } }
 ): Promise<PrismaApplication> {
   const phaseActions = PHASE_ACTIONS[input.phaseName];
-  const easternToday = formatDateToPlainDate(new Date());
+  const easternNow = getEasternNow();
 
   if (phaseActions === "Not Permitted") {
     throw new Error(`Operations against the ${input.phaseName} phase are not permitted via API.`);
@@ -32,7 +33,10 @@ export async function completePhase(
           applicationDates: [
             {
               dateType: phaseActions.dateToComplete,
-              plainDate: easternToday,
+              dateValue:
+                easternNow[
+                  DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[phaseActions.dateToComplete].expectedTimestamp
+                ].easternTZDate,
             },
           ],
         },
@@ -56,7 +60,11 @@ export async function completePhase(
               applicationDates: [
                 {
                   dateType: phaseActions.nextPhase.dateToStart,
-                  plainDate: easternToday,
+                  dateValue:
+                    easternNow[
+                      DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[phaseActions.nextPhase.dateToStart]
+                        .expectedTimestamp
+                    ].easternTZDate,
                 },
               ],
             },

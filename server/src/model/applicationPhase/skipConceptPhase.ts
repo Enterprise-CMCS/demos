@@ -1,8 +1,9 @@
 import { notifyApplicationStatusUpdated } from "../email/notifyApplicationEvent";
+import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { getApplication, PrismaApplication } from "../application";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import { formatDateToPlainDate } from "../../dateUtilities.js";
+import { getEasternNow } from "../../dateUtilities.js";
 import {
   checkConceptPhaseStartedBeforeSkipping,
   getApplicationPhaseStatus,
@@ -17,7 +18,7 @@ export async function skipConceptPhase(
   { applicationId }: { applicationId: string },
   context: { user: { id: string } }
 ): Promise<PrismaApplication> {
-  const easternToday = formatDateToPlainDate(new Date());
+  const easternNow = getEasternNow();
 
   const previousApplication = await getApplication(applicationId);
 
@@ -32,7 +33,10 @@ export async function skipConceptPhase(
           applicationDates: [
             {
               dateType: "Concept Skipped Date",
-              plainDate: easternToday,
+              dateValue:
+                easternNow[
+                  DATE_TYPES_WITH_EXPECTED_TIMESTAMPS["Concept Skipped Date"].expectedTimestamp
+                ].easternTZDate,
             },
           ],
         },
@@ -49,7 +53,11 @@ export async function skipConceptPhase(
             applicationDates: [
               {
                 dateType: "Application Intake Start Date",
-                plainDate: easternToday,
+                dateValue:
+                  easternNow[
+                    DATE_TYPES_WITH_EXPECTED_TIMESTAMPS["Application Intake Start Date"]
+                      .expectedTimestamp
+                  ].easternTZDate,
               },
             ],
           },

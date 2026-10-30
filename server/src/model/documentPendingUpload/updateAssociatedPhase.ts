@@ -1,5 +1,5 @@
 import { PhaseName } from "../../constants";
-import { formatDateToPlainDate } from "../../dateUtilities";
+import { getEasternNow } from "../../dateUtilities";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { validateAndUpdateDates } from "../applicationDate";
 import { ApplicationDateInput } from "../applicationDate/applicationDateSchema";
@@ -11,8 +11,8 @@ export const updateAssociatedPhase = async (
   applicationId: string,
   phaseName: PhaseName
 ) => {
-  const easternToday = formatDateToPlainDate(new Date());
-  const phaseStartDate = await startPhase(tx, applicationId, phaseName, easternToday);
+  const easternNow = getEasternNow();
+  const phaseStartDate = await startPhase(tx, applicationId, phaseName, easternNow);
 
   const datesToUpdate: ApplicationDateInput[] = [];
 
