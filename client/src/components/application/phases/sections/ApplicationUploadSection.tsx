@@ -18,14 +18,14 @@ export const ApplicationUploadSection = ({
   documents,
   onUploadClick,
   hideUploadButton = false,
-  documentsReadonly: documentsAreReadonly = false,
+  documentsAreReadonly = false,
 }: {
   title: string;
   helperText: string;
   documents: ApplicationWorkflowDocument[];
   onUploadClick: () => void;
   hideUploadButton?: boolean;
-  documentsReadonly?: boolean;
+  documentsAreReadonly?: boolean;
 }) => {
   const { currentUser } = getCurrentUser();
   const hideButton = hideUploadButton || isReadonly(currentUser, "ApplicationWorkflow");

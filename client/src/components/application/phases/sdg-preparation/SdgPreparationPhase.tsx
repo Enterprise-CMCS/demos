@@ -274,7 +274,7 @@ export const SdgPreparationPhase = ({
                 helperText="Upload SME Summaries, Briefing Overviews, the draft BN Formulation Workbook, and other working files."
                 documents={documents}
                 onUploadClick={() => showSdgPreparationDocumentUploadDialog(applicationId)}
-                documentsReadonly={currentUser.person.personType === "demos-oact-user"}
+                documentsAreReadonly={currentUser.person.personType === "demos-oact-user"}
               />
             </div>
           </div>{" "}
