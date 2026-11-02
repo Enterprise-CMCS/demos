@@ -3,7 +3,7 @@ import type { DemosServerEnvironment } from "./demosEnvironments";
 import { getCurrentEnvironment } from "./getCurrentEnvironment";
 
 const versionNumbers: Record<DemosServerEnvironment, SemVer> = {
-  local: new SemVer("1.2.0"),
+  local: new SemVer("1.3.0"),
   dev: new SemVer("1.2.0"),
   test: new SemVer("1.2.0"),
   impl: new SemVer("1.2.0"),
