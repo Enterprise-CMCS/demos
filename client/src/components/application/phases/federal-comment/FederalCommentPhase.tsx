@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import { tw } from "tags/tw";
 import { ApplicationUploadSection } from "components/application/phases/sections";
-import { assertIsLocalDate, formatDateForDisplay, formatDateForServer, getTodayEst } from "util/formatDate";
+import {
+  assertIsLocalDate,
+  formatDateForDisplay,
+  formatDateForServer,
+  getTodayEst,
+} from "util/formatDate";
 import { useDialog } from "components/dialog/DialogContext";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { addDays, differenceInCalendarDays, isValid, parseISO } from "date-fns";
