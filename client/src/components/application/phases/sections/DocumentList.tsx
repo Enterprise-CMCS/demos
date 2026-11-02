@@ -6,9 +6,11 @@ import { DocumentChip } from "components/document/DocumentChip";
 export const DocumentList = ({
   documents,
   emptyMessage = "No documents yet.",
+  isReadonly = false,
 }: {
   documents: ApplicationWorkflowDocument[];
   emptyMessage?: string;
+  isReadonly?: boolean;
 }) => {
   const { showRemoveApplicationDocumentsDialog } = useDialog();
 
@@ -24,6 +26,7 @@ export const DocumentList = ({
           key={doc.id}
           onRemove={() => showRemoveApplicationDocumentsDialog([doc.id])}
           applicationSection="ApplicationWorkflow"
+          isReadonly={isReadonly}
         />
       ))}
     </div>

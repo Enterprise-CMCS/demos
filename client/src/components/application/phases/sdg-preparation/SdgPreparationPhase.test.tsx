@@ -12,7 +12,7 @@ import {
 import { WorkflowApplication } from "components/application";
 import type { ApplicationStatus, DateType, PhaseName, PhaseStatus } from "demos-server";
 import { TestProvider } from "test-utils/TestProvider";
-import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { cmsMockUser, oactMockUser, readonlyMockUser } from "mock-data/userMocks";
 import type { CurrentUser } from "components/user/UserContext";
 import { ToastContainer } from "components/toast";
 import { DialogProvider } from "components/dialog/DialogContext";
@@ -942,5 +942,24 @@ describe("SdgPreparationPhase - Draft Documents Section", () => {
     renderSection([], readonlyMockUser);
 
     expect(screen.queryByRole("button", { name: "Upload" })).not.toBeInTheDocument();
+  });
+
+  it("hides upload button and document delete buttons for OACT users", () => {
+    renderSection([createDocument({ name: "Briefing Overview" })], oactMockUser);
+
+    expect(screen.queryByRole("button", { name: "Upload" })).not.toBeInTheDocument();
+    expect(screen.getByText("Briefing Overview")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Delete Briefing Overview" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps the Upload button and document delete buttons for CMS users", () => {
+    renderSection([createDocument({ name: "Briefing Overview" })], cmsMockUser);
+
+    expect(screen.getByRole("button", { name: "Upload" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Delete Briefing Overview" })
+    ).toBeInTheDocument();
   });
 });

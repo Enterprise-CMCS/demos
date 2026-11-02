@@ -19,6 +19,7 @@ type Props = {
   helperText: string;
   documents: ApplicationWorkflowDocument[];
   onUploadClick: () => void;
+  isReadonly?: boolean;
 };
 
 export const ApplicationUploadSection: React.FC<Props> = ({
@@ -26,9 +27,10 @@ export const ApplicationUploadSection: React.FC<Props> = ({
   helperText,
   documents,
   onUploadClick,
+  isReadonly: isReadonlyProp = false,
 }) => {
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
+  const isReadonlyUser = isReadonlyProp || isReadonly(currentUser, "ApplicationWorkflow");
 
   return (
     <div aria-labelledby="upload-title">
@@ -48,7 +50,7 @@ export const ApplicationUploadSection: React.FC<Props> = ({
         <ExportIcon />
       </SecondaryButton>
 
-      <DocumentList documents={documents} />
+      <DocumentList documents={documents} isReadonly={isReadonlyUser} />
     </div>
   );
 };

@@ -100,4 +100,10 @@ describe("DocumentChip", () => {
 
     expect(screen.queryByRole("button", { name: /delete/i })).not.toBeInTheDocument();
   });
+
+  it("hides the delete button when isReadonly is set", () => {
+    renderDocumentChip(<DocumentChip document={baseDocument} onRemove={vi.fn()} isReadonly />);
+
+    expect(screen.queryByRole("button", { name: /delete/i })).not.toBeInTheDocument();
+  });
 });

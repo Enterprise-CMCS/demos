@@ -35,9 +35,10 @@ export const DocumentChip: React.FC<{
   };
   onRemove: () => void;
   applicationSection?: DemosApplicationSection;
-}> = ({ document, onRemove, applicationSection }) => {
+  isReadonly?: boolean;
+}> = ({ document, onRemove, applicationSection, isReadonly: isReadonlyProp = false }) => {
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonly(currentUser, applicationSection);
+  const isReadonlyUser = isReadonlyProp || isReadonly(currentUser, applicationSection);
   const content = (
     <>
       <FileIcon className={STYLES.fileIcon} />
