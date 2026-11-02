@@ -86,7 +86,7 @@
     "@testing-library/user-event": "^14.6.8",
     "date-fns": "^4.4.0",
     "demos-shared-library": "file:../shared_library",
-    "documonster": "^0.20.2",
+    "documonster": "^0.21.1",
     "file-type": "^21.3.4",
     "react-oidc-context": "^3.3.1",
     "react-router-dom": "^7.18.4",
@@ -95,6 +95,6 @@
   },
   "optionalDependencies": {
     "@emnapi/core": "^1.11.3",
-    "@rollup/rollup-linux-x64-musl": "^4.64.10"
+    "@rollup/rollup-linux-x64-musl": "^4.65.0"
   }
 }

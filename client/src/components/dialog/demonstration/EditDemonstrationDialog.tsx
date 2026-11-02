@@ -4,7 +4,6 @@ import { Loading } from "components/loading/Loading";
 import { useToast } from "components/toast";
 import {
   Demonstration as ServerDemonstration,
-  LocalDate,
   UpdateDemonstrationInput,
   State as ServerState,
   Person as ServerPerson,
@@ -15,6 +14,7 @@ import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/Demonstrat
 import { gql, TypedDocumentNode, useMutation, useQuery } from "@apollo/client";
 
 import { DemonstrationDialog, DemonstrationDialogFields } from "./DemonstrationDialog";
+import { assertIsLocalDate } from "util/formatDate";
 
 const SUCCESS_MESSAGE = "Your demonstration has been updated.";
 const ERROR_MESSAGE = "Your demonstration was not updated because of an unknown problem.";
@@ -85,9 +85,7 @@ export const UPDATE_DEMONSTRATION_MUTATION: TypedDocumentNode<
       status
       sdgDivision
       signatureLevel
-      effectiveDate
       effectivePlainDate
-      expirationDate
       expirationPlainDate
       state {
         id
@@ -115,8 +113,12 @@ export const getUpdateDemonstrationInput = (
       projectOfficerUserId: demonstration.projectOfficerId,
     }),
     description: demonstration.description?.trim(),
-    effectiveDate: (demonstration.effectiveDate as LocalDate) || null,
-    expirationDate: (demonstration.expirationDate as LocalDate) || null,
+    effectivePlainDate: demonstration.effectiveDate
+      ? assertIsLocalDate(demonstration.effectiveDate)
+      : null,
+    expirationPlainDate: demonstration.expirationDate
+      ? assertIsLocalDate(demonstration.expirationDate)
+      : null,
     sdgDivision: demonstration.sdgDivision || null,
   };
 };

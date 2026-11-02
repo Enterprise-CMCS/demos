@@ -24,7 +24,11 @@ export {
 export { createPhaseStartDate } from "./createPhaseStartDate";
 export { validateAllowedDateChangeForApplication } from "./validateAllowedDateChangeForApplication";
 export { validateAllowedDateChangeByPhase } from "./validateAllowedDateChangeByPhase";
-export { validateAllowedToChangeFederalCommentPeriodDates } from "./validateAllowedToChangeFederalCommentPeriodDates";
+export {
+  validateAllowedToChangeFederalCommentPeriodDates,
+  parsedInputHasFederalCommentDate,
+} from "./validateAllowedToChangeFederalCommentPeriodDates";
+export { callFederalCommentPhaseUpdateProcedure } from "./callFederalCommentPhaseUpdateProcedure";
 
 // Queries
 export { deleteApplicationDates } from "./queries/deleteApplicationDates";

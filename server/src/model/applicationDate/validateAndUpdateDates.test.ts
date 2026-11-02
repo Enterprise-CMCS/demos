@@ -17,6 +17,8 @@ vi.mock(".", () => ({
   validateAllowedDateChangeByPhase: vi.fn(),
   validateAllowedDateChangeForApplication: vi.fn(),
   validateAllowedToChangeFederalCommentPeriodDates: vi.fn(),
+  callFederalCommentPhaseUpdateProcedure: vi.fn(),
+  parsedInputHasFederalCommentDate: vi.fn(),
 }));
 
 import {
@@ -29,11 +31,13 @@ import {
   validateAllowedDateChangeByPhase,
   validateAllowedDateChangeForApplication,
   validateAllowedToChangeFederalCommentPeriodDates,
+  callFederalCommentPhaseUpdateProcedure,
+  parsedInputHasFederalCommentDate,
 } from ".";
 
 describe("validateAndUpdateDates", () => {
   const testPrismaTransaction: any = "Test";
-  const testDateTimeValue1 = new Date("2025-01-01T00:00:00.000-05:00");
+  const testDateTimeValue1 = "2025-01-01";
   const testDateTimeValue2: EasternTZDate = {
     isEasternTZDate: true,
     easternTZDate: new TZDate("2025-01-01T00:00:00.000-05:00", "America/New_York"),
@@ -54,11 +58,11 @@ describe("validateAndUpdateDates", () => {
     applicationDates: [
       {
         dateType: "Federal Comment Period Start Date",
-        dateValue: testDateTimeValue1,
+        plainDate: testDateTimeValue1,
       },
       {
         dateType: "Federal Comment Period End Date",
-        dateValue: testLocalDateValue3,
+        plainDate: testLocalDateValue3,
       },
     ],
   };
@@ -103,7 +107,7 @@ describe("validateAndUpdateDates", () => {
 
   describe("before 1.3.0", () => {
     const currentVersion = new SemVer("1.2.0");
-    it("should parse, validate, and upsert the input dates, but not validate changes to the federal comment period dates", async () => {
+    it("should parse, validate, and upsert the input dates, but not validate changes to the federal comment period dates, or update the federal comment phase status", async () => {
       vi.mocked(parseSetApplicationDatesInput).mockReturnValueOnce(testParsedResult);
       vi.mocked(getApplicationDates).mockResolvedValueOnce(testExistingDates);
       vi.mocked(mergeApplicationDates).mockReturnValueOnce(testMergedDates);
@@ -138,6 +142,8 @@ describe("validateAndUpdateDates", () => {
         testParsedResult,
         testPrismaTransaction
       );
+      expect(parsedInputHasFederalCommentDate).not.toHaveBeenCalled();
+      expect(callFederalCommentPhaseUpdateProcedure).not.toHaveBeenCalled();
     });
   });
 
@@ -179,6 +185,62 @@ describe("validateAndUpdateDates", () => {
       );
       expect(deleteApplicationDates).toHaveBeenCalledExactlyOnceWith(
         testParsedResult,
+        testPrismaTransaction
+      );
+    });
+
+    it("should not update the federal comment phase status if the right dates are not present", async () => {
+      vi.mocked(parseSetApplicationDatesInput).mockReturnValueOnce(testParsedResult);
+      vi.mocked(getApplicationDates).mockResolvedValueOnce(testExistingDates);
+      vi.mocked(mergeApplicationDates).mockReturnValueOnce(testMergedDates);
+      vi.mocked(parsedInputHasFederalCommentDate).mockReturnValue(false);
+
+      const expectedCalls = [
+        [testParsedResult, "Federal Comment Period Start Date"],
+        [testParsedResult, "Federal Comment Period End Date"],
+      ];
+
+      await validateAndUpdateDates(testInput, testPrismaTransaction, currentVersion);
+
+      expect(vi.mocked(parsedInputHasFederalCommentDate).mock.calls).toEqual(expectedCalls);
+      expect(callFederalCommentPhaseUpdateProcedure).not.toHaveBeenCalled();
+    });
+
+    it("should update the federal comment phase status if the right dates are present", async () => {
+      vi.mocked(parseSetApplicationDatesInput).mockReturnValueOnce(testParsedResult);
+      vi.mocked(getApplicationDates).mockResolvedValueOnce(testExistingDates);
+      vi.mocked(mergeApplicationDates).mockReturnValueOnce(testMergedDates);
+      vi.mocked(parsedInputHasFederalCommentDate).mockReturnValue(true);
+
+      // Note that because of short-circuit, only the first call will run
+      const expectedCalls = [[testParsedResult, "Federal Comment Period Start Date"]];
+
+      await validateAndUpdateDates(testInput, testPrismaTransaction, currentVersion);
+
+      expect(vi.mocked(parsedInputHasFederalCommentDate).mock.calls).toEqual(expectedCalls);
+      expect(callFederalCommentPhaseUpdateProcedure).toHaveBeenCalledExactlyOnceWith(
+        testParsedResult.applicationId,
+        testPrismaTransaction
+      );
+    });
+
+    it("should update the federal comment phase status even if only one date is present", async () => {
+      vi.mocked(parseSetApplicationDatesInput).mockReturnValueOnce(testParsedResult);
+      vi.mocked(getApplicationDates).mockResolvedValueOnce(testExistingDates);
+      vi.mocked(mergeApplicationDates).mockReturnValueOnce(testMergedDates);
+      vi.mocked(parsedInputHasFederalCommentDate).mockReturnValueOnce(false);
+      vi.mocked(parsedInputHasFederalCommentDate).mockReturnValueOnce(true);
+
+      const expectedCalls = [
+        [testParsedResult, "Federal Comment Period Start Date"],
+        [testParsedResult, "Federal Comment Period End Date"],
+      ];
+
+      await validateAndUpdateDates(testInput, testPrismaTransaction, currentVersion);
+
+      expect(vi.mocked(parsedInputHasFederalCommentDate).mock.calls).toEqual(expectedCalls);
+      expect(callFederalCommentPhaseUpdateProcedure).toHaveBeenCalledExactlyOnceWith(
+        testParsedResult.applicationId,
         testPrismaTransaction
       );
     });

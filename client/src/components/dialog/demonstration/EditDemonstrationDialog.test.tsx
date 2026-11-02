@@ -278,8 +278,8 @@ describe("getUpdateDemonstrationInput", () => {
       effectiveDate: "2024-06-01",
       expirationDate: "2025-06-01",
     });
-    expect(result.effectiveDate).toBe("2024-06-01");
-    expect(result.expirationDate).toBe("2025-06-01");
+    expect(result.effectivePlainDate).toBe("2024-06-01");
+    expect(result.expirationPlainDate).toBe("2025-06-01");
   });
 
   it("passes null for effectiveDate and expirationDate when empty", () => {
@@ -288,8 +288,8 @@ describe("getUpdateDemonstrationInput", () => {
       effectiveDate: "",
       expirationDate: "",
     });
-    expect(result.effectiveDate).toBeNull();
-    expect(result.expirationDate).toBeNull();
+    expect(result.effectivePlainDate).toBeNull();
+    expect(result.expirationPlainDate).toBeNull();
   });
 
   it("passes null for sdgDivision when not provided", () => {

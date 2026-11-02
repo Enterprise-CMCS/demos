@@ -48,7 +48,7 @@ export async function declareCompletenessPhaseIncomplete(
         if (datesToDelete.has(existingDate.dateType)) {
           applicationDatesToDelete.push({
             dateType: existingDate.dateType,
-            dateValue: null,
+            plainDate: null,
           });
         }
       }

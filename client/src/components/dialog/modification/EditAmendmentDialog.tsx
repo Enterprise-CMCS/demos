@@ -1,11 +1,12 @@
 import React from "react";
 import { Modification, ModificationFormData } from "./ModificationForm";
 import { gql, TypedDocumentNode, useMutation, useQuery } from "@apollo/client";
-import { DateTimeOrLocalDate, UpdateAmendmentInput } from "demos-server";
+import { UpdateAmendmentInput } from "demos-server";
 import { BaseEditModificationDialog } from "./BaseEditModificationDialog";
+import { assertIsLocalDate } from "util/formatDate";
 
 export const UPDATE_AMENDMENT_MUTATION: TypedDocumentNode<
-  { updateAmendment: Modification & { effectivePlainDate: string | null } },
+  { updateAmendment: Modification },
   { id: string; input: UpdateAmendmentInput }
 > = gql`
   mutation UpdateAmendment($id: ID!, $input: UpdateAmendmentInput!) {
@@ -13,7 +14,6 @@ export const UPDATE_AMENDMENT_MUTATION: TypedDocumentNode<
       id
       name
       description
-      effectiveDate
       effectivePlainDate
       signatureLevel
     }
@@ -48,12 +48,13 @@ export const useUpdateAmendment = (amendmentId: string, refetchQueries: string[]
   });
 
   const save = async (input: ModificationFormData) => {
+    const { effectiveDate, ...rest } = input;
     await updateAmendment({
       variables: {
         id: amendmentId,
         input: {
-          ...input,
-          effectiveDate: input.effectiveDate as DateTimeOrLocalDate | null | undefined,
+          ...rest,
+          effectivePlainDate: effectiveDate ? assertIsLocalDate(effectiveDate) : null,
         },
       },
     });
