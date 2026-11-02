@@ -7,14 +7,14 @@ import { Button, SecondaryButton } from "components/button";
 import { ChevronRightIcon, ExportIcon } from "components/icons";
 
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
-import { formatDateForServer } from "util/formatDate";
+import { assertIsLocalDate, formatDateForServer } from "util/formatDate";
 import { DocumentList } from "components/application/phases/sections";
 import { useDialog } from "components/dialog/DialogContext";
 import { useToast } from "components/toast";
 import { getPhaseCompletedMessage, MISSING_REQUIRED_SECTIONS_TOOLTIP } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
-import type { DateType, LocalDate, PhaseName, PhaseStatus } from "demos-server";
+import type { DateType, PhaseName, PhaseStatus } from "demos-server";
 import {
   useCompletePhase,
   useSkipConceptPhase,
@@ -181,7 +181,7 @@ export const ConceptPhase = ({
       await setApplicationDate({
         applicationId: applicationId,
         dateType: "Concept Paper Submitted Date",
-        dateValue: submittedDate as LocalDate,
+        plainDate: assertIsLocalDate(submittedDate),
       });
     } catch (error) {
       console.error("Error setting application date:", error);

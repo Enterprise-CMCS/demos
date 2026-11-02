@@ -11,7 +11,7 @@ import {
 } from "components/application";
 import { ApplicationUploadSection } from "components/application/phases/sections";
 import { useDialog } from "components/dialog/DialogContext";
-import { ApplicationStatus, DateType, LocalDate, PhaseName } from "demos-server";
+import { ApplicationStatus, DateType, PhaseName } from "demos-server";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import {
   FAILED_TO_SAVE_MESSAGE,
@@ -22,6 +22,7 @@ import {
 import { DatePicker } from "components/input/date/DatePicker";
 import { getCurrentUser, isReadonly } from "components/user/UserContext";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
+import { assertIsLocalDate } from "util/formatDate";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -148,7 +149,7 @@ export const SdgPreparationPhase = ({
       await setApplicationDate({
         applicationId: applicationId,
         dateType: "Internal Expected Approval Date" satisfies DateType,
-        dateValue: sdgPreparationPhaseFormData.internalExpectedApprovalDate as LocalDate,
+        plainDate: assertIsLocalDate(sdgPreparationPhaseFormData.internalExpectedApprovalDate),
       });
     }
 
@@ -157,7 +158,7 @@ export const SdgPreparationPhase = ({
         await setApplicationDate({
           applicationId: applicationId,
           dateType: "State Requested Approval Date" satisfies DateType,
-          dateValue: sdgPreparationPhaseFormData.stateRequestedApprovalDate as LocalDate,
+          plainDate: assertIsLocalDate(sdgPreparationPhaseFormData.stateRequestedApprovalDate),
         });
       }
 
@@ -165,7 +166,7 @@ export const SdgPreparationPhase = ({
         await setApplicationDate({
           applicationId: applicationId,
           dateType: "SME Initial Review Date" satisfies DateType,
-          dateValue: sdgPreparationPhaseFormData.smeInitialReviewDate as LocalDate,
+          plainDate: assertIsLocalDate(sdgPreparationPhaseFormData.smeInitialReviewDate),
         });
       }
 
@@ -173,7 +174,7 @@ export const SdgPreparationPhase = ({
         await setApplicationDate({
           applicationId: applicationId,
           dateType: "FRT Initial Meeting Date" satisfies DateType,
-          dateValue: sdgPreparationPhaseFormData.frtInitialMeetingDate as LocalDate,
+          plainDate: assertIsLocalDate(sdgPreparationPhaseFormData.frtInitialMeetingDate),
         });
       }
 
@@ -181,7 +182,7 @@ export const SdgPreparationPhase = ({
         await setApplicationDate({
           applicationId: applicationId,
           dateType: "BNPMT Initial Meeting Date" satisfies DateType,
-          dateValue: sdgPreparationPhaseFormData.bnpmtInitialMeetingDate as LocalDate,
+          plainDate: assertIsLocalDate(sdgPreparationPhaseFormData.bnpmtInitialMeetingDate),
         });
       }
 
@@ -189,7 +190,7 @@ export const SdgPreparationPhase = ({
         await setApplicationDate({
           applicationId: applicationId,
           dateType: "OACT Initial Review Date" satisfies DateType,
-          dateValue: sdgPreparationPhaseFormData.oactInitialReviewDate as LocalDate,
+          plainDate: assertIsLocalDate(sdgPreparationPhaseFormData.oactInitialReviewDate),
         });
       }
     }

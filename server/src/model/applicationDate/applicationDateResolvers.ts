@@ -37,7 +37,7 @@ export function __setApplicationDate(
     applicationDates: [
       {
         dateType: input.dateType,
-        dateValue: input.dateValue,
+        plainDate: input.plainDate,
       },
     ],
   };
