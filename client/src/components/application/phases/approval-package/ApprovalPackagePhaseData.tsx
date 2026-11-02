@@ -2,7 +2,7 @@ import React from "react";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { DocumentType, PhaseName } from "demos-server";
 import { ApprovalPackagePhase } from "./ApprovalPackagePhase";
-import { isOactCertificationRequired } from "../oactCertification";
+import { isOactCertificationRequired } from "components/application/phases/oactCertification";
 
 export const REQUIRED_DOCUMENT_TYPES: DocumentType[] = [
   "Final Budget Neutrality Formulation Workbook",
