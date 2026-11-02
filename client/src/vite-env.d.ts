@@ -13,6 +13,7 @@ declare const __GIT_COMMIT__: string;
 declare const __DEMOS_VERSION__: string;
 declare const __FEATURE_SHOW_GIT_VERSION__: boolean;
 declare const __FEATURE_OACT_USER__: boolean;
+declare const __FEATURE_DECLARE_FEDERAL_COMMENT_DATES_IN_PHASE_4__: boolean;
 
 /**
 Some built-in constants are available in all cases:

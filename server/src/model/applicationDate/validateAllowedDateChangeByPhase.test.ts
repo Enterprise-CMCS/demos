@@ -3,6 +3,7 @@ import { validateAllowedDateChangeByPhase } from "./validateAllowedDateChangeByP
 import { LocalDate, SetApplicationDatesInput } from "../../types";
 import { getFinishedApplicationPhaseIds } from "../applicationPhase";
 import { getPhaseDateTypesByIds } from "../phaseDateType";
+import { SemVer } from "semver";
 
 vi.mock("../applicationPhase", () => ({
   getFinishedApplicationPhaseIds: vi.fn(),
@@ -21,6 +22,70 @@ describe("validateAllowedDateChangeByPhase", () => {
   });
 
   describe("when no completed phases have the date types", () => {
+    it.each(["1.2.0", "1.3.0"])(
+      "gates declaration after Completeness for version %s",
+      async (version) => {
+        const input: SetApplicationDatesInput = {
+          applicationId: testApplicationId,
+          applicationDates: [
+            { dateType: "Federal Comment Period Start Date", dateValue: "2026-10-27" as LocalDate },
+            { dateType: "Federal Comment Period End Date", dateValue: "2026-11-26" as LocalDate },
+          ],
+        };
+        vi.mocked(getFinishedApplicationPhaseIds).mockResolvedValue(["Completeness"]);
+        vi.mocked(getPhaseDateTypesByIds).mockResolvedValue([
+          { phaseId: "Completeness", dateTypeId: "Federal Comment Period Start Date" },
+          { phaseId: "Completeness", dateTypeId: "Federal Comment Period End Date" },
+        ]);
+        const result = validateAllowedDateChangeByPhase(
+          mockTransaction,
+          input,
+          new SemVer(version)
+        );
+        if (version === "1.2.0") {
+          await expect(result).rejects.toThrow("finished phases");
+        } else {
+          await expect(result).resolves.toBeUndefined();
+        }
+      }
+    );
+
+    it("still protects dates belonging to a completed Federal Comment phase", async () => {
+      const input: SetApplicationDatesInput = {
+        applicationId: testApplicationId,
+        applicationDates: [
+          { dateType: "Federal Comment Period Start Date", dateValue: "2026-10-27" as LocalDate },
+        ],
+      };
+      vi.mocked(getFinishedApplicationPhaseIds).mockResolvedValue([
+        "Completeness",
+        "Federal Comment",
+      ]);
+      vi.mocked(getPhaseDateTypesByIds).mockResolvedValue([
+        { phaseId: "Completeness", dateTypeId: "Federal Comment Period Start Date" },
+        { phaseId: "Federal Comment", dateTypeId: "Federal Comment Period Start Date" },
+      ]);
+      await expect(
+        validateAllowedDateChangeByPhase(mockTransaction, input, new SemVer("1.3.0"))
+      ).rejects.toThrow("Federal Comment Period Start Date date on Federal Comment phase");
+    });
+
+    it("still protects the state-deemed-complete date after Completeness finishes", async () => {
+      const input: SetApplicationDatesInput = {
+        applicationId: testApplicationId,
+        applicationDates: [
+          { dateType: "State Application Deemed Complete", dateValue: "2026-10-26" as LocalDate },
+        ],
+      };
+      vi.mocked(getFinishedApplicationPhaseIds).mockResolvedValue(["Completeness"]);
+      vi.mocked(getPhaseDateTypesByIds).mockResolvedValue([
+        { phaseId: "Completeness", dateTypeId: "State Application Deemed Complete" },
+      ]);
+      await expect(
+        validateAllowedDateChangeByPhase(mockTransaction, input, new SemVer("1.3.0"))
+      ).rejects.toThrow("State Application Deemed Complete date on Completeness phase");
+    });
+
     it("should not throw an error for single date type", async () => {
       const input: SetApplicationDatesInput = {
         applicationId: testApplicationId,

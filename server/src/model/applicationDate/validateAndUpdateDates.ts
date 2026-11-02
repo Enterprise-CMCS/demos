@@ -30,7 +30,7 @@ export async function validateAndUpdateDates(
   options: ValidateAndUpdateDatesOptions = {}
 ): Promise<void> {
   await validateAllowedDateChangeForApplication(tx, setApplicationDateInput);
-  await validateAllowedDateChangeByPhase(tx, setApplicationDateInput);
+  await validateAllowedDateChangeByPhase(tx, setApplicationDateInput, currentVersion);
   const parsedSetApplicationDatesInput = parseSetApplicationDatesInput(setApplicationDateInput);
   const existingApplicationDates = await getApplicationDates(
     setApplicationDateInput.applicationId,

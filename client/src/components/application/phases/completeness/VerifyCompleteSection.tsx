@@ -100,15 +100,15 @@ export const VerifyCompleteSection = ({
   );
   const stateDeemedComplete =
     userSelectedStateDeemedCompleteDate || calculatedStateDeemedCompleteDate;
-  const { federalStartDate, federalEndDate } =
-    calculateFederalCommentPeriodDates(stateDeemedComplete);
+  const { federalStartDate, federalEndDate } = __FEATURE_DECLARE_FEDERAL_COMMENT_DATES_IN_PHASE_4__
+    ? { federalStartDate: "", federalEndDate: "" }
+    : calculateFederalCommentPeriodDates(stateDeemedComplete);
 
   const finishIsEnabled = () => {
-    const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
-    const datesAreValid =
-      federalStartDate && federalEndDate
-        ? true
-        : new Date(federalStartDate) <= new Date(federalEndDate);
+    const datesFilled = Boolean(
+      stateDeemedComplete &&
+      (__FEATURE_DECLARE_FEDERAL_COMMENT_DATES_IN_PHASE_4__ || (federalStartDate && federalEndDate))
+    );
 
     return (
       !completenessComplete &&
@@ -117,8 +117,7 @@ export const VerifyCompleteSection = ({
       completenessDocuments.find(
         (doc) => doc.documentType === "Internal Completeness Review Form"
       ) &&
-      datesFilled &&
-      datesAreValid
+      datesFilled
     );
   };
 
@@ -128,15 +127,13 @@ export const VerifyCompleteSection = ({
         dateType: "State Application Deemed Complete",
         dateValue: stateDeemedComplete as LocalDate,
       },
-      {
-        dateType: "Federal Comment Period Start Date",
-        dateValue: federalStartDate as LocalDate,
-      },
-      {
-        dateType: "Federal Comment Period End Date",
-        dateValue: federalEndDate as LocalDate,
-      },
     ];
+    if (!__FEATURE_DECLARE_FEDERAL_COMMENT_DATES_IN_PHASE_4__) {
+      dates.push(
+        { dateType: "Federal Comment Period Start Date", dateValue: federalStartDate as LocalDate },
+        { dateType: "Federal Comment Period End Date", dateValue: federalEndDate as LocalDate }
+      );
+    }
 
     await setApplicationDates({
       applicationId,
@@ -194,23 +191,26 @@ export const VerifyCompleteSection = ({
           />
         </div>
 
-        <div>
-          <DatePicker
-            name={FEDERAL_COMMENT_START_DATEPICKER_NAME}
-            label={"Federal Comment Period Start Date"}
-            value={federalStartDate}
-            isDisabled
-          />
-        </div>
-
-        <div>
-          <DatePicker
-            name={FEDERAL_COMMENT_END_DATEPICKER_NAME}
-            label={"Federal Comment Period End Date"}
-            value={federalEndDate}
-            isDisabled
-          />
-        </div>
+        {!__FEATURE_DECLARE_FEDERAL_COMMENT_DATES_IN_PHASE_4__ && (
+          <>
+            <div>
+              <DatePicker
+                name={FEDERAL_COMMENT_START_DATEPICKER_NAME}
+                label={"Federal Comment Period Start Date"}
+                value={federalStartDate}
+                isDisabled
+              />
+            </div>
+            <div>
+              <DatePicker
+                name={FEDERAL_COMMENT_END_DATEPICKER_NAME}
+                label={"Federal Comment Period End Date"}
+                value={federalEndDate}
+                isDisabled
+              />
+            </div>
+          </>
+        )}
       </div>
 
       <div className={"mt-8 flex justify-end gap-2"}>

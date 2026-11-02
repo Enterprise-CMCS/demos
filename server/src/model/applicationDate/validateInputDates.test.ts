@@ -12,6 +12,7 @@ import { DATE_TYPES, DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants
 import { TZDate } from "@date-fns/tz";
 import { SemVer } from "semver";
 import type { DateOffset, ApplicationDateMap } from ".";
+import * as dateChecks from "./checkInputDateFunctions";
 
 // Mock imports
 vi.mock(".", () => ({
@@ -130,6 +131,7 @@ describe("validateInputDates", () => {
       });
       it("should include ordering checks for federal comment period", () => {
         const result = makeValidations(new SemVer(versionNumber));
+        expect(result["State Application Deemed Complete"]["lessThanChecks"]).toHaveLength(0);
         expect(result["Federal Comment Period Start Date"]["lessThanChecks"]).toHaveLength(1);
         expect(result["Federal Comment Period Start Date"]["greaterThanChecks"]).toHaveLength(1);
         expect(result["Federal Comment Period End Date"]["greaterThanChecks"]).toHaveLength(1);
@@ -369,6 +371,55 @@ describe("validateInputDates", () => {
 
     describe("from 1.3.0", () => {
       const versionNumber = "1.3.0";
+
+      it("allows completeness dates before declaration and rejects invalid federal date ordering", () => {
+        vi.mocked(checkInputDateGreaterThan).mockImplementation(
+          dateChecks.checkInputDateGreaterThan
+        );
+        vi.mocked(checkInputDateGreaterThanOrEqual).mockImplementation(
+          dateChecks.checkInputDateGreaterThanOrEqual
+        );
+        vi.mocked(checkInputDateLessThan).mockImplementation(dateChecks.checkInputDateLessThan);
+
+        const makeDate = (date: string): EasternTZDate => ({
+          isEasternTZDate: true,
+          easternTZDate: new TZDate(`${date}T00:00:00`, "America/New_York"),
+        });
+        const completenessDates: ParsedApplicationDateInput[] = [
+          { dateType: "State Application Submitted Date", dateValue: makeDate("2026-10-01") },
+          { dateType: "Completeness Review Due Date", dateValue: makeDate("2026-10-16") },
+          { dateType: "State Application Deemed Complete", dateValue: makeDate("2026-10-26") },
+        ];
+        expect(() =>
+          validateInputDates(completenessDates, new SemVer(versionNumber))
+        ).not.toThrow();
+
+        const declaredDates: ParsedApplicationDateInput[] = [
+          ...completenessDates,
+          { dateType: "Federal Comment Period Start Date", dateValue: makeDate("2026-10-27") },
+          { dateType: "Federal Comment Period End Date", dateValue: makeDate("2026-11-26") },
+        ];
+        expect(() => validateInputDates(declaredDates, new SemVer(versionNumber))).not.toThrow();
+        expect(() =>
+          validateInputDates(
+            [
+              ...completenessDates,
+              { dateType: "Federal Comment Period Start Date", dateValue: makeDate("2026-10-25") },
+              { dateType: "Federal Comment Period End Date", dateValue: makeDate("2026-11-24") },
+            ],
+            new SemVer(versionNumber)
+          )
+        ).toThrow("must be greater than State Application Deemed Complete");
+        expect(() =>
+          validateInputDates(
+            [
+              ...completenessDates,
+              { dateType: "Federal Comment Period Start Date", dateValue: makeDate("2026-10-27") },
+            ],
+            new SemVer(versionNumber)
+          )
+        ).toThrow("Federal Comment Period End Date");
+      });
 
       it("should run checkInputDateMeetsOffset on dates with that check (now none)", () => {
         validateInputDates(testInput, new SemVer(versionNumber));

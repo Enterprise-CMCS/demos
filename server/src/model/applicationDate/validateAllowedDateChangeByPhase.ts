@@ -2,10 +2,13 @@ import { PrismaTransactionClient } from "../../prismaClient";
 import { PhaseName, SetApplicationDatesInput } from "../../types";
 import { getFinishedApplicationPhaseIds } from "../applicationPhase";
 import { getPhaseDateTypesByIds, PhaseDateType } from "../phaseDateType";
+import { SemVer } from "semver";
+import { __DEMOS_VERSION__, getFeatureFlags } from "../../flags";
 
 export async function validateAllowedDateChangeByPhase(
   tx: PrismaTransactionClient,
-  input: SetApplicationDatesInput
+  input: SetApplicationDatesInput,
+  currentVersion: SemVer = __DEMOS_VERSION__
 ): Promise<void> {
   const completedPhaseIds: PhaseName[] = await getFinishedApplicationPhaseIds(
     tx,
@@ -16,6 +19,15 @@ export async function validateAllowedDateChangeByPhase(
     completedPhaseIds,
     input.applicationDates.map((applicationDate) => applicationDate.dateType)
   );
+
+  if (getFeatureFlags(currentVersion).declareFederalCommentDatesInPhase4) {
+    disallowedDateInputs = disallowedDateInputs.filter(
+      ({ phaseId, dateTypeId }) =>
+        phaseId !== "Completeness" ||
+        (dateTypeId !== "Federal Comment Period Start Date" &&
+          dateTypeId !== "Federal Comment Period End Date")
+    );
+  }
 
   // Special case: Internal Expected Approval Date is allowed to be edited after SDG Preparation completed
   // It cannot be deleted after SDG Preparation is completed
@@ -28,7 +40,8 @@ export async function validateAllowedDateChangeByPhase(
   if (disallowedContainsExpectedApprovalDate) {
     const disallowedOperationIsDeletion = input.applicationDates.some(
       (applicationDate) =>
-        applicationDate.dateType === "Internal Expected Approval Date" && applicationDate.dateValue === null
+        applicationDate.dateType === "Internal Expected Approval Date" &&
+        applicationDate.dateValue === null
     );
 
     if (disallowedOperationIsDeletion) {

@@ -12,6 +12,7 @@ import {
 import { makeApplicationDateMapFromList, ParsedApplicationDateInput } from "../applicationDate";
 import { ClearanceLevel } from "../../types.js";
 import { TZDate } from "@date-fns/tz";
+import { SemVer } from "semver";
 vi.mock(".", () => ({
   checkApplicationDateExistsForCompletion: vi.fn(),
   checkDocumentTypeExistsForCompletion: vi.fn(),
@@ -121,6 +122,34 @@ describe("checkPhaseCompletionRules", () => {
   });
 
   describe("Completeness Phase", () => {
+    it("only requires the state deemed complete date when Phase 4 declaration is enabled", () => {
+      checkPhaseCompletionRules(
+        testApplicationId,
+        "Completeness",
+        testApplicationDates,
+        testApplicationDocumentTypes,
+        testApplicationPhases,
+        testApplicationClearanceLevel,
+        new SemVer("1.3.0")
+      );
+
+      expect(vi.mocked(checkApplicationDateExistsForCompletion).mock.calls).toEqual([
+        [
+          testApplicationId,
+          "Completeness",
+          "State Application Deemed Complete",
+          testApplicationDateMapReturn,
+        ],
+      ]);
+      expect(checkDocumentTypeExistsForCompletion).toHaveBeenCalledTimes(2);
+      expect(checkPriorPhaseCompleteForCompletion).toHaveBeenCalledWith(
+        testApplicationId,
+        "Completeness",
+        "Application Intake",
+        testApplicationPhases
+      );
+    });
+
     it("should run expected checks for the Completeness phase", () => {
       checkPhaseCompletionRules(
         testApplicationId,

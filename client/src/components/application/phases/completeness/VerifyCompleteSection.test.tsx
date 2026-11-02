@@ -2,7 +2,7 @@ import "@testing-library/jest-dom";
 import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { TestProvider } from "test-utils/TestProvider";
 import { VerifyCompleteSection } from "./VerifyCompleteSection";
 import {
@@ -64,6 +64,14 @@ const mockInternalDoc: ApplicationWorkflowDocument = {
 };
 
 describe("VerifyCompleteSection", () => {
+  beforeEach(() => {
+    vi.stubGlobal("__FEATURE_DECLARE_FEDERAL_COMMENT_DATES_IN_PHASE_4__", false);
+    mockSetApplicationDates.mockClear();
+    mockCompletePhase.mockClear();
+  });
+
+  afterEach(() => vi.unstubAllGlobals());
+
   const mockSetSelectedPhase = vi.fn();
   const defaultProps = {
     applicationId: "app-123",
@@ -104,6 +112,34 @@ describe("VerifyCompleteSection", () => {
   });
 
   describe("Finish button", () => {
+    it("removes federal dates and finishes with only the completeness date when the flag is enabled", async () => {
+      vi.stubGlobal("__FEATURE_DECLARE_FEDERAL_COMMENT_DATES_IN_PHASE_4__", true);
+      setup({
+        completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
+        stateDeemedCompleteDate: "2026-03-05",
+      });
+      expect(screen.queryByText("Federal Comment Period Start Date")).not.toBeInTheDocument();
+      expect(screen.queryByText("Federal Comment Period End Date")).not.toBeInTheDocument();
+      await userEvent.click(screen.getByTestId(COMPLETENESS_FINISH_BUTTON_NAME));
+      expect(mockSetApplicationDates).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "app-123",
+        applicationDates: [
+          { dateType: "State Application Deemed Complete", dateValue: "2026-03-05" },
+        ],
+      });
+      expect(mockCompletePhase).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "app-123",
+        phaseName: "Completeness",
+      });
+      expect(mockSetSelectedPhase).toHaveBeenCalledWith("Federal Comment");
+    });
+
+    it("still requires completeness documents when the flag is enabled", () => {
+      vi.stubGlobal("__FEATURE_DECLARE_FEDERAL_COMMENT_DATES_IN_PHASE_4__", true);
+      setup({ stateDeemedCompleteDate: "2026-03-05", completenessDocuments: [] });
+      expect(screen.getByTestId(COMPLETENESS_FINISH_BUTTON_NAME)).toBeDisabled();
+    });
+
     it("is disabled when required docs are missing", () => {
       setup({ completenessDocuments: [] });
       expect(screen.getByTestId(COMPLETENESS_FINISH_BUTTON_NAME)).toBeDisabled();

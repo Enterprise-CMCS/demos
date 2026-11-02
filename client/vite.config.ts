@@ -34,6 +34,7 @@ export const config = defineConfig(({ mode }) => {
       // You can use just a single predicate to remove it from production or both.
       __FEATURE_SHOW_GIT_VERSION__: semver.gte(DEMOS_VERSION, "1.0.0") && mode === "development",
       __FEATURE_OACT_USER__: semver.gte(DEMOS_VERSION, "1.3.0") || mode === "development",
+      __FEATURE_DECLARE_FEDERAL_COMMENT_DATES_IN_PHASE_4__: semver.gte(DEMOS_VERSION, "1.3.0"),
     },
     server: {
       port: 3000,

@@ -120,7 +120,8 @@ describe("validateAndUpdateDates", () => {
       );
       expect(validateAllowedDateChangeByPhase).toHaveBeenCalledExactlyOnceWith(
         testPrismaTransaction,
-        testInput
+        testInput,
+        currentVersion
       );
       expect(parseSetApplicationDatesInput).toHaveBeenCalledExactlyOnceWith(testInput);
       expect(getApplicationDates).toHaveBeenCalledExactlyOnceWith(
@@ -162,7 +163,8 @@ describe("validateAndUpdateDates", () => {
       );
       expect(validateAllowedDateChangeByPhase).toHaveBeenCalledExactlyOnceWith(
         testPrismaTransaction,
-        testInput
+        testInput,
+        currentVersion
       );
       expect(parseSetApplicationDatesInput).toHaveBeenCalledExactlyOnceWith(testInput);
       expect(getApplicationDates).toHaveBeenCalledExactlyOnceWith(

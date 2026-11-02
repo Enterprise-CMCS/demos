@@ -15,6 +15,8 @@ import {
   COMMS_CLEARANCE_DATE_TYPES,
 } from "../../constants.js";
 import { TZDate } from "@date-fns/tz";
+import { SemVer } from "semver";
+import { __DEMOS_VERSION__, getFeatureFlags } from "../../flags";
 
 export const START_OF_2027_EASTERN = new TZDate(2027, 0, 1, 0, 0, 0, 0, "America/New_York");
 
@@ -105,7 +107,8 @@ export function checkPhaseCompletionRules(
   applicationDates: ParsedApplicationDateInput[],
   applicationDocumentTypes: ApplicationPhaseDocumentTypeRecord,
   applicationPhases: ApplicationPhaseStatusRecord,
-  applicationClearanceLevel: ClearanceLevel
+  applicationClearanceLevel: ClearanceLevel,
+  currentVersion: SemVer = __DEMOS_VERSION__
 ): void {
   const validationChecks = VALIDATION_CHECKS[phaseToValidate];
   if (validationChecks === "No Validation") {
@@ -114,6 +117,12 @@ export function checkPhaseCompletionRules(
 
   let datesToCheck = validationChecks.datesMustExist;
   let documentTypesToCheck = validationChecks.documentTypesMustExist;
+  if (
+    phaseToValidate === "Completeness" &&
+    getFeatureFlags(currentVersion).declareFederalCommentDatesInPhase4
+  ) {
+    datesToCheck = ["State Application Deemed Complete"];
+  }
   if (phaseToValidate === "Review") {
     if (applicationClearanceLevel === "CMS (OSORA)") {
       datesToCheck = [...datesToCheck, ...CMS_OSORA_CLEARANCE_DATE_TYPES];

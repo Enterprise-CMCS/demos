@@ -1,17 +1,26 @@
 import React, { useState } from "react";
 import { tw } from "tags/tw";
 import { ApplicationUploadSection } from "components/application/phases/sections";
-import { formatDateForDisplay } from "util/formatDate";
+import { formatDateForDisplay, formatDateForServer, getTodayEst } from "util/formatDate";
 import { useDialog } from "components/dialog/DialogContext";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
-import { differenceInCalendarDays } from "date-fns";
+import { addDays, differenceInCalendarDays, isValid, parseISO } from "date-fns";
 import { Notice, NoticeVariant } from "components/notice";
 import { DateType, PhaseName } from "demos-server-constants";
+import { LocalDate } from "demos-server";
+import { DatePicker } from "components/input/date/DatePicker";
+import { Button } from "components/button";
+import { useSetApplicationDates } from "components/application/date/dateQueries";
+import { getCurrentUser, isReadonly } from "components/user/UserContext";
+import { useToast } from "components/toast";
+
+const FEDERAL_COMMENT_PERIOD_DAYS = 30;
+const MAX_START_DATE = "2099-12-31";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
-  grid: tw`relative grid grid-cols-2 gap-10`,
-  divider: tw`pointer-events-none absolute left-1/2 top-0 h-full border-l border-border-subtle`,
+  grid: tw`relative grid grid-cols-1 md:grid-cols-2 gap-10`,
+  divider: tw`pointer-events-none hidden md:block absolute left-1/2 top-0 h-full border-l border-border-subtle`,
   stepEyebrow: tw`text-xs font-semibold uppercase tracking-wide text-text-placeholder mb-2`,
   title: tw`text-xl font-semibold mb-2`,
   helper: tw`text-sm text-text-placeholder mb-2`,
@@ -39,6 +48,11 @@ export const getFederalCommentPhaseFromApplication = (application: WorkflowAppli
   );
 
   const phaseComplete = federalCommentPhase?.phaseStatus === "Completed";
+  const completenessPhase = application.phases.find((phase) => phase.phaseName === "Completeness");
+  const stateDeemedCompleteDate =
+    completenessPhase?.phaseDates.find(
+      (date) => date.dateType === "State Application Deemed Complete"
+    )?.plainDate ?? "";
 
   const phaseStartDate = federalCommentPhase?.phaseDates.find(
     (date) => date.dateType === ("Federal Comment Period Start Date" satisfies DateType)
@@ -53,8 +67,11 @@ export const getFederalCommentPhaseFromApplication = (application: WorkflowAppli
 
   return (
     <FederalCommentPhase
+      key={application.id}
       demonstrationId={application.id}
       phaseComplete={phaseComplete}
+      completenessComplete={completenessPhase?.phaseStatus === "Completed"}
+      stateDeemedCompleteDate={stateDeemedCompleteDate}
       phaseStartDate={phaseStartDate?.plainDate}
       phaseEndDate={phaseEndDate?.plainDate}
       documents={initialDocuments}
@@ -66,11 +83,11 @@ const FederalCommentNotice: React.FC<{ phaseEndDate?: string; phaseComplete: boo
   phaseEndDate,
   phaseComplete,
 }) => {
-  const [isDismissed, setDismissed] = useState(!(phaseEndDate && !phaseComplete));
+  const [dismissedEndDate, setDismissedEndDate] = useState<string>();
 
   const getNoticeContent = () => {
     if (!phaseEndDate) return null;
-    const daysLeft = differenceInCalendarDays(phaseEndDate, new Date());
+    const daysLeft = differenceInCalendarDays(parseISO(phaseEndDate), parseISO(getTodayEst()));
     if (daysLeft > 1) {
       return {
         title: `${daysLeft} days left in Federal Comment Period`,
@@ -78,9 +95,9 @@ const FederalCommentNotice: React.FC<{ phaseEndDate?: string; phaseComplete: boo
         variant: "warning" as NoticeVariant,
       };
     }
-    if (daysLeft === 1) {
+    if (daysLeft >= 0) {
       return {
-        title: "1 day left in Federal Comment Period",
+        title: `${daysLeft} ${daysLeft === 1 ? "day" : "days"} left in Federal Comment Period`,
         description: `The Federal Comment Period ends on ${formatDateForDisplay(phaseEndDate)}`,
         variant: "error" as NoticeVariant,
       };
@@ -94,14 +111,14 @@ const FederalCommentNotice: React.FC<{ phaseEndDate?: string; phaseComplete: boo
 
   const noticeContent = getNoticeContent();
 
-  if (isDismissed || !noticeContent) return null;
+  if (phaseComplete || dismissedEndDate === phaseEndDate || !noticeContent) return null;
 
   return (
     <Notice
       title={noticeContent.title}
       description={noticeContent.description}
       variant={noticeContent.variant}
-      onDismiss={() => setDismissed(true)}
+      onDismiss={() => setDismissedEndDate(phaseEndDate)}
     />
   );
 };
@@ -111,6 +128,8 @@ interface FederalCommentPhaseProps {
   phaseStartDate?: string;
   phaseEndDate?: string;
   phaseComplete: boolean;
+  completenessComplete: boolean;
+  stateDeemedCompleteDate: string;
   documents: ApplicationWorkflowDocument[];
 }
 
@@ -119,42 +138,76 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
   phaseStartDate,
   phaseEndDate,
   phaseComplete,
+  completenessComplete,
+  stateDeemedCompleteDate,
   documents,
 }) => {
   const { showFederalCommentDocumentUploadDialog } = useDialog();
+  const { currentUser } = getCurrentUser();
+  const { showSuccess, showError } = useToast();
+  const [selectedStartDate, setSelectedStartDate] = useState("");
+  const [declaredDates, setDeclaredDates] = useState<{ start: string; end: string }>();
+  const [isSaving, setIsSaving] = useState(false);
+  const { setApplicationDates } = useSetApplicationDates();
 
-  const VerifyCompleteSection = () => (
-    <div aria-labelledby="concept-verify-title">
-      <div>
-        <h4 id="concept-verify-title" className={STYLES.title}>
-          Step 1 - Verify
-        </h4>
-        <p
-          className={STYLES.helper}
-          data-testid={FEDERAL_COMMENT_PHASE_STEP_ONE_DESCRIPTION.testId}
-        >
-          {FEDERAL_COMMENT_PHASE_STEP_ONE_DESCRIPTION.text}
-        </p>
-      </div>
-      <div className="flex gap-8 mt-4 text-sm text-text-placeholder">
-        <div className="flex flex-col">
-          <span className="font-bold">
-            {"Federal Comment Period Start Date" satisfies DateType}
-          </span>
-          <span>{phaseStartDate ? formatDateForDisplay(phaseStartDate) : "--/--/----"}</span>
-        </div>
-        <div className="flex flex-col">
-          <span className="font-bold">{"Federal Comment Period End Date" satisfies DateType}</span>
-          <span>{phaseEndDate ? formatDateForDisplay(phaseEndDate) : "--/--/----"}</span>
-        </div>
-      </div>
-    </div>
+  const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
+  const savedStartDate = phaseStartDate || declaredDates?.start;
+  const savedEndDate = phaseEndDate || declaredDates?.end;
+  const datesDeclared = Boolean(savedStartDate || savedEndDate);
+  const minStartDate = stateDeemedCompleteDate
+    ? formatDateForServer(addDays(parseISO(stateDeemedCompleteDate), 1))
+    : "1900-01-01";
+  const validStartDate = Boolean(
+    /^\d{4}-\d{2}-\d{2}$/.test(selectedStartDate) &&
+    isValid(parseISO(selectedStartDate)) &&
+    selectedStartDate >= minStartDate &&
+    selectedStartDate <= MAX_START_DATE
   );
+  const calculatedEndDate = validStartDate
+    ? formatDateForServer(addDays(parseISO(selectedStartDate), FEDERAL_COMMENT_PERIOD_DAYS))
+    : "";
+  const displayedEndDate = datesDeclared ? savedEndDate : calculatedEndDate;
+  const canDeclare =
+    __FEATURE_DECLARE_FEDERAL_COMMENT_DATES_IN_PHASE_4__ &&
+    completenessComplete &&
+    Boolean(stateDeemedCompleteDate) &&
+    !phaseComplete &&
+    !isReadonlyUser &&
+    !datesDeclared &&
+    !isSaving;
+
+  const handleDeclareDates = async () => {
+    if (!canDeclare || !validStartDate) return;
+    setIsSaving(true);
+    try {
+      await setApplicationDates({
+        applicationId: demonstrationId,
+        applicationDates: [
+          {
+            dateType: "Federal Comment Period Start Date",
+            dateValue: selectedStartDate as LocalDate,
+          },
+          {
+            dateType: "Federal Comment Period End Date",
+            dateValue: calculatedEndDate as LocalDate,
+          },
+        ],
+      });
+      setDeclaredDates({ start: selectedStartDate, end: calculatedEndDate });
+      showSuccess("Federal Comment Start Date declared.");
+    } catch (error) {
+      showError(
+        error instanceof Error ? error.message : "Failed to declare Federal Comment Start Date."
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div>
       <div className="flex flex-col gap-6">
-        <FederalCommentNotice phaseEndDate={phaseEndDate} phaseComplete={phaseComplete} />
+        <FederalCommentNotice phaseEndDate={savedEndDate} phaseComplete={phaseComplete} />
 
         <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1 uppercase">
           {"Federal Comment" satisfies PhaseName}
@@ -170,7 +223,50 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
       <section className={STYLES.pane}>
         <div className={STYLES.grid}>
           <span aria-hidden className={STYLES.divider} />
-          <VerifyCompleteSection />
+          <div className="min-w-0" aria-labelledby="federal-comment-verify-title">
+            <h4 id="federal-comment-verify-title" className={STYLES.title}>
+              Step 1 - Verify
+            </h4>
+            <p
+              className={STYLES.helper}
+              data-testid={FEDERAL_COMMENT_PHASE_STEP_ONE_DESCRIPTION.testId}
+            >
+              {FEDERAL_COMMENT_PHASE_STEP_ONE_DESCRIPTION.text}
+            </p>
+            {__FEATURE_DECLARE_FEDERAL_COMMENT_DATES_IN_PHASE_4__ ? (
+              <div className="flex flex-col gap-4 mt-4 text-sm">
+                <DatePicker
+                  name="datepicker-federal-comment-period-start"
+                  label="Federal Comment Period Start Date"
+                  value={savedStartDate || selectedStartDate}
+                  onChange={setSelectedStartDate}
+                  isRequired
+                  isDisabled={!canDeclare}
+                  minDate={minStartDate}
+                  maxDate={MAX_START_DATE}
+                />
+                <div className="flex flex-col gap-2">
+                  <span className="font-bold">Federal Comment Period End Date</span>
+                  <span data-testid="federal-comment-period-end-date">
+                    {displayedEndDate ? formatDateForDisplay(displayedEndDate) : "--/--/----"}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-8 mt-4 text-sm text-text-placeholder">
+                <div className="flex flex-col">
+                  <span className="font-bold">Federal Comment Period Start Date</span>
+                  <span>
+                    {phaseStartDate ? formatDateForDisplay(phaseStartDate) : "--/--/----"}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-bold">Federal Comment Period End Date</span>
+                  <span>{phaseEndDate ? formatDateForDisplay(phaseEndDate) : "--/--/----"}</span>
+                </div>
+              </div>
+            )}
+          </div>
           <ApplicationUploadSection
             title="Step 2 - Upload"
             helperText={FEDERAL_COMMENT_PHASE_STEP_TWO_DESCRIPTION.text}
@@ -179,6 +275,20 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
           />
         </div>
       </section>
+      {__FEATURE_DECLARE_FEDERAL_COMMENT_DATES_IN_PHASE_4__ && (
+        <div className={STYLES.actions}>
+          <Button
+            name="button-declare-federal-comment-start-date"
+            aria-label="Declare Federal Comment Start Date"
+            size="small"
+            isHidden={isReadonlyUser}
+            disabled={!canDeclare || !validStartDate}
+            onClick={handleDeclareDates}
+          >
+            Declare Federal Comment Start Date
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
