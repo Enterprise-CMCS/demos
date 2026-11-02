@@ -10,29 +10,26 @@ const STYLES = {
   title: tw`text-xl font-semibold mb-2`,
   helper: tw`text-sm text-text-placeholder mb-2`,
   list: tw`mt-4 space-y-3`,
-  fileRow: tw`bg-surface-secondary border border-border-fields px-3 py-2 flex items-center justify-between`,
-  fileMeta: tw`text-xs text-text-placeholder mt-0.5`,
 };
 
-type Props = {
-  title: string;
-  helperText: string;
-  documents: ApplicationWorkflowDocument[];
-  onUploadClick: () => void;
-  isReadonly?: boolean;
-  isDocumentsReadonly?: boolean;
-};
-
-export const ApplicationUploadSection: React.FC<Props> = ({
+export const ApplicationUploadSection = ({
   title,
   helperText,
   documents,
   onUploadClick,
-  isReadonly: isReadonlyProp = false,
-  isDocumentsReadonly = false,
+  hideUploadButton = false,
+  documentsReadonly: documentsAreReadonly = false,
+}: {
+  title: string;
+  helperText: string;
+  documents: ApplicationWorkflowDocument[];
+  onUploadClick: () => void;
+  hideUploadButton?: boolean;
+  documentsReadonly?: boolean;
 }) => {
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonlyProp || isReadonly(currentUser, "ApplicationWorkflow");
+  const hideButton = hideUploadButton || isReadonly(currentUser, "ApplicationWorkflow");
+  const docsReadonly = documentsAreReadonly || isReadonly(currentUser, "ApplicationWorkflow");
 
   return (
     <div aria-labelledby="upload-title">
@@ -42,7 +39,7 @@ export const ApplicationUploadSection: React.FC<Props> = ({
       <p className={STYLES.helper}>{helperText}</p>
 
       <SecondaryButton
-        isHidden={isReadonlyUser}
+        isHidden={hideButton}
         onClick={onUploadClick}
         size="small"
         name="button-open-upload-modal"
@@ -52,10 +49,7 @@ export const ApplicationUploadSection: React.FC<Props> = ({
         <ExportIcon />
       </SecondaryButton>
 
-      <DocumentList
-        documents={documents}
-        isReadonly={isDocumentsReadonly || isReadonly(currentUser, "ApplicationWorkflow")}
-      />
+      <DocumentList documents={documents} isReadonly={docsReadonly} />
     </div>
   );
 };
