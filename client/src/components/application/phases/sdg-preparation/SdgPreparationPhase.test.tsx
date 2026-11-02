@@ -944,10 +944,10 @@ describe("SdgPreparationPhase - Draft Documents Section", () => {
     expect(screen.queryByRole("button", { name: "Upload" })).not.toBeInTheDocument();
   });
 
-  it("hides upload button and document delete buttons for OACT users", () => {
+  it("hides document delete buttons but shows upload button for OACT users", () => {
     renderSection([createDocument({ name: "Briefing Overview" })], oactMockUser);
 
-    expect(screen.queryByRole("button", { name: "Upload" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Upload" })).toBeInTheDocument();
     expect(screen.getByText("Briefing Overview")).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Delete Briefing Overview" })

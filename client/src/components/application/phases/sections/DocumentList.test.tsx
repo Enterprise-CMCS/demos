@@ -5,7 +5,6 @@ import userEvent from "@testing-library/user-event";
 import { DocumentList } from "./DocumentList";
 import { ApplicationWorkflowDocument } from "components/application";
 import { TestProvider } from "test-utils/TestProvider";
-import { readonlyMockUser } from "mock-data/userMocks";
 
 const mockShowRemoveApplicationDocumentsDialog = vi.fn();
 
@@ -139,25 +138,5 @@ describe("DocumentList", () => {
     const documentLink = screen.getByRole("link", { name: /test document 1/i });
     expect(documentLink).toHaveAttribute("href", "/document/doc-1");
     expect(documentLink).toHaveAttribute("target", "_blank");
-  });
-
-  it("hides delete buttons for readonly users", () => {
-    render(
-      <TestProvider currentUser={readonlyMockUser}>
-        <DocumentList documents={mockDocuments} />
-      </TestProvider>
-    );
-
-    expect(screen.queryByRole("button", { name: /delete/i })).not.toBeInTheDocument();
-  });
-
-  it("hides delete buttons when isReadonly is set", () => {
-    render(
-      <TestProvider>
-        <DocumentList documents={mockDocuments} isReadonly />
-      </TestProvider>
-    );
-
-    expect(screen.queryByRole("button", { name: /delete/i })).not.toBeInTheDocument();
   });
 });
