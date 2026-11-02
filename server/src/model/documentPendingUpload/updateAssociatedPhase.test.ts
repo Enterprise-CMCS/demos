@@ -41,7 +41,7 @@ describe("updateAssociatedPhase", () => {
   };
   const mockPhaseStartDate: ApplicationDateInput = {
     dateType: "Concept Completion Date",
-    dateValue: new Date("2026-04-27"),
+    plainDate: "2026-04-27",
   };
 
   beforeEach(() => {

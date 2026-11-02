@@ -110,8 +110,8 @@ describe("FederalCommentPhase", () => {
       expect(mockSetApplicationDates).toHaveBeenCalledExactlyOnceWith({
         applicationId: "demo-123",
         applicationDates: [
-          { dateType: "Federal Comment Period Start Date", dateValue: "2026-10-27" },
-          { dateType: "Federal Comment Period End Date", dateValue: "2026-11-26" },
+          { dateType: "Federal Comment Period Start Date", plainDate: "2026-10-27" },
+          { dateType: "Federal Comment Period End Date", plainDate: "2026-11-26" },
         ],
       });
       await waitFor(() =>

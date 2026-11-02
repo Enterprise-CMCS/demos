@@ -1,5 +1,5 @@
 import { PHASE_START_END_DATES } from "../../constants";
-import { EasternNow, getDayBoundaryLabel } from "../../dateUtilities";
+import { EasternNow, formatDateToPlainDate } from "../../dateUtilities";
 import { PhaseName } from "../../types";
 import { ApplicationDateInput } from "./applicationDateSchema";
 
@@ -13,6 +13,6 @@ export function createPhaseStartDate(
   }
   return {
     dateType: phaseStartDateType,
-    dateValue: easternNow[getDayBoundaryLabel(phaseStartDateType)].easternTZDate,
+    plainDate: formatDateToPlainDate(easternNow["Current Time"].easternTZDate),
   };
 }

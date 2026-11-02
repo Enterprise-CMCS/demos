@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import { tw } from "tags/tw";
 import { ApplicationUploadSection } from "components/application/phases/sections";
-import { formatDateForDisplay, formatDateForServer, getTodayEst } from "util/formatDate";
+import { assertIsLocalDate, formatDateForDisplay, formatDateForServer, getTodayEst } from "util/formatDate";
 import { useDialog } from "components/dialog/DialogContext";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { addDays, differenceInCalendarDays, isValid, parseISO } from "date-fns";
 import { Notice, NoticeVariant } from "components/notice";
 import { DateType, PhaseName } from "demos-server-constants";
-import { LocalDate } from "demos-server";
 import { DatePicker } from "components/input/date/DatePicker";
 import { Button } from "components/button";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
@@ -185,11 +184,11 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
         applicationDates: [
           {
             dateType: "Federal Comment Period Start Date",
-            dateValue: selectedStartDate as LocalDate,
+            plainDate: assertIsLocalDate(selectedStartDate),
           },
           {
             dateType: "Federal Comment Period End Date",
-            dateValue: calculatedEndDate as LocalDate,
+            plainDate: assertIsLocalDate(calculatedEndDate),
           },
         ],
       });

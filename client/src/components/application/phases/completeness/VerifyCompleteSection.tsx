@@ -11,9 +11,9 @@ import {
   useCompletePhase,
   useDeclareCompletenessPhaseIncomplete,
 } from "components/application/phase-status/phaseCompletionQueries";
-import { formatDateForServer, getDateEst } from "util/formatDate";
+import { assertIsLocalDate, formatDateForServer, getDateEst } from "util/formatDate";
 import { addDays, parseISO } from "date-fns";
-import { ApplicationDateInput, LocalDate, PhaseName, PhaseStatus } from "demos-server";
+import { ApplicationDateInput, PhaseName, PhaseStatus } from "demos-server";
 import { getCurrentUser, isReadonly } from "components/user/UserContext";
 import {
   getPhaseCompletedMessage,
@@ -125,13 +125,19 @@ export const VerifyCompleteSection = ({
     const dates: ApplicationDateInput[] = [
       {
         dateType: "State Application Deemed Complete",
-        dateValue: stateDeemedComplete as LocalDate,
+        plainDate: assertIsLocalDate(stateDeemedComplete),
       },
     ];
     if (!__FEATURE_DECLARE_FEDERAL_COMMENT_DATES_IN_PHASE_4__) {
       dates.push(
-        { dateType: "Federal Comment Period Start Date", dateValue: federalStartDate as LocalDate },
-        { dateType: "Federal Comment Period End Date", dateValue: federalEndDate as LocalDate }
+        {
+          dateType: "Federal Comment Period Start Date",
+          plainDate: assertIsLocalDate(federalStartDate),
+        },
+        {
+          dateType: "Federal Comment Period End Date",
+          plainDate: assertIsLocalDate(federalEndDate),
+        }
       );
     }
 
