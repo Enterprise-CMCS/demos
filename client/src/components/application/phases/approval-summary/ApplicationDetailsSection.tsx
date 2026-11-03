@@ -2,13 +2,13 @@ import React, { useMemo } from "react";
 import { CompletableSection } from "layout/completableSection";
 import { Textarea, TextInput } from "components/input";
 import Switch from "react-switch";
-import { DateType, LocalDate, SdgDivision, SignatureLevel } from "demos-server";
+import { DateType, SdgDivision, SignatureLevel } from "demos-server";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { SelectSdgDivision } from "components/input/select/SelectSdgDivision";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
 import { DatePicker } from "components/input/date/DatePicker";
 import { tw } from "tags/tw";
-import { formatDateForDisplay, assertIsLocalDate } from "util/formatDate";
+import { formatDateForDisplay } from "util/formatDate";
 import { getCurrentUser, isReadonly } from "components/user/UserContext";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-sm tracking-wide h-[14px] flex items-center`;
@@ -20,10 +20,10 @@ export const MODIFICATION_SIGNATURE_LEVELS: SignatureLevel[] = ["OA", "OCD"];
 export type BaseFormData = {
   name: string;
   description?: string;
-  effectiveDate: LocalDate | "";
+  effectiveDate: string;
   signatureLevel?: SignatureLevel;
   status: string;
-  applicationApprovalDate?: LocalDate;
+  applicationApprovalDate?: string;
 };
 
 export type DemonstrationDetailsFormData = BaseFormData & {
@@ -32,7 +32,7 @@ export type DemonstrationDetailsFormData = BaseFormData & {
   stateName: string;
   projectOfficerId: string;
   projectOfficerName: string;
-  expirationDate: LocalDate | "";
+  expirationDate: string;
   sdgDivision?: SdgDivision;
   staticFields: Partial<
     Record<
@@ -225,10 +225,7 @@ export const ApplicationDetailsSection = ({
               value={sectionFormData.effectiveDate}
               isRequired
               onChange={(effectiveDate) =>
-                setSectionFormData({
-                  ...sectionFormData,
-                  effectiveDate: assertIsLocalDate(effectiveDate),
-                })
+                setSectionFormData({ ...sectionFormData, effectiveDate })
               }
               isDisabled={isDemonstrationApproved || userIsReadonly}
             />
@@ -265,10 +262,7 @@ export const ApplicationDetailsSection = ({
                 value={sectionFormData.expirationDate}
                 isRequired
                 onChange={(expirationDate) =>
-                  setSectionFormData({
-                    ...sectionFormData,
-                    expirationDate: assertIsLocalDate(expirationDate),
-                  })
+                  setSectionFormData({ ...sectionFormData, expirationDate })
                 }
                 isDisabled={isDemonstrationApproved || userIsReadonly}
               />
@@ -363,7 +357,7 @@ export const ApplicationDetailsSection = ({
               onChange={(date) =>
                 setSectionFormData({
                   ...sectionFormData,
-                  applicationApprovalDate: assertIsLocalDate(date),
+                  applicationApprovalDate: date,
                 })
               }
               isDisabled={isDemonstrationApproved || userIsReadonly}

@@ -236,7 +236,7 @@ describe("ApplicationDetailsSection", () => {
         sdgDivision: "Division of System Reform Demonstrations",
         signatureLevel: "OA",
         staticFields: {},
-        applicationApprovalDate: "2025-06-01" as LocalDate,
+        applicationApprovalDate: "2025-06-01",
       } as ApplicationDetailsFormData);
 
       expect(screen.getByLabelText(/application approval date/i)).toBeInTheDocument();
