@@ -27,11 +27,12 @@ ignore:
           This policy is recommended by AWS in their template:
           https://github.com/aws/aws-cdk-cli/blob/main/packages/aws-cdk/lib/api/bootstrap/bootstrap-template.yaml#L195
         created: 2026-09-28T16:47:32.227Z
-  SNYK-JS-PICOMATCH-21248802:
+  SNYK-JS-URIJS-19963963:
     - '*':
-        reason: Waiting for patch for vitest v4
-        expires: 2026-11-03T00:00:00.000Z
-        created: 2026-10-20T13:48:12.368Z
+        reason: No Fix available.
+        expires: 2026-12-03T00:00:00.000Z
+        created: 2026-11-03T00:00:00.000Z 
+  
 exclude:
   global:
     - node_modules
