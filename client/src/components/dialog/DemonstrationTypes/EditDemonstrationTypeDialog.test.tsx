@@ -34,8 +34,8 @@ const MOCK_INITIAL_TYPE: DemonstrationType = {
   demonstrationTypeName: "Behavioral Health",
   status: "Active",
   approvalStatus: "Approved",
-  effectiveDate: new Date("2024-01-01"),
-  expirationDate: new Date("2024-12-31"),
+  effectivePlainDate: "2024-01-01",
+  expirationPlainDate: "2024-12-31",
 };
 
 describe("EditDemonstrationTypeDialog", () => {

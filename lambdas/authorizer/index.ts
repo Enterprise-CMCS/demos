@@ -1,6 +1,6 @@
 import { APIGatewayTokenAuthorizerEvent, Context } from "aws-lambda";
 
-import jwt, { JwtHeader, SigningKeyCallback } from "jsonwebtoken";
+import jwt, { JwtHeader, SigningKeyCallback, TokenExpiredError } from "jsonwebtoken";
 import jwkClient from "jwks-rsa";
 
 import { log, reqIdChild, store, als } from "./log";
@@ -48,6 +48,14 @@ export const handler = async (event: APIGatewayTokenAuthorizerEvent, context: Co
     try {
       decoded = await verifyToken(token);
     } catch (err) {
+      if (err instanceof TokenExpiredError) {
+        log.info({expiredAt: err.expiredAt}, "unauthorized: token expired")
+        return generatePolicy("", "Deny", event.methodArn, {
+          errorCode: "SESSION_TIMEOUT",
+          errorMessage: "Your session has expired. Please sign in again."
+        })
+      }
+
       log.info(
         {
           error: (err as Error).message,
@@ -88,6 +96,8 @@ export const handler = async (event: APIGatewayTokenAuthorizerEvent, context: Co
       "demos-cms-user",
       "demos-state-user",
       "demos-restricted-cms-user",
+      "demos-cms-reviewer-user",
+      "demos-oact-user",
     ];
 
     if (!validRoles.some((role) => roles.includes(role))) {
@@ -145,7 +155,7 @@ const verifyToken = (token: string): Promise<jwt.JwtPayload> => {
   });
 };
 
-export interface PassedContext {
+export interface PassedContextAllow {
   sub: string;
   email: string;
   given_name: string;
@@ -155,11 +165,23 @@ export interface PassedContext {
   auth_time: number;
 }
 
-function generatePolicy(
+export interface PassedContextDeny {
+  errorCode: string;
+  errorMessage: string;
+}
+
+type PolicyEffect = "Allow" | "Deny";
+
+type PassedContext = {
+  "Allow": PassedContextAllow,
+  "Deny": PassedContextDeny
+}
+
+function generatePolicy<T extends PolicyEffect>(
   principalId: string,
-  effect: "Allow" | "Deny",
+  effect: T,
   resource: string,
-  context: PassedContext
+  context: PassedContext[T]
 ) {
   const policy = {
     principalId,

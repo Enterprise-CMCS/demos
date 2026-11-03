@@ -1,5 +1,5 @@
 import { createColumnHelper } from "@tanstack/react-table";
-import { highlightCell } from "../KeywordSearch";
+import { highlightCell } from "components/table/search";
 import { SecondaryButton } from "components/button";
 import { ChevronDownIcon, ChevronRightIcon } from "components/icons";
 import React from "react";

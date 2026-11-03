@@ -5,7 +5,6 @@ import { SelectSignatureLevel } from "components/input/select/SelectSignatureLev
 import { SelectDemonstration } from "components/input/select/SelectDemonstration";
 import { DatePicker } from "components/input/date/DatePicker";
 import { getRequiredFieldWhenApprovedMessage } from "util/messages";
-import { formatDateForServer } from "util/formatDate";
 
 export type Modification = {
   id: string;
@@ -15,7 +14,7 @@ export type Modification = {
   };
   status: ApplicationStatus;
   description: string | null;
-  effectiveDate: string | null;
+  effectivePlainDate: string | null;
   signatureLevel: SignatureLevel | null;
 };
 
@@ -65,9 +64,7 @@ export const getFormDataFromModification = (
 ): ModificationFormData => ({
   name: modification.name,
   description: modification.description ?? undefined,
-  effectiveDate: modification.effectiveDate
-    ? formatDateForServer(modification.effectiveDate)
-    : undefined,
+  effectiveDate: modification.effectivePlainDate ?? undefined,
   signatureLevel: modification.signatureLevel ?? undefined,
   demonstrationId: modification.demonstration?.id,
 });
@@ -124,7 +121,7 @@ export const ModificationForm: React.FC<{
               value={modificationFormData.effectiveDate ?? undefined}
               onChange={(date) =>
                 setModificationFormDataField({
-                  effectiveDate: date as string,
+                  effectiveDate: date,
                 })
               }
               getValidationMessage={() =>

@@ -171,6 +171,27 @@ describe("notifyDeliverableCreated", () => {
     );
   });
 
+  it("logs and skips queueing when no state points of contact are found", async () => {
+    findUniqueOrThrow.mockResolvedValue({
+      ...deliverable,
+      demonstration: {
+        ...deliverable.demonstration,
+        demonstrationRoleAssignments: [],
+      },
+    });
+
+    await expect(notifyDeliverableCreated(input)).resolves.toBeUndefined();
+
+    expect(enqueueAndTrackRealtimeEmail).not.toHaveBeenCalled();
+    expect(log.error).toHaveBeenCalledWith(
+      {
+        deliverableId: input.deliverableId,
+        emailType: "Deliverable Created",
+      },
+      "Cannot queue Deliverable Created email: no State Points of Contact were found on the demonstration."
+    );
+  });
+
   it("reports a queue failure without failing deliverable creation", async () => {
     const error = new Error("SQS unavailable");
     vi.mocked(enqueueAndTrackRealtimeEmail).mockRejectedValue(error);

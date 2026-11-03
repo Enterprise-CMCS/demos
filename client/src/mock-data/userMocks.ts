@@ -34,6 +34,11 @@ export const cmsMockUser: User = {
   person: { ...developmentMockUser.person, personType: "demos-cms-user" },
 };
 
+export const cmsReviewerMockUser: User = {
+  ...developmentMockUser,
+  person: { ...developmentMockUser.person, personType: "demos-cms-reviewer-user" },
+};
+
 export const mockUsers: User[] = [
   { ...developmentMockUser, id: "1", username: "john.doe" },
   { ...developmentMockUser, id: "2", username: "jane.smith" },

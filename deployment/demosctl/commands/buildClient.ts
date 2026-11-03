@@ -4,6 +4,8 @@ import { runShell, runCommand } from "../lib/runCommand";
 import { getOutputValue } from "../lib/getOutputValue";
 import { readOutputs } from "../lib/readOutputs";
 
+const LOWER_ENVIRONMENTS = new Set(["dev", "test"]);
+
 export async function buildClient(environment: string, refreshOutputs: boolean = false) {
   const clientPath = path.join("..", "client");
 
@@ -20,7 +22,7 @@ export async function buildClient(environment: string, refreshOutputs: boolean =
       "--execute=false",
     ]);
 
-    if (cmd != 0) {
+    if (cmd !== 0) {
       console.error(`deploy-no-execute command failed with code ${cmd}`);
       return cmd;
     }
@@ -28,7 +30,9 @@ export async function buildClient(environment: string, refreshOutputs: boolean =
 
   const coreOutputData = readOutputs("core-outputs.json");
 
-  return await runShell("client-build", "npm ci && npm run build:ci", {
+  const buildCmd = LOWER_ENVIRONMENTS.has(environment) ? "npm run build:ci:dev" : "npm run build:ci";
+
+  return await runShell("client-build", `npm ci && ${buildCmd}`, {
     cwd: clientPath,
     env: {
       ...process.env,

@@ -81,8 +81,15 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    -- Check if the inserted person is a demos-cms-user, demos-restricted-cms-user, or a demos-admin
-    IF NEW.person_type_id IN ('demos-admin', 'demos-cms-user', 'demos-restricted-cms-user') THEN
+    -- Check if the inserted person is a demos-cms-user, demos-restricted-cms-user, 
+    -- demos-oact-user, or a demos-admin
+    IF NEW.person_type_id IN (
+        'demos-admin', 
+        'demos-cms-user', 
+        'demos-restricted-cms-user', 
+        'demos-cms-reviewer-user',
+        'demos-oact-user'
+    ) THEN
         -- Insert a record into person_state for each state
         INSERT INTO demos_app.person_state (person_id, state_id)
         SELECT

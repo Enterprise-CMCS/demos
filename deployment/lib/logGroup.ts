@@ -17,26 +17,25 @@ export class DemosLogGroup extends Construct {
     super(scope, id);
 
     if (!props.name && !props.overrideFullName) {
-      throw new Error("you must specify `name` or `overrideFullName` for the log group")
+      throw new Error("you must specify `name` or `overrideFullName` for the log group");
     }
 
     if (props.name && !props.stage) {
-      throw new Error("you must specify the `stage` property")
+      throw new Error("you must specify the `stage` property");
     }
 
     this.logGroup = new LogGroup(this, "LogGroup", {
       logGroupName: props.overrideFullName ?? `/demos/${props.stage}/${props.name}`,
       retention: props.isEphemeral ? RetentionDays.ONE_WEEK : RetentionDays.THREE_MONTHS,
       removalPolicy: props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
-    })
-
+    });
 
     new SubscriptionFilter(this, "SubscriptionFilter", {
       logGroup: this.logGroup,
-      destination: new LambdaDestination(DemosLogGroup.getSubscriptionLambda(this), {addPermissions: false}),
+      destination: new LambdaDestination(DemosLogGroup.getSubscriptionLambda(this), { addPermissions: false }),
       filterPattern: FilterPattern.allEvents(),
-      filterName: "logs-to-cms-splunk"
-    })
+      filterName: "logs-to-cms-splunk",
+    });
 
   }
 
@@ -44,11 +43,11 @@ export class DemosLogGroup extends Construct {
     const stack = Stack.of(scope);
     const id = "CMSCloudLoggingLambda";
 
-    const existing = stack.node.tryFindChild(id)
+    const existing = stack.node.tryFindChild(id);
     if (existing) {
-      return existing as aws_lambda.IFunction
+      return existing as aws_lambda.IFunction;
     }
 
-    return aws_lambda.Function.fromFunctionName(stack, id, "cms-cloud-logging-cloudwatch-to-splunk")
+    return aws_lambda.Function.fromFunctionName(stack, id, "cms-cloud-logging-cloudwatch-to-splunk");
   }
 }

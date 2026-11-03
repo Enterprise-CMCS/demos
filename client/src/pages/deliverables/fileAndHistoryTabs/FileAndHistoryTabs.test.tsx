@@ -27,16 +27,20 @@ import { HISTORY_TAB_NAME } from "../sections/HistoryTab";
 const mockShowRequestResubmissionDeliverableDialog = vi.fn();
 const mockShowCompleteReviewDeliverableDialog = vi.fn();
 const mockShowAddDeliverableFileDialog = vi.fn();
-const mockShowEditDocumentDialog = vi.fn();
-const mockShowRemoveDocumentDialog = vi.fn();
+const mockShowEditDeliverableCmsDocumentDialog = vi.fn();
+const mockShowEditDeliverableStateDocumentDialog = vi.fn();
+const mockShowRemoveDeliverableCmsDocumentsDialog = vi.fn();
+const mockShowRemoveDeliverableStateDocumentsDialog = vi.fn();
 
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
     showRequestResubmissionDeliverableDialog: mockShowRequestResubmissionDeliverableDialog,
     showCompleteReviewDeliverableDialog: mockShowCompleteReviewDeliverableDialog,
     showAddDeliverableFileDialog: mockShowAddDeliverableFileDialog,
-    showEditDocumentDialog: mockShowEditDocumentDialog,
-    showRemoveDocumentDialog: mockShowRemoveDocumentDialog,
+    showEditDeliverableCmsDocumentDialog: mockShowEditDeliverableCmsDocumentDialog,
+    showEditDeliverableStateDocumentDialog: mockShowEditDeliverableStateDocumentDialog,
+    showRemoveDeliverableCmsDocumentsDialog: mockShowRemoveDeliverableCmsDocumentsDialog,
+    showRemoveDeliverableStateDocumentsDialog: mockShowRemoveDeliverableStateDocumentsDialog,
   }),
 }));
 
@@ -304,6 +308,74 @@ describe("FileAndHistoryTabs", () => {
     });
   });
 
+  describe("editing and deleting files", () => {
+    it("opens the state document edit dialog with the selected state file", async () => {
+      const user = userEvent.setup();
+      setup();
+
+      const stateFile = MOCK_DELIVERABLE_1.stateDocuments[0];
+      await user.click(screen.getByTestId(`select-row-${stateFile.id}`));
+      await user.click(screen.getByTestId(STATE_FILES_EDIT_BUTTON_NAME));
+
+      expect(mockShowEditDeliverableStateDocumentDialog).toHaveBeenCalledWith(
+        expect.objectContaining({ id: stateFile.id }),
+        expect.anything()
+      );
+    });
+
+    it("opens the state documents delete dialog with the selected state file id", async () => {
+      const user = userEvent.setup();
+      const unsubmittedStateFile = {
+        ...MOCK_DELIVERABLE_1.stateDocuments[0],
+        id: "state-file-unsubmitted",
+        deliverableSubmissionAction: null,
+      };
+      setup({ stateDocuments: [unsubmittedStateFile] });
+
+      await user.click(screen.getByTestId(`select-row-${unsubmittedStateFile.id}`));
+      await user.click(screen.getByTestId(STATE_FILES_DELETE_BUTTON_NAME));
+
+      expect(mockShowRemoveDeliverableStateDocumentsDialog).toHaveBeenCalledWith(
+        [unsubmittedStateFile.id],
+        expect.anything()
+      );
+    });
+
+    it("opens the CMS document edit dialog with the selected CMS file", async () => {
+      const user = userEvent.setup();
+      setup();
+
+      await user.click(screen.getByTestId("button-cms_files"));
+      const cmsFile = MOCK_DELIVERABLE_1.cmsDocuments[0];
+      await user.click(screen.getByTestId(`select-row-${cmsFile.id}`));
+      await user.click(screen.getByTestId(CMS_FILES_EDIT_BUTTON_NAME));
+
+      expect(mockShowEditDeliverableCmsDocumentDialog).toHaveBeenCalledWith(
+        expect.objectContaining({ id: cmsFile.id }),
+        expect.anything()
+      );
+    });
+
+    it("opens the CMS documents delete dialog with the selected CMS file id", async () => {
+      const user = userEvent.setup();
+      const unsubmittedCmsFile = {
+        ...MOCK_DELIVERABLE_1.cmsDocuments[0],
+        id: "cms-file-unsubmitted",
+        deliverableSubmissionAction: null,
+      };
+      setup({ cmsDocuments: [unsubmittedCmsFile] });
+
+      await user.click(screen.getByTestId("button-cms_files"));
+      await user.click(screen.getByTestId(`select-row-${unsubmittedCmsFile.id}`));
+      await user.click(screen.getByTestId(CMS_FILES_DELETE_BUTTON_NAME));
+
+      expect(mockShowRemoveDeliverableCmsDocumentsDialog).toHaveBeenCalledWith(
+        [unsubmittedCmsFile.id],
+        expect.anything()
+      );
+    });
+  });
+
   describe("when the deliverable is finalized", () => {
     it.each(["Accepted", "Approved", "Received and Filed"] as const)(
       "disables the State Files Add and Submit Deliverable buttons for status %s",
@@ -323,6 +395,24 @@ describe("FileAndHistoryTabs", () => {
 
       expect(screen.getByTestId(CMS_FILES_ADD_BUTTON_NAME)).toBeDisabled();
     });
+    // SUBMITTED STATUS may change nto 100% sure
+    it.each(["Accepted", "Approved", "Received and Filed"] as const)(
+      "disables CMS file deletion for status %s",
+      async (status) => {
+        const user = userEvent.setup();
+        const unsubmittedCmsFile = {
+          ...MOCK_DELIVERABLE_1.cmsDocuments[0],
+          id: "cms-file-unsubmitted",
+          deliverableSubmissionAction: null,
+        };
+        setup({ status, cmsDocuments: [unsubmittedCmsFile] });
+
+        await user.click(screen.getByTestId("button-cms_files"));
+        await user.click(screen.getByTestId(`select-row-${unsubmittedCmsFile.id}`));
+
+        expect(screen.getByTestId(CMS_FILES_DELETE_BUTTON_NAME)).toBeDisabled();
+      }
+    );
 
     it("keeps the State Files Add button enabled when status is Submitted", () => {
       setup({ status: "Submitted" });

@@ -15,7 +15,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
-import { arrIncludesAllInsensitive } from "./KeywordSearch";
+import { arrIncludesAllInsensitive } from "components/table/search";
 import { TableHead } from "./TableHead";
 
 const STYLES = {

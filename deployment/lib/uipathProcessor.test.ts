@@ -104,7 +104,7 @@ describe("UiPathProcessor construct", () => {
       {
         AlarmName: "demos-unittest-uipath-lambda-duration-near-timeout",
       },
-      0
+      0,
     );
   });
 

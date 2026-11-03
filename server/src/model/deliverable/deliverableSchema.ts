@@ -89,31 +89,31 @@ export const deliverableSchema = gql`
 
   type Mutation {
     createDeliverable(input: CreateDeliverableInput!): Deliverable!
-      @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Modify Deliverables"])
     updateDeliverable(id: ID!, input: UpdateDeliverableInput!): Deliverable!
-      @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Modify Deliverables"])
     submitDeliverable(id: ID!): Deliverable!
-      @auth(requires: ["Perform CMS Action", "Perform State Action"])
-    startDeliverableReview(id: ID!): Deliverable! @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Submit Deliverables"])
+    startDeliverableReview(id: ID!): Deliverable! @auth(requires: ["Modify Deliverables"])
     completeDeliverable(id: ID!, finalStatus: FinalDeliverableStatus!): Deliverable!
-      @auth(requires: ["Perform CMS Action"])
+      @auth(requires: ["Modify Deliverables"])
     requestDeliverableResubmission(
       id: ID!
       input: RequestDeliverableResubmissionInput!
-    ): Deliverable! @auth(requires: ["Perform CMS Action"])
+    ): Deliverable! @auth(requires: ["Modify Deliverables"])
     requestDeliverableExtension(
       deliverableId: ID!
       input: RequestDeliverableExtensionInput!
-    ): Deliverable! @auth(requires: ["Perform State Action"])
+    ): Deliverable! @auth(requires: ["Request Deliverable Extensions"])
     approveDeliverableExtension(
       deliverableId: ID!
       input: ApproveDeliverableExtensionInput!
-    ): Deliverable! @auth(requires: ["Perform CMS Action"])
+    ): Deliverable! @auth(requires: ["Modify Deliverables"])
     denyDeliverableExtension(
       deliverableId: ID!
       input: DenyDeliverableExtensionInput!
-    ): Deliverable! @auth(requires: ["Perform CMS Action"])
-    deleteDeliverable(id: ID!): Deliverable! @auth(requires: ["Perform CMS Action"])
+    ): Deliverable! @auth(requires: ["Modify Deliverables"])
+    deleteDeliverable(id: ID!): Deliverable! @auth(requires: ["Modify Deliverables"])
   }
 `;
 

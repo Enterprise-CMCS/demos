@@ -9,6 +9,7 @@ import { DemonstrationsPage } from "pages/DemonstrationsPage";
 import { ComponentLibrary, DialogSandbox } from "pages/debug";
 import { IconLibrary } from "pages/debug/IconLibrary";
 import { AuthDebugComponent } from "pages/debug/AuthDebugComponent";
+import { TablesSandbox } from "pages/debug/TablesSandbox";
 import { isLocalDevelopment } from "config/env";
 import { DemosLayoutProvider } from "./DemosLayoutProvider";
 import { DocumentDetailPage } from "pages/DocumentDetails/DocumentDetail";
@@ -28,6 +29,7 @@ import { ReferencesHeader } from "pages/references/ReferencesHeader";
 const DEMONSTRATION_ACCESS_ROLES: PersonType[] = [
   "demos-admin",
   "demos-cms-user",
+  "demos-cms-reviewer-user",
   "demos-restricted-cms-user",
 ];
 
@@ -65,7 +67,12 @@ export const DemosRouter: React.FC = () => {
                   path="reports"
                   element={
                     <RequireRole
-                      allowedRoles={["demos-admin", "demos-cms-user", "demos-restricted-cms-user"]}
+                      allowedRoles={[
+                        "demos-admin",
+                        "demos-cms-user",
+                        "demos-cms-reviewer-user",
+                        "demos-restricted-cms-user",
+                      ]}
                     >
                       <ReportsPage />
                     </RequireRole>
@@ -77,6 +84,7 @@ export const DemosRouter: React.FC = () => {
                     <Route path="icons" element={<IconLibrary />} />
                     <Route path="auth" element={<AuthDebugComponent />} />
                     <Route path="dialogs" element={<DialogSandbox />} />
+                    <Route path="tables" element={<TablesSandbox />} />
                   </>
                 )}
               </Route>

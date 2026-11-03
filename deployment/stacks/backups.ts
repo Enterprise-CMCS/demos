@@ -21,6 +21,7 @@ import * as path from "node:path";
 import importNumberValue from "../util/importNumberValue";
 import * as securityGroup from "../lib/security-group";
 import { IVpc } from "aws-cdk-lib/aws-ec2";
+import { NagSuppressions } from "cdk-nag";
 
 interface BackupStackProps extends StackProps, DeploymentConfigProperties {
   vpc: IVpc;
@@ -92,6 +93,7 @@ export class BackupStack extends Stack {
         securityGroup: backupValidationSecurityGroup.securityGroup,
         environment: {
           DATABASE_SECRET_ARN: dbSecret.secretName,
+          NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
         },
       },
       "backup-validation",
@@ -122,6 +124,13 @@ export class BackupStack extends Stack {
     );
 
     dbSecret.grantRead(validationLambda.lambda.role);
+
+    NagSuppressions.addResourceSuppressions(validationLambda.lambda.role, [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role",
+      },
+    ], true);
 
     const rdsSecurityGroupId = Fn.importValue(`${props.project}-${props.hostEnvironment}-rds-security-group-id`);
 
@@ -166,9 +175,9 @@ export class BackupStack extends Stack {
     const subnetGroup = new aws_rds.SubnetGroup(this, "rdsRestoreTestingSubnetGroup", {
       vpc: props.vpc,
       description: "Subnet group to be used by restore testing",
-      vpcSubnets: {subnets: props.vpc.privateSubnets},
-      subnetGroupName: `demos-${props.stage}-restore-test-subnet-group`
-    })
+      vpcSubnets: { subnets: props.vpc.privateSubnets },
+      subnetGroupName: `demos-${props.stage}-restore-test-subnet-group`,
+    });
 
     const selection = new aws_backup.CfnRestoreTestingSelection(this, "RdsRestoreTestSelection", {
       restoreTestingPlanName: plan.ref,

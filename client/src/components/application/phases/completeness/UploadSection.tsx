@@ -20,7 +20,7 @@ export const UploadSection = ({
 }) => {
   const { showCompletenessDocumentUploadDialog } = useDialog();
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonly(currentUser);
+  const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
 
   return (
     <div aria-labelledby="completeness-upload-title">

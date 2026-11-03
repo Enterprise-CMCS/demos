@@ -33,6 +33,7 @@ const debugNavLinks: NavLink[] = [
   { label: "Authentication", href: "/auth", icon: <ActionsIcon /> },
   { label: "Icons", href: "/icons", icon: <FavoriteIcon /> },
   { label: "Dialogs", href: "/dialogs", icon: <StackIcon /> },
+  { label: "Tables", href: "/tables", icon: <FileIcon /> },
 ];
 
 const NavLinks = ({ isCollapsed, navLinks }: { isCollapsed: boolean; navLinks: NavLink[] }) => {

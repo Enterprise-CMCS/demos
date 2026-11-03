@@ -1,0 +1,10 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.1
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  SNYK-JS-PICOMATCH-21248802:
+    - '*':
+        reason: Waiting for patch for vitest v4
+        expires: 2026-11-03T00:00:00.000Z
+        created: 2026-10-20T13:48:50.746Z
+patch: {}

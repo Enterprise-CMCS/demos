@@ -10,14 +10,14 @@ import { DocumentType } from "demos-server";
 
 // Mock dialog context
 const showApprovalPackageDocumentUploadDialog = vi.fn();
-const showEditDocumentDialog = vi.fn();
-const showRemoveDocumentDialog = vi.fn();
+const showEditApplicationDocumentDialog = vi.fn();
+const showRemoveApplicationDocumentsDialog = vi.fn();
 
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
     showApprovalPackageDocumentUploadDialog,
-    showEditDocumentDialog,
-    showRemoveDocumentDialog,
+    showEditApplicationDocumentDialog,
+    showRemoveApplicationDocumentsDialog,
   }),
 }));
 
@@ -138,7 +138,7 @@ describe("ApprovalPackageTable", () => {
 
     await user.click(editBtn);
 
-    expect(showEditDocumentDialog).toHaveBeenCalledWith({
+    expect(showEditApplicationDocumentDialog).toHaveBeenCalledWith({
       id: "doc-22",
       name: "Real Doc Name",
       description: "Real Description",
@@ -155,7 +155,7 @@ describe("ApprovalPackageTable", () => {
 
     await user.click(deleteBtn);
 
-    expect(showRemoveDocumentDialog).toHaveBeenCalledWith(["doc-22"]);
+    expect(showRemoveApplicationDocumentsDialog).toHaveBeenCalledWith(["doc-22"]);
   });
 
   it("does not render Upload button for rows with documents", async () => {

@@ -3,6 +3,7 @@ import { CommonProps } from "../types/props";
 
 import { MockIntegration, Model, PassthroughBehavior } from "aws-cdk-lib/aws-apigateway";
 import { DemosLogGroup } from "./logGroup";
+import { NagSuppressions } from "cdk-nag";
 
 export function create(props: CommonProps) {
   const apiAccessLogGroup = new DemosLogGroup(props.scope, "ApiAccessLogs", {
@@ -39,7 +40,7 @@ export function create(props: CommonProps) {
           "caller: $context.identity.caller, user: $context.identity.user, " +
           "requestTime: $context.requestTime, httpMethod: $context.httpMethod, " +
           "resourcePath: $context.resourcePath, status: $context.status, " +
-          "protocol: $context.protocol, responseLength: $context.responseLength"
+          "protocol: $context.protocol, responseLength: $context.responseLength",
       ),
     },
     defaultCorsPreflightOptions: {
@@ -48,8 +49,13 @@ export function create(props: CommonProps) {
     },
   });
 
+  NagSuppressions.addResourceSuppressions(api.deploymentStage, [{
+    id: "AwsSolutions-APIG3",
+    reason: "WAF is added in the UI stack so that values can be shared between the cloudfront and api waf",
+  }]);
+
   const cfnApi = api.node.defaultChild as aws_apigateway.CfnRestApi;
-  cfnApi.addPropertyOverride("SecurityPolicy", "SecurityPolicy_TLS13_2025_EDGE")
+  cfnApi.addPropertyOverride("SecurityPolicy", "SecurityPolicy_TLS13_2025_EDGE");
   cfnApi.addPropertyOverride("EndpointAccessMode", "STRICT");
 
   api.addGatewayResponse("Default4XXResponse", {
@@ -104,10 +110,29 @@ export function create(props: CommonProps) {
     checkov: {
       skip: [{
         id: "CKV_AWS_59",
-        reason: "public connectivity endpoint; no sensitive data or backend access"
-      }]
-    }
-  }
+        reason: "public connectivity endpoint; no sensitive data or backend access",
+      }],
+    },
+  };
+
+  NagSuppressions.addResourceSuppressions(healthResource, [
+    {
+      id: "AwsSolutions-APIG4",
+      reason: "This is a healthcheck endpoint that does not return any actual information",
+    },
+    {
+      id: "AwsSolutions-COG4",
+      reason: "No authorization is needed for the health endpoint",
+    },
+  ], true);
+
+  NagSuppressions.addResourceSuppressions(api, [
+    {
+      id: "AwsSolutions-APIG2",
+      reason:
+        "Request validation is done on the backend. Would be difficult to sensibly implement for a graphql endpoint",
+    },
+  ]);
 
   return {
     api,

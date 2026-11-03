@@ -332,7 +332,7 @@ describe("ModificationForm", () => {
           name: "Test",
           description: "Description",
           signatureLevel: "OA",
-          effectiveDate: "2024-02-01T04:00:00.000Z",
+          effectivePlainDate: "2024-02-01",
         };
         expect(hasChanges(formData, original)).toBe(false);
       });
@@ -398,7 +398,7 @@ describe("ModificationForm", () => {
           name: "Test",
           description: "Description",
           signatureLevel: "OA",
-          effectiveDate: "2024-06-01T04:00:00.000Z",
+          effectivePlainDate: "2024-06-01",
         };
         expect(hasChanges(formData, original)).toBe(true);
       });
@@ -411,7 +411,7 @@ describe("ModificationForm", () => {
           name: "Test Mod",
           description: "Test Description",
           signatureLevel: "OCD",
-          effectiveDate: "2024-01-15" as LocalDate,
+          effectivePlainDate: "2024-01-15",
           demonstration: {
             id: "demo-1",
           },
@@ -435,7 +435,7 @@ describe("ModificationForm", () => {
           name: "Test Mod",
           description: null,
           signatureLevel: null,
-          effectiveDate: null,
+          effectivePlainDate: null,
           demonstration: {
             id: "demo-1",
           },

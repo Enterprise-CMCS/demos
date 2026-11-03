@@ -5,7 +5,6 @@ import {
   editDeliverable,
   parseApproveDeliverableExtensionInput,
   validateApproveDeliverableExtensionInput,
-  validateUserPersonTypeAllowed,
   selectDeliverableOrThrow,
 } from ".";
 import { prisma } from "../../prismaClient";
@@ -22,10 +21,6 @@ export async function approveDeliverableExtension(
   input: ApproveDeliverableExtensionInput,
   context: GraphQLContext
 ): Promise<PrismaDeliverable> {
-  validateUserPersonTypeAllowed(context, "approveDeliverableExtension", [
-    "demos-admin",
-    "demos-cms-user",
-  ]);
   checkOptionalNotNullFields(["newDueDate"], input);
 
   const result = await prisma().$transaction(async (tx) => {

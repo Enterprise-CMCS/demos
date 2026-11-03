@@ -73,13 +73,16 @@ export const documentPendingUploadResolvers = {
       context: GraphQLContext
     ): Promise<PrismaDocumentPendingUpload> =>
       handleUploadDocumentToDeliverable(input, context.user.id, true),
-    uploadDocumentToDeliverableStateFiles: (
+    uploadDocumentToDeliverableStateFiles: async (
       parent: unknown,
       { input }: { input: UploadDocumentToDeliverableInput },
       context: GraphQLContext
     ): Promise<PrismaDocumentPendingUpload> => {
       if (context.user.personTypeId === "demos-state-user") {
-        validateStateUserCanUploadStateDocumentToDeliverable(context.user.id, input.applicationId);
+        await validateStateUserCanUploadStateDocumentToDeliverable(
+          context.user.id,
+          input.applicationId
+        );
       }
       return handleUploadDocumentToDeliverable(input, context.user.id, false);
     },

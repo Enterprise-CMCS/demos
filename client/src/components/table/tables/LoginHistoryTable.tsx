@@ -1,6 +1,6 @@
 import React from "react";
 import { gql, useQuery } from "@apollo/client";
-import { KeywordSearch } from "../KeywordSearch";
+import { KeywordSearch } from "components/table/search";
 import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
 import { LoginHistoryUserRow, LoginHistoryColumns } from "../columns/LoginHistoryColumns";
@@ -25,10 +25,7 @@ const sortByName = (users: LoginHistoryUserRow[]): LoginHistoryUserRow[] =>
 
 export const LoginHistoryTable: React.FC = () => {
   const { data, loading, error } = useQuery<{ users: LoginHistoryUserRow[] }>(LOGIN_HISTORY_QUERY);
-  const sortedUsers = React.useMemo(
-    () => sortByName(data?.users ?? []),
-    [data?.users]
-  );
+  const sortedUsers = React.useMemo(() => sortByName(data?.users ?? []), [data?.users]);
 
   if (loading) {
     return <div>Loading users...</div>;

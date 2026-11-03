@@ -42,41 +42,47 @@ const PHASE_STYLE_LOOKUP: Record<PhaseStatus, { box: string; number: string }> =
 const isCompletionStatus = (status: PhaseStatus): boolean =>
   status === "Completed" || status === "Skipped";
 
-interface PhaseBoxProps {
+export const PhaseBox = ({
+  phaseName,
+  phaseNumber,
+  phaseStatus,
+  displayDate,
+  isSelectedPhase,
+  showAISuggestions,
+  setPhaseAsSelected,
+}: {
   phaseName: PhaseName;
   phaseNumber: number;
   phaseStatus: PhaseStatus;
-  displayDate?: Date;
+  displayDate?: string;
   isSelectedPhase: boolean;
   showAISuggestions?: boolean;
   setPhaseAsSelected: () => void;
-}
-
-export const PhaseBox = (props: PhaseBoxProps) => {
-  const phaseStyles = PHASE_STYLE_LOOKUP[props.phaseStatus];
-  const showSuccessIcon = isCompletionStatus(props.phaseStatus);
+}) => {
+  const phaseStyles = PHASE_STYLE_LOOKUP[phaseStatus];
+  const showSuccessIcon = isCompletionStatus(phaseStatus);
 
   return (
     <div className="flex flex-col justify-center col-span-1 min-w-0">
       <div
-        key={props.phaseName}
+        key={phaseName}
         className={`${BASE_STYLES.PHASE_BOX} 
           ${phaseStyles.box} 
-          ${props.isSelectedPhase ? "scale-110" : ""}`}
-        onClick={() => props.setPhaseAsSelected()}
+          ${isSelectedPhase ? "scale-110" : ""}`}
+        onClick={() => setPhaseAsSelected()}
       >
-        {props.showAISuggestions && (
+        {showAISuggestions && (
           <SparklyIcon
             label="DEMOS AI suggestions available"
             className={BASE_STYLES.AI_SUGGESTION_ICON}
           />
         )}
         <div className={`${BASE_STYLES.PHASE_NUMBER} ${phaseStyles.number}`}>
-          {showSuccessIcon ? <SuccessIcon className="w-full h-full" /> : props.phaseNumber}
+          {showSuccessIcon ? <SuccessIcon className="w-full h-full" /> : phaseNumber}
         </div>
-        <span className={BASE_STYLES.PHASE_NAME}>{props.phaseName}</span>
+        <span className={BASE_STYLES.PHASE_NAME}>{phaseName}</span>
       </div>
-      <PhaseDate phaseStatus={props.phaseStatus} date={props.displayDate} />
+      <PhaseDate phaseStatus={phaseStatus} dateString={displayDate} />
     </div>
   );
 };

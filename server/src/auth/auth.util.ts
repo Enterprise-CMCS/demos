@@ -1,8 +1,9 @@
 import { CustomInternalErrorCode, throwCustomGQLError } from "../errors/errorCodes";
+import { __DEMOS_VERSION__ } from "../flags";
+import type { Loaders } from "../loaders";
 import { log } from "../log";
 import type { ContextUser } from "./user";
 import { findOrCreateContextUserFromClaims } from "./user";
-import type { Loaders } from "../loaders";
 
 export interface GraphQLContext {
   user: ContextUser;
@@ -81,5 +82,5 @@ export function validateClaims(
 export async function buildContextUserFromClaims(
   claims: AuthorizationClaims
 ): Promise<ContextUser> {
-  return await findOrCreateContextUserFromClaims(claims);
+  return await findOrCreateContextUserFromClaims(claims, __DEMOS_VERSION__);
 }

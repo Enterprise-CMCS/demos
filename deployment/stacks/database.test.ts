@@ -25,7 +25,7 @@ function expectRdsAlarm(
     threshold: number;
     evaluationPeriods?: number;
     datapointsToAlarm?: number;
-  }
+  },
 ) {
   template.hasResourceProperties("AWS::CloudWatch::Alarm", {
     AlarmName: props.alarmName,

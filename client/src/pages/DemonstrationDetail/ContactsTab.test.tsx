@@ -9,7 +9,7 @@ import { DemonstrationTabDemonstration } from "./DemonstrationTab";
 import { ContactsTab } from "./ContactsTab";
 import { ContactsTable } from "components/table/tables/ContactsTable";
 import { TestProvider } from "test-utils/TestProvider";
-import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { cmsMockUser, cmsReviewerMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 vi.mock("components/table/tables/ContactsTable", () => ({
   ContactsTable: vi.fn(() => <div data-testid="contacts-table">Contacts Table</div>),
@@ -195,7 +195,17 @@ describe("ContactsTab", () => {
     });
 
     it("disables Manage Contact(s) button for readonly user", async () => {
-      expect( screen.queryByRole("button", { name: "manage-contacts" }) ).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "manage-contacts" })).not.toBeInTheDocument();
     });
+  });
+
+  it("hides Manage Contact(s) for CMS Reviewer users", () => {
+    render(
+      <TestProvider currentUser={cmsReviewerMockUser}>
+        <ContactsTab demonstration={mockDemonstration} />
+      </TestProvider>
+    );
+
+    expect(screen.queryByRole("button", { name: "manage-contacts" })).not.toBeInTheDocument();
   });
 });

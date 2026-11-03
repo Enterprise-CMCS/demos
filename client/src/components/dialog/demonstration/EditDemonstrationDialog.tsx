@@ -11,7 +11,6 @@ import {
   DemonstrationRoleAssignment as ServerDemonstrationRoleAssignment,
 } from "demos-server";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
-import { formatDateForServer } from "util/formatDate";
 
 import { gql, TypedDocumentNode, useMutation, useQuery } from "@apollo/client";
 
@@ -28,8 +27,8 @@ type Demonstration = Pick<
   | "status"
   | "sdgDivision"
   | "signatureLevel"
-  | "effectiveDate"
-  | "expirationDate"
+  | "effectivePlainDate"
+  | "expirationPlainDate"
 > & {
   state: Pick<ServerState, "id">;
   primaryProjectOfficer: Pick<ServerPerson, "id">;
@@ -51,8 +50,8 @@ export const GET_DEMONSTRATION_BY_ID_QUERY: TypedDocumentNode<
       status
       sdgDivision
       signatureLevel
-      effectiveDate
-      expirationDate
+      effectivePlainDate
+      expirationPlainDate
       state {
         id
       }
@@ -65,7 +64,9 @@ export const GET_DEMONSTRATION_BY_ID_QUERY: TypedDocumentNode<
 
 export const UPDATE_DEMONSTRATION_MUTATION: TypedDocumentNode<
   {
-    demonstration: Demonstration & {
+    updateDemonstration: Demonstration & {
+      effectivePlainDate: string;
+      expirationPlainDate: string;
       roles: (Pick<ServerDemonstrationRoleAssignment, "isPrimary" | "role"> & {
         person: Pick<ServerPerson, "id">;
       })[];
@@ -85,7 +86,9 @@ export const UPDATE_DEMONSTRATION_MUTATION: TypedDocumentNode<
       sdgDivision
       signatureLevel
       effectiveDate
+      effectivePlainDate
       expirationDate
+      expirationPlainDate
       state {
         id
       }
@@ -125,12 +128,8 @@ const getDemonstrationDialogFields = (demonstration: Demonstration): Demonstrati
   projectOfficerId: demonstration.primaryProjectOfficer.id,
   ...(demonstration.sdgDivision && { sdgDivision: demonstration.sdgDivision }),
   ...(demonstration.signatureLevel && { signatureLevel: demonstration.signatureLevel }),
-  effectiveDate: demonstration.effectiveDate
-    ? formatDateForServer(demonstration.effectiveDate)
-    : "",
-  expirationDate: demonstration.expirationDate
-    ? formatDateForServer(demonstration.expirationDate)
-    : "",
+  effectiveDate: demonstration.effectivePlainDate ?? "",
+  expirationDate: demonstration.expirationPlainDate ?? "",
 });
 
 const useUpdateDemonstration = () => {

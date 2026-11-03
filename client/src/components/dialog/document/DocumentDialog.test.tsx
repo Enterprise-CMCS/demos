@@ -260,3 +260,27 @@ describe("DocumentDialog upload failure handling", () => {
     consoleError.mockRestore();
   });
 });
+
+it("prevents uploading when the title is empty", () => {
+  const onSubmit = vi.fn(() =>
+    Promise.resolve<DocumentUploadResult>("succeeded")
+  );
+
+  renderAddDialog("General File", onSubmit);
+
+  selectFile("general.docx");
+
+  const titleInput = screen.getByRole("textbox", {
+    name: /document title/i,
+  });
+
+  fireEvent.change(titleInput, { target: { value: "" } });
+  fireEvent.blur(titleInput);
+
+  fireEvent.click(screen.getByTestId("button-confirm-upload-document"));
+
+  expect(
+    screen.getByText("Document Title is required.")
+  ).toBeInTheDocument();
+  expect(onSubmit).not.toHaveBeenCalled();
+});

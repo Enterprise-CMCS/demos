@@ -30,6 +30,7 @@ const baseData = {
       primaryProjectOfficer: { id: "user-1", fullName: "User One" },
       amendments: [],
       renewals: [],
+      roles: [{ person: { id: "user-1" } }],
     },
     {
       id: "demo-2",
@@ -39,6 +40,7 @@ const baseData = {
       primaryProjectOfficer: { id: "user-2", fullName: "User Two" },
       amendments: [],
       renewals: [],
+      roles: [{ person: { id: "user-2" } }],
     },
   ],
   people: [{ fullName: "User One" }],
@@ -97,5 +99,41 @@ describe("DemonstrationsPage tab persistence", () => {
     fireEvent.click(screen.getByTestId("button-demonstrations"));
 
     expect(sessionStorage.getItem("selectedDemonstrationTab")).toBe("demonstrations");
+  });
+});
+
+describe("DemonstrationsPage My Demonstrations filter", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("includes demonstrations where the current user holds any role, not only project officer", () => {
+    mockUseQuery.mockReturnValue({
+      data: {
+        ...baseData,
+        demonstrations: [
+          {
+            ...baseData.demonstrations[1],
+            id: "demo-3",
+            name: "Demo Three",
+            roles: [{ person: { id: "user-2" } }, { person: { id: "user-1" } }],
+          },
+          {
+            ...baseData.demonstrations[1],
+            id: "demo-4",
+            name: "Demo Four",
+            roles: [{ person: { id: "user-3" } }],
+          },
+        ],
+      },
+      loading: false,
+      error: undefined,
+    });
+
+    render(<DemonstrationsPage />);
+
+    expect(screen.getByTestId("button-my-demonstrations")).toHaveTextContent(
+      "My Demonstrations (1)"
+    );
   });
 });

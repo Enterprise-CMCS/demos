@@ -86,7 +86,10 @@ export const useComments = (deliverableId: string, commentVisibility: CommentVis
   const { currentUser } = getCurrentUser();
 
   const userPersonType: PersonType = currentUser.person.personType;
-  const isCmsOrAdminUser = userPersonType === "demos-cms-user" || userPersonType === "demos-admin";
+  const isCmsOrAdminUser =
+    userPersonType === "demos-cms-user" ||
+    userPersonType === "demos-cms-reviewer-user" ||
+    userPersonType === "demos-admin";
   // Restricted CMS users read comments but cannot author them.
   const canAddComments = !isReadonly(currentUser);
 

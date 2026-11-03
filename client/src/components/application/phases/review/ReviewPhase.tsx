@@ -111,7 +111,7 @@ export const ReviewPhase = ({
   allPreviousPhasesDone: boolean;
 }) => {
   const { currentUser } = getCurrentUser();
-  const userIsReadonly = isReadonlyUser(currentUser);
+  const userIsReadonly = isReadonlyUser(currentUser, "ApplicationWorkflow");
   const { showSuccess } = useToast();
   const { setApplicationDates } = useSetApplicationDates();
   const { setApplicationNotes } = useSetApplicationNotes();

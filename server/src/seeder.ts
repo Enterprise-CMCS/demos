@@ -223,7 +223,7 @@ async function seedDeliverables(actionUserId: string, actionUserPersonTypeId: Pe
   const cmsOwners = await prisma().user.findMany({
     where: {
       personTypeId: {
-        in: ["demos-admin", "demos-cms-user"],
+        in: ["demos-admin", "demos-cms-user", "demos-cms-reviewer-user"],
       },
     },
     select: { id: true },

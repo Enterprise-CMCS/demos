@@ -2,7 +2,10 @@ import { PrivateComment as PrismaPrivateComment } from "@prisma/client";
 import { prisma, PrismaTransactionClient } from "../../../prismaClient";
 import { UserType, NonEmptyString } from "../../../types";
 
-export type AllowedPrivateCommenters = Extract<UserType, "demos-admin" | "demos-cms-user">;
+export type AllowedPrivateCommenters = Extract<
+  UserType,
+  "demos-admin" | "demos-cms-user" | "demos-cms-reviewer-user"
+>;
 
 export type InsertPrivateCommentInput = {
   deliverableId: string;

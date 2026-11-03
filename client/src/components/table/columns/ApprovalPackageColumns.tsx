@@ -1,7 +1,7 @@
 import React from "react";
 import { createColumnHelper, DisplayColumnDef } from "@tanstack/react-table";
 
-import { highlightCell } from "components/table/KeywordSearch";
+import { highlightCell } from "components/table/search";
 import { ApprovalPackageTableRow } from "components/table/tables/ApprovalPackageTable";
 import { SecondaryButton, TertiaryButton } from "components/button";
 import { DeleteIcon, EditIcon, ExportIcon } from "components/icons";
@@ -19,8 +19,8 @@ function getActionsColumn(
 
   const {
     showApprovalPackageDocumentUploadDialog,
-    showEditDocumentDialog,
-    showRemoveDocumentDialog,
+    showEditApplicationDocumentDialog,
+    showRemoveApplicationDocumentsDialog,
   } = useDialog();
 
   return [
@@ -51,7 +51,7 @@ function getActionsColumn(
                   name={`edit-${doc.documentType}`}
                   aria-label={`Edit ${doc.documentType}`}
                   onClick={() =>
-                    showEditDocumentDialog({
+                    showEditApplicationDocumentDialog({
                       id: doc.id,
                       name: doc.name,
                       description: doc.description || "",
@@ -63,7 +63,7 @@ function getActionsColumn(
                 <TertiaryButton
                   name={`delete-${doc.documentType}`}
                   aria-label={`Delete ${doc.documentType}`}
-                  onClick={() => showRemoveDocumentDialog([doc.id])}
+                  onClick={() => showRemoveApplicationDocumentsDialog([doc.id])}
                 >
                   <DeleteIcon />
                 </TertiaryButton>

@@ -1,11 +1,11 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { ModificationDetailsSummary } from "./ModificationDetailsSummary";
+import { FIELD_IDS, ModificationDetailsSummary } from "./ModificationDetailsSummary";
 import { ModificationItem } from "./ModificationTabs";
 import { TestProvider } from "test-utils/TestProvider";
 import { DEMONSTRATION_DETAIL_QUERY } from "../DemonstrationDetail";
-import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { cmsMockUser, cmsReviewerMockUser, readonlyMockUser } from "mock-data/userMocks";
 
 const showUpdateAmendmentDialog = vi.fn();
 const showUpdateRenewalDialog = vi.fn();
@@ -40,7 +40,7 @@ describe("ModificationDetailsSummary", () => {
     description: "This is a test modification description",
     status: "Pre-Submission",
     createdAt: new Date("2024-01-01"),
-    effectiveDate: new Date("2024-01-15T05:00:00.000Z"),
+    effectivePlainDate: "2024-01-15",
     signatureLevel: "OA",
     documents: [],
     medicaidId: "demo-1",
@@ -54,8 +54,9 @@ describe("ModificationDetailsSummary", () => {
 
     it("renders the modification name", () => {
       renderModificationDetailsSummary(mockAmendment);
-      expect(screen.getByText("Amendment Title")).toBeInTheDocument();
-      expect(screen.getByText("Test Modification")).toBeInTheDocument();
+      const field = screen.getByRole("group", { name: "Amendment Title" });
+      expect(field).toHaveAttribute("aria-labelledby", FIELD_IDS.title);
+      expect(within(field).getByText("Test Modification")).toBeInTheDocument();
     });
 
     it("renders the correct title label ", () => {
@@ -69,32 +70,39 @@ describe("ModificationDetailsSummary", () => {
         medicaidId: "demo-2",
       };
       renderModificationDetailsSummary(mockRenewal);
-      expect(screen.getByText("Renewal Title")).toBeInTheDocument();
-      expect(screen.getByText("Test Renewal")).toBeInTheDocument();
+      const field = screen.getByRole("group", { name: "Renewal Title" });
+      expect(field).toHaveAttribute("aria-labelledby", FIELD_IDS.title);
+      expect(within(field).getByText("Test Renewal")).toBeInTheDocument();
     });
 
     it("renders the effective date when present", () => {
       renderModificationDetailsSummary(mockAmendment);
-      expect(screen.getByText("Effective Date")).toBeInTheDocument();
-      expect(screen.getByText("01/15/2024")).toBeInTheDocument();
+      const field = screen.getByRole("group", { name: "Effective Date" });
+      expect(field).toHaveAttribute("aria-labelledby", FIELD_IDS.effectiveDate);
+      expect(within(field).getByText("01/15/2024")).toBeInTheDocument();
     });
 
     it("renders the status", () => {
       renderModificationDetailsSummary(mockAmendment);
-      expect(screen.getByText("Status")).toBeInTheDocument();
-      expect(screen.getByText("Pre-Submission")).toBeInTheDocument();
+      const field = screen.getByRole("group", { name: "Status" });
+      expect(field).toHaveAttribute("aria-labelledby", FIELD_IDS.status);
+      expect(within(field).getByText("Pre-Submission")).toBeInTheDocument();
     });
 
     it("renders the description when present", () => {
       renderModificationDetailsSummary(mockAmendment);
-      expect(screen.getByText("Amendment Description")).toBeInTheDocument();
-      expect(screen.getByText("This is a test modification description")).toBeInTheDocument();
+      const field = screen.getByRole("group", { name: "Amendment Description" });
+      expect(field).toHaveAttribute("aria-labelledby", FIELD_IDS.description);
+      expect(
+        within(field).getByText("This is a test modification description")
+      ).toBeInTheDocument();
     });
 
     it("renders the signature level when present", () => {
       renderModificationDetailsSummary(mockAmendment);
-      expect(screen.getByText("Signature Level")).toBeInTheDocument();
-      expect(screen.getByText("OA")).toBeInTheDocument();
+      const field = screen.getByRole("group", { name: "Signature Level" });
+      expect(field).toHaveAttribute("aria-labelledby", FIELD_IDS.signatureLevel);
+      expect(within(field).getByText("OA")).toBeInTheDocument();
     });
   });
 
@@ -105,7 +113,8 @@ describe("ModificationDetailsSummary", () => {
         description: undefined,
       };
       renderModificationDetailsSummary(itemWithoutDescription);
-      expect(screen.queryByText("Description")).not.toBeInTheDocument();
+      const field = screen.getByRole("group", { name: "Amendment Description" });
+      expect(within(field).getByText("-")).toBeInTheDocument();
     });
 
     it("does not render description section when description is empty string", () => {
@@ -114,16 +123,18 @@ describe("ModificationDetailsSummary", () => {
         description: "",
       };
       renderModificationDetailsSummary(itemWithoutDescription);
-      expect(screen.queryByText("Description")).not.toBeInTheDocument();
+      const field = screen.getByRole("group", { name: "Amendment Description" });
+      expect(within(field).getByText("-")).toBeInTheDocument();
     });
 
     it("displays placeholder when effective date is not provided", () => {
       const itemWithoutEffectiveDate: ModificationItem = {
         ...mockAmendment,
-        effectiveDate: undefined,
+        effectivePlainDate: undefined,
       };
       renderModificationDetailsSummary(itemWithoutEffectiveDate);
-      expect(screen.getByText("--/--/----")).toBeInTheDocument();
+      const field = screen.getByRole("group", { name: "Effective Date" });
+      expect(within(field).getByText("--/--/----")).toBeInTheDocument();
     });
   });
 
@@ -203,8 +214,11 @@ describe("ModificationDetailsSummary", () => {
   });
 
   describe("Readonly User Behavior", () => {
-    it("does not render the Edit Details button for readonly users", () => {
-      renderModificationDetailsSummary(mockAmendment, readonlyMockUser);
+    it.each([
+      ["readonly users", readonlyMockUser],
+      ["CMS Reviewer users", cmsReviewerMockUser],
+    ])("does not render the Edit Details button for %s", (_role, currentUser) => {
+      renderModificationDetailsSummary(mockAmendment, currentUser);
       const editButton = screen.queryByRole("button", { name: /button-edit-details/i });
       expect(editButton).not.toBeInTheDocument();
     });

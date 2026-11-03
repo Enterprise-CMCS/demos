@@ -17,8 +17,8 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
       description
       status
       currentPhaseName
-      effectiveDate
-      expirationDate
+      effectivePlainDate
+      expirationPlainDate
       sdgDivision
       signatureLevel
       clearanceLevel
@@ -38,9 +38,9 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
       demonstrationTypes {
         demonstrationTypeName
         status
-        effectiveDate
         approvalStatus
-        expirationDate
+        effectivePlainDate
+        expirationPlainDate
         createdAt
       }
       documents {
@@ -62,8 +62,8 @@ export type ApplicationWorkflowDemonstration = WorkflowApplication &
     | "medicaidId"
     | "status"
     | "name"
-    | "effectiveDate"
-    | "expirationDate"
+    | "effectivePlainDate"
+    | "expirationPlainDate"
     | "sdgDivision"
     | "signatureLevel"
     | "description"
@@ -74,8 +74,8 @@ export type ApplicationWorkflowDemonstration = WorkflowApplication &
       DemonstrationTypeAssignment,
       | "demonstrationTypeName"
       | "status"
-      | "effectiveDate"
-      | "expirationDate"
+      | "effectivePlainDate"
+      | "expirationPlainDate"
       | "createdAt"
       | "approvalStatus"
     >[];
