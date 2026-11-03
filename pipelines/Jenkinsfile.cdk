@@ -39,9 +39,10 @@ pipeline {
             if (hasChange('deployment')) {
               dirCon('deployment', 'node') {
                 sh '''
-              npm ci
-              npm run lint
-              npm run tsc:ci
+                npm ci
+                export NODE_OPTIONS="--max-old-space-size=4096"
+                npm run lint
+                npm run tsc:ci
               '''
               }
             }
