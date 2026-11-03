@@ -65,18 +65,26 @@ export function renderApplicationExpectedApprovalDateReminderEmail(
         </Text>
         <Text style={textStyle}>Thank you,</Text>
         <Text style={textStyle}>DEMOS Notifications</Text>
-        <Text style={detailStyle}>Demonstration: {demonstrationTitle}</Text>
         <Text style={detailStyle}>
-          State: {getRequiredString(application.stateName, "application.stateName", emailType)}
+          <strong>Demonstration:</strong> {demonstrationTitle}
         </Text>
         <Text style={detailStyle}>
-          Days Until Expected Approval: {DAYS_UNTIL_EXPECTED_APPROVAL}
+          <strong>State:</strong>{" "}
+          {getRequiredString(application.stateName, "application.stateName", emailType)}
         </Text>
-        <Text style={detailStyle}>Expected approval date: {expectedApprovalDate}</Text>
-        <Text style={detailStyle}>Application Type: {applicationTypeLabel}</Text>
+        <Text style={detailStyle}>
+          <strong>Days Until Expected Approval:</strong> {DAYS_UNTIL_EXPECTED_APPROVAL}
+        </Text>
+        <Text style={detailStyle}>
+          <strong>Expected approval date:</strong> {expectedApprovalDate}
+        </Text>
+        <Text style={detailStyle}>
+          <strong>Application Type:</strong> {applicationTypeLabel}
+        </Text>
         {!isDemonstration && (
           <Text style={detailStyle}>
-            Application Title: {getRequiredString(application.name, "application.name", emailType)}
+            <strong>Application Title:</strong>{" "}
+            {getRequiredString(application.name, "application.name", emailType)}
           </Text>
         )}
       </EmailLayout>

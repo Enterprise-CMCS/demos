@@ -10,7 +10,7 @@ import {
   Modification,
 } from "./ModificationForm";
 import userEvent from "@testing-library/user-event";
-import { LocalDate } from "demos-server";
+import { selectOption } from "test-utils/select";
 
 vi.mock("components/input/select/SelectDemonstration", () => ({
   SelectDemonstration: ({
@@ -127,7 +127,9 @@ describe("ModificationForm", () => {
     expect(screen.getByTestId("select-demonstration")).toHaveValue("demo-1");
     expect(screen.getByLabelText(/Renewal Title/)).toHaveValue("Initial Name");
     expect(screen.getByLabelText(/Renewal Description/)).toHaveValue("Initial Description");
-    expect(screen.getByLabelText(/Signature Level/)).toHaveValue("OA");
+    expect(screen.getByLabelText(/Signature Level/)).toHaveTextContent(
+      "OA - Office of the Administrator"
+    );
   });
 
   it("calls setModificationFormDataField when fields change", async () => {
@@ -168,7 +170,7 @@ describe("ModificationForm", () => {
     );
 
     mockSetModificationFormDataField.mockClear();
-    await user.selectOptions(screen.getByLabelText(/Signature Level/), "OCD");
+    await selectOption(user, screen.getByLabelText(/Signature Level/), "OCD");
     expect(mockSetModificationFormDataField).toHaveBeenCalledWith(
       expect.objectContaining({ signatureLevel: "OCD" })
     );
@@ -225,7 +227,7 @@ describe("ModificationForm", () => {
         name: "Initial Name",
         description: "Initial Description",
         signatureLevel: "OA",
-        effectiveDate: "2024-01-15" as LocalDate,
+        effectiveDate: "2024-01-15",
       };
 
       render(
@@ -326,7 +328,7 @@ describe("ModificationForm", () => {
           name: "Test",
           description: "Description",
           signatureLevel: "OA",
-          effectiveDate: "2024-02-01" as LocalDate,
+          effectiveDate: "2024-02-01",
         };
         const original: Partial<Modification> = {
           name: "Test",
@@ -391,7 +393,7 @@ describe("ModificationForm", () => {
           name: "Test",
           description: "Description",
           signatureLevel: "OA",
-          effectiveDate: "2024-02-01" as LocalDate,
+          effectiveDate: "2024-02-01",
         };
         const original: Partial<Modification> = {
           demonstration: { id: "demo-1" },

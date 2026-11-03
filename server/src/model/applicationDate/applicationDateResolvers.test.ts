@@ -4,15 +4,11 @@ import {
   __setApplicationDate,
   applicationDateResolvers,
 } from "./applicationDateResolvers";
-import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
-import { DateType, SetApplicationDateInput, SetApplicationDatesInput } from "../../types";
-import { prisma } from "../../prismaClient";
-import { handlePrismaError } from "../../errors/handlePrismaError";
-import { formatDateToPlainDate, getEasternNow } from "../../dateUtilities";
-import { getApplication } from "../application";
-import { startPhasesByDates } from "../applicationPhase";
-import { validateAndUpdateDates } from ".";
+import type { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
+import type { DateType, SetApplicationDateInput, SetApplicationDatesInput } from "../../types";
+import { __DEMOS_VERSION__ } from "../../flags";
 
+// Mock imports
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
@@ -28,7 +24,7 @@ vi.mock("../application", () => ({
   getApplication: vi.fn(),
 }));
 
-vi.mock("./validateAndUpdateDates", () => ({
+vi.mock(".", () => ({
   validateAndUpdateDates: vi.fn(),
 }));
 
@@ -41,13 +37,20 @@ vi.mock("../../dateUtilities", () => ({
   formatDateToPlainDate: vi.fn(),
 }));
 
+import { prisma } from "../../prismaClient";
+import { handlePrismaError } from "../../errors/handlePrismaError";
+import { getApplication } from "../application";
+import { validateAndUpdateDates } from ".";
+import { startPhasesByDates } from "../applicationPhase";
+import { formatDateToPlainDate, getEasternNow } from "../../dateUtilities";
+
 describe("applicationDateResolvers", () => {
   const mockTransaction: any = "Test";
   const mockPrismaClient = {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
   };
 
-  const testDateValue = new Date("2025-01-01T00:00:00.000Z");
+  const testPlainDate = "2025-01-01";
   const testApplicationId = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
   const testError = new Error("Database connection failed");
 
@@ -98,11 +101,11 @@ describe("applicationDateResolvers", () => {
       applicationDates: [
         {
           dateType: "Concept Start Date",
-          dateValue: testDateValue,
+          plainDate: testPlainDate,
         },
         {
           dateType: "Federal Comment Period End Date",
-          dateValue: testDateValue,
+          plainDate: testPlainDate,
         },
       ],
     };
@@ -119,7 +122,11 @@ describe("applicationDateResolvers", () => {
 
     it("should validate and update based on the input if it is present", async () => {
       await __setApplicationDates(undefined, { input: testInput });
-      expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(testInput, mockTransaction);
+      expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
+        testInput,
+        mockTransaction,
+        __DEMOS_VERSION__
+      );
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
     });
 
@@ -138,23 +145,23 @@ describe("applicationDateResolvers", () => {
         applicationDates: [
           {
             dateType: "Concept Start Date",
-            dateValue: testDateValue,
+            plainDate: testPlainDate,
           },
           {
             dateType: "Concept Start Date",
-            dateValue: testDateValue,
+            plainDate: testPlainDate,
           },
           {
             dateType: "Concept Completion Date",
-            dateValue: testDateValue,
+            plainDate: testPlainDate,
           },
           {
             dateType: "Concept Completion Date",
-            dateValue: null,
+            plainDate: null,
           },
           {
             dateType: "Federal Comment Period End Date",
-            dateValue: testDateValue,
+            plainDate: testPlainDate,
           },
         ],
       };
@@ -202,7 +209,8 @@ describe("applicationDateResolvers", () => {
             ...phaseStartDates,
           ]),
         }),
-        mockTransaction
+        mockTransaction,
+        __DEMOS_VERSION__
       );
     });
   });
@@ -211,14 +219,14 @@ describe("applicationDateResolvers", () => {
     const testInput: SetApplicationDateInput = {
       applicationId: testApplicationId,
       dateType: "BNPMT Initial Meeting Date",
-      dateValue: testDateValue,
+      plainDate: testPlainDate,
     };
     const transformedTestInput: SetApplicationDatesInput = {
       applicationId: testApplicationId,
       applicationDates: [
         {
           dateType: "BNPMT Initial Meeting Date",
-          dateValue: testDateValue,
+          plainDate: testPlainDate,
         },
       ],
     };
@@ -228,7 +236,8 @@ describe("applicationDateResolvers", () => {
         await __setApplicationDate(undefined, { input: testInput });
         expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
           transformedTestInput,
-          mockTransaction
+          mockTransaction,
+          __DEMOS_VERSION__
         );
         expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
       });

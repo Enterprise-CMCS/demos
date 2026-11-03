@@ -156,6 +156,7 @@ const deliverableFields: readonly ReportField[] = [
   deliverableField("deliverable_status", "deliv.status_id"),
   deliverableField("last_deliverable_action", "act_stats.most_recent_action_type"),
   deliverableField("last_deliverable_action_date", "to_char(act_stats.most_recent_action_timestamp AT TIME ZONE 'America/New_York', 'MM/DD/YYYY')"),
+  deliverableField("finalization_date", "coalesce(to_char((CASE WHEN deliv.status_id IN ('Accepted', 'Approved', 'Received and Filed') THEN act_stats.most_recent_finalization_timestamp END) AT TIME ZONE 'America/New_York', 'MM/DD/YYYY'), '-')"),
   deliverableField("updated_post_acceptance", "coalesce(most_recent_public_comment.updated_post_acceptance, 'No')"),
   deliverableField("deliverable_reviewer", "coalesce(most_recent_review_start.full_name, '-')"),
   deliverableField("deliverable_review_date", "coalesce(to_char(most_recent_review_start.action_timestamp AT TIME ZONE 'America/New_York', 'MM/DD/YYYY'), '-')"),

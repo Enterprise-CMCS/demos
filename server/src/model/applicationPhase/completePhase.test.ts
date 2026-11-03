@@ -1,25 +1,17 @@
-import { getApplication } from "../application";
-vi.mock("../email/notifyApplicationEvent", () => ({
-  notifyApplicationStatusUpdated: vi.fn(),
-}));
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { completePhase } from "./completePhase.js";
-import { CompletePhaseInput } from "../../types.js";
+import { completePhase } from "./completePhase";
+import type { CompletePhaseInput } from "../../types";
+import type { EasternNow } from "../../dateUtilities";
+import { TZDate } from "@date-fns/tz";
+import { __DEMOS_VERSION__ } from "../../flags";
 
 // Mock imports
-import { prisma } from "../../prismaClient.js";
-import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import { validateAndUpdateDates } from "../applicationDate";
-import { validatePhaseCompletion, updatePhaseStatus, setPhaseToStarted } from ".";
-import { EasternNow, getEasternNow } from "../../dateUtilities.js";
-import { TZDate } from "@date-fns/tz";
-
-vi.mock("../../prismaClient.js", () => ({
+vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
 const testHandlePrismaError = new Error("Test handlePrismaError!");
-vi.mock("../../errors/handlePrismaError.js", () => ({
+vi.mock("../../errors/handlePrismaError", () => ({
   handlePrismaError: vi.fn(() => {
     throw testHandlePrismaError;
   }),
@@ -44,9 +36,24 @@ vi.mock(".", async () => {
   };
 });
 
-vi.mock("../../dateUtilities.js", () => ({
-  getEasternNow: vi.fn(),
+vi.mock("../../dateUtilities.js", async () => {
+  const actual = await vi.importActual("../../dateUtilities.js");
+  return {
+    ...actual,
+    getEasternNow: vi.fn(),
+  };
+});
+
+vi.mock("../email/notifyApplicationEvent", () => ({
+  notifyApplicationStatusUpdated: vi.fn(),
 }));
+
+import { prisma } from "../../prismaClient";
+import { handlePrismaError } from "../../errors/handlePrismaError";
+import { getApplication } from "../application";
+import { validateAndUpdateDates } from "../applicationDate";
+import { validatePhaseCompletion, updatePhaseStatus, setPhaseToStarted } from ".";
+import { getEasternNow } from "../../dateUtilities";
 
 describe("completePhase", () => {
   const mockTransaction: any = vi.fn();
@@ -55,6 +62,7 @@ describe("completePhase", () => {
   };
   const testApplicationId: string = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
   const testError = new Error("Database connection failed");
+  const mockEasternPlainDate = "2025-01-13";
   const mockEasternStartOfDayDate = new Date("2025-01-13T00:00:00.000-05:00");
   const mockEasternCurrentTime = new Date("2025-01-13T07:19:23.199-05:00");
   const mockEasternEndOfDayDate = new Date("2025-01-13T23:59:59.999-05:00");
@@ -97,11 +105,12 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "Concept Completion Date",
-              dateValue: mockEasternStartOfDayDate,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       const validateStartDateCall = [
@@ -110,11 +119,12 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "Application Intake Start Date",
-              dateValue: mockEasternStartOfDayDate,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       await completePhase(undefined, { input: testInput }, { user: { id: "user-1" } });
@@ -155,11 +165,12 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "Application Intake Completion Date",
-              dateValue: mockEasternStartOfDayDate,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       const validateStartDateCall = [
@@ -168,11 +179,12 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "Completeness Start Date",
-              dateValue: mockEasternStartOfDayDate,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       await completePhase(undefined, { input: testInput }, { user: { id: "user-1" } });
@@ -214,11 +226,12 @@ describe("completePhase", () => {
             applicationDates: [
               {
                 dateType: "Completeness Completion Date",
-                dateValue: mockEasternStartOfDayDate,
+                plainDate: mockEasternPlainDate,
               },
             ],
           },
           mockTransaction,
+          __DEMOS_VERSION__,
         ],
       ];
 
@@ -235,7 +248,7 @@ describe("completePhase", () => {
         "Completed",
         mockTransaction
       );
-      expect(setPhaseToStarted).not.toBeCalled();
+      expect(setPhaseToStarted).not.toHaveBeenCalled();
       expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(validateCompleteDateCall);
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
@@ -250,13 +263,11 @@ describe("completePhase", () => {
 
       await expect(
         completePhase(undefined, { input: testInput }, { user: { id: "user-1" } })
-      ).rejects.toThrowError(
-        "Operations against the Federal Comment phase are not permitted via API."
-      );
+      ).rejects.toThrow("Operations against the Federal Comment phase are not permitted via API.");
 
       expect(validatePhaseCompletion).not.toHaveBeenCalled();
       expect(updatePhaseStatus).not.toHaveBeenCalled();
-      expect(setPhaseToStarted).not.toBeCalled();
+      expect(setPhaseToStarted).not.toHaveBeenCalled();
       expect(validateAndUpdateDates).not.toHaveBeenCalled();
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
@@ -274,11 +285,12 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "SDG Preparation Completion Date",
-              dateValue: mockEasternStartOfDayDate,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       const validateStartDateCall = [
@@ -287,11 +299,12 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "Review Start Date",
-              dateValue: mockEasternStartOfDayDate,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       await completePhase(undefined, { input: testInput }, { user: { id: "user-1" } });
@@ -332,11 +345,12 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "Review Completion Date",
-              dateValue: mockEasternStartOfDayDate,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       const validateStartDateCall = [
@@ -345,11 +359,12 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "Approval Package Start Date",
-              dateValue: mockEasternStartOfDayDate,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       await completePhase(undefined, { input: testInput }, { user: { id: "user-1" } });
@@ -390,11 +405,12 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "Approval Package Completion Date",
-              dateValue: mockEasternStartOfDayDate,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       const validateStartDateCall = [
@@ -403,11 +419,12 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "Approval Summary Start Date",
-              dateValue: mockEasternStartOfDayDate,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       await completePhase(undefined, { input: testInput }, { user: { id: "user-1" } });
@@ -448,11 +465,12 @@ describe("completePhase", () => {
           applicationDates: [
             {
               dateType: "Approval Summary Completion Date",
-              dateValue: mockEasternStartOfDayDate,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ];
 
       await completePhase(undefined, { input: testInput }, { user: { id: "user-1" } });
@@ -483,7 +501,7 @@ describe("completePhase", () => {
 
       await expect(
         completePhase(undefined, { input: testInput }, { user: { id: "user-1" } })
-      ).rejects.toThrowError(testHandlePrismaError);
+      ).rejects.toThrow(testHandlePrismaError);
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
     });
 
@@ -500,11 +518,12 @@ describe("completePhase", () => {
             applicationDates: [
               {
                 dateType: "Concept Completion Date",
-                dateValue: mockEasternStartOfDayDate,
+                plainDate: mockEasternPlainDate,
               },
             ],
           },
           mockTransaction,
+          __DEMOS_VERSION__,
         ],
       ];
 

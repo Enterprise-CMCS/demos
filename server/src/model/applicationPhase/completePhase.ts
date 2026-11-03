@@ -1,12 +1,12 @@
 import { notifyApplicationStatusUpdated } from "../email/notifyApplicationEvent";
 import { CompletePhaseInput } from "../../types.js";
-import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { getApplication, PrismaApplication } from "../application";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import { getEasternNow } from "../../dateUtilities.js";
+import { formatDateToPlainDate, getEasternNow } from "../../dateUtilities.js";
 import { setPhaseToStarted, updatePhaseStatus, validatePhaseCompletion, PHASE_ACTIONS } from ".";
 import { validateAndUpdateDates } from "../applicationDate";
+import { __DEMOS_VERSION__ } from "../../flags";
 
 export async function completePhase(
   parent: unknown,
@@ -32,14 +32,12 @@ export async function completePhase(
           applicationDates: [
             {
               dateType: phaseActions.dateToComplete,
-              dateValue:
-                easternNow[
-                  DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[phaseActions.dateToComplete].expectedTimestamp
-                ].easternTZDate,
+              plainDate: formatDateToPlainDate(easternNow["Current Time"].easternTZDate),
             },
           ],
         },
-        tx
+        tx,
+        __DEMOS_VERSION__
       );
       await updatePhaseStatus(input.applicationId, input.phaseName, "Completed", tx);
 
@@ -58,15 +56,12 @@ export async function completePhase(
               applicationDates: [
                 {
                   dateType: phaseActions.nextPhase.dateToStart,
-                  dateValue:
-                    easternNow[
-                      DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[phaseActions.nextPhase.dateToStart]
-                        .expectedTimestamp
-                    ].easternTZDate,
+                  plainDate: formatDateToPlainDate(easternNow["Current Time"].easternTZDate),
                 },
               ],
             },
-            tx
+            tx,
+            __DEMOS_VERSION__
           );
         }
       }

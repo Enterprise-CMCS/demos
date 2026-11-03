@@ -25,9 +25,15 @@ export function PublicComment({
       </Text>
       <Text style={textStyle}>Thank you,</Text>
       <Text style={textStyle}>DEMOS Notifications</Text>
-      <Text style={detailStyle}>Demonstration: {demonstrationTitle}</Text>
-      <Text style={detailStyle}>State: {state}</Text>
-      <Text style={detailStyle}>Deliverable: {deliverableName}</Text>
+      <Text style={detailStyle}>
+        <strong>Demonstration:</strong> {demonstrationTitle}
+      </Text>
+      <Text style={detailStyle}>
+        <strong>State:</strong> {state}
+      </Text>
+      <Text style={detailStyle}>
+        <strong>Deliverable:</strong> {deliverableName}
+      </Text>
     </EmailLayout>
   );
 }

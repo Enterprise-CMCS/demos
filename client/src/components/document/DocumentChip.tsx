@@ -3,7 +3,6 @@ import { ExitIcon, FileIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { formatDateForDisplay } from "util/formatDate";
 import { DocumentType } from "demos-server-constants";
-import { getCurrentUser, isReadonly, DemosApplicationSection } from "components/user/UserContext";
 
 const abbreviateLongFilename = (str: string): string => {
   const maxFilenameDisplayLength = 60;
@@ -34,10 +33,8 @@ export const DocumentChip: React.FC<{
     createdAt?: Date;
   };
   onRemove: () => void;
-  applicationSection?: DemosApplicationSection;
-}> = ({ document, onRemove, applicationSection }) => {
-  const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonly(currentUser, applicationSection);
+  isReadonly?: boolean;
+}> = ({ document, onRemove, isReadonly = false }) => {
   const content = (
     <>
       <FileIcon className={STYLES.fileIcon} />
@@ -71,7 +68,7 @@ export const DocumentChip: React.FC<{
           <div className={STYLES.contentContainer}>{content}</div>
         )}
 
-        {!isReadonlyUser && (
+        {!isReadonly && (
           <button
             className={STYLES.exitButton}
             onClick={onRemove}

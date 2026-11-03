@@ -7,11 +7,10 @@ import {
   DemonstrationTypeAssignment,
   SetDemonstrationTypesInput,
   Demonstration as ServerDemonstration,
-  LocalDate,
 } from "demos-server";
 import { gql, TypedDocumentNode, useMutation } from "@apollo/client";
 import { DatePicker } from "components/input/date/DatePicker";
-import { getTodayEst } from "util/formatDate";
+import { assertIsLocalDate, getTodayEst } from "util/formatDate";
 
 type Demonstration = Pick<ServerDemonstration, "id"> & {
   demonstrationTypes: DemonstrationType[];
@@ -30,8 +29,8 @@ type DemonstrationTypeFormData = Pick<
   DemonstrationTypeAssignment,
   "demonstrationTypeName" | "status"
 > & {
-  effectiveDate: LocalDate;
-  expirationDate: LocalDate;
+  effectiveDate: string;
+  expirationDate: string;
 };
 
 export const EDIT_DEMONSTRATION_TYPES_DIALOG_MUTATION: TypedDocumentNode<
@@ -62,8 +61,7 @@ const hasChanges = (
   );
 };
 
-const getDemonstrationTypeStatus = (effectiveDate: LocalDate, expirationDate: LocalDate) => {
-  // coerce all dates to be LocalDates, then build Date objects for comparison
+const getDemonstrationTypeStatus = (effectiveDate: string, expirationDate: string) => {
   const today = new Date(getTodayEst());
   const effective = new Date(effectiveDate);
   const expiration = new Date(expirationDate);
@@ -77,7 +75,7 @@ const getDemonstrationTypeStatus = (effectiveDate: LocalDate, expirationDate: Lo
   return "Active";
 };
 
-const isValid = (effectiveDate: LocalDate, expirationDate: LocalDate) => {
+const isValid = (effectiveDate: string, expirationDate: string) => {
   return effectiveDate && expirationDate && new Date(effectiveDate) <= new Date(expirationDate);
 };
 
@@ -96,8 +94,8 @@ export const EditDemonstrationTypeDialog = ({
   const initialDemonstrationTypeFormData = React.useMemo(
     () => ({
       ...initialDemonstrationType,
-      effectiveDate: initialDemonstrationType.effectivePlainDate as LocalDate,
-      expirationDate: initialDemonstrationType.expirationPlainDate as LocalDate,
+      effectiveDate: initialDemonstrationType.effectivePlainDate,
+      expirationDate: initialDemonstrationType.expirationPlainDate,
     }),
     [initialDemonstrationType]
   );
@@ -111,8 +109,8 @@ export const EditDemonstrationTypeDialog = ({
         {
           demonstrationTypeName: demonstrationTypeFormData.demonstrationTypeName,
           demonstrationTypeDates: {
-            effectiveDate: demonstrationTypeFormData.effectiveDate,
-            expirationDate: demonstrationTypeFormData.expirationDate,
+            effectivePlainDate: assertIsLocalDate(demonstrationTypeFormData.effectiveDate),
+            expirationPlainDate: assertIsLocalDate(demonstrationTypeFormData.expirationDate),
           },
         },
       ],
@@ -139,7 +137,7 @@ export const EditDemonstrationTypeDialog = ({
     setDemonstrationTypeFormData(demonstrationType);
   };
 
-  const validateExpirationDate = (effectiveDate: LocalDate, expirationDate: LocalDate) => {
+  const validateExpirationDate = (effectiveDate: string, expirationDate: string) => {
     if (!expirationDate) {
       return "Expiration Date is required.";
     }
@@ -186,9 +184,7 @@ export const EditDemonstrationTypeDialog = ({
         <DatePicker
           isRequired
           value={demonstrationTypeFormData.effectiveDate}
-          onChange={(date) =>
-            handleOnChange({ ...demonstrationTypeFormData, effectiveDate: date as LocalDate })
-          }
+          onChange={(date) => handleOnChange({ ...demonstrationTypeFormData, effectiveDate: date })}
           name="input-effective-date"
           label="Effective Date"
           getValidationMessage={() =>
@@ -198,7 +194,7 @@ export const EditDemonstrationTypeDialog = ({
         <DatePicker
           isRequired
           onChange={(date) =>
-            handleOnChange({ ...demonstrationTypeFormData, expirationDate: date as LocalDate })
+            handleOnChange({ ...demonstrationTypeFormData, expirationDate: date })
           }
           value={demonstrationTypeFormData.expirationDate}
           name="input-expiration-date"

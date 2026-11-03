@@ -5,8 +5,9 @@ import { DemonstrationTypesList } from "./DemonstrationTypesList";
 import { AddDemonstrationTypesForm } from "./AddDemonstrationTypesForm";
 import { useToast } from "components/toast";
 import { Button } from "components/button";
-import { TagName, LocalDate, SetDemonstrationTypesInput, TagStatus } from "demos-server";
+import { TagName, SetDemonstrationTypesInput, TagStatus } from "demos-server";
 import { gql, TypedDocumentNode, useMutation } from "@apollo/client";
+import { assertIsLocalDate } from "util/formatDate";
 
 export type DemonstrationType = {
   demonstrationTypeName: TagName;
@@ -47,8 +48,8 @@ const getSetDemonstrationTypesInput = (
     demonstrationTypes: demonstrationTypes.map((demonstrationType) => ({
       demonstrationTypeName: demonstrationType.demonstrationTypeName,
       demonstrationTypeDates: {
-        effectiveDate: demonstrationType.effectiveDate as LocalDate,
-        expirationDate: demonstrationType.expirationDate as LocalDate,
+        effectivePlainDate: assertIsLocalDate(demonstrationType.effectiveDate),
+        expirationPlainDate: assertIsLocalDate(demonstrationType.expirationDate),
       },
     })),
   };

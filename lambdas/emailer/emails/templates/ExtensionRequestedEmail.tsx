@@ -46,8 +46,12 @@ export function renderExtensionRequestedEmail(rawPayload: unknown): EmailTemplat
         state={getRequiredString(demonstration.stateName, "demonstration.stateName", emailType)}
         dateDetails={
           <>
-            <Text style={detailStyle}>Current due date: {currentDueDate}</Text>
-            <Text style={detailStyle}>Requested due date: {requestedDueDate}</Text>
+            <Text style={detailStyle}>
+              <strong>Current due date:</strong> {currentDueDate}
+            </Text>
+            <Text style={detailStyle}>
+              <strong>Requested due date:</strong> {requestedDueDate}
+            </Text>
           </>
         }
       />

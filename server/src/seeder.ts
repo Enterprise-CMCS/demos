@@ -50,6 +50,7 @@ import { Deliverable, Prisma, Deliverable as PrismaDeliverable } from "@prisma/c
 import { selectDeliverableExtension } from "./model/deliverableExtension/queries";
 import { createAmendment } from "./model/amendment";
 import { createExtension } from "./model/extension";
+import { formatDateToPlainDate } from "./dateUtilities";
 
 const DOCUMENTS_PER_APPLICATION = 15;
 const UIPATH_SEED_DOCUMENT_ID = "00000000-0000-0000-0000-000000000000";
@@ -871,7 +872,7 @@ async function seedAmendments() {
   for (const amendment of amendments!) {
     const randomDates = randomDateRange();
     const updatePayload: UpdateAmendmentInput = {
-      effectiveDate: randomDates["start"],
+      effectivePlainDate: formatDateToPlainDate(randomDates["start"]),
     };
     const updateInput = {
       id: amendment.id,
@@ -904,7 +905,7 @@ async function seedExtensions() {
   for (const extension of extensions!) {
     const randomDates = randomDateRange();
     const updatePayload: UpdateExtensionInput = {
-      effectiveDate: randomDates["start"],
+      effectivePlainDate: formatDateToPlainDate(randomDates["start"]),
     };
     const updateInput = {
       id: extension.id,
@@ -1127,8 +1128,8 @@ async function seedDatabase() {
   for (const demonstration of demonstrations) {
     const randomDates = randomDateRange();
     const updatePayload: UpdateDemonstrationInput = {
-      effectiveDate: randomDates["start"],
-      expirationDate: randomDates["end"],
+      effectivePlainDate: formatDateToPlainDate(randomDates["start"]),
+      expirationPlainDate: formatDateToPlainDate(randomDates["end"]),
     };
 
     const updateInput = {
@@ -1147,148 +1148,149 @@ async function seedDatabase() {
       },
     })
   );
+
   const dateInput: SetApplicationDatesInput = {
     applicationId: randomDemonstration!.id,
     applicationDates: [
       {
         dateType: "Concept Start Date",
-        dateValue: new Date("2025-01-01T00:00:00.000-05:00"),
+        plainDate: "2025-01-01",
       },
       {
         dateType: "Concept Paper Submitted Date",
-        dateValue: new Date("2025-01-13T00:00:00.000-05:00"),
+        plainDate: "2025-01-13",
       },
       {
         dateType: "Concept Completion Date",
-        dateValue: new Date("2025-01-16T00:00:00.000-05:00"),
+        plainDate: "2025-01-16",
       },
       {
         dateType: "Application Intake Start Date",
-        dateValue: new Date("2025-01-16T00:00:00.000-05:00"),
+        plainDate: "2025-01-16",
       },
       {
         dateType: "State Application Submitted Date",
-        dateValue: new Date("2025-01-23T00:00:00.000-05:00"),
+        plainDate: "2025-01-23",
       },
       {
         dateType: "Completeness Review Due Date",
-        dateValue: new Date("2025-02-07T23:59:59.999-05:00"),
+        plainDate: "2025-02-07",
       },
       {
         dateType: "Application Intake Completion Date",
-        dateValue: new Date("2025-01-24T00:00:00.000-05:00"),
+        plainDate: "2025-01-24",
       },
       {
         dateType: "Completeness Start Date",
-        dateValue: new Date("2025-01-24T00:00:00.000-05:00"),
+        plainDate: "2025-01-24",
       },
       {
         dateType: "State Application Deemed Complete",
-        dateValue: new Date("2025-02-03T00:00:00.000-05:00"),
+        plainDate: "2025-02-03",
       },
       {
         dateType: "Federal Comment Period Start Date",
-        dateValue: new Date("2025-02-04T00:00:00.000-05:00"),
+        plainDate: "2025-02-04",
       },
       {
         dateType: "Federal Comment Period End Date",
-        dateValue: new Date("2025-03-06T23:59:59.999-05:00"),
+        plainDate: "2025-03-06",
       },
       {
         dateType: "Completeness Completion Date",
-        dateValue: new Date("2025-02-04T00:00:00.000-05:00"),
+        plainDate: "2025-02-04",
       },
       {
         dateType: "SDG Preparation Start Date",
-        dateValue: new Date("2025-02-04T00:00:00.000-05:00"),
+        plainDate: "2025-02-04",
       },
       {
         dateType: "State Requested Approval Date",
-        dateValue: new Date("2025-02-05T00:00:00.000-05:00"),
+        plainDate: "2025-02-05",
       },
       {
         dateType: "Internal Expected Approval Date",
-        dateValue: new Date("2025-02-05T00:00:00.000-05:00"),
+        plainDate: "2025-02-05",
       },
       {
         dateType: "SME Initial Review Date",
-        dateValue: new Date("2025-02-06T00:00:00.000-05:00"),
+        plainDate: "2025-02-06",
       },
       {
         dateType: "FRT Initial Meeting Date",
-        dateValue: new Date("2025-02-07T00:00:00.000-05:00"),
+        plainDate: "2025-02-07",
       },
       {
         dateType: "BNPMT Initial Meeting Date",
-        dateValue: new Date("2025-02-08T00:00:00.000-05:00"),
+        plainDate: "2025-02-08",
       },
       {
         dateType: "SDG Preparation Completion Date",
-        dateValue: new Date("2025-02-09T00:00:00.000-05:00"),
+        plainDate: "2025-02-09",
       },
       {
         dateType: "Review Start Date",
-        dateValue: new Date("2025-02-09T00:00:00.000-05:00"),
+        plainDate: "2025-02-09",
       },
       {
         dateType: "Review Completion Date",
-        dateValue: new Date("2025-02-13T00:00:00.000-05:00"),
+        plainDate: "2025-02-13",
       },
       {
         dateType: "OGD Approval to Share with SMEs",
-        dateValue: new Date("2025-02-14T00:00:00.000-05:00"),
+        plainDate: "2025-02-14",
       },
       {
         dateType: "Draft Approval Package to Prep",
-        dateValue: new Date("2025-02-15T00:00:00.000-05:00"),
+        plainDate: "2025-02-15",
       },
       {
         dateType: "DDME Approval Received",
-        dateValue: new Date("2025-02-16T00:00:00.000-05:00"),
+        plainDate: "2025-02-16",
       },
       {
         dateType: "State Concurrence",
-        dateValue: new Date("2025-02-17T00:00:00.000-05:00"),
+        plainDate: "2025-02-17",
       },
       {
         dateType: "BN PMT Approval to Send to OMB",
-        dateValue: new Date("2025-02-18T00:00:00.000-05:00"),
+        plainDate: "2025-02-18",
       },
       {
         dateType: "Draft Approval Package Shared",
-        dateValue: new Date("2025-02-19T00:00:00.000-05:00"),
+        plainDate: "2025-02-19",
       },
       {
         dateType: "Receive OMB Concurrence",
-        dateValue: new Date("2025-02-20T00:00:00.000-05:00"),
+        plainDate: "2025-02-20",
       },
       {
         dateType: "Receive OGC Legal Clearance",
-        dateValue: new Date("2025-02-21T00:00:00.000-05:00"),
+        plainDate: "2025-02-21",
       },
       {
         dateType: "Package Sent for COMMs Clearance",
-        dateValue: new Date("2025-02-21T00:00:00.000-05:00"),
+        plainDate: "2025-02-21",
       },
       {
         dateType: "COMMs Clearance Received",
-        dateValue: new Date("2025-02-21T00:00:00.000-05:00"),
+        plainDate: "2025-02-21",
       },
       {
         dateType: "Submit Approval Package to OSORA",
-        dateValue: new Date("2025-02-21T00:00:00.000-05:00"),
+        plainDate: "2025-02-21",
       },
       {
         dateType: "OSORA R1 Comments Due",
-        dateValue: new Date("2025-02-07T23:59:59.999-05:00"),
+        plainDate: "2025-02-07",
       },
       {
         dateType: "OSORA R2 Comments Due",
-        dateValue: new Date("2025-02-07T23:59:59.999-05:00"),
+        plainDate: "2025-02-07",
       },
       {
         dateType: "CMS (OSORA) Clearance End",
-        dateValue: new Date("2025-02-07T23:59:59.999-05:00"),
+        plainDate: "2025-02-07",
       },
     ],
   };

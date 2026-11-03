@@ -12,10 +12,13 @@ import {
 import { WorkflowApplication } from "components/application";
 import type { ApplicationStatus, DateType, PhaseName, PhaseStatus } from "demos-server";
 import { TestProvider } from "test-utils/TestProvider";
-import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { cmsMockUser, oactMockUser, readonlyMockUser } from "mock-data/userMocks";
 import type { CurrentUser } from "components/user/UserContext";
 import { ToastContainer } from "components/toast";
+import { DialogProvider } from "components/dialog/DialogContext";
 import { FAILED_TO_SAVE_MESSAGE, getPhaseCompletedMessage } from "util/messages";
+import type { ApplicationWorkflowDocument } from "components/application";
+import { mockDocument } from "mock-data/documentMocks";
 
 const mockSetApplicationDate = vi.fn();
 const mockCompletePhase = vi.fn();
@@ -115,7 +118,7 @@ const baseWorkflowApplication: WorkflowApplication = {
 const renderWithTestProvider = (ui: React.ReactNode, currentUser: CurrentUser = cmsMockUser) =>
   render(
     <TestProvider currentUser={currentUser}>
-      {ui}
+      <DialogProvider>{ui}</DialogProvider>
       <ToastContainer />
     </TestProvider>
   );
@@ -137,6 +140,7 @@ describe("SdgPreparationPhase", () => {
         setSelectedPhase={mockSetSelectedPhase}
         allPreviousPhasesDone={true}
         applicationStatus={applicationStatus}
+        documents={[]}
       />,
       currentUser
     );
@@ -278,7 +282,7 @@ describe("SdgPreparationPhase", () => {
         expect(mockSetApplicationDate).toHaveBeenCalledWith({
           applicationId: "1",
           dateType: "OACT Initial Review Date",
-          dateValue: "2025-04-20",
+          plainDate: "2025-04-20",
         });
       });
     });
@@ -317,7 +321,7 @@ describe("SdgPreparationPhase", () => {
         expect(mockSetApplicationDate).toHaveBeenCalledWith({
           applicationId: "1",
           dateType: "State Requested Approval Date",
-          dateValue: "2025-04-20",
+          plainDate: "2025-04-20",
         });
       });
     });
@@ -365,7 +369,7 @@ describe("SdgPreparationPhase", () => {
         expect(mockSetApplicationDate).toHaveBeenCalledWith({
           applicationId: "1",
           dateType: "Internal Expected Approval Date",
-          dateValue: "2025-01-02",
+          plainDate: "2025-01-02",
         });
         expect(screen.getByText(/Updates\s+saved successfully/)).toBeInTheDocument();
       });
@@ -439,7 +443,7 @@ describe("SdgPreparationPhase", () => {
         expect(mockSetApplicationDate).toHaveBeenCalledWith({
           applicationId: "1",
           dateType: "Internal Expected Approval Date",
-          dateValue: "2024-12-31",
+          plainDate: "2024-12-31",
         });
       });
     });
@@ -498,7 +502,7 @@ describe("SdgPreparationPhase", () => {
         expect(mockSetApplicationDate).toHaveBeenCalledWith({
           applicationId: "1",
           dateType: "OACT Initial Review Date",
-          dateValue: "2025-01-01",
+          plainDate: "2025-01-01",
         });
         expect(mockCompletePhase).toHaveBeenCalled();
         expect(screen.getByText(getPhaseCompletedMessage("SDG Preparation"))).toBeInTheDocument();
@@ -666,6 +670,7 @@ describe("Completed Phase Behavior", () => {
         setSelectedPhase={mockSetSelectedPhase}
         allPreviousPhasesDone={true}
         applicationStatus="Pre-Submission"
+        documents={[]}
       />
     );
 
@@ -724,7 +729,7 @@ describe("Completed Phase Behavior", () => {
       expect(mockSetApplicationDate).toHaveBeenCalledWith({
         applicationId: "1",
         dateType: "Internal Expected Approval Date",
-        dateValue: "2025-06-01",
+        plainDate: "2025-06-01",
       });
       expect(screen.getByText(/Updates\s+saved successfully/)).toBeInTheDocument();
     });
@@ -747,6 +752,7 @@ describe("Approved Application Behavior", () => {
         setSelectedPhase={mockSetSelectedPhase}
         allPreviousPhasesDone={true}
         applicationStatus="Approved"
+        documents={[]}
       />
     );
 
@@ -854,5 +860,106 @@ describe("getSdgPreparationPhaseFromApplication", () => {
 
     const finishButton = screen.getByTestId("sdg-finish");
     expect(finishButton).toBeEnabled();
+  });
+
+  it("only includes documents tagged to the SDG Preparation phase", () => {
+    const application: WorkflowApplication = {
+      ...baseWorkflowApplication,
+      documents: [
+        createDocument({ id: "sdg-doc", name: "SDG Working File", phaseName: "SDG Preparation" }),
+        createDocument({
+          id: "fc-doc",
+          name: "Federal Comment File",
+          phaseName: "Federal Comment",
+        }),
+      ],
+      phases: [{ ...mockApplication.phases[0], phaseStatus: "Started" }],
+    };
+
+    renderWithTestProvider(
+      getSdgPreparationPhaseFromApplication(application, mockSetSelectedPhase)
+    );
+
+    expect(screen.getByText("SDG Working File")).toBeInTheDocument();
+    expect(screen.queryByText("Federal Comment File")).not.toBeInTheDocument();
+  });
+});
+
+const createDocument = (
+  overrides: Partial<ApplicationWorkflowDocument> = {}
+): ApplicationWorkflowDocument => ({
+  ...mockDocument,
+  ...overrides,
+});
+
+describe("SdgPreparationPhase - Draft Documents Section", () => {
+  const renderSection = (
+    documents: ApplicationWorkflowDocument[] = [],
+    currentUser: CurrentUser = cmsMockUser
+  ) =>
+    renderWithTestProvider(
+      <SdgPreparationPhase
+        applicationId="1"
+        sdgPreparationPhase={mockApplication.phases[0]}
+        setSelectedPhase={vi.fn()}
+        allPreviousPhasesDone={true}
+        applicationStatus="Pre-Submission"
+        documents={documents}
+      />,
+      currentUser
+    );
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("renders title and helper text", () => {
+    renderSection();
+
+    expect(screen.getByText("DRAFT DOCUMENTS")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Upload SME Summaries, Briefing Overviews, the draft BN Formulation Workbook, and other working files."
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("opens the SDG Preparation upload dialog when upload is clicked", async () => {
+    renderSection();
+
+    await userEvent.click(screen.getByRole("button", { name: "Upload" }));
+
+    expect(screen.getByRole("dialog")).toHaveTextContent("Add Draft Document");
+  });
+
+  it("renders uploaded documents", () => {
+    renderSection([createDocument({ name: "Briefing Overview" })]);
+
+    expect(screen.getByText("Briefing Overview")).toBeInTheDocument();
+  });
+
+  it("hides upload button for readonly users", () => {
+    renderSection([], readonlyMockUser);
+
+    expect(screen.queryByRole("button", { name: "Upload" })).not.toBeInTheDocument();
+  });
+
+  it("hides document delete buttons but shows upload button for OACT users", () => {
+    renderSection([createDocument({ name: "Briefing Overview" })], oactMockUser);
+
+    expect(screen.getByRole("button", { name: "Upload" })).toBeInTheDocument();
+    expect(screen.getByText("Briefing Overview")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Delete Briefing Overview" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps the Upload button and document delete buttons for CMS users", () => {
+    renderSection([createDocument({ name: "Briefing Overview" })], cmsMockUser);
+
+    expect(screen.getByRole("button", { name: "Upload" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Delete Briefing Overview" })
+    ).toBeInTheDocument();
   });
 });

@@ -1,6 +1,6 @@
 import { TZDate } from "@date-fns/tz";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { DateType, LocalDate, ApplicationDateInput } from "../../types";
+import { DateType, ApplicationDateInput } from "../../types";
 import { EasternNow } from "../../dateUtilities";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { getOrderedPhaseDateTypes, OrderedPhaseDateTypes } from "../phaseDateType";
@@ -87,7 +87,7 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Application Intake Start Date",
-          dateValue: new Date("2025-01-01T00:00:00.000Z"),
+          plainDate: "2025-01-01",
         },
       ];
       vi.mocked(setPhaseToStarted).mockResolvedValue(false);
@@ -108,7 +108,7 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Unknown Date Type" as DateType,
-          dateValue: new Date("2025-01-01T00:00:00.000Z"),
+          plainDate: "2025-01-01",
         },
       ];
 
@@ -123,11 +123,11 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Application Intake Start Date",
-          dateValue: "2025-01-01" as LocalDate,
+          plainDate: "2025-01-01",
         },
         {
           dateType: "State Application Deemed Complete",
-          dateValue: "2025-01-15" as LocalDate,
+          plainDate: "2025-01-15",
         },
       ];
       vi.mocked(setPhaseToStarted).mockResolvedValue(false);
@@ -157,7 +157,7 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Application Intake Start Date",
-          dateValue: new Date("2025-01-01T00:00:00.000Z"),
+          plainDate: "2025-01-01",
         },
       ];
       vi.mocked(setPhaseToStarted).mockResolvedValue(false);
@@ -180,11 +180,11 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Application Intake Start Date",
-          dateValue: new Date("2025-01-01T00:00:00.000Z"),
+          plainDate: "2025-01-01",
         },
         {
           dateType: "State Application Deemed Complete",
-          dateValue: new Date("2025-01-15T00:00:00.000Z"),
+          plainDate: "2025-01-15",
         },
       ];
       vi.mocked(setPhaseToStarted).mockResolvedValue(false);
@@ -215,7 +215,7 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Application Intake Start Date",
-          dateValue: new Date("2025-01-01T00:00:00.000Z"),
+          plainDate: "2025-01-01",
         },
       ];
       vi.mocked(setPhaseToStarted).mockResolvedValue(false);
@@ -235,12 +235,12 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Completeness Review Due Date",
-          dateValue: new Date("2025-01-15T00:00:00.000Z"),
+          plainDate: "2025-01-15",
         },
       ];
       const mockStartDate: ApplicationDateInput = {
         dateType: "Application Intake Start Date",
-        dateValue: new Date("2025-01-01T00:00:00.000Z"),
+        plainDate: "2025-01-01",
       };
       vi.mocked(setPhaseToStarted).mockResolvedValue(true);
       vi.mocked(createPhaseStartDate).mockReturnValue(mockStartDate);
@@ -263,7 +263,7 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Completeness Review Due Date",
-          dateValue: new Date("2025-01-15T00:00:00.000Z"),
+          plainDate: "2025-01-15",
         },
       ];
       vi.mocked(setPhaseToStarted).mockResolvedValue(true);
@@ -285,12 +285,12 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Application Intake Start Date",
-          dateValue: new Date("2025-01-01T00:00:00.000Z"),
+          plainDate: "2025-01-01",
         },
       ];
       const mockStartDate: ApplicationDateInput = {
         dateType: "Application Intake Start Date",
-        dateValue: new Date("2025-01-01T05:00:00.000Z"),
+        plainDate: "2025-01-01",
       };
       vi.mocked(setPhaseToStarted).mockResolvedValue(true);
       vi.mocked(createPhaseStartDate).mockReturnValue(mockStartDate);
@@ -311,16 +311,16 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "State Application Submitted Date",
-          dateValue: new Date("2025-01-15T00:00:00.000Z"),
+          plainDate: "2025-01-15",
         },
         {
           dateType: "Completeness Review Due Date",
-          dateValue: new Date("2025-02-01T00:00:00.000Z"),
+          plainDate: "2025-02-01",
         },
       ];
       const mockStartDate: ApplicationDateInput = {
         dateType: "Application Intake Start Date",
-        dateValue: new Date("2025-01-01T00:00:00.000Z"),
+        plainDate: "2025-01-01",
       };
       vi.mocked(setPhaseToStarted)
         .mockResolvedValueOnce(true) // Application Intake started
@@ -362,20 +362,20 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Application Intake Start Date",
-          dateValue: new Date("2025-01-01T00:00:00.000Z"),
+          plainDate: "2025-01-01",
         },
         {
           dateType: "Completeness Review Due Date",
-          dateValue: new Date("2025-02-01T00:00:00.000Z"),
+          plainDate: "2025-02-01",
         },
       ];
       const mockIntakeStartDate: ApplicationDateInput = {
         dateType: "Application Intake Start Date",
-        dateValue: new Date("2025-01-01T05:00:00.000Z"),
+        plainDate: "2025-01-01",
       };
       const mockCompletenessStartDate: ApplicationDateInput = {
         dateType: "Completeness Review Due Date",
-        dateValue: new Date("2025-01-16T00:00:00.000Z"),
+        plainDate: "2025-01-16",
       };
       vi.mocked(setPhaseToStarted).mockResolvedValue(true);
       vi.mocked(createPhaseStartDate)
@@ -399,7 +399,7 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Completeness Review Due Date",
-          dateValue: new Date("2025-01-01T00:00:00.000Z"),
+          plainDate: "2025-01-01",
         },
       ];
       vi.mocked(setPhaseToStarted).mockResolvedValue(false);
@@ -425,12 +425,12 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Completeness Review Due Date",
-          dateValue: new Date("2025-01-15T00:00:00.000Z"),
+          plainDate: "2025-01-15",
         },
       ];
       const mockStartDate: ApplicationDateInput = {
         dateType: "Application Intake Start Date",
-        dateValue: new Date("2025-01-01T00:00:00.000Z"),
+        plainDate: "2025-01-01",
       };
       vi.mocked(setPhaseToStarted).mockResolvedValue(true);
       vi.mocked(createPhaseStartDate).mockReturnValue(mockStartDate);
@@ -445,9 +445,9 @@ describe("startPhasesByDates", () => {
       expect(Array.isArray(result)).toBe(true);
       result.forEach((date) => {
         expect(date).toHaveProperty("dateType");
-        expect(date).toHaveProperty("dateValue");
+        expect(date).toHaveProperty("plainDate");
         expect(typeof date.dateType).toBe("string");
-        expect(date.dateValue).toBeInstanceOf(Date);
+        expect(typeof date.plainDate).toBe("string");
       });
     });
   });
@@ -457,11 +457,11 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Application Intake Start Date",
-          dateValue: null,
+          plainDate: null,
         },
         {
           dateType: "State Application Submitted Date",
-          dateValue: new Date("2025-01-15T00:00:00.000Z"),
+          plainDate: "2025-01-15",
         },
       ];
       vi.mocked(setPhaseToStarted).mockResolvedValue(false);
@@ -487,11 +487,11 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Application Intake Start Date",
-          dateValue: null,
+          plainDate: null,
         },
         {
           dateType: "State Application Deemed Complete",
-          dateValue: null,
+          plainDate: null,
         },
       ];
 
@@ -511,20 +511,20 @@ describe("startPhasesByDates", () => {
       const applicationDates: ApplicationDateInput[] = [
         {
           dateType: "Application Intake Start Date",
-          dateValue: null,
+          plainDate: null,
         },
         {
           dateType: "State Application Submitted Date",
-          dateValue: new Date("2025-01-15T00:00:00.000Z"),
+          plainDate: "2025-01-15",
         },
         {
           dateType: "State Application Deemed Complete",
-          dateValue: null,
+          plainDate: null,
         },
       ];
       const mockStartDate: ApplicationDateInput = {
         dateType: "Application Intake Start Date",
-        dateValue: new Date("2025-01-01T00:00:00.000Z"),
+        plainDate: "2025-01-01",
       };
       vi.mocked(setPhaseToStarted).mockResolvedValue(true);
       vi.mocked(createPhaseStartDate).mockReturnValue(mockStartDate);
