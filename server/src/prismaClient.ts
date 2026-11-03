@@ -35,6 +35,7 @@ const createExtendedClient = () => {
   const adapter = new PrismaPg(
     {
       connectionString,
+      // deepcode ignore TLSCertVerificationDisabled: DB connection is restricted to the private VPC; CA pinning tracked separately
       ssl: { rejectUnauthorized: false },
     },
     {

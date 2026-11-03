@@ -21,3 +21,4 @@ patch: {}
 exclude:
   global:
     - node_modules
+    - dist/**
