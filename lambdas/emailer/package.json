@@ -19,7 +19,7 @@
     "@react-email/render": "^2.1.0",
     "demos-shared-library": "file:../../shared_library",
     "mime-types": "^3.0.2",
-    "nodemailer": "^10.0.16",
+    "nodemailer": "^10.1.4",
     "pg": "^8.23.1",
     "pino": "^10.4.0",
     "react": "^19.3.0",
