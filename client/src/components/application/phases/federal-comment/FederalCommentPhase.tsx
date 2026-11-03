@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { tw } from "tags/tw";
 import { ApplicationUploadSection } from "components/application/phases/sections";
 import { assertIsLocalDate, formatDateForDisplay, formatDateForServer } from "util/formatDate";
@@ -75,6 +75,10 @@ const FederalCommentNotice: React.FC<{ phaseEndDate?: string; phaseComplete: boo
 }) => {
   const [isDismissed, setDismissed] = useState(!(phaseEndDate && !phaseComplete));
 
+  useEffect(() => {
+    if (phaseEndDate && !phaseComplete) setDismissed(false);
+  }, [phaseEndDate, phaseComplete]);
+
   const getNoticeContent = () => {
     if (!phaseEndDate) return null;
     const daysLeft = differenceInCalendarDays(phaseEndDate, new Date());
@@ -101,7 +105,7 @@ const FederalCommentNotice: React.FC<{ phaseEndDate?: string; phaseComplete: boo
 
   const noticeContent = getNoticeContent();
 
-  if (isDismissed || !noticeContent) return null;
+  if (phaseComplete || isDismissed || !noticeContent) return null;
 
   return (
     <Notice

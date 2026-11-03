@@ -73,6 +73,30 @@ describe("FederalCommentPhase", () => {
   vi.setSystemTime(FAKE_TODAY);
 
   describe("Warning Banner", () => {
+    it("shows after the saved end date arrives", () => {
+      const { rerender } = setup({ phaseEndDate: undefined });
+      expect(screen.queryByText(/The Federal Comment Period ends on/i)).not.toBeInTheDocument();
+
+      rerender(
+        <TestProvider>
+          <ToastContainer />
+          <DialogProvider>
+            <FederalCommentPhase
+              demonstrationId="demo-123"
+              phaseComplete={false}
+              phaseStartDate="2026-10-27"
+              phaseEndDate="2026-11-26"
+              documents={[]}
+            />
+          </DialogProvider>
+        </TestProvider>
+      );
+
+      expect(
+        screen.getByText("The Federal Comment Period ends on 11/26/2026")
+      ).toBeInTheDocument();
+    });
+
     it("renders warning with days left", () => {
       setup();
       expect(screen.getByLabelText("Warning")).toBeInTheDocument();
