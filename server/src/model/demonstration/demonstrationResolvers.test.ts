@@ -11,6 +11,7 @@ import {
   ClearanceLevel,
   CreateDemonstrationInput,
   GrantLevel,
+  LocalDate,
   PersonType,
   PhaseName,
   Role,
@@ -180,7 +181,7 @@ describe("demonstrationResolvers", () => {
     newApplicationPhaseId: PhaseName;
     projectOfficerRole: Role;
     demonstrationGrantLevelId: GrantLevel;
-    plainDate: string;
+    plainDate: LocalDate;
     easternTZDate: EasternTZDate;
   };
   const testValues: TestValues = {
@@ -197,7 +198,7 @@ describe("demonstrationResolvers", () => {
     newApplicationPhaseId: "Concept",
     projectOfficerRole: "Project Officer",
     demonstrationGrantLevelId: "Demonstration",
-    plainDate: "2025-01-01",
+    plainDate: "2025-01-01" as LocalDate,
     easternTZDate: {
       isEasternTZDate: true,
       easternTZDate: new TZDate(2025, 1, 1, 0, 0, 0, 0, "America/New_York"),
@@ -414,10 +415,10 @@ describe("demonstrationResolvers", () => {
       ] as DemonstrationTypeTagAssignmentQueryResult[]);
 
       vi.mocked(formatDateToPlainDate)
-        .mockReturnValueOnce("2026-09-24")
-        .mockReturnValueOnce("2027-09-24")
-        .mockReturnValueOnce("2026-09-25")
-        .mockReturnValueOnce("2027-09-25");
+        .mockReturnValueOnce("2026-09-24" as LocalDate)
+        .mockReturnValueOnce("2027-09-24" as LocalDate)
+        .mockReturnValueOnce("2026-09-25" as LocalDate)
+        .mockReturnValueOnce("2027-09-25" as LocalDate);
 
       const result = await demonstrationResolvers.Demonstration.demonstrationTypes(
         { id: "abc123" } as PrismaDemonstration,

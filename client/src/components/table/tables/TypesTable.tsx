@@ -9,7 +9,7 @@ import { KeywordSearch } from "components/table/search";
 import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
 import { TypesColumns } from "../columns/TypesColumns";
-import { Deliverable, Demonstration as ServerDemonstration, Tag } from "demos-server";
+import { Deliverable, LocalDate, Demonstration as ServerDemonstration, Tag } from "demos-server";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { useDialog } from "components/dialog/DialogContext";
 import { Notice } from "components/notice";
@@ -28,8 +28,8 @@ export type TypeTableRow = {
   typeLabel: string;
   status: DemonstrationDetailDemonstrationType["status"];
   approvalStatus: DemonstrationDetailDemonstrationType["approvalStatus"];
-  effectivePlainDate: string;
-  expirationPlainDate: string;
+  effectivePlainDate: LocalDate;
+  expirationPlainDate: LocalDate;
 };
 
 export type Demonstration = Pick<ServerDemonstration, "id" | "status"> & {

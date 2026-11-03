@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
-import { ApplicationDateInput, PhaseName } from "../../types";
+import { ApplicationDateInput, LocalDate, PhaseName } from "../../types";
 import { EasternNow } from "../../dateUtilities";
 import { startPhase } from "./startPhase";
 
@@ -37,7 +37,7 @@ describe("startPhaseByDocument", () => {
 
   const mockPhaseStartDate: ApplicationDateInput = {
     dateType: "Application Intake Completion Date",
-    plainDate: "2025-01-20",
+    plainDate: "2025-01-20" as LocalDate,
   };
 
   beforeEach(() => {

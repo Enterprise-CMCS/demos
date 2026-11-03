@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { SetApplicationDatesInput } from "../../types.js";
+import { LocalDate, SetApplicationDatesInput } from "../../types.js";
 import { parseSetApplicationDatesInput } from "./parseSetApplicationDatesInput.js";
 
 // Mock imports
@@ -11,8 +11,8 @@ vi.mock("../../dateUtilities.js", () => ({
 
 describe("parseInputApplicationDates", () => {
   const testApplicationId = "155e76dd-df48-47f6-a50f-b1300c29ca27";
-  const testPlainDate1 = "2025-01-15";
-  const testPlainDate2 = "2025-01-30";
+  const testPlainDate1 = "2025-01-15" as LocalDate;
+  const testPlainDate2 = "2025-01-30" as LocalDate;
   const testInputs: SetApplicationDatesInput = {
     applicationId: testApplicationId,
     applicationDates: [

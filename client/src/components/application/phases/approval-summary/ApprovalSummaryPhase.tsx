@@ -1,13 +1,15 @@
 import React, { useState } from "react";
-import { useMutation, gql } from "@apollo/client";
+import { useMutation, gql, TypedDocumentNode } from "@apollo/client";
 import { assertIsLocalDate, formatDateForDisplay, getTodayEst } from "util/formatDate";
 import {
+  Amendment,
   ApplicationStatus,
   DateType,
-  LocalDate,
+  Demonstration,
+  Extension as Renewal,
   UpdateAmendmentInput,
   UpdateDemonstrationInput,
-  UpdateExtensionInput,
+  UpdateExtensionInput as UpdateRenewalInput,
 } from "demos-server";
 import {
   ApplicationWorkflowAmendment,
@@ -16,7 +18,12 @@ import {
   WorkflowApplication,
   WorkflowApplicationType,
 } from "components/application";
-import { ApplicationDetailsSection, ApplicationDetailsFormData } from "./ApplicationDetailsSection";
+import {
+  ApplicationDetailsSection,
+  ApplicationDetailsFormData,
+  DemonstrationDetailsFormData,
+  ModificationDetailsFormData,
+} from "./ApplicationDetailsSection";
 import { DemonstrationTypesSection } from "./DemonstrationTypesSection";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
@@ -27,15 +34,28 @@ import { getPhaseCompletedMessage, MISSING_REQUIRED_SECTIONS_TOOLTIP } from "uti
 import { useDialog } from "components/dialog/DialogContext";
 import { getCurrentUser, isReadonly as userIsReadonly } from "components/user/UserContext";
 
-export const UPDATE_DEMONSTRATION_MUTATION = gql`
+export const UPDATE_DEMONSTRATION_MUTATION: TypedDocumentNode<
+  {
+    updateDemonstration: Pick<
+      Demonstration,
+      "id" | "name" | "description" | "effectivePlainDate" | "expirationPlainDate" | "sdgDivision"
+    > & {
+      state: {
+        id: string;
+      };
+      primaryProjectOfficer: {
+        id: string;
+      };
+    };
+  },
+  { id: string; input: UpdateDemonstrationInput }
+> = gql`
   mutation UpdateDemonstration($id: ID!, $input: UpdateDemonstrationInput!) {
     updateDemonstration(id: $id, input: $input) {
       id
       name
       description
-      effectiveDate
       effectivePlainDate
-      expirationDate
       expirationPlainDate
       sdgDivision
       state {
@@ -48,7 +68,15 @@ export const UPDATE_DEMONSTRATION_MUTATION = gql`
   }
 `;
 
-export const UPDATE_AMENDMENT_MUTATION = gql`
+export const UPDATE_AMENDMENT_MUTATION: TypedDocumentNode<
+  {
+    updateAmendment: Pick<
+      Amendment,
+      "id" | "name" | "description" | "effectivePlainDate" | "signatureLevel"
+    >;
+  },
+  { id: string; input: UpdateAmendmentInput }
+> = gql`
   mutation UpdateAmendment($id: ID!, $input: UpdateAmendmentInput!) {
     updateAmendment(id: $id, input: $input) {
       id
@@ -60,7 +88,15 @@ export const UPDATE_AMENDMENT_MUTATION = gql`
   }
 `;
 
-export const UPDATE_RENEWAL_MUTATION = gql`
+export const UPDATE_RENEWAL_MUTATION: TypedDocumentNode<
+  {
+    updateRenewal: Pick<
+      Renewal,
+      "id" | "name" | "description" | "effectivePlainDate" | "signatureLevel"
+    >;
+  },
+  { id: string; input: UpdateRenewalInput }
+> = gql`
   mutation UpdateRenewal($id: ID!, $input: UpdateExtensionInput!) {
     updateRenewal: updateExtension(id: $id, input: $input) {
       id
@@ -93,7 +129,7 @@ export const getDemonstrationApprovalSummaryFormData = (
     .find((p) => p.phaseName === "Approval Summary")
     ?.phaseDates.find((d) => d.dateType === "Application Approval Date")?.plainDate;
 
-  const formData = {
+  const formData: Omit<DemonstrationDetailsFormData, "staticFields"> = {
     applicationType: "demonstration" as const,
     stateId: demonstration.state.id,
     stateName: demonstration.state.name,
@@ -106,7 +142,9 @@ export const getDemonstrationApprovalSummaryFormData = (
     description: demonstration.description,
     sdgDivision: demonstration.sdgDivision,
     signatureLevel: demonstration.signatureLevel,
-    applicationApprovalDate: (applicationApprovalDate as LocalDate) ?? undefined,
+    applicationApprovalDate: applicationApprovalDate
+      ? assertIsLocalDate(applicationApprovalDate)
+      : undefined,
   };
 
   return {
@@ -133,14 +171,16 @@ export const getModificationApprovalSummaryFormData = (
     .find((p) => p.phaseName === "Approval Summary")
     ?.phaseDates.find((d) => d.dateType === "Application Approval Date")?.plainDate;
 
-  const formData = {
+  const formData: Omit<ModificationDetailsFormData, "staticFields"> = {
     applicationType: modificationType,
     name: modification.name,
     effectiveDate: modification.effectivePlainDate ?? "",
     description: modification.description,
     signatureLevel: modification.signatureLevel,
     status: modification.status,
-    applicationApprovalDate: (applicationApprovalDate as LocalDate) ?? undefined,
+    applicationApprovalDate: applicationApprovalDate
+      ? assertIsLocalDate(applicationApprovalDate)
+      : undefined,
   };
 
   return {
@@ -322,7 +362,7 @@ export const ApprovalSummaryPhase = ({
         },
       });
     }
-    const updateInput: UpdateAmendmentInput | UpdateExtensionInput = {
+    const updateInput: UpdateAmendmentInput | UpdateRenewalInput = {
       name: formData.name,
       description: formData.description,
       effectivePlainDate: assertIsLocalDate(formData.effectiveDate),

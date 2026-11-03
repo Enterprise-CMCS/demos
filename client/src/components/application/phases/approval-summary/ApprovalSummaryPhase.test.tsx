@@ -17,6 +17,7 @@ import {
 import { TestProvider } from "test-utils/TestProvider";
 import { MockedResponse } from "@apollo/client/testing";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
+import { LocalDate } from "demos-server";
 
 const mockShowConfirmApproveDialog = vi.fn();
 
@@ -45,8 +46,8 @@ const buildInitialFormData = (
   projectOfficerId: "user-123",
   projectOfficerName: "Jane Doe",
   status: "Active",
-  effectiveDate: "2025-01-01",
-  expirationDate: "2026-01-01",
+  effectiveDate: "2025-01-01" as LocalDate,
+  expirationDate: "2026-01-01" as LocalDate,
   description: "Test description",
   sdgDivision: "Division of System Reform Demonstrations",
   signatureLevel: "OA",
@@ -59,7 +60,7 @@ const buildAmendmentFormData = (
 ): ModificationDetailsFormData => ({
   applicationType: "amendment",
   name: "Test Amendment",
-  effectiveDate: "2025-01-01",
+  effectiveDate: "2025-01-01" as LocalDate,
   description: "Test description",
   signatureLevel: "OA",
   status: "Active",
@@ -72,7 +73,7 @@ const buildRenewalFormData = (
 ): ModificationDetailsFormData => ({
   applicationType: "renewal",
   name: "Test Renewal",
-  effectiveDate: "2025-01-01",
+  effectiveDate: "2025-01-01" as LocalDate,
   description: "Test description",
   signatureLevel: "OA",
   status: "Active",

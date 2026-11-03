@@ -9,9 +9,9 @@ const ISO_DATE_FORMAT = "yyyy-MM-dd";
 const US_DATE_FORMAT = "MM/dd/yyyy";
 export const EST_TIMEZONE = "America/New_York";
 
-const isLocalDateString = (date: string): boolean => /^\d{4}-\d{2}-\d{2}$/.test(date);
+const isLocalDateString = (date: string): date is LocalDate => /^\d{4}-\d{2}-\d{2}$/.test(date);
 
-export const assertIsLocalDate = (date: string): string => {
+export const assertIsLocalDate = (date: string): LocalDate => {
   if (!isLocalDateString(date)) {
     throw new Error(`Expected a LocalDate string (yyyy-MM-dd), received: "${date}"`);
   }

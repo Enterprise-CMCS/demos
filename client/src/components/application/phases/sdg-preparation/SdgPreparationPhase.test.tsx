@@ -10,7 +10,7 @@ import {
   getSdgPreparationPhaseFromApplication,
 } from "./SdgPreparationPhase";
 import { WorkflowApplication } from "components/application";
-import type { ApplicationStatus, DateType, PhaseName, PhaseStatus } from "demos-server";
+import type { ApplicationStatus, DateType, LocalDate, PhaseName, PhaseStatus } from "demos-server";
 import { TestProvider } from "test-utils/TestProvider";
 import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
 import type { CurrentUser } from "components/user/UserContext";
@@ -44,34 +44,34 @@ vi.mock("components/application/phase-status/phaseCompletionQueries", () => ({
 const DEFAULT_PHASE_DATES = [
   {
     dateType: "Internal Expected Approval Date" as const,
-    plainDate: "2025-01-01",
+    plainDate: "2025-01-01" as LocalDate,
   },
   {
     dateType: "State Requested Approval Date" as const,
-    plainDate: "2025-03-15",
+    plainDate: "2025-03-15" as LocalDate,
   },
 ];
 
 const COMPLETE_PHASE_DATES = [
   {
     dateType: "Internal Expected Approval Date" as const,
-    plainDate: "2025-01-01",
+    plainDate: "2025-01-01" as LocalDate,
   },
   {
     dateType: "SME Initial Review Date" as const,
-    plainDate: "2025-01-01",
+    plainDate: "2025-01-01" as LocalDate,
   },
   {
     dateType: "FRT Initial Meeting Date" as const,
-    plainDate: "2025-01-01",
+    plainDate: "2025-01-01" as LocalDate,
   },
   {
     dateType: "BNPMT Initial Meeting Date" as const,
-    plainDate: "2025-01-01",
+    plainDate: "2025-01-01" as LocalDate,
   },
   {
     dateType: "OACT Initial Review Date" as const,
-    plainDate: "2025-01-01",
+    plainDate: "2025-01-01" as LocalDate,
   },
 ];
 
@@ -636,27 +636,27 @@ describe("Completed Phase Behavior", () => {
     phaseDates: [
       {
         dateType: "Internal Expected Approval Date" as DateType,
-        plainDate: "2025-01-01",
+        plainDate: "2025-01-01" as LocalDate,
       },
       {
         dateType: "SME Initial Review Date" as DateType,
-        plainDate: "2025-01-01",
+        plainDate: "2025-01-01" as LocalDate,
       },
       {
         dateType: "FRT Initial Meeting Date" as DateType,
-        plainDate: "2025-01-01",
+        plainDate: "2025-01-01" as LocalDate,
       },
       {
         dateType: "BNPMT Initial Meeting Date" as DateType,
-        plainDate: "2025-01-01",
+        plainDate: "2025-01-01" as LocalDate,
       },
       {
         dateType: "OACT Initial Review Date" as DateType,
-        plainDate: "2025-01-01",
+        plainDate: "2025-01-01" as LocalDate,
       },
       {
         dateType: "State Requested Approval Date" as DateType,
-        plainDate: "2025-03-15",
+        plainDate: "2025-03-15" as LocalDate,
       },
     ],
     phaseNotes: [],
@@ -781,7 +781,7 @@ describe("getSdgPreparationPhaseFromApplication", () => {
           phaseDates: [
             {
               dateType: "Internal Expected Approval Date",
-              plainDate: "2025-01-01",
+              plainDate: "2025-01-01" as LocalDate,
             },
           ],
           phaseNotes: [],

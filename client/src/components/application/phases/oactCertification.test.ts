@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { isOactCertificationRequired } from "./oactCertification";
 import { SimplePhase, WorkflowApplication } from "components/application";
+import { LocalDate } from "demos-server";
 
 const createApplication = (phases: SimplePhase[]): WorkflowApplication => ({
   id: "demo-1",
@@ -12,9 +13,7 @@ const createApplication = (phases: SimplePhase[]): WorkflowApplication => ({
   tags: [],
 });
 
-const createApprovalSummaryPhase = (approvalDate?: {
-  plainDate: string;
-}): SimplePhase => ({
+const createApprovalSummaryPhase = (approvalDate?: { plainDate: LocalDate }): SimplePhase => ({
   phaseName: "Approval Summary",
   phaseStatus: "Not Started",
   phaseDates: approvalDate ? [{ dateType: "Application Approval Date", ...approvalDate }] : [],
@@ -35,7 +34,7 @@ describe("isOactCertificationRequired", () => {
   it("is not required when the Application Approval Date is 12/31/2026", () => {
     const application = createApplication([
       createApprovalSummaryPhase({
-        plainDate: "2026-12-31",
+        plainDate: "2026-12-31" as LocalDate,
       }),
     ]);
 
@@ -45,7 +44,7 @@ describe("isOactCertificationRequired", () => {
   it("is required when the Application Approval Date is 1/1/2027", () => {
     const application = createApplication([
       createApprovalSummaryPhase({
-        plainDate: "2027-01-01",
+        plainDate: "2027-01-01" as LocalDate,
       }),
     ]);
 

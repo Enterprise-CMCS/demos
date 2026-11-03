@@ -4,6 +4,7 @@ import {
   ApplicationStatus,
   ClearanceLevel,
   CreateAmendmentInput,
+  LocalDate,
   PhaseName,
   SignatureLevel,
   UpdateAmendmentInput,
@@ -329,7 +330,7 @@ describe("amendmentResolvers", () => {
       isEasternTZDate: true,
       easternTZDate: new TZDate(2025, 1, 1, 0, 0, 0, 0, "America/New_York"),
     };
-    const testPlainDate = "2025-01-01";
+    const testPlainDate = "2025-01-01" as LocalDate;
 
     it("should call update on the amendment", async () => {
       const expectedCall = {

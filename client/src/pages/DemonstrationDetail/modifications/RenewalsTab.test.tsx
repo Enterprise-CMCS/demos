@@ -6,6 +6,7 @@ import { ModificationTabs } from "./ModificationTabs";
 import { DemonstrationDetailModification } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { TestProvider } from "test-utils/TestProvider";
 import { cmsMockUser, cmsReviewerMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { LocalDate } from "demos-server";
 
 const showCreateRenewalDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
@@ -25,7 +26,7 @@ const mockRenewals = [
     description: "Description",
     status: "Pre-Submission",
     createdAt: new Date("2024-01-01T00:00:00Z"),
-    effectivePlainDate: "2024-02-01",
+    effectivePlainDate: "2024-02-01" as LocalDate,
     signatureLevel: "OCD",
     documents: [],
   },

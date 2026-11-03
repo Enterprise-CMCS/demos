@@ -27,6 +27,7 @@ import {
   ApplicationWorkflowDocument,
 } from "components/application";
 import { DialogProvider } from "components/dialog/DialogContext";
+import { LocalDate } from "demos-server";
 
 const mockCompletePhase = vi.fn();
 const mockSkipConceptPhase = vi.fn();
@@ -667,7 +668,7 @@ describe("ConceptPhase", () => {
             phaseDates: [
               {
                 dateType: "Concept Paper Submitted Date",
-                plainDate: "2024-03-15",
+                plainDate: "2024-03-15" as LocalDate,
               },
             ],
             phaseNotes: [],

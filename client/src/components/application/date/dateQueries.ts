@@ -1,12 +1,15 @@
 import type { SetApplicationDateInput, SetApplicationDatesInput } from "demos-server";
-import { gql, useMutation } from "@apollo/client";
+import { gql, useMutation, TypedDocumentNode } from "@apollo/client";
 import {
   GET_AMENDMENT_WORKFLOW_QUERY,
   GET_RENEWAL_WORKFLOW_QUERY,
   GET_WORKFLOW_DEMONSTRATION_QUERY,
 } from "components/application";
 
-const SET_APPLICATION_DATE_MUTATION = gql`
+const SET_APPLICATION_DATE_MUTATION: TypedDocumentNode<
+  { setApplicationDate: { __typename: string } },
+  { input: SetApplicationDateInput }
+> = gql`
   mutation SetApplicationDate($input: SetApplicationDateInput!) {
     setApplicationDate(input: $input) {
       __typename
@@ -14,7 +17,10 @@ const SET_APPLICATION_DATE_MUTATION = gql`
   }
 `;
 
-const SET_APPLICATION_DATES_MUTATION = gql`
+const SET_APPLICATION_DATES_MUTATION: TypedDocumentNode<
+  { setApplicationDates: { __typename: string } },
+  { input: SetApplicationDatesInput }
+> = gql`
   mutation SetApplicationDates($input: SetApplicationDatesInput!) {
     setApplicationDates(input: $input) {
       __typename

@@ -6,7 +6,7 @@ import {
 import { GET_DEMONSTRATION_BY_ID_QUERY as HOOK_GET_DEMONSTRATION_BY_ID_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application";
 
-import type { ApplicationStatus } from "demos-server";
+import type { ApplicationStatus, LocalDate } from "demos-server";
 import { CreateDemonstrationInput, Demonstration } from "demos-server";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
@@ -63,8 +63,8 @@ export const MOCK_DEMONSTRATION: MockDemonstration = {
   name: "Montana Medicaid Waiver",
   description: "A demonstration project in Montana.",
   status: "Approved" as ApplicationStatus,
-  effectivePlainDate: "2025-01-01",
-  expirationPlainDate: "2025-02-01",
+  effectivePlainDate: "2025-01-01" as LocalDate,
+  expirationPlainDate: "2025-02-01" as LocalDate,
   state: mockStates.find((state) => state.id === "MT")!,
   sdgDivision: "Division of System Reform Demonstrations",
   signatureLevel: "OA",

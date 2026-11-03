@@ -9,6 +9,7 @@ import {
   DemonstrationTypeAssignment,
   Document,
   Extension,
+  LocalDate,
   NonEmptyString,
   Person,
   PhaseName,
@@ -83,8 +84,8 @@ export interface Demonstration {
   id: string;
   name: NonEmptyString;
   description?: string;
-  effectivePlainDate?: string;
-  expirationPlainDate?: string;
+  effectivePlainDate?: LocalDate;
+  expirationPlainDate?: LocalDate;
   sdgDivision?: SdgDivision;
   signatureLevel?: SignatureLevel;
   status: ApplicationStatus;
@@ -118,8 +119,8 @@ export interface CreateDemonstrationInput {
 export interface UpdateDemonstrationInput {
   name?: NonEmptyString;
   description?: string;
-  effectivePlainDate?: string | null;
-  expirationPlainDate?: string | null;
+  effectivePlainDate?: LocalDate | null;
+  expirationPlainDate?: LocalDate | null;
   sdgDivision?: SdgDivision | null;
   projectOfficerUserId?: string;
 }

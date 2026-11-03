@@ -6,6 +6,7 @@ import {
 } from "pages/deliverables/DeliverableDetailsManagementPage";
 import { DELIVERABLES_PAGE_QUERY } from "components/table/tables/DeliverableTable";
 import { DEMONSTRATION_DELIVERABLE_TAB } from "pages/DemonstrationDetail/deliverables/DeliverablesTab";
+import { LocalDate } from "demos-server";
 
 export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
   id: "1",
@@ -15,7 +16,7 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
   demonstration: {
     id: "1",
     name: "Demonstration 1",
-    expirationPlainDate: "2026-12-31",
+    expirationPlainDate: "2026-12-31" as LocalDate,
     state: {
       id: "CA",
       name: "California",

@@ -7,7 +7,7 @@ import { ToastContainer } from "components/toast/ToastContainer";
 
 import { TypesTable } from "./TypesTable";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
-import { ApplicationStatus } from "demos-server";
+import { ApplicationStatus, LocalDate } from "demos-server";
 import { TestProvider } from "test-utils/TestProvider";
 import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
 import { exportTypeTagRecords } from "util/exportTypeTagRecords";
@@ -34,16 +34,16 @@ const mockTypes: DemonstrationDetailDemonstrationType[] = [
     demonstrationTypeName: "Environmental",
     status: "Active",
     approvalStatus: "Approved",
-    effectivePlainDate: "2023-01-01",
-    expirationPlainDate: "2024-01-01",
+    effectivePlainDate: "2023-01-01" as LocalDate,
+    expirationPlainDate: "2024-01-01" as LocalDate,
     createdAt: new Date("2022-12-01"),
   },
   {
     demonstrationTypeName: "Economic",
     status: "Pending",
     approvalStatus: "Unapproved",
-    effectivePlainDate: "2024-01-01",
-    expirationPlainDate: "2025-01-01",
+    effectivePlainDate: "2024-01-01" as LocalDate,
+    expirationPlainDate: "2025-01-01" as LocalDate,
     createdAt: new Date("2023-06-01"),
   },
 ];

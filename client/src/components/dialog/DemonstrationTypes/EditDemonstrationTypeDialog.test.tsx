@@ -11,6 +11,7 @@ import {
 } from "./EditDemonstrationTypeDialog";
 import { DIALOG_CANCEL_BUTTON_NAME } from "../BaseDialog";
 import { formatDateForServer, getTodayEst } from "util/formatDate";
+import { LocalDate } from "demos-server";
 
 const mockShowSuccess = vi.fn();
 const mockShowError = vi.fn();
@@ -34,8 +35,8 @@ const MOCK_INITIAL_TYPE: DemonstrationType = {
   demonstrationTypeName: "Behavioral Health",
   status: "Active",
   approvalStatus: "Approved",
-  effectivePlainDate: "2024-01-01",
-  expirationPlainDate: "2024-12-31",
+  effectivePlainDate: "2024-01-01" as LocalDate,
+  expirationPlainDate: "2024-12-31" as LocalDate,
 };
 
 describe("EditDemonstrationTypeDialog", () => {

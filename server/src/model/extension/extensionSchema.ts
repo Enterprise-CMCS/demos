@@ -11,6 +11,7 @@ import {
   Tag,
   TagName,
   ExtensionSignatureLevel,
+  LocalDate,
 } from "../../types.js";
 
 export const extensionSchema = gql`
@@ -65,7 +66,7 @@ export interface Extension {
   demonstration: Demonstration;
   name: NonEmptyString;
   description?: string;
-  effectivePlainDate?: string;
+  effectivePlainDate?: LocalDate;
   status: ApplicationStatus;
   currentPhaseName: PhaseName;
   phases: ApplicationPhase[];
@@ -89,6 +90,6 @@ export interface UpdateExtensionInput {
   demonstrationId?: string;
   name?: NonEmptyString;
   description?: string | null;
-  effectivePlainDate?: string | null;
+  effectivePlainDate?: LocalDate | null;
   signatureLevel?: ExtensionSignatureLevel | null;
 }

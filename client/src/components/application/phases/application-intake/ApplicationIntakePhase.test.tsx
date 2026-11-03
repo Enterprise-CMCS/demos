@@ -25,7 +25,7 @@ import { formatDateForServer, getTodayEst, EST_TIMEZONE } from "util/formatDate"
 import { MockedResponse } from "@apollo/client/testing";
 import { GET_APPLICATION_TAG_OPTIONS } from "components/tags/useApplicationTagOptions";
 import { DialogProvider } from "components/dialog/DialogContext";
-import { DocumentType, Tag } from "demos-server";
+import { DocumentType, LocalDate, Tag } from "demos-server";
 import { readonlyMockUser, cmsMockUser } from "mock-data/userMocks";
 
 vi.mock("@apollo/client", async () => {
@@ -557,7 +557,7 @@ describe("ApplicationIntakePhase", () => {
             phaseDates: [
               {
                 dateType: "State Application Submitted Date",
-                plainDate: "2024-10-13",
+                plainDate: "2024-10-13" as LocalDate,
               },
             ],
             phaseNotes: [],
