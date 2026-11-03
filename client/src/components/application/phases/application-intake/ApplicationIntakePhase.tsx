@@ -5,7 +5,8 @@ import { gql, TypedDocumentNode, useMutation } from "@apollo/client";
 
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
-import { addDays, compareDesc, parseISO } from "date-fns";
+import { addDays, compareDesc, isWeekend, parseISO } from "date-fns";
+import { FEDERAL_HOLIDAYS } from "demos-server-constants";
 import { tw } from "tags/tw";
 import { assertIsLocalDate, formatDateForServer } from "util/formatDate";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
@@ -48,6 +49,7 @@ const STYLES = {
 
 const THIS_PHASE_NAME: PhaseName = "Application Intake";
 const NEXT_PHASE_NAME: PhaseName = "Completeness";
+const MAX_DUE_DATE_ADJUSTMENT_DAYS = 10;
 const REFETCH_ACTIVE_QUERIES_AFTER_SUGGESTION_UPDATE = {
   awaitRefetchQueries: true,
   refetchQueries: "active" as const,
@@ -70,6 +72,12 @@ export const APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION = {
   text: "Check uploaded files. If needed, correct the Concept Paper submitted date before finishing the phase.",
   testId: "application-intake-phase-step-two-description",
 };
+// Replaces the Step 2 description while __FEATURE_HANDLE_HOLIDAYS_WEEKENDS_FOR_DATES__ is on
+export const APPLICATION_INTAKE_PHASE_STEP_TWO_ADJUSTED_DUE_DATE_TEXT =
+  "Verify that the document is uploaded/accurate and that all required fields are completed. (Due Date will be adjusted for weekends/Holidays).";
+export const COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEXT = "Adjusted for Weekend/Holiday";
+export const COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEST_ID =
+  "completeness-review-due-date-adjusted-message";
 export const APPLICATION_INTAKE_PHASE_STEP_THREE_DESCRIPTION = {
   text: "Application tags track workloads and facilitate reviews. Add tags for the demonstration types discussed in this application. You will update the full set of approved demonstration types and effective dates at approval time.",
   testId: "application-intake-phase-step-three-description",
@@ -160,12 +168,40 @@ const UploadSection = ({
   );
 };
 
+// parseISO reads yyyy-MM-dd as local midnight. Passing the string straight to date-fns reads it
+// as UTC instead, which is the previous day in US timezones.
+const addDaysToLocalDate = (localDate: string, days: number): string =>
+  formatDateForServer(addDays(parseISO(assertIsLocalDate(localDate)), days));
+
+const isWeekendOrFederalHoliday = (localDate: string): boolean =>
+  isWeekend(parseISO(assertIsLocalDate(localDate))) || FEDERAL_HOLIDAYS.includes(localDate);
+
 // Calculate completeness review due date (submitted date + 15 calendar days)
+// With weekend/holiday handling, a due date landing on a weekend or federal holiday moves back
+// to the previous business day. This must match checkInputDateMeetsFlexibleOffset on the server.
 export const getCompletenessReviewDueDate = (stateApplicationSubmittedDate: string): string => {
   if (!stateApplicationSubmittedDate) return "";
 
-  const date = parseISO(stateApplicationSubmittedDate);
-  return formatDateForServer(addDays(date, 15));
+  const unadjustedDueDate = addDaysToLocalDate(stateApplicationSubmittedDate, 15);
+  if (!__FEATURE_HANDLE_HOLIDAYS_WEEKENDS_FOR_DATES__) return unadjustedDueDate;
+
+  let dueDate = unadjustedDueDate;
+  for (let daysMoved = 0; daysMoved < MAX_DUE_DATE_ADJUSTMENT_DAYS; daysMoved++) {
+    if (!isWeekendOrFederalHoliday(dueDate)) return dueDate;
+    dueDate = addDaysToLocalDate(dueDate, -1);
+  }
+  throw new Error(
+    `No business day found within ${MAX_DUE_DATE_ADJUSTMENT_DAYS} days of ${unadjustedDueDate}`
+  );
+};
+
+export const isCompletenessReviewDueDateAdjusted = (
+  stateApplicationSubmittedDate: string,
+  completenessReviewDueDate: string
+): boolean => {
+  if (!stateApplicationSubmittedDate || !completenessReviewDueDate) return false;
+
+  return completenessReviewDueDate !== addDaysToLocalDate(stateApplicationSubmittedDate, 15);
 };
 
 export const calculateStateApplicationSubmittedDate = (
@@ -190,6 +226,7 @@ export const calculateStateApplicationSubmittedDate = (
 
 interface VerifyCompleteSectionProps {
   stateApplicationSubmittedDate: string;
+  completenessReviewDueDate: string;
   hasDocuments: boolean;
   onDateChange: (newDate: string) => void;
   isPhaseFinalized: boolean;
@@ -197,15 +234,13 @@ interface VerifyCompleteSectionProps {
 
 const VerifyCompleteSection = ({
   stateApplicationSubmittedDate,
+  completenessReviewDueDate,
   hasDocuments,
   onDateChange,
   isPhaseFinalized,
 }: VerifyCompleteSectionProps) => {
   const { currentUser } = getCurrentUser();
   const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
-  const completenessReviewDueDate = stateApplicationSubmittedDate
-    ? getCompletenessReviewDueDate(stateApplicationSubmittedDate)
-    : "";
 
   return (
     <div aria-labelledby="state-application-verify-title">
@@ -216,7 +251,9 @@ const VerifyCompleteSection = ({
         className={STYLES.helper}
         data-testid={APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.testId}
       >
-        {APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.text}
+        {__FEATURE_HANDLE_HOLIDAYS_WEEKENDS_FOR_DATES__
+          ? APPLICATION_INTAKE_PHASE_STEP_TWO_ADJUSTED_DUE_DATE_TEXT
+          : APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.text}
       </p>
 
       <div className="space-y-4">
@@ -244,9 +281,23 @@ const VerifyCompleteSection = ({
             value={completenessReviewDueDate}
             isDisabled={true}
           />
-          <div id="completeness-review-help" className="text-xs text-text-placeholder mt-1">
-            Automatically calculated as 15 calendar days after State Application Submitted Date
-          </div>
+          {__FEATURE_HANDLE_HOLIDAYS_WEEKENDS_FOR_DATES__ ? (
+            isCompletenessReviewDueDateAdjusted(
+              stateApplicationSubmittedDate,
+              completenessReviewDueDate
+            ) && (
+              <div
+                className="text-xs text-text-placeholder mt-1"
+                data-testid={COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEST_ID}
+              >
+                {COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEXT}
+              </div>
+            )
+          ) : (
+            <div id="completeness-review-help" className="text-xs text-text-placeholder mt-1">
+              Automatically calculated as 15 calendar days after State Application Submitted Date
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -276,6 +327,10 @@ export const getApplicationIntakeComponentFromApplication = (
       (date) => date.dateType === "State Application Submitted Date"
     )?.plainDate ?? "";
 
+  const savedCompletenessReviewDueDate =
+    completenessPhase.phaseDates.find((date) => date.dateType === "Completeness Review Due Date")
+      ?.plainDate ?? "";
+
   const applicationIntakeDocuments = application.documents.filter(
     (doc) => doc.phaseName === THIS_PHASE_NAME
   );
@@ -285,6 +340,7 @@ export const getApplicationIntakeComponentFromApplication = (
       applicationId={application.id}
       applicationIntakeDocuments={applicationIntakeDocuments}
       initialStateApplicationSubmittedDate={estStateApplicationSubmittedDate}
+      savedCompletenessReviewDueDate={savedCompletenessReviewDueDate}
       tags={application.tags}
       suggestedTags={application.suggestedApplicationTags}
       setSelectedPhase={setSelectedPhase}
@@ -297,6 +353,7 @@ export interface ApplicationIntakeProps {
   applicationId: string;
   applicationIntakeDocuments: ApplicationWorkflowDocument[];
   initialStateApplicationSubmittedDate: string;
+  savedCompletenessReviewDueDate: string;
   tags: Tag[];
   suggestedTags?: TagName[];
   setSelectedPhase: (phase: PhaseName) => void;
@@ -308,6 +365,7 @@ export const ApplicationIntakePhase = ({
   applicationId,
   applicationIntakeDocuments,
   initialStateApplicationSubmittedDate,
+  savedCompletenessReviewDueDate,
   tags,
   suggestedTags = [],
   setSelectedPhase,
@@ -348,9 +406,13 @@ export const ApplicationIntakePhase = ({
   const stateApplicationSubmittedDate =
     submittedDateOverride ||
     (completenessIncomplete ? "" : calculatedStateApplicationSubmittedDate);
-  const completenessReviewDueDate = getCompletenessReviewDueDate(stateApplicationSubmittedDate);
-
   const isPhaseFinalized = phaseStatus === "Completed";
+  // A finished intake shows the saved due date; it may predate the weekend/holiday rule
+  const completenessReviewDueDate =
+    isPhaseFinalized && savedCompletenessReviewDueDate
+      ? savedCompletenessReviewDueDate
+      : getCompletenessReviewDueDate(stateApplicationSubmittedDate);
+
   const hasDocuments = applicationIntakeDocuments.length > 0;
   const isFinishButtonEnabled =
     hasDocuments && Boolean(stateApplicationSubmittedDate) && !isPhaseFinalized;
@@ -447,6 +509,7 @@ export const ApplicationIntakePhase = ({
           <UploadSection applicationId={applicationId} documents={applicationIntakeDocuments} />
           <VerifyCompleteSection
             stateApplicationSubmittedDate={stateApplicationSubmittedDate}
+            completenessReviewDueDate={completenessReviewDueDate}
             hasDocuments={hasDocuments}
             onDateChange={setSubmittedDateOverride}
             isPhaseFinalized={isPhaseFinalized}
