@@ -5,7 +5,7 @@ import { gql, TypedDocumentNode, useMutation } from "@apollo/client";
 
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
-import { addDays, compareDesc, isWeekend, parseISO, subDays } from "date-fns";
+import { addDays, compareDesc, isWeekend, parseISO } from "date-fns";
 import { FEDERAL_HOLIDAYS } from "demos-server-constants";
 import { tw } from "tags/tw";
 import { assertIsLocalDate, formatDateForServer } from "util/formatDate";
@@ -49,6 +49,7 @@ const STYLES = {
 
 const THIS_PHASE_NAME: PhaseName = "Application Intake";
 const NEXT_PHASE_NAME: PhaseName = "Completeness";
+const MAX_DUE_DATE_ADJUSTMENT_DAYS = 10;
 const REFETCH_ACTIVE_QUERIES_AFTER_SUGGESTION_UPDATE = {
   awaitRefetchQueries: true,
   refetchQueries: "active" as const,
@@ -69,15 +70,14 @@ export const APPLICATION_INTAKE_PHASE_STEP_ONE_DESCRIPTION = {
 };
 export const APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION = {
   text: "Check uploaded files. If needed, correct the Concept Paper submitted date before finishing the phase.",
-  // Replaces `text` while __FEATURE_HANDLE_HOLIDAYS_WEEKENDS_FOR_DATES__ is on
-  adjustedDueDateText:
-    "Verify that the document is uploaded/accurate and that all required fields are completed. (Due Date will be adjusted for weekends/Holidays).",
   testId: "application-intake-phase-step-two-description",
 };
-export const COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_MESSAGE = {
-  text: "Adjusted for Weekend/Holiday",
-  testId: "completeness-review-due-date-adjusted-message",
-};
+// Replaces the Step 2 description while __FEATURE_HANDLE_HOLIDAYS_WEEKENDS_FOR_DATES__ is on
+export const APPLICATION_INTAKE_PHASE_STEP_TWO_ADJUSTED_DUE_DATE_TEXT =
+  "Verify that the document is uploaded/accurate and that all required fields are completed. (Due Date will be adjusted for weekends/Holidays).";
+export const COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEXT = "Adjusted for Weekend/Holiday";
+export const COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEST_ID =
+  "completeness-review-due-date-adjusted-message";
 export const APPLICATION_INTAKE_PHASE_STEP_THREE_DESCRIPTION = {
   text: "Application tags track workloads and facilitate reviews. Add tags for the demonstration types discussed in this application. You will update the full set of approved demonstration types and effective dates at approval time.",
   testId: "application-intake-phase-step-three-description",
@@ -168,11 +168,13 @@ const UploadSection = ({
   );
 };
 
-const isWeekendOrFederalHoliday = (date: Date): boolean =>
-  isWeekend(date) || FEDERAL_HOLIDAYS.includes(formatDateForServer(date));
+// parseISO reads yyyy-MM-dd as local midnight. Passing the string straight to date-fns reads it
+// as UTC instead, which is the previous day in US timezones.
+const addDaysToLocalDate = (localDate: string, days: number): string =>
+  formatDateForServer(addDays(parseISO(assertIsLocalDate(localDate)), days));
 
-const getUnadjustedCompletenessReviewDueDate = (stateApplicationSubmittedDate: string): Date =>
-  addDays(parseISO(stateApplicationSubmittedDate), 15);
+const isWeekendOrFederalHoliday = (localDate: string): boolean =>
+  isWeekend(parseISO(assertIsLocalDate(localDate))) || FEDERAL_HOLIDAYS.includes(localDate);
 
 // Calculate completeness review due date (submitted date + 15 calendar days)
 // With weekend/holiday handling, a due date landing on a weekend or federal holiday moves back
@@ -180,13 +182,17 @@ const getUnadjustedCompletenessReviewDueDate = (stateApplicationSubmittedDate: s
 export const getCompletenessReviewDueDate = (stateApplicationSubmittedDate: string): string => {
   if (!stateApplicationSubmittedDate) return "";
 
-  let dueDate = getUnadjustedCompletenessReviewDueDate(stateApplicationSubmittedDate);
-  if (__FEATURE_HANDLE_HOLIDAYS_WEEKENDS_FOR_DATES__) {
-    while (isWeekendOrFederalHoliday(dueDate)) {
-      dueDate = subDays(dueDate, 1);
-    }
+  const unadjustedDueDate = addDaysToLocalDate(stateApplicationSubmittedDate, 15);
+  if (!__FEATURE_HANDLE_HOLIDAYS_WEEKENDS_FOR_DATES__) return unadjustedDueDate;
+
+  let dueDate = unadjustedDueDate;
+  for (let daysMoved = 0; daysMoved < MAX_DUE_DATE_ADJUSTMENT_DAYS; daysMoved++) {
+    if (!isWeekendOrFederalHoliday(dueDate)) return dueDate;
+    dueDate = addDaysToLocalDate(dueDate, -1);
   }
-  return formatDateForServer(dueDate);
+  throw new Error(
+    `No business day found within ${MAX_DUE_DATE_ADJUSTMENT_DAYS} days of ${unadjustedDueDate}`
+  );
 };
 
 export const isCompletenessReviewDueDateAdjusted = (
@@ -195,8 +201,7 @@ export const isCompletenessReviewDueDateAdjusted = (
 ): boolean => {
   if (!stateApplicationSubmittedDate || !completenessReviewDueDate) return false;
 
-  const unadjustedDueDate = getUnadjustedCompletenessReviewDueDate(stateApplicationSubmittedDate);
-  return completenessReviewDueDate !== formatDateForServer(unadjustedDueDate);
+  return completenessReviewDueDate !== addDaysToLocalDate(stateApplicationSubmittedDate, 15);
 };
 
 export const calculateStateApplicationSubmittedDate = (
@@ -247,7 +252,7 @@ const VerifyCompleteSection = ({
         data-testid={APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.testId}
       >
         {__FEATURE_HANDLE_HOLIDAYS_WEEKENDS_FOR_DATES__
-          ? APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.adjustedDueDateText
+          ? APPLICATION_INTAKE_PHASE_STEP_TWO_ADJUSTED_DUE_DATE_TEXT
           : APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.text}
       </p>
 
@@ -283,9 +288,9 @@ const VerifyCompleteSection = ({
             ) && (
               <div
                 className="text-xs text-text-placeholder mt-1"
-                data-testid={COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_MESSAGE.testId}
+                data-testid={COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEST_ID}
               >
-                {COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_MESSAGE.text}
+                {COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEXT}
               </div>
             )
           ) : (
@@ -322,9 +327,9 @@ export const getApplicationIntakeComponentFromApplication = (
       (date) => date.dateType === "State Application Submitted Date"
     )?.plainDate ?? "";
 
-  const savedCompletenessReviewDueDate = completenessPhase.phaseDates.find(
-    (date) => date.dateType === "Completeness Review Due Date"
-  )?.plainDate ?? "";
+  const savedCompletenessReviewDueDate =
+    completenessPhase.phaseDates.find((date) => date.dateType === "Completeness Review Due Date")
+      ?.plainDate ?? "";
 
   const applicationIntakeDocuments = application.documents.filter(
     (doc) => doc.phaseName === THIS_PHASE_NAME

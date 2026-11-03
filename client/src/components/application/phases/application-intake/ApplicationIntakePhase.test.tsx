@@ -15,7 +15,9 @@ import {
   getCompletenessReviewDueDate,
   isCompletenessReviewDueDateAdjusted,
   getApplicationIntakeComponentFromApplication,
-  COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_MESSAGE,
+  APPLICATION_INTAKE_PHASE_STEP_TWO_ADJUSTED_DUE_DATE_TEXT,
+  COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEXT,
+  COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEST_ID,
   APPLICATION_INTAKE_PHASE_DESCRIPTION,
   APPLICATION_INTAKE_PHASE_STEP_ONE_DESCRIPTION,
   APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION,
@@ -29,6 +31,19 @@ import { GET_APPLICATION_TAG_OPTIONS } from "components/tags/useApplicationTagOp
 import { DialogProvider } from "components/dialog/DialogContext";
 import { DocumentType, Tag } from "demos-server";
 import { readonlyMockUser, cmsMockUser } from "mock-data/userMocks";
+
+// A far-future run of holidays long enough to exhaust the due date adjustment limit
+vi.mock("demos-server-constants", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("demos-server-constants")>();
+  const unreachableHolidays = Array.from(
+    { length: 20 },
+    (_, index) => `2099-03-${String(index + 1).padStart(2, "0")}`
+  );
+  return {
+    ...actual,
+    FEDERAL_HOLIDAYS: [...actual.FEDERAL_HOLIDAYS, ...unreachableHolidays],
+  };
+});
 
 vi.mock("@apollo/client", async () => {
   const actual = await vi.importActual("@apollo/client");
@@ -259,7 +274,7 @@ describe("ApplicationIntakePhase", () => {
       setup({ initialStateApplicationSubmittedDate: "2026-05-08" });
 
       expect(
-        screen.queryByTestId(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_MESSAGE.testId)
+        screen.queryByTestId(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEST_ID)
       ).not.toBeInTheDocument();
     });
 
@@ -276,7 +291,7 @@ describe("ApplicationIntakePhase", () => {
         setup();
         expect(
           screen.getByTestId(APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.testId)
-        ).toHaveTextContent(APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.adjustedDueDateText);
+        ).toHaveTextContent(APPLICATION_INTAKE_PHASE_STEP_TWO_ADJUSTED_DUE_DATE_TEXT);
       });
 
       it("shows the adjusted message when the due date was moved", () => {
@@ -284,8 +299,8 @@ describe("ApplicationIntakePhase", () => {
 
         expect(screen.getByTestId(COMPLETENESS_REVIEW_DATEPICKER_NAME)).toHaveValue("2026-05-22");
         expect(
-          screen.getByTestId(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_MESSAGE.testId)
-        ).toHaveTextContent(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_MESSAGE.text);
+          screen.getByTestId(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEST_ID)
+        ).toHaveTextContent(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEXT);
       });
 
       it("does not show the adjusted message when the due date was not moved", () => {
@@ -293,7 +308,7 @@ describe("ApplicationIntakePhase", () => {
 
         expect(screen.getByTestId(COMPLETENESS_REVIEW_DATEPICKER_NAME)).toHaveValue("2026-05-22");
         expect(
-          screen.queryByTestId(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_MESSAGE.testId)
+          screen.queryByTestId(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEST_ID)
         ).not.toBeInTheDocument();
       });
 
@@ -306,7 +321,7 @@ describe("ApplicationIntakePhase", () => {
 
         expect(screen.getByTestId(COMPLETENESS_REVIEW_DATEPICKER_NAME)).toHaveValue("2026-05-23");
         expect(
-          screen.queryByTestId(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_MESSAGE.testId)
+          screen.queryByTestId(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEST_ID)
         ).not.toBeInTheDocument();
       });
 
@@ -319,7 +334,7 @@ describe("ApplicationIntakePhase", () => {
 
         expect(screen.getByTestId(COMPLETENESS_REVIEW_DATEPICKER_NAME)).toHaveValue("2026-05-22");
         expect(
-          screen.getByTestId(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_MESSAGE.testId)
+          screen.getByTestId(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEST_ID)
         ).toBeInTheDocument();
       });
 
@@ -341,8 +356,8 @@ describe("ApplicationIntakePhase", () => {
         expect(mockSetApplicationDates).toHaveBeenCalledWith({
           applicationId: TEST_APP_ID,
           applicationDates: [
-            { dateType: "State Application Submitted Date", dateValue: "2026-05-08" },
-            { dateType: "Completeness Review Due Date", dateValue: "2026-05-22" },
+            { dateType: "State Application Submitted Date", plainDate: "2026-05-08" },
+            { dateType: "Completeness Review Due Date", plainDate: "2026-05-22" },
           ],
         });
       });
@@ -668,6 +683,26 @@ describe("ApplicationIntakePhase", () => {
           );
         }
       );
+
+      it("calculates the same dates in a US timezone", () => {
+        const originalTimezone = process.env.TZ;
+        process.env.TZ = EST_TIMEZONE;
+        try {
+          expect(getCompletenessReviewDueDate("2026-05-07")).toBe("2026-05-22");
+          expect(getCompletenessReviewDueDate("2026-05-08")).toBe("2026-05-22");
+          expect(getCompletenessReviewDueDate("2026-05-10")).toBe("2026-05-22");
+          expect(isCompletenessReviewDueDateAdjusted("2026-05-07", "2026-05-22")).toBe(false);
+          expect(isCompletenessReviewDueDateAdjusted("2026-05-08", "2026-05-22")).toBe(true);
+        } finally {
+          process.env.TZ = originalTimezone;
+        }
+      });
+
+      it("throws instead of looping forever when no business day is found", () => {
+        expect(() => getCompletenessReviewDueDate("2099-03-01")).toThrow(
+          "No business day found within 10 days of 2099-03-16"
+        );
+      });
 
       it("returns empty values when there is no submitted date", () => {
         expect(getCompletenessReviewDueDate("")).toBe("");
