@@ -4,7 +4,7 @@
   "overrides": {
     "@aws-sdk/client-ssm": {
       "fast-xml-parser": "^5.3.6"
-    }    
+    }
   },
   "scripts": {
     "test": "vitest run --coverage",
@@ -33,10 +33,10 @@
     "@types/pg": "^8.23.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@vitest/coverage-v8": "^4.1.11",
+    "@vitest/coverage-v8": "^4.1.12",
     "aws-sdk-client-mock": "^4.1.0",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.12"
   },
   "allowScripts": {
     "file:../../../shared_library": true

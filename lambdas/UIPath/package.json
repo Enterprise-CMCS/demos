@@ -20,8 +20,8 @@
     "@aws-sdk/client-secrets-manager": "^3.1147.0",
     "axios": "^1.20.0",
     "axios-error-redact": "^1.1.206",
-    "demos-shared-library": "file:../../shared_library",
     "axios-oauth-client": "^2.2.0",
+    "demos-shared-library": "file:../../shared_library",
     "dotenv": "^17.4.2",
     "file-type": "^21.3.4",
     "form-data": "^4.0.6",
@@ -32,10 +32,10 @@
     "@types/aws-lambda": "^8.10.164",
     "@types/node": "^24.19.1",
     "@types/pg": "^8.23.1",
-    "@vitest/coverage-v8": "^4.1.11",
+    "@vitest/coverage-v8": "^4.1.12",
     "esbuild": "^0.28.2",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.12"
   }
 }
