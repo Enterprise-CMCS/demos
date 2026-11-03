@@ -3,7 +3,11 @@ import React from "react";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { PersonType } from "demos-server";
 
-const ALLOWED_PERSON_TYPES: PersonType[] = ["demos-admin", "demos-cms-user"];
+const ALLOWED_PERSON_TYPES: PersonType[] = [
+  "demos-admin",
+  "demos-cms-user",
+  "demos-cms-reviewer-user",
+];
 
 export const CMSOwnerField = ({
   value,

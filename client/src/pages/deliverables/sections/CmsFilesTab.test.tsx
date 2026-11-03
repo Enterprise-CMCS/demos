@@ -185,7 +185,7 @@ describe("CmsFilesTab", () => {
       expect(addButton).toBeDisabled();
       expect(addButton).toHaveAttribute(
         "title",
-        "Files cannot be added to a Finalized deliverable."
+        "Documents cannot be added to finalized deliverables."
       );
     });
 
@@ -201,7 +201,7 @@ describe("CmsFilesTab", () => {
       expect(editButton).toBeDisabled();
       expect(editButton).toHaveAttribute(
         "title",
-        "Documents on Finalized deliverables cannot be edited."
+        "Documents on finalized deliverables cannot be edited."
       );
     });
   });

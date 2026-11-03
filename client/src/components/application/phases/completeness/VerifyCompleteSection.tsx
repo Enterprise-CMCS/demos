@@ -82,7 +82,7 @@ export const VerifyCompleteSection = ({
   const completenessIncomplete = completenessPhaseStatus === "Incomplete";
 
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonly(currentUser);
+  const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
 
   const { showDeclareIncompleteDialog } = useDialog();
   const { showSuccess, showError } = useToast();

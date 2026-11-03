@@ -37,6 +37,11 @@ export const DEMONSTRATIONS_PAGE_QUERY = gql`
         name
         status
       }
+      roles {
+        person {
+          id
+        }
+      }
     }
 
     people {
@@ -57,6 +62,7 @@ export type Demonstration = Pick<ServerDemonstration, "id" | "name" | "status" |
   primaryProjectOfficer: Pick<Person, "id" | "fullName">;
   amendments: DemonstrationAmendment[];
   renewals: DemonstrationRenewal[];
+  roles: { person: Pick<Person, "id"> }[];
 };
 
 export type DemonstrationsPageQueryResult = {
@@ -73,8 +79,8 @@ export const DemonstrationsPage: React.FC = () => {
   const hasApprovedDemonstrations = demonstrations.some(
     (demonstration) => demonstration.status === "Approved"
   );
-  const myDemonstrations = demonstrations.filter(
-    (d) => d.primaryProjectOfficer.id === data?.currentUser.id
+  const myDemonstrations = demonstrations.filter((d) =>
+    d.roles.some((role) => role.person.id === data?.currentUser.id)
   );
   // Sets session to remember which tab you were on.
   const [storedTab, setStoredTab] = useSessionStorage("selectedDemonstrationTab");

@@ -11,13 +11,13 @@ export async function addCognitoRedirect(userPoolId: string, clientId: string, a
     new DescribeUserPoolClientCommand({
       UserPoolId: userPoolId,
       ClientId: clientId,
-    })
+    }),
   );
 
   if (!current.UserPoolClient) {
-    throw new Error("Could not find user pool client")
+    throw new Error("Could not find user pool client");
   }
-  
+
   const existingUrls = current.UserPoolClient.CallbackURLs || [];
   console.log("additionalRedirect", additionalRedirect);
   const updatedUrls = Array.from(new Set([...existingUrls, additionalRedirect]));
@@ -28,6 +28,6 @@ export async function addCognitoRedirect(userPoolId: string, clientId: string, a
       UserPoolId: current.UserPoolClient.UserPoolId!,
       ClientId: current.UserPoolClient.ClientId!,
       CallbackURLs: updatedUrls,
-    })
+    }),
   );
 }

@@ -9,7 +9,6 @@ import {
   parseUpdateDeliverableInput,
   updateDeliverableDemonstrationTypes,
   validateUpdateDeliverableInput,
-  validateUserPersonTypeAllowed,
 } from ".";
 import { prisma } from "../../prismaClient";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
@@ -22,7 +21,6 @@ export async function updateDeliverable(
   input: UpdateDeliverableInput,
   context: GraphQLContext
 ): Promise<PrismaDeliverable> {
-  validateUserPersonTypeAllowed(context, "updateDeliverable", ["demos-admin", "demos-cms-user"]);
   checkOptionalNotNullFields(["name", "cmsOwnerUserId", "dueDate", "demonstrationTypes"], input);
   const parsedInput = parseUpdateDeliverableInput(input);
 

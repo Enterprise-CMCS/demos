@@ -32,7 +32,7 @@ export const DemonstrationTypesSection = ({
 }) => {
   const { showApplyDemonstrationTypesDialog } = useDialog();
   const { currentUser } = getCurrentUser();
-  const userIsReadonly = isReadonly(currentUser);
+  const userIsReadonly = isReadonly(currentUser, "ApplicationWorkflow");
   const applyTypes = () => {
     showApplyDemonstrationTypesDialog(demonstration.id);
   };

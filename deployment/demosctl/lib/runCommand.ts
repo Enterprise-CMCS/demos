@@ -50,7 +50,7 @@ export function runCommand(
   name: string,
   cmd: string,
   args: string[],
-  opts?: SpawnOptionsWithoutStdio
+  opts?: SpawnOptionsWithoutStdio,
 ): Promise<number> {
   const child = spawn(cmd, args, opts);
   const color = reserveRandomColor();

@@ -4,6 +4,7 @@ import { useAuth } from "react-oidc-context";
 import { Loading } from "components/loading/Loading";
 import { Ctx, CurrentUser } from "components/user/UserContext";
 import { UserAuthenticationFailed } from "components/user/UserAuthenticationFailed";
+import { getApolloErrorMessage } from "util/getApolloErrorMessage";
 
 export const GET_CURRENT_USER_QUERY = gql`
   query GetCurrentUser {
@@ -45,7 +46,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   // Render authentication failure component if there was an error or no user data
   if (error || auth.error || !data?.currentUser) {
-    const errorParts = [auth.error?.message, error?.message].filter(Boolean);
+    const errorParts = [auth.error?.message, getApolloErrorMessage(error)].filter(Boolean);
+
     return (
       <UserAuthenticationFailed
         name={auth.user?.profile.name}

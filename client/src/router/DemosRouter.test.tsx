@@ -220,11 +220,14 @@ describe("DemosRouter", () => {
       render(<DemosRouter />);
       await waitFor(() => expect(screen.getByText("AdminPage")).toBeInTheDocument());
     });
-    it("blocks access to the admin page for non-admin users", async () => {
-      currentUserState.currentUser.person.personType = "demos-state-user";
-      window.history.pushState({}, "Admin", "/admin");
-      render(<DemosRouter />);
-      await waitFor(() => expect(screen.queryByText("AdminPage")).not.toBeInTheDocument());
-    });
+    it.each(["demos-state-user", "demos-cms-reviewer-user"] as const)(
+      "blocks access to the admin page for %s",
+      async (personType) => {
+        currentUserState.currentUser.person.personType = personType;
+        window.history.pushState({}, "Admin", "/admin");
+        render(<DemosRouter />);
+        await waitFor(() => expect(screen.queryByText("AdminPage")).not.toBeInTheDocument());
+      }
+    );
   });
 });

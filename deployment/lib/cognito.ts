@@ -8,6 +8,7 @@ import {
 } from "aws-cdk-lib/aws-cognito";
 import { Construct } from "constructs";
 import { cognitoHostedUiSettings, cognitoHostedUiAssets } from "./cognitoAssets";
+import { NagSuppressions } from "cdk-nag";
 
 interface CognitoProps extends CommonProps {
   userPoolDomainPrefix?: string;
@@ -78,18 +79,29 @@ export function create(props: CognitoProps): CognitoOutputs {
         // be to delete the user pool completely and recreate it, then work with
         // IDM to reconfigure everything, we are using this ternary as a
         // workaround to avoid extra work
-        minLen: props.stage == "dev" ? undefined : 0,
-        maxLen: props.stage == "dev" ? undefined : 2048,
+        minLen: props.stage === "dev" ? undefined : 0,
+        maxLen: props.stage === "dev" ? undefined : 2048,
         mutable: true,
       }),
     },
-    deletionProtection: ["impl", "prod"].includes(props.stage)
+    deletionProtection: ["impl", "prod"].includes(props.stage),
   });
 
   const cfnUserPool = userPool.node.defaultChild as aws_cognito.CfnUserPool;
   cfnUserPool.adminCreateUserConfig = {
     allowAdminCreateUserOnly: true,
   };
+
+  NagSuppressions.addResourceSuppressions(userPool, [
+    {
+      id: "AwsSolutions-COG2",
+      reason: "MFA is not required at the user-pool level since IDM enforces it",
+    },
+    {
+      id: "AwsSolutions-COG8",
+      reason: "We are relying on IDM to provide the same benefits as the Plus tier and 100% of logins will come through IDM",
+    },
+  ]);
 
   const domain = new aws_cognito.UserPoolDomain(props.scope, "UserPoolDomain", {
     userPool,
@@ -116,7 +128,7 @@ export function create(props: CognitoProps): CognitoOutputs {
 
   // Set up SAML IdP for IDM and user pool client + branding
   let IDM: aws_cognito.UserPoolIdentityProviderSaml | undefined;
-  if (props.idmMetadataEndpoint != "not-configured") {
+  if (props.idmMetadataEndpoint !== "not-configured") {
     IDM = createIdmIdp(props.scope, props.stage, userPool, props.idmMetadataEndpoint!);
   }
   const userPoolClient = createUserPoolClientResource(props, userPool, IDM?.providerName);
@@ -152,7 +164,7 @@ function createIdmIdp(scope: Construct, stage: string, userPool: aws_cognito.IUs
 export const createUserPoolClient = (
   props: CognitoProps,
   userPoolId: string,
-  hostEnvironment: string
+  hostEnvironment: string,
 ): CognitoOutputs => {
   const userPool = aws_cognito.UserPool.fromUserPoolId(props.scope, "importedUserPool", userPoolId);
   const IDM = createIdmIdp(props.scope, props.stage, userPool, props.idmMetadataEndpoint!);
@@ -176,16 +188,14 @@ const getCognitoDomainPrefix = (project: string, stage: string): string => `${pr
 // ---- Internal helpers for CDK resources ----
 const allowNativeCognitoIdp = (props: CognitoProps): boolean => props.isDev || props.isEphemeral;
 
-
-
 const createUserPoolClientResource = (
   props: CognitoProps,
   userPool: aws_cognito.IUserPool,
-  idmProviderName?: string
+  idmProviderName?: string,
 ) => {
-  const supportedProviders = [...(allowNativeCognitoIdp(props) ? [UserPoolClientIdentityProvider.COGNITO] : [])]
+  const supportedProviders = [...(allowNativeCognitoIdp(props) ? [UserPoolClientIdentityProvider.COGNITO] : [])];
   if (idmProviderName) {
-    supportedProviders.unshift(UserPoolClientIdentityProvider.custom(idmProviderName))
+    supportedProviders.unshift(UserPoolClientIdentityProvider.custom(idmProviderName));
   }
   const callbackUrls = getCallbackUrls(props);
   const logoutUrls = getLogoutUrls(props, callbackUrls);

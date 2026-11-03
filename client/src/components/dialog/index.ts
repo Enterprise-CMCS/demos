@@ -5,6 +5,10 @@ export { CreateDemonstrationDialog, EditDemonstrationDialog } from "./demonstrat
 export { CreateRenewalDialog } from "./modification/CreateRenewalDialog";
 export {
   AddDocumentToApplicationDialog,
-  EditDocumentDialog,
-  RemoveDocumentDialog,
+  EditApplicationDocumentDialog,
+  EditDeliverableCmsDocumentDialog,
+  EditDeliverableStateDocumentDialog,
+  RemoveApplicationDocumentsDialog,
+  RemoveDeliverableCmsDocumentsDialog,
+  RemoveDeliverableStateDocumentsDialog,
 } from "./document";

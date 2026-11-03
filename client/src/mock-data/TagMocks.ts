@@ -1,7 +1,7 @@
 import { MockedResponse } from "@apollo/client/testing";
 import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationType";
-import { GET_APPLICATION_TAG_OPTIONS } from "components/tags/ApplicationHealthTypeTags";
-import { TYPE_TAG_MANAGEMENT_QUERY } from "components/table/tables/TypeTagTable";
+import { GET_APPLICATION_TAG_OPTIONS } from "components/tags/useApplicationTagOptions";
+import { GET_DEMONSTRATION_TYPE_USAGE_QUERY } from "components/table/tables/DemonstrationTypeUsageTable";
 import { Tag } from "demos-server";
 
 export const MOCK_TAGS: Tag[] = [
@@ -39,13 +39,20 @@ export const tagMocks: MockedResponse[] = [
   },
   {
     request: {
-      query: TYPE_TAG_MANAGEMENT_QUERY,
+      query: GET_DEMONSTRATION_TYPE_USAGE_QUERY,
     },
     result: {
       data: {
         demonstrationTypeUsageSummary: MOCK_TAGS.map((tag) => ({
           demonstrationTypeName: tag.tagName,
           approvalStatus: tag.approvalStatus,
+          countOfTaggedApplications: {
+            demonstrations: 4,
+            amendments: 3,
+            renewals: 6,
+          },
+          countOfAssignedDemonstrations: 12,
+          countOfAssignedDeliverables: 7,
         })),
       },
     },

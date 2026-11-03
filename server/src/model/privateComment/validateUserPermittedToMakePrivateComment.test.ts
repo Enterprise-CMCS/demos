@@ -15,7 +15,7 @@ describe("validateUserPermittedToMakePrivateComment", () => {
     vi.resetAllMocks();
   });
 
-  it("should not throw if the user is an admin or a CMS user", () => {
+  it("should not throw if the user is an admin, a CMS user, or a CMS reviewer user", () => {
     const testContext1: DeepPartial<GraphQLContext> = {
       user: {
         id: "1c55aaeb-b81d-43d3-bdec-0a31061fc45a",
@@ -28,12 +28,21 @@ describe("validateUserPermittedToMakePrivateComment", () => {
         personTypeId: "demos-admin",
       },
     };
+    const testContext3: DeepPartial<GraphQLContext> = {
+      user: {
+        id: "1c55aaeb-b81d-43d3-bdec-0a31061fc45a",
+        personTypeId: "demos-cms-reviewer-user",
+      },
+    };
 
     expect(
       validateUserPermittedToMakePrivateComment(testContext1 as GraphQLContext)
     ).toBeUndefined();
     expect(
       validateUserPermittedToMakePrivateComment(testContext2 as GraphQLContext)
+    ).toBeUndefined();
+    expect(
+      validateUserPermittedToMakePrivateComment(testContext3 as GraphQLContext)
     ).toBeUndefined();
   });
 

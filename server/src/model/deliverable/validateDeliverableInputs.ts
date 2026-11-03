@@ -28,26 +28,9 @@ import {
   Deliverable as PrismaDeliverable,
   DeliverableExtension as PrismaDeliverableExtension,
 } from "@prisma/client";
-import { GraphQLContext } from "../../auth";
-import { PersonType } from "../../types";
 import { ACTIVE_DELIVERABLE_STATUSES } from "../../constants";
 import { cleanErrorsAndThrow } from "../../errors/cleanErrorsAndThrow";
 import { checkDemonstrationStatus } from "../demonstration";
-
-// This probably will be modified when permissions are updated more generally
-// Temporary solution for deliverables
-export function validateUserPersonTypeAllowed(
-  context: GraphQLContext,
-  action: string,
-  allowedPersonTypes: PersonType[]
-): void {
-  const allowedType = allowedPersonTypes.includes(context.user.personTypeId);
-  if (!allowedType) {
-    throw new Error(
-      `A user of type ${context.user.personTypeId} is not permitted to perform the action ${action}.`
-    );
-  }
-}
 
 export async function validateCreateDeliverableInput(
   input: ParsedCreateDeliverableInput,

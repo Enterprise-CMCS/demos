@@ -434,6 +434,7 @@ HISTORY_TABLES_TO_COPY: Tuple[TableInsertActionConfiguration, ...] = (
             "person_id",
             "demonstration_id",
             "role_id",
+            "person_type_id",
         ],
     ),
     TableInsertActionConfiguration(
@@ -786,6 +787,7 @@ MAIN_TABLES_TO_COPY: Tuple[TableInsertActionConfiguration, ...] = (
             "person_id",
             "demonstration_id",
             "role_id",
+            "person_type_id",
         ],
     ),
     # Application-Related Data

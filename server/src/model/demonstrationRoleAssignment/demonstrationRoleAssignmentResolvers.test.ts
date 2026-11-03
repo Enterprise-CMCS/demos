@@ -8,7 +8,6 @@ import {
 import type { GraphQLContext } from "../../auth";
 import type { Loaders } from "../../loaders";
 import { SetDemonstrationRoleInput } from "./demonstrationRoleAssignmentSchema";
-import { validateSetDemonstrationRoleInput } from "./validateSetDemonstrationRoleInput";
 import { selectPersonOrThrow } from "../person/queries";
 import { selectDemonstrationOrThrow } from "../demonstration/queries";
 import { selectDemonstrationRoleAssignmentOrThrow } from "./queries/selectDemonstrationRoleAssignmentOrThrow";
@@ -119,23 +118,6 @@ describe("demonstrationRoleAssignmentResolvers", () => {
         .mockResolvedValueOnce(mockRoleAssignment2);
     });
 
-    it("validates each input using validateSetDemonstrationRoleInput within a transaction", async () => {
-      await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRoles(null, {
-        input: testInput,
-      });
-
-      expect(validateSetDemonstrationRoleInput).toHaveBeenNthCalledWith(
-        1,
-        testInput[0],
-        mockPrismaTransaction
-      );
-      expect(validateSetDemonstrationRoleInput).toHaveBeenNthCalledWith(
-        2,
-        testInput[1],
-        mockPrismaTransaction
-      );
-    });
-
     it("fetches person for each input using selectPersonOrThrow within a transaction", async () => {
       await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRoles(null, {
         input: testInput,
@@ -230,13 +212,11 @@ describe("demonstrationRoleAssignmentResolvers", () => {
         },
         update: {
           personId: mockPerson.id,
-          personTypeId: mockPerson.personTypeId,
         },
         create: {
           demonstrationId: mockDemonstration.id,
           personId: mockPerson.id,
           roleId: testInput[0].roleId,
-          personTypeId: mockPerson.personTypeId,
         },
       });
     });
@@ -292,17 +272,6 @@ describe("demonstrationRoleAssignmentResolvers", () => {
       roleId: "DDME Analyst",
       isPrimary: true,
     };
-
-    it("validates the input using validateSetDemonstrationRoleInput within a transaction", async () => {
-      await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRole(null, {
-        input: testInput,
-      });
-
-      expect(validateSetDemonstrationRoleInput).toHaveBeenCalledExactlyOnceWith(
-        testInput,
-        mockPrismaTransaction
-      );
-    });
 
     it("fetches the person using selectPersonOrThrow within a transaction", async () => {
       await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRole(null, {
@@ -369,13 +338,11 @@ describe("demonstrationRoleAssignmentResolvers", () => {
         },
         update: {
           personId: mockPerson.id,
-          personTypeId: mockPerson.personTypeId,
         },
         create: {
           demonstrationId: mockDemonstration.id,
           personId: mockPerson.id,
           roleId: testInput.roleId,
-          personTypeId: mockPerson.personTypeId,
         },
       });
     });

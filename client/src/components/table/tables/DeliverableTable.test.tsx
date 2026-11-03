@@ -1,6 +1,6 @@
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { cmsMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { cmsMockUser, cmsReviewerMockUser, readonlyMockUser } from "mock-data/userMocks";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -96,6 +96,16 @@ describe("DeliverableTable", () => {
   it("renders action buttons (edit/remove)", () => {
     expect(screen.getByLabelText(/Edit Deliverable/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Remove Deliverable/i)).toBeInTheDocument();
+  });
+
+  it("renders action buttons for CMS Reviewer users", () => {
+    renderComponent(cmsReviewerMockUser, {
+      deliverables: MOCK_DELIVERABLE_TABLE_ROWS,
+      viewMode: "demos-cms-reviewer-user",
+    });
+
+    expect(screen.getAllByLabelText(/Edit Deliverable/i)).toHaveLength(2);
+    expect(screen.getAllByLabelText(/Remove Deliverable/i)).toHaveLength(2);
   });
 
   it("disables Edit and Remove when nothing selected", () => {

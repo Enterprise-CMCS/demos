@@ -5,7 +5,7 @@ import { DOCUMENT_TYPES } from "demos-server-constants";
 import { SecondaryButton } from "components/button";
 import { createDateColumnDef } from "components/table/columns/dateColumn";
 import { createSelectColumnDef } from "components/table/columns/selectColumn";
-import { highlightCell } from "components/table/KeywordSearch";
+import { highlightCell } from "components/table/search";
 
 import type { DeliverableFileRow } from "../../../pages/deliverables/sections/DeliverableFileTypes";
 

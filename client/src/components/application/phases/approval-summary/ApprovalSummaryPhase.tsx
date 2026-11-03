@@ -34,7 +34,9 @@ export const UPDATE_DEMONSTRATION_MUTATION = gql`
       name
       description
       effectiveDate
+      effectivePlainDate
       expirationDate
+      expirationPlainDate
       sdgDivision
       state {
         id
@@ -53,6 +55,7 @@ export const UPDATE_AMENDMENT_MUTATION = gql`
       name
       description
       effectiveDate
+      effectivePlainDate
       signatureLevel
     }
   }
@@ -65,6 +68,7 @@ export const UPDATE_RENEWAL_MUTATION = gql`
       name
       description
       effectiveDate
+      effectivePlainDate
       signatureLevel
     }
   }
@@ -99,12 +103,8 @@ export const getDemonstrationApprovalSummaryFormData = (
     projectOfficerId: demonstration.primaryProjectOfficer?.id ?? "",
     projectOfficerName: demonstration.primaryProjectOfficer?.fullName ?? "",
     status: demonstration.status,
-    effectiveDate: demonstration.effectiveDate
-      ? formatDateForDisplay(demonstration.effectiveDate)
-      : undefined,
-    expirationDate: demonstration.expirationDate
-      ? formatDateForDisplay(demonstration.expirationDate)
-      : undefined,
+    effectiveDate: demonstration.effectivePlainDate ?? "",
+    expirationDate: demonstration.expirationPlainDate ?? "",
     description: demonstration.description,
     sdgDivision: demonstration.sdgDivision,
     signatureLevel: demonstration.signatureLevel,
@@ -140,9 +140,7 @@ export const getModificationApprovalSummaryFormData = (
   const formData = {
     applicationType: modificationType,
     name: modification.name,
-    effectiveDate: modification.effectiveDate
-      ? formatDateForDisplay(modification.effectiveDate)
-      : undefined,
+    effectiveDate: modification.effectivePlainDate ?? "",
     description: modification.description,
     signatureLevel: modification.signatureLevel,
     status: modification.status,
@@ -250,7 +248,7 @@ export const ApprovalSummaryPhase = ({
   const { showConfirmApproveDialog } = useDialog();
   const { showSuccess, showError } = useToast();
   const { currentUser } = getCurrentUser();
-  const isReadonlyUser = userIsReadonly(currentUser);
+  const isReadonlyUser = userIsReadonly(currentUser, "ApplicationWorkflow");
 
   // Find Application Details completion date from phase dates
   const applicationDetailsCompleteDate = approvalSummaryPhase?.phaseDates?.find(
@@ -312,28 +310,13 @@ export const ApprovalSummaryPhase = ({
     }
   };
 
-  const parseFormDateString = (dateString: string): Date => {
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-      return new Date(dateString + "T00:00:00");
-    }
-    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateString)) {
-      const [month, day, year] = dateString.split("/");
-      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    }
-    return new Date(dateString);
-  };
-
   const saveApplicationDetailsToBackend = async (formData: ApplicationDetailsFormData) => {
     if (formData.applicationType === "demonstration") {
       const updateInput: UpdateDemonstrationInput = {
         name: formData.name,
         description: formData.description,
-        effectiveDate: formData.effectiveDate
-          ? formatDateForServer(parseFormDateString(formData.effectiveDate))
-          : null,
-        expirationDate: formData.expirationDate
-          ? formatDateForServer(parseFormDateString(formData.expirationDate))
-          : null,
+        effectiveDate: formData.effectiveDate as LocalDate,
+        expirationDate: formData.expirationDate as LocalDate,
         sdgDivision: formData.sdgDivision,
         projectOfficerUserId: formData.projectOfficerId,
       };
@@ -354,9 +337,7 @@ export const ApprovalSummaryPhase = ({
     const updateInput: UpdateAmendmentInput | UpdateExtensionInput = {
       name: formData.name,
       description: formData.description,
-      effectiveDate: formData.effectiveDate
-        ? formatDateForServer(parseFormDateString(formData.effectiveDate))
-        : null,
+      effectiveDate: formData.effectiveDate as LocalDate,
       signatureLevel: formData.signatureLevel,
     };
     if (formData.applicationType === "amendment") {

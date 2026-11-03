@@ -4,12 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 
 import { TestProvider } from "test-utils/TestProvider";
-import {
-  APPLY_TAGS_DIALOG_TITLE,
-  ApplyTagsDialog,
-  NO_MATCH_MESSAGE,
-  UNAPPROVED_WARNING_MESSAGE,
-} from "./ApplyTagsDialog";
+import { APPLY_TAGS_DIALOG_TITLE, ApplyTagsDialog } from "./ApplyTagsDialog";
+import { NO_MATCH_MESSAGE, UNAPPROVED_WARNING_MESSAGE } from "util/messages";
 import { Tag } from "demos-server";
 
 const mockMutate = vi.fn(() => Promise.resolve({ data: {} }));

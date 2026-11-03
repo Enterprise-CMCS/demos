@@ -43,7 +43,11 @@ import {
   getApplication,
   // None of these are tested but need to be exported to avoid mocking issues
 } from "../application";
-import { parseDateTimeOrLocalDateToEasternTZDate, EasternTZDate } from "../../dateUtilities";
+import {
+  parseDateTimeOrLocalDateToEasternTZDate,
+  EasternTZDate,
+  formatDateToPlainDate,
+} from "../../dateUtilities";
 import { getDemonstration, getManyDemonstrations } from "./demonstrationData";
 import { ContextUser, GraphQLContext } from "../../auth";
 import { Loaders } from "../../loaders";
@@ -83,6 +87,7 @@ vi.mock("../applicationDate/checkInputDateFunctions", () => ({
 
 vi.mock("../../dateUtilities", () => ({
   parseDateTimeOrLocalDateToEasternTZDate: vi.fn(),
+  formatDateToPlainDate: vi.fn(),
 }));
 
 vi.mock("./determineDemonstrationTypeStatus", () => ({
@@ -282,6 +287,50 @@ describe("demonstrationResolvers", () => {
     });
   });
 
+  describe("Demonstration.effectivePlainDate", () => {
+    it("defers to formatDateToPlainDate", () => {
+      const demonstration = {
+        effectiveDate: new Date("2026-09-24 00:00:00.000 -0400"),
+      } as Partial<PrismaDemonstration>;
+
+      demonstrationResolvers.Demonstration.effectivePlainDate(demonstration as PrismaDemonstration);
+      expect(formatDateToPlainDate).toHaveBeenCalledWith(demonstration.effectiveDate);
+    });
+
+    it("returns null when effectiveDate is null", () => {
+      const demonstration = {
+        effectiveDate: null,
+      } as Partial<PrismaDemonstration>;
+      const result = demonstrationResolvers.Demonstration.effectivePlainDate(
+        demonstration as PrismaDemonstration
+      );
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("Demonstration.expirationPlainDate", () => {
+    it("defers to formatDateToPlainDate", () => {
+      const demonstration = {
+        expirationDate: new Date("2026-09-24 23:59:59.999 -0400"),
+      } as Partial<PrismaDemonstration>;
+
+      demonstrationResolvers.Demonstration.expirationPlainDate(
+        demonstration as PrismaDemonstration
+      );
+      expect(formatDateToPlainDate).toHaveBeenCalledWith(demonstration.expirationDate);
+    });
+
+    it("returns null when expirationDate is null", () => {
+      const demonstration = {
+        expirationDate: null,
+      } as Partial<PrismaDemonstration>;
+      const result = demonstrationResolvers.Demonstration.expirationPlainDate(
+        demonstration as PrismaDemonstration
+      );
+      expect(result).toBeNull();
+    });
+  });
+
   describe("Demonstration.tags", () => {
     it("maps the tagAssignmentsByApplicationId loader result", async () => {
       vi.mocked(mockLoaders.tagAssignmentsByApplicationId.load).mockResolvedValue([
@@ -351,31 +400,68 @@ describe("demonstrationResolvers", () => {
           tag: {
             statusId: "Approved",
           },
+          effectiveDate: new Date("2026-09-24 00:00:00.000 -0400"),
+          expirationDate: new Date("2027-09-24 23:59:59.000 -0400"),
         },
         {
           tagNameId: "Tag2",
           tag: {
             statusId: "Unapproved",
           },
+          effectiveDate: new Date("2026-09-25 00:00:00.000 -0400"),
+          expirationDate: new Date("2027-09-25 23:59:59.999 -0400"),
         },
       ] as DemonstrationTypeTagAssignmentQueryResult[]);
+
+      vi.mocked(formatDateToPlainDate)
+        .mockReturnValueOnce("2026-09-24")
+        .mockReturnValueOnce("2027-09-24")
+        .mockReturnValueOnce("2026-09-25")
+        .mockReturnValueOnce("2027-09-25");
 
       const result = await demonstrationResolvers.Demonstration.demonstrationTypes(
         { id: "abc123" } as PrismaDemonstration,
         undefined,
         mockContext
       );
+
       expect(
         mockLoaders.demonstrationTypeAssignmentsByDemonstrationId.load
       ).toHaveBeenCalledExactlyOnceWith("abc123");
+
+      expect(formatDateToPlainDate).toHaveBeenNthCalledWith(
+        1,
+        new Date("2026-09-24 00:00:00.000 -0400")
+      );
+      expect(formatDateToPlainDate).toHaveBeenNthCalledWith(
+        2,
+        new Date("2027-09-24 23:59:59.000 -0400")
+      );
+      expect(formatDateToPlainDate).toHaveBeenNthCalledWith(
+        3,
+        new Date("2026-09-25 00:00:00.000 -0400")
+      );
+      expect(formatDateToPlainDate).toHaveBeenNthCalledWith(
+        4,
+        new Date("2027-09-25 23:59:59.999 -0400")
+      );
+
       expect(result).toEqual([
         {
           demonstrationTypeName: "Tag1",
           approvalStatus: "Approved",
+          effectiveDate: new Date("2026-09-24 00:00:00.000 -0400"),
+          effectivePlainDate: "2026-09-24",
+          expirationDate: new Date("2027-09-24 23:59:59.000 -0400"),
+          expirationPlainDate: "2027-09-24",
         },
         {
           demonstrationTypeName: "Tag2",
           approvalStatus: "Unapproved",
+          effectiveDate: new Date("2026-09-25 00:00:00.000 -0400"),
+          effectivePlainDate: "2026-09-25",
+          expirationDate: new Date("2027-09-25 23:59:59.999 -0400"),
+          expirationPlainDate: "2027-09-25",
         },
       ]);
     });
@@ -594,7 +680,6 @@ describe("demonstrationResolvers", () => {
             demonstrationId: testValues.demonstrationId,
             personId: testValues.userId,
             roleId: testValues.projectOfficerRole,
-            personTypeId: testValues.personTypeId,
           },
         },
       ];
@@ -831,7 +916,6 @@ describe("demonstrationResolvers", () => {
             demonstrationId: testValues.demonstrationId,
             personId: testValues.userId,
             roleId: testValues.projectOfficerRole,
-            personTypeId: testValues.personTypeId,
           },
         },
       ];

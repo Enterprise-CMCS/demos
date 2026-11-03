@@ -24,6 +24,7 @@ const GQL_NON_NULL_TYPE = "NonNullType";
 
 const GQL_TYPE_TO_NORMALIZED_TYPE = {
   String: STRING,
+  LocalDate: STRING,
   Int: NUMBER,
   Float: NUMBER,
   Boolean: BOOLEAN,

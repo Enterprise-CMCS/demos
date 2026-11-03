@@ -47,7 +47,6 @@ export {
   validateStartDeliverableReviewInput,
   validateSubmitDeliverableInput,
   validateUpdateDeliverableInput,
-  validateUserPersonTypeAllowed,
 } from "./validateDeliverableInputs";
 export { getDeliverable, getManyDeliverables } from "./deliverableData";
 

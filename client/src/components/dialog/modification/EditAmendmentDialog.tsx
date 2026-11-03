@@ -5,7 +5,7 @@ import { DateTimeOrLocalDate, UpdateAmendmentInput } from "demos-server";
 import { BaseEditModificationDialog } from "./BaseEditModificationDialog";
 
 export const UPDATE_AMENDMENT_MUTATION: TypedDocumentNode<
-  { updateAmendment: Modification },
+  { updateAmendment: Modification & { effectivePlainDate: string | null } },
   { id: string; input: UpdateAmendmentInput }
 > = gql`
   mutation UpdateAmendment($id: ID!, $input: UpdateAmendmentInput!) {
@@ -14,6 +14,7 @@ export const UPDATE_AMENDMENT_MUTATION: TypedDocumentNode<
       name
       description
       effectiveDate
+      effectivePlainDate
       signatureLevel
     }
   }
@@ -28,7 +29,7 @@ export const UPDATE_AMENDMENT_DIALOG_QUERY: TypedDocumentNode<
       id
       name
       description
-      effectiveDate
+      effectivePlainDate
       status
       signatureLevel
       demonstration {

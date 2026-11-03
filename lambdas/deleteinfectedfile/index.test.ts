@@ -1,18 +1,16 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { SQSEvent, Context } from "aws-lambda";
 import { Client } from "pg";
-import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
-import { handler, getDatabaseUrl, deleteInfectedDocument } from "./index";
+import { handler, deleteInfectedDocument } from "./index";
 
-// Mock the SecretsManagerClient
-vi.mock("@aws-sdk/client-secrets-manager", () => {
-  const mockSend = vi.fn();
-  return {
-    SecretsManagerClient: vi.fn(function () {
-      return { send: mockSend };
-    }),
-    GetSecretValueCommand: vi.fn(),
-  };
+const mocks = vi.hoisted(() => ({
+  getDatabaseConfigMock: vi.fn(),
+}));
+
+vi.mock("demos-shared-library/database", () => {
+  return { 
+    getDatabaseConfig: mocks.getDatabaseConfigMock,
+   };
 });
 
 // Mock the pg Client
@@ -49,30 +47,6 @@ describe("deleteinfectedfile Lambda", () => {
     // Setup mock client
     const ClientConstructor = Client as any;
     mockClient = new ClientConstructor({});
-
-    // Setup secrets manager mock
-    const SecretsManagerClientConstructor = SecretsManagerClient as any;
-    const secretsManagerInstance = new SecretsManagerClientConstructor({});
-    mockSecretsManagerSend = secretsManagerInstance.send;
-
-    // Mock secrets manager response
-    mockSecretsManagerSend.mockResolvedValue({
-      SecretString: JSON.stringify(mockDatabaseSecret),
-    });
-
-    // Reset the cached database URL
-    (getDatabaseUrl as any).cachedUrl = undefined;
-  });
-
-  describe("getDatabaseUrl", () => {
-    it("should fetch and construct database URL from secrets manager", async () => {
-      const url = await getDatabaseUrl();
-
-      expect(url).toBe(
-        `postgresql://${mockDatabaseSecret.username}:${mockDatabaseSecret.password}@${mockDatabaseSecret.host}:${mockDatabaseSecret.port}/${mockDatabaseSecret.dbname}?schema=demos_app`
-      );
-      expect(mockSecretsManagerSend).toHaveBeenCalledTimes(1);
-    });
   });
 
   describe("deleteInfectedDocument", () => {

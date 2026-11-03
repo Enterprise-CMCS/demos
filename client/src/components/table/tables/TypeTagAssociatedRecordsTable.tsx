@@ -1,5 +1,9 @@
-import React from "react";
-import { gql, useQuery } from "@apollo/client";
+import React, { useState } from "react";
+import { useToast } from "components/toast";
+import { CircleButton } from "components/button";
+import { ExportIcon } from "components/icons";
+import { exportTypeTagRecords } from "util/exportTypeTagRecords";
+import { gql, useLazyQuery, useQuery } from "@apollo/client";
 import type {
   Amendment,
   Deliverable,
@@ -11,9 +15,8 @@ import type {
   Tag,
 } from "demos-server";
 import type { Option } from "components/input/select/Select";
-import { useTypeTagSelection } from "pages/admin/useTypeTagSelection";
 import { ColumnFilter } from "components/table/ColumnFilter";
-import { KeywordSearch } from "components/table/KeywordSearch";
+import { KeywordSearch } from "components/table/search";
 import { PaginationControls } from "components/table/PaginationControls";
 import { Table } from "components/table/Table";
 import {
@@ -177,13 +180,39 @@ const getProjectOfficerOptions = (demonstrations: AssociatedRecordsDemonstration
     .sort((a, b) => a.localeCompare(b))
     .map((fullName) => ({ label: fullName, value: fullName }));
 
-export const TypeTagAssociatedRecordsTable: React.FC = () => {
-  const { selectedTypeTag } = useTypeTagSelection();
+export const TypeTagAssociatedRecordsTable: React.FC<{ selectedTypeTag: string }> = ({
+  selectedTypeTag,
+}) => {
+  const { showError } = useToast();
+  const [exporting, setExporting] = useState(false);
   // Refetch on every visit so associations removed elsewhere drop off the list.
   const { data, loading, error } = useQuery<{ demonstrations: AssociatedRecordsDemonstration[] }>(
     TYPE_TAG_ASSOCIATED_RECORDS_QUERY,
     { fetchPolicy: "cache-and-network" }
   );
+  const [loadRecords] = useLazyQuery<{ demonstrations: AssociatedRecordsDemonstration[] }>(
+    TYPE_TAG_ASSOCIATED_RECORDS_QUERY,
+    { fetchPolicy: "network-only" }
+  );
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const { data, error } = await loadRecords();
+      if (error) throw error;
+      if (!data) throw new Error("No associated record data was returned.");
+      await exportTypeTagRecords(
+        sortAssociatedRecordsByDefault(
+          buildAssociatedRecordRows(data.demonstrations, selectedTypeTag)
+        )
+      );
+    } catch (error) {
+      console.error("Unable to export associated records", error);
+      showError("Unable to export associated records. Please try again.");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   if (loading && !data) {
     return <div>Loading associated records...</div>;
@@ -210,9 +239,20 @@ export const TypeTagAssociatedRecordsTable: React.FC = () => {
       actionButtons={(table) => {
         const recordCount = table.getFilteredRowModel().rows.length;
         return (
-          <span data-testid={RECORD_COUNT_TEST_ID} className="font-semibold whitespace-nowrap">
-            {recordCount} {recordCount === 1 ? "Record" : "Records"}
-          </span>
+          <div className="flex items-center gap-2">
+            <span data-testid={RECORD_COUNT_TEST_ID} className="font-semibold whitespace-nowrap">
+              {recordCount} {recordCount === 1 ? "Record" : "Records"}
+            </span>
+            <CircleButton
+              name="export-type-tag-records"
+              aria-label="Export associated records"
+              tooltip="Export Excel"
+              disabled={exporting}
+              onClick={handleExport}
+            >
+              <ExportIcon />
+            </CircleButton>
+          </div>
         );
       }}
     />

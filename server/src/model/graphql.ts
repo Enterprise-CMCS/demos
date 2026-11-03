@@ -132,6 +132,7 @@ import { tagStatusSchema } from "./tagStatus/tagStatusSchema.js";
 import { tagStatusResolvers } from "./tagStatus/tagStatusResolvers.js";
 
 import { tagNameSchema } from "./tagName/tagNameSchema.js";
+import { tagNameResolvers } from "./tagName/tagNameResolvers.js";
 
 import { tagTypeSchema } from "./tagType/tagTypeSchema.js";
 import { tagTypeResolvers } from "./tagType/tagTypeResolvers.js";
@@ -143,6 +144,7 @@ import {
   DateTimeTypeDefinition,
   JSONObjectDefinition,
   NonEmptyStringTypeDefinition,
+  LocalDateTypeDefinition,
 } from "graphql-scalars";
 import { customScalarResolvers } from "../customScalarResolvers.js";
 import { clearanceLevelSchema } from "./clearanceLevel/clearanceLeveSchema.js";
@@ -154,6 +156,7 @@ const scalarTypes = [
   JSONObjectDefinition,
   DateTimeTypeDefinition,
   NonEmptyStringTypeDefinition,
+  LocalDateTypeDefinition,
   "scalar DateTimeOrLocalDate",
 ];
 
@@ -257,6 +260,7 @@ export const resolvers = [
   tagResolvers,
   tagSourceResolvers,
   tagStatusResolvers,
+  tagNameResolvers,
   tagTypeResolvers,
   userResolvers,
 ];

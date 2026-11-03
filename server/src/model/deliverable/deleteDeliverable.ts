@@ -6,7 +6,6 @@ import {
   editDeliverable,
   selectDeliverableOrThrow,
   validateDeleteDeliverableInput,
-  validateUserPersonTypeAllowed,
 } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 
@@ -14,7 +13,6 @@ export async function deleteDeliverable(
   deliverableId: string,
   context: GraphQLContext
 ): Promise<PrismaDeliverable> {
-  validateUserPersonTypeAllowed(context, "deleteDeliverable", ["demos-admin", "demos-cms-user"]);
 
   return await prisma().$transaction(async (tx) => {
     const deliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);

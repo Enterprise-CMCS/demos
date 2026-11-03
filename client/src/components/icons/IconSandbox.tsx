@@ -25,6 +25,7 @@ const actionIcons = [
   Icons.ExportIcon,
   Icons.CompareIcon,
   Icons.AddNewIcon,
+  Icons.ApproveIcon,
   Icons.PrinterIcon,
   Icons.SettingsIcon,
   Icons.MetricsIcon,
