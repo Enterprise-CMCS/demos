@@ -7,7 +7,7 @@ import { gql } from "@apollo/client";
 import type { MockedResponse } from "@apollo/client/testing";
 import { MockedProvider } from "@apollo/client/testing";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import {
@@ -18,12 +18,6 @@ import {
   SET_DEMONSTRATION_ROLE_MUTATION,
 } from "./ManageContactsDialog";
 import { Role } from "demos-server";
-import {
-  getSelectByDisplayValue,
-  getSelectOptionLabels,
-  querySelectByDisplayValue,
-  selectOption,
-} from "test-utils/select";
 
 // Mock GraphQL queries/mutations - Multiple search terms
 const createSearchMock = () => ({
@@ -130,7 +124,7 @@ describe("ManageContactsDialog", () => {
 
     expect(screen.getByText("John Doe")).toBeInTheDocument();
     expect(screen.getByText("john.doe@example.com")).toBeInTheDocument();
-    expect(getSelectByDisplayValue("Project Officer")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Project Officer")).toBeInTheDocument();
   });
 
   it("performs person search when typing in search field", async () => {
@@ -246,12 +240,12 @@ describe("ManageContactsDialog", () => {
 
     renderWithProviders(propsWithContacts);
 
-    const selectElement = getSelectByDisplayValue("Project Officer");
+    const selectElement = screen.getByDisplayValue("Project Officer");
 
     // Change the select value directly
-    await selectOption(user, selectElement, "Monitoring & Evaluation Analyst");
+    await user.selectOptions(selectElement, "Monitoring & Evaluation Analyst");
 
-    expect(getSelectByDisplayValue("Monitoring & Evaluation Analyst")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Monitoring & Evaluation Analyst")).toBeInTheDocument();
   });
 
   it("toggles primary status", async () => {
@@ -554,7 +548,7 @@ describe("ManageContactsDialog", () => {
     });
 
     const contactTypeSelect = screen.getByTestId("contact-type-0");
-    await selectOption(user, contactTypeSelect, "Project Officer");
+    await user.selectOptions(contactTypeSelect, "Project Officer");
 
     // Check save button is enabled after contact is properly configured
     await waitFor(() => {
@@ -588,7 +582,7 @@ describe("ManageContactsDialog", () => {
     });
 
     const contactTypeSelect = screen.getByTestId("contact-type-0");
-    await selectOption(user, contactTypeSelect, "Project Officer");
+    await user.selectOptions(contactTypeSelect, "Project Officer");
 
     // Wait for save button to be enabled
     await waitFor(() => {
@@ -616,7 +610,7 @@ describe("ManageContactsDialog", () => {
     // The exact implementation depends on BaseDialog's behavior
   });
 
-  it("filters contact type options based on IDM roles", async () => {
+  it("filters contact type options based on IDM roles", () => {
     const propsWithCMSUser: ManageContactsDialogProps = {
       ...defaultProps,
       existingContacts: [
@@ -637,17 +631,15 @@ describe("ManageContactsDialog", () => {
     renderWithProviders(propsWithCMSUser);
 
     // CMS users should not see "State Point of Contact" option
-    const optionLabels = await getSelectOptionLabels(
-      userEvent.setup(),
-      getSelectByDisplayValue("Project Officer")
-    );
+    const select = screen.getByDisplayValue("Project Officer");
+    fireEvent.click(select);
 
-    expect(optionLabels).toContain("Monitoring & Evaluation Analyst");
-    expect(optionLabels).toContain("Project Officer");
-    expect(optionLabels).not.toContain("State Point of Contact");
+    expect(screen.getByText("Monitoring & Evaluation Analyst")).toBeInTheDocument();
+    expect(screen.getByText("Project Officer")).toBeInTheDocument();
+    expect(screen.queryByText("State Point of Contact")).not.toBeInTheDocument();
   });
 
-  it("shows only State Point of Contact for State users", async () => {
+  it("shows only State Point of Contact for State users", () => {
     const propsWithStateUser: ManageContactsDialogProps = {
       ...defaultProps,
       existingContacts: [
@@ -667,14 +659,12 @@ describe("ManageContactsDialog", () => {
 
     renderWithProviders(propsWithStateUser);
 
-    const optionLabels = await getSelectOptionLabels(
-      userEvent.setup(),
-      getSelectByDisplayValue("State Point of Contact")
-    );
+    const select = screen.getByDisplayValue("State Point of Contact");
+    fireEvent.click(select);
 
-    expect(optionLabels).toContain("State Point of Contact");
-    expect(optionLabels).not.toContain("Monitoring & Evaluation Analyst");
-    expect(optionLabels).not.toContain("Project Officer");
+    expect(screen.getByText("State Point of Contact")).toBeInTheDocument();
+    expect(screen.queryByText("Monitoring & Evaluation Analyst")).not.toBeInTheDocument();
+    expect(screen.queryByText("Project Officer")).not.toBeInTheDocument();
   });
 
   it("filters out already-used contact types for the same person", async () => {
@@ -696,7 +686,7 @@ describe("ManageContactsDialog", () => {
 
     // Assign role so search re-enables
     const firstSelect = await screen.getByTestId("contact-type-0");
-    await selectOption(user, firstSelect, "Project Officer");
+    await user.selectOptions(firstSelect, "Project Officer");
 
     // Add same person again
     await user.type(searchInput, "joh");
@@ -710,7 +700,13 @@ describe("ManageContactsDialog", () => {
     // Now second row should exist
     const secondSelect = screen.getByTestId("contact-type-1");
 
-    expect(await getSelectOptionLabels(user, secondSelect)).not.toContain("Project Officer");
+    await waitFor(() => {
+      expect(
+        within(secondSelect)
+          .getAllByRole("option")
+          .map((o) => o.textContent)
+      ).not.toContain("Project Officer");
+    });
   });
 
   it("shows warning message when contacts are missing contact types", async () => {
@@ -1201,8 +1197,8 @@ describe("ManageContactsDialog", () => {
       renderWithProviders(propsWithContacts, mocks);
 
       // Change Alice from Monitoring & Evaluation Analyst to Policy Technical Director (a valid change that doesn't violate Project Officer rule)
-      const aliceSelect = getSelectByDisplayValue("Monitoring & Evaluation Analyst");
-      await selectOption(userEvent.setup(), aliceSelect, "Policy Technical Director");
+      const aliceSelect = screen.getByDisplayValue("Monitoring & Evaluation Analyst");
+      fireEvent.change(aliceSelect, { target: { value: "Policy Technical Director" } });
 
       // Save button should be enabled after making a valid change
       await waitFor(() => {
@@ -1384,7 +1380,7 @@ describe("ManageContactsDialog", () => {
       renderWithProviders(propsWithContacts);
 
       // CMS users should not see "State Point of Contact" option
-      const select = getSelectByDisplayValue("Project Officer");
+      const select = screen.getByDisplayValue("Project Officer");
       expect(select).toBeInTheDocument();
       // Note: Full select option testing would require interacting with the Select component
     });
@@ -1438,10 +1434,10 @@ describe("ManageContactsDialog", () => {
       });
 
       // ✅ Assert default contact type is applied
-      expect(getSelectByDisplayValue("State Point of Contact")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("State Point of Contact")).toBeInTheDocument();
 
       // (Optional but useful) verify no "Select Type…" placeholder exists
-      expect(querySelectByDisplayValue("Select Type…")).not.toBeInTheDocument();
+      expect(screen.queryByDisplayValue("Select Type…")).not.toBeInTheDocument();
     });
   });
 
@@ -1464,14 +1460,14 @@ describe("ManageContactsDialog", () => {
       await user.click(addButton);
 
       // Should be added without a contact type initially (user must select)
-      expect(getSelectByDisplayValue("Select Type…")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("Select Type…")).toBeInTheDocument();
 
       // User selects Project Officer
-      const selectContactType = getSelectByDisplayValue("Select Type…");
-      await selectOption(user, selectContactType, "Project Officer");
+      const selectContactType = screen.getByDisplayValue("Select Type…");
+      await user.selectOptions(selectContactType, "Project Officer");
 
       // Should now show Project Officer and be automatically set as primary
-      expect(getSelectByDisplayValue("Project Officer")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("Project Officer")).toBeInTheDocument();
       // Note: Primary toggle testing would require accessing the toggle component
     });
 

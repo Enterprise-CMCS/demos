@@ -1,6 +1,7 @@
 import React from "react";
 
 import { BaseDialog } from "components/dialog/BaseDialog";
+import { Select } from "components/input/select/Select";
 import { vi } from "vitest";
 
 import { fireEvent, render, screen } from "@testing-library/react";
@@ -165,6 +166,22 @@ describe("BaseDialog", () => {
     document.dispatchEvent(escapeEvent);
     expect(preventDefaultSpy).toHaveBeenCalled();
     expect(stopPropagationSpy).toHaveBeenCalled();
+  });
+
+  it("leaves the escape key to the browser while a select list is open", () => {
+    render(
+      <BaseDialog {...defaultProps}>
+        <Select id="test-select" options={[]} onSelect={() => {}} />
+      </BaseDialog>
+    );
+    const escapeEvent = new KeyboardEvent("keydown", {
+      key: "Escape",
+      bubbles: true,
+      cancelable: true,
+    });
+
+    screen.getByTestId("test-select-option-empty").dispatchEvent(escapeEvent);
+    expect(escapeEvent.defaultPrevented).toBe(false);
   });
 
   it("does not close confirmation dialog when clicking inside confirmation dialog content", () => {
