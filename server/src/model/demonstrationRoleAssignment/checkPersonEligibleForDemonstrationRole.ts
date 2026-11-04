@@ -17,6 +17,6 @@ export const checkPersonEligibleForDemonstrationRole = async (
   });
 
   if (eligibleRole.length !== 1) {
-    return `Person of type ${person.personTypeId} is not eligible for the ${roleId} demonstration role.`;
+    return `Person with id ${person.id} of type ${person.personTypeId} is not eligible for the ${roleId} demonstration role.`;
   }
 };

@@ -101,7 +101,7 @@ describe("checkPersonEligibleForDemonstrationRole", () => {
     regularMocks.rolePersonType.findMany.mockResolvedValue([]);
 
     await expect(checkPersonEligibleForDemonstrationRole(mockPersonId, mockRoleId)).resolves.toBe(
-      `Person of type ${mockPersonTypeId} is not eligible for the ${mockRoleId} demonstration role.`
+      `Person with id ${mockPersonId} of type ${mockPersonTypeId} is not eligible for the ${mockRoleId} demonstration role.`
     );
   });
 });
