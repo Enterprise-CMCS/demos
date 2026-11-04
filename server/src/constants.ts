@@ -47,6 +47,7 @@ export const DELIVERABLE_TYPES = [
   "Quarterly Budget Neutrality Report",
   "Summative Evaluation Report",
   "Transition Plan",
+  "Rapid Cycle Report",
 ] as const;
 export type DeliverableType = (typeof DELIVERABLE_TYPES)[number];
 
