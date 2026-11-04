@@ -34,7 +34,8 @@ import { GraphQLContext } from "../../auth";
 import { getDemonstration, getManyDemonstrations } from "./demonstrationData";
 import { CHIP_DEMONSTRATION_TYPE_TAG_NAME } from "../../constants";
 import { formatDateToPlainDate } from "../../dateUtilities";
-import { validatePersonEligibleForDemonstrationRole } from "../demonstrationRoleAssignment/validatePersonEligibleForDemonstrationRole";
+import { checkPersonEligibleForDemonstrationRole } from "../demonstrationRoleAssignment/checkPersonEligibleForDemonstrationRole";
+import { cleanErrorsAndThrow } from "../../errors/cleanErrorsAndThrow";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -51,10 +52,15 @@ export async function __createDemonstration(
   let newApplicationId: string;
   try {
     newApplicationId = await prisma().$transaction(async (tx) => {
-      await validatePersonEligibleForDemonstrationRole(
+      const eligibilityError = await checkPersonEligibleForDemonstrationRole(
         input.projectOfficerUserId,
         roleProjectOfficer,
         tx
+      );
+      cleanErrorsAndThrow(
+        [eligibilityError],
+        "createDemonstration",
+        "CREATE_DEMONSTRATION_VALIDATION_FAILED"
       );
 
       const application = await tx.application.create({
@@ -122,10 +128,15 @@ export async function __updateDemonstration(
   try {
     return await prisma().$transaction(async (tx) => {
       if (input.projectOfficerUserId) {
-        await validatePersonEligibleForDemonstrationRole(
+        const eligibilityError = await checkPersonEligibleForDemonstrationRole(
           input.projectOfficerUserId,
           roleProjectOfficer,
           tx
+        );
+        cleanErrorsAndThrow(
+          [eligibilityError],
+          "updateDemonstration",
+          "UPDATE_DEMONSTRATION_VALIDATION_FAILED"
         );
       }
 

@@ -1,11 +1,10 @@
-import { throwCustomGQLError } from "../../errors/errorCodes";
 import { prisma, PrismaTransactionClient } from "../../prismaClient";
 
-export const validatePersonEligibleForDemonstrationRole = async (
+export const checkPersonEligibleForDemonstrationRole = async (
   personId: string,
   roleId: string,
   tx?: PrismaTransactionClient
-) => {
+): Promise<string | undefined> => {
   const prismaClient = tx ?? prisma();
   const person = await prismaClient.person.findUniqueOrThrow({
     where: { id: personId },
@@ -18,9 +17,6 @@ export const validatePersonEligibleForDemonstrationRole = async (
   });
 
   if (eligibleRole.length !== 1) {
-    throwCustomGQLError(
-      `Person with ID ${person.id} of type ${person.personTypeId} is not eligible for role with ID ${roleId}.`,
-      "DEMONSTRATION_ROLE_ASSIGNMENT_ERROR"
-    );
+    return `Person of type ${person.personTypeId} is not eligible for the ${roleId} demonstration role.`;
   }
 };

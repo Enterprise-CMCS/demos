@@ -20,7 +20,6 @@ export const CUSTOM_INTERNAL_ERROR_CODES = [
   "CLAIM_VALIDATION_AUTHTIME_ERROR",
   "TAG_DOES_NOT_EXIST_ERROR",
   "TAG_IN_USE_CANNOT_BE_DELETED_ERROR",
-  "DEMONSTRATION_ROLE_ASSIGNMENT_ERROR",
   "NOT_RELEASED_ERROR",
 ] as const;
 
@@ -103,10 +102,6 @@ export const CUSTOM_ERROR_CODES: Record<
   },
   TAG_IN_USE_CANNOT_BE_DELETED_ERROR: {
     publicErrorCode: "TAG_ERROR",
-    logLevel: "error",
-  },
-  DEMONSTRATION_ROLE_ASSIGNMENT_ERROR: {
-    publicErrorCode: "GENERAL_ERROR",
     logLevel: "error",
   },
   NOT_RELEASED_ERROR: {

@@ -54,7 +54,7 @@ import { Loaders } from "../../loaders";
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
 import { DemonstrationTypeTagAssignmentQueryResult } from "../demonstrationTypeTagAssignment/queries";
 import { DemonstrationRoleAssignmentQueryResult } from "../demonstrationRoleAssignment/queries";
-import { validatePersonEligibleForDemonstrationRole } from "../demonstrationRoleAssignment/validatePersonEligibleForDemonstrationRole";
+import { checkPersonEligibleForDemonstrationRole } from "../demonstrationRoleAssignment/checkPersonEligibleForDemonstrationRole";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -95,8 +95,8 @@ vi.mock("./determineDemonstrationTypeStatus", () => ({
   determineDemonstrationTypeStatus: vi.fn(),
 }));
 
-vi.mock("../demonstrationRoleAssignment/validatePersonEligibleForDemonstrationRole", () => ({
-  validatePersonEligibleForDemonstrationRole: vi.fn(),
+vi.mock("../demonstrationRoleAssignment/checkPersonEligibleForDemonstrationRole", () => ({
+  checkPersonEligibleForDemonstrationRole: vi.fn(),
 }));
 
 describe("demonstrationResolvers", () => {
@@ -704,7 +704,7 @@ describe("demonstrationResolvers", () => {
         applicationTypeId: testValues.applicationTypeId,
       });
       expect(handlePrismaError).not.toHaveBeenCalled();
-      expect(validatePersonEligibleForDemonstrationRole).toHaveBeenCalledExactlyOnceWith(
+      expect(checkPersonEligibleForDemonstrationRole).toHaveBeenCalledExactlyOnceWith(
         testValues.userId,
         testValues.projectOfficerRole,
         mockTransaction
@@ -860,7 +860,7 @@ describe("demonstrationResolvers", () => {
       expect(transactionMocks.person.findUnique).not.toHaveBeenCalled();
       expect(transactionMocks.demonstrationRoleAssignment.upsert).not.toHaveBeenCalled();
       expect(transactionMocks.primaryDemonstrationRoleAssignment.upsert).not.toHaveBeenCalled();
-      expect(validatePersonEligibleForDemonstrationRole).not.toHaveBeenCalled();
+      expect(checkPersonEligibleForDemonstrationRole).not.toHaveBeenCalled();
     });
 
     it("should update the project officer in a transaction if included", async () => {
@@ -948,7 +948,7 @@ describe("demonstrationResolvers", () => {
         transactionMocks.primaryDemonstrationRoleAssignment.upsert
       ).toHaveBeenCalledExactlyOnceWith(expectedCalls[3]);
       expect(handlePrismaError).not.toHaveBeenCalled();
-      expect(validatePersonEligibleForDemonstrationRole).toHaveBeenCalledExactlyOnceWith(
+      expect(checkPersonEligibleForDemonstrationRole).toHaveBeenCalledExactlyOnceWith(
         testValues.userId,
         testValues.projectOfficerRole,
         mockTransaction
