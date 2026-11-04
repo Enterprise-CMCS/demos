@@ -42,7 +42,7 @@ export const UploadSection = ({
         Upload
         <ExportIcon />
       </SecondaryButton>
-      <DocumentList documents={completenessDocuments} />
+      <DocumentList documents={completenessDocuments} isReadonly={isReadonlyUser} />
     </div>
   );
 };

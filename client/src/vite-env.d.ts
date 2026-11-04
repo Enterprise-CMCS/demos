@@ -13,6 +13,7 @@ declare const __GIT_COMMIT__: string;
 declare const __DEMOS_VERSION__: string;
 declare const __FEATURE_SHOW_GIT_VERSION__: boolean;
 declare const __FEATURE_OACT_USER__: boolean;
+declare const __FEATURE_HANDLE_HOLIDAYS_WEEKENDS_FOR_DATES__: boolean;
 
 /**
 Some built-in constants are available in all cases:

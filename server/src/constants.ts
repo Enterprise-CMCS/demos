@@ -232,6 +232,7 @@ export const NON_DELIVERABLE_DOCUMENT_TYPES: DocumentType[] = [
   "Q&A",
   "Signed Decision Memo",
   "State Application",
+  "OACT Certification Memo",
 ] as const;
 
 export const PHASE_NAMES = [

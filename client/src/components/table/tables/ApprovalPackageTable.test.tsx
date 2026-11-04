@@ -59,6 +59,15 @@ describe("ApprovalPackageTable", () => {
       uploadedDate: "Feb 1, 2025",
       document: mockDocument({ id: "doc-22", documentType: "Signed Decision Memo" }),
     },
+    {
+      documentType: "OACT Certification Memo" as DocumentType,
+      id: "OACT Certification Memo-id",
+      name: "OACT Memo",
+      description: "OACT desc",
+      uploadedBy: "Bob",
+      uploadedDate: "Mar 1, 2025",
+      document: mockDocument({ id: "doc-33", documentType: "OACT Certification Memo" }),
+    },
   ];
 
   const setup = (isReadonlyUser = false) =>
@@ -176,5 +185,13 @@ describe("ApprovalPackageTable", () => {
     });
     expect(editMissing).toBeNull();
     expect(deleteMissing).toBeNull();
+  });
+
+  it("displays a red asterisk next to OACT Certification Memo", () => {
+    setup();
+
+    const oactRow = screen.getByRole("row", { name: /OACT Certification Memo/ });
+
+    expect(oactRow).toHaveTextContent("*OACT Certification Memo");
   });
 });

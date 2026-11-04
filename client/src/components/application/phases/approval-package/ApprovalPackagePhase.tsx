@@ -21,6 +21,7 @@ export interface ApprovalPackagePhaseProps {
   documents: (ApplicationWorkflowDocument | undefined)[];
   allPreviousPhasesDone: boolean;
   isPhaseCompleted: boolean;
+  isOactCertificationRequired: boolean;
   onFinish: () => void;
 }
 
@@ -29,6 +30,7 @@ export const ApprovalPackagePhase = ({
   documents,
   allPreviousPhasesDone,
   isPhaseCompleted,
+  isOactCertificationRequired,
   onFinish,
 }: ApprovalPackagePhaseProps) => {
   const { showSuccess, showError } = useToast();
@@ -62,7 +64,12 @@ export const ApprovalPackagePhase = ({
     };
   });
 
-  const allDocumentsUploaded = tableRows.every((row) => row.document);
+  const requiredDocumentTypes = REQUIRED_DOCUMENT_TYPES.filter(
+    (type) => type !== "OACT Certification Memo" || isOactCertificationRequired
+  );
+  const allDocumentsUploaded = requiredDocumentTypes.every((type) =>
+    tableRows.some((row) => row.documentType === type && row.document)
+  );
   const finishEnabled = !isPhaseCompleted && allPreviousPhasesDone && allDocumentsUploaded;
 
   const handleFinish = async () => {
@@ -82,7 +89,7 @@ export const ApprovalPackagePhase = ({
     <div>
       <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">APPROVAL</h3>
       <p className="text-sm text-text-placeholder mb-4">
-        List of all required documents/reviews needed for approval.
+        List of all required documents/reviews needed for approval. (*Applications approved on or after 1/1/2027 require an OACT Certification Memo.)
       </p>
 
       <h4 className="text-[18px] font-bold tracking-wide mb-1">APPROVAL PACKAGE</h4>

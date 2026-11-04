@@ -96,14 +96,15 @@ const renderApprovalPackagePhase = (application: ApplicationWorkflowDemonstratio
   );
 
 describe("REQUIRED_DOCUMENT_TYPES", () => {
-  it("contains all 6 required document types", () => {
-    expect(REQUIRED_DOCUMENT_TYPES).toHaveLength(6);
+  it("contains all 7 required document types", () => {
+    expect(REQUIRED_DOCUMENT_TYPES).toHaveLength(7);
     expect(REQUIRED_DOCUMENT_TYPES).toContain("Final Budget Neutrality Formulation Workbook");
     expect(REQUIRED_DOCUMENT_TYPES).toContain("Q&A");
     expect(REQUIRED_DOCUMENT_TYPES).toContain("Special Terms & Conditions");
     expect(REQUIRED_DOCUMENT_TYPES).toContain("Formal OMB Policy Concurrence Email");
     expect(REQUIRED_DOCUMENT_TYPES).toContain("Approval Letter");
     expect(REQUIRED_DOCUMENT_TYPES).toContain("Signed Decision Memo");
+    expect(REQUIRED_DOCUMENT_TYPES).toContain("OACT Certification Memo");
   });
 });
 
@@ -118,7 +119,7 @@ describe("getDocumentsForPhase", () => {
     };
 
     const result = getDocumentsForPhase(application);
-    expect(result).toHaveLength(6);
+    expect(result).toHaveLength(7);
     expect(result[1]).toBeDefined(); // Q&A
     expect(result[4]).toBeDefined(); // Approval Letter
   });
@@ -139,7 +140,7 @@ describe("getDocumentsForPhase", () => {
   it("returns undefined for each missing document type", () => {
     const application = { ...baseDemonstration, documents: [] };
     const result = getDocumentsForPhase(application);
-    expect(result).toHaveLength(6);
+    expect(result).toHaveLength(7);
     result.forEach((d) => expect(d).toBeUndefined());
   });
 });
@@ -186,7 +187,7 @@ describe("getApprovalPackagePhaseFromApplication", () => {
     renderApprovalPackagePhase(application);
 
     const rows = screen.getAllByTestId("table-row");
-    expect(rows).toHaveLength(6);
+    expect(rows).toHaveLength(7);
 
     const text = rows.map((r) => r.textContent);
     expect(text.some((t) => t?.includes("Q&A Doc"))).toBe(true);
@@ -270,7 +271,7 @@ describe("getApprovalPackagePhaseFromApplication", () => {
     renderApprovalPackagePhase(baseDemonstration);
 
     const rows = screen.getAllByTestId("table-row");
-    expect(rows).toHaveLength(6);
+    expect(rows).toHaveLength(7);
     rows.forEach((row) => {
       expect(row.textContent).toContain("-");
     });

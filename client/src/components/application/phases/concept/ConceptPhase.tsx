@@ -233,7 +233,7 @@ export const ConceptPhase = ({
         <ExportIcon />
       </SecondaryButton>
 
-      <DocumentList documents={documents} />
+      <DocumentList documents={documents} isReadonly={isReadonlyUser} />
     </div>
   );
 

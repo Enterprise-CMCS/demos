@@ -2,6 +2,7 @@ import React from "react";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { DocumentType, PhaseName } from "demos-server";
 import { ApprovalPackagePhase } from "./ApprovalPackagePhase";
+import { isOactCertificationRequired } from "components/application/phases/oactCertification";
 
 export const REQUIRED_DOCUMENT_TYPES: DocumentType[] = [
   "Final Budget Neutrality Formulation Workbook",
@@ -10,6 +11,7 @@ export const REQUIRED_DOCUMENT_TYPES: DocumentType[] = [
   "Formal OMB Policy Concurrence Email",
   "Approval Letter",
   "Signed Decision Memo",
+  "OACT Certification Memo",
 ] as const;
 
 export const getDocumentsForPhase = (
@@ -52,6 +54,7 @@ export const getApprovalPackagePhaseFromApplication = (
       documents={documents}
       allPreviousPhasesDone={allPreviousPhasesDone}
       isPhaseCompleted={approvalPackagePhase.phaseStatus === "Completed"}
+      isOactCertificationRequired={isOactCertificationRequired(application)}
       onFinish={() => setSelectedPhase("Approval Summary")}
     />
   );

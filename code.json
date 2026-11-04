@@ -1,6 +1,6 @@
 {
   "name": "demos",
-  "version": "",
+  "version": "1.1.1",
   "description": "The Demonstration Evaluation and Management Oversight System (DEMOS) supports the administration of the Medicaid Section 1115 demonstration program",
   "longDescription": "The Demonstration Evaluation and Management Oversight System (DEMOS) supports the administration of the demonstration program under Medicaid Section 1115 of the Social Security Act (also known as ‘1115 waivers’). The system collects and produces data and descriptive information about Section 1115 applications submitted by states, and supports CMS’ review and approval of the applications, as well as monitoring and evaluation of approved demonstrations and budget neutrality.",
   "status": "Development",
@@ -23,7 +23,7 @@
   "disclaimerURL": "",
   "disclaimerText": "",
   "vcs": "git",
-  "laborHours": 23771,
+  "laborHours": 23998,
   "reuseFrequency": {
     "forks": 1,
     "clones": 0
@@ -64,8 +64,8 @@
   "partners": [],
   "date": {
     "created": "2025-05-08T12:52:27Z",
-    "lastModified": "2026-09-30T20:41:54Z",
-    "metadataLastUpdated": "2026-10-01T00:01:48.398Z"
+    "lastModified": "2026-10-30T20:31:54Z",
+    "metadataLastUpdated": "2026-11-01T00:02:32.329Z"
   },
   "tags": [
     "PMDA",

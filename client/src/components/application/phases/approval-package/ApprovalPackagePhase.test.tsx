@@ -40,6 +40,10 @@ const allRequiredDocs = [
   doc({ documentType: "Signed Decision Memo" }),
 ];
 
+const oactDoc = doc({ documentType: "OACT Certification Memo" });
+
+const allRequiredDocsWithOact = [...allRequiredDocs, oactDoc];
+
 const mockOnFinish = vi.fn();
 
 const defaultProps: ApprovalPackagePhaseProps = {
@@ -47,6 +51,7 @@ const defaultProps: ApprovalPackagePhaseProps = {
   documents: [],
   allPreviousPhasesDone: true,
   isPhaseCompleted: false,
+  isOactCertificationRequired: false,
   onFinish: mockOnFinish,
 };
 
@@ -73,13 +78,13 @@ describe("ApprovalPackagePhase", () => {
 
     expect(screen.getByText("APPROVAL")).toBeInTheDocument();
     expect(
-      screen.getByText("List of all required documents/reviews needed for approval.")
+      screen.getByText("List of all required documents/reviews needed for approval. (*Applications approved on or after 1/1/2027 require an OACT Certification Memo.)")
     ).toBeInTheDocument();
     expect(screen.getByText("APPROVAL PACKAGE")).toBeInTheDocument();
     expect(screen.getByText("Each file type is required prior to approval.")).toBeInTheDocument();
   });
 
-  it("renders the table with all 6 required document types, even when no documents provided", () => {
+  it("renders the table with all 7 required document types, even when no documents provided", () => {
     setup();
 
     const table = screen.getByRole("table");
@@ -87,7 +92,7 @@ describe("ApprovalPackagePhase", () => {
 
     const rows = screen.getAllByRole("row");
     // Subtract 1 for header row
-    expect(rows.length - 1).toEqual(6);
+    expect(rows.length - 1).toEqual(7);
 
     // Check for document types in the table
     expect(screen.getByText("Final Budget Neutrality Formulation Workbook")).toBeInTheDocument();
@@ -210,7 +215,7 @@ describe("ApprovalPackagePhase", () => {
       expect(screen.getByRole("table")).toBeInTheDocument();
       // Verify table rows are displayed
       const rows = screen.getAllByRole("row");
-      expect(rows.length - 1).toEqual(6); // 6 document types
+      expect(rows.length - 1).toEqual(7); // 7 document types
     });
 
     it.each([
@@ -223,6 +228,29 @@ describe("ApprovalPackagePhase", () => {
       expect(screen.queryByRole("button", { name: /finish/i })).not.toBeInTheDocument();
       // Table should be rendered but in readonly mode
       expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+  });
+
+  describe("OACT Certification Memo requirement", () => {
+    it("requires OACT Certification Memo when isOactCertificationRequired is true", () => {
+      setup({ documents: allRequiredDocs, isOactCertificationRequired: true });
+
+      // Finish button should be disabled because OACT Certification Memo is missing
+      expect(screen.getByRole("button", { name: /finish/i })).toBeDisabled();
+    });
+
+    it("enables Finish when OACT Certification Memo is uploaded and required", () => {
+      setup({ documents: allRequiredDocsWithOact, isOactCertificationRequired: true });
+
+      // Finish button should be enabled because all required docs are present
+      expect(screen.getByRole("button", { name: /finish/i })).toBeEnabled();
+    });
+
+    it("does not require OACT Certification Memo when isOactCertificationRequired is false", () => {
+      setup({ documents: allRequiredDocs, isOactCertificationRequired: false });
+
+      // Finish button should be enabled because OACT Certification Memo is not required
+      expect(screen.getByRole("button", { name: /finish/i })).toBeEnabled();
     });
   });
 });
