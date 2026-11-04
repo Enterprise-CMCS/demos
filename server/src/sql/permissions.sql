@@ -1,5 +1,5 @@
 -- Easy way to revoke schema permissions
-CREATE OR REPLACE FUNCTION revoke_all_on_schema(schema_name TEXT, user_name TEXT) 
+CREATE OR REPLACE FUNCTION revoke_all_on_schema(schema_name TEXT, user_name TEXT)
 RETURNS VOID
 AS $$
 DECLARE
@@ -26,6 +26,15 @@ BEGIN
     EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I REVOKE ALL ON FUNCTIONS FROM %s', schema_name, proper_user_name);
 END;
 $$ LANGUAGE plpgsql;
+
+-- Create the demos_data_fix role if it does not exist
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'demos_data_fix') THEN
+        EXECUTE 'CREATE ROLE demos_data_fix NOLOGIN';
+    END IF;
+END
+$$;
 
 -- Create the legacy_pmda and cron schemas if not exists
 -- Helps to avoid permission issues later for lower and ci/cd environments where they don't exist
@@ -67,6 +76,14 @@ SELECT revoke_all_on_schema('legacy_pmda_raw', 'demos_delete');
 SELECT revoke_all_on_schema('legacy_pmda_staged', 'demos_delete');
 SELECT revoke_all_on_schema('legacy_pmda_migration_rev_01', 'demos_delete');
 
+-- demos_data_fix revocations
+SELECT revoke_all_on_schema('public', 'demos_data_fix');
+SELECT revoke_all_on_schema('demos_app', 'demos_data_fix');
+SELECT revoke_all_on_schema('cron', 'demos_data_fix');
+SELECT revoke_all_on_schema('legacy_pmda_raw', 'demos_data_fix');
+SELECT revoke_all_on_schema('legacy_pmda_staged', 'demos_data_fix');
+SELECT revoke_all_on_schema('legacy_pmda_migration_rev_01', 'demos_data_fix');
+
 -- Next, do grants per user / role
 -- Usage on schemas (and one on sequences), specific table access, change default privs
 -- PUBLIC grants
@@ -104,6 +121,19 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA demos_app GRANT USAGE ON SEQUENCES TO demos_w
 GRANT USAGE ON SCHEMA demos_app TO demos_delete;
 GRANT DELETE ON ALL TABLES IN SCHEMA demos_app TO demos_delete;
 ALTER DEFAULT PRIVILEGES IN SCHEMA demos_app GRANT DELETE ON TABLES TO demos_delete;
+
+-- Keep the ledger append-only for application roles
+REVOKE UPDATE, DELETE, TRUNCATE ON TABLE demos_app.data_fix_log FROM demos_write, demos_delete;
+
+-- demos_data_fix grants
+GRANT USAGE ON SCHEMA demos_app TO demos_data_fix;
+GRANT USAGE ON ALL SEQUENCES IN SCHEMA demos_app TO demos_data_fix;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA demos_app TO demos_data_fix;
+ALTER DEFAULT PRIVILEGES IN SCHEMA demos_app GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO demos_data_fix;
+ALTER DEFAULT PRIVILEGES IN SCHEMA demos_app GRANT USAGE ON SEQUENCES TO demos_data_fix;
+REVOKE ALL PRIVILEGES ON TABLE demos_app.data_fix_log FROM demos_data_fix;
+GRANT SELECT ON TABLE demos_app.data_fix_log TO demos_data_fix;
+GRANT demos_data_fix TO CURRENT_USER WITH INHERIT FALSE, SET TRUE;
 
 -- Clean up utility function
 DROP FUNCTION revoke_all_on_schema;
