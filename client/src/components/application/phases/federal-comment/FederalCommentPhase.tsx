@@ -6,7 +6,6 @@ import { useDialog } from "components/dialog/DialogContext";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { differenceInCalendarDays } from "date-fns";
 import { Notice, NoticeVariant } from "components/notice";
-import { DateType, PhaseName } from "demos-server-constants";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -41,10 +40,10 @@ export const getFederalCommentPhaseFromApplication = (application: WorkflowAppli
   const phaseComplete = federalCommentPhase?.phaseStatus === "Completed";
 
   const phaseStartDate = federalCommentPhase?.phaseDates.find(
-    (date) => date.dateType === ("Federal Comment Period Start Date" satisfies DateType)
+    (date) => date.dateType === "Federal Comment Period Start Date"
   );
   const phaseEndDate = federalCommentPhase?.phaseDates.find(
-    (date) => date.dateType === ("Federal Comment Period End Date" satisfies DateType)
+    (date) => date.dateType === "Federal Comment Period End Date"
   );
 
   const initialDocuments = application.documents.filter(
@@ -106,20 +105,18 @@ const FederalCommentNotice: React.FC<{ phaseEndDate?: string; phaseComplete: boo
   );
 };
 
-interface FederalCommentPhaseProps {
-  demonstrationId: string;
-  phaseStartDate?: string;
-  phaseEndDate?: string;
-  phaseComplete: boolean;
-  documents: ApplicationWorkflowDocument[];
-}
-
-export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
+export const FederalCommentPhase = ({
   demonstrationId,
   phaseStartDate,
   phaseEndDate,
   phaseComplete,
   documents,
+}: {
+  demonstrationId: string;
+  phaseStartDate?: string;
+  phaseEndDate?: string;
+  phaseComplete: boolean;
+  documents: ApplicationWorkflowDocument[];
 }) => {
   const { showFederalCommentDocumentUploadDialog } = useDialog();
 
@@ -138,13 +135,11 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
       </div>
       <div className="flex gap-8 mt-4 text-sm text-text-placeholder">
         <div className="flex flex-col">
-          <span className="font-bold">
-            {"Federal Comment Period Start Date" satisfies DateType}
-          </span>
+          <span className="font-bold">Federal Comment Period Start Date</span>
           <span>{phaseStartDate ? formatDateForDisplay(phaseStartDate) : "--/--/----"}</span>
         </div>
         <div className="flex flex-col">
-          <span className="font-bold">{"Federal Comment Period End Date" satisfies DateType}</span>
+          <span className="font-bold">Federal Comment Period End Date</span>
           <span>{phaseEndDate ? formatDateForDisplay(phaseEndDate) : "--/--/----"}</span>
         </div>
       </div>
@@ -157,7 +152,7 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
         <FederalCommentNotice phaseEndDate={phaseEndDate} phaseComplete={phaseComplete} />
 
         <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1 uppercase">
-          {"Federal Comment" satisfies PhaseName}
+          Federal Comment
         </h3>
       </div>
       <p
