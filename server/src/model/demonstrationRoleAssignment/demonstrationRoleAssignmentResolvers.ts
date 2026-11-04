@@ -14,6 +14,7 @@ import { selectPersonOrThrow } from "../person/queries/selectPersonOrThrow";
 import { selectDemonstrationOrThrow } from "../demonstration/queries";
 import { Role } from "../../types.js";
 import { GraphQLContext } from "../../auth";
+import { validatePersonEligibleForDemonstrationRole } from "./validatePersonEligibleForDemonstrationRole";
 
 const DEMONSTRATION_GRANT_LEVEL = "Demonstration";
 
@@ -57,6 +58,7 @@ export async function setDemonstrationRole(
   { input }: { input: SetDemonstrationRoleInput }
 ): Promise<PrismaDemonstrationRoleAssignment> {
   return prisma().$transaction(async (tx) => {
+    await validatePersonEligibleForDemonstrationRole(input.personId, input.roleId, tx);
     const person = await selectPersonOrThrow({ id: input.personId }, tx);
     const demonstration = await selectDemonstrationOrThrow({ id: input.demonstrationId }, tx);
 
@@ -124,6 +126,7 @@ export async function setDemonstrationRoles(
     const results = [];
 
     for (const roleInput of input) {
+      await validatePersonEligibleForDemonstrationRole(roleInput.personId, roleInput.roleId, tx);
 
       const person = await selectPersonOrThrow({ id: roleInput.personId }, tx);
       const demonstration = await selectDemonstrationOrThrow({ id: roleInput.demonstrationId }, tx);

@@ -12,9 +12,14 @@ import { selectPersonOrThrow } from "../person/queries";
 import { selectDemonstrationOrThrow } from "../demonstration/queries";
 import { selectDemonstrationRoleAssignmentOrThrow } from "./queries/selectDemonstrationRoleAssignmentOrThrow";
 import { DemonstrationRoleAssignmentQueryResult } from "./queries";
+import { validatePersonEligibleForDemonstrationRole } from "./validatePersonEligibleForDemonstrationRole";
 
 vi.mock("./validateSetDemonstrationRoleInput", () => ({
   validateSetDemonstrationRoleInput: vi.fn(),
+}));
+
+vi.mock("./validatePersonEligibleForDemonstrationRole", () => ({
+  validatePersonEligibleForDemonstrationRole: vi.fn(),
 }));
 
 vi.mock("../person/queries/selectPersonOrThrow", () => ({
@@ -116,6 +121,25 @@ describe("demonstrationRoleAssignmentResolvers", () => {
       vi.mocked(selectDemonstrationRoleAssignmentOrThrow)
         .mockResolvedValueOnce(mockRoleAssignment)
         .mockResolvedValueOnce(mockRoleAssignment2);
+    });
+
+    it("validates each person is eligible for their requested role within a transaction", async () => {
+      await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRoles(null, {
+        input: testInput,
+      });
+
+      expect(validatePersonEligibleForDemonstrationRole).toHaveBeenNthCalledWith(
+        1,
+        testInput[0].personId,
+        testInput[0].roleId,
+        mockPrismaTransaction
+      );
+      expect(validatePersonEligibleForDemonstrationRole).toHaveBeenNthCalledWith(
+        2,
+        testInput[1].personId,
+        testInput[1].roleId,
+        mockPrismaTransaction
+      );
     });
 
     it("fetches person for each input using selectPersonOrThrow within a transaction", async () => {
@@ -272,6 +296,18 @@ describe("demonstrationRoleAssignmentResolvers", () => {
       roleId: "Monitoring & Evaluation Analyst",
       isPrimary: true,
     };
+
+    it("validates the person is eligible for the requested role within a transaction", async () => {
+      await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRole(null, {
+        input: testInput,
+      });
+
+      expect(validatePersonEligibleForDemonstrationRole).toHaveBeenCalledExactlyOnceWith(
+        testInput.personId,
+        testInput.roleId,
+        mockPrismaTransaction
+      );
+    });
 
     it("fetches the person using selectPersonOrThrow within a transaction", async () => {
       await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRole(null, {

@@ -34,6 +34,7 @@ import { GraphQLContext } from "../../auth";
 import { getDemonstration, getManyDemonstrations } from "./demonstrationData";
 import { CHIP_DEMONSTRATION_TYPE_TAG_NAME } from "../../constants";
 import { formatDateToPlainDate } from "../../dateUtilities";
+import { validatePersonEligibleForDemonstrationRole } from "../demonstrationRoleAssignment/validatePersonEligibleForDemonstrationRole";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -50,6 +51,12 @@ export async function __createDemonstration(
   let newApplicationId: string;
   try {
     newApplicationId = await prisma().$transaction(async (tx) => {
+      await validatePersonEligibleForDemonstrationRole(
+        input.projectOfficerUserId,
+        roleProjectOfficer,
+        tx
+      );
+
       const application = await tx.application.create({
         data: {
           applicationTypeId: demonstrationApplicationType,
@@ -114,6 +121,14 @@ export async function __updateDemonstration(
   checkOptionalNotNullFields(["name", "projectOfficerUserId"], input);
   try {
     return await prisma().$transaction(async (tx) => {
+      if (input.projectOfficerUserId) {
+        await validatePersonEligibleForDemonstrationRole(
+          input.projectOfficerUserId,
+          roleProjectOfficer,
+          tx
+        );
+      }
+
       const demonstration = await tx.demonstration.update({
         where: { id },
         data: {
