@@ -26,7 +26,7 @@
     "vitest": "^4.1.12"
   },
   "dependencies": {
-    "pg": "^8.23.1",
-    "demos-shared-library": "file:../../shared_library"
+    "demos-shared-library": "file:../../shared_library",
+    "pg": "^8.23.1"
   }
 }
