@@ -136,6 +136,7 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
   const { currentUser } = getCurrentUser();
   const { showSuccess, showError } = useToast();
   const [selectedStartDate, setSelectedStartDate] = useState<string>();
+  const [hasDeclaredStartDate, setHasDeclaredStartDate] = useState(false);
   const { setApplicationDates, loading } = useSetApplicationDates();
 
   const startDate = selectedStartDate ?? phaseStartDate ?? "";
@@ -144,7 +145,12 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
     ? formatDateForServer(addDays(parseISO(startDate), FEDERAL_COMMENT_PERIOD_DAYS))
     : "";
   const isReadonlyUser = isReadonly(currentUser, "ApplicationWorkflow");
-  const isDisabled = isReadonlyUser || phaseComplete || loading;
+  const isDisabled =
+    isReadonlyUser || phaseComplete || loading || Boolean(phaseStartDate) || hasDeclaredStartDate;
+
+  // This will disbale
+  const isDeclareStartDateDisabled = () =>
+    isDisabled || !validStartDate || (startDate === phaseStartDate && endDate === phaseEndDate);
 
   const handleDeclareStartDate = async () => {
     if (isDisabled || !validStartDate) return;
@@ -159,6 +165,7 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
           { dateType: "Federal Comment Period End Date", plainDate: assertIsLocalDate(endDate) },
         ],
       });
+      setHasDeclaredStartDate(true);
       showSuccess("Federal Comment Start Date declared.");
     } catch (error) {
       showError(
@@ -233,11 +240,7 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
           aria-label="Declare Federal Comment Start Date"
           size="small"
           isHidden={isReadonlyUser}
-          disabled={
-            isDisabled ||
-            !validStartDate ||
-            (startDate === phaseStartDate && endDate === phaseEndDate)
-          }
+          disabled={isDeclareStartDateDisabled()}
           onClick={handleDeclareStartDate}
         >
           Declare Federal Comment Start Date

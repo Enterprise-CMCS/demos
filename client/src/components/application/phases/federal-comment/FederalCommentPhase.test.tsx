@@ -92,9 +92,7 @@ describe("FederalCommentPhase", () => {
         </TestProvider>
       );
 
-      expect(
-        screen.getByText("The Federal Comment Period ends on 11/26/2026")
-      ).toBeInTheDocument();
+      expect(screen.getByText("The Federal Comment Period ends on 11/26/2026")).toBeInTheDocument();
     });
 
     it("renders warning with days left", () => {
@@ -142,7 +140,7 @@ describe("FederalCommentPhase", () => {
       ["2026-12-15", "01/14/2027"],
       ["2028-02-01", "03/02/2028"],
     ])("calculates 30 calendar days after %s as read-only text", (startDate, expectedEndDate) => {
-      setup();
+      setup({ phaseStartDate: undefined, phaseEndDate: undefined });
       fireEvent.change(screen.getByLabelText(/Federal Comment Period Start Date/), {
         target: { value: startDate },
       });
@@ -153,7 +151,7 @@ describe("FederalCommentPhase", () => {
     });
 
     it("saves both plain dates together and shows success feedback", async () => {
-      setup();
+      setup({ phaseStartDate: undefined, phaseEndDate: undefined });
       fireEvent.change(screen.getByLabelText(/Federal Comment Period Start Date/), {
         target: { value: "2026-10-27" },
       });
@@ -169,11 +167,16 @@ describe("FederalCommentPhase", () => {
       });
       expect(await screen.findByText("Federal Comment Start Date declared.")).toBeInTheDocument();
       expect(screen.getByLabelText(/Federal Comment Period Start Date/)).toHaveValue("2026-10-27");
+      expect(screen.getByLabelText(/Federal Comment Period Start Date/)).toBeDisabled();
+      const button = screen.getByRole("button", { name: "Declare Federal Comment Start Date" });
+      expect(button).toBeDisabled();
+      await userEvent.click(button);
+      expect(mockSetApplicationDates).toHaveBeenCalledTimes(1);
     });
 
     it("retains the selection and allows retry when the backend rejects the save", async () => {
       mockSetApplicationDates.mockRejectedValueOnce(new Error("Dates cannot be changed"));
-      setup();
+      setup({ phaseStartDate: undefined, phaseEndDate: undefined });
       fireEvent.change(screen.getByLabelText(/Federal Comment Period Start Date/), {
         target: { value: "2026-10-27" },
       });
@@ -187,7 +190,7 @@ describe("FederalCommentPhase", () => {
     });
 
     it("does not save an empty start date", async () => {
-      setup();
+      setup({ phaseStartDate: undefined, phaseEndDate: undefined });
       fireEvent.change(screen.getByLabelText(/Federal Comment Period Start Date/), {
         target: { value: "" },
       });
@@ -197,8 +200,9 @@ describe("FederalCommentPhase", () => {
       expect(mockSetApplicationDates).not.toHaveBeenCalled();
     });
 
-    it("disables unchanged saved dates", () => {
+    it("disables date entry and declaration when a start date is already saved", () => {
       setup({ phaseStartDate: "2026-10-27", phaseEndDate: "2026-11-26" });
+      expect(screen.getByLabelText(/Federal Comment Period Start Date/)).toBeDisabled();
       expect(
         screen.getByRole("button", { name: "Declare Federal Comment Start Date" })
       ).toBeDisabled();
