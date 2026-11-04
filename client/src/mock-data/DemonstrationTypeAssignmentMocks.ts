@@ -1,7 +1,7 @@
 import { MockedResponse } from "@apollo/client/testing";
 import { ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION } from "components/dialog/DemonstrationTypes/ApplyDemonstrationTypesDialog";
 
-import { DemonstrationTypeAssignment, SetDemonstrationTypesInput } from "demos-server";
+import { DemonstrationTypeAssignment, LocalDate, SetDemonstrationTypesInput } from "demos-server";
 
 export type MockDemonstrationTypeAssignment = Pick<
   DemonstrationTypeAssignment,
@@ -11,18 +11,18 @@ export type MockDemonstrationTypeAssignment = Pick<
 export const MOCK_DEMONSTRATION_TYPE_ASSIGNMENTS: MockDemonstrationTypeAssignment[] = [
   {
     demonstrationTypeName: "Aggregate Cap",
-    effectivePlainDate: "2025-01-01",
-    expirationPlainDate: "2025-12-31",
+    effectivePlainDate: "2025-01-01" as LocalDate,
+    expirationPlainDate: "2025-12-31" as LocalDate,
   },
   {
     demonstrationTypeName: "Annual Limits",
-    effectivePlainDate: "2025-02-01",
-    expirationPlainDate: "2025-11-30",
+    effectivePlainDate: "2025-02-01" as LocalDate,
+    expirationPlainDate: "2025-11-30" as LocalDate,
   },
   {
     demonstrationTypeName: "Basic Health Plan (BHP)",
-    effectivePlainDate: "2025-03-01",
-    expirationPlainDate: "2025-10-31",
+    effectivePlainDate: "2025-03-01" as LocalDate,
+    expirationPlainDate: "2025-10-31" as LocalDate,
   },
 ];
 

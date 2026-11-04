@@ -1,4 +1,4 @@
-import { Amendment } from "demos-server";
+import { Amendment, LocalDate } from "demos-server";
 import { mockDocuments } from "./documentMocks";
 
 export type MockAmendment = Pick<
@@ -10,7 +10,7 @@ export const mockAmendments: MockAmendment[] = [
   {
     id: "1",
     name: "Amendment 1 - Montana Medicaid Waiver",
-    effectivePlainDate: "2025-01-01",
+    effectivePlainDate: "2025-01-01" as LocalDate,
     status: "Under Review",
     createdAt: new Date(2024, 4, 30),
     documents: mockDocuments,
@@ -18,7 +18,7 @@ export const mockAmendments: MockAmendment[] = [
   {
     id: "4",
     name: "Amendment 4 - Florida Health Innovation",
-    effectivePlainDate: "2025-04-01",
+    effectivePlainDate: "2025-04-01" as LocalDate,
     status: "Under Review",
     createdAt: new Date(2024, 6, 1),
     documents: [],
@@ -26,7 +26,7 @@ export const mockAmendments: MockAmendment[] = [
   {
     id: "5",
     name: "Amendment 5 - Florida Health Innovation",
-    effectivePlainDate: "2025-05-01",
+    effectivePlainDate: "2025-05-01" as LocalDate,
     status: "Denied",
     createdAt: new Date(2024, 6, 15),
     documents: [],

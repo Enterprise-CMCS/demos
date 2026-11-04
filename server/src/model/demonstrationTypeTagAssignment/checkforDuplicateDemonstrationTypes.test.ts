@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { SetDemonstrationTypesInput } from "../../types";
+import { LocalDate, SetDemonstrationTypesInput } from "../../types";
 import { checkForDuplicateDemonstrationTypes } from "./checkForDuplicateDemonstrationTypes";
 
 // Mock imports
@@ -20,15 +20,15 @@ describe("checkForDuplicateDemonstrationTypes", () => {
       {
         demonstrationTypeName: "Type One",
         demonstrationTypeDates: {
-          effectivePlainDate: "2026-01-01",
-          expirationPlainDate: "2027-01-01",
+          effectivePlainDate: "2026-01-01" as LocalDate,
+          expirationPlainDate: "2027-01-01" as LocalDate,
         },
       },
       {
         demonstrationTypeName: "Type Two",
         demonstrationTypeDates: {
-          effectivePlainDate: "2026-01-01",
-          expirationPlainDate: "2027-01-01",
+          effectivePlainDate: "2026-01-01" as LocalDate,
+          expirationPlainDate: "2027-01-01" as LocalDate,
         },
       },
       {

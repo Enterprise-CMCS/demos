@@ -6,7 +6,7 @@ import { DialogProvider, useDialog } from "./DialogContext";
 import { ExistingContactType } from "./ManageContactsDialog";
 import { DocumentDialogFields } from "./document/DocumentDialog";
 import { DeclareIncompleteForm } from "./DeclareIncompleteDialog";
-import { Reference, ReferenceAgreement, TagName } from "demos-server";
+import { LocalDate, Reference, ReferenceAgreement, TagName } from "demos-server";
 import { DemonstrationType } from "./DemonstrationTypes/EditDemonstrationTypeDialog";
 import { formatDateForServer } from "util/formatDate";
 
@@ -569,8 +569,8 @@ const TestConsumer: React.FC = () => {
             demonstrationTypeName: "Type1",
             status: "Active",
             approvalStatus: "Approved",
-            effectivePlainDate: "2024-01-01",
-            expirationPlainDate: "2025-01-01",
+            effectivePlainDate: "2024-01-01" as LocalDate,
+            expirationPlainDate: "2025-01-01" as LocalDate,
           })
         }
       >

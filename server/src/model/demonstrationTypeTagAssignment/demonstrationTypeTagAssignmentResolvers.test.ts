@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { SetDemonstrationTypesInput } from "../../types";
+import { LocalDate, SetDemonstrationTypesInput } from "../../types";
 import { ParsedSetDemonstrationTypesInput } from "./demonstrationTypeTagAssignmentTypes";
 import { TZDate } from "@date-fns/tz";
 import { setDemonstrationTypes } from "./demonstrationTypeTagAssignmentResolvers";
@@ -46,8 +46,8 @@ describe("demonstrationTypeTagAssignmentResolvers", () => {
   };
 
   const testDemonstrationId = "3c482b37-182a-4db5-8aea-b58096b452ff";
-  const testInputEffectiveDates = ["2024-01-01", "2025-01-01"];
-  const testInputExpirationDates = ["2024-12-31", "2025-12-31"];
+  const testInputEffectiveDates = ["2024-01-01" as LocalDate, "2025-01-01" as LocalDate];
+  const testInputExpirationDates = ["2024-12-31" as LocalDate, "2025-12-31" as LocalDate];
   const mockParsedEffectiveDates = [
     new TZDate(2024, 0, 1, 0, 0, 0, 0),
     new TZDate(2025, 0, 1, 0, 0, 0, 0),

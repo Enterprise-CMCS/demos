@@ -21,6 +21,7 @@ import {
   getSdgPreparationPhaseFromApplication,
   getApprovalSummaryPhaseFromApplication,
 } from "../phases";
+import { LocalDate } from "demos-server";
 
 const mockPO = {
   id: "po-1",
@@ -194,11 +195,11 @@ describe("getDisplayedPhaseDate", () => {
         phaseDates: [
           {
             dateType: "Application Intake Start Date",
-            plainDate: "1996-12-14",
+            plainDate: "1996-12-14" as LocalDate,
           },
           {
             dateType: "State Application Submitted Date",
-            plainDate: "1996-12-14",
+            plainDate: "1996-12-14" as LocalDate,
           },
         ],
       },
@@ -229,11 +230,11 @@ describe("getDisplayedPhaseDate", () => {
         phaseDates: [
           {
             dateType: "Application Intake Start Date",
-            plainDate: startDateString,
+            plainDate: startDateString as LocalDate,
           },
           {
             dateType: "State Application Submitted Date",
-            plainDate: submittedDateString,
+            plainDate: submittedDateString as LocalDate,
           },
         ],
       },
@@ -254,11 +255,11 @@ describe("getDisplayedPhaseDate", () => {
         phaseDates: [
           {
             dateType: "Completeness Start Date",
-            plainDate: completenessStartDateString,
+            plainDate: completenessStartDateString as LocalDate,
           },
           {
             dateType: "Completeness Completion Date",
-            plainDate: completionDateString,
+            plainDate: completionDateString as LocalDate,
           },
         ],
       },
@@ -279,11 +280,11 @@ describe("getDisplayedPhaseDate", () => {
         phaseDates: [
           {
             dateType: "Concept Start Date",
-            plainDate: startDateString,
+            plainDate: startDateString as LocalDate,
           },
           {
             dateType: "Concept Completion Date",
-            plainDate: completionDateString,
+            plainDate: completionDateString as LocalDate,
           },
         ],
       },
@@ -304,7 +305,7 @@ describe("getDisplayedPhaseDate", () => {
         phaseDates: [
           {
             dateType: "Federal Comment Period Start Date",
-            plainDate: startDateString,
+            plainDate: startDateString as LocalDate,
           },
         ],
       },

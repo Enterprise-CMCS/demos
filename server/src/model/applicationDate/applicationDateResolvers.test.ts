@@ -5,7 +5,12 @@ import {
   applicationDateResolvers,
 } from "./applicationDateResolvers";
 import type { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
-import type { DateType, SetApplicationDateInput, SetApplicationDatesInput } from "../../types";
+import type {
+  DateType,
+  LocalDate,
+  SetApplicationDateInput,
+  SetApplicationDatesInput,
+} from "../../types";
 import { __DEMOS_VERSION__ } from "../../flags";
 
 // Mock imports
@@ -50,7 +55,7 @@ describe("applicationDateResolvers", () => {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
   };
 
-  const testPlainDate = "2025-01-01";
+  const testPlainDate = "2025-01-01" as LocalDate;
   const testApplicationId = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
   const testError = new Error("Database connection failed");
 

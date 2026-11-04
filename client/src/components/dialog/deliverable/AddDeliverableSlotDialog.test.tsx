@@ -13,7 +13,7 @@ import { DELIVERABLE_TYPE_SELECT_NAME } from "components/dialog/deliverable/fiel
 import { DELIVERABLE_NAME_FIELD_ID } from "components/dialog/deliverable/fields/DeliverableNameField";
 import { SINGLE_DELIVERABLE_DUE_DATE_NAME } from "components/dialog/deliverable/fields/schedule-type/SingleDeliverableScheduleType";
 import { personMocks } from "mock-data/personMocks";
-import { Tag } from "demos-server";
+import { LocalDate, Tag } from "demos-server";
 import {
   ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME,
   AddDeliverableSlotDemonstration,
@@ -53,8 +53,8 @@ const MOCK_DEMONSTRATION_TYPE_TAGS: Tag[] = [
 const DEFAULT_DEMONSTRATION: AddDeliverableSlotDemonstration = {
   demonstrationTypes: MOCK_DEMONSTRATION_TYPE_TAGS,
   id: TEST_DEMO_ID,
-  effectivePlainDate: "2024-01-01",
-  expirationPlainDate: "2026-12-31",
+  effectivePlainDate: "2024-01-01" as LocalDate,
+  expirationPlainDate: "2026-12-31" as LocalDate,
 };
 
 describe("AddDeliverableSlotDialog", () => {
@@ -173,7 +173,7 @@ describe("AddDeliverableSlotDialog", () => {
 
   it("enables save when a valid Quarterly form is completed in a different order and disables when a date becomes past", async () => {
     const user = userEvent.setup();
-    setup({ expirationPlainDate: "2099-12-31" });
+    setup({ expirationPlainDate: "2099-12-31" as LocalDate });
 
     await waitFor(() => expect(screen.getByTestId("select-users")).toBeInTheDocument());
 
@@ -213,7 +213,7 @@ describe("AddDeliverableSlotDialog", () => {
 
   it("shows success toast and calls onClose when save is clicked with a valid Single schedule form", async () => {
     const user = userEvent.setup();
-    const { onClose } = setup({ expirationPlainDate: "2099-12-31" });
+    const { onClose } = setup({ expirationPlainDate: "2099-12-31" as LocalDate });
 
     await waitFor(() => expect(screen.getByTestId("select-users")).toBeInTheDocument());
 
@@ -244,7 +244,7 @@ describe("AddDeliverableSlotDialog", () => {
 
   it("disables save when a valid Single due date is changed to a past date", async () => {
     const user = userEvent.setup();
-    setup({ expirationPlainDate: "2099-12-31" });
+    setup({ expirationPlainDate: "2099-12-31" as LocalDate });
 
     await waitFor(() => expect(screen.getByTestId("select-users")).toBeInTheDocument());
 

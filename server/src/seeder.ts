@@ -22,6 +22,7 @@ import {
   CreateDeliverableInput,
   PersonType,
   DateTimeOrLocalDate,
+  LocalDate,
 } from "./types.js";
 import { prisma } from "./prismaClient.js";
 import { DocumentType, PhaseName } from "./types.js";
@@ -1154,143 +1155,143 @@ async function seedDatabase() {
     applicationDates: [
       {
         dateType: "Concept Start Date",
-        plainDate: "2025-01-01",
+        plainDate: "2025-01-01" as LocalDate,
       },
       {
         dateType: "Concept Paper Submitted Date",
-        plainDate: "2025-01-13",
+        plainDate: "2025-01-13" as LocalDate,
       },
       {
         dateType: "Concept Completion Date",
-        plainDate: "2025-01-16",
+        plainDate: "2025-01-16" as LocalDate,
       },
       {
         dateType: "Application Intake Start Date",
-        plainDate: "2025-01-16",
+        plainDate: "2025-01-16" as LocalDate,
       },
       {
         dateType: "State Application Submitted Date",
-        plainDate: "2025-01-23",
+        plainDate: "2025-01-23" as LocalDate,
       },
       {
         dateType: "Completeness Review Due Date",
-        plainDate: "2025-02-07",
+        plainDate: "2025-02-07" as LocalDate,
       },
       {
         dateType: "Application Intake Completion Date",
-        plainDate: "2025-01-24",
+        plainDate: "2025-01-24" as LocalDate,
       },
       {
         dateType: "Completeness Start Date",
-        plainDate: "2025-01-24",
+        plainDate: "2025-01-24" as LocalDate,
       },
       {
         dateType: "State Application Deemed Complete",
-        plainDate: "2025-02-03",
+        plainDate: "2025-02-03" as LocalDate,
       },
       {
         dateType: "Federal Comment Period Start Date",
-        plainDate: "2025-02-04",
+        plainDate: "2025-02-04" as LocalDate,
       },
       {
         dateType: "Federal Comment Period End Date",
-        plainDate: "2025-03-06",
+        plainDate: "2025-03-06" as LocalDate,
       },
       {
         dateType: "Completeness Completion Date",
-        plainDate: "2025-02-04",
+        plainDate: "2025-02-04" as LocalDate,
       },
       {
         dateType: "SDG Preparation Start Date",
-        plainDate: "2025-02-04",
+        plainDate: "2025-02-04" as LocalDate,
       },
       {
         dateType: "State Requested Approval Date",
-        plainDate: "2025-02-05",
+        plainDate: "2025-02-05" as LocalDate,
       },
       {
         dateType: "Internal Expected Approval Date",
-        plainDate: "2025-02-05",
+        plainDate: "2025-02-05" as LocalDate,
       },
       {
         dateType: "SME Initial Review Date",
-        plainDate: "2025-02-06",
+        plainDate: "2025-02-06" as LocalDate,
       },
       {
         dateType: "FRT Initial Meeting Date",
-        plainDate: "2025-02-07",
+        plainDate: "2025-02-07" as LocalDate,
       },
       {
         dateType: "BNPMT Initial Meeting Date",
-        plainDate: "2025-02-08",
+        plainDate: "2025-02-08" as LocalDate,
       },
       {
         dateType: "SDG Preparation Completion Date",
-        plainDate: "2025-02-09",
+        plainDate: "2025-02-09" as LocalDate,
       },
       {
         dateType: "Review Start Date",
-        plainDate: "2025-02-09",
+        plainDate: "2025-02-09" as LocalDate,
       },
       {
         dateType: "Review Completion Date",
-        plainDate: "2025-02-13",
+        plainDate: "2025-02-13" as LocalDate,
       },
       {
         dateType: "OGD Approval to Share with SMEs",
-        plainDate: "2025-02-14",
+        plainDate: "2025-02-14" as LocalDate,
       },
       {
         dateType: "Draft Approval Package to Prep",
-        plainDate: "2025-02-15",
+        plainDate: "2025-02-15" as LocalDate,
       },
       {
         dateType: "DDME Approval Received",
-        plainDate: "2025-02-16",
+        plainDate: "2025-02-16" as LocalDate,
       },
       {
         dateType: "State Concurrence",
-        plainDate: "2025-02-17",
+        plainDate: "2025-02-17" as LocalDate,
       },
       {
         dateType: "BN PMT Approval to Send to OMB",
-        plainDate: "2025-02-18",
+        plainDate: "2025-02-18" as LocalDate,
       },
       {
         dateType: "Draft Approval Package Shared",
-        plainDate: "2025-02-19",
+        plainDate: "2025-02-19" as LocalDate,
       },
       {
         dateType: "Receive OMB Concurrence",
-        plainDate: "2025-02-20",
+        plainDate: "2025-02-20" as LocalDate,
       },
       {
         dateType: "Receive OGC Legal Clearance",
-        plainDate: "2025-02-21",
+        plainDate: "2025-02-21" as LocalDate,
       },
       {
         dateType: "Package Sent for COMMs Clearance",
-        plainDate: "2025-02-21",
+        plainDate: "2025-02-21" as LocalDate,
       },
       {
         dateType: "COMMs Clearance Received",
-        plainDate: "2025-02-21",
+        plainDate: "2025-02-21" as LocalDate,
       },
       {
         dateType: "Submit Approval Package to OSORA",
-        plainDate: "2025-02-21",
+        plainDate: "2025-02-21" as LocalDate,
       },
       {
         dateType: "OSORA R1 Comments Due",
-        plainDate: "2025-02-07",
+        plainDate: "2025-02-07" as LocalDate,
       },
       {
         dateType: "OSORA R2 Comments Due",
-        plainDate: "2025-02-07",
+        plainDate: "2025-02-07" as LocalDate,
       },
       {
         dateType: "CMS (OSORA) Clearance End",
-        plainDate: "2025-02-07",
+        plainDate: "2025-02-07" as LocalDate,
       },
     ],
   };

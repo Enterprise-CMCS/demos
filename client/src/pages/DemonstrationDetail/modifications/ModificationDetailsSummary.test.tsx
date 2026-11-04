@@ -6,6 +6,7 @@ import { ModificationItem } from "./ModificationTabs";
 import { TestProvider } from "test-utils/TestProvider";
 import { DEMONSTRATION_DETAIL_QUERY } from "../DemonstrationDetail";
 import { cmsMockUser, cmsReviewerMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { LocalDate } from "demos-server";
 
 const showUpdateAmendmentDialog = vi.fn();
 const showUpdateRenewalDialog = vi.fn();
@@ -40,7 +41,7 @@ describe("ModificationDetailsSummary", () => {
     description: "This is a test modification description",
     status: "Pre-Submission",
     createdAt: new Date("2024-01-01"),
-    effectivePlainDate: "2024-01-15",
+    effectivePlainDate: "2024-01-15" as LocalDate,
     signatureLevel: "OA",
     documents: [],
     medicaidId: "demo-1",

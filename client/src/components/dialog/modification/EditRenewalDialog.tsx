@@ -6,7 +6,12 @@ import { BaseEditModificationDialog } from "./BaseEditModificationDialog";
 import { assertIsLocalDate } from "util/formatDate";
 
 export const UPDATE_RENEWAL_MUTATION: TypedDocumentNode<
-  { updateRenewal: Modification },
+  {
+    updateRenewal: Pick<
+      Modification,
+      "id" | "name" | "description" | "effectivePlainDate" | "signatureLevel"
+    >;
+  },
   { id: string; input: UpdateExtensionInput }
 > = gql`
   mutation UpdateRenewal($id: ID!, $input: UpdateExtensionInput!) {

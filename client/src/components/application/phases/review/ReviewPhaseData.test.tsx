@@ -7,7 +7,7 @@ import {
 } from "./ReviewPhaseData";
 import { ReviewPhaseFormData } from "./ReviewPhase";
 import { SimplePhase, WorkflowApplication } from "components/application";
-import { PhaseName, PhaseStatus } from "demos-server";
+import { LocalDate, PhaseName, PhaseStatus } from "demos-server";
 
 const createPhase = (phaseName: PhaseName, phaseStatus: PhaseStatus): SimplePhase => {
   return {
@@ -42,15 +42,15 @@ describe("reviewPhaseData", () => {
         phaseDates: [
           {
             dateType: "OGD Approval to Share with SMEs",
-            plainDate: "2025-01-15",
+            plainDate: "2025-01-15" as LocalDate,
           },
           {
             dateType: "Draft Approval Package to Prep",
-            plainDate: "2025-02-20",
+            plainDate: "2025-02-20" as LocalDate,
           },
           {
             dateType: "DDME Approval Received",
-            plainDate: "2025-03-10",
+            plainDate: "2025-03-10" as LocalDate,
           },
         ],
         phaseNotes: [],
@@ -114,7 +114,7 @@ describe("reviewPhaseData", () => {
             phaseDates: [
               {
                 dateType: "OGD Approval to Share with SMEs",
-                plainDate: "2025-01-10",
+                plainDate: "2025-01-10" as LocalDate,
               },
             ],
             phaseNotes: [{ noteType: "PO and OGD", content: "Test note" }],
@@ -150,11 +150,11 @@ describe("reviewPhaseData", () => {
             phaseDates: [
               {
                 dateType: "Draft Approval Package Shared",
-                plainDate: "2025-06-15",
+                plainDate: "2025-06-15" as LocalDate,
               },
               {
                 dateType: "Package Sent for COMMs Clearance",
-                plainDate: "2025-07-20",
+                plainDate: "2025-07-20" as LocalDate,
               },
             ],
             phaseNotes: [
@@ -195,11 +195,11 @@ describe("reviewPhaseData", () => {
             phaseDates: [
               {
                 dateType: "Draft Approval Package Shared",
-                plainDate: "2025-06-15",
+                plainDate: "2025-06-15" as LocalDate,
               },
               {
                 dateType: "Package Sent for COMMs Clearance",
-                plainDate: "2025-07-20",
+                plainDate: "2025-07-20" as LocalDate,
               },
             ],
             phaseNotes: [
@@ -292,7 +292,7 @@ describe("reviewPhaseData", () => {
             phaseDates: [
               {
                 dateType: "Application Approval Date",
-                plainDate: "2026-12-31",
+                plainDate: "2026-12-31" as LocalDate,
               },
             ],
           }),

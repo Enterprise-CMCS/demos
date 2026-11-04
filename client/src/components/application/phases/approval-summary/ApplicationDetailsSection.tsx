@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { CompletableSection } from "layout/completableSection";
 import { Textarea, TextInput } from "components/input";
 import Switch from "react-switch";
-import { DateType, LocalDate, SdgDivision, SignatureLevel } from "demos-server";
+import { DateType, SdgDivision, SignatureLevel } from "demos-server";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { SelectSdgDivision } from "components/input/select/SelectSdgDivision";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
@@ -23,7 +23,7 @@ export type BaseFormData = {
   effectiveDate: string;
   signatureLevel?: SignatureLevel;
   status: string;
-  applicationApprovalDate?: LocalDate;
+  applicationApprovalDate?: string;
 };
 
 export type DemonstrationDetailsFormData = BaseFormData & {
@@ -357,7 +357,7 @@ export const ApplicationDetailsSection = ({
               onChange={(date) =>
                 setSectionFormData({
                   ...sectionFormData,
-                  applicationApprovalDate: date as LocalDate,
+                  applicationApprovalDate: date,
                 })
               }
               isDisabled={isDemonstrationApproved || userIsReadonly}

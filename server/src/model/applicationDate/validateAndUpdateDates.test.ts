@@ -37,7 +37,7 @@ import {
 
 describe("validateAndUpdateDates", () => {
   const testPrismaTransaction: any = "Test";
-  const testDateTimeValue1 = "2025-01-01";
+  const testDateTimeValue1 = "2025-01-01" as LocalDate;
   const testDateTimeValue2: EasternTZDate = {
     isEasternTZDate: true,
     easternTZDate: new TZDate("2025-01-01T00:00:00.000-05:00", "America/New_York"),

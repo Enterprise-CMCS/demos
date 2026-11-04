@@ -117,6 +117,6 @@ export function getDayBoundaryLabel(dateType: DateType): ExpectedTimestamp {
   return DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[dateType].expectedTimestamp;
 }
 
-export function formatDateToPlainDate(date: Date): string {
-  return format(new TZDate(date, "America/New_York"), "yyyy-MM-dd");
+export function formatDateToPlainDate(date: Date): LocalDate {
+  return format(new TZDate(date, "America/New_York"), "yyyy-MM-dd") as LocalDate;
 }

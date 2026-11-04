@@ -20,6 +20,7 @@ import { ApplicationWorkflowDocument, WorkflowApplication } from "components/app
 import { TZDate } from "@date-fns/tz";
 import { EST_TIMEZONE } from "util/formatDate";
 import { readonlyMockUser, cmsMockUser } from "mock-data/userMocks";
+import { LocalDate } from "demos-server";
 
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
@@ -176,15 +177,15 @@ describe("getApplicationCompletenessFromApplication", () => {
           phaseDates: [
             {
               dateType: "State Application Deemed Complete",
-              plainDate: "2026-03-01",
+              plainDate: "2026-03-01" as LocalDate,
             },
             {
               dateType: "Federal Comment Period Start Date",
-              plainDate: "2026-03-02",
+              plainDate: "2026-03-02" as LocalDate,
             },
             {
               dateType: "Federal Comment Period End Date",
-              plainDate: "2026-04-01",
+              plainDate: "2026-04-01" as LocalDate,
             },
           ],
           phaseNotes: [],
