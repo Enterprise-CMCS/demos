@@ -48,6 +48,20 @@ const ALLOWED_STATEMENTS: Record<string, string> = {
   DeleteStmt: "DELETE",
 };
 
+// Readable names for rejected parser node types; any other type is reported by its node name
+const REJECTED_STATEMENTS: Record<string, string> = {
+  TransactionStmt: "transaction control (BEGIN, COMMIT, ROLLBACK, SAVEPOINT)",
+  VariableSetStmt: "SET/RESET",
+  AlterTableStmt: "ALTER TABLE",
+  DropStmt: "DROP",
+  TruncateStmt: "TRUNCATE",
+  GrantStmt: "GRANT/REVOKE",
+  CopyStmt: "COPY",
+  CreateStmt: "CREATE TABLE",
+  CreateFunctionStmt: "CREATE FUNCTION",
+  LockStmt: "LOCK",
+};
+
 // Checked in every string the parser returns: DO bodies, string literals and names
 const BANNED_STRINGS: [RegExp, string][] = [
   [/\bset_config\b/i, "set_config"],
@@ -207,7 +221,7 @@ async function lintDemosctlBody(header: DataFixHeader, sql: string, migrations: 
       hasResultTable = true;
     } else if (!Object.hasOwn(ALLOWED_STATEMENTS, type)) {
       problems.push(
-        `top-level ${type} is not allowed; use only ${Object.values(ALLOWED_STATEMENTS).join(", ")} and CREATE TEMPORARY TABLE data_fix_result`,
+        `top-level ${REJECTED_STATEMENTS[type] ?? type} is not allowed; use only ${Object.values(ALLOWED_STATEMENTS).join(", ")} and CREATE TEMPORARY TABLE data_fix_result`,
       );
     }
   }

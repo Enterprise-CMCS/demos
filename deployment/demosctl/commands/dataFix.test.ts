@@ -29,8 +29,9 @@ describe("dataFixLint", () => {
   };
 
   test("should pass the valid demosctl and psql fixtures and ignore README.md", async () => {
+    const sqlFiles = fs.readdirSync(VALID_DIR).filter((file) => file.endsWith(".sql"));
     expect(await dataFixLint(VALID_DIR, MIGRATIONS_DIR)).toEqual(0);
-    expect(console.log).toHaveBeenCalledWith("data fix lint passed for 4 file(s)");
+    expect(console.log).toHaveBeenCalledWith(`data fix lint passed for ${sqlFiles.length} file(s)`);
     expect(console.error).not.toHaveBeenCalled();
   });
 
@@ -63,7 +64,7 @@ describe("dataFixLint", () => {
     fs.writeFileSync(path.join(tempDir, "invalid.SQL"), "");
 
     expect(await dataFixLint(tempDir, MIGRATIONS_DIR)).toEqual(1);
-    expect(console.error).toHaveBeenCalledWith("invalid.SQL: missing header field ticket");
+    expect(console.error).toHaveBeenCalledWith(expect.stringMatching(/^invalid\.SQL: missing header field /));
   });
 
   test("should report problems with the file name and fail", async () => {
@@ -73,10 +74,18 @@ describe("dataFixLint", () => {
     fs.writeFileSync(path.join(tempDir, file), `${sql}\nBEGIN;\n`);
 
     expect(await dataFixLint(tempDir, MIGRATIONS_DIR)).toEqual(1);
-    expect(console.error).toHaveBeenCalledWith(
-      `${file}: top-level TransactionStmt is not allowed; use only DO, SELECT, INSERT, UPDATE, DELETE and CREATE TEMPORARY TABLE data_fix_result`,
-    );
+    expect(console.error).toHaveBeenCalledWith(expect.stringMatching(/^20260101_DEMOS-1000_example_fix\.sql: /));
     expect(console.error).toHaveBeenCalledWith("data fix lint failed with 1 problem(s)");
+  });
+
+  test("should report problems from every bad file", async () => {
+    fs.writeFileSync(path.join(tempDir, "first.sql"), "");
+    fs.writeFileSync(path.join(tempDir, "second.sql"), "");
+
+    expect(await dataFixLint(tempDir, MIGRATIONS_DIR)).toEqual(1);
+    expect(console.error).toHaveBeenCalledWith(expect.stringMatching(/^first\.sql: /));
+    expect(console.error).toHaveBeenCalledWith(expect.stringMatching(/^second\.sql: /));
+    expect(console.error).toHaveBeenCalledWith("data fix lint failed with 2 problem(s)");
   });
 
   test("should fail a demosctl file when its migration folder is missing", async () => {

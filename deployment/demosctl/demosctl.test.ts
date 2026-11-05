@@ -59,11 +59,15 @@ describe("demosctl root", () => {
     expect(testMigration).toHaveBeenCalledTimes(1);
   });
 
-  test("should run data-fix:lint with an optional folder", async () => {
+  test("should run data-fix:lint and return its exit code", async () => {
+    vi.mocked(dataFixLint).mockResolvedValueOnce(1);
     process.argv = ["", "", "data-fix:lint", "all"];
-    await main();
-    expect(dataFixLint).toHaveBeenCalledWith(undefined);
 
+    expect(await main()).toEqual(1);
+    expect(dataFixLint).toHaveBeenCalledTimes(1);
+  });
+
+  test("should pass an optional folder to data-fix:lint", async () => {
     process.argv = ["", "", "data-fix:lint", "all", "some/dir"];
     await main();
     expect(dataFixLint).toHaveBeenCalledWith("some/dir");
