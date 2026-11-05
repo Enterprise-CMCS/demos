@@ -9,8 +9,6 @@ import {
   COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME,
   COMPLETENESS_FINISH_BUTTON_NAME,
   COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION,
-  FEDERAL_COMMENT_END_DATEPICKER_NAME,
-  FEDERAL_COMMENT_START_DATEPICKER_NAME,
   STATE_DEEMED_COMPLETE_DATEPICKER_NAME,
 } from "./CompletenessPhase";
 import { ApplicationWorkflowDocument } from "components/application";
@@ -97,12 +95,6 @@ describe("VerifyCompleteSection", () => {
     expect(dateInput).toHaveAttribute("type", "date");
   });
 
-  it("renders disabled date pickers for Federal Comment Period", () => {
-    setup();
-    expect(screen.getByTestId(FEDERAL_COMMENT_START_DATEPICKER_NAME)).toBeDisabled();
-    expect(screen.getByTestId(FEDERAL_COMMENT_END_DATEPICKER_NAME)).toBeDisabled();
-  });
-
   describe("Finish button", () => {
     it("is disabled when required docs are missing", () => {
       setup({ completenessDocuments: [] });
@@ -150,7 +142,7 @@ describe("VerifyCompleteSection", () => {
       expect(mockSetSelectedPhase).toHaveBeenCalledWith("Federal Comment");
     });
 
-    it("saves exact date values without timezone shift when clicked", async () => {
+    it("saves only the state deemed complete date when clicked", async () => {
       mockSetApplicationDates.mockClear();
       const user = userEvent.setup();
       setup({
@@ -162,8 +154,6 @@ describe("VerifyCompleteSection", () => {
         applicationId: "app-123",
         applicationDates: [
           { dateType: "State Application Deemed Complete", plainDate: "2026-03-05" },
-          { dateType: "Federal Comment Period Start Date", plainDate: "2026-03-06" },
-          { dateType: "Federal Comment Period End Date", plainDate: "2026-04-05" },
         ],
       });
     });
@@ -187,15 +177,13 @@ describe("VerifyCompleteSection", () => {
   });
 
   describe("Date pickers", () => {
-    it("clears all date pickers when phase is Incomplete even if a Completeness Letter exists", () => {
+    it("clears the state deemed complete date when phase is Incomplete", () => {
       setup({
         completenessPhaseStatus: "Incomplete",
         completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
         stateDeemedCompleteDate: "",
       });
       expect(screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME)).toHaveValue("");
-      expect(screen.getByTestId(FEDERAL_COMMENT_START_DATEPICKER_NAME)).toHaveValue("");
-      expect(screen.getByTestId(FEDERAL_COMMENT_END_DATEPICKER_NAME)).toHaveValue("");
     });
 
     it("clears a user-typed date when Declare Incomplete is clicked and phase becomes Incomplete", async () => {
@@ -231,8 +219,6 @@ describe("VerifyCompleteSection", () => {
       await waitFor(() => {
         expect(screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME)).toHaveValue("");
       });
-      expect(screen.getByTestId(FEDERAL_COMMENT_START_DATEPICKER_NAME)).toHaveValue("");
-      expect(screen.getByTestId(FEDERAL_COMMENT_END_DATEPICKER_NAME)).toHaveValue("");
     });
 
     it("allows the user to enter a new date while phase is Incomplete", () => {
@@ -250,8 +236,6 @@ describe("VerifyCompleteSection", () => {
       fireEvent.change(dateInput, { target: { value: "2026-04-10" } });
 
       expect(dateInput.value).toBe("2026-04-10");
-      expect(screen.getByTestId(FEDERAL_COMMENT_START_DATEPICKER_NAME)).toHaveValue("2026-04-11");
-      expect(screen.getByTestId(FEDERAL_COMMENT_END_DATEPICKER_NAME)).toHaveValue("2026-05-11");
     });
   });
 

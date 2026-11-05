@@ -13,8 +13,6 @@ import {
   COMPLETENESS_FINISH_BUTTON_NAME,
   COMPLETENESS_UPLOAD_BUTTON_NAME,
   STATE_DEEMED_COMPLETE_DATEPICKER_NAME,
-  FEDERAL_COMMENT_START_DATEPICKER_NAME,
-  FEDERAL_COMMENT_END_DATEPICKER_NAME,
 } from "./CompletenessPhase";
 import { ApplicationWorkflowDocument, WorkflowApplication } from "components/application";
 import { TZDate } from "@date-fns/tz";
@@ -161,7 +159,7 @@ describe("getApplicationCompletenessFromApplication", () => {
     expect(screen.getByText("Completeness")).toBeInTheDocument();
   });
 
-  it("populates date pickers from phaseDates", () => {
+  it("populates the state deemed complete date picker from phaseDates", () => {
     setup({
       phases: [
         {
@@ -178,22 +176,12 @@ describe("getApplicationCompletenessFromApplication", () => {
               dateType: "State Application Deemed Complete",
               plainDate: "2026-03-01",
             },
-            {
-              dateType: "Federal Comment Period Start Date",
-              plainDate: "2026-03-02",
-            },
-            {
-              dateType: "Federal Comment Period End Date",
-              plainDate: "2026-04-01",
-            },
           ],
           phaseNotes: [],
         },
       ],
     });
     expect(screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME)).toHaveValue("2026-03-01");
-    expect(screen.getByTestId(FEDERAL_COMMENT_START_DATEPICKER_NAME)).toHaveValue("2026-03-02");
-    expect(screen.getByTestId(FEDERAL_COMMENT_END_DATEPICKER_NAME)).toHaveValue("2026-04-01");
   });
 
   it("filters documents to only those in the Completeness phase", () => {
@@ -245,7 +233,5 @@ describe("getApplicationCompletenessFromApplication", () => {
       ],
     });
     expect(screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME)).toHaveValue("");
-    expect(screen.getByTestId(FEDERAL_COMMENT_START_DATEPICKER_NAME)).toHaveValue("");
-    expect(screen.getByTestId(FEDERAL_COMMENT_END_DATEPICKER_NAME)).toHaveValue("");
   });
 });
