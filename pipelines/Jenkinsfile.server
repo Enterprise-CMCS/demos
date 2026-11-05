@@ -131,6 +131,23 @@ stages {
           }
         }
       }
+
+      stage('Server - Validate Data Fixes') {
+        steps {
+          script {
+            handleError(params.HANDLE_ERRORS) {
+              if (hasChange('server/src/data_fixes')) {
+                dirCon('deployment', 'node') {
+                  sh '''
+                  npm ci
+                  npx tsx demosctl/index data-fix:lint all
+                  '''
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
