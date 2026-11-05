@@ -26,29 +26,18 @@ import { DeliverableDetailHeader } from "pages/deliverables/DeliverableDetailHea
 import { AdminHeader } from "pages/admin/AdminHeader";
 import { ReferencesHeader } from "pages/references/ReferencesHeader";
 
-const DEMONSTRATION_ACCESS_ROLES: PersonType[] = [
+const ALL_ROUTES_ACCESS_ROLES: PersonType[] = [
   "demos-admin",
   "demos-cms-user",
   "demos-cms-reviewer-user",
   "demos-restricted-cms-user",
-  "demos-oact-user",
 ];
 
-const DELIVERABLES_ACCESS_ROLES: PersonType[] = [
-  "demos-admin",
-  "demos-cms-user",
-  "demos-cms-reviewer-user",
-  "demos-restricted-cms-user",
-  "demos-state-user",
-];
+const DEMONSTRATION_ACCESS_ROLES: PersonType[] = [...ALL_ROUTES_ACCESS_ROLES, "demos-oact-user"];
 
-const REPORTS_ACCESS_ROLES: PersonType[] = [
-  "demos-admin",
-  "demos-cms-user",
-  "demos-cms-reviewer-user",
-  "demos-restricted-cms-user",
-  "demos-oact-user",
-];
+const DELIVERABLES_ACCESS_ROLES: PersonType[] = [...ALL_ROUTES_ACCESS_ROLES, "demos-state-user"];
+
+const REPORTS_ACCESS_ROLES: PersonType[] = [...ALL_ROUTES_ACCESS_ROLES, "demos-oact-user"];
 
 const HomePage = () => {
   const { currentUser } = getCurrentUser();
