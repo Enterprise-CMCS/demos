@@ -22,7 +22,6 @@ import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 import { TestProvider } from "test-utils/TestProvider";
 import { DELIVERABLE_DETAILS_QUERY } from "pages/deliverables/DeliverableDetailsManagementPage";
 import { DELIVERABLE_EXTENSION_REQUESTED_MESSAGE } from "util/messages";
-import { openSelect, selectOption } from "test-utils/select";
 
 const mockShowSuccess = vi.fn();
 const mockShowError = vi.fn();
@@ -79,9 +78,8 @@ describe("RequestExtensionDeliverableDialog", () => {
     expect(screen.getByTestId(REQUEST_EXTENSION_DETAILS_FIELD_NAME)).toBeRequired();
   });
 
-  it("renders the request reason options", async () => {
+  it("renders the request reason options", () => {
     setup();
-    await openSelect(userEvent.setup(), screen.getByTestId(REQUEST_EXTENSION_REASON_FIELD_NAME));
     expect(
       screen.getByTestId(`${REQUEST_EXTENSION_REASON_FIELD_NAME}-option-COVID-19`)
     ).toBeInTheDocument();
@@ -111,7 +109,7 @@ describe("RequestExtensionDeliverableDialog", () => {
     });
     expect(submit).toBeDisabled();
 
-    await selectOption(user, screen.getByTestId(REQUEST_EXTENSION_REASON_FIELD_NAME), "Other");
+    await user.selectOptions(screen.getByTestId(REQUEST_EXTENSION_REASON_FIELD_NAME), "Other");
     expect(submit).toBeDisabled();
 
     await user.type(screen.getByTestId(REQUEST_EXTENSION_DETAILS_FIELD_NAME), "Need more time");
@@ -125,7 +123,7 @@ describe("RequestExtensionDeliverableDialog", () => {
     fireEvent.change(screen.getByTestId(REQUEST_EXTENSION_DATE_FIELD_NAME), {
       target: { value: "2026-02-12" }, // equal to due date — invalid
     });
-    await selectOption(user, screen.getByTestId(REQUEST_EXTENSION_REASON_FIELD_NAME), "COVID-19");
+    await user.selectOptions(screen.getByTestId(REQUEST_EXTENSION_REASON_FIELD_NAME), "COVID-19");
     await user.type(screen.getByTestId(REQUEST_EXTENSION_DETAILS_FIELD_NAME), "Delayed");
 
     expect(screen.getByTestId(REQUEST_EXTENSION_SUBMIT_BUTTON_NAME)).toBeDisabled();
@@ -141,7 +139,7 @@ describe("RequestExtensionDeliverableDialog", () => {
     fireEvent.change(screen.getByTestId(REQUEST_EXTENSION_DATE_FIELD_NAME), {
       target: { value: "2027-01-15" },
     });
-    await selectOption(user, screen.getByTestId(REQUEST_EXTENSION_REASON_FIELD_NAME), "Other");
+    await user.selectOptions(screen.getByTestId(REQUEST_EXTENSION_REASON_FIELD_NAME), "Other");
     await user.type(screen.getByTestId(REQUEST_EXTENSION_DETAILS_FIELD_NAME), "x");
 
     await waitFor(() =>
@@ -156,8 +154,7 @@ describe("RequestExtensionDeliverableDialog", () => {
     fireEvent.change(screen.getByTestId(REQUEST_EXTENSION_DATE_FIELD_NAME), {
       target: { value: "2026-03-15" },
     });
-    await selectOption(
-      user,
+    await user.selectOptions(
       screen.getByTestId(REQUEST_EXTENSION_REASON_FIELD_NAME),
       "Technical Difficulties"
     );
@@ -195,7 +192,7 @@ describe("RequestExtensionDeliverableDialog", () => {
     fireEvent.change(screen.getByTestId(REQUEST_EXTENSION_DATE_FIELD_NAME), {
       target: { value: "2026-03-15" },
     });
-    await selectOption(user, screen.getByTestId(REQUEST_EXTENSION_REASON_FIELD_NAME), "Other");
+    await user.selectOptions(screen.getByTestId(REQUEST_EXTENSION_REASON_FIELD_NAME), "Other");
     await user.type(screen.getByTestId(REQUEST_EXTENSION_DETAILS_FIELD_NAME), "Need more time");
 
     await user.click(screen.getByTestId(REQUEST_EXTENSION_SUBMIT_BUTTON_NAME));
