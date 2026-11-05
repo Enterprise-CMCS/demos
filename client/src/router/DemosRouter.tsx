@@ -34,6 +34,22 @@ const DEMONSTRATION_ACCESS_ROLES: PersonType[] = [
   "demos-oact-user",
 ];
 
+const DELIVERABLES_ACCESS_ROLES: PersonType[] = [
+  "demos-admin",
+  "demos-cms-user",
+  "demos-cms-reviewer-user",
+  "demos-restricted-cms-user",
+  "demos-state-user",
+];
+
+const REPORTS_ACCESS_ROLES: PersonType[] = [
+  "demos-admin",
+  "demos-cms-user",
+  "demos-cms-reviewer-user",
+  "demos-restricted-cms-user",
+  "demos-oact-user",
+];
+
 const HomePage = () => {
   const { currentUser } = getCurrentUser();
 
@@ -63,18 +79,18 @@ export const DemosRouter: React.FC = () => {
                     </RequireRole>
                   }
                 />
-                <Route path="deliverables" element={<DeliverablesPage />} />
+                <Route
+                  path="deliverables"
+                  element={
+                    <RequireRole allowedRoles={DELIVERABLES_ACCESS_ROLES}>
+                      <DeliverablesPage />
+                    </RequireRole>
+                  }
+                />
                 <Route
                   path="reports"
                   element={
-                    <RequireRole
-                      allowedRoles={[
-                        "demos-admin",
-                        "demos-cms-user",
-                        "demos-cms-reviewer-user",
-                        "demos-restricted-cms-user",
-                      ]}
-                    >
+                    <RequireRole allowedRoles={REPORTS_ACCESS_ROLES}>
                       <ReportsPage />
                     </RequireRole>
                   }
@@ -105,7 +121,11 @@ export const DemosRouter: React.FC = () => {
               <Route element={<DemosLayoutProvider header={DeliverableDetailHeader} />}>
                 <Route
                   path="deliverables/:deliverableId"
-                  element={<DeliverableDetailsManagementPage />}
+                  element={
+                    <RequireRole allowedRoles={DELIVERABLES_ACCESS_ROLES}>
+                      <DeliverableDetailsManagementPage />
+                    </RequireRole>
+                  }
                 />
               </Route>
               <Route element={<DemosLayoutProvider header={AdminHeader} />}>
