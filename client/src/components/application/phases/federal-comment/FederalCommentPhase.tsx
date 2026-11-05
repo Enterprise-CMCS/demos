@@ -148,8 +148,7 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
   const isDisabled =
     isReadonlyUser || phaseComplete || loading || Boolean(phaseStartDate) || hasDeclaredStartDate;
 
-  const isDeclareStartDateDisabled = () =>
-    isDisabled || !validStartDate || (startDate === phaseStartDate && endDate === phaseEndDate);
+  const isDeclareStartDateDisabled = () => isDisabled || !validStartDate;
 
   const handleDeclareStartDate = async () => {
     if (isDisabled || !validStartDate) return;
