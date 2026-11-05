@@ -1,5 +1,5 @@
 -- Easy way to revoke schema permissions
-CREATE OR REPLACE FUNCTION revoke_all_on_schema(schema_name TEXT, user_name TEXT)
+CREATE OR REPLACE FUNCTION revoke_all_on_schema(schema_name TEXT, user_name TEXT) 
 RETURNS VOID
 AS $$
 DECLARE
@@ -31,7 +31,7 @@ $$ LANGUAGE plpgsql;
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'demos_data_fix') THEN
-        EXECUTE 'CREATE ROLE demos_data_fix NOLOGIN';
+        CREATE ROLE demos_data_fix NOLOGIN;
     END IF;
 END
 $$;
