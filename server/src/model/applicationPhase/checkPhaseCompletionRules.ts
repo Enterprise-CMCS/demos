@@ -32,8 +32,6 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
   Completeness: {
     datesMustExist: [
       "State Application Deemed Complete",
-      "Federal Comment Period Start Date",
-      "Federal Comment Period End Date",
     ],
     documentTypesMustExist: [
       "Application Completeness Letter",

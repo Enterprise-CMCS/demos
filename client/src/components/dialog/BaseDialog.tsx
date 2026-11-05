@@ -43,6 +43,11 @@ export const BaseDialog = ({
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Focus is on an option while a Select list is open; let the browser close just the list.
+      if (event.target instanceof HTMLOptionElement) {
+        return;
+      }
+
       if (event.key === "Escape") {
         const dialog = dialogRef.current;
         if (dialog && dialog.open) {
