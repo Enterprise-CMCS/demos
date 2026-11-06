@@ -563,6 +563,7 @@ export const PERMISSIONS = [
   "Access Admin Query",
   "Access CMS Field",
   "Access CMS Query",
+  "Read Deliverables",
   "Perform Admin Action",
   "Modify Applications",
   "Modify Deliverables",
