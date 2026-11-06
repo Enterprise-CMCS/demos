@@ -5,6 +5,7 @@ CREATE TABLE "data_fix_log" (
     "ticket" TEXT NOT NULL,
     "environment" TEXT NOT NULL,
     "rows_affected" INTEGER NOT NULL,
+    "reverse_file" TEXT,
     "reverses" TEXT,
     "git_commit" TEXT NOT NULL,
     "applied_by" TEXT NOT NULL,
@@ -16,7 +17,19 @@ CREATE TABLE "data_fix_log" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "data_fix_log_reverse_file_key" ON "data_fix_log"("reverse_file");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "data_fix_log_reverses_key" ON "data_fix_log"("reverses");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "data_fix_log_file_name_reverse_file_key" ON "data_fix_log"("file_name", "reverse_file");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "data_fix_log_reverses_file_name_key" ON "data_fix_log"("reverses", "file_name");
+
+-- AddCheckConstraint
+ALTER TABLE "data_fix_log" ADD CONSTRAINT "data_fix_log_forward_or_reversal_check" CHECK (("reverse_file" IS NULL) <> ("reverses" IS NULL));
+
 -- AddForeignKey
-ALTER TABLE "data_fix_log" ADD CONSTRAINT "data_fix_log_reverses_fkey" FOREIGN KEY ("reverses") REFERENCES "data_fix_log"("file_name") ON DELETE NO ACTION ON UPDATE CASCADE;
+ALTER TABLE "data_fix_log" ADD CONSTRAINT "data_fix_log_reverses_file_name_fkey" FOREIGN KEY ("reverses", "file_name") REFERENCES "data_fix_log"("file_name", "reverse_file") ON DELETE NO ACTION ON UPDATE NO ACTION;
