@@ -179,6 +179,17 @@ function statementsOf(result: ParseResult): Node[] {
 // The readable name of the statement's type when it is not in `allowed`
 function rejectedStatement(statement: Node, allowed: Record<string, string>): string | undefined {
   const [type] = Object.keys(statement);
+  if (type === "SelectStmt") {
+    let createsTable = false;
+    walk(statement, (key, value) => {
+      if (key === "intoClause" && value !== null && value !== undefined) {
+        createsTable = true;
+      }
+    });
+    if (createsTable) {
+      return "SELECT INTO";
+    }
+  }
   return Object.hasOwn(allowed, type) ? undefined : (REJECTED_STATEMENTS[type] ?? type);
 }
 
