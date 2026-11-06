@@ -73,6 +73,25 @@ stages {
     }
   }
 
+  stage('Server - Validate Data Fixes') {
+    steps {
+      script {
+        handleError(params.HANDLE_ERRORS) {
+          if (hasChange('server/src/data_fixes') ||
+              hasChange('deployment/demosctl/lib/dataFixFile.ts') ||
+              hasChange('deployment/demosctl/commands/dataFix.ts')) {
+            dirCon('deployment', 'node') {
+              sh '''
+              npm ci
+              npx tsx demosctl/index data-fix:lint all
+              '''
+            }
+          }
+        }
+      }
+    }
+  }
+
   stage('Server - Concurrent Steps') {
     parallel {
       stage('Server - Unit Test') {

@@ -10,6 +10,7 @@ import { up } from "./commands/up";
 import { down } from "./commands/down";
 import { runMigration } from "./commands/runMigration";
 import { testMigration } from "./commands/testMigration";
+import { dataFixLint } from "./commands/dataFix";
 import { main } from "./demosctl";
 
 vi.mock("./commands/buildClient");
@@ -21,6 +22,7 @@ vi.mock("./commands/up");
 vi.mock("./commands/down");
 vi.mock("./commands/runMigration");
 vi.mock("./commands/testMigration");
+vi.mock("./commands/dataFix");
 
 const expectFunc = async (command: string, func: Function, stage: string, additional: any[] = [], empty: boolean = false) => {
   process.argv = ["", "", command, stage, ...additional];
@@ -55,6 +57,31 @@ describe("demosctl root", () => {
     expect(down).toHaveBeenCalledTimes(1);
     expect(runMigration).toHaveBeenCalledTimes(1);
     expect(testMigration).toHaveBeenCalledTimes(1);
+  });
+
+  test("should run data-fix:lint and return its exit code", async () => {
+    vi.mocked(dataFixLint).mockResolvedValueOnce(1);
+    process.argv = ["", "", "data-fix:lint", "all"];
+
+    expect(await main()).toEqual(1);
+    expect(dataFixLint).toHaveBeenCalledTimes(1);
+  });
+
+  test("should pass an optional folder to data-fix:lint", async () => {
+    process.argv = ["", "", "data-fix:lint", "all", "some/dir"];
+    await main();
+    expect(dataFixLint).toHaveBeenCalledWith("some/dir");
+  });
+
+  test("should require all for data-fix:lint", async () => {
+    vi.spyOn(console, "error");
+
+    process.argv = ["", "", "data-fix:lint", "some/dir"];
+    const resp = await main();
+
+    expect(console.error).toHaveBeenCalledWith("usage: data-fix:lint all [dir]");
+    expect(dataFixLint).not.toHaveBeenCalled();
+    expect(resp).toEqual(1);
   });
 
   test("should require a stage name", async () => {
