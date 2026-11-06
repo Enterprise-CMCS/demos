@@ -1,3 +1,5 @@
+// Flags: NO_CREATED_TS, NO_UPDATED_TS, NO_HISTORY
+// The ledger is its own audit trail; appliedAt captures creation time, and rows are intended to be append-only.
 model DataFixLog {
   fileName     String        @id @map("file_name")
   checksum     String
