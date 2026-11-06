@@ -15,5 +15,8 @@ CREATE TABLE "data_fix_log" (
     CONSTRAINT "data_fix_log_pkey" PRIMARY KEY ("file_name")
 );
 
+-- CreateIndex
+CREATE UNIQUE INDEX "data_fix_log_reverses_key" ON "data_fix_log"("reverses");
+
 -- AddForeignKey
 ALTER TABLE "data_fix_log" ADD CONSTRAINT "data_fix_log_reverses_fkey" FOREIGN KEY ("reverses") REFERENCES "data_fix_log"("file_name") ON DELETE NO ACTION ON UPDATE CASCADE;
