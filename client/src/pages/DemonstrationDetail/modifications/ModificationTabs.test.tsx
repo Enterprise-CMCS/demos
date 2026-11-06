@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { ModificationTabs, ModificationItem } from "./ModificationTabs";
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
@@ -180,5 +180,101 @@ describe("ModificationTabs Component", () => {
     expect(tabList).not.toBeNull();
     expect(tabList).toHaveClass("overflow-x-auto");
     expect(tabList).toHaveClass("flex-nowrap");
+  });
+
+  describe("URL query parameter handling", () => {
+    it("updates the URL when an amendment tab is selected", async () => {
+      window.history.replaceState({}, "", "/demonstrations/test-id");
+
+      render(
+        <DialogProvider>
+          <TestProvider>
+            <ModificationTabs items={mockItems} />
+          </TestProvider>
+        </DialogProvider>
+      );
+
+      fireEvent.click(screen.getByTestId("modification-tab-2"));
+
+      await waitFor(() => {
+        expect(window.location.search).toBe("?amendments=2");
+      });
+    });
+
+    it("updates the URL when a renewal tab is selected", async () => {
+      window.history.replaceState({}, "", "/demonstrations/test-id");
+
+      const renewalItems = mockItems.map((item) => ({
+        ...item,
+        modificationType: "renewal" as const,
+      }));
+
+      render(
+        <DialogProvider>
+          <TestProvider>
+            <ModificationTabs items={renewalItems} />
+          </TestProvider>
+        </DialogProvider>
+      );
+
+      fireEvent.click(screen.getByTestId("modification-tab-2"));
+
+      await waitFor(() => {
+        expect(window.location.search).toBe("?renewals=2");
+      });
+    });
+
+    it("removes the previous modification query parameter when switching types", async () => {
+      window.history.replaceState(
+        {},
+        "",
+        "/demonstrations/test-id?renewals=1"
+      );
+
+      const amendmentItems = mockItems.map((item) => ({
+        ...item,
+        modificationType: "amendment" as const,
+      }));
+
+      render(
+        <DialogProvider>
+          <TestProvider>
+            <ModificationTabs
+              items={amendmentItems}
+              selectedItemId="2"
+            />
+          </TestProvider>
+        </DialogProvider>
+      );
+
+      await waitFor(() => {
+        expect(window.location.search).toBe("?amendments=2");
+        expect(window.location.search).not.toContain("renewals");
+      });
+    });
+
+    it("preserves the demonstration path when updating the URL", async () => {
+      window.history.replaceState(
+        {},
+        "",
+        "/demonstrations/test-id?someOtherParam=value"
+      );
+
+      render(
+        <DialogProvider>
+          <TestProvider>
+            <ModificationTabs items={mockItems} />
+          </TestProvider>
+        </DialogProvider>
+      );
+
+      fireEvent.click(screen.getByTestId("modification-tab-2"));
+
+      await waitFor(() => {
+        expect(window.location.pathname).toBe("/demonstrations/test-id");
+        expect(window.location.search).toContain("amendments=2");
+        expect(window.location.search).toContain("someOtherParam=value");
+      });
+    });
   });
 });
