@@ -126,6 +126,30 @@ export function parseHeader(sql: string): DataFixHeader {
   };
 }
 
+export function lintReversePairs(headers: Map<string, DataFixHeader>): Map<string, string[]> {
+  const problems = new Map<string, string[]>();
+  const addProblem = (fileName: string, problem: string) => {
+    problems.set(fileName, [...(problems.get(fileName) ?? []), problem]);
+  };
+
+  for (const [fileName, header] of headers) {
+    if (header.reverse !== undefined) {
+      const reverseHeader = headers.get(header.reverse);
+      if (reverseHeader !== undefined && reverseHeader.reverses !== fileName) {
+        addProblem(fileName, `reverse file ${header.reverse} must declare reverses: ${fileName}`);
+      }
+    }
+    if (header.reverses !== undefined) {
+      const forwardHeader = headers.get(header.reverses);
+      if (forwardHeader !== undefined && forwardHeader.reverse !== fileName) {
+        addProblem(fileName, `reverses file ${header.reverses} must declare reverse: ${fileName}`);
+      }
+    }
+  }
+
+  return problems;
+}
+
 function walk(node: unknown, visit: (key: string, value: unknown) => void): void {
   if (Array.isArray(node)) {
     node.forEach((child) => walk(child, visit));
@@ -209,7 +233,7 @@ function isDataFixResultTable(node: Node): boolean {
 }
 
 function parseError(sql: string, error: unknown): string {
-  const position = hasSqlDetails(error) ? error.sqlDetails?.cursorPosition : undefined;
+  const position = hasSqlDetails(error) ? error.sqlDetails!.cursorPosition : undefined;
   const line = position === undefined ? "" : ` on line ${sql.slice(0, position).split("\n").length}`;
   const metaCommandHint =
     position !== undefined && sql.slice(Math.max(0, position - 1), position + 1).includes("\\")

@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { lintFile } from "../lib/dataFixFile";
+import { lintFile, lintReversePairs, parseHeader } from "../lib/dataFixFile";
+import type { DataFixHeader } from "../lib/dataFixFile";
 
 const DEFAULT_FIX_DIR = path.join("..", "server", "src", "data_fixes");
 const DEFAULT_MIGRATIONS_DIR = path.join("..", "server", "src", "model", "migrations");
@@ -36,9 +37,18 @@ export async function dataFixLint(dir: string = DEFAULT_FIX_DIR, migrationsDir: 
   }
 
   const migrations = listEntries(migrationsDir).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
+  const headers = new Map<string, DataFixHeader>();
   for (const file of sqlFiles) {
     const sql = fs.readFileSync(path.join(dir, file), "utf8");
+    try {
+      headers.set(file, parseHeader(sql));
+    } catch {
+      // lintFile reports malformed headers; only parsed headers can be checked as pairs.
+    }
     problems.push(...(await lintFile(file, sql, files, migrations)).map((problem) => `${file}: ${problem}`));
+  }
+  for (const [file, pairProblems] of lintReversePairs(headers)) {
+    problems.push(...pairProblems.map((problem) => `${file}: ${problem}`));
   }
 
   if (problems.length > 0) {

@@ -7,6 +7,10 @@ import { dataFixLint } from "./dataFix";
 const FIXTURES = path.join(__dirname, "__fixtures__");
 const VALID_DIR = path.join(FIXTURES, "data_fixes", "valid");
 const MIGRATIONS_DIR = path.join(FIXTURES, "migrations");
+const DEMOSCTL_FIX = "20260101_DEMOS-1000_example_fix.sql";
+const DEMOSCTL_REVERSE = "20260101_DEMOS-1000_revert_example_fix.sql";
+const PSQL_FIX = "20260102_DEMOS-1001_psql_style_fix.sql";
+const PSQL_REVERSE = "20260102_DEMOS-1001_revert_psql_style_fix.sql";
 
 describe("dataFixLint", () => {
   let tempDir: string;
@@ -29,6 +33,11 @@ describe("dataFixLint", () => {
     for (const file of fs.readdirSync(VALID_DIR)) {
       fs.copyFileSync(path.join(VALID_DIR, file), path.join(tempDir, file));
     }
+  };
+
+  const replaceHeader = (file: string, key: "reverse" | "reverses", value: string) => {
+    const sql = fs.readFileSync(path.join(tempDir, file), "utf8");
+    writeTempFile(file, sql.replace(new RegExp(`^-- ${key}:.*$`, "m"), `-- ${key}: ${value}`));
   };
 
   test("should pass the valid demosctl and psql fixtures and ignore README.md", async () => {
@@ -69,6 +78,28 @@ describe("dataFixLint", () => {
     expect(await lintTempDir()).toEqual(1);
     expect(console.error).toHaveBeenCalledWith("invalid.SQL: SQL file names must use the lowercase .sql extension");
     expect(console.error).not.toHaveBeenCalledWith(expect.stringMatching(/^invalid\.SQL: missing header field /));
+  });
+
+  test.each([
+    ["demosctl", DEMOSCTL_FIX, DEMOSCTL_REVERSE, PSQL_REVERSE],
+    ["psql", PSQL_FIX, PSQL_REVERSE, DEMOSCTL_REVERSE],
+  ])("should require a %s forward fix to name its actual reversal", async (_runner, fix, reverse, otherReverse) => {
+    copyValidFixtures();
+    replaceHeader(fix, "reverse", otherReverse);
+
+    expect(await lintTempDir()).toEqual(1);
+    expect(console.error).toHaveBeenCalledWith(`${reverse}: reverses file ${fix} must declare reverse: ${reverse}`);
+  });
+
+  test.each([
+    ["demosctl", DEMOSCTL_FIX, DEMOSCTL_REVERSE, PSQL_FIX],
+    ["psql", PSQL_FIX, PSQL_REVERSE, DEMOSCTL_FIX],
+  ])("should require a %s reversal to point at its actual forward fix", async (_runner, fix, reverse, otherFix) => {
+    copyValidFixtures();
+    replaceHeader(reverse, "reverses", otherFix);
+
+    expect(await lintTempDir()).toEqual(1);
+    expect(console.error).toHaveBeenCalledWith(`${fix}: reverse file ${reverse} must declare reverses: ${fix}`);
   });
 
   test("should report problems with the file name and fail", async () => {
