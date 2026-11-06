@@ -22,6 +22,9 @@ describe("dataFixLint", () => {
     vi.restoreAllMocks();
   });
 
+  const writeTempFile = (name: string, content: string) => fs.writeFileSync(path.join(tempDir, name), content);
+  const lintTempDir = () => dataFixLint(tempDir, MIGRATIONS_DIR);
+
   const copyValidFixtures = () => {
     for (const file of fs.readdirSync(VALID_DIR)) {
       fs.copyFileSync(path.join(VALID_DIR, file), path.join(tempDir, file));
@@ -36,8 +39,8 @@ describe("dataFixLint", () => {
   });
 
   test("should pass a folder with only README.md", async () => {
-    fs.writeFileSync(path.join(tempDir, "README.md"), "# No fix files\n");
-    expect(await dataFixLint(tempDir, MIGRATIONS_DIR)).toEqual(0);
+    writeTempFile("README.md", "# No fix files\n");
+    expect(await lintTempDir()).toEqual(0);
     expect(console.log).toHaveBeenCalledWith(expect.stringContaining("no fix files"));
   });
 
@@ -48,22 +51,22 @@ describe("dataFixLint", () => {
 
   test("should reject a CSV in the folder", async () => {
     copyValidFixtures();
-    fs.writeFileSync(path.join(tempDir, "mapping.csv"), "id,value\n");
+    writeTempFile("mapping.csv", "id,value\n");
 
-    expect(await dataFixLint(tempDir, MIGRATIONS_DIR)).toEqual(1);
+    expect(await lintTempDir()).toEqual(1);
     expect(console.error).toHaveBeenCalledWith("mapping.csv: CSV files must not be committed to the data fix folder");
   });
 
   test("should reject a CSV even when there are no fix files", async () => {
-    fs.writeFileSync(path.join(tempDir, "mapping.CSV"), "id,value\n");
+    writeTempFile("mapping.CSV", "id,value\n");
 
-    expect(await dataFixLint(tempDir, MIGRATIONS_DIR)).toEqual(1);
+    expect(await lintTempDir()).toEqual(1);
   });
 
   test("should lint SQL files regardless of extension case", async () => {
-    fs.writeFileSync(path.join(tempDir, "invalid.SQL"), "");
+    writeTempFile("invalid.SQL", "");
 
-    expect(await dataFixLint(tempDir, MIGRATIONS_DIR)).toEqual(1);
+    expect(await lintTempDir()).toEqual(1);
     expect(console.error).toHaveBeenCalledWith(expect.stringMatching(/^invalid\.SQL: missing header field /));
   });
 
@@ -71,18 +74,18 @@ describe("dataFixLint", () => {
     copyValidFixtures();
     const file = "20260101_DEMOS-1000_example_fix.sql";
     const sql = fs.readFileSync(path.join(tempDir, file), "utf8");
-    fs.writeFileSync(path.join(tempDir, file), `${sql}\nBEGIN;\n`);
+    writeTempFile(file, `${sql}\nBEGIN;\n`);
 
-    expect(await dataFixLint(tempDir, MIGRATIONS_DIR)).toEqual(1);
+    expect(await lintTempDir()).toEqual(1);
     expect(console.error).toHaveBeenCalledWith(expect.stringMatching(/^20260101_DEMOS-1000_example_fix\.sql: /));
     expect(console.error).toHaveBeenCalledWith("data fix lint failed with 1 problem(s)");
   });
 
   test("should report problems from every bad file", async () => {
-    fs.writeFileSync(path.join(tempDir, "first.sql"), "");
-    fs.writeFileSync(path.join(tempDir, "second.sql"), "");
+    writeTempFile("first.sql", "");
+    writeTempFile("second.sql", "");
 
-    expect(await dataFixLint(tempDir, MIGRATIONS_DIR)).toEqual(1);
+    expect(await lintTempDir()).toEqual(1);
     expect(console.error).toHaveBeenCalledWith(expect.stringMatching(/^first\.sql: /));
     expect(console.error).toHaveBeenCalledWith(expect.stringMatching(/^second\.sql: /));
     expect(console.error).toHaveBeenCalledWith("data fix lint failed with 2 problem(s)");

@@ -4,6 +4,8 @@ const FIX = "20260101_DEMOS-1000_example_fix.sql";
 const REVERSE = "20260101_DEMOS-1000_revert_example_fix.sql";
 const MIGRATION = "20260101000000_example_migration";
 const DIR = [FIX, REVERSE];
+const PSQL_OVERRIDES = { runner: undefined, requires_migration: undefined };
+const toCrlf = (sql: string) => sql.replace(/\n/g, "\r\n");
 
 const headerLines = (overrides: Record<string, string | undefined> = {}) => {
   const fields: Record<string, string | undefined> = {
@@ -44,13 +46,20 @@ SELECT count(*) AS remaining_old_rows FROM demos_app.example WHERE status = 'old
 const fixFile = (body: string = VALID_BODY, overrides: Record<string, string | undefined> = {}) =>
   `${headerLines(overrides)}\n--\n${body}`;
 
+const REVERSE_SQL = fixFile(VALID_BODY, { reverse: "none", reverses: FIX });
 const lint = (body: string = VALID_BODY, overrides: Record<string, string | undefined> = {}) =>
   lintFile(FIX, fixFile(body, overrides), DIR, [MIGRATION]);
+
+const withStatements = (sql: string) => `${VALID_BODY}\n${sql}\n`;
 
 // The 1-based line on which a statement appended after `body` starts
 const lineAfter = (body: string) => fixFile(body).split("\n").length + 1;
 
+// A valid body followed by a DO block containing `statements`
+const withDoBlock = (statements: string) => withStatements(`DO $$ BEGIN ${statements} END $$;`);
+
 const NOT_ALLOWED = expect.stringMatching(/^top-level .+ is not allowed/);
+const SET_IN_DO = "SET/RESET is not allowed in DO blocks; use only SELECT, INSERT, UPDATE, DELETE";
 
 describe("parseHeader", () => {
   test("should parse a demosctl header", () => {
@@ -68,13 +77,13 @@ describe("parseHeader", () => {
   });
 
   test("should default the runner to psql", () => {
-    const header = parseHeader(fixFile("", { runner: undefined, requires_migration: undefined }));
+    const header = parseHeader(fixFile("", PSQL_OVERRIDES));
     expect(header.runner).toEqual("psql");
     expect(header.requiresMigration).toBeUndefined();
   });
 
   test("should parse a header with CRLF line endings", () => {
-    expect(parseHeader(fixFile().replace(/\n/g, "\r\n"))).toEqual(parseHeader(fixFile()));
+    expect(parseHeader(toCrlf(fixFile()))).toEqual(parseHeader(fixFile()));
   });
 
   test("should stop reading the header at the first non-header line", () => {
@@ -116,12 +125,11 @@ describe("lintFile", () => {
   });
 
   test("should pass a valid demosctl file with CRLF line endings", async () => {
-    expect(await lintFile(FIX, fixFile().replace(/\n/g, "\r\n"), DIR, [MIGRATION])).toEqual([]);
+    expect(await lintFile(FIX, toCrlf(fixFile()), DIR, [MIGRATION])).toEqual([]);
   });
 
   test("should pass a valid reverse file", async () => {
-    const sql = fixFile(VALID_BODY, { reverse: "none", reverses: FIX });
-    expect(await lintFile(REVERSE, sql, DIR, [MIGRATION])).toEqual([]);
+    expect(await lintFile(REVERSE, REVERSE_SQL, DIR, [MIGRATION])).toEqual([]);
   });
 
   test("should return header errors as problems", async () => {
@@ -130,8 +138,7 @@ describe("lintFile", () => {
 
   test("should require the reverse and forward files to exist", async () => {
     expect(await lintFile(FIX, fixFile(), [FIX], [MIGRATION])).toEqual([`reverse file ${REVERSE} not found`]);
-    const reverseSql = fixFile(VALID_BODY, { reverse: "none", reverses: FIX });
-    expect(await lintFile(REVERSE, reverseSql, [REVERSE], [MIGRATION])).toEqual([`reverses file ${FIX} not found`]);
+    expect(await lintFile(REVERSE, REVERSE_SQL, [REVERSE], [MIGRATION])).toEqual([`reverses file ${FIX} not found`]);
     expect(await lint(VALID_BODY, { reverse: FIX })).toEqual(["reverse must name a different file"]);
   });
 
@@ -158,7 +165,7 @@ describe("lintFile", () => {
   });
 
   test("should name the rejected statement and the allowed ones", async () => {
-    expect(await lint(`${VALID_BODY}\nBEGIN;\n`)).toEqual([
+    expect(await lint(withStatements("BEGIN;"))).toEqual([
       "top-level transaction control (BEGIN, COMMIT, ROLLBACK, SAVEPOINT) is not allowed; " +
         "use only DO, SELECT, INSERT, UPDATE, DELETE and CREATE TEMPORARY TABLE data_fix_result",
     ]);
@@ -187,11 +194,11 @@ describe("lintFile", () => {
     "LOCK TABLE demos_app.example;",
     "VACUUM demos_app.example;",
   ])("should reject the top-level statement %s", async (statement) => {
-    expect(await lint(`${VALID_BODY}\n${statement}\n`)).toContainEqual(NOT_ALLOWED);
+    expect(await lint(withStatements(statement))).toContainEqual(NOT_ALLOWED);
   });
 
   test("should reject psql meta-commands with the line they are on", async () => {
-    expect(await lint(`${VALID_BODY}\n\\if :apply\n`)).toEqual([
+    expect(await lint(withStatements("\\if :apply"))).toEqual([
       expect.stringMatching(
         new RegExp(`^SQL does not parse on line ${lineAfter(VALID_BODY)} \\(psql meta-commands are not allowed\\)`),
       ),
@@ -199,8 +206,7 @@ describe("lintFile", () => {
   });
 
   test("should reject other SQL that does not parse with the line it is on", async () => {
-    const body = `${VALID_BODY}\nUPDAT demos_app.example SET status = 'new';`;
-    expect(await lint(body)).toEqual([
+    expect(await lint(withStatements("UPDAT demos_app.example SET status = 'new';"))).toEqual([
       expect.stringMatching(new RegExp(`^SQL does not parse on line ${lineAfter(VALID_BODY)}: `)),
     ]);
   });
@@ -209,15 +215,71 @@ describe("lintFile", () => {
     ["SELECT set_config('statement_timeout', '0', true);", "set_config"],
     ["SELECT pg_catalog.set_config('role', 'demos_admin', true);", "set_config"],
     ["SELECT 'SET ROLE demos_admin';", "SET ROLE / RESET ROLE"],
-    ["DO $$ BEGIN EXECUTE 'RESET ROLE'; END $$;", "SET ROLE / RESET ROLE"],
-    ["DO $fix$ BEGIN EXECUTE 'RESET ROLE'; END $fix$;", "SET ROLE / RESET ROLE"],
-    ["DO $$ BEGIN SET LOCAL ROLE demos_admin; END $$;", "SET ROLE / RESET ROLE"],
-    ["DO $$ BEGIN SET SESSION AUTHORIZATION demos_admin; END $$;", "SESSION AUTHORIZATION"],
-    ["DO $$ BEGIN SET LOCAL lock_timeout = 0; END $$;", "changing the runner's timeouts"],
-    ["DO $$ BEGIN RESET ALL; END $$;", "changing the runner's timeouts"],
     ["DO $$ BEGIN PERFORM set_config('role', 'x', true); END $$;", "set_config"],
   ])("should reject %s anywhere outside comments", async (statement, label) => {
-    expect(await lint(`${VALID_BODY}\n${statement}\n`)).toContain(`${label} is not allowed anywhere in the file`);
+    expect(await lint(withStatements(statement))).toContain(`${label} is not allowed anywhere in the file`);
+  });
+
+  test.each([
+    'SET LOCAL "statement_timeout" = \'0\';',
+    "RESET/**/ROLE;",
+    "SET role = 'postgres';",
+    'SET "role" TO DEFAULT;',
+    "SET SESSION/**/AUTHORIZATION DEFAULT;",
+    "SET LOCAL ROLE demos_admin;",
+    "SET SESSION AUTHORIZATION demos_admin;",
+    "SET LOCAL lock_timeout = 0;",
+    "RESET ALL;",
+    "IF true THEN RESET ROLE; END IF;",
+  ])("should reject a SET or RESET statement in a DO body: %s", async (statement) => {
+    expect(await lint(withDoBlock(statement))).toContain(SET_IN_DO);
+  });
+
+  test("should reject RESET ROLE inside a labeled block", async () => {
+    expect(await lint(withStatements("DO $$ <<label>> BEGIN RESET ROLE; END label $$;"))).toContain(SET_IN_DO);
+  });
+
+  test.each([
+    "DO $$ BEGIN EXECUTE format('%s %s', 'reset', 'role'); END $$;",
+    "DO $$ BEGIN EXECUTE 'RESET ROLE'; END $$;",
+    "DO $fix$ BEGIN EXECUTE 'RESET ROLE'; END $fix$;",
+    "DO $$ DECLARE r record; BEGIN FOR r IN EXECUTE 'SELECT 1' LOOP NULL; END LOOP; END $$;",
+  ])("should reject dynamic EXECUTE in a DO body: %s", async (statement) => {
+    expect(await lint(withStatements(statement))).toContain("EXECUTE is not allowed in DO blocks");
+  });
+
+  test.each([
+    "DROP TABLE demos_app.example;",
+    "TRUNCATE demos_app.example;",
+    "CREATE TEMP TABLE staging (id int);",
+    "CALL some_procedure();",
+  ])("should reject non-DML SQL inside a DO block: %s", async (statement) => {
+    expect(await lint(withDoBlock(statement))).toContainEqual(
+      expect.stringContaining("is not allowed in DO blocks; use only SELECT, INSERT, UPDATE, DELETE"),
+    );
+  });
+
+  test.each(["COMMIT;", "ROLLBACK;"])("should reject %s inside a DO block", async (statement) => {
+    expect(await lint(withDoBlock(statement))).toContain(
+      "transaction control (COMMIT, ROLLBACK) is not allowed in DO blocks",
+    );
+  });
+
+  test("should reject DO blocks in languages other than PL/pgSQL", async () => {
+    expect(await lint(withStatements("DO LANGUAGE sql $$ SELECT 1 $$;"))).toContain(
+      "DO blocks must use PL/pgSQL to be linted",
+    );
+  });
+
+  test("should report a banned string only once when it appears at top level and in a DO block", async () => {
+    const body = withStatements(
+      "SELECT set_config('statement_timeout', '0', true);\nDO $$ BEGIN PERFORM set_config('role', 'x', true); END $$;",
+    );
+    expect(await lint(body)).toEqual(["set_config is not allowed anywhere in the file"]);
+  });
+
+  test("should report invalid PL/pgSQL as a lint problem", async () => {
+    expect(await lint(withDoBlock("IF true THEN"))).toEqual([expect.stringMatching(/^SQL does not parse/)]);
   });
 
   test("should ignore banned words in top-level comments", async () => {
@@ -225,10 +287,12 @@ describe("lintFile", () => {
     expect(await lint(body)).toEqual([]);
   });
 
-  // Known limitation: the parser returns a DO body as one string, comments included
-  test("should flag banned words in comments inside a DO body", async () => {
-    const body = `${VALID_BODY}\nDO $$ BEGIN\n  -- no RESET ROLE here\n  PERFORM 1;\nEND $$;\n`;
-    expect(await lint(body)).toEqual(["SET ROLE / RESET ROLE is not allowed anywhere in the file"]);
+  test("should ignore banned words in comments inside a DO body", async () => {
+    expect(await lint(withDoBlock("-- no RESET ROLE here\nPERFORM 1;"))).toEqual([]);
+  });
+
+  test("should not treat comment markers inside string literals as comments", async () => {
+    expect(await lint(withDoBlock("RAISE NOTICE 'not a -- comment'; PERFORM 1;"))).toEqual([]);
   });
 
   test("should allow updating a column named role", async () => {
@@ -236,17 +300,17 @@ describe("lintFile", () => {
       "UPDATE demos_app.example SET role = 'reviewer' WHERE id = 1;",
       "DO $$ BEGIN UPDATE demos_app.example SET role = 'reviewer' WHERE id = 1; END $$;",
     ];
-    expect(await lint(`${VALID_BODY}\n${statements.join("\n")}\n`)).toEqual([]);
+    expect(await lint(withStatements(statements.join("\n")))).toEqual([]);
   });
 
   test("should only check the header and reverse pair on psql files", async () => {
     const body = "\\set ON_ERROR_STOP on\nBEGIN;\nSET LOCAL statement_timeout = '30s';\nCOMMIT;\n";
-    const sql = fixFile(body, { runner: "psql", requires_migration: undefined, override: "some_trigger" });
+    const sql = fixFile(body, { ...PSQL_OVERRIDES, runner: "psql", override: "some_trigger" });
     expect(await lintFile(FIX, sql, DIR, [])).toEqual([]);
   });
 
   test("should not check requires_migration on psql files", async () => {
-    const sql = fixFile("BEGIN;", { runner: undefined, requires_migration: "20990101000000_unknown" });
+    const sql = fixFile("BEGIN;", { ...PSQL_OVERRIDES, requires_migration: "20990101000000_unknown" });
     expect(await lintFile(FIX, sql, DIR, [])).toEqual([]);
   });
 });
