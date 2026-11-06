@@ -217,6 +217,7 @@ export const DOCUMENT_TYPES = [
   "Summative Evaluation Report",
   "Transition Plan",
   "OACT Certification Memo",
+  "Rapid Cycle Report",
 ] as const;
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 
