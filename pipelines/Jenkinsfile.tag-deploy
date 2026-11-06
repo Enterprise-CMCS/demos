@@ -1,0 +1,328 @@
+@Library('demos-lib@tag-deploy') _
+
+pipeline {
+  agent {
+    kubernetes {
+      yaml kubeBlock(containerNames:["node", "aws-cli", "snyk"], opts: [
+        NODE_CPU_REQUEST: '2000m',
+        NODE_CPU_LIMIT: '4000m',
+        NODE_MEMORY_REQUEST: '3Gi',
+        NODE_MEMORY_LIMIT: '5Gi'
+      ])
+    }
+  }
+
+  options {
+    disableConcurrentBuilds()
+    buildDiscarder(retentionPolicy(env.JOB_NAME, [usePathSuffix: true]))
+    skipDefaultCheckout(true)
+  }
+
+  
+
+  parameters {
+    string(name: 'RELEASE_TAG', trim: true, description: 'Release tag to deploy')
+  }
+
+  environment {
+    NO_COLOR = 1
+  }
+
+  stages {
+    stage('Initialize') {
+      steps {
+        script {
+          def jobBaseName = env.JOB_NAME.tokenize("/").last()
+          echo "Target Environment: ${jobBaseName}"
+          env.STAGE = jobBaseName
+          currentBuild.displayName = "#${env.BUILD_NUMBER} - ${params.RELEASE_TAG}"
+        }
+      }
+    }
+
+    stage('Checkout release tag') {
+      steps {
+        script {
+          checkout([
+            $class: 'GitSCM',
+            branches: [[name: "refs/tags/${params.RELEASE_TAG}"]],
+            userRemoteConfigs: [[
+              credentialsId: 'demos-git-svc-account', 
+              url: "https://github.com/Enterprise-CMCS/demos.git",
+              refspec: '+refs/tags/*:refs/tags/*'
+            ]]
+          ])
+
+          env.RELEASE_COMMIT = sh(script: 'git rev-parse --verify "HEAD^{commit}"', returnStdout: true).trim()
+          echo "Checked out release tag ${params.RELEASE_TAG} at commit ${env.RELEASE_COMMIT}"
+        }
+      }
+    }
+
+    stage('Builds') {
+      steps {
+        script {
+          assumeRole(accountEnv: env.STAGE)
+          dirCon('deployment', 'node') {
+            sh """
+            mkdir ../shared_library/dist
+            mkdir ../client/dist
+            mkdir ../server/build
+
+            # These are needed for the built-in CDK bundling
+            apk add bash
+            npm i -g esbuild
+            npm i -g tsx
+
+            # Ensure shared_library is installed and built before building client and server
+            cd ../shared_library
+            npm ci
+            npm run build
+            cd ../deployment
+
+            npm ci
+            """
+          }
+          parallel(
+            'Build Client': {
+              dirCon('deployment','node') {
+                sh "npx tsx demosctl/index build:client ${env.STAGE} true"                                          
+              }
+            }, 
+            'Build Server': {
+              dirCon('deployment', 'node') {
+                sh "npx tsx demosctl/index build:server ${env.STAGE}"
+              }
+            }
+          )
+        }
+      }
+    }
+
+    stage('Diff') {
+      steps {
+        script {
+          dirCon('deployment','node') {
+            sh """
+            export UI_COMMIT_HASH=${env.RELEASE_COMMIT}
+            export API_COMMIT_HASH=${env.RELEASE_COMMIT}
+            npx cdk diff --context stage=${env.STAGE}
+            """
+          }
+        }
+      }
+    }
+
+    stage('Approval') {
+      steps {
+        script {
+          def approval
+          
+          while (true) {
+            approval = input(
+              message: "Deploy ${params.RELEASE_TAG} to ${env.STAGE}?",
+              ok: "Approve",
+              cancel: "Reject",
+              submitter: env.STAGE == 'prod' ? 'prod-approvers' : 'non-prod-approvers',
+              submitterParameter: 'APPROVED_BY',
+              parameters: [
+                string(
+                  name: 'JIRA_TICKET',
+                  description: 'Jira ticket number (optional, required for PROD) e.g. DEMOS-1234',
+                  trim: true
+                ),
+                string(
+                  name: 'CONFIRM_ENVIRONMENT',
+                  description: "Type ${env.STAGE} to confirm the target environment",
+                  trim: true
+                ),
+                string(
+                  name: 'CONFIRM_TAG',
+                  description: "Type ${params.RELEASE_TAG} to confirm the target tag (commit: ${env.RELEASE_COMMIT})",
+                  trim: true
+                ),
+                booleanParam(
+                  name: 'I_REVIEWED_CHANGE_SET',
+                  defaultValue: false,
+                  description: 'I reviewed the approval summary and raw change set'
+                )
+              ]
+            )
+
+            def errors = []
+
+            if (approval.JIRA_TICKET != '' && !(approval.JIRA_TICKET ==~ /DEMOS-\d+/)) {
+              errors << "Invalid Jira ticket: ${approval.JIRA_TICKET}"
+            }
+
+            if (env.STAGE == 'prod' && approval.JIRA_TICKET == '') {
+              errors << "Jira ticket is required for PROD deployments"
+            } else if (approval.JIRA_TICKET == '') {
+              echo "No jira ticket provided or required for ${env.STAGE} deployment"
+            }
+
+            if (approval.CONFIRM_TAG != params.RELEASE_TAG) {
+              errors << "Tag confirmation did not match. Expected: ${params.RELEASE_TAG}, got: ${approval.CONFIRM_TAG}"
+            }
+
+            if (approval.CONFIRM_ENVIRONMENT != env.STAGE) {
+              errors << "Environment confirmation did not match. Expected: ${env.STAGE}, got: ${approval.CONFIRM_ENVIRONMENT}"
+            }
+
+            if (!approval.I_REVIEWED_CHANGE_SET) {
+              errors << "Reviewer did not confirm change-set review"
+            }
+
+            if (errors.isEmpty()) {
+              break
+            } else {
+              echo "Approval failed:\n- ${errors.join('\n- ')}"
+              echo "Please try again."
+            }
+          }
+
+          def jiraBody = """h3. Deployment Pipeline Approved
+
+*Approved by:* [~${approval.APPROVED_BY.toUpperCase()}]
+*Environment:* ${env.STAGE}
+*Release Tag:* ${params.RELEASE_TAG}
+*Commit Hash:* ${env.RELEASE_COMMIT}
+*Jenkins build:* ${env.BUILD_URL ?: env.JOB_NAME}
+(Jenkins build logs expire after 30 days, so link may not be available)
+"""
+          if (approval.JIRA_TICKET != '') {
+            try {
+              echo "Updating Jira ticket ${approval.JIRA_TICKET} with deployment information"
+              jiraComment(approval.JIRA_TICKET, jiraBody)
+              env.JIRA_TICKET = approval.JIRA_TICKET
+            } catch (err) {
+              error err.getMessage()
+            }
+          } else {
+            echo jiraBody
+          }
+
+
+          
+          if (env.STAGE in ['dev', 'test', 'impl', 'prod']) {
+
+            def slackMessage = """Deployment Pipeline Approved
+-------
+*Approved by:* [~${approval.APPROVED_BY.toUpperCase()}]
+*Environment:* ${env.STAGE}
+*Release Tag:* ${params.RELEASE_TAG}
+*Commit Hash:* ${env.RELEASE_COMMIT}
+*Jenkins build:* ${env.BUILD_URL ?: env.JOB_NAME}
+
+Deployment will begin in 1 minute
+"""
+
+            slackSend(color: "warning", message: slackMessage)
+            sleep(time: 1, unit: "MINUTES")
+          }
+        }
+      }
+    }
+
+    
+
+    stage("Run Migrations") {
+      when {
+        expression {
+          env.STAGE in ['dev', 'test', 'impl', 'prod']
+        }
+      }
+      steps {
+        script {
+          dirCon('deployment', 'node') {
+            echo "running migrations for ${env.STAGE}"
+            sh """
+            npx tsx demosctl/index migrate ${env.STAGE}
+            """
+          }
+        }
+      }
+      post {
+        failure {
+          script {            
+            slackSend(color: "danger", message: "There was an issue with running migrations for ${env.STAGE}")
+          }
+        }
+      }
+    }
+
+    stage('Deploy') {
+      steps {
+        script {
+          dirCon('deployment','node') {
+            sh """
+            export UI_COMMIT_HASH=${env.RELEASE_COMMIT}
+            export API_COMMIT_HASH=${env.RELEASE_COMMIT}
+            npx tsx demosctl/index deploy:all ${env.STAGE}
+            """
+          }
+        }
+      }
+    }
+
+    stage('Record Deployed Release') {
+      steps {
+        script {
+          if (env.JIRA_TICKET) {
+            try {
+              echo "Updating Jira ticket ${env.JIRA_TICKET} with deployment completion information"
+              jiraComment(env.JIRA_TICKET, "Deployment of release tag ${params.RELEASE_TAG} to ${env.STAGE} completed successfully.\n\nJenkins build: ${env.BUILD_URL ?: env.JOB_NAME}")
+            } catch (err) {
+              echo err.getMessage()
+              echo "continuing..."
+            }
+          } else {
+            echo "No Jira ticket provided, skipping recording of deployed release"
+          }
+        }
+      }
+    }
+
+    stage('Setting new Snyk Monitor') {
+      when {
+        expression {
+          env.STAGE == 'prod'
+        }
+      }
+      steps {
+        script {
+          container("snyk") {
+            withCredentials([
+              string(credentialsId: 'demos-snyk-sa', variable: 'SNYK_TOKEN'),
+              string(credentialsId: 'demos-snyk-org-id', variable: 'SNYK_CFG_ORG')
+            ]) {
+              snykMonitor.setRef(params.RELEASE_TAG)
+              snykMonitor('server')
+              snykMonitor('client')
+              snykMonitor('authorizer', parentDir: 'lambdas')
+              snykMonitor('budgetNeutrality', parentDir: 'lambdas')
+              snykMonitor('dataConnectExport', parentDir: 'lambdas')
+              snykMonitor('deleteinfectedfile', parentDir: 'lambdas')
+              snykMonitor('emailer', parentDir: 'lambdas')
+              snykMonitor('emailScheduler', parentDir: 'lambdas')
+              snykMonitor('fileprocess', parentDir: 'lambdas')
+              snykMonitor('UIPath', parentDir: 'lambdas')
+            }
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      slackSend(color: "good", message: "${env.STAGE.toUpperCase()} Deployment succeeded!\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: <${env.GIT_URL.replaceFirst(/\.git$/, '')}/commit/${env.GIT_COMMIT}|${env.GIT_COMMIT}>")
+    }
+    failure {
+      slackSend(color: "danger", message: "${env.STAGE.toUpperCase()} Deployment Pipeline failed:\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: ${env.GIT_COMMIT}")
+    }
+    always {
+      cleanWs(deleteDirs: true)
+    }
+  }
+}
