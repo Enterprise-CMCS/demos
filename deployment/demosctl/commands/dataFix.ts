@@ -19,10 +19,16 @@ function listEntries(dir: string): fs.Dirent[] {
 
 export async function dataFixLint(dir: string = DEFAULT_FIX_DIR, migrationsDir: string = DEFAULT_MIGRATIONS_DIR) {
   const files = listEntries(dir).filter((entry) => entry.isFile()).map((entry) => entry.name).sort();
-  const sqlFiles = files.filter((file) => file.toLowerCase().endsWith(".sql"));
-  const problems = files
-    .filter((file) => file.toLowerCase().endsWith(".csv"))
-    .map((file) => `${file}: CSV files must not be committed to the data fix folder`);
+  const allSqlFiles = files.filter((file) => file.toLowerCase().endsWith(".sql"));
+  const sqlFiles = allSqlFiles.filter((file) => file.endsWith(".sql"));
+  const problems = [
+    ...allSqlFiles
+      .filter((file) => !file.endsWith(".sql"))
+      .map((file) => `${file}: SQL file names must use the lowercase .sql extension`),
+    ...files
+      .filter((file) => file.toLowerCase().endsWith(".csv"))
+      .map((file) => `${file}: CSV files must not be committed to the data fix folder`),
+  ];
 
   if (sqlFiles.length === 0 && problems.length === 0) {
     console.log(`no fix files in ${dir}`);

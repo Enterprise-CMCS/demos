@@ -63,11 +63,12 @@ describe("dataFixLint", () => {
     expect(await lintTempDir()).toEqual(1);
   });
 
-  test("should lint SQL files regardless of extension case", async () => {
+  test("should reject SQL file names with an uppercase extension", async () => {
     writeTempFile("invalid.SQL", "");
 
     expect(await lintTempDir()).toEqual(1);
-    expect(console.error).toHaveBeenCalledWith(expect.stringMatching(/^invalid\.SQL: missing header field /));
+    expect(console.error).toHaveBeenCalledWith("invalid.SQL: SQL file names must use the lowercase .sql extension");
+    expect(console.error).not.toHaveBeenCalledWith(expect.stringMatching(/^invalid\.SQL: missing header field /));
   });
 
   test("should report problems with the file name and fail", async () => {
