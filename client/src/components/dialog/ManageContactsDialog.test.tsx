@@ -639,6 +639,31 @@ describe("ManageContactsDialog", () => {
     expect(screen.queryByText("State Point of Contact")).not.toBeInTheDocument();
   });
 
+  it("allows a searched reviewer to be assigned CMCS Other Point of Contact", async () => {
+    const user = userEvent.setup();
+    const searchMock = createSearchMock();
+    searchMock.result.data.people[0].personType = "demos-cms-reviewer-user";
+
+    renderWithProviders(defaultProps, [searchMock]);
+
+    await user.type(screen.getByPlaceholderText("Search by name or email"), "john");
+    await user.click(await screen.findByText("John Doe"));
+
+    const select = screen.getByTestId("contact-type-0");
+    expect(
+      within(select).getByRole("option", { name: "CMCS Other Point of Contact" })
+    ).toBeInTheDocument();
+    expect(
+      within(select).queryByRole("option", { name: "Project Officer" })
+    ).not.toBeInTheDocument();
+    expect(
+      within(select).queryByRole("option", { name: "State Point of Contact" })
+    ).not.toBeInTheDocument();
+
+    await user.selectOptions(select, "CMCS Other Point of Contact");
+    expect(select).toHaveValue("CMCS Other Point of Contact");
+  });
+
   it("shows only State Point of Contact for State users", () => {
     const propsWithStateUser: ManageContactsDialogProps = {
       ...defaultProps,
