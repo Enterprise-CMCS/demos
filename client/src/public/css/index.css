@@ -27,3 +27,56 @@ dialog[open] {
   padding-top: 0.625rem;
   padding-bottom: 0.625rem;
 }
+
+/*
+ * Lets the browser render the Select list in the top layer, so it flips upward when there is no
+ * space below and is not clipped by scroll areas. Browsers without support get the classic select.
+ */
+@supports (appearance: base-select) {
+  .customizable-select,
+  .customizable-select::picker(select) {
+    appearance: base-select;
+  }
+
+  .customizable-select::picker-icon {
+    display: none;
+  }
+
+  .customizable-select::picker(select) {
+    /* The browser default opens toward whichever side has more space; only flip when it doesn't fit. */
+    position-try-order: normal;
+    position-try-fallbacks: flip-block;
+    width: anchor-size(width);
+    max-height: calc(var(--spacing) * 56);
+    margin-block: calc(var(--spacing) * 0.5);
+    overflow: auto;
+    background-color: var(--color-surface-white);
+    border: 1px solid var(--color-border-fields);
+    border-radius: 0.25rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .customizable-select option {
+    padding: var(--spacing-1);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    color: var(--color-text-font);
+    white-space: normal;
+    cursor: pointer;
+  }
+
+  .customizable-select option:hover,
+  .customizable-select option:focus {
+    background-color: var(--color-surface-focus);
+    outline: none;
+  }
+
+  /* The list opens with focus on the selected option; keep a single highlight while using the mouse. */
+  .customizable-select:has(option:hover) option:focus:not(:hover, :focus-visible) {
+    background-color: transparent;
+  }
+
+  .customizable-select option::checkmark {
+    display: none;
+  }
+}

@@ -52,7 +52,7 @@ export const config = defineConfig(({ mode }) => {
       globals: true,
       environment: "jsdom",
       setupFiles: "./vitest.setup.ts",
-      include: ["src/**/*.{test,spec}.{ts,tsx}", "vite.config.test.ts"],
+      include: ["src/**/*.{test,spec}.{ts,tsx}", "viteConfig.test.ts"],
       coverage: {
         provider: "v8",
         reporter: ["text", "html"],

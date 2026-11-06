@@ -136,7 +136,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     refetchQueries: [
       { query: DEMONSTRATION_DETAIL_QUERY, variables: { id: demonstrationId } },
       { query: GET_DEMONSTRATION_BY_ID_QUERY, variables: { id: demonstrationId } },
-      { query: DEMONSTRATION_HEADER_DETAILS_QUERY, variables: { demonstrationId } },
+      { query: DEMONSTRATION_HEADER_DETAILS_QUERY, variables: { id: demonstrationId } },
     ],
   });
 
@@ -144,7 +144,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     refetchQueries: [
       { query: DEMONSTRATION_DETAIL_QUERY, variables: { id: demonstrationId } },
       { query: GET_DEMONSTRATION_BY_ID_QUERY, variables: { id: demonstrationId } },
-      { query: DEMONSTRATION_HEADER_DETAILS_QUERY, variables: { demonstrationId } },
+      { query: DEMONSTRATION_HEADER_DETAILS_QUERY, variables: { id: demonstrationId } },
     ],
   });
 

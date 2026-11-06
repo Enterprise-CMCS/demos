@@ -1,16 +1,9 @@
 import React from "react";
 import { SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
-import { tw } from "tags/tw";
 import { DocumentList } from "./DocumentList";
 import { ApplicationWorkflowDocument } from "components/application";
 import { getCurrentUser, isReadonly } from "components/user/UserContext";
-
-const STYLES = {
-  title: tw`text-xl font-semibold mb-2`,
-  helper: tw`text-sm text-text-placeholder mb-2`,
-  list: tw`mt-4 space-y-3`,
-};
 
 export const ApplicationUploadSection = ({
   title,
@@ -33,10 +26,10 @@ export const ApplicationUploadSection = ({
 
   return (
     <div aria-labelledby="upload-title">
-      <h4 id="upload-title" className={STYLES.title}>
+      <h4 id="upload-title" className="text-xl text-text-font font-semibold mb-2">
         {title}
       </h4>
-      <p className={STYLES.helper}>{helperText}</p>
+      <p className="text-sm text-text-placeholder mb-2">{helperText}</p>
 
       <SecondaryButton
         isHidden={hideButton}

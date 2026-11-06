@@ -1,0 +1,24 @@
+// Flags: NO_CREATED_TS, NO_UPDATED_TS, NO_HISTORY
+// The ledger is its own audit trail; appliedAt captures creation time, and rows are intended to be append-only.
+model DataFixLog {
+  fileName     String   @id @map("file_name")
+  checksum     String
+  ticket       String
+  environment  String
+  rowsAffected Int      @map("rows_affected")
+  reverseFile  String?  @unique @map("reverse_file")
+  reverses     String?  @unique
+  gitCommit    String   @map("git_commit")
+  appliedBy    String   @map("applied_by")
+  approvedBy   String   @map("approved_by")
+  buildUrl     String   @map("build_url")
+  appliedAt    DateTime @default(now()) @map("applied_at") @db.Timestamptz
+
+  // The migration also has a CHECK constraint requiring exactly one of reverseFile/reverses.
+  forwardFix DataFixLog? @relation("DataFixReversal", fields: [reverses, fileName], references: [fileName, reverseFile], onDelete: NoAction, onUpdate: NoAction)
+  reverseFix DataFixLog? @relation("DataFixReversal")
+
+  @@unique([fileName, reverseFile])
+  @@unique([reverses, fileName])
+  @@map("data_fix_log")
+}

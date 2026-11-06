@@ -141,6 +141,7 @@ export const CMS_USER_DEMONSTRATION_ROLES = [
 export const RESTRICTED_CMS_USER_DEMONSTRATION_ROLES = ["Viewer"] as const;
 
 export const CMS_REVIEWER_USER_DEMONSTRATION_ROLES = [
+  "CMCS Other Point of Contact",
   "Monitoring Lead",
   "HCBS Analyst",
   "Financial Lead",

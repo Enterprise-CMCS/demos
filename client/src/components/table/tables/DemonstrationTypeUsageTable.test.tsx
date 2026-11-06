@@ -31,7 +31,6 @@ import {
   sortAssociatedRecordsByDefault,
 } from "./TypeTagAssociatedRecordsTable";
 import { MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION } from "mock-data/demonstrationMocks";
-import { getSelectOptionLabels } from "test-utils/select";
 
 vi.mock("util/exportTypeTagRecords", () => ({ exportTypeTagRecords: vi.fn() }));
 
@@ -306,12 +305,13 @@ describe("DemonstrationTypeUsageTable", () => {
       setup();
 
       await screen.findByRole("table");
-      const optionLabels = await getSelectOptionLabels(
-        userEvent.setup(),
-        screen.getByTestId("filter-by-column")
+      const selectElement = screen.getByTestId("filter-by-column") as HTMLSelectElement;
+      const validOptions = Array.from(selectElement.querySelectorAll("option")).filter(
+        (opt) => opt.value !== ""
       );
 
-      expect(optionLabels).toEqual(["Select a Column...", "Status"]);
+      expect(validOptions).toHaveLength(1);
+      expect(validOptions[0]).toHaveTextContent("Status");
     });
   });
 });

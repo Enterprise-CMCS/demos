@@ -184,6 +184,28 @@ describe("DemosRouter", () => {
     expect(screen.queryByText("ReportsPage")).not.toBeInTheDocument();
   });
 
+  it("redirects OACT users from /deliverables to the home page", async () => {
+    currentUserState.currentUser.person.personType = "demos-oact-user";
+    window.history.pushState({}, "Deliverables", "/deliverables");
+    render(<DemosRouter />);
+    await waitFor(() => expect(screen.getByText("DemonstrationsPage")).toBeInTheDocument());
+    expect(screen.queryByText("DeliverablesPage")).not.toBeInTheDocument();
+  });
+
+  it("redirects OACT users from deliverable detail URLs to the home page", async () => {
+    currentUserState.currentUser.person.personType = "demos-oact-user";
+    window.history.pushState({}, "Deliverable Detail", "/deliverables/deliverable-1");
+    render(<DemosRouter />);
+    await waitFor(() => expect(screen.getByText("DemonstrationsPage")).toBeInTheDocument());
+  });
+
+  it("renders the Reports page at /reports for OACT users", async () => {
+    currentUserState.currentUser.person.personType = "demos-oact-user";
+    window.history.pushState({}, "Reports", "/reports");
+    render(<DemosRouter />);
+    await waitFor(() => expect(screen.getByText("ReportsPage")).toBeInTheDocument());
+  });
+
   it("renders the References page at /references", async () => {
     window.history.pushState({}, "References", "/references");
     render(<DemosRouter />);
