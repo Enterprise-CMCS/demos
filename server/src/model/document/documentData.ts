@@ -7,6 +7,8 @@ import { isAStatePointOfContactAssociatedWithDeliverable } from "../deliverable/
 import { handleDeleteDocument } from "./handleDeleteDocument";
 import { validateDocumentCanBeDeleted } from "./validateDocumentCanBeDeleted";
 import { validateDocumentCanBeUpdated } from "./validateDocumentCanBeUpdated";
+import { insertApplicationAction } from "../applicationAction/queries";
+import { DocumentType } from "../../types";
 
 const getViewPermissionFilters = (userId: string) =>
   ({
@@ -159,6 +161,15 @@ export async function removeDocument(
 
     if (authorizedDocument) {
       await validateDocumentCanBeDeleted(authorizedDocument.id, tx);
+      await insertApplicationAction(
+        {
+          applicationId: authorizedDocument.applicationId,
+          actionType: "Deleted Document",
+          documentType: authorizedDocument.documentTypeId as DocumentType,
+          userId: user.id,
+        },
+        tx
+      );
       return await handleDeleteDocument(where, tx);
     }
   }
