@@ -8,7 +8,7 @@ import { down } from "./commands/down";
 import { runMigration } from "./commands/runMigration";
 import { testMigration } from "./commands/testMigration";
 import { dbReset } from "./commands/dbReset";
-import { dataFixLint } from "./commands/dataFix";
+import { dataFix, dataFixLint } from "./commands/dataFix";
 
 export async function main(): Promise<number | null> {
   const args = process.argv.slice(2);
@@ -40,6 +40,21 @@ export async function main(): Promise<number | null> {
       return await testMigration(environment, args[2]);
     case "db-reset":
       return await dbReset(environment, args[2]);
+    case "data-fix": {
+      const file = args.at(2);
+      const flag = args.at(3);
+      if (!file || file.startsWith("--") || args.length > 4 || (flag !== undefined && flag !== "--apply")) {
+        console.error("usage: data-fix <env> <file> [--apply]");
+        return 1;
+      }
+      return await dataFix(environment, file, {
+        apply: flag === "--apply",
+        approvedBy: process.env.APPROVED_BY,
+        appliedBy: process.env.APPLIED_BY,
+        gitCommit: process.env.GIT_COMMIT,
+        buildUrl: process.env.BUILD_URL,
+      });
+    }
     case "data-fix:lint":
       if (environment !== "all") {
         console.error("usage: data-fix:lint all [dir]");

@@ -10,7 +10,7 @@ import { up } from "./commands/up";
 import { down } from "./commands/down";
 import { runMigration } from "./commands/runMigration";
 import { testMigration } from "./commands/testMigration";
-import { dataFixLint } from "./commands/dataFix";
+import { dataFix, dataFixLint } from "./commands/dataFix";
 import { main } from "./demosctl";
 
 vi.mock("./commands/buildClient");
@@ -82,6 +82,32 @@ describe("demosctl root", () => {
     expect(console.error).toHaveBeenCalledWith("usage: data-fix:lint all [dir]");
     expect(dataFixLint).not.toHaveBeenCalled();
     expect(resp).toEqual(1);
+  });
+
+  test.each([false, true])("should pass Jenkins metadata and apply=%s to data-fix", async (apply) => {
+    vi.stubEnv("APPROVED_BY", "test-approver");
+    vi.stubEnv("APPLIED_BY", "test-user");
+    vi.stubEnv("GIT_COMMIT", "test-commit");
+    vi.stubEnv("BUILD_URL", "https://example.invalid/build/1");
+    vi.mocked(dataFix).mockResolvedValueOnce(1);
+    process.argv = ["", "", "data-fix", "dev", "example.sql", ...(apply ? ["--apply"] : [])];
+    try {
+      expect(await main()).toEqual(1);
+      expect(dataFix).toHaveBeenCalledWith("dev", "example.sql", {
+        apply, approvedBy: "test-approver", appliedBy: "test-user",
+        gitCommit: "test-commit", buildUrl: "https://example.invalid/build/1",
+      });
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  test.each([[], ["--apply"], ["example.sql", "--unknown"], ["example.sql", "--apply", "extra"]])("should reject invalid data-fix arguments %j", async (...args) => {
+    vi.spyOn(console, "error");
+    process.argv = ["", "", "data-fix", "dev", ...args];
+    expect(await main()).toEqual(1);
+    expect(console.error).toHaveBeenCalledWith("usage: data-fix <env> <file> [--apply]");
+    expect(dataFix).not.toHaveBeenCalled();
   });
 
   test("should require a stage name", async () => {

@@ -1,8 +1,19 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { createHash } from "node:crypto";
+import { Client } from "pg";
 
-import { dataFixLint } from "./dataFix";
+import { getSecret } from "../lib/getSecret";
+import { fetchCACert } from "./testMigration";
+import { checkSchemaGate, dataFix, dataFixLint } from "./dataFix";
+
+vi.mock("pg");
+vi.mock("../lib/getSecret");
+vi.mock("./testMigration", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./testMigration")>()),
+  fetchCACert: vi.fn(),
+}));
 
 const FIXTURES = path.join(__dirname, "__fixtures__");
 const VALID_DIR = path.join(FIXTURES, "data_fixes", "valid");
@@ -130,5 +141,290 @@ describe("dataFixLint", () => {
     expect(console.error).toHaveBeenCalledWith(
       expect.stringContaining("requires_migration 20260101000000_example_migration is not a folder"),
     );
+  });
+});
+
+describe("dataFix", () => {
+  const migration = "20261104004932_add_data_fix_log";
+  const applyOptions = {
+    apply: true,
+    approvedBy: "test-approver",
+    appliedBy: "test-build-user",
+    gitCommit: "test-commit",
+    buildUrl: "https://example.invalid/build/1",
+  };
+  let tempDir: string;
+  let client: Client;
+  let sql: string;
+  let reverseSql: string;
+  let noticeHandler: (notice: { message: string }) => void;
+  let normalQuery: (query: string) => Promise<unknown>;
+
+  const fixPath = () => path.join(tempDir, DEMOSCTL_FIX);
+  const writeFix = (content: string) => fs.writeFileSync(fixPath(), content);
+  const statements = () => vi.mocked(client.query).mock.calls.map(([query]) => query);
+  const run = (options: Parameters<typeof dataFix>[2] = { apply: false }) => dataFix("dev", fixPath(), options, client);
+  const checksum = () => createHash("sha256").update(sql).digest("hex");
+  const mockQuery = (implementation: (query: string) => Promise<unknown>) => {
+    client.query = vi.fn(implementation) as unknown as typeof client.query;
+  };
+
+  beforeEach(() => {
+    tempDir = fs.mkdtempSync(path.join(__dirname, "data-fix-runner-"));
+    sql = fs.readFileSync(path.join(VALID_DIR, DEMOSCTL_FIX), "utf8")
+      .replace("20260101000000_example_migration", migration);
+    reverseSql = fs.readFileSync(path.join(VALID_DIR, DEMOSCTL_REVERSE), "utf8")
+      .replace("20260101000000_example_migration", migration);
+    writeFix(sql);
+    fs.writeFileSync(path.join(tempDir, DEMOSCTL_REVERSE), reverseSql);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    client = new Client();
+    normalQuery = async (query: string) => {
+      if (query.includes("_prisma_migrations")) {
+        return { rows: [{ exists: 1 }] };
+      }
+      if (query.startsWith("SELECT checksum")) {
+        return { rows: [] };
+      }
+      if (query === sql || query === reverseSql) {
+        noticeHandler({ message: "aggregate check passed" });
+        return [
+          { command: "UPDATE", rows: [] },
+          { command: "SELECT", rows: [{ remaining_old_rows: "0" }] },
+        ];
+      }
+      if (query.includes("pg_temp.data_fix_result")) {
+        return { rows: [{ rows_affected: 2 }] };
+      }
+      if (query === "SELECT current_user") {
+        return { rows: [{ current_user: "demos_data_fix" }] };
+      }
+      return { rows: [] };
+    };
+    mockQuery(normalQuery);
+    vi.mocked(client.on).mockImplementation((event, listener) => {
+      if (event === "notice") {
+        noticeHandler = listener as typeof noticeHandler;
+      }
+      return client;
+    });
+  });
+
+  afterEach(() => {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+    vi.restoreAllMocks();
+  });
+
+  test("should dry run without Jenkins metadata and roll back the whole body", async () => {
+    expect(await run()).toEqual(0);
+    expect(statements()).toEqual([
+      expect.stringContaining("_prisma_migrations"),
+      expect.stringContaining("SELECT checksum"),
+      "BEGIN",
+      "SET LOCAL lock_timeout = '5s'",
+      "SET LOCAL statement_timeout = '30s'",
+      "SET LOCAL idle_in_transaction_session_timeout = '30s'",
+      "SET LOCAL ROLE demos_data_fix",
+      sql,
+      "SELECT rows_affected FROM pg_temp.data_fix_result",
+      "SELECT current_user",
+      "RESET ROLE",
+      "ROLLBACK",
+    ]);
+    expect(vi.mocked(client.query).mock.calls.find(([query]) => query === sql)).toEqual([sql]);
+    expect(console.log).toHaveBeenCalledWith("rows affected:", 2);
+    expect(console.log).toHaveBeenCalledWith("evidence:", [{ remaining_old_rows: "0" }]);
+    expect(console.log).toHaveBeenCalledWith("notice:", "aggregate check passed");
+    expect(client.end).toHaveBeenCalledOnce();
+    expect(client.removeListener).toHaveBeenCalledWith("notice", noticeHandler);
+    expect(getSecret).not.toHaveBeenCalled();
+  });
+
+  test("should insert the ledger after RESET ROLE and commit an apply", async () => {
+    expect(await run(applyOptions)).toEqual(0);
+    const calls = vi.mocked(client.query).mock.calls;
+    const insertIndex = calls.findIndex(([query]) => typeof query === "string" && query.includes("INSERT INTO demos_app.data_fix_log"));
+    expect(statements().indexOf("RESET ROLE")).toBeLessThan(insertIndex);
+    expect(calls[insertIndex][0]).toContain("reverse_file");
+    expect(calls[insertIndex][1]).toEqual([
+      DEMOSCTL_FIX, checksum(), "DEMOS-1000", "dev", 2, DEMOSCTL_REVERSE, null,
+      applyOptions.gitCommit, applyOptions.appliedBy, applyOptions.approvedBy, applyOptions.buildUrl,
+    ]);
+    expect(statements().at(-1)).toEqual("COMMIT");
+    expect(statements()).not.toContain("ROLLBACK");
+  });
+
+  test("should link a reverse apply to the forward fix", async () => {
+    expect(await dataFix("dev", path.join(tempDir, DEMOSCTL_REVERSE), applyOptions, client)).toEqual(0);
+    const insert = vi.mocked(client.query).mock.calls.find(([query]) => typeof query === "string" && query.includes("INSERT INTO demos_app.data_fix_log"));
+    expect(insert?.[1]).toEqual([
+      DEMOSCTL_REVERSE, createHash("sha256").update(reverseSql).digest("hex"), "DEMOS-1000", "dev", 2, null, DEMOSCTL_FIX,
+      applyOptions.gitCommit, applyOptions.appliedBy, applyOptions.approvedBy, applyOptions.buildUrl,
+    ]);
+  });
+
+  describe.each([undefined, "", "  "])("missing Jenkins value %j", (value) => {
+    test.each(["approvedBy", "appliedBy", "gitCommit", "buildUrl"] as const)("should refuse apply without %s before connecting", async (key) => {
+      expect(await run({ ...applyOptions, [key]: value })).toEqual(1);
+      expect(console.error).toHaveBeenCalledWith("apply only runs from Jenkins");
+      expect(client.connect).not.toHaveBeenCalled();
+      expect(getSecret).not.toHaveBeenCalled();
+    });
+  });
+
+  test.each([
+    ["psql runner", (text: string) => text.replace("demosctl", "psql")],
+    ["environment", (text: string) => text.replace("dev, test", "prod")],
+    ["override", (text: string) => `-- override: yes\n${text}`],
+    ["placeholder", (text: string) => text.replace("expected_rows:      2", "expected_rows: <n>")],
+    ["fractional expected_rows", (text: string) => text.replace("expected_rows:      2", "expected_rows: 2.5")],
+    ["unsafe expected_rows", (text: string) => text.replace("expected_rows:      2", "expected_rows: 9007199254740993")],
+    ["missing migration folder", (text: string) => text.replace(migration, "missing_migration")],
+    ["transaction control", (text: string) => `${text}\nCOMMIT;`],
+    ["role change", (text: string) => `${text}\nRESET ROLE;`],
+  ])("should refuse %s before connecting", async (_name, change) => {
+    writeFix(change(sql));
+    expect(await run()).toEqual(1);
+    expect(client.connect).not.toHaveBeenCalled();
+    expect(getSecret).not.toHaveBeenCalled();
+  });
+
+  test("should print the header problem for a malformed header", async () => {
+    writeFix(sql.replace("expected_rows:      2", "expected_rows: <n>"));
+    expect(await run()).toEqual(1);
+    expect(console.error).toHaveBeenCalledWith(expect.stringContaining("expected_rows"));
+  });
+
+  test("should refuse a missing file before connecting", async () => {
+    fs.unlinkSync(fixPath());
+    expect(await run()).toEqual(1);
+    expect(client.connect).not.toHaveBeenCalled();
+  });
+
+  test("should refuse a missing partner before connecting", async () => {
+    fs.unlinkSync(path.join(tempDir, DEMOSCTL_REVERSE));
+    expect(await run()).toEqual(1);
+    expect(client.connect).not.toHaveBeenCalled();
+  });
+
+  test("should refuse a mismatched reverse pair before connecting", async () => {
+    fs.writeFileSync(path.join(tempDir, DEMOSCTL_REVERSE), reverseSql.replace(DEMOSCTL_FIX, PSQL_FIX));
+    expect(await run()).toEqual(1);
+    expect(client.connect).not.toHaveBeenCalled();
+  });
+
+  test("should refuse a missing, unfinished, or rolled back release migration before BEGIN", async () => {
+    vi.mocked(client.query).mockResolvedValueOnce({ rows: [] } as never);
+    expect(await run()).toEqual(1);
+    expect(console.error).toHaveBeenCalledWith(`release migration \`${migration}\` to \`dev\` first`);
+    expect(statements()).not.toContain("BEGIN");
+    expect(client.query).toHaveBeenCalledWith(expect.stringContaining("finished_at IS NOT NULL AND rolled_back_at IS NULL"), [migration]);
+  });
+
+  test("should expose the schema gate without running a transaction", async () => {
+    vi.mocked(client.query).mockResolvedValueOnce({ rows: [] } as never);
+    await expect(checkSchemaGate(client, migration)).rejects.toThrow(migration);
+    expect(statements()).not.toContain("BEGIN");
+  });
+
+  test.each([false, true])("should return already applied without a transaction (apply=%s)", async (apply) => {
+    vi.mocked(client.query).mockResolvedValueOnce({ rows: [{}] } as never).mockResolvedValueOnce({ rows: [{ checksum: checksum() }] } as never);
+    expect(await run({ ...applyOptions, apply })).toEqual(0);
+    expect(console.log).toHaveBeenCalledWith("already applied:", DEMOSCTL_FIX);
+    expect(statements()).not.toContain("BEGIN");
+  });
+
+  test("should refuse a checksum change", async () => {
+    vi.mocked(client.query).mockResolvedValueOnce({ rows: [{}] } as never).mockResolvedValueOnce({ rows: [{ checksum: "different" }] } as never);
+    expect(await run()).toEqual(1);
+    expect(console.error).toHaveBeenCalledWith(expect.stringContaining("different checksum"));
+    expect(statements()).not.toContain("BEGIN");
+  });
+
+  test.each([
+    ["row-count mismatch", [{ rows_affected: 1 }], "demos_data_fix"],
+    ["missing result row", [], "demos_data_fix"],
+    ["multiple result rows", [{ rows_affected: 2 }, { rows_affected: 2 }], "demos_data_fix"],
+    ["null result", [{ rows_affected: null }], "demos_data_fix"],
+    ["noninteger result", [{ rows_affected: "2" }], "demos_data_fix"],
+    ["changed role", [{ rows_affected: 2 }], "demos_admin"],
+  ])("should roll back %s without writing the ledger", async (_name, rows, role) => {
+    mockQuery((query: string) => {
+      if (query.includes("pg_temp.data_fix_result")) {
+        return Promise.resolve({ rows });
+      }
+      if (query === "SELECT current_user") {
+        return Promise.resolve({ rows: [{ current_user: role }] });
+      }
+      return normalQuery(query);
+    });
+    expect(await run(applyOptions)).toEqual(1);
+    expect(statements().at(-1)).toEqual("ROLLBACK");
+    expect(statements()).not.toContain("COMMIT");
+    expect(statements().some((query) => typeof query === "string" && query.includes("INSERT INTO demos_app.data_fix_log"))).toEqual(false);
+  });
+
+  test.each(["body", "ledger", "commit"])("should roll back a %s error and close the connection", async (phase) => {
+    mockQuery((query: string) => {
+      if ((phase === "body" && query === sql) || (phase === "ledger" && query.includes("INSERT INTO demos_app.data_fix_log")) || (phase === "commit" && query === "COMMIT")) {
+        return Promise.reject(new Error("synthetic database failure"));
+      }
+      return normalQuery(query);
+    });
+    expect(await run(applyOptions)).toEqual(1);
+    expect(statements().at(-1)).toEqual("ROLLBACK");
+    expect(client.end).toHaveBeenCalledOnce();
+  });
+
+  test("should not throw when rollback or disconnect fails", async () => {
+    mockQuery((query: string) => {
+      if (query === sql || query === "ROLLBACK") {
+        return Promise.reject(new Error("synthetic failure"));
+      }
+      return normalQuery(query);
+    });
+    vi.mocked(client.end).mockRejectedValueOnce(new Error("synthetic disconnect failure"));
+    expect(await run()).toEqual(1);
+    expect(statements().at(-1)).toEqual("ROLLBACK");
+    expect(client.end).toHaveBeenCalledOnce();
+  });
+
+  test("should roll back when the last statement is not evidence", async () => {
+    mockQuery((query: string) => {
+      if (query === sql) {
+        return Promise.resolve([{ command: "INSERT", rows: [] }]);
+      }
+      return normalQuery(query);
+    });
+    expect(await run()).toEqual(1);
+    expect(statements().at(-1)).toEqual("ROLLBACK");
+  });
+
+  test("should connect to demos using secret fields and verified TLS without logging credentials", async () => {
+    vi.mocked(getSecret).mockResolvedValueOnce(JSON.stringify({ username: "synthetic-user", password: "synthetic-password/@", host: "example.invalid", port: 15432 })); // pragma: allowlist secret
+    vi.mocked(fetchCACert).mockResolvedValueOnce("synthetic-ca");
+    vi.mocked(Client).mockImplementationOnce(function () { return client; });
+    expect(await dataFix("dev", fixPath(), { apply: false })).toEqual(0);
+    expect(getSecret).toHaveBeenCalledWith("demos-dev-rds-admin");
+    expect(Client).toHaveBeenLastCalledWith({
+      user: "synthetic-user", password: "synthetic-password/@", host: "example.invalid", port: 15432, // pragma: allowlist secret
+      database: "demos", ssl: { ca: "synthetic-ca", rejectUnauthorized: true },
+    });
+    expect(JSON.stringify([...vi.mocked(console.log).mock.calls, ...vi.mocked(console.error).mock.calls])).not.toContain("synthetic-password");
+  });
+
+  test.each([undefined, "not-json", "{}", '{"username":"user","password":"secret"}'])("should fail closed on invalid secret data: %s", async (secret) => { // pragma: allowlist secret
+    vi.mocked(getSecret).mockResolvedValueOnce(secret);
+    expect(await dataFix("dev", fixPath(), { apply: false })).toEqual(1);
+    expect(client.connect).not.toHaveBeenCalled();
+    expect(JSON.stringify(vi.mocked(console.error).mock.calls)).not.toContain("secret");
+  });
+
+  test("should not print connection errors that could contain credentials", async () => {
+    vi.mocked(client.connect).mockRejectedValueOnce(new Error("synthetic-password is invalid"));
+    expect(await run()).toEqual(1);
+    expect(JSON.stringify(vi.mocked(console.error).mock.calls)).not.toContain("synthetic-password");
+    expect(client.end).toHaveBeenCalledOnce();
   });
 });
