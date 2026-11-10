@@ -73,6 +73,24 @@ type DataFixOptions = {
   buildUrl?: string;
 };
 
+type DataFixPhase =
+  | "validation"
+  | "database connection"
+  | "schema gate"
+  | "ledger check"
+  | "transaction setup"
+  | "fix body"
+  | "deferred constraints"
+  | "ledger insert"
+  | "commit"
+  | "rollback";
+
+type DataFixState = {
+  phase: DataFixPhase;
+  connectionAttempted: boolean;
+  inTransaction: boolean;
+};
+
 class DataFixError extends Error {}
 
 function readHeader(sql: string): DataFixHeader {
@@ -172,9 +190,7 @@ export async function checkSchemaGate(client: Client, requiresMigration: string,
 
 export async function dataFix(environment: string, file: string, opts: DataFixOptions, injectedClient?: Client): Promise<number> {
   let client = injectedClient;
-  let connectionAttempted = false;
-  let inTransaction = false;
-  let phase = "validation";
+  const state: DataFixState = { phase: "validation", connectionAttempted: false, inTransaction: false };
   let exitCode = 1;
   const notices: string[] = [];
   const onNotice = (notice: { message?: string }) => notices.push(notice.message ?? "");
@@ -186,14 +202,14 @@ export async function dataFix(environment: string, file: string, opts: DataFixOp
     const filePath = path.basename(file) === file ? path.join(DEFAULT_FIX_DIR, file) : path.resolve(file);
     const { sql, header, fileName, checksum } = await validateFix(environment, filePath);
 
-    phase = "database connection";
+    state.phase = "database connection";
     client ??= await createDataFixClient(environment);
     client.on("notice", onNotice);
-    connectionAttempted = true;
+    state.connectionAttempted = true;
     await client.connect();
-    phase = "schema gate";
+    state.phase = "schema gate";
     await checkSchemaGate(client, header.requiresMigration!, environment);
-    phase = "ledger check";
+    state.phase = "ledger check";
     const existing = await client.query<{ checksum: string }>(
       "SELECT checksum FROM demos_app.data_fix_log WHERE file_name = $1", [fileName],
     );
@@ -203,14 +219,14 @@ export async function dataFix(environment: string, file: string, opts: DataFixOp
       }
       console.log("already applied:", fileName);
     } else {
-      phase = "transaction setup";
+      state.phase = "transaction setup";
       await client.query("BEGIN");
-      inTransaction = true;
+      state.inTransaction = true;
       await client.query("SET LOCAL lock_timeout = '5s'");
       await client.query("SET LOCAL statement_timeout = '30s'");
       await client.query("SET LOCAL idle_in_transaction_session_timeout = '30s'");
       await client.query("SET LOCAL ROLE demos_data_fix");
-      phase = "fix body";
+      state.phase = "fix body";
       // No parameters: pg uses the simple protocol for the whole multi-statement body.
       const bodyResult = await client.query(sql);
       const results: QueryResult[] = Array.isArray(bodyResult) ? bodyResult : [bodyResult];
@@ -230,13 +246,14 @@ export async function dataFix(environment: string, file: string, opts: DataFixOp
       if (role.rows[0]?.current_user !== "demos_data_fix") {
         throw new DataFixError("data fix body changed current_user; refusing to continue");
       }
+      state.phase = "deferred constraints";
       await client.query("SET CONSTRAINTS ALL IMMEDIATE");
       await client.query("RESET ROLE");
       console.log("rows affected:", rowsAffected);
       console.log("evidence:", evidence.rows);
       printNotices();
       if (opts.apply) {
-        phase = "ledger insert";
+        state.phase = "ledger insert";
         await client.query(
           `INSERT INTO demos_app.data_fix_log
             (file_name, checksum, ticket, environment, rows_affected, reverse_file, reverses, git_commit, applied_by, approved_by, build_url)
@@ -244,21 +261,21 @@ export async function dataFix(environment: string, file: string, opts: DataFixOp
           [fileName, checksum, header.ticket, environment, rowsAffected, header.reverse ?? null, header.reverses ?? null,
             opts.gitCommit, opts.appliedBy, opts.approvedBy, opts.buildUrl],
         );
-        phase = "commit";
+        state.phase = "commit";
         await client.query("COMMIT");
         console.log("applied:", fileName);
       } else {
-        phase = "rollback";
+        state.phase = "rollback";
         await client.query("ROLLBACK");
         console.log("dry run rolled back:", fileName);
       }
-      inTransaction = false;
+      state.inTransaction = false;
     }
     exitCode = 0;
   } catch (error) {
     // Database errors can include row values or credentials; only our own errors are safe to print.
-    console.error(error instanceof DataFixError ? error.message : `data fix failed during ${phase}`);
-    if (inTransaction && client) {
+    console.error(error instanceof DataFixError ? error.message : `data fix failed during ${state.phase}`);
+    if (state.inTransaction && client) {
       try {
         await client.query("ROLLBACK");
       } catch {
@@ -267,7 +284,7 @@ export async function dataFix(environment: string, file: string, opts: DataFixOp
     }
   } finally {
     printNotices();
-    if (connectionAttempted && client) {
+    if (state.connectionAttempted && client) {
       client.removeListener("notice", onNotice);
       try {
         await client.end();

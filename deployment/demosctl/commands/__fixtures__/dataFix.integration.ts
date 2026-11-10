@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { Console } from "node:console";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
-import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { Writable } from "node:stream";
 import { setTimeout as delay } from "node:timers/promises";
@@ -13,9 +13,9 @@ import pg from "pg";
 const ROOT = resolve(dirname(process.argv[1]), "../../../..");
 const SERVER = join(ROOT, "server");
 const DEPLOYMENT = join(ROOT, "deployment");
-const SQL_DIRECTORY = join(SERVER, "src/sql");
 const MIGRATIONS = join(SERVER, "src/model/migrations");
 const APPLICATION_ID = "00000000-0000-4000-8000-000000000003";
+const PERSON_ID = "00000000-0000-4000-8000-000000000004";
 const TICKET = "DEMOS-99999";
 const APPLY_OPTIONS = {
   apply: true,
@@ -25,10 +25,10 @@ const APPLY_OPTIONS = {
   buildUrl: "https://ci.invalid/job/data-fix/1/",
 };
 
-function command(executable: string, args: string[], options: { cwd?: string; databaseUrl?: string } = {}) {
+function command(executable: string, args: string[], options: { cwd?: string; env?: NodeJS.ProcessEnv } = {}) {
   const result = spawnSync(executable, args, {
     cwd: options.cwd ?? SERVER,
-    env: { ...process.env, ...(options.databaseUrl ? { DATABASE_URL: options.databaseUrl } : {}) },
+    env: { ...process.env, ...options.env },
     encoding: "utf8",
     timeout: 180_000,
     maxBuffer: 16 * 1024 * 1024,
@@ -76,6 +76,7 @@ async function main() {
     passed++;
     console.log(`PASS ${name}`);
   };
+  const containerLogs = () => spawnSync("docker", ["logs", "--tail", "40", container], { encoding: "utf8", timeout: 10_000 });
 
   try {
     temporaryDirectory = await mkdtemp(join(ROOT, ".data-fix-integration-"));
@@ -124,7 +125,7 @@ async function main() {
     await admin.query("CREATE SCHEMA demos_app AUTHORIZATION demos_admin");
 
     const databaseUrl = `postgresql://demos_admin:${password}@127.0.0.1:${port}/demos?schema=demos_app`;
-    const prisma = (...args: string[]) => command(join(SERVER, "node_modules/.bin/prisma"), args, { databaseUrl });
+    const prisma = (...args: string[]) => command(join(SERVER, "node_modules/.bin/prisma"), args, { env: { DATABASE_URL: databaseUrl } });
     console.log(prisma("validate"));
     console.log(prisma("migrate", "deploy"));
     // Fresh migration replay differs from Prisma on existing composite foreign-key actions.
@@ -140,19 +141,34 @@ async function main() {
     assert.ok(requiredMigration, "real data-fix ledger migration must exist");
     pass(`Prisma validation and all ${migrationFolders.length} real migrations as non-superuser demos_admin`);
 
-    await admin.query(await readFile(join(SQL_DIRECTORY, "history_triggers.sql"), "utf8"));
-    const permissions = await readFile(join(SQL_DIRECTORY, "permissions.sql"), "utf8");
-    await admin.query(permissions);
-    await admin.query(permissions);
+    const refreshDbObjects = () => command(
+      join(SERVER, "node_modules/.bin/tsx"),
+      ["src/refreshDbObjects.ts"],
+      { env: { DATABASE_URL: databaseUrl, IS_TEST_MIGRATION: "true" } },
+    );
+    refreshDbObjects();
+    refreshDbObjects();
     const fixRole = (await admin.query(
       "SELECT rolcanlogin, rolsuper, rolcreatedb, rolcreaterole FROM pg_roles WHERE rolname = 'demos_data_fix'",
     )).rows[0];
     assert.deepEqual(fixRole, { rolcanlogin: false, rolsuper: false, rolcreatedb: false, rolcreaterole: false });
-    pass("actual history triggers and permissions.sql, including non-superuser idempotent role setup");
-    await admin.query(
-      "INSERT INTO demos_app.application (id, application_type_id, is_migrated_from_pmda) VALUES ($1, 'Demonstration', false)",
-      [APPLICATION_ID],
-    );
+    pass("refreshDbObjects.ts loads production SQL twice, including non-superuser idempotent role setup");
+    await admin.query(`
+      BEGIN;
+      INSERT INTO demos_app.application (id, application_type_id, is_migrated_from_pmda)
+      VALUES ('${APPLICATION_ID}', 'Demonstration', false);
+      INSERT INTO demos_app.demonstration
+        (id, application_type_id, signature_level_id, name, status_id, current_phase_id, state_id, updated_at)
+      VALUES ('${APPLICATION_ID}', 'Demonstration', 'OA', 'Synthetic integration demonstration', 'Pre-Submission', 'Concept', 'AL', CURRENT_TIMESTAMP);
+      INSERT INTO demos_app.person (id, person_type_id, email, first_name, last_name, updated_at)
+      VALUES ('${PERSON_ID}', 'demos-cms-user', 'data-fix-integration@example.invalid', 'Synthetic', 'Integration', CURRENT_TIMESTAMP);
+      INSERT INTO demos_app.demonstration_role_assignment
+        (person_id, demonstration_id, role_id, state_id, person_type_id, grant_level_id)
+      VALUES ('${PERSON_ID}', '${APPLICATION_ID}', 'Project Officer', 'AL', 'demos-cms-user', 'Demonstration');
+      INSERT INTO demos_app.primary_demonstration_role_assignment (person_id, demonstration_id, role_id)
+      VALUES ('${PERSON_ID}', '${APPLICATION_ID}', 'Project Officer');
+      COMMIT;
+    `);
 
     const directory = temporaryDirectory;
     async function pair(label: string, sqlBody = body(true), expectedRows = 1) {
@@ -206,13 +222,20 @@ ${reverse ? `-- reverses: ${forwardName}\n` : ""}\n`;
     async function snapshot() {
       return {
         application: (await db.query("SELECT * FROM demos_app.application WHERE id = $1", [APPLICATION_ID])).rows,
+        demonstration: (await db.query("SELECT * FROM demos_app.demonstration WHERE id = $1", [APPLICATION_ID])).rows,
+        demonstrationRoleAssignments: (await db.query(
+          "SELECT * FROM demos_app.demonstration_role_assignment WHERE demonstration_id = $1 ORDER BY person_id, role_id", [APPLICATION_ID],
+        )).rows,
+        primaryDemonstrationRoleAssignments: (await db.query(
+          "SELECT * FROM demos_app.primary_demonstration_role_assignment WHERE demonstration_id = $1 ORDER BY role_id", [APPLICATION_ID],
+        )).rows,
         history: (await db.query(
           "SELECT * FROM demos_app.application_history WHERE id = $1 ORDER BY revision_id", [APPLICATION_ID],
         )).rows,
         ledger: (await db.query("SELECT * FROM demos_app.data_fix_log ORDER BY file_name")).rows,
       };
     }
-    async function unchangedRun(file: string, expectedCode: number, options = APPLY_OPTIONS) {
+    async function unchangedRun(file: string, expectedCode: number, options: Parameters<typeof dataFix>[2] = APPLY_OPTIONS) {
       const before = await snapshot();
       const result = await runFix(file, options);
       assert.equal(result.code, expectedCode, result.output);
@@ -332,10 +355,29 @@ SELECT count(*)::integer AS evidence_count FROM demos_app.application WHERE id =
 `);
     const guardResult = await unchangedRun(guard.forwardPath, 1);
     assert.match(guardResult.output, /failed during fix body/);
-    const guardLogs = spawnSync("docker", ["logs", "--tail", "40", container], { encoding: "utf8", timeout: 10_000 });
+    const guardLogs = containerLogs();
     assert.equal(guardLogs.status, 0);
     assert.match(`${guardLogs.stdout}\n${guardLogs.stderr}`, /ERROR:\s+integration_guard_failure/);
     pass("guard exception after DML rolls back data, trigger history and ledger");
+
+    const deferredViolation = await pair("deferred_violation", `
+DELETE FROM demos_app.primary_demonstration_role_assignment
+WHERE demonstration_id = '${APPLICATION_ID}' AND role_id = 'Project Officer';
+CREATE TEMPORARY TABLE data_fix_result (rows_affected integer);
+INSERT INTO pg_temp.data_fix_result VALUES (1);
+SELECT count(*)::integer AS evidence_count
+FROM demos_app.demonstration WHERE id = '${APPLICATION_ID}';
+`);
+    const deferredDryRun = await unchangedRun(deferredViolation.forwardPath, 1, { apply: false });
+    assert.match(deferredDryRun.output, /failed during deferred constraints/);
+    assert.doesNotMatch(deferredDryRun.output, /Cannot remove the primary project officer/i);
+    const deferredApply = await unchangedRun(deferredViolation.forwardPath, 1);
+    assert.match(deferredApply.output, /failed during deferred constraints/);
+    assert.doesNotMatch(deferredApply.output, /Cannot remove the primary project officer/i);
+    const deferredLogs = containerLogs();
+    assert.equal(deferredLogs.status, 0);
+    assert.match(`${deferredLogs.stdout}\n${deferredLogs.stderr}`, /ERROR:\s+Cannot remove the primary project officer/);
+    pass("deferred guard rejects dry run and apply without exposing database errors or changing the seed graph");
 
     for (const [label, resultInsert, columnType] of [
       ["empty_result", "", "integer"],
@@ -405,7 +447,7 @@ SELECT count(*)::integer AS evidence_count FROM demos_app.application WHERE id =
     console.log(`Integration complete: ${passed} checks passed on PostgreSQL ${version}`);
   } catch (error) {
     if (containerAttempted) {
-      const logs = spawnSync("docker", ["logs", "--tail", "40", container], { encoding: "utf8", timeout: 10_000 });
+      const logs = containerLogs();
       console.error("Throwaway PostgreSQL diagnostics:", logs.stdout, logs.stderr);
     }
     throw error;

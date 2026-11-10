@@ -238,6 +238,7 @@ describe("dataFix", () => {
       sql,
       "SELECT rows_affected FROM pg_temp.data_fix_result",
       "SELECT current_user",
+      "SET CONSTRAINTS ALL IMMEDIATE",
       "RESET ROLE",
       "ROLLBACK",
     );
@@ -266,7 +267,7 @@ describe("dataFix", () => {
     expect(await run(applyOptions)).toEqual(0);
     const calls = vi.mocked(client.query).mock.calls;
     const insertIndex = calls.findIndex(([query]) => typeof query === "string" && query.includes("INSERT INTO demos_app.data_fix_log"));
-    expectQueryOrder(sql, "SELECT rows_affected FROM pg_temp.data_fix_result", "SELECT current_user", "RESET ROLE", /INSERT INTO demos_app\.data_fix_log/, "COMMIT");
+    expectQueryOrder(sql, "SELECT rows_affected FROM pg_temp.data_fix_result", "SELECT current_user", "SET CONSTRAINTS ALL IMMEDIATE", "RESET ROLE", /INSERT INTO demos_app\.data_fix_log/, "COMMIT");
     expect(calls[insertIndex][0]).toContain("reverse_file");
     expect(calls[insertIndex][1]).toEqual([
       DEMOSCTL_FIX, checksum(), "DEMOS-1000", "dev", 2, DEMOSCTL_REVERSE, null,
@@ -393,12 +394,13 @@ describe("dataFix", () => {
 
   test.each([
     ["body", "fix body"],
+    ["deferred", "deferred constraints"],
     ["ledger", "ledger insert"],
     ["commit", "commit"],
   ])("should roll back a %s error and close the connection", async (phase, reportedPhase) => {
     const fail = vi.fn(() => Promise.reject(new Error("synthetic database failure")));
     mockQuery((query: string) => {
-      if ((phase === "body" && query === sql) || (phase === "ledger" && query.includes("INSERT INTO demos_app.data_fix_log")) || (phase === "commit" && query === "COMMIT")) {
+      if ((phase === "body" && query === sql) || (phase === "deferred" && query === "SET CONSTRAINTS ALL IMMEDIATE") || (phase === "ledger" && query.includes("INSERT INTO demos_app.data_fix_log")) || (phase === "commit" && query === "COMMIT")) {
         return fail();
       }
       return normalQuery(query);
@@ -407,10 +409,32 @@ describe("dataFix", () => {
     expect(fail).toHaveBeenCalledOnce();
     expect(console.error).toHaveBeenCalledExactlyOnceWith(`data fix failed during ${reportedPhase}`);
     expect(statements().at(-1)).toEqual("ROLLBACK");
+    if (phase === "deferred") {
+      expect(statements()).not.toContain("RESET ROLE");
+      expect(statements().some((query) => typeof query === "string" && query.includes("INSERT INTO demos_app.data_fix_log"))).toEqual(false);
+    }
     if (phase !== "commit") {
       expect(statements()).not.toContain("COMMIT");
     }
     expect(client.removeListener).toHaveBeenCalledWith("notice", noticeHandler);
+    expect(client.end).toHaveBeenCalledOnce();
+  });
+
+  test("should roll back a deferred-constraint failure in a dry run", async () => {
+    const fail = vi.fn(() => Promise.reject(new Error("synthetic database failure")));
+    mockQuery((query: string) => {
+      if (query === "SET CONSTRAINTS ALL IMMEDIATE") {
+        return fail();
+      }
+      return normalQuery(query);
+    });
+    expect(await run()).toEqual(1);
+    expect(fail).toHaveBeenCalledOnce();
+    expect(console.error).toHaveBeenCalledExactlyOnceWith("data fix failed during deferred constraints");
+    expect(statements().at(-1)).toEqual("ROLLBACK");
+    expect(statements()).not.toContain("RESET ROLE");
+    expect(statements()).not.toContain("COMMIT");
+    expect(statements().some((query) => typeof query === "string" && query.includes("INSERT INTO demos_app.data_fix_log"))).toEqual(false);
     expect(client.end).toHaveBeenCalledOnce();
   });
 
