@@ -7,23 +7,10 @@ import { getInputColors, LABEL_CLASSES } from "./Input";
 const MAX_ROWS = 3;
 
 const TEXTAREA_BASE_CLASSES = tw`border-1 rounded-minimal p-half outline-none focus:ring-2
-bg-surface-white hover:text-text-font resize-none overflow-hidden
+enabled:bg-surface-white hover:text-text-font resize-none overflow-hidden
 disabled:bg-surface-secondary disabled:border-border-fields disabled:text-text-placeholder`;
-const VALIDATION_MESSAGE_CLASSES = tw`text-error-dark`;
 
-export interface TextareaProps {
-  name: string;
-  label: string;
-  value: string;
-  onChange: (newString: string) => void;
-  onEnterPress?: () => void;
-  isRequired?: boolean;
-  isDisabled?: boolean;
-  placeholder?: string;
-  getValidationMessage?: (value: string) => string | undefined;
-}
-
-export const Textarea: React.FC<TextareaProps> = ({
+export const Textarea = ({
   name,
   label,
   value,
@@ -33,6 +20,16 @@ export const Textarea: React.FC<TextareaProps> = ({
   isDisabled,
   placeholder,
   getValidationMessage,
+}: {
+  name: string;
+  label: string;
+  value: string;
+  onChange: (newString: string) => void;
+  onEnterPress?: () => void;
+  isRequired?: boolean;
+  isDisabled?: boolean;
+  placeholder?: string;
+  getValidationMessage?: (value: string) => string | undefined;
 }) => {
   const validationMessage = getValidationMessage ? getValidationMessage(value) : "";
   const rowsToDisplay = Math.min(Math.max(value.split("\n").length, 1), MAX_ROWS);
@@ -57,7 +54,9 @@ export const Textarea: React.FC<TextareaProps> = ({
         id={name}
         name={name}
         data-testid={name}
-        className={`${TEXTAREA_BASE_CLASSES} ${getInputColors(validationMessage ?? "")}`}
+        className={`${getInputColors(validationMessage ?? "")} ${TEXTAREA_BASE_CLASSES}${
+          isDisabled ? " bg-surface-secondary" : ""
+        }`}
         placeholder={placeholder ?? ""}
         required={isRequired ?? false}
         disabled={isDisabled ?? false}
@@ -66,7 +65,7 @@ export const Textarea: React.FC<TextareaProps> = ({
         onKeyDown={handleKeyDown}
         rows={rowsToDisplay}
       />
-      {validationMessage && <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>}
+      {validationMessage && <span className={"text-error-dark"}>{validationMessage}</span>}
     </div>
   );
 };
