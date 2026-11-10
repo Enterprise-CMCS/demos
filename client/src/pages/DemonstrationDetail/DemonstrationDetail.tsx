@@ -44,8 +44,8 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       id
       name
       status
-      currentPhaseName
       effectivePlainDate
+      currentPhaseName
       expirationPlainDate
       medicaidId
       state {
