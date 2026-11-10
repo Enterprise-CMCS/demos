@@ -1,0 +1,12 @@
+// Flags: STATIC_CONSTRAINT
+model ApplicationActionType {
+  id                   String
+  shouldHaveUserId     Boolean @map("should_have_user_id")
+  shouldHaveDateTypeId Boolean @map("should_have_date_type_id")
+
+  applicationActions ApplicationAction[]
+
+  @@id([id])
+  @@unique([id, shouldHaveUserId, shouldHaveDateTypeId])
+  @@map("application_action_type")
+}

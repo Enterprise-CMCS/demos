@@ -10,6 +10,7 @@ TBL_FOLDERS = [
     "amendment",
     "application",
     "applicationDate",
+    "applicationAction",
     "applicationNote",
     "applicationPhase",
     "applicationTagAssignment",

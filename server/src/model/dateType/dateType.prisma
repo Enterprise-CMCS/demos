@@ -2,8 +2,9 @@
 model DateType {
   id String
 
-  applicationDates ApplicationDate[]
-  phaseDateTypes   PhaseDateType[]
+  applicationDates   ApplicationDate[]
+  phaseDateTypes     PhaseDateType[]
+  applicationActions ApplicationAction[]
 
   @@id([id])
   @@map("date_type")
