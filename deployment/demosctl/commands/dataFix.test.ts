@@ -163,6 +163,17 @@ describe("dataFix", () => {
   const fixPath = () => path.join(tempDir, DEMOSCTL_FIX);
   const writeFix = (content: string) => fs.writeFileSync(fixPath(), content);
   const statements = () => vi.mocked(client.query).mock.calls.map(([query]) => query);
+  const expectQueryOrder = (...queries: (string | RegExp)[]) => {
+    const actual = statements();
+    let previousIndex = -1;
+    for (const query of queries) {
+      const index = actual.findIndex((statement) => typeof statement === "string" && (
+        typeof query === "string" ? statement === query : query.test(statement)
+      ));
+      expect(index, `expected query ${query.toString()} after index ${previousIndex}`).toBeGreaterThan(previousIndex);
+      previousIndex = index;
+    }
+  };
   const run = (options: Parameters<typeof dataFix>[2] = { apply: false }) => dataFix("dev", fixPath(), options, client);
   const checksum = () => createHash("sha256").update(sql).digest("hex");
   const mockQuery = (implementation: (query: string) => Promise<unknown>) => {
@@ -170,6 +181,7 @@ describe("dataFix", () => {
   };
 
   beforeEach(() => {
+    vi.resetAllMocks();
     tempDir = fs.mkdtempSync(path.join(__dirname, "data-fix-runner-"));
     sql = fs.readFileSync(path.join(VALID_DIR, DEMOSCTL_FIX), "utf8")
       .replace("20260101000000_example_migration", migration);
@@ -218,24 +230,33 @@ describe("dataFix", () => {
 
   test("should dry run without Jenkins metadata and roll back the whole body", async () => {
     expect(await run()).toEqual(0);
-    expect(statements()).toEqual([
-      expect.stringContaining("_prisma_migrations"),
-      expect.stringContaining("SELECT checksum"),
+    expectQueryOrder(
+      /_prisma_migrations/,
+      /SELECT checksum/,
       "BEGIN",
-      "SET LOCAL lock_timeout = '5s'",
-      "SET LOCAL statement_timeout = '30s'",
-      "SET LOCAL idle_in_transaction_session_timeout = '30s'",
       "SET LOCAL ROLE demos_data_fix",
       sql,
       "SELECT rows_affected FROM pg_temp.data_fix_result",
       "SELECT current_user",
       "RESET ROLE",
       "ROLLBACK",
-    ]);
+    );
+    for (const timeout of [
+      "SET LOCAL lock_timeout = '5s'",
+      "SET LOCAL statement_timeout = '30s'",
+      "SET LOCAL idle_in_transaction_session_timeout = '30s'",
+    ]) {
+      expectQueryOrder("BEGIN", timeout, "SET LOCAL ROLE demos_data_fix");
+    }
+    expect(statements()).not.toContain("COMMIT");
+    expect(client.query).not.toHaveBeenCalledWith(expect.stringContaining("INSERT INTO demos_app.data_fix_log"), expect.any(Array));
     expect(vi.mocked(client.query).mock.calls.find(([query]) => query === sql)).toEqual([sql]);
     expect(console.log).toHaveBeenCalledWith("rows affected:", 2);
     expect(console.log).toHaveBeenCalledWith("evidence:", [{ remaining_old_rows: "0" }]);
     expect(console.log).toHaveBeenCalledWith("notice:", "aggregate check passed");
+    expect(console.log).toHaveBeenCalledWith("dry run rolled back:", DEMOSCTL_FIX);
+    expect(console.error).not.toHaveBeenCalled();
+    expect(client.connect).toHaveBeenCalledOnce();
     expect(client.end).toHaveBeenCalledOnce();
     expect(client.removeListener).toHaveBeenCalledWith("notice", noticeHandler);
     expect(getSecret).not.toHaveBeenCalled();
@@ -245,7 +266,7 @@ describe("dataFix", () => {
     expect(await run(applyOptions)).toEqual(0);
     const calls = vi.mocked(client.query).mock.calls;
     const insertIndex = calls.findIndex(([query]) => typeof query === "string" && query.includes("INSERT INTO demos_app.data_fix_log"));
-    expect(statements().indexOf("RESET ROLE")).toBeLessThan(insertIndex);
+    expectQueryOrder(sql, "SELECT rows_affected FROM pg_temp.data_fix_result", "SELECT current_user", "RESET ROLE", /INSERT INTO demos_app\.data_fix_log/, "COMMIT");
     expect(calls[insertIndex][0]).toContain("reverse_file");
     expect(calls[insertIndex][1]).toEqual([
       DEMOSCTL_FIX, checksum(), "DEMOS-1000", "dev", 2, DEMOSCTL_REVERSE, null,
@@ -343,13 +364,13 @@ describe("dataFix", () => {
   });
 
   test.each([
-    ["row-count mismatch", [{ rows_affected: 1 }], "demos_data_fix"],
-    ["missing result row", [], "demos_data_fix"],
-    ["multiple result rows", [{ rows_affected: 2 }, { rows_affected: 2 }], "demos_data_fix"],
-    ["null result", [{ rows_affected: null }], "demos_data_fix"],
-    ["noninteger result", [{ rows_affected: "2" }], "demos_data_fix"],
-    ["changed role", [{ rows_affected: 2 }], "demos_admin"],
-  ])("should roll back %s without writing the ledger", async (_name, rows, role) => {
+    ["row-count mismatch", [{ rows_affected: 1 }], "demos_data_fix", "row count mismatch: expected 2, got 1"],
+    ["missing result row", [], "demos_data_fix", "data_fix_result must contain exactly one integer rows_affected"],
+    ["multiple result rows", [{ rows_affected: 2 }, { rows_affected: 2 }], "demos_data_fix", "data_fix_result must contain exactly one integer rows_affected"],
+    ["null result", [{ rows_affected: null }], "demos_data_fix", "data_fix_result must contain exactly one integer rows_affected"],
+    ["noninteger result", [{ rows_affected: "2" }], "demos_data_fix", "data_fix_result must contain exactly one integer rows_affected"],
+    ["changed role", [{ rows_affected: 2 }], "demos_admin", "data fix body changed current_user; refusing to continue"],
+  ])("should roll back %s without writing the ledger", async (_name, rows, role, message) => {
     mockQuery((query: string) => {
       if (query.includes("pg_temp.data_fix_result")) {
         return Promise.resolve({ rows });
@@ -360,33 +381,63 @@ describe("dataFix", () => {
       return normalQuery(query);
     });
     expect(await run(applyOptions)).toEqual(1);
+    expect(client.query).toHaveBeenCalledWith(sql);
+    expect(client.query).toHaveBeenCalledWith("SELECT rows_affected FROM pg_temp.data_fix_result");
+    expect(console.error).toHaveBeenCalledExactlyOnceWith(message);
     expect(statements().at(-1)).toEqual("ROLLBACK");
     expect(statements()).not.toContain("COMMIT");
     expect(statements().some((query) => typeof query === "string" && query.includes("INSERT INTO demos_app.data_fix_log"))).toEqual(false);
+    expect(client.removeListener).toHaveBeenCalledWith("notice", noticeHandler);
+    expect(client.end).toHaveBeenCalledOnce();
   });
 
-  test.each(["body", "ledger", "commit"])("should roll back a %s error and close the connection", async (phase) => {
+  test.each([
+    ["body", "fix body"],
+    ["ledger", "ledger insert"],
+    ["commit", "commit"],
+  ])("should roll back a %s error and close the connection", async (phase, reportedPhase) => {
+    const fail = vi.fn(() => Promise.reject(new Error("synthetic database failure")));
     mockQuery((query: string) => {
       if ((phase === "body" && query === sql) || (phase === "ledger" && query.includes("INSERT INTO demos_app.data_fix_log")) || (phase === "commit" && query === "COMMIT")) {
-        return Promise.reject(new Error("synthetic database failure"));
+        return fail();
       }
       return normalQuery(query);
     });
     expect(await run(applyOptions)).toEqual(1);
+    expect(fail).toHaveBeenCalledOnce();
+    expect(console.error).toHaveBeenCalledExactlyOnceWith(`data fix failed during ${reportedPhase}`);
     expect(statements().at(-1)).toEqual("ROLLBACK");
+    if (phase !== "commit") {
+      expect(statements()).not.toContain("COMMIT");
+    }
+    expect(client.removeListener).toHaveBeenCalledWith("notice", noticeHandler);
     expect(client.end).toHaveBeenCalledOnce();
   });
 
-  test("should not throw when rollback or disconnect fails", async () => {
+  test.each([
+    { name: "rollback", rollbackFails: true, disconnectFails: false },
+    { name: "disconnect", rollbackFails: false, disconnectFails: true },
+    { name: "rollback and disconnect", rollbackFails: true, disconnectFails: true },
+  ])("should handle $name failure after a body error", async ({ rollbackFails, disconnectFails }) => {
     mockQuery((query: string) => {
-      if (query === sql || query === "ROLLBACK") {
+      if (query === sql || (query === "ROLLBACK" && rollbackFails)) {
         return Promise.reject(new Error("synthetic failure"));
       }
       return normalQuery(query);
     });
-    vi.mocked(client.end).mockRejectedValueOnce(new Error("synthetic disconnect failure"));
+    if (disconnectFails) {
+      vi.mocked(client.end).mockRejectedValueOnce(new Error("synthetic disconnect failure"));
+    }
     expect(await run()).toEqual(1);
+    expect(console.error).toHaveBeenCalledWith("data fix failed during fix body");
+    expect(vi.mocked(console.error).mock.calls).toEqual([
+      ["data fix failed during fix body"],
+      ...(rollbackFails ? [["rollback failed; closing database connection"]] : []),
+      ...(disconnectFails ? [["failed to close database connection"]] : []),
+    ]);
+    expect(client.query).toHaveBeenCalledWith(sql);
     expect(statements().at(-1)).toEqual("ROLLBACK");
+    expect(client.removeListener).toHaveBeenCalledWith("notice", noticeHandler);
     expect(client.end).toHaveBeenCalledOnce();
   });
 
@@ -398,7 +449,12 @@ describe("dataFix", () => {
       return normalQuery(query);
     });
     expect(await run()).toEqual(1);
+    expect(client.query).toHaveBeenCalledWith(sql);
+    expect(console.error).toHaveBeenCalledExactlyOnceWith("data fix body must end with an aggregate evidence SELECT");
     expect(statements().at(-1)).toEqual("ROLLBACK");
+    expect(statements()).not.toContain("SELECT rows_affected FROM pg_temp.data_fix_result");
+    expect(statements()).not.toContain("COMMIT");
+    expect(client.end).toHaveBeenCalledOnce();
   });
 
   test("should connect to demos using secret fields and verified TLS without logging credentials", async () => {
@@ -417,6 +473,9 @@ describe("dataFix", () => {
   test.each([undefined, "not-json", "{}", '{"username":"user","password":"secret"}'])("should fail closed on invalid secret data: %s", async (secret) => { // pragma: allowlist secret
     vi.mocked(getSecret).mockResolvedValueOnce(secret);
     expect(await dataFix("dev", fixPath(), { apply: false })).toEqual(1);
+    expect(getSecret).toHaveBeenCalledExactlyOnceWith("demos-dev-rds-admin");
+    expect(console.error).toHaveBeenCalledExactlyOnceWith(secret ? "invalid database credentials" : "unable to retrieve database credentials");
+    expect(fetchCACert).not.toHaveBeenCalled();
     expect(client.connect).not.toHaveBeenCalled();
     expect(JSON.stringify(vi.mocked(console.error).mock.calls)).not.toContain("secret");
   });
@@ -424,7 +483,11 @@ describe("dataFix", () => {
   test("should not print connection errors that could contain credentials", async () => {
     vi.mocked(client.connect).mockRejectedValueOnce(new Error("synthetic-password is invalid"));
     expect(await run()).toEqual(1);
+    expect(client.connect).toHaveBeenCalledOnce();
+    expect(client.query).not.toHaveBeenCalled();
+    expect(console.error).toHaveBeenCalledExactlyOnceWith("data fix failed during database connection");
     expect(JSON.stringify(vi.mocked(console.error).mock.calls)).not.toContain("synthetic-password");
+    expect(client.removeListener).toHaveBeenCalledWith("notice", noticeHandler);
     expect(client.end).toHaveBeenCalledOnce();
   });
 });
