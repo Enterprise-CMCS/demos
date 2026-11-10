@@ -43,17 +43,23 @@ dialog[open] {
   }
 
   .customizable-select::picker(select) {
-    /* The browser default opens toward whichever side has more space; only flip when it doesn't fit. */
+    /* Show every option: open below, else above, else over the field. */
     position-try-order: normal;
-    position-try-fallbacks: flip-block;
+    position-try-fallbacks: flip-block, --select-picker-overlap;
     width: anchor-size(width);
-    max-height: calc(var(--spacing) * 56);
+    max-height: none;
     margin-block: calc(var(--spacing) * 0.5);
     overflow: auto;
     background-color: var(--color-surface-white);
     border: 1px solid var(--color-border-fields);
     border-radius: 0.25rem;
     box-shadow: var(--shadow-sm);
+  }
+
+  @position-try --select-picker-overlap {
+    position-area: span-all span-inline-end;
+    align-self: anchor-center;
+    max-height: stretch;
   }
 
   .customizable-select option {
