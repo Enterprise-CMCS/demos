@@ -29,6 +29,11 @@ export const DELIVERABLE_ACTION_TYPES = [
   "Reverted Finalization",
 ] as const;
 
+export const APPLICATION_ACTION_TYPES = [
+  "Set Application Date",
+  "Deleted Application Date",
+] as const;
+
 export const DELIVERABLE_TYPES = [
   "Annual Budget Neutrality Report",
   "Close Out Report",

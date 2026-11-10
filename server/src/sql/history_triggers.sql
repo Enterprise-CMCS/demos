@@ -226,6 +226,69 @@ CREATE TRIGGER log_changes_application_date
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.application_date
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application_date();
 
+CREATE FUNCTION demos_app.log_changes_application_action()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.application_action_history (
+            revision_type,
+            id,
+            action_timestamp,
+            application_id,
+            action_type_id,
+            date_type_id,
+            should_have_user_id,
+            should_have_date_type_id,
+            user_id
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.action_timestamp,
+            NEW.application_id,
+            NEW.action_type_id,
+            NEW.date_type_id,
+            NEW.should_have_user_id,
+            NEW.should_have_date_type_id,
+            NEW.user_id
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.application_action_history (
+            revision_type,
+            id,
+            action_timestamp,
+            application_id,
+            action_type_id,
+            date_type_id,
+            should_have_user_id,
+            should_have_date_type_id,
+            user_id
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.action_timestamp,
+            OLD.application_id,
+            OLD.action_type_id,
+            OLD.date_type_id,
+            OLD.should_have_user_id,
+            OLD.should_have_date_type_id,
+            OLD.user_id
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER log_changes_application_action
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.application_action
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application_action();
+
 CREATE FUNCTION demos_app.log_changes_application_note()
 RETURNS TRIGGER AS $$
 BEGIN
