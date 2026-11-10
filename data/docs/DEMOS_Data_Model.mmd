@@ -449,11 +449,9 @@ erDiagram
   }
 
   application_action_type:::staticConstraint {
-    text id PK, UK "UK: (id, should_have_user_id, should_have_date_type_id, should_have_document_type_id, should_have_note_type_id)"
-    bool should_have_user_id UK "UK: (id, should_have_user_id, should_have_date_type_id, should_have_document_type_id, should_have_note_type_id)"
-    bool should_have_date_type_id UK "UK: (id, should_have_user_id, should_have_date_type_id, should_have_document_type_id, should_have_note_type_id)"
-    bool should_have_document_type_id UK "UK: (id, should_have_user_id, should_have_date_type_id, should_have_document_type_id, should_have_note_type_id)"
-    bool should_have_note_type_id UK "UK: (id, should_have_user_id, should_have_date_type_id, should_have_document_type_id, should_have_note_type_id)"
+    text id PK, UK "UK: (id, should_have_user_id, should_have_date_type_id)"
+    bool should_have_user_id UK "UK: (id, should_have_user_id, should_have_date_type_id)"
+    bool should_have_date_type_id UK "UK: (id, should_have_user_id, should_have_date_type_id)"
   }
 
   application_date:::dataTable {
