@@ -6,6 +6,7 @@ export type InsertApplicationActionInput = {
   applicationId: string;
   actionType: ApplicationActionType;
   dateType?: DateType;
+  noteType?: string;
   userId?: string;
 };
 
@@ -23,8 +24,10 @@ export async function insertApplicationAction(
       applicationId: action.applicationId,
       actionTypeId: action.actionType,
       dateTypeId: action.dateType,
+      noteTypeId: action.noteType,
       shouldHaveUserId: actionTypeConfig.shouldHaveUserId,
       shouldHaveDateTypeId: actionTypeConfig.shouldHaveDateTypeId,
+      shouldHaveNoteTypeId: actionTypeConfig.shouldHaveNoteTypeId,
       userId: action.userId,
     },
   });

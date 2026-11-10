@@ -237,8 +237,10 @@ BEGIN
             application_id,
             action_type_id,
             date_type_id,
+            note_type_id,
             should_have_user_id,
             should_have_date_type_id,
+            should_have_note_type_id,
             user_id
         )
         VALUES (
@@ -251,8 +253,10 @@ BEGIN
             NEW.application_id,
             NEW.action_type_id,
             NEW.date_type_id,
+            NEW.note_type_id,
             NEW.should_have_user_id,
             NEW.should_have_date_type_id,
+            NEW.should_have_note_type_id,
             NEW.user_id
         );
         RETURN NEW;
@@ -264,8 +268,10 @@ BEGIN
             application_id,
             action_type_id,
             date_type_id,
+            note_type_id,
             should_have_user_id,
             should_have_date_type_id,
+            should_have_note_type_id,
             user_id
         )
         VALUES (
@@ -275,8 +281,10 @@ BEGIN
             OLD.application_id,
             OLD.action_type_id,
             OLD.date_type_id,
+            OLD.note_type_id,
             OLD.should_have_user_id,
             OLD.should_have_date_type_id,
+            OLD.should_have_note_type_id,
             OLD.user_id
         );
         RETURN OLD;

@@ -1,10 +1,12 @@
 import { ApplicationNote as PrismaApplicationNote } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import { NoteType, SetApplicationNotesInput } from "../../types.js";
+import { GraphQLContext } from "../../auth";
 import { getApplication, PrismaApplication } from "../application";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { parseSetApplicationNotesInput, upsertApplicationNotes, deleteApplicationNotes } from ".";
 import { validateAllowedNoteChangeByPhase } from "./validateAllowedNoteChangeByPhase.js";
+import { insertApplicationAction } from "../applicationAction/queries";
 
 export function checkForDuplicateNoteTypes(input: SetApplicationNotesInput): void {
   const inputNoteTypes = input.applicationNotes.map((applicationNote) => applicationNote.noteType);
@@ -28,7 +30,8 @@ export function checkForDuplicateNoteTypes(input: SetApplicationNotesInput): voi
 
 export async function __setApplicationNotes(
   parent: unknown,
-  { input }: { input: SetApplicationNotesInput }
+  { input }: { input: SetApplicationNotesInput },
+  context: GraphQLContext
 ): Promise<PrismaApplication> {
   if (input.applicationNotes.length === 0) {
     return await getApplication(input.applicationId);
@@ -36,6 +39,20 @@ export async function __setApplicationNotes(
   try {
     checkForDuplicateNoteTypes(input);
     await prisma().$transaction(async (tx) => {
+      for (const applicationNote of input.applicationNotes) {
+        await insertApplicationAction(
+          {
+            applicationId: input.applicationId,
+            actionType:
+              applicationNote.content === null
+                ? "Deleted Application Note"
+                : "Set Application Note",
+            noteType: applicationNote.noteType,
+            userId: context.user.id,
+          },
+          tx
+        );
+      }
       await validateAllowedNoteChangeByPhase(tx, input);
       const parsedSetApplicationNotesInput = parseSetApplicationNotesInput(input);
       await upsertApplicationNotes(parsedSetApplicationNotesInput, tx);
