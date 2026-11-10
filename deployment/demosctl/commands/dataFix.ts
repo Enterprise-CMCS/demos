@@ -230,6 +230,7 @@ export async function dataFix(environment: string, file: string, opts: DataFixOp
       if (role.rows[0]?.current_user !== "demos_data_fix") {
         throw new DataFixError("data fix body changed current_user; refusing to continue");
       }
+      await client.query("SET CONSTRAINTS ALL IMMEDIATE");
       await client.query("RESET ROLE");
       console.log("rows affected:", rowsAffected);
       console.log("evidence:", evidence.rows);
