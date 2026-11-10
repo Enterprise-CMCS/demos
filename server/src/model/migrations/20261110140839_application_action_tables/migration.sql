@@ -21,7 +21,7 @@ CREATE TABLE "application_action_history" (
     "action_timestamp" TIMESTAMPTZ NOT NULL,
     "application_id" UUID NOT NULL,
     "action_type_id" TEXT NOT NULL,
-    "date_type_id" UUID,
+    "date_type_id" TEXT,
     "should_have_user_id" BOOLEAN NOT NULL,
     "should_have_date_type_id" BOOLEAN NOT NULL,
     "user_id" UUID,
