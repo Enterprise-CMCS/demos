@@ -6,9 +6,11 @@ CREATE TABLE "application_action" (
     "action_type_id" TEXT NOT NULL,
     "date_type_id" TEXT,
     "note_type_id" TEXT,
+    "document_type_id" TEXT,
     "should_have_user_id" BOOLEAN NOT NULL,
     "should_have_date_type_id" BOOLEAN NOT NULL,
     "should_have_note_type_id" BOOLEAN NOT NULL,
+    "should_have_document_type_id" BOOLEAN NOT NULL,
     "user_id" UUID,
 
     CONSTRAINT "application_action_pkey" PRIMARY KEY ("id")
@@ -25,9 +27,11 @@ CREATE TABLE "application_action_history" (
     "action_type_id" TEXT NOT NULL,
     "date_type_id" TEXT,
     "note_type_id" TEXT,
+    "document_type_id" TEXT,
     "should_have_user_id" BOOLEAN NOT NULL,
     "should_have_date_type_id" BOOLEAN NOT NULL,
     "should_have_note_type_id" BOOLEAN NOT NULL,
+    "should_have_document_type_id" BOOLEAN NOT NULL,
     "user_id" UUID,
 
     CONSTRAINT "application_action_history_pkey" PRIMARY KEY ("revision_id")
@@ -39,6 +43,7 @@ CREATE TABLE "application_action_type" (
     "should_have_user_id" BOOLEAN NOT NULL,
     "should_have_date_type_id" BOOLEAN NOT NULL,
     "should_have_note_type_id" BOOLEAN NOT NULL,
+    "should_have_document_type_id" BOOLEAN NOT NULL,
 
     CONSTRAINT "application_action_type_pkey" PRIMARY KEY ("id")
 );
@@ -47,7 +52,7 @@ CREATE TABLE "application_action_type" (
 CREATE UNIQUE INDEX "application_action_id_action_type_id_key" ON "application_action"("id", "action_type_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "application_action_type_id_should_have_user_id_should_have__key" ON "application_action_type"("id", "should_have_user_id", "should_have_date_type_id", "should_have_note_type_id");
+CREATE UNIQUE INDEX "application_action_type_id_should_have_user_id_should_have__key" ON "application_action_type"("id", "should_have_user_id", "should_have_date_type_id", "should_have_document_type_id", "should_have_note_type_id");
 
 -- AddForeignKey
 ALTER TABLE "application_action" ADD CONSTRAINT "application_action_application_id_fkey" FOREIGN KEY ("application_id") REFERENCES "application"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -59,10 +64,13 @@ ALTER TABLE "application_action" ADD CONSTRAINT "application_action_user_id_fkey
 ALTER TABLE "application_action" ADD CONSTRAINT "application_action_date_type_id_fkey" FOREIGN KEY ("date_type_id") REFERENCES "date_type"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "application_action" ADD CONSTRAINT "application_action_document_type_id_fkey" FOREIGN KEY ("document_type_id") REFERENCES "document_type"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "application_action" ADD CONSTRAINT "application_action_note_type_id_fkey" FOREIGN KEY ("note_type_id") REFERENCES "note_type"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "application_action" ADD CONSTRAINT "application_action_action_type_id_should_have_user_id_shou_fkey" FOREIGN KEY ("action_type_id", "should_have_user_id", "should_have_date_type_id", "should_have_note_type_id") REFERENCES "application_action_type"("id", "should_have_user_id", "should_have_date_type_id", "should_have_note_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "application_action" ADD CONSTRAINT "application_action_action_type_id_should_have_user_id_shou_fkey" FOREIGN KEY ("action_type_id", "should_have_user_id", "should_have_date_type_id", "should_have_document_type_id", "should_have_note_type_id") REFERENCES "application_action_type"("id", "should_have_user_id", "should_have_date_type_id", "should_have_document_type_id", "should_have_note_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 ALTER TABLE
     demos_app.application_action
@@ -71,7 +79,6 @@ ADD CONSTRAINT
 CHECK (
     (should_have_user_id = FALSE AND user_id IS NULL) OR (should_have_user_id = TRUE AND user_id IS NOT NULL)
 );
-
 
 ALTER TABLE
     demos_app.application_action
@@ -89,14 +96,25 @@ CHECK (
     (should_have_note_type_id = FALSE AND note_type_id IS NULL) OR (should_have_note_type_id = TRUE AND note_type_id IS NOT NULL)
 );
 
-INSERT INTO demos_app.application_action_type ( 
+ALTER TABLE
+    demos_app.application_action
+ADD CONSTRAINT
+    require_document_type_id_for_document_actions
+CHECK (
+    (should_have_document_type_id = FALSE AND document_type_id IS NULL) OR (should_have_document_type_id = TRUE AND document_type_id IS NOT NULL)
+);
+
+
+INSERT INTO demos_app.application_action_type (
     id, 
     should_have_user_id, 
-    should_have_date_type_id,
-    should_have_note_type_id
+    should_have_date_type_id, 
+    should_have_note_type_id,
+    should_have_document_type_id 
 ) VALUES
-    ('Set Application Date', TRUE, TRUE, FALSE),
-    ('Deleted Application Date', TRUE, TRUE, FALSE),
-    ('Set Application Note', TRUE, FALSE, TRUE),
-    ('Deleted Application Note', TRUE, FALSE, TRUE)
-;
+    ('Set Application Date', TRUE, TRUE, FALSE, FALSE),
+    ('Deleted Application Date', TRUE, TRUE, FALSE, FALSE),
+    ('Set Application Note', TRUE, FALSE, TRUE, FALSE),
+    ('Deleted Application Note', TRUE, FALSE, TRUE, FALSE),
+    ('Uploaded Application Document', TRUE, FALSE, FALSE, TRUE),
+    ('Deleted Application Document', TRUE, FALSE, FALSE, TRUE);

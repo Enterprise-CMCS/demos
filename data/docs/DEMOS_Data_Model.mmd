@@ -191,6 +191,7 @@ erDiagram
   application_action_type ||--|{ application_action : "FK177"
   date_type ||--|{ application_action : "FK179"
   note_type ||--|{ application_action : "FK180"
+  document_type ||--|{ application_action : "FK181"
 
   %% Static Constraints
   application_status:::staticConstraint {
@@ -439,24 +440,28 @@ erDiagram
     uuid id PK, UK "UK: (id, action_type_id)"
     timestamptz action_timestamp
     uuid application_id FK "FK176: application_id ∈ application.id"
-    text action_type_id FK, UK "FK177: (action_type_id, should_have_user_id, should_have_date_type_id, should_have_note_type_id) ∈ application_action_type.(id, should_have_user_id, should_have_date_type_id, should_have_note_type_id)"
+    text action_type_id FK, UK "FK177: (action_type_id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id) ∈ application_action_type.(id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id)"
     text date_type_id FK "FK179: date_type_id ∈ date_type.id<br>NULLABLE"
     text note_type_id FK "FK180: note_type_id ∈ note_type.id<br>NULLABLE"
-    bool should_have_user_id FK "FK177: (action_type_id, should_have_user_id, should_have_date_type_id) ∈ application_action_type.(id, should_have_user_id, should_have_date_type_id)"
-    bool should_have_date_type_id FK "FK177: (action_type_id, should_have_user_id, should_have_date_type_id, should_have_note_type_id) ∈ application_action_type.(id, should_have_user_id, should_have_date_type_id, should_have_note_type_id)"
-    bool should_have_note_type_id FK "FK177: (action_type_id, should_have_user_id, should_have_date_type_id, should_have_note_type_id) ∈ application_action_type.(id, should_have_user_id, should_have_date_type_id, should_have_note_type_id)"
+    text document_type_id FK "FK181: document_type_id ∈ document_type.id<br>NULLABLE"
+    bool should_have_user_id FK "FK177: (action_type_id, should_have_user_id, should_have_date_type_id, should_have_document_type_id) ∈ application_action_type.(id, should_have_user_id, should_have_date_type_id, should_have_document_type_id)"
+    bool should_have_date_type_id FK "FK177: (action_type_id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id) ∈ application_action_type.(id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id)"
+    bool should_have_note_type_id FK "FK177: (action_type_id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id) ∈ application_action_type.(id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id)"
+    bool should_have_document_type_id FK "FK177: (action_type_id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id) ∈ application_action_type.(id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id)"
     uuid user_id FK "FK178: user_id ∈ users.id<br>NULLABLE"
     CONSTRAINT_CHECK require_user_id_for_user_actions "If the action type is not a system action, require a user ID to be present."
     CONSTRAINT_CHECK require_date_type_id_for_date_actions "If the action type is not associated with a date, require date_type_id to be absent; otherwise require it to be present."
     CONSTRAINT_CHECK require_note_type_id_for_note_actions "If the action type is not associated with a note, require note_type_id to be absent; otherwise require it to be present."
+    CONSTRAINT_CHECK require_document_type_id_for_document_actions "If the action type is not associated with a document, require document_type_id to be absent; otherwise require it to be present."
     HAS_HISTORY true
   }
 
   application_action_type:::staticConstraint {
-    text id PK, UK "UK: (id, should_have_user_id, should_have_date_type_id, should_have_note_type_id)"
-    bool should_have_user_id UK "UK: (id, should_have_user_id, should_have_date_type_id, should_have_note_type_id)"
-    bool should_have_date_type_id UK "UK: (id, should_have_user_id, should_have_date_type_id, should_have_note_type_id)"
-    bool should_have_note_type_id UK "UK: (id, should_have_user_id, should_have_date_type_id, should_have_note_type_id)"
+    text id PK, UK "UK: (id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id)"
+    bool should_have_user_id UK "UK: (id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id)"
+    bool should_have_date_type_id UK "UK: (id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id)"
+    bool should_have_note_type_id UK "UK: (id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id)"
+    bool should_have_document_type_id UK "UK: (id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id)"
   }
 
   application_date:::dataTable {
