@@ -70,6 +70,20 @@ export const ModificationTabs = ({
     const updatedItem = sortedItems.find((item) => item.id === selectedId);
     if (updatedItem) {
       setSelectedItem(updatedItem);
+
+      // Updated URL query parameters to reflect the selected tab (amendment or renewal)
+      const url = new URL(window.location.href);
+      url.searchParams.set(
+        updatedItem.modificationType === "amendment" ? "amendments" : "renewals",
+        updatedItem.id
+      );
+
+      // Remove parameter if user swapped between amendment and renewal tab
+      url.searchParams.delete(
+        updatedItem.modificationType === "amendment" ? "renewals" : "amendments"
+      );
+
+      window.history.replaceState({}, "", url);
     }
   }, [selectedId, sortedItems]);
 

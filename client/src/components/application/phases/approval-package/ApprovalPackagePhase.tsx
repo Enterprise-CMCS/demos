@@ -87,13 +87,10 @@ export const ApprovalPackagePhase = ({
 
   return (
     <div>
-      <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">APPROVAL</h3>
-      <p className="text-sm text-text-placeholder mb-4">
+      <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">APPROVAL PACKAGE</h3>
+      <p className="text-sm text-text-placeholder">
         List of all required documents/reviews needed for approval. (*Applications approved on or after 1/1/2027 require an OACT Certification Memo.)
       </p>
-
-      <h4 className="text-[18px] font-bold tracking-wide mb-1">APPROVAL PACKAGE</h4>
-      <p className="text-sm text-text-placeholder">Each file type is required prior to approval.</p>
 
       <ApprovalPackageTable
         demonstrationId={applicationId}
