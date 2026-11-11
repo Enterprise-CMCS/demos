@@ -105,11 +105,18 @@ describe("ApplicationIntakePhase", () => {
     setSelectedPhase: vi.fn(),
   };
 
+  // Pin the flag off so these tests don't depend on DEMOS_VERSION in vite.config.ts;
+  // the nested "with weekend/holiday handling" blocks stub it back on
   beforeEach(() => {
+    vi.stubGlobal("__FEATURE_HANDLE_HOLIDAYS_WEEKENDS_FOR_DATES__", false);
     vi.clearAllMocks();
   });
 
-  const setup = (props: Partial<ApplicationIntakeProps> = {}, currentUser?: CurrentUser) => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const setup =(props: Partial<ApplicationIntakeProps> = {}, currentUser?: CurrentUser) => {
     const finalProps = { ...DEFAULT_APPLICATION_INTAKE_PROPS, ...props } as ApplicationIntakeProps;
 
     const applicationTagOptionsMock: MockedResponse = {
