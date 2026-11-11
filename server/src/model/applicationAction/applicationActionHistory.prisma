@@ -8,8 +8,10 @@ model ApplicationActionHistory {
   applicationId        String   @map("application_id") @db.Uuid
   actionTypeId         String   @map("action_type_id")
   dateTypeId           String?  @map("date_type_id")
+  noteTypeId           String?  @map("note_type_id")
   shouldHaveUserId     Boolean  @map("should_have_user_id")
   shouldHaveDateTypeId Boolean  @map("should_have_date_type_id")
+  shouldHaveNoteTypeId Boolean  @map("should_have_note_type_id")
   userId               String?  @map("user_id") @db.Uuid
 
   @@map("application_action_history")
