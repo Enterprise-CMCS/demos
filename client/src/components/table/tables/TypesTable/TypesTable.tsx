@@ -6,14 +6,14 @@ import { compareAsc } from "date-fns";
 import { CircleButton } from "components/button/CircleButton";
 import { DeleteIcon, EditIcon, ExportIcon } from "components/icons";
 import { KeywordSearch } from "components/table/search";
-import { PaginationControls } from "../PaginationControls";
-import { Table } from "../Table";
-import { TypesColumns } from "../columns/TypesColumns";
+import { PaginationControls } from "../../PaginationControls";
+import { Table } from "../../Table";
+import { TypesColumns } from "../../columns/TypesColumns";
 import { Deliverable, Demonstration as ServerDemonstration, Tag } from "demos-server";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { useDialog } from "components/dialog/DialogContext";
 import { Notice } from "components/notice";
-import { selectionTooltip } from "./actionTooltips";
+import { selectionTooltip } from "../actionTooltips";
 import { DemosApplicationSection, getCurrentUser, isReadonly } from "components/user/UserContext";
 import { exportTypeTagRecords } from "util/exportTypeTagRecords";
 import {
@@ -21,7 +21,7 @@ import {
   buildAssociatedRecordRows,
   sortAssociatedRecordsByDefault,
   TYPE_TAG_ASSOCIATED_RECORDS_QUERY,
-} from "./TypeTagAssociatedRecordsTable";
+} from "../TypeTagAssociatedRecordsTable";
 import { Table as TanstackTable } from "@tanstack/react-table";
 import { DemonstrationDetail } from "pages/DemonstrationDetail";
 

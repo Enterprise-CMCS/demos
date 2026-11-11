@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 
 import { ToastContainer } from "components/toast/ToastContainer";
 
-import { TypesTable, TYPES_TABLE_ACTION_BUTTONS_QUERY } from "./TypesTable";
+import { TypesTable, TYPES_TABLE_ACTION_BUTTONS_QUERY } from "../TypesTable/TypesTable";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { ApplicationStatus } from "demos-server";
 import { TestProvider } from "test-utils/TestProvider";
@@ -15,7 +15,7 @@ import {
   buildAssociatedRecordRows,
   sortAssociatedRecordsByDefault,
   TYPE_TAG_ASSOCIATED_RECORDS_QUERY,
-} from "./TypeTagAssociatedRecordsTable";
+} from "../TypeTagAssociatedRecordsTable";
 import {
   MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION,
   MOCK_TYPE_TABLE_ACTION_BUTTONS_DEMONSTRATION,
