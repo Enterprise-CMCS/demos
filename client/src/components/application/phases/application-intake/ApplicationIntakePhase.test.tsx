@@ -262,38 +262,6 @@ describe("ApplicationIntakePhase", () => {
       });
     });
 
-    describe("with weekend/holiday handling off", () => {
-      beforeEach(() => {
-        vi.stubGlobal("__FEATURE_HANDLE_HOLIDAYS_WEEKENDS_FOR_DATES__", false);
-      });
-
-      afterEach(() => {
-        vi.unstubAllGlobals();
-      });
-
-      it("renders the original Step 2 description", () => {
-        setup();
-        expect(
-          screen.getByTestId(APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.testId)
-        ).toHaveTextContent(APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.text);
-      });
-
-      it("shows help text for auto-calculated due date", () => {
-        setup();
-        expect(
-          screen.getByText(/Automatically calculated as 15 calendar days/)
-        ).toBeInTheDocument();
-      });
-
-      it("does not show the adjusted message", () => {
-        setup({ initialStateApplicationSubmittedDate: "2026-05-08" });
-
-        expect(
-          screen.queryByTestId(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEST_ID)
-        ).not.toBeInTheDocument();
-      });
-    });
-
     describe("with weekend/holiday handling", () => {
       it("renders the updated Step 2 description", () => {
         setup();
@@ -659,21 +627,6 @@ describe("ApplicationIntakePhase", () => {
       const result = getCompletenessReviewDueDate(submittedDate);
 
       expect(formatDateForServer(result)).toBe("2025-10-28");
-    });
-
-    describe("with weekend/holiday handling off", () => {
-      beforeEach(() => {
-        vi.stubGlobal("__FEATURE_HANDLE_HOLIDAYS_WEEKENDS_FOR_DATES__", false);
-      });
-
-      afterEach(() => {
-        vi.unstubAllGlobals();
-      });
-
-      it("does not move a weekend due date", () => {
-        expect(getCompletenessReviewDueDate("2026-05-08")).toBe("2026-05-23");
-        expect(isCompletenessReviewDueDateAdjusted("2026-05-08", "2026-05-23")).toBe(false);
-      });
     });
 
     describe("with weekend/holiday handling", () => {
