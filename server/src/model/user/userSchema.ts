@@ -8,7 +8,7 @@ export const userSchema = gql`
     username: String!
     person: Person!
     ownedDocuments: [Document!]!
-    ownedDeliverables: [Deliverable!]!
+    ownedDeliverables: [Deliverable!]! @auth(requires: ["Read Deliverables"])
     systemRoles: [SystemRole!]!
     permissions: [Permission!]!
     lastLogin: DateTime

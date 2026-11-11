@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 
 import { ToastContainer } from "components/toast/ToastContainer";
 
-import { TypesTable } from "./TypesTable";
+import { TypesTable, TYPES_TABLE_ACTION_BUTTONS_QUERY } from "./TypesTable";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { ApplicationStatus } from "demos-server";
 import { TestProvider } from "test-utils/TestProvider";
@@ -16,7 +16,10 @@ import {
   sortAssociatedRecordsByDefault,
   TYPE_TAG_ASSOCIATED_RECORDS_QUERY,
 } from "./TypeTagAssociatedRecordsTable";
-import { MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION } from "mock-data/demonstrationMocks";
+import {
+  MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION,
+  MOCK_TYPE_TABLE_ACTION_BUTTONS_DEMONSTRATION,
+} from "mock-data/demonstrationMocks";
 
 const mockShowRemoveDemonstrationTypesDialog = vi.fn();
 const mockShowEditDemonstrationTypeDialog = vi.fn();
@@ -64,10 +67,26 @@ const renderTypesTable = (
   return render(
     <TestProvider
       currentUser={currentUser}
-      mocks={Array.from({ length: 2 }, () => ({
-        request: { query: TYPE_TAG_ASSOCIATED_RECORDS_QUERY },
-        result: { data: { demonstrations: [MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION] } },
-      }))}
+      mocks={[
+        ...Array.from({ length: 2 }, () => ({
+          request: { query: TYPE_TAG_ASSOCIATED_RECORDS_QUERY },
+          result: { data: { demonstrations: [MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION] } },
+        })),
+        {
+          request: {
+            query: TYPES_TABLE_ACTION_BUTTONS_QUERY,
+            variables: { id: MOCK_DEMONSTRATION_ID },
+          },
+          result: {
+            data: {
+              demonstration: {
+                ...MOCK_TYPE_TABLE_ACTION_BUTTONS_DEMONSTRATION,
+                id: MOCK_DEMONSTRATION_ID,
+              },
+            },
+          },
+        },
+      ]}
     >
       <TypesTable
         demonstration={MOCK_DEMONSTRATION}
@@ -105,7 +124,7 @@ describe("TypesTable", () => {
     });
     const user = userEvent.setup();
     await user.type(screen.getByLabelText(/input keyword search query/i), ASSOCIATED_TYPE_NAME);
-    await user.click(screen.getByTestId("export-type-excel"));
+    await user.click(await screen.findByTestId("export-type-excel"));
 
     await waitFor(() =>
       expect(exportTypeTagRecords).toHaveBeenCalledWith(
@@ -124,7 +143,7 @@ describe("TypesTable", () => {
     renderTypesTable();
     const user = userEvent.setup();
 
-    await user.click(screen.getByTestId("export-type-excel"));
+    await user.click(await screen.findByTestId("export-type-excel"));
 
     await waitFor(() =>
       expect(screen.getByText("No associated records are available to export.")).toBeInTheDocument()
@@ -148,7 +167,7 @@ describe("TypesTable", () => {
         },
       });
       const user = userEvent.setup();
-      const button = screen.getByTestId("export-type-excel");
+      const button = await screen.findByTestId("export-type-excel");
       await user.click(button);
       await waitFor(() => expect(exportTypeTagRecords).toHaveBeenCalledOnce());
       expect(button).toBeDisabled();
@@ -249,10 +268,10 @@ describe("TypesTable", () => {
     expect(screen.queryByTestId("input-keyword-search")).not.toBeInTheDocument();
   });
 
-  it("disables action buttons when inputDisabled is true", () => {
+  it("disables action buttons when inputDisabled is true", async () => {
     renderTypesTable({ inputDisabled: true });
 
-    const editButton = screen.getByTestId("edit-type");
+    const editButton = await screen.findByTestId("edit-type");
     const deleteButton = screen.getByTestId("delete-type");
 
     expect(editButton).toBeDisabled();
@@ -266,7 +285,7 @@ describe("TypesTable", () => {
       await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
       await user.click(screen.getByTestId(`select-row-${mockTypes[1].demonstrationTypeName}`));
 
-      const deleteButton = screen.getByTestId("delete-type");
+      const deleteButton = await screen.findByTestId("delete-type");
       await user.click(deleteButton);
 
       expect(mockShowRemoveDemonstrationTypesDialog).toHaveBeenCalledWith(MOCK_DEMONSTRATION_ID, [
@@ -276,36 +295,99 @@ describe("TypesTable", () => {
     });
 
     it("does not allow deleting all demonstration types when demonstration is approved", async () => {
-      const demonstration = {
-        ...MOCK_DEMONSTRATION,
-        status: "Approved" as ApplicationStatus,
-      };
-      renderTypesTable({ demonstration });
+      render(
+        <TestProvider
+          currentUser={cmsMockUser}
+          mocks={[
+            {
+              request: {
+                query: TYPES_TABLE_ACTION_BUTTONS_QUERY,
+                variables: { id: MOCK_DEMONSTRATION_ID },
+              },
+              result: {
+                data: {
+                  demonstration: {
+                    ...MOCK_TYPE_TABLE_ACTION_BUTTONS_DEMONSTRATION,
+                    id: MOCK_DEMONSTRATION_ID,
+                    status: "Approved" as ApplicationStatus,
+                    demonstrationTypes: mockTypes.map(() => ({
+                      __typename: "DemonstrationTypeAssignment",
+                    })),
+                  },
+                },
+              },
+            },
+          ]}
+        >
+          <TypesTable demonstration={MOCK_DEMONSTRATION} applicationSection="ApplicationWorkflow" />
+        </TestProvider>
+      );
       const user = userEvent.setup();
       await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
       await user.click(screen.getByTestId(`select-row-${mockTypes[1].demonstrationTypeName}`));
 
-      const deleteButton = screen.getByTestId("delete-type");
+      const deleteButton = await screen.findByTestId("delete-type");
       expect(deleteButton).toBeDisabled();
     });
 
     it("allows deleting all demonstration types when demonstration is not approved", async () => {
-      const demonstration = {
-        ...MOCK_DEMONSTRATION,
-        status: "Under Review" as ApplicationStatus,
-      };
-      renderTypesTable({ demonstration });
+      render(
+        <TestProvider
+          currentUser={cmsMockUser}
+          mocks={[
+            {
+              request: {
+                query: TYPES_TABLE_ACTION_BUTTONS_QUERY,
+                variables: { id: MOCK_DEMONSTRATION_ID },
+              },
+              result: {
+                data: {
+                  demonstration: {
+                    ...MOCK_TYPE_TABLE_ACTION_BUTTONS_DEMONSTRATION,
+                    id: MOCK_DEMONSTRATION_ID,
+                    status: "Under Review" as ApplicationStatus,
+                    demonstrationTypes: mockTypes.map(() => ({
+                      __typename: "DemonstrationTypeAssignment",
+                    })),
+                  },
+                },
+              },
+            },
+          ]}
+        >
+          <TypesTable demonstration={MOCK_DEMONSTRATION} applicationSection="ApplicationWorkflow" />
+        </TestProvider>
+      );
       const user = userEvent.setup();
       await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
       await user.click(screen.getByTestId(`select-row-${mockTypes[1].demonstrationTypeName}`));
 
-      const deleteButton = screen.getByTestId("delete-type");
+      const deleteButton = await screen.findByTestId("delete-type");
       expect(deleteButton).not.toBeDisabled();
     });
 
     it("disables delete when a selected demonstration type is linked to a deliverable", async () => {
       render(
-        <TestProvider currentUser={cmsMockUser}>
+        <TestProvider
+          currentUser={cmsMockUser}
+          mocks={[
+            {
+              request: {
+                query: TYPES_TABLE_ACTION_BUTTONS_QUERY,
+                variables: { id: MOCK_DEMONSTRATION_ID },
+              },
+              result: {
+                data: {
+                  demonstration: {
+                    ...MOCK_TYPE_TABLE_ACTION_BUTTONS_DEMONSTRATION,
+                    id: MOCK_DEMONSTRATION_ID,
+                    deliverables: MOCK_DEMONSTRATION_WITH_DELIVERABLE.deliverables,
+                  },
+                },
+              },
+            },
+          ]}
+        >
           <TypesTable
             demonstration={MOCK_DEMONSTRATION_WITH_DELIVERABLE}
             applicationSection="ApplicationWorkflow"
@@ -317,7 +399,7 @@ describe("TypesTable", () => {
 
       await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
 
-      const deleteButton = screen.getByTestId("delete-type");
+      const deleteButton = await screen.findByTestId("delete-type");
 
       expect(deleteButton).toBeDisabled();
     });
@@ -328,7 +410,7 @@ describe("TypesTable", () => {
       renderTypesTable();
       const user = userEvent.setup();
       await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
-      const editButton = screen.getByTestId("edit-type");
+      const editButton = await screen.findByTestId("edit-type");
       await user.click(editButton);
 
       const expectedDemonstrationType = {
@@ -348,7 +430,7 @@ describe("TypesTable", () => {
     it("disables edit button when multiple types are selected", async () => {
       renderTypesTable();
       const user = userEvent.setup();
-      const editButton = screen.getByTestId("edit-type");
+      const editButton = await screen.findByTestId("edit-type");
       expect(editButton).toBeDisabled();
 
       await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));

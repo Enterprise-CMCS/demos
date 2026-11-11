@@ -132,6 +132,23 @@ export const MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION: AssociatedRecordsDe
   ],
 };
 
+export const MOCK_TYPE_TABLE_ACTION_BUTTONS_DEMONSTRATION = {
+  id: MOCK_DEMONSTRATION.id,
+  status: MOCK_DEMONSTRATION.status,
+  demonstrationTypes: [
+    {
+      demonstrationTypeName: MOCK_ASSOCIATED_TAG.tagName,
+      approvalStatus: MOCK_ASSOCIATED_TAG.approvalStatus,
+    },
+  ],
+  deliverables: [
+    {
+      id: MOCK_DELIVERABLE_1.id,
+      demonstrationTypes: [MOCK_ASSOCIATED_TAG],
+    },
+  ],
+};
+
 // Additional demonstrations with different tags for testing tag filtering
 export const MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION_2: AssociatedRecordsDemonstration = {
   ...MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION,
