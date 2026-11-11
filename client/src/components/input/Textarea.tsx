@@ -20,6 +20,7 @@ export interface TextareaProps {
   isRequired?: boolean;
   isDisabled?: boolean;
   placeholder?: string;
+  rows?: number;
   getValidationMessage?: (value: string) => string | undefined;
 }
 
@@ -32,10 +33,12 @@ export const Textarea: React.FC<TextareaProps> = ({
   isRequired,
   isDisabled,
   placeholder,
+  rows,
   getValidationMessage,
 }) => {
   const validationMessage = getValidationMessage ? getValidationMessage(value) : "";
-  const rowsToDisplay = Math.min(Math.max(value.split("\n").length, 1), MAX_ROWS);
+  const calculatedRowCount = Math.min(Math.max(value.split("\n").length, 1), MAX_ROWS);
+  const rowsToDisplay = rows ?? calculatedRowCount;
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange(e.target.value);

@@ -1,6 +1,7 @@
 import React from "react";
 import { ReviewPhaseFormData } from "./ReviewPhase";
 import { DatePicker } from "components/input/date/DatePicker";
+import { Textarea } from "components/input";
 import { CompletableSection } from "layout/completableSection";
 import { addDays, format, parseISO } from "date-fns";
 import { CMS_OSORA_CLEARANCE_DATE_TYPES } from "demos-server-constants";
@@ -111,24 +112,22 @@ export const CmsOsoraClearanceSection = ({
         </div>
         {!hideNotes && (
           <div className="col-span-2 flex flex-col">
-            <label className="text-sm font-bold text-text-font mb-1">Notes</label>
-            <textarea
+            <Textarea
               name="input-cms-osora-notes"
-              data-testid="input-cms-osora-notes"
+              label="Notes"
               placeholder="Enter notes..."
               value={sectionFormData.notes["CMS (OSORA) Clearance"] || ""}
-              onChange={(e) =>
+              onChange={(val) =>
                 setSectionFormData({
                   ...sectionFormData,
                   notes: {
                     ...sectionFormData.notes,
-                    "CMS (OSORA) Clearance": e.target.value,
+                    "CMS (OSORA) Clearance": val,
                   },
                 })
               }
-              className="border rounded p-1 min-h-25 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
               rows={1}
-              disabled={isReadonly}
+              isDisabled={isReadonly}
             />
           </div>
         )}

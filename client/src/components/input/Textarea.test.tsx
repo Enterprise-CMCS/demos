@@ -45,6 +45,12 @@ describe("Textarea", () => {
     expect(textarea).toHaveAttribute("rows", "1");
   });
 
+  it("uses the rows prop instead of the computed row count when provided", () => {
+    render(<Textarea {...defaultProps} rows={4} />);
+
+    expect(screen.getByTestId(DEFAULT_TEXT_AREA_NAME)).toHaveAttribute("rows", "4");
+  });
+
   describe("Auto-growing behavior", () => {
     it("grows to 2 rows when user adds one line break", async () => {
       const user = userEvent.setup();

@@ -1,6 +1,7 @@
 import React from "react";
 import { OGC_AND_OMB_DATE_TYPES, ReviewPhaseFormData } from "./ReviewPhase";
 import { DatePicker } from "components/input/date/DatePicker";
+import { Textarea } from "components/input";
 import { CompletableSection } from "layout/completableSection";
 
 type OmbAndOgcSectionFormData = {
@@ -100,24 +101,22 @@ export const OgcAndOmbSection = ({
         </div>
         {!hideNotes && (
           <div className="col-span-2 flex flex-col">
-            <label className="text-sm font-bold text-text-font mb-1">Notes</label>
-            <textarea
+            <Textarea
               name="input-ogc-omb-notes"
-              data-testid="input-ogc-omb-notes"
+              label="Notes"
               placeholder="Enter notes..."
               value={sectionFormData.notes["OGC and OMB"] || ""}
-              onChange={(e) =>
+              onChange={(val) =>
                 setSectionFormData({
                   ...sectionFormData,
                   notes: {
                     ...sectionFormData.notes,
-                    "OGC and OMB": e.target.value,
+                    "OGC and OMB": val,
                   },
                 })
               }
-              className="border rounded p-1 min-h-25 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
               rows={1}
-              disabled={isReadonly}
+              isDisabled={isReadonly}
             />
           </div>
         )}

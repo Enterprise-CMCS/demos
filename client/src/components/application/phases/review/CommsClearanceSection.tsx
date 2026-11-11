@@ -1,6 +1,7 @@
 import React from "react";
 import { ReviewPhaseFormData } from "./ReviewPhase";
 import { DatePicker } from "components/input/date/DatePicker";
+import { Textarea } from "components/input";
 import { CompletableSection } from "layout/completableSection";
 import { COMMS_CLEARANCE_DATE_TYPES } from "demos-server-constants";
 
@@ -67,24 +68,22 @@ export const CommsClearanceSection = ({
         </div>
         {!hideNotes && (
           <div className="col-span-2 flex flex-col">
-            <label className="text-sm font-bold text-text-font mb-1">Notes</label>
-            <textarea
+            <Textarea
               name="input-comms-clearance-notes"
-              data-testid="input-comms-clearance-notes"
+              label="Notes"
               placeholder="Enter notes..."
               value={sectionFormData.notes["COMMs Clearance"] || ""}
-              onChange={(e) =>
+              onChange={(val) =>
                 setSectionFormData({
                   ...sectionFormData,
                   notes: {
                     ...sectionFormData.notes,
-                    "COMMs Clearance": e.target.value,
+                    "COMMs Clearance": val,
                   },
                 })
               }
-              className="border rounded p-1 min-h-25 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
               rows={1}
-              disabled={isReadonly}
+              isDisabled={isReadonly}
             />
           </div>
         )}
