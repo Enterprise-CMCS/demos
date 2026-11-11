@@ -444,7 +444,7 @@ erDiagram
     text date_type_id FK "FK179: date_type_id ∈ date_type.id<br>NULLABLE"
     text note_type_id FK "FK180: note_type_id ∈ note_type.id<br>NULLABLE"
     text document_type_id FK "FK181: document_type_id ∈ document_type.id<br>NULLABLE"
-    bool should_have_user_id FK "FK177: (action_type_id, should_have_user_id, should_have_date_type_id, should_have_document_type_id) ∈ application_action_type.(id, should_have_user_id, should_have_date_type_id, should_have_document_type_id)"
+    bool should_have_user_id FK "FK177: (action_type_id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id) ∈ application_action_type.(id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id)"
     bool should_have_date_type_id FK "FK177: (action_type_id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id) ∈ application_action_type.(id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id)"
     bool should_have_note_type_id FK "FK177: (action_type_id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id) ∈ application_action_type.(id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id)"
     bool should_have_document_type_id FK "FK177: (action_type_id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id) ∈ application_action_type.(id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id)"
