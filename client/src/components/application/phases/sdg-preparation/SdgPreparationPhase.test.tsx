@@ -938,16 +938,13 @@ describe("SdgPreparationPhase - Draft Documents Section", () => {
     expect(screen.getByText("Briefing Overview")).toBeInTheDocument();
   });
 
-  it("hides upload button for readonly users", () => {
-    renderSection([], readonlyMockUser);
+  it.each([
+    { role: "readonly", user: readonlyMockUser },
+    { role: "OACT", user: oactMockUser },
+  ])("hides upload and document delete buttons for $role users", ({ user }) => {
+    renderSection([createDocument({ name: "Briefing Overview" })], user);
 
     expect(screen.queryByRole("button", { name: "Upload" })).not.toBeInTheDocument();
-  });
-
-  it("hides document delete buttons but shows upload button for OACT users", () => {
-    renderSection([createDocument({ name: "Briefing Overview" })], oactMockUser);
-
-    expect(screen.getByRole("button", { name: "Upload" })).toBeInTheDocument();
     expect(screen.getByText("Briefing Overview")).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Delete Briefing Overview" })
