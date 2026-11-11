@@ -52,7 +52,7 @@ CREATE TABLE "application_action_type" (
 CREATE UNIQUE INDEX "application_action_id_action_type_id_key" ON "application_action"("id", "action_type_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "application_action_type_id_should_have_user_id_should_have__key" ON "application_action_type"("id", "should_have_user_id", "should_have_date_type_id", "should_have_document_type_id", "should_have_note_type_id");
+CREATE UNIQUE INDEX "application_action_type_id_should_have_user_id_should_have__key" ON "application_action_type"("id", "should_have_user_id", "should_have_date_type_id", "should_have_note_type_id", "should_have_document_type_id");
 
 -- AddForeignKey
 ALTER TABLE "application_action" ADD CONSTRAINT "application_action_application_id_fkey" FOREIGN KEY ("application_id") REFERENCES "application"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -70,7 +70,7 @@ ALTER TABLE "application_action" ADD CONSTRAINT "application_action_document_typ
 ALTER TABLE "application_action" ADD CONSTRAINT "application_action_note_type_id_fkey" FOREIGN KEY ("note_type_id") REFERENCES "note_type"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "application_action" ADD CONSTRAINT "application_action_action_type_id_should_have_user_id_shou_fkey" FOREIGN KEY ("action_type_id", "should_have_user_id", "should_have_date_type_id", "should_have_document_type_id", "should_have_note_type_id") REFERENCES "application_action_type"("id", "should_have_user_id", "should_have_date_type_id", "should_have_document_type_id", "should_have_note_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "application_action" ADD CONSTRAINT "application_action_action_type_id_should_have_user_id_shou_fkey" FOREIGN KEY ("action_type_id", "should_have_user_id", "should_have_date_type_id", "should_have_note_type_id", "should_have_document_type_id") REFERENCES "application_action_type"("id", "should_have_user_id", "should_have_date_type_id", "should_have_note_type_id", "should_have_document_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 ALTER TABLE
     demos_app.application_action

@@ -1,12 +1,12 @@
 import { ApplicationAction as PrismaApplicationAction } from "@prisma/client";
 import { prisma, PrismaTransactionClient } from "../../../prismaClient";
-import { ApplicationActionType, DateType } from "../../../types";
+import { ApplicationActionType, DateType, NoteType } from "../../../types";
 
 export type InsertApplicationActionInput = {
   applicationId: string;
   actionType: ApplicationActionType;
   dateType?: DateType;
-  noteType?: string;
+  noteType?: NoteType;
   documentType?: string;
   userId?: string;
 };
