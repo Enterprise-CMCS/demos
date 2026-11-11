@@ -115,7 +115,6 @@ export const OgcAndOmbSection = ({
                   },
                 })
               }
-              rows={1}
               isDisabled={isReadonly}
             />
           </div>

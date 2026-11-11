@@ -82,7 +82,6 @@ export const CommsClearanceSection = ({
                   },
                 })
               }
-              rows={1}
               isDisabled={isReadonly}
             />
           </div>

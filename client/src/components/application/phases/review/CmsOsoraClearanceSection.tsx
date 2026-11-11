@@ -126,7 +126,6 @@ export const CmsOsoraClearanceSection = ({
                   },
                 })
               }
-              rows={1}
               isDisabled={isReadonly}
             />
           </div>

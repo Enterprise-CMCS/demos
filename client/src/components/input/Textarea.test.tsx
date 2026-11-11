@@ -16,7 +16,14 @@ describe("Textarea", () => {
   // Needed for tests that type into the textarea to test behavior
   const ControlledTextarea: React.FC = () => {
     const [value, setValue] = React.useState("");
-    return <Textarea name={DEFAULT_TEXT_AREA_NAME} label="Description" value={value} onChange={setValue} />;
+    return (
+      <Textarea
+        name={DEFAULT_TEXT_AREA_NAME}
+        label="Description"
+        value={value}
+        onChange={setValue}
+      />
+    );
   };
 
   it("renders with label and textarea", () => {
@@ -43,12 +50,6 @@ describe("Textarea", () => {
 
     const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
     expect(textarea).toHaveAttribute("rows", "1");
-  });
-
-  it("uses the rows prop instead of the computed row count when provided", () => {
-    render(<Textarea {...defaultProps} rows={4} />);
-
-    expect(screen.getByTestId(DEFAULT_TEXT_AREA_NAME)).toHaveAttribute("rows", "4");
   });
 
   describe("Auto-growing behavior", () => {
@@ -134,11 +135,7 @@ describe("Textarea", () => {
       const getValidationMessage = (value: string) => (value.length > 10 ? "Too long!" : undefined);
 
       render(
-        <Textarea
-          {...defaultProps}
-          value="Short"
-          getValidationMessage={getValidationMessage}
-        />
+        <Textarea {...defaultProps} value="Short" getValidationMessage={getValidationMessage} />
       );
 
       expect(screen.queryByText("Too long!")).not.toBeInTheDocument();

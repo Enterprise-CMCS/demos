@@ -120,7 +120,6 @@ export const PoAndOgdSection = ({
                   },
                 })
               }
-              rows={1}
               isDisabled={isReadonly}
             />
           </div>
