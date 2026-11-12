@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 
 import { ToastContainer } from "components/toast/ToastContainer";
 
-import { TypesTable } from "../TypesTable/TypesTable";
+import { TypesTable } from "./TypesTable";
 import { TypesTableActionButtons } from "./TypesTableActionButtons";
 import { ApplicationStatus } from "demos-server";
 import { TestProvider } from "test-utils/TestProvider";

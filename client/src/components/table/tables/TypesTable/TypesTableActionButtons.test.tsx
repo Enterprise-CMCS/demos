@@ -3,12 +3,14 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
+import { ToastContainer } from "components/toast/ToastContainer";
+
 import { TypeTableRow } from "./TypesTable";
 import {
   TypesTableActionButtons,
   TYPES_TABLE_ACTION_BUTTONS_QUERY,
+  type TypesTableActionButtonsQueryResult,
 } from "./TypesTableActionButtons";
-import { ApplicationStatus } from "demos-server";
 import { TestProvider } from "test-utils/TestProvider";
 import { cmsMockUser } from "mock-data/userMocks";
 import { exportTypeTagRecords } from "util/exportTypeTagRecords";
@@ -21,6 +23,7 @@ import {
   MOCK_DEMONSTRATION,
   MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION,
 } from "mock-data/demonstrationMocks";
+import { MockedResponse } from "@apollo/client/testing";
 
 const mockShowRemoveDemonstrationTypesDialog = vi.fn();
 const mockShowEditDemonstrationTypeDialog = vi.fn();
@@ -46,18 +49,15 @@ const ASSOCIATED_TYPE_NAME =
   MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION.demonstrationTypes[0].demonstrationTypeName;
 
 const renderActionButtons = (
-  propsOverides?: Partial<React.ComponentProps<typeof TypesTableActionButtons>>,
-  demonstrationOverrides?: Partial<{
-    status: ApplicationStatus;
-    demonstrationTypesCount: number;
-    deliverables: { id: string; demonstrationTypes: { tagName: string }[] }[];
-  }>
+  propsOverrides?: Partial<React.ComponentProps<typeof TypesTableActionButtons>>,
+  demonstrationOverrides?: Partial<TypesTableActionButtonsQueryResult["demonstration"]>
 ) => {
-  const mocks = [
-    ...Array.from({ length: 2 }, () => ({
+  const mocks: MockedResponse[] = [
+    {
       request: { query: TYPE_TAG_ASSOCIATED_RECORDS_QUERY },
       result: { data: { demonstrations: [MOCK_TYPE_TAG_ASSOCIATED_RECORDS_DEMONSTRATION] } },
-    })),
+      maxUsageCount: Number.POSITIVE_INFINITY,
+    },
     {
       request: {
         query: TYPES_TABLE_ACTION_BUTTONS_QUERY,
@@ -71,16 +71,18 @@ const renderActionButtons = (
     },
   ];
 
-  const defaultProps = {
+  const props = {
     rows: mockTypeRows,
     selectedRows: [mockTypeRows[0]],
     demonstrationId: MOCK_DEMONSTRATION.id,
     inputDisabled: false,
+    ...propsOverrides,
   };
 
   return render(
     <TestProvider currentUser={cmsMockUser} mocks={mocks}>
-      <TypesTableActionButtons {...defaultProps} {...propsOverides} />
+      <TypesTableActionButtons {...props} />
+      <ToastContainer />
     </TestProvider>
   );
 };
@@ -94,12 +96,9 @@ describe("TypesTableActionButtons", () => {
 
   describe("export", () => {
     it("exports associated records for the filtered types", async () => {
-      renderActionButtons(
-        {
-          rows: [{ ...mockTypeRows[1], typeLabel: ASSOCIATED_TYPE_NAME, id: ASSOCIATED_TYPE_NAME }],
-        },
-        {}
-      );
+      renderActionButtons({
+        rows: [{ ...mockTypeRows[1], typeLabel: ASSOCIATED_TYPE_NAME, id: ASSOCIATED_TYPE_NAME }],
+      });
       const user = userEvent.setup();
       await user.click(await screen.findByTestId("export-type-excel"));
 
@@ -118,19 +117,16 @@ describe("TypesTableActionButtons", () => {
 
     it("does not download an empty associated-record export", async () => {
       // None of these rows' type names match the associated-records mock's tagged type.
-      renderActionButtons(
-        { selectedRows: mockTypeRows.filter((row) => row.typeLabel !== ASSOCIATED_TYPE_NAME) },
-        {}
-      );
+      renderActionButtons({
+        rows: mockTypeRows.filter((row) => row.typeLabel !== ASSOCIATED_TYPE_NAME),
+      });
       const user = userEvent.setup();
 
       await user.click(await screen.findByTestId("export-type-excel"));
 
-      await waitFor(() =>
-        expect(
-          screen.getByText("No associated records are available to export.")
-        ).toBeInTheDocument()
-      );
+      expect(
+        await screen.findByText("No associated records are available to export.")
+      ).toBeInTheDocument();
       expect(exportTypeTagRecords).not.toHaveBeenCalled();
     });
 
@@ -196,20 +192,14 @@ describe("TypesTableActionButtons", () => {
     });
 
     it("does not allow deleting all demonstration types when demonstration is approved", async () => {
-      renderActionButtons(
-        { selectedRows: mockTypeRows },
-        { status: "Approved" as ApplicationStatus }
-      );
+      renderActionButtons({ selectedRows: mockTypeRows }, { status: "Approved" });
 
       const deleteButton = await screen.findByTestId("delete-type");
       expect(deleteButton).toBeDisabled();
     });
 
     it("allows deleting all demonstration types when demonstration is not approved", async () => {
-      renderActionButtons(
-        { selectedRows: mockTypeRows },
-        { status: "Under Review" satisfies ApplicationStatus }
-      );
+      renderActionButtons({ selectedRows: mockTypeRows }, { status: "Under Review" });
 
       const deleteButton = await screen.findByTestId("delete-type");
       expect(deleteButton).not.toBeDisabled();

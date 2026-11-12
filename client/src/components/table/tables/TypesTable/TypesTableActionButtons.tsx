@@ -19,15 +19,17 @@ import { selectionTooltip } from "../actionTooltips";
 import { CircleButton } from "components/button";
 import { DeleteIcon, EditIcon, ExportIcon } from "components/icons";
 
+export type TypesTableActionButtonsQueryResult = {
+  demonstration: Pick<ServerDemonstration, "id" | "status"> & {
+    deliverables: (Pick<ServerDeliverable, "id"> & {
+      demonstrationTypes: Pick<ServerTag, "tagName">[];
+    })[];
+    demonstrationTypes: object[];
+  };
+};
+
 export const TYPES_TABLE_ACTION_BUTTONS_QUERY: TypedDocumentNode<
-  {
-    demonstration: Pick<ServerDemonstration, "id" | "status"> & {
-      deliverables: (Pick<ServerDeliverable, "id"> & {
-        demonstrationTypes: Pick<ServerTag, "tagName">[];
-      })[];
-      demonstrationTypes: object[];
-    };
-  },
+  TypesTableActionButtonsQueryResult,
   { id: string }
 > = gql`
   query TypesTableActionButtonsQuery($id: ID!) {
