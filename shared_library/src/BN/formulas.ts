@@ -14,13 +14,17 @@ export class FormulaReadError extends Error {
 
 type OpenTagHandler = (name: string, attrs: () => Record<string, string>, decode: (text: string) => string) => void;
 
+function localName(name: string): string {
+  return name.split(":").at(-1)!;
+}
+
 function parseXml(bytes: Uint8Array, open: OpenTagHandler, close?: (name: string) => void): void {
   const parser = new Parser();
   const fail = (error: Error) => { throw new FormulaReadError(error.message); };
   parser.on("error", fail);
   parser.on("warn", fail);
-  parser.on("openTag", open);
-  if (close) parser.on("closeTag", close);
+  parser.on("openTag", (name, attrs, decode) => open(localName(name), attrs, decode));
+  if (close) parser.on("closeTag", (name) => close(localName(name)));
   parser.parse(strFromU8(bytes));
 }
 
@@ -35,6 +39,35 @@ function sheetPart(target: string): string {
     }
   }
   return parts.join("/");
+}
+
+function readFormulaCells(bytes: Uint8Array, sheet: string): Set<string> {
+  const cells = new Set<string>();
+  let address: string | undefined;
+  let cellDepth: number | undefined;
+  let depth = 0;
+  parseXml(bytes, (tag, attrs) => {
+    if (tag === "c") {
+      address = attrs().r;
+      if (!address || !/^[A-Z]+[1-9]\d*$/.test(address)) {
+        throw new FormulaReadError(`Cell without a valid address in sheet "${sheet}".`);
+      }
+      cellDepth = depth;
+    } else if (tag === "f" && address) {
+      if (depth !== cellDepth! + 1) {
+        throw new FormulaReadError(`Formula is not a direct child of a cell in sheet "${sheet}".`);
+      }
+      cells.add(address);
+    }
+    depth++;
+  }, (tag) => {
+    depth--;
+    if (tag === "c") {
+      address = undefined;
+      cellDepth = undefined;
+    }
+  });
+  return cells;
 }
 
 export function readFormulaInfo(bytes: Uint8Array): FormulaInfo {
@@ -61,8 +94,7 @@ export function readFormulaInfo(bytes: Uint8Array): FormulaInfo {
     const metadata = readParts(new Set([workbookPart, relsPart]));
     const sheets = new Map<string, string>();
     let fullCalcOnLoad = false;
-    parseXml(metadata[workbookPart]!, (name, attrs, decode) => {
-      const tag = name.split(":").at(-1);
+    parseXml(metadata[workbookPart]!, (tag, attrs, decode) => {
       if (tag === "sheet") {
         const attributes = attrs();
         const sheet = decode(attributes.name ?? "");
@@ -76,8 +108,8 @@ export function readFormulaInfo(bytes: Uint8Array): FormulaInfo {
       }
     });
     const relationships = new Map<string, string>();
-    parseXml(metadata[relsPart]!, (name, attrs, decode) => {
-      if (name.split(":").at(-1) !== "Relationship") return;
+    parseXml(metadata[relsPart]!, (tag, attrs, decode) => {
+      if (tag !== "Relationship") return;
       const attributes = attrs();
       if (!attributes.Id || !attributes.Target || attributes.TargetMode === "External") return;
       relationships.set(decode(attributes.Id), sheetPart(decode(attributes.Target)));
@@ -91,33 +123,7 @@ export function readFormulaInfo(bytes: Uint8Array): FormulaInfo {
     const worksheets = readParts(new Set(paths.values()));
     const formulaCells = new Map<string, Set<string>>();
     for (const [sheet, part] of paths) {
-      const cells = new Set<string>();
-      let address: string | undefined;
-      let cellDepth: number | undefined;
-      let depth = 0;
-      parseXml(worksheets[part]!, (name, attrs) => {
-        const tag = name.split(":").at(-1);
-        if (tag === "c") {
-          address = attrs().r;
-          if (!address || !/^[A-Z]+[1-9]\d*$/.test(address)) {
-            throw new FormulaReadError(`Cell without a valid address in sheet "${sheet}".`);
-          }
-          cellDepth = depth;
-        } else if (tag === "f" && address) {
-          if (depth !== cellDepth! + 1) {
-            throw new FormulaReadError(`Formula is not a direct child of a cell in sheet "${sheet}".`);
-          }
-          cells.add(address);
-        }
-        depth++;
-      }, (name) => {
-        depth--;
-        if (name.split(":").at(-1) === "c") {
-          address = undefined;
-          cellDepth = undefined;
-        }
-      });
-      formulaCells.set(sheet, cells);
+      formulaCells.set(sheet, readFormulaCells(worksheets[part]!, sheet));
     }
     return { formulaCells, fullCalcOnLoad };
   } catch (error) {

@@ -59,6 +59,31 @@ describe("readFormulaInfo", () => {
       .toEqual(new Set());
   });
 
+  it("normalizes prefixed metadata and worksheet tags and resets closed cells", () => {
+    const parts = workbookParts("<m:calcPr fullCalcOnLoad=\"true\"/>",
+      '<x:row><x:c r="B1"><x:f>1</x:f></x:c><x:f>ignored</x:f><x:c r="E1"><x:f>2</x:f></x:c></x:row>');
+    parts["xl/workbook.xml"] = parts["xl/workbook.xml"]!
+      .replace("<workbook ", '<m:workbook xmlns:m="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ')
+      .replaceAll("<sheets>", "<m:sheets>")
+      .replaceAll("</sheets>", "</m:sheets>")
+      .replaceAll("<sheet ", "<m:sheet ")
+      .replaceAll("</workbook>", "</m:workbook>");
+    parts["xl/_rels/workbook.xml.rels"] = parts["xl/_rels/workbook.xml.rels"]!
+      .replace("<Relationships ", '<p:Relationships xmlns:p="http://schemas.openxmlformats.org/package/2006/relationships" ')
+      .replaceAll("<Relationship ", "<p:Relationship ")
+      .replaceAll("</Relationships>", "</p:Relationships>");
+    parts["xl/worksheets/sheet1.xml"] = parts["xl/worksheets/sheet1.xml"]!
+      .replace("<worksheet ", '<x:worksheet xmlns:x="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ')
+      .replaceAll("<sheetData>", "<x:sheetData>")
+      .replaceAll("</sheetData>", "</x:sheetData>")
+      .replaceAll("</worksheet>", "</x:worksheet>");
+
+    const info = readFormulaInfo(zipWorkbook(parts));
+
+    expect(info.fullCalcOnLoad).toBe(true);
+    expect(info.formulaCells.get("Summary")).toEqual(new Set(["B1", "E1"]));
+  });
+
   it.each([
     ['Id="rId1"', 'Id="missing"'],
     ['Target="worksheets/sheet1.xml"', 'TargetMode="External" Target="https://example.com/sheet.xml"'],
