@@ -1,0 +1,16 @@
+// Flags: NO_HISTORY
+// Spending-limit values are replaceable snapshots derived from the uploaded workbook.
+model BudgetNeutralityWorkbookSpendingLimit {
+  workbookId    String   @map("workbook_id") @db.Uuid
+  programIndex  Int      @map("program_index")
+  programName   String   @map("program_name")
+  capTotal      Decimal? @map("cap_total") @db.Decimal(18, 2)
+  varianceTotal Decimal? @map("variance_total") @db.Decimal(18, 2)
+  overCap       Boolean? @map("over_cap")
+
+  workbook BudgetNeutralityWorkbook                   @relation(fields: [workbookId], references: [id], onDelete: Cascade)
+  megs     BudgetNeutralityWorkbookSpendingLimitMeg[]
+
+  @@id([workbookId, programIndex])
+  @@map("budget_neutrality_workbook_spending_limit")
+}

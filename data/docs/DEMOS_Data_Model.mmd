@@ -105,6 +105,10 @@ erDiagram
   document ||--|| budget_neutrality_workbook : "FK119 (DEFERRED)"
   budget_neutrality_workbook_document_type_limit ||--|{ budget_neutrality_workbook : "FK120"
   budget_neutrality_workbook }|--|| budget_neutrality_validation_status : "FK121"
+  budget_neutrality_workbook ||--o{ budget_neutrality_workbook_test_value : "FK176"
+  budget_neutrality_workbook ||--o{ budget_neutrality_workbook_test_year : "FK177"
+  budget_neutrality_workbook ||--o{ budget_neutrality_workbook_spending_limit : "FK178"
+  budget_neutrality_workbook_spending_limit ||--o{ budget_neutrality_workbook_spending_limit_meg : "FK179"
   document }|--|| deliverable_action : "FK116"
   document }|--|| deliverable_submission_action_type_limit : "FK117"
   deliverable_status ||--|{ deliverable_action_configuration : "FK110, FK113"
@@ -505,6 +509,43 @@ erDiagram
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_document "Verify that no corresponding record exists in the document table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
+  }
+
+  budget_neutrality_workbook_test_value:::dataTable {
+    uuid id PK
+    uuid workbook_id FK "FK176: workbook_id ∈ budget_neutrality_workbook.id ON DELETE CASCADE ON UPDATE CASCADE"
+    text test_id
+    text measure_id
+    text meg_name "NULLABLE"
+    integer dy_number "NULLABLE"
+    decimal(18,2) value
+    CONSTRAINT_UNIQUE_NULLS_NOT_DISTINCT bn_workbook_test_value_nnd_key "(workbook_id, test_id, measure_id, meg_name, dy_number)"
+    CONSTRAINT_CHECK check_bn_workbook_test_value_vocabulary "test_id is Main or Hypothetical 1 through Hypothetical 15; measure_id is Without-Waiver Total, With-Waiver Total, Expenditure Authority, or Net Variance"
+  }
+
+  budget_neutrality_workbook_test_year:::dataTable {
+    uuid workbook_id PK, FK "FK177: workbook_id ∈ budget_neutrality_workbook.id ON DELETE CASCADE ON UPDATE CASCADE"
+    text test_id PK
+    integer dy_number PK
+    bool cap_needed "NULLABLE"
+    CONSTRAINT_CHECK check_bn_workbook_test_year_test_id "test_id is Main or Hypothetical 1 through Hypothetical 15"
+  }
+
+  budget_neutrality_workbook_spending_limit:::dataTable {
+    uuid workbook_id PK, FK "FK178: workbook_id ∈ budget_neutrality_workbook.id ON DELETE CASCADE ON UPDATE CASCADE"
+    integer program_index PK
+    text program_name
+    decimal(18,2) cap_total "NULLABLE"
+    decimal(18,2) variance_total "NULLABLE"
+    bool over_cap "NULLABLE"
+  }
+
+  budget_neutrality_workbook_spending_limit_meg:::dataTable {
+    uuid workbook_id PK, FK "FK179: (workbook_id, program_index) ∈ budget_neutrality_workbook_spending_limit.(workbook_id, program_index) ON DELETE CASCADE ON UPDATE CASCADE"
+    integer program_index PK, FK "FK179: (workbook_id, program_index) ∈ budget_neutrality_workbook_spending_limit.(workbook_id, program_index) ON DELETE CASCADE ON UPDATE CASCADE"
+    integer line_number PK
+    text meg_name
+    decimal(18,2) subject_to_cap_total "NULLABLE"
   }
 
   %% NOTE: That empty line with <br>&nbsp; is a layout hack for Mermaid
