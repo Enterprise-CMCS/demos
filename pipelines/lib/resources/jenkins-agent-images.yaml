@@ -32,7 +32,7 @@ spec:
           memory: 1Gi
           ephemeral-storage: 10Gi
     - name: node
-      image: node:24.22.0-alpine
+      image: node:24.22.2-alpine
       command: 
         - cat
       tty: true
@@ -46,7 +46,7 @@ spec:
           memory: 2Gi
           ephemeral-storage: 10Gi
     - name: aws-cli
-      image: amazon/aws-cli:2.38.4
+      image: amazon/aws-cli:2.39.7
       command:
         - sleep
         - '99999'
@@ -89,7 +89,7 @@ spec:
           memory: 4Gi
           ephemeral-storage: "5Gi"
     - name: checkov
-      image: bridgecrew/checkov:3.3.29
+      image: bridgecrew/checkov:3.4.3
       command:
       - cat
       tty: true
