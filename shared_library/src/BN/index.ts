@@ -1,11 +1,12 @@
 import readExcelFile from "read-excel-file/universal";
 import fs from "node:fs/promises";
+import { readFormulaInfo } from "./formulas.js";
 
 export type CellValue<ParsedNumber = number> =
   | string
   | ParsedNumber
   | boolean
-  | typeof Date;
+  | Date;
 
 export type Row<ParsedNumber = number> = (CellValue<ParsedNumber> | null)[];
 
@@ -14,6 +15,7 @@ export type SheetData<ParsedNumber = number> = Row<ParsedNumber>[];
 export type ExcelData<ParsedNumber = number> = {
   sheet: string;
   data: SheetData<ParsedNumber>;
+  formulaCells?: Set<string>;
 }[];
 
 export async function parseBNFile(blob: Blob): Promise<ExcelData> {
@@ -26,6 +28,35 @@ export async function parseBNFileFromPath(path: string): Promise<ExcelData> {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
   return await parseBNFile(blob);
+}
+
+export async function parseBNWorkbook(path: string): Promise<{
+  data: ExcelData;
+  cachedValuesMayBeStale: boolean;
+  warnings: string[];
+}> {
+  const bytes = await fs.readFile(path);
+  const data = await parseBNFile(new Blob([bytes]));
+  const warnings: string[] = [];
+  let cachedValuesMayBeStale = false;
+  try {
+    const info = readFormulaInfo(bytes);
+    for (const entry of data) {
+      const cells = info.formulaCells.get(entry.sheet);
+      if (cells) entry.formulaCells = cells;
+    }
+    cachedValuesMayBeStale = info.fullCalcOnLoad;
+    if (cachedValuesMayBeStale) {
+      warnings.push("Workbook is flagged for full recalculation on open (fullCalcOnLoad); stored values may be stale. Open and save it in Excel, then re-upload.");
+    }
+  } catch (error) {
+    warnings.push(`Formula information could not be read; using cached values only: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  return { data, cachedValuesMayBeStale, warnings };
+}
+
+export function isFormulaCell(data: ExcelData, sheet: string, a1: string): boolean {
+  return data.find((entry) => entry.sheet === sheet)?.formulaCells?.has(a1) ?? false;
 }
 
 export function numberToExcelColumn(num: number): string {
