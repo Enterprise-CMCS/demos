@@ -70,12 +70,7 @@ export const TitleInput: React.FC<{
   onChange: (value: string) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   getValidationMessage?: (value: string) => string | undefined;
-}> = ({
-  value,
-  onChange,
-  onBlur,
-  getValidationMessage,
-}) => (
+}> = ({ value, onChange, onBlur, getValidationMessage }) => (
   <TextInput
     name="title"
     label="Document Title"
@@ -468,7 +463,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
             loadingLabel={"Uploading"}
           />
         }
-        cancelButtonIsDisabled={documentDialogState === "uploading"}
+        isPrimaryActionPending={documentDialogState === "uploading"}
       >
         <DropTarget
           file={file}
@@ -494,9 +489,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
           }}
           onBlur={() => setTitleTouched(true)}
           getValidationMessage={(value) =>
-            titleTouched && !value.trim()
-              ? "Document Title is required."
-              : undefined
+            titleTouched && !value.trim() ? "Document Title is required." : undefined
           }
         />
 

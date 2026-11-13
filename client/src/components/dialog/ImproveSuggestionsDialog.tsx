@@ -86,7 +86,7 @@ export const ImproveSuggestionsDialog = ({
       title="Improve Suggestions"
       onClose={onClose}
       dialogHasChanges={false}
-      cancelButtonIsDisabled={saving}
+      isPrimaryActionPending={saving}
       maxWidthClass="max-w-[850px]"
       actionButton={null}
     >

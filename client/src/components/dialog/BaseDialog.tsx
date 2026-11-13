@@ -20,7 +20,7 @@ export const BaseDialog = ({
   actionButton,
   dialogHasChanges = true,
   maxWidthClass = "max-w-[720px]",
-  cancelButtonIsDisabled = false,
+  isPrimaryActionPending = false,
 }: {
   name: string;
   title: string;
@@ -29,7 +29,7 @@ export const BaseDialog = ({
   actionButton: React.ReactNode;
   dialogHasChanges?: boolean;
   maxWidthClass?: string;
-  cancelButtonIsDisabled?: boolean;
+  isPrimaryActionPending?: boolean;
 }) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [isCancellationConfirmationOpen, setIsCancellationConfirmationOpen] = useState(false);
@@ -90,8 +90,8 @@ export const BaseDialog = ({
             data-testid="button-dialog-close"
             type="button"
             onClick={onCloseClicked}
-            disabled={cancelButtonIsDisabled}
-            className={cancelButtonIsDisabled ? CLOSE_BUTTON_DISABLED : CLOSE_BUTTON}
+            disabled={isPrimaryActionPending}
+            className={isPrimaryActionPending ? CLOSE_BUTTON_DISABLED : CLOSE_BUTTON}
             aria-label="Close dialog"
           >
             ×
@@ -107,7 +107,7 @@ export const BaseDialog = ({
               <SecondaryButton
                 name={DIALOG_CANCEL_BUTTON_NAME}
                 onClick={onCloseClicked}
-                disabled={cancelButtonIsDisabled}
+                disabled={isPrimaryActionPending}
                 aria-label="Cancel and close dialog"
               >
                 Cancel

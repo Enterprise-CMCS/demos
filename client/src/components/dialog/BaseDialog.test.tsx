@@ -72,9 +72,9 @@ describe("BaseDialog", () => {
     expect(screen.getByText("Cancel")).toBeInTheDocument();
   });
 
-  it("disables the close button and does not close when cancelButtonIsDisabled is true", () => {
+  it("disables the close button and does not close when isPrimaryActionPending is true", () => {
     const onClose = vi.fn();
-    render(<BaseDialog {...defaultProps} onClose={onClose} cancelButtonIsDisabled={true} />);
+    render(<BaseDialog {...defaultProps} onClose={onClose} isPrimaryActionPending={true} />);
     const closeBtn = screen.getByLabelText("Close dialog");
     expect(closeBtn).toBeDisabled();
     fireEvent.click(closeBtn);
