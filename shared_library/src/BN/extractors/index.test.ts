@@ -19,7 +19,7 @@ function workbook(netVarianceRow = 436): ExcelData {
       data: [
         [],
         [null, null, null, new Date("2026-07-14T00:00:00.000Z"), null, 32],
-        [null, null, null, "06/30/2026", null, 4],
+        [null, null, null, new Date("2026-06-30T12:00:00.000Z"), null, 4],
       ],
     },
     { sheet: "DY Def", data: [["Example State "], ["11-W-00000/1"]] },

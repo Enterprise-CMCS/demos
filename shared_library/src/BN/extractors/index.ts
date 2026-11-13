@@ -65,13 +65,21 @@ export const BN_WORKBOOK_FIELDS = [
     key: "dataPulledOn",
     column: "data_pulled_on",
     required: false,
-    extractor: optionalDateCell("dataPulledOn", { kind: "address", sheet: "C Report", address: "D2" }),
+    extractor: optionalDateCell(
+      "dataPulledOn",
+      { kind: "address", sheet: "C Report", address: "D2" },
+      "calendarDate",
+    ),
   },
   {
     key: "periodThrough",
     column: "period_through",
     required: false,
-    extractor: optionalDateCell("periodThrough", { kind: "address", sheet: "C Report", address: "D3" }),
+    extractor: optionalDateCell(
+      "periodThrough",
+      { kind: "address", sheet: "C Report", address: "D3" },
+      "calendarDate",
+    ),
   },
   {
     key: "workbookStateName",
