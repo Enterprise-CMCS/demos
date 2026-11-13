@@ -68,6 +68,7 @@ export const RemoveDemonstrationTypesDialog = ({
 
   return (
     <BaseDialog
+      name="dialog-remove-demonstration-types"
       title="Remove Type(s)"
       onClose={closeDialog}
       dialogHasChanges={false}

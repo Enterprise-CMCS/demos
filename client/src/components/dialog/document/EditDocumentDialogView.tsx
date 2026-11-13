@@ -45,6 +45,7 @@ export const EditDocumentDialogView: React.FC<{
 
   return (
     <BaseDialog
+      name="dialog-edit-document"
       title={"Edit Document"}
       onClose={closeDialog}
       dialogHasChanges={hasChanges(document, activeDocument)}

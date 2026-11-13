@@ -551,6 +551,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   return (
     <>
       <BaseDialog
+        name="dialog-manage-contacts"
         title="Manage Contact(s)"
         onClose={onClose}
         maxWidthClass="max-w-[1000px]"

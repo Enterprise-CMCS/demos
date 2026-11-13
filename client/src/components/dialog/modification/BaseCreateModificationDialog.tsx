@@ -35,6 +35,7 @@ export const BaseCreateModificationDialog: React.FC<{
 
   return (
     <BaseDialog
+      name={`dialog-create-${modificationType.toLowerCase()}`}
       title={`Add ${modificationType}`}
       onClose={closeDialog}
       dialogHasChanges={hasChanges(formData, initialModification)}
