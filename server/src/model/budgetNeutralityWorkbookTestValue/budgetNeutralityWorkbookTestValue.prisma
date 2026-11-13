@@ -1,0 +1,18 @@
+// Flags: NO_HISTORY
+// Normalized values are replaceable snapshots derived from the uploaded workbook.
+model BudgetNeutralityWorkbookTestValue {
+  id         String  @id @default(uuid()) @db.Uuid
+  workbookId String  @map("workbook_id") @db.Uuid
+  // testId and measureId are enforced by SQL CHECK check_bn_workbook_test_value_vocabulary.
+  testId     String  @map("test_id")
+  measureId  String  @map("measure_id")
+  megName    String? @map("meg_name")
+  dyNumber   Int?    @map("dy_number")
+  value      Decimal @db.Decimal(18, 2)
+
+  workbook BudgetNeutralityWorkbook @relation(fields: [workbookId], references: [id], onDelete: Cascade)
+
+  // NULL on both axes represents aggregate values; the migration adds NULLS NOT DISTINCT uniqueness.
+  @@unique([workbookId, testId, measureId, megName, dyNumber], map: "bn_workbook_test_value_nnd_key")
+  @@map("budget_neutrality_workbook_test_value")
+}

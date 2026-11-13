@@ -1,0 +1,14 @@
+// Flags: NO_HISTORY
+// Spending-limit MEGs are replaceable snapshots derived from the uploaded workbook.
+model BudgetNeutralityWorkbookSpendingLimitMeg {
+  workbookId        String   @map("workbook_id") @db.Uuid
+  programIndex      Int      @map("program_index")
+  lineNumber        Int      @map("line_number")
+  megName           String   @map("meg_name")
+  subjectToCapTotal Decimal? @map("subject_to_cap_total") @db.Decimal(18, 2)
+
+  spendingLimit BudgetNeutralityWorkbookSpendingLimit @relation(fields: [workbookId, programIndex], references: [workbookId, programIndex], onDelete: Cascade, map: "bn_workbook_spending_limit_meg_parent_fkey")
+
+  @@id([workbookId, programIndex, lineNumber])
+  @@map("budget_neutrality_workbook_spending_limit_meg")
+}
