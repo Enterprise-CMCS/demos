@@ -3,7 +3,7 @@ import React from "react";
 import Switch from "react-switch";
 import { CompletableSection } from "layout/completableSection";
 import { SecondaryButton } from "components/button";
-import { TypesTable } from "components/table/tables/TypesTable";
+import { TypesTable } from "components/table/tables/TypesTable/TypesTable";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { AddNewIcon } from "components/icons";
 import { useDialog } from "components/dialog/DialogContext";

@@ -1,46 +1,35 @@
-import * as React from "react";
-import { useToast } from "components/toast";
 import { gql, TypedDocumentNode, useLazyQuery, useQuery } from "@apollo/client";
-
-import { compareAsc } from "date-fns";
-import { CircleButton } from "components/button/CircleButton";
-import { DeleteIcon, EditIcon, ExportIcon } from "components/icons";
-import { KeywordSearch } from "components/table/search";
-import { PaginationControls } from "../PaginationControls";
-import { Table } from "../Table";
-import { TypesColumns } from "../columns/TypesColumns";
-import { Deliverable, Demonstration as ServerDemonstration, Tag } from "demos-server";
-import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { useDialog } from "components/dialog/DialogContext";
-import { Notice } from "components/notice";
-import { selectionTooltip } from "./actionTooltips";
-import { DemosApplicationSection, getCurrentUser, isReadonly } from "components/user/UserContext";
-import { exportTypeTagRecords } from "util/exportTypeTagRecords";
+import { useToast } from "components/toast";
+import React from "react";
 import {
   AssociatedRecordsDemonstration,
   buildAssociatedRecordRows,
   sortAssociatedRecordsByDefault,
   TYPE_TAG_ASSOCIATED_RECORDS_QUERY,
-} from "./TypeTagAssociatedRecordsTable";
-import { Table as TanstackTable } from "@tanstack/react-table";
-import { DemonstrationDetail } from "pages/DemonstrationDetail";
+} from "../TypeTagAssociatedRecordsTable";
+import {
+  Deliverable as ServerDeliverable,
+  Demonstration as ServerDemonstration,
+  Tag as ServerTag,
+} from "demos-server";
+import { TypeTableRow } from "./TypesTable";
+import { exportTypeTagRecords } from "util/exportTypeTagRecords";
+import { selectionTooltip } from "../actionTooltips";
+import { CircleButton } from "components/button";
+import { DeleteIcon, EditIcon, ExportIcon } from "components/icons";
 
-export type TypeTableRow = {
-  id: string;
-  typeLabel: string;
-  status: DemonstrationDetailDemonstrationType["status"];
-  approvalStatus: DemonstrationDetailDemonstrationType["approvalStatus"];
-  effectivePlainDate: string;
-  expirationPlainDate: string;
+export type TypesTableActionButtonsQueryResult = {
+  demonstration: Pick<ServerDemonstration, "id" | "status"> & {
+    deliverables: (Pick<ServerDeliverable, "id"> & {
+      demonstrationTypes: Pick<ServerTag, "tagName">[];
+    })[];
+    demonstrationTypes: object[];
+  };
 };
 
 export const TYPES_TABLE_ACTION_BUTTONS_QUERY: TypedDocumentNode<
-  {
-    demonstration: Pick<ServerDemonstration, "id" | "status"> & {
-      deliverables: (Pick<Deliverable, "id"> & { demonstrationTypes: Pick<Tag, "tagName">[] })[];
-      demonstrationTypes: object[];
-    };
-  },
+  TypesTableActionButtonsQueryResult,
   { id: string }
 > = gql`
   query TypesTableActionButtonsQuery($id: ID!) {
@@ -61,11 +50,13 @@ export const TYPES_TABLE_ACTION_BUTTONS_QUERY: TypedDocumentNode<
 `;
 
 export const TypesTableActionButtons = ({
-  table,
+  rows,
+  selectedRows,
   demonstrationId,
   inputDisabled,
 }: {
-  table: TanstackTable<TypeTableRow>;
+  rows: TypeTableRow[];
+  selectedRows: TypeTableRow[];
   demonstrationId: string;
   inputDisabled: boolean;
 }) => {
@@ -136,7 +127,7 @@ export const TypesTableActionButtons = ({
     return true;
   };
 
-  const selected = table.getSelectedRowModel().rows.map((r) => r.original);
+  const selected = selectedRows;
   const selectedCount = selected.length;
   const editDisabled = selectedCount !== 1;
   const removeDisabled = !canRemove(selected) || inputDisabled;
@@ -178,9 +169,7 @@ export const TypesTableActionButtons = ({
         aria-label="Export Types as Excel"
         tooltip={exportingExcel ? "Exporting Excel…" : "Export Excel"}
         disabled={exportingExcel}
-        onClick={() =>
-          exportTypesExcel(table.getRowModel().rows.map((row) => row.original.typeLabel))
-        }
+        onClick={() => exportTypesExcel(rows.map((row) => row.typeLabel))}
       >
         <ExportIcon />
       </CircleButton>
@@ -218,67 +207,6 @@ export const TypesTableActionButtons = ({
       >
         <DeleteIcon />
       </CircleButton>
-    </div>
-  );
-};
-
-export const TypesTable = ({
-  demonstration,
-  applicationSection,
-  inputDisabled = false,
-  hideSearch = false,
-}: {
-  demonstration: Pick<DemonstrationDetail, "id" | "status" | "demonstrationTypes">;
-  applicationSection: DemosApplicationSection;
-  inputDisabled?: boolean;
-  hideSearch?: boolean;
-}) => {
-  const { currentUser } = getCurrentUser();
-  const isReadonlyUser = isReadonly(currentUser, applicationSection);
-
-  const columns = TypesColumns(isReadonlyUser);
-
-  /*
-   * Ensure initial sort by createdAt date ascending
-   * and map to expected data structure
-   */
-  const typeRows: TypeTableRow[] = React.useMemo(() => {
-    return [...demonstration.demonstrationTypes]
-      .sort((a, b) => compareAsc(a.createdAt, b.createdAt))
-      .map((type) => ({
-        id: type.demonstrationTypeName,
-        typeLabel: type.demonstrationTypeName,
-        status: type.status,
-        approvalStatus: type.approvalStatus,
-        effectivePlainDate: type.effectivePlainDate,
-        expirationPlainDate: type.expirationPlainDate,
-      }));
-  }, [demonstration.demonstrationTypes]);
-
-  return (
-    <div className="overflow-x-auto w-full mb-2 flex flex-col gap-1">
-      {demonstration.status === "Approved" && (
-        <Notice title="At least one demonstration type is required for approved demonstrations." />
-      )}
-      {columns && (
-        <Table<TypeTableRow>
-          data={typeRows}
-          columns={columns}
-          keywordSearch={!hideSearch ? (table) => <KeywordSearch table={table} /> : undefined}
-          pagination={(table) => <PaginationControls table={table} />}
-          emptyRowsMessage="You have no assigned Types at this time"
-          noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
-          actionButtons={(table) =>
-            !isReadonlyUser && (
-              <TypesTableActionButtons
-                table={table}
-                demonstrationId={demonstration.id}
-                inputDisabled={inputDisabled}
-              />
-            )
-          }
-        />
-      )}
     </div>
   );
 };
