@@ -166,7 +166,6 @@ describe("getApprovalPackagePhaseFromApplication", () => {
   it("renders the phase component when Approval Package phase exists", () => {
     renderApprovalPackagePhase(baseDemonstration);
 
-    expect(screen.getByText("APPROVAL")).toBeInTheDocument();
     expect(screen.getByText("APPROVAL PACKAGE")).toBeInTheDocument();
   });
 

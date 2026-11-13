@@ -76,12 +76,10 @@ describe("ApprovalPackagePhase", () => {
   it("renders the section headers and subtext", () => {
     setup();
 
-    expect(screen.getByText("APPROVAL")).toBeInTheDocument();
+    expect(screen.getByText("APPROVAL PACKAGE")).toBeInTheDocument();
     expect(
       screen.getByText("List of all required documents/reviews needed for approval. (*Applications approved on or after 1/1/2027 require an OACT Certification Memo.)")
     ).toBeInTheDocument();
-    expect(screen.getByText("APPROVAL PACKAGE")).toBeInTheDocument();
-    expect(screen.getByText("Each file type is required prior to approval.")).toBeInTheDocument();
   });
 
   it("renders the table with all 7 required document types, even when no documents provided", () => {

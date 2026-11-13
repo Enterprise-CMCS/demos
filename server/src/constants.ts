@@ -47,6 +47,7 @@ export const DELIVERABLE_TYPES = [
   "Quarterly Budget Neutrality Report",
   "Summative Evaluation Report",
   "Transition Plan",
+  "Rapid Cycle Report",
 ] as const;
 export type DeliverableType = (typeof DELIVERABLE_TYPES)[number];
 
@@ -216,6 +217,7 @@ export const DOCUMENT_TYPES = [
   "Summative Evaluation Report",
   "Transition Plan",
   "OACT Certification Memo",
+  "Rapid Cycle Report",
 ] as const;
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 
@@ -563,6 +565,7 @@ export const PERMISSIONS = [
   "Access Admin Query",
   "Access CMS Field",
   "Access CMS Query",
+  "Read Deliverables",
   "Perform Admin Action",
   "Modify Applications",
   "Modify Deliverables",
