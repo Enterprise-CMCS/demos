@@ -63,10 +63,17 @@ export function readCell<T>(
   }
 }
 
-function parseNumeric(raw: CellValue): number | null {
+export function parseNumeric(raw: CellValue): number | null {
   if (typeof raw !== "number" && typeof raw !== "string") return null;
   const value = Number(raw);
   return Number.isFinite(value) ? value : null;
+}
+
+export function readNumericValue(data: ExcelData, sheet: string, address: string, warnings: string[]): number | undefined {
+  const result = readCell(data, { kind: "address", sheet, address }, parseNumeric);
+  if (result.ok) return result.value;
+  warnings.push(result.reason);
+  return undefined;
 }
 
 function parseText(raw: CellValue): string | null {
@@ -114,6 +121,14 @@ function cellExtractor(
 
 export function optionalNumericCell(key: string, locator: CellLocator): ExtractionFunction {
   return cellExtractor(key, locator, parseNumeric, false);
+}
+
+export function optionalIntegerCell(key: string, locator: CellLocator): ExtractionFunction {
+  return cellExtractor(key, locator, (raw) => {
+    const value = parseNumeric(raw);
+    return value !== null && Number.isInteger(value) && value >= -2147483648 && value <= 2147483647
+      ? value : null;
+  }, false);
 }
 
 export function optionalTextCell(key: string, locator: CellLocator): ExtractionFunction {

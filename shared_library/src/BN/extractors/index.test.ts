@@ -122,6 +122,21 @@ describe("BN extractors", () => {
     ]);
   });
 
+  it.each([1.5, 2147483648])("omits non-integer or out-of-range database integers %j", (value) => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const data = workbook();
+    data[0]!.data[3]![2] = value;
+    data[0]!.data[4]![2] = value;
+    data[1]!.data[1]![5] = value;
+    data[1]!.data[2]![5] = value;
+    const values = extract(data);
+    for (const key of ["reportingStartDy", "reportingEndDy", "reportingDy", "reportingQuarter"]) {
+      expect(values.has(key)).toBe(false);
+    }
+    expect(warn).toHaveBeenCalledTimes(4);
+    expect(missingFieldWarnings(values)).toHaveLength(4);
+  });
+
   it.each([null, "", "Blank cell. No entry"])("still throws on missing required actuals %j", async (value) => {
     const data = workbook();
     data[0]!.data[7]![1] = value;

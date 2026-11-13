@@ -1,7 +1,7 @@
 import type { ExtractionFunction } from "../validation.js";
 import {
   optionalDateCell,
-  optionalNumericCell,
+  optionalIntegerCell,
   optionalTextCell,
   requiredNumericCell,
   requiredTextCell,
@@ -9,6 +9,9 @@ import {
 
 export * from "./cells.js";
 export * from "./labels.js";
+export * from "./summary.js";
+export * from "./spendingLimits.js";
+export * from "./workbook.js";
 
 export const BN_WORKBOOK_FIELDS = [
   {
@@ -32,7 +35,7 @@ export const BN_WORKBOOK_FIELDS = [
     key: "reportingStartDy",
     column: "reporting_start_dy",
     required: false,
-    extractor: optionalNumericCell("reportingStartDy", {
+    extractor: optionalIntegerCell("reportingStartDy", {
       kind: "address", sheet: "Summary", address: "C4",
     }),
   },
@@ -40,7 +43,7 @@ export const BN_WORKBOOK_FIELDS = [
     key: "reportingEndDy",
     column: "reporting_end_dy",
     required: false,
-    extractor: optionalNumericCell("reportingEndDy", {
+    extractor: optionalIntegerCell("reportingEndDy", {
       kind: "address", sheet: "Summary", address: "C5",
     }),
   },
@@ -48,13 +51,13 @@ export const BN_WORKBOOK_FIELDS = [
     key: "reportingDy",
     column: "reporting_dy",
     required: false,
-    extractor: optionalNumericCell("reportingDy", { kind: "address", sheet: "C Report", address: "F2" }),
+    extractor: optionalIntegerCell("reportingDy", { kind: "address", sheet: "C Report", address: "F2" }),
   },
   {
     key: "reportingQuarter",
     column: "reporting_quarter",
     required: false,
-    extractor: optionalNumericCell("reportingQuarter", {
+    extractor: optionalIntegerCell("reportingQuarter", {
       kind: "address", sheet: "C Report", address: "F3",
     }),
   },

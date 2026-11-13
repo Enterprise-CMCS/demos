@@ -61,6 +61,22 @@ describe("locateLabelRows", () => {
     sparse[0]!.data[100] = [null, "TOTAL"];
     expect(locateLabelRows(sparse, "Summary", "TOTAL")).toEqual([101]);
   });
+
+  it("ignores formula anchors only when formula metadata is present", () => {
+    const formulaData: ExcelData = [{
+      sheet: "Summary",
+      data: [[null, "TOTAL"], [null, "TOTAL"]],
+      formulaCells: new Set(["B1"]),
+    }];
+    expect(locateLabelRows(formulaData, "Summary", "TOTAL")).toEqual([2]);
+    expect(locateLabelRow(formulaData, "Summary", "TOTAL")).toEqual({ ok: true, row: 2 });
+
+    delete formulaData[0]!.formulaCells;
+    expect(locateLabelRows(formulaData, "Summary", "TOTAL")).toEqual([1, 2]);
+    expect(locateLabelRow(formulaData, "Summary", "TOTAL")).toEqual({
+      ok: false, reason: expect.stringContaining("2 matches"),
+    });
+  });
 });
 
 describe("locateLabelRow", () => {

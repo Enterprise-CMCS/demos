@@ -1,4 +1,4 @@
-import type { ExcelData } from "../index.js";
+import { isFormulaCell, type ExcelData } from "../index.js";
 
 export type LabelRange = { first?: number; last?: number };
 
@@ -19,7 +19,9 @@ export function locateLabelRows(
 
   const rows: number[] = [];
   for (let row = first; row <= Math.min(last, sheetData.data.length); row++) {
-    if (sheetData.data[row - 1]?.[1] === label) rows.push(row);
+    if (sheetData.data[row - 1]?.[1] === label && !isFormulaCell(data, sheet, `B${row}`)) {
+      rows.push(row);
+    }
   }
   return rows;
 }
