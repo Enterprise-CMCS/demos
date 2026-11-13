@@ -11,6 +11,7 @@ describe("BaseDialog", () => {
     title: "Test Dialog",
     onClose: vi.fn(),
     children: <div>Dialog content</div>,
+    actionButton: <button>Save</button>,
   };
 
   afterEach(() => {

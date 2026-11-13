@@ -27,7 +27,7 @@ export const BaseDialog = ({
   title: string;
   onClose: () => void;
   children: React.ReactNode;
-  actionButton?: React.ReactNode;
+  actionButton: React.ReactNode;
   dialogHasChanges?: boolean;
   maxWidthClass?: string;
   hideHeader?: boolean;
