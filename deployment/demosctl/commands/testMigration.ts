@@ -4,6 +4,8 @@ import { getSecret } from "../lib/getSecret";
 import { Client } from "pg";
 import { runMigration } from "./runMigration";
 
+export const RDS_CA_BUNDLE_URL = "https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem";
+
 export function fetchCACert(url: string): Promise<string> {
   return new Promise((res, rej) => {
     https
@@ -39,7 +41,7 @@ export async function testMigration(environment: string, dbname?: string) {
   const safeName = dbname;
 
   console.log("test-migration:", environment);
-  const caCert = await fetchCACert("https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem");
+  const caCert = await fetchCACert(RDS_CA_BUNDLE_URL);
   const secretDataRaw = await getSecret(`demos-${environment}-rds-admin`);
   if (!secretDataRaw) {
     console.error(`unable to retrieve secret data for demos-${environment}-rds-admin`);

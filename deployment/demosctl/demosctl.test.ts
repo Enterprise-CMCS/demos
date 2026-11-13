@@ -10,7 +10,7 @@ import { up } from "./commands/up";
 import { down } from "./commands/down";
 import { runMigration } from "./commands/runMigration";
 import { testMigration } from "./commands/testMigration";
-import { dataFixLint } from "./commands/dataFix";
+import { dataFix, dataFixLint } from "./commands/dataFix";
 import { main } from "./demosctl";
 
 vi.mock("./commands/buildClient");
@@ -35,6 +35,19 @@ const expectFunc = async (command: string, func: Function, stage: string, additi
 };
 
 describe("demosctl root", () => {
+  let originalArgv: string[];
+
+  beforeEach(() => {
+    originalArgv = process.argv;
+    vi.resetAllMocks();
+  });
+
+  afterEach(() => {
+    process.argv = originalArgv;
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
   test("should run the proper commands", async () => {
     const mockStageName = "unit-test";
 
@@ -59,29 +72,62 @@ describe("demosctl root", () => {
     expect(testMigration).toHaveBeenCalledTimes(1);
   });
 
-  test("should run data-fix:lint and return its exit code", async () => {
-    vi.mocked(dataFixLint).mockResolvedValueOnce(1);
+  test.each([0, 1] as const)("should return data-fix:lint exit code %s", async (exitCode) => {
+    vi.mocked(dataFixLint).mockResolvedValueOnce(exitCode);
     process.argv = ["", "", "data-fix:lint", "all"];
 
-    expect(await main()).toEqual(1);
-    expect(dataFixLint).toHaveBeenCalledTimes(1);
+    expect(await main()).toEqual(exitCode);
+    expect(dataFixLint).toHaveBeenCalledExactlyOnceWith(undefined);
+    expect(dataFix).not.toHaveBeenCalled();
   });
 
   test("should pass an optional folder to data-fix:lint", async () => {
+    vi.mocked(dataFixLint).mockResolvedValueOnce(0);
     process.argv = ["", "", "data-fix:lint", "all", "some/dir"];
-    await main();
-    expect(dataFixLint).toHaveBeenCalledWith("some/dir");
+    expect(await main()).toEqual(0);
+    expect(dataFixLint).toHaveBeenCalledExactlyOnceWith("some/dir");
+    expect(dataFix).not.toHaveBeenCalled();
   });
 
   test("should require all for data-fix:lint", async () => {
-    vi.spyOn(console, "error");
+    vi.spyOn(console, "error").mockImplementation(() => {});
 
     process.argv = ["", "", "data-fix:lint", "some/dir"];
     const resp = await main();
 
     expect(console.error).toHaveBeenCalledWith("usage: data-fix:lint all [dir]");
     expect(dataFixLint).not.toHaveBeenCalled();
+    expect(dataFix).not.toHaveBeenCalled();
     expect(resp).toEqual(1);
+  });
+
+  test.each([
+    { apply: false, exitCode: 0 },
+    { apply: false, exitCode: 1 },
+    { apply: true, exitCode: 0 },
+    { apply: true, exitCode: 1 },
+  ])("should pass Jenkins metadata with apply=$apply and return exit code $exitCode", async ({ apply, exitCode }) => {
+    vi.stubEnv("APPROVED_BY", "test-approver");
+    vi.stubEnv("APPLIED_BY", "test-user");
+    vi.stubEnv("GIT_COMMIT", "test-commit");
+    vi.stubEnv("BUILD_URL", "https://example.invalid/build/1");
+    vi.mocked(dataFix).mockResolvedValueOnce(exitCode);
+    process.argv = ["", "", "data-fix", "dev", "example.sql", ...(apply ? ["--apply"] : [])];
+    expect(await main()).toEqual(exitCode);
+    expect(dataFix).toHaveBeenCalledExactlyOnceWith("dev", "example.sql", {
+      apply, approvedBy: "test-approver", appliedBy: "test-user",
+      gitCommit: "test-commit", buildUrl: "https://example.invalid/build/1",
+    });
+    expect(dataFixLint).not.toHaveBeenCalled();
+  });
+
+  test.each([[], ["--apply"], ["example.sql", "--unknown"], ["example.sql", "--apply", "extra"]])("should reject invalid data-fix arguments %j", async (...args) => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    process.argv = ["", "", "data-fix", "dev", ...args];
+    expect(await main()).toEqual(1);
+    expect(console.error).toHaveBeenCalledWith("usage: data-fix <env> <file> [--apply]");
+    expect(dataFix).not.toHaveBeenCalled();
+    expect(dataFixLint).not.toHaveBeenCalled();
   });
 
   test("should require a stage name", async () => {
