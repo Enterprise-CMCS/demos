@@ -152,15 +152,37 @@ describe("text cell helpers", () => {
 
 describe("optionalDateCell", () => {
   it.each([
-    [new Date("2026-07-14T00:00:00.000Z"), "2026-07-14"],
+    [new Date("2026-07-14T00:00:00.000Z"), "2026-07-13"],
+    [new Date("2026-07-14T03:59:59.000Z"), "2026-07-13"],
+    [new Date("2026-07-14T04:00:00.000Z"), "2026-07-14"],
+    [new Date("2026-01-14T04:59:59.000Z"), "2026-01-13"],
+    [new Date("2026-01-14T05:00:00.000Z"), "2026-01-14"],
     ["2026-07-14", "2026-07-14"],
     ["07/14/2026", "2026-07-14"],
     ["7/4/2026", "2026-07-04"],
     ["02/29/2024", "2024-02-29"],
+    ["2026-07-14T00:00:00.000Z", "2026-07-13"],
     ["2026-07-14T12:34:56.000Z", "2026-07-14"],
-  ] as const)("normalizes date %s to %s independently of local timezone", (value, expected) => {
+    ["2026-07-14T00:30:00+02:00", "2026-07-13"],
+  ] as const)("normalizes date %s to %s in Eastern time", (value, expected) => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     expect(optionalDateCell("date", address)(workbook(value))).toEqual(new Map([["date", expected]]));
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [new Date("2026-07-14T00:00:00.000Z"), "2026-07-14"],
+    [new Date("2026-07-14T12:00:00.000Z"), "2026-07-14"],
+  ] as const)("preserves the UTC calendar date for declared calendar-date fields: %s", (value, expected) => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(optionalDateCell("date", address, "calendarDate")(workbook(value))).toEqual(new Map([["date", expected]]));
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("still interprets an explicit offset-bearing string as a timestamp in a calendar-date field", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(optionalDateCell("date", address, "calendarDate")(workbook("2026-07-14T00:00:00.000Z")))
+      .toEqual(new Map([["date", "2026-07-13"]]));
     expect(warn).not.toHaveBeenCalled();
   });
 

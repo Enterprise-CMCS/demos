@@ -2,6 +2,13 @@ import { excelColumnRow, type CellValue, type ExcelData } from "../index.js";
 import type { ExtractionFunction } from "../validation.js";
 import { locateLabelRow, type LabelRange } from "./labels.js";
 
+const EASTERN_DAY_FORMAT = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/New_York",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
 export type CellLocator =
   | { kind: "address"; sheet: string; address: string }
   | {
@@ -13,6 +20,7 @@ export type CellLocator =
     };
 
 export type CellRead<T> = { ok: true; value: T } | { ok: false; reason: string };
+export type NativeDateSemantics = "calendarDate" | "timestamp";
 
 function locateCellAddress(data: ExcelData, locator: CellLocator): string {
   if (locator.kind === "address") return locator.address;
@@ -43,7 +51,7 @@ export function readCell<T>(
   try {
     const address = locateCellAddress(data, locator);
     if (!/^[A-Z]+[1-9]\d*$/.test(address)) {
-      throw new Error("Invalid Excel column-row format");
+      return { ok: false, reason: "Invalid Excel column-row format" };
     }
     const raw = excelColumnRow(address, locator.sheet, data);
     const cell = `${locator.sheet}!${address}`;
@@ -73,9 +81,12 @@ function parseText(raw: CellValue): string | null {
   return typeof raw === "string" ? raw : null;
 }
 
-function parseDate(raw: CellValue): string | null {
+// We want to return any YYYY-MM-DD type value as the day that it says, which read_exel_file
+// parses as UTC. So if we cast raw YYYY-MM-DD to Eastern, that would be incorrect.
+function parseDate(raw: CellValue, nativeDateSemantics: NativeDateSemantics): string | null {
   if (raw instanceof Date) {
-    return Number.isFinite(raw.getTime()) ? raw.toISOString().slice(0, 10) : null;
+    if (!Number.isFinite(raw.getTime())) return null;
+    return nativeDateSemantics === "calendarDate" ? utcCalendarDate(raw) : easternCalendarDate(raw);
   }
   if (typeof raw !== "string") return null;
 
@@ -87,12 +98,27 @@ function parseDate(raw: CellValue): string | null {
   if (!/^\d{4}-\d{2}-\d{2}(?:$|T.+(?:Z|[+-]\d{2}:\d{2})$)/.test(value)) return null;
 
   const calendarDate = value.slice(0, 10);
-  const date = new Date(calendarDate);
+  const date = new Date(`${calendarDate}T00:00:00.000Z`);
   if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== calendarDate) {
     return null;
   }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return calendarDate;
+
   const parsed = new Date(value);
-  return Number.isFinite(parsed.getTime()) ? parsed.toISOString().slice(0, 10) : null;
+  return Number.isFinite(parsed.getTime()) ? easternCalendarDate(parsed) : null;
+}
+
+function easternCalendarDate(date: Date): string | null {
+  const parts = EASTERN_DAY_FORMAT.formatToParts(date);
+  const year = parts.find(({ type }) => type === "year")?.value;
+  const month = parts.find(({ type }) => type === "month")?.value;
+  const day = parts.find(({ type }) => type === "day")?.value;
+  return year && month && day ? `${year}-${month}-${day}` : null;
+}
+
+// Grab year month date from any UTC date
+function utcCalendarDate(date: Date): string {
+  return date.toISOString().slice(0, 10);
 }
 
 function cellExtractor(
@@ -120,8 +146,13 @@ export function optionalTextCell(key: string, locator: CellLocator): ExtractionF
   return cellExtractor(key, locator, parseText, false);
 }
 
-export function optionalDateCell(key: string, locator: CellLocator): ExtractionFunction {
-  return cellExtractor(key, locator, parseDate, false);
+export function optionalDateCell(
+  key: string,
+  locator: CellLocator,
+  nativeDateSemantics: NativeDateSemantics = "timestamp",
+): ExtractionFunction {
+  // Use calendarDate only when the field contract treats native Excel dates as calendar dates.
+  return cellExtractor(key, locator, (raw) => parseDate(raw, nativeDateSemantics), false);
 }
 
 export function requiredNumericCell(key: string, locator: CellLocator): ExtractionFunction {
