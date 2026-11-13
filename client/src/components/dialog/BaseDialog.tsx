@@ -18,19 +18,17 @@ export const BaseDialog = ({
   onClose,
   children,
   actionButton,
-  dialogHasChanges: hasChanges = true,
+  dialogHasChanges = true,
   maxWidthClass = "max-w-[720px]",
-  hideHeader = false,
   cancelButtonIsDisabled = false,
 }: {
-  name?: string;
+  name: string;
   title: string;
   onClose: () => void;
   children: React.ReactNode;
   actionButton: React.ReactNode;
   dialogHasChanges?: boolean;
   maxWidthClass?: string;
-  hideHeader?: boolean;
   cancelButtonIsDisabled?: boolean;
 }) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -72,7 +70,7 @@ export const BaseDialog = ({
   };
 
   const onCloseClicked = () => {
-    if (hasChanges) {
+    if (dialogHasChanges) {
       setIsCancellationConfirmationOpen(true);
     } else {
       onClose();
@@ -87,22 +85,20 @@ export const BaseDialog = ({
         onClose={handleDialogClose}
         data-testid={name}
       >
-        {!hideHeader && (
-          <>
-            <button
-              data-testid="button-dialog-close"
-              type="button"
-              onClick={onCloseClicked}
-              disabled={cancelButtonIsDisabled}
-              className={cancelButtonIsDisabled ? CLOSE_BUTTON_DISABLED : CLOSE_BUTTON}
-              aria-label="Close dialog"
-            >
-              ×
-            </button>
-            <h2 className={TITLE}>{title}</h2>
-            <hr className={HR} aria-hidden="true" />
-          </>
-        )}
+        <>
+          <button
+            data-testid="button-dialog-close"
+            type="button"
+            onClick={onCloseClicked}
+            disabled={cancelButtonIsDisabled}
+            className={cancelButtonIsDisabled ? CLOSE_BUTTON_DISABLED : CLOSE_BUTTON}
+            aria-label="Close dialog"
+          >
+            ×
+          </button>
+          <h2 className={TITLE}>{title}</h2>
+          <hr className={HR} aria-hidden="true" />
+        </>
         {children}
         {actionButton && (
           <>
