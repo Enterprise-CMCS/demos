@@ -4,7 +4,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { highlightCell } from "components/table/search";
 import { formatDateForDisplay } from "util/formatDate";
 import { createSelectColumnDef } from "./selectColumn";
-import { TypeTableRow } from "../tables/TypesTable";
+import { TypeTableRow } from "../tables/TypesTable/TypesTable";
 
 export function TypesColumns(isReadonlyUser: boolean) {
   const columnHelper = createColumnHelper<TypeTableRow>();

@@ -30,7 +30,7 @@ import { SummaryDetailsTab } from "./SummaryDetailsTab";
 import { useDialog } from "components/dialog/DialogContext";
 import { ContactsTab } from "./ContactsTab";
 import { useApolloClient } from "@apollo/client/react/hooks/useApolloClient";
-import { TypesTable } from "components/table/tables/TypesTable";
+import { TypesTable } from "components/table/tables/TypesTable/TypesTable";
 import { DeliverablesTab } from "./deliverables/DeliverablesTab";
 import { NON_DELIVERABLE_DOCUMENT_TYPES } from "demos-server-constants";
 import { getCurrentUser, isHidden, isReadonly } from "components/user/UserContext";
@@ -103,9 +103,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           icon={<FileIcon />}
           label="Deliverables"
           value={TAB.DELIVERABLES}
-          shouldRender={
-            isDemonstrationApproved && !isHidden(currentUser, "DeliverableManagement")
-          }
+          shouldRender={isDemonstrationApproved && !isHidden(currentUser, "DeliverableManagement")}
         >
           <DeliverablesTab
             parentDemonstration={{
