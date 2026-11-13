@@ -1,0 +1,14 @@
+// Flags: NO_HISTORY
+// Budget Neutrality CAP flags are replaceable snapshots derived from the uploaded workbook.
+model BudgetNeutralityWorkbookTestYear {
+  workbookId String   @map("workbook_id") @db.Uuid
+  // testId is enforced by SQL CHECK check_bn_workbook_test_year_test_id.
+  testId     String   @map("test_id")
+  dyNumber   Int      @map("dy_number")
+  capNeeded  Boolean? @map("cap_needed")
+
+  workbook BudgetNeutralityWorkbook @relation(fields: [workbookId], references: [id], onDelete: Cascade)
+
+  @@id([workbookId, testId, dyNumber])
+  @@map("budget_neutrality_workbook_test_year")
+}
