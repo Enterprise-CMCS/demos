@@ -87,7 +87,7 @@ export const AssignStatesDialog = ({
       title={ASSIGN_STATES_DIALOG_TITLE}
       onClose={onClose}
       dialogHasChanges={!sameStates(initialStateIds, selectedStateIds)}
-      cancelButtonIsDisabled={saving}
+      isPrimaryActionPending={saving}
       actionButton={
         <Button
           name="button-assign-states"

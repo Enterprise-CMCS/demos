@@ -149,6 +149,7 @@ export const EditDemonstrationTypeDialog = ({
 
   return (
     <BaseDialog
+      name="dialog-edit-demonstration-types"
       title="Edit Type"
       onClose={closeDialog}
       dialogHasChanges={hasChanges(initialDemonstrationTypeFormData, demonstrationTypeFormData)}

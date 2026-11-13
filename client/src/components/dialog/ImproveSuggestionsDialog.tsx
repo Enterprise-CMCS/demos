@@ -86,8 +86,9 @@ export const ImproveSuggestionsDialog = ({
       title="Improve Suggestions"
       onClose={onClose}
       dialogHasChanges={false}
-      cancelButtonIsDisabled={saving}
+      isPrimaryActionPending={saving}
       maxWidthClass="max-w-[850px]"
+      actionButton={null}
     >
       <fieldset disabled={saving} className="flex flex-col gap-2 min-w-0">
         <p className="text-md text-text-placeholder">

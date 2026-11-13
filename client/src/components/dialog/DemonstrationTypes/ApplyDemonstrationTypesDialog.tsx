@@ -82,6 +82,7 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
 
   return (
     <BaseDialog
+      name="dialog-apply-demonstration-types"
       title="Apply Type(s)"
       onClose={closeDialog}
       dialogHasChanges={!!demonstrationTypes.length}
