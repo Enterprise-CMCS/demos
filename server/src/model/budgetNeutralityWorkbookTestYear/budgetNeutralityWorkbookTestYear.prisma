@@ -1,5 +1,5 @@
 // Flags: NO_HISTORY
-// Corrective Action Plan flags are replaceable snapshots derived from the uploaded workbook.
+// Budget Neutrality CAP flags are replaceable snapshots derived from the uploaded workbook.
 model BudgetNeutralityWorkbookTestYear {
   workbookId String   @map("workbook_id") @db.Uuid
   // testId is enforced by SQL CHECK check_bn_workbook_test_year_test_id.
