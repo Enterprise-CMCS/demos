@@ -29,13 +29,14 @@ BEGIN
         JOIN demos_app.users AS u
             ON u.id = p.id
             AND u.person_type_id = p.person_type_id
-        WHERE p.first_name = '<>'
-            AND p.last_name = '<>'
+        -- only production has this user, for lower environments we can use the bypassed user instead
+        -- WHERE p.email = 'bypassedUser@email.com'
+        WHERE p.email = 'elizabeth.hill@cms.hhs.gov'
             AND p.person_type_id = 'demos-admin'
     );
 
     IF v_owner_user_id IS NULL THEN
-        RAISE EXCEPTION 'expected to find CMS admin <>';
+        RAISE EXCEPTION 'expected to find CMS admin Elizabeth Hill';
     END IF;
 
     INSERT INTO demos_app.reference (
@@ -91,6 +92,7 @@ BEGIN
     );
     v_rows_affected := v_rows_affected + 1;
 
+    -- Manually validated that each environment has the ReEntry demonstration type
     INSERT INTO demos_app.reference_demonstration_type (
         reference_id,
         demonstration_type_tag_name_id,
