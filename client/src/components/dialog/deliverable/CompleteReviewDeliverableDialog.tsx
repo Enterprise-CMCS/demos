@@ -62,6 +62,7 @@ export const CompleteReviewDeliverableDialog: React.FC<CompleteReviewDeliverable
   const [completeReviewTrigger] = useMutation(COMPLETE_DELIVERABLE_REVIEW_MUTATION);
 
   const [formData, setFormData] = useState<CompleteReviewFormData>(INITIAL_FORM_DATA);
+  const [isPrimaryActionPending, setIsPrimaryActionPending] = useState(false);
 
   const isValidForm = formIsValid(formData);
   const hasChanges = formHasChanges(formData);
@@ -69,6 +70,7 @@ export const CompleteReviewDeliverableDialog: React.FC<CompleteReviewDeliverable
   const handleSubmit = async () => {
     if (!isValidForm || formData.finalStatus === "") return;
 
+    setIsPrimaryActionPending(true);
     try {
       await completeReviewTrigger({
         variables: {
@@ -84,6 +86,8 @@ export const CompleteReviewDeliverableDialog: React.FC<CompleteReviewDeliverable
     } catch (error) {
       console.error(error);
       showError("Unable to complete deliverable review.");
+    } finally {
+      setIsPrimaryActionPending(false);
     }
   };
 
@@ -93,11 +97,12 @@ export const CompleteReviewDeliverableDialog: React.FC<CompleteReviewDeliverable
       title={COMPLETE_REVIEW_DIALOG_TITLE}
       onClose={onClose}
       dialogHasChanges={hasChanges}
+      isPrimaryActionPending={isPrimaryActionPending}
       actionButton={
         <Button
           name={COMPLETE_REVIEW_SUBMIT_BUTTON_NAME}
           onClick={handleSubmit}
-          disabled={!isValidForm}
+          disabled={!isValidForm || isPrimaryActionPending}
         >
           Submit
         </Button>
