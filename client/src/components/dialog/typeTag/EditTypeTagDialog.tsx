@@ -50,6 +50,7 @@ export const EditTypeTagDialog = ({
   onClose: () => void;
 }) => {
   const [displayText, setDisplayText] = React.useState<string>(typeTagName);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [renameTag] = useMutation(EDIT_TYPE_TAG_MUTATION);
   const { showSuccess, showError } = useToast();
 
@@ -60,6 +61,7 @@ export const EditTypeTagDialog = ({
 
   const handleSave = async () => {
     if (canSave) {
+      setIsSubmitting(true);
       try {
         await renameTag({
           variables: {
@@ -73,6 +75,8 @@ export const EditTypeTagDialog = ({
       } catch {
         onClose();
         showError("Failed to update type/tag");
+      } finally {
+        setIsSubmitting(false);
       }
     }
   };
@@ -84,7 +88,7 @@ export const EditTypeTagDialog = ({
       onClose={onClose}
       dialogHasChanges={hasChanges}
       actionButton={
-        <Button name={SAVE_TYPE_TAG_BUTTON_NAME} disabled={!canSave} onClick={handleSave}>
+        <Button name={SAVE_TYPE_TAG_BUTTON_NAME} disabled={!canSave || isSubmitting} onClick={handleSave}>
           Save Changes
         </Button>
       }

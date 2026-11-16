@@ -67,13 +67,14 @@ export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({
 
   const [selectedTags, setSelectedTags] = useState<Tag[]>([...initiallySelectedTags]);
   const [hasChanges, setHasChanges] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   useEffect(() => {
     setHasChanges(tagSetsDiffer(selectedTags, initiallySelectedTags));
   }, [selectedTags]);
 
   const handleApply = async () => {
-    onClose();
+    setIsSubmitting(true);
     try {
       await setApplicationTagsMutation({
         variables: {
@@ -87,6 +88,9 @@ export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({
     } catch (error) {
       showError("Failed to update application tags");
       throw error;
+    } finally {
+      setIsSubmitting(false);
+      onClose();
     }
   };
 
@@ -101,7 +105,7 @@ export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({
           onClick={handleApply}
           name="button-confirm-apply-tags"
           aria-label="Apply tags"
-          disabled={!hasChanges}
+          disabled={!hasChanges || isSubmitting}
         >
           Apply Tag(s)
         </Button>

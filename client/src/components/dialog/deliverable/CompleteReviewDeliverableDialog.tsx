@@ -62,6 +62,7 @@ export const CompleteReviewDeliverableDialog: React.FC<CompleteReviewDeliverable
   const [completeReviewTrigger] = useMutation(COMPLETE_DELIVERABLE_REVIEW_MUTATION);
 
   const [formData, setFormData] = useState<CompleteReviewFormData>(INITIAL_FORM_DATA);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isValidForm = formIsValid(formData);
   const hasChanges = formHasChanges(formData);
@@ -69,6 +70,7 @@ export const CompleteReviewDeliverableDialog: React.FC<CompleteReviewDeliverable
   const handleSubmit = async () => {
     if (!isValidForm || formData.finalStatus === "") return;
 
+    setIsSubmitting(true);
     try {
       await completeReviewTrigger({
         variables: {
@@ -84,6 +86,8 @@ export const CompleteReviewDeliverableDialog: React.FC<CompleteReviewDeliverable
     } catch (error) {
       console.error(error);
       showError("Unable to complete deliverable review.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -97,7 +101,7 @@ export const CompleteReviewDeliverableDialog: React.FC<CompleteReviewDeliverable
         <Button
           name={COMPLETE_REVIEW_SUBMIT_BUTTON_NAME}
           onClick={handleSubmit}
-          disabled={!isValidForm}
+          disabled={!isValidForm || isSubmitting}
         >
           Submit
         </Button>

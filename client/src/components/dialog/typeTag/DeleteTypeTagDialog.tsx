@@ -32,10 +32,12 @@ export const DeleteTypeTagDialog = ({
   onClose: () => void;
 }) => {
   const [displayText] = React.useState<string>(typeTagNames.join(", "));
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [ deleteTags ] = useMutation(DELETE_TYPE_TAGS_MUTATION);
   const { showSuccess, showError } = useToast();
 
   const handleDelete = async () => {
+    setIsSubmitting(true);
     try {
       await deleteTags({
         variables: {
@@ -48,6 +50,8 @@ export const DeleteTypeTagDialog = ({
     } catch {
       onClose();
       showError("Failed to delete type/tag(s)");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -60,7 +64,7 @@ export const DeleteTypeTagDialog = ({
       maxWidthClass="max-w-[500px]"
       onClose={onClose}
       actionButton={
-        <ErrorButton name={DELETE_TYPE_TAG_BUTTON_NAME} onClick={handleDelete}>
+        <ErrorButton name={DELETE_TYPE_TAG_BUTTON_NAME} disabled={isSubmitting} onClick={handleDelete}>
           Delete
         </ErrorButton>
       }
