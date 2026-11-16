@@ -29,6 +29,7 @@ export const ReferenceAgreementDialog = ({
 
   return (
     <BaseDialog
+      name="dialog-reference-agreement"
       title="Point and Click Agreement"
       onClose={closeDialog}
       maxWidthClass="max-w-[600px]"

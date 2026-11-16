@@ -45,6 +45,7 @@ export const EditDocumentDialogView: React.FC<{
 
   return (
     <BaseDialog
+      name="dialog-edit-document"
       title={"Edit Document"}
       onClose={closeDialog}
       dialogHasChanges={hasChanges(document, activeDocument)}
@@ -57,7 +58,7 @@ export const EditDocumentDialogView: React.FC<{
           loadingLabel={"Saving"}
         />
       }
-      cancelButtonIsDisabled={saving}
+      isPrimaryActionPending={saving}
     >
       <TitleInput
         value={activeDocument.name}
@@ -66,9 +67,7 @@ export const EditDocumentDialogView: React.FC<{
         }}
         onBlur={() => setTitleTouched(true)}
         getValidationMessage={(value) =>
-          titleTouched && !value.trim()
-            ? "Document Title is required."
-            : undefined
+          titleTouched && !value.trim() ? "Document Title is required." : undefined
         }
       />
 
