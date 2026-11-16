@@ -65,6 +65,7 @@ export const BaseEditModificationDialog: React.FC<{
 
   return (
     <BaseDialog
+      name={`dialog-edit-${modificationType.toLowerCase()}`}
       title="Edit Details"
       onClose={closeDialog}
       dialogHasChanges={modification && formData && hasChanges(formData, modification)}

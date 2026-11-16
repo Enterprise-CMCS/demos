@@ -32,6 +32,7 @@ export const RemoveDocumentDialogView: React.FC<{
 
   return (
     <BaseDialog
+      name="dialog-remove-document"
       title={`Remove Document${documentIds.length > 1 ? "s" : ""}`}
       onClose={onClose}
       dialogHasChanges={false}
