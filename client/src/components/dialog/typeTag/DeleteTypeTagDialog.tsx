@@ -32,12 +32,12 @@ export const DeleteTypeTagDialog = ({
   onClose: () => void;
 }) => {
   const [displayText] = React.useState<string>(typeTagNames.join(", "));
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isPrimaryActionPending, setIsPrimaryActionPending] = React.useState(false);
   const [ deleteTags ] = useMutation(DELETE_TYPE_TAGS_MUTATION);
   const { showSuccess, showError } = useToast();
 
   const handleDelete = async () => {
-    setIsSubmitting(true);
+    setIsPrimaryActionPending(true);
     try {
       await deleteTags({
         variables: {
@@ -51,7 +51,7 @@ export const DeleteTypeTagDialog = ({
       onClose();
       showError("Failed to delete type/tag(s)");
     } finally {
-      setIsSubmitting(false);
+      setIsPrimaryActionPending(false);
     }
   };
 
@@ -63,9 +63,9 @@ export const DeleteTypeTagDialog = ({
       title={DELETE_TYPE_TAG_DIALOG_TITLE}
       maxWidthClass="max-w-[500px]"
       onClose={onClose}
-      isPrimaryActionPending={isSubmitting}
+      isPrimaryActionPending={isPrimaryActionPending}
       actionButton={
-        <ErrorButton name={DELETE_TYPE_TAG_BUTTON_NAME} disabled={isSubmitting} onClick={handleDelete}>
+        <ErrorButton name={DELETE_TYPE_TAG_BUTTON_NAME} disabled={isPrimaryActionPending} onClick={handleDelete}>
           Delete
         </ErrorButton>
       }

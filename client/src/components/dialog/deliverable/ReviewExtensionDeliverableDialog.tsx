@@ -129,7 +129,7 @@ export const ReviewExtensionDeliverableDialog: React.FC<ReviewExtensionDeliverab
 
   const [formData, setFormData] = useState<ReviewExtensionFormData>(INITIAL_FORM_DATA);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPrimaryActionPending, setIsPrimaryActionPending] = useState(false);
 
   const [approveExtensionTrigger] = useMutation(APPROVE_DELIVERABLE_EXTENSION_MUTATION);
   const [denyExtensionTrigger] = useMutation(DENY_DELIVERABLE_EXTENSION_MUTATION);
@@ -152,7 +152,7 @@ export const ReviewExtensionDeliverableDialog: React.FC<ReviewExtensionDeliverab
       { query: DELIVERABLE_DETAILS_QUERY, variables: { id: deliverable.id } },
     ];
 
-    setIsSubmitting(true);
+    setIsPrimaryActionPending(true);
     try {
       if (formData.decision === "Denied") {
         await denyExtensionTrigger({
@@ -186,7 +186,7 @@ export const ReviewExtensionDeliverableDialog: React.FC<ReviewExtensionDeliverab
       console.error(error);
       showError("Unable to submit extension review.");
     } finally {
-      setIsSubmitting(false);
+      setIsPrimaryActionPending(false);
     }
   };
 
@@ -196,12 +196,12 @@ export const ReviewExtensionDeliverableDialog: React.FC<ReviewExtensionDeliverab
       title={REVIEW_EXTENSION_DIALOG_TITLE}
       onClose={onClose}
       dialogHasChanges={hasChanges}
-      isPrimaryActionPending={isSubmitting}
+      isPrimaryActionPending={isPrimaryActionPending}
       actionButton={
         <Button
           name={REVIEW_EXTENSION_SUBMIT_BUTTON_NAME}
           onClick={handleSubmit}
-          disabled={!isValidForm || isSubmitting}
+          disabled={!isValidForm || isPrimaryActionPending}
         >
           Submit
         </Button>

@@ -67,14 +67,14 @@ export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({
 
   const [selectedTags, setSelectedTags] = useState<Tag[]>([...initiallySelectedTags]);
   const [hasChanges, setHasChanges] = useState<boolean>(false);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isPrimaryActionPending, setIsPrimaryActionPending] = useState<boolean>(false);
 
   useEffect(() => {
     setHasChanges(tagSetsDiffer(selectedTags, initiallySelectedTags));
   }, [selectedTags]);
 
   const handleApply = async () => {
-    setIsSubmitting(true);
+    setIsPrimaryActionPending(true);
     try {
       await setApplicationTagsMutation({
         variables: {
@@ -89,7 +89,7 @@ export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({
       showError("Failed to update application tags");
       throw error;
     } finally {
-      setIsSubmitting(false);
+      setIsPrimaryActionPending(false);
       onClose();
     }
   };
@@ -100,13 +100,13 @@ export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({
       title={APPLY_TAGS_DIALOG_TITLE}
       onClose={onClose}
       dialogHasChanges={hasChanges}
-      isPrimaryActionPending={isSubmitting}
+      isPrimaryActionPending={isPrimaryActionPending}
       actionButton={
         <Button
           onClick={handleApply}
           name="button-confirm-apply-tags"
           aria-label="Apply tags"
-          disabled={!hasChanges || isSubmitting}
+          disabled={!hasChanges || isPrimaryActionPending}
         >
           Apply Tag(s)
         </Button>

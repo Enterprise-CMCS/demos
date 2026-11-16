@@ -34,12 +34,12 @@ export const ApproveTypeTagDialog = ({
   onClose: () => void;
 }) => {
   const [displayText] = React.useState<string>(typeTagNames.join(", "));
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isPrimaryActionPending, setIsPrimaryActionPending] = React.useState(false);
   const [approveTags] = useMutation(APPROVE_TYPE_TAGS_MUTATION);
   const { showSuccess, showError } = useToast();
 
   const handleApprove = async () => {
-    setIsSubmitting(true);
+    setIsPrimaryActionPending(true);
     try {
       await approveTags({
         variables: { tagNames: typeTagNames },
@@ -51,7 +51,7 @@ export const ApproveTypeTagDialog = ({
       onClose();
       showError("Failed to approve type/tag(s)");
     } finally {
-      setIsSubmitting(false);
+      setIsPrimaryActionPending(false);
     }
   };
 
@@ -63,9 +63,9 @@ export const ApproveTypeTagDialog = ({
       title={APPROVE_TYPE_TAG_DIALOG_TITLE}
       maxWidthClass="max-w-[500px]"
       onClose={onClose}
-      isPrimaryActionPending={isSubmitting}
+      isPrimaryActionPending={isPrimaryActionPending}
       actionButton={
-        <Button name={APPROVE_TYPE_TAG_BUTTON_NAME} disabled={isSubmitting} onClick={handleApprove}>
+        <Button name={APPROVE_TYPE_TAG_BUTTON_NAME} disabled={isPrimaryActionPending} onClick={handleApprove}>
           Approve
         </Button>
       }

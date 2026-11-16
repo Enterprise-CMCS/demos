@@ -30,7 +30,7 @@ export const CREATE_TYPE_TAG_MUTATION: TypedDocumentNode<
 export const CreateTypeTagDialog = () => {
   const { closeDialog } = useDialog();
   const { showSuccess, showError } = useToast();
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isPrimaryActionPending, setIsPrimaryActionPending] = React.useState(false);
   const [createTags] = useMutation(CREATE_TYPE_TAG_MUTATION);
 
   const [demonstrationTypes, setDemonstrationTypes] = useState<
@@ -38,7 +38,7 @@ export const CreateTypeTagDialog = () => {
   >([]);
 
   const handleSave = async () => {
-    setIsSubmitting(true);
+    setIsPrimaryActionPending(true);
     try {
       await createTags({
         variables: {
@@ -52,7 +52,7 @@ export const CreateTypeTagDialog = () => {
       closeDialog();
       showError("Failed to create type/tag(s)");
     } finally {
-      setIsSubmitting(false);
+      setIsPrimaryActionPending(false);
     }
   };
 
@@ -63,11 +63,11 @@ export const CreateTypeTagDialog = () => {
       onClose={closeDialog}
       dialogHasChanges={demonstrationTypes.length > 0}
       maxWidthClass="max-w-[920px]"
-      isPrimaryActionPending={isSubmitting}
+      isPrimaryActionPending={isPrimaryActionPending}
       actionButton={
         <Button
           name="button-save-demonstration-types"
-          disabled={!demonstrationTypes.length || isSubmitting}
+          disabled={!demonstrationTypes.length || isPrimaryActionPending}
           onClick={handleSave}
         >
           Save
