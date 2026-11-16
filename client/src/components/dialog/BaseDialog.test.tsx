@@ -90,6 +90,23 @@ describe("BaseDialog", () => {
     expect(dialog).toHaveClass("max-w-[500px]");
   });
 
+  it("constrains the dialog and scrolls its content when requested", () => {
+    render(<BaseDialog {...defaultProps} isContentScrollable />);
+    const dialog = screen.getByTestId("test-dialog");
+    const content = screen.getByText("Dialog content").parentElement;
+
+    expect(dialog).toHaveClass("viewport-dialog", "max-h-[calc(100dvh-2rem)]", "overflow-hidden");
+    expect(content).toHaveClass("min-h-0", "overflow-y-auto");
+  });
+
+  it("keeps the default dialog content unwrapped", () => {
+    render(<BaseDialog {...defaultProps} />);
+    const dialog = screen.getByTestId("test-dialog");
+
+    expect(dialog).not.toHaveClass("viewport-dialog");
+    expect(screen.getByText("Dialog content").parentElement).toBe(dialog);
+  });
+
   it("Cancel button shows confirmation dialog when hasChanges is true", () => {
     const onClose = vi.fn();
     render(<BaseDialog {...defaultProps} onClose={onClose} dialogHasChanges={true} />);

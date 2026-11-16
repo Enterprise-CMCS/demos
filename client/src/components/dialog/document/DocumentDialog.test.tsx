@@ -106,6 +106,14 @@ const selectWorkbook = (fileName = "wb.xlsx") => {
 const waitForUploadEnabled = () =>
   waitFor(() => expect(screen.getByTestId("button-confirm-upload-document")).not.toBeDisabled());
 
+describe("DocumentDialog layout", () => {
+  it("uses viewport-constrained scrolling", () => {
+    renderAddDialog("General File", vi.fn());
+
+    expect(screen.getByTestId("dialog-document")).toHaveClass("viewport-dialog");
+  });
+});
+
 describe("DocumentDialog attestation gating", () => {
   // BN Workbook pre-validation passes by default since parseBNFile/rule mocks return undefined.
   beforeEach(() => {
