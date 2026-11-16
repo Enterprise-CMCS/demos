@@ -23,7 +23,7 @@ export const PoAndOgdSection = ({
   hideNotes?: boolean;
 }) => {
   return (
-    <CompletableSection title="PO & OGD" isComplete={isComplete}>
+    <CompletableSection title="Internal Review" isComplete={isComplete}>
       <p className="text-sm text-text-placeholder mt-1 mb-2">
         Record the Sign-Off for the edits End Date.
       </p>
