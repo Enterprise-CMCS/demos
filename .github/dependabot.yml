@@ -24,3 +24,15 @@ updates:
     exclude-paths:
       - spikes/**
       - data/**
+  - package-ecosystem: "docker"
+    directory: "/pipelines/lib/resources"
+    schedule:
+      interval: weekly
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+    groups:
+      jenkins-runner-updates:
+        patterns:
+          - "*"

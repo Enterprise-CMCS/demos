@@ -8,9 +8,11 @@ import { fireEvent, render, screen } from "@testing-library/react";
 
 describe("BaseDialog", () => {
   const defaultProps = {
+    name: "test-dialog",
     title: "Test Dialog",
     onClose: vi.fn(),
     children: <div>Dialog content</div>,
+    actionButton: <button>Save</button>,
   };
 
   afterEach(() => {
@@ -70,14 +72,9 @@ describe("BaseDialog", () => {
     expect(screen.getByText("Cancel")).toBeInTheDocument();
   });
 
-  it("does not render action buttons when actionButton is not provided", () => {
-    render(<BaseDialog {...defaultProps} />);
-    expect(screen.queryByText("Cancel")).not.toBeInTheDocument();
-  });
-
-  it("disables the close button and does not close when cancelButtonIsDisabled is true", () => {
+  it("disables the close button and does not close when isPrimaryActionPending is true", () => {
     const onClose = vi.fn();
-    render(<BaseDialog {...defaultProps} onClose={onClose} cancelButtonIsDisabled={true} />);
+    render(<BaseDialog {...defaultProps} onClose={onClose} isPrimaryActionPending={true} />);
     const closeBtn = screen.getByLabelText("Close dialog");
     expect(closeBtn).toBeDisabled();
     fireEvent.click(closeBtn);
@@ -85,12 +82,6 @@ describe("BaseDialog", () => {
     expect(
       screen.queryByText("You will lose any unsaved changes in this view.")
     ).not.toBeInTheDocument();
-  });
-
-  it("hides header when hideHeader is true", () => {
-    render(<BaseDialog {...defaultProps} hideHeader={true} />);
-    expect(screen.queryByText("Test Dialog")).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("Close dialog")).not.toBeInTheDocument();
   });
 
   it("applies custom max width class", () => {
@@ -101,15 +92,7 @@ describe("BaseDialog", () => {
 
   it("Cancel button shows confirmation dialog when hasChanges is true", () => {
     const onClose = vi.fn();
-    const actionButton = <button>Save</button>;
-    render(
-      <BaseDialog
-        {...defaultProps}
-        onClose={onClose}
-        actionButton={actionButton}
-        dialogHasChanges={true}
-      />
-    );
+    render(<BaseDialog {...defaultProps} onClose={onClose} dialogHasChanges={true} />);
     const cancelBtn = screen.getByText("Cancel");
     fireEvent.click(cancelBtn);
     expect(screen.getByText("You will lose any unsaved changes in this view.")).toBeInTheDocument();
@@ -118,15 +101,7 @@ describe("BaseDialog", () => {
 
   it("Cancel button calls onClose directly when hasChanges is false", () => {
     const onClose = vi.fn();
-    const actionButton = <button>Save</button>;
-    render(
-      <BaseDialog
-        {...defaultProps}
-        onClose={onClose}
-        actionButton={actionButton}
-        dialogHasChanges={false}
-      />
-    );
+    render(<BaseDialog {...defaultProps} onClose={onClose} dialogHasChanges={false} />);
     const cancelBtn = screen.getByText("Cancel");
     fireEvent.click(cancelBtn);
     expect(onClose).toHaveBeenCalledTimes(1);

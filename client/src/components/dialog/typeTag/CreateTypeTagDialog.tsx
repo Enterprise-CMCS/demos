@@ -54,6 +54,7 @@ export const CreateTypeTagDialog = () => {
 
   return (
     <BaseDialog
+      name="dialog-create-type-tag"
       title="Create New Tag/Type(s)"
       onClose={closeDialog}
       dialogHasChanges={demonstrationTypes.length > 0}

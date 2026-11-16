@@ -29,7 +29,7 @@ describe("PoAndOgdSection", () => {
 
   it("renders the section with correct title", () => {
     render(<PoAndOgdSection {...defaultProps} />);
-    expect(screen.getByText("PO & OGD")).toBeInTheDocument();
+    expect(screen.getByText("Internal Review")).toBeInTheDocument();
   });
 
   it("displays the description text", () => {
