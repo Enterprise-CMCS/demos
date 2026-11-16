@@ -28,6 +28,14 @@ BEGIN
     WHERE name = '1115 Reentry Specs Manual End User License Agreement v1'
         AND owner_person_type_id = 'demos-admin';
 
+    IF v_reference_ids IS NULL THEN
+        RAISE EXCEPTION 'expected reference material to exist before reverting';
+    END IF;
+
+    IF v_reference_agreement_ids IS NULL THEN
+        RAISE EXCEPTION 'expected reference agreement to exist before reverting';
+    END IF;
+
     DELETE FROM demos_app.reference_demonstration_type AS rdt
     USING demos_app.reference AS r
     WHERE rdt.reference_id = r.id
