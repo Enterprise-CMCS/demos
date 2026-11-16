@@ -1,0 +1,7 @@
+model BudgetNeutralityWorkbookData {
+  budgetNeutralityWorkbookId String                   @id @map("budget_neutrality_workbook_id") @db.Uuid
+  parsedData                 Json                     @map("parsed_data")
+  budgetNeutralityWorkbook   BudgetNeutralityWorkbook @relation(fields: [budgetNeutralityWorkbookId], references: [id], onDelete: Cascade)
+
+  @@map("budget_neutrality_workbook_data")
+}

@@ -2,6 +2,11 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { SQSEvent, Context } from "aws-lambda";
 import { Pool } from "pg";
 
+const parsedWorkbook = [
+  { sheet: "Summary", data: [["Actuals + Projected", null, 0]] },
+  { sheet: "C Report", data: [["Reporting Quarter", 2], []] },
+];
+
 const mocks = vi.hoisted(() => ({
   queryMock: vi.fn(),
   getDbPoolMock: vi.fn(),
@@ -42,22 +47,29 @@ vi.mock("./s3", () => ({
 }));
 
 vi.mock("demos-shared-library/BN", () => ({
-  parseBNFileFromPath: vi.fn().mockResolvedValue({}),
+  parseBNFileFromPath: vi.fn(),
 }));
 
 vi.mock("demos-shared-library/BN/validation", () => ({
   validateBNWorkbook: vi.fn().mockResolvedValue({
     isValid: true,
     errors: [],
-    extractedValues: new Map<string, string | number>(),
+    extractedValues: new Map<string, string | number>([
+      ["actuals", "Actuals + Projected"],
+      ["netVariance", 12345678],
+    ]),
   }),
 }));
 
 import { handler } from "./index";
 import { documentExists } from "./budgetNeutralityValidation";
+import { parseBNFileFromPath } from "demos-shared-library/BN";
+import { validateBNWorkbook } from "demos-shared-library/BN/validation";
 
 describe("budgetNeutrality index", () => {
   beforeEach(() => {
+    vi.mocked(parseBNFileFromPath).mockReset().mockResolvedValue(parsedWorkbook);
+    vi.mocked(validateBNWorkbook).mockClear();
     mocks.queryMock.mockReset();
     mocks.getDbPoolMock.mockReset();
     mocks.reqIdChildMock.mockReset();
@@ -98,15 +110,22 @@ describe("budgetNeutrality index", () => {
       body: "Processed 1 records.",
     });
     expect(mocks.getDbPoolMock).toHaveBeenCalledTimes(1);
-    expect(mocks.queryMock).toHaveBeenCalledTimes(1); // Only INSERT query
-    expect(mocks.queryMock.mock.calls[0]?.[0]).toContain("budget_neutrality_workbook");
-    expect(mocks.queryMock.mock.calls[0]?.[1]).toEqual([
+    expect(mocks.queryMock).toHaveBeenCalledTimes(2);
+    expect(mocks.queryMock.mock.calls[0]?.[0]).toContain(
+      "INSERT INTO demos_app.budget_neutrality_workbook_data"
+    );
+    expect(mocks.queryMock.mock.calls[0]?.[0]).toContain(
+      "ON CONFLICT (budget_neutrality_workbook_id)"
+    );
+    expect(mocks.queryMock.mock.calls[0]?.[1]).toEqual(["doc-1", JSON.stringify(parsedWorkbook)]);
+    expect(mocks.queryMock.mock.calls[1]?.[1]).toEqual([
       "doc-1",
       "BN Workbook",
       "Succeeded",
       "[]",
-      undefined,
-      undefined,
+      "Actuals + Projected",
+      12345678,
+      '{"actuals":"Actuals + Projected","netVariance":12345678}',
     ]);
     expect(mocks.logInfoMock).toHaveBeenCalledWith(
       {
@@ -120,6 +139,39 @@ describe("budgetNeutrality index", () => {
       "Budget Neutrality validation completed."
     );
     expect(mocks.logWarnMock).not.toHaveBeenCalled();
+  });
+
+  it("captures parsed data before a validation exception", async () => {
+    mocks.getDbPoolMock.mockResolvedValue({ query: mocks.queryMock });
+    vi.mocked(validateBNWorkbook).mockRejectedValueOnce(new Error("Validation failed"));
+
+    const event = {
+      Records: [{ body: JSON.stringify({ documentId: "doc-1", documentTypeId: "BN Workbook" }) }],
+    } as unknown as SQSEvent;
+
+    await expect(handler(event, { awsRequestId: "test-request-id" } as Context)).rejects.toThrow(
+      "Validation failed"
+    );
+
+    expect(mocks.queryMock).toHaveBeenCalledTimes(1);
+    expect(mocks.queryMock.mock.calls[0]?.[1]).toEqual(["doc-1", JSON.stringify(parsedWorkbook)]);
+    expect(mocks.queryMock.mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(validateBNWorkbook).mock.invocationCallOrder[0]!
+    );
+  });
+
+  it("propagates a parsed-data write failure without starting validation", async () => {
+    mocks.getDbPoolMock.mockResolvedValue({ query: mocks.queryMock });
+    mocks.queryMock.mockRejectedValueOnce(new Error("Database unavailable"));
+
+    const event = {
+      Records: [{ body: JSON.stringify({ documentId: "doc-1", documentTypeId: "BN Workbook" }) }],
+    } as unknown as SQSEvent;
+
+    await expect(handler(event, { awsRequestId: "test-request-id" } as Context)).rejects.toThrow(
+      "Database unavailable"
+    );
+    expect(vi.mocked(validateBNWorkbook)).not.toHaveBeenCalled();
   });
 
   it("throws when event includes more than one record", async () => {

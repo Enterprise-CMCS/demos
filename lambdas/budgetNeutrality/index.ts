@@ -37,9 +37,9 @@ export async function updateBudgetNeutralityWorkbook(
       validation_data = $4::JSON,
       actuals = $5::TEXT,
       net_variance_total = $6::NUMERIC,
+      extracted_data = $7::JSONB,
       updated_at = CURRENT_TIMESTAMP
     WHERE id = $1::UUID;`;
-
   await pool.query(query, [
     message.documentId,
     message.documentTypeId,
@@ -47,6 +47,9 @@ export async function updateBudgetNeutralityWorkbook(
     JSON.stringify(validationResults.errors),
     validationResults.extractedValues?.get("actuals"),
     validationResults.extractedValues?.get("netVariance"),
+    validationResults.isValid
+      ? JSON.stringify(Object.fromEntries(validationResults.extractedValues ?? []))
+      : null,
   ]);
 }
 
@@ -63,7 +66,7 @@ export const handler = async (event: SQSEvent, context: Context) =>
 
     try {
       const pool = await getDbPool();
-      
+
       // Validate that there's exactly one record in the event. This is a common pattern for SQS-triggered Lambdas that are designed to process one message at a time.
       validateSingleRecordCount(event.Records.length); // this will throw if fails.
 
@@ -79,7 +82,7 @@ export const handler = async (event: SQSEvent, context: Context) =>
 
       log.info({ s3Path }, "Starting Download of BN workbook from S3.");
       const downloadedDocumentPath = await downloadDocumentFromS3(s3Path);
-      
+
       log.info("Download completed. Starting parsing of BN workbook.");
       let parsedData;
       try {
@@ -95,13 +98,27 @@ export const handler = async (event: SQSEvent, context: Context) =>
         throw error;
       }
 
+      await pool.query(
+        `INSERT INTO ${DB_SCHEMA}.budget_neutrality_workbook_data
+          (budget_neutrality_workbook_id, parsed_data)
+        VALUES ($1::UUID, $2::JSONB)
+        ON CONFLICT (budget_neutrality_workbook_id)
+        DO UPDATE SET parsed_data = EXCLUDED.parsed_data;`,
+        [message.documentId, JSON.stringify(parsedData)]
+      );
+
       log.info("Parsing completed. Starting validation against ruleset.");
-      const validationResults = await validateBNWorkbook(parsedData, validations, extractorFunctions);
+
+      const validationResults = await validateBNWorkbook(
+        parsedData,
+        validations,
+        extractorFunctions
+      );
 
       log.info("Validation completed. Inserting BN results into database.");
       results.existingDocuments = 1;
       await updateBudgetNeutralityWorkbook(pool, message, validationResults);
-      
+
       results.insertedWorkbooks = 1;
       log.info(
         {
