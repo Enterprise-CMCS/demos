@@ -464,6 +464,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
           />
         }
         isPrimaryActionPending={documentDialogState === "uploading"}
+        isContentScrollable
       >
         <DropTarget
           file={file}

@@ -1,6 +1,7 @@
 import React from "react";
 
 import { BaseDialog } from "components/dialog/BaseDialog";
+import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { Select } from "components/input/select/Select";
 import { vi } from "vitest";
 
@@ -88,6 +89,33 @@ describe("BaseDialog", () => {
     render(<BaseDialog {...defaultProps} maxWidthClass="max-w-[500px]" />);
     const dialog = document.querySelector("dialog");
     expect(dialog).toHaveClass("max-w-[500px]");
+  });
+
+  it("keeps dropdown selection and cancellation working in scrollable mode", () => {
+    const onSelect = vi.fn();
+    const onClose = vi.fn();
+    render(
+      <BaseDialog {...defaultProps} isContentScrollable dialogHasChanges={false} onClose={onClose}>
+        <AutoCompleteSelect
+          id="document-type"
+          label="Document Type"
+          options={[
+            { label: "General File", value: "General File" },
+            { label: "Approval Letter", value: "Approval Letter" },
+          ]}
+          value="General File"
+          onSelect={onSelect}
+        />
+      </BaseDialog>
+    );
+
+    fireEvent.click(screen.getByRole("combobox"));
+    fireEvent.click(screen.getByRole("button", { name: "Approval Letter" }));
+
+    expect(onSelect).toHaveBeenCalledWith("Approval Letter");
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel and close dialog" }));
+    expect(onClose).toHaveBeenCalledOnce();
   });
 
   it("Cancel button shows confirmation dialog when hasChanges is true", () => {
