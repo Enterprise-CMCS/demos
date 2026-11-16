@@ -63,6 +63,7 @@ export const ApproveTypeTagDialog = ({
       title={APPROVE_TYPE_TAG_DIALOG_TITLE}
       maxWidthClass="max-w-[500px]"
       onClose={onClose}
+      isPrimaryActionPending={isSubmitting}
       actionButton={
         <Button name={APPROVE_TYPE_TAG_BUTTON_NAME} disabled={isSubmitting} onClick={handleApprove}>
           Approve

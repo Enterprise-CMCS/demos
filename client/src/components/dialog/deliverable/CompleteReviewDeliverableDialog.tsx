@@ -97,6 +97,7 @@ export const CompleteReviewDeliverableDialog: React.FC<CompleteReviewDeliverable
       title={COMPLETE_REVIEW_DIALOG_TITLE}
       onClose={onClose}
       dialogHasChanges={hasChanges}
+      isPrimaryActionPending={isSubmitting}
       actionButton={
         <Button
           name={COMPLETE_REVIEW_SUBMIT_BUTTON_NAME}

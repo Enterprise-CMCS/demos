@@ -196,6 +196,7 @@ export const ReviewExtensionDeliverableDialog: React.FC<ReviewExtensionDeliverab
       title={REVIEW_EXTENSION_DIALOG_TITLE}
       onClose={onClose}
       dialogHasChanges={hasChanges}
+      isPrimaryActionPending={isSubmitting}
       actionButton={
         <Button
           name={REVIEW_EXTENSION_SUBMIT_BUTTON_NAME}

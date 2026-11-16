@@ -63,6 +63,7 @@ export const DeleteTypeTagDialog = ({
       title={DELETE_TYPE_TAG_DIALOG_TITLE}
       maxWidthClass="max-w-[500px]"
       onClose={onClose}
+      isPrimaryActionPending={isSubmitting}
       actionButton={
         <ErrorButton name={DELETE_TYPE_TAG_BUTTON_NAME} disabled={isSubmitting} onClick={handleDelete}>
           Delete

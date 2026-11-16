@@ -100,6 +100,7 @@ export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({
       title={APPLY_TAGS_DIALOG_TITLE}
       onClose={onClose}
       dialogHasChanges={hasChanges}
+      isPrimaryActionPending={isSubmitting}
       actionButton={
         <Button
           onClick={handleApply}

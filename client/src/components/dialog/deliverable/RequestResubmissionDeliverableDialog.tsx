@@ -154,6 +154,7 @@ export const RequestResubmissionDeliverableDialog: React.FC<
       title={REQUEST_RESUBMISSION_DIALOG_TITLE}
       onClose={onClose}
       dialogHasChanges={hasChanges}
+      isPrimaryActionPending={isSubmitting}
       actionButton={
         <Button
           name={REQUEST_RESUBMISSION_SUBMIT_BUTTON_NAME}

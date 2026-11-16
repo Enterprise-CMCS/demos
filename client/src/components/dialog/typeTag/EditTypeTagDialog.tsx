@@ -87,6 +87,7 @@ export const EditTypeTagDialog = ({
       title={EDIT_TYPE_TAG_DIALOG_TITLE}
       onClose={onClose}
       dialogHasChanges={hasChanges}
+      isPrimaryActionPending={isSubmitting}
       actionButton={
         <Button name={SAVE_TYPE_TAG_BUTTON_NAME} disabled={!canSave || isSubmitting} onClick={handleSave}>
           Save Changes

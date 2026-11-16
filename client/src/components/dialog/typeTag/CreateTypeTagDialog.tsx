@@ -63,6 +63,7 @@ export const CreateTypeTagDialog = () => {
       onClose={closeDialog}
       dialogHasChanges={demonstrationTypes.length > 0}
       maxWidthClass="max-w-[920px]"
+      isPrimaryActionPending={isSubmitting}
       actionButton={
         <Button
           name="button-save-demonstration-types"
