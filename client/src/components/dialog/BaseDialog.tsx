@@ -21,6 +21,7 @@ export const BaseDialog = ({
   dialogHasChanges = true,
   maxWidthClass = "max-w-[720px]",
   isPrimaryActionPending = false,
+  isContentScrollable = false,
 }: {
   name: string;
   title: string;
@@ -30,6 +31,7 @@ export const BaseDialog = ({
   dialogHasChanges?: boolean;
   maxWidthClass?: string;
   isPrimaryActionPending?: boolean;
+  isContentScrollable?: boolean;
 }) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [isCancellationConfirmationOpen, setIsCancellationConfirmationOpen] = useState(false);
@@ -81,7 +83,7 @@ export const BaseDialog = ({
     <>
       <dialog
         ref={dialogRef}
-        className={`${DIALOG} ${maxWidthClass}`}
+        className={`${DIALOG} ${maxWidthClass} ${isContentScrollable ? "viewport-dialog" : ""}`}
         onClose={handleDialogClose}
         data-testid={name}
       >
