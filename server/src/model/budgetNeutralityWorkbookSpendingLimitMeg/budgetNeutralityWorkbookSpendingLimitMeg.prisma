@@ -6,6 +6,8 @@ model BudgetNeutralityWorkbookSpendingLimitMeg {
   lineNumber        Int      @map("line_number")
   megName           String   @map("meg_name")
   subjectToCapTotal Decimal? @map("subject_to_cap_total") @db.Decimal(18, 2)
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   spendingLimit BudgetNeutralityWorkbookSpendingLimit @relation(fields: [workbookId, programIndex], references: [workbookId, programIndex], onDelete: Cascade, map: "bn_workbook_spending_limit_meg_parent_fkey")
 

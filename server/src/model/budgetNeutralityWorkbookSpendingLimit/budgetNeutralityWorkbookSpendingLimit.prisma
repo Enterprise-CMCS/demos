@@ -7,6 +7,8 @@ model BudgetNeutralityWorkbookSpendingLimit {
   capTotal      Decimal? @map("cap_total") @db.Decimal(18, 2)
   varianceTotal Decimal? @map("variance_total") @db.Decimal(18, 2)
   overCap       Boolean? @map("over_cap")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   workbook BudgetNeutralityWorkbook                   @relation(fields: [workbookId], references: [id], onDelete: Cascade)
   megs     BudgetNeutralityWorkbookSpendingLimitMeg[]
