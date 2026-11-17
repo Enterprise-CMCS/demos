@@ -1,14 +1,22 @@
-@Library('demos-lib@tag-deploy') _
-
 pipeline {
   agent {
     kubernetes {
-      yaml kubeBlock(containerNames:["node", "aws-cli", "snyk"], opts: [
-        NODE_CPU_REQUEST: '2000m',
-        NODE_CPU_LIMIT: '4000m',
-        NODE_MEMORY_REQUEST: '3Gi',
-        NODE_MEMORY_LIMIT: '5Gi'
-      ])
+      yaml podSpec(
+        [
+          name: "node",
+          resources: [
+            requests: [
+              cpu: '2000m',
+              memory: '3Gi'
+            ],
+            limits: [
+              cpu: '4000m',
+              memory: '5Gi'
+            ]
+          ],
+          allowInstalls: true
+        ], "aws-cli", "snyk"
+      )
     }
   }
 
