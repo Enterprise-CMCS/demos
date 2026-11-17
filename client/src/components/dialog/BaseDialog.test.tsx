@@ -115,7 +115,7 @@ describe("BaseDialog", () => {
     expect(onSelect).toHaveBeenCalledWith("Approval Letter");
     expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Cancel and close dialog" }));
-    expect(onClose).toHaveBeenCalledOnce();
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it("Cancel button shows confirmation dialog when hasChanges is true", () => {
