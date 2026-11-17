@@ -1,0 +1,43 @@
+/* Dialog centering styles */
+dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+}
+
+dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+dialog.viewport-dialog {
+  inset: 0;
+  margin: auto;
+  transform: none;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+}
+
+.viewport-dialog > * {
+  flex-shrink: 0;
+}
+
+.viewport-dialog :has(> [role="combobox"]) {
+  anchor-scope: --dialog-select;
+}
+
+.viewport-dialog [role="combobox"] {
+  anchor-name: --dialog-select;
+}
+
+.viewport-dialog [role="combobox"] ~ [role="listbox"] {
+  position: fixed;
+  position-anchor: --dialog-select;
+  top: anchor(bottom);
+  left: anchor(left);
+  width: anchor-size(width);
+  max-height: min(14rem, calc(100dvh - 2rem));
+  position-try-fallbacks: flip-block;
+}
