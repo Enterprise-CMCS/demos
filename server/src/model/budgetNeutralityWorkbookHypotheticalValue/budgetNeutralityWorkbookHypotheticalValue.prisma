@@ -12,7 +12,7 @@ model BudgetNeutralityWorkbookHypotheticalValue {
   updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   workbook     BudgetNeutralityWorkbook     @relation(fields: [workbookId], references: [id], onDelete: Cascade)
-  hypothetical BudgetNeutralityHypothetical @relation(fields: [hypotheticalId], references: [hypotheticalId], onDelete: Restrict, onUpdate: Cascade)
+  hypothetical BudgetNeutralityHypothetical @relation(fields: [hypotheticalId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   measure      BudgetNeutralityMeasure      @relation(fields: [measureId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   // NULL on both axes represents aggregate values; the migration adds NULLS NOT DISTINCT uniqueness.

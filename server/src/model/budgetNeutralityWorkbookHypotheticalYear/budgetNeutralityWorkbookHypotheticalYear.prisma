@@ -9,7 +9,7 @@ model BudgetNeutralityWorkbookHypotheticalYear {
   updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   workbook     BudgetNeutralityWorkbook     @relation(fields: [workbookId], references: [id], onDelete: Cascade)
-  hypothetical BudgetNeutralityHypothetical @relation(fields: [hypotheticalId], references: [hypotheticalId], onDelete: Restrict, onUpdate: Cascade)
+  hypothetical BudgetNeutralityHypothetical @relation(fields: [hypotheticalId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   @@id([workbookId, hypotheticalId, dyNumber])
   @@map("budget_neutrality_workbook_hypothetical_year")
