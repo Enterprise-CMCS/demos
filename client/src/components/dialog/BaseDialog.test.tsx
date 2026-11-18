@@ -1,6 +1,7 @@
 import React from "react";
 
 import { BaseDialog } from "components/dialog/BaseDialog";
+import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { Select } from "components/input/select/Select";
 import { vi } from "vitest";
 
@@ -8,9 +9,11 @@ import { fireEvent, render, screen } from "@testing-library/react";
 
 describe("BaseDialog", () => {
   const defaultProps = {
+    name: "test-dialog",
     title: "Test Dialog",
     onClose: vi.fn(),
     children: <div>Dialog content</div>,
+    actionButton: <button>Save</button>,
   };
 
   afterEach(() => {
@@ -70,14 +73,9 @@ describe("BaseDialog", () => {
     expect(screen.getByText("Cancel")).toBeInTheDocument();
   });
 
-  it("does not render action buttons when actionButton is not provided", () => {
-    render(<BaseDialog {...defaultProps} />);
-    expect(screen.queryByText("Cancel")).not.toBeInTheDocument();
-  });
-
-  it("disables the close button and does not close when cancelButtonIsDisabled is true", () => {
+  it("disables the close button and does not close when isPrimaryActionPending is true", () => {
     const onClose = vi.fn();
-    render(<BaseDialog {...defaultProps} onClose={onClose} cancelButtonIsDisabled={true} />);
+    render(<BaseDialog {...defaultProps} onClose={onClose} isPrimaryActionPending={true} />);
     const closeBtn = screen.getByLabelText("Close dialog");
     expect(closeBtn).toBeDisabled();
     fireEvent.click(closeBtn);
@@ -87,29 +85,42 @@ describe("BaseDialog", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("hides header when hideHeader is true", () => {
-    render(<BaseDialog {...defaultProps} hideHeader={true} />);
-    expect(screen.queryByText("Test Dialog")).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("Close dialog")).not.toBeInTheDocument();
-  });
-
   it("applies custom max width class", () => {
     render(<BaseDialog {...defaultProps} maxWidthClass="max-w-[500px]" />);
     const dialog = document.querySelector("dialog");
     expect(dialog).toHaveClass("max-w-[500px]");
   });
 
+  it("keeps dropdown selection and cancellation working in scrollable mode", () => {
+    const onSelect = vi.fn();
+    const onClose = vi.fn();
+    render(
+      <BaseDialog {...defaultProps} isContentScrollable dialogHasChanges={false} onClose={onClose}>
+        <AutoCompleteSelect
+          id="document-type"
+          label="Document Type"
+          options={[
+            { label: "General File", value: "General File" },
+            { label: "Approval Letter", value: "Approval Letter" },
+          ]}
+          value="General File"
+          onSelect={onSelect}
+        />
+      </BaseDialog>
+    );
+
+    fireEvent.click(screen.getByRole("combobox"));
+    fireEvent.click(screen.getByRole("button", { name: "Approval Letter" }));
+
+    expect(onSelect).toHaveBeenCalledWith("Approval Letter");
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel and close dialog" }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
   it("Cancel button shows confirmation dialog when hasChanges is true", () => {
     const onClose = vi.fn();
-    const actionButton = <button>Save</button>;
-    render(
-      <BaseDialog
-        {...defaultProps}
-        onClose={onClose}
-        actionButton={actionButton}
-        dialogHasChanges={true}
-      />
-    );
+    render(<BaseDialog {...defaultProps} onClose={onClose} dialogHasChanges={true} />);
     const cancelBtn = screen.getByText("Cancel");
     fireEvent.click(cancelBtn);
     expect(screen.getByText("You will lose any unsaved changes in this view.")).toBeInTheDocument();
@@ -118,15 +129,7 @@ describe("BaseDialog", () => {
 
   it("Cancel button calls onClose directly when hasChanges is false", () => {
     const onClose = vi.fn();
-    const actionButton = <button>Save</button>;
-    render(
-      <BaseDialog
-        {...defaultProps}
-        onClose={onClose}
-        actionButton={actionButton}
-        dialogHasChanges={false}
-      />
-    );
+    render(<BaseDialog {...defaultProps} onClose={onClose} dialogHasChanges={false} />);
     const cancelBtn = screen.getByText("Cancel");
     fireEvent.click(cancelBtn);
     expect(onClose).toHaveBeenCalledTimes(1);

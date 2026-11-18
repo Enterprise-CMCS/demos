@@ -138,7 +138,7 @@ describe("ReviewPhase Component", () => {
     it("renders three section headers", () => {
       setup();
 
-      expect(screen.getByText("PO & OGD")).toBeInTheDocument();
+      expect(screen.getByText("Internal Review")).toBeInTheDocument();
       expect(screen.getByText("OGC & OMB")).toBeInTheDocument();
       expect(screen.getByText("Comms Clearance")).toBeInTheDocument();
     });
@@ -185,13 +185,13 @@ describe("ReviewPhase Component", () => {
   });
 
   describe("Section completion and expansion", () => {
-    it("marks PO & OGD section as complete when all dates are filled", () => {
+    it("marks Internal Review section as complete when all dates are filled", () => {
       setup();
 
       expect(screen.getAllByText("Complete")[0]).toBeInTheDocument();
     });
 
-    it("marks PO & OGD section as incomplete when dates are missing", () => {
+    it("marks Internal Review section as incomplete when dates are missing", () => {
       const incompleteData = buildInitialFormData({
         dates: {
           "OGD Approval to Share with SMEs": "",
@@ -201,7 +201,7 @@ describe("ReviewPhase Component", () => {
         },
       });
       setup(incompleteData);
-      const poOgdSection = screen.getByText("PO & OGD").closest("section");
+      const poOgdSection = screen.getByText("Internal Review").closest("section");
       expect(poOgdSection).toHaveTextContent("Incomplete");
     });
 
@@ -733,7 +733,7 @@ describe("ReviewPhase Component", () => {
     it("allows opening and closing sections when isReadonly is true", async () => {
       setup(buildInitialFormData(), "demo-readonly", true);
 
-      const poAndOgdHeader = screen.getByText("PO & OGD");
+      const poAndOgdHeader = screen.getByText("Internal Review");
       // Initially the section should be expanded and notes should be visible
       const poAndOgdNotes = screen.getByTestId("input-po-ogd-notes");
       expect(poAndOgdNotes).toBeInTheDocument();

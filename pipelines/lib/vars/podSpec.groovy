@@ -8,10 +8,7 @@ def call(Object... containersInput) {
     apiVersion: defaultPodSpec.apiVersion,
     kind: defaultPodSpec.kind,
     metadata: defaultPodSpec.metadata,
-    spec: [
-      serviceAccountName: defaultPodSpec.spec.serviceAccountName,
-      restartPolicy: defaultPodSpec.spec.restartPolicy,
-      nodeSelector: defaultPodSpec.spec.nodeSelector,
+    spec: defaultPodSpec.spec + [
       containers: []
     ]
   ]
@@ -53,7 +50,7 @@ def call(Object... containersInput) {
       limits: defaultSpec.resources.limits + (c.resources?.limits ?: c.resources?.requests ?: [:]),
     ]
 
-    return [
+    return defaultSpec + c + [
       name: c.name,
       image: mirroredImage(c.image ?: defaultSpec.image),
       command: c.command ?: defaultSpec.command ?: ['cat'],
@@ -61,6 +58,7 @@ def call(Object... containersInput) {
       args: c.args ?: defaultSpec.args ?: [],
       env: c.env ?: defaultSpec.env ?: [],
       resources: normalizedResources,
+      securityContext: c.allowInstalls ? [:] : c.securityContext ?: defaultSpec.securityContext
     ]
   }
 

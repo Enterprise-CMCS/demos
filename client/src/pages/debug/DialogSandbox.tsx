@@ -47,6 +47,7 @@ export const DialogSandbox: React.FC = () => {
     showUpdateAmendmentDialog,
     showAddDeliverableSlotDialog,
     showConfirmApproveDialog,
+    showConfirmSuggestedSparklyTagDialog,
   } = useDialog();
 
   const ID = "1";
@@ -217,6 +218,19 @@ export const DialogSandbox: React.FC = () => {
             onClick={() => showConfirmApproveDialog(() => {}, "demonstration")}
           >
             Confirm Approve
+          </Button>
+          <Button
+            name="confirm-suggested-sparkly-tag"
+            onClick={() =>
+              showConfirmSuggestedSparklyTagDialog({
+                applicationId: ID,
+                tagName: "Demonstration Type: Type A",
+                onConfirm: (tagName) => console.log("Confirmed:", tagName),
+                onRemove: (tagName) => console.log("Removed:", tagName),
+              })
+            }
+          >
+            Confirm Suggested Sparkly Tag
           </Button>
         </div>
       </div>

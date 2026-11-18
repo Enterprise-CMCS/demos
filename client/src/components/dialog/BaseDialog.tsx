@@ -18,20 +18,20 @@ export const BaseDialog = ({
   onClose,
   children,
   actionButton,
-  dialogHasChanges: hasChanges = true,
+  dialogHasChanges = true,
   maxWidthClass = "max-w-[720px]",
-  hideHeader = false,
-  cancelButtonIsDisabled = false,
+  isPrimaryActionPending = false,
+  isContentScrollable = false,
 }: {
-  name?: string;
+  name: string;
   title: string;
   onClose: () => void;
   children: React.ReactNode;
-  actionButton?: React.ReactNode;
+  actionButton: React.ReactNode;
   dialogHasChanges?: boolean;
   maxWidthClass?: string;
-  hideHeader?: boolean;
-  cancelButtonIsDisabled?: boolean;
+  isPrimaryActionPending?: boolean;
+  isContentScrollable?: boolean;
 }) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [isCancellationConfirmationOpen, setIsCancellationConfirmationOpen] = useState(false);
@@ -72,7 +72,7 @@ export const BaseDialog = ({
   };
 
   const onCloseClicked = () => {
-    if (hasChanges) {
+    if (dialogHasChanges) {
       setIsCancellationConfirmationOpen(true);
     } else {
       onClose();
@@ -83,26 +83,24 @@ export const BaseDialog = ({
     <>
       <dialog
         ref={dialogRef}
-        className={`${DIALOG} ${maxWidthClass}`}
+        className={`${DIALOG} ${maxWidthClass} ${isContentScrollable ? "viewport-dialog" : ""}`}
         onClose={handleDialogClose}
         data-testid={name}
       >
-        {!hideHeader && (
-          <>
-            <button
-              data-testid="button-dialog-close"
-              type="button"
-              onClick={onCloseClicked}
-              disabled={cancelButtonIsDisabled}
-              className={cancelButtonIsDisabled ? CLOSE_BUTTON_DISABLED : CLOSE_BUTTON}
-              aria-label="Close dialog"
-            >
-              ×
-            </button>
-            <h2 className={TITLE}>{title}</h2>
-            <hr className={HR} aria-hidden="true" />
-          </>
-        )}
+        <>
+          <button
+            data-testid="button-dialog-close"
+            type="button"
+            onClick={onCloseClicked}
+            disabled={isPrimaryActionPending}
+            className={isPrimaryActionPending ? CLOSE_BUTTON_DISABLED : CLOSE_BUTTON}
+            aria-label="Close dialog"
+          >
+            ×
+          </button>
+          <h2 className={TITLE}>{title}</h2>
+          <hr className={HR} aria-hidden="true" />
+        </>
         {children}
         {actionButton && (
           <>
@@ -111,7 +109,7 @@ export const BaseDialog = ({
               <SecondaryButton
                 name={DIALOG_CANCEL_BUTTON_NAME}
                 onClick={onCloseClicked}
-                disabled={cancelButtonIsDisabled}
+                disabled={isPrimaryActionPending}
                 aria-label="Cancel and close dialog"
               >
                 Cancel

@@ -200,6 +200,15 @@ export const DemonstrationDetail: React.FC = () => {
     return <div>Failed to load demonstration.</div>;
   }
 
+  const handleSelect = (selectedTab: string) => {
+    const url = new URL(window.location.href);
+    if (selectedTab === "details") {
+      url.searchParams.delete("amendments");
+      url.searchParams.delete("renewals");
+    }
+    window.history.replaceState(null, "", url.toString());
+  };
+
   const amendmentCount = demonstration.amendments?.length ?? 0;
   const renewalCount = demonstration.renewals?.length ?? 0;
   const isApproved = demonstration.status === "Approved";
@@ -209,6 +218,7 @@ export const DemonstrationDetail: React.FC = () => {
         <>
           <Tabs
             defaultValue={amendmentParam ? "amendments" : renewalParam ? "renewals" : "details"}
+            onSelect={handleSelect}
           >
             <Tab label="Demonstration Details" value="details">
               <DemonstrationTab demonstration={demonstration} />

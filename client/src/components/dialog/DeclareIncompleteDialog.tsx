@@ -58,6 +58,7 @@ export const DeclareIncompleteDialog: React.FC<DeclareIncompleteDialogProps> = (
 
   return (
     <BaseDialog
+      name="dialog-declare-incomplete"
       title="Declare Incomplete"
       onClose={onClose}
       dialogHasChanges={false}

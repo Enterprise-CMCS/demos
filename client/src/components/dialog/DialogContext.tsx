@@ -69,6 +69,7 @@ import { AssignStatesDialog, AssignStatesDialogPerson } from "./user/AssignState
 import { EditTypeTagDialog } from "./typeTag/EditTypeTagDialog";
 import { ApproveTypeTagDialog } from "./typeTag/ApproveTypeTagDialog";
 import { DeleteTypeTagDialog } from "./typeTag/DeleteTypeTagDialog";
+import { ConfirmSuggestedSparklyTagDialog } from "./ConfirmSuggestedSparklyTagDialog";
 
 type EditDeliverableDialogSource = Pick<
   DeliverableTableRow,
@@ -471,6 +472,16 @@ export const useDialog = () => {
     context.showDialog(<ReferenceAgreementDialog reference={reference} />);
   };
 
+  const showConfirmSuggestedSparklyTagDialog = (args: {
+    applicationId: string;
+    tagName: TagName;
+    onConfirm: (tagName: TagName) => void;
+    onRemove: (tagName: TagName) => void;
+    isSubmitting?: boolean;
+  }) => {
+    context.showDialog(<ConfirmSuggestedSparklyTagDialog {...args} onClose={context.hideDialog} />);
+  };
+
   return {
     closeDialog: context.hideDialog,
     showCreateDemonstrationDialog,
@@ -513,5 +524,6 @@ export const useDialog = () => {
     showEditTypeTagDialog,
     showApproveTypeTagDialog,
     showDeleteTypeTagDialog,
+    showConfirmSuggestedSparklyTagDialog,
   };
 };
