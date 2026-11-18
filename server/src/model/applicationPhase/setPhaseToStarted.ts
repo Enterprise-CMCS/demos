@@ -10,7 +10,9 @@ export async function setPhaseToStarted(
   userId: string,
   tx: PrismaTransactionClient
 ): Promise<boolean> {
-
+  // The federal comment period is only started or finished based on the date
+  // This is handled entirely in the DB; therefore, can just skip processing
+  // in addition, the Concept Phase is started automatically on creation.
   if (phaseName === "Federal Comment" || phaseName === "Concept") {
     return false;
   }

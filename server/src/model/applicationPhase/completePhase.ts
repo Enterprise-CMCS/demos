@@ -49,7 +49,6 @@ export async function completePhase(
       );
       await updatePhaseStatus(input.applicationId, input.phaseName, "Completed", tx);
 
-      // Log phase completion
       await insertApplicationAction(
         {
           applicationId: input.applicationId,

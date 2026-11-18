@@ -34,7 +34,6 @@ export async function declareCompletenessPhaseIncomplete(
       await updatePhaseStatus(applicationId, "Completeness", "Incomplete", tx);
       await updatePhaseStatus(applicationId, "Application Intake", "Started", tx);
 
-      // Log the declaration
       await insertApplicationAction(
         {
           applicationId,

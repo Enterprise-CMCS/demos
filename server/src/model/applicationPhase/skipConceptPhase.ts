@@ -43,7 +43,6 @@ export async function skipConceptPhase(
       );
       await updatePhaseStatus(applicationId, "Concept", "Skipped", tx);
 
-      // Log skipped phase
       await insertApplicationAction(
         {
           applicationId,

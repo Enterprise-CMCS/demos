@@ -49,7 +49,6 @@ export const PHASE_ACTIONS: PhaseActionRecord = {
 
 export const PHASE_ACTION_TYPE_MAPPING = {
   Concept: {
-    start: "Started Concept Phase",
     complete: "Completed Concept Phase",
     skip: "Skipped Concept Phase",
   },
