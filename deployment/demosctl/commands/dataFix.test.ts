@@ -336,12 +336,29 @@ describe("dataFix", () => {
     expect(client.connect).not.toHaveBeenCalled();
   });
 
-  test("should refuse a missing, unfinished, or rolled back release migration before BEGIN", async () => {
-    vi.mocked(client.query).mockResolvedValueOnce({ rows: [] } as never);
-    expect(await run()).toEqual(1);
-    expect(console.error).toHaveBeenCalledWith(`release migration \`${migration}\` to \`dev\` first`);
-    expect(statements()).not.toContain("BEGIN");
-    expect(client.query).toHaveBeenCalledWith(expect.stringContaining("finished_at IS NOT NULL AND rolled_back_at IS NULL"), [migration]);
+  test.each(["missing", "unfinished", "rolled back"] as const)(
+    "should refuse a %s release migration before BEGIN",
+    async () => {
+      vi.mocked(client.query).mockResolvedValueOnce({ rows: [] } as never);
+      expect(await run()).toEqual(1);
+      expect(console.error).toHaveBeenCalledWith(`release migration \`${migration}\` to \`dev\` first`);
+      expect(statements()).not.toContain("BEGIN");
+      expect(client.query).toHaveBeenCalledWith(expect.stringContaining("finished_at IS NOT NULL AND rolled_back_at IS NULL"), [migration]);
+    },
+  );
+
+  test("should allow an older completed release migration when a newer migration is unapplied", async () => {
+    const newerMigration = "20261105000000_newer_unapplied";
+    vi.mocked(client.query).mockResolvedValueOnce({
+      rows: [{ migration_name: migration, finished_at: new Date(), rolled_back_at: null }],
+    } as never);
+
+    expect(await run()).toEqual(0);
+    expect(client.query).toHaveBeenCalledWith(
+      expect.stringContaining("WHERE migration_name = $1 AND finished_at IS NOT NULL AND rolled_back_at IS NULL"),
+      [migration],
+    );
+    expect(client.query).not.toHaveBeenCalledWith(expect.stringContaining("_prisma_migrations"), [newerMigration]);
   });
 
   test("should expose the schema gate without running a transaction", async () => {
