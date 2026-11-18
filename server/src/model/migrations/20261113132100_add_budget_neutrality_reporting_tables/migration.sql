@@ -6,13 +6,13 @@ CREATE TABLE "budget_neutrality_measure" (
     CONSTRAINT "budget_neutrality_measure_pkey" PRIMARY KEY ("id")
 );
 
-CREATE TABLE "budget_neutrality_hypotheticals" (
+CREATE TABLE "budget_neutrality_hypothetical" (
     "id" TEXT NOT NULL,
 
-    CONSTRAINT "budget_neutrality_hypotheticals_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "budget_neutrality_hypothetical_pkey" PRIMARY KEY ("id")
 );
 
-INSERT INTO "budget_neutrality_hypotheticals" ("id") VALUES
+INSERT INTO "budget_neutrality_hypothetical" ("id") VALUES
     ('Main'),
     ('Hypothetical 1'),
     ('Hypothetical 2'),
@@ -93,7 +93,7 @@ ALTER TABLE "budget_neutrality_workbook_hypothetical_value"
 
 ALTER TABLE "budget_neutrality_workbook_hypothetical_value"
     ADD CONSTRAINT "bn_workbook_hypothetical_value_hyp_fkey"
-    FOREIGN KEY ("hypothetical_id") REFERENCES "budget_neutrality_hypotheticals"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+    FOREIGN KEY ("hypothetical_id") REFERENCES "budget_neutrality_hypothetical"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 ALTER TABLE "budget_neutrality_workbook_hypothetical_value"
     ADD CONSTRAINT "bn_workbook_hypothetical_value_measure_fkey"
@@ -105,7 +105,7 @@ ALTER TABLE "budget_neutrality_workbook_hypothetical_year"
 
 ALTER TABLE "budget_neutrality_workbook_hypothetical_year"
     ADD CONSTRAINT "bn_workbook_hypothetical_year_hyp_fkey"
-    FOREIGN KEY ("hypothetical_id") REFERENCES "budget_neutrality_hypotheticals"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+    FOREIGN KEY ("hypothetical_id") REFERENCES "budget_neutrality_hypothetical"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 ALTER TABLE "budget_neutrality_workbook_spending_limit"
     ADD CONSTRAINT "budget_neutrality_workbook_spending_limit_workbook_id_fkey"

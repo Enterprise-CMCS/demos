@@ -12,15 +12,15 @@ erDiagram
   budget_neutrality_workbook ||--o{ budget_neutrality_workbook_hypothetical_year : "FK177"
   budget_neutrality_workbook ||--o{ budget_neutrality_workbook_spending_limit : "FK178"
   budget_neutrality_workbook_spending_limit ||--o{ budget_neutrality_workbook_spending_limit_meg : "FK179"
-  budget_neutrality_hypotheticals ||--o{ budget_neutrality_workbook_hypothetical_value : "FK180"
+  budget_neutrality_hypothetical ||--o{ budget_neutrality_workbook_hypothetical_value : "FK180"
   budget_neutrality_measure ||--o{ budget_neutrality_workbook_hypothetical_value : "FK181"
-  budget_neutrality_hypotheticals ||--o{ budget_neutrality_workbook_hypothetical_year : "FK182"
+  budget_neutrality_hypothetical ||--o{ budget_neutrality_workbook_hypothetical_year : "FK182"
 
   budget_neutrality_workbook {
     uuid id PK
   }
 
-  budget_neutrality_hypotheticals {
+  budget_neutrality_hypothetical {
     text id PK
   }
 

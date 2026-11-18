@@ -6,5 +6,5 @@ model BudgetNeutralityHypothetical {
   hypotheticalYears  BudgetNeutralityWorkbookHypotheticalYear[]
 
   @@id([id])
-  @@map("budget_neutrality_hypotheticals")
+  @@map("budget_neutrality_hypothetical")
 }
