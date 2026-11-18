@@ -164,6 +164,16 @@ const deliverableFields: readonly ReportField[] = [
   deliverableField("actuals", "coalesce(most_recent_valid_bn_data.actuals, '-')"),
   deliverableField("public_comments", "left(coalesce(aggregate_public_comments.comment_value, '-'), 32000)"),
   deliverableField("private_comments", "left(coalesce(aggregate_private_comments.comment_value, '-'), 32000)"),
+  {
+    name: "budget_neutrality_reporting",
+    expression: `CASE WHEN most_recent_valid_bn_data.workbook_id IS NULL THEN NULL ELSE json_build_object(
+        'workbook_id', most_recent_valid_bn_data.workbook_id,
+        'test_values', COALESCE(bn_value_aggregates.test_values, '[]'::json),
+        'test_years', '[]'::json,
+        'spending_limits', '[]'::json
+      ) END`,
+    duckdbType: "JSON",
+  },
 ];
 
 const demonstrationTypeFields: readonly ReportField[] = [
@@ -392,17 +402,26 @@ most_recent_review_start AS (
     FROM demos_app.deliverable_action AS da
     INNER JOIN demos_app.person AS p ON da.user_id = p.id AND da.action_type_id = 'Started Review'
 ),
--- Selects and partitions by the same column, so DISTINCT leaves one row per deliverable even if a
--- document and its submission action disagree on deliverable_id (no constraint ties them together).
 most_recent_valid_bn_data AS (
-    SELECT DISTINCT doc.deliverable_id,
-        first_value(bn.net_variance_total)
-            OVER (PARTITION BY doc.deliverable_id ORDER BY da.action_timestamp DESC) AS net_variance_total,
-        first_value(bn.actuals) OVER (PARTITION BY doc.deliverable_id ORDER BY da.action_timestamp DESC) AS actuals
+    SELECT DISTINCT ON (doc.deliverable_id)
+        doc.deliverable_id, bn.id AS workbook_id, bn.net_variance_total, bn.actuals
     FROM demos_app.budget_neutrality_workbook AS bn
     INNER JOIN demos_app.document AS doc ON bn.id = doc.id
     INNER JOIN demos_app.deliverable_action AS da
         ON doc.deliverable_submission_action_id = da.id AND bn.validation_status_id = 'Succeeded'
+    ORDER BY doc.deliverable_id, da.action_timestamp DESC, bn.id DESC
+),
+bn_value_aggregates AS (
+    SELECT workbook_id,
+        json_agg(json_build_object(
+            'test_id', hypothetical_id,
+            'measure_id', measure_id,
+            'meg_name', meg_name,
+            'dy_number', dy_number,
+            'value', value
+        ) ORDER BY hypothetical_id, measure_id, meg_name NULLS FIRST, dy_number NULLS FIRST) AS test_values
+    FROM demos_app.budget_neutrality_workbook_hypothetical_value
+    GROUP BY workbook_id
 ),
 aggregate_public_comments AS (
     SELECT pbc.deliverable_id,
@@ -446,6 +465,8 @@ deliverable_details AS (
         AND act_stats.most_recent_finalization_timestamp < most_recent_public_comment.created_at
     LEFT JOIN most_recent_review_start ON deliv.id = most_recent_review_start.deliverable_id
     LEFT JOIN most_recent_valid_bn_data ON deliv.id = most_recent_valid_bn_data.deliverable_id
+    LEFT JOIN bn_value_aggregates
+        ON most_recent_valid_bn_data.workbook_id = bn_value_aggregates.workbook_id
     LEFT JOIN aggregate_public_comments ON deliv.id = aggregate_public_comments.deliverable_id
     LEFT JOIN aggregate_private_comments ON deliv.id = aggregate_private_comments.deliverable_id
     CROSS JOIN LATERAL (
@@ -505,6 +526,7 @@ export const EXPORT_VIEWS = {
     orderBy: ["demonstration_id"],
     baseTables: [
       "amendment", "application", "application_date", "application_note", "budget_neutrality_workbook",
+      "budget_neutrality_workbook_hypothetical_value",
       "deliverable", "deliverable_action", "deliverable_demonstration_type", "deliverable_extension", "demonstration",
       "demonstration_role_assignment", "demonstration_type_tag_assignment", "document", "extension", "person",
       "primary_demonstration_role_assignment", "private_comment", "public_comment", "state",

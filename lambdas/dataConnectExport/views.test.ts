@@ -46,10 +46,31 @@ describe("demonstration reporting contract", () => {
   ])("exports the complete %s report shape", (collection, report) => {
     const schemas = EXPORT_VIEWS.demonstration_reporting.collectionSchemas;
     const fields = schemas[collection as keyof typeof schemas].columns;
-    expect(fields.map((field) => field.name)).toEqual(reportColumns(report));
+    const expectedFields = reportColumns(report);
+    if (collection === "deliverables") expectedFields.push("budget_neutrality_reporting");
+    expect(fields.map((field) => field.name)).toEqual(expectedFields);
     for (const field of fields) {
-      expect(field.duckdbType).toBe(["total_extensions_requested", "total_resubmissions_requested"].includes(field.name) ? "INTEGER" : "VARCHAR");
+      expect(field.duckdbType).toBe(field.name === "budget_neutrality_reporting" ? "JSON"
+        : ["total_extensions_requested", "total_resubmissions_requested"].includes(field.name) ? "INTEGER" : "VARCHAR");
     }
+  });
+
+  it("exports the latest successful workbook's reporting rows without changing deliverable counts", () => {
+    const view = EXPORT_VIEWS.demonstration_reporting;
+    const reporting = view.collectionSchemas.deliverables.columns.find(
+      (field) => field.name === "budget_neutrality_reporting"
+    );
+
+    expect(reporting?.duckdbType).toBe("JSON");
+    expect(view.query).toContain("DISTINCT ON (doc.deliverable_id)");
+    expect(view.query).toContain("ORDER BY doc.deliverable_id, da.action_timestamp DESC, bn.id DESC");
+    expect(view.query).toContain("'workbook_id', most_recent_valid_bn_data.workbook_id");
+    expect(view.query).toContain("'test_values'");
+    expect(view.query).toContain("COALESCE(bn_value_aggregates.test_values, '[]'::json)");
+    expect(view.query).toContain("WHEN most_recent_valid_bn_data.workbook_id IS NULL THEN NULL");
+    expect(view.query).toContain("json_agg(json_build_object(");
+    expect(view.baseTables).toContain("budget_neutrality_workbook_hypothetical_value");
+    expect(view.query.match(/FROM demos_app\.deliverable AS deliv/g)).toHaveLength(1);
   });
 
   it("declares every demos_app table the query reads, for snapshot locking", () => {

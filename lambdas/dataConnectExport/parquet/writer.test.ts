@@ -324,9 +324,18 @@ describe("writeRelationToFile", () => {
     ]);
   });
 
-  it("round trips JSON arrays including empty arrays and escaped report text", async () => {
+  it("round trips nested BN reporting JSON with numeric values and empty arrays", async () => {
     const schema: RelationSchema = { columns: [{ name: "applications", duckdbType: "JSON" }] };
-    const array = JSON.stringify([{ name: 'CMS, "review"\n雪', notes: null }, { name: "Renewal" }]);
+    const reporting = {
+      workbook_id: "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+      test_values: [{ test_id: "Main", measure_id: "Net Variance", meg_name: null, dy_number: null, value: 1.25 }],
+      test_years: [],
+      spending_limits: [],
+    };
+    const array = JSON.stringify([
+      { name: 'CMS, "review"\n雪', notes: null, budget_neutrality_reporting: reporting },
+      { name: "Renewal", budget_neutrality_reporting: null },
+    ]);
     const csv = `"${array.replace(/"/g, '""')}"\n[]\n`;
     const { client } = fakeClient(csv, 2);
     const out = outputPath();
@@ -334,6 +343,9 @@ describe("writeRelationToFile", () => {
     const query = await reader();
     const rows = await query(`SELECT applications::VARCHAR AS applications FROM read_parquet('${out}')`);
     expect(rows.map((row) => JSON.parse(row.applications as string))).toEqual([JSON.parse(array), []]);
+    const payload = JSON.parse(rows[0]!.applications as string);
+    expect(payload[0].budget_neutrality_reporting.test_values[0].value).toBe(1.25);
+    expect(typeof payload[0].budget_neutrality_reporting.test_values[0].value).toBe("number");
   });
 
   it("preserves a comma, a quote and a newline inside a field", async () => {

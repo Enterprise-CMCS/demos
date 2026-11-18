@@ -61,7 +61,7 @@ vi.mock("demos-shared-library/BN/validation", () => ({
   validateBNWorkbook: vi.fn().mockResolvedValue({
     isValid: true,
     errors: [],
-    extractedValues: new Map<string, string | number>(),
+    extractedValues: new Map<string, string | number>([["netVariance", 0]]),
   }),
 }));
 
@@ -100,7 +100,7 @@ describe("budgetNeutrality index", () => {
     vi.mocked(validateBNWorkbook).mockReset().mockResolvedValue({
       isValid: true,
       errors: [],
-      extractedValues: new Map<string, string | number>(),
+      extractedValues: new Map<string, string | number>([["netVariance", 0]]),
     });
   });
 
@@ -134,7 +134,7 @@ describe("budgetNeutrality index", () => {
       body: "Processed 1 records.",
     });
     expect(mocks.getDbPoolMock).toHaveBeenCalledTimes(1);
-    expect(mocks.queryMock).toHaveBeenCalledTimes(4);
+    expect(mocks.queryMock).toHaveBeenCalledTimes(9);
     expect(mocks.queryMock.mock.calls[0]?.[0]).toBe("BEGIN");
     expect(mocks.queryMock.mock.calls[1]?.[0]).toContain("FOR UPDATE");
     expect(mocks.queryMock.mock.calls[2]?.[0]).toContain("budget_neutrality_workbook");
@@ -144,9 +144,22 @@ describe("budgetNeutrality index", () => {
       "Succeeded",
       "[]",
       undefined,
-      undefined,
+      0,
     ]);
-    expect(mocks.queryMock.mock.calls[3]?.[0]).toBe("COMMIT");
+    expect(mocks.queryMock.mock.calls.slice(3, 7).every(([query]) => String(query).startsWith("DELETE"))).toBe(true);
+    expect(mocks.queryMock.mock.calls[7]?.[0]).toContain("INSERT INTO demos_app.budget_neutrality_workbook_hypothetical_value");
+    expect(mocks.queryMock.mock.calls[7]?.[1]).toEqual([
+      expect.stringMatching(/^[0-9a-f-]{36}$/i),
+      "doc-1",
+      "Main",
+      "Net Variance",
+      null,
+      null,
+      0,
+      expect.any(Date),
+      expect.any(Date),
+    ]);
+    expect(mocks.queryMock.mock.calls[8]?.[0]).toBe("COMMIT");
     expect(client.release).toHaveBeenCalledOnce();
     expect(mocks.logInfoMock).toHaveBeenCalledWith(
       {
@@ -160,6 +173,27 @@ describe("budgetNeutrality index", () => {
       "Budget Neutrality validation completed."
     );
     expect(mocks.logWarnMock).not.toHaveBeenCalled();
+  });
+
+  it("replaces the reporting snapshot on repeated processing when the parent update is suppressed", async () => {
+    const { pool } = createPool();
+    mocks.getDbPoolMock.mockResolvedValue(pool);
+    const event = {
+      Records: [{ body: JSON.stringify({ documentId: "doc-1", documentTypeId: "BN Workbook" }) }],
+    } as unknown as SQSEvent;
+    const context = { awsRequestId: "test-request-id" } as Context;
+
+    await handler(event, context);
+    await handler(event, context);
+
+    const queries = mocks.queryMock.mock.calls.map(([query]) => String(query));
+    const insertIndices = queries.flatMap((query, index) => query.startsWith("INSERT INTO") ? [index] : []);
+    expect(insertIndices).toHaveLength(2);
+    for (const index of insertIndices) {
+      expect(queries.slice(index - 4, index).every((query) => query.startsWith("DELETE"))).toBe(true);
+    }
+    expect(queries.filter((query) => query.includes("spending_limit_meg") && query.startsWith("DELETE")))
+      .toHaveLength(2);
   });
 
   it.each([
@@ -248,6 +282,27 @@ describe("budgetNeutrality index", () => {
       expect.stringContaining("UPDATE"),
       "ROLLBACK",
     ]);
+    expect(client.release).toHaveBeenCalledOnce();
+  });
+
+  it("rolls back a failed reporting insert without committing a partial snapshot", async () => {
+    const { pool, client } = createPool();
+    mocks.getDbPoolMock.mockResolvedValue(pool);
+    const failure = new Error("temporary reporting insert failure");
+    mocks.queryMock.mockImplementation(async (query: string) => {
+      if (query.includes("FOR UPDATE")) return { rows: [{ id: "doc-1" }] };
+      if (query.startsWith("INSERT INTO")) throw failure;
+      return { rows: [] };
+    });
+    const event = {
+      Records: [{ body: JSON.stringify({ documentId: "doc-1", documentTypeId: "BN Workbook" }) }],
+    } as unknown as SQSEvent;
+
+    await expect(handler(event, { awsRequestId: "test-request-id" } as Context)).rejects.toBe(failure);
+
+    const queries = mocks.queryMock.mock.calls.map(([query]) => String(query));
+    expect(queries.at(-1)).toBe("ROLLBACK");
+    expect(queries).not.toContain("COMMIT");
     expect(client.release).toHaveBeenCalledOnce();
   });
 
