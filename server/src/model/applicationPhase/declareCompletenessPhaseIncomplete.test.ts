@@ -182,6 +182,14 @@ describe("declareCompletenessPhaseIncomplete", () => {
       [testApplicationId, "Completeness", "Incomplete", mockTransaction],
       [testApplicationId, "Application Intake", "Started", mockTransaction],
     ]);
+    expect(insertApplicationAction).toHaveBeenCalledWith(
+      {
+        userId: "user-1",
+        applicationId: testApplicationId,
+        actionType: "Declared Completeness Phase Incomplete",
+      },
+      mockTransaction
+    );
     expect(handlePrismaError).not.toHaveBeenCalled();
   });
 
