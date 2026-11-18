@@ -2,8 +2,7 @@ import path from "node:path";
 
 import { runShell } from "../lib/runCommand";
 import { getOutputValue } from "../lib/getOutputValue";
-
-import { CloudFormationClient, DescribeStacksCommand } from "@aws-sdk/client-cloudformation";
+import { getStackOutputs } from "../lib/getStackOutputs";
 
 const LOWER_ENVIRONMENTS = new Set(["dev", "test"]);
 
@@ -25,21 +24,4 @@ export async function buildClient(environment: string) {
       VITE_API_URL_PREFIX: "/api/graphql",
     },
   });
-}
-
-const cloudFormation = new CloudFormationClient({ region: "us-east-1" });
-
-async function getStackOutputs(stackName: string): Promise<Record<string, string>> {
-  const response = await cloudFormation.send(new DescribeStacksCommand({ StackName: stackName }));
-
-  const stack = response.Stacks?.[0];
-  if (!stack) {
-    throw new Error(`CloudFormation stack '${stackName}' was not found`);
-  }
-
-  return Object.fromEntries(
-    (stack.Outputs ?? []).flatMap(({ OutputKey, OutputValue }) =>
-      OutputKey && OutputValue ? [[OutputKey, OutputValue]] : [],
-    ),
-  );
 }

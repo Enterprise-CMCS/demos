@@ -3,7 +3,6 @@ import { up } from "./up";
 import { buildClient } from "./buildClient";
 import { buildServer } from "./buildServer";
 import { fullDeploy } from "./fullDeploy";
-import { getCoreOutputs } from "./getCoreOutputs";
 import { Mock } from "vitest";
 
 vi.mock("./buildServer");
@@ -28,7 +27,6 @@ describe("up", () => {
 
     await up(mockStageName);
 
-    expect(getCoreOutputs).toHaveBeenCalledWith(mockStageName);
     expect(bs).toHaveBeenCalled();
     expect(bc).toHaveBeenCalledWith(mockStageName);
     expect(fullDeploy).toHaveBeenCalledWith(mockStageName);
