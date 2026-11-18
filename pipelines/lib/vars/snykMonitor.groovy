@@ -39,9 +39,15 @@ def call(Map params) {
         string(credentialsId: 'demos-snyk-sa', variable: 'SNYK_TOKEN'),
         string(credentialsId: 'demos-snyk-org-id', variable: 'SNYK_CFG_ORG')
       ]) {
-        sh """
-          snyk monitor --project-name=${params.dir}-${targetEnv} --target-reference=${localRef} --remote-repo-url=${repoUrl}
-        """
+        withEnv([
+          "MONITOR_PROJECT_NAME=${params.dir}-${targetEnv}",
+          "MONITOR_REF=${localRef}",
+          "MONITOR_REPO_URL=${repoUrl}"
+        ]) {
+          sh '''
+            snyk monitor --project-name="$MONITOR_PROJECT_NAME" --target-reference="$MONITOR_REF" --remote-repo-url="$MONITOR_REPO_URL"
+          '''
+        }
       }
     }
   }

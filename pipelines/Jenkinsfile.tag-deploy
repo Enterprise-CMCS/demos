@@ -92,7 +92,7 @@ pipeline {
           parallel(
             'Build Client': {
               dirCon('deployment','node') {
-                sh "npx tsx demosctl/index build:client ${env.STAGE} true"                                          
+                sh "npx tsx demosctl/index build:client ${env.STAGE}"                                          
               }
             }, 
             'Build Server': {
@@ -226,6 +226,9 @@ Deployment will begin in 1 minute
             slackSend(color: "warning", message: slackMessage)
             sleep(time: 1, unit: "MINUTES")
           }
+
+
+          assumeRole(accountEnv: env.STAGE)
         }
       }
     }
