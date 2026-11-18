@@ -32,4 +32,23 @@ describe("PhaseBox", () => {
     fireEvent.click(screen.getByText("Concept"));
     expect(mockFn).toHaveBeenCalled();
   });
+
+  it("is keyboard focusable and selects on Enter or Space", () => {
+    const mockFn = vi.fn();
+    render(
+      <PhaseBox
+        phaseName="Concept"
+        phaseNumber={1}
+        phaseStatus="Not Started"
+        isSelectedPhase={false}
+        setPhaseAsSelected={mockFn}
+      />
+    );
+    const box = screen.getByRole("button", { name: /Concept/ });
+    expect(box).toHaveAttribute("tabindex", "0");
+    fireEvent.keyDown(box, { key: "Enter" });
+    fireEvent.keyDown(box, { key: " " });
+    fireEvent.keyDown(box, { key: "a" });
+    expect(mockFn).toHaveBeenCalledTimes(2);
+  });
 });

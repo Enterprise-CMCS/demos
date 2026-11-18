@@ -8,18 +8,18 @@
     "@date-fns/tz": "^1.5.0",
     "@date-fns/utc": "^2.1.1",
     "@eslint/js": "^9.39.5",
-    "@tailwindcss/vite": "^4.3.3",
+    "@tailwindcss/vite": "^4.3.5",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^6.10.0",
     "@testing-library/react": "^16.3.3",
     "@types/jest": "^30.0.0",
-    "@types/node": "^26.6.5",
+    "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@types/semver": "^7.8.0",
-    "@vitejs/plugin-react": "^6.1.2",
+    "@vitejs/plugin-react": "^6.2.1",
     "@vitest/coverage-v8": "^4.1.12",
-    "eslint": "^10.13.0",
+    "eslint": "^10.14.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^16.5.0",
     "jsdom": "^26.1.0",
@@ -27,11 +27,11 @@
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-idle-timer": "^5.7.3",
-    "tailwindcss": "^4.3.3",
+    "tailwindcss": "^4.3.5",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.72.0",
-    "vite": "^8.3.5",
+    "typescript-eslint": "^8.72.1",
+    "vite": "^8.3.6",
     "vite-bundle-visualizer": "^1.2.1",
     "vitest": "^4.1.12",
     "vitest-sonar-reporter": "^3.0.0"
@@ -86,15 +86,15 @@
     "@testing-library/user-event": "^14.6.8",
     "date-fns": "^4.4.0",
     "demos-shared-library": "file:../shared_library",
-    "documonster": "^0.21.1",
+    "documonster": "^0.22.0",
     "file-type": "^21.3.4",
     "react-oidc-context": "^3.3.1",
-    "react-router-dom": "^7.18.4",
+    "react-router-dom": "^7.18.5",
     "react-switch": "^7.1.0",
-    "semver": "^7.8.5"
+    "semver": "^7.8.6"
   },
   "optionalDependencies": {
     "@emnapi/core": "^1.11.3",
-    "@rollup/rollup-linux-x64-musl": "^4.65.0"
+    "@rollup/rollup-linux-x64-musl": "^4.68.0"
   }
 }

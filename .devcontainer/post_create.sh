@@ -1,5 +1,9 @@
 #!/usr/bin/bash
 
+# Activate the Node version selected by the devcontainer feature.
+. "$NVM_DIR/nvm.sh"
+nvm use default
+
 # Configure Python environment
 python -m venv /opt/demos-data
 /opt/demos-data/bin/pip install --upgrade pip

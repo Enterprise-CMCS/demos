@@ -33,14 +33,17 @@ const UPDATE_WORKBOOK_SQL = `UPDATE ${DB_SCHEMA}.budget_neutrality_workbook
     actuals = $5::TEXT,
     net_variance_total = $6::NUMERIC,
     updated_at = CURRENT_TIMESTAMP
+  WHERE id = $1::UUID;`;
+
+const LOCK_WORKBOOK_SQL = `SELECT id FROM ${DB_SCHEMA}.budget_neutrality_workbook
   WHERE id = $1::UUID
-  RETURNING id;`;
+  FOR UPDATE;`;
 
 const DELETE_CHILD_SNAPSHOT_SQL = [
   // Deleting spending limits cascades to their MEG rows.
   `DELETE FROM ${DB_SCHEMA}.budget_neutrality_workbook_spending_limit WHERE workbook_id = $1::UUID`,
-  `DELETE FROM ${DB_SCHEMA}.budget_neutrality_workbook_test_value WHERE workbook_id = $1::UUID`,
-  `DELETE FROM ${DB_SCHEMA}.budget_neutrality_workbook_test_year WHERE workbook_id = $1::UUID`,
+  `DELETE FROM ${DB_SCHEMA}.budget_neutrality_workbook_hypothetical_value WHERE workbook_id = $1::UUID`,
+  `DELETE FROM ${DB_SCHEMA}.budget_neutrality_workbook_hypothetical_year WHERE workbook_id = $1::UUID`,
 ];
 
 async function insertRows(
@@ -51,12 +54,13 @@ async function insertRows(
 ): Promise<void> {
   if (rows.length === 0) return;
 
+  const insertedColumns = [...columns, "updated_at"];
   const placeholders = rows.map((_, rowIndex) => {
     const values = columns.map((_, columnIndex) => `$${rowIndex * columns.length + columnIndex + 1}`);
-    return `(${values.join(", ")})`;
+    return `(${values.join(", ")}, CURRENT_TIMESTAMP)`;
   });
   await client.query(
-    `INSERT INTO ${DB_SCHEMA}.${table} (${columns.join(", ")}) VALUES ${placeholders.join(", ")}`,
+    `INSERT INTO ${DB_SCHEMA}.${table} (${insertedColumns.join(", ")}) VALUES ${placeholders.join(", ")}`,
     rows.flat(),
   );
 }
@@ -87,8 +91,14 @@ export async function updateBudgetNeutralityWorkbook(
     await client.query("BEGIN");
     transactionStarted = true;
 
+    const lockedWorkbook = await client.query<{ id: string }>(LOCK_WORKBOOK_SQL, [message.documentId]);
+    if (lockedWorkbook.rows.length !== 1 || !lockedWorkbook.rows[0]?.id) {
+      throw new Error(`No unique BN workbook record found for document ${message.documentId}.`);
+    }
+    const workbookId = lockedWorkbook.rows[0].id;
+
     const extractedValues = validationResults.isValid ? validationResults.extractedValues : undefined;
-    const updatedWorkbook = await client.query<{ id: string }>(UPDATE_WORKBOOK_SQL, [
+    await client.query(UPDATE_WORKBOOK_SQL, [
       message.documentId,
       message.documentTypeId,
       validationResults.isValid ? SUCCEEDED_VALIDATION_STATUS_ID : FAILED_VALIDATION_STATUS_ID,
@@ -96,10 +106,6 @@ export async function updateBudgetNeutralityWorkbook(
       extractedValues?.get("actuals") ?? null,
       extractedValues?.get("netVariance") ?? null,
     ]);
-    if (updatedWorkbook.rows.length !== 1 || !updatedWorkbook.rows[0]?.id) {
-      throw new Error(`No unique BN workbook record found for document ${message.documentId}.`);
-    }
-    const workbookId = updatedWorkbook.rows[0].id;
 
     for (const query of DELETE_CHILD_SNAPSHOT_SQL) {
       await client.query(query, [workbookId]);
@@ -110,13 +116,13 @@ export async function updateBudgetNeutralityWorkbook(
         throw new Error(`A valid BN workbook extraction is required for document ${message.documentId}.`);
       }
 
-      await insertRows(client, "budget_neutrality_workbook_test_value", [
-        "id", "workbook_id", "test_id", "measure_id", "meg_name", "dy_number", "value",
+      await insertRows(client, "budget_neutrality_workbook_hypothetical_value", [
+        "id", "workbook_id", "hypothetical_id", "measure_id", "meg_name", "dy_number", "value",
       ], reportingExtract.testValues.map((row) => [
         randomUUID(), workbookId, row.testId, row.measureId, row.megName, row.dyNumber, row.value,
       ]));
-      await insertRows(client, "budget_neutrality_workbook_test_year", [
-        "workbook_id", "test_id", "dy_number", "cap_needed",
+      await insertRows(client, "budget_neutrality_workbook_hypothetical_year", [
+        "workbook_id", "hypothetical_id", "dy_number", "cap_needed",
       ], reportingExtract.testYears.map((row) => [
         workbookId, row.testId, row.dyNumber, row.capNeeded ?? null,
       ]));

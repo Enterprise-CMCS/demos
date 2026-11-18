@@ -12,6 +12,13 @@ metadata:
   labels:
     jenkins: "agent"
 spec:
+  volumes:
+    - name: tmp
+      emptyDir:
+        sizeLimit: 5Gi
+    - name: home
+      emptyDir:
+        sizeLimit: 1Gi
   nodeSelector:
     node-pool: "agent"
   restartPolicy: Never
@@ -31,6 +38,15 @@ spec:
           cpu: 500m
           memory: 1Gi
           ephemeral-storage: 10Gi
+      imagePullPolicy: Always
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        capabilities:
+          drop: 
+          - ALL
     - name: node
       image: node:24.22.2-alpine
       command: 
@@ -45,6 +61,15 @@ spec:
           cpu: 1500m
           memory: 2Gi
           ephemeral-storage: 10Gi
+      imagePullPolicy: Always
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        capabilities:
+          drop: 
+          - ALL
     - name: aws-cli
       image: amazon/aws-cli:2.39.7
       command:
@@ -60,6 +85,23 @@ spec:
           cpu: 400m
           memory: 512Mi
           ephemeral-storage: "5Gi"
+      imagePullPolicy: Always
+      env:
+        - name: HOME
+          value: /tmpHome
+      volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: home
+          mountPath: /tmpHome
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        capabilities:
+          drop: 
+          - ALL
     - name: snyk
       image: snyk/snyk:alpine # snyk doesn't publish versions
       command:
@@ -74,6 +116,15 @@ spec:
           cpu: 2000m
           memory: 2Gi
           ephemeral-storage: "5Gi"
+      imagePullPolicy: Always
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        capabilities:
+          drop: 
+          - ALL
     - name: zap
       image: zaproxy/zap-stable:20260807
       command:
@@ -88,6 +139,20 @@ spec:
           cpu: 3000m
           memory: 4Gi
           ephemeral-storage: "5Gi"
+      imagePullPolicy: Always
+      volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: home
+          mountPath: /home/zap/.ZAP
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        capabilities:
+          drop: 
+          - ALL
     - name: checkov
       image: bridgecrew/checkov:3.4.3
       command:
@@ -102,3 +167,12 @@ spec:
           cpu: 2000m
           memory: 2Gi
           ephemeral-storage: "5Gi"
+      imagePullPolicy: Always
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        capabilities:
+          drop: 
+          - ALL

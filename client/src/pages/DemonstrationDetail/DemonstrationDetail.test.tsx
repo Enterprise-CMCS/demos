@@ -234,4 +234,24 @@ describe("DemonstrationDetail", () => {
       expect(screen.getByTestId("demonstration-tab")).toBeInTheDocument();
     });
   });
+
+  it("removes query parameters when switching back to details tab", async () => {
+    const user = userEvent.setup();
+    renderWithRouter("/demonstrations/1?amendments=amendment-1");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("amendments-tab")).toBeInTheDocument();
+    });
+
+    // Click back to Demonstration Details tab
+    const detailsTab = screen.getByRole("tab", { name: /Demonstration Details/i });
+    await user.click(detailsTab);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("demonstration-tab")).toBeInTheDocument();
+    });
+
+    expect(window.location.search).not.toContain("amendments");
+    expect(window.location.search).not.toContain("renewals");
+  });
 });

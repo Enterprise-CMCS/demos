@@ -11,6 +11,7 @@ import {
   ADMIN_DEMONSTRATION_ROLES,
   CMS_REVIEWER_USER_DEMONSTRATION_ROLES,
   CMS_USER_DEMONSTRATION_ROLES,
+  OACT_USER_DEMONSTRATION_ROLES,
   RESTRICTED_CMS_USER_DEMONSTRATION_ROLES,
   STATE_USER_DEMONSTRATION_ROLES,
 } from "demos-server-constants";
@@ -164,6 +165,10 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
         value: role,
       })),
       "demos-admin": ADMIN_DEMONSTRATION_ROLES.map((role) => ({ label: role, value: role })),
+      "demos-oact-user": OACT_USER_DEMONSTRATION_ROLES.map((role) => ({
+        label: role,
+        value: role,
+      })),
       Default: ADMIN_DEMONSTRATION_ROLES.map((role) => ({ label: role, value: role })),
     }),
     []
@@ -188,6 +193,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
       options = optionsByRole["demos-cms-reviewer-user"];
     else if (roles.includes("demos-state-user")) options = optionsByRole["demos-state-user"];
     else if (roles.includes("demos-admin")) options = optionsByRole["demos-admin"];
+    else if (roles.includes("demos-oact-user")) options = optionsByRole["demos-oact-user"];
     else options = optionsByRole.Default;
 
     if (!personId) return options;
@@ -551,6 +557,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   return (
     <>
       <BaseDialog
+        name="dialog-manage-contacts"
         title="Manage Contact(s)"
         onClose={onClose}
         maxWidthClass="max-w-[1000px]"

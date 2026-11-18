@@ -667,6 +667,34 @@ describe("ManageContactsDialog", () => {
     expect(screen.queryByText("Project Officer")).not.toBeInTheDocument();
   });
 
+  it("shows only OACT Lead for OACT users", () => {
+    const propsWithStateUser: ManageContactsDialogProps = {
+      ...defaultProps,
+      existingContacts: [
+        {
+          id: "role-1",
+          person: {
+            id: "person-1",
+            fullName: "OACT User",
+            email: "oact@example.com",
+            personType: "demos-oact-user",
+          },
+          role: "OACT Lead",
+          isPrimary: false,
+        },
+      ],
+    };
+
+    renderWithProviders(propsWithStateUser);
+
+    const select = screen.getByDisplayValue("OACT Lead");
+    fireEvent.click(select);
+
+    expect(screen.getByText("OACT Lead")).toBeInTheDocument();
+    expect(screen.queryByText("Monitoring & Evaluation Analyst")).not.toBeInTheDocument();
+    expect(screen.queryByText("Project Officer")).not.toBeInTheDocument();
+  });
+
   it("filters out already-used contact types for the same person", async () => {
     const user = userEvent.setup();
     const mocks = SEARCH_PEOPLE_MOCKS;

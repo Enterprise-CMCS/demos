@@ -73,8 +73,8 @@ const DOCUMENT_ID = "0d3f4a68-195d-49ef-8d36-0cc0eaa31935";
 const MESSAGE = { documentId: DOCUMENT_ID, documentTypeId: "BN Workbook" };
 const EXPECTED_DELETE_CHILD_SNAPSHOT_QUERIES = [
   "DELETE FROM demos_app.budget_neutrality_workbook_spending_limit WHERE workbook_id = $1::UUID",
-  "DELETE FROM demos_app.budget_neutrality_workbook_test_value WHERE workbook_id = $1::UUID",
-  "DELETE FROM demos_app.budget_neutrality_workbook_test_year WHERE workbook_id = $1::UUID",
+  "DELETE FROM demos_app.budget_neutrality_workbook_hypothetical_value WHERE workbook_id = $1::UUID",
+  "DELETE FROM demos_app.budget_neutrality_workbook_hypothetical_year WHERE workbook_id = $1::UUID",
 ];
 
 function emptyReportingExtract(): BNWorkbookExtract {
@@ -112,8 +112,11 @@ function successfulValidationResults() {
 
 function setupPersistenceClient(parentRows = [{ id: DOCUMENT_ID }]): void {
   mocks.clientQueryMock.mockImplementation((query: string) => {
-    if (query.includes("UPDATE demos_app.budget_neutrality_workbook")) {
+    if (query.startsWith("SELECT id FROM demos_app.budget_neutrality_workbook")) {
       return Promise.resolve({ rows: parentRows });
+    }
+    if (query.includes("UPDATE demos_app.budget_neutrality_workbook")) {
+      return Promise.resolve({ rows: [] });
     }
     return Promise.resolve({ rows: [] });
   });
@@ -192,6 +195,7 @@ describe("budgetNeutrality index", () => {
     expect(mocks.queryMock).not.toHaveBeenCalled();
     expect(mocks.connectMock).toHaveBeenCalledTimes(1);
     expect(mocks.clientQueryMock.mock.calls[0]?.[0]).toBe("BEGIN");
+    expect(mocks.clientQueryMock.mock.calls[1]?.[0]).toContain("FOR UPDATE");
     expect(mocks.clientQueryMock.mock.calls.at(-1)?.[0]).toBe("COMMIT");
     expect(mocks.clientQueryMock.mock.calls.find(([query]) => String(query).includes("UPDATE demos_app.budget_neutrality_workbook"))?.[1]).toEqual([
       DOCUMENT_ID,
@@ -330,8 +334,14 @@ describe("budgetNeutrality index", () => {
       .toEqual(EXPECTED_DELETE_CHILD_SNAPSHOT_QUERIES);
     const inserts = calls.filter(([query]) => String(query).startsWith("INSERT INTO"));
     expect(inserts).toHaveLength(4);
+    for (const [query] of inserts) {
+      expect(query).toContain("updated_at");
+      expect(query).toContain("CURRENT_TIMESTAMP");
+    }
 
-    const valuesInsert = inserts.find(([query]) => String(query).includes("budget_neutrality_workbook_test_value"));
+    const valuesInsert = inserts.find(([query]) => String(query).includes("budget_neutrality_workbook_hypothetical_value"));
+    expect(valuesInsert?.[0]).toContain("hypothetical_id");
+    expect(valuesInsert?.[0]).not.toContain("test_id");
     expect(valuesInsert?.[1]).toHaveLength(14);
     expect(valuesInsert?.[1]?.[0]).toMatch(/^[0-9a-f-]{36}$/i);
     expect(valuesInsert?.[1]?.slice(1, 7)).toEqual([
@@ -341,13 +351,44 @@ describe("budgetNeutrality index", () => {
       DOCUMENT_ID, "Hypothetical 1", "Without-Waiver Total", null, 1, 0,
     ]);
 
-    const yearsInsert = inserts.find(([query]) => String(query).includes("budget_neutrality_workbook_test_year"));
+    const yearsInsert = inserts.find(([query]) => String(query).includes("budget_neutrality_workbook_hypothetical_year"));
+    expect(yearsInsert?.[0]).toContain("hypothetical_id");
+    expect(yearsInsert?.[0]).not.toContain("test_id");
     expect(yearsInsert?.[1]).toEqual([DOCUMENT_ID, "Main", 1, false]);
     const spendingInsert = inserts.find(([query]) => String(query).includes("budget_neutrality_workbook_spending_limit ("));
     expect(spendingInsert?.[1]).toEqual([DOCUMENT_ID, 1, "Program A", 0, 0, false]);
     const megInsert = inserts.find(([query]) => String(query).includes("budget_neutrality_workbook_spending_limit_meg"));
     expect(megInsert?.[1]).toEqual([DOCUMENT_ID, 1, 1, "MEG A", 0]);
     expect(mocks.clientReleaseMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("replaces reporting rows when the parent update is suppressed as redundant", async () => {
+    mocks.clientQueryMock.mockImplementation((query: string) => {
+      if (query.startsWith("SELECT id FROM demos_app.budget_neutrality_workbook")) {
+        return Promise.resolve({ rows: [{ id: DOCUMENT_ID }] });
+      }
+      if (query.includes("UPDATE demos_app.budget_neutrality_workbook")) {
+        return Promise.resolve({ rows: [] });
+      }
+      return Promise.resolve({ rows: [] });
+    });
+
+    await expect(updateBudgetNeutralityWorkbook(
+      createPool(),
+      MESSAGE,
+      successfulValidationResults(),
+      populatedReportingExtract(),
+    )).resolves.toBeUndefined();
+
+    const calls = mocks.clientQueryMock.mock.calls;
+    expect(calls[0]?.[0]).toBe("BEGIN");
+    expect(calls[1]?.[0]).toContain("FOR UPDATE");
+    expect(calls[2]?.[0]).toContain("UPDATE demos_app.budget_neutrality_workbook");
+    expect(calls.find(([query]) => String(query).includes("UPDATE demos_app.budget_neutrality_workbook"))?.[0])
+      .not.toContain("RETURNING id");
+    expect(calls.filter(([query]) => String(query).startsWith("DELETE FROM"))).toHaveLength(3);
+    expect(calls.filter(([query]) => String(query).startsWith("INSERT INTO"))).toHaveLength(4);
+    expect(calls.at(-1)?.[0]).toBe("COMMIT");
   });
 
   it("rejects a valid result without a reporting extract and rolls back", async () => {
@@ -376,6 +417,7 @@ describe("budgetNeutrality index", () => {
     )).rejects.toThrow(`No unique BN workbook record found for document ${DOCUMENT_ID}`);
 
     expect(mocks.clientQueryMock.mock.calls.at(-1)?.[0]).toBe("ROLLBACK");
+    expect(mocks.clientQueryMock.mock.calls.some(([query]) => String(query).includes("UPDATE demos_app.budget_neutrality_workbook"))).toBe(false);
     expect(mocks.clientQueryMock.mock.calls.some(([query]) => String(query).startsWith("DELETE FROM"))).toBe(false);
     expect(mocks.clientReleaseMock).toHaveBeenCalledTimes(1);
   });
@@ -383,10 +425,10 @@ describe("budgetNeutrality index", () => {
   it("rolls back the parent and child snapshot when a child batch fails", async () => {
     setupPersistenceClient();
     mocks.clientQueryMock.mockImplementation((query: string) => {
-      if (query.includes("UPDATE demos_app.budget_neutrality_workbook")) {
+      if (query.startsWith("SELECT id FROM demos_app.budget_neutrality_workbook")) {
         return Promise.resolve({ rows: [{ id: DOCUMENT_ID }] });
       }
-      if (query.startsWith("INSERT INTO demos_app.budget_neutrality_workbook_test_value")) {
+      if (query.startsWith("INSERT INTO demos_app.budget_neutrality_workbook_hypothetical_value")) {
         return Promise.reject(new Error("child batch failed"));
       }
       return Promise.resolve({ rows: [] });
@@ -417,6 +459,31 @@ describe("budgetNeutrality index", () => {
     expect(mocks.clientReleaseMock).toHaveBeenCalledTimes(2);
   });
 
+  it("repeatedly clears invalid workbook results even when parent updates are suppressed", async () => {
+    setupPersistenceClient();
+    const invalidResults = {
+      isValid: false,
+      errors: [{ code: "BN_NET_VARIANCE_LOCATION", message: "Expected Summary!AS436; detected Summary!AS449." }],
+      extractedValues: new Map<string, string | number>([["actuals", "wrong"], ["netVariance", 123]]),
+    };
+
+    await updateBudgetNeutralityWorkbook(createPool(), MESSAGE, invalidResults, null);
+    await updateBudgetNeutralityWorkbook(createPool(), MESSAGE, invalidResults, null);
+
+    const calls = mocks.clientQueryMock.mock.calls;
+    const updates = calls.filter(([query]) => String(query).includes("UPDATE demos_app.budget_neutrality_workbook"));
+    expect(calls.filter(([query]) => String(query).startsWith("SELECT id FROM demos_app.budget_neutrality_workbook")))
+      .toHaveLength(2);
+    expect(updates).toHaveLength(2);
+    expect(updates.map(([, values]) => values)).toEqual([
+      [DOCUMENT_ID, "BN Workbook", "Failed", JSON.stringify(invalidResults.errors), null, null],
+      [DOCUMENT_ID, "BN Workbook", "Failed", JSON.stringify(invalidResults.errors), null, null],
+    ]);
+    expect(calls.filter(([query]) => String(query).startsWith("DELETE FROM"))).toHaveLength(6);
+    expect(calls.some(([query]) => String(query).startsWith("INSERT INTO"))).toBe(false);
+    expect(calls.filter(([query]) => String(query) === "COMMIT")).toHaveLength(2);
+  });
+
   it("uses separate transactions for concurrent reprocessing", async () => {
     const clientCalls: string[][] = [];
     const clientReleases = [vi.fn(), vi.fn()];
@@ -425,7 +492,7 @@ describe("budgetNeutrality index", () => {
       clientCalls.push(queries);
       const query = vi.fn(async (sql: string) => {
         queries.push(sql);
-        return sql.includes("UPDATE demos_app.budget_neutrality_workbook")
+        return sql.startsWith("SELECT id FROM demos_app.budget_neutrality_workbook")
           ? { rows: [{ id: DOCUMENT_ID }] }
           : { rows: [] };
       });
@@ -440,7 +507,9 @@ describe("budgetNeutrality index", () => {
     expect(clientCalls).toHaveLength(2);
     for (const queries of clientCalls) {
       expect(queries[0]).toBe("BEGIN");
-      expect(queries.some((query) => query.includes("UPDATE demos_app.budget_neutrality_workbook") && query.includes("RETURNING id"))).toBe(true);
+      expect(queries[1]).toContain("FOR UPDATE");
+      expect(queries[2]).toContain("UPDATE demos_app.budget_neutrality_workbook");
+      expect(queries[2]).not.toContain("RETURNING id");
       expect(queries.filter((query) => query.startsWith("DELETE FROM")))
         .toEqual(EXPECTED_DELETE_CHILD_SNAPSHOT_QUERIES);
       expect(queries.at(-1)).toBe("COMMIT");
