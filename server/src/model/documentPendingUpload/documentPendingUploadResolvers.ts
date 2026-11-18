@@ -74,7 +74,7 @@ export const documentPendingUploadResolvers = {
             },
             tx
           );
-          await updateAssociatedPhase(tx, input.applicationId, input.phaseName);
+          await updateAssociatedPhase(tx, input.applicationId, input.phaseName, context.user.id);
           return await getS3Adapter().uploadDocument(
             {
               name: input.name,

@@ -4,8 +4,15 @@ import { prisma } from "../../prismaClient.js";
 import { getApplication, PrismaApplication } from "../application";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { formatDateToPlainDate, getEasternNow } from "../../dateUtilities.js";
-import { setPhaseToStarted, updatePhaseStatus, validatePhaseCompletion, PHASE_ACTIONS } from ".";
+import {
+  setPhaseToStarted,
+  updatePhaseStatus,
+  validatePhaseCompletion,
+  PHASE_ACTIONS,
+  PHASE_ACTION_TYPE_MAPPING,
+} from ".";
 import { validateAndUpdateDates } from "../applicationDate";
+import { insertApplicationAction } from "../applicationAction/queries";
 import { __DEMOS_VERSION__ } from "../../flags";
 
 export async function completePhase(
@@ -19,6 +26,7 @@ export async function completePhase(
   if (phaseActions === "Not Permitted") {
     throw new Error(`Operations against the ${input.phaseName} phase are not permitted via API.`);
   }
+  const phaseName = input.phaseName as Exclude<typeof input.phaseName, "Federal Comment">;
 
   const previousApplication = await getApplication(input.applicationId);
 
@@ -41,14 +49,26 @@ export async function completePhase(
       );
       await updatePhaseStatus(input.applicationId, input.phaseName, "Completed", tx);
 
+      // Log phase completion
+      await insertApplicationAction(
+        {
+          applicationId: input.applicationId,
+          actionType: PHASE_ACTION_TYPE_MAPPING[phaseName].complete,
+          userId: context.user.id,
+        },
+        tx
+      );
+
       // start next phase, if applicable
       let nextPhaseWasStarted = false;
       if (phaseActions.nextPhase) {
         nextPhaseWasStarted = await setPhaseToStarted(
           input.applicationId,
           phaseActions.nextPhase.phaseName,
+          context.user.id,
           tx
         );
+
         if (nextPhaseWasStarted && phaseActions.nextPhase.dateToStart) {
           await validateAndUpdateDates(
             {

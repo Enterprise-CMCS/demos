@@ -48,12 +48,17 @@ vi.mock("../email/notifyApplicationEvent", () => ({
   notifyApplicationStatusUpdated: vi.fn(),
 }));
 
+vi.mock("../applicationAction/queries", () => ({
+  insertApplicationAction: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { getApplication } from "../application";
 import { validateAndUpdateDates } from "../applicationDate";
 import { validatePhaseCompletion, updatePhaseStatus, setPhaseToStarted } from ".";
 import { getEasternNow } from "../../dateUtilities";
+import { insertApplicationAction } from "../applicationAction/queries";
 
 describe("completePhase", () => {
   const mockTransaction: any = vi.fn();
@@ -140,9 +145,18 @@ describe("completePhase", () => {
         "Completed",
         mockTransaction
       );
+      expect(insertApplicationAction).toHaveBeenCalledExactlyOnceWith(
+        {
+          applicationId: testApplicationId,
+          actionType: "Completed Concept Phase",
+          userId: "user-1",
+        },
+        mockTransaction
+      );
       expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Application Intake",
+        "user-1",
         mockTransaction
       );
       expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual([
@@ -200,9 +214,18 @@ describe("completePhase", () => {
         "Completed",
         mockTransaction
       );
+      expect(insertApplicationAction).toHaveBeenCalledExactlyOnceWith(
+        {
+          applicationId: testApplicationId,
+          actionType: "Completed Application Intake Phase",
+          userId: "user-1",
+        },
+        mockTransaction
+      );
       expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Completeness",
+        "user-1",
         mockTransaction
       );
       expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual([
@@ -246,6 +269,14 @@ describe("completePhase", () => {
         testApplicationId,
         "Completeness",
         "Completed",
+        mockTransaction
+      );
+      expect(insertApplicationAction).toHaveBeenCalledExactlyOnceWith(
+        {
+          applicationId: testApplicationId,
+          actionType: "Completed Completeness Phase",
+          userId: "user-1",
+        },
         mockTransaction
       );
       expect(setPhaseToStarted).not.toHaveBeenCalled();
@@ -320,9 +351,18 @@ describe("completePhase", () => {
         "Completed",
         mockTransaction
       );
+      expect(insertApplicationAction).toHaveBeenCalledExactlyOnceWith(
+        {
+          applicationId: testApplicationId,
+          actionType: "Completed SDG Preparation Phase",
+          userId: "user-1",
+        },
+        mockTransaction
+      );
       expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Review",
+        "user-1",
         mockTransaction
       );
       expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual([
@@ -380,9 +420,18 @@ describe("completePhase", () => {
         "Completed",
         mockTransaction
       );
+      expect(insertApplicationAction).toHaveBeenCalledExactlyOnceWith(
+        {
+          applicationId: testApplicationId,
+          actionType: "Completed Review Phase",
+          userId: "user-1",
+        },
+        mockTransaction
+      );
       expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Approval Package",
+        "user-1",
         mockTransaction
       );
       expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual([
@@ -440,9 +489,18 @@ describe("completePhase", () => {
         "Completed",
         mockTransaction
       );
+      expect(insertApplicationAction).toHaveBeenCalledExactlyOnceWith(
+        {
+          applicationId: testApplicationId,
+          actionType: "Completed Approval Package Phase",
+          userId: "user-1",
+        },
+        mockTransaction
+      );
       expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Approval Summary",
+        "user-1",
         mockTransaction
       );
       expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual([
@@ -484,6 +542,14 @@ describe("completePhase", () => {
         testApplicationId,
         "Approval Summary",
         "Completed",
+        mockTransaction
+      );
+      expect(insertApplicationAction).toHaveBeenCalledExactlyOnceWith(
+        {
+          applicationId: testApplicationId,
+          actionType: "Completed Approval Summary Phase",
+          userId: "user-1",
+        },
         mockTransaction
       );
       expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual([validateCompleteDateCall]);
@@ -543,6 +609,7 @@ describe("completePhase", () => {
       expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Application Intake",
+        "user-1",
         mockTransaction
       );
       expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(expectedDateCall);

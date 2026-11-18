@@ -36,6 +36,26 @@ export const APPLICATION_ACTION_TYPES = [
   "Deleted Application Note",
   "Uploaded Application Document",
   "Deleted Application Document",
+  
+  "Started Concept Phase",
+  "Skipped Concept Phase",
+  "Completed Concept Phase",
+  "Started Application Intake Phase",
+  "Completed Application Intake Phase",
+  "Started Completeness Phase",
+  "Completed Completeness Phase",
+  "Declared Completeness Phase Incomplete",
+  "Started Federal Comment Phase",
+  "Completed Federal Comment Phase",
+  "Started SDG Preparation Phase",
+  "Completed SDG Preparation Phase",
+  "Automatically Started SDG Preparation Phase",
+  "Started Review Phase",
+  "Completed Review Phase",
+  "Started Approval Package Phase",
+  "Completed Approval Package Phase",
+  "Started Approval Summary Phase",
+  "Completed Approval Summary Phase",
 ] as const;
 
 export const DELIVERABLE_TYPES = [

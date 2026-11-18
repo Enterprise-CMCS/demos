@@ -8,8 +8,10 @@ import {
   getApplicationPhaseStatus,
   setPhaseToStarted,
   updatePhaseStatus,
+  PHASE_ACTION_TYPE_MAPPING,
 } from ".";
 import { validateAndUpdateDates } from "../applicationDate";
+import { insertApplicationAction } from "../applicationAction/queries";
 import { __DEMOS_VERSION__ } from "../../flags";
 
 export async function skipConceptPhase(
@@ -41,7 +43,22 @@ export async function skipConceptPhase(
       );
       await updatePhaseStatus(applicationId, "Concept", "Skipped", tx);
 
-      const nextPhaseWasStarted = await setPhaseToStarted(applicationId, "Application Intake", tx);
+      // Log skipped phase
+      await insertApplicationAction(
+        {
+          applicationId,
+          actionType: PHASE_ACTION_TYPE_MAPPING["Concept"].skip,
+          userId: context.user.id,
+        },
+        tx
+      );
+
+      const nextPhaseWasStarted = await setPhaseToStarted(
+        applicationId,
+        "Application Intake",
+        context.user.id,
+        tx
+      );
       if (nextPhaseWasStarted) {
         await validateAndUpdateDates(
           {
