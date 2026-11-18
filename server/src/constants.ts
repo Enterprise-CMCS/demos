@@ -36,8 +36,7 @@ export const APPLICATION_ACTION_TYPES = [
   "Deleted Application Note",
   "Uploaded Application Document",
   "Deleted Application Document",
-  
-  "Started Concept Phase",
+
   "Skipped Concept Phase",
   "Completed Concept Phase",
   "Started Application Intake Phase",

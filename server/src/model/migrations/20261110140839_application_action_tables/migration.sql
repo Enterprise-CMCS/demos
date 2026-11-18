@@ -119,7 +119,6 @@ INSERT INTO demos_app.application_action_type (
     ('Uploaded Application Document', TRUE, FALSE, FALSE, TRUE),
     ('Deleted Application Document', TRUE, FALSE, FALSE, TRUE),
     -- Concept Phase
-    ('Started Concept Phase', TRUE, FALSE, FALSE, FALSE),
     ('Skipped Concept Phase', TRUE, FALSE, FALSE, FALSE),
     ('Completed Concept Phase', TRUE, FALSE, FALSE, FALSE),
     -- Application Intake Phase
