@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 import type { ExcelData } from "./index.js";
 import * as BN from "./index.js";
 import { validateBNWorkbook, type ValidationError } from "./validation.js";
+import { BNWorkbookInputError } from "./errors.js";
 import { validations as v1Validations } from "./rulesets/v1/index.js";
 import { extractorFunctions } from "./extractors/index.js";
 
@@ -61,5 +62,32 @@ describe("validateBNWorkbook", () => {
     expect(secondValidation).toHaveBeenCalledWith(data);
     expect(thirdValidation).toHaveBeenCalledWith(data);
     expect(extraction).not.toHaveBeenCalled();
+  });
+
+  it("returns typed workbook input failures from required extraction as validation errors", async () => {
+    const inputFailure = new BNWorkbookInputError({
+      code: "BN_NET_VARIANCE_VALUE",
+      message: "Summary!AS436 must contain a finite numeric value.",
+    });
+
+    const result = await validateBNWorkbook(
+      [{ sheet: "Summary", data: [] }],
+      [],
+      [() => { throw inputFailure; }],
+    );
+
+    expect(result).toEqual({
+      isValid: false,
+      errors: [inputFailure.validationError],
+      extractedValues: new Map(),
+    });
+  });
+
+  it("continues to throw unexpected extraction errors for retryable failures", async () => {
+    await expect(validateBNWorkbook(
+      [{ sheet: "Summary", data: [] }],
+      [],
+      [() => { throw new Error("unexpected extractor failure"); }],
+    )).rejects.toThrow("unexpected extractor failure");
   });
 });

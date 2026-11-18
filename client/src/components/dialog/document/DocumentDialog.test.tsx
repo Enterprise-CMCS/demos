@@ -14,16 +14,31 @@ import {
 } from "./DocumentDialog";
 import type { DocumentDialogFields, DocumentUploadResult } from "./DocumentDialog";
 import { BN_WORKBOOK_DOCUMENT_TYPE } from "demos-server-constants";
+import { BNWorkbookInputError } from "demos-shared-library/BN";
 
-const parseBNFile = vi.fn();
+const PARSED_WORKBOOK = {
+  data: [{ sheet: "Sheet1", data: [] }],
+  cachedValuesMayBeStale: false,
+  warnings: [],
+};
+
+const parseBNWorkbook = vi.fn();
+const validateBNWorkbook = vi.fn();
 const rule = vi.fn();
+const extractorFunctions = [vi.fn()];
 
-vi.mock("demos-shared-library/BN", () => ({
-  parseBNFile: (...args: unknown[]) => parseBNFile(...args),
-}));
+vi.mock("demos-shared-library/BN", async () => {
+  const actual =
+    await vi.importActual<typeof import("demos-shared-library/BN")>("demos-shared-library/BN");
+  return { ...actual, parseBNWorkbook: (...args: unknown[]) => parseBNWorkbook(...args) };
+});
 vi.mock("demos-shared-library/BN/rulesets", () => ({
   validations: [rule],
 }));
+vi.mock("demos-shared-library/BN/validation", () => ({
+  validateBNWorkbook: (...args: unknown[]) => validateBNWorkbook(...args),
+}));
+vi.mock("demos-shared-library/BN/extractors", () => ({ extractorFunctions }));
 
 describe("checkFormHasChanges", () => {
   const base: DocumentDialogFields = {
@@ -106,13 +121,15 @@ const selectWorkbook = (fileName = "wb.xlsx") => {
 const waitForUploadEnabled = () =>
   waitFor(() => expect(screen.getByTestId("button-confirm-upload-document")).not.toBeDisabled());
 
-describe("DocumentDialog attestation gating", () => {
-  // BN Workbook pre-validation passes by default since parseBNFile/rule mocks return undefined.
-  beforeEach(() => {
-    parseBNFile.mockReset();
-    rule.mockReset();
-  });
+beforeEach(() => {
+  parseBNWorkbook.mockReset().mockResolvedValue(PARSED_WORKBOOK);
+  validateBNWorkbook
+    .mockReset()
+    .mockResolvedValue({ isValid: true, errors: [], extractedValues: new Map() });
+  rule.mockReset().mockReturnValue(null);
+});
 
+describe("DocumentDialog attestation gating", () => {
   it("shows the attestation dialog and defers upload for a BN Workbook", async () => {
     const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
     renderAddDialog(BN_WORKBOOK_DOCUMENT_TYPE, onSubmit);
@@ -187,14 +204,8 @@ describe("DocumentDialog attestation gating", () => {
 });
 
 describe("DocumentDialog BN Workbook pre-validation", () => {
-  beforeEach(() => {
-    parseBNFile.mockReset();
-    rule.mockReset();
-  });
-
   it("blocks upload and surfaces the rule errors when validation fails", async () => {
     const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
-    parseBNFile.mockResolvedValue([{ sheet: "Sheet1", data: [] }]);
     rule.mockReturnValue({ code: "1", message: "Error: C Report Tab - missing data." });
 
     renderAddDialog(BN_WORKBOOK_DOCUMENT_TYPE, onSubmit);
@@ -210,9 +221,53 @@ describe("DocumentDialog BN Workbook pre-validation", () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
+  it.each([
+    {
+      name: "formula metadata",
+      source: "parser",
+      validationError: {
+        code: "BN_FORMULA_METADATA",
+        message: "Unable to inspect formula metadata.",
+      },
+    },
+    {
+      name: "required numeric value",
+      source: "shared validation",
+      validationError: {
+        code: "BN_NET_VARIANCE_VALUE",
+        message: "Summary!AS436 must contain a finite numeric value.",
+      },
+    },
+  ] as const)("blocks upload and displays $name errors", async ({ source, validationError }) => {
+    const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
+    if (source === "parser") {
+      parseBNWorkbook.mockRejectedValue(new BNWorkbookInputError(validationError));
+    } else {
+      validateBNWorkbook.mockResolvedValue({
+        isValid: false,
+        errors: [validationError],
+        extractedValues: new Map(),
+      });
+    }
+
+    renderAddDialog(BN_WORKBOOK_DOCUMENT_TYPE, onSubmit);
+    selectWorkbook();
+
+    expect(await screen.findByText(validationError.message)).toBeInTheDocument();
+    expect(screen.getByTestId("bn-prevalidation-errors")).toBeInTheDocument();
+    expect(screen.getByTestId("button-confirm-upload-document")).toBeDisabled();
+    if (source === "parser") {
+      expect(validateBNWorkbook).not.toHaveBeenCalled();
+    } else {
+      expect(validateBNWorkbook).toHaveBeenCalledWith(PARSED_WORKBOOK.data, [], extractorFunctions);
+    }
+
+    fireEvent.click(screen.getByTestId("button-confirm-upload-document"));
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
   it("shows the success notice and unblocks upload when every rule passes", async () => {
     const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
-    parseBNFile.mockResolvedValue([{ sheet: "Sheet1", data: [] }]);
     rule.mockReturnValue(null);
 
     renderAddDialog(BN_WORKBOOK_DOCUMENT_TYPE, onSubmit);
@@ -230,7 +285,7 @@ describe("DocumentDialog BN Workbook pre-validation", () => {
     renderAddDialog("General File", onSubmit);
     selectWorkbook();
 
-    expect(parseBNFile).not.toHaveBeenCalled();
+    expect(parseBNWorkbook).not.toHaveBeenCalled();
     expect(rule).not.toHaveBeenCalled();
     expect(screen.queryByTestId("bn-prevalidation-errors")).not.toBeInTheDocument();
     expect(screen.queryByText("File Validated Successfully")).not.toBeInTheDocument();
