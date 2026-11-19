@@ -196,6 +196,57 @@ describe("Main reporting extraction", () => {
     ]));
   });
 
+  it.each([
+    ["explicit formula", (data: ExcelData) => { data[0]!.formulaCells!.add("B310"); }],
+    ["array formula", (data: ExcelData) => {
+      data[0]!.arrayFormulaRanges = [{ startRow: 309, endRow: 310, startColumn: 2, endColumn: 2 }];
+    }],
+  ])("uses the %s heading as a boundary, but not an extractable heading", (_kind, markFormulaHeading) => {
+    const data = mainSummaryFixture();
+    addHypotheticalBlock(data, 1);
+    setSummaryCell(data, "B305", null);
+    addHypotheticalBlock(data, 2);
+    markFormulaHeading(data);
+
+    const result = extractBNReporting(data, extractedValues);
+
+    expect(result.extract.testYears.filter(({ testId }) => testId.startsWith("Hypothetical "))).toEqual([]);
+    expect(result.extract.testValues.some(({ testId }) => testId === "Hypothetical 2")).toBe(false);
+    expect(result.warnings).toContainEqual(expect.stringContaining("Hypothetical 1 CAP-needed omitted"));
+  });
+
+  it("omits a missing-heading block with repeated expenditure starts and continues at the next heading", () => {
+    const data = mainSummaryFixture();
+    addHypotheticalBlock(data, 1);
+    addHypotheticalBlock(data, 2);
+    setSummaryCell(data, "B310", null);
+    setSummaryCell(data, "B305", null);
+    addHypotheticalBlock(data, 3);
+
+    const result = extractBNReporting(data, extractedValues);
+
+    expect(result.extract.testValues.some(({ testId }) => testId === "Hypothetical 1")).toBe(false);
+    expect(result.extract.testValues.some(({ testId }) => testId === "Hypothetical 3")).toBe(true);
+    expect(result.extract.testYears.filter(({ testId }) => testId.startsWith("Hypothetical ")).map(({ testId }) => testId))
+      .toEqual(["Hypothetical 3", "Hypothetical 3"]);
+    expect(result.extract.testYears.some(({ testId }) => testId === "Hypothetical 1")).toBe(false);
+    expect(result.warnings).toContainEqual(expect.stringContaining("Hypothetical 1 omitted: repeated expenditure-section starts"));
+  });
+
+  it("uses a formula heading beyond the release cap to bound the preceding eligible block", () => {
+    const data = mainSummaryFixture();
+    addHypotheticalBlock(data, 13);
+    setSummaryCell(data, "B425", null);
+    addHypotheticalBlock(data, 14);
+    data[0]!.formulaCells!.add("B430");
+
+    const result = extractBNReporting(data, extractedValues, { maxHypotheticalTest: 13 });
+
+    expect(result.extract.testYears.filter(({ testId }) => testId.startsWith("Hypothetical "))).toEqual([]);
+    expect(result.extract.testValues.some(({ testId }) => testId === "Hypothetical 14")).toBe(false);
+    expect(result.warnings).toContainEqual(expect.stringContaining("Hypothetical 13 CAP-needed omitted"));
+  });
+
   it("extracts 15 blocks by default and honors the explicit release cap while retaining zero and CAP outcomes", () => {
     const data = mainSummaryFixture();
     for (let testNumber = 1; testNumber <= 15; testNumber++) {

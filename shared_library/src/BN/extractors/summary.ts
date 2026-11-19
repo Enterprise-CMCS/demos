@@ -20,7 +20,7 @@ const MAX_REPORTING_DY = 40;
 const MAX_HYPOTHETICAL_TEST = 15;
 const HYPOTHETICAL_HEADING = /^HYPOTHETICALS TEST ([1-9]\d*)$/;
 
-type HypotheticalHeading = { testNumber: number; row: number };
+type HypotheticalHeading = { testNumber: number; row: number; extractable: boolean };
 
 export type BNReportingOptions = { maxHypotheticalTest?: number };
 
@@ -105,9 +105,15 @@ function findHypotheticalHeadings(data: ExcelData): HypotheticalHeading[] {
   const headings: HypotheticalHeading[] = [];
   for (let index = 0; index < sheet.data.length; index++) {
     const label = sheet.data[index]?.[1];
-    if (typeof label !== "string" || isFormulaCell(data, SHEET, `B${index + 1}`)) continue;
+    if (typeof label !== "string") continue;
     const match = HYPOTHETICAL_HEADING.exec(label);
-    if (match) headings.push({ testNumber: Number(match[1]), row: index + 1 });
+    if (match) {
+      headings.push({
+        testNumber: Number(match[1]),
+        row: index + 1,
+        extractable: !isFormulaCell(data, SHEET, `B${index + 1}`),
+      });
+    }
   }
   return headings;
 }
@@ -186,7 +192,8 @@ function extractHypotheticalSummaries(
   if (!sheet) return { extract, warnings };
 
   const headingCounts = new Map<number, number>();
-  for (const { testNumber } of headings) {
+  for (const { testNumber, extractable } of headings) {
+    if (!extractable) continue;
     headingCounts.set(testNumber, (headingCounts.get(testNumber) ?? 0) + 1);
   }
   for (const [testNumber, count] of headingCounts) {
@@ -197,11 +204,17 @@ function extractHypotheticalSummaries(
 
   for (let index = 0; index < headings.length; index++) {
     const heading = headings[index]!;
-    if (heading.testNumber > maxHypotheticalTest || headingCounts.get(heading.testNumber) !== 1) continue;
+    if (!heading.extractable || heading.testNumber > maxHypotheticalTest || headingCounts.get(heading.testNumber) !== 1) continue;
 
     const nextHeading = headings[index + 1];
     const range = { first: heading.row + 1, last: (nextHeading?.row ?? sheet.data.length + 1) - 1 };
     const testId = `Hypothetical ${heading.testNumber}`;
+    const repeatedStarts = [WITHOUT_WAIVER_LABEL, WITH_WAIVER_LABEL].some((label) =>
+      locateLabelRows(data, SHEET, label, range).length > 1);
+    if (repeatedStarts) {
+      warnings.push(`${testId} omitted: repeated expenditure-section starts make its range ambiguous.`);
+      continue;
+    }
 
     const withoutWaiver = sectionRows(
       data,
