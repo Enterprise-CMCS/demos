@@ -34,10 +34,7 @@ const UPDATE_WORKBOOK_SQL = `UPDATE ${DB_SCHEMA}.budget_neutrality_workbook
 const DELETE_REPORTING_CHILDREN_SQL = [
   `DELETE FROM ${DB_SCHEMA}.budget_neutrality_workbook_hypothetical_value WHERE workbook_id = $1::UUID;`,
   `DELETE FROM ${DB_SCHEMA}.budget_neutrality_workbook_hypothetical_year WHERE workbook_id = $1::UUID;`,
-  `DELETE FROM ${DB_SCHEMA}.budget_neutrality_workbook_spending_limit_meg
-    WHERE spending_limit_id IN (
-      SELECT id FROM ${DB_SCHEMA}.budget_neutrality_workbook_spending_limit WHERE workbook_id = $1::UUID
-    );`,
+  `DELETE FROM ${DB_SCHEMA}.budget_neutrality_workbook_spending_limit_meg WHERE workbook_id = $1::UUID;`,
   `DELETE FROM ${DB_SCHEMA}.budget_neutrality_workbook_spending_limit WHERE workbook_id = $1::UUID;`,
 ];
 

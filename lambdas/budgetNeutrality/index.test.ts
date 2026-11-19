@@ -172,6 +172,14 @@ describe("budgetNeutrality index", () => {
       },
     },
     {
+      name: "required sheet",
+      source: "parser",
+      validationError: {
+        code: "BN_REQUIRED_WORKBOOK_SHEET",
+        message: 'The workbook is missing the required "C Report" sheet.',
+      },
+    },
+    {
       name: "required numeric value",
       source: "validation",
       validationError: {
@@ -209,6 +217,13 @@ describe("budgetNeutrality index", () => {
       undefined,
     ]);
     expect(mocks.queryMock.mock.calls.slice(3, 7).every(([query]) => String(query).startsWith("DELETE"))).toBe(true);
+    const cleanupCalls = mocks.queryMock.mock.calls.slice(3, 7);
+    expect(cleanupCalls).toHaveLength(4);
+    for (const [query, parameters] of cleanupCalls) {
+      expect(query).toMatch(/WHERE\s+workbook_id\s*=\s*\$1::UUID/i);
+      expect(parameters).toEqual(["doc-1"]);
+    }
+    expect(cleanupCalls[2]?.[0]).toMatch(/budget_neutrality_workbook_spending_limit_meg\s+WHERE\s+workbook_id\s*=\s*\$1::UUID/i);
     expect(mocks.queryMock.mock.calls[7]?.[0]).toBe("COMMIT");
     expect(client.release).toHaveBeenCalledOnce();
   });
@@ -246,6 +261,38 @@ describe("budgetNeutrality index", () => {
       "BEGIN",
       expect.stringContaining("FOR UPDATE"),
       expect.stringContaining("UPDATE"),
+      "ROLLBACK",
+    ]);
+    expect(client.release).toHaveBeenCalledOnce();
+  });
+
+  it("rolls back failed-workbook cleanup so the message can be retried", async () => {
+    const { pool, client } = createPool();
+    mocks.getDbPoolMock.mockResolvedValue(pool);
+    const failure = new Error("temporary cleanup failure");
+    mocks.queryMock.mockImplementation(async (query: string) => {
+      if (query.includes("FOR UPDATE")) return { rows: [{ id: "doc-1" }] };
+      if (query.includes("spending_limit_meg")) throw failure;
+      return { rows: [] };
+    });
+    vi.mocked(validateBNWorkbook).mockResolvedValueOnce({
+      isValid: false,
+      errors: [{ code: "BN_REQUIRED_WORKBOOK_SHEET", message: "Required sheet missing." }],
+      extractedValues: new Map(),
+    });
+    const event = {
+      Records: [{ body: JSON.stringify({ documentId: "doc-1", documentTypeId: "BN Workbook" }) }],
+    } as unknown as SQSEvent;
+
+    await expect(handler(event, { awsRequestId: "test-request-id" } as Context)).rejects.toBe(failure);
+
+    expect(mocks.queryMock.mock.calls.map(([query]) => query)).toEqual([
+      "BEGIN",
+      expect.stringContaining("FOR UPDATE"),
+      expect.stringContaining("UPDATE"),
+      expect.stringContaining("budget_neutrality_workbook_hypothetical_value"),
+      expect.stringContaining("budget_neutrality_workbook_hypothetical_year"),
+      expect.stringContaining("budget_neutrality_workbook_spending_limit_meg"),
       "ROLLBACK",
     ]);
     expect(client.release).toHaveBeenCalledOnce();
