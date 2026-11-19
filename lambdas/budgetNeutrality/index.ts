@@ -18,10 +18,6 @@ import { extractorFunctions } from "demos-shared-library/BN/extractors";
 const SUCCEEDED_VALIDATION_STATUS_ID = "Succeeded";
 const FAILED_VALIDATION_STATUS_ID = "Failed";
 const DB_SCHEMA = "demos_app";
-const LOCK_WORKBOOK_SQL = `SELECT id
-  FROM ${DB_SCHEMA}.budget_neutrality_workbook
-  WHERE id = $1::UUID
-  FOR UPDATE;`;
 const UPDATE_WORKBOOK_SQL = `UPDATE ${DB_SCHEMA}.budget_neutrality_workbook
   SET
     document_type_id = $2::TEXT,
@@ -56,12 +52,7 @@ export async function updateBudgetNeutralityWorkbook(
     await client.query("BEGIN");
     transactionStarted = true;
 
-    const workbook = await client.query(LOCK_WORKBOOK_SQL, [message.documentId]);
-    if (workbook.rows.length === 0) {
-      throw new Error(`Budget Neutrality workbook ${message.documentId} not found.`);
-    }
-
-    await client.query(UPDATE_WORKBOOK_SQL, [
+    const updateResult = await client.query(UPDATE_WORKBOOK_SQL, [
       message.documentId,
       message.documentTypeId,
       validationResults.isValid ? SUCCEEDED_VALIDATION_STATUS_ID : FAILED_VALIDATION_STATUS_ID,
@@ -69,6 +60,9 @@ export async function updateBudgetNeutralityWorkbook(
       validationResults.extractedValues?.get("actuals"),
       validationResults.extractedValues?.get("netVariance"),
     ]);
+    if (updateResult.rowCount === 0) {
+      throw new Error(`Budget Neutrality workbook ${message.documentId} not found.`);
+    }
 
     if (!validationResults.isValid) {
       for (const query of DELETE_REPORTING_CHILDREN_SQL) {

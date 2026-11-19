@@ -23,22 +23,16 @@ const PARSED_WORKBOOK = {
 };
 
 const parseBNWorkbook = vi.fn();
-const validateBNWorkbook = vi.fn();
-const rule = vi.fn();
-const extractorFunctions = [vi.fn()];
+const validate = vi.fn();
 
 vi.mock("demos-shared-library/BN", async () => {
   const actual =
     await vi.importActual<typeof import("demos-shared-library/BN")>("demos-shared-library/BN");
   return { ...actual, parseBNWorkbook: (...args: unknown[]) => parseBNWorkbook(...args) };
 });
-vi.mock("demos-shared-library/BN/rulesets", () => ({
-  validations: [rule],
-}));
 vi.mock("demos-shared-library/BN/validation", () => ({
-  validateBNWorkbook: (...args: unknown[]) => validateBNWorkbook(...args),
+  validate: (...args: unknown[]) => validate(...args),
 }));
-vi.mock("demos-shared-library/BN/extractors", () => ({ extractorFunctions }));
 
 describe("checkFormHasChanges", () => {
   const base: DocumentDialogFields = {
@@ -123,10 +117,7 @@ const waitForUploadEnabled = () =>
 
 beforeEach(() => {
   parseBNWorkbook.mockReset().mockResolvedValue(PARSED_WORKBOOK);
-  validateBNWorkbook
-    .mockReset()
-    .mockResolvedValue({ isValid: true, errors: [], extractedValues: new Map() });
-  rule.mockReset().mockReturnValue(null);
+  validate.mockReset().mockResolvedValue([]);
 });
 
 describe("DocumentDialog attestation gating", () => {
@@ -206,7 +197,9 @@ describe("DocumentDialog attestation gating", () => {
 describe("DocumentDialog BN Workbook pre-validation", () => {
   it("blocks upload and surfaces the rule errors when validation fails", async () => {
     const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
-    rule.mockReturnValue({ code: "1", message: "Error: C Report Tab - missing data." });
+    validate.mockResolvedValue([
+      { code: "1", message: "Error: C Report Tab - missing data." },
+    ]);
 
     renderAddDialog(BN_WORKBOOK_DOCUMENT_TYPE, onSubmit);
     selectWorkbook();
@@ -243,11 +236,7 @@ describe("DocumentDialog BN Workbook pre-validation", () => {
     if (source === "parser") {
       parseBNWorkbook.mockRejectedValue(new BNWorkbookInputError(validationError));
     } else {
-      validateBNWorkbook.mockResolvedValue({
-        isValid: false,
-        errors: [validationError],
-        extractedValues: new Map(),
-      });
+      validate.mockResolvedValue([validationError]);
     }
 
     renderAddDialog(BN_WORKBOOK_DOCUMENT_TYPE, onSubmit);
@@ -257,18 +246,17 @@ describe("DocumentDialog BN Workbook pre-validation", () => {
     expect(screen.getByTestId("bn-prevalidation-errors")).toBeInTheDocument();
     expect(screen.getByTestId("button-confirm-upload-document")).toBeDisabled();
     if (source === "parser") {
-      expect(validateBNWorkbook).not.toHaveBeenCalled();
+      expect(validate).not.toHaveBeenCalled();
     } else {
-      expect(validateBNWorkbook).toHaveBeenCalledWith(PARSED_WORKBOOK.data, [], extractorFunctions);
+      expect(validate).toHaveBeenCalledWith(PARSED_WORKBOOK.data);
     }
 
     fireEvent.click(screen.getByTestId("button-confirm-upload-document"));
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
-  it("shows the success notice and unblocks upload when every rule passes", async () => {
+  it("shows the success notice and unblocks upload when shared validation passes", async () => {
     const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
-    rule.mockReturnValue(null);
 
     renderAddDialog(BN_WORKBOOK_DOCUMENT_TYPE, onSubmit);
     selectWorkbook();
@@ -286,7 +274,7 @@ describe("DocumentDialog BN Workbook pre-validation", () => {
     selectWorkbook();
 
     expect(parseBNWorkbook).not.toHaveBeenCalled();
-    expect(rule).not.toHaveBeenCalled();
+    expect(validate).not.toHaveBeenCalled();
     expect(screen.queryByTestId("bn-prevalidation-errors")).not.toBeInTheDocument();
     expect(screen.queryByText("File Validated Successfully")).not.toBeInTheDocument();
     expect(screen.getByTestId("button-confirm-upload-document")).not.toBeDisabled();
