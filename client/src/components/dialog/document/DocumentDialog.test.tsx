@@ -33,10 +33,6 @@ vi.mock("demos-shared-library/BN", async () => {
 vi.mock("demos-shared-library/BN/validation", () => ({
   validate: (...args: unknown[]) => validate(...args),
 }));
-vi.mock("demos-shared-library/BN/validation", () => ({
-  validateBNWorkbook: (...args: unknown[]) => validateBNWorkbook(...args),
-}));
-vi.mock("demos-shared-library/BN/extractors", () => ({ extractorFunctions }));
 
 describe("checkFormHasChanges", () => {
   const base: DocumentDialogFields = {
