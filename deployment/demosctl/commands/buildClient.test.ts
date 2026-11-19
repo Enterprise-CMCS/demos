@@ -1,6 +1,6 @@
 import { buildClient } from "./buildClient";
 
-import { runShell, runCommand } from "../lib/runCommand";
+import { runShell } from "../lib/runCommand";
 import { readOutputs } from "../lib/readOutputs";
 import { getOutputValue } from "../lib/getOutputValue";
 
@@ -9,6 +9,20 @@ import { Mock } from "vitest";
 vi.mock("../lib/runCommand");
 vi.mock("../lib/readOutputs");
 vi.mock("../lib/getOutputValue");
+
+const mockCloudformationSend = vi.fn();
+
+vi.mock(import("@aws-sdk/client-cloudformation"), async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    CloudFormationClient: vi.fn().mockImplementation(function () {
+      return {
+        send: mockCloudformationSend,
+      };
+    }),
+  };
+});
 
 describe("buildClient", () => {
   test("should properly set vite envs", async () => {
@@ -20,6 +34,10 @@ describe("buildClient", () => {
     gov.mockImplementation((_, __, name) => {
       return name;
     });
+
+    mockCloudformationSend.mockImplementationOnce(() => ({
+      Stacks: [{ Outputs: [] }],
+    }));
 
     const rs = runShell as Mock;
 
@@ -39,66 +57,6 @@ describe("buildClient", () => {
     );
   });
 
-  test("should properly run core stack if requested", async () => {
-    const mockStageName = "unit-test";
-    const ro = readOutputs as Mock;
-    ro.mockReturnValue({});
-
-    const gov = getOutputValue as Mock;
-    gov.mockImplementation((_, __, name) => {
-      return name;
-    });
-
-    const rs = runShell as Mock;
-    const rc = runCommand as Mock;
-    rc.mockResolvedValue(0);
-
-    await buildClient(mockStageName, true);
-    expect(rc).toHaveBeenCalled();
-    expect(rc).toHaveBeenCalledWith(
-      "deploy-core-no-execute",
-      "npx",
-      expect.arrayContaining([`stage=${mockStageName}`, `demos-${mockStageName}-core`]),
-    );
-
-    expect(rs).toHaveBeenCalledWith(
-      "client-build",
-      "npm ci && npm run build:ci",
-      expect.objectContaining({
-        env: expect.objectContaining({
-          VITE_COGNITO_AUTHORITY: "cognitoAuthority",
-          VITE_COGNITO_DOMAIN: "cognitoDomain",
-          VITE_COGNITO_CLIENT_ID: "cognitoClientId",
-          VITE_API_URL_PREFIX: "/api/graphql",
-        }),
-      }),
-    );
-  });
-
-  test("should exit if core deploy fails", async () => {
-    const mockStageName = "unit-test";
-    const ro = readOutputs as Mock;
-    ro.mockReturnValue({});
-
-    const gov = getOutputValue as Mock;
-    gov.mockImplementation((_, __, name) => {
-      return name;
-    });
-
-    const rc = runCommand as Mock;
-    rc.mockResolvedValue(1);
-
-    const exitCode = await buildClient(mockStageName, true);
-    expect(rc).toHaveBeenCalled();
-    expect(rc).toHaveBeenCalledWith(
-      "deploy-core-no-execute",
-      "npx",
-      expect.arrayContaining([`stage=${mockStageName}`, `demos-${mockStageName}-core`]),
-    );
-
-    expect(exitCode).toBe(1);
-  });
-
   test.each([["dev"], ["test"]])("should use build:ci:dev command for %s environment", async (environment) => {
     const ro = readOutputs as Mock;
     ro.mockReturnValue({});
@@ -109,6 +67,10 @@ describe("buildClient", () => {
     });
 
     const rs = runShell as Mock;
+
+    mockCloudformationSend.mockImplementationOnce(() => ({
+      Stacks: [{ Outputs: [] }],
+    }));
 
     await buildClient(environment);
 
