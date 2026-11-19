@@ -67,21 +67,13 @@ describe("demonstration reporting contract", () => {
     expect(view.query).toContain("'workbook_id', most_recent_valid_bn_data.workbook_id");
     expect(view.query).toContain("'test_values'");
     expect(view.query).toContain("COALESCE(bn_value_aggregates.test_values, '[]'::json)");
-<<<<<<< HEAD
     expect(view.query).toContain("'test_years'");
     expect(view.query).toContain("COALESCE(bn_year_aggregates.test_years, '[]'::json)");
     expect(view.query).toContain("'cap_needed', cap_needed");
-    expect(view.query).toContain("ORDER BY CASE WHEN hypothetical_id = 'Main' THEN 0 ELSE substring(hypothetical_id FROM '[0-9]+')::INTEGER END,\n            measure_id");
-    expect(view.query).toContain("ORDER BY CASE WHEN hypothetical_id = 'Main' THEN 0 ELSE substring(hypothetical_id FROM '[0-9]+')::INTEGER END,\n            dy_number");
     expect(view.query).toContain("WHEN most_recent_valid_bn_data.workbook_id IS NULL THEN NULL");
     expect(view.query).toContain("json_agg(json_build_object(");
     expect(view.baseTables).toContain("budget_neutrality_workbook_hypothetical_value");
     expect(view.baseTables).toContain("budget_neutrality_workbook_hypothetical_year");
-=======
-    expect(view.query).toContain("WHEN most_recent_valid_bn_data.workbook_id IS NULL THEN NULL");
-    expect(view.query).toContain("json_agg(json_build_object(");
-    expect(view.baseTables).toContain("budget_neutrality_workbook_hypothetical_value");
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
     expect(view.query.match(/FROM demos_app\.deliverable AS deliv/g)).toHaveLength(1);
   });
 
@@ -89,6 +81,16 @@ describe("demonstration reporting contract", () => {
     const { query, baseTables } = EXPORT_VIEWS.demonstration_reporting;
     const sources = [...query.matchAll(/\bdemos_app\.([a-z_]+)/g)].map((match) => match[1]);
     expect([...new Set(baseTables)].sort()).toEqual([...new Set(sources)].sort());
+  });
+
+  it.each([
+    ["test_values", "measure_id, meg_name NULLS FIRST, dy_number NULLS FIRST"],
+    ["test_years", "dy_number"],
+  ])("orders %s with Main first and hypotheticals in numeric order", (collection, tieBreakers) => {
+    const order = "CASE WHEN hypothetical_id = 'Main' THEN 0 ELSE substring(hypothetical_id FROM '[0-9]+')::INTEGER END";
+    expect(EXPORT_VIEWS.demonstration_reporting.query).toContain(
+      `ORDER BY ${order},\n            ${tieBreakers}) AS ${collection}`,
+    );
   });
 
   it("escapes date and document labels as SQL string literals", () => {

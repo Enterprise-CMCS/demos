@@ -1,9 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { PoolClient } from "pg";
-<<<<<<< HEAD
 import type { BNWorkbookExtract } from "demos-shared-library/BN/extractors";
-=======
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
 
 const DB_SCHEMA = "demos_app";
 const MAX_INSERT_PARAMETERS = 60_000;
@@ -30,12 +27,9 @@ export async function insertRows(
   }
 
   const rowsPerBatch = Math.floor(MAX_INSERT_PARAMETERS / columns.length);
-<<<<<<< HEAD
   if (rowsPerBatch === 0) {
     throw new Error("Reporting insert columns exceed the parameter limit.");
   }
-=======
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
   for (let offset = 0; offset < rows.length; offset += rowsPerBatch) {
     const batch = rows.slice(offset, offset + rowsPerBatch);
     const values: unknown[] = [];
@@ -62,7 +56,6 @@ export async function clearBudgetNeutralityReportingSnapshot(
   }
 }
 
-<<<<<<< HEAD
 export async function replaceBudgetNeutralityReportingSnapshot(
   client: PoolClient,
   workbookId: string,
@@ -71,20 +64,10 @@ export async function replaceBudgetNeutralityReportingSnapshot(
   const netVariance = extract.testValues.find(({ testId, measureId }) => testId === "Main" && measureId === "Net Variance");
   if (!Number.isFinite(netVariance?.value) || extract.testValues.some(({ value }) => !Number.isFinite(value))) {
     throw new Error("A finite net-variance value and finite reporting values are required to persist the snapshot.");
-=======
-export async function replaceNetVarianceReportingSnapshot(
-  client: PoolClient,
-  workbookId: string,
-  netVarianceTotal: number,
-): Promise<void> {
-  if (!Number.isFinite(netVarianceTotal)) {
-    throw new Error("A finite net-variance value is required to persist the reporting snapshot.");
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
   }
 
   await clearBudgetNeutralityReportingSnapshot(client, workbookId);
   const timestamp = new Date();
-<<<<<<< HEAD
   await insertRows(client, "budget_neutrality_workbook_hypothetical_value", [
     "id", "workbook_id", "hypothetical_id", "measure_id", "meg_name", "dy_number", "value", "created_at", "updated_at",
   ], extract.testValues.map(({ testId, measureId, megName, dyNumber, value }) => [
@@ -95,12 +78,4 @@ export async function replaceNetVarianceReportingSnapshot(
   ], extract.testYears.map(({ testId, dyNumber, capNeeded }) => [
     workbookId, testId, dyNumber, capNeeded, timestamp, timestamp,
   ]));
-=======
-  await insertRows(
-    client,
-    "budget_neutrality_workbook_hypothetical_value",
-    ["id", "workbook_id", "hypothetical_id", "measure_id", "meg_name", "dy_number", "value", "created_at", "updated_at"],
-    [[randomUUID(), workbookId, "Main", "Net Variance", null, null, netVarianceTotal, timestamp, timestamp]],
-  );
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
 }

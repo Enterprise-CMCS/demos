@@ -5,11 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import * as excelReader from "read-excel-file/universal";
 
-<<<<<<< HEAD
-import { parseBNFile, parseBNFileFromPath, parseBNWorkbook, isFormulaCell, excelColumnRow, numberToExcelColumn, excelColumnToNumber } from "./index.js";
-=======
 import { BNWorkbookInputError, parseBNFile, parseBNFileFromPath, parseBNWorkbook, isFormulaCell, excelColumnRow, numberToExcelColumn, excelColumnToNumber } from "./index.js";
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
 import * as formulas from "./formulas.js";
 import { workbookParts, zipWorkbook } from "../../test/bnFixtures.js";
 import { validateBNWorkbook } from "./validation.js";
@@ -32,8 +28,6 @@ async function withWorkbook(parts: Record<string, string>, action: (file: string
   }
 }
 
-<<<<<<< HEAD
-=======
 function omitSheet(parts: Record<string, string>, name: string): Record<string, string> {
   const workbookXml = parts["xl/workbook.xml"]!;
   const sheet = workbookXml.match(new RegExp(`<sheet name="${name}" sheetId="\\d+" r:id="([^"]+)"/>`));
@@ -51,7 +45,6 @@ function omitSheet(parts: Record<string, string>, name: string): Record<string, 
   return parts;
 }
 
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
 describe("parseBNWorkbook", () => {
   afterEach(() => {
     vi.mocked(excelReader.default).mockReset();
@@ -75,10 +68,7 @@ describe("parseBNWorkbook", () => {
   it.each([
     { name: "a literal label and zero", label: '<c r="B436" t="inlineStr"><is><t>NET VARIANCE</t></is></c>', value: '<c r="AS436"><v>0</v></c>', code: null },
     { name: "a cached numeric formula", label: '<c r="B436" t="inlineStr"><is><t>NET VARIANCE</t></is></c>', value: '<c r="AS436"><f>1-1</f><v>0</v></c>', code: null },
-<<<<<<< HEAD
-=======
     { name: "a cached numeric array-formula result", label: '<c r="B436" t="inlineStr"><is><t>NET VARIANCE</t></is></c>', value: '<c r="AR436"><f t="array" ref="AR436:AS436">1-1</f><v>0</v></c><c r="AS436"><v>0</v></c>', code: null },
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
     { name: "a formula-derived label", label: '<c r="B436" t="str"><f>"NET VARIANCE"</f><v>NET VARIANCE</v></c>', value: '<c r="AS436"><v>0</v></c>', code: "BN_NET_VARIANCE_LOCATION" },
     { name: "a missing label with a misleading fixed value", label: "", value: '<c r="AS436"><v>99</v></c>', code: "BN_NET_VARIANCE_LOCATION" },
     { name: "a moved label with a misleading fixed value", label: "", value: '<c r="AS436"><v>99</v></c>', extra: '<row r="437"><c r="B437" t="inlineStr"><is><t>NET VARIANCE</t></is></c><c r="AS437"><v>1</v></c></row>', code: "BN_NET_VARIANCE_LOCATION" },
@@ -99,13 +89,11 @@ describe("parseBNWorkbook", () => {
       expect(results[0]).toEqual(results[1]);
       expect(results[0]!.isValid).toBe(code === null);
       expect(results[0]!.errors.map((error) => error.code)).toEqual(code === null ? [] : [code]);
-      if (code === null) expect(results[0]!.extractedValues?.get("netVariance")).toBe(0);
-      else expect(results[0]!.extractedValues?.size).toBe(0);
+      if (code === null) expect(results[0]!.extractedValues.get("netVariance")).toBe(0);
+      else expect(results[0]!.extractedValues.size).toBe(0);
     });
   });
 
-<<<<<<< HEAD
-=======
   it("rejects a label in a non-anchor array-formula cell for File and path inputs", async () => {
     const summary = '<row r="8"><c r="B8" t="inlineStr"><is><t>Actuals + Projected</t></is></c></row>'
       + '<row r="435"><c r="B435" t="str"><f t="array" ref="B435:B436">"NET VARIANCE"</f><v>NET VARIANCE</v></c></row>'
@@ -165,7 +153,6 @@ describe("parseBNWorkbook", () => {
     });
   });
 
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
   it("rejects when formula information cannot be read", async () => {
     vi.spyOn(formulas, "readFormulaInfo").mockImplementation(() => {
       throw new formulas.FormulaReadError("synthetic formula read failure");

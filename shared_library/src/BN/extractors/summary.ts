@@ -115,20 +115,25 @@ function findHypotheticalHeadings(data: ExcelData): HypotheticalHeading[] {
 function extractMainSummary(
   data: ExcelData,
   dys: number[],
-  headings: HypotheticalHeading[],
 ): { extract: BNWorkbookExtract; warnings: string[] } {
   const extract: BNWorkbookExtract = { testValues: [], testYears: [] };
   const warnings: string[] = [];
   const sheet = data.find((entry) => entry.sheet === SHEET);
   if (!sheet) return { extract, warnings: ['Summary omitted: Sheet "Summary" not found.'] };
 
-  const hypotheticalBoundaries = headings.filter(({ testNumber }) => testNumber === 1);
-  if (hypotheticalBoundaries.length > 1) {
-    warnings.push(`Main test omitted: HYPOTHETICALS TEST 1 boundary has ${hypotheticalBoundaries.length} matches.`);
+  const firstHypothetical = locateLabelRow(data, SHEET, "HYPOTHETICALS TEST 1");
+  if (!firstHypothetical.ok) {
+    warnings.push(`Main test omitted: ${firstHypothetical.reason}`);
     return { extract, warnings };
   }
-  const firstHypothetical = headings[0]?.row;
-  const mainRange = { last: firstHypothetical !== undefined ? firstHypothetical - 1 : sheet.data.length };
+  // An earlier heading makes the Main boundary unsafe even if that heading is a cached formula result.
+  const earlierHypothetical = sheet.data.findIndex((row, index) =>
+    index + 1 < firstHypothetical.row && typeof row?.[1] === "string" && HYPOTHETICAL_HEADING.test(row[1]));
+  if (earlierHypothetical >= 0) {
+    warnings.push(`Main test omitted: HYPOTHETICALS TEST 1 boundary is out of order; HYPOTHETICALS TEST heading found at row ${earlierHypothetical + 1}.`);
+    return { extract, warnings };
+  }
+  const mainRange = { last: firstHypothetical.row - 1 };
   const main = sectionRows(data, ["MAIN BUDGET NEUTRALITY TEST"], mainRange, "Main test", warnings);
   if (!main) return { extract, warnings };
   const sectionRange = { first: main[0]! + 1, last: mainRange.last };
@@ -255,7 +260,7 @@ export function extractBNReporting(
 
   const reportingRange = reportingDys(data);
   const headings = findHypotheticalHeadings(data);
-  const mainResult = extractMainSummary(data, reportingRange.dys, headings);
+  const mainResult = extractMainSummary(data, reportingRange.dys);
   const hypotheticalResult = extractHypotheticalSummaries(data, reportingRange.dys, headings, maxHypotheticalTest);
   const extract = mainResult.extract;
   extract.testValues.push(...hypotheticalResult.extract.testValues);

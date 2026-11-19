@@ -1,18 +1,11 @@
 import readExcelFile, { InvalidInputError, InvalidSpreadsheetError } from "read-excel-file/universal";
 import fs from "node:fs/promises";
-<<<<<<< HEAD
-import { FormulaReadError, readFormulaInfo, type FormulaInfo } from "./formulas.js";
-import { BNWorkbookInputError } from "./errors.js";
-
-export { BNWorkbookInputError } from "./errors.js";
-=======
 import { FormulaReadError, isCellInArrayFormulaRange, readFormulaInfo, type ArrayFormulaRange, type FormulaInfo } from "./formulas.js";
 import { BNWorkbookInputError } from "./errors.js";
 
 export { BNWorkbookInputError } from "./errors.js";
 
 const REQUIRED_WORKBOOK_SHEETS = ["C Report", "Summary"] as const;
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
 
 export type CellValue<ParsedNumber = number> =
   | string
@@ -28,10 +21,7 @@ export type ExcelData<ParsedNumber = number> = {
   sheet: string;
   data: SheetData<ParsedNumber>;
   formulaCells?: Set<string>;
-<<<<<<< HEAD
-=======
   arrayFormulaRanges?: ArrayFormulaRange[];
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
 }[];
 
 export async function parseBNFile(blob: Blob): Promise<ExcelData> {
@@ -65,8 +55,6 @@ export async function parseBNWorkbook(source: string | Blob): Promise<{
     });
   }
 
-<<<<<<< HEAD
-=======
   for (const sheet of REQUIRED_WORKBOOK_SHEETS) {
     if (!data.some((entry) => entry.sheet === sheet)) {
       throw new BNWorkbookInputError({
@@ -76,7 +64,6 @@ export async function parseBNWorkbook(source: string | Blob): Promise<{
     }
   }
 
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
   const warnings: string[] = [];
   let info: FormulaInfo;
   try {
@@ -92,11 +79,8 @@ export async function parseBNWorkbook(source: string | Blob): Promise<{
   for (const entry of data) {
     const cells = info.formulaCells.get(entry.sheet);
     if (cells) entry.formulaCells = cells;
-<<<<<<< HEAD
-=======
     const arrayRanges = info.arrayFormulaRanges.get(entry.sheet);
     if (arrayRanges) entry.arrayFormulaRanges = arrayRanges;
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
   }
   const cachedValuesMayBeStale = info.fullCalcOnLoad;
   if (cachedValuesMayBeStale) {
@@ -106,13 +90,9 @@ export async function parseBNWorkbook(source: string | Blob): Promise<{
 }
 
 export function isFormulaCell(data: ExcelData, sheet: string, a1: string): boolean {
-<<<<<<< HEAD
-  return data.find((entry) => entry.sheet === sheet)?.formulaCells?.has(a1) ?? false;
-=======
-  const entry = data.find((entry) => entry.sheet === sheet);
+  const entry = data.find((item) => item.sheet === sheet);
   if (entry?.formulaCells?.has(a1)) return true;
   return entry?.arrayFormulaRanges?.some((range) => isCellInArrayFormulaRange(a1, range)) ?? false;
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
 }
 
 export function numberToExcelColumn(num: number): string {

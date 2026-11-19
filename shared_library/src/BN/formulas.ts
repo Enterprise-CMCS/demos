@@ -3,9 +3,6 @@ import { Parser } from "saxen";
 
 export const FORMULA_SHEETS = ["Summary", "Program Spending Limits"] as const;
 export const MAX_UNCOMPRESSED_BYTES = 256 * 1024 * 1024;
-<<<<<<< HEAD
-export type FormulaInfo = { formulaCells: Map<string, Set<string>>; fullCalcOnLoad: boolean };
-=======
 export type ArrayFormulaRange = {
   startRow: number;
   startColumn: number;
@@ -17,7 +14,6 @@ export type FormulaInfo = {
   arrayFormulaRanges: Map<string, ArrayFormulaRange[]>;
   fullCalcOnLoad: boolean;
 };
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
 
 const ARCHIVE_INPUT_ERROR_CODES = new Set<number>([
   FlateErrorCode.UnexpectedEOF,
@@ -66,10 +62,6 @@ function sheetPart(target: string): string {
   return parts.join("/");
 }
 
-<<<<<<< HEAD
-function readFormulaCells(bytes: Uint8Array, sheet: string): Set<string> {
-  const cells = new Set<string>();
-=======
 function parseCellAddress(address: string): { row: number; column: number } | undefined {
   const match = /^\$?([A-Z]{1,3})\$?([1-9]\d{0,6})$/.exec(address);
   if (!match) return undefined;
@@ -106,7 +98,6 @@ function readArrayFormulaRange(ref: string | undefined, sheet: string, address: 
 function readFormulaCells(bytes: Uint8Array, sheet: string): { cells: Set<string>; arrayRanges: ArrayFormulaRange[] } {
   const cells = new Set<string>();
   const arrayRanges: ArrayFormulaRange[] = [];
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
   let address: string | undefined;
   let cellDepth: number | undefined;
   let depth = 0;
@@ -122,13 +113,10 @@ function readFormulaCells(bytes: Uint8Array, sheet: string): { cells: Set<string
         throw new FormulaReadError(`Formula is not a direct child of a cell in sheet "${sheet}".`);
       }
       cells.add(address);
-<<<<<<< HEAD
-=======
       const attributes = attrs();
       if (attributes.t === "array") {
         arrayRanges.push(readArrayFormulaRange(attributes.ref, sheet, address));
       }
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
     }
     depth++;
   }, (tag) => {
@@ -138,11 +126,7 @@ function readFormulaCells(bytes: Uint8Array, sheet: string): { cells: Set<string
       cellDepth = undefined;
     }
   });
-<<<<<<< HEAD
-  return cells;
-=======
   return { cells, arrayRanges };
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
 }
 
 export function readFormulaInfo(bytes: Uint8Array): FormulaInfo {
@@ -197,12 +181,6 @@ export function readFormulaInfo(bytes: Uint8Array): FormulaInfo {
     }
     const worksheets = readParts(new Set(paths.values()));
     const formulaCells = new Map<string, Set<string>>();
-<<<<<<< HEAD
-    for (const [sheet, part] of paths) {
-      formulaCells.set(sheet, readFormulaCells(worksheets[part]!, sheet));
-    }
-    return { formulaCells, fullCalcOnLoad };
-=======
     const arrayFormulaRanges = new Map<string, ArrayFormulaRange[]>();
     for (const [sheet, part] of paths) {
       const { cells, arrayRanges } = readFormulaCells(worksheets[part]!, sheet);
@@ -210,7 +188,6 @@ export function readFormulaInfo(bytes: Uint8Array): FormulaInfo {
       arrayFormulaRanges.set(sheet, arrayRanges);
     }
     return { formulaCells, arrayFormulaRanges, fullCalcOnLoad };
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
   } catch (error) {
     if (error instanceof Error && "code" in error && typeof error.code === "number" && ARCHIVE_INPUT_ERROR_CODES.has(error.code)) {
       throw new FormulaReadError(`Unable to read workbook formulas: ${error.message}`);

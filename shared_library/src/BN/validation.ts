@@ -1,10 +1,7 @@
 import type { ExcelData } from "./index.js";
 import { BNWorkbookInputError } from "./errors.js";
-<<<<<<< HEAD
-=======
 import { extractorFunctions } from "./extractors/index.js";
 import { validations } from "./rulesets/v1/index.js";
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
 
 export type ValidationError = {
   code: string;
@@ -14,7 +11,7 @@ export type ValidationError = {
 export type ValidationResult = {
   isValid: boolean;
   errors: ValidationError[];  
-  extractedValues?: Map<string, (string | number)>;
+  extractedValues: Map<string, string | number>;
 }
 
 
@@ -49,8 +46,6 @@ export async function validateBNWorkbook(data:ExcelData, validations: Validation
     errors,
     extractedValues: isValid ? extractedValues : new Map(),
   };
-<<<<<<< HEAD
-=======
 }
 
 const buildRuleError = (cause: unknown): ValidationError => ({
@@ -78,7 +73,6 @@ export async function validate(data: ExcelData): Promise<ValidationError[]> {
 
   const result = await validateBNWorkbook(data, [], extractorFunctions);
   return result.errors;
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
 }
 
 

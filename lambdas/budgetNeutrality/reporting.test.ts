@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from "vitest";
-<<<<<<< HEAD
 import { insertRows, replaceBudgetNeutralityReportingSnapshot } from "./reporting";
 
 describe("replaceBudgetNeutralityReportingSnapshot", () => {
@@ -29,9 +28,6 @@ describe("replaceBudgetNeutralityReportingSnapshot", () => {
     ]);
   });
 });
-=======
-import { insertRows } from "./reporting";
->>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
 
 describe("insertRows", () => {
   it("splits reporting inserts below the PostgreSQL parameter limit", async () => {
