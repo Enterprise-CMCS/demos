@@ -51,7 +51,7 @@ export async function testMigration(environment: string, dbname?: string) {
   const secretData = JSON.parse(secretDataRaw);
 
   // run migration
-  let migrationStatus: number | null = -1;
+  let migrationStatus: number | null;
   try {
     console.log("About to run the migrations....");
     migrationStatus = await runMigration(environment, safeName, secretData);
