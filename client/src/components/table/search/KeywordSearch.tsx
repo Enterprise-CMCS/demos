@@ -89,7 +89,15 @@ function ClearButton({ onClick }: { onClick: () => void }) {
 }
 
 export function KeywordSearch<T>({ table }: { table: Table<T> }) {
-  const [queryString, setQueryString] = useState("");
+  const [queryString, setQueryString] = useState(() => {
+    const globalFilter = table.getState().globalFilter;
+
+    if (Array.isArray(globalFilter)) {
+      return globalFilter.join(" ");
+    }
+
+    return globalFilter ?? "";
+  });
 
   const debouncedQueryString = useDebounced(queryString, DEBOUNCE_MS);
 

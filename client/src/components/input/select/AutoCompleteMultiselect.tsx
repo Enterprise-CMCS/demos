@@ -41,7 +41,8 @@ export const AutoCompleteMultiselect = ({
   const [filtered, setFiltered] = useState<Option[]>(options);
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-  const [selected, setSelected] = useState<string[]>(defaultValues);
+  const [internalSelected, setInternalSelected] = useState<string[]>(defaultValues);
+  const selected = values ?? internalSelected;
   const containerRef = useRef<HTMLDivElement>(null);
 
   const selectedLabels = selected
@@ -52,7 +53,7 @@ export const AutoCompleteMultiselect = ({
   // Sync external controlled values
   useEffect(() => {
     if (values !== undefined) {
-      setSelected(values);
+      setInternalSelected(values);
     }
   }, [values]);
 
@@ -75,13 +76,13 @@ export const AutoCompleteMultiselect = ({
 
   const handleSelect = (value: string) => {
     const newSelected = [...selected, value];
-    setSelected(newSelected);
+    setInternalSelected(newSelected);
     onSelect(newSelected);
   };
 
   const handleRemove = (value: string) => {
     const newSelected = selected.filter((v) => v !== value);
-    setSelected(newSelected);
+    setInternalSelected(newSelected);
     onSelect(newSelected);
   };
 

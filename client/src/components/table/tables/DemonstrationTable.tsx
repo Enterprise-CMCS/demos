@@ -76,11 +76,13 @@ export const DemonstrationTable: React.FC<{
   projectOfficerOptions: Pick<Person, "fullName">[];
   emptyRowsMessage?: string;
   noResultsFoundMessage?: string;
+  storageKey?: string;
 }> = ({
   demonstrations,
   projectOfficerOptions,
   emptyRowsMessage = DEFAULT_EMPTY_ROWS_MESSAGE,
   noResultsFoundMessage = DEFAULT_NO_SEARCH_RESULTS_MESSAGE,
+  storageKey,
 }) => {
   const demonstrationColumns = DemonstrationColumns(projectOfficerOptions);
   const sortedDemonstrations = applyDefaultSort(demonstrations);
@@ -102,6 +104,7 @@ export const DemonstrationTable: React.FC<{
           getSubRows={getSubRows}
           tableClassName="w-full table-fixed"
           tableContainerClassName="w-full overflow-x-hidden"
+          storageKey={storageKey}
         />
       )}
     </div>

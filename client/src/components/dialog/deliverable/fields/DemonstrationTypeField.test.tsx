@@ -81,10 +81,29 @@ describe("DemonstrationTypeField", () => {
 
   it("calls onSelect with multiple values when multiple options are chosen", async () => {
     const user = userEvent.setup();
-    const { onSelect } = setup();
+    const onSelect = vi.fn();
+
+    const { rerender } = render(
+      <DemonstrationTypeField
+        demonstrationTypeTags={MOCK_OPTIONS}
+        selectedValues={[]}
+        onSelect={onSelect}
+      />
+    );
 
     await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_NAME));
     await user.click(screen.getByText("Aggregate Cap"));
+
+    expect(onSelect).toHaveBeenLastCalledWith(["Aggregate Cap"]);
+
+    rerender(
+      <DemonstrationTypeField
+        demonstrationTypeTags={MOCK_OPTIONS}
+        selectedValues={["Aggregate Cap"]}
+        onSelect={onSelect}
+      />
+    );
+
     await user.click(screen.getByText("Annual Limits (Unapproved)"));
 
     expect(onSelect).toHaveBeenLastCalledWith(["Aggregate Cap", "Annual Limits"]);
