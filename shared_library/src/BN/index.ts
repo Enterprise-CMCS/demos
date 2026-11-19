@@ -1,9 +1,11 @@
 import readExcelFile, { InvalidInputError, InvalidSpreadsheetError } from "read-excel-file/universal";
 import fs from "node:fs/promises";
-import { FormulaReadError, readFormulaInfo, type FormulaInfo } from "./formulas.js";
+import { FormulaReadError, isCellInArrayFormulaRange, readFormulaInfo, type ArrayFormulaRange, type FormulaInfo } from "./formulas.js";
 import { BNWorkbookInputError } from "./errors.js";
 
 export { BNWorkbookInputError } from "./errors.js";
+
+const REQUIRED_WORKBOOK_SHEETS = ["C Report", "Summary"] as const;
 
 export type CellValue<ParsedNumber = number> =
   | string
@@ -19,6 +21,7 @@ export type ExcelData<ParsedNumber = number> = {
   sheet: string;
   data: SheetData<ParsedNumber>;
   formulaCells?: Set<string>;
+  arrayFormulaRanges?: ArrayFormulaRange[];
 }[];
 
 export async function parseBNFile(blob: Blob): Promise<ExcelData> {
@@ -52,6 +55,15 @@ export async function parseBNWorkbook(source: string | Blob): Promise<{
     });
   }
 
+  for (const sheet of REQUIRED_WORKBOOK_SHEETS) {
+    if (!data.some((entry) => entry.sheet === sheet)) {
+      throw new BNWorkbookInputError({
+        code: "BN_REQUIRED_WORKBOOK_SHEET",
+        message: `The workbook is missing the required "${sheet}" sheet.`,
+      });
+    }
+  }
+
   const warnings: string[] = [];
   let info: FormulaInfo;
   try {
@@ -67,6 +79,8 @@ export async function parseBNWorkbook(source: string | Blob): Promise<{
   for (const entry of data) {
     const cells = info.formulaCells.get(entry.sheet);
     if (cells) entry.formulaCells = cells;
+    const arrayRanges = info.arrayFormulaRanges.get(entry.sheet);
+    if (arrayRanges) entry.arrayFormulaRanges = arrayRanges;
   }
   const cachedValuesMayBeStale = info.fullCalcOnLoad;
   if (cachedValuesMayBeStale) {
@@ -76,7 +90,9 @@ export async function parseBNWorkbook(source: string | Blob): Promise<{
 }
 
 export function isFormulaCell(data: ExcelData, sheet: string, a1: string): boolean {
-  return data.find((entry) => entry.sheet === sheet)?.formulaCells?.has(a1) ?? false;
+  const entry = data.find((item) => item.sheet === sheet);
+  if (entry?.formulaCells?.has(a1)) return true;
+  return entry?.arrayFormulaRanges?.some((range) => isCellInArrayFormulaRange(a1, range)) ?? false;
 }
 
 export function numberToExcelColumn(num: number): string {

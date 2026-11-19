@@ -1,5 +1,7 @@
 import type { ExcelData } from "./index.js";
 import { BNWorkbookInputError } from "./errors.js";
+import { extractorFunctions } from "./extractors/index.js";
+import { validations } from "./rulesets/v1/index.js";
 
 export type ValidationError = {
   code: string;
@@ -44,6 +46,33 @@ export async function validateBNWorkbook(data:ExcelData, validations: Validation
     errors,
     extractedValues: isValid ? extractedValues : new Map(),
   };
+}
+
+const buildRuleError = (cause: unknown): ValidationError => ({
+  code: "RULE_ERROR",
+  message:
+    cause instanceof Error
+      ? `Workbook is missing expected structure: ${cause.message}.`
+      : "Workbook is missing expected structure.",
+});
+
+export async function validate(data: ExcelData): Promise<ValidationError[]> {
+  const errors: ValidationError[] = [];
+
+  for (const validation of validations) {
+    try {
+      const error = validation(data);
+      if (error) errors.push(error);
+    } catch (ruleError) {
+      console.error("BN validation rule threw:", ruleError);
+      errors.push(buildRuleError(ruleError));
+    }
+  }
+
+  if (errors.length > 0) return errors;
+
+  const result = await validateBNWorkbook(data, [], extractorFunctions);
+  return result.errors;
 }
 
 

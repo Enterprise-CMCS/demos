@@ -325,10 +325,10 @@ describe("writeRelationToFile", () => {
   });
 
   it("round trips nested BN reporting JSON with numeric values and nullable CAP flags", async () => {
-    const schema: RelationSchema = { columns: [{ name: "applications", duckdbType: "JSON" }] };
+    const schema: RelationSchema = { columns: [{ name: "deliverables", duckdbType: "JSON" }] };
     const reporting = {
       workbook_id: "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
-      test_values: [{ test_id: "Main", measure_id: "Net Variance", meg_name: null, dy_number: null, value: 1.25 }],
+      test_values: [{ test_id: "Main", measure_id: "Net Variance", meg_name: null, dy_number: null, value: 1234.567 }],
       test_years: [
         { test_id: "Main", dy_number: 1, cap_needed: false },
         { test_id: "Main", dy_number: 2, cap_needed: null },
@@ -336,21 +336,32 @@ describe("writeRelationToFile", () => {
       spending_limits: [],
     };
     const array = JSON.stringify([
-      { name: 'CMS, "review"\n雪', notes: null, budget_neutrality_reporting: reporting },
-      { name: "Renewal", budget_neutrality_reporting: null },
+      {
+        deliverable_name: 'CMS, "review"\n雪',
+        deliverable_review_date: null,
+        budget_neutrality_variance: "1234.567",
+        budget_neutrality_reporting: reporting,
+      },
+      { deliverable_name: "Renewal", budget_neutrality_variance: "-", budget_neutrality_reporting: null },
     ]);
     const csv = `"${array.replace(/"/g, '""')}"\n[]\n`;
     const { client } = fakeClient(csv, 2);
     const out = outputPath();
     expect(await writeRelationToFile(client, "reporting", schema, out)).toBe(2);
     const query = await reader();
-    const rows = await query(`SELECT applications::VARCHAR AS applications FROM read_parquet('${out}')`);
-    expect(rows.map((row) => JSON.parse(row.applications as string))).toEqual([JSON.parse(array), []]);
-    const payload = JSON.parse(rows[0]!.applications as string);
-    expect(payload[0].budget_neutrality_reporting.test_values[0].value).toBe(1.25);
+    const rows = await query(`SELECT deliverables::VARCHAR AS deliverables FROM read_parquet('${out}')`);
+    expect(rows.map((row) => JSON.parse(row.deliverables as string))).toEqual([JSON.parse(array), []]);
+    const payload = JSON.parse(rows[0]!.deliverables as string);
+    expect(payload[0].budget_neutrality_variance).toBe("1234.567");
+    expect(typeof payload[0].budget_neutrality_variance).toBe("string");
+    expect(payload[0].budget_neutrality_reporting.test_values[0].value).toBe(1234.567);
     expect(typeof payload[0].budget_neutrality_reporting.test_values[0].value).toBe("number");
-    expect(payload[0].budget_neutrality_reporting.test_years.map((year: { cap_needed: boolean | null }) => year.cap_needed))
-      .toEqual([false, null]);
+    expect(
+      payload[0].budget_neutrality_reporting.test_years.map(
+        (year: { cap_needed: boolean | null }) => year.cap_needed,
+      ),
+    ).toEqual([false, null]);
+    expect(payload[1].budget_neutrality_reporting).toBeNull();
   });
 
   it("preserves a comma, a quote and a newline inside a field", async () => {

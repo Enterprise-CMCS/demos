@@ -29,7 +29,7 @@ function sectionRows(
   let first = range.first;
   for (const label of labels) {
     const result = locateLabelRow(data, SHEET, label, { first, last: range.last });
-    if (!result.ok) {
+    if ("reason" in result) {
       warnings.push(`${section} omitted: ${result.reason}`);
       return undefined;
     }
