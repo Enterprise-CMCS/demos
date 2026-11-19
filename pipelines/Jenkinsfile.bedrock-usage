@@ -3,41 +3,10 @@ import java.math.RoundingMode
 pipeline {
     agent {
         kubernetes {
-            yaml '''
-apiVersion: v1
-kind: Pod
-metadata:
-  name: demos-jenkins-agent
-  labels:
-    jenkins: "agent"
-spec:
-  nodeSelector:
-    node-pool: "agent"
-  serviceAccountName: jenkins-role
-  containers:
-  - name: alpine
-    image: artifactory.cloud.cms.gov/docker/alpine
-    command:
-    - sleep
-    args:
-    - infinity
-  - name: aws-cli
-    image: artifactory.cloud.cms.gov/docker/amazon/aws-cli:latest
-    command:
-    - sleep
-    - 99999
-    tty: true
-    resources:
-      requests:
-        cpu: 200m
-        memory: 256Mi
-        ephemeral-storage: "1Gi"
-      limits:
-        cpu: 400m
-        memory: 512Mi
-        ephemeral-storage: "5Gi"
-'''
-            defaultContainer 'alpine'
+            yaml podSpec([
+              name: 'default',
+              allowInstalls: true ], 'aws-cli')
+            defaultContainer 'default'
             retries 2
         }
     }

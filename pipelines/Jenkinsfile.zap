@@ -1,7 +1,7 @@
 pipeline {
   agent {
     kubernetes { 
-      yaml kubeBlock(containerNames:["zap", "aws-cli"])
+      yaml podSpec("zap", "aws-cli")
     }
   }
 

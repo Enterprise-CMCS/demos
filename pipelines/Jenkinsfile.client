@@ -3,10 +3,18 @@ def changePaths =  ['client', 'server/src/constants.ts', 'server/src/types.ts']
 pipeline {
   agent {
     kubernetes {
-      yaml kubeBlock(containerNames:['node', 'snyk'], opts: [
-        NODE_CPU_REQUEST: '4000m',
-        NODE_CPU_LIMIT: '8000m'
-    ])
+      yaml podSpec(
+        [
+          name: 'node',
+          resources: [
+            requests: [
+              cpu: '4000m'
+            ],
+            limits: [
+              cpu: '8000m'
+            ]
+          ]
+        ], 'snyk')
   }
 }
 
