@@ -65,10 +65,22 @@ vi.mock("demos-shared-library/BN/validation", () => ({
   }),
 }));
 
+vi.mock("demos-shared-library/BN/extractors", () => ({
+  extractorFunctions: [],
+  extractBNReporting: vi.fn().mockReturnValue({
+    extract: {
+      testValues: [{ testId: "Main", measureId: "Net Variance", megName: null, dyNumber: null, value: 0 }],
+      testYears: [],
+    },
+    warnings: [],
+  }),
+}));
+
 import { handler } from "./index";
 import { documentExists } from "./budgetNeutralityValidation";
 import { BNWorkbookInputError, parseBNWorkbook } from "demos-shared-library/BN";
 import { validateBNWorkbook } from "demos-shared-library/BN/validation";
+import { extractBNReporting } from "demos-shared-library/BN/extractors";
 
 function createPool() {
   const release = vi.fn();
@@ -173,6 +185,47 @@ describe("budgetNeutrality index", () => {
       "Budget Neutrality validation completed."
     );
     expect(mocks.logWarnMock).not.toHaveBeenCalled();
+  });
+
+  it("extracts Main rows and logs reporting warnings before persisting the snapshot", async () => {
+    const { pool } = createPool();
+    mocks.getDbPoolMock.mockResolvedValue(pool);
+    const parsedData = [{ sheet: "Summary", data: [] }];
+    vi.mocked(parseBNWorkbook).mockResolvedValueOnce({ data: parsedData, cachedValuesMayBeStale: false, warnings: [] });
+    vi.mocked(extractBNReporting).mockReturnValueOnce({
+      extract: {
+        testValues: [
+          { testId: "Main", measureId: "Without-Waiver Total", megName: null, dyNumber: 1, value: 120 },
+          { testId: "Main", measureId: "Net Variance", megName: null, dyNumber: null, value: 0 },
+        ],
+        testYears: [{ testId: "Main", dyNumber: 1, capNeeded: false }],
+      },
+      warnings: ["Main optional section omitted."],
+    });
+    const event = {
+      Records: [{ body: JSON.stringify({ documentId: "doc-1", documentTypeId: "BN Workbook" }) }],
+    } as unknown as SQSEvent;
+
+    await handler(event, { awsRequestId: "test-request-id" } as Context);
+
+    expect(extractBNReporting).toHaveBeenCalledWith(parsedData, expect.any(Map));
+    expect(mocks.logWarnMock).toHaveBeenCalledWith(
+      { documentId: "doc-1", warning: "Main optional section omitted." },
+      "BN reporting extraction warning.",
+    );
+    const inserts = mocks.queryMock.mock.calls.filter(([query]) => String(query).startsWith("INSERT INTO"));
+    expect(inserts).toHaveLength(2);
+    expect(inserts[0]?.[0]).toContain("budget_neutrality_workbook_hypothetical_value");
+    expect(inserts[0]?.[1]).toEqual(expect.arrayContaining([
+      expect.any(String), "doc-1", "Main", "Without-Waiver Total", null, 1, 120,
+      expect.any(Date), expect.any(Date),
+      expect.any(String), "doc-1", "Main", "Net Variance", null, null, 0,
+      expect.any(Date), expect.any(Date),
+    ]));
+    expect(inserts[1]?.[0]).toContain("budget_neutrality_workbook_hypothetical_year");
+    expect(inserts[1]?.[1]).toEqual([
+      "doc-1", "Main", 1, false, expect.any(Date), expect.any(Date),
+    ]);
   });
 
   it("replaces the reporting snapshot on repeated processing when the parent update is suppressed", async () => {

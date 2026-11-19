@@ -13,8 +13,8 @@ import {
 import { BNWorkbookInputError, parseBNWorkbook } from "demos-shared-library/BN";
 import { validateBNWorkbook, ValidationResult } from "demos-shared-library/BN/validation";
 import { validations } from "demos-shared-library/BN/rulesets";
-import { extractorFunctions } from "demos-shared-library/BN/extractors";
-import { clearBudgetNeutralityReportingSnapshot, replaceNetVarianceReportingSnapshot } from "./reporting";
+import { extractBNReporting, extractorFunctions, type BNWorkbookExtract } from "demos-shared-library/BN/extractors";
+import { clearBudgetNeutralityReportingSnapshot, replaceBudgetNeutralityReportingSnapshot } from "./reporting";
 
 const SUCCEEDED_VALIDATION_STATUS_ID = "Succeeded";
 const FAILED_VALIDATION_STATUS_ID = "Failed";
@@ -42,11 +42,15 @@ interface Results {
 export async function updateBudgetNeutralityWorkbook(
   pool: Pool,
   message: BudgetNeutralityMessage,
-  validationResults: ValidationResult
+  validationResults: ValidationResult,
+  reportingExtract?: BNWorkbookExtract,
 ): Promise<void> {
   const netVarianceTotal = validationResults.isValid
     ? requiredNetVarianceTotal(validationResults)
     : undefined;
+  if (validationResults.isValid && !reportingExtract) {
+    throw new Error("A valid BN workbook must have an extracted reporting snapshot.");
+  }
   const client: PoolClient = await pool.connect();
   let transactionStarted = false;
   try {
@@ -68,7 +72,7 @@ export async function updateBudgetNeutralityWorkbook(
     ]);
 
     if (netVarianceTotal !== undefined) {
-      await replaceNetVarianceReportingSnapshot(client, message.documentId, netVarianceTotal);
+      await replaceBudgetNeutralityReportingSnapshot(client, message.documentId, reportingExtract!);
     } else {
       await clearBudgetNeutralityReportingSnapshot(client, message.documentId);
     }
@@ -127,6 +131,7 @@ export const handler = async (event: SQSEvent, context: Context) =>
       
       log.info("Download completed. Starting parsing of BN workbook.");
       let validationResults: ValidationResult | undefined;
+      let reportingExtract: BNWorkbookExtract | undefined;
       try {
         const parsedWorkbook = await parseBNWorkbook(downloadedDocumentPath);
         log.info(
@@ -139,6 +144,13 @@ export const handler = async (event: SQSEvent, context: Context) =>
 
         log.info("Parsing completed. Starting validation against ruleset.");
         validationResults = await validateBNWorkbook(parsedWorkbook.data, validations, extractorFunctions);
+        if (validationResults.isValid) {
+          const reportingResult = extractBNReporting(parsedWorkbook.data, validationResults.extractedValues ?? new Map());
+          reportingExtract = reportingResult.extract;
+          for (const warning of reportingResult.warnings) {
+            log.warn({ documentId: message.documentId, warning }, "BN reporting extraction warning.");
+          }
+        }
       } catch (error) {
         if (!(error instanceof BNWorkbookInputError)) throw error;
         validationResults = {
@@ -157,7 +169,7 @@ export const handler = async (event: SQSEvent, context: Context) =>
 
       log.info("Validation completed. Inserting BN results into database.");
       results.existingDocuments = 1;
-      await updateBudgetNeutralityWorkbook(pool, message, validationResults);
+      await updateBudgetNeutralityWorkbook(pool, message, validationResults, reportingExtract);
       
       results.insertedWorkbooks = 1;
       log.info(

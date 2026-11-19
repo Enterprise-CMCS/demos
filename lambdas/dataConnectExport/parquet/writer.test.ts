@@ -324,12 +324,15 @@ describe("writeRelationToFile", () => {
     ]);
   });
 
-  it("round trips nested BN reporting JSON with numeric values and empty arrays", async () => {
+  it("round trips nested BN reporting JSON with numeric values and nullable CAP flags", async () => {
     const schema: RelationSchema = { columns: [{ name: "applications", duckdbType: "JSON" }] };
     const reporting = {
       workbook_id: "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
       test_values: [{ test_id: "Main", measure_id: "Net Variance", meg_name: null, dy_number: null, value: 1.25 }],
-      test_years: [],
+      test_years: [
+        { test_id: "Main", dy_number: 1, cap_needed: false },
+        { test_id: "Main", dy_number: 2, cap_needed: null },
+      ],
       spending_limits: [],
     };
     const array = JSON.stringify([
@@ -346,6 +349,8 @@ describe("writeRelationToFile", () => {
     const payload = JSON.parse(rows[0]!.applications as string);
     expect(payload[0].budget_neutrality_reporting.test_values[0].value).toBe(1.25);
     expect(typeof payload[0].budget_neutrality_reporting.test_values[0].value).toBe("number");
+    expect(payload[0].budget_neutrality_reporting.test_years.map((year: { cap_needed: boolean | null }) => year.cap_needed))
+      .toEqual([false, null]);
   });
 
   it("preserves a comma, a quote and a newline inside a field", async () => {

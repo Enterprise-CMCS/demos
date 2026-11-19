@@ -1,5 +1,33 @@
 import { describe, expect, it, vi } from "vitest";
-import { insertRows } from "./reporting";
+import { insertRows, replaceBudgetNeutralityReportingSnapshot } from "./reporting";
+
+describe("replaceBudgetNeutralityReportingSnapshot", () => {
+  it("replaces value and year rows atomically within the caller's transaction", async () => {
+    const client = { query: vi.fn().mockResolvedValue({ rows: [] }) };
+
+    await replaceBudgetNeutralityReportingSnapshot(client as never, "workbook-1", {
+      testValues: [
+        { testId: "Main", measureId: "Without-Waiver Total", megName: null, dyNumber: 1, value: 120 },
+        { testId: "Main", measureId: "Net Variance", megName: null, dyNumber: null, value: 0 },
+      ],
+      testYears: [{ testId: "Main", dyNumber: 1, capNeeded: false }],
+    });
+
+    expect(client.query).toHaveBeenCalledTimes(6);
+    expect(client.query.mock.calls.slice(0, 4).every(([query]) => String(query).startsWith("DELETE"))).toBe(true);
+    expect(client.query.mock.calls[4]?.[0]).toContain("budget_neutrality_workbook_hypothetical_value");
+    expect(client.query.mock.calls[4]?.[1]).toEqual([
+      expect.any(String), "workbook-1", "Main", "Without-Waiver Total", null, 1, 120,
+      expect.any(Date), expect.any(Date),
+      expect.any(String), "workbook-1", "Main", "Net Variance", null, null, 0,
+      expect.any(Date), expect.any(Date),
+    ]);
+    expect(client.query.mock.calls[5]?.[0]).toContain("budget_neutrality_workbook_hypothetical_year");
+    expect(client.query.mock.calls[5]?.[1]).toEqual([
+      "workbook-1", "Main", 1, false, expect.any(Date), expect.any(Date),
+    ]);
+  });
+});
 
 describe("insertRows", () => {
   it("splits reporting inserts below the PostgreSQL parameter limit", async () => {
