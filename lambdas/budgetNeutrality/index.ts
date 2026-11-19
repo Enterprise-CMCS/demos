@@ -19,10 +19,6 @@ import { clearBudgetNeutralityReportingSnapshot, replaceNetVarianceReportingSnap
 const SUCCEEDED_VALIDATION_STATUS_ID = "Succeeded";
 const FAILED_VALIDATION_STATUS_ID = "Failed";
 const DB_SCHEMA = "demos_app";
-const LOCK_WORKBOOK_SQL = `SELECT id
-  FROM ${DB_SCHEMA}.budget_neutrality_workbook
-  WHERE id = $1::UUID
-  FOR UPDATE;`;
 const UPDATE_WORKBOOK_SQL = `UPDATE ${DB_SCHEMA}.budget_neutrality_workbook
   SET
     document_type_id = $2::TEXT,
@@ -32,6 +28,13 @@ const UPDATE_WORKBOOK_SQL = `UPDATE ${DB_SCHEMA}.budget_neutrality_workbook
     net_variance_total = $6::NUMERIC,
     updated_at = CURRENT_TIMESTAMP
   WHERE id = $1::UUID;`;
+const DELETE_REPORTING_CHILDREN_SQL = [
+  `DELETE FROM ${DB_SCHEMA}.budget_neutrality_workbook_hypothetical_value WHERE workbook_id = $1::UUID;`,
+  `DELETE FROM ${DB_SCHEMA}.budget_neutrality_workbook_hypothetical_year WHERE workbook_id = $1::UUID;`,
+  `DELETE FROM ${DB_SCHEMA}.budget_neutrality_workbook_spending_limit_meg WHERE workbook_id = $1::UUID;`,
+  `DELETE FROM ${DB_SCHEMA}.budget_neutrality_workbook_spending_limit WHERE workbook_id = $1::UUID;`,
+];
+
 interface Results {
   processedRecords: number;
   existingDocuments: number;
@@ -44,33 +47,28 @@ export async function updateBudgetNeutralityWorkbook(
   message: BudgetNeutralityMessage,
   validationResults: ValidationResult
 ): Promise<void> {
-  const netVarianceTotal = validationResults.isValid
-    ? requiredNetVarianceTotal(validationResults)
-    : undefined;
   const client: PoolClient = await pool.connect();
   let transactionStarted = false;
   try {
     await client.query("BEGIN");
     transactionStarted = true;
 
-    const workbook = await client.query(LOCK_WORKBOOK_SQL, [message.documentId]);
-    if (workbook.rows.length === 0) {
-      throw new Error(`Budget Neutrality workbook ${message.documentId} not found.`);
-    }
-
-    await client.query(UPDATE_WORKBOOK_SQL, [
+    const updateResult = await client.query(UPDATE_WORKBOOK_SQL, [
       message.documentId,
       message.documentTypeId,
       validationResults.isValid ? SUCCEEDED_VALIDATION_STATUS_ID : FAILED_VALIDATION_STATUS_ID,
       JSON.stringify(validationResults.errors),
       validationResults.extractedValues?.get("actuals"),
-      netVarianceTotal,
+      validationResults.extractedValues?.get("netVariance"),
     ]);
+    if (updateResult.rowCount === 0) {
+      throw new Error(`Budget Neutrality workbook ${message.documentId} not found.`);
+    }
 
-    if (netVarianceTotal !== undefined) {
-      await replaceNetVarianceReportingSnapshot(client, message.documentId, netVarianceTotal);
-    } else {
-      await clearBudgetNeutralityReportingSnapshot(client, message.documentId);
+    if (!validationResults.isValid) {
+      for (const query of DELETE_REPORTING_CHILDREN_SQL) {
+        await client.query(query, [message.documentId]);
+      }
     }
     await client.query("COMMIT");
   } catch (error) {
@@ -85,14 +83,6 @@ export async function updateBudgetNeutralityWorkbook(
   } finally {
     client.release();
   }
-}
-
-function requiredNetVarianceTotal(validationResults: ValidationResult): number {
-  const value = validationResults.extractedValues?.get("netVariance");
-  if (typeof value !== "number" || !Number.isFinite(value)) {
-    throw new Error("A valid BN workbook must have a finite extracted net-variance value.");
-  }
-  return value;
 }
 
 export const handler = async (event: SQSEvent, context: Context) =>

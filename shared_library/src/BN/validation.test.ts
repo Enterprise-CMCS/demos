@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 
 import type { ExcelData } from "./index.js";
 import * as BN from "./index.js";
-import { validateBNWorkbook, type ValidationError } from "./validation.js";
+import { validate, validateBNWorkbook, type ValidationError } from "./validation.js";
 import { BNWorkbookInputError } from "./errors.js";
 import { validations as v1Validations } from "./rulesets/v1/index.js";
 import { extractorFunctions } from "./extractors/index.js";
@@ -18,6 +18,12 @@ describe("validateBNWorkbook", () => {
     expect(result.isValid).toBe(true);
     expect(result.extractedValues?.get("netVariance")).toBe(46848737436.56);
     expect(result.extractedValues?.get("actuals")).toBe("Actuals + Projected");
+  });
+
+  it("validates a real file with the default validation rules", async () => {
+    const data = await BN.parseBNFileFromPath("test/fixtures/test-bn.xlsm");
+
+    await expect(validate(data)).resolves.toEqual([]);
   });
 
   it("returns a valid result with empty errors when no validations are provided", async () => {
