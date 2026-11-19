@@ -33,6 +33,7 @@ function mainSummaryFixture(): ExcelData {
   label(257, "TOTAL");
   label(258, "Savings Phase-Down (1)");
   label(262, "Is a Corrective Action Plan needed?");
+  label(280, "HYPOTHETICALS TEST 1");
   setSummaryCell(data, "E262", "CAP Needed");
   setSummaryCell(data, "F262", "");
 
@@ -45,11 +46,24 @@ function mainSummaryFixture(): ExcelData {
   return data;
 }
 
+function addHypotheticalOutcomes(data: ExcelData, firstRow: number): void {
+  setSummaryCell(data, `B${firstRow}`, "Without-Waiver Total Expenditures");
+  setSummaryCell(data, `B${firstRow + 1}`, "TOTAL");
+  setSummaryCell(data, `E${firstRow + 1}`, 999);
+  setSummaryCell(data, `B${firstRow + 2}`, "With-Waiver Total Expenditures");
+  setSummaryCell(data, `B${firstRow + 3}`, "TOTAL");
+  setSummaryCell(data, `E${firstRow + 3}`, 888);
+  setSummaryCell(data, `B${firstRow + 4}`, "Expenditure Authority Expenditures");
+  setSummaryCell(data, `B${firstRow + 6}`, "Is a Corrective Action Plan needed?");
+  setSummaryCell(data, `E${firstRow + 6}`, "CAP Needed");
+}
+
 const extractedValues = new Map<string, string | number>([["netVariance", 0]]);
 
 describe("Main reporting extraction", () => {
   it("extracts totals, Expenditure Authority MEGs, DY values and calculated CAP outcomes", () => {
-    const result = extractBNReporting(mainSummaryFixture(), extractedValues);
+    const data = mainSummaryFixture();
+    const result = extractBNReporting(data, extractedValues);
 
     expect(result.warnings).toEqual([
       'Main Expenditure Authority row 255 omitted: duplicate MEG name "MEG 1"; keeping the first.',
@@ -78,6 +92,47 @@ describe("Main reporting extraction", () => {
       { testId: "Main", dyNumber: 1, capNeeded: true },
       { testId: "Main", dyNumber: 2, capNeeded: false },
     ]);
+
+    setSummaryCell(data, "E206", 1e17);
+    expect(extractBNReporting(data, extractedValues).extract.testValues).toContainEqual({
+      testId: "Main", measureId: "Without-Waiver Total", megName: null, dyNumber: 1, value: 1e17,
+    });
+  });
+
+  it.each([
+    ["missing", (data: ExcelData) => {
+      setSummaryCell(data, "B280", null);
+      setSummaryCell(data, "B281", "HYPOTHETICALS TEST 2");
+      addHypotheticalOutcomes(data, 270);
+    }],
+    ["formula-only", (data: ExcelData) => {
+      data[0]!.formulaCells!.add("B280");
+      addHypotheticalOutcomes(data, 270);
+    }],
+    ["duplicate", (data: ExcelData) => {
+      setSummaryCell(data, "B281", "HYPOTHETICALS TEST 1");
+      addHypotheticalOutcomes(data, 270);
+    }],
+    ["out of order", (data: ExcelData) => {
+      setSummaryCell(data, "B270", "HYPOTHETICALS TEST 2");
+      addHypotheticalOutcomes(data, 272);
+    }],
+    ["out of order with a cached formula heading", (data: ExcelData) => {
+      setSummaryCell(data, "B270", "HYPOTHETICALS TEST 2");
+      data[0]!.formulaCells!.add("B270");
+      addHypotheticalOutcomes(data, 272);
+    }],
+  ])("omits optional Main data when the first hypothetical boundary is %s", (_reason, setInvalidBoundary) => {
+    const data = mainSummaryFixture();
+    setInvalidBoundary(data);
+
+    const result = extractBNReporting(data, extractedValues);
+
+    expect(result.extract.testValues).toEqual([{
+      testId: "Main", measureId: "Net Variance", megName: null, dyNumber: null, value: 0,
+    }]);
+    expect(result.extract.testYears).toEqual([]);
+    expect(result.warnings).toEqual([expect.stringContaining("Main test omitted")]);
   });
 
   it("falls back to totals only for invalid reporting DY bounds", () => {
@@ -108,7 +163,7 @@ describe("Main reporting extraction", () => {
   it("does not borrow a calculated CAP outcome from a later hypothetical when Main's CAP row is missing", () => {
     const data = mainSummaryFixture();
     setSummaryCell(data, "B262", null);
-    setSummaryCell(data, "B280", "HYPOTHETICALS TEST 2");
+    setSummaryCell(data, "B281", "HYPOTHETICALS TEST 2");
     setSummaryCell(data, "B284", "Is a Corrective Action Plan needed?");
     setSummaryCell(data, "E284", "CAP Needed");
 
@@ -116,5 +171,23 @@ describe("Main reporting extraction", () => {
 
     expect(result.extract.testYears).toEqual([]);
     expect(result.warnings).toContainEqual(expect.stringContaining("Main CAP-needed omitted"));
+  });
+
+  it("does not borrow hypothetical financial outcomes when Main rows are missing", () => {
+    const data = mainSummaryFixture();
+    setSummaryCell(data, "B20", null);
+    setSummaryCell(data, "B220", null);
+    setSummaryCell(data, "B262", null);
+    setSummaryCell(data, "B281", "HYPOTHETICALS TEST 2");
+    addHypotheticalOutcomes(data, 283);
+
+    const result = extractBNReporting(data, extractedValues);
+
+    expect(result.extract.testValues.some(({ measureId }) => measureId === "Without-Waiver Total" || measureId === "With-Waiver Total")).toBe(false);
+    expect(result.extract.testYears).toEqual([]);
+    expect(result.warnings).toEqual(expect.arrayContaining([
+      expect.stringContaining("Main Without-Waiver Total omitted"),
+      expect.stringContaining("Main With-Waiver Total omitted"),
+    ]));
   });
 });

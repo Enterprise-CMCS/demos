@@ -1,6 +1,6 @@
-import { excelColumnRow, isFormulaCell, numberToExcelColumn, type CellValue, type ExcelData } from "../index.js";
+import { excelColumnRow, numberToExcelColumn, type CellValue, type ExcelData } from "../index.js";
 import { isBlankCell, readNumericValue } from "./cells.js";
-import { locateLabelRow, locateLabelRows, type LabelRange } from "./labels.js";
+import { locateLabelRow, type LabelRange } from "./labels.js";
 
 export type BNTestValue = {
   testId: string;
@@ -69,15 +69,20 @@ function extractMainSummary(data: ExcelData, dys: number[]): { extract: BNWorkbo
     }
   };
 
-  const hypotheticalBoundaries = locateLabelRows(data, SHEET, "HYPOTHETICALS TEST 1");
-  if (hypotheticalBoundaries.length > 1) {
-    warnings.push(`Main test omitted: HYPOTHETICALS TEST 1 boundary has ${hypotheticalBoundaries.length} matches.`);
+  const firstHypothetical = locateLabelRow(data, SHEET, "HYPOTHETICALS TEST 1");
+  if (firstHypothetical.ok === false) {
+    warnings.push(`Main test omitted: ${firstHypothetical.reason}`);
     return { extract, warnings };
   }
-  const firstHypothetical = sheet.data.findIndex((row, index) =>
-    typeof row?.[1] === "string" && /^HYPOTHETICALS TEST [1-9]\d*$/.test(row[1]) &&
-    !isFormulaCell(data, SHEET, `B${index + 1}`));
-  const mainRange = { last: firstHypothetical >= 0 ? firstHypothetical : sheet.data.length };
+  const earlierHypothetical = sheet.data.findIndex((row, index) =>
+    index + 1 < firstHypothetical.row &&
+    typeof row?.[1] === "string" &&
+    /^HYPOTHETICALS TEST [1-9]\d*$/.test(row[1]));
+  if (earlierHypothetical >= 0) {
+    warnings.push(`Main test omitted: HYPOTHETICALS TEST 1 boundary is out of order; HYPOTHETICALS TEST heading found at row ${earlierHypothetical + 1}.`);
+    return { extract, warnings };
+  }
+  const mainRange = { last: firstHypothetical.row - 1 };
   const main = sectionRows(data, ["MAIN BUDGET NEUTRALITY TEST"], mainRange, "Main test", warnings);
   if (!main) return { extract, warnings };
   const sectionRange = { first: main[0]! + 1, last: mainRange.last };

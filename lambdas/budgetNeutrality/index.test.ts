@@ -228,6 +228,46 @@ describe("budgetNeutrality index", () => {
     ]);
   });
 
+  it("succeeds with a Net Variance-only snapshot when the Main boundary is unsafe", async () => {
+    const { pool, client } = createPool();
+    mocks.getDbPoolMock.mockResolvedValue(pool);
+    const parsedData = [{ sheet: "Summary", data: [] }];
+    vi.mocked(parseBNWorkbook).mockResolvedValueOnce({ data: parsedData, cachedValuesMayBeStale: false, warnings: [] });
+    const warning = 'Main test omitted: Label "HYPOTHETICALS TEST 1" not found in column B of sheet "Summary" in the search range.';
+    vi.mocked(extractBNReporting).mockReturnValueOnce({
+      extract: {
+        testValues: [
+          { testId: "Main", measureId: "Net Variance", megName: null, dyNumber: null, value: 0 },
+        ],
+        testYears: [],
+      },
+      warnings: [warning],
+    });
+    const event = {
+      Records: [{ body: JSON.stringify({ documentId: "doc-1", documentTypeId: "BN Workbook" }) }],
+    } as unknown as SQSEvent;
+
+    const response = await handler(event, { awsRequestId: "test-request-id" } as Context);
+
+    expect(response.statusCode).toBe(200);
+    expect(mocks.logWarnMock).toHaveBeenCalledWith(
+      { documentId: "doc-1", warning },
+      "BN reporting extraction warning.",
+    );
+    expect(mocks.queryMock.mock.calls[1]?.[1]).toEqual([
+      "doc-1", "BN Workbook", "Succeeded", "[]", undefined, 0,
+    ]);
+    const inserts = mocks.queryMock.mock.calls.filter(([query]) => String(query).startsWith("INSERT INTO"));
+    expect(inserts).toHaveLength(1);
+    expect(inserts[0]?.[0]).toContain("budget_neutrality_workbook_hypothetical_value");
+    expect(inserts[0]?.[1]).toEqual([
+      expect.stringMatching(/^[0-9a-f-]{36}$/i), "doc-1", "Main", "Net Variance", null, null, 0,
+      expect.any(Date), expect.any(Date),
+    ]);
+    expect(mocks.queryMock.mock.calls.at(-1)?.[0]).toBe("COMMIT");
+    expect(client.release).toHaveBeenCalledOnce();
+  });
+
   it("replaces the reporting snapshot on repeated processing when the parent update is suppressed", async () => {
     const { pool } = createPool();
     mocks.getDbPoolMock.mockResolvedValue(pool);
