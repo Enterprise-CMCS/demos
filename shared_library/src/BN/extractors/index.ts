@@ -37,4 +37,4 @@ export const extractorFunctions: ExtractionFunction[] = [
 ];  
 
 export { extractBNReporting } from "./summary.js";
-export type { BNTestValue, BNTestYear, BNWorkbookExtract } from "./summary.js";
+export type { BNReportingOptions, BNTestValue, BNTestYear, BNWorkbookExtract } from "./summary.js";

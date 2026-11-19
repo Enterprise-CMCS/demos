@@ -45,6 +45,26 @@ function mainSummaryFixture(): ExcelData {
   return data;
 }
 
+function addHypotheticalBlock(
+  data: ExcelData,
+  testNumber: number,
+  capOutcome: string | null = "CAP Needed",
+): void {
+  const row = 300 + (testNumber - 1) * 10;
+  setSummaryCell(data, `B${row}`, `HYPOTHETICALS TEST ${testNumber}`);
+  setSummaryCell(data, `B${row + 1}`, "Without-Waiver Total Expenditures");
+  setSummaryCell(data, `B${row + 2}`, "TOTAL");
+  setSummaryCell(data, `E${row + 2}`, testNumber === 1 ? 0 : testNumber * 10);
+  setSummaryCell(data, `AS${row + 2}`, testNumber * 100);
+  setSummaryCell(data, `B${row + 3}`, "With-Waiver Total Expenditures");
+  setSummaryCell(data, `B${row + 4}`, "TOTAL");
+  setSummaryCell(data, `E${row + 4}`, testNumber * 20);
+  setSummaryCell(data, `AS${row + 4}`, testNumber * 200);
+  setSummaryCell(data, `B${row + 5}`, "Is a Corrective Action Plan needed?");
+  if (capOutcome !== null) setSummaryCell(data, `E${row + 5}`, capOutcome);
+  data[0]!.formulaCells!.add(`E${row + 5}`);
+}
+
 const extractedValues = new Map<string, string | number>([["netVariance", 0]]);
 
 describe("Main reporting extraction", () => {
@@ -114,7 +134,55 @@ describe("Main reporting extraction", () => {
 
     const result = extractBNReporting(data, extractedValues);
 
-    expect(result.extract.testYears).toEqual([]);
+    expect(result.extract.testYears).toEqual([
+      { testId: "Hypothetical 2", dyNumber: 1, capNeeded: true },
+      { testId: "Hypothetical 2", dyNumber: 2, capNeeded: false },
+    ]);
+    expect(result.extract.testYears.some(({ testId }) => testId === "Main")).toBe(false);
     expect(result.warnings).toContainEqual(expect.stringContaining("Main CAP-needed omitted"));
+  });
+
+  it("extracts 15 blocks by default and honors the explicit release cap while retaining zero and CAP outcomes", () => {
+    const data = mainSummaryFixture();
+    for (let testNumber = 1; testNumber <= 15; testNumber++) {
+      addHypotheticalBlock(data, testNumber, testNumber === 2 ? null : testNumber === 3 ? "unrecognized" : "CAP Needed");
+    }
+
+    const allHypotheticals = extractBNReporting(data, extractedValues);
+    const releaseHypotheticals = extractBNReporting(data, extractedValues, { maxHypotheticalTest: 13 });
+    const allTestIds = new Set(allHypotheticals.extract.testValues.map(({ testId }) => testId));
+    const releaseTestIds = new Set(releaseHypotheticals.extract.testValues.map(({ testId }) => testId));
+
+    expect([...allTestIds].filter((testId) => testId.startsWith("Hypothetical "))
+      .sort((left, right) => Number(left.split(" ")[1]) - Number(right.split(" ")[1])))
+      .toEqual(Array.from({ length: 15 }, (_, index) => `Hypothetical ${index + 1}`));
+    expect([...releaseTestIds]).not.toContain("Hypothetical 14");
+    expect([...releaseTestIds]).not.toContain("Hypothetical 15");
+    expect(releaseHypotheticals.extract.testValues).toContainEqual({
+      testId: "Hypothetical 1", measureId: "Without-Waiver Total", megName: null, dyNumber: 1, value: 0,
+    });
+    expect(releaseHypotheticals.extract.testYears).toContainEqual({ testId: "Hypothetical 1", dyNumber: 1, capNeeded: true });
+    expect(releaseHypotheticals.extract.testYears).toContainEqual({ testId: "Hypothetical 2", dyNumber: 1, capNeeded: false });
+    expect(releaseHypotheticals.extract.testYears).toContainEqual({ testId: "Hypothetical 3", dyNumber: 1, capNeeded: null });
+    expect(releaseHypotheticals.warnings).toContainEqual(expect.stringContaining("unrecognized CAP-needed flag"));
+  });
+
+  it("keeps missing and duplicate adjacent blocks from borrowing each other's values", () => {
+    const data = mainSummaryFixture();
+    addHypotheticalBlock(data, 1);
+    setSummaryCell(data, "B303", null);
+    addHypotheticalBlock(data, 2);
+    setSummaryCell(data, "B318", "HYPOTHETICALS TEST 2");
+    addHypotheticalBlock(data, 3);
+
+    const result = extractBNReporting(data, extractedValues, { maxHypotheticalTest: 13 });
+
+    expect(result.extract.testValues.some(({ testId }) => testId === "Hypothetical 1")).toBe(false);
+    expect(result.extract.testValues.some(({ testId }) => testId === "Hypothetical 2")).toBe(false);
+    expect(result.extract.testValues).toContainEqual({
+      testId: "Hypothetical 3", measureId: "Without-Waiver Total", megName: null, dyNumber: 1, value: 30,
+    });
+    expect(result.warnings).toContainEqual(expect.stringContaining("Hypothetical 1 With-Waiver Total omitted"));
+    expect(result.warnings).toContainEqual(expect.stringContaining("Hypothetical 2 omitted: HYPOTHETICALS TEST 2 heading has 2 matches"));
   });
 });

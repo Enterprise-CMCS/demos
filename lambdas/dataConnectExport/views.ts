@@ -419,7 +419,8 @@ bn_value_aggregates AS (
             'meg_name', meg_name,
             'dy_number', dy_number,
             'value', value
-        ) ORDER BY hypothetical_id, measure_id, meg_name NULLS FIRST, dy_number NULLS FIRST) AS test_values
+        ) ORDER BY CASE WHEN hypothetical_id = 'Main' THEN 0 ELSE substring(hypothetical_id FROM '[0-9]+')::INTEGER END,
+            measure_id, meg_name NULLS FIRST, dy_number NULLS FIRST) AS test_values
     FROM demos_app.budget_neutrality_workbook_hypothetical_value
     GROUP BY workbook_id
 ),
@@ -429,7 +430,8 @@ bn_year_aggregates AS (
             'test_id', hypothetical_id,
             'dy_number', dy_number,
             'cap_needed', cap_needed
-        ) ORDER BY hypothetical_id, dy_number) AS test_years
+        ) ORDER BY CASE WHEN hypothetical_id = 'Main' THEN 0 ELSE substring(hypothetical_id FROM '[0-9]+')::INTEGER END,
+            dy_number) AS test_years
     FROM demos_app.budget_neutrality_workbook_hypothetical_year
     GROUP BY workbook_id
 ),

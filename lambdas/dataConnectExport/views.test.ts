@@ -70,6 +70,8 @@ describe("demonstration reporting contract", () => {
     expect(view.query).toContain("'test_years'");
     expect(view.query).toContain("COALESCE(bn_year_aggregates.test_years, '[]'::json)");
     expect(view.query).toContain("'cap_needed', cap_needed");
+    expect(view.query).toContain("ORDER BY CASE WHEN hypothetical_id = 'Main' THEN 0 ELSE substring(hypothetical_id FROM '[0-9]+')::INTEGER END,\n            measure_id");
+    expect(view.query).toContain("ORDER BY CASE WHEN hypothetical_id = 'Main' THEN 0 ELSE substring(hypothetical_id FROM '[0-9]+')::INTEGER END,\n            dy_number");
     expect(view.query).toContain("WHEN most_recent_valid_bn_data.workbook_id IS NULL THEN NULL");
     expect(view.query).toContain("json_agg(json_build_object(");
     expect(view.baseTables).toContain("budget_neutrality_workbook_hypothetical_value");

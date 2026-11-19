@@ -145,6 +145,7 @@ describe("budgetNeutrality index", () => {
       statusCode: 200,
       body: "Processed 1 records.",
     });
+    expect(extractBNReporting).toHaveBeenCalledWith([], expect.any(Map), { maxHypotheticalTest: 13 });
     expect(mocks.getDbPoolMock).toHaveBeenCalledTimes(1);
     expect(mocks.queryMock).toHaveBeenCalledTimes(9);
     expect(mocks.queryMock.mock.calls[0]?.[0]).toBe("BEGIN");
@@ -208,7 +209,7 @@ describe("budgetNeutrality index", () => {
 
     await handler(event, { awsRequestId: "test-request-id" } as Context);
 
-    expect(extractBNReporting).toHaveBeenCalledWith(parsedData, expect.any(Map));
+    expect(extractBNReporting).toHaveBeenCalledWith(parsedData, expect.any(Map), { maxHypotheticalTest: 13 });
     expect(mocks.logWarnMock).toHaveBeenCalledWith(
       { documentId: "doc-1", warning: "Main optional section omitted." },
       "BN reporting extraction warning.",

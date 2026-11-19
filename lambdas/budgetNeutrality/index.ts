@@ -18,6 +18,7 @@ import { clearBudgetNeutralityReportingSnapshot, replaceBudgetNeutralityReportin
 
 const SUCCEEDED_VALIDATION_STATUS_ID = "Succeeded";
 const FAILED_VALIDATION_STATUS_ID = "Failed";
+const MAX_SUPPORTED_HYPOTHETICAL_TEST = 13;
 const DB_SCHEMA = "demos_app";
 const LOCK_WORKBOOK_SQL = `SELECT id
   FROM ${DB_SCHEMA}.budget_neutrality_workbook
@@ -145,7 +146,11 @@ export const handler = async (event: SQSEvent, context: Context) =>
         log.info("Parsing completed. Starting validation against ruleset.");
         validationResults = await validateBNWorkbook(parsedWorkbook.data, validations, extractorFunctions);
         if (validationResults.isValid) {
-          const reportingResult = extractBNReporting(parsedWorkbook.data, validationResults.extractedValues ?? new Map());
+          const reportingResult = extractBNReporting(
+            parsedWorkbook.data,
+            validationResults.extractedValues ?? new Map(),
+            { maxHypotheticalTest: MAX_SUPPORTED_HYPOTHETICAL_TEST },
+          );
           reportingExtract = reportingResult.extract;
           for (const warning of reportingResult.warnings) {
             log.warn({ documentId: message.documentId, warning }, "BN reporting extraction warning.");

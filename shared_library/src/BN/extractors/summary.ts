@@ -17,6 +17,12 @@ const CAP_LABEL = "Is a Corrective Action Plan needed?";
 const WITHOUT_WAIVER_LABEL = "Without-Waiver Total Expenditures";
 const WITH_WAIVER_LABEL = "With-Waiver Total Expenditures";
 const MAX_REPORTING_DY = 40;
+const MAX_HYPOTHETICAL_TEST = 15;
+const HYPOTHETICAL_HEADING = /^HYPOTHETICALS TEST ([1-9]\d*)$/;
+
+type HypotheticalHeading = { testNumber: number; row: number };
+
+export type BNReportingOptions = { maxHypotheticalTest?: number };
 
 function sectionRows(
   data: ExcelData,
@@ -51,33 +57,78 @@ function reportingDys(data: ExcelData): { dys: number[]; warning?: string } {
   return { dys: Array.from({ length: endDy - startDy + 1 }, (_, index) => startDy + index) };
 }
 
-function extractMainSummary(data: ExcelData, dys: number[]): { extract: BNWorkbookExtract; warnings: string[] } {
+function addValues(
+  extract: BNWorkbookExtract,
+  data: ExcelData,
+  dys: number[],
+  row: number,
+  testId: string,
+  measureId: string,
+  megName: string | null,
+  includeTotal: boolean,
+  warnings: string[],
+): void {
+  const columns: { column: string; dyNumber: number | null }[] = dys.map((dyNumber) => ({
+    column: numberToExcelColumn(3 + dyNumber),
+    dyNumber,
+  }));
+  if (includeTotal) columns.push({ column: "AS", dyNumber: null });
+  for (const { column, dyNumber } of columns) {
+    const value = readNumericValue(data, SHEET, `${column}${row}`, warnings);
+    if (value !== undefined) extract.testValues.push({ testId, measureId, megName, dyNumber, value });
+  }
+}
+
+function addCapYears(
+  extract: BNWorkbookExtract,
+  data: ExcelData,
+  dys: number[],
+  row: number,
+  testId: string,
+  warnings: string[],
+): void {
+  for (const dyNumber of dys) {
+    const address = `${numberToExcelColumn(3 + dyNumber)}${row}`;
+    const raw = excelColumnRow(address, SHEET, data);
+    let capNeeded: boolean | null = null;
+    if (raw === "CAP Needed") capNeeded = true;
+    else if (isBlankCell(raw) || raw === " ") capNeeded = false;
+    else warnings.push(`Cell ${SHEET}!${address} has an unrecognized CAP-needed flag; stored value will be NULL.`);
+    extract.testYears.push({ testId, dyNumber, capNeeded });
+  }
+}
+
+function findHypotheticalHeadings(data: ExcelData): HypotheticalHeading[] {
+  const sheet = data.find((entry) => entry.sheet === SHEET);
+  if (!sheet) return [];
+
+  const headings: HypotheticalHeading[] = [];
+  for (let index = 0; index < sheet.data.length; index++) {
+    const label = sheet.data[index]?.[1];
+    if (typeof label !== "string" || isFormulaCell(data, SHEET, `B${index + 1}`)) continue;
+    const match = HYPOTHETICAL_HEADING.exec(label);
+    if (match) headings.push({ testNumber: Number(match[1]), row: index + 1 });
+  }
+  return headings;
+}
+
+function extractMainSummary(
+  data: ExcelData,
+  dys: number[],
+  headings: HypotheticalHeading[],
+): { extract: BNWorkbookExtract; warnings: string[] } {
   const extract: BNWorkbookExtract = { testValues: [], testYears: [] };
   const warnings: string[] = [];
   const sheet = data.find((entry) => entry.sheet === SHEET);
   if (!sheet) return { extract, warnings: ['Summary omitted: Sheet "Summary" not found.'] };
 
-  const addValues = (row: number, measureId: string, megName: string | null, includeTotal: boolean) => {
-    const columns: { column: string; dyNumber: number | null }[] = dys.map((dyNumber) => ({
-      column: numberToExcelColumn(3 + dyNumber),
-      dyNumber,
-    }));
-    if (includeTotal) columns.push({ column: "AS", dyNumber: null });
-    for (const { column, dyNumber } of columns) {
-      const value = readNumericValue(data, SHEET, `${column}${row}`, warnings);
-      if (value !== undefined) extract.testValues.push({ testId: "Main", measureId, megName, dyNumber, value });
-    }
-  };
-
-  const hypotheticalBoundaries = locateLabelRows(data, SHEET, "HYPOTHETICALS TEST 1");
+  const hypotheticalBoundaries = headings.filter(({ testNumber }) => testNumber === 1);
   if (hypotheticalBoundaries.length > 1) {
     warnings.push(`Main test omitted: HYPOTHETICALS TEST 1 boundary has ${hypotheticalBoundaries.length} matches.`);
     return { extract, warnings };
   }
-  const firstHypothetical = sheet.data.findIndex((row, index) =>
-    typeof row?.[1] === "string" && /^HYPOTHETICALS TEST [1-9]\d*$/.test(row[1]) &&
-    !isFormulaCell(data, SHEET, `B${index + 1}`));
-  const mainRange = { last: firstHypothetical >= 0 ? firstHypothetical : sheet.data.length };
+  const firstHypothetical = headings[0]?.row;
+  const mainRange = { last: firstHypothetical !== undefined ? firstHypothetical - 1 : sheet.data.length };
   const main = sectionRows(data, ["MAIN BUDGET NEUTRALITY TEST"], mainRange, "Main test", warnings);
   if (!main) return { extract, warnings };
   const sectionRange = { first: main[0]! + 1, last: mainRange.last };
@@ -89,21 +140,11 @@ function extractMainSummary(data: ExcelData, dys: number[]): { extract: BNWorkbo
     const bounds = sectionRows(data, [startLabel, endLabel], sectionRange, `Main ${measureId}`, warnings);
     if (!bounds) continue;
     const total = sectionRows(data, ["TOTAL"], { first: bounds[0]! + 1, last: bounds[1]! - 1 }, `Main ${measureId}`, warnings);
-    if (total) addValues(total[0]!, measureId, null, true);
+    if (total) addValues(extract, data, dys, total[0]!, "Main", measureId, null, true, warnings);
   }
 
   const cap = sectionRows(data, [CAP_LABEL], sectionRange, "Main CAP-needed", warnings);
-  if (cap) {
-    for (const dyNumber of dys) {
-      const address = `${numberToExcelColumn(3 + dyNumber)}${cap[0]}`;
-      const raw = excelColumnRow(address, SHEET, data);
-      let capNeeded: boolean | null = null;
-      if (raw === "CAP Needed") capNeeded = true;
-      else if (isBlankCell(raw) || raw === " ") capNeeded = false;
-      else warnings.push(`Cell ${SHEET}!${address} has an unrecognized CAP-needed flag; stored value will be NULL.`);
-      extract.testYears.push({ testId: "Main", dyNumber, capNeeded });
-    }
-  }
+  if (cap) addCapYears(extract, data, dys, cap[0]!, "Main", warnings);
 
   const bounds = sectionRows(data, ["Medicaid Aggregate - WW only", "Savings Phase-Down (1)"], sectionRange, "Main Expenditure Authority", warnings);
   if (!bounds) return { extract, warnings };
@@ -122,18 +163,104 @@ function extractMainSummary(data: ExcelData, dys: number[]): { extract: BNWorkbo
       continue;
     }
     names.add(name);
-    addValues(row, "Expenditure Authority", name, false);
+    addValues(extract, data, dys, row, "Main", "Expenditure Authority", name, false, warnings);
   }
-  addValues(total[0]!, "Expenditure Authority", null, true);
+  addValues(extract, data, dys, total[0]!, "Main", "Expenditure Authority", null, true, warnings);
+  return { extract, warnings };
+}
+
+function extractHypotheticalSummaries(
+  data: ExcelData,
+  dys: number[],
+  headings: HypotheticalHeading[],
+  maxHypotheticalTest: number,
+): { extract: BNWorkbookExtract; warnings: string[] } {
+  const extract: BNWorkbookExtract = { testValues: [], testYears: [] };
+  const warnings: string[] = [];
+  const sheet = data.find((entry) => entry.sheet === SHEET);
+  if (!sheet) return { extract, warnings };
+
+  const headingCounts = new Map<number, number>();
+  for (const { testNumber } of headings) {
+    headingCounts.set(testNumber, (headingCounts.get(testNumber) ?? 0) + 1);
+  }
+  for (const [testNumber, count] of headingCounts) {
+    if (count > 1 && testNumber <= maxHypotheticalTest) {
+      warnings.push(`Hypothetical ${testNumber} omitted: HYPOTHETICALS TEST ${testNumber} heading has ${count} matches.`);
+    }
+  }
+
+  for (let index = 0; index < headings.length; index++) {
+    const heading = headings[index]!;
+    if (heading.testNumber > maxHypotheticalTest || headingCounts.get(heading.testNumber) !== 1) continue;
+
+    const nextHeading = headings[index + 1];
+    const range = { first: heading.row + 1, last: (nextHeading?.row ?? sheet.data.length + 1) - 1 };
+    const testId = `Hypothetical ${heading.testNumber}`;
+
+    const withoutWaiver = sectionRows(
+      data,
+      [WITHOUT_WAIVER_LABEL, WITH_WAIVER_LABEL],
+      range,
+      `${testId} Without-Waiver Total`,
+      warnings,
+    );
+    if (withoutWaiver) {
+      const total = sectionRows(
+        data,
+        ["TOTAL"],
+        { first: withoutWaiver[0]! + 1, last: withoutWaiver[1]! - 1 },
+        `${testId} Without-Waiver Total`,
+        warnings,
+      );
+      if (total) addValues(extract, data, dys, total[0]!, testId, "Without-Waiver Total", null, true, warnings);
+    }
+
+    const withWaiver = sectionRows(data, [WITH_WAIVER_LABEL], range, `${testId} With-Waiver Total`, warnings);
+    if (withWaiver) {
+      const boundaryRows = [
+        ...locateLabelRows(data, SHEET, CAP_LABEL, { first: withWaiver[0]! + 1, last: range.last }),
+        ...locateLabelRows(data, SHEET, "Expenditure Authority Expenditures", {
+          first: withWaiver[0]! + 1,
+          last: range.last,
+        }),
+      ];
+      const lastTotalRow = boundaryRows.length > 0 ? Math.min(...boundaryRows) - 1 : range.last;
+      const total = sectionRows(
+        data,
+        ["TOTAL"],
+        { first: withWaiver[0]! + 1, last: lastTotalRow },
+        `${testId} With-Waiver Total`,
+        warnings,
+      );
+      if (total) addValues(extract, data, dys, total[0]!, testId, "With-Waiver Total", null, true, warnings);
+    }
+
+    const cap = sectionRows(data, [CAP_LABEL], range, `${testId} CAP-needed`, warnings);
+    if (cap) addCapYears(extract, data, dys, cap[0]!, testId, warnings);
+  }
+
   return { extract, warnings };
 }
 
 export function extractBNReporting(
   data: ExcelData,
   extractedValues: ReadonlyMap<string, unknown>,
+  options: BNReportingOptions = {},
 ): { extract: BNWorkbookExtract; warnings: string[] } {
+  const maxHypotheticalTest = options.maxHypotheticalTest ?? MAX_HYPOTHETICAL_TEST;
+  if (!Number.isInteger(maxHypotheticalTest) || maxHypotheticalTest < 0 || maxHypotheticalTest > MAX_HYPOTHETICAL_TEST) {
+    throw new RangeError(`maxHypotheticalTest must be an integer between 0 and ${MAX_HYPOTHETICAL_TEST}.`);
+  }
+
   const reportingRange = reportingDys(data);
-  const { extract, warnings } = extractMainSummary(data, reportingRange.dys);
+  const headings = findHypotheticalHeadings(data);
+  const mainResult = extractMainSummary(data, reportingRange.dys, headings);
+  const hypotheticalResult = extractHypotheticalSummaries(data, reportingRange.dys, headings, maxHypotheticalTest);
+  const extract = mainResult.extract;
+  extract.testValues.push(...hypotheticalResult.extract.testValues);
+  extract.testYears.push(...hypotheticalResult.extract.testYears);
+  const warnings = [...mainResult.warnings, ...hypotheticalResult.warnings];
   if (reportingRange.warning) warnings.unshift(reportingRange.warning);
 
   const netVariance = extractedValues.get("netVariance");
