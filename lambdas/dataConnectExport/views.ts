@@ -169,7 +169,11 @@ const deliverableFields: readonly ReportField[] = [
     expression: `CASE WHEN most_recent_valid_bn_data.workbook_id IS NULL THEN NULL ELSE json_build_object(
         'workbook_id', most_recent_valid_bn_data.workbook_id,
         'test_values', COALESCE(bn_value_aggregates.test_values, '[]'::json),
+<<<<<<< HEAD
         'test_years', COALESCE(bn_year_aggregates.test_years, '[]'::json),
+=======
+        'test_years', '[]'::json,
+>>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
         'spending_limits', '[]'::json
       ) END`,
     duckdbType: "JSON",
@@ -419,6 +423,7 @@ bn_value_aggregates AS (
             'meg_name', meg_name,
             'dy_number', dy_number,
             'value', value
+<<<<<<< HEAD
         ) ORDER BY CASE WHEN hypothetical_id = 'Main' THEN 0 ELSE substring(hypothetical_id FROM '[0-9]+')::INTEGER END,
             measure_id, meg_name NULLS FIRST, dy_number NULLS FIRST) AS test_values
     FROM demos_app.budget_neutrality_workbook_hypothetical_value
@@ -434,6 +439,11 @@ bn_year_aggregates AS (
             dy_number) AS test_years
     FROM demos_app.budget_neutrality_workbook_hypothetical_year
     GROUP BY workbook_id
+=======
+        ) ORDER BY hypothetical_id, measure_id, meg_name NULLS FIRST, dy_number NULLS FIRST) AS test_values
+    FROM demos_app.budget_neutrality_workbook_hypothetical_value
+    GROUP BY workbook_id
+>>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
 ),
 aggregate_public_comments AS (
     SELECT pbc.deliverable_id,
@@ -479,8 +489,11 @@ deliverable_details AS (
     LEFT JOIN most_recent_valid_bn_data ON deliv.id = most_recent_valid_bn_data.deliverable_id
     LEFT JOIN bn_value_aggregates
         ON most_recent_valid_bn_data.workbook_id = bn_value_aggregates.workbook_id
+<<<<<<< HEAD
     LEFT JOIN bn_year_aggregates
         ON most_recent_valid_bn_data.workbook_id = bn_year_aggregates.workbook_id
+=======
+>>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
     LEFT JOIN aggregate_public_comments ON deliv.id = aggregate_public_comments.deliverable_id
     LEFT JOIN aggregate_private_comments ON deliv.id = aggregate_private_comments.deliverable_id
     CROSS JOIN LATERAL (
@@ -540,7 +553,11 @@ export const EXPORT_VIEWS = {
     orderBy: ["demonstration_id"],
     baseTables: [
       "amendment", "application", "application_date", "application_note", "budget_neutrality_workbook",
+<<<<<<< HEAD
       "budget_neutrality_workbook_hypothetical_value", "budget_neutrality_workbook_hypothetical_year",
+=======
+      "budget_neutrality_workbook_hypothetical_value",
+>>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
       "deliverable", "deliverable_action", "deliverable_demonstration_type", "deliverable_extension", "demonstration",
       "demonstration_role_assignment", "demonstration_type_tag_assignment", "document", "extension", "person",
       "primary_demonstration_role_assignment", "private_comment", "public_comment", "state",

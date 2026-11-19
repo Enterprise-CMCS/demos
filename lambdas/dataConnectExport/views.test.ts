@@ -67,6 +67,7 @@ describe("demonstration reporting contract", () => {
     expect(view.query).toContain("'workbook_id', most_recent_valid_bn_data.workbook_id");
     expect(view.query).toContain("'test_values'");
     expect(view.query).toContain("COALESCE(bn_value_aggregates.test_values, '[]'::json)");
+<<<<<<< HEAD
     expect(view.query).toContain("'test_years'");
     expect(view.query).toContain("COALESCE(bn_year_aggregates.test_years, '[]'::json)");
     expect(view.query).toContain("'cap_needed', cap_needed");
@@ -76,6 +77,11 @@ describe("demonstration reporting contract", () => {
     expect(view.query).toContain("json_agg(json_build_object(");
     expect(view.baseTables).toContain("budget_neutrality_workbook_hypothetical_value");
     expect(view.baseTables).toContain("budget_neutrality_workbook_hypothetical_year");
+=======
+    expect(view.query).toContain("WHEN most_recent_valid_bn_data.workbook_id IS NULL THEN NULL");
+    expect(view.query).toContain("json_agg(json_build_object(");
+    expect(view.baseTables).toContain("budget_neutrality_workbook_hypothetical_value");
+>>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
     expect(view.query.match(/FROM demos_app\.deliverable AS deliv/g)).toHaveLength(1);
   });
 

@@ -13,17 +13,25 @@ import {
 import { BNWorkbookInputError, parseBNWorkbook } from "demos-shared-library/BN";
 import { validateBNWorkbook, ValidationResult } from "demos-shared-library/BN/validation";
 import { validations } from "demos-shared-library/BN/rulesets";
+<<<<<<< HEAD
 import { extractBNReporting, extractorFunctions, type BNWorkbookExtract } from "demos-shared-library/BN/extractors";
 import { clearBudgetNeutralityReportingSnapshot, replaceBudgetNeutralityReportingSnapshot } from "./reporting";
+=======
+import { extractorFunctions } from "demos-shared-library/BN/extractors";
+import { clearBudgetNeutralityReportingSnapshot, replaceNetVarianceReportingSnapshot } from "./reporting";
+>>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
 
 const SUCCEEDED_VALIDATION_STATUS_ID = "Succeeded";
 const FAILED_VALIDATION_STATUS_ID = "Failed";
 const MAX_SUPPORTED_HYPOTHETICAL_TEST = 13;
 const DB_SCHEMA = "demos_app";
+<<<<<<< HEAD
 const LOCK_WORKBOOK_SQL = `SELECT id
   FROM ${DB_SCHEMA}.budget_neutrality_workbook
   WHERE id = $1::UUID
   FOR UPDATE;`;
+=======
+>>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
 const UPDATE_WORKBOOK_SQL = `UPDATE ${DB_SCHEMA}.budget_neutrality_workbook
   SET
     document_type_id = $2::TEXT,
@@ -33,6 +41,10 @@ const UPDATE_WORKBOOK_SQL = `UPDATE ${DB_SCHEMA}.budget_neutrality_workbook
     net_variance_total = $6::NUMERIC,
     updated_at = CURRENT_TIMESTAMP
   WHERE id = $1::UUID;`;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
 interface Results {
   processedRecords: number;
   existingDocuments: number;
@@ -46,6 +58,7 @@ export async function updateBudgetNeutralityWorkbook(
   validationResults: ValidationResult,
   reportingExtract?: BNWorkbookExtract,
 ): Promise<void> {
+<<<<<<< HEAD
   const netVarianceTotal = validationResults.isValid
     ? requiredNetVarianceTotal(validationResults)
     : undefined;
@@ -64,6 +77,24 @@ export async function updateBudgetNeutralityWorkbook(
     }
 
     await client.query(UPDATE_WORKBOOK_SQL, [
+=======
+  let netVarianceTotal: number | null = null;
+  if (validationResults.isValid) {
+    const extractedNetVariance = validationResults.extractedValues?.get("netVariance");
+    if (typeof extractedNetVariance !== "number" || !Number.isFinite(extractedNetVariance)) {
+      throw new Error("A finite numeric net-variance value is required for successful validation.");
+    }
+    netVarianceTotal = extractedNetVariance;
+  }
+
+  const client: PoolClient = await pool.connect();
+  let transactionStarted = false;
+  try {
+    await client.query("BEGIN");
+    transactionStarted = true;
+
+    const updateResult = await client.query(UPDATE_WORKBOOK_SQL, [
+>>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
       message.documentId,
       message.documentTypeId,
       validationResults.isValid ? SUCCEEDED_VALIDATION_STATUS_ID : FAILED_VALIDATION_STATUS_ID,
@@ -71,11 +102,22 @@ export async function updateBudgetNeutralityWorkbook(
       validationResults.extractedValues?.get("actuals"),
       netVarianceTotal,
     ]);
+<<<<<<< HEAD
 
     if (netVarianceTotal !== undefined) {
       await replaceBudgetNeutralityReportingSnapshot(client, message.documentId, reportingExtract!);
     } else {
       await clearBudgetNeutralityReportingSnapshot(client, message.documentId);
+=======
+    if (updateResult.rowCount === 0) {
+      throw new Error(`Budget Neutrality workbook ${message.documentId} not found.`);
+    }
+
+    if (netVarianceTotal === null) {
+      await clearBudgetNeutralityReportingSnapshot(client, message.documentId);
+    } else {
+      await replaceNetVarianceReportingSnapshot(client, message.documentId, netVarianceTotal);
+>>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
     }
     await client.query("COMMIT");
   } catch (error) {
@@ -90,6 +132,7 @@ export async function updateBudgetNeutralityWorkbook(
   } finally {
     client.release();
   }
+<<<<<<< HEAD
 }
 
 function requiredNetVarianceTotal(validationResults: ValidationResult): number {
@@ -98,6 +141,8 @@ function requiredNetVarianceTotal(validationResults: ValidationResult): number {
     throw new Error("A valid BN workbook must have a finite extracted net-variance value.");
   }
   return value;
+=======
+>>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
 }
 
 export const handler = async (event: SQSEvent, context: Context) =>
@@ -132,7 +177,10 @@ export const handler = async (event: SQSEvent, context: Context) =>
       
       log.info("Download completed. Starting parsing of BN workbook.");
       let validationResults: ValidationResult | undefined;
+<<<<<<< HEAD
       let reportingExtract: BNWorkbookExtract | undefined;
+=======
+>>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
       try {
         const parsedWorkbook = await parseBNWorkbook(downloadedDocumentPath);
         log.info(
@@ -145,6 +193,7 @@ export const handler = async (event: SQSEvent, context: Context) =>
 
         log.info("Parsing completed. Starting validation against ruleset.");
         validationResults = await validateBNWorkbook(parsedWorkbook.data, validations, extractorFunctions);
+<<<<<<< HEAD
         if (validationResults.isValid) {
           const reportingResult = extractBNReporting(
             parsedWorkbook.data,
@@ -156,6 +205,8 @@ export const handler = async (event: SQSEvent, context: Context) =>
             log.warn({ documentId: message.documentId, warning }, "BN reporting extraction warning.");
           }
         }
+=======
+>>>>>>> 8d0d22562230370c1b466f00e3978f746428403b
       } catch (error) {
         if (!(error instanceof BNWorkbookInputError)) throw error;
         validationResults = {
