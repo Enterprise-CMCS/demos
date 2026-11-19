@@ -1,5 +1,6 @@
 import { runCommand } from "../lib/runCommand";
 
+// DELETE THIS FUNCTION
 export async function getCoreOutputs(environment: string) {
   const coreOutputCmd = await runCommand("core-deploy", "npx", [
     "cdk",

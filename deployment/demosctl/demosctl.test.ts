@@ -24,7 +24,13 @@ vi.mock("./commands/runMigration");
 vi.mock("./commands/testMigration");
 vi.mock("./commands/dataFix");
 
-const expectFunc = async (command: string, func: Function, stage: string, additional: any[] = [], empty: boolean = false) => {
+const expectFunc = async (
+  command: string,
+  func: Function,
+  stage: string,
+  additional: any[] = [],
+  empty: boolean = false,
+) => {
   process.argv = ["", "", command, stage, ...additional];
   await main();
   if (empty) {
@@ -38,7 +44,7 @@ describe("demosctl root", () => {
   test("should run the proper commands", async () => {
     const mockStageName = "unit-test";
 
-    await expectFunc("build:client", buildClient, mockStageName, [false]);
+    await expectFunc("build:client", buildClient, mockStageName);
     await expectFunc("build:server", buildServer, mockStageName, [], true);
     await expectFunc("deploy:core", getCoreOutputs, mockStageName);
     await expectFunc("deploy:all", fullDeploy, mockStageName);

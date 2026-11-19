@@ -1,7 +1,6 @@
 import { buildClient } from "./buildClient";
 import { buildServer } from "./buildServer";
 import { fullDeploy } from "./fullDeploy";
-import { getCoreOutputs } from "./getCoreOutputs";
 
 export async function up(environment: string) {
   if (["prod", "impl", "test", "dev"].includes(environment)) {
@@ -9,7 +8,6 @@ export async function up(environment: string) {
     return 1;
   }
   try {
-    await getCoreOutputs(environment);
     await Promise.all([buildServer(environment), buildClient(environment)]);
     await fullDeploy(environment);
   } catch (err) {

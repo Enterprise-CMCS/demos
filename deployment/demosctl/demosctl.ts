@@ -21,7 +21,7 @@ export async function main(): Promise<number | null> {
   const environment = args[1];
   switch (command) {
     case "build:client":
-      return await buildClient(environment, args[2] === "true");
+      return await buildClient(environment);
     case "build:server":
       return await buildServer(environment);
     case "deploy:core":
