@@ -90,7 +90,7 @@ export async function parseBNWorkbook(source: string | Blob): Promise<{
 }
 
 export function isFormulaCell(data: ExcelData, sheet: string, a1: string): boolean {
-  const entry = data.find((entry) => entry.sheet === sheet);
+  const entry = data.find((item) => item.sheet === sheet);
   if (entry?.formulaCells?.has(a1)) return true;
   return entry?.arrayFormulaRanges?.some((range) => isCellInArrayFormulaRange(a1, range)) ?? false;
 }

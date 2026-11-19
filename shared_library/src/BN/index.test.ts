@@ -89,8 +89,8 @@ describe("parseBNWorkbook", () => {
       expect(results[0]).toEqual(results[1]);
       expect(results[0]!.isValid).toBe(code === null);
       expect(results[0]!.errors.map((error) => error.code)).toEqual(code === null ? [] : [code]);
-      if (code === null) expect(results[0]!.extractedValues?.get("netVariance")).toBe(0);
-      else expect(results[0]!.extractedValues?.size).toBe(0);
+      if (code === null) expect(results[0]!.extractedValues.get("netVariance")).toBe(0);
+      else expect(results[0]!.extractedValues.size).toBe(0);
     });
   });
 

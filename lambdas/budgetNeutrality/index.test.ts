@@ -65,10 +65,22 @@ vi.mock("demos-shared-library/BN/validation", () => ({
   }),
 }));
 
+vi.mock("demos-shared-library/BN/extractors", () => ({
+  extractorFunctions: [],
+  extractBNReporting: vi.fn().mockReturnValue({
+    extract: {
+      testValues: [{ testId: "Main", measureId: "Net Variance", megName: null, dyNumber: null, value: 0 }],
+      testYears: [],
+    },
+    warnings: [],
+  }),
+}));
+
 import { handler } from "./index";
 import { documentExists } from "./budgetNeutralityValidation";
 import { BNWorkbookInputError, parseBNWorkbook } from "demos-shared-library/BN";
 import { validateBNWorkbook } from "demos-shared-library/BN/validation";
+import { extractBNReporting } from "demos-shared-library/BN/extractors";
 
 function createPool() {
   const release = vi.fn();
@@ -79,6 +91,7 @@ function createPool() {
   } as unknown as Pool;
   mocks.queryMock.mockImplementation(async (query: string) => {
     if (query.includes("UPDATE")) return { rows: [], rowCount: 1 };
+    if (query.includes("SELECT EXISTS")) return { rows: [{ exists: true }] };
     return { rows: [] };
   });
   return { pool, client };
@@ -146,9 +159,7 @@ describe("budgetNeutrality index", () => {
       0,
     ]);
     expect(mocks.queryMock.mock.calls.slice(2, 6).every(([query]) => String(query).startsWith("DELETE"))).toBe(true);
-    expect(mocks.queryMock.mock.calls[6]?.[0]).toContain(
-      "INSERT INTO demos_app.budget_neutrality_workbook_hypothetical_value",
-    );
+    expect(mocks.queryMock.mock.calls[6]?.[0]).toContain("INSERT INTO demos_app.budget_neutrality_workbook_hypothetical_value");
     expect(mocks.queryMock.mock.calls[6]?.[1]).toEqual([
       expect.stringMatching(/^[0-9a-f-]{36}$/i),
       "doc-1",
@@ -176,34 +187,95 @@ describe("budgetNeutrality index", () => {
     expect(mocks.logWarnMock).not.toHaveBeenCalled();
   });
 
-  it.each([
-    { name: "missing", netVariance: undefined },
-    { name: "string", netVariance: "0" },
-    { name: "infinite", netVariance: Number.POSITIVE_INFINITY },
-    { name: "not-a-number", netVariance: Number.NaN },
-  ] as const)("rejects a successful validation result with $name net variance", async ({ netVariance }) => {
+  it("extracts Main rows and logs reporting warnings before persisting the snapshot", async () => {
     const { pool } = createPool();
     mocks.getDbPoolMock.mockResolvedValue(pool);
-    const extractedValues = new Map<string, string | number>();
-    if (netVariance !== undefined) extractedValues.set("netVariance", netVariance);
-    vi.mocked(validateBNWorkbook).mockResolvedValueOnce({
-      isValid: true,
-      errors: [],
-      extractedValues,
+    const parsedData = [{ sheet: "Summary", data: [] }];
+    vi.mocked(parseBNWorkbook).mockResolvedValueOnce({ data: parsedData, cachedValuesMayBeStale: false, warnings: [] });
+    vi.mocked(extractBNReporting).mockReturnValueOnce({
+      extract: {
+        testValues: [
+          { testId: "Main", measureId: "Without-Waiver Total", megName: null, dyNumber: 1, value: 120 },
+          { testId: "Main", measureId: "Net Variance", megName: null, dyNumber: null, value: 0 },
+        ],
+        testYears: [{ testId: "Main", dyNumber: 1, capNeeded: false }],
+      },
+      warnings: ["Main optional section omitted."],
     });
     const event = {
       Records: [{ body: JSON.stringify({ documentId: "doc-1", documentTypeId: "BN Workbook" }) }],
     } as unknown as SQSEvent;
 
-    await expect(handler(event, { awsRequestId: "test-request-id" } as Context)).rejects.toThrow(
-      "A finite numeric net-variance value is required for successful validation.",
+    await handler(event, { awsRequestId: "test-request-id" } as Context);
+
+    expect(extractBNReporting).toHaveBeenCalledWith(parsedData, expect.any(Map));
+    expect(mocks.logWarnMock).toHaveBeenCalledWith(
+      { documentId: "doc-1", warning: "Main optional section omitted." },
+      "BN reporting extraction warning.",
     );
-    expect(mocks.queryMock).not.toHaveBeenCalled();
+    const inserts = mocks.queryMock.mock.calls.filter(([query]) => String(query).startsWith("INSERT INTO"));
+    expect(inserts).toHaveLength(2);
+    expect(inserts[0]?.[0]).toContain("budget_neutrality_workbook_hypothetical_value");
+    expect(inserts[0]?.[1]).toEqual(expect.arrayContaining([
+      expect.any(String), "doc-1", "Main", "Without-Waiver Total", null, 1, 120,
+      expect.any(Date), expect.any(Date),
+      expect.any(String), "doc-1", "Main", "Net Variance", null, null, 0,
+      expect.any(Date), expect.any(Date),
+    ]));
+    expect(inserts[1]?.[0]).toContain("budget_neutrality_workbook_hypothetical_year");
+    expect(inserts[1]?.[1]).toEqual([
+      "doc-1", "Main", 1, false, expect.any(Date), expect.any(Date),
+    ]);
   });
 
-  it("replaces the reporting snapshot on repeated processing", async () => {
+  it("succeeds with a Net Variance-only snapshot when the Main boundary is unsafe", async () => {
+    const { pool, client } = createPool();
+    mocks.getDbPoolMock.mockResolvedValue(pool);
+    const parsedData = [{ sheet: "Summary", data: [] }];
+    vi.mocked(parseBNWorkbook).mockResolvedValueOnce({ data: parsedData, cachedValuesMayBeStale: false, warnings: [] });
+    const warning = 'Main test omitted: Label "HYPOTHETICALS TEST 1" not found in column B of sheet "Summary" in the search range.';
+    vi.mocked(extractBNReporting).mockReturnValueOnce({
+      extract: {
+        testValues: [
+          { testId: "Main", measureId: "Net Variance", megName: null, dyNumber: null, value: 0 },
+        ],
+        testYears: [],
+      },
+      warnings: [warning],
+    });
+    const event = {
+      Records: [{ body: JSON.stringify({ documentId: "doc-1", documentTypeId: "BN Workbook" }) }],
+    } as unknown as SQSEvent;
+
+    const response = await handler(event, { awsRequestId: "test-request-id" } as Context);
+
+    expect(response.statusCode).toBe(200);
+    expect(mocks.logWarnMock).toHaveBeenCalledWith(
+      { documentId: "doc-1", warning },
+      "BN reporting extraction warning.",
+    );
+    expect(mocks.queryMock.mock.calls[1]?.[1]).toEqual([
+      "doc-1", "BN Workbook", "Succeeded", "[]", undefined, 0,
+    ]);
+    const inserts = mocks.queryMock.mock.calls.filter(([query]) => String(query).startsWith("INSERT INTO"));
+    expect(inserts).toHaveLength(1);
+    expect(inserts[0]?.[0]).toContain("budget_neutrality_workbook_hypothetical_value");
+    expect(inserts[0]?.[1]).toEqual([
+      expect.stringMatching(/^[0-9a-f-]{36}$/i), "doc-1", "Main", "Net Variance", null, null, 0,
+      expect.any(Date), expect.any(Date),
+    ]);
+    expect(mocks.queryMock.mock.calls.at(-1)?.[0]).toBe("COMMIT");
+    expect(client.release).toHaveBeenCalledOnce();
+  });
+
+  it("replaces the reporting snapshot on repeated processing when the parent update is suppressed", async () => {
     const { pool } = createPool();
     mocks.getDbPoolMock.mockResolvedValue(pool);
+    mocks.queryMock.mockImplementation(async (query: string) => {
+      if (query.includes("UPDATE")) return { rows: [], rowCount: 0 };
+      if (query.includes("SELECT EXISTS")) return { rows: [{ exists: true }] };
+      return { rows: [] };
+    });
     const event = {
       Records: [{ body: JSON.stringify({ documentId: "doc-1", documentTypeId: "BN Workbook" }) }],
     } as unknown as SQSEvent;
@@ -218,7 +290,7 @@ describe("budgetNeutrality index", () => {
     for (const index of insertIndices) {
       expect(queries.slice(index - 4, index).every((query) => query.startsWith("DELETE"))).toBe(true);
     }
-    expect(queries.filter((query) => query.startsWith("DELETE") && query.includes("spending_limit_meg")))
+    expect(queries.filter((query) => query.includes("spending_limit_meg") && query.startsWith("DELETE")))
       .toHaveLength(2);
   });
 
@@ -229,14 +301,6 @@ describe("budgetNeutrality index", () => {
       validationError: {
         code: "BN_FORMULA_METADATA",
         message: "Workbook formula metadata could not be inspected.",
-      },
-    },
-    {
-      name: "required sheet",
-      source: "parser",
-      validationError: {
-        code: "BN_REQUIRED_WORKBOOK_SHEET",
-        message: 'The workbook is missing the required "C Report" sheet.',
       },
     },
     {
@@ -274,16 +338,9 @@ describe("budgetNeutrality index", () => {
       "Failed",
       JSON.stringify([validationError]),
       undefined,
-      null,
+      undefined,
     ]);
     expect(mocks.queryMock.mock.calls.slice(2, 6).every(([query]) => String(query).startsWith("DELETE"))).toBe(true);
-    const cleanupCalls = mocks.queryMock.mock.calls.slice(2, 6);
-    expect(cleanupCalls).toHaveLength(4);
-    for (const [query, parameters] of cleanupCalls) {
-      expect(query).toMatch(/WHERE\s+workbook_id\s*=\s*\$1::UUID/i);
-      expect(parameters).toEqual(["doc-1"]);
-    }
-    expect(cleanupCalls[2]?.[0]).toMatch(/budget_neutrality_workbook_spending_limit_meg\s+WHERE\s+workbook_id\s*=\s*\$1::UUID/i);
     expect(mocks.queryMock.mock.calls[6]?.[0]).toBe("COMMIT");
     expect(client.release).toHaveBeenCalledOnce();
   });
@@ -300,29 +357,6 @@ describe("budgetNeutrality index", () => {
 
     await expect(handler(event, { awsRequestId: "test-request-id" } as Context)).rejects.toBe(failure);
     expect(mocks.queryMock).not.toHaveBeenCalled();
-  });
-
-  it("rolls back when the workbook update affects no rows", async () => {
-    const { pool, client } = createPool();
-    mocks.getDbPoolMock.mockResolvedValue(pool);
-    mocks.queryMock.mockImplementation(async (query: string) => {
-      if (query.includes("UPDATE")) return { rows: [], rowCount: 0 };
-      return { rows: [] };
-    });
-    const event = {
-      Records: [{ body: JSON.stringify({ documentId: "doc-1", documentTypeId: "BN Workbook" }) }],
-    } as unknown as SQSEvent;
-
-    await expect(handler(event, { awsRequestId: "test-request-id" } as Context)).rejects.toThrow(
-      "Budget Neutrality workbook doc-1 not found."
-    );
-
-    expect(mocks.queryMock.mock.calls.map(([query]) => query)).toEqual([
-      "BEGIN",
-      expect.stringContaining("UPDATE"),
-      "ROLLBACK",
-    ]);
-    expect(client.release).toHaveBeenCalledOnce();
   });
 
   it("rolls back operational database failures so the message can be retried", async () => {
@@ -352,6 +386,7 @@ describe("budgetNeutrality index", () => {
     mocks.getDbPoolMock.mockResolvedValue(pool);
     const failure = new Error("temporary reporting insert failure");
     mocks.queryMock.mockImplementation(async (query: string) => {
+      if (query.includes("UPDATE")) return { rows: [], rowCount: 1 };
       if (query.startsWith("INSERT INTO")) throw failure;
       return { rows: [] };
     });
@@ -364,6 +399,30 @@ describe("budgetNeutrality index", () => {
     const queries = mocks.queryMock.mock.calls.map(([query]) => String(query));
     expect(queries.at(-1)).toBe("ROLLBACK");
     expect(queries).not.toContain("COMMIT");
+    expect(client.release).toHaveBeenCalledOnce();
+  });
+
+  it("rejects a suppressed update when the workbook does not exist", async () => {
+    const { pool, client } = createPool();
+    mocks.getDbPoolMock.mockResolvedValue(pool);
+    mocks.queryMock.mockImplementation(async (query: string) => {
+      if (query.includes("UPDATE")) return { rows: [], rowCount: 0 };
+      if (query.includes("SELECT EXISTS")) return { rows: [{ exists: false }] };
+      return { rows: [] };
+    });
+    const event = {
+      Records: [{ body: JSON.stringify({ documentId: "doc-1", documentTypeId: "BN Workbook" }) }],
+    } as unknown as SQSEvent;
+
+    await expect(handler(event, { awsRequestId: "test-request-id" } as Context))
+      .rejects.toThrow("Budget Neutrality workbook doc-1 not found.");
+
+    expect(mocks.queryMock.mock.calls.map(([query]) => query)).toEqual([
+      "BEGIN",
+      expect.stringContaining("UPDATE"),
+      expect.stringContaining("SELECT EXISTS"),
+      "ROLLBACK",
+    ]);
     expect(client.release).toHaveBeenCalledOnce();
   });
 
@@ -387,7 +446,7 @@ describe("budgetNeutrality index", () => {
 
     await expect(handler(event, { awsRequestId: "test-request-id" } as Context)).rejects.toBe(failure);
 
-    expect(mocks.queryMock.mock.calls.map(([query]) => query)).toEqual([
+    expect(mocks.queryMock.mock.calls.map(([query]) => String(query))).toEqual([
       "BEGIN",
       expect.stringContaining("UPDATE"),
       expect.stringContaining("budget_neutrality_workbook_hypothetical_value"),

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { PoolClient } from "pg";
+import type { BNWorkbookExtract } from "demos-shared-library/BN/extractors";
 
 const DB_SCHEMA = "demos_app";
 const MAX_INSERT_PARAMETERS = 60_000;
@@ -26,6 +27,9 @@ export async function insertRows(
   }
 
   const rowsPerBatch = Math.floor(MAX_INSERT_PARAMETERS / columns.length);
+  if (rowsPerBatch === 0) {
+    throw new Error("Reporting insert columns exceed the parameter limit.");
+  }
   for (let offset = 0; offset < rows.length; offset += rowsPerBatch) {
     const batch = rows.slice(offset, offset + rowsPerBatch);
     const values: unknown[] = [];
@@ -52,21 +56,26 @@ export async function clearBudgetNeutralityReportingSnapshot(
   }
 }
 
-export async function replaceNetVarianceReportingSnapshot(
+export async function replaceBudgetNeutralityReportingSnapshot(
   client: PoolClient,
   workbookId: string,
-  netVarianceTotal: number,
+  extract: BNWorkbookExtract,
 ): Promise<void> {
-  if (!Number.isFinite(netVarianceTotal)) {
-    throw new Error("A finite net-variance value is required to persist the reporting snapshot.");
+  const netVariance = extract.testValues.find(({ testId, measureId }) => testId === "Main" && measureId === "Net Variance");
+  if (!Number.isFinite(netVariance?.value) || extract.testValues.some(({ value }) => !Number.isFinite(value))) {
+    throw new Error("A finite net-variance value and finite reporting values are required to persist the snapshot.");
   }
 
   await clearBudgetNeutralityReportingSnapshot(client, workbookId);
   const timestamp = new Date();
-  await insertRows(
-    client,
-    "budget_neutrality_workbook_hypothetical_value",
-    ["id", "workbook_id", "hypothetical_id", "measure_id", "meg_name", "dy_number", "value", "created_at", "updated_at"],
-    [[randomUUID(), workbookId, "Main", "Net Variance", null, null, netVarianceTotal, timestamp, timestamp]],
-  );
+  await insertRows(client, "budget_neutrality_workbook_hypothetical_value", [
+    "id", "workbook_id", "hypothetical_id", "measure_id", "meg_name", "dy_number", "value", "created_at", "updated_at",
+  ], extract.testValues.map(({ testId, measureId, megName, dyNumber, value }) => [
+    randomUUID(), workbookId, testId, measureId, megName, dyNumber, value, timestamp, timestamp,
+  ]));
+  await insertRows(client, "budget_neutrality_workbook_hypothetical_year", [
+    "workbook_id", "hypothetical_id", "dy_number", "cap_needed", "created_at", "updated_at",
+  ], extract.testYears.map(({ testId, dyNumber, capNeeded }) => [
+    workbookId, testId, dyNumber, capNeeded, timestamp, timestamp,
+  ]));
 }

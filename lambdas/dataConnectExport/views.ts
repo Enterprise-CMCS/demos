@@ -169,7 +169,7 @@ const deliverableFields: readonly ReportField[] = [
     expression: `CASE WHEN most_recent_valid_bn_data.workbook_id IS NULL THEN NULL ELSE json_build_object(
         'workbook_id', most_recent_valid_bn_data.workbook_id,
         'test_values', COALESCE(bn_value_aggregates.test_values, '[]'::json),
-        'test_years', '[]'::json,
+        'test_years', COALESCE(bn_year_aggregates.test_years, '[]'::json),
         'spending_limits', '[]'::json
       ) END`,
     duckdbType: "JSON",
@@ -423,6 +423,16 @@ bn_value_aggregates AS (
     FROM demos_app.budget_neutrality_workbook_hypothetical_value
     GROUP BY workbook_id
 ),
+bn_year_aggregates AS (
+    SELECT workbook_id,
+        json_agg(json_build_object(
+            'test_id', hypothetical_id,
+            'dy_number', dy_number,
+            'cap_needed', cap_needed
+        ) ORDER BY hypothetical_id, dy_number) AS test_years
+    FROM demos_app.budget_neutrality_workbook_hypothetical_year
+    GROUP BY workbook_id
+),
 aggregate_public_comments AS (
     SELECT pbc.deliverable_id,
         string_agg(p.first_name || ' ' || p.last_name || ':'
@@ -467,6 +477,8 @@ deliverable_details AS (
     LEFT JOIN most_recent_valid_bn_data ON deliv.id = most_recent_valid_bn_data.deliverable_id
     LEFT JOIN bn_value_aggregates
         ON most_recent_valid_bn_data.workbook_id = bn_value_aggregates.workbook_id
+    LEFT JOIN bn_year_aggregates
+        ON most_recent_valid_bn_data.workbook_id = bn_year_aggregates.workbook_id
     LEFT JOIN aggregate_public_comments ON deliv.id = aggregate_public_comments.deliverable_id
     LEFT JOIN aggregate_private_comments ON deliv.id = aggregate_private_comments.deliverable_id
     CROSS JOIN LATERAL (
@@ -526,7 +538,7 @@ export const EXPORT_VIEWS = {
     orderBy: ["demonstration_id"],
     baseTables: [
       "amendment", "application", "application_date", "application_note", "budget_neutrality_workbook",
-      "budget_neutrality_workbook_hypothetical_value",
+      "budget_neutrality_workbook_hypothetical_value", "budget_neutrality_workbook_hypothetical_year",
       "deliverable", "deliverable_action", "deliverable_demonstration_type", "deliverable_extension", "demonstration",
       "demonstration_role_assignment", "demonstration_type_tag_assignment", "document", "extension", "person",
       "primary_demonstration_role_assignment", "private_comment", "public_comment", "state",
