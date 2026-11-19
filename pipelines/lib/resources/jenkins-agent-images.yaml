@@ -48,7 +48,7 @@ spec:
           drop: 
           - ALL
     - name: node
-      image: node:24.22.2-alpine
+      image: node:24.22.3-alpine
       command: 
         - cat
       tty: true
@@ -71,7 +71,7 @@ spec:
           drop: 
           - ALL
     - name: aws-cli
-      image: amazon/aws-cli:2.39.7
+      image: amazon/aws-cli:2.40.3
       command:
         - sleep
         - '99999'
@@ -154,7 +154,7 @@ spec:
           drop: 
           - ALL
     - name: checkov
-      image: bridgecrew/checkov:3.4.3
+      image: bridgecrew/checkov:3.4.5
       command:
       - cat
       tty: true
