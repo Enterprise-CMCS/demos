@@ -1,6 +1,7 @@
 import { excelColumnRow, isFormulaCell, numberToExcelColumn, type CellValue, type ExcelData } from "../index.js";
 import { isBlankCell, readNumericValue } from "./cells.js";
 import { locateLabelRow, locateLabelRows, type LabelRange } from "./labels.js";
+import { extractSpendingLimits, type BNSpendingLimit } from "./spendingLimits.js";
 
 export type BNTestValue = {
   testId: string;
@@ -10,7 +11,11 @@ export type BNTestValue = {
   value: number;
 };
 export type BNTestYear = { testId: string; dyNumber: number; capNeeded: boolean | null };
-export type BNWorkbookExtract = { testValues: BNTestValue[]; testYears: BNTestYear[] };
+export type BNWorkbookExtract = {
+  testValues: BNTestValue[];
+  testYears: BNTestYear[];
+  spendingLimits: BNSpendingLimit[];
+};
 
 const SHEET = "Summary";
 const CAP_LABEL = "Is a Corrective Action Plan needed?";
@@ -117,7 +122,7 @@ function extractMainSummary(
   dys: number[],
   headings: HypotheticalHeading[],
 ): { extract: BNWorkbookExtract; warnings: string[] } {
-  const extract: BNWorkbookExtract = { testValues: [], testYears: [] };
+  const extract: BNWorkbookExtract = { testValues: [], testYears: [], spendingLimits: [] };
   const warnings: string[] = [];
   const sheet = data.find((entry) => entry.sheet === SHEET);
   if (!sheet) return { extract, warnings: ['Summary omitted: Sheet "Summary" not found.'] };
@@ -175,7 +180,7 @@ function extractHypotheticalSummaries(
   headings: HypotheticalHeading[],
   maxHypotheticalTest: number,
 ): { extract: BNWorkbookExtract; warnings: string[] } {
-  const extract: BNWorkbookExtract = { testValues: [], testYears: [] };
+  const extract: BNWorkbookExtract = { testValues: [], testYears: [], spendingLimits: [] };
   const warnings: string[] = [];
   const sheet = data.find((entry) => entry.sheet === SHEET);
   if (!sheet) return { extract, warnings };
@@ -257,10 +262,12 @@ export function extractBNReporting(
   const headings = findHypotheticalHeadings(data);
   const mainResult = extractMainSummary(data, reportingRange.dys, headings);
   const hypotheticalResult = extractHypotheticalSummaries(data, reportingRange.dys, headings, maxHypotheticalTest);
+  const spendingLimitResult = extractSpendingLimits(data);
   const extract = mainResult.extract;
   extract.testValues.push(...hypotheticalResult.extract.testValues);
   extract.testYears.push(...hypotheticalResult.extract.testYears);
-  const warnings = [...mainResult.warnings, ...hypotheticalResult.warnings];
+  extract.spendingLimits.push(...spendingLimitResult.spendingLimits);
+  const warnings = [...mainResult.warnings, ...hypotheticalResult.warnings, ...spendingLimitResult.warnings];
   if (reportingRange.warning) warnings.unshift(reportingRange.warning);
 
   const netVariance = extractedValues.get("netVariance");

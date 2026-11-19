@@ -71,6 +71,7 @@ vi.mock("demos-shared-library/BN/extractors", () => ({
     extract: {
       testValues: [{ testId: "Main", measureId: "Net Variance", megName: null, dyNumber: null, value: 0 }],
       testYears: [],
+      spendingLimits: [],
     },
     warnings: [],
   }),
@@ -200,6 +201,14 @@ describe("budgetNeutrality index", () => {
           { testId: "Main", measureId: "Net Variance", megName: null, dyNumber: null, value: 0 },
         ],
         testYears: [{ testId: "Main", dyNumber: 1, capNeeded: false }],
+        spendingLimits: [{
+          programIndex: 1,
+          programName: "Program One",
+          capTotal: 0,
+          varianceTotal: -2,
+          overCap: false,
+          megs: [{ lineNumber: 1, megName: "Shared MEG", subjectToCapTotal: 0 }],
+        }],
       },
       warnings: ["Main optional section omitted."],
     });
@@ -215,7 +224,7 @@ describe("budgetNeutrality index", () => {
       "BN reporting extraction warning.",
     );
     const inserts = mocks.queryMock.mock.calls.filter(([query]) => String(query).startsWith("INSERT INTO"));
-    expect(inserts).toHaveLength(2);
+    expect(inserts).toHaveLength(4);
     expect(inserts[0]?.[0]).toContain("budget_neutrality_workbook_hypothetical_value");
     expect(inserts[0]?.[1]).toEqual(expect.arrayContaining([
       expect.any(String), "doc-1", "Main", "Without-Waiver Total", null, 1, 120,
@@ -226,6 +235,14 @@ describe("budgetNeutrality index", () => {
     expect(inserts[1]?.[0]).toContain("budget_neutrality_workbook_hypothetical_year");
     expect(inserts[1]?.[1]).toEqual([
       "doc-1", "Main", 1, false, expect.any(Date), expect.any(Date),
+    ]);
+    expect(inserts[2]?.[0]).toContain("budget_neutrality_workbook_spending_limit (");
+    expect(inserts[2]?.[1]).toEqual([
+      "doc-1", 1, "Program One", 0, -2, false, expect.any(Date), expect.any(Date),
+    ]);
+    expect(inserts[3]?.[0]).toContain("budget_neutrality_workbook_spending_limit_meg (");
+    expect(inserts[3]?.[1]).toEqual([
+      "doc-1", 1, 1, "Shared MEG", 0, expect.any(Date), expect.any(Date),
     ]);
   });
 

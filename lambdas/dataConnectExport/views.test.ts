@@ -70,12 +70,20 @@ describe("demonstration reporting contract", () => {
     expect(view.query).toContain("'test_years'");
     expect(view.query).toContain("COALESCE(bn_year_aggregates.test_years, '[]'::json)");
     expect(view.query).toContain("'cap_needed', cap_needed");
+    expect(view.query).toContain("'spending_limits', COALESCE(bn_spending_limit_aggregates.spending_limits, '[]'::json)");
+    expect(view.query).toContain("'program_index', spending_limit.program_index");
+    expect(view.query).toContain("'program_name', spending_limit.program_name");
+    expect(view.query).toContain("'subject_to_cap_total', subject_to_cap_total");
+    expect(view.query).toContain("ORDER BY spending_limit.program_index");
+    expect(view.query).toContain("ORDER BY line_number");
     expect(view.query).toContain("ORDER BY CASE WHEN hypothetical_id = 'Main' THEN 0 ELSE substring(hypothetical_id FROM '[0-9]+')::INTEGER END,\n            measure_id");
     expect(view.query).toContain("ORDER BY CASE WHEN hypothetical_id = 'Main' THEN 0 ELSE substring(hypothetical_id FROM '[0-9]+')::INTEGER END,\n            dy_number");
     expect(view.query).toContain("WHEN most_recent_valid_bn_data.workbook_id IS NULL THEN NULL");
     expect(view.query).toContain("json_agg(json_build_object(");
     expect(view.baseTables).toContain("budget_neutrality_workbook_hypothetical_value");
     expect(view.baseTables).toContain("budget_neutrality_workbook_hypothetical_year");
+    expect(view.baseTables).toContain("budget_neutrality_workbook_spending_limit");
+    expect(view.baseTables).toContain("budget_neutrality_workbook_spending_limit_meg");
     expect(view.query.match(/FROM demos_app\.deliverable AS deliv/g)).toHaveLength(1);
   });
 

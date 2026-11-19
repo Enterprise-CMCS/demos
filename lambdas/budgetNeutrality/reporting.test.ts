@@ -11,9 +11,17 @@ describe("replaceBudgetNeutralityReportingSnapshot", () => {
         { testId: "Main", measureId: "Net Variance", megName: null, dyNumber: null, value: 0 },
       ],
       testYears: [{ testId: "Main", dyNumber: 1, capNeeded: false }],
+      spendingLimits: [{
+        programIndex: 1,
+        programName: "Program One",
+        capTotal: 0,
+        varianceTotal: -2,
+        overCap: false,
+        megs: [{ lineNumber: 1, megName: "Shared MEG", subjectToCapTotal: 0 }],
+      }],
     });
 
-    expect(client.query).toHaveBeenCalledTimes(6);
+    expect(client.query).toHaveBeenCalledTimes(8);
     expect(client.query.mock.calls.slice(0, 4).every(([query]) => String(query).startsWith("DELETE"))).toBe(true);
     expect(client.query.mock.calls[4]?.[0]).toContain("budget_neutrality_workbook_hypothetical_value");
     expect(client.query.mock.calls[4]?.[1]).toEqual([
@@ -25,6 +33,14 @@ describe("replaceBudgetNeutralityReportingSnapshot", () => {
     expect(client.query.mock.calls[5]?.[0]).toContain("budget_neutrality_workbook_hypothetical_year");
     expect(client.query.mock.calls[5]?.[1]).toEqual([
       "workbook-1", "Main", 1, false, expect.any(Date), expect.any(Date),
+    ]);
+    expect(client.query.mock.calls[6]?.[0]).toContain("budget_neutrality_workbook_spending_limit (");
+    expect(client.query.mock.calls[6]?.[1]).toEqual([
+      "workbook-1", 1, "Program One", 0, -2, false, expect.any(Date), expect.any(Date),
+    ]);
+    expect(client.query.mock.calls[7]?.[0]).toContain("budget_neutrality_workbook_spending_limit_meg (");
+    expect(client.query.mock.calls[7]?.[1]).toEqual([
+      "workbook-1", 1, 1, "Shared MEG", 0, expect.any(Date), expect.any(Date),
     ]);
   });
 });
