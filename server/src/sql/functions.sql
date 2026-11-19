@@ -1413,17 +1413,90 @@ CREATE PROCEDURE demos_app.mark_deliverables_as_past_due()
 LANGUAGE plpgsql
 AS $$
 BEGIN
+    WITH stale_submitted_deliverables AS (
+        SELECT DISTINCT
+            d.id,
+            d.status_id AS old_status_id,
+            d.due_date,
+            submitted_action.user_id AS submitted_user_id
+        FROM
+            demos_app.deliverable AS d
+        JOIN
+            demos_app.document AS submitted_document
+            ON submitted_document.deliverable_id = d.id
+        JOIN
+            demos_app.deliverable_action AS submitted_action
+            ON submitted_action.id = submitted_document.deliverable_submission_action_id
+        WHERE
+            d.status_id IN ('Upcoming', 'Past Due')
+            AND submitted_document.deliverable_submission_action_id IS NOT NULL
+    ),
+    submitted_deliverables AS (
+        UPDATE
+            demos_app.deliverable AS d
+        SET
+            status_id = 'Submitted',
+            updated_at = CURRENT_TIMESTAMP
+        FROM
+            stale_submitted_deliverables AS stale
+        WHERE
+            d.id = stale.id
+        RETURNING
+            d.id, stale.old_status_id, d.due_date, stale.submitted_user_id
+    )
+    INSERT INTO
+        demos_app.deliverable_action (
+            id,
+            action_timestamp,
+            deliverable_id,
+            action_type_id,
+            old_status_id,
+            new_status_id,
+            note,
+            due_date_change_allowed,
+            should_have_note,
+            should_have_user_id,
+            extension_id_optional,
+            old_due_date,
+            new_due_date,
+            user_id
+        )
+    SELECT
+        gen_random_uuid(),
+        CURRENT_TIMESTAMP,
+        sd.id,
+        'Submitted Deliverable',
+        sd.old_status_id,
+        'Submitted',
+        NULL,
+        FALSE,
+        FALSE,
+        TRUE,
+        TRUE,
+        sd.due_date,
+        sd.due_date,
+        sd.submitted_user_id
+    FROM
+        submitted_deliverables AS sd;
+
     WITH past_due_deliverables AS (
         UPDATE
-            demos_app.deliverable
+            demos_app.deliverable AS d
         SET
             status_id = 'Past Due',
             updated_at = CURRENT_TIMESTAMP
         WHERE
-            status_id = 'Upcoming'
-            AND due_date < CURRENT_TIMESTAMP
+            d.status_id = 'Upcoming'
+            AND d.due_date < CURRENT_TIMESTAMP
+            AND NOT EXISTS (
+                SELECT 1
+                FROM demos_app.document AS submitted_document
+                WHERE
+                    submitted_document.deliverable_id = d.id
+                    AND submitted_document.deliverable_submission_action_id IS NOT NULL
+            )
         RETURNING
-            id, due_date
+            d.id, d.due_date
     )
     INSERT INTO
         demos_app.deliverable_action (
