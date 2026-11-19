@@ -154,11 +154,19 @@ export function Table<T extends { id: string }>({
   tableContainerClassName,
   storageKey,
 }: TableProps<T>) {
-  const isPageRefresh = React.useRef((
-    performance.getEntriesByType(
-      "navigation"
-    )[0] as PerformanceNavigationTiming
-  )?.type === "reload");
+  let hasHandledPageRefresh = false;
+  const isPageRefresh = React.useRef(
+    !hasHandledPageRefresh &&
+    (
+      performance.getEntriesByType(
+        "navigation"
+      )[0] as PerformanceNavigationTiming
+    )?.type === "reload"
+  );
+
+  if (isPageRefresh.current) {
+    hasHandledPageRefresh = true;
+  }
 
   const [storedState] = React.useState<Partial<TableState> | null>(() => {
     if (!storageKey) return null;
