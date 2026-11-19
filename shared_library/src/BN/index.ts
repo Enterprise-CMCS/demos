@@ -1,11 +1,17 @@
-import readExcelFile from "read-excel-file/universal";
+import readExcelFile, { InvalidInputError, InvalidSpreadsheetError } from "read-excel-file/universal";
 import fs from "node:fs/promises";
+import { FormulaReadError, isCellInArrayFormulaRange, readFormulaInfo, type ArrayFormulaRange, type FormulaInfo } from "./formulas.js";
+import { BNWorkbookInputError } from "./errors.js";
+
+export { BNWorkbookInputError } from "./errors.js";
+
+const REQUIRED_WORKBOOK_SHEETS = ["C Report", "Summary"] as const;
 
 export type CellValue<ParsedNumber = number> =
   | string
   | ParsedNumber
   | boolean
-  | typeof Date;
+  | Date;
 
 export type Row<ParsedNumber = number> = (CellValue<ParsedNumber> | null)[];
 
@@ -14,6 +20,8 @@ export type SheetData<ParsedNumber = number> = Row<ParsedNumber>[];
 export type ExcelData<ParsedNumber = number> = {
   sheet: string;
   data: SheetData<ParsedNumber>;
+  formulaCells?: Set<string>;
+  arrayFormulaRanges?: ArrayFormulaRange[];
 }[];
 
 export async function parseBNFile(blob: Blob): Promise<ExcelData> {
@@ -26,6 +34,65 @@ export async function parseBNFileFromPath(path: string): Promise<ExcelData> {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
   return await parseBNFile(blob);
+}
+
+export async function parseBNWorkbook(source: string | Blob): Promise<{
+  data: ExcelData;
+  cachedValuesMayBeStale: boolean;
+  warnings: string[];
+}> {
+  const bytes = typeof source === "string"
+    ? await fs.readFile(source)
+    : new Uint8Array(await source.arrayBuffer());
+  let data: ExcelData;
+  try {
+    data = await parseBNFile(new Blob([bytes]));
+  } catch (error) {
+    if (!(error instanceof InvalidInputError) && !(error instanceof InvalidSpreadsheetError)) throw error;
+    throw new BNWorkbookInputError({
+      code: "BN_WORKBOOK_PARSE",
+      message: "Unable to read the workbook. Please upload a valid .xlsx file.",
+    });
+  }
+
+  for (const sheet of REQUIRED_WORKBOOK_SHEETS) {
+    if (!data.some((entry) => entry.sheet === sheet)) {
+      throw new BNWorkbookInputError({
+        code: "BN_REQUIRED_WORKBOOK_SHEET",
+        message: `The workbook is missing the required "${sheet}" sheet.`,
+      });
+    }
+  }
+
+  const warnings: string[] = [];
+  let info: FormulaInfo;
+  try {
+    info = readFormulaInfo(bytes);
+  } catch (error) {
+    if (!(error instanceof FormulaReadError)) throw error;
+    throw new BNWorkbookInputError({
+      code: "BN_FORMULA_METADATA",
+      message: "Workbook formula metadata could not be inspected. Save the workbook in Excel and upload it again.",
+    });
+  }
+
+  for (const entry of data) {
+    const cells = info.formulaCells.get(entry.sheet);
+    if (cells) entry.formulaCells = cells;
+    const arrayRanges = info.arrayFormulaRanges.get(entry.sheet);
+    if (arrayRanges) entry.arrayFormulaRanges = arrayRanges;
+  }
+  const cachedValuesMayBeStale = info.fullCalcOnLoad;
+  if (cachedValuesMayBeStale) {
+    warnings.push("Workbook is flagged for full recalculation on open (fullCalcOnLoad); stored values may be stale. Open and save it in Excel, then re-upload.");
+  }
+  return { data, cachedValuesMayBeStale, warnings };
+}
+
+export function isFormulaCell(data: ExcelData, sheet: string, a1: string): boolean {
+  const entry = data.find((entry) => entry.sheet === sheet);
+  if (entry?.formulaCells?.has(a1)) return true;
+  return entry?.arrayFormulaRanges?.some((range) => isCellInArrayFormulaRange(a1, range)) ?? false;
 }
 
 export function numberToExcelColumn(num: number): string {

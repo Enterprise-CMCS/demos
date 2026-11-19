@@ -1,24 +1,30 @@
 import React from "react";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 
 import { DocumentType } from "demos-server";
-
-import {
-  BNPreValidationState,
-  useBNWorkbookPreValidation,
-} from "./useBNWorkbookPreValidation";
 import { BN_WORKBOOK_DOCUMENT_TYPE } from "demos-server-constants";
+import { BNWorkbookInputError } from "demos-shared-library/BN";
+import type { ValidationError } from "demos-shared-library/BN/validation";
 
-const parseBNFile = vi.fn();
-const rule1 = vi.fn();
-const rule2 = vi.fn();
+import { BNPreValidationState, useBNWorkbookPreValidation } from "./useBNWorkbookPreValidation";
 
-vi.mock("demos-shared-library/BN", () => ({
-  parseBNFile: (...args: unknown[]) => parseBNFile(...args),
-}));
-vi.mock("demos-shared-library/BN/rulesets", () => ({
-  validations: [rule1, rule2],
+const PARSED_WORKBOOK = {
+  data: [{ sheet: "Summary", data: [[0]], formulaCells: new Set(["A1"]) }],
+  cachedValuesMayBeStale: false,
+  warnings: [],
+};
+
+const parseBNWorkbook = vi.fn();
+const validate = vi.fn();
+
+vi.mock("demos-shared-library/BN", async () => {
+  const actual =
+    await vi.importActual<typeof import("demos-shared-library/BN")>("demos-shared-library/BN");
+  return { ...actual, parseBNWorkbook: (...args: unknown[]) => parseBNWorkbook(...args) };
+});
+vi.mock("demos-shared-library/BN/validation", () => ({
+  validate: (...args: unknown[]) => validate(...args),
 }));
 
 const Probe: React.FC<{ file: File | null; documentType: DocumentType }> = ({
@@ -38,45 +44,46 @@ const makeFile = (name = "wb.xlsx") =>
   });
 
 beforeEach(() => {
-  parseBNFile.mockReset();
-  rule1.mockReset();
-  rule2.mockReset();
+  parseBNWorkbook.mockReset().mockResolvedValue(PARSED_WORKBOOK);
+  validate.mockReset().mockResolvedValue([]);
+  vi.spyOn(console, "error").mockImplementation(() => {});
 });
 
 afterEach(() => {
   vi.clearAllMocks();
+  vi.restoreAllMocks();
 });
 
 describe("useBNWorkbookPreValidation", () => {
   it("stays idle when no file is selected", () => {
     render(<Probe file={null} documentType={BN_WORKBOOK_DOCUMENT_TYPE} />);
     expect(readState().status).toBe("idle");
-    expect(parseBNFile).not.toHaveBeenCalled();
+    expect(parseBNWorkbook).not.toHaveBeenCalled();
   });
 
   it("stays idle when document type is not BN Workbook", () => {
     render(<Probe file={makeFile()} documentType="General File" />);
     expect(readState().status).toBe("idle");
-    expect(parseBNFile).not.toHaveBeenCalled();
+    expect(parseBNWorkbook).not.toHaveBeenCalled();
   });
 
-  it("returns valid when every rule returns null", async () => {
-    parseBNFile.mockResolvedValue([{ sheet: "Sheet1", data: [] }]);
-    rule1.mockReturnValue(null);
-    rule2.mockReturnValue(null);
+  it("returns valid when shared validation returns no failures", async () => {
+    const file = makeFile();
 
-    render(<Probe file={makeFile()} documentType={BN_WORKBOOK_DOCUMENT_TYPE} />);
+    render(<Probe file={file} documentType={BN_WORKBOOK_DOCUMENT_TYPE} />);
 
     await waitFor(() => expect(readState().status).toBe("valid"));
+    expect(parseBNWorkbook).toHaveBeenCalledWith(file);
+    expect(validate).toHaveBeenCalledOnce();
+    expect(validate).toHaveBeenCalledWith(PARSED_WORKBOOK.data);
   });
 
-  it("collects every rule's error verbatim when rules return them", async () => {
-    parseBNFile.mockResolvedValue([{ sheet: "Sheet1", data: [] }]);
-    rule1.mockReturnValue({ code: "1", message: "Error: C Report Tab - missing data." });
-    rule2.mockReturnValue({
-      code: "5",
-      message: "Error: C Report - 'Data Pulled On' field is blank.",
-    });
+  it("surfaces every failure returned by shared validation", async () => {
+    const errors = [
+      { code: "1", message: "Error: C Report Tab - missing data." },
+      { code: "5", message: "Error: C Report - 'Data Pulled On' field is blank." },
+    ];
+    validate.mockResolvedValue(errors);
 
     render(<Probe file={makeFile()} documentType={BN_WORKBOOK_DOCUMENT_TYPE} />);
 
@@ -84,46 +91,123 @@ describe("useBNWorkbookPreValidation", () => {
       const state = readState();
       expect(state.status).toBe("invalid");
       if (state.status === "invalid") {
-        expect(state.errors).toEqual([
-          { code: "1", message: "Error: C Report Tab - missing data." },
-          { code: "5", message: "Error: C Report - 'Data Pulled On' field is blank." },
-        ]);
+        expect(state.errors).toEqual(errors);
       }
     });
+    expect(validate).toHaveBeenCalledWith(PARSED_WORKBOOK.data);
   });
 
   it("returns invalid with a PARSE_ERROR when the file cannot be parsed", async () => {
-    parseBNFile.mockRejectedValue(new Error("bad xlsx"));
+    parseBNWorkbook.mockRejectedValue(new Error("bad xlsx"));
 
     render(<Probe file={makeFile("not-really.xlsx")} documentType={BN_WORKBOOK_DOCUMENT_TYPE} />);
 
     await waitFor(() => {
-      const state = readState();
-      expect(state.status).toBe("invalid");
-      if (state.status === "invalid") {
-        expect(state.errors[0]?.code).toBe("PARSE_ERROR");
-      }
+      expect(readState()).toEqual({
+        status: "invalid",
+        errors: [
+          {
+            code: "PARSE_ERROR",
+            message: "Unable to read the workbook. Please upload a valid .xlsx file.",
+          },
+        ],
+      });
     });
+    expect(validate).not.toHaveBeenCalled();
   });
 
-  it("survives a throwing rule and still surfaces other rules' results", async () => {
-    parseBNFile.mockResolvedValue([{ sheet: "Sheet1", data: [] }]);
-    rule1.mockImplementation(() => {
-      throw new Error('Sheet "C Report" not found');
-    });
-    rule2.mockReturnValue({ code: "2", message: "Error: Reporting Year missing." });
+  it.each([
+    {
+      code: "BN_FORMULA_METADATA",
+      message: "Unable to inspect formula metadata.",
+    },
+    {
+      code: "BN_WORKBOOK_PARSE",
+      message: "Unable to read the workbook. Please upload a valid .xlsx file.",
+    },
+  ])("maps typed $code input failures to their shared validation error", async (validationError) => {
+    parseBNWorkbook.mockRejectedValue(new BNWorkbookInputError(validationError));
 
     render(<Probe file={makeFile()} documentType={BN_WORKBOOK_DOCUMENT_TYPE} />);
 
     await waitFor(() => {
-      const state = readState();
-      expect(state.status).toBe("invalid");
-      if (state.status === "invalid") {
-        expect(state.errors).toHaveLength(2);
-        expect(state.errors[0]?.code).toBe("RULE_ERROR");
-        expect(state.errors[0]?.message).toContain('Sheet "C Report" not found');
-        expect(state.errors[1]?.code).toBe("2");
-      }
+      expect(readState()).toEqual({ status: "invalid", errors: [validationError] });
     });
+    expect(validate).not.toHaveBeenCalled();
   });
+
+  it("surfaces extraction failures returned by shared validation", async () => {
+    const validationError = {
+      code: "BN_NET_VARIANCE_VALUE",
+      message: "Summary!AS436 must contain a finite numeric value.",
+    };
+    validate.mockResolvedValue([validationError]);
+
+    render(<Probe file={makeFile()} documentType={BN_WORKBOOK_DOCUMENT_TYPE} />);
+
+    await waitFor(() => {
+      expect(readState()).toEqual({ status: "invalid", errors: [validationError] });
+    });
+    expect(validate).toHaveBeenCalledWith(PARSED_WORKBOOK.data);
+  });
+
+  it("returns a generic validation error when shared validation unexpectedly rejects", async () => {
+    const error = new Error("internal extraction failure");
+    validate.mockRejectedValue(error);
+
+    render(<Probe file={makeFile()} documentType={BN_WORKBOOK_DOCUMENT_TYPE} />);
+
+    await waitFor(() => {
+      expect(readState()).toEqual({
+        status: "invalid",
+        errors: [
+          {
+            code: "VALIDATION_ERROR",
+            message: "Unable to validate the workbook. Please try again.",
+          },
+        ],
+      });
+    });
+    expect(console.error).toHaveBeenCalledWith("BN workbook validation failed:", error);
+  });
+
+  it("stays validating until required financial validation completes", async () => {
+    let finishValidation!: (errors: ValidationError[]) => void;
+    validate.mockReturnValue(
+      new Promise<ValidationError[]>((resolve) => {
+        finishValidation = resolve;
+      })
+    );
+
+    render(<Probe file={makeFile()} documentType={BN_WORKBOOK_DOCUMENT_TYPE} />);
+
+    await waitFor(() => expect(validate).toHaveBeenCalled());
+    expect(readState()).toEqual({ status: "validating" });
+
+    await act(async () => {
+      finishValidation([]);
+    });
+    expect(readState()).toEqual({ status: "valid" });
+  });
+
+  it("ignores validation results after the file is cleared", async () => {
+    let finishValidation!: (errors: ValidationError[]) => void;
+    validate.mockReturnValue(
+      new Promise<ValidationError[]>((resolve) => {
+        finishValidation = resolve;
+      })
+    );
+    const { rerender } = render(
+      <Probe file={makeFile()} documentType={BN_WORKBOOK_DOCUMENT_TYPE} />
+    );
+
+    await waitFor(() => expect(validate).toHaveBeenCalled());
+    rerender(<Probe file={null} documentType={BN_WORKBOOK_DOCUMENT_TYPE} />);
+
+    await act(async () => {
+      finishValidation([{ code: "STALE", message: "stale failure" }]);
+    });
+    expect(readState()).toEqual({ status: "idle" });
+  });
+
 });

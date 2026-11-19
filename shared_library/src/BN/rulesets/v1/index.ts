@@ -5,6 +5,7 @@ import {
   numberToExcelColumn,
 } from "../../index.js";
 import type { ValidationFunction } from "../../validation.js";
+import { validateNetVarianceLocation } from "../../netVarianceLocation.js";
 
 export const validations: ValidationFunction[] = [
   function error1(data: ExcelData) {
@@ -279,4 +280,5 @@ export const validations: ValidationFunction[] = [
     //   };
     return null;
   },
+  validateNetVarianceLocation,
 ];

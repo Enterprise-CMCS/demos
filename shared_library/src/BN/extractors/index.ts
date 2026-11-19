@@ -1,22 +1,38 @@
-import type {ExtractionFunction} from "../validation.js";
-import {excelColumnRow} from "../index.js";
+import { BNWorkbookInputError } from "../errors.js";
+import { excelColumnRow } from "../index.js";
+import { NET_VARIANCE_LOCATION, validateNetVarianceLocation } from "../netVarianceLocation.js";
+import type { ExtractionFunction } from "../validation.js";
 
 
 export const extractorFunctions: ExtractionFunction[] = [
   function extractActuals(data) {
     const B8 = excelColumnRow("B8", "Summary", data);
-    if(B8 === "" || B8 === null || B8 === undefined){
-        throw new Error("Unable to extract actuals from cell B8 in Summary tab. Please ensure the value is a string and is not empty.");
+    if (B8 === "" || B8 === null || B8 === undefined) {
+      throw new BNWorkbookInputError({
+        code: "BN_REQUIRED_WORKBOOK_VALUE",
+        message: 'Unable to extract "actuals" from Summary!B8: the required value is blank.',
+      });
     }
     return new Map<string, string>([["actuals", B8 as string]]);
   },
 
   function extractNetVariance(data) {
+    const locationError = validateNetVarianceLocation(data);
+    if (locationError) throw new BNWorkbookInputError(locationError);
+
     const AS436 = excelColumnRow("AS436", "Summary", data);
-    if(AS436 === "" || AS436 === null || AS436 === undefined || isNaN(Number(AS436))){
-        throw new Error("Unable to extract net variance from cell AS436 in Summary tab. Please ensure the value is a number and is not empty.");
+    const netVariance = typeof AS436 === "number"
+      ? AS436
+      : typeof AS436 === "string" && AS436.trim() !== ""
+        ? Number(AS436)
+        : Number.NaN;
+    if (!Number.isFinite(netVariance)) {
+      throw new BNWorkbookInputError({
+        code: "BN_NET_VARIANCE_VALUE",
+        message: 'Unable to extract "netVariance" from Summary!AS436: the required value must be finite and numeric.',
+      });
     }
-    return new Map<string, number>([["netVariance", AS436 as number]]);
+    return new Map<string, number>([["netVariance", netVariance]]);
   },
 ];  
 
