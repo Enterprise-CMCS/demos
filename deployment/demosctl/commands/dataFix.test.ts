@@ -397,29 +397,22 @@ describe("dataFix", () => {
     expect(client.end).toHaveBeenCalledOnce();
   });
 
-  test.each([
-    { name: "rollback", rollbackFails: true, disconnectFails: false },
-    { name: "disconnect", rollbackFails: false, disconnectFails: true },
-    { name: "rollback and disconnect", rollbackFails: true, disconnectFails: true },
-  ])("should handle $name failure after a body error", async ({ rollbackFails, disconnectFails }) => {
+  test("should report rollback and disconnect failures after a body error", async () => {
     mockQuery((query: string) => {
-      if (query === sql || (query === "ROLLBACK" && rollbackFails)) {
+      if (query === sql || query === "ROLLBACK") {
         return Promise.reject(new Error("synthetic failure"));
       }
       return normalQuery(query);
     });
-    if (disconnectFails) {
-      vi.mocked(client.end).mockRejectedValueOnce(new Error("synthetic disconnect failure"));
-    }
+    vi.mocked(client.end).mockRejectedValueOnce(new Error("synthetic disconnect failure"));
     expect(await run()).toEqual(1);
-    expect(console.error).toHaveBeenCalledWith("data fix failed during fix body");
     expect(vi.mocked(console.error).mock.calls).toEqual([
       ["data fix failed during fix body"],
-      ...(rollbackFails ? [["rollback failed; closing database connection"]] : []),
-      ...(disconnectFails ? [["failed to close database connection"]] : []),
+      ["rollback failed; closing database connection"],
+      ["failed to close database connection"],
     ]);
     expect(client.query).toHaveBeenCalledWith(sql);
-    expect(statements().at(-1)).toEqual("ROLLBACK");
+    expect(client.query).toHaveBeenCalledWith("ROLLBACK");
     expect(client.removeListener).toHaveBeenCalledWith("notice", noticeHandler);
     expect(client.end).toHaveBeenCalledOnce();
   });

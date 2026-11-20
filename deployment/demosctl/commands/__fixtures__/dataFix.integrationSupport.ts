@@ -55,40 +55,20 @@ export function createRunScope(now = new Date()): RunScope {
 export async function assertLedgerAccessPolicy(client: Client): Promise<void> {
   const policy = await client.query<{
     write_insert: boolean;
-    write_update: boolean;
-    write_delete: boolean;
-    write_truncate: boolean;
-    delete_insert: boolean;
-    delete_update: boolean;
-    delete_delete: boolean;
-    delete_truncate: boolean;
     fix_select: boolean;
-    fix_insert: boolean;
-    fix_update: boolean;
-    fix_delete: boolean;
-    fix_truncate: boolean;
+    write_forbidden: boolean;
+    delete_forbidden: boolean;
+    fix_forbidden: boolean;
   }>(`
     SELECT
       has_table_privilege('demos_write', 'demos_app.data_fix_log', 'INSERT') AS write_insert,
-      has_table_privilege('demos_write', 'demos_app.data_fix_log', 'UPDATE') AS write_update,
-      has_table_privilege('demos_write', 'demos_app.data_fix_log', 'DELETE') AS write_delete,
-      has_table_privilege('demos_write', 'demos_app.data_fix_log', 'TRUNCATE') AS write_truncate,
-      has_table_privilege('demos_delete', 'demos_app.data_fix_log', 'INSERT') AS delete_insert,
-      has_table_privilege('demos_delete', 'demos_app.data_fix_log', 'UPDATE') AS delete_update,
-      has_table_privilege('demos_delete', 'demos_app.data_fix_log', 'DELETE') AS delete_delete,
-      has_table_privilege('demos_delete', 'demos_app.data_fix_log', 'TRUNCATE') AS delete_truncate,
       has_table_privilege('demos_data_fix', 'demos_app.data_fix_log', 'SELECT') AS fix_select,
-      has_table_privilege('demos_data_fix', 'demos_app.data_fix_log', 'INSERT') AS fix_insert,
-      has_table_privilege('demos_data_fix', 'demos_app.data_fix_log', 'UPDATE') AS fix_update,
-      has_table_privilege('demos_data_fix', 'demos_app.data_fix_log', 'DELETE') AS fix_delete,
-      has_table_privilege('demos_data_fix', 'demos_app.data_fix_log', 'TRUNCATE') AS fix_truncate
+      has_table_privilege('demos_write', 'demos_app.data_fix_log', 'UPDATE, DELETE, TRUNCATE') AS write_forbidden,
+      has_table_privilege('demos_delete', 'demos_app.data_fix_log', 'INSERT, UPDATE, DELETE, TRUNCATE') AS delete_forbidden,
+      has_table_privilege('demos_data_fix', 'demos_app.data_fix_log', 'INSERT, UPDATE, DELETE, TRUNCATE') AS fix_forbidden
   `);
   const actual = policy.rows[0];
-  if (
-    !actual.write_insert || actual.write_update || actual.write_delete || actual.write_truncate ||
-    actual.delete_insert || actual.delete_update || actual.delete_delete || actual.delete_truncate ||
-    !actual.fix_select || actual.fix_insert || actual.fix_update || actual.fix_delete || actual.fix_truncate
-  ) {
+  if (!actual.write_insert || !actual.fix_select || actual.write_forbidden || actual.delete_forbidden || actual.fix_forbidden) {
     throw missingPrerequisite("the data-fix ledger must remain append-only for demos_write and read-only for demos_delete and demos_data_fix");
   }
 }

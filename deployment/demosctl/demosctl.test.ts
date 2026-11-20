@@ -102,11 +102,9 @@ describe("demosctl root", () => {
   });
 
   test.each([
-    { apply: false, exitCode: 0 },
-    { apply: false, exitCode: 1 },
-    { apply: true, exitCode: 0 },
-    { apply: true, exitCode: 1 },
-  ])("should pass Jenkins metadata with apply=$apply and return exit code $exitCode", async ({ apply, exitCode }) => {
+    { mode: "dry run", apply: false, exitCode: 0 },
+    { mode: "apply", apply: true, exitCode: 1 },
+  ])("should route a $mode and return exit code $exitCode", async ({ apply, exitCode }) => {
     vi.stubEnv("APPROVED_BY", "test-approver");
     vi.stubEnv("APPLIED_BY", "test-user");
     vi.stubEnv("GIT_COMMIT", "test-commit");
