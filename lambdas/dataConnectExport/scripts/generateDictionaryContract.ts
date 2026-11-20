@@ -93,7 +93,11 @@ function documentedColumn(
   }
 
   if (column.duckdbType === "JSON" && nested) {
-    throw new Error(`${context} nests a collection inside a collection`);
+    if (documentation.format !== "JSON object" || documentation.items !== undefined || schema !== undefined) {
+      throw new Error(`${context} nests a collection inside a collection; only documented JSON objects without items are supported`);
+    }
+    requireText(documentation.notes ?? "", `${context} JSON object notes`);
+    return result;
   }
   if (column.duckdbType === "JSON") {
     if (documentation.items === undefined) throw new Error(`${context} JSON column must have items`);

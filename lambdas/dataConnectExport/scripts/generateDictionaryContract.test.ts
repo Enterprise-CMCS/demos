@@ -178,6 +178,21 @@ describe("serializeDictionaryContract", () => {
     expect(() => serializeDictionaryContract({}, {}, {})).toThrow(/at least one dataset/);
   });
 
+  it("documents a JSON object within a collection without treating it as another collection", () => {
+    const definition = fixture();
+    definition.views.sample.collectionSchemas.children.columns.push({ name: "details", duckdbType: "JSON" });
+    const details = { description: "Extra details.", nullable: true, format: "JSON object", notes: "Contains an identifier." };
+    definition.metadata.sample.fields.children.items!.fields.details = details;
+    expect(JSON.parse(serialize(definition)).datasets[0].columns[1].items.columns[2]).toEqual({
+      name: "details", duckdbType: "JSON", ...details,
+    });
+    details.notes = " ";
+    expect(() => serialize(definition)).toThrow(/sample\.children\[]\.details JSON object notes must be a nonempty string/);
+    details.notes = "Contains an identifier.";
+    definition.metadata.sample.fields.children.items!.fields.details.items = collection().items;
+    expect(() => serialize(definition)).toThrow(/sample\.children\[]\.details nests a collection inside a collection/);
+  });
+
   const invalidFixtures: [string, (definition: Fixture) => void, RegExp][] = [
     ["metadata for a dataset without a view", (d) => { d.metadata.extra = d.metadata.sample; }, /Dataset metadata keys.*extra: extra/],
     ["field documentation that doesn't match the schema", (d) => {

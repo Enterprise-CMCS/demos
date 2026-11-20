@@ -8,7 +8,7 @@ import { demonstrationOverviewReportQueries } from "../../server/src/onDemandRep
 import { demonstrationTypesReportQueries } from "../../server/src/onDemandReports/configs/demonstrationTypesReportQueries";
 import { quoteIdentifier } from "./parquet/typeMap";
 import { type DisposableDemosSchema, openDisposableDemosSchema } from "./test/integration/database";
-import { commentText, DEMO, longPrivateComment, longPublicComment, seed } from "./test/integration/fixtures";
+import { commentText, DEMO, longPrivateComment, longPublicComment, seed, WORKBOOK } from "./test/integration/fixtures";
 import type { ExportViewDefinition } from "./types";
 import { EXPORT_VIEWS } from "./views";
 
@@ -65,7 +65,7 @@ const expected: Record<Demo, {
       "Accepted updated": {
         effective_date: "12/31/2025", expiration_date: "12/31/2026", due_date: "01/31/2026", submission_date: "01/08/2026",
         demonstration_types: "Children's Health Insurance Program (CHIP), Substance Use Disorder (SUD)",
-        cms_owner: "Zoe Additional", ddme_analyst: "Dee Primary", extension_request_pending: "No",
+        cms_owner: "Zoe Additional", monitoring_and_evaluation_analyst: "Dee Primary", extension_request_pending: "No",
         total_extensions_requested: 1, total_resubmissions_requested: 2, resubmission_due_date: "-",
         resubmission_request_comments: "-", last_deliverable_action: "Accepted Deliverable",
         last_deliverable_action_date: "01/10/2026", updated_post_acceptance: "Yes", deliverable_reviewer: "Dana Analyst",
@@ -132,14 +132,16 @@ const expected: Record<Demo, {
 };
 const demos = Object.keys(DEMO) as Demo[];
 
-// Expanding a demonstration's collection must reproduce the report's rows for it, with the declared field order.
-// Both sides are sorted by sortKey; expectRows checks the export's own order.
+// Compare report-owned fields and separately check the full exported field order.
 function expectCollectionMatchesReport(actual: ExportRow[], report: ReportRow[], collection: Collection, sortKey: string): void {
   const columns = view.collectionSchemas![collection].columns.map((column) => column.name);
   const sorted = (rows: ReportRow[]) => [...rows].sort((a, b) => String(a[sortKey]).localeCompare(String(b[sortKey])));
   for (const demo of actual) {
     const matching = report.filter((row) => row.demonstration_number === demo.demonstration_number);
-    expect(sorted(demo[collection])).toEqual(sorted(matching));
+    const reportRows = collection === "deliverables"
+      ? demo.deliverables.map(({ budget_neutrality_reporting, ...row }) => row)
+      : demo[collection];
+    expect(sorted(reportRows)).toEqual(sorted(matching));
     for (const row of demo[collection]) expect(Object.keys(row)).toEqual(columns);
   }
 }
@@ -215,6 +217,34 @@ integration("demonstration_reporting PostgreSQL parity", () => {
     }
   });
 
+  it("includes a budget neutrality snapshot only for the selected qualifying workbook", () => {
+    const deliverables = exportedDemo("newYork").deliverables;
+    const payload = (name: string) => deliverables.find((row) => row.deliverable_name === name)!.budget_neutrality_reporting;
+    expect(payload("Accepted updated")).toEqual({
+      workbook_id: WORKBOOK.currentActuals,
+      test_values: [
+        { test_id: "Main", measure_id: "Net Variance", meg_name: null, dy_number: null, value: 1234567890123.125 },
+        { test_id: "Hypothetical 2", measure_id: "Net Variance", meg_name: "Adults", dy_number: 1, value: -42.125 },
+      ],
+      test_years: [
+        { test_id: "Main", dy_number: 1, cap_needed: false },
+        { test_id: "Hypothetical 2", dy_number: 1, cap_needed: null },
+      ],
+      spending_limits: [
+        { program_index: 1, program_name: "With MEGs", cap_total: 0, variance_total: -2.5, over_cap: true, megs: [
+          { line_number: 1, meg_name: "Adults", subject_to_cap_total: 0 },
+          { line_number: 2, meg_name: "Children", subject_to_cap_total: null },
+        ] },
+        { program_index: 2, program_name: "No MEGs", cap_total: null, variance_total: null, over_cap: null, megs: [] },
+      ],
+    });
+    expect(payload("Finalized no update")).toEqual({
+      workbook_id: WORKBOOK.emptySnapshot, test_values: [], test_years: [], spending_limits: [],
+    });
+    expect(payload("Pending resubmission")).toBeNull();
+    expect(payload("Minimal delivery")).toBeNull();
+  });
+
   it("matches the demonstration types report", async () => {
     const original = (await client.query(demonstrationTypesReportQueries[0])).rows;
     expectCollectionMatchesReport(exported.rows, original, "demonstration_types", "demonstration_type");
@@ -231,7 +261,7 @@ integration("demonstration_reporting PostgreSQL parity", () => {
       Array.from({ length: 1000 }, (_, index) => `Bulk ${10000 + index}`)
     );
     expect(bulk.every((delivery) => delivery.effective_date === "03/31/2026" && delivery.expiration_date === "03/31/2028")).toBe(true);
-    expect(bulk[0]).toMatchObject({ due_date: "12/31/2025", last_deliverable_action_date: "12/31/2025", ddme_analyst: "-" });
+    expect(bulk[0]).toMatchObject({ due_date: "12/31/2025", last_deliverable_action_date: "12/31/2025", monitoring_and_evaluation_analyst: "-" });
     // A second run returns the same rows in the same order.
     expect((await client.query<ExportRow>(orderedQuery)).rows).toEqual(exported.rows);
   });

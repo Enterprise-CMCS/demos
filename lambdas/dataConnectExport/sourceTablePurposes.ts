@@ -13,6 +13,14 @@ export const SOURCE_TABLE_PURPOSES: Readonly<Record<string, string>> = {
     "Free-text notes attached to an application, keyed by note_type_id.",
   budget_neutrality_workbook:
     "Validation status, validation data, and extracted reporting values for a budget-neutrality workbook document.",
+  budget_neutrality_workbook_hypothetical_value:
+    "Normalized measure values extracted from a budget-neutrality workbook, keyed by workbook, scenario, measure, MEG, and demonstration year.",
+  budget_neutrality_workbook_hypothetical_year:
+    "CAP-needed flags extracted from a budget-neutrality workbook for each scenario and demonstration year.",
+  budget_neutrality_workbook_spending_limit:
+    "Program-level spending-limit cap and variance totals extracted from a budget-neutrality workbook.",
+  budget_neutrality_workbook_spending_limit_meg:
+    "MEG-level spending-limit amounts extracted from a budget-neutrality workbook, keyed by program and line number.",
   deliverable:
     "A demonstration's deliverable slot, tracking its type, CMS owner, due date, submission expectation, and review status.",
   deliverable_action:

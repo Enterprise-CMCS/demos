@@ -44,9 +44,9 @@ const DELIVERABLE = {
   finalizedNoUpdate: id(504), filedUpdated: id(505), deleted: id(506), noActions: id(507),
 } as const;
 const EXTENSION = { granted: id(600), pending: id(601), earlierApproved: id(602) } as const;
-const WORKBOOK = {
+export const WORKBOOK = {
   oldActuals: id(700), middleActuals: id(701), currentActuals: id(702), failedLatest: id(703), unsubmitted: id(704),
-  failedPending: id(705),
+  failedPending: id(705), emptySnapshot: id(706),
 } as const;
 const COMMENT = { latest: id(800), earlier: id(801), beforeApproval: id(802), afterFiling: id(803) } as const;
 const FIRST_ACTION = 50000;
@@ -136,8 +136,8 @@ const roles = [
   { person: PERSON.zoeAdditional, role: "Project Officer", primary: false },
   { person: PERSON.amyAdditional, role: "Project Officer", primary: false },
   { person: PERSON.pollyDirector, role: "Policy Technical Director", primary: true },
-  { person: PERSON.deePrimary, role: "DDME Analyst", primary: true },
-  { person: PERSON.danaAnalyst, role: "DDME Analyst", primary: false },
+  { person: PERSON.deePrimary, role: "Monitoring & Evaluation Analyst", primary: true },
+  { person: PERSON.danaAnalyst, role: "Monitoring & Evaluation Analyst", primary: false },
   { person: PERSON.samPrimary, role: "State Point of Contact", primary: true },
   { person: PERSON.sallyContact, role: "State Point of Contact", primary: false },
   { person: PERSON.melDirector, role: "Monitoring & Evaluation Technical Director", primary: true },
@@ -373,6 +373,7 @@ async function seedDeliverables(client: Client): Promise<void> {
   // unsubmitted ones are ignored.
   const [firstSubmission, secondSubmission, lastSubmission] = submissions.get(DELIVERABLE.acceptedUpdated)!;
   const [pendingSubmission] = submissions.get(DELIVERABLE.pendingResubmission)!;
+  const [finalizedSubmission] = submissions.get(DELIVERABLE.finalizedNoUpdate)!;
   const workbooks = [
     { id: WORKBOOK.oldActuals, deliverable: DELIVERABLE.acceptedUpdated, submission: firstSubmission,
       status: "Succeeded", variance: 999, actuals: "Old actuals" },
@@ -386,6 +387,8 @@ async function seedDeliverables(client: Client): Promise<void> {
       status: "Failed", variance: null, actuals: null },
     { id: WORKBOOK.unsubmitted, deliverable: DELIVERABLE.pendingResubmission, submission: null,
       status: "Succeeded", variance: 999999, actuals: "Unsubmitted" },
+    { id: WORKBOOK.emptySnapshot, deliverable: DELIVERABLE.finalizedNoUpdate, submission: finalizedSubmission,
+      status: "Succeeded", variance: 0, actuals: "No test or spending-limit rows" },
   ];
   for (const workbook of workbooks) {
     await insert(client, "document", [{
@@ -400,6 +403,30 @@ async function seedDeliverables(client: Client): Promise<void> {
       net_variance_total: workbook.variance, actuals: workbook.actuals,
     }]);
   }
+
+  const snapshotTimestamps = { updated_at: at("2026-04-01") };
+  await insert(client, "budget_neutrality_workbook_hypothetical_value", [
+    { id: id(710), workbook_id: WORKBOOK.currentActuals, hypothetical_id: "Hypothetical 2", measure_id: "Net Variance",
+      meg_name: "Adults", dy_number: 1, value: -42.125, ...snapshotTimestamps },
+    { id: id(711), workbook_id: WORKBOOK.currentActuals, hypothetical_id: "Main", measure_id: "Net Variance",
+      meg_name: null, dy_number: null, value: 1234567890123.125, ...snapshotTimestamps },
+    { id: id(712), workbook_id: WORKBOOK.oldActuals, hypothetical_id: "Main", measure_id: "Net Variance",
+      meg_name: null, dy_number: null, value: 999, ...snapshotTimestamps },
+  ]);
+  await insert(client, "budget_neutrality_workbook_hypothetical_year", [
+    { workbook_id: WORKBOOK.currentActuals, hypothetical_id: "Hypothetical 2", dy_number: 1, cap_needed: null, ...snapshotTimestamps },
+    { workbook_id: WORKBOOK.currentActuals, hypothetical_id: "Main", dy_number: 1, cap_needed: false, ...snapshotTimestamps },
+  ]);
+  await insert(client, "budget_neutrality_workbook_spending_limit", [
+    { workbook_id: WORKBOOK.currentActuals, program_index: 2, program_name: "No MEGs",
+      cap_total: null, variance_total: null, over_cap: null, ...snapshotTimestamps },
+    { workbook_id: WORKBOOK.currentActuals, program_index: 1, program_name: "With MEGs",
+      cap_total: 0, variance_total: -2.5, over_cap: true, ...snapshotTimestamps },
+  ]);
+  await insert(client, "budget_neutrality_workbook_spending_limit_meg", [
+    { workbook_id: WORKBOOK.currentActuals, program_index: 1, line_number: 2, meg_name: "Children", subject_to_cap_total: null, ...snapshotTimestamps },
+    { workbook_id: WORKBOOK.currentActuals, program_index: 1, line_number: 1, meg_name: "Adults", subject_to_cap_total: 0, ...snapshotTimestamps },
+  ]);
 
   for (const table of ["public_comment", "private_comment"] as const) {
     // Inserted newest first; the report sorts by timestamp, prefixes author/date, then truncates the aggregate.

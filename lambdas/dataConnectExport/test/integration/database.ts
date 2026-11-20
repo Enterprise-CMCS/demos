@@ -58,22 +58,6 @@ function demosSchemaSql(): string[] {
     .map((file) => readFileSync(file, "utf8"));
 }
 
-// One transaction, so a failed migration or seed leaves no partial schema behind.
-async function createDemosSchema(client: Client, seed: (client: Client) => Promise<void>): Promise<void> {
-  await client.query("BEGIN");
-  try {
-    await client.query("CREATE SCHEMA demos_app");
-    // Prisma sets the search path from ?schema=demos_app; later migrations rely on it.
-    await client.query("SET LOCAL search_path TO demos_app");
-    for (const sql of demosSchemaSql()) await client.query(sql);
-    await seed(client);
-    await client.query("COMMIT");
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  }
-}
-
 // Connects to the disposable database and builds a seeded demos_app from the server's real schema.
 export async function openDisposableDemosSchema(
   databaseUrl: string,
@@ -91,12 +75,25 @@ export async function openDisposableDemosSchema(
   try {
     await client.query("SET statement_timeout = '15s'");
     await client.query("SET TIME ZONE 'UTC'");
-    await createDemosSchema(client, seed);
+    await client.query("CREATE SCHEMA demos_app");
     ownsSchema = true;
+    // Prisma sets the search path from ?schema=demos_app; later migrations rely on it.
+    await client.query("SET search_path TO demos_app");
+    for (const sql of demosSchemaSql()) await client.query(sql);
+    // Some migrations commit their own transactions. Seed separately so deferred constraints
+    // are checked only after all fixture rows have been inserted.
+    await client.query("BEGIN");
+    await seed(client);
+    await client.query("COMMIT");
     // The first migration sets a session search path; the export and reports must not depend on it.
     await client.query("RESET search_path");
   } catch (error) {
-    await close();
+    // Clear any aborted migration or seed transaction before attempting cleanup.
+    try {
+      await client.query("ROLLBACK");
+    } finally {
+      await close();
+    }
     throw error;
   }
   return { client, close };

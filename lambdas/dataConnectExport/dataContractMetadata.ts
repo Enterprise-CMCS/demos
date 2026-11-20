@@ -53,8 +53,8 @@ const overviewFields: Readonly<Record<string, FieldDocumentation>> = {
   primary_project_officer: overviewField("Full name of the demonstration's primary Project Officer.", `${nameNotes} Required primary-role inner join; a demonstration without this assignment is excluded, not filled with '-'.`),
   project_officers: overviewField("Full names of non-primary Project Officers assigned to the demonstration.", `${nameNotes} Primary assignments excluded; names sorted by full name and joined with ', '; no assignments gives '-'.`),
   primary_policy_tech_director: overviewField("Full name of the demonstration's primary Policy Technical Director.", `${nameNotes} Missing assignment gives '-'.`),
-  primary_ddme_analyst: overviewField("Full name of the demonstration's primary DDME Analyst.", `${nameNotes} Missing assignment gives '-'.`),
-  ddme_analysts: overviewField("Full names of non-primary DDME Analysts assigned to the demonstration.", `${nameNotes} Primary assignments excluded; names sorted by full name and joined with ', '; no assignments gives '-'.`),
+  primary_monitoring_and_evaluation_analyst: overviewField("Full name of the demonstration's primary Monitoring & Evaluation Analyst.", `${nameNotes} Missing assignment gives '-'.`),
+  monitoring_and_evaluation_analysts: overviewField("Full names of non-primary Monitoring & Evaluation Analysts assigned to the demonstration.", `${nameNotes} Primary assignments excluded; names sorted by full name and joined with ', '; no assignments gives '-'.`),
   primary_state_poc: overviewField("Full name of the demonstration's primary State Point of Contact.", `${nameNotes} Missing assignment gives '-'.`),
   state_pocs: overviewField("Full names of non-primary State Points of Contact assigned to the demonstration.", `${nameNotes} Primary assignments excluded; names sorted by full name and joined with ', '; no assignments gives '-'.`),
   primary_monitoring_evaluation_tech_director: overviewField("Full name of the demonstration's primary Monitoring & Evaluation Technical Director.", `${nameNotes} Missing assignment gives '-'.`),
@@ -134,7 +134,7 @@ const deliverableFields: Readonly<Record<string, FieldDocumentation>> = {
   effective_date: deliverableField("Effective date of the deliverable's parent demonstration.", "Timestamp converted to America/New_York and formatted as MM/DD/YYYY; unlike the overview, missing values remain JSON null, not '-'.", dateFormat, true),
   expiration_date: deliverableField("Expiration date of the deliverable's parent demonstration.", "Timestamp converted to America/New_York and formatted as MM/DD/YYYY; unlike the overview, missing values remain JSON null, not '-'.", dateFormat, true),
   primary_project_officer: deliverableField("Full name of the parent demonstration's primary Project Officer.", `${nameNotes} Required primary-role inner join excludes unmatched deliverables.`),
-  ddme_analyst: deliverableField("Full name of the parent demonstration's primary DDME Analyst, not all assigned analysts.", `${nameNotes} Missing primary assignment gives '-'.`),
+  monitoring_and_evaluation_analyst: deliverableField("Full name of the parent demonstration's primary Monitoring & Evaluation Analyst, not all assigned analysts.", `${nameNotes} Missing primary assignment gives '-'.`),
   deliverable_type: deliverableField("Report category assigned to the deliverable.", "From deliverable.deliverable_type_id; no transformation."),
   deliverable_name: deliverableField("Name of the deliverable.", "From deliverable.name; no transformation. Free-text names may contain PII."),
   demonstration_types: deliverableField("Demonstration-type tags associated with this deliverable, not every tag of the parent.", "deliverable_demonstration_type.demonstration_type_tag_name_id sorted by tag name and joined with ', '; no associated tags gives '-'."),
@@ -152,13 +152,26 @@ const deliverableFields: Readonly<Record<string, FieldDocumentation>> = {
   deliverable_status: deliverableField("Current status of this deliverable.", "From deliverable.status_id; deliverables with status Deleted are excluded from the report collection."),
   last_deliverable_action: deliverableField("Type of the most recent action recorded for this deliverable.", "FIRST_VALUE(action_type_id) ordered by action_timestamp descending across all action types; timestamp ties retain the report's unspecified tie behavior."),
   last_deliverable_action_date: deliverableField("Date of the most recent action recorded for this deliverable.", `Maximum action_timestamp across all action types; required action-statistics join ensures a timestamp. ${requiredDateNotes}`, dateFormat),
+  finalization_date: deliverableField("Date of the most recent finalization action for a currently finalized deliverable.", `Maximum action_timestamp among Accepted Deliverable, Approved Deliverable, or Received and Filed Deliverable actions, only when the current status is Accepted, Approved, or Received and Filed; otherwise '-'. ${dateNotes}`, dateFormat),
   updated_post_acceptance: deliverableField("Whether a public comment was added after the latest finalization of a currently finalized deliverable.", "'Yes' only for current Accepted, Approved, or Received and Filed status when MAX(public_comment.created_at) is strictly after the most recent Accepted Deliverable, Approved Deliverable, or Received and Filed Deliverable action. Otherwise 'No'; private comments do not count.", "Yes/No"),
   deliverable_reviewer: deliverableField("Full name of the person who most recently started reviewing this deliverable.", `${nameNotes} Latest Started Review action that joins a person by user_id, ordered by action_timestamp descending; missing matched reviewer gives '-'. Timestamp ties retain report behavior.`),
   deliverable_review_date: deliverableField("Date of the latest Started Review action with a matched reviewer.", `Maximum Started Review action_timestamp among actions whose user_id joins person, not completion of review. ${dateNotes}`, dateFormat),
-  budget_neutrality_variance: deliverableField("Net variance total from the most recently submitted, successfully validated budget-neutrality workbook.", "FIRST_VALUE(net_variance_total) ordered by linked submission action_timestamp descending; workbook.validation_status_id must be Succeeded and document.deliverable_submission_action_id must join an action. Not selected by document creation time. Numeric value cast to TEXT; absent/null gives '-'; timestamp ties retain report behavior.", "Numeric text or '-'"),
+  budget_neutrality_variance: deliverableField("Net variance total from the most recently submitted, successfully validated budget-neutrality workbook.", "Selected by linked submission action_timestamp descending, then workbook ID descending to break ties. Not selected by document creation time. Numeric value cast to TEXT; absent/null gives '-'.", "Numeric text or '-'"),
   actuals: deliverableField("Actuals value from the most recently submitted, successfully validated budget-neutrality workbook.", "Selected from the same latest successful submitted workbook as the variance, not the latest non-null actuals or an unsubmitted/failed workbook. Source string is unchanged; absent/null gives '-'."),
   public_comments: deliverableField("Aggregated public comments on this deliverable, including author names and dates.", commentNotes, "Author:MM/DD/YYYY:content, CRLF-separated, at most 32000 characters"),
   private_comments: deliverableField("Aggregated private internal comments on this deliverable, including author names and dates.", commentNotes, "Author:MM/DD/YYYY:content, CRLF-separated, at most 32000 characters"),
+  budget_neutrality_reporting: {
+    description: "DataConnect-only snapshot of test results and spending limits from the same workbook as the variance and actuals.",
+    nullable: true,
+    format: "JSON object",
+    notes: [
+      "Null when there is no successfully validated workbook linked to a submission action. Otherwise workbook_id is the selected workbook UUID, and each missing array is [].",
+      "test_values[]: test_id, measure_id, meg_name, dy_number, value (number). Null meg_name or dy_number denotes an aggregate along that axis. Sorted with Main first, then hypothetical number, measure, MEG and year (nulls first).",
+      "test_years[]: test_id, dy_number, cap_needed (boolean or null), ordered with Main first, then hypothetical number and year.",
+      "spending_limits[]: program_index, program_name, cap_total and variance_total (numbers or null), over_cap (boolean or null), and megs[]; ordered by program_index.",
+      "megs[]: line_number, meg_name, subject_to_cap_total (number or null), ordered by line_number. A program without MEG rows has megs: [].",
+    ].join("\n"),
+  },
 };
 
 const demonstrationTypeFields: Readonly<Record<string, FieldDocumentation>> = {
@@ -180,7 +193,7 @@ const demonstrationTypeFields: Readonly<Record<string, FieldDocumentation>> = {
 
 export const DATA_CONTRACT_METADATA = {
   demonstration_reporting: {
-    description: "Demonstration overview with independently aggregated application, deliverable, and demonstration-type report rows. Report formatting is preserved, including '-' sentinels and null parent dates in deliverables; names, notes, and public/private comments are unredacted and may contain PII or sensitive internal information. Non-nullability relies on the source schema's required values and primary-role/date/tag/pending-extension uniqueness constraints. Timestamp ties for latest actions, reviewers, workbooks, and comment order retain the reports' unspecified tie behavior.",
+    description: "Demonstration overview with independently aggregated application, deliverable, and demonstration-type report rows. Report formatting is preserved, including '-' sentinels and null parent dates in deliverables; names, notes, and public/private comments are unredacted and may contain PII or sensitive internal information. Non-nullability relies on the source schema's required values and primary-role/date/tag/pending-extension uniqueness constraints. Timestamp ties for latest actions, reviewers, and comment order retain the reports' unspecified tie behavior; workbook ties use workbook ID descending.",
     rowGrain: "One row per demonstration returned by the Demonstration Overview Report's required state and primary Project Officer joins.",
     keyColumns: ["demonstration_id"],
     fields: {
@@ -204,11 +217,11 @@ export const DATA_CONTRACT_METADATA = {
         },
       },
       deliverables: {
-        description: "Deliverable Status Report rows belonging to this demonstration, with action statistics, pending requests, reviewer, validated budget-neutrality data, and public/private comments.",
+        description: "Deliverable Status Report rows belonging to this demonstration, plus a DataConnect-only budget-neutrality reporting snapshot.",
         nullable: false,
         sourceReport: deliverableReport,
         format: "JSON array",
-        notes: "Independently aggregated per demonstration, ordered by deliverable.id; source ordering IDs are not exported. No matching report rows gives []. Deleted deliverables and those without action statistics, a CMS owner, parent state, or primary officer are excluded as in the report. Parent effective/expiration dates may be JSON null; other missing optional values use '-'. Public/private comment aggregates are each limited to 32000 characters, but notes are not. Names and free text may contain PII or sensitive internal information.",
+        notes: "Independently aggregated per demonstration, ordered by deliverable.id; source ordering IDs are not exported. No matching report rows gives []. Deleted deliverables and those without action statistics, a CMS owner, parent state, or primary officer are excluded as in the report. Parent effective/expiration dates and budget_neutrality_reporting may be JSON null; other missing optional values use '-'. Public/private comment aggregates are each limited to 32000 characters, but notes are not. Names and free text may contain PII or sensitive internal information.",
         items: {
           rowGrain: "One row per non-deleted deliverable returned by the Deliverable Status Report for the parent demonstration, assuming the source's unique pending-extension rules. Only deliverables whose parent demonstration has a primary Project Officer, that have a matched CMS owner, and that have at least one deliverable action are included.",
           fields: deliverableFields,
