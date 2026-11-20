@@ -2,7 +2,7 @@
 -- author:             Connor J. Parke
 -- data_owner:         Stephanie Hauf
 -- environments:       prod
--- expected_rows:      25
+-- expected_rows:      26
 -- source:             Changes in validation rules for completeness review due dates requires updating existing values
 -- runner:             demosctl
 -- requires_migration: 20260312131729_prisma_init_baseline
@@ -150,6 +150,12 @@ BEGIN
         RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=07b29634-c337-412d-bedc-c8afcb71a6cf, but % rows were affected', v_rows_affected;
     END IF;
     v_total_rows := v_total_rows + 1;
+    UPDATE demos_app.application_date SET date_value = '2025-12-31 23:59:59.999-05' WHERE application_id = 'c318427e-7f22-41f1-ac75-cf02ae484e2e' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-01-01 23:59:59.999-05';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=c318427e-7f22-41f1-ac75-cf02ae484e2e, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
     UPDATE demos_app.application_date SET date_value = '2026-10-09 23:59:59.999-04' WHERE application_id = 'f6d5c893-e594-476b-a907-6b3d0b93af21' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-10 23:59:59.999-04';
     GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
     IF v_rows_affected != 1 THEN
@@ -287,6 +293,11 @@ SELECT
                 application_date.application_id = '07b29634-c337-412d-bedc-c8afcb71a6cf'
                 AND application_date.date_type_id = 'Completeness Review Due Date'
                 AND application_date.date_value = '2025-07-11 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'c318427e-7f22-41f1-ac75-cf02ae484e2e'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2025-12-31 23:59:59.999-05'
             )
             OR (
                 application_date.application_id = 'f6d5c893-e594-476b-a907-6b3d0b93af21'

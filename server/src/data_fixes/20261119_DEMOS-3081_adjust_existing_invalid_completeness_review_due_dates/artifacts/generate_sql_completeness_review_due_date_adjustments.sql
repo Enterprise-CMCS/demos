@@ -257,14 +257,32 @@ SELECT
     || adjustment_summary.application_id::TEXT
     || ''' AND date_type_id = '''
     || adjustment_summary.date_type_id
-    || ''';' AS update_statement,
+    || ''' AND date_value = '''
+    || adjustment_summary.original_date_value::TEXT
+    || ''';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION ''Expected exactly 1 row to be updated for application_id='
+    || adjustment_summary.application_id::TEXT
+    || ', but % rows were affected'', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;' AS update_statement,
     'UPDATE demos_app.application_date SET date_value = '''
     || adjustment_summary.original_date_value::TEXT
     || ''' WHERE application_id = '''
     || adjustment_summary.application_id::TEXT
     || ''' AND date_type_id = '''
     || adjustment_summary.date_type_id
-    || ''';' AS rollback_statement,
+    || ''' AND date_value = '''
+    || adjustment_summary.adjusted_date_value::TEXT
+    || ''';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION ''Expected exactly 1 row to be reverted for application_id='
+    || adjustment_summary.application_id::TEXT
+    || ', but % rows were affected'', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;' AS rollback_statement,
     '(application_date.application_id = '''
     || adjustment_summary.application_id::TEXT
     || ''' AND application_date.date_type_id = '''
