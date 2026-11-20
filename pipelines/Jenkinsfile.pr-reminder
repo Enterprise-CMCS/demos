@@ -1,0 +1,424 @@
+// Uses Declarative syntax to run commands inside a container.
+@NonCPS
+Map<String, String> extractPrLinksByNumber(String report) {
+  def linksByNumber = [:]
+  def matcher = report =~ /<https:\/\/github\.com\/Enterprise-CMCS\/demos\/pull\/(\d+)\|#\d+>/
+
+  while (matcher.find()) {
+    linksByNumber[matcher.group(1)] = matcher.group(0)
+  }
+
+  return linksByNumber
+}
+
+pipeline {
+  agent {
+    kubernetes {
+      yaml podSpec(
+        [
+          name: 'gh',
+          image: 'alpine',
+          allowInstalls: true
+        ],
+        'aws-cli'
+      )
+      defaultContainer 'gh'
+      retries 2
+    }
+  }
+  stages {
+    stage('Main') {
+      steps {
+        script {
+          container('gh') {
+            withCredentials([usernamePassword(credentialsId: 'demos-git-svc-account', usernameVariable: 'GIT_EMAIL', passwordVariable: 'GH_TOKEN')]) { // pragma: allowlist secret {
+              sh 'apk add github-cli'
+              def prList = sh(
+                script: """
+        gh pr list \
+          --repo Enterprise-CMCS/demos \
+          --state open \
+          --search 'draft:false -label:"DO NOT MERGE" -review:approved' \
+          --limit 1000 \
+          --json number,title,url,createdAt \
+          --template '{{range .}}• <{{.url}}|#{{.number}}> {{.title}} _(opened {{timeago .createdAt}})_{{"\\n"}}{{end}}'
+    """,
+                returnStdout: true
+              ).trim()
+
+              // One point per person per PR for any submitted review
+              // or general PR comment during the last seven days.
+              def leaderboard = sh(
+                script: '''
+                                cutoff_epoch=$(($(date +%s) - 604800))
+                                cutoff=$(date -u -d "@$cutoff_epoch" '+%Y-%m-%dT%H:%M:%SZ')
+                                since_day=${cutoff%%T*}
+
+                                gh pr list \
+                                  --repo Enterprise-CMCS/demos \
+                                  --state all \
+                                  --search "updated:>=$since_day" \
+                                  --limit 1000 \
+                                  --json number,author,reviews,comments \
+                                  --jq ".[] as \\$pr |
+                                    (
+                                      (
+                                        \\$pr.reviews[]? |
+                                        select(
+                                          .submittedAt != null and
+                                          .submittedAt >= \\"$cutoff\\"
+                                        ) |
+                                        .author.login
+                                      ),
+                                      (
+                                        \\$pr.comments[]? |
+                                        select(
+                                          .createdAt != null and
+                                          .createdAt >= \\"$cutoff\\"
+                                        ) |
+                                        .author.login
+                                      )
+                                    ) as \\$login |
+                                    select(
+                                      \\$login != null and
+                                      \\$login != \\$pr.author.login
+                                    ) |
+                                    [\\$login, \\$pr.number] |
+                                    @tsv" |
+                                  sort -u |
+                                  awk -F '\\t' '
+                                    $1 !~ /\\[bot\\]$/ &&
+                                    $1 != "demos-git-service-account" &&
+                                    $1 != "github-actions"
+                                  ' |
+                                  cut -f1 |
+                                  sort |
+                                  uniq -c |
+                                  sort -nr |
+                                  awk '{
+                                    printf "• `%s`: %s points\\n", $2, $1
+                                  }'
+                            ''',
+                returnStdout: true
+              ).trim()
+
+              def approvedPrList = sh(
+                script: """
+        gh pr list \
+          --repo Enterprise-CMCS/demos \
+          --state open \
+          --search 'draft:false -label:"DO NOT MERGE" review:approved' \
+          --limit 1000 \
+          --json number,title,url \
+          --jq '.[] |
+            "• <\\(.url)|#\\(.number)> \\(
+              .title
+              | gsub("&"; "&amp;")
+              | gsub("<"; "&lt;")
+              | gsub(">"; "&gt;")
+            )"'
+    """,
+                returnStdout: true
+              ).trim()
+
+              def moreStats = sh(
+                script: """
+        cutoff_epoch=\$((\$(date +%s) - 604800))
+        cutoff=\$(date -u -d "@\$cutoff_epoch" '+%Y-%m-%dT%H:%M:%SZ')
+
+        gh pr list \
+        --repo "Enterprise-CMCS/demos" \
+        --base main \
+        --state merged \
+        --search "merged:>=\$cutoff  -author:demos-git-service-account" \
+        --limit 1000 \
+        --json number,title,url,author,additions,deletions,createdAt,mergedAt \
+        --jq '
+          def username:
+            (.author.login // "[deleted user]");
+
+          def total_changes:
+            (.additions + .deletions);
+
+          def one_decimal:
+            (. * 10 | round / 10);
+
+          def human_duration:
+            if . < 48 then
+              "\\(one_decimal) hours"
+            else
+              "\\((. / 24) | one_decimal) days"
+            end;
+
+          def pr_link:
+            "<\\(.url)|#\\(.number)> \\(.title)";
+
+          if length == 0 then
+            "*PR activity for `main` — last 7 days*\\n_No PRs were merged during this period._"
+          else
+            . as \$prs
+            | ([
+                \$prs[] |
+                ((.mergedAt | fromdateiso8601) -
+                (.createdAt | fromdateiso8601))
+              ] | add / length / 3600) as \$avg_hours
+            | (\$prs | max_by(.additions)) as \$most_additions
+            | (\$prs | max_by(.deletions)) as \$most_deletions
+            | (\$prs | max_by(total_changes)) as \$largest
+            | (\$prs | min_by(total_changes)) as \$smallest
+            |
+              "*Merged PR Stats (Previous 7 Days)*\\n" +
+              "• Merged PRs: *\\(\$prs | length)*\\n" +
+              "• Average time open: *\\(\$avg_hours | human_duration)*\\n\\n" +
+
+              "*PR size highlights*\n" +
+
+              "• Most additions: *\\(\$most_additions.additions) additions*\\n" +
+              "  \\(\$most_additions | pr_link) — by `\\(\$most_additions | username)`\n\n" +
+
+              "• Most deletions: *\\(\$most_deletions.deletions) deletions*\\n" +
+              "  \\(\$most_deletions | pr_link) — by `\\(\$most_deletions | username)`\n\n" +
+
+              "• Largest overall: *\\(\$largest | total_changes) changed lines* " +
+              "(\\(\$largest.additions) additions, \\(\$largest.deletions) deletions)\\n" +
+              "  \\(\$largest | pr_link) — by `\\(\$largest | username)`\n\n" +
+
+              "• Smallest overall: *\\(\$smallest | total_changes) changed lines* " +
+              "(\\(\$smallest.additions) additions, \\(\$smallest.deletions) deletions)\\n" +
+              "  \\(\$smallest | pr_link) — by `\\(\$smallest | username)`"
+          end
+        '
+    """,
+                returnStdout: true
+              ).trim()
+
+              def prSection = prList ?:
+                ':white_check_mark: No open PRs currently need approval.'
+
+              def approvedSection = approvedPrList ?:
+                'No approved PRs are waiting to be merged.'
+
+              def leaderboardSection = leaderboard ?:
+                'No review feedback recorded in the last seven days.'
+
+              def slackMessage = """\
+*Open PRs needing approval*
+${prSection}
+
+*Approved PRs waiting to be merged*
+${approvedSection}
+
+*Approval leaderboard — last 7 days*
+${leaderboardSection}""".stripIndent()
+
+              echo slackMessage
+              echo moreStats
+
+              def bedrockRequest = readJSON file: 'deployment/test.json'
+
+              def existingReport = """\
+${slackMessage}
+
+${moreStats}
+""".stripIndent().trim()
+
+              def canonicalLeaderboard = """\
+*Approval leaderboard — last 7 days*
+${leaderboardSection}
+""".stripIndent().trim()
+
+              def prLinksByNumber = extractPrLinksByNumber(existingReport)
+
+              def reportTimeZone = TimeZone.getTimeZone('America/New_York')
+              def reportDate = new Date()
+              def currentDayOfWeek = reportDate.format('EEEE', reportTimeZone)
+              def formattedReportDate = reportDate.format('MMMM d, yyyy', reportTimeZone)
+              def nextWorkdayByDay = [
+                Monday: 'Tuesday',
+                Tuesday: 'Wednesday',
+                Wednesday: 'Thursday',
+                Thursday: 'Friday',
+                Friday: 'Monday',
+                Saturday: 'Monday',
+                Sunday: 'Monday'
+              ]
+              def nextWorkday = nextWorkdayByDay[currentDayOfWeek]
+
+              bedrockRequest.messages = [
+                [
+                  role: 'user',
+                  content: [
+                    [
+                      text: """\
+Create today's PR update from the following data:
+
+Calendar context:
+- Today is ${currentDayOfWeek}, ${formattedReportDate}, in America/New_York.
+- The team's normal working days are Monday through Friday.
+- The next working day is ${nextWorkday}.
+- Include a brief, natural reference appropriate to ${currentDayOfWeek} when it adds to the fun.
+- Never suggest that the team will work tomorrow when tomorrow is Saturday or Sunday. On Friday, use Monday for any next-workday call to action.
+- The pipeline will append the complete canonical leaderboard after your messages. You may celebrate its leaders or trends, but do not reproduce the full leaderboard.
+
+${existingReport}
+""".stripIndent()
+                    ]
+                  ]
+                ]
+              ]
+
+              writeJSON(
+                file: 'bedrock-request.json',
+                json: bedrockRequest,
+                pretty: 2
+              )
+              echo "Final Json:"
+              sh 'cat bedrock-request.json'
+
+              def slackMessageLimit = 3500
+              def splitForSlack = { String message ->
+                def chunks = []
+                def currentMessage = ''
+
+                message.split('\\r?\\n', -1).each { line ->
+                  if (line.length() > slackMessageLimit) {
+                    error("Cannot safely split a ${line.length()}-character line without breaking its contents")
+                  }
+
+                  def candidate = currentMessage ? "${currentMessage}\n${line}" : line
+
+                  if (candidate.length() > slackMessageLimit) {
+                    if (currentMessage.trim()) {
+                      chunks << currentMessage.trim()
+                    }
+                    currentMessage = line
+                  } else {
+                    currentMessage = candidate
+                  }
+                }
+
+                if (currentMessage.trim()) {
+                  chunks << currentMessage.trim()
+                }
+
+                return chunks
+              }
+
+              def generatedMessages
+              def appendCanonicalLeaderboard = true
+              try {
+                assumeRole(
+                  accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER,
+                  containerName: 'aws-cli'
+                )
+
+                def bedrockOutput
+
+                container('aws-cli') {
+                  bedrockOutput = sh(
+                    script: '''
+        aws bedrock-runtime converse \
+          --region us-east-1 \
+          --cli-input-json file://bedrock-request.json \
+          --query 'output.message.content[0].text' \
+          --output text
+      ''',
+                    returnStdout: true
+                  ).trim()
+                  echo bedrockOutput
+                }
+
+                def normalizedOutput = bedrockOutput
+                  .trim()
+                  .replaceFirst(/(?s)^```(?:json)?\s*/, '')
+                  .replaceFirst(/(?s)\s*```\s*$/, '')
+                  .trim()
+
+                def parsedOutput = readJSON text: normalizedOutput
+                generatedMessages = parsedOutput.messages.collectMany { message ->
+                  def normalizedMessage = message
+                    .replace('\\*', '*')
+                    .replace('**', '*')
+
+                  prLinksByNumber.each { prNumber, slackLink ->
+                    normalizedMessage = normalizedMessage
+                      .replace("`#${prNumber}`", slackLink)
+                      .replace("*#${prNumber}*", slackLink)
+                      .replaceAll(
+                        "(?<!\\|)#${prNumber}\\b",
+                        slackLink
+                      )
+                  }
+
+                  splitForSlack(normalizedMessage)
+                }
+
+                if (
+                  !(generatedMessages instanceof List) ||
+                  generatedMessages.isEmpty() ||
+                  generatedMessages.any {
+                    !(it instanceof String) ||
+                    it.trim().isEmpty() ||
+                    it.length() > slackMessageLimit
+                  }
+                ) {
+                  error('Bedrock returned an invalid Slack message array')
+                }
+              } catch (Exception exception) {
+                echo "Bedrock generation failed; using the original report: ${exception.message}"
+                generatedMessages = [slackMessage, moreStats].collectMany { message ->
+                  splitForSlack(message)
+                }
+                appendCanonicalLeaderboard = false
+              }
+
+              if (appendCanonicalLeaderboard) {
+                generatedMessages = generatedMessages + splitForSlack(canonicalLeaderboard)
+              }
+
+              generatedMessages.each { message -> echo message }
+
+              //  def resp = slackSend(
+              //   channel: '#demos-dev',
+              //   color: 'good',
+              //   tokenCredentialId:'slack-bot-token',
+              //   message: slackMessage,
+              //   botUser: true,
+              //   teamDomain: 't1cg'
+              // )
+              // slackSend(
+              //   channel: resp.threadId,
+              //   color: '#1555bd',
+              //   tokenCredentialId:'slack-bot-token',
+              //   message: moreStats,
+              //   botUser: true,
+              //   teamDomain: 't1cg'
+              // )
+
+              def response = slackSend(
+                channel: '#demos-pr-test',
+                tokenCredentialId: 'slack-bot-token',
+                message: generatedMessages.first(),
+                sendAsText: true,
+                botUser: true,
+                teamDomain: 't1cg'
+              )
+
+              generatedMessages.drop(1).each { message ->
+                slackSend(
+                  channel: response.threadId,
+                  tokenCredentialId: 'slack-bot-token',
+                  message: message,
+                  sendAsText: true,
+                  botUser: true,
+                  teamDomain: 't1cg'
+                )
+              }
+
+            }
+          }
+        }
+      }
+    }
+  }
+}
