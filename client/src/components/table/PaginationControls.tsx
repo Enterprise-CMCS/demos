@@ -106,7 +106,7 @@ export function PaginationControls<T>({
             id="pagination-page-size"
             aria-labelledby="pagination-page-size"
             className="appearance-none border py-[12px] pl-[16px] pr-[44px] rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-            defaultValue={perPageChoices[0]}
+            value={selectedPageSize}
             onChange={(e) => setSelectedPageSize(Number(e.target.value))}
           >
             {perPageChoices.map((size) => (

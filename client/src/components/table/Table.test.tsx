@@ -108,6 +108,26 @@ export const testTableData: TestTableType[] = [
   },
 ];
 
+const STORAGE_KEY = "test_table_state";
+
+const savedTableState = {
+  columnFilters: [{ id: "description", value: "first" }],
+  globalFilter: ["Item"],
+  sorting: [{ id: "name", desc: true }],
+  pagination: { pageIndex: 2, pageSize: 20 },
+};
+
+const mockNavigationType = (type: "reload" | "navigate") => {
+  vi.spyOn(performance, "getEntriesByType").mockReturnValue([
+    { type } as PerformanceNavigationTiming,
+  ]);
+};
+
+afterEach(() => {
+  sessionStorage.clear();
+  vi.restoreAllMocks();
+});
+
 describe("Table Component Interactions", () => {
   describe("Basic Rendering", () => {
     it("renders all test items initially", () => {
@@ -315,6 +335,65 @@ describe("Table Component Interactions", () => {
       // simulated data change
       rerender(mockTable({ ...testTableData }));
       expect(screen.getByTestId("selected-count")).toHaveTextContent("0");
+    });
+  });
+
+  describe("Table State Persistence", () => {
+    it("clears filters when the page is refreshed", () => {
+      mockNavigationType("reload");
+
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(savedTableState));
+
+      render(
+        <Table<TestTableType>
+          columns={testColumns}
+          data={testTableData}
+          storageKey="test"
+        />
+      );
+
+      const storedState = JSON.parse(sessionStorage.getItem(STORAGE_KEY)!);
+
+      expect(storedState.columnFilters).toEqual([]);
+      expect(storedState.globalFilter).toBe("");
+    });
+
+    it("restores filters when navigating back to the page", () => {
+      mockNavigationType("navigate");
+
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(savedTableState));
+
+      render(
+        <Table<TestTableType>
+          columns={testColumns}
+          data={testTableData}
+          storageKey="test"
+        />
+      );
+
+      const storedState = JSON.parse(sessionStorage.getItem(STORAGE_KEY)!);
+
+      expect(storedState.columnFilters).toEqual(savedTableState.columnFilters);
+      expect(storedState.globalFilter).toStrictEqual(savedTableState.globalFilter);
+    });
+
+    it("preserves other table state when clearing filters on refresh", () => {
+      mockNavigationType("reload");
+
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(savedTableState));
+
+      render(
+        <Table<TestTableType>
+          columns={testColumns}
+          data={testTableData}
+          storageKey="test"
+        />
+      );
+
+      const storedState = JSON.parse(sessionStorage.getItem(STORAGE_KEY)!);
+
+      expect(storedState.sorting).toEqual(savedTableState.sorting);
+      expect(storedState.pagination).toEqual(savedTableState.pagination);
     });
   });
 });

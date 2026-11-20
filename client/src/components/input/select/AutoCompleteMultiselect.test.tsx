@@ -198,4 +198,30 @@ describe("AutoCompleteMultiselect", () => {
       expect(screen.getByText("Cherry")).toBeInTheDocument();
     });
   });
+
+  it("displays externally controlled selected values", () => {
+    const { rerender } = render(
+      <AutoCompleteMultiselect
+        options={options}
+        onSelect={onSelect}
+        values={[]}
+        placeholder="Pick fruit"
+      />
+    );
+
+    const input = screen.getByTestId(AUTOCOMPLETE_MULTISELECT_TEST_ID);
+
+    expect(input).toHaveValue("");
+
+    rerender(
+      <AutoCompleteMultiselect
+        options={options}
+        onSelect={onSelect}
+        values={["apple", "banana"]}
+        placeholder="Pick fruit"
+      />
+    );
+
+    expect(input).toHaveValue("Apple, Banana");
+  });
 });
