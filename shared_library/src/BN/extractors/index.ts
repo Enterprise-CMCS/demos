@@ -1,6 +1,6 @@
 import { BNWorkbookInputError } from "../errors.js";
 import { excelColumnRow } from "../index.js";
-import { NET_VARIANCE_LOCATION, validateNetVarianceLocation } from "../netVarianceLocation.js";
+import { validateNetVarianceLocation } from "../netVarianceLocation.js";
 import type { ExtractionFunction } from "../validation.js";
 
 
