@@ -90,8 +90,8 @@ function createPool() {
     connect: vi.fn().mockResolvedValue(client),
   } as unknown as Pool;
   mocks.queryMock.mockImplementation(async (query: string) => {
-    if (query.includes("UPDATE")) return { rows: [], rowCount: 1 };
-    if (query.includes("SELECT EXISTS")) return { rows: [{ exists: true }] };
+    if (query.includes("FOR UPDATE")) return { rows: [{ id: "doc-1" }] };
+    if (query.startsWith("UPDATE")) return { rows: [], rowCount: 1 };
     return { rows: [] };
   });
   return { pool, client };
@@ -147,10 +147,11 @@ describe("budgetNeutrality index", () => {
       body: "Processed 1 records.",
     });
     expect(mocks.getDbPoolMock).toHaveBeenCalledTimes(1);
-    expect(mocks.queryMock).toHaveBeenCalledTimes(8);
+    expect(mocks.queryMock).toHaveBeenCalledTimes(9);
     expect(mocks.queryMock.mock.calls[0]?.[0]).toBe("BEGIN");
-    expect(mocks.queryMock.mock.calls[1]?.[0]).toContain("budget_neutrality_workbook");
-    expect(mocks.queryMock.mock.calls[1]?.[1]).toEqual([
+    expect(mocks.queryMock.mock.calls[1]).toEqual([expect.stringContaining("FOR UPDATE"), ["doc-1"]]);
+    expect(mocks.queryMock.mock.calls[2]?.[0]).toContain("UPDATE demos_app.budget_neutrality_workbook");
+    expect(mocks.queryMock.mock.calls[2]?.[1]).toEqual([
       "doc-1",
       "BN Workbook",
       "Succeeded",
@@ -158,9 +159,9 @@ describe("budgetNeutrality index", () => {
       undefined,
       0,
     ]);
-    expect(mocks.queryMock.mock.calls.slice(2, 6).every(([query]) => String(query).startsWith("DELETE"))).toBe(true);
-    expect(mocks.queryMock.mock.calls[6]?.[0]).toContain("INSERT INTO demos_app.budget_neutrality_workbook_hypothetical_value");
-    expect(mocks.queryMock.mock.calls[6]?.[1]).toEqual([
+    expect(mocks.queryMock.mock.calls.slice(3, 7).every(([query]) => String(query).startsWith("DELETE"))).toBe(true);
+    expect(mocks.queryMock.mock.calls[7]?.[0]).toContain("INSERT INTO demos_app.budget_neutrality_workbook_hypothetical_value");
+    expect(mocks.queryMock.mock.calls[7]?.[1]).toEqual([
       expect.stringMatching(/^[0-9a-f-]{36}$/i),
       "doc-1",
       "Main",
@@ -171,7 +172,7 @@ describe("budgetNeutrality index", () => {
       expect.any(Date),
       expect.any(Date),
     ]);
-    expect(mocks.queryMock.mock.calls[7]?.[0]).toBe("COMMIT");
+    expect(mocks.queryMock.mock.calls[8]?.[0]).toBe("COMMIT");
     expect(client.release).toHaveBeenCalledOnce();
     expect(mocks.logInfoMock).toHaveBeenCalledWith(
       {
@@ -208,7 +209,7 @@ describe("budgetNeutrality index", () => {
 
     await handler(event, { awsRequestId: "test-request-id" } as Context);
 
-    expect(extractBNReporting).toHaveBeenCalledWith(parsedData, expect.any(Map));
+    expect(extractBNReporting).toHaveBeenCalledWith(parsedData, expect.any(Map), { maxHypotheticalTest: 13 });
     expect(mocks.logWarnMock).toHaveBeenCalledWith(
       { documentId: "doc-1", warning: "Main optional section omitted." },
       "BN reporting extraction warning.",
@@ -254,7 +255,7 @@ describe("budgetNeutrality index", () => {
       { documentId: "doc-1", warning },
       "BN reporting extraction warning.",
     );
-    expect(mocks.queryMock.mock.calls[1]?.[1]).toEqual([
+    expect(mocks.queryMock.mock.calls[2]?.[1]).toEqual([
       "doc-1", "BN Workbook", "Succeeded", "[]", undefined, 0,
     ]);
     const inserts = mocks.queryMock.mock.calls.filter(([query]) => String(query).startsWith("INSERT INTO"));
@@ -272,8 +273,8 @@ describe("budgetNeutrality index", () => {
     const { pool } = createPool();
     mocks.getDbPoolMock.mockResolvedValue(pool);
     mocks.queryMock.mockImplementation(async (query: string) => {
-      if (query.includes("UPDATE")) return { rows: [], rowCount: 0 };
-      if (query.includes("SELECT EXISTS")) return { rows: [{ exists: true }] };
+      if (query.includes("FOR UPDATE")) return { rows: [{ id: "doc-1" }] };
+      if (query.startsWith("UPDATE")) return { rows: [], rowCount: 0 };
       return { rows: [] };
     });
     const event = {
@@ -331,8 +332,8 @@ describe("budgetNeutrality index", () => {
 
     expect(response.statusCode).toBe(200);
     expect(validateBNWorkbook).toHaveBeenCalledTimes(source === "parser" ? 0 : 1);
-    expect(mocks.queryMock).toHaveBeenCalledTimes(7);
-    expect(mocks.queryMock.mock.calls[1]?.[1]).toEqual([
+    expect(mocks.queryMock).toHaveBeenCalledTimes(8);
+    expect(mocks.queryMock.mock.calls[2]?.[1]).toEqual([
       "doc-1",
       "BN Workbook",
       "Failed",
@@ -340,8 +341,8 @@ describe("budgetNeutrality index", () => {
       undefined,
       undefined,
     ]);
-    expect(mocks.queryMock.mock.calls.slice(2, 6).every(([query]) => String(query).startsWith("DELETE"))).toBe(true);
-    expect(mocks.queryMock.mock.calls[6]?.[0]).toBe("COMMIT");
+    expect(mocks.queryMock.mock.calls.slice(3, 7).every(([query]) => String(query).startsWith("DELETE"))).toBe(true);
+    expect(mocks.queryMock.mock.calls[7]?.[0]).toBe("COMMIT");
     expect(client.release).toHaveBeenCalledOnce();
   });
 
@@ -364,7 +365,8 @@ describe("budgetNeutrality index", () => {
     mocks.getDbPoolMock.mockResolvedValue(pool);
     const failure = new Error("temporary database failure");
     mocks.queryMock.mockImplementation(async (query: string) => {
-      if (query.includes("UPDATE")) throw failure;
+      if (query.includes("FOR UPDATE")) return { rows: [{ id: "doc-1" }] };
+      if (query.startsWith("UPDATE")) throw failure;
       return { rows: [] };
     });
     const event = {
@@ -375,7 +377,8 @@ describe("budgetNeutrality index", () => {
 
     expect(mocks.queryMock.mock.calls.map(([query]) => query)).toEqual([
       "BEGIN",
-      expect.stringContaining("UPDATE"),
+      expect.stringContaining("FOR UPDATE"),
+      expect.stringMatching(/^UPDATE /),
       "ROLLBACK",
     ]);
     expect(client.release).toHaveBeenCalledOnce();
@@ -386,7 +389,8 @@ describe("budgetNeutrality index", () => {
     mocks.getDbPoolMock.mockResolvedValue(pool);
     const failure = new Error("temporary reporting insert failure");
     mocks.queryMock.mockImplementation(async (query: string) => {
-      if (query.includes("UPDATE")) return { rows: [], rowCount: 1 };
+      if (query.includes("FOR UPDATE")) return { rows: [{ id: "doc-1" }] };
+      if (query.startsWith("UPDATE")) return { rows: [], rowCount: 1 };
       if (query.startsWith("INSERT INTO")) throw failure;
       return { rows: [] };
     });
@@ -402,14 +406,10 @@ describe("budgetNeutrality index", () => {
     expect(client.release).toHaveBeenCalledOnce();
   });
 
-  it("rejects a suppressed update when the workbook does not exist", async () => {
+  it("rejects a missing workbook before writing", async () => {
     const { pool, client } = createPool();
     mocks.getDbPoolMock.mockResolvedValue(pool);
-    mocks.queryMock.mockImplementation(async (query: string) => {
-      if (query.includes("UPDATE")) return { rows: [], rowCount: 0 };
-      if (query.includes("SELECT EXISTS")) return { rows: [{ exists: false }] };
-      return { rows: [] };
-    });
+    mocks.queryMock.mockResolvedValue({ rows: [] });
     const event = {
       Records: [{ body: JSON.stringify({ documentId: "doc-1", documentTypeId: "BN Workbook" }) }],
     } as unknown as SQSEvent;
@@ -419,8 +419,7 @@ describe("budgetNeutrality index", () => {
 
     expect(mocks.queryMock.mock.calls.map(([query]) => query)).toEqual([
       "BEGIN",
-      expect.stringContaining("UPDATE"),
-      expect.stringContaining("SELECT EXISTS"),
+      expect.stringContaining("FOR UPDATE"),
       "ROLLBACK",
     ]);
     expect(client.release).toHaveBeenCalledOnce();
@@ -431,7 +430,8 @@ describe("budgetNeutrality index", () => {
     mocks.getDbPoolMock.mockResolvedValue(pool);
     const failure = new Error("temporary cleanup failure");
     mocks.queryMock.mockImplementation(async (query: string) => {
-      if (query.includes("UPDATE")) return { rows: [], rowCount: 1 };
+      if (query.includes("FOR UPDATE")) return { rows: [{ id: "doc-1" }] };
+      if (query.startsWith("UPDATE")) return { rows: [], rowCount: 1 };
       if (query.includes("spending_limit_meg")) throw failure;
       return { rows: [] };
     });
@@ -448,7 +448,8 @@ describe("budgetNeutrality index", () => {
 
     expect(mocks.queryMock.mock.calls.map(([query]) => String(query))).toEqual([
       "BEGIN",
-      expect.stringContaining("UPDATE"),
+      expect.stringContaining("FOR UPDATE"),
+      expect.stringMatching(/^UPDATE /),
       expect.stringContaining("budget_neutrality_workbook_hypothetical_value"),
       expect.stringContaining("budget_neutrality_workbook_hypothetical_year"),
       expect.stringContaining("budget_neutrality_workbook_spending_limit_meg"),

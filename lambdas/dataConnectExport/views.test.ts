@@ -83,6 +83,16 @@ describe("demonstration reporting contract", () => {
     expect([...new Set(baseTables)].sort()).toEqual([...new Set(sources)].sort());
   });
 
+  it.each([
+    ["test_values", "measure_id, meg_name NULLS FIRST, dy_number NULLS FIRST"],
+    ["test_years", "dy_number"],
+  ])("orders %s with Main first and hypotheticals in numeric order", (collection, tieBreakers) => {
+    const order = "CASE WHEN hypothetical_id = 'Main' THEN 0 ELSE substring(hypothetical_id FROM '[0-9]+')::INTEGER END";
+    expect(EXPORT_VIEWS.demonstration_reporting.query).toContain(
+      `ORDER BY ${order},\n            ${tieBreakers}) AS ${collection}`,
+    );
+  });
+
   it("escapes date and document labels as SQL string literals", () => {
     expect(latestLabelledDate("obrien_date", "date_type_id", "O'Brien Date", "date_value"))
       .toContain("CASE WHEN date_type_id = 'O''Brien Date' THEN date_value END");

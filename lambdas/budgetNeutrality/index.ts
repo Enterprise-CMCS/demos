@@ -18,7 +18,12 @@ import { clearBudgetNeutralityReportingSnapshot, replaceBudgetNeutralityReportin
 
 const SUCCEEDED_VALIDATION_STATUS_ID = "Succeeded";
 const FAILED_VALIDATION_STATUS_ID = "Failed";
+const MAX_SUPPORTED_HYPOTHETICAL_TEST = 13;
 const DB_SCHEMA = "demos_app";
+const LOCK_WORKBOOK_SQL = `SELECT id
+  FROM ${DB_SCHEMA}.budget_neutrality_workbook
+  WHERE id = $1::UUID
+  FOR UPDATE;`;
 const UPDATE_WORKBOOK_SQL = `UPDATE ${DB_SCHEMA}.budget_neutrality_workbook
   SET
     document_type_id = $2::TEXT,
@@ -28,7 +33,6 @@ const UPDATE_WORKBOOK_SQL = `UPDATE ${DB_SCHEMA}.budget_neutrality_workbook
     net_variance_total = $6::NUMERIC,
     updated_at = CURRENT_TIMESTAMP
   WHERE id = $1::UUID;`;
-
 interface Results {
   processedRecords: number;
   existingDocuments: number;
@@ -54,7 +58,12 @@ export async function updateBudgetNeutralityWorkbook(
     await client.query("BEGIN");
     transactionStarted = true;
 
-    const updateResult = await client.query(UPDATE_WORKBOOK_SQL, [
+    const workbook = await client.query(LOCK_WORKBOOK_SQL, [message.documentId]);
+    if (workbook.rows.length === 0) {
+      throw new Error(`Budget Neutrality workbook ${message.documentId} not found.`);
+    }
+
+    await client.query(UPDATE_WORKBOOK_SQL, [
       message.documentId,
       message.documentTypeId,
       validationResults.isValid ? SUCCEEDED_VALIDATION_STATUS_ID : FAILED_VALIDATION_STATUS_ID,
@@ -62,19 +71,6 @@ export async function updateBudgetNeutralityWorkbook(
       validationResults.extractedValues.get("actuals"),
       netVarianceTotal,
     ]);
-    if (updateResult.rowCount === 0) {
-      const workbook = await client.query(
-        `SELECT EXISTS (
-          SELECT 1
-          FROM ${DB_SCHEMA}.budget_neutrality_workbook
-          WHERE id = $1::UUID
-        ) AS exists;`,
-        [message.documentId],
-      );
-      if (!workbook.rows[0]?.exists) {
-        throw new Error(`Budget Neutrality workbook ${message.documentId} not found.`);
-      }
-    }
 
     if (netVarianceTotal !== undefined) {
       await replaceBudgetNeutralityReportingSnapshot(client, message.documentId, reportingExtract!);
@@ -150,7 +146,11 @@ export const handler = async (event: SQSEvent, context: Context) =>
         log.info("Parsing completed. Starting validation against ruleset.");
         validationResults = await validateBNWorkbook(parsedWorkbook.data, validations, extractorFunctions);
         if (validationResults.isValid) {
-          const reportingResult = extractBNReporting(parsedWorkbook.data, validationResults.extractedValues);
+          const reportingResult = extractBNReporting(
+            parsedWorkbook.data,
+            validationResults.extractedValues,
+            { maxHypotheticalTest: MAX_SUPPORTED_HYPOTHETICAL_TEST },
+          );
           reportingExtract = reportingResult.extract;
           for (const warning of reportingResult.warnings) {
             log.warn({ documentId: message.documentId, warning }, "BN reporting extraction warning.");

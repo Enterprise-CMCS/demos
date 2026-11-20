@@ -34,7 +34,7 @@ export const extractorFunctions: ExtractionFunction[] = [
     }
     return new Map<string, number>([["netVariance", netVariance]]);
   },
-];  
+];
 
 export { extractBNReporting } from "./summary.js";
-export type { BNTestValue, BNTestYear, BNWorkbookExtract } from "./summary.js";
+export type { BNReportingOptions, BNTestValue, BNTestYear, BNWorkbookExtract } from "./summary.js";
