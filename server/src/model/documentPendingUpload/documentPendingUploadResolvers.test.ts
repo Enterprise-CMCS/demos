@@ -11,6 +11,7 @@ import { getS3Adapter } from "../../adapters";
 import { updateAssociatedPhase } from "./updateAssociatedPhase";
 import { handleUploadDocumentToDeliverable } from "./handleUploadDocumentToDeliverable";
 import { validateStateUserCanUploadStateDocumentToDeliverable } from "./validateStateUserCanUploadStateDocumentToDeliverable";
+import { insertApplicationAction } from "../applicationAction/queries";
 
 vi.mock("../../errors/checkOptionalNotNullFields", () => ({
   checkOptionalNotNullFields: vi.fn(),
@@ -51,6 +52,10 @@ vi.mock("./validateStateUserCanUploadStateDocumentToDeliverable", () => ({
   validateStateUserCanUploadStateDocumentToDeliverable: vi.fn(),
 }));
 
+vi.mock("../applicationAction/queries", () => ({
+  insertApplicationAction: vi.fn(),
+}));
+
 const mockTransaction = {} as any;
 
 describe("documentResolvers", () => {
@@ -89,13 +94,34 @@ describe("documentResolvers", () => {
         );
 
         expect(getS3Adapter).toHaveBeenCalledOnce();
-        expect(mockS3Adapter.uploadDocument).toHaveBeenCalledExactlyOnceWith({
-          name: input.name,
-          description: input.description,
-          applicationId: input.applicationId,
-          ownerUserId: mockContext.user.id,
-          documentTypeId: input.documentType,
-        });
+        expect(mockS3Adapter.uploadDocument).toHaveBeenCalledExactlyOnceWith(
+          {
+            name: input.name,
+            description: input.description,
+            applicationId: input.applicationId,
+            ownerUserId: mockContext.user.id,
+            documentTypeId: input.documentType,
+          },
+          mockTransaction
+        );
+      });
+
+      it("should log an Uploaded Document action", async () => {
+        await documentPendingUploadResolvers.Mutation.uploadDocumentToApplication(
+          undefined,
+          { input },
+          mockContext
+        );
+
+        expect(insertApplicationAction).toHaveBeenCalledExactlyOnceWith(
+          {
+            applicationId: input.applicationId,
+            actionType: "Uploaded Application Document",
+            documentType: input.documentType,
+            userId: mockContext.user.id,
+          },
+          mockTransaction
+        );
       });
     });
     describe("DocumentPendingUpload.UploadDocumentToPhase", () => {
@@ -147,6 +173,24 @@ describe("documentResolvers", () => {
             documentTypeId: input.documentType,
             ownerUserId: mockContext.user.id,
             phaseId: input.phaseName,
+          },
+          mockTransaction
+        );
+      });
+
+      it("should log an Uploaded Document action", async () => {
+        await documentPendingUploadResolvers.Mutation.uploadDocumentToPhase(
+          undefined,
+          { input },
+          mockContext
+        );
+
+        expect(insertApplicationAction).toHaveBeenCalledExactlyOnceWith(
+          {
+            applicationId: input.applicationId,
+            actionType: "Uploaded Application Document",
+            documentType: input.documentType,
+            userId: mockContext.user.id,
           },
           mockTransaction
         );

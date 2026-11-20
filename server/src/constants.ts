@@ -34,6 +34,8 @@ export const APPLICATION_ACTION_TYPES = [
   "Deleted Application Date",
   "Set Application Note",
   "Deleted Application Note",
+  "Uploaded Application Document",
+  "Deleted Application Document",
 ] as const;
 
 export const DELIVERABLE_TYPES = [

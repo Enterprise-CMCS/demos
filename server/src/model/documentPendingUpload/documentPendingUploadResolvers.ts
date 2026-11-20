@@ -20,6 +20,7 @@ import { resolveDeliverable } from "../deliverable";
 import { updateAssociatedPhase } from "./updateAssociatedPhase";
 import { handleUploadDocumentToDeliverable } from "./handleUploadDocumentToDeliverable";
 import { validateStateUserCanUploadStateDocumentToDeliverable } from "./validateStateUserCanUploadStateDocumentToDeliverable";
+import { insertApplicationAction } from "../applicationAction/queries";
 
 export const documentPendingUploadResolvers = {
   Mutation: {
@@ -30,12 +31,26 @@ export const documentPendingUploadResolvers = {
     ): Promise<PrismaDocumentPendingUpload> => {
       checkOptionalNotNullFields(["description"], input);
       try {
-        return await getS3Adapter().uploadDocument({
-          name: input.name,
-          description: input.description,
-          applicationId: input.applicationId,
-          ownerUserId: context.user.id,
-          documentTypeId: input.documentType,
+        return await prisma().$transaction(async (tx) => {
+          await insertApplicationAction(
+            {
+              applicationId: input.applicationId,
+              actionType: "Uploaded Application Document",
+              documentType: input.documentType,
+              userId: context.user.id,
+            },
+            tx
+          );
+          return await getS3Adapter().uploadDocument(
+            {
+              name: input.name,
+              description: input.description,
+              applicationId: input.applicationId,
+              ownerUserId: context.user.id,
+              documentTypeId: input.documentType,
+            },
+            tx
+          );
         });
       } catch (error) {
         handlePrismaError(error);
@@ -50,6 +65,15 @@ export const documentPendingUploadResolvers = {
 
       try {
         return await prisma().$transaction(async (tx) => {
+          await insertApplicationAction(
+            {
+              applicationId: input.applicationId,
+              actionType: "Uploaded Application Document",
+              documentType: input.documentType,
+              userId: context.user.id,
+            },
+            tx
+          );
           await updateAssociatedPhase(tx, input.applicationId, input.phaseName);
           return await getS3Adapter().uploadDocument(
             {

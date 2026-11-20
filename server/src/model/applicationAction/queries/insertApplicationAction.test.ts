@@ -64,6 +64,7 @@ describe("insertApplicationAction", () => {
     shouldHaveUserId: true,
     shouldHaveDateTypeId: false,
     shouldHaveNoteTypeId: false,
+    shouldHaveDocumentTypeId: false,
   };
 
   // Expected calls
@@ -79,9 +80,11 @@ describe("insertApplicationAction", () => {
       actionTypeId: testInput.actionType,
       dateTypeId: undefined,
       noteTypeId: undefined,
+      documentTypeId: undefined,
       shouldHaveUserId: mockApplicationActionType.shouldHaveUserId,
       shouldHaveDateTypeId: mockApplicationActionType.shouldHaveDateTypeId,
       shouldHaveNoteTypeId: mockApplicationActionType.shouldHaveNoteTypeId,
+      shouldHaveDocumentTypeId: mockApplicationActionType.shouldHaveDocumentTypeId,
       userId: testInput.userId,
     },
   };
