@@ -197,7 +197,7 @@ async function createDataFixClient(environment: string): Promise<Client> {
   });
 }
 
-export async function checkSchemaGate(client: Client, requiresMigration: string, environment?: string): Promise<void> {
+async function checkSchemaGate(client: Client, requiresMigration: string, environment?: string): Promise<void> {
   const result = await client.query(
     "SELECT 1 FROM demos_app._prisma_migrations WHERE migration_name = $1 AND finished_at IS NOT NULL AND rolled_back_at IS NULL",
     [requiresMigration],

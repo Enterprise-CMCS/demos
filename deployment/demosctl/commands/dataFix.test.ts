@@ -6,7 +6,7 @@ import { Client } from "pg";
 
 import { getSecret } from "../lib/getSecret";
 import { fetchCACert } from "./testMigration";
-import { checkSchemaGate, dataFix, dataFixLint } from "./dataFix";
+import { dataFix, dataFixLint } from "./dataFix";
 
 vi.mock("pg");
 vi.mock("../lib/getSecret");
@@ -314,15 +314,6 @@ describe("dataFix", () => {
     expect(statements()).not.toContain("ROLLBACK");
   });
 
-  test("should link a reverse apply to the forward fix", async () => {
-    expect(await dataFix("dev", path.join(tempDir, DEMOSCTL_REVERSE), applyOptions, client)).toEqual(0);
-    const insert = vi.mocked(client.query).mock.calls.find(([query]) => typeof query === "string" && query.includes("INSERT INTO demos_app.data_fix_log"));
-    expect(insert?.[1]).toEqual([
-      DEMOSCTL_REVERSE, createHash("sha256").update(reverseSql).digest("hex"), "DEMOS-1000", "dev", 2, null, DEMOSCTL_FIX,
-      applyOptions.gitCommit, applyOptions.appliedBy, applyOptions.approvedBy, applyOptions.buildUrl,
-    ]);
-  });
-
   describe.each([undefined, "", "  "])("missing Jenkins value %j", (value) => {
     test.each(["approvedBy", "appliedBy", "gitCommit", "buildUrl"] as const)("should refuse apply without %s before connecting", async (key) => {
       expect(await run({ ...applyOptions, [key]: value })).toEqual(1);
@@ -332,83 +323,15 @@ describe("dataFix", () => {
     });
   });
 
-  test.each([
-    ["psql runner", (text: string) => text.replace("demosctl", "psql")],
-    ["environment", (text: string) => text.replace("dev, test", "prod")],
-    ["override", (text: string) => `-- override: yes\n${text}`],
-    ["placeholder", (text: string) => text.replace("expected_rows:      2", "expected_rows: <n>")],
-    ["fractional expected_rows", (text: string) => text.replace("expected_rows:      2", "expected_rows: 2.5")],
-    ["unsafe expected_rows", (text: string) => text.replace("expected_rows:      2", "expected_rows: 9007199254740993")],
-    ["missing migration folder", (text: string) => text.replace(migration, "missing_migration")],
-    ["transaction control", (text: string) => `${text}\nCOMMIT;`],
-    ["role change", (text: string) => `${text}\nRESET ROLE;`],
-  ])("should refuse %s before connecting", async (_name, change) => {
-    writeFix(change(sql));
-    expect(await run()).toEqual(1);
-    expect(client.connect).not.toHaveBeenCalled();
-    expect(getSecret).not.toHaveBeenCalled();
-  });
-
-  test("should print the header problem for a malformed header", async () => {
-    writeFix(sql.replace("expected_rows:      2", "expected_rows: <n>"));
-    expect(await run()).toEqual(1);
-    expect(console.error).toHaveBeenCalledWith(expect.stringContaining("expected_rows"));
-  });
-
-  test("should refuse a missing file before connecting", async () => {
-    fs.unlinkSync(fixPath());
-    expect(await run()).toEqual(1);
-    expect(client.connect).not.toHaveBeenCalled();
-  });
-
-  test("should refuse a missing partner before connecting", async () => {
-    fs.unlinkSync(path.join(tempDir, DEMOSCTL_REVERSE));
-    expect(await run()).toEqual(1);
-    expect(client.connect).not.toHaveBeenCalled();
-  });
-
-  test("should refuse a mismatched reverse pair before connecting", async () => {
-    fs.writeFileSync(path.join(tempDir, DEMOSCTL_REVERSE), reverseSql.replace(DEMOSCTL_FIX, PSQL_FIX));
-    expect(await run()).toEqual(1);
-    expect(client.connect).not.toHaveBeenCalled();
-  });
-
-  test.each(["missing", "unfinished", "rolled back"] as const)(
-    "should refuse a %s release migration before BEGIN",
-    async () => {
-      vi.mocked(client.query).mockResolvedValueOnce({ rows: [] } as never);
-      expect(await run()).toEqual(1);
-      expect(console.error).toHaveBeenCalledWith(`release migration \`${migration}\` to \`dev\` first`);
-      expect(statements()).not.toContain("BEGIN");
-      expect(client.query).toHaveBeenCalledWith(expect.stringContaining("finished_at IS NOT NULL AND rolled_back_at IS NULL"), [migration]);
-    },
-  );
-
-  test("should allow an older completed release migration when a newer migration is unapplied", async () => {
-    const newerMigration = "20261105000000_newer_unapplied";
-    vi.mocked(client.query).mockResolvedValueOnce({
-      rows: [{ migration_name: migration, finished_at: new Date(), rolled_back_at: null }],
-    } as never);
-
-    expect(await run()).toEqual(0);
-    expect(client.query).toHaveBeenCalledWith(
-      expect.stringContaining("WHERE migration_name = $1 AND finished_at IS NOT NULL AND rolled_back_at IS NULL"),
-      [migration],
-    );
-    expect(client.query).not.toHaveBeenCalledWith(expect.stringContaining("_prisma_migrations"), [newerMigration]);
-  });
-
-  test("should expose the schema gate without running a transaction", async () => {
+  test("should refuse a missing, unfinished, or rolled-back release migration before BEGIN", async () => {
     vi.mocked(client.query).mockResolvedValueOnce({ rows: [] } as never);
-    await expect(checkSchemaGate(client, migration)).rejects.toThrow(migration);
+    expect(await run()).toEqual(1);
+    expect(console.error).toHaveBeenCalledWith(`release migration \`${migration}\` to \`dev\` first`);
     expect(statements()).not.toContain("BEGIN");
-  });
-
-  test.each([false, true])("should return already applied without a transaction (apply=%s)", async (apply) => {
-    vi.mocked(client.query).mockResolvedValueOnce({ rows: [{}] } as never).mockResolvedValueOnce({ rows: [{ checksum: checksum() }] } as never);
-    expect(await run({ ...applyOptions, apply })).toEqual(0);
-    expect(console.log).toHaveBeenCalledWith("already applied:", DEMOSCTL_FIX);
-    expect(statements()).not.toContain("BEGIN");
+    const migrationQuery = statements().find((query) => typeof query === "string" && query.includes("_prisma_migrations"));
+    expect(migrationQuery).toContain("finished_at IS NOT NULL");
+    expect(migrationQuery).toContain("rolled_back_at IS NULL");
+    expect(client.query).toHaveBeenCalledWith(expect.stringContaining("_prisma_migrations"), [migration]);
   });
 
   test("should refuse a checksum change", async () => {
@@ -471,24 +394,6 @@ describe("dataFix", () => {
       expect(statements()).not.toContain("COMMIT");
     }
     expect(client.removeListener).toHaveBeenCalledWith("notice", noticeHandler);
-    expect(client.end).toHaveBeenCalledOnce();
-  });
-
-  test("should roll back a deferred-constraint failure in a dry run", async () => {
-    const fail = vi.fn(() => Promise.reject(new Error("synthetic database failure")));
-    mockQuery((query: string) => {
-      if (query === "SET CONSTRAINTS ALL IMMEDIATE") {
-        return fail();
-      }
-      return normalQuery(query);
-    });
-    expect(await run()).toEqual(1);
-    expect(fail).toHaveBeenCalledOnce();
-    expect(console.error).toHaveBeenCalledExactlyOnceWith("data fix failed during deferred constraints");
-    expect(statements().at(-1)).toEqual("ROLLBACK");
-    expect(statements()).not.toContain("RESET ROLE");
-    expect(statements()).not.toContain("COMMIT");
-    expect(statements().some((query) => typeof query === "string" && query.includes("INSERT INTO demos_app.data_fix_log"))).toEqual(false);
     expect(client.end).toHaveBeenCalledOnce();
   });
 

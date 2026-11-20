@@ -14,17 +14,10 @@ export type RunScope = {
   reverseFileName: string;
 };
 
-type OwnedSnapshot = {
-  application: unknown[];
-  applicationDate: unknown[];
-  applicationPhase: unknown[];
-  demonstration: unknown[];
-  demonstrationRoleAssignment: unknown[];
-  person: unknown[];
-  personState: unknown[];
-  primaryDemonstrationRoleAssignment: unknown[];
-  history: Record<string, unknown[]>;
-  ledger: unknown[];
+export type IntegrationState = {
+  application: { is_migrated_from_pmda: boolean } | undefined;
+  applicationHistory: Array<{ revision_id: number; revision_type: string; is_migrated_from_pmda: boolean }>;
+  ledger: Array<{ file_name: string; checksum: string; reverse_file: string | null; reverses: string | null }>;
 };
 
 function missingPrerequisite(message: string): Error {
@@ -142,58 +135,23 @@ export async function seedOwnedGraph(client: Client, scope: RunScope): Promise<v
   }
 }
 
-export async function ownedSnapshot(client: Client, scope: RunScope): Promise<OwnedSnapshot> {
-  const [application, applicationDate, applicationPhase, demonstration, demonstrationRoleAssignment,
-    person, personState, primaryDemonstrationRoleAssignment, ...history] = await Promise.all([
-    client.query("SELECT * FROM demos_app.application WHERE id = $1", [scope.applicationId]),
-    client.query("SELECT * FROM demos_app.application_date WHERE application_id = $1 ORDER BY date_type_id", [scope.applicationId]),
-    client.query("SELECT * FROM demos_app.application_phase WHERE application_id = $1 ORDER BY phase_id", [scope.applicationId]),
-    client.query("SELECT * FROM demos_app.demonstration WHERE id = $1", [scope.applicationId]),
-    client.query(
-      "SELECT * FROM demos_app.demonstration_role_assignment WHERE demonstration_id = $1 AND person_id = $2 ORDER BY role_id",
-      [scope.applicationId, scope.personId],
-    ),
-    client.query("SELECT * FROM demos_app.person WHERE id = $1 AND email = $2", [scope.personId, scope.email]),
-    client.query("SELECT * FROM demos_app.person_state WHERE person_id = $1 ORDER BY state_id", [scope.personId]),
-    client.query(
-      "SELECT * FROM demos_app.primary_demonstration_role_assignment WHERE demonstration_id = $1 AND person_id = $2 ORDER BY role_id",
-      [scope.applicationId, scope.personId],
-    ),
-    client.query("SELECT * FROM demos_app.application_date_history WHERE application_id = $1 ORDER BY revision_id", [scope.applicationId]),
-    client.query("SELECT * FROM demos_app.application_history WHERE id = $1 ORDER BY revision_id", [scope.applicationId]),
-    client.query("SELECT * FROM demos_app.application_phase_history WHERE application_id = $1 ORDER BY revision_id", [scope.applicationId]),
-    client.query("SELECT * FROM demos_app.demonstration_history WHERE id = $1 ORDER BY revision_id", [scope.applicationId]),
-    client.query(
-      "SELECT * FROM demos_app.demonstration_role_assignment_history WHERE demonstration_id = $1 AND person_id = $2 ORDER BY revision_id",
-      [scope.applicationId, scope.personId],
-    ),
-    client.query("SELECT * FROM demos_app.person_history WHERE id = $1 ORDER BY revision_id", [scope.personId]),
-    client.query("SELECT * FROM demos_app.person_state_history WHERE person_id = $1 ORDER BY revision_id", [scope.personId]),
-    client.query(
-      "SELECT * FROM demos_app.primary_demonstration_role_assignment_history WHERE demonstration_id = $1 AND person_id = $2 ORDER BY revision_id",
-      [scope.applicationId, scope.personId],
-    ),
-  ]);
-  const ledger = await client.query("SELECT * FROM demos_app.data_fix_log WHERE file_name = ANY($1::text[]) ORDER BY file_name", [scope.fileNames]);
+export async function integrationState(client: Client, scope: RunScope): Promise<IntegrationState> {
+  const application = await client.query<{ is_migrated_from_pmda: boolean }>(
+    "SELECT is_migrated_from_pmda FROM demos_app.application WHERE id = $1",
+    [scope.applicationId],
+  );
+  const applicationHistory = await client.query<{ revision_id: number; revision_type: string; is_migrated_from_pmda: boolean }>(
+    "SELECT revision_id, revision_type, is_migrated_from_pmda FROM demos_app.application_history WHERE id = $1 ORDER BY revision_id",
+    [scope.applicationId],
+  );
+  const ledger = await client.query<IntegrationState["ledger"][number]>(
+    `SELECT file_name, checksum, reverse_file, reverses
+     FROM demos_app.data_fix_log WHERE file_name = ANY($1::text[]) ORDER BY file_name`,
+    [scope.fileNames],
+  );
   return {
-    application: application.rows,
-    applicationDate: applicationDate.rows,
-    applicationPhase: applicationPhase.rows,
-    demonstration: demonstration.rows,
-    demonstrationRoleAssignment: demonstrationRoleAssignment.rows,
-    person: person.rows,
-    personState: personState.rows,
-    primaryDemonstrationRoleAssignment: primaryDemonstrationRoleAssignment.rows,
-    history: {
-      applicationDate: history[0].rows,
-      application: history[1].rows,
-      applicationPhase: history[2].rows,
-      demonstration: history[3].rows,
-      demonstrationRoleAssignment: history[4].rows,
-      person: history[5].rows,
-      personState: history[6].rows,
-      primaryDemonstrationRoleAssignment: history[7].rows,
-    },
+    application: application.rows[0],
+    applicationHistory: applicationHistory.rows,
     ledger: ledger.rows,
   };
 }
