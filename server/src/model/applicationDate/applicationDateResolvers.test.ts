@@ -7,10 +7,15 @@ import {
 import type { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
 import type { DateType, SetApplicationDateInput, SetApplicationDatesInput } from "../../types";
 import { __DEMOS_VERSION__ } from "../../flags";
+import type { GraphQLContext } from "../../auth";
 
 // Mock imports
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
+}));
+
+vi.mock("../applicationAction/queries", () => ({
+  insertApplicationAction: vi.fn(),
 }));
 
 const testHandlePrismaError = new Error("Test handlePrismaError!");
@@ -43,6 +48,7 @@ import { getApplication } from "../application";
 import { validateAndUpdateDates } from ".";
 import { startPhasesByDates } from "../applicationPhase";
 import { formatDateToPlainDate, getEasternNow } from "../../dateUtilities";
+import { insertApplicationAction } from "../applicationAction/queries";
 
 describe("applicationDateResolvers", () => {
   const mockTransaction: any = "Test";
@@ -52,6 +58,8 @@ describe("applicationDateResolvers", () => {
 
   const testPlainDate = "2025-01-01";
   const testApplicationId = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
+  const testUserId = "2dbf034d-a525-4578-a648-c412544a7932";
+  const testContext = { user: { id: testUserId } } as GraphQLContext;
   const testError = new Error("Database connection failed");
 
   const mockEasternNow = {
@@ -115,13 +123,13 @@ describe("applicationDateResolvers", () => {
         applicationId: testApplicationId,
         applicationDates: [],
       };
-      await __setApplicationDates(undefined, { input: testInput });
+      await __setApplicationDates(undefined, { input: testInput }, testContext);
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
       expect(prisma).not.toHaveBeenCalled();
     });
 
     it("should validate and update based on the input if it is present", async () => {
-      await __setApplicationDates(undefined, { input: testInput });
+      await __setApplicationDates(undefined, { input: testInput }, testContext);
       expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
         testInput,
         mockTransaction,
@@ -130,11 +138,49 @@ describe("applicationDateResolvers", () => {
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
     });
 
+    it("should log a Set Application Date action for each date, or a Deleted Application Date action if being cleared", async () => {
+      const testInput: SetApplicationDatesInput = {
+        applicationId: testApplicationId,
+        applicationDates: [
+          {
+            dateType: "Concept Start Date",
+            plainDate: testPlainDate,
+          },
+          {
+            dateType: "Federal Comment Period End Date",
+            plainDate: null,
+          },
+        ],
+      };
+      await __setApplicationDates(undefined, { input: testInput }, testContext);
+      expect(insertApplicationAction).toHaveBeenCalledTimes(2);
+      expect(insertApplicationAction).toHaveBeenNthCalledWith(
+        1,
+        {
+          applicationId: testApplicationId,
+          actionType: "Set Application Date",
+          dateType: "Concept Start Date",
+          userId: testUserId,
+        },
+        mockTransaction
+      );
+      expect(insertApplicationAction).toHaveBeenNthCalledWith(
+        2,
+        {
+          applicationId: testApplicationId,
+          actionType: "Deleted Application Date",
+          dateType: "Federal Comment Period End Date",
+          userId: testUserId,
+        },
+        mockTransaction
+      );
+    });
+
     it("should handle an error appropriately if it occurs", async () => {
       mockPrismaClient.$transaction.mockRejectedValueOnce(testError);
-      await expect(__setApplicationDates(undefined, { input: testInput })).rejects.toThrowError(
-        testHandlePrismaError
-      );
+      await expect(
+        __setApplicationDates(undefined, { input: testInput }, testContext)
+      ).rejects.toThrowError(testHandlePrismaError);
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
       expect(getApplication).not.toHaveBeenCalled();
     });
@@ -166,9 +212,9 @@ describe("applicationDateResolvers", () => {
         ],
       };
 
-      await expect(__setApplicationDates(undefined, { input: testInput })).rejects.toThrowError(
-        testHandlePrismaError
-      );
+      await expect(
+        __setApplicationDates(undefined, { input: testInput }, testContext)
+      ).rejects.toThrowError(testHandlePrismaError);
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(
         new Error(
           "The input contained the same dateType more than once for " +
@@ -179,7 +225,7 @@ describe("applicationDateResolvers", () => {
     });
 
     it("should call startPhasesByDates with correct arguments", async () => {
-      await __setApplicationDates(undefined, { input: testInput });
+      await __setApplicationDates(undefined, { input: testInput }, testContext);
 
       expect(getEasternNow).toHaveBeenCalledExactlyOnceWith();
       expect(startPhasesByDates).toHaveBeenCalledExactlyOnceWith(
@@ -199,7 +245,7 @@ describe("applicationDateResolvers", () => {
       ];
       vi.mocked(startPhasesByDates).mockResolvedValueOnce(phaseStartDates as any);
 
-      await __setApplicationDates(undefined, { input: testInput });
+      await __setApplicationDates(undefined, { input: testInput }, testContext);
 
       expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
         expect.objectContaining({
@@ -233,7 +279,7 @@ describe("applicationDateResolvers", () => {
 
     describe("invokes __setApplicationDates with a single item", () => {
       it("should validate and update based on the input if it is present", async () => {
-        await __setApplicationDate(undefined, { input: testInput });
+        await __setApplicationDate(undefined, { input: testInput }, testContext);
         expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
           transformedTestInput,
           mockTransaction,

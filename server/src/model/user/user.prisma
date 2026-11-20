@@ -12,6 +12,7 @@ model User {
   personType                    UserPersonTypeLimit            @relation(fields: [personTypeId], references: [id])
   deliverables                  Deliverable[]
   deliverableActions            DeliverableAction[]
+  applicationActions            ApplicationAction[]
   documents                     Document[]
   documentsPendingUpload        DocumentPendingUpload[]
   documentsInfected             DocumentInfected[]

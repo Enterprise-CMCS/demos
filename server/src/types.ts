@@ -33,6 +33,7 @@ import {
   ON_DEMAND_REPORT_STATUSES,
   RESTRICTED_CMS_USER_DEMONSTRATION_ROLES,
   CMS_REVIEWER_USER_DEMONSTRATION_ROLES,
+  APPLICATION_ACTION_TYPES,
 } from "./constants.js";
 
 export type {
@@ -189,3 +190,4 @@ export type SystemRole = (typeof SYSTEM_ROLES)[number];
 export type ReferenceConfigurationStatus = (typeof REFERENCE_CONFIGURATION_STATUSES)[number];
 export type OnDemandReportType = (typeof ON_DEMAND_REPORT_TYPES)[number];
 export type OnDemandReportStatus = (typeof ON_DEMAND_REPORT_STATUSES)[number];
+export type ApplicationActionType = (typeof APPLICATION_ACTION_TYPES)[number];

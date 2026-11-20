@@ -1294,7 +1294,11 @@ async function seedDatabase() {
       },
     ],
   };
-  await __setApplicationDates(undefined, { input: dateInput });
+  await __setApplicationDates(
+    undefined,
+    { input: dateInput },
+    { user: { id: bypassUserId, personTypeId: "demos-admin" } } as GraphQLContext
+  );
 
   // Having the SDG Preparation Start Date without the phase being started
   // causes errors handling the Federal Comment status; this fixes that
