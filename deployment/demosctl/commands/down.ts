@@ -17,10 +17,8 @@ export async function down(environment: string) {
     return 1;
   }
 
-  let exitCode: number = 0;
-
   try {
-    exitCode = await runCommand("down", "npx", [
+    return await runCommand("down", "npx", [
       "cdk",
       "destroy",
       "--context",
@@ -34,6 +32,4 @@ export async function down(environment: string) {
     console.error(`deployment failed: ${err}`);
     return 1;
   }
-
-  return exitCode;
 }
