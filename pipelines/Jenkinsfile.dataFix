@@ -1,0 +1,265 @@
+import java.math.BigInteger
+import groovy.json.JsonSlurperClassic
+
+def safeDataFixCount(Object value) {
+  if (!(value instanceof Number) || !(value.toString() ==~ /^\d+$/)) {
+    return null
+  }
+  try {
+    def parsed = new BigInteger(value.toString())
+    if (parsed > BigInteger.valueOf(9007199254740991L)) {
+      return null
+    }
+    return parsed.longValue()
+  } catch (NumberFormatException ignored) {
+    return null
+  }
+}
+
+def summarizeDataFixResult(String contents, String environment, String fileName, String mode, int exitStatus) {
+  def failure = { String phase ->
+    [outcome: 'failed', rowsAffected: null, failurePhase: [phase], rollbackStatus: null, cleanupStatus: null]
+  }
+  if (!(environment in ['dev', 'test', 'impl', 'prod']) ||
+      !(fileName instanceof String) || !(fileName ==~ /^\d{8}_DEMOS-\d+_[a-z0-9_]+\.sql$/) || mode != 'dry-run') {
+    return failure('invalid runner request')
+  }
+  if (contents == null) {
+    return failure('runner result missing')
+  }
+  if (contents.length() > 2048) {
+    return failure('invalid runner result')
+  }
+
+  def result
+  try {
+    result = new JsonSlurperClassic().parseText(contents)
+  } catch (Exception ignored) {
+    return failure('invalid runner result')
+  }
+  def expectedFields = [
+    'version', 'environment', 'filename', 'mode', 'outcome', 'rowsAffected',
+    'failurePhase', 'rollbackStatus', 'cleanupStatus'
+  ] as Set
+  if (!(result instanceof Map) || result.keySet() != expectedFields ||
+      !(result.version instanceof Number) || result.version.toString() != '1' ||
+      result.environment != environment || result.filename != fileName || result.mode != mode) {
+    return failure('invalid runner result')
+  }
+
+  def phases = [
+    'validation', 'database connection', 'schema gate', 'ledger check', 'transaction setup',
+    'pair lock', 'fix body', 'deferred constraints', 'ledger insert', 'commit', 'rollback', 'connection close'
+  ] as Set
+  def outcomes = ['rolled-back', 'no-op', 'committed', 'failed', 'unknown'] as Set
+  def rollbackStatuses = ['not-started', 'acknowledged', 'failed', 'unconfirmed'] as Set
+  def cleanupStatuses = ['not-needed', 'succeeded', 'failed'] as Set
+  def rowsAffected = result.rowsAffected == null ? null : safeDataFixCount(result.rowsAffected)
+  if (!(result.outcome in outcomes) ||
+      (result.rowsAffected != null && rowsAffected == null) ||
+      (result.failurePhase != null && !(result.failurePhase in phases)) ||
+      !(result.rollbackStatus in rollbackStatuses) || !(result.cleanupStatus in cleanupStatuses)) {
+    return failure('invalid runner result')
+  }
+
+  def rolledBack = result.outcome == 'rolled-back' && rowsAffected != null &&
+    result.failurePhase == null && result.rollbackStatus == 'acknowledged' && result.cleanupStatus == 'succeeded'
+  def noOp = result.outcome == 'no-op' && rowsAffected == 0 && result.failurePhase == null &&
+    result.rollbackStatus == 'acknowledged' && result.cleanupStatus == 'succeeded'
+  if (exitStatus == 0 && (rolledBack || noOp)) {
+    return [
+      outcome: rolledBack ? 'rolled back' : 'already applied',
+      rowsAffected: rowsAffected,
+      failurePhase: [],
+      rollbackStatus: result.rollbackStatus,
+      cleanupStatus: result.cleanupStatus
+    ]
+  }
+
+  def failurePhases = []
+  if (result.failurePhase != null) {
+    failurePhases << result.failurePhase
+  }
+  if (result.rollbackStatus == 'failed' && !failurePhases.contains('rollback')) {
+    failurePhases << 'rollback'
+  }
+  if (result.cleanupStatus == 'failed' && !failurePhases.contains('connection close')) {
+    failurePhases << 'connection close'
+  }
+  if (exitStatus != 0 && failurePhases.isEmpty()) {
+    failurePhases << 'runner exit status'
+  }
+  if (failurePhases.isEmpty()) {
+    failurePhases << 'invalid runner result'
+  }
+  return [
+    outcome: 'failed',
+    rowsAffected: rowsAffected,
+    failurePhase: failurePhases,
+    rollbackStatus: result.rollbackStatus,
+    cleanupStatus: result.cleanupStatus
+  ]
+}
+
+def reportDataFixSummary(Map summary, int exitStatus) {
+  if (summary.outcome == 'rolled back') {
+    echo "Dry run rolled back successfully; aggregate rows affected: ${summary.rowsAffected}"
+    return
+  }
+  if (summary.outcome == 'already applied') {
+    echo 'Dry run complete: fix is already applied; no new rows would be changed'
+    return
+  }
+
+  summary.failurePhase.each { phase ->
+    if (phase == 'rollback') {
+      echo 'Data-fix runner rollback failed; rollback completion is unproven'
+    } else if (phase == 'connection close') {
+      echo 'Data-fix database connection close failed'
+    } else if (phase == 'invalid runner result') {
+      echo 'Data-fix runner result was malformed or contradictory'
+    } else if (phase == 'runner result missing') {
+      echo 'Data-fix runner result is missing'
+    } else if (phase == 'runner exit status') {
+      echo "Data-fix runner exited with status ${exitStatus}"
+    } else if (phase in ['validation', 'database connection', 'schema gate', 'ledger check', 'transaction setup', 'pair lock', 'fix body', 'deferred constraints', 'ledger insert', 'commit']) {
+      echo "Data-fix runner failed during ${phase}"
+    } else {
+      echo 'Data-fix runner failed with an incomplete or invalid result'
+    }
+  }
+  if (summary.rowsAffected != null) {
+    echo "Runner reported ${summary.rowsAffected} aggregate rows before failure"
+  }
+  if (summary.rollbackStatus == 'acknowledged') {
+    echo 'The result records an acknowledged rollback, but this failed run is not rollback proof'
+  } else if (summary.rollbackStatus == 'unconfirmed') {
+    echo 'Rollback completion is unconfirmed; this failure is not rollback proof'
+  }
+  error('Data-fix dry run failed; apply is disabled')
+}
+
+pipeline {
+  agent {
+    kubernetes {
+      yaml podSpec([name: 'node', allowInstalls: true], 'aws-cli')
+    }
+  }
+
+  options {
+    disableConcurrentBuilds(abortPrevious: false)
+    skipDefaultCheckout(true)
+  }
+
+  parameters {
+    choice(name: 'ENVIRONMENT', choices: ['dev'], description: 'Target environment for the data fix')
+    string(name: 'FIX_FILE', defaultValue: '', description: 'SQL filename from server/src/data_fixes')
+    booleanParam(name: 'APPLY', defaultValue: false, description: 'Apply is not supported by this dry-run-only job')
+  }
+
+  environment {
+    NO_COLOR = '1'
+  }
+
+  stages {
+    stage('Checkout main') {
+      steps {
+        script {
+          if (params.ENVIRONMENT != 'dev') {
+            error('This data-fix pipeline supports dev dry runs only')
+          }
+          if (params.APPLY) {
+            error('APPLY=true is not supported; this pipeline is dry-run-only')
+          }
+          def fixFile = params.FIX_FILE?.toString()
+          if (!fixFile || fixFile != fixFile.trim() || !(fixFile ==~ /^\d{8}_DEMOS-\d+_[a-z0-9_]+\.sql$/)) {
+            error('FIX_FILE must match YYYYMMDD_DEMOS-<ticket>_<lowercase_name>.sql')
+          }
+          env.ENVIRONMENT = params.ENVIRONMENT.toString()
+          env.FIX_FILE = fixFile
+          currentBuild.description = "Data fix ${env.ENVIRONMENT}/${env.FIX_FILE}"
+
+          deleteDir()
+          checkout([
+            $class: 'GitSCM',
+            branches: [[name: '*/main']],
+            userRemoteConfigs: [[
+              url: 'https://github.com/Enterprise-CMCS/demos.git',
+              credentialsId: 'demos-git-svc-account'
+            ]],
+            extensions: [[
+              $class: 'CloneOption',
+              shallow: false,
+              noTags: false,
+              depth: 0
+            ]]
+          ])
+          sh '''
+            command -v git >/dev/null 2>&1 || { echo 'Git is unavailable in the default agent container' >&2; exit 1; }
+          '''
+          env.CHECKOUT_COMMIT = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+          if (!env.CHECKOUT_COMMIT) {
+            error('Unable to record the main checkout commit')
+          }
+        }
+      }
+    }
+
+    stage('Assume role') {
+      steps {
+        script {
+          assumeRole(accountEnv: env.ENVIRONMENT)
+        }
+      }
+    }
+
+    stage('Dry run') {
+      steps {
+        script {
+          def fixPath = "server/src/data_fixes/${env.FIX_FILE}"
+          if (!fileExists(fixPath)) {
+            error("Fix file not found on main: ${env.FIX_FILE}")
+          }
+          dirCon('deployment', 'node') {
+            sh 'npm ci'
+          }
+
+          def resultFile = '.data-fix-result.json'
+          def dryRunStatus
+          withEnv([
+            "DATA_FIX_ENVIRONMENT=${env.ENVIRONMENT}",
+            "DATA_FIX_FILENAME=${env.FIX_FILE}",
+            "DATA_FIX_RESULT_FILE=${env.WORKSPACE}/${resultFile}"
+          ]) {
+            dryRunStatus = dirCon('deployment', 'node') {
+              sh(
+                label: 'Run data-fix dry run',
+                returnStatus: true,
+                script: '''
+                  set +x
+                  set +e
+                  umask 077
+                  result="$WORKSPACE/.data-fix-result.json"
+                  rm -f -- "$result"
+                  npx tsx demosctl/index data-fix "$DATA_FIX_ENVIRONMENT" "$DATA_FIX_FILENAME" > /dev/null 2>&1
+                  runner_status=$?
+                  exit "$runner_status"
+                '''
+              )
+            }
+          }
+
+          def resultContents = fileExists(resultFile) ? readFile(file: resultFile) : null
+          def summary = summarizeDataFixResult(resultContents, env.ENVIRONMENT, env.FIX_FILE, 'dry-run', dryRunStatus)
+          reportDataFixSummary(summary, dryRunStatus)
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      cleanWs(deleteDirs: true)
+    }
+  }
+}
