@@ -49,7 +49,8 @@ export class DatabaseStack extends Stack {
       scope: this,
       iamPermissionsBoundary:
         props.iamPermissionsBoundaryArn == null
-          ? undefined : aws_iam.ManagedPolicy.fromManagedPolicyArn(this, "iamPermissionsBoundary", props.iamPermissionsBoundaryArn),
+          ? undefined
+          : aws_iam.ManagedPolicy.fromManagedPolicyArn(this, "iamPermissionsBoundary", props.iamPermissionsBoundaryArn),
     };
     const alarmResources = new alarms.CloudWatchAlarmRegistry();
 
@@ -141,7 +142,7 @@ export class DatabaseStack extends Stack {
         storageEncryptionKey: rdsKMSKey,
         port: 15432,
         parameterGroup,
-        monitoringInterval: ["prod", "impl"].includes(commonProps.stage) ?  Duration.seconds(60) : undefined,
+        monitoringInterval: ["prod", "impl"].includes(commonProps.stage) ? Duration.seconds(60) : undefined,
       },
     );
     alarmResources.registerDatabaseInstance("rds", dbInstance);
@@ -150,18 +151,23 @@ export class DatabaseStack extends Stack {
       // This is for temporary testing and should be removed in the future to save costs
       Tags.of(dbInstance).add("AWS_Backup", backupTags.d90);
     }
+
     if (["impl", "prod"].includes(props.stage)) {
-      Tags.of(dbInstance).add("AWS_Backup", backupTags["4hr1_d7_w35_m90"]);
+      const cfnDbInstance = dbInstance.node.defaultChild as aws_rds.CfnDBInstance;
+      cfnDbInstance.tags.setTag("AWS_Backup", backupTags["4hr1_d7_w35_m90"]);
+      NagSuppressions.addResourceSuppressions(
+        dbInstance,
+        [
+          {
+            id: "AwsSolutions-IAM4",
+            reason: "Default AWS role is used for enhanced monitoring",
+          },
+        ],
+        true,
+      );
     }
 
-    if (props.stage === "prod") {
-      NagSuppressions.addResourceSuppressions(dbInstance, [
-        {
-          id: "AwsSolutions-IAM4",
-          reason: "Default AWS role is used for enhanced monitoring",
-        },
-      ], true);
-    } else {
+    if (props.stage !== "prod") {
       NagSuppressions.addResourceSuppressions(dbInstance, [
         {
           id: "AwsSolutions-RDS3",
@@ -186,10 +192,7 @@ export class DatabaseStack extends Stack {
       reason: "Enhanced monitoring is enabled in IMPL and PROD",
     });
 
-    Aspects.of(this).add(
-      new SuppressCheckovLogRetentionPolicy(),
-      { priority: AspectPriority.MUTATING },
-    );
+    Aspects.of(this).add(new SuppressCheckovLogRetentionPolicy(), { priority: AspectPriority.MUTATING });
 
     this.setupCloudWatchAlarms(commonProps, alarmResources);
 
@@ -272,10 +275,7 @@ export class DatabaseStack extends Stack {
     });
   }
 
-  private setupCloudWatchAlarms(
-    props: DeploymentConfigProperties,
-    resources: alarms.CloudWatchAlarmRegistry,
-  ) {
+  private setupCloudWatchAlarms(props: DeploymentConfigProperties, resources: alarms.CloudWatchAlarmRegistry) {
     if (props.isEphemeral && !props.enableAlarms) {
       return;
     }
@@ -403,37 +403,37 @@ class SuppressCheckovLogRetentionPolicy implements IAspect {
   visit(node: IConstruct): void {
     if (!CfnResource.isCfnResource(node)) return;
     if (node.cfnResourceType === "AWS::IAM::Policy") {
-
       const path = node.node.path;
 
-      if (
-        path.includes("/LogRetention") &&
-        path.endsWith("/ServiceRole/DefaultPolicy/Resource")
-      ) {
+      if (path.includes("/LogRetention") && path.endsWith("/ServiceRole/DefaultPolicy/Resource")) {
         addCheckovSkip(node, {
           id: "CKV_AWS_111",
           reason:
-                "CDK-managed LogRetention custom resource role; only used to apply CloudWatch Logs retention. Not worth updating or managing",
-        },
-        );
-        NagSuppressions.addResourceSuppressions(node, [{
-          id: "AwsSolutions-IAM5",
-          reason: "CDK default policy that can't be modified",
-          appliesTo: ["Resource::*"],
-        }]);
+            "CDK-managed LogRetention custom resource role; only used to apply CloudWatch Logs retention. Not worth updating or managing",
+        });
+        NagSuppressions.addResourceSuppressions(node, [
+          {
+            id: "AwsSolutions-IAM5",
+            reason: "CDK default policy that can't be modified",
+            appliesTo: ["Resource::*"],
+          },
+        ]);
       }
     }
 
     if (node.cfnResourceType === "AWS::IAM::Role") {
       const path = node.node.path;
-      if (
-        path.includes("/LogRetention") &&
-        path.endsWith("/ServiceRole/Resource")
-      ) {
-        NagSuppressions.addResourceSuppressions(node, [{
-          id: "AwsSolutions-IAM4",
-          reason: "The AWSLambdaBasicExecutionRole for the log retention function doesn't create a risk",
-        }], true);
+      if (path.includes("/LogRetention") && path.endsWith("/ServiceRole/Resource")) {
+        NagSuppressions.addResourceSuppressions(
+          node,
+          [
+            {
+              id: "AwsSolutions-IAM4",
+              reason: "The AWSLambdaBasicExecutionRole for the log retention function doesn't create a risk",
+            },
+          ],
+          true,
+        );
       }
     }
 
@@ -444,7 +444,6 @@ class SuppressCheckovLogRetentionPolicy implements IAspect {
           id: "CKV_AWS_149",
           reason: "Sticking with AWS owned KMS key for now. Can revisit a CMK in the future",
         });
-
       }
     }
   }
