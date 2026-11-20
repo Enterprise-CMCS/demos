@@ -31,6 +31,10 @@ const APPLY_OPTIONS = {
   buildUrl: "https://ci.invalid/job/data-fix/1/",
 };
 const CLEANUP_TIMEOUT_MS = 15_000;
+const PAIR_LOCK_QUERY = "SELECT pg_advisory_xact_lock(hashtextextended(current_database() || ':demos-data-fix:' || $1, 0))";
+const PAIR_LOCK_SESSION_QUERY = "SELECT pg_advisory_lock(hashtextextended(current_database() || ':demos-data-fix:' || $1, 0))";
+const PAIR_UNLOCK_SESSION_QUERY = "SELECT pg_advisory_unlock(hashtextextended(current_database() || ':demos-data-fix:' || $1, 0))";
+const BODY_BARRIER_NAMESPACE = 1_900_000_000;
 
 type DataFixOptions = typeof APPLY_OPTIONS | { apply: false };
 
@@ -46,9 +50,10 @@ function withTimeout<T>(operation: Promise<T>, timeoutMs: number, message: strin
   });
 }
 
-function body(applicationId: string, target: boolean): string {
+function body(applicationId: string, target: boolean, barrierId?: number): string {
   const applicationIdLiteral = quoteFixtureUuid(applicationId);
   return `CREATE TEMPORARY TABLE data_fix_result (rows_affected integer);
+${barrierId === undefined ? "" : `SELECT pg_advisory_xact_lock(${BODY_BARRIER_NAMESPACE}, ${barrierId});\n`}
 WITH changed AS (
   UPDATE demos_app.application SET is_migrated_from_pmda = ${target}
   WHERE id = ${applicationIdLiteral} AND is_migrated_from_pmda = ${!target}
@@ -104,35 +109,96 @@ async function runFix(
   filePath: string,
   config: ReturnType<typeof disposableDatabaseConfig>,
   options: DataFixOptions,
+  captureOutput = true,
 ): Promise<{ code: number; output: string }> {
   const client = new Client(config);
   const lifecycle = { ended: false, errored: false };
   client.on("end", () => { lifecycle.ended = true; });
   client.on("error", () => { lifecycle.errored = true; });
   const output: string[] = [];
-  const log = vi.spyOn(console, "log").mockImplementation((...values) => output.push(format(...values)));
-  const error = vi.spyOn(console, "error").mockImplementation((...values) => output.push(format(...values)));
+  const log = captureOutput ? vi.spyOn(console, "log").mockImplementation((...values) => output.push(format(...values))) : undefined;
+  const error = captureOutput ? vi.spyOn(console, "error").mockImplementation((...values) => output.push(format(...values))) : undefined;
   try {
     const code = await dataFix("dev", filePath, options, client);
     assert.ok(lifecycle.ended, "the real runner must end its injected client");
     assert.ok(!lifecycle.errored, "the real runner client must not emit a connection error");
     return { code, output: output.join("\n") };
   } finally {
-    log.mockRestore();
-    error.mockRestore();
+    log?.mockRestore();
+    error?.mockRestore();
     if (!lifecycle.ended) {
       await withTimeout(client.end(), CLEANUP_TIMEOUT_MS, "data-fix runner connection cleanup timed out");
     }
   }
 }
 
-function assertApplicationHistoryDelta(before: IntegrationState, after: IntegrationState, expectedValue: boolean): void {
-  assert.equal(after.applicationHistory.length, before.applicationHistory.length + 1);
+async function waitForLockWait(database: Client, query: string, expectedCount = 1): Promise<void> {
+  const deadline = Date.now() + CLEANUP_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    const result = await database.query<{ waiting: string }>(
+      `SELECT count(*)::text AS waiting FROM pg_stat_activity
+       WHERE datname = current_database() AND wait_event_type = 'Lock' AND strpos(query, $1) > 0`,
+      [query],
+    );
+    if (Number(result.rows[0]?.waiting) >= expectedCount) return;
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+  throw new Error(`timed out waiting for PostgreSQL lock state: ${query}`);
+}
+
+async function runWithForwardBodyBarrier(
+  database: Client,
+  config: ReturnType<typeof disposableDatabaseConfig>,
+  forwardPath: string,
+  secondPath: string,
+  barrierId: number,
+): Promise<{ results: { code: number; output: string }[]; messages: string[] }> {
+  const bodyBarrierQuery = `SELECT pg_advisory_xact_lock(${BODY_BARRIER_NAMESPACE}, ${barrierId})`;
+  const messages: string[] = [];
+  const log = vi.spyOn(console, "log").mockImplementation((...values) => messages.push(format(...values)));
+  const error = vi.spyOn(console, "error").mockImplementation((...values) => messages.push(format(...values)));
+  const runs: Array<Promise<{ code: number; output: string }>> = [];
+  let barrierHeld = false;
+
+  try {
+    await database.query("SELECT pg_advisory_lock($1, $2)", [BODY_BARRIER_NAMESPACE, barrierId]);
+    barrierHeld = true;
+    runs.push(runFix(forwardPath, config, APPLY_OPTIONS, false));
+    await waitForLockWait(database, bodyBarrierQuery);
+    runs.push(runFix(secondPath, config, APPLY_OPTIONS, false));
+    await waitForLockWait(database, PAIR_LOCK_QUERY);
+  } finally {
+    try {
+      if (barrierHeld) {
+        await withTimeout(
+          database.query("SELECT pg_advisory_unlock($1, $2)", [BODY_BARRIER_NAMESPACE, barrierId]),
+          CLEANUP_TIMEOUT_MS,
+          "data-fix body barrier release timed out",
+        );
+      }
+    } finally {
+      try {
+        await withTimeout(Promise.allSettled(runs), CLEANUP_TIMEOUT_MS, "data-fix concurrent runs did not finish");
+      } finally {
+        log.mockRestore();
+        error.mockRestore();
+      }
+    }
+  }
+
+  return { results: await Promise.all(runs), messages };
+}
+
+function assertApplicationHistoryDelta(before: IntegrationState, after: IntegrationState, ...expectedValues: boolean[]): void {
+  assert.equal(after.applicationHistory.length, before.applicationHistory.length + expectedValues.length);
   assert.deepEqual(after.applicationHistory.slice(0, before.applicationHistory.length), before.applicationHistory);
-  assert.deepEqual(after.applicationHistory.at(-1), {
-    revision_id: after.applicationHistory.at(-1)?.revision_id,
-    revision_type: "U",
-    is_migrated_from_pmda: expectedValue,
+  expectedValues.forEach((expectedValue, index) => {
+    const revision = after.applicationHistory[before.applicationHistory.length + index];
+    assert.deepEqual(revision, {
+      revision_id: revision.revision_id,
+      revision_type: "U",
+      is_migrated_from_pmda: expectedValue,
+    });
   });
 }
 
@@ -237,8 +303,9 @@ describe("data-fix disposable PostgreSQL integration", () => {
   const writePair = (forwardBody: string, reverseBody = body(scope.applicationId, false)) =>
     writeFixPair(temporaryDirectory, scope, requiredMigration, forwardBody, reverseBody);
 
-  test("dry-runs, applies, retries, and reverses one persisted fix", async () => {
-    const fixtures = await writePair(body(scope.applicationId, true));
+  test("dry-runs, concurrently applies, retries, and reverses one persisted fix", async () => {
+    const barrierId = Number.parseInt(scope.applicationId.replaceAll("-", "").slice(0, 7), 16);
+    const fixtures = await writePair(body(scope.applicationId, true, barrierId));
     const before = await integrationState(database, scope);
 
     const dryRun = await runFix(fixtures.forwardPath, config, { apply: false });
@@ -246,19 +313,20 @@ describe("data-fix disposable PostgreSQL integration", () => {
     assert.match(dryRun.output, /dry run rolled back:/);
     assert.deepEqual(await integrationState(database, scope), before);
 
-    const apply = await runFix(fixtures.forwardPath, config, APPLY_OPTIONS);
-    assert.equal(apply.code, 0, apply.output);
-    assert.match(apply.output, /applied:/);
+    const { results, messages } = await runWithForwardBodyBarrier(
+      database, config, fixtures.forwardPath, fixtures.forwardPath, barrierId,
+    );
+    const [applyResult, retryResult] = results;
+    assert.equal(applyResult.code, 0, applyResult.output);
+    assert.equal(retryResult.code, 0, retryResult.output);
+    assert.equal(messages.filter((message) => message.startsWith("applied:")).length, 1);
+    assert.equal(messages.filter((message) => message.startsWith("already applied:")).length, 1);
+    assert.deepEqual(messages.filter((message) => message.startsWith("data fix failed")), []);
     const committed = await integrationState(database, scope);
     assert.equal(committed.application?.is_migrated_from_pmda, true);
     assertApplicationHistoryDelta(before, committed, true);
     assert.equal(committed.ledger.length, 1);
     assertLedgerRow(committed, scope.forwardFileName, fixtures.forwardSql, scope.reverseFileName, null);
-
-    const retry = await runFix(fixtures.forwardPath, config, APPLY_OPTIONS);
-    assert.equal(retry.code, 0, retry.output);
-    assert.match(retry.output, /already applied:/);
-    assert.deepEqual(await integrationState(database, scope), committed);
 
     const reverse = await runFix(join(temporaryDirectory, scope.reverseFileName), config, APPLY_OPTIONS);
     assert.equal(reverse.code, 0, reverse.output);
@@ -269,6 +337,61 @@ describe("data-fix disposable PostgreSQL integration", () => {
     assert.equal(reversed.ledger.length, 2);
     assertLedgerRow(reversed, scope.forwardFileName, fixtures.forwardSql, scope.reverseFileName, null);
     assertLedgerRow(reversed, scope.reverseFileName, fixtures.reverseSql, null, scope.forwardFileName);
+  });
+
+  test("waits for the forward commit before applying its reversal", async () => {
+    const barrierId = Number.parseInt(scope.applicationId.replaceAll("-", "").slice(0, 7), 16);
+    const fixtures = await writePair(body(scope.applicationId, true, barrierId));
+    const before = await integrationState(database, scope);
+    const { results } = await runWithForwardBodyBarrier(
+      database, config, fixtures.forwardPath, join(temporaryDirectory, scope.reverseFileName), barrierId,
+    );
+    const [forwardResult, reverseResult] = results;
+    assert.equal(forwardResult.code, 0, forwardResult.output);
+    assert.equal(reverseResult.code, 0, reverseResult.output);
+    const after = await integrationState(database, scope);
+    assert.equal(after.application?.is_migrated_from_pmda, false);
+    assertApplicationHistoryDelta(before, after, true, false);
+    assert.equal(after.ledger.length, 2);
+    assertLedgerRow(after, scope.forwardFileName, fixtures.forwardSql, scope.reverseFileName, null);
+    assertLedgerRow(after, scope.reverseFileName, fixtures.reverseSql, null, scope.forwardFileName);
+  });
+
+  test("refuses reversal after the forward body rolls back in both modes", async () => {
+    const failingBody = `CREATE TEMPORARY TABLE data_fix_result (rows_affected integer);
+INSERT INTO pg_temp.data_fix_result VALUES (1);
+SELECT 1 / 0 AS evidence_count;
+`;
+    const fixtures = await writePair(failingBody, failingBody);
+    const before = await integrationState(database, scope);
+
+    const failedForward = await runFix(fixtures.forwardPath, config, APPLY_OPTIONS);
+    assert.equal(failedForward.code, 1);
+    assert.match(failedForward.output, /data fix failed during fix body/);
+    assert.deepEqual(await integrationState(database, scope), before);
+
+    for (const options of [{ apply: false } as const, APPLY_OPTIONS]) {
+      const reverse = await runFix(join(temporaryDirectory, scope.reverseFileName), config, options);
+      assert.equal(reverse.code, 1);
+      assert.match(reverse.output, /matching forward data fix/);
+      assert.doesNotMatch(reverse.output, /data fix failed during fix body/);
+      assert.deepEqual(await integrationState(database, scope), before);
+    }
+  });
+
+  test("refuses a reversal when the pair lock deadline expires", async () => {
+    await writePair(body(scope.applicationId, true));
+    const before = await integrationState(database, scope);
+    await database.query(PAIR_LOCK_SESSION_QUERY, [scope.forwardFileName]);
+    try {
+      const reverse = await runFix(join(temporaryDirectory, scope.reverseFileName), config, APPLY_OPTIONS);
+      assert.equal(reverse.code, 1);
+      assert.match(reverse.output, /data-fix pair is locked; retry after the current run completes/);
+      assert.doesNotMatch(reverse.output, /55P03|postgresql:\/\//i);
+      assert.deepEqual(await integrationState(database, scope), before);
+    } finally {
+      await database.query(PAIR_UNLOCK_SESSION_QUERY, [scope.forwardFileName]);
+    }
   });
 
   test("checks the exact demonstration guard and rolls back a redacted runner failure", async () => {

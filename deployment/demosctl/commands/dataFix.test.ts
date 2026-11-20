@@ -198,6 +198,7 @@ describe("dataFix", () => {
   let normalQuery: (query: string) => Promise<unknown>;
 
   const fixPath = () => path.join(tempDir, DEMOSCTL_FIX);
+  const reversePath = () => path.join(tempDir, DEMOSCTL_REVERSE);
   const writeFix = (content: string) => fs.writeFileSync(fixPath(), content);
   const statements = () => vi.mocked(client.query).mock.calls.map(([query]) => query);
   const expectQueryOrder = (...queries: (string | RegExp)[]) => {
@@ -211,7 +212,9 @@ describe("dataFix", () => {
       previousIndex = index;
     }
   };
-  const run = (options: Parameters<typeof dataFix>[2] = { apply: false }) => dataFix("dev", fixPath(), options, client);
+  const runFile = (filePath: string, options: Parameters<typeof dataFix>[2] = { apply: false }) =>
+    dataFix("dev", filePath, options, client);
+  const run = (options: Parameters<typeof dataFix>[2] = { apply: false }) => runFile(fixPath(), options);
   const checksum = () => createHash("sha256").update(sql).digest("hex");
   const mockQuery = (implementation: (query: string) => Promise<unknown>) => {
     client.query = vi.fn(implementation) as unknown as typeof client.query;
@@ -269,8 +272,13 @@ describe("dataFix", () => {
     expect(await run()).toEqual(0);
     expectQueryOrder(
       /_prisma_migrations/,
-      /SELECT checksum/,
       "BEGIN",
+      "SET TRANSACTION ISOLATION LEVEL READ COMMITTED",
+      "SET LOCAL lock_timeout = '5s'",
+      /pg_advisory_xact_lock/,
+      /SELECT checksum/,
+      "SET LOCAL statement_timeout = '30s'",
+      "SET LOCAL idle_in_transaction_session_timeout = '30s'",
       "SET LOCAL ROLE demos_data_fix",
       sql,
       "SELECT rows_affected FROM pg_temp.data_fix_result",
@@ -279,13 +287,8 @@ describe("dataFix", () => {
       "RESET ROLE",
       "ROLLBACK",
     );
-    for (const timeout of [
-      "SET LOCAL lock_timeout = '5s'",
-      "SET LOCAL statement_timeout = '30s'",
-      "SET LOCAL idle_in_transaction_session_timeout = '30s'",
-    ]) {
-      expectQueryOrder("BEGIN", timeout, "SET LOCAL ROLE demos_data_fix");
-    }
+    expect(vi.mocked(client.query).mock.calls.find(([query]) => typeof query === "string" && query.includes("pg_advisory_xact_lock"))?.[1])
+      .toEqual([DEMOSCTL_FIX]);
     expect(statements()).not.toContain("COMMIT");
     expect(client.query).not.toHaveBeenCalledWith(expect.stringContaining("INSERT INTO demos_app.data_fix_log"), expect.any(Array));
     expect(vi.mocked(client.query).mock.calls.find(([query]) => query === sql)).toEqual([sql]);
@@ -334,11 +337,57 @@ describe("dataFix", () => {
     expect(client.query).toHaveBeenCalledWith(expect.stringContaining("_prisma_migrations"), [migration]);
   });
 
-  test("should refuse a checksum change", async () => {
-    vi.mocked(client.query).mockResolvedValueOnce({ rows: [{}] } as never).mockResolvedValueOnce({ rows: [{ checksum: "different" }] } as never);
+  test.each([
+    { outcome: "matching", checksum: () => checksum(), options: applyOptions, code: 0 },
+    { outcome: "changed", checksum: () => "different", options: { apply: false }, code: 1 },
+  ])("should resolve an $outcome checksum after taking the pair lock", async ({ outcome, checksum: currentChecksum, options, code }) => {
+    mockQuery((query) => {
+      if (query.startsWith("SELECT checksum")) return Promise.resolve({ rows: [{ checksum: currentChecksum() }] });
+      return normalQuery(query);
+    });
+
+    expect(await run(options)).toEqual(code);
+
+    expectQueryOrder("BEGIN", /pg_advisory_xact_lock/, /SELECT checksum/, "ROLLBACK");
+    expect(statements()).not.toContain(sql);
+    expect(statements()).not.toContain("COMMIT");
+    if (outcome === "matching") {
+      expect(console.log).toHaveBeenCalledWith("already applied:", DEMOSCTL_FIX);
+      expect(console.error).not.toHaveBeenCalled();
+    } else {
+      expect(console.error).toHaveBeenCalledWith(expect.stringContaining("different checksum"));
+      expect(console.log).not.toHaveBeenCalledWith("already applied:", DEMOSCTL_FIX);
+    }
+  });
+
+  test("should refuse a reversal whose forward ledger row links another reversal", async () => {
+    mockQuery((query) => {
+      if (query.startsWith("SELECT checksum")) return Promise.resolve({ rows: [] });
+      if (query.startsWith("SELECT reverse_file")) return Promise.resolve({ rows: [{ reverse_file: "other-reversal.sql" }] });
+      return normalQuery(query);
+    });
+
+    expect(await runFile(reversePath(), applyOptions)).toEqual(1);
+
+    expect(console.error).toHaveBeenCalledWith(expect.stringContaining("matching forward data fix"));
+    expect(statements()).not.toContain(reverseSql);
+    expect(statements()).not.toContain("SET LOCAL ROLE demos_data_fix");
+    expect(statements()).not.toContain("COMMIT");
+    expectQueryOrder("BEGIN", /pg_advisory_xact_lock/, /SELECT checksum/, /SELECT reverse_file/, "ROLLBACK");
+    expect(client.query).toHaveBeenCalledWith(expect.stringMatching(/pg_advisory_xact_lock/), [DEMOSCTL_FIX]);
+  });
+
+  test("should report pair-lock timeouts as a safe retryable refusal", async () => {
+    mockQuery((query) => query.includes("pg_advisory_xact_lock")
+      ? Promise.reject(Object.assign(new Error("lock detail must not be printed"), { code: "55P03" }))
+      : normalQuery(query));
+
     expect(await run()).toEqual(1);
-    expect(console.error).toHaveBeenCalledWith(expect.stringContaining("different checksum"));
-    expect(statements()).not.toContain("BEGIN");
+
+    expect(console.error).toHaveBeenCalledExactlyOnceWith("data-fix pair is locked; retry after the current run completes");
+    expectQueryOrder("BEGIN", /pg_advisory_xact_lock/, "ROLLBACK");
+    expect(statements()).not.toContain(sql);
+    expect(console.error).not.toHaveBeenCalledWith(expect.stringContaining("lock detail"));
   });
 
   test.each([

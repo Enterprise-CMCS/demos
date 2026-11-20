@@ -97,6 +97,7 @@ type DataFixPhase =
   | "validation"
   | "database connection"
   | "schema gate"
+  | "pair lock"
   | "ledger check"
   | "transaction setup"
   | "fix body"
@@ -112,6 +113,9 @@ type DataFixState = {
 };
 
 class DataFixError extends Error {}
+
+const DATA_FIX_PAIR_LOCK_QUERY =
+  "SELECT pg_advisory_xact_lock(hashtextextended(current_database() || ':demos-data-fix:' || $1, 0))";
 
 function readHeader(sql: string): DataFixHeader {
   try {
@@ -229,6 +233,20 @@ export async function dataFix(environment: string, file: string, opts: DataFixOp
     await client.connect();
     state.phase = "schema gate";
     await checkSchemaGate(client, header.requiresMigration!, environment);
+    state.phase = "transaction setup";
+    await client.query("BEGIN");
+    state.inTransaction = true;
+    await client.query("SET TRANSACTION ISOLATION LEVEL READ COMMITTED");
+    await client.query("SET LOCAL lock_timeout = '5s'");
+    state.phase = "pair lock";
+    try {
+      await client.query(DATA_FIX_PAIR_LOCK_QUERY, [header.reverses ?? fileName]);
+    } catch (error) {
+      if (typeof error === "object" && error !== null && "code" in error && error.code === "55P03") {
+        throw new DataFixError("data-fix pair is locked; retry after the current run completes");
+      }
+      throw error;
+    }
     state.phase = "ledger check";
     const existing = await client.query<{ checksum: string }>(
       "SELECT checksum FROM demos_app.data_fix_log WHERE file_name = $1", [fileName],
@@ -237,12 +255,19 @@ export async function dataFix(environment: string, file: string, opts: DataFixOp
       if (existing.rows[0].checksum !== checksum) {
         throw new DataFixError(`${fileName} was already applied with a different checksum`);
       }
+      state.phase = "rollback";
+      await client.query("ROLLBACK");
+      state.inTransaction = false;
       console.log("already applied:", fileName);
     } else {
-      state.phase = "transaction setup";
-      await client.query("BEGIN");
-      state.inTransaction = true;
-      await client.query("SET LOCAL lock_timeout = '5s'");
+      if (header.reverses) {
+        const forward = await client.query<{ reverse_file: string | null }>(
+          "SELECT reverse_file FROM demos_app.data_fix_log WHERE file_name = $1", [header.reverses],
+        );
+        if (forward.rows[0]?.reverse_file !== fileName) {
+          throw new DataFixError(`reversal requires matching forward data fix ${header.reverses} to be applied first`);
+        }
+      }
       await client.query("SET LOCAL statement_timeout = '30s'");
       await client.query("SET LOCAL idle_in_transaction_session_timeout = '30s'");
       await client.query("SET LOCAL ROLE demos_data_fix");
