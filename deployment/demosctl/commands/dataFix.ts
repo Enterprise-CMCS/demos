@@ -95,6 +95,7 @@ type DataFixOptions = {
   appliedBy?: string;
   gitCommit?: string;
   buildUrl?: string;
+  ciResultFile?: string;
 };
 
 type DataFixPhase =
@@ -108,16 +109,29 @@ type DataFixPhase =
   | "deferred constraints"
   | "ledger insert"
   | "commit"
-  | "rollback";
+  | "rollback"
+  | "connection close";
+
+type DataFixOutcome = "rolled-back" | "no-op" | "committed" | "failed" | "unknown";
+type DataFixRollbackStatus = "not-started" | "acknowledged" | "failed" | "unconfirmed";
+type DataFixCleanupStatus = "not-needed" | "succeeded" | "failed";
 
 type DataFixState = {
   phase: DataFixPhase;
   connectionAttempted: boolean;
   inTransaction: boolean;
   connectionLost: boolean;
+  outcome: DataFixOutcome;
+  rowsAffected: number | null;
+  failurePhase: DataFixPhase | null;
+  rollbackStatus: DataFixRollbackStatus;
+  cleanupStatus: DataFixCleanupStatus;
 };
 
 class DataFixError extends Error {}
+
+const DATA_FIX_CI_ENVIRONMENTS = new Set(["dev", "test", "impl", "prod"]);
+const DATA_FIX_CI_FILENAME = /^\d{8}_DEMOS-\d+_[a-z0-9_]+\.sql$/;
 
 const DATA_FIX_PAIR_LOCK_QUERY =
   "SELECT pg_advisory_xact_lock(hashtextextended(current_database() || ':demos-data-fix:' || $1, 0))";
@@ -230,18 +244,48 @@ async function checkSchemaGate(client: Client, requiresMigration: string, enviro
 
 export async function dataFix(environment: string, file: string, opts: DataFixOptions, injectedClient?: Client): Promise<number> {
   let client = injectedClient;
-  const state: DataFixState = { phase: "validation", connectionAttempted: false, inTransaction: false, connectionLost: false };
+  const fileName = path.basename(file);
+  const state: DataFixState = {
+    phase: "validation",
+    connectionAttempted: false,
+    inTransaction: false,
+    connectionLost: false,
+    outcome: "failed",
+    rowsAffected: null,
+    failurePhase: null,
+    rollbackStatus: "not-started",
+    cleanupStatus: "not-needed",
+  };
   let exitCode = 1;
+  let ciResultDescriptor: number | undefined;
   const notices: string[] = [];
   const onNotice = (notice: { message?: string }) => notices.push(notice.message ?? "");
   const onClientError = () => { state.connectionLost = true; };
   const printNotices = () => notices.splice(0).forEach((notice) => console.log("notice:", notice));
+
+  if (opts.ciResultFile !== undefined) {
+    if (!path.isAbsolute(opts.ciResultFile) || opts.ciResultFile.length > 4096) {
+      console.error("invalid data-fix CI result destination");
+      return 1;
+    }
+    if (!DATA_FIX_CI_ENVIRONMENTS.has(environment) || !DATA_FIX_CI_FILENAME.test(fileName)) {
+      console.error("invalid data-fix CI request");
+      return 1;
+    }
+    try {
+      ciResultDescriptor = fs.openSync(opts.ciResultFile, "wx", 0o600);
+    } catch {
+      console.error("unable to create data-fix CI result");
+      return 1;
+    }
+  }
+
   try {
     if (opts.apply && ![opts.approvedBy, opts.appliedBy, opts.gitCommit, opts.buildUrl].every((value) => value?.trim())) {
       throw new DataFixError("apply only runs from Jenkins");
     }
     const filePath = path.basename(file) === file ? path.join(DEFAULT_FIX_DIR, file) : path.resolve(file);
-    const { sql, header, fileName, checksum } = await validateFix(environment, filePath);
+    const { sql, header, checksum } = await validateFix(environment, filePath);
 
     state.phase = "database connection";
     client ??= await createDataFixClient(environment);
@@ -276,6 +320,9 @@ export async function dataFix(environment: string, file: string, opts: DataFixOp
       state.phase = "rollback";
       await client.query("ROLLBACK");
       state.inTransaction = false;
+      state.outcome = "no-op";
+      state.rowsAffected = 0;
+      state.rollbackStatus = "acknowledged";
       console.log("already applied:", fileName);
     } else {
       if (header.reverses) {
@@ -313,9 +360,10 @@ export async function dataFix(environment: string, file: string, opts: DataFixOp
       }
       const result = await client.query<{ rows_affected: unknown }>("SELECT rows_affected FROM pg_temp.data_fix_result");
       const rowsAffected = result.rows[0]?.rows_affected;
-      if (result.rows.length !== 1 || typeof rowsAffected !== "number" || !Number.isSafeInteger(rowsAffected)) {
+      if (result.rows.length !== 1 || typeof rowsAffected !== "number" || !Number.isSafeInteger(rowsAffected) || rowsAffected < 0) {
         throw new DataFixError("data_fix_result must contain exactly one integer rows_affected");
       }
+      state.rowsAffected = rowsAffected;
       if (rowsAffected !== header.expectedRows) {
         throw new DataFixError(`row count mismatch: expected ${header.expectedRows}, got ${rowsAffected}`);
       }
@@ -340,24 +388,37 @@ export async function dataFix(environment: string, file: string, opts: DataFixOp
         );
         state.phase = "commit";
         await client.query("COMMIT");
+        state.outcome = "committed";
+        state.inTransaction = false;
         console.log("applied:", fileName);
       } else {
         state.phase = "rollback";
         await client.query("ROLLBACK");
+        state.rollbackStatus = "acknowledged";
+        state.outcome = "rolled-back";
+        state.inTransaction = false;
         console.log("dry run rolled back:", fileName);
       }
-      state.inTransaction = false;
     }
     exitCode = 0;
   } catch (error) {
     // Database errors can include row values or credentials; only our own errors are safe to print.
     console.error(error instanceof DataFixError ? error.message : `data fix failed during ${state.phase}`);
+    state.failurePhase = state.phase;
+    if (opts.apply && state.phase === "commit" && state.outcome !== "committed") {
+      state.outcome = "unknown";
+    }
     if (state.inTransaction && client && !state.connectionLost) {
       try {
         await client.query("ROLLBACK");
+        state.inTransaction = false;
+        state.rollbackStatus = "acknowledged";
       } catch {
+        state.rollbackStatus = "failed";
         console.error("rollback failed; closing database connection");
       }
+    } else if (state.inTransaction && state.connectionLost) {
+      state.rollbackStatus = "unconfirmed";
     }
   } finally {
     printNotices();
@@ -365,11 +426,40 @@ export async function dataFix(environment: string, file: string, opts: DataFixOp
       client.removeListener("notice", onNotice);
       try {
         await client.end();
+        state.cleanupStatus = "succeeded";
       } catch {
+        state.cleanupStatus = "failed";
+        state.failurePhase ??= "connection close";
         console.error("failed to close database connection");
         exitCode = 1;
       } finally {
         client.removeListener("error", onClientError);
+      }
+    }
+    if (ciResultDescriptor !== undefined) {
+      const result = {
+        version: 1,
+        environment,
+        filename: fileName,
+        mode: opts.apply ? "apply" : "dry-run",
+        outcome: state.outcome,
+        rowsAffected: state.rowsAffected,
+        failurePhase: state.failurePhase,
+        rollbackStatus: state.rollbackStatus,
+        cleanupStatus: state.cleanupStatus,
+      };
+      try {
+        fs.writeFileSync(ciResultDescriptor, JSON.stringify(result));
+        fs.fsyncSync(ciResultDescriptor);
+      } catch {
+        console.error("unable to write data-fix CI result");
+        exitCode = 1;
+      }
+      try {
+        fs.closeSync(ciResultDescriptor);
+      } catch {
+        console.error("unable to close data-fix CI result");
+        exitCode = 1;
       }
     }
   }

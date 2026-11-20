@@ -102,9 +102,10 @@ describe("demosctl root", () => {
   });
 
   test.each([
-    { mode: "dry run", apply: false, exitCode: 0 },
-    { mode: "apply", apply: true, exitCode: 1 },
-  ])("should route a $mode and return exit code $exitCode", async ({ apply, exitCode }) => {
+    { mode: "dry run", apply: false, exitCode: 0, ciResultFile: undefined },
+    { mode: "apply", apply: true, exitCode: 1, ciResultFile: "/workspace/.data-fix-result.json" },
+  ])("should pass Jenkins metadata with apply=$apply and return exit code $exitCode", async ({ apply, exitCode, ciResultFile }) => {
+    vi.stubEnv("DATA_FIX_RESULT_FILE", ciResultFile);
     vi.stubEnv("APPROVED_BY", "test-approver");
     vi.stubEnv("APPLIED_BY", "test-user");
     vi.stubEnv("GIT_COMMIT", "test-commit");
@@ -115,6 +116,7 @@ describe("demosctl root", () => {
     expect(dataFix).toHaveBeenCalledExactlyOnceWith("dev", "example.sql", {
       apply, approvedBy: "test-approver", appliedBy: "test-user",
       gitCommit: "test-commit", buildUrl: "https://example.invalid/build/1",
+      ...(ciResultFile ? { ciResultFile } : {}),
     });
     expect(dataFixLint).not.toHaveBeenCalled();
   });

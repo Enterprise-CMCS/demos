@@ -53,6 +53,7 @@ export async function main(): Promise<number | null> {
         appliedBy: process.env.APPLIED_BY,
         gitCommit: process.env.GIT_COMMIT,
         buildUrl: process.env.BUILD_URL,
+        ...(process.env.DATA_FIX_RESULT_FILE ? { ciResultFile: process.env.DATA_FIX_RESULT_FILE } : {}),
       });
     }
     case "data-fix:lint":

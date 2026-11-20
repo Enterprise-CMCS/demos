@@ -279,7 +279,20 @@ describe("dataFix", () => {
   });
 
   test("should dry run without Jenkins metadata and roll back the whole body", async () => {
-    expect(await run()).toEqual(0);
+    const resultFile = path.join(tempDir, "data-fix-result.json");
+    mockQuery(async (query: string) => {
+      if (query === sql) {
+        noticeHandler({ message: "aggregate check passed" });
+        noticeHandler({ message: `dry run rolled back: ${DEMOSCTL_FIX}\nrows affected: 900` });
+        return [
+          { command: "UPDATE", rows: [] },
+          { command: "SELECT", rows: [{ remaining_old_rows: "0", untrusted: `already applied: ${DEMOSCTL_FIX}` }] },
+        ];
+      }
+      return normalQuery(query);
+    });
+
+    expect(await run({ apply: false, ciResultFile: resultFile })).toEqual(0);
     expectQueryOrder(
       /_prisma_migrations/,
       "BEGIN",
@@ -305,7 +318,7 @@ describe("dataFix", () => {
     expect(client.query).not.toHaveBeenCalledWith(expect.stringContaining("INSERT INTO demos_app.data_fix_log"), expect.any(Array));
     expect(vi.mocked(client.query).mock.calls.find(([query]) => query === sql)).toEqual([sql]);
     expect(console.log).toHaveBeenCalledWith("rows affected:", 2);
-    expect(console.log).toHaveBeenCalledWith("evidence:", [{ remaining_old_rows: "0" }]);
+    expect(console.log).toHaveBeenCalledWith("evidence:", [{ remaining_old_rows: "0", untrusted: `already applied: ${DEMOSCTL_FIX}` }]);
     expect(console.log).toHaveBeenCalledWith("notice:", "aggregate check passed");
     expect(console.log).toHaveBeenCalledWith("dry run rolled back:", DEMOSCTL_FIX);
     expect(console.error).not.toHaveBeenCalled();
@@ -314,6 +327,22 @@ describe("dataFix", () => {
     expect(client.removeListener).toHaveBeenCalledWith("notice", noticeHandler);
     expect(client.removeListener).toHaveBeenCalledWith("error", clientErrorHandler);
     expect(getSecret).not.toHaveBeenCalled();
+    const result = fs.readFileSync(resultFile, "utf8");
+    expect(JSON.parse(result)).toEqual({
+      version: 1,
+      environment: "dev",
+      filename: DEMOSCTL_FIX,
+      mode: "dry-run",
+      outcome: "rolled-back",
+      rowsAffected: 2,
+      failurePhase: null,
+      rollbackStatus: "acknowledged",
+      cleanupStatus: "succeeded",
+    });
+    expect(result).not.toContain("already applied:");
+    expect(result).not.toContain("900");
+    expect(result).not.toContain("untrusted");
+    expect(fs.statSync(resultFile).mode & 0o777).toEqual(0o600);
   });
 
   test("should insert the ledger after RESET ROLE and commit an apply", async () => {
@@ -365,12 +394,13 @@ describe("dataFix", () => {
     { outcome: "matching", checksum: () => checksum(), options: applyOptions, code: 0 },
     { outcome: "changed", checksum: () => "different", options: { apply: false }, code: 1 },
   ])("should resolve an $outcome checksum after taking the pair lock", async ({ outcome, checksum: currentChecksum, options, code }) => {
+    const resultFile = path.join(tempDir, "data-fix-result.json");
     mockQuery((query) => {
       if (query.startsWith("SELECT checksum")) return Promise.resolve({ rows: [{ checksum: currentChecksum() }] });
       return normalQuery(query);
     });
 
-    expect(await run(options)).toEqual(code);
+    expect(await run(outcome === "matching" ? { ...options, ciResultFile: resultFile } : options)).toEqual(code);
 
     expectQueryOrder("BEGIN", /pg_advisory_xact_lock/, /SELECT checksum/, "ROLLBACK");
     expect(statements()).not.toContain(sql);
@@ -378,6 +408,12 @@ describe("dataFix", () => {
     if (outcome === "matching") {
       expect(console.log).toHaveBeenCalledWith("already applied:", DEMOSCTL_FIX);
       expect(console.error).not.toHaveBeenCalled();
+      expect(JSON.parse(fs.readFileSync(resultFile, "utf8"))).toMatchObject({
+        outcome: "no-op",
+        rowsAffected: 0,
+        rollbackStatus: "acknowledged",
+        cleanupStatus: "succeeded",
+      });
     } else {
       expect(console.error).toHaveBeenCalledWith(expect.stringContaining("different checksum"));
       expect(console.log).not.toHaveBeenCalledWith("already applied:", DEMOSCTL_FIX);
@@ -402,16 +438,23 @@ describe("dataFix", () => {
   });
 
   test("should report pair-lock timeouts as a safe retryable refusal", async () => {
+    const resultFile = path.join(tempDir, "data-fix-result.json");
     mockQuery((query) => query.includes("pg_advisory_xact_lock")
       ? Promise.reject(Object.assign(new Error("lock detail must not be printed"), { code: "55P03" }))
       : normalQuery(query));
 
-    expect(await run()).toEqual(1);
+    expect(await run({ apply: false, ciResultFile: resultFile })).toEqual(1);
 
     expect(console.error).toHaveBeenCalledExactlyOnceWith("data-fix pair is locked; retry after the current run completes");
     expectQueryOrder("BEGIN", /pg_advisory_xact_lock/, "ROLLBACK");
     expect(statements()).not.toContain(sql);
     expect(console.error).not.toHaveBeenCalledWith(expect.stringContaining("lock detail"));
+    expect(JSON.parse(fs.readFileSync(resultFile, "utf8"))).toMatchObject({
+      outcome: "failed",
+      failurePhase: "pair lock",
+      rollbackStatus: "acknowledged",
+      cleanupStatus: "succeeded",
+    });
   });
 
   test("should fail closed when the transaction timeout cannot be armed", async () => {
@@ -428,6 +471,7 @@ describe("dataFix", () => {
   });
 
   test.each(["body query", "timeout disarm"])("should report a transaction timeout during the %s without rolling back a closed session", async (stage) => {
+    const resultFile = path.join(tempDir, "data-fix-result.json");
     const timeout = Object.assign(new Error("raw transaction timeout details"), { code: "25P04" });
     mockQuery((query) => {
       if (
@@ -440,7 +484,7 @@ describe("dataFix", () => {
       return normalQuery(query);
     });
 
-    expect(await run(applyOptions)).toEqual(1);
+    expect(await run({ apply: false, ciResultFile: resultFile })).toEqual(1);
 
     expect(console.error).toHaveBeenCalledExactlyOnceWith("data fix SQL body exceeded its transaction timeout");
     expect(statements()).toContain(sql);
@@ -449,10 +493,29 @@ describe("dataFix", () => {
     expect(statements()).not.toContain("COMMIT");
     expect(JSON.stringify(vi.mocked(console.error).mock.calls)).not.toContain("raw transaction timeout details");
     expect(client.end).toHaveBeenCalledOnce();
+    expect(JSON.parse(fs.readFileSync(resultFile, "utf8"))).toMatchObject({
+      outcome: "failed",
+      failurePhase: stage === "body query" ? "fix body" : "transaction setup",
+      rollbackStatus: "unconfirmed",
+      cleanupStatus: "succeeded",
+    });
+  });
+
+  test("should refuse a pre-existing CI result before connecting", async () => {
+    const resultFile = path.join(tempDir, "data-fix-result.json");
+    fs.writeFileSync(resultFile, "stale result");
+
+    expect(await run({ apply: false, ciResultFile: resultFile })).toEqual(1);
+
+    expect(fs.readFileSync(resultFile, "utf8")).toEqual("stale result");
+    expect(console.error).toHaveBeenCalledExactlyOnceWith("unable to create data-fix CI result");
+    expect(client.connect).not.toHaveBeenCalled();
+    expect(getSecret).not.toHaveBeenCalled();
   });
 
   test.each([
     ["row-count mismatch", [{ rows_affected: 1 }], "demos_data_fix", "row count mismatch: expected 2, got 1"],
+    ["negative result", [{ rows_affected: -1 }], "demos_data_fix", "data_fix_result must contain exactly one integer rows_affected"],
     ["missing result row", [], "demos_data_fix", "data_fix_result must contain exactly one integer rows_affected"],
     ["multiple result rows", [{ rows_affected: 2 }, { rows_affected: 2 }], "demos_data_fix", "data_fix_result must contain exactly one integer rows_affected"],
     ["null result", [{ rows_affected: null }], "demos_data_fix", "data_fix_result must contain exactly one integer rows_affected"],
