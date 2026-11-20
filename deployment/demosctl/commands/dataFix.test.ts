@@ -38,11 +38,17 @@ describe("dataFixLint", () => {
   });
 
   const writeTempFile = (name: string, content: string) => fs.writeFileSync(path.join(tempDir, name), content);
+  const writeTempFixFile = (directory: string, name: string, content: string) => {
+    const fixDir = path.join(tempDir, directory);
+    fs.mkdirSync(fixDir, { recursive: true });
+    fs.writeFileSync(path.join(fixDir, name), content);
+  };
   const lintTempDir = () => dataFixLint(tempDir, MIGRATIONS_DIR);
 
-  const copyValidFixtures = () => {
+  const copyValidFixtures = (directory = tempDir) => {
+    fs.mkdirSync(directory, { recursive: true });
     for (const file of fs.readdirSync(VALID_DIR)) {
-      fs.copyFileSync(path.join(VALID_DIR, file), path.join(tempDir, file));
+      fs.copyFileSync(path.join(VALID_DIR, file), path.join(directory, file));
     }
   };
 
@@ -55,6 +61,15 @@ describe("dataFixLint", () => {
     const sqlFiles = fs.readdirSync(VALID_DIR).filter((file) => file.endsWith(".sql"));
     expect(await dataFixLint(VALID_DIR, MIGRATIONS_DIR)).toEqual(0);
     expect(console.log).toHaveBeenCalledWith(`data fix lint passed for ${sqlFiles.length} file(s)`);
+    expect(console.error).not.toHaveBeenCalled();
+  });
+
+  test("should lint valid pairs in multiple subdirectories", async () => {
+    copyValidFixtures(path.join(tempDir, "fix-one"));
+    copyValidFixtures(path.join(tempDir, "fix-two"));
+
+    expect(await lintTempDir()).toEqual(0);
+    expect(console.log).toHaveBeenCalledWith("data fix lint passed for 8 file(s)");
     expect(console.error).not.toHaveBeenCalled();
   });
 
@@ -89,6 +104,28 @@ describe("dataFixLint", () => {
     expect(await lintTempDir()).toEqual(1);
     expect(console.error).toHaveBeenCalledWith("invalid.SQL: SQL file names must use the lowercase .sql extension");
     expect(console.error).not.toHaveBeenCalledWith(expect.stringMatching(/^invalid\.SQL: missing header field /));
+  });
+
+  test("should report nested CSV and uppercase SQL files with their relative folder", async () => {
+    writeTempFixFile("named-fix", "mapping.CSV", "id,value\n");
+    writeTempFixFile("named-fix", "invalid.SQL", "");
+
+    expect(await lintTempDir()).toEqual(1);
+    expect(console.error).toHaveBeenCalledWith(
+      "named-fix/invalid.SQL: SQL file names must use the lowercase .sql extension",
+    );
+    expect(console.error).toHaveBeenCalledWith(
+      "named-fix/mapping.CSV: CSV files must not be committed to the data fix folder",
+    );
+  });
+
+  test("should not resolve a forward/reversal pair across subdirectories", async () => {
+    writeTempFixFile("forward", DEMOSCTL_FIX, fs.readFileSync(path.join(VALID_DIR, DEMOSCTL_FIX), "utf8"));
+    writeTempFixFile("reverse", DEMOSCTL_REVERSE, fs.readFileSync(path.join(VALID_DIR, DEMOSCTL_REVERSE), "utf8"));
+
+    expect(await lintTempDir()).toEqual(1);
+    expect(console.error).toHaveBeenCalledWith(`forward/${DEMOSCTL_FIX}: reverse file ${DEMOSCTL_REVERSE} not found`);
+    expect(console.error).toHaveBeenCalledWith(`reverse/${DEMOSCTL_REVERSE}: reverses file ${DEMOSCTL_FIX} not found`);
   });
 
   test.each([

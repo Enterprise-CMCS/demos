@@ -1,9 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
-import { escapeLiteral, type Client, type ClientConfig } from "pg";
+import { escapeLiteral, type Client } from "pg";
+export { disposableDatabaseConfig } from "./dataFix.integrationTarget.js";
 
-const SETUP_COMMAND = "From 03-runner, run `cd server && npm run migrate:deploy`.";
+const SETUP_COMMAND = "Run `bash .devcontainer/run-data-fix-integration.sh` from the repository root (it runs `npm run migrate:deploy`).";
 
 const OWNED_TABLES = [
   "application",
@@ -160,40 +159,6 @@ export function quoteFixtureUuid(value: string): string {
   return escapeLiteral(value);
 }
 
-export function localDatabaseConfig(env: NodeJS.ProcessEnv): ClientConfig {
-  if (env.CURRENT_ENV !== "local") {
-    throw new Error("Data-fix integration requires CURRENT_ENV=local; no database connection was opened.");
-  }
-  const connectionString = env.DATABASE_URL;
-  if (!connectionString) {
-    throw new Error("Data-fix integration requires DATABASE_URL from server/.env; no database connection was opened.");
-  }
-
-  let url: URL;
-  try {
-    url = new URL(connectionString);
-  } catch {
-    throw new Error("Data-fix integration requires a valid local DATABASE_URL; no database connection was opened.");
-  }
-  if (
-    !["postgres:", "postgresql:"].includes(url.protocol) ||
-    url.hostname.toLowerCase() !== "db" ||
-    url.pathname.slice(1) !== "demos" ||
-    url.searchParams.getAll("schema").length !== 1 ||
-    url.searchParams.get("schema") !== "demos_app" ||
-    !url.username ||
-    !url.password
-  ) {
-    throw new Error("Data-fix integration only connects to the configured devcontainer db/demos/demos_app target; no database connection was opened.");
-  }
-
-  return {
-    connectionString,
-    options: "-c search_path=demos_app,public",
-    connectionTimeoutMillis: 5_000,
-  };
-}
-
 export function createRunScope(now = new Date()): RunScope {
   const suffix = randomUUID().replaceAll("-", "").slice(0, 12);
   const date = now.toISOString().slice(0, 10).replaceAll("-", "");
@@ -209,18 +174,6 @@ export function createRunScope(now = new Date()): RunScope {
     forwardFileName,
     reverseFileName,
   };
-}
-
-export async function writeOwnershipManifest(directory: string, scope: RunScope): Promise<string> {
-  await mkdir(directory, { recursive: true });
-  const manifestPath = join(directory, `${scope.suffix}.json`);
-  await writeFile(manifestPath, `${JSON.stringify({
-    applicationId: scope.applicationId,
-    personId: scope.personId,
-    email: scope.email,
-    fileNames: scope.fileNames,
-  }, null, 2)}\n`);
-  return manifestPath;
 }
 
 export async function assertIntegrationPrerequisites(client: Client, requiredMigration: string): Promise<void> {
@@ -634,83 +587,4 @@ export async function ownedSnapshot(client: Client, scope: RunScope): Promise<Ow
     },
     ledger: ledger.rows,
   };
-}
-
-export async function cleanupOwnedGraph(client: Client, scope: RunScope): Promise<void> {
-  await client.query("BEGIN");
-  try {
-    await client.query(
-      "DELETE FROM demos_app.primary_demonstration_role_assignment WHERE demonstration_id = $1 AND person_id = $2",
-      [scope.applicationId, scope.personId],
-    );
-    await client.query(
-      "DELETE FROM demos_app.demonstration_role_assignment WHERE demonstration_id = $1 AND person_id = $2",
-      [scope.applicationId, scope.personId],
-    );
-    await client.query("DELETE FROM demos_app.application_phase WHERE application_id = $1", [scope.applicationId]);
-    await client.query("DELETE FROM demos_app.application_date WHERE application_id = $1", [scope.applicationId]);
-    await client.query("DELETE FROM demos_app.application WHERE id = $1", [scope.applicationId]);
-    await client.query("DELETE FROM demos_app.demonstration WHERE id = $1", [scope.applicationId]);
-    await client.query("DELETE FROM demos_app.person_state WHERE person_id = $1", [scope.personId]);
-    await client.query("DELETE FROM demos_app.person WHERE id = $1 AND email = $2", [scope.personId, scope.email]);
-
-    await client.query("DELETE FROM demos_app.application_date_history WHERE application_id = $1", [scope.applicationId]);
-    await client.query("DELETE FROM demos_app.application_history WHERE id = $1", [scope.applicationId]);
-    await client.query("DELETE FROM demos_app.application_phase_history WHERE application_id = $1", [scope.applicationId]);
-    await client.query("DELETE FROM demos_app.demonstration_history WHERE id = $1", [scope.applicationId]);
-    await client.query(
-      "DELETE FROM demos_app.demonstration_role_assignment_history WHERE demonstration_id = $1 AND person_id = $2",
-      [scope.applicationId, scope.personId],
-    );
-    await client.query("DELETE FROM demos_app.person_history WHERE id = $1", [scope.personId]);
-    await client.query("DELETE FROM demos_app.person_state_history WHERE person_id = $1", [scope.personId]);
-    await client.query(
-      "DELETE FROM demos_app.primary_demonstration_role_assignment_history WHERE demonstration_id = $1 AND person_id = $2",
-      [scope.applicationId, scope.personId],
-    );
-    await client.query("DELETE FROM demos_app.data_fix_log WHERE file_name = ANY($1::text[])", [scope.fileNames]);
-    await client.query("COMMIT");
-  } catch (error) {
-    try {
-      await client.query("ROLLBACK");
-    } catch {
-      // Preserve the initial cleanup failure for the caller's recovery report.
-    }
-    throw error;
-  }
-
-  const remaining = await ownedSnapshot(client, scope);
-  if (Object.values(remaining).some((value) => Array.isArray(value) ? value.length > 0 : Object.values(value).some((rows) => rows.length > 0))) {
-    throw new Error("Owned data-fix integration records remain after cleanup.");
-  }
-}
-
-export async function withOwnedCleanup<T>(
-  run: () => Promise<T>,
-  cleanup: () => Promise<void>,
-  reportCleanupFailure: (error: unknown) => void,
-): Promise<T> {
-  let result: T;
-  let runError: unknown;
-  let runFailed = false;
-  try {
-    result = await run();
-  } catch (error) {
-    runError = error;
-    runFailed = true;
-  }
-
-  try {
-    await cleanup();
-  } catch (error) {
-    reportCleanupFailure(error);
-    if (!runFailed) {
-      throw error;
-    }
-  }
-
-  if (runFailed) {
-    throw runError;
-  }
-  return result!;
 }

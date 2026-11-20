@@ -1,8 +1,4 @@
-// Run from deployment/: npm run test:data-fix:integration
-// Requires a prepared local devcontainer database; it never creates or refreshes database objects.
-// Current coverage includes dry-run, apply/no-op/checksum protection, reversal, and scoped failure/access probes.
-// It does not test bootstrap repeatability or a non-superuser login; owned cleanup never resets sequences.
-// On cleanup failure, use deployment/.data-fix-integration-recovery/ for targeted recovery; forced termination is not covered.
+// Invoked by the opt-in Vitest config after the disposable PostgreSQL instance has been migrated and refreshed.
 import assert from "node:assert/strict";
 import { Console } from "node:console";
 import { createHash } from "node:crypto";
@@ -16,22 +12,17 @@ import { Client } from "pg";
 import {
   assertIntegrationPrerequisites,
   assertRunScopeAvailable,
-  cleanupOwnedGraph,
   createRunScope,
-  localDatabaseConfig,
+  disposableDatabaseConfig,
   ownedSnapshot,
   quoteFixtureUuid,
   seedOwnedGraph,
-  withOwnedCleanup,
-  writeOwnershipManifest,
 } from "./dataFix.integrationSupport.js";
 
 // @ts-expect-error tsx runs this file as ESM; deployment's shared TypeScript config is CommonJS.
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
 const SERVER = join(ROOT, "server");
-const DEPLOYMENT = join(ROOT, "deployment");
 const MIGRATIONS = join(SERVER, "src/model/migrations");
-const RECOVERY_DIRECTORY = join(DEPLOYMENT, ".data-fix-integration-recovery");
 const TICKET = "DEMOS-99999";
 const APPLY_OPTIONS = {
   apply: true,
@@ -102,12 +93,13 @@ async function findRequiredMigration(): Promise<string> {
 
 async function runFix(
   filePath: string,
-  config: ReturnType<typeof localDatabaseConfig>,
+  config: ReturnType<typeof disposableDatabaseConfig>,
   options: DataFixOptions,
 ) {
   const client = new Client(config);
-  const lifecycle = { ended: false };
+  const lifecycle = { ended: false, errored: false };
   client.on("end", () => { lifecycle.ended = true; });
+  client.on("error", () => { lifecycle.errored = true; });
   const originalConsole = globalThis.console;
   const output: string[] = [];
   const stream = new Writable({
@@ -121,6 +113,7 @@ async function runFix(
     const { dataFix } = await import("../dataFix.js");
     const code = await dataFix("dev", filePath, options, client);
     assert.ok(lifecycle.ended, "the real runner must end its injected client");
+    assert.ok(!lifecycle.errored, "the real runner client must not emit a connection error");
     return { code, output: output.join("") };
   } finally {
     globalThis.console = originalConsole;
@@ -156,6 +149,48 @@ async function assertLedgerRow(
   });
 }
 
+type IntegrationSnapshot = Awaited<ReturnType<typeof ownedSnapshot>>;
+
+function assertApplicationHistoryDelta(
+  before: IntegrationSnapshot,
+  after: IntegrationSnapshot,
+  expectedValue: boolean,
+): void {
+  assert.equal(after.history.application.length, before.history.application.length + 1);
+  assert.deepEqual(after.history.application.slice(0, before.history.application.length), before.history.application);
+  const historyRow = after.history.application.at(-1) as {
+    revision_type: string;
+    is_migrated_from_pmda: boolean;
+  } | undefined;
+  assert.ok(historyRow, "data-fix application update should create an application history row");
+  assert.equal(historyRow.revision_type, "U");
+  assert.equal(historyRow.is_migrated_from_pmda, expectedValue);
+
+  for (const table of [
+    "applicationDate",
+    "applicationPhase",
+    "demonstration",
+    "demonstrationRoleAssignment",
+    "person",
+    "personState",
+    "primaryDemonstrationRoleAssignment",
+  ] as const) {
+    assert.deepEqual(after[table], before[table]);
+  }
+
+  for (const historyTable of [
+    "applicationDate",
+    "applicationPhase",
+    "demonstration",
+    "demonstrationRoleAssignment",
+    "person",
+    "personState",
+    "primaryDemonstrationRoleAssignment",
+  ] as const) {
+    assert.deepEqual(after.history[historyTable], before.history[historyTable]);
+  }
+}
+
 type FailureScenario = {
   sql: string;
   expectedMessage: RegExp;
@@ -165,7 +200,7 @@ type FailureScenario = {
 
 async function assertFailureScenario(
   database: Client,
-  config: ReturnType<typeof localDatabaseConfig>,
+  config: ReturnType<typeof disposableDatabaseConfig>,
   scope: ReturnType<typeof createRunScope>,
   requiredMigration: string,
   forwardPath: string,
@@ -216,26 +251,34 @@ async function runOwnedRoleProbe(database: Client, applicationId: string): Promi
   await database.query("ROLLBACK");
 }
 
-async function main(): Promise<void> {
+async function assertDemonstrationGuardTrigger(database: Client, applicationId: string): Promise<void> {
+  await database.query("BEGIN");
+  try {
+    await assert.rejects(
+      database.query("DELETE FROM demos_app.demonstration WHERE id = $1", [applicationId]),
+      /Cannot delete from demos_app\.demonstration table while the corresponding record is in demos_app\.application/,
+    );
+  } finally {
+    await database.query("ROLLBACK");
+  }
+}
+
+export async function runDataFixIntegration(): Promise<void> {
   let database: Client | undefined;
   let connected = false;
   let temporaryDirectory: string | undefined;
   let runError: unknown;
+  let databaseErrored = false;
 
   try {
-    try {
-      process.loadEnvFile(join(SERVER, ".env"));
-    } catch {
-      throw new Error("Unable to load server/.env. Configure the local devcontainer before running this fixture.");
-    }
-
-    const config = localDatabaseConfig(process.env);
+    const config = disposableDatabaseConfig(process.env);
     const requiredMigration = await findRequiredMigration();
     const scope = createRunScope();
     const applicationIdLiteral = quoteFixtureUuid(scope.applicationId);
     const personIdLiteral = quoteFixtureUuid(scope.personId);
     temporaryDirectory = await mkdtemp(join(tmpdir(), "demos-data-fix-it-"));
     database = new Client(config);
+    database.on("error", () => { databaseErrored = true; });
     await database.connect();
     connected = true;
     await assertIntegrationPrerequisites(database, requiredMigration);
@@ -246,215 +289,145 @@ async function main(): Promise<void> {
     await writeFile(forwardPath, fixHeader(requiredMigration, scope.forwardFileName, scope.reverseFileName, false) + body(scope.applicationId, true));
     await writeFile(reversePath, fixHeader(requiredMigration, scope.forwardFileName, scope.reverseFileName, true) + body(scope.applicationId, false));
 
-    let seedAttempted = false;
-    console.log("Using the prepared devcontainer database at db/demos; no connection details are displayed.");
-    await withOwnedCleanup(
-      async () => {
-        seedAttempted = true;
-        await seedOwnedGraph(database!, scope);
-        const before = await ownedSnapshot(database!, scope);
-        assert.equal(before.application.length, 1);
-        assert.equal(before.demonstration.length, 1);
-        assert.equal(before.person.length, 1);
-        assert.ok(before.applicationPhase.length > 0, "application insert trigger should create phases");
-        assert.ok(before.applicationDate.length > 0, "application insert trigger should create the concept start date");
-        assert.ok(before.applicationPhase.some((row) => {
-          const phase = row as { phase_id: string; phase_status_id: string };
-          return phase.phase_id === "Concept" && phase.phase_status_id === "Started";
-        }));
-        assert.ok(before.applicationDate.some((row) => {
-          const date = row as { date_type_id: string };
-          return date.date_type_id === "Concept Start Date";
-        }));
-        assert.equal(before.demonstrationRoleAssignment.length, 1);
-        assert.equal(before.primaryDemonstrationRoleAssignment.length, 1);
-        assert.ok(before.personState.length > 0, "person-state trigger should seed state rows");
-        assert.equal(before.ledger.length, 0, "generated filenames must not exist in the ledger before the run");
+    console.log("Using the disposable PostgreSQL 17 test target; no connection details are displayed.");
+    const runScenarios = async (): Promise<void> => {
+      await seedOwnedGraph(database!, scope);
+      const before = await ownedSnapshot(database!, scope);
+      assert.equal(before.application.length, 1);
+      assert.equal(before.demonstration.length, 1);
+      assert.equal(before.person.length, 1);
+      assert.ok(before.applicationPhase.length > 0, "application insert trigger should create phases");
+      assert.ok(before.applicationDate.length > 0, "application insert trigger should create the concept start date");
+      assert.ok(before.applicationPhase.some((row) => {
+        const phase = row as { phase_id: string; phase_status_id: string };
+        return phase.phase_id === "Concept" && phase.phase_status_id === "Started";
+      }));
+      assert.ok(before.applicationDate.some((row) => {
+        const date = row as { date_type_id: string };
+        return date.date_type_id === "Concept Start Date";
+      }));
+      assert.equal(before.demonstrationRoleAssignment.length, 1);
+      assert.equal(before.primaryDemonstrationRoleAssignment.length, 1);
+      assert.ok(before.personState.length > 0, "person-state trigger should seed state rows");
+      assert.equal(before.ledger.length, 0, "generated filenames must not exist in the ledger before the run");
 
-        await runOwnedRoleProbe(database!, scope.applicationId);
-        assert.deepEqual(await ownedSnapshot(database!, scope), before,
-          "the demos_data_fix owned-row privilege probe must roll back its history and application update");
+      await runOwnedRoleProbe(database!, scope.applicationId);
+      assert.deepEqual(await ownedSnapshot(database!, scope), before,
+        "the demos_data_fix owned-row privilege probe must roll back its history and application update");
+      await assertDemonstrationGuardTrigger(database!, scope.applicationId);
+      assert.deepEqual(await ownedSnapshot(database!, scope), before,
+        "the demonstration guard trigger probe must roll back its transaction");
 
-        const forwardSql = fixHeader(requiredMigration, scope.forwardFileName, scope.reverseFileName, false) + body(scope.applicationId, true);
-        const result = await runFix(forwardPath, config, { apply: false });
-        assert.equal(result.code, 0, result.output);
-        assert.match(result.output, /rows affected:\s*1/);
-        assert.match(result.output, /evidence_count/);
-        assert.match(result.output, /checks_passed/);
-        assert.match(result.output, /integration_notice/);
-        assert.deepEqual(await ownedSnapshot(database!, scope), before,
-          "dry run must roll back only this run's application, history, and ledger state");
-        console.log("PASS real multi-statement dry run returned aggregate evidence and rolled back owned state.");
+      const forwardSql = fixHeader(requiredMigration, scope.forwardFileName, scope.reverseFileName, false) + body(scope.applicationId, true);
+      const result = await runFix(forwardPath, config, { apply: false });
+      assert.equal(result.code, 0, result.output);
+      assert.match(result.output, /rows affected:\s*1/);
+      assert.match(result.output, /evidence_count/);
+      assert.match(result.output, /checks_passed/);
+      assert.match(result.output, /integration_notice/);
+      assert.deepEqual(await ownedSnapshot(database!, scope), before,
+        "dry run must roll back only this run's application, history, and ledger state");
+      console.log("PASS real multi-statement dry run returned aggregate evidence and rolled back owned state.");
 
-        await assertFailureScenario(database!, config, scope, requiredMigration, forwardPath, forwardSql, {
-          sql: body(scope.applicationId, true),
-          expectedRows: 2,
-          expectedMessage: /row count mismatch: expected 2, got 1/,
-        });
-        console.log("PASS row-count mismatch rolled back owned data and history.");
+      await assertFailureScenario(database!, config, scope, requiredMigration, forwardPath, forwardSql, {
+        sql: body(scope.applicationId, true),
+        expectedRows: 2,
+        expectedMessage: /row count mismatch: expected 2, got 1/,
+      });
+      console.log("PASS row-count mismatch rolled back owned data and history.");
 
-        await assertFailureScenario(database!, config, scope, requiredMigration, forwardPath, forwardSql, {
-          sql: `UPDATE demos_app.application SET is_migrated_from_pmda = true WHERE id = ${applicationIdLiteral};
+      await assertFailureScenario(database!, config, scope, requiredMigration, forwardPath, forwardSql, {
+        sql: `UPDATE demos_app.application SET is_migrated_from_pmda = true WHERE id = ${applicationIdLiteral};
 DELETE FROM demos_app.demonstration WHERE id = ${applicationIdLiteral};
 CREATE TEMPORARY TABLE data_fix_result (rows_affected integer);
 INSERT INTO pg_temp.data_fix_result VALUES (1);
 SELECT count(*)::integer AS evidence_count FROM demos_app.application WHERE id = ${applicationIdLiteral};
 `,
-          expectedMessage: /data fix failed during fix body/,
-        });
-        console.log("PASS SQL guard exception was redacted and rolled back owned data and history.");
+        expectedMessage: /data fix failed during fix body/,
+      });
+      console.log("PASS SQL guard exception was redacted and rolled back owned data and history.");
 
-        await assertFailureScenario(database!, config, scope, requiredMigration, forwardPath, forwardSql, {
-          sql: `UPDATE demos_app.application SET is_migrated_from_pmda = true WHERE id = ${applicationIdLiteral};
+      await assertFailureScenario(database!, config, scope, requiredMigration, forwardPath, forwardSql, {
+        sql: `UPDATE demos_app.application SET is_migrated_from_pmda = true WHERE id = ${applicationIdLiteral};
 CREATE TEMPORARY TABLE data_fix_result (rows_affected text);
 INSERT INTO pg_temp.data_fix_result VALUES ('1');
 SELECT count(*)::integer AS evidence_count FROM demos_app.application WHERE id = ${applicationIdLiteral};
 `,
-          expectedMessage: /data_fix_result must contain exactly one integer rows_affected/,
-        });
-        console.log("PASS malformed result was rejected and rolled back owned data and history.");
+        expectedMessage: /data_fix_result must contain exactly one integer rows_affected/,
+      });
+      console.log("PASS malformed result was rejected and rolled back owned data and history.");
 
-        const deferredViolationSql = `DELETE FROM demos_app.primary_demonstration_role_assignment
+      const deferredViolationSql = `DELETE FROM demos_app.primary_demonstration_role_assignment
 WHERE demonstration_id = ${applicationIdLiteral} AND person_id = ${personIdLiteral};
 CREATE TEMPORARY TABLE data_fix_result (rows_affected integer);
 INSERT INTO pg_temp.data_fix_result VALUES (1);
 SELECT count(*)::integer AS evidence_count
 FROM demos_app.demonstration WHERE id = ${applicationIdLiteral};
 `;
-        await assertFailureScenario(database!, config, scope, requiredMigration, forwardPath, forwardSql, {
-          sql: deferredViolationSql,
-          expectedMessage: /data fix failed during deferred constraints/,
-          apply: false,
-        });
-        await assertFailureScenario(database!, config, scope, requiredMigration, forwardPath, forwardSql, {
-          sql: deferredViolationSql,
-          expectedMessage: /data fix failed during deferred constraints/,
-        });
-        console.log("PASS deferred role guard rejected dry-run and apply without exposing database errors.");
+      await assertFailureScenario(database!, config, scope, requiredMigration, forwardPath, forwardSql, {
+        sql: deferredViolationSql,
+        expectedMessage: /data fix failed during deferred constraints/,
+        apply: false,
+      });
+      await assertFailureScenario(database!, config, scope, requiredMigration, forwardPath, forwardSql, {
+        sql: deferredViolationSql,
+        expectedMessage: /data fix failed during deferred constraints/,
+      });
+      console.log("PASS deferred role guard rejected dry-run and apply without exposing database errors.");
 
-        const apply = await runFix(forwardPath, config, APPLY_OPTIONS);
-        assert.equal(apply.code, 0, apply.output);
-        assert.match(apply.output, /applied:/);
-        const committed = await ownedSnapshot(database!, scope);
-        const appliedApplication = committed.application.at(0) as { is_migrated_from_pmda: boolean } | undefined;
-        assert.equal(appliedApplication?.is_migrated_from_pmda, true);
-        assert.equal(committed.ledger.length, 1);
-        await assertLedgerRow(database!, scope.forwardFileName, forwardSql, scope.reverseFileName, null);
-        assert.equal(committed.history.application.length, before.history.application.length + 1);
-        assert.deepEqual(committed.history.application.slice(0, before.history.application.length), before.history.application);
-        const updateHistory = committed.history.application.at(-1) as {
-          revision_type: string;
-          is_migrated_from_pmda: boolean;
-        } | undefined;
-        assert.ok(updateHistory, "apply should create an application history row");
-        assert.equal(updateHistory.revision_type, "U");
-        assert.equal(updateHistory.is_migrated_from_pmda, true);
-        assert.deepEqual(committed.applicationDate, before.applicationDate);
-        assert.deepEqual(committed.applicationPhase, before.applicationPhase);
-        assert.deepEqual(committed.demonstration, before.demonstration);
-        assert.deepEqual(committed.demonstrationRoleAssignment, before.demonstrationRoleAssignment);
-        assert.deepEqual(committed.person, before.person);
-        assert.deepEqual(committed.personState, before.personState);
-        assert.deepEqual(committed.primaryDemonstrationRoleAssignment, before.primaryDemonstrationRoleAssignment);
-        for (const historyTable of [
-          "applicationDate",
-          "applicationPhase",
-          "demonstration",
-          "demonstrationRoleAssignment",
-          "person",
-          "personState",
-          "primaryDemonstrationRoleAssignment",
-        ] as const) {
-          assert.deepEqual(committed.history[historyTable], before.history[historyTable]);
-        }
-        console.log("PASS apply committed the expected value, one history delta, and exact ledger metadata/checksum.");
+      const apply = await runFix(forwardPath, config, APPLY_OPTIONS);
+      assert.equal(apply.code, 0, apply.output);
+      assert.match(apply.output, /applied:/);
+      const committed = await ownedSnapshot(database!, scope);
+      const appliedApplication = committed.application.at(0) as { is_migrated_from_pmda: boolean } | undefined;
+      assert.equal(appliedApplication?.is_migrated_from_pmda, true);
+      assert.equal(committed.ledger.length, 1);
+      await assertLedgerRow(database!, scope.forwardFileName, forwardSql, scope.reverseFileName, null);
+      assertApplicationHistoryDelta(before, committed, true);
+      console.log("PASS apply committed the expected value, one history delta, and exact ledger metadata/checksum.");
 
-        const repeat = await runFix(forwardPath, config, APPLY_OPTIONS);
-        assert.equal(repeat.code, 0, repeat.output);
-        assert.match(repeat.output, /already applied:/);
+      const repeat = await runFix(forwardPath, config, APPLY_OPTIONS);
+      assert.equal(repeat.code, 0, repeat.output);
+      assert.match(repeat.output, /already applied:/);
+      assert.deepEqual(await ownedSnapshot(database!, scope), committed,
+        "an identical repeat must not change owned data, history, or ledger state");
+      console.log("PASS identical repeat is a successful no-op.");
+
+      try {
+        await writeFile(forwardPath, `${forwardSql}\n-- checksum-only change\n`);
+        const conflict = await runFix(forwardPath, config, APPLY_OPTIONS);
+        assert.equal(conflict.code, 1);
+        assert.match(conflict.output, /already applied with a different checksum/i);
         assert.deepEqual(await ownedSnapshot(database!, scope), committed,
-          "an identical repeat must not change owned data, history, or ledger state");
-        console.log("PASS identical repeat is a successful no-op.");
+          "a checksum conflict must not change owned data, history, or ledger state");
+      } finally {
+        await writeFile(forwardPath, forwardSql);
+      }
+      console.log("PASS comment-only checksum conflict was refused without side effects.");
 
-        try {
-          await writeFile(forwardPath, `${forwardSql}\n-- checksum-only change\n`);
-          const conflict = await runFix(forwardPath, config, APPLY_OPTIONS);
-          assert.equal(conflict.code, 1);
-          assert.match(conflict.output, /already applied with a different checksum/i);
-          assert.deepEqual(await ownedSnapshot(database!, scope), committed,
-            "a checksum conflict must not change owned data, history, or ledger state");
-        } finally {
-          await writeFile(forwardPath, forwardSql);
-        }
-        console.log("PASS comment-only checksum conflict was refused without side effects.");
+      const reverseSql = fixHeader(requiredMigration, scope.forwardFileName, scope.reverseFileName, true) + body(scope.applicationId, false);
+      const reverse = await runFix(reversePath, config, APPLY_OPTIONS);
+      assert.equal(reverse.code, 0, reverse.output);
+      assert.match(reverse.output, /applied:/);
+      const reversed = await ownedSnapshot(database!, scope);
+      const restoredApplication = reversed.application.at(0) as { is_migrated_from_pmda: boolean } | undefined;
+      assert.equal(restoredApplication?.is_migrated_from_pmda, false);
+      assert.equal(reversed.ledger.length, 2);
+      await assertLedgerRow(database!, scope.forwardFileName, forwardSql, scope.reverseFileName, null);
+      await assertLedgerRow(database!, scope.reverseFileName, reverseSql, null, scope.forwardFileName);
+      assertApplicationHistoryDelta(committed, reversed, false);
+      console.log("PASS reversal restored the application value and recorded its linked audit row and history delta.");
 
-        const reverseSql = fixHeader(requiredMigration, scope.forwardFileName, scope.reverseFileName, true) + body(scope.applicationId, false);
-        const reverse = await runFix(reversePath, config, APPLY_OPTIONS);
-        assert.equal(reverse.code, 0, reverse.output);
-        assert.match(reverse.output, /applied:/);
-        const reversed = await ownedSnapshot(database!, scope);
-        const restoredApplication = reversed.application.at(0) as { is_migrated_from_pmda: boolean } | undefined;
-        assert.equal(restoredApplication?.is_migrated_from_pmda, false);
-        assert.equal(reversed.ledger.length, 2);
-        await assertLedgerRow(database!, scope.forwardFileName, forwardSql, scope.reverseFileName, null);
-        await assertLedgerRow(database!, scope.reverseFileName, reverseSql, null, scope.forwardFileName);
-        assert.equal(reversed.history.application.length, committed.history.application.length + 1);
-        assert.deepEqual(reversed.history.application.slice(0, committed.history.application.length), committed.history.application);
-        const reverseHistory = reversed.history.application.at(-1) as {
-          revision_type: string;
-          is_migrated_from_pmda: boolean;
-        } | undefined;
-        assert.ok(reverseHistory, "reverse apply should create an application history row");
-        assert.equal(reverseHistory.revision_type, "U");
-        assert.equal(reverseHistory.is_migrated_from_pmda, false);
-        assert.deepEqual(reversed.applicationDate, committed.applicationDate);
-        assert.deepEqual(reversed.applicationPhase, committed.applicationPhase);
-        assert.deepEqual(reversed.demonstration, committed.demonstration);
-        assert.deepEqual(reversed.demonstrationRoleAssignment, committed.demonstrationRoleAssignment);
-        assert.deepEqual(reversed.person, committed.person);
-        assert.deepEqual(reversed.personState, committed.personState);
-        assert.deepEqual(reversed.primaryDemonstrationRoleAssignment, committed.primaryDemonstrationRoleAssignment);
-        for (const historyTable of [
-          "applicationDate",
-          "applicationPhase",
-          "demonstration",
-          "demonstrationRoleAssignment",
-          "person",
-          "personState",
-          "primaryDemonstrationRoleAssignment",
-        ] as const) {
-          assert.deepEqual(reversed.history[historyTable], committed.history[historyTable]);
-        }
-        console.log("PASS reversal restored the application value and recorded its linked audit row and history delta.");
-
-        const forwardAfterReverse = await runFix(forwardPath, config, APPLY_OPTIONS);
-        assert.equal(forwardAfterReverse.code, 0, forwardAfterReverse.output);
-        assert.match(forwardAfterReverse.output, /already applied:/);
-        assert.deepEqual(await ownedSnapshot(database!, scope), reversed,
-          "the original forward fix must remain a no-op after reversal");
-        console.log("PASS the original forward file cannot reapply after reversal.");
-      },
-      async () => {
-        if (!seedAttempted || !database) {
-          return;
-        }
-        try {
-          await cleanupOwnedGraph(database, scope);
-        } catch (error) {
-          let recovery = "ownership manifest could not be saved";
-          try {
-            recovery = `ownership manifest: ${await writeOwnershipManifest(RECOVERY_DIRECTORY, scope)}`;
-          } catch {
-            // Report the non-secret identifiers when the manifest itself cannot be retained.
-            recovery = `recovery IDs: application=${scope.applicationId}, person=${scope.personId}`;
-          }
-          throw new Error(`owned cleanup failed (${error instanceof Error ? error.message : "unknown failure"}); ${recovery}`);
-        }
-      },
-      (error) => console.error(`CLEANUP FAILURE: ${error instanceof Error ? error.message : "unknown cleanup failure"}`),
-    );
-    console.log("PASS owned graph, trigger history, and registered ledger entries are absent after cleanup.");
-    console.log("Integration complete: dry-run, apply, duplicate, checksum, and reversal coverage; sequences are not reset.");
+      const forwardAfterReverse = await runFix(forwardPath, config, APPLY_OPTIONS);
+      assert.equal(forwardAfterReverse.code, 0, forwardAfterReverse.output);
+      assert.match(forwardAfterReverse.output, /already applied:/);
+      assert.deepEqual(await ownedSnapshot(database!, scope), reversed,
+        "the original forward fix must remain a no-op after reversal");
+      console.log("PASS the original forward file cannot reapply after reversal.");
+    };
+    await runScenarios();
+    assert.ok(!databaseErrored, "the integration database client must not emit a connection error");
+    console.log("Integration complete: dry-run, apply, duplicate, checksum, and reversal coverage on disposable PostgreSQL.");
   } catch (error) {
     runError = error;
   } finally {
@@ -481,9 +454,6 @@ FROM demos_app.demonstration WHERE id = ${applicationIdLiteral};
   }
 
   if (runError !== undefined) {
-    console.error(`FAIL: ${runError instanceof Error ? runError.message : "data-fix integration failed"}`);
-    process.exitCode = 1;
+    throw runError;
   }
 }
-
-void main();

@@ -21,7 +21,7 @@
     "synth:dev": "cdk synth --context stage=dev --context db=include --all",
     "test": "vitest --mode test",
     "test:ci": "vitest run --no-color --coverage --coverage.reporter=lcov --reporter=default --reporter=vitest-sonar-reporter --outputFile=coverage/test-results.xml",
-    "test:data-fix:integration": "tsx demosctl/commands/__fixtures__/dataFix.integration.ts",
+    "test:data-fix:integration": "vitest run --config vitest.data-fix.integration.config.ts",
     "tsc": "tsc --noEmit --skipLibCheck",
     "tsc:ci": "tsc --noEmit --skipLibCheck"
   },

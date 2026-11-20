@@ -1,23 +1,46 @@
+import { randomBytes } from "node:crypto";
 import type { Client } from "pg";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 
 import {
   assertIntegrationPrerequisites,
   assertLedgerAccessPolicy,
   assertRunScopeAvailable,
-  cleanupOwnedGraph,
   createRunScope,
-  localDatabaseConfig,
+  disposableDatabaseConfig,
   quoteFixtureUuid,
   seedOwnedGraph,
-  withOwnedCleanup,
-  writeOwnershipManifest,
 } from "./dataFix.integrationSupport.js";
 
 function clientWith(query: ReturnType<typeof vi.fn>) {
   return { query } as unknown as Client;
+}
+
+function createDisposableTarget(password = randomBytes(32).toString("hex")): NodeJS.ProcessEnv {
+  const fields = {
+    host: "data-fix-postgres",
+    port: "5432",
+    database: "data_fix_test_0123456789abcdef",
+    user: "data_fix_user_0123456789abcdef",
+    password,
+  };
+  const databaseUrl = new URL(`postgresql://${fields.host}:${fields.port}/${fields.database}`);
+  databaseUrl.username = fields.user;
+  databaseUrl.password = fields.password;
+  databaseUrl.searchParams.set("schema", "demos_app");
+  databaseUrl.searchParams.set("sslmode", "disable");
+  databaseUrl.searchParams.set("connect_timeout", "5");
+
+  return {
+    DEVCONTAINER: "true",
+    CURRENT_ENV: "local",
+    IS_TEST_MIGRATION: "true",
+    DATA_FIX_TEST_HOST: fields.host,
+    DATA_FIX_TEST_PORT: fields.port,
+    DATA_FIX_TEST_DATABASE: fields.database,
+    DATA_FIX_TEST_USER: fields.user,
+    DATA_FIX_TEST_PASSWORD: fields.password,
+    DATABASE_URL: databaseUrl.toString(),
+  };
 }
 
 describe("data-fix integration support", () => {
@@ -66,28 +89,58 @@ describe("data-fix integration support", () => {
     }
   });
 
-  // Synthetic credentials exercise target validation and redaction only; this test never connects to anything
-  test("accepts only the configured local devcontainer target without printing its credentials", () => {
-    const config = localDatabaseConfig({
-      CURRENT_ENV: "local",
-      DATABASE_URL: "postgresql://devuser:top-secret@db:5432/demos?schema=demos_app&sslmode=disable", // pragma: allowlist secret
-    });
+  // Synthetic credentials exercise target validation and redaction only; this test never connects to anything.
+  test("accepts only the complete per-run disposable target and builds explicit client fields", () => {
+    const target = createDisposableTarget();
+    const invalidPasswordTarget = createDisposableTarget(randomBytes(16).toString("hex"));
+    const config = disposableDatabaseConfig(target);
 
-    expect(config.connectionString).toBe("postgresql://devuser:top-secret@db:5432/demos?schema=demos_app&sslmode=disable"); // pragma: allowlist secret
-    expect(config.options).toContain("search_path=demos_app");
+    expect(config).toMatchObject({
+      host: "data-fix-postgres",
+      port: 5432,
+      database: "data_fix_test_0123456789abcdef",
+      user: "data_fix_user_0123456789abcdef",
+      password: target.DATA_FIX_TEST_PASSWORD,
+      options: "-c search_path=demos_app,public",
+      connectionTimeoutMillis: 5_000,
+    });
+    expect(config).not.toHaveProperty("connectionString");
+
     for (const env of [
       {},
-      { CURRENT_ENV: "local" },
-      { CURRENT_ENV: "dev", DATABASE_URL: "postgresql://devuser:top-secret@db:5432/demos?schema=demos_app" }, // pragma: allowlist secret
-      { CURRENT_ENV: "local", DATABASE_URL: "postgresql://devuser:top-secret@other:5432/demos?schema=demos_app" }, // pragma: allowlist secret
-      { CURRENT_ENV: "local", DATABASE_URL: "postgresql://devuser:top-secret@db:5432/other?schema=demos_app" }, // pragma: allowlist secret
-      { CURRENT_ENV: "local", DATABASE_URL: "postgresql://devuser:top-secret@db:5432/demos?schema=public" }, // pragma: allowlist secret
+      { ...target, DEVCONTAINER: undefined },
+      { ...target, DEVCONTAINER: "false" },
+      { ...target, IS_TEST_MIGRATION: undefined },
+      { ...target, IS_TEST_MIGRATION: "false" },
+      { ...target, DATA_FIX_TEST_HOST: undefined },
+      { ...target, DATA_FIX_TEST_PORT: undefined },
+      { ...target, DATA_FIX_TEST_DATABASE: undefined },
+      { ...target, DATA_FIX_TEST_USER: undefined },
+      { ...target, DATA_FIX_TEST_PASSWORD: undefined },
+      { ...target, DATABASE_URL: undefined },
+      { ...target, DATA_FIX_TEST_HOST: "db" },
+      { ...target, DATA_FIX_TEST_PORT: "5433" },
+      { ...target, DATA_FIX_TEST_DATABASE: "demos" },
+      { ...target, DATA_FIX_TEST_USER: "postgres" },
+      invalidPasswordTarget,
+      { ...target, DATABASE_URL: `${target.DATABASE_URL}&host=db` },
+      { ...target, CURRENT_ENV: "dev" },
     ]) {
-      expect(() => localDatabaseConfig(env)).toThrow(/no database connection was opened/);
+      expect(() => disposableDatabaseConfig(env)).toThrow(/no database connection was opened/);
       try {
-        localDatabaseConfig(env);
+        disposableDatabaseConfig(env);
       } catch (error) {
-        expect((error as Error).message).not.toContain("top-secret");
+        const message = (error as Error).message;
+        for (const sensitiveValue of [
+          env.DATA_FIX_TEST_PASSWORD,
+          env.DATABASE_URL,
+          target.DATA_FIX_TEST_PASSWORD,
+          target.DATABASE_URL,
+        ]) {
+          if (sensitiveValue) {
+            expect(message).not.toContain(sensitiveValue);
+          }
+        }
       }
     }
   });
@@ -102,24 +155,6 @@ describe("data-fix integration support", () => {
     expect(first.fileNames).toEqual([first.forwardFileName, first.reverseFileName]);
     expect(first.fileNames.every((fileName) => fileName.includes(first.suffix) && fileName.endsWith(".sql"))).toBe(true);
     expect(new Set([...first.fileNames, ...second.fileNames]).size).toBe(4);
-  });
-
-  test("retains only non-secret run ownership details in a recovery manifest", async () => {
-    const directory = await mkdtemp(join(tmpdir(), "data-fix-recovery-test-"));
-    const scope = createRunScope();
-    try {
-      const manifestPath = await writeOwnershipManifest(directory, scope);
-      const content = await readFile(manifestPath, "utf8");
-      expect(JSON.parse(content)).toEqual({
-        applicationId: scope.applicationId,
-        personId: scope.personId,
-        email: scope.email,
-        fileNames: scope.fileNames,
-      });
-      expect(content).not.toMatch(/DATABASE_URL|password|top-secret/i);
-    } finally {
-      await rm(directory, { recursive: true, force: true });
-    }
   });
 
   test("checks only the current run's application, person, and exact ledger filenames", async () => {
@@ -321,89 +356,4 @@ describe("data-fix integration support", () => {
     expect(query).toHaveBeenCalledTimes(2);
   });
 
-  test("cleans only owned records in trigger-safe order and verifies absence", async () => {
-    const query = vi.fn().mockResolvedValue({ rows: [], rowCount: 0 });
-    const scope = createRunScope();
-    await cleanupOwnedGraph(clientWith(query), scope);
-
-    const calls = query.mock.calls as [string, unknown[]?][];
-    const statements = calls.map(([sql]) => sql);
-    const appDelete = statements.findIndex((sql) => sql === "DELETE FROM demos_app.application WHERE id = $1");
-    const demonstrationDelete = statements.findIndex((sql) => sql === "DELETE FROM demos_app.demonstration WHERE id = $1");
-    const personDelete = statements.findIndex((sql) => sql.startsWith("DELETE FROM demos_app.person WHERE"));
-
-    expect(statements[0]).toBe("BEGIN");
-    expect(appDelete).toBeGreaterThan(-1);
-    expect(demonstrationDelete).toBeGreaterThan(appDelete);
-    expect(personDelete).toBeGreaterThan(demonstrationDelete);
-    const personDeleteHistory = statements.findIndex((sql) => sql.includes("DELETE FROM demos_app.person_history"));
-    const ledgerDelete = statements.findIndex((sql) => sql.includes("DELETE FROM demos_app.data_fix_log"));
-    expect(personDeleteHistory).toBeGreaterThan(personDelete);
-    expect(ledgerDelete).toBeGreaterThan(personDeleteHistory);
-    expect(statements.at(-1)).toContain("data_fix_log");
-    expect(statements).toContain("COMMIT");
-    expect(statements.every((sql) => !/\b(TRUNCATE|ALTER|DROP)\b/i.test(sql))).toBe(true);
-    expect(calls.find(([sql]) => sql.includes("DELETE FROM demos_app.application WHERE"))?.[1]).toEqual([scope.applicationId]);
-    expect(calls.find(([sql]) => sql.includes("DELETE FROM demos_app.person WHERE"))?.[1]).toEqual([scope.personId, scope.email]);
-    expect(calls.find(([sql]) => sql.includes("DELETE FROM demos_app.data_fix_log"))?.[1]).toEqual([scope.fileNames]);
-    expect(calls.find(([sql]) => sql.includes("DELETE FROM demos_app.application_history"))?.[1]).toEqual([scope.applicationId]);
-    expect(calls.find(([sql]) => sql.includes("DELETE FROM demos_app.person_history"))?.[1]).toEqual([scope.personId]);
-    const expectedDeleteParameters: Record<string, unknown[]> = {
-      primary_demonstration_role_assignment: [scope.applicationId, scope.personId],
-      demonstration_role_assignment: [scope.applicationId, scope.personId],
-      application_phase: [scope.applicationId],
-      application_date: [scope.applicationId],
-      application: [scope.applicationId],
-      demonstration: [scope.applicationId],
-      person_state: [scope.personId],
-      person: [scope.personId, scope.email],
-      application_date_history: [scope.applicationId],
-      application_history: [scope.applicationId],
-      application_phase_history: [scope.applicationId],
-      demonstration_history: [scope.applicationId],
-      demonstration_role_assignment_history: [scope.applicationId, scope.personId],
-      person_history: [scope.personId],
-      person_state_history: [scope.personId],
-      primary_demonstration_role_assignment_history: [scope.applicationId, scope.personId],
-      data_fix_log: [scope.fileNames],
-    };
-    for (const [table, parameters] of Object.entries(expectedDeleteParameters)) {
-      const call = calls.find(([sql]) => sql.startsWith(`DELETE FROM demos_app.${table} `));
-      expect(call?.[1]).toEqual(parameters);
-    }
-    const deletes = statements.filter((sql) => /^DELETE\s+FROM/i.test(sql.trim()));
-    expect(deletes.every((sql) => /\bWHERE\b/i.test(sql) && !/\bLIKE\b/i.test(sql))).toBe(true);
-    expect(deletes).toHaveLength(17);
-    expect(statements.some((sql) => sql.includes("SELECT * FROM demos_app.application WHERE id = $1"))).toBe(true);
-  });
-
-  test("preserves the run failure while reporting cleanup failure separately", async () => {
-    const originalError = new Error("runner failed");
-    const cleanupError = new Error("cleanup failed");
-    const reported: unknown[] = [];
-
-    await expect(withOwnedCleanup(
-      async () => { throw originalError; },
-      async () => { throw cleanupError; },
-      (error) => reported.push(error),
-    )).rejects.toBe(originalError);
-
-    expect(reported).toEqual([cleanupError]);
-  });
-
-  test("runs cleanup after a seeded run fails and preserves the run error", async () => {
-    const runError = new Error("apply failed after writing data");
-    const events: string[] = [];
-
-    await expect(withOwnedCleanup(
-      async () => {
-        events.push("run");
-        throw runError;
-      },
-      async () => { events.push("cleanup"); },
-      () => undefined,
-    )).rejects.toBe(runError);
-
-    expect(events).toEqual(["run", "cleanup"]);
-  });
 });
