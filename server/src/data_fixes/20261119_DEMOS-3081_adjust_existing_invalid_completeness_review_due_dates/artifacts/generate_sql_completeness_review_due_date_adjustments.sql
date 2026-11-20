@@ -4,6 +4,19 @@ WITH holidays AS (
         holiday_date
     FROM (
         VALUES
+        -- 2026
+        ('Thursday, January 01 	New Year''s Day', '2026-01-01'::DATE),
+        ('Monday, January 19 	Birthday of Martin Luther King, Jr.', '2026-01-19'::DATE),
+        ('Monday, February 16 	Washington''s Birthday', '2026-02-16'::DATE),
+        ('Monday, May 25 	Memorial Day', '2026-05-25'::DATE),
+        ('Friday, June 19 	Juneteenth National Independence Day', '2026-06-19'::DATE),
+        ('Friday, July 03 	Independence Day', '2026-07-03'::DATE),
+        ('Monday, September 07 	Labor Day', '2026-09-07'::DATE),
+        ('Monday, October 12 	Columbus Day', '2026-10-12'::DATE),
+        ('Wednesday, November 11 	Veterans Day', '2026-11-11'::DATE),
+        ('Thursday, November 26 	Thanksgiving Day', '2026-11-26'::DATE),
+        ('Friday, December 25 	Christmas Day', '2026-12-25'::DATE),
+
         -- 2025
         ('Wednesday, January 01 	New Year''s Day', '2025-01-01'::DATE),
         ('Monday, January 20 	Birthday of Martin Luther King, Jr.', '2025-01-20'::DATE),
