@@ -656,7 +656,7 @@ export const FEDERAL_HOLIDAYS = [
   "2021-11-25",
   "2021-12-24",
   // 2022
-  "2022-12-31",
+  "2021-12-31", // note: 2022-01-01 New Year's Day falls on a Saturday, observed on the preceding Friday
   "2022-01-17",
   "2022-02-21",
   "2022-05-30",
