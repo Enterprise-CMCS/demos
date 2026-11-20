@@ -153,7 +153,8 @@ describe("documentResolvers", () => {
         expect(updateAssociatedPhase).toHaveBeenCalledExactlyOnceWith(
           mockTransaction,
           input.applicationId,
-          input.phaseName
+          input.phaseName,
+          mockContext.user.id
         );
       });
 

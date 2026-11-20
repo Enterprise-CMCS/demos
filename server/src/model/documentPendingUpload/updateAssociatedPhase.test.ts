@@ -25,6 +25,7 @@ describe("updateAssociatedPhase", () => {
   const mockTransaction = {} as any;
   const testApplicationId = "application-123";
   const testPhaseName = "Concept";
+  const testUserId = "user-123";
   const mockEasternNow: EasternNow = {
     "End of Day": {
       easternTZDate: new TZDate("2026-04-27T23:59:59.999-04:00", "America/New_York"),
@@ -51,26 +52,27 @@ describe("updateAssociatedPhase", () => {
   });
 
   it("should call startPhase with correct parameters", async () => {
-    await updateAssociatedPhase(mockTransaction, testApplicationId, testPhaseName);
+    await updateAssociatedPhase(mockTransaction, testApplicationId, testPhaseName, testUserId);
 
     expect(startPhase).toHaveBeenCalledExactlyOnceWith(
       mockTransaction,
       testApplicationId,
       testPhaseName,
-      mockEasternNow
+      mockEasternNow,
+      testUserId
     );
   });
 
   it("should not call validateAndUpdateDates when phase start date is null", async () => {
     vi.mocked(startPhase).mockResolvedValue(null);
 
-    await updateAssociatedPhase(mockTransaction, testApplicationId, testPhaseName);
+    await updateAssociatedPhase(mockTransaction, testApplicationId, testPhaseName, testUserId);
 
     expect(validateAndUpdateDates).not.toHaveBeenCalled();
   });
 
   it("should call validateAndUpdateDates when phase start date is not null", async () => {
-    await updateAssociatedPhase(mockTransaction, testApplicationId, testPhaseName);
+    await updateAssociatedPhase(mockTransaction, testApplicationId, testPhaseName, testUserId);
 
     expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
       {

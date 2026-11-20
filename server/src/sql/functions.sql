@@ -748,6 +748,11 @@ BEGIN
             WHERE
                 application_id = phase_status_record.application_id AND
                 phase_id = 'Federal Comment';
+
+            INSERT INTO
+                demos_app.application_action (id, action_timestamp, application_id, action_type_id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id)
+            VALUES
+                (gen_random_uuid(), CURRENT_TIMESTAMP, phase_status_record.application_id, 'Started Federal Comment Phase', FALSE, FALSE, FALSE, FALSE);
         END IF;
         IF phase_status_record.complete_federal_comment_phase THEN
             UPDATE
@@ -758,6 +763,11 @@ BEGIN
             WHERE
                 application_id = phase_status_record.application_id AND
                 phase_id = 'Federal Comment';
+
+            INSERT INTO
+                demos_app.application_action (id, action_timestamp, application_id, action_type_id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id)
+            VALUES
+                (gen_random_uuid(), CURRENT_TIMESTAMP, phase_status_record.application_id, 'Completed Federal Comment Phase', FALSE, FALSE, FALSE, FALSE);
         END IF;
         IF phase_status_record.start_sdg_prep_phase THEN
             UPDATE
@@ -768,6 +778,11 @@ BEGIN
             WHERE
                 application_id = phase_status_record.application_id AND
                 phase_id = 'SDG Preparation';
+
+            INSERT INTO
+                demos_app.application_action (id, action_timestamp, application_id, action_type_id, should_have_user_id, should_have_date_type_id, should_have_note_type_id, should_have_document_type_id)
+            VALUES
+                (gen_random_uuid(), CURRENT_TIMESTAMP, phase_status_record.application_id, 'Automatically Started SDG Preparation Phase', FALSE, FALSE, FALSE, FALSE);
 
             INSERT INTO
                 demos_app.application_date

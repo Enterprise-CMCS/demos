@@ -78,7 +78,8 @@ export async function __setApplicationDates(
         tx,
         input.applicationId,
         input.applicationDates,
-        easternNow
+        easternNow,
+        context.user.id
       );
 
       input.applicationDates.push(...phaseStartDates);

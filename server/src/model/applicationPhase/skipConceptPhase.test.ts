@@ -38,6 +38,10 @@ vi.mock("../applicationDate", () => ({
   validateAndUpdateDates: vi.fn(),
 }));
 
+vi.mock("../applicationAction/queries", () => ({
+  insertApplicationAction: vi.fn(),
+}));
+
 // The importActual line is necessary to avoid overwriting the constant
 vi.mock(".", async () => {
   const actual = await vi.importActual(".");
@@ -57,6 +61,8 @@ vi.mock("../../dateUtilities.js", async () => {
     getEasternNow: vi.fn(),
   };
 });
+
+import { insertApplicationAction } from "../applicationAction/queries";
 
 describe("skipConceptPhase", () => {
   const mockTransaction: any = vi.fn();
@@ -147,9 +153,18 @@ describe("skipConceptPhase", () => {
       "Skipped",
       mockTransaction
     );
+    expect(insertApplicationAction).toHaveBeenCalledExactlyOnceWith(
+      {
+        applicationId: testApplicationId,
+        actionType: "Skipped Concept Phase",
+        userId: "user-1",
+      },
+      mockTransaction
+    );
     expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
       testApplicationId,
       "Application Intake",
+      "user-1",
       mockTransaction
     );
     expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual([
@@ -209,9 +224,18 @@ describe("skipConceptPhase", () => {
       "Skipped",
       mockTransaction
     );
+    expect(insertApplicationAction).toHaveBeenCalledExactlyOnceWith(
+      {
+        applicationId: testApplicationId,
+        actionType: "Skipped Concept Phase",
+        userId: "user-1",
+      },
+      mockTransaction
+    );
     expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
       testApplicationId,
       "Application Intake",
+      "user-1",
       mockTransaction
     );
     expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(expectedDateCall);
