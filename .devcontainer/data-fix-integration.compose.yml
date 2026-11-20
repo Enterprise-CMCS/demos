@@ -1,0 +1,64 @@
+services:
+  app:
+    working_dir: /workspaces/${WORKSPACE_DIRECTORY:?}
+    depends_on:
+      data-fix-postgres:
+        condition: service_healthy
+    environment:
+      DEVCONTAINER: "true"
+      CURRENT_ENV: local
+      DATA_FIX_TEST_HOST: data-fix-postgres
+      DATA_FIX_TEST_PORT: "5432"
+      DATA_FIX_TEST_DATABASE: ${DATA_FIX_TEST_DATABASE:?}
+      DATA_FIX_TEST_USER: ${DATA_FIX_TEST_USER:?}
+      DATA_FIX_TEST_PASSWORD: ${DATA_FIX_TEST_PASSWORD:?}
+      DATABASE_URL: "postgresql://${DATA_FIX_TEST_USER:?}:${DATA_FIX_TEST_PASSWORD:?}@data-fix-postgres:5432/${DATA_FIX_TEST_DATABASE:?}?schema=demos_app&sslmode=disable&connect_timeout=5"
+      IS_TEST_MIGRATION: "true"
+    volumes:
+      - data-fix-shared-library-node-modules:/workspaces/${WORKSPACE_DIRECTORY:?}/shared_library/node_modules
+      - data-fix-shared-library-dist:/workspaces/${WORKSPACE_DIRECTORY:?}/shared_library/dist
+      - data-fix-server-node-modules:/workspaces/${WORKSPACE_DIRECTORY:?}/server/node_modules
+      - data-fix-deployment-node-modules:/workspaces/${WORKSPACE_DIRECTORY:?}/deployment/node_modules
+    command:
+      - bash
+      - -euc
+      - |
+        node --experimental-strip-types deployment/demosctl/commands/__fixtures__/dataFix.integrationTarget.ts
+        npm ci --prefix shared_library
+        npm ci --prefix server
+        npm ci --prefix deployment
+        npm --prefix server run migrate:deploy
+        npm --prefix deployment run test:data-fix:integration
+
+  data-fix-postgres:
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_DB: ${DATA_FIX_TEST_DATABASE:?}
+      POSTGRES_USER: ${DATA_FIX_TEST_USER:?}
+      POSTGRES_PASSWORD: ${DATA_FIX_TEST_PASSWORD:?}
+    volumes:
+      - ./postgres/postgres-init:/docker-entrypoint-initdb.d:ro
+    command:
+      - postgres
+      - -c
+      - shared_preload_libraries=pg_cron
+      - -c
+      - cron.database_name=${DATA_FIX_TEST_DATABASE:?}
+      - -c
+      - lock_timeout=5000
+      - -c
+      - statement_timeout=60000
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+
+volumes:
+  data-fix-shared-library-node-modules:
+  data-fix-shared-library-dist:
+  data-fix-server-node-modules:
+  data-fix-deployment-node-modules:
