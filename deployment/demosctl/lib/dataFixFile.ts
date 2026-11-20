@@ -53,7 +53,7 @@ const BANNED_STRINGS: [RegExp, string][] = [
   [/\breset\s+role\b|\bset\s+(?:local|session)\s+role\b|\bset\s+role\b(?!\s*=)/i, "SET ROLE / RESET ROLE"],
   [/\bsession\s+authorization\b/i, "SESSION AUTHORIZATION"],
   [
-    /\b(?:set|reset)\s+(?:(?:local|session)\s+)?(?:lock_timeout|statement_timeout|idle_in_transaction_session_timeout|all)\b/i,
+    /\b(?:set|reset)\s+(?:(?:local|session)\s+)?(?:lock_timeout|statement_timeout|idle_in_transaction_session_timeout|transaction_timeout|all)\b/i,
     "changing the runner's timeouts",
   ],
 ];

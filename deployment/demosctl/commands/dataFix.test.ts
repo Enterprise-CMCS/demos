@@ -6,7 +6,14 @@ import { Client } from "pg";
 
 import { getSecret } from "../lib/getSecret";
 import { fetchCACert } from "./testMigration";
-import { dataFix, dataFixLint } from "./dataFix";
+import {
+  DATA_FIX_BODY_TIMEOUT_MS,
+  DATA_FIX_IDLE_IN_TRANSACTION_SESSION_TIMEOUT_MS,
+  DATA_FIX_LOCK_TIMEOUT_MS,
+  DATA_FIX_STATEMENT_TIMEOUT_MS,
+  dataFix,
+  dataFixLint,
+} from "./dataFix";
 
 vi.mock("pg");
 vi.mock("../lib/getSecret");
@@ -195,6 +202,7 @@ describe("dataFix", () => {
   let sql: string;
   let reverseSql: string;
   let noticeHandler: (notice: { message: string }) => void;
+  let clientErrorHandler: (error: Error) => void;
   let normalQuery: (query: string) => Promise<unknown>;
 
   const fixPath = () => path.join(tempDir, DEMOSCTL_FIX);
@@ -258,6 +266,8 @@ describe("dataFix", () => {
     vi.mocked(client.on).mockImplementation((event, listener) => {
       if (event === "notice") {
         noticeHandler = listener as typeof noticeHandler;
+      } else if (event === "error") {
+        clientErrorHandler = listener as typeof clientErrorHandler;
       }
       return client;
     });
@@ -274,13 +284,15 @@ describe("dataFix", () => {
       /_prisma_migrations/,
       "BEGIN",
       "SET TRANSACTION ISOLATION LEVEL READ COMMITTED",
-      "SET LOCAL lock_timeout = '5s'",
+      `SET LOCAL lock_timeout = '${DATA_FIX_LOCK_TIMEOUT_MS}ms'`,
       /pg_advisory_xact_lock/,
       /SELECT checksum/,
-      "SET LOCAL statement_timeout = '30s'",
-      "SET LOCAL idle_in_transaction_session_timeout = '30s'",
+      `SET LOCAL statement_timeout = '${DATA_FIX_STATEMENT_TIMEOUT_MS}ms'`,
+      `SET LOCAL idle_in_transaction_session_timeout = '${DATA_FIX_IDLE_IN_TRANSACTION_SESSION_TIMEOUT_MS}ms'`,
       "SET LOCAL ROLE demos_data_fix",
+      `SET LOCAL transaction_timeout = '${DATA_FIX_BODY_TIMEOUT_MS}ms'`,
       sql,
+      "SET LOCAL transaction_timeout = 0",
       "SELECT rows_affected FROM pg_temp.data_fix_result",
       "SELECT current_user",
       "SET CONSTRAINTS ALL IMMEDIATE",
@@ -300,6 +312,7 @@ describe("dataFix", () => {
     expect(client.connect).toHaveBeenCalledOnce();
     expect(client.end).toHaveBeenCalledOnce();
     expect(client.removeListener).toHaveBeenCalledWith("notice", noticeHandler);
+    expect(client.removeListener).toHaveBeenCalledWith("error", clientErrorHandler);
     expect(getSecret).not.toHaveBeenCalled();
   });
 
@@ -307,7 +320,18 @@ describe("dataFix", () => {
     expect(await run(applyOptions)).toEqual(0);
     const calls = vi.mocked(client.query).mock.calls;
     const insertIndex = calls.findIndex(([query]) => typeof query === "string" && query.includes("INSERT INTO demos_app.data_fix_log"));
-    expectQueryOrder(sql, "SELECT rows_affected FROM pg_temp.data_fix_result", "SELECT current_user", "SET CONSTRAINTS ALL IMMEDIATE", "RESET ROLE", /INSERT INTO demos_app\.data_fix_log/, "COMMIT");
+    expectQueryOrder(
+      "SET LOCAL ROLE demos_data_fix",
+      `SET LOCAL transaction_timeout = '${DATA_FIX_BODY_TIMEOUT_MS}ms'`,
+      sql,
+      "SET LOCAL transaction_timeout = 0",
+      "SELECT rows_affected FROM pg_temp.data_fix_result",
+      "SELECT current_user",
+      "SET CONSTRAINTS ALL IMMEDIATE",
+      "RESET ROLE",
+      /INSERT INTO demos_app\.data_fix_log/,
+      "COMMIT",
+    );
     expect(calls[insertIndex][0]).toContain("reverse_file");
     expect(calls[insertIndex][1]).toEqual([
       DEMOSCTL_FIX, checksum(), "DEMOS-1000", "dev", 2, DEMOSCTL_REVERSE, null,
@@ -388,6 +412,43 @@ describe("dataFix", () => {
     expectQueryOrder("BEGIN", /pg_advisory_xact_lock/, "ROLLBACK");
     expect(statements()).not.toContain(sql);
     expect(console.error).not.toHaveBeenCalledWith(expect.stringContaining("lock detail"));
+  });
+
+  test("should fail closed when the transaction timeout cannot be armed", async () => {
+    const fail = vi.fn(() => Promise.reject(new Error("synthetic database failure")));
+    mockQuery((query) => query === `SET LOCAL transaction_timeout = '${DATA_FIX_BODY_TIMEOUT_MS}ms'` ? fail() : normalQuery(query));
+
+    expect(await run(applyOptions)).toEqual(1);
+
+    expect(fail).toHaveBeenCalledOnce();
+    expect(console.error).toHaveBeenCalledExactlyOnceWith("data fix failed during transaction setup");
+    expect(statements()).not.toContain(sql);
+    expect(statements()).toContain("ROLLBACK");
+    expect(statements()).not.toContain("COMMIT");
+  });
+
+  test.each(["body query", "timeout disarm"])("should report a transaction timeout during the %s without rolling back a closed session", async (stage) => {
+    const timeout = Object.assign(new Error("raw transaction timeout details"), { code: "25P04" });
+    mockQuery((query) => {
+      if (
+        (stage === "body query" && query === sql) ||
+        (stage === "timeout disarm" && query === "SET LOCAL transaction_timeout = 0")
+      ) {
+        clientErrorHandler(timeout);
+        return Promise.reject(timeout);
+      }
+      return normalQuery(query);
+    });
+
+    expect(await run(applyOptions)).toEqual(1);
+
+    expect(console.error).toHaveBeenCalledExactlyOnceWith("data fix SQL body exceeded its transaction timeout");
+    expect(statements()).toContain(sql);
+    expect(statements().includes("SET LOCAL transaction_timeout = 0")).toBe(stage === "timeout disarm");
+    expect(statements()).not.toContain("ROLLBACK");
+    expect(statements()).not.toContain("COMMIT");
+    expect(JSON.stringify(vi.mocked(console.error).mock.calls)).not.toContain("raw transaction timeout details");
+    expect(client.end).toHaveBeenCalledOnce();
   });
 
   test.each([

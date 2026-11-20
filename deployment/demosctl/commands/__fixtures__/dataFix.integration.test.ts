@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { format } from "node:util";
 import { Client } from "pg";
 
-import { dataFix } from "../dataFix.js";
+import { DATA_FIX_BODY_TIMEOUT_MS, dataFix } from "../dataFix.js";
 import {
   assertLedgerAccessPolicy,
   createRunScope,
@@ -66,6 +66,23 @@ FROM demos_app.application WHERE id = ${applicationIdLiteral};
 `;
 }
 
+function cumulativeTimeoutBody(applicationId: string): string {
+  const applicationIdLiteral = quoteFixtureUuid(applicationId);
+  return `CREATE TEMPORARY TABLE data_fix_result (rows_affected integer);
+SELECT pg_sleep(1);
+WITH changed AS (
+  UPDATE demos_app.application SET is_migrated_from_pmda = true
+  WHERE id = ${applicationIdLiteral} AND is_migrated_from_pmda = false
+  RETURNING 1
+)
+INSERT INTO pg_temp.data_fix_result SELECT count(*)::integer FROM changed;
+SELECT pg_sleep(1);
+SELECT count(*)::integer AS evidence_count,
+       bool_and(is_migrated_from_pmda) AS checks_passed
+FROM demos_app.application WHERE id = ${applicationIdLiteral};
+`;
+}
+
 function checksum(sql: string): string {
   return createHash("sha256").update(sql).digest("hex");
 }
@@ -110,8 +127,18 @@ async function runFix(
   config: ReturnType<typeof disposableDatabaseConfig>,
   options: DataFixOptions,
   captureOutput = true,
+  transactionTimeoutMs?: number,
 ): Promise<{ code: number; output: string }> {
   const client = new Client(config);
+  if (transactionTimeoutMs !== undefined) {
+    const query = client.query.bind(client);
+    client.query = ((statement: string, values?: unknown[]) => query(
+      statement === `SET LOCAL transaction_timeout = '${DATA_FIX_BODY_TIMEOUT_MS}ms'`
+        ? `SET LOCAL transaction_timeout = '${transactionTimeoutMs}ms'`
+        : statement,
+      values,
+    )) as Client["query"];
+  }
   const lifecycle = { ended: false, errored: false };
   client.on("end", () => { lifecycle.ended = true; });
   client.on("error", () => { lifecycle.errored = true; });
@@ -121,7 +148,9 @@ async function runFix(
   try {
     const code = await dataFix("dev", filePath, options, client);
     assert.ok(lifecycle.ended, "the real runner must end its injected client");
-    assert.ok(!lifecycle.errored, "the real runner client must not emit a connection error");
+    if (transactionTimeoutMs === undefined) {
+      assert.ok(!lifecycle.errored, "the real runner client must not emit a connection error");
+    }
     return { code, output: output.join("\n") };
   } finally {
     log?.mockRestore();
@@ -144,6 +173,19 @@ async function waitForLockWait(database: Client, query: string, expectedCount = 
     await new Promise((resolve) => setTimeout(resolve, 25));
   }
   throw new Error(`timed out waiting for PostgreSQL lock state: ${query}`);
+}
+
+async function assertPairLockReleased(database: Client, fileName: string): Promise<void> {
+  await database.query("BEGIN");
+  try {
+    const result = await database.query<{ acquired: boolean }>(
+      "SELECT pg_try_advisory_xact_lock(hashtextextended(current_database() || ':demos-data-fix:' || $1, 0)) AS acquired",
+      [fileName],
+    );
+    assert.equal(result.rows[0]?.acquired, true);
+  } finally {
+    await database.query("ROLLBACK");
+  }
 }
 
 async function runWithForwardBodyBarrier(
@@ -337,6 +379,22 @@ describe("data-fix disposable PostgreSQL integration", () => {
     assert.equal(reversed.ledger.length, 2);
     assertLedgerRow(reversed, scope.forwardFileName, fixtures.forwardSql, scope.reverseFileName, null);
     assertLedgerRow(reversed, scope.reverseFileName, fixtures.reverseSql, null, scope.forwardFileName);
+  });
+
+  test.each([
+    { mode: "dry run", options: { apply: false } as DataFixOptions },
+    { mode: "apply", options: APPLY_OPTIONS as DataFixOptions },
+  ])("rolls back a cumulative SQL timeout in $mode mode", async ({ options }) => {
+    const fixtures = await writePair(cumulativeTimeoutBody(scope.applicationId));
+    const before = await integrationState(database, scope);
+
+    const result = await runFix(fixtures.forwardPath, config, options, true, 1_500);
+
+    assert.equal(result.code, 1, result.output);
+    assert.match(result.output, /data fix SQL body exceeded its transaction timeout/);
+    assert.doesNotMatch(result.output, /25P04|terminating connection|server closed|FATAL/);
+    assert.deepEqual(await integrationState(database, scope), before);
+    await assertPairLockReleased(database, scope.forwardFileName);
   });
 
   test("waits for the forward commit before applying its reversal", async () => {

@@ -11,6 +11,10 @@ import { fetchCACert, RDS_CA_BUNDLE_URL } from "./testMigration";
 
 const DEFAULT_FIX_DIR = path.join("..", "server", "src", "data_fixes");
 const DEFAULT_MIGRATIONS_DIR = path.join("..", "server", "src", "model", "migrations");
+export const DATA_FIX_BODY_TIMEOUT_MS = 30_000;
+export const DATA_FIX_STATEMENT_TIMEOUT_MS = 30_000;
+export const DATA_FIX_LOCK_TIMEOUT_MS = 5_000;
+export const DATA_FIX_IDLE_IN_TRANSACTION_SESSION_TIMEOUT_MS = 30_000;
 
 function listEntries(dir: string): fs.Dirent[] {
   try {
@@ -110,12 +114,24 @@ type DataFixState = {
   phase: DataFixPhase;
   connectionAttempted: boolean;
   inTransaction: boolean;
+  connectionLost: boolean;
 };
 
 class DataFixError extends Error {}
 
 const DATA_FIX_PAIR_LOCK_QUERY =
   "SELECT pg_advisory_xact_lock(hashtextextended(current_database() || ':demos-data-fix:' || $1, 0))";
+
+function errorCode(error: unknown): string | undefined {
+  if (typeof error !== "object" || error === null || !("code" in error)) return undefined;
+  return typeof error.code === "string" ? error.code : undefined;
+}
+
+function isFatalConnectionError(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) return false;
+  const code = errorCode(error);
+  return code === "25P04" || code?.startsWith("08") === true || ("severity" in error && error.severity === "FATAL");
+}
 
 function readHeader(sql: string): DataFixHeader {
   try {
@@ -214,10 +230,11 @@ async function checkSchemaGate(client: Client, requiresMigration: string, enviro
 
 export async function dataFix(environment: string, file: string, opts: DataFixOptions, injectedClient?: Client): Promise<number> {
   let client = injectedClient;
-  const state: DataFixState = { phase: "validation", connectionAttempted: false, inTransaction: false };
+  const state: DataFixState = { phase: "validation", connectionAttempted: false, inTransaction: false, connectionLost: false };
   let exitCode = 1;
   const notices: string[] = [];
   const onNotice = (notice: { message?: string }) => notices.push(notice.message ?? "");
+  const onClientError = () => { state.connectionLost = true; };
   const printNotices = () => notices.splice(0).forEach((notice) => console.log("notice:", notice));
   try {
     if (opts.apply && ![opts.approvedBy, opts.appliedBy, opts.gitCommit, opts.buildUrl].every((value) => value?.trim())) {
@@ -229,6 +246,7 @@ export async function dataFix(environment: string, file: string, opts: DataFixOp
     state.phase = "database connection";
     client ??= await createDataFixClient(environment);
     client.on("notice", onNotice);
+    client.on("error", onClientError);
     state.connectionAttempted = true;
     await client.connect();
     state.phase = "schema gate";
@@ -237,7 +255,7 @@ export async function dataFix(environment: string, file: string, opts: DataFixOp
     await client.query("BEGIN");
     state.inTransaction = true;
     await client.query("SET TRANSACTION ISOLATION LEVEL READ COMMITTED");
-    await client.query("SET LOCAL lock_timeout = '5s'");
+    await client.query(`SET LOCAL lock_timeout = '${DATA_FIX_LOCK_TIMEOUT_MS}ms'`);
     state.phase = "pair lock";
     try {
       await client.query(DATA_FIX_PAIR_LOCK_QUERY, [header.reverses ?? fileName]);
@@ -268,12 +286,26 @@ export async function dataFix(environment: string, file: string, opts: DataFixOp
           throw new DataFixError(`reversal requires matching forward data fix ${header.reverses} to be applied first`);
         }
       }
-      await client.query("SET LOCAL statement_timeout = '30s'");
-      await client.query("SET LOCAL idle_in_transaction_session_timeout = '30s'");
+      await client.query(`SET LOCAL statement_timeout = '${DATA_FIX_STATEMENT_TIMEOUT_MS}ms'`);
+      await client.query(`SET LOCAL idle_in_transaction_session_timeout = '${DATA_FIX_IDLE_IN_TRANSACTION_SESSION_TIMEOUT_MS}ms'`);
       await client.query("SET LOCAL ROLE demos_data_fix");
+      state.phase = "transaction setup";
+      await client.query(`SET LOCAL transaction_timeout = '${DATA_FIX_BODY_TIMEOUT_MS}ms'`);
       state.phase = "fix body";
       // No parameters: pg uses the simple protocol for the whole multi-statement body.
-      const bodyResult = await client.query(sql);
+      let bodyResult: QueryResult | QueryResult[];
+      try {
+        bodyResult = await client.query(sql);
+        state.phase = "transaction setup";
+        await client.query("SET LOCAL transaction_timeout = 0");
+      } catch (error) {
+        if (errorCode(error) === "25P04") {
+          state.connectionLost = true;
+          throw new DataFixError("data fix SQL body exceeded its transaction timeout");
+        }
+        if (isFatalConnectionError(error)) state.connectionLost = true;
+        throw error;
+      }
       const results: QueryResult[] = Array.isArray(bodyResult) ? bodyResult : [bodyResult];
       const evidence = results.at(-1);
       if (evidence?.command !== "SELECT") {
@@ -320,7 +352,7 @@ export async function dataFix(environment: string, file: string, opts: DataFixOp
   } catch (error) {
     // Database errors can include row values or credentials; only our own errors are safe to print.
     console.error(error instanceof DataFixError ? error.message : `data fix failed during ${state.phase}`);
-    if (state.inTransaction && client) {
+    if (state.inTransaction && client && !state.connectionLost) {
       try {
         await client.query("ROLLBACK");
       } catch {
@@ -336,6 +368,8 @@ export async function dataFix(environment: string, file: string, opts: DataFixOp
       } catch {
         console.error("failed to close database connection");
         exitCode = 1;
+      } finally {
+        client.removeListener("error", onClientError);
       }
     }
   }

@@ -215,6 +215,7 @@ describe("lintFile", () => {
     ["SELECT set_config('statement_timeout', '0', true);", "set_config"],
     ["SELECT pg_catalog.set_config('role', 'demos_admin', true);", "set_config"],
     ["SELECT 'SET ROLE demos_admin';", "SET ROLE / RESET ROLE"],
+    ["SELECT 'SET LOCAL transaction_timeout = 0';", "changing the runner's timeouts"],
     ["DO $$ BEGIN PERFORM set_config('role', 'x', true); END $$;", "set_config"],
   ])("should reject %s anywhere outside comments", async (statement, label) => {
     expect(await lint(withStatements(statement))).toContain(`${label} is not allowed anywhere in the file`);
