@@ -178,7 +178,7 @@ describe("UserManagementTable", () => {
 
     await screen.findByRole("table");
     expect(getEditButton()).toBeDisabled();
-    expect(getEditButton()).toHaveAttribute("title", EDIT_STATES_DISABLED_TOOLTIP);
+    expect(getEditButton()).toHaveAccessibleDescription(EDIT_STATES_DISABLED_TOOLTIP);
   });
 
   it("enables Edit when exactly one State user is selected", async () => {
@@ -189,7 +189,7 @@ describe("UserManagementTable", () => {
     await user.click(screen.getByTestId("select-row-3"));
 
     expect(getEditButton()).toBeEnabled();
-    expect(getEditButton()).toHaveAttribute("title", EDIT_STATES_ENABLED_TOOLTIP);
+    expect(getEditButton()).toHaveAccessibleDescription(EDIT_STATES_ENABLED_TOOLTIP);
   });
 
   it("disables Edit when the single selected user is a CMS or Admin user", async () => {
@@ -203,7 +203,7 @@ describe("UserManagementTable", () => {
     await user.click(screen.getByTestId("select-row-2"));
     await user.click(screen.getByTestId("select-row-4"));
     expect(getEditButton()).toBeDisabled();
-    expect(getEditButton()).toHaveAttribute("title", EDIT_STATES_DISABLED_TOOLTIP);
+    expect(getEditButton()).toHaveAccessibleDescription(EDIT_STATES_DISABLED_TOOLTIP);
   });
 
   it("disables Edit when more than one State user is selected", async () => {
@@ -215,7 +215,7 @@ describe("UserManagementTable", () => {
     await user.click(screen.getByTestId("select-row-5"));
 
     expect(getEditButton()).toBeDisabled();
-    expect(getEditButton()).toHaveAttribute("title", EDIT_STATES_DISABLED_TOOLTIP);
+    expect(getEditButton()).toHaveAccessibleDescription(EDIT_STATES_DISABLED_TOOLTIP);
   });
 
   it("opens the Assign to State(s) dialog for the selected State user", async () => {

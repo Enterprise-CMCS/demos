@@ -16,6 +16,7 @@ import { getDayBoundaryLabel } from "../../dateUtilities.js";
 import { TZDate } from "@date-fns/tz";
 
 describe("createPhaseStartDate", () => {
+  const mockEasternPlainDate = "2025-01-01";
   const mockEasternNow: EasternNow = {
     "Start of Day": {
       easternTZDate: new TZDate("2025-01-01T05:00:00.000Z"),
@@ -41,13 +42,9 @@ describe("createPhaseStartDate", () => {
       vi.mocked(getDayBoundaryLabel).mockReturnValue("Start of Day");
 
       const result = createPhaseStartDate(phaseId, mockEasternNow);
-
-      expect(getDayBoundaryLabel).toHaveBeenCalledExactlyOnceWith(
-        PHASE_START_END_DATES[phaseId].startDate
-      );
       expect(result).toEqual({
         dateType: PHASE_START_END_DATES[phaseId].startDate,
-        dateValue: mockEasternNow["Start of Day"].easternTZDate,
+        plainDate: mockEasternPlainDate,
       });
     });
 
@@ -56,13 +53,9 @@ describe("createPhaseStartDate", () => {
       vi.mocked(getDayBoundaryLabel).mockReturnValue("End of Day");
 
       const result = createPhaseStartDate(phaseId, mockEasternNow);
-
-      expect(getDayBoundaryLabel).toHaveBeenCalledExactlyOnceWith(
-        PHASE_START_END_DATES[phaseId].startDate
-      );
       expect(result).toEqual({
         dateType: PHASE_START_END_DATES[phaseId].startDate,
-        dateValue: mockEasternNow["End of Day"].easternTZDate,
+        plainDate: mockEasternPlainDate,
       });
     });
   });

@@ -13,6 +13,7 @@ describe("vite.config defines", () => {
       "__DEMOS_VERSION__",
       "__FEATURE_SHOW_GIT_VERSION__",
       "__FEATURE_OACT_USER__",
+      "__FEATURE_HANDLE_HOLIDAYS_WEEKENDS_FOR_DATES__",
     ].sort();
 
     expect(defineKeys).toEqual(declaredInTypes);

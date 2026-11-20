@@ -59,6 +59,7 @@ export const RemoveDeliverableDialog: React.FC<{
 
   return (
     <BaseDialog
+      name="dialog-remove-deliverable"
       title="Remove Deliverable"
       onClose={onClose}
       dialogHasChanges={false}

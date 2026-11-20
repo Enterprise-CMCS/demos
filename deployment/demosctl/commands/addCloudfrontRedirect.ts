@@ -1,32 +1,18 @@
 import { addCognitoRedirect } from "../lib/addCognitoRedirect";
 import { getOutputValue } from "../lib/getOutputValue";
-import { readOutputs } from "../lib/readOutputs";
-import { runCommand } from "../lib/runCommand";
+import { getStackOutputs } from "../lib/getStackOutputs";
 
 export async function addCloudfrontRedirect(environment: string) {
-  const cmd = await runCommand("deploy-no-execute", "npx", [
-    "cdk",
-    "deploy",
-    "--context",
-    `stage=${environment}`,
-    "--all",
-    "--no-change-set",
-    "--require-approval=never",
-    "--outputs-file=all-outputs.json",
-    "--execute=false",
-  ]);
+  const coreStackName = `demos-${environment}-core`;
+  const uiStackName = `demos-${environment}-ui`;
 
-  if (cmd !== 0) {
-    console.error(`deploy-no-execute command failed with code ${cmd}`);
-    return cmd;
-  }
-
-  const outputData = readOutputs("all-outputs.json");
+  const coreOutputs = await getStackOutputs(coreStackName);
+  const uiOutputs = await getStackOutputs(uiStackName);
 
   await addCognitoRedirect(
-    getOutputValue(outputData, `demos-${environment}-core`, "cognitoAuthority").split("/").pop()!,
-    getOutputValue(outputData, `demos-${environment}-core`, "cognitoClientId"),
-    getOutputValue(outputData, `demos-${environment}-ui`, "CloudfrontURL"),
+    getOutputValue(coreOutputs, `demos-${environment}-core`, "cognitoAuthority").split("/").pop()!,
+    getOutputValue(coreOutputs, `demos-${environment}-core`, "cognitoClientId"),
+    getOutputValue(uiOutputs, `demos-${environment}-ui`, "CloudfrontURL"),
   );
 
   console.log(`\n======\ncloudfront url added as a valid redirect\n======\n`);

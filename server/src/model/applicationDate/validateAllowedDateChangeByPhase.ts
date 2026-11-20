@@ -28,7 +28,8 @@ export async function validateAllowedDateChangeByPhase(
   if (disallowedContainsExpectedApprovalDate) {
     const disallowedOperationIsDeletion = input.applicationDates.some(
       (applicationDate) =>
-        applicationDate.dateType === "Internal Expected Approval Date" && applicationDate.dateValue === null
+        applicationDate.dateType === "Internal Expected Approval Date" &&
+        applicationDate.plainDate === null
     );
 
     if (disallowedOperationIsDeletion) {

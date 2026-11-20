@@ -38,11 +38,24 @@ const multipleDeliverablesInput = {
   ],
 };
 
+const demonstrationDetails = {
+  Demonstration: "Medicaid Demonstration",
+  State: "Maryland",
+};
+
+const deliverableDetails = {
+  ...demonstrationDetails,
+  "Deliverable type": "Close Out Report",
+  Deliverable: "Quarterly Budget Report",
+  "Current due date": "2026-06-01",
+};
+
 const templateCases = [
   {
     emailType: "Deliverable Created",
     input: deliverableInput,
     subject: "CMS DEMOS Deliverable: Deliverable Created",
+    expectedDetails: { ...deliverableDetails, Action: "Deliverable Created" },
     expectedText: [
       "You have been assigned a new Close Out Report deliverable",
       "Action: Deliverable Created",
@@ -52,6 +65,11 @@ const templateCases = [
     emailType: "Deliverable Due Date Updated",
     input: deliverableInput,
     subject: "CMS DEMOS Deliverable: Deliverable Due Date Updated",
+    expectedDetails: {
+      ...deliverableDetails,
+      Action: "Deliverable Due Date Updated",
+      "Previous due date": "2026-05-01",
+    },
     expectedText: [
       "A Close Out Report deliverable has a new due date",
       "Previous due date: 2026-05-01",
@@ -61,6 +79,7 @@ const templateCases = [
     emailType: "Deliverable Submitted",
     input: deliverableInput,
     subject: "CMS DEMOS Deliverable: Deliverable Submitted",
+    expectedDetails: { ...deliverableDetails, Action: "Deliverable Submitted" },
     expectedText: [
       "A Close Out Report deliverable has been submitted",
       "Action: Deliverable Submitted",
@@ -70,18 +89,21 @@ const templateCases = [
     emailType: "Deliverable Accepted",
     input: deliverableInput,
     subject: "CMS DEMOS Deliverable: Accepted",
+    expectedDetails: { ...deliverableDetails, Action: "Accepted" },
     expectedText: ["CMS has Accepted a Close Out Report deliverable", "Action: Accepted"],
   },
   {
     emailType: "Deliverable Approved",
     input: deliverableInput,
     subject: "CMS DEMOS Deliverable: Approved",
+    expectedDetails: { ...deliverableDetails, Action: "Approved" },
     expectedText: ["CMS has Approved a Close Out Report deliverable", "Action: Approved"],
   },
   {
     emailType: "Deliverable Received and Filed",
     input: deliverableInput,
     subject: "CMS DEMOS Deliverable: Received and Filed",
+    expectedDetails: { ...deliverableDetails, Action: "Received and Filed" },
     expectedText: [
       "CMS has Received and Filed a Close Out Report deliverable",
       "Action: Received and Filed",
@@ -91,6 +113,11 @@ const templateCases = [
     emailType: "Extension Requested",
     input: deliverableInput,
     subject: "CMS DEMOS Deliverable: Extension Requested",
+    expectedDetails: {
+      ...deliverableDetails,
+      Action: "Extension Requested",
+      "Requested due date": "2026-07-01",
+    },
     expectedText: [
       "A state user has requested an extension for a Close Out Report deliverable",
       "Requested due date: 2026-07-01",
@@ -100,6 +127,11 @@ const templateCases = [
     emailType: "Extension Decision Made",
     input: deliverableInput,
     subject: "CMS DEMOS Deliverable: Extension Decision Made",
+    expectedDetails: {
+      ...deliverableDetails,
+      Action: "Extension Decision Made",
+      "Previous due date": "2026-05-01",
+    },
     expectedText: [
       "CMS has Approved an extension request for your Close Out Report deliverable",
       "Previous due date: 2026-05-01",
@@ -109,6 +141,11 @@ const templateCases = [
     emailType: "Resubmission Requested",
     input: deliverableInput,
     subject: "CMS DEMOS Deliverable: Resubmission Requested",
+    expectedDetails: {
+      ...deliverableDetails,
+      Action: "Resubmission Requested",
+      "Previous due date": "2026-05-01",
+    },
     expectedText: [
       "CMS has requested a resubmission for a Close Out Report deliverable",
       "Previous due date: 2026-05-01",
@@ -118,6 +155,7 @@ const templateCases = [
     emailType: "Deliverable Comment",
     input: deliverableInput,
     subject: "CMS DEMOS Deliverable: New Comment",
+    expectedDetails: { ...demonstrationDetails, Deliverable: "Quarterly Budget Report" },
     expectedText: [
       "A new comment has been added to a Close Out Report deliverable",
       "Demonstration: Medicaid Demonstration",
@@ -129,6 +167,12 @@ const templateCases = [
     emailType: "Multiple Deliverables Created",
     input: multipleDeliverablesInput,
     subject: "CMS DEMOS Deliverables: Multiple Deliverables Created",
+    expectedDetails: {
+      ...demonstrationDetails,
+      "Deliverable type": "Close Out Report",
+      Deliverables: "Quarterly Budget Report, DY1Q2 Quarterly Budget Report",
+      Action: "Multiple Deliverables Created",
+    },
     expectedText: [
       "You have been assigned new Close Out Report deliverables",
       "https://localhost:3000/deliverables/deliverable-1 due on 2026-06-01",
@@ -147,6 +191,92 @@ function cleanHtml(html: string): string {
 }
 
 describe("renderEmail", () => {
+  it.each(templateCases)(
+    "renders bold detail labels for $emailType",
+    async ({ emailType, expectedDetails, input }) => {
+      const payload = await renderEmail(emailType, input);
+
+      for (const [label, value] of Object.entries(expectedDetails)) {
+        expect(cleanHtml(payload.html)).toContain(`<strong>${label}:</strong> ${value}`);
+        expect(payload.text).toContain(`${label}: ${value}`);
+      }
+    }
+  );
+
+  it.each([
+    {
+      emailType: "Deliverable Due Date Reminder",
+      input: { ...deliverableInput, reminderStage: "Five Days Prior" },
+      expectedDetails: {
+        ...demonstrationDetails,
+        "Deliverable type": "Close Out Report",
+        Deliverable: "Quarterly Budget Report",
+        Reminder: "due in 5 days",
+        "Due date": "2026-06-01",
+        Status: "Upcoming",
+      },
+    },
+    {
+      emailType: "Demonstration Expiration Date Reminder",
+      input: {
+        recipients: deliverableInput.recipients,
+        demonstration: {
+          ...deliverableInput.demonstration,
+          expirationDate: "2026-06-01T12:00:00.000Z",
+        },
+        reminderStage: "Thirty Days Prior",
+        isStateUser: false,
+      },
+      expectedDetails: {
+        ...demonstrationDetails,
+        "Days Until Expiration": "30",
+        "Expiration Date": "2026-06-01",
+      },
+    },
+  ])("renders bold detail labels for $emailType", async ({ emailType, expectedDetails, input }) => {
+    const payload = await renderEmail(emailType, input);
+
+    for (const [label, value] of Object.entries(expectedDetails)) {
+      expect(cleanHtml(payload.html)).toContain(`<strong>${label}:</strong> ${value}`);
+      expect(payload.text).toContain(`${label}: ${value}`);
+    }
+  });
+
+  it.each(["Demonstration", "Amendment", "Extension"])(
+    "renders bold expected approval reminder labels for %s",
+    async (applicationTypeId) => {
+      const isDemonstration = applicationTypeId === "Demonstration";
+      const payload = await renderEmail("Application Expected Approval Date Reminder", {
+        recipients: deliverableInput.recipients,
+        application: {
+          id: "application-1",
+          applicationTypeId,
+          name: isDemonstration ? "Medicaid Demonstration" : "Test Application",
+          stateName: "Maryland",
+          parentDemonstrationId: "demonstration-1",
+          parentDemonstrationName: "Medicaid Demonstration",
+          expectedApprovalDate: "2026-06-01T12:00:00.000Z",
+        },
+      });
+      const expectedDetails = {
+        ...demonstrationDetails,
+        "Days Until Expected Approval": "7",
+        "Expected approval date": "2026-06-01",
+        "Application Type": applicationTypeId === "Extension" ? "Renewal" : applicationTypeId,
+        ...(!isDemonstration ? { "Application Title": "Test Application" } : {}),
+      };
+
+      for (const [label, value] of Object.entries(expectedDetails)) {
+        expect(cleanHtml(payload.html)).toContain(`<strong>${label}:</strong> ${value}`);
+        expect(payload.text).toContain(`${label}: ${value}`);
+      }
+      if (isDemonstration) {
+        expect(payload.html).not.toContain("Application Title:");
+        expect(payload.text).not.toContain("Application Title:");
+      }
+    }
+  );
+
   it("renders every registered template", async () => {
     for (const { emailType, expectedText, input, subject } of templateCases) {
       const payload = await renderEmail(emailType, input);
@@ -162,16 +292,9 @@ describe("renderEmail", () => {
         expect(payload.text).toContain(text);
       }
       if (emailType === "Deliverable Comment") {
-        for (const content of [payload.text, cleanHtml(payload.html)]) {
-          for (const text of [
-            "A new comment has been added to a Close Out Report deliverable",
-            "Demonstration: Medicaid Demonstration",
-            "State: Maryland",
-            "Deliverable: Quarterly Budget Report",
-          ]) {
-            expect(content).toContain(text);
-          }
-        }
+        expect(cleanHtml(payload.html)).toContain(
+          "A new comment has been added to a Close Out Report deliverable"
+        );
         for (const label of ["Deliverable type:", "Action:", "Current due date:"]) {
           expect(payload.text).not.toContain(label);
           expect(payload.html).not.toContain(label);

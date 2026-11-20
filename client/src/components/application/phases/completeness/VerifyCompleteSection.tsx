@@ -11,9 +11,8 @@ import {
   useCompletePhase,
   useDeclareCompletenessPhaseIncomplete,
 } from "components/application/phase-status/phaseCompletionQueries";
-import { formatDateForServer, getDateEst } from "util/formatDate";
-import { addDays, parseISO } from "date-fns";
-import { ApplicationDateInput, LocalDate, PhaseName, PhaseStatus } from "demos-server";
+import { assertIsLocalDate, getDateEst } from "util/formatDate";
+import { ApplicationDateInput, PhaseName, PhaseStatus } from "demos-server";
 import { getCurrentUser, isReadonly } from "components/user/UserContext";
 import {
   getPhaseCompletedMessage,
@@ -24,30 +23,11 @@ import {
   COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME,
   COMPLETENESS_FINISH_BUTTON_NAME,
   COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION,
-  FEDERAL_COMMENT_END_DATEPICKER_NAME,
-  FEDERAL_COMMENT_START_DATEPICKER_NAME,
   STATE_DEEMED_COMPLETE_DATEPICKER_NAME,
 } from "./CompletenessPhase";
 
-const FEDERAL_COMMENT_PERIOD_DAYS = 30;
-
 const THIS_PHASE_NAME: PhaseName = "Completeness";
 const NEXT_PHASE_NAME: PhaseName = "Federal Comment";
-
-const calculateFederalCommentPeriodDates = (
-  stateDeemedCompleteDate: string
-): { federalStartDate: string; federalEndDate: string } => {
-  if (!stateDeemedCompleteDate) return { federalStartDate: "", federalEndDate: "" };
-
-  const parsedStateDeemedCompleteDate = parseISO(stateDeemedCompleteDate);
-  const federalStartDate = addDays(parsedStateDeemedCompleteDate, 1);
-  const federalEndDate = addDays(parsedStateDeemedCompleteDate, 1 + FEDERAL_COMMENT_PERIOD_DAYS);
-
-  return {
-    federalStartDate: formatDateForServer(federalStartDate),
-    federalEndDate: formatDateForServer(federalEndDate),
-  };
-};
 
 const calculateStateDeemedCompleteDate = (
   stateDeemedCompleteDate: string,
@@ -100,16 +80,8 @@ export const VerifyCompleteSection = ({
   );
   const stateDeemedComplete =
     userSelectedStateDeemedCompleteDate || calculatedStateDeemedCompleteDate;
-  const { federalStartDate, federalEndDate } =
-    calculateFederalCommentPeriodDates(stateDeemedComplete);
 
   const finishIsEnabled = () => {
-    const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
-    const datesAreValid =
-      federalStartDate && federalEndDate
-        ? true
-        : new Date(federalStartDate) <= new Date(federalEndDate);
-
     return (
       !completenessComplete &&
       applicationIntakeComplete &&
@@ -117,8 +89,7 @@ export const VerifyCompleteSection = ({
       completenessDocuments.find(
         (doc) => doc.documentType === "Internal Completeness Review Form"
       ) &&
-      datesFilled &&
-      datesAreValid
+      Boolean(stateDeemedComplete)
     );
   };
 
@@ -126,15 +97,7 @@ export const VerifyCompleteSection = ({
     const dates: ApplicationDateInput[] = [
       {
         dateType: "State Application Deemed Complete",
-        dateValue: stateDeemedComplete as LocalDate,
-      },
-      {
-        dateType: "Federal Comment Period Start Date",
-        dateValue: federalStartDate as LocalDate,
-      },
-      {
-        dateType: "Federal Comment Period End Date",
-        dateValue: federalEndDate as LocalDate,
+        plainDate: assertIsLocalDate(stateDeemedComplete),
       },
     ];
 
@@ -191,24 +154,6 @@ export const VerifyCompleteSection = ({
             value={stateDeemedComplete}
             onChange={setUserSelectedStateDeemedCompleteDate}
             isDisabled={completenessComplete || isReadonlyUser}
-          />
-        </div>
-
-        <div>
-          <DatePicker
-            name={FEDERAL_COMMENT_START_DATEPICKER_NAME}
-            label={"Federal Comment Period Start Date"}
-            value={federalStartDate}
-            isDisabled
-          />
-        </div>
-
-        <div>
-          <DatePicker
-            name={FEDERAL_COMMENT_END_DATEPICKER_NAME}
-            label={"Federal Comment Period End Date"}
-            value={federalEndDate}
-            isDisabled
           />
         </div>
       </div>

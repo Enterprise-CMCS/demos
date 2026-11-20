@@ -4,8 +4,14 @@ import { useSessionStorageJson } from "hooks";
 
 import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
-import { SimplePhase, WorkflowApplication } from "components/application";
-import { ApplicationStatus, DateType, LocalDate, PhaseName } from "demos-server";
+import {
+  ApplicationWorkflowDocument,
+  SimplePhase,
+  WorkflowApplication,
+} from "components/application";
+import { ApplicationUploadSection } from "components/application/phases/sections";
+import { useDialog } from "components/dialog/DialogContext";
+import { ApplicationStatus, DateType, PhaseName } from "demos-server";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import {
   FAILED_TO_SAVE_MESSAGE,
@@ -16,6 +22,7 @@ import {
 import { DatePicker } from "components/input/date/DatePicker";
 import { getCurrentUser, isReadonly } from "components/user/UserContext";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
+import { assertIsLocalDate } from "util/formatDate";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -74,6 +81,10 @@ export const getSdgPreparationPhaseFromApplication = (
   );
   if (!sdgPreparationPhase) return <div>Error: SDG Preparation Phase not found.</div>;
 
+  const sdgPreparationDocuments = application.documents.filter(
+    (doc) => doc.phaseName === "SDG Preparation"
+  );
+
   const allPreviousPhasesDone = application.phases
     .filter(
       (p: SimplePhase) =>
@@ -94,6 +105,7 @@ export const getSdgPreparationPhaseFromApplication = (
       setSelectedPhase={setSelectedPhase}
       allPreviousPhasesDone={allPreviousPhasesDone}
       applicationStatus={application.status}
+      documents={sdgPreparationDocuments}
     />
   );
 };
@@ -104,13 +116,16 @@ export const SdgPreparationPhase = ({
   setSelectedPhase,
   allPreviousPhasesDone,
   applicationStatus,
+  documents,
 }: {
   applicationId: string;
   sdgPreparationPhase: SimplePhase;
   setSelectedPhase: (phase: PhaseName) => void;
   allPreviousPhasesDone: boolean;
   applicationStatus: ApplicationStatus;
+  documents: ApplicationWorkflowDocument[];
 }) => {
+  const { showSdgPreparationDocumentUploadDialog } = useDialog();
   const [localFormData, setSdgPreparationPhaseFormData] =
     useSessionStorageJson<SdgPreparationPhaseFormData>(`sdg-preparation-dates-${applicationId}`);
   const sdgPreparationPhaseFormData = localFormData ?? getFormDataFromPhase(sdgPreparationPhase);
@@ -134,7 +149,7 @@ export const SdgPreparationPhase = ({
       await setApplicationDate({
         applicationId: applicationId,
         dateType: "Internal Expected Approval Date" satisfies DateType,
-        dateValue: sdgPreparationPhaseFormData.internalExpectedApprovalDate as LocalDate,
+        plainDate: assertIsLocalDate(sdgPreparationPhaseFormData.internalExpectedApprovalDate),
       });
     }
 
@@ -143,7 +158,7 @@ export const SdgPreparationPhase = ({
         await setApplicationDate({
           applicationId: applicationId,
           dateType: "State Requested Approval Date" satisfies DateType,
-          dateValue: sdgPreparationPhaseFormData.stateRequestedApprovalDate as LocalDate,
+          plainDate: assertIsLocalDate(sdgPreparationPhaseFormData.stateRequestedApprovalDate),
         });
       }
 
@@ -151,7 +166,7 @@ export const SdgPreparationPhase = ({
         await setApplicationDate({
           applicationId: applicationId,
           dateType: "SME Initial Review Date" satisfies DateType,
-          dateValue: sdgPreparationPhaseFormData.smeInitialReviewDate as LocalDate,
+          plainDate: assertIsLocalDate(sdgPreparationPhaseFormData.smeInitialReviewDate),
         });
       }
 
@@ -159,7 +174,7 @@ export const SdgPreparationPhase = ({
         await setApplicationDate({
           applicationId: applicationId,
           dateType: "FRT Initial Meeting Date" satisfies DateType,
-          dateValue: sdgPreparationPhaseFormData.frtInitialMeetingDate as LocalDate,
+          plainDate: assertIsLocalDate(sdgPreparationPhaseFormData.frtInitialMeetingDate),
         });
       }
 
@@ -167,7 +182,7 @@ export const SdgPreparationPhase = ({
         await setApplicationDate({
           applicationId: applicationId,
           dateType: "BNPMT Initial Meeting Date" satisfies DateType,
-          dateValue: sdgPreparationPhaseFormData.bnpmtInitialMeetingDate as LocalDate,
+          plainDate: assertIsLocalDate(sdgPreparationPhaseFormData.bnpmtInitialMeetingDate),
         });
       }
 
@@ -175,7 +190,7 @@ export const SdgPreparationPhase = ({
         await setApplicationDate({
           applicationId: applicationId,
           dateType: "OACT Initial Review Date" satisfies DateType,
-          dateValue: sdgPreparationPhaseFormData.oactInitialReviewDate as LocalDate,
+          plainDate: assertIsLocalDate(sdgPreparationPhaseFormData.oactInitialReviewDate),
         });
       }
     }
@@ -253,6 +268,13 @@ export const SdgPreparationPhase = ({
                   });
                 }}
                 isDisabled={isReadonlyUser || isPhaseCompleted}
+              />
+              <ApplicationUploadSection
+                title="DRAFT DOCUMENTS"
+                helperText="Upload SME Summaries, Briefing Overviews, the draft BN Formulation Workbook, and other working files."
+                documents={documents}
+                onUploadClick={() => showSdgPreparationDocumentUploadDialog(applicationId)}
+                documentsAreReadonly={currentUser.person.personType === "demos-oact-user"}
               />
             </div>
           </div>{" "}

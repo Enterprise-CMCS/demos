@@ -46,14 +46,8 @@ describe("demonstrationTypeTagAssignmentResolvers", () => {
   };
 
   const testDemonstrationId = "3c482b37-182a-4db5-8aea-b58096b452ff";
-  const testInputEffectiveDates = [
-    new Date(2024, 0, 1, 0, 0, 0, 0),
-    new Date(2025, 0, 1, 0, 0, 0, 0),
-  ];
-  const testInputExpirationDates = [
-    new Date(2024, 11, 31, 23, 59, 59, 999),
-    new Date(2025, 11, 31, 23, 59, 59, 999),
-  ];
+  const testInputEffectiveDates = ["2024-01-01", "2025-01-01"];
+  const testInputExpirationDates = ["2024-12-31", "2025-12-31"];
   const mockParsedEffectiveDates = [
     new TZDate(2024, 0, 1, 0, 0, 0, 0),
     new TZDate(2025, 0, 1, 0, 0, 0, 0),
@@ -68,8 +62,8 @@ describe("demonstrationTypeTagAssignmentResolvers", () => {
       {
         demonstrationTypeName: "Type One",
         demonstrationTypeDates: {
-          effectiveDate: testInputEffectiveDates[0],
-          expirationDate: testInputExpirationDates[0],
+          effectivePlainDate: testInputEffectiveDates[0],
+          expirationPlainDate: testInputExpirationDates[0],
         },
       },
       {
@@ -79,8 +73,8 @@ describe("demonstrationTypeTagAssignmentResolvers", () => {
       {
         demonstrationTypeName: "Three Type",
         demonstrationTypeDates: {
-          effectiveDate: testInputEffectiveDates[1],
-          expirationDate: testInputExpirationDates[1],
+          effectivePlainDate: testInputEffectiveDates[1],
+          expirationPlainDate: testInputExpirationDates[1],
         },
       },
     ],

@@ -2,6 +2,11 @@ import { getOutputValue } from "./getOutputValue";
 
 describe("getOutputValue", () => {
   test("should get the proper value", () => {
+    const outputData = { child: "someValue", other: "other" };
+    const output = getOutputValue(outputData, "parent", "child");
+    expect(output).toEqual("someValue");
+  });
+  test("should get the proper value when nested", () => {
     const outputData = { parent: { child: "someValue", other: "other" } };
     const output = getOutputValue(outputData, "parent", "child");
     expect(output).toEqual("someValue");
@@ -10,7 +15,7 @@ describe("getOutputValue", () => {
     // @ts-expect-error prevent error on invalid mock exit
     vi.spyOn(process, "exit").mockImplementation(() => "exit");
 
-    const outputData = { parent: { child: "someValue", other: "other" } };
+    const outputData = { child: "someValue", other: "other" };
     const output = getOutputValue(outputData, "parent", "missing");
     expect(output).toEqual("exit");
   });

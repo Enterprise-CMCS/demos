@@ -23,7 +23,6 @@ import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 import { TestProvider } from "test-utils/TestProvider";
 import { DELIVERABLE_DETAILS_QUERY } from "pages/deliverables/DeliverableDetailsManagementPage";
 import { DELIVERABLE_EXTENSION_REVIEW_SUBMITTED_MESSAGE } from "util/messages";
-import { selectOption } from "test-utils/select";
 
 const mockShowSuccess = vi.fn();
 const mockShowError = vi.fn();
@@ -126,8 +125,7 @@ describe("ReviewExtensionDeliverableDialog", () => {
   it("blocks submission when 'Approved' is selected but the requested date is expired", async () => {
     const user = userEvent.setup();
     setup({ originalDateRequested: PAST_REQUESTED_DATE });
-    await selectOption(
-      user,
+    await user.selectOptions(
       screen.getByTestId(REVIEW_EXTENSION_STATUS_FIELD_NAME),
       "Approved"
     );
@@ -137,8 +135,7 @@ describe("ReviewExtensionDeliverableDialog", () => {
   it("submits an approval without a new date", async () => {
     const user = userEvent.setup();
     const { onClose } = setup();
-    await selectOption(
-      user,
+    await user.selectOptions(
       screen.getByTestId(REVIEW_EXTENSION_STATUS_FIELD_NAME),
       "Approved"
     );
@@ -162,8 +159,7 @@ describe("ReviewExtensionDeliverableDialog", () => {
   it("requires a New Date when 'Approve With New Date' is selected", async () => {
     const user = userEvent.setup();
     setup();
-    await selectOption(
-      user,
+    await user.selectOptions(
       screen.getByTestId(REVIEW_EXTENSION_STATUS_FIELD_NAME),
       "Approve With New Date"
     );
@@ -174,8 +170,7 @@ describe("ReviewExtensionDeliverableDialog", () => {
   it("submits 'Approve With New Date' with a future date", async () => {
     const user = userEvent.setup();
     const { onClose } = setup();
-    await selectOption(
-      user,
+    await user.selectOptions(
       screen.getByTestId(REVIEW_EXTENSION_STATUS_FIELD_NAME),
       "Approve With New Date"
     );
@@ -201,8 +196,7 @@ describe("ReviewExtensionDeliverableDialog", () => {
   it("requires denial details when 'Denied' is selected", async () => {
     const user = userEvent.setup();
     setup();
-    await selectOption(
-      user,
+    await user.selectOptions(
       screen.getByTestId(REVIEW_EXTENSION_STATUS_FIELD_NAME),
       "Denied"
     );
@@ -213,8 +207,7 @@ describe("ReviewExtensionDeliverableDialog", () => {
   it("submits a denial with details", async () => {
     const user = userEvent.setup();
     const { onClose } = setup();
-    await selectOption(
-      user,
+    await user.selectOptions(
       screen.getByTestId(REVIEW_EXTENSION_STATUS_FIELD_NAME),
       "Denied"
     );
@@ -242,8 +235,7 @@ describe("ReviewExtensionDeliverableDialog", () => {
     const user = userEvent.setup();
     mockApproveMutation.mockRejectedValueOnce(new Error("boom"));
     const { onClose } = setup();
-    await selectOption(
-      user,
+    await user.selectOptions(
       screen.getByTestId(REVIEW_EXTENSION_STATUS_FIELD_NAME),
       "Approved"
     );
@@ -258,8 +250,7 @@ describe("ReviewExtensionDeliverableDialog", () => {
   it("prompts the cancellation confirmation when closing with unsaved changes", async () => {
     const user = userEvent.setup();
     const { onClose } = setup();
-    await selectOption(
-      user,
+    await user.selectOptions(
       screen.getByTestId(REVIEW_EXTENSION_STATUS_FIELD_NAME),
       "Denied"
     );

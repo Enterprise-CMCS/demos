@@ -2,6 +2,11 @@
 version: v1.25.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
+  SNYK-JS-BODYPARSER-21431495:
+    - '*':
+        reason: No Patch Available
+        expires: 2026-12-03T00:00:00.000Z
+        created: 2026-11-03T00:00:00.000Z
   SNYK-JS-NANOID-18506894:
     - '*':
         reason: No patch available
@@ -94,14 +99,14 @@ ignore:
         created: 2026-10-22T14:33:00.000Z
   SNYK-JS-URIJS-19963963:
     - '*':
-        reason: No patch available.
-        expires: 2026-10-29T00:00:00.000Z
-        created: 2026-10-22T14:33:00.000Z
+        reason: No Patch Available
+        expires: 2026-12-03T00:00:00.000Z
+        created: 2026-11-03T00:00:00.000Z
   SNYK-JS-QS-20943482:
     - '*':
-        reason: No patch available.
-        expires: 2026-10-29T00:00:00.000Z
-        created: 2026-10-22T14:33:00.000Z
+        reason: No Patch Available
+        expires: 2026-12-03T00:00:00.000Z
+        created: 2026-11-03T00:00:00.000Z
 patch: {}
 exclude:
   global:

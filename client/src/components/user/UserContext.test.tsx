@@ -104,41 +104,26 @@ describe("UserContext", () => {
       expect(isReadonly(reviewerUser, "DemonstrationDetail")).toBe(true);
     });
 
-    it("returns true when personType is 'demos-oact-user' in DemonstrationDetail", () => {
-      const oactUser: CurrentUser = {
-        ...BASE_CURRENT_USER,
-        person: {
-          ...BASE_CURRENT_USER.person,
-          personType: "demos-oact-user",
-        },
-      };
+    it.each([
+      { applicationSection: "Homepage", expected: true },
+      { applicationSection: "DemonstrationDetail", expected: true },
+      { applicationSection: "ApplicationWorkflow", expected: true },
+      { applicationSection: "DeliverableManagement", expected: false },
+      { applicationSection: undefined, expected: false },
+    ] as const)(
+      "returns $expected when personType is 'demos-oact-user' in $applicationSection",
+      ({ applicationSection, expected }) => {
+        const oactUser: CurrentUser = {
+          ...BASE_CURRENT_USER,
+          person: {
+            ...BASE_CURRENT_USER.person,
+            personType: "demos-oact-user",
+          },
+        };
 
-      expect(isReadonly(oactUser, "DemonstrationDetail")).toBe(true);
-    });
-
-    it("returns true when personType is 'demos-oact-user' in Homepage", () => {
-      const oactUser: CurrentUser = {
-        ...BASE_CURRENT_USER,
-        person: {
-          ...BASE_CURRENT_USER.person,
-          personType: "demos-oact-user",
-        },
-      };
-
-      expect(isReadonly(oactUser, "Homepage")).toBe(true);
-    });
-
-    it("returns false when personType is 'demos-oact-user' in ApplicationWorkflow", () => {
-      const oactUser: CurrentUser = {
-        ...BASE_CURRENT_USER,
-        person: {
-          ...BASE_CURRENT_USER.person,
-          personType: "demos-oact-user",
-        },
-      };
-
-      expect(isReadonly(oactUser, "ApplicationWorkflow")).toBe(false);
-    });
+        expect(isReadonly(oactUser, applicationSection)).toBe(expected);
+      }
+    );
 
     it("returns false for other user types in ApplicationWorkflow section", () => {
       const adminUser: CurrentUser = {

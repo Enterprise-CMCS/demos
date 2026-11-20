@@ -2,14 +2,12 @@ import React from "react";
 
 import {
   Amendment,
-  Deliverable,
   Demonstration,
   DemonstrationRoleAssignment,
   DemonstrationTypeAssignment,
   Document,
   Person,
   State,
-  Tag,
 } from "demos-server";
 import { useLocation, useParams } from "react-router-dom";
 import { gql, useQuery } from "@apollo/client";
@@ -46,8 +44,8 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       id
       name
       status
-      currentPhaseName
       effectivePlainDate
+      currentPhaseName
       expirationPlainDate
       medicaidId
       state {
@@ -59,7 +57,6 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         description
         status
         createdAt
-        effectiveDate
         effectivePlainDate
         signatureLevel
         documents {
@@ -82,7 +79,6 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         description
         status
         createdAt
-        effectiveDate
         effectivePlainDate
         signatureLevel
         documents {
@@ -130,25 +126,13 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
           personType
         }
       }
-      deliverables {
-        id
-        demonstrationTypes {
-          tagName
-        }
-      }
     }
   }
 `;
 
 export type DemonstrationDetailModification = Pick<
   Amendment,
-  | "id"
-  | "name"
-  | "description"
-  | "status"
-  | "createdAt"
-  | "effectivePlainDate"
-  | "signatureLevel"
+  "id" | "name" | "description" | "status" | "createdAt" | "effectivePlainDate" | "signatureLevel"
 > & {
   documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
     owner: { person: Pick<Person, "fullName"> };
@@ -181,9 +165,6 @@ export type DemonstrationDetail = Pick<
   })[];
   roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
     person: Pick<Person, "id" | "fullName" | "email" | "personType">;
-  })[];
-  deliverables?: (Pick<Deliverable, "id"> & {
-    demonstrationTypes: Pick<Tag, "tagName">[];
   })[];
 };
 
@@ -219,6 +200,15 @@ export const DemonstrationDetail: React.FC = () => {
     return <div>Failed to load demonstration.</div>;
   }
 
+  const handleSelect = (selectedTab: string) => {
+    const url = new URL(window.location.href);
+    if (selectedTab === "details") {
+      url.searchParams.delete("amendments");
+      url.searchParams.delete("renewals");
+    }
+    window.history.replaceState(null, "", url.toString());
+  };
+
   const amendmentCount = demonstration.amendments?.length ?? 0;
   const renewalCount = demonstration.renewals?.length ?? 0;
   const isApproved = demonstration.status === "Approved";
@@ -228,6 +218,7 @@ export const DemonstrationDetail: React.FC = () => {
         <>
           <Tabs
             defaultValue={amendmentParam ? "amendments" : renewalParam ? "renewals" : "details"}
+            onSelect={handleSelect}
           >
             <Tab label="Demonstration Details" value="details">
               <DemonstrationTab demonstration={demonstration} />

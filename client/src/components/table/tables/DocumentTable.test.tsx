@@ -7,7 +7,6 @@ import { DocumentTable } from "./DocumentTable";
 import { mockDocuments } from "mock-data/documentMocks";
 import { TestProvider } from "test-utils/TestProvider";
 import { cmsMockUser, cmsReviewerMockUser, readonlyMockUser } from "mock-data/userMocks";
-import { selectOption } from "test-utils/select";
 
 const showUploadDocumentDialog = vi.fn();
 const showEditApplicationDocumentDialog = vi.fn();
@@ -119,7 +118,7 @@ describe("DocumentTable", () => {
     });
 
     // Select the createdAt filter column
-    await selectOption(user, screen.getByTestId("filter-by-column"), "createdAt");
+    await user.selectOptions(screen.getByTestId("filter-by-column"), ["createdAt"]);
 
     const startInput = document.body.querySelector('input[name="date-filter-start"]');
     const endInput = document.body.querySelector('input[name="date-filter-end"]');
@@ -143,7 +142,7 @@ describe("DocumentTable", () => {
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
-    await selectOption(user, screen.getByTestId("filter-by-column"), "type");
+    await user.selectOptions(screen.getByTestId("filter-by-column"), ["type"]);
 
     const input = screen.getByPlaceholderText("Select Document Type");
     await user.type(input, "Q&A");

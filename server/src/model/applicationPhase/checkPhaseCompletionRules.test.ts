@@ -144,18 +144,6 @@ describe("checkPhaseCompletionRules", () => {
           "State Application Deemed Complete",
           testApplicationDateMapReturn,
         ],
-        [
-          testApplicationId,
-          "Completeness",
-          "Federal Comment Period Start Date",
-          testApplicationDateMapReturn,
-        ],
-        [
-          testApplicationId,
-          "Completeness",
-          "Federal Comment Period End Date",
-          testApplicationDateMapReturn,
-        ],
       ]);
       expect(vi.mocked(checkDocumentTypeExistsForCompletion).mock.calls).toEqual([
         [

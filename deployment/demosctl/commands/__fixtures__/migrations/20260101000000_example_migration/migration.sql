@@ -1,0 +1,1 @@
+-- Synthetic migration folder for the data-fix lint tests.

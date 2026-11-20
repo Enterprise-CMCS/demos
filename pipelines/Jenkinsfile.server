@@ -1,9 +1,7 @@
 pipeline {
   agent {
     kubernetes {
-      yaml kubeBlock(containerNames:['node', 'snyk', 'aws-cli'], opts: [
-        NODE_IMAGE: 'artifactory.cloud.cms.gov/docker/node:24-alpine'
-    ])
+      yaml podSpec('node', 'snyk', 'aws-cli')
   }
 }
 
@@ -65,6 +63,25 @@ stages {
               npm run lint
               npx tsc --noEmit --skipLibCheck
               npm run build:ci
+              '''
+            }
+          }
+        }
+      }
+    }
+  }
+
+  stage('Server - Validate Data Fixes') {
+    steps {
+      script {
+        handleError(params.HANDLE_ERRORS) {
+          if (hasChange('server/src/data_fixes') ||
+              hasChange('deployment/demosctl/lib/dataFixFile.ts') ||
+              hasChange('deployment/demosctl/commands/dataFix.ts')) {
+            dirCon('deployment', 'node') {
+              sh '''
+              npm ci
+              npx tsx demosctl/index data-fix:lint all
               '''
             }
           }

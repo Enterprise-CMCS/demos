@@ -5,6 +5,7 @@ vi.mock("../email/notifyApplicationEvent", () => ({
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { skipConceptPhase } from "./skipConceptPhase.js";
 import { TZDate } from "@date-fns/tz";
+import { __DEMOS_VERSION__ } from "../../flags";
 
 // Mock imports
 import { prisma } from "../../prismaClient.js";
@@ -49,9 +50,13 @@ vi.mock(".", async () => {
   };
 });
 
-vi.mock("../../dateUtilities.js", () => ({
-  getEasternNow: vi.fn(),
-}));
+vi.mock("../../dateUtilities.js", async () => {
+  const actual = await vi.importActual("../../dateUtilities.js");
+  return {
+    ...actual,
+    getEasternNow: vi.fn(),
+  };
+});
 
 describe("skipConceptPhase", () => {
   const mockTransaction: any = vi.fn();
@@ -60,6 +65,7 @@ describe("skipConceptPhase", () => {
   };
   const testApplicationId: string = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
   const testError = new Error("Database connection failed");
+  const mockEasternPlainDate = "2025-01-13";
   const mockEasternStartOfDayDate = new Date("2025-01-13T00:00:00.000-05:00");
   const mockEasternCurrentTime = new Date("2025-01-13T07:19:23.199-05:00");
   const mockEasternEndOfDayDate = new Date("2025-01-13T23:59:59.999-05:00");
@@ -98,11 +104,12 @@ describe("skipConceptPhase", () => {
         applicationDates: [
           {
             dateType: "Concept Skipped Date",
-            dateValue: mockEasternStartOfDayDate,
+            plainDate: mockEasternPlainDate,
           },
         ],
       },
       mockTransaction,
+      __DEMOS_VERSION__,
     ];
 
     const validateStartDateCall = [
@@ -111,11 +118,12 @@ describe("skipConceptPhase", () => {
         applicationDates: [
           {
             dateType: "Application Intake Start Date",
-            dateValue: mockEasternStartOfDayDate,
+            plainDate: mockEasternPlainDate,
           },
         ],
       },
       mockTransaction,
+      __DEMOS_VERSION__,
     ];
 
     await skipConceptPhase(
@@ -171,11 +179,12 @@ describe("skipConceptPhase", () => {
           applicationDates: [
             {
               dateType: "Concept Skipped Date",
-              dateValue: mockEasternStartOfDayDate,
+              plainDate: mockEasternPlainDate,
             },
           ],
         },
         mockTransaction,
+        __DEMOS_VERSION__,
       ],
     ];
 

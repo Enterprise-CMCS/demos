@@ -34,7 +34,7 @@ export const documentSchema = gql`
     presignedDownloadUrl: String!
     "The sanitized file name, with extension, that this document should download as."
     downloadFileName: String!
-    deliverable: Deliverable @auth(requires: ["Access CMS Field"])
+    deliverable: Deliverable @auth(requires: ["Read Deliverables"])
     deliverableSubmissionAction: DeliverableAction
     hasPendingUIPathResult: Boolean! @auth(requires: ["Access CMS Field"])
     budgetNeutralityValidation: BudgetNeutralityValidationResult

@@ -47,6 +47,7 @@ export const DELIVERABLE_TYPES = [
   "Quarterly Budget Neutrality Report",
   "Summative Evaluation Report",
   "Transition Plan",
+  "Rapid Cycle Report",
 ] as const;
 export type DeliverableType = (typeof DELIVERABLE_TYPES)[number];
 
@@ -140,6 +141,7 @@ export const CMS_USER_DEMONSTRATION_ROLES = [
 export const RESTRICTED_CMS_USER_DEMONSTRATION_ROLES = ["Viewer"] as const;
 
 export const CMS_REVIEWER_USER_DEMONSTRATION_ROLES = [
+  "CMCS Other Point of Contact",
   "Monitoring Lead",
   "HCBS Analyst",
   "Financial Lead",
@@ -215,6 +217,7 @@ export const DOCUMENT_TYPES = [
   "Summative Evaluation Report",
   "Transition Plan",
   "OACT Certification Memo",
+  "Rapid Cycle Report",
 ] as const;
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 
@@ -232,6 +235,7 @@ export const NON_DELIVERABLE_DOCUMENT_TYPES: DocumentType[] = [
   "Q&A",
   "Signed Decision Memo",
   "State Application",
+  "OACT Certification Memo",
 ] as const;
 
 export const PHASE_NAMES = [
@@ -561,6 +565,7 @@ export const PERMISSIONS = [
   "Access Admin Query",
   "Access CMS Field",
   "Access CMS Query",
+  "Read Deliverables",
   "Perform Admin Action",
   "Modify Applications",
   "Modify Deliverables",

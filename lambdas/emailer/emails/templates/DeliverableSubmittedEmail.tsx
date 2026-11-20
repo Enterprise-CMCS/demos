@@ -41,7 +41,11 @@ export function renderDeliverableSubmittedEmail(rawPayload: unknown): EmailTempl
           </Text>
         }
         state={getRequiredString(demonstration.stateName, "demonstration.stateName", emailType)}
-        dateDetails={<Text style={detailStyle}>Current due date: {currentDueDate}</Text>}
+        dateDetails={
+          <Text style={detailStyle}>
+            <strong>Current due date:</strong> {currentDueDate}
+          </Text>
+        }
       />
     ),
   };

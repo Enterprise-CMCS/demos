@@ -45,10 +45,12 @@ export function isReadonly(
     return true;
   }
 
-  // demos-oact-user is readonly in the homepage & demonstration detail sections
+  // demos-oact-user is readonly in the homepage, demonstration detail, and application workflow sections
   if (
     currentUser.person.personType === "demos-oact-user" &&
-    (applicationSection === "Homepage" || applicationSection === "DemonstrationDetail")
+    (applicationSection === "Homepage" ||
+      applicationSection === "DemonstrationDetail" ||
+      applicationSection === "ApplicationWorkflow")
   ) {
     return true;
   }

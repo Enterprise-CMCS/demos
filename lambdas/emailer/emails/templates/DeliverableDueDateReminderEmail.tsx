@@ -61,18 +61,29 @@ export function renderDeliverableDueDateReminderEmail(rawPayload: unknown): Emai
         <Text style={textStyle}>Thank you,</Text>
         <Text style={textStyle}>DEMOS Notifications</Text>
         <Text style={detailStyle}>
-          Demonstration: {getRequiredString(demonstration.name, "demonstration.name", emailType)}
+          <strong>Demonstration:</strong>{" "}
+          {getRequiredString(demonstration.name, "demonstration.name", emailType)}
         </Text>
         <Text style={detailStyle}>
-          State: {getRequiredString(demonstration.stateName, "demonstration.stateName", emailType)}
+          <strong>State:</strong>{" "}
+          {getRequiredString(demonstration.stateName, "demonstration.stateName", emailType)}
         </Text>
-        <Text style={detailStyle}>Deliverable type: {deliverableType}</Text>
         <Text style={detailStyle}>
-          Deliverable: {getRequiredString(deliverable.name, "deliverable.name", emailType)}
+          <strong>Deliverable type:</strong> {deliverableType}
         </Text>
-        <Text style={detailStyle}>Reminder: {dueWhen}</Text>
-        <Text style={detailStyle}>Due date: {currentDueDate}</Text>
-        <Text style={detailStyle}>Status: {status}</Text>
+        <Text style={detailStyle}>
+          <strong>Deliverable:</strong>{" "}
+          {getRequiredString(deliverable.name, "deliverable.name", emailType)}
+        </Text>
+        <Text style={detailStyle}>
+          <strong>Reminder:</strong> {dueWhen}
+        </Text>
+        <Text style={detailStyle}>
+          <strong>Due date:</strong> {currentDueDate}
+        </Text>
+        <Text style={detailStyle}>
+          <strong>Status:</strong> {status}
+        </Text>
       </EmailLayout>
     ),
   };

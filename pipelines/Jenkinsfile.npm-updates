@@ -1,7 +1,7 @@
 pipeline {
   agent {
     kubernetes {
-      yaml kubeBlock(containerNames:['node'])
+      yaml podSpec('node')
     }
   }
 
@@ -29,15 +29,17 @@ pipeline {
           npmUpdates(dir: 'client')
           npmUpdates(dir: 'server')
           npmUpdates(dir: 'deployment')
-          npmUpdates(dir: 'lambdas/authorizer')
-          npmUpdates(dir: 'lambdas/dbRoleManagement')
-          npmUpdates(dir: 'lambdas/emailer')
-          npmUpdates(dir: 'lambdas/emailScheduler')
-          npmUpdates(dir: 'lambdas/fileprocess')
-          npmUpdates(dir: 'lambdas/deleteinfectedfile')
-          npmUpdates(dir: 'lambdas/UIPath')
-          npmUpdates(dir: 'lambdas/budgetNeutrality')
-          npmUpdates(dir: 'lambdas/dataConnectExport')
+          npmUpdates(group: 'lambdas', dir: [
+            'lambdas/authorizer',
+            'lambdas/dbRoleManagement',
+            'lambdas/emailer',
+            'lambdas/emailScheduler',
+            'lambdas/fileprocess',
+            'lambdas/deleteinfectedfile',
+            'lambdas/UIPath',
+            'lambdas/budgetNeutrality',
+            'lambdas/dataConnectExport'
+          ])
         }
       }
     }

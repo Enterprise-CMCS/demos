@@ -298,8 +298,8 @@ describe("EditDemonstrationTypeDialog", () => {
   describe("mutation behavior", () => {
     const createMock = (
       demonstrationId: string,
-      effectiveDate: string,
-      expirationDate: string
+      effectivePlainDate: string,
+      expirationPlainDate: string
     ): MockedResponse => ({
       request: {
         query: EDIT_DEMONSTRATION_TYPES_DIALOG_MUTATION,
@@ -310,8 +310,8 @@ describe("EditDemonstrationTypeDialog", () => {
               {
                 demonstrationTypeName: MOCK_INITIAL_TYPE.demonstrationTypeName,
                 demonstrationTypeDates: {
-                  effectiveDate,
-                  expirationDate,
+                  effectivePlainDate,
+                  expirationPlainDate,
                 },
               },
             ],

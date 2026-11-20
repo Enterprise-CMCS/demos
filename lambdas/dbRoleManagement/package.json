@@ -15,9 +15,9 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@aws-sdk/client-lambda": "^3.1153.0",
-    "@aws-sdk/client-secrets-manager": "^3.1153.0",
-    "@aws-sdk/client-ssm": "^3.1153.0",
+    "@aws-sdk/client-lambda": "^3.1165.0",
+    "@aws-sdk/client-secrets-manager": "^3.1165.0",
+    "@aws-sdk/client-ssm": "^3.1165.0",
     "@types/aws-lambda": "^8.10.164",
     "@types/node": "^24.19.2",
     "@types/pg": "^8.23.1",
@@ -26,7 +26,7 @@
     "vitest": "^4.1.12"
   },
   "dependencies": {
-    "pg": "^8.23.1",
-    "demos-shared-library": "file:../../shared_library"
+    "demos-shared-library": "file:../../shared_library",
+    "pg": "^8.23.1"
   }
 }

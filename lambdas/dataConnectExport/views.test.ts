@@ -46,16 +46,62 @@ describe("demonstration reporting contract", () => {
   ])("exports the complete %s report shape", (collection, report) => {
     const schemas = EXPORT_VIEWS.demonstration_reporting.collectionSchemas;
     const fields = schemas[collection as keyof typeof schemas].columns;
-    expect(fields.map((field) => field.name)).toEqual(reportColumns(report));
+    const expectedFields = reportColumns(report);
+    if (collection === "deliverables") expectedFields.push("budget_neutrality_reporting");
+    expect(fields.map((field) => field.name)).toEqual(expectedFields);
     for (const field of fields) {
-      expect(field.duckdbType).toBe(["total_extensions_requested", "total_resubmissions_requested"].includes(field.name) ? "INTEGER" : "VARCHAR");
+      expect(field.duckdbType).toBe(field.name === "budget_neutrality_reporting" ? "JSON"
+        : ["total_extensions_requested", "total_resubmissions_requested"].includes(field.name) ? "INTEGER" : "VARCHAR");
     }
+  });
+
+  it("exports the latest successful workbook's reporting rows without changing deliverable counts", () => {
+    const view = EXPORT_VIEWS.demonstration_reporting;
+    const reporting = view.collectionSchemas.deliverables.columns.find(
+      (field) => field.name === "budget_neutrality_reporting"
+    );
+
+    expect(reporting?.duckdbType).toBe("JSON");
+    expect(view.query).toContain("DISTINCT ON (doc.deliverable_id)");
+    expect(view.query).toContain("ORDER BY doc.deliverable_id, da.action_timestamp DESC, bn.id DESC");
+    expect(view.query).toContain("'workbook_id', most_recent_valid_bn_data.workbook_id");
+    expect(view.query).toContain("'test_values'");
+    expect(view.query).toContain("COALESCE(bn_value_aggregates.test_values, '[]'::json)");
+    expect(view.query).toContain("'test_years'");
+    expect(view.query).toContain("COALESCE(bn_year_aggregates.test_years, '[]'::json)");
+    expect(view.query).toContain("'cap_needed', cap_needed");
+    expect(view.query).toContain("'spending_limits', COALESCE(bn_spending_limit_aggregates.spending_limits, '[]'::json)");
+    expect(view.query).toContain("'program_index', spending_limit.program_index");
+    expect(view.query).toContain("'program_name', spending_limit.program_name");
+    expect(view.query).toContain("'subject_to_cap_total', subject_to_cap_total");
+    expect(view.query).toContain("'megs', COALESCE(meg_aggregates.megs, '[]'::json)");
+    expect(view.query).toContain("ORDER BY spending_limit.program_index");
+    expect(view.query).toContain("ORDER BY line_number");
+    expect(view.query).toContain("ORDER BY CASE WHEN hypothetical_id = 'Main' THEN 0 ELSE substring(hypothetical_id FROM '[0-9]+')::INTEGER END,\n            measure_id");
+    expect(view.query).toContain("ORDER BY CASE WHEN hypothetical_id = 'Main' THEN 0 ELSE substring(hypothetical_id FROM '[0-9]+')::INTEGER END,\n            dy_number");
+    expect(view.query).toContain("WHEN most_recent_valid_bn_data.workbook_id IS NULL THEN NULL");
+    expect(view.query).toContain("json_agg(json_build_object(");
+    expect(view.baseTables).toContain("budget_neutrality_workbook_hypothetical_value");
+    expect(view.baseTables).toContain("budget_neutrality_workbook_hypothetical_year");
+    expect(view.baseTables).toContain("budget_neutrality_workbook_spending_limit");
+    expect(view.baseTables).toContain("budget_neutrality_workbook_spending_limit_meg");
+    expect(view.query.match(/FROM demos_app\.deliverable AS deliv/g)).toHaveLength(1);
   });
 
   it("declares every demos_app table the query reads, for snapshot locking", () => {
     const { query, baseTables } = EXPORT_VIEWS.demonstration_reporting;
     const sources = [...query.matchAll(/\bdemos_app\.([a-z_]+)/g)].map((match) => match[1]);
     expect([...new Set(baseTables)].sort()).toEqual([...new Set(sources)].sort());
+  });
+
+  it.each([
+    ["test_values", "measure_id, meg_name NULLS FIRST, dy_number NULLS FIRST"],
+    ["test_years", "dy_number"],
+  ])("orders %s with Main first and hypotheticals in numeric order", (collection, tieBreakers) => {
+    const order = "CASE WHEN hypothetical_id = 'Main' THEN 0 ELSE substring(hypothetical_id FROM '[0-9]+')::INTEGER END";
+    expect(EXPORT_VIEWS.demonstration_reporting.query).toContain(
+      `ORDER BY ${order},\n            ${tieBreakers}) AS ${collection}`,
+    );
   });
 
   it("escapes date and document labels as SQL string literals", () => {

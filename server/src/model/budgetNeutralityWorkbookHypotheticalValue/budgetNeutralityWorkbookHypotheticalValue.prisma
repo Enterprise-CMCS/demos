@@ -1,0 +1,21 @@
+// Flags: NO_HISTORY
+// Normalized values are replaceable snapshots derived from the uploaded workbook.
+model BudgetNeutralityWorkbookHypotheticalValue {
+  id             String   @id @default(uuid()) @db.Uuid
+  workbookId     String   @map("workbook_id") @db.Uuid
+  hypotheticalId String   @map("hypothetical_id")
+  measureId      String   @map("measure_id")
+  megName        String?  @map("meg_name")
+  dyNumber       Int?     @map("dy_number")
+  value          Float
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  workbook     BudgetNeutralityWorkbook     @relation(fields: [workbookId], references: [id], onDelete: Cascade)
+  hypothetical BudgetNeutralityHypothetical @relation(fields: [hypotheticalId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  measure      BudgetNeutralityMeasure      @relation(fields: [measureId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  // NULL on both axes represents aggregate values; the migration adds NULLS NOT DISTINCT uniqueness.
+  @@unique([workbookId, hypotheticalId, measureId, megName, dyNumber], map: "bn_workbook_hypothetical_value_nnd_key")
+  @@map("budget_neutrality_workbook_hypothetical_value")
+}

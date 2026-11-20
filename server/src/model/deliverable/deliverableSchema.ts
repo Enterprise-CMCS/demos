@@ -83,8 +83,8 @@ export const deliverableSchema = gql`
   }
 
   type Query {
-    deliverable(id: ID!): Deliverable!
-    deliverables: [Deliverable!]!
+    deliverable(id: ID!): Deliverable! @auth(requires: ["Read Deliverables"])
+    deliverables: [Deliverable!]! @auth(requires: ["Read Deliverables"])
   }
 
   type Mutation {
@@ -92,8 +92,7 @@ export const deliverableSchema = gql`
       @auth(requires: ["Modify Deliverables"])
     updateDeliverable(id: ID!, input: UpdateDeliverableInput!): Deliverable!
       @auth(requires: ["Modify Deliverables"])
-    submitDeliverable(id: ID!): Deliverable!
-      @auth(requires: ["Submit Deliverables"])
+    submitDeliverable(id: ID!): Deliverable! @auth(requires: ["Submit Deliverables"])
     startDeliverableReview(id: ID!): Deliverable! @auth(requires: ["Modify Deliverables"])
     completeDeliverable(id: ID!, finalStatus: FinalDeliverableStatus!): Deliverable!
       @auth(requires: ["Modify Deliverables"])

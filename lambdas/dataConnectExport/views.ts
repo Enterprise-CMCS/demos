@@ -164,6 +164,16 @@ const deliverableFields: readonly ReportField[] = [
   deliverableField("actuals", "coalesce(most_recent_valid_bn_data.actuals, '-')"),
   deliverableField("public_comments", "left(coalesce(aggregate_public_comments.comment_value, '-'), 32000)"),
   deliverableField("private_comments", "left(coalesce(aggregate_private_comments.comment_value, '-'), 32000)"),
+  {
+    name: "budget_neutrality_reporting",
+    expression: `CASE WHEN most_recent_valid_bn_data.workbook_id IS NULL THEN NULL ELSE json_build_object(
+        'workbook_id', most_recent_valid_bn_data.workbook_id,
+        'test_values', COALESCE(bn_value_aggregates.test_values, '[]'::json),
+        'test_years', COALESCE(bn_year_aggregates.test_years, '[]'::json),
+        'spending_limits', COALESCE(bn_spending_limit_aggregates.spending_limits, '[]'::json)
+      ) END`,
+    duckdbType: "JSON",
+  },
 ];
 
 const demonstrationTypeFields: readonly ReportField[] = [
@@ -392,17 +402,64 @@ most_recent_review_start AS (
     FROM demos_app.deliverable_action AS da
     INNER JOIN demos_app.person AS p ON da.user_id = p.id AND da.action_type_id = 'Started Review'
 ),
--- Selects and partitions by the same column, so DISTINCT leaves one row per deliverable even if a
--- document and its submission action disagree on deliverable_id (no constraint ties them together).
 most_recent_valid_bn_data AS (
-    SELECT DISTINCT doc.deliverable_id,
-        first_value(bn.net_variance_total)
-            OVER (PARTITION BY doc.deliverable_id ORDER BY da.action_timestamp DESC) AS net_variance_total,
-        first_value(bn.actuals) OVER (PARTITION BY doc.deliverable_id ORDER BY da.action_timestamp DESC) AS actuals
+    SELECT DISTINCT ON (doc.deliverable_id)
+        doc.deliverable_id, bn.id AS workbook_id, bn.net_variance_total, bn.actuals
     FROM demos_app.budget_neutrality_workbook AS bn
     INNER JOIN demos_app.document AS doc ON bn.id = doc.id
     INNER JOIN demos_app.deliverable_action AS da
         ON doc.deliverable_submission_action_id = da.id AND bn.validation_status_id = 'Succeeded'
+    ORDER BY doc.deliverable_id, da.action_timestamp DESC, bn.id DESC
+),
+bn_value_aggregates AS (
+    SELECT workbook_id,
+        json_agg(json_build_object(
+            'test_id', hypothetical_id,
+            'measure_id', measure_id,
+            'meg_name', meg_name,
+            'dy_number', dy_number,
+            'value', value
+        ) ORDER BY CASE WHEN hypothetical_id = 'Main' THEN 0 ELSE substring(hypothetical_id FROM '[0-9]+')::INTEGER END,
+            measure_id, meg_name NULLS FIRST, dy_number NULLS FIRST) AS test_values
+    FROM demos_app.budget_neutrality_workbook_hypothetical_value
+    GROUP BY workbook_id
+),
+bn_year_aggregates AS (
+    SELECT workbook_id,
+        json_agg(json_build_object(
+            'test_id', hypothetical_id,
+            'dy_number', dy_number,
+            'cap_needed', cap_needed
+        ) ORDER BY CASE WHEN hypothetical_id = 'Main' THEN 0 ELSE substring(hypothetical_id FROM '[0-9]+')::INTEGER END,
+            dy_number) AS test_years
+    FROM demos_app.budget_neutrality_workbook_hypothetical_year
+    GROUP BY workbook_id
+),
+bn_spending_limit_meg_aggregates AS (
+    SELECT workbook_id, program_index,
+        json_agg(json_build_object(
+            'line_number', line_number,
+            'meg_name', meg_name,
+            'subject_to_cap_total', subject_to_cap_total
+        ) ORDER BY line_number) AS megs
+    FROM demos_app.budget_neutrality_workbook_spending_limit_meg
+    GROUP BY workbook_id, program_index
+),
+bn_spending_limit_aggregates AS (
+    SELECT spending_limit.workbook_id,
+        json_agg(json_build_object(
+            'program_index', spending_limit.program_index,
+            'program_name', spending_limit.program_name,
+            'cap_total', spending_limit.cap_total,
+            'variance_total', spending_limit.variance_total,
+            'over_cap', spending_limit.over_cap,
+            'megs', COALESCE(meg_aggregates.megs, '[]'::json)
+        ) ORDER BY spending_limit.program_index) AS spending_limits
+    FROM demos_app.budget_neutrality_workbook_spending_limit AS spending_limit
+    LEFT JOIN bn_spending_limit_meg_aggregates AS meg_aggregates
+        ON spending_limit.workbook_id = meg_aggregates.workbook_id
+        AND spending_limit.program_index = meg_aggregates.program_index
+    GROUP BY spending_limit.workbook_id
 ),
 aggregate_public_comments AS (
     SELECT pbc.deliverable_id,
@@ -446,6 +503,12 @@ deliverable_details AS (
         AND act_stats.most_recent_finalization_timestamp < most_recent_public_comment.created_at
     LEFT JOIN most_recent_review_start ON deliv.id = most_recent_review_start.deliverable_id
     LEFT JOIN most_recent_valid_bn_data ON deliv.id = most_recent_valid_bn_data.deliverable_id
+    LEFT JOIN bn_value_aggregates
+        ON most_recent_valid_bn_data.workbook_id = bn_value_aggregates.workbook_id
+    LEFT JOIN bn_year_aggregates
+        ON most_recent_valid_bn_data.workbook_id = bn_year_aggregates.workbook_id
+    LEFT JOIN bn_spending_limit_aggregates
+        ON most_recent_valid_bn_data.workbook_id = bn_spending_limit_aggregates.workbook_id
     LEFT JOIN aggregate_public_comments ON deliv.id = aggregate_public_comments.deliverable_id
     LEFT JOIN aggregate_private_comments ON deliv.id = aggregate_private_comments.deliverable_id
     CROSS JOIN LATERAL (
@@ -505,6 +568,8 @@ export const EXPORT_VIEWS = {
     orderBy: ["demonstration_id"],
     baseTables: [
       "amendment", "application", "application_date", "application_note", "budget_neutrality_workbook",
+      "budget_neutrality_workbook_hypothetical_value", "budget_neutrality_workbook_hypothetical_year",
+      "budget_neutrality_workbook_spending_limit", "budget_neutrality_workbook_spending_limit_meg",
       "deliverable", "deliverable_action", "deliverable_demonstration_type", "deliverable_extension", "demonstration",
       "demonstration_role_assignment", "demonstration_type_tag_assignment", "document", "extension", "person",
       "primary_demonstration_role_assignment", "private_comment", "public_comment", "state",

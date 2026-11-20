@@ -11,14 +11,21 @@ export const EST_TIMEZONE = "America/New_York";
 
 const isLocalDateString = (date: string): boolean => /^\d{4}-\d{2}-\d{2}$/.test(date);
 
-const formatLocalDateStringForDisplay = (date: LocalDate): string =>
+export const assertIsLocalDate = (date: string): string => {
+  if (!isLocalDateString(date)) {
+    throw new Error(`Expected a LocalDate string (yyyy-MM-dd), received: "${date}"`);
+  }
+  return date;
+};
+
+const formatLocalDateStringForDisplay = (date: string): string =>
   format(parse(date, ISO_DATE_FORMAT, new UTCDate()), US_DATE_FORMAT);
 
 export const formatDateForDisplay = (date: DateArgument): string => {
   if (typeof date === "string") {
     // LocalDate strings (yyyy-MM-dd) must be parsed in UTC to avoid timezone-induced off-by-one shifts.
     if (isLocalDateString(date)) {
-      return formatLocalDateStringForDisplay(date as LocalDate);
+      return formatLocalDateStringForDisplay(date);
     }
     // Full ISO datetime strings can be parsed directly by the Date constructor.
     return format(new Date(date), US_DATE_FORMAT);

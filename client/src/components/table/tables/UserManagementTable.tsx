@@ -75,7 +75,7 @@ export const UserManagementTable: React.FC = () => {
             <CircleButton
               name="edit-user-states"
               aria-label="Edit State Assignments"
-              tooltip={canEdit ? EDIT_STATES_ENABLED_TOOLTIP : EDIT_STATES_DISABLED_TOOLTIP}
+              eagerTooltip={canEdit ? EDIT_STATES_ENABLED_TOOLTIP : EDIT_STATES_DISABLED_TOOLTIP}
               disabled={!canEdit}
               onClick={() => canEdit && showAssignStatesDialog(selected[0].person)}
             >

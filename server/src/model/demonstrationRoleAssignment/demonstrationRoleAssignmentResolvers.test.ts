@@ -12,9 +12,14 @@ import { selectPersonOrThrow } from "../person/queries";
 import { selectDemonstrationOrThrow } from "../demonstration/queries";
 import { selectDemonstrationRoleAssignmentOrThrow } from "./queries/selectDemonstrationRoleAssignmentOrThrow";
 import { DemonstrationRoleAssignmentQueryResult } from "./queries";
+import { checkPersonEligibleForDemonstrationRole } from "./checkPersonEligibleForDemonstrationRole";
 
 vi.mock("./validateSetDemonstrationRoleInput", () => ({
   validateSetDemonstrationRoleInput: vi.fn(),
+}));
+
+vi.mock("./checkPersonEligibleForDemonstrationRole", () => ({
+  checkPersonEligibleForDemonstrationRole: vi.fn(),
 }));
 
 vi.mock("../person/queries/selectPersonOrThrow", () => ({
@@ -116,6 +121,44 @@ describe("demonstrationRoleAssignmentResolvers", () => {
       vi.mocked(selectDemonstrationRoleAssignmentOrThrow)
         .mockResolvedValueOnce(mockRoleAssignment)
         .mockResolvedValueOnce(mockRoleAssignment2);
+    });
+
+    it("validates each person is eligible for their requested role within a transaction", async () => {
+      await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRoles(null, {
+        input: testInput,
+      });
+
+      expect(checkPersonEligibleForDemonstrationRole).toHaveBeenNthCalledWith(
+        1,
+        testInput[0].personId,
+        testInput[0].roleId,
+        mockPrismaTransaction
+      );
+      expect(checkPersonEligibleForDemonstrationRole).toHaveBeenNthCalledWith(
+        2,
+        testInput[1].personId,
+        testInput[1].roleId,
+        mockPrismaTransaction
+      );
+    });
+
+    it("reports eligibility violations for every input and performs no writes", async () => {
+      const firstError = "Person of type demos-cms-user is not eligible for the role.";
+      const secondError = "Person of type demos-state-user is not eligible for the role.";
+      vi.mocked(checkPersonEligibleForDemonstrationRole)
+        .mockResolvedValueOnce(firstError)
+        .mockResolvedValueOnce(secondError);
+
+      await expect(
+        demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRoles(null, {
+          input: testInput,
+        })
+      ).rejects.toMatchObject({
+        extensions: { originalMessages: [firstError, secondError] },
+      });
+
+      expect(selectPersonOrThrow).not.toHaveBeenCalled();
+      expect(mockPrismaTransaction.demonstrationRoleAssignment.upsert).not.toHaveBeenCalled();
     });
 
     it("fetches person for each input using selectPersonOrThrow within a transaction", async () => {
@@ -272,6 +315,34 @@ describe("demonstrationRoleAssignmentResolvers", () => {
       roleId: "Monitoring & Evaluation Analyst",
       isPrimary: true,
     };
+
+    it("validates the person is eligible for the requested role within a transaction", async () => {
+      await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRole(null, {
+        input: testInput,
+      });
+
+      expect(checkPersonEligibleForDemonstrationRole).toHaveBeenCalledExactlyOnceWith(
+        testInput.personId,
+        testInput.roleId,
+        mockPrismaTransaction
+      );
+    });
+
+    it("reports an eligibility violation and performs no writes", async () => {
+      const eligibilityError = "Person of type demos-cms-user is not eligible for the role.";
+      vi.mocked(checkPersonEligibleForDemonstrationRole).mockResolvedValueOnce(eligibilityError);
+
+      await expect(
+        demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRole(null, {
+          input: testInput,
+        })
+      ).rejects.toMatchObject({
+        extensions: { originalMessages: [eligibilityError] },
+      });
+
+      expect(selectPersonOrThrow).not.toHaveBeenCalled();
+      expect(mockPrismaTransaction.demonstrationRoleAssignment.upsert).not.toHaveBeenCalled();
+    });
 
     it("fetches the person using selectPersonOrThrow within a transaction", async () => {
       await demonstrationRoleAssigmentResolvers.Mutation.setDemonstrationRole(null, {

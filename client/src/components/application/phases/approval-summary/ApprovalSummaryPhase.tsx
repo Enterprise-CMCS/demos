@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
-import { formatDateForDisplay, getTodayEst } from "util/formatDate";
+import { assertIsLocalDate, formatDateForDisplay, getTodayEst } from "util/formatDate";
 import {
   ApplicationStatus,
   DateType,
@@ -33,9 +33,7 @@ export const UPDATE_DEMONSTRATION_MUTATION = gql`
       id
       name
       description
-      effectiveDate
       effectivePlainDate
-      expirationDate
       expirationPlainDate
       sdgDivision
       state {
@@ -54,7 +52,6 @@ export const UPDATE_AMENDMENT_MUTATION = gql`
       id
       name
       description
-      effectiveDate
       effectivePlainDate
       signatureLevel
     }
@@ -67,7 +64,6 @@ export const UPDATE_RENEWAL_MUTATION = gql`
       id
       name
       description
-      effectiveDate
       effectivePlainDate
       signatureLevel
     }
@@ -287,13 +283,13 @@ export const ApprovalSummaryPhase = ({
       await setApplicationDate({
         applicationId: applicationId,
         dateType: "Application Demonstration Types Marked Complete Date" satisfies DateType,
-        dateValue: getTodayEst(),
+        plainDate: assertIsLocalDate(getTodayEst()),
       });
     } else {
       await setApplicationDate({
         applicationId: applicationId,
         dateType: "Application Demonstration Types Marked Complete Date" satisfies DateType,
-        dateValue: null,
+        plainDate: null,
       });
     }
   };
@@ -303,8 +299,8 @@ export const ApprovalSummaryPhase = ({
       const updateInput: UpdateDemonstrationInput = {
         name: formData.name,
         description: formData.description,
-        effectiveDate: formData.effectiveDate as LocalDate,
-        expirationDate: formData.expirationDate as LocalDate,
+        effectivePlainDate: assertIsLocalDate(formData.effectiveDate),
+        expirationPlainDate: assertIsLocalDate(formData.expirationDate),
         sdgDivision: formData.sdgDivision,
         projectOfficerUserId: formData.projectOfficerId,
       };
@@ -312,7 +308,9 @@ export const ApprovalSummaryPhase = ({
       await setApplicationDate({
         applicationId: applicationId,
         dateType: "Application Approval Date",
-        dateValue: formData.applicationApprovalDate ?? null,
+        plainDate: formData.applicationApprovalDate
+          ? assertIsLocalDate(formData.applicationApprovalDate)
+          : null,
       });
 
       return await updateDemonstrationTrigger({
@@ -325,14 +323,16 @@ export const ApprovalSummaryPhase = ({
     const updateInput: UpdateAmendmentInput | UpdateExtensionInput = {
       name: formData.name,
       description: formData.description,
-      effectiveDate: formData.effectiveDate as LocalDate,
+      effectivePlainDate: assertIsLocalDate(formData.effectiveDate),
       signatureLevel: formData.signatureLevel,
     };
     if (formData.applicationType === "amendment") {
       await setApplicationDate({
         applicationId: applicationId,
         dateType: "Application Approval Date",
-        dateValue: formData.applicationApprovalDate ?? null,
+        plainDate: formData.applicationApprovalDate
+          ? assertIsLocalDate(formData.applicationApprovalDate)
+          : null,
       });
       return await updateAmendmentTrigger({
         variables: {
@@ -344,7 +344,9 @@ export const ApprovalSummaryPhase = ({
       await setApplicationDate({
         applicationId: applicationId,
         dateType: "Application Approval Date",
-        dateValue: formData.applicationApprovalDate ?? null,
+        plainDate: formData.applicationApprovalDate
+          ? assertIsLocalDate(formData.applicationApprovalDate)
+          : null,
       });
       return await updateRenewalTrigger({
         variables: {
@@ -392,7 +394,7 @@ export const ApprovalSummaryPhase = ({
       await setApplicationDate({
         applicationId: applicationId,
         dateType: "Application Details Marked Complete Date",
-        dateValue: getTodayEst(),
+        plainDate: assertIsLocalDate(getTodayEst()),
       });
     } catch (error) {
       console.error("Failed to save application details:", error);
@@ -405,7 +407,7 @@ export const ApprovalSummaryPhase = ({
       await setApplicationDate({
         applicationId: applicationId,
         dateType: "Application Details Marked Complete Date",
-        dateValue: null,
+        plainDate: null,
       });
 
       setApprovalSummaryFormData((previousFormData) => ({

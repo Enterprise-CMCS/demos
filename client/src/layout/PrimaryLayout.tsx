@@ -36,7 +36,7 @@ export const PrimaryLayout = ({
           <div className="flex flex-1 overflow-hidden bg-gray-primary-layout min-h-0">
             {!hideSideNav && <SideNav />}
             <div className="relative flex-1 overflow-auto min-h-0 flex flex-col">
-              <div className="p-[16px] flex-1">{children}</div>
+              <main className="p-[16px] flex-1">{children}</main>
             </div>
           </div>
           <Footer />

@@ -44,7 +44,7 @@ import {
   // None of these are tested but need to be exported to avoid mocking issues
 } from "../application";
 import {
-  parseDateTimeOrLocalDateToEasternTZDate,
+  parseLocalDateToEasternTZDate,
   EasternTZDate,
   formatDateToPlainDate,
 } from "../../dateUtilities";
@@ -54,6 +54,7 @@ import { Loaders } from "../../loaders";
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
 import { DemonstrationTypeTagAssignmentQueryResult } from "../demonstrationTypeTagAssignment/queries";
 import { DemonstrationRoleAssignmentQueryResult } from "../demonstrationRoleAssignment/queries";
+import { checkPersonEligibleForDemonstrationRole } from "../demonstrationRoleAssignment/checkPersonEligibleForDemonstrationRole";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -86,12 +87,16 @@ vi.mock("../applicationDate/checkInputDateFunctions", () => ({
 }));
 
 vi.mock("../../dateUtilities", () => ({
-  parseDateTimeOrLocalDateToEasternTZDate: vi.fn(),
+  parseLocalDateToEasternTZDate: vi.fn(),
   formatDateToPlainDate: vi.fn(),
 }));
 
 vi.mock("./determineDemonstrationTypeStatus", () => ({
   determineDemonstrationTypeStatus: vi.fn(),
+}));
+
+vi.mock("../demonstrationRoleAssignment/checkPersonEligibleForDemonstrationRole", () => ({
+  checkPersonEligibleForDemonstrationRole: vi.fn(),
 }));
 
 describe("demonstrationResolvers", () => {
@@ -180,7 +185,7 @@ describe("demonstrationResolvers", () => {
     newApplicationPhaseId: PhaseName;
     projectOfficerRole: Role;
     demonstrationGrantLevelId: GrantLevel;
-    dateValue: Date;
+    plainDate: string;
     easternTZDate: EasternTZDate;
   };
   const testValues: TestValues = {
@@ -197,7 +202,7 @@ describe("demonstrationResolvers", () => {
     newApplicationPhaseId: "Concept",
     projectOfficerRole: "Project Officer",
     demonstrationGrantLevelId: "Demonstration",
-    dateValue: new Date(2025, 1, 1, 5, 0, 0, 0),
+    plainDate: "2025-01-01",
     easternTZDate: {
       isEasternTZDate: true,
       easternTZDate: new TZDate(2025, 1, 1, 0, 0, 0, 0, "America/New_York"),
@@ -699,6 +704,11 @@ describe("demonstrationResolvers", () => {
         applicationTypeId: testValues.applicationTypeId,
       });
       expect(handlePrismaError).not.toHaveBeenCalled();
+      expect(checkPersonEligibleForDemonstrationRole).toHaveBeenCalledExactlyOnceWith(
+        testValues.userId,
+        testValues.projectOfficerRole,
+        mockTransaction
+      );
     });
 
     it("should trim the demonstration name and description when creating", async () => {
@@ -850,6 +860,7 @@ describe("demonstrationResolvers", () => {
       expect(transactionMocks.person.findUnique).not.toHaveBeenCalled();
       expect(transactionMocks.demonstrationRoleAssignment.upsert).not.toHaveBeenCalled();
       expect(transactionMocks.primaryDemonstrationRoleAssignment.upsert).not.toHaveBeenCalled();
+      expect(checkPersonEligibleForDemonstrationRole).not.toHaveBeenCalled();
     });
 
     it("should update the project officer in a transaction if included", async () => {
@@ -937,6 +948,11 @@ describe("demonstrationResolvers", () => {
         transactionMocks.primaryDemonstrationRoleAssignment.upsert
       ).toHaveBeenCalledExactlyOnceWith(expectedCalls[3]);
       expect(handlePrismaError).not.toHaveBeenCalled();
+      expect(checkPersonEligibleForDemonstrationRole).toHaveBeenCalledExactlyOnceWith(
+        testValues.userId,
+        testValues.projectOfficerRole,
+        mockTransaction
+      );
     });
 
     it("should throw if the requested person does not exist", async () => {
@@ -989,7 +1005,7 @@ describe("demonstrationResolvers", () => {
     it("should not parse or check input dates if they don't exist", async () => {
       await __updateDemonstration(undefined, testInput);
 
-      expect(parseDateTimeOrLocalDateToEasternTZDate).not.toHaveBeenCalled();
+      expect(parseLocalDateToEasternTZDate).not.toHaveBeenCalled();
       expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();
       expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
     });
@@ -999,8 +1015,8 @@ describe("demonstrationResolvers", () => {
         id: testValues.demonstrationId,
         input: {
           name: testValues.demonstrationName,
-          effectiveDate: null,
-          expirationDate: null,
+          effectivePlainDate: null,
+          expirationPlainDate: null,
         },
       };
       const expectedCall = {
@@ -1020,7 +1036,7 @@ describe("demonstrationResolvers", () => {
         testInput.input
       );
       expect(transactionMocks.demonstration.update).toHaveBeenCalledExactlyOnceWith(expectedCall);
-      expect(parseDateTimeOrLocalDateToEasternTZDate).not.toHaveBeenCalled();
+      expect(parseLocalDateToEasternTZDate).not.toHaveBeenCalled();
       expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();
       expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
       expect(handlePrismaError).not.toHaveBeenCalled();
@@ -1030,16 +1046,14 @@ describe("demonstrationResolvers", () => {
       const testInput: { id: string; input: UpdateDemonstrationInput } = {
         id: testValues.demonstrationId,
         input: {
-          effectiveDate: testValues.dateValue,
+          effectivePlainDate: testValues.plainDate,
         },
       };
-      vi.mocked(parseDateTimeOrLocalDateToEasternTZDate).mockReturnValueOnce(
-        testValues.easternTZDate
-      );
+      vi.mocked(parseLocalDateToEasternTZDate).mockReturnValueOnce(testValues.easternTZDate);
 
       await __updateDemonstration(undefined, testInput);
-      expect(parseDateTimeOrLocalDateToEasternTZDate).toHaveBeenCalledExactlyOnceWith(
-        testValues.dateValue,
+      expect(parseLocalDateToEasternTZDate).toHaveBeenCalledExactlyOnceWith(
+        testValues.plainDate,
         "Start of Day"
       );
       expect(checkInputDateIsStartOfDay).toHaveBeenCalledExactlyOnceWith(
@@ -1053,16 +1067,14 @@ describe("demonstrationResolvers", () => {
       const testInput: { id: string; input: UpdateDemonstrationInput } = {
         id: testValues.demonstrationId,
         input: {
-          expirationDate: testValues.dateValue,
+          expirationPlainDate: testValues.plainDate,
         },
       };
-      vi.mocked(parseDateTimeOrLocalDateToEasternTZDate).mockReturnValueOnce(
-        testValues.easternTZDate
-      );
+      vi.mocked(parseLocalDateToEasternTZDate).mockReturnValueOnce(testValues.easternTZDate);
 
       await __updateDemonstration(undefined, testInput);
-      expect(parseDateTimeOrLocalDateToEasternTZDate).toHaveBeenCalledExactlyOnceWith(
-        testValues.dateValue,
+      expect(parseLocalDateToEasternTZDate).toHaveBeenCalledExactlyOnceWith(
+        testValues.plainDate,
         "End of Day"
       );
       expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();

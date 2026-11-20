@@ -23,7 +23,7 @@ export const tagSchema = gql`
     taggedRenewals: [Extension!]!
     taggedReferences: [Reference!]!
     assignedDemonstrations: [Demonstration!]!
-    assignedDeliverables: [Deliverable!]!
+    assignedDeliverables: [Deliverable!]! @auth(requires: ["Read Deliverables"])
   }
 
   type DemonstrationTypeUsageTaggedApplicationCounts {

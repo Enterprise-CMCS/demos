@@ -17,7 +17,7 @@ type DemonstrationStatusBadgeSize = "default" | "small";
 const SIZE_CLASSES: Record<DemonstrationStatusBadgeSize, { container: string; icon: string }> = {
   default: {
     container: "text-lg",
-    icon: "min-h-2 h-full w-full",
+    icon: "w-2 h-2",
   },
   small: {
     container: "text-sm",

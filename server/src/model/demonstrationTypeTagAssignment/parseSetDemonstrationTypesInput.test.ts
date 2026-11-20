@@ -11,11 +11,8 @@ vi.mock("../applicationDate", () => ({
 }));
 
 describe("parseSetDemonstrationTypesInput", () => {
-  const mockEffectiveDates = [new Date(2024, 0, 1, 0, 0, 0, 0), new Date(2025, 0, 1, 0, 0, 0, 0)];
-  const mockExpirationDates = [
-    new Date(2024, 11, 31, 23, 59, 59, 999),
-    new Date(2025, 11, 31, 23, 59, 59, 999),
-  ];
+  const mockEffectiveDates = ["2024-01-01", "2025-01-01"];
+  const mockExpirationDates = ["2024-12-31", "2025-12-31"];
   const mockParsedEffectiveDates = [
     new TZDate(2026, 0, 1, 0, 0, 0, 0, "America/New_York"),
     new TZDate(2027, 0, 1, 0, 0, 0, 0, "America/New_York"),
@@ -30,15 +27,15 @@ describe("parseSetDemonstrationTypesInput", () => {
       {
         demonstrationTypeName: "Type One",
         demonstrationTypeDates: {
-          effectiveDate: mockEffectiveDates[0],
-          expirationDate: mockExpirationDates[0],
+          effectivePlainDate: mockEffectiveDates[0],
+          expirationPlainDate: mockExpirationDates[0],
         },
       },
       {
         demonstrationTypeName: "Type Two",
         demonstrationTypeDates: {
-          effectiveDate: mockEffectiveDates[1],
-          expirationDate: mockExpirationDates[1],
+          effectivePlainDate: mockEffectiveDates[1],
+          expirationPlainDate: mockExpirationDates[1],
         },
       },
       {
@@ -71,8 +68,8 @@ describe("parseSetDemonstrationTypesInput", () => {
     const result = parseSetDemonstrationTypesInput(testInput);
 
     expect(vi.mocked(parseAndValidateEffectiveAndExpirationDates).mock.calls).toEqual([
-      [{ effectiveDate: mockEffectiveDates[0], expirationDate: mockExpirationDates[0] }],
-      [{ effectiveDate: mockEffectiveDates[1], expirationDate: mockExpirationDates[1] }],
+      [{ effectivePlainDate: mockEffectiveDates[0], expirationPlainDate: mockExpirationDates[0] }],
+      [{ effectivePlainDate: mockEffectiveDates[1], expirationPlainDate: mockExpirationDates[1] }],
     ]);
 
     expect(result.demonstrationTypesToUpsert).toEqual([

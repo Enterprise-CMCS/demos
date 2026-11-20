@@ -18,7 +18,6 @@ import {
 } from "./TypeTagAssociatedRecordsTable";
 
 import { exportTypeTagRecords } from "util/exportTypeTagRecords";
-import { selectOption } from "test-utils/select";
 
 vi.mock("util/exportTypeTagRecords", () => ({ exportTypeTagRecords: vi.fn() }));
 
@@ -180,7 +179,7 @@ describe("TypeTagAssociatedRecordsTable", () => {
     await screen.findByRole("table");
     expect(screen.getByTestId(RECORD_COUNT_TEST_ID)).toHaveTextContent(`${allRecordCount} Records`);
 
-    await selectOption(user, screen.getByTestId("filter-by-column"), "Record Type");
+    await user.selectOptions(screen.getByTestId("filter-by-column"), "Record Type");
     await user.click(await screen.findByTestId("filter-recordType"));
     await user.click(screen.getByRole("checkbox", { name: "Demonstration" }));
 
@@ -194,7 +193,7 @@ describe("TypeTagAssociatedRecordsTable", () => {
     vi.mocked(exportTypeTagRecords).mockClear();
     setup();
     await screen.findByRole("table");
-    await selectOption(user, screen.getByTestId("filter-by-column"), "Record Type");
+    await user.selectOptions(screen.getByTestId("filter-by-column"), "Record Type");
     await user.click(await screen.findByTestId("filter-recordType"));
     await user.click(screen.getByRole("checkbox", { name: "Demonstration" }));
     await user.click(screen.getByTestId("export-type-tag-records"));
@@ -304,7 +303,7 @@ describe("TypeTagAssociatedRecordsTable", () => {
     await screen.findByRole("table");
     const allCount = getBodyRows().length;
 
-    await selectOption(user, screen.getByTestId("filter-by-column"), "Project Officer");
+    await user.selectOptions(screen.getByTestId("filter-by-column"), "Project Officer");
     await user.click(await screen.findByTestId("filter-projectOfficerName"));
     await user.click(
       screen.getByRole("checkbox", { name: BASE_DEMONSTRATION.primaryProjectOfficer.fullName })

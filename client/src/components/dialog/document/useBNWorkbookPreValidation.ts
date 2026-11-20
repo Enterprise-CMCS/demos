@@ -8,13 +8,10 @@ const PARSE_ERROR: BudgetNeutralityValidationError = {
   message: "Unable to read the workbook. Please upload a valid .xlsx file.",
 };
 
-const buildRuleError = (cause: unknown): BudgetNeutralityValidationError => ({
-  code: "RULE_ERROR",
-  message:
-    cause instanceof Error
-      ? `Workbook is missing expected structure: ${cause.message}.`
-      : "Workbook is missing expected structure.",
-});
+const VALIDATION_ERROR: BudgetNeutralityValidationError = {
+  code: "VALIDATION_ERROR",
+  message: "Unable to validate the workbook. Please try again.",
+};
 
 export type BNPreValidationState =
   | { status: "idle" }
@@ -40,35 +37,41 @@ export const useBNWorkbookPreValidation = (
     setState({ status: "validating" });
 
     (async () => {
-      const [{ parseBNFile }, { validations }] = await Promise.all([
-        import("demos-shared-library/BN"),
-        import("demos-shared-library/BN/rulesets"),
-      ]);
-
-      let data;
       try {
-        data = await parseBNFile(file);
-      } catch (parseError) {
+        const [{ parseBNWorkbook, BNWorkbookInputError }, { validate }] = await Promise.all([
+          import("demos-shared-library/BN"),
+          import("demos-shared-library/BN/validation"),
+        ]);
         if (cancelled) return;
-        console.error("BN workbook parse failed:", parseError);
-        setState({ status: "invalid", errors: [PARSE_ERROR] });
-        return;
-      }
 
-      // Run each rule independently so one rule throwing doesn't suppress the rest.
-      const errors: BudgetNeutralityValidationError[] = [];
-      for (const rule of validations) {
+        let data;
         try {
-          const error = rule(data);
-          if (error) errors.push(error);
-        } catch (ruleError) {
-          console.error("BN validation rule threw:", ruleError);
-          errors.push(buildRuleError(ruleError));
+          ({ data } = await parseBNWorkbook(file));
+        } catch (parseError) {
+          if (cancelled) return;
+          console.error("BN workbook parse failed:", parseError);
+          setState({
+            status: "invalid",
+            errors: [
+              parseError instanceof BNWorkbookInputError ? parseError.validationError : PARSE_ERROR,
+            ],
+          });
+          return;
         }
-      }
+        if (cancelled) return;
 
-      if (cancelled) return;
-      setState(errors.length === 0 ? { status: "valid" } : { status: "invalid", errors });
+        const errors = await validate(data);
+        if (cancelled) return;
+        if (errors.length > 0) {
+          setState({ status: "invalid", errors });
+          return;
+        }
+        setState({ status: "valid" });
+      } catch (validationError) {
+        if (cancelled) return;
+        console.error("BN workbook validation failed:", validationError);
+        setState({ status: "invalid", errors: [VALIDATION_ERROR] });
+      }
     })();
 
     return () => {

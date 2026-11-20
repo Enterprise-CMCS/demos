@@ -5,7 +5,12 @@ import { DemonstrationTypeAssignment, SetDemonstrationTypesInput } from "demos-s
 
 export type MockDemonstrationTypeAssignment = Pick<
   DemonstrationTypeAssignment,
-  "demonstrationTypeName" | "effectivePlainDate" | "expirationPlainDate"
+  | "demonstrationTypeName"
+  | "effectivePlainDate"
+  | "expirationPlainDate"
+  | "status"
+  | "createdAt"
+  | "approvalStatus"
 >;
 
 export const MOCK_DEMONSTRATION_TYPE_ASSIGNMENTS: MockDemonstrationTypeAssignment[] = [
@@ -13,16 +18,25 @@ export const MOCK_DEMONSTRATION_TYPE_ASSIGNMENTS: MockDemonstrationTypeAssignmen
     demonstrationTypeName: "Aggregate Cap",
     effectivePlainDate: "2025-01-01",
     expirationPlainDate: "2025-12-31",
+    status: "Active",
+    createdAt: new Date("2024-01-01"),
+    approvalStatus: "Approved",
   },
   {
     demonstrationTypeName: "Annual Limits",
     effectivePlainDate: "2025-02-01",
     expirationPlainDate: "2025-11-30",
+    status: "Pending",
+    createdAt: new Date("2024-02-01"),
+    approvalStatus: "Unapproved",
   },
   {
     demonstrationTypeName: "Basic Health Plan (BHP)",
     effectivePlainDate: "2025-03-01",
     expirationPlainDate: "2025-10-31",
+    status: "Pending",
+    createdAt: new Date("2024-03-01"),
+    approvalStatus: "Unapproved",
   },
 ];
 

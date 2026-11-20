@@ -30,8 +30,6 @@ export const COMPLETENESS_UPLOAD_BUTTON_NAME = "button-open-completeness-upload"
 export const COMPLETENESS_FINISH_BUTTON_NAME = "button-finish-completeness";
 export const COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME = "button-declare-incomplete";
 export const STATE_DEEMED_COMPLETE_DATEPICKER_NAME = "datepicker-state-application-deemed-complete";
-export const FEDERAL_COMMENT_START_DATEPICKER_NAME = "datepicker-federal-comment-period-start";
-export const FEDERAL_COMMENT_END_DATEPICKER_NAME = "datepicker-federal-comment-period-end";
 
 export const getApplicationCompletenessFromApplication = (
   application: WorkflowApplication,

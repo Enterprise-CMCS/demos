@@ -106,6 +106,7 @@ export const RequestResubmissionDeliverableDialog: React.FC<
     useState<RequestResubmissionFormData>(INITIAL_FORM_DATA);
 
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const [isPrimaryActionPending, setIsPrimaryActionPending] = useState(false);
 
   const newDueDateError = getNewDueDateValidationMessage(
     formData.newDueDate,
@@ -120,6 +121,7 @@ export const RequestResubmissionDeliverableDialog: React.FC<
 
     if (!isValidForm) return;
 
+    setIsPrimaryActionPending(true);
     try {
       await requestResubmissionTrigger({
         variables: {
@@ -141,6 +143,8 @@ export const RequestResubmissionDeliverableDialog: React.FC<
     } catch (error) {
       console.error(error);
       showError("Unable to submit resubmission request.");
+    } finally {
+      setIsPrimaryActionPending(false);
     }
   };
 
@@ -150,11 +154,12 @@ export const RequestResubmissionDeliverableDialog: React.FC<
       title={REQUEST_RESUBMISSION_DIALOG_TITLE}
       onClose={onClose}
       dialogHasChanges={hasChanges}
+      isPrimaryActionPending={isPrimaryActionPending}
       actionButton={
         <Button
           name={REQUEST_RESUBMISSION_SUBMIT_BUTTON_NAME}
           onClick={handleSubmit}
-          disabled={!isValidForm}
+          disabled={!isValidForm || isPrimaryActionPending}
         >
           Submit
         </Button>

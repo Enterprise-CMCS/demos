@@ -138,7 +138,7 @@ describe("ReviewPhase Component", () => {
     it("renders three section headers", () => {
       setup();
 
-      expect(screen.getByText("PO & OGD")).toBeInTheDocument();
+      expect(screen.getByText("Internal Review")).toBeInTheDocument();
       expect(screen.getByText("OGC & OMB")).toBeInTheDocument();
       expect(screen.getByText("Comms Clearance")).toBeInTheDocument();
     });
@@ -185,13 +185,13 @@ describe("ReviewPhase Component", () => {
   });
 
   describe("Section completion and expansion", () => {
-    it("marks PO & OGD section as complete when all dates are filled", () => {
+    it("marks Internal Review section as complete when all dates are filled", () => {
       setup();
 
       expect(screen.getAllByText("Complete")[0]).toBeInTheDocument();
     });
 
-    it("marks PO & OGD section as incomplete when dates are missing", () => {
+    it("marks Internal Review section as incomplete when dates are missing", () => {
       const incompleteData = buildInitialFormData({
         dates: {
           "OGD Approval to Share with SMEs": "",
@@ -201,7 +201,7 @@ describe("ReviewPhase Component", () => {
         },
       });
       setup(incompleteData);
-      const poOgdSection = screen.getByText("PO & OGD").closest("section");
+      const poOgdSection = screen.getByText("Internal Review").closest("section");
       expect(poOgdSection).toHaveTextContent("Incomplete");
     });
 
@@ -453,11 +453,11 @@ describe("ReviewPhase Component", () => {
           applicationDates: expect.arrayContaining([
             {
               dateType: "OGD Approval to Share with SMEs",
-              dateValue: "2025-12-25",
+              plainDate: "2025-12-25",
             },
             {
               dateType: "Draft Approval Package to Prep",
-              dateValue: "2025-01-02",
+              plainDate: "2025-01-02",
             },
           ]),
         });
@@ -733,7 +733,7 @@ describe("ReviewPhase Component", () => {
     it("allows opening and closing sections when isReadonly is true", async () => {
       setup(buildInitialFormData(), "demo-readonly", true);
 
-      const poAndOgdHeader = screen.getByText("PO & OGD");
+      const poAndOgdHeader = screen.getByText("Internal Review");
       // Initially the section should be expanded and notes should be visible
       const poAndOgdNotes = screen.getByTestId("input-po-ogd-notes");
       expect(poAndOgdNotes).toBeInTheDocument();
@@ -822,9 +822,9 @@ describe("ReviewPhase Component", () => {
         expect(mockSetApplicationDates).toHaveBeenCalledWith({
           applicationId: "demo-123",
           applicationDates: expect.arrayContaining([
-            { dateType: "OGD Approval to Share with SMEs", dateValue: "2025-01-01" },
-            { dateType: "Package Sent for COMMs Clearance", dateValue: "2025-01-09" },
-            { dateType: "COMMs Clearance Received", dateValue: "2025-01-10" },
+            { dateType: "OGD Approval to Share with SMEs", plainDate: "2025-01-01" },
+            { dateType: "Package Sent for COMMs Clearance", plainDate: "2025-01-09" },
+            { dateType: "COMMs Clearance Received", plainDate: "2025-01-10" },
           ]),
         });
         expect(mockSetApplicationNotes).toHaveBeenCalledWith({
@@ -919,7 +919,7 @@ describe("ReviewPhase Component", () => {
         expect(mockSetApplicationDates).toHaveBeenCalledWith({
           applicationId: "demo-oact",
           applicationDates: expect.arrayContaining([
-            { dateType: "OACT Certification Date", dateValue: "2027-01-05" },
+            { dateType: "OACT Certification Date", plainDate: "2027-01-05" },
           ]),
         });
       });

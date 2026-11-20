@@ -85,7 +85,19 @@ export function ApprovalPackageColumns(demonstrationId: string, isReadonlyUser: 
     columnHelper.accessor("documentType", {
       id: "type",
       header: "Type",
-      cell: highlightCell,
+      cell: ({ getValue }) => {
+        const documentType = getValue();
+
+        return (
+          <div>
+            { /* Add a red asterisk for the OACT Certification Memo to indicate that it is required */}
+            {documentType === "OACT Certification Memo" && (
+              <span className="text-red-500">*</span>
+            )}
+            {documentType}
+          </div>
+        );
+      },
     }),
     columnHelper.accessor("name", {
       header: "File Name",

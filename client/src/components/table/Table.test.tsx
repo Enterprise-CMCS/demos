@@ -9,7 +9,6 @@ import { Table } from "./Table";
 import { highlightCell, KeywordSearch } from "components/table/search";
 import { ColumnFilter } from "./ColumnFilter";
 import { createSelectColumnDef } from "./columns/selectColumn";
-import { selectOption } from "test-utils/select";
 
 export type TestTableType = {
   id: string;
@@ -177,7 +176,7 @@ describe("Table Component Interactions", () => {
 
       // Apply column filter and verify sorting is maintained
       const columnSelect = screen.getByTestId("filter-by-column");
-      await selectOption(user, columnSelect, "Option");
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/select option/i)).toBeInTheDocument();
@@ -237,7 +236,7 @@ describe("Table Component Interactions", () => {
 
       // Apply column filter
       const columnSelect = screen.getByTestId("filter-by-column");
-      await selectOption(user, columnSelect, "Name");
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();

@@ -13,7 +13,11 @@ import {
   COMPLETENESS_REVIEW_DATEPICKER_NAME,
   calculateStateApplicationSubmittedDate,
   getCompletenessReviewDueDate,
+  isCompletenessReviewDueDateAdjusted,
   getApplicationIntakeComponentFromApplication,
+  APPLICATION_INTAKE_PHASE_STEP_TWO_ADJUSTED_DUE_DATE_TEXT,
+  COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEXT,
+  COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEST_ID,
   APPLICATION_INTAKE_PHASE_DESCRIPTION,
   APPLICATION_INTAKE_PHASE_STEP_ONE_DESCRIPTION,
   APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION,
@@ -27,6 +31,19 @@ import { GET_APPLICATION_TAG_OPTIONS } from "components/tags/useApplicationTagOp
 import { DialogProvider } from "components/dialog/DialogContext";
 import { DocumentType, Tag } from "demos-server";
 import { readonlyMockUser, cmsMockUser } from "mock-data/userMocks";
+
+// A far-future run of holidays long enough to exhaust the due date adjustment limit
+vi.mock("demos-server-constants", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("demos-server-constants")>();
+  const unreachableHolidays = Array.from(
+    { length: 20 },
+    (_, index) => `2099-03-${String(index + 1).padStart(2, "0")}`
+  );
+  return {
+    ...actual,
+    FEDERAL_HOLIDAYS: [...actual.FEDERAL_HOLIDAYS, ...unreachableHolidays],
+  };
+});
 
 vi.mock("@apollo/client", async () => {
   const actual = await vi.importActual("@apollo/client");
@@ -81,6 +98,7 @@ describe("ApplicationIntakePhase", () => {
     applicationId: TEST_APP_ID,
     applicationIntakeDocuments: [],
     initialStateApplicationSubmittedDate: "",
+    savedCompletenessReviewDueDate: "",
     tags: [],
     phaseStatus: "Started",
     completenessPhaseStatus: "Not Started",
@@ -180,12 +198,9 @@ describe("ApplicationIntakePhase", () => {
   });
 
   describe("Step 2 - Verify/Complete Section", () => {
-    it("renders Step 2 title and description", () => {
+    it("renders Step 2 title", () => {
       setup();
       expect(screen.getByText("Step 2 - Verify/Complete")).toBeInTheDocument();
-      expect(
-        screen.getByTestId(APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.testId)
-      ).toHaveTextContent(APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.text);
     });
 
     it("renders State Application Submitted Date input field", () => {
@@ -209,11 +224,6 @@ describe("ApplicationIntakePhase", () => {
       expect(dueDateInput).toBeInTheDocument();
       expect(dueDateInput).toHaveAttribute("type", "date");
       expect(dueDateInput).toBeDisabled();
-    });
-
-    it("shows help text for auto-calculated due date", () => {
-      setup();
-      expect(screen.getByText(/Automatically calculated as 15 calendar days/)).toBeInTheDocument();
     });
 
     it("clears both date pickers when Completeness phase is Incomplete even if State Application documents exist", () => {
@@ -249,6 +259,83 @@ describe("ApplicationIntakePhase", () => {
           COMPLETENESS_REVIEW_DATEPICKER_NAME
         ) as HTMLInputElement;
         expect(dueDateInput.value).toBe("2024-04-25");
+      });
+    });
+
+    describe("with weekend/holiday handling", () => {
+      it("renders the updated Step 2 description", () => {
+        setup();
+        expect(
+          screen.getByTestId(APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.testId)
+        ).toHaveTextContent(APPLICATION_INTAKE_PHASE_STEP_TWO_ADJUSTED_DUE_DATE_TEXT);
+      });
+
+      it("shows the adjusted message when the due date was moved", () => {
+        setup({ initialStateApplicationSubmittedDate: "2026-05-08" }); // +15 is Saturday
+
+        expect(screen.getByTestId(COMPLETENESS_REVIEW_DATEPICKER_NAME)).toHaveValue("2026-05-22");
+        expect(
+          screen.getByTestId(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEST_ID)
+        ).toHaveTextContent(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEXT);
+      });
+
+      it("does not show the adjusted message when the due date was not moved", () => {
+        setup({ initialStateApplicationSubmittedDate: "2026-05-07" }); // +15 is Friday
+
+        expect(screen.getByTestId(COMPLETENESS_REVIEW_DATEPICKER_NAME)).toHaveValue("2026-05-22");
+        expect(
+          screen.queryByTestId(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEST_ID)
+        ).not.toBeInTheDocument();
+      });
+
+      it("shows the saved due date for a finished intake saved before the rule", () => {
+        setup({
+          initialStateApplicationSubmittedDate: "2026-05-08",
+          savedCompletenessReviewDueDate: "2026-05-23",
+          phaseStatus: "Completed",
+        });
+
+        expect(screen.getByTestId(COMPLETENESS_REVIEW_DATEPICKER_NAME)).toHaveValue("2026-05-23");
+        expect(
+          screen.queryByTestId(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEST_ID)
+        ).not.toBeInTheDocument();
+      });
+
+      it("shows the adjusted message for a finished intake whose saved due date was moved", () => {
+        setup({
+          initialStateApplicationSubmittedDate: "2026-05-08",
+          savedCompletenessReviewDueDate: "2026-05-22",
+          phaseStatus: "Completed",
+        });
+
+        expect(screen.getByTestId(COMPLETENESS_REVIEW_DATEPICKER_NAME)).toHaveValue("2026-05-22");
+        expect(
+          screen.getByTestId(COMPLETENESS_REVIEW_DUE_DATE_ADJUSTED_TEST_ID)
+        ).toBeInTheDocument();
+      });
+
+      it("does not show the calendar-days help text", () => {
+        setup();
+        expect(
+          screen.queryByText(/Automatically calculated as 15 calendar days/)
+        ).not.toBeInTheDocument();
+      });
+
+      it("sends the adjusted due date to the server on Finish", async () => {
+        setup({
+          applicationIntakeDocuments: [createDocument()],
+          initialStateApplicationSubmittedDate: "2026-05-08",
+        });
+
+        await userEvent.click(screen.getByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME));
+
+        expect(mockSetApplicationDates).toHaveBeenCalledWith({
+          applicationId: TEST_APP_ID,
+          applicationDates: [
+            { dateType: "State Application Submitted Date", plainDate: "2026-05-08" },
+            { dateType: "Completeness Review Due Date", plainDate: "2026-05-22" },
+          ],
+        });
       });
     });
   });
@@ -501,17 +588,17 @@ describe("ApplicationIntakePhase", () => {
 
   describe("getCompletenessReviewDueDate", () => {
     it("adds 15 calendar days to the submitted date", () => {
-      const submittedDate = "2024-01-12"; // January 12, 2024
+      const submittedDate = "2024-01-11"; // January 11, 2024
       const result = getCompletenessReviewDueDate(submittedDate);
 
-      expect(formatDateForServer(result)).toBe("2024-01-27");
+      expect(formatDateForServer(result)).toBe("2024-01-26");
     });
 
     it("handles date at end of month correctly", () => {
-      const submittedDate = "2024-01-20"; // January 20, 2024
+      const submittedDate = "2024-01-22"; // January 22, 2024
       const result = getCompletenessReviewDueDate(submittedDate);
 
-      expect(formatDateForServer(result)).toBe("2024-02-04");
+      expect(formatDateForServer(result)).toBe("2024-02-06");
     });
 
     it("handles leap year correctly", () => {
@@ -529,10 +616,10 @@ describe("ApplicationIntakePhase", () => {
     });
 
     it("handles year boundary crossing", () => {
-      const submittedDate = "2024-12-20"; // December 20, 2024
+      const submittedDate = "2024-12-18"; // December 18, 2024
       const result = getCompletenessReviewDueDate(submittedDate);
 
-      expect(formatDateForServer(result)).toBe("2025-01-04");
+      expect(formatDateForServer(result)).toBe("2025-01-02");
     });
 
     it("calculates correctly for the test case: Oct 13 to Oct 28", () => {
@@ -540,6 +627,50 @@ describe("ApplicationIntakePhase", () => {
       const result = getCompletenessReviewDueDate(submittedDate);
 
       expect(formatDateForServer(result)).toBe("2025-10-28");
+    });
+
+    describe("with weekend/holiday handling", () => {
+      it.each([
+        ["business day", "2026-05-07", "2026-05-22", false],
+        ["Saturday", "2026-05-08", "2026-05-22", true],
+        ["Sunday", "2026-05-09", "2026-05-22", true],
+        ["Monday holiday (Memorial Day)", "2026-05-10", "2026-05-22", true],
+        ["Friday holiday (Juneteenth)", "2026-06-04", "2026-06-18", true],
+        ["midweek holiday (Veterans Day)", "2026-10-27", "2026-11-10", true],
+      ])(
+        "moves a due date on a %s back to the previous business day",
+        (_label, submittedDate, expectedDueDate, expectedIsAdjusted) => {
+          expect(getCompletenessReviewDueDate(submittedDate)).toBe(expectedDueDate);
+          expect(isCompletenessReviewDueDateAdjusted(submittedDate, expectedDueDate)).toBe(
+            expectedIsAdjusted
+          );
+        }
+      );
+
+      it("calculates the same dates in a US timezone", () => {
+        const originalTimezone = process.env.TZ;
+        process.env.TZ = EST_TIMEZONE;
+        try {
+          expect(getCompletenessReviewDueDate("2026-05-07")).toBe("2026-05-22");
+          expect(getCompletenessReviewDueDate("2026-05-08")).toBe("2026-05-22");
+          expect(getCompletenessReviewDueDate("2026-05-10")).toBe("2026-05-22");
+          expect(isCompletenessReviewDueDateAdjusted("2026-05-07", "2026-05-22")).toBe(false);
+          expect(isCompletenessReviewDueDateAdjusted("2026-05-08", "2026-05-22")).toBe(true);
+        } finally {
+          process.env.TZ = originalTimezone;
+        }
+      });
+
+      it("throws instead of looping forever when no business day is found", () => {
+        expect(() => getCompletenessReviewDueDate("2099-03-01")).toThrow(
+          "No business day found within 10 days of 2099-03-16"
+        );
+      });
+
+      it("returns empty values when there is no submitted date", () => {
+        expect(getCompletenessReviewDueDate("")).toBe("");
+        expect(isCompletenessReviewDueDateAdjusted("", "")).toBe(false);
+      });
     });
   });
 
@@ -670,16 +801,16 @@ describe("ApplicationIntakePhase", () => {
         APPLICATION_SUBMITTED_DATEPICKER_NAME
       ) as HTMLInputElement;
 
-      fireEvent.change(submittedDateInput, { target: { value: "2024-03-15" } });
+      fireEvent.change(submittedDateInput, { target: { value: "2024-03-14" } });
 
-      // Completeness review due date should be 15 days later: 2024-03-30
+      // Completeness review due date should be 15 days later: 2024-03-29
       await waitFor(() => {
         const dueDateInput = screen.getByTestId(
           COMPLETENESS_REVIEW_DATEPICKER_NAME
         ) as HTMLInputElement;
 
         expect(dueDateInput).toBeInTheDocument();
-        expect(dueDateInput.value).toBe("2024-03-30");
+        expect(dueDateInput.value).toBe("2024-03-29");
       });
     });
 

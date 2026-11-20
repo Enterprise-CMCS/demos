@@ -6,11 +6,11 @@ import { ConfirmCancellationDialog } from "./ConfirmCancellationDialog";
 
 export const DIALOG_CANCEL_BUTTON_NAME = "button-dialog-cancel";
 
-const DIALOG = tw`bg-surface-white text-text-font w-full max-h-[calc(100dvh-2rem)] rounded shadow-md p-md relative flex flex-col space-y-sm overflow-hidden backdrop:bg-black/40`;
+const DIALOG = tw`bg-surface-white text-text-font w-full rounded shadow-md p-md relative flex flex-col space-y-sm overflow-visible backdrop:bg-black/40`;
 const CLOSE_BUTTON = tw`absolute top-xs right-sm text-[22px] text-text-placeholder hover:text-text-font cursor-pointer`;
 const CLOSE_BUTTON_DISABLED = tw`absolute top-xs right-sm text-[22px] text-text-placeholder/50 cursor-not-allowed`;
-const TITLE = tw`text-[18px] font-bold mb-xs shrink-0`;
-const HR = tw`border-border-rules my-sm shrink-0`;
+const TITLE = tw`text-[18px] font-bold mb-xs`;
+const HR = tw`border-border-rules my-sm`;
 
 export const BaseDialog = ({
   name,
@@ -18,20 +18,20 @@ export const BaseDialog = ({
   onClose,
   children,
   actionButton,
-  dialogHasChanges: hasChanges = true,
+  dialogHasChanges = true,
   maxWidthClass = "max-w-[720px]",
-  hideHeader = false,
-  cancelButtonIsDisabled = false,
+  isPrimaryActionPending = false,
+  isContentScrollable = false,
 }: {
-  name?: string;
+  name: string;
   title: string;
   onClose: () => void;
   children: React.ReactNode;
-  actionButton?: React.ReactNode;
+  actionButton: React.ReactNode;
   dialogHasChanges?: boolean;
   maxWidthClass?: string;
-  hideHeader?: boolean;
-  cancelButtonIsDisabled?: boolean;
+  isPrimaryActionPending?: boolean;
+  isContentScrollable?: boolean;
 }) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [isCancellationConfirmationOpen, setIsCancellationConfirmationOpen] = useState(false);
@@ -43,6 +43,11 @@ export const BaseDialog = ({
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Focus is on an option while a Select list is open; let the browser close just the list.
+      if (event.target instanceof HTMLOptionElement) {
+        return;
+      }
+
       if (event.key === "Escape") {
         const dialog = dialogRef.current;
         if (dialog && dialog.open) {
@@ -67,7 +72,7 @@ export const BaseDialog = ({
   };
 
   const onCloseClicked = () => {
-    if (hasChanges) {
+    if (dialogHasChanges) {
       setIsCancellationConfirmationOpen(true);
     } else {
       onClose();
@@ -78,36 +83,33 @@ export const BaseDialog = ({
     <>
       <dialog
         ref={dialogRef}
-        className={`${DIALOG} ${maxWidthClass}`}
+        className={`${DIALOG} ${maxWidthClass} ${isContentScrollable ? "viewport-dialog" : ""}`}
         onClose={handleDialogClose}
         data-testid={name}
       >
-        {!hideHeader && (
-          <>
-            <button
-              data-testid="button-dialog-close"
-              type="button"
-              onClick={onCloseClicked}
-              disabled={cancelButtonIsDisabled}
-              className={cancelButtonIsDisabled ? CLOSE_BUTTON_DISABLED : CLOSE_BUTTON}
-              aria-label="Close dialog"
-            >
-              ×
-            </button>
-            <h2 className={TITLE}>{title}</h2>
-            <hr className={HR} aria-hidden="true" />
-          </>
-        )}
-        <div className="min-h-0 overflow-y-auto space-y-sm">{children}</div>
-
+        <>
+          <button
+            data-testid="button-dialog-close"
+            type="button"
+            onClick={onCloseClicked}
+            disabled={isPrimaryActionPending}
+            className={isPrimaryActionPending ? CLOSE_BUTTON_DISABLED : CLOSE_BUTTON}
+            aria-label="Close dialog"
+          >
+            ×
+          </button>
+          <h2 className={TITLE}>{title}</h2>
+          <hr className={HR} aria-hidden="true" />
+        </>
+        {children}
         {actionButton && (
           <>
             <hr className={HR} aria-hidden="true" />
-            <div className="flex shrink-0 flex-wrap justify-end gap-[24px]">
+            <div className="flex justify-end gap-[24px]">
               <SecondaryButton
                 name={DIALOG_CANCEL_BUTTON_NAME}
                 onClick={onCloseClicked}
-                disabled={cancelButtonIsDisabled}
+                disabled={isPrimaryActionPending}
                 aria-label="Cancel and close dialog"
               >
                 Cancel

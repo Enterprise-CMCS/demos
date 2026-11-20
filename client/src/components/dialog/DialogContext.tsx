@@ -28,6 +28,7 @@ import { ApplicationIntakeUploadDialog } from "./document/phases/ApplicationInta
 import { CompletenessDocumentUploadDialog } from "./document/phases/CompletenessDocumentUploadDialog";
 import { ConceptPreSubmissionUploadDialog } from "./document/phases/ConceptPreSubmissionUploadDialog";
 import { FederalCommentUploadDialog } from "./document/phases/FederalCommentUploadDialog";
+import { SdgPreparationUploadDialog } from "./document/phases/SdgPreparationUploadDialog";
 import { ApprovalPackageUploadDialog } from "./document/phases/ApprovalPackageUploadDialog";
 import { DeclareIncompleteDialog, DeclareIncompleteForm } from "./DeclareIncompleteDialog";
 import { ApplyDemonstrationTypesDialog } from "./DemonstrationTypes/ApplyDemonstrationTypesDialog";
@@ -68,6 +69,7 @@ import { AssignStatesDialog, AssignStatesDialogPerson } from "./user/AssignState
 import { EditTypeTagDialog } from "./typeTag/EditTypeTagDialog";
 import { ApproveTypeTagDialog } from "./typeTag/ApproveTypeTagDialog";
 import { DeleteTypeTagDialog } from "./typeTag/DeleteTypeTagDialog";
+import { ConfirmSuggestedSparklyTagDialog } from "./ConfirmSuggestedSparklyTagDialog";
 
 type EditDeliverableDialogSource = Pick<
   DeliverableTableRow,
@@ -272,6 +274,12 @@ export const useDialog = () => {
     );
   };
 
+  const showSdgPreparationDocumentUploadDialog = (applicationId: string) => {
+    context.showDialog(
+      <SdgPreparationUploadDialog onClose={context.hideDialog} applicationId={applicationId} />
+    );
+  };
+
   const showDeclareIncompleteDialog = (onConfirm: (form: DeclareIncompleteForm) => void) => {
     context.showDialog(
       <DeclareIncompleteDialog onConfirm={onConfirm} onClose={context.hideDialog} />
@@ -464,6 +472,16 @@ export const useDialog = () => {
     context.showDialog(<ReferenceAgreementDialog reference={reference} />);
   };
 
+  const showConfirmSuggestedSparklyTagDialog = (args: {
+    applicationId: string;
+    tagName: TagName;
+    onConfirm: (tagName: TagName) => void;
+    onRemove: (tagName: TagName) => void;
+    isSubmitting?: boolean;
+  }) => {
+    context.showDialog(<ConfirmSuggestedSparklyTagDialog {...args} onClose={context.hideDialog} />);
+  };
+
   return {
     closeDialog: context.hideDialog,
     showCreateDemonstrationDialog,
@@ -483,6 +501,7 @@ export const useDialog = () => {
     showCompletenessDocumentUploadDialog,
     showConceptPreSubmissionDocumentUploadDialog,
     showFederalCommentDocumentUploadDialog,
+    showSdgPreparationDocumentUploadDialog,
     showApprovalPackageDocumentUploadDialog,
     showDeclareIncompleteDialog,
     showApplyDemonstrationTypesDialog,
@@ -505,5 +524,6 @@ export const useDialog = () => {
     showEditTypeTagDialog,
     showApproveTypeTagDialog,
     showDeleteTypeTagDialog,
+    showConfirmSuggestedSparklyTagDialog,
   };
 };

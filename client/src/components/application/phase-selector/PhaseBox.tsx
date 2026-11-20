@@ -66,10 +66,17 @@ export const PhaseBox = ({
     <div className="flex flex-col justify-center col-span-1 min-w-0">
       <div
         key={phaseName}
+        role="button"
+        tabIndex={0}
         className={`${BASE_STYLES.PHASE_BOX} 
           ${phaseStyles.box} 
           ${isSelectedPhase ? "scale-110" : ""}`}
         onClick={() => setPhaseAsSelected()}
+        onKeyDown={(event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          event.preventDefault();
+          setPhaseAsSelected();
+        }}
       >
         {showAISuggestions && (
           <SparklyIcon

@@ -27,11 +27,21 @@ export function EmailLayout({
       {message}
       <Text style={textStyle}>Thank you,</Text>
       <Text style={textStyle}>DEMOS Notifications</Text>
-      <Text style={detailStyle}>Demonstration: {demonstrationTitle}</Text>
-      <Text style={detailStyle}>State: {state}</Text>
-      <Text style={detailStyle}>Deliverable type: {deliverableType}</Text>
-      <Text style={detailStyle}>Deliverable: {deliverableName}</Text>
-      <Text style={detailStyle}>Action: {action}</Text>
+      <Text style={detailStyle}>
+        <strong>Demonstration:</strong> {demonstrationTitle}
+      </Text>
+      <Text style={detailStyle}>
+        <strong>State:</strong> {state}
+      </Text>
+      <Text style={detailStyle}>
+        <strong>Deliverable type:</strong> {deliverableType}
+      </Text>
+      <Text style={detailStyle}>
+        <strong>Deliverable:</strong> {deliverableName}
+      </Text>
+      <Text style={detailStyle}>
+        <strong>Action:</strong> {action}
+      </Text>
       {dateDetails}
     </BaseEmailLayout>
   );

@@ -1,0 +1,10 @@
+// Flags: STATIC_CONSTRAINT
+model BudgetNeutralityHypothetical {
+  id String
+
+  hypotheticalValues BudgetNeutralityWorkbookHypotheticalValue[]
+  hypotheticalYears  BudgetNeutralityWorkbookHypotheticalYear[]
+
+  @@id([id])
+  @@map("budget_neutrality_hypothetical")
+}

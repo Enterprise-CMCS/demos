@@ -20,15 +20,15 @@ describe("checkForDuplicateDemonstrationTypes", () => {
       {
         demonstrationTypeName: "Type One",
         demonstrationTypeDates: {
-          effectiveDate: new Date(),
-          expirationDate: new Date(),
+          effectivePlainDate: "2026-01-01",
+          expirationPlainDate: "2027-01-01",
         },
       },
       {
         demonstrationTypeName: "Type Two",
         demonstrationTypeDates: {
-          effectiveDate: new Date(),
-          expirationDate: new Date(),
+          effectivePlainDate: "2026-01-01",
+          expirationPlainDate: "2027-01-01",
         },
       },
       {

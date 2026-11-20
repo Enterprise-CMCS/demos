@@ -41,13 +41,10 @@ export function parseJSDateToEasternTZDate(input: Date): EasternTZDate {
   return { isEasternTZDate: true, easternTZDate: new TZDate(input, "America/New_York") };
 }
 
-export function parseDateTimeOrLocalDateToEasternTZDate(
-  input: DateTimeOrLocalDate,
+export function parseLocalDateToEasternTZDate(
+  input: string,
   expectedTimestamp: ExpectedTimestamp
 ): EasternTZDate {
-  if (input instanceof Date) {
-    return parseJSDateToEasternTZDate(input);
-  }
   // When created, the assumed timezone is UTC
   // This is why getUTC* functions are used below
   const origDate = new Date(input);
@@ -77,6 +74,16 @@ export function parseDateTimeOrLocalDateToEasternTZDate(
     "America/New_York"
   );
   return { isEasternTZDate: true, easternTZDate: dateValue };
+}
+
+export function parseDateTimeOrLocalDateToEasternTZDate(
+  input: DateTimeOrLocalDate,
+  expectedTimestamp: ExpectedTimestamp
+): EasternTZDate {
+  if (input instanceof Date) {
+    return parseJSDateToEasternTZDate(input);
+  }
+  return parseLocalDateToEasternTZDate(input, expectedTimestamp);
 }
 
 export function getCurrentTimeEastern(now: Date): EasternTZDate {

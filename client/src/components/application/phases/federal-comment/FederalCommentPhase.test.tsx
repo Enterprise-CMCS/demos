@@ -2,8 +2,8 @@ import "@testing-library/jest-dom";
 
 import React from "react";
 import { TestProvider } from "test-utils/TestProvider";
-import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import {
@@ -18,8 +18,23 @@ import { DialogProvider } from "components/dialog/DialogContext";
 import { EST_TIMEZONE } from "util/formatDate";
 import type { CurrentUser } from "components/user/UserContext";
 import { readonlyMockUser, cmsMockUser } from "mock-data/userMocks";
+import { ToastContainer } from "components/toast/ToastContainer";
 
 const FAKE_TODAY = "2026-02-08";
+
+const mockSetApplicationDates = vi.fn<() => Promise<void>>();
+let mutationLoading = false;
+vi.mock("components/application/date/dateQueries", () => ({
+  useSetApplicationDates: () => ({
+    setApplicationDates: mockSetApplicationDates,
+    loading: mutationLoading,
+  }),
+}));
+
+beforeEach(() => {
+  mockSetApplicationDates.mockReset().mockResolvedValue();
+  mutationLoading = false;
+});
 
 const createDocument = (
   overrides: Partial<ApplicationWorkflowDocument> = {}
@@ -40,6 +55,7 @@ const DEFAULT_END_DATE = "2026-02-11";
 const setup = (props = {}, currentUser?: CurrentUser) =>
   render(
     <TestProvider currentUser={currentUser}>
+      <ToastContainer />
       <DialogProvider>
         <FederalCommentPhase
           demonstrationId="demo-123"
@@ -57,6 +73,28 @@ describe("FederalCommentPhase", () => {
   vi.setSystemTime(FAKE_TODAY);
 
   describe("Warning Banner", () => {
+    it("shows after the saved end date arrives", () => {
+      const { rerender } = setup({ phaseEndDate: undefined });
+      expect(screen.queryByText(/The Federal Comment Period ends on/i)).not.toBeInTheDocument();
+
+      rerender(
+        <TestProvider>
+          <ToastContainer />
+          <DialogProvider>
+            <FederalCommentPhase
+              demonstrationId="demo-123"
+              phaseComplete={false}
+              phaseStartDate="2026-10-27"
+              phaseEndDate="2026-11-26"
+              documents={[]}
+            />
+          </DialogProvider>
+        </TestProvider>
+      );
+
+      expect(screen.getByText("The Federal Comment Period ends on 11/26/2026")).toBeInTheDocument();
+    });
+
     it("renders warning with days left", () => {
       setup();
       expect(screen.getByLabelText("Warning")).toBeInTheDocument();
@@ -87,6 +125,114 @@ describe("FederalCommentPhase", () => {
   });
 
   describe("Step 1 - Verify Section", () => {
+    it("starts blank when no start date has been saved", () => {
+      setup({ phaseStartDate: undefined, phaseEndDate: undefined });
+      expect(screen.getByLabelText(/Federal Comment Period Start Date/)).toHaveValue("");
+      expect(screen.getByTestId("federal-comment-period-end-date")).toHaveTextContent("--/--/----");
+      expect(
+        screen.getByRole("button", { name: "Declare Federal Comment Start Date" })
+      ).toBeDisabled();
+    });
+
+    it.each([
+      ["2026-10-27", "11/26/2026"],
+      ["2026-03-01", "03/31/2026"],
+      ["2026-12-15", "01/14/2027"],
+      ["2028-02-01", "03/02/2028"],
+    ])("calculates 30 calendar days after %s as read-only text", (startDate, expectedEndDate) => {
+      setup({ phaseStartDate: undefined, phaseEndDate: undefined });
+      fireEvent.change(screen.getByLabelText(/Federal Comment Period Start Date/), {
+        target: { value: startDate },
+      });
+      expect(screen.getByTestId("federal-comment-period-end-date")).toHaveTextContent(
+        expectedEndDate
+      );
+      expect(screen.queryByLabelText("Federal Comment Period End Date")).not.toBeInTheDocument();
+    });
+
+    it("saves both plain dates together and shows success feedback", async () => {
+      setup({ phaseStartDate: undefined, phaseEndDate: undefined });
+      fireEvent.change(screen.getByLabelText(/Federal Comment Period Start Date/), {
+        target: { value: "2026-10-27" },
+      });
+      await userEvent.click(
+        screen.getByRole("button", { name: "Declare Federal Comment Start Date" })
+      );
+      expect(mockSetApplicationDates).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "demo-123",
+        applicationDates: [
+          { dateType: "Federal Comment Period Start Date", plainDate: "2026-10-27" },
+          { dateType: "Federal Comment Period End Date", plainDate: "2026-11-26" },
+        ],
+      });
+      expect(await screen.findByText("Federal Comment Start Date declared.")).toBeInTheDocument();
+      expect(screen.getByLabelText(/Federal Comment Period Start Date/)).toHaveValue("2026-10-27");
+      expect(screen.getByLabelText(/Federal Comment Period Start Date/)).toBeDisabled();
+      const button = screen.getByRole("button", { name: "Declare Federal Comment Start Date" });
+      expect(button).toBeDisabled();
+      await userEvent.click(button);
+      expect(mockSetApplicationDates).toHaveBeenCalledTimes(1);
+    });
+
+    it("retains the selection and allows retry when the backend rejects the save", async () => {
+      mockSetApplicationDates.mockRejectedValueOnce(new Error("Dates cannot be changed"));
+      setup({ phaseStartDate: undefined, phaseEndDate: undefined });
+      fireEvent.change(screen.getByLabelText(/Federal Comment Period Start Date/), {
+        target: { value: "2026-10-27" },
+      });
+      const button = screen.getByRole("button", { name: "Declare Federal Comment Start Date" });
+      await userEvent.click(button);
+      expect(await screen.findByText("Dates cannot be changed")).toBeInTheDocument();
+      expect(screen.getByLabelText(/Federal Comment Period Start Date/)).toHaveValue("2026-10-27");
+      expect(button).toBeEnabled();
+      await userEvent.click(button);
+      expect(mockSetApplicationDates).toHaveBeenCalledTimes(2);
+    });
+
+    it("does not save an empty start date", async () => {
+      setup({ phaseStartDate: undefined, phaseEndDate: undefined });
+      fireEvent.change(screen.getByLabelText(/Federal Comment Period Start Date/), {
+        target: { value: "" },
+      });
+      const button = screen.getByRole("button", { name: "Declare Federal Comment Start Date" });
+      expect(button).toBeDisabled();
+      await userEvent.click(button);
+      expect(mockSetApplicationDates).not.toHaveBeenCalled();
+    });
+
+    it("disables date entry and declaration when a start date is already saved", () => {
+      setup({ phaseStartDate: "2026-10-27", phaseEndDate: "2026-11-26" });
+      expect(screen.getByLabelText(/Federal Comment Period Start Date/)).toBeDisabled();
+      expect(
+        screen.getByRole("button", { name: "Declare Federal Comment Start Date" })
+      ).toBeDisabled();
+    });
+
+    it("disables date entry and declaration while the mutation is loading", () => {
+      mutationLoading = true;
+      setup();
+      expect(screen.getByLabelText(/Federal Comment Period Start Date/)).toBeDisabled();
+      expect(
+        screen.getByRole("button", { name: "Declare Federal Comment Start Date" })
+      ).toBeDisabled();
+    });
+
+    it("disables date entry and declaration for a completed phase", () => {
+      setup({ phaseComplete: true });
+      expect(screen.getByLabelText(/Federal Comment Period Start Date/)).toBeDisabled();
+      expect(
+        screen.getByRole("button", { name: "Declare Federal Comment Start Date" })
+      ).toBeDisabled();
+    });
+
+    it("disables date entry and hides declaration for readonly users", () => {
+      setup({}, readonlyMockUser);
+      expect(screen.getByLabelText(/Federal Comment Period Start Date/)).toBeDisabled();
+      expect(
+        screen.queryByRole("button", { name: "Declare Federal Comment Start Date" })
+      ).not.toBeInTheDocument();
+    });
+
     it("renders step 1 title and description", () => {
       setup();
       expect(screen.getByText("Step 1 - Verify")).toBeInTheDocument();
@@ -167,7 +313,7 @@ describe("FederalCommentPhase", () => {
 
     it("renders past-due banner correctly", () => {
       setup({
-        phaseStartDate: new TZDate("2026-01-01", EST_TIMEZONE),
+        phaseStartDate: "2026-01-01",
         phaseEndDate: new TZDate("2026-02-05", EST_TIMEZONE), // 3 days before TODAY
       });
 

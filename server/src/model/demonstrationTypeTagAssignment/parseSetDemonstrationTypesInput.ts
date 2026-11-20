@@ -15,8 +15,8 @@ export function parseSetDemonstrationTypesInput(
       parsedInput.demonstrationTypesToDelete.push(demonstrationType.demonstrationTypeName);
     } else {
       const parsedDateResult = parseAndValidateEffectiveAndExpirationDates({
-        effectiveDate: demonstrationType.demonstrationTypeDates.effectiveDate,
-        expirationDate: demonstrationType.demonstrationTypeDates.expirationDate,
+        effectivePlainDate: demonstrationType.demonstrationTypeDates.effectivePlainDate,
+        expirationPlainDate: demonstrationType.demonstrationTypeDates.expirationPlainDate,
       });
       parsedInput.demonstrationTypesToUpsert.push({
         demonstrationTypeName: demonstrationType.demonstrationTypeName,

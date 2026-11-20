@@ -37,7 +37,7 @@ describe("startPhaseByDocument", () => {
 
   const mockPhaseStartDate: ApplicationDateInput = {
     dateType: "Application Intake Completion Date",
-    dateValue: new TZDate("2025-01-20"),
+    plainDate: "2025-01-20",
   };
 
   beforeEach(() => {

@@ -8,7 +8,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { DocumentChip } from "./DocumentChip";
 import { TestProvider } from "test-utils/TestProvider";
-import { developmentMockUser, readonlyMockUser } from "mock-data/userMocks";
+import { developmentMockUser } from "mock-data/userMocks";
 
 const renderDocumentChip = (element: React.ReactElement, currentUser = developmentMockUser) =>
   render(<TestProvider currentUser={currentUser}>{element}</TestProvider>);
@@ -92,11 +92,8 @@ describe("DocumentChip", () => {
     expect(titleElement).toHaveTextContent("...");
   });
 
-  it("hides the delete button for readonly users", () => {
-    renderDocumentChip(
-      <DocumentChip document={baseDocument} onRemove={vi.fn()} />,
-      readonlyMockUser
-    );
+  it("hides the delete button when isReadonly is set", () => {
+    renderDocumentChip(<DocumentChip document={baseDocument} onRemove={vi.fn()} isReadonly />);
 
     expect(screen.queryByRole("button", { name: /delete/i })).not.toBeInTheDocument();
   });

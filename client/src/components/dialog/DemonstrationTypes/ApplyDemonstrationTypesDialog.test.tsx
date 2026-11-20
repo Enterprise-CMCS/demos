@@ -7,8 +7,11 @@ import {
   ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION,
 } from "./ApplyDemonstrationTypesDialog";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
-import { SELECT_DEMONSTRATION_TYPE_QUERY, SELECT_DEMONSTRATION_TYPE_TEST_ID } from "components/input/select/SelectDemonstrationType";
-import { TagName, LocalDate, Tag } from "demos-server";
+import {
+  SELECT_DEMONSTRATION_TYPE_QUERY,
+  SELECT_DEMONSTRATION_TYPE_TEST_ID,
+} from "components/input/select/SelectDemonstrationType";
+import { TagName, Tag } from "demos-server";
 import { ADD_DEMONSTRATION_TYPES_FORM_QUERY } from "./AddDemonstrationTypesForm";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
@@ -87,8 +90,8 @@ const assignDemonstrationTypesDialogMutationMock: MockedResponse<{
           {
             demonstrationTypeName: "Type B",
             demonstrationTypeDates: {
-              effectiveDate: "2024-01-02" as LocalDate,
-              expirationDate: "2025-01-02" as LocalDate,
+              effectivePlainDate: "2024-01-02",
+              expirationPlainDate: "2025-01-02",
             },
           },
         ],
@@ -119,8 +122,8 @@ const assignDemonstrationTypesDialogMutationErrorMock: MockedResponse<never> = {
           {
             demonstrationTypeName: "Type B",
             demonstrationTypeDates: {
-              effectiveDate: "2024-01-02" as LocalDate,
-              expirationDate: "2025-01-02" as LocalDate,
+              effectivePlainDate: "2024-01-02",
+              expirationPlainDate: "2025-01-02",
             },
           },
         ],
@@ -325,8 +328,8 @@ describe("ApplyDemonstrationTypesDialog", () => {
               {
                 demonstrationTypeName: "Brand New Type",
                 demonstrationTypeDates: {
-                  effectiveDate: "2024-06-01" as LocalDate,
-                  expirationDate: "2025-06-01" as LocalDate,
+                  effectivePlainDate: "2024-06-01",
+                  expirationPlainDate: "2025-06-01",
                 },
               },
             ],

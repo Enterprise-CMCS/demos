@@ -1,7 +1,7 @@
 import { Demonstration, Document } from "demos-server";
 import { developmentMockUser } from "./userMocks";
 
-const mockDocument: Document = {
+export const mockDocument: Document = {
   id: "1",
   name: "Project Plan",
   description: "Initial project planning document.",

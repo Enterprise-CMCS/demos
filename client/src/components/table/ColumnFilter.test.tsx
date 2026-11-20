@@ -10,7 +10,6 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { ColumnFilter } from "./ColumnFilter";
 import { isAfter, isBefore, isSameDay } from "date-fns";
 import { formatDateForDisplay } from "util/formatDate";
-import { selectOption } from "test-utils/select";
 
 const columnHelper = createColumnHelper<TestTableType>();
 
@@ -110,7 +109,7 @@ describe("ColumnFilter Component", () => {
       const columnSelect = screen.getByTestId("filter-by-column");
 
       // Type to filter the options and then click on the option
-      await selectOption(user, columnSelect, "Name");
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -122,21 +121,21 @@ describe("ColumnFilter Component", () => {
       const columnSelect = screen.getByTestId("filter-by-column");
 
       // Test text filter (Name column)
-      await selectOption(user, columnSelect, "Name");
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
       });
 
       // Test select filter (Option column)
-      await selectOption(user, columnSelect, "Option");
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/Select Option/i)).toBeInTheDocument();
       });
 
       // Test date filter (Date column)
-      await selectOption(user, columnSelect, "Date");
+      await user.selectOptions(columnSelect, "Date");
 
       // Expect two date filter pickers (start and end)
       await waitFor(() => {
@@ -150,7 +149,7 @@ describe("ColumnFilter Component", () => {
       const columnSelect = screen.getByTestId("filter-by-column");
 
       // Select name column and enter a filter
-      await selectOption(user, columnSelect, "Name");
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -160,7 +159,7 @@ describe("ColumnFilter Component", () => {
       await user.type(nameFilterInput, "Item One");
 
       // Change to option column
-      await selectOption(user, columnSelect, "Option");
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         const optionFilterInput = screen.getByPlaceholderText(/Select Option/i);
@@ -174,7 +173,7 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByTestId("filter-by-column");
 
-      await selectOption(user, columnSelect, "Name");
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -199,7 +198,7 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByTestId("filter-by-column");
 
-      await selectOption(user, columnSelect, "Name");
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -218,7 +217,7 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByTestId("filter-by-column");
 
-      await selectOption(user, columnSelect, "Name");
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -243,7 +242,7 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByTestId("filter-by-column");
 
-      await selectOption(user, columnSelect, "Option");
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/Select Option/i)).toBeInTheDocument();
@@ -254,7 +253,7 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByTestId("filter-by-column");
 
-      await selectOption(user, columnSelect, "Option");
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/Select Option/i)).toBeInTheDocument();
@@ -292,7 +291,7 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByTestId("filter-by-column");
 
-      await selectOption(user, columnSelect, "Option");
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/Select Option/i)).toBeInTheDocument();
@@ -338,7 +337,7 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByTestId("filter-by-column");
 
-      await selectOption(user, columnSelect, "Option");
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/Select Option/i)).toBeInTheDocument();
@@ -386,7 +385,7 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByTestId("filter-by-column");
 
-      await selectOption(user, columnSelect, "Option");
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/Select Option/i)).toBeInTheDocument();
@@ -441,7 +440,7 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByTestId("filter-by-column");
 
-      await selectOption(user, columnSelect, "Date");
+      await user.selectOptions(columnSelect, "Date");
 
       await waitFor(() => {
         expect(document.body.querySelector('input[name="date-filter-start"]')).toBeInTheDocument();
@@ -454,7 +453,7 @@ describe("ColumnFilter Component", () => {
       const columnSelect = screen.getByTestId("filter-by-column");
 
       // Select the Date column
-      await selectOption(user, columnSelect, "Date");
+      await user.selectOptions(columnSelect, "Date");
 
       const startInput = document.body.querySelector('input[name="date-filter-start"]');
       const endInput = document.body.querySelector('input[name="date-filter-end"]');
@@ -479,7 +478,7 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByTestId("filter-by-column");
 
-      await selectOption(user, columnSelect, "Date");
+      await user.selectOptions(columnSelect, "Date");
 
       const startInput = document.body.querySelector('input[name="date-filter-start"]');
       const endInput = document.body.querySelector('input[name="date-filter-end"]');
@@ -498,7 +497,7 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByTestId("filter-by-column");
 
-      await selectOption(user, columnSelect, "Date");
+      await user.selectOptions(columnSelect, "Date");
 
       const startInput = document.body.querySelector('input[name="date-filter-start"]');
       const endInput = document.body.querySelector('input[name="date-filter-end"]');
@@ -506,12 +505,12 @@ describe("ColumnFilter Component", () => {
       fireEvent.change(startInput!, { target: { value: "2023-02-01" } });
       fireEvent.change(endInput!, { target: { value: "2023-04-01" } });
 
-      await selectOption(user, columnSelect, "Name");
+      await user.selectOptions(columnSelect, "Name");
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
       });
 
-      await selectOption(user, columnSelect, "Date");
+      await user.selectOptions(columnSelect, "Date");
 
       await waitFor(() => {
         const resetStartInput = document.body.querySelector('input[name="date-filter-start"]');
@@ -527,7 +526,7 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByTestId("filter-by-column");
 
-      await selectOption(user, columnSelect, "Name");
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -554,7 +553,7 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByTestId("filter-by-column");
 
-      await selectOption(user, columnSelect, "Name");
+      await user.selectOptions(columnSelect, ["Name"]);
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();

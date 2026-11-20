@@ -105,6 +105,13 @@ erDiagram
   document ||--|| budget_neutrality_workbook : "FK119 (DEFERRED)"
   budget_neutrality_workbook_document_type_limit ||--|{ budget_neutrality_workbook : "FK120"
   budget_neutrality_workbook }|--|| budget_neutrality_validation_status : "FK121"
+  budget_neutrality_workbook ||--o{ budget_neutrality_workbook_hypothetical_value : "FK176"
+  budget_neutrality_workbook ||--o{ budget_neutrality_workbook_hypothetical_year : "FK177"
+  budget_neutrality_workbook ||--o{ budget_neutrality_workbook_spending_limit : "FK178"
+  budget_neutrality_workbook_spending_limit ||--o{ budget_neutrality_workbook_spending_limit_meg : "FK179"
+  budget_neutrality_hypothetical ||--o{ budget_neutrality_workbook_hypothetical_value : "FK180"
+  budget_neutrality_measure ||--o{ budget_neutrality_workbook_hypothetical_value : "FK181"
+  budget_neutrality_hypothetical ||--o{ budget_neutrality_workbook_hypothetical_year : "FK182"
   document }|--|| deliverable_action : "FK116"
   document }|--|| deliverable_submission_action_type_limit : "FK117"
   deliverable_status ||--|{ deliverable_action_configuration : "FK110, FK113"
@@ -197,6 +204,14 @@ erDiagram
   }
 
   application_type:::staticConstraint {
+    text id PK
+  }
+
+  budget_neutrality_hypothetical:::staticConstraint {
+    text id PK
+  }
+
+  budget_neutrality_measure:::staticConstraint {
     text id PK
   }
 
@@ -505,6 +520,49 @@ erDiagram
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_document "Verify that no corresponding record exists in the document table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
+  }
+
+  budget_neutrality_workbook_hypothetical_value:::dataTable {
+    uuid id PK
+    uuid workbook_id FK "FK176: workbook_id ∈ budget_neutrality_workbook.id ON DELETE CASCADE ON UPDATE CASCADE"
+    text hypothetical_id FK "FK180: hypothetical_id ∈ budget_neutrality_hypothetical.id ON DELETE RESTRICT ON UPDATE CASCADE"
+    text measure_id FK "FK181: measure_id ∈ budget_neutrality_measure.id ON DELETE RESTRICT ON UPDATE CASCADE"
+    text meg_name "NULLABLE"
+    integer dy_number "NULLABLE"
+    double_precision value
+    timestamptz created_at
+    timestamptz updated_at
+    CONSTRAINT_UNIQUE_NULLS_NOT_DISTINCT bn_workbook_hypothetical_value_nnd_key "(workbook_id, hypothetical_id, measure_id, meg_name, dy_number)"
+  }
+
+  budget_neutrality_workbook_hypothetical_year:::dataTable {
+    uuid workbook_id PK, FK "FK177: workbook_id ∈ budget_neutrality_workbook.id ON DELETE CASCADE ON UPDATE CASCADE"
+    text hypothetical_id PK, FK "FK182: hypothetical_id ∈ budget_neutrality_hypothetical.id ON DELETE RESTRICT ON UPDATE CASCADE"
+    integer dy_number PK
+    bool cap_needed "NULLABLE"
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  budget_neutrality_workbook_spending_limit:::dataTable {
+    uuid workbook_id PK, FK "FK178: workbook_id ∈ budget_neutrality_workbook.id ON DELETE CASCADE ON UPDATE CASCADE"
+    integer program_index PK
+    text program_name
+    decimal(18,2) cap_total "NULLABLE"
+    decimal(18,2) variance_total "NULLABLE"
+    bool over_cap "NULLABLE"
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  budget_neutrality_workbook_spending_limit_meg:::dataTable {
+    uuid workbook_id PK, FK "FK179: (workbook_id, program_index) ∈ budget_neutrality_workbook_spending_limit.(workbook_id, program_index) ON DELETE CASCADE ON UPDATE CASCADE"
+    integer program_index PK, FK "FK179: (workbook_id, program_index) ∈ budget_neutrality_workbook_spending_limit.(workbook_id, program_index) ON DELETE CASCADE ON UPDATE CASCADE"
+    integer line_number PK
+    text meg_name
+    decimal(18,2) subject_to_cap_total "NULLABLE"
+    timestamptz created_at
+    timestamptz updated_at
   }
 
   %% NOTE: That empty line with <br>&nbsp; is a layout hack for Mermaid
