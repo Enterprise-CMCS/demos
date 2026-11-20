@@ -338,7 +338,24 @@ describe("writeRelationToFile", () => {
         { test_id: "Hypothetical 2", dy_number: 1, cap_needed: true },
         { test_id: "Hypothetical 10", dy_number: 1, cap_needed: null },
       ],
-      spending_limits: [],
+      spending_limits: [{
+        program_index: 1,
+        program_name: "Program One",
+        cap_total: 0,
+        variance_total: -2,
+        over_cap: false,
+        megs: [
+          { line_number: 1, meg_name: "Shared MEG", subject_to_cap_total: 0 },
+          { line_number: 2, meg_name: "Shared MEG", subject_to_cap_total: null },
+        ],
+      }, {
+        program_index: 2,
+        program_name: "Program Two",
+        cap_total: null,
+        variance_total: null,
+        over_cap: null,
+        megs: [],
+      }],
     };
     const array = JSON.stringify([
       {
@@ -351,7 +368,7 @@ describe("writeRelationToFile", () => {
       {
         deliverable_name: "Empty snapshot",
         budget_neutrality_variance: "0",
-        budget_neutrality_reporting: { ...reporting, test_values: [], test_years: [] },
+        budget_neutrality_reporting: { ...reporting, test_values: [], test_years: [], spending_limits: [] },
       },
     ]);
     const csv = `"${array.replace(/"/g, '""')}"\n[]\n`;
@@ -371,8 +388,17 @@ describe("writeRelationToFile", () => {
         (year: { cap_needed: boolean | null }) => year.cap_needed,
       ),
     ).toEqual([false, true, null]);
+    const [program] = payload[0].budget_neutrality_reporting.spending_limits;
+    expect(program.cap_total).toBe(0);
+    expect(program.variance_total).toBe(-2);
+    expect(program.over_cap).toBe(false);
+    expect(program.megs.map((meg: { subject_to_cap_total: number | null }) => meg.subject_to_cap_total))
+      .toEqual([0, null]);
+    expect(typeof program.megs[0].subject_to_cap_total).toBe("number");
+    expect(payload[0].budget_neutrality_reporting.spending_limits[1].megs).toEqual([]);
     expect(payload[1].budget_neutrality_reporting).toBeNull();
-    expect(payload[2].budget_neutrality_reporting).toMatchObject({ test_values: [], test_years: [] });
+    expect(payload[2].budget_neutrality_reporting)
+      .toMatchObject({ test_values: [], test_years: [], spending_limits: [] });
   });
 
   it("preserves a comma, a quote and a newline inside a field", async () => {

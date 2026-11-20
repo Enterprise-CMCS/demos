@@ -71,6 +71,7 @@ vi.mock("demos-shared-library/BN/extractors", () => ({
     extract: {
       testValues: [{ testId: "Main", measureId: "Net Variance", megName: null, dyNumber: null, value: 0 }],
       testYears: [],
+      spendingLimits: [],
     },
     warnings: [],
   }),
@@ -200,6 +201,7 @@ describe("budgetNeutrality index", () => {
           { testId: "Main", measureId: "Net Variance", megName: null, dyNumber: null, value: 0 },
         ],
         testYears: [{ testId: "Main", dyNumber: 1, capNeeded: false }],
+        spendingLimits: [],
       },
       warnings: ["Main optional section omitted."],
     });
@@ -241,6 +243,7 @@ describe("budgetNeutrality index", () => {
           { testId: "Main", measureId: "Net Variance", megName: null, dyNumber: null, value: 0 },
         ],
         testYears: [],
+        spendingLimits: [],
       },
       warnings: [warning],
     });

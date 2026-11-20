@@ -78,4 +78,14 @@ export async function replaceBudgetNeutralityReportingSnapshot(
   ], extract.testYears.map(({ testId, dyNumber, capNeeded }) => [
     workbookId, testId, dyNumber, capNeeded, timestamp, timestamp,
   ]));
+  await insertRows(client, "budget_neutrality_workbook_spending_limit", [
+    "workbook_id", "program_index", "program_name", "cap_total", "variance_total", "over_cap", "created_at", "updated_at",
+  ], extract.spendingLimits.map(({ programIndex, programName, capTotal, varianceTotal, overCap }) => [
+    workbookId, programIndex, programName, capTotal, varianceTotal, overCap, timestamp, timestamp,
+  ]));
+  await insertRows(client, "budget_neutrality_workbook_spending_limit_meg", [
+    "workbook_id", "program_index", "line_number", "meg_name", "subject_to_cap_total", "created_at", "updated_at",
+  ], extract.spendingLimits.flatMap(({ programIndex, megs }) => megs.map(({ lineNumber, megName, subjectToCapTotal }) => [
+    workbookId, programIndex, lineNumber, megName, subjectToCapTotal, timestamp, timestamp,
+  ])));
 }

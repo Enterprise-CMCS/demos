@@ -170,7 +170,7 @@ const deliverableFields: readonly ReportField[] = [
         'workbook_id', most_recent_valid_bn_data.workbook_id,
         'test_values', COALESCE(bn_value_aggregates.test_values, '[]'::json),
         'test_years', COALESCE(bn_year_aggregates.test_years, '[]'::json),
-        'spending_limits', '[]'::json
+        'spending_limits', COALESCE(bn_spending_limit_aggregates.spending_limits, '[]'::json)
       ) END`,
     duckdbType: "JSON",
   },
@@ -435,6 +435,32 @@ bn_year_aggregates AS (
     FROM demos_app.budget_neutrality_workbook_hypothetical_year
     GROUP BY workbook_id
 ),
+bn_spending_limit_meg_aggregates AS (
+    SELECT workbook_id, program_index,
+        json_agg(json_build_object(
+            'line_number', line_number,
+            'meg_name', meg_name,
+            'subject_to_cap_total', subject_to_cap_total
+        ) ORDER BY line_number) AS megs
+    FROM demos_app.budget_neutrality_workbook_spending_limit_meg
+    GROUP BY workbook_id, program_index
+),
+bn_spending_limit_aggregates AS (
+    SELECT spending_limit.workbook_id,
+        json_agg(json_build_object(
+            'program_index', spending_limit.program_index,
+            'program_name', spending_limit.program_name,
+            'cap_total', spending_limit.cap_total,
+            'variance_total', spending_limit.variance_total,
+            'over_cap', spending_limit.over_cap,
+            'megs', COALESCE(meg_aggregates.megs, '[]'::json)
+        ) ORDER BY spending_limit.program_index) AS spending_limits
+    FROM demos_app.budget_neutrality_workbook_spending_limit AS spending_limit
+    LEFT JOIN bn_spending_limit_meg_aggregates AS meg_aggregates
+        ON spending_limit.workbook_id = meg_aggregates.workbook_id
+        AND spending_limit.program_index = meg_aggregates.program_index
+    GROUP BY spending_limit.workbook_id
+),
 aggregate_public_comments AS (
     SELECT pbc.deliverable_id,
         string_agg(p.first_name || ' ' || p.last_name || ':'
@@ -481,6 +507,8 @@ deliverable_details AS (
         ON most_recent_valid_bn_data.workbook_id = bn_value_aggregates.workbook_id
     LEFT JOIN bn_year_aggregates
         ON most_recent_valid_bn_data.workbook_id = bn_year_aggregates.workbook_id
+    LEFT JOIN bn_spending_limit_aggregates
+        ON most_recent_valid_bn_data.workbook_id = bn_spending_limit_aggregates.workbook_id
     LEFT JOIN aggregate_public_comments ON deliv.id = aggregate_public_comments.deliverable_id
     LEFT JOIN aggregate_private_comments ON deliv.id = aggregate_private_comments.deliverable_id
     CROSS JOIN LATERAL (
@@ -541,6 +569,7 @@ export const EXPORT_VIEWS = {
     baseTables: [
       "amendment", "application", "application_date", "application_note", "budget_neutrality_workbook",
       "budget_neutrality_workbook_hypothetical_value", "budget_neutrality_workbook_hypothetical_year",
+      "budget_neutrality_workbook_spending_limit", "budget_neutrality_workbook_spending_limit_meg",
       "deliverable", "deliverable_action", "deliverable_demonstration_type", "deliverable_extension", "demonstration",
       "demonstration_role_assignment", "demonstration_type_tag_assignment", "document", "extension", "person",
       "primary_demonstration_role_assignment", "private_comment", "public_comment", "state",

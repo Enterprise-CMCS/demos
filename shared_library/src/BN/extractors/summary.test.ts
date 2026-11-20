@@ -10,7 +10,10 @@ function setSummaryCell(data: ExcelData, address: string, value: string | number
 }
 
 function mainSummaryFixture(): ExcelData {
-  const data: ExcelData = [{ sheet: "Summary", data: [], formulaCells: new Set(["E262", "F262"]) }];
+  const data: ExcelData = [
+    { sheet: "Summary", data: [], formulaCells: new Set(["E262", "F262"]) },
+    { sheet: "Program Spending Limits", data: [] },
+  ];
   const label = (row: number, value: string) => setSummaryCell(data, `B${row}`, value);
   const amounts = (row: number, dy1: number, dy2: number, total: number) => {
     setSummaryCell(data, `E${row}`, dy1);
@@ -75,7 +78,9 @@ describe("Main reporting extraction", () => {
 
     expect(result.warnings).toEqual([
       'Main Expenditure Authority row 255 omitted: duplicate MEG name "MEG 1"; keeping the first.',
+      "Spending limits omitted: no program block headings found.",
     ]);
+    expect(result.extract.spendingLimits).toEqual([]);
     expect(result.extract.testValues).toContainEqual({
       testId: "Main", measureId: "Without-Waiver Total", megName: null, dyNumber: 1, value: 120,
     });
@@ -159,7 +164,10 @@ describe("Main reporting extraction", () => {
 
     expect(result.extract.testValues.some(({ measureId }) => measureId === "Expenditure Authority")).toBe(false);
     expect(result.extract.testValues.some(({ measureId }) => measureId === "Without-Waiver Total")).toBe(true);
-    expect(result.warnings).toEqual([expect.stringContaining("Main Expenditure Authority omitted")]);
+    expect(result.warnings).toEqual([
+      expect.stringContaining("Main Expenditure Authority omitted"),
+      "Spending limits omitted: no program block headings found.",
+    ]);
   });
 
   it("does not borrow a calculated CAP outcome from a later hypothetical when Main's CAP row is missing", () => {

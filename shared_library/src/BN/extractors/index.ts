@@ -1,6 +1,6 @@
 import { BNWorkbookInputError } from "../errors.js";
 import { excelColumnRow } from "../index.js";
-import { NET_VARIANCE_LOCATION, validateNetVarianceLocation } from "../netVarianceLocation.js";
+import { validateNetVarianceLocation } from "../netVarianceLocation.js";
 import type { ExtractionFunction } from "../validation.js";
 
 
@@ -38,3 +38,4 @@ export const extractorFunctions: ExtractionFunction[] = [
 
 export { extractBNReporting } from "./summary.js";
 export type { BNReportingOptions, BNTestValue, BNTestYear, BNWorkbookExtract } from "./summary.js";
+export type { BNSpendingLimit } from "./spendingLimits.js";
