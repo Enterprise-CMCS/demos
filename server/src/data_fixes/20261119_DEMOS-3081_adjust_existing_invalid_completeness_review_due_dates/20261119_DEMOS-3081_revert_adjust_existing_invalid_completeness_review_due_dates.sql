@@ -295,6 +295,11 @@ SELECT
                 AND application_date.date_value = '2025-07-12 23:59:59.999-04'
             )
             OR (
+                application_date.application_id = 'c318427e-7f22-41f1-ac75-cf02ae484e2e'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-01-01 23:59:59.999-05'
+            )
+            OR (
                 application_date.application_id = 'f6d5c893-e594-476b-a907-6b3d0b93af21'
                 AND application_date.date_type_id = 'Completeness Review Due Date'
                 AND application_date.date_value = '2026-10-10 23:59:59.999-04'
