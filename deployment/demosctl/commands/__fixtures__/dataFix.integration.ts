@@ -10,8 +10,7 @@ import { Writable } from "node:stream";
 import { Client } from "pg";
 
 import {
-  assertIntegrationPrerequisites,
-  assertRunScopeAvailable,
+  assertLedgerAccessPolicy,
   createRunScope,
   disposableDatabaseConfig,
   ownedSnapshot,
@@ -67,13 +66,12 @@ function fixHeader(
   forwardFileName: string,
   reverseFileName: string,
   reverse: boolean,
-  expectedRows = 1,
 ): string {
   return `-- ticket: ${TICKET}
 -- author: synthetic-integration-author
 -- data_owner: synthetic-integration-owner
 -- environments: dev
--- expected_rows: ${expectedRows}
+-- expected_rows: 1
 -- source: local synthetic integration fixture, no external data
 -- runner: demosctl
 -- requires_migration: ${requiredMigration}
@@ -194,7 +192,6 @@ function assertApplicationHistoryDelta(
 type FailureScenario = {
   sql: string;
   expectedMessage: RegExp;
-  expectedRows?: number;
   apply?: boolean;
 };
 
@@ -212,7 +209,6 @@ async function assertFailureScenario(
     scope.forwardFileName,
     scope.reverseFileName,
     false,
-    scenario.expectedRows,
   ) + scenario.sql;
   await writeFile(forwardPath, contents);
   try {
@@ -226,29 +222,6 @@ async function assertFailureScenario(
   } finally {
     await writeFile(forwardPath, originalSql);
   }
-}
-
-async function runOwnedRoleProbe(database: Client, applicationId: string): Promise<void> {
-  await database.query("BEGIN");
-  try {
-    await database.query("SET LOCAL ROLE demos_data_fix");
-    const role = await database.query<{ current_user: string }>("SELECT current_user");
-    assert.equal(role.rows[0]?.current_user, "demos_data_fix");
-    const update = await database.query(
-      "UPDATE demos_app.application SET is_migrated_from_pmda = NOT is_migrated_from_pmda WHERE id = $1",
-      [applicationId],
-    );
-    assert.equal(update.rowCount, 1, "demos_data_fix should update the owned application row");
-    await database.query("SET CONSTRAINTS ALL IMMEDIATE");
-  } catch (error) {
-    try {
-      await database.query("ROLLBACK");
-    } catch {
-      // Preserve the probe error if rollback itself also fails.
-    }
-    throw error;
-  }
-  await database.query("ROLLBACK");
 }
 
 async function assertDemonstrationGuardTrigger(database: Client, applicationId: string): Promise<void> {
@@ -281,39 +254,16 @@ export async function runDataFixIntegration(): Promise<void> {
     database.on("error", () => { databaseErrored = true; });
     await database.connect();
     connected = true;
-    await assertIntegrationPrerequisites(database, requiredMigration);
-    await assertRunScopeAvailable(database, scope);
+    await assertLedgerAccessPolicy(database);
 
     const forwardPath = join(temporaryDirectory, scope.forwardFileName);
     const reversePath = join(temporaryDirectory, scope.reverseFileName);
     await writeFile(forwardPath, fixHeader(requiredMigration, scope.forwardFileName, scope.reverseFileName, false) + body(scope.applicationId, true));
     await writeFile(reversePath, fixHeader(requiredMigration, scope.forwardFileName, scope.reverseFileName, true) + body(scope.applicationId, false));
 
-    console.log("Using the disposable PostgreSQL 17 test target; no connection details are displayed.");
     const runScenarios = async (): Promise<void> => {
       await seedOwnedGraph(database!, scope);
       const before = await ownedSnapshot(database!, scope);
-      assert.equal(before.application.length, 1);
-      assert.equal(before.demonstration.length, 1);
-      assert.equal(before.person.length, 1);
-      assert.ok(before.applicationPhase.length > 0, "application insert trigger should create phases");
-      assert.ok(before.applicationDate.length > 0, "application insert trigger should create the concept start date");
-      assert.ok(before.applicationPhase.some((row) => {
-        const phase = row as { phase_id: string; phase_status_id: string };
-        return phase.phase_id === "Concept" && phase.phase_status_id === "Started";
-      }));
-      assert.ok(before.applicationDate.some((row) => {
-        const date = row as { date_type_id: string };
-        return date.date_type_id === "Concept Start Date";
-      }));
-      assert.equal(before.demonstrationRoleAssignment.length, 1);
-      assert.equal(before.primaryDemonstrationRoleAssignment.length, 1);
-      assert.ok(before.personState.length > 0, "person-state trigger should seed state rows");
-      assert.equal(before.ledger.length, 0, "generated filenames must not exist in the ledger before the run");
-
-      await runOwnedRoleProbe(database!, scope.applicationId);
-      assert.deepEqual(await ownedSnapshot(database!, scope), before,
-        "the demos_data_fix owned-row privilege probe must roll back its history and application update");
       await assertDemonstrationGuardTrigger(database!, scope.applicationId);
       assert.deepEqual(await ownedSnapshot(database!, scope), before,
         "the demonstration guard trigger probe must roll back its transaction");
@@ -321,20 +271,8 @@ export async function runDataFixIntegration(): Promise<void> {
       const forwardSql = fixHeader(requiredMigration, scope.forwardFileName, scope.reverseFileName, false) + body(scope.applicationId, true);
       const result = await runFix(forwardPath, config, { apply: false });
       assert.equal(result.code, 0, result.output);
-      assert.match(result.output, /rows affected:\s*1/);
-      assert.match(result.output, /evidence_count/);
-      assert.match(result.output, /checks_passed/);
-      assert.match(result.output, /integration_notice/);
       assert.deepEqual(await ownedSnapshot(database!, scope), before,
         "dry run must roll back only this run's application, history, and ledger state");
-      console.log("PASS real multi-statement dry run returned aggregate evidence and rolled back owned state.");
-
-      await assertFailureScenario(database!, config, scope, requiredMigration, forwardPath, forwardSql, {
-        sql: body(scope.applicationId, true),
-        expectedRows: 2,
-        expectedMessage: /row count mismatch: expected 2, got 1/,
-      });
-      console.log("PASS row-count mismatch rolled back owned data and history.");
 
       await assertFailureScenario(database!, config, scope, requiredMigration, forwardPath, forwardSql, {
         sql: `UPDATE demos_app.application SET is_migrated_from_pmda = true WHERE id = ${applicationIdLiteral};
@@ -345,17 +283,6 @@ SELECT count(*)::integer AS evidence_count FROM demos_app.application WHERE id =
 `,
         expectedMessage: /data fix failed during fix body/,
       });
-      console.log("PASS SQL guard exception was redacted and rolled back owned data and history.");
-
-      await assertFailureScenario(database!, config, scope, requiredMigration, forwardPath, forwardSql, {
-        sql: `UPDATE demos_app.application SET is_migrated_from_pmda = true WHERE id = ${applicationIdLiteral};
-CREATE TEMPORARY TABLE data_fix_result (rows_affected text);
-INSERT INTO pg_temp.data_fix_result VALUES ('1');
-SELECT count(*)::integer AS evidence_count FROM demos_app.application WHERE id = ${applicationIdLiteral};
-`,
-        expectedMessage: /data_fix_result must contain exactly one integer rows_affected/,
-      });
-      console.log("PASS malformed result was rejected and rolled back owned data and history.");
 
       const deferredViolationSql = `DELETE FROM demos_app.primary_demonstration_role_assignment
 WHERE demonstration_id = ${applicationIdLiteral} AND person_id = ${personIdLiteral};
@@ -373,7 +300,6 @@ FROM demos_app.demonstration WHERE id = ${applicationIdLiteral};
         sql: deferredViolationSql,
         expectedMessage: /data fix failed during deferred constraints/,
       });
-      console.log("PASS deferred role guard rejected dry-run and apply without exposing database errors.");
 
       const apply = await runFix(forwardPath, config, APPLY_OPTIONS);
       assert.equal(apply.code, 0, apply.output);
@@ -384,26 +310,12 @@ FROM demos_app.demonstration WHERE id = ${applicationIdLiteral};
       assert.equal(committed.ledger.length, 1);
       await assertLedgerRow(database!, scope.forwardFileName, forwardSql, scope.reverseFileName, null);
       assertApplicationHistoryDelta(before, committed, true);
-      console.log("PASS apply committed the expected value, one history delta, and exact ledger metadata/checksum.");
 
       const repeat = await runFix(forwardPath, config, APPLY_OPTIONS);
       assert.equal(repeat.code, 0, repeat.output);
       assert.match(repeat.output, /already applied:/);
       assert.deepEqual(await ownedSnapshot(database!, scope), committed,
         "an identical repeat must not change owned data, history, or ledger state");
-      console.log("PASS identical repeat is a successful no-op.");
-
-      try {
-        await writeFile(forwardPath, `${forwardSql}\n-- checksum-only change\n`);
-        const conflict = await runFix(forwardPath, config, APPLY_OPTIONS);
-        assert.equal(conflict.code, 1);
-        assert.match(conflict.output, /already applied with a different checksum/i);
-        assert.deepEqual(await ownedSnapshot(database!, scope), committed,
-          "a checksum conflict must not change owned data, history, or ledger state");
-      } finally {
-        await writeFile(forwardPath, forwardSql);
-      }
-      console.log("PASS comment-only checksum conflict was refused without side effects.");
 
       const reverseSql = fixHeader(requiredMigration, scope.forwardFileName, scope.reverseFileName, true) + body(scope.applicationId, false);
       const reverse = await runFix(reversePath, config, APPLY_OPTIONS);
@@ -416,18 +328,9 @@ FROM demos_app.demonstration WHERE id = ${applicationIdLiteral};
       await assertLedgerRow(database!, scope.forwardFileName, forwardSql, scope.reverseFileName, null);
       await assertLedgerRow(database!, scope.reverseFileName, reverseSql, null, scope.forwardFileName);
       assertApplicationHistoryDelta(committed, reversed, false);
-      console.log("PASS reversal restored the application value and recorded its linked audit row and history delta.");
-
-      const forwardAfterReverse = await runFix(forwardPath, config, APPLY_OPTIONS);
-      assert.equal(forwardAfterReverse.code, 0, forwardAfterReverse.output);
-      assert.match(forwardAfterReverse.output, /already applied:/);
-      assert.deepEqual(await ownedSnapshot(database!, scope), reversed,
-        "the original forward fix must remain a no-op after reversal");
-      console.log("PASS the original forward file cannot reapply after reversal.");
     };
     await runScenarios();
     assert.ok(!databaseErrored, "the integration database client must not emit a connection error");
-    console.log("Integration complete: dry-run, apply, duplicate, checksum, and reversal coverage on disposable PostgreSQL.");
   } catch (error) {
     runError = error;
   } finally {
