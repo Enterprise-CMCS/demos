@@ -1,11 +1,12 @@
 import { ApplicationAction as PrismaApplicationAction } from "@prisma/client";
 import { prisma, PrismaTransactionClient } from "../../../prismaClient";
-import { ApplicationActionType, DateType } from "../../../types";
+import { ApplicationActionType, DateType, NoteType } from "../../../types";
 
 export type InsertApplicationActionInput = {
   applicationId: string;
   actionType: ApplicationActionType;
   dateType?: DateType;
+  noteType?: NoteType;
   userId?: string;
 };
 
@@ -23,8 +24,10 @@ export async function insertApplicationAction(
       applicationId: action.applicationId,
       actionTypeId: action.actionType,
       dateTypeId: action.dateType,
+      noteTypeId: action.noteType,
       shouldHaveUserId: actionTypeConfig.shouldHaveUserId,
       shouldHaveDateTypeId: actionTypeConfig.shouldHaveDateTypeId,
+      shouldHaveNoteTypeId: actionTypeConfig.shouldHaveNoteTypeId,
       userId: action.userId,
     },
   });

@@ -2,8 +2,9 @@
 model NoteType {
   id String
 
-  applicationNotes ApplicationNote[]
-  phaseNoteTypes   PhaseNoteType[]
+  applicationNotes   ApplicationNote[]
+  phaseNoteTypes     PhaseNoteType[]
+  applicationActions ApplicationAction[]
 
   @@id([id])
   @@map("note_type")

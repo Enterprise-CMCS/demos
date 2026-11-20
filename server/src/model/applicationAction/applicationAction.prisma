@@ -6,14 +6,17 @@ model ApplicationAction {
   applicationId        String   @map("application_id") @db.Uuid
   actionTypeId         String   @map("action_type_id")
   dateTypeId           String?  @map("date_type_id")
+  noteTypeId           String?  @map("note_type_id")
   shouldHaveUserId     Boolean  @map("should_have_user_id")
   shouldHaveDateTypeId Boolean  @map("should_have_date_type_id")
+  shouldHaveNoteTypeId Boolean  @map("should_have_note_type_id")
   userId               String?  @map("user_id") @db.Uuid
 
   application Application           @relation(fields: [applicationId], references: [id])
   user        User?                 @relation(fields: [userId], references: [id], onDelete: Restrict)
   dateType    DateType?             @relation(fields: [dateTypeId], references: [id])
-  actionType  ApplicationActionType @relation(fields: [actionTypeId, shouldHaveUserId, shouldHaveDateTypeId], references: [id, shouldHaveUserId, shouldHaveDateTypeId])
+  noteType    NoteType?             @relation(fields: [noteTypeId], references: [id])
+  actionType  ApplicationActionType @relation(fields: [actionTypeId, shouldHaveUserId, shouldHaveDateTypeId, shouldHaveNoteTypeId], references: [id, shouldHaveUserId, shouldHaveDateTypeId, shouldHaveNoteTypeId])
 
   @@id([id])
   @@unique([id, actionTypeId])
