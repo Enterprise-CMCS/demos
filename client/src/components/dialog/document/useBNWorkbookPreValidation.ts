@@ -13,14 +13,6 @@ const VALIDATION_ERROR: BudgetNeutralityValidationError = {
   message: "Unable to validate the workbook. Please try again.",
 };
 
-const buildRuleError = (cause: unknown): BudgetNeutralityValidationError => ({
-  code: "RULE_ERROR",
-  message:
-    cause instanceof Error
-      ? `Workbook is missing expected structure: ${cause.message}.`
-      : "Workbook is missing expected structure.",
-});
-
 export type BNPreValidationState =
   | { status: "idle" }
   | { status: "validating" }
@@ -46,16 +38,9 @@ export const useBNWorkbookPreValidation = (
 
     (async () => {
       try {
-        const [
-          { parseBNWorkbook, BNWorkbookInputError },
-          { validations },
-          { validateBNWorkbook },
-          { extractorFunctions },
-        ] = await Promise.all([
+        const [{ parseBNWorkbook, BNWorkbookInputError }, { validate }] = await Promise.all([
           import("demos-shared-library/BN"),
-          import("demos-shared-library/BN/rulesets"),
           import("demos-shared-library/BN/validation"),
-          import("demos-shared-library/BN/extractors"),
         ]);
         if (cancelled) return;
 
@@ -75,26 +60,13 @@ export const useBNWorkbookPreValidation = (
         }
         if (cancelled) return;
 
-        // Run each rule independently so one rule throwing doesn't suppress the rest.
-        const errors: BudgetNeutralityValidationError[] = [];
-        for (const rule of validations) {
-          try {
-            const error = rule(data);
-            if (error) errors.push(error);
-          } catch (ruleError) {
-            console.error("BN validation rule threw:", ruleError);
-            errors.push(buildRuleError(ruleError));
-          }
-        }
-
+        const errors = await validate(data);
+        if (cancelled) return;
         if (errors.length > 0) {
           setState({ status: "invalid", errors });
           return;
         }
-
-        const result = await validateBNWorkbook(data, [], extractorFunctions);
-        if (cancelled) return;
-        setState(result.isValid ? { status: "valid" } : { status: "invalid", errors: result.errors });
+        setState({ status: "valid" });
       } catch (validationError) {
         if (cancelled) return;
         console.error("BN workbook validation failed:", validationError);

@@ -131,6 +131,7 @@ export class BootstrapStack extends Stack {
         actions: [
           "cloudformation:DescribeChangeSet",
           "cloudformation:DeleteChangeSet",
+          "cloudformation:DescribeStacks",
         ],
         resources: ["*"],
       }),

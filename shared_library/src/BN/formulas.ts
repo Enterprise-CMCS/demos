@@ -3,7 +3,17 @@ import { Parser } from "saxen";
 
 export const FORMULA_SHEETS = ["Summary", "Program Spending Limits"] as const;
 export const MAX_UNCOMPRESSED_BYTES = 256 * 1024 * 1024;
-export type FormulaInfo = { formulaCells: Map<string, Set<string>>; fullCalcOnLoad: boolean };
+export type ArrayFormulaRange = {
+  startRow: number;
+  startColumn: number;
+  endRow: number;
+  endColumn: number;
+};
+export type FormulaInfo = {
+  formulaCells: Map<string, Set<string>>;
+  arrayFormulaRanges: Map<string, ArrayFormulaRange[]>;
+  fullCalcOnLoad: boolean;
+};
 
 const ARCHIVE_INPUT_ERROR_CODES = new Set<number>([
   FlateErrorCode.UnexpectedEOF,
@@ -52,8 +62,42 @@ function sheetPart(target: string): string {
   return parts.join("/");
 }
 
-function readFormulaCells(bytes: Uint8Array, sheet: string): Set<string> {
+function parseCellAddress(address: string): { row: number; column: number } | undefined {
+  const match = /^\$?([A-Z]{1,3})\$?([1-9]\d{0,6})$/.exec(address);
+  if (!match) return undefined;
+  let column = 0;
+  for (const letter of match[1]!) {
+    column = column * 26 + letter.charCodeAt(0) - 64;
+  }
+  const row = Number(match[2]);
+  if (column > 16384 || row > 1048576) return undefined;
+  return { row, column };
+}
+
+export function isCellInArrayFormulaRange(address: string, range: ArrayFormulaRange): boolean {
+  const cell = parseCellAddress(address);
+  return cell !== undefined
+    && cell.row >= range.startRow && cell.row <= range.endRow
+    && cell.column >= range.startColumn && cell.column <= range.endColumn;
+}
+
+function readArrayFormulaRange(ref: string | undefined, sheet: string, address: string): ArrayFormulaRange {
+  const references = ref?.split(":") ?? [];
+  const start = parseCellAddress(references[0] ?? "");
+  const end = parseCellAddress(references[1] ?? references[0] ?? "");
+  if (!start || !end || references.length > 2 || start.row > end.row || start.column > end.column) {
+    throw new FormulaReadError(`Invalid array formula range in sheet "${sheet}" at ${address}.`);
+  }
+  const range = { startRow: start.row, startColumn: start.column, endRow: end.row, endColumn: end.column };
+  if (!isCellInArrayFormulaRange(address, range)) {
+    throw new FormulaReadError(`Array formula range does not contain its anchor in sheet "${sheet}" at ${address}.`);
+  }
+  return range;
+}
+
+function readFormulaCells(bytes: Uint8Array, sheet: string): { cells: Set<string>; arrayRanges: ArrayFormulaRange[] } {
   const cells = new Set<string>();
+  const arrayRanges: ArrayFormulaRange[] = [];
   let address: string | undefined;
   let cellDepth: number | undefined;
   let depth = 0;
@@ -69,6 +113,10 @@ function readFormulaCells(bytes: Uint8Array, sheet: string): Set<string> {
         throw new FormulaReadError(`Formula is not a direct child of a cell in sheet "${sheet}".`);
       }
       cells.add(address);
+      const attributes = attrs();
+      if (attributes.t === "array") {
+        arrayRanges.push(readArrayFormulaRange(attributes.ref, sheet, address));
+      }
     }
     depth++;
   }, (tag) => {
@@ -78,7 +126,7 @@ function readFormulaCells(bytes: Uint8Array, sheet: string): Set<string> {
       cellDepth = undefined;
     }
   });
-  return cells;
+  return { cells, arrayRanges };
 }
 
 export function readFormulaInfo(bytes: Uint8Array): FormulaInfo {
@@ -133,10 +181,13 @@ export function readFormulaInfo(bytes: Uint8Array): FormulaInfo {
     }
     const worksheets = readParts(new Set(paths.values()));
     const formulaCells = new Map<string, Set<string>>();
+    const arrayFormulaRanges = new Map<string, ArrayFormulaRange[]>();
     for (const [sheet, part] of paths) {
-      formulaCells.set(sheet, readFormulaCells(worksheets[part]!, sheet));
+      const { cells, arrayRanges } = readFormulaCells(worksheets[part]!, sheet);
+      formulaCells.set(sheet, cells);
+      arrayFormulaRanges.set(sheet, arrayRanges);
     }
-    return { formulaCells, fullCalcOnLoad };
+    return { formulaCells, arrayFormulaRanges, fullCalcOnLoad };
   } catch (error) {
     if (error instanceof Error && "code" in error && typeof error.code === "number" && ARCHIVE_INPUT_ERROR_CODES.has(error.code)) {
       throw new FormulaReadError(`Unable to read workbook formulas: ${error.message}`);

@@ -26,15 +26,15 @@ export const extractorFunctions: ExtractionFunction[] = [
       : typeof AS436 === "string" && AS436.trim() !== ""
         ? Number(AS436)
         : Number.NaN;
-    if (!Number.isFinite(netVariance)) {
+    if (!Number.isFinite(netVariance) || Math.abs(netVariance) >= 1e16) {
       throw new BNWorkbookInputError({
         code: "BN_NET_VARIANCE_VALUE",
-        message: 'Unable to extract "netVariance" from Summary!AS436: the required value must be finite and numeric.',
+        message: 'Unable to extract "netVariance" from Summary!AS436: the required value must be finite and numeric, with an absolute value below 10,000,000,000,000,000.',
       });
     }
     return new Map<string, number>([["netVariance", netVariance]]);
   },
-];  
+];
 
 export { extractBNReporting } from "./summary.js";
 export type { BNReportingOptions, BNTestValue, BNTestYear, BNWorkbookExtract } from "./summary.js";

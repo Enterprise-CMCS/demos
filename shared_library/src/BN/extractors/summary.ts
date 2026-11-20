@@ -25,7 +25,7 @@ const MAX_REPORTING_DY = 40;
 const MAX_HYPOTHETICAL_TEST = 15;
 const HYPOTHETICAL_HEADING = /^HYPOTHETICALS TEST ([1-9]\d*)$/;
 
-type HypotheticalHeading = { testNumber: number; row: number };
+type HypotheticalHeading = { testNumber: number; row: number; extractable: boolean };
 
 export type BNReportingOptions = { maxHypotheticalTest?: number };
 
@@ -110,9 +110,15 @@ function findHypotheticalHeadings(data: ExcelData): HypotheticalHeading[] {
   const headings: HypotheticalHeading[] = [];
   for (let index = 0; index < sheet.data.length; index++) {
     const label = sheet.data[index]?.[1];
-    if (typeof label !== "string" || isFormulaCell(data, SHEET, `B${index + 1}`)) continue;
+    if (typeof label !== "string") continue;
     const match = HYPOTHETICAL_HEADING.exec(label);
-    if (match) headings.push({ testNumber: Number(match[1]), row: index + 1 });
+    if (match) {
+      headings.push({
+        testNumber: Number(match[1]),
+        row: index + 1,
+        extractable: !isFormulaCell(data, SHEET, `B${index + 1}`),
+      });
+    }
   }
   return headings;
 }
@@ -120,20 +126,25 @@ function findHypotheticalHeadings(data: ExcelData): HypotheticalHeading[] {
 function extractMainSummary(
   data: ExcelData,
   dys: number[],
-  headings: HypotheticalHeading[],
 ): { extract: BNWorkbookExtract; warnings: string[] } {
   const extract: BNWorkbookExtract = { testValues: [], testYears: [], spendingLimits: [] };
   const warnings: string[] = [];
   const sheet = data.find((entry) => entry.sheet === SHEET);
   if (!sheet) return { extract, warnings: ['Summary omitted: Sheet "Summary" not found.'] };
 
-  const hypotheticalBoundaries = headings.filter(({ testNumber }) => testNumber === 1);
-  if (hypotheticalBoundaries.length > 1) {
-    warnings.push(`Main test omitted: HYPOTHETICALS TEST 1 boundary has ${hypotheticalBoundaries.length} matches.`);
+  const firstHypothetical = locateLabelRow(data, SHEET, "HYPOTHETICALS TEST 1");
+  if (!firstHypothetical.ok) {
+    warnings.push(`Main test omitted: ${firstHypothetical.reason}`);
     return { extract, warnings };
   }
-  const firstHypothetical = headings[0]?.row;
-  const mainRange = { last: firstHypothetical !== undefined ? firstHypothetical - 1 : sheet.data.length };
+  // An earlier heading makes the Main boundary unsafe even if that heading is a cached formula result.
+  const earlierHypothetical = sheet.data.findIndex((row, index) =>
+    index + 1 < firstHypothetical.row && typeof row?.[1] === "string" && HYPOTHETICAL_HEADING.test(row[1]));
+  if (earlierHypothetical >= 0) {
+    warnings.push(`Main test omitted: HYPOTHETICALS TEST 1 boundary is out of order; HYPOTHETICALS TEST heading found at row ${earlierHypothetical + 1}.`);
+    return { extract, warnings };
+  }
+  const mainRange = { last: firstHypothetical.row - 1 };
   const main = sectionRows(data, ["MAIN BUDGET NEUTRALITY TEST"], mainRange, "Main test", warnings);
   if (!main) return { extract, warnings };
   const sectionRange = { first: main[0]! + 1, last: mainRange.last };
@@ -186,7 +197,8 @@ function extractHypotheticalSummaries(
   if (!sheet) return { extract, warnings };
 
   const headingCounts = new Map<number, number>();
-  for (const { testNumber } of headings) {
+  for (const { testNumber, extractable } of headings) {
+    if (!extractable) continue;
     headingCounts.set(testNumber, (headingCounts.get(testNumber) ?? 0) + 1);
   }
   for (const [testNumber, count] of headingCounts) {
@@ -197,11 +209,17 @@ function extractHypotheticalSummaries(
 
   for (let index = 0; index < headings.length; index++) {
     const heading = headings[index]!;
-    if (heading.testNumber > maxHypotheticalTest || headingCounts.get(heading.testNumber) !== 1) continue;
+    if (!heading.extractable || heading.testNumber > maxHypotheticalTest || headingCounts.get(heading.testNumber) !== 1) continue;
 
     const nextHeading = headings[index + 1];
     const range = { first: heading.row + 1, last: (nextHeading?.row ?? sheet.data.length + 1) - 1 };
     const testId = `Hypothetical ${heading.testNumber}`;
+    const repeatedStarts = [WITHOUT_WAIVER_LABEL, WITH_WAIVER_LABEL].some((label) =>
+      locateLabelRows(data, SHEET, label, range).length > 1);
+    if (repeatedStarts) {
+      warnings.push(`${testId} omitted: repeated expenditure-section starts make its range ambiguous.`);
+      continue;
+    }
 
     const withoutWaiver = sectionRows(
       data,
@@ -260,7 +278,7 @@ export function extractBNReporting(
 
   const reportingRange = reportingDys(data);
   const headings = findHypotheticalHeadings(data);
-  const mainResult = extractMainSummary(data, reportingRange.dys, headings);
+  const mainResult = extractMainSummary(data, reportingRange.dys);
   const hypotheticalResult = extractHypotheticalSummaries(data, reportingRange.dys, headings, maxHypotheticalTest);
   const spendingLimitResult = extractSpendingLimits(data);
   const extract = mainResult.extract;

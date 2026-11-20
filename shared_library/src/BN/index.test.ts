@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import * as excelReader from "read-excel-file/universal";
 
-import { parseBNFile, parseBNFileFromPath, parseBNWorkbook, isFormulaCell, excelColumnRow, numberToExcelColumn, excelColumnToNumber } from "./index.js";
+import { BNWorkbookInputError, parseBNFile, parseBNFileFromPath, parseBNWorkbook, isFormulaCell, excelColumnRow, numberToExcelColumn, excelColumnToNumber } from "./index.js";
 import * as formulas from "./formulas.js";
 import { workbookParts, zipWorkbook } from "../../test/bnFixtures.js";
 import { validateBNWorkbook } from "./validation.js";
@@ -26,6 +26,23 @@ async function withWorkbook(parts: Record<string, string>, action: (file: string
   } finally {
     await fs.rm(directory, { recursive: true, force: true });
   }
+}
+
+function omitSheet(parts: Record<string, string>, name: string): Record<string, string> {
+  const workbookXml = parts["xl/workbook.xml"]!;
+  const sheet = workbookXml.match(new RegExp(`<sheet name="${name}" sheetId="\\d+" r:id="([^"]+)"/>`));
+  if (!sheet) throw new Error(`Sheet "${name}" not found in workbook fixture.`);
+  parts["xl/workbook.xml"] = workbookXml.replace(sheet[0], "");
+
+  const relationshipsXml = parts["xl/_rels/workbook.xml.rels"]!;
+  const relationship = relationshipsXml.match(new RegExp(`<Relationship Id="${sheet[1]}"[^>]+Target="([^"]+)"/>`));
+  if (!relationship) throw new Error(`Relationship for sheet "${name}" not found in workbook fixture.`);
+  parts["xl/_rels/workbook.xml.rels"] = relationshipsXml.replace(relationship[0], "");
+  const worksheetPath = relationship[1]!.startsWith("/")
+    ? relationship[1]!.slice(1)
+    : `xl/${relationship[1]}`;
+  delete parts[worksheetPath];
+  return parts;
 }
 
 describe("parseBNWorkbook", () => {
@@ -51,6 +68,7 @@ describe("parseBNWorkbook", () => {
   it.each([
     { name: "a literal label and zero", label: '<c r="B436" t="inlineStr"><is><t>NET VARIANCE</t></is></c>', value: '<c r="AS436"><v>0</v></c>', code: null },
     { name: "a cached numeric formula", label: '<c r="B436" t="inlineStr"><is><t>NET VARIANCE</t></is></c>', value: '<c r="AS436"><f>1-1</f><v>0</v></c>', code: null },
+    { name: "a cached numeric array-formula result", label: '<c r="B436" t="inlineStr"><is><t>NET VARIANCE</t></is></c>', value: '<c r="AR436"><f t="array" ref="AR436:AS436">1-1</f><v>0</v></c><c r="AS436"><v>0</v></c>', code: null },
     { name: "a formula-derived label", label: '<c r="B436" t="str"><f>"NET VARIANCE"</f><v>NET VARIANCE</v></c>', value: '<c r="AS436"><v>0</v></c>', code: "BN_NET_VARIANCE_LOCATION" },
     { name: "a missing label with a misleading fixed value", label: "", value: '<c r="AS436"><v>99</v></c>', code: "BN_NET_VARIANCE_LOCATION" },
     { name: "a moved label with a misleading fixed value", label: "", value: '<c r="AS436"><v>99</v></c>', extra: '<row r="437"><c r="B437" t="inlineStr"><is><t>NET VARIANCE</t></is></c><c r="AS437"><v>1</v></c></row>', code: "BN_NET_VARIANCE_LOCATION" },
@@ -71,8 +89,67 @@ describe("parseBNWorkbook", () => {
       expect(results[0]).toEqual(results[1]);
       expect(results[0]!.isValid).toBe(code === null);
       expect(results[0]!.errors.map((error) => error.code)).toEqual(code === null ? [] : [code]);
-      if (code === null) expect(results[0]!.extractedValues?.get("netVariance")).toBe(0);
-      else expect(results[0]!.extractedValues?.size).toBe(0);
+      if (code === null) expect(results[0]!.extractedValues.get("netVariance")).toBe(0);
+      else expect(results[0]!.extractedValues.size).toBe(0);
+    });
+  });
+
+  it("rejects a label in a non-anchor array-formula cell for File and path inputs", async () => {
+    const summary = '<row r="8"><c r="B8" t="inlineStr"><is><t>Actuals + Projected</t></is></c></row>'
+      + '<row r="435"><c r="B435" t="str"><f t="array" ref="B435:B436">"NET VARIANCE"</f><v>NET VARIANCE</v></c></row>'
+      + '<row r="436"><c r="B436" t="str"><v>NET VARIANCE</v></c><c r="AS436"><v>0</v></c></row>';
+    await withWorkbook(workbookParts("", summary), async (file) => {
+      const browserFile = new File([await fs.readFile(file)], "workbook.xlsx");
+      const parsed = await Promise.all([file, browserFile].map((source) => parseBNWorkbook(source)));
+
+      expect(isFormulaCell(parsed[0]!.data, "Summary", "B436")).toBe(true);
+      expect(isFormulaCell(parsed[1]!.data, "Summary", "B436")).toBe(true);
+      for (const { data } of parsed) {
+        const result = await validateBNWorkbook(data, [validateNetVarianceLocation], extractorFunctions);
+        expect(result.isValid).toBe(false);
+        expect(result.errors.map((error) => error.code)).toEqual(["BN_NET_VARIANCE_LOCATION"]);
+      }
+    });
+  });
+
+  it.each(["C Report", "Summary"] as const)("rejects a workbook without required sheet %s", async (missingSheet) => {
+    await withWorkbook(omitSheet(workbookParts(), missingSheet), async (file) => {
+      const browserFile = new File([await fs.readFile(file)], "workbook.xlsx");
+      for (const source of [file, browserFile]) {
+        const result = parseBNWorkbook(source);
+        await expect(result).rejects.toBeInstanceOf(BNWorkbookInputError);
+        await expect(result).rejects.toMatchObject({
+          validationError: {
+            code: "BN_REQUIRED_WORKBOOK_SHEET",
+            message: expect.stringContaining(missingSheet),
+          },
+        });
+      }
+    });
+  });
+
+  it("accepts a workbook without the optional Program Spending Limits sheet", async () => {
+    await withWorkbook(omitSheet(workbookParts(), "Program Spending Limits"), async (file) => {
+      const browserFile = new File([await fs.readFile(file)], "workbook.xlsx");
+      for (const source of [file, browserFile]) {
+        const result = await parseBNWorkbook(source);
+        expect(result.data.some((entry) => entry.sheet === "Program Spending Limits")).toBe(false);
+        expect(result.data.some((entry) => entry.sheet === "C Report")).toBe(true);
+      }
+    });
+  });
+
+  it("maps malformed array ranges to typed validation failures for File and path inputs", async () => {
+    const summary = '<row r="1"><c r="B1"><f t="array" ref="B1:INVALID">1</f><v>1</v></c></row>';
+    await withWorkbook(workbookParts("", summary), async (file) => {
+      const browserFile = new File([await fs.readFile(file)], "workbook.xlsx");
+      for (const source of [file, browserFile]) {
+        const result = parseBNWorkbook(source);
+        await expect(result).rejects.toBeInstanceOf(BNWorkbookInputError);
+        await expect(result).rejects.toMatchObject({
+          validationError: { code: "BN_FORMULA_METADATA" },
+        });
+      }
     });
   });
 

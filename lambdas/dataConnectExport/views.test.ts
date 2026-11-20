@@ -74,6 +74,7 @@ describe("demonstration reporting contract", () => {
     expect(view.query).toContain("'program_index', spending_limit.program_index");
     expect(view.query).toContain("'program_name', spending_limit.program_name");
     expect(view.query).toContain("'subject_to_cap_total', subject_to_cap_total");
+    expect(view.query).toContain("'megs', COALESCE(meg_aggregates.megs, '[]'::json)");
     expect(view.query).toContain("ORDER BY spending_limit.program_index");
     expect(view.query).toContain("ORDER BY line_number");
     expect(view.query).toContain("ORDER BY CASE WHEN hypothetical_id = 'Main' THEN 0 ELSE substring(hypothetical_id FROM '[0-9]+')::INTEGER END,\n            measure_id");
@@ -91,6 +92,16 @@ describe("demonstration reporting contract", () => {
     const { query, baseTables } = EXPORT_VIEWS.demonstration_reporting;
     const sources = [...query.matchAll(/\bdemos_app\.([a-z_]+)/g)].map((match) => match[1]);
     expect([...new Set(baseTables)].sort()).toEqual([...new Set(sources)].sort());
+  });
+
+  it.each([
+    ["test_values", "measure_id, meg_name NULLS FIRST, dy_number NULLS FIRST"],
+    ["test_years", "dy_number"],
+  ])("orders %s with Main first and hypotheticals in numeric order", (collection, tieBreakers) => {
+    const order = "CASE WHEN hypothetical_id = 'Main' THEN 0 ELSE substring(hypothetical_id FROM '[0-9]+')::INTEGER END";
+    expect(EXPORT_VIEWS.demonstration_reporting.query).toContain(
+      `ORDER BY ${order},\n            ${tieBreakers}) AS ${collection}`,
+    );
   });
 
   it("escapes date and document labels as SQL string literals", () => {
