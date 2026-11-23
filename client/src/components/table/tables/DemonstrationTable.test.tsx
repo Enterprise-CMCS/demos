@@ -294,15 +294,15 @@ describe("Demonstrations", () => {
     it("renders table columns correctly", () => {
       const headers = screen.getAllByRole("columnheader");
       expect(headers).toHaveLength(7);
-      expect(screen.getByRole("columnheader", { name: "Title Sort" })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: "TitleSort" })).toBeInTheDocument();
       expect(
-        screen.getByRole("columnheader", { name: "State/\u200BTerritory Sort" })
+        screen.getByRole("columnheader", { name: "State/\u200BTerritorySort" })
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("columnheader", { name: "Project Officer Sort" })
+        screen.getByRole("columnheader", { name: "Project OfficerSort" })
       ).toBeInTheDocument();
       expect(screen.getByRole("columnheader", { name: "Applications" })).toBeInTheDocument();
-      expect(screen.getByRole("columnheader", { name: "Status Sort" })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: "StatusSort" })).toBeInTheDocument();
     });
 
     it("renders demonstration data correctly in table cells", () => {
@@ -516,7 +516,7 @@ describe("Demonstrations", () => {
 
     it("sorting applies only to demonstration records, not to nested amendments/renewals", async () => {
       // Click to sort by Title
-      const titleHeader = screen.getByRole("columnheader", { name: "Title Sort" });
+      const titleHeader = screen.getByRole("columnheader", { name: "TitleSort" });
       await user.click(titleHeader);
 
       // Find all demonstration titles in the table
