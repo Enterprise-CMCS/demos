@@ -106,7 +106,35 @@ export function create(props: CognitoProps): CognitoOutputs {
     },
   ]);
 
-  const cognitoWafRules = createRules(props, "REGIONAL");
+  const cognitoWafRules = createRules(props, "REGIONAL").map((rule) => {
+    const statement =
+    rule.statement as aws_wafv2.CfnWebACL.StatementProperty;
+
+    const managedRuleGroupStatement =
+    statement.managedRuleGroupStatement as
+      | aws_wafv2.CfnWebACL.ManagedRuleGroupStatementProperty
+      | undefined;
+
+    if (managedRuleGroupStatement?.name !== "AWSManagedRulesCommonRuleSet") {
+      return rule;
+    }
+
+    return {
+      ...rule,
+      statement: {
+        ...statement,
+        managedRuleGroupStatement: {
+          ...managedRuleGroupStatement,
+          ruleActionOverrides: [
+            {
+              name: "SizeRestrictions_BODY",
+              actionToUse: { count: {} },
+            },
+          ],
+        },
+      },
+    };
+  });
 
   const customResponseBodies = {
     [accessDeniedBodyName]: {

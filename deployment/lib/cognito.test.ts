@@ -45,6 +45,29 @@ describe("Cognito", () => {
     });
 
     template.resourceCountIs("AWS::WAFv2::WebACL", 1);
+
+    // Verify size restriction is disabled to prevent blocking valid, long, SAML
+    // responses
+    template.hasResourceProperties("AWS::WAFv2::WebACL", {
+      Rules: Match.arrayWith([
+        Match.objectLike({
+          Name: "AWSCommonRule",
+          Statement: Match.objectLike({
+            ManagedRuleGroupStatement: Match.objectLike({
+              Name: "AWSManagedRulesCommonRuleSet",
+              RuleActionOverrides: Match.arrayWith([
+                Match.objectLike({
+                  Name: "SizeRestrictions_BODY",
+                  ActionToUse: Match.objectLike({
+                    Count: {},
+                  }),
+                }),
+              ]),
+            }),
+          }),
+        }),
+      ]),
+    });
   });
 
   test("should run", () => {
