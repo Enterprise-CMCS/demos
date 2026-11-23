@@ -529,7 +529,7 @@ erDiagram
     text measure_id FK "FK181: measure_id ∈ budget_neutrality_measure.id ON DELETE RESTRICT ON UPDATE CASCADE"
     text meg_name "NULLABLE"
     integer dy_number "NULLABLE"
-    decimal(18,2) value
+    double_precision value
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_UNIQUE_NULLS_NOT_DISTINCT bn_workbook_hypothetical_value_nnd_key "(workbook_id, hypothetical_id, measure_id, meg_name, dy_number)"

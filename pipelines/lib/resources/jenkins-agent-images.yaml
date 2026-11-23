@@ -54,12 +54,12 @@ spec:
       tty: true
       resources:
         requests:
-          cpu: 750m
-          memory: 1Gi
+          cpu: 2000m
+          memory: 2Gi
           ephemeral-storage: 2Gi
         limits:
-          cpu: 1500m
-          memory: 2Gi
+          cpu: 4000m
+          memory: 4Gi
           ephemeral-storage: 10Gi
       imagePullPolicy: Always
       securityContext:

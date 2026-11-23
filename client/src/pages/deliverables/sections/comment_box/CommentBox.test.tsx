@@ -148,6 +148,22 @@ describe("CommentBox", () => {
     expect(screen.queryByTestId(COMMENT_BOX_TABS_NAME)).not.toBeInTheDocument();
   });
 
+  it("labels the comment field 'State Comments' on the Public tab", () => {
+    renderCommentBox("demos-admin");
+    expect(screen.getByLabelText("State Comments")).toBeInTheDocument();
+  });
+
+  it("labels the comment field 'Comments to CMS' for state users", () => {
+    renderCommentBox("demos-state-user");
+    expect(screen.getByLabelText("Comments to CMS")).toBeInTheDocument();
+  });
+
+  it("labels the comment field 'CMS Internal Comments' on the Private tab", async () => {
+    renderCommentBox("demos-cms-user");
+    await userEvent.click(screen.getByTestId("button-private"));
+    expect(screen.getByLabelText("CMS Internal Comments")).toBeInTheDocument();
+  });
+
   it("shows 'No comments yet' when there are no comments", () => {
     renderCommentBox();
     expect(screen.getByText("No comments yet.")).toBeInTheDocument();

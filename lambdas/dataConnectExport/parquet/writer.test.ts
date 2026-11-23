@@ -324,16 +324,81 @@ describe("writeRelationToFile", () => {
     ]);
   });
 
-  it("round trips JSON arrays including empty arrays and escaped report text", async () => {
-    const schema: RelationSchema = { columns: [{ name: "applications", duckdbType: "JSON" }] };
-    const array = JSON.stringify([{ name: 'CMS, "review"\n雪', notes: null }, { name: "Renewal" }]);
+  it("round trips nested BN reporting JSON with numeric values and nullable CAP flags", async () => {
+    const schema: RelationSchema = { columns: [{ name: "deliverables", duckdbType: "JSON" }] };
+    const reporting = {
+      workbook_id: "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+      test_values: [
+        { test_id: "Main", measure_id: "Net Variance", meg_name: null, dy_number: null, value: 1234567890123.125 },
+        { test_id: "Hypothetical 2", measure_id: "Without-Waiver Total", meg_name: null, dy_number: 1, value: 0 },
+        { test_id: "Hypothetical 10", measure_id: "With-Waiver Total", meg_name: null, dy_number: 1, value: 9876543.125 },
+      ],
+      test_years: [
+        { test_id: "Main", dy_number: 1, cap_needed: false },
+        { test_id: "Hypothetical 2", dy_number: 1, cap_needed: true },
+        { test_id: "Hypothetical 10", dy_number: 1, cap_needed: null },
+      ],
+      spending_limits: [{
+        program_index: 1,
+        program_name: "Program One",
+        cap_total: 0,
+        variance_total: -2,
+        over_cap: false,
+        megs: [
+          { line_number: 1, meg_name: "Shared MEG", subject_to_cap_total: 0 },
+          { line_number: 2, meg_name: "Shared MEG", subject_to_cap_total: null },
+        ],
+      }, {
+        program_index: 2,
+        program_name: "Program Two",
+        cap_total: null,
+        variance_total: null,
+        over_cap: null,
+        megs: [],
+      }],
+    };
+    const array = JSON.stringify([
+      {
+        deliverable_name: 'CMS, "review"\n雪',
+        deliverable_review_date: null,
+        budget_neutrality_variance: "1234567890123.125",
+        budget_neutrality_reporting: reporting,
+      },
+      { deliverable_name: "Renewal", budget_neutrality_variance: "-", budget_neutrality_reporting: null },
+      {
+        deliverable_name: "Empty snapshot",
+        budget_neutrality_variance: "0",
+        budget_neutrality_reporting: { ...reporting, test_values: [], test_years: [], spending_limits: [] },
+      },
+    ]);
     const csv = `"${array.replace(/"/g, '""')}"\n[]\n`;
     const { client } = fakeClient(csv, 2);
     const out = outputPath();
     expect(await writeRelationToFile(client, "reporting", schema, out)).toBe(2);
     const query = await reader();
-    const rows = await query(`SELECT applications::VARCHAR AS applications FROM read_parquet('${out}')`);
-    expect(rows.map((row) => JSON.parse(row.applications as string))).toEqual([JSON.parse(array), []]);
+    const rows = await query(`SELECT deliverables::VARCHAR AS deliverables FROM read_parquet('${out}')`);
+    expect(rows.map((row) => JSON.parse(row.deliverables as string))).toEqual([JSON.parse(array), []]);
+    const payload = JSON.parse(rows[0]!.deliverables as string);
+    expect(payload[0].budget_neutrality_variance).toBe("1234567890123.125");
+    expect(typeof payload[0].budget_neutrality_variance).toBe("string");
+    expect(payload[0].budget_neutrality_reporting.test_values[0].value).toBe(1234567890123.125);
+    expect(typeof payload[0].budget_neutrality_reporting.test_values[0].value).toBe("number");
+    expect(
+      payload[0].budget_neutrality_reporting.test_years.map(
+        (year: { cap_needed: boolean | null }) => year.cap_needed,
+      ),
+    ).toEqual([false, true, null]);
+    const [program] = payload[0].budget_neutrality_reporting.spending_limits;
+    expect(program.cap_total).toBe(0);
+    expect(program.variance_total).toBe(-2);
+    expect(program.over_cap).toBe(false);
+    expect(program.megs.map((meg: { subject_to_cap_total: number | null }) => meg.subject_to_cap_total))
+      .toEqual([0, null]);
+    expect(typeof program.megs[0].subject_to_cap_total).toBe("number");
+    expect(payload[0].budget_neutrality_reporting.spending_limits[1].megs).toEqual([]);
+    expect(payload[1].budget_neutrality_reporting).toBeNull();
+    expect(payload[2].budget_neutrality_reporting)
+      .toMatchObject({ test_values: [], test_years: [], spending_limits: [] });
   });
 
   it("preserves a comma, a quote and a newline inside a field", async () => {

@@ -35,7 +35,7 @@ erDiagram
     text measure_id FK
     text meg_name "NULLABLE"
     integer dy_number "NULLABLE"
-    decimal(18,2) value
+    double_precision value
     timestamptz created_at
     timestamptz updated_at
   }
