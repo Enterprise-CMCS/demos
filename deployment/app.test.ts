@@ -156,10 +156,12 @@ describe("app", () => {
     ).rejects.toThrow("A configured distribution already exists");
   });
 
-  test.each(["dev", "test"])("should create backup stack when stage is %s", async (mockStageName) => {
+test("should create backup stack when stage is test", async () => {
     process.env.EXPECTED_DEMOS_ACCOUNT = "123456";
     process.env.CDK_DEFAULT_ACCOUNT = "123456";
     process.env.CDK_DEFAULT_REGION = "us-east-1";
+
+    const mockStageName = "test";
 
     const app = await main({
       stage: mockStageName,
@@ -170,12 +172,10 @@ describe("app", () => {
     expect(assembly.getStackByName(`demos-${mockStageName}-backup`)).toBeDefined();
   });
 
-  test("should not create backup stack when stage is impl", async () => {
+  test.each(["dev", "impl"])("should not create backup stack when stage is %s", async (mockStageName) => {
     process.env.EXPECTED_DEMOS_ACCOUNT = "123456";
     process.env.CDK_DEFAULT_ACCOUNT = "123456";
     process.env.CDK_DEFAULT_REGION = "us-east-1";
-
-    const mockStageName = "impl";
 
     const app = await main({
       stage: mockStageName,
