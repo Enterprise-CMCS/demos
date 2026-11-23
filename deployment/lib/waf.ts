@@ -249,33 +249,3 @@ export const prependRule = (rules: WafRuleNoPriority[], rule: WafRuleNoPriority)
   rules.unshift(rule);
   return addPriorities(rules);
 };
-
-// export const createIpSetRule = (name: string, scope: Construct, wafScope: "CLOUDFRONT" | "REGIONAL", addresses: string[]): WafRuleNoPriority => {
-//   const ipSet = new aws_wafv2.CfnIPSet(scope, "cloudfrontWaf", {
-//     name: `${name}IpSet`,
-//     scope: wafScope,
-//     ipAddressVersion: "IPV4",
-//     addresses,
-//   });
-
-//   const statement: aws_wafv2.CfnWebACL.StatementProperty = {
-//     notStatement: {
-//       statement: {
-//         ipSetReferenceStatement: {
-//           arn: ipSet.attrArn,
-//         },
-//       },
-//     },
-//   };
-
-//   return {
-//     name,
-//     action: { block: {} },
-//     visibilityConfig: {
-//       cloudWatchMetricsEnabled: true,
-//       metricName: name,
-//       sampledRequestsEnabled: true,
-//     },
-//     statement,
-//   };
-// };
