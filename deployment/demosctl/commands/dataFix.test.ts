@@ -26,7 +26,8 @@ describe("dataFixLint", () => {
     vi.restoreAllMocks();
   });
 
-  const writeTempFile = (name: string, content: string) => fs.writeFileSync(path.join(tempDir, name), content);
+  const writeTempFile = (name: string, content: string) =>
+    fs.writeFileSync(path.join(tempDir, name), content);
   const lintTempDir = () => dataFixLint(tempDir, MIGRATIONS_DIR);
 
   const copyValidFixtures = () => {
@@ -53,6 +54,16 @@ describe("dataFixLint", () => {
     expect(console.log).toHaveBeenCalledWith(expect.stringContaining("no fix files"));
   });
 
+  test("should lint SQL files in ticket folders", async () => {
+    const nestedDir = path.join(tempDir, "20260101_DEMOS-1000_example_fix");
+    fs.mkdirSync(nestedDir);
+    fs.copyFileSync(path.join(VALID_DIR, DEMOSCTL_FIX), path.join(nestedDir, DEMOSCTL_FIX));
+    fs.copyFileSync(path.join(VALID_DIR, DEMOSCTL_REVERSE), path.join(nestedDir, DEMOSCTL_REVERSE));
+
+    expect(await lintTempDir()).toEqual(0);
+    expect(console.log).toHaveBeenCalledWith("data fix lint passed for 2 file(s)");
+  });
+
   test("should pass when the folder does not exist", async () => {
     expect(await dataFixLint(path.join(tempDir, "missing"), MIGRATIONS_DIR)).toEqual(0);
     expect(console.log).toHaveBeenCalledWith(expect.stringContaining("no fix files"));
@@ -63,7 +74,9 @@ describe("dataFixLint", () => {
     writeTempFile("mapping.csv", "id,value\n");
 
     expect(await lintTempDir()).toEqual(1);
-    expect(console.error).toHaveBeenCalledWith("mapping.csv: CSV files must not be committed to the data fix folder");
+    expect(console.error).toHaveBeenCalledWith(
+      "mapping.csv: CSV files must not be committed to the data fix folder",
+    );
   });
 
   test("should reject a CSV even when there are no fix files", async () => {
@@ -76,31 +89,45 @@ describe("dataFixLint", () => {
     writeTempFile("invalid.SQL", "");
 
     expect(await lintTempDir()).toEqual(1);
-    expect(console.error).toHaveBeenCalledWith("invalid.SQL: SQL file names must use the lowercase .sql extension");
-    expect(console.error).not.toHaveBeenCalledWith(expect.stringMatching(/^invalid\.SQL: missing header field /));
+    expect(console.error).toHaveBeenCalledWith(
+      "invalid.SQL: SQL file names must use the lowercase .sql extension",
+    );
+    expect(console.error).not.toHaveBeenCalledWith(
+      expect.stringMatching(/^invalid\.SQL: missing header field /),
+    );
   });
 
   test.each([
     ["demosctl", DEMOSCTL_FIX, DEMOSCTL_REVERSE, PSQL_REVERSE],
     ["psql", PSQL_FIX, PSQL_REVERSE, DEMOSCTL_REVERSE],
-  ])("should require a %s forward fix to name its actual reversal", async (_runner, fix, reverse, otherReverse) => {
-    copyValidFixtures();
-    replaceHeader(fix, "reverse", otherReverse);
+  ])(
+    "should require a %s forward fix to name its actual reversal",
+    async (_runner, fix, reverse, otherReverse) => {
+      copyValidFixtures();
+      replaceHeader(fix, "reverse", otherReverse);
 
-    expect(await lintTempDir()).toEqual(1);
-    expect(console.error).toHaveBeenCalledWith(`${reverse}: reverses file ${fix} must declare reverse: ${reverse}`);
-  });
+      expect(await lintTempDir()).toEqual(1);
+      expect(console.error).toHaveBeenCalledWith(
+        `${reverse}: reverses file ${fix} must declare reverse: ${reverse}`,
+      );
+    },
+  );
 
   test.each([
     ["demosctl", DEMOSCTL_FIX, DEMOSCTL_REVERSE, PSQL_FIX],
     ["psql", PSQL_FIX, PSQL_REVERSE, DEMOSCTL_FIX],
-  ])("should require a %s reversal to point at its actual forward fix", async (_runner, fix, reverse, otherFix) => {
-    copyValidFixtures();
-    replaceHeader(reverse, "reverses", otherFix);
+  ])(
+    "should require a %s reversal to point at its actual forward fix",
+    async (_runner, fix, reverse, otherFix) => {
+      copyValidFixtures();
+      replaceHeader(reverse, "reverses", otherFix);
 
-    expect(await lintTempDir()).toEqual(1);
-    expect(console.error).toHaveBeenCalledWith(`${fix}: reverse file ${reverse} must declare reverses: ${fix}`);
-  });
+      expect(await lintTempDir()).toEqual(1);
+      expect(console.error).toHaveBeenCalledWith(
+        `${fix}: reverse file ${reverse} must declare reverses: ${fix}`,
+      );
+    },
+  );
 
   test("should report problems with the file name and fail", async () => {
     copyValidFixtures();
@@ -109,7 +136,9 @@ describe("dataFixLint", () => {
     writeTempFile(file, `${sql}\nBEGIN;\n`);
 
     expect(await lintTempDir()).toEqual(1);
-    expect(console.error).toHaveBeenCalledWith(expect.stringMatching(/^20260101_DEMOS-1000_example_fix\.sql: /));
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringMatching(/^20260101_DEMOS-1000_example_fix\.sql: /),
+    );
     expect(console.error).toHaveBeenCalledWith("data fix lint failed with 1 problem(s)");
   });
 

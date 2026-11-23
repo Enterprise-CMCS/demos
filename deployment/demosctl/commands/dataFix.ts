@@ -18,8 +18,27 @@ function listEntries(dir: string): fs.Dirent[] {
   }
 }
 
-export async function dataFixLint(dir: string = DEFAULT_FIX_DIR, migrationsDir: string = DEFAULT_MIGRATIONS_DIR) {
-  const files = listEntries(dir).filter((entry) => entry.isFile()).map((entry) => entry.name).sort();
+function listDataFixFiles(dir: string): { name: string; absolutePath: string }[] {
+  const files: { name: string; absolutePath: string }[] = [];
+
+  for (const entry of listEntries(dir)) {
+    const entryPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...listDataFixFiles(entryPath));
+    } else if (entry.isFile()) {
+      files.push({ name: entry.name, absolutePath: entryPath });
+    }
+  }
+
+  return files.sort((left, right) => left.name.localeCompare(right.name));
+}
+
+export async function dataFixLint(
+  dir: string = DEFAULT_FIX_DIR,
+  migrationsDir: string = DEFAULT_MIGRATIONS_DIR,
+) {
+  const fixFiles = listDataFixFiles(dir);
+  const files = fixFiles.map((file) => file.name);
   const allSqlFiles = files.filter((file) => file.toLowerCase().endsWith(".sql"));
   const sqlFiles = allSqlFiles.filter((file) => file.endsWith(".sql"));
   const problems = [
@@ -36,16 +55,24 @@ export async function dataFixLint(dir: string = DEFAULT_FIX_DIR, migrationsDir: 
     return 0;
   }
 
-  const migrations = listEntries(migrationsDir).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
+  const migrations = listEntries(migrationsDir)
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
   const headers = new Map<string, DataFixHeader>();
   for (const file of sqlFiles) {
-    const sql = fs.readFileSync(path.join(dir, file), "utf8");
+    const fixFile = fixFiles.find((candidate) => candidate.name === file);
+    if (!fixFile) {
+      continue;
+    }
+    const sql = fs.readFileSync(fixFile.absolutePath, "utf8");
     try {
       headers.set(file, parseHeader(sql));
     } catch {
       // lintFile reports malformed headers; only parsed headers can be checked as pairs.
     }
-    problems.push(...(await lintFile(file, sql, files, migrations)).map((problem) => `${file}: ${problem}`));
+    problems.push(
+      ...(await lintFile(file, sql, files, migrations)).map((problem) => `${file}: ${problem}`),
+    );
   }
   for (const [file, pairProblems] of lintReversePairs(headers)) {
     problems.push(...pairProblems.map((problem) => `${file}: ${problem}`));
