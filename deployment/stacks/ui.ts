@@ -25,7 +25,7 @@ import * as uiDeploy from "../lib/ui-deploy";
 import * as alarms from "../lib/alarms";
 import { HttpOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
 import { DemosLogGroup } from "../lib/logGroup";
-import { accessDeniedBodyName, createCloudfrontRules, createRegionalRules } from "../lib/waf";
+import { accessDeniedBodyName, createRules, createRegionalRules } from "../lib/waf";
 import { BucketAccessLogs } from "../lib/bucketAccessLogs";
 import { NagSuppressions } from "cdk-nag";
 import { addCheckovSkip } from "../util/addCheckovSkip";
@@ -161,7 +161,7 @@ export class UiStack extends Stack {
       stage: commonProps.stage,
     });
 
-    const cloudfrontRules = createCloudfrontRules(commonProps);
+    const cloudfrontRules = createRules(commonProps, "CLOUDFRONT", "cloudfrontWaf");
     const apiRules = createRegionalRules(commonProps);
 
     const webAcl = new aws_wafv2.CfnWebACL(commonProps.scope, "cloudfrontWafAcl", {

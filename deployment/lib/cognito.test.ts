@@ -10,6 +10,10 @@ const mockCommonProps = {
   stage: "unittest",
   zScalerIps: ["0.1.2.3"],
   cloudfrontHost: "unittest.demos.com",
+  hostEnvironment: "unitTestHost" as "dev",
+  cloudfrontWafHeaderValue: "cloudfront-header-for-api",
+  srrConfigured: true,
+  dataConnectRoleArn: "arn:aws:iam::1234567890:role/dataconnectrole",
 };
 
 describe("Cognito", () => {
@@ -38,6 +42,31 @@ describe("Cognito", () => {
 
     template.hasResourceProperties("AWS::Cognito::UserPoolClient", {
       ClientName: "demos-unittest-user-pool-client",
+    });
+
+    template.resourceCountIs("AWS::WAFv2::WebACL", 1);
+
+    // Verify size restriction is disabled to prevent blocking valid, long, SAML
+    // responses
+    template.hasResourceProperties("AWS::WAFv2::WebACL", {
+      Rules: Match.arrayWith([
+        Match.objectLike({
+          Name: "AWSCommonRule",
+          Statement: Match.objectLike({
+            ManagedRuleGroupStatement: Match.objectLike({
+              Name: "AWSManagedRulesCommonRuleSet",
+              RuleActionOverrides: Match.arrayWith([
+                Match.objectLike({
+                  Name: "SizeRestrictions_BODY",
+                  ActionToUse: Match.objectLike({
+                    Count: {},
+                  }),
+                }),
+              ]),
+            }),
+          }),
+        }),
+      ]),
     });
   });
 
@@ -81,6 +110,14 @@ describe("Cognito", () => {
         "https://test.idp.idm.cms.gov/login/signout",
       ]),
     });
+
+    template.hasResourceProperties("AWS::WAFv2::WebACL", {
+      Rules: Match.arrayWith([
+        Match.objectLike({
+          Name: "ZScalerOrCloudbees",
+        }),
+      ]),
+    });
   });
 
   test("excludes IDM logout URL in prod", () => {
@@ -102,6 +139,14 @@ describe("Cognito", () => {
     });
     template.hasResourceProperties("AWS::Cognito::UserPoolClient", {
       LogoutURLs: Match.not(Match.arrayWith(["https://test.idp.idm.cms.gov/login/signout"])),
+    });
+
+    template.hasResourceProperties("AWS::WAFv2::WebACL", {
+      Rules: Match.not(Match.arrayWith([
+        Match.objectLike({
+          Name: "ZScalerOrCloudbees",
+        }),
+      ])),
     });
   });
 

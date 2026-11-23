@@ -1,4 +1,4 @@
-import { aws_cognito, RemovalPolicy, Duration, Aws, Stack } from "aws-cdk-lib";
+import { aws_cognito, RemovalPolicy, Duration, Aws, Stack, aws_wafv2 } from "aws-cdk-lib";
 import { CommonProps } from "../types/props";
 import {
   ProviderAttribute,
@@ -9,8 +9,11 @@ import {
 import { Construct } from "constructs";
 import { cognitoHostedUiSettings, cognitoHostedUiAssets } from "./cognitoAssets";
 import { NagSuppressions } from "cdk-nag";
+import { accessDeniedBodyName, createRules } from "./waf";
+import { DemosLogGroup } from "./logGroup";
+import { DeploymentConfigProperties } from "../config";
 
-interface CognitoProps extends CommonProps {
+interface CognitoProps extends CommonProps, DeploymentConfigProperties {
   userPoolDomainPrefix?: string;
 }
 
@@ -102,6 +105,85 @@ export function create(props: CognitoProps): CognitoOutputs {
       reason: "We are relying on IDM to provide the same benefits as the Plus tier and 100% of logins will come through IDM",
     },
   ]);
+
+  const cognitoWafRules = createRules(props, "REGIONAL").map((rule) => {
+    const statement =
+    rule.statement as aws_wafv2.CfnWebACL.StatementProperty;
+
+    const managedRuleGroupStatement =
+    statement.managedRuleGroupStatement as
+      | aws_wafv2.CfnWebACL.ManagedRuleGroupStatementProperty
+      | undefined;
+
+    if (managedRuleGroupStatement?.name !== "AWSManagedRulesCommonRuleSet") {
+      return rule;
+    }
+
+    return {
+      ...rule,
+      statement: {
+        ...statement,
+        managedRuleGroupStatement: {
+          ...managedRuleGroupStatement,
+          ruleActionOverrides: [
+            {
+              name: "SizeRestrictions_BODY",
+              actionToUse: { count: {} },
+            },
+          ],
+        },
+      },
+    };
+  });
+
+  const customResponseBodies = {
+    [accessDeniedBodyName]: {
+      content: JSON.stringify({ error: "access denied outside vpn" }),
+      contentType: "APPLICATION_JSON",
+    },
+  };
+
+  const cognitoWafAcl = new aws_wafv2.CfnWebACL(props.scope, "cognitoWaf", {
+    scope: "REGIONAL",
+    defaultAction: { allow: {} },
+    name: `demos-${props.stage}-cognito`,
+    visibilityConfig: {
+      cloudWatchMetricsEnabled: true,
+      metricName: `${props.stage}CognitoWafMetric`,
+      sampledRequestsEnabled: true,
+    },
+    rules: cognitoWafRules,
+    customResponseBodies,
+  });
+
+  const wafLogs = new DemosLogGroup(props.scope, "wafLogs", {
+    // AWS WAF has a restriction that log groups used must begin with `aws-waf-logs-`
+    overrideFullName: `aws-waf-logs-demos-${props.stage}-cognito`,
+    isEphemeral: props.isEphemeral,
+    stage: props.stage,
+  });
+
+  new aws_wafv2.CfnLoggingConfiguration(props.scope, "cognitoWafAclLogConf", {
+    logDestinationConfigs: [wafLogs.logGroup.logGroupArn],
+    resourceArn: cognitoWafAcl.attrArn,
+    redactedFields: [
+      {
+        singleHeader: {
+          "Name": "Authorization",
+        },
+      },
+      {
+        singleHeader: {
+          "Name": "cookie",
+        },
+      },
+    ],
+  });
+
+  new aws_wafv2.CfnWebACLAssociation(props.scope, "apiWafAssociation", {
+    resourceArn: userPool.userPoolArn,
+    webAclArn: cognitoWafAcl.attrArn,
+  });
 
   const domain = new aws_cognito.UserPoolDomain(props.scope, "UserPoolDomain", {
     userPool,
