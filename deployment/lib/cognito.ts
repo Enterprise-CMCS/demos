@@ -9,7 +9,7 @@ import {
 import { Construct } from "constructs";
 import { cognitoHostedUiSettings, cognitoHostedUiAssets } from "./cognitoAssets";
 import { NagSuppressions } from "cdk-nag";
-import { createRules } from "./waf";
+import { accessDeniedBodyName, createRules } from "./waf";
 import { DemosLogGroup } from "./logGroup";
 import { DeploymentConfigProperties } from "../config";
 
@@ -108,16 +108,24 @@ export function create(props: CognitoProps): CognitoOutputs {
 
   const cognitoWafRules = createRules(props, "REGIONAL");
 
+  const customResponseBodies = {
+    [accessDeniedBodyName]: {
+      content: JSON.stringify({ error: "access denied outside vpn" }),
+      contentType: "APPLICATION_JSON",
+    },
+  };
+
   const cognitoWafAcl = new aws_wafv2.CfnWebACL(props.scope, "cognitoWaf", {
     scope: "REGIONAL",
     defaultAction: { allow: {} },
     name: `demos-${props.stage}-cognito`,
     visibilityConfig: {
       cloudWatchMetricsEnabled: true,
-      metricName: `${props.stage}ApiWafMetric`,
+      metricName: `${props.stage}CognitoWafMetric`,
       sampledRequestsEnabled: true,
     },
     rules: cognitoWafRules,
+    customResponseBodies,
   });
 
   const wafLogs = new DemosLogGroup(props.scope, "wafLogs", {
