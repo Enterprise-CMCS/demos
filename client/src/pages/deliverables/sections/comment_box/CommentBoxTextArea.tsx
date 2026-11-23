@@ -1,11 +1,18 @@
 import React from "react";
+import { PersonType } from "demos-server";
 
 import { Textarea } from "components/input";
 import { Button } from "components/button";
+import { getCurrentUser } from "components/user/UserContext";
 import { CommentVisibility } from "./Comment";
 
 export const COMMENT_BOX_TEXT_AREA_NAME = "textarea-comment-box";
 export const ADD_COMMENT_BUTTON_NAME = "button-add-comment";
+
+const getTextareaLabel = (personType: PersonType, commentVisibility: CommentVisibility) => {
+  if (personType === "demos-state-user") return "Comments to CMS";
+  return commentVisibility === "public" ? "State Comments" : "CMS Internal Comments";
+};
 
 export const CommentBoxTextArea = ({
   addComment,
@@ -20,18 +27,18 @@ export const CommentBoxTextArea = ({
   commentVisibility: CommentVisibility;
   isSubmitting: boolean;
 }) => {
+  const { currentUser } = getCurrentUser();
+
   const handleAddComment = () => {
     if (!isSubmitting && currentComment.trim() !== "") {
       addComment(currentComment);
     }
   };
 
-  const textareaLabel = commentVisibility === "public" ? "Comments" : "CMS Internal Comments";
-
   return (
     <div className="flex flex-col gap-1">
       <Textarea
-        label={textareaLabel}
+        label={getTextareaLabel(currentUser.person.personType, commentVisibility)}
         value={currentComment}
         name={COMMENT_BOX_TEXT_AREA_NAME}
         onChange={setCurrentComment}

@@ -190,9 +190,9 @@ describe("useBNWorkbookPreValidation", () => {
     expect(readState()).toEqual({ status: "valid" });
   });
 
-  it("ignores validation results after the file is cleared", async () => {
+  it.each(["cleared", "replaced"])("ignores validation results after the file is %s", async (change) => {
     let finishValidation!: (errors: ValidationError[]) => void;
-    validate.mockReturnValue(
+    validate.mockReturnValueOnce(
       new Promise<ValidationError[]>((resolve) => {
         finishValidation = resolve;
       })
@@ -202,12 +202,14 @@ describe("useBNWorkbookPreValidation", () => {
     );
 
     await waitFor(() => expect(validate).toHaveBeenCalled());
-    rerender(<Probe file={null} documentType={BN_WORKBOOK_DOCUMENT_TYPE} />);
+    const replacement = change === "replaced" ? makeFile("replacement.xlsx") : null;
+    const expectedStatus = replacement ? "valid" : "idle";
+    rerender(<Probe file={replacement} documentType={BN_WORKBOOK_DOCUMENT_TYPE} />);
+    await waitFor(() => expect(readState()).toEqual({ status: expectedStatus }));
 
     await act(async () => {
       finishValidation([{ code: "STALE", message: "stale failure" }]);
     });
-    expect(readState()).toEqual({ status: "idle" });
+    expect(readState()).toEqual({ status: expectedStatus });
   });
-
 });

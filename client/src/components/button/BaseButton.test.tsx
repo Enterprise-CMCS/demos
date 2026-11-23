@@ -28,7 +28,7 @@ describe("BaseButton eagerTooltip", () => {
         Hover me
       </Button>
     );
-    expect(screen.getByRole("tooltip")).toHaveTextContent("Helpful hint");
+    expect(screen.getByRole("tooltip", { hidden: true })).toHaveTextContent("Helpful hint");
   });
 
   it("shows the tooltip on mouse enter", () => {
@@ -78,7 +78,7 @@ describe("BaseButton eagerTooltip", () => {
       </Button>
     );
     const button = screen.getByTestId("tip-button");
-    const tooltip = screen.getByRole("tooltip");
+    const tooltip = screen.getByRole("tooltip", { hidden: true });
     expect(button.getAttribute("aria-describedby")).toBe(tooltip.id);
   });
 

@@ -11,7 +11,7 @@ export type ValidationError = {
 export type ValidationResult = {
   isValid: boolean;
   errors: ValidationError[];  
-  extractedValues?: Map<string, (string | number)>;
+  extractedValues: Map<string, string | number>;
 }
 
 

@@ -206,12 +206,14 @@ const addPriorities = (rules: WafRuleNoPriority[]): aws_wafv2.CfnWebACL.RuleProp
   return rules.map((r, i) => ({ ...r, priority: i }));
 };
 
-export const createCloudfrontRules = (
+export const createRules = (
   commonProps: CommonProps & DeploymentConfigProperties,
+  wafScope: "CLOUDFRONT" | "REGIONAL",
+  ipSetName: string = "wafIpSet",
 ): aws_wafv2.CfnWebACL.RuleProperty[] => {
-  const ipSet = new aws_wafv2.CfnIPSet(commonProps.scope, "cloudfrontWaf", {
+  const ipSet = new aws_wafv2.CfnIPSet(commonProps.scope, ipSetName, {
     name: `${commonProps.stage}AllowVPNIps`,
-    scope: "CLOUDFRONT",
+    scope: wafScope,
     ipAddressVersion: "IPV4",
     addresses: [...commonProps.zScalerIps],
   });
@@ -236,5 +238,14 @@ export const createRegionalRules = (
     ...baseWafRules,
   ];
 
+  return addPriorities(rules);
+};
+
+export const getBaseRules = (): aws_wafv2.CfnWebACL.RuleProperty[] => {
+  return addPriorities(baseWafRules);
+};
+
+export const prependRule = (rules: WafRuleNoPriority[], rule: WafRuleNoPriority) => {
+  rules.unshift(rule);
   return addPriorities(rules);
 };

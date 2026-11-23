@@ -7,7 +7,7 @@ model BudgetNeutralityWorkbookHypotheticalValue {
   measureId      String   @map("measure_id")
   megName        String?  @map("meg_name")
   dyNumber       Int?     @map("dy_number")
-  value          Decimal  @db.Decimal(18, 2)
+  value          Float
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz
 

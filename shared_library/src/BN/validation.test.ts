@@ -16,8 +16,8 @@ describe("validateBNWorkbook", () => {
       extractorFunctions,
     );
     expect(result.isValid).toBe(true);
-    expect(result.extractedValues?.get("netVariance")).toBe(46848737436.56);
-    expect(result.extractedValues?.get("actuals")).toBe("Actuals + Projected");
+    expect(result.extractedValues.get("netVariance")).toBe(46848737436.56);
+    expect(result.extractedValues.get("actuals")).toBe("Actuals + Projected");
   });
 
   it("validates a real file with the default validation rules", async () => {

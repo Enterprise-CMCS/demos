@@ -1,0 +1,137 @@
+import { randomUUID } from "node:crypto";
+import { escapeLiteral, type Client } from "pg";
+export { disposableDatabaseConfig } from "./dataFix.integrationTarget.js";
+
+const SETUP_COMMAND = "Run `bash .devcontainer/run-data-fix-integration.sh` from the repository root (it runs `npm run migrate:deploy`).";
+
+export type RunScope = {
+  applicationId: string;
+  personId: string;
+  email: string;
+  suffix: string;
+  fileNames: [string, string];
+  forwardFileName: string;
+  reverseFileName: string;
+};
+
+export type IntegrationState = {
+  application: { is_migrated_from_pmda: boolean } | undefined;
+  applicationHistory: Array<{ revision_id: number; revision_type: string; is_migrated_from_pmda: boolean }>;
+  ledger: Array<{ file_name: string; checksum: string; reverse_file: string | null; reverses: string | null }>;
+};
+
+function missingPrerequisite(message: string): Error {
+  return new Error(`Missing integration prerequisite: ${message}. ${SETUP_COMMAND}`);
+}
+
+export function quoteFixtureUuid(value: string): string {
+  if (
+    value.length !== 36 ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+  ) {
+    throw new Error("Fixture UUID must be a complete 36-character hyphenated hexadecimal UUID.");
+  }
+
+  return escapeLiteral(value);
+}
+
+export function createRunScope(now = new Date()): RunScope {
+  const suffix = randomUUID().replaceAll("-", "").slice(0, 12);
+  const date = now.toISOString().slice(0, 10).replaceAll("-", "");
+  const prefix = `${date}_DEMOS-99999_integration`;
+  const forwardFileName = `${prefix}_forward_${suffix}.sql`;
+  const reverseFileName = `${prefix}_reverse_${suffix}.sql`;
+  return {
+    applicationId: randomUUID(),
+    personId: randomUUID(),
+    email: `data-fix-integration+${suffix}@example.invalid`,
+    suffix,
+    fileNames: [forwardFileName, reverseFileName],
+    forwardFileName,
+    reverseFileName,
+  };
+}
+
+export async function assertLedgerAccessPolicy(client: Client): Promise<void> {
+  const policy = await client.query<{
+    write_insert: boolean;
+    fix_select: boolean;
+    write_forbidden: boolean;
+    delete_forbidden: boolean;
+    fix_forbidden: boolean;
+  }>(`
+    SELECT
+      has_table_privilege('demos_write', 'demos_app.data_fix_log', 'INSERT') AS write_insert,
+      has_table_privilege('demos_data_fix', 'demos_app.data_fix_log', 'SELECT') AS fix_select,
+      has_table_privilege('demos_write', 'demos_app.data_fix_log', 'UPDATE, DELETE, TRUNCATE') AS write_forbidden,
+      has_table_privilege('demos_delete', 'demos_app.data_fix_log', 'INSERT, UPDATE, DELETE, TRUNCATE') AS delete_forbidden,
+      has_table_privilege('demos_data_fix', 'demos_app.data_fix_log', 'INSERT, UPDATE, DELETE, TRUNCATE') AS fix_forbidden
+  `);
+  const actual = policy.rows[0];
+  if (!actual.write_insert || !actual.fix_select || actual.write_forbidden || actual.delete_forbidden || actual.fix_forbidden) {
+    throw missingPrerequisite("the data-fix ledger must remain append-only for demos_write and read-only for demos_delete and demos_data_fix");
+  }
+}
+
+export async function seedOwnedGraph(client: Client, scope: RunScope): Promise<void> {
+  await client.query("BEGIN");
+  try {
+    await client.query(
+      `INSERT INTO demos_app.application (id, application_type_id, is_migrated_from_pmda)
+       VALUES ($1, 'Demonstration', false)`,
+      [scope.applicationId],
+    );
+    await client.query(
+      `INSERT INTO demos_app.demonstration
+         (id, application_type_id, signature_level_id, name, status_id, current_phase_id, state_id, updated_at)
+       VALUES ($1, 'Demonstration', 'OA', 'Synthetic data-fix integration demonstration',
+               'Pre-Submission', 'Concept', 'AL', CURRENT_TIMESTAMP)`,
+      [scope.applicationId],
+    );
+    await client.query(
+      `INSERT INTO demos_app.person (id, person_type_id, email, first_name, last_name, updated_at)
+       VALUES ($1, 'demos-cms-user', $2, 'Synthetic', 'Integration', CURRENT_TIMESTAMP)`,
+      [scope.personId, scope.email],
+    );
+    await client.query(
+      `INSERT INTO demos_app.demonstration_role_assignment
+         (person_id, demonstration_id, role_id, state_id, person_type_id, grant_level_id)
+       VALUES ($1, $2, 'Project Officer', 'AL', 'demos-cms-user', 'Demonstration')`,
+      [scope.personId, scope.applicationId],
+    );
+    await client.query(
+      `INSERT INTO demos_app.primary_demonstration_role_assignment (person_id, demonstration_id, role_id)
+       VALUES ($1, $2, 'Project Officer')`,
+      [scope.personId, scope.applicationId],
+    );
+    await client.query("COMMIT");
+  } catch (error) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      // Preserve the original seed error if rollback also fails.
+    }
+    throw error;
+  }
+}
+
+export async function integrationState(client: Client, scope: RunScope): Promise<IntegrationState> {
+  const application = await client.query<{ is_migrated_from_pmda: boolean }>(
+    "SELECT is_migrated_from_pmda FROM demos_app.application WHERE id = $1",
+    [scope.applicationId],
+  );
+  const applicationHistory = await client.query<{ revision_id: number; revision_type: string; is_migrated_from_pmda: boolean }>(
+    "SELECT revision_id, revision_type, is_migrated_from_pmda FROM demos_app.application_history WHERE id = $1 ORDER BY revision_id",
+    [scope.applicationId],
+  );
+  const ledger = await client.query<IntegrationState["ledger"][number]>(
+    `SELECT file_name, checksum, reverse_file, reverses
+     FROM demos_app.data_fix_log WHERE file_name = ANY($1::text[]) ORDER BY file_name`,
+    [scope.fileNames],
+  );
+  return {
+    application: application.rows[0],
+    applicationHistory: applicationHistory.rows,
+    ledger: ledger.rows,
+  };
+}
