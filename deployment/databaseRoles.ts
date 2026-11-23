@@ -154,6 +154,11 @@ export const prod: Role[] = [
     systemRole: false,
   },
   {
+    name: "ktrivedi",
+    memberships: ["demos_read"],
+    systemRole: false,
+  },
+  {
     name: "cparke",
     memberships: ["demos_read"],
     systemRole: false,
