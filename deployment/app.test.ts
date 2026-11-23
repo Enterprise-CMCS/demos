@@ -156,7 +156,7 @@ describe("app", () => {
     ).rejects.toThrow("A configured distribution already exists");
   });
 
-test("should create backup stack when stage is test", async () => {
+  test("should create backup stack when stage is test", async () => {
     process.env.EXPECTED_DEMOS_ACCOUNT = "123456";
     process.env.CDK_DEFAULT_ACCOUNT = "123456";
     process.env.CDK_DEFAULT_REGION = "us-east-1";
