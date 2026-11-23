@@ -128,7 +128,7 @@ export function create(props: CognitoProps): CognitoOutputs {
 
     if (props.stage === "dev") {
       ruleActionOverrides.push({
-        // Required in DEV since this rule block local testing
+        // Required in DEV since this rule blocks local testing
         name: "EC2MetaDataSSRF_QUERYARGUMENTS",
         actionToUse: { count: {} },
       });
