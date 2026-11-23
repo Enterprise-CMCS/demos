@@ -232,7 +232,8 @@ describe("applicationDateResolvers", () => {
         mockTransaction,
         testApplicationId,
         testInput.applicationDates,
-        mockEasternNow
+        mockEasternNow,
+        testContext.user.id
       );
     });
 

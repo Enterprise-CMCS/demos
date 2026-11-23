@@ -1,4 +1,6 @@
 import { PhaseActionRecord } from ".";
+import { PhaseName } from "../../constants.js";
+import { ApplicationActionType } from "../../types";
 
 export const PHASE_ACTIONS: PhaseActionRecord = {
   Concept: {
@@ -44,3 +46,38 @@ export const PHASE_ACTIONS: PhaseActionRecord = {
     dateToComplete: "Approval Summary Completion Date",
   },
 };
+
+export const PHASE_ACTION_TYPE_MAPPING = {
+  Concept: {
+    complete: "Completed Concept Phase",
+    skip: "Skipped Concept Phase",
+  },
+  "Application Intake": {
+    start: "Started Application Intake Phase",
+    complete: "Completed Application Intake Phase",
+  },
+  Completeness: {
+    start: "Started Completeness Phase",
+    complete: "Completed Completeness Phase",
+    declareIncomplete: "Declared Completeness Phase Incomplete",
+  },
+  "SDG Preparation": {
+    start: "Started SDG Preparation Phase",
+    complete: "Completed SDG Preparation Phase",
+  },
+  Review: {
+    start: "Started Review Phase",
+    complete: "Completed Review Phase",
+  },
+  "Approval Package": {
+    start: "Started Approval Package Phase",
+    complete: "Completed Approval Package Phase",
+  },
+  "Approval Summary": {
+    start: "Started Approval Summary Phase",
+    complete: "Completed Approval Summary Phase",
+  },
+} as const satisfies Record<
+  Exclude<PhaseName, "Federal Comment">,
+  Record<string, ApplicationActionType>
+>;

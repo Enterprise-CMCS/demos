@@ -44,6 +44,10 @@ vi.mock("../applicationDate", () => ({
   validateAndUpdateDates: vi.fn(),
 }));
 
+vi.mock("../applicationAction/queries", () => ({
+  insertApplicationAction: vi.fn(),
+}));
+
 // The importActual line is necessary to avoid overwriting the constant
 vi.mock(".", async () => {
   const actual = await vi.importActual(".");
@@ -55,6 +59,8 @@ vi.mock(".", async () => {
     updatePhaseStatus: vi.fn(),
   };
 });
+
+import { insertApplicationAction } from "../applicationAction/queries";
 
 describe("declareCompletenessPhaseIncomplete", () => {
   const mockTransaction: any = vi.fn();
@@ -176,6 +182,14 @@ describe("declareCompletenessPhaseIncomplete", () => {
       [testApplicationId, "Completeness", "Incomplete", mockTransaction],
       [testApplicationId, "Application Intake", "Started", mockTransaction],
     ]);
+    expect(insertApplicationAction).toHaveBeenCalledWith(
+      {
+        userId: "user-1",
+        applicationId: testApplicationId,
+        actionType: "Declared Completeness Phase Incomplete",
+      },
+      mockTransaction
+    );
     expect(handlePrismaError).not.toHaveBeenCalled();
   });
 

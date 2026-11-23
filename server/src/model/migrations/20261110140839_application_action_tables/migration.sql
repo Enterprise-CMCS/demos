@@ -117,4 +117,32 @@ INSERT INTO demos_app.application_action_type (
     ('Set Application Note', TRUE, FALSE, TRUE, FALSE),
     ('Deleted Application Note', TRUE, FALSE, TRUE, FALSE),
     ('Uploaded Application Document', TRUE, FALSE, FALSE, TRUE),
-    ('Deleted Application Document', TRUE, FALSE, FALSE, TRUE);
+    ('Deleted Application Document', TRUE, FALSE, FALSE, TRUE),
+    -- Concept Phase
+    ('Skipped Concept Phase', TRUE, FALSE, FALSE, FALSE),
+    ('Completed Concept Phase', TRUE, FALSE, FALSE, FALSE),
+    -- Application Intake Phase
+    ('Started Application Intake Phase', TRUE, FALSE, FALSE, FALSE),
+    ('Completed Application Intake Phase', TRUE, FALSE, FALSE, FALSE),
+    -- Completeness Phase
+    ('Started Completeness Phase', TRUE, FALSE, FALSE, FALSE),
+    ('Completed Completeness Phase', TRUE, FALSE, FALSE, FALSE),
+    ('Declared Completeness Phase Incomplete', TRUE, FALSE, FALSE, FALSE),
+    -- Federal Comment Phase
+    ('Started Federal Comment Phase', FALSE, FALSE, FALSE, FALSE),
+    ('Completed Federal Comment Phase', FALSE, FALSE, FALSE, FALSE),
+    -- SDG Preparation Phase
+    ('Started SDG Preparation Phase', TRUE, FALSE, FALSE, FALSE),
+    ('Completed SDG Preparation Phase', TRUE, FALSE, FALSE, FALSE),
+    ('Automatically Started SDG Preparation Phase', FALSE, FALSE, FALSE, FALSE),
+    -- Review Phase
+    ('Started Review Phase', TRUE, FALSE, FALSE, FALSE),
+    ('Completed Review Phase', TRUE, FALSE, FALSE, FALSE),
+    -- Approval Package Phase
+    ('Started Approval Package Phase', TRUE, FALSE, FALSE, FALSE),
+    ('Completed Approval Package Phase', TRUE, FALSE, FALSE, FALSE),
+    -- Approval Summary Phase
+    ('Started Approval Summary Phase', TRUE, FALSE, FALSE, FALSE),
+    ('Completed Approval Summary Phase', TRUE, FALSE, FALSE, FALSE)
+;
+
