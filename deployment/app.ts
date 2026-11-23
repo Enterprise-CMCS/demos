@@ -153,8 +153,8 @@ export async function main(passedContext?: { [key: string]: any }) {
     api.addStackDependency(dbRole);
   }
 
-  // Applying only in DEV temporarily to test backup processes
-  if (stage === "dev") {
+  // Expanding restore testing to TEST Environment and remove DEV Environment
+  if (stage === "test") {
     new BackupStack(app, `${project}-${stage}-backup`, {
       ...config,
       env: {
