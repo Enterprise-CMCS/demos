@@ -118,6 +118,33 @@ describe("Cognito", () => {
         }),
       ]),
     });
+
+    template.hasResourceProperties("AWS::WAFv2::WebACL", {
+      Rules: Match.arrayWith([
+        Match.objectLike({
+          Name: "AWSCommonRule",
+          Statement: Match.objectLike({
+            ManagedRuleGroupStatement: Match.objectLike({
+              Name: "AWSManagedRulesCommonRuleSet",
+              RuleActionOverrides: Match.arrayEquals([
+                Match.objectLike({
+                  Name: "SizeRestrictions_BODY",
+                  ActionToUse: Match.objectLike({
+                    Count: {},
+                  }),
+                }),
+                Match.objectLike({
+                  Name: "EC2MetaDataSSRF_QUERYARGUMENTS",
+                  ActionToUse: Match.objectLike({
+                    Count: {},
+                  }),
+                }),
+              ]),
+            }),
+          }),
+        }),
+      ]),
+    });
   });
 
   test("excludes IDM logout URL in prod", () => {
@@ -148,6 +175,28 @@ describe("Cognito", () => {
         }),
       ])),
     });
+
+    template.hasResourceProperties("AWS::WAFv2::WebACL", {
+      Rules: Match.arrayWith([
+        Match.objectLike({
+          Name: "AWSCommonRule",
+          Statement: Match.objectLike({
+            ManagedRuleGroupStatement: Match.objectLike({
+              Name: "AWSManagedRulesCommonRuleSet",
+              RuleActionOverrides: Match.arrayEquals([
+                Match.objectLike({
+                  Name: "SizeRestrictions_BODY",
+                  ActionToUse: Match.objectLike({
+                    Count: {},
+                  }),
+                }),
+              ]),
+            }),
+          }),
+        }),
+      ]),
+    });
+
   });
 
   test("createUserPoolClient includes IDM logout URL in dev", () => {
