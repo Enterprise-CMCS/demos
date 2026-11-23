@@ -119,18 +119,28 @@ export function create(props: CognitoProps): CognitoOutputs {
       return rule;
     }
 
+    const ruleActionOverrides = [
+      {
+        name: "SizeRestrictions_BODY",
+        actionToUse: { count: {} },
+      },
+    ];
+
+    if (props.stage === "dev") {
+      ruleActionOverrides.push({
+        // Required in DEV since this rule blocks local testing
+        name: "EC2MetaDataSSRF_QUERYARGUMENTS",
+        actionToUse: { count: {} },
+      });
+    }
+
     return {
       ...rule,
       statement: {
         ...statement,
         managedRuleGroupStatement: {
           ...managedRuleGroupStatement,
-          ruleActionOverrides: [
-            {
-              name: "SizeRestrictions_BODY",
-              actionToUse: { count: {} },
-            },
-          ],
+          ruleActionOverrides,
         },
       },
     };
