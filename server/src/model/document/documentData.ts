@@ -161,15 +161,17 @@ export async function removeDocument(
 
     if (authorizedDocument) {
       await validateDocumentCanBeDeleted(authorizedDocument.id, tx);
-      await insertApplicationAction(
-        {
-          applicationId: authorizedDocument.applicationId,
-          actionType: "Deleted Application Document",
-          documentType: authorizedDocument.documentTypeId as DocumentType,
-          userId: user.id,
-        },
-        tx
-      );
+      if (!authorizedDocument.deliverableId) {
+        await insertApplicationAction(
+          {
+            applicationId: authorizedDocument.applicationId,
+            actionType: "Deleted Application Document",
+            documentType: authorizedDocument.documentTypeId as DocumentType,
+            userId: user.id,
+          },
+          tx
+        );
+      }
       return await handleDeleteDocument(where, tx);
     }
   }

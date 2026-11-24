@@ -406,5 +406,27 @@ describe("documentData", () => {
       expect(handleDeleteDocument).toHaveBeenCalledExactlyOnceWith(where, mockTransaction);
       expect(result).toStrictEqual(document);
     });
+
+    it("does not log an application action when deleting a deliverable document", async () => {
+      const document = {
+        id: "document-1",
+        applicationId: "application-1",
+        deliverableId: "deliverable-1",
+        documentTypeId: "State Application",
+      } as PrismaDocument;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+      vi.mocked(selectDocument).mockResolvedValueOnce(document);
+      vi.mocked(handleDeleteDocument).mockResolvedValueOnce(document);
+
+      const result = await removeDocument(where, user, mockTransaction);
+
+      expect(validateDocumentCanBeDeleted).toHaveBeenCalledExactlyOnceWith(
+        document.id,
+        mockTransaction
+      );
+      expect(insertApplicationAction).not.toHaveBeenCalled();
+      expect(handleDeleteDocument).toHaveBeenCalledExactlyOnceWith(where, mockTransaction);
+      expect(result).toStrictEqual(document);
+    });
   });
 });
