@@ -70,6 +70,26 @@ export const UPDATE_RENEWAL_MUTATION = gql`
   }
 `;
 
+const getChangedFields = <T extends object>(previous: T, next: T): Partial<T> =>
+  Object.fromEntries(
+    Object.entries(next).filter(([key, value]) => previous[key as keyof T] !== value)
+  ) as Partial<T>;
+
+// Applies only the fields that changed on the server, so unrelated unsaved edits are kept
+const mergeServerChanges = (
+  draft: ApplicationDetailsFormData,
+  previousServer: ApplicationDetailsFormData,
+  nextServer: ApplicationDetailsFormData
+): ApplicationDetailsFormData =>
+  ({
+    ...draft,
+    ...getChangedFields(previousServer, nextServer),
+    staticFields: {
+      ...draft.staticFields,
+      ...getChangedFields(previousServer.staticFields, nextServer.staticFields),
+    },
+  }) as ApplicationDetailsFormData;
+
 const getStaticFields = (data: ApplicationDetailsFormData) => ({
   name: !!data.name,
   effectiveDate: !!data.effectiveDate,
@@ -241,7 +261,9 @@ export const ApprovalSummaryPhase = ({
 
   if (JSON.stringify(initialFormData) !== JSON.stringify(previousInitialFormData)) {
     setPreviousInitialFormData(initialFormData);
-    setApprovalSummaryFormData(initialFormData);
+    setApprovalSummaryFormData((draft) =>
+      mergeServerChanges(draft, previousInitialFormData, initialFormData)
+    );
   }
 
   const { showConfirmApproveDialog } = useDialog();
