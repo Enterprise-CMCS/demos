@@ -239,7 +239,6 @@ export const ApprovalSummaryPhase = ({
   const [previousInitialFormData, setPreviousInitialFormData] =
     useState<ApplicationDetailsFormData>(initialFormData);
 
-  // Resync the form when the application changes outside this phase (e.g. Edit Demonstration dialog)
   if (JSON.stringify(initialFormData) !== JSON.stringify(previousInitialFormData)) {
     setPreviousInitialFormData(initialFormData);
     setApprovalSummaryFormData(initialFormData);
