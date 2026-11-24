@@ -126,6 +126,7 @@ describe("applicationDateResolvers", () => {
       await __setApplicationDates(undefined, { input: testInput }, testContext);
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
       expect(prisma).not.toHaveBeenCalled();
+      expect(insertApplicationAction).not.toHaveBeenCalled();
     });
 
     it("should validate and update based on the input if it is present", async () => {
@@ -222,6 +223,7 @@ describe("applicationDateResolvers", () => {
         )
       );
       expect(getApplication).not.toHaveBeenCalled();
+      expect(insertApplicationAction).not.toHaveBeenCalled();
     });
 
     it("should call startPhasesByDates with correct arguments", async () => {

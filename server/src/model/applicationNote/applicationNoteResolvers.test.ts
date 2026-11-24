@@ -97,6 +97,7 @@ describe("applicationNoteResolvers", () => {
       await __setApplicationNotes(undefined, { input: testInput }, testContext);
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
       expect(prisma).not.toHaveBeenCalled();
+      expect(insertApplicationAction).not.toHaveBeenCalled();
     });
 
     it("should validate and update based on the input if it is present", async () => {
@@ -191,6 +192,7 @@ describe("applicationNoteResolvers", () => {
         )
       );
       expect(getApplication).not.toHaveBeenCalled();
+      expect(insertApplicationAction).not.toHaveBeenCalled();
     });
 
     it("should call validateAllowedNoteChangeByPhase with the correct parameters", async () => {

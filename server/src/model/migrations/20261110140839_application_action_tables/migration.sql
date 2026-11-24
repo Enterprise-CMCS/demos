@@ -61,13 +61,13 @@ ALTER TABLE "application_action" ADD CONSTRAINT "application_action_application_
 ALTER TABLE "application_action" ADD CONSTRAINT "application_action_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "application_action" ADD CONSTRAINT "application_action_date_type_id_fkey" FOREIGN KEY ("date_type_id") REFERENCES "date_type"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "application_action" ADD CONSTRAINT "application_action_date_type_id_fkey" FOREIGN KEY ("date_type_id") REFERENCES "date_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "application_action" ADD CONSTRAINT "application_action_document_type_id_fkey" FOREIGN KEY ("document_type_id") REFERENCES "document_type"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "application_action" ADD CONSTRAINT "application_action_document_type_id_fkey" FOREIGN KEY ("document_type_id") REFERENCES "document_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "application_action" ADD CONSTRAINT "application_action_note_type_id_fkey" FOREIGN KEY ("note_type_id") REFERENCES "note_type"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "application_action" ADD CONSTRAINT "application_action_note_type_id_fkey" FOREIGN KEY ("note_type_id") REFERENCES "note_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "application_action" ADD CONSTRAINT "application_action_action_type_id_should_have_user_id_shou_fkey" FOREIGN KEY ("action_type_id", "should_have_user_id", "should_have_date_type_id", "should_have_note_type_id", "should_have_document_type_id") REFERENCES "application_action_type"("id", "should_have_user_id", "should_have_date_type_id", "should_have_note_type_id", "should_have_document_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;

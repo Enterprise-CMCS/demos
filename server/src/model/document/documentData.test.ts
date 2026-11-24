@@ -327,6 +327,7 @@ describe("documentData", () => {
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(selectDocument).toHaveBeenCalledExactlyOnceWith(where, mockTransaction);
+      expect(insertApplicationAction).not.toHaveBeenCalled();
     });
 
     it("throws not found error when document is not found even if auth filter is applied", async () => {
@@ -347,6 +348,7 @@ describe("documentData", () => {
         mockTransaction
       );
       expect(selectDocument).toHaveBeenNthCalledWith(2, where, mockTransaction);
+      expect(insertApplicationAction).not.toHaveBeenCalled();
     });
 
     it("logs a warning and throws not found error when document is found but user does not have permission to delete it", async () => {
@@ -371,6 +373,7 @@ describe("documentData", () => {
       expect(log.warn).toHaveBeenCalledExactlyOnceWith(
         `User ${user.id} attempted to delete Document ${document.id} without sufficient permissions.`
       );
+      expect(insertApplicationAction).not.toHaveBeenCalled();
     });
 
     it("deletes and returns the document when found and user has permission to delete it", async () => {

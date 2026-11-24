@@ -16,9 +16,9 @@ model ApplicationAction {
 
   application  Application           @relation(fields: [applicationId], references: [id])
   user         User?                 @relation(fields: [userId], references: [id], onDelete: Restrict)
-  dateType     DateType?             @relation(fields: [dateTypeId], references: [id])
-  noteType     NoteType?             @relation(fields: [noteTypeId], references: [id])
-  documentType DocumentType?         @relation(fields: [documentTypeId], references: [id])
+  dateType     DateType?             @relation(fields: [dateTypeId], references: [id], onDelete: Restrict)
+  noteType     NoteType?             @relation(fields: [noteTypeId], references: [id], onDelete: Restrict)
+  documentType DocumentType?         @relation(fields: [documentTypeId], references: [id], onDelete: Restrict)
   actionType   ApplicationActionType @relation(fields: [actionTypeId, shouldHaveUserId, shouldHaveDateTypeId, shouldHaveNoteTypeId, shouldHaveDocumentTypeId], references: [id, shouldHaveUserId, shouldHaveDateTypeId, shouldHaveNoteTypeId, shouldHaveDocumentTypeId])
 
   @@id([id])
