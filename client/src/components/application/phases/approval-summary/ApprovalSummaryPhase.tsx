@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useMutation, gql } from "@apollo/client";
 import { assertIsLocalDate, formatDateForDisplay, getTodayEst } from "util/formatDate";
 import {
@@ -69,26 +69,6 @@ export const UPDATE_RENEWAL_MUTATION = gql`
     }
   }
 `;
-
-const getChangedFields = <T extends object>(previous: T, next: T): Partial<T> =>
-  Object.fromEntries(
-    Object.entries(next).filter(([key, value]) => previous[key as keyof T] !== value)
-  ) as Partial<T>;
-
-// Applies only the fields that changed on the server, so unrelated unsaved edits are kept
-const mergeServerChanges = (
-  draft: ApplicationDetailsFormData,
-  previousServer: ApplicationDetailsFormData,
-  nextServer: ApplicationDetailsFormData
-): ApplicationDetailsFormData =>
-  ({
-    ...draft,
-    ...getChangedFields(previousServer, nextServer),
-    staticFields: {
-      ...draft.staticFields,
-      ...getChangedFields(previousServer.staticFields, nextServer.staticFields),
-    },
-  }) as ApplicationDetailsFormData;
 
 const getStaticFields = (data: ApplicationDetailsFormData) => ({
   name: !!data.name,
@@ -256,15 +236,11 @@ export const ApprovalSummaryPhase = ({
     initialFormData.applicationType.slice(1);
   const [approvalSummaryFormData, setApprovalSummaryFormData] =
     useState<ApplicationDetailsFormData>(initialFormData);
-  const [previousInitialFormData, setPreviousInitialFormData] =
-    useState<ApplicationDetailsFormData>(initialFormData);
 
-  if (JSON.stringify(initialFormData) !== JSON.stringify(previousInitialFormData)) {
-    setPreviousInitialFormData(initialFormData);
-    setApprovalSummaryFormData((draft) =>
-      mergeServerChanges(draft, previousInitialFormData, initialFormData)
-    );
-  }
+  const serverFormData = JSON.stringify(initialFormData);
+  useEffect(() => {
+    setApprovalSummaryFormData(initialFormData);
+  }, [serverFormData]);
 
   const { showConfirmApproveDialog } = useDialog();
   const { showSuccess, showError } = useToast();

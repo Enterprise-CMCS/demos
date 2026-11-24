@@ -1,7 +1,7 @@
 import "@testing-library/jest-dom";
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import {
@@ -587,19 +587,6 @@ describe("ApprovalSummaryPhase", () => {
       rerender(renderPhase(buildInitialFormData()));
 
       expect(screen.getByTestId("input-title")).toHaveValue("Unsaved Title");
-    });
-
-    it("keeps an unsaved approval date when another field changes", () => {
-      const { rerender } = render(renderPhase(buildInitialFormData()));
-
-      fireEvent.change(screen.getByTestId("datepicker-application-approval-date"), {
-        target: { value: "2025-02-15" },
-      });
-
-      rerender(renderPhase(buildInitialFormData({ name: "Updated Demonstration" })));
-
-      expect(screen.getByTestId("input-title")).toHaveValue("Updated Demonstration");
-      expect(screen.getByTestId("datepicker-application-approval-date")).toHaveValue("2025-02-15");
     });
   });
 });
