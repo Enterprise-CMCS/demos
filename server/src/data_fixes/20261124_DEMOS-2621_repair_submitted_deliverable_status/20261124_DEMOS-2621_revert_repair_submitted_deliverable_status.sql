@@ -17,9 +17,8 @@ CREATE TEMPORARY TABLE data_fix_result (rows_affected INT) ON COMMIT DROP;
 DO $$
 DECLARE
     v_applied_at timestamptz;
-    v_deliverable record;
-    v_rows_affected int;
-    v_total_rows int := 0;
+    v_eligible_rows int;
+    v_total_rows int;
 BEGIN
     SELECT applied_at
     INTO v_applied_at
@@ -30,7 +29,7 @@ BEGIN
         RAISE EXCEPTION 'Could not find the applied DEMOS-2621 forward data fix in data_fix_log';
     END IF;
 
-    FOR v_deliverable IN
+    WITH eligible AS MATERIALIZED (
         SELECT d.id
         FROM demos_app.deliverable AS d
         WHERE d.id IN (
@@ -71,24 +70,27 @@ BEGIN
               WHERE later_action.deliverable_id = d.id
                 AND later_action.action_timestamp > v_applied_at
           )
-        ORDER BY d.id
-    LOOP
-        UPDATE demos_app.deliverable
+    ),
+    updated AS (
+        UPDATE demos_app.deliverable AS d
         SET status_id = 'Past Due',
             updated_at = CURRENT_TIMESTAMP
-        WHERE id = v_deliverable.id
-          AND status_id = 'Submitted';
-        GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+        FROM eligible
+        WHERE d.id = eligible.id
+          AND d.status_id = 'Submitted'
+        RETURNING d.id
+    )
+    SELECT
+        (SELECT count(*) FROM eligible),
+        (SELECT count(*) FROM updated)
+    INTO v_eligible_rows, v_total_rows;
 
-        IF v_rows_affected != 1 THEN
-            RAISE EXCEPTION 'Expected exactly 1 status reversal for deliverable_id=%, but % rows were affected', v_deliverable.id, v_rows_affected;
-        END IF;
+    IF v_total_rows != v_eligible_rows THEN
+        RAISE EXCEPTION 'Expected all % eligible deliverables to reverse; reversed %', v_eligible_rows, v_total_rows;
+    END IF;
 
-        v_total_rows := v_total_rows + v_rows_affected;
-    END LOOP;
-
-    IF v_total_rows != 13 THEN
-        RAISE EXCEPTION 'Expected exactly 13 untouched deliverables to reverse; got %. Review current statuses and history before reverting.', v_total_rows;
+    IF v_total_rows != 14 THEN
+        RAISE EXCEPTION 'Expected exactly 14 untouched deliverables to reverse; got %. Review current statuses and history before reverting.', v_total_rows;
     END IF;
 
     INSERT INTO data_fix_result (rows_affected)

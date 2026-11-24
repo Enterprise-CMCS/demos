@@ -9,18 +9,16 @@
 -- reverse:            20261124_DEMOS-2621_revert_repair_submitted_deliverable_status.sql
 --
 -- Corrects the listed migrated deliverables that remain Past Due despite prior submission evidence.
--- The listed deliverable already at Approved is intentionally left unchanged.
 -- No synthetic activity action is inserted; the data-fix ledger and deliverable history trigger audit the correction.
 
 CREATE TEMPORARY TABLE data_fix_result (rows_affected INT) ON COMMIT DROP;
 
 DO $$
 DECLARE
-    v_deliverable record;
-    v_rows_affected int;
-    v_total_rows int := 0;
+    v_eligible_rows int;
+    v_total_rows int;
 BEGIN
-    FOR v_deliverable IN
+    WITH eligible AS MATERIALIZED (
         SELECT d.id
         FROM demos_app.deliverable AS d
         JOIN legacy_pmda_staged.final_demos_app_deliverable AS migrated
@@ -42,7 +40,7 @@ BEGIN
             '4c91d6e8-9fd1-4bd0-9fcc-ffa847991f10',
             'a5da8164-c2eb-4169-ab2c-924e2be4b38f',
             '5f6e32d9-26b1-458a-b8d3-7a117259ec0a',
-            '47ab06d7-c5f1-44db-b7b2-4bd66edef9ce',
+            '47ab06d7-c5f1-44db-b7b2-4bd3b2d8e808',
             'd04b46d6-1272-41ae-ac71-974788465ebf'
         )
           AND d.status_id = 'Past Due'
@@ -82,24 +80,27 @@ BEGIN
                     'Received and Filed Deliverable'
                 )
           )
-        ORDER BY d.id
-    LOOP
-        UPDATE demos_app.deliverable
+    ),
+    updated AS (
+        UPDATE demos_app.deliverable AS d
         SET status_id = 'Submitted',
             updated_at = CURRENT_TIMESTAMP
-        WHERE id = v_deliverable.id
-          AND status_id = 'Past Due';
-        GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+        FROM eligible
+        WHERE d.id = eligible.id
+          AND d.status_id = 'Past Due'
+        RETURNING d.id
+    )
+    SELECT
+        (SELECT count(*) FROM eligible),
+        (SELECT count(*) FROM updated)
+    INTO v_eligible_rows, v_total_rows;
 
-        IF v_rows_affected != 1 THEN
-            RAISE EXCEPTION 'Expected exactly 1 status update for deliverable_id=%, but % rows were affected', v_deliverable.id, v_rows_affected;
-        END IF;
+    IF v_total_rows != v_eligible_rows THEN
+        RAISE EXCEPTION 'Expected all % eligible deliverables to update; updated %', v_eligible_rows, v_total_rows;
+    END IF;
 
-        v_total_rows := v_total_rows + v_rows_affected;
-    END LOOP;
-
-    IF v_total_rows != 13 THEN
-        RAISE EXCEPTION 'Expected exactly 13 eligible deliverables; got %. Re-run the diagnostic query and review current statuses before applying.', v_total_rows;
+    IF v_total_rows != 14 THEN
+      RAISE EXCEPTION 'Expected exactly 14 eligible deliverables; got %. Re-run the diagnostic query and review current statuses before applying.', v_total_rows;
     END IF;
 
     INSERT INTO data_fix_result (rows_affected)
