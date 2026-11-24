@@ -87,6 +87,7 @@ describe("setPhaseToStarted", () => {
     expect(result).toEqual(false);
     expect(getApplicationPhaseStatus).not.toHaveBeenCalled();
     expect(updatePhaseStatus).not.toBeCalled();
+    expect(insertApplicationAction).not.toHaveBeenCalled();
   });
 
   it("should skip all processing for the Concept phase", async () => {
@@ -100,6 +101,7 @@ describe("setPhaseToStarted", () => {
     expect(result).toEqual(false);
     expect(getApplicationPhaseStatus).not.toHaveBeenCalled();
     expect(updatePhaseStatus).not.toBeCalled();
+    expect(insertApplicationAction).not.toHaveBeenCalled();
   });
 
   it("should start Completeness phase when status is Incomplete", async () => {
