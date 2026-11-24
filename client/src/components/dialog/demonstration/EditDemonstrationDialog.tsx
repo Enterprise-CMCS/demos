@@ -10,6 +10,7 @@ import {
   DemonstrationRoleAssignment as ServerDemonstrationRoleAssignment,
 } from "demos-server";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/demonstration/DemonstrationWorkflow";
 
 import { gql, TypedDocumentNode, useMutation, useQuery } from "@apollo/client";
 
@@ -148,6 +149,10 @@ const useUpdateDemonstration = () => {
       refetchQueries: [
         {
           query: DEMONSTRATION_DETAIL_QUERY,
+          variables: { id: demonstrationId },
+        },
+        {
+          query: GET_WORKFLOW_DEMONSTRATION_QUERY,
           variables: { id: demonstrationId },
         },
       ],

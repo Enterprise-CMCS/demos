@@ -236,6 +236,14 @@ export const ApprovalSummaryPhase = ({
     initialFormData.applicationType.slice(1);
   const [approvalSummaryFormData, setApprovalSummaryFormData] =
     useState<ApplicationDetailsFormData>(initialFormData);
+  const [previousInitialFormData, setPreviousInitialFormData] =
+    useState<ApplicationDetailsFormData>(initialFormData);
+
+  // Resync the form when the application changes outside this phase (e.g. Edit Demonstration dialog)
+  if (JSON.stringify(initialFormData) !== JSON.stringify(previousInitialFormData)) {
+    setPreviousInitialFormData(initialFormData);
+    setApprovalSummaryFormData(initialFormData);
+  }
 
   const { showConfirmApproveDialog } = useDialog();
   const { showSuccess, showError } = useToast();

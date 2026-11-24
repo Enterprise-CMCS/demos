@@ -14,6 +14,8 @@ import {
 } from "./EditDemonstrationDialog";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 import { DEMONSTRATION_DIALOG_DESCRIPTION_NAME } from "./DemonstrationDialog";
+import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/demonstration/DemonstrationWorkflow";
 
 const DEFAULT_DEMONSTRATION = {
   name: "",
@@ -252,6 +254,57 @@ describe("EditDemonstrationDialog", () => {
     await waitFor(() => {
       // If we get here without errors, the mock worked
       expect(submitButton).toBeInTheDocument();
+    });
+  });
+
+  it("refetches the application workflow after saving", async () => {
+    const workflowRefetchResult = vi.fn(() => ({
+      data: { demonstration: { id: TEST_DEMO_ID } },
+    }));
+
+    render(
+      <TestProvider
+        mocks={[
+          GET_DEMONSTRATION_BY_ID_MOCK,
+          GET_USER_SELECT_OPTIONS_MOCK,
+          {
+            request: {
+              query: UPDATE_DEMONSTRATION_MUTATION,
+              variables: {
+                id: TEST_DEMO_ID,
+                input: getUpdateDemonstrationInput({
+                  name: "Test Demonstration 123",
+                  description: "Test demonstration description",
+                  stateId: "test-state-id",
+                  projectOfficerId: "test-officer-id",
+                  sdgDivision: "Division of System Reform Demonstrations",
+                  effectiveDate: "",
+                  expirationDate: "",
+                }),
+              },
+            },
+            result: { data: { updateDemonstration: { id: TEST_DEMO_ID } } },
+          },
+          {
+            request: { query: DEMONSTRATION_DETAIL_QUERY, variables: { id: TEST_DEMO_ID } },
+            result: { data: { demonstration: { id: TEST_DEMO_ID } } },
+          },
+          {
+            request: { query: GET_WORKFLOW_DEMONSTRATION_QUERY, variables: { id: TEST_DEMO_ID } },
+            result: workflowRefetchResult,
+          },
+        ]}
+      >
+        <EditDemonstrationDialog onClose={vi.fn()} demonstrationId={TEST_DEMO_ID} />
+      </TestProvider>
+    );
+
+    const titleInput = await screen.findByDisplayValue("Test Demonstration");
+    fireEvent.change(titleInput, { target: { value: "Test Demonstration 123" } });
+    fireEvent.click(screen.getByTestId(SUBMIT_BUTTON_TEST_ID));
+
+    await waitFor(() => {
+      expect(workflowRefetchResult).toHaveBeenCalled();
     });
   });
 });

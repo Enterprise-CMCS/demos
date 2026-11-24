@@ -535,4 +535,58 @@ describe("ApprovalSummaryPhase", () => {
     expect(screen.getByText("Environmental")).toBeInTheDocument();
     expect(screen.getByText("Economic")).toBeInTheDocument();
   });
+
+  describe("when the application is updated outside the phase", () => {
+    const renderPhase = (formData: ApplicationDetailsFormData) => (
+      <TestProvider>
+        <ApprovalSummaryPhase
+          applicationId="demo-123"
+          demonstrationId="demo-123"
+          demonstrationStatus="Under Review"
+          initialFormData={formData}
+          initialTypes={[]}
+          approvalSummaryPhase={{ phaseStatus: "Started", phaseDates: [] }}
+          allPreviousPhasesDone={true}
+        />
+      </TestProvider>
+    );
+
+    it("shows the updated values in Application Details", () => {
+      const { rerender } = render(
+        renderPhase(buildInitialFormData({ staticFields: { name: true, projectOfficerId: true } }))
+      );
+
+      expect(screen.getByText("Test Demonstration")).toBeInTheDocument();
+      expect(screen.getByText("Jane Doe")).toBeInTheDocument();
+
+      rerender(
+        renderPhase(
+          buildInitialFormData({
+            name: "Updated Demonstration",
+            projectOfficerId: "user-456",
+            projectOfficerName: "John Smith",
+            staticFields: { name: true, projectOfficerId: true },
+          })
+        )
+      );
+
+      expect(screen.getByText("Updated Demonstration")).toBeInTheDocument();
+      expect(screen.getByText("John Smith")).toBeInTheDocument();
+      expect(screen.queryByText("Test Demonstration")).not.toBeInTheDocument();
+      expect(screen.queryByText("Jane Doe")).not.toBeInTheDocument();
+    });
+
+    it("keeps unsaved edits when the application data has not changed", async () => {
+      const user = userEvent.setup();
+      const { rerender } = render(renderPhase(buildInitialFormData()));
+
+      const titleInput = screen.getByTestId("input-title");
+      await user.clear(titleInput);
+      await user.type(titleInput, "Unsaved Title");
+
+      rerender(renderPhase(buildInitialFormData()));
+
+      expect(screen.getByTestId("input-title")).toHaveValue("Unsaved Title");
+    });
+  });
 });
