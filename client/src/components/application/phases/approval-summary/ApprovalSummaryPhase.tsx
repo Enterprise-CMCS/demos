@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useMutation, gql } from "@apollo/client";
 import { assertIsLocalDate, formatDateForDisplay, getTodayEst } from "util/formatDate";
 import {
@@ -236,6 +236,11 @@ export const ApprovalSummaryPhase = ({
     initialFormData.applicationType.slice(1);
   const [approvalSummaryFormData, setApprovalSummaryFormData] =
     useState<ApplicationDetailsFormData>(initialFormData);
+
+  const serverFormData = JSON.stringify(initialFormData);
+  useEffect(() => {
+    setApprovalSummaryFormData(initialFormData);
+  }, [serverFormData]);
 
   const { showConfirmApproveDialog } = useDialog();
   const { showSuccess, showError } = useToast();

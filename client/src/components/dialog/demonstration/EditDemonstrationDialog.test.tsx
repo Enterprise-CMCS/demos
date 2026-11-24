@@ -14,6 +14,8 @@ import {
 } from "./EditDemonstrationDialog";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 import { DEMONSTRATION_DIALOG_DESCRIPTION_NAME } from "./DemonstrationDialog";
+import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/demonstration/DemonstrationWorkflow";
 
 const DEFAULT_DEMONSTRATION = {
   name: "",
@@ -31,6 +33,15 @@ const DEFAULT_PROPS = {
 };
 
 const SUBMIT_BUTTON_TEST_ID = "button-submit-demonstration-dialog";
+
+const mockMutate = vi.fn(() => Promise.resolve({ data: {} }));
+vi.mock("@apollo/client", async () => {
+  const actual = await vi.importActual("@apollo/client");
+  return {
+    ...actual,
+    useMutation: vi.fn(() => [mockMutate, { loading: false }]),
+  };
+});
 
 describe("EditDemonstrationDialog", () => {
   const TEST_DEMO_ID = "1";
@@ -252,6 +263,23 @@ describe("EditDemonstrationDialog", () => {
     await waitFor(() => {
       // If we get here without errors, the mock worked
       expect(submitButton).toBeInTheDocument();
+    });
+  });
+
+  it("refetches the application workflow after saving", async () => {
+    render(getEditDemonstrationDialog());
+
+    fireEvent.click(await screen.findByTestId(SUBMIT_BUTTON_TEST_ID));
+
+    await waitFor(() => {
+      expect(mockMutate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          refetchQueries: [
+            { query: DEMONSTRATION_DETAIL_QUERY, variables: { id: TEST_DEMO_ID } },
+            { query: GET_WORKFLOW_DEMONSTRATION_QUERY, variables: { id: TEST_DEMO_ID } },
+          ],
+        })
+      );
     });
   });
 });
