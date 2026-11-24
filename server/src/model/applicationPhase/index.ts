@@ -34,4 +34,4 @@ export type {
   PrismaApplicationDateResults,
   ValidationChecks,
 } from "./applicationPhaseTypes.js";
-export { PHASE_ACTIONS } from "./applicationPhaseConstants.js";
+export { PHASE_ACTIONS, PHASE_ACTION_TYPE_MAPPING } from "./applicationPhaseConstants.js";

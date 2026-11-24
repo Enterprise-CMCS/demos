@@ -7,9 +7,15 @@ import { getApplication } from "../application";
 import { parseSetApplicationNotesInput, upsertApplicationNotes, deleteApplicationNotes } from ".";
 import { NoteType, SetApplicationNotesInput } from "../../types";
 import { validateAllowedNoteChangeByPhase } from "./validateAllowedNoteChangeByPhase";
+import { insertApplicationAction } from "../applicationAction/queries";
+import { GraphQLContext } from "../../auth";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
+}));
+
+vi.mock("../applicationAction/queries", () => ({
+  insertApplicationAction: vi.fn(),
 }));
 
 const testHandlePrismaError = new Error("Test handlePrismaError!");
@@ -47,6 +53,8 @@ describe("applicationNoteResolvers", () => {
 
   const testNoteContent = "Test Note Content";
   const testApplicationId = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
+  const testUserId = "2dbf034d-a525-4578-a648-c412544a7932";
+  const testContext = { user: { id: testUserId } } as GraphQLContext;
   const testError = new Error("Database connection failed");
 
   beforeEach(() => {
@@ -86,24 +94,62 @@ describe("applicationNoteResolvers", () => {
         applicationId: testApplicationId,
         applicationNotes: [],
       };
-      await __setApplicationNotes(undefined, { input: testInput });
+      await __setApplicationNotes(undefined, { input: testInput }, testContext);
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
       expect(prisma).not.toHaveBeenCalled();
     });
 
     it("should validate and update based on the input if it is present", async () => {
-      await __setApplicationNotes(undefined, { input: testInput });
+      await __setApplicationNotes(undefined, { input: testInput }, testContext);
       expect(parseSetApplicationNotesInput).toHaveBeenCalledExactlyOnceWith(testInput);
       expect(upsertApplicationNotes).toHaveBeenCalledExactlyOnceWith(testInput, mockTransaction);
       expect(deleteApplicationNotes).toHaveBeenCalledExactlyOnceWith(testInput, mockTransaction);
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
     });
 
+    it("should log a Set Application Note action for each note with content, or a Deleted Application Note action for each note being cleared", async () => {
+      const testInput: SetApplicationNotesInput = {
+        applicationId: testApplicationId,
+        applicationNotes: [
+          {
+            noteType: "PO and OGD",
+            content: testNoteContent,
+          },
+          {
+            noteType: "OGC and OMB",
+            content: null,
+          },
+        ],
+      };
+      await __setApplicationNotes(undefined, { input: testInput }, testContext);
+      expect(insertApplicationAction).toHaveBeenCalledTimes(2);
+      expect(insertApplicationAction).toHaveBeenNthCalledWith(
+        1,
+        {
+          applicationId: testApplicationId,
+          actionType: "Set Application Note",
+          noteType: "PO and OGD",
+          userId: testUserId,
+        },
+        mockTransaction
+      );
+      expect(insertApplicationAction).toHaveBeenNthCalledWith(
+        2,
+        {
+          applicationId: testApplicationId,
+          actionType: "Deleted Application Note",
+          noteType: "OGC and OMB",
+          userId: testUserId,
+        },
+        mockTransaction
+      );
+    });
+
     it("should handle an error appropriately if it occurs", async () => {
       mockPrismaClient.$transaction.mockRejectedValueOnce(testError);
-      await expect(__setApplicationNotes(undefined, { input: testInput })).rejects.toThrowError(
-        testHandlePrismaError
-      );
+      await expect(
+        __setApplicationNotes(undefined, { input: testInput }, testContext)
+      ).rejects.toThrowError(testHandlePrismaError);
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
       expect(getApplication).not.toHaveBeenCalled();
     });
@@ -135,9 +181,9 @@ describe("applicationNoteResolvers", () => {
         ],
       };
 
-      await expect(__setApplicationNotes(undefined, { input: testInput })).rejects.toThrowError(
-        testHandlePrismaError
-      );
+      await expect(
+        __setApplicationNotes(undefined, { input: testInput }, testContext)
+      ).rejects.toThrowError(testHandlePrismaError);
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(
         new Error(
           "The input contained the same noteType more than once for " +
@@ -148,7 +194,7 @@ describe("applicationNoteResolvers", () => {
     });
 
     it("should call validateAllowedNoteChangeByPhase with the correct parameters", async () => {
-      await __setApplicationNotes(undefined, { input: testInput });
+      await __setApplicationNotes(undefined, { input: testInput }, testContext);
       expect(validateAllowedNoteChangeByPhase).toHaveBeenCalledExactlyOnceWith(
         mockTransaction,
         testInput

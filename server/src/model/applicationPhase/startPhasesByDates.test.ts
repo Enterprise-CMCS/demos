@@ -22,6 +22,7 @@ vi.mock("../applicationDate", () => ({
 describe("startPhasesByDates", () => {
   const mockTransaction = {} as PrismaTransactionClient;
   const testApplicationId = "app-123-456";
+  const testUserId = "user-123";
 
   const mockEasternNow: EasternNow = {
     "Start of Day": {
@@ -74,7 +75,8 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternNow,
+        testUserId
       );
 
       expect(result).toEqual([]);
@@ -96,7 +98,8 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternNow,
+        testUserId
       );
 
       expect(getOrderedPhaseDateTypes).toHaveBeenCalledExactlyOnceWith(mockTransaction);
@@ -113,7 +116,13 @@ describe("startPhasesByDates", () => {
       ];
 
       await expect(
-        startPhasesByDates(mockTransaction, testApplicationId, applicationDates, mockEasternNow)
+        startPhasesByDates(
+          mockTransaction,
+          testApplicationId,
+          applicationDates,
+          mockEasternNow,
+          testUserId
+        )
       ).rejects.toThrow("No phase found for date type Unknown Date Type");
 
       expect(setPhaseToStarted).not.toHaveBeenCalled();
@@ -136,17 +145,20 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternNow,
+        testUserId
       );
 
       expect(setPhaseToStarted).toHaveBeenCalledWith(
         testApplicationId,
         "Application Intake",
+        testUserId,
         mockTransaction
       );
       expect(setPhaseToStarted).toHaveBeenCalledWith(
         testApplicationId,
         "Completeness",
+        testUserId,
         mockTransaction
       );
     });
@@ -166,12 +178,14 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternNow,
+        testUserId
       );
 
       expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Application Intake",
+        testUserId,
         mockTransaction
       );
     });
@@ -193,18 +207,21 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternNow,
+        testUserId
       );
 
       expect(setPhaseToStarted).toHaveBeenCalledTimes(2);
       expect(setPhaseToStarted).toHaveBeenCalledWith(
         testApplicationId,
         "Application Intake",
+        testUserId,
         mockTransaction
       );
       expect(setPhaseToStarted).toHaveBeenCalledWith(
         testApplicationId,
         "Completeness",
+        testUserId,
         mockTransaction
       );
     });
@@ -224,7 +241,8 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternNow,
+        testUserId
       );
 
       expect(createPhaseStartDate).not.toHaveBeenCalled();
@@ -249,7 +267,8 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternNow,
+        testUserId
       );
 
       expect(createPhaseStartDate).toHaveBeenCalledExactlyOnceWith(
@@ -273,7 +292,8 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternNow,
+        testUserId
       );
 
       expect(result).toEqual([]);
@@ -299,7 +319,8 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternNow,
+        testUserId
       );
 
       expect(result).toEqual([]);
@@ -331,7 +352,8 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternNow,
+        testUserId
       );
 
       expect(result).toEqual([mockStartDate]);
@@ -386,7 +408,8 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternNow,
+        testUserId
       );
 
       // Both are duplicates, so neither should be returned
@@ -408,13 +431,15 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternNow,
+        testUserId
       );
 
       // Should use the first match (find returns first match)
       expect(setPhaseToStarted).toHaveBeenCalledWith(
         testApplicationId,
         "Application Intake",
+        testUserId,
         mockTransaction
       );
     });
@@ -439,7 +464,8 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternNow,
+        testUserId
       );
 
       expect(Array.isArray(result)).toBe(true);
@@ -470,13 +496,15 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternNow,
+        testUserId
       );
 
       // startPhase should only be called once for the non-null date
       expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Application Intake",
+        testUserId,
         mockTransaction
       );
       expect(getOrderedPhaseDateTypes).toHaveBeenCalledExactlyOnceWith(mockTransaction);
@@ -499,7 +527,8 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternNow,
+        testUserId
       );
 
       expect(setPhaseToStarted).not.toHaveBeenCalled();
@@ -533,13 +562,15 @@ describe("startPhasesByDates", () => {
         mockTransaction,
         testApplicationId,
         applicationDates,
-        mockEasternNow
+        mockEasternNow,
+        testUserId
       );
 
       // Only one call for the non-null date
       expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Application Intake",
+        testUserId,
         mockTransaction
       );
       expect(createPhaseStartDate).toHaveBeenCalledExactlyOnceWith(

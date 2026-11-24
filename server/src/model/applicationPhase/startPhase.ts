@@ -8,9 +8,10 @@ export async function startPhase(
   tx: PrismaTransactionClient,
   applicationId: string,
   phaseName: PhaseName,
-  easternNow: EasternNow
+  easternNow: EasternNow,
+  userId: string
 ): Promise<ApplicationDateInput | null> {
-  const phaseStarted = await setPhaseToStarted(applicationId, phaseName, tx);
+  const phaseStarted = await setPhaseToStarted(applicationId, phaseName, userId, tx);
   if (phaseStarted) {
     const startDateForPhase = createPhaseStartDate(phaseName, easternNow);
     if (startDateForPhase) {

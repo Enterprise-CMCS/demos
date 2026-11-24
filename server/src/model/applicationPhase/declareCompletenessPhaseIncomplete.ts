@@ -8,8 +8,10 @@ import {
   checkCompletenessStatusForIncomplete,
   getApplicationPhaseStatuses,
   updatePhaseStatus,
+  PHASE_ACTION_TYPE_MAPPING,
 } from ".";
 import { getApplicationDates, validateAndUpdateDates } from "../applicationDate";
+import { insertApplicationAction } from "../applicationAction/queries";
 import { __DEMOS_VERSION__ } from "../../flags";
 
 export async function declareCompletenessPhaseIncomplete(
@@ -31,6 +33,15 @@ export async function declareCompletenessPhaseIncomplete(
 
       await updatePhaseStatus(applicationId, "Completeness", "Incomplete", tx);
       await updatePhaseStatus(applicationId, "Application Intake", "Started", tx);
+
+      await insertApplicationAction(
+        {
+          applicationId,
+          actionType: PHASE_ACTION_TYPE_MAPPING["Completeness"].declareIncomplete,
+          userId: context.user.id,
+        },
+        tx
+      );
 
       const datesToDelete = new Set<DateType>([
         "Completeness Start Date",
