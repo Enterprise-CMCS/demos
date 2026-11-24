@@ -2,7 +2,7 @@
 -- author:             Dustin Horning
 -- data_owner:         Stephanie Hauf
 -- environments:       prod
--- expected_rows:      13
+-- expected_rows:      14
 -- source:             Reverse of the DEMOS-2621 submitted deliverable status correction
 -- runner:             demosctl
 -- requires_migration: 20261104004932_add_data_fix_log
