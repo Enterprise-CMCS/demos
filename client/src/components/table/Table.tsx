@@ -18,6 +18,7 @@ import {
 
 import { arrIncludesAllInsensitive } from "components/table/search";
 import { TableHead } from "./TableHead";
+import { useSessionStorageJson } from "hooks";
 
 const STYLES = {
   table: "w-full table-auto",
@@ -29,17 +30,18 @@ const STYLES = {
 
 const STORAGE_KEY_SUFFIX = "_table_state";
 
+const handledRefreshStorageKeys = new Set<string>();
+
+const isBrowserRefresh =
+  (
+    performance.getEntriesByType(
+      "navigation"
+    )[0] as PerformanceNavigationTiming
+  )?.type === "reload";
+
 type TableColumnMeta = {
   cellClassName?: string;
 };
-
-function storeTableState(storageKey: string, state: InitialTableState) {
-  try {
-    sessionStorage.setItem(`${storageKey}${STORAGE_KEY_SUFFIX}`, JSON.stringify(state));
-  } catch (error) {
-    console.error("Failed to store table state:", error);
-  }
-}
 
 function TableBody<T>({
   data,
@@ -154,50 +156,41 @@ export function Table<T extends { id: string }>({
   tableContainerClassName,
   storageKey,
 }: TableProps<T>) {
-  let hasHandledPageRefresh = false;
-  const isPageRefresh = React.useRef(
-    !hasHandledPageRefresh &&
-    (
-      performance.getEntriesByType(
-        "navigation"
-      )[0] as PerformanceNavigationTiming
-    )?.type === "reload"
+  const storageKeyWithSuffix = storageKey
+    ? `${storageKey}${STORAGE_KEY_SUFFIX}`
+    : "";
+
+  const shouldClearFiltersOnMount = React.useRef(
+    !!storageKey &&
+      isBrowserRefresh &&
+      !handledRefreshStorageKeys.has(storageKey)
   );
 
-  if (isPageRefresh.current) {
-    hasHandledPageRefresh = true;
+  if (shouldClearFiltersOnMount.current && storageKey) {
+    handledRefreshStorageKeys.add(storageKey);
   }
 
-  const [storedState] = React.useState<Partial<TableState> | null>(() => {
-    if (!storageKey) return null;
+  const [storedState, setStoredState] =
+    useSessionStorageJson<Partial<TableState>>(storageKeyWithSuffix);
 
-    try {
-      const storedStateString = sessionStorage.getItem(`${storageKey}${STORAGE_KEY_SUFFIX}`);
-      if (!storedStateString) return null;
-
-      const state = JSON.parse(storedStateString) as Partial<TableState>;
-
-      if (isPageRefresh.current) {
-        return {
-          ...state,
-          columnFilters: [],
-          globalFilter: "",
-        };
-      }
-
-      return state;
-    } catch (error) {
-      console.error("Failed to parse stored table state:", error);
-      return null;
+  const restoredState = React.useMemo(() => {
+    if (!storedState || !shouldClearFiltersOnMount.current) {
+      return storedState;
     }
-  });
+
+    return {
+      ...storedState,
+      columnFilters: [],
+      globalFilter: "",
+    };
+  }, [storedState]);
 
   const [expanded, setExpanded] = React.useState<ExpandedState>(
-    () => storedState?.expanded ?? {}
+    () => restoredState?.expanded ?? {}
   );
 
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>(
-    () => storedState?.rowSelection ?? {}
+    () => restoredState?.rowSelection ?? {}
   );
 
   const table = useReactTable<T>({
@@ -220,7 +213,7 @@ export function Table<T extends { id: string }>({
     onRowSelectionChange: setRowSelection,
     initialState: {
       ...initialState,
-      ...storedState,
+      ...restoredState,
     },
     paginateExpandedRows: false,
     autoResetPageIndex: false,
@@ -258,9 +251,9 @@ export function Table<T extends { id: string }>({
 
   React.useEffect(() => {
     if (storageKey) {
-      storeTableState(storageKey, table.getState());
+      setStoredState(table.getState());
     }
-  }, [table.getState(), storageKey]);
+  }, [table.getState(), storageKey, setStoredState]);
 
   return (
     <>
