@@ -18,7 +18,7 @@ import {
 
 import { arrIncludesAllInsensitive } from "components/table/search";
 import { TableHead } from "./TableHead";
-import { useSessionStorageJson } from "hooks";
+import { useSessionStorageJson, useIsBrowserRefresh } from "hooks";
 
 const STYLES = {
   table: "w-full table-auto",
@@ -31,13 +31,6 @@ const STYLES = {
 const STORAGE_KEY_SUFFIX = "_table_state";
 
 const handledRefreshStorageKeys = new Set<string>();
-
-const isBrowserRefresh =
-  (
-    performance.getEntriesByType(
-      "navigation"
-    )[0] as PerformanceNavigationTiming
-  )?.type === "reload";
 
 type TableColumnMeta = {
   cellClassName?: string;
@@ -156,9 +149,7 @@ export function Table<T extends { id: string }>({
   tableContainerClassName,
   storageKey,
 }: TableProps<T>) {
-  const storageKeyWithSuffix = storageKey
-    ? `${storageKey}${STORAGE_KEY_SUFFIX}`
-    : "";
+  const isBrowserRefresh = useIsBrowserRefresh();
 
   const shouldClearFiltersOnMount = React.useRef(
     !!storageKey &&
@@ -169,6 +160,10 @@ export function Table<T extends { id: string }>({
   if (shouldClearFiltersOnMount.current && storageKey) {
     handledRefreshStorageKeys.add(storageKey);
   }
+
+  const storageKeyWithSuffix = storageKey
+    ? `${storageKey}${STORAGE_KEY_SUFFIX}`
+    : "";
 
   const [storedState, setStoredState] =
     useSessionStorageJson<Partial<TableState>>(storageKeyWithSuffix);
