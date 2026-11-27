@@ -348,7 +348,7 @@ describe("Table Component Interactions", () => {
         <Table<TestTableType>
           columns={testColumns}
           data={testTableData}
-          storageKey="test"
+          name="test"
         />
       );
 
@@ -367,7 +367,7 @@ describe("Table Component Interactions", () => {
         <Table<TestTableType>
           columns={testColumns}
           data={testTableData}
-          storageKey="test"
+          name="test"
         />
       );
 
@@ -386,7 +386,7 @@ describe("Table Component Interactions", () => {
         <Table<TestTableType>
           columns={testColumns}
           data={testTableData}
-          storageKey="test"
+          name="test"
         />
       );
 
