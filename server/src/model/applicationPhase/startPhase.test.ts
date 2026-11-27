@@ -19,6 +19,7 @@ vi.mock("../applicationDate", () => ({
 describe("startPhaseByDocument", () => {
   const mockTransaction = "mockTransaction" as any;
   const testApplicationId = "app-123-456";
+  const testUserId = "user-123";
   const mockPhaseName: PhaseName = "Concept";
   const mockEasternNow: EasternNow = {
     "End of Day": {
@@ -52,12 +53,14 @@ describe("startPhaseByDocument", () => {
       mockTransaction,
       testApplicationId,
       mockPhaseName,
-      mockEasternNow
+      mockEasternNow,
+      testUserId
     );
 
     expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
       testApplicationId,
       "Concept",
+      testUserId,
       mockTransaction
     );
     expect(createPhaseStartDate).toHaveBeenCalledExactlyOnceWith("Concept", mockEasternNow);
@@ -71,12 +74,14 @@ describe("startPhaseByDocument", () => {
       mockTransaction,
       testApplicationId,
       mockPhaseName,
-      mockEasternNow
+      mockEasternNow,
+      testUserId
     );
 
     expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
       testApplicationId,
       "Concept",
+      testUserId,
       mockTransaction
     );
     expect(createPhaseStartDate).not.toHaveBeenCalled();
@@ -91,12 +96,14 @@ describe("startPhaseByDocument", () => {
       mockTransaction,
       testApplicationId,
       mockPhaseName,
-      mockEasternNow
+      mockEasternNow,
+      testUserId
     );
 
     expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
       testApplicationId,
       "Concept",
+      testUserId,
       mockTransaction
     );
     expect(createPhaseStartDate).toHaveBeenCalledExactlyOnceWith("Concept", mockEasternNow);

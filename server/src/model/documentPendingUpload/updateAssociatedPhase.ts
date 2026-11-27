@@ -9,10 +9,11 @@ import { __DEMOS_VERSION__ } from "../../flags";
 export const updateAssociatedPhase = async (
   tx: PrismaTransactionClient,
   applicationId: string,
-  phaseName: PhaseName
+  phaseName: PhaseName,
+  userId: string
 ) => {
   const easternNow = getEasternNow();
-  const phaseStartDate = await startPhase(tx, applicationId, phaseName, easternNow);
+  const phaseStartDate = await startPhase(tx, applicationId, phaseName, easternNow, userId);
 
   const datesToUpdate: ApplicationDateInput[] = [];
 

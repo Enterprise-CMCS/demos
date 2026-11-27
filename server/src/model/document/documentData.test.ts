@@ -8,6 +8,7 @@ import { PrismaTransactionClient } from "../../prismaClient";
 import { handleDeleteDocument } from "./handleDeleteDocument";
 import { validateDocumentCanBeDeleted } from "./validateDocumentCanBeDeleted";
 import { validateDocumentCanBeUpdated } from "./validateDocumentCanBeUpdated";
+import { insertApplicationAction } from "../applicationAction/queries";
 
 vi.mock("../../auth", () => ({
   buildAuthorizationFilter: vi.fn(),
@@ -35,6 +36,10 @@ vi.mock("./validateDocumentCanBeDeleted", () => ({
 
 vi.mock("./validateDocumentCanBeUpdated", () => ({
   validateDocumentCanBeUpdated: vi.fn(),
+}));
+
+vi.mock("../applicationAction/queries", () => ({
+  insertApplicationAction: vi.fn(),
 }));
 
 describe("documentData", () => {
@@ -322,6 +327,7 @@ describe("documentData", () => {
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(selectDocument).toHaveBeenCalledExactlyOnceWith(where, mockTransaction);
+      expect(insertApplicationAction).not.toHaveBeenCalled();
     });
 
     it("throws not found error when document is not found even if auth filter is applied", async () => {
@@ -342,6 +348,7 @@ describe("documentData", () => {
         mockTransaction
       );
       expect(selectDocument).toHaveBeenNthCalledWith(2, where, mockTransaction);
+      expect(insertApplicationAction).not.toHaveBeenCalled();
     });
 
     it("logs a warning and throws not found error when document is found but user does not have permission to delete it", async () => {
@@ -366,10 +373,15 @@ describe("documentData", () => {
       expect(log.warn).toHaveBeenCalledExactlyOnceWith(
         `User ${user.id} attempted to delete Document ${document.id} without sufficient permissions.`
       );
+      expect(insertApplicationAction).not.toHaveBeenCalled();
     });
 
     it("deletes and returns the document when found and user has permission to delete it", async () => {
-      const document = { id: "document-1" } as PrismaDocument;
+      const document = {
+        id: "document-1",
+        applicationId: "application-1",
+        documentTypeId: "State Application",
+      } as PrismaDocument;
       vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
       vi.mocked(selectDocument).mockResolvedValueOnce(document);
       vi.mocked(handleDeleteDocument).mockResolvedValueOnce(document);
@@ -382,6 +394,37 @@ describe("documentData", () => {
         document.id,
         mockTransaction
       );
+      expect(insertApplicationAction).toHaveBeenCalledExactlyOnceWith(
+        {
+          applicationId: document.applicationId,
+          actionType: "Deleted Application Document",
+          documentType: document.documentTypeId,
+          userId: user.id,
+        },
+        mockTransaction
+      );
+      expect(handleDeleteDocument).toHaveBeenCalledExactlyOnceWith(where, mockTransaction);
+      expect(result).toStrictEqual(document);
+    });
+
+    it("does not log an application action when deleting a deliverable document", async () => {
+      const document = {
+        id: "document-1",
+        applicationId: "application-1",
+        deliverableId: "deliverable-1",
+        documentTypeId: "State Application",
+      } as PrismaDocument;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+      vi.mocked(selectDocument).mockResolvedValueOnce(document);
+      vi.mocked(handleDeleteDocument).mockResolvedValueOnce(document);
+
+      const result = await removeDocument(where, user, mockTransaction);
+
+      expect(validateDocumentCanBeDeleted).toHaveBeenCalledExactlyOnceWith(
+        document.id,
+        mockTransaction
+      );
+      expect(insertApplicationAction).not.toHaveBeenCalled();
       expect(handleDeleteDocument).toHaveBeenCalledExactlyOnceWith(where, mockTransaction);
       expect(result).toStrictEqual(document);
     });

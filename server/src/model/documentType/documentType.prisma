@@ -5,6 +5,7 @@ model DocumentType {
   phaseDocumentTypes                        PhaseDocumentType[]
   deliverableTypeDocumentTypes              DeliverableTypeDocumentType[]
   budgetNeutralityWorkbookDocumentTypeLimit BudgetNeutralityWorkbookDocumentTypeLimit[]
+  applicationActions                        ApplicationAction[]
 
   @@id([id])
   @@map("document_type")
