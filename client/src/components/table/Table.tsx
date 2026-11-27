@@ -128,7 +128,7 @@ export interface TableProps<T> {
   descriptionText?: string;
   tableClassName?: string;
   tableContainerClassName?: string;
-  storageKey?: string;
+  name?: string;
 }
 
 export function Table<T extends { id: string }>({
@@ -147,22 +147,22 @@ export function Table<T extends { id: string }>({
   descriptionText,
   tableClassName,
   tableContainerClassName,
-  storageKey,
+  name,
 }: TableProps<T>) {
   const isBrowserRefresh = useIsBrowserRefresh();
 
   const shouldClearFiltersOnMount = React.useRef(
-    !!storageKey &&
+    !!name &&
       isBrowserRefresh &&
-      !handledRefreshStorageKeys.has(storageKey)
+      !handledRefreshStorageKeys.has(name)
   );
 
-  if (shouldClearFiltersOnMount.current && storageKey) {
-    handledRefreshStorageKeys.add(storageKey);
+  if (shouldClearFiltersOnMount.current && name) {
+    handledRefreshStorageKeys.add(name);
   }
 
-  const storageKeyWithSuffix = storageKey
-    ? `${storageKey}${STORAGE_KEY_SUFFIX}`
+  const storageKeyWithSuffix = name
+    ? `${name}${STORAGE_KEY_SUFFIX}`
     : "";
 
   const [storedState, setStoredState] =
@@ -245,10 +245,10 @@ export function Table<T extends { id: string }>({
   }, [data]);
 
   React.useEffect(() => {
-    if (storageKey) {
+    if (name) {
       setStoredState(table.getState());
     }
-  }, [table.getState(), storageKey, setStoredState]);
+  }, [table.getState(), name, setStoredState]);
 
   return (
     <>

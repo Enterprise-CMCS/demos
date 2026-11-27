@@ -101,14 +101,14 @@ export const DemonstrationsPage: React.FC = () => {
               demonstrations={myDemonstrations}
               projectOfficerOptions={data.people}
               emptyRowsMessage="You have no assigned demonstrations at this time."
-              storageKey="my_demonstrations"
+              name="my_demonstrations"
             />
           </Tab>
           <Tab label={`All Demonstrations (${demonstrations.length})`} value="demonstrations">
             <DemonstrationTable
               demonstrations={demonstrations}
               projectOfficerOptions={data.people}
-              storageKey="all_demonstrations"
+              name="all_demonstrations"
             />
           </Tab>
         </HorizontalSectionTabs>
