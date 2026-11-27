@@ -27,19 +27,19 @@
   },
   "devDependencies": {
     "@aws-sdk/client-secrets-manager": "^3.1164.0",
-    "@eslint/js": "^9.39.5",
+    "@eslint/js": "^10.0.1",
     "@pgsql/types": "^18.0.0",
     "@types/aws-lambda": "^8.10.164",
     "@types/node": "^24.19.2",
     "@types/pg": "^8.23.1",
-    "@vitest/coverage-v8": "^4.1.12",
+    "@vitest/coverage-v8": "^5.1.0",
     "aws-cdk-local": "^3.1.0",
     "eslint": "^10.14.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.23.15",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.72.1",
-    "vitest": "^4.1.12",
+    "vitest": "^5.1.0",
     "vitest-sonar-reporter": "^3.0.0"
   },
   "dependencies": {

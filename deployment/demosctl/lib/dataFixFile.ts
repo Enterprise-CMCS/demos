@@ -89,7 +89,11 @@ export function parseHeader(sql: string): DataFixHeader {
   const expectedRowsRaw = values.get("expected_rows")!;
   ensure(/^\d+$/.test(expectedRowsRaw), "expected_rows must be a non-negative integer");
 
-  const environments = values.get("environments")!.split(",").map((env) => env.trim()).filter((env) => env !== "");
+  const environments = values
+    .get("environments")!
+    .split(",")
+    .map((env) => env.trim())
+    .filter((env) => env !== "");
   ensure(environments.length > 0, "environments must list at least one environment");
 
   const reverseRaw = values.get("reverse")!;
@@ -186,6 +190,7 @@ function rejectedStatement(statement: Node, allowed: Record<string, string>): st
         createsTable = true;
       }
     });
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (createsTable) {
       return "SELECT INTO";
     }
@@ -300,7 +305,10 @@ export async function lintFile(fileName: string, sql: string, dir: string[], mig
   }
 
   const problems: string[] = [];
-  for (const [key, target] of [["reverse", header.reverse], ["reverses", header.reverses]]) {
+  for (const [key, target] of [
+    ["reverse", header.reverse],
+    ["reverses", header.reverses],
+  ]) {
     if (target === undefined) {
       continue;
     }
