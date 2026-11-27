@@ -71,7 +71,7 @@ spec:
           drop: 
           - ALL
     - name: aws-cli
-      image: amazon/aws-cli:2.40.3
+      image: amazon/aws-cli:2.42.1
       command:
         - sleep
         - '99999'
@@ -154,7 +154,7 @@ spec:
           drop: 
           - ALL
     - name: checkov
-      image: bridgecrew/checkov:3.4.5
+      image: bridgecrew/checkov:3.4.6
       command:
       - cat
       tty: true
