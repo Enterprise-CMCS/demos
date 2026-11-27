@@ -11,12 +11,14 @@ import {
   getSortedRowModel,
   InitialTableState,
   RowSelectionState,
+  TableState,
   Table as TanstackTable,
   useReactTable,
 } from "@tanstack/react-table";
 
 import { arrIncludesAllInsensitive } from "components/table/search";
 import { TableHead } from "./TableHead";
+import { useSessionStorageJson, useIsBrowserRefresh } from "hooks";
 
 const STYLES = {
   table: "w-full table-auto",
@@ -25,6 +27,10 @@ const STYLES = {
   td: "p-1 text-[14px] break-words overflow-wrap",
   subrow: "h-[56px] px-4 py-2 bg-gray-lighter border-b",
 };
+
+const STORAGE_KEY_SUFFIX = "_table_state";
+
+const handledRefreshStorageKeys = new Set<string>();
 
 type TableColumnMeta = {
   cellClassName?: string;
@@ -122,6 +128,7 @@ export interface TableProps<T> {
   descriptionText?: string;
   tableClassName?: string;
   tableContainerClassName?: string;
+  name?: string;
 }
 
 export function Table<T extends { id: string }>({
@@ -140,9 +147,46 @@ export function Table<T extends { id: string }>({
   descriptionText,
   tableClassName,
   tableContainerClassName,
+  name,
 }: TableProps<T>) {
-  const [expanded, setExpanded] = React.useState<ExpandedState>({});
-  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
+  const isBrowserRefresh = useIsBrowserRefresh();
+
+  const shouldClearFiltersOnMount = React.useRef(
+    !!name &&
+      isBrowserRefresh &&
+      !handledRefreshStorageKeys.has(name)
+  );
+
+  if (shouldClearFiltersOnMount.current && name) {
+    handledRefreshStorageKeys.add(name);
+  }
+
+  const storageKeyWithSuffix = name
+    ? `${name}${STORAGE_KEY_SUFFIX}`
+    : "";
+
+  const [storedState, setStoredState] =
+    useSessionStorageJson<Partial<TableState>>(storageKeyWithSuffix);
+
+  const restoredState = React.useMemo(() => {
+    if (!storedState || !shouldClearFiltersOnMount.current) {
+      return storedState;
+    }
+
+    return {
+      ...storedState,
+      columnFilters: [],
+      globalFilter: "",
+    };
+  }, [storedState]);
+
+  const [expanded, setExpanded] = React.useState<ExpandedState>(
+    () => restoredState?.expanded ?? {}
+  );
+
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>(
+    () => restoredState?.rowSelection ?? {}
+  );
 
   const table = useReactTable<T>({
     data,
@@ -154,12 +198,18 @@ export function Table<T extends { id: string }>({
     getPaginationRowModel: getPaginationRowModel(),
     globalFilterFn: arrIncludesAllInsensitive,
     getExpandedRowModel: getExpandedRowModel(),
-    getSubRows: getSubRows,
+    getSubRows,
     filterFromLeafRows: true,
-    state: { expanded, rowSelection },
+    state: {
+      expanded,
+      rowSelection,
+    },
     onExpandedChange: setExpanded,
-    initialState,
     onRowSelectionChange: setRowSelection,
+    initialState: {
+      ...initialState,
+      ...restoredState,
+    },
     paginateExpandedRows: false,
     autoResetPageIndex: false,
   });
@@ -193,6 +243,12 @@ export function Table<T extends { id: string }>({
   React.useEffect(() => {
     setRowSelection({});
   }, [data]);
+
+  React.useEffect(() => {
+    if (name) {
+      setStoredState(table.getState());
+    }
+  }, [table.getState(), name, setStoredState]);
 
   return (
     <>

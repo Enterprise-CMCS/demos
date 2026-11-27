@@ -23,13 +23,22 @@ export interface ColumnMetaFilterConfig {
 }
 
 export function ColumnFilter<T>({ table }: { table: Table<T> }) {
-  const [selectedColumn, setSelectedColumn] = React.useState<string>("");
-  const [filterValue, setFilterValue] = React.useState<string | string[] | null>("");
+  const savedColumnFilter = table.getState().columnFilters?.[0];
 
+  const [selectedColumn, setSelectedColumn] = React.useState(savedColumnFilter?.id ?? "");
+  const [filterValue, setFilterValue] = React.useState<string | string[] | null>(
+    (savedColumnFilter?.value as string | string[] | null) ?? ""
+  );
   const [filterRangeValue, setFilterRangeValue] = React.useState<{
     start: Date | null;
     end: Date | null;
-  }>({ start: null, end: null });
+  }>(() => {
+    const value = savedColumnFilter?.value as { start?: string; end?: string } | undefined;
+    return {
+      start: value?.start ? new Date(value.start) : null,
+      end: value?.end ? new Date(value.end) : null,
+    };
+  });
 
   const availableColumns = table.getAllColumns().filter((column) => column.getCanFilter());
 
@@ -44,7 +53,15 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
   });
 
   // Whenever the selected column changes, reset the filterValue and clear filters
+  const previousSelectedColumn = React.useRef(selectedColumn);
+
   React.useEffect(() => {
+    if (previousSelectedColumn.current === selectedColumn) {
+      return;
+    }
+
+    previousSelectedColumn.current = selectedColumn;
+
     setFilterValue("");
     setFilterRangeValue({ start: null, end: null });
     table.setColumnFilters([]);
@@ -92,7 +109,8 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
             label={`${columnDisplayName}`}
             options={filterConfig?.options || []}
             placeholder={`Select ${columnDisplayName}`}
-            onSelect={(val) => onValueChange(val)}
+            values={Array.isArray(filterValue) ? filterValue : []}
+            onSelect={onValueChange}
             id={`filter-${selectedColumn}`}
           />
         );
