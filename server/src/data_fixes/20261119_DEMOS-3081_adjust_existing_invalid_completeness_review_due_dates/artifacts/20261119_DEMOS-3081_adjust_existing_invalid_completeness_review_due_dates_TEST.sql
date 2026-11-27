@@ -1,0 +1,1539 @@
+-- ticket:             DEMOS-3081
+-- author:             Connor J. Parke
+-- data_owner:         n/a
+-- environments:       test
+-- expected_rows:      137
+-- source:             Changes in validation rules for completeness review due dates requires updating existing values
+-- runner:             demosctl
+-- requires_migration: 20260312131729_prisma_init_baseline
+-- reverse:            20261119_DEMOS-3081_revert_adjust_existing_invalid_completeness_review_due_dates_TEST.sql
+--
+-- TEST ENVIRONMENT ONLY 
+-- Adjusts existing invalid completeness review due dates to comply with updated validation rules
+
+CREATE TEMPORARY TABLE data_fix_result (rows_affected INT) ON COMMIT DROP;
+
+DO $$
+DECLARE
+    v_rows_affected int;
+    v_total_rows int := 0;
+BEGIN
+UPDATE demos_app.application_date SET date_value = '2026-08-28 23:59:59.999-04' WHERE application_id = '158e232e-94ed-46e0-bb32-3ab6fd7d7bfe' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-29 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=158e232e-94ed-46e0-bb32-3ab6fd7d7bfe, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-14 23:59:59.999-04' WHERE application_id = '7520c247-be99-42ab-ab83-b75b91ba088f' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-15 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=7520c247-be99-42ab-ab83-b75b91ba088f, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-14 23:59:59.999-04' WHERE application_id = '47ebee63-b39a-4e84-bb52-50bd8b1699d2' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-15 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=47ebee63-b39a-4e84-bb52-50bd8b1699d2, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-28 23:59:59.999-04' WHERE application_id = '84f6c0df-1558-4763-b4ee-a34003e83c7b' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-30 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=84f6c0df-1558-4763-b4ee-a34003e83c7b, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-14 23:59:59.999-04' WHERE application_id = 'dcc9c173-adc5-44bc-a7d9-abcf76d4b244' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-16 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=dcc9c173-adc5-44bc-a7d9-abcf76d4b244, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-14 23:59:59.999-04' WHERE application_id = '801c5015-24df-4330-93a2-684a7d1ca6b1' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-16 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=801c5015-24df-4330-93a2-684a7d1ca6b1, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-02 23:59:59.999-04' WHERE application_id = 'cb33a46d-34df-4e16-a3c7-58f0f4768ad5' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-03 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=cb33a46d-34df-4e16-a3c7-58f0f4768ad5, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-02 23:59:59.999-04' WHERE application_id = '40fcaa38-623b-4304-81e7-ac29190a0d61' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-03 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=40fcaa38-623b-4304-81e7-ac29190a0d61, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-31 23:59:59.999-04' WHERE application_id = '2c4b8397-cc31-420a-86eb-e9cad5cc73b2' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-01 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=2c4b8397-cc31-420a-86eb-e9cad5cc73b2, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-31 23:59:59.999-04' WHERE application_id = '33c3f63a-fb0f-407a-bdd9-18c827b94269' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-01 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=33c3f63a-fb0f-407a-bdd9-18c827b94269, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-02 23:59:59.999-04' WHERE application_id = '88d5a856-3a3c-4ea9-8d98-f4f9e78c3bb2' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-03 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=88d5a856-3a3c-4ea9-8d98-f4f9e78c3bb2, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-02 23:59:59.999-04' WHERE application_id = 'f50e13ae-0f6d-4720-b55a-bc0f1ab49d94' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-03 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=f50e13ae-0f6d-4720-b55a-bc0f1ab49d94, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-02 23:59:59.999-04' WHERE application_id = '8c04495f-d642-4c1a-855f-626cf2da2766' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-04 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=8c04495f-d642-4c1a-855f-626cf2da2766, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-02 23:59:59.999-04' WHERE application_id = 'b15f2a8e-794a-40a1-a545-6a2179b8be91' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-04 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=b15f2a8e-794a-40a1-a545-6a2179b8be91, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-02 23:59:59.999-04' WHERE application_id = 'd92f0475-e116-477e-8961-e271105d5d00' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-05 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=d92f0475-e116-477e-8961-e271105d5d00, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-02 23:59:59.999-04' WHERE application_id = '109e0fb7-442c-407f-87c7-285d37549d7e' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-05 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=109e0fb7-442c-407f-87c7-285d37549d7e, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-02 23:59:59.999-04' WHERE application_id = 'f2a8cf2b-8bbd-49d4-8311-aaaebb8630dd' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-05 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=f2a8cf2b-8bbd-49d4-8311-aaaebb8630dd, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-07 23:59:59.999-04' WHERE application_id = '354f7bbf-259a-4593-b794-a2203a3abd42' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-08 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=354f7bbf-259a-4593-b794-a2203a3abd42, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-07 23:59:59.999-04' WHERE application_id = '78733668-748b-4c30-823e-06d341e9f8b9' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-08 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=78733668-748b-4c30-823e-06d341e9f8b9, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-04 23:59:59.999-04' WHERE application_id = '3da0375f-69ac-4cc3-a9cd-0ae7d5b6e992' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-05 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=3da0375f-69ac-4cc3-a9cd-0ae7d5b6e992, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-21 23:59:59.999-04' WHERE application_id = '6b24d40c-8869-4b95-bf57-f9e15941ad15' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-22 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=6b24d40c-8869-4b95-bf57-f9e15941ad15, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-21 23:59:59.999-04' WHERE application_id = '981cc2a9-7c15-40de-9d3d-de3ca72be6b3' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-22 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=981cc2a9-7c15-40de-9d3d-de3ca72be6b3, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-06-18 23:59:59.999-04' WHERE application_id = '436c1cf8-6b51-4c49-9a7c-6139ec8645de' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-06-19 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=436c1cf8-6b51-4c49-9a7c-6139ec8645de, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-04 23:59:59.999-04' WHERE application_id = '0f219648-f3d9-4b9a-bae3-cc6661d48085' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-06 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=0f219648-f3d9-4b9a-bae3-cc6661d48085, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-21 23:59:59.999-04' WHERE application_id = '99876f87-28cd-4473-8e4a-8c5a917a3fd9' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-23 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=99876f87-28cd-4473-8e4a-8c5a917a3fd9, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-21 23:59:59.999-04' WHERE application_id = 'b17194c2-86d6-45fd-a5da-d226cbb24328' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-23 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=b17194c2-86d6-45fd-a5da-d226cbb24328, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-04 23:59:59.999-04' WHERE application_id = '8d89f122-e40d-4ae6-85b2-0807722f9381' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-07 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=8d89f122-e40d-4ae6-85b2-0807722f9381, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2016-12-30 23:59:59.999-05' WHERE application_id = 'cee499ff-7e79-4407-925b-adfa09c36ad6' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2017-01-02 23:59:59.999-05';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=cee499ff-7e79-4407-925b-adfa09c36ad6, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2017-07-03 23:59:59.999-04' WHERE application_id = '5793b4b8-d919-4729-8b78-7c9d93d9ee29' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2017-07-04 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=5793b4b8-d919-4729-8b78-7c9d93d9ee29, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2025-09-05 23:59:59.999-04' WHERE application_id = '72e6fc34-f38e-4b4d-92b3-d740bb5bbe9a' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2025-09-07 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=72e6fc34-f38e-4b4d-92b3-d740bb5bbe9a, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-07 23:59:59.999-04' WHERE application_id = 'c38675e8-7cb2-443a-a627-1338c24a2f73' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-08 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=c38675e8-7cb2-443a-a627-1338c24a2f73, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-14 23:59:59.999-04' WHERE application_id = '2bf0029c-48d0-4dda-b135-363fb9ee3c32' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-15 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=2bf0029c-48d0-4dda-b135-363fb9ee3c32, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2017-11-22 23:59:59.999-05' WHERE application_id = 'ea81731c-3099-4abc-a723-b61f24ccdd81' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2017-11-23 23:59:59.999-05';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=ea81731c-3099-4abc-a723-b61f24ccdd81, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-07 23:59:59.999-04' WHERE application_id = '25187cc1-63c4-4a23-907f-72b5cfd85290' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-08 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=25187cc1-63c4-4a23-907f-72b5cfd85290, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-07 23:59:59.999-04' WHERE application_id = 'a1e3ad4a-18ef-4c65-90c7-9c215005d0d6' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-08 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=a1e3ad4a-18ef-4c65-90c7-9c215005d0d6, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-05-01 23:59:59.999-04' WHERE application_id = '1700e9ec-af9a-42dc-a097-0e55cd11141f' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-05-02 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=1700e9ec-af9a-42dc-a097-0e55cd11141f, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-10 23:59:59.999-04' WHERE application_id = '4b0491b2-5212-4681-9754-40b7f4cc1480' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-11 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=4b0491b2-5212-4681-9754-40b7f4cc1480, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-10 23:59:59.999-04' WHERE application_id = 'e8dc05f1-e9dd-4475-9ef3-269ebb955b52' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-11 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=e8dc05f1-e9dd-4475-9ef3-269ebb955b52, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-07 23:59:59.999-04' WHERE application_id = '8f31746f-579d-44b2-9a3b-050d768e95a0' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-09 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=8f31746f-579d-44b2-9a3b-050d768e95a0, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-07 23:59:59.999-04' WHERE application_id = '5d5e1ae0-56a8-4a53-80ec-c18611bcbe4e' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-09 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=5d5e1ae0-56a8-4a53-80ec-c18611bcbe4e, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-10 23:59:59.999-04' WHERE application_id = 'e0aba803-83a4-4344-aa1b-1083b63573ae' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-11 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=e0aba803-83a4-4344-aa1b-1083b63573ae, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-10 23:59:59.999-04' WHERE application_id = '7459a708-7952-4c7c-9ca3-6b3e426c8920' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-12 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=7459a708-7952-4c7c-9ca3-6b3e426c8920, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-10 23:59:59.999-04' WHERE application_id = 'c70c8d07-c8b6-4737-a6b0-05cc3ef27d9c' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-12 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=c70c8d07-c8b6-4737-a6b0-05cc3ef27d9c, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-11 23:59:59.999-04' WHERE application_id = '4a107e26-457d-474e-92f6-6ea8615c3c26' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-12 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=4a107e26-457d-474e-92f6-6ea8615c3c26, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-28 23:59:59.999-04' WHERE application_id = '561961d1-7623-4fa6-a098-2361e57cf590' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-29 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=561961d1-7623-4fa6-a098-2361e57cf590, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-28 23:59:59.999-04' WHERE application_id = '148306ed-b0b5-4159-95f5-ae5e2ba2ee8c' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-29 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=148306ed-b0b5-4159-95f5-ae5e2ba2ee8c, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-11 23:59:59.999-04' WHERE application_id = '9f059740-a142-4b8b-8160-6254484801a4' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-13 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=9f059740-a142-4b8b-8160-6254484801a4, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-28 23:59:59.999-04' WHERE application_id = '8921521a-e07a-41d1-bfd5-a1e83e6849cf' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-30 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=8921521a-e07a-41d1-bfd5-a1e83e6849cf, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-28 23:59:59.999-04' WHERE application_id = '9149e7fe-c3e5-4978-a9f2-e20bcb712232' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-30 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=9149e7fe-c3e5-4978-a9f2-e20bcb712232, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-14 23:59:59.999-04' WHERE application_id = '439e467e-022c-47e1-a18b-dd0222931e47' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-15 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=439e467e-022c-47e1-a18b-dd0222931e47, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-14 23:59:59.999-04' WHERE application_id = 'b45cb524-aa41-43a0-aa6f-3e46881a9491' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-15 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=b45cb524-aa41-43a0-aa6f-3e46881a9491, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-17 23:59:59.999-04' WHERE application_id = 'b4b33d5a-086b-4945-b014-46cfa2234f6b' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-18 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=b4b33d5a-086b-4945-b014-46cfa2234f6b, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-17 23:59:59.999-04' WHERE application_id = 'c5aecceb-0210-4231-aa71-a7195d94f165' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-18 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=c5aecceb-0210-4231-aa71-a7195d94f165, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-17 23:59:59.999-04' WHERE application_id = '62649c02-65bf-494e-9bfb-73cfaa89f9f8' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-18 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=62649c02-65bf-494e-9bfb-73cfaa89f9f8, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-17 23:59:59.999-04' WHERE application_id = '2f2fdb71-c929-45fa-944d-cb6dfe324737' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-18 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=2f2fdb71-c929-45fa-944d-cb6dfe324737, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-17 23:59:59.999-04' WHERE application_id = '74397699-53d7-4f39-aa69-c28d6fbd2c0e' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-18 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=74397699-53d7-4f39-aa69-c28d6fbd2c0e, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-17 23:59:59.999-04' WHERE application_id = '171510dd-62f5-43ec-ab20-43861b85b1c3' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-19 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=171510dd-62f5-43ec-ab20-43861b85b1c3, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-17 23:59:59.999-04' WHERE application_id = '87dd1ee8-e276-4137-89c6-6e57f836b14f' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-19 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=87dd1ee8-e276-4137-89c6-6e57f836b14f, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-24 23:59:59.999-04' WHERE application_id = 'c8cfb08b-c224-4c77-8761-a429cb924eb3' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-26 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=c8cfb08b-c224-4c77-8761-a429cb924eb3, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-18 23:59:59.999-04' WHERE application_id = 'bb4983f5-7f2e-4ec5-89a0-4925e507520c' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-19 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=bb4983f5-7f2e-4ec5-89a0-4925e507520c, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-04 23:59:59.999-04' WHERE application_id = 'b1796418-a02f-4172-87b9-4e73ecf41aae' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-05 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=b1796418-a02f-4172-87b9-4e73ecf41aae, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-04 23:59:59.999-04' WHERE application_id = 'fa6b2c93-d7b3-4e45-a352-becb8f32a63e' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-05 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=fa6b2c93-d7b3-4e45-a352-becb8f32a63e, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-18 23:59:59.999-04' WHERE application_id = 'fcf3b4eb-aa51-4d7c-97f1-6f88b0df25a3' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-19 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=fcf3b4eb-aa51-4d7c-97f1-6f88b0df25a3, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-04 23:59:59.999-04' WHERE application_id = 'e36c75f2-576d-4d69-a0cf-006af06491b6' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-05 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=e36c75f2-576d-4d69-a0cf-006af06491b6, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-18 23:59:59.999-04' WHERE application_id = 'b8564431-5f2c-4673-9ebc-48b927becdd7' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-19 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=b8564431-5f2c-4673-9ebc-48b927becdd7, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-18 23:59:59.999-04' WHERE application_id = '620b3e3f-169a-4330-828d-1300683cb303' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-19 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=620b3e3f-169a-4330-828d-1300683cb303, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-04 23:59:59.999-04' WHERE application_id = 'a5db4c00-b154-4ef8-a653-3c57f66495ab' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-05 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=a5db4c00-b154-4ef8-a653-3c57f66495ab, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-18 23:59:59.999-04' WHERE application_id = '3fa341d5-d4d0-4820-9819-8988b1e49905' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-20 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=3fa341d5-d4d0-4820-9819-8988b1e49905, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-04 23:59:59.999-04' WHERE application_id = '1f51a18c-8621-4c89-b32c-a96ee9710f7c' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-06 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=1f51a18c-8621-4c89-b32c-a96ee9710f7c, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-04 23:59:59.999-04' WHERE application_id = 'de6331d9-1247-49e8-8169-5026fde9f2e9' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-06 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=de6331d9-1247-49e8-8169-5026fde9f2e9, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-04 23:59:59.999-04' WHERE application_id = '8ee1baf2-943b-48f2-b81f-129f4378d74f' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-07 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=8ee1baf2-943b-48f2-b81f-129f4378d74f, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-04 23:59:59.999-04' WHERE application_id = 'b3538dd0-7beb-44f4-9496-03f25c76a7ba' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-07 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=b3538dd0-7beb-44f4-9496-03f25c76a7ba, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-21 23:59:59.999-04' WHERE application_id = 'cf161a99-cc29-4705-8856-54e5de950f0b' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-22 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=cf161a99-cc29-4705-8856-54e5de950f0b, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-24 23:59:59.999-04' WHERE application_id = 'b0a8235f-7563-43d8-b3e6-098d85e8342b' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-25 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=b0a8235f-7563-43d8-b3e6-098d85e8342b, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-24 23:59:59.999-04' WHERE application_id = '8466ff68-7d2f-474f-abc5-c9f44f6673d4' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-25 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=8466ff68-7d2f-474f-abc5-c9f44f6673d4, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-21 23:59:59.999-04' WHERE application_id = 'eef9a844-0d09-4454-8ca2-2898b742fd53' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-23 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=eef9a844-0d09-4454-8ca2-2898b742fd53, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-24 23:59:59.999-04' WHERE application_id = '23fc2c92-db23-4736-b946-90e43c85a853' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-25 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=23fc2c92-db23-4736-b946-90e43c85a853, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-21 23:59:59.999-04' WHERE application_id = '8cb6e0a7-bb3b-4334-9fc1-374effd26280' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-23 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=8cb6e0a7-bb3b-4334-9fc1-374effd26280, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-24 23:59:59.999-04' WHERE application_id = 'ec3bf302-893d-4b87-8f22-113ed9f933d7' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-25 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=ec3bf302-893d-4b87-8f22-113ed9f933d7, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-24 23:59:59.999-04' WHERE application_id = 'fb72f1dc-81bb-43e0-9e71-804737d2784a' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-26 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=fb72f1dc-81bb-43e0-9e71-804737d2784a, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-24 23:59:59.999-04' WHERE application_id = '0795fc51-d142-4bf3-a455-9e40473dd05d' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-26 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=0795fc51-d142-4bf3-a455-9e40473dd05d, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-24 23:59:59.999-04' WHERE application_id = 'd1bca858-c304-4a7e-a8f0-56879f91a49d' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-26 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=d1bca858-c304-4a7e-a8f0-56879f91a49d, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-24 23:59:59.999-04' WHERE application_id = '2d7c63c6-82c6-4779-9eb5-4cac22fc1b36' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-26 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=2d7c63c6-82c6-4779-9eb5-4cac22fc1b36, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-25 23:59:59.999-04' WHERE application_id = 'f863e3c9-8f7a-4dd4-b81c-37fdccb50ed9' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-26 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=f863e3c9-8f7a-4dd4-b81c-37fdccb50ed9, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-25 23:59:59.999-04' WHERE application_id = '196e3a84-c307-4fd8-9849-6452cc8889fe' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-26 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=196e3a84-c307-4fd8-9849-6452cc8889fe, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-11 23:59:59.999-04' WHERE application_id = '533c32fc-83ce-43f6-a72c-0bdd2aa49ae3' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-12 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=533c32fc-83ce-43f6-a72c-0bdd2aa49ae3, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-11 23:59:59.999-04' WHERE application_id = '78d2db07-dbb1-46c3-b48c-7a6aebf9c175' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-12 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=78d2db07-dbb1-46c3-b48c-7a6aebf9c175, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-25 23:59:59.999-04' WHERE application_id = 'c38cd811-3393-4a45-aa0a-f961bc167160' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-27 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=c38cd811-3393-4a45-aa0a-f961bc167160, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-11 23:59:59.999-04' WHERE application_id = 'e0885bd7-ed13-4622-aa99-864ad8ebd7e2' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-13 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=e0885bd7-ed13-4622-aa99-864ad8ebd7e2, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-11 23:59:59.999-04' WHERE application_id = 'ce00c1f2-2b2a-40f8-9f62-a8dba8318312' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-13 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=ce00c1f2-2b2a-40f8-9f62-a8dba8318312, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-08-28 23:59:59.999-04' WHERE application_id = '8498073c-d243-4102-bdb1-664b3d90c773' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-29 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=8498073c-d243-4102-bdb1-664b3d90c773, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-02 23:59:59.999-04' WHERE application_id = 'b42474bd-3b87-4fea-abb2-52617a6c2b42' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-04 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=b42474bd-3b87-4fea-abb2-52617a6c2b42, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-31 23:59:59.999-04' WHERE application_id = '0e4cad82-5294-4b0f-914c-55578b3967e4' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-01 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=0e4cad82-5294-4b0f-914c-55578b3967e4, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-31 23:59:59.999-04' WHERE application_id = 'ae66313c-bd4e-4a1e-8a53-594f166f541e' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-01 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=ae66313c-bd4e-4a1e-8a53-594f166f541e, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-31 23:59:59.999-04' WHERE application_id = 'ccd42969-6b38-4605-85fd-78cb80fbccce' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-01 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=ccd42969-6b38-4605-85fd-78cb80fbccce, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-31 23:59:59.999-04' WHERE application_id = '08a03a3d-37b8-4730-a147-a2f63aed2a3f' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-01 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=08a03a3d-37b8-4730-a147-a2f63aed2a3f, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-31 23:59:59.999-04' WHERE application_id = '428b5c68-c4ac-41be-86f6-79fccd41a8d1' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-01 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=428b5c68-c4ac-41be-86f6-79fccd41a8d1, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-31 23:59:59.999-04' WHERE application_id = 'a8f8315a-4c5b-4217-b954-fce0d8c56cb1' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-01 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=a8f8315a-4c5b-4217-b954-fce0d8c56cb1, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-31 23:59:59.999-04' WHERE application_id = 'aa0a7ba7-8da6-446b-a5b2-cb991d9b0108' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-01 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=aa0a7ba7-8da6-446b-a5b2-cb991d9b0108, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-31 23:59:59.999-04' WHERE application_id = '8f80f359-5c7d-473c-b609-61fd4a3b8e99' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-01 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=8f80f359-5c7d-473c-b609-61fd4a3b8e99, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-31 23:59:59.999-04' WHERE application_id = 'b5a99d61-ec31-438a-b5ee-d6bd98076541' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-02 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=b5a99d61-ec31-438a-b5ee-d6bd98076541, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-31 23:59:59.999-04' WHERE application_id = '39847f43-20c9-42f9-8846-8f80342cd49f' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-08-02 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=39847f43-20c9-42f9-8846-8f80342cd49f, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-02 23:59:59.999-04' WHERE application_id = '845e8b23-ac37-4c7f-ba87-135fbc51083b' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-03 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=845e8b23-ac37-4c7f-ba87-135fbc51083b, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-11 23:59:59.999-04' WHERE application_id = '77b88b8a-a20d-4842-9e37-aca9051e0867' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-12 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=77b88b8a-a20d-4842-9e37-aca9051e0867, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-02 23:59:59.999-04' WHERE application_id = '00b5086f-58fd-4288-8b9d-9bb3bbdef478' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-03 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=00b5086f-58fd-4288-8b9d-9bb3bbdef478, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-18 23:59:59.999-04' WHERE application_id = 'a40ab9c3-4747-41c8-9fa5-4fdde89a3037' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-19 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=a40ab9c3-4747-41c8-9fa5-4fdde89a3037, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-18 23:59:59.999-04' WHERE application_id = '327ccc1f-c9f1-44eb-860b-522f59540a90' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-19 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=327ccc1f-c9f1-44eb-860b-522f59540a90, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-09 23:59:59.999-04' WHERE application_id = 'cca13b60-b45b-4ce6-935f-ab3a7b602336' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-10 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=cca13b60-b45b-4ce6-935f-ab3a7b602336, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-09 23:59:59.999-04' WHERE application_id = 'd79bfccf-16d6-4a25-9151-578d7728fb6b' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-10 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=d79bfccf-16d6-4a25-9151-578d7728fb6b, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-09 23:59:59.999-04' WHERE application_id = '609c7bb7-979e-4571-9513-562eff5fadc8' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-11 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=609c7bb7-979e-4571-9513-562eff5fadc8, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-09 23:59:59.999-04' WHERE application_id = '1d8cb5f6-b662-41ce-84fe-cd32ea01c70e' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-11 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=1d8cb5f6-b662-41ce-84fe-cd32ea01c70e, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-09 23:59:59.999-04' WHERE application_id = '53b245c1-b8f1-481f-8a5e-637561a794b6' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-12 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=53b245c1-b8f1-481f-8a5e-637561a794b6, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-09 23:59:59.999-04' WHERE application_id = '0371e5a1-d4f0-4a54-ba92-93887cd737c8' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-12 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=0371e5a1-d4f0-4a54-ba92-93887cd737c8, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-09-25 23:59:59.999-04' WHERE application_id = 'a4fccf78-69c2-4707-a7de-b1869809a552' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-09-26 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=a4fccf78-69c2-4707-a7de-b1869809a552, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-16 23:59:59.999-04' WHERE application_id = '6aa0d6f6-60d5-494d-9318-9f5691745d86' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-17 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=6aa0d6f6-60d5-494d-9318-9f5691745d86, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-16 23:59:59.999-04' WHERE application_id = '6728e68c-9252-48cb-ab12-cf9dd1a9464d' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-17 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=6728e68c-9252-48cb-ab12-cf9dd1a9464d, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-16 23:59:59.999-04' WHERE application_id = 'b9b7fd4f-56bb-43eb-9920-d897d5cbccb4' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-18 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=b9b7fd4f-56bb-43eb-9920-d897d5cbccb4, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-16 23:59:59.999-04' WHERE application_id = 'c7a0a02a-306f-450d-b95c-30fc0e31eab6' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-18 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=c7a0a02a-306f-450d-b95c-30fc0e31eab6, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-02 23:59:59.999-04' WHERE application_id = '50b9e804-68d2-4878-8d1b-3ff8677c8a37' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-03 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=50b9e804-68d2-4878-8d1b-3ff8677c8a37, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-23 23:59:59.999-04' WHERE application_id = 'f90532eb-3343-4864-84fc-de8f16282095' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-24 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=f90532eb-3343-4864-84fc-de8f16282095, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-23 23:59:59.999-04' WHERE application_id = '5d859973-46f5-4aab-8459-0ec9e8935f45' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-24 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=5d859973-46f5-4aab-8459-0ec9e8935f45, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-23 23:59:59.999-04' WHERE application_id = 'ddf425b2-342d-463e-992d-4ea4146cf642' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-25 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=ddf425b2-342d-463e-992d-4ea4146cf642, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-09 23:59:59.999-04' WHERE application_id = '2aba561e-0acb-4628-b754-6d707c12a1ab' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-10 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=2aba561e-0acb-4628-b754-6d707c12a1ab, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-07-02 23:59:59.999-04' WHERE application_id = '3c20790f-411d-4220-a577-0f21b912f5c2' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-07-04 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=3c20790f-411d-4220-a577-0f21b912f5c2, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2025-12-31 23:59:59.999-05' WHERE application_id = '1df6fd13-713c-460e-9f7c-a9831c16eb8c' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-01-01 23:59:59.999-05';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=1df6fd13-713c-460e-9f7c-a9831c16eb8c, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-30 23:59:59.999-04' WHERE application_id = '3ed667eb-56ae-467e-9a0e-36dfce3a5291' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-31 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=3ed667eb-56ae-467e-9a0e-36dfce3a5291, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-30 23:59:59.999-04' WHERE application_id = 'e22f34eb-7126-4490-ab43-6a6f03ec0380' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-31 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=e22f34eb-7126-4490-ab43-6a6f03ec0380, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-11-13 23:59:59.999-05' WHERE application_id = '38d4b6d8-f4a3-466a-a22d-c93ae0b17a9c' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-11-14 23:59:59.999-05';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=38d4b6d8-f4a3-466a-a22d-c93ae0b17a9c, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-30 23:59:59.999-04' WHERE application_id = '8ec23474-d505-4779-87b3-78cbe1951c77' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-31 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=8ec23474-d505-4779-87b3-78cbe1951c77, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-11-13 23:59:59.999-05' WHERE application_id = 'e112491f-83fc-4d9c-afef-c2148250f32f' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-11-14 23:59:59.999-05';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=e112491f-83fc-4d9c-afef-c2148250f32f, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-30 23:59:59.999-04' WHERE application_id = '6b95e83c-4a86-4fd2-813a-b74d5a3bf517' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-31 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=6b95e83c-4a86-4fd2-813a-b74d5a3bf517, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-30 23:59:59.999-04' WHERE application_id = 'a6a4209b-ee81-408b-a23b-2e8dd210d6d2' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-31 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=a6a4209b-ee81-408b-a23b-2e8dd210d6d2, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-30 23:59:59.999-04' WHERE application_id = 'f7697a28-cebc-488a-8cd8-ecc956195876' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-11-01 23:59:59.999-05';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=f7697a28-cebc-488a-8cd8-ecc956195876, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-30 23:59:59.999-04' WHERE application_id = '85209ff9-fdd6-4579-a730-ca29eeedc13a' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-11-01 23:59:59.999-05';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=85209ff9-fdd6-4579-a730-ca29eeedc13a, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-16 23:59:59.999-04' WHERE application_id = '1e16173a-cf07-4da4-b282-4fe0c548b295' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-17 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=1e16173a-cf07-4da4-b282-4fe0c548b295, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-16 23:59:59.999-04' WHERE application_id = '60049ad2-bfba-46c4-bc92-5dfe277bfe2d' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-17 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=60049ad2-bfba-46c4-bc92-5dfe277bfe2d, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+UPDATE demos_app.application_date SET date_value = '2026-10-16 23:59:59.999-04' WHERE application_id = 'c27cd4f4-d26e-4b2a-a9ef-1f5f8cc60599' AND date_type_id = 'Completeness Review Due Date' AND date_value = '2026-10-17 23:59:59.999-04';
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+    IF v_rows_affected != 1 THEN
+        RAISE EXCEPTION 'Expected exactly 1 row to be updated for application_id=c27cd4f4-d26e-4b2a-a9ef-1f5f8cc60599, but % rows were affected', v_rows_affected;
+    END IF;
+    v_total_rows := v_total_rows + 1;
+
+    INSERT INTO data_fix_result (rows_affected) VALUES (v_total_rows);
+END
+$$;
+
+SELECT
+    result.rows_affected,
+    (
+        SELECT count(*) FROM demos_app.application_date
+        WHERE
+            (
+                application_date.application_id = '158e232e-94ed-46e0-bb32-3ab6fd7d7bfe'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-28 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '7520c247-be99-42ab-ab83-b75b91ba088f'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-14 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '47ebee63-b39a-4e84-bb52-50bd8b1699d2'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-14 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '84f6c0df-1558-4763-b4ee-a34003e83c7b'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-28 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'dcc9c173-adc5-44bc-a7d9-abcf76d4b244'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-14 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '801c5015-24df-4330-93a2-684a7d1ca6b1'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-14 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'cb33a46d-34df-4e16-a3c7-58f0f4768ad5'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-02 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '40fcaa38-623b-4304-81e7-ac29190a0d61'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-02 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '2c4b8397-cc31-420a-86eb-e9cad5cc73b2'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-31 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '33c3f63a-fb0f-407a-bdd9-18c827b94269'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-31 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '88d5a856-3a3c-4ea9-8d98-f4f9e78c3bb2'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-02 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'f50e13ae-0f6d-4720-b55a-bc0f1ab49d94'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-02 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '8c04495f-d642-4c1a-855f-626cf2da2766'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-02 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'b15f2a8e-794a-40a1-a545-6a2179b8be91'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-02 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'd92f0475-e116-477e-8961-e271105d5d00'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-02 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '109e0fb7-442c-407f-87c7-285d37549d7e'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-02 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'f2a8cf2b-8bbd-49d4-8311-aaaebb8630dd'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-02 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '354f7bbf-259a-4593-b794-a2203a3abd42'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-07 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '78733668-748b-4c30-823e-06d341e9f8b9'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-07 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '3da0375f-69ac-4cc3-a9cd-0ae7d5b6e992'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-04 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '6b24d40c-8869-4b95-bf57-f9e15941ad15'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-21 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '981cc2a9-7c15-40de-9d3d-de3ca72be6b3'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-21 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '436c1cf8-6b51-4c49-9a7c-6139ec8645de'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-06-18 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '0f219648-f3d9-4b9a-bae3-cc6661d48085'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-04 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '99876f87-28cd-4473-8e4a-8c5a917a3fd9'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-21 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'b17194c2-86d6-45fd-a5da-d226cbb24328'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-21 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '8d89f122-e40d-4ae6-85b2-0807722f9381'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-04 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'cee499ff-7e79-4407-925b-adfa09c36ad6'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2016-12-30 23:59:59.999-05'
+            )
+            OR (
+                application_date.application_id = '5793b4b8-d919-4729-8b78-7c9d93d9ee29'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2017-07-03 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '72e6fc34-f38e-4b4d-92b3-d740bb5bbe9a'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2025-09-05 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'c38675e8-7cb2-443a-a627-1338c24a2f73'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-07 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '2bf0029c-48d0-4dda-b135-363fb9ee3c32'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-14 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'ea81731c-3099-4abc-a723-b61f24ccdd81'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2017-11-22 23:59:59.999-05'
+            )
+            OR (
+                application_date.application_id = '25187cc1-63c4-4a23-907f-72b5cfd85290'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-07 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'a1e3ad4a-18ef-4c65-90c7-9c215005d0d6'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-07 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '1700e9ec-af9a-42dc-a097-0e55cd11141f'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-05-01 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '4b0491b2-5212-4681-9754-40b7f4cc1480'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-10 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'e8dc05f1-e9dd-4475-9ef3-269ebb955b52'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-10 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '8f31746f-579d-44b2-9a3b-050d768e95a0'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-07 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '5d5e1ae0-56a8-4a53-80ec-c18611bcbe4e'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-07 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'e0aba803-83a4-4344-aa1b-1083b63573ae'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-10 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '7459a708-7952-4c7c-9ca3-6b3e426c8920'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-10 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'c70c8d07-c8b6-4737-a6b0-05cc3ef27d9c'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-10 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '4a107e26-457d-474e-92f6-6ea8615c3c26'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-11 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '561961d1-7623-4fa6-a098-2361e57cf590'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-28 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '148306ed-b0b5-4159-95f5-ae5e2ba2ee8c'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-28 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '9f059740-a142-4b8b-8160-6254484801a4'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-11 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '8921521a-e07a-41d1-bfd5-a1e83e6849cf'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-28 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '9149e7fe-c3e5-4978-a9f2-e20bcb712232'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-28 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '439e467e-022c-47e1-a18b-dd0222931e47'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-14 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'b45cb524-aa41-43a0-aa6f-3e46881a9491'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-14 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'b4b33d5a-086b-4945-b014-46cfa2234f6b'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-17 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'c5aecceb-0210-4231-aa71-a7195d94f165'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-17 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '62649c02-65bf-494e-9bfb-73cfaa89f9f8'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-17 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '2f2fdb71-c929-45fa-944d-cb6dfe324737'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-17 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '74397699-53d7-4f39-aa69-c28d6fbd2c0e'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-17 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '171510dd-62f5-43ec-ab20-43861b85b1c3'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-17 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '87dd1ee8-e276-4137-89c6-6e57f836b14f'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-17 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'c8cfb08b-c224-4c77-8761-a429cb924eb3'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-24 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'bb4983f5-7f2e-4ec5-89a0-4925e507520c'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-18 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'b1796418-a02f-4172-87b9-4e73ecf41aae'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-04 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'fa6b2c93-d7b3-4e45-a352-becb8f32a63e'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-04 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'fcf3b4eb-aa51-4d7c-97f1-6f88b0df25a3'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-18 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'e36c75f2-576d-4d69-a0cf-006af06491b6'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-04 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'b8564431-5f2c-4673-9ebc-48b927becdd7'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-18 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '620b3e3f-169a-4330-828d-1300683cb303'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-18 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'a5db4c00-b154-4ef8-a653-3c57f66495ab'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-04 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '3fa341d5-d4d0-4820-9819-8988b1e49905'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-18 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '1f51a18c-8621-4c89-b32c-a96ee9710f7c'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-04 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'de6331d9-1247-49e8-8169-5026fde9f2e9'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-04 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '8ee1baf2-943b-48f2-b81f-129f4378d74f'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-04 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'b3538dd0-7beb-44f4-9496-03f25c76a7ba'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-04 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'cf161a99-cc29-4705-8856-54e5de950f0b'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-21 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'b0a8235f-7563-43d8-b3e6-098d85e8342b'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-24 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '8466ff68-7d2f-474f-abc5-c9f44f6673d4'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-24 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'eef9a844-0d09-4454-8ca2-2898b742fd53'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-21 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '23fc2c92-db23-4736-b946-90e43c85a853'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-24 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '8cb6e0a7-bb3b-4334-9fc1-374effd26280'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-21 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'ec3bf302-893d-4b87-8f22-113ed9f933d7'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-24 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'fb72f1dc-81bb-43e0-9e71-804737d2784a'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-24 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '0795fc51-d142-4bf3-a455-9e40473dd05d'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-24 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'd1bca858-c304-4a7e-a8f0-56879f91a49d'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-24 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '2d7c63c6-82c6-4779-9eb5-4cac22fc1b36'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-24 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'f863e3c9-8f7a-4dd4-b81c-37fdccb50ed9'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-25 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '196e3a84-c307-4fd8-9849-6452cc8889fe'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-25 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '533c32fc-83ce-43f6-a72c-0bdd2aa49ae3'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-11 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '78d2db07-dbb1-46c3-b48c-7a6aebf9c175'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-11 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'c38cd811-3393-4a45-aa0a-f961bc167160'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-25 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'e0885bd7-ed13-4622-aa99-864ad8ebd7e2'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-11 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'ce00c1f2-2b2a-40f8-9f62-a8dba8318312'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-11 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '8498073c-d243-4102-bdb1-664b3d90c773'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-08-28 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'b42474bd-3b87-4fea-abb2-52617a6c2b42'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-02 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '0e4cad82-5294-4b0f-914c-55578b3967e4'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-31 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'ae66313c-bd4e-4a1e-8a53-594f166f541e'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-31 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'ccd42969-6b38-4605-85fd-78cb80fbccce'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-31 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '08a03a3d-37b8-4730-a147-a2f63aed2a3f'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-31 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '428b5c68-c4ac-41be-86f6-79fccd41a8d1'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-31 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'a8f8315a-4c5b-4217-b954-fce0d8c56cb1'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-31 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'aa0a7ba7-8da6-446b-a5b2-cb991d9b0108'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-31 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '8f80f359-5c7d-473c-b609-61fd4a3b8e99'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-31 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'b5a99d61-ec31-438a-b5ee-d6bd98076541'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-31 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '39847f43-20c9-42f9-8846-8f80342cd49f'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-31 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '845e8b23-ac37-4c7f-ba87-135fbc51083b'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-02 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '77b88b8a-a20d-4842-9e37-aca9051e0867'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-11 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '00b5086f-58fd-4288-8b9d-9bb3bbdef478'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-02 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'a40ab9c3-4747-41c8-9fa5-4fdde89a3037'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-18 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '327ccc1f-c9f1-44eb-860b-522f59540a90'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-18 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'cca13b60-b45b-4ce6-935f-ab3a7b602336'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-09 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'd79bfccf-16d6-4a25-9151-578d7728fb6b'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-09 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '609c7bb7-979e-4571-9513-562eff5fadc8'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-09 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '1d8cb5f6-b662-41ce-84fe-cd32ea01c70e'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-09 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '53b245c1-b8f1-481f-8a5e-637561a794b6'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-09 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '0371e5a1-d4f0-4a54-ba92-93887cd737c8'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-09 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'a4fccf78-69c2-4707-a7de-b1869809a552'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-09-25 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '6aa0d6f6-60d5-494d-9318-9f5691745d86'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-16 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '6728e68c-9252-48cb-ab12-cf9dd1a9464d'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-16 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'b9b7fd4f-56bb-43eb-9920-d897d5cbccb4'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-16 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'c7a0a02a-306f-450d-b95c-30fc0e31eab6'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-16 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '50b9e804-68d2-4878-8d1b-3ff8677c8a37'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-02 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'f90532eb-3343-4864-84fc-de8f16282095'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-23 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '5d859973-46f5-4aab-8459-0ec9e8935f45'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-23 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'ddf425b2-342d-463e-992d-4ea4146cf642'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-23 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '2aba561e-0acb-4628-b754-6d707c12a1ab'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-09 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '3c20790f-411d-4220-a577-0f21b912f5c2'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-07-02 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '1df6fd13-713c-460e-9f7c-a9831c16eb8c'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2025-12-31 23:59:59.999-05'
+            )
+            OR (
+                application_date.application_id = '3ed667eb-56ae-467e-9a0e-36dfce3a5291'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-30 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'e22f34eb-7126-4490-ab43-6a6f03ec0380'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-30 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '38d4b6d8-f4a3-466a-a22d-c93ae0b17a9c'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-11-13 23:59:59.999-05'
+            )
+            OR (
+                application_date.application_id = '8ec23474-d505-4779-87b3-78cbe1951c77'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-30 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'e112491f-83fc-4d9c-afef-c2148250f32f'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-11-13 23:59:59.999-05'
+            )
+            OR (
+                application_date.application_id = '6b95e83c-4a86-4fd2-813a-b74d5a3bf517'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-30 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'a6a4209b-ee81-408b-a23b-2e8dd210d6d2'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-30 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'f7697a28-cebc-488a-8cd8-ecc956195876'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-30 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '85209ff9-fdd6-4579-a730-ca29eeedc13a'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-30 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '1e16173a-cf07-4da4-b282-4fe0c548b295'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-16 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = '60049ad2-bfba-46c4-bc92-5dfe277bfe2d'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-16 23:59:59.999-04'
+            )
+            OR (
+                application_date.application_id = 'c27cd4f4-d26e-4b2a-a9ef-1f5f8cc60599'
+                AND application_date.date_type_id = 'Completeness Review Due Date'
+                AND application_date.date_value = '2026-10-16 23:59:59.999-04'
+            )
+    ) AS adjusted_dates
+FROM pg_temp.data_fix_result AS result;
